@@ -4,8 +4,6 @@ on:
     branches:
       - master
   pull_request:
-    branches:
-      - master
   workflow_dispatch:
 
 name: run tests
@@ -50,8 +48,6 @@ jobs:
     - name: Calc coverage
       run: |
         go test -v -covermode=count -coverprofile=coverage.out
-    - name: copy coverage
-      run: cp coverage.out coverage-check.out
     - name: Convert coverage.out to coverage.lcov
       uses: jandelgado/gcov2lcov-action@v1.0.6
     - name: Coveralls
@@ -59,5 +55,3 @@ jobs:
       with:
           github-token: ${{ secrets.github_token }}
           path-to-lcov: coverage.lcov
-    - name: Check coverage percent
-      run: ./.github/coverage.sh
