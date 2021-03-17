@@ -6,4 +6,9 @@ services:
     ports:
       - 3000:3000
     volumes:
-      - .:/usr/src/app
+      - ./blog:/usr/src/app/blog
+      - ./docs:/usr/src/app/docs
+      - ./src:/usr/src/app/src
+      - ./static:/usr/src/app/static
+      - ./docusaurus.config.js:/usr/src/app/docusaurus.config.js
+      - ./sidebars.js:/usr/src/app/sidebars.js
