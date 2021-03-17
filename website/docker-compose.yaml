@@ -5,7 +5,5 @@ services:
     build: .
     ports:
       - 3000:3000
-      - 35729:35729
     volumes:
-      - .:/app
-    working_dir: /app
+      - .:/usr/src/app

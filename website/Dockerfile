@@ -1,6 +1,11 @@
 FROM node:lts
 
-EXPOSE 3000
+WORKDIR /usr/src/app
+
+COPY package.json ./
+COPY yarn.lock ./
+
 RUN yarn install
 
-CMD ["yarn", "run", "start"]
+EXPOSE 3000
+CMD ["yarn", "run" ,"start", "--host", "0.0.0.0"]
