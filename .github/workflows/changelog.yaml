@@ -1,17 +1,14 @@
 name: changelog
 
-on:
-  push:
-    # branches:
-    #   - main
-  release:
-    types: [created, edited]
-
-jobs:
-  generate-changelog:
-    runs-on: ubuntu-20.04
-    steps:
-      - name: genlog
-        run: docker run --rm -v "$(pwd)":"/usr/local/src/your-app" ferrarimarco/github-changelog-generator -u weaveworks -p weave-gitops
+name: Run Changelog CI
+    uses: saadmk11/changelog-ci@v0.7.0
+    with:
+      config_file: .github/workflows/changelog-ci-config.json
+    on:
+      push:
+        branches:
+          - main
+      release:
+        types: [created, edited]
 
 
