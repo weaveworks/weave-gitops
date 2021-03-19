@@ -12,6 +12,6 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: genlog
-        run: docker run -it --rm -v "$(pwd)":"/usr/local/src/your-app" ferrarimarco/github-changelog-generator -u weaveworks -p weave-gitops
+        run: docker run --rm -v "$(pwd)":"/usr/local/src/your-app" ferrarimarco/github-changelog-generator -u weaveworks -p weave-gitops
 
 
