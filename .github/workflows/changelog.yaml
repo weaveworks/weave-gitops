@@ -1,0 +1,17 @@
+name: changelog
+
+on:
+  push:
+    # branches:
+    #   - main
+  release:
+    types: [created, edited]
+
+jobs:
+  generate-changelog:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: genlog
+        run: docker run -it --rm -v "$(pwd)":"/usr/local/src/your-app" ferrarimarco/github-changelog-generator -u weaveworks -p weave-gitops
+
+
