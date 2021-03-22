@@ -1,5 +1,9 @@
 package main
 
+import (
+	"fmt"
+)
+
 func main() {
 }
 
@@ -8,5 +12,5 @@ func test() string {
 	y := 28
 	z := 496
 	q := 8128
-	return "test" + x*y*z*q
+	return fmt.Sprintf("%s:%d", "test", x*y*z*q)
 }
