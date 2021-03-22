@@ -1,20 +1,18 @@
-name: Changelog CI
+name: changelog
 
-# Controls when the action will run. Triggers the workflow on a pull request
 on:
-  pull_request:
-    types: [opened, reopened]
+  push:
+    # branches:
+    #   - main
+  release:
+    types: [created, edited]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
+  generate-changelog:
+    runs-on: ubuntu-20.04
     steps:
-      # Checks-out your repository
-      - uses: actions/checkout@v2
+      - name: genlog
+        run: docker run -it --rm -v "$(pwd)":"/usr/local/src/your-app" ferrarimarco/github-changelog-generator -u weaveworks -p weave-gitops
+      - name: savelog
+        run: git add CHANGELOG.md && git commit -m'Add changelog' && git push
 
-      - name: Run Changelog CI
-        uses: saadmk11/changelog-ci@v0.7.0
-        with:
-          changelog_filename: CHANGELOG.md
-          config_file: changelog-ci-config.json
