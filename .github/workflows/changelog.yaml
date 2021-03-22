@@ -11,8 +11,10 @@ jobs:
   generate-changelog:
     runs-on: ubuntu-20.04
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
       - name: genlog
-        run: docker run --rm -v "$(pwd)":"/usr/local/src/your-app" ferrarimarco/github-changelog-generator -u weaveworks -p weave-gitops
+        run: docker run --rm -v "${GITHUB_WORKSPACE}":"/usr/local/src/your-app" ferrarimarco/github-changelog-generator -u weaveworks -p weave-gitops
       - name: savelog
-        run: git add CHANGELOG.md && git commit -m'Add changelog' && git push
+        run: cd "${GITHUB_WORKSPACE}" && git add CHANGELOG.md && git commit -m'Add changelog' && git push
 
