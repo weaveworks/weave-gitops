@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Configure git info
+        run:  cd "${GITHUB_WORKSPACE}" && git config --global user.email "support@weave.works" && git config --global user.name "support"
       - name: genlog
         run: docker run --rm -v "${GITHUB_WORKSPACE}":"/usr/local/src/your-app" ferrarimarco/github-changelog-generator -u weaveworks -p weave-gitops
       - name: savelog
