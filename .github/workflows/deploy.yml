@@ -20,7 +20,7 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_REGION: 'us-east-2'
-        SOURCE_DIR: './main.go'
+        SOURCE_DIR: 'main.go'
   push_to_registry:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
