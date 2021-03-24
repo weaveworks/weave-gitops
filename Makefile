@@ -1,5 +1,4 @@
 VERSION=$(shell git describe --always --match "v*")
-IMAGE_TAG := $(shell tools/image-tag)
 GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
 
