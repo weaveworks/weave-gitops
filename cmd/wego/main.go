@@ -21,12 +21,6 @@ var rootCmd = &cobra.Command{
 	},
 }
 
-// errorExit will print a message to stderr and exit
-func errorExit(msg string, err interface{}) {
-	fmt.Fprintf(os.Stderr, "%s: %v\n", msg, err)
-	os.Exit(1)
-}
-
 func configureLogger() {
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp: true,
@@ -40,6 +34,7 @@ func main() {
 	rootCmd.PersistentFlags().BoolVarP(&options.verbose, "verbose", "v", false, "Enable verbose output")
 	rootCmd.AddCommand(version.Cmd)
 	if err := rootCmd.Execute(); err != nil {
-		errorExit("Error", err)
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
 	}
 }
