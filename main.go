@@ -1,11 +1,18 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func main() {
-	fmt.Println("Hello World!")
 }
 
 func test() string {
-	return "test"
+	a := 1
+	w := 1
+	x := 6
+	y := 28
+	z := 496
+	q := 8128
+	return fmt.Sprintf("%s:%d", "test", a*w*x*y*z*q)
 }

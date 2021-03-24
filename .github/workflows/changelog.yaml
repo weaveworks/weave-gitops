@@ -1,0 +1,23 @@
+name: changelog
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  generate-changelog:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Create changelog
+        env:
+          CHANGELOG_GITHUB_TOKEN: "${{ secrets.CHANGELOG_CREATION_TOKEN }}"
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          docker run --rm -v "${GITHUB_WORKSPACE}":"/usr/local/src/your-app" ferrarimarco/github-changelog-generator -u weaveworks -p weave-gitops
+          git add .
+          git commit -m "Created changelog"
+          git push origin HEAD:master
+

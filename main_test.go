@@ -8,5 +8,5 @@ import (
 
 func TestMain(t *testing.T) {
 	result := test()
-	require.Equal(t, "test", result)
+	require.Equal(t, "test:677289984", result)
 }
