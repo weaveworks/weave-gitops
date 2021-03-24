@@ -12,13 +12,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - run: go build -o wego
-      uses: aws-actions/configure-aws-credentials@v1
+    - uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-2
-    - name: Copy files to the production website with the AWS CLI
-      run: |
+    - run: |
         aws s3 cp wego s3://weave-gitops/wego
   push_to_registry:
     name: Push Docker image to Docker Hub
