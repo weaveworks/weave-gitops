@@ -1,8 +1,6 @@
 name: build
 
-on:
-  push
-  pull_request
+on: [push, pull_request]
 
 jobs:
   build-wego:
@@ -11,5 +9,4 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
       - name: build
-        run: |
-          make all
+        run: make all
