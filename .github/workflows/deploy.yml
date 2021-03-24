@@ -10,8 +10,8 @@ jobs:
   publish-s3-artifact:
     runs-on: ubuntu-latest
     steps:
-    - run: go build -o wego
     - uses: actions/checkout@v2
+    - run: go build -o wego
     - uses: jakejarvis/s3-sync-action@master
       with:
         args: --acl public-read --follow-symlinks --delete
