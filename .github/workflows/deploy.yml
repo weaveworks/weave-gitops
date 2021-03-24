@@ -5,13 +5,13 @@ on:
       - main
   pull_request:
 
-name: publish s3 artifacts
+name: publish
 jobs:
   publish-s3-artifact:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - run: go build -o wego
+    - run: go build -o wego/wego
     - uses: jakejarvis/s3-sync-action@master
       with:
         args: --acl public-read --follow-symlinks --delete
@@ -20,7 +20,7 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_REGION: 'us-east-2'
-        SOURCE_DIR: 'wego'
+        SOURCE_DIR: './wego/wego'
   push_to_registry:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
@@ -32,5 +32,5 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          repository: weaveworks/weave-gitops
+          repository: weaveworks/weave-gitops/wego
           tag_with_ref: true
