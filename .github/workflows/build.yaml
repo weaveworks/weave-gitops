@@ -1,0 +1,15 @@
+name: build
+
+on:
+  push
+  pull_request
+
+jobs:
+  build-wego:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: build
+        run: |
+          make all
