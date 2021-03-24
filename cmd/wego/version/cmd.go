@@ -13,37 +13,13 @@ var Cmd = &cobra.Command{
 	Run:   runCmd,
 }
 
-func extractLatestRelease(data []interface{}) (string, error) {
-	version := "v0.0.0"
-
-	for _, release := range data {
-		relMap, ok := release.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		relVersion, ok := relMap["tag_name"].(string)
-		if !ok {
-			continue
-		}
-		lt, err := LessThan(version, relVersion)
-		if err != nil {
-			continue
-		}
-		if lt {
-			version = relVersion
-		}
-	}
-
-	return version, nil
-}
-
 func runCmd(cmd *cobra.Command, args []string) {
 	releases, err := GetReleases()
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		os.Exit(1)
 	}
-	latestRelease, err := extractLatestRelease(releases)
+	latestRelease, err := ExtractLatestRelease(releases)
 	if err != nil {
 		fmt.Printf("Failed to extract version information; local version is: %s\n", Version)
 		os.Exit(1)

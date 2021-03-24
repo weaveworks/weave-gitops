@@ -10,8 +10,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/version"
 )
 
+// The current wego version
 var Version = "v0.0.0"
 
+// LessThan compares two version strings of the form: "vX.X.X"
 func LessThan(s1, s2 string) (bool, error) {
 	v1, err := version.ParseSemantic(s1)
 	if err != nil {
@@ -24,6 +26,7 @@ func LessThan(s1, s2 string) (bool, error) {
 	return v1.LessThan(v2), nil
 }
 
+// GetReleases looks up all releases for wego to determine if a new release is available
 func GetReleases() ([]interface{}, error) {
 	releaseQuery := "https://api.github.com/repos/weaveworks/weave-gitops/releases"
 	// Create a new request using http
@@ -46,4 +49,30 @@ func GetReleases() ([]interface{}, error) {
 		return nil, fmt.Errorf("Failed to parse version information; local version is: %s\n", Version)
 	}
 	return data, nil
+}
+
+// ExtractLatestRelease finds the most recent release tag in the set of wego releases.
+// The data is a slice of "map[string]interface{}"; each release corresponds to one map.
+func ExtractLatestRelease(data []interface{}) (string, error) {
+	version := "v0.0.0"
+
+	for _, release := range data {
+		relMap, ok := release.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		relVersion, ok := relMap["tag_name"].(string)
+		if !ok {
+			continue
+		}
+		lt, err := LessThan(version, relVersion)
+		if err != nil {
+			continue
+		}
+		if lt {
+			version = relVersion
+		}
+	}
+
+	return version, nil
 }

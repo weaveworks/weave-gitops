@@ -78,11 +78,11 @@ func TestExtractLatestRelease(t *testing.T) {
 	var data []interface{}
 	err := json.Unmarshal([]byte(testReleaseData), &data)
 	assert.NoError(t, err)
-	rel, err := extractLatestRelease(data)
+	rel, err := ExtractLatestRelease(data)
 	assert.NoError(t, err)
 	assert.Equal(t, rel, "v2.6.28")
 
-	rel, err = extractLatestRelease([]interface{}{})
+	rel, err = ExtractLatestRelease([]interface{}{})
 	assert.NoError(t, err)
 	assert.Equal(t, rel, "v0.0.0")
 }
