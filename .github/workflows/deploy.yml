@@ -8,11 +8,9 @@ on:
 name: publish s3 artifacts
 jobs:
   publish-s3-artifact:
-		env:
-		GOPROXY: "https://proxy.golang.org"
-    run: go build -o wego
     runs-on: ubuntu-latest
     steps:
+    - run: go build -o wego
     - uses: actions/checkout@v2
     - uses: jakejarvis/s3-sync-action@master
       with:
