@@ -14,9 +14,9 @@ jobs:
     - run: go build -o wego/wego
     - uses: shallwefootball/s3-upload-action@master
       with:
-        aws_key_id: ${{ secrets.AWS_KEY_ID }}
+        aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
-        aws_bucket: ${{ secrets.AWS_BUCKET }}
+        aws_bucket: ${{ secrets.AWS_S3_BUCKET }}
         source_dir: './wego/wego'
   push_to_registry:
     name: Push Docker image to Docker Hub
