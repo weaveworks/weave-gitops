@@ -5,6 +5,7 @@ on:
     workflows: [ "publish" ]
     types:
       - completed
+      - requested
 
 jobs:
 # Uncomment once we have a FOSSA secret
