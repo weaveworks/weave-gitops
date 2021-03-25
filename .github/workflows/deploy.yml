@@ -33,11 +33,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Build and push
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          push: true
-          tags: weaveworks/weave-gitops:${{ github.sha }}
+      - name: Build the latest Docker image
+        run: docker build . --file Dockerfile --tag weaveworks/weave-gitops:${{ github.sha }}
+      - name: Push the latest Docker image
+        run: docker push weaveworks/weave-gitops:${{ github.sha }}
