@@ -62,7 +62,7 @@ jobs:
   snyk:
     name: Snyk
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'safe to test')
+    if: contains(github.event.pull_request.labels.*.name, 'safe to scan')
     steps:
       - uses: actions/checkout@v2
       - name: Run Snyk to check Docker image for vulnerabilities
