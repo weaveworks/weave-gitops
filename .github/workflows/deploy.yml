@@ -40,7 +40,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/weave-gitops:${{ github.sha }}
-      - name: Inspect
-        run: |
-          docker buildx imagetools inspect ${{ secrets.DOCKER_HUB_USERNAME }}/weave-gitops:${{ github.sha }}
+          tags: weaveworks/weave-gitops:${{ github.sha }}
