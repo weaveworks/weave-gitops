@@ -65,7 +65,9 @@ jobs:
   snyk:
     name: Snyk
     runs-on: ubuntu-latest
-#    needs: docker
+    if: >
+      ${{ github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v2
       - name: Run Snyk to check Docker image for vulnerabilities
