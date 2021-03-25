@@ -1,11 +1,8 @@
 name: Scan
 
 on:
-  workflow_run:
-    workflows: [ "publish" ]
-    types:
-      - completed
-      - requested
+  pull_request_target:
+    types: [labeled]
 
 jobs:
 # Uncomment once we have a FOSSA secret
@@ -65,9 +62,7 @@ jobs:
   snyk:
     name: Snyk
     runs-on: ubuntu-latest
-    if: >
-      ${{ github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.conclusion == 'success' }}
+    if: contains(github.event.pull_request.labels.*.name, 'safe to test')
     steps:
       - uses: actions/checkout@v2
       - name: Run Snyk to check Docker image for vulnerabilities
