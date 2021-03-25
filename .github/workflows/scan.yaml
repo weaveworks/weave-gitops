@@ -1,10 +1,6 @@
 name: Scan
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_run:
     workflows: [ "publish" ]
     branches: [ main ]
