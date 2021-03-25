@@ -27,10 +27,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Login to GitHub Packages Docker Registry
-        run: docker login -u ${{ secrets.DOCKER_HUB_PASSWORD }} -p ${{ secrets.DOCKER_HUB_PASSWORD }} docker.io
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Build the latest Docker image
-        run: docker build . --file Dockerfile --tag weaveworks/weave-gitops:${{ github.sha }}
-      - name: Push the latest Docker image
-        run: docker push weaveworks/weave-gitops:${{ github.sha }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: weaveworks/wego-test:${{ github.sha }} 
