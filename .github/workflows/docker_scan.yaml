@@ -1,27 +1,12 @@
+name: Docker and Scan
+
 on:
   push:
     branches:
       - main
   pull_request:
-  workflow_dispatch:
 
-name: publish
 jobs:
-  publish-s3-artifact:
-    runs-on: ubuntu-latest
-    steps:
-    - name: checkout
-      uses: actions/checkout@v2
-    - name: build
-      run: make all
-    - name: publish
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-2
-    - run: |
-        aws s3 cp bin/wego s3://weave-gitops/wego
   push_to_registry:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
@@ -42,19 +27,17 @@ jobs:
           push: true
           tags: weaveworks/wego-test:${{ github.sha }}
 
-  # Uncomment once we have a FOSSA secret
-  #  fossa:
-  #    name: FOSSA
-  #    runs-on: ubuntu-latest
-  #    steps:
-  #      - name: Checkout
-  #        uses: actions/checkout@v2
-  #      - name: Run FOSSA scan and upload build data
-  #        uses: fossa-contrib/fossa-action@v1
-  #        with:
-  #          # FOSSA Push-Only API Token
-  #          fossa-api-key: ${{ secrets.FOSSA_API_KEY }}
-  #          github-token: ${{ github.token }}
+  fossa:
+    name: FOSSA
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Run FOSSA scan and upload build data
+        uses: fossa-contrib/fossa-action@v1
+        with:
+          fossa-api-key: ${{ secrets.FOSSA_API_KEY }}
+          github-token: ${{ github.token }}
 
   snyk-sourcecode:
     name: Snyk Sourcecode
