@@ -7,7 +7,6 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/go-checkpoint"
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
 )
 
@@ -35,14 +34,6 @@ func configureLogger() {
 func main() {
 	rootCmd.PersistentFlags().BoolVarP(&options.verbose, "verbose", "v", false, "Enable verbose output")
 	rootCmd.AddCommand(version.Cmd)
-
-	if checkResponse, err := checkpoint.Check(&checkpoint.CheckParams{
-		Product: "weave-gitops",
-		Version: version.Version,
-	}); err == nil && checkResponse.Outdated {
-		log.Infof("wego version %s is available; please update at %s",
-			checkResponse.CurrentVersion, checkResponse.CurrentDownloadURL)
-	}
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
