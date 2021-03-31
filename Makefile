@@ -1,6 +1,7 @@
 VERSION=$(shell git describe --always --match "v*")
 GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
+# BINARY_NAME=$(shell go env BINARY_NAME)
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -16,8 +17,9 @@ unit-tests:
 	CGO_ENABLED=0 go test -v ./cmd/...
 
 # Build wego binary
-wego: fmt vet unit-tests
-	CGO_ENABLED=0 go build -o bin/wego cmd/wego/*.go
+# wego: fmt vet unit-tests
+wego:
+	CGO_ENABLED=0 go build -o bin/$(BINARY_NAME) cmd/wego/*.go
 
 # Clean up images and binaries
 clean:
