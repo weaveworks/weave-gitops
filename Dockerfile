@@ -3,5 +3,5 @@ FROM golang:1.15
 WORKDIR $GOPATH/src/github.com/weaveworks/weave-gitops
 COPY . .
 RUN go get -d -v ./...
-RUN make all
+RUN make all BINARY_NAME=wego
 CMD ["wego"] 
