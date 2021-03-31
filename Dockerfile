@@ -1,4 +1,4 @@
-FROM golang:1.15
+FROM golang:1.15.10
 
 WORKDIR $GOPATH/src/github.com/weaveworks/weave-gitops
 COPY . .
