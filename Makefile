@@ -20,15 +20,8 @@ unit-tests:
 	CGO_ENABLED=0 go test -v ./cmd/...
 
 # Build wego binary
-<<<<<<< HEAD
 wego: fmt vet unit-tests
 	go build -ldflags "-X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit=$(GIT_COMMIT)" -o bin/wego cmd/wego/*.go
-=======
-# wego: fmt vet unit-tests
-wego:
-	CGO_ENABLED=0 go build -o bin/$(BINARY_NAME) cmd/wego/*.go
-
->>>>>>> main
 # Clean up images and binaries
 clean:
 	rm -f bin/wego
