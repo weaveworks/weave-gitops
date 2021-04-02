@@ -28,7 +28,6 @@ jobs:
         with:
           version: "v0.10.0"
           image: kindest/node:v1.20.2@sha256:8f7ea6e7642c0da54f04a7ee10431549c0257315b3a634f6ef2fecaaedb19bab
-          config: .github/kind/config.yaml # disable KIND-net
       - name: kind-check
         run: |
           kubectl get pods -A
