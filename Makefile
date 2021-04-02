@@ -19,7 +19,7 @@ all: wego
 unit-tests:
 	CGO_ENABLED=0 go test -v ./cmd/...
 
-# Download flux then Build wego binary
+# Build wego binary
 wego: flux fmt vet unit-tests
 	go build -ldflags "-X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit=$(GIT_COMMIT)" -o bin/wego cmd/wego/*.go
 	rm -f cmd/wego/flux/flux
