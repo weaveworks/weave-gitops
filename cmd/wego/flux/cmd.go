@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+//nolint
 //go:embed flux
 var test []byte
 
