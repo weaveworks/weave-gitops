@@ -8,7 +8,7 @@ assignees: ''
 ---
 
 **Short description**
-_As a Platform Engineer I need node exporter available on each node so that I can troubleshoot my installation._
+As a [User Role] I want to [feature/functionality] so that [business outcome/value].
 
 **Acceptance criteria**
 - [ ] _does X_
