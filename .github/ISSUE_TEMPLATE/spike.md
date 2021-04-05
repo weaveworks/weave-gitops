@@ -12,6 +12,9 @@ A sentance or two that captures the item we need to research.  Should be in the 
 **Short description**
 A clear and concise description.  
 
+**Timebox**
+The expected time investment.
+
 ---
 
 **Results**
