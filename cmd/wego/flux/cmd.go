@@ -9,9 +9,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-//nolint
 //go:embed flux
-var test []byte
+var flux []byte
 
 var Cmd = &cobra.Command{
 	Use:   "flux",
@@ -20,7 +19,7 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	_ = os.WriteFile("bin/flux", test, 0755)
+	_ = os.WriteFile("bin/flux", flux, 0755)
 }
 
 func runCmd(cmd *cobra.Command, args []string) {

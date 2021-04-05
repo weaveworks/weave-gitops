@@ -45,6 +45,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Fake Install flux
+        run: touch cmd/wego/flux/flux
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/golang@master
         env:
@@ -55,6 +57,8 @@ jobs:
         uses: github/codeql-action/upload-sarif@v1
         with:
           sarif_file: snyk.code.sarif
+      - name: Remove fake flux
+        run: rm -f cmd/wego/flux/flux
 
   snyk:
     name: Snyk
