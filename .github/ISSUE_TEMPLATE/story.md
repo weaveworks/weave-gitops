@@ -27,9 +27,9 @@ As a [User Role] I want to [feature/functionality] so that [business outcome/val
 - [ ] _design X_
 - [ ] _..._
 
----
-_Consider following the INVEST acronym - Independent, Negotialbe, Valuable, Estimatable, Small, Testable_
+<!--
+Consider following the INVEST acronym - Independent, Negotialbe, Valuable, Estimatable, Small, Testable
 
-_When defining tests, consider using **Given** **When** **Then** syntax._
-
+When defining tests, consider using **Given** **When** **Then** syntax.  These could also be used for defining acceptance criteria.
+-->
 
