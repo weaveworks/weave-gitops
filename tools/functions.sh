@@ -75,7 +75,7 @@ goarch() {
 }
 
 mktempdir() {
-    mktemp -d 2>/dev/null || mktemp -d -t 'wk-quickstart'
+    mktemp -d 2>/dev/null || mktemp -d -t 'wego'
 }
 
 do_curl() {
@@ -89,7 +89,7 @@ do_curl() {
 do_curl_binary() {
     local cmd="${1}"
     local url="${2}"
-    local default_path="${HOME}/.wks/bin"
+    local default_path="${HOME}/.wego/bin"
     local path="${3:-${default_path}}"/"${cmd}"
 
     do_curl "${path}" "${url}"
@@ -99,7 +99,7 @@ do_curl_binary() {
 do_curl_tarball() {
     local cmd="${1}"
     local url="${2}"
-    local default_path="${HOME}/.wks/bin"
+    local default_path="${HOME}/.wego/bin"
     local path="${3:-${default_path}}"/"${cmd}"
 
     dldir="$(mktempdir)"
@@ -113,7 +113,7 @@ do_curl_tarball() {
 do_curl_tarball_with_path() {
     local cmd="${1}"
     local url_and_path=(${2//;/ })
-    local default_path="${HOME}/.wks/bin"
+    local default_path="${HOME}/.wego/bin"
     local path="${3:-${default_path}}"/"${cmd}"
 
     dldir="$(mktempdir)"

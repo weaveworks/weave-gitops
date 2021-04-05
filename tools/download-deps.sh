@@ -64,11 +64,11 @@ download_dependency() {
     local url_and_path
     local fetch
     local binarypath
-	local special_tarpath
-	local special_tarpath_url
+    local special_tarpath
+    local special_tarpath_url
     binarypath=$(instantiate_url "$(run_stoml binarypath)")
-	special_tarpath=$(instantiate_url "$(run_stoml special_tarpath)")
-	special_tarpath_url=(${special_tarpath//;/ }) # split out special paths which contain <url>;<path in tarball>
+    special_tarpath=$(instantiate_url "$(run_stoml special_tarpath)")
+    special_tarpath_url=(${special_tarpath//;/ }) # split out special paths which contain <url>;<path in tarball>
     local tarpath
     tarpath=$(instantiate_url "$(run_stoml tarpath)")
     echo $tarpath
@@ -83,6 +83,7 @@ download_dependency() {
         fetch=do_curl_tarball
     else
         echo "No valid path for tool:" "${tool}"
+        exit 1
     fi
     "${fetch}" "${tool}" "${url_and_path}" "${bin_dir}"
 }
@@ -90,8 +91,9 @@ download_dependency() {
 # Don't use $RELEASE_GOOS here, should be whatever is running the script.
 STOML_URL="https://github.com/freshautomations/stoml/releases/download/v0.4.0/stoml_$(goos)_amd64"
 do_curl_binary "stoml" "${STOML_URL}" "${BIN_DIR}"
-tools=(flux)
+
+# Downloading tools
+tools=$("${BIN_DIR}"/stoml "${DEP_FILE}" .)
 for tool in "${tools[@]}"; do
     download_dependency "${tool}" "${BIN_DIR}"
 done
-# rm "${BIN_DIR}/stoml"
