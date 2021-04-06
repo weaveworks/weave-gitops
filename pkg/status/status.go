@@ -39,6 +39,5 @@ func GetClusterStatus() ClusterStatus {
 }
 
 func kubectlHandler(args string) error {
-	cmd := exec.Command(fmt.Sprintf("kubectl get %s", args))
-	return cmd.Run()
+	return exec.Command(fmt.Sprintf("kubectl get %s", args)).Run()
 }
