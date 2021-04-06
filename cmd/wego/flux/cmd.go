@@ -55,7 +55,7 @@ func runCmd(cmd *cobra.Command, args []string) {
 
 	// run command
 	if output, err := c.CombinedOutput(); err != nil {
-		fmt.Println("Error:", err)
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	} else {
 		fmt.Printf("Output: %s\n", output)
