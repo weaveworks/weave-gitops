@@ -44,12 +44,12 @@ instantiate_url() {
 # and allow overriding with a local tool by setting the environment variable "$LOCAL_<tool>" (e.g. $LOCAL_wk)
 # (useful for testing and particularly useful on darwin since we don't publish a "wk" version for darwin)
 download_dependency() {
-  local tool="${1}"
-  local bin_dir="${2}"
-  local dependencies_toml="${DEP_FILE}"
-  local localToolVar="\$LOCAL_"${tool}
-  local localTool
-  localTool=$(eval "echo ${localToolVar}")
+    local tool="${1}"
+    local bin_dir="${2}"
+    local dependencies_toml="${DEP_FILE}"
+    local localToolVar="\$LOCAL_"${tool}
+    local localTool
+    localTool=$(eval "echo ${localToolVar}")
 
     if [ -n "${localTool}" ]; then
         cp "${localTool}" "${bin_dir}"
@@ -71,6 +71,8 @@ download_dependency() {
     special_tarpath_url=(${special_tarpath//;/ }) # split out special paths which contain <url>;<path in tarball>
     local tarpath
     tarpath=$(instantiate_url "$(run_stoml tarpath)")
+    local custom_bindir
+    custom_bindir=$(run_stoml bindir)
     echo $tarpath
     if check_url "${binarypath}"; then
         url_and_path="${binarypath}"
@@ -85,7 +87,8 @@ download_dependency() {
         echo "No valid path for tool:" "${tool}"
         exit 1
     fi
-    "${fetch}" "${tool}" "${url_and_path}" "${bin_dir}"
+
+    "${fetch}" "${tool}" "${url_and_path}" "${custom_bindir:-$bin_dir}"
 }
 
 # Don't use $RELEASE_GOOS here, should be whatever is running the script.
@@ -94,6 +97,6 @@ do_curl_binary "stoml" "${STOML_URL}" "${BIN_DIR}"
 
 # Downloading tools
 tools=$("${BIN_DIR}"/stoml "${DEP_FILE}" .)
-for tool in "${tools[@]}"; do
+for tool in $tools; do
     download_dependency "${tool}" "${BIN_DIR}"
 done
