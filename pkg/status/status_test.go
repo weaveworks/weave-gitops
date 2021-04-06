@@ -9,33 +9,28 @@ import (
 )
 
 func TestClusterStatus(t *testing.T) {
-	lookupHandler = func(args string) error {
-		return fmt.Errorf("Failed calling kubectl get %s", args)
-	}
+	lookupHandler = fail
 	require.Equal(t, GetClusterStatus(), Unknown)
 
-	lookupHandler = func(args string) error {
-		if !strings.HasPrefix(args, "deployment coredns") {
-			return fmt.Errorf("Failed calling kubectl get %s", args)
-		}
-		return nil
-	}
+	lookupHandler = handle("deployment coredns")
 	require.Equal(t, GetClusterStatus(), Unmodified)
 
-	lookupHandler = func(args string) error {
-		if !strings.HasPrefix(args, "customresourcedefinition") {
-			return fmt.Errorf("Failed calling kubectl get %s", args)
-		}
-		return nil
-	}
+	lookupHandler = handle("customresourcedefinition")
 	require.Equal(t, GetClusterStatus(), FluxInstalled)
 
-	lookupHandler = func(args string) error {
-		if !strings.HasPrefix(args, "deployment wego-controller") {
-			return fmt.Errorf("Failed calling kubectl get %s", args)
+	lookupHandler = handle("deployment wego-controller")
+	require.Equal(t, GetClusterStatus(), WeGOInstalled)
+}
+
+func handle(prefix string) func(args string) error {
+	return func(args string) error {
+		if !strings.HasPrefix(args, prefix) {
+			return fail(args)
 		}
 		return nil
 	}
+}
 
-	require.Equal(t, GetClusterStatus(), WeGOInstalled)
+func fail(args string) error {
+	return fmt.Errorf("Failed calling kubectl get %s", args)
 }
