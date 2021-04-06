@@ -58,7 +58,7 @@ jobs:
         with:
           sarif_file: snyk.code.sarif
       - name: Remove fake flux
-        run: rm -f cmd/wego/flux/flux
+        run: rm -f cmd/wego/flux/bin/flux
 
   snyk:
     name: Snyk
