@@ -73,6 +73,7 @@ download_dependency() {
     tarpath=$(instantiate_url "$(run_stoml tarpath)")
     local custom_bindir
     custom_bindir=$(run_stoml bindir)
+    mkdir -p $custom_bindir
     echo $tarpath
     if check_url "${binarypath}"; then
         url_and_path="${binarypath}"

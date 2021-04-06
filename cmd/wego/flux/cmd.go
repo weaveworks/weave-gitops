@@ -10,10 +10,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-//go:embed flux
+//go:embed bin/flux
 var fluxExe []byte
 
-type fluxDep struct {
+type dependencies struct {
 	Flux flux
 }
 type flux struct {
@@ -25,19 +25,33 @@ var Cmd = &cobra.Command{
 	Short: "Use flux commands",
 	Run:   runCmd,
 }
-var exe = "temp/bin/flux-"
+var path = "temp/bin"
+var exePath string
 
 func init() {
-	var f fluxDep
-	if _, err := toml.DecodeFile("tools/dependencies.toml", &f); err != nil {
-		fmt.Println(err)
+	var dep dependencies
+	if _, err := toml.DecodeFile("tools/dependencies.toml", &dep); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
 	}
-	exe = exe + f.Flux.Version
-	_ = os.WriteFile(exe, fluxExe, 0755)
+
+	exePath = path + "/flux-" + dep.Flux.Version
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		err := os.MkdirAll(path, 0755)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+		err = os.WriteFile(exePath, fluxExe, 0755)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+	}
 }
 
 func runCmd(cmd *cobra.Command, args []string) {
-	c := exec.Command("./"+exe, args...)
+	c := exec.Command("./"+exePath, args...)
 
 	// run command
 	if output, err := c.CombinedOutput(); err != nil {
