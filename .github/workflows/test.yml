@@ -24,7 +24,7 @@ jobs:
       with:
         version: v1.29
     - name: Remove fake flux
-      run: rm -f cmd/wego/flux/flux
+      run: rm -f cmd/wego/flux/bin/flux
 
   test:
     runs-on: ubuntu-latest
@@ -41,7 +41,7 @@ jobs:
     - name: Run tests
       run: make unit-tests
     - name: Remove fake flux
-      run: rm -f cmd/wego/flux/flux
+      run: rm -f cmd/wego/flux/bin/flux
 
   coverage:
     runs-on: ubuntu-latest
