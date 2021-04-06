@@ -5,6 +5,7 @@ GOARCH=$(shell go env GOARCH)
 BUILD_TIME=$(shell date +'%Y-%m-%d_%T')
 BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT=$(shell git log -n1 --pretty='%h')
+CURRENT_DIR := $(shell pwd)
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -33,3 +34,6 @@ fmt:
 # Run go vet against code
 vet:
 	go vet ./...
+
+dependencies:
+	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
