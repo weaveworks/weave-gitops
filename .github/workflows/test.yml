@@ -18,8 +18,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Fake Install flux
-      run: mkdir cmd/wego/flux/bin
-      run: touch cmd/wego/flux/bin/flux
+      run: mkdir -p cmd/wego/flux/bin && touch cmd/wego/flux/bin/flux
     - name: Run linters
       uses: golangci/golangci-lint-action@v2
       with:
@@ -38,8 +37,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Fake Install flux
-      run: mkdir cmd/wego/flux/bin
-      run: touch cmd/wego/flux/bin/flux
+      run: mkdir -p cmd/wego/flux/bin && touch cmd/wego/flux/bin/flux
     - name: Run tests
       run: make unit-tests
     - name: Remove fake flux
