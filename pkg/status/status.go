@@ -23,15 +23,15 @@ var lookupHandler = kubectlHandler
 // - has flux installed
 // - has wego installed
 func GetClusterStatus() ClusterStatus {
-	if err := lookupHandler("deployment wego-controller -n wego-system"); err == nil {
+	if lookupHandler("deployment wego-controller -n wego-system") == nil {
 		return WeGOInstalled
 	}
 
-	if err := lookupHandler("customresourcedefinition buckets.source.toolkit.fluxcd.io"); err == nil {
+	if lookupHandler("customresourcedefinition buckets.source.toolkit.fluxcd.io") == nil {
 		return FluxInstalled
 	}
 
-	if err := lookupHandler("deployment coredns -n kube-system"); err == nil {
+	if lookupHandler("deployment coredns -n kube-system") == nil {
 		return Unmodified
 	}
 
