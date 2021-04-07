@@ -19,6 +19,7 @@ A clear and concise description of what the bug is.
     - [ ] other - _name_ _version_
  - Browser + version: [e.g. chrome 74, safari 12, firefox 87]
  - 
+**Affects versions**
 
 **To Reproduce**
 Steps to reproduce the behavior:
