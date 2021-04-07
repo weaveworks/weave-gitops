@@ -17,10 +17,10 @@ The expected time investment.
 
 ---
 
-**Results**
-The results from the research.  Can also refer to :
+**Outcome**
+Writeup your findings here.  Please include the following (if any have been created) :
 - Screenshots
-- Design diagrams
+- Design/architecture diagrams
 - WEP 
 - PR/FAQ
 
