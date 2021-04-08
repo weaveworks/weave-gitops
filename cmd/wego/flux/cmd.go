@@ -38,6 +38,7 @@ func init() {
 	}
 }
 
+// Example flux command with flags 'wego flux -- install -h'
 func runCmd(cmd *cobra.Command, args []string) {
 	c := exec.Command(exePath, args...)
 
