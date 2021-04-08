@@ -14,13 +14,17 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.15.x
+        go-version: 1.16.x
     - name: Checkout code
       uses: actions/checkout@v2
+    - name: Fake Install flux
+      run: mkdir -p cmd/wego/flux/bin && touch cmd/wego/flux/bin/flux
     - name: Run linters
       uses: golangci/golangci-lint-action@v2
       with:
         version: v1.29
+    - name: Remove fake flux
+      run: rm -rv cmd/wego/flux/bin
 
   test:
     runs-on: ubuntu-latest
@@ -29,11 +33,15 @@ jobs:
       if: success()
       uses: actions/setup-go@v2
       with:
-        go-version: 1.15.x
+        go-version: 1.16.x
     - name: Checkout code
       uses: actions/checkout@v2
+    - name: Fake Install flux
+      run: mkdir -p cmd/wego/flux/bin && touch cmd/wego/flux/bin/flux
     - name: Run tests
-      run: go test ./...
+      run: make unit-tests
+    - name: Remove fake flux
+      run: rm -rv cmd/wego/flux/bin
 
   coverage:
     runs-on: ubuntu-latest
@@ -42,7 +50,7 @@ jobs:
       if: success()
       uses: actions/setup-go@v2
       with:
-        go-version: 1.15.x
+        go-version: 1.16.x
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Calc coverage
