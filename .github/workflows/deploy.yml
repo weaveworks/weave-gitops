@@ -24,8 +24,6 @@ jobs:
       run: mkdir -p cmd/wego/flux/bin && touch cmd/wego/flux/bin/flux
     - name: build
       run: make all BINARY_NAME=wego-${{matrix.os}}
-    - name: Remove fake flux
-      run: rm -rv cmd/wego/flux/bin
     - name: publish
       uses: aws-actions/configure-aws-credentials@v1
       with:
