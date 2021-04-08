@@ -13,13 +13,6 @@ import (
 //go:embed bin/flux
 var fluxExe []byte
 
-type dependencies struct {
-	Flux flux
-}
-type flux struct {
-	Version string
-}
-
 var Cmd = &cobra.Command{
 	Use:   "flux",
 	Short: "Use flux commands",
