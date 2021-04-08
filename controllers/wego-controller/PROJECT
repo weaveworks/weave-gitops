@@ -1,0 +1,3 @@
+domain: weave.works
+repo: github.com/weaveworks/weave-gitops
+version: "2"
