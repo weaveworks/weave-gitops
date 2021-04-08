@@ -6,8 +6,8 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/BurntSushi/toml"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/pkg/version"
 )
 
 //go:embed bin/flux
@@ -25,39 +25,33 @@ var Cmd = &cobra.Command{
 	Short: "Use flux commands",
 	Run:   runCmd,
 }
-var path = "temp/bin"
 var exePath string
 
 func init() {
-	var dep dependencies
-	if _, err := toml.DecodeFile("tools/dependencies.toml", &dep); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
-	}
-
-	exePath = path + "/flux-" + dep.Flux.Version
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		err := os.MkdirAll(path, 0755)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
-		err = os.WriteFile(exePath, fluxExe, 0755)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
+	path := "~/.wego/bin"
+	exePath = path + "/flux-" + version.FluxVersion
+	if _, err := os.Stat(exePath); os.IsNotExist(err) {
+		// If flux version changes this will remove path
+		checkError(os.RemoveAll(path))
+		checkError(os.MkdirAll(path, 0755))
+		checkError(os.WriteFile(exePath, fluxExe, 0755))
 	}
 }
 
 func runCmd(cmd *cobra.Command, args []string) {
-	c := exec.Command("./"+exePath, args...)
+	c := exec.Command(exePath, args...)
 
 	// run command
 	if output, err := c.CombinedOutput(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
 	} else {
 		fmt.Printf("Output: %s\n", output)
+	}
+}
+
+func checkError(err error) {
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
 	}
 }

@@ -5,7 +5,8 @@ GOARCH=$(shell go env GOARCH)
 BUILD_TIME=$(shell date +'%Y-%m-%d_%T')
 BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT=$(shell git log -n1 --pretty='%h')
-CURRENT_DIR := $(shell pwd)
+CURRENT_DIR=$(shell pwd)
+FLUX_VERSION=$(shell $(CURRENT_DIR)/tools/bin/stoml $(CURRENT_DIR)/tools/dependencies.toml flux.version)
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -22,7 +23,7 @@ unit-tests:
 
 # Build wego binary
 wego: dependencies fmt vet unit-tests
-	go build -ldflags "-X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit=$(GIT_COMMIT)" -o bin/wego cmd/wego/*.go
+	go build -ldflags "-X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION)" -o bin/wego cmd/wego/*.go
 	rm -rv cmd/wego/flux/bin
 # Clean up images and binaries
 clean:
