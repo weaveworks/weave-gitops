@@ -37,9 +37,7 @@ fmt:
 	go fmt ./...
 # Run go vet against code
 vet:
-	echo vet ran first	------------------------------------------------------
 	go vet ./...
 
 dependencies:
-	echo Dependencies ran first -------------------------------------------------
 	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
