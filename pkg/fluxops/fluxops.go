@@ -35,10 +35,6 @@ func FluxPath() (string, error) {
 	return fmt.Sprintf("%v/flux-%v", path, version.FluxVersion), nil
 }
 
-func FluxBinaryPath() string {
-	return fluxBinary
-}
-
 func SetFluxHandler(h FluxHandler) {
 	fluxHandler = h
 }
