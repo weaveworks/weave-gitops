@@ -2,7 +2,7 @@ name: e2e
 
 on:
   push:
-    branches: [ main ]
+#    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -31,3 +31,7 @@ jobs:
       - name: kind-check
         run: |
           kubectl get pods -A
+      - name: test-wego-add
+        working-directory: ./test/acceptance/test
+        run: |
+          go test -v -run TestWegoCoreOperations
