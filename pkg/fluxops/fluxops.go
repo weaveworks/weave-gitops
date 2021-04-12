@@ -2,7 +2,6 @@ package fluxops
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 	"strings"
 )
@@ -18,15 +17,14 @@ func CallFlux(arglist string) ([]byte, error) {
 }
 
 func defaultFluxHandler(arglist string) ([]byte, error) {
-	homedir := os.Getenv("HOME")
-	return CallCommand(fmt.Sprintf("%s/.wego/bin/flux %s", homedir, arglist))
+	return CallCommand(fmt.Sprintf("wego flux %s", arglist))
 }
 
 func CallCommand(cmdstr string) ([]byte, error) {
-	cmd := exec.Command(fmt.Sprintf("sh -c '%s'", escape(cmdstr)))
+	cmd := exec.Command("sh", "-c", escape(cmdstr))
 	return cmd.CombinedOutput()
 }
 
 func escape(cmd string) string {
-	return "'" + strings.ReplaceAll(cmd, "'", "'\"'\"'") + "'"
+	return strings.ReplaceAll(cmd, "'", "'\"'\"'")
 }

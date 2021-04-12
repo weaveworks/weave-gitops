@@ -2,7 +2,8 @@ package status
 
 import (
 	"fmt"
-	"os/exec"
+
+	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 )
 
 type ClusterStatus int
@@ -39,5 +40,7 @@ func GetClusterStatus() ClusterStatus {
 }
 
 func kubectlHandler(args string) error {
-	return exec.Command(fmt.Sprintf("kubectl get %s", args)).Run()
+	cmd := fmt.Sprintf("kubectl get %s", args)
+	_, err := fluxops.CallCommand(cmd)
+	return err
 }
