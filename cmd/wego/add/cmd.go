@@ -9,6 +9,8 @@ import (
 
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
+
+	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 )
 
 type paramSet struct {
@@ -18,7 +20,6 @@ type paramSet struct {
 }
 
 var params paramSet
-var fluxHandler = defaultFluxHandler
 
 var Cmd = &cobra.Command{
 	Use:   "add [--name <name>] [--url <url>] [--branch <branch>]",
@@ -57,33 +58,15 @@ func updateURLIfNecessary() {
 	}
 }
 
-func callFlux(arglist string) ([]byte, error) {
-	return fluxHandler(arglist)
-}
-
-func defaultFluxHandler(arglist string) ([]byte, error) {
-	homedir := os.Getenv("HOME")
-	return callCommand(fmt.Sprintf("%s/.wego/bin/flux %s", homedir, arglist))
-}
-
-func callCommand(cmdstr string) ([]byte, error) {
-	cmd := exec.Command(fmt.Sprintf("sh -c '%s'", escape(cmdstr)))
-	return cmd.CombinedOutput()
-}
-
-func escape(cmd string) string {
-	return "'" + strings.ReplaceAll(cmd, "'", "'\"'\"'") + "'"
-}
-
 func generateSourceManifest() []byte {
-	sourceManifest, err := callFlux(fmt.Sprintf(`create source git --name="%s" --url="%s" --branch="%s" --interval=30s --export`,
+	sourceManifest, err := fluxops.CallFlux(fmt.Sprintf(`create source git --name="%s" --url="%s" --branch="%s" --interval=30s --export`,
 		params.name, params.url, params.branch))
 	checkAddError(err)
 	return sourceManifest
 }
 
 func generateKustomizeManifest() []byte {
-	kustomizeManifest, err := callFlux(
+	kustomizeManifest, err := fluxops.CallFlux(
 		fmt.Sprintf(`create kustomization %s --path="./kustomize" --prune=true --validation=client --interval=5m --export`, params.name))
 	checkAddError(err)
 	return kustomizeManifest
