@@ -13,16 +13,23 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 )
 
+const (
+	manifestsKustomize = "kustomize"
+	manifestsHelm      = "helm"
+)
+
 type paramSet struct {
-	name   string
-	url    string
-	branch string
+	name          string
+	url           string
+	branch        string
+	path          string
+	manifestsKind string
 }
 
 var params paramSet
 
 var Cmd = &cobra.Command{
-	Use:   "add [--name <name>] [--url <url>] [--branch <branch>]",
+	Use:   "add [--name <name>] [--url <url>] [--branch <branch>] [--path <path>] [--manifests-kind kustomize|helm]",
 	Short: "Add a workload repository to a wego cluster",
 	Long: strings.TrimSpace(dedent.Dedent(`
         Associates an additional git repository with a wego cluster so that its contents may be managed via GitOps
@@ -46,7 +53,12 @@ func checkAddError(err interface{}) {
 func init() {
 	Cmd.Flags().StringVar(&params.name, "name", "", "Name of remote git repository")
 	Cmd.Flags().StringVar(&params.url, "url", "", "URL of remote git repository")
+	Cmd.Flags().StringVar(&params.path, "path", "", "Path to watch within git repository")
 	Cmd.Flags().StringVar(&params.branch, "branch", "main", "Branch to watch within git repository")
+	Cmd.Flags().StringVar(&params.manifestsKind, "manifests-kind", manifestsKustomize, "Manifests kind used to generate the templates (kustomize or helm)")
+
+	// Required
+	Cmd.MarkFlagRequired("path")
 }
 
 func updateURLIfNecessary() {
@@ -59,7 +71,7 @@ func updateURLIfNecessary() {
 }
 
 func generateSourceManifest() []byte {
-	sourceManifest, err := fluxops.CallFlux(fmt.Sprintf(`create source git --name="%s" --url="%s" --branch="%s" --interval=30s --export`,
+	sourceManifest, err := fluxops.CallFlux(fmt.Sprintf(`create source git %s --url="%s" --branch="%s" --interval=30s --export`,
 		params.name, params.url, params.branch))
 	checkAddError(err)
 	return sourceManifest
@@ -67,17 +79,27 @@ func generateSourceManifest() []byte {
 
 func generateKustomizeManifest() []byte {
 	kustomizeManifest, err := fluxops.CallFlux(
-		fmt.Sprintf(`create kustomization %s --path="./kustomize" --prune=true --validation=client --interval=5m --export`, params.name))
+		fmt.Sprintf(`create kustomization %s --path="%s" --prune=true --validation=client --interval=5m --export`, params.name, params.path))
+	checkAddError(err)
+	return kustomizeManifest
+}
+
+func generateHelmManifest() []byte {
+	kustomizeManifest, err := fluxops.CallFlux(
+		fmt.Sprintf(`create helmrelease %s --source="GitRepository/%s" --chart="%s" --interval=5m --export`, params.name, params.name, params.path))
+
 	checkAddError(err)
 	return kustomizeManifest
 }
 
 func runCmd(cmd *cobra.Command, args []string) {
 	updateURLIfNecessary()
-	applyCmd := exec.Command("kubectl apply -f -")
-	stdin, err := applyCmd.StdinPipe()
-	checkAddError(err)
-	defer stdin.Close()
-	io.WriteString(stdin, fmt.Sprintf("%s\n---\n%s", generateSourceManifest(), generateKustomizeManifest()))
-	checkAddError(applyCmd.Run())
+
+	generateTemplates := generateKustomizeManifest
+
+	if params.manifestsKind == manifestsHelm {
+		generateTemplates = generateHelmManifest
+	}
+
+	io.WriteString(os.Stdout, fmt.Sprintf("%s%s", generateSourceManifest(), generateTemplates()))
 }
