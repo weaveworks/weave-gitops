@@ -33,5 +33,7 @@ jobs:
           kubectl get pods -A
       - name: test-wego-add
         working-directory: ./test/acceptance/test
+        with:
+          GITHUB_ORG: weaveworks
         run: |
           go test -v -run TestWegoCoreOperations

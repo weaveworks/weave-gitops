@@ -17,4 +17,5 @@ require (
     github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab
     golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
     gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
+    sigs.k8s.io/yaml v1.2.0 // indirect
 )

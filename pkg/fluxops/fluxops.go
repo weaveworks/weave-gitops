@@ -1,6 +1,7 @@
 package fluxops
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"strings"

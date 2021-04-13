@@ -2,8 +2,12 @@ package status
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
+	"sigs.k8s.io/yaml"
 )
 
 type ClusterStatus int
@@ -37,6 +41,24 @@ func GetClusterStatus() ClusterStatus {
 	}
 
 	return Unknown
+}
+
+// GetClusterName returns the cluster name associated with the current context in ~/.kube/config
+func GetClusterName() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	config, err := ioutil.ReadFile(filepath.Join(homeDir, ".kube", "config"))
+	if err != nil {
+		return "", err
+	}
+	data := map[string]interface{}{}
+	err = yaml.Unmarshal(config, &data)
+	if err != nil {
+		return "", err
+	}
+	return data["current-context"].(string), nil
 }
 
 func kubectlHandler(args string) error {
