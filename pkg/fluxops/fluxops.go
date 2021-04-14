@@ -1,13 +1,15 @@
 package fluxops
 
 import (
-	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"github.com/weaveworks/weave-gitops/pkg/version"
+	"sigs.k8s.io/yaml"
 )
 
 var (

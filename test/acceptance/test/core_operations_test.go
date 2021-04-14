@@ -16,8 +16,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/status"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"github.com/weaveworks/weave-gitops/pkg/version"
-	"sigs.k8s.io/yaml"
 )
 
 const nginxDeployment = `apiVersion: apps/v1
@@ -64,15 +64,24 @@ func TestCoreOperations(t *testing.T) {
 	setUpTestRepo(t) // create repo with simple nginx manifest
 	defer deleteRepo(t)
 	log.Info("Adding test repository to cluster...")
-	err = callWegoForEffect("add .") // add new repo to cluster
+	require.NoError(t, err)
+	err = addRepo(t) // add new repo to cluster
 	require.NoError(t, err)
 	log.Info("Waiting for workload to start...")
 	waitForNginxDeployment(t)
 }
 
+func addRepo(t *testing.T) error {
+	cmd := exec.Command("sh", "-c", fmt.Sprintf("%s add .", wegoBinaryPath(t)))
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Dir = tmpDir
+	return cmd.Run()
+}
+
 func ensureFluxVersion(t *testing.T) {
 	if version.FluxVersion == "undefined" {
-		out, err := fluxops.CallCommand("../../../tools/bin/stoml ../../../tools/dependencies.toml flux.version")
+		out, err := utils.CallCommand("../../../tools/bin/stoml ../../../tools/dependencies.toml flux.version")
 		require.NoError(t, err)
 		version.FluxVersion = string(out)
 	}
@@ -80,7 +89,7 @@ func ensureFluxVersion(t *testing.T) {
 
 func waitForNginxDeployment(t *testing.T) {
 	for i := 1; i < 61; i++ {
-		_, err := fluxops.CallCommand("kubectl get deployment nginx -n my-nginx")
+		_, err := utils.CallCommand("kubectl get deployment nginx -n my-nginx")
 		if err == nil {
 			return
 		}
@@ -90,22 +99,13 @@ func waitForNginxDeployment(t *testing.T) {
 }
 
 func bootstrapFlux(t *testing.T) {
-	owner := getOwner(t)
-	repoName := getRepoName(t)
-	if isOrganization(t, owner) {
-		_, err := fluxops.CallFlux(fmt.Sprintf("bootstrap github --owner=%s --repository=%s", owner, repoName))
-		require.NoError(t, err)
-	} else {
-		_, err := fluxops.CallFlux(fmt.Sprintf("bootstrap github --owner=%s --repository=%s --branch=main --private=false --personal=true", owner, repoName))
-		require.NoError(t, err)
-	}
-	require.Equal(t, status.GetClusterStatus(), status.FluxInstalled)
+	require.NoError(t, fluxops.Bootstrap(getOwner(t), getRepoName(t)))
 }
 
 func getRepoName(t *testing.T) string {
-	clusterName, err := status.GetClusterName()
+	repoName, err := fluxops.GetRepoName()
 	require.NoError(t, err)
-	return clusterName + "-wego"
+	return repoName
 }
 
 func setUpTestRepo(t *testing.T) {
@@ -113,13 +113,13 @@ func setUpTestRepo(t *testing.T) {
 	require.NoError(t, err)
 	err = os.Chdir(tmpDir)
 	require.NoError(t, err)
-	_, err = fluxops.CallCommand("git init .")
+	_, err = utils.CallCommand("git init .")
 	require.NoError(t, err)
 	err = ioutil.WriteFile("nginx.yaml", []byte(nginxDeployment), 0666)
 	require.NoError(t, err)
-	err = fluxops.CallCommandForEffect("git add nginx.yaml && git commit -m'Added workload'")
+	err = utils.CallCommandForEffect("git add nginx.yaml && git commit -m'Added workload'")
 	require.NoError(t, err)
-	err = fluxops.CallCommandForEffect(fmt.Sprintf("hub create %s/%s", getOwner(t), getRepoName(t)))
+	err = utils.CallCommandForEffect(fmt.Sprintf("hub create %s/%s", getOwner(t), getRepoName(t)))
 	require.NoError(t, err)
 	err = os.Chdir(dir)
 	require.NoError(t, err)
@@ -131,7 +131,7 @@ func deleteRepo(t *testing.T) {
 	if err == nil {
 		repoName := clusterName + "-wego"
 		cmdstr := fmt.Sprintf("hub delete -y %s/%s", org, repoName)
-		_ = fluxops.CallCommandForEffect(cmdstr) // there's nothing we can do with the error
+		_ = utils.CallCommandForEffect(cmdstr) // there's nothing we can do with the error
 	} else {
 		log.Info("Failed to delete repository")
 	}
@@ -139,8 +139,7 @@ func deleteRepo(t *testing.T) {
 
 func isOrganization(t *testing.T, owner string) bool {
 	token := os.Getenv("GITHUB_TOKEN")
-	response, _, err := fluxops.CallCommandSeparatingOutputStreams(fmt.Sprintf("curl -u %s:%s https://api.github.com/orgs/%s", owner, token, owner))
-	fmt.Printf("RESP: %s\n", response)
+	response, _, err := utils.CallCommandSeparatingOutputStreams(fmt.Sprintf("curl -u %s:%s https://api.github.com/orgs/%s", owner, token, owner))
 	require.NoError(t, err)
 	var data map[string]interface{}
 	err = json.Unmarshal(response, &data)
@@ -149,30 +148,9 @@ func isOrganization(t *testing.T, owner string) bool {
 }
 
 func getOwner(t *testing.T) string {
-	// check for github username
-	user, okUser := os.LookupEnv("GITHUB_ORG")
-	if okUser {
-		return user
-	}
-
-	return getUserFromHubCredentials(t)
-}
-
-func getUserFromHubCredentials(t *testing.T) string {
-	homeDir, err := os.UserHomeDir()
-	fmt.Printf("HD: %s\n", homeDir)
+	owner, err := fluxops.GetOwnerFromEnv()
 	require.NoError(t, err)
-
-	// check for existing ~/.config/hub
-	config, err := ioutil.ReadFile(filepath.Join(homeDir, ".config", "hub"))
-	fmt.Printf("CONF: %s\n", config)
-	require.NoError(t, err)
-
-	data := map[string]interface{}{}
-	err = yaml.Unmarshal(config, &data)
-	require.NoError(t, err)
-	fmt.Printf("DATA: %#v\n", data)
-	return data["github.com"].([]interface{})[0].(map[string]interface{})["user"].(string)
+	return owner
 }
 
 func checkSimpleStatuses(t *testing.T) {
@@ -193,14 +171,8 @@ func getTestDir(t *testing.T) string {
 	return testDir
 }
 
-func callWegoForEffect(wegoCmd string) error {
-	cmdstr := fmt.Sprintf("%s %s", wegoBinaryPath(), wegoCmd)
-	cmd := exec.Command("sh", "-c", fluxops.Escape(cmdstr))
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
-}
-
-func wegoBinaryPath() string {
-	return "../../../bin/wego"
+func wegoBinaryPath(t *testing.T) string {
+	path, err := filepath.Abs("../../../bin/wego")
+	require.NoError(t, err)
+	return path
 }

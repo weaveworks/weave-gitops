@@ -1,13 +1,16 @@
 package add
 
+// Provides support for adding a repository of manifests to a wego cluster. If the cluster does not have
+// wego installed, the user will be prompted to install wego and then the repository will be added.
+
 import (
 	"bufio"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
@@ -56,8 +59,13 @@ func updateParametersIfNecessary() {
 	if params.url == "" {
 		url, err := exec.Command("git", "remote", "get-url", "origin").CombinedOutput()
 		checkError("Failed to discover URL of remote repository", err)
-		fmt.Printf("URL not specified; using URL of 'origin' from git config...")
-		params.url = string(url)
+		fmt.Printf("URL not specified; using URL of 'origin' from git config...\n\n")
+		params.url = strings.TrimRight(string(url), "\n")
+	}
+
+	sshPrefix := "git@github.com:"
+	if strings.HasPrefix(params.url, sshPrefix) {
+		params.url = "https://github.com/" + strings.TrimPrefix(params.url, sshPrefix)
 	}
 
 	if params.name == "" {
@@ -74,20 +82,22 @@ func generateSourceManifest() []byte {
 	return sourceManifest
 }
 
-func generateKustomizeManifest() []byte {
+func generateKustomizeManifest(sourceLocation string) []byte {
 	kustomizeManifest, err := fluxops.CallFlux(
-		fmt.Sprintf(`create kustomization %s --path="./kustomize" --prune=true --validation=client --interval=5m --export`, params.name))
+		fmt.Sprintf(`create kustomization "%s" --path="./kustomize" --source="%s" --prune=true --validation=client --interval=5m --export`, params.name, sourceLocation))
 	checkAddError(err)
 	return kustomizeManifest
 }
 
 func bootstrapOrExit() {
-	fmt.Printf("The cluster has not had wego installed; install it now? (Y/n)")
+	fmt.Printf("The cluster has not had wego installed; install it now? (Y/n) ")
 	if !proceed() {
 		fmt.Fprintf(os.Stderr, "Wego not installed.")
 		os.Exit(1)
 	}
-
+	repoName, err := fluxops.GetRepoName()
+	checkAddError(err)
+	fluxops.Bootstrap(getOwner(), repoName)
 }
 
 func proceed() bool {
@@ -104,7 +114,7 @@ func getAnswer() string {
 	str, err := reader.ReadString('\n')
 	checkAddError(err)
 	if str == "\n" {
-		str = "N\n"
+		str = "Y\n"
 	}
 	return strings.Trim(str, "\n")
 }
@@ -113,21 +123,64 @@ func validAnswer(answer string) bool {
 	return strings.EqualFold(answer, "y") || strings.EqualFold(answer, "n")
 }
 
+func getOwner() string {
+	owner, err := fluxops.GetOwnerFromEnv()
+	if err != nil || owner == "" {
+		return getOwnerInteractively()
+	}
+	return owner
+}
+
+func getOwnerInteractively() string {
+	fmt.Printf("Who is the owner of the repository? ")
+	reader := bufio.NewReader(os.Stdin)
+	str, err := reader.ReadString('\n')
+	checkAddError(err)
+
+	if str == "\n" {
+		return getOwnerInteractively()
+	}
+
+	return strings.Trim(str, "\n")
+}
+
 func runCmd(cmd *cobra.Command, args []string) {
+	if len(args) < 1 {
+		fmt.Printf("Location of application not specified.\n")
+		os.Exit(1)
+	}
+	fmt.Printf("Updating parameters from environment... done\n\n")
 	updateParametersIfNecessary()
-	fmt.Printf("UPDATED...\n")
-	if clusterStatus := status.GetClusterStatus(); clusterStatus == status.Unmodified {
+	fmt.Printf("Checking cluster status... ")
+	clusterStatus := status.GetClusterStatus()
+	fmt.Printf("%s\n\n", clusterStatus)
+	if clusterStatus == status.Unmodified {
 		bootstrapOrExit()
 	}
-	fmt.Printf("BOOTSTRAPPED...\n")
-	time.Sleep(30 * time.Minute)
+
+	fmt.Printf("Applying controller manifests...\n\n")
 	applyCmd := exec.Command("kubectl", "apply", "-f", "-")
 	stdin, err := applyCmd.StdinPipe()
 	checkAddError(err)
-	defer stdin.Close()
-	io.WriteString(stdin, fmt.Sprintf("%s\n---\n%s", generateSourceManifest(), generateKustomizeManifest()))
-	fmt.Printf("FED DATA...\n")
+	source := generateSourceManifest()
+	localRepoPath, err := filepath.Abs(args[0])
+	checkAddError(err)
+	kust := generateKustomizeManifest(localRepoPath)
+	go func() {
+		defer stdin.Close()
+		io.WriteString(stdin, fmt.Sprintf("%s\n---\n%s", source, kust))
+	}()
 	applyCmd.Stdout = os.Stdout
 	applyCmd.Stderr = os.Stderr
-	checkAddError(applyCmd.Run())
+	err = applyCmd.Run()
+	if err != nil {
+		fmt.Printf("Failed to apply manifests:\n\n%s\n---\n%s\n", source, kust)
+		checkAddError(err)
+	}
+	repoName, err := fluxops.GetRepoName()
+	if err != nil {
+		fmt.Printf("Successfully added repository.\n")
+	} else {
+		fmt.Printf("Successfully added repository: %s.\n", repoName)
+	}
 }

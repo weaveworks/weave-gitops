@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/weaveworks/weave-gitops/pkg/fluxops"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"sigs.k8s.io/yaml"
 )
 
@@ -20,6 +20,18 @@ const (
 )
 
 var lookupHandler = kubectlHandler
+
+// Function to translate ClusterStatus to a string
+func (cs ClusterStatus) String() string {
+	return toStatusString[cs]
+}
+
+var toStatusString = map[ClusterStatus]string{
+	Unknown:       "Unknown",
+	Unmodified:    "Unmodified",
+	FluxInstalled: "FluxInstalled",
+	WeGOInstalled: "WeGOInstalled",
+}
 
 // GetClusterStatus retrieves the current wego status of the cluster. That is,
 // it returns one of: Unknown, Unmodified, FluxInstalled, or WeGOInstalled depending on whether the cluster:
@@ -63,6 +75,6 @@ func GetClusterName() (string, error) {
 
 func kubectlHandler(args string) error {
 	cmd := fmt.Sprintf("kubectl get %s", args)
-	_, err := fluxops.CallCommand(cmd)
+	err := utils.CallCommandForEffect(cmd)
 	return err
 }
