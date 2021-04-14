@@ -12,7 +12,7 @@ func GetLatestStatusAllNamespaces() ([]string, error) {
 		return nil, err
 	}
 
-	c := exec.Command(exePath, "logs --all-namespaces")
+	c := exec.Command(exePath, "logs", "--all-namespaces")
 	logs, err := c.CombinedOutput()
 	if err != nil {
 		return nil, err
@@ -28,6 +28,9 @@ func getLastLogForNamespaces(logs []byte) ([]string, error) {
 	namespaces := make(map[string]string)
 	for _, line := range logsArray {
 		splitLine := strings.Split(string(line), " ")
+		if len(splitLine) < 3 {
+			continue
+		}
 		namespaces[splitLine[2]] = line
 	}
 
