@@ -12,7 +12,7 @@ func GetLatestStatusAllNamespaces() ([]string, error) {
 		return nil, err
 	}
 
-	c := exec.Command(exePath, "logs", "--all-namespaces")
+	c := exec.Command(exePath, "logs --all-namespaces")
 	logs, err := c.CombinedOutput()
 	if err != nil {
 		return nil, err
