@@ -7,7 +7,7 @@ import (
 	"os/exec"
 
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/pkg/version"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
 )
 
 //go:embed bin/flux
@@ -18,24 +18,26 @@ var Cmd = &cobra.Command{
 	Short: "Use flux commands",
 	Run:   runCmd,
 }
-var exePath string
 
 func init() {
-	homeDir, err := os.UserHomeDir()
+	exePath, err := flux.GetFluxExePath()
+	checkError(err)
+	binPath, err := flux.GetFluxBinPath()
 	checkError(err)
 
-	path := fmt.Sprintf("%v/.wego/bin", homeDir)
-	exePath = fmt.Sprintf("%v/flux-%v", path, version.FluxVersion)
 	if _, err := os.Stat(exePath); os.IsNotExist(err) {
 		// Clean bin if file doesnt exist
-		checkError(os.RemoveAll(path))
-		checkError(os.MkdirAll(path, 0755))
+		checkError(os.RemoveAll(binPath))
+		checkError(os.MkdirAll(binPath, 0755))
 		checkError(os.WriteFile(exePath, fluxExe, 0755))
 	}
 }
 
 // Example flux command with flags 'wego flux -- install -h'
 func runCmd(cmd *cobra.Command, args []string) {
+	exePath, err := flux.GetFluxExePath()
+	checkError(err)
+
 	c := exec.Command(exePath, args...)
 
 	// run command
