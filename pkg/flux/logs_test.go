@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var testFluxResponse = []byte(`2021-04-12T19:53:58.545Z info Alert - Starting EventSource 
+var testFluxLogResponse = []byte(`2021-04-12T19:53:58.545Z info Alert - Starting EventSource 
 2021-04-12T19:53:58.545Z info Receiver - Starting EventSource 
 2021-04-12T19:53:58.545Z info Provider - Starting EventSource 
 2021-04-12T19:53:58.646Z info Alert - Starting Controller 
@@ -49,7 +49,7 @@ var testFluxResponse = []byte(`2021-04-12T19:53:58.545Z info Alert - Starting Ev
 2021-04-12T21:03:23.646Z info GitRepository/flux-system.flux-system - Reconciliation finished in 907.3404ms, next run in 1m0s`)
 
 func TestGetLogs(t *testing.T) {
-	result, err := getLastLogForNamespaces(testFluxResponse)
+	result, err := getLastLogForNamespaces(testFluxLogResponse)
 	require.NoError(t, err)
 	require.Equal(t, 11, len(result))
 }
