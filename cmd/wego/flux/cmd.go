@@ -27,17 +27,7 @@ var StatusCmd = &cobra.Command{
 
 func init() {
 	Cmd.AddCommand(StatusCmd)
-	exePath, err := flux.GetFluxExePath()
-	checkError(err)
-	binPath, err := flux.GetFluxBinPath()
-	checkError(err)
-
-	if _, err := os.Stat(exePath); os.IsNotExist(err) {
-		// Clean bin if file doesnt exist
-		checkError(os.RemoveAll(binPath))
-		checkError(os.MkdirAll(binPath, 0755))
-		checkError(os.WriteFile(exePath, fluxExe, 0755))
-	}
+	checkFluxBinSetup()
 }
 
 // Example flux command with flags 'wego flux -- install -h'
@@ -61,6 +51,20 @@ func runStatusCmd(cmd *cobra.Command, args []string) {
 		checkError(err)
 	}
 	fmt.Printf("Status: %s\n", status)
+}
+
+func checkFluxBinSetup() {
+	exePath, err := flux.GetFluxExePath()
+	checkError(err)
+	binPath, err := flux.GetFluxBinPath()
+	checkError(err)
+
+	if _, err := os.Stat(exePath); os.IsNotExist(err) {
+		// Clean bin if file doesnt exist
+		checkError(os.RemoveAll(binPath))
+		checkError(os.MkdirAll(binPath, 0755))
+		checkError(os.WriteFile(exePath, fluxExe, 0755))
+	}
 }
 
 func checkError(err error) {
