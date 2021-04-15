@@ -46,3 +46,11 @@ func TestGetLogs(t *testing.T) {
 	require.Equal(t, 0, len(emptyResult))
 
 }
+
+func TestSetup(t *testing.T) {
+	_, err := GetFluxBinPath()
+	require.NoError(t, err)
+
+	_, err = GetFluxExePath()
+	require.NoError(t, err)
+}
