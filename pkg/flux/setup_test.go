@@ -9,9 +9,17 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/version"
 )
 
-func TestCheckFluxBinSetup(t *testing.T) {
+func TestSetup(t *testing.T) {
+	_, err := GetFluxBinPath()
+	require.NoError(t, err)
+
+	_, err = GetFluxExePath()
+	require.NoError(t, err)
+}
+
+func TestSetupFluxBin(t *testing.T) {
 	version.FluxVersion = "0.11.0"
-	checkFluxBinSetup()
+	SetupFluxBin()
 	homeDir, err := os.UserHomeDir()
 	require.NoError(t, err)
 
@@ -21,7 +29,7 @@ func TestCheckFluxBinSetup(t *testing.T) {
 	require.FileExists(t, binPath)
 
 	version.FluxVersion = "0.12.0"
-	checkFluxBinSetup()
+	SetupFluxBin()
 	require.NoFileExists(t, binPath)
 	binPath = fmt.Sprintf("%v/flux-%v", fluxPath, version.FluxVersion)
 	require.FileExists(t, binPath)
