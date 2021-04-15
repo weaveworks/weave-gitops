@@ -23,12 +23,12 @@ all: wego
 
 # Run tests
 unit-tests:
-	CGO_ENABLED=0 go test -v ./cmd/...
+	CGO_ENABLED=0 go test -v ./...
 
 # Build wego binary
 wego: dependencies fmt vet unit-tests
 	go build -ldflags "-X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION)" -o bin/$(BINARY_NAME) cmd/wego/*.go
-	rm -rv cmd/wego/flux/bin
+	rm -rv pkg/flux/bin
 # Clean up images and binaries
 clean:
 	rm -f bin/wego

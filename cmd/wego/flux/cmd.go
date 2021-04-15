@@ -1,41 +1,38 @@
 package flux
 
 import (
-	_ "embed"
 	"fmt"
 	"os"
 	"os/exec"
 
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/pkg/version"
+	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
 )
-
-//go:embed bin/flux
-var fluxExe []byte
 
 var Cmd = &cobra.Command{
 	Use:   "flux",
 	Short: "Use flux commands",
 	Run:   runCmd,
 }
-var exePath string
+
+var StatusCmd = &cobra.Command{
+	Use:   "status",
+	Short: "Check the last known status of flux namespaces",
+	Run:   runStatusCmd,
+}
 
 func init() {
-	homeDir, err := os.UserHomeDir()
-	checkError(err)
-
-	path := fmt.Sprintf("%v/.wego/bin", homeDir)
-	exePath = fmt.Sprintf("%v/flux-%v", path, version.FluxVersion)
-	if _, err := os.Stat(exePath); os.IsNotExist(err) {
-		// Clean bin if file doesnt exist
-		checkError(os.RemoveAll(path))
-		checkError(os.MkdirAll(path, 0755))
-		checkError(os.WriteFile(exePath, fluxExe, 0755))
-	}
+	Cmd.AddCommand(StatusCmd)
 }
 
 // Example flux command with flags 'wego flux -- install -h'
 func runCmd(cmd *cobra.Command, args []string) {
+	exePath, err := fluxBin.GetFluxExePath()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+
 	c := exec.Command(exePath, args...)
 
 	// run command
@@ -46,9 +43,11 @@ func runCmd(cmd *cobra.Command, args []string) {
 	}
 }
 
-func checkError(err error) {
+func runStatusCmd(cmd *cobra.Command, args []string) {
+	status, err := fluxBin.GetLatestStatusAllNamespaces()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
+	fmt.Printf("Status: %s\n", status)
 }
