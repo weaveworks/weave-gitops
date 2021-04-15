@@ -11,6 +11,7 @@ import (
 //go:embed bin/flux
 var fluxExe []byte
 
+//SetupFluxBin creates flux binary from embedded file if it doesnt already exist
 func SetupFluxBin() {
 	exePath, err := GetFluxExePath()
 	checkError(err)
@@ -25,6 +26,7 @@ func SetupFluxBin() {
 	}
 }
 
+//GetFluxBinPath -
 func GetFluxBinPath() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -34,6 +36,7 @@ func GetFluxBinPath() (string, error) {
 	return fmt.Sprintf("%v/.wego/bin", homeDir), nil
 }
 
+//GetFluxExePath -
 func GetFluxExePath() (string, error) {
 	path, err := GetFluxBinPath()
 	if err != nil {
