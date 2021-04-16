@@ -6,7 +6,7 @@ package add
 import (
 	"bufio"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,6 +17,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/status"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 type paramSet struct {
@@ -25,10 +26,13 @@ type paramSet struct {
 	branch string
 }
 
-var params paramSet
+var (
+	params    paramSet
+	repoOwner string
+)
 
 var Cmd = &cobra.Command{
-	Use:   "add [--name <name>] [--url <url>] [--branch <branch>]",
+	Use:   "add [--name <name>] [--url <url>] [--branch <branch>] <repository directory>",
 	Short: "Add a workload repository to a wego cluster",
 	Long: strings.TrimSpace(dedent.Dedent(`
         Associates an additional git repository with a wego cluster so that its contents may be managed via GitOps
@@ -57,16 +61,29 @@ func init() {
 
 func updateParametersIfNecessary() {
 	if params.url == "" {
-		url, err := exec.Command("git", "remote", "get-url", "origin").CombinedOutput()
+		urlout, err := exec.Command("git", "remote", "get-url", "origin").CombinedOutput()
 		checkError("Failed to discover URL of remote repository", err)
-		fmt.Printf("URL not specified; using URL of 'origin' from git config...\n\n")
-		params.url = strings.TrimRight(string(url), "\n")
+		url := strings.TrimRight(string(urlout), "\n")
+		fmt.Printf("URL not specified; ")
+		params.url = url
 	}
 
 	sshPrefix := "git@github.com:"
 	if strings.HasPrefix(params.url, sshPrefix) {
-		params.url = "https://github.com/" + strings.TrimPrefix(params.url, sshPrefix)
+		repoName, err := fluxops.GetRepoName()
+		checkAddError(err)
+		isPrivate, err := fluxops.IsPrivate(getOwner(), repoName)
+		if err != nil {
+			isPrivate = askUser("Should the WeGO repository be private? (Y/n)")
+		}
+		if isPrivate {
+			params.url = "ssh://git@github.com/" + strings.TrimPrefix(params.url, sshPrefix)
+		} else {
+			params.url = "https://github.com/" + strings.TrimPrefix(params.url, sshPrefix)
+		}
 	}
+
+	fmt.Printf("using URL: '%s' of origin from git config...\n\n", params.url)
 
 	if params.name == "" {
 		clusterName, err := status.GetClusterName()
@@ -75,29 +92,33 @@ func updateParametersIfNecessary() {
 	}
 }
 
-func generateSourceManifest() []byte {
+func generateSourceManifest(repoName string) []byte {
 	sourceManifest, err := fluxops.CallFlux(fmt.Sprintf(`create source git "%s" --url="%s" --branch="%s" --interval=30s --export`,
-		params.name, params.url, params.branch))
+		repoName, params.url, params.branch))
 	checkAddError(err)
 	return sourceManifest
 }
 
-func generateKustomizeManifest(sourceLocation string) []byte {
+func generateKustomizeManifest(repoName string) []byte {
 	kustomizeManifest, err := fluxops.CallFlux(
-		fmt.Sprintf(`create kustomization "%s" --path="./kustomize" --source="%s" --prune=true --validation=client --interval=5m --export`, params.name, sourceLocation))
+		fmt.Sprintf(`create kustomization "%s" --path="./" --source="%s" --prune=true --validation=client --interval=5m --export`, params.name, repoName))
 	checkAddError(err)
 	return kustomizeManifest
 }
 
 func bootstrapOrExit() {
-	fmt.Printf("The cluster has not had wego installed; install it now? (Y/n) ")
-	if !proceed() {
+	if !askUser("The cluster does not have wego installed; install it now? (Y/n)") {
 		fmt.Fprintf(os.Stderr, "Wego not installed.")
 		os.Exit(1)
 	}
 	repoName, err := fluxops.GetRepoName()
 	checkAddError(err)
 	fluxops.Bootstrap(getOwner(), repoName)
+}
+
+func askUser(question string) bool {
+	fmt.Printf("%s ", question)
+	return proceed()
 }
 
 func proceed() bool {
@@ -124,10 +145,15 @@ func validAnswer(answer string) bool {
 }
 
 func getOwner() string {
+	if repoOwner != "" {
+		return repoOwner
+	}
 	owner, err := fluxops.GetOwnerFromEnv()
 	if err != nil || owner == "" {
-		return getOwnerInteractively()
+		repoOwner = getOwnerInteractively()
+		return repoOwner
 	}
+	repoOwner = owner
 	return owner
 }
 
@@ -144,6 +170,12 @@ func getOwnerInteractively() string {
 	return strings.Trim(str, "\n")
 }
 
+func commitAndPush(files ...string) {
+	_, err := utils.CallCommand(
+		fmt.Sprintf("git pull --rebase && git add %s && git commit -m'Save %s' && git push", strings.Join(files, " "), strings.Join(files, ", ")))
+	checkAddError(err)
+}
+
 func runCmd(cmd *cobra.Command, args []string) {
 	if len(args) < 1 {
 		fmt.Printf("Location of application not specified.\n")
@@ -158,29 +190,23 @@ func runCmd(cmd *cobra.Command, args []string) {
 		bootstrapOrExit()
 	}
 
-	fmt.Printf("Applying controller manifests...\n\n")
-	applyCmd := exec.Command("kubectl", "apply", "-f", "-")
-	stdin, err := applyCmd.StdinPipe()
+	repoPath, err := filepath.Abs(args[0])
 	checkAddError(err)
-	source := generateSourceManifest()
-	localRepoPath, err := filepath.Abs(args[0])
+	repoName := filepath.Base(repoPath)
+	source := generateSourceManifest(repoName)
+	kust := generateKustomizeManifest(repoName)
+
+	fluxRepoName, err := fluxops.GetRepoName()
 	checkAddError(err)
-	kust := generateKustomizeManifest(localRepoPath)
-	go func() {
-		defer stdin.Close()
-		io.WriteString(stdin, fmt.Sprintf("%s\n---\n%s", source, kust))
-	}()
-	applyCmd.Stdout = os.Stdout
-	applyCmd.Stderr = os.Stderr
-	err = applyCmd.Run()
-	if err != nil {
-		fmt.Printf("Failed to apply manifests:\n\n%s\n---\n%s\n", source, kust)
-		checkAddError(err)
-	}
-	repoName, err := fluxops.GetRepoName()
-	if err != nil {
-		fmt.Printf("Successfully added repository.\n")
-	} else {
-		fmt.Printf("Successfully added repository: %s.\n", repoName)
-	}
+
+	fluxRepo := filepath.Join(os.Getenv("HOME"), ".wego", "repositories", fluxRepoName)
+	checkAddError(os.Chdir(fluxRepo))
+
+	sourceName := filepath.Join(fluxRepo, fluxRepoName+"-source-"+repoName+".yaml")
+	kustName := filepath.Join(fluxRepo, fluxRepoName+"-kustomize-"+repoName+".yaml")
+	ioutil.WriteFile(sourceName, source, 0644)
+	ioutil.WriteFile(kustName, kust, 0644)
+	commitAndPush(sourceName, kustName)
+
+	fmt.Printf("Successfully added repository: %s.\n", repoName)
 }
