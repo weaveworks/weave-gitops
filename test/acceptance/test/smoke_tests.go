@@ -1,3 +1,10 @@
+// +build smoke acceptance
+
+/**
+* All smoke tests go to this file, keep them light weight and fast.
+* However these should still be end to end user facing scenarios.
+* Smoke tests would run as part of full suite too hence the acceptance_tests flag.
+ */
 package acceptance
 
 import (
@@ -19,7 +26,7 @@ func FileExists(name string) bool {
 	return true
 }
 
-var _ = Describe("Test", func() {
+var _ = Describe("WEGO Acceptance Tests ", func() {
 
 	BeforeEach(func() {
 
@@ -29,7 +36,7 @@ var _ = Describe("Test", func() {
 
 	})
 
-	It("Verify that command wego version prints the version number", func() {
+	It("Verify that command wego version prints the version information", func() {
 
 		var session *gexec.Session
 		var err error
@@ -57,7 +64,7 @@ var _ = Describe("Test", func() {
 		})
 
 		By("And branch name", func() {
-			Eventually(session).Should(gbytes.Say("Branch: main\n"))
+			Eventually(session).Should(gbytes.Say("Branch: main|HEAD\n"))
 		})
 	})
 })
