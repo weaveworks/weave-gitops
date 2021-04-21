@@ -14,23 +14,23 @@ export WEGO_BIN_PATH=<path/to/wego-binary>
 To run the **smoke tests** from the suite, run the following the command from the repo root directory.
 
 ```
-ginkgo -v -tags=smoke ./...
+ginkgo -v -tags=smoke ./test/acceptance/test/...
 ```
 Or
 
 ```
-go test -v -tags=smoke ./...
+go test -v -tags=smoke ./test/acceptance/test/...
 ```
 # Acceptance Tests
 To run the full **acceptance suite**, run the command
 
 
 ```
-ginkgo -v -tags=acceptance ./...
+ginkgo -v -tags=acceptance ./test/acceptance/test/...
 ```
 Or 
 ```
-go test -v -tags=acceptance ./...
+go test -v -tags=acceptance ./test/acceptance/test/...
 ```
 
 # How to add new test
