@@ -1,4 +1,4 @@
 /**
-* All common util functions will go here.
+* All common util functions and golbal constants will go here.
 **/
 package acceptance
