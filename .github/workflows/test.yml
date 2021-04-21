@@ -39,6 +39,25 @@ jobs:
     - name: Run tests
       run: make unit-tests
 
+  smoke-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install Go
+      if: success()
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16.x
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: build
+      run:  |
+        make
+    - name: Run smoke tests from acceptance suite
+      run: |
+        export PATH=${PATH}:`go env GOPATH`/bin
+        export WEGO_BIN_PATH=$(pwd)/bin/wego
+        go test -v -tags=smoke ./test/acceptance/test/...
+
   coverage:
     runs-on: ubuntu-latest
     steps:
