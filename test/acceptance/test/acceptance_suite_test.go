@@ -22,6 +22,7 @@ func TestAcceptance(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
+	SetDefaultEventuallyTimeout(EVENTUALLY_DEFAULT_TIME_OUT)
 	WEGO_BIN_PATH = os.Getenv("WEGO_BIN_PATH")
 	if WEGO_BIN_PATH == "" {
 		WEGO_BIN_PATH = "/usr/local/bin/wego"
