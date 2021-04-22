@@ -63,7 +63,7 @@ jobs:
       uses: EnricoMi/publish-unit-test-result-action@v1.12
       if: always()
       with:
-        files: $(pwd)/test-results/**/*.xml
+        files: ./test-results/**/*.xml
 
   coverage:
     runs-on: ubuntu-latest
