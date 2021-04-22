@@ -1,12 +1,12 @@
 package acceptance
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	log "github.com/sirupsen/logrus"
 )
 
 var WEGO_BIN_PATH string
@@ -27,5 +27,5 @@ var _ = BeforeSuite(func() {
 	if WEGO_BIN_PATH == "" {
 		WEGO_BIN_PATH = "/usr/local/bin/wego"
 	}
-	fmt.Printf("WEGO Binary Path: %s\n", WEGO_BIN_PATH)
+	log.Infof("WEGO Binary Path: %s", WEGO_BIN_PATH)
 })
