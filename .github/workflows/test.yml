@@ -52,11 +52,13 @@ jobs:
     - name: build
       run:  |
         make
+    - name: Install Ginkgo binary
+        go get -u github.com/onsi/ginkgo/ginkgo
     - name: Run smoke tests from acceptance suite
       run: |
         export PATH=${PATH}:`go env GOPATH`/bin
         export WEGO_BIN_PATH=$(pwd)/bin/wego
-        go test -v -tags=smoke ./test/acceptance/test/...
+        ginkgo --reportFile=$(pwd)/test-results/smoke-test-results.xml -v -tags=acceptance ./test/acceptance/test/...
 
   coverage:
     runs-on: ubuntu-latest
