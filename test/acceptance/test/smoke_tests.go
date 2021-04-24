@@ -15,6 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
+	log "github.com/sirupsen/logrus"
 )
 
 func FileExists(name string) bool {
@@ -26,10 +27,16 @@ func FileExists(name string) bool {
 	return true
 }
 
-var _ = Describe("WEGO Acceptance Tests ", func() {
+var _ = Describe("WEGO Acceptance Tests", func() {
+
+	var session *gexec.Session
+	var err error
 
 	BeforeEach(func() {
 
+		Context("Given I have a wego binary installed on my local machine", func() {
+			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
+		})
 	})
 
 	AfterEach(func() {
@@ -37,13 +44,6 @@ var _ = Describe("WEGO Acceptance Tests ", func() {
 	})
 
 	It("Verify that command wego version prints the version information", func() {
-
-		var session *gexec.Session
-		var err error
-
-		By("Given I have a wego binary installed on my local machine", func() {
-			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
-		})
 
 		By("When I run the command 'wego version' ", func() {
 			command := exec.Command(WEGO_BIN_PATH, "version")
@@ -68,20 +68,7 @@ var _ = Describe("WEGO Acceptance Tests ", func() {
 		})
 	})
 
-	It("Verify that wego help flag prints the help text", func() {
-
-		var session *gexec.Session
-		var err error
-
-		By("Given I have a wego binary installed on my local machine", func() {
-			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
-		})
-
-		By("When I run the command 'wego --help' ", func() {
-			command := exec.Command(WEGO_BIN_PATH, "--help")
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).ShouldNot(HaveOccurred())
-		})
+	VerifyUsageText := func() {
 
 		By("Then I should see help message printed with the product name", func() {
 			Eventually(session).Should(gbytes.Say("Weave GitOps"))
@@ -104,5 +91,31 @@ var _ = Describe("WEGO Acceptance Tests ", func() {
 			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`-h, --help[\s]+help for wego`))
 			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`-v, --verbose[\s]+Enable verbose output`))
 		})
+
+	}
+
+	It("Verify that wego help flag prints the help text", func() {
+
+		By("When I run the command 'wego --help' ", func() {
+			command := exec.Command(WEGO_BIN_PATH, "--help")
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		VerifyUsageText()
+
 	})
+
+	It("Verify that wego command prints the help text", func() {
+
+		By("When I run the command 'wego'", func() {
+			command := exec.Command(WEGO_BIN_PATH)
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		VerifyUsageText()
+
+	})
+
 })
