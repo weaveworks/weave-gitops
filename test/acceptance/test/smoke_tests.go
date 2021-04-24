@@ -15,7 +15,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	log "github.com/sirupsen/logrus"
 )
 
 func FileExists(name string) bool {
