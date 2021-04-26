@@ -60,10 +60,10 @@ jobs:
         export WEGO_BIN_PATH=$(pwd)/bin/wego
         ginkgo --reportFile=$(pwd)/test-results/smoke-test-results.xml -v -tags=acceptance ./test/acceptance/test/...
     - name: Publish Smoke Test Results
-      uses: EnricoMi/publish-unit-test-result-action@v1.12
+      uses: mikepenz/action-junit-report@v2.4.0
       if: always()
       with:
-        files: ./test-results/**/*.xml
+        report_paths: 'test-results/**/*.xml'
 
   coverage:
     runs-on: ubuntu-latest
