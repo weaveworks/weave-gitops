@@ -33,7 +33,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 	BeforeEach(func() {
 
-		Context("Given I have a wego binary installed on my local machine", func() {
+		By("Given I have a wego binary installed on my local machine", func() {
 			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
 		})
 	})
@@ -44,7 +44,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 	It("Verify that command wego version prints the version information", func() {
 
-		By("When I run the command 'wego version' ", func() {
+		By("When I run the command 'wego version'", func() {
 			command := exec.Command(WEGO_BIN_PATH, "version")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -117,4 +117,16 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 	})
 
+	It("Verify that wego flux can print out version information", func() {
+
+		By("When I run 'wego flux -- -version", func() {
+			command := exec.Command(WEGO_BIN_PATH, "flux", "--", "-v")
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		By("Then I should see the wego flux version printed in format m.n.n with newline character", func() {
+			Eventually(session).Should(gbytes.Say("Output: flux version [0-3].[0-3][0-9].[0-9]\\d*\n"))
+		})
+	})
 })
