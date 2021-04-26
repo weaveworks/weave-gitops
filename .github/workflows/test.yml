@@ -64,6 +64,7 @@ jobs:
       if: always()
       with:
         report_paths: 'test-results/**/*.xml'
+        github_token: ${{ secrets.github_token }}
 
   coverage:
     runs-on: ubuntu-latest
