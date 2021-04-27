@@ -64,7 +64,7 @@ var _ = Describe("WEGO Acceptance Tests ", func() {
 		})
 
 		By("And branch name", func() {
-			Eventually(session).Should(gbytes.Say("Branch: main|HEAD\n"))
+			Eventually(session).Should(gbytes.Say("Branch: main1|HEAD1\n"))
 		})
 	})
 })
