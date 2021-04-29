@@ -48,8 +48,14 @@ func TestMain(m *testing.M) {
 }
 
 func GetGHTestClient(customTransportFactory gitprovider.ChainableRoundTripperFunc) (gitprovider.Client, error) {
+
+	token := os.Getenv("GITHUB_TOKEN")
+	if token == "" { // This is the case when the tests run in the ci/cd tool. No need to have a value as everything is cached
+		token = " "
+	}
+
 	return github.NewClient(
-		github.WithOAuth2Token(os.Getenv("GITHUB_TOKEN")),
+		github.WithOAuth2Token(token),
 		github.WithPreChainTransportHook(customTransportFactory),
 		github.WithDestructiveAPICalls(true),
 	)
