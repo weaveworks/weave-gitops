@@ -66,10 +66,7 @@ func Test_CreatePullRequestToOrgRepo(t *testing.T) {
 	randomRepoName := "test-org-repo"
 	randomBranchName := "test-org-branch"
 
-	orgName := "weaveworks"
-	if testOrgName := os.Getenv("GITHUB_TEST_ORG_NAME"); testOrgName != "" {
-		orgName = testOrgName
-	}
+	orgName := "my-test-org-23"
 
 	orgRepoRef := NewOrgRepositoryRef(GITHUB_DOMAIN, orgName, randomRepoName)
 	repoInfo := NewRepositoryInfo("test org repository", gitprovider.RepositoryVisibilityPrivate)
@@ -110,10 +107,7 @@ func Test_CreatePullRequestToUserRepo(t *testing.T) {
 	randomRepoName := "test-user-repo"
 	randomBranchName := "test-user-branch"
 
-	userAccount := "bot"
-	if user := os.Getenv("GITHUB_TEST_USER"); user != "" {
-		userAccount = user
-	}
+	userAccount := "josecordaz"
 
 	userRepoRef := NewUserRepositoryRef(GITHUB_DOMAIN, userAccount, randomRepoName)
 	repoInfo := NewRepositoryInfo("test user repository", gitprovider.RepositoryVisibilityPrivate)
