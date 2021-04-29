@@ -98,6 +98,9 @@ func Test_CreatePullRequestToOrgRepo(t *testing.T) {
 	err = CreatePullRequestToOrgRepo(ghClient, orgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.NoError(t, err)
 
+	err = CreatePullRequestToOrgRepo(ghClient, orgRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
+	assert.Error(t, err)
+
 	err = CreatePullRequestToOrgRepo(ghClient, doesNotExistOrgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.Error(t, err)
 
@@ -146,6 +149,9 @@ func Test_CreatePullRequestToUserRepo(t *testing.T) {
 
 	err = CreatePullRequestToUserRepo(ghClient, userRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.NoError(t, err)
+
+	err = CreatePullRequestToUserRepo(ghClient, userRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
+	assert.Error(t, err)
 
 	err = CreatePullRequestToUserRepo(ghClient, doesNotExistsUserRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.Error(t, err)
