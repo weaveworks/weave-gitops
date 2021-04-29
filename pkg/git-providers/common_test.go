@@ -36,12 +36,14 @@ func TestMain(m *testing.M) {
 
 	rand.Seed(time.Now().UnixNano())
 
-	m.Run()
+	exitCode := m.Run()
 
 	err = cacheRecorder.Stop()
 	if err != nil {
 		panic(err)
 	}
+
+	os.Exit(exitCode)
 
 }
 
