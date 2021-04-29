@@ -8,7 +8,6 @@
 package acceptance
 
 import (
-	"os"
 	"os/exec"
 
 	. "github.com/onsi/ginkgo"
@@ -17,19 +16,16 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-func FileExists(name string) bool {
-	if _, err := os.Stat(name); err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
-	}
-	return true
-}
+var _ = Describe("WEGO Acceptance Tests", func() {
 
-var _ = Describe("WEGO Acceptance Tests ", func() {
+	var session *gexec.Session
+	var err error
 
 	BeforeEach(func() {
 
+		By("Given I have a wego binary installed on my local machine", func() {
+			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
+		})
 	})
 
 	AfterEach(func() {
@@ -38,14 +34,7 @@ var _ = Describe("WEGO Acceptance Tests ", func() {
 
 	It("Verify that command wego version prints the version information", func() {
 
-		var session *gexec.Session
-		var err error
-
-		By("Given I have a wego binary installed on my local machine", func() {
-			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
-		})
-
-		By("When I run the command 'wego version' ", func() {
+		By("When I run the command 'wego version'", func() {
 			command := exec.Command(WEGO_BIN_PATH, "version")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -68,20 +57,7 @@ var _ = Describe("WEGO Acceptance Tests ", func() {
 		})
 	})
 
-	It("Verify that wego help flag prints the help text", func() {
-
-		var session *gexec.Session
-		var err error
-
-		By("Given I have a wego binary installed on my local machine", func() {
-			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
-		})
-
-		By("When I run the command 'wego --help' ", func() {
-			command := exec.Command(WEGO_BIN_PATH, "--help")
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).ShouldNot(HaveOccurred())
-		})
+	VerifyUsageText := func() {
 
 		By("Then I should see help message printed with the product name", func() {
 			Eventually(session).Should(gbytes.Say("Weave GitOps"))
@@ -103,6 +79,44 @@ var _ = Describe("WEGO Acceptance Tests ", func() {
 			Eventually(session).Should(gbytes.Say("Flags:"))
 			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`-h, --help[\s]+help for wego`))
 			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`-v, --verbose[\s]+Enable verbose output`))
+		})
+
+	}
+
+	It("Verify that wego help flag prints the help text", func() {
+
+		By("When I run the command 'wego --help' ", func() {
+			command := exec.Command(WEGO_BIN_PATH, "--help")
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		VerifyUsageText()
+
+	})
+
+	It("Verify that wego command prints the help text", func() {
+
+		By("When I run the command 'wego'", func() {
+			command := exec.Command(WEGO_BIN_PATH)
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		VerifyUsageText()
+
+	})
+
+	It("Verify that wego flux can print out version information", func() {
+
+		By("When I run 'wego flux -- -v", func() {
+			command := exec.Command(WEGO_BIN_PATH, "flux", "--", "-v")
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		By("Then I should see the wego flux version printed in format m.n.n with newline character", func() {
+			Eventually(session).Should(gbytes.Say("Output: flux version [0-3].[0-3][0-9].[0-9]\\d*\n"))
 		})
 	})
 })

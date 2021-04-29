@@ -3,6 +3,18 @@
 **/
 package acceptance
 
-import "time"
+import (
+	"os"
+	"time"
+)
 
 const EVENTUALLY_DEFAULT_TIME_OUT time.Duration = 60 * time.Second
+
+func FileExists(name string) bool {
+	if _, err := os.Stat(name); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
+}
