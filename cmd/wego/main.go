@@ -7,7 +7,9 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/cmd/wego/flux"
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
+	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
 )
 
 var options struct {
@@ -32,8 +34,10 @@ func configureLogger() {
 }
 
 func main() {
+	fluxBin.SetupFluxBin()
 	rootCmd.PersistentFlags().BoolVarP(&options.verbose, "verbose", "v", false, "Enable verbose output")
 	rootCmd.AddCommand(version.Cmd)
+	rootCmd.AddCommand(flux.Cmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)

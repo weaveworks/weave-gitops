@@ -13,10 +13,27 @@ jobs:
         os: [ubuntu-latest, macOS-latest]
 
     steps:
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16.x
     - name: checkout
       uses: actions/checkout@v2
+    - name: Fake Install flux
+      run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: build
       run: make all BINARY_NAME=wego-${{matrix.os}}
+    - name: User Acceptance Tests (Ubuntu)
+      run: |
+        export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}
+        go test -v -tags=acceptance ./test/acceptance/test/...
+      if: matrix.os == 'ubuntu-latest'
+    - name: Smoke Tests (macOS)
+      run: |
+        export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}
+        go test -v -tags=smoke ./test/acceptance/test/...
+      if: matrix.os == 'macos-latest'
+
     - name: publish
       uses: aws-actions/configure-aws-credentials@v1
       with:

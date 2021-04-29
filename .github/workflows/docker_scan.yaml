@@ -10,6 +10,9 @@ jobs:
   push_to_registry:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./controllers/wego-controller
     steps:
       - name: Login to GitHub Packages Docker Registry
         uses: docker/login-action@v1
@@ -25,7 +28,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: weaveworks/wego-test:${{ github.sha }}
+          tags: weaveworks/wego-controller:${{ github.sha }}
 
   fossa:
     name: FOSSA
@@ -45,6 +48,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Fake Install flux
+        run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/golang@master
         env:
@@ -55,11 +60,16 @@ jobs:
         uses: github/codeql-action/upload-sarif@v1
         with:
           sarif_file: snyk.code.sarif
+      - name: Remove fake flux
+        run: rm -rv pkg/flux/bin
 
   snyk:
     name: Snyk
     runs-on: ubuntu-latest
     needs: push_to_registry
+    defaults:
+      run:
+        working-directory: ./controllers/wego-controller
     steps:
       - uses: actions/checkout@v2
       - name: Run Snyk to check Docker image for vulnerabilities
@@ -70,7 +80,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
         with:
-          image: weaveworks/wego-test:${{ github.sha }}
+          image: weaveworks/wego-controller:${{ github.sha }}
           args: --file=Dockerfile
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v1
@@ -85,7 +95,7 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'weaveworks/wego-test:${{ github.sha }}'
+          image-ref: weaveworks/wego-controller:${{ github.sha }}
           format: 'template'
           template: '@/contrib/sarif.tpl'
           output: 'trivy-results.sarif'
