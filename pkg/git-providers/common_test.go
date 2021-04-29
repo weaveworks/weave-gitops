@@ -2,6 +2,7 @@ package git_providers
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"os"
@@ -11,25 +12,42 @@ import (
 	"github.com/dnaeon/go-vcr/recorder"
 
 	"github.com/fluxcd/go-git-providers/github"
+	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 )
 
-var ghClient gitprovider.Client
+var githubClient, gitlabClient gitprovider.Client
+
+func SetRecorder(recorder *recorder.Recorder) gitprovider.ChainableRoundTripperFunc {
+	return func(transport http.RoundTripper) http.RoundTripper {
+		recorder.SetTransport(transport)
+		return recorder
+	}
+}
+
+func NewRecorder(provider string) (*recorder.Recorder, error) {
+	return recorder.New(fmt.Sprintf("./cache/%s", provider))
+}
 
 func TestMain(m *testing.M) {
 
-	cacheRecorder, err := recorder.New("./cache/git-providers")
+	cacheGithubRecorder, err := NewRecorder("github")
 	if err != nil {
 		panic(err)
 	}
-	customTransportFactory := func(transport http.RoundTripper) http.RoundTripper {
-		cacheRecorder.SetTransport(transport)
-		return cacheRecorder
+
+	cacheGitlabRecorder, err := NewRecorder("gitlab")
+	if err != nil {
+		panic(err)
 	}
 
-	ghClient, err = GetGHTestClient(customTransportFactory)
+	githubClient, err = newGithubTestClient(SetRecorder(cacheGithubRecorder))
+	if err != nil {
+		panic(err)
+	}
+	gitlabClient, err = newGitlabTestClient(SetRecorder(cacheGitlabRecorder))
 	if err != nil {
 		panic(err)
 	}
@@ -38,7 +56,12 @@ func TestMain(m *testing.M) {
 
 	exitCode := m.Run()
 
-	err = cacheRecorder.Stop()
+	err = cacheGithubRecorder.Stop()
+	if err != nil {
+		panic(err)
+	}
+
+	err = cacheGitlabRecorder.Stop()
 	if err != nil {
 		panic(err)
 	}
@@ -47,7 +70,7 @@ func TestMain(m *testing.M) {
 
 }
 
-func GetGHTestClient(customTransportFactory gitprovider.ChainableRoundTripperFunc) (gitprovider.Client, error) {
+func newGithubTestClient(customTransportFactory gitprovider.ChainableRoundTripperFunc) (gitprovider.Client, error) {
 
 	token := os.Getenv("GITHUB_TOKEN")
 	if token == "" { // This is the case when the tests run in the ci/cd tool. No need to have a value as everything is cached
@@ -61,25 +84,75 @@ func GetGHTestClient(customTransportFactory gitprovider.ChainableRoundTripperFun
 	)
 }
 
+func newGitlabTestClient(customTransportFactory gitprovider.ChainableRoundTripperFunc) (gitprovider.Client, error) {
+
+	token := os.Getenv("GITLAB_TOKEN")
+	if token == "" { // This is the case when the tests run in the ci/cd tool. No need to have a value as everything is cached
+		token = " "
+	}
+
+	return gitlab.NewClient(
+		"",
+		"",
+		gitlab.WithOAuth2Token(token),
+		gitlab.WithPreChainTransportHook(customTransportFactory),
+		gitlab.WithDestructiveAPICalls(true),
+	)
+}
+
 func Test_CreatePullRequestToOrgRepo(t *testing.T) {
+
+	githubOrgName := os.Getenv("GITHUB_ORG_NAME")
+	githubUserName := os.Getenv("GITHUB_USER_NAME")
+
+	gitlabOrgName := os.Getenv("GITLAB_ORG_NAME")
+	gitlabUserName := os.Getenv("GITLAB_USER_NAME")
+
+	providers := []struct {
+		provider string
+		client   gitprovider.Client
+		domain   string
+		orgName  string
+		userName string
+	}{
+		{"github", githubClient, GITHUB_DOMAIN, githubOrgName, githubUserName},
+		{"gitlab", gitlabClient, GITLAB_DOMAIN, gitlabOrgName, gitlabUserName},
+	}
+
+	testNameFormat := "create pr for %s account [%s]"
+	for _, p := range providers {
+		testName := fmt.Sprintf(testNameFormat, "org", p.provider)
+		t.Run(testName, func(t *testing.T) {
+			CreateTestPullRequestToOrgRepo(t, p.client, p.domain, p.orgName)
+
+		})
+		testName = fmt.Sprintf(testNameFormat, "user", p.provider)
+		t.Run(testName, func(t *testing.T) {
+			CreateTestPullRequestToUserRepo(t, p.client, p.domain, p.userName)
+		})
+
+	}
+
+}
+
+func CreateTestPullRequestToOrgRepo(t *testing.T, client gitprovider.Client, domain string, orgName string) {
 
 	repoName := "test-org-repo"
 	branchName := "test-org-branch"
 
-	orgName := "my-test-org-23"
 	doesNotExistOrg := "doesnotexists"
 
-	orgRepoRef := NewOrgRepositoryRef(GITHUB_DOMAIN, orgName, repoName)
-	doesNotExistOrgRepoRef := NewOrgRepositoryRef(GITHUB_DOMAIN, doesNotExistOrg, repoName)
+	orgRepoRef := NewOrgRepositoryRef(domain, orgName, repoName)
+	doesNotExistOrgRepoRef := NewOrgRepositoryRef(domain, doesNotExistOrg, repoName)
 	repoInfo := NewRepositoryInfo("test org repository", gitprovider.RepositoryVisibilityPrivate)
 	opts := &gitprovider.RepositoryCreateOptions{
 		AutoInit: gitprovider.BoolVar(true),
 	}
 
-	err := CreateOrgRepository(ghClient, orgRepoRef, repoInfo, opts)
+	err := CreateOrgRepository(client, orgRepoRef, repoInfo, opts)
 	assert.NoError(t, err)
 
-	err = CreateOrgRepository(ghClient, doesNotExistOrgRepoRef, repoInfo, opts)
+	err = CreateOrgRepository(client, doesNotExistOrgRepoRef, repoInfo, opts)
 	assert.Error(t, err)
 
 	path := "setup/config.yaml"
@@ -95,43 +168,43 @@ func Test_CreatePullRequestToOrgRepo(t *testing.T) {
 	prTitle := "config files"
 	prDescription := "test description"
 
-	err = CreatePullRequestToOrgRepo(ghClient, orgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	err = CreatePullRequestToOrgRepo(client, orgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.NoError(t, err)
 
-	err = CreatePullRequestToOrgRepo(ghClient, orgRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
+	err = CreatePullRequestToOrgRepo(client, orgRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
 	assert.Error(t, err)
 
-	err = CreatePullRequestToOrgRepo(ghClient, doesNotExistOrgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	err = CreatePullRequestToOrgRepo(client, doesNotExistOrgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.Error(t, err)
 
 	t.Cleanup(func() {
 		ctx := context.Background()
-		org, err := ghClient.OrgRepositories().Get(ctx, orgRepoRef)
+		org, err := client.OrgRepositories().Get(ctx, orgRepoRef)
 		assert.NoError(t, err)
 		err = org.Delete(ctx)
 		assert.NoError(t, err)
 	})
+
 }
 
-func Test_CreatePullRequestToUserRepo(t *testing.T) {
+func CreateTestPullRequestToUserRepo(t *testing.T, client gitprovider.Client, domain string, userAccount string) {
 
 	repoName := "test-user-repo"
 	branchName := "test-user-branch"
 
-	userAccount := "josecordaz"
 	doesnotExistUserAccount := "doesnotexists"
 
-	userRepoRef := NewUserRepositoryRef(GITHUB_DOMAIN, userAccount, repoName)
-	doesNotExistsUserRepoRef := NewUserRepositoryRef(GITHUB_DOMAIN, doesnotExistUserAccount, repoName)
+	userRepoRef := NewUserRepositoryRef(domain, userAccount, repoName)
+	doesNotExistsUserRepoRef := NewUserRepositoryRef(domain, doesnotExistUserAccount, repoName)
 	repoInfo := NewRepositoryInfo("test user repository", gitprovider.RepositoryVisibilityPrivate)
 	opts := &gitprovider.RepositoryCreateOptions{
 		AutoInit: gitprovider.BoolVar(true),
 	}
 
-	err := CreateUserRepository(ghClient, userRepoRef, repoInfo, opts)
+	err := CreateUserRepository(client, userRepoRef, repoInfo, opts)
 	assert.NoError(t, err)
 
-	err = CreateUserRepository(ghClient, doesNotExistsUserRepoRef, repoInfo, opts)
+	err = CreateUserRepository(client, doesNotExistsUserRepoRef, repoInfo, opts)
 	assert.Error(t, err)
 
 	path := "setup/config.yaml"
@@ -147,18 +220,18 @@ func Test_CreatePullRequestToUserRepo(t *testing.T) {
 	prTitle := "config files"
 	prDescription := "test description"
 
-	err = CreatePullRequestToUserRepo(ghClient, userRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	err = CreatePullRequestToUserRepo(client, userRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.NoError(t, err)
 
-	err = CreatePullRequestToUserRepo(ghClient, userRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
+	err = CreatePullRequestToUserRepo(client, userRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
 	assert.Error(t, err)
 
-	err = CreatePullRequestToUserRepo(ghClient, doesNotExistsUserRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	err = CreatePullRequestToUserRepo(client, doesNotExistsUserRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.Error(t, err)
 
 	t.Cleanup(func() {
 		ctx := context.Background()
-		user, err := ghClient.UserRepositories().Get(ctx, userRepoRef)
+		user, err := client.UserRepositories().Get(ctx, userRepoRef)
 		assert.NoError(t, err)
 		err = user.Delete(ctx)
 		assert.NoError(t, err)

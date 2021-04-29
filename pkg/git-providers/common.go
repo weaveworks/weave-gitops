@@ -3,6 +3,7 @@ package git_providers
 import (
 	"context"
 	"fmt"
+
 	"github.com/fluxcd/go-git-providers/gitprovider"
 )
 
@@ -50,6 +51,10 @@ func CreatePullRequestToUserRepo(provider gitprovider.Client, userRepRef gitprov
 		return fmt.Errorf("error getting commits for repo[%s] err [%s]", userRepRef.String(), err)
 	}
 
+	if len(commits) == 0 {
+		return fmt.Errorf("tagetBranch[%s] does not exists", targetBranch)
+	}
+
 	latestCommit := commits[0]
 
 	if err := ur.Branches().Create(ctx, newBranch, latestCommit.Get().Sha); err != nil {
@@ -83,6 +88,10 @@ func CreatePullRequestToOrgRepo(provider gitprovider.Client, orgRepRef gitprovid
 	commits, err := ur.Commits().ListPage(ctx, targetBranch, 1, 0)
 	if err != nil {
 		return fmt.Errorf("error getting commits for repo[%s] err [%s]", orgRepRef.String(), err)
+	}
+
+	if len(commits) == 0 {
+		return fmt.Errorf("tagetBranch[%s] does not exists", targetBranch)
 	}
 
 	latestCommit := commits[0]
