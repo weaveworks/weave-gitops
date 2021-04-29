@@ -8,7 +8,6 @@
 package acceptance
 
 import (
-	"os"
 	"os/exec"
 
 	. "github.com/onsi/ginkgo"
@@ -16,15 +15,6 @@ import (
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 )
-
-func FileExists(name string) bool {
-	if _, err := os.Stat(name); err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
-	}
-	return true
-}
 
 var _ = Describe("WEGO Acceptance Tests", func() {
 
@@ -119,7 +109,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 	It("Verify that wego flux can print out version information", func() {
 
-		By("When I run 'wego flux -- -version", func() {
+		By("When I run 'wego flux -- -v", func() {
 			command := exec.Command(WEGO_BIN_PATH, "flux", "--", "-v")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
