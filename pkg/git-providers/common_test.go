@@ -2,7 +2,6 @@ package git_providers
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"os"
@@ -56,8 +55,8 @@ func GetGHTestClient(customTransportFactory gitprovider.ChainableRoundTripperFun
 
 func Test_CreatePullRequestToOrgRepo(t *testing.T) {
 
-	randomRepoName := fmt.Sprintf("test-org-repo")
-	randomBranchName := fmt.Sprintf("test-org-branch")
+	randomRepoName := "test-org-repo"
+	randomBranchName := "test-org-branch"
 
 	orgName := "weaveworks"
 	if testOrgName := os.Getenv("GITHUB_TEST_ORG_NAME"); testOrgName != "" {
@@ -100,8 +99,8 @@ func Test_CreatePullRequestToOrgRepo(t *testing.T) {
 
 func Test_CreatePullRequestToUserRepo(t *testing.T) {
 
-	randomRepoName := fmt.Sprintf("test-user-repo")
-	randomBranchName := fmt.Sprintf("test-user-branch")
+	randomRepoName := "test-user-repo"
+	randomBranchName := "test-user-branch"
 
 	userAccount := "bot"
 	if user := os.Getenv("GITHUB_TEST_USER"); user != "" {
