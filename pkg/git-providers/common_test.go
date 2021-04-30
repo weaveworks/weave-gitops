@@ -58,7 +58,6 @@ func NewRecorder(provider string, accounts *accounts) (*recorder.Recorder, error
 			r.URL.Path = strings.Replace(r.URL.Path, accounts.GitlabOrgName, GitlabOrgTestName, -1)
 			r.URL.Path = strings.Replace(r.URL.Path, accounts.GitlabUserName, GitlabUserTestName, -1)
 		}
-		i.URL = strings.Replace(i.URL, "%2F", "/", -1)
 		return cassette.DefaultMatcher(r, i)
 	})
 
