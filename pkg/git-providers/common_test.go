@@ -6,8 +6,11 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/dnaeon/go-vcr/cassette"
 
 	"github.com/dnaeon/go-vcr/recorder"
 
@@ -20,6 +23,13 @@ import (
 
 var githubClient, gitlabClient gitprovider.Client
 
+var (
+	GithubOrgTestName  = "weaveworks"
+	GithubUserTestName = "bot"
+	GitlabOrgTestName  = "weaveworks"
+	GitlabUserTestName = "bot"
+)
+
 func SetRecorder(recorder *recorder.Recorder) gitprovider.ChainableRoundTripperFunc {
 	return func(transport http.RoundTripper) http.RoundTripper {
 		recorder.SetTransport(transport)
@@ -27,18 +37,114 @@ func SetRecorder(recorder *recorder.Recorder) gitprovider.ChainableRoundTripperF
 	}
 }
 
-func NewRecorder(provider string) (*recorder.Recorder, error) {
-	return recorder.New(fmt.Sprintf("./cache/%s", provider))
+type accounts struct {
+	GithubOrgName  string
+	GithubUserName string
+	GitlabOrgName  string
+	GitlabUserName string
+}
+
+func NewRecorder(provider string, accounts *accounts) (*recorder.Recorder, error) {
+
+	r, err := recorder.New(fmt.Sprintf("./cache/%s", provider))
+	if err != nil {
+		return nil, err
+	}
+
+	r.SetMatcher(func(r *http.Request, i cassette.Request) bool {
+		if accounts.GithubOrgName != GithubOrgTestName {
+			r.URL.Path = strings.Replace(r.URL.Path, accounts.GithubOrgName, GithubOrgTestName, -1)
+			r.URL.Path = strings.Replace(r.URL.Path, accounts.GithubUserName, GithubUserTestName, -1)
+			r.URL.Path = strings.Replace(r.URL.Path, accounts.GitlabOrgName, GitlabOrgTestName, -1)
+			r.URL.Path = strings.Replace(r.URL.Path, accounts.GitlabUserName, GitlabUserTestName, -1)
+		}
+		i.URL = strings.Replace(i.URL, "%2F", "/", -1)
+		return cassette.DefaultMatcher(r, i)
+	})
+
+	r.AddSaveFilter(func(i *cassette.Interaction) error {
+
+		if accounts.GithubOrgName != GithubOrgTestName {
+			i.Response.Body = strings.Replace(i.Response.Body, accounts.GithubOrgName, GithubOrgTestName, -1)
+			i.Response.Body = strings.Replace(i.Response.Body, accounts.GithubUserName, GithubUserTestName, -1)
+			i.Response.Body = strings.Replace(i.Response.Body, accounts.GitlabOrgName, GitlabOrgTestName, -1)
+			i.Response.Body = strings.Replace(i.Response.Body, accounts.GitlabUserName, GitlabUserTestName, -1)
+
+			i.Request.URL = strings.Replace(i.Request.URL, accounts.GithubOrgName, GithubOrgTestName, -1)
+			i.Request.URL = strings.Replace(i.Request.URL, accounts.GithubUserName, GithubUserTestName, -1)
+			i.Request.URL = strings.Replace(i.Request.URL, accounts.GitlabOrgName, GitlabOrgTestName, -1)
+			i.Request.URL = strings.Replace(i.Request.URL, accounts.GitlabUserName, GitlabUserTestName, -1)
+
+			i.Response.Body = strings.Replace(i.Response.Body, accounts.GithubOrgName, GithubOrgTestName, -1)
+			i.Response.Body = strings.Replace(i.Response.Body, accounts.GithubUserName, GithubUserTestName, -1)
+			i.Response.Body = strings.Replace(i.Response.Body, accounts.GitlabOrgName, GitlabOrgTestName, -1)
+			i.Response.Body = strings.Replace(i.Response.Body, accounts.GitlabUserName, GitlabUserTestName, -1)
+
+			for headerKey, h := range i.Response.Headers {
+				for ind, header := range h {
+					header = strings.Replace(header, accounts.GithubOrgName, GithubOrgTestName, -1)
+					header = strings.Replace(header, accounts.GithubUserName, GithubUserTestName, -1)
+					header = strings.Replace(header, accounts.GitlabOrgName, GitlabOrgTestName, -1)
+					header = strings.Replace(header, accounts.GitlabUserName, GitlabUserTestName, -1)
+					if ind == 0 {
+						i.Response.Headers.Set(headerKey, header)
+					} else {
+						i.Response.Headers.Add(headerKey, header)
+					}
+				}
+			}
+
+		}
+		return nil
+	})
+
+	return r, nil
+}
+
+func getAccounts() *accounts {
+	accounts := &accounts{}
+
+	ghOrgName := os.Getenv("GITHUB_ORG_NAME")
+	if ghOrgName == "" {
+		accounts.GithubOrgName = GithubOrgTestName
+	} else {
+		accounts.GithubOrgName = ghOrgName
+	}
+
+	ghUserName := os.Getenv("GITHUB_USER_NAME")
+	if ghUserName == "" {
+		accounts.GithubUserName = GithubUserTestName
+	} else {
+		accounts.GithubUserName = ghUserName
+	}
+
+	glOrgName := os.Getenv("GITLAB_ORG_NAME")
+	if glOrgName == "" {
+		accounts.GitlabOrgName = GitlabOrgTestName
+	} else {
+		accounts.GitlabOrgName = glOrgName
+	}
+
+	glUserName := os.Getenv("GITLAB_USER_NAME")
+	if glUserName == "" {
+		accounts.GitlabUserName = GitlabUserTestName
+	} else {
+		accounts.GitlabUserName = glUserName
+	}
+
+	return accounts
 }
 
 func TestMain(m *testing.M) {
 
-	cacheGithubRecorder, err := NewRecorder("github")
+	accounts := getAccounts()
+
+	cacheGithubRecorder, err := NewRecorder("github", accounts)
 	if err != nil {
 		panic(err)
 	}
 
-	cacheGitlabRecorder, err := NewRecorder("gitlab")
+	cacheGitlabRecorder, err := NewRecorder("gitlab", accounts)
 	if err != nil {
 		panic(err)
 	}
@@ -102,11 +208,7 @@ func newGitlabTestClient(customTransportFactory gitprovider.ChainableRoundTrippe
 
 func Test_CreatePullRequestToOrgRepo(t *testing.T) {
 
-	githubOrgName := os.Getenv("GITHUB_ORG_NAME")
-	githubUserName := os.Getenv("GITHUB_USER_NAME")
-
-	gitlabOrgName := os.Getenv("GITLAB_ORG_NAME")
-	gitlabUserName := os.Getenv("GITLAB_USER_NAME")
+	accounts := getAccounts()
 
 	providers := []struct {
 		provider string
@@ -115,8 +217,8 @@ func Test_CreatePullRequestToOrgRepo(t *testing.T) {
 		orgName  string
 		userName string
 	}{
-		{"github", githubClient, GITHUB_DOMAIN, githubOrgName, githubUserName},
-		{"gitlab", gitlabClient, GITLAB_DOMAIN, gitlabOrgName, gitlabUserName},
+		{"github", githubClient, GITHUB_DOMAIN, accounts.GithubOrgName, accounts.GithubUserName},
+		{"gitlab", gitlabClient, GITLAB_DOMAIN, accounts.GitlabOrgName, accounts.GitlabUserName},
 	}
 
 	testNameFormat := "create pr for %s account [%s]"
@@ -124,7 +226,6 @@ func Test_CreatePullRequestToOrgRepo(t *testing.T) {
 		testName := fmt.Sprintf(testNameFormat, "org", p.provider)
 		t.Run(testName, func(t *testing.T) {
 			CreateTestPullRequestToOrgRepo(t, p.client, p.domain, p.orgName)
-
 		})
 		testName = fmt.Sprintf(testNameFormat, "user", p.provider)
 		t.Run(testName, func(t *testing.T) {
