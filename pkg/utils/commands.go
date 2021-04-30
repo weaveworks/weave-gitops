@@ -60,6 +60,11 @@ func CallCommand(cmdstr string) ([]byte, error) {
 	return []byte(out.String()), err
 }
 
+func CallCommandSilently(cmdstr string) ([]byte, error) {
+	cmd := exec.Command("sh", "-c", Escape(cmdstr))
+	return cmd.CombinedOutput()
+}
+
 func CallCommandSeparatingOutputStreams(cmdstr string) ([]byte, []byte, error) {
 	cmd := exec.Command("sh", "-c", Escape(cmdstr))
 	var stdout, stderr bytes.Buffer
@@ -70,7 +75,8 @@ func CallCommandSeparatingOutputStreams(cmdstr string) ([]byte, []byte, error) {
 }
 
 func CallCommandForEffect(cmdstr string) error {
-	return exec.Command("sh", "-c", Escape(cmdstr)).Run()
+	cmd := exec.Command("sh", "-c", Escape(cmdstr))
+	return cmd.Run()
 }
 
 func Escape(cmd string) string {
