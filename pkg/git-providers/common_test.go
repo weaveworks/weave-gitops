@@ -47,20 +47,12 @@ type accounts struct {
 
 func NewRecorder(provider string, accounts *accounts) (*recorder.Recorder, error) {
 
-	fmt.Println("NEW-RECORDER")
 	r, err := recorder.New(fmt.Sprintf("./cache/%s", provider))
 	if err != nil {
 		return nil, err
 	}
 
-	if _, err := os.Stat(fmt.Sprintf("./cache/%s", provider)); os.IsNotExist(err) {
-		fmt.Println("Cassette DOES NOT exist")
-	} else {
-		fmt.Println("Cassette exist")
-	}
-
 	r.SetMatcher(func(r *http.Request, i cassette.Request) bool {
-		fmt.Println("SetMatcher", r.URL.String())
 		if accounts.GithubOrgName != GithubOrgTestName {
 
 			r.URL, _ = url.Parse(strings.Replace(r.URL.String(), accounts.GithubOrgName, GithubOrgTestName, -1))
@@ -74,7 +66,6 @@ func NewRecorder(provider string, accounts *accounts) (*recorder.Recorder, error
 	})
 
 	r.AddSaveFilter(func(i *cassette.Interaction) error {
-		fmt.Println("AddSaveFilter", i.URL)
 		if accounts.GithubOrgName != GithubOrgTestName {
 			i.Response.Body = strings.Replace(i.Response.Body, accounts.GithubOrgName, GithubOrgTestName, -1)
 			i.Response.Body = strings.Replace(i.Response.Body, accounts.GithubUserName, GithubUserTestName, -1)
@@ -116,7 +107,6 @@ func getAccounts() *accounts {
 	accounts := &accounts{}
 
 	ghOrgName := os.Getenv("GITHUB_ORG_NAME")
-	fmt.Println("ghOrgName", ghOrgName)
 	if ghOrgName == "" {
 		accounts.GithubOrgName = GithubOrgTestName
 	} else {
@@ -143,8 +133,6 @@ func getAccounts() *accounts {
 	} else {
 		accounts.GitlabUserName = glUserName
 	}
-
-	fmt.Println("accounts", accounts)
 
 	return accounts
 }
