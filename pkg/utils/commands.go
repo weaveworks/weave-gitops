@@ -27,8 +27,8 @@ func CallCommand(cmdstr string) ([]byte, error) {
 
 	var wg sync.WaitGroup
 
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
 		defer wg.Done()
 		for stdoutScanner.Scan() {
 			data := stdoutScanner.Text()
@@ -39,8 +39,8 @@ func CallCommand(cmdstr string) ([]byte, error) {
 	}()
 
 	stderrScanner := bufio.NewScanner(stderrReader)
+	wg.Add(1)
 	go func() {
-		wg.Add(1)
 		defer wg.Done()
 		for stderrScanner.Scan() {
 			data := stderrScanner.Text()
