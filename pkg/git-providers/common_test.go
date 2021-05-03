@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"testing"
@@ -53,12 +54,15 @@ func NewRecorder(provider string, accounts *accounts) (*recorder.Recorder, error
 
 	r.SetMatcher(func(r *http.Request, i cassette.Request) bool {
 		if accounts.GithubOrgName != GithubOrgTestName {
-			r.URL.Path = strings.Replace(r.URL.Path, accounts.GithubOrgName, GithubOrgTestName, -1)
-			r.URL.Path = strings.Replace(r.URL.Path, accounts.GithubUserName, GithubUserTestName, -1)
-			r.URL.Path = strings.Replace(r.URL.Path, accounts.GitlabOrgName, GitlabOrgTestName, -1)
-			r.URL.Path = strings.Replace(r.URL.Path, accounts.GitlabUserName, GitlabUserTestName, -1)
+
+			r.URL, _ = url.Parse(strings.Replace(r.URL.String(), accounts.GithubOrgName, GithubOrgTestName, -1))
+			r.URL, _ = url.Parse(strings.Replace(r.URL.String(), accounts.GithubUserName, GithubUserTestName, -1))
+			r.URL, _ = url.Parse(strings.Replace(r.URL.String(), accounts.GitlabOrgName, GitlabOrgTestName, -1))
+			r.URL, _ = url.Parse(strings.Replace(r.URL.String(), accounts.GitlabUserName, GitlabUserTestName, -1))
+
 		}
-		return cassette.DefaultMatcher(r, i)
+
+		return r.Method == i.Method && (r.URL.String() == i.URL || strings.Contains(i.URL, r.URL.RawPath))
 	})
 
 	r.AddSaveFilter(func(i *cassette.Interaction) error {
