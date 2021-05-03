@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/kr/pretty v0.2.0 // indirect
+	github.com/lithammer/dedent v1.1.0 // indirect
 	github.com/onsi/ginkgo v1.16.1 // indirect
 	github.com/onsi/gomega v1.11.0 // indirect
 	github.com/sirupsen/logrus v1.2.0
