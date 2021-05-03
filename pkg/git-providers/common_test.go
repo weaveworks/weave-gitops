@@ -47,9 +47,16 @@ type accounts struct {
 
 func NewRecorder(provider string, accounts *accounts) (*recorder.Recorder, error) {
 
+	fmt.Println("NEW-RECORDER")
 	r, err := recorder.New(fmt.Sprintf("./cache/%s", provider))
 	if err != nil {
 		return nil, err
+	}
+
+	if _, err := os.Stat(fmt.Sprintf("./cache/%s", provider)); os.IsNotExist(err) {
+		fmt.Println("Cassette DOES NOT exist")
+	} else {
+		fmt.Println("Cassette exist")
 	}
 
 	r.SetMatcher(func(r *http.Request, i cassette.Request) bool {
@@ -109,6 +116,7 @@ func getAccounts() *accounts {
 	accounts := &accounts{}
 
 	ghOrgName := os.Getenv("GITHUB_ORG_NAME")
+	fmt.Println("ghOrgName", ghOrgName)
 	if ghOrgName == "" {
 		accounts.GithubOrgName = GithubOrgTestName
 	} else {
