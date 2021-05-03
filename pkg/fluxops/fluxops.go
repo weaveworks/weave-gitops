@@ -10,9 +10,21 @@ import (
 )
 
 var (
-	fluxHandler = defaultFluxHandler
+	fluxHandler FluxHandler = defaultFluxHandler{}
 	fluxBinary  string
 )
+
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . FluxHandler
+type FluxHandler interface {
+	Handle(args string) ([]byte, error)
+}
+
+type defaultFluxHandler struct{}
+
+func (h defaultFluxHandler) Handle(arglist string) ([]byte, error) {
+	initFluxBinary()
+	return utils.CallCommand(fmt.Sprintf("%s %s", fluxBinary, arglist))
+}
 
 func FluxPath() (string, error) {
 	homeDir, err := os.UserHomeDir()
@@ -27,12 +39,12 @@ func FluxBinaryPath() string {
 	return fluxBinary
 }
 
-func SetFluxHandler(f func(string) ([]byte, error)) {
-	fluxHandler = f
+func SetFluxHandler(h FluxHandler) {
+	fluxHandler = h
 }
 
 func CallFlux(arglist []string) ([]byte, error) {
-	return fluxHandler(strings.Join(arglist, " "))
+	return fluxHandler.Handle(strings.Join(arglist, " "))
 }
 
 func Install(namespace string) ([]byte, error) {
@@ -43,11 +55,6 @@ func Install(namespace string) ([]byte, error) {
 	}
 
 	return CallFlux(args)
-}
-
-func defaultFluxHandler(arglist string) ([]byte, error) {
-	initFluxBinary()
-	return utils.CallCommand(fmt.Sprintf("%s %s", fluxBinary, arglist))
 }
 
 func initFluxBinary() {
