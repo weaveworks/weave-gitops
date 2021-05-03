@@ -12,7 +12,8 @@ func TestCallCommand(t *testing.T) {
 
 	output, err := utils.CallCommand(`echo "stdout" && >&2 echo "stderr"`)
 	assert.NoError(err)
-	assert.Equal("stdout\nstderr\n", string(output))
+	assert.Contains(string(output), "stderr")
+	assert.Contains(string(output), "stdout")
 
 	output, err = utils.CallCommand(`exit 1`)
 	assert.EqualError(err, "exit status 1")
