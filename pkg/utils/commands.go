@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+	"sync"
 )
 
 // CallCommand will run an external command, displaying its output interactively and return its output.
@@ -23,7 +24,12 @@ func CallCommand(cmdstr string) ([]byte, error) {
 		return nil, err
 	}
 	stdoutScanner := bufio.NewScanner(stdoutReader)
+
+	var wg sync.WaitGroup
+
 	go func() {
+		wg.Add(1)
+		defer wg.Done()
 		for stdoutScanner.Scan() {
 			data := stdoutScanner.Text()
 			fmt.Println(data)
@@ -34,6 +40,8 @@ func CallCommand(cmdstr string) ([]byte, error) {
 
 	stderrScanner := bufio.NewScanner(stderrReader)
 	go func() {
+		wg.Add(1)
+		defer wg.Done()
 		for stderrScanner.Scan() {
 			data := stderrScanner.Text()
 			fmt.Println(data)
@@ -42,7 +50,8 @@ func CallCommand(cmdstr string) ([]byte, error) {
 		}
 	}()
 
-	err = cmd.Run()
+	err = cmd.Start()
+	wg.Wait()
 	return []byte(out.String()), err
 }
 
