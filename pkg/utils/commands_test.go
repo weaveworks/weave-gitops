@@ -10,9 +10,9 @@ import (
 func TestCallCommand(t *testing.T) {
 	assert := assert.New(t)
 
-	output, err := utils.CallCommand(`echo "foo"`)
+	output, err := utils.CallCommand(`echo "stdout" && >&2 echo "stderr"`)
 	assert.NoError(err)
-	assert.Equal("foo\n", string(output))
+	assert.Equal("stdout\nstderr\n", string(output))
 
 	output, err = utils.CallCommand(`exit 1`)
 	assert.EqualError(err, "exit status 1")
