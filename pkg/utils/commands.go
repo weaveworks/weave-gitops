@@ -23,10 +23,10 @@ func CallCommand(cmdstr string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	stdoutScanner := bufio.NewScanner(stdoutReader)
 
 	var wg sync.WaitGroup
 
+	stdoutScanner := bufio.NewScanner(stdoutReader)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -51,7 +51,12 @@ func CallCommand(cmdstr string) ([]byte, error) {
 	}()
 
 	err = cmd.Start()
-	wg.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	err = cmd.Wait()
+
 	return []byte(out.String()), err
 }
 

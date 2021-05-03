@@ -10,7 +10,7 @@ import (
 func TestCallCommand(t *testing.T) {
 	assert := assert.New(t)
 
-	output, err := utils.CallCommand(`>&2 echo "foo"`)
+	output, err := utils.CallCommand(`echo "foo"`)
 	assert.NoError(err)
 	assert.Equal("foo\n", string(output))
 
