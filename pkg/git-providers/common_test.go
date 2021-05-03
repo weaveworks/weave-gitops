@@ -135,6 +135,8 @@ func getAccounts() *accounts {
 		accounts.GitlabUserName = glUserName
 	}
 
+	fmt.Println("accounts", accounts)
+
 	return accounts
 }
 
@@ -186,6 +188,8 @@ func newGithubTestClient(customTransportFactory gitprovider.ChainableRoundTrippe
 		token = " "
 	}
 
+	fmt.Println("GITHUB_TOKEN", len(token))
+
 	return github.NewClient(
 		github.WithOAuth2Token(token),
 		github.WithPreChainTransportHook(customTransportFactory),
@@ -199,6 +203,8 @@ func newGitlabTestClient(customTransportFactory gitprovider.ChainableRoundTrippe
 	if token == "" { // This is the case when the tests run in the ci/cd tool. No need to have a value as everything is cached
 		token = " "
 	}
+
+	fmt.Println("GITLAB_TOKEN", len(token))
 
 	return gitlab.NewClient(
 		"",
