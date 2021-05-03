@@ -53,6 +53,7 @@ func NewRecorder(provider string, accounts *accounts) (*recorder.Recorder, error
 	}
 
 	r.SetMatcher(func(r *http.Request, i cassette.Request) bool {
+		fmt.Println("SetMatcher", r.URL.String())
 		if accounts.GithubOrgName != GithubOrgTestName {
 
 			r.URL, _ = url.Parse(strings.Replace(r.URL.String(), accounts.GithubOrgName, GithubOrgTestName, -1))
@@ -66,7 +67,7 @@ func NewRecorder(provider string, accounts *accounts) (*recorder.Recorder, error
 	})
 
 	r.AddSaveFilter(func(i *cassette.Interaction) error {
-
+		fmt.Println("AddSaveFilter", i.URL)
 		if accounts.GithubOrgName != GithubOrgTestName {
 			i.Response.Body = strings.Replace(i.Response.Body, accounts.GithubOrgName, GithubOrgTestName, -1)
 			i.Response.Body = strings.Replace(i.Response.Body, accounts.GithubUserName, GithubUserTestName, -1)
