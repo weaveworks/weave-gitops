@@ -18,12 +18,6 @@ var (
 	fluxBinary  string
 )
 
-const fluxSystemNamespace = `apiVersion: v1
-kind: Namespace
-metadata:
-  name: flux-system
-`
-
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . FluxHandler
 type FluxHandler interface {
 	Handle(args string) ([]byte, error)
@@ -86,12 +80,6 @@ func installFlux(namespace string, verbose bool) ([]byte, error) {
 		"install",
 		fmt.Sprintf("--namespace=%s", namespace),
 		"--export",
-	}
-
-	if namespace != "flux-system" {
-		if err := utils.CallCommandForEffectWithInputPipe("kubectl apply -f -", fluxSystemNamespace); err != nil {
-			return nil, err
-		}
 	}
 
 	if verbose {

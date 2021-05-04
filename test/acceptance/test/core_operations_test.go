@@ -20,6 +20,7 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -54,6 +55,12 @@ spec:
         image: nginx
         ports:
         - containerPort: 80
+`
+
+const fluxSystemNamespace = `apiVersion: v1
+kind: Namespace
+metadata:
+  name: flux-system
 `
 
 var (
@@ -122,6 +129,8 @@ func waitForNginxDeployment(t *testing.T) {
 }
 
 func installFlux(t *testing.T) {
+	flux.SetupFluxBin()
+	require.NoError(t, utils.CallCommandForEffectWithInputPipe("kubectl apply -f -", fluxSystemNamespace))
 	manifests, err := fluxops.QuietInstall("wego-system")
 	require.NoError(t, err)
 	require.NoError(t, utils.CallCommandForEffectWithInputPipeAndDebug("kubectl apply -f -", string(manifests)))
