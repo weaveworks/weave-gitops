@@ -211,8 +211,9 @@ func runCmd(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 	params.dir = args[0]
-	fmt.Printf("Updating parameters from environment... done\n\n")
+	fmt.Printf("Updating parameters from environment... ")
 	updateParametersIfNecessary()
+	fmt.Printf("done\n\n")
 	fmt.Printf("Checking cluster status... ")
 	clusterStatus := status.GetClusterStatus()
 	fmt.Printf("%s\n\n", clusterStatus)
@@ -223,13 +224,6 @@ func runCmd(cmd *cobra.Command, args []string) {
 	}
 
 	// Set up wego repository if required
-
-	wegoSource := generateWegoSourceManifest()
-	wegoKust := generateWegoKustomizeManifest()
-	checkAddError(utils.CallCommandForEffectWithInputPipe("kubectl apply -f -", appCRD))
-	checkAddError(utils.CallCommandForEffectWithInputPipe("kubectl apply -f -", string(wegoSource)))
-	checkAddError(utils.CallCommandForEffectWithInputPipe("kubectl apply -f -", string(wegoKust)))
-
 	fluxRepoName, err := fluxops.GetRepoName()
 	checkAddError(err)
 
@@ -250,6 +244,14 @@ func runCmd(cmd *cobra.Command, args []string) {
 		checkAddError(utils.CallCommandForEffectWithDebug("git push -u origin main"))
 	}
 
+	// Install Source and Kustomize controllers, and CRD for application (may already be present)
+	wegoSource := generateWegoSourceManifest()
+	wegoKust := generateWegoKustomizeManifest()
+	checkAddError(utils.CallCommandForEffectWithInputPipe("kubectl apply -f -", appCRD))
+	checkAddError(utils.CallCommandForEffectWithInputPipe("kubectl apply -f -", string(wegoSource)))
+	checkAddError(utils.CallCommandForEffectWithInputPipe("kubectl apply -f -", string(wegoKust)))
+
+	// Create app.yaml
 	t, err := template.New("appYaml").Parse(appYamlTemplate)
 	checkAddError(err)
 
@@ -262,6 +264,7 @@ func runCmd(cmd *cobra.Command, args []string) {
 
 	checkAddError(os.MkdirAll(appSubdir, 0755))
 
+	// Create controllers for new repo being added
 	source := generateSourceManifest()
 	kust := generateKustomizeManifest()
 	sourceName := filepath.Join(appSubdir, "source-"+params.name+".yaml")

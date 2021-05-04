@@ -1,7 +1,6 @@
 package fluxops
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
