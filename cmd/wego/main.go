@@ -8,6 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/wego/flux"
+	"github.com/weaveworks/weave-gitops/cmd/wego/install"
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
 	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
 )
@@ -36,6 +37,7 @@ func configureLogger() {
 func main() {
 	fluxBin.SetupFluxBin()
 	rootCmd.PersistentFlags().BoolVarP(&options.verbose, "verbose", "v", false, "Enable verbose output")
+	rootCmd.AddCommand(install.Cmd)
 	rootCmd.AddCommand(version.Cmd)
 	rootCmd.AddCommand(flux.Cmd)
 
