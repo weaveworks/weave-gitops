@@ -110,7 +110,8 @@ func addRepo(t *testing.T) error {
 
 func ensureFluxVersion(t *testing.T) {
 	if version.FluxVersion == "undefined" {
-		out, err := utils.CallCommandSilently("../../../tools/bin/stoml ../../../tools/dependencies.toml flux.version")
+		out, err := utils.CallCommandSilently(
+			fmt.Sprintf("%s %s flux.version", filepath.Abs("../../../tools/bin/stoml"), filepath.Abs("../../../tools/dependencies.toml")))
 		require.NoError(t, err)
 		version.FluxVersion = strings.TrimRight(string(out), "\n")
 	}
