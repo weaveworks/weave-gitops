@@ -66,15 +66,27 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
+    - name: Setup Kubernetes
+      uses: engineerd/setup-kind@v0.5.0
+      with:
+        name: e2e-kind-acceptance-test-cluster
+        version: "v0.10.0"
+        image: kindest/node:v1.20.2@sha256:8f7ea6e7642c0da54f04a7ee10431549c0257315b3a634f6ef2fecaaedb19bab
+    - name: kind-check
+      run: |
+        kubectl get pods -A
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: Calc coverage
+      env:
+        GITHUB_ORG: wkp-example-org
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       run: |
         go test -v -coverpkg=./... -tags test -coverprofile=coverage.out ./...
     - name: Show coverage
-      run: go tool cover -func coverage.out 
+      run: go tool cover -func coverage.out
     - name: Convert coverage.out to coverage.lcov
       uses: jandelgado/gcov2lcov-action@v1.0.6
     - name: Coveralls
