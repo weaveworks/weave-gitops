@@ -36,6 +36,26 @@ func (h defaultFluxHandler) Handle(arglist string) ([]byte, error) {
 	return utils.CallCommand(fmt.Sprintf("%s %s", fluxBinary, arglist))
 }
 
+type quietFluxHandler struct{}
+
+func (q quietFluxHandler) Handle(arglist string) ([]byte, error) {
+	fluxBinary, err := FluxPath()
+	if err != nil {
+		return nil, err
+	}
+	return utils.CallCommandSilently(fmt.Sprintf("%s %s", fluxBinary, arglist))
+}
+
+// WithFluxHandler allows running a function with a different flux handler in force
+func WithFluxHandler(handler FluxHandler, f func() ([]byte, error)) ([]byte, error) {
+	existingHandler := fluxHandler
+	fluxHandler = handler
+	defer func() {
+		fluxHandler = existingHandler
+	}()
+	return f()
+}
+
 func FluxPath() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -54,6 +74,14 @@ func CallFlux(arglist ...string) ([]byte, error) {
 }
 
 func Install(namespace string) ([]byte, error) {
+	return installFlux(namespace, true)
+}
+
+func QuietInstall(namespace string) ([]byte, error) {
+	return installFlux(namespace, false)
+}
+
+func installFlux(namespace string, verbose bool) ([]byte, error) {
 	args := []string{
 		"install",
 		fmt.Sprintf("--namespace=%s", namespace),
@@ -66,7 +94,13 @@ func Install(namespace string) ([]byte, error) {
 		}
 	}
 
-	return CallFlux(args...)
+	if verbose {
+		return CallFlux(args...)
+	}
+
+	return WithFluxHandler(quietFluxHandler{}, func() ([]byte, error) {
+		return CallFlux(args...)
+	})
 }
 
 // GetOwnerFromEnv determines the owner of a new repository based on the GITHUB_ORG

@@ -41,7 +41,7 @@ jobs:
       - name: test-wego-add
         working-directory: ./test/acceptance/test
         with:
-          GITHUB_ORG: weaveworks
+          GITHUB_ORG: wkp-example-org
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 #            SSH_AUTH_SOCK: /tmp/ssh_agent.sock

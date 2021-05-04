@@ -6,6 +6,7 @@ package add
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -17,6 +18,8 @@ import (
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
 
+	"github.com/fluxcd/go-git-providers/github"
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -246,10 +249,28 @@ func runCmd(cmd *cobra.Command, args []string) {
 	if err := utils.CallCommandForEffect(fmt.Sprintf("git ls-remote %s/%s.git", owner, fluxRepoName)); err != nil {
 		fmt.Printf("repo does not exist\n")
 		checkAddError(utils.CallCommandForEffectWithDebug("git init"))
-		checkAddError(ioutil.WriteFile("README.md", []byte("# Repository containing references to applications"), 0644))
-		checkAddError(utils.CallCommandForEffectWithDebug("git add README.md && git commit -m'Initial commit'"))
-		checkAddError(utils.CallCommandForEffectWithDebug(fmt.Sprintf("hub create %s/%s", owner, fluxRepoName)))
-		checkAddError(utils.CallCommandForEffectWithDebug("git push -u origin main"))
+		// checkAddError(ioutil.WriteFile("README.md", []byte("# Repository containing references to applications"), 0644))
+		// checkAddError(utils.CallCommandForEffectWithDebug("git add README.md && git commit -m'Initial commit'"))
+
+		url := fmt.Sprintf("https://github.com/%s/%s", owner, fluxRepoName)
+		ref, err := gitprovider.ParseOrgRepositoryURL(url)
+		ctx := context.Background()
+		token, found := os.LookupEnv("GITHUB_TOKEN")
+		if !found {
+			checkAddError(fmt.Errorf("GITHUB_TOKEN not set in environment"))
+		}
+
+		c, err := github.NewClient(github.WithOAuth2Token(token), github.WithDestructiveAPICalls(true))
+		_, err = c.OrgRepositories().Create(ctx, *ref, gitprovider.RepositoryInfo{
+			Description: gitprovider.StringVar("wego repo"),
+		}, &gitprovider.RepositoryCreateOptions{
+			AutoInit:        gitprovider.BoolVar(true),
+			LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
+		})
+		checkAddError(err)
+
+		checkAddError(utils.CallCommandForEffectWithDebug(
+			fmt.Sprintf("git remote add origin %s && git pull --rebase origin main && git push --set-upstream origin main", url)))
 	}
 
 	// Install Source and Kustomize controllers, and CRD for application (may already be present)
@@ -280,9 +301,9 @@ func runCmd(cmd *cobra.Command, args []string) {
 	kustName := filepath.Join(appSubdir, "kustomize-"+params.name+".yaml")
 	appYamlName := filepath.Join(appSubdir, "app.yaml")
 
-	ioutil.WriteFile(sourceName, source, 0644)
-	ioutil.WriteFile(kustName, kust, 0644)
-	ioutil.WriteFile(appYamlName, populated.Bytes(), 0644)
+	checkAddError(ioutil.WriteFile(sourceName, source, 0644))
+	checkAddError(ioutil.WriteFile(kustName, kust, 0644))
+	checkAddError(ioutil.WriteFile(appYamlName, populated.Bytes(), 0644))
 
 	commitAndPush(sourceName, kustName, appYamlName)
 
