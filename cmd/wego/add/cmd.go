@@ -27,7 +27,9 @@ kind: Application
 metadata:
   name: {{ .AppName }}
 spec:
-  url: {{ .AppURL }}`
+  path: {{ .AppPath }}
+  url: {{ .AppURL }}
+`
 
 // Will move into filesystem when we store wego infrastructure in git
 const appCRD = `apiVersion: apiextensions.k8s.io/v1beta1
@@ -49,9 +51,13 @@ spec:
       required: ["spec"]
       properties:
         spec:
-          required: ["url"]
+          required: ["url", "path"]
           properties:
             url:
+              type: "string"
+              minimum: 1
+              maximum: 1
+            path:
               type: "string"
               minimum: 1
               maximum: 1
@@ -66,6 +72,7 @@ type paramSet struct {
 	dir        string
 	name       string
 	url        string
+	path       string
 	branch     string
 	privateKey string
 }
@@ -76,12 +83,12 @@ var (
 )
 
 var Cmd = &cobra.Command{
-	Use:   "add [--name <name>] [--url <url>] [--branch <branch>] [--private-key <keyfile>] <repository directory>",
+	Use:   "add [--name <name>] [--url <url>] [--branch <branch>] [--path <path within repository>] [--private-key <keyfile>] <repository directory>",
 	Short: "Add a workload repository to a wego cluster",
 	Long: strings.TrimSpace(dedent.Dedent(`
         Associates an additional git repository with a wego cluster so that its contents may be managed via GitOps
     `)),
-	Example: "wego add",
+	Example: "wego add .",
 	Run:     runCmd,
 }
 
@@ -100,6 +107,7 @@ func checkAddError(err interface{}) {
 func init() {
 	Cmd.Flags().StringVar(&params.name, "name", "", "Name of remote git repository")
 	Cmd.Flags().StringVar(&params.url, "url", "", "URL of remote git repository")
+	Cmd.Flags().StringVar(&params.path, "path", "./", "Path of files within git repository")
 	Cmd.Flags().StringVar(&params.branch, "branch", "main", "Branch to watch within git repository")
 	Cmd.Flags().StringVar(&params.privateKey, "private-key", filepath.Join(os.Getenv("HOME"), ".ssh", "id_rsa"), "Private key that provides access to git repository")
 }
@@ -258,8 +266,9 @@ func runCmd(cmd *cobra.Command, args []string) {
 	var populated bytes.Buffer
 	err = t.Execute(&populated, struct {
 		AppName string
+		AppPath string
 		AppURL  string
-	}{params.name, params.url})
+	}{params.name, params.path, params.url})
 	checkAddError(err)
 
 	checkAddError(os.MkdirAll(appSubdir, 0755))

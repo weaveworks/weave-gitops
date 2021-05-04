@@ -94,10 +94,25 @@ func CallCommandForEffectWithInputPipe(cmdstr, input string) error {
 	if err != nil {
 		return err
 	}
-	if _, err = io.WriteString(inpipe, input); err != nil {
+	go func() {
+		_, _ = io.WriteString(inpipe, input)
+		inpipe.Close()
+	}()
+	return cmd.Run()
+}
+
+func CallCommandForEffectWithInputPipeAndDebug(cmdstr, input string) error {
+	cmd := exec.Command("sh", "-c", Escape(cmdstr))
+	inpipe, err := cmd.StdinPipe()
+	if err != nil {
 		return err
 	}
-	inpipe.Close()
+	go func() {
+		_, _ = io.WriteString(inpipe, input)
+		inpipe.Close()
+	}()
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	return cmd.Run()
 }
 

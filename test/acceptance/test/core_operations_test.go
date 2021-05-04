@@ -108,7 +108,9 @@ func waitForNginxDeployment(t *testing.T) {
 }
 
 func installFlux(t *testing.T) {
-	require.NoError(t, fluxops.Install(getOwner(t), getWegoRepoName(t)))
+	manifests, err := fluxops.Install("wego-system")
+	require.NoError(t, err)
+	require.NoError(t, utils.CallCommandForEffectWithInputPipeAndDebug("kubectl apply -f -", string(manifests)))
 }
 
 func getWegoRepoName(t *testing.T) string {
@@ -133,7 +135,6 @@ func setUpTestRepo(t *testing.T) {
 	require.NoError(t, err)
 	err = utils.CallCommandForEffect("git add nginx.yaml && git commit -m'Added workload'")
 	require.NoError(t, err)
-	//	err = utils.CallCommandForEffect(fmt.Sprintf("hub create %s/%s", getOwner(t), getRepoName(t)))
 	_, err = utils.CallCommand(fmt.Sprintf("hub create %s/%s", getOwner(t), getRepoName(t)))
 	require.NoError(t, err)
 	err = utils.CallCommandForEffect("git push -u origin main")

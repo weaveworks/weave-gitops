@@ -32,17 +32,18 @@ jobs:
       - name: kind-check
         run: |
           kubectl get pods -A
-      - name: Setup SSH Keys and known_hosts
-        env:
-            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-        run: |
-            ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-            ssh-add - <<< "${{ secrets.SSH_PRIVATE_KEY }}"
+      # - name: Setup SSH Keys and known_hosts
+      #   env:
+      #       SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+      #   run: |
+      #       ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+      #       ssh-add - <<< "${{ secrets.SSH_PRIVATE_KEY }}"
       - name: test-wego-add
         working-directory: ./test/acceptance/test
         with:
           GITHUB_ORG: weaveworks
         env:
-            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+#            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
           go test -v -run TestWegoCoreOperations
