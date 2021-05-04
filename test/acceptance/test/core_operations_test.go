@@ -5,7 +5,6 @@ package acceptance
 // Runs basic WeGO operations against a kind cluster.
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -66,9 +65,9 @@ func TestCoreOperations(t *testing.T) {
 	log.Info("Ensuring flux version is set...")
 	ensureFluxVersion(t)
 	log.Info("Checking initial status...")
-	checkSimpleStatuses(t)
+	checkInitialStatus(t)
 	log.Info("Install flux...")
-	bootstrapFlux(t)
+	installFlux(t)
 	log.Info("Setting up test repository...")
 	setUpTestRepo(t) // create repo with simple nginx manifest
 	defer deleteRepos(t)
@@ -81,8 +80,6 @@ func TestCoreOperations(t *testing.T) {
 }
 
 func addRepo(t *testing.T) error {
-	d, _ := os.Getwd()
-	fmt.Printf("D: %s\n", d)
 	cmd := exec.Command("sh", "-c", fmt.Sprintf("%s add .", wegoBinaryPath(t)))
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -110,7 +107,7 @@ func waitForNginxDeployment(t *testing.T) {
 	require.FailNow(t, "Failed to deploy nginx workload to the cluster")
 }
 
-func bootstrapFlux(t *testing.T) {
+func installFlux(t *testing.T) {
 	require.NoError(t, fluxops.Install(getOwner(t), getWegoRepoName(t)))
 }
 
@@ -158,33 +155,14 @@ func deleteRepos(t *testing.T) {
 	}
 }
 
-func isOrganization(t *testing.T, owner string) bool {
-	token := os.Getenv("GITHUB_TOKEN")
-	response, _, err := utils.CallCommandSeparatingOutputStreams(fmt.Sprintf("curl -u %s:%s https://api.github.com/orgs/%s", owner, token, owner))
-	require.NoError(t, err)
-	var data map[string]interface{}
-	err = json.Unmarshal(response, &data)
-	require.NoError(t, err)
-	return data["message"] != "Not Found"
-}
-
 func getOwner(t *testing.T) string {
 	owner, err := fluxops.GetOwnerFromEnv()
 	require.NoError(t, err)
 	return owner
 }
 
-func checkSimpleStatuses(t *testing.T) {
-	// savedHome := os.Getenv("HOME")
-
-	// err := os.Setenv("HOME", "/iewojfoiwejfoiwjfwoijfewj")
-	// require.NoError(t, err)
-	// require.Equal(t, status.GetClusterStatus(), status.Unknown)
-
-	// err = os.Setenv("HOME", savedHome)
-	// require.NoError(t, err)
-	// log.Infof("STATUS: %s\n", status.GetClusterStatus())
-	// require.Equal(t, status.GetClusterStatus(), status.Unmodified)
+func checkInitialStatus(t *testing.T) {
+	require.Equal(t, status.GetClusterStatus(), status.Unmodified)
 }
 
 func getTestDir(t *testing.T) string {
