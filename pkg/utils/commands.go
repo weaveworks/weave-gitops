@@ -6,6 +6,8 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"io"
+	"os"
 	"os/exec"
 	"strings"
 	"sync"
@@ -76,6 +78,26 @@ func CallCommandSeparatingOutputStreams(cmdstr string) ([]byte, []byte, error) {
 
 func CallCommandForEffect(cmdstr string) error {
 	cmd := exec.Command("sh", "-c", Escape(cmdstr))
+	return cmd.Run()
+}
+
+func CallCommandForEffectWithDebug(cmdstr string) error {
+	cmd := exec.Command("sh", "-c", Escape(cmdstr))
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+func CallCommandForEffectWithInputPipe(cmdstr, input string) error {
+	cmd := exec.Command("sh", "-c", Escape(cmdstr))
+	inpipe, err := cmd.StdinPipe()
+	if err != nil {
+		return err
+	}
+	if _, err = io.WriteString(inpipe, input); err != nil {
+		return err
+	}
+	inpipe.Close()
 	return cmd.Run()
 }
 

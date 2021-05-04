@@ -21,13 +21,18 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/version"
 )
 
-const nginxDeployment = `apiVersion: apps/v1
+const nginxDeployment = `apiVersion: v1
+kind: Namespace
+metadata:
+  name: my-nginx
+---
+apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-deployment
+  name: nginx
   namespace: my-nginx
   labels:
-    name: nginx-deployment
+    name: nginx
 spec:
   replicas: 3
   selector:
@@ -131,6 +136,8 @@ func setUpTestRepo(t *testing.T) {
 	require.NoError(t, err)
 	//	err = utils.CallCommandForEffect(fmt.Sprintf("hub create %s/%s", getOwner(t), getRepoName(t)))
 	_, err = utils.CallCommand(fmt.Sprintf("hub create %s/%s", getOwner(t), getRepoName(t)))
+	require.NoError(t, err)
+	err = utils.CallCommandForEffect("git push -u origin main")
 	require.NoError(t, err)
 }
 
