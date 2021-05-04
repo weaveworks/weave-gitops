@@ -56,6 +56,9 @@ goarch() {
     aarch64)
         echo "arm64"
         ;;
+    arm64)
+        echo "amd64"
+        ;;
     x86)
         echo "386"
         ;;
