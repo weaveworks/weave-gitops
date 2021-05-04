@@ -151,6 +151,7 @@ func setUpTestRepo(t *testing.T) {
 	require.NoError(t, err)
 	url := fmt.Sprintf("https://github.com/wkp-example-org/%s", getRepoName(t))
 	ref, err := gitprovider.ParseOrgRepositoryURL(url)
+	require.NoError(t, err)
 	ctx := context.Background()
 	_, err = client.OrgRepositories().Create(ctx, *ref, gitprovider.RepositoryInfo{
 		Description: gitprovider.StringVar("test repo"),
@@ -185,12 +186,6 @@ func deleteRepos(t *testing.T) {
 	} else {
 		log.Info("Failed to delete repository")
 	}
-}
-
-func getOwner(t *testing.T) string {
-	owner, err := fluxops.GetOwnerFromEnv()
-	require.NoError(t, err)
-	return owner
 }
 
 func checkInitialStatus(t *testing.T) {

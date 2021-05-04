@@ -159,8 +159,7 @@ func generateWegoSourceManifest() []byte {
 }
 
 func generateWegoKustomizeManifest() []byte {
-	kustomizeManifest, err := fluxops.CallFlux(
-		fmt.Sprintf(`create kustomization "wego" --path="./" --source="wego" --prune=true --validation=client --interval=5m --export`))
+	kustomizeManifest, err := fluxops.CallFlux(`create kustomization "wego" --path="./" --source="wego" --prune=true --validation=client --interval=5m --export`)
 	checkAddError(err)
 	return kustomizeManifest
 }
@@ -254,6 +253,7 @@ func runCmd(cmd *cobra.Command, args []string) {
 
 		url := fmt.Sprintf("https://github.com/%s/%s", owner, fluxRepoName)
 		ref, err := gitprovider.ParseOrgRepositoryURL(url)
+		checkAddError(err)
 		ctx := context.Background()
 		token, found := os.LookupEnv("GITHUB_TOKEN")
 		if !found {
@@ -261,6 +261,7 @@ func runCmd(cmd *cobra.Command, args []string) {
 		}
 
 		c, err := github.NewClient(github.WithOAuth2Token(token), github.WithDestructiveAPICalls(true))
+		checkAddError(err)
 		_, err = c.OrgRepositories().Create(ctx, *ref, gitprovider.RepositoryInfo{
 			Description: gitprovider.StringVar("wego repo"),
 		}, &gitprovider.RepositoryCreateOptions{
