@@ -1,4 +1,6 @@
-package test
+// +build !unittest
+
+package acceptance
 
 // Runs basic WeGO operations against a kind cluster.
 
