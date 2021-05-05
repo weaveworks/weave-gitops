@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -157,6 +158,7 @@ func waitForNginxDeployment(t *testing.T) {
 		if err == nil {
 			return
 		}
+		time.Sleep(5 * time.Second)
 	}
 	require.FailNow(t, "Failed to deploy nginx workload to the cluster")
 }
