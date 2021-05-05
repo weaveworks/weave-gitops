@@ -77,14 +77,16 @@ jobs:
         kubectl get pods -A
     - name: Checkout code
       uses: actions/checkout@v2
-    - name: Fake Install flux
-      run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
+    - name: build
+      run: |
+        make
+    # - name: Fake Install flux
+    #   run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: Calc coverage
       env:
         GITHUB_ORG: wkp-example-org
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       run: |
-        echo $PWD
         go test -v -coverpkg=./... -tags test -coverprofile=coverage.out ./...
     - name: Show coverage
       run: go tool cover -func coverage.out
