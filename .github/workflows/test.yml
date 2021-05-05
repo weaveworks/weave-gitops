@@ -68,6 +68,8 @@ jobs:
         go-version: 1.16.x
     - name: Create random cluster name
       uses: TGPSKI/name-generator-node-action@v2
+      env:
+        ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       id: generator
       with:
         separator: '_'
