@@ -122,7 +122,9 @@ func ensureWegoRepoIsAbsent(t *testing.T) {
 	require.NoError(t, err)
 	repo, err := client.OrgRepositories().Get(ctx, *ref)
 	require.NoError(t, err)
-	repo.Delete(ctx)
+	if err = repo.Delete(ctx); err != nil {
+		log.Info("Repo already deleted")
+	}
 	clusterName, err := status.GetClusterName()
 	require.NoError(t, err)
 	repoName := clusterName + "-wego"
