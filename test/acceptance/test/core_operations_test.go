@@ -13,7 +13,6 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -157,21 +156,6 @@ func waitForNginxDeployment(t *testing.T) {
 		err := utils.CallCommandForEffect("kubectl get deployment nginx -n my-nginx")
 		if err == nil {
 			return
-		}
-		time.Sleep(5 * time.Second)
-		if i%5 == 0 {
-			if err := utils.CallCommandForEffectWithDebug("kubectl get pods -A"); err != nil {
-				log.Info("Could not retrieve pods...")
-			}
-			if err := utils.CallCommandForEffectWithDebug("kubectl get gitrepositories -A -o yaml"); err != nil {
-				log.Info("Could not retrieve git repos...")
-			}
-			if err := utils.CallCommandForEffectWithDebug("kubectl get kustomizations -A -o yaml"); err != nil {
-				log.Info("Could not retrieve kustomizations...")
-			}
-			if err := utils.CallCommandForEffectWithDebug("kubectl logs $(kubectl get pods -A | grep source-controller | awk '{print($2)}') -n wego-system"); err != nil {
-				log.Info("Could not retrieve source logs...")
-			}
 		}
 	}
 	require.FailNow(t, "Failed to deploy nginx workload to the cluster")

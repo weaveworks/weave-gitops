@@ -143,10 +143,8 @@ func generateWegoKustomizeManifest() []byte {
 }
 
 func generateSourceManifest() []byte {
-	fluxRepoName, err := fluxops.GetRepoName()
-	checkAddError(err)
-	secretName := fluxRepoName + "-" + params.Name
-	_, err = fluxops.CallFlux(fmt.Sprintf(`create secret git "%s" --url="%s" --private-key-file="%s"`, secretName, params.Url, params.PrivateKey))
+	secretName := params.Name
+	_, err := fluxops.CallFlux(fmt.Sprintf(`create secret git "%s" --url="%s" --private-key-file="%s"`, secretName, params.Url, params.PrivateKey))
 	checkAddError(err)
 	sourceManifest, err := fluxops.CallFlux(fmt.Sprintf(`create source git "%s" --url="%s" --branch="%s" --secret-ref="%s" --interval=30s --export`,
 		params.Name, params.Url, params.Branch, secretName))
