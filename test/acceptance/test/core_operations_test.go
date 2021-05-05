@@ -101,7 +101,16 @@ func TestCoreOperations(t *testing.T) {
 }
 
 func addRepo(t *testing.T) error {
-	cmd := exec.Command("sh", "-c", fmt.Sprintf("%s add .", wegoBinaryPath(t)))
+	keyFilePath := filepath.Join(os.Getenv("HOME"), ".ssh", "id_rsa")
+	if _, err := os.Stat(keyFilePath); os.IsNotExist(err) {
+		key := os.Getenv("GITHUB_KEY")
+		tmpFile, err := ioutil.TempFile("", "keyfile")
+		require.NoError(t, err)
+		defer tmpFile.Close()
+		require.NoError(t, ioutil.WriteFile(tmpFile.Name(), []byte(key), 600))
+		keyFilePath = tmpFile.Name()
+	}
+	cmd := exec.Command("sh", "-c", fmt.Sprintf(`%s add . --private-key="%s"`, wegoBinaryPath(t), keyFilePath))
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Dir = tmpDir
