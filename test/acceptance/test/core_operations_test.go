@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -20,6 +19,7 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
+	"github.com/weaveworks/weave-gitops/pkg/cmdimpl"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/status"
@@ -94,13 +94,12 @@ func TestCoreOperations(t *testing.T) {
 	defer deleteRepos(t)
 	log.Info("Adding test repository to cluster...")
 	require.NoError(t, err)
-	err = addRepo(t) // add new repo to cluster
-	require.NoError(t, err)
+	addRepo(t) // add new repo to cluster
 	log.Info("Waiting for workload to start...")
 	waitForNginxDeployment(t)
 }
 
-func addRepo(t *testing.T) error {
+func addRepo(t *testing.T) {
 	keyFilePath := filepath.Join(os.Getenv("HOME"), ".ssh", "id_rsa")
 	if _, err := os.Stat(keyFilePath); os.IsNotExist(err) {
 		key := os.Getenv("GITHUB_KEY")
@@ -110,11 +109,8 @@ func addRepo(t *testing.T) error {
 		require.NoError(t, ioutil.WriteFile(tmpFile.Name(), []byte(key), 600))
 		keyFilePath = tmpFile.Name()
 	}
-	cmd := exec.Command("sh", "-c", fmt.Sprintf(`%s add . --private-key="%s"`, wegoBinaryPath(t), keyFilePath))
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Dir = tmpDir
-	return cmd.Run()
+
+	cmdimpl.Add([]string{"."}, cmdimpl.AddParamSet{Name: "", Url: "", Path: "./", Branch: "main", PrivateKey: keyFilePath})
 }
 
 func ensureFluxVersion(t *testing.T) {
