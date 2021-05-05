@@ -89,7 +89,6 @@ jobs:
         GITHUB_ORG: wkp-example-org
         GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
         GITHUB_KEY: "${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}"
-        PATH: "${PATH}:$(go env GOPATH)/bin"
         WEGO_BIN_PATH: "$(pwd)/bin/wego"
       run: |
         git config --global init.defaultBranch main
