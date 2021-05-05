@@ -152,6 +152,11 @@ func waitForNginxDeployment(t *testing.T) {
 			return
 		}
 		time.Sleep(5 * time.Second)
+		if i%5 == 0 {
+			if err := utils.CallCommandForEffectWithDebug("kubectl get pods -A"); err != nil {
+				log.Info("Could not retrieve pods...")
+			}
+		}
 	}
 	require.FailNow(t, "Failed to deploy nginx workload to the cluster")
 }
