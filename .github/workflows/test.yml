@@ -84,6 +84,7 @@ jobs:
         GITHUB_ORG: wkp-example-org
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       run: |
+        echo $PWD
         go test -v -coverpkg=./... -tags test -coverprofile=coverage.out ./...
     - name: Show coverage
       run: go tool cover -func coverage.out
