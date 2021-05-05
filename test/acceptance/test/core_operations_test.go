@@ -149,8 +149,8 @@ func ensureFluxVersion(t *testing.T) {
 func waitForNginxDeployment(t *testing.T) {
 	kc, err := ioutil.ReadFile(filepath.Join(os.Getenv("HOME"), ".kube", "config"))
 	require.NoError(t, err)
+	r := bufio.NewReader(bytes.NewReader(kc))
 	for {
-		r := bufio.NewReader(bytes.NewReader(kc))
 		s, err := r.ReadBytes('\n')
 		if err != nil {
 			break
