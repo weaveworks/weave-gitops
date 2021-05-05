@@ -219,7 +219,7 @@ func Add(args []string, allParams AddParamSet) {
 
 	reposDir := filepath.Join(os.Getenv("HOME"), ".wego", "repositories")
 	fluxRepo := filepath.Join(reposDir, fluxRepoName)
-	appSubdir := filepath.Join(fluxRepo, params.Name)
+	appSubdir := filepath.Join(fluxRepo, "apps", params.Name)
 	checkAddError(os.MkdirAll(appSubdir, 0755))
 
 	owner := getOwner()
@@ -270,8 +270,6 @@ func Add(args []string, allParams AddParamSet) {
 		AppURL  string
 	}{params.Name, params.Path, params.Url})
 	checkAddError(err)
-
-	checkAddError(os.MkdirAll(appSubdir, 0755))
 
 	// Create controllers for new repo being added
 	source := generateSourceManifest()

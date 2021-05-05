@@ -69,7 +69,7 @@ jobs:
     - name: Setup Kubernetes
       uses: engineerd/setup-kind@v0.5.0
       with:
-        name: "${{ format('e2e-kind-acceptance-test-cluster-{0}', github.job) }}"
+        name: "${{ format('e2e-kind-acceptance-test-cluster-{0}', github.run_id) }}"
         version: "v0.10.0"
         image: kindest/node:v1.20.2@sha256:8f7ea6e7642c0da54f04a7ee10431549c0257315b3a634f6ef2fecaaedb19bab
     - name: Checkout code
