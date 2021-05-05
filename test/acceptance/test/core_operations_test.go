@@ -164,7 +164,7 @@ func setUpTestRepo(t *testing.T) {
 	err = utils.CallCommandForEffectWithDebug("git add nginx.yaml && git commit -m'Added workload'")
 	require.NoError(t, err)
 	cloneurl := fmt.Sprintf("https://github.com/wkp-example-org/%s", getRepoName(t))
-	ref, err := gitprovider.ParseOrgRepositoryURL(url)
+	ref, err := gitprovider.ParseOrgRepositoryURL(cloneurl)
 	require.NoError(t, err)
 	ctx := context.Background()
 	_, err = client.OrgRepositories().Create(ctx, *ref, gitprovider.RepositoryInfo{
