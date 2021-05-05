@@ -163,7 +163,7 @@ func setUpTestRepo(t *testing.T) {
 	require.NoError(t, err)
 	err = utils.CallCommandForEffectWithDebug("git add nginx.yaml && git commit -m'Added workload'")
 	require.NoError(t, err)
-	url := fmt.Sprintf("https://github.com/wkp-example-org/%s", getRepoName(t))
+	cloneurl := fmt.Sprintf("https://github.com/wkp-example-org/%s", getRepoName(t))
 	ref, err := gitprovider.ParseOrgRepositoryURL(url)
 	require.NoError(t, err)
 	ctx := context.Background()
@@ -175,7 +175,8 @@ func setUpTestRepo(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-	err = utils.CallCommandForEffectWithDebug(fmt.Sprintf("git remote add origin %s && git pull --rebase origin main && git push --set-upstream origin main", url))
+	originurl := fmt.Sprintf("ssh://git@github.com/wkp-example-org/%s", getRepoName(t))
+	err = utils.CallCommandForEffectWithDebug(fmt.Sprintf("git remote add origin %s && git pull --rebase origin main && git push --set-upstream origin main", originurl))
 	require.NoError(t, err)
 }
 
