@@ -145,6 +145,9 @@ func ensureFluxVersion(t *testing.T) {
 }
 
 func waitForNginxDeployment(t *testing.T) {
+	kc, err := ioutil.ReadFile(filepath.Join(os.Getenv("HOME"), ".kube", "config"))
+	require.NoError(t, err)
+	fmt.Printf("KC:\n%s\n", kc)
 	for i := 1; i < 101; i++ {
 		log.Infof("Waiting for nginx... try: %d of 100\n", i)
 		err := utils.CallCommandForEffect("kubectl get deployment nginx -n my-nginx")
