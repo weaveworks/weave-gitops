@@ -121,9 +121,10 @@ func ensureWegoRepoIsAbsent(t *testing.T) {
 	ref, err := gitprovider.ParseOrgRepositoryURL(url)
 	require.NoError(t, err)
 	repo, err := client.OrgRepositories().Get(ctx, *ref)
-	require.NoError(t, err)
-	if err = repo.Delete(ctx); err != nil {
+	if err != nil {
 		log.Info("Repo already deleted")
+	} else {
+		require.NoError(t, repo.Delete(ctx))
 	}
 	clusterName, err := status.GetClusterName()
 	require.NoError(t, err)
