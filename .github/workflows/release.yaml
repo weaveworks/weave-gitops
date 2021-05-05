@@ -33,7 +33,7 @@ jobs:
       - name: Generate release notes
         run: |
           echo 'CHANGELOG' > /tmp/release.txt
-          github-release-notes -org weaveworks -repo toolkit -since-latest-release -include-author >> /tmp/release.txt
+          github-release-notes -org weaveworks -repo weave-gitops -since-latest-release -include-author >> /tmp/release.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Run GoReleaser
