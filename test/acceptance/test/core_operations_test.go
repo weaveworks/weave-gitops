@@ -169,9 +169,8 @@ func waitForNginxDeployment(t *testing.T) {
 			if err := utils.CallCommandForEffectWithDebug("kubectl get kustomizations -A -o yaml"); err != nil {
 				log.Info("Could not retrieve kustomizations...")
 			}
-			_, err := fluxops.CallFlux("get sources all --verbose")
-			if err != nil {
-				log.Info("Could not retrieve sources...")
+			if err := utils.CallCommandForEffectWithDebug("kubectl logs $(kubectl get pods -A | grep source-controller | awk '{print($2)}') -n wego-system"); err != nil {
+				log.Info("Could not retrieve source logs...")
 			}
 		}
 	}
