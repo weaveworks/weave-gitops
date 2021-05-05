@@ -1,3 +1,7 @@
 domain: weave.works
+layout:
+- go.kubebuilder.io/v3
+multigroup: true
+projectName: wego-controller
 repo: github.com/weaveworks/weave-gitops
-version: "2"
+version: "3"
