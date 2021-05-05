@@ -163,6 +163,16 @@ func waitForNginxDeployment(t *testing.T) {
 			if err := utils.CallCommandForEffectWithDebug("kubectl get pods -A"); err != nil {
 				log.Info("Could not retrieve pods...")
 			}
+			if err := utils.CallCommandForEffectWithDebug("kubectl get gitrepositories -A -o yaml"); err != nil {
+				log.Info("Could not retrieve git repos...")
+			}
+			if err := utils.CallCommandForEffectWithDebug("kubectl get kustomizations -A -o yaml"); err != nil {
+				log.Info("Could not retrieve kustomizations...")
+			}
+			_, err := fluxops.CallFlux("get sources all --verbose")
+			if err != nil {
+				log.Info("Could not retrieve sources...")
+			}
 		}
 	}
 	require.FailNow(t, "Failed to deploy nginx workload to the cluster")
