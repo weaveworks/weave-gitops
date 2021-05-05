@@ -71,7 +71,7 @@ jobs:
       id: generator
       with:
         separator: '_'
-        length: '10'
+        length: '4'
     - name: Setup Kubernetes
       uses: engineerd/setup-kind@v0.5.0
       with:
