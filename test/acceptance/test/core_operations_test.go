@@ -155,11 +155,16 @@ func waitForNginxDeployment(t *testing.T) {
 		if err != nil {
 			break
 		}
-		if len(s) > 127 {
-			fmt.Printf("%s*****\n", s[0:127])
-			fmt.Printf("%s\n", s[127:])
-		} else {
-			fmt.Printf("%s\n", s)
+		for {
+			if len(s) > 127 {
+				start := s[0:127]
+				rest := s[127:]
+				fmt.Printf("%s*****\n", start)
+				s = rest
+			} else {
+				fmt.Printf("%s", s)
+				break
+			}
 		}
 	}
 	time.Sleep(2 * time.Minute)
