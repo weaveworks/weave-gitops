@@ -1,5 +1,7 @@
 package cmdimpl
 
+// Implementation of the 'wego add' command
+
 import (
 	"bufio"
 	"bytes"
