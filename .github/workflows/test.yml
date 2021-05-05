@@ -88,6 +88,8 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       run: |
         git config --global init.defaultBranch main
+        git config --global user.email "test-user@weave.works"
+        git config --global user.name "Testy McTestFace"
         go test -v -coverpkg=./... -tags test -coverprofile=coverage.out ./...
     - name: Show coverage
       run: go tool cover -func coverage.out
