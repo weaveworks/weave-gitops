@@ -94,6 +94,8 @@ jobs:
         git config --global user.email "test-user@weave.works"
         git config --global user.name "Testy McTestFace"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+        export PATH=${PATH}:`go env GOPATH`/bin
+        export WEGO_BIN_PATH=$(pwd)/bin/wego
         go test -v -coverpkg=./... -tags test -coverprofile=coverage.out ./...
     - name: Show coverage
       run: go tool cover -func coverage.out
