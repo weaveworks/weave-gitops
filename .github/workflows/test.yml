@@ -85,7 +85,7 @@ jobs:
     - name: Calc coverage
       env:
         GITHUB_ORG: wkp-example-org
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
       run: |
         git config --global init.defaultBranch main
         git config --global user.email "test-user@weave.works"
