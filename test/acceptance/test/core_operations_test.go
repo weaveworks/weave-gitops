@@ -112,6 +112,13 @@ func addRepo(t *testing.T) {
 		keyFilePath = tmpFile.Name()
 	}
 
+	dir, err := os.Getwd()
+	require.NoError(t, err)
+	require.NoError(t, os.Chdir(tmpDir))
+	defer func() {
+		require.NoError(t, os.Chdir(dir))
+	}()
+
 	cmdimpl.Add([]string{"."}, cmdimpl.AddParamSet{Name: "", Url: "", Path: "./", Branch: "main", PrivateKey: keyFilePath})
 }
 
