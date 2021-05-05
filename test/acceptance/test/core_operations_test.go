@@ -161,7 +161,7 @@ func setUpTestRepo(t *testing.T) {
 	require.NoError(t, err)
 	err = ioutil.WriteFile("nginx.yaml", []byte(nginxDeployment), 0666)
 	require.NoError(t, err)
-	err = utils.CallCommandForEffect("git add nginx.yaml && git commit -m'Added workload'")
+	err = utils.CallCommandForEffectWithDebug("git add nginx.yaml && git commit -m'Added workload'")
 	require.NoError(t, err)
 	url := fmt.Sprintf("https://github.com/wkp-example-org/%s", getRepoName(t))
 	ref, err := gitprovider.ParseOrgRepositoryURL(url)
