@@ -83,6 +83,8 @@ func TestCoreOperations(t *testing.T) {
 	c, err := github.NewClient(github.WithOAuth2Token(token), github.WithDestructiveAPICalls(true), github.WithConditionalRequests(true))
 	require.NoError(t, err)
 	client = c
+	log.Info("Ensuring wego repo does not exist...")
+	ensureWegoRepoIsAbsent(t)
 	log.Info("Ensuring flux version is set...")
 	ensureFluxVersion(t)
 	log.Info("Checking initial status...")
@@ -111,6 +113,20 @@ func addRepo(t *testing.T) {
 	}
 
 	cmdimpl.Add([]string{"."}, cmdimpl.AddParamSet{Name: "", Url: "", Path: "./", Branch: "main", PrivateKey: keyFilePath})
+}
+
+func ensureWegoRepoIsAbsent(t *testing.T) {
+	ctx := context.Background()
+	url := fmt.Sprintf("https://github.com/wkp-example-org/%s", getWegoRepoName(t))
+	ref, err := gitprovider.ParseOrgRepositoryURL(url)
+	require.NoError(t, err)
+	repo, err := client.OrgRepositories().Get(ctx, *ref)
+	require.NoError(t, err)
+	repo.Delete(ctx)
+	clusterName, err := status.GetClusterName()
+	require.NoError(t, err)
+	repoName := clusterName + "-wego"
+	os.RemoveAll(fmt.Sprintf("%s/.wego/repositories/%s", os.Getenv("HOME"), repoName))
 }
 
 func ensureFluxVersion(t *testing.T) {

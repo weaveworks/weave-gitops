@@ -226,8 +226,6 @@ func Add(args []string, allParams AddParamSet) {
 	if err := utils.CallCommandForEffect(fmt.Sprintf("git ls-remote %s/%s.git", owner, fluxRepoName)); err != nil {
 		fmt.Printf("repo does not exist\n")
 		checkAddError(utils.CallCommandForEffectWithDebug("git init"))
-		// checkAddError(ioutil.WriteFile("README.md", []byte("# Repository containing references to applications"), 0644))
-		// checkAddError(utils.CallCommandForEffectWithDebug("git add README.md && git commit -m'Initial commit'"))
 
 		url := fmt.Sprintf("https://github.com/%s/%s", owner, fluxRepoName)
 		ref, err := gitprovider.ParseOrgRepositoryURL(url)
