@@ -80,8 +80,6 @@ jobs:
     - name: build
       run: |
         make
-    # - name: Fake Install flux
-    #   run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: Calc coverage
       env:
         GITHUB_ORG: wkp-example-org
