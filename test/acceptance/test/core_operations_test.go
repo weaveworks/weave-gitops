@@ -211,9 +211,3 @@ func deleteRepos(t *testing.T) {
 func checkInitialStatus(t *testing.T) {
 	require.Equal(t, status.GetClusterStatus(), status.Unmodified)
 }
-
-func wegoBinaryPath(t *testing.T) string {
-	path, err := filepath.Abs("../../../bin/wego")
-	require.NoError(t, err)
-	return path
-}
