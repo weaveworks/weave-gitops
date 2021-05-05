@@ -6,6 +6,8 @@ package acceptance
 // Runs basic WeGO operations against a kind cluster.
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"io/ioutil"
@@ -147,7 +149,19 @@ func ensureFluxVersion(t *testing.T) {
 func waitForNginxDeployment(t *testing.T) {
 	kc, err := ioutil.ReadFile(filepath.Join(os.Getenv("HOME"), ".kube", "config"))
 	require.NoError(t, err)
-	fmt.Printf("KC:\n%s\n", kc)
+	for {
+		r := bufio.NewReader(bytes.NewReader(kc))
+		s, err := r.ReadBytes('\n')
+		if err != nil {
+			break
+		}
+		if len(s) > 127 {
+			fmt.Printf("%s*****\n", s[0:127])
+			fmt.Printf("%s\n", s[127:])
+		} else {
+			fmt.Printf("%s\n", s)
+		}
+	}
 	time.Sleep(2 * time.Minute)
 	for i := 1; i < 101; i++ {
 		log.Infof("Waiting for nginx... try: %d of 100\n", i)
