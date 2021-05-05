@@ -87,6 +87,7 @@ jobs:
         GITHUB_ORG: wkp-example-org
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       run: |
+        git config --global init.defaultBranch main
         go test -v -coverpkg=./... -tags test -coverprofile=coverage.out ./...
     - name: Show coverage
       run: go tool cover -func coverage.out
