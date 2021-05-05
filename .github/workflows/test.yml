@@ -84,6 +84,9 @@ jobs:
       env:
         GITHUB_ORG: wkp-example-org
         GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
+      uses: webfactory/ssh-agent@v0.5.2
+      with:
+        ssh-private-key: ${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}
       run: |
         git config --global init.defaultBranch main
         git config --global user.email "test-user@weave.works"

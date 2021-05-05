@@ -80,7 +80,7 @@ func TestCoreOperations(t *testing.T) {
 	log.Info("Creating GitHub client...")
 	token, found := os.LookupEnv("GITHUB_TOKEN")
 	require.True(t, found)
-	c, err := github.NewClient(github.WithOAuth2Token(token), github.WithDestructiveAPICalls(true))
+	c, err := github.NewClient(github.WithOAuth2Token(token), github.WithDestructiveAPICalls(true), github.WithConditionalRequests(true))
 	require.NoError(t, err)
 	client = c
 	log.Info("Ensuring flux version is set...")
