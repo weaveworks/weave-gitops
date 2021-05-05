@@ -145,8 +145,8 @@ func ensureFluxVersion(t *testing.T) {
 }
 
 func waitForNginxDeployment(t *testing.T) {
-	for i := 1; i < 61; i++ {
-		log.Infof("Waiting for nginx... try: %d of 60\n", i)
+	for i := 1; i < 101; i++ {
+		log.Infof("Waiting for nginx... try: %d of 100\n", i)
 		err := utils.CallCommandForEffect("kubectl get deployment nginx -n my-nginx")
 		if err == nil {
 			return
