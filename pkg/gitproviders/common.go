@@ -52,7 +52,7 @@ func CreatePullRequestToUserRepo(provider gitprovider.Client, userRepRef gitprov
 	}
 
 	if len(commits) == 0 {
-		return fmt.Errorf("tagetBranch[%s] does not exists", targetBranch)
+		return fmt.Errorf("targetBranch[%s] does not exists", targetBranch)
 	}
 
 	latestCommit := commits[0]
@@ -91,7 +91,7 @@ func CreatePullRequestToOrgRepo(provider gitprovider.Client, orgRepRef gitprovid
 	}
 
 	if len(commits) == 0 {
-		return fmt.Errorf("tagetBranch[%s] does not exists", targetBranch)
+		return fmt.Errorf("targetBranch[%s] does not exists", targetBranch)
 	}
 
 	latestCommit := commits[0]
