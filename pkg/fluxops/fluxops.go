@@ -17,6 +17,7 @@ const fluxSystemNamespace = `apiVersion: v1
 kind: Namespace
 metadata:
   name: flux-system
+---
 `
 
 var (
@@ -82,8 +83,9 @@ func QuietInstall(namespace string) ([]byte, error) {
 }
 
 func installFlux(namespace string, verbose bool) ([]byte, error) {
-	if err := utils.CallCommandForEffectWithInputPipe("kubectl apply -f -", fluxSystemNamespace); err != nil {
-		return nil, err
+	var extraManifest []byte
+	if namespace != "flux-system" { // we need to have this namespace created
+		extraManifest = []byte(fluxSystemNamespace)
 	}
 
 	args := []string{
@@ -93,11 +95,19 @@ func installFlux(namespace string, verbose bool) ([]byte, error) {
 	}
 
 	if verbose {
-		return CallFlux(args...)
+		manifests, err := CallFlux(args...)
+		if err != nil {
+			return nil, err
+		}
+		return append(extraManifest, manifests...), nil
 	}
 
 	return WithFluxHandler(quietFluxHandler{}, func() ([]byte, error) {
-		return CallFlux(args...)
+		manifests, err := CallFlux(args...)
+		if err != nil {
+			return nil, err
+		}
+		return append(extraManifest, manifests...), nil
 	})
 }
 
