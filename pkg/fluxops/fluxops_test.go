@@ -17,7 +17,6 @@ func TestFluxInstall(t *testing.T) {
 		},
 	}
 	fluxops.SetFluxHandler(fakeHandler)
-	utils.SetCommandForEffectWithInputPipeResponse("kubectl apply -f -", nil)
 	output, err := fluxops.Install("flux-system")
 	assert.Equal("foo", string(output))
 	assert.NoError(err)
