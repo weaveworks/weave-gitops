@@ -57,12 +57,6 @@ spec:
         - containerPort: 80
 `
 
-const fluxSystemNamespace = `apiVersion: v1
-kind: Namespace
-metadata:
-  name: flux-system
-`
-
 var (
 	tmpDir string
 	client gitprovider.Client
@@ -165,7 +159,6 @@ func waitForNginxDeployment(t *testing.T) {
 
 func installFlux(t *testing.T) {
 	flux.SetupFluxBin()
-	require.NoError(t, utils.CallCommandForEffectWithInputPipe("kubectl apply -f -", fluxSystemNamespace))
 	manifests, err := fluxops.QuietInstall("wego-system")
 	require.NoError(t, err)
 	require.NoError(t, utils.CallCommandForEffectWithInputPipeAndDebug("kubectl apply -f -", string(manifests)))
