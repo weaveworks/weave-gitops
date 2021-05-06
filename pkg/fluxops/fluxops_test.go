@@ -6,7 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops/fluxopsfakes"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 func TestFluxInstall(t *testing.T) {
