@@ -223,7 +223,7 @@ func Add(args []string, allParams AddParamSet) {
 	owner := getOwner()
 	checkAddError(os.Chdir(fluxRepo))
 
-	if err := utils.CallCommandForEffect(fmt.Sprintf("git ls-remote %s/%s.git", owner, fluxRepoName)); err != nil {
+	if err := utils.CallCommandForEffect(fmt.Sprintf("git ls-remote ssh://git@github.com/%s/%s.git", owner, fluxRepoName)); err != nil {
 		fmt.Printf("repo does not exist\n")
 		checkAddError(utils.CallCommandForEffectWithDebug("git init"))
 
@@ -248,6 +248,8 @@ func Add(args []string, allParams AddParamSet) {
 
 		checkAddError(utils.CallCommandForEffectWithDebug(
 			fmt.Sprintf("git remote add origin %s && git pull --rebase origin main && git push --set-upstream origin main", url)))
+	} else {
+		checkAddError(utils.CallCommandForEffectWithDebug("git branch --set-upstream-to=origin/main main"))
 	}
 
 	// Install Source and Kustomize controllers, and CRD for application (may already be present)

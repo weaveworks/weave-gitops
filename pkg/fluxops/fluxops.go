@@ -13,6 +13,12 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+const fluxSystemNamespace = `apiVersion: v1
+kind: Namespace
+metadata:
+  name: flux-system
+`
+
 var (
 	fluxHandler FluxHandler = defaultFluxHandler{}
 	fluxBinary  string
@@ -76,6 +82,10 @@ func QuietInstall(namespace string) ([]byte, error) {
 }
 
 func installFlux(namespace string, verbose bool) ([]byte, error) {
+	if err := utils.CallCommandForEffectWithInputPipe("kubectl apply -f -", fluxSystemNamespace); err != nil {
+		return nil, err
+	}
+
 	args := []string{
 		"install",
 		fmt.Sprintf("--namespace=%s", namespace),
