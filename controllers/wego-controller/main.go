@@ -31,6 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	wegov1alpha1 "github.com/weaveworks/weave-gitops/controllers/wego-controller/apis/wego/v1alpha1"
 	wegocontrollers "github.com/weaveworks/weave-gitops/controllers/wego-controller/controllers/wego"
 	//+kubebuilder:scaffold:imports
@@ -45,6 +46,7 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(wegov1alpha1.AddToScheme(scheme))
+	utilruntime.Must(sourcev1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 

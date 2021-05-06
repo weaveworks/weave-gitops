@@ -101,6 +101,10 @@ github.com/evanphx/json-patch v4.5.0+incompatible/go.mod h1:50XU6AFN0ol/bzJsmQLi
 github.com/evanphx/json-patch v4.9.0+incompatible h1:kLcOMZeuLAJvL2BPWLMIj5oaZQobrkAqrL+WFZwQses=
 github.com/evanphx/json-patch v4.9.0+incompatible/go.mod h1:50XU6AFN0ol/bzJsmQLiYLvXMP4fmwYFNcr97nuDLSk=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
+github.com/fluxcd/pkg/apis/meta v0.9.0 h1:rxW69p+VmJCKXXkaRYnovRBFlKjd+MJQfm2RrB0B4j8=
+github.com/fluxcd/pkg/apis/meta v0.9.0/go.mod h1:yHuY8kyGHYz22I0jQzqMMGCcHViuzC/WPdo9Gisk8Po=
+github.com/fluxcd/source-controller/api v0.12.1 h1:ubO3gwGaxnXwayJeDHpdsh96NXwOLpFcbLjZo/pqWCg=
+github.com/fluxcd/source-controller/api v0.12.1/go.mod h1:+EPyhxC7Y+hUnq7EwAkkLtfbwCxJxF5yfmiyzDk43KY=
 github.com/form3tech-oss/jwt-go v3.2.2+incompatible h1:TcekIExNqud5crz4xD2pavyTgWiPvpYe4Xau31I0PRk=
 github.com/form3tech-oss/jwt-go v3.2.2+incompatible/go.mod h1:pbq4aXjuKjdthFRnoDwaVPLA+WlJuPGy+QneDUgJi2k=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
