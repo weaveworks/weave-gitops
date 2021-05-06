@@ -17,11 +17,14 @@ func TestFluxInstall(t *testing.T) {
 		},
 	}
 	fluxops.SetFluxHandler(fakeHandler)
-
-	output, err := fluxops.Install("my-namespace")
+	output, err := fluxops.Install("flux-system")
 	assert.Equal("foo", string(output))
 	assert.NoError(err)
 
-	args := fakeHandler.HandleArgsForCall(0)
+	output, err = fluxops.Install("my-namespace")
+	assert.Equal("apiVersion: v1\nkind: Namespace\nmetadata:\n  name: flux-system\n---\nfoo", string(output))
+	assert.NoError(err)
+
+	args := fakeHandler.HandleArgsForCall(1)
 	assert.Equal("install --namespace=my-namespace --export", args)
 }
