@@ -13,8 +13,6 @@ import (
 	"sync"
 )
 
-var cfewiprMap = map[string]error{}
-
 // CallCommand will run an external command, displaying its output interactively and return its output.
 func CallCommand(cmdstr string) ([]byte, error) {
 	cmd := exec.Command("sh", "-c", Escape(cmdstr))
@@ -90,14 +88,7 @@ func CallCommandForEffectWithDebug(cmdstr string) error {
 	return cmd.Run()
 }
 
-func SetCommandForEffectWithInputPipeResponse(cmdstr string, result error) {
-	cfewiprMap[cmdstr] = result
-}
-
 func CallCommandForEffectWithInputPipe(cmdstr, input string) error {
-	if result, ok := cfewiprMap[cmdstr]; ok {
-		return result
-	}
 	cmd := exec.Command("sh", "-c", Escape(cmdstr))
 	inpipe, err := cmd.StdinPipe()
 	if err != nil {
