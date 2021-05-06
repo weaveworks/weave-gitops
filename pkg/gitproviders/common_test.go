@@ -1,4 +1,4 @@
-package git_providers
+package gitproviders
 
 import (
 	"context"
