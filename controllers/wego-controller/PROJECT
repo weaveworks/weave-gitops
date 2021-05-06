@@ -3,5 +3,15 @@ layout:
 - go.kubebuilder.io/v3
 multigroup: true
 projectName: wego-controller
-repo: github.com/weaveworks/weave-gitops
+repo: github.com/weaveworks/weave-gitops/controllers/wego-controller
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: weave.works
+  group: wego
+  kind: Application
+  path: github.com/weaveworks/weave-gitops/controllers/wego-controller/apis/wego/v1alpha1
+  version: v1alpha1
 version: "3"

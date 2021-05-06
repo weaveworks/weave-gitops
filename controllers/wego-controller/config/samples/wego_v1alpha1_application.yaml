@@ -1,0 +1,9 @@
+apiVersion: wego.weave.works/v1alpha1
+kind: Application
+metadata:
+  name: application-sample
+spec:
+  # Add fields here
+  url: https://github.com/luizbafilho/podinfo.git
+  ref:
+    branch: main
