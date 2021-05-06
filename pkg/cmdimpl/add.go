@@ -241,10 +241,8 @@ func Add(args []string, allParams AddParamSet) {
 		err = cgitprovider.CreateOrgRepository(c, orgRef, repoInfo, repoCreateOpts)
 		checkAddError(err)
 
-		url := fmt.Sprintf("https://%s/%s", orgRef.OrganizationRef.String(), orgRef.String())
-
 		checkAddError(utils.CallCommandForEffectWithDebug(
-			fmt.Sprintf("git remote add origin %s && git pull --rebase origin main && git push --set-upstream origin main", url)))
+			fmt.Sprintf("git remote add origin %s && git pull --rebase origin main && git push --set-upstream origin main", orgRef.String())))
 	}
 
 	// Install Source and Kustomize controllers, and CRD for application (may already be present)
