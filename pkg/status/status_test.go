@@ -48,6 +48,7 @@ func TestClusterStatus(t *testing.T) {
 
 func TestGetClusterName(t *testing.T) {
 	tmpPath, err := ioutil.TempDir("", "tmp-dir")
+	require.NoError(t, err)
 	home, err := os.UserHomeDir()
 	require.NoError(t, err)
 	defer func() {
