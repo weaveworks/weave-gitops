@@ -92,14 +92,9 @@ jobs:
         git config --global user.email "test-user@weave.works"
         git config --global user.name "Testy McTestFace"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-        go get -u github.com/ory/go-acc
         go-acc --ignore fluxopsfakes -o coverage.out ./... -- -v -tags test
-        # Running wego-controller tests
-        pushd controllers/wego-controller && make test && popd
-    - name: Merging coverages
-      run: tail -n +2 controllers/wego-controller/cover.out >> coverage.out
-    # - name: Show coverage
-    #   run: go tool cover -func coverage.out
+    - name: Show coverage
+      run: go tool cover -func coverage.out
     - name: Convert coverage.out to coverage.lcov
       uses: jandelgado/gcov2lcov-action@v1.0.6
     - name: Coveralls
