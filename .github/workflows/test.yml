@@ -92,6 +92,7 @@ jobs:
         git config --global user.email "test-user@weave.works"
         git config --global user.name "Testy McTestFace"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+        go get github.com/ory/go-acc@v0.2.6
         go-acc --ignore fluxopsfakes -o coverage.out ./... -- -v -tags test
     - name: Show coverage
       run: go tool cover -func coverage.out
