@@ -18,8 +18,6 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 	var err error
 
 	BeforeEach(func() {
-		WEGO_BIN_PATH = "/Users/rokshana/weaveworks/weave-gitops/bin/wego"
-
 		By("Given I have a wego binary installed on my local machine", func() {
 			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
 		})
