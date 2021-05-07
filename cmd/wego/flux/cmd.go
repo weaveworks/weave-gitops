@@ -10,9 +10,10 @@ import (
 )
 
 var Cmd = &cobra.Command{
-	Use:   "flux",
-	Short: "Use flux commands",
-	Run:   runCmd,
+	Use:     "flux -- [flux commands or flags]",
+	Short:   "Use flux commands",
+	Example: "wego flux -- install -h",
+	Run:     runCmd,
 }
 
 var StatusCmd = &cobra.Command{

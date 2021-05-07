@@ -2,7 +2,12 @@ package status
 
 import (
 	"fmt"
-	"os/exec"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+
+	"github.com/weaveworks/weave-gitops/pkg/utils"
+	"sigs.k8s.io/yaml"
 )
 
 type ClusterStatus int
@@ -15,6 +20,18 @@ const (
 )
 
 var lookupHandler = kubectlHandler
+
+// Function to translate ClusterStatus to a string
+func (cs ClusterStatus) String() string {
+	return toStatusString[cs]
+}
+
+var toStatusString = map[ClusterStatus]string{
+	Unknown:       "Unknown",
+	Unmodified:    "Unmodified",
+	FluxInstalled: "FluxInstalled",
+	WeGOInstalled: "WeGOInstalled",
+}
 
 // GetClusterStatus retrieves the current wego status of the cluster. That is,
 // it returns one of: Unknown, Unmodified, FluxInstalled, or WeGOInstalled depending on whether the cluster:
@@ -38,6 +55,26 @@ func GetClusterStatus() ClusterStatus {
 	return Unknown
 }
 
+// GetClusterName returns the cluster name associated with the current context in ~/.kube/config
+func GetClusterName() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	config, err := ioutil.ReadFile(filepath.Join(homeDir, ".kube", "config"))
+	if err != nil {
+		return "", err
+	}
+	data := map[string]interface{}{}
+	err = yaml.Unmarshal(config, &data)
+	if err != nil {
+		return "", err
+	}
+	return data["current-context"].(string), nil
+}
+
 func kubectlHandler(args string) error {
-	return exec.Command(fmt.Sprintf("kubectl get %s", args)).Run()
+	cmd := fmt.Sprintf("kubectl get %s", args)
+	err := utils.CallCommandForEffect(cmd)
+	return err
 }
