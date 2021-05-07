@@ -20,10 +20,15 @@ import (
 	"path/filepath"
 	"testing"
 
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
+	notificationv1 "github.com/fluxcd/notification-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
@@ -54,13 +59,28 @@ var _ = BeforeSuite(func() {
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
-		CRDDirectoryPaths:     []string{filepath.Join("..", "..", "config", "crd", "bases")},
+		CRDDirectoryPaths: []string{
+			filepath.Join("..", "..", "config", "crd", "bases"),
+			filepath.Join("..", "..", "config", "crd", "external"),
+		},
 		ErrorIfCRDPathMissing: true,
 	}
 
 	cfg, err := testEnv.Start()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
+
+	err = sourcev1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = kustomizev1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = notificationv1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = helmv2.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
 
 	err = wegov1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
@@ -70,6 +90,24 @@ var _ = BeforeSuite(func() {
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
+
+	// setup controller
+	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
+		Scheme: scheme.Scheme,
+	})
+	Expect(err).ToNot(HaveOccurred())
+
+	err = (&ApplicationReconciler{
+		Client: k8sManager.GetClient(),
+		Scheme: k8sManager.GetScheme(),
+		Log:    ctrl.Log.WithName("controllers").WithName("wego").WithName("Application"),
+	}).SetupWithManager(k8sManager)
+	Expect(err).ToNot(HaveOccurred())
+
+	go func() {
+		err = k8sManager.Start(ctrl.SetupSignalHandler())
+		Expect(err).ToNot(HaveOccurred())
+	}()
 
 }, 60)
 
