@@ -7,6 +7,6 @@ import (
 )
 
 func TestFileExists(t *testing.T) {
-	require.True(t, FileExists("utils.go"))
+	require.True(t, FileExists("utils_test.go"))
 	require.False(t, FileExists("imaginaryfile.txt"))
 }
