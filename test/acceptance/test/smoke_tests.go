@@ -28,10 +28,6 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		})
 	})
 
-	AfterEach(func() {
-
-	})
-
 	It("Verify that command wego version prints the version information", func() {
 
 		By("When I run the command 'wego version'", func() {

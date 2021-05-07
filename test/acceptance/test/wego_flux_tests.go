@@ -1,4 +1,4 @@
-// +build acceptance
+// +build smoke acceptance
 
 package acceptance
 
@@ -21,10 +21,6 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		By("Given I have a wego binary installed on my local machine", func() {
 			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
 		})
-	})
-
-	AfterEach(func() {
-
 	})
 
 	It("Verify that wego-flux displays error message when provided with the wrong flag", func() {
