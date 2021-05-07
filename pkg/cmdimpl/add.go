@@ -5,7 +5,6 @@ package cmdimpl
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -14,9 +13,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
+	cgitprovider "github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
@@ -227,27 +226,23 @@ func Add(args []string, allParams AddParamSet) {
 		fmt.Printf("repo does not exist\n")
 		checkAddError(utils.CallCommandForEffectWithDebug("git init"))
 
-		url := fmt.Sprintf("https://github.com/%s/%s", owner, fluxRepoName)
-		ref, err := gitprovider.ParseOrgRepositoryURL(url)
+		c, err := cgitprovider.GithubProvider()
 		checkAddError(err)
-		ctx := context.Background()
-		token, found := os.LookupEnv("GITHUB_TOKEN")
-		if !found {
-			checkAddError(fmt.Errorf("GITHUB_TOKEN not set in environment"))
-		}
 
-		c, err := github.NewClient(github.WithOAuth2Token(token), github.WithDestructiveAPICalls(true))
-		checkAddError(err)
-		_, err = c.OrgRepositories().Create(ctx, *ref, gitprovider.RepositoryInfo{
-			Description: gitprovider.StringVar("wego repo"),
-		}, &gitprovider.RepositoryCreateOptions{
+		orgRef := cgitprovider.NewOrgRepositoryRef(cgitprovider.GITHUB_DOMAIN, owner, fluxRepoName)
+
+		repoInfo := cgitprovider.NewRepositoryInfo("wego repo", gitprovider.RepositoryVisibilityPrivate)
+
+		repoCreateOpts := &gitprovider.RepositoryCreateOptions{
 			AutoInit:        gitprovider.BoolVar(true),
 			LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
-		})
+		}
+
+		err = cgitprovider.CreateOrgRepository(c, orgRef, repoInfo, repoCreateOpts)
 		checkAddError(err)
 
 		checkAddError(utils.CallCommandForEffectWithDebug(
-			fmt.Sprintf("git remote add origin %s && git pull --rebase origin main && git push --set-upstream origin main", url)))
+			fmt.Sprintf("git remote add origin %s && git pull --rebase origin main && git push --set-upstream origin main", orgRef.String())))
 	} else {
 		checkAddError(utils.CallCommandForEffectWithDebug("git branch --set-upstream-to=origin/main main"))
 	}
