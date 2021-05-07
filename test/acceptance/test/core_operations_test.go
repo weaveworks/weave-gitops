@@ -229,5 +229,5 @@ func deleteRepos(t *testing.T) {
 }
 
 func checkInitialStatus(t *testing.T) {
-	require.Equal(t, status.GetClusterStatus(), status.Unmodified)
+	require.Equal(t, status.Unmodified, status.GetClusterStatus())
 }
