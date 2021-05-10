@@ -63,6 +63,35 @@ var (
 	client gitprovider.Client
 )
 
+// var _ = Describe("WEGO Acceptance Tests", func() {
+
+// 	var session *gexec.Session
+// 	var err error
+
+// 	BeforeEach(func() {
+
+// 		By("Given I have a wego binary installed on my local machine", func() {
+// 			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
+// 		})
+// 	})
+
+// 	It("Verify add repo when repo does not already exist", func() {
+
+// 		By("When i run 'wego add . --private=false'", func() {
+// 			command := exec.Command(WEGO_BIN_PATH, "flux", "abcd")
+// 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+// 			Expect(err).ShouldNot(HaveOccurred())
+
+// 		})
+
+// 		By("Then I should see wego error message", func() {
+// 			Eventually(session.Err).Should(gbytes.Say("Error: exit status 1"))
+// 		})
+// 	})
+// })
+
+// }
+
 // Run core operations and check status
 func TestCoreOperations(t *testing.T) {
 	tmpPath, err := ioutil.TempDir("", "tmp-dir")
@@ -114,7 +143,7 @@ func addRepo(t *testing.T) {
 		require.NoError(t, os.Chdir(dir))
 	}()
 
-	cmdimpl.Add([]string{"."}, cmdimpl.AddParamSet{Name: "", Url: "", Path: "./", Branch: "main", PrivateKey: keyFilePath})
+	cmdimpl.Add([]string{"."}, cmdimpl.AddParamSet{Name: "", Url: "", Path: "./", Branch: "main", PrivateKey: keyFilePath, IsPrivate: false})
 }
 
 func ensureWegoRepoIsAbsent(t *testing.T) {

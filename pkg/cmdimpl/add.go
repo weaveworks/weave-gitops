@@ -73,6 +73,7 @@ type AddParamSet struct {
 	Path       string
 	Branch     string
 	PrivateKey string
+	IsPrivate  bool
 }
 
 var (
@@ -231,7 +232,12 @@ func Add(args []string, allParams AddParamSet) {
 
 		orgRef := cgitprovider.NewOrgRepositoryRef(cgitprovider.GITHUB_DOMAIN, owner, fluxRepoName)
 
-		repoInfo := cgitprovider.NewRepositoryInfo("wego repo", gitprovider.RepositoryVisibilityPrivate)
+		access := gitprovider.RepositoryVisibilityPrivate
+		if !params.IsPrivate {
+			access = gitprovider.RepositoryVisibilityPublic
+		}
+
+		repoInfo := cgitprovider.NewRepositoryInfo("wego repo", access)
 
 		repoCreateOpts := &gitprovider.RepositoryCreateOptions{
 			AutoInit:        gitprovider.BoolVar(true),
