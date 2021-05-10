@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/weaveworks/weave-gitops/cmd/wego/status"
+
 	log "github.com/sirupsen/logrus"
 
 	"github.com/spf13/cobra"
@@ -42,6 +44,7 @@ func main() {
 	rootCmd.AddCommand(add.Cmd)
 	rootCmd.AddCommand(version.Cmd)
 	rootCmd.AddCommand(flux.Cmd)
+	rootCmd.AddCommand(status.Cmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)

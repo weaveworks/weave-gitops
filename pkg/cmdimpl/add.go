@@ -11,7 +11,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"text/template"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
@@ -19,15 +18,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
-
-const appYamlTemplate = `apiVersion: wego.weave.works/v1alpha1
-kind: Application
-metadata:
-  name: {{ .AppName }}
-spec:
-  path: {{ .AppPath }}
-  url: {{ .AppURL }}
-`
 
 // Will move into filesystem when we store wego infrastructure in git
 const appCRD = `apiVersion: apiextensions.k8s.io/v1beta1
@@ -93,7 +83,7 @@ func checkAddError(err interface{}) {
 }
 
 func getClusterRepoName() string {
-	clusterName, err := status.GetClusterName()
+	clusterName, err := utils.GetClusterName()
 	checkAddError(err)
 	return clusterName + "-wego"
 }
@@ -125,7 +115,7 @@ func updateParametersIfNecessary() {
 }
 
 func generateWegoSourceManifest() []byte {
-	fluxRepoName, err := fluxops.GetRepoName()
+	fluxRepoName, err := utils.GetWegoRepoName()
 	checkAddError(err)
 	_, err = fluxops.CallFlux(fmt.Sprintf(`create secret git "wego" --url="ssh://git@github.com/%s/%s" --private-key-file="%s"`, getOwner(), fluxRepoName, params.PrivateKey))
 	checkAddError(err)
@@ -210,26 +200,23 @@ func Add(args []string, allParams AddParamSet) {
 		os.Exit(1)
 	}
 
-	// Set up wego repository if required
-	fluxRepoName, err := fluxops.GetRepoName()
+	wegoRepoName, err := utils.GetWegoRepoName()
 	checkAddError(err)
 
-	reposDir := filepath.Join(os.Getenv("HOME"), ".wego", "repositories")
-	fluxRepo := filepath.Join(reposDir, fluxRepoName)
-	appSubdir := filepath.Join(fluxRepo, "apps", params.Name)
-	checkAddError(os.MkdirAll(appSubdir, 0755))
+	fluxRepo, err := utils.GetWegoLocalPath()
+	checkAddError(err)
 
 	owner := getOwner()
 	checkAddError(os.Chdir(fluxRepo))
 
-	if err := utils.CallCommandForEffect(fmt.Sprintf("git ls-remote ssh://git@github.com/%s/%s.git", owner, fluxRepoName)); err != nil {
+	if err := utils.CallCommandForEffect(fmt.Sprintf("git ls-remote ssh://git@github.com/%s/%s.git", owner, wegoRepoName)); err != nil {
 		fmt.Printf("repo does not exist\n")
 		checkAddError(utils.CallCommandForEffectWithDebug("git init"))
 
 		c, err := cgitprovider.GithubProvider()
 		checkAddError(err)
 
-		orgRef := cgitprovider.NewOrgRepositoryRef(cgitprovider.GITHUB_DOMAIN, owner, fluxRepoName)
+		orgRef := cgitprovider.NewOrgRepositoryRef(cgitprovider.GITHUB_DOMAIN, owner, wegoRepoName)
 
 		repoInfo := cgitprovider.NewRepositoryInfo("wego repo", gitprovider.RepositoryVisibilityPrivate)
 
@@ -255,23 +242,25 @@ func Add(args []string, allParams AddParamSet) {
 	checkAddError(utils.CallCommandForEffectWithInputPipe("kubectl apply -f -", string(wegoKust)))
 
 	// Create app.yaml
-	t, err := template.New("appYaml").Parse(appYamlTemplate)
-	checkAddError(err)
+	//t, err := template.New("appYaml").Parse(appYamlTemplate)
+	//checkAddError(err)
 
 	var populated bytes.Buffer
-	err = t.Execute(&populated, struct {
-		AppName string
-		AppPath string
-		AppURL  string
-	}{params.Name, params.Path, params.Url})
-	checkAddError(err)
+	//err = t.Execute(&populated, yaml.App{
+	//	AppName: params.Name,
+	//	AppPath: params.Path,
+	//	AppURL:  params.Url,
+	//})
+	//checkAddError(err)
 
 	// Create controllers for new repo being added
 	source := generateSourceManifest()
 	kust := generateKustomizeManifest()
-	sourceName := filepath.Join(appSubdir, "source-"+params.Name+".yaml")
-	kustName := filepath.Join(appSubdir, "kustomize-"+params.Name+".yaml")
-	appYamlName := filepath.Join(appSubdir, "app.yaml")
+	wegoAppsPath, err := utils.GetWegoAppsPath()
+	checkAddError(err)
+	sourceName := filepath.Join(wegoAppsPath, "source-"+params.Name+".yaml")
+	kustName := filepath.Join(wegoAppsPath, "kustomize-"+params.Name+".yaml")
+	appYamlName := filepath.Join(wegoAppsPath, "app.yaml")
 
 	checkAddError(ioutil.WriteFile(sourceName, source, 0644))
 	checkAddError(ioutil.WriteFile(kustName, kust, 0644))

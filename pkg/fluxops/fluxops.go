@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"github.com/weaveworks/weave-gitops/pkg/version"
 	"sigs.k8s.io/yaml"
@@ -120,15 +119,6 @@ func GetOwnerFromEnv() (string, error) {
 	}
 
 	return getUserFromHubCredentials()
-}
-
-// GetRepoName returns the name of the wego repo for the cluster (the repo holding controller defs)
-func GetRepoName() (string, error) {
-	clusterName, err := status.GetClusterName()
-	if err != nil {
-		return "", err
-	}
-	return clusterName + "-wego", nil
 }
 
 func getUserFromHubCredentials() (string, error) {
