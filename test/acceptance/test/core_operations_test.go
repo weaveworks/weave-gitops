@@ -117,7 +117,11 @@ func addRepo(t *testing.T) {
 
 func ensureWegoRepoIsAbsent(t *testing.T) {
 	ctx := context.Background()
-	url := fmt.Sprintf("https://github.com/wkp-example-org/%s", utils.GetWegoRepoName())
+
+	wegoRepoName, err := utils.GetWegoRepoName()
+	require.NoError(t, err)
+
+	url := fmt.Sprintf("https://github.com/wkp-example-org/%s", wegoRepoName)
 	ref, err := gitprovider.ParseOrgRepositoryURL(url)
 	require.NoError(t, err)
 	repo, err := client.OrgRepositories().Get(ctx, *ref)
@@ -193,7 +197,11 @@ func setUpTestRepo(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-	originurl := fmt.Sprintf("ssh://git@github.com/wkp-example-org/%s", utils.GetWegoRepoName())
+
+	wegoRepoName, err := utils.GetWegoRepoName()
+	require.NoError(t, err)
+
+	originurl := fmt.Sprintf("ssh://git@github.com/wkp-example-org/%s", wegoRepoName)
 	err = utils.CallCommandForEffectWithDebug(fmt.Sprintf("git remote add origin %s && git pull --rebase origin main && git push --set-upstream origin main", originurl))
 	require.NoError(t, err)
 }
@@ -202,13 +210,17 @@ func deleteRepos(t *testing.T) {
 	clusterName, err := utils.GetClusterName()
 	if err == nil {
 		ctx := context.Background()
-		url := fmt.Sprintf("https://github.com/wkp-example-org/%s", utils.GetWegoRepoName())
+
+		wegoRepoName, err := utils.GetWegoRepoName()
+		require.NoError(t, err)
+
+		url := fmt.Sprintf("https://github.com/wkp-example-org/%s", wegoRepoName)
 		ref, err := gitprovider.ParseOrgRepositoryURL(url)
 		require.NoError(t, err)
 		repo, err := client.OrgRepositories().Get(ctx, *ref)
 		require.NoError(t, err)
 		require.NoError(t, repo.Delete(ctx))
-		url = fmt.Sprintf("https://github.com/wkp-example-org/%s", utils.GetWegoRepoName())
+		url = fmt.Sprintf("https://github.com/wkp-example-org/%s", wegoRepoName)
 		ref, err = gitprovider.ParseOrgRepositoryURL(url)
 		require.NoError(t, err)
 		repo, err = client.OrgRepositories().Get(ctx, *ref)

@@ -14,6 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 var _ = Describe("WEGO Acceptance Tests", func() {
@@ -26,10 +27,6 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		By("Given I have a wego binary installed on my local machine", func() {
 			Expect(utils.Exists(WEGO_BIN_PATH)).To(BeTrue())
 		})
-	})
-
-	AfterEach(func() {
-
 	})
 
 	It("Verify that command wego version prints the version information", func() {
