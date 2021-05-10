@@ -23,7 +23,9 @@ jobs:
       uses: golangci/golangci-lint-action@v2
       with:
         version: v1.29
-
+        build-tags:
+          -acceptance
+          
   test:
     runs-on: ubuntu-latest
     steps:
