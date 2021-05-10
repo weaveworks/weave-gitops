@@ -13,8 +13,22 @@ import (
 	"sync"
 )
 
+var (
+	behaviors map[string]func(args ...string) error
+	values    map[string][]interface{}
+	errors    map[string]error
+)
+
 // CallCommand will run an external command, displaying its output interactively and return its output.
 func CallCommand(cmdstr string) ([]byte, error) {
+	if behavior, ok := behaviors["CallCommand"]; ok {
+		if err := behavior(cmdstr); err != nil {
+			return nil, err
+		}
+	}
+	if value, ok := values["CallCommand"]; ok {
+		return value[0].([]byte), value[1].(error)
+	}
 	cmd := exec.Command("sh", "-c", Escape(cmdstr))
 	var out strings.Builder
 	stdoutReader, err := cmd.StdoutPipe()
@@ -118,4 +132,23 @@ func CallCommandForEffectWithInputPipeAndDebug(cmdstr, input string) error {
 
 func Escape(cmd string) string {
 	return strings.ReplaceAll(cmd, "'", "'\"'\"'")
+}
+
+func WithBehaviorFor(cmdName string, behavior func(args ...string) error, action func() error) error {
+	existingBehavior := behaviors[cmdName]
+	behaviors[cmdName] = behavior
+	defer func() {
+		behaviors[cmdName] = existingBehavior
+	}()
+	return action()
+}
+
+func WithResultFrom(cmdName string, value []interface{}, err error, action func() (interface{}, error)) (interface{}, error) {
+	existingValue := values[cmdName]
+	values[cmdName] = value
+	defer func() {
+		values[cmdName] = existingValue
+		errors[cmdName] = err
+	}()
+	return action()
 }
