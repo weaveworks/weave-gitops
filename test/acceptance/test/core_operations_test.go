@@ -195,10 +195,6 @@ func setUpTestRepo(t *testing.T) {
 		AutoInit:        gitprovider.BoolVar(true),
 		LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
 	})
-
-	require.NoError(t, err)
-
-	wegoRepoName, err := utils.GetWegoRepoName()
 	require.NoError(t, err)
 
 	originurl := fmt.Sprintf("ssh://git@github.com/wkp-example-org/%s", wegoRepoName)
