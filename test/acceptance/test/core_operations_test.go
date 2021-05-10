@@ -126,7 +126,7 @@ func ensureWegoRepoIsAbsent(t *testing.T) {
 	} else {
 		require.NoError(t, repo.Delete(ctx))
 	}
-	clusterName, err := status.GetClusterName()
+	clusterName, err := utils.GetClusterName()
 	require.NoError(t, err)
 	repoName := clusterName + "-wego"
 	os.RemoveAll(fmt.Sprintf("%s/.wego/repositories/%s", os.Getenv("HOME"), repoName))
@@ -164,7 +164,7 @@ func installFlux(t *testing.T) {
 }
 
 func getWegoRepoName(t *testing.T) string {
-	repoName, err := fluxops.GetRepoName()
+	repoName, err := utils.GetRepoName()
 	require.NoError(t, err)
 	return repoName
 }
@@ -204,7 +204,7 @@ func setUpTestRepo(t *testing.T) {
 }
 
 func deleteRepos(t *testing.T) {
-	clusterName, err := status.GetClusterName()
+	clusterName, err := utils.GetClusterName()
 	if err == nil {
 		ctx := context.Background()
 		url := fmt.Sprintf("https://github.com/wkp-example-org/%s", getRepoName(t))
