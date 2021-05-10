@@ -4,8 +4,8 @@ package cmdimpl
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/yaml"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -174,10 +174,10 @@ func getOwnerInteractively() string {
 	return strings.Trim(str, "\n")
 }
 
-func commitAndPush(files ...string) {
+func commitAndPush(files ...string) error {
 	_, err := utils.CallCommand(
 		fmt.Sprintf("git pull --rebase && git add %s && git commit -m'Save %s' && git push", strings.Join(files, " "), strings.Join(files, ", ")))
-	checkAddError(err)
+	return err
 }
 
 // Add provides the implementation for the wego add command
@@ -241,32 +241,22 @@ func Add(args []string, allParams AddParamSet) {
 	checkAddError(utils.CallCommandForEffectWithInputPipe("kubectl apply -f -", string(wegoSource)))
 	checkAddError(utils.CallCommandForEffectWithInputPipe("kubectl apply -f -", string(wegoKust)))
 
-	// Create app.yaml
-	//t, err := template.New("appYaml").Parse(appYamlTemplate)
-	//checkAddError(err)
-
-	var populated bytes.Buffer
-	//err = t.Execute(&populated, yaml.App{
-	//	AppName: params.Name,
-	//	AppPath: params.Path,
-	//	AppURL:  params.Url,
-	//})
-	//checkAddError(err)
+	//Create app.yaml
+	yamlManager := yaml.AppManager{}
+	yamlManager.AddApp(yaml.FromParamSetToApp(params))
+	checkAddError(err)
 
 	// Create controllers for new repo being added
-	source := generateSourceManifest()
-	kust := generateKustomizeManifest()
 	wegoAppsPath, err := utils.GetWegoAppsPath()
 	checkAddError(err)
-	sourceName := filepath.Join(wegoAppsPath, "source-"+params.Name+".yaml")
-	kustName := filepath.Join(wegoAppsPath, "kustomize-"+params.Name+".yaml")
-	appYamlName := filepath.Join(wegoAppsPath, "app.yaml")
+	sourceYamlPath := filepath.Join(wegoAppsPath, "source-"+params.Name+".yaml")
+	kustomizeYamlPath := filepath.Join(wegoAppsPath, "kustomize-"+params.Name+".yaml")
+	appYamlPath, err := yaml.GetAppsYamlPath()
+	checkAddError(ioutil.WriteFile(sourceYamlPath, generateSourceManifest(), 0644))
+	checkAddError(ioutil.WriteFile(kustomizeYamlPath, generateKustomizeManifest(), 0644))
 
-	checkAddError(ioutil.WriteFile(sourceName, source, 0644))
-	checkAddError(ioutil.WriteFile(kustName, kust, 0644))
-	checkAddError(ioutil.WriteFile(appYamlName, populated.Bytes(), 0644))
-
-	commitAndPush(sourceName, kustName, appYamlName)
+	commitAndPush(sourceYamlPath, kustomizeYamlPath, appYamlPath)
+	checkAddError(err)
 
 	fmt.Printf("Successfully added repository: %s.\n", params.Name)
 }
