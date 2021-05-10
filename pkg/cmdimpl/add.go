@@ -243,7 +243,7 @@ func Add(args []string, allParams AddParamSet) {
 
 	//Create app.yaml
 	yamlManager := yaml.AppManager{}
-	yamlManager.AddApp(yaml.FromParamSetToApp(params))
+	yamlManager.AddApp(FromParamSetToApp(params))
 	checkAddError(err)
 
 	// Create controllers for new repo being added
@@ -259,4 +259,12 @@ func Add(args []string, allParams AddParamSet) {
 	checkAddError(err)
 
 	fmt.Printf("Successfully added repository: %s.\n", params.Name)
+}
+
+func FromParamSetToApp(params AddParamSet) yaml.App {
+	return yaml.App{
+		AppName: params.Name,
+		AppPath: params.Path,
+		AppURL:  params.Url,
+	}
 }

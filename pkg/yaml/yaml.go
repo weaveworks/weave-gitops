@@ -8,8 +8,6 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/weaveworks/weave-gitops/pkg/utils"
-
-	"github.com/weaveworks/weave-gitops/pkg/cmdimpl"
 )
 
 const appYamlTemplate = `apiVersion: wego.weave.works/v1alpha1
@@ -84,14 +82,6 @@ func (a *AppManager) persistApps() error {
 
 	return ioutil.WriteFile(yamlPath, bts, 0644)
 
-}
-
-func FromParamSetToApp(params cmdimpl.AddParamSet) App {
-	return App{
-		AppName: params.Name,
-		AppPath: params.Path,
-		AppURL:  params.Url,
-	}
 }
 
 func (a *AppManager) AddApp(newApp App) error {
