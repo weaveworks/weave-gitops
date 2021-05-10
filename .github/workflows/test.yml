@@ -104,7 +104,7 @@ jobs:
         git config --global user.name "Testy McTestFace"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
         go get -u github.com/ory/go-acc
-        go-acc --ignore fluxopsfakes,acceptance -o coverage.out ./... -- -v -tags test,acceptance
+        go-acc --ignore fluxopsfakes,acceptance -o coverage.out ./... -- -v -tags test
     - name: Show coverage
       run: go tool cover -func coverage.out
     - name: Convert coverage.out to coverage.lcov
@@ -114,3 +114,13 @@ jobs:
       with:
           github-token: ${{ secrets.github_token }}
           path-to-lcov: coverage.lcov
+    - name: Install testspace client
+      uses: testspace-com/setup-testspace@v1
+      with:
+        domain: weaveworks.testspace.com
+    - name: Publish test coverage to Testspace
+      run: |
+        go get github.com/t-yuki/gocover-cobertura
+        gocover-cobertura < coverage.out > coverage.xml
+        testspace coverage.xml
+      if: always()
