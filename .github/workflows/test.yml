@@ -60,6 +60,14 @@ jobs:
         export PATH=${PATH}:`go env GOPATH`/bin
         export WEGO_BIN_PATH=$(pwd)/bin/wego
         ginkgo --reportFile=$(pwd)/test-results/smoke-test-results.xml -v -tags=smoke ./test/acceptance/test/...
+    - name: Install testspace client
+      uses: testspace-com/setup-testspace@v1
+      with:
+        domain: weaveworks.testspace.com
+    - name: Publish test results to Testspace
+      run: |
+        testspace "[smoke-tests]test-results/smoke-test-results.xml"
+      if: always()
 
   coverage:
     runs-on: ubuntu-latest
