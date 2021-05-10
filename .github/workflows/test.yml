@@ -23,8 +23,7 @@ jobs:
       uses: golangci/golangci-lint-action@v2
       with:
         version: v1.29
-        build-tags:
-          -acceptance
+        args: --build-tags acceptance
           
   test:
     runs-on: ubuntu-latest
