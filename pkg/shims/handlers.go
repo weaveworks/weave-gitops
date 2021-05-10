@@ -3,7 +3,6 @@ package shims
 // A package holding our "shims" that add a level of indirection so that parts of the code can be mocked out
 
 import (
-	"fmt"
 	"os"
 )
 
@@ -19,17 +18,12 @@ func (h defaultExitHandler) Handle(code int) {
 	os.Exit(code)
 }
 
-func SetExitHandler(handler ExitHandler) {
-	exitHandler = handler
-}
-
 func WithExitHandler(handler ExitHandler, fun func()) {
 	originalHandler := exitHandler
 	exitHandler = handler
 	defer func() {
 		exitHandler = originalHandler
 	}()
-	fmt.Printf("HERE!!!! - \n")
 	fun()
 }
 
@@ -69,6 +63,24 @@ func WithStdin(stdin *os.File, fun func()) {
 	fileStreams.stdin = stdin
 	defer func() {
 		fileStreams.stdin = originalStdin
+	}()
+	fun()
+}
+
+func WithStdout(stdout *os.File, fun func()) {
+	originalStdout := fileStreams.stdout
+	fileStreams.stdout = stdout
+	defer func() {
+		fileStreams.stdout = originalStdout
+	}()
+	fun()
+}
+
+func WithStderr(stderr *os.File, fun func()) {
+	originalStderr := fileStreams.stderr
+	fileStreams.stderr = stderr
+	defer func() {
+		fileStreams.stderr = originalStderr
 	}()
 	fun()
 }
