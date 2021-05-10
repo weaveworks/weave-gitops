@@ -163,16 +163,6 @@ func installFlux(t *testing.T) {
 	require.NoError(t, utils.CallCommandForEffectWithInputPipeAndDebug("kubectl apply -f -", string(manifests)))
 }
 
-func getWegoRepoName(t *testing.T) string {
-	repoName, err := utils.GetRepoName()
-	require.NoError(t, err)
-	return repoName
-}
-
-func getRepoName(t *testing.T) string {
-	return getWegoRepoName(t) + "-" + filepath.Base(tmpDir)
-}
-
 func setUpTestRepo(t *testing.T) {
 	dir, err := os.Getwd()
 	require.NoError(t, err)
@@ -186,7 +176,12 @@ func setUpTestRepo(t *testing.T) {
 	require.NoError(t, err)
 	err = utils.CallCommandForEffectWithDebug("git add nginx.yaml && git commit -m'Added workload'")
 	require.NoError(t, err)
-	cloneurl := fmt.Sprintf("https://github.com/wkp-example-org/%s", getRepoName(t))
+
+	wegoRepoName, err := utils.GetWegoRepoName()
+	require.NoError(t, err)
+	wegoRepoName += "-" + filepath.Base(tmpDir)
+
+	cloneurl := fmt.Sprintf("https://github.com/wkp-example-org/%s", wegoRepoName)
 	ref, err := gitprovider.ParseOrgRepositoryURL(cloneurl)
 	require.NoError(t, err)
 	ctx := context.Background()

@@ -24,7 +24,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 	BeforeEach(func() {
 
 		By("Given I have a wego binary installed on my local machine", func() {
-			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
+			Expect(utils.Exists(WEGO_BIN_PATH)).To(BeTrue())
 		})
 	})
 
