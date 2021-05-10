@@ -2,6 +2,7 @@ package status
 
 import (
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -60,7 +61,7 @@ func TestGetClusterName(t *testing.T) {
 	configDirPath := filepath.Join(tmpPath, ".kube")
 	require.NoError(t, os.MkdirAll(configDirPath, 0755))
 	require.NoError(t, ioutil.WriteFile(filepath.Join(configDirPath, "config"), []byte(kubeconfig), 0644))
-	name, err := GetClusterName()
+	name, err := utils.GetClusterName()
 	require.NoError(t, err)
 	require.Equal(t, name, "kind-wego-demo")
 }
