@@ -2,6 +2,7 @@ package flux
 
 import (
 	"fmt"
+	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -39,6 +40,11 @@ var testFluxLogResponse = []byte(`2021-04-12T19:53:58.545Z info Alert - Starting
 2021-04-12T21:02:22.808Z info GitRepository/flux-system.flux-system - Reconciliation finished in 873.5428ms, next run in 1m0s
 2021-04-12T21:03:23.646Z info GitRepository/flux-system.flux-system - Reconciliation finished in 907.3404ms, next run in 1m0s`)
 
+func TestLogs(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Log Tests")
+}
+
 var _ = Describe("Log Fetching Test", func() {
 	It("Verify that log fetching works correctly", func() {
 		By("Invoking getLastLogForNamespaces", func() {
@@ -56,16 +62,23 @@ var _ = Describe("Log Fetching Test", func() {
 var _ = Describe("Latest Status For All Namespaces Test", func() {
 	It("Verify that the bulk namespace operation works correctly on the success path", func() {
 		By("Invoking the operation with a mock command", func() {
-			_, err := utils.WithResultFrom("CallCommand", []interface{}{testFluxLogResponse}, nil,
-				func() (interface{}, error) { return GetLatestStatusAllNamespaces() })
+			_, _, err := utils.WithResultsFrom(utils.CallCommandOp, testFluxLogResponse, nil, nil, processStatus)
 			Expect(err).To(BeNil())
 		})
 	})
 	It("Verify that the bulk namespace operation works correctly on the failure path", func() {
 		By("Invoking the operation with a mock command", func() {
-			_, err := utils.WithResultFrom("CallCommand", nil, fmt.Errorf("failed"),
-				func() (interface{}, error) { return GetLatestStatusAllNamespaces() })
+			_, _, err := utils.WithResultsFrom(utils.CallCommandOp, nil, nil, fmt.Errorf("failed"), processStatus)
 			Expect(err).To(Not(BeNil()))
 		})
 	})
 })
+
+func processStatus() ([]byte, []byte, error) {
+	strs, err := GetLatestStatusAllNamespaces()
+	if err != nil {
+		return nil, nil, err
+	} else {
+		return []byte(strs[0]), nil, nil
+	}
+}

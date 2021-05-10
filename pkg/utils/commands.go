@@ -13,22 +13,50 @@ import (
 	"sync"
 )
 
+type Behavior func(args ...string) ([]byte, []byte, error)
+
 var (
-	behaviors map[string]func(args ...string) error
-	values    map[string][]interface{}
-	errors    map[string]error
+	behaviors = map[CallOperation]Behavior{}
+	outvalues = map[CallOperation][]byte{}
+	errvalues = map[CallOperation][]byte{}
+	errors    = map[CallOperation]error{}
 )
+
+type CallOperation int
+
+const (
+	CallCommandOp CallOperation = iota
+	CallCommandSilentlyOp
+	CallCommandSeparatingOutputStreamsOp
+	CallCommandForEffectOp
+	CallCommandForEffectWithDebugOp
+	CallCommandForEffectWithInputPipeOp
+	CallCommandForEffectWithInputPipeAndDebugOp
+)
+
+func processMocks(op CallOperation, cmdstr string) (bool, []byte, []byte, error) {
+	if behavior, ok := behaviors[op]; ok {
+		if stdout, stderr, err := behavior(cmdstr); err != nil {
+			return true, nil, nil, err
+		} else {
+			return true, stdout, stderr, nil
+		}
+	}
+	if err := errors[op]; err != nil {
+		return true, nil, nil, err
+	}
+	if outvalue, ok := outvalues[op]; ok {
+		return true, outvalue, errvalues[op], nil
+	}
+	return false, nil, nil, nil
+}
 
 // CallCommand will run an external command, displaying its output interactively and return its output.
 func CallCommand(cmdstr string) ([]byte, error) {
-	if behavior, ok := behaviors["CallCommand"]; ok {
-		if err := behavior(cmdstr); err != nil {
-			return nil, err
-		}
+	if processed, outval, _, err := processMocks(CallCommandOp, cmdstr); processed {
+		return outval, err
 	}
-	if value, ok := values["CallCommand"]; ok {
-		return value[0].([]byte), value[1].(error)
-	}
+
 	cmd := exec.Command("sh", "-c", Escape(cmdstr))
 	var out strings.Builder
 	stdoutReader, err := cmd.StdoutPipe()
@@ -77,11 +105,19 @@ func CallCommand(cmdstr string) ([]byte, error) {
 }
 
 func CallCommandSilently(cmdstr string) ([]byte, error) {
+	if processed, val, _, err := processMocks(CallCommandSilentlyOp, cmdstr); processed {
+		return val, err
+	}
+
 	cmd := exec.Command("sh", "-c", Escape(cmdstr))
 	return cmd.CombinedOutput()
 }
 
 func CallCommandSeparatingOutputStreams(cmdstr string) ([]byte, []byte, error) {
+	if processed, outval, errval, err := processMocks(CallCommandSeparatingOutputStreamsOp, cmdstr); processed {
+		return outval, errval, err
+	}
+
 	cmd := exec.Command("sh", "-c", Escape(cmdstr))
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
@@ -91,11 +127,19 @@ func CallCommandSeparatingOutputStreams(cmdstr string) ([]byte, []byte, error) {
 }
 
 func CallCommandForEffect(cmdstr string) error {
+	if processed, _, _, err := processMocks(CallCommandForEffectOp, cmdstr); processed {
+		return err
+	}
+
 	cmd := exec.Command("sh", "-c", Escape(cmdstr))
 	return cmd.Run()
 }
 
 func CallCommandForEffectWithDebug(cmdstr string) error {
+	if processed, _, _, err := processMocks(CallCommandForEffectWithDebugOp, cmdstr); processed {
+		return err
+	}
+
 	cmd := exec.Command("sh", "-c", Escape(cmdstr))
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -103,6 +147,10 @@ func CallCommandForEffectWithDebug(cmdstr string) error {
 }
 
 func CallCommandForEffectWithInputPipe(cmdstr, input string) error {
+	if processed, _, _, err := processMocks(CallCommandForEffectWithInputPipeOp, cmdstr); processed {
+		return err
+	}
+
 	cmd := exec.Command("sh", "-c", Escape(cmdstr))
 	inpipe, err := cmd.StdinPipe()
 	if err != nil {
@@ -116,6 +164,10 @@ func CallCommandForEffectWithInputPipe(cmdstr, input string) error {
 }
 
 func CallCommandForEffectWithInputPipeAndDebug(cmdstr, input string) error {
+	if processed, _, _, err := processMocks(CallCommandForEffectWithInputPipeAndDebugOp, cmdstr); processed {
+		return err
+	}
+
 	cmd := exec.Command("sh", "-c", Escape(cmdstr))
 	inpipe, err := cmd.StdinPipe()
 	if err != nil {
@@ -134,21 +186,36 @@ func Escape(cmd string) string {
 	return strings.ReplaceAll(cmd, "'", "'\"'\"'")
 }
 
-func WithBehaviorFor(cmdName string, behavior func(args ...string) error, action func() error) error {
-	existingBehavior := behaviors[cmdName]
-	behaviors[cmdName] = behavior
+func WithBehaviorFor(callOp CallOperation, behavior func(args ...string) ([]byte, []byte, error), action func() error) error {
+	existingBehavior, ok := behaviors[callOp]
+	behaviors[callOp] = behavior
 	defer func() {
-		behaviors[cmdName] = existingBehavior
+		if ok {
+			behaviors[callOp] = existingBehavior
+		} else {
+			delete(behaviors, callOp)
+		}
 	}()
 	return action()
 }
 
-func WithResultFrom(cmdName string, value []interface{}, err error, action func() (interface{}, error)) (interface{}, error) {
-	existingValue := values[cmdName]
-	values[cmdName] = value
+func WithResultsFrom(callOp CallOperation, outvalue []byte, errvalue []byte, err error, action func() ([]byte, []byte, error)) ([]byte, []byte, error) {
+	existingOutValue, ook := outvalues[callOp]
+	existingErrValue := errvalues[callOp]
+	existingErr := errors[callOp]
+	outvalues[callOp] = outvalue
+	errvalues[callOp] = errvalue
+	errors[callOp] = err
 	defer func() {
-		values[cmdName] = existingValue
-		errors[cmdName] = err
+		if ook {
+			outvalues[callOp] = existingOutValue
+			errvalues[callOp] = existingErrValue
+			errors[callOp] = existingErr
+		} else {
+			delete(outvalues, callOp)
+			delete(errvalues, callOp)
+			delete(errors, callOp)
+		}
 	}()
 	return action()
 }

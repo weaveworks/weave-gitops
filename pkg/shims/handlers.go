@@ -3,6 +3,7 @@ package shims
 // A package holding our "shims" that add a level of indirection so that parts of the code can be mocked out
 
 import (
+	"fmt"
 	"os"
 )
 
@@ -28,11 +29,12 @@ func WithExitHandler(handler ExitHandler, fun func()) {
 	defer func() {
 		exitHandler = originalHandler
 	}()
+	fmt.Printf("HERE!!!! - \n")
 	fun()
 }
 
 func Exit(code int) {
-	os.Exit(code)
+	exitHandler.Handle(code)
 }
 
 type FileStreams struct {
