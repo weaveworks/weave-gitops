@@ -94,7 +94,7 @@ jobs:
         git config --global user.name "Testy McTestFace"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
         go get -u github.com/ory/go-acc
-        go-acc --ignore fluxopsfakes -o coverage.out ./... -- -v -tags test
+        go-acc --ignore fluxopsfakes -o coverage.out ./... -- -v -tags test,acceptance
     - name: Show coverage
       run: go tool cover -func coverage.out
     - name: Convert coverage.out to coverage.lcov
