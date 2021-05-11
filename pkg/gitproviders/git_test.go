@@ -13,6 +13,16 @@ func TestGit(t *testing.T) {
 	RunSpecs(t, "Git Tests")
 }
 
+var _ = Describe("Gitlab Tests", func() {
+	It("Verify that we can create a provider for gitlab", func() {
+		By("Invoking the creation function", func() {
+			client, err := GetGitlabProvider()
+			Expect(err).To(BeNil())
+			Expect(client).To(Not(BeNil()))
+		})
+	})
+})
+
 var _ = Describe("Github Tests", func() {
 	It("Verify that we can create a provider for github", func() {
 		By("Invoking the creation function", func() {
@@ -31,16 +41,6 @@ var _ = Describe("Github Tests", func() {
 			Expect(client).To(BeNil())
 			err = os.Setenv("GITHUB_TOKEN", tokenval)
 			Expect(err).To(BeNil())
-		})
-	})
-})
-
-var _ = Describe("Gitlab Tests", func() {
-	It("Verify that we can create a provider for gitlab", func() {
-		By("Invoking the creation function", func() {
-			client, err := GetGitlabProvider()
-			Expect(err).To(BeNil())
-			Expect(client).To(Not(BeNil()))
 		})
 	})
 })
