@@ -264,9 +264,5 @@ func Add(args []string, allParams AddParamSet) {
 }
 
 func FromParamSetToApp(params AddParamSet) yaml.App {
-	return yaml.App{
-		AppName: params.Name,
-		AppPath: params.Path,
-		AppURL:  params.Url,
-	}
+	return yaml.NewApp(params.Name, params.Path, params.Url)
 }

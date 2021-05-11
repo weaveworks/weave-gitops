@@ -10,14 +10,41 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
-//const appYamlTemplate = `apiVersion: wego.weave.works/v1alpha1
-//kind: Application
-//metadata:
-//  name: {{ .AppName }}
-//spec:
-//  path: {{ .AppPath }}
-//  url: {{ .AppURL }}
-//`
+// App yaml App definition
+type App struct {
+	ApiVersion string   `yaml:"apiVersion"`
+	Kind       string   `yaml:"kind"`
+	Metadata   Metadata `yaml:"metadata"`
+	Spec       Spec     `yaml:"spec"`
+}
+
+func NewApp(name, path, url string) App {
+
+	app := App{
+		ApiVersion: "wego.weave.works/v1alpha1",
+		Kind:       "Application",
+		Metadata: Metadata{
+			Name: name,
+		},
+		Spec: Spec{
+			path,
+			url,
+		},
+	}
+
+	return app
+}
+
+// Metadata
+type Metadata struct {
+	Name string `yaml:"name"`
+}
+
+// Spec
+type Spec struct {
+	Path string `yaml:"path"`
+	Url  string `yaml:"url"`
+}
 
 type AppManager struct {
 	apps []App
@@ -93,7 +120,7 @@ func (a *AppManager) AddApp(newApp App) error {
 	newApps := make([]App, 0)
 
 	for _, currentApp := range a.apps {
-		if currentApp.AppName == newApp.AppName {
+		if currentApp.Metadata.Name == newApp.Metadata.Name {
 			newApps = append(newApps, newApp)
 		} else {
 			newApps = append(newApps, currentApp)
@@ -104,10 +131,4 @@ func (a *AppManager) AddApp(newApp App) error {
 
 	return a.persistApps()
 
-}
-
-type App struct {
-	AppName string
-	AppPath string
-	AppURL  string
 }
