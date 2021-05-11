@@ -22,7 +22,7 @@ jobs:
     - name: Run linters
       uses: golangci/golangci-lint-action@v2
       with:
-        version: v1.39
+        version: v1.29
         args: --build-tags acceptance
           
   test:

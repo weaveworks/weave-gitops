@@ -34,7 +34,7 @@ func init() {
 	Cmd.Flags().StringVar(&params.Branch, "branch", "main", "Branch to watch within git repository")
 	Cmd.Flags().StringVar(&params.PrivateKey, "private-key", filepath.Join(os.Getenv("HOME"), ".ssh", "id_rsa"), "Private key that provides access to git repository")
 
-	Cmd.MarkFlagRequired("name")
+	_ = Cmd.MarkFlagRequired("name")
 
 	Cmd.AddCommand(ApplicationCmd)
 }

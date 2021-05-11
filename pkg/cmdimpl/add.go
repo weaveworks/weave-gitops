@@ -5,12 +5,13 @@ package cmdimpl
 import (
 	"bufio"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/pkg/yaml"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/weaveworks/weave-gitops/pkg/yaml"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
@@ -243,7 +244,7 @@ func Add(args []string, allParams AddParamSet) {
 
 	//Create app.yaml
 	yamlManager := yaml.AppManager{}
-	yamlManager.AddApp(FromParamSetToApp(params))
+	err = yamlManager.AddApp(FromParamSetToApp(params))
 	checkAddError(err)
 
 	// Create controllers for new repo being added
@@ -252,10 +253,11 @@ func Add(args []string, allParams AddParamSet) {
 	sourceYamlPath := filepath.Join(wegoAppsPath, "source-"+params.Name+".yaml")
 	kustomizeYamlPath := filepath.Join(wegoAppsPath, "kustomize-"+params.Name+".yaml")
 	appYamlPath, err := yaml.GetAppsYamlPath()
+	checkAddError(err)
 	checkAddError(ioutil.WriteFile(sourceYamlPath, generateSourceManifest(), 0644))
 	checkAddError(ioutil.WriteFile(kustomizeYamlPath, generateKustomizeManifest(), 0644))
 
-	commitAndPush(sourceYamlPath, kustomizeYamlPath, appYamlPath)
+	err = commitAndPush(sourceYamlPath, kustomizeYamlPath, appYamlPath)
 	checkAddError(err)
 
 	fmt.Printf("Successfully added repository: %s.\n", params.Name)
