@@ -22,7 +22,7 @@ const hubCreds = `github.com:
 
 func TestFluxOps(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Log Tests")
+	RunSpecs(t, "Fluxops Tests")
 }
 
 var _ = Describe("User Lookup Test", func() {

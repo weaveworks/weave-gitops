@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/version"
 )
 
@@ -48,6 +49,6 @@ func GetFluxExePath() (string, error) {
 func checkError(err error) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+		shims.Exit(1)
 	}
 }

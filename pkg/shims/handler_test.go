@@ -11,7 +11,7 @@ import (
 
 func TestHandlers(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Log Tests")
+	RunSpecs(t, "Stream Shim Tests")
 }
 
 var _ = Describe("Stream Shim Tests", func() {
