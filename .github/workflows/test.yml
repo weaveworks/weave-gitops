@@ -104,4 +104,4 @@ jobs:
     - name: Publish test results to Testspace
       run: |
         testspace "[acceptance-tests]test-results/acceptance-test-results.xml"
-      if: ${{ always() && matrix.os == 'ubuntu-latest' }}
+      if: matrix.os == 'ubuntu-latest'
