@@ -1,5 +1,5 @@
 // +build !unittest
-// +build !acceptance
+// +build acceptance
 // +build !smoke
 
 // ^^ temporarily disabling this test until we have it in ginkgo format.
