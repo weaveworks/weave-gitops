@@ -119,7 +119,7 @@ func GetOwnerFromEnv() (string, error) {
 		return user, nil
 	}
 
-	return getUserFromHubCredentials()
+	return GetUserFromHubCredentials()
 }
 
 // GetRepoName returns the name of the wego repo for the cluster (the repo holding controller defs)
@@ -131,7 +131,7 @@ func GetRepoName() (string, error) {
 	return clusterName + "-wego", nil
 }
 
-func getUserFromHubCredentials() (string, error) {
+func GetUserFromHubCredentials() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
