@@ -91,3 +91,21 @@ func TestEscape(t *testing.T) {
 	str := utils.Escape(`'test'`)
 	assert.Equal(`'"'"'test'"'"'`, str)
 }
+
+func TestWithBehaviorFor(t *testing.T) {
+	success := false
+	val := []byte("This is a result string")
+	out, _, _ :=
+		utils.WithBehaviorFor(utils.CallCommandSilentlyOp,
+			func(args ...string) ([]byte, []byte, error) {
+				success = true
+				return val, nil, nil
+			},
+			func() ([]byte, []byte, error) {
+				out, err := utils.CallCommandSilently("echo cornhusk")
+				assert.NoError(t, err)
+				return out, nil, err
+			})
+	assert.Equal(t, val, out)
+	assert.True(t, success)
+}

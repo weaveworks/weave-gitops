@@ -186,7 +186,7 @@ func Escape(cmd string) string {
 	return strings.ReplaceAll(cmd, "'", "'\"'\"'")
 }
 
-func WithBehaviorFor(callOp CallOperation, behavior func(args ...string) ([]byte, []byte, error), action func() error) error {
+func WithBehaviorFor(callOp CallOperation, behavior func(args ...string) ([]byte, []byte, error), action func() ([]byte, []byte, error)) ([]byte, []byte, error) {
 	existingBehavior, ok := behaviors[callOp]
 	behaviors[callOp] = behavior
 	defer func() {
