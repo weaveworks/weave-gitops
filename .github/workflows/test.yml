@@ -61,7 +61,7 @@ jobs:
       with:
         cluster_name: "${{ format('katc-{0}', github.run_id) }}"
         version: "v0.10.0"
-        if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-latest'
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: Run linters
@@ -105,4 +105,3 @@ jobs:
       run: |
         testspace "[acceptance-tests]test-results/acceptance-test-results.xml"
       if: matrix.os == 'ubuntu-latest'
-      
