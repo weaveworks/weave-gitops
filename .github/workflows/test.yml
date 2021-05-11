@@ -43,3 +43,37 @@ jobs:
         export WEGO_BIN_PATH=$(pwd)/bin/wego
         go get -u github.com/onsi/ginkgo/ginkgo
         ginkgo --reportFile=$(pwd)/test-results/smoke-test-results.xml -v -tags=smoke ./test/acceptance/test/...
+        
+  build-test-deploy:
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16.x
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: Fake Install flux
+      run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
+    - name: unit-tests
+      run: make unit-tests
+    - name: build
+      run: make all BINARY_NAME=wego-${{matrix.os}}
+    - name: Install Ginkgo binary
+      run: go get -u github.com/onsi/ginkgo/ginkgo
+    - name: User Acceptance Tests (Ubuntu)
+      run: |
+        export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}
+        ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v -tags=acceptance ./test/acceptance/test/...
+      if: matrix.os == 'ubuntu-latest'
+    - name: Install testspace client
+      uses: testspace-com/setup-testspace@v1
+      with:
+        domain: weaveworks.testspace.com
+    - name: Publish test results to Testspace
+      run: |
+        testspace "[acceptance-tests]test-results/acceptance-test-results.xml"
+      if: ${{ always() && matrix.os == 'ubuntu-latest' }}
