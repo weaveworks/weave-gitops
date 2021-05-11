@@ -2,10 +2,16 @@ package gitproviders
 
 import (
 	"os"
+	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
+
+func TestGit(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Git Tests")
+}
 
 var _ = Describe("Github Tests", func() {
 	It("Verify that we can create a provider for github", func() {
@@ -25,6 +31,16 @@ var _ = Describe("Github Tests", func() {
 			Expect(client).To(BeNil())
 			err = os.Setenv("GITHUB_TOKEN", tokenval)
 			Expect(err).To(BeNil())
+		})
+	})
+})
+
+var _ = Describe("Gitlab Tests", func() {
+	It("Verify that we can create a provider for gitlab", func() {
+		By("Invoking the creation function", func() {
+			client, err := GetGitlabProvider()
+			Expect(err).To(BeNil())
+			Expect(client).To(Not(BeNil()))
 		})
 	})
 })
