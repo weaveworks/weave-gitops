@@ -16,6 +16,7 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	cgitprovider "github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
@@ -84,8 +85,8 @@ var (
 // checkError will print a message to stderr and exit
 func checkError(msg string, err interface{}) {
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: %v\n", msg, err)
-		os.Exit(1)
+		fmt.Fprintf(shims.Stderr(), "%s: %v\n", msg, err)
+		shims.Exit(1)
 	}
 }
 
@@ -174,7 +175,7 @@ func getOwner() string {
 
 func getOwnerInteractively() string {
 	fmt.Printf("Who is the owner of the repository? ")
-	reader := bufio.NewReader(os.Stdin)
+	reader := bufio.NewReader(shims.Stdin())
 	str, err := reader.ReadString('\n')
 	checkAddError(err)
 
@@ -195,7 +196,7 @@ func commitAndPush(files ...string) {
 func Add(args []string, allParams AddParamSet) {
 	if len(args) < 1 {
 		fmt.Printf("Location of application not specified.\n")
-		os.Exit(1)
+		shims.Exit(1)
 	}
 	params = allParams
 	params.Dir = args[0]
@@ -208,7 +209,7 @@ func Add(args []string, allParams AddParamSet) {
 
 	if clusterStatus == status.Unmodified {
 		fmt.Printf("WeGO not installed... exiting\n")
-		os.Exit(1)
+		shims.Exit(1)
 	}
 
 	// Set up wego repository if required
