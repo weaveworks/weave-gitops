@@ -24,7 +24,7 @@ jobs:
       with:
         version: v1.29
         args: --build-tags acceptance
-          
+
   test:
     runs-on: ubuntu-latest
     steps:
@@ -54,7 +54,7 @@ jobs:
       run:  |
         make
     - name: Install Ginkgo binary
-      run: go get -u github.com/onsi/ginkgo/ginkgo
+      run: go get github.com/onsi/ginkgo/ginkgo@v1.16.1
     - name: Run smoke tests from acceptance suite
       run: |
         export PATH=${PATH}:`go env GOPATH`/bin
