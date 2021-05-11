@@ -1,6 +1,7 @@
 package fluxops_test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -9,7 +10,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops/fluxopsfakes"
 )
@@ -28,6 +28,7 @@ func TestFluxOps(t *testing.T) {
 var _ = Describe("User Lookup Test", func() {
 	It("Verify that looking up a user's credentials via hub works correctly", func() {
 		By("setting up a fake HOME directory and pulling hub credentials", func() {
+			os.Unsetenv("GITHUB_ORG")
 			dir, err := ioutil.TempDir("", "tmp-dir")
 			Expect(err).To(BeNil())
 			err = os.Setenv("HOME", dir)
@@ -36,30 +37,53 @@ var _ = Describe("User Lookup Test", func() {
 			Expect(err).To(BeNil())
 			err = ioutil.WriteFile(filepath.Join(dir, ".config", "hub"), []byte(hubCreds), 0600)
 			Expect(err).To(BeNil())
-			creds, err := fluxops.GetUserFromHubCredentials()
+			creds, err := fluxops.GetOwnerFromEnv()
 			Expect(err).To(BeNil())
 			Expect(creds).To(Equal("pandagool"))
 		})
 	})
 })
 
-func TestFluxInstall(t *testing.T) {
-	assert := assert.New(t)
+var _ = Describe("Flux Install Test", func() {
+	It("Check all the install paths", func() {
+		By("Using a mock to mimic an install", func() {
+			fakeHandler := &fluxopsfakes.FakeFluxHandler{
+				HandleStub: func(args string) ([]byte, error) {
+					return []byte("foo"), nil
+				},
+			}
+			fluxops.SetFluxHandler(fakeHandler)
+			output, err := fluxops.Install("flux-system")
+			Expect(err).To(BeNil())
+			Expect(string(output)).To(Equal("foo"))
 
-	fakeHandler := &fluxopsfakes.FakeFluxHandler{
-		HandleStub: func(args string) ([]byte, error) {
-			return []byte("foo"), nil
-		},
-	}
-	fluxops.SetFluxHandler(fakeHandler)
-	output, err := fluxops.Install("flux-system")
-	assert.Equal("foo", string(output))
-	assert.NoError(err)
+			output, err = fluxops.Install("my-namespace")
+			Expect(err).To(BeNil())
+			Expect(string(output)).To(Equal("apiVersion: v1\nkind: Namespace\nmetadata:\n  name: flux-system\n---\nfoo"))
+			args := fakeHandler.HandleArgsForCall(1)
+			Expect(args).To(Equal("install --namespace=my-namespace --export"))
+		})
 
-	output, err = fluxops.Install("my-namespace")
-	assert.Equal("apiVersion: v1\nkind: Namespace\nmetadata:\n  name: flux-system\n---\nfoo", string(output))
-	assert.NoError(err)
+		By("Using a mock to fail verbose manifest generation", func() {
+			fakeHandler := &fluxopsfakes.FakeFluxHandler{
+				HandleStub: func(args string) ([]byte, error) {
+					return nil, fmt.Errorf("failed")
+				},
+			}
+			fluxops.SetFluxHandler(fakeHandler)
+			_, err := fluxops.Install("flux-system")
+			Expect(err.Error()).To(Equal("failed"))
+		})
 
-	args := fakeHandler.HandleArgsForCall(1)
-	assert.Equal("install --namespace=my-namespace --export", args)
-}
+		By("Using a mock to fail quiet manifest generation", func() {
+			fakeHandler := &fluxopsfakes.FakeFluxHandler{
+				HandleStub: func(args string) ([]byte, error) {
+					return nil, fmt.Errorf("failed")
+				},
+			}
+			fluxops.SetFluxHandler(fakeHandler)
+			_, err := fluxops.QuietInstall("flux-system")
+			Expect(err.Error()).To(Equal("failed"))
+		})
+	})
+})

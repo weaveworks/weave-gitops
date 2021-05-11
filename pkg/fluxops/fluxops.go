@@ -49,12 +49,17 @@ func (q quietFluxHandler) Handle(arglist string) ([]byte, error) {
 
 // WithFluxHandler allows running a function with a different flux handler in force
 func WithFluxHandler(handler FluxHandler, f func() ([]byte, error)) ([]byte, error) {
-	existingHandler := fluxHandler
-	fluxHandler = handler
-	defer func() {
-		fluxHandler = existingHandler
-	}()
-	return f()
+	switch fluxHandler.(type) {
+	case defaultFluxHandler:
+		existingHandler := fluxHandler
+		fluxHandler = handler
+		defer func() {
+			fluxHandler = existingHandler
+		}()
+		return f()
+	default:
+		return f()
+	}
 }
 
 func FluxPath() (string, error) {
