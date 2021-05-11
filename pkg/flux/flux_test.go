@@ -146,11 +146,12 @@ var _ = Describe("Flux Setup Failure", func() {
 
 	It("Verify that os.UserHomeDir failures are handled correctly", func() {
 		By("Setting the shim to fail and invoking calls that will trigger it", func() {
-			shims.WithHomeDirHandler(localHomeDirHandler{action: func() (string, error) { return "", fmt.Errorf("failed") }},
+			_, err := shims.WithHomeDirHandler(localHomeDirHandler{action: func() (string, error) { return "", fmt.Errorf("failed") }},
 				func() (string, error) {
 					out, err := fluxops.QuietInstall("flux-system")
 					return string(out), err
 				})
+			Expect(err).To(Not(BeNil()))
 		})
 	})
 
