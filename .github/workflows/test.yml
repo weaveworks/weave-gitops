@@ -56,12 +56,38 @@ jobs:
         go-version: 1.16.x
     - name: checkout
       uses: actions/checkout@v2
+    - name: Setup Kubernetes
+      uses: helm/kind-action@v1.1.0
+      with:
+        cluster_name: "${{ format('katc-{0}', github.run_id) }}"
+        version: "v0.10.0"
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
+    - name: Run linters
+      uses: golangci/golangci-lint-action@v2
+      with:
+        version: v1.29
+        args: --build-tags acceptance
     - name: unit-tests
       run: make unit-tests
     - name: build
       run: make all BINARY_NAME=wego-${{matrix.os}}
+    - name: Set up ssh agent
+      uses: webfactory/ssh-agent@v0.5.2
+      with:
+        ssh-private-key: ${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}
+    - name: Configure git settings
+      env:
+        GITHUB_ORG: wkp-example-org
+        GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
+        GITHUB_KEY: "${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}"
+      run: |
+        export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}
+        git config --global init.defaultBranch main
+        git config --global user.email "test-user@weave.works"
+        git config --global user.name "Testy McTestFace"
+        git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+
     - name: Install Ginkgo binary
       run: go get -u github.com/onsi/ginkgo/ginkgo
     - name: User Acceptance Tests (Ubuntu)
