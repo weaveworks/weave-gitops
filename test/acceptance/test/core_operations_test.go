@@ -1,6 +1,6 @@
 // +build acceptance
 
-package acceptance
+package test
 
 // Runs basic WeGO operations against a kind cluster.
 

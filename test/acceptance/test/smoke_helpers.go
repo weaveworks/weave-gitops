@@ -1,6 +1,6 @@
 // +build smoke
 
-package acceptance
+package test
 
 func getSuiteTitle() string {
 	return "Smoke Tests"

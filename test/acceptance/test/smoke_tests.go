@@ -5,7 +5,7 @@
 * However these should still be end to end user facing scenarios.
 * Smoke tests would run as part of full suite too hence the acceptance_tests flag.
  */
-package acceptance
+package test
 
 import (
 	"os/exec"

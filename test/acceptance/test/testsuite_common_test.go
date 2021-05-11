@@ -1,6 +1,6 @@
 // +build !unittest
 
-package acceptance
+package test
 
 import (
 	"os"

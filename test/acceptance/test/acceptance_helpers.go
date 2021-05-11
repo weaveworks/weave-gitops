@@ -1,6 +1,6 @@
 // +build acceptance
 
-package acceptance
+package test
 
 func getSuiteTitle() string {
 	return "Acceptance Tests"
