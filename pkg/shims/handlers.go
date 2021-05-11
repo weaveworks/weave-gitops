@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// Handler for mocking os.Exit()
 type ExitHandler interface {
 	Handle(code int)
 }
@@ -29,6 +30,32 @@ func WithExitHandler(handler ExitHandler, fun func()) {
 
 func Exit(code int) {
 	exitHandler.Handle(code)
+}
+
+// Handler for mocking os.UserHomeDir()
+type HomeDirHandler interface {
+	Handle() (string, error)
+}
+
+type defaultHomeDirHandler struct{}
+
+var homeDirHandler HomeDirHandler = defaultHomeDirHandler{}
+
+func (h defaultHomeDirHandler) Handle() (string, error) {
+	return os.UserHomeDir()
+}
+
+func WithHomeDirHandler(handler HomeDirHandler, fun func() (string, error)) (string, error) {
+	originalHandler := homeDirHandler
+	homeDirHandler = handler
+	defer func() {
+		homeDirHandler = originalHandler
+	}()
+	return fun()
+}
+
+func UserHomeDir() {
+	homeDirHandler.Handle()
 }
 
 type FileStreams struct {

@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/stretchr/testify/require"
+	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"github.com/weaveworks/weave-gitops/pkg/version"
@@ -97,6 +98,14 @@ func (h localExitHandler) Handle(code int) {
 	h.action(code)
 }
 
+type localHomeDirHandler struct {
+	action func() (string, error)
+}
+
+func (h localHomeDirHandler) Handle() (string, error) {
+	return h.action()
+}
+
 func TestSetup(t *testing.T) {
 	_, err := GetFluxBinPath()
 	require.NoError(t, err)
@@ -134,4 +143,15 @@ var _ = Describe("Flux Setup Failure", func() {
 			Expect(exitCode).To(Equal(1))
 		})
 	})
+
+	It("Verify that os.UserHomeDir failures are handled correctly", func() {
+		By("Setting the shim to fail and invoking calls that will trigger it", func() {
+			shims.WithHomeDirHandler(localHomeDirHandler{action: func() (string, error) { return "", fmt.Errorf("failed") }},
+				func() (string, error) {
+					out, err := fluxops.QuietInstall("flux-system")
+					return string(out), err
+				})
+		})
+	})
+
 })

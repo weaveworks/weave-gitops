@@ -40,10 +40,7 @@ func (h defaultFluxHandler) Handle(arglist string) ([]byte, error) {
 type quietFluxHandler struct{}
 
 func (q quietFluxHandler) Handle(arglist string) ([]byte, error) {
-	fluxBinary, err := FluxPath()
-	if err != nil {
-		return nil, err
-	}
+	initFluxBinary()
 	return utils.CallCommandSilently(fmt.Sprintf("%s %s", fluxBinary, arglist))
 }
 
