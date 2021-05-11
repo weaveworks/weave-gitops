@@ -19,6 +19,11 @@ func (h defaultExitHandler) Handle(code int) {
 	os.Exit(code)
 }
 
+type IgnoreExitHandler struct{}
+
+func (h IgnoreExitHandler) Handle(code int) {
+}
+
 func WithExitHandler(handler ExitHandler, fun func()) {
 	originalHandler := exitHandler
 	exitHandler = handler
@@ -54,8 +59,8 @@ func WithHomeDirHandler(handler HomeDirHandler, fun func() (string, error)) (str
 	return fun()
 }
 
-func UserHomeDir() {
-	homeDirHandler.Handle()
+func UserHomeDir() (string, error) {
+	return homeDirHandler.Handle()
 }
 
 type FileStreams struct {

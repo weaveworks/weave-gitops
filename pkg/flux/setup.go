@@ -29,7 +29,7 @@ func SetupFluxBin() {
 
 //GetFluxBinPath -
 func GetFluxBinPath() (string, error) {
-	homeDir, err := os.UserHomeDir()
+	homeDir, err := shims.UserHomeDir()
 	if err != nil {
 		return "", err
 	}

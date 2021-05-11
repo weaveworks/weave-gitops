@@ -2,7 +2,6 @@ package flux
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -117,7 +116,7 @@ func TestSetup(t *testing.T) {
 func TestSetupFluxBin(t *testing.T) {
 	version.FluxVersion = "0.11.0"
 	SetupFluxBin()
-	homeDir, err := os.UserHomeDir()
+	homeDir, err := shims.UserHomeDir()
 	require.NoError(t, err)
 
 	fluxPath := fmt.Sprintf("%v/.wego/bin", homeDir)
@@ -148,7 +147,11 @@ var _ = Describe("Flux Setup Failure", func() {
 		By("Setting the shim to fail and invoking calls that will trigger it", func() {
 			_, err := shims.WithHomeDirHandler(localHomeDirHandler{action: func() (string, error) { return "", fmt.Errorf("failed") }},
 				func() (string, error) {
-					out, err := fluxops.QuietInstall("flux-system")
+					var out []byte
+					var err error
+					shims.WithExitHandler(shims.IgnoreExitHandler{}, func() {
+						out, err = fluxops.QuietInstall("flux-system")
+					})
 					return string(out), err
 				})
 			Expect(err).To(Not(BeNil()))
