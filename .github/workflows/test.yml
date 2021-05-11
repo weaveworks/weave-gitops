@@ -90,7 +90,6 @@ jobs:
         git config --global user.email "test-user@weave.works"
         git config --global user.name "Testy McTestFace"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-
     - name: Install Ginkgo binary
       run: go get -u github.com/onsi/ginkgo/ginkgo
     - name: User Acceptance Tests (Ubuntu)
@@ -110,4 +109,4 @@ jobs:
     - name: Publish test results to Testspace
       run: |
         testspace "[acceptance-tests]test-results/acceptance-test-results.xml"
-      if: matrix.os == 'ubuntu-latest'
+      if: always() && matrix.os == 'ubuntu-latest'
