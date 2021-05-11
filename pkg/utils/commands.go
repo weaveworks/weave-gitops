@@ -17,9 +17,6 @@ type Behavior func(args ...string) ([]byte, []byte, error)
 
 var (
 	behaviors = map[CallOperation]Behavior{}
-	outvalues = map[CallOperation][]byte{}
-	errvalues = map[CallOperation][]byte{}
-	errors    = map[CallOperation]error{}
 )
 
 type CallOperation int
@@ -41,12 +38,6 @@ func processMocks(op CallOperation, cmdstr string) (bool, []byte, []byte, error)
 		} else {
 			return true, stdout, stderr, nil
 		}
-	}
-	if err := errors[op]; err != nil {
-		return true, nil, nil, err
-	}
-	if outvalue, ok := outvalues[op]; ok {
-		return true, outvalue, errvalues[op], nil
 	}
 	return false, nil, nil, nil
 }
@@ -200,22 +191,10 @@ func WithBehaviorFor(callOp CallOperation, behavior func(args ...string) ([]byte
 }
 
 func WithResultsFrom(callOp CallOperation, outvalue []byte, errvalue []byte, err error, action func() ([]byte, []byte, error)) ([]byte, []byte, error) {
-	existingOutValue, ook := outvalues[callOp]
-	existingErrValue := errvalues[callOp]
-	existingErr := errors[callOp]
-	outvalues[callOp] = outvalue
-	errvalues[callOp] = errvalue
-	errors[callOp] = err
-	defer func() {
-		if ook {
-			outvalues[callOp] = existingOutValue
-			errvalues[callOp] = existingErrValue
-			errors[callOp] = existingErr
-		} else {
-			delete(outvalues, callOp)
-			delete(errvalues, callOp)
-			delete(errors, callOp)
-		}
-	}()
-	return action()
+	return WithBehaviorFor(
+		callOp,
+		func(args ...string) ([]byte, []byte, error) {
+			return outvalue, errvalue, err
+		},
+		action)
 }
