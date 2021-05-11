@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
-	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
@@ -252,11 +251,8 @@ func Add(args []string, allParams AddParamSet) {
 	wegoSource := generateWegoSourceManifest()
 	wegoKust := generateWegoKustomizeManifest()
 	checkAddError(utils.CallCommandForEffectWithInputPipe("kubectl apply --namespace=wego-system -f -", appCRD))
-	time.Sleep(time.Second * 20)
 	checkAddError(utils.CallCommandForEffectWithInputPipe("kubectl apply --namespace=wego-system -f -", string(wegoSource)))
-	time.Sleep(time.Second * 20)
 	checkAddError(utils.CallCommandForEffectWithInputPipe("kubectl apply --namespace=wego-system -f -", string(wegoKust)))
-	time.Sleep(time.Second * 20)
 
 	// Create app.yaml
 	t, err := template.New("appYaml").Parse(appYamlTemplate)
