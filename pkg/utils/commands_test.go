@@ -96,6 +96,21 @@ func TestWithBehaviorFor(t *testing.T) {
 	success := false
 	val := []byte("This is a result string")
 	out, _, _ :=
+		utils.WithBehaviorFor(utils.CallCommandOp,
+			func(args ...string) ([]byte, []byte, error) {
+				success = true
+				return val, nil, nil
+			},
+			func() ([]byte, []byte, error) {
+				out, err := utils.CallCommand("echo cornhusk")
+				assert.NoError(t, err)
+				return out, nil, err
+			})
+	assert.Equal(t, val, out)
+	assert.True(t, success)
+
+	success = false
+	out, _, _ =
 		utils.WithBehaviorFor(utils.CallCommandSilentlyOp,
 			func(args ...string) ([]byte, []byte, error) {
 				success = true
@@ -105,6 +120,104 @@ func TestWithBehaviorFor(t *testing.T) {
 				out, err := utils.CallCommandSilently("echo cornhusk")
 				assert.NoError(t, err)
 				return out, nil, err
+			})
+	assert.Equal(t, val, out)
+	assert.True(t, success)
+
+	success = false
+	out, _, _ =
+		utils.WithBehaviorFor(utils.CallCommandSeparatingOutputStreamsOp,
+			func(args ...string) ([]byte, []byte, error) {
+				success = true
+				return val, nil, nil
+			},
+			func() ([]byte, []byte, error) {
+				sout, serr, err := utils.CallCommandSeparatingOutputStreams("echo cornhusk")
+				assert.NoError(t, err)
+				return sout, serr, err
+			})
+	assert.Equal(t, val, out)
+	assert.True(t, success)
+
+	success = false
+	_, _, err :=
+		utils.WithBehaviorFor(utils.CallCommandForEffectOp,
+			func(args ...string) ([]byte, []byte, error) {
+				success = true
+				return val, nil, nil
+			},
+			func() ([]byte, []byte, error) {
+				err := utils.CallCommandForEffect("echo cornhusk")
+				assert.NoError(t, err)
+				return nil, nil, nil
+			})
+	assert.NoError(t, err)
+	assert.True(t, success)
+
+	success = false
+	_, _, err =
+		utils.WithBehaviorFor(utils.CallCommandForEffectWithDebugOp,
+			func(args ...string) ([]byte, []byte, error) {
+				success = true
+				return val, nil, nil
+			},
+			func() ([]byte, []byte, error) {
+				err := utils.CallCommandForEffectWithDebug("echo cornhusk")
+				assert.NoError(t, err)
+				return nil, nil, nil
+			})
+	assert.NoError(t, err)
+	assert.True(t, success)
+
+	success = false
+	_, _, err =
+		utils.WithBehaviorFor(utils.CallCommandForEffectWithInputPipeOp,
+			func(args ...string) ([]byte, []byte, error) {
+				success = true
+				return val, nil, nil
+			},
+			func() ([]byte, []byte, error) {
+				err := utils.CallCommandForEffectWithInputPipe("echo cornhusk", "x")
+				assert.NoError(t, err)
+				return nil, nil, nil
+			})
+	assert.NoError(t, err)
+	assert.True(t, success)
+
+	success = false
+	_, _, err =
+		utils.WithBehaviorFor(utils.CallCommandForEffectWithInputPipeAndDebugOp,
+			func(args ...string) ([]byte, []byte, error) {
+				success = true
+				return val, nil, nil
+			},
+			func() ([]byte, []byte, error) {
+				err := utils.CallCommandForEffectWithInputPipeAndDebug("echo cornhusk", "x")
+				assert.NoError(t, err)
+				return nil, nil, nil
+			})
+	assert.NoError(t, err)
+	assert.True(t, success)
+
+	// Test case where another behavior was already defined
+	success = false
+	out, _, _ =
+		utils.WithBehaviorFor(utils.CallCommandSilentlyOp,
+			func(args ...string) ([]byte, []byte, error) {
+				success = true
+				return val, nil, nil
+			},
+			func() ([]byte, []byte, error) {
+				return utils.WithBehaviorFor(utils.CallCommandSilentlyOp,
+					func(args ...string) ([]byte, []byte, error) {
+						success = true
+						return val, nil, nil
+					},
+					func() ([]byte, []byte, error) {
+						out, err := utils.CallCommandSilently("echo cornhusk")
+						assert.NoError(t, err)
+						return out, nil, err
+					})
 			})
 	assert.Equal(t, val, out)
 	assert.True(t, success)
