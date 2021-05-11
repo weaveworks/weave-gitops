@@ -78,10 +78,6 @@ jobs:
       with:
         ssh-private-key: ${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}
     - name: Configure git settings
-      env:
-        GITHUB_ORG: wkp-example-org
-        GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
-        GITHUB_KEY: "${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}"
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}
         git config --global init.defaultBranch main
@@ -92,6 +88,10 @@ jobs:
     - name: Install Ginkgo binary
       run: go get -u github.com/onsi/ginkgo/ginkgo
     - name: User Acceptance Tests (Ubuntu)
+      env:
+        GITHUB_ORG: wkp-example-org
+        GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
+        GITHUB_KEY: "${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}"
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}
         ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v -tags=acceptance ./test/acceptance/test/...
