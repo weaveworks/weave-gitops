@@ -89,6 +89,7 @@ func CallCommandForEffectWithDebug(cmdstr string) error {
 }
 
 func CallCommandForEffectWithInputPipe(cmdstr, input string) error {
+	fmt.Println("running cmd " + cmdstr)
 	cmd := exec.Command("sh", "-c", Escape(cmdstr))
 	inpipe, err := cmd.StdinPipe()
 	if err != nil {

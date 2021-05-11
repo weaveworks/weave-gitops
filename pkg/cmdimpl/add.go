@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
@@ -127,25 +128,25 @@ func updateParametersIfNecessary() {
 func generateWegoSourceManifest() []byte {
 	fluxRepoName, err := fluxops.GetRepoName()
 	checkAddError(err)
-	_, err = fluxops.CallFlux(fmt.Sprintf(`create secret git "wego" --url="ssh://git@github.com/%s/%s" --private-key-file="%s"`, getOwner(), fluxRepoName, params.PrivateKey))
+	_, err = fluxops.CallFlux(fmt.Sprintf(`create secret git "wego" --url="ssh://git@github.com/%s/%s" --private-key-file="%s" --namespace=wego-system`, getOwner(), fluxRepoName, params.PrivateKey))
 	checkAddError(err)
-	sourceManifest, err := fluxops.CallFlux(fmt.Sprintf(`create source git "wego" --url="ssh://git@github.com/%s/%s" --branch="%s" --secret-ref="wego" --interval=30s --export`,
+	sourceManifest, err := fluxops.CallFlux(fmt.Sprintf(`create source git "wego" --url="ssh://git@github.com/%s/%s" --branch="%s" --secret-ref="wego" --interval=30s --export --namespace=wego-system`,
 		getOwner(), fluxRepoName, params.Branch))
 	checkAddError(err)
 	return sourceManifest
 }
 
 func generateWegoKustomizeManifest() []byte {
-	kustomizeManifest, err := fluxops.CallFlux(`create kustomization "wego" --path="./" --source="wego" --prune=true --validation=client --interval=5m --export`)
+	kustomizeManifest, err := fluxops.CallFlux(`create kustomization "wego" --path="./" --source="wego" --prune=true --validation=client --interval=5m --export --namespace=wego-system`)
 	checkAddError(err)
 	return kustomizeManifest
 }
 
 func generateSourceManifest() []byte {
 	secretName := params.Name
-	_, err := fluxops.CallFlux(fmt.Sprintf(`create secret git "%s" --url="%s" --private-key-file="%s"`, secretName, params.Url, params.PrivateKey))
+	_, err := fluxops.CallFlux(fmt.Sprintf(`create secret git "%s" --url="%s" --private-key-file="%s" --namespace=wego-system`, secretName, params.Url, params.PrivateKey))
 	checkAddError(err)
-	sourceManifest, err := fluxops.CallFlux(fmt.Sprintf(`create source git "%s" --url="%s" --branch="%s" --secret-ref="%s" --interval=30s --export`,
+	sourceManifest, err := fluxops.CallFlux(fmt.Sprintf(`create source git "%s" --url="%s" --branch="%s" --secret-ref="%s" --interval=30s --export --namespace=wego-system`,
 		params.Name, params.Url, params.Branch, secretName))
 	checkAddError(err)
 	return sourceManifest
@@ -153,7 +154,7 @@ func generateSourceManifest() []byte {
 
 func generateKustomizeManifest() []byte {
 	kustomizeManifest, err := fluxops.CallFlux(
-		fmt.Sprintf(`create kustomization "%s" --path="./" --source="%s" --prune=true --validation=client --interval=5m --export`, params.Name, params.Name))
+		fmt.Sprintf(`create kustomization "%s" --path="./" --source="%s" --prune=true --validation=client --interval=5m --export --namespace=wego-system`, params.Name, params.Name))
 	checkAddError(err)
 	return kustomizeManifest
 }
@@ -242,7 +243,7 @@ func Add(args []string, allParams AddParamSet) {
 		checkAddError(err)
 
 		checkAddError(utils.CallCommandForEffectWithDebug(
-			fmt.Sprintf("git remote add origin %s && git pull --rebase origin main && git push --set-upstream origin main", orgRef.String())))
+			fmt.Sprintf("git remote add origin %s && git pull --rebase origin main && git checkout main && git push --set-upstream origin main", orgRef.String())))
 	} else {
 		checkAddError(utils.CallCommandForEffectWithDebug("git branch --set-upstream-to=origin/main main"))
 	}
@@ -250,9 +251,12 @@ func Add(args []string, allParams AddParamSet) {
 	// Install Source and Kustomize controllers, and CRD for application (may already be present)
 	wegoSource := generateWegoSourceManifest()
 	wegoKust := generateWegoKustomizeManifest()
-	checkAddError(utils.CallCommandForEffectWithInputPipe("kubectl apply -f -", appCRD))
-	checkAddError(utils.CallCommandForEffectWithInputPipe("kubectl apply -f -", string(wegoSource)))
-	checkAddError(utils.CallCommandForEffectWithInputPipe("kubectl apply -f -", string(wegoKust)))
+	checkAddError(utils.CallCommandForEffectWithInputPipe("kubectl apply --namespace=wego-system -f -", appCRD))
+	time.Sleep(time.Second * 20)
+	checkAddError(utils.CallCommandForEffectWithInputPipe("kubectl apply --namespace=wego-system -f -", string(wegoSource)))
+	time.Sleep(time.Second * 20)
+	checkAddError(utils.CallCommandForEffectWithInputPipe("kubectl apply --namespace=wego-system -f -", string(wegoKust)))
+	time.Sleep(time.Second * 20)
 
 	// Create app.yaml
 	t, err := template.New("appYaml").Parse(appYamlTemplate)
