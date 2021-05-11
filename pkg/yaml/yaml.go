@@ -10,18 +10,17 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
-const appYamlTemplate = `apiVersion: wego.weave.works/v1alpha1
-kind: Application
-metadata:
-  name: {{ .AppName }}
-spec:
-  path: {{ .AppPath }}
-  url: {{ .AppURL }}
-`
+//const appYamlTemplate = `apiVersion: wego.weave.works/v1alpha1
+//kind: Application
+//metadata:
+//  name: {{ .AppName }}
+//spec:
+//  path: {{ .AppPath }}
+//  url: {{ .AppURL }}
+//`
 
 type AppManager struct {
 	apps []App
-	keys map[string]interface{}
 }
 
 func (a *AppManager) getApps() error {
