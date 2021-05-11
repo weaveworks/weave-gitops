@@ -26,6 +26,8 @@ var _ = Describe("Gitlab Tests", func() {
 var _ = Describe("Github Tests", func() {
 	It("Verify that we can create a provider for github", func() {
 		By("Invoking the creation function", func() {
+			err := os.Setenv("GITHUB_TOKEN", "dummy")
+			Expect(err).To(BeNil())
 			client, err := GithubProvider()
 			Expect(err).To(BeNil())
 			Expect(client).To(Not(BeNil()))
