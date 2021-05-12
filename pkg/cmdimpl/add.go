@@ -67,13 +67,19 @@ spec:
       storage: true
 `
 
+const (
+	DeployTypeKustomize = "kustomize"
+	DeployTypeHelm      = "helm"
+)
+
 type AddParamSet struct {
-	Dir        string
-	Name       string
-	Url        string
-	Path       string
-	Branch     string
-	PrivateKey string
+	Dir            string
+	Name           string
+	Url            string
+	Path           string
+	Branch         string
+	PrivateKey     string
+	DeploymentType string
 }
 
 var (
@@ -157,6 +163,14 @@ func generateKustomizeManifest() []byte {
 		fmt.Sprintf(`create kustomization "%s" --path="./" --source="%s" --prune=true --validation=client --interval=5m --export`, params.Name, params.Name))
 	checkAddError(err)
 	return kustomizeManifest
+}
+
+func generateHelmManifest() []byte {
+	helmManifest, err := fluxops.CallFlux(
+		fmt.Sprintf(`create helmrelease %s --source="GitRepository/%s" --chart="%s" --interval=5m --export`, params.Name, params.Name, params.Path))
+
+	checkAddError(err)
+	return helmManifest
 }
 
 func getOwner() string {
@@ -267,18 +281,25 @@ func Add(args []string, allParams AddParamSet) {
 	}{params.Name, params.Path, params.Url})
 	checkAddError(err)
 
-	// Create controllers for new repo being added
+	// Create flux custom resources for new repo being added
 	source := generateSourceManifest()
-	kust := generateKustomizeManifest()
+
+	var appManifests []byte
+	if params.DeploymentType == DeployTypeHelm {
+		appManifests = generateHelmManifest()
+	} else {
+		appManifests = generateKustomizeManifest()
+	}
+
 	sourceName := filepath.Join(appSubdir, "source-"+params.Name+".yaml")
-	kustName := filepath.Join(appSubdir, "kustomize-"+params.Name+".yaml")
+	manifestsName := filepath.Join(appSubdir, fmt.Sprintf("%s-%s.yaml", params.DeploymentType, params.Name))
 	appYamlName := filepath.Join(appSubdir, "app.yaml")
 
 	checkAddError(ioutil.WriteFile(sourceName, source, 0644))
-	checkAddError(ioutil.WriteFile(kustName, kust, 0644))
+	checkAddError(ioutil.WriteFile(manifestsName, appManifests, 0644))
 	checkAddError(ioutil.WriteFile(appYamlName, populated.Bytes(), 0644))
 
-	commitAndPush(sourceName, kustName, appYamlName)
+	commitAndPush(sourceName, manifestsName, appYamlName)
 
 	fmt.Printf("Successfully added repository: %s.\n", params.Name)
 }
