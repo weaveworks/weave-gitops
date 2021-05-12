@@ -116,8 +116,11 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
-    - name: unit-tests
-      run: make unit-tests
+    - name: unit tests
+      run: |
+        go get -u github.com/jstemmer/go-junit-report
+        mkdir test-results
+        go test -v ./... -tags unittest | go-junit-report > test-results/unit-test-results.xml
     - name: build
       run: make all BINARY_NAME=wego-${{matrix.os}}
     - name: Set up ssh agent
@@ -149,7 +152,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
     - name: Publish test results to Testspace
       run: |
-        testspace "[acceptance-tests]test-results/acceptance-test-results.xml"
+        testspace "[unit-tests]test-results/unit-test-results.xml" "[acceptance-tests]test-results/acceptance-test-results.xml"
       if: always() && matrix.os == 'ubuntu-latest'
 
   coverage:
