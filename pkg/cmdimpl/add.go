@@ -44,6 +44,7 @@ type AddParamSet struct {
 	DeploymentType string
 	Namespace      string
 	DryRun         bool
+	IsPrivate      bool
 }
 
 var (
