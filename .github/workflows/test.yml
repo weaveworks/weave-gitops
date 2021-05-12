@@ -82,6 +82,7 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: wego-binaries
+        path: bin
     - name: Install Ginkgo binary
       run: go get github.com/onsi/ginkgo/ginkgo@v1.16.1
     - name: Run smoke tests from acceptance suite
