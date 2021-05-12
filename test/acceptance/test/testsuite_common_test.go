@@ -11,8 +11,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var WEGO_BIN_PATH string
-
 func TestAcceptance(t *testing.T) {
 
 	if testing.Short() {
@@ -20,7 +18,7 @@ func TestAcceptance(t *testing.T) {
 	}
 
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Test Suite")
+	RunSpecs(t, getSuiteTitle())
 }
 
 var _ = BeforeSuite(func() {

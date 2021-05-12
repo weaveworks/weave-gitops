@@ -6,12 +6,11 @@ on:
 
 name: Deploy
 jobs:
-  publish-s3-artifact:
+  build-test-deploy:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]
-
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
@@ -19,22 +18,55 @@ jobs:
         go-version: 1.16.x
     - name: checkout
       uses: actions/checkout@v2
+    - name: Setup Kubernetes
+      uses: helm/kind-action@v1.1.0
+      with:
+        cluster_name: "${{ format('katc-{0}', github.run_id) }}"
+        version: "v0.10.0"
+      if: matrix.os == 'ubuntu-latest'
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
+    - name: unit tests with coverage
+      run: |
+        go get -u github.com/jstemmer/go-junit-report
+        mkdir test-results
+        go test -cover  -covermode=atomic -coverprofile=.coverprofile-unittests -v ./... -tags unittest | go-junit-report > test-results/unit-test-results.xml        
     - name: build
       run: make all BINARY_NAME=wego-${{matrix.os}}
+    - name: Set up ssh agent
+      uses: webfactory/ssh-agent@v0.5.2
+      with:
+        ssh-private-key: ${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}
+    - name: Configure git settings
+      run: |
+        export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}
+        git config --global init.defaultBranch main
+        git config --global user.email "test-user@weave.works"
+        git config --global user.name "Testy McTestFace"
+        git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+    - name: Install Ginkgo binary
+      run: go get -u github.com/onsi/ginkgo/ginkgo
     - name: User Acceptance Tests (Ubuntu)
+      env:
+        GITHUB_ORG: wkp-example-org
+        GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
+        GITHUB_KEY: "${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}"
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}
-        go test -v -tags=acceptance ./test/acceptance/test/...
+        ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v -tags=acceptance ./test/acceptance/test/...
       if: matrix.os == 'ubuntu-latest'
-    - name: Smoke Tests (macOS)
+    - name: Install testspace client
+      uses: testspace-com/setup-testspace@v1
+      with:
+        domain: weaveworks.testspace.com
+      if: matrix.os == 'ubuntu-latest'
+    - name: Publish test results to Testspace
       run: |
-        export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}
-        go test -v -tags=smoke ./test/acceptance/test/...
-      if: matrix.os == 'macos-latest'
-
-    - name: publish
+        go get github.com/t-yuki/gocover-cobertura
+        gocover-cobertura < .coverprofile-unittests > coverage.xml
+        testspace "[unit-tests]test-results/unit-test-results.xml" "[acceptance-tests]test-results/acceptance-test-results.xml" "coverage.xml"
+      if: always() && matrix.os == 'ubuntu-latest'
+    - name: publish to s3
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}

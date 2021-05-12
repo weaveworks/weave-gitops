@@ -1,7 +1,8 @@
 // +build !unittest
+// +build acceptance
 // +build !smoke
-// +build !acceptance
 
+// ^^ temporarily disabling this test until we have it in ginkgo format.
 package acceptance
 
 // Runs basic WeGO operations against a kind cluster.
@@ -229,5 +230,5 @@ func deleteRepos(t *testing.T) {
 }
 
 func checkInitialStatus(t *testing.T) {
-	require.Equal(t, status.GetClusterStatus(), status.Unmodified)
+	require.Equal(t, status.Unmodified, status.GetClusterStatus())
 }
