@@ -72,7 +72,8 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 	AfterEach(func() {
 		os.RemoveAll(tmpPath)
-		deleteRepos()
+		err := deleteRepos()
+		Expect(err).ShouldNot(HaveOccurred())
 	})
 
 	BeforeEach(func() {
