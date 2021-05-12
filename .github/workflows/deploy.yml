@@ -6,7 +6,7 @@ on:
 
 name: Deploy
 jobs:
-   build-test-deploy:
+  build-test-deploy:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
