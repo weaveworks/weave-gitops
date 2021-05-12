@@ -153,6 +153,6 @@ jobs:
     - name: Publish test results to Testspace
       run: |
         go get github.com/t-yuki/gocover-cobertura
-        gocover-cobertura < coverage.out > coverage.xml
+        gocover-cobertura < .coverprofile-unittests > coverage.xml
         testspace "[unit-tests]test-results/unit-test-results.xml" "[acceptance-tests]test-results/acceptance-test-results.xml" "coverage.xml"
       if: always() && matrix.os == 'ubuntu-latest'
