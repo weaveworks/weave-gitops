@@ -2,6 +2,7 @@
 // +build !smoke
 // +build acceptance
 
+// ^^ temporarily disabling this test until we have it in ginkgo format.
 package acceptance
 
 // Runs basic WeGO operations against a kind cluster.
