@@ -46,6 +46,7 @@ type AddParamSet struct {
 	DryRun         bool
 	IsPrivate      bool
 	Namespace      string
+	IsPrivate      bool
 }
 
 var (
