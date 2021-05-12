@@ -281,7 +281,7 @@ func Add(args []string, allParams AddParamSet) {
 	}{params.Name, params.Path, params.Url})
 	checkAddError(err)
 
-	// Create controllers for new repo being added
+	// Create flux custom resources for new repo being added
 	source := generateSourceManifest()
 
 	var appManifests []byte
