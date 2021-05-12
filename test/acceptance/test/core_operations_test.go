@@ -72,8 +72,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 	AfterEach(func() {
 		os.RemoveAll(tmpPath)
-		err := deleteRepos()
-		Expect(err).ShouldNot(HaveOccurred())
+		Expect(err := deleteRepos()).ShouldNot(HaveOccurred())
 	})
 
 	BeforeEach(func() {
@@ -196,7 +195,7 @@ func ensureWegoRepoExists() error {
 		return err
 	}
 
-	url := fmt.Sprintf("https://github.com/wkp-example-org/%s", name)
+	url := fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), name)
 	ref, err := gitprovider.ParseOrgRepositoryURL(url)
 	if err != nil {
 		return err
@@ -308,7 +307,7 @@ func setUpTestRepo() error {
 		return err
 	}
 
-	originurl := fmt.Sprintf("ssh://git@github.com/wkp-example-org/%s", name)
+	originurl := fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), name)
 	err = utils.CallCommandForEffectWithDebug(fmt.Sprintf("git remote add origin %s && git pull --rebase origin main && git checkout main && git push --set-upstream origin main", originurl))
 	if err != nil {
 		return err
