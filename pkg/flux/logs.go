@@ -1,8 +1,10 @@
 package flux
 
 import (
-	"os/exec"
+	"fmt"
 	"strings"
+
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 // GetLast log for each flux namespace
@@ -12,8 +14,7 @@ func GetLatestStatusAllNamespaces() ([]string, error) {
 		return nil, err
 	}
 
-	c := exec.Command(exePath, "logs", "--all-namespaces")
-	logs, err := c.CombinedOutput()
+	logs, err := utils.CallCommand(fmt.Sprintf("%s logs --all-namespaces", exePath))
 	if err != nil {
 		return nil, err
 	}
