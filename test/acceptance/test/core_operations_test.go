@@ -1,6 +1,6 @@
-// +build !unittest
-// +build !smoke
-// +build !acceptance
+// // +build !unittest
+// // +build !smoke
+// // +build acceptance
 
 package acceptance
 
@@ -14,7 +14,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"testing"
 	"time"
 
 	"github.com/fluxcd/go-git-providers/github"
@@ -24,8 +23,6 @@ import (
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"github.com/prometheus/common/log"
-	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/weave-gitops/pkg/cmdimpl"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/status"
@@ -71,80 +68,111 @@ var (
 var _ = Describe("WEGO Acceptance Tests", func() {
 
 	var session *gexec.Session
-	var err error
+	var tmpPath string
 
-	WEGO_BIN_PATH = "/usr/local/bin/wego"
-	tmpPath, _ := ioutil.TempDir("", "tmp-dir")
-	tmpDir = tmpPath
-	token, _ := os.LookupEnv("GITHUB_TOKEN")
-	c, _ := github.NewClient(github.WithOAuth2Token(token), github.WithDestructiveAPICalls(true), github.WithConditionalRequests(true))
-	client = c
-
-	AfterSuite(func() {
+	AfterEach(func() {
 		os.RemoveAll(tmpPath)
 		deleteRepos()
 	})
 
 	BeforeEach(func() {
-
 		By("Given I have a wego binary installed on my local machine", func() {
 			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
 		})
+
+		By("Setup test", func() {
+			err := checkInitialStatus()
+			Expect(err).ShouldNot(HaveOccurred())
+			err = setupTest()
+			Expect(err).ShouldNot(HaveOccurred())
+			err = ensureWegoRepoIsAbsent()
+			Expect(err).ShouldNot(HaveOccurred())
+			err = ensureFluxVersion()
+			Expect(err).ShouldNot(HaveOccurred())
+			err = installFlux()
+			Expect(err).ShouldNot(HaveOccurred())
+			err = setUpTestRepo()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
 	})
 
-	It("Verify add repo when repo does not already exist", func() {
-
-		By("Setup Test Repo", func() {
-			err := setUpTestRepo()
-			Expect(err).ShouldNot(HaveOccurred())
-		})
-
-		By("Ensuring wego repo does not exist...", func() {
-			err := ensureWegoRepoIsAbsent()
-			Expect(err).ShouldNot(HaveOccurred())
-
-		})
+	It("Verify add private repo when repo does not already exist", func() {
 
 		By("When i run 'wego add .'", func() {
-			command := exec.Command(WEGO_BIN_PATH, "add .", "--private=false")
+			dir, err := os.Getwd()
+			Expect(err).ShouldNot(HaveOccurred())
+			err = os.Chdir(tmpDir)
+			Expect(err).ShouldNot(HaveOccurred())
+			err = os.Chdir(dir)
+			Expect(err).ShouldNot(HaveOccurred())
+			command := exec.Command(WEGO_BIN_PATH, "add", ".")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
-
 		})
 
 		By("Then a private repo with name foo-cluster-wego is created on the remote git", func() {
-			access, err := getRepoAccess()
+			err := ensureWegoRepoExists()
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(access).To(Equal("Private"))
 		})
 
-		By("And branch name", func() {
-			Eventually(session).Should(gbytes.Say("Branch: main|HEAD\n"))
+		By("kubectl get pods -n wego-system should list the source and kustomize controllers", func() {
+			err := waitForNginxDeployment()
+			Expect(err).ShouldNot(HaveOccurred())
+			command := exec.Command("sh", "-c", utils.Escape("kubectl get pods -n wego-system"))
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
+			Eventually(session).Should(gbytes.Say("kustomize-controller"))
+			Eventually(session).Should(gbytes.Say("source-controller"))
+		})
+	})
+
+	It("Verify add public repo when repo does not already exist", func() {
+
+		By("When i run 'wego add . --private=false'", func() {
+			dir, err := os.Getwd()
+			Expect(err).ShouldNot(HaveOccurred())
+			err = os.Chdir(tmpDir)
+			Expect(err).ShouldNot(HaveOccurred())
+			err = os.Chdir(dir)
+			Expect(err).ShouldNot(HaveOccurred())
+			command := exec.Command(WEGO_BIN_PATH, "add", ".", "--private=false")
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
 		})
 
-		// By()
+		By("Then a private repo with name is created on the remote git", func() {
+			err := ensureWegoRepoExists()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		By("kubectl get pods -n wego-system should list the source and kustomize controllers", func() {
+			err := waitForNginxDeployment()
+			Expect(err).ShouldNot(HaveOccurred())
+			command := exec.Command("sh", "-c", utils.Escape("kubectl get pods -n wego-system"))
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
+			Eventually(session).Should(gbytes.Say("kustomize-controller"))
+			Eventually(session).Should(gbytes.Say("source-controller"))
+		})
 	})
 })
 
-func addRepo(t *testing.T) {
-	keyFilePath := filepath.Join(os.Getenv("HOME"), ".ssh", "id_rsa")
-	if _, err := os.Stat(keyFilePath); os.IsNotExist(err) {
-		key := os.Getenv("GITHUB_KEY")
-		tmpFile, err := ioutil.TempFile("", "keyfile")
-		require.NoError(t, err)
-		defer tmpFile.Close()
-		require.NoError(t, ioutil.WriteFile(tmpFile.Name(), []byte(key), 600))
-		keyFilePath = tmpFile.Name()
+func setupTest() error {
+	WEGO_BIN_PATH = "/usr/local/bin/wego"
+	tmpPath, err := ioutil.TempDir("", "tmp-dir")
+	if err != nil {
+		return err
 	}
+	tmpDir = tmpPath
 
-	dir, err := os.Getwd()
-	require.NoError(t, err)
-	require.NoError(t, os.Chdir(tmpDir))
-	defer func() {
-		require.NoError(t, os.Chdir(dir))
-	}()
-
-	cmdimpl.Add([]string{"."}, cmdimpl.AddParamSet{Name: "", Url: "", Path: "./", Branch: "main", PrivateKey: keyFilePath, IsPrivate: true})
+	token, _ := os.LookupEnv("GITHUB_TOKEN")
+	c, err := github.NewClient(github.WithOAuth2Token(token), github.WithDestructiveAPICalls(true), github.WithConditionalRequests(true))
+	if err != nil {
+		return err
+	}
+	client = c
+	return nil
 }
 
 func ensureWegoRepoIsAbsent() error {
@@ -158,6 +186,7 @@ func ensureWegoRepoIsAbsent() error {
 	if err != nil {
 		return err
 	}
+
 	repo, err := client.OrgRepositories().Get(ctx, *ref)
 	if err != nil {
 		log.Info("Repo already deleted")
@@ -173,62 +202,63 @@ func ensureWegoRepoIsAbsent() error {
 	return nil
 }
 
-func getRepoAccess() (string, error) {
+func ensureWegoRepoExists() error {
 	ctx := context.Background()
-	name, err := getWegoRepoName()
+	name, err := getRepoName()
 	if err != nil {
-		return "", err
+		return err
 	}
+
 	url := fmt.Sprintf("https://github.com/wkp-example-org/%s", name)
 	ref, err := gitprovider.ParseOrgRepositoryURL(url)
 	if err != nil {
-		return "", err
+		return err
 	}
-	repo, err := client.OrgRepositories().Get(ctx, *ref)
+	_, err = client.OrgRepositories().Get(ctx, *ref)
 	if err != nil {
-		return "", err
+		return err
 	}
-	name, err = getRepoName()
-	if err != nil {
-		return "", err
-	}
-	access, err := repo.TeamAccess().Get(ctx, name)
-	if err != nil {
-		return "", err
-	}
-	fmt.Println(access.Get().Permission)
-	return string(*access.Get().Permission), nil
+	return nil
 }
 
-func ensureFluxVersion(t *testing.T) {
+func ensureFluxVersion() error {
 	if version.FluxVersion == "undefined" {
 		tomlpath, err := filepath.Abs("../../../tools/bin/stoml")
-		require.NoError(t, err)
+		if err != nil {
+			return err
+		}
 		deppath, err := filepath.Abs("../../../tools/dependencies.toml")
-		require.NoError(t, err)
+		if err != nil {
+			return err
+		}
 		out, err := utils.CallCommandSilently(fmt.Sprintf("%s %s flux.version", tomlpath, deppath))
-		require.NoError(t, err)
+		if err != nil {
+			return err
+		}
 		version.FluxVersion = strings.TrimRight(string(out), "\n")
 	}
+	return nil
 }
 
-func waitForNginxDeployment(t *testing.T) {
+func waitForNginxDeployment() error {
 	for i := 1; i < 61; i++ {
 		log.Infof("Waiting for nginx... try: %d of 60\n", i)
 		err := utils.CallCommandForEffect("kubectl get deployment nginx -n my-nginx")
 		if err == nil {
-			return
+			return err
 		}
 		time.Sleep(5 * time.Second)
 	}
-	require.FailNow(t, "Failed to deploy nginx workload to the cluster")
+	return fmt.Errorf("Failed to deploy nginx workload to the cluster")
 }
 
-func installFlux(t *testing.T) {
+func installFlux() error {
 	flux.SetupFluxBin()
 	manifests, err := fluxops.QuietInstall("wego-system")
-	require.NoError(t, err)
-	require.NoError(t, utils.CallCommandForEffectWithInputPipeAndDebug("kubectl apply -f -", string(manifests)))
+	if err != nil {
+		return err
+	}
+	return utils.CallCommandForEffectWithInputPipeAndDebug("kubectl apply -f -", string(manifests))
 }
 
 func getWegoRepoName() (string, error) {
@@ -250,27 +280,33 @@ func setUpTestRepo() error {
 	if err != nil {
 		return err
 	}
+
 	_, err = utils.CallCommand("git init")
 	if err != nil {
 		return err
 	}
+
 	err = ioutil.WriteFile("nginx.yaml", []byte(nginxDeployment), 0666)
 	if err != nil {
 		return err
 	}
+
 	err = utils.CallCommandForEffectWithDebug("git add nginx.yaml && git commit -m'Added workload'")
 	if err != nil {
 		return err
 	}
+
 	name, err := getRepoName()
 	if err != nil {
 		return err
 	}
+
 	cloneurl := fmt.Sprintf("https://github.com/wkp-example-org/%s", name)
 	ref, err := gitprovider.ParseOrgRepositoryURL(cloneurl)
 	if err != nil {
 		return err
 	}
+
 	ctx := context.Background()
 	_, err = client.OrgRepositories().Create(ctx, *ref, gitprovider.RepositoryInfo{
 		Description: gitprovider.StringVar("test repo"),
@@ -278,23 +314,26 @@ func setUpTestRepo() error {
 		AutoInit:        gitprovider.BoolVar(true),
 		LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
 	})
-
 	if err != nil {
 		return err
 	}
+
 	name, err = getRepoName()
 	if err != nil {
 		return err
 	}
+
 	originurl := fmt.Sprintf("ssh://git@github.com/wkp-example-org/%s", name)
-	err = utils.CallCommandForEffectWithDebug(fmt.Sprintf("git remote add origin %s && git pull --rebase origin main && git push --set-upstream origin main", originurl))
+	err = utils.CallCommandForEffectWithDebug(fmt.Sprintf("git remote add origin %s && git pull --rebase origin main && git checkout main && git push --set-upstream origin main", originurl))
 	if err != nil {
 		return err
 	}
+
 	err = os.Chdir(dir)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -344,6 +383,9 @@ func deleteRepos() error {
 	return nil
 }
 
-func checkInitialStatus(t *testing.T) {
-	require.Equal(t, status.Unmodified, status.GetClusterStatus())
+func checkInitialStatus() error {
+	if status.GetClusterStatus() != status.Unmodified {
+		return fmt.Errorf("expected: %v  actual: %v", status.Unmodified, status.GetClusterStatus())
+	}
+	return nil
 }
