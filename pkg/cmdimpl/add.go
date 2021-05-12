@@ -16,6 +16,7 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	cgitprovider "github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
@@ -66,14 +67,20 @@ spec:
       storage: true
 `
 
+const (
+	DeployTypeKustomize = "kustomize"
+	DeployTypeHelm      = "helm"
+)
+
 type AddParamSet struct {
-	Dir        string
-	Name       string
-	Url        string
-	Path       string
-	Branch     string
-	PrivateKey string
-	Namespace  string
+	Dir            string
+	Name           string
+	Url            string
+	Path           string
+	Branch         string
+	PrivateKey     string
+	DeploymentType string
+	Namespace      string
 }
 
 var (
@@ -84,8 +91,8 @@ var (
 // checkError will print a message to stderr and exit
 func checkError(msg string, err interface{}) {
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: %v\n", msg, err)
-		os.Exit(1)
+		fmt.Fprintf(shims.Stderr(), "%s: %v\n", msg, err)
+		shims.Exit(1)
 	}
 }
 
@@ -223,6 +230,14 @@ func generateKustomizeManifest() []byte {
 	return kustomizeManifest
 }
 
+func generateHelmManifest() []byte {
+	helmManifest, err := fluxops.CallFlux(
+		fmt.Sprintf(`create helmrelease %s --source="GitRepository/%s" --chart="%s" --interval=5m --export`, params.Name, params.Name, params.Path))
+
+	checkAddError(err)
+	return helmManifest
+}
+
 func getOwner() string {
 	if repoOwner != "" {
 		return repoOwner
@@ -238,7 +253,7 @@ func getOwner() string {
 
 func getOwnerInteractively() string {
 	fmt.Printf("Who is the owner of the repository? ")
-	reader := bufio.NewReader(os.Stdin)
+	reader := bufio.NewReader(shims.Stdin())
 	str, err := reader.ReadString('\n')
 	checkAddError(err)
 
@@ -264,7 +279,7 @@ func commitAndPush(files ...string) {
 func Add(args []string, allParams AddParamSet) {
 	if len(args) < 1 {
 		fmt.Printf("Location of application not specified.\n")
-		os.Exit(1)
+		shims.Exit(1)
 	}
 	params = allParams
 	params.Dir = args[0]
@@ -277,7 +292,7 @@ func Add(args []string, allParams AddParamSet) {
 
 	if clusterStatus == status.Unmodified {
 		fmt.Printf("WeGO not installed... exiting\n")
-		os.Exit(1)
+		shims.Exit(1)
 	}
 
 	// Set up wego repository if required
@@ -342,18 +357,25 @@ func Add(args []string, allParams AddParamSet) {
 	}{params.Name, params.Path, params.Url})
 	checkAddError(err)
 
-	// Create controllers for new repo being added
+	// Create flux custom resources for new repo being added
 	source := generateSourceManifest()
-	kust := generateKustomizeManifest()
+
+	var appManifests []byte
+	if params.DeploymentType == DeployTypeHelm {
+		appManifests = generateHelmManifest()
+	} else {
+		appManifests = generateKustomizeManifest()
+	}
+
 	sourceName := filepath.Join(appSubdir, "source-"+params.Name+".yaml")
-	kustName := filepath.Join(appSubdir, "kustomize-"+params.Name+".yaml")
+	manifestsName := filepath.Join(appSubdir, fmt.Sprintf("%s-%s.yaml", params.DeploymentType, params.Name))
 	appYamlName := filepath.Join(appSubdir, "app.yaml")
 
 	checkAddError(ioutil.WriteFile(sourceName, source, 0644))
-	checkAddError(ioutil.WriteFile(kustName, kust, 0644))
+	checkAddError(ioutil.WriteFile(manifestsName, appManifests, 0644))
 	checkAddError(ioutil.WriteFile(appYamlName, populated.Bytes(), 0644))
 
-	commitAndPush(sourceName, kustName, appYamlName)
+	commitAndPush(sourceName, manifestsName, appYamlName)
 
 	fmt.Printf("Successfully added repository: %s.\n", params.Name)
 }

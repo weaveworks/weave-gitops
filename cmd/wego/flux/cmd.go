@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/shims"
 )
 
 var Cmd = &cobra.Command{
@@ -30,7 +31,7 @@ func init() {
 func runCmd(cmd *cobra.Command, args []string) {
 	exePath, err := fluxBin.GetFluxExePath()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		fmt.Fprintf(shims.Stderr(), "Error: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -38,7 +39,7 @@ func runCmd(cmd *cobra.Command, args []string) {
 
 	// run command
 	if output, err := c.CombinedOutput(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		fmt.Fprintf(shims.Stderr(), "Error: %v\n", err)
 	} else {
 		fmt.Printf("Output: %s\n", output)
 	}
@@ -47,7 +48,7 @@ func runCmd(cmd *cobra.Command, args []string) {
 func runStatusCmd(cmd *cobra.Command, args []string) {
 	status, err := fluxBin.GetLatestStatusAllNamespaces()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		fmt.Fprintf(shims.Stderr(), "Error: %v\n", err)
 		os.Exit(1)
 	}
 	fmt.Printf("Status: %s\n", status)

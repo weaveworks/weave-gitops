@@ -13,8 +13,41 @@ import (
 	"sync"
 )
 
+type Behavior func(args ...string) ([]byte, []byte, error)
+
+var (
+	behaviors = map[CallOperation]Behavior{}
+)
+
+type CallOperation int
+
+const (
+	CallCommandOp CallOperation = iota
+	CallCommandSilentlyOp
+	CallCommandSeparatingOutputStreamsOp
+	CallCommandForEffectOp
+	CallCommandForEffectWithDebugOp
+	CallCommandForEffectWithInputPipeOp
+	CallCommandForEffectWithInputPipeAndDebugOp
+)
+
+func processMocks(op CallOperation, cmdstr string) (bool, []byte, []byte, error) {
+	if behavior, ok := behaviors[op]; ok {
+		if stdout, stderr, err := behavior(cmdstr); err != nil {
+			return true, nil, nil, err
+		} else {
+			return true, stdout, stderr, nil
+		}
+	}
+	return false, nil, nil, nil
+}
+
 // CallCommand will run an external command, displaying its output interactively and return its output.
 func CallCommand(cmdstr string) ([]byte, error) {
+	if processed, outval, _, err := processMocks(CallCommandOp, cmdstr); processed {
+		return outval, err
+	}
+
 	cmd := exec.Command("sh", "-c", Escape(cmdstr))
 	var out strings.Builder
 	stdoutReader, err := cmd.StdoutPipe()
@@ -63,11 +96,19 @@ func CallCommand(cmdstr string) ([]byte, error) {
 }
 
 func CallCommandSilently(cmdstr string) ([]byte, error) {
+	if processed, val, _, err := processMocks(CallCommandSilentlyOp, cmdstr); processed {
+		return val, err
+	}
+
 	cmd := exec.Command("sh", "-c", Escape(cmdstr))
 	return cmd.CombinedOutput()
 }
 
 func CallCommandSeparatingOutputStreams(cmdstr string) ([]byte, []byte, error) {
+	if processed, outval, errval, err := processMocks(CallCommandSeparatingOutputStreamsOp, cmdstr); processed {
+		return outval, errval, err
+	}
+
 	cmd := exec.Command("sh", "-c", Escape(cmdstr))
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
@@ -77,11 +118,19 @@ func CallCommandSeparatingOutputStreams(cmdstr string) ([]byte, []byte, error) {
 }
 
 func CallCommandForEffect(cmdstr string) error {
+	if processed, _, _, err := processMocks(CallCommandForEffectOp, cmdstr); processed {
+		return err
+	}
+
 	cmd := exec.Command("sh", "-c", Escape(cmdstr))
 	return cmd.Run()
 }
 
 func CallCommandForEffectWithDebug(cmdstr string) error {
+	if processed, _, _, err := processMocks(CallCommandForEffectWithDebugOp, cmdstr); processed {
+		return err
+	}
+
 	cmd := exec.Command("sh", "-c", Escape(cmdstr))
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -89,7 +138,10 @@ func CallCommandForEffectWithDebug(cmdstr string) error {
 }
 
 func CallCommandForEffectWithInputPipe(cmdstr, input string) error {
-	fmt.Println("running cmd " + cmdstr)
+	if processed, _, _, err := processMocks(CallCommandForEffectWithInputPipeOp, cmdstr); processed {
+		return err
+	}
+
 	cmd := exec.Command("sh", "-c", Escape(cmdstr))
 	inpipe, err := cmd.StdinPipe()
 	if err != nil {
@@ -103,6 +155,10 @@ func CallCommandForEffectWithInputPipe(cmdstr, input string) error {
 }
 
 func CallCommandForEffectWithInputPipeAndDebug(cmdstr, input string) error {
+	if processed, _, _, err := processMocks(CallCommandForEffectWithInputPipeAndDebugOp, cmdstr); processed {
+		return err
+	}
+
 	cmd := exec.Command("sh", "-c", Escape(cmdstr))
 	inpipe, err := cmd.StdinPipe()
 	if err != nil {
@@ -119,4 +175,26 @@ func CallCommandForEffectWithInputPipeAndDebug(cmdstr, input string) error {
 
 func Escape(cmd string) string {
 	return strings.ReplaceAll(cmd, "'", "'\"'\"'")
+}
+
+func WithBehaviorFor(callOp CallOperation, behavior func(args ...string) ([]byte, []byte, error), action func() ([]byte, []byte, error)) ([]byte, []byte, error) {
+	existingBehavior, ok := behaviors[callOp]
+	behaviors[callOp] = behavior
+	defer func() {
+		if ok {
+			behaviors[callOp] = existingBehavior
+		} else {
+			delete(behaviors, callOp)
+		}
+	}()
+	return action()
+}
+
+func WithResultsFrom(callOp CallOperation, outvalue []byte, errvalue []byte, err error, action func() ([]byte, []byte, error)) ([]byte, []byte, error) {
+	return WithBehaviorFor(
+		callOp,
+		func(args ...string) ([]byte, []byte, error) {
+			return outvalue, errvalue, err
+		},
+		action)
 }
