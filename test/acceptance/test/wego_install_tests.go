@@ -5,12 +5,38 @@ package acceptance
 import (
 	"fmt"
 	"os/exec"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 )
+
+func VerifyControllersInCluster(session *gexec.Session) {
+
+	By(" Then I should see flux controllers present in the cluster", func() {
+		Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("helm-controller"))
+		Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("kustomize-controller"))
+		Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("notification-controller"))
+		Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("source-controller"))
+	})
+}
+
+//Reseting namespace is an expensive operation, only use this when absolutely necessary
+func ResetNamespace(namespace string) {
+	By("And there's not previous wego installation", func() {
+		//Reset the cluster
+		//command := exec.Command("kubectl", "delete", "ns", namespace, "--ignore-not-found=true")
+		//session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		//Expect(err).ShouldNot(HaveOccurred())
+		//Eventually(session, 180*time.Second).Should(gexec.Exit())
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace %s| kubectl --ignore-not-found=true delete -f -", WEGO_BIN_PATH, namespace))
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Expect(err).ShouldNot(HaveOccurred())
+		Eventually(session, 180*time.Second).Should(gexec.Exit())
+	})
+}
 
 var _ = Describe("WEGO Acceptance Tests", func() {
 
@@ -37,73 +63,52 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		})
 	})
 
-	VerifyControllersInstallation := func() {
+	It("Verify that wego can install required controllers under namespace `wego-system`", func() {
 
-		By("Then I should see flux controllers installed", func() {
-			Eventually(session).Should(gbytes.Say("deployment.apps/helm-controller created"))
-			Eventually(session).Should(gbytes.Say("deployment.apps/kustomize-controller created"))
-			Eventually(session).Should(gbytes.Say("deployment.apps/notification-controller created"))
-			Eventually(session).Should(gbytes.Say("deployment.apps/source-controller created"))
-		})
-	}
-
-	VerifyControllersInCluster := func() {
-
-		By("And I should see flux controllers present in the cluster", func() {
-			Eventually(session).Should(gbytes.Say("helm-controller"))
-			Eventually(session).Should(gbytes.Say("kustomize-controller"))
-			Eventually(session).Should(gbytes.Say("notification-controller"))
-			Eventually(session).Should(gbytes.Say("source-controller"))
-		})
-	}
-
-	It("Validate wego can add flux controllers to cluster", func() {
-
-		By("When I run the command 'wego install'", func() {
+		ResetNamespace("wego-system")
+		By("When I run the command 'wego install | kubectl apply -f -'", func() {
 			command := exec.Command("sh", "-c", fmt.Sprintf("%s install | kubectl apply -f -", WEGO_BIN_PATH))
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
+			Eventually(session).Should(gexec.Exit())
 		})
 
-		VerifyControllersInstallation()
-
-		By("When I search for the controllers with 'kubectl'", func() {
-			command := exec.Command("kubectl", "get", "deployments", "-n", "wego-system")
+		By("And I search for the controllers with 'kubectl'", func() {
+			command := exec.Command("kubectl", "get", "deploy", "-n", "wego-system")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
+			Eventually(session).Should(gexec.Exit())
 		})
 
-		VerifyControllersInCluster()
-
+		VerifyControllersInCluster(session)
 	})
 
 	It("Validate wego can add flux controllers with specified namespace", func() {
 
-		By("When I create a namespace for my controllers", func() {
-			command := exec.Command("kubectl", "create", "namespace", "test-namespace")
+		namespace := "test-namespace"
+		ResetNamespace(namespace)
+		By("And I create a namespace for my controllers", func() {
+			command := exec.Command("kubectl", "create", "namespace", namespace)
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
+			Eventually(session).Should(gexec.Exit())
 		})
 
-		By("Then I should see my specified namespace created", func() {
-			Eventually(session).Should(gbytes.Say("namespace/test-namespace created"))
-		})
-
-		By("When I run 'wego install' command with specified namespace", func() {
-			command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace test-namespace | kubectl apply -f -", WEGO_BIN_PATH))
+		By("When I run 'wego install --namespace test-namespace' command with specified namespace", func() {
+			command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace %s | kubectl apply -f -", WEGO_BIN_PATH, namespace))
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
+			Eventually(session).Should(gexec.Exit())
 		})
-
-		VerifyControllersInstallation()
 
 		By("When I search for the controllers with 'kubectl'", func() {
-			command := exec.Command("kubectl", "get", "deployments", "-n", "test-namespace")
+			command := exec.Command("kubectl", "get", "deploy", "-n", namespace)
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
+			Eventually(session).Should(gexec.Exit())
 		})
 
-		VerifyControllersInCluster()
+		VerifyControllersInCluster(session)
 	})
 
 })
