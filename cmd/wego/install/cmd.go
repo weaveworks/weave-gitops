@@ -5,10 +5,10 @@ package install
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
+	"github.com/weaveworks/weave-gitops/pkg/shims"
 )
 
 type paramSet struct {
@@ -32,9 +32,13 @@ If a previous version is installed, then an in-place upgrade will be performed.`
 // checkError will print a message to stderr and exit
 func checkError(msg string, err error) {
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: %v\n", msg, err)
-		os.Exit(1)
+		fmt.Fprintf(shims.Stderr(), "%s: %v\n", msg, err)
+		exit(1)
 	}
+}
+
+func exit(code int) {
+	shims.Exit(code)
 }
 
 func init() {
