@@ -51,14 +51,6 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
-    - name: Setup Kubernetes
-      uses: helm/kind-action@v1.1.0
-      with: 
-        cluster_name: "${{ format('katc-{0}', github.run_id) }}"
-        version: "v0.10.0"
-    - name: kind-check
-      run: |
-       kubectl get pods -A
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Fake Install flux
@@ -85,7 +77,14 @@ jobs:
         go-version: 1.16.x
     - name: Checkout code
       uses: actions/checkout@v2
-
+    - name: Setup Kubernetes
+      uses: helm/kind-action@v1.1.0
+      with: 
+        cluster_name: "${{ format('katc-{0}', github.run_id) }}"
+        version: "v0.10.0"
+    - name: kind-check
+      run: |
+       kubectl get pods -A
     - name: Download wego binaries
       uses: actions/download-artifact@v2
       with:
