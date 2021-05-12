@@ -166,7 +166,7 @@ func generateKustomizeManifest() []byte {
 
 func generateHelmManifest() []byte {
 	helmManifest, err := fluxops.CallFlux(
-		fmt.Sprintf(`create helmrelease %s --source="%s" --chart="%s" --interval=5m --export`, params.Name, params.Name, params.Path))
+		fmt.Sprintf(`create helmrelease %s --source="GitRepository/%s" --chart="%s" --interval=5m --export`, params.Name, params.Name, params.Path))
 
 	checkAddError(err)
 	return helmManifest
