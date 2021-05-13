@@ -9,6 +9,13 @@ By default test harness assumes that WEGO binary is available on `$PATH` but thi
 export WEGO_BIN_PATH=<path/to/wego-binary>
 ```
 
+Additional env vars used to run tests locally are:
+```
+export GITHUB_ORG=<github-org>
+export GITHUB_TOKEN=<api-token>
+export GITHUB_KEY=<ssh-key>
+```
+
 # Smoke Tests
 
 To run the **smoke tests** from the suite, run the following the command from the repo root directory.
