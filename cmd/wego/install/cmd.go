@@ -42,7 +42,7 @@ func exit(code int) {
 }
 
 func init() {
-	Cmd.Flags().StringVar(&params.namespace, "namespace", "wego-system", "the namespace scope for this operation")
+	Cmd.Flags().StringVarP(&params.namespace, "namespace", "n", "wego-system", "the namespace scope for this operation")
 }
 
 func runCmd(cmd *cobra.Command, args []string) {
