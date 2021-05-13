@@ -116,7 +116,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		})
 
 		By("Then I should see the wego flux version printed in format m.n.n with newline character", func() {
-			Eventually(session).Should(gbytes.Say("Output: flux version [0-3].[0-3][0-9].[0-9]\\d*\n"))
+			Eventually(session).Should(gbytes.Say("flux version [0-3].[0-3][0-9].[0-9]\\d*\n"))
 		})
 	})
 })
