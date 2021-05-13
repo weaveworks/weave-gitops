@@ -168,7 +168,7 @@ func ensureWegoRepoIsAbsent() error {
 	if err != nil {
 		return err
 	}
-	url := fmt.Sprintf("https://github.com/wkp-example-org/%s", name)
+	url := fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), name)
 	ref, err := gitprovider.ParseOrgRepositoryURL(url)
 	if err != nil {
 		return err
@@ -286,7 +286,7 @@ func setUpTestRepo() error {
 		return err
 	}
 
-	cloneurl := fmt.Sprintf("https://github.com/wkp-example-org/%s", name)
+	cloneurl := fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), name)
 	ref, err := gitprovider.ParseOrgRepositoryURL(cloneurl)
 	if err != nil {
 		return err
@@ -330,7 +330,7 @@ func deleteRepos() error {
 		if err != nil {
 			return err
 		}
-		url := fmt.Sprintf("https://github.com/wkp-example-org/%s", name)
+		url := fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), name)
 		ref, err := gitprovider.ParseOrgRepositoryURL(url)
 		if err != nil {
 			return err
@@ -347,7 +347,7 @@ func deleteRepos() error {
 		if err != nil {
 			return err
 		}
-		url = fmt.Sprintf("https://github.com/wkp-example-org/%s", name)
+		url = fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), name)
 		ref, err = gitprovider.ParseOrgRepositoryURL(url)
 		if err != nil {
 			return err
