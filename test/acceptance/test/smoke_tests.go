@@ -109,8 +109,8 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 	It("Verify that wego flux can print out version information", func() {
 
-		By("When I run 'wego flux -- -v", func() {
-			command := exec.Command(WEGO_BIN_PATH, "flux", "--", "-v")
+		By("When I run 'wego flux -v", func() {
+			command := exec.Command(WEGO_BIN_PATH, "flux", "-v")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
