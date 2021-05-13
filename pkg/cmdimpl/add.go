@@ -222,8 +222,8 @@ func generateKustomizeManifest() []byte {
 				--interval=5m \
 				--export \
 				--namespace=%s`,
-		params.Path,
 		params.Name,
+		params.Path,
 		params.Name,
 		params.Namespace)
 	kustomizeManifest, err := fluxops.CallFlux(cmd)

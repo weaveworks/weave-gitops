@@ -115,12 +115,12 @@ func addRepo(t *testing.T) {
 		require.NoError(t, os.Chdir(dir))
 	}()
 
-	cmdimpl.Add([]string{"."}, cmdimpl.AddParamSet{Name: "", Url: "", Path: "./", Branch: "main", PrivateKey: keyFilePath})
+	cmdimpl.Add([]string{"."}, cmdimpl.AddParamSet{Name: "", Url: "", Path: "./", Branch: "main", PrivateKey: keyFilePath, Namespace: "wego-system", DeploymentType: "kustomize"})
 }
 
 func ensureWegoRepoIsAbsent(t *testing.T) {
 	ctx := context.Background()
-	url := fmt.Sprintf("https://github.com/wkp-example-org/%s", getWegoRepoName(t))
+	url := fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), getWegoRepoName(t))
 	ref, err := gitprovider.ParseOrgRepositoryURL(url)
 	require.NoError(t, err)
 	repo, err := client.OrgRepositories().Get(ctx, *ref)
@@ -185,11 +185,12 @@ func setUpTestRepo(t *testing.T) {
 	}()
 	_, err = utils.CallCommand("git init")
 	require.NoError(t, err)
+	_, _ = utils.CallCommand("git checkout -b main")
 	err = ioutil.WriteFile("nginx.yaml", []byte(nginxDeployment), 0666)
 	require.NoError(t, err)
 	err = utils.CallCommandForEffectWithDebug("git add nginx.yaml && git commit -m'Added workload'")
 	require.NoError(t, err)
-	cloneurl := fmt.Sprintf("https://github.com/wkp-example-org/%s", getRepoName(t))
+	cloneurl := fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), getRepoName(t))
 	ref, err := gitprovider.ParseOrgRepositoryURL(cloneurl)
 	require.NoError(t, err)
 	ctx := context.Background()
@@ -201,8 +202,12 @@ func setUpTestRepo(t *testing.T) {
 	})
 
 	require.NoError(t, err)
-	originurl := fmt.Sprintf("ssh://git@github.com/wkp-example-org/%s", getRepoName(t))
-	err = utils.CallCommandForEffectWithDebug(fmt.Sprintf("git remote add origin %s && git pull --rebase origin main && git push --set-upstream origin main", originurl))
+	originurl := fmt.Sprintf("ssh://git@github.com/%s/%s", os.Getenv("GITHUB_ORG"), getRepoName(t))
+	cmd := fmt.Sprintf(`git remote add origin %s && \
+		git pull --rebase origin main && \
+		git push --set-upstream origin main`,
+		originurl)
+	err = utils.CallCommandForEffectWithDebug(cmd)
 	require.NoError(t, err)
 }
 
@@ -210,13 +215,13 @@ func deleteRepos(t *testing.T) {
 	clusterName, err := status.GetClusterName()
 	if err == nil {
 		ctx := context.Background()
-		url := fmt.Sprintf("https://github.com/wkp-example-org/%s", getRepoName(t))
+		url := fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), getRepoName(t))
 		ref, err := gitprovider.ParseOrgRepositoryURL(url)
 		require.NoError(t, err)
 		repo, err := client.OrgRepositories().Get(ctx, *ref)
 		require.NoError(t, err)
 		require.NoError(t, repo.Delete(ctx))
-		url = fmt.Sprintf("https://github.com/wkp-example-org/%s", getWegoRepoName(t))
+		url = fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), getWegoRepoName(t))
 		ref, err = gitprovider.ParseOrgRepositoryURL(url)
 		require.NoError(t, err)
 		repo, err = client.OrgRepositories().Get(ctx, *ref)
