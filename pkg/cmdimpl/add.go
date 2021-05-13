@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/weaveworks/weave-gitops/pkg/yaml"
 
@@ -221,17 +222,30 @@ func Add(args []string, allParams AddParamSet) {
 
 		repoInfo := cgitprovider.NewRepositoryInfo("wego repo", gitprovider.RepositoryVisibilityPrivate)
 
+		fmt.Println("check3")
+
 		repoCreateOpts := &gitprovider.RepositoryCreateOptions{
 			AutoInit:        gitprovider.BoolVar(true),
 			LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
 		}
 
+		fmt.Println("check2")
+
 		err = cgitprovider.CreateOrgRepository(c, orgRef, repoInfo, repoCreateOpts)
 		checkAddError(err)
+
+		fmt.Println("check1")
+
+		time.Sleep(time.Second * 5)
 
 		checkAddError(utils.CallCommandForEffectWithDebug(
 			fmt.Sprintf("git remote add origin %s && git pull --rebase origin main && git checkout main && git push --set-upstream origin main", orgRef.String())))
 	} else {
+
+		fmt.Println("check4")
+
+		time.Sleep(time.Second * 5)
+
 		checkAddError(utils.CallCommandForEffectWithDebug("git branch --set-upstream-to=origin/main main"))
 	}
 
@@ -244,7 +258,7 @@ func Add(args []string, allParams AddParamSet) {
 
 	//Create app.yaml
 	yamlManager := yaml.AppManager{}
-	err = yamlManager.AddApp(FromParamSetToApp(params))
+	err = yamlManager.AddApp(yaml.NewApp(params.Name, args[0], params.Url))
 	checkAddError(err)
 
 	// Create controllers for new repo being added
@@ -261,8 +275,4 @@ func Add(args []string, allParams AddParamSet) {
 	checkAddError(err)
 
 	fmt.Printf("Successfully added repository: %s.\n", params.Name)
-}
-
-func FromParamSetToApp(params AddParamSet) yaml.App {
-	return yaml.NewApp(params.Name, params.Path, params.Url)
 }

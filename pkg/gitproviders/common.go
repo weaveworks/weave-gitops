@@ -112,9 +112,11 @@ func CreatePullRequestToOrgRepo(provider gitprovider.Client, orgRepRef gitprovid
 }
 
 func NewRepositoryInfo(description string, visibility gitprovider.RepositoryVisibility) gitprovider.RepositoryInfo {
+	mainDefaultBranch := "main"
 	return gitprovider.RepositoryInfo{
-		Description: &description,
-		Visibility:  &visibility,
+		Description:   &description,
+		Visibility:    &visibility,
+		DefaultBranch: &mainDefaultBranch,
 	}
 }
 

@@ -15,7 +15,7 @@ import (
 const fluxSystemNamespace = `apiVersion: v1
 kind: Namespace
 metadata:
-  name: flux-system
+  name: wego-system
 ---
 `
 

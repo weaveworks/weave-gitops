@@ -82,6 +82,7 @@ func CallCommandForEffect(cmdstr string) error {
 }
 
 func CallCommandForEffectWithDebug(cmdstr string) error {
+	fmt.Println("cmdstr", cmdstr)
 	cmd := exec.Command("sh", "-c", Escape(cmdstr))
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

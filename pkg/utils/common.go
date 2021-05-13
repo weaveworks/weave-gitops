@@ -16,8 +16,8 @@ func GetWegoLocalPath() (string, error) {
 	}
 
 	reposDir := filepath.Join(os.Getenv("HOME"), ".wego", "repositories")
-	fluxRepo := filepath.Join(reposDir, wegoRepoName)
-	return fluxRepo, nil
+	wegoRepoPath := filepath.Join(reposDir, wegoRepoName)
+	return wegoRepoPath, os.MkdirAll(wegoRepoPath, 0755)
 }
 
 func GetWegoAppsPath() (string, error) {
