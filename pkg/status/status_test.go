@@ -2,15 +2,37 @@ package status
 
 import (
 	"fmt"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/weaveworks/weave-gitops/pkg/utils"
+
 	"github.com/stretchr/testify/require"
 )
+
+const badkubeconfig = `apiVersion: v1
+#clusters:
+- cluster:
+    certificate-authority-data: stuff
+    server: https://127.0.0.1:46677
+  name: kind-wego-demo
+contexts:
+- context:
+    cluster: kind-wego-demo
+    user: kind-wego-demo
+  name: kind-wego-demo
+current-context: kind-wego-demo
+kind: Config
+preferences: {}
+users:
+- name: kind-wego-demo
+  user:
+    client-certificate-data: more stuff
+    client-key-data: yet more stuff
+`
 
 const kubeconfig = `apiVersion: v1
 clusters:
@@ -60,8 +82,23 @@ func TestGetClusterName(t *testing.T) {
 	require.NoError(t, os.Setenv("HOME", tmpPath))
 	configDirPath := filepath.Join(tmpPath, ".kube")
 	require.NoError(t, os.MkdirAll(configDirPath, 0755))
-	require.NoError(t, ioutil.WriteFile(filepath.Join(configDirPath, "config"), []byte(kubeconfig), 0644))
+	configPath := filepath.Join(configDirPath, "config")
+
+	require.NoError(t, ioutil.WriteFile(configPath, []byte(kubeconfig), 0644))
 	name, err := utils.GetClusterName()
+	require.NoError(t, err)
+	require.Equal(t, name, "kind-wego-demo")
+
+	require.NoError(t, os.Remove(configPath))
+	_, err = utils.GetClusterName()
+	require.Error(t, err)
+
+	require.NoError(t, ioutil.WriteFile(configPath, []byte(badkubeconfig), 0644))
+	_, err = utils.GetClusterName()
+	require.Error(t, err)
+
+	require.NoError(t, ioutil.WriteFile(configPath, []byte(kubeconfig), 0644))
+	name, err = utils.GetClusterName()
 	require.NoError(t, err)
 	require.Equal(t, name, "kind-wego-demo")
 }

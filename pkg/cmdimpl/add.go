@@ -10,13 +10,13 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/weaveworks/weave-gitops/pkg/yaml"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	cgitprovider "github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
@@ -58,13 +58,20 @@ spec:
       storage: true
 `
 
+const (
+	DeployTypeKustomize = "kustomize"
+	DeployTypeHelm      = "helm"
+)
+
 type AddParamSet struct {
-	Dir        string
-	Name       string
-	Url        string
-	Path       string
-	Branch     string
-	PrivateKey string
+	Dir            string
+	Name           string
+	Url            string
+	Path           string
+	Branch         string
+	PrivateKey     string
+	DeploymentType string
+	Namespace      string
 }
 
 var (
@@ -75,8 +82,8 @@ var (
 // checkError will print a message to stderr and exit
 func checkError(msg string, err interface{}) {
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: %v\n", msg, err)
-		os.Exit(1)
+		fmt.Fprintf(shims.Stderr(), "%s: %v\n", msg, err)
+		shims.Exit(1)
 	}
 }
 
@@ -119,35 +126,106 @@ func updateParametersIfNecessary() {
 func generateWegoSourceManifest() []byte {
 	fluxRepoName, err := utils.GetWegoRepoName()
 	checkAddError(err)
-	_, err = fluxops.CallFlux(fmt.Sprintf(`create secret git "wego" --url="ssh://git@github.com/%s/%s" --private-key-file="%s" --namespace=wego-system`, getOwner(), fluxRepoName, params.PrivateKey))
+
+	cmd := fmt.Sprintf(`create secret git "wego" \
+		--url="ssh://git@github.com/%s/%s" \
+		--private-key-file="%s" \
+		--namespace=%s`,
+		getOwner(),
+		fluxRepoName,
+		params.PrivateKey,
+		params.Namespace)
+	fmt.Println("debug3", cmd)
+	_, err = fluxops.CallFlux(cmd)
 	checkAddError(err)
-	sourceManifest, err := fluxops.CallFlux(fmt.Sprintf(`create source git "wego" --url="ssh://git@github.com/%s/%s" --branch="%s" --secret-ref="wego" --interval=30s --export --namespace=wego-system`,
-		getOwner(), fluxRepoName, params.Branch))
+
+	cmd = fmt.Sprintf(`create source git "wego" \
+		--url="ssh://git@github.com/%s/%s" \
+		--branch="%s" \
+		--secret-ref="wego" \
+		--interval=30s \
+		--export \
+		--namespace=%s `,
+		getOwner(),
+		fluxRepoName,
+		params.Branch,
+		params.Namespace)
+	fmt.Println("debug2", cmd)
+	sourceManifest, err := fluxops.CallFlux(cmd)
 	checkAddError(err)
 	return sourceManifest
 }
 
 func generateWegoKustomizeManifest() []byte {
-	kustomizeManifest, err := fluxops.CallFlux(`create kustomization "wego" --path="./" --source="wego" --prune=true --validation=client --interval=5m --export --namespace=wego-system`)
+	cmd := fmt.Sprintf(`create kustomization "wego" \
+		--path="./" \
+		--source="wego" \
+		--prune=true \
+		--validation=client \
+		--interval=5m \
+		--export \
+		--namespace=%s`,
+		params.Namespace)
+	kustomizeManifest, err := fluxops.CallFlux(cmd)
 	checkAddError(err)
 	return kustomizeManifest
 }
 
 func generateSourceManifest() []byte {
 	secretName := params.Name
-	_, err := fluxops.CallFlux(fmt.Sprintf(`create secret git "%s" --url="%s" --private-key-file="%s" --namespace=wego-system`, secretName, params.Url, params.PrivateKey))
+
+	cmd := fmt.Sprintf(`create secret git "%s" \
+			--url="%s" \
+			--private-key-file="%s" \
+			--namespace=%s`,
+		secretName,
+		params.Url,
+		params.PrivateKey,
+		params.Namespace)
+	_, err := fluxops.CallFlux(cmd)
 	checkAddError(err)
-	sourceManifest, err := fluxops.CallFlux(fmt.Sprintf(`create source git "%s" --url="%s" --branch="%s" --secret-ref="%s" --interval=30s --export --namespace=wego-system`,
-		params.Name, params.Url, params.Branch, secretName))
+
+	cmd = fmt.Sprintf(`create source git "%s" \
+			--url="%s" \
+			--branch="%s" \
+			--secret-ref="%s" \
+			--interval=30s \
+			--export \
+			--namespace=%s `,
+		params.Name,
+		params.Url,
+		params.Branch,
+		secretName,
+		params.Namespace)
+	sourceManifest, err := fluxops.CallFlux(cmd)
 	checkAddError(err)
 	return sourceManifest
 }
 
 func generateKustomizeManifest() []byte {
-	kustomizeManifest, err := fluxops.CallFlux(
-		fmt.Sprintf(`create kustomization "%s" --path="./" --source="%s" --prune=true --validation=client --interval=5m --export --namespace=wego-system`, params.Name, params.Name))
+
+	cmd := fmt.Sprintf(`create kustomization "%s" \
+				--path="./" \
+				--source="%s" \
+				--prune=true \
+				--validation=client \
+				--interval=5m \
+				--export \
+				--namespace=%s`,
+		params.Name,
+		params.Name,
+		params.Namespace)
+	kustomizeManifest, err := fluxops.CallFlux(cmd)
 	checkAddError(err)
 	return kustomizeManifest
+}
+
+func generateHelmManifest() []byte {
+	helmManifest, err := fluxops.CallFlux(
+		fmt.Sprintf(`create helmrelease %s --source="GitRepository/%s" --chart="%s" --interval=5m --export`, params.Name, params.Name, params.Path))
+
+	checkAddError(err)
+	return helmManifest
 }
 
 func getOwner() string {
@@ -165,7 +243,7 @@ func getOwner() string {
 
 func getOwnerInteractively() string {
 	fmt.Printf("Who is the owner of the repository? ")
-	reader := bufio.NewReader(os.Stdin)
+	reader := bufio.NewReader(shims.Stdin())
 	str, err := reader.ReadString('\n')
 	checkAddError(err)
 
@@ -177,8 +255,13 @@ func getOwnerInteractively() string {
 }
 
 func commitAndPush(files ...string) error {
-	_, err := utils.CallCommand(
-		fmt.Sprintf("git pull --rebase && git add %s && git commit -m'Save %s' && git push", strings.Join(files, " "), strings.Join(files, ", ")))
+	cmd := fmt.Sprintf(`git pull --rebase && \
+				git add %s && \
+				git commit -m 'Save %s' && \
+				git push`,
+		strings.Join(files, " "),
+		strings.Join(files, ", "))
+	_, err := utils.CallCommand(cmd)
 	return err
 }
 
@@ -186,7 +269,7 @@ func commitAndPush(files ...string) error {
 func Add(args []string, allParams AddParamSet) {
 	if len(args) < 1 {
 		fmt.Printf("Location of application not specified.\n")
-		os.Exit(1)
+		shims.Exit(1)
 	}
 	params = allParams
 	params.Dir = args[0]
@@ -199,7 +282,7 @@ func Add(args []string, allParams AddParamSet) {
 
 	if clusterStatus == status.Unmodified {
 		fmt.Printf("WeGO not installed... exiting\n")
-		os.Exit(1)
+		shims.Exit(1)
 	}
 
 	wegoRepoName, err := utils.GetWegoRepoName()
@@ -212,7 +295,7 @@ func Add(args []string, allParams AddParamSet) {
 	checkAddError(os.Chdir(fluxRepo))
 
 	if err := utils.CallCommandForEffect(fmt.Sprintf("git ls-remote ssh://git@github.com/%s/%s.git", owner, wegoRepoName)); err != nil {
-		fmt.Printf("repo does not exist\n")
+		fmt.Printf("wego repo does not exist, it will be created...\n")
 		checkAddError(utils.CallCommandForEffectWithDebug("git init"))
 
 		c, err := cgitprovider.GithubProvider()
@@ -222,56 +305,58 @@ func Add(args []string, allParams AddParamSet) {
 
 		repoInfo := cgitprovider.NewRepositoryInfo("wego repo", gitprovider.RepositoryVisibilityPrivate)
 
-		fmt.Println("check3")
-
 		repoCreateOpts := &gitprovider.RepositoryCreateOptions{
 			AutoInit:        gitprovider.BoolVar(true),
 			LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
 		}
 
-		fmt.Println("check2")
-
 		err = cgitprovider.CreateOrgRepository(c, orgRef, repoInfo, repoCreateOpts)
 		checkAddError(err)
 
-		fmt.Println("check1")
-
-		time.Sleep(time.Second * 5)
-
-		checkAddError(utils.CallCommandForEffectWithDebug(
-			fmt.Sprintf("git remote add origin %s && git pull --rebase origin main && git checkout main && git push --set-upstream origin main", orgRef.String())))
+		cmd := fmt.Sprintf(`git remote add origin %s && \
+			git pull --rebase origin main && \
+			git checkout main && \
+			git push --set-upstream origin main`,
+			orgRef.String())
+		checkAddError(utils.CallCommandForEffectWithDebug(cmd))
 	} else {
-
-		fmt.Println("check4")
-
-		time.Sleep(time.Second * 5)
-
-		checkAddError(utils.CallCommandForEffectWithDebug("git branch --set-upstream-to=origin/main main"))
+		cmd := "git branch --set-upstream-to=origin/main main"
+		checkAddError(utils.CallCommandForEffectWithDebug(cmd))
 	}
 
 	// Install Source and Kustomize controllers, and CRD for application (may already be present)
 	wegoSource := generateWegoSourceManifest()
 	wegoKust := generateWegoKustomizeManifest()
-	checkAddError(utils.CallCommandForEffectWithInputPipe("kubectl apply --namespace=wego-system -f -", appCRD))
-	checkAddError(utils.CallCommandForEffectWithInputPipe("kubectl apply --namespace=wego-system -f -", string(wegoSource)))
-	checkAddError(utils.CallCommandForEffectWithInputPipe("kubectl apply --namespace=wego-system -f -", string(wegoKust)))
+	kubectlApply := fmt.Sprintf("kubectl apply --namespace=%s -f -", params.Namespace)
+	checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, appCRD))
+	checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(wegoSource)))
+	checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(wegoKust)))
 
 	//Create app.yaml
 	yamlManager := yaml.AppManager{}
 	err = yamlManager.AddApp(yaml.NewApp(params.Name, args[0], params.Url))
 	checkAddError(err)
 
-	// Create controllers for new repo being added
+	// Create flux custom resources for new repo being added
+	source := generateSourceManifest()
+
+	var appManifests []byte
+	if params.DeploymentType == DeployTypeHelm {
+		appManifests = generateHelmManifest()
+	} else {
+		appManifests = generateKustomizeManifest()
+	}
+
 	wegoAppsPath, err := utils.GetWegoAppsPath()
 	checkAddError(err)
 	sourceYamlPath := filepath.Join(wegoAppsPath, "source-"+params.Name+".yaml")
-	kustomizeYamlPath := filepath.Join(wegoAppsPath, "kustomize-"+params.Name+".yaml")
+	manifestDeployTypeNamePath := filepath.Join(wegoAppsPath, fmt.Sprintf("%s-%s.yaml", params.DeploymentType, params.Name))
 	appYamlPath, err := yaml.GetAppsYamlPath()
 	checkAddError(err)
-	checkAddError(ioutil.WriteFile(sourceYamlPath, generateSourceManifest(), 0644))
-	checkAddError(ioutil.WriteFile(kustomizeYamlPath, generateKustomizeManifest(), 0644))
+	checkAddError(ioutil.WriteFile(sourceYamlPath, source, 0644))
+	checkAddError(ioutil.WriteFile(manifestDeployTypeNamePath, appManifests, 0644))
 
-	err = commitAndPush(sourceYamlPath, kustomizeYamlPath, appYamlPath)
+	err = commitAndPush(sourceYamlPath, manifestDeployTypeNamePath, appYamlPath)
 	checkAddError(err)
 
 	fmt.Printf("Successfully added repository: %s.\n", params.Name)

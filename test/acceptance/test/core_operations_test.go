@@ -1,5 +1,8 @@
+// +build !unittest
 // +build acceptance
+// +build !smoke
 
+// ^^ temporarily disabling this test until we have it in ginkgo format.
 package test
 
 // Runs basic WeGO operations against a kind cluster.

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"github.com/weaveworks/weave-gitops/pkg/version"
 	"sigs.k8s.io/yaml"
@@ -15,7 +16,7 @@ import (
 const fluxSystemNamespace = `apiVersion: v1
 kind: Namespace
 metadata:
-  name: wego-system
+  name: flux-system
 ---
 `
 
@@ -39,25 +40,27 @@ func (h defaultFluxHandler) Handle(arglist string) ([]byte, error) {
 type quietFluxHandler struct{}
 
 func (q quietFluxHandler) Handle(arglist string) ([]byte, error) {
-	fluxBinary, err := FluxPath()
-	if err != nil {
-		return nil, err
-	}
+	initFluxBinary()
 	return utils.CallCommandSilently(fmt.Sprintf("%s %s", fluxBinary, arglist))
 }
 
 // WithFluxHandler allows running a function with a different flux handler in force
 func WithFluxHandler(handler FluxHandler, f func() ([]byte, error)) ([]byte, error) {
-	existingHandler := fluxHandler
-	fluxHandler = handler
-	defer func() {
-		fluxHandler = existingHandler
-	}()
-	return f()
+	switch fluxHandler.(type) {
+	case defaultFluxHandler:
+		existingHandler := fluxHandler
+		fluxHandler = handler
+		defer func() {
+			fluxHandler = existingHandler
+		}()
+		return f()
+	default:
+		return f()
+	}
 }
 
 func FluxPath() (string, error) {
-	homeDir, err := os.UserHomeDir()
+	homeDir, err := shims.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
@@ -118,10 +121,10 @@ func GetOwnerFromEnv() (string, error) {
 		return user, nil
 	}
 
-	return getUserFromHubCredentials()
+	return GetUserFromHubCredentials()
 }
 
-func getUserFromHubCredentials() (string, error) {
+func GetUserFromHubCredentials() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
@@ -147,7 +150,7 @@ func initFluxBinary() {
 		fluxPath, err := FluxPath()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to retrieve wego executable path: %v", err)
-			os.Exit(1)
+			shims.Exit(1)
 		}
 		fluxBinary = fluxPath
 	}

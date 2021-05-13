@@ -34,5 +34,6 @@ func init() {
 }
 
 func runCmd(cmd *cobra.Command, args []string) {
+	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 	cmdimpl.Add(args, params)
 }

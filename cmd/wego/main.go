@@ -40,6 +40,7 @@ func configureLogger() {
 func main() {
 	fluxBin.SetupFluxBin()
 	rootCmd.PersistentFlags().BoolVarP(&options.verbose, "verbose", "v", false, "Enable verbose output")
+	rootCmd.PersistentFlags().String("namespace", "wego-system", "gitops runtime namespace")
 	rootCmd.AddCommand(install.Cmd)
 	rootCmd.AddCommand(add.Cmd)
 	rootCmd.AddCommand(version.Cmd)
