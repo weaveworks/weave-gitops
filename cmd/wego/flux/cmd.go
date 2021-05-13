@@ -11,10 +11,11 @@ import (
 )
 
 var Cmd = &cobra.Command{
-	Use:     "flux -- [flux commands or flags]",
-	Short:   "Use flux commands",
-	Example: "wego flux -- install -h",
-	Run:     runCmd,
+	Use:                "flux -- [flux commands or flags]",
+	Short:              "Use flux commands",
+	DisableFlagParsing: true,
+	Example:            "wego flux -- install -h",
+	Run:                runCmd,
 }
 
 var StatusCmd = &cobra.Command{
@@ -38,11 +39,8 @@ func runCmd(cmd *cobra.Command, args []string) {
 	c := exec.Command(exePath, args...)
 
 	// run command
-	if output, err := c.CombinedOutput(); err != nil {
-		fmt.Fprintf(shims.Stderr(), "Error: %v\n", err)
-	} else {
-		fmt.Printf("Output: %s\n", output)
-	}
+	output, _ := c.CombinedOutput()
+	fmt.Print(string(output))
 }
 
 func runStatusCmd(cmd *cobra.Command, args []string) {
