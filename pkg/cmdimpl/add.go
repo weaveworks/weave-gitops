@@ -215,13 +215,14 @@ func generateSourceManifest() []byte {
 func generateKustomizeManifest() []byte {
 
 	cmd := fmt.Sprintf(`create kustomization "%s" \
-				--path="./" \
+				--path="%s" \
 				--source="%s" \
 				--prune=true \
 				--validation=client \
 				--interval=5m \
 				--export \
 				--namespace=%s`,
+		params.Path,
 		params.Name,
 		params.Name,
 		params.Namespace)
