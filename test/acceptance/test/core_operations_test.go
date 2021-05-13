@@ -185,7 +185,7 @@ func setUpTestRepo(t *testing.T) {
 	}()
 	_, err = utils.CallCommand("git init")
 	require.NoError(t, err)
-	_ = utils.CallCommand("git checkout -b main")
+	_, _ = utils.CallCommand("git checkout -b main")
 	err = ioutil.WriteFile("nginx.yaml", []byte(nginxDeployment), 0666)
 	require.NoError(t, err)
 	err = utils.CallCommandForEffectWithDebug("git add nginx.yaml && git commit -m'Added workload'")
