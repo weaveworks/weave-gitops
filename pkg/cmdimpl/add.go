@@ -3,7 +3,6 @@ package cmdimpl
 // Implementation of the 'wego add' command
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"io/ioutil"
@@ -75,6 +74,7 @@ const (
 type AddParamSet struct {
 	Dir            string
 	Name           string
+	Owner          string
 	Url            string
 	Path           string
 	Branch         string
@@ -84,8 +84,7 @@ type AddParamSet struct {
 }
 
 var (
-	params    AddParamSet
-	repoOwner string
+	params AddParamSet
 )
 
 // checkError will print a message to stderr and exit
@@ -129,7 +128,6 @@ func updateParametersIfNecessary() {
 	}
 
 	fmt.Printf("using URL: '%s' of origin from git config...\n\n", params.Url)
-
 }
 
 func generateWegoSourceManifest() []byte {
@@ -240,29 +238,24 @@ func generateHelmManifest() []byte {
 }
 
 func getOwner() string {
-	if repoOwner != "" {
-		return repoOwner
-	}
 	owner, err := fluxops.GetOwnerFromEnv()
 	if err != nil || owner == "" {
-		repoOwner = getOwnerInteractively()
-		return repoOwner
+		owner = getOwnerFromUrl(params.Url)
 	}
-	repoOwner = owner
+
+	// command flag has priority
+	if params.Owner != "" {
+		return params.Owner
+	}
+
 	return owner
 }
 
-func getOwnerInteractively() string {
-	fmt.Printf("Who is the owner of the repository? ")
-	reader := bufio.NewReader(shims.Stdin())
-	str, err := reader.ReadString('\n')
-	checkAddError(err)
+// ie: ssh://git@github.com/weaveworks/some-repo
+func getOwnerFromUrl(url string) string {
+	parts := strings.Split(url, "/")
 
-	if str == "\n" {
-		return getOwnerInteractively()
-	}
-
-	return strings.Trim(str, "\n")
+	return parts[len(parts)-2]
 }
 
 func commitAndPush(files ...string) {
