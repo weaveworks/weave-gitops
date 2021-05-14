@@ -61,14 +61,13 @@ spec:
 `
 
 var (
-	tmpDir string
-	client gitprovider.Client
+	tmpDir  string
+	client  gitprovider.Client
+	session *gexec.Session
+	err     error
 )
 
 var _ = Describe("WEGO Acceptance Tests", func() {
-
-	var session *gexec.Session
-	var err error
 	var tmpPath string
 
 	AfterEach(func() {
@@ -96,12 +95,12 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 		By("When i run 'wego add .'", func() {
 			dir, err := os.Getwd()
-			Expect(err).Should(Succeed())
+			Expect(err).ShouldNot(HaveOccurred())
 			Expect(os.Chdir(tmpDir)).Should(Succeed())
-			Expect(os.Chdir(dir)).Should(Succeed())
+			defer Expect(os.Chdir(dir)).Should(Succeed())
 			command := exec.Command(WEGO_BIN_PATH, "add", ".")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).Should(Succeed())
+			Expect(err).ShouldNot(HaveOccurred())
 		})
 
 		By("Then a private repo with name foo-cluster-wego is created on the remote git", func() {
@@ -110,9 +109,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 		By("kubectl get pods -n wego-system should list the source and kustomize controllers", func() {
 			Expect(waitForNginxDeployment()).Should(Succeed())
-			command := exec.Command("sh", "-c", utils.Escape("kubectl get pods -n wego-system"))
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).Should(Succeed())
+			Expect(runCommandForGinkgo("kubectl get pods -n wego-system")).Should(Succeed())
 			Eventually(session).Should(gbytes.Say("kustomize-controller"))
 			Eventually(session).Should(gbytes.Say("source-controller"))
 		})
@@ -122,12 +119,11 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 		By("When i run 'wego add . --private=false'", func() {
 			dir, err := os.Getwd()
-			Expect(err).Should(Succeed())
 			Expect(os.Chdir(tmpDir)).Should(Succeed())
-			Expect(os.Chdir(dir)).Should(Succeed())
+			defer Expect(os.Chdir(dir)).Should(Succeed())
 			command := exec.Command(WEGO_BIN_PATH, "add", ".", "--private=false")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).Should(Succeed())
+			Expect(err).ShouldNot(HaveOccurred())
 		})
 
 		By("Then a private repo with name is created on the remote git", func() {
@@ -136,9 +132,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 		By("kubectl get pods -n wego-system should list the source and kustomize controllers", func() {
 			Expect(waitForNginxDeployment()).Should(Succeed())
-			command := exec.Command("sh", "-c", utils.Escape("kubectl get pods -n wego-system"))
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).Should(Succeed())
+			Expect(runCommandForGinkgo("kubectl get pods -n wego-system")).Should(Succeed())
 			Eventually(session).Should(gbytes.Say("kustomize-controller"))
 			Eventually(session).Should(gbytes.Say("source-controller"))
 		})
@@ -202,10 +196,7 @@ func ensureWegoRepoExists() error {
 		return err
 	}
 	_, err = client.OrgRepositories().Get(ctx, *ref)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func ensureFluxVersion() error {
@@ -247,8 +238,7 @@ func installWego(t *testing.T) {
 }
 
 func getWegoRepoName() (string, error) {
-	repoName, err := fluxops.GetRepoName()
-	return repoName, err
+	return fluxops.GetRepoName()
 }
 
 func getRepoName() (string, error) {
@@ -314,12 +304,13 @@ func setUpTestRepo() error {
 		return err
 	}
 
-	err = os.Chdir(dir)
-	if err != nil {
-		return err
-	}
+	return os.Chdir(dir)
+}
 
-	return nil
+func runCommandForGinkgo(cmd string) error {
+	command := exec.Command("sh", "-c", utils.Escape(cmd))
+	session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	return err
 }
 
 func deleteRepos() error {
@@ -330,6 +321,7 @@ func deleteRepos() error {
 		if err != nil {
 			return err
 		}
+
 		url := fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), name)
 		ref, err := gitprovider.ParseOrgRepositoryURL(url)
 		if err != nil {
@@ -347,6 +339,7 @@ func deleteRepos() error {
 		if err != nil {
 			return err
 		}
+
 		url = fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), name)
 		ref, err = gitprovider.ParseOrgRepositoryURL(url)
 		if err != nil {
