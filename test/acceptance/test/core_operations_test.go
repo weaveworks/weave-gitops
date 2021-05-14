@@ -307,7 +307,6 @@ func setUpTestRepo() error {
 }
 
 func runCommandForGinkgo(cmd string) error {
-	var err error
 	command := exec.Command("sh", "-c", utils.Escape(cmd))
 	session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	return err
