@@ -34,14 +34,14 @@ type FluxHandler interface {
 type DefaultFluxHandler struct{}
 
 func (h DefaultFluxHandler) Handle(arglist string) ([]byte, error) {
-	InitFluxBinary()
+	initFluxBinary()
 	return utils.CallCommand(fmt.Sprintf("%s %s", fluxBinary, arglist))
 }
 
 type quietFluxHandler struct{}
 
 func (q quietFluxHandler) Handle(arglist string) ([]byte, error) {
-	InitFluxBinary()
+	initFluxBinary()
 	return utils.CallCommandSilently(fmt.Sprintf("%s %s", fluxBinary, arglist))
 }
 
@@ -155,7 +155,7 @@ func GetUserFromHubCredentials() (string, error) {
 	return data["github.com"].([]interface{})[0].(map[string]interface{})["user"].(string), nil
 }
 
-func InitFluxBinary() {
+func initFluxBinary() {
 	if fluxBinary == "" {
 		fluxPath, err := FluxPath()
 		if err != nil {
