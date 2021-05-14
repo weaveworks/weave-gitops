@@ -109,12 +109,16 @@ func createTestPrivateKeyFile() (*os.File, error) {
 }
 
 func ensureFluxVersion() error {
+	path := os.Getenv("GITHUB_WORKSPACE")
+	if path == "" {
+		path = "../.."
+	}
 	if version.FluxVersion == "undefined" {
-		tomlpath, err := filepath.Abs("../../tools/bin/stoml")
+		tomlpath, err := filepath.Abs(path + "/tools/bin/stoml")
 		if err != nil {
 			return err
 		}
-		deppath, err := filepath.Abs("../../tools/dependencies.toml")
+		deppath, err := filepath.Abs(path + "/tools/dependencies.toml")
 		if err != nil {
 			return err
 		}
