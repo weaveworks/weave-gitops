@@ -22,7 +22,7 @@ metadata:
 `
 
 var (
-	fluxHandler FluxHandler = defaultFluxHandler{}
+	fluxHandler FluxHandler = DefaultFluxHandler{}
 	fluxBinary  string
 )
 
@@ -31,24 +31,24 @@ type FluxHandler interface {
 	Handle(args string) ([]byte, error)
 }
 
-type defaultFluxHandler struct{}
+type DefaultFluxHandler struct{}
 
-func (h defaultFluxHandler) Handle(arglist string) ([]byte, error) {
-	initFluxBinary()
+func (h DefaultFluxHandler) Handle(arglist string) ([]byte, error) {
+	InitFluxBinary()
 	return utils.CallCommand(fmt.Sprintf("%s %s", fluxBinary, arglist))
 }
 
 type quietFluxHandler struct{}
 
 func (q quietFluxHandler) Handle(arglist string) ([]byte, error) {
-	initFluxBinary()
+	InitFluxBinary()
 	return utils.CallCommandSilently(fmt.Sprintf("%s %s", fluxBinary, arglist))
 }
 
 // WithFluxHandler allows running a function with a different flux handler in force
 func WithFluxHandler(handler FluxHandler, f func() ([]byte, error)) ([]byte, error) {
 	switch fluxHandler.(type) {
-	case defaultFluxHandler:
+	case DefaultFluxHandler:
 		existingHandler := fluxHandler
 		fluxHandler = handler
 		defer func() {
@@ -155,7 +155,7 @@ func GetUserFromHubCredentials() (string, error) {
 	return data["github.com"].([]interface{})[0].(map[string]interface{})["user"].(string), nil
 }
 
-func initFluxBinary() {
+func InitFluxBinary() {
 	if fluxBinary == "" {
 		fluxPath, err := FluxPath()
 		if err != nil {

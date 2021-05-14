@@ -4,6 +4,9 @@ package shims
 
 import (
 	"os"
+
+	"github.com/fluxcd/go-git-providers/gitprovider"
+	cgitprovider "github.com/weaveworks/weave-gitops/pkg/gitproviders"
 )
 
 // Handler for mocking os.Exit()
@@ -61,6 +64,32 @@ func WithHomeDirHandler(handler HomeDirHandler, fun func() (string, error)) (str
 
 func UserHomeDir() (string, error) {
 	return homeDirHandler.Handle()
+}
+
+// GitProvider shim
+type GitProviderHandler interface {
+	CreateOrgRepository(provider gitprovider.Client, orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error
+}
+
+type defaultGitProviderHandler struct{}
+
+var gitProviderHandler GitProviderHandler = defaultGitProviderHandler{}
+
+func (h defaultGitProviderHandler) CreateOrgRepository(provider gitprovider.Client, orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
+	return cgitprovider.CreateOrgRepository(provider, orgRepoRef, repoInfo, opts...)
+}
+
+func WithGitProviderHandler(handler GitProviderHandler, fun func() error) error {
+	originalHandler := gitProviderHandler
+	gitProviderHandler = handler
+	defer func() {
+		gitProviderHandler = originalHandler
+	}()
+	return fun()
+}
+
+func CreateOrgRepository(provider gitprovider.Client, orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
+	return gitProviderHandler.CreateOrgRepository(provider, orgRepoRef, repoInfo, opts...)
 }
 
 type FileStreams struct {

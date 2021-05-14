@@ -11,6 +11,8 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+
+	"github.com/weaveworks/weave-gitops/pkg/shims"
 )
 
 type Behavior func(args ...string) ([]byte, []byte, error)
@@ -188,6 +190,16 @@ func WithBehaviorFor(callOp CallOperation, behavior func(args ...string) ([]byte
 		}
 	}()
 	return action()
+}
+
+func WithFailureFor(callOp CallOperation, action func() ([]byte, []byte, error)) {
+	_, _, _ = WithBehaviorFor(
+		callOp,
+		func(args ...string) ([]byte, []byte, error) {
+			shims.Exit(1)
+			return nil, nil, nil
+		},
+		action)
 }
 
 func WithResultsFrom(callOp CallOperation, outvalue []byte, errvalue []byte, err error, action func() ([]byte, []byte, error)) ([]byte, []byte, error) {
