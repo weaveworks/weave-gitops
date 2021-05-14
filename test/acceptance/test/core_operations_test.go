@@ -73,7 +73,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 	AfterEach(func() {
 		os.RemoveAll(tmpPath)
-		Expect(deleteRepos()).ShouldNot(HaveOccurred())
+		// Expect(deleteRepos()).Should(Succeed())
 	})
 
 	BeforeEach(func() {
@@ -82,12 +82,13 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		})
 
 		By("Setup test", func() {
-			Expect(checkInitialStatus()).ShouldNot(HaveOccurred())
-			Expect(setupTest()).ShouldNot(HaveOccurred())
-			Expect(ensureWegoRepoIsAbsent()).ShouldNot(HaveOccurred())
-			Expect(ensureFluxVersion()).ShouldNot(HaveOccurred())
-			Expect(installFlux()).ShouldNot(HaveOccurred())
-			Expect(setUpTestRepo()).ShouldNot(HaveOccurred())
+			os.Setenv("GITHUB_ORG", "wkp-example-org")
+			// Expect(checkInitialStatus()).Should(Succeed())
+			Expect(setupTest()).Should(Succeed())
+			Expect(ensureWegoRepoIsAbsent()).Should(Succeed())
+			// Expect(ensureFluxVersion()).Should(Succeed())
+			Expect(installFlux()).Should(Succeed())
+			Expect(setUpTestRepo()).Should(Succeed())
 		})
 
 	})
@@ -96,23 +97,23 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 		By("When i run 'wego add .'", func() {
 			dir, err := os.Getwd()
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(os.Chdir(tmpDir)).ShouldNot(HaveOccurred())
-			Expect(os.Chdir(dir)).ShouldNot(HaveOccurred())
+			Expect(err).Should(Succeed())
+			Expect(os.Chdir(tmpDir)).Should(Succeed())
+			Expect(os.Chdir(dir)).Should(Succeed())
 			command := exec.Command(WEGO_BIN_PATH, "add", ".")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).ShouldNot(HaveOccurred())
+			Expect(err).Should(Succeed())
 		})
 
 		By("Then a private repo with name foo-cluster-wego is created on the remote git", func() {
-			Expect(ensureWegoRepoExists()).ShouldNot(HaveOccurred())
+			Expect(ensureWegoRepoExists()).Should(Succeed())
 		})
 
 		By("kubectl get pods -n wego-system should list the source and kustomize controllers", func() {
-			Expect(waitForNginxDeployment()).ShouldNot(HaveOccurred())
+			Expect(waitForNginxDeployment()).Should(Succeed())
 			command := exec.Command("sh", "-c", utils.Escape("kubectl get pods -n wego-system"))
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).ShouldNot(HaveOccurred())
+			Expect(err).Should(Succeed())
 			Eventually(session).Should(gbytes.Say("kustomize-controller"))
 			Eventually(session).Should(gbytes.Say("source-controller"))
 		})
@@ -122,23 +123,23 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 		By("When i run 'wego add . --private=false'", func() {
 			dir, err := os.Getwd()
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(os.Chdir(tmpDir)).ShouldNot(HaveOccurred())
-			Expect(os.Chdir(dir)).ShouldNot(HaveOccurred())
+			Expect(err).Should(Succeed())
+			Expect(os.Chdir(tmpDir)).Should(Succeed())
+			Expect(os.Chdir(dir)).Should(Succeed())
 			command := exec.Command(WEGO_BIN_PATH, "add", ".", "--private=false")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).ShouldNot(HaveOccurred())
+			Expect(err).Should(Succeed())
 		})
 
 		By("Then a private repo with name is created on the remote git", func() {
-			Expect(ensureWegoRepoExists()).ShouldNot(HaveOccurred())
+			Expect(ensureWegoRepoExists()).Should(Succeed())
 		})
 
 		By("kubectl get pods -n wego-system should list the source and kustomize controllers", func() {
-			Expect(waitForNginxDeployment()).ShouldNot(HaveOccurred())
+			Expect(waitForNginxDeployment()).Should(Succeed())
 			command := exec.Command("sh", "-c", utils.Escape("kubectl get pods -n wego-system"))
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).ShouldNot(HaveOccurred())
+			Expect(err).Should(Succeed())
 			Eventually(session).Should(gbytes.Say("kustomize-controller"))
 			Eventually(session).Should(gbytes.Say("source-controller"))
 		})
