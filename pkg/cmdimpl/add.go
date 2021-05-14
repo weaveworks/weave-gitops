@@ -30,43 +30,6 @@ spec:
   url: {{ .AppURL }}
 `
 
-// Will move into filesystem when we store wego infrastructure in git
-const appCRD = `apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: apps.wego.weave.works
-spec:
-  group: wego.weave.works
-  scope: Cluster
-  names:
-    kind: Application
-    listKind: ApplicationList
-    plural: apps
-    singular: app
-  subresources:
-    status: {}
-  validation:
-    openAPIV3Schema:
-      required: ["spec"]
-      properties:
-        spec:
-          required: ["url", "path"]
-          properties:
-            url:
-              type: "string"
-              minimum: 1
-              maximum: 1
-            path:
-              type: "string"
-              minimum: 1
-              maximum: 1
-  version: v1alpha1
-  versions:
-    - name: v1alpha1
-      served: true
-      storage: true
-`
-
 const (
 	DeployTypeKustomize = "kustomize"
 	DeployTypeHelm      = "helm"
@@ -342,7 +305,6 @@ func Add(args []string, allParams AddParamSet) {
 	wegoSource := generateWegoSourceManifest()
 	wegoKust := generateWegoKustomizeManifest()
 	kubectlApply := fmt.Sprintf("kubectl apply --namespace=%s -f -", params.Namespace)
-	checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, appCRD))
 	checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(wegoSource)))
 	checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(wegoKust)))
 
