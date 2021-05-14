@@ -152,7 +152,6 @@ var _ = Describe("Dry Run Add Test", func() {
 			err := os.Setenv("GITHUB_ORG", "archaeopteryx")
 			Expect(err).To(BeNil())
 			Expect(ensureFluxVersion()).Should(Succeed())
-			fmt.Printf("HERE\n")
 			fgphandler := failGitProviderHandler{}
 			privateKeyFile, err := createTestPrivateKeyFile()
 			Expect(err).To(BeNil())
@@ -162,7 +161,15 @@ var _ = Describe("Dry Run Add Test", func() {
 				utils.WithFailureFor(utils.CallCommandForEffectWithDebugOp, func() ([]byte, []byte, error) {
 					fluxops.WithFluxHandler(FailFluxHandler, func() ([]byte, error) {
 						shims.WithGitProviderHandler(fgphandler, func() error {
-							Add([]string{"."}, AddParamSet{Name: "wanda", Url: "ssh://git@github.com/foobar/quux.git", Path: "./", Branch: "main", PrivateKey: privateKeyFileName, DryRun: true})
+							Add([]string{"."},
+								AddParamSet{
+									Name:       "wanda",
+									Url:        "ssh://git@github.com/foobar/quux.git",
+									Path:       "./",
+									Branch:     "main",
+									PrivateKey: privateKeyFileName,
+									DryRun:     true,
+									Namespace:  "wego-system"})
 							return nil
 						})
 						return nil, nil

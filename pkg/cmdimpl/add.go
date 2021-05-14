@@ -116,7 +116,7 @@ func generateWegoSourceManifest() []byte {
         --secret-ref="wego" \
         --interval=30s \
         --export \
-        --namespace=%s `,
+        --namespace=%s`,
 		getOwner(),
 		fluxRepoName,
 		params.Branch,
@@ -304,8 +304,7 @@ func Add(args []string, allParams AddParamSet) {
 			cmd := fmt.Sprintf(`git remote add origin %s && \
             git pull --rebase origin main && \
             git checkout main && \
-            git push --set-upstream origin main`,
-				orgRef.String())
+            git push --set-upstream origin main`, orgRef.String())
 			checkAddError(utils.CallCommandForEffectWithDebug(cmd))
 		} else {
 			fmt.Fprintf(shims.Stdout(),
