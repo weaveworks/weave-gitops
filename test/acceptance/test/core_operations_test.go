@@ -68,11 +68,12 @@ var (
 var _ = Describe("WEGO Acceptance Tests", func() {
 
 	var session *gexec.Session
+	var err error
 	var tmpPath string
 
 	AfterEach(func() {
 		os.RemoveAll(tmpPath)
-		Expect(err := deleteRepos()).ShouldNot(HaveOccurred())
+		Expect(deleteRepos()).ShouldNot(HaveOccurred())
 	})
 
 	BeforeEach(func() {
