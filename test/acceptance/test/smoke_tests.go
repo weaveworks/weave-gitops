@@ -106,14 +106,14 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 	It("Verify that wego flux can print out version information", func() {
 
-		By("When I run 'wego flux -- -v", func() {
-			command := exec.Command(WEGO_BIN_PATH, "flux", "--", "-v")
+		By("When I run 'wego flux -v", func() {
+			command := exec.Command(WEGO_BIN_PATH, "flux", "-v")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
 		By("Then I should see the wego flux version printed in format m.n.n with newline character", func() {
-			Eventually(session).Should(gbytes.Say("Output: flux version [0-3].[0-3][0-9].[0-9]\\d*\n"))
+			Eventually(session).Should(gbytes.Say("flux version [0-3].[0-3][0-9].[0-9]\\d*\n"))
 		})
 	})
 })

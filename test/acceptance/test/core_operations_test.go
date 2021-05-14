@@ -73,6 +73,11 @@ func TestCoreOperations(t *testing.T) {
 	defer os.RemoveAll(tmpPath)
 	tmpDir = tmpPath
 
+	wegoRepoName, err := utils.GetWegoRepoName()
+	require.NoError(t, err)
+
+	appRepoName := wegoRepoName + "-" + filepath.Base(tmpDir)
+
 	log.Info("Creating GitHub client...")
 	token, found := os.LookupEnv("GITHUB_TOKEN")
 	require.True(t, found)
@@ -80,7 +85,7 @@ func TestCoreOperations(t *testing.T) {
 	require.NoError(t, err)
 	client = c
 	log.Info("Ensuring wego repo does not exist...")
-	ensureWegoRepoIsAbsent(t)
+	ensureWegoRepoIsAbsent(t, appRepoName)
 	log.Info("Ensuring flux version is set...")
 	ensureFluxVersion(t)
 	log.Info("Checking initial status...")
@@ -88,8 +93,8 @@ func TestCoreOperations(t *testing.T) {
 	log.Info("Install flux...")
 	installFlux(t)
 	log.Info("Setting up test repository...")
-	setUpTestRepo(t) // create repo with simple nginx manifest
-	defer deleteRepos(t)
+	setUpTestRepo(t, appRepoName) // create repo with simple nginx manifest
+	defer deleteTestRepos(t, appRepoName)
 	log.Info("Adding test repository to cluster...")
 	require.NoError(t, err)
 	addRepo(t) // add new repo to cluster
@@ -115,16 +120,13 @@ func addRepo(t *testing.T) {
 		require.NoError(t, os.Chdir(dir))
 	}()
 
-	cmdimpl.Add([]string{"."}, cmdimpl.AddParamSet{Name: "", Url: "", Path: "./", Branch: "main", PrivateKey: keyFilePath})
+	cmdimpl.Add([]string{"."}, cmdimpl.AddParamSet{Name: "", Url: "", Path: "./", Branch: "main", PrivateKey: keyFilePath, Namespace: "wego-system", DeploymentType: "kustomize"})
 }
 
-func ensureWegoRepoIsAbsent(t *testing.T) {
+func ensureWegoRepoIsAbsent(t *testing.T, appRepoName string) {
 	ctx := context.Background()
 
-	wegoRepoName, err := utils.GetWegoRepoName()
-	require.NoError(t, err)
-
-	url := fmt.Sprintf("https://github.com/wkp-example-org/%s", wegoRepoName)
+	url := fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), appRepoName)
 	ref, err := gitprovider.ParseOrgRepositoryURL(url)
 	require.NoError(t, err)
 	repo, err := client.OrgRepositories().Get(ctx, *ref)
@@ -133,10 +135,10 @@ func ensureWegoRepoIsAbsent(t *testing.T) {
 	} else {
 		require.NoError(t, repo.Delete(ctx))
 	}
-	clusterName, err := utils.GetClusterName()
+	wegoRepoName, err := utils.GetWegoRepoName()
 	require.NoError(t, err)
-	repoName := clusterName + "-wego"
-	os.RemoveAll(fmt.Sprintf("%s/.wego/repositories/%s", os.Getenv("HOME"), repoName))
+
+	os.RemoveAll(fmt.Sprintf("%s/.wego/repositories/%s", os.Getenv("HOME"), wegoRepoName))
 }
 
 func ensureFluxVersion(t *testing.T) {
@@ -170,7 +172,7 @@ func installFlux(t *testing.T) {
 	require.NoError(t, utils.CallCommandForEffectWithInputPipeAndDebug("kubectl apply -f -", string(manifests)))
 }
 
-func setUpTestRepo(t *testing.T) {
+func setUpTestRepo(t *testing.T, wegoRepoName string) {
 	dir, err := os.Getwd()
 	require.NoError(t, err)
 	require.NoError(t, os.Chdir(tmpDir))
@@ -179,16 +181,13 @@ func setUpTestRepo(t *testing.T) {
 	}()
 	_, err = utils.CallCommand("git init")
 	require.NoError(t, err)
+	_, _ = utils.CallCommand("git checkout -b main")
 	err = ioutil.WriteFile("nginx.yaml", []byte(nginxDeployment), 0666)
 	require.NoError(t, err)
 	err = utils.CallCommandForEffectWithDebug("git add nginx.yaml && git commit -m'Added workload'")
 	require.NoError(t, err)
 
-	wegoRepoName, err := utils.GetWegoRepoName()
-	require.NoError(t, err)
-	wegoRepoName += "-" + filepath.Base(tmpDir)
-
-	cloneurl := fmt.Sprintf("https://github.com/wkp-example-org/%s", wegoRepoName)
+	cloneurl := fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), wegoRepoName)
 	ref, err := gitprovider.ParseOrgRepositoryURL(cloneurl)
 	require.NoError(t, err)
 	ctx := context.Background()
@@ -199,37 +198,38 @@ func setUpTestRepo(t *testing.T) {
 		LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
 	})
 	require.NoError(t, err)
-
-	originurl := fmt.Sprintf("ssh://git@github.com/wkp-example-org/%s", wegoRepoName)
-	err = utils.CallCommandForEffectWithDebug(fmt.Sprintf("git remote add origin %s && git pull --rebase origin main && git push --set-upstream origin main", originurl))
+	originurl := fmt.Sprintf("ssh://git@github.com/%s/%s", os.Getenv("GITHUB_ORG"), wegoRepoName)
+	cmd := fmt.Sprintf(`git remote add origin %s && \
+		git pull --rebase origin main && \
+		git push --set-upstream origin main`,
+		originurl)
+	err = utils.CallCommandForEffectWithDebug(cmd)
 	require.NoError(t, err)
 }
 
-func deleteRepos(t *testing.T) {
-	clusterName, err := utils.GetClusterName()
-	if err == nil {
-		ctx := context.Background()
-
-		wegoRepoName, err := utils.GetWegoRepoName()
-		require.NoError(t, err)
-
-		url := fmt.Sprintf("https://github.com/wkp-example-org/%s", wegoRepoName)
-		ref, err := gitprovider.ParseOrgRepositoryURL(url)
-		require.NoError(t, err)
-		repo, err := client.OrgRepositories().Get(ctx, *ref)
-		require.NoError(t, err)
-		require.NoError(t, repo.Delete(ctx))
-		url = fmt.Sprintf("https://github.com/wkp-example-org/%s", wegoRepoName)
-		ref, err = gitprovider.ParseOrgRepositoryURL(url)
-		require.NoError(t, err)
-		repo, err = client.OrgRepositories().Get(ctx, *ref)
-		require.NoError(t, err)
-		require.NoError(t, repo.Delete(ctx))
-		repoName := clusterName + "-wego"
-		os.RemoveAll(fmt.Sprintf("%s/.wego/repositories/%s", os.Getenv("HOME"), repoName))
-	} else {
-		log.Info("Failed to delete repository")
+func deleteTestRepos(t *testing.T, appRepoName string) {
+	wegoRepoName, err := utils.GetWegoRepoName()
+	if err != nil {
+		log.Infof("Failed to delete test repositories %s", err.Error())
+		return
 	}
+
+	ctx := context.Background()
+
+	url := fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), appRepoName)
+	ref, err := gitprovider.ParseOrgRepositoryURL(url)
+	require.NoError(t, err)
+	repo, err := client.OrgRepositories().Get(ctx, *ref)
+	require.NoError(t, err)
+	require.NoError(t, repo.Delete(ctx))
+	url = fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), appRepoName)
+	ref, err = gitprovider.ParseOrgRepositoryURL(url)
+	require.NoError(t, err)
+	repo, err = client.OrgRepositories().Get(ctx, *ref)
+	require.NoError(t, err)
+	require.NoError(t, repo.Delete(ctx))
+
+	os.RemoveAll(fmt.Sprintf("%s/.wego/repositories/%s", os.Getenv("HOME"), wegoRepoName))
 }
 
 func checkInitialStatus(t *testing.T) {

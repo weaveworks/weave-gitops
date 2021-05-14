@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/weaveworks/weave-gitops/pkg/yaml"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -205,7 +207,7 @@ func generateSourceManifest() []byte {
 func generateKustomizeManifest() []byte {
 
 	cmd := fmt.Sprintf(`create kustomization "%s" \
-				--path="./" \
+				--path="%s" \
 				--source="%s" \
 				--prune=true \
 				--validation=client \
@@ -213,6 +215,7 @@ func generateKustomizeManifest() []byte {
 				--export \
 				--namespace=%s`,
 		params.Name,
+		params.Path,
 		params.Name,
 		params.Namespace)
 	kustomizeManifest, err := fluxops.CallFlux(cmd)
@@ -341,10 +344,14 @@ func Add(args []string, allParams AddParamSet) {
 	source := generateSourceManifest()
 
 	var appManifests []byte
-	if params.DeploymentType == DeployTypeHelm {
+	switch params.DeploymentType {
+	case DeployTypeHelm:
 		appManifests = generateHelmManifest()
-	} else {
+	case DeployTypeKustomize:
 		appManifests = generateKustomizeManifest()
+	default:
+		log.Fatalf("deployment type does not supported [%s]", params.DeploymentType)
+		os.Exit(1)
 	}
 
 	wegoAppsPath, err := utils.GetWegoAppsPath()
