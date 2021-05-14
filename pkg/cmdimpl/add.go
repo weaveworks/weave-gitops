@@ -223,22 +223,17 @@ func getOwnerFromUrl(url string) string {
 }
 
 func commitAndPush(files ...string) {
-	if params.DryRun {
-		fmt.Fprintf(shims.Stdout(), `git pull --rebase && \
+	cmdStr := `git pull --rebase && \
                 git add %s && \
                 git commit -m 'Save %s' && \
-                git push\n`,
-			strings.Join(files, " "),
-			strings.Join(files, ", "))
+                git push\n`
+
+	if params.DryRun {
+		fmt.Fprintf(shims.Stdout(), cmdStr, strings.Join(files, " "), strings.Join(files, ", "))
 		return
 	}
 
-	cmd := fmt.Sprintf(`git pull --rebase && \
-                git add %s && \
-                git commit -m 'Save %s' && \
-                git push`,
-		strings.Join(files, " "),
-		strings.Join(files, ", "))
+	cmd := fmt.Sprintf(cmdStr, strings.Join(files, " "), strings.Join(files, ", "))
 	_, err := utils.CallCommand(cmd)
 	checkAddError(err)
 }
@@ -299,20 +294,17 @@ func Add(args []string, allParams AddParamSet) {
 			LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
 		}
 
+		cmdStr := `git remote add origin %s && \
+            git pull --rebase origin main && \
+            git checkout main && \
+            git push --set-upstream origin main`
+
 		if !params.DryRun {
 			checkAddError(shims.CreateOrgRepository(c, orgRef, repoInfo, repoCreateOpts))
-			cmd := fmt.Sprintf(`git remote add origin %s && \
-            git pull --rebase origin main && \
-            git checkout main && \
-            git push --set-upstream origin main`, orgRef.String())
+			cmd := fmt.Sprintf(cmdStr, orgRef.String())
 			checkAddError(utils.CallCommandForEffectWithDebug(cmd))
 		} else {
-			fmt.Fprintf(shims.Stdout(),
-				`git remote add origin %s && \
-            git pull --rebase origin main && \
-            git checkout main && \
-            git push --set-upstream origin main`,
-				orgRef.String())
+			fmt.Fprintf(shims.Stdout(), cmdStr, orgRef.String())
 		}
 	} else if !params.DryRun {
 		checkAddError(utils.CallCommandForEffectWithDebug("git branch --set-upstream-to=origin/main main"))
