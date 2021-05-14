@@ -73,7 +73,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 	AfterEach(func() {
 		os.RemoveAll(tmpPath)
-		// Expect(deleteRepos()).Should(Succeed())
+		Expect(deleteRepos()).Should(Succeed())
 	})
 
 	BeforeEach(func() {
@@ -82,11 +82,10 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		})
 
 		By("Setup test", func() {
-			os.Setenv("GITHUB_ORG", "wkp-example-org")
-			// Expect(checkInitialStatus()).Should(Succeed())
+			Expect(checkInitialStatus()).Should(Succeed())
 			Expect(setupTest()).Should(Succeed())
 			Expect(ensureWegoRepoIsAbsent()).Should(Succeed())
-			// Expect(ensureFluxVersion()).Should(Succeed())
+			Expect(ensureFluxVersion()).Should(Succeed())
 			Expect(installFlux()).Should(Succeed())
 			Expect(setUpTestRepo()).Should(Succeed())
 		})
