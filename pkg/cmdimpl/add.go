@@ -54,7 +54,7 @@ var (
 // checkError will print a message to stderr and exit
 func checkError(msg string, err interface{}) {
 	if err != nil {
-		fmt.Fprintf(shims.Stdout(), "%s: %v\n", msg, err)
+		fmt.Fprintf(shims.Stderr(), "%s: %v\n", msg, err)
 		shims.Exit(1)
 	}
 }
