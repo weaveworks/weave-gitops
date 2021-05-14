@@ -64,7 +64,6 @@ var (
 	tmpDir  string
 	client  gitprovider.Client
 	session *gexec.Session
-	err     error
 )
 
 var _ = Describe("WEGO Acceptance Tests", func() {
@@ -308,6 +307,7 @@ func setUpTestRepo() error {
 }
 
 func runCommandForGinkgo(cmd string) error {
+	var err error
 	command := exec.Command("sh", "-c", utils.Escape(cmd))
 	session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	return err
