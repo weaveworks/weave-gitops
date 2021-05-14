@@ -159,8 +159,8 @@ var _ = Describe("Dry Run Add Test", func() {
 			defer os.Remove(privateKeyFileName)
 			utils.WithFailureFor(utils.CallCommandForEffectWithInputPipeOp, func() ([]byte, []byte, error) {
 				utils.WithFailureFor(utils.CallCommandForEffectWithDebugOp, func() ([]byte, []byte, error) {
-					fluxops.WithFluxHandler(FailFluxHandler, func() ([]byte, error) {
-						shims.WithGitProviderHandler(fgphandler, func() error {
+					_, err = fluxops.WithFluxHandler(FailFluxHandler, func() ([]byte, error) {
+						err = shims.WithGitProviderHandler(fgphandler, func() error {
 							Add([]string{"."},
 								AddParamSet{
 									Name:       "wanda",
@@ -170,10 +170,12 @@ var _ = Describe("Dry Run Add Test", func() {
 									PrivateKey: privateKeyFileName,
 									DryRun:     true,
 									Namespace:  "wego-system"})
+							Expect(err).To(BeNil())
 							return nil
 						})
 						return nil, nil
 					})
+					Expect(err).To(BeNil())
 					return nil, nil, nil
 				})
 				return nil, nil, nil
