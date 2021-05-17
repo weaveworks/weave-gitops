@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -114,15 +115,23 @@ func ensureFluxVersion() error {
 		path = "../.."
 	}
 	if version.FluxVersion == "undefined" {
-		tomlpath, err := filepath.Abs(path + "/tools/bin/stoml")
+		stomlpath, err := filepath.Abs(path + "/tools/bin/stoml")
 		if err != nil {
 			return err
 		}
+
+		// stoml hasn't been downloaded when unit tests run
+		stomlurl := fmt.Sprintf("https://github.com/freshautomations/stoml/releases/download/v0.4.0/stoml_%s_amd64", runtime.GOOS)
+		err = utils.CallCommandForEffectWithDebug(fmt.Sprintf("curl -fLo %s %s", stomlpath, stomlurl))
+		if err != nil {
+			return err
+		}
+
 		deppath, err := filepath.Abs(path + "/tools/dependencies.toml")
 		if err != nil {
 			return err
 		}
-		out, err := utils.CallCommand(fmt.Sprintf("%s %s flux.version", tomlpath, deppath))
+		out, err := utils.CallCommand(fmt.Sprintf("%s %s flux.version", stomlpath, deppath))
 		if err != nil {
 			return err
 		}

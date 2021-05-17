@@ -56,8 +56,6 @@ jobs:
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: unit-tests with coverage
       run: |
-        echo GITHUB_WORKSPACE=$GITHUB_WORKSPACE
-        ls -laR $GITHUB_WORKSPACE
         go get -u github.com/ory/go-acc
         go-acc --ignore fluxopsfakes,acceptance -o coverage.out ./... -- -v -tags test
     - name: Convert coverage.out to coverage.lcov
