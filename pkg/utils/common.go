@@ -37,7 +37,18 @@ func GetWegoApp(app string) (string, error) {
 		return "", err
 	}
 
-	return filepath.Join(localWegoAppsPath, app), os.MkdirAll(localWegoAppsPath, 0755)
+	return filepath.Join(localWegoAppsPath, app), nil
+}
+
+func GetAppsPath(appName string) (string, error) {
+	wegoAppsPath, err := GetWegoAppsPath()
+	if err != nil {
+		return "", err
+	}
+
+	appYamlPath := filepath.Join(wegoAppsPath, appName)
+
+	return appYamlPath, nil
 }
 
 // GetClusterName returns the cluster name associated with the current context in ~/.kube/config

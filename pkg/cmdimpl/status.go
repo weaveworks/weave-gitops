@@ -3,6 +3,10 @@ package cmdimpl
 import (
 	"fmt"
 	"os"
+	"os/exec"
+
+	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/shims"
 
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
@@ -16,12 +20,25 @@ func Status(args []string, allParams AddParamSet) {
 		fmt.Printf("error getting path for app [%s] \n", args[0])
 		os.Exit(1)
 	}
-	if !utils.Exists(appPath) {
+	if !utils.Exists(appPath) && args[0] != "wego" {
 		fmt.Printf("app provided does not exists on apps folder [%s]\n", args[0])
 		os.Exit(1)
 	}
 	params.Name = args[0]
 
-	// get the
+	// get the app status from flux
+	exePath, err := fluxBin.GetFluxExePath()
+	if err != nil {
+		fmt.Fprintf(shims.Stderr(), "error getting flux path: %v\n", err)
+		os.Exit(1)
+	}
 
+	c := exec.Command(exePath, "get", "sources", "git", "-A", params.Name)
+	output, err := c.CombinedOutput()
+	if err != nil {
+		fmt.Fprintf(shims.Stderr(), "error getting application status: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println(string(output))
 }

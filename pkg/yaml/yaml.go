@@ -47,17 +47,31 @@ type Spec struct {
 }
 
 type AppManager struct {
-	apps []App
+	apps    []App
+	appName string
+}
+
+func NewAppManager(appName string) AppManager {
+	return AppManager{
+		appName: appName,
+	}
 }
 
 func (a *AppManager) getApps() error {
 
 	apps := make([]App, 0)
 
-	yamlPath, err := GetAppsYamlPath()
+	appsPath, err := utils.GetAppsPath(a.appName)
 	if err != nil {
 		return err
 	}
+	if !utils.Exists(appsPath) {
+		if err := os.MkdirAll(appsPath, 0755); err != nil {
+			return err
+		}
+	}
+
+	yamlPath := filepath.Join(appsPath, "app.yaml")
 
 	if err = decodeYAMLFileToStruct(yamlPath, &apps); err != nil {
 		return err
@@ -69,13 +83,13 @@ func (a *AppManager) getApps() error {
 
 }
 
-func GetAppsYamlPath() (string, error) {
-	wegoAppsPath, err := utils.GetWegoAppsPath()
+func GetAppsYamlPath(appName string) (string, error) {
+	appsPath, err := utils.GetAppsPath(appName)
 	if err != nil {
 		return "", err
 	}
 
-	appYamlPath := filepath.Join(wegoAppsPath, "app.yaml")
+	appYamlPath := filepath.Join(appsPath, "app.yaml")
 
 	return appYamlPath, nil
 }
@@ -101,7 +115,7 @@ func (a *AppManager) persistApps() error {
 		return err
 	}
 
-	yamlPath, err := GetAppsYamlPath()
+	yamlPath, err := GetAppsYamlPath(a.appName)
 	if err != nil {
 		return err
 	}
@@ -117,17 +131,23 @@ func (a *AppManager) AddApp(newApp App) error {
 		return err
 	}
 
-	newApps := make([]App, 0)
+	apps := make([]App, 0)
 
+	newAppExistsAlready := false
 	for _, currentApp := range a.apps {
 		if currentApp.Metadata.Name == newApp.Metadata.Name {
-			newApps = append(newApps, newApp)
+			newAppExistsAlready = true
+			apps = append(apps, newApp)
 		} else {
-			newApps = append(newApps, currentApp)
+			apps = append(apps, currentApp)
 		}
 	}
 
-	a.apps = newApps
+	if !newAppExistsAlready {
+		apps = append(apps, newApp)
+	}
+
+	a.apps = apps
 
 	return a.persistApps()
 

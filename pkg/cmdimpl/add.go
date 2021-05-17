@@ -137,7 +137,6 @@ func generateWegoSourceManifest() []byte {
 		fluxRepoName,
 		params.PrivateKey,
 		params.Namespace)
-	fmt.Println("debug3", cmd)
 	_, err = fluxops.CallFlux(cmd)
 	checkAddError(err)
 
@@ -152,7 +151,6 @@ func generateWegoSourceManifest() []byte {
 		fluxRepoName,
 		params.Branch,
 		params.Namespace)
-	fmt.Println("debug2", cmd)
 	sourceManifest, err := fluxops.CallFlux(cmd)
 	checkAddError(err)
 	return sourceManifest
@@ -224,9 +222,17 @@ func generateKustomizeManifest() []byte {
 }
 
 func generateHelmManifest() []byte {
-	helmManifest, err := fluxops.CallFlux(
-		fmt.Sprintf(`create helmrelease %s --source="GitRepository/%s" --chart="%s" --interval=5m --export`, params.Name, params.Name, params.Path))
 
+	cmd := fmt.Sprintf(`create helmrelease %s \
+			--source="GitRepository/%s" \
+			--chart="%s" \
+			--interval=5m \
+			--export`,
+		params.Name,
+		params.Name,
+		params.Path,
+	)
+	helmManifest, err := fluxops.CallFlux(cmd)
 	checkAddError(err)
 	return helmManifest
 }
@@ -336,7 +342,7 @@ func Add(args []string, allParams AddParamSet) {
 	checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(wegoKust)))
 
 	//Create app.yaml
-	yamlManager := yaml.AppManager{}
+	yamlManager := yaml.NewAppManager(params.Name)
 	err = yamlManager.AddApp(yaml.NewApp(params.Name, args[0], params.Url))
 	checkAddError(err)
 
@@ -354,11 +360,14 @@ func Add(args []string, allParams AddParamSet) {
 		os.Exit(1)
 	}
 
-	wegoAppsPath, err := utils.GetWegoAppsPath()
+	checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(source)))
+	checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(appManifests)))
+
+	wegoAppsPath, err := utils.GetWegoApp(params.Name)
 	checkAddError(err)
 	sourceYamlPath := filepath.Join(wegoAppsPath, "source-"+params.Name+".yaml")
 	manifestDeployTypeNamePath := filepath.Join(wegoAppsPath, fmt.Sprintf("%s-%s.yaml", params.DeploymentType, params.Name))
-	appYamlPath, err := yaml.GetAppsYamlPath()
+	appYamlPath, err := yaml.GetAppsYamlPath(params.Name)
 	checkAddError(err)
 	checkAddError(ioutil.WriteFile(sourceYamlPath, source, 0644))
 	checkAddError(ioutil.WriteFile(manifestDeployTypeNamePath, appManifests, 0644))
