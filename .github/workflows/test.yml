@@ -57,7 +57,7 @@ jobs:
     - name: unit-tests with coverage
       run: |
         go get -u github.com/ory/go-acc
-        go-acc --ignore fluxopsfakes,acceptance -o coverage.out ./... -- -v -tags test
+        go-acc --ignore fluxopsfakes,acceptance -o coverage.out ./... -- -v --timeout=1000s -tags test
     - name: Convert coverage.out to coverage.lcov
       uses: jandelgado/gcov2lcov-action@v1.0.6
     - name: Coveralls
@@ -117,4 +117,4 @@ jobs:
         export PATH=${PATH}:`go env GOPATH`/bin
         export WEGO_BIN_PATH=$(pwd)/bin/wego
         go get -u github.com/onsi/ginkgo/ginkgo
-        ginkgo --reportFile=$(pwd)/test-results/smoke-test-results.xml -v -tags=smoke ./test/acceptance/test/...
+        ginkgo --reportFile=$(pwd)/test-results/smoke-test-results.xml -v --timeout=1000s -tags=smoke ./test/acceptance/test/...
