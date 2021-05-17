@@ -25,7 +25,7 @@ func VerifyControllersInCluster(session *gexec.Session) {
 
 //Reseting namespace is an expensive operation, only use this when absolutely necessary
 func ResetNamespace(namespace string) {
-	By("And there's not previous wego installation", func() {
+	By("And there's no previous wego installation", func() {
 		//Reset the cluster
 		//command := exec.Command("kubectl", "delete", "ns", namespace, "--ignore-not-found=true")
 		//session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -51,19 +51,19 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 	It("Verify that wego displays error message when provided with the wrong flag", func() {
 
-		By("When I run 'wego abcd'", func() {
-			command := exec.Command(WEGO_BIN_PATH, "abcd")
+		By("When I run 'wego foo'", func() {
+			command := exec.Command(WEGO_BIN_PATH, "foo")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
 		By("Then I should see wego error message", func() {
-			Eventually(session.Err).Should(gbytes.Say("Error: unknown command \"abcd\" for \"wego\""))
+			Eventually(session.Err).Should(gbytes.Say("Error: unknown command \"foo\" for \"wego\""))
 			Eventually(session.Err).Should(gbytes.Say("Run 'wego --help' for usage."))
 		})
 	})
 
-	It("Verify that wego can install required controllers under namespace `wego-system`", func() {
+	It("Verify that wego can install required controllers under default namespace `wego-system`", func() {
 
 		ResetNamespace("wego-system")
 		By("When I run the command 'wego install | kubectl apply -f -'", func() {

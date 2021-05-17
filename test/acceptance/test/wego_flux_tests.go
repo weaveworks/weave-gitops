@@ -25,8 +25,8 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 	It("Verify that wego-flux displays error message when provided with the wrong flag", func() {
 
-		By("When I run the command 'wego flux abcd'", func() {
-			command := exec.Command(WEGO_BIN_PATH, "flux", "abcd")
+		By("When I run the command 'wego flux foo'", func() {
+			command := exec.Command(WEGO_BIN_PATH, "flux", "foo")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 
