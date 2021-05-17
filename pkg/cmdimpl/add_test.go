@@ -159,6 +159,15 @@ func ensureFluxVersion() error {
 	return nil
 }
 
+func handleGitLsRemote(arglist ...string) ([]byte, []byte, error) {
+	commandEnd := strings.Index(arglist[0], " ")
+	command := arglist[0][0:commandEnd]
+	if strings.HasPrefix(command, "git ls-remote") {
+		return []byte{}, []byte{}, nil
+	}
+	return nil, nil, fmt.Errorf("NO!")
+}
+
 func TestCmds(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Command Tests")
@@ -190,26 +199,32 @@ var _ = Describe("Dry Run Add Test", func() {
 			defer os.Remove(privateKeyFileName)
 			utils.WithFailureFor(utils.CallCommandForEffectWithInputPipeOp, func() ([]byte, []byte, error) {
 				utils.WithFailureFor(utils.CallCommandForEffectWithDebugOp, func() ([]byte, []byte, error) {
-					_, err = fluxops.WithFluxHandler(FailFluxHandler, func() ([]byte, error) {
-						err = shims.WithGitProviderHandler(fgphandler, func() error {
-							err = status.WithStatusHandler(shandler, func() error {
-								Add([]string{"."},
-									AddParamSet{
-										Name:       "wanda",
-										Url:        "ssh://git@github.com/foobar/quux.git",
-										Path:       "./",
-										Branch:     "main",
-										PrivateKey: privateKeyFileName,
-										DryRun:     true,
-										Namespace:  "wego-system"})
-								Expect(err).To(BeNil())
-								return nil
+					_, _, err = utils.WithBehaviorFor(utils.CallCommandForEffectOp,
+						handleGitLsRemote,
+						func() ([]byte, []byte, error) {
+							_, err = fluxops.WithFluxHandler(FailFluxHandler, func() ([]byte, error) {
+								err = shims.WithGitProviderHandler(fgphandler, func() error {
+									err = status.WithStatusHandler(shandler, func() error {
+										Add([]string{"."},
+											AddParamSet{
+												Name:       "wanda",
+												Url:        "ssh://git@github.com/foobar/quux.git",
+												Path:       "./",
+												Branch:     "main",
+												PrivateKey: privateKeyFileName,
+												DryRun:     true,
+												Namespace:  "wego-system"})
+										Expect(err).To(BeNil())
+										return nil
+									})
+									Expect(err).To(BeNil())
+									return nil
+								})
+								return nil, nil
 							})
 							Expect(err).To(BeNil())
-							return nil
+							return nil, nil, nil
 						})
-						return nil, nil
-					})
 					Expect(err).To(BeNil())
 					return nil, nil, nil
 				})
