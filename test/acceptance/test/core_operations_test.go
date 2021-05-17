@@ -115,7 +115,11 @@ func addRepo(t *testing.T) {
 		require.NoError(t, os.Chdir(dir))
 	}()
 
-	cmdimpl.Add([]string{"."}, cmdimpl.AddParamSet{Name: "", Url: "", Path: "./", Branch: "main", PrivateKey: keyFilePath, Namespace: "wego-system", DeploymentType: "kustomize"})
+	err = cmdimpl.Add([]string{"."}, cmdimpl.AddParamSet{Name: "", Url: "", Path: "./", Branch: "main", PrivateKey: keyFilePath, Namespace: "wego-system", DeploymentType: "kustomize"})
+
+	if err != nil {
+		t.Fatal("cmdimpl.Add failed")
+	}
 }
 
 func ensureWegoRepoIsAbsent(t *testing.T) {

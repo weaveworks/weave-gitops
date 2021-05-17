@@ -4,6 +4,7 @@ package add
 // wego installed, the user will be prompted to install wego and then the repository will be added.
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/cmdimpl"
+	"github.com/weaveworks/weave-gitops/pkg/shims"
 )
 
 var params cmdimpl.AddParamSet
@@ -35,5 +37,8 @@ func init() {
 
 func runCmd(cmd *cobra.Command, args []string) {
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
-	cmdimpl.Add(args, params)
+	if err := cmdimpl.Add(args, params); err != nil {
+		fmt.Fprintf(shims.Stderr(), "%v\n", err)
+		shims.Exit(1)
+	}
 }
