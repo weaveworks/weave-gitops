@@ -115,14 +115,22 @@ func ensureFluxVersion() error {
 		path = "../.."
 	}
 	if version.FluxVersion == "undefined" {
-		stomlpath, err := filepath.Abs(path + "/tools/bin/stoml")
+		// stoml hasn't been downloaded when unit tests run
+		stomldir, err := ioutil.TempDir("", "stoml")
+		if err != nil {
+			return err
+		}
+		defer os.RemoveAll(stomldir)
+
+		stomlpath := filepath.Join(stomldir, "stoml")
+		stomlurl := fmt.Sprintf("https://github.com/freshautomations/stoml/releases/download/v0.4.0/stoml_%s_amd64", runtime.GOOS)
+
+		err = utils.CallCommandForEffectWithDebug(fmt.Sprintf("curl --progress-bar -fLo %s %s", stomlpath, stomlurl))
 		if err != nil {
 			return err
 		}
 
-		// stoml hasn't been downloaded when unit tests run
-		stomlurl := fmt.Sprintf("https://github.com/freshautomations/stoml/releases/download/v0.4.0/stoml_%s_amd64", runtime.GOOS)
-		err = utils.CallCommandForEffectWithDebug(fmt.Sprintf("curl -fLo %s %s", stomlpath, stomlurl))
+		err = utils.CallCommandForEffectWithDebug(fmt.Sprintf("chmod +x %s", stomlpath))
 		if err != nil {
 			return err
 		}
