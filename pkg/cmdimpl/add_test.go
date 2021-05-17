@@ -75,21 +75,6 @@ ZuiS/fwabl876Gw2Ep1A4+Bu3hpDTyf7SYXS0AwntNVV+gn2YRO7M+2BitceXg==
 -----END RSA PRIVATE KEY-----
 `
 
-const kubeconfig = `apiVersion: v1
-clusters:
-- cluster:
-    server: https://127.0.0.1:46677
-  name: kind-wego-demo
-contexts:
-- context:
-    cluster: kind-wego-demo
-    user: kind-wego-demo
-  name: kind-wego-demo
-current-context: kind-wego-demo
-kind: Config
-preferences: {}
-`
-
 type localExitHandler struct {
 	action func(int)
 }
@@ -195,17 +180,6 @@ var _ = Describe("Exit Path Test", func() {
 var _ = Describe("Dry Run Add Test", func() {
 	It("Verify that the dry-run flag leaves clusters and repos unchanged", func() {
 		By("Executing a dry-run add and ensuring none of the flux actions were invoked", func() {
-			// homeDir, err := ioutil.TempDir("", "home")
-			// Expect(err).To(BeNil())
-			// defer os.RemoveAll(homeDir)
-
-			// existingHome := os.Getenv("HOME")
-			// Expect(os.Setenv("HOME", homeDir)).Should(Succeed())
-			// defer os.Setenv("HOME", existingHome)
-			// kubeDirPath := filepath.Join(homeDir, ".kube")
-			// Expect(os.MkdirAll(kubeDirPath, 0755)).Should(Succeed())
-			// Expect(ioutil.WriteFile(filepath.Join(kubeDirPath, "config"), []byte(kubeconfig), 0600)).Should(Succeed())
-
 			Expect(os.Setenv("GITHUB_ORG", "archaeopteryx")).Should(Succeed())
 			Expect(ensureFluxVersion()).Should(Succeed())
 			fgphandler := failGitProviderHandler{}
