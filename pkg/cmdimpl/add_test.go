@@ -17,6 +17,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops/fluxopsfakes"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
+	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"github.com/weaveworks/weave-gitops/pkg/version"
 )
@@ -74,6 +75,21 @@ ZuiS/fwabl876Gw2Ep1A4+Bu3hpDTyf7SYXS0AwntNVV+gn2YRO7M+2BitceXg==
 -----END RSA PRIVATE KEY-----
 `
 
+const kubeconfig = `apiVersion: v1
+clusters:
+- cluster:
+    server: https://127.0.0.1:46677
+  name: kind-wego-demo
+contexts:
+- context:
+    cluster: kind-wego-demo
+    user: kind-wego-demo
+  name: kind-wego-demo
+current-context: kind-wego-demo
+kind: Config
+preferences: {}
+`
+
 type localExitHandler struct {
 	action func(int)
 }
@@ -93,12 +109,21 @@ var FailFluxHandler = &fluxopsfakes.FakeFluxHandler{
 	},
 }
 
-type failGitProviderHandler struct {
-}
+type failGitProviderHandler struct{}
 
 func (h failGitProviderHandler) CreateOrgRepository(provider gitprovider.Client, orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
 	shims.Exit(1)
 	return nil
+}
+
+type statusHandler struct{}
+
+func (h statusHandler) GetClusterName() (string, error) {
+	return "test", nil
+}
+
+func (h statusHandler) GetClusterStatus() status.ClusterStatus {
+	return status.FluxInstalled
 }
 
 func createTestPrivateKeyFile() (*os.File, error) {
@@ -170,10 +195,21 @@ var _ = Describe("Exit Path Test", func() {
 var _ = Describe("Dry Run Add Test", func() {
 	It("Verify that the dry-run flag leaves clusters and repos unchanged", func() {
 		By("Executing a dry-run add and ensuring none of the flux actions were invoked", func() {
-			err := os.Setenv("GITHUB_ORG", "archaeopteryx")
-			Expect(err).To(BeNil())
+			// homeDir, err := ioutil.TempDir("", "home")
+			// Expect(err).To(BeNil())
+			// defer os.RemoveAll(homeDir)
+
+			// existingHome := os.Getenv("HOME")
+			// Expect(os.Setenv("HOME", homeDir)).Should(Succeed())
+			// defer os.Setenv("HOME", existingHome)
+			// kubeDirPath := filepath.Join(homeDir, ".kube")
+			// Expect(os.MkdirAll(kubeDirPath, 0755)).Should(Succeed())
+			// Expect(ioutil.WriteFile(filepath.Join(kubeDirPath, "config"), []byte(kubeconfig), 0600)).Should(Succeed())
+
+			Expect(os.Setenv("GITHUB_ORG", "archaeopteryx")).Should(Succeed())
 			Expect(ensureFluxVersion()).Should(Succeed())
 			fgphandler := failGitProviderHandler{}
+			shandler := statusHandler{}
 			privateKeyFile, err := createTestPrivateKeyFile()
 			Expect(err).To(BeNil())
 			privateKeyFileName := privateKeyFile.Name()
@@ -182,15 +218,19 @@ var _ = Describe("Dry Run Add Test", func() {
 				utils.WithFailureFor(utils.CallCommandForEffectWithDebugOp, func() ([]byte, []byte, error) {
 					_, err = fluxops.WithFluxHandler(FailFluxHandler, func() ([]byte, error) {
 						err = shims.WithGitProviderHandler(fgphandler, func() error {
-							Add([]string{"."},
-								AddParamSet{
-									Name:       "wanda",
-									Url:        "ssh://git@github.com/foobar/quux.git",
-									Path:       "./",
-									Branch:     "main",
-									PrivateKey: privateKeyFileName,
-									DryRun:     true,
-									Namespace:  "wego-system"})
+							err = status.WithStatusHandler(shandler, func() error {
+								Add([]string{"."},
+									AddParamSet{
+										Name:       "wanda",
+										Url:        "ssh://git@github.com/foobar/quux.git",
+										Path:       "./",
+										Branch:     "main",
+										PrivateKey: privateKeyFileName,
+										DryRun:     true,
+										Namespace:  "wego-system"})
+								Expect(err).To(BeNil())
+								return nil
+							})
 							Expect(err).To(BeNil())
 							return nil
 						})
