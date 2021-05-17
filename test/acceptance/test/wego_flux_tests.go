@@ -33,7 +33,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		})
 
 		By("Then I should see wego error message", func() {
-			Eventually(session.Err).Should(gbytes.Say("Error: exit status 1"))
+			Eventually(session.Err).Should(gbytes.Say("✗ unknown command \"foo\" for \"flux\""))
 		})
 	})
 })
