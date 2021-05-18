@@ -15,7 +15,11 @@ import (
 func GomegaFail(message string, callerSkip ...int) {
 
 	//Show pods
-	showItems("pods")
+	err := showItems("pods")
+	if err == nil {
+		log.Infof("Failed to print the pods")
+	}
+
 	//Pass this down to the default handler for onward processing
 	ginkgo.Fail(message, callerSkip...)
 }
