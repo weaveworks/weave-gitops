@@ -64,10 +64,11 @@ var (
 	tmpDir  string
 	client  gitprovider.Client
 	session *gexec.Session
+	tmpPath string
+	err     error
 )
 
 var _ = Describe("WEGO Acceptance Tests", func() {
-	var tmpPath string
 
 	AfterEach(func() {
 		os.RemoveAll(tmpPath)
@@ -118,6 +119,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 		By("When i run 'wego add . --private=false'", func() {
 			dir, err := os.Getwd()
+			Expect(err).ShouldNot(HaveOccurred())
 			Expect(os.Chdir(tmpDir)).Should(Succeed())
 			defer Expect(os.Chdir(dir)).Should(Succeed())
 			command := exec.Command(WEGO_BIN_PATH, "add", ".", "--private=false")
@@ -126,7 +128,9 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		})
 
 		By("Then a private repo with name is created on the remote git", func() {
-			Expect(ensureWegoRepoExists()).Should(Succeed())
+			access, err := ensureWegoRepoAccess()
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(*access).Should(Equal(gitprovider.RepositoryVisibilityPublic))
 		})
 
 		By("kubectl get pods -n wego-system should list the source and kustomize controllers", func() {
@@ -140,7 +144,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 func setupTest() error {
 	WEGO_BIN_PATH = "/usr/local/bin/wego"
-	tmpPath, err := ioutil.TempDir("", "tmp-dir")
+	tmpPath, err = ioutil.TempDir("", "tmp-dir")
 	if err != nil {
 		return err
 	}
@@ -182,20 +186,24 @@ func ensureWegoRepoIsAbsent() error {
 	return nil
 }
 
-func ensureWegoRepoExists() error {
+func ensureWegoRepoAccess() (*gitprovider.RepositoryVisibility, error) {
 	ctx := context.Background()
-	name, err := getRepoName()
+	name, err := getWegoRepoName()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	url := fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), name)
 	ref, err := gitprovider.ParseOrgRepositoryURL(url)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	_, err = client.OrgRepositories().Get(ctx, *ref)
-	return err
+	repo, err := client.OrgRepositories().Get(ctx, *ref)
+	if err != nil {
+		return nil, err
+	}
+	access := repo.Get().Visibility
+	return access, nil
 }
 
 func ensureFluxVersion() error {
@@ -250,6 +258,8 @@ func setUpTestRepo() error {
 	if err != nil {
 		return err
 	}
+	defer os.Chdir(dir)
+
 	err = os.Chdir(tmpDir)
 	if err != nil {
 		return err
@@ -292,18 +302,13 @@ func setUpTestRepo() error {
 		return err
 	}
 
-	name, err = getRepoName()
-	if err != nil {
-		return err
-	}
-
-	originurl := fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), name)
+	originurl := fmt.Sprintf("ssh://git@github.com/%s/%s", os.Getenv("GITHUB_ORG"), name)
 	err = utils.CallCommandForEffectWithDebug(fmt.Sprintf("git remote add origin %s && git pull --rebase origin main && git checkout main && git push --set-upstream origin main", originurl))
 	if err != nil {
 		return err
 	}
 
-	return os.Chdir(dir)
+	return nil
 }
 
 func runCommandForGinkgo(cmd string) error {
