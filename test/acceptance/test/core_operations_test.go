@@ -104,7 +104,9 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		})
 
 		By("Then a private repo with name foo-cluster-wego is created on the remote git", func() {
-			Expect(ensureWegoRepoExists()).Should(Succeed())
+			access, err := ensureWegoRepoAccess()
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(*access).Should(Equal(gitprovider.RepositoryVisibilityPublic))
 		})
 
 		By("kubectl get pods -n wego-system should list the source and kustomize controllers", func() {
