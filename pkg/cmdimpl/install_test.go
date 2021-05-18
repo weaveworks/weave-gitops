@@ -1,31 +1,15 @@
-package install
+package cmdimpl
 
 import (
 	"fmt"
-	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/spf13/cobra"
 
-	"github.com/weaveworks/weave-gitops/pkg/cmdimpl"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops/fluxopsfakes"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 )
-
-type localExitHandler struct {
-	action func(int)
-}
-
-func (h localExitHandler) Handle(code int) {
-	h.action(code)
-}
-
-func TestFluxCmds(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Command Tests")
-}
 
 var _ = Describe("Run Command Test", func() {
 	It("Verify path through flux commands", func() {
@@ -37,10 +21,7 @@ var _ = Describe("Run Command Test", func() {
 			}
 			fluxops.SetFluxHandler(fakeHandler)
 
-			params = cmdimpl.InstallParamSet{
-				Namespace: "my-namespace",
-			}
-			runCmd(&cobra.Command{}, []string{})
+			Install(InstallParamSet{Namespace: "my-namespace"})
 
 			args := fakeHandler.HandleArgsForCall(0)
 			Expect(args).To(Equal("install --namespace=my-namespace --export"))
