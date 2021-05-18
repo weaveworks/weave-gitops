@@ -30,7 +30,7 @@ func GetWegoAppsPath() (string, error) {
 	return filepath.Join(LocalWegoPath, "apps"), nil
 }
 
-func GetWegoApp(app string) (string, error) {
+func GetWegoAppPath(app string) (string, error) {
 
 	localWegoAppsPath, err := GetWegoAppsPath()
 	if err != nil {

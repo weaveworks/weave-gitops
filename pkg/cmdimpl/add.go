@@ -23,43 +23,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
-// Will move into filesystem when we store wego infrastructure in git
-const appCRD = `apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: apps.wego.weave.works
-spec:
-  group: wego.weave.works
-  scope: Cluster
-  names:
-    kind: Application
-    listKind: ApplicationList
-    plural: apps
-    singular: app
-  subresources:
-    status: {}
-  validation:
-    openAPIV3Schema:
-      required: ["spec"]
-      properties:
-        spec:
-          required: ["url", "path"]
-          properties:
-            url:
-              type: "string"
-              minimum: 1
-              maximum: 1
-            path:
-              type: "string"
-              minimum: 1
-              maximum: 1
-  version: v1alpha1
-  versions:
-    - name: v1alpha1
-      served: true
-      storage: true
-`
-
 const (
 	DeployTypeKustomize = "kustomize"
 	DeployTypeHelm      = "helm"
@@ -296,9 +259,11 @@ func Add(args []string, allParams AddParamSet) {
 
 	wegoRepoName, err := utils.GetWegoRepoName()
 	checkAddError(err)
+	fmt.Println("wegoRepoName", wegoRepoName)
 
 	fluxRepo, err := utils.GetWegoLocalPath()
 	checkAddError(err)
+	fmt.Println("fluxRepo", fluxRepo)
 
 	owner := getOwner()
 	checkAddError(os.Chdir(fluxRepo))
@@ -337,11 +302,11 @@ func Add(args []string, allParams AddParamSet) {
 	wegoSource := generateWegoSourceManifest()
 	wegoKust := generateWegoKustomizeManifest()
 	kubectlApply := fmt.Sprintf("kubectl apply --namespace=%s -f -", params.Namespace)
-	checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, appCRD))
 	checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(wegoSource)))
 	checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(wegoKust)))
 
-	//Create app.yaml
+	// Create app.yaml
+	// TODO refactor AppManager @josecordaz
 	yamlManager := yaml.NewAppManager(params.Name)
 	err = yamlManager.AddApp(yaml.NewApp(params.Name, args[0], params.Url))
 	checkAddError(err)
@@ -363,7 +328,7 @@ func Add(args []string, allParams AddParamSet) {
 	checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(source)))
 	checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(appManifests)))
 
-	wegoAppsPath, err := utils.GetWegoApp(params.Name)
+	wegoAppsPath, err := utils.GetWegoAppPath(params.Name)
 	checkAddError(err)
 	sourceYamlPath := filepath.Join(wegoAppsPath, "source-"+params.Name+".yaml")
 	manifestDeployTypeNamePath := filepath.Join(wegoAppsPath, fmt.Sprintf("%s-%s.yaml", params.DeploymentType, params.Name))

@@ -15,7 +15,7 @@ import (
 func Status(args []string, allParams AddParamSet) {
 
 	// verify the app is in the wego apps folder
-	appPath, err := utils.GetWegoApp(args[0])
+	appPath, err := utils.GetWegoAppPath(args[0])
 	if err != nil {
 		fmt.Printf("error getting path for app [%s] \n", args[0])
 		os.Exit(1)
@@ -26,6 +26,8 @@ func Status(args []string, allParams AddParamSet) {
 	}
 	params.Name = args[0]
 
+	// Get latest time
+
 	// get the app status from flux
 	exePath, err := fluxBin.GetFluxExePath()
 	if err != nil {
@@ -33,12 +35,12 @@ func Status(args []string, allParams AddParamSet) {
 		os.Exit(1)
 	}
 
-	c := exec.Command(exePath, "get", "sources", "git", "-A", params.Name)
-	output, err := c.CombinedOutput()
+	c := exec.Command(exePath, "get", "all", "-A", params.Name)
+	sourceOutput, err := c.CombinedOutput()
 	if err != nil {
-		fmt.Fprintf(shims.Stderr(), "error getting application status: %v\n", err)
+		fmt.Fprintf(shims.Stderr(), "error getting git source status: %v\n", err)
 		os.Exit(1)
 	}
+	fmt.Println(string(sourceOutput))
 
-	fmt.Println(string(output))
 }

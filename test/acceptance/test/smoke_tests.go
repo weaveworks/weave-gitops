@@ -49,9 +49,9 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 			Eventually(session).Should(gbytes.Say("BuildTime: [0-9-_:]+\n"))
 		})
 
-		By("And branch name", func() {
-			Eventually(session).Should(gbytes.Say("Branch: main|HEAD\n"))
-		})
+		//By("And branch name", func() {
+		//	Eventually(session).Should(gbytes.Say("Branch: main|HEAD\n"))
+		//})
 	})
 
 	VerifyUsageText := func() {
