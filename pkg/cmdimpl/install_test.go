@@ -21,7 +21,8 @@ var _ = Describe("Run Command Test", func() {
 			}
 			fluxops.SetFluxHandler(fakeHandler)
 
-			Install(InstallParamSet{Namespace: "my-namespace"})
+			_, err := Install(InstallParamSet{Namespace: "my-namespace"})
+			Expect(err).To(BeNil())
 
 			args := fakeHandler.HandleArgsForCall(0)
 			Expect(args).To(Equal("install --namespace=my-namespace --export"))
