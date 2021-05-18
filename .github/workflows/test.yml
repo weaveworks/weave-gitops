@@ -77,13 +77,20 @@ jobs:
         go-version: 1.16.x
     - name: Checkout code
       uses: actions/checkout@v2
-
+    - name: Setup Kubernetes
+      uses: helm/kind-action@v1.1.0
+      with: 
+        cluster_name: "${{ format('katc-{0}', github.run_id) }}"
+        version: "v0.10.0"
+    - name: Kind-check
+      run: |
+       kubectl get pods -A
     - name: Download wego binaries
       uses: actions/download-artifact@v2
       with:
         name: wego-binaries
         path: bin
-    - name: change bin permissions
+    - name: Change bin permissions
       run: |
         chmod +x bin/wego
         ls -la bin
