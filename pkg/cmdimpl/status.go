@@ -3,10 +3,10 @@ package cmdimpl
 import (
 	"fmt"
 	"os"
-	"os/exec"
 
-	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/shims"
+	"gopkg.in/yaml.v2"
+
+	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
@@ -27,20 +27,39 @@ func Status(args []string, allParams AddParamSet) {
 	params.Name = args[0]
 
 	// Get latest time
+	c := fmt.Sprintf(`kubectl \
+			-n %s \
+			get kustomizations/testing-app -oyaml`,
+		"wego-system",
+	)
 
-	// get the app status from flux
-	exePath, err := fluxBin.GetFluxExePath()
+	stdout, stderr, err := utils.CallCommandSeparatingOutputStreams(c)
 	if err != nil {
-		fmt.Fprintf(shims.Stderr(), "error getting flux path: %v\n", err)
+		fmt.Printf("error getting resource info [%s %s]\n", err.Error(), string(stderr))
 		os.Exit(1)
 	}
-
-	c := exec.Command(exePath, "get", "all", "-A", params.Name)
-	sourceOutput, err := c.CombinedOutput()
+	var yamlOutput Yaml
+	err = yaml.Unmarshal(stdout, &yamlOutput)
 	if err != nil {
-		fmt.Fprintf(shims.Stderr(), "error getting git source status: %v\n", err)
+		fmt.Printf("error unmarshalling yaml output [%s] \n", err.Error())
 		os.Exit(1)
 	}
-	fmt.Println(string(sourceOutput))
+	if len(yamlOutput.Status.Conditions) == 0 {
+		fmt.Printf("error getting latest deployment time [%s] \n", err.Error())
+		os.Exit(1)
+	}
+	fmt.Println("Latest successful deployment time: ", yamlOutput.Status.Conditions[0].LastTransitionTime)
 
+	cmd := fmt.Sprintf(`get all -A %s`,
+		params.Name)
+	_, err = fluxops.CallFlux(cmd)
+	checkAddError(err)
+}
+
+type Yaml struct {
+	Status struct {
+		Conditions []struct {
+			LastTransitionTime string `yaml:"lastTransitionTime"`
+		} `yaml:"conditions"`
+	} `yaml:"status"`
 }

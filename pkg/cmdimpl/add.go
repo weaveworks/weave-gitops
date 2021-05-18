@@ -10,12 +10,12 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
-	log "github.com/sirupsen/logrus"
-
-	"github.com/weaveworks/weave-gitops/pkg/yaml"
+	"github.com/weaveworks/weave-gitops/pkg/app"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	cgitprovider "github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
@@ -259,11 +259,9 @@ func Add(args []string, allParams AddParamSet) {
 
 	wegoRepoName, err := utils.GetWegoRepoName()
 	checkAddError(err)
-	fmt.Println("wegoRepoName", wegoRepoName)
 
 	fluxRepo, err := utils.GetWegoLocalPath()
 	checkAddError(err)
-	fmt.Println("fluxRepo", fluxRepo)
 
 	owner := getOwner()
 	checkAddError(os.Chdir(fluxRepo))
@@ -287,12 +285,19 @@ func Add(args []string, allParams AddParamSet) {
 		err = cgitprovider.CreateOrgRepository(c, orgRef, repoInfo, repoCreateOpts)
 		checkAddError(err)
 
+		fmt.Println("waiting 5 seconds")
+		time.Sleep(time.Second * 5)
+
 		cmd := fmt.Sprintf(`git remote add origin %s && \
 			git pull --rebase origin main && \
 			git checkout main && \
 			git push --set-upstream origin main`,
 			orgRef.String())
-		checkAddError(utils.CallCommandForEffectWithDebug(cmd))
+		err = utils.CallCommandForEffectWithDebug(cmd)
+		if err != nil {
+			fmt.Println("error on git remote add ", err.Error())
+		}
+		checkAddError(err)
 	} else {
 		cmd := "git branch --set-upstream-to=origin/main main"
 		checkAddError(utils.CallCommandForEffectWithDebug(cmd))
@@ -306,10 +311,7 @@ func Add(args []string, allParams AddParamSet) {
 	checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(wegoKust)))
 
 	// Create app.yaml
-	// TODO refactor AppManager @josecordaz
-	yamlManager := yaml.NewAppManager(params.Name)
-	err = yamlManager.AddApp(yaml.NewApp(params.Name, args[0], params.Url))
-	checkAddError(err)
+	newApp := app.NewApp(params.Name, params.Path, params.Url)
 
 	// Create flux custom resources for new repo being added
 	source := generateSourceManifest()
@@ -325,19 +327,29 @@ func Add(args []string, allParams AddParamSet) {
 		os.Exit(1)
 	}
 
-	checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(source)))
-	checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(appManifests)))
-
-	wegoAppsPath, err := utils.GetWegoAppPath(params.Name)
+	wegoAppPath, err := utils.GetWegoAppPath(params.Name)
 	checkAddError(err)
-	sourceYamlPath := filepath.Join(wegoAppsPath, "source-"+params.Name+".yaml")
-	manifestDeployTypeNamePath := filepath.Join(wegoAppsPath, fmt.Sprintf("%s-%s.yaml", params.DeploymentType, params.Name))
-	appYamlPath, err := yaml.GetAppsYamlPath(params.Name)
+
+	if !utils.Exists(wegoAppPath) {
+		if err = os.MkdirAll(wegoAppPath, 0755); err != nil {
+			checkAddError(err)
+		}
+	}
+
+	sourceYamlPath := filepath.Join(wegoAppPath, "source-"+params.Name+".yaml")
+	manifestDeployTypeNamePath := filepath.Join(wegoAppPath, fmt.Sprintf("%s-%s.yaml", params.DeploymentType, params.Name))
+	appYamlName := filepath.Join(wegoAppPath, "app.yaml")
+
+	appManifestContent, err := newApp.Bytes()
 	checkAddError(err)
 	checkAddError(ioutil.WriteFile(sourceYamlPath, source, 0644))
 	checkAddError(ioutil.WriteFile(manifestDeployTypeNamePath, appManifests, 0644))
+	checkAddError(ioutil.WriteFile(appYamlName, appManifestContent, 0644))
 
-	err = commitAndPush(sourceYamlPath, manifestDeployTypeNamePath, appYamlPath)
+	err = commitAndPush(sourceYamlPath, manifestDeployTypeNamePath, appYamlName)
+	if err != nil {
+		fmt.Println("err on commit and push", err.Error())
+	}
 	checkAddError(err)
 
 	fmt.Printf("Successfully added repository: %s.\n", params.Name)

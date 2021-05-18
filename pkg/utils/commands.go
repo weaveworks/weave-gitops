@@ -179,6 +179,8 @@ func Escape(cmd string) string {
 
 func WithBehaviorFor(callOp CallOperation, behavior func(args ...string) ([]byte, []byte, error), action func() ([]byte, []byte, error)) ([]byte, []byte, error) {
 	existingBehavior, ok := behaviors[callOp]
+	fmt.Println("OK", ok)
+	fmt.Println("len(behaviors)", len(behaviors))
 	behaviors[callOp] = behavior
 	defer func() {
 		if ok {
