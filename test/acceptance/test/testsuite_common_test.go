@@ -7,9 +7,22 @@ import (
 	"testing"
 
 	. "github.com/onsi/ginkgo"
+	ginkgo "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 )
+
+func GomegaFail(message string, callerSkip ...int) {
+
+	//Show pods
+	err := showItems("pods")
+	if err == nil {
+		log.Infof("Failed to print the pods")
+	}
+
+	//Pass this down to the default handler for onward processing
+	ginkgo.Fail(message, callerSkip...)
+}
 
 func TestAcceptance(t *testing.T) {
 
@@ -17,7 +30,7 @@ func TestAcceptance(t *testing.T) {
 		t.Skip("Skip User Acceptance Tests")
 	}
 
-	RegisterFailHandler(Fail)
+	RegisterFailHandler(GomegaFail)
 	RunSpecs(t, getSuiteTitle())
 }
 
