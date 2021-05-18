@@ -8,7 +8,6 @@ on:
 
 name: run tests
 jobs:
-
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -94,6 +93,9 @@ jobs:
       run: |
         chmod +x bin/wego
         ls -la bin
+    - name: Download dependecies
+      run: |
+        make dependencies
     - name: Install Ginkgo binary
       run: go get github.com/onsi/ginkgo/ginkgo@v1.16.1
     - name: Run smoke tests from acceptance suite
