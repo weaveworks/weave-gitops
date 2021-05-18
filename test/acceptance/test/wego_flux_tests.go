@@ -1,9 +1,8 @@
-// +build smoke acceptance rest
+// +build smoke acceptance
 
 package acceptance
 
 import (
-	"fmt"
 	"os/exec"
 
 	. "github.com/onsi/ginkgo"
