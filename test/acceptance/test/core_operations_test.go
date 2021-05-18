@@ -260,7 +260,9 @@ func setUpTestRepo() error {
 	if err != nil {
 		return err
 	}
-	defer os.Chdir(dir)
+	defer func() {
+		err = os.Chdir(dir)
+	}()
 
 	err = os.Chdir(tmpDir)
 	if err != nil {
@@ -310,7 +312,7 @@ func setUpTestRepo() error {
 		return err
 	}
 
-	return nil
+	return err
 }
 
 func runCommandForGinkgo(cmd string) error {
