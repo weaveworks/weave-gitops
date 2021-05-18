@@ -23,8 +23,8 @@ func FileExists(name string) bool {
 }
 
 // showItems displays the current set of a specified object type in tabular format
-func showItems(itemType string) error {
-	return runCommandPassThrough([]string{}, "kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
+func showItems(itemType string) {
+	runCommandPassThrough([]string{}, "kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
 }
 
 // Run a command, passing through stdout/stderr to the OS standard streams
