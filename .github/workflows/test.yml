@@ -82,7 +82,7 @@ jobs:
       with: 
         cluster_name: "${{ format('katc-{0}', github.run_id) }}"
         version: "v0.10.0"
-    - name: kind-check
+    - name: Kind-check
       run: |
        kubectl get pods -A
     - name: Download wego binaries
@@ -90,7 +90,7 @@ jobs:
       with:
         name: wego-binaries
         path: bin
-    - name: change bin permissions
+    - name: Change bin permissions
       run: |
         chmod +x bin/wego
         ls -la bin
