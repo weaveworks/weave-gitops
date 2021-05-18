@@ -102,7 +102,6 @@ jobs:
         ssh-private-key: ${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}
     - name: Configure git settings
       run: |
-        export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}
         git config --global init.defaultBranch main
         git config --global user.email "test-user@weave.works"
         git config --global user.name "Testy McTestFace"
