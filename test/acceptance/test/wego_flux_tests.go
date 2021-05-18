@@ -1,13 +1,13 @@
-// +build smoke acceptance
+// +build smoke acceptance rest
 
 package acceptance
 
 import (
+	"fmt"
 	"os/exec"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 )
 
@@ -33,7 +33,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		})
 
 		By("Then I should see wego error message", func() {
-			Eventually(session.Err).Should(gbytes.Say("✗ unknown command \"foo\" for \"flux\""))
+			Eventually(session.Wait().Out.Contents()).Should(ContainSubstring("✗ unknown command \"foo\" for \"flux\""))
 		})
 	})
 })
