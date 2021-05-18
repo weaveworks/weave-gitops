@@ -1,6 +1,6 @@
 // +build !unittest
+// +build acceptance
 // +build !smoke
-// +build !acceptance
 
 package acceptance
 
@@ -106,7 +106,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		By("Then a private repo with name foo-cluster-wego is created on the remote git", func() {
 			access, err := ensureWegoRepoAccess()
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(*access).Should(Equal(gitprovider.RepositoryVisibilityPublic))
+			Expect(*access).Should(Equal(gitprovider.RepositoryVisibilityPrivate))
 		})
 
 		By("kubectl get pods -n wego-system should list the source and kustomize controllers", func() {
