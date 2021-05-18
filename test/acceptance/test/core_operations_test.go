@@ -1,8 +1,6 @@
 // +build !unittest
-// +build acceptance
-// +build !smoke
+// +build smoke acceptance
 
-// ^^ temporarily disabling this test until we have it in ginkgo format.
 package acceptance
 
 // Runs basic WeGO operations against a kind cluster.
@@ -85,8 +83,8 @@ func TestCoreOperations(t *testing.T) {
 	ensureFluxVersion(t)
 	log.Info("Checking initial status...")
 	checkInitialStatus(t)
-	log.Info("Install flux...")
-	installFlux(t)
+	log.Info("Install wego...")
+	installWego(t)
 	log.Info("Setting up test repository...")
 	setUpTestRepo(t) // create repo with simple nginx manifest
 	defer deleteRepos(t)
@@ -159,9 +157,9 @@ func waitForNginxDeployment(t *testing.T) {
 	require.FailNow(t, "Failed to deploy nginx workload to the cluster")
 }
 
-func installFlux(t *testing.T) {
+func installWego(t *testing.T) {
 	flux.SetupFluxBin()
-	manifests, err := fluxops.QuietInstall("wego-system")
+	manifests, err := cmdimpl.Install(cmdimpl.InstallParamSet{Namespace: "wego-system"})
 	require.NoError(t, err)
 	require.NoError(t, utils.CallCommandForEffectWithInputPipeAndDebug("kubectl apply -f -", string(manifests)))
 }
