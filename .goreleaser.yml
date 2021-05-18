@@ -11,9 +11,8 @@ builds:
       env:
         - CGO_ENABLED=0
       hooks:
-        pre: export CURRENT_DIR=pwd
-        pre: $(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
         pre: export BRANCH=git rev-parse --abbrev-ref HEAD
+        pre: export CURRENT_DIR=pwd
         pre: export FLUX_VERSION=$(CURRENT_DIR)/tools/bin/stoml $(CURRENT_DIR)/tools/dependencies.toml flux.version
     id: linux
     goos:
