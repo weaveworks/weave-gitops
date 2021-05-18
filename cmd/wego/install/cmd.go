@@ -6,10 +6,15 @@ package install
 import (
 	"fmt"
 
+	_ "embed"
+
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 )
+
+//go:embed manifests/app-crd.yaml
+var appCRD []byte
 
 type paramSet struct {
 	namespace string
@@ -42,10 +47,13 @@ func exit(code int) {
 }
 
 func init() {
-	Cmd.Flags().StringVar(&params.namespace, "namespace", "wego-system", "the namespace scope for this operation")
+	Cmd.Flags().StringVarP(&params.namespace, "namespace", "n", "wego-system", "the namespace scope for this operation")
 }
 
 func runCmd(cmd *cobra.Command, args []string) {
 	_, err := fluxops.Install(params.namespace)
 	checkError("failed outputing install manifests", err)
+
+	// printing out wego manifests
+	fmt.Println(string(appCRD))
 }
