@@ -10,6 +10,7 @@ import (
 )
 
 const EVENTUALLY_DEFAULT_TIME_OUT time.Duration = 60 * time.Second
+const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
 
 var WEGO_BIN_PATH string
 

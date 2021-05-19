@@ -16,7 +16,7 @@ func GomegaFail(message string, callerSkip ...int) {
 
 	//Show pods
 	err := showItems("pods")
-	if err == nil {
+	if err != nil {
 		log.Infof("Failed to print the pods")
 	}
 
