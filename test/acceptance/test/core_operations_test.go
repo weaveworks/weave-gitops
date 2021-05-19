@@ -96,7 +96,9 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 			dir, err := os.Getwd()
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(os.Chdir(tmpDir)).Should(Succeed())
-			defer Expect(os.Chdir(dir)).Should(Succeed())
+			defer func() {
+				Expect(os.Chdir(dir)).Should(Succeed())
+			}()
 			command := exec.Command(WEGO_BIN_PATH, "add", ".")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -122,7 +124,9 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 			dir, err := os.Getwd()
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(os.Chdir(tmpDir)).Should(Succeed())
-			defer Expect(os.Chdir(dir)).Should(Succeed())
+			defer func() {
+				Expect(os.Chdir(dir)).Should(Succeed())
+			}()
 			command := exec.Command(WEGO_BIN_PATH, "add", ".", "--private=false")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -198,12 +202,16 @@ func ensureWegoRepoAccess() (*gitprovider.RepositoryVisibility, error) {
 	if err != nil {
 		return nil, err
 	}
-	repo, err := client.OrgRepositories().Get(ctx, *ref)
-	if err != nil {
-		return nil, err
+
+	for i := 1; i < 5; i++ {
+		log.Infof("Waiting for wego repo creation... try: %d of 5\n", i)
+		repo, err := client.OrgRepositories().Get(ctx, *ref)
+		if err == nil {
+			return repo.Get().Visibility, nil
+		}
+		time.Sleep(5 * time.Second)
 	}
-	access := repo.Get().Visibility
-	return access, nil
+	return nil, fmt.Errorf("wepo does not exist")
 }
 
 func ensureFluxVersion() error {
