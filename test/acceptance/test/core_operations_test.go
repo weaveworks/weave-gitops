@@ -85,7 +85,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 			Expect(setupTest()).Should(Succeed())
 			Expect(ensureWegoRepoIsAbsent()).Should(Succeed())
 			Expect(ensureFluxVersion()).Should(Succeed())
-			Expect(installFlux()).Should(Succeed())
+			Expect(installWego()).Should(Succeed())
 			Expect(setUpTestRepo()).Should(Succeed())
 		})
 
@@ -239,11 +239,13 @@ func waitForNginxDeployment() error {
 	return fmt.Errorf("Failed to deploy nginx workload to the cluster")
 }
 
-func installWego(t *testing.T) {
+func installWego() error {
 	flux.SetupFluxBin()
 	manifests, err := cmdimpl.Install(cmdimpl.InstallParamSet{Namespace: "wego-system"})
-	require.NoError(t, err)
-	require.NoError(t, utils.CallCommandForEffectWithInputPipeAndDebug("kubectl apply -f -", string(manifests)))
+	if err != nil {
+		return err
+	}
+	return utils.CallCommandForEffectWithInputPipeAndDebug("kubectl apply -f -", string(manifests)))
 }
 
 func getWegoRepoName() (string, error) {
