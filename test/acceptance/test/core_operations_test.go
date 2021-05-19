@@ -23,6 +23,7 @@ import (
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"github.com/prometheus/common/log"
+	"github.com/weaveworks/weave-gitops/pkg/cmdimpl"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/status"
@@ -245,7 +246,7 @@ func installWego() error {
 	if err != nil {
 		return err
 	}
-	return utils.CallCommandForEffectWithInputPipeAndDebug("kubectl apply -f -", string(manifests)))
+	return utils.CallCommandForEffectWithInputPipeAndDebug("kubectl apply -f -", string(manifests))
 }
 
 func getWegoRepoName() (string, error) {
