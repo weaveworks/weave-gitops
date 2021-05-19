@@ -24,7 +24,7 @@ func (h defaultExitHandler) Handle(code int) {
 var exitHandler interface{} = defaultExitHandler{}
 
 func OverrideExit(handler ExitHandler) override.Override {
-	return override.Override{&exitHandler, handler, exitHandler}
+	return override.Override{Handler: &exitHandler, Mock: handler, Original: exitHandler}
 }
 
 // Handler implementation to ignore exits
@@ -52,7 +52,7 @@ func (h defaultHomeDirHandler) Handle() (string, error) {
 }
 
 func OverrideHomeDir(handler HomeDirHandler) override.Override {
-	return override.Override{&homeDirHandler, handler, homeDirHandler}
+	return override.Override{Handler: &homeDirHandler, Mock: handler, Original: homeDirHandler}
 }
 
 // Function being mocked
@@ -74,7 +74,7 @@ func (h defaultGitProviderHandler) CreateOrgRepository(provider gitprovider.Clie
 }
 
 func OverrideGitProvider(handler GitProviderHandler) override.Override {
-	return override.Override{&gitProviderHandler, handler, gitProviderHandler}
+	return override.Override{Handler: &gitProviderHandler, Mock: handler, Original: gitProviderHandler}
 }
 
 // Function being mocked

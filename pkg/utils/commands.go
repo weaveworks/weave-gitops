@@ -182,17 +182,15 @@ func Escape(cmd string) string {
 
 func OverrideBehavior(callOp CallOperation, behavior func(args ...interface{}) ([]byte, []byte, error)) override.Override {
 	location := &behaviors[callOp]
-	return override.Override{location, behavior, behaviors[callOp]}
+	return override.Override{Handler: location, Mock: behavior, Original: behaviors[callOp]}
 }
 
 func OverrideFailure(callOp CallOperation) override.Override {
 	location := &behaviors[callOp]
-	return override.Override{
-		location,
-		func(args ...interface{}) ([]byte, []byte, error) {
-			shims.Exit(1)
-			return nil, nil, nil
-		},
+	return override.Override{Handler: location, Mock: func(args ...interface{}) ([]byte, []byte, error) {
+		shims.Exit(1)
+		return nil, nil, nil
+	},
 		behaviors[callOp],
 	}
 }

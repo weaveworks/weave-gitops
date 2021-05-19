@@ -47,7 +47,7 @@ func (q quietFluxHandler) Handle(arglist string) ([]byte, error) {
 }
 
 func Override(handler FluxHandler) override.Override {
-	return override.Override{&fluxHandler, handler, fluxHandler}
+	return override.Override{Handler: &fluxHandler, Mock: handler, Original: fluxHandler}
 }
 
 // WithFluxHandler allows running a function with a different flux handler in force

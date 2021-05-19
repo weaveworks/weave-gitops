@@ -107,7 +107,7 @@ func (h defaultStatusHandler) GetClusterStatus() ClusterStatus {
 }
 
 func Override(handler StatusHandler) override.Override {
-	return override.Override{&statusHandler, handler, statusHandler}
+	return override.Override{Handler: &statusHandler, Mock: handler, Original: statusHandler}
 }
 
 func WithStatusHandler(handler StatusHandler, fun func() error) error {
