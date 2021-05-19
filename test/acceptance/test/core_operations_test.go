@@ -1,6 +1,5 @@
 // +build !unittest
-// +build acceptance
-// +build !smoke
+// +build smoke acceptance
 
 package acceptance
 
