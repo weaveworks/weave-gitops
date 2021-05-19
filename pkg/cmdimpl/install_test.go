@@ -1,14 +1,11 @@
 package cmdimpl
 
 import (
-	"fmt"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops/fluxopsfakes"
-	"github.com/weaveworks/weave-gitops/pkg/shims"
 )
 
 var _ = Describe("Run Command Test", func() {

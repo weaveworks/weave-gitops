@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -75,14 +74,6 @@ biKmf9hEM/0A5ofCTtRQtDA8WtbXe5ZDVFonZndi1GhpUner8TifqYqkzKPjZjoO
 ZuiS/fwabl876Gw2Ep1A4+Bu3hpDTyf7SYXS0AwntNVV+gn2YRO7M+2BitceXg==
 -----END RSA PRIVATE KEY-----
 `
-
-type localExitHandler struct {
-	action func(int)
-}
-
-func (h localExitHandler) Handle(code int) {
-	h.action(code)
-}
 
 var FailFluxHandler = &fluxopsfakes.FakeFluxHandler{
 	HandleStub: func(arglist string) ([]byte, error) {
@@ -167,11 +158,6 @@ func handleGitLsRemote(arglist ...interface{}) ([]byte, []byte, error) {
 		return []byte{}, []byte{}, nil
 	}
 	return nil, nil, fmt.Errorf("NO!")
-}
-
-func TestCmds(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Command Tests")
 }
 
 var _ = Describe("Dry Run Add Test", func() {
