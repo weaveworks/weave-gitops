@@ -59,7 +59,6 @@ jobs:
       uses: testspace-com/setup-testspace@v1
       with:
         domain: weaveworks.testspace.com
-      if: matrix.os == 'ubuntu-latest'
     - name: Publish test results to Testspace
       run: |
         go get github.com/t-yuki/gocover-cobertura

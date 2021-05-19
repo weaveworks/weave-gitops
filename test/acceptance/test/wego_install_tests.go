@@ -4,13 +4,11 @@ package acceptance
 
 import (
 	"fmt"
-	"os/exec"
-	"time"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
+	"os/exec"
 )
 
 func VerifyControllersInCluster(session *gexec.Session) {
@@ -26,15 +24,10 @@ func VerifyControllersInCluster(session *gexec.Session) {
 //Reseting namespace is an expensive operation, only use this when absolutely necessary
 func ResetNamespace(namespace string) {
 	By("And there's no previous wego installation", func() {
-		//Reset the cluster
-		//command := exec.Command("kubectl", "delete", "ns", namespace, "--ignore-not-found=true")
-		//session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		//Expect(err).ShouldNot(HaveOccurred())
-		//Eventually(session, 180*time.Second).Should(gexec.Exit())
 		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace %s| kubectl --ignore-not-found=true delete -f -", WEGO_BIN_PATH, namespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, 180*time.Second).Should(gexec.Exit())
+		Eventually(session, INSTALL_RESET_TIMEOUT).Should(gexec.Exit())
 	})
 }
 
@@ -65,7 +58,11 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 	It("Verify that wego can install required controllers under default namespace `wego-system`", func() {
 
-		ResetNamespace("wego-system")
+		By("And I have a brand new cluster", func() {
+			_, err := ResetOrCreateCluster()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
 		By("When I run the command 'wego install | kubectl apply -f -'", func() {
 			command := exec.Command("sh", "-c", fmt.Sprintf("%s install | kubectl apply -f -", WEGO_BIN_PATH))
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -86,7 +83,12 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 	It("Validate wego can add flux controllers with specified namespace", func() {
 
 		namespace := "test-namespace"
-		ResetNamespace(namespace)
+
+		By("And I have a brand new cluster", func() {
+			_, err := ResetOrCreateCluster()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
 		By("And I create a namespace for my controllers", func() {
 			command := exec.Command("kubectl", "create", "namespace", namespace)
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
