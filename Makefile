@@ -28,6 +28,9 @@ all: wego
 unit-tests:
 	CGO_ENABLED=0 go test -v -tags unittest ./...
 
+acceptance-tests:
+	CGO_ENABLED=0 go test -v -tags=acceptance ./...
+
 bin:
 	go build -ldflags "-X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION)" -o bin/$(BINARY_NAME) cmd/wego/*.go
 
@@ -43,6 +46,9 @@ fmt:
 # Run go vet against code
 vet:
 	go vet ./...
+
+lint:
+	golangci-lint run
 
 dependencies:
 	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
