@@ -97,7 +97,7 @@ func TestWithBehaviorFor(t *testing.T) {
 	val := []byte("This is a result string")
 	out, _, _ :=
 		utils.WithBehaviorFor(utils.CallCommandOp,
-			func(args ...string) ([]byte, []byte, error) {
+			func(args ...interface{}) ([]byte, []byte, error) {
 				success = true
 				return val, nil, nil
 			},
@@ -112,7 +112,7 @@ func TestWithBehaviorFor(t *testing.T) {
 	success = false
 	out, _, _ =
 		utils.WithBehaviorFor(utils.CallCommandSilentlyOp,
-			func(args ...string) ([]byte, []byte, error) {
+			func(args ...interface{}) ([]byte, []byte, error) {
 				success = true
 				return val, nil, nil
 			},
@@ -127,7 +127,7 @@ func TestWithBehaviorFor(t *testing.T) {
 	success = false
 	out, _, _ =
 		utils.WithBehaviorFor(utils.CallCommandSeparatingOutputStreamsOp,
-			func(args ...string) ([]byte, []byte, error) {
+			func(args ...interface{}) ([]byte, []byte, error) {
 				success = true
 				return val, nil, nil
 			},
@@ -142,7 +142,7 @@ func TestWithBehaviorFor(t *testing.T) {
 	success = false
 	_, _, err :=
 		utils.WithBehaviorFor(utils.CallCommandForEffectOp,
-			func(args ...string) ([]byte, []byte, error) {
+			func(args ...interface{}) ([]byte, []byte, error) {
 				success = true
 				return val, nil, nil
 			},
@@ -157,7 +157,7 @@ func TestWithBehaviorFor(t *testing.T) {
 	success = false
 	_, _, err =
 		utils.WithBehaviorFor(utils.CallCommandForEffectWithDebugOp,
-			func(args ...string) ([]byte, []byte, error) {
+			func(args ...interface{}) ([]byte, []byte, error) {
 				success = true
 				return val, nil, nil
 			},
@@ -172,7 +172,7 @@ func TestWithBehaviorFor(t *testing.T) {
 	success = false
 	_, _, err =
 		utils.WithBehaviorFor(utils.CallCommandForEffectWithInputPipeOp,
-			func(args ...string) ([]byte, []byte, error) {
+			func(args ...interface{}) ([]byte, []byte, error) {
 				success = true
 				return val, nil, nil
 			},
@@ -187,7 +187,7 @@ func TestWithBehaviorFor(t *testing.T) {
 	success = false
 	_, _, err =
 		utils.WithBehaviorFor(utils.CallCommandForEffectWithInputPipeAndDebugOp,
-			func(args ...string) ([]byte, []byte, error) {
+			func(args ...interface{}) ([]byte, []byte, error) {
 				success = true
 				return val, nil, nil
 			},
@@ -203,13 +203,13 @@ func TestWithBehaviorFor(t *testing.T) {
 	success = false
 	out, _, _ =
 		utils.WithBehaviorFor(utils.CallCommandSilentlyOp,
-			func(args ...string) ([]byte, []byte, error) {
+			func(args ...interface{}) ([]byte, []byte, error) {
 				success = true
 				return val, nil, nil
 			},
 			func() ([]byte, []byte, error) {
 				return utils.WithBehaviorFor(utils.CallCommandSilentlyOp,
-					func(args ...string) ([]byte, []byte, error) {
+					func(args ...interface{}) ([]byte, []byte, error) {
 						success = true
 						return val, nil, nil
 					},

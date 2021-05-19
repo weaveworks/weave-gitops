@@ -12,13 +12,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/weaveworks/weave-gitops/pkg/override"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
-)
-
-type Behavior func(args ...string) ([]byte, []byte, error)
-
-var (
-	behaviors = map[CallOperation]Behavior{}
 )
 
 type CallOperation int
@@ -33,9 +28,15 @@ const (
 	CallCommandForEffectWithInputPipeAndDebugOp
 )
 
+//type Behavior func(args ...interface{}) ([]byte, []byte, error)
+
+var (
+	behaviors = make([]interface{}, int(CallCommandForEffectWithInputPipeAndDebugOp+1))
+)
+
 func processMocks(op CallOperation, cmdstr string) (bool, []byte, []byte, error) {
-	if behavior, ok := behaviors[op]; ok {
-		if stdout, stderr, err := behavior(cmdstr); err != nil {
+	if behavior := behaviors[op]; behavior != nil {
+		if stdout, stderr, err := behavior.(func(...interface{}) ([]byte, []byte, error))(cmdstr); err != nil {
 			return true, nil, nil, err
 		} else {
 			return true, stdout, stderr, nil
@@ -179,15 +180,28 @@ func Escape(cmd string) string {
 	return strings.ReplaceAll(cmd, "'", "'\"'\"'")
 }
 
-func WithBehaviorFor(callOp CallOperation, behavior func(args ...string) ([]byte, []byte, error), action func() ([]byte, []byte, error)) ([]byte, []byte, error) {
-	existingBehavior, ok := behaviors[callOp]
+func OverrideBehavior(callOp CallOperation, behavior func(args ...interface{}) ([]byte, []byte, error)) override.Override {
+	location := &behaviors[callOp]
+	return override.Override{location, behavior, behaviors[callOp]}
+}
+
+func OverrideFailure(callOp CallOperation) override.Override {
+	location := &behaviors[callOp]
+	return override.Override{
+		location,
+		func(args ...interface{}) ([]byte, []byte, error) {
+			shims.Exit(1)
+			return nil, nil, nil
+		},
+		behaviors[callOp],
+	}
+}
+
+func WithBehaviorFor(callOp CallOperation, behavior func(args ...interface{}) ([]byte, []byte, error), action func() ([]byte, []byte, error)) ([]byte, []byte, error) {
+	existingBehavior := behaviors[callOp]
 	behaviors[callOp] = behavior
 	defer func() {
-		if ok {
-			behaviors[callOp] = existingBehavior
-		} else {
-			delete(behaviors, callOp)
-		}
+		behaviors[callOp] = existingBehavior
 	}()
 	return action()
 }
@@ -195,7 +209,7 @@ func WithBehaviorFor(callOp CallOperation, behavior func(args ...string) ([]byte
 func WithFailureFor(callOp CallOperation, action func() ([]byte, []byte, error)) {
 	_, _, _ = WithBehaviorFor(
 		callOp,
-		func(args ...string) ([]byte, []byte, error) {
+		func(args ...interface{}) ([]byte, []byte, error) {
 			shims.Exit(1)
 			return nil, nil, nil
 		},
@@ -205,7 +219,7 @@ func WithFailureFor(callOp CallOperation, action func() ([]byte, []byte, error))
 func WithResultsFrom(callOp CallOperation, outvalue []byte, errvalue []byte, err error, action func() ([]byte, []byte, error)) ([]byte, []byte, error) {
 	return WithBehaviorFor(
 		callOp,
-		func(args ...string) ([]byte, []byte, error) {
+		func(args ...interface{}) ([]byte, []byte, error) {
 			return outvalue, errvalue, err
 		},
 		action)

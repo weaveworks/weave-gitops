@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/weaveworks/weave-gitops/pkg/override"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"sigs.k8s.io/yaml"
 )
@@ -40,7 +41,7 @@ var toStatusString = map[ClusterStatus]string{
 // - has flux installed
 // - has wego installed
 func GetClusterStatus() ClusterStatus {
-	return statusHandler.GetClusterStatus()
+	return statusHandler.(StatusHandler).GetClusterStatus()
 }
 
 func getStatus() ClusterStatus {
@@ -61,7 +62,7 @@ func getStatus() ClusterStatus {
 
 // GetClusterName returns the cluster name associated with the current context in ~/.kube/config
 func GetClusterName() (string, error) {
-	return statusHandler.GetClusterName()
+	return statusHandler.(StatusHandler).GetClusterName()
 }
 
 func getName() (string, error) {
@@ -95,7 +96,7 @@ type StatusHandler interface {
 
 type defaultStatusHandler struct{}
 
-var statusHandler StatusHandler = defaultStatusHandler{}
+var statusHandler interface{} = defaultStatusHandler{}
 
 func (h defaultStatusHandler) GetClusterName() (string, error) {
 	return getName()
@@ -103,6 +104,10 @@ func (h defaultStatusHandler) GetClusterName() (string, error) {
 
 func (h defaultStatusHandler) GetClusterStatus() ClusterStatus {
 	return getStatus()
+}
+
+func Override(handler StatusHandler) override.Override {
+	return override.Override{&statusHandler, handler, statusHandler}
 }
 
 func WithStatusHandler(handler StatusHandler, fun func() error) error {

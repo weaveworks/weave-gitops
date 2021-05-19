@@ -7,6 +7,7 @@ import (
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	cgitprovider "github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/override"
 )
 
 // Handler for mocking os.Exit()
@@ -16,28 +17,25 @@ type ExitHandler interface {
 
 type defaultExitHandler struct{}
 
-var exitHandler ExitHandler = defaultExitHandler{}
-
 func (h defaultExitHandler) Handle(code int) {
 	os.Exit(code)
 }
 
+var exitHandler interface{} = defaultExitHandler{}
+
+func OverrideExit(handler ExitHandler) override.Override {
+	return override.Override{&exitHandler, handler, exitHandler}
+}
+
+// Handler implementation to ignore exits
 type IgnoreExitHandler struct{}
 
 func (h IgnoreExitHandler) Handle(code int) {
 }
 
-func WithExitHandler(handler ExitHandler, fun func()) {
-	originalHandler := exitHandler
-	exitHandler = handler
-	defer func() {
-		exitHandler = originalHandler
-	}()
-	fun()
-}
-
+// Function being mocked
 func Exit(code int) {
-	exitHandler.Handle(code)
+	exitHandler.(ExitHandler).Handle(code)
 }
 
 // Handler for mocking os.UserHomeDir()
@@ -47,49 +45,41 @@ type HomeDirHandler interface {
 
 type defaultHomeDirHandler struct{}
 
-var homeDirHandler HomeDirHandler = defaultHomeDirHandler{}
+var homeDirHandler interface{} = defaultHomeDirHandler{}
 
 func (h defaultHomeDirHandler) Handle() (string, error) {
 	return os.UserHomeDir()
 }
 
-func WithHomeDirHandler(handler HomeDirHandler, fun func() (string, error)) (string, error) {
-	originalHandler := homeDirHandler
-	homeDirHandler = handler
-	defer func() {
-		homeDirHandler = originalHandler
-	}()
-	return fun()
+func OverrideHomeDir(handler HomeDirHandler) override.Override {
+	return override.Override{&homeDirHandler, handler, homeDirHandler}
 }
 
+// Function being mocked
 func UserHomeDir() (string, error) {
-	return homeDirHandler.Handle()
+	return homeDirHandler.(HomeDirHandler).Handle()
 }
 
-// GitProvider shim
+// GitProvider Handler
 type GitProviderHandler interface {
 	CreateOrgRepository(provider gitprovider.Client, orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error
 }
 
 type defaultGitProviderHandler struct{}
 
-var gitProviderHandler GitProviderHandler = defaultGitProviderHandler{}
+var gitProviderHandler interface{} = defaultGitProviderHandler{}
 
 func (h defaultGitProviderHandler) CreateOrgRepository(provider gitprovider.Client, orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
 	return cgitprovider.CreateOrgRepository(provider, orgRepoRef, repoInfo, opts...)
 }
 
-func WithGitProviderHandler(handler GitProviderHandler, fun func() error) error {
-	originalHandler := gitProviderHandler
-	gitProviderHandler = handler
-	defer func() {
-		gitProviderHandler = originalHandler
-	}()
-	return fun()
+func OverrideGitProvider(handler GitProviderHandler) override.Override {
+	return override.Override{&gitProviderHandler, handler, gitProviderHandler}
 }
 
+// Function being mocked
 func CreateOrgRepository(provider gitprovider.Client, orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
-	return gitProviderHandler.CreateOrgRepository(provider, orgRepoRef, repoInfo, opts...)
+	return gitProviderHandler.(GitProviderHandler).CreateOrgRepository(provider, orgRepoRef, repoInfo, opts...)
 }
 
 type FileStreams struct {
@@ -145,3 +135,38 @@ func WithStderr(stderr *os.File, fun func()) {
 	}()
 	fun()
 }
+
+// // Override support
+// type Result struct {
+//  Output      []byte
+//  ErrorOutput []byte
+//  Err         error
+// }
+
+// type Action interface {
+//  Invoke() Result
+// }
+
+// type Handler interface {
+//  Invoke(args ...interface{}) Result
+// }
+
+// type ActionFun func() Result
+
+// type HandlerFun func(args ...interface{}) Result
+
+// func (a ActionFun) Invoke() Result {
+//  out, err, code := a()
+//  return Result{Output: out, ErrorOutput: err, Error: code}
+// }
+
+// func (a HandlerFun) Invoke(args ...interface{}) Result {
+//  out, err, code := a()
+//  return Result{Output: out, ErrorOutput: err, Error: code}
+// }
+
+// type EffectActionFun func() Result
+
+// func (a EffectActionFun) Invoke() Result {
+//  return Result{Error: a()}
+// }

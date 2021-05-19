@@ -16,6 +16,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops/fluxopsfakes"
+	"github.com/weaveworks/weave-gitops/pkg/override"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -159,9 +160,9 @@ func ensureFluxVersion() error {
 	return nil
 }
 
-func handleGitLsRemote(arglist ...string) ([]byte, []byte, error) {
-	commandEnd := strings.Index(arglist[0], " ")
-	command := arglist[0][0:commandEnd]
+func handleGitLsRemote(arglist ...interface{}) ([]byte, []byte, error) {
+	commandEnd := strings.Index(arglist[0].(string), " ")
+	command := arglist[0].(string)[0:commandEnd]
 	if strings.HasPrefix(command, "git ls-remote") {
 		return []byte{}, []byte{}, nil
 	}
@@ -173,23 +174,11 @@ func TestCmds(t *testing.T) {
 	RunSpecs(t, "Command Tests")
 }
 
-var _ = Describe("Exit Path Test", func() {
-	It("Verify that exit is called with expected code", func() {
-		By("Executing a code path that contains checkError", func() {
-			exitCode := -1
-			shims.WithExitHandler(localExitHandler{action: func(code int) { exitCode = code }},
-				func() {
-					checkError("An error message", fmt.Errorf("An error"))
-				})
-			Expect(exitCode).To(Equal(1))
-		})
-	})
-})
-
 var _ = Describe("Dry Run Add Test", func() {
 	It("Verify that the dry-run flag leaves clusters and repos unchanged", func() {
-		By("Executing a dry-run add and ensuring none of the flux actions were invoked", func() {
+		By("Executing a dry-run add and failing/exiting if any of the flux actions were invoked", func() {
 			Expect(os.Setenv("GITHUB_ORG", "archaeopteryx")).Should(Succeed())
+			Expect(os.Setenv("GITHUB_TOKEN", "archaeopteryx")).Should(Succeed())
 			Expect(ensureFluxVersion()).Should(Succeed())
 			fgphandler := failGitProviderHandler{}
 			shandler := statusHandler{}
@@ -197,39 +186,25 @@ var _ = Describe("Dry Run Add Test", func() {
 			Expect(err).To(BeNil())
 			privateKeyFileName := privateKeyFile.Name()
 			defer os.Remove(privateKeyFileName)
-			utils.WithFailureFor(utils.CallCommandForEffectWithInputPipeOp, func() ([]byte, []byte, error) {
-				utils.WithFailureFor(utils.CallCommandForEffectWithDebugOp, func() ([]byte, []byte, error) {
-					_, _, err = utils.WithBehaviorFor(utils.CallCommandForEffectOp,
-						handleGitLsRemote,
-						func() ([]byte, []byte, error) {
-							_, err = fluxops.WithFluxHandler(FailFluxHandler, func() ([]byte, error) {
-								err = shims.WithGitProviderHandler(fgphandler, func() error {
-									err = status.WithStatusHandler(shandler, func() error {
-										Add([]string{"."},
-											AddParamSet{
-												Name:       "wanda",
-												Url:        "ssh://git@github.com/foobar/quux.git",
-												Path:       "./",
-												Branch:     "main",
-												PrivateKey: privateKeyFileName,
-												DryRun:     true,
-												Namespace:  "wego-system"})
-										Expect(err).To(BeNil())
-										return nil
-									})
-									Expect(err).To(BeNil())
-									return nil
-								})
-								return nil, nil
-							})
-							Expect(err).To(BeNil())
-							return nil, nil, nil
-						})
-					Expect(err).To(BeNil())
-					return nil, nil, nil
-				})
-				return nil, nil, nil
-			})
+			_ = override.WithOverrides(
+				func() override.Result {
+					Add([]string{"."},
+						AddParamSet{
+							Name:       "wanda",
+							Url:        "ssh://git@github.com/foobar/quux.git",
+							Path:       "./",
+							Branch:     "main",
+							PrivateKey: privateKeyFileName,
+							DryRun:     true,
+							Namespace:  "wego-system"})
+					return override.Result{}
+				},
+				utils.OverrideFailure(utils.CallCommandForEffectWithInputPipeOp),
+				utils.OverrideFailure(utils.CallCommandForEffectWithDebugOp),
+				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
+				fluxops.Override(FailFluxHandler),
+				shims.OverrideGitProvider(fgphandler),
+				status.Override(shandler))
 		})
 	})
 })

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops/pkg/override"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -22,7 +23,7 @@ metadata:
 `
 
 var (
-	fluxHandler FluxHandler = DefaultFluxHandler{}
+	fluxHandler interface{} = DefaultFluxHandler{}
 	fluxBinary  string
 )
 
@@ -43,6 +44,10 @@ type quietFluxHandler struct{}
 func (q quietFluxHandler) Handle(arglist string) ([]byte, error) {
 	initFluxBinary()
 	return utils.CallCommandSilently(fmt.Sprintf("%s %s", fluxBinary, arglist))
+}
+
+func Override(handler FluxHandler) override.Override {
+	return override.Override{&fluxHandler, handler, fluxHandler}
 }
 
 // WithFluxHandler allows running a function with a different flux handler in force
@@ -74,7 +79,7 @@ func SetFluxHandler(h FluxHandler) {
 }
 
 func CallFlux(arglist ...string) ([]byte, error) {
-	return fluxHandler.Handle(strings.Join(arglist, " "))
+	return fluxHandler.(FluxHandler).Handle(strings.Join(arglist, " "))
 }
 
 func Install(namespace string) ([]byte, error) {
