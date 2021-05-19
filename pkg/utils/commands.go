@@ -191,7 +191,7 @@ func OverrideFailure(callOp CallOperation) override.Override {
 		shims.Exit(1)
 		return nil, nil, nil
 	},
-		behaviors[callOp],
+		Original: behaviors[callOp],
 	}
 }
 
