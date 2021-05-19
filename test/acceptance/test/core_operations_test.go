@@ -145,7 +145,6 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 })
 
 func setupTest() error {
-	WEGO_BIN_PATH = "/usr/local/bin/wego"
 	tmpPath, err = ioutil.TempDir("", "tmp-dir")
 	if err != nil {
 		return err
