@@ -4,3 +4,4 @@ bin
 
 tools/bin/*
 coverage.out
+dist/

@@ -26,6 +26,7 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
+	Cmd.Flags().StringVar(&params.Owner, "owner", "", "Owner of remote git repository")
 	Cmd.Flags().StringVar(&params.Name, "name", "", "Name of remote git repository")
 	Cmd.Flags().StringVar(&params.Url, "url", "", "URL of remote git repository")
 	Cmd.Flags().StringVar(&params.Path, "path", "./", "Path of files within git repository")
