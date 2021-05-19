@@ -226,10 +226,10 @@ func commitAndPush(files ...string) {
 	cmdStr := `git pull --rebase && \
                 git add %s && \
                 git commit -m 'Save %s' && \
-                git push\n`
+                git push`
 
 	if params.DryRun {
-		fmt.Fprintf(shims.Stdout(), cmdStr, strings.Join(files, " "), strings.Join(files, ", "))
+		fmt.Fprintf(shims.Stdout(), cmdStr+"\n", strings.Join(files, " "), strings.Join(files, ", "))
 		return
 	}
 
