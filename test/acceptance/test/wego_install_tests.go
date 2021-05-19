@@ -58,7 +58,11 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 	It("Verify that wego can install required controllers under default namespace `wego-system`", func() {
 
-		ResetNamespace("wego-system")
+		By("And I have a brand new cluster", func() {
+			_, err := ResetOrCreateCluster()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
 		By("When I run the command 'wego install | kubectl apply -f -'", func() {
 			command := exec.Command("sh", "-c", fmt.Sprintf("%s install | kubectl apply -f -", WEGO_BIN_PATH))
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -79,7 +83,12 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 	It("Validate wego can add flux controllers with specified namespace", func() {
 
 		namespace := "test-namespace"
-		ResetNamespace(namespace)
+
+		By("And I have a brand new cluster", func() {
+			_, err := ResetOrCreateCluster()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
 		By("And I create a namespace for my controllers", func() {
 			command := exec.Command("kubectl", "create", "namespace", namespace)
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)

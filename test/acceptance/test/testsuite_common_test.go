@@ -15,7 +15,7 @@ import (
 func GomegaFail(message string, callerSkip ...int) {
 
 	//Show pods
-	err := showItems("pods")
+	err := ShowItems("pods")
 	if err != nil {
 		log.Infof("Failed to print the pods")
 	}
@@ -30,6 +30,10 @@ func TestAcceptance(t *testing.T) {
 		t.Skip("Skip User Acceptance Tests")
 	}
 
+	_, err := ResetOrCreateCluster()
+	if err != nil {
+		t.FailNow()
+	}
 	RegisterFailHandler(GomegaFail)
 	RunSpecs(t, getSuiteTitle())
 }

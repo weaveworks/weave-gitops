@@ -81,8 +81,6 @@ jobs:
       with:
         cluster_name: "${{ format('katc-{0}', github.run_id) }}"
         version: "v0.10.0"
-        config: ./test/acceptance/test/data/kind-config.yaml
-        wait: 120s
     - name: Kind-check
       run: |
        kubectl get pods -A
