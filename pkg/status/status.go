@@ -3,6 +3,7 @@ package status
 import (
 	"fmt"
 
+	"github.com/weaveworks/weave-gitops/pkg/override"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
@@ -36,6 +37,10 @@ var toStatusString = map[ClusterStatus]string{
 // - has flux installed
 // - has wego installed
 func GetClusterStatus() ClusterStatus {
+	return statusHandler.(StatusHandler).GetClusterStatus()
+}
+
+func getStatus() ClusterStatus {
 	if lookupHandler("deployment wego-controller -n wego-system") == nil {
 		return WeGOInstalled
 	}
@@ -55,4 +60,26 @@ func kubectlHandler(args string) error {
 	cmd := fmt.Sprintf("kubectl get %s", args)
 	err := utils.CallCommandForEffect(cmd)
 	return err
+}
+
+// Status shim
+type StatusHandler interface {
+	GetClusterName() (string, error)
+	GetClusterStatus() ClusterStatus
+}
+
+type defaultStatusHandler struct{}
+
+var statusHandler interface{} = defaultStatusHandler{}
+
+func (h defaultStatusHandler) GetClusterName() (string, error) {
+	return utils.GetClusterName()
+}
+
+func (h defaultStatusHandler) GetClusterStatus() ClusterStatus {
+	return getStatus()
+}
+
+func Override(handler StatusHandler) override.Override {
+	return override.Override{Handler: &statusHandler, Mock: handler, Original: statusHandler}
 }

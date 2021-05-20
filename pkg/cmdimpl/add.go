@@ -39,6 +39,7 @@ type AddParamSet struct {
 	PrivateKey     string
 	DeploymentType string
 	Namespace      string
+	DryRun         bool
 }
 
 var (
@@ -224,12 +225,17 @@ func getOwnerFromUrl(url string) string {
 }
 
 func commitAndPush(files ...string) error {
-	cmd := fmt.Sprintf(`git pull --rebase && \
+	cmd := `git pull --rebase && \
 				git add %s && \
 				git commit -m 'Save %s' && \
-				git push`,
-		strings.Join(files, " "),
-		strings.Join(files, ", "))
+				git push`
+
+	if params.DryRun {
+		fmt.Fprintf(shims.Stdout(), cmd+"\n", strings.Join(files, " "), strings.Join(files, ", "))
+		return nil
+	}
+
+	cmd = fmt.Sprintf(cmd, strings.Join(files, " "), strings.Join(files, ", "))
 	_, err := utils.CallCommand(cmd)
 	return err
 }
@@ -261,11 +267,16 @@ func Add(args []string, allParams AddParamSet) {
 	checkAddError(err)
 
 	owner := getOwner()
-	checkAddError(os.Chdir(fluxRepo))
+
+	if !params.DryRun {
+		checkAddError(os.Chdir(fluxRepo))
+	}
 
 	if err := utils.CallCommandForEffect(fmt.Sprintf("git ls-remote ssh://git@github.com/%s/%s.git", owner, wegoRepoName)); err != nil {
 		fmt.Printf("wego repo does not exist, it will be created...\n")
-		checkAddError(utils.CallCommandForEffectWithDebug("git init"))
+		if !params.DryRun {
+			checkAddError(utils.CallCommandForEffectWithDebug("git init"))
+		}
 
 		c, err := cgitprovider.GithubProvider()
 		checkAddError(err)
@@ -279,23 +290,26 @@ func Add(args []string, allParams AddParamSet) {
 			LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
 		}
 
-		err = cgitprovider.CreateOrgRepository(c, orgRef, repoInfo, repoCreateOpts)
-		checkAddError(err)
-
-		fmt.Println("waiting 5 seconds")
-		time.Sleep(time.Second * 5)
-
 		cmd := fmt.Sprintf(`git remote add origin %s && \
 			git pull --rebase origin main && \
 			git checkout main && \
 			git push --set-upstream origin main`,
 			orgRef.String())
-		err = utils.CallCommandForEffectWithDebug(cmd)
-		if err != nil {
-			fmt.Println("error on git remote add ", err.Error())
+
+		if !params.DryRun {
+			err = cgitprovider.CreateOrgRepository(c, orgRef, repoInfo, repoCreateOpts)
+			checkAddError(err)
+			fmt.Println("waiting 5 seconds")
+			time.Sleep(time.Second * 5)
+			err = utils.CallCommandForEffectWithDebug(cmd)
+			if err != nil {
+				fmt.Println("error on git remote add ", err.Error())
+			}
+			checkAddError(err)
+		} else {
+			fmt.Fprintf(shims.Stdout(), cmd, orgRef.String())
 		}
-		checkAddError(err)
-	} else {
+	} else if !params.DryRun {
 		cmd := "git branch --set-upstream-to=origin/main main"
 		checkAddError(utils.CallCommandForEffectWithDebug(cmd))
 	}
@@ -303,9 +317,13 @@ func Add(args []string, allParams AddParamSet) {
 	// Install Source and Kustomize controllers, and CRD for application (may already be present)
 	wegoSource := generateWegoSourceManifest()
 	wegoKust := generateWegoKustomizeManifest()
-	kubectlApply := fmt.Sprintf("kubectl apply --namespace=%s -f -", params.Namespace)
-	checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(wegoSource)))
-	checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(wegoKust)))
+	if !params.DryRun {
+		kubectlApply := fmt.Sprintf("kubectl apply --namespace=%s -f -", params.Namespace)
+		checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(wegoSource)))
+		checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(wegoKust)))
+	} else {
+		fmt.Fprintf(shims.Stdout(), "Applying wego platform resources...")
+	}
 
 	// Create app.yaml
 	newApp := app.NewApp(params.Name, params.Path, params.Url)
@@ -327,27 +345,27 @@ func Add(args []string, allParams AddParamSet) {
 	wegoAppPath, err := utils.GetWegoAppPath(params.Name)
 	checkAddError(err)
 
-	if !utils.Exists(wegoAppPath) {
-		if err = os.MkdirAll(wegoAppPath, 0755); err != nil {
-			checkAddError(err)
-		}
-	}
-
 	sourceYamlPath := filepath.Join(wegoAppPath, "source-"+params.Name+".yaml")
 	manifestDeployTypeNamePath := filepath.Join(wegoAppPath, fmt.Sprintf("%s-%s.yaml", params.DeploymentType, params.Name))
 	appYamlName := filepath.Join(wegoAppPath, "app.yaml")
 
-	appManifestContent, err := newApp.Bytes()
-	checkAddError(err)
-	checkAddError(ioutil.WriteFile(sourceYamlPath, source, 0644))
-	checkAddError(ioutil.WriteFile(manifestDeployTypeNamePath, appManifests, 0644))
-	checkAddError(ioutil.WriteFile(appYamlName, appManifestContent, 0644))
-
-	err = commitAndPush(sourceYamlPath, manifestDeployTypeNamePath, appYamlName)
-	if err != nil {
-		fmt.Println("err on commit and push", err.Error())
+	if !params.DryRun && !utils.Exists(wegoAppPath) {
+		if err = os.MkdirAll(wegoAppPath, 0755); err != nil {
+			checkAddError(err)
+		}
+		appManifestContent, err := newApp.Bytes()
+		checkAddError(err)
+		checkAddError(ioutil.WriteFile(sourceYamlPath, source, 0644))
+		checkAddError(ioutil.WriteFile(manifestDeployTypeNamePath, appManifests, 0644))
+		checkAddError(ioutil.WriteFile(appYamlName, appManifestContent, 0644))
+		err = commitAndPush(sourceYamlPath, manifestDeployTypeNamePath, appYamlName)
+		if err != nil {
+			fmt.Println("err on commit and push", err.Error())
+		}
+		checkAddError(err)
+	} else {
+		fmt.Fprintf(shims.Stdout(), "Applying wego resources for application...")
 	}
-	checkAddError(err)
 
 	fmt.Printf("Successfully added repository: %s.\n", params.Name)
 }

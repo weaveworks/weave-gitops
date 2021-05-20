@@ -13,7 +13,8 @@ require (
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab
-	gopkg.in/yaml.v2 v2.4.0
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed // indirect
+	golang.org/x/sys v0.0.0-20210514084401-e8d321eab015 // indirect
+	gopkg.in/yaml.v2 v2.4.0
 	sigs.k8s.io/yaml v1.2.0
 )

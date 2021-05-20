@@ -4,6 +4,10 @@ package shims
 
 import (
 	"os"
+
+	"github.com/fluxcd/go-git-providers/gitprovider"
+	cgitprovider "github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/override"
 )
 
 // Handler for mocking os.Exit()
@@ -13,28 +17,25 @@ type ExitHandler interface {
 
 type defaultExitHandler struct{}
 
-var exitHandler ExitHandler = defaultExitHandler{}
-
 func (h defaultExitHandler) Handle(code int) {
 	os.Exit(code)
 }
 
+var exitHandler interface{} = defaultExitHandler{}
+
+func OverrideExit(handler ExitHandler) override.Override {
+	return override.Override{Handler: &exitHandler, Mock: handler, Original: exitHandler}
+}
+
+// Handler implementation to ignore exits
 type IgnoreExitHandler struct{}
 
-func (h IgnoreExitHandler) Handle(code int) {
+func (h IgnoreExitHandler) Handle(_ int) {
 }
 
-func WithExitHandler(handler ExitHandler, fun func()) {
-	originalHandler := exitHandler
-	exitHandler = handler
-	defer func() {
-		exitHandler = originalHandler
-	}()
-	fun()
-}
-
+// Function being mocked
 func Exit(code int) {
-	exitHandler.Handle(code)
+	exitHandler.(ExitHandler).Handle(code)
 }
 
 // Handler for mocking os.UserHomeDir()
@@ -44,23 +45,36 @@ type HomeDirHandler interface {
 
 type defaultHomeDirHandler struct{}
 
-var homeDirHandler HomeDirHandler = defaultHomeDirHandler{}
+var homeDirHandler interface{} = defaultHomeDirHandler{}
 
 func (h defaultHomeDirHandler) Handle() (string, error) {
 	return os.UserHomeDir()
 }
 
-func WithHomeDirHandler(handler HomeDirHandler, fun func() (string, error)) (string, error) {
-	originalHandler := homeDirHandler
-	homeDirHandler = handler
-	defer func() {
-		homeDirHandler = originalHandler
-	}()
-	return fun()
+func OverrideHomeDir(handler HomeDirHandler) override.Override {
+	return override.Override{Handler: &homeDirHandler, Mock: handler, Original: homeDirHandler}
 }
 
+// Function being mocked
 func UserHomeDir() (string, error) {
-	return homeDirHandler.Handle()
+	return homeDirHandler.(HomeDirHandler).Handle()
+}
+
+// GitProvider Handler
+type GitProviderHandler interface {
+	CreateOrgRepository(provider gitprovider.Client, orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error
+}
+
+type defaultGitProviderHandler struct{}
+
+var gitProviderHandler interface{} = defaultGitProviderHandler{}
+
+func (h defaultGitProviderHandler) CreateOrgRepository(provider gitprovider.Client, orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
+	return cgitprovider.CreateOrgRepository(provider, orgRepoRef, repoInfo, opts...)
+}
+
+func OverrideGitProvider(handler GitProviderHandler) override.Override {
+	return override.Override{Handler: &gitProviderHandler, Mock: handler, Original: gitProviderHandler}
 }
 
 type FileStreams struct {
