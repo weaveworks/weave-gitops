@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/weaveworks/weave-gitops/pkg/override"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"sigs.k8s.io/yaml"
 )
@@ -40,6 +41,10 @@ var toStatusString = map[ClusterStatus]string{
 // - has flux installed
 // - has wego installed
 func GetClusterStatus() ClusterStatus {
+	return statusHandler.(StatusHandler).GetClusterStatus()
+}
+
+func getStatus() ClusterStatus {
 	if lookupHandler("deployment wego-controller -n wego-system") == nil {
 		return WeGOInstalled
 	}
@@ -57,6 +62,10 @@ func GetClusterStatus() ClusterStatus {
 
 // GetClusterName returns the cluster name associated with the current context in ~/.kube/config
 func GetClusterName() (string, error) {
+	return statusHandler.(StatusHandler).GetClusterName()
+}
+
+func getName() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
@@ -77,4 +86,35 @@ func kubectlHandler(args string) error {
 	cmd := fmt.Sprintf("kubectl get %s", args)
 	err := utils.CallCommandForEffect(cmd)
 	return err
+}
+
+// Status shim
+type StatusHandler interface {
+	GetClusterName() (string, error)
+	GetClusterStatus() ClusterStatus
+}
+
+type defaultStatusHandler struct{}
+
+var statusHandler interface{} = defaultStatusHandler{}
+
+func (h defaultStatusHandler) GetClusterName() (string, error) {
+	return getName()
+}
+
+func (h defaultStatusHandler) GetClusterStatus() ClusterStatus {
+	return getStatus()
+}
+
+func Override(handler StatusHandler) override.Override {
+	return override.Override{Handler: &statusHandler, Mock: handler, Original: statusHandler}
+}
+
+func WithStatusHandler(handler StatusHandler, fun func() error) error {
+	originalHandler := statusHandler
+	statusHandler = handler
+	defer func() {
+		statusHandler = originalHandler
+	}()
+	return fun()
 }
