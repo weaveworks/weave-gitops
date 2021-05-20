@@ -33,7 +33,7 @@ jobs:
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: build
-      run: make all BINARY_NAME=wego-${{matrix.os}}
+      run: make all BINARY_NAME=wego-${{matrix.os}}-nightly
     - name: Set up ssh agent
       uses: webfactory/ssh-agent@v0.5.2
       with:
