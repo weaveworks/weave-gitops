@@ -30,7 +30,7 @@ jobs:
       run: |
         go get -u github.com/jstemmer/go-junit-report
         mkdir test-results
-        go test -cover  -covermode=atomic -coverprofile=.coverprofile-unittests -v ./... -tags unittest | go-junit-report > test-results/unit-test-results.xml        
+        go test -cover  -covermode=atomic -coverprofile=.coverprofile-unittests -v ./... -tags unittest | go-junit-report > test-results/unit-test-results.xml
     - name: build
       run: make all BINARY_NAME=wego-${{matrix.os}}
     - name: Set up ssh agent
@@ -59,7 +59,6 @@ jobs:
       uses: testspace-com/setup-testspace@v1
       with:
         domain: weaveworks.testspace.com
-      if: matrix.os == 'ubuntu-latest'
     - name: Publish test results to Testspace
       run: |
         go get github.com/t-yuki/gocover-cobertura

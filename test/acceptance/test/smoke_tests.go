@@ -62,7 +62,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 		By("And Usage category", func() {
 			Eventually(session).Should(gbytes.Say("Usage:"))
-			Eventually(session.Wait().Out.Contents()).Should(ContainSubstring("wego [command]"))
+			Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("wego [command]"))
 		})
 
 		By("And Avalaible-Commands category", func() {

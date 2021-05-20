@@ -1,0 +1,33 @@
+project_name: wego
+builds:
+  - <<: &build_defaults
+      binary: wego
+      main: ./cmd/wego
+      ldflags:
+        - -X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime={{.Date}}
+        - -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch=$(BRANCH) 
+        - -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit={{.Commit}}
+        - -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION)
+      env:
+        - CGO_ENABLED=0
+      hooks:
+        pre: export CURRENT_DIR=pwd
+        pre: $(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
+        pre: export BRANCH=git rev-parse --abbrev-ref HEAD
+        pre: export FLUX_VERSION=$(CURRENT_DIR)/tools/bin/stoml $(CURRENT_DIR)/tools/dependencies.toml flux.version
+    id: linux
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    goarm:
+      - 7
+  - <<: *build_defaults
+    id: darwin
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64

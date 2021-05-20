@@ -1,8 +1,6 @@
 // +build !unittest
-// +build acceptance
-// +build !smoke
+// +build smoke acceptance
 
-// ^^ temporarily disabling this test until we have it in ginkgo format.
 package test
 
 // Runs basic WeGO operations against a kind cluster.
@@ -23,7 +21,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/weave-gitops/pkg/cmdimpl"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"github.com/weaveworks/weave-gitops/pkg/version"
@@ -90,11 +87,11 @@ func TestCoreOperations(t *testing.T) {
 	ensureFluxVersion(t)
 	log.Info("Checking initial status...")
 	checkInitialStatus(t)
-	log.Info("Install flux...")
-	installFlux(t)
+	log.Info("Install wego...")
+	installWego(t)
 	log.Info("Setting up test repository...")
 	setUpTestRepo(t, appRepoName, tmpPath) // create repo with simple nginx manifest
-	//defer deleteTestRepos(t, appRepoName)
+	defer deleteTestRepos(t, appRepoName)
 	log.Info("Adding test repository to cluster...")
 	require.NoError(t, err)
 	addRepo(t, appRepoName, tmpPath) // add new repo to cluster
@@ -119,8 +116,6 @@ func addRepo(t *testing.T, appRepoName string, repoLocalPath string) {
 	defer func() {
 		require.NoError(t, os.Chdir(dir))
 	}()
-
-	//sshURL := fmt.Sprintf("ssh://git@github.com/%s/%s", os.Getenv("GITHUB_ORG"), appRepoName)
 
 	cmdimpl.Add([]string{"."}, cmdimpl.AddParamSet{Name: "", Url: "", Path: "./", Branch: "main", PrivateKey: keyFilePath, Namespace: "wego-system", DeploymentType: "kustomize"})
 }
@@ -167,9 +162,9 @@ func waitForNginxDeployment(t *testing.T) {
 	require.FailNow(t, "Failed to deploy nginx workload to the cluster")
 }
 
-func installFlux(t *testing.T) {
+func installWego(t *testing.T) {
 	flux.SetupFluxBin()
-	manifests, err := fluxops.QuietInstall("wego-system")
+	manifests, err := cmdimpl.Install(cmdimpl.InstallParamSet{Namespace: "wego-system"})
 	require.NoError(t, err)
 	require.NoError(t, utils.CallCommandForEffectWithInputPipeAndDebug("kubectl apply -f -", string(manifests)))
 }
@@ -209,30 +204,30 @@ func setUpTestRepo(t *testing.T, wegoRepoName string, repoLocalPath string) {
 	require.NoError(t, err)
 }
 
-//func deleteTestRepos(t *testing.T, appRepoName string) {
-//	wegoRepoName, err := utils.GetWegoRepoName()
-//	if err != nil {
-//		log.Infof("Failed to delete test repositories %s", err.Error())
-//		return
-//	}
-//
-//	ctx := context.Background()
-//
-//	url := fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), appRepoName)
-//	ref, err := gitprovider.ParseOrgRepositoryURL(url)
-//	require.NoError(t, err)
-//	repo, err := client.OrgRepositories().Get(ctx, *ref)
-//	require.NoError(t, err)
-//	require.NoError(t, repo.Delete(ctx))
-//	url = fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), appRepoName)
-//	ref, err = gitprovider.ParseOrgRepositoryURL(url)
-//	require.NoError(t, err)
-//	repo, err = client.OrgRepositories().Get(ctx, *ref)
-//	require.NoError(t, err)
-//	require.NoError(t, repo.Delete(ctx))
-//
-//	os.RemoveAll(fmt.Sprintf("%s/.wego/repositories/%s", os.Getenv("HOME"), wegoRepoName))
-//}
+func deleteTestRepos(t *testing.T, appRepoName string) {
+	wegoRepoName, err := utils.GetWegoRepoName()
+	if err != nil {
+		log.Infof("Failed to delete test repositories %s", err.Error())
+		return
+	}
+
+	ctx := context.Background()
+
+	url := fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), appRepoName)
+	ref, err := gitprovider.ParseOrgRepositoryURL(url)
+	require.NoError(t, err)
+	repo, err := client.OrgRepositories().Get(ctx, *ref)
+	require.NoError(t, err)
+	require.NoError(t, repo.Delete(ctx))
+	url = fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), appRepoName)
+	ref, err = gitprovider.ParseOrgRepositoryURL(url)
+	require.NoError(t, err)
+	repo, err = client.OrgRepositories().Get(ctx, *ref)
+	require.NoError(t, err)
+	require.NoError(t, repo.Delete(ctx))
+
+	os.RemoveAll(fmt.Sprintf("%s/.wego/repositories/%s", os.Getenv("HOME"), wegoRepoName))
+}
 
 func checkInitialStatus(t *testing.T) {
 	require.Equal(t, status.Unmodified, status.GetClusterStatus())

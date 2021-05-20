@@ -32,3 +32,4 @@ spec:
     - name: v1alpha1
       served: true
       storage: true
+---
