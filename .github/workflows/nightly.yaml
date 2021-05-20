@@ -39,7 +39,7 @@ jobs:
     - name: setup eks cluster
       run: |
         export CLUSTER_NAME=wego-nightly-cluster-${{matrix.os}}
-        export CLUSTER_VERSION=1.19.1
+        export K8S_VERSION=1.19.1
         export CLUSTER_REGION=us-east-1
         export CLUSTER_EXISTS=$(eksctl get clusters --region $CLUSTER_REGION | grep $CLUSTER_NAME)
         if [ -z $CLUSTER_EXISTS ]
