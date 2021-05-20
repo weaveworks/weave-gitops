@@ -135,38 +135,3 @@ func WithStderr(stderr *os.File, fun func()) {
 	}()
 	fun()
 }
-
-// // Override support
-// type Result struct {
-//  Output      []byte
-//  ErrorOutput []byte
-//  Err         error
-// }
-
-// type Action interface {
-//  Invoke() Result
-// }
-
-// type Handler interface {
-//  Invoke(args ...interface{}) Result
-// }
-
-// type ActionFun func() Result
-
-// type HandlerFun func(args ...interface{}) Result
-
-// func (a ActionFun) Invoke() Result {
-//  out, err, code := a()
-//  return Result{Output: out, ErrorOutput: err, Error: code}
-// }
-
-// func (a HandlerFun) Invoke(args ...interface{}) Result {
-//  out, err, code := a()
-//  return Result{Output: out, ErrorOutput: err, Error: code}
-// }
-
-// type EffectActionFun func() Result
-
-// func (a EffectActionFun) Invoke() Result {
-//  return Result{Error: a()}
-// }
