@@ -19,6 +19,8 @@ jobs:
       uses: actions/checkout@v2
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
+    - name: Build UI Assets
+      run: make cmd/ui/dist/index.html
     - name: Run linters
       uses: golangci/golangci-lint-action@v2
       with:
