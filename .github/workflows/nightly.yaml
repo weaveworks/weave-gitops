@@ -33,6 +33,18 @@ jobs:
         eksctl get clusters
     - name: Kubectl tool installer
       uses: Azure/setup-kubectl@v1
+    - name: setup eks cluster
+      run: |
+        CLUSTER_NAME=wego-nightly-cluster
+        CLUSTER_VERSION=1.19
+        CLUSTER_REGION=us-east-1
+        CLUSTER_EXISTS=$(eksctl get clusters --region $CLUSTER_REGION | grep $CLUSTER_NAME)
+        if [ -z $CLUSTER_EXISTS ]
+        then
+          eksctl create cluster --name=$CLUSTER_NAME --version=$CLUSTER_VERSION --region=$CLUSTER_REGION
+        fi
+        eksctl utils write-kubeconfig --region=$CLUSTER_REGION --cluster=$CLUSTER_NAME --kubeconfig=~/.kube/config
+        kubectl get nodes -A
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: build
@@ -57,12 +69,6 @@ jobs:
         GITHUB_KEY: "${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}"
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}-nightly
-        export CLUSTER_PROVIDER=gke
-        export K8S_VERSION=1.19.1
-        export CLUSTER_NAME=eks-abcd$RANDOM
-        ./test/acceptance/test/scripts/eks-cluster.sh create $CLUSTER_NAME 1.19
+        export CLUSTER_PROVIDER=eks
+        export K8S_VERSION=1.19
         ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v -tags=acceptance ./test/acceptance/test/...
-    - name: Cleanup the cluster
-      run: |
-        ./test/acceptance/test/scripts/eks-cluster.sh delete $CLUSTER_NAME
-      if: always()
