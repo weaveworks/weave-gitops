@@ -35,7 +35,7 @@ jobs:
     - name: Kubectl tool installer
       uses: Azure/setup-kubectl@v1
       with:
-          version: '1.19'
+          version: '1.19.1'
     - name: setup eks cluster
       run: |
         export CLUSTER_NAME=wego-nightly-cluster-${{matrix.os}}
