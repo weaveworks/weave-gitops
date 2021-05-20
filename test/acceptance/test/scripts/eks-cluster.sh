@@ -8,7 +8,7 @@ then
 fi
 
 function create_cluster {
-    eksctl create cluster --name=$1 --version=$2
+    eksctl create cluster --name=$1 --version=$2 --region=us-east-1
 }
 
 function delete_cluster {
