@@ -62,4 +62,7 @@ jobs:
         export CLUSTER_NAME=eks-abcd$RANDOM
         ./test/acceptance/test/scripts/eks-cluster.sh create $CLUSTER_NAME 1.19
         ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v -tags=acceptance ./test/acceptance/test/...
+    - name: Cleanup the cluster
+      run: |
         ./test/acceptance/test/scripts/eks-cluster.sh delete $CLUSTER_NAME
+      if: always()
