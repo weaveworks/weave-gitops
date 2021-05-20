@@ -12,9 +12,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
-	cgitprovider "github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -268,26 +267,14 @@ func Add(args []string, allParams AddParamSet) {
 		fmt.Printf("wego repo does not exist, it will be created...\n")
 		checkAddError(utils.CallCommandForEffectWithDebug("git init"))
 
-		c, err := cgitprovider.GithubProvider()
+		err = gitproviders.CreateRepository(fluxRepoName, owner, true)
 		checkAddError(err)
 
-		orgRef := cgitprovider.NewOrgRepositoryRef(cgitprovider.GITHUB_DOMAIN, owner, fluxRepoName)
-
-		repoInfo := cgitprovider.NewRepositoryInfo("wego repo", gitprovider.RepositoryVisibilityPrivate)
-
-		repoCreateOpts := &gitprovider.RepositoryCreateOptions{
-			AutoInit:        gitprovider.BoolVar(true),
-			LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
-		}
-
-		err = cgitprovider.CreateOrgRepository(c, orgRef, repoInfo, repoCreateOpts)
-		checkAddError(err)
-
-		cmd := fmt.Sprintf(`git remote add origin %s && \
+		cmd := fmt.Sprintf(`git remote add origin git@github.com:%s/%s.git && \
 			git pull --rebase origin main && \
 			git checkout main && \
 			git push --set-upstream origin main`,
-			orgRef.String())
+			owner, fluxRepoName)
 		checkAddError(utils.CallCommandForEffectWithDebug(cmd))
 	} else {
 		cmd := "git branch --set-upstream-to=origin/main main"
