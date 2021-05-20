@@ -9,26 +9,11 @@ import (
 	"path/filepath"
 
 	"github.com/sirupsen/logrus"
-
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
-
-func init() {
-	var durations = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name:    "http_request_duration_seconds",
-		Help:    "HTTP request durations",
-		Buckets: prometheus.DefBuckets,
-	}, []string{"service", "method", "status"})
-
-	prometheus.MustRegister(durations)
-}
 
 func main() {
 	log := logrus.New()
 	mux := http.NewServeMux()
-
-	mux.Handle("/metrics/", promhttp.Handler())
 
 	mux.Handle("/health/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
