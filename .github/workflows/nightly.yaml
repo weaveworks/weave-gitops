@@ -55,9 +55,8 @@ jobs:
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}-nightly
         export CLUSTER_PROVIDER=gke
-        export K8S_VERSION=1.19
+        export K8S_VERSION=1.19.1
         export CLUSTER_NAME=eks-abcd$RANDOM
-        ./test/acceptance/test/scripts/eks-cluster.sh create $CLUSTER_NAME $K8S_VERSION
+        ./test/acceptance/test/scripts/eks-cluster.sh create $CLUSTER_NAME 1.19
         ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v -tags=acceptance ./test/acceptance/test/...
-        ./test/acceptance/test/scripts/eks-cluster.sh delete $CLUSTER_NAME $K8S_VERSION
-      if: always()
+        ./test/acceptance/test/scripts/eks-cluster.sh delete $CLUSTER_NAME
