@@ -43,7 +43,8 @@ jobs:
         then
           eksctl create cluster --name=$CLUSTER_NAME --version=$CLUSTER_VERSION --region=$CLUSTER_REGION
         fi
-        eksctl utils write-kubeconfig --region=$CLUSTER_REGION --cluster=$CLUSTER_NAME --kubeconfig=~/.kube/config
+        eksctl utils write-kubeconfig --region=$CLUSTER_REGION --cluster=$CLUSTER_NAME --kubeconfig=$HOME/.kube/config
+        ls -R -la $HOME/
         kubectl get nodes -A
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
