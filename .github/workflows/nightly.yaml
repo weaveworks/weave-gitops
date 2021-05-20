@@ -10,6 +10,7 @@ jobs:
   test-eks:
     runs-on: ${{matrix.os}}
     timeout-minutes: 60
+    continue-on-error: true
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]
@@ -46,6 +47,7 @@ jobs:
         eksctl utils write-kubeconfig --region=$CLUSTER_REGION --cluster=$CLUSTER_NAME --kubeconfig=$HOME/.kube/config
         ls -la $HOME/.kube
         kubectl get nodes -A
+      if: always()
         
 
     - name: Fake Install flux
