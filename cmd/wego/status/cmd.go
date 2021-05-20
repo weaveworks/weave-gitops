@@ -19,8 +19,9 @@ var ApplicationCmd = &cobra.Command{
 	Use:   "application [name]",
 	Short: "status of an application resource",
 	Args:  cobra.MinimumNArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		cmdimpl.Status(args, params)
+	RunE: func(cmd *cobra.Command, args []string) error {
+		params.Namespace, _ = cmd.Parent().Parent().Flags().GetString("namespace")
+		return cmdimpl.Status(args, params)
 	},
 }
 

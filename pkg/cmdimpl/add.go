@@ -23,9 +23,11 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
+type DeploymentType string
+
 const (
-	DeployTypeKustomize = "kustomize"
-	DeployTypeHelm      = "helm"
+	DeployTypeKustomize DeploymentType = "kustomize"
+	DeployTypeHelm      DeploymentType = "helm"
 )
 
 type AddParamSet struct {
@@ -190,10 +192,12 @@ func generateHelmManifest() []byte {
 			--source="GitRepository/%s" \
 			--chart="%s" \
 			--interval=5m \
-			--export`,
+			--export \
+			--namespace=%s `,
 		params.Name,
 		params.Name,
 		params.Path,
+		params.Namespace,
 	)
 	helmManifest, err := fluxops.CallFlux(cmd)
 	checkAddError(err)
@@ -318,9 +322,9 @@ func Add(args []string, allParams AddParamSet) {
 
 	var appManifests []byte
 	switch params.DeploymentType {
-	case DeployTypeHelm:
+	case string(DeployTypeHelm):
 		appManifests = generateHelmManifest()
-	case DeployTypeKustomize:
+	case string(DeployTypeKustomize):
 		appManifests = generateKustomizeManifest()
 	default:
 		log.Fatalf("deployment type does not supported [%s]", params.DeploymentType)
