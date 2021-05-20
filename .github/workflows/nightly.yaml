@@ -1,0 +1,61 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+name: Nightly
+jobs:
+  test-eks:
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16.x
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: setup aws credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-2
+    - name: Install eksctl
+      run: |
+        curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+        sudo mv /tmp/eksctl /usr/local/bin
+        eksctl get clusters
+    - name: Fake Install flux
+      run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
+    - name: build
+      run: make all BINARY_NAME=wego-${{matrix.os}}
+    - name: Set up ssh agent
+      uses: webfactory/ssh-agent@v0.5.2
+      with:
+        ssh-private-key: ${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}
+    - name: Configure git settings
+      run: |
+        export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}-nightly
+        git config --global init.defaultBranch main
+        git config --global user.email "test-user@weave.works"
+        git config --global user.name "Testy McTestFace"
+        git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+    - name: Install Ginkgo binary
+      run: go get -u github.com/onsi/ginkgo/ginkgo
+    - name: User Acceptance Tests (Ubuntu)
+      env:
+        GITHUB_ORG: wkp-example-org
+        GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
+        GITHUB_KEY: "${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}"
+      run: |
+        export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}-nightly
+        export CLUSTER_PROVIDER=gke
+        export K8S_VERSION=1.19
+        ./test/acceptance/test/scripts/eks-cluster.sh create eks-pac8g4 $K8S_VERSION
+        ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v -tags=acceptance ./test/acceptance/test/...
+        ./test/acceptance/test/scripts/eks-cluster.sh delete eks-pac8g4 $K8S_VERSION

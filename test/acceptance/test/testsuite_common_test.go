@@ -30,10 +30,6 @@ func TestAcceptance(t *testing.T) {
 		t.Skip("Skip User Acceptance Tests")
 	}
 
-	_, err := ResetOrCreateCluster()
-	if err != nil {
-		t.FailNow()
-	}
 	RegisterFailHandler(GomegaFail)
 	RunSpecs(t, getSuiteTitle())
 }
