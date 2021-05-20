@@ -44,12 +44,16 @@ func main() {
 		b, err := json.Marshal(res)
 
 		if err != nil {
-			log.Errorf("could not marshal: %w", err)
+			log.Errorf("could not marshal: %s", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		w.Write(b)
+		if _, err := w.Write(b); err != nil {
+			log.Errorf("error writing bytes: %s", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	}))
 
 	assetFS := getAssets()
