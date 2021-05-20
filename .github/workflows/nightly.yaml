@@ -39,12 +39,12 @@ jobs:
     - name: setup eks cluster
       run: |
         export CLUSTER_NAME=wego-nightly-cluster-${{matrix.os}}
-        export K8S_VERSION=1.19.1
+        export CLUSTER_VERSION=1.19
         export CLUSTER_REGION=us-east-1
         export CLUSTER_EXISTS=$(eksctl get clusters --region $CLUSTER_REGION | grep $CLUSTER_NAME)
         if [ -z $CLUSTER_EXISTS ]
         then
-          eksctl create cluster --name=$CLUSTER_NAME --version=1.19 --region=$CLUSTER_REGION
+          eksctl create cluster --name=$CLUSTER_NAME --version=$CLUSTER_VERSION--region=$CLUSTER_REGION
         fi
         eksctl utils write-kubeconfig --region=$CLUSTER_REGION --cluster=$CLUSTER_NAME --kubeconfig=$HOME/.kube/config
         ls -la $HOME/.kube
@@ -77,5 +77,5 @@ jobs:
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}-nightly
         export CLUSTER_PROVIDER=eks
-        export K8S_VERSION=1.19
+        export K8S_VERSION=1.19.1
         ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v -tags=acceptance ./test/acceptance/test/...
