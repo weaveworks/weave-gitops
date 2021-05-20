@@ -39,7 +39,7 @@ jobs:
         CLUSTER_VERSION=1.19
         CLUSTER_REGION=us-east-1
         CLUSTER_EXISTS=$(eksctl get clusters --region $CLUSTER_REGION | grep $CLUSTER_NAME)
-        if [ -z "$CLUSTER_EXISTS" ]
+        if [ -z $CLUSTER_EXISTS ]
         then
           eksctl create cluster --name=$CLUSTER_NAME --version=$CLUSTER_VERSION --region=$CLUSTER_REGION
         fi
