@@ -54,6 +54,10 @@ jobs:
         go-version: 1.16.x
     - name: Checkout code
       uses: actions/checkout@v2
+    - name: Install UI Deps
+      run: npm ci
+    - name: Build UI Assets
+      run: make cmd/ui/dist/index.html
     - name: build
       run: make
     - name: Store wego binaries
@@ -72,6 +76,10 @@ jobs:
         go-version: 1.16.x
     - name: Checkout code
       uses: actions/checkout@v2
+    - name: Install UI Deps
+      run: npm ci
+    - name: Build UI Assets
+      run: make cmd/ui/dist/index.html
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: unit-tests with coverage
