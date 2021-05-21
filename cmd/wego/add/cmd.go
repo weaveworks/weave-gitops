@@ -4,6 +4,7 @@ package add
 // wego installed, the user will be prompted to install wego and then the repository will be added.
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -38,5 +39,6 @@ func init() {
 
 func runCmd(cmd *cobra.Command, args []string) {
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
+	fmt.Println("DeploymentType check0", params.DeploymentType)
 	cmdimpl.Add(args, params)
 }

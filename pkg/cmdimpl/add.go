@@ -345,6 +345,7 @@ func Add(args []string, allParams AddParamSet) {
 	// Create flux custom resources for new repo being added
 	source := generateSourceManifest()
 
+	fmt.Println("DeploymentType check1", params.DeploymentType)
 	var appManifests []byte
 	switch params.DeploymentType {
 	case string(DeployTypeHelm):
