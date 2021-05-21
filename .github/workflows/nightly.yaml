@@ -113,7 +113,8 @@ jobs:
           version: 'v1.19.6'
     - name: setup gke cluster
       run: |
-        export CLUSTER_NAME=wego-nightly-cluster-${{matrix.os}}
+        CLUSTER_NAME=wego-nightly-cluster-${{matrix.os}}
+        export CLUSTER_NAME=$(echo "$CLUSTER_NAME" | tr '[:upper:]' '[:lower:]')
         export CLUSTER_VERSION=1.19
         export CLUSTER_REGION=us-central1-a
         export CLUSTER_EXISTS=$(gcloud container clusters list | grep $CLUSTER_NAME)
