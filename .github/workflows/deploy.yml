@@ -41,7 +41,7 @@ jobs:
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}
         git config --global init.defaultBranch main
-        git config --global user.email "test-user@weave.works"
+        git config --global user.email "weave-test-user@example.com"
         git config --global user.name "Testy McTestFace"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     - name: Install Ginkgo binary

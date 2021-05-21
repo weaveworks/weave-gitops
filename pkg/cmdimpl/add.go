@@ -43,6 +43,7 @@ type AddParamSet struct {
 	PrivateKey     string
 	DeploymentType string
 	Namespace      string
+	DryRun         bool
 }
 
 var (
@@ -97,9 +98,9 @@ func generateWegoSourceManifest() []byte {
 	checkAddError(err)
 
 	cmd := fmt.Sprintf(`create secret git "wego" \
-		--url="ssh://git@github.com/%s/%s" \
-		--private-key-file="%s" \
-		--namespace=%s`,
+        --url="ssh://git@github.com/%s/%s" \
+        --private-key-file="%s" \
+        --namespace=%s`,
 		getOwner(),
 		fluxRepoName,
 		params.PrivateKey,
@@ -109,12 +110,12 @@ func generateWegoSourceManifest() []byte {
 	checkAddError(err)
 
 	cmd = fmt.Sprintf(`create source git "wego" \
-		--url="ssh://git@github.com/%s/%s" \
-		--branch="%s" \
-		--secret-ref="wego" \
-		--interval=30s \
-		--export \
-		--namespace=%s `,
+        --url="ssh://git@github.com/%s/%s" \
+        --branch="%s" \
+        --secret-ref="wego" \
+        --interval=30s \
+        --export \
+        --namespace=%s`,
 		getOwner(),
 		fluxRepoName,
 		params.Branch,
@@ -127,13 +128,13 @@ func generateWegoSourceManifest() []byte {
 
 func generateWegoKustomizeManifest() []byte {
 	cmd := fmt.Sprintf(`create kustomization "wego" \
-		--path="./" \
-		--source="wego" \
-		--prune=true \
-		--validation=client \
-		--interval=5m \
-		--export \
-		--namespace=%s`,
+        --path="./" \
+        --source="wego" \
+        --prune=true \
+        --validation=client \
+        --interval=5m \
+        --export \
+        --namespace=%s`,
 		params.Namespace)
 	kustomizeManifest, err := fluxops.CallFlux(cmd)
 	checkAddError(err)
@@ -144,9 +145,9 @@ func generateSourceManifest() []byte {
 	secretName := params.Name
 
 	cmd := fmt.Sprintf(`create secret git "%s" \
-			--url="%s" \
-			--private-key-file="%s" \
-			--namespace=%s`,
+            --url="%s" \
+            --private-key-file="%s" \
+            --namespace=%s`,
 		secretName,
 		params.Url,
 		params.PrivateKey,
@@ -155,12 +156,12 @@ func generateSourceManifest() []byte {
 	checkAddError(err)
 
 	cmd = fmt.Sprintf(`create source git "%s" \
-			--url="%s" \
-			--branch="%s" \
-			--secret-ref="%s" \
-			--interval=30s \
-			--export \
-			--namespace=%s `,
+            --url="%s" \
+            --branch="%s" \
+            --secret-ref="%s" \
+            --interval=30s \
+            --export \
+            --namespace=%s `,
 		params.Name,
 		params.Url,
 		params.Branch,
@@ -175,13 +176,13 @@ func generateSourceManifest() []byte {
 func generateKustomizeManifest() []byte {
 
 	cmd := fmt.Sprintf(`create kustomization "%s" \
-				--path="%s" \
-				--source="%s" \
-				--prune=true \
-				--validation=client \
-				--interval=5m \
-				--export \
-				--namespace=%s`,
+                --path="%s" \
+                --source="%s" \
+                --prune=true \
+                --validation=client \
+                --interval=5m \
+                --export \
+                --namespace=%s`,
 		params.Name,
 		params.Path,
 		params.Name,
@@ -221,12 +222,17 @@ func getOwnerFromUrl(url string) string {
 }
 
 func commitAndPush(files ...string) {
-	cmd := fmt.Sprintf(`git pull --rebase && \
-				git add %s && \
-				git commit -m 'Save %s' && \
-				git push`,
-		strings.Join(files, " "),
-		strings.Join(files, ", "))
+	cmdStr := `git pull --rebase && \
+                git add %s && \
+                git commit -m 'Save %s' && \
+                git push`
+
+	if params.DryRun {
+		fmt.Fprintf(shims.Stdout(), cmdStr+"\n", strings.Join(files, " "), strings.Join(files, ", "))
+		return
+	}
+
+	cmd := fmt.Sprintf(cmdStr, strings.Join(files, " "), strings.Join(files, ", "))
 	_, err := utils.CallCommand(cmd)
 	checkAddError(err)
 }
@@ -258,35 +264,53 @@ func Add(args []string, allParams AddParamSet) {
 	reposDir := filepath.Join(os.Getenv("HOME"), ".wego", "repositories")
 	fluxRepo := filepath.Join(reposDir, fluxRepoName)
 	appSubdir := filepath.Join(fluxRepo, "apps", params.Name)
-	checkAddError(os.MkdirAll(appSubdir, 0755))
+
+	if !params.DryRun {
+		checkAddError(os.MkdirAll(appSubdir, 0755))
+	}
 
 	owner := getOwner()
-	checkAddError(os.Chdir(fluxRepo))
+
+	if !params.DryRun {
+		checkAddError(os.Chdir(fluxRepo))
+	}
 
 	if err := utils.CallCommandForEffect(fmt.Sprintf("git ls-remote ssh://git@github.com/%s/%s.git", owner, fluxRepoName)); err != nil {
 		fmt.Printf("wego repo does not exist, it will be created...\n")
-		checkAddError(utils.CallCommandForEffectWithDebug("git init"))
+		if !params.DryRun {
+			checkAddError(utils.CallCommandForEffectWithDebug("git init"))
+		}
 
 		err = gitproviders.CreateRepository(fluxRepoName, owner, true)
 		checkAddError(err)
 
-		cmd := fmt.Sprintf(`git remote add origin git@github.com:%s/%s.git && \
-			git pull --rebase origin main && \
-			git checkout main && \
-			git push --set-upstream origin main`,
-			owner, fluxRepoName)
-		checkAddError(utils.CallCommandForEffectWithDebug(cmd))
-	} else {
-		cmd := "git branch --set-upstream-to=origin/main main"
-		checkAddError(utils.CallCommandForEffectWithDebug(cmd))
+		cmdStr := `git remote add origin git@github.com:%s/%s.git && \
+            git pull --rebase origin main && \
+            git checkout main && \
+            git push --set-upstream origin main`
+
+		cmd := fmt.Sprintf(cmdStr, owner, fluxRepoName)
+		if !params.DryRun {
+			err = gitproviders.CreateRepository(fluxRepoName, owner, true)
+			checkAddError(err)
+			checkAddError(utils.CallCommandForEffectWithDebug(cmd))
+		} else {
+			fmt.Fprint(shims.Stdout(), cmd)
+		}
+	} else if !params.DryRun {
+		checkAddError(utils.CallCommandForEffectWithDebug("git branch --set-upstream-to=origin/main main"))
 	}
 
 	// Install Source and Kustomize controllers, and CRD for application (may already be present)
 	wegoSource := generateWegoSourceManifest()
 	wegoKust := generateWegoKustomizeManifest()
-	kubectlApply := fmt.Sprintf("kubectl apply --namespace=%s -f -", params.Namespace)
-	checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(wegoSource)))
-	checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(wegoKust)))
+	if !params.DryRun {
+		kubectlApply := fmt.Sprintf("kubectl apply --namespace=%s -f -", params.Namespace)
+		checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(wegoSource)))
+		checkAddError(utils.CallCommandForEffectWithInputPipe(kubectlApply, string(wegoKust)))
+	} else {
+		fmt.Fprintf(shims.Stdout(), "Applying wego platform resources...")
+	}
 
 	// Create app.yaml
 	t, err := template.New("appYaml").Parse(appYamlTemplate)
@@ -314,11 +338,15 @@ func Add(args []string, allParams AddParamSet) {
 	manifestsName := filepath.Join(appSubdir, fmt.Sprintf("%s-%s.yaml", params.DeploymentType, params.Name))
 	appYamlName := filepath.Join(appSubdir, "app.yaml")
 
-	checkAddError(ioutil.WriteFile(sourceName, source, 0644))
-	checkAddError(ioutil.WriteFile(manifestsName, appManifests, 0644))
-	checkAddError(ioutil.WriteFile(appYamlName, populated.Bytes(), 0644))
+	if !params.DryRun {
+		checkAddError(ioutil.WriteFile(sourceName, source, 0644))
+		checkAddError(ioutil.WriteFile(manifestsName, appManifests, 0644))
+		checkAddError(ioutil.WriteFile(appYamlName, populated.Bytes(), 0644))
 
-	commitAndPush(sourceName, manifestsName, appYamlName)
+		commitAndPush(sourceName, manifestsName, appYamlName)
+	} else {
+		fmt.Fprintf(shims.Stdout(), "Applying wego resources for application...")
+	}
 
 	fmt.Printf("Successfully added repository: %s.\n", params.Name)
 }

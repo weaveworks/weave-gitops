@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops/pkg/override"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -22,7 +23,7 @@ metadata:
 `
 
 var (
-	fluxHandler FluxHandler = defaultFluxHandler{}
+	fluxHandler interface{} = DefaultFluxHandler{}
 	fluxBinary  string
 )
 
@@ -31,9 +32,9 @@ type FluxHandler interface {
 	Handle(args string) ([]byte, error)
 }
 
-type defaultFluxHandler struct{}
+type DefaultFluxHandler struct{}
 
-func (h defaultFluxHandler) Handle(arglist string) ([]byte, error) {
+func (h DefaultFluxHandler) Handle(arglist string) ([]byte, error) {
 	initFluxBinary()
 	return utils.CallCommand(fmt.Sprintf("%s %s", fluxBinary, arglist))
 }
@@ -45,10 +46,14 @@ func (q quietFluxHandler) Handle(arglist string) ([]byte, error) {
 	return utils.CallCommandSilently(fmt.Sprintf("%s %s", fluxBinary, arglist))
 }
 
+func Override(handler FluxHandler) override.Override {
+	return override.Override{Handler: &fluxHandler, Mock: handler, Original: fluxHandler}
+}
+
 // WithFluxHandler allows running a function with a different flux handler in force
 func WithFluxHandler(handler FluxHandler, f func() ([]byte, error)) ([]byte, error) {
 	switch fluxHandler.(type) {
-	case defaultFluxHandler:
+	case DefaultFluxHandler:
 		existingHandler := fluxHandler
 		fluxHandler = handler
 		defer func() {
@@ -74,7 +79,7 @@ func SetFluxHandler(h FluxHandler) {
 }
 
 func CallFlux(arglist ...string) ([]byte, error) {
-	return fluxHandler.Handle(strings.Join(arglist, " "))
+	return fluxHandler.(FluxHandler).Handle(strings.Join(arglist, " "))
 }
 
 func Install(namespace string) ([]byte, error) {
