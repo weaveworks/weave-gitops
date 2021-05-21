@@ -258,7 +258,6 @@ func Add(args []string, allParams AddParamSet) {
 		shims.Exit(1)
 	}
 	params = allParams
-	fmt.Println("DeploymentType check2", params.DeploymentType)
 	params.Dir = args[0]
 	fmt.Printf("Updating parameters from environment... ")
 	updateParametersIfNecessary()
