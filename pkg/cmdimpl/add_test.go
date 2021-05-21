@@ -11,10 +11,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops/fluxopsfakes"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/override"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/status"
@@ -88,7 +88,7 @@ var FailFluxHandler = &fluxopsfakes.FakeFluxHandler{
 
 type failGitProviderHandler struct{}
 
-func (h failGitProviderHandler) CreateOrgRepository(provider gitprovider.Client, orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
+func (h failGitProviderHandler) CreateRepository(name string, owner string, private bool) error {
 	shims.Exit(1)
 	return nil
 }
@@ -189,7 +189,7 @@ var _ = Describe("Dry Run Add Test", func() {
 				utils.OverrideFailure(utils.CallCommandForEffectWithDebugOp),
 				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
 				fluxops.Override(FailFluxHandler),
-				shims.OverrideGitProvider(fgphandler),
+				gitproviders.Override(fgphandler),
 				status.Override(shandler))
 		})
 	})
