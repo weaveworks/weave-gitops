@@ -198,9 +198,18 @@ func generateKustomizeManifest() []byte {
 }
 
 func generateHelmManifest() []byte {
-	helmManifest, err := fluxops.CallFlux(
-		fmt.Sprintf(`create helmrelease %s --source="GitRepository/%s" --chart="%s" --interval=5m --export`, params.Name, params.Name, params.Path))
-
+	cmd := fmt.Sprintf(`create helmrelease %s \
+			--source="GitRepository/%s" \
+			--chart="%s" \
+			--interval=5m \
+			--export \
+			--namespace=%s `,
+		params.Name,
+		params.Name,
+		params.Path,
+		params.Namespace,
+	)
+	helmManifest, err := fluxops.CallFlux(cmd)
 	checkAddError(err)
 	return helmManifest
 }
@@ -340,11 +349,15 @@ func Add(args []string, allParams AddParamSet) {
 	// Create flux custom resources for new repo being added
 	source := generateSourceManifest()
 
+	fmt.Println("DeploymentType check1", params.DeploymentType)
 	var appManifests []byte
-	if params.DeploymentType == DeployTypeHelm {
+	switch params.DeploymentType {
+	case string(DeployTypeHelm):
 		appManifests = generateHelmManifest()
-	} else {
+	case string(DeployTypeKustomize):
 		appManifests = generateKustomizeManifest()
+	default:
+		checkAddError(fmt.Errorf("deployment type not supported [%s]", params.DeploymentType))
 	}
 
 	sourceName := filepath.Join(appSubdir, "source-"+params.Name+".yaml")
