@@ -102,7 +102,7 @@ func addRepo(t *testing.T) {
 		tmpFile, err := ioutil.TempFile("", "keyfile")
 		require.NoError(t, err)
 		defer tmpFile.Close()
-		require.NoError(t, ioutil.WriteFile(tmpFile.Name(), []byte(key), 600))
+		require.NoError(t, ioutil.WriteFile(tmpFile.Name(), []byte(key), 0600))
 		keyFilePath = tmpFile.Name()
 	}
 
