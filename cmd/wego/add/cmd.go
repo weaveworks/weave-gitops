@@ -9,9 +9,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops/pkg/cmdimpl"
+
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/pkg/cmdimpl"
 )
 
 var params cmdimpl.AddParamSet
