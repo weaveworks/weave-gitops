@@ -154,6 +154,15 @@ func setupTest() error {
 	}
 	tmpDir = tmpPath
 
+	keyFilePath := filepath.Join(os.Getenv("HOME"), ".ssh", "id_rsa")
+	if _, err := os.Stat(keyFilePath); os.IsNotExist(err) {
+		key := os.Getenv("GITHUB_KEY")
+		err := ioutil.WriteFile(keyFilePath, []byte(key), 600)
+		if err != nil {
+			return err
+		}
+	}
+
 	token, _ := os.LookupEnv("GITHUB_TOKEN")
 	c, err := github.NewClient(github.WithOAuth2Token(token), github.WithDestructiveAPICalls(true), github.WithConditionalRequests(true))
 	if err != nil {
