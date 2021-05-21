@@ -157,7 +157,7 @@ func setupTest() error {
 	keyFilePath := filepath.Join(os.Getenv("HOME"), ".ssh", "id_rsa")
 	if _, err := os.Stat(keyFilePath); os.IsNotExist(err) {
 		key := os.Getenv("GITHUB_KEY")
-		err := ioutil.WriteFile(keyFilePath, []byte(key), 600)
+		err := ioutil.WriteFile(keyFilePath, []byte(key), 700)
 		if err != nil {
 			return err
 		}
