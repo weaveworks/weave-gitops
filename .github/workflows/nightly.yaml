@@ -81,5 +81,6 @@ jobs:
         export K8S_VERSION=1.19.1
         # cleanup the cluster
         $WEGO_BIN_PATH install | kubectl --ignore-not-found=true delete -f -
+        $WEGO_BIN_PATH install --namespace test-namespace| kubectl --ignore-not-found=true delete -f -
         kubectl get all --all-namespaces -o wide
         ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v -tags=acceptance ./test/acceptance/test/...
