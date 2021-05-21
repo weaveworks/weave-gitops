@@ -111,7 +111,7 @@ jobs:
       uses: Azure/setup-kubectl@v1
       with:
           version: 'v1.19.6'
-    - name: setup eks cluster
+    - name: setup gke cluster
       run: |
         export CLUSTER_NAME=wego-nightly-cluster-${{matrix.os}}
         export CLUSTER_VERSION=1.19
@@ -119,7 +119,7 @@ jobs:
         export CLUSTER_EXISTS=$(gcloud container clusters list | grep $CLUSTER_NAME)
         if [ -z $CLUSTER_EXISTS ]
         then
-          gcloud container clusters create $CLUSTER_NAME --cluster-version=$CLUSTER_VERSION
+          gcloud container clusters create $CLUSTER_NAME --cluster-version=$CLUSTER_VERSION --zone=us-central1-a
         fi
         gcloud container clusters get-credentials $CLUSTER_NAME
         ls -la $HOME/.kube
