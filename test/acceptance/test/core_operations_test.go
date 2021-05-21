@@ -233,5 +233,6 @@ func deleteRepos(t *testing.T) {
 }
 
 func checkInitialStatus(t *testing.T) {
+	ShowItems("")
 	require.Equal(t, status.Unmodified, status.GetClusterStatus())
 }

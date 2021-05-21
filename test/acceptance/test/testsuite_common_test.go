@@ -13,9 +13,8 @@ import (
 )
 
 func GomegaFail(message string, callerSkip ...int) {
-
-	//Show pods
-	err := ShowItems("pods")
+	//Show all resources
+	err := ShowItems("")
 	if err != nil {
 		log.Infof("Failed to print the pods")
 	}

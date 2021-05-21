@@ -47,7 +47,10 @@ func FileExists(name string) bool {
 
 // showItems displays the current set of a specified object type in tabular format
 func ShowItems(itemType string) error {
-	return runCommandPassThrough([]string{}, "kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
+	if itemType != "" {
+		return runCommandPassThrough([]string{}, "kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
+	}
+	return runCommandPassThrough([]string{}, "kubectl", "get", "all", "--all-namespaces", "-o", "wide")
 }
 
 func contains(s []string, str string) bool {
