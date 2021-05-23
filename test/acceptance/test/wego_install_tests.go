@@ -18,7 +18,7 @@ var (
 
 func VerifyControllersInCluster(session *gexec.Session) {
 
-	By("Then I should wait for controllers to get ready", func() {
+	By("And I wait for the controllers to get ready", func() {
 		command := exec.Command("sh", "-c", fmt.Sprintf("%s wait --for=condition=Ready -n %s --all pod", "kubectl", namespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
@@ -32,7 +32,7 @@ func VerifyControllersInCluster(session *gexec.Session) {
 		Eventually(session).Should(gexec.Exit())
 	})
 
-	By(" Then I should see flux controllers present in the cluster", func() {
+	By("Then I should see flux controllers present in the cluster", func() {
 		Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`helm-controller[\s]+1/1`))
 		Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`kustomize-controller[\s]+1/1`))
 		Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`notification-controller[\s]+1/1`))
@@ -64,14 +64,14 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 	It("Validate that wego displays help text for 'install' command", func() {
 
-		By("When I run the command 'wego install -'h", func() {
+		By("When I run the command 'wego install -h'", func() {
 			command := exec.Command(WEGO_BIN_PATH, "install", "-h")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 			Eventually(session).Should(gexec.Exit())
 		})
 
-		By("Then I should see wego help text for 'install' command", func() {
+		By("Then I should see wego help text displayed for 'install' command", func() {
 			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`The install command deploys Wego in the specified namespace.`))
 			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`If a previous version is installed, then an in-place upgrade will be performed.`))
 			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`Usage:`))
@@ -97,7 +97,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
-		By("When I run the command 'wego install | kubectl apply -f -'", func() {
+		By("When I run 'wego install' command with default namespace", func() {
 			command := exec.Command("sh", "-c", fmt.Sprintf("%s install | kubectl apply -f -", WEGO_BIN_PATH))
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -107,7 +107,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		VerifyControllersInCluster(session)
 	})
 
-	It("Verify that wego can add flux controllers to specified namespace", func() {
+	It("Verify that wego can add flux controllers to a user-specified namespace", func() {
 
 		namespace = "test-namespace"
 
@@ -123,7 +123,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 			Eventually(session).Should(gexec.Exit())
 		})
 
-		By("When I run 'wego install --namespace test-namespace' command with specified namespace", func() {
+		By("When I run 'wego install' command with specified namespace", func() {
 			command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace %s | kubectl apply -f -", WEGO_BIN_PATH, namespace))
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
