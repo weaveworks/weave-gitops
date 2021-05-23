@@ -11,7 +11,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	log "github.com/sirupsen/logrus"
 	"os/exec"
 )
 
@@ -41,18 +40,6 @@ func VerifyControllersInCluster(session *gexec.Session) {
 		Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`kustomize-controller[\s]+1/1`))
 		Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`notification-controller[\s]+1/1`))
 		Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`source-controller[\s]+1/1`))
-	})
-}
-
-// Resetting namespace is an expensive operation, only use this when absolutely necessary
-func ResetNamespace(namespace string) {
-	log.Infof("Resetting namespace for controllers...")
-
-	By("And there's no previous wego installation", func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace %s| kubectl --ignore-not-found=true delete -f -", WEGO_BIN_PATH, namespace))
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, INSTALL_RESET_TIMEOUT).Should(gexec.Exit())
 	})
 }
 
