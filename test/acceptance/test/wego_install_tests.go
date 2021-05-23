@@ -1,5 +1,9 @@
 // +build smoke acceptance
 
+/**
+* All tests related to 'wego install' will go into this file
+ */
+
 package acceptance
 
 import (
@@ -52,7 +56,7 @@ func ResetNamespace(namespace string) {
 	})
 }
 
-var _ = Describe("WEGO Acceptance Tests", func() {
+var _ = Describe("WEGO Install Tests", func() {
 
 	var session *gexec.Session
 
