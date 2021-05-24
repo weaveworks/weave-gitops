@@ -128,20 +128,11 @@ jobs:
         $WEGO_BIN_PATH install --namespace test-namespace| kubectl --ignore-not-found=true delete -f -
         kubectl get all --all-namespaces -o wide
         ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v -tags=acceptance ./test/acceptance/test/...
-    - name: publish nightly binary to s3
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-2
-    - run: |
-        aws s3 cp bin/wego-${{matrix.os}}-nightly s3://weave-gitops/wego-${{matrix.os}}-nightly
 
   test-gke:
     needs: [lint, build]
     runs-on: ${{matrix.os}}
     timeout-minutes: 60
-    continue-on-error: true
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]
@@ -219,11 +210,27 @@ jobs:
         $WEGO_BIN_PATH install --namespace test-namespace| kubectl --ignore-not-found=true delete -f -
         kubectl get all --all-namespaces -o wide
         ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v -tags=acceptance ./test/acceptance/test/...
-    - name: publish nightly binary to s3
+  
+  publish:
+    needs: [test-eks, test-gke]
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+    steps:
+    - name: Download tested wego binaries
+      uses: actions/download-artifact@v2
+      with:
+        name: wego-binaries-${{matrix.os}}-nightly
+        path: bin
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+    - name: publish nightly binaries to s3
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-2
     - run: |
-        aws s3 cp bin/wego-${{matrix.os}}-nightly s3://weave-gitops/wego-${{matrix.os}}-nightly
+        aws s3 cp bin/wego-${{matrix.os}}-nightly s3://weave-gitops/nightly/${{ steps.date.outputs.date }}/wego-${{matrix.os}}
