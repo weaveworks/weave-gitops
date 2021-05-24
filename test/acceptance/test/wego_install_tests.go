@@ -84,7 +84,7 @@ var _ = Describe("WEGO Install Tests", func() {
 		namespace = "wego-system"
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster()
+			_, err := ResetOrCreateCluster(namespace)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -103,7 +103,7 @@ var _ = Describe("WEGO Install Tests", func() {
 		namespace = "test-namespace"
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster()
+			_, err := ResetOrCreateCluster(namespace)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
