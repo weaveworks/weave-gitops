@@ -5,6 +5,7 @@ package acceptance
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -46,7 +47,10 @@ func FileExists(name string) bool {
 
 // showItems displays the current set of a specified object type in tabular format
 func ShowItems(itemType string) error {
-	return runCommandPassThrough([]string{}, "kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
+	if itemType != "" {
+		return runCommandPassThrough([]string{}, "kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
+	}
+	return runCommandPassThrough([]string{}, "kubectl", "get", "all", "--all-namespaces", "-o", "wide")
 }
 
 func contains(s []string, str string) bool {
@@ -59,11 +63,11 @@ func contains(s []string, str string) bool {
 	return false
 }
 
-func ResetOrCreateCluster() (string, error) {
+func ResetOrCreateCluster(namespace string) (string, error) {
+
 	supportedProviders := []string{"kind", "eks", "gke"}
 	supportedK8SVersions := []string{"1.19.1", "1.20.2", "1.21.1"}
 
-	clusterName := RandString(6)
 	provider, found := os.LookupEnv("CLUSTER_PROVIDER")
 	if !found {
 		provider = "kind"
@@ -84,15 +88,24 @@ func ResetOrCreateCluster() (string, error) {
 		return "", errors.New("Unsupported kubernetes version")
 	}
 
-	clusterName = provider + "-" + clusterName
-	if provider == "kind" {
-		log.Infof("Creating a kind cluster %s", clusterName)
-		err := runCommandPassThrough([]string{}, "./scripts/create-kind-cluster.sh", clusterName, "kindest/node:v"+k8sVersion)
-		if err != nil {
-			log.Fatal(err)
+	//For eks and gke, we will try to reset the namespace first,
+	//failing that we will recreate the cluster
+	if namespace != "" && (provider == "eks" || provider == "gke") {
+		err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s install --namespace %s| kubectl --ignore-not-found=true delete -f -", WEGO_BIN_PATH, namespace))
+		if err == nil {
+			return "", err
 		}
 	}
 
+	clusterName := provider + "-" + RandString(6)
+	if provider == "kind" {
+		log.Infof("Creating a kind cluster %s", clusterName)
+		err := runCommandPassThrough([]string{}, "./scripts/kind-cluster.sh", clusterName, "kindest/node:v"+k8sVersion)
+		if err != nil {
+			log.Fatal(err)
+		}
+		return clusterName, err
+	}
 	return clusterName, nil
 }
 
