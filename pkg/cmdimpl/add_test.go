@@ -182,7 +182,7 @@ var _ = Describe("Test helm manifest", func() {
 		params.Name = "simple-name"
 		params.Name = "simple-name"
 		params.Path = "./my-chart"
-		params.Namespace = "wego-sytem"
+		params.Namespace = "wego-system"
 
 		Expect(generateHelmManifest()).Should(Succeed())
 	})
