@@ -1,5 +1,6 @@
 // +build !unittest
-// +build smoke acceptance
+// +build !smoke
+// +build !acceptance
 
 package acceptance
 
@@ -234,5 +235,10 @@ func deleteRepos(t *testing.T) {
 }
 
 func checkInitialStatus(t *testing.T) {
+	//Show all resources
+	err := ShowItems("")
+	if err != nil {
+		log.Infof("Failed to print the pods")
+	}
 	require.Equal(t, status.Unmodified, status.GetClusterStatus())
 }
