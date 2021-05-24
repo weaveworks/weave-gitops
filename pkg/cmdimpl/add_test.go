@@ -162,7 +162,28 @@ func handleGitLsRemote(arglist ...interface{}) ([]byte, []byte, error) {
 
 var _ = Describe("Test helm manifest", func() {
 	It("Verify helm manifest files generation ", func() {
-		Expect(generateHelmManifest()).ToNot(BeEmpty())
+
+		fakeHandler := &fluxopsfakes.FakeFluxHandler{
+			HandleStub: func(args string) ([]byte, error) {
+				return []byte("foo"), nil
+			},
+		}
+
+		fluxops.SetFluxHandler(fakeHandler)
+
+		params.Name = "simple-name"
+		params.Name = "simple-name"
+		params.Path = "./my-chart"
+		params.Namespace = "wego-sytem"
+
+		expected := `create helmrelease simple-name \
+			--source="GitRepository/simple-name" \
+			--chart="./my-chart" \
+			--interval=5m \
+			--export \
+			--namespace=wego-system`
+
+		Expect(generateHelmManifest()).Should(Equal(expected))
 	})
 })
 
