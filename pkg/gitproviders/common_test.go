@@ -22,7 +22,7 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 )
 
-var githubClient, gitlabClient gitprovider.Client
+var githubTestClient, gitlabTestClient gitprovider.Client
 
 var (
 	GithubOrgTestName  = "weaveworks"
@@ -147,11 +147,11 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 
-	githubClient, err = newGithubTestClient(SetRecorder(cacheGithubRecorder))
+	githubTestClient, err = newGithubTestClient(SetRecorder(cacheGithubRecorder))
 	if err != nil {
 		panic(err)
 	}
-	gitlabClient, err = newGitlabTestClient(SetRecorder(cacheGitlabRecorder))
+	gitlabTestClient, err = newGitlabTestClient(SetRecorder(cacheGitlabRecorder))
 	if err != nil {
 		panic(err)
 	}
@@ -211,8 +211,8 @@ func Test_CreatePullRequestToOrgRepo(t *testing.T) {
 		orgName  string
 		userName string
 	}{
-		{"github", githubClient, GITHUB_DOMAIN, accounts.GithubOrgName, accounts.GithubUserName},
-		{"gitlab", gitlabClient, GITLAB_DOMAIN, accounts.GitlabOrgName, accounts.GitlabUserName},
+		{"github", githubTestClient, GITHUB_DOMAIN, accounts.GithubOrgName, accounts.GithubUserName},
+		{"gitlab", gitlabTestClient, GITLAB_DOMAIN, accounts.GitlabOrgName, accounts.GitlabUserName},
 	}
 
 	testNameFormat := "create pr for %s account [%s]"
@@ -229,10 +229,12 @@ func Test_CreatePullRequestToOrgRepo(t *testing.T) {
 	}
 }
 
-func TextCreateRepository(t *testing.T) {
+func TestCreateRepository(t *testing.T) {
 	accounts := getAccounts()
 
 	repoName := "test-org-repo"
+
+	SetGithubProvider(githubTestClient)
 
 	err := CreateRepository(repoName, accounts.GithubOrgName, true)
 	assert.NoError(t, err)
@@ -341,7 +343,7 @@ func CreateTestPullRequestToUserRepo(t *testing.T, client gitprovider.Client, do
 func TestGetOwnerType(t *testing.T) {
 	accounts := getAccounts()
 
-	ownerType, err := getOwnerType(githubClient, accounts.GithubOrgName)
+	ownerType, err := getOwnerType(githubTestClient, accounts.GithubOrgName)
 
 	assert.NoError(t, err)
 	assert.Equal(t, OwnerTypeOrg, ownerType)
