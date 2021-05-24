@@ -229,6 +229,15 @@ func Test_CreatePullRequestToOrgRepo(t *testing.T) {
 	}
 }
 
+func TextCreateRepository(t *testing.T) {
+	accounts := getAccounts()
+
+	repoName := "test-org-repo"
+
+	err := CreateRepository(repoName, accounts.GithubOrgName, true)
+	assert.NoError(t, err)
+}
+
 func CreateTestPullRequestToOrgRepo(t *testing.T, client gitprovider.Client, domain string, orgName string) {
 	repoName := "test-org-repo"
 	branchName := "test-org-branch"
