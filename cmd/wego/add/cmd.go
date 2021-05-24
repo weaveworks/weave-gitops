@@ -8,9 +8,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops/pkg/cmdimpl"
+
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/pkg/cmdimpl"
 )
 
 var params cmdimpl.AddParamSet
@@ -31,6 +32,7 @@ func init() {
 	Cmd.Flags().StringVar(&params.Url, "url", "", "URL of remote git repository")
 	Cmd.Flags().StringVar(&params.Path, "path", "./", "Path of files within git repository")
 	Cmd.Flags().StringVar(&params.Branch, "branch", "main", "Branch to watch within git repository")
+	Cmd.Flags().StringVar(&params.DeploymentType, "deployment-type", "kustomize", "deployment type [kustomize, helm]")
 	Cmd.Flags().StringVar(&params.PrivateKey, "private-key", filepath.Join(os.Getenv("HOME"), ".ssh", "id_rsa"), "Private key that provides access to git repository")
 	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'wego add' will not make any changes to the system; it will just display the actions that would have been taken")
 }
