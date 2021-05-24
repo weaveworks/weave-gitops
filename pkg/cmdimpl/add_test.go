@@ -160,6 +160,12 @@ func handleGitLsRemote(arglist ...interface{}) ([]byte, []byte, error) {
 	return nil, nil, fmt.Errorf("NO!")
 }
 
+var _ = Describe("Test helm manifest", func() {
+	It("Verify helm manifest files generation ", func() {
+		Expect(generateHelmManifest()).ToNot(BeEmpty())
+	})
+})
+
 var _ = Describe("Dry Run Add Test", func() {
 	It("Verify that the dry-run flag leaves clusters and repos unchanged", func() {
 		By("Executing a dry-run add and failing/exiting if any of the flux actions were invoked", func() {
