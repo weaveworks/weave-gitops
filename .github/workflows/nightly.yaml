@@ -7,7 +7,42 @@ on:
 
 name: Nightly
 jobs:
+  lint:
+    runs-on: ${{matrix.os}}
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16.x
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Fake Install flux
+      run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
+    - name: Run linters
+      uses: golangci/golangci-lint-action@v2
+      with:
+        version: v1.29
+        args: --build-tags acceptance
+
+  build:
+    runs-on: ${{matrix.os}}
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16.x
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: build
+      run: make all BINARY_NAME=wego-${{matrix.os}}-nightly
+    - name: Store wego binaries
+      uses: actions/upload-artifact@v2
+      with:
+          name: wego-binaries-${{matrix.os}}-nightly
+          path: bin
+          retention-days: 1
   test-eks:
+    needs: [lint, build]
     runs-on: ${{matrix.os}}
     timeout-minutes: 60
     strategy:
@@ -52,15 +87,21 @@ jobs:
       if: always()
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
-    - name: build
-      run: make all BINARY_NAME=wego-${{matrix.os}}-nightly
+    - name: Download wego binaries
+      uses: actions/download-artifact@v2
+      with:
+        name: wego-binaries-${{matrix.os}}-nightly
+        path: bin
+    - name: Change bin permissions
+      run: |
+        chmod +x bin/wego-${{matrix.os}}-nightly
+        ls -la bin
     - name: Set up ssh agent
       uses: webfactory/ssh-agent@v0.5.2
       with:
         ssh-private-key: ${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}
     - name: Configure git settings
       run: |
-        export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}-nightly
         git config --global init.defaultBranch main
         git config --global user.email "test-user@weave.works"
         git config --global user.name "Testy McTestFace"
@@ -83,6 +124,7 @@ jobs:
         ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v -tags=acceptance ./test/acceptance/test/...
 
   test-gke:
+    needs: [lint, build]
     runs-on: ${{matrix.os}}
     timeout-minutes: 60
     continue-on-error: true
@@ -128,15 +170,21 @@ jobs:
       if: always()
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
-    - name: build
-      run: make all BINARY_NAME=wego-${{matrix.os}}-nightly
+    - name: Download wego binaries
+      uses: actions/download-artifact@v2
+      with:
+        name: wego-binaries-${{matrix.os}}-nightly
+        path: bin
+    - name: Change bin permissions
+      run: |
+        chmod +x bin/wego-${{matrix.os}}-nightly
+        ls -la bin
     - name: Set up ssh agent
       uses: webfactory/ssh-agent@v0.5.2
       with:
         ssh-private-key: ${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}
     - name: Configure git settings
       run: |
-        export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}-nightly
         git config --global init.defaultBranch main
         git config --global user.email "test-user@weave.works"
         git config --global user.name "Testy McTestFace"
