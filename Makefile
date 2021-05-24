@@ -25,7 +25,7 @@ endif
 all: wego
 
 # Run tests
-unit-tests:
+unit-tests: cmd/ui/dist
 	CGO_ENABLED=0 go test -v -tags unittest ./...
 
 bin:
@@ -50,7 +50,13 @@ dependencies:
 package-lock.json:
 	npm install
 
-cmd/ui/dist/index.html: package-lock.json
+cmd/ui/dist: cmd/ui/dist/index.html
+	mkdir -p cmd/ui/dist
+
+cmd/ui/dist/index.html: cmd/ui/dist
+	touch cmd/ui/dist/index.html
+
+cmd/ui/dist/main.js: package-lock.json
 	npm run build
 
 bin/$(BINARY_NAME)_ui: cmd/ui/main.go
