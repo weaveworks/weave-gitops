@@ -1,7 +1,7 @@
 on:
   push:
     branches:
-      - main
+      - add-nightly-pipeline
   schedule:
     - cron: '*/5 * * * *'
 
@@ -212,6 +212,7 @@ jobs:
         ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v -tags=acceptance ./test/acceptance/test/...
   
   publish:
+    if: success()
     needs: [test-eks, test-gke]
     runs-on: ${{matrix.os}}
     strategy:
