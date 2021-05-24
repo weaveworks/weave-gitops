@@ -10,7 +10,6 @@ jobs:
   test-eks:
     runs-on: ${{matrix.os}}
     timeout-minutes: 60
-    continue-on-error: true
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]
