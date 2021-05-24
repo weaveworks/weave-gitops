@@ -209,6 +209,7 @@ var _ = Describe("Dry Run Add Test", func() {
 							Path:           "./",
 							Branch:         "main",
 							PrivateKey:     privateKeyFileName,
+							IsPrivate:      false,
 							DryRun:         true,
 							Namespace:      "wego-system",
 							DeploymentType: DeployTypeKustomize,

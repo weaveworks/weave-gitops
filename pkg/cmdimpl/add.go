@@ -364,3 +364,11 @@ func Add(args []string, allParams AddParamSet) {
 
 	fmt.Printf("Successfully added repository: %s.\n", params.Name)
 }
+
+func getRepoAccess(IsPrivate bool) gitprovider.RepositoryVisibility {
+	access := gitprovider.RepositoryVisibilityPrivate
+	if !params.IsPrivate {
+		access = gitprovider.RepositoryVisibilityPublic
+	}
+	return access
+}
