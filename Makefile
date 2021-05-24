@@ -1,3 +1,4 @@
+.PHONY: ui-dev
 VERSION=$(shell git describe --always --match "v*")
 GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
@@ -45,3 +46,15 @@ vet:
 
 dependencies:
 	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
+
+package-lock.json:
+	npm install
+
+cmd/ui/dist/index.html: package-lock.json
+	npm run build
+
+bin/$(BINARY_NAME)_ui: cmd/ui/main.go
+	go build -ldflags "-X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION)" -o bin/$(BINARY_NAME)_ui cmd/ui/main.go
+
+ui-dev:
+	reflex -r '.go' -s -- sh -c 'go run cmd/ui/main.go'
