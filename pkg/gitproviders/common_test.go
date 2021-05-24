@@ -179,8 +179,6 @@ func newGithubTestClient(customTransportFactory gitprovider.ChainableRoundTrippe
 		token = " "
 	}
 
-	fmt.Println("GITHUB_TOKEN", len(token))
-
 	return github.NewClient(
 		github.WithOAuth2Token(token),
 		github.WithPreChainTransportHook(customTransportFactory),
@@ -193,8 +191,6 @@ func newGitlabTestClient(customTransportFactory gitprovider.ChainableRoundTrippe
 	if token == "" { // This is the case when the tests run in the ci/cd tool. No need to have a value as everything is cached
 		token = " "
 	}
-
-	fmt.Println("GITLAB_TOKEN", len(token))
 
 	return gitlab.NewClient(
 		"",
@@ -334,8 +330,10 @@ func CreateTestPullRequestToUserRepo(t *testing.T, client gitprovider.Client, do
 }
 
 func TestGetOwnerType(t *testing.T) {
-	ownerType, err := getOwnerType(githubClient, GithubOrgTestName)
+	accounts := getAccounts()
+
+	ownerType, err := getOwnerType(githubClient, accounts.GithubOrgName)
 
 	assert.NoError(t, err)
-	assert.Equal(t, "organization", ownerType)
+	assert.Equal(t, OwnerTypeOrg, ownerType)
 }
