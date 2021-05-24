@@ -35,14 +35,14 @@ func (h defaultGithubProviderHandler) SetGithubProvider(githubProviderClient git
 }
 
 func (h defaultGithubProviderHandler) GithubProvider() (gitprovider.Client, error) {
-	token, found := os.LookupEnv("GITHUB_TOKEN")
-	if !found {
-		return nil, fmt.Errorf("GITHUB_TOKEN not set in environment")
-	}
-
 	var err error
 
 	if githubProvider == nil {
+		token, found := os.LookupEnv("GITHUB_TOKEN")
+		if !found {
+			return nil, fmt.Errorf("GITHUB_TOKEN not set in environment")
+		}
+
 		githubProvider, err = github.NewClient(
 			github.WithOAuth2Token(token),
 			github.WithDestructiveAPICalls(true),

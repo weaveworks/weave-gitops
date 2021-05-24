@@ -22,7 +22,7 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 )
 
-var githubTestClient, gitlabTestClient gitprovider.Client
+var cacheGithubRecorder, cacheGitlabRecorder *recorder.Recorder
 
 var (
 	GithubOrgTestName  = "weaveworks"
@@ -137,21 +137,13 @@ func getAccounts() *accounts {
 func TestMain(m *testing.M) {
 	accounts := getAccounts()
 
-	cacheGithubRecorder, err := NewRecorder("github", accounts)
+	var err error
+	cacheGithubRecorder, err = NewRecorder("github", accounts)
 	if err != nil {
 		panic(err)
 	}
 
-	cacheGitlabRecorder, err := NewRecorder("gitlab", accounts)
-	if err != nil {
-		panic(err)
-	}
-
-	githubTestClient, err = newGithubTestClient(SetRecorder(cacheGithubRecorder))
-	if err != nil {
-		panic(err)
-	}
-	gitlabTestClient, err = newGitlabTestClient(SetRecorder(cacheGitlabRecorder))
+	cacheGitlabRecorder, err = NewRecorder("gitlab", accounts)
 	if err != nil {
 		panic(err)
 	}
@@ -204,6 +196,12 @@ func newGitlabTestClient(customTransportFactory gitprovider.ChainableRoundTrippe
 func Test_CreatePullRequestToOrgRepo(t *testing.T) {
 	accounts := getAccounts()
 
+	githubTestClient, err := newGithubTestClient(SetRecorder(cacheGithubRecorder))
+	assert.NoError(t, err)
+
+	gitlabTestClient, err := newGitlabTestClient(SetRecorder(cacheGitlabRecorder))
+	assert.NoError(t, err)
+
 	providers := []struct {
 		provider string
 		client   gitprovider.Client
@@ -234,9 +232,13 @@ func TestCreateRepository(t *testing.T) {
 
 	repoName := "test-org-repo"
 
-	SetGithubProvider(githubTestClient)
+	githubTestClient, err := newGithubTestClient(SetRecorder(cacheGithubRecorder))
+	assert.NoError(t, err)
 
-	err := CreateRepository(repoName, accounts.GithubOrgName, true)
+	SetGithubProvider(githubTestClient)
+	defer SetGithubProvider(nil)
+
+	err = CreateRepository(repoName, accounts.GithubOrgName, true)
 	assert.NoError(t, err)
 }
 
@@ -342,6 +344,9 @@ func CreateTestPullRequestToUserRepo(t *testing.T, client gitprovider.Client, do
 
 func TestGetOwnerType(t *testing.T) {
 	accounts := getAccounts()
+
+	githubTestClient, err := newGithubTestClient(SetRecorder(cacheGithubRecorder))
+	assert.NoError(t, err)
 
 	ownerType, err := getOwnerType(githubTestClient, accounts.GithubOrgName)
 
