@@ -294,15 +294,12 @@ func Add(args []string, allParams AddParamSet) {
 			checkAddError(utils.CallCommandForEffectWithDebug("git init"))
 		}
 
-		err = gitproviders.CreateRepository(fluxRepoName, owner, true)
-		checkAddError(err)
-
 		cmdStr := `git remote add origin git@github.com:%s/%s.git && \
             git pull --rebase origin main && \
             git checkout main && \
             git push --set-upstream origin main`
-
 		cmd := fmt.Sprintf(cmdStr, owner, fluxRepoName)
+
 		if !params.DryRun {
 			err = gitproviders.CreateRepository(fluxRepoName, owner, true)
 			checkAddError(err)
