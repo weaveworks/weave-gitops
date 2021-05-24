@@ -184,7 +184,7 @@ var _ = Describe("Test helm manifest", func() {
 		params.Path = "./my-chart"
 		params.Namespace = "wego-system"
 
-		Expect(generateHelmManifest()).Should(Succeed())
+		Expect(generateHelmManifest()).Should(Equal("foo"))
 	})
 })
 
