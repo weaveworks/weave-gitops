@@ -3,14 +3,15 @@ package cmdimpl
 // Implementation of the 'wego add' command
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"text/template"
+	"time"
+
+	"github.com/weaveworks/weave-gitops/pkg/app"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
@@ -20,18 +21,11 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
-const appYamlTemplate = `apiVersion: wego.weave.works/v1alpha1
-kind: Application
-metadata:
-  name: {{ .AppName }}
-spec:
-  path: {{ .AppPath }}
-  url: {{ .AppURL }}
-`
+type DeploymentType string
 
 const (
-	DeployTypeKustomize = "kustomize"
-	DeployTypeHelm      = "helm"
+	DeployTypeKustomize DeploymentType = "kustomize"
+	DeployTypeHelm      DeploymentType = "helm"
 )
 
 type AddParamSet struct {
@@ -64,7 +58,7 @@ func checkAddError(err interface{}) {
 }
 
 func getClusterRepoName() string {
-	clusterName, err := status.GetClusterName()
+	clusterName, err := utils.GetClusterName()
 	checkAddError(err)
 	return clusterName + "-wego"
 }
@@ -95,7 +89,7 @@ func updateParametersIfNecessary() {
 }
 
 func generateWegoSourceManifest() []byte {
-	fluxRepoName, err := fluxops.GetRepoName()
+	fluxRepoName, err := utils.GetWegoRepoName()
 	checkAddError(err)
 
 	cmd := fmt.Sprintf(`create secret git "wego" \
@@ -271,17 +265,11 @@ func Add(args []string, allParams AddParamSet) {
 		shims.Exit(1)
 	}
 
-	// Set up wego repository if required
-	fluxRepoName, err := fluxops.GetRepoName()
+	wegoRepoName, err := utils.GetWegoRepoName()
 	checkAddError(err)
 
-	reposDir := filepath.Join(os.Getenv("HOME"), ".wego", "repositories")
-	fluxRepo := filepath.Join(reposDir, fluxRepoName)
-	appSubdir := filepath.Join(fluxRepo, "apps", params.Name)
-
-	if !params.DryRun {
-		checkAddError(os.MkdirAll(appSubdir, 0755))
-	}
+	fluxRepo, err := utils.GetWegoLocalPath()
+	checkAddError(err)
 
 	owner := getOwner()
 
@@ -289,7 +277,7 @@ func Add(args []string, allParams AddParamSet) {
 		checkAddError(os.Chdir(fluxRepo))
 	}
 
-	if err := utils.CallCommandForEffect(fmt.Sprintf("git ls-remote ssh://git@github.com/%s/%s.git", owner, fluxRepoName)); err != nil {
+	if err := utils.CallCommandForEffect(fmt.Sprintf("git ls-remote ssh://git@github.com/%s/%s.git", owner, wegoRepoName)); err != nil {
 		fmt.Printf("wego repo does not exist, it will be created...\n")
 		if !params.DryRun {
 			checkAddError(utils.CallCommandForEffectWithDebug("git init"))
@@ -298,7 +286,7 @@ func Add(args []string, allParams AddParamSet) {
 		c, err := cgitprovider.GithubProvider()
 		checkAddError(err)
 
-		orgRef := cgitprovider.NewOrgRepositoryRef(cgitprovider.GITHUB_DOMAIN, owner, fluxRepoName)
+		orgRef := cgitprovider.NewOrgRepositoryRef(cgitprovider.GITHUB_DOMAIN, owner, wegoRepoName)
 
 		repoInfo := cgitprovider.NewRepositoryInfo("wego repo", gitprovider.RepositoryVisibilityPrivate)
 
@@ -316,11 +304,14 @@ func Add(args []string, allParams AddParamSet) {
 			checkAddError(shims.CreateOrgRepository(c, orgRef, repoInfo, repoCreateOpts))
 			cmd := fmt.Sprintf(cmdStr, orgRef.String())
 			checkAddError(utils.CallCommandForEffectWithDebug(cmd))
+			fmt.Println("waiting 5 seconds")
+			time.Sleep(time.Second * 5)
 		} else {
 			fmt.Fprintf(shims.Stdout(), cmdStr, orgRef.String())
 		}
 	} else if !params.DryRun {
-		checkAddError(utils.CallCommandForEffectWithDebug("git branch --set-upstream-to=origin/main main"))
+		cmd := "git branch --set-upstream-to=origin/main main"
+		checkAddError(utils.CallCommandForEffectWithDebug(cmd))
 	}
 
 	// Install Source and Kustomize controllers, and CRD for application (may already be present)
@@ -335,16 +326,7 @@ func Add(args []string, allParams AddParamSet) {
 	}
 
 	// Create app.yaml
-	t, err := template.New("appYaml").Parse(appYamlTemplate)
-	checkAddError(err)
-
-	var populated bytes.Buffer
-	err = t.Execute(&populated, struct {
-		AppName string
-		AppPath string
-		AppURL  string
-	}{params.Name, params.Path, params.Url})
-	checkAddError(err)
+	newApp := app.NewApp(params.Name, params.Path, params.Url)
 
 	// Create flux custom resources for new repo being added
 	source := generateSourceManifest()
@@ -360,16 +342,23 @@ func Add(args []string, allParams AddParamSet) {
 		checkAddError(fmt.Errorf("deployment type not supported [%s]", params.DeploymentType))
 	}
 
-	sourceName := filepath.Join(appSubdir, "source-"+params.Name+".yaml")
-	manifestsName := filepath.Join(appSubdir, fmt.Sprintf("%s-%s.yaml", params.DeploymentType, params.Name))
-	appYamlName := filepath.Join(appSubdir, "app.yaml")
+	wegoAppPath, err := utils.GetWegoAppPath(params.Name)
+	checkAddError(err)
 
-	if !params.DryRun {
-		checkAddError(ioutil.WriteFile(sourceName, source, 0644))
-		checkAddError(ioutil.WriteFile(manifestsName, appManifests, 0644))
-		checkAddError(ioutil.WriteFile(appYamlName, populated.Bytes(), 0644))
+	sourceYamlPath := filepath.Join(wegoAppPath, "source-"+params.Name+".yaml")
+	manifestDeployTypeNamePath := filepath.Join(wegoAppPath, fmt.Sprintf("%s-%s.yaml", params.DeploymentType, params.Name))
+	appYamlName := filepath.Join(wegoAppPath, "app.yaml")
 
-		commitAndPush(sourceName, manifestsName, appYamlName)
+	if !params.DryRun && !utils.Exists(wegoAppPath) {
+		if err = os.MkdirAll(wegoAppPath, 0755); err != nil {
+			checkAddError(err)
+		}
+		appManifestContent, err := newApp.Bytes()
+		checkAddError(err)
+		checkAddError(ioutil.WriteFile(sourceYamlPath, source, 0644))
+		checkAddError(ioutil.WriteFile(manifestDeployTypeNamePath, appManifests, 0644))
+		checkAddError(ioutil.WriteFile(appYamlName, appManifestContent, 0644))
+		commitAndPush(sourceYamlPath, manifestDeployTypeNamePath, appYamlName)
 	} else {
 		fmt.Fprintf(shims.Stdout(), "Applying wego resources for application...")
 	}
