@@ -58,8 +58,9 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 	It("Verify that wego can install required controllers under default namespace `wego-system`", func() {
 
+		namespace := "wego-system"
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster()
+			_, err := ResetOrCreateCluster(namespace)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -85,7 +86,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		namespace := "test-namespace"
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster()
+			_, err := ResetOrCreateCluster(namespace)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 

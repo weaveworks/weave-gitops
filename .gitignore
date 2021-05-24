@@ -5,3 +5,6 @@ bin
 tools/bin/*
 coverage.out
 dist/
+.cache
+.parcel-cache
+node_modules
