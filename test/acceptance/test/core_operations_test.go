@@ -61,11 +61,12 @@ spec:
 `
 
 var (
-	tmpDir  string
-	client  gitprovider.Client
-	session *gexec.Session
-	tmpPath string
-	err     error
+	tmpDir      string
+	client      gitprovider.Client
+	session     *gexec.Session
+	tmpPath     string
+	err         error
+	keyFilePath string
 )
 
 var _ = Describe("WEGO Acceptance Tests", func() {
@@ -85,6 +86,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 			Expect(ensureWegoRepoIsAbsent()).Should(Succeed())
 			Expect(ensureFluxVersion()).Should(Succeed())
 			Expect(installWego()).Should(Succeed())
+			Expect(waitForFluxInstall()).Should(Succeed())
 			Expect(setUpTestRepo()).Should(Succeed())
 		})
 
@@ -99,7 +101,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 			defer func() {
 				Expect(os.Chdir(dir)).Should(Succeed())
 			}()
-			command := exec.Command(WEGO_BIN_PATH, "add", ".")
+			command := exec.Command(WEGO_BIN_PATH, "add", ".", fmt.Sprintf("--private-key=%v", keyFilePath))
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
@@ -127,7 +129,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 			defer func() {
 				Expect(os.Chdir(dir)).Should(Succeed())
 			}()
-			command := exec.Command(WEGO_BIN_PATH, "add", ".", "--private=false")
+			command := exec.Command(WEGO_BIN_PATH, "add", ".", "--private=false", fmt.Sprintf("--private-key=%v", keyFilePath))
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
@@ -154,10 +156,20 @@ func setupTest() error {
 	}
 	tmpDir = tmpPath
 
-	keyFilePath := filepath.Join(os.Getenv("HOME"), ".ssh", "id_rsa")
+	keyFilePath = filepath.Join(os.Getenv("HOME"), ".ssh", "id_rsa")
 	if _, err := os.Stat(keyFilePath); os.IsNotExist(err) {
 		key := os.Getenv("GITHUB_KEY")
-		err := ioutil.WriteFile(keyFilePath, []byte(key), 700)
+		tmpFile, err := ioutil.TempFile("", "keyfile")
+		if err != nil {
+			return err
+		}
+		defer tmpFile.Close()
+		err = ioutil.WriteFile(tmpFile.Name(), []byte(key), 600)
+		keyFilePath = tmpFile.Name()
+		if err != nil {
+			return err
+		}
+		err = ioutil.WriteFile(keyFilePath, []byte(key), 700)
 		if err != nil {
 			return err
 		}
@@ -252,6 +264,17 @@ func waitForNginxDeployment() error {
 		time.Sleep(5 * time.Second)
 	}
 	return fmt.Errorf("Failed to deploy nginx workload to the cluster")
+}
+
+func waitForFluxInstall() error {
+	for i := 1; i < 11; i++ {
+		log.Infof("Waiting for flux... try: %d of 10\n", i)
+		if status.GetClusterStatus() == status.FluxInstalled {
+			return nil
+		}
+		time.Sleep(5 * time.Second)
+	}
+	return fmt.Errorf("Failed to install flux")
 }
 
 func installWego() error {
