@@ -105,9 +105,12 @@ func generateWegoSourceManifest() []byte {
 		fluxRepoName,
 		params.PrivateKey,
 		params.Namespace)
-	fmt.Println("debug3", cmd)
-	_, err = fluxops.CallFlux(cmd)
-	checkAddError(err)
+	if params.DryRun {
+		fmt.Printf(cmd + "\n")
+	} else {
+		_, err = fluxops.CallFlux(cmd)
+		checkAddError(err)
+	}
 
 	cmd = fmt.Sprintf(`create source git "wego" \
         --url="ssh://git@github.com/%s/%s" \
@@ -120,7 +123,6 @@ func generateWegoSourceManifest() []byte {
 		fluxRepoName,
 		params.Branch,
 		params.Namespace)
-	fmt.Println("debug2", cmd)
 	sourceManifest, err := fluxops.CallFlux(cmd)
 	checkAddError(err)
 	return sourceManifest
@@ -152,8 +154,12 @@ func generateSourceManifest() []byte {
 		params.Url,
 		params.PrivateKey,
 		params.Namespace)
-	_, err := fluxops.CallFlux(cmd)
-	checkAddError(err)
+	if params.DryRun {
+		fmt.Printf(cmd + "\n")
+	} else {
+		_, err := fluxops.CallFlux(cmd)
+		checkAddError(err)
+	}
 
 	cmd = fmt.Sprintf(`create source git "%s" \
             --url="%s" \
@@ -167,14 +173,12 @@ func generateSourceManifest() []byte {
 		params.Branch,
 		secretName,
 		params.Namespace)
-	fmt.Println("debug1", cmd)
 	sourceManifest, err := fluxops.CallFlux(cmd)
 	checkAddError(err)
 	return sourceManifest
 }
 
 func generateKustomizeManifest() []byte {
-
 	cmd := fmt.Sprintf(`create kustomization "%s" \
                 --path="%s" \
                 --source="%s" \
@@ -193,9 +197,18 @@ func generateKustomizeManifest() []byte {
 }
 
 func generateHelmManifest() []byte {
-	helmManifest, err := fluxops.CallFlux(
-		fmt.Sprintf(`create helmrelease %s --source="GitRepository/%s" --chart="%s" --interval=5m --export`, params.Name, params.Name, params.Path))
-
+	cmd := fmt.Sprintf(`create helmrelease %s \
+			--source="GitRepository/%s" \
+			--chart="%s" \
+			--interval=5m \
+			--export \
+			--namespace=%s `,
+		params.Name,
+		params.Name,
+		params.Path,
+		params.Namespace,
+	)
+	helmManifest, err := fluxops.CallFlux(cmd)
 	checkAddError(err)
 	return helmManifest
 }
@@ -327,11 +340,15 @@ func Add(args []string, allParams AddParamSet) {
 	// Create flux custom resources for new repo being added
 	source := generateSourceManifest()
 
+	fmt.Println("DeploymentType check1", params.DeploymentType)
 	var appManifests []byte
-	if params.DeploymentType == DeployTypeHelm {
+	switch params.DeploymentType {
+	case string(DeployTypeHelm):
 		appManifests = generateHelmManifest()
-	} else {
+	case string(DeployTypeKustomize):
 		appManifests = generateKustomizeManifest()
+	default:
+		checkAddError(fmt.Errorf("deployment type not supported [%s]", params.DeploymentType))
 	}
 
 	sourceName := filepath.Join(appSubdir, "source-"+params.Name+".yaml")

@@ -176,13 +176,15 @@ var _ = Describe("Dry Run Add Test", func() {
 				func() override.Result {
 					Add([]string{"."},
 						AddParamSet{
-							Name:       "wanda",
-							Url:        "ssh://git@github.com/foobar/quux.git",
-							Path:       "./",
-							Branch:     "main",
-							PrivateKey: privateKeyFileName,
-							DryRun:     true,
-							Namespace:  "wego-system"})
+							Name:           "wanda",
+							Url:            "ssh://git@github.com/foobar/quux.git",
+							Path:           "./",
+							Branch:         "main",
+							PrivateKey:     privateKeyFileName,
+							DryRun:         true,
+							Namespace:      "wego-system",
+							DeploymentType: DeployTypeKustomize,
+						})
 					return override.Result{}
 				},
 				utils.OverrideFailure(utils.CallCommandForEffectWithInputPipeOp),
