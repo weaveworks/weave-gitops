@@ -332,3 +332,10 @@ func CreateTestPullRequestToUserRepo(t *testing.T, client gitprovider.Client, do
 		assert.NoError(t, err)
 	})
 }
+
+func TestGetOwnerType(t *testing.T) {
+	ownerType, err := getOwnerType(githubClient, GithubOrgTestName)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "organization", ownerType)
+}
