@@ -1,9 +1,6 @@
 on:
-  push:
-    branches:
-      - add-nightly-pipeline
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '8 0 * * *'
 
 name: Nightly
 jobs:
