@@ -1,5 +1,9 @@
 // +build smoke acceptance
 
+/**
+* All tests related to 'wego flux' will go into this file
+ */
+
 package acceptance
 
 import (
@@ -10,7 +14,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("WEGO Acceptance Tests", func() {
+var _ = Describe("WEGO Flux Tests", func() {
 
 	var session *gexec.Session
 	var err error
