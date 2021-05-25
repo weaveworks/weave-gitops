@@ -301,8 +301,7 @@ func Add(args []string, allParams AddParamSet) {
 		cmd := fmt.Sprintf(cmdStr, owner, fluxRepoName)
 
 		if !params.DryRun {
-			err = gitproviders.CreateRepository(fluxRepoName, owner, true)
-			checkAddError(err)
+			checkAddError(gitproviders.CreateRepository(fluxRepoName, owner, true))
 			checkAddError(utils.CallCommandForEffectWithDebug(cmd))
 		} else {
 			fmt.Fprint(shims.Stdout(), cmd)
