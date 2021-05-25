@@ -19,6 +19,7 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"github.com/prometheus/common/log"
 	"github.com/weaveworks/weave-gitops/pkg/cmdimpl"
@@ -113,8 +114,8 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		By("kubectl get pods -n wego-system should list the source and kustomize controllers", func() {
 			Expect(waitForNginxDeployment()).Should(Succeed())
 			Expect(runCommandForGinkgo("kubectl get pods -n wego-system")).Should(Succeed())
-			Eventually(session).Should(ContainSubstring("kustomize-controller"))
-			Eventually(session).Should(ContainSubstring("source-controller"))
+			Eventually(session).Should(gbytes.Say("kustomize-controller"))
+			Eventually(session).Should(gbytes.Say("source-controller"))
 		})
 	})
 
@@ -141,8 +142,8 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		By("kubectl get pods -n wego-system should list the source and kustomize controllers", func() {
 			Expect(waitForNginxDeployment()).Should(Succeed())
 			Expect(runCommandForGinkgo("kubectl get pods -n wego-system")).Should(Succeed())
-			Eventually(session).Should(ContainSubstring("kustomize-controller"))
-			Eventually(session).Should(ContainSubstring("source-controller"))
+			Eventually(session).Should(gbytes.Say("kustomize-controller"))
+			Eventually(session).Should(gbytes.Say("source-controller"))
 		})
 	})
 })
