@@ -1,7 +1,7 @@
 // +build smoke acceptance
 
 /**
-* All smoke tests go to this file, keep them light weight and fast.
+* All smoke tests go to this file, keep them light-weight and fast.
 * However these should still be end to end user facing scenarios.
 * Smoke tests would run as part of full suite too hence the acceptance_tests flag.
  */
@@ -16,7 +16,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("WEGO Acceptance Tests", func() {
+var _ = Describe("WEGO Smoke Tests", func() {
 
 	var session *gexec.Session
 	var err error
@@ -25,6 +25,20 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 		By("Given I have a wego binary installed on my local machine", func() {
 			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
+		})
+	})
+
+	It("Verify that wego displays error message when provided with the wrong flag", func() {
+
+		By("When I run 'wego foo'", func() {
+			command := exec.Command(WEGO_BIN_PATH, "foo")
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		By("Then I should see wego error message", func() {
+			Eventually(session.Err).Should(gbytes.Say("Error: unknown command \"foo\" for \"wego\""))
+			Eventually(session.Err).Should(gbytes.Say("Run 'wego --help' for usage."))
 		})
 	})
 
@@ -103,16 +117,4 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 
 	})
 
-	It("Verify that wego flux can print out version information", func() {
-
-		By("When I run 'wego flux -v", func() {
-			command := exec.Command(WEGO_BIN_PATH, "flux", "-v")
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).ShouldNot(HaveOccurred())
-		})
-
-		By("Then I should see the wego flux version printed in format m.n.n with newline character", func() {
-			Eventually(session).Should(gbytes.Say("flux version [0-3].[0-3][0-9].[0-9]\\d*\n"))
-		})
-	})
 })
