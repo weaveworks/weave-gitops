@@ -202,7 +202,7 @@ func generateHelmManifest() []byte {
 			--chart="%s" \
 			--interval=5m \
 			--export \
-			--namespace=%s `,
+			--namespace=%s`,
 		params.Name,
 		params.Name,
 		params.Path,

@@ -79,7 +79,7 @@ jobs:
     - name: Install UI Deps
       run: npm ci
     - name: Build UI Assets
-      run: make cmd/ui/dist/index.html
+      run: make cmd/ui/dist/main.js
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: unit-tests with coverage
