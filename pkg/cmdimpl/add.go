@@ -301,6 +301,8 @@ func Add(args []string, allParams AddParamSet) {
             git push --set-upstream origin main`
 		cmd := fmt.Sprintf(cmdStr, owner, fluxRepoName)
 
+		checkAddError(shims.CreateOrgRepository(c, orgRef, repoInfo, repoCreateOpts))
+
 		if !params.DryRun {
 			checkAddError(gitproviders.CreateRepository(fluxRepoName, owner, true))
 			checkAddError(utils.CallCommandForEffectWithDebug(cmd))
@@ -365,9 +367,9 @@ func Add(args []string, allParams AddParamSet) {
 	fmt.Printf("Successfully added repository: %s.\n", params.Name)
 }
 
-func getRepoAccess(IsPrivate bool) gitprovider.RepositoryVisibility {
+func getRepoAccess(isPrivate bool) gitprovider.RepositoryVisibility {
 	access := gitprovider.RepositoryVisibilityPrivate
-	if !params.IsPrivate {
+	if !isPrivate {
 		access = gitprovider.RepositoryVisibilityPublic
 	}
 	return access
