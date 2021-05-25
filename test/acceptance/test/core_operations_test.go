@@ -64,7 +64,6 @@ var (
 	client      gitprovider.Client
 	session     *gexec.Session
 	tmpPath     string
-	err         error
 	keyFilePath string
 )
 
