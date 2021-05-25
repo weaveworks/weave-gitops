@@ -160,6 +160,34 @@ func handleGitLsRemote(arglist ...interface{}) ([]byte, []byte, error) {
 	return nil, nil, fmt.Errorf("NO!")
 }
 
+var _ = Describe("Test helm manifest", func() {
+	It("Verify helm manifest files generation ", func() {
+
+		expected := `create helmrelease simple-name \
+			--source="GitRepository/simple-name" \
+			--chart="./my-chart" \
+			--interval=5m \
+			--export \
+			--namespace=wego-system`
+
+		fakeHandler := &fluxopsfakes.FakeFluxHandler{
+			HandleStub: func(args string) ([]byte, error) {
+				Expect(args).Should(Equal(expected))
+				return []byte("foo"), nil
+			},
+		}
+
+		fluxops.SetFluxHandler(fakeHandler)
+
+		params.Name = "simple-name"
+		params.Name = "simple-name"
+		params.Path = "./my-chart"
+		params.Namespace = "wego-system"
+
+		Expect(generateHelmManifest()).Should(Equal([]byte("foo")))
+	})
+})
+
 var _ = Describe("Dry Run Add Test", func() {
 	It("Verify that the dry-run flag leaves clusters and repos unchanged", func() {
 		By("Executing a dry-run add and failing/exiting if any of the flux actions were invoked", func() {
