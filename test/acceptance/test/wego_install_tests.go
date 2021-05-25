@@ -22,10 +22,11 @@ var (
 func VerifyControllersInCluster(session *gexec.Session) {
 
 	By("And I wait for the controllers to get ready", func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s wait --for=condition=Ready -n %s --all pod", "kubectl", namespace))
+		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod", "120s", namespace))
+
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
-		session.Wait(INSTALL_PODS_READY_TIMEOUT)
+		Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
 	})
 
 	By("And I search for the controllers with 'kubectl'", func() {
