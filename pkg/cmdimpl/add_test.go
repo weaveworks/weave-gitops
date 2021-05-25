@@ -16,7 +16,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/fluxops/fluxopsfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/override"
-	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"github.com/weaveworks/weave-gitops/pkg/version"
@@ -85,14 +84,8 @@ var FailFluxHandler = &fluxopsfakes.FakeFluxHandler{
 		return fluxops.DefaultFluxHandler{}.Handle(arglist)
 	},
 }
-var access gitprovider.RepositoryVisibility
 
-type failGitProviderHandler struct{}
-
-func (h failGitProviderHandler) CreateRepository(name string, owner string, private bool) error {
-	shims.Exit(1)
-	return nil
-}
+var access bool
 
 type statusHandler struct{}
 
@@ -104,10 +97,10 @@ func (h statusHandler) GetClusterStatus() status.ClusterStatus {
 	return status.FluxInstalled
 }
 
-type createGitRepoHandler struct{}
+type fakeGitRepoHandler struct{}
 
-func (h createGitRepoHandler) CreateOrgRepository(provider gitprovider.Client, orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
-	access = *repoInfo.Visibility
+func (h fakeGitRepoHandler) CreateRepository(name string, owner string, private bool) error {
+	access = private
 	return nil
 }
 
@@ -202,7 +195,7 @@ var _ = Describe("Dry Run Add Test", func() {
 			Expect(os.Setenv("GITHUB_ORG", "archaeopteryx")).Should(Succeed())
 			Expect(os.Setenv("GITHUB_TOKEN", "archaeopteryx")).Should(Succeed())
 			Expect(ensureFluxVersion()).Should(Succeed())
-			fgphandler := failGitProviderHandler{}
+			fgphandler := fakeGitRepoHandler{}
 			shandler := statusHandler{}
 			privateKeyFile, err := createTestPrivateKeyFile()
 			Expect(err).To(BeNil())
@@ -239,7 +232,8 @@ var _ = Describe("Add repo with custom access test", func() {
 			Expect(os.Setenv("GITHUB_ORG", "archaeopteryx")).Should(Succeed())
 			Expect(os.Setenv("GITHUB_TOKEN", "archaeopteryx")).Should(Succeed())
 			Expect(ensureFluxVersion()).Should(Succeed())
-			createRepoHandler := createGitRepoHandler{}
+			fgphandler := fakeGitRepoHandler{}
+			shandler := statusHandler{}
 			privateKeyFile, err := createTestPrivateKeyFile()
 			Expect(err).To(BeNil())
 			privateKeyFileName := privateKeyFile.Name()
@@ -263,8 +257,10 @@ var _ = Describe("Add repo with custom access test", func() {
 				utils.OverrideFailure(utils.CallCommandForEffectWithInputPipeOp),
 				utils.OverrideFailure(utils.CallCommandForEffectWithDebugOp),
 				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
-				shims.OverrideGitProvider(createRepoHandler))
-			Expect(access).To(Equal(gitprovider.RepositoryVisibilityPrivate))
+				fluxops.Override(FailFluxHandler),
+				gitproviders.Override(fgphandler),
+				status.Override(shandler))
+			Expect(access).To(Equal(true))
 		})
 	})
 
@@ -273,7 +269,8 @@ var _ = Describe("Add repo with custom access test", func() {
 			Expect(os.Setenv("GITHUB_ORG", "archaeopteryx")).Should(Succeed())
 			Expect(os.Setenv("GITHUB_TOKEN", "archaeopteryx")).Should(Succeed())
 			Expect(ensureFluxVersion()).Should(Succeed())
-			createRepoHandler := createGitRepoHandler{}
+			fgphandler := fakeGitRepoHandler{}
+			shandler := statusHandler{}
 			privateKeyFile, err := createTestPrivateKeyFile()
 			Expect(err).To(BeNil())
 			privateKeyFileName := privateKeyFile.Name()
@@ -297,8 +294,10 @@ var _ = Describe("Add repo with custom access test", func() {
 				utils.OverrideFailure(utils.CallCommandForEffectWithInputPipeOp),
 				utils.OverrideFailure(utils.CallCommandForEffectWithDebugOp),
 				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
-				shims.OverrideGitProvider(createRepoHandler))
-			Expect(access).To(Equal(gitprovider.RepositoryVisibilityPublic))
+				fluxops.Override(FailFluxHandler),
+				gitproviders.Override(fgphandler),
+				status.Override(shandler))
+			Expect(access).To(Equal(false))
 		})
 	})
 })
