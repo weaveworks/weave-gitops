@@ -25,7 +25,7 @@ func VerifyControllersInCluster(session *gexec.Session) {
 		command := exec.Command("sh", "-c", fmt.Sprintf("%s wait --for=condition=Ready -n %s --all pod", "kubectl", namespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, INSTALL_RESET_TIMEOUT).Should(gexec.Exit())
+		session.Wait(INSTALL_PODS_READY_TIMEOUT)
 	})
 
 	By("And I search for the controllers with 'kubectl'", func() {
