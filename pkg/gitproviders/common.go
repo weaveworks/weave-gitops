@@ -2,13 +2,86 @@ package gitproviders
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/weaveworks/weave-gitops/pkg/override"
 )
 
-func CreateOrgRepository(provider gitprovider.Client, orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
+const (
+	OwnerTypeUser = "user"
+	OwnerTypeOrg  = "organization"
+)
 
+// GitProvider Handler
+type GitProviderHandler interface {
+	CreateRepository(name string, owner string, private bool) error
+}
+
+var gitProviderHandler interface{} = defaultGitProviderHandler{}
+
+type defaultGitProviderHandler struct{}
+
+func (h defaultGitProviderHandler) CreateRepository(name string, owner string, private bool) error {
+	// TODO: detect or receive the provider when necessary
+	provider, err := GithubProvider()
+	if err != nil {
+		return err
+	}
+
+	visibility := gitprovider.RepositoryVisibilityPrivate
+	if !private {
+		visibility = gitprovider.RepositoryVisibilityPublic
+	}
+	repoInfo := NewRepositoryInfo("Weave Gitops repo", visibility)
+
+	repoCreateOpts := &gitprovider.RepositoryCreateOptions{
+		AutoInit:        gitprovider.BoolVar(true),
+		LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
+	}
+
+	ownerType, err := getOwnerType(provider, owner)
+	if err != nil {
+		return err
+	}
+
+	if ownerType == OwnerTypeOrg {
+		orgRef := NewOrgRepositoryRef(github.DefaultDomain, owner, name)
+
+		return CreateOrgRepository(provider, orgRef, repoInfo, repoCreateOpts)
+	}
+
+	userRef := NewUserRepositoryRef(github.DefaultDomain, owner, name)
+	return CreateUserRepository(provider, userRef, repoInfo, repoCreateOpts)
+}
+
+func CreateRepository(name string, owner string, private bool) error {
+	return gitProviderHandler.(GitProviderHandler).CreateRepository(name, owner, private)
+}
+
+func getOwnerType(provider gitprovider.Client, owner string) (string, error) {
+	ctx := context.Background()
+	defer ctx.Done()
+
+	_, err := provider.Organizations().Get(ctx, gitprovider.OrganizationRef{
+		Domain:       github.DefaultDomain,
+		Organization: owner,
+	})
+
+	if err != nil {
+		if errors.Is(err, gitprovider.ErrNotFound) {
+			return OwnerTypeUser, nil
+		}
+
+		return "", err
+	}
+
+	return OwnerTypeOrg, nil
+}
+
+func CreateOrgRepository(provider gitprovider.Client, orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
 	ctx := context.Background()
 	defer ctx.Done()
 
@@ -21,7 +94,6 @@ func CreateOrgRepository(provider gitprovider.Client, orgRepoRef gitprovider.Org
 }
 
 func CreateUserRepository(provider gitprovider.Client, userRepoRef gitprovider.UserRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
-
 	ctx := context.Background()
 	defer ctx.Done()
 
@@ -33,8 +105,11 @@ func CreateUserRepository(provider gitprovider.Client, userRepoRef gitprovider.U
 	return nil
 }
 
-func CreatePullRequestToUserRepo(provider gitprovider.Client, userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
+func Override(handler GitProviderHandler) override.Override {
+	return override.Override{Handler: &gitProviderHandler, Mock: handler, Original: gitProviderHandler}
+}
 
+func CreatePullRequestToUserRepo(provider gitprovider.Client, userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
 	ctx := context.Background()
 
 	ur, err := provider.UserRepositories().Get(ctx, userRepRef)
@@ -73,7 +148,6 @@ func CreatePullRequestToUserRepo(provider gitprovider.Client, userRepRef gitprov
 }
 
 func CreatePullRequestToOrgRepo(provider gitprovider.Client, orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
-
 	ctx := context.Background()
 
 	ur, err := provider.OrgRepositories().Get(ctx, orgRepRef)

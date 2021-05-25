@@ -12,9 +12,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
-	cgitprovider "github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -295,29 +294,17 @@ func Add(args []string, allParams AddParamSet) {
 			checkAddError(utils.CallCommandForEffectWithDebug("git init"))
 		}
 
-		c, err := cgitprovider.GithubProvider()
-		checkAddError(err)
-
-		orgRef := cgitprovider.NewOrgRepositoryRef(cgitprovider.GITHUB_DOMAIN, owner, fluxRepoName)
-
-		repoInfo := cgitprovider.NewRepositoryInfo("wego repo", gitprovider.RepositoryVisibilityPrivate)
-
-		repoCreateOpts := &gitprovider.RepositoryCreateOptions{
-			AutoInit:        gitprovider.BoolVar(true),
-			LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
-		}
-
-		cmdStr := `git remote add origin %s && \
+		cmdStr := `git remote add origin git@github.com:%s/%s.git && \
             git pull --rebase origin main && \
             git checkout main && \
             git push --set-upstream origin main`
+		cmd := fmt.Sprintf(cmdStr, owner, fluxRepoName)
 
 		if !params.DryRun {
-			checkAddError(shims.CreateOrgRepository(c, orgRef, repoInfo, repoCreateOpts))
-			cmd := fmt.Sprintf(cmdStr, orgRef.String())
+			checkAddError(gitproviders.CreateRepository(fluxRepoName, owner, true))
 			checkAddError(utils.CallCommandForEffectWithDebug(cmd))
 		} else {
-			fmt.Fprintf(shims.Stdout(), cmdStr, orgRef.String())
+			fmt.Fprint(shims.Stdout(), cmd)
 		}
 	} else if !params.DryRun {
 		checkAddError(utils.CallCommandForEffectWithDebug("git branch --set-upstream-to=origin/main main"))

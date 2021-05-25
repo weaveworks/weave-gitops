@@ -5,8 +5,6 @@ package shims
 import (
 	"os"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
-	cgitprovider "github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/override"
 )
 
@@ -58,28 +56,6 @@ func OverrideHomeDir(handler HomeDirHandler) override.Override {
 // Function being mocked
 func UserHomeDir() (string, error) {
 	return homeDirHandler.(HomeDirHandler).Handle()
-}
-
-// GitProvider Handler
-type GitProviderHandler interface {
-	CreateOrgRepository(provider gitprovider.Client, orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error
-}
-
-type defaultGitProviderHandler struct{}
-
-var gitProviderHandler interface{} = defaultGitProviderHandler{}
-
-func (h defaultGitProviderHandler) CreateOrgRepository(provider gitprovider.Client, orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
-	return cgitprovider.CreateOrgRepository(provider, orgRepoRef, repoInfo, opts...)
-}
-
-func OverrideGitProvider(handler GitProviderHandler) override.Override {
-	return override.Override{Handler: &gitProviderHandler, Mock: handler, Original: gitProviderHandler}
-}
-
-// Function being mocked
-func CreateOrgRepository(provider gitprovider.Client, orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
-	return gitProviderHandler.(GitProviderHandler).CreateOrgRepository(provider, orgRepoRef, repoInfo, opts...)
 }
 
 type FileStreams struct {
