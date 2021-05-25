@@ -3,8 +3,6 @@ package acceptance
 import (
 	"testing"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/require"
 )
 
