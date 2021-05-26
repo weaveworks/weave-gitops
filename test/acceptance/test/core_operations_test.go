@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/fluxcd/go-git-providers/github"
@@ -26,6 +27,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
+	"github.com/weaveworks/weave-gitops/pkg/version"
 )
 
 const nginxDeployment = `apiVersion: v1
@@ -81,6 +83,13 @@ var _ = FDescribe("WEGO Acceptance Tests", func() {
 		By("And I have a brand new cluster", func() {
 			_, err := ResetOrCreateCluster("wego-system")
 			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		By("When I run 'wego install' command with default namespace", func() {
+			command := exec.Command("sh", "-c", fmt.Sprintf("%s install | kubectl apply -f -", WEGO_BIN_PATH))
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
+			Eventually(session).Should(gexec.Exit())
 		})
 
 		By("Setup test", func() {
@@ -242,7 +251,7 @@ func ensureWegoRepoAccess() (*gitprovider.RepositoryVisibility, error) {
 
 func ensureFluxVersion() error {
 	log.Info("ensureFluxVersion")
-	/*if version.FluxVersion == "undefined" {
+	if version.FluxVersion == "undefined" {
 		tomlpath, err := filepath.Abs("../../../tools/bin/stoml")
 		if err != nil {
 			return err
@@ -256,7 +265,7 @@ func ensureFluxVersion() error {
 			return err
 		}
 		version.FluxVersion = strings.TrimRight(string(out), "\n")
-	}*/
+	}
 	return nil
 }
 
