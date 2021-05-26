@@ -337,7 +337,7 @@ func setUpTestRepo() error {
 	ctx := context.Background()
 	_, err = client.OrgRepositories().Create(ctx, *ref, gitprovider.RepositoryInfo{
 		Description: gitprovider.StringVar("test repo"),
-		Visibility:  gitprovider.RepositoryVisibilityPrivate,
+		Visibility:  gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityPrivate),
 	}, &gitprovider.RepositoryCreateOptions{
 		AutoInit:        gitprovider.BoolVar(true),
 		LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
