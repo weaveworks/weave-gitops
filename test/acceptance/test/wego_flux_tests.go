@@ -32,9 +32,6 @@ var _ = Describe("WEGO Flux Tests", func() {
 		By("When I run the command 'wego flux foo'", func() {
 			command := exec.Command(WEGO_BIN_PATH, "flux", "foo")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			fmt.Println("-----------------------------sdfdsfgsfdh-----------------------")
-			fmt.Println(session.Command)
-			fmt.Println(session.Command.CombinedOutput())
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
