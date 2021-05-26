@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -234,20 +235,41 @@ func ensureWegoRepoAccess() (*gitprovider.RepositoryVisibility, error) {
 }
 
 func ensureFluxVersion() error {
+	path := os.Getenv("GITHUB_WORKSPACE")
+	if path == "" {
+		path = "../.."
+	}
 	if version.FluxVersion == "undefined" {
-		tomlpath, err := filepath.Abs("../../../tools/bin/stoml")
+		// stoml hasn't been downloaded when unit tests run
+		stomldir, err := ioutil.TempDir("", "stoml")
 		if err != nil {
 			return err
 		}
-		deppath, err := filepath.Abs("../../../tools/dependencies.toml")
+		defer os.RemoveAll(stomldir)
+
+		stomlpath := filepath.Join(stomldir, "stoml")
+		stomlurl := fmt.Sprintf("https://github.com/freshautomations/stoml/releases/download/v0.4.0/stoml_%s_amd64", runtime.GOOS)
+
+		err = utils.CallCommandForEffectWithDebug(fmt.Sprintf("curl --progress-bar -fLo %s %s", stomlpath, stomlurl))
 		if err != nil {
 			return err
 		}
-		out, err := utils.CallCommandSilently(fmt.Sprintf("%s %s flux.version", tomlpath, deppath))
+
+		err = utils.CallCommandForEffectWithDebug(fmt.Sprintf("chmod +x %s", stomlpath))
+		if err != nil {
+			return err
+		}
+
+		deppath, err := filepath.Abs(path + "/tools/dependencies.toml")
+		if err != nil {
+			return err
+		}
+		out, err := utils.CallCommand(fmt.Sprintf("%s %s flux.version", stomlpath, deppath))
 		if err != nil {
 			return err
 		}
 		version.FluxVersion = strings.TrimRight(string(out), "\n")
+		flux.SetupFluxBin()
 	}
 	return nil
 }
