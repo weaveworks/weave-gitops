@@ -24,7 +24,6 @@ import (
 	"github.com/prometheus/common/log"
 	"github.com/weaveworks/weave-gitops/pkg/cmdimpl"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"github.com/weaveworks/weave-gitops/pkg/version"
@@ -290,12 +289,8 @@ func installWego() error {
 	return utils.CallCommandForEffectWithInputPipeAndDebug("kubectl apply -f -", string(manifests))
 }
 
-func getWegoRepoName() (string, error) {
-	return fluxops.GetRepoName()
-}
-
 func getRepoName() (string, error) {
-	name, err := getWegoRepoName()
+	name, err := utils.GetWegoRepoName()
 	return name + "-" + filepath.Base(tmpDir), err
 }
 
