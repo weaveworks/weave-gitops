@@ -68,7 +68,7 @@ var (
 	keyFilePath string
 )
 
-var _ = Describe("WEGO Acceptance Tests", func() {
+var _ = FDescribe("WEGO Acceptance Tests", func() {
 
 	AfterEach(func() {
 		os.RemoveAll(tmpPath)
@@ -81,13 +81,13 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		})
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(namespace)
+			_, err := ResetOrCreateCluster("wego-system")
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
 		By("Setup test", func() {
 			Expect(setupTest()).Should(Succeed())
-			//Expect(ensureWegoRepoIsAbsent()).Should(Succeed())
+			Expect(ensureWegoRepoIsAbsent()).Should(Succeed())
 			Expect(ensureFluxVersion()).Should(Succeed())
 			Expect(installWego()).Should(Succeed())
 			Expect(waitForFluxInstall()).Should(Succeed())
@@ -188,7 +188,7 @@ func setupTest() error {
 	return nil
 }
 
-/*func ensureWegoRepoIsAbsent() error {
+func ensureWegoRepoIsAbsent() error {
 	ctx := context.Background()
 	name, err := getWegoRepoName()
 	if err != nil {
@@ -213,7 +213,7 @@ func setupTest() error {
 	repoName := clusterName + "-wego"
 	os.RemoveAll(fmt.Sprintf("%s/.wego/repositories/%s", os.Getenv("HOME"), repoName))
 	return nil
-}*/
+}
 
 func ensureWegoRepoAccess() (*gitprovider.RepositoryVisibility, error) {
 	ctx := context.Background()
