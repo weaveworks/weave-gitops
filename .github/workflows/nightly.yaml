@@ -231,6 +231,7 @@ jobs:
       uses: actions/checkout@v2
     - name: Setup Kubernetes
       uses: engineerd/setup-kind@v0.5.0
+    - name: Check kind
       run: |
           kubectl get pods -A
           kubectl get all --all-namespaces -o wide
