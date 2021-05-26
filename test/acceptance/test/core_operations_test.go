@@ -12,7 +12,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/fluxcd/go-git-providers/github"
@@ -24,7 +23,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
-	"github.com/weaveworks/weave-gitops/pkg/version"
 )
 
 const nginxDeployment = `apiVersion: v1
@@ -85,7 +83,6 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		By("Setup test", func() {
 			Expect(setupTest()).Should(Succeed())
 			Expect(ensureWegoRepoIsAbsent()).Should(Succeed())
-			Expect(ensureFluxVersion()).Should(Succeed())
 
 			//Install wego
 			command := exec.Command("sh", "-c", fmt.Sprintf("%s install | kubectl apply -f -", WEGO_BIN_PATH))
@@ -240,25 +237,6 @@ func ensureWegoRepoAccess() (*gitprovider.RepositoryVisibility, error) {
 		time.Sleep(5 * time.Second)
 	}
 	return nil, fmt.Errorf("wepo does not exist")
-}
-
-func ensureFluxVersion() error {
-	if version.FluxVersion == "undefined" {
-		tomlpath, err := filepath.Abs("../../../tools/bin/stoml")
-		if err != nil {
-			return err
-		}
-		deppath, err := filepath.Abs("../../../tools/dependencies.toml")
-		if err != nil {
-			return err
-		}
-		out, err := utils.CallCommandSilently(fmt.Sprintf("%s %s flux.version", tomlpath, deppath))
-		if err != nil {
-			return err
-		}
-		version.FluxVersion = strings.TrimRight(string(out), "\n")
-	}
-	return nil
 }
 
 func waitForNginxDeployment() error {
