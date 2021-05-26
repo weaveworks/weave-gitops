@@ -188,7 +188,7 @@ func setupTest() error {
 	return nil
 }
 
-func ensureWegoRepoIsAbsent() error {
+/*func ensureWegoRepoIsAbsent() error {
 	ctx := context.Background()
 	name, err := getWegoRepoName()
 	if err != nil {
@@ -213,7 +213,7 @@ func ensureWegoRepoIsAbsent() error {
 	repoName := clusterName + "-wego"
 	os.RemoveAll(fmt.Sprintf("%s/.wego/repositories/%s", os.Getenv("HOME"), repoName))
 	return nil
-}
+}*/
 
 func ensureWegoRepoAccess() (*gitprovider.RepositoryVisibility, error) {
 	ctx := context.Background()
