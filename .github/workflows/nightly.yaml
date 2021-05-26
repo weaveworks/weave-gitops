@@ -230,14 +230,11 @@ jobs:
     - name: checkout
       uses: actions/checkout@v2
     - name: Setup Kubernetes
-      uses: helm/kind-action@v1.1.0
-      with:
-        cluster_name: "${{ format('katc-{0}', github.run_id) }}"
-        version: "v0.10.0"
+    - uses: engineerd/setup-kind@v0.5.0
     - name: Kind-check
       run: |
-        kubectl get pods -A
-        kubectl get all --all-namespaces -o wide
+          kubectl get pods -A
+          kubectl get all --all-namespaces -o wide
 
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
