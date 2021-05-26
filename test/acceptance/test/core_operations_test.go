@@ -87,7 +87,7 @@ var _ = FDescribe("WEGO Acceptance Tests", func() {
 
 		By("Setup test", func() {
 			Expect(setupTest()).Should(Succeed())
-			Expect(ensureWegoRepoIsAbsent()).Should(Succeed())
+			//Expect(ensureWegoRepoIsAbsent()).Should(Succeed())
 			Expect(ensureFluxVersion()).Should(Succeed())
 			Expect(installWego()).Should(Succeed())
 			Expect(waitForFluxInstall()).Should(Succeed())
