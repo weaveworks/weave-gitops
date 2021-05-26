@@ -126,8 +126,7 @@ wego-system	kustomization/kustomize-app	True 	Applied revision: main/a2b5b8c0919
 					return nil, nil, fmt.Errorf("arguments not expected %s", args)
 				}
 
-			},
-		),
+			}),
 		)
 
 	})

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -43,18 +44,18 @@ func GetContextName() (string, error) {
 	c := "kubectl config current-context"
 	currentCluster, stderr, err := CallCommandSeparatingOutputStreams(c)
 	if err != nil {
-		return "", fmt.Errorf("error getting resource info [%s %s]\n", err.Error(), string(stderr))
+		return "", fmt.Errorf("error getting current-context [%s %s]\n", err.Error(), string(stderr))
 	}
-	return string(currentCluster), nil
+	return string(bytes.TrimSuffix(currentCluster, []byte("\n"))), nil
 }
 
 // GetWegoRepoName returns the name of the wego repo for the cluster (the repo holding controller defs)
 func GetWegoRepoName() (string, error) {
-	clusterName, err := GetContextName()
+	contextName, err := GetContextName()
 	if err != nil {
 		return "", err
 	}
-	return clusterName + "-wego", nil
+	return contextName + "-wego", nil
 }
 
 func Exists(filePath string) bool {
