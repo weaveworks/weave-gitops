@@ -19,11 +19,8 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"github.com/prometheus/common/log"
-	"github.com/weaveworks/weave-gitops/pkg/cmdimpl"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -89,7 +86,13 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 			Expect(setupTest()).Should(Succeed())
 			Expect(ensureWegoRepoIsAbsent()).Should(Succeed())
 			Expect(ensureFluxVersion()).Should(Succeed())
-			Expect(installWego()).Should(Succeed())
+
+			//Install wego
+			command := exec.Command("sh", "-c", fmt.Sprintf("%s install | kubectl apply -f -", WEGO_BIN_PATH))
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
+			Eventually(session).Should(gexec.Exit())
+
 			Expect(waitForFluxInstall()).Should(Succeed())
 			Expect(setUpTestRepo()).Should(Succeed())
 		})
@@ -119,8 +122,8 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		By("kubectl get pods -n wego-system should list the source and kustomize controllers", func() {
 			Expect(waitForNginxDeployment()).Should(Succeed())
 			Expect(runCommandForGinkgo("kubectl get pods -n wego-system")).Should(Succeed())
-			Eventually(session).Should(gbytes.Say("kustomize-controller"))
-			Eventually(session).Should(gbytes.Say("source-controller"))
+			Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("kustomize-controller"))
+			Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("source-controller"))
 		})
 	})
 
@@ -147,8 +150,8 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		By("kubectl get pods -n wego-system should list the source and kustomize controllers", func() {
 			Expect(waitForNginxDeployment()).Should(Succeed())
 			Expect(runCommandForGinkgo("kubectl get pods -n wego-system")).Should(Succeed())
-			Eventually(session).Should(gbytes.Say("kustomize-controller"))
-			Eventually(session).Should(gbytes.Say("source-controller"))
+			Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("kustomize-controller"))
+			Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("source-controller"))
 		})
 	})
 })
@@ -273,21 +276,13 @@ func waitForNginxDeployment() error {
 func waitForFluxInstall() error {
 	for i := 1; i < 11; i++ {
 		log.Infof("Waiting for flux... try: %d of 10\n", i)
-		if status.GetClusterStatus() == status.FluxInstalled {
+		err := utils.CallCommandForEffectWithDebug("kubectl get customresourcedefinition buckets.source.toolkit.fluxcd.io")
+		if err == nil {
 			return nil
 		}
 		time.Sleep(5 * time.Second)
 	}
 	return fmt.Errorf("Failed to install flux")
-}
-
-func installWego() error {
-	flux.SetupFluxBin()
-	manifests, err := cmdimpl.Install(cmdimpl.InstallParamSet{Namespace: "wego-system"})
-	if err != nil {
-		return err
-	}
-	return utils.CallCommandForEffectWithInputPipeAndDebug("kubectl apply -f -", string(manifests))
 }
 
 func getWegoRepoName() (string, error) {
