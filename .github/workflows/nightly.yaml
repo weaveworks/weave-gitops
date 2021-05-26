@@ -217,11 +217,8 @@ jobs:
   
   test-kind:
     needs: [lint, build]
-    runs-on: ${{matrix.os}}
+    runs-on: ubuntu-latest
     timeout-minutes: 60
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macOS-latest]
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
@@ -229,37 +226,26 @@ jobs:
         go-version: 1.16.x
     - name: checkout
       uses: actions/checkout@v2
-    - name: Download Kind
-      run: curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.0/kind-darwin-amd64
-      if: matrix.os == 'macos-latest'
-    - name: Download Kind
-      run: curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.0/kind-linux-amd64
-      if: matrix.os == 'ubuntu-latest'
-
-    - name: Setup kind
-      run: |
-        chmod +x ./kind
-        sudo mv ./kind /usr/local/bin
-    - name: Kubectl tool installer
-      uses: Azure/setup-kubectl@v1
+    - name: Setup Kubernetes
+      uses: helm/kind-action@v1.1.0
       with:
-          version: 'v1.19.6'
-    - name: Check kind
+        cluster_name: "${{ format('katc-{0}', github.run_id) }}"
+        version: "v0.10.0"
+    - name: Kind-check
       run: |
-          kind create cluster
-          kubectl get pods -A
-          kubectl get all --all-namespaces -o wide
+        kubectl get pods -A
+        kubectl get all --all-namespaces -o wide
 
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: Download wego binaries
       uses: actions/download-artifact@v2
       with:
-        name: wego-binaries-${{matrix.os}}-nightly
+        name: wego-binaries-ubuntu-latest-nightly
         path: bin
     - name: Change bin permissions
       run: |
-        chmod +x bin/wego-${{matrix.os}}-nightly
+        chmod +x bin/wego-ubuntu-latest-nightly
         ls -la bin
     - name: Set up ssh agent
       uses: webfactory/ssh-agent@v0.5.2
@@ -279,7 +265,7 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
         GITHUB_KEY: "${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}"
       run: |
-        export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}-nightly
+        export WEGO_BIN_PATH=$(pwd)/bin/wego-ubuntu-latest-nightly
         export CLUSTER_PROVIDER=kind
         export K8S_VERSION=1.21.1
         # cleanup the cluster
@@ -290,7 +276,7 @@ jobs:
   
   publish:
     if: success()
-    needs: [test-eks, test-gke, test-kind]
+    needs: [test-eks, test-gke]
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
@@ -311,4 +297,4 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-2
     - run: |
-        #aws s3 cp bin/wego-${{matrix.os}}-nightly s3://weave-gitops/nightly/${{ steps.date.outputs.date }}/wego-${{matrix.os}}
+        aws s3 cp bin/wego-${{matrix.os}}-nightly s3://weave-gitops/nightly/${{ steps.date.outputs.date }}/wego-${{matrix.os}}
