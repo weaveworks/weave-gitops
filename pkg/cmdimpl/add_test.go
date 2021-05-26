@@ -211,7 +211,7 @@ var _ = Describe("Dry Run Add Test", func() {
 							PrivateKey:     privateKeyFileName,
 							DryRun:         true,
 							Namespace:      "wego-system",
-							DeploymentType: DeployTypeKustomize,
+							DeploymentType: string(DeployTypeKustomize),
 						})
 					return override.Result{}
 				},

@@ -35,7 +35,7 @@ func (a *App) Bytes() ([]byte, error) {
 
 	bts, err := yaml.Marshal(a)
 	if err != nil {
-		return []byte(""), fmt.Errorf("error on yaml marshall %s", err)
+		return nil, fmt.Errorf("error on yaml marshall %s", err)
 	}
 
 	return bts, nil

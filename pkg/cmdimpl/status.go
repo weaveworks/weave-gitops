@@ -2,6 +2,7 @@ package cmdimpl
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 
@@ -12,19 +13,16 @@ import (
 )
 
 // Status provides the implementation for the wego status application command
-func Status(args []string, allParams AddParamSet) error {
-
-	allParams.Name = args[0]
+func Status(allParams AddParamSet) error {
 
 	// verify the app is in the wego apps folder
 	appPath, err := utils.GetWegoAppPath(allParams.Name)
 	if err != nil {
-		return fmt.Errorf("error getting path for app [%s] \n", args[0])
-
+		return fmt.Errorf("error getting path for app [%s], err: %s \n", allParams.Name, err)
 	}
 
 	if !utils.Exists(appPath) && allParams.Name != "wego" {
-		return fmt.Errorf("app provided does not exists on apps folder [%s]\n", args[0])
+		return fmt.Errorf("app provided does not exist in apps folder [%s]\n", appPath)
 	}
 
 	deploymentType, err := getDeploymentType(allParams.Namespace, allParams.Name)
@@ -37,9 +35,13 @@ func Status(args []string, allParams AddParamSet) error {
 		return fmt.Errorf("error on latest deployment time [%s]", err)
 	}
 
-	cmd := fmt.Sprintf(`get all -A %s`,
-		allParams.Name)
-	_, err = fluxops.CallFlux(cmd)
+	output, err := fluxops.GetAllResourcesStatus(allParams.Name)
+	if err != nil {
+		return fmt.Errorf("error getting flux app resources status [%s", err)
+	}
+
+	fmt.Println(string(output))
+
 	return err
 }
 
@@ -73,24 +75,16 @@ func printOutLatestSuccessfulDeploymentType(namespace, appName string, deploymen
 	if len(yamlOutput.Status.Conditions) == 0 {
 		return fmt.Errorf("error getting latest deployment time [%s] \n", stdout)
 	}
-	fmt.Println("Latest successful deployment time: ", yamlOutput.Status.Conditions[0].LastTransitionTime)
+	fmt.Fprintf(os.Stdout, "Latest successful deployment time: %s\n", yamlOutput.Status.Conditions[0].LastTransitionTime)
 
 	return nil
 }
 
 func getDeploymentType(namespace, appName string) (DeploymentType, error) {
 
-	c := fmt.Sprintf(`flux get all -n %s`,
-		namespace,
-	)
-
-	stdout, stderr, err := utils.CallCommandSeparatingOutputStreams(c)
+	stdout, err := fluxops.GetAllResources(namespace)
 	if err != nil && !strings.Contains(err.Error(), "exit status 1") {
 		return "", err
-	}
-
-	if len(stderr) != 0 {
-		return "", fmt.Errorf("%s", stderr)
 	}
 
 	var re = regexp.MustCompile(fmt.Sprintf(`(?m)(kustomization|helmrelease)\/%s`, appName))
@@ -102,7 +96,7 @@ func getDeploymentType(namespace, appName string) (DeploymentType, error) {
 	}
 
 	if len(matches[0]) != 2 {
-		return "", fmt.Errorf("error trying to get the deployment type of the app. raw output => %s", matches)
+		return "", fmt.Errorf("error trying to get the deployment type of the app. raw matches => %s", matches)
 	}
 
 	return DeploymentType(matches[0][1]), nil

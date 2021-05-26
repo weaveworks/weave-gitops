@@ -16,5 +16,6 @@ require (
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed // indirect
 	golang.org/x/sys v0.0.0-20210521090106-6ca3eb03dfc2 // indirect
+	gopkg.in/yaml.v2 v2.4.0
 	sigs.k8s.io/yaml v1.2.0
 )

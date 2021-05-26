@@ -21,7 +21,8 @@ var ApplicationCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		params.Namespace, _ = cmd.Parent().Parent().Flags().GetString("namespace")
-		return cmdimpl.Status(args, params)
+		params.Name = args[0]
+		return cmdimpl.Status(params)
 	},
 }
 

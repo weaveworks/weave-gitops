@@ -1,11 +1,9 @@
 package utils
 
 import (
-	"io/ioutil"
+	"fmt"
 	"os"
 	"path/filepath"
-
-	"gopkg.in/yaml.v2"
 )
 
 func GetWegoLocalPath() (string, error) {
@@ -40,38 +38,19 @@ func GetWegoAppPath(app string) (string, error) {
 	return filepath.Join(localWegoAppsPath, app), nil
 }
 
-func GetAppsPath(appName string) (string, error) {
-	wegoAppsPath, err := GetWegoAppsPath()
+// GetContextName returns the current context name
+func GetContextName() (string, error) {
+	c := "kubectl config current-context"
+	currentCluster, stderr, err := CallCommandSeparatingOutputStreams(c)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error getting resource info [%s %s]\n", err.Error(), string(stderr))
 	}
-
-	appYamlPath := filepath.Join(wegoAppsPath, appName)
-
-	return appYamlPath, nil
-}
-
-// GetClusterName returns the cluster name associated with the current context in ~/.kube/config
-func GetClusterName() (string, error) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
-	config, err := ioutil.ReadFile(filepath.Join(homeDir, ".kube", "config"))
-	if err != nil {
-		return "", err
-	}
-	data := map[string]interface{}{}
-	err = yaml.Unmarshal(config, &data)
-	if err != nil {
-		return "", err
-	}
-	return data["current-context"].(string), nil
+	return string(currentCluster), nil
 }
 
 // GetWegoRepoName returns the name of the wego repo for the cluster (the repo holding controller defs)
 func GetWegoRepoName() (string, error) {
-	clusterName, err := GetClusterName()
+	clusterName, err := GetContextName()
 	if err != nil {
 		return "", err
 	}

@@ -57,8 +57,8 @@ func checkAddError(err interface{}) {
 	checkError("Failed to add workload repository", err)
 }
 
-func getClusterRepoName() string {
-	clusterName, err := utils.GetClusterName()
+func getContextRepoName() string {
+	clusterName, err := utils.GetContextName()
 	checkAddError(err)
 	return clusterName + "-wego"
 }
@@ -68,7 +68,7 @@ func updateParametersIfNecessary() {
 		repoPath, err := filepath.Abs(params.Dir)
 		checkAddError(err)
 		repoName := strings.ReplaceAll(filepath.Base(repoPath), "_", "-")
-		params.Name = getClusterRepoName() + "-" + repoName
+		params.Name = getContextRepoName() + "-" + repoName
 	}
 
 	if params.Url == "" {
@@ -349,10 +349,11 @@ func Add(args []string, allParams AddParamSet) {
 	manifestDeployTypeNamePath := filepath.Join(wegoAppPath, fmt.Sprintf("%s-%s.yaml", params.DeploymentType, params.Name))
 	appYamlName := filepath.Join(wegoAppPath, "app.yaml")
 
-	if !params.DryRun && !utils.Exists(wegoAppPath) {
-		if err = os.MkdirAll(wegoAppPath, 0755); err != nil {
-			checkAddError(err)
+	if !params.DryRun {
+		if !utils.Exists(wegoAppPath) {
+			checkAddError(os.MkdirAll(wegoAppPath, 0755))
 		}
+
 		appManifestContent, err := newApp.Bytes()
 		checkAddError(err)
 		checkAddError(ioutil.WriteFile(sourceYamlPath, source, 0644))
