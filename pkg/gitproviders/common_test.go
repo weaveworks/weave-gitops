@@ -22,7 +22,7 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 )
 
-var githubClient, gitlabClient gitprovider.Client
+var cacheGithubRecorder, cacheGitlabRecorder *recorder.Recorder
 
 var (
 	GithubOrgTestName  = "weaveworks"
@@ -46,7 +46,6 @@ type accounts struct {
 }
 
 func NewRecorder(provider string, accounts *accounts) (*recorder.Recorder, error) {
-
 	r, err := recorder.New(fmt.Sprintf("./cache/%s", provider))
 	if err != nil {
 		return nil, err
@@ -54,12 +53,10 @@ func NewRecorder(provider string, accounts *accounts) (*recorder.Recorder, error
 
 	r.SetMatcher(func(r *http.Request, i cassette.Request) bool {
 		if accounts.GithubOrgName != GithubOrgTestName {
-
 			r.URL, _ = url.Parse(strings.Replace(r.URL.String(), accounts.GithubOrgName, GithubOrgTestName, -1))
 			r.URL, _ = url.Parse(strings.Replace(r.URL.String(), accounts.GithubUserName, GithubUserTestName, -1))
 			r.URL, _ = url.Parse(strings.Replace(r.URL.String(), accounts.GitlabOrgName, GitlabOrgTestName, -1))
 			r.URL, _ = url.Parse(strings.Replace(r.URL.String(), accounts.GitlabUserName, GitlabUserTestName, -1))
-
 		}
 
 		return r.Method == i.Method && (r.URL.String() == i.URL || strings.Contains(i.URL, r.URL.RawPath))
@@ -138,24 +135,15 @@ func getAccounts() *accounts {
 }
 
 func TestMain(m *testing.M) {
-
 	accounts := getAccounts()
 
-	cacheGithubRecorder, err := NewRecorder("github", accounts)
+	var err error
+	cacheGithubRecorder, err = NewRecorder("github", accounts)
 	if err != nil {
 		panic(err)
 	}
 
-	cacheGitlabRecorder, err := NewRecorder("gitlab", accounts)
-	if err != nil {
-		panic(err)
-	}
-
-	githubClient, err = newGithubTestClient(SetRecorder(cacheGithubRecorder))
-	if err != nil {
-		panic(err)
-	}
-	gitlabClient, err = newGitlabTestClient(SetRecorder(cacheGitlabRecorder))
+	cacheGitlabRecorder, err = NewRecorder("gitlab", accounts)
 	if err != nil {
 		panic(err)
 	}
@@ -175,17 +163,13 @@ func TestMain(m *testing.M) {
 	}
 
 	os.Exit(exitCode)
-
 }
 
 func newGithubTestClient(customTransportFactory gitprovider.ChainableRoundTripperFunc) (gitprovider.Client, error) {
-
 	token := os.Getenv("GITHUB_TOKEN")
 	if token == "" { // This is the case when the tests run in the ci/cd tool. No need to have a value as everything is cached
 		token = " "
 	}
-
-	fmt.Println("GITHUB_TOKEN", len(token))
 
 	return github.NewClient(
 		github.WithOAuth2Token(token),
@@ -195,13 +179,10 @@ func newGithubTestClient(customTransportFactory gitprovider.ChainableRoundTrippe
 }
 
 func newGitlabTestClient(customTransportFactory gitprovider.ChainableRoundTripperFunc) (gitprovider.Client, error) {
-
 	token := os.Getenv("GITLAB_TOKEN")
 	if token == "" { // This is the case when the tests run in the ci/cd tool. No need to have a value as everything is cached
 		token = " "
 	}
-
-	fmt.Println("GITLAB_TOKEN", len(token))
 
 	return gitlab.NewClient(
 		"",
@@ -213,8 +194,13 @@ func newGitlabTestClient(customTransportFactory gitprovider.ChainableRoundTrippe
 }
 
 func Test_CreatePullRequestToOrgRepo(t *testing.T) {
-
 	accounts := getAccounts()
+
+	githubTestClient, err := newGithubTestClient(SetRecorder(cacheGithubRecorder))
+	assert.NoError(t, err)
+
+	gitlabTestClient, err := newGitlabTestClient(SetRecorder(cacheGitlabRecorder))
+	assert.NoError(t, err)
 
 	providers := []struct {
 		provider string
@@ -223,8 +209,8 @@ func Test_CreatePullRequestToOrgRepo(t *testing.T) {
 		orgName  string
 		userName string
 	}{
-		{"github", githubClient, GITHUB_DOMAIN, accounts.GithubOrgName, accounts.GithubUserName},
-		{"gitlab", gitlabClient, GITLAB_DOMAIN, accounts.GitlabOrgName, accounts.GitlabUserName},
+		{"github", githubTestClient, GITHUB_DOMAIN, accounts.GithubOrgName, accounts.GithubUserName},
+		{"gitlab", gitlabTestClient, GITLAB_DOMAIN, accounts.GitlabOrgName, accounts.GitlabUserName},
 	}
 
 	testNameFormat := "create pr for %s account [%s]"
@@ -239,11 +225,24 @@ func Test_CreatePullRequestToOrgRepo(t *testing.T) {
 		})
 
 	}
+}
 
+func TestCreateRepository(t *testing.T) {
+	accounts := getAccounts()
+
+	repoName := "test-org-repo"
+
+	githubTestClient, err := newGithubTestClient(SetRecorder(cacheGithubRecorder))
+	assert.NoError(t, err)
+
+	SetGithubProvider(githubTestClient)
+	defer SetGithubProvider(nil)
+
+	err = CreateRepository(repoName, accounts.GithubOrgName, true)
+	assert.NoError(t, err)
 }
 
 func CreateTestPullRequestToOrgRepo(t *testing.T, client gitprovider.Client, domain string, orgName string) {
-
 	repoName := "test-org-repo"
 	branchName := "test-org-branch"
 
@@ -291,11 +290,9 @@ func CreateTestPullRequestToOrgRepo(t *testing.T, client gitprovider.Client, dom
 		err = org.Delete(ctx)
 		assert.NoError(t, err)
 	})
-
 }
 
 func CreateTestPullRequestToUserRepo(t *testing.T, client gitprovider.Client, domain string, userAccount string) {
-
 	repoName := "test-user-repo"
 	branchName := "test-user-branch"
 
@@ -343,5 +340,16 @@ func CreateTestPullRequestToUserRepo(t *testing.T, client gitprovider.Client, do
 		err = user.Delete(ctx)
 		assert.NoError(t, err)
 	})
+}
 
+func TestGetOwnerType(t *testing.T) {
+	accounts := getAccounts()
+
+	githubTestClient, err := newGithubTestClient(SetRecorder(cacheGithubRecorder))
+	assert.NoError(t, err)
+
+	ownerType, err := getOwnerType(githubTestClient, accounts.GithubOrgName)
+
+	assert.NoError(t, err)
+	assert.Equal(t, OwnerTypeOrg, ownerType)
 }

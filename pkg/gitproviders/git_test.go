@@ -24,6 +24,10 @@ var _ = Describe("Gitlab Tests", func() {
 })
 
 var _ = Describe("Github Tests", func() {
+	AfterEach(func() {
+		SetGithubProvider(nil)
+	})
+
 	It("Verify that we can create a provider for github", func() {
 		By("Invoking the creation function", func() {
 			err := os.Setenv("GITHUB_TOKEN", "dummy")

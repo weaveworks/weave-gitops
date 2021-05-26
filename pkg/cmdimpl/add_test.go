@@ -11,12 +11,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops/fluxopsfakes"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/override"
-	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"github.com/weaveworks/weave-gitops/pkg/version"
@@ -86,12 +85,7 @@ var FailFluxHandler = &fluxopsfakes.FakeFluxHandler{
 	},
 }
 
-type failGitProviderHandler struct{}
-
-func (h failGitProviderHandler) CreateOrgRepository(provider gitprovider.Client, orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
-	shims.Exit(1)
-	return nil
-}
+var access bool
 
 type statusHandler struct{}
 
@@ -101,6 +95,13 @@ func (h statusHandler) GetClusterName() (string, error) {
 
 func (h statusHandler) GetClusterStatus() status.ClusterStatus {
 	return status.FluxInstalled
+}
+
+type fakeGitRepoHandler struct{}
+
+func (h fakeGitRepoHandler) CreateRepository(name string, owner string, private bool) error {
+	access = private
+	return nil
 }
 
 func createTestPrivateKeyFile() (*os.File, error) {
@@ -194,7 +195,7 @@ var _ = Describe("Dry Run Add Test", func() {
 			Expect(os.Setenv("GITHUB_ORG", "archaeopteryx")).Should(Succeed())
 			Expect(os.Setenv("GITHUB_TOKEN", "archaeopteryx")).Should(Succeed())
 			Expect(ensureFluxVersion()).Should(Succeed())
-			fgphandler := failGitProviderHandler{}
+			fgphandler := fakeGitRepoHandler{}
 			shandler := statusHandler{}
 			privateKeyFile, err := createTestPrivateKeyFile()
 			Expect(err).To(BeNil())
@@ -219,8 +220,84 @@ var _ = Describe("Dry Run Add Test", func() {
 				utils.OverrideFailure(utils.CallCommandForEffectWithDebugOp),
 				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
 				fluxops.Override(FailFluxHandler),
-				shims.OverrideGitProvider(fgphandler),
+				gitproviders.Override(fgphandler),
 				status.Override(shandler))
+		})
+	})
+})
+
+var _ = Describe("Add repo with custom access test", func() {
+	It("Verify that default is private", func() {
+		By("Running add with default access ", func() {
+			Expect(os.Setenv("GITHUB_ORG", "archaeopteryx")).Should(Succeed())
+			Expect(os.Setenv("GITHUB_TOKEN", "archaeopteryx")).Should(Succeed())
+			Expect(ensureFluxVersion()).Should(Succeed())
+			fgphandler := fakeGitRepoHandler{}
+			shandler := statusHandler{}
+			privateKeyFile, err := createTestPrivateKeyFile()
+			Expect(err).To(BeNil())
+			privateKeyFileName := privateKeyFile.Name()
+			defer os.Remove(privateKeyFileName)
+			_ = override.WithOverrides(
+				func() override.Result {
+					Add([]string{"."},
+						AddParamSet{
+							Name:           "wanda",
+							Url:            "ssh://git@github.com/foobar/quux.git",
+							Path:           "./",
+							Branch:         "main",
+							PrivateKey:     privateKeyFileName,
+							DryRun:         true,
+							IsPrivate:      true,
+							Namespace:      "wego-system",
+							DeploymentType: string(DeployTypeKustomize),
+						})
+					return override.Result{}
+				},
+				utils.OverrideFailure(utils.CallCommandForEffectWithInputPipeOp),
+				utils.OverrideFailure(utils.CallCommandForEffectWithDebugOp),
+				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
+				fluxops.Override(FailFluxHandler),
+				gitproviders.Override(fgphandler),
+				status.Override(shandler))
+			Expect(access).To(Equal(true))
+		})
+	})
+
+	It("Verify that public repo created", func() {
+		By("Running add with IsPrivate as false ", func() {
+			Expect(os.Setenv("GITHUB_ORG", "archaeopteryx")).Should(Succeed())
+			Expect(os.Setenv("GITHUB_TOKEN", "archaeopteryx")).Should(Succeed())
+			Expect(ensureFluxVersion()).Should(Succeed())
+			fgphandler := fakeGitRepoHandler{}
+			shandler := statusHandler{}
+			privateKeyFile, err := createTestPrivateKeyFile()
+			Expect(err).To(BeNil())
+			privateKeyFileName := privateKeyFile.Name()
+			defer os.Remove(privateKeyFileName)
+			_ = override.WithOverrides(
+				func() override.Result {
+					Add([]string{"."},
+						AddParamSet{
+							Name:           "wanda",
+							Url:            "ssh://git@github.com/foobar/quux.git",
+							Path:           "./",
+							Branch:         "main",
+							PrivateKey:     privateKeyFileName,
+							DryRun:         true,
+							IsPrivate:      false,
+							Namespace:      "wego-system",
+							DeploymentType: string(DeployTypeKustomize),
+						})
+					return override.Result{}
+				},
+				utils.OverrideFailure(utils.CallCommandForEffectWithInputPipeOp),
+				utils.OverrideFailure(utils.CallCommandForEffectWithDebugOp),
+				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
+				fluxops.Override(FailFluxHandler),
+				gitproviders.Override(fgphandler),
+				status.Override(shandler))
+			Expect(access).To(Equal(false))
 		})
 	})
 })

@@ -13,9 +13,8 @@ import (
 
 	"github.com/weaveworks/weave-gitops/pkg/app"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
-	cgitprovider "github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -39,6 +38,7 @@ type AddParamSet struct {
 	DeploymentType string
 	Namespace      string
 	DryRun         bool
+	IsPrivate      bool
 }
 
 var (
@@ -57,18 +57,14 @@ func checkAddError(err interface{}) {
 	checkError("Failed to add workload repository", err)
 }
 
-func getContextRepoName() string {
-	clusterName, err := utils.GetContextName()
-	checkAddError(err)
-	return clusterName + "-wego"
-}
-
 func updateParametersIfNecessary() {
 	if params.Name == "" {
 		repoPath, err := filepath.Abs(params.Dir)
 		checkAddError(err)
 		repoName := strings.ReplaceAll(filepath.Base(repoPath), "_", "-")
-		params.Name = getContextRepoName() + "-" + repoName
+		contextName, err := utils.GetContextName()
+		checkAddError(err)
+		params.Name = contextName + "-" + repoName
 	}
 
 	if params.Url == "" {
@@ -283,31 +279,19 @@ func Add(args []string, allParams AddParamSet) {
 			checkAddError(utils.CallCommandForEffectWithDebug("git init"))
 		}
 
-		c, err := cgitprovider.GithubProvider()
-		checkAddError(err)
-
-		orgRef := cgitprovider.NewOrgRepositoryRef(cgitprovider.GITHUB_DOMAIN, owner, wegoRepoName)
-
-		repoInfo := cgitprovider.NewRepositoryInfo("wego repo", gitprovider.RepositoryVisibilityPrivate)
-
-		repoCreateOpts := &gitprovider.RepositoryCreateOptions{
-			AutoInit:        gitprovider.BoolVar(true),
-			LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
-		}
-
-		cmdStr := `git remote add origin %s && \
+		cmdStr := `git remote add origin git@github.com:%s/%s.git && \
             git pull --rebase origin main && \
             git checkout main && \
             git push --set-upstream origin main`
+		cmd := fmt.Sprintf(cmdStr, owner, wegoRepoName)
 
 		if !params.DryRun {
-			checkAddError(shims.CreateOrgRepository(c, orgRef, repoInfo, repoCreateOpts))
-			cmd := fmt.Sprintf(cmdStr, orgRef.String())
-			checkAddError(utils.CallCommandForEffectWithDebug(cmd))
+			checkAddError(gitproviders.CreateRepository(wegoRepoName, owner, params.IsPrivate))
 			fmt.Println("waiting 5 seconds")
 			time.Sleep(time.Second * 5)
+			checkAddError(utils.CallCommandForEffectWithDebug(cmd))
 		} else {
-			fmt.Fprintf(shims.Stdout(), cmdStr, orgRef.String())
+			fmt.Fprint(shims.Stdout(), cmd)
 		}
 	} else if !params.DryRun {
 		cmd := "git branch --set-upstream-to=origin/main main"
