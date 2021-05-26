@@ -68,6 +68,7 @@ func ResetOrCreateCluster(namespace string) (string, error) {
 
 	supportedProviders := []string{"kind", "eks", "gke"}
 	supportedK8SVersions := []string{"1.19.1", "1.20.2", "1.21.1"}
+	clusterName := ""
 
 	provider, found := os.LookupEnv("CLUSTER_PROVIDER")
 	if !found {
@@ -81,32 +82,42 @@ func ResetOrCreateCluster(namespace string) (string, error) {
 
 	if !contains(supportedProviders, provider) {
 		log.Errorf("Cluster provider %s is not supported for testing", provider)
-		return "", errors.New("Unsupported provider")
+		return clusterName, errors.New("Unsupported provider")
 	}
 
 	if !contains(supportedK8SVersions, k8sVersion) {
 		log.Errorf("Kubernetes version %s is not supported for testing", k8sVersion)
-		return "", errors.New("Unsupported kubernetes version")
+		return clusterName, errors.New("Unsupported kubernetes version")
 	}
 
 	//For eks and gke, we will try to reset the namespace first,
 	//failing that we will recreate the cluster
 	if namespace != "" && (provider == "eks" || provider == "gke") {
 		err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s install --namespace %s| kubectl --ignore-not-found=true delete -f -", WEGO_BIN_PATH, namespace))
-		if err == nil {
-			return "", err
+		if err != nil {
+			log.Infof("Failed to reset the namespace %s", namespace)
+			return clusterName, err
 		}
 	}
 
-	clusterName := provider + "-" + RandString(6)
 	if provider == "kind" {
+		clusterName = provider + "-" + RandString(6)
 		log.Infof("Creating a kind cluster %s", clusterName)
 		err := runCommandPassThrough([]string{}, "./scripts/kind-cluster.sh", clusterName, "kindest/node:v"+k8sVersion)
 		if err != nil {
+			log.Infof("Failed to create kind cluster")
 			log.Fatal(err)
+			return clusterName, err
 		}
+	}
+
+	log.Info("Wait for the cluster to be ready")
+	err := runCommandPassThrough([]string{}, "kubectl", "wait", "--for=condition=Ready", "--timeout=300s", "-n", "kube-system", "--all pod")
+	if err != nil {
+		log.Infof("Cluster system pods are not ready after waiting for 5 minutes, This can cause tests failures.")
 		return clusterName, err
 	}
+
 	return clusterName, nil
 }
 
