@@ -267,7 +267,7 @@ jobs:
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/wego-ubuntu-latest-nightly
         export CLUSTER_PROVIDER=kind
-        export K8S_VERSION=1.21.1
+        export K8S_VERSION=1.20.2
         # cleanup the cluster
         $WEGO_BIN_PATH install | kubectl --ignore-not-found=true delete -f -
         $WEGO_BIN_PATH install --namespace test-namespace| kubectl --ignore-not-found=true delete -f -

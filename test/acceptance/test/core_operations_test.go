@@ -189,6 +189,7 @@ func setupTest() error {
 }
 
 func ensureWegoRepoIsAbsent() error {
+	log.Info("ensureWegoRepoIsAbsent")
 	ctx := context.Background()
 	name, err := getWegoRepoName()
 	if err != nil {
@@ -211,11 +212,13 @@ func ensureWegoRepoIsAbsent() error {
 		return err
 	}
 	repoName := clusterName + "-wego"
+	log.Infof("Repo Name: %s", repoName)
 	os.RemoveAll(fmt.Sprintf("%s/.wego/repositories/%s", os.Getenv("HOME"), repoName))
 	return nil
 }
 
 func ensureWegoRepoAccess() (*gitprovider.RepositoryVisibility, error) {
+	log.Info("ensureWegoRepoAccess")
 	ctx := context.Background()
 	name, err := getWegoRepoName()
 	if err != nil {
@@ -240,6 +243,7 @@ func ensureWegoRepoAccess() (*gitprovider.RepositoryVisibility, error) {
 }
 
 func ensureFluxVersion() error {
+	log.Info("ensureFluxVersion")
 	if version.FluxVersion == "undefined" {
 		tomlpath, err := filepath.Abs("../../../tools/bin/stoml")
 		if err != nil {
@@ -259,6 +263,7 @@ func ensureFluxVersion() error {
 }
 
 func waitForNginxDeployment() error {
+	log.Info("waitForNginxDeployment")
 	for i := 1; i < 61; i++ {
 		log.Infof("Waiting for nginx... try: %d of 60\n", i)
 		err := utils.CallCommandForEffect("kubectl get deployment nginx -n my-nginx")
@@ -300,6 +305,7 @@ func getRepoName() (string, error) {
 }
 
 func setUpTestRepo() error {
+	log.Info("setUpTestRepo")
 	dir, err := os.Getwd()
 	if err != nil {
 		return err
