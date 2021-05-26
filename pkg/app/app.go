@@ -6,23 +6,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func NewApp(name, path, url string) App {
-
-	app := App{
-		ApiVersion: "wego.weave.works/v1alpha1",
-		Kind:       "Application",
-		Metadata: Metadata{
-			Name: name,
-		},
-		Spec: Spec{
-			path,
-			url,
-		},
-	}
-
-	return app
-}
-
 // App yaml App definition
 type App struct {
 	ApiVersion string   `yaml:"apiVersion"`
@@ -48,4 +31,21 @@ type Metadata struct {
 type Spec struct {
 	Path string `yaml:"path"`
 	Url  string `yaml:"url"`
+}
+
+func NewApp(name, path, url string) App {
+
+	app := App{
+		ApiVersion: "wego.weave.works/v1alpha1",
+		Kind:       "Application",
+		Metadata: Metadata{
+			Name: name,
+		},
+		Spec: Spec{
+			path,
+			url,
+		},
+	}
+
+	return app
 }
