@@ -114,8 +114,8 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		By("kubectl get pods -n wego-system should list the source and kustomize controllers", func() {
 			Expect(waitForNginxDeployment()).Should(Succeed())
 			Expect(runCommandForGinkgo("kubectl get pods -n wego-system")).Should(Succeed())
-			Eventually(session).Should(gbytes.Say("kustomize-controller"))
-			Eventually(session).Should(gbytes.Say("source-controller"))
+			Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("kustomize-controller"))
+			Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("source-controller"))
 		})
 	})
 
@@ -142,8 +142,8 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		By("kubectl get pods -n wego-system should list the source and kustomize controllers", func() {
 			Expect(waitForNginxDeployment()).Should(Succeed())
 			Expect(runCommandForGinkgo("kubectl get pods -n wego-system")).Should(Succeed())
-			Eventually(session).Should(gbytes.Say("kustomize-controller"))
-			Eventually(session).Should(gbytes.Say("source-controller"))
+			Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("kustomize-controller"))
+			Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("source-controller"))
 		})
 	})
 })

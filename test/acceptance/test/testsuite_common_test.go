@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	ginkgo "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/weave-gitops/pkg/status"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 func GomegaFail(message string, callerSkip ...int) {
@@ -43,7 +45,20 @@ var _ = BeforeSuite(func() {
 	}
 	log.Infof("WEGO Binary Path: %s", WEGO_BIN_PATH)
 	Expect(checkInitialStatus()).Should(Succeed())
+	Expect(waitForClusterToBeSetup()).Should(Succeed())
 })
+
+func waitForClusterToBeSetup() error {
+	for i := 1; i < 11; i++ {
+		log.Infof("Waiting for coredns... try: %d of 10\n", i)
+		err := utils.CallCommandForEffectWithDebug("kubectl get deploy -n kube-system")
+		if err == nil {
+			return nil
+		}
+		time.Sleep(5 * time.Second)
+	}
+	return fmt.Errorf("Failed to setup cluster")
+}
 
 func checkInitialStatus() error {
 	if status.GetClusterStatus() != status.Unmodified {
