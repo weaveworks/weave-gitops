@@ -45,6 +45,7 @@ var _ = BeforeSuite(func() {
 	}
 	log.Infof("WEGO Binary Path: %s", WEGO_BIN_PATH)
 	Expect(checkInitialStatus()).Should(Succeed())
+	time.Sleep(5 * time.Minute)
 	Expect(waitForClusterToBeSetup()).Should(Succeed())
 })
 
