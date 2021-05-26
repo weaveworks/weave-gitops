@@ -295,7 +295,7 @@ func waitForNginxDeployment() error {
 func waitForFluxInstall() error {
 	for i := 1; i < 11; i++ {
 		log.Infof("Waiting for flux... try: %d of 10\n", i)
-		err := utils.CallCommandForEffectWithInputPipeAndDebug("kubectl get customresourcedefinition buckets.source.toolkit.fluxcd.io")
+		err := utils.CallCommandForEffectWithDebug("kubectl get customresourcedefinition buckets.source.toolkit.fluxcd.io")
 		if err == nil {
 			return nil
 		}
