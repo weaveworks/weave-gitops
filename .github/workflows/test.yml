@@ -78,6 +78,8 @@ jobs:
       uses: actions/checkout@v2
     - name: Install UI Deps
       run: npm ci
+    - name: NPM Audit
+      run: npm audit
     - name: Build UI Assets
       run: make cmd/ui/dist/main.js
     - name: Fake Install flux
