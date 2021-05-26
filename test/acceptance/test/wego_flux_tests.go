@@ -1,12 +1,13 @@
 // +build smoke acceptance
 
-/**
-* All tests related to 'wego flux' will go into this file
- */
+// /**
+// * All tests related to 'wego flux' will go into this file
+//  */
 
 package acceptance
 
 import (
+	"fmt"
 	"os/exec"
 
 	. "github.com/onsi/ginkgo"
@@ -31,8 +32,10 @@ var _ = Describe("WEGO Flux Tests", func() {
 		By("When I run the command 'wego flux foo'", func() {
 			command := exec.Command(WEGO_BIN_PATH, "flux", "foo")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			fmt.Println("-----------------------------sdfdsfgsfdh-----------------------")
+			fmt.Println(session.Command)
+			fmt.Println(session.Command.CombinedOutput())
 			Expect(err).ShouldNot(HaveOccurred())
-
 		})
 
 		By("Then I should see wego error message", func() {
