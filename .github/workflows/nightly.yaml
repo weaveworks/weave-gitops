@@ -300,4 +300,4 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-2
     - run: |
-        aws s3 cp bin/wego-${{matrix.os}}-nightly s3://weave-gitops/nightly/${{ steps.date.outputs.date }}/wego-${{matrix.os}}
+        #aws s3 cp bin/wego-${{matrix.os}}-nightly s3://weave-gitops/nightly/${{ steps.date.outputs.date }}/wego-${{matrix.os}}
