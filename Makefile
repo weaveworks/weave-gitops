@@ -62,8 +62,21 @@ cmd/ui/dist/main.js: package-lock.json
 bin/$(BINARY_NAME)_ui: cmd/ui/main.go
 	go build -ldflags "-X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION)" -o bin/$(BINARY_NAME)_ui cmd/ui/main.go
 
-ui-dev:
+ui-dev: cmd/ui/dist/main.js
 	reflex -r '.go' -s -- sh -c 'go run cmd/ui/main.go'
+<<<<<<< HEAD
 	
 lint:
 	golangci-lint run --out-format=github-actions --build-tags acceptance
+=======
+
+proto: pkg/rpc/gitops/gitops.proto
+	protoc pkg/rpc/gitops/gitops.proto --twirp_out=./ --go_out=. --twirp_typescript_out=./ui/lib/rpc
+
+api-docs:
+	protoc --doc_out=./doc --doc_opt=markdown,gitops.md pkg/rpc/gitops/*.proto
+
+client-java:
+	mkdir -p src/main/java/v1
+	protoc pkg/rpc/gitops/*.proto --java_out=src/main/java/v1 --twirp_java_jaxrs_out=src/main/java/v1
+>>>>>>> Protobuf POC added

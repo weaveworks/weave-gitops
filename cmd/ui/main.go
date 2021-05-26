@@ -2,13 +2,13 @@ package main
 
 import (
 	"embed"
-	"encoding/json"
 	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
 
 	"github.com/sirupsen/logrus"
+	"github.com/weaveworks/weave-gitops/pkg/server"
 )
 
 func main() {
@@ -19,27 +19,30 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	mux.Handle("/api/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		res := struct {
-			Ok bool `json:"ok"`
-		}{
-			Ok: true,
-		}
+	// mux.Handle("/api/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// 	res := struct {
+	// 		Ok bool `json:"ok"`
+	// 	}{
+	// 		Ok: true,
+	// 	}
 
-		b, err := json.Marshal(res)
+	// 	b, err := json.Marshal(res)
 
-		if err != nil {
-			log.Errorf("could not marshal: %s", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+	// 	if err != nil {
+	// 		log.Errorf("could not marshal: %s", err)
+	// 		w.WriteHeader(http.StatusInternalServerError)
+	// 		return
+	// 	}
 
-		if _, err := w.Write(b); err != nil {
-			log.Errorf("error writing bytes: %s", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-	}))
+	// 	if _, err := w.Write(b); err != nil {
+	// 		log.Errorf("error writing bytes: %s", err)
+	// 		w.WriteHeader(http.StatusInternalServerError)
+	// 		return
+	// 	}
+	// }))
+
+	gitopsServer := server.NewServer()
+	mux.Handle("/api/gitops/", http.StripPrefix("/api/gitops", gitopsServer))
 
 	assetFS := getAssets()
 	assetHandler := http.FileServer(http.FS(assetFS))

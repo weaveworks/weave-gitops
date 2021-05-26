@@ -1,0 +1,32 @@
+syntax = "proto3";
+package gitops;
+
+option go_package = "pkg/rpc/gitops";
+option java_outer_classname = "GitOpsProtos";
+
+service GitOps {
+    // Lists the applications that have been GitOps-ified
+    rpc ListApplications(ListApplicationsReq) returns (ListApplicationsRes);
+}
+
+/**
+ * Represents a Weave GitOps application
+ */
+message Application {
+    string name = 1;
+}
+
+/**
+ * ListApplication request payload
+ */
+message ListApplicationsReq {
+
+}
+
+/**
+ * ListApplication response payload
+ */
+message ListApplicationsRes {
+    repeated Application applications = 1;
+}
+
