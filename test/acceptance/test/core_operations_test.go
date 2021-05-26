@@ -89,8 +89,8 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 			command := exec.Command("sh", "-c", fmt.Sprintf("%s install | kubectl apply -f -", WEGO_BIN_PATH))
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
-
 			Eventually(session).Should(gexec.Exit())
+
 			Expect(waitForFluxInstall()).Should(Succeed())
 			Expect(setUpTestRepo()).Should(Succeed())
 		})
@@ -295,9 +295,11 @@ func waitForNginxDeployment() error {
 func waitForFluxInstall() error {
 	for i := 1; i < 11; i++ {
 		log.Infof("Waiting for flux... try: %d of 10\n", i)
-		if status.GetClusterStatus() == status.FluxInstalled {
+		err := utils.CallCommandForEffectWithInputPipeAndDebug("kubectl get customresourcedefinition buckets.source.toolkit.fluxcd.io")
+		if err == nil {
 			return nil
 		}
+
 		time.Sleep(5 * time.Second)
 	}
 	return fmt.Errorf("Failed to install flux")
