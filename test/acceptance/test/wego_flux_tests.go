@@ -7,7 +7,6 @@
 package acceptance
 
 import (
-	"fmt"
 	"os/exec"
 
 	. "github.com/onsi/ginkgo"
