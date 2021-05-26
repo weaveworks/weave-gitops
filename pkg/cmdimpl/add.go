@@ -415,7 +415,7 @@ func Add(args []string, allParams AddParamSet) error {
 	case string(DeployTypeKustomize):
 		appManifests, err = generateKustomizeManifest()
 	default:
-		return fmt.Errorf("deployment type not supported [%s]", params.DeploymentType)
+		return fmt.Errorf("deployment type not supported: %s", params.DeploymentType)
 	}
 
 	if err != nil {
