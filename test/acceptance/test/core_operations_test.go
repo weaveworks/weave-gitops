@@ -244,7 +244,7 @@ func ensureWegoRepoAccess() (*gitprovider.RepositoryVisibility, error) {
 
 func ensureFluxVersion() error {
 	log.Info("ensureFluxVersion")
-	if version.FluxVersion == "undefined" {
+	/*if version.FluxVersion == "undefined" {
 		tomlpath, err := filepath.Abs("../../../tools/bin/stoml")
 		if err != nil {
 			return err
@@ -258,7 +258,7 @@ func ensureFluxVersion() error {
 			return err
 		}
 		version.FluxVersion = strings.TrimRight(string(out), "\n")
-	}
+	}*/
 	return nil
 }
 
