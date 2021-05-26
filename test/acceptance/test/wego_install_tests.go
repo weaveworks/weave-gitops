@@ -21,6 +21,13 @@ var (
 
 func VerifyControllersInCluster(session *gexec.Session) {
 
+	By("Then I should see flux controllers present in the cluster", func() {
+		Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("helm-controller"))
+		Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("kustomize-controller"))
+		Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("notification-controller"))
+		Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("source-controller"))
+	})
+
 	By("And I wait for the controllers to get ready", func() {
 		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod", "120s", namespace))
 
