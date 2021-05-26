@@ -287,6 +287,7 @@ func waitForFluxInstall() error {
 }
 
 func installWego() error {
+	log.Info("installWego")
 	flux.SetupFluxBin()
 	manifests, err := cmdimpl.Install(cmdimpl.InstallParamSet{Namespace: "wego-system"})
 	if err != nil {
