@@ -2,13 +2,9 @@ package status
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 
 	"github.com/weaveworks/weave-gitops/pkg/override"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
-	"sigs.k8s.io/yaml"
 )
 
 type ClusterStatus int
@@ -65,23 +61,6 @@ func GetClusterName() (string, error) {
 	return statusHandler.(StatusHandler).GetClusterName()
 }
 
-func getName() (string, error) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
-	config, err := ioutil.ReadFile(filepath.Join(homeDir, ".kube", "config"))
-	if err != nil {
-		return "", err
-	}
-	data := map[string]interface{}{}
-	err = yaml.Unmarshal(config, &data)
-	if err != nil {
-		return "", err
-	}
-	return data["current-context"].(string), nil
-}
-
 func kubectlHandler(args string) error {
 	cmd := fmt.Sprintf("kubectl get %s", args)
 	err := utils.CallCommandForEffect(cmd)
@@ -99,7 +78,7 @@ type defaultStatusHandler struct{}
 var statusHandler interface{} = defaultStatusHandler{}
 
 func (h defaultStatusHandler) GetClusterName() (string, error) {
-	return getName()
+	return utils.GetContextName()
 }
 
 func (h defaultStatusHandler) GetClusterStatus() ClusterStatus {
