@@ -26,7 +26,7 @@ var _ = Describe("WEGO Flux Tests", func() {
 		})
 	})
 
-	It("Verify that wego-flux displays error message when provided with the wrong flag", func() {
+	It("Verify that wego flux displays error message when provided with the wrong flag", func() {
 
 		By("When I run the command 'wego flux foo'", func() {
 			command := exec.Command(WEGO_BIN_PATH, "flux", "foo")

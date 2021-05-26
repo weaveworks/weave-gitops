@@ -2,6 +2,7 @@ on:
   push:
     branches:
       - main
+  pull_request:
   workflow_dispatch:
 
 name: Deploy
@@ -67,7 +68,7 @@ jobs:
       run: |
         go get github.com/t-yuki/gocover-cobertura
         gocover-cobertura < .coverprofile-unittests > coverage.xml
-        testspace "[unit-tests]test-results/unit-test-results.xml" "[acceptance-tests]test-results/acceptance-test-results.xml" "coverage.xml"
+        #testspace "[unit-tests]test-results/unit-test-results.xml" "[acceptance-tests]test-results/acceptance-test-results.xml" "coverage.xml"
       if: always() && matrix.os == 'ubuntu-latest'
     - name: publish to s3
       uses: aws-actions/configure-aws-credentials@v1

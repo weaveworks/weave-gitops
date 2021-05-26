@@ -42,7 +42,6 @@ var _ = BeforeSuite(func() {
 		WEGO_BIN_PATH = "/usr/local/bin/wego"
 	}
 	log.Infof("WEGO Binary Path: %s", WEGO_BIN_PATH)
-	Expect(checkInitialStatus()).Should(Succeed())
 })
 
 func checkInitialStatus() error {

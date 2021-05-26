@@ -1,6 +1,9 @@
 on:
-  schedule:
-    - cron: '8 0 * * *'
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
 
 name: Nightly
 jobs:
@@ -206,6 +209,68 @@ jobs:
         export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}-nightly
         export CLUSTER_PROVIDER=gke
         export K8S_VERSION=1.19.1
+        # cleanup the cluster
+        $WEGO_BIN_PATH install | kubectl --ignore-not-found=true delete -f -
+        $WEGO_BIN_PATH install --namespace test-namespace| kubectl --ignore-not-found=true delete -f -
+        kubectl get all --all-namespaces -o wide
+        ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v -tags=acceptance ./test/acceptance/test/...
+  
+  test-kind:
+    needs: [lint, build]
+    runs-on: ${{matrix.os}}
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16.x
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: Setup Kubernetes
+      uses: helm/kind-action@v1.1.0
+      with:
+        cluster_name: "${{ format('katc-{0}', github.run_id) }}"
+        version: "v0.10.0"
+    - name: Kind-check
+      run: |
+        kubectl get pods -A
+        kubectl get all --all-namespaces -o wide
+
+    - name: Fake Install flux
+      run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
+    - name: Download wego binaries
+      uses: actions/download-artifact@v2
+      with:
+        name: wego-binaries-${{matrix.os}}-nightly
+        path: bin
+    - name: Change bin permissions
+      run: |
+        chmod +x bin/wego-${{matrix.os}}-nightly
+        ls -la bin
+    - name: Set up ssh agent
+      uses: webfactory/ssh-agent@v0.5.2
+      with:
+        ssh-private-key: ${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}
+    - name: Configure git settings
+      run: |
+        git config --global init.defaultBranch main
+        git config --global user.email "test-user@weave.works"
+        git config --global user.name "Testy McTestFace"
+        git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+    - name: Install Ginkgo binary
+      run: go get -u github.com/onsi/ginkgo/ginkgo
+    - name: User Acceptance Tests (Ubuntu)
+      env:
+        GITHUB_ORG: wkp-example-org
+        GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
+        GITHUB_KEY: "${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}"
+      run: |
+        export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}-nightly
+        export CLUSTER_PROVIDER=kind
+        export K8S_VERSION=1.21.1
         # cleanup the cluster
         $WEGO_BIN_PATH install | kubectl --ignore-not-found=true delete -f -
         $WEGO_BIN_PATH install --namespace test-namespace| kubectl --ignore-not-found=true delete -f -
