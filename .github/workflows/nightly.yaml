@@ -239,7 +239,7 @@ jobs:
     - name: Setup kind
       run: |
         chmod +x ./kind
-        mv ./kind /usr/local/bin
+        sudo mv ./kind /usr/local/bin
     - name: Kubectl tool installer
       uses: Azure/setup-kubectl@v1
       with:

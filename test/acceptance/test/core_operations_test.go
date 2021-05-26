@@ -68,7 +68,7 @@ var (
 	keyFilePath string
 )
 
-var _ = FDescribe("WEGO Acceptance Tests", func() {
+var _ = Describe("WEGO Acceptance Tests", func() {
 
 	AfterEach(func() {
 		os.RemoveAll(tmpPath)

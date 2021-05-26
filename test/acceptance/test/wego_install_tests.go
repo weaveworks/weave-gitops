@@ -51,7 +51,7 @@ func VerifyControllersInCluster(session *gexec.Session) {
 	})
 }
 
-var _ = FDescribe("WEGO Install Tests", func() {
+var _ = Describe("WEGO Install Tests", func() {
 
 	var session *gexec.Session
 
