@@ -47,6 +47,10 @@ jobs:
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     - name: Install Ginkgo binary
       run: go get -u github.com/onsi/ginkgo/ginkgo
+    - name: Sleep for 30 seconds
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '500s'
     - name: User Acceptance Tests (Ubuntu)
       env:
         GITHUB_ORG: wkp-example-org
