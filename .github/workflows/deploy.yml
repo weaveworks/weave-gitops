@@ -25,10 +25,6 @@ jobs:
         cluster_name: "${{ format('katc-{0}', github.run_id) }}"
         version: "v0.10.0"
       if: matrix.os == 'ubuntu-latest'
-    - name: Sleep
-      uses: jakejarvis/wait-action@master
-      with:
-        time: '500s'
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: unit tests with coverage
