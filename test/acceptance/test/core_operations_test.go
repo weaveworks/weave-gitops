@@ -27,7 +27,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
-	"github.com/weaveworks/weave-gitops/pkg/version"
 )
 
 const nginxDeployment = `apiVersion: v1
