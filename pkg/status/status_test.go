@@ -2,56 +2,14 @@ package status
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/weaveworks/weave-gitops/pkg/override"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
+
 	"github.com/stretchr/testify/require"
 )
-
-const badkubeconfig = `apiVersion: v1
-#clusters:
-- cluster:
-    certificate-authority-data: stuff
-    server: https://127.0.0.1:46677
-  name: kind-wego-demo
-contexts:
-- context:
-    cluster: kind-wego-demo
-    user: kind-wego-demo
-  name: kind-wego-demo
-current-context: kind-wego-demo
-kind: Config
-preferences: {}
-users:
-- name: kind-wego-demo
-  user:
-    client-certificate-data: more stuff
-    client-key-data: yet more stuff
-`
-
-const kubeconfig = `apiVersion: v1
-clusters:
-- cluster:
-    certificate-authority-data: stuff
-    server: https://127.0.0.1:46677
-  name: kind-wego-demo
-contexts:
-- context:
-    cluster: kind-wego-demo
-    user: kind-wego-demo
-  name: kind-wego-demo
-current-context: kind-wego-demo
-kind: Config
-preferences: {}
-users:
-- name: kind-wego-demo
-  user:
-    client-certificate-data: more stuff
-    client-key-data: yet more stuff
-`
 
 func TestClusterStatus(t *testing.T) {
 	lookupHandler = fail
@@ -68,37 +26,40 @@ func TestClusterStatus(t *testing.T) {
 }
 
 func TestGetClusterName(t *testing.T) {
-	tmpPath, err := ioutil.TempDir("", "tmp-dir")
-	require.NoError(t, err)
-	home, err := os.UserHomeDir()
-	require.NoError(t, err)
-	defer func() {
-		if err := os.Setenv("HOME", home); err != nil {
-			require.FailNow(t, "Failed to reset home directory")
-		}
-	}()
-	require.NoError(t, os.Setenv("HOME", tmpPath))
-	configDirPath := filepath.Join(tmpPath, ".kube")
-	require.NoError(t, os.MkdirAll(configDirPath, 0755))
-	configPath := filepath.Join(configDirPath, "config")
 
-	require.NoError(t, ioutil.WriteFile(configPath, []byte(kubeconfig), 0644))
-	name, err := GetClusterName()
-	require.NoError(t, err)
-	require.Equal(t, name, "kind-wego-demo")
+	override.WithOverrides(func() override.Result {
+		name, err := GetClusterName()
+		require.NoError(t, err)
+		require.Equal(t, name, "kind-wego-demo")
+		return override.Result{}
+	}, utils.OverrideBehavior(utils.CallCommandSeparatingOutputStreamsOp,
+		func(args ...interface{}) ([]byte, []byte, error) {
+			case0Kubectl := `kubectl config current-context`
+			switch (args[0]).(string) {
+			case case0Kubectl:
+				return []byte("kind-wego-demo"), []byte(""), nil
+			default:
+				return nil, nil, fmt.Errorf("arguments not expected %s", args)
+			}
+		}),
+	)
 
-	require.NoError(t, os.Remove(configPath))
-	_, err = GetClusterName()
-	require.Error(t, err)
+	override.WithOverrides(func() override.Result {
+		_, err := GetClusterName()
+		require.Error(t, err)
+		return override.Result{}
+	}, utils.OverrideBehavior(utils.CallCommandSeparatingOutputStreamsOp,
+		func(args ...interface{}) ([]byte, []byte, error) {
+			case0Kubectl := `kubectl config current-context`
+			switch (args[0]).(string) {
+			case case0Kubectl:
+				return []byte("wrong-name"), []byte(""), fmt.Errorf("error here")
+			default:
+				return nil, nil, fmt.Errorf("arguments not expected %s", args)
+			}
+		}),
+	)
 
-	require.NoError(t, ioutil.WriteFile(configPath, []byte(badkubeconfig), 0644))
-	_, err = GetClusterName()
-	require.Error(t, err)
-
-	require.NoError(t, ioutil.WriteFile(configPath, []byte(kubeconfig), 0644))
-	name, err = GetClusterName()
-	require.NoError(t, err)
-	require.Equal(t, name, "kind-wego-demo")
 }
 
 func handle(prefix string) func(args string) error {

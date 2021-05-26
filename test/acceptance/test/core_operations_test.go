@@ -189,7 +189,7 @@ func setupTest() error {
 
 func ensureWegoRepoIsAbsent() error {
 	ctx := context.Background()
-	name, err := getWegoRepoName()
+	name, err := getRepoName()
 	if err != nil {
 		return err
 	}
@@ -216,7 +216,7 @@ func ensureWegoRepoIsAbsent() error {
 
 func ensureWegoRepoAccess() (*gitprovider.RepositoryVisibility, error) {
 	ctx := context.Background()
-	name, err := getWegoRepoName()
+	name, err := getRepoName()
 	if err != nil {
 		return nil, err
 	}
@@ -382,7 +382,7 @@ func deleteRepos() error {
 		if err != nil {
 			return err
 		}
-		name, err = getWegoRepoName()
+		name, err = getRepoName()
 		if err != nil {
 			return err
 		}
