@@ -80,6 +80,11 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
 		})
 
+		By("And I have a brand new cluster", func() {
+			_, err := ResetOrCreateCluster(namespace)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
 		By("Setup test", func() {
 			Expect(setupTest()).Should(Succeed())
 			Expect(ensureWegoRepoIsAbsent()).Should(Succeed())
