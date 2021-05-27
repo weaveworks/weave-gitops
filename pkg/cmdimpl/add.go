@@ -13,9 +13,9 @@ import (
 	"time"
 
 	"github.com/weaveworks/weave-gitops/pkg/app"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -328,12 +328,13 @@ func Add(args []string, allParams AddParamSet) error {
             git push --set-upstream origin main`
 		cmd := fmt.Sprintf(cmdStr, owner, wegoRepoName)
 
+		if err := gitproviders.CreateRepository(wegoRepoName, owner, params.IsPrivate); err != nil {
+			return wrapError(err, "could not create repository")
+		}
+		fmt.Println("waiting 5 seconds")
+		time.Sleep(time.Second * 5)
+
 		if !params.DryRun {
-			if err := gitproviders.CreateRepository(wegoRepoName, owner, params.IsPrivate); err != nil {
-				return wrapError(err, "could not create repository")
-			}
-			fmt.Println("waiting 5 seconds")
-			time.Sleep(time.Second * 5)
 			if err := utils.CallCommandForEffectWithDebug(cmd); err != nil {
 				return wrapError(err, "could not add remote")
 			}
@@ -425,6 +426,7 @@ func Add(args []string, allParams AddParamSet) error {
 		if err := ioutil.WriteFile(appYamlName, appManifestContent, 0644); err != nil {
 			return wrapError(err, "could not write app yaml populated template")
 		}
+
 		if err := commitAndPush(sourceYamlPath, manifestDeployTypeNamePath, appYamlName); err != nil {
 			return wrapError(err, "could not commit and/or push")
 		}
