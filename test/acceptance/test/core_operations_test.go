@@ -71,6 +71,8 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 	})
 
 	BeforeEach(func() {
+		namespace = "wego-system"
+
 		By("Given I have a wego binary installed on my local machine", func() {
 			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
 		})
@@ -90,12 +92,8 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 			// Expect(err).ShouldNot(HaveOccurred())
 			// Eventually(session).Should(gexec.Exit())
 
-			fmt.Println("-------------------------------------------+++++++++++++++++++--------------------------")
-			time.Sleep(5 * time.Minute)
 			err = utils.CallCommandForEffectWithDebug(fmt.Sprintf("%s install | kubectl apply -f -", WEGO_BIN_PATH))
 			Expect(err).ShouldNot(HaveOccurred())
-
-			fmt.Println("-------------------------------------------+++++++++++++++++++--------------------------")
 
 			Expect(waitForFluxInstall()).Should(Succeed())
 			Expect(setUpTestRepo()).Should(Succeed())
