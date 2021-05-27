@@ -5,7 +5,6 @@ go 1.16
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dnaeon/go-vcr v1.1.0
-	github.com/fajran/protoc-gen-twirp_java_jaxrs v0.0.0-20180509151239-c71f16bc5807 // indirect
 	github.com/fluxcd/go-git-providers v0.1.1
 	github.com/golang/protobuf v1.5.2
 	github.com/lithammer/dedent v1.1.0

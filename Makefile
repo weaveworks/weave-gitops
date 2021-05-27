@@ -64,19 +64,15 @@ bin/$(BINARY_NAME)_ui: cmd/ui/main.go
 
 ui-dev: cmd/ui/dist/main.js
 	reflex -r '.go' -s -- sh -c 'go run cmd/ui/main.go'
-<<<<<<< HEAD
 	
 lint:
 	golangci-lint run --out-format=github-actions --build-tags acceptance
-=======
 
 proto: pkg/rpc/gitops/gitops.proto
-	protoc pkg/rpc/gitops/gitops.proto --twirp_out=./ --go_out=. --twirp_typescript_out=./ui/lib/rpc
+	buf generate
+
+proto-lint:
+	buf lint
 
 api-docs:
 	protoc --doc_out=./doc --doc_opt=markdown,gitops.md pkg/rpc/gitops/*.proto
-
-client-java:
-	mkdir -p src/main/java/v1
-	protoc pkg/rpc/gitops/*.proto --java_out=src/main/java/v1 --twirp_java_jaxrs_out=src/main/java/v1
->>>>>>> Protobuf POC added

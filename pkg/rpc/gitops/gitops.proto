@@ -6,7 +6,12 @@ option java_outer_classname = "GitOpsProtos";
 
 service GitOps {
     // Lists the applications that have been GitOps-ified
-    rpc ListApplications(ListApplicationsReq) returns (ListApplicationsRes);
+    rpc AddApplication(AddApplicationReq) returns (AddApplicationRes);
+}
+
+enum DeploymentType {
+    kustomize = 0;
+    helm = 1;
 }
 
 /**
@@ -19,14 +24,24 @@ message Application {
 /**
  * ListApplication request payload
  */
-message ListApplicationsReq {
-
+message AddApplicationReq {
+    string owner = 1;
+    string name = 2;
+    string url = 3;
+    string path = 4;
+    string branch = 5;
+    DeploymentType deployment_type = 6;
+    string private_key = 7;
+    bool dry_run = 8;
+    bool private = 9;
+    string namespace = 10;
+    string dir = 11;
 }
 
 /**
  * ListApplication response payload
  */
-message ListApplicationsRes {
-    repeated Application applications = 1;
+message AddApplicationRes {
+    Application application = 1;
 }
 

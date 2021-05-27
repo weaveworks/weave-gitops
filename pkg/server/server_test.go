@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	client "github.com/weaveworks/weave-gitops/pkg/client/v1"
+	"github.com/weaveworks/weave-gitops/pkg/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/rpc/gitops"
 	pb "github.com/weaveworks/weave-gitops/pkg/rpc/gitops"
 	"github.com/weaveworks/weave-gitops/pkg/server"
@@ -45,12 +46,13 @@ func createUnauthenticatedClient(t *testing.T) gitops.GitOps {
 }
 
 func createAuthenticatedClient(t *testing.T) gitops.GitOps {
-	clientWithAuth := server.CreateAuthenticatedClient(t, getUrl(), "my-user-id-123")
+	clientWithAuth := middleware.CreateTestAuthenticatedClient(t, getUrl(), "my-user-id-123")
 
 	return createClient(t, clientWithAuth)
 }
 
-func Test_ListApplications(t *testing.T) {
+func Test_AddApplication(t *testing.T) {
+	name := "my-cool-app"
 	client := createAuthenticatedClient(t)
 	s := createServer(t)
 
@@ -58,18 +60,30 @@ func Test_ListApplications(t *testing.T) {
 
 	defer s.Shutdown(ctx)
 
-	res, err := client.ListApplications(ctx, &pb.ListApplicationsReq{})
+	res, err := client.AddApplication(ctx, &pb.AddApplicationReq{
+		Name:           name,
+		Owner:          "jpellizzari",
+		Url:            "https://github.com/stefanprodan/podinfo.git",
+		Path:           "./kustomize",
+		Branch:         "main",
+		PrivateKey:     "",
+		DeploymentType: pb.DeploymentType_kustomize,
+		Namespace:      "default",
+		DryRun:         true,
+		Dir:            "./",
+	})
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if len(res.Applications) == 0 {
-		t.Errorf("Expected more than zero apps, got %v", len(res.Applications))
+	if res.Application.Name != "name" {
+		t.Fatal(errors.New("expected name to be correct"))
 	}
+
 }
 
-func Test_ListApplications_Unauthenticated(t *testing.T) {
+func Test_AddApplication_Unauthenticated(t *testing.T) {
 	client := createUnauthenticatedClient(t)
 	s := createServer(t)
 
@@ -77,7 +91,7 @@ func Test_ListApplications_Unauthenticated(t *testing.T) {
 
 	defer s.Shutdown(ctx)
 
-	_, err := client.ListApplications(ctx, &pb.ListApplicationsReq{})
+	_, err := client.AddApplication(ctx, &pb.AddApplicationReq{})
 
 	if err == nil {
 		t.Fatal(errors.New("expected a 401 from the server"))
