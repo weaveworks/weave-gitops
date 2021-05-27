@@ -249,7 +249,6 @@ var _ = Describe("Add repo with custom access test", func() {
 							Path:           "./",
 							Branch:         "main",
 							PrivateKey:     privateKeyFileName,
-							IsPrivate:      true,
 							Namespace:      "wego-system",
 							DeploymentType: DeployTypeKustomize,
 						})
@@ -287,8 +286,8 @@ var _ = Describe("Add repo with custom access test", func() {
 							Path:           "./",
 							Branch:         "main",
 							PrivateKey:     privateKeyFileName,
-							DryRun:         true,
 							Namespace:      "wego-system",
+							IsPrivate:      false,
 							DeploymentType: DeployTypeKustomize,
 						})
 
