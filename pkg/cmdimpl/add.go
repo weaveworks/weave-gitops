@@ -341,11 +341,10 @@ func Add(args []string, allParams AddParamSet) error {
             git push --set-upstream origin main`
 		cmd := fmt.Sprintf(cmdStr, owner, fluxRepoName)
 
-		if err := gitproviders.CreateRepository(fluxRepoName, owner, params.IsPrivate); err != nil {
-			return wrapError(err, "could not create repository")
-		}
-
 		if !params.DryRun {
+			if err := gitproviders.CreateRepository(fluxRepoName, owner, params.IsPrivate); err != nil {
+				return wrapError(err, "could not create repository")
+			}
 			if err := utils.CallCommandForEffectWithDebug(cmd); err != nil {
 				return wrapError(err, "could not add remote")
 			}
