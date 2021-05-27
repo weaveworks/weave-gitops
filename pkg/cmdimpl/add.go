@@ -441,9 +441,9 @@ func Add(args []string, allParams AddParamSet) error {
 			return wrapError(err, "could not commit and/or push")
 		}
 
-		//if err := commitAndPush(sourceName, manifestsName, appYamlName); err != nil {
-		//	return wrapError(err, "could not commmit and/or push")
-		//}
+		if err := commitAndPush(sourceName, manifestsName, appYamlName); err != nil {
+			return wrapError(err, "could not commmit and/or push")
+		}
 	} else {
 		fmt.Fprintf(shims.Stdout(), "Applying wego resources for application...")
 	}
