@@ -12,21 +12,18 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"github.com/prometheus/common/log"
 	"github.com/weaveworks/weave-gitops/pkg/cmdimpl"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
-	"github.com/weaveworks/weave-gitops/pkg/version"
 )
 
 const nginxDeployment = `apiVersion: v1
@@ -87,8 +84,13 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		By("Setup test", func() {
 			Expect(setupTest()).Should(Succeed())
 			Expect(ensureWegoRepoIsAbsent()).Should(Succeed())
-			Expect(ensureFluxVersion()).Should(Succeed())
-			Expect(installWego()).Should(Succeed())
+
+			//Install wego
+			command := exec.Command("sh", "-c", fmt.Sprintf("%s install | kubectl apply -f -", WEGO_BIN_PATH))
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
+			Eventually(session).Should(gexec.Exit())
+
 			Expect(waitForFluxInstall()).Should(Succeed())
 			Expect(setUpTestRepo()).Should(Succeed())
 		})
@@ -118,38 +120,38 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		By("kubectl get pods -n wego-system should list the source and kustomize controllers", func() {
 			Expect(waitForNginxDeployment()).Should(Succeed())
 			Expect(runCommandForGinkgo("kubectl get pods -n wego-system")).Should(Succeed())
-			Eventually(session).Should(gbytes.Say("kustomize-controller"))
-			Eventually(session).Should(gbytes.Say("source-controller"))
+			Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("kustomize-controller"))
+			Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("source-controller"))
 		})
 	})
 
-	//It("Verify add public repo when repo does not already exist", func() {
-	//
-	//	By("When i run 'wego add . --private=false'", func() {
-	//		dir, err := os.Getwd()
-	//		Expect(err).ShouldNot(HaveOccurred())
-	//		Expect(os.Chdir(tmpDir)).Should(Succeed())
-	//		defer func() {
-	//			Expect(os.Chdir(dir)).Should(Succeed())
-	//		}()
-	//		command := exec.Command(WEGO_BIN_PATH, "add", ".", "--private=false", fmt.Sprintf("--private-key=%v", keyFilePath))
-	//		session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	//		Expect(err).ShouldNot(HaveOccurred())
-	//	})
-	//
-	//	By("Then a private repo with name is created on the remote git", func() {
-	//		access, err := ensureWegoRepoAccess()
-	//		Expect(err).ShouldNot(HaveOccurred())
-	//		Expect(*access).Should(Equal(gitprovider.RepositoryVisibilityPublic))
-	//	})
-	//
-	//	By("kubectl get pods -n wego-system should list the source and kustomize controllers", func() {
-	//		Expect(waitForNginxDeployment()).Should(Succeed())
-	//		Expect(runCommandForGinkgo("kubectl get pods -n wego-system")).Should(Succeed())
-	//		Eventually(session).Should(gbytes.Say("kustomize-controller"))
-	//		Eventually(session).Should(gbytes.Say("source-controller"))
-	//	})
-	//})
+	It("Verify add public repo when repo does not already exist", func() {
+
+		By("When i run 'wego add . --private=false'", func() {
+			dir, err := os.Getwd()
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(os.Chdir(tmpDir)).Should(Succeed())
+			defer func() {
+				Expect(os.Chdir(dir)).Should(Succeed())
+			}()
+			command := exec.Command(WEGO_BIN_PATH, "add", ".", "--private=false", fmt.Sprintf("--private-key=%v", keyFilePath))
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		By("Then a private repo with name is created on the remote git", func() {
+			access, err := ensureWegoRepoAccess()
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(*access).Should(Equal(gitprovider.RepositoryVisibilityPublic))
+		})
+
+		By("kubectl get pods -n wego-system should list the source and kustomize controllers", func() {
+			Expect(waitForNginxDeployment()).Should(Succeed())
+			Expect(runCommandForGinkgo("kubectl get pods -n wego-system")).Should(Succeed())
+			Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("kustomize-controller"))
+			Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("source-controller"))
+		})
+	})
 })
 
 func setupTest() error {
@@ -238,25 +240,6 @@ func ensureWegoRepoAccess() (*gitprovider.RepositoryVisibility, error) {
 	return nil, fmt.Errorf("wepo does not exist")
 }
 
-func ensureFluxVersion() error {
-	if version.FluxVersion == "undefined" {
-		tomlpath, err := filepath.Abs("../../../tools/bin/stoml")
-		if err != nil {
-			return err
-		}
-		deppath, err := filepath.Abs("../../../tools/dependencies.toml")
-		if err != nil {
-			return err
-		}
-		out, err := utils.CallCommandSilently(fmt.Sprintf("%s %s flux.version", tomlpath, deppath))
-		if err != nil {
-			return err
-		}
-		version.FluxVersion = strings.TrimRight(string(out), "\n")
-	}
-	return nil
-}
-
 func waitForNginxDeployment() error {
 	for i := 1; i < 61; i++ {
 		log.Infof("Waiting for nginx... try: %d of 60\n", i)
@@ -272,7 +255,8 @@ func waitForNginxDeployment() error {
 func waitForFluxInstall() error {
 	for i := 1; i < 11; i++ {
 		log.Infof("Waiting for flux... try: %d of 10\n", i)
-		if status.GetClusterStatus() == status.FluxInstalled {
+		err := utils.CallCommandForEffectWithDebug("kubectl get customresourcedefinition buckets.source.toolkit.fluxcd.io")
+		if err == nil {
 			return nil
 		}
 		time.Sleep(5 * time.Second)
@@ -337,7 +321,6 @@ func setUpTestRepo() error {
 	ctx := context.Background()
 	_, err = client.OrgRepositories().Create(ctx, *ref, gitprovider.RepositoryInfo{
 		Description: gitprovider.StringVar("test repo"),
-		Visibility:  gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityPrivate),
 	}, &gitprovider.RepositoryCreateOptions{
 		AutoInit:        gitprovider.BoolVar(true),
 		LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
