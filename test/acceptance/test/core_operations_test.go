@@ -85,10 +85,6 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		By("Setup test", func() {
 			Expect(setupTest()).Should(Succeed())
 			Expect(ensureWegoRepoIsAbsent()).Should(Succeed())
-			err := runCommandPassThrough([]string{}, "kubectl", "wait", "--for=condition=available", "--timeout=300s", "-n", "kube-system", "--all", "deployments")
-			if err != nil {
-				log.Infof("This shit didnt start up right.")
-			}
 
 			// //Install wego
 			// command := exec.Command("sh", "-c", fmt.Sprintf("%s install | kubectl apply -f -", WEGO_BIN_PATH))
