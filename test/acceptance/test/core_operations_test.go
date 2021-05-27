@@ -123,33 +123,33 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		})
 	})
 
-	It("Verify add public repo when repo does not already exist", func() {
-
-		By("When i run 'wego add . --private=false'", func() {
-			dir, err := os.Getwd()
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(os.Chdir(tmpDir)).Should(Succeed())
-			defer func() {
-				Expect(os.Chdir(dir)).Should(Succeed())
-			}()
-			command := exec.Command(WEGO_BIN_PATH, "add", ".", "--private=false", fmt.Sprintf("--private-key=%v", keyFilePath))
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).ShouldNot(HaveOccurred())
-		})
-
-		By("Then a private repo with name is created on the remote git", func() {
-			access, err := ensureWegoRepoAccess()
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(*access).Should(Equal(gitprovider.RepositoryVisibilityPublic))
-		})
-
-		By("kubectl get pods -n wego-system should list the source and kustomize controllers", func() {
-			Expect(waitForNginxDeployment()).Should(Succeed())
-			Expect(runCommandForGinkgo("kubectl get pods -n wego-system")).Should(Succeed())
-			Eventually(session).Should(gbytes.Say("kustomize-controller"))
-			Eventually(session).Should(gbytes.Say("source-controller"))
-		})
-	})
+	//It("Verify add public repo when repo does not already exist", func() {
+	//
+	//	By("When i run 'wego add . --private=false'", func() {
+	//		dir, err := os.Getwd()
+	//		Expect(err).ShouldNot(HaveOccurred())
+	//		Expect(os.Chdir(tmpDir)).Should(Succeed())
+	//		defer func() {
+	//			Expect(os.Chdir(dir)).Should(Succeed())
+	//		}()
+	//		command := exec.Command(WEGO_BIN_PATH, "add", ".", "--private=false", fmt.Sprintf("--private-key=%v", keyFilePath))
+	//		session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	//		Expect(err).ShouldNot(HaveOccurred())
+	//	})
+	//
+	//	By("Then a private repo with name is created on the remote git", func() {
+	//		access, err := ensureWegoRepoAccess()
+	//		Expect(err).ShouldNot(HaveOccurred())
+	//		Expect(*access).Should(Equal(gitprovider.RepositoryVisibilityPublic))
+	//	})
+	//
+	//	By("kubectl get pods -n wego-system should list the source and kustomize controllers", func() {
+	//		Expect(waitForNginxDeployment()).Should(Succeed())
+	//		Expect(runCommandForGinkgo("kubectl get pods -n wego-system")).Should(Succeed())
+	//		Eventually(session).Should(gbytes.Say("kustomize-controller"))
+	//		Eventually(session).Should(gbytes.Say("source-controller"))
+	//	})
+	//})
 })
 
 func setupTest() error {
