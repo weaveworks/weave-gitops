@@ -41,6 +41,8 @@ func (h defaultGitProviderHandler) CreateRepository(name string, owner string, p
 	bts, err := json.Marshal(repoInfo)
 	fmt.Println("VISIBILITY-repoInfo", string(bts))
 	fmt.Println("VISIBILITY-err", err)
+	fmt.Println("VISIBILITY-NAME", name)
+	fmt.Println("VISIBILITY-OWNER", owner)
 
 	repoCreateOpts := &gitprovider.RepositoryCreateOptions{
 		AutoInit:        gitprovider.BoolVar(true),

@@ -221,6 +221,8 @@ func ensureWegoRepoAccess() (*gitprovider.RepositoryVisibility, error) {
 		return nil, err
 	}
 
+	fmt.Println("REPONAME-ACTUAL", name)
+
 	url := fmt.Sprintf("https://github.com/%s/%s", os.Getenv("GITHUB_ORG"), name)
 	ref, err := gitprovider.ParseOrgRepositoryURL(url)
 	if err != nil {
