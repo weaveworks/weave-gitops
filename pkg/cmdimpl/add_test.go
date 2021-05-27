@@ -250,13 +250,15 @@ var _ = Describe("Add repo with custom access test", func() {
 							Branch:         "main",
 							PrivateKey:     privateKeyFileName,
 							Namespace:      "wego-system",
+							IsPrivate:      true,
 							DeploymentType: DeployTypeKustomize,
 						})
 
 					Expect(err).To(BeNil())
 					return override.Result{}
 				},
-				utils.OverrideFailure(utils.CallCommandForEffectWithInputPipeOp),
+				utils.OverrideIgnore(utils.CallCommandForEffectWithInputPipeOp),
+				utils.OverrideIgnore(utils.CallCommandOp),
 				utils.OverrideIgnore(utils.CallCommandForEffectWithDebugOp),
 				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
 				fluxops.Override(FailFluxHandler),
@@ -294,7 +296,8 @@ var _ = Describe("Add repo with custom access test", func() {
 					Expect(err).Should(BeNil())
 					return override.Result{}
 				},
-				utils.OverrideFailure(utils.CallCommandForEffectWithInputPipeOp),
+				utils.OverrideIgnore(utils.CallCommandForEffectWithInputPipeOp),
+				utils.OverrideIgnore(utils.CallCommandOp),
 				utils.OverrideIgnore(utils.CallCommandForEffectWithDebugOp),
 				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
 				fluxops.Override(FailFluxHandler),
