@@ -91,7 +91,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 			// Eventually(session).Should(gexec.Exit())
 
 			fmt.Println("-------------------------------------------+++++++++++++++++++--------------------------")
-
+			time.Sleep(5 * time.Minute)
 			err = utils.CallCommandForEffectWithDebug(fmt.Sprintf("%s install | kubectl apply -f -", WEGO_BIN_PATH))
 			Expect(err).ShouldNot(HaveOccurred())
 
