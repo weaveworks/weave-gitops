@@ -46,18 +46,6 @@ var (
 	params AddParamSet
 )
 
-// checkError will print a message to stderr and exit
-func checkError(msg string, err interface{}) {
-	if err != nil {
-		fmt.Fprintf(shims.Stderr(), "%s: %v\n", msg, err)
-		shims.Exit(1)
-	}
-}
-
-func checkAddError(err interface{}) {
-	checkError("Failed to add workload repository", err)
-}
-
 func updateParametersIfNecessary() error {
 	if params.Name == "" {
 		repoPath, err := filepath.Abs(params.Dir)
@@ -170,8 +158,7 @@ func generateSourceManifest() ([]byte, error) {
 	if params.DryRun {
 		fmt.Printf(cmd + "\n")
 	} else {
-		_, err := fluxops.CallFlux(cmd)
-		if err != nil {
+		if _, err := fluxops.CallFlux(cmd); err != nil {
 			return nil, wrapError(err, "could not create git secret")
 		}
 	}
@@ -328,13 +315,12 @@ func Add(args []string, allParams AddParamSet) error {
             git push --set-upstream origin main`
 		cmd := fmt.Sprintf(cmdStr, owner, wegoRepoName)
 
-		if err := gitproviders.CreateRepository(wegoRepoName, owner, params.IsPrivate); err != nil {
-			return wrapError(err, "could not create repository")
-		}
-		fmt.Println("waiting 5 seconds")
-		time.Sleep(time.Second * 5)
-
 		if !params.DryRun {
+			if err := gitproviders.CreateRepository(wegoRepoName, owner, params.IsPrivate); err != nil {
+				return wrapError(err, "could not create repository")
+			}
+			fmt.Println("waiting 5 seconds")
+			time.Sleep(time.Second * 5)
 			if err := utils.CallCommandForEffectWithDebug(cmd); err != nil {
 				return wrapError(err, "could not add remote")
 			}
@@ -398,7 +384,9 @@ func Add(args []string, allParams AddParamSet) error {
 	}
 
 	wegoAppPath, err := utils.GetWegoAppPath(params.Name)
-	checkAddError(err)
+	if err != nil {
+		return wrapError(err, fmt.Sprintf("error getting wego path for app [%s]", params.Name))
+	}
 
 	sourceYamlPath := filepath.Join(wegoAppPath, "source-"+params.Name+".yaml")
 	manifestDeployTypeNamePath := filepath.Join(wegoAppPath, fmt.Sprintf("%s-%s.yaml", params.DeploymentType, params.Name))
