@@ -118,8 +118,6 @@ func ResetOrCreateCluster(namespace string) (string, error) {
 		return clusterName, err
 	}
 
-	time.Sleep(5 * time.Minute)
-
 	return clusterName, nil
 }
 

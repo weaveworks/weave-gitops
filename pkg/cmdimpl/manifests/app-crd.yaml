@@ -10,7 +10,6 @@ spec:
     listKind: ApplicationList
     plural: apps
     singular: app
-  version: v1alpha1
   versions:
     - name: v1alpha1
       subresources:
