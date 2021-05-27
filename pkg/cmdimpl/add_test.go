@@ -203,7 +203,7 @@ var _ = Describe("Dry Run Add Test", func() {
 			defer os.Remove(privateKeyFileName)
 			_ = override.WithOverrides(
 				func() override.Result {
-					Add([]string{"."},
+					err := Add([]string{"."},
 						AddParamSet{
 							Name:           "wanda",
 							Url:            "ssh://git@github.com/foobar/quux.git",
@@ -214,6 +214,8 @@ var _ = Describe("Dry Run Add Test", func() {
 							Namespace:      "wego-system",
 							DeploymentType: string(DeployTypeKustomize),
 						})
+
+					Expect(err).To(BeNil())
 					return override.Result{}
 				},
 				utils.OverrideFailure(utils.CallCommandForEffectWithInputPipeOp),
@@ -252,7 +254,7 @@ var _ = Describe("Add repo with custom access test", func() {
 			defer os.Remove(privateKeyFileName)
 			_ = override.WithOverrides(
 				func() override.Result {
-					Add([]string{"."},
+					err := Add([]string{"."},
 						AddParamSet{
 							Name:           "wanda",
 							Url:            "ssh://git@github.com/foobar/quux.git",
@@ -264,6 +266,8 @@ var _ = Describe("Add repo with custom access test", func() {
 							Namespace:      "wego-system",
 							DeploymentType: string(DeployTypeKustomize),
 						})
+
+					Expect(err).To(BeNil())
 					return override.Result{}
 				},
 				utils.OverrideFailure(utils.CallCommandForEffectWithInputPipeOp),
@@ -301,7 +305,7 @@ var _ = Describe("Add repo with custom access test", func() {
 			defer os.Remove(privateKeyFileName)
 			_ = override.WithOverrides(
 				func() override.Result {
-					Add([]string{"."},
+					err := Add([]string{"."},
 						AddParamSet{
 							Name:           "wanda",
 							Url:            "ssh://git@github.com/foobar/quux.git",
@@ -309,10 +313,11 @@ var _ = Describe("Add repo with custom access test", func() {
 							Branch:         "main",
 							PrivateKey:     privateKeyFileName,
 							DryRun:         true,
-							IsPrivate:      false,
 							Namespace:      "wego-system",
 							DeploymentType: string(DeployTypeKustomize),
 						})
+
+					Expect(err).Should(BeNil())
 					return override.Result{}
 				},
 				utils.OverrideFailure(utils.CallCommandForEffectWithInputPipeOp),
