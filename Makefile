@@ -64,3 +64,6 @@ bin/$(BINARY_NAME)_ui: cmd/ui/main.go
 
 ui-dev:
 	reflex -r '.go' -s -- sh -c 'go run cmd/ui/main.go'
+	
+lint:
+	golangci-lint run --out-format=github-actions --build-tags acceptance

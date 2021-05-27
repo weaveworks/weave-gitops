@@ -168,12 +168,12 @@ func setupTest() error {
 			return err
 		}
 		defer tmpFile.Close()
-		err = ioutil.WriteFile(tmpFile.Name(), []byte(key), 600)
+		err = ioutil.WriteFile(tmpFile.Name(), []byte(key), 0600)
 		keyFilePath = tmpFile.Name()
 		if err != nil {
 			return err
 		}
-		err = ioutil.WriteFile(keyFilePath, []byte(key), 700)
+		err = ioutil.WriteFile(keyFilePath, []byte(key), 0700)
 		if err != nil {
 			return err
 		}
