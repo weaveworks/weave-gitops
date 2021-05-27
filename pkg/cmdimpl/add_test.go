@@ -100,7 +100,6 @@ func (h statusHandler) GetClusterStatus() status.ClusterStatus {
 type fakeGitRepoHandler struct{}
 
 func (h fakeGitRepoHandler) CreateRepository(name string, owner string, private bool) error {
-	fmt.Println("REPO - PRIVATE?", private)
 	access = private
 	return nil
 }
