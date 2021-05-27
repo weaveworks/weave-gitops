@@ -2,6 +2,7 @@ package gitproviders
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -36,6 +37,10 @@ func (h defaultGitProviderHandler) CreateRepository(name string, owner string, p
 		visibility = gitprovider.RepositoryVisibilityPublic
 	}
 	repoInfo := NewRepositoryInfo("Weave Gitops repo", visibility)
+
+	bts, err := json.Marshal(repoInfo)
+	fmt.Println("VISIBILITY-repoInfo", string(bts))
+	fmt.Println("VISIBILITY-err", err)
 
 	repoCreateOpts := &gitprovider.RepositoryCreateOptions{
 		AutoInit:        gitprovider.BoolVar(true),
