@@ -10,26 +10,26 @@ spec:
     listKind: ApplicationList
     plural: apps
     singular: app
-  subresources:
-    status: {}
-  validation:
-    openAPIV3Schema:
-      required: ["spec"]
-      properties:
-        spec:
-          required: ["url", "path"]
-          properties:
-            url:
-              type: "string"
-              minimum: 1
-              maximum: 1
-            path:
-              type: "string"
-              minimum: 1
-              maximum: 1
   version: v1alpha1
   versions:
     - name: v1alpha1
+      subresources:
+        status: {}
+      schema:
+        openAPIV3Schema:
+          required: ["spec"]
+          properties:
+            spec:
+              required: ["url", "path"]
+              properties:
+                url:
+                  type: "string"
+                  minimum: 1
+                  maximum: 1
+                path:
+                  type: "string"
+                  minimum: 1
+                  maximum: 1
       served: true
       storage: true
 ---
