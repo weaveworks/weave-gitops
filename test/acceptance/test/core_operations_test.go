@@ -90,8 +90,12 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 			// Expect(err).ShouldNot(HaveOccurred())
 			// Eventually(session).Should(gexec.Exit())
 
+			fmt.Println("-------------------------------------------+++++++++++++++++++--------------------------")
+
 			err = utils.CallCommandForEffectWithDebug(fmt.Sprintf("%s install | kubectl apply -f -", WEGO_BIN_PATH))
 			Expect(err).ShouldNot(HaveOccurred())
+
+			fmt.Println("-------------------------------------------+++++++++++++++++++--------------------------")
 
 			Expect(waitForFluxInstall()).Should(Succeed())
 			Expect(setUpTestRepo()).Should(Succeed())
