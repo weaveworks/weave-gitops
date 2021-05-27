@@ -258,7 +258,7 @@ var _ = Describe("Add repo with custom access test", func() {
 					return override.Result{}
 				},
 				utils.OverrideFailure(utils.CallCommandForEffectWithInputPipeOp),
-				utils.OverrideFailure(utils.CallCommandForEffectWithDebugOp),
+				utils.OverrideIgnore(utils.CallCommandForEffectWithDebugOp),
 				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
 				fluxops.Override(FailFluxHandler),
 				gitproviders.Override(fgphandler),
@@ -296,7 +296,7 @@ var _ = Describe("Add repo with custom access test", func() {
 					return override.Result{}
 				},
 				utils.OverrideFailure(utils.CallCommandForEffectWithInputPipeOp),
-				utils.OverrideFailure(utils.CallCommandForEffectWithDebugOp),
+				utils.OverrideIgnore(utils.CallCommandForEffectWithDebugOp),
 				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
 				fluxops.Override(FailFluxHandler),
 				gitproviders.Override(fgphandler),
