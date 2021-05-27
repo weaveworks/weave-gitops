@@ -288,7 +288,7 @@ var _ = Describe("Add repo with custom access test", func() {
 				fluxops.Override(FailFluxHandler),
 				gitproviders.Override(fgphandler),
 				status.Override(shandler))
-			Expect(access).To(Equal(false))
+			Expect(access).To(Equal(true))
 		})
 	})
 
