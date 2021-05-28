@@ -2,6 +2,47 @@
 import {createTwirpRequest, throwTwirpError, Fetch} from './twirp';
 
 
+export interface LoginReq {
+    state?: string;
+}
+
+interface LoginReqJSON {
+    state?: string;
+}
+
+
+
+const LoginReqToJSON = (m: LoginReq): LoginReqJSON => {
+	if (m === null) {
+		return null;
+	}
+	
+    return {
+        state: m.state,
+    };
+};
+
+
+export interface LoginRes {
+    redirectUrl?: string;
+}
+
+interface LoginResJSON {
+    redirect_url?: string;
+}
+
+
+
+const JSONToLoginRes = (m: LoginRes | LoginResJSON): LoginRes => {
+    if (m === null) {
+		return null;
+	}
+    return {
+        redirectUrl: (((m as LoginRes).redirectUrl) ? (m as LoginRes).redirectUrl : (m as LoginResJSON).redirect_url),
+    };
+};
+
+
 export interface Application {
     name?: string;
 }
@@ -94,6 +135,8 @@ const JSONToAddApplicationRes = (m: AddApplicationRes | AddApplicationResJSON): 
 
 
 export interface GitOps {
+    login: (loginReq: LoginReq) => Promise<LoginRes>;
+    
     addApplication: (addApplicationReq: AddApplicationReq) => Promise<AddApplicationRes>;
     
 }
@@ -111,6 +154,21 @@ export class DefaultGitOps implements GitOps {
         this.writeCamelCase = writeCamelCase;
         this.headersOverride = headersOverride;
     }
+    login(loginReq: LoginReq): Promise<LoginRes> {
+        const url = this.hostname + this.pathPrefix + "Login";
+        let body: LoginReq | LoginReqJSON = loginReq;
+        if (!this.writeCamelCase) {
+            body = LoginReqToJSON(loginReq);
+        }
+        return this.fetch(createTwirpRequest(url, body, this.headersOverride)).then((resp) => {
+            if (!resp.ok) {
+                return throwTwirpError(resp);
+            }
+
+            return resp.json().then(JSONToLoginRes);
+        });
+    }
+    
     addApplication(addApplicationReq: AddApplicationReq): Promise<AddApplicationRes> {
         const url = this.hostname + this.pathPrefix + "AddApplication";
         let body: AddApplicationReq | AddApplicationReqJSON = addApplicationReq;

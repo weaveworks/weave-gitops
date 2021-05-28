@@ -1,52 +1,158 @@
 package main
 
 import (
+	"context"
 	"embed"
+	"encoding/json"
+	"fmt"
 	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
 
+	"github.com/coreos/go-oidc"
 	"github.com/sirupsen/logrus"
 	"github.com/weaveworks/weave-gitops/pkg/server"
+	"golang.org/x/oauth2"
 )
 
 func main() {
 	log := logrus.New()
 	mux := http.NewServeMux()
 
+	provider, err := oidc.NewProvider(context.Background(), "http://127.0.0.1:5556/dex")
+	if err != nil {
+		panic(err)
+	}
+
+	idTokenVerifier := provider.Verifier(&oidc.Config{ClientID: "example-app"})
+
+	var oauth2Config = oauth2.Config{
+		// client_id and client_secret of the client.
+		ClientID:     "example-app",
+		ClientSecret: "ZXhhbXBsZS1hcHAtc2VjcmV0",
+
+		// The redirectURL.
+		RedirectURL: "http://127.0.0.1:9001/callback",
+
+		// Discovery returns the OAuth2 endpoints.
+		Endpoint: provider.Endpoint(),
+
+		// "openid" is a required scope for OpenID Connect flows.
+		//
+		// Other scopes, such as "groups" can be requested.
+		Scopes: []string{oidc.ScopeOpenID, "profile", "email", "groups"},
+	}
+
 	mux.Handle("/health/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	// mux.Handle("/api/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	// 	res := struct {
-	// 		Ok bool `json:"ok"`
-	// 	}{
-	// 		Ok: true,
-	// 	}
-
-	// 	b, err := json.Marshal(res)
-
-	// 	if err != nil {
-	// 		log.Errorf("could not marshal: %s", err)
-	// 		w.WriteHeader(http.StatusInternalServerError)
-	// 		return
-	// 	}
-
-	// 	if _, err := w.Write(b); err != nil {
-	// 		log.Errorf("error writing bytes: %s", err)
-	// 		w.WriteHeader(http.StatusInternalServerError)
-	// 		return
-	// 	}
-	// }))
-
-	gitopsServer := server.NewServer()
-	mux.Handle("/api/gitops/", http.StripPrefix("/api/gitops", gitopsServer))
-
 	assetFS := getAssets()
 	assetHandler := http.FileServer(http.FS(assetFS))
 	redirector := createRedirector(assetFS, log)
+
+	mux.Handle("/callback", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// state := r.URL.Query().Get("state")
+
+		// Verify state.
+
+		oauth2Token, err := oauth2Config.Exchange(r.Context(), r.URL.Query().Get("code"))
+		if err != nil {
+			log.Errorf("could not exchange token: %s", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		// Extract the ID Token from OAuth2 token.
+		rawIDToken, ok := oauth2Token.Extra("id_token").(string)
+		if !ok {
+			log.Errorf("could not get raw token: %s", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		// Parse and verify ID Token payload.
+		idToken, err := idTokenVerifier.Verify(r.Context(), rawIDToken)
+		if err != nil {
+			log.Errorf("could not parse token: %s", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		// Extract custom claims.
+		var claims struct {
+			Email    string   `json:"email"`
+			Verified bool     `json:"email_verified"`
+			Groups   []string `json:"groups"`
+		}
+		if err := idToken.Claims(&claims); err != nil {
+			log.Errorf("could not get get claims: %s", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Println("doing cookie things")
+
+		http.SetCookie(w, &http.Cookie{Name: "token", Value: rawIDToken})
+
+		redirector(w, r)
+
+	}))
+
+	mux.Handle("/api/authorize", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		bearerToken, err := r.Cookie("token")
+		if err != nil {
+			log.Errorf("could not get token from cookie: %w", err)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		idToken, err := idTokenVerifier.Verify(r.Context(), bearerToken.Value)
+		if err != nil {
+			log.Errorf("could verify bearer token: %w", err)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		// Extract custom claims.
+		var claims struct {
+			Email    string   `json:"email"`
+			Verified bool     `json:"email_verified"`
+			Groups   []string `json:"groups"`
+		}
+		if err := idToken.Claims(&claims); err != nil {
+			log.Errorf("failed to parse claims: %w", err)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		if !claims.Verified {
+			log.Errorf("email (%q) in returned claims was not verified", claims.Email)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		response := struct {
+			Email  string   `json:"email"`
+			Groups []string `json:"groups"`
+		}{
+			Email:  claims.Email,
+			Groups: claims.Groups,
+		}
+
+		b, err := json.Marshal(&response)
+
+		if err != nil {
+			log.Errorf("could not marshal json %s", err)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		w.Write(b)
+
+	}))
+
+	gitopsServer := server.NewServer(oauth2Config)
+	mux.Handle("/api/gitops/", http.StripPrefix("/api/gitops", gitopsServer))
 
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// Assume anything with a file extension in the name is a static asset.
@@ -55,9 +161,12 @@ func main() {
 		// This will return a 404 on normal page requests, ie /some-page.
 		// Redirect all non-file requests to index.html, where the JS routing will take over.
 		if extension == "" {
+			fmt.Println("serving index.html")
 			redirector(w, req)
 			return
 		}
+
+		fmt.Println("serving asset")
 		assetHandler.ServeHTTP(w, req)
 	}))
 

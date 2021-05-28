@@ -5,9 +5,20 @@ option go_package = "pkg/rpc/gitops";
 option java_outer_classname = "GitOpsProtos";
 
 service GitOps {
+    rpc Login(LoginReq) returns (LoginRes);
     // Lists the applications that have been GitOps-ified
     rpc AddApplication(AddApplicationReq) returns (AddApplicationRes);
 }
+
+
+message LoginReq  {
+    string state = 1;
+}
+
+message LoginRes {
+    string redirect_url = 1;
+}
+
 
 enum DeploymentType {
     kustomize = 0;

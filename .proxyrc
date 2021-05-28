@@ -1,4 +1,7 @@
 {
+  "/callback": {
+    "target": "http://localhost:9001/",
+  },
   "/api": {
     "target": "http://localhost:9001/",
   }

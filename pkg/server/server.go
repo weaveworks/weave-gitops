@@ -10,22 +10,32 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/cmdimpl"
 	"github.com/weaveworks/weave-gitops/pkg/middleware"
 	pb "github.com/weaveworks/weave-gitops/pkg/rpc/gitops"
+	"golang.org/x/oauth2"
 )
 
 type Server struct {
 	logger logrus.FieldLogger
+	oauth  oauth2.Config
 }
 
-func NewServer() http.Handler {
+func NewServer(oauthConfig oauth2.Config) http.Handler {
 	defaultHooks := twirp.ChainHooks(middleware.LoggingHooks())
 
 	gitops := Server{
 		logger: logrus.New(),
+		oauth:  oauthConfig,
 	}
 
 	s := pb.NewGitOpsServer(&gitops, defaultHooks)
 
-	return middleware.WithAuth(s)
+	return s
+}
+
+func (s *Server) Login(ctx context.Context, msg *pb.LoginReq) (*pb.LoginRes, error) {
+
+	redirectUrl := s.oauth.AuthCodeURL(msg.State)
+
+	return &pb.LoginRes{RedirectUrl: redirectUrl}, nil
 }
 
 func (s *Server) AddApplication(ctx context.Context, msg *pb.AddApplicationReq) (*pb.AddApplicationRes, error) {
