@@ -87,13 +87,13 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 			Expect(ensureWegoRepoIsAbsent()).Should(Succeed())
 
 			// //Install wego
-			// command := exec.Command("sh", "-c", fmt.Sprintf("%s install | kubectl apply -f -", WEGO_BIN_PATH))
-			// session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			// Expect(err).ShouldNot(HaveOccurred())
-			// Eventually(session).Should(gexec.Exit())
-
-			err = utils.CallCommandForEffectWithDebug(fmt.Sprintf("%s install | kubectl apply -f -", WEGO_BIN_PATH))
+			command := exec.Command("sh", "-c", fmt.Sprintf("%s install | kubectl apply -f -", WEGO_BIN_PATH))
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
+			Eventually(session).Should(gexec.Exit())
+
+			// err = utils.CallCommandForEffectWithDebug(fmt.Sprintf("%s install | kubectl apply -f -", WEGO_BIN_PATH))
+			// Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(waitForFluxInstall()).Should(Succeed())
 			Expect(setUpTestRepo()).Should(Succeed())
