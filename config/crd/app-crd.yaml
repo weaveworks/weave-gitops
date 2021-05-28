@@ -19,6 +19,7 @@ spec:
           required: ["spec"]
           properties:
             spec:
+              type: object
               required: ["url"]
               properties:
                 url:
