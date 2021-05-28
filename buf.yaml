@@ -1,0 +1,24 @@
+# Below is not the lint and breaking configuration we recommend!
+# This just just what googleapis passes.
+# For lint, we recommend having the single value "DEFAULT" in "use"
+# with no values in "except".
+# For breaking, we recommend having the single value "FILE" in use.
+# See https://docs.buf.build/lint-usage
+# See https://docs.buf.build/breaking-usage
+version: v1beta1
+build:
+  roots:
+    - .
+lint:
+  use:
+    - BASIC
+    - FILE_LOWER_SNAKE_CASE
+  except:
+    - ENUM_NO_ALLOW_ALIAS
+    - IMPORT_NO_PUBLIC
+    - PACKAGE_AFFINITY
+    - PACKAGE_DIRECTORY_MATCH
+    - PACKAGE_SAME_DIRECTORY
+breaking:
+  use:
+    - WIRE_JSON
