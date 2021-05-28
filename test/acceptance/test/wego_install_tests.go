@@ -8,10 +8,11 @@ package acceptance
 
 import (
 	"fmt"
+	"os/exec"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	"os/exec"
 )
 
 var (
@@ -33,10 +34,14 @@ func VerifyControllersInCluster(session *gexec.Session) {
 		command := exec.Command("kubectl", "get", "deploy", "-n", namespace)
 		session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
+		res := session.Wait().Out.Contents()
+		fmt.Println("RESPONSE-JC1", string(res))
 		Eventually(session).Should(gexec.Exit())
 	})
 
 	By("Then I should see flux controllers present in the cluster", func() {
+		res := session.Wait().Out.Contents()
+		fmt.Println("RESPONSE-JC2", string(res))
 		Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`helm-controller[\s]+1/1`))
 		Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`kustomize-controller[\s]+1/1`))
 		Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`notification-controller[\s]+1/1`))
