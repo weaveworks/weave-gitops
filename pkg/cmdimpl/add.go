@@ -4,6 +4,7 @@ package cmdimpl
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -13,7 +14,10 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
+	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/status"
@@ -42,6 +46,7 @@ type AddParamSet struct {
 	Path           string
 	Branch         string
 	PrivateKey     string
+	PrivateKeyPass string
 	DeploymentType string
 	Namespace      string
 	DryRun         bool
@@ -285,9 +290,12 @@ func wrapError(err error, msg string) error {
 
 // Add provides the implementation for the wego add command
 func Add(args []string, allParams AddParamSet) error {
+	ctx := context.Background()
+
 	if len(args) < 1 {
 		return errors.New("location of application not specified")
 	}
+
 	params = allParams
 	params.Dir = args[0]
 	fmt.Printf("Updating parameters from environment... ")
@@ -299,19 +307,19 @@ func Add(args []string, allParams AddParamSet) error {
 	clusterStatus := status.GetClusterStatus()
 	fmt.Printf("%s\n\n", clusterStatus)
 
-	if clusterStatus == status.Unmodified {
-		return errors.New("WeGO not installed... exiting\n")
-	}
+	// if clusterStatus == status.Unmodified {
+	// 	return errors.New("WeGO not installed... exiting\n")
+	// }
 
 	// Set up wego repository if required
-	fluxRepoName, err := fluxops.GetRepoName()
+	wegoRepoName, err := fluxops.GetRepoName()
 	if err != nil {
 		return wrapError(err, "could not get repo name")
 	}
 
 	reposDir := filepath.Join(os.Getenv("HOME"), ".wego", "repositories")
-	fluxRepo := filepath.Join(reposDir, fluxRepoName)
-	appSubdir := filepath.Join(fluxRepo, "apps", params.Name)
+	wegoRepo := filepath.Join(reposDir, wegoRepoName)
+	appSubdir := filepath.Join(wegoRepo, "apps", params.Name)
 
 	if !params.DryRun {
 		if err := os.MkdirAll(appSubdir, 0755); err != nil {
@@ -321,44 +329,37 @@ func Add(args []string, allParams AddParamSet) error {
 
 	owner := getOwner()
 
-	if !params.DryRun {
-		if err := os.Chdir(fluxRepo); err != nil {
-			return wrapError(err, "could not chdir")
-		}
-	}
-
-	if err := utils.CallCommandForEffect(fmt.Sprintf("git ls-remote ssh://git@github.com/%s/%s.git", owner, fluxRepoName)); err != nil {
-		fmt.Printf("wego repo does not exist, it will be created...\n")
-		if !params.DryRun {
-			if err := utils.CallCommandForEffectWithDebug("git init"); err != nil {
-				return wrapError(err, "could not init git repo")
-			}
-		}
-
-		cmdStr := `git remote add origin git@github.com:%s/%s.git && \
-            git pull --rebase origin main && \
-            git checkout main && \
-            git push --set-upstream origin main`
-		cmd := fmt.Sprintf(cmdStr, owner, fluxRepoName)
-
-		if err := gitproviders.CreateRepository(fluxRepoName, owner, params.IsPrivate); err != nil {
-			return wrapError(err, "could not create repository")
-		}
-
-		if !params.DryRun {
-			if err := utils.CallCommandForEffectWithDebug(cmd); err != nil {
-				return wrapError(err, "could not add remote")
+	fmt.Printf("Verifying %s repository exists...\n", wegoRepoName)
+	if _, err := gitproviders.RepositoryExists(wegoRepoName, owner); err != nil {
+		if errors.Is(err, gitprovider.ErrNotFound) {
+			fmt.Printf("Creating %s repository...\n", wegoRepoName)
+			if err := gitproviders.CreateRepository(wegoRepoName, owner, params.IsPrivate); err != nil {
+				return wrapError(err, "could not create repository")
 			}
 		} else {
-			fmt.Fprint(shims.Stdout(), cmd)
+			return wrapError(err, "could not check repository exists")
 		}
-	} else if !params.DryRun {
-		if err := utils.CallCommandForEffectWithDebug("git branch --set-upstream-to=origin/main main"); err != nil {
-			return wrapError(err, "could not set upstream branch")
-		}
-
 	}
 
+	repoDir, err := ioutil.TempDir("", wegoRepoName)
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(repoDir)
+
+	authMethod, err := ssh.NewPublicKeysFromFile("git", params.PrivateKey, params.PrivateKeyPass)
+	if err != nil {
+		return err
+	}
+	gitClient := git.New(repoDir, authMethod)
+
+	wegoRepoURL := fmt.Sprintf("ssh://git@github.com/%s/%s.git", owner, wegoRepoName)
+	fmt.Printf("Cloning %s...\n", wegoRepoURL)
+	if _, err := gitClient.Clone(ctx, params.Url, params.Branch); err != nil {
+		return wrapError(err, "could not clone repository")
+	}
+
+	return fmt.Errorf("nothing happended")
 	// Install Source and Kustomize controllers, and CRD for application (may already be present)
 	wegoSource, err := generateWegoSourceManifest()
 	if err != nil {
@@ -407,7 +408,7 @@ func Add(args []string, allParams AddParamSet) error {
 		return wrapError(err, "could not generate source manifest")
 	}
 
-	fmt.Println("DeploymentType check1", params.DeploymentType)
+	fmt.Println("DeploymentType check", params.DeploymentType)
 	var appManifests []byte
 	switch params.DeploymentType {
 	case string(DeployTypeHelm):
