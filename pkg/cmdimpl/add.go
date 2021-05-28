@@ -264,23 +264,23 @@ func getOwnerFromUrl(url string) string {
 	return parts[len(parts)-2]
 }
 
-func commitAndPush(files ...string) error {
-	cmdStr := `git pull --rebase && \
-                git add %s && \
-                git commit -m 'Save %s' && \
-                git push`
-
-	if params.DryRun {
-		fmt.Fprintf(shims.Stdout(), cmdStr+"\n", strings.Join(files, " "), strings.Join(files, ", "))
-		return nil
+func commitAndPush(ctx context.Context, gitClient git.Git) error {
+	_, err := gitClient.Commit(git.Commit{
+		Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
+		Message: "Add App manifests",
+	})
+	if err != nil && err != git.ErrNoStagedFiles {
+		return fmt.Errorf("failed to commit sync manifests: %w", err)
+	}
+	if err == nil {
+		fmt.Println("Pushing app manifests to repository")
+		if err = gitClient.Push(ctx); err != nil {
+			return fmt.Errorf("failed to push manifests: %w", err)
+		}
+	} else {
+		fmt.Println("App manifests are up to date")
 	}
 
-	cmd := fmt.Sprintf(cmdStr, strings.Join(files, " "), strings.Join(files, ", "))
-	output, err := utils.CallCommand(cmd)
-
-	if err != nil {
-		return wrapError(err, string(output))
-	}
 	return nil
 }
 
@@ -307,24 +307,14 @@ func Add(args []string, allParams AddParamSet) error {
 	clusterStatus := status.GetClusterStatus()
 	fmt.Printf("%s\n\n", clusterStatus)
 
-	// if clusterStatus == status.Unmodified {
-	// 	return errors.New("WeGO not installed... exiting\n")
-	// }
+	if clusterStatus == status.Unmodified {
+		return errors.New("WeGO not installed... exiting")
+	}
 
 	// Set up wego repository if required
 	wegoRepoName, err := fluxops.GetRepoName()
 	if err != nil {
 		return wrapError(err, "could not get repo name")
-	}
-
-	reposDir := filepath.Join(os.Getenv("HOME"), ".wego", "repositories")
-	wegoRepo := filepath.Join(reposDir, wegoRepoName)
-	appSubdir := filepath.Join(wegoRepo, "apps", params.Name)
-
-	if !params.DryRun {
-		if err := os.MkdirAll(appSubdir, 0755); err != nil {
-			return wrapError(err, "could not make subdir")
-		}
 	}
 
 	owner := getOwner()
@@ -341,25 +331,32 @@ func Add(args []string, allParams AddParamSet) error {
 		}
 	}
 
-	repoDir, err := ioutil.TempDir("", wegoRepoName)
+	wegoRepoDir, err := ioutil.TempDir("", wegoRepoName)
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(repoDir)
+	defer os.RemoveAll(wegoRepoDir)
 
 	authMethod, err := ssh.NewPublicKeysFromFile("git", params.PrivateKey, params.PrivateKeyPass)
 	if err != nil {
 		return err
 	}
-	gitClient := git.New(repoDir, authMethod)
+	gitClient := git.New(wegoRepoDir, authMethod)
 
 	wegoRepoURL := fmt.Sprintf("ssh://git@github.com/%s/%s.git", owner, wegoRepoName)
 	fmt.Printf("Cloning %s...\n", wegoRepoURL)
-	if _, err := gitClient.Clone(ctx, params.Url, params.Branch); err != nil {
+	if _, err := gitClient.Clone(ctx, wegoRepoURL, params.Branch); err != nil {
 		return wrapError(err, "could not clone repository")
 	}
 
-	return fmt.Errorf("nothing happended")
+	appSubdir := filepath.Join(wegoRepoDir, "apps", params.Name)
+
+	if !params.DryRun {
+		if err := os.MkdirAll(appSubdir, 0755); err != nil {
+			return wrapError(err, "could not make subdir")
+		}
+	}
+
 	// Install Source and Kustomize controllers, and CRD for application (may already be present)
 	wegoSource, err := generateWegoSourceManifest()
 	if err != nil {
@@ -423,30 +420,27 @@ func Add(args []string, allParams AddParamSet) error {
 		return wrapError(err, "error generating manifest")
 	}
 
-	sourceName := filepath.Join(appSubdir, "source-"+params.Name+".yaml")
-	manifestsName := filepath.Join(appSubdir, fmt.Sprintf("%s-%s.yaml", params.DeploymentType, params.Name))
-	appYamlName := filepath.Join(appSubdir, "app.yaml")
+	sourcePath := filepath.Join(appSubdir, "source-"+params.Name+".yaml")
+	manifestsPath := filepath.Join(appSubdir, fmt.Sprintf("%s-%s.yaml", params.DeploymentType, params.Name))
+	appYamlPath := filepath.Join(appSubdir, "app.yaml")
 
 	if !params.DryRun {
-		if err := ioutil.WriteFile(sourceName, source, 0644); err != nil {
+		if err := ioutil.WriteFile(sourcePath, source, 0644); err != nil {
 			return wrapError(err, "could not write source")
 		}
 
-		if err := ioutil.WriteFile(manifestsName, appManifests, 0644); err != nil {
+		if err := ioutil.WriteFile(manifestsPath, appManifests, 0644); err != nil {
 			return wrapError(err, "could not write app manifests")
 		}
 
-		if err := ioutil.WriteFile(appYamlName, populated.Bytes(), 0644); err != nil {
+		if err := ioutil.WriteFile(appYamlPath, populated.Bytes(), 0644); err != nil {
 			return wrapError(err, "could not write app yaml populated template")
 		}
 
-		if err := commitAndPush(sourceName, manifestsName, appYamlName); err != nil {
+		if err := commitAndPush(ctx, gitClient); err != nil {
 			return wrapError(err, "could not commit and/or push")
 		}
 
-		if err := commitAndPush(sourceName, manifestsName, appYamlName); err != nil {
-			return wrapError(err, "could not commmit and/or push")
-		}
 	} else {
 		fmt.Fprintf(shims.Stdout(), "Applying wego resources for application...")
 	}
