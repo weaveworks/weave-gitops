@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -83,14 +82,20 @@ func updateParametersIfNecessary() error {
 	}
 
 	if params.Url == "" {
-		urlout, err := exec.Command("git", "remote", "get-url", "origin").CombinedOutput()
+		gitClient := git.New(params.Dir, nil)
+		repo, err := gitClient.Open()
 		if err != nil {
-			return wrapError(err, "could not get remote origin url")
+			return err
 		}
 
-		url := strings.TrimRight(string(urlout), "\n")
-		fmt.Printf("URL not specified; ")
-		params.Url = url
+		remote, err := repo.Remote("origin")
+		if err != nil {
+			return err
+		}
+
+		urls := remote.Config().URLs
+
+		params.Url = urls[0]
 	}
 
 	sshPrefix := "git@github.com:"
@@ -102,7 +107,6 @@ func updateParametersIfNecessary() error {
 	fmt.Printf("using URL: '%s' of origin from git config...\n\n", params.Url)
 
 	return nil
-
 }
 
 func generateWegoSourceManifest() ([]byte, error) {

@@ -45,6 +45,17 @@ func New(path string, auth transport.AuthMethod) *GoGit {
 	}
 }
 
+func (g *GoGit) Open() (*gogit.Repository, error) {
+	repo, err := gogit.PlainOpen(g.path)
+	if err != nil {
+		return nil, err
+	}
+
+	g.repository = repo
+
+	return repo, nil
+}
+
 func (g *GoGit) Init(url, branch string) (bool, error) {
 	if g.repository != nil {
 		return false, nil
