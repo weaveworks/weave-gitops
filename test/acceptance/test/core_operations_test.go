@@ -71,13 +71,13 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 	})
 
 	BeforeEach(func() {
-		namespace = "wego-system"
 
 		By("Given I have a wego binary installed on my local machine", func() {
 			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
 		})
 
 		By("And I have a brand new cluster", func() {
+			namespace = "wego-system"
 			_, err := ResetOrCreateCluster(namespace)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
