@@ -76,6 +76,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 		})
 
 		By("And I have a brand new cluster", func() {
+			namespace = "wego-system"
 			_, err := ResetOrCreateCluster(namespace)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
@@ -84,7 +85,7 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 			Expect(setupTest()).Should(Succeed())
 			Expect(ensureWegoRepoIsAbsent()).Should(Succeed())
 
-			//Install wego
+			// Install wego
 			command := exec.Command("sh", "-c", fmt.Sprintf("%s install | kubectl apply -f -", WEGO_BIN_PATH))
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -254,7 +255,7 @@ func waitForNginxDeployment() error {
 func waitForFluxInstall() error {
 	for i := 1; i < 11; i++ {
 		log.Infof("Waiting for flux... try: %d of 10\n", i)
-		err := utils.CallCommandForEffectWithDebug("kubectl get customresourcedefinition buckets.source.toolkit.fluxcd.io")
+		err := utils.CallCommandForEffect("kubectl get customresourcedefinition buckets.source.toolkit.fluxcd.io")
 		if err == nil {
 			return nil
 		}
