@@ -71,7 +71,6 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 	})
 
 	BeforeEach(func() {
-
 		By("Given I have a wego binary installed on my local machine", func() {
 			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
 		})
@@ -86,14 +85,11 @@ var _ = Describe("WEGO Acceptance Tests", func() {
 			Expect(setupTest()).Should(Succeed())
 			Expect(ensureWegoRepoIsAbsent()).Should(Succeed())
 
-			// //Install wego
+			// Install wego
 			command := exec.Command("sh", "-c", fmt.Sprintf("%s install | kubectl apply -f -", WEGO_BIN_PATH))
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 			Eventually(session).Should(gexec.Exit())
-
-			// err = utils.CallCommandForEffectWithDebug(fmt.Sprintf("%s install | kubectl apply -f -", WEGO_BIN_PATH))
-			// Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(waitForFluxInstall()).Should(Succeed())
 			Expect(setUpTestRepo()).Should(Succeed())
