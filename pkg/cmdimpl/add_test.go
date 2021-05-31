@@ -240,6 +240,23 @@ var _ = Describe("Dry Run Add Test", func() {
 	})
 })
 
+var _ = Describe("Get owner from url", func() {
+	It("Get owner from valid url", func() {
+
+		owner, err := getOwnerFromUrl("ssh://git@github.com/weaveworks/some-repo")
+		Expect(owner).Should(Equal("weaveworks"))
+		Expect(err).Should(Succeed())
+
+	})
+	It("Get owner from invalid url", func() {
+
+		owner, err := getOwnerFromUrl("ssh:git@github.com")
+		Expect(owner).Should(BeEmpty())
+		Expect(err.Error()).Should(Equal("cannot get owner from url ssh:git@github.com"))
+
+	})
+})
+
 var _ = Describe("Add repo with custom access test", func() {
 	It("Verify that default is private", func() {
 		By("Running add with default access ", func() {
