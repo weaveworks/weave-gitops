@@ -5,53 +5,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/weave-gitops/pkg/override"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
-
-	"github.com/stretchr/testify/require"
 )
-
-const badkubeconfig = `apiVersion: v1
-#clusters:
-- cluster:
-    certificate-authority-data: stuff
-    server: https://127.0.0.1:46677
-  name: kind-wego-demo
-contexts:
-- context:
-    cluster: kind-wego-demo
-    user: kind-wego-demo
-  name: kind-wego-demo
-current-context: kind-wego-demo
-kind: Config
-preferences: {}
-users:
-- name: kind-wego-demo
-  user:
-    client-certificate-data: more stuff
-    client-key-data: yet more stuff
-`
-
-const kubeconfig = `apiVersion: v1
-clusters:
-- cluster:
-    certificate-authority-data: stuff
-    server: https://127.0.0.1:46677
-  name: kind-wego-demo
-contexts:
-- context:
-    cluster: kind-wego-demo
-    user: kind-wego-demo
-  name: kind-wego-demo
-current-context: kind-wego-demo
-kind: Config
-preferences: {}
-users:
-- name: kind-wego-demo
-  user:
-    client-certificate-data: more stuff
-    client-key-data: yet more stuff
-`
 
 func TestClusterStatus(t *testing.T) {
 	lookupHandler = fail
