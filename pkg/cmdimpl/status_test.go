@@ -86,10 +86,10 @@ wego-system	kustomization/kustomize-app	True 	Applied revision: main/a2b5b8c0919
 			expectedOutput := `Latest successful deployment time: 2021-05-24T22:48:28Z
 NAMESPACE   	NAME                     	READY	MESSAGE                                                        	REVISION                                     	SUSPENDED
 wego-system	gitrepository/kustomize-app	True 	Fetched revision: main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	False
-			
+
 NAMESPACE   	NAME                     	READY	MESSAGE                                                        	REVISION                                     	SUSPENDED
 wego-system	kustomization/kustomize-app	True 	Applied revision: main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	False
-			
+
 `
 
 			reader, writer, _ := os.Pipe()
