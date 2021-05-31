@@ -67,6 +67,27 @@ func TestGetClusterName(t *testing.T) {
 
 		}),
 	)
+
+}
+
+func TestKubectlHandler(t *testing.T) {
+	_ = override.WithOverrides(func() override.Result {
+		err := kubectlHandler("pods")
+		require.NoError(t, err)
+		return override.Result{}
+	}, utils.OverrideBehavior(utils.CallCommandForEffectOp,
+		func(args ...interface{}) ([]byte, []byte, error) {
+
+			require.Equal(t, args[0].(string), "kubectl get pods")
+
+			switch (args[0]).(string) {
+			case "kubectl get pods":
+				return []byte(""), []byte(""), nil
+			default:
+				return nil, nil, fmt.Errorf("arguments not expected %s", args)
+			}
+		}),
+	)
 }
 
 func handle(prefix string) func(args string) error {

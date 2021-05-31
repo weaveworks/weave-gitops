@@ -36,10 +36,11 @@ func Status(allParams AddParamSet) error {
 		return fmt.Errorf("error getting deployment type [%s]", err)
 	}
 
-	err = printOutLatestSuccessfulDeploymentType(allParams.Namespace, allParams.Name, deploymentType)
+	latestDeploymentTime, err := getLatestSuccessfulDeploymentTime(allParams.Namespace, allParams.Name, deploymentType)
 	if err != nil {
 		return fmt.Errorf("error on latest deployment time [%s]", err)
 	}
+	fmt.Printf("Latest successful deployment time: %s\n", latestDeploymentTime)
 
 	output, err := fluxops.GetAllResourcesStatus(allParams.Name)
 	if err != nil {
@@ -59,7 +60,7 @@ type Yaml struct {
 	} `yaml:"status"`
 }
 
-func printOutLatestSuccessfulDeploymentType(namespace, appName string, deploymentType DeploymentType) error {
+func getLatestSuccessfulDeploymentTime(namespace, appName string, deploymentType DeploymentType) (string, error) {
 
 	c := fmt.Sprintf(`kubectl \
 			-n %s \
@@ -71,19 +72,18 @@ func printOutLatestSuccessfulDeploymentType(namespace, appName string, deploymen
 
 	stdout, stderr, err := utils.CallCommandSeparatingOutputStreams(c)
 	if err != nil {
-		return fmt.Errorf("error getting resource info [%s %s]\n", err.Error(), string(stderr))
+		return "", fmt.Errorf("error getting resource info [%s %s]\n", err.Error(), string(stderr))
 	}
 	var yamlOutput Yaml
 	err = yaml.Unmarshal(stdout, &yamlOutput)
 	if err != nil {
-		return fmt.Errorf("error unmarshalling yaml output [%s] \n", err.Error())
+		return "", fmt.Errorf("error unmarshalling yaml output [%s] \n", err.Error())
 	}
 	if len(yamlOutput.Status.Conditions) == 0 {
-		return fmt.Errorf("error getting latest deployment time [%s] \n", stdout)
+		return "", fmt.Errorf("error getting latest deployment time [%s] \n", stdout)
 	}
-	fmt.Fprintf(os.Stdout, "Latest successful deployment time: %s\n", yamlOutput.Status.Conditions[0].LastTransitionTime)
 
-	return nil
+	return yamlOutput.Status.Conditions[0].LastTransitionTime, nil
 }
 
 func getDeploymentType(namespace, appName string) (DeploymentType, error) {
