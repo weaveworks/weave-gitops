@@ -19,8 +19,6 @@ import (
 var _ = Describe("Run Command Status Test", func() {
 	It("Verify status info for kustomize app", func() {
 
-		fmt.Println("Testing STATUS CMD")
-
 		// Setup
 		appName := "kustomize-app"
 		clusterName := "mycluster"
@@ -113,6 +111,8 @@ wego-system	kustomization/kustomize-app	True 	Applied revision: main/a2b5b8c0919
 			Expect(reader.Close()).Should(Succeed())
 
 			Expect(string(bts)).Should(Equal(expectedOutput))
+
+			fmt.Println(string(bts))
 
 			return override.Result{} //CallCommandSeparatingOutputStreams
 		}, utils.OverrideBehavior(utils.CallCommandSeparatingOutputStreamsOp,
