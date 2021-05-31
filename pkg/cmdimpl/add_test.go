@@ -212,7 +212,7 @@ var _ = Describe("Dry Run Add Test", func() {
 							PrivateKey:     privateKeyFileName,
 							DryRun:         true,
 							Namespace:      "wego-system",
-							DeploymentType: DeployTypeKustomize,
+							DeploymentType: string(DeployTypeKustomize),
 						})
 
 					Expect(err).To(BeNil())
@@ -251,7 +251,7 @@ var _ = Describe("Add repo with custom access test", func() {
 							PrivateKey:     privateKeyFileName,
 							Namespace:      "wego-system",
 							IsPrivate:      true,
-							DeploymentType: DeployTypeKustomize,
+							DeploymentType: string(DeployTypeKustomize),
 						})
 
 					Expect(err).To(BeNil())
@@ -290,7 +290,7 @@ var _ = Describe("Add repo with custom access test", func() {
 							PrivateKey:     privateKeyFileName,
 							Namespace:      "wego-system",
 							IsPrivate:      false,
-							DeploymentType: DeployTypeKustomize,
+							DeploymentType: string(DeployTypeKustomize),
 						})
 
 					Expect(err).Should(BeNil())
