@@ -20,6 +20,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
+type DeploymentType string
+
 const appYamlTemplate = `apiVersion: wego.weave.works/v1alpha1
 kind: Application
 metadata:
@@ -30,8 +32,8 @@ spec:
 `
 
 const (
-	DeployTypeKustomize = "kustomize"
-	DeployTypeHelm      = "helm"
+	DeployTypeKustomize DeploymentType = "kustomize"
+	DeployTypeHelm      DeploymentType = "helm"
 )
 
 type AddParamSet struct {
