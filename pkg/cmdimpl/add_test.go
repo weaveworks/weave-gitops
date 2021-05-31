@@ -240,6 +240,22 @@ var _ = Describe("Dry Run Add Test", func() {
 	})
 })
 
+var _ = Describe("Get cluster name", func() {
+	It("Get valid cluster name", func() {
+
+		shandler := statusHandler{}
+		_ = override.WithOverrides(
+			func() override.Result {
+				name, err := getClusterRepoName()
+				Expect(name).Should(Equal("test-wego"))
+				Expect(err).Should(BeNil())
+				return override.Result{}
+			},
+			status.Override(shandler))
+
+	})
+})
+
 var _ = Describe("Get owner from url", func() {
 	It("Get owner from valid url", func() {
 
