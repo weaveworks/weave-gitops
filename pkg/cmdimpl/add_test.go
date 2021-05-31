@@ -221,6 +221,18 @@ var _ = Describe("Dry Run Add Test", func() {
 				utils.OverrideFailure(utils.CallCommandForEffectWithInputPipeOp),
 				utils.OverrideFailure(utils.CallCommandForEffectWithDebugOp),
 				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
+				utils.OverrideBehavior(utils.CallCommandSeparatingOutputStreamsOp,
+					func(args ...interface{}) ([]byte, []byte, error) {
+						case0Kubectl := `kubectl config current-context`
+						Expect(args[0].(string)).Should(Equal(case0Kubectl))
+						switch (args[0]).(string) {
+						case case0Kubectl:
+							return []byte("my-cluster"), []byte(""), nil
+						default:
+							return nil, nil, fmt.Errorf("arguments not expected %s", args)
+						}
+
+					}),
 				fluxops.Override(FailFluxHandler),
 				gitproviders.Override(fgphandler),
 				status.Override(shandler))
@@ -261,6 +273,18 @@ var _ = Describe("Add repo with custom access test", func() {
 				utils.OverrideIgnore(utils.CallCommandOp),
 				utils.OverrideIgnore(utils.CallCommandForEffectWithDebugOp),
 				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
+				utils.OverrideBehavior(utils.CallCommandSeparatingOutputStreamsOp,
+					func(args ...interface{}) ([]byte, []byte, error) {
+						case0Kubectl := `kubectl config current-context`
+						Expect(args[0].(string)).Should(Equal(case0Kubectl))
+						switch (args[0]).(string) {
+						case case0Kubectl:
+							return []byte("my-cluster"), []byte(""), nil
+						default:
+							return nil, nil, fmt.Errorf("arguments not expected %s", args)
+						}
+
+					}),
 				fluxops.Override(FailFluxHandler),
 				gitproviders.Override(fgphandler),
 				status.Override(shandler))
@@ -300,6 +324,18 @@ var _ = Describe("Add repo with custom access test", func() {
 				utils.OverrideIgnore(utils.CallCommandOp),
 				utils.OverrideIgnore(utils.CallCommandForEffectWithDebugOp),
 				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
+				utils.OverrideBehavior(utils.CallCommandSeparatingOutputStreamsOp,
+					func(args ...interface{}) ([]byte, []byte, error) {
+						case0Kubectl := `kubectl config current-context`
+						Expect(args[0].(string)).Should(Equal(case0Kubectl))
+						switch (args[0]).(string) {
+						case case0Kubectl:
+							return []byte("my-cluster"), []byte(""), nil
+						default:
+							return nil, nil, fmt.Errorf("arguments not expected %s", args)
+						}
+
+					}),
 				fluxops.Override(FailFluxHandler),
 				gitproviders.Override(fgphandler),
 				status.Override(shandler))
