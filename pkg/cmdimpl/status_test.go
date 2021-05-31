@@ -112,7 +112,7 @@ wego-system	kustomization/kustomize-app	True 	Applied revision: main/a2b5b8c0919
 			Expect(err).Should(Succeed())
 			Expect(reader.Close()).Should(Succeed())
 
-			Expect(string(bts)).To(Equal(expectedOutput))
+			Expect(string(bts)).Should(Equal(expectedOutput))
 
 			return override.Result{} //CallCommandSeparatingOutputStreams
 		}, utils.OverrideBehavior(utils.CallCommandSeparatingOutputStreamsOp,
