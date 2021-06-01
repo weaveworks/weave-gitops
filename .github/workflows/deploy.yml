@@ -37,6 +37,8 @@ jobs:
         mkdir test-results
         go test -cover  -covermode=atomic -coverprofile=.coverprofile-unittests -v ./... -tags unittest | go-junit-report > test-results/unit-test-results.xml
         rm -rf pkg/flux/bin
+        kind delete cluster
+        kind create cluster
     - name: build
       run: make all BINARY_NAME=wego-${{matrix.os}}
     - name: Set up ssh agent
