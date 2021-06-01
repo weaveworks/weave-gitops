@@ -9,14 +9,19 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 	log "github.com/sirupsen/logrus"
 )
 
 const EVENTUALLY_DEFAULT_TIME_OUT time.Duration = 60 * time.Second
 const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
 const INSTALL_PODS_READY_TIMEOUT time.Duration = 120 * time.Second
+const WEGO_DEFAULT_NAMESPACE = "wego-system"
 
 var WEGO_BIN_PATH string
 
@@ -90,8 +95,7 @@ func ResetOrCreateCluster(namespace string) (string, error) {
 		return clusterName, errors.New("Unsupported kubernetes version")
 	}
 
-	//For eks and gke, we will try to reset the namespace first,
-	//failing that we will recreate the cluster
+	//For eks and gke, we will try to reset the namespace only as re-creating cluster is expensive
 	if namespace != "" && (provider == "eks" || provider == "gke") {
 		err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s install --namespace %s| kubectl --ignore-not-found=true delete -f -", WEGO_BIN_PATH, namespace))
 		if err != nil {
@@ -121,6 +125,34 @@ func ResetOrCreateCluster(namespace string) (string, error) {
 	return clusterName, nil
 }
 
+func waitForResource(resourceType string, resourceName string, namespace string, timeout time.Duration) error {
+	pollInterval := 5
+	if timeout < 5*time.Second {
+		timeout = 5 * time.Second
+	}
+
+	timeoutInSeconds := int(timeout.Seconds())
+	for i := pollInterval; i < timeoutInSeconds; i += pollInterval {
+		log.Infof("Waiting for %s in namespace: %s... : %d second(s) passed of %d seconds timeout", resourceType+"/"+resourceName, namespace, i, timeoutInSeconds)
+		err := runCommandPassThroughWithoutOutput([]string{}, "sh", "-c", fmt.Sprintf("kubectl get %s %s -n %s", resourceType, resourceName, namespace))
+		if err == nil {
+			log.Infof("%s are available in cluster", resourceType+"/"+resourceName)
+			command := exec.Command("sh", "-c", fmt.Sprintf("kubectl get %s %s -n %s", resourceType, resourceName, namespace))
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
+			Eventually(session).Should(gexec.Exit())
+			noResourcesFoundMessage := fmt.Sprintf("No resources found in %s namespace", namespace)
+			if strings.Contains(string(session.Wait().Out.Contents()), noResourcesFoundMessage) {
+				log.Infof("Got message => {" + noResourcesFoundMessage + "} Continue looking for resource(s)")
+				continue
+			}
+			return nil
+		}
+		time.Sleep(time.Duration(pollInterval) * time.Second)
+	}
+	return fmt.Errorf("Error: Failed to find the resource, timeout reached")
+}
+
 // Run a command, passing through stdout/stderr to the OS standard streams
 func runCommandPassThrough(env []string, name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
@@ -129,5 +161,13 @@ func runCommandPassThrough(env []string, name string, arg ...string) error {
 	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+func runCommandPassThroughWithoutOutput(env []string, name string, arg ...string) error {
+	cmd := exec.Command(name, arg...)
+	if len(env) > 0 {
+		cmd.Env = env
+	}
 	return cmd.Run()
 }

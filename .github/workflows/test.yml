@@ -138,6 +138,7 @@ jobs:
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     - name: Install Ginkgo binary
       run: go get github.com/onsi/ginkgo/ginkgo@v1.16.1
+    - 
     - name: Run smoke tests from acceptance suite
       env:
         GITHUB_ORG: wkp-example-org
