@@ -23,15 +23,6 @@ var Cmd = &cobra.Command{
 }
 
 func runCmd(cmd *cobra.Command, args []string) {
-	logStr, err := CheckVersion()
-	if err != nil {
-		log.Error(err)
-	}
-
-	if logStr != "" {
-		log.Infof(logStr)
-	}
-
 	fmt.Println("Current Version:", Version)
 	fmt.Println("GitCommit:", GitCommit)
 	fmt.Println("BuildTime:", BuildTime)
