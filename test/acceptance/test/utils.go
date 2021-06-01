@@ -57,7 +57,7 @@ func ShowWegoControllerLogs(ns string) {
 	for _, c := range controllers {
 		label := c + "-controller"
 		log.Infof("Logs for controller: %s", label)
-		runCommandPassThrough([]string{}, "kubectl", "logs", "-l", "app="+label, "-n", ns)
+		_ = runCommandPassThrough([]string{}, "kubectl", "logs", "-l", "app="+label, "-n", ns)
 	}
 }
 
