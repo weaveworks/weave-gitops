@@ -67,7 +67,7 @@ var _ = Describe("WEGO Smoke Tests", func() {
 		})
 
 		By("And flux version", func() {
-			Eventually(session).Should(gbytes.Say("Flux Version v[0-3].[0-9].[0-9]\n"))
+			Eventually(session).Should(gbytes.Say("Flux Version [0-3].[0-9].[0-9]\n"))
 		})
 	})
 
