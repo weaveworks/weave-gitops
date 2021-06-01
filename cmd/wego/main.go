@@ -48,4 +48,12 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
+
+	//Run on all commands that are not version
+	if os.Args[1] != "version" {
+		versionInfo, _ := version.CheckVersion()
+		if versionInfo != "" {
+			log.Infof(versionInfo)
+		}
+	}
 }
