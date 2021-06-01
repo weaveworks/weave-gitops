@@ -32,11 +32,11 @@ func runCmd(cmd *cobra.Command, args []string) {
 		log.Infof(logStr)
 	}
 
-	fmt.Println("Current Version ", Version)
-	fmt.Println("GitCommit: ", GitCommit)
-	fmt.Println("BuildTime: ", BuildTime)
-	fmt.Println("Branch: ", Branch)
-	fmt.Println("Flux Version: ", version.FluxVersion)
+	fmt.Println("Current Version:", Version)
+	fmt.Println("GitCommit:", GitCommit)
+	fmt.Println("BuildTime:", BuildTime)
+	fmt.Println("Branch:", Branch)
+	fmt.Println("Flux Version:", version.FluxVersion)
 }
 
 func CheckVersion() (string, error) {
