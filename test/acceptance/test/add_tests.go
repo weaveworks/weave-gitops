@@ -48,7 +48,8 @@ func createRepo(appRepoName string, private bool) string {
 							git init && 
 							git add . && 
 							git commit -m 'add nginx' && 
-							hub create %s %s && 
+							hub create %s %s &&
+							sleep 15 && 
 							git push -u origin main`, repoAbsolutePath, repoAbsolutePath, repoAbsolutePath, os.Getenv("GITHUB_ORG")+"/"+appRepoName, privateRepo))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
