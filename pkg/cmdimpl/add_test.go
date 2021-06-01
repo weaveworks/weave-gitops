@@ -249,17 +249,17 @@ var _ = Describe("Add repo with custom access test", func() {
 							Path:           "./",
 							Branch:         "main",
 							PrivateKey:     privateKeyFileName,
-							DryRun:         true,
-							IsPrivate:      true,
 							Namespace:      "wego-system",
+							IsPrivate:      true,
 							DeploymentType: DeployTypeKustomize,
 						})
 
 					Expect(err).To(BeNil())
 					return override.Result{}
 				},
-				utils.OverrideFailure(utils.CallCommandForEffectWithInputPipeOp),
-				utils.OverrideFailure(utils.CallCommandForEffectWithDebugOp),
+				utils.OverrideIgnore(utils.CallCommandForEffectWithInputPipeOp),
+				utils.OverrideIgnore(utils.CallCommandOp),
+				utils.OverrideIgnore(utils.CallCommandForEffectWithDebugOp),
 				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
 				fluxops.Override(FailFluxHandler),
 				gitproviders.Override(fgphandler),
@@ -288,16 +288,17 @@ var _ = Describe("Add repo with custom access test", func() {
 							Path:           "./",
 							Branch:         "main",
 							PrivateKey:     privateKeyFileName,
-							DryRun:         true,
 							Namespace:      "wego-system",
+							IsPrivate:      false,
 							DeploymentType: DeployTypeKustomize,
 						})
 
 					Expect(err).Should(BeNil())
 					return override.Result{}
 				},
-				utils.OverrideFailure(utils.CallCommandForEffectWithInputPipeOp),
-				utils.OverrideFailure(utils.CallCommandForEffectWithDebugOp),
+				utils.OverrideIgnore(utils.CallCommandForEffectWithInputPipeOp),
+				utils.OverrideIgnore(utils.CallCommandOp),
+				utils.OverrideIgnore(utils.CallCommandForEffectWithDebugOp),
 				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
 				fluxops.Override(FailFluxHandler),
 				gitproviders.Override(fgphandler),
