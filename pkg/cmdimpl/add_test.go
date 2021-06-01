@@ -261,7 +261,7 @@ var _ = Describe("Get owner from url", func() {
 
 		owner, err := getOwnerFromUrl("ssh://git@github.com/weaveworks/some-repo")
 		Expect(owner).Should(Equal("weaveworks"))
-		Expect(err).Should(Succeed())
+		Expect(err).ShouldNot(HaveOccurred())
 
 	})
 	It("Get owner from invalid url", func() {

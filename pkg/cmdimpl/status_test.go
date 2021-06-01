@@ -107,7 +107,7 @@ wego-system	kustomization/kustomize-app	True 	Applied revision: main/a2b5b8c0919
 
 			Expect(writer.Close()).Should(Succeed())
 			bts, err := ioutil.ReadAll(reader)
-			Expect(err).Should(Succeed())
+			Expect(err).ShouldNot(HaveOccurred())
 			Expect(reader.Close()).Should(Succeed())
 
 			Expect(string(bts)).Should(Equal(expectedOutput))

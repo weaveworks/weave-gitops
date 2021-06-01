@@ -250,7 +250,7 @@ func getOwner() (string, error) {
 	if err != nil || owner == "" {
 		owner, err = getOwnerFromUrl(params.Url)
 		if err != nil {
-			return "", fmt.Errorf("could not getting owner %s", err)
+			return "", fmt.Errorf("could not get owner %s", err)
 		}
 	}
 
@@ -267,7 +267,7 @@ func getOwnerFromUrl(url string) (string, error) {
 	parts := strings.Split(url, "/")
 
 	if len(parts) < 2 {
-		return "", fmt.Errorf("cannot get owner from url %s", url)
+		return "", fmt.Errorf("could not get owner from url %s", url)
 	}
 
 	return parts[len(parts)-2], nil
