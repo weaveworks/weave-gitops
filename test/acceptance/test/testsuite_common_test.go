@@ -16,9 +16,13 @@ func GomegaFail(message string, callerSkip ...int) {
 	//Show all resources
 	err := ShowItems("")
 	if err != nil {
-		log.Infof("Failed to print the pods")
+		log.Infof("Failed to print the cluster resources")
 	}
 
+	err = ShowItems("GitRepositories")
+	if err != nil {
+		log.Infof("Failed to print the GitRepositories")
+	}
 	//Pass this down to the default handler for onward processing
 	ginkgo.Fail(message, callerSkip...)
 }
