@@ -68,7 +68,7 @@ jobs:
       run: |
         go get github.com/t-yuki/gocover-cobertura
         gocover-cobertura < .coverprofile-unittests > coverage.xml
-        testspace "[unit-tests]test-results/unit-test-results.xml" "[acceptance-tests]test-results/acceptance-test-results.xml" "coverage.xml"
+        #testspace "[unit-tests]test-results/unit-test-results.xml" "[acceptance-tests]test-results/acceptance-test-results.xml" "coverage.xml"
       if: always() && matrix.os == 'ubuntu-latest'
     - name: publish to s3
       uses: aws-actions/configure-aws-credentials@v1
@@ -77,4 +77,4 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-2
     - run: |
-        aws s3 cp bin/wego-${{matrix.os}} s3://weave-gitops/wego-${{matrix.os}}
+        #aws s3 cp bin/wego-${{matrix.os}} s3://weave-gitops/wego-${{matrix.os}}
