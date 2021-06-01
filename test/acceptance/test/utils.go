@@ -20,7 +20,7 @@ import (
 
 const EVENTUALLY_DEFAULT_TIME_OUT time.Duration = 60 * time.Second
 const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
-const INSTALL_PODS_READY_TIMEOUT time.Duration = 120 * time.Second
+const INSTALL_PODS_READY_TIMEOUT time.Duration = 180 * time.Second
 const WEGO_DEFAULT_NAMESPACE = "wego-system"
 
 var WEGO_BIN_PATH string
