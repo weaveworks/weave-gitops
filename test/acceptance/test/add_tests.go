@@ -179,11 +179,11 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	})
 
 	It("Verify repo can be added to the cluster with non default repo branch and helm controller 'wego add . --branch=<non-default> --deployment-type=helm --private-key' ", func() {
-
+		//TO-DO
 	})
 
 	It("Verify repo addition can be previewed by running 'wego add . --dry-run --private-key' ", func() {
-
+		//TO-DO
 	})
 
 })
