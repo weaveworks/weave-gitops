@@ -233,7 +233,7 @@ var _ = Describe("Dry Run Add Test", func() {
 })
 
 var _ = Describe("Add repo with custom access test", func() {
-	It("Verify that default is private", func() {
+	XIt("Verify that default is private", func() {
 		By("Running add with default access ", func() {
 			Expect(os.Setenv("GITHUB_ORG", "archaeopteryx")).Should(Succeed())
 			Expect(os.Setenv("GITHUB_TOKEN", "archaeopteryx")).Should(Succeed())
