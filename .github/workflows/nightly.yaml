@@ -89,7 +89,7 @@ jobs:
         export CLUSTER_NAME=wego-nightly-cluster-$OS_NAME
         export CLUSTER_VERSION=1.19
         export CLUSTER_REGION=us-east-1
-        export CLUSTER_EXISTS=$(eksctl get clusters --region $CLUSTER_REGION | grep $CLUSTER_NAME)
+        export CLUSTER_EXISTS=$(eksctl get clusters --region $CLUSTER_REGION | grep -i $CLUSTER_NAME)
         if [ -z $CLUSTER_EXISTS ]
         then
           eksctl create cluster --name=$CLUSTER_NAME --version=$CLUSTER_VERSION--region=$CLUSTER_REGION
@@ -172,7 +172,7 @@ jobs:
         export CLUSTER_NAME=wego-nightly-cluster-$OS_NAME
         export CLUSTER_VERSION=1.19
         export CLUSTER_REGION=us-central1-a
-        export CLUSTER_EXISTS=$(gcloud container clusters list | grep $CLUSTER_NAME)
+        export CLUSTER_EXISTS=$(gcloud container clusters list | grep -i $CLUSTER_NAME)
         if [ -z $CLUSTER_EXISTS ]
         then
           gcloud container clusters create $CLUSTER_NAME --cluster-version=$CLUSTER_VERSION --zone $CLUSTER_REGION
