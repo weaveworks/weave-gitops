@@ -85,6 +85,7 @@ jobs:
           version: 'v1.19.6'
     - name: setup eks cluster
       run: |
+        OS_NAME_ACTUAL=wego-nightly-cluster-${{matrix.os}}
         OS_NAME=$(echo "${{matrix.os}}" | tr '[:upper:]' '[:lower:]')
         export CLUSTER_NAME=wego-nightly-cluster-$OS_NAME
         export CLUSTER_VERSION=1.19
@@ -94,7 +95,7 @@ jobs:
         then
           eksctl create cluster --name=$CLUSTER_NAME --version=$CLUSTER_VERSION--region=$CLUSTER_REGION
         fi
-        eksctl utils write-kubeconfig --region=$CLUSTER_REGION --cluster=$CLUSTER_NAME --kubeconfig=$HOME/.kube/config
+        eksctl utils write-kubeconfig --region=$CLUSTER_REGION --cluster=OS_NAME_ACTUAL --kubeconfig=$HOME/.kube/config
         kubectl config rename-context $(kubectl config current-context) test-eks-$OS_NAME
         ls -la $HOME/.kube
         kubectl get nodes -A
