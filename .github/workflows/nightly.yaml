@@ -95,7 +95,7 @@ jobs:
         then
           eksctl create cluster --name=$CLUSTER_NAME --version=$CLUSTER_VERSION--region=$CLUSTER_REGION
         fi
-        eksctl utils write-kubeconfig --region=$CLUSTER_REGION --cluster=OS_NAME_ACTUAL --kubeconfig=$HOME/.kube/config
+        eksctl utils write-kubeconfig --region=$CLUSTER_REGION --cluster=$OS_NAME_ACTUAL --kubeconfig=$HOME/.kube/config
         kubectl config rename-context $(kubectl config current-context) test-eks-$OS_NAME
         ls -la $HOME/.kube
         kubectl get nodes -A
