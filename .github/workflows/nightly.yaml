@@ -94,7 +94,7 @@ jobs:
           eksctl create cluster --name=$CLUSTER_NAME --version=$CLUSTER_VERSION--region=$CLUSTER_REGION
         fi
         eksctl utils write-kubeconfig --region=$CLUSTER_REGION --cluster=$CLUSTER_NAME --kubeconfig=$HOME/.kube/config
-        kubectl config rename-context $(kubectl config current-context) test-eks-nightly-cluster
+        kubectl config rename-context $(kubectl config current-context) test-eks-nightly-cluster-${{matrix.os}}
         ls -la $HOME/.kube
         kubectl get nodes -A
         kubectl get all --all-namespaces -o wide
@@ -177,7 +177,7 @@ jobs:
           gcloud container clusters create $CLUSTER_NAME --cluster-version=$CLUSTER_VERSION --zone $CLUSTER_REGION
         fi
         gcloud container clusters get-credentials $CLUSTER_NAME --zone $CLUSTER_REGION
-        kubectl config rename-context $(kubectl config current-context) test-gke-nightly-cluster
+        kubectl config rename-context $(kubectl config current-context) test-gke-nightly-cluster-${{matrix.os}}
         ls -la $HOME/.kube
         kubectl get nodes -A
         kubectl get all --all-namespaces -o wide
