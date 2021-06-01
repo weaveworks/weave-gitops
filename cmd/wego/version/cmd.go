@@ -3,7 +3,6 @@ package version
 import (
 	"fmt"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/go-checkpoint"
 	"github.com/weaveworks/weave-gitops/pkg/version"
 
