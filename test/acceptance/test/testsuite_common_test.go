@@ -23,6 +23,9 @@ func GomegaFail(message string, callerSkip ...int) {
 	if err != nil {
 		log.Infof("Failed to print the GitRepositories")
 	}
+
+	ShowWegoControllerLogs(WEGO_DEFAULT_NAMESPACE)
+
 	//Pass this down to the default handler for onward processing
 	ginkgo.Fail(message, callerSkip...)
 }

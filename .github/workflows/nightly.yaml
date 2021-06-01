@@ -122,7 +122,7 @@ jobs:
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     - name: Install Ginkgo binary
       run: go get -u github.com/onsi/ginkgo/ginkgo
-    - name: User Acceptance Tests (Ubuntu)
+    - name: User Acceptance Tests (${{matrix.os}})
       env:
         GITHUB_ORG: wkp-example-org
         GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
@@ -205,7 +205,7 @@ jobs:
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     - name: Install Ginkgo binary
       run: go get -u github.com/onsi/ginkgo/ginkgo
-    - name: User Acceptance Tests (Ubuntu)
+    - name: User Acceptance Tests (${{matrix.os}})
       env:
         GITHUB_ORG: wkp-example-org
         GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"

@@ -51,6 +51,16 @@ func FileExists(name string) bool {
 	return true
 }
 
+func ShowWegoControllerLogs(ns string) {
+	controllers := []string{"helm", "kustomize", "notification", "source"}
+
+	for _, c := range controllers {
+		label := c + "-controller"
+		log.Infof("Logs for controller: %s", label)
+		runCommandPassThrough([]string{}, "kubectl", "logs", "-l", "app="+label, "-n", ns)
+	}
+}
+
 // showItems displays the current set of a specified object type in tabular format
 func ShowItems(itemType string) error {
 	if itemType != "" {
