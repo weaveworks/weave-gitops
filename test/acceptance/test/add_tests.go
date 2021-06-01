@@ -25,14 +25,13 @@ func getClusterName() string {
 	return strings.TrimSuffix(string(session.Wait().Out.Contents()), "\n")
 }
 
-func deleteRepos(appRepoName string, wegoRepoName string) error {
+func deleteRepos(appRepoName string, wegoRepoName string) {
 	log.Infof("Delete application repo: %s", os.Getenv("GITHUB_ORG")+"/"+appRepoName)
-	err := runCommandPassThrough([]string{}, "hub", "delete", "-y", os.Getenv("GITHUB_ORG")+"/"+appRepoName)
+	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", os.Getenv("GITHUB_ORG")+"/"+appRepoName)
 	log.Infof("Delete application repo: %s", os.Getenv("GITHUB_ORG")+"/"+wegoRepoName)
-	err = runCommandPassThrough([]string{}, "hub", "delete", "-y", os.Getenv("GITHUB_ORG")+"/"+wegoRepoName)
+	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", os.Getenv("GITHUB_ORG")+"/"+wegoRepoName)
 	log.Infof("Delete Repo from %s/.wego/repositories/%s", os.Getenv("HOME"), wegoRepoName)
-	err = os.RemoveAll(fmt.Sprintf("%s/.wego/repositories/%s", os.Getenv("HOME"), wegoRepoName))
-	return err
+	_ = os.RemoveAll(fmt.Sprintf("%s/.wego/repositories/%s", os.Getenv("HOME"), wegoRepoName))
 }
 
 func createRepo(appRepoName string, private bool) string {
@@ -86,7 +85,7 @@ func runWegoAddCommand(repoAbsolutePath string, private bool, wegoNamespace stri
 		setupSSHKey()
 	})
 
-	if private == true {
+	if private {
 		By("And I run `wego add . --private-key=~/.ssh/id_rsa_wego`", func() {
 			command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s add . --private-key=%s/.ssh/id_rsa_wego", repoAbsolutePath, WEGO_BIN_PATH, os.Getenv("HOME")))
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -145,7 +144,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("And wego and application repos do not already exist", func() {
-			_ = deleteRepos(appRepoName, wegoRepoName)
+			deleteRepos(appRepoName, wegoRepoName)
 		})
 	})
 
