@@ -209,8 +209,8 @@ func Test_CreatePullRequestToOrgRepo(t *testing.T) {
 		orgName  string
 		userName string
 	}{
-		{"github", githubTestClient, GITHUB_DOMAIN, accounts.GithubOrgName, accounts.GithubUserName},
-		{"gitlab", gitlabTestClient, GITLAB_DOMAIN, accounts.GitlabOrgName, accounts.GitlabUserName},
+		{"github", githubTestClient, github.DefaultDomain, accounts.GithubOrgName, accounts.GithubUserName},
+		{"gitlab", gitlabTestClient, gitlab.DefaultDomain, accounts.GitlabOrgName, accounts.GitlabUserName},
 	}
 
 	testNameFormat := "create pr for %s account [%s]"
@@ -342,14 +342,14 @@ func CreateTestPullRequestToUserRepo(t *testing.T, client gitprovider.Client, do
 	})
 }
 
-func TestGetOwnerType(t *testing.T) {
+func TestGetAccountType(t *testing.T) {
 	accounts := getAccounts()
 
 	githubTestClient, err := newGithubTestClient(SetRecorder(cacheGithubRecorder))
 	assert.NoError(t, err)
 
-	ownerType, err := getOwnerType(githubTestClient, accounts.GithubOrgName)
+	ownerType, err := GetAccountType(githubTestClient, accounts.GithubOrgName)
 
 	assert.NoError(t, err)
-	assert.Equal(t, OwnerTypeOrg, ownerType)
+	assert.Equal(t, OrgAccountType, ownerType)
 }
