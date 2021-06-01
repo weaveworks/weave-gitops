@@ -327,8 +327,10 @@ func Add(args []string, allParams AddParamSet) error {
 	if _, err := gitproviders.RepositoryExists(wegoRepoName, owner); err != nil {
 		if errors.Is(err, gitprovider.ErrNotFound) {
 			fmt.Printf("Creating %s repository...\n", wegoRepoName)
-			if err := gitproviders.CreateRepository(wegoRepoName, owner, params.IsPrivate); err != nil {
-				return wrapError(err, "could not create repository")
+			if !params.DryRun {
+				if err := gitproviders.CreateRepository(wegoRepoName, owner, params.IsPrivate); err != nil {
+					return wrapError(err, "could not create repository")
+				}
 			}
 		} else {
 			return wrapError(err, "could not check repository exists")
@@ -349,30 +351,25 @@ func Add(args []string, allParams AddParamSet) error {
 
 	wegoRepoURL := fmt.Sprintf("ssh://git@github.com/%s/%s.git", owner, wegoRepoName)
 	fmt.Printf("Cloning %s...\n", wegoRepoURL)
-	if _, err := gitClient.Clone(ctx, wegoRepoURL, params.Branch); err != nil {
-		return wrapError(err, "could not clone repository")
-	}
-
-	appSubdir := filepath.Join(wegoRepoDir, "apps", params.Name)
-
 	if !params.DryRun {
-		if err := os.MkdirAll(appSubdir, 0755); err != nil {
-			return wrapError(err, "could not make subdir")
+		if _, err := gitClient.Clone(ctx, wegoRepoURL, params.Branch); err != nil {
+			return wrapError(err, "could not clone repository")
 		}
 	}
 
-	// Install Source and Kustomize controllers, and CRD for application (may already be present)
-	wegoSource, err := generateWegoSourceManifest()
-	if err != nil {
-		return wrapError(err, "could not generate wego source manifest")
-	}
-
-	wegoKust, err := generateWegoKustomizeManifest()
-	if err != nil {
-		return wrapError(err, "could not generate wego kustomize manifest")
-	}
-
+	fmt.Fprintf(shims.Stdout(), "Applying wego platform resources...\n")
 	if !params.DryRun {
+		// Install Source and Kustomize controllers, and CRD for application (may already be present)
+		wegoSource, err := generateWegoSourceManifest()
+		if err != nil {
+			return wrapError(err, "could not generate wego source manifest")
+		}
+
+		wegoKust, err := generateWegoKustomizeManifest()
+		if err != nil {
+			return wrapError(err, "could not generate wego kustomize manifest")
+		}
+
 		kubectlApply := fmt.Sprintf("kubectl apply --namespace=%s -f -", params.Namespace)
 
 		if err := utils.CallCommandForEffectWithInputPipe(kubectlApply, string(wegoSource)); err != nil {
@@ -382,9 +379,6 @@ func Add(args []string, allParams AddParamSet) error {
 		if err := utils.CallCommandForEffectWithInputPipe(kubectlApply, string(wegoKust)); err != nil {
 			return wrapError(err, "could not apply wego kustomization")
 		}
-
-	} else {
-		fmt.Fprintf(shims.Stdout(), "Applying wego platform resources...")
 	}
 
 	// Create app.yaml
@@ -409,7 +403,6 @@ func Add(args []string, allParams AddParamSet) error {
 		return wrapError(err, "could not generate source manifest")
 	}
 
-	fmt.Println("DeploymentType check", params.DeploymentType)
 	var appManifests []byte
 	switch params.DeploymentType {
 	case string(DeployTypeHelm):
@@ -419,37 +412,39 @@ func Add(args []string, allParams AddParamSet) error {
 	default:
 		return fmt.Errorf("deployment type not supported: %s", params.DeploymentType)
 	}
-
 	if err != nil {
 		return wrapError(err, "error generating manifest")
+	}
+
+	appSubdir := filepath.Join(wegoRepoDir, "apps", params.Name)
+	if err := os.MkdirAll(appSubdir, 0755); err != nil {
+		return wrapError(err, "could not make subdir")
 	}
 
 	sourcePath := filepath.Join(appSubdir, "source-"+params.Name+".yaml")
 	manifestsPath := filepath.Join(appSubdir, fmt.Sprintf("%s-%s.yaml", params.DeploymentType, params.Name))
 	appYamlPath := filepath.Join(appSubdir, "app.yaml")
 
+	if err := ioutil.WriteFile(sourcePath, source, 0644); err != nil {
+		return wrapError(err, "could not write source")
+	}
+
+	if err := ioutil.WriteFile(manifestsPath, appManifests, 0644); err != nil {
+		return wrapError(err, "could not write app manifests")
+	}
+
+	if err := ioutil.WriteFile(appYamlPath, populated.Bytes(), 0644); err != nil {
+		return wrapError(err, "could not write app yaml populated template")
+	}
+
+	fmt.Fprintf(shims.Stdout(), "Commiting and pushing wego resources for application...\n")
 	if !params.DryRun {
-		if err := ioutil.WriteFile(sourcePath, source, 0644); err != nil {
-			return wrapError(err, "could not write source")
-		}
-
-		if err := ioutil.WriteFile(manifestsPath, appManifests, 0644); err != nil {
-			return wrapError(err, "could not write app manifests")
-		}
-
-		if err := ioutil.WriteFile(appYamlPath, populated.Bytes(), 0644); err != nil {
-			return wrapError(err, "could not write app yaml populated template")
-		}
-
 		if err := commitAndPush(ctx, gitClient); err != nil {
 			return wrapError(err, "could not commit and/or push")
 		}
-
-	} else {
-		fmt.Fprintf(shims.Stdout(), "Applying wego resources for application...")
 	}
 
-	fmt.Printf("Successfully added repository: %s.\n", params.Name)
+	fmt.Printf("Successfully added %s to the repository.\n", params.Name)
 
 	return nil
 }

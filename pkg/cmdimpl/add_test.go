@@ -104,6 +104,10 @@ func (h fakeGitRepoHandler) CreateRepository(name string, owner string, private 
 	return nil
 }
 
+func (h fakeGitRepoHandler) RepositoryExists(ame string, owner string) (bool, error) {
+	return false, nil
+}
+
 func createTestPrivateKeyFile() (*os.File, error) {
 	tmpFile, err := ioutil.TempFile("", "private-key")
 	if err != nil {
