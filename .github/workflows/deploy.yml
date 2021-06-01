@@ -103,7 +103,7 @@ jobs:
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     - name: Install Ginkgo binary
       run: go get github.com/onsi/ginkgo/ginkgo@v1.16.1
-    - name: Run smoke tests from acceptance suite
+    - name: Run acceptance tests
       env:
         GITHUB_ORG: wkp-example-org
         GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
@@ -128,11 +128,18 @@ jobs:
       uses: testspace-com/setup-testspace@v1
       with:
         domain: weaveworks.testspace.com
+    - name: Download wego binaries
+      uses: actions/download-artifact@v2
+      with:
+        path: results
+    - name: Display structure of downloaded files
+      run: ls -R
+      working-directory: results
     - name: Publish test results to Testspace
       run: |
         go get github.com/t-yuki/gocover-cobertura
-        gocover-cobertura < .coverprofile-unittests > coverage.xml
-        #testspace "[unit-tests]test-results/unit-test-results.xml" "[acceptance-tests]test-results/acceptance-test-results.xml" "coverage.xml"
+        gocover-cobertura < unit-tests-artefacts/artefacts/.coverprofile-unittests > coverage.xml
+        #testspace "[unit-tests]unit-tests-artefacts/artefacts/unit-test-results.xml" "[acceptance-tests]acceptance-tests-artefacts/test-results/acceptance-test-results.xml" "coverage.xml"
       if: always() && matrix.os == 'ubuntu-latest'
     - name: publish to s3
       uses: aws-actions/configure-aws-credentials@v1
