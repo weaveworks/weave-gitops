@@ -39,6 +39,7 @@ jobs:
         rm -rf pkg/flux/bin
         kind delete cluster
         kind create cluster
+      if: matrix.os == 'ubuntu-latest'
     - name: build
       run: make all BINARY_NAME=wego-${{matrix.os}}
     - name: Set up ssh agent
