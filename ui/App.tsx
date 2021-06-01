@@ -1,4 +1,4 @@
-import { Button } from "@material-ui/core";
+import { Button, createMuiTheme, MuiThemeProvider } from "@material-ui/core";
 import * as React from "react";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import { Redirect } from "react-router-dom/cjs/react-router-dom.min";
@@ -23,24 +23,26 @@ export default function App() {
   return (
     <div>
       <div>Weave GitOps UI</div>
-      <AuthProvider>
-        <Router>
-          <Switch>
-            <Route
-              exact
-              path="/login"
-              component={() => (
-                <Button onClick={handleLogin} color="primary">
-                  Login
-                </Button>
-              )}
-            />
-            <AuthenticatedRoute exact path="/user" component={User} />
-            <Redirect exact path="/callback" to="/user" />
-            <Redirect exact path="/" to="/user" />
-          </Switch>
-        </Router>
-      </AuthProvider>
+      <MuiThemeProvider theme={createMuiTheme({})}>
+        <AuthProvider>
+          <Router>
+            <Switch>
+              <Route
+                exact
+                path="/login"
+                component={() => (
+                  <Button onClick={handleLogin} color="primary">
+                    Login
+                  </Button>
+                )}
+              />
+              <AuthenticatedRoute exact path="/user" component={User} />
+              <Redirect exact path="/callback" to="/user" />
+              <Redirect exact path="/" to="/user" />
+            </Switch>
+          </Router>
+        </AuthProvider>
+      </MuiThemeProvider>
     </div>
   );
 }

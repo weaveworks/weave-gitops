@@ -4,7 +4,6 @@ import (
 	"context"
 	"embed"
 	"encoding/json"
-	"fmt"
 	"io/fs"
 	"net/http"
 	"os"
@@ -92,8 +91,6 @@ func main() {
 			return
 		}
 
-		fmt.Println("doing cookie things")
-
 		http.SetCookie(w, &http.Cookie{Name: "token", Value: rawIDToken})
 
 		redirector(w, r)
@@ -161,12 +158,10 @@ func main() {
 		// This will return a 404 on normal page requests, ie /some-page.
 		// Redirect all non-file requests to index.html, where the JS routing will take over.
 		if extension == "" {
-			fmt.Println("serving index.html")
 			redirector(w, req)
 			return
 		}
 
-		fmt.Println("serving asset")
 		assetHandler.ServeHTTP(w, req)
 	}))
 
