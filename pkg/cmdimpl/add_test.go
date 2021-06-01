@@ -268,7 +268,7 @@ var _ = Describe("Get owner from url", func() {
 
 		owner, err := getOwnerFromUrl("ssh:git@github.com")
 		Expect(owner).Should(BeEmpty())
-		Expect(err.Error()).Should(Equal("cannot get owner from url ssh:git@github.com"))
+		Expect(err.Error()).Should(Equal("could not get owner from url ssh:git@github.com"))
 
 	})
 })
