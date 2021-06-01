@@ -133,14 +133,14 @@ jobs:
       with:
         path: results
     - name: Display structure of downloaded files
-      run: ls -R
+      run: ls -laR
       working-directory: results
     - name: Publish test results to Testspace
       run: |
         go get github.com/t-yuki/gocover-cobertura
-        gocover-cobertura < unit-tests-artefacts/artefacts/.coverprofile-unittests > coverage.xml
-        #testspace "[unit-tests]unit-tests-artefacts/artefacts/unit-test-results.xml" "[acceptance-tests]acceptance-tests-artefacts/test-results/acceptance-test-results.xml" "coverage.xml"
-      if: always() && matrix.os == 'ubuntu-latest'
+        gocover-cobertura < results/unit-tests-artefacts/artefacts/.coverprofile-unittests > coverage.xml
+        testspace "[unit-tests]results/unit-tests-artefacts/unit-test-results.xml" "[acceptance-tests]results/acceptance-tests-artefacts/acceptance-test-results.xml" "coverage.xml"
+      if: always()
     - name: publish to s3
       uses: aws-actions/configure-aws-credentials@v1
       with:
