@@ -82,10 +82,8 @@ var _ = Describe("WEGO Install Tests", func() {
 
 	It("Verify that wego can install required controllers under default namespace `wego-system`", func() {
 
-		namespace = "wego-system"
-
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(namespace)
+			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -96,7 +94,7 @@ var _ = Describe("WEGO Install Tests", func() {
 			Eventually(session).Should(gexec.Exit())
 		})
 
-		VerifyControllersInCluster(session, namespace)
+		VerifyControllersInCluster(session, WEGO_DEFAULT_NAMESPACE)
 	})
 
 	It("Verify that wego can add flux controllers to a user-specified namespace", func() {
@@ -123,6 +121,11 @@ var _ = Describe("WEGO Install Tests", func() {
 		})
 
 		VerifyControllersInCluster(session, namespace)
+
+		By("Clean up the namespace", func() {
+			_, err := ResetOrCreateCluster(namespace)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 	})
 
 })

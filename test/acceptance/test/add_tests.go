@@ -126,7 +126,7 @@ func verifyWegoAddCommand(appRepoName string, wegoRepoName string, wegoNamespace
 	})
 }
 
-var _ = FDescribe("Weave GitOps Add Tests", func() {
+var _ = Describe("Weave GitOps Add Tests", func() {
 	var appRepoName string
 	var wegoRepoName string
 
