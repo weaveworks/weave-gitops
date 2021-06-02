@@ -426,3 +426,14 @@ var _ = Describe("Get User repo info", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 })
+
+var _ = Describe("Test for Org repo info", func() {
+	It("Fail on getting org info", func() {
+
+		accounts := getAccounts()
+
+		err := GetRepoInfo(githubTestClient, OrgAccountType, accounts.GithubOrgName, "repoNotExisted")
+		Expect(err).Should(HaveOccurred())
+
+	})
+})
