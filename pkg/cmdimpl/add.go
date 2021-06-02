@@ -363,10 +363,6 @@ func Add(args []string, allParams AddParamSet, deps *AddDependencies) error {
 	}
 	defer os.RemoveAll(wegoRepoDir)
 
-	// authMethod, err := ssh.NewPublicKeysFromFile("git", params.PrivateKey, params.PrivateKeyPass)
-	// if err != nil {
-	// 	return err
-	// }
 	gitClient := deps.GitClient
 
 	wegoRepoURL := fmt.Sprintf("ssh://git@github.com/%s/%s.git", owner, wegoRepoName)

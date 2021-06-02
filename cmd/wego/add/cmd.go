@@ -11,8 +11,10 @@ import (
 
 	"github.com/weaveworks/weave-gitops/pkg/cmdimpl"
 
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 )
 
@@ -43,7 +45,17 @@ func init() {
 func runCmd(cmd *cobra.Command, args []string) {
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 
-	deps := &cmdimpl.AddDependencies{}
+	authMethod, err := ssh.NewPublicKeysFromFile("git", params.PrivateKey, params.PrivateKeyPass)
+	if err != nil {
+		fmt.Printf("failed reading ssh keys: %s\n", err)
+		os.Exit(1)
+	}
+
+	gitClient := git.New(authMethod)
+
+	deps := &cmdimpl.AddDependencies{
+		GitClient: gitClient,
+	}
 	if err := cmdimpl.Add(args, params, deps); err != nil {
 		fmt.Fprintf(shims.Stderr(), "%v\n", err)
 		shims.Exit(1)
