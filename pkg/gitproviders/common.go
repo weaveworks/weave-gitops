@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -88,7 +89,7 @@ func GetAccountType(provider gitprovider.Client, owner string) (ProviderAccountT
 	})
 
 	if err != nil {
-		if errors.Is(err, gitprovider.ErrNotFound) {
+		if errors.Is(err, gitprovider.ErrNotFound) || (err == nil && strings.Contains(err.Error(), "401 Bad credentials")) {
 			return UserAccountType, nil
 		}
 

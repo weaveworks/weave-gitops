@@ -10,26 +10,6 @@ import (
 )
 
 var _ = Describe("Test common utils", func() {
-	//It("Verify WaitUntil succeeds at first attempt", func() {
-	//
-	//	var output bytes.Buffer
-	//
-	//	start := time.Now()
-	//	err := WaitUntil(&output, time.Millisecond, time.Microsecond, func() error {
-	//		return nil
-	//	})
-	//	Expect(err).ShouldNot(HaveOccurred())
-	//	Expect(time.Since(start)).Should(match)
-	//
-	//	Eventually(func() (time.Duration, error) {
-	//		start = time.Now()
-	//		err := WaitUntil(&output, time.Millisecond, time.Microsecond, func() error {
-	//			return nil
-	//		})
-	//		return time.Since(start), err
-	//	}).Should(BeNumerically("<=", time.Millisecond))
-	//
-	//})
 
 	It("Verify WaitUntil succeeds at first attempt in less than 1 millisecond", func() {
 

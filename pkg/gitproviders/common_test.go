@@ -20,6 +20,9 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var cacheGithubRecorder, cacheGitlabRecorder *recorder.Recorder
@@ -353,3 +356,16 @@ func TestGetAccountType(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, OrgAccountType, ownerType)
 }
+
+var _ = Describe("Get Account Type Tests", func() {
+	It("Verify GetAccountType succeed for user account ", func() {
+
+		accounts := getAccounts()
+		githubTestClient, err := newGithubTestClient(SetRecorder(cacheGithubRecorder))
+		Expect(err).ShouldNot(HaveOccurred())
+
+		accountType, err := GetAccountType(githubTestClient, accounts.GithubUserName)
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(accountType).Should(Equal(UserAccountType))
+	})
+})
