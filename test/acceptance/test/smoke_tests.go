@@ -51,7 +51,7 @@ var _ = Describe("WEGO Smoke Tests", func() {
 		})
 
 		By("Then I should see the wego version printed in format vm.n.n with newline character", func() {
-			Eventually(session).Should(gbytes.Say("Version v[0-3].[0-9].[0-9]\n"))
+			Eventually(session).Should(gbytes.Say("Current Version: v[0-3].[0-9].[0-9]\n"))
 		})
 
 		By("And git commit with commit id", func() {
@@ -64,6 +64,10 @@ var _ = Describe("WEGO Smoke Tests", func() {
 
 		By("And branch name", func() {
 			Eventually(session).Should(gbytes.Say("Branch: main|HEAD\n"))
+		})
+
+		By("And flux version", func() {
+			Eventually(session).Should(gbytes.Say("Flux Version: [0-9].[0-9][0-9].[0-9]\n"))
 		})
 	})
 
