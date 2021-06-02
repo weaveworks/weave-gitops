@@ -244,9 +244,6 @@ var _ = Describe("Dry Run Add Test", func() {
 	})
 })
 
-<<<<<<< HEAD
-var _ = XDescribe("Add repo with custom access test", func() {
-=======
 var _ = Describe("Get cluster name", func() {
 	It("Get valid cluster name", func() {
 
@@ -280,8 +277,7 @@ var _ = Describe("Get owner from url", func() {
 	})
 })
 
-var _ = Describe("Add repo with custom access test", func() {
->>>>>>> 5f752a8ffe3276d6a5fabe91c580012130604fb3
+var _ = XDescribe("Add repo with custom access test", func() {
 	It("Verify that default is private", func() {
 		By("Running add with default access ", func() {
 			Expect(os.Setenv("GITHUB_ORG", "archaeopteryx")).Should(Succeed())
