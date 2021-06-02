@@ -1,14 +1,11 @@
 package status
 
 import (
+	"bytes"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 
 	"github.com/weaveworks/weave-gitops/pkg/override"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
-	"sigs.k8s.io/yaml"
 )
 
 type ClusterStatus int
@@ -66,20 +63,12 @@ func GetClusterName() (string, error) {
 }
 
 func getName() (string, error) {
-	homeDir, err := os.UserHomeDir()
+	c := "kubectl config current-context"
+	currentCluster, stderr, err := utils.CallCommandSeparatingOutputStreams(c)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error getting current-context [%s %s]\n", err.Error(), string(stderr))
 	}
-	config, err := ioutil.ReadFile(filepath.Join(homeDir, ".kube", "config"))
-	if err != nil {
-		return "", err
-	}
-	data := map[string]interface{}{}
-	err = yaml.Unmarshal(config, &data)
-	if err != nil {
-		return "", err
-	}
-	return data["current-context"].(string), nil
+	return string(bytes.TrimSuffix(currentCluster, []byte("\n"))), nil
 }
 
 func kubectlHandler(args string) error {

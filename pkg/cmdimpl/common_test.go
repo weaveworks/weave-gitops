@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestFluxCmds(t *testing.T) {
+func TestCmdImplementations(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Command Tests")
+	RunSpecs(t, "Command Implementations Tests")
 }
