@@ -63,6 +63,16 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 	Eventually(session).Should(gexec.Exit())
 }
 
+func getRepoVisibility(org string, repo string) string {
+	command := exec.Command("sh", "-c", fmt.Sprintf("hub api --flat repos/%s/%s|grep -i private|cut -f2", org, repo))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+	visibilityStr := strings.TrimSpace(string(session.Wait().Out.Contents()))
+	log.Infof("Repo visibility private=%s", visibilityStr)
+	return visibilityStr
+}
+
 func setupSSHKey() {
 	sshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa_wego"
 	if _, err := os.Stat(sshKeyPath); os.IsNotExist(err) {
@@ -180,6 +190,11 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		By("Then I should see should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appRepoName, wegoRepoName, WEGO_DEFAULT_NAMESPACE)
 		})
+
+		By("And repos created have private visibility", func() {
+			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), appRepoName)).Should(ContainSubstring("true"))
+			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), wegoRepoName)).Should(ContainSubstring("true"))
+		})
 	})
 
 	It("Verify public repo can be added to the cluster by running 'wego add . --private=false --private-key'", func() {
@@ -201,6 +216,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("Then I should see should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appRepoName, wegoRepoName, WEGO_DEFAULT_NAMESPACE)
+		})
+		By("And repos created have public visibility", func() {
+			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), appRepoName)).Should(ContainSubstring("false"))
+			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), wegoRepoName)).Should(ContainSubstring("false"))
 		})
 	})
 })
