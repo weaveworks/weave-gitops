@@ -19,7 +19,7 @@ var (
 	namespace string
 )
 
-func VerifyControllersInCluster(session *gexec.Session) {
+func VerifyControllersInCluster(session *gexec.Session, namespace string) {
 
 	By("And I wait for the controllers to get ready", func() {
 		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod", "120s", namespace))
@@ -82,10 +82,8 @@ var _ = Describe("WEGO Install Tests", func() {
 
 	It("Verify that wego can install required controllers under default namespace `wego-system`", func() {
 
-		namespace = "wego-system"
-
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(namespace)
+			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -96,7 +94,7 @@ var _ = Describe("WEGO Install Tests", func() {
 			Eventually(session).Should(gexec.Exit())
 		})
 
-		VerifyControllersInCluster(session)
+		VerifyControllersInCluster(session, WEGO_DEFAULT_NAMESPACE)
 	})
 
 	It("Verify that wego can add flux controllers to a user-specified namespace", func() {
@@ -122,7 +120,12 @@ var _ = Describe("WEGO Install Tests", func() {
 			Eventually(session).Should(gexec.Exit())
 		})
 
-		VerifyControllersInCluster(session)
+		VerifyControllersInCluster(session, namespace)
+
+		By("Clean up the namespace", func() {
+			_, err := ResetOrCreateCluster(namespace)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
 	})
 
 })

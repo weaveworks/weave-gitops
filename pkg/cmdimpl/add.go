@@ -20,6 +20,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
+type DeploymentType string
+
 const appYamlTemplate = `apiVersion: wego.weave.works/v1alpha1
 kind: Application
 metadata:
@@ -30,8 +32,8 @@ spec:
 `
 
 const (
-	DeployTypeKustomize = "kustomize"
-	DeployTypeHelm      = "helm"
+	DeployTypeKustomize DeploymentType = "kustomize"
+	DeployTypeHelm      DeploymentType = "helm"
 )
 
 type AddParamSet struct {
@@ -106,11 +108,16 @@ func generateWegoSourceManifest() ([]byte, error) {
 		return nil, wrapError(err, "could not get flux repo name")
 	}
 
+	owner, err := getOwner()
+	if err != nil {
+		return nil, err
+	}
+
 	cmd := fmt.Sprintf(`create secret git "wego" \
         --url="ssh://git@github.com/%s/%s" \
         --private-key-file="%s" \
         --namespace=%s`,
-		getOwner(),
+		owner,
 		fluxRepoName,
 		params.PrivateKey,
 		params.Namespace)
@@ -131,7 +138,7 @@ func generateWegoSourceManifest() ([]byte, error) {
         --interval=30s \
         --export \
         --namespace=%s`,
-		getOwner(),
+		owner,
 		fluxRepoName,
 		params.Branch,
 		params.Namespace)
@@ -238,25 +245,32 @@ func generateHelmManifest() ([]byte, error) {
 	return fluxops.CallFlux(cmd)
 }
 
-func getOwner() string {
+func getOwner() (string, error) {
 	owner, err := fluxops.GetOwnerFromEnv()
 	if err != nil || owner == "" {
-		owner = getOwnerFromUrl(params.Url)
+		owner, err = getOwnerFromUrl(params.Url)
+		if err != nil {
+			return "", fmt.Errorf("could not get owner %s", err)
+		}
 	}
 
 	// command flag has priority
 	if params.Owner != "" {
-		return params.Owner
+		return params.Owner, nil
 	}
 
-	return owner
+	return owner, nil
 }
 
 // ie: ssh://git@github.com/weaveworks/some-repo
-func getOwnerFromUrl(url string) string {
+func getOwnerFromUrl(url string) (string, error) {
 	parts := strings.Split(url, "/")
 
-	return parts[len(parts)-2]
+	if len(parts) < 2 {
+		return "", fmt.Errorf("could not get owner from url %s", url)
+	}
+
+	return parts[len(parts)-2], nil
 }
 
 func commitAndPush(files ...string) error {
@@ -319,7 +333,10 @@ func Add(args []string, allParams AddParamSet) error {
 		}
 	}
 
-	owner := getOwner()
+	owner, err := getOwner()
+	if err != nil {
+		return err
+	}
 
 	if !params.DryRun {
 		if err := os.Chdir(fluxRepo); err != nil {
@@ -341,11 +358,10 @@ func Add(args []string, allParams AddParamSet) error {
             git push --set-upstream origin main`
 		cmd := fmt.Sprintf(cmdStr, owner, fluxRepoName)
 
-		if err := gitproviders.CreateRepository(fluxRepoName, owner, params.IsPrivate); err != nil {
-			return wrapError(err, "could not create repository")
-		}
-
 		if !params.DryRun {
+			if err := gitproviders.CreateRepository(fluxRepoName, owner, params.IsPrivate); err != nil {
+				return wrapError(err, "could not create repository")
+			}
 			if err := utils.CallCommandForEffectWithDebug(cmd); err != nil {
 				return wrapError(err, "could not add remote")
 			}
@@ -407,7 +423,6 @@ func Add(args []string, allParams AddParamSet) error {
 		return wrapError(err, "could not generate source manifest")
 	}
 
-	fmt.Println("DeploymentType check1", params.DeploymentType)
 	var appManifests []byte
 	switch params.DeploymentType {
 	case string(DeployTypeHelm):

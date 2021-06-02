@@ -195,6 +195,16 @@ func OverrideFailure(callOp CallOperation) override.Override {
 	}
 }
 
+func OverrideIgnore(callOp CallOperation) override.Override {
+	location := &behaviors[callOp]
+	return override.Override{Handler: location, Mock: func(args ...interface{}) ([]byte, []byte, error) {
+		fmt.Println("ignoring ", args)
+		return nil, nil, nil
+	},
+		Original: behaviors[callOp],
+	}
+}
+
 func WithBehaviorFor(callOp CallOperation, behavior func(args ...interface{}) ([]byte, []byte, error), action func() ([]byte, []byte, error)) ([]byte, []byte, error) {
 	existingBehavior := behaviors[callOp]
 	behaviors[callOp] = behavior

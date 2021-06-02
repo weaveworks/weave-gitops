@@ -212,7 +212,7 @@ var _ = Describe("Dry Run Add Test", func() {
 							PrivateKey:     privateKeyFileName,
 							DryRun:         true,
 							Namespace:      "wego-system",
-							DeploymentType: DeployTypeKustomize,
+							DeploymentType: string(DeployTypeKustomize),
 						})
 
 					Expect(err).To(BeNil())
@@ -221,10 +221,55 @@ var _ = Describe("Dry Run Add Test", func() {
 				utils.OverrideFailure(utils.CallCommandForEffectWithInputPipeOp),
 				utils.OverrideFailure(utils.CallCommandForEffectWithDebugOp),
 				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
+				utils.OverrideBehavior(utils.CallCommandSeparatingOutputStreamsOp,
+					func(args ...interface{}) ([]byte, []byte, error) {
+						case0Kubectl := `kubectl config current-context`
+						Expect(args[0].(string)).Should(Equal(case0Kubectl))
+						switch (args[0]).(string) {
+						case case0Kubectl:
+							return []byte("my-cluster"), []byte(""), nil
+						default:
+							return nil, nil, fmt.Errorf("arguments not expected %s", args)
+						}
+
+					}),
 				fluxops.Override(FailFluxHandler),
 				gitproviders.Override(fgphandler),
 				status.Override(shandler))
 		})
+	})
+})
+
+var _ = Describe("Get cluster name", func() {
+	It("Get valid cluster name", func() {
+
+		shandler := statusHandler{}
+		_ = override.WithOverrides(
+			func() override.Result {
+				name, err := getClusterRepoName()
+				Expect(name).Should(Equal("test-wego"))
+				Expect(err).Should(BeNil())
+				return override.Result{}
+			},
+			status.Override(shandler))
+
+	})
+})
+
+var _ = Describe("Get owner from url", func() {
+	It("Get owner from valid url", func() {
+
+		owner, err := getOwnerFromUrl("ssh://git@github.com/weaveworks/some-repo")
+		Expect(owner).Should(Equal("weaveworks"))
+		Expect(err).ShouldNot(HaveOccurred())
+
+	})
+	It("Get owner from invalid url", func() {
+
+		owner, err := getOwnerFromUrl("ssh:git@github.com")
+		Expect(owner).Should(BeEmpty())
+		Expect(err.Error()).Should(Equal("could not get owner from url ssh:git@github.com"))
+
 	})
 })
 
@@ -249,18 +294,30 @@ var _ = Describe("Add repo with custom access test", func() {
 							Path:           "./",
 							Branch:         "main",
 							PrivateKey:     privateKeyFileName,
-							DryRun:         true,
-							IsPrivate:      true,
 							Namespace:      "wego-system",
-							DeploymentType: DeployTypeKustomize,
+							IsPrivate:      true,
+							DeploymentType: string(DeployTypeKustomize),
 						})
 
 					Expect(err).To(BeNil())
 					return override.Result{}
 				},
-				utils.OverrideFailure(utils.CallCommandForEffectWithInputPipeOp),
-				utils.OverrideFailure(utils.CallCommandForEffectWithDebugOp),
+				utils.OverrideIgnore(utils.CallCommandForEffectWithInputPipeOp),
+				utils.OverrideIgnore(utils.CallCommandOp),
+				utils.OverrideIgnore(utils.CallCommandForEffectWithDebugOp),
 				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
+				utils.OverrideBehavior(utils.CallCommandSeparatingOutputStreamsOp,
+					func(args ...interface{}) ([]byte, []byte, error) {
+						case0Kubectl := `kubectl config current-context`
+						Expect(args[0].(string)).Should(Equal(case0Kubectl))
+						switch (args[0]).(string) {
+						case case0Kubectl:
+							return []byte("my-cluster"), []byte(""), nil
+						default:
+							return nil, nil, fmt.Errorf("arguments not expected %s", args)
+						}
+
+					}),
 				fluxops.Override(FailFluxHandler),
 				gitproviders.Override(fgphandler),
 				status.Override(shandler))
@@ -288,17 +345,30 @@ var _ = Describe("Add repo with custom access test", func() {
 							Path:           "./",
 							Branch:         "main",
 							PrivateKey:     privateKeyFileName,
-							DryRun:         true,
 							Namespace:      "wego-system",
-							DeploymentType: DeployTypeKustomize,
+							IsPrivate:      false,
+							DeploymentType: string(DeployTypeKustomize),
 						})
 
 					Expect(err).Should(BeNil())
 					return override.Result{}
 				},
-				utils.OverrideFailure(utils.CallCommandForEffectWithInputPipeOp),
-				utils.OverrideFailure(utils.CallCommandForEffectWithDebugOp),
+				utils.OverrideIgnore(utils.CallCommandForEffectWithInputPipeOp),
+				utils.OverrideIgnore(utils.CallCommandOp),
+				utils.OverrideIgnore(utils.CallCommandForEffectWithDebugOp),
 				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
+				utils.OverrideBehavior(utils.CallCommandSeparatingOutputStreamsOp,
+					func(args ...interface{}) ([]byte, []byte, error) {
+						case0Kubectl := `kubectl config current-context`
+						Expect(args[0].(string)).Should(Equal(case0Kubectl))
+						switch (args[0]).(string) {
+						case case0Kubectl:
+							return []byte("my-cluster"), []byte(""), nil
+						default:
+							return nil, nil, fmt.Errorf("arguments not expected %s", args)
+						}
+
+					}),
 				fluxops.Override(FailFluxHandler),
 				gitproviders.Override(fgphandler),
 				status.Override(shandler))
