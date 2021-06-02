@@ -23,7 +23,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var githubTestClient, gitlabTestClient gitprovider.Client
+var githubTestClient gitprovider.Client
 
 var (
 	GithubOrgTestName  = "weaveworks"
