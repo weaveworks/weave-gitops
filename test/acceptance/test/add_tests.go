@@ -156,7 +156,7 @@ func verifyWegoAddCommand(appRepoName string, wegoRepoName string, wegoNamespace
 	})
 }
 
-var _ = FDescribe("Weave GitOps Add Tests", func() {
+var _ = Describe("Weave GitOps Add Tests", func() {
 	var appRepoName string
 	var wegoRepoName string
 
@@ -228,7 +228,7 @@ var _ = FDescribe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify repo can be added to the cluster with non default repo branch and helm controller 'wego add . --branch=<non-default> --deployment-type=helm --private-key' ", func() {
+	It("Verify repo can be added to the cluster with non-default repo branch and helm controller 'wego add . --branch=<non-default> --deployment-type=helm --private-key' ", func() {
 		//TO-DO
 	})
 
