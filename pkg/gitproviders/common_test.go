@@ -371,7 +371,7 @@ var _ = Describe("Get User repo info", func() {
 
 		accounts := getAccounts()
 
-		repoName := "test-user-repo"
+		repoName := "test-user-repo-info"
 		userRepoRef := NewUserRepositoryRef(github.DefaultDomain, accounts.GithubUserName, repoName)
 		repoInfo := NewRepositoryInfo("test user repository", gitprovider.RepositoryVisibilityPrivate)
 		opts := &gitprovider.RepositoryCreateOptions{
