@@ -48,4 +48,9 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
+
+	versionInfo, _ := version.CheckVersion()
+	if versionInfo != "" {
+		log.Info(versionInfo)
+	}
 }
