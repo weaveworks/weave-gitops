@@ -241,7 +241,6 @@ func TestCreateRepository(t *testing.T) {
 	userRepoName := "test-user-repo-0"
 
 	SetGithubProvider(githubTestClient)
-	defer SetGithubProvider(nil)
 
 	err := CreateRepository(orgRepoName, accounts.GithubOrgName, true)
 	assert.NoError(t, err)
