@@ -387,7 +387,7 @@ var _ = Describe("Get User repo info", func() {
 		err = CreateUserRepository(githubTestClient, userRepoRef, repoInfo, opts)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		err = GetUserRepo(githubTestClient, accounts.GithubUserName, repoName)
+		err = GetRepoInfo(githubTestClient, UserAccountType, accounts.GithubUserName, repoName)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		ctx := context.Background()
