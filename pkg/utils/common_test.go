@@ -65,7 +65,7 @@ var _ = Describe("Test common utils", func() {
 			}
 			return nil
 		})
-		Expect(time.Since(start)).Should(BeNumerically("<=", time.Millisecond*2))
+		Expect(time.Since(start)).Should(BeNumerically("<=", time.Millisecond*3))
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(output.String()).To(Equal("error occurred some error, retrying in 1ms\n"))
 
