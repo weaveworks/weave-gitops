@@ -128,6 +128,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: [acceptance-tests]
     steps:
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16.x
+    - name: Checkout code
+      uses: actions/checkout@v2
     - name: Install testspace client
       uses: testspace-com/setup-testspace@v1
       with:
@@ -153,12 +159,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, macOS-latest]
     steps:
-    - name: Install Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.16.x
-    - name: Checkout code
-      uses: actions/checkout@v2
     - name: Download wego binaries
       uses: actions/download-artifact@v2
       with:

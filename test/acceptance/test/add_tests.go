@@ -34,30 +34,6 @@ func deleteRepos(appRepoName string, wegoRepoName string) {
 	_ = os.RemoveAll(fmt.Sprintf("%s/.wego/repositories/%s", os.Getenv("HOME"), wegoRepoName))
 }
 
-func createRepo(appRepoName string, private bool) string {
-	repoAbsolutePath := "/tmp/" + appRepoName
-	privateRepo := ""
-	if private {
-		privateRepo = "-p"
-	}
-	command := exec.Command("sh", "-c", fmt.Sprintf(`
-							mkdir %s && 
-							ls -la &&
-							cp ./data/nginx.yaml %s && 
-							cd %s && 
-							git init && 
-							git add . && 
-							git commit -m 'add nginx' && 
-							hub create %s %s &&
-							sleep 15 && 
-							git push -u origin main`, repoAbsolutePath, repoAbsolutePath, repoAbsolutePath, os.Getenv("GITHUB_ORG")+"/"+appRepoName, privateRepo))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
-
-	return repoAbsolutePath
-}
-
 func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 	repoAbsolutePath := "/tmp/" + appRepoName
 	privateRepo := ""
@@ -227,13 +203,4 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			verifyWegoAddCommand(appRepoName, wegoRepoName, WEGO_DEFAULT_NAMESPACE)
 		})
 	})
-
-	It("Verify repo can be added to the cluster with non-default repo branch and helm controller 'wego add . --branch=<non-default> --deployment-type=helm --private-key' ", func() {
-		//TO-DO
-	})
-
-	It("Verify repo addition can be previewed by running 'wego add . --dry-run --private-key' ", func() {
-		//TO-DO
-	})
-
 })
