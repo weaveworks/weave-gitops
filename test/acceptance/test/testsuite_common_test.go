@@ -3,7 +3,6 @@
 package acceptance
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -11,15 +10,21 @@ import (
 	ginkgo "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/weave-gitops/pkg/status"
 )
 
 func GomegaFail(message string, callerSkip ...int) {
 	//Show all resources
 	err := ShowItems("")
 	if err != nil {
-		log.Infof("Failed to print the pods")
+		log.Infof("Failed to print the cluster resources")
 	}
+
+	err = ShowItems("GitRepositories")
+	if err != nil {
+		log.Infof("Failed to print the GitRepositories")
+	}
+
+	ShowWegoControllerLogs(WEGO_DEFAULT_NAMESPACE)
 
 	//Pass this down to the default handler for onward processing
 	ginkgo.Fail(message, callerSkip...)
@@ -42,12 +47,4 @@ var _ = BeforeSuite(func() {
 		WEGO_BIN_PATH = "/usr/local/bin/wego"
 	}
 	log.Infof("WEGO Binary Path: %s", WEGO_BIN_PATH)
-	Expect(checkInitialStatus()).Should(Succeed())
 })
-
-func checkInitialStatus() error {
-	if status.GetClusterStatus() != status.Unmodified {
-		return fmt.Errorf("expected: %v  actual: %v", status.Unmodified, status.GetClusterStatus())
-	}
-	return nil
-}
