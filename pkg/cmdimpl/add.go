@@ -320,7 +320,7 @@ func Add(args []string, allParams AddParamSet) error {
 	// Set up wego repository if required
 	fluxRepoName, err := fluxops.GetRepoName()
 	if err != nil {
-		return wrapError(err, "could not get repo name")
+		return wrapError(err, "could not get flux repo name")
 	}
 
 	reposDir := filepath.Join(os.Getenv("HOME"), ".wego", "repositories")
@@ -329,7 +329,7 @@ func Add(args []string, allParams AddParamSet) error {
 
 	if !params.DryRun {
 		if err := os.MkdirAll(appSubdir, 0755); err != nil {
-			return wrapError(err, "could not make subdir")
+			return wrapError(err, "could not make app subdir")
 		}
 	}
 
@@ -340,7 +340,7 @@ func Add(args []string, allParams AddParamSet) error {
 
 	if !params.DryRun {
 		if err := os.Chdir(fluxRepo); err != nil {
-			return wrapError(err, "could not chdir")
+			return wrapError(err, "could not chdir to flux repo")
 		}
 	}
 
@@ -456,10 +456,6 @@ func Add(args []string, allParams AddParamSet) error {
 
 		if err := commitAndPush(sourceName, manifestsName, appYamlName); err != nil {
 			return wrapError(err, "could not commit and/or push")
-		}
-
-		if err := commitAndPush(sourceName, manifestsName, appYamlName); err != nil {
-			return wrapError(err, "could not commmit and/or push")
 		}
 	} else {
 		fmt.Fprintf(shims.Stdout(), "Applying wego resources for application...")
