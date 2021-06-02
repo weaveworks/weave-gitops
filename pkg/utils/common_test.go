@@ -3,11 +3,38 @@ package utils
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
+
+func TestExists(t *testing.T) {
+
+	// Existing file
+	tempFile, err := ioutil.TempFile(t.TempDir(), "")
+	require.NoError(t, err)
+	require.True(t, Exists(tempFile.Name()))
+
+	// Not existing file
+	require.NoError(t, os.Remove(tempFile.Name()))
+	require.False(t, Exists(tempFile.Name()))
+
+	// Existing file
+	tempFolder, err := ioutil.TempDir(t.TempDir(), "")
+	require.NoError(t, err)
+	require.True(t, Exists(tempFolder))
+
+	// Not existing file
+	require.NoError(t, os.Remove(tempFolder))
+	require.False(t, Exists(tempFolder))
+
+}
 
 var _ = Describe("Test common utils", func() {
 
