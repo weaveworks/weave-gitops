@@ -101,10 +101,6 @@ func getDeploymentType(namespace, appName string) (DeploymentType, error) {
 		return "", fmt.Errorf("error trying to get the deployment type of the app. raw output => %s", stdout)
 	}
 
-	if len(matches[0]) != 2 {
-		return "", fmt.Errorf("error trying to get the deployment type of the app. raw matches => %s", matches)
-	}
-
 	return DeploymentType(matches[0][1]), nil
 
 }
