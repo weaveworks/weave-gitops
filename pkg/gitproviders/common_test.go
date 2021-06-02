@@ -369,3 +369,31 @@ var _ = Describe("Get Account Type Tests", func() {
 		Expect(accountType).Should(Equal(UserAccountType))
 	})
 })
+
+var _ = Describe("Get User repo info", func() {
+	It("Succeed on getting user repo info", func() {
+
+		accounts := getAccounts()
+		githubTestClient, err := newGithubTestClient(SetRecorder(cacheGithubRecorder))
+		Expect(err).ShouldNot(HaveOccurred())
+
+		repoName := "test-user-repo"
+		userRepoRef := NewUserRepositoryRef(github.DefaultDomain, accounts.GithubUserName, repoName)
+		repoInfo := NewRepositoryInfo("test user repository", gitprovider.RepositoryVisibilityPrivate)
+		opts := &gitprovider.RepositoryCreateOptions{
+			AutoInit: gitprovider.BoolVar(true),
+		}
+
+		err = CreateUserRepository(githubTestClient, userRepoRef, repoInfo, opts)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		err = GetUserRepo(githubTestClient, accounts.GithubUserName, repoName)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		ctx := context.Background()
+		user, err := githubTestClient.UserRepositories().Get(ctx, userRepoRef)
+		Expect(err).ShouldNot(HaveOccurred())
+		err = user.Delete(ctx)
+		Expect(err).ShouldNot(HaveOccurred())
+	})
+})
