@@ -38,15 +38,15 @@ type GoGit struct {
 	repository *gogit.Repository
 }
 
-func New(path string, auth transport.AuthMethod) *GoGit {
+func New(auth transport.AuthMethod) *GoGit {
 	return &GoGit{
-		path: path,
 		auth: auth,
 	}
 }
 
-func (g *GoGit) Open() (*gogit.Repository, error) {
-	repo, err := gogit.PlainOpen(g.path)
+func (g *GoGit) Open(path string) (*gogit.Repository, error) {
+	g.path = path
+	repo, err := gogit.PlainOpen(path)
 	if err != nil {
 		return nil, err
 	}
@@ -56,12 +56,12 @@ func (g *GoGit) Open() (*gogit.Repository, error) {
 	return repo, nil
 }
 
-func (g *GoGit) Init(url, branch string) (bool, error) {
+func (g *GoGit) Init(path, url, branch string) (bool, error) {
 	if g.repository != nil {
 		return false, nil
 	}
 
-	r, err := gogit.PlainInit(g.path, false)
+	r, err := gogit.PlainInit(path, false)
 	if err != nil {
 		return false, err
 	}
@@ -91,9 +91,9 @@ func (g *GoGit) Init(url, branch string) (bool, error) {
 	return true, nil
 }
 
-func (g *GoGit) Clone(ctx context.Context, url, branch string) (bool, error) {
+func (g *GoGit) Clone(ctx context.Context, path, url, branch string) (bool, error) {
 	branchRef := plumbing.NewBranchReferenceName(branch)
-	r, err := gogit.PlainCloneContext(ctx, g.path, false, &gogit.CloneOptions{
+	r, err := gogit.PlainCloneContext(ctx, path, false, &gogit.CloneOptions{
 		URL:           url,
 		Auth:          g.auth,
 		RemoteName:    gogit.DefaultRemoteName,
@@ -105,7 +105,7 @@ func (g *GoGit) Clone(ctx context.Context, url, branch string) (bool, error) {
 	})
 	if err != nil {
 		if err == transport.ErrEmptyRemoteRepository || isRemoteBranchNotFoundErr(err, branchRef.String()) {
-			return g.Init(url, branch)
+			return g.Init(path, url, branch)
 		}
 		return false, err
 	}

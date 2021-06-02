@@ -8,12 +8,14 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops/fluxopsfakes"
+	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/override"
 	"github.com/weaveworks/weave-gitops/pkg/status"
@@ -81,7 +83,7 @@ var FailFluxHandler = &fluxopsfakes.FakeFluxHandler{
 		if strings.HasPrefix(command, "install") || strings.HasPrefix(command, "add") {
 			return nil, fmt.Errorf("failed")
 		}
-		return fluxops.DefaultFluxHandler{}.Handle(arglist)
+		return nil, nil
 	},
 }
 
@@ -105,7 +107,7 @@ func (h fakeGitRepoHandler) CreateRepository(name string, owner string, private 
 }
 
 func (h fakeGitRepoHandler) RepositoryExists(ame string, owner string) (bool, error) {
-	return false, nil
+	return false, gitprovider.ErrNotFound
 }
 
 func createTestPrivateKeyFile() (*os.File, error) {
@@ -165,6 +167,8 @@ func handleGitLsRemote(arglist ...interface{}) ([]byte, []byte, error) {
 	return nil, nil, fmt.Errorf("NO!")
 }
 
+var fakeGitClient = gitfakes.FakeGit{}
+
 var _ = Describe("Test helm manifest", func() {
 	It("Verify helm manifest files generation ", func() {
 
@@ -207,6 +211,10 @@ var _ = Describe("Dry Run Add Test", func() {
 			defer os.Remove(privateKeyFileName)
 			_ = override.WithOverrides(
 				func() override.Result {
+					deps := &AddDependencies{
+						GitClient: &fakeGitClient,
+					}
+
 					err := Add([]string{"."},
 						AddParamSet{
 							Name:           "wanda",
@@ -217,7 +225,7 @@ var _ = Describe("Dry Run Add Test", func() {
 							DryRun:         true,
 							Namespace:      "wego-system",
 							DeploymentType: string(DeployTypeKustomize),
-						})
+						}, deps)
 
 					Expect(err).To(BeNil())
 					return override.Result{}
@@ -277,7 +285,7 @@ var _ = Describe("Get owner from url", func() {
 	})
 })
 
-var _ = XDescribe("Add repo with custom access test", func() {
+var _ = Describe("Add repo with custom access test", func() {
 	It("Verify that default is private", func() {
 		By("Running add with default access ", func() {
 			Expect(os.Setenv("GITHUB_ORG", "archaeopteryx")).Should(Succeed())
@@ -291,6 +299,9 @@ var _ = XDescribe("Add repo with custom access test", func() {
 			defer os.Remove(privateKeyFileName)
 			_ = override.WithOverrides(
 				func() override.Result {
+					deps := &AddDependencies{
+						GitClient: &fakeGitClient,
+					}
 					err := Add([]string{"."},
 						AddParamSet{
 							Name:           "wanda",
@@ -301,7 +312,7 @@ var _ = XDescribe("Add repo with custom access test", func() {
 							Namespace:      "wego-system",
 							IsPrivate:      true,
 							DeploymentType: string(DeployTypeKustomize),
-						})
+						}, deps)
 
 					Expect(err).To(BeNil())
 					return override.Result{}
@@ -342,6 +353,10 @@ var _ = XDescribe("Add repo with custom access test", func() {
 			defer os.Remove(privateKeyFileName)
 			_ = override.WithOverrides(
 				func() override.Result {
+					deps := &AddDependencies{
+						GitClient: &fakeGitClient,
+					}
+
 					err := Add([]string{"."},
 						AddParamSet{
 							Name:           "wanda",
@@ -352,7 +367,7 @@ var _ = XDescribe("Add repo with custom access test", func() {
 							Namespace:      "wego-system",
 							IsPrivate:      false,
 							DeploymentType: string(DeployTypeKustomize),
-						})
+						}, deps)
 
 					Expect(err).Should(BeNil())
 					return override.Result{}

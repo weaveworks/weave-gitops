@@ -22,6 +22,8 @@ import (
 	"io"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
 var (
 	ErrNoGitRepository = errors.New("no git repository")
 	ErrNoStagedFiles   = errors.New("no staged files")
@@ -40,9 +42,10 @@ type Commit struct {
 
 // Git is an interface for basic Git operations on a single branch of a
 // remote repository.
+//counterfeiter:generate . Git
 type Git interface {
-	Init(url, branch string) (bool, error)
-	Clone(ctx context.Context, url, branch string) (bool, error)
+	Init(path, url, branch string) (bool, error)
+	Clone(ctx context.Context, path, url, branch string) (bool, error)
 	Write(path string, reader io.Reader) error
 	Commit(message Commit) (string, error)
 	Push(ctx context.Context) error

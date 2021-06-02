@@ -42,7 +42,9 @@ func init() {
 
 func runCmd(cmd *cobra.Command, args []string) {
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
-	if err := cmdimpl.Add(args, params); err != nil {
+
+	deps := &cmdimpl.AddDependencies{}
+	if err := cmdimpl.Add(args, params, deps); err != nil {
 		fmt.Fprintf(shims.Stderr(), "%v\n", err)
 		shims.Exit(1)
 	}

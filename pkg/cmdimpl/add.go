@@ -14,7 +14,6 @@ import (
 	"text/template"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -58,6 +57,10 @@ var (
 	params AddParamSet
 )
 
+type AddDependencies struct {
+	GitClient git.Git
+}
+
 func getClusterRepoName() (string, error) {
 	clusterName, err := status.GetClusterName()
 	if err != nil {
@@ -84,8 +87,8 @@ func updateParametersIfNecessary() error {
 	}
 
 	if params.Url == "" {
-		gitClient := git.New(params.Dir, nil)
-		repo, err := gitClient.Open()
+		gitClient := git.New(nil)
+		repo, err := gitClient.Open(params.Dir)
 		if err != nil {
 			return err
 		}
@@ -307,7 +310,7 @@ func wrapError(err error, msg string) error {
 }
 
 // Add provides the implementation for the wego add command
-func Add(args []string, allParams AddParamSet) error {
+func Add(args []string, allParams AddParamSet, deps *AddDependencies) error {
 	ctx := context.Background()
 
 	if len(args) < 1 {
@@ -360,17 +363,17 @@ func Add(args []string, allParams AddParamSet) error {
 	}
 	defer os.RemoveAll(wegoRepoDir)
 
-	authMethod, err := ssh.NewPublicKeysFromFile("git", params.PrivateKey, params.PrivateKeyPass)
-	if err != nil {
-		return err
-	}
-	gitClient := git.New(wegoRepoDir, authMethod)
+	// authMethod, err := ssh.NewPublicKeysFromFile("git", params.PrivateKey, params.PrivateKeyPass)
+	// if err != nil {
+	// 	return err
+	// }
+	gitClient := deps.GitClient
 
 	wegoRepoURL := fmt.Sprintf("ssh://git@github.com/%s/%s.git", owner, wegoRepoName)
 	fmt.Printf("Cloning %s...\n", wegoRepoURL)
 	if !params.DryRun {
-		if _, err := gitClient.Clone(ctx, wegoRepoURL, params.Branch); err != nil {
-			return wrapError(err, "could not clone repository")
+		if _, err := gitClient.Clone(ctx, wegoRepoDir, wegoRepoURL, params.Branch); err != nil {
+			return wrapError(err, fmt.Sprintf("could not clone repository: %s", wegoRepoURL))
 		}
 	}
 

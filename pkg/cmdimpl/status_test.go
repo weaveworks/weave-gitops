@@ -18,7 +18,6 @@ import (
 
 var _ = Describe("Run Command Status Test", func() {
 	It("Verify status info for kustomize app", func() {
-
 		// Setup
 		appName := "kustomize-app"
 		clusterName := "mycluster"
