@@ -237,13 +237,33 @@ func Test_CreatePullRequestToOrgRepo(t *testing.T) {
 func TestCreateRepository(t *testing.T) {
 	accounts := getAccounts()
 
-	repoName := "test-org-repo"
+	orgRepoName := "test-org-repo-0"
+	userRepoName := "test-user-repo-0"
 
 	SetGithubProvider(githubTestClient)
 	defer SetGithubProvider(nil)
 
-	err := CreateRepository(repoName, accounts.GithubOrgName, true)
+	err := CreateRepository(orgRepoName, accounts.GithubOrgName, true)
 	assert.NoError(t, err)
+
+	err = CreateRepository(userRepoName, accounts.GithubUserName, true)
+	assert.NoError(t, err)
+
+	t.Cleanup(func() {
+		ctx := context.Background()
+		defer ctx.Done()
+		orgRepoRef := NewOrgRepositoryRef(github.DefaultDomain, accounts.GithubOrgName, orgRepoName)
+		orgRepo, err := githubTestClient.OrgRepositories().Get(ctx, orgRepoRef)
+		assert.NoError(t, err)
+		err = orgRepo.Delete(ctx)
+		assert.NoError(t, err)
+
+		userRepoRef := NewUserRepositoryRef(github.DefaultDomain, accounts.GithubUserName, userRepoName)
+		userRepo, err := githubTestClient.UserRepositories().Get(ctx, userRepoRef)
+		assert.NoError(t, err)
+		err = userRepo.Delete(ctx)
+		assert.NoError(t, err)
+	})
 }
 
 func CreateTestPullRequestToOrgRepo(t *testing.T, client gitprovider.Client, domain string, orgName string) {
