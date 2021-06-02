@@ -138,7 +138,7 @@ jobs:
     - name: Publish test results to Testspace
       run: |
         go get github.com/t-yuki/gocover-cobertura
-        gocover-cobertura < results/unit-tests-artefacts/artefacts/.coverprofile-unittests > coverage.xml
+        gocover-cobertura < results/unit-tests-artefacts/.coverprofile-unittests > coverage.xml
         testspace "[unit-tests]results/unit-tests-artefacts/unit-test-results.xml" "[acceptance-tests]results/acceptance-tests-artefacts/acceptance-test-results.xml" "coverage.xml"
       if: always()
     - name: publish to s3
