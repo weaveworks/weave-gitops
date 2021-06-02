@@ -79,15 +79,17 @@ jobs:
           version: 'v1.19.6'
     - name: setup eks cluster
       run: |
-        export CLUSTER_NAME=wego-nightly-cluster-${{matrix.os}}
+        OS_NAME=$(echo "${{matrix.os}}" | tr '[:upper:]' '[:lower:]')
+        export CLUSTER_NAME=wego-nightly-cluster-$OS_NAME
         export CLUSTER_VERSION=1.19
         export CLUSTER_REGION=us-east-1
-        export CLUSTER_EXISTS=$(eksctl get clusters --region $CLUSTER_REGION | grep $CLUSTER_NAME)
+        export CLUSTER_EXISTS=$(eksctl get clusters --region $CLUSTER_REGION | grep -i $CLUSTER_NAME)
         if [ -z $CLUSTER_EXISTS ]
         then
-          eksctl create cluster --name=$CLUSTER_NAME --version=$CLUSTER_VERSION--region=$CLUSTER_REGION
+          eksctl create cluster --name=$CLUSTER_NAME --version=$CLUSTER_VERSION --region=$CLUSTER_REGION
         fi
         eksctl utils write-kubeconfig --region=$CLUSTER_REGION --cluster=$CLUSTER_NAME --kubeconfig=$HOME/.kube/config
+        kubectl config rename-context $(kubectl config current-context) test-eks-$OS_NAME
         ls -la $HOME/.kube
         kubectl get nodes -A
         kubectl get all --all-namespaces -o wide
@@ -115,7 +117,7 @@ jobs:
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     - name: Install Ginkgo binary
       run: go get -u github.com/onsi/ginkgo/ginkgo
-    - name: User Acceptance Tests (Ubuntu)
+    - name: User Acceptance Tests (${{matrix.os}})
       env:
         GITHUB_ORG: wkp-example-org
         GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
@@ -160,16 +162,17 @@ jobs:
           version: 'v1.19.6'
     - name: setup gke cluster
       run: |
-        CLUSTER_NAME=wego-nightly-cluster-${{matrix.os}}
-        export CLUSTER_NAME=$(echo "$CLUSTER_NAME" | tr '[:upper:]' '[:lower:]')
+        OS_NAME=$(echo "${{matrix.os}}" | tr '[:upper:]' '[:lower:]')
+        export CLUSTER_NAME=wego-nightly-cluster-$OS_NAME
         export CLUSTER_VERSION=1.19
         export CLUSTER_REGION=us-central1-a
-        export CLUSTER_EXISTS=$(gcloud container clusters list | grep $CLUSTER_NAME)
+        export CLUSTER_EXISTS=$(gcloud container clusters list | grep -i $CLUSTER_NAME)
         if [ -z $CLUSTER_EXISTS ]
         then
           gcloud container clusters create $CLUSTER_NAME --cluster-version=$CLUSTER_VERSION --zone $CLUSTER_REGION
         fi
         gcloud container clusters get-credentials $CLUSTER_NAME --zone $CLUSTER_REGION
+        kubectl config rename-context $(kubectl config current-context) test-gke-$OS_NAME
         ls -la $HOME/.kube
         kubectl get nodes -A
         kubectl get all --all-namespaces -o wide
@@ -197,7 +200,7 @@ jobs:
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     - name: Install Ginkgo binary
       run: go get -u github.com/onsi/ginkgo/ginkgo
-    - name: User Acceptance Tests (Ubuntu)
+    - name: User Acceptance Tests (${{matrix.os}})
       env:
         GITHUB_ORG: wkp-example-org
         GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
