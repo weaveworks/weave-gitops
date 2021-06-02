@@ -119,6 +119,41 @@ func installFlux(namespace string, verbose bool) ([]byte, error) {
 	})
 }
 
+func GetAllResourcesStatus(appName string) ([]byte, error) {
+	args := []string{
+		"get",
+		"all",
+		"-A",
+		appName,
+	}
+
+	return WithFluxHandler(quietFluxHandler{}, func() ([]byte, error) {
+		output, err := CallFlux(args...)
+		if err != nil {
+			return nil, err
+		}
+		return output, nil
+	})
+}
+
+func GetAllResources(namespace string) ([]byte, error) {
+	args := []string{
+		//get all -n
+		"get",
+		"all",
+		"-n",
+		namespace,
+	}
+
+	return WithFluxHandler(quietFluxHandler{}, func() ([]byte, error) {
+		output, err := CallFlux(args...)
+		if err != nil {
+			return nil, err
+		}
+		return output, nil
+	})
+}
+
 // GetOwnerFromEnv determines the owner of a new repository based on the GITHUB_ORG
 func GetOwnerFromEnv() (string, error) {
 	// check for github username
