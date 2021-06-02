@@ -169,7 +169,7 @@ var _ = Describe("GetDeployment tests", func() {
 		fluxops.SetFluxHandler(fakeHandler)
 
 		deploymentType, err := getDeploymentType(ns, myAppName)
-		Expect(err).Should(MatchError("some error"))
+		Expect(err).Should(MatchError("error trying to get the deployment type of the app. raw output => wronginfo"))
 		Expect(deploymentType).To(BeEmpty())
 
 	})
