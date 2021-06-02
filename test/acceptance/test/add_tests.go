@@ -58,6 +58,35 @@ func createRepo(appRepoName string, private bool) string {
 	return repoAbsolutePath
 }
 
+func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
+	repoAbsolutePath := "/tmp/" + appRepoName
+	privateRepo := ""
+	if IsPrivateRepo {
+		privateRepo = "-p"
+	}
+	command := exec.Command("sh", "-c", fmt.Sprintf(`
+							mkdir %s && 
+							cd %s && 
+							git init && 
+							hub create %s %s`, repoAbsolutePath, repoAbsolutePath, os.Getenv("GITHUB_ORG")+"/"+appRepoName, privateRepo))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+	return repoAbsolutePath
+}
+
+func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf(`
+							cp %s %s &&
+							cd %s &&
+							git add . &&
+							git commit -m 'add workload manifest' &&
+							git push -u origin main`, appManifestFilePath, repoAbsolutePath, repoAbsolutePath))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+}
+
 func setupSSHKey() {
 	sshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa_wego"
 	if _, err := os.Stat(sshKeyPath); os.IsNotExist(err) {
@@ -127,18 +156,18 @@ func verifyWegoAddCommand(appRepoName string, wegoRepoName string, wegoNamespace
 	})
 }
 
-var _ = Describe("Weave GitOps Add Tests", func() {
+var _ = FDescribe("Weave GitOps Add Tests", func() {
 	var appRepoName string
 	var wegoRepoName string
 
 	BeforeEach(func() {
 
-		By("And I have a brand new cluster", func() {
+		By("Given I have a brand new cluster", func() {
 			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
-		By("Given I have a wego binary installed on my local machine", func() {
+		By("And I have a wego binary installed on my local machine", func() {
 			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
 			appRepoName = "wego-test-app-" + RandString(8)
 			wegoRepoName = getClusterName() + "-wego"
@@ -159,24 +188,44 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		var repoAbsolutePath string
 		private := true
 
-		By("And I create a public repo with my app workload", func() {
-			repoAbsolutePath = createRepo(appRepoName, private)
+		By("When I create a private repo with my app workload", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
+			gitAddCommitPush(repoAbsolutePath, "./data/nginx.yaml")
 		})
-		installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
-		runWegoAddCommand(repoAbsolutePath, private, WEGO_DEFAULT_NAMESPACE)
-		verifyWegoAddCommand(appRepoName, wegoRepoName, WEGO_DEFAULT_NAMESPACE)
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I run wego add command", func() {
+			runWegoAddCommand(repoAbsolutePath, private, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see should see my workload deployed to the cluster", func() {
+			verifyWegoAddCommand(appRepoName, wegoRepoName, WEGO_DEFAULT_NAMESPACE)
+		})
 	})
 
 	It("Verify public repo can be added to the cluster by running 'wego add . --private=false --private-key'", func() {
 		var repoAbsolutePath string
 		private := false
 
-		By("And I create a public repo with my app workload", func() {
-			repoAbsolutePath = createRepo(appRepoName, private)
+		By("When I create a public repo with my app workload", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
+			gitAddCommitPush(repoAbsolutePath, "./data/nginx.yaml")
 		})
-		installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
-		runWegoAddCommand(repoAbsolutePath, private, WEGO_DEFAULT_NAMESPACE)
-		verifyWegoAddCommand(appRepoName, wegoRepoName, WEGO_DEFAULT_NAMESPACE)
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I run wego add command", func() {
+			runWegoAddCommand(repoAbsolutePath, private, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see should see my workload deployed to the cluster", func() {
+			verifyWegoAddCommand(appRepoName, wegoRepoName, WEGO_DEFAULT_NAMESPACE)
+		})
 	})
 
 	It("Verify repo can be added to the cluster with non default repo branch and helm controller 'wego add . --branch=<non-default> --deployment-type=helm --private-key' ", func() {
