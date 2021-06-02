@@ -89,7 +89,7 @@ func GetAccountType(provider gitprovider.Client, owner string) (ProviderAccountT
 	})
 
 	if err != nil {
-		if errors.Is(err, gitprovider.ErrNotFound) || (err == nil && strings.Contains(err.Error(), "401 Bad credentials")) {
+		if errors.Is(err, gitprovider.ErrNotFound) || (err == nil && (strings.Contains(err.Error(), "401 Bad credentials") || strings.Contains(err.Error(), "404 Not Found"))) {
 			return UserAccountType, nil
 		}
 
