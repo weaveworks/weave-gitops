@@ -11,12 +11,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/dnaeon/go-vcr/cassette"
-
 	"github.com/dnaeon/go-vcr/recorder"
-
 	"github.com/fluxcd/go-git-providers/github"
-
 	"github.com/fluxcd/go-git-providers/gitprovider"
 
 	. "github.com/onsi/ginkgo"
@@ -136,6 +135,9 @@ func getAccounts() *accounts {
 }
 
 func TestMain(m *testing.M) {
+
+	fmt.Println("BEFORE MAIN")
+
 	accounts := getAccounts()
 
 	var err error
@@ -172,6 +174,8 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println("AFTER MAIN")
 
 	os.Exit(exitCode)
 }
@@ -365,28 +369,35 @@ func newGithubTestClient(customTransportFactory gitprovider.ChainableRoundTrippe
 //	})
 //}
 //
-//func TestGetAccountType(t *testing.T) {
-//	accounts := getAccounts()
-//
-//	ownerType, err := GetAccountType(githubTestClient, accounts.GithubOrgName)
-//
-//	assert.NoError(t, err)
-//	assert.Equal(t, OrgAccountType, ownerType)
-//}
-//
-//var _ = Describe("Get Account Type Tests", func() {
-//	It("Verify GetAccountType succeed for user account ", func() {
-//
-//		accounts := getAccounts()
-//
-//		accountType, err := GetAccountType(githubTestClient, accounts.GithubUserName)
-//		Expect(err).ShouldNot(HaveOccurred())
-//		Expect(accountType).Should(Equal(UserAccountType))
-//	})
-//})
+func TestGetAccountType(t *testing.T) {
+
+	fmt.Println("GetAccountType--Test-0")
+
+	accounts := getAccounts()
+
+	ownerType, err := GetAccountType(githubTestClient, accounts.GithubOrgName)
+
+	assert.NoError(t, err)
+	assert.Equal(t, OrgAccountType, ownerType)
+}
+
+var _ = Describe("Get Account Type Tests", func() {
+	It("Verify GetAccountType succeed for user account ", func() {
+
+		fmt.Println("GetAccountType--Test-1")
+
+		accounts := getAccounts()
+
+		accountType, err := GetAccountType(githubTestClient, accounts.GithubUserName)
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(accountType).Should(Equal(UserAccountType))
+	})
+})
 
 var _ = Describe("Get User repo info", func() {
 	It("Succeed on getting user repo info", func() {
+
+		fmt.Println("GetAccountType--Test-2")
 
 		accounts := getAccounts()
 
