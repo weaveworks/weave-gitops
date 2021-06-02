@@ -31,6 +31,11 @@ var gitProviderHandler interface{} = defaultGitProviderHandler{}
 
 type defaultGitProviderHandler struct{}
 
+const (
+	notFoundError       = "404 Not Found"
+	badCredentialsError = "401 Bad credentials"
+)
+
 func (h defaultGitProviderHandler) CreateRepository(name string, owner string, private bool) error {
 	// TODO: detect or receive the provider when necessary
 	provider, err := GithubProvider()
@@ -89,7 +94,9 @@ func GetAccountType(provider gitprovider.Client, owner string) (ProviderAccountT
 	})
 
 	if err != nil {
-		if errors.Is(err, gitprovider.ErrNotFound) || (err == nil && (strings.Contains(err.Error(), "401 Bad credentials") || strings.Contains(err.Error(), "404 Not Found"))) {
+		if errors.Is(err, gitprovider.ErrNotFound) ||
+			strings.Contains(err.Error(), badCredentialsError) ||
+			strings.Contains(err.Error(), notFoundError) {
 			return UserAccountType, nil
 		}
 

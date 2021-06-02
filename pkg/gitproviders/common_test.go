@@ -371,8 +371,6 @@ func newGithubTestClient(customTransportFactory gitprovider.ChainableRoundTrippe
 //
 func TestGetAccountType(t *testing.T) {
 
-	fmt.Println("GetAccountType--Test-0")
-
 	accounts := getAccounts()
 
 	ownerType, err := GetAccountType(githubTestClient, accounts.GithubOrgName)
@@ -384,8 +382,6 @@ func TestGetAccountType(t *testing.T) {
 var _ = Describe("Get Account Type Tests", func() {
 	It("Verify GetAccountType succeed for user account ", func() {
 
-		fmt.Println("GetAccountType--Test-1")
-
 		accounts := getAccounts()
 
 		accountType, err := GetAccountType(githubTestClient, accounts.GithubUserName)
@@ -396,8 +392,6 @@ var _ = Describe("Get Account Type Tests", func() {
 
 var _ = Describe("Get User repo info", func() {
 	It("Succeed on getting user repo info", func() {
-
-		fmt.Println("GetAccountType--Test-2")
 
 		accounts := getAccounts()
 
