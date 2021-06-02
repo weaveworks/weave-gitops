@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/fluxcd/go-git-providers/gitlab"
 
 	"github.com/dnaeon/go-vcr/cassette"
@@ -138,8 +140,6 @@ func getAccounts() *accounts {
 
 func TestMain(m *testing.M) {
 
-	fmt.Println("BEFORE MAIN")
-
 	accounts := getAccounts()
 
 	var err error
@@ -177,8 +177,6 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 
-	fmt.Println("AFTER MAIN")
-
 	os.Exit(exitCode)
 }
 
@@ -210,185 +208,184 @@ func newGitlabTestClient(customTransportFactory gitprovider.ChainableRoundTrippe
 	)
 }
 
-//func Test_CreatePullRequestToOrgRepo(t *testing.T) {
-//	accounts := getAccounts()
-//
-//	providers := []struct {
-//		provider string
-//		client   gitprovider.Client
-//		domain   string
-//		orgName  string
-//		userName string
-//	}{
-//		{"github", githubTestClient, github.DefaultDomain, accounts.GithubOrgName, accounts.GithubUserName},
-//		{"gitlab", gitlabTestClient, gitlab.DefaultDomain, accounts.GitlabOrgName, accounts.GitlabUserName},
-//	}
-//
-//	testNameFormat := "create pr for %s account [%s]"
-//	for _, p := range providers {
-//		testName := fmt.Sprintf(testNameFormat, "org", p.provider)
-//		t.Run(testName, func(t *testing.T) {
-//			CreateTestPullRequestToOrgRepo(t, p.client, p.domain, p.orgName)
-//		})
-//		testName = fmt.Sprintf(testNameFormat, "user", p.provider)
-//		t.Run(testName, func(t *testing.T) {
-//			CreateTestPullRequestToUserRepo(t, p.client, p.domain, p.userName)
-//		})
-//
-//	}
-//}
-//
-//func TestCreateRepository(t *testing.T) {
-//	accounts := getAccounts()
-//
-//	privateOrgRepoName := "private-test-org-repo-0"
-//	publicOrgRepoName := "public-test-org-repo-0"
-//	userRepoName := "test-user-repo-0"
-//
-//	SetGithubProvider(githubTestClient)
-//
-//	err := CreateRepository(privateOrgRepoName, accounts.GithubOrgName, true)
-//	assert.NoError(t, err)
-//
-//	err = CreateRepository(publicOrgRepoName, accounts.GithubOrgName, false)
-//	assert.NoError(t, err)
-//
-//	err = CreateRepository(userRepoName, accounts.GithubUserName, true)
-//	assert.NoError(t, err)
-//
-//	t.Cleanup(func() {
-//		ctx := context.Background()
-//		defer ctx.Done()
-//		orgRepoRef := NewOrgRepositoryRef(github.DefaultDomain, accounts.GithubOrgName, privateOrgRepoName)
-//		orgRepo, err := githubTestClient.OrgRepositories().Get(ctx, orgRepoRef)
-//		assert.NoError(t, err)
-//		err = orgRepo.Delete(ctx)
-//		assert.NoError(t, err)
-//
-//		orgRepoRef = NewOrgRepositoryRef(github.DefaultDomain, accounts.GithubOrgName, publicOrgRepoName)
-//		orgRepo, err = githubTestClient.OrgRepositories().Get(ctx, orgRepoRef)
-//		assert.NoError(t, err)
-//		err = orgRepo.Delete(ctx)
-//		assert.NoError(t, err)
-//
-//		userRepoRef := NewUserRepositoryRef(github.DefaultDomain, accounts.GithubUserName, userRepoName)
-//		userRepo, err := githubTestClient.UserRepositories().Get(ctx, userRepoRef)
-//		assert.NoError(t, err)
-//		err = userRepo.Delete(ctx)
-//		assert.NoError(t, err)
-//	})
-//}
-//
-//func CreateTestPullRequestToOrgRepo(t *testing.T, client gitprovider.Client, domain string, orgName string) {
-//	repoName := "test-org-repo"
-//	branchName := "test-org-branch"
-//
-//	doesNotExistOrg := "doesnotexists"
-//
-//	orgRepoRef := NewOrgRepositoryRef(domain, orgName, repoName)
-//	doesNotExistOrgRepoRef := NewOrgRepositoryRef(domain, doesNotExistOrg, repoName)
-//	repoInfo := NewRepositoryInfo("test org repository", gitprovider.RepositoryVisibilityPrivate)
-//	opts := &gitprovider.RepositoryCreateOptions{
-//		AutoInit: gitprovider.BoolVar(true),
-//	}
-//
-//	err := CreateOrgRepository(client, orgRepoRef, repoInfo, opts)
-//	assert.NoError(t, err)
-//
-//	err = CreateOrgRepository(client, doesNotExistOrgRepoRef, repoInfo, opts)
-//	assert.Error(t, err)
-//
-//	path := "setup/config.yaml"
-//	content := "init content"
-//	files := []gitprovider.CommitFile{
-//		{
-//			Path:    &path,
-//			Content: &content,
-//		},
-//	}
-//
-//	commitMessage := "added config files"
-//	prTitle := "config files"
-//	prDescription := "test description"
-//
-//	err = CreatePullRequestToOrgRepo(client, orgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
-//	assert.NoError(t, err)
-//
-//	err = CreatePullRequestToOrgRepo(client, orgRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
-//	assert.Error(t, err)
-//
-//	err = CreatePullRequestToOrgRepo(client, doesNotExistOrgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
-//	assert.Error(t, err)
-//
-//	t.Cleanup(func() {
-//		ctx := context.Background()
-//		org, err := client.OrgRepositories().Get(ctx, orgRepoRef)
-//		assert.NoError(t, err)
-//		fmt.Println("Deleting repository ", orgRepoRef.RepositoryName)
-//		err = org.Delete(ctx)
-//		assert.NoError(t, err)
-//	})
-//}
-//
-//func CreateTestPullRequestToUserRepo(t *testing.T, client gitprovider.Client, domain string, userAccount string) {
-//	repoName := "test-user-repo"
-//	branchName := "test-user-branch"
-//
-//	doesnotExistUserAccount := "doesnotexists"
-//
-//	userRepoRef := NewUserRepositoryRef(domain, userAccount, repoName)
-//	doesNotExistsUserRepoRef := NewUserRepositoryRef(domain, doesnotExistUserAccount, repoName)
-//	repoInfo := NewRepositoryInfo("test user repository", gitprovider.RepositoryVisibilityPrivate)
-//	opts := &gitprovider.RepositoryCreateOptions{
-//		AutoInit: gitprovider.BoolVar(true),
-//	}
-//
-//	err := CreateUserRepository(client, userRepoRef, repoInfo, opts)
-//	assert.NoError(t, err)
-//
-//	err = CreateUserRepository(client, doesNotExistsUserRepoRef, repoInfo, opts)
-//	assert.Error(t, err)
-//
-//	path := "setup/config.yaml"
-//	content := "init content"
-//	files := []gitprovider.CommitFile{
-//		{
-//			Path:    &path,
-//			Content: &content,
-//		},
-//	}
-//
-//	commitMessage := "added config files"
-//	prTitle := "config files"
-//	prDescription := "test description"
-//
-//	err = CreatePullRequestToUserRepo(client, userRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
-//	assert.NoError(t, err)
-//
-//	err = CreatePullRequestToUserRepo(client, userRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
-//	assert.Error(t, err)
-//
-//	err = CreatePullRequestToUserRepo(client, doesNotExistsUserRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
-//	assert.Error(t, err)
-//
-//	t.Cleanup(func() {
-//		ctx := context.Background()
-//		user, err := client.UserRepositories().Get(ctx, userRepoRef)
-//		assert.NoError(t, err)
-//		err = user.Delete(ctx)
-//		assert.NoError(t, err)
-//	})
-//}
-//
-//func TestGetAccountType(t *testing.T) {
-//
-//	accounts := getAccounts()
-//
-//	ownerType, err := GetAccountType(githubTestClient, accounts.GithubOrgName)
-//
-//	assert.NoError(t, err)
-//	assert.Equal(t, OrgAccountType, ownerType)
-//}
+func Test_CreatePullRequestToOrgRepo(t *testing.T) {
+	accounts := getAccounts()
+
+	providers := []struct {
+		provider string
+		client   gitprovider.Client
+		domain   string
+		orgName  string
+		userName string
+	}{
+		{"github", githubTestClient, github.DefaultDomain, accounts.GithubOrgName, accounts.GithubUserName},
+		{"gitlab", gitlabTestClient, gitlab.DefaultDomain, accounts.GitlabOrgName, accounts.GitlabUserName},
+	}
+
+	testNameFormat := "create pr for %s account [%s]"
+	for _, p := range providers {
+		testName := fmt.Sprintf(testNameFormat, "org", p.provider)
+		t.Run(testName, func(t *testing.T) {
+			CreateTestPullRequestToOrgRepo(t, p.client, p.domain, p.orgName)
+		})
+		testName = fmt.Sprintf(testNameFormat, "user", p.provider)
+		t.Run(testName, func(t *testing.T) {
+			CreateTestPullRequestToUserRepo(t, p.client, p.domain, p.userName)
+		})
+
+	}
+}
+
+func TestCreateRepository(t *testing.T) {
+	accounts := getAccounts()
+
+	privateOrgRepoName := "private-test-org-repo-0"
+	publicOrgRepoName := "public-test-org-repo-0"
+	userRepoName := "test-user-repo-0"
+
+	SetGithubProvider(githubTestClient)
+
+	err := CreateRepository(privateOrgRepoName, accounts.GithubOrgName, true)
+	assert.NoError(t, err)
+
+	err = CreateRepository(publicOrgRepoName, accounts.GithubOrgName, false)
+	assert.NoError(t, err)
+
+	err = CreateRepository(userRepoName, accounts.GithubUserName, true)
+	assert.NoError(t, err)
+
+	t.Cleanup(func() {
+		ctx := context.Background()
+		defer ctx.Done()
+		orgRepoRef := NewOrgRepositoryRef(github.DefaultDomain, accounts.GithubOrgName, privateOrgRepoName)
+		orgRepo, err := githubTestClient.OrgRepositories().Get(ctx, orgRepoRef)
+		assert.NoError(t, err)
+		err = orgRepo.Delete(ctx)
+		assert.NoError(t, err)
+
+		orgRepoRef = NewOrgRepositoryRef(github.DefaultDomain, accounts.GithubOrgName, publicOrgRepoName)
+		orgRepo, err = githubTestClient.OrgRepositories().Get(ctx, orgRepoRef)
+		assert.NoError(t, err)
+		err = orgRepo.Delete(ctx)
+		assert.NoError(t, err)
+
+		userRepoRef := NewUserRepositoryRef(github.DefaultDomain, accounts.GithubUserName, userRepoName)
+		userRepo, err := githubTestClient.UserRepositories().Get(ctx, userRepoRef)
+		assert.NoError(t, err)
+		err = userRepo.Delete(ctx)
+		assert.NoError(t, err)
+	})
+}
+
+func CreateTestPullRequestToOrgRepo(t *testing.T, client gitprovider.Client, domain string, orgName string) {
+	repoName := "test-org-repo"
+	branchName := "test-org-branch"
+
+	doesNotExistOrg := "doesnotexists"
+
+	orgRepoRef := NewOrgRepositoryRef(domain, orgName, repoName)
+	doesNotExistOrgRepoRef := NewOrgRepositoryRef(domain, doesNotExistOrg, repoName)
+	repoInfo := NewRepositoryInfo("test org repository", gitprovider.RepositoryVisibilityPrivate)
+	opts := &gitprovider.RepositoryCreateOptions{
+		AutoInit: gitprovider.BoolVar(true),
+	}
+
+	err := CreateOrgRepository(client, orgRepoRef, repoInfo, opts)
+	assert.NoError(t, err)
+
+	err = CreateOrgRepository(client, doesNotExistOrgRepoRef, repoInfo, opts)
+	assert.Error(t, err)
+
+	path := "setup/config.yaml"
+	content := "init content"
+	files := []gitprovider.CommitFile{
+		{
+			Path:    &path,
+			Content: &content,
+		},
+	}
+
+	commitMessage := "added config files"
+	prTitle := "config files"
+	prDescription := "test description"
+
+	err = CreatePullRequestToOrgRepo(client, orgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	assert.NoError(t, err)
+
+	err = CreatePullRequestToOrgRepo(client, orgRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
+	assert.Error(t, err)
+
+	err = CreatePullRequestToOrgRepo(client, doesNotExistOrgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	assert.Error(t, err)
+
+	t.Cleanup(func() {
+		ctx := context.Background()
+		org, err := client.OrgRepositories().Get(ctx, orgRepoRef)
+		assert.NoError(t, err)
+		err = org.Delete(ctx)
+		assert.NoError(t, err)
+	})
+}
+
+func CreateTestPullRequestToUserRepo(t *testing.T, client gitprovider.Client, domain string, userAccount string) {
+	repoName := "test-user-repo"
+	branchName := "test-user-branch"
+
+	doesnotExistUserAccount := "doesnotexists"
+
+	userRepoRef := NewUserRepositoryRef(domain, userAccount, repoName)
+	doesNotExistsUserRepoRef := NewUserRepositoryRef(domain, doesnotExistUserAccount, repoName)
+	repoInfo := NewRepositoryInfo("test user repository", gitprovider.RepositoryVisibilityPrivate)
+	opts := &gitprovider.RepositoryCreateOptions{
+		AutoInit: gitprovider.BoolVar(true),
+	}
+
+	err := CreateUserRepository(client, userRepoRef, repoInfo, opts)
+	assert.NoError(t, err)
+
+	err = CreateUserRepository(client, doesNotExistsUserRepoRef, repoInfo, opts)
+	assert.Error(t, err)
+
+	path := "setup/config.yaml"
+	content := "init content"
+	files := []gitprovider.CommitFile{
+		{
+			Path:    &path,
+			Content: &content,
+		},
+	}
+
+	commitMessage := "added config files"
+	prTitle := "config files"
+	prDescription := "test description"
+
+	err = CreatePullRequestToUserRepo(client, userRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	assert.NoError(t, err)
+
+	err = CreatePullRequestToUserRepo(client, userRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
+	assert.Error(t, err)
+
+	err = CreatePullRequestToUserRepo(client, doesNotExistsUserRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	assert.Error(t, err)
+
+	t.Cleanup(func() {
+		ctx := context.Background()
+		user, err := client.UserRepositories().Get(ctx, userRepoRef)
+		assert.NoError(t, err)
+		err = user.Delete(ctx)
+		assert.NoError(t, err)
+	})
+}
+
+func TestGetAccountType(t *testing.T) {
+
+	accounts := getAccounts()
+
+	ownerType, err := GetAccountType(githubTestClient, accounts.GithubOrgName)
+
+	assert.NoError(t, err)
+	assert.Equal(t, OrgAccountType, ownerType)
+}
 
 var _ = Describe("Get Account Type Tests", func() {
 	It("Verify GetAccountType succeed for user account ", func() {
