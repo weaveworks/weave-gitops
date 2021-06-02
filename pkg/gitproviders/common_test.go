@@ -310,6 +310,7 @@ func CreateTestPullRequestToOrgRepo(t *testing.T, client gitprovider.Client, dom
 		ctx := context.Background()
 		org, err := client.OrgRepositories().Get(ctx, orgRepoRef)
 		assert.NoError(t, err)
+		fmt.Println("Deleting repository ", orgRepoRef.RepositoryName)
 		err = org.Delete(ctx)
 		assert.NoError(t, err)
 	})
