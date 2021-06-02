@@ -241,12 +241,16 @@ func Test_CreatePullRequestToOrgRepo(t *testing.T) {
 func TestCreateRepository(t *testing.T) {
 	accounts := getAccounts()
 
-	orgRepoName := "test-org-repo-0"
+	privateOrgRepoName := "private-test-org-repo-0"
+	publicOrgRepoName := "public-test-org-repo-0"
 	userRepoName := "test-user-repo-0"
 
 	SetGithubProvider(githubTestClient)
 
-	err := CreateRepository(orgRepoName, accounts.GithubOrgName, true)
+	err := CreateRepository(privateOrgRepoName, accounts.GithubOrgName, true)
+	assert.NoError(t, err)
+
+	err = CreateRepository(publicOrgRepoName, accounts.GithubOrgName, false)
 	assert.NoError(t, err)
 
 	err = CreateRepository(userRepoName, accounts.GithubUserName, true)
@@ -255,8 +259,14 @@ func TestCreateRepository(t *testing.T) {
 	t.Cleanup(func() {
 		ctx := context.Background()
 		defer ctx.Done()
-		orgRepoRef := NewOrgRepositoryRef(github.DefaultDomain, accounts.GithubOrgName, orgRepoName)
+		orgRepoRef := NewOrgRepositoryRef(github.DefaultDomain, accounts.GithubOrgName, privateOrgRepoName)
 		orgRepo, err := githubTestClient.OrgRepositories().Get(ctx, orgRepoRef)
+		assert.NoError(t, err)
+		err = orgRepo.Delete(ctx)
+		assert.NoError(t, err)
+
+		orgRepoRef = NewOrgRepositoryRef(github.DefaultDomain, accounts.GithubOrgName, publicOrgRepoName)
+		orgRepo, err = githubTestClient.OrgRepositories().Get(ctx, orgRepoRef)
 		assert.NoError(t, err)
 		err = orgRepo.Delete(ctx)
 		assert.NoError(t, err)
@@ -408,6 +418,9 @@ var _ = Describe("Get User repo info", func() {
 
 		err = GetRepoInfo(githubTestClient, UserAccountType, accounts.GithubUserName, repoName)
 		Expect(err).ShouldNot(HaveOccurred())
+
+		err = GetRepoInfo(githubTestClient, UserAccountType, accounts.GithubUserName, "repoNotExisted")
+		Expect(err).Should(HaveOccurred())
 
 		ctx := context.Background()
 		user, err := githubTestClient.UserRepositories().Get(ctx, userRepoRef)
