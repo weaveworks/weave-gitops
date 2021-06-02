@@ -8,7 +8,10 @@ on:
 name: Deploy
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
@@ -21,7 +24,7 @@ jobs:
     - name: Build UI Assets
       run: make cmd/ui/dist/index.html
     - name: build
-      run: make
+      run: make all BINARY_NAME=wego-${{matrix.os}}
     - name: Store wego binaries
       uses: actions/upload-artifact@v2
       with:
@@ -86,6 +89,7 @@ jobs:
         path: bin
     - name: Change bin permissions
       run: |
+        cp bin/wego-ubuntu-latest bin/wego
         chmod +x bin/wego
         ls -la bin
     - name: Download dependecies
