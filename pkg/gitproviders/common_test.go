@@ -25,7 +25,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var cacheGithubRecorder, cacheGitlabRecorder *recorder.Recorder
+var githubTestClient, gitlabTestClient gitprovider.Client
 
 var (
 	GithubOrgTestName  = "weaveworks"
@@ -141,12 +141,22 @@ func TestMain(m *testing.M) {
 	accounts := getAccounts()
 
 	var err error
-	cacheGithubRecorder, err = NewRecorder("github", accounts)
+	cacheGithubRecorder, err := NewRecorder("github", accounts)
 	if err != nil {
 		panic(err)
 	}
 
-	cacheGitlabRecorder, err = NewRecorder("gitlab", accounts)
+	cacheGitlabRecorder, err := NewRecorder("gitlab", accounts)
+	if err != nil {
+		panic(err)
+	}
+
+	githubTestClient, err = newGithubTestClient(SetRecorder(cacheGithubRecorder))
+	if err != nil {
+		panic(err)
+	}
+
+	gitlabTestClient, err = newGitlabTestClient(SetRecorder(cacheGitlabRecorder))
 	if err != nil {
 		panic(err)
 	}
@@ -199,12 +209,6 @@ func newGitlabTestClient(customTransportFactory gitprovider.ChainableRoundTrippe
 func Test_CreatePullRequestToOrgRepo(t *testing.T) {
 	accounts := getAccounts()
 
-	githubTestClient, err := newGithubTestClient(SetRecorder(cacheGithubRecorder))
-	assert.NoError(t, err)
-
-	gitlabTestClient, err := newGitlabTestClient(SetRecorder(cacheGitlabRecorder))
-	assert.NoError(t, err)
-
 	providers := []struct {
 		provider string
 		client   gitprovider.Client
@@ -235,13 +239,10 @@ func TestCreateRepository(t *testing.T) {
 
 	repoName := "test-org-repo"
 
-	githubTestClient, err := newGithubTestClient(SetRecorder(cacheGithubRecorder))
-	assert.NoError(t, err)
-
 	SetGithubProvider(githubTestClient)
 	defer SetGithubProvider(nil)
 
-	err = CreateRepository(repoName, accounts.GithubOrgName, true)
+	err := CreateRepository(repoName, accounts.GithubOrgName, true)
 	assert.NoError(t, err)
 }
 
@@ -348,9 +349,6 @@ func CreateTestPullRequestToUserRepo(t *testing.T, client gitprovider.Client, do
 func TestGetAccountType(t *testing.T) {
 	accounts := getAccounts()
 
-	githubTestClient, err := newGithubTestClient(SetRecorder(cacheGithubRecorder))
-	assert.NoError(t, err)
-
 	ownerType, err := GetAccountType(githubTestClient, accounts.GithubOrgName)
 
 	assert.NoError(t, err)
@@ -361,8 +359,6 @@ var _ = Describe("Get Account Type Tests", func() {
 	It("Verify GetAccountType succeed for user account ", func() {
 
 		accounts := getAccounts()
-		githubTestClient, err := newGithubTestClient(SetRecorder(cacheGithubRecorder))
-		Expect(err).ShouldNot(HaveOccurred())
 
 		accountType, err := GetAccountType(githubTestClient, accounts.GithubUserName)
 		Expect(err).ShouldNot(HaveOccurred())
@@ -374,8 +370,6 @@ var _ = Describe("Get User repo info", func() {
 	It("Succeed on getting user repo info", func() {
 
 		accounts := getAccounts()
-		githubTestClient, err := newGithubTestClient(SetRecorder(cacheGithubRecorder))
-		Expect(err).ShouldNot(HaveOccurred())
 
 		repoName := "test-user-repo"
 		userRepoRef := NewUserRepositoryRef(github.DefaultDomain, accounts.GithubUserName, repoName)
@@ -384,7 +378,7 @@ var _ = Describe("Get User repo info", func() {
 			AutoInit: gitprovider.BoolVar(true),
 		}
 
-		err = CreateUserRepository(githubTestClient, userRepoRef, repoInfo, opts)
+		err := CreateUserRepository(githubTestClient, userRepoRef, repoInfo, opts)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		err = GetRepoInfo(githubTestClient, UserAccountType, accounts.GithubUserName, repoName)
