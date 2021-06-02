@@ -39,7 +39,7 @@ func CheckVersion() (string, error) {
 		return "", fmt.Errorf("Unable to retrieve latest version: %v", err)
 	}
 
-	if err == nil && checkResponse.Outdated {
+	if checkResponse.Outdated {
 		return fmt.Sprintf("wego version %s is available; please update at %s",
 			checkResponse.CurrentVersion, checkResponse.CurrentDownloadURL), nil
 	}
