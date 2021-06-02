@@ -3,8 +3,8 @@ package version
 import (
 	"fmt"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/go-checkpoint"
+	"github.com/weaveworks/weave-gitops/pkg/version"
 
 	"github.com/spf13/cobra"
 )
@@ -22,16 +22,27 @@ var Cmd = &cobra.Command{
 }
 
 func runCmd(cmd *cobra.Command, args []string) {
-	if checkResponse, err := checkpoint.Check(&checkpoint.CheckParams{
+	fmt.Println("Current Version:", Version)
+	fmt.Println("GitCommit:", GitCommit)
+	fmt.Println("BuildTime:", BuildTime)
+	fmt.Println("Branch:", Branch)
+	fmt.Println("Flux Version:", version.FluxVersion)
+}
+
+func CheckVersion() (string, error) {
+	checkResponse, err := checkpoint.Check(&checkpoint.CheckParams{
 		Product: "weave-gitops",
 		Version: Version,
-	}); err == nil && checkResponse.Outdated {
-		log.Infof("wego version %s is available; please update at %s",
-			checkResponse.CurrentVersion, checkResponse.CurrentDownloadURL)
-	} else {
-		fmt.Println("Version", Version)
-		fmt.Println("GitCommit:", GitCommit)
-		fmt.Println("BuildTime:", BuildTime)
-		fmt.Println("Branch:", Branch)
+	})
+
+	if err != nil {
+		return "", fmt.Errorf("Unable to retrieve latest version: %v", err)
 	}
+
+	if checkResponse.Outdated {
+		return fmt.Sprintf("wego version %s is available; please update at %s",
+			checkResponse.CurrentVersion, checkResponse.CurrentDownloadURL), nil
+	}
+
+	return "", nil
 }
