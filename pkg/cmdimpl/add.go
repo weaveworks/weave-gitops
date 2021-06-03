@@ -432,7 +432,7 @@ func Add(args []string, allParams AddParamSet, deps *AddDependencies) error {
 		return wrapError(err, "error generating manifest")
 	}
 
-	appSubdir := filepath.Join(wegoRepoDir, "apps", params.Name)
+	appSubdir := filepath.Join("apps", params.Name)
 	if err := os.MkdirAll(appSubdir, 0755); err != nil {
 		return wrapError(err, "could not make subdir")
 	}
@@ -441,15 +441,15 @@ func Add(args []string, allParams AddParamSet, deps *AddDependencies) error {
 	manifestsPath := filepath.Join(appSubdir, fmt.Sprintf("%s-%s.yaml", params.DeploymentType, params.Name))
 	appYamlPath := filepath.Join(appSubdir, "app.yaml")
 
-	if err := ioutil.WriteFile(sourcePath, source, 0644); err != nil {
+	if err := gitClient.Write(sourcePath, source); err != nil {
 		return wrapError(err, "could not write source")
 	}
 
-	if err := ioutil.WriteFile(manifestsPath, appManifests, 0644); err != nil {
+	if err := gitClient.Write(manifestsPath, appManifests); err != nil {
 		return wrapError(err, "could not write app manifests")
 	}
 
-	if err := ioutil.WriteFile(appYamlPath, populated.Bytes(), 0644); err != nil {
+	if err := gitClient.Write(appYamlPath, populated.Bytes()); err != nil {
 		return wrapError(err, "could not write app yaml populated template")
 	}
 

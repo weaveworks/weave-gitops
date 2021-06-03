@@ -95,6 +95,7 @@ func (g *GoGit) Init(path, url, branch string) (bool, error) {
 }
 
 func (g *GoGit) Clone(ctx context.Context, path, url, branch string) (bool, error) {
+	g.path = path
 	branchRef := plumbing.NewBranchReferenceName(branch)
 	r, err := gogit.PlainCloneContext(ctx, path, false, &gogit.CloneOptions{
 		URL:           url,
