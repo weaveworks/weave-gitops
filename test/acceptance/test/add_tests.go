@@ -119,7 +119,7 @@ func verifyWorkloadIsDeployed(workloadName string, workloadNamespace string) {
 	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
 }
 
-var _ = FDescribe("Weave GitOps Add Tests", func() {
+var _ = Describe("Weave GitOps Add Tests", func() {
 	var appRepoName string
 	var wegoRepoName string
 
@@ -152,7 +152,7 @@ var _ = FDescribe("Weave GitOps Add Tests", func() {
 		private := true
 		appManifestFilePath := "./data/nginx.yaml"
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
-		addCommand := fmt.Sprintf("add . ")
+		addCommand := "add . "
 
 		By("When I create a private repo with my app workload", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
@@ -217,12 +217,12 @@ var _ = FDescribe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify that wego can deploy an app to the cluster after it's added to the repo", func() {
+	It("Verify that wego can deploy an app after it is setup with an empty repo initially", func() {
 		var repoAbsolutePath string
 		private := true
 		appManifestFilePath := "./data/nginx.yaml"
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
-		addCommand := fmt.Sprintf("add . ")
+		addCommand := "add . --private=true"
 
 		By("When I create an empty private repo", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
