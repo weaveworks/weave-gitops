@@ -9,6 +9,10 @@ import (
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/go-git/go-billy/v5/memfs"
+	gogit "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/storage/memory"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -217,7 +221,7 @@ var _ = Describe("Dry Run Add Test", func() {
 
 					err := Add([]string{"."},
 						AddParamSet{
-							Name:           "wanda",
+							Name:           "",
 							Url:            "ssh://git@github.com/foobar/quux.git",
 							Path:           "./",
 							Branch:         "main",
@@ -300,12 +304,21 @@ var _ = Describe("Add repo with custom access test", func() {
 			_ = override.WithOverrides(
 				func() override.Result {
 					deps := &AddDependencies{
-						GitClient: &fakeGitClient,
+						GitClient: &gitfakes.FakeGit{
+							OpenStub: func(s string) (*gogit.Repository, error) {
+								r, _ := gogit.Init(memory.NewStorage(), memfs.New())
+								r.CreateRemote(&config.RemoteConfig{
+									Name: "origin",
+									URLs: []string{"http://foo/foo.git"},
+								})
+								return r, nil
+							},
+						},
 					}
 					err := Add([]string{"."},
 						AddParamSet{
 							Name:           "wanda",
-							Url:            "ssh://git@github.com/foobar/quux.git",
+							Url:            "",
 							Path:           "./",
 							Branch:         "main",
 							PrivateKey:     privateKeyFileName,

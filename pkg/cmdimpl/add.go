@@ -69,7 +69,7 @@ func getClusterRepoName() (string, error) {
 	return clusterName + "-wego", nil
 }
 
-func updateParametersIfNecessary() error {
+func updateParametersIfNecessary(gitClient git.Git) error {
 	if params.Name == "" {
 		repoPath, err := filepath.Abs(params.Dir)
 		if err != nil {
@@ -87,7 +87,7 @@ func updateParametersIfNecessary() error {
 	}
 
 	if params.Url == "" {
-		gitClient := git.New(nil)
+		// gitClient := git.New(nil)
 		repo, err := gitClient.Open(params.Dir)
 		if err != nil {
 			return wrapError(err, fmt.Sprintf("failed to open repository: %s", params.Dir))
@@ -324,7 +324,7 @@ func Add(args []string, allParams AddParamSet, deps *AddDependencies) error {
 	params = allParams
 	params.Dir = args[0]
 	fmt.Printf("Updating parameters from environment... ")
-	if err := updateParametersIfNecessary(); err != nil {
+	if err := updateParametersIfNecessary(deps.GitClient); err != nil {
 		return wrapError(err, "could not update parameters")
 	}
 	fmt.Printf("done\n\n")
