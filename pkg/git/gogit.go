@@ -145,7 +145,7 @@ func (g *GoGit) Commit(message Commit) (string, error) {
 
 	wt, err := g.repository.Worktree()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to open the worktree: %s", err)
 	}
 
 	status, err := wt.Status()

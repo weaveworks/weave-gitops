@@ -90,7 +90,7 @@ func updateParametersIfNecessary() error {
 		gitClient := git.New(nil)
 		repo, err := gitClient.Open(params.Dir)
 		if err != nil {
-			return err
+			return wrapError(err, fmt.Sprintf("failed to open repository: %s", params.Dir))
 		}
 
 		remote, err := repo.Remote("origin")
@@ -99,6 +99,10 @@ func updateParametersIfNecessary() error {
 		}
 
 		urls := remote.Config().URLs
+
+		if len(urls) == 0 {
+			return fmt.Errorf("remote config in %s does not have an url", params.Dir)
+		}
 
 		params.Url = urls[0]
 	}
@@ -395,62 +399,58 @@ func Add(args []string, allParams AddParamSet, deps *AddDependencies) error {
 		if err := utils.CallCommandForEffectWithInputPipe(kubectlApply, string(wegoKust)); err != nil {
 			return wrapError(err, "could not apply wego kustomization")
 		}
-	}
 
-	// Create app.yaml
-	t, err := template.New("appYaml").Parse(appYamlTemplate)
-	if err != nil {
-		return wrapError(err, "could not parse app yaml template")
-	}
+		// Create app.yaml
+		t, err := template.New("appYaml").Parse(appYamlTemplate)
+		if err != nil {
+			return wrapError(err, "could not parse app yaml template")
+		}
 
-	var populated bytes.Buffer
-	err = t.Execute(&populated, struct {
-		AppName string
-		AppPath string
-		AppURL  string
-	}{params.Name, params.Path, params.Url})
-	if err != nil {
-		return wrapError(err, "could not execute populated template")
-	}
+		var populated bytes.Buffer
+		err = t.Execute(&populated, struct {
+			AppName string
+			AppPath string
+			AppURL  string
+		}{params.Name, params.Path, params.Url})
+		if err != nil {
+			return wrapError(err, "could not execute populated template")
+		}
 
-	// Create flux custom resources for new repo being added
-	source, err := generateSourceManifest()
-	if err != nil {
-		return wrapError(err, "could not generate source manifest")
-	}
+		// Create flux custom resources for new repo being added
+		source, err := generateSourceManifest()
+		if err != nil {
+			return wrapError(err, "could not generate source manifest")
+		}
 
-	var appManifests []byte
-	switch params.DeploymentType {
-	case string(DeployTypeHelm):
-		appManifests, err = generateHelmManifest()
-	case string(DeployTypeKustomize):
-		appManifests, err = generateKustomizeManifest()
-	default:
-		return fmt.Errorf("deployment type not supported: %s", params.DeploymentType)
-	}
-	if err != nil {
-		return wrapError(err, "error generating manifest")
-	}
+		var appManifests []byte
+		switch params.DeploymentType {
+		case string(DeployTypeHelm):
+			appManifests, err = generateHelmManifest()
+		case string(DeployTypeKustomize):
+			appManifests, err = generateKustomizeManifest()
+		default:
+			return fmt.Errorf("deployment type not supported: %s", params.DeploymentType)
+		}
+		if err != nil {
+			return wrapError(err, "error generating manifest")
+		}
 
-	appSubdir := filepath.Join("apps", params.Name)
-	if err := os.MkdirAll(appSubdir, 0755); err != nil {
-		return wrapError(err, "could not make subdir")
-	}
+		appSubdir := filepath.Join("apps", params.Name)
+		sourcePath := filepath.Join(appSubdir, "source-"+params.Name+".yaml")
+		manifestsPath := filepath.Join(appSubdir, fmt.Sprintf("%s-%s.yaml", params.DeploymentType, params.Name))
+		appYamlPath := filepath.Join(appSubdir, "app.yaml")
 
-	sourcePath := filepath.Join(appSubdir, "source-"+params.Name+".yaml")
-	manifestsPath := filepath.Join(appSubdir, fmt.Sprintf("%s-%s.yaml", params.DeploymentType, params.Name))
-	appYamlPath := filepath.Join(appSubdir, "app.yaml")
+		if err := gitClient.Write(sourcePath, source); err != nil {
+			return wrapError(err, "could not write source")
+		}
 
-	if err := gitClient.Write(sourcePath, source); err != nil {
-		return wrapError(err, "could not write source")
-	}
+		if err := gitClient.Write(manifestsPath, appManifests); err != nil {
+			return wrapError(err, "could not write app manifests")
+		}
 
-	if err := gitClient.Write(manifestsPath, appManifests); err != nil {
-		return wrapError(err, "could not write app manifests")
-	}
-
-	if err := gitClient.Write(appYamlPath, populated.Bytes()); err != nil {
-		return wrapError(err, "could not write app yaml populated template")
+		if err := gitClient.Write(appYamlPath, populated.Bytes()); err != nil {
+			return wrapError(err, "could not write app yaml populated template")
+		}
 	}
 
 	fmt.Fprintf(shims.Stdout(), "Commiting and pushing wego resources for application...\n")
