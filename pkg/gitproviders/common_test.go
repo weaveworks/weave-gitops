@@ -384,7 +384,7 @@ func TestGetAccountType(t *testing.T) {
 	ownerType, err := GetAccountType(githubTestClient, accounts.GithubOrgName)
 
 	assert.NoError(t, err)
-	assert.Equal(t, OrgAccountType, ownerType)
+	assert.Equal(t, AccountTypeOrg, ownerType)
 }
 
 var _ = Describe("Get Account Type Tests", func() {
@@ -394,7 +394,7 @@ var _ = Describe("Get Account Type Tests", func() {
 
 		accountType, err := GetAccountType(githubTestClient, accounts.GithubUserName)
 		Expect(err).ShouldNot(HaveOccurred())
-		Expect(accountType).Should(Equal(UserAccountType))
+		Expect(accountType).Should(Equal(AccountTypeUser))
 	})
 })
 
@@ -413,10 +413,10 @@ var _ = Describe("Get User repo info", func() {
 		err := CreateUserRepository(githubTestClient, userRepoRef, repoInfo, opts)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		err = GetRepoInfo(githubTestClient, UserAccountType, accounts.GithubUserName, repoName)
+		err = GetRepoInfo(githubTestClient, AccountTypeUser, accounts.GithubUserName, repoName)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		err = GetRepoInfo(githubTestClient, UserAccountType, accounts.GithubUserName, "repoNotExisted")
+		err = GetRepoInfo(githubTestClient, AccountTypeUser, accounts.GithubUserName, "repoNotExisted")
 		Expect(err).Should(HaveOccurred())
 
 		ctx := context.Background()
@@ -432,7 +432,7 @@ var _ = Describe("Test for Org repo info", func() {
 
 		accounts := getAccounts()
 
-		err := GetRepoInfo(githubTestClient, OrgAccountType, accounts.GithubOrgName, "repoNotExisted")
+		err := GetRepoInfo(githubTestClient, AccountTypeOrg, accounts.GithubOrgName, "repoNotExisted")
 		Expect(err).Should(HaveOccurred())
 
 	})
