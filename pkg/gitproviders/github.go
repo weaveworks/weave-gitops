@@ -8,8 +8,6 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 )
 
-const GITHUB_DOMAIN string = "github.com"
-
 var githubProvider gitprovider.Client
 
 func GithubProvider() (gitprovider.Client, error) {
@@ -47,9 +45,12 @@ func (h defaultGithubProviderHandler) GithubProvider() (gitprovider.Client, erro
 			github.WithOAuth2Token(token),
 			github.WithDestructiveAPICalls(true),
 		)
+		if err != nil {
+			return nil, fmt.Errorf("error getting github provider %s", err)
+		}
 	}
 
-	return githubProvider, err
+	return githubProvider, nil
 }
 
 func WithGithubProviderHandler(handler GithubProviderHandler, fun func() error) error {

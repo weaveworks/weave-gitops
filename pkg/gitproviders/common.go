@@ -4,15 +4,21 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"time"
+
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/override"
 )
 
+type ProviderAccountType string
+
 const (
-	OwnerTypeUser = "user"
-	OwnerTypeOrg  = "organization"
+	AccountTypeUser ProviderAccountType = "user"
+	AccountTypeOrg  ProviderAccountType = "organization"
 )
 
 // GitProvider Handler
@@ -32,14 +38,14 @@ func (h defaultGitProviderHandler) RepositoryExists(name string, owner string) (
 		return false, err
 	}
 
-	ownerType, err := getOwnerType(provider, owner)
+	ownerType, err := GetAccountType(provider, owner)
 	if err != nil {
 		return false, err
 	}
 
 	ctx := context.Background()
 
-	if ownerType == OwnerTypeOrg {
+	if ownerType == AccountTypeOrg {
 		orgRef := gitprovider.OrgRepositoryRef{
 			OrganizationRef: gitprovider.OrganizationRef{Domain: github.DefaultDomain, Organization: owner},
 			RepositoryName:  name,
@@ -80,19 +86,30 @@ func (h defaultGitProviderHandler) CreateRepository(name string, owner string, p
 		LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
 	}
 
-	ownerType, err := getOwnerType(provider, owner)
+	ownerType, err := GetAccountType(provider, owner)
 	if err != nil {
 		return err
 	}
 
-	if ownerType == OwnerTypeOrg {
+	if ownerType == AccountTypeOrg {
 		orgRef := NewOrgRepositoryRef(github.DefaultDomain, owner, name)
-
-		return CreateOrgRepository(provider, orgRef, repoInfo, repoCreateOpts)
+		if err = CreateOrgRepository(provider, orgRef, repoInfo, repoCreateOpts); err != nil {
+			return err
+		}
+	} else {
+		userRef := NewUserRepositoryRef(github.DefaultDomain, owner, name)
+		if err = CreateUserRepository(provider, userRef, repoInfo, repoCreateOpts); err != nil {
+			return err
+		}
 	}
 
-	userRef := NewUserRepositoryRef(github.DefaultDomain, owner, name)
-	return CreateUserRepository(provider, userRef, repoInfo, repoCreateOpts)
+	if err = utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
+		return GetRepoInfo(githubProvider, ownerType, owner, name)
+	}); err != nil {
+		return fmt.Errorf("could not verify repo existence %s", err)
+	}
+
+	return nil
 }
 
 func CreateRepository(name string, owner string, private bool) error {
@@ -103,7 +120,7 @@ func RepositoryExists(name string, owner string) (bool, error) {
 	return gitProviderHandler.(GitProviderHandler).RepositoryExists(name, owner)
 }
 
-func getOwnerType(provider gitprovider.Client, owner string) (string, error) {
+func GetAccountType(provider gitprovider.Client, owner string) (ProviderAccountType, error) {
 	ctx := context.Background()
 	defer ctx.Done()
 
@@ -114,13 +131,61 @@ func getOwnerType(provider gitprovider.Client, owner string) (string, error) {
 
 	if err != nil {
 		if errors.Is(err, gitprovider.ErrNotFound) {
-			return OwnerTypeUser, nil
+			return AccountTypeUser, nil
 		}
 
-		return "", err
+		return "", fmt.Errorf("could not get account type %s", err)
 	}
 
-	return OwnerTypeOrg, nil
+	return AccountTypeOrg, nil
+}
+
+func GetRepoInfo(provider gitprovider.Client, accountType ProviderAccountType, owner string, repoName string) error {
+	ctx := context.Background()
+	defer ctx.Done()
+
+	switch accountType {
+	case AccountTypeOrg:
+		if err := GetOrgRepo(provider, owner, repoName); err != nil {
+			return err
+		}
+	case AccountTypeUser:
+		if err := GetUserRepo(provider, owner, repoName); err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("unexpected account type %s", accountType)
+	}
+
+	return nil
+}
+
+func GetOrgRepo(provider gitprovider.Client, org string, repoName string) error {
+	ctx := context.Background()
+	defer ctx.Done()
+
+	orgRepoRef := NewOrgRepositoryRef(github.DefaultDomain, org, repoName)
+
+	_, err := provider.OrgRepositories().Get(ctx, orgRepoRef)
+	if err != nil {
+		return fmt.Errorf("error getting org repository %s", err)
+	}
+
+	return nil
+}
+
+func GetUserRepo(provider gitprovider.Client, user string, repoName string) error {
+	ctx := context.Background()
+	defer ctx.Done()
+
+	userRepoRef := NewUserRepositoryRef(github.DefaultDomain, user, repoName)
+
+	_, err := provider.UserRepositories().Get(ctx, userRepoRef)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func CreateOrgRepository(provider gitprovider.Client, orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
