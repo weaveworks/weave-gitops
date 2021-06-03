@@ -122,6 +122,7 @@ func verifyWorkloadIsDeployed(workloadName string, workloadNamespace string) {
 var _ = Describe("Weave GitOps Add Tests", func() {
 	var appRepoName string
 	var wegoRepoName string
+	var session *gexec.Session
 
 	BeforeEach(func() {
 
@@ -258,7 +259,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify 'wego add' cannot run without controllers installed", func() {
+	FIt("Verify 'wego add' cannot run without controllers installed", func() {
 		By("When I run wego add command", func() {
 			command := exec.Command("sh", "-c", fmt.Sprintf("%s add .", WEGO_BIN_PATH))
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
