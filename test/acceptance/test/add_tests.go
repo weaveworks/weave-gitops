@@ -257,4 +257,16 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), wegoRepoName)).Should(ContainSubstring("true"))
 		})
 	})
+
+	It("Verify 'wego add' cannot run without controllers installed", func() {
+		By("When I run wego add command", func() {
+			command := exec.Command("sh", "-c", fmt.Sprintf("%s add .", WEGO_BIN_PATH))
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		By("Then I should see 'wego not installed' message", func() {
+			Expect(string(session.Wait().Out.Contents())).Should(ContainSubstring("WeGO not installed... exiting"))
+		})
+	})
 })
