@@ -306,11 +306,14 @@ var _ = Describe("Add repo with custom access test", func() {
 					deps := &AddDependencies{
 						GitClient: &gitfakes.FakeGit{
 							OpenStub: func(s string) (*gogit.Repository, error) {
-								r, _ := gogit.Init(memory.NewStorage(), memfs.New())
-								r.CreateRemote(&config.RemoteConfig{
+								r, err := gogit.Init(memory.NewStorage(), memfs.New())
+								Expect(err).ShouldNot(HaveOccurred())
+
+								_, err = r.CreateRemote(&config.RemoteConfig{
 									Name: "origin",
 									URLs: []string{"http://foo/foo.git"},
 								})
+								Expect(err).ShouldNot(HaveOccurred())
 								return r, nil
 							},
 						},
