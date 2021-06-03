@@ -17,11 +17,6 @@ var (
 	err       error
 )
 
-// var _ = AfterSuite(func() {
-// 	err := os.RemoveAll("/tmp/wego-git-test-*")
-// 	Expect(err).ShouldNot(HaveOccurred())
-// })
-
 var _ = BeforeEach(func() {
 	gitClient = git.New(nil)
 
@@ -91,5 +86,67 @@ var _ = Describe("Commit", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 
 		Expect(string(out)).To(ContainSubstring("test commit"))
+	})
+})
+
+var _ = Describe("Status", func() {
+	It("returns if the working tree is clean", func() {
+		_, err = gitClient.Init(dir, "https://github.com/github/gitignore", "master")
+		Expect(err).ShouldNot(HaveOccurred())
+
+		filePath := "/test.txt"
+		content := []byte("testing")
+		err = gitClient.Write(filePath, content)
+
+		isClean, err := gitClient.Status()
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(isClean).To(BeFalse())
+	})
+})
+
+var _ = Describe("Head", func() {
+	It("returns if the working tree is clean", func() {
+		_, err = gitClient.Init(dir, "https://github.com/github/gitignore", "master")
+		Expect(err).ShouldNot(HaveOccurred())
+
+		filePath := "/test.txt"
+		content := []byte("testing")
+		err = gitClient.Write(filePath, content)
+
+		_, err = gitClient.Commit(git.Commit{
+			Author:  git.Author{Name: "test", Email: "test@example.com"},
+			Message: "test commit",
+		})
+		Expect(err).ShouldNot(HaveOccurred())
+
+		hash, err := gitClient.Head()
+		Expect(err).ShouldNot(HaveOccurred())
+
+		err = os.Chdir(dir)
+		Expect(err).ShouldNot(HaveOccurred())
+		out, err := exec.Command("sh", "-c", `git log -1`).Output()
+		Expect(err).ShouldNot(HaveOccurred())
+
+		Expect(string(out)).To(ContainSubstring(hash))
+	})
+})
+
+var _ = Describe("Push", func() {
+	It("fails if not access", func() {
+		_, err = gitClient.Init(dir, "https://github.com/github/gitignore", "master")
+		Expect(err).ShouldNot(HaveOccurred())
+
+		filePath := "/test.txt"
+		content := []byte("testing")
+		err = gitClient.Write(filePath, content)
+
+		_, err = gitClient.Commit(git.Commit{
+			Author:  git.Author{Name: "test", Email: "test@example.com"},
+			Message: "test commit",
+		})
+		Expect(err).ShouldNot(HaveOccurred())
+
+		err := gitClient.Push(context.Background())
+		Expect(err).Should(HaveOccurred())
 	})
 })
