@@ -332,8 +332,11 @@ func Add(args []string, allParams AddParamSet, deps *AddDependencies) error {
 	clusterStatus := status.GetClusterStatus()
 	fmt.Printf("%s\n\n", clusterStatus)
 
-	if clusterStatus == status.Unmodified {
+	switch clusterStatus {
+	case status.Unmodified:
 		return errors.New("WeGO not installed... exiting")
+	case status.Unknown:
+		return errors.New("WeGO can not define cluster status... exiting")
 	}
 
 	// Set up wego repository if required
