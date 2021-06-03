@@ -18,8 +18,8 @@ import (
 type ProviderAccountType string
 
 const (
-	UserAccountType ProviderAccountType = "user"
-	OrgAccountType  ProviderAccountType = "organization"
+	AccountTypeUser ProviderAccountType = "user"
+	AccountTypeOrg  ProviderAccountType = "organization"
 )
 
 // GitProvider Handler
@@ -59,7 +59,7 @@ func (h defaultGitProviderHandler) CreateRepository(name string, owner string, p
 		return err
 	}
 
-	if ownerType == OrgAccountType {
+	if ownerType == AccountTypeOrg {
 		orgRef := NewOrgRepositoryRef(github.DefaultDomain, owner, name)
 		if err = CreateOrgRepository(provider, orgRef, repoInfo, repoCreateOpts); err != nil {
 			return err
@@ -97,13 +97,13 @@ func GetAccountType(provider gitprovider.Client, owner string) (ProviderAccountT
 		if errors.Is(err, gitprovider.ErrNotFound) ||
 			strings.Contains(err.Error(), badCredentialsError) ||
 			strings.Contains(err.Error(), notFoundError) {
-			return UserAccountType, nil
+			return AccountTypeOrg, nil
 		}
 
 		return "", fmt.Errorf("could not get account type %s", err)
 	}
 
-	return OrgAccountType, nil
+	return AccountTypeOrg, nil
 }
 
 func GetRepoInfo(provider gitprovider.Client, accountType ProviderAccountType, owner string, repoName string) error {
@@ -111,11 +111,11 @@ func GetRepoInfo(provider gitprovider.Client, accountType ProviderAccountType, o
 	defer ctx.Done()
 
 	switch accountType {
-	case OrgAccountType:
+	case AccountTypeOrg:
 		if err := GetOrgRepo(provider, owner, repoName); err != nil {
 			return err
 		}
-	case UserAccountType:
+	case AccountTypeUser:
 		if err := GetUserRepo(provider, owner, repoName); err != nil {
 			return err
 		}
