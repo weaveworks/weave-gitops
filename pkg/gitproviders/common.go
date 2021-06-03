@@ -97,7 +97,7 @@ func GetAccountType(provider gitprovider.Client, owner string) (ProviderAccountT
 		if errors.Is(err, gitprovider.ErrNotFound) ||
 			strings.Contains(err.Error(), badCredentialsError) ||
 			strings.Contains(err.Error(), notFoundError) {
-			return AccountTypeOrg, nil
+			return AccountTypeUser, nil
 		}
 
 		return "", fmt.Errorf("could not get account type %s", err)
