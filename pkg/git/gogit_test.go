@@ -47,6 +47,14 @@ var _ = Describe("Clone", func() {
 		_, err = os.Stat(dir + "/README.txt")
 		Expect(err).ShouldNot(HaveOccurred())
 	})
+
+	It("initialize a given repository if remote branch not found", func() {
+		_, err := gitClient.Clone(context.Background(), dir, "https://github.com/githubtraining/hellogitworld", "new-branch")
+		Expect(err).ShouldNot(HaveOccurred())
+
+		_, err = gitClient.Open(dir)
+		Expect(err).ShouldNot(HaveOccurred())
+	})
 })
 
 var _ = Describe("Write", func() {
