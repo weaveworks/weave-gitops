@@ -73,8 +73,7 @@ func getRepoVisibility(org string, repo string) string {
 	return visibilityStr
 }
 
-func setupSSHKey() {
-	sshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa_wego"
+func setupSSHKey(sshKeyPath string) {
 	if _, err := os.Stat(sshKeyPath); os.IsNotExist(err) {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
 							echo "%s" >> %s &&
@@ -95,51 +94,29 @@ func installAndVerifyWego(wegoNamespace string) {
 		VerifyControllersInCluster(session, wegoNamespace)
 	})
 }
-func runWegoAddCommand(repoAbsolutePath string, private bool, wegoNamespace string) {
-	var session *gexec.Session
-	By("And I have my ssh key on path ~/.ssh/id_rsa_wego", func() {
-		setupSSHKey()
-	})
-
-	if private {
-		By("And I run `wego add . --private-key=~/.ssh/id_rsa_wego`", func() {
-			command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s add . --private-key=%s/.ssh/id_rsa_wego", repoAbsolutePath, WEGO_BIN_PATH, os.Getenv("HOME")))
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).ShouldNot(HaveOccurred())
-			Eventually(session).Should(gexec.Exit())
-		})
-	} else {
-		By("And I run `wego add . --private=false --private-key=~/.ssh/id_rsa_wego`", func() {
-			command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s add . --private=false --private-key=%s/.ssh/id_rsa_wego", repoAbsolutePath, WEGO_BIN_PATH, os.Getenv("HOME")))
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).ShouldNot(HaveOccurred())
-			Eventually(session).Should(gexec.Exit())
-		})
-	}
+func runWegoAddCommand(repoAbsolutePath string, addCommand string, wegoNamespace string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
 }
 
 func verifyWegoAddCommand(appRepoName string, wegoRepoName string, wegoNamespace string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf(" kubectl wait --for=condition=Ready --timeout=60s -n %s GitRepositories --all", wegoNamespace))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
+	Expect(waitForResource("GitRepositories", "wego", wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("GitRepositories", wegoRepoName+"-"+appRepoName, wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+}
 
-	By("Then I should see remote wego and public app repos are created and linked to the cluster", func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf(" kubectl wait --for=condition=Ready --timeout=60s -n %s GitRepositories --all", wegoNamespace))
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
-		Expect(waitForResource("GitRepositories", "wego", wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
-		Expect(waitForResource("GitRepositories", wegoRepoName+"-"+appRepoName, wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
-	})
-
-	By("And I should see nginx deployment appears in the cluster", func() {
-		Expect(waitForResource("deploy", "nginx", "my-nginx", INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
-		Expect(waitForResource("pods", "", "my-nginx", INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
-	})
-
-	By("And I wait for the nginx pods to be ready", func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=60s -n %s --all pods", "my-nginx"))
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
-	})
+func verifyWorkloadIsDeployed(workloadName string, workloadNamespace string) {
+	Expect(waitForResource("deploy", workloadName, workloadNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("pods", "", workloadNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=60s -n %s --all pods", workloadNamespace))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
 }
 
 var _ = Describe("Weave GitOps Add Tests", func() {
@@ -170,25 +147,33 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify private repo can be added to the cluster by running 'wego add . --private-key' ", func() {
+	It("Verify private repo can be added to the cluster by running 'wego add .' ", func() {
 		var repoAbsolutePath string
 		private := true
+		appManifestFilePath := "./data/nginx.yaml"
+		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+		addCommand := "add . "
 
 		By("When I create a private repo with my app workload", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
-			gitAddCommitPush(repoAbsolutePath, "./data/nginx.yaml")
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 
 		By("And I install wego to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
+		By("And I have my default ssh key on path "+defaultSshKeyPath, func() {
+			setupSSHKey(defaultSshKeyPath)
+		})
+
 		By("And I run wego add command", func() {
-			runWegoAddCommand(repoAbsolutePath, private, WEGO_DEFAULT_NAMESPACE)
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("Then I should see should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appRepoName, wegoRepoName, WEGO_DEFAULT_NAMESPACE)
+			verifyWorkloadIsDeployed("nginx", "my-nginx")
 		})
 
 		By("And repos created have private visibility", func() {
@@ -197,29 +182,79 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify public repo can be added to the cluster by running 'wego add . --private=false --private-key'", func() {
+	It("Verify public repo can be added to the cluster by running 'wego add . --private=false --private-key --deployment-type=kustomize'", func() {
 		var repoAbsolutePath string
 		private := false
+		appManifestFilePath := "./data/nginx.yaml"
+		sshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa_wego"
+		addCommand := fmt.Sprintf("add . --private=false --private-key=%s --deployment-type=kustomize ", sshKeyPath)
 
 		By("When I create a public repo with my app workload", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
-			gitAddCommitPush(repoAbsolutePath, "./data/nginx.yaml")
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 
 		By("And I install wego to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("And I run wego add command", func() {
-			runWegoAddCommand(repoAbsolutePath, private, WEGO_DEFAULT_NAMESPACE)
+		By("And I have my ssh key on path ~/.ssh/id_rsa_wego", func() {
+			setupSSHKey(sshKeyPath)
 		})
 
-		By("Then I should see should see my workload deployed to the cluster", func() {
-			verifyWegoAddCommand(appRepoName, wegoRepoName, WEGO_DEFAULT_NAMESPACE)
+		By("And I run wego add command", func() {
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
+
+		By("Then I should see workload is deployed to the cluster", func() {
+			verifyWegoAddCommand(appRepoName, wegoRepoName, WEGO_DEFAULT_NAMESPACE)
+			verifyWorkloadIsDeployed("nginx", "my-nginx")
+		})
+
 		By("And repos created have public visibility", func() {
 			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), appRepoName)).Should(ContainSubstring("false"))
 			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), wegoRepoName)).Should(ContainSubstring("false"))
+		})
+	})
+
+	It("Verify that wego can deploy an app after it is setup with an empty repo initially", func() {
+		var repoAbsolutePath string
+		private := true
+		appManifestFilePath := "./data/nginx.yaml"
+		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+		addCommand := "add . --private=true"
+
+		By("When I create an empty private repo", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+defaultSshKeyPath, func() {
+			setupSSHKey(defaultSshKeyPath)
+		})
+
+		By("And I run wego add command", func() {
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should wego add command linked the repo to the cluster", func() {
+			verifyWegoAddCommand(appRepoName, wegoRepoName, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I git add-commit-push app workload to repo", func() {
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
+		})
+
+		By("And I should see workload is deployed to the cluster", func() {
+			verifyWorkloadIsDeployed("nginx", "my-nginx")
+		})
+
+		By("And repos created have private visibility", func() {
+			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), appRepoName)).Should(ContainSubstring("true"))
+			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), wegoRepoName)).Should(ContainSubstring("true"))
 		})
 	})
 })
