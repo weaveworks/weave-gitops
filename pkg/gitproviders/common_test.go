@@ -227,7 +227,7 @@ func Test_CreatePullRequestToOrgRepo(t *testing.T) {
 	}
 }
 
-func TestRepositoryExists(t *testing.T) {
+func TestRepositoryExistsOrg(t *testing.T) {
 	accounts := getAccounts()
 
 	repoName := "repo"
@@ -239,6 +239,22 @@ func TestRepositoryExists(t *testing.T) {
 	defer SetGithubProvider(nil)
 
 	exists, err := RepositoryExists(repoName, accounts.GithubOrgName)
+	assert.NoError(t, err)
+	assert.Equal(t, true, exists)
+}
+
+func TestRepositoryExistsPersonal(t *testing.T) {
+	accounts := getAccounts()
+
+	repoName := "personal-repo"
+
+	githubTestClient, err := newGithubTestClient(SetRecorder(cacheGithubRecorder))
+	assert.NoError(t, err)
+
+	SetGithubProvider(githubTestClient)
+	defer SetGithubProvider(nil)
+
+	exists, err := RepositoryExists(repoName, accounts.GithubUserName)
 	assert.NoError(t, err)
 	assert.Equal(t, true, exists)
 }
