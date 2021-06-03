@@ -19,7 +19,8 @@ package git
 import (
 	"context"
 	"errors"
-	"io"
+
+	gogit "github.com/go-git/go-git/v5"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -44,12 +45,12 @@ type Commit struct {
 // remote repository.
 //counterfeiter:generate . Git
 type Git interface {
+	Open(path string) (*gogit.Repository, error)
 	Init(path, url, branch string) (bool, error)
 	Clone(ctx context.Context, path, url, branch string) (bool, error)
-	Write(path string, reader io.Reader) error
+	Write(path string, content []byte) error
 	Commit(message Commit) (string, error)
 	Push(ctx context.Context) error
 	Status() (bool, error)
 	Head() (string, error)
-	Path() string
 }

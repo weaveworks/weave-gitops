@@ -17,6 +17,7 @@ limitations under the License.
 package git
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -60,6 +61,8 @@ func (g *GoGit) Init(path, url, branch string) (bool, error) {
 	if g.repository != nil {
 		return false, nil
 	}
+
+	g.path = path
 
 	r, err := gogit.PlainInit(path, false)
 	if err != nil {
@@ -114,7 +117,7 @@ func (g *GoGit) Clone(ctx context.Context, path, url, branch string) (bool, erro
 	return true, nil
 }
 
-func (g *GoGit) Write(path string, reader io.Reader) error {
+func (g *GoGit) Write(path string, content []byte) error {
 	if g.repository == nil {
 		return ErrNoGitRepository
 	}
@@ -130,7 +133,7 @@ func (g *GoGit) Write(path string, reader io.Reader) error {
 	}
 	defer f.Close()
 
-	_, err = io.Copy(f, reader)
+	_, err = io.Copy(f, bytes.NewReader(content))
 	return err
 }
 
@@ -229,10 +232,6 @@ func (g *GoGit) Head() (string, error) {
 		return "", err
 	}
 	return head.Hash().String(), nil
-}
-
-func (g *GoGit) Path() string {
-	return g.path
 }
 
 func isRemoteBranchNotFoundErr(err error, ref string) bool {

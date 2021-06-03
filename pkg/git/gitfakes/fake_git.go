@@ -3,9 +3,9 @@ package gitfakes
 
 import (
 	"context"
-	"io"
 	"sync"
 
+	gita "github.com/go-git/go-git/v5"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 )
 
@@ -66,15 +66,18 @@ type FakeGit struct {
 		result1 bool
 		result2 error
 	}
-	PathStub        func() string
-	pathMutex       sync.RWMutex
-	pathArgsForCall []struct {
+	OpenStub        func(string) (*gita.Repository, error)
+	openMutex       sync.RWMutex
+	openArgsForCall []struct {
+		arg1 string
 	}
-	pathReturns struct {
-		result1 string
+	openReturns struct {
+		result1 *gita.Repository
+		result2 error
 	}
-	pathReturnsOnCall map[int]struct {
-		result1 string
+	openReturnsOnCall map[int]struct {
+		result1 *gita.Repository
+		result2 error
 	}
 	PushStub        func(context.Context) error
 	pushMutex       sync.RWMutex
@@ -99,11 +102,11 @@ type FakeGit struct {
 		result1 bool
 		result2 error
 	}
-	WriteStub        func(string, io.Reader) error
+	WriteStub        func(string, []byte) error
 	writeMutex       sync.RWMutex
 	writeArgsForCall []struct {
 		arg1 string
-		arg2 io.Reader
+		arg2 []byte
 	}
 	writeReturns struct {
 		result1 error
@@ -368,57 +371,68 @@ func (fake *FakeGit) InitReturnsOnCall(i int, result1 bool, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeGit) Path() string {
-	fake.pathMutex.Lock()
-	ret, specificReturn := fake.pathReturnsOnCall[len(fake.pathArgsForCall)]
-	fake.pathArgsForCall = append(fake.pathArgsForCall, struct {
-	}{})
-	stub := fake.PathStub
-	fakeReturns := fake.pathReturns
-	fake.recordInvocation("Path", []interface{}{})
-	fake.pathMutex.Unlock()
+func (fake *FakeGit) Open(arg1 string) (*gita.Repository, error) {
+	fake.openMutex.Lock()
+	ret, specificReturn := fake.openReturnsOnCall[len(fake.openArgsForCall)]
+	fake.openArgsForCall = append(fake.openArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.OpenStub
+	fakeReturns := fake.openReturns
+	fake.recordInvocation("Open", []interface{}{arg1})
+	fake.openMutex.Unlock()
 	if stub != nil {
-		return stub()
+		return stub(arg1)
 	}
 	if specificReturn {
-		return ret.result1
+		return ret.result1, ret.result2
 	}
-	return fakeReturns.result1
+	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeGit) PathCallCount() int {
-	fake.pathMutex.RLock()
-	defer fake.pathMutex.RUnlock()
-	return len(fake.pathArgsForCall)
+func (fake *FakeGit) OpenCallCount() int {
+	fake.openMutex.RLock()
+	defer fake.openMutex.RUnlock()
+	return len(fake.openArgsForCall)
 }
 
-func (fake *FakeGit) PathCalls(stub func() string) {
-	fake.pathMutex.Lock()
-	defer fake.pathMutex.Unlock()
-	fake.PathStub = stub
+func (fake *FakeGit) OpenCalls(stub func(string) (*gita.Repository, error)) {
+	fake.openMutex.Lock()
+	defer fake.openMutex.Unlock()
+	fake.OpenStub = stub
 }
 
-func (fake *FakeGit) PathReturns(result1 string) {
-	fake.pathMutex.Lock()
-	defer fake.pathMutex.Unlock()
-	fake.PathStub = nil
-	fake.pathReturns = struct {
-		result1 string
-	}{result1}
+func (fake *FakeGit) OpenArgsForCall(i int) string {
+	fake.openMutex.RLock()
+	defer fake.openMutex.RUnlock()
+	argsForCall := fake.openArgsForCall[i]
+	return argsForCall.arg1
 }
 
-func (fake *FakeGit) PathReturnsOnCall(i int, result1 string) {
-	fake.pathMutex.Lock()
-	defer fake.pathMutex.Unlock()
-	fake.PathStub = nil
-	if fake.pathReturnsOnCall == nil {
-		fake.pathReturnsOnCall = make(map[int]struct {
-			result1 string
+func (fake *FakeGit) OpenReturns(result1 *gita.Repository, result2 error) {
+	fake.openMutex.Lock()
+	defer fake.openMutex.Unlock()
+	fake.OpenStub = nil
+	fake.openReturns = struct {
+		result1 *gita.Repository
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGit) OpenReturnsOnCall(i int, result1 *gita.Repository, result2 error) {
+	fake.openMutex.Lock()
+	defer fake.openMutex.Unlock()
+	fake.OpenStub = nil
+	if fake.openReturnsOnCall == nil {
+		fake.openReturnsOnCall = make(map[int]struct {
+			result1 *gita.Repository
+			result2 error
 		})
 	}
-	fake.pathReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
+	fake.openReturnsOnCall[i] = struct {
+		result1 *gita.Repository
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeGit) Push(arg1 context.Context) error {
@@ -538,16 +552,21 @@ func (fake *FakeGit) StatusReturnsOnCall(i int, result1 bool, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeGit) Write(arg1 string, arg2 io.Reader) error {
+func (fake *FakeGit) Write(arg1 string, arg2 []byte) error {
+	var arg2Copy []byte
+	if arg2 != nil {
+		arg2Copy = make([]byte, len(arg2))
+		copy(arg2Copy, arg2)
+	}
 	fake.writeMutex.Lock()
 	ret, specificReturn := fake.writeReturnsOnCall[len(fake.writeArgsForCall)]
 	fake.writeArgsForCall = append(fake.writeArgsForCall, struct {
 		arg1 string
-		arg2 io.Reader
-	}{arg1, arg2})
+		arg2 []byte
+	}{arg1, arg2Copy})
 	stub := fake.WriteStub
 	fakeReturns := fake.writeReturns
-	fake.recordInvocation("Write", []interface{}{arg1, arg2})
+	fake.recordInvocation("Write", []interface{}{arg1, arg2Copy})
 	fake.writeMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2)
@@ -564,13 +583,13 @@ func (fake *FakeGit) WriteCallCount() int {
 	return len(fake.writeArgsForCall)
 }
 
-func (fake *FakeGit) WriteCalls(stub func(string, io.Reader) error) {
+func (fake *FakeGit) WriteCalls(stub func(string, []byte) error) {
 	fake.writeMutex.Lock()
 	defer fake.writeMutex.Unlock()
 	fake.WriteStub = stub
 }
 
-func (fake *FakeGit) WriteArgsForCall(i int) (string, io.Reader) {
+func (fake *FakeGit) WriteArgsForCall(i int) (string, []byte) {
 	fake.writeMutex.RLock()
 	defer fake.writeMutex.RUnlock()
 	argsForCall := fake.writeArgsForCall[i]
@@ -611,8 +630,8 @@ func (fake *FakeGit) Invocations() map[string][][]interface{} {
 	defer fake.headMutex.RUnlock()
 	fake.initMutex.RLock()
 	defer fake.initMutex.RUnlock()
-	fake.pathMutex.RLock()
-	defer fake.pathMutex.RUnlock()
+	fake.openMutex.RLock()
+	defer fake.openMutex.RUnlock()
 	fake.pushMutex.RLock()
 	defer fake.pushMutex.RUnlock()
 	fake.statusMutex.RLock()
