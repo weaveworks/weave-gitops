@@ -236,7 +236,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		private := true
 		appManifestFilePath := "./data/helm-repo/hello-world"
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
-		addCommand := "add . --deployment-type=helm --path=./hello-world"
+		addCommand := "add . --name=my-helm-app --deployment-type=helm --path=./hello-world"
 		appRepoName := "wego-test-app-" + RandString(8)
 		wegoRepoName := getClusterName() + "-wego"
 		defer deleteRepos(appRepoName, wegoRepoName)
@@ -264,6 +264,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("Then I should see should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appRepoName, wegoRepoName, WEGO_DEFAULT_NAMESPACE)
+			Expect(waitForResource("apps", "my-helm-app", "default", INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 			Expect(waitForResource("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 		})
 	})

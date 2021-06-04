@@ -107,7 +107,7 @@ func ResetOrCreateCluster(namespace string) (string, error) {
 
 	//For kubectl points to valid cluster, we will try to reset the namespace only
 	if namespace != "" && provider == "kubectl" {
-		err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s install --namespace %s| kubectl --ignore-not-found=true delete -f -", WEGO_BIN_PATH, namespace))
+		err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s install --namespace %s| kubectl --ignore-not-found=true --grace-period=30 delete -f -", WEGO_BIN_PATH, namespace))
 		if err != nil {
 			log.Infof("Failed to reset the namespace %s", namespace)
 			return clusterName, err
