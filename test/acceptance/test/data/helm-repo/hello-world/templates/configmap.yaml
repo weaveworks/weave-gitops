@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+   name: helloworld-configmap
+data:
+   myvalue: "Hello World"
+

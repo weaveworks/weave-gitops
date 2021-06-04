@@ -234,7 +234,7 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 
 func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
-							cp %s %s &&
+							cp -r %s %s &&
 							cd %s &&
 							git add . &&
 							git commit -m 'add workload manifest' &&
@@ -282,13 +282,13 @@ func runWegoAddCommand(repoAbsolutePath string, addCommand string, wegoNamespace
 	Eventually(session).Should(gexec.Exit())
 }
 
-func verifyWegoAddCommand(appRepoName string, wegoRepoName string, wegoNamespace string) {
+func verifyWegoAddCommand(appName string, wegoNamespace string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(" kubectl wait --for=condition=Ready --timeout=60s -n %s GitRepositories --all", wegoNamespace))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
 	Expect(waitForResource("GitRepositories", "wego", wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
-	Expect(waitForResource("GitRepositories", wegoRepoName+"-"+appRepoName, wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("GitRepositories", appName, wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 }
 
 func verifyWorkloadIsDeployed(workloadName string, workloadNamespace string) {
