@@ -2,8 +2,6 @@ package cmdimpl
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -15,22 +13,6 @@ import (
 
 // Status provides the implementation for the wego status application command
 func Status(allParams AddParamSet) error {
-	// verify the app is in the wego apps folder
-	fluxRepoName, err := fluxops.GetRepoName()
-	if err != nil {
-		return wrapError(err, "could not get repo name")
-	}
-	reposDir := filepath.Join(os.Getenv("HOME"), ".wego", "repositories")
-	fluxRepo := filepath.Join(reposDir, fluxRepoName)
-	appPath := filepath.Join(fluxRepo, "apps", allParams.Name)
-	if err != nil {
-		return fmt.Errorf("error getting path for app [%s], err: %s \n", allParams.Name, err)
-	}
-
-	if !utils.Exists(appPath) && allParams.Name != "wego" {
-		return fmt.Errorf("app provided does not exist in apps folder [%s]\n", appPath)
-	}
-
 	deploymentType, err := getDeploymentType(allParams.Namespace, allParams.Name)
 	if err != nil {
 		return fmt.Errorf("error getting deployment type [%s]", err)
