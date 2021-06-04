@@ -152,7 +152,7 @@ jobs:
 
   acceptance-tests:
     runs-on: ubuntu-latest
-    needs: [lint, build, smoke-tests]
+    needs: [lint, build, test, smoke-tests]
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
