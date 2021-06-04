@@ -1,5 +1,3 @@
-// +build smoke acceptance
-
 /**
 * All tests related to 'wego install' will go into this file
  */
@@ -8,10 +6,11 @@ package acceptance
 
 import (
 	"fmt"
+	"os/exec"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	"os/exec"
 )
 
 var (
@@ -19,32 +18,7 @@ var (
 	namespace string
 )
 
-func VerifyControllersInCluster(session *gexec.Session, namespace string) {
-
-	By("And I wait for the controllers to get ready", func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod", "120s", namespace))
-
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
-	})
-
-	By("And I search for the controllers with 'kubectl'", func() {
-		command := exec.Command("kubectl", "get", "deploy", "-n", namespace)
-		session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session).Should(gexec.Exit())
-	})
-
-	By("Then I should see flux controllers present in the cluster", func() {
-		Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`helm-controller[\s]+1/1`))
-		Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`kustomize-controller[\s]+1/1`))
-		Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`notification-controller[\s]+1/1`))
-		Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`source-controller[\s]+1/1`))
-	})
-}
-
-var _ = Describe("WEGO Install Tests", func() {
+var _ = Describe("Weave GitOps Install Tests", func() {
 
 	var session *gexec.Session
 
@@ -94,7 +68,7 @@ var _ = Describe("WEGO Install Tests", func() {
 			Eventually(session).Should(gexec.Exit())
 		})
 
-		VerifyControllersInCluster(session, WEGO_DEFAULT_NAMESPACE)
+		VerifyControllersInCluster(WEGO_DEFAULT_NAMESPACE)
 	})
 
 	It("Verify that wego can add flux controllers to a user-specified namespace", func() {
@@ -120,12 +94,11 @@ var _ = Describe("WEGO Install Tests", func() {
 			Eventually(session).Should(gexec.Exit())
 		})
 
-		VerifyControllersInCluster(session, namespace)
+		VerifyControllersInCluster(namespace)
 
 		By("Clean up the namespace", func() {
 			_, err := ResetOrCreateCluster(namespace)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 	})
-
 })

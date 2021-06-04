@@ -1,5 +1,3 @@
-// +build smoke acceptance
-
 /**
 * All tests related to 'wego flux' will go into this file
  */
