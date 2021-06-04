@@ -81,7 +81,7 @@ func contains(s []string, str string) bool {
 
 func ResetOrCreateCluster(namespace string) (string, error) {
 
-	supportedProviders := []string{"kind", "eks", "gke"}
+	supportedProviders := []string{"kind", "kubectl"}
 	supportedK8SVersions := []string{"1.19.1", "1.20.2", "1.21.1"}
 	clusterName := ""
 
@@ -105,8 +105,8 @@ func ResetOrCreateCluster(namespace string) (string, error) {
 		return clusterName, errors.New("Unsupported kubernetes version")
 	}
 
-	//For eks and gke, we will try to reset the namespace only as re-creating cluster is expensive
-	if namespace != "" && (provider == "eks" || provider == "gke") {
+	//For kubectl points to valid cluster, we will try to reset the namespace only
+	if namespace != "" && provider == "kubectl" {
 		err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s install --namespace %s| kubectl --ignore-not-found=true delete -f -", WEGO_BIN_PATH, namespace))
 		if err != nil {
 			log.Infof("Failed to reset the namespace %s", namespace)

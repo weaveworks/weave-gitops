@@ -54,7 +54,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 	})
 
-	It("SmokeTest - Verify that wego can install required controllers under default namespace `wego-system`", func() {
+	It("Verify that wego can install required controllers under default namespace `wego-system`", func() {
 
 		By("And I have a brand new cluster", func() {
 			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE)
