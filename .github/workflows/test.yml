@@ -4,7 +4,6 @@ on:
     branches:
       - main
   pull_request:
-  workflow_dispatch:
 
 name: run tests
 jobs:
@@ -192,7 +191,7 @@ jobs:
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     - name: Install Ginkgo binary
       run: go get github.com/onsi/ginkgo/ginkgo@v1.16.1
-    - name: Run smoke tests from acceptance suite
+    - name: Run Full Acceptance Suite
       env:
         GITHUB_ORG: wkp-example-org
         GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
