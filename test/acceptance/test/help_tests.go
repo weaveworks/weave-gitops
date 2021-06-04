@@ -1,10 +1,3 @@
-// +build smoke acceptance
-
-/**
-* All smoke tests go to this file, keep them light-weight and fast.
-* However these should still be end to end user facing scenarios.
-* Smoke tests would run as part of full suite too hence the acceptance_tests flag.
- */
 package acceptance
 
 import (
@@ -16,7 +9,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("WEGO Smoke Tests", func() {
+var _ = Describe("WEGO Help Tests", func() {
 
 	var session *gexec.Session
 	var err error
@@ -39,35 +32,6 @@ var _ = Describe("WEGO Smoke Tests", func() {
 		By("Then I should see wego error message", func() {
 			Eventually(session.Err).Should(gbytes.Say("Error: unknown command \"foo\" for \"wego\""))
 			Eventually(session.Err).Should(gbytes.Say("Run 'wego --help' for usage."))
-		})
-	})
-
-	It("Verify that command wego version prints the version information", func() {
-
-		By("When I run the command 'wego version'", func() {
-			command := exec.Command(WEGO_BIN_PATH, "version")
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).ShouldNot(HaveOccurred())
-		})
-
-		By("Then I should see the wego version printed in format vm.n.n with newline character", func() {
-			Eventually(session).Should(gbytes.Say("Current Version: v[0-3].[0-9].[0-9]\n"))
-		})
-
-		By("And git commit with commit id", func() {
-			Eventually(session).Should(gbytes.Say("GitCommit: [a-f0-9]{7}\n"))
-		})
-
-		By("And build timestamp", func() {
-			Eventually(session).Should(gbytes.Say("BuildTime: [0-9-_:]+\n"))
-		})
-
-		By("And branch name", func() {
-			Eventually(session).Should(gbytes.Say("Branch: main|HEAD\n"))
-		})
-
-		By("And flux version", func() {
-			Eventually(session).Should(gbytes.Say("Flux Version: [0-9].[0-9][0-9].[0-9]\n"))
 		})
 	})
 
@@ -120,5 +84,4 @@ var _ = Describe("WEGO Smoke Tests", func() {
 		VerifyUsageText()
 
 	})
-
 })
