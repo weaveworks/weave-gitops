@@ -277,4 +277,42 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Expect(waitForResource("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 		})
 	})
+
+	It("Verify 'wego add' cannot work without controllers installed", func() {
+
+		var repoAbsolutePath string
+		private := true
+		appManifestFilePath := "./data/nginx.yaml"
+		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+		addCommand := "add . "
+		appRepoName := "wego-test-app-" + RandString(8)
+		wegoRepoName := getClusterName() + "-wego"
+		var addCommandOutput string
+		var addCommandErr string
+
+		defer deleteRepos(appRepoName, wegoRepoName)
+
+		By("And wego and application repos do not already exist", func() {
+			deleteRepos(appRepoName, wegoRepoName)
+		})
+
+		By("When I create a private repo with my app workload", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
+		})
+
+		By("And I have my default ssh key on path "+defaultSshKeyPath, func() {
+			setupSSHKey(defaultSshKeyPath)
+		})
+
+		By("And I run wego add command", func() {
+			addCommandOutput, addCommandErr = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see relevant message in the console", func() {
+			Eventually(addCommandOutput).Should(ContainSubstring("Checking cluster status... Unmodified"))
+			Eventually(addCommandErr).Should(ContainSubstring("WeGO not installed... exiting"))
+		})
+	})
+
 })
