@@ -130,7 +130,7 @@ jobs:
         $WEGO_BIN_PATH install | kubectl --ignore-not-found=true delete -f -
         $WEGO_BIN_PATH install --namespace test-namespace| kubectl --ignore-not-found=true delete -f -
         kubectl get all --all-namespaces -o wide
-        ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v -tags=acceptance ./test/acceptance/test/...
+        ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v ./test/acceptance/test/...
 
   test-gke:
     needs: [lint, build]
@@ -213,7 +213,7 @@ jobs:
         $WEGO_BIN_PATH install | kubectl --ignore-not-found=true delete -f -
         $WEGO_BIN_PATH install --namespace test-namespace| kubectl --ignore-not-found=true delete -f -
         kubectl get all --all-namespaces -o wide
-        ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v -tags=acceptance ./test/acceptance/test/...
+        ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v ./test/acceptance/test/...
   
   publish:
     if: success()
