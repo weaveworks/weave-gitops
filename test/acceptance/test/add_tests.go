@@ -278,7 +278,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("SmokeTest - Verify 'wego add' cannot work without controllers installed", func() {
+	It("Verify 'wego add' cannot work without controllers installed", func() {
 
 		var repoAbsolutePath string
 		private := true
