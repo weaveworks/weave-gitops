@@ -234,7 +234,7 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 
 func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
-							cp %s %s &&
+							cp -r %s %s &&
 							cd %s &&
 							git add . &&
 							git commit -m 'add workload manifest' &&

@@ -230,4 +230,41 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), wegoRepoName)).Should(ContainSubstring("true"))
 		})
 	})
+
+	It("SmokeTest - Verify helm repo can be added to the cluster by running 'wego add . --deployment-type=helm --path=./hello-world'", func() {
+		var repoAbsolutePath string
+		private := true
+		appManifestFilePath := "./data/helm-repo/hello-world"
+		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+		addCommand := "add . --deployment-type=helm --path=./hello-world"
+		appRepoName := "wego-test-app-" + RandString(8)
+		wegoRepoName := getClusterName() + "-wego"
+		defer deleteRepos(appRepoName, wegoRepoName)
+
+		By("And wego and application repos do not already exist", func() {
+			deleteRepos(appRepoName, wegoRepoName)
+		})
+
+		By("When I create a private repo with my app workload", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+defaultSshKeyPath, func() {
+			setupSSHKey(defaultSshKeyPath)
+		})
+
+		By("And I run wego add command", func() {
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see should see my workload deployed to the cluster", func() {
+			verifyWegoAddCommand(appRepoName, wegoRepoName, WEGO_DEFAULT_NAMESPACE)
+			Expect(waitForResource("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+		})
+	})
 })
