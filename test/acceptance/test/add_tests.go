@@ -33,6 +33,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		addCommand := "add . "
 		appRepoName := "wego-test-app-" + RandString(8)
 		wegoRepoName := getClusterName() + "-wego"
+		appName := wegoRepoName + "-" + appRepoName
+
 		defer deleteRepos(appRepoName, wegoRepoName)
 
 		By("And wego and application repos do not already exist", func() {
@@ -57,7 +59,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("Then I should see should see my workload deployed to the cluster", func() {
-			verifyWegoAddCommand(appRepoName, wegoRepoName, WEGO_DEFAULT_NAMESPACE)
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
 			verifyWorkloadIsDeployed("nginx", "my-nginx")
 		})
 
@@ -75,6 +77,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		addCommand := fmt.Sprintf("add . --private=false --private-key=%s --deployment-type=kustomize ", sshKeyPath)
 		appRepoName := "wego-test-app-" + RandString(8)
 		wegoRepoName := getClusterName() + "-wego"
+		appName := wegoRepoName + "-" + appRepoName
+
 		defer deleteRepos(appRepoName, wegoRepoName)
 
 		By("And wego and application repos do not already exist", func() {
@@ -99,7 +103,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("Then I should see workload is deployed to the cluster", func() {
-			verifyWegoAddCommand(appRepoName, wegoRepoName, WEGO_DEFAULT_NAMESPACE)
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
 			verifyWorkloadIsDeployed("nginx", "my-nginx")
 		})
 
@@ -117,6 +121,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		addCommand := "add . --private=true"
 		appRepoName := "wego-test-app-" + RandString(8)
 		wegoRepoName := getClusterName() + "-wego"
+		appName := wegoRepoName + "-" + appRepoName
 		defer deleteRepos(appRepoName, wegoRepoName)
 
 		By("And wego and application repos do not already exist", func() {
@@ -140,7 +145,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("Then I should see wego add command linked the repo to the cluster", func() {
-			verifyWegoAddCommand(appRepoName, wegoRepoName, WEGO_DEFAULT_NAMESPACE)
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("And I git add-commit-push app workload to repo", func() {
@@ -167,6 +172,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appRepoName1 := "wego-test-app-" + RandString(8)
 		appRepoName2 := "wego-test-app-" + RandString(8)
 		wegoRepoName := getClusterName() + "-wego"
+		appName1 := wegoRepoName + "-" + appRepoName1
+		appName2 := wegoRepoName + "-" + appRepoName2
 
 		defer deleteRepos(appRepoName1, wegoRepoName)
 		defer deleteRepos(appRepoName2, wegoRepoName)
@@ -209,11 +216,11 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("Then I should see wego add command linked the repo1 to the cluster", func() {
-			verifyWegoAddCommand(appRepoName1, wegoRepoName, WEGO_DEFAULT_NAMESPACE)
+			verifyWegoAddCommand(appName1, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("And I should see wego add command linked the repo2 to the cluster", func() {
-			verifyWegoAddCommand(appRepoName2, wegoRepoName, WEGO_DEFAULT_NAMESPACE)
+			verifyWegoAddCommand(appName2, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("And I should see workload for app1 is deployed to the cluster", func() {
@@ -228,6 +235,46 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), appRepoName1)).Should(ContainSubstring("true"))
 			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), appRepoName2)).Should(ContainSubstring("false"))
 			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), wegoRepoName)).Should(ContainSubstring("true"))
+		})
+	})
+
+	It("SmokeTest - Verify helm repo can be added to the cluster by running 'wego add . --deployment-type=helm --path=./hello-world'", func() {
+		var repoAbsolutePath string
+		private := true
+		appManifestFilePath := "./data/helm-repo/hello-world"
+		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+		appName := "my-helm-app"
+		addCommand := "add . --deployment-type=helm --path=./hello-world --name=" + appName
+		appRepoName := "wego-test-app-" + RandString(8)
+		wegoRepoName := getClusterName() + "-wego"
+
+		defer deleteRepos(appRepoName, wegoRepoName)
+
+		By("And wego and application repos do not already exist", func() {
+			deleteRepos(appRepoName, wegoRepoName)
+		})
+
+		By("When I create a private repo with my app workload", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+defaultSshKeyPath, func() {
+			setupSSHKey(defaultSshKeyPath)
+		})
+
+		By("And I run wego add command", func() {
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see should see my workload deployed to the cluster", func() {
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+			Expect(waitForResource("apps", appName, "default", INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+			Expect(waitForResource("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 		})
 	})
 })
