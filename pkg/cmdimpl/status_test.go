@@ -18,7 +18,6 @@ import (
 
 var _ = Describe("Run Command Status Test", func() {
 	It("Verify status info for kustomize app", func() {
-
 		// Setup
 		appName := "kustomize-app"
 		clusterName := "mycluster"
@@ -129,6 +128,48 @@ wego-system	kustomization/kustomize-app	True 	Applied revision: main/a2b5b8c0919
 
 			}),
 		)
+
+	})
+})
+
+var _ = Describe("GetDeployment tests", func() {
+	It("Fail when getting error from flux", func() {
+
+		myAppName := "my-app-name"
+		ns := "wego-system"
+
+		fakeHandler := &fluxopsfakes.FakeFluxHandler{
+			HandleStub: func(args string) ([]byte, error) {
+				Expect(args).Should(Equal("get all -n wego-system"))
+				return nil, fmt.Errorf("some error")
+			},
+		}
+
+		fluxops.SetFluxHandler(fakeHandler)
+
+		deploymentType, err := getDeploymentType(ns, myAppName)
+		Expect(err).Should(MatchError("some error"))
+		Expect(deploymentType).To(BeEmpty())
+
+	})
+
+	It("Fail when flux returns invalid info", func() {
+
+		myAppName := "my-app-name"
+		ns := "wego-system"
+
+		fakeHandler := &fluxopsfakes.FakeFluxHandler{
+			HandleStub: func(args string) ([]byte, error) {
+				Expect(args).Should(Equal("get all -n wego-system"))
+				return []byte("wronginfo"), nil
+			},
+		}
+
+		fluxops.SetFluxHandler(fakeHandler)
+
+		deploymentType, err := getDeploymentType(ns, myAppName)
+		Expect(err).Should(MatchError("error trying to get the deployment type of the app. raw output => wronginfo"))
+		Expect(deploymentType).To(BeEmpty())
 
 	})
 })

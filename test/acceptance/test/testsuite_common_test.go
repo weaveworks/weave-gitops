@@ -37,7 +37,7 @@ func TestAcceptance(t *testing.T) {
 	}
 
 	RegisterFailHandler(GomegaFail)
-	RunSpecs(t, getSuiteTitle())
+	RunSpecs(t, "Weave GitOps User Acceptance Tests")
 }
 
 var _ = BeforeSuite(func() {

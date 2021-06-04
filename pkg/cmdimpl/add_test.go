@@ -8,12 +8,18 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/go-git/go-billy/v5/memfs"
+	gogit "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/storage/memory"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops/fluxopsfakes"
+	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/override"
 	"github.com/weaveworks/weave-gitops/pkg/status"
@@ -81,7 +87,7 @@ var FailFluxHandler = &fluxopsfakes.FakeFluxHandler{
 		if strings.HasPrefix(command, "install") || strings.HasPrefix(command, "add") {
 			return nil, fmt.Errorf("failed")
 		}
-		return fluxops.DefaultFluxHandler{}.Handle(arglist)
+		return nil, nil
 	},
 }
 
@@ -102,6 +108,10 @@ type fakeGitRepoHandler struct{}
 func (h fakeGitRepoHandler) CreateRepository(name string, owner string, private bool) error {
 	access = private
 	return nil
+}
+
+func (h fakeGitRepoHandler) RepositoryExists(ame string, owner string) (bool, error) {
+	return false, gitprovider.ErrNotFound
 }
 
 func createTestPrivateKeyFile() (*os.File, error) {
@@ -161,6 +171,8 @@ func handleGitLsRemote(arglist ...interface{}) ([]byte, []byte, error) {
 	return nil, nil, fmt.Errorf("NO!")
 }
 
+var fakeGitClient = gitfakes.FakeGit{}
+
 var _ = Describe("Test helm manifest", func() {
 	It("Verify helm manifest files generation ", func() {
 
@@ -203,9 +215,13 @@ var _ = Describe("Dry Run Add Test", func() {
 			defer os.Remove(privateKeyFileName)
 			_ = override.WithOverrides(
 				func() override.Result {
+					deps := &AddDependencies{
+						GitClient: &fakeGitClient,
+					}
+
 					err := Add([]string{"."},
 						AddParamSet{
-							Name:           "wanda",
+							Name:           "",
 							Url:            "ssh://git@github.com/foobar/quux.git",
 							Path:           "./",
 							Branch:         "main",
@@ -213,7 +229,7 @@ var _ = Describe("Dry Run Add Test", func() {
 							DryRun:         true,
 							Namespace:      "wego-system",
 							DeploymentType: string(DeployTypeKustomize),
-						})
+						}, deps)
 
 					Expect(err).To(BeNil())
 					return override.Result{}
@@ -287,17 +303,32 @@ var _ = Describe("Add repo with custom access test", func() {
 			defer os.Remove(privateKeyFileName)
 			_ = override.WithOverrides(
 				func() override.Result {
+					deps := &AddDependencies{
+						GitClient: &gitfakes.FakeGit{
+							OpenStub: func(s string) (*gogit.Repository, error) {
+								r, err := gogit.Init(memory.NewStorage(), memfs.New())
+								Expect(err).ShouldNot(HaveOccurred())
+
+								_, err = r.CreateRemote(&config.RemoteConfig{
+									Name: "origin",
+									URLs: []string{"http://foo/foo.git"},
+								})
+								Expect(err).ShouldNot(HaveOccurred())
+								return r, nil
+							},
+						},
+					}
 					err := Add([]string{"."},
 						AddParamSet{
 							Name:           "wanda",
-							Url:            "ssh://git@github.com/foobar/quux.git",
+							Url:            "",
 							Path:           "./",
 							Branch:         "main",
 							PrivateKey:     privateKeyFileName,
 							Namespace:      "wego-system",
 							IsPrivate:      true,
 							DeploymentType: string(DeployTypeKustomize),
-						})
+						}, deps)
 
 					Expect(err).To(BeNil())
 					return override.Result{}
@@ -338,6 +369,10 @@ var _ = Describe("Add repo with custom access test", func() {
 			defer os.Remove(privateKeyFileName)
 			_ = override.WithOverrides(
 				func() override.Result {
+					deps := &AddDependencies{
+						GitClient: &fakeGitClient,
+					}
+
 					err := Add([]string{"."},
 						AddParamSet{
 							Name:           "wanda",
@@ -348,7 +383,7 @@ var _ = Describe("Add repo with custom access test", func() {
 							Namespace:      "wego-system",
 							IsPrivate:      false,
 							DeploymentType: string(DeployTypeKustomize),
-						})
+						}, deps)
 
 					Expect(err).Should(BeNil())
 					return override.Result{}
