@@ -276,10 +276,15 @@ func installAndVerifyWego(wegoNamespace string) {
 	})
 }
 func runWegoAddCommand(repoAbsolutePath string, addCommand string, wegoNamespace string) {
+	_, _ = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, wegoNamespace)
+}
+
+func runWegoAddCommandWithOutput(repoAbsolutePath string, addCommand string, wegoNamespace string) (string, string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
+	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
 }
 
 func verifyWegoAddCommand(appName string, wegoNamespace string) {
