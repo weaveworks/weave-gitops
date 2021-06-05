@@ -30,7 +30,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		private := true
 		appManifestFilePath := "./data/nginx.yaml"
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
-		addCommand := "add . "
+		addCommand := "app add . "
 		appRepoName := "wego-test-app-" + RandString(8)
 		wegoRepoName := getClusterName() + "-wego"
 		appName := wegoRepoName + "-" + appRepoName
@@ -118,7 +118,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		private := true
 		appManifestFilePath := "./data/nginx.yaml"
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
-		addCommand := "add . --private=true"
+		addCommand := "app add . --private=true"
 		appRepoName := "wego-test-app-" + RandString(8)
 		wegoRepoName := getClusterName() + "-wego"
 		appName := wegoRepoName + "-" + appRepoName
@@ -168,7 +168,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appManifestFilePath1 := "./data/nginx.yaml"
 		appManifestFilePath2 := "./data/nginx2.yaml"
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
-		addCommand := "add . "
+		addCommand := "app add . "
 		appRepoName1 := "wego-test-app-" + RandString(8)
 		appRepoName2 := "wego-test-app-" + RandString(8)
 		wegoRepoName := getClusterName() + "-wego"
@@ -244,7 +244,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appManifestFilePath := "./data/helm-repo/hello-world"
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		appName := "my-helm-app"
-		addCommand := "add . --deployment-type=helm --path=./hello-world --name=" + appName
+		addCommand := "app add . --deployment-type=helm --path=./hello-world --name=" + appName
 		appRepoName := "wego-test-app-" + RandString(8)
 		wegoRepoName := getClusterName() + "-wego"
 
@@ -284,7 +284,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		private := true
 		appManifestFilePath := "./data/nginx.yaml"
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
-		addCommand := "add . "
+		addCommand := "app add . "
 		appRepoName := "wego-test-app-" + RandString(8)
 		wegoRepoName := getClusterName() + "-wego"
 		var addCommandOutput string
