@@ -6,16 +6,10 @@ import (
 )
 
 var Cmd = &cobra.Command{
-	Use:     "status [subcommands]",
-	Short:   "status of a resource",
+	Use:     "status <app-name>",
+	Short:   "Get status of a resource",
 	Args:    cobra.MinimumNArgs(1),
-	Example: "wego status application podinfo",
-}
-
-var ApplicationCmd = &cobra.Command{
-	Use:   "application [name]",
-	Short: "status of an application resource",
-	Args:  cobra.MinimumNArgs(1),
+	Example: "wego app status podinfo",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		params.Namespace, _ = cmd.Parent().Parent().Flags().GetString("namespace")
 		params.Name = args[0]
@@ -24,7 +18,3 @@ var ApplicationCmd = &cobra.Command{
 }
 
 var params cmdimpl.AddParamSet
-
-func init() {
-	Cmd.AddCommand(ApplicationCmd)
-}

@@ -13,6 +13,7 @@ import (
 
 // Status provides the implementation for the wego status application command
 func Status(allParams AddParamSet) error {
+
 	deploymentType, err := getDeploymentType(allParams.Namespace, allParams.Name)
 	if err != nil {
 		return fmt.Errorf("error getting deployment type [%s]", err)
