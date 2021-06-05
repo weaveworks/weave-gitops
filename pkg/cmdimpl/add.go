@@ -593,7 +593,7 @@ func getUserRepoName() string {
 }
 
 func getGoatRepoName() string {
-	return urlToRepoName(params.AppConfigUrl)
+	return urlToRepoName(strings.TrimSuffix(params.AppConfigUrl, ".git"))
 }
 
 func urlToRepoName(url string) string {
