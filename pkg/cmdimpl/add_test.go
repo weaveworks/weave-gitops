@@ -390,6 +390,34 @@ var _ = Describe("Dry Run Add Test", func() {
 						}, deps)
 
 					Expect(err).To(BeNil())
+					err = Add([]string{"."},
+						AddParamSet{
+							Name:           "",
+							Url:            "",
+							AppConfigUrl:   "none",
+							Path:           "./foo",
+							Branch:         "main",
+							PrivateKey:     privateKeyFileName,
+							DryRun:         true,
+							Namespace:      "wego-system",
+							DeploymentType: string(DeployTypeKustomize),
+						}, deps)
+
+					Expect(err).To(BeNil())
+					err = Add([]string{"."},
+						AddParamSet{
+							Name:           "",
+							Url:            "",
+							AppConfigUrl:   "ssh://git@github.com/aUser/aRepo",
+							Path:           "./foo",
+							Branch:         "main",
+							PrivateKey:     privateKeyFileName,
+							DryRun:         true,
+							Namespace:      "wego-system",
+							DeploymentType: string(DeployTypeKustomize),
+						}, deps)
+
+					Expect(err).To(BeNil())
 					return override.Result{}
 				},
 				utils.OverrideFailure(utils.CallCommandForEffectWithInputPipeOp),
