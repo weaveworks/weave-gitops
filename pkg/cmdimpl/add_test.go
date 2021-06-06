@@ -10,10 +10,7 @@ import (
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	// "github.com/go-git/go-billy/v5/memfs"
 	gogit "github.com/go-git/go-git/v5"
-	// "github.com/go-git/go-git/v5/config"
-	// "github.com/go-git/go-git/v5/storage/memory"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -372,6 +369,19 @@ var _ = Describe("Dry Run Add Test", func() {
 							Name:           "",
 							Url:            "ssh://git@github.com/foobar/quux.git",
 							Path:           "./",
+							Branch:         "main",
+							PrivateKey:     privateKeyFileName,
+							DryRun:         true,
+							Namespace:      "wego-system",
+							DeploymentType: string(DeployTypeKustomize),
+						}, deps)
+
+					Expect(err).To(BeNil())
+					err = Add([]string{"."},
+						AddParamSet{
+							Name:           "",
+							Url:            "",
+							Path:           "./foo",
 							Branch:         "main",
 							PrivateKey:     privateKeyFileName,
 							DryRun:         true,
