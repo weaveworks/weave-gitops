@@ -97,7 +97,7 @@ func updateParametersIfNecessary(gitClient git.Git) error {
 		}
 	}
 
-	if params.Url == "" && params.DryRun == false {
+	if params.Url == "" && !params.DryRun {
 		repo, err := gitClient.Open(params.Dir)
 		if err != nil {
 			return wrapError(err, fmt.Sprintf("failed to open repository: %s", params.Dir))
