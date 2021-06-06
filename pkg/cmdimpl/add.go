@@ -7,6 +7,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -70,16 +72,13 @@ type AddDependencies struct {
 
 func updateParametersIfNecessary(gitClient git.Git) error {
 	if params.Name == "" {
-
 		name, err := status.GetClusterName()
 		if err != nil {
 			return wrapError(err, "could not update parameters")
 		}
 
 		if params.Url != "" {
-
 			repoName := strings.ReplaceAll(filepath.Base(params.Url), "_", "-")
-
 			params.Name = name + "-" + repoName
 		} else {
 			repoPath, err := filepath.Abs(params.Dir)
@@ -88,7 +87,6 @@ func updateParametersIfNecessary(gitClient git.Git) error {
 			}
 
 			repoName := strings.ReplaceAll(filepath.Base(repoPath), "_", "-")
-
 			params.Name = name + "-" + repoName
 		}
 
@@ -193,7 +191,7 @@ func generateKustomizeManifest(sourceName, path string) ([]byte, error) {
                 --interval=5m \
                 --export \
                 --namespace=%s`,
-		sourceName,
+		sourceName+"-"+strings.ReplaceAll(path, "/", "-"),
 		path,
 		sourceName,
 		params.Namespace)
@@ -212,7 +210,7 @@ func generateHelmManifestGit(sourceName, path string) ([]byte, error) {
             --interval=5m \
             --export \
             --namespace=%s`,
-		sourceName,
+		sourceName+"-"+strings.ReplaceAll(path, "/", "-"),
 		sourceName,
 		path,
 		params.Namespace,
@@ -413,14 +411,14 @@ func addAppWithConfigInUserRepo(ctx context.Context, gitClient git.Git) error {
 	if err != nil {
 		return wrapError(err, fmt.Sprintf("could not create app.yaml for '%s'", params.Name))
 	}
-	applicationGOAT, err := generateApplicationGoat(userSourceName)
+	applicationGoat, err := generateApplicationGoat(userSourceName)
 	if err != nil {
 		return wrapError(err, fmt.Sprintf("could not create GitOps automation for '%s'", params.Name))
 	}
-	if err := writeAppYaml(appYaml, ".wego", gitClient); err != nil {
+	if err := writeAppYaml(gitClient, appYaml, ".wego"); err != nil {
 		return err
 	}
-	if err := writeApplicationGoat(applicationGOAT, ".wego", gitClient); err != nil {
+	if err := writeGoats(gitClient, ".wego", applicationGoat); err != nil {
 		return err
 	}
 	return commitAndPush(ctx, gitClient)
@@ -429,6 +427,12 @@ func addAppWithConfigInUserRepo(ctx context.Context, gitClient git.Git) error {
 func addAppWithConfigInExternalRepo(ctx context.Context, gitClient git.Git) error {
 	// Source covers entire GOAT repo
 	goatSourceName := getGoatRepoName()
+	tmpDir, err := cloneToTempDir(ctx, gitClient) // leaves gitClient referencing cloned repo
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(tmpDir)
+
 	goatRepoSource, err := generateSource(goatSourceName, params.AppConfigUrl, SourceTypeGit)
 	if err != nil {
 		return err
@@ -458,21 +462,18 @@ func addAppWithConfigInExternalRepo(ctx context.Context, gitClient git.Git) erro
 	if err != nil {
 		return err
 	}
-	if err := applyToCluster(userRepoSource, userTargetKustomize, userAppKustomize); err != nil {
-		return err
-	}
 	appYaml, err := generateAppYaml()
 	if err != nil {
 		return wrapError(err, fmt.Sprintf("could not create app.yaml for '%s'", params.Name))
 	}
-	applicationGOAT, err := generateApplicationGoat(userSourceName)
+	applicationGoat, err := generateApplicationGoat(userSourceName)
 	if err != nil {
 		return wrapError(err, fmt.Sprintf("could not create GitOps automation for '%s'", params.Name))
 	}
-	if err := writeAppYaml(appYaml, ".", gitClient); err != nil {
+	if err := writeAppYaml(gitClient, appYaml, "."); err != nil {
 		return err
 	}
-	if err := writeApplicationGoat(applicationGOAT, ".", gitClient); err != nil {
+	if err := writeGoats(gitClient, "", userRepoSource, userTargetKustomize, userAppKustomize, applicationGoat); err != nil {
 		return err
 	}
 	return commitAndPush(ctx, gitClient)
@@ -484,6 +485,7 @@ func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, er
 	cmd := fmt.Sprintf(`create secret git "%s" \
             --url="%s" \
             --private-key-file="%s" \
+            --export \
             --namespace=%s`,
 		secretName,
 		repoUrl,
@@ -553,13 +555,11 @@ func generateTargetKustomize(sourceName, basePath string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return generateKustomizeManifest(
-		sourceName, filepath.Join(basePath, "targets", clusterName, fmt.Sprintf("%s-gitops-runtime.yaml", clusterName)))
+	return generateKustomizeManifest(sourceName, filepath.Join(basePath, "targets", clusterName))
 }
 
 func generateAppKustomize(sourceName, basePath string) ([]byte, error) {
-	return generateKustomizeManifest(
-		sourceName, filepath.Join(basePath, "apps", params.Name, fmt.Sprintf("%s-gitops-runtime.yaml", params.Name)))
+	return generateKustomizeManifest(sourceName, filepath.Join(basePath, "apps", params.Name))
 }
 
 func applyToCluster(manifests ...[]byte) error {
@@ -574,18 +574,30 @@ func applyToCluster(manifests ...[]byte) error {
 	return nil
 }
 
-func writeAppYaml(appYaml []byte, basePath string, gitClient git.Git) error {
+func writeAppYaml(gitClient git.Git, appYaml []byte, basePath string) error {
 	appYamlPath := filepath.Join(basePath, "apps", params.Name, "app.yaml")
 	return gitClient.Write(appYamlPath, appYaml)
 }
 
-func writeApplicationGoat(appGoat []byte, basePath string, gitClient git.Git) error {
+func writeGoats(gitClient git.Git, basePath string, manifests ...[]byte) error {
 	clusterName, err := status.GetClusterName()
 	if err != nil {
 		return err
 	}
-	appGoatPath := filepath.Join(basePath, "targets", clusterName, fmt.Sprintf("%s-gitops-runtime.yaml", clusterName))
-	return gitClient.Write(appGoatPath, appGoat)
+	goatPath := filepath.Join(basePath, "targets", clusterName, params.Name, fmt.Sprintf("%s-gitops-runtime.yaml", params.Name))
+	goat := bytes.Join(manifests, []byte(""))
+	return gitClient.Write(goatPath, goat)
+}
+
+func cloneToTempDir(ctx context.Context, gitClient git.Git) (string, error) {
+	gitDir, err := ioutil.TempDir("", "git-")
+	if err != nil {
+		return "", wrapError(err, "TempDir")
+	}
+	if _, err := gitClient.Clone(ctx, gitDir, params.AppConfigUrl, params.Branch); err != nil {
+		return "", err
+	}
+	return gitDir, nil
 }
 
 func getUserRepoName() string {
