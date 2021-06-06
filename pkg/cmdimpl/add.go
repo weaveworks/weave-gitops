@@ -98,17 +98,10 @@ func updateParametersIfNecessary(gitClient git.Git) error {
 	}
 
 	if params.Url == "" && !params.DryRun {
-		repo, err := gitClient.Open(params.Dir)
-		if err != nil {
-			return wrapError(err, fmt.Sprintf("failed to open repository: %s", params.Dir))
-		}
-
-		remote, err := repo.Remote("origin")
+		urls, err := getUrls(gitClient, "origin")
 		if err != nil {
 			return err
 		}
-
-		urls := remote.Config().URLs
 
 		if len(urls) == 0 {
 			return fmt.Errorf("remote config in %s does not have an url", params.Dir)
@@ -185,6 +178,23 @@ func generateSourceManifestHelm() ([]byte, error) {
 		return nil, wrapError(err, "could not create git source")
 	}
 	return sourceManifest, nil
+}
+
+func getUrls(client git.Git, remote string) ([]string, error) {
+	if _, ok := client.(*git.GoGit); ok {
+		repo, err := client.Open(params.Dir)
+		if err != nil {
+			return nil, wrapError(err, fmt.Sprintf("failed to open repository: %s", params.Dir))
+		}
+
+		remote, err := repo.Remote("origin")
+		if err != nil {
+			return nil, err
+		}
+
+		return remote.Config().URLs, nil
+	}
+	return []string{"ssh://git@github.com/auser/arepo"}, nil
 }
 
 func generateKustomizeManifest(sourceName, path string) ([]byte, error) {

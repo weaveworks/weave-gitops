@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	gogit "github.com/go-git/go-git/v5"
+	//	gogit "github.com/go-git/go-git/v5"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -171,7 +171,7 @@ func handleGitLsRemote(arglist ...interface{}) ([]byte, []byte, error) {
 	return nil, nil, fmt.Errorf("NO!")
 }
 
-var fakeGitClient = gitfakes.FakeGit{
+var failGitClient = gitfakes.FakeGit{
 	CloneStub: func(ctx context.Context, a, b, c string) (bool, error) {
 		fmt.Println("failing clone")
 		shims.Exit(1)
@@ -186,16 +186,6 @@ var fakeGitClient = gitfakes.FakeGit{
 		fmt.Println("failing head")
 		shims.Exit(1)
 		return "", nil
-	},
-	InitStub: func(a, b, c string) (bool, error) {
-		fmt.Println("failing init")
-		shims.Exit(1)
-		return false, nil
-	},
-	OpenStub: func(a string) (*gogit.Repository, error) {
-		fmt.Println("failing open")
-		shims.Exit(1)
-		return nil, nil
 	},
 	PushStub: func(ctx context.Context) error {
 		fmt.Println("failing push")
@@ -214,9 +204,35 @@ var fakeGitClient = gitfakes.FakeGit{
 	},
 }
 
+var ignoreGitClient = gitfakes.FakeGit{
+	CloneStub: func(ctx context.Context, a, b, c string) (bool, error) {
+		fmt.Println("ignoring clone")
+		return false, nil
+	},
+	CommitStub: func(commit git.Commit) (string, error) {
+		fmt.Println("ignoring commit")
+		return "", nil
+	},
+	HeadStub: func() (string, error) {
+		fmt.Println("ignoring head")
+		return "", nil
+	},
+	PushStub: func(ctx context.Context) error {
+		fmt.Println("ignoring push")
+		return nil
+	},
+	StatusStub: func() (bool, error) {
+		fmt.Println("ignoring status")
+		return false, nil
+	},
+	WriteStub: func(a string, b []byte) error {
+		fmt.Println("ignoring write")
+		return nil
+	},
+}
+
 var _ = Describe("Test helm manifest from git repo", func() {
 	It("Verify helm manifest files generation from git ", func() {
-
 		expected := `create helmrelease simple-name-dot-my-chart \
             --source="GitRepository/simple-name" \
             --chart="./my-chart" \
@@ -361,7 +377,7 @@ var _ = Describe("Dry Run Add Test", func() {
 			_ = override.WithOverrides(
 				func() override.Result {
 					deps := &AddDependencies{
-						GitClient: &fakeGitClient,
+						GitClient: &failGitClient,
 					}
 
 					err := Add([]string{"."},
@@ -422,6 +438,105 @@ var _ = Describe("Dry Run Add Test", func() {
 				},
 				utils.OverrideFailure(utils.CallCommandForEffectWithInputPipeOp),
 				utils.OverrideFailure(utils.CallCommandForEffectWithDebugOp),
+				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
+				utils.OverrideBehavior(utils.CallCommandSeparatingOutputStreamsOp,
+					func(args ...interface{}) ([]byte, []byte, error) {
+						case0Kubectl := `kubectl config current-context`
+						Expect(args[0].(string)).Should(Equal(case0Kubectl))
+						switch (args[0]).(string) {
+						case case0Kubectl:
+							return []byte("my-cluster"), []byte(""), nil
+						default:
+							return nil, nil, fmt.Errorf("arguments not expected %s", args)
+						}
+
+					}),
+				fluxops.Override(FailFluxHandler),
+				gitproviders.Override(fgphandler),
+				status.Override(shandler))
+		})
+	})
+})
+
+var _ = Describe("Wet Run Add Test", func() {
+	It("Verify that paths through add work correctly when not using --dry-run", func() {
+		By("Executing a regular add and ensuring calls work", func() {
+			Expect(os.Setenv("GITHUB_ORG", "archaeopteryx")).Should(Succeed())
+			Expect(os.Setenv("GITHUB_TOKEN", "archaeopteryx")).Should(Succeed())
+			Expect(ensureFluxVersion()).Should(Succeed())
+			fgphandler := fakeGitRepoHandler{}
+			shandler := statusHandler{}
+			privateKeyFile, err := createTestPrivateKeyFile()
+			Expect(err).To(BeNil())
+			privateKeyFileName := privateKeyFile.Name()
+			defer os.Remove(privateKeyFileName)
+			_ = override.WithOverrides(
+				func() override.Result {
+					deps := &AddDependencies{
+						GitClient: &ignoreGitClient,
+					}
+					gitDir, err := ioutil.TempDir("", "git-")
+					Expect(err).To(BeNil())
+					defer os.RemoveAll(gitDir)
+					deps.GitClient.Init(gitDir, "a url we ignore", "main")
+					err = Add([]string{"."},
+						AddParamSet{
+							Name:           "",
+							Url:            "ssh://git@github.com/foobar/quux.git",
+							Path:           "./",
+							Branch:         "main",
+							PrivateKey:     privateKeyFileName,
+							DryRun:         false,
+							Namespace:      "wego-system",
+							DeploymentType: string(DeployTypeKustomize),
+						}, deps)
+
+					Expect(err).To(BeNil())
+					err = Add([]string{"."},
+						AddParamSet{
+							Name:           "",
+							Url:            "",
+							Path:           "./foo",
+							Branch:         "main",
+							PrivateKey:     privateKeyFileName,
+							DryRun:         false,
+							Namespace:      "wego-system",
+							DeploymentType: string(DeployTypeKustomize),
+						}, deps)
+
+					Expect(err).To(BeNil())
+					err = Add([]string{"."},
+						AddParamSet{
+							Name:           "",
+							Url:            "",
+							AppConfigUrl:   "none",
+							Path:           "./foo",
+							Branch:         "main",
+							PrivateKey:     privateKeyFileName,
+							DryRun:         false,
+							Namespace:      "wego-system",
+							DeploymentType: string(DeployTypeKustomize),
+						}, deps)
+
+					Expect(err).To(BeNil())
+					err = Add([]string{"."},
+						AddParamSet{
+							Name:           "",
+							Url:            "",
+							AppConfigUrl:   "ssh://git@github.com/aUser/aRepo",
+							Path:           "./foo",
+							Branch:         "main",
+							PrivateKey:     privateKeyFileName,
+							DryRun:         false,
+							Namespace:      "wego-system",
+							DeploymentType: string(DeployTypeKustomize),
+						}, deps)
+
+					Expect(err).To(BeNil())
+					return override.Result{}
+				},
+				utils.OverrideIgnore(utils.CallCommandForEffectWithInputPipeOp),
+				utils.OverrideIgnore(utils.CallCommandForEffectWithDebugOp),
 				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
 				utils.OverrideBehavior(utils.CallCommandSeparatingOutputStreamsOp,
 					func(args ...interface{}) ([]byte, []byte, error) {
