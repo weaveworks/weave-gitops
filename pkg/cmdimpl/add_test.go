@@ -478,7 +478,8 @@ var _ = Describe("Wet Run Add Test", func() {
 					gitDir, err := ioutil.TempDir("", "git-")
 					Expect(err).To(BeNil())
 					defer os.RemoveAll(gitDir)
-					deps.GitClient.Init(gitDir, "a url we ignore", "main")
+					_, err = deps.GitClient.Init(gitDir, "a url we ignore", "main")
+					Expect(err).To(BeNil())
 					err = Add([]string{"."},
 						AddParamSet{
 							Name:           "",
