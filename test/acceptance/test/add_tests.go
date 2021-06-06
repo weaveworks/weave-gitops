@@ -32,17 +32,16 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		addCommand := "app add . "
 		appRepoName := "wego-test-app-" + RandString(8)
-		wegoRepoName := getClusterName() + "-wego"
-		appName := wegoRepoName + "-" + appRepoName
 
-		defer deleteRepos(appRepoName, wegoRepoName)
+		defer deleteRepo(appRepoName)
 
-		By("And wego and application repos do not already exist", func() {
-			deleteRepos(appRepoName, wegoRepoName)
+		By("And application repo does not already exist", func() {
+			deleteRepo(appRepoName)
 		})
 
 		By("When I create a private repo with my app workload", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
+			appName := appRepoName
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 
@@ -65,7 +64,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("And repos created have private visibility", func() {
 			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), appRepoName)).Should(ContainSubstring("true"))
-			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), wegoRepoName)).Should(ContainSubstring("true"))
 		})
 	})
 
@@ -76,13 +74,12 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		sshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa_wego"
 		addCommand := fmt.Sprintf("app add . --private=false --private-key=%s --deployment-type=kustomize ", sshKeyPath)
 		appRepoName := "wego-test-app-" + RandString(8)
-		wegoRepoName := getClusterName() + "-wego"
-		appName := wegoRepoName + "-" + appRepoName
+		appName := appRepoName
 
-		defer deleteRepos(appRepoName, wegoRepoName)
+		defer deleteRepo(appRepoName)
 
-		By("And wego and application repos do not already exist", func() {
-			deleteRepos(appRepoName, wegoRepoName)
+		By("And application repo does not already exist", func() {
+			deleteRepos(appRepoName)
 		})
 
 		By("When I create a public repo with my app workload", func() {
@@ -109,7 +106,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("And repos created have public visibility", func() {
 			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), appRepoName)).Should(ContainSubstring("false"))
-			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), wegoRepoName)).Should(ContainSubstring("false"))
 		})
 	})
 
@@ -120,12 +116,11 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		addCommand := "app add . --private=true"
 		appRepoName := "wego-test-app-" + RandString(8)
-		wegoRepoName := getClusterName() + "-wego"
-		appName := wegoRepoName + "-" + appRepoName
-		defer deleteRepos(appRepoName, wegoRepoName)
+		appName := appRepoName
+		defer deleteRepo(appRepoName)
 
-		By("And wego and application repos do not already exist", func() {
-			deleteRepos(appRepoName, wegoRepoName)
+		By("And application repo does not already exist", func() {
+			deleteRepo(appRepoName)
 		})
 
 		By("When I create an empty private repo", func() {
@@ -158,7 +153,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("And repos created have private visibility", func() {
 			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), appRepoName)).Should(ContainSubstring("true"))
-			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), wegoRepoName)).Should(ContainSubstring("true"))
 		})
 	})
 
@@ -171,16 +165,15 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		addCommand := "app add . "
 		appRepoName1 := "wego-test-app-" + RandString(8)
 		appRepoName2 := "wego-test-app-" + RandString(8)
-		wegoRepoName := getClusterName() + "-wego"
-		appName1 := wegoRepoName + "-" + appRepoName1
-		appName2 := wegoRepoName + "-" + appRepoName2
+		appName1 := appRepoName1
+		appName2 := appRepoName2
 
-		defer deleteRepos(appRepoName1, wegoRepoName)
-		defer deleteRepos(appRepoName2, wegoRepoName)
+		defer deleteRepo(appRepoName1)
+		defer deleteRepo(appRepoName2)
 
-		By("And wego and application repos do not already exist", func() {
-			deleteRepos(appRepoName1, wegoRepoName)
-			deleteRepos(appRepoName2, wegoRepoName)
+		By("And application repos do not already exist", func() {
+			deleteRepo(appRepoName1)
+			deleteRepo(appRepoName2)
 		})
 
 		By("When I create an empty private repo for app1", func() {
@@ -234,7 +227,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		By("And repos created have private visibility", func() {
 			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), appRepoName1)).Should(ContainSubstring("true"))
 			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), appRepoName2)).Should(ContainSubstring("false"))
-			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), wegoRepoName)).Should(ContainSubstring("true"))
 		})
 	})
 
@@ -246,12 +238,11 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appName := "my-helm-app"
 		addCommand := "app add . --deployment-type=helm --path=./hello-world --name=" + appName
 		appRepoName := "wego-test-app-" + RandString(8)
-		wegoRepoName := getClusterName() + "-wego"
 
-		defer deleteRepos(appRepoName, wegoRepoName)
+		defer deleteRepo(appRepoName)
 
-		By("And wego and application repos do not already exist", func() {
-			deleteRepos(appRepoName, wegoRepoName)
+		By("And application repo does not already exist", func() {
+			deleteRepo(appRepoName)
 		})
 
 		By("When I create a private repo with my app workload", func() {
@@ -286,14 +277,13 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		addCommand := "app add . "
 		appRepoName := "wego-test-app-" + RandString(8)
-		wegoRepoName := getClusterName() + "-wego"
 		var addCommandOutput string
 		var addCommandErr string
 
-		defer deleteRepos(appRepoName, wegoRepoName)
+		defer deleteRepo(appRepoName)
 
-		By("And wego and application repos do not already exist", func() {
-			deleteRepos(appRepoName, wegoRepoName)
+		By("And application repo does not already exist", func() {
+			deleteRepo(appRepoName)
 		})
 
 		By("When I create a private repo with my app workload", func() {
