@@ -44,7 +44,7 @@ var _ = Describe("Run Command Test", func() {
 			runCmd(&cobra.Command{}, []string{})
 
 			args := fakeHandler.HandleArgsForCall(0)
-			Expect(args).To(Equal("install --namespace=my-namespace --export"))
+			Expect(args).To(Equal("install --namespace=my-namespace"))
 		})
 	})
 })

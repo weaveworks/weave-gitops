@@ -57,11 +57,10 @@ var _ = Describe("Flux Install Test", func() {
 			Expect(err).To(BeNil())
 			Expect(string(output)).To(Equal("foo"))
 
-			output, err = fluxops.Install("my-namespace")
+			_, err = fluxops.Install("my-namespace")
 			Expect(err).To(BeNil())
-			Expect(string(output)).To(Equal("apiVersion: v1\nkind: Namespace\nmetadata:\n  name: flux-system\n---\nfoo"))
 			args := fakeHandler.HandleArgsForCall(1)
-			Expect(args).To(Equal("install --namespace=my-namespace --export"))
+			Expect(args).To(Equal("install --namespace=my-namespace"))
 		})
 
 		By("Using a mock to fail verbose manifest generation", func() {
