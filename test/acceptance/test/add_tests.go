@@ -32,6 +32,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		addCommand := "app add . "
 		appRepoName := "wego-test-app-" + RandString(8)
+		appName := appRepoName
 
 		defer deleteRepo(appRepoName)
 
@@ -79,7 +80,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		defer deleteRepo(appRepoName)
 
 		By("And application repo does not already exist", func() {
-			deleteRepos(appRepoName)
+			deleteRepo(appRepoName)
 		})
 
 		By("When I create a public repo with my app workload", func() {
