@@ -485,7 +485,6 @@ func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, er
 	cmd := fmt.Sprintf(`create secret git "%s" \
             --url="%s" \
             --private-key-file="%s" \
-            --export \
             --namespace=%s`,
 		secretName,
 		repoUrl,
@@ -494,6 +493,7 @@ func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, er
 	if params.DryRun {
 		fmt.Printf(cmd + "\n")
 	} else {
+		fmt.Printf("RN: %s, RU: %s, ST: %s, CMD: %s\n", repoName, repoUrl, string(sourceType), cmd)
 		_, err := fluxops.CallFlux(cmd)
 
 		if err != nil {
