@@ -1,6 +1,7 @@
 package cmdimpl
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -9,19 +10,21 @@ import (
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	"github.com/go-git/go-billy/v5/memfs"
+	// "github.com/go-git/go-billy/v5/memfs"
 	gogit "github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/config"
-	"github.com/go-git/go-git/v5/storage/memory"
+	// "github.com/go-git/go-git/v5/config"
+	// "github.com/go-git/go-git/v5/storage/memory"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops/fluxopsfakes"
+	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/override"
+	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"github.com/weaveworks/weave-gitops/pkg/version"
@@ -171,17 +174,58 @@ func handleGitLsRemote(arglist ...interface{}) ([]byte, []byte, error) {
 	return nil, nil, fmt.Errorf("NO!")
 }
 
-var fakeGitClient = gitfakes.FakeGit{}
+var fakeGitClient = gitfakes.FakeGit{
+	CloneStub: func(ctx context.Context, a, b, c string) (bool, error) {
+		fmt.Println("failing clone")
+		shims.Exit(1)
+		return false, nil
+	},
+	CommitStub: func(commit git.Commit) (string, error) {
+		fmt.Println("failing commit")
+		shims.Exit(1)
+		return "", nil
+	},
+	HeadStub: func() (string, error) {
+		fmt.Println("failing head")
+		shims.Exit(1)
+		return "", nil
+	},
+	InitStub: func(a, b, c string) (bool, error) {
+		fmt.Println("failing init")
+		shims.Exit(1)
+		return false, nil
+	},
+	OpenStub: func(a string) (*gogit.Repository, error) {
+		fmt.Println("failing open")
+		shims.Exit(1)
+		return nil, nil
+	},
+	PushStub: func(ctx context.Context) error {
+		fmt.Println("failing push")
+		shims.Exit(1)
+		return nil
+	},
+	StatusStub: func() (bool, error) {
+		fmt.Println("failing status")
+		shims.Exit(1)
+		return false, nil
+	},
+	WriteStub: func(a string, b []byte) error {
+		fmt.Println("failing write")
+		shims.Exit(1)
+		return nil
+	},
+}
 
 var _ = Describe("Test helm manifest from git repo", func() {
 	It("Verify helm manifest files generation from git ", func() {
 
-		expected := `create helmrelease simple-name \
-			--source="GitRepository/simple-name" \
-			--chart="./my-chart" \
-			--interval=5m \
-			--export \
-			--namespace=wego-system`
+		expected := `create helmrelease simple-name-dot-my-chart \
+            --source="GitRepository/simple-name" \
+            --chart="./my-chart" \
+            --interval=5m \
+            --export \
+            --namespace=wego-system`
 
 		fakeHandler := &fluxopsfakes.FakeFluxHandler{
 			HandleStub: func(args string) ([]byte, error) {
@@ -190,13 +234,56 @@ var _ = Describe("Test helm manifest from git repo", func() {
 			},
 		}
 
-		fluxops.SetFluxHandler(fakeHandler)
+		_ = override.WithOverrides(
+			func() override.Result {
+				params.DryRun = false
+				params.Namespace = "wego-system"
+				Expect(generateHelmManifest("simple-name", "./my-chart")).Should(Equal([]byte("foo")))
+				return override.Result{}
+			},
+			fluxops.Override(fakeHandler))
+	})
+})
 
-		params.Name = "simple-name"
-		params.Path = "./my-chart"
-		params.Namespace = "wego-system"
+var _ = Describe("Test source manifest", func() {
+	It("Verify source manifest files generation ", func() {
+		secretCall := true
+		expectedSecret := `create secret git "sname" \
+            --url="ssh://git@github.com/auser/arepo" \
+            --private-key-file="/tmp/pkey" \
+            --namespace="aNamespace"`
 
-		Expect(generateHelmManifestGit()).Should(Equal([]byte("foo")))
+		expectedSource := `create source git "sname" \
+            --url="ssh://git@github.com/auser/arepo" \
+            --branch="aBranch" \
+            --secret-ref="sname" \
+            --interval=30s \
+            --export \
+            --namespace="aNamespace"`
+		fakeHandler := &fluxopsfakes.FakeFluxHandler{
+			HandleStub: func(args string) ([]byte, error) {
+				if secretCall {
+					Expect(args).Should(Equal(expectedSecret))
+					secretCall = false
+					return nil, nil
+				} else {
+					Expect(args).Should(Equal(expectedSource))
+					return []byte("bar"), nil
+				}
+			},
+		}
+
+		_ = override.WithOverrides(
+			func() override.Result {
+				params.DryRun = false
+				params.Namespace = "aNamespace"
+				params.PrivateKey = "/tmp/pkey"
+				params.Branch = "aBranch"
+
+				// source type will come into play when we have helmrepo support
+				Expect(generateSource(
+					"sname", "ssh://git@github.com/auser/arepo", "git")).Should(Equal([]byte("bar")))
+			})
 	})
 })
 
@@ -204,11 +291,11 @@ var _ = Describe("Test helm manifest from helm repo", func() {
 	It("Verify helm manifest generation from helm ", func() {
 
 		expected := `create helmrelease simple-name \
-			--source="HelmRepository/simple-name" \
-			--chart="testchart" \
-			--interval=5m \
-			--export \
-			--namespace=wego-system`
+            --source="HelmRepository/simple-name" \
+            --chart="testchart" \
+            --interval=5m \
+            --export \
+            --namespace=wego-system`
 
 		fakeHandler := &fluxopsfakes.FakeFluxHandler{
 			HandleStub: func(args string) ([]byte, error) {
@@ -235,10 +322,10 @@ var _ = Describe("Test helm source from helm repo", func() {
 	It("Verify helm source generation from helm ", func() {
 
 		expected := `create source helm test \
-			--url="https://github.io/testrepo" \
-			--interval=30s \
-			--export \
-			--namespace=wego-system `
+            --url="https://github.io/testrepo" \
+            --interval=30s \
+            --export \
+            --namespace=wego-system `
 
 		fakeHandler := &fluxopsfakes.FakeFluxHandler{
 			HandleStub: func(args string) ([]byte, error) {
@@ -317,22 +404,6 @@ var _ = Describe("Dry Run Add Test", func() {
 	})
 })
 
-var _ = Describe("Get cluster name", func() {
-	It("Get valid cluster name", func() {
-
-		shandler := statusHandler{}
-		_ = override.WithOverrides(
-			func() override.Result {
-				name, err := getClusterRepoName()
-				Expect(name).Should(Equal("test-wego"))
-				Expect(err).Should(BeNil())
-				return override.Result{}
-			},
-			status.Override(shandler))
-
-	})
-})
-
 var _ = Describe("Get owner from url", func() {
 	It("Get owner from valid url", func() {
 
@@ -347,128 +418,5 @@ var _ = Describe("Get owner from url", func() {
 		Expect(owner).Should(BeEmpty())
 		Expect(err.Error()).Should(Equal("could not get owner from url ssh:git@github.com"))
 
-	})
-})
-
-var _ = Describe("Add repo with custom access test", func() {
-	It("Verify that default is private", func() {
-		By("Running add with default access ", func() {
-			Expect(os.Setenv("GITHUB_ORG", "archaeopteryx")).Should(Succeed())
-			Expect(os.Setenv("GITHUB_TOKEN", "archaeopteryx")).Should(Succeed())
-			Expect(ensureFluxVersion()).Should(Succeed())
-			fgphandler := fakeGitRepoHandler{}
-			shandler := statusHandler{}
-			privateKeyFile, err := createTestPrivateKeyFile()
-			Expect(err).To(BeNil())
-			privateKeyFileName := privateKeyFile.Name()
-			defer os.Remove(privateKeyFileName)
-			_ = override.WithOverrides(
-				func() override.Result {
-					deps := &AddDependencies{
-						GitClient: &gitfakes.FakeGit{
-							OpenStub: func(s string) (*gogit.Repository, error) {
-								r, err := gogit.Init(memory.NewStorage(), memfs.New())
-								Expect(err).ShouldNot(HaveOccurred())
-
-								_, err = r.CreateRemote(&config.RemoteConfig{
-									Name: "origin",
-									URLs: []string{"http://foo/foo.git"},
-								})
-								Expect(err).ShouldNot(HaveOccurred())
-								return r, nil
-							},
-						},
-					}
-					err := Add([]string{"."},
-						AddParamSet{
-							Name:           "wanda",
-							Url:            "",
-							Path:           "./",
-							Branch:         "main",
-							PrivateKey:     privateKeyFileName,
-							Namespace:      "wego-system",
-							IsPrivate:      true,
-							DeploymentType: string(DeployTypeKustomize),
-						}, deps)
-
-					Expect(err).To(BeNil())
-					return override.Result{}
-				},
-				utils.OverrideIgnore(utils.CallCommandForEffectWithInputPipeOp),
-				utils.OverrideIgnore(utils.CallCommandOp),
-				utils.OverrideIgnore(utils.CallCommandForEffectWithDebugOp),
-				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
-				utils.OverrideBehavior(utils.CallCommandSeparatingOutputStreamsOp,
-					func(args ...interface{}) ([]byte, []byte, error) {
-						case0Kubectl := `kubectl config current-context`
-						Expect(args[0].(string)).Should(Equal(case0Kubectl))
-						switch (args[0]).(string) {
-						case case0Kubectl:
-							return []byte("my-cluster"), []byte(""), nil
-						default:
-							return nil, nil, fmt.Errorf("arguments not expected %s", args)
-						}
-
-					}),
-				fluxops.Override(FailFluxHandler),
-				gitproviders.Override(fgphandler),
-				status.Override(shandler))
-			Expect(access).To(Equal(true))
-		})
-	})
-
-	It("Verify that public repo created", func() {
-		By("Running add with IsPrivate as false ", func() {
-			Expect(os.Setenv("GITHUB_ORG", "archaeopteryx")).Should(Succeed())
-			Expect(os.Setenv("GITHUB_TOKEN", "archaeopteryx")).Should(Succeed())
-			Expect(ensureFluxVersion()).Should(Succeed())
-			fgphandler := fakeGitRepoHandler{}
-			shandler := statusHandler{}
-			privateKeyFile, err := createTestPrivateKeyFile()
-			Expect(err).To(BeNil())
-			privateKeyFileName := privateKeyFile.Name()
-			defer os.Remove(privateKeyFileName)
-			_ = override.WithOverrides(
-				func() override.Result {
-					deps := &AddDependencies{
-						GitClient: &fakeGitClient,
-					}
-
-					err := Add([]string{"."},
-						AddParamSet{
-							Name:           "wanda",
-							Url:            "ssh://git@github.com/foobar/quux.git",
-							Path:           "./",
-							Branch:         "main",
-							PrivateKey:     privateKeyFileName,
-							Namespace:      "wego-system",
-							IsPrivate:      false,
-							DeploymentType: string(DeployTypeKustomize),
-						}, deps)
-
-					Expect(err).Should(BeNil())
-					return override.Result{}
-				},
-				utils.OverrideIgnore(utils.CallCommandForEffectWithInputPipeOp),
-				utils.OverrideIgnore(utils.CallCommandOp),
-				utils.OverrideIgnore(utils.CallCommandForEffectWithDebugOp),
-				utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
-				utils.OverrideBehavior(utils.CallCommandSeparatingOutputStreamsOp,
-					func(args ...interface{}) ([]byte, []byte, error) {
-						case0Kubectl := `kubectl config current-context`
-						Expect(args[0].(string)).Should(Equal(case0Kubectl))
-						switch (args[0]).(string) {
-						case case0Kubectl:
-							return []byte("my-cluster"), []byte(""), nil
-						default:
-							return nil, nil, fmt.Errorf("arguments not expected %s", args)
-						}
-
-					}),
-				fluxops.Override(FailFluxHandler),
-				gitproviders.Override(fgphandler),
-				status.Override(shandler))
-			Expect(access).To(Equal(false))
-		})
 	})
 })

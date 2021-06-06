@@ -188,6 +188,7 @@ func OverrideBehavior(callOp CallOperation, behavior func(args ...interface{}) (
 func OverrideFailure(callOp CallOperation) override.Override {
 	location := &behaviors[callOp]
 	return override.Override{Handler: location, Mock: func(args ...interface{}) ([]byte, []byte, error) {
+		fmt.Println("failing for ", args)
 		shims.Exit(1)
 		return nil, nil, nil
 	},
@@ -218,6 +219,7 @@ func WithFailureFor(callOp CallOperation, action func() ([]byte, []byte, error))
 	_, _, _ = WithBehaviorFor(
 		callOp,
 		func(args ...interface{}) ([]byte, []byte, error) {
+			fmt.Println("failing for ", args)
 			shims.Exit(1)
 			return nil, nil, nil
 		},

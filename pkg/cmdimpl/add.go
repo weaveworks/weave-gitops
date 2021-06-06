@@ -59,7 +59,6 @@ type AddParamSet struct {
 	AppConfigUrl   string
 	Namespace      string
 	DryRun         bool
-	IsPrivate      bool
 }
 
 var (
@@ -70,26 +69,32 @@ type AddDependencies struct {
 	GitClient git.Git
 }
 
+func sanitizePath(path string) string {
+	trimmed := strings.TrimSuffix(path, "/")
+	return strings.ReplaceAll(strings.ReplaceAll(trimmed, "/", "-"), ".", "dot")
+}
+
+func generateAppName(dirOrUrl string) string {
+	base := strings.ReplaceAll(filepath.Base(dirOrUrl), "_", "-")
+	if params.Path != "./" {
+		return base + "-" + sanitizePath(params.Path)
+	}
+	return base
+}
+
 func updateParametersIfNecessary(gitClient git.Git) error {
 	if params.Name == "" {
-		name, err := status.GetClusterName()
-		if err != nil {
-			return wrapError(err, "could not update parameters")
-		}
-
 		if params.Url != "" {
-			repoName := strings.ReplaceAll(filepath.Base(params.Url), "_", "-")
-			params.Name = name + "-" + repoName
+			params.Name = generateAppName(strings.TrimSuffix(params.Url, ".git"))
 		} else {
 			repoPath, err := filepath.Abs(params.Dir)
+
 			if err != nil {
 				return wrapError(err, "could not get directory")
 			}
 
-			repoName := strings.ReplaceAll(filepath.Base(repoPath), "_", "-")
-			params.Name = name + "-" + repoName
+			params.Name = generateAppName(repoPath)
 		}
-
 	}
 
 	if params.Url == "" {
@@ -183,8 +188,7 @@ func generateSourceManifestHelm() ([]byte, error) {
 }
 
 func generateKustomizeManifest(sourceName, path string) ([]byte, error) {
-	trimmed := strings.TrimSuffix(path, "/")
-	kustName := sourceName + "-" + strings.ReplaceAll(strings.ReplaceAll(trimmed, "/", "-"), ".", "dot")
+	kustName := sourceName + "-" + sanitizePath(path)
 
 	cmd := fmt.Sprintf(`create kustomization "%s" \
                 --path="%s" \
@@ -198,7 +202,6 @@ func generateKustomizeManifest(sourceName, path string) ([]byte, error) {
 		path,
 		sourceName,
 		params.Namespace)
-	fmt.Printf("CMD: %s\n", cmd)
 	kustomizeManifest, err := fluxops.CallFlux(cmd)
 	if err != nil {
 		return nil, wrapError(err, "could not create kustomization manifest")
@@ -208,8 +211,7 @@ func generateKustomizeManifest(sourceName, path string) ([]byte, error) {
 }
 
 func generateHelmManifestGit(sourceName, path string) ([]byte, error) {
-	trimmed := strings.TrimSuffix(path, "/")
-	helmName := sourceName + "-" + strings.ReplaceAll(strings.ReplaceAll(trimmed, "/", "-"), ".", "dot")
+	helmName := sourceName + "-" + sanitizePath(path)
 
 	cmd := fmt.Sprintf(`create helmrelease %s \
             --source="GitRepository/%s" \
@@ -497,7 +499,7 @@ func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, er
 	cmd := fmt.Sprintf(`create secret git "%s" \
             --url="%s" \
             --private-key-file="%s" \
-            --namespace=%s`,
+            --namespace="%s"`,
 		secretName,
 		repoUrl,
 		params.PrivateKey,
@@ -505,7 +507,6 @@ func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, er
 	if params.DryRun {
 		fmt.Printf(cmd + "\n")
 	} else {
-		fmt.Printf("RN: %s, RU: %s, ST: %s, CMD: %s\n", repoName, repoUrl, string(sourceType), cmd)
 		_, err := fluxops.CallFlux(cmd)
 
 		if err != nil {
@@ -519,7 +520,7 @@ func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, er
             --secret-ref="%s" \
             --interval=30s \
             --export \
-            --namespace=%s `,
+            --namespace="%s"`,
 		repoName,
 		repoUrl,
 		params.Branch,
@@ -567,7 +568,6 @@ func generateTargetKustomize(sourceName, basePath string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("SN: %s, BP: %s, P: %s\n", sourceName, basePath, filepath.Join(basePath, "targets", clusterName))
 	return generateKustomizeManifest(sourceName, filepath.Join(basePath, "targets", clusterName))
 }
 
@@ -576,6 +576,14 @@ func generateAppKustomize(sourceName, basePath string) ([]byte, error) {
 }
 
 func applyToCluster(manifests ...[]byte) error {
+	if params.DryRun {
+		fmt.Printf("Applying:\n\n")
+		for _, manifest := range manifests {
+			fmt.Printf("%s\n", manifest)
+		}
+		return nil
+	}
+
 	kubectlApply := fmt.Sprintf("kubectl apply --namespace=%s -f -", params.Namespace)
 
 	for _, manifest := range manifests {
@@ -589,6 +597,10 @@ func applyToCluster(manifests ...[]byte) error {
 
 func writeAppYaml(gitClient git.Git, appYaml []byte, basePath string) error {
 	appYamlPath := filepath.Join(basePath, "apps", params.Name, "app.yaml")
+	if params.DryRun {
+		fmt.Printf("Writing app.yaml to '%s'\n", appYamlPath)
+		return nil
+	}
 	return gitClient.Write(appYamlPath, appYaml)
 }
 
@@ -598,6 +610,10 @@ func writeGoats(gitClient git.Git, basePath string, manifests ...[]byte) error {
 		return err
 	}
 	goatPath := filepath.Join(basePath, "targets", clusterName, params.Name, fmt.Sprintf("%s-gitops-runtime.yaml", params.Name))
+	if params.DryRun {
+		fmt.Printf("Writing GitOps Automation to '%s'\n", goatPath)
+		return nil
+	}
 	goat := bytes.Join(manifests, []byte(""))
 	return gitClient.Write(goatPath, goat)
 }
@@ -606,6 +622,10 @@ func cloneToTempDir(ctx context.Context, gitClient git.Git) (string, error) {
 	gitDir, err := ioutil.TempDir("", "git-")
 	if err != nil {
 		return "", wrapError(err, "TempDir")
+	}
+	if params.DryRun {
+		fmt.Printf("Cloning '%s' to temporary directory\n", params.AppConfigUrl)
+		return gitDir, nil
 	}
 	if _, err := gitClient.Clone(ctx, gitDir, params.AppConfigUrl, params.Branch); err != nil {
 		return "", err
