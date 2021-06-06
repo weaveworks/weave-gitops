@@ -183,6 +183,9 @@ func generateSourceManifestHelm() ([]byte, error) {
 }
 
 func generateKustomizeManifest(sourceName, path string) ([]byte, error) {
+	trimmed := strings.TrimSuffix(path, "/")
+	kustName := sourceName + "-" + strings.ReplaceAll(strings.ReplaceAll(trimmed, "/", "-"), ".", "dot")
+
 	cmd := fmt.Sprintf(`create kustomization "%s" \
                 --path="%s" \
                 --source="%s" \
@@ -191,31 +194,40 @@ func generateKustomizeManifest(sourceName, path string) ([]byte, error) {
                 --interval=5m \
                 --export \
                 --namespace=%s`,
-		sourceName+"-"+strings.ReplaceAll(path, "/", "-"),
+		kustName,
 		path,
 		sourceName,
 		params.Namespace)
+	fmt.Printf("CMD: %s\n", cmd)
 	kustomizeManifest, err := fluxops.CallFlux(cmd)
 	if err != nil {
 		return nil, wrapError(err, "could not create kustomization manifest")
 	}
 
-	return kustomizeManifest, nil
+	return bytes.ReplaceAll(kustomizeManifest, []byte("path: ./wego"), []byte("path: .wego")), nil
 }
 
 func generateHelmManifestGit(sourceName, path string) ([]byte, error) {
+	trimmed := strings.TrimSuffix(path, "/")
+	helmName := sourceName + "-" + strings.ReplaceAll(strings.ReplaceAll(trimmed, "/", "-"), ".", "dot")
+
 	cmd := fmt.Sprintf(`create helmrelease %s \
             --source="GitRepository/%s" \
             --chart="%s" \
             --interval=5m \
             --export \
             --namespace=%s`,
-		sourceName+"-"+strings.ReplaceAll(path, "/", "-"),
+		helmName,
 		sourceName,
 		path,
 		params.Namespace,
 	)
-	return fluxops.CallFlux(cmd)
+	helmManifest, err := fluxops.CallFlux(cmd)
+	if err != nil {
+		return nil, wrapError(err, "could not create helm manifest")
+	}
+
+	return bytes.ReplaceAll(helmManifest, []byte("path: ./wego"), []byte("path: .wego")), nil
 }
 
 func generateHelmManifestHelm() ([]byte, error) {
@@ -555,6 +567,7 @@ func generateTargetKustomize(sourceName, basePath string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("SN: %s, BP: %s, P: %s\n", sourceName, basePath, filepath.Join(basePath, "targets", clusterName))
 	return generateKustomizeManifest(sourceName, filepath.Join(basePath, "targets", clusterName))
 }
 
