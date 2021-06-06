@@ -42,7 +42,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("When I create a private repo with my app workload", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
-			appName := appRepoName
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 
