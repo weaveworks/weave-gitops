@@ -198,14 +198,6 @@ func VerifyControllersInCluster(namespace string) {
 	})
 }
 
-func getClusterName() string {
-	command := exec.Command("kubectl", "config", "current-context")
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
-	return strings.TrimSuffix(string(session.Wait().Out.Contents()), "\n")
-}
-
 func deleteRepo(appRepoName string) {
 	log.Infof("Delete application repo: %s", os.Getenv("GITHUB_ORG")+"/"+appRepoName)
 	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", os.Getenv("GITHUB_ORG")+"/"+appRepoName)
