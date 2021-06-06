@@ -248,34 +248,6 @@ func generateHelmManifestHelm() ([]byte, error) {
 	return fluxops.CallFlux(cmd)
 }
 
-func getOwner() (string, error) {
-	owner, err := fluxops.GetOwnerFromEnv()
-	if err != nil || owner == "" {
-		owner, err = getOwnerFromUrl(params.Url)
-		if err != nil {
-			return "", fmt.Errorf("could not get owner %s", err)
-		}
-	}
-
-	// command flag has priority
-	if params.Owner != "" {
-		return params.Owner, nil
-	}
-
-	return owner, nil
-}
-
-// ie: ssh://git@github.com/weaveworks/some-repo
-func getOwnerFromUrl(url string) (string, error) {
-	parts := strings.Split(url, "/")
-
-	if len(parts) < 2 {
-		return "", fmt.Errorf("could not get owner from url %s", url)
-	}
-
-	return parts[len(parts)-2], nil
-}
-
 func commitAndPush(ctx context.Context, gitClient git.Git) error {
 	fmt.Fprintf(shims.Stdout(), "Commiting and pushing wego resources for application...\n")
 	if params.DryRun {
@@ -378,10 +350,6 @@ func Add(args []string, allParams AddParamSet, deps *AddDependencies) error {
 	default:
 		return addAppWithConfigInExternalRepo(ctx, deps.GitClient)
 	}
-
-	fmt.Fprintf(shims.Stdout(), "Successfully added %s.\n", params.Name)
-
-	return nil
 }
 
 func addAppWithNoConfigRepo() error {
