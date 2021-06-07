@@ -62,7 +62,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 
 		By("When I run 'wego install' command with default namespace", func() {
-			command := exec.Command("sh", "-c", fmt.Sprintf("%s install | kubectl apply -f -", WEGO_BIN_PATH))
+			command := exec.Command("sh", "-c", fmt.Sprintf("%s install", WEGO_BIN_PATH))
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 			Eventually(session).Should(gexec.Exit())

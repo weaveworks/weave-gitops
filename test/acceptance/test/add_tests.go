@@ -5,7 +5,6 @@
 package acceptance
 
 import (
-	"fmt"
 	"os"
 
 	. "github.com/onsi/ginkgo"
@@ -67,54 +66,12 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify public repo can be added to the cluster by running 'wego add . --private=false --private-key --deployment-type=kustomize'", func() {
-		var repoAbsolutePath string
-		private := false
-		appManifestFilePath := "./data/nginx.yaml"
-		sshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa_wego"
-		addCommand := fmt.Sprintf("app add . --private=false --private-key=%s --deployment-type=kustomize ", sshKeyPath)
-		appRepoName := "wego-test-app-" + RandString(8)
-		appName := appRepoName
-
-		defer deleteRepo(appRepoName)
-
-		By("And application repo does not already exist", func() {
-			deleteRepo(appRepoName)
-		})
-
-		By("When I create a public repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
-			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
-		})
-
-		By("And I install wego to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
-		})
-
-		By("And I have my ssh key on path ~/.ssh/id_rsa_wego", func() {
-			setupSSHKey(sshKeyPath)
-		})
-
-		By("And I run wego add command", func() {
-			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
-		})
-
-		By("Then I should see workload is deployed to the cluster", func() {
-			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
-			verifyWorkloadIsDeployed("nginx", "my-nginx")
-		})
-
-		By("And repos created have public visibility", func() {
-			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), appRepoName)).Should(ContainSubstring("false"))
-		})
-	})
-
 	It("Verify that wego can deploy an app after it is setup with an empty repo initially", func() {
 		var repoAbsolutePath string
 		private := true
 		appManifestFilePath := "./data/nginx.yaml"
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
-		addCommand := "app add . --private=true"
+		addCommand := "app add ."
 		appRepoName := "wego-test-app-" + RandString(8)
 		appName := appRepoName
 		defer deleteRepo(appRepoName)
