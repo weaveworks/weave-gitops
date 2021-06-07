@@ -4,6 +4,9 @@ env:
 before:
   hooks:
     - go mod tidy
+release:
+  draft: true
+  prerelease: true
 builds:
   - <<: &build_defaults
       binary: wego
@@ -27,6 +30,7 @@ builds:
       - 7
   - <<: *build_defaults
     id: darwin
+    format: binary
     goos:
       - darwin
     goarch:
