@@ -9,8 +9,10 @@ release:
   prerelease: true
   name_template: "{{.ProjectName}}-v{{.Version}} {{.Env.USER}}"
 archives:
-  -
+  - <<: &build_defaults
    format: binary
+   replacements:
+     amd64: x86_64
 builds:
   - <<: &build_defaults
       binary: "wego-{{.Os}}-{{.Arch}}"
