@@ -8,7 +8,8 @@ release:
   draft: true
   prerelease: true
 archives:
-  format: binary
+  -
+   format: binary
 builds:
   - <<: &build_defaults
       binary: wego
