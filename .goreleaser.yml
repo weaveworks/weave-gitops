@@ -32,7 +32,6 @@ builds:
       - 7
   - <<: *build_defaults
     id: darwin
-    format: binary
     goos:
       - darwin
     goarch:
