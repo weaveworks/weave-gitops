@@ -83,6 +83,12 @@ func generateAppName(dirOrUrl string) string {
 }
 
 func updateParametersIfNecessary(gitClient git.Git) error {
+	params.SourceType = string(SourceTypeGit)
+	if params.Chart != "" {
+		params.SourceType = string(SourceTypeHelm)
+		params.DeploymentType = string(DeployTypeHelm)
+	}
+
 	if params.Name == "" {
 		if params.Url != "" {
 			params.Name = generateAppName(strings.TrimSuffix(params.Url, ".git"))
@@ -163,23 +169,6 @@ func generateSourceManifestGit() ([]byte, error) {
 	return sourceManifest, nil
 }
 
-func generateSourceManifestHelm() ([]byte, error) {
-	cmd := fmt.Sprintf(`create source helm %s \
-            --url="%s" \
-            --interval=30s \
-            --export \
-            --namespace=%s `,
-		params.Name,
-		params.Url,
-		params.Namespace)
-
-	sourceManifest, err := fluxops.CallFlux(cmd)
-	if err != nil {
-		return nil, wrapError(err, "could not create git source")
-	}
-	return sourceManifest, nil
-}
-
 func getUrls(client git.Git, remote string) ([]string, error) {
 	if _, ok := client.(*git.GoGit); ok {
 		repo, err := client.Open(params.Dir)
@@ -218,9 +207,24 @@ func generateKustomizeManifest(kustName, sourceName, path string) ([]byte, error
 	return bytes.ReplaceAll(kustomizeManifest, []byte("path: ./wego"), []byte("path: .wego")), nil
 }
 
-func generateHelmManifestGit(sourceName, path string) ([]byte, error) {
-	helmName := sourceName + "-" + sanitizePath(path)
+func generateSourceManifestHelm() ([]byte, error) {
+	cmd := fmt.Sprintf(`create source helm %s \
+            --url="%s" \
+            --interval=30s \
+            --export \
+            --namespace=%s `,
+		params.Name,
+		params.Url,
+		params.Namespace)
 
+	sourceManifest, err := fluxops.CallFlux(cmd)
+	if err != nil {
+		return nil, wrapError(err, "could not create git source")
+	}
+	return sourceManifest, nil
+}
+
+func generateHelmManifestGit(helmName, sourceName, path string) ([]byte, error) {
 	cmd := fmt.Sprintf(`create helmrelease %s \
             --source="GitRepository/%s" \
             --chart="%s" \
@@ -240,16 +244,16 @@ func generateHelmManifestGit(sourceName, path string) ([]byte, error) {
 	return bytes.ReplaceAll(helmManifest, []byte("path: ./wego"), []byte("path: .wego")), nil
 }
 
-func generateHelmManifestHelm() ([]byte, error) {
+func generateHelmManifestHelm(helmName, chart string) ([]byte, error) {
 	cmd := fmt.Sprintf(`create helmrelease %s \
             --source="HelmRepository/%s" \
             --chart="%s" \
             --interval=5m \
             --export \
             --namespace=%s`,
-		params.Name,
-		params.Name,
-		params.Chart,
+		helmName,
+		helmName,
+		chart,
 		params.Namespace,
 	)
 
@@ -472,41 +476,47 @@ func addAppWithConfigInExternalRepo(ctx context.Context, gitClient git.Git) erro
 func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, error) {
 	secretName := repoName
 
-	cmd := fmt.Sprintf(`create secret git "%s" \
+	switch sourceType {
+	case SourceTypeGit:
+		cmd := fmt.Sprintf(`create secret git "%s" \
             --url="%s" \
             --private-key-file="%s" \
             --namespace="%s"`,
-		secretName,
-		repoUrl,
-		params.PrivateKey,
-		params.Namespace)
-	if params.DryRun {
-		fmt.Printf(cmd + "\n")
-	} else {
-		_, err := fluxops.CallFlux(cmd)
+			secretName,
+			repoUrl,
+			params.PrivateKey,
+			params.Namespace)
+		if params.DryRun {
+			fmt.Printf(cmd + "\n")
+		} else {
+			_, err := fluxops.CallFlux(cmd)
 
-		if err != nil {
-			return nil, wrapError(err, "could not create git secret")
+			if err != nil {
+				return nil, wrapError(err, "could not create git secret")
+			}
 		}
-	}
-
-	cmd = fmt.Sprintf(`create source git "%s" \
+		cmd = fmt.Sprintf(`create source git "%s" \
             --url="%s" \
             --branch="%s" \
             --secret-ref="%s" \
             --interval=30s \
             --export \
             --namespace="%s"`,
-		repoName,
-		repoUrl,
-		params.Branch,
-		secretName,
-		params.Namespace)
-	sourceManifest, err := fluxops.CallFlux(cmd)
-	if err != nil {
-		return nil, wrapError(err, "could not create git source")
+			repoName,
+			repoUrl,
+			params.Branch,
+			secretName,
+			params.Namespace)
+		sourceManifest, err := fluxops.CallFlux(cmd)
+		if err != nil {
+			return nil, wrapError(err, "could not create git source")
+		}
+		return sourceManifest, nil
+	case SourceTypeHelm:
+		return generateSourceManifestHelm()
+	default:
+		return nil, fmt.Errorf("Unknown source type: %v", sourceType)
 	}
-	return sourceManifest, nil
 }
 
 func generateAppYaml() ([]byte, error) {
@@ -533,7 +543,14 @@ func generateApplicationGoat(sourceName string) ([]byte, error) {
 	case string(DeployTypeKustomize):
 		return generateKustomizeManifest(params.Name, sourceName, params.Path)
 	case string(DeployTypeHelm):
-		return generateHelmManifest(params.Name, sourceName, params.Path)
+		switch params.SourceType {
+		case string(SourceTypeHelm):
+			return generateHelmManifestHelm(params.Name, params.Chart)
+		case string(SourceTypeGit):
+			return generateHelmManifestGit(params.Name, sourceName, params.Path)
+		default:
+			return nil, fmt.Errorf("Invalid source type: %v", params.SourceType)
+		}
 	default:
 		return nil, fmt.Errorf("Invalid deployment type: %v", params.DeploymentType)
 	}

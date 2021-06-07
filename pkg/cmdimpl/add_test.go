@@ -234,7 +234,7 @@ var ignoreGitClient = gitfakes.FakeGit{
 var _ = Describe("Test helm manifest from git repo", func() {
 	It("Verify helm manifest files generation from git ", func() {
 		expected := `create helmrelease simple-name-dot-my-chart \
-            --source="GitRepository/simple-name" \
+            --source="GitRepository/source-name" \
             --chart="./my-chart" \
             --interval=1m \
             --export \
@@ -251,7 +251,7 @@ var _ = Describe("Test helm manifest from git repo", func() {
 			func() override.Result {
 				params.DryRun = false
 				params.Namespace = "wego-system"
-				Expect(generateHelmManifest("simple-name", "source-name", "./my-chart")).Should(Equal([]byte("foo")))
+				Expect(generateHelmManifestGit("simple-name-dot-my-chart", "source-name", "./my-chart")).Should(Equal([]byte("foo")))
 				return override.Result{}
 			},
 			fluxops.Override(fakeHandler))
@@ -296,7 +296,9 @@ var _ = Describe("Test source manifest", func() {
 				// source type will come into play when we have helmrepo support
 				Expect(generateSource(
 					"sname", "ssh://git@github.com/auser/arepo", "git")).Should(Equal([]byte("bar")))
-			})
+				return override.Result{}
+			},
+			fluxops.Override(fakeHandler))
 	})
 })
 
@@ -320,10 +322,8 @@ var _ = Describe("Test helm manifest from helm repo", func() {
 		_ = override.WithOverrides(
 			func() override.Result {
 				params.DryRun = false
-				params.Name = "simple-name"
 				params.Namespace = "wego-system"
-				params.Chart = "testchart"
-				Expect(generateHelmManifestHelm()).Should(Equal([]byte("foo")))
+				Expect(generateHelmManifestHelm("simple-name", "testchart")).Should(Equal([]byte("foo")))
 				return override.Result{}
 			},
 			fluxops.Override(fakeHandler))
