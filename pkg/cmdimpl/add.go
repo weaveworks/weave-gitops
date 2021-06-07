@@ -128,47 +128,6 @@ func updateParametersIfNecessary(gitClient git.Git) error {
 	return nil
 }
 
-func generateSourceManifestGit() ([]byte, error) {
-	secretName := params.Name
-
-	cmd := fmt.Sprintf(`create secret git "%s" \
-            --url="%s" \
-            --private-key-file="%s" \
-            --namespace=%s`,
-		secretName,
-		params.Url,
-		params.PrivateKey,
-		params.Namespace)
-	if params.DryRun {
-		fmt.Printf(cmd + "\n")
-	} else {
-
-		_, err := fluxops.CallFlux(cmd)
-
-		if err != nil {
-			return nil, wrapError(err, "could not create git secret")
-		}
-	}
-
-	cmd = fmt.Sprintf(`create source git "%s" \
-            --url="%s" \
-            --branch="%s" \
-            --secret-ref="%s" \
-            --interval=30s \
-            --export \
-            --namespace=%s `,
-		params.Name,
-		params.Url,
-		params.Branch,
-		secretName,
-		params.Namespace)
-	sourceManifest, err := fluxops.CallFlux(cmd)
-	if err != nil {
-		return nil, wrapError(err, "could not create git source")
-	}
-	return sourceManifest, nil
-}
-
 func getUrls(client git.Git, remote string) ([]string, error) {
 	if _, ok := client.(*git.GoGit); ok {
 		repo, err := client.Open(params.Dir)
