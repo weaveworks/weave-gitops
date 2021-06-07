@@ -544,7 +544,7 @@ func generateTargetKustomize(sourceName, basePath string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return generateKustomizeManifest(clusterName, sourceName, filepath.Join(basePath, "targets", clusterName))
+	return generateKustomizeManifest(clusterName+"-"+sourceName, sourceName, filepath.Join(basePath, "targets", clusterName))
 }
 
 func generateAppKustomize(sourceName, basePath string) ([]byte, error) {
