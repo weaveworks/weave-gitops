@@ -203,7 +203,7 @@ func generateKustomizeManifest(kustName, sourceName, path string) ([]byte, error
                 --source="%s" \
                 --prune=true \
                 --validation=client \
-                --interval=5m \
+                --interval=1m \
                 --export \
                 --namespace=%s`,
 		kustName,
@@ -224,7 +224,7 @@ func generateHelmManifestGit(sourceName, path string) ([]byte, error) {
 	cmd := fmt.Sprintf(`create helmrelease %s \
             --source="GitRepository/%s" \
             --chart="%s" \
-            --interval=5m \
+            --interval=1m \
             --export \
             --namespace=%s`,
 		helmName,
