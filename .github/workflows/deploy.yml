@@ -164,4 +164,4 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-2
     - run: |
-        aws s3 cp bin/wego-* s3://weave-gitops/temp/
+        aws s3 cp bin/ s3://weave-gitops/temp/ --recursive
