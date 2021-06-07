@@ -251,7 +251,7 @@ var _ = Describe("Test helm manifest from git repo", func() {
 			func() override.Result {
 				params.DryRun = false
 				params.Namespace = "wego-system"
-				Expect(generateHelmManifest("simple-name", "./my-chart")).Should(Equal([]byte("foo")))
+				Expect(generateHelmManifest("simple-name", "source-name", "./my-chart")).Should(Equal([]byte("foo")))
 				return override.Result{}
 			},
 			fluxops.Override(fakeHandler))

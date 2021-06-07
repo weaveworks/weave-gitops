@@ -197,9 +197,7 @@ func getUrls(client git.Git, remote string) ([]string, error) {
 	return []string{"ssh://git@github.com/auser/arepo"}, nil
 }
 
-func generateKustomizeManifest(sourceName, path string) ([]byte, error) {
-	kustName := sourceName + "-" + sanitizePath(path)
-
+func generateKustomizeManifest(kustName, sourceName, path string) ([]byte, error) {
 	cmd := fmt.Sprintf(`create kustomization "%s" \
                 --path="%s" \
                 --source="%s" \
@@ -533,9 +531,9 @@ func generateAppYaml() ([]byte, error) {
 func generateApplicationGoat(sourceName string) ([]byte, error) {
 	switch params.DeploymentType {
 	case string(DeployTypeKustomize):
-		return generateKustomizeManifest(sourceName, params.Path)
+		return generateKustomizeManifest(params.Name, sourceName, params.Path)
 	case string(DeployTypeHelm):
-		return generateHelmManifest(sourceName, params.Path)
+		return generateHelmManifest(params.Name, sourceName, params.Path)
 	default:
 		return nil, fmt.Errorf("Invalid deployment type: %v", params.DeploymentType)
 	}
@@ -546,11 +544,11 @@ func generateTargetKustomize(sourceName, basePath string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return generateKustomizeManifest(sourceName, filepath.Join(basePath, "targets", clusterName))
+	return generateKustomizeManifest(clusterName, sourceName, filepath.Join(basePath, "targets", clusterName))
 }
 
 func generateAppKustomize(sourceName, basePath string) ([]byte, error) {
-	return generateKustomizeManifest(sourceName, filepath.Join(basePath, "apps", params.Name))
+	return generateKustomizeManifest(params.Name, sourceName, filepath.Join(basePath, "apps", params.Name))
 }
 
 func applyToCluster(manifests ...[]byte) error {
