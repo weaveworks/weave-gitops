@@ -15,13 +15,6 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-const fluxSystemNamespace = `apiVersion: v1
-kind: Namespace
-metadata:
-  name: flux-system
----
-`
-
 var (
 	fluxHandler interface{} = DefaultFluxHandler{}
 	fluxBinary  string

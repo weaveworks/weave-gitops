@@ -19,6 +19,7 @@ var _ = Describe("Run Command Test", func() {
 				},
 			}
 			fluxops.SetFluxHandler(fakeHandler)
+
 			_ = override.WithOverrides(
 				func() override.Result {
 					_, err := Install(InstallParamSet{Namespace: "my-namespace"})
