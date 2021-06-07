@@ -236,7 +236,7 @@ var _ = Describe("Test helm manifest from git repo", func() {
 		expected := `create helmrelease simple-name-dot-my-chart \
             --source="GitRepository/simple-name" \
             --chart="./my-chart" \
-            --interval=5m \
+            --interval=1m \
             --export \
             --namespace=wego-system`
 
