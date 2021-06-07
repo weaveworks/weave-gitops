@@ -10,8 +10,6 @@ release:
   name_template: "{{.ProjectName}}-v{{.Version}} {{.Env.USER}}"
 archives:
   -
-   builds:
-     - default
    format: binary
    replacements:
      amd64: x86_64
