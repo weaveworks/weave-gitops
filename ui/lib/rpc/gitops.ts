@@ -45,10 +45,12 @@ const JSONToLoginRes = (m: LoginRes | LoginResJSON): LoginRes => {
 
 export interface Application {
     name?: string;
+    type?: string;
 }
 
 interface ApplicationJSON {
     name?: string;
+    type?: string;
 }
 
 
@@ -59,6 +61,7 @@ const JSONToApplication = (m: Application | ApplicationJSON): Application => {
 	}
     return {
         name: m.name,
+        type: m.type,
     };
 };
 

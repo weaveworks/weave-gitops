@@ -5,18 +5,18 @@ option go_package = "pkg/rpc/gitops";
 option java_outer_classname = "GitOpsProtos";
 
 service GitOps {
+    // Begin the Oauth2 flow
     rpc Login(LoginReq) returns (LoginRes);
     // Lists the applications that have been GitOps-ified
     rpc AddApplication(AddApplicationReq) returns (AddApplicationRes);
 }
 
-
 message LoginReq  {
-    string state = 1;
+    string state = 1; // The state that will be persisted in the URL query through the Oauth2 flow
 }
 
 message LoginRes {
-    string redirect_url = 1;
+    string redirect_url = 1; // The page to redirect a user to recieve a token
 }
 
 
@@ -25,33 +25,27 @@ enum DeploymentType {
     helm = 1;
 }
 
-/**
- * Represents a Weave GitOps application
- */
+// Represents a Weave GitOps application
 message Application {
     string name = 1;
+    DeploymentType type = 2;
 }
 
-/**
- * ListApplication request payload
- */
+
 message AddApplicationReq {
-    string owner = 1;
-    string name = 2;
-    string url = 3;
-    string path = 4;
-    string branch = 5;
-    DeploymentType deployment_type = 6;
-    string private_key = 7;
-    bool dry_run = 8;
-    bool private = 9;
-    string namespace = 10;
-    string dir = 11;
+    string         owner           = 1;   // The owner or org of the source git repo
+    string         name            = 2;   // The Name of the application
+    string         url             = 3;   // The URL of the source git repository
+    string         path            = 4;   // The path within the git repository that holds the files
+    string         branch          = 5;   // The git branch to use
+    DeploymentType deployment_type = 6;   // The type of deployment
+    string         private_key     = 7;   // The private key for creating this repo
+    bool           dry_run         = 8;   // Whether or not to do a dry run
+    bool           private         = 9;   // Whether or not the repo is private
+    string         namespace       = 10;  // The target namespace for this application
+    string         dir             = 11;  // The ...dir?
 }
 
-/**
- * ListApplication response payload
- */
 message AddApplicationRes {
     Application application = 1;
 }

@@ -4,9 +4,13 @@
 ## Table of Contents
 
 - [pkg/rpc/gitops/gitops.proto](#pkg/rpc/gitops/gitops.proto)
+    - [AddApplicationReq](#gitops.AddApplicationReq)
+    - [AddApplicationRes](#gitops.AddApplicationRes)
     - [Application](#gitops.Application)
-    - [ListApplicationsReq](#gitops.ListApplicationsReq)
-    - [ListApplicationsRes](#gitops.ListApplicationsRes)
+    - [LoginReq](#gitops.LoginReq)
+    - [LoginRes](#gitops.LoginRes)
+  
+    - [DeploymentType](#gitops.DeploymentType)
   
     - [GitOps](#gitops.GitOps)
   
@@ -21,6 +25,46 @@
 
 
 
+<a name="gitops.AddApplicationReq"></a>
+
+### AddApplicationReq
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| owner | [string](#string) |  | The owner or org of the source git repo |
+| name | [string](#string) |  | The Name of the application |
+| url | [string](#string) |  | The URL of the source git repository |
+| path | [string](#string) |  | The path within the git repository that holds the files |
+| branch | [string](#string) |  | The git branch to use |
+| deployment_type | [DeploymentType](#gitops.DeploymentType) |  | The type of deployment |
+| private_key | [string](#string) |  | The private key for creating this repo |
+| dry_run | [bool](#bool) |  | Whether or not to do a dry run |
+| private | [bool](#bool) |  | Whether or not the repo is private |
+| namespace | [string](#string) |  | The target namespace for this application |
+| dir | [string](#string) |  | The ...dir? |
+
+
+
+
+
+
+<a name="gitops.AddApplicationRes"></a>
+
+### AddApplicationRes
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| application | [Application](#gitops.Application) |  |  |
+
+
+
+
+
+
 <a name="gitops.Application"></a>
 
 ### Application
@@ -30,37 +74,55 @@ Represents a Weave GitOps application
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | name | [string](#string) |  |  |
+| type | [DeploymentType](#gitops.DeploymentType) |  |  |
 
 
 
 
 
 
-<a name="gitops.ListApplicationsReq"></a>
+<a name="gitops.LoginReq"></a>
 
-### ListApplicationsReq
-ListApplication request payload
+### LoginReq
 
-
-
-
-
-
-<a name="gitops.ListApplicationsRes"></a>
-
-### ListApplicationsRes
-ListApplication response payload
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| applications | [Application](#gitops.Application) | repeated |  |
+| state | [string](#string) |  | The state that will be persisted in the URL query through the Oauth2 flow |
+
+
+
+
+
+
+<a name="gitops.LoginRes"></a>
+
+### LoginRes
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| redirect_url | [string](#string) |  | The page to redirect a user to recieve a token |
 
 
 
 
 
  
+
+
+<a name="gitops.DeploymentType"></a>
+
+### DeploymentType
+
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| kustomize | 0 |  |
+| helm | 1 |  |
+
 
  
 
@@ -74,7 +136,8 @@ ListApplication response payload
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| ListApplications | [ListApplicationsReq](#gitops.ListApplicationsReq) | [ListApplicationsRes](#gitops.ListApplicationsRes) | Lists the applications that have been GitOps-ified |
+| Login | [LoginReq](#gitops.LoginReq) | [LoginRes](#gitops.LoginRes) | Begin the Oauth2 flow |
+| AddApplication | [AddApplicationReq](#gitops.AddApplicationReq) | [AddApplicationRes](#gitops.AddApplicationRes) | Lists the applications that have been GitOps-ified |
 
  
 

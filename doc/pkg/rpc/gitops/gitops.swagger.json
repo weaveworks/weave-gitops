@@ -1,0 +1,159 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "pkg/rpc/gitops/gitops.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/twirp/gitops.GitOps/AddApplication": {
+      "post": {
+        "summary": "Lists the applications that have been GitOps-ified",
+        "operationId": "AddApplication",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gitopsAddApplicationRes"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/gitopsAddApplicationReq"
+            }
+          }
+        ],
+        "tags": [
+          "GitOps"
+        ]
+      }
+    },
+    "/twirp/gitops.GitOps/Login": {
+      "post": {
+        "summary": "Begin the Oauth2 flow",
+        "operationId": "Login",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/gitopsLoginRes"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/gitopsLoginReq"
+            }
+          }
+        ],
+        "tags": [
+          "GitOps"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "gitopsAddApplicationReq": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        },
+        "deployment_type": {
+          "$ref": "#/definitions/gitopsDeploymentType"
+        },
+        "private_key": {
+          "type": "string"
+        },
+        "dry_run": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "private": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "dir": {
+          "type": "string"
+        }
+      }
+    },
+    "gitopsAddApplicationRes": {
+      "type": "object",
+      "properties": {
+        "application": {
+          "$ref": "#/definitions/gitopsApplication"
+        }
+      }
+    },
+    "gitopsApplication": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/gitopsDeploymentType"
+        }
+      },
+      "title": "Represents a Weave GitOps application"
+    },
+    "gitopsDeploymentType": {
+      "type": "string",
+      "enum": [
+        "kustomize",
+        "helm"
+      ],
+      "default": "kustomize"
+    },
+    "gitopsLoginReq": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string"
+        }
+      }
+    },
+    "gitopsLoginRes": {
+      "type": "object",
+      "properties": {
+        "redirect_url": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

@@ -19,7 +19,7 @@ type Server struct {
 }
 
 func NewServer(oauthConfig oauth2.Config) http.Handler {
-	defaultHooks := twirp.ChainHooks(middleware.LoggingHooks())
+	defaultHooks := twirp.ChainHooks(middleware.LoggingHooks(), middleware.MetricsHooks())
 
 	gitops := Server{
 		logger: logrus.New(),

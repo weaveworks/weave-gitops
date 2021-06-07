@@ -73,6 +73,3 @@ proto: pkg/rpc/gitops/gitops.proto
 
 proto-lint:
 	buf lint
-
-api-docs:
-	protoc --doc_out=./doc --doc_opt=markdown,gitops.md pkg/rpc/gitops/*.proto
