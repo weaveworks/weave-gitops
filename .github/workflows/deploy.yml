@@ -21,7 +21,7 @@ jobs:
     - name: Build UI Assets
       run: make cmd/ui/dist/index.html
     - name: build
-      run: make all BINARY_NAME=wego-$(uname)-$(uname -m)
+      run: make all BINARY_NAME=wego-$(uname | awk '{print tolower($0)}')-$(uname -m)
     - name: temp
       run: ls -l bin
     - name: Store wego binaries
@@ -88,7 +88,7 @@ jobs:
         path: bin
     - name: Change bin permissions
       run: |
-        cp bin/wego-$(uname)-$(uname -m) bin/wego
+        cp bin/wego-$(uname | awk '{print tolower($0)}')-$(uname -m) bin/wego
         chmod +x bin/wego
         ls -la bin
     - name: Download dependecies
@@ -170,4 +170,4 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-2
     - run: |
-        aws s3 cp bin/wego-${{matrix.os}} s3://weave-gitops/wego-${{matrix.os}}
+        aws s3 cp bin/wego-$(uname | awk '{print tolower($0)}')-$(uname -m) s3://weave-gitops/temp/wego-$(uname | awk '{print tolower($0)}')-$(uname -m)
