@@ -217,13 +217,16 @@ var _ = Describe("Test helm manifest from helm repo", func() {
 			},
 		}
 
-		fluxops.SetFluxHandler(fakeHandler)
-
-		params.Name = "simple-name"
-		params.Namespace = "wego-system"
-		params.Chart = "testchart"
-
-		Expect(generateHelmManifestHelm()).Should(Equal([]byte("foo")))
+		_ = override.WithOverrides(
+			func() override.Result {
+				params.DryRun = false
+				params.Name = "simple-name"
+				params.Namespace = "wego-system"
+				params.Chart = "testchart"
+				Expect(generateHelmManifestHelm()).Should(Equal([]byte("foo")))
+				return override.Result{}
+			},
+			fluxops.Override(fakeHandler))
 	})
 
 })
@@ -244,14 +247,17 @@ var _ = Describe("Test helm source from helm repo", func() {
 			},
 		}
 
-		fluxops.SetFluxHandler(fakeHandler)
-
-		params.Name = "test"
-		params.Url = "https://github.io/testrepo"
-		params.Namespace = "wego-system"
-		params.Chart = "testChart"
-
-		Expect(generateSourceManifestHelm()).Should(Equal([]byte("foo")))
+		_ = override.WithOverrides(
+			func() override.Result {
+				params.DryRun = false
+				params.Name = "test"
+				params.Url = "https://github.io/testrepo"
+				params.Namespace = "wego-system"
+				params.Chart = "testChart"
+				Expect(generateSourceManifestHelm()).Should(Equal([]byte("foo")))
+				return override.Result{}
+			},
+			fluxops.Override(fakeHandler))
 	})
 
 })

@@ -37,7 +37,7 @@ func init() {
 	Cmd.Flags().StringVar(&params.Path, "path", "./", "Path of files within git repository")
 	Cmd.Flags().StringVar(&params.Branch, "branch", "main", "Branch to watch within git repository")
 	Cmd.Flags().StringVar(&params.DeploymentType, "deployment-type", "kustomize", "deployment type [kustomize, helm]")
-	Cmd.Flags().StringVar(&params.Chart, "chart", "", "Specify chart for --helm-repository source")
+	Cmd.Flags().StringVar(&params.Chart, "chart", "", "Specify chart for helm source")
 	Cmd.Flags().StringVar(&params.PrivateKey, "private-key", filepath.Join(os.Getenv("HOME"), ".ssh", "id_rsa"), "Private key that provides access to git repository")
 	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'wego add' will not make any changes to the system; it will just display the actions that would have been taken")
 	Cmd.Flags().BoolVar(&params.IsPrivate, "private", true, "Set access control on the repo")
