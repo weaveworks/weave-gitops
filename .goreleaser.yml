@@ -13,7 +13,7 @@ archives:
    format: binary
 builds:
   - <<: &build_defaults
-      binary: wego
+      binary: `wego-{{.Os}}-{{.Arch}}`
       main: ./cmd/wego
       ldflags:
         - -X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime={{.Date}}
