@@ -131,7 +131,7 @@ jobs:
         $WEGO_BIN_PATH install --namespace test-namespace| kubectl --ignore-not-found=true delete -f -
         kubectl get all --all-namespaces -o wide
         ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v ./test/acceptance/test/...
-
+      if: always()
   test-gke:
     needs: [lint, build]
     runs-on: ${{matrix.os}}

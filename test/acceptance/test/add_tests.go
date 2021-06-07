@@ -74,7 +74,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		private := false
 		appManifestFilePath := "./data/nginx.yaml"
 		sshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa_wego"
-		addCommand := fmt.Sprintf("add . --private=false --private-key=%s --deployment-type=kustomize ", sshKeyPath)
+		addCommand := fmt.Sprintf("app add . --private=false --private-key=%s --deployment-type=kustomize ", sshKeyPath)
 		appRepoName := "wego-test-app-" + RandString(8)
 		wegoRepoName := getClusterName() + "-wego"
 		appName := wegoRepoName + "-" + appRepoName
@@ -238,7 +238,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("SmokeTest - Verify helm repo can be added to the cluster by running 'wego add . --deployment-type=helm --path=./hello-world'", func() {
+	It("Verify helm repo can be added to the cluster by running 'wego add . --deployment-type=helm --path=./hello-world'", func() {
 		var repoAbsolutePath string
 		private := true
 		appManifestFilePath := "./data/helm-repo/hello-world"
@@ -310,7 +310,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("Then I should see relevant message in the console", func() {
-			Eventually(addCommandOutput).Should(ContainSubstring("Checking cluster status... Unmodified"))
+
+			Eventually(addCommandOutput).Should(MatchRegexp(`Checking cluster status[.?]+ (Unknown|Unmodified)`))
 			Eventually(addCommandErr).Should(ContainSubstring("WeGO not installed... exiting"))
 		})
 	})
