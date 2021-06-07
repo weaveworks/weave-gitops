@@ -6,6 +6,9 @@ GOARCH=$(shell go env GOARCH)
 BUILD_TIME=$(shell date +'%Y-%m-%d_%T')
 BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT=$(shell git log -n1 --pretty='%h')
+
+LDFLAGS = "-X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION)"
+
 CURRENT_DIR=$(shell pwd)
 FLUX_VERSION=$(shell $(CURRENT_DIR)/tools/bin/stoml $(CURRENT_DIR)/tools/dependencies.toml flux.version)
 
@@ -29,7 +32,13 @@ unit-tests: cmd/ui/dist/index.html
 	CGO_ENABLED=0 go test -v -tags unittest ./...
 
 bin:
-	go build -ldflags "-X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION)" -o bin/$(BINARY_NAME) cmd/wego/*.go
+	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) cmd/wego/*.go
+
+release-binaries:
+	GOOS=linux GOARCH=amd64 go build -ldflags $(LDFLAGS) -o bin/wego-linux-x86_64 cmd/wego/*.go
+	GOOS=darwin GOARCH=amd64 go build -ldflags $(LDFLAGS) -o bin/wego-linux-x86_64 cmd/wego/*.go
+	GOOS=linux GOARCH=arm64 go build -ldflags $(LDFLAGS) -o bin/wego-linux-x86_64 cmd/wego/*.go
+	GOOS=darwin GOARCH=arm64 go build -ldflags $(LDFLAGS) -o bin/wego-linux-x86_64 cmd/wego/*.go
 
 # Build wego binary
 wego: dependencies bin
