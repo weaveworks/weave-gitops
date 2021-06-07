@@ -77,19 +77,23 @@ func CallFlux(arglist ...string) ([]byte, error) {
 	return fluxHandler.(FluxHandler).Handle(strings.Join(arglist, " "))
 }
 
-func Install(namespace string) ([]byte, error) {
-	return installFlux(namespace, true)
+func Install(namespace string, export bool) ([]byte, error) {
+	return installFlux(namespace, export)
 }
 
 func QuietInstall(namespace string) ([]byte, error) {
 	return installFlux(namespace, false)
 }
 
-func installFlux(namespace string, verbose bool) ([]byte, error) {
+func installFlux(namespace string, export bool) ([]byte, error) {
 	args := []string{
 		"install",
 		fmt.Sprintf("--namespace=%s", namespace),
 		"--components-extra=image-reflector-controller,image-automation-controller",
+	}
+
+	if export {
+		args = append(args, "--export")
 	}
 
 	manifests, err := CallFlux(args...)
