@@ -231,9 +231,6 @@ var _ = Describe("Test helm manifest from helm repo", func() {
 var _ = Describe("Test helm source from helm repo", func() {
 	It("Verify helm source generation from helm ", func() {
 
-		_, err := generateSourceManifestHelm()
-		Expect(err).Should(MatchError("chart needs to be set"))
-
 		expected := `create source helm test \
 			--url="https://github.io/testrepo" \
 			--interval=30s \
@@ -250,7 +247,7 @@ var _ = Describe("Test helm source from helm repo", func() {
 		fluxops.SetFluxHandler(fakeHandler)
 
 		params.Name = "test"
-		params.HelmRepository = "https://github.io/testrepo"
+		params.Url = "https://github.io/testrepo"
 		params.Namespace = "wego-system"
 		params.Chart = "testChart"
 

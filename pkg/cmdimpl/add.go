@@ -48,7 +48,6 @@ type AddParamSet struct {
 	PrivateKey     string
 	PrivateKeyPass string
 	DeploymentType string
-	HelmRepository string
 	Chart          string
 	Namespace      string
 	DryRun         bool
@@ -238,16 +237,13 @@ func generateSourceManifestGit() ([]byte, error) {
 }
 
 func generateSourceManifestHelm() ([]byte, error) {
-	if params.Chart == "" {
-		return nil, fmt.Errorf("chart needs to be set")
-	}
 	cmd := fmt.Sprintf(`create source helm %s \
 			--url="%s" \
 			--interval=30s \
 			--export \
 			--namespace=%s `,
 		params.Name,
-		params.HelmRepository,
+		params.Url,
 		params.Namespace)
 
 	sourceManifest, err := fluxops.CallFlux(cmd)
@@ -472,33 +468,35 @@ func Add(args []string, allParams AddParamSet, deps *AddDependencies) error {
 
 		// Create flux custom resources for new repo being added
 		var source []byte
-		if params.HelmRepository != "" {
+		var appManifests []byte
+
+		// If chart is set ignore deployment type. Going to revisit later
+		if params.Chart != "" {
 			source, err = generateSourceManifestHelm()
 			if err != nil {
 				return wrapError(err, "could not generate source manifest")
+			}
+			appManifests, err = generateHelmManifestHelm()
+			if err != nil {
+				return wrapError(err, "error generating manifest")
 			}
 		} else {
 			source, err = generateSourceManifestGit()
 			if err != nil {
 				return wrapError(err, "could not generate source manifest")
 			}
-		}
 
-		var appManifests []byte
-		switch params.DeploymentType {
-		case string(DeployTypeHelm):
-			if params.HelmRepository != "" {
-				appManifests, err = generateHelmManifestHelm()
-				break
+			switch params.DeploymentType {
+			case string(DeployTypeHelm):
+				appManifests, err = generateHelmManifestGit()
+			case string(DeployTypeKustomize):
+				appManifests, err = generateKustomizeManifest()
+			default:
+				return fmt.Errorf("deployment type not supported: %s", params.DeploymentType)
 			}
-			appManifests, err = generateHelmManifestGit()
-		case string(DeployTypeKustomize):
-			appManifests, err = generateKustomizeManifest()
-		default:
-			return fmt.Errorf("deployment type not supported: %s", params.DeploymentType)
-		}
-		if err != nil {
-			return wrapError(err, "error generating manifest")
+			if err != nil {
+				return wrapError(err, "error generating manifest")
+			}
 		}
 
 		appSubdir := filepath.Join("apps", params.Name)
