@@ -27,7 +27,9 @@ var (
 	fluxBinary  string
 )
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . FluxHandler
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+//counterfeiter:generate . FluxHandler
 type FluxHandler interface {
 	Handle(args string) ([]byte, error)
 }

@@ -24,11 +24,49 @@ const (
 // GitProvider Handler
 type GitProviderHandler interface {
 	CreateRepository(name string, owner string, private bool) error
+	RepositoryExists(name string, owner string) (bool, error)
 }
 
 var gitProviderHandler interface{} = defaultGitProviderHandler{}
 
+// TODO: implement the New method and inject dependencies in the struct
 type defaultGitProviderHandler struct{}
+
+func (h defaultGitProviderHandler) RepositoryExists(name string, owner string) (bool, error) {
+	provider, err := GithubProvider()
+	if err != nil {
+		return false, err
+	}
+
+	ownerType, err := GetAccountType(provider, owner)
+	if err != nil {
+		return false, err
+	}
+
+	ctx := context.Background()
+
+	if ownerType == AccountTypeOrg {
+		orgRef := gitprovider.OrgRepositoryRef{
+			OrganizationRef: gitprovider.OrganizationRef{Domain: github.DefaultDomain, Organization: owner},
+			RepositoryName:  name,
+		}
+		if _, err := provider.OrgRepositories().Get(ctx, orgRef); err != nil {
+			return false, err
+		}
+
+		return true, nil
+	}
+
+	userRepoRef := gitprovider.UserRepositoryRef{
+		UserRef:        gitprovider.UserRef{Domain: github.DefaultDomain, UserLogin: owner},
+		RepositoryName: name,
+	}
+	if _, err := provider.UserRepositories().Get(ctx, userRepoRef); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
 
 func (h defaultGitProviderHandler) CreateRepository(name string, owner string, private bool) error {
 	// TODO: detect or receive the provider when necessary
@@ -76,6 +114,10 @@ func (h defaultGitProviderHandler) CreateRepository(name string, owner string, p
 
 func CreateRepository(name string, owner string, private bool) error {
 	return gitProviderHandler.(GitProviderHandler).CreateRepository(name, owner, private)
+}
+
+func RepositoryExists(name string, owner string) (bool, error) {
+	return gitProviderHandler.(GitProviderHandler).RepositoryExists(name, owner)
 }
 
 func GetAccountType(provider gitprovider.Client, owner string) (ProviderAccountType, error) {

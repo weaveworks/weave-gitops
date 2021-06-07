@@ -234,7 +234,7 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 
 func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
-							cp %s %s &&
+							cp -r %s %s &&
 							cd %s &&
 							git add . &&
 							git commit -m 'add workload manifest' &&
@@ -276,19 +276,24 @@ func installAndVerifyWego(wegoNamespace string) {
 	})
 }
 func runWegoAddCommand(repoAbsolutePath string, addCommand string, wegoNamespace string) {
+	_, _ = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, wegoNamespace)
+}
+
+func runWegoAddCommandWithOutput(repoAbsolutePath string, addCommand string, wegoNamespace string) (string, string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
+	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
 }
 
-func verifyWegoAddCommand(appRepoName string, wegoRepoName string, wegoNamespace string) {
+func verifyWegoAddCommand(appName string, wegoNamespace string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(" kubectl wait --for=condition=Ready --timeout=60s -n %s GitRepositories --all", wegoNamespace))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
 	Expect(waitForResource("GitRepositories", "wego", wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
-	Expect(waitForResource("GitRepositories", wegoRepoName+"-"+appRepoName, wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("GitRepositories", appName, wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 }
 
 func verifyWorkloadIsDeployed(workloadName string, workloadNamespace string) {
