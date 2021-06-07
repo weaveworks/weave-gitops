@@ -60,7 +60,7 @@ var _ = Describe("Flux Install Test", func() {
 			_, err = fluxops.Install("my-namespace")
 			Expect(err).To(BeNil())
 			args := fakeHandler.HandleArgsForCall(1)
-			Expect(args).To(Equal("install --namespace=my-namespace"))
+			Expect(args).To(Equal("install --namespace=my-namespace --components-extra=image-reflector-controller,image-automation-controller"))
 		})
 
 		By("Using a mock to fail verbose manifest generation", func() {

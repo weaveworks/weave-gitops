@@ -26,7 +26,7 @@ var _ = Describe("Run Command Test", func() {
 					Expect(err).To(BeNil())
 
 					args := fakeHandler.HandleArgsForCall(0)
-					Expect(args).To(Equal("install --namespace=my-namespace"))
+					Expect(args).To(Equal("install --namespace=my-namespace --components-extra=image-reflector-controller,image-automation-controller"))
 
 					return override.Result{}
 				},

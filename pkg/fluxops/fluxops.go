@@ -89,6 +89,7 @@ func installFlux(namespace string, verbose bool) ([]byte, error) {
 	args := []string{
 		"install",
 		fmt.Sprintf("--namespace=%s", namespace),
+		"--components-extra=image-reflector-controller,image-automation-controller",
 	}
 
 	manifests, err := CallFlux(args...)

@@ -13,6 +13,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/fluxops/fluxopsfakes"
 	"github.com/weaveworks/weave-gitops/pkg/override"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 type localExitHandler struct {
@@ -38,13 +39,19 @@ var _ = Describe("Run Command Test", func() {
 			}
 			fluxops.SetFluxHandler(fakeHandler)
 
-			params = cmdimpl.InstallParamSet{
-				Namespace: "my-namespace",
-			}
-			runCmd(&cobra.Command{}, []string{})
+			_ = override.WithOverrides(
+				func() override.Result {
+					params = cmdimpl.InstallParamSet{
+						Namespace: "my-namespace",
+					}
+					runCmd(&cobra.Command{}, []string{})
 
-			args := fakeHandler.HandleArgsForCall(0)
-			Expect(args).To(Equal("install --namespace=my-namespace"))
+					args := fakeHandler.HandleArgsForCall(0)
+					Expect(args).To(Equal("install --namespace=my-namespace --components-extra=image-reflector-controller,image-automation-controller"))
+
+					return override.Result{}
+				},
+				utils.OverrideIgnore(utils.CallCommandForEffectWithInputPipeOp))
 		})
 	})
 })
