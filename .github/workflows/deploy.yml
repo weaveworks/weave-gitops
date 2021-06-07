@@ -23,7 +23,9 @@ jobs:
     - name: Build UI Assets
       run: make cmd/ui/dist/index.html
     - name: build
-      run: make all BINARY_NAME=wego-${{matrix.os}}
+      run: make all BINARY_NAME=wego-$(uname)-$(uname -m)
+    - name: temp
+      run: ls -l
     - name: Store wego binaries
       uses: actions/upload-artifact@v2
       with:
