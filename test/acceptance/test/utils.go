@@ -275,7 +275,7 @@ func runWegoAddCommandWithOutput(repoAbsolutePath string, addCommand string, weg
 	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
 }
 
-func verifyWegoAddCommand(appName string, wegoNamespace string) {
+func verifyWegoAddCommand(appRepoName string, wegoNamespace string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(" kubectl wait --for=condition=Ready --timeout=60s -n %s GitRepositories --all", wegoNamespace))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
