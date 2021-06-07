@@ -149,11 +149,8 @@ jobs:
       if: always()
 
   publish-binaries:
-    runs-on: ${{matrix.os}}
+    runs-on: ubuntu-latest
     needs: [acceptance-tests]
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macOS-latest]
     steps:
     - name: Download wego binaries
       uses: actions/download-artifact@v2
