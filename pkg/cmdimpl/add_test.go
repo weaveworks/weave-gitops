@@ -173,8 +173,8 @@ func handleGitLsRemote(arglist ...interface{}) ([]byte, []byte, error) {
 
 var fakeGitClient = gitfakes.FakeGit{}
 
-var _ = Describe("Test helm manifest", func() {
-	It("Verify helm manifest files generation ", func() {
+var _ = Describe("Test helm manifest from git repo", func() {
+	It("Verify helm manifest files generation from git ", func() {
 
 		expected := `create helmrelease simple-name \
 			--source="GitRepository/simple-name" \
@@ -193,12 +193,73 @@ var _ = Describe("Test helm manifest", func() {
 		fluxops.SetFluxHandler(fakeHandler)
 
 		params.Name = "simple-name"
-		params.Name = "simple-name"
 		params.Path = "./my-chart"
 		params.Namespace = "wego-system"
 
-		Expect(generateHelmManifest()).Should(Equal([]byte("foo")))
+		Expect(generateHelmManifestGit()).Should(Equal([]byte("foo")))
 	})
+})
+
+var _ = Describe("Test helm manifest from helm repo", func() {
+	It("Verify helm manifest generation from helm ", func() {
+
+		expected := `create helmrelease simple-name \
+			--source="HelmRepository/simple-name" \
+			--chart="testchart" \
+			--interval=5m \
+			--export \
+			--namespace=wego-system`
+
+		fakeHandler := &fluxopsfakes.FakeFluxHandler{
+			HandleStub: func(args string) ([]byte, error) {
+				Expect(args).Should(Equal(expected))
+				return []byte("foo"), nil
+			},
+		}
+
+		_ = override.WithOverrides(
+			func() override.Result {
+				params.DryRun = false
+				params.Name = "simple-name"
+				params.Namespace = "wego-system"
+				params.Chart = "testchart"
+				Expect(generateHelmManifestHelm()).Should(Equal([]byte("foo")))
+				return override.Result{}
+			},
+			fluxops.Override(fakeHandler))
+	})
+
+})
+
+var _ = Describe("Test helm source from helm repo", func() {
+	It("Verify helm source generation from helm ", func() {
+
+		expected := `create source helm test \
+			--url="https://github.io/testrepo" \
+			--interval=30s \
+			--export \
+			--namespace=wego-system `
+
+		fakeHandler := &fluxopsfakes.FakeFluxHandler{
+			HandleStub: func(args string) ([]byte, error) {
+				Expect(args).Should(Equal(expected))
+				return []byte("foo"), nil
+			},
+		}
+
+		_ = override.WithOverrides(
+			func() override.Result {
+				params.DryRun = false
+				params.Name = "test"
+				params.Url = "https://github.io/testrepo"
+				params.Namespace = "wego-system"
+				params.Chart = "testChart"
+				Expect(generateSourceManifestHelm()).Should(Equal([]byte("foo")))
+				return override.Result{}
+			},
+			fluxops.Override(fakeHandler))
+	})
+
 })
 
 var _ = Describe("Dry Run Add Test", func() {

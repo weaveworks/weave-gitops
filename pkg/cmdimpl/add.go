@@ -48,6 +48,7 @@ type AddParamSet struct {
 	PrivateKey     string
 	PrivateKeyPass string
 	DeploymentType string
+	Chart          string
 	Namespace      string
 	DryRun         bool
 	IsPrivate      bool
@@ -194,7 +195,7 @@ func generateWegoKustomizeManifest() ([]byte, error) {
 	return kustomizeManifest, nil
 }
 
-func generateSourceManifest() ([]byte, error) {
+func generateSourceManifestGit() ([]byte, error) {
 	secretName := params.Name
 
 	cmd := fmt.Sprintf(`create secret git "%s" \
@@ -235,6 +236,23 @@ func generateSourceManifest() ([]byte, error) {
 	return sourceManifest, nil
 }
 
+func generateSourceManifestHelm() ([]byte, error) {
+	cmd := fmt.Sprintf(`create source helm %s \
+			--url="%s" \
+			--interval=30s \
+			--export \
+			--namespace=%s `,
+		params.Name,
+		params.Url,
+		params.Namespace)
+
+	sourceManifest, err := fluxops.CallFlux(cmd)
+	if err != nil {
+		return nil, wrapError(err, "could not create git source")
+	}
+	return sourceManifest, nil
+}
+
 func generateKustomizeManifest() ([]byte, error) {
 	cmd := fmt.Sprintf(`create kustomization "%s" \
                 --path="%s" \
@@ -256,7 +274,7 @@ func generateKustomizeManifest() ([]byte, error) {
 	return kustomizeManifest, nil
 }
 
-func generateHelmManifest() ([]byte, error) {
+func generateHelmManifestGit() ([]byte, error) {
 	cmd := fmt.Sprintf(`create helmrelease %s \
 			--source="GitRepository/%s" \
 			--chart="%s" \
@@ -268,6 +286,22 @@ func generateHelmManifest() ([]byte, error) {
 		params.Path,
 		params.Namespace,
 	)
+	return fluxops.CallFlux(cmd)
+}
+
+func generateHelmManifestHelm() ([]byte, error) {
+	cmd := fmt.Sprintf(`create helmrelease %s \
+			--source="HelmRepository/%s" \
+			--chart="%s" \
+			--interval=5m \
+			--export \
+			--namespace=%s`,
+		params.Name,
+		params.Name,
+		params.Chart,
+		params.Namespace,
+	)
+
 	return fluxops.CallFlux(cmd)
 }
 
@@ -433,22 +467,36 @@ func Add(args []string, allParams AddParamSet, deps *AddDependencies) error {
 		}
 
 		// Create flux custom resources for new repo being added
-		source, err := generateSourceManifest()
-		if err != nil {
-			return wrapError(err, "could not generate source manifest")
-		}
-
+		var source []byte
 		var appManifests []byte
-		switch params.DeploymentType {
-		case string(DeployTypeHelm):
-			appManifests, err = generateHelmManifest()
-		case string(DeployTypeKustomize):
-			appManifests, err = generateKustomizeManifest()
-		default:
-			return fmt.Errorf("deployment type not supported: %s", params.DeploymentType)
-		}
-		if err != nil {
-			return wrapError(err, "error generating manifest")
+
+		// If chart is set ignore deployment type. Going to revisit later
+		if params.Chart != "" {
+			source, err = generateSourceManifestHelm()
+			if err != nil {
+				return wrapError(err, "could not generate source manifest")
+			}
+			appManifests, err = generateHelmManifestHelm()
+			if err != nil {
+				return wrapError(err, "error generating manifest")
+			}
+		} else {
+			source, err = generateSourceManifestGit()
+			if err != nil {
+				return wrapError(err, "could not generate source manifest")
+			}
+
+			switch params.DeploymentType {
+			case string(DeployTypeHelm):
+				appManifests, err = generateHelmManifestGit()
+			case string(DeployTypeKustomize):
+				appManifests, err = generateKustomizeManifest()
+			default:
+				return fmt.Errorf("deployment type not supported: %s", params.DeploymentType)
+			}
+			if err != nil {
+				return wrapError(err, "error generating manifest")
+			}
 		}
 
 		appSubdir := filepath.Join("apps", params.Name)
