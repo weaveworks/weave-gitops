@@ -42,8 +42,6 @@ func init() {
 }
 
 func runCmd(cmd *cobra.Command, args []string) {
-	manifests, err := cmdimpl.Install(params)
+	_, err := cmdimpl.Install(params)
 	checkError("failed outputing install manifests", err)
-
-	fmt.Println(string(manifests))
 }
