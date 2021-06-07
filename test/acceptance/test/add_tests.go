@@ -162,11 +162,12 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appManifestFilePath1 := "./data/nginx.yaml"
 		appManifestFilePath2 := "./data/nginx2.yaml"
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
-		addCommand := "app add . "
 		appRepoName1 := "wego-test-app-" + RandString(8)
 		appRepoName2 := "wego-test-app-" + RandString(8)
 		appName1 := appRepoName1
 		appName2 := appRepoName2
+		addCommand1 := "app add . --name=" + appName1
+		addCommand2 := "app add . --name=" + appName2
 
 		defer deleteRepo(appRepoName1)
 		defer deleteRepo(appRepoName2)
@@ -201,11 +202,11 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("And I run wego add command for 1st app", func() {
-			runWegoAddCommand(repoAbsolutePath1, addCommand, WEGO_DEFAULT_NAMESPACE)
+			runWegoAddCommand(repoAbsolutePath1, addCommand1, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("And I run wego add command for 2nd app", func() {
-			runWegoAddCommand(repoAbsolutePath2, addCommand, WEGO_DEFAULT_NAMESPACE)
+			runWegoAddCommand(repoAbsolutePath2, addCommand2, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("Then I should see wego add command linked the repo1 to the cluster", func() {
