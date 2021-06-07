@@ -16,6 +16,7 @@ builds:
       env:
         - CGO_ENABLED=0
     id: linux
+    format: binary
     goos:
       - linux
     goarch:
