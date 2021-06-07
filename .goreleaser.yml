@@ -7,7 +7,6 @@ before:
 release:
   draft: true
   prerelease: true
-  name_template: "{{.ProjectName}}-v{{.Version}} {{.Env.USER}}"
 archives:
   -
    format: binary
