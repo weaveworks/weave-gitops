@@ -71,23 +71,32 @@ func getClusterRepoName() (string, error) {
 
 func updateParametersIfNecessary(gitClient git.Git) error {
 	if params.Name == "" {
-		repoPath, err := filepath.Abs(params.Dir)
-		if err != nil {
-			return wrapError(err, "could not get directory")
-		}
-
-		repoName := strings.ReplaceAll(filepath.Base(repoPath), "_", "-")
 
 		name, err := getClusterRepoName()
 		if err != nil {
 			return wrapError(err, "could not update parameters")
 		}
 
-		params.Name = name + "-" + repoName
+		if params.Url != "" {
+
+			repoName := strings.ReplaceAll(filepath.Base(params.Url), "_", "-")
+
+			params.Name = name + "-" + repoName
+		} else {
+			repoPath, err := filepath.Abs(params.Dir)
+			if err != nil {
+				return wrapError(err, "could not get directory")
+			}
+
+			repoName := strings.ReplaceAll(filepath.Base(repoPath), "_", "-")
+
+			params.Name = name + "-" + repoName
+		}
+
 	}
 
 	if params.Url == "" {
-		// gitClient := git.New(nil)
+
 		repo, err := gitClient.Open(params.Dir)
 		if err != nil {
 			return wrapError(err, fmt.Sprintf("failed to open repository: %s", params.Dir))
@@ -105,6 +114,7 @@ func updateParametersIfNecessary(gitClient git.Git) error {
 		}
 
 		params.Url = urls[0]
+
 	}
 
 	sshPrefix := "git@github.com:"
@@ -317,18 +327,21 @@ func wrapError(err error, msg string) error {
 func Add(args []string, allParams AddParamSet, deps *AddDependencies) error {
 	ctx := context.Background()
 
-	if len(args) < 1 {
-		return errors.New("location of application not specified")
+	if allParams.Url == "" {
+		if len(args) == 0 {
+			return errors.New("no app --url or app location specified")
+		} else {
+			allParams.Dir = args[0]
+		}
 	}
 
 	params = allParams
-	params.Dir = args[0]
-	fmt.Printf("Updating parameters from environment... ")
+	fmt.Print("Updating parameters from environment... ")
 	if err := updateParametersIfNecessary(deps.GitClient); err != nil {
 		return wrapError(err, "could not update parameters")
 	}
-	fmt.Printf("done\n\n")
-	fmt.Printf("Checking cluster status... ")
+	fmt.Print("done\n\n")
+	fmt.Print("Checking cluster status... ")
 	clusterStatus := status.GetClusterStatus()
 	fmt.Printf("%s\n\n", clusterStatus)
 
