@@ -7,6 +7,8 @@ before:
 release:
   draft: true
   prerelease: true
+archives:
+  format: binary
 builds:
   - <<: &build_defaults
       binary: wego
@@ -19,7 +21,6 @@ builds:
       env:
         - CGO_ENABLED=0
     id: linux
-    format: binary
     goos:
       - linux
     goarch:
