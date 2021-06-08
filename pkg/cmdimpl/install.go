@@ -19,7 +19,7 @@ type InstallParamSet struct {
 func Install(params InstallParamSet) error {
 	manifests, err := fluxops.Install(params.Namespace, params.DryRun)
 	if err != nil {
-		return err
+		return fmt.Errorf("error on install %s", err)
 	}
 
 	if params.DryRun {
