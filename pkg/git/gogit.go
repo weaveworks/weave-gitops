@@ -138,7 +138,7 @@ func (g *GoGit) Write(path string, content []byte) error {
 	return err
 }
 
-func (g *GoGit) Commit(message Commit) (string, error) {
+func (g *GoGit) Commit(message Commit, filters ...func(string) bool) (string, error) {
 	if g.repository == nil {
 		return "", ErrNoGitRepository
 	}
@@ -172,10 +172,18 @@ func (g *GoGit) Commit(message Commit) (string, error) {
 				continue
 			}
 		}
-		_, _ = wt.Add(file)
-		changed = true
+		skip := false
+		for _, filter := range filters {
+			if !filter(abspath) {
+				skip = true
+				break
+			}
+		}
+		if !skip {
+			_, _ = wt.Add(file)
+			changed = true
+		}
 	}
-
 	if !changed {
 		head, err := g.repository.Head()
 		if err != nil {

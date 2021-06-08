@@ -177,7 +177,7 @@ var failGitClient = gitfakes.FakeGit{
 		shims.Exit(1)
 		return false, nil
 	},
-	CommitStub: func(commit git.Commit) (string, error) {
+	CommitStub: func(commit git.Commit, filters ...func(string) bool) (string, error) {
 		fmt.Println("failing commit")
 		shims.Exit(1)
 		return "", nil
@@ -209,7 +209,7 @@ var ignoreGitClient = gitfakes.FakeGit{
 		fmt.Println("ignoring clone")
 		return false, nil
 	},
-	CommitStub: func(commit git.Commit) (string, error) {
+	CommitStub: func(commit git.Commit, filters ...func(string) bool) (string, error) {
 		fmt.Println("ignoring commit")
 		return "", nil
 	},

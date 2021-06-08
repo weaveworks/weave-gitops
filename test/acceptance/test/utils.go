@@ -20,6 +20,7 @@ import (
 
 const EVENTUALLY_DEFAULT_TIME_OUT time.Duration = 60 * time.Second
 const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
+const NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
 const INSTALL_PODS_READY_TIMEOUT time.Duration = 180 * time.Second
 const WEGO_DEFAULT_NAMESPACE = "wego-system"
 
@@ -79,6 +80,37 @@ func contains(s []string, str string) bool {
 	return false
 }
 
+func waitForNamespaceToTerminate(namespace string, timeout time.Duration) error {
+	//check if the namespace exist before cleaning up
+	pollInterval := 5
+	if timeout < 5*time.Second {
+		timeout = 5 * time.Second
+	}
+	timeoutInSeconds := int(timeout.Seconds())
+
+	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl get ns %s", namespace))
+	if err != nil {
+		log.Infof("Namespace %s doesn't exist, nothing to clean, Skipping...", namespace)
+		return nil
+	}
+
+	for i := pollInterval; i < timeoutInSeconds; i += pollInterval {
+		log.Infof("Waiting for namespace: %s to terminate : %d second(s) passed of %d seconds timeout", namespace, i, timeoutInSeconds)
+		out, _ := runCommandAndReturnOutput(fmt.Sprintf("kubectl get ns %s --ignore-not-found=true | grep -i terminating", namespace))
+		out = strings.TrimSpace(out)
+		if out == "" {
+			return nil
+		}
+		if i > timeoutInSeconds/2 && i%10 == 0 {
+			//Patch the finalizer
+			log.Infof("Patch the finalizer to unstuck the terminating namespace %s", namespace)
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl patch ns %s -p '{\"metadata\":{\"finalizers\":[]}}' --type=merge", namespace))
+		}
+		time.Sleep(time.Duration(pollInterval) * time.Second)
+	}
+	return fmt.Errorf("Error: Failed to terminate the namespace %s", namespace)
+}
+
 func ResetOrCreateCluster(namespace string) (string, error) {
 
 	supportedProviders := []string{"kind", "kubectl"}
@@ -105,13 +137,18 @@ func ResetOrCreateCluster(namespace string) (string, error) {
 		return clusterName, errors.New("Unsupported kubernetes version")
 	}
 
-	//For kubectl points to valid cluster, we will try to reset the namespace only
+	//For kubectl, point to a valid cluster, we will try to reset the namespace only
 	if namespace != "" && provider == "kubectl" {
-		err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
+		err = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
 		if err != nil {
-			log.Infof("Failed to reset the namespace %s", namespace)
+			log.Infof("Failed to uninstall the wego runtime %s", namespace)
 			return clusterName, err
 		}
+		err = runCommandPassThrough([]string{}, "sh", "-c", "kubectl delete crd apps.wego.weave.works")
+		if err != nil {
+			log.Infof("Failed to delete crd apps.wego.weave.works")
+		}
+		Expect(waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)).To(Succeed())
 	}
 
 	if provider == "kind" {
@@ -201,6 +238,19 @@ func VerifyControllersInCluster(namespace string) {
 func deleteRepo(appRepoName string) {
 	log.Infof("Delete application repo: %s", os.Getenv("GITHUB_ORG")+"/"+appRepoName)
 	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", os.Getenv("GITHUB_ORG")+"/"+appRepoName)
+}
+
+func deleteWorkload(workloadName string, workloadNamespace string) {
+	log.Infof("Delete the namespace %s along with workload %s", workloadNamespace, workloadName)
+	_ = runCommandPassThrough([]string{}, "kubeclt", "delete", "ns", namespace)
+	_ = waitForNamespaceToTerminate(workloadNamespace, INSTALL_RESET_TIMEOUT)
+}
+
+func runCommandAndReturnOutput(commandToRun string) (stdOut string, stdErr string) {
+	command := exec.Command("sh", "-c", commandToRun)
+	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Eventually(session).Should(gexec.Exit())
+	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
 }
 
 func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
