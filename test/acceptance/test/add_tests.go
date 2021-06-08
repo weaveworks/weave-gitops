@@ -273,7 +273,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		By("Then I should see relevant message in the console", func() {
 
 			Eventually(addCommandOutput).Should(MatchRegexp(`Checking cluster status[.?]+ (Unknown|Unmodified)`))
-			Eventually(addCommandErr).Should(ContainSubstring("WeGO not installed... exiting"))
+			Eventually(addCommandErr).Should(MatchRegexp(`WeGO.*... exiting`))
 		})
 	})
 
