@@ -24,7 +24,7 @@ var _ = Describe("Run Command Test", func() {
 
 			_ = override.WithOverrides(
 				func() override.Result {
-					_, err := Install(InstallParamSet{Namespace: "my-namespace"})
+					err := Install(InstallParamSet{Namespace: "my-namespace"})
 					Expect(err).To(BeNil())
 
 					args := fakeHandler.HandleArgsForCall(0)

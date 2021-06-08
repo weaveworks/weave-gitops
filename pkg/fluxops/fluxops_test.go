@@ -53,11 +53,11 @@ var _ = Describe("Flux Install Test", func() {
 				},
 			}
 			fluxops.SetFluxHandler(fakeHandler)
-			output, err := fluxops.Install("flux-system")
+			output, err := fluxops.Install("flux-system", false)
 			Expect(err).To(BeNil())
 			Expect(string(output)).To(Equal("foo"))
 
-			_, err = fluxops.Install("my-namespace")
+			_, err = fluxops.Install("my-namespace", false)
 			Expect(err).To(BeNil())
 			args := fakeHandler.HandleArgsForCall(1)
 			Expect(args).To(Equal("install --namespace=my-namespace --components-extra=image-reflector-controller,image-automation-controller"))
@@ -70,7 +70,7 @@ var _ = Describe("Flux Install Test", func() {
 				},
 			}
 			fluxops.SetFluxHandler(fakeHandler)
-			_, err := fluxops.Install("flux-system")
+			_, err := fluxops.Install("flux-system", false)
 			Expect(err.Error()).To(Equal("failed"))
 		})
 

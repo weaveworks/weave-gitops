@@ -15,12 +15,13 @@ var appCRD []byte
 
 type InstallParamSet struct {
 	Namespace string
+	DryRun    bool
 }
 
-func Install(params InstallParamSet) ([]byte, error) {
+func Install(params InstallParamSet) error {
 	present, err := checkFluxPresent()
 	if err != nil {
-		return []byte(""), wrapError(err, "could not verify flux presence in the cluster")
+		return wrapError(err, "could not verify flux presence in the cluster")
 	}
 
 	if present {
@@ -28,18 +29,22 @@ func Install(params InstallParamSet) ([]byte, error) {
 		shims.Exit(1)
 	}
 
-	kubectlApply := fmt.Sprintf("kubectl apply --namespace=%s -f -", params.Namespace)
-
-	if err := utils.CallCommandForEffectWithInputPipe(kubectlApply, string(appCRD)); err != nil {
-		return []byte(""), wrapError(err, "could not apply wego manifests")
-	}
-
-	manifests, err := fluxops.Install(params.Namespace)
+	manifests, err := fluxops.Install(params.Namespace, params.DryRun)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("error on install %s", err)
 	}
 
-	return append(manifests, appCRD...), nil
+	if params.DryRun {
+		fmt.Print(string(manifests))
+		fmt.Println(string(appCRD))
+	} else {
+		kubectlApply := fmt.Sprintf("kubectl apply --namespace=%s -f -", params.Namespace)
+		if err := utils.CallCommandForEffectWithInputPipe(kubectlApply, string(appCRD)); err != nil {
+			return wrapError(err, "could not apply wego manifests")
+		}
+	}
+
+	return nil
 }
 
 func checkFluxPresent() (bool, error) {
