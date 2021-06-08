@@ -156,7 +156,7 @@ jobs:
     needs: [acceptance-tests]
     strategy:
       matrix:
-        os: [ ubuntu-latest, macOS-latest ]
+        os: [ubuntu-latest, macOS-latest]
     steps:
     - name: Download wego binaries
       uses: actions/download-artifact@v2
