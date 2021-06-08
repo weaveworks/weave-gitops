@@ -26,10 +26,11 @@ type FakeGit struct {
 		result1 bool
 		result2 error
 	}
-	CommitStub        func(git.Commit) (string, error)
+	CommitStub        func(git.Commit, ...func(string) bool) (string, error)
 	commitMutex       sync.RWMutex
 	commitArgsForCall []struct {
 		arg1 git.Commit
+		arg2 []func(string) bool
 	}
 	commitReturns struct {
 		result1 string
@@ -185,18 +186,19 @@ func (fake *FakeGit) CloneReturnsOnCall(i int, result1 bool, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeGit) Commit(arg1 git.Commit) (string, error) {
+func (fake *FakeGit) Commit(arg1 git.Commit, arg2 ...func(string) bool) (string, error) {
 	fake.commitMutex.Lock()
 	ret, specificReturn := fake.commitReturnsOnCall[len(fake.commitArgsForCall)]
 	fake.commitArgsForCall = append(fake.commitArgsForCall, struct {
 		arg1 git.Commit
-	}{arg1})
+		arg2 []func(string) bool
+	}{arg1, arg2})
 	stub := fake.CommitStub
 	fakeReturns := fake.commitReturns
-	fake.recordInvocation("Commit", []interface{}{arg1})
+	fake.recordInvocation("Commit", []interface{}{arg1, arg2})
 	fake.commitMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2...)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -210,17 +212,17 @@ func (fake *FakeGit) CommitCallCount() int {
 	return len(fake.commitArgsForCall)
 }
 
-func (fake *FakeGit) CommitCalls(stub func(git.Commit) (string, error)) {
+func (fake *FakeGit) CommitCalls(stub func(git.Commit, ...func(string) bool) (string, error)) {
 	fake.commitMutex.Lock()
 	defer fake.commitMutex.Unlock()
 	fake.CommitStub = stub
 }
 
-func (fake *FakeGit) CommitArgsForCall(i int) git.Commit {
+func (fake *FakeGit) CommitArgsForCall(i int) (git.Commit, []func(string) bool) {
 	fake.commitMutex.RLock()
 	defer fake.commitMutex.RUnlock()
 	argsForCall := fake.commitArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeGit) CommitReturns(result1 string, result2 error) {
