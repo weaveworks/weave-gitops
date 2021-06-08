@@ -658,11 +658,3 @@ func getGoatRepoName() string {
 func urlToRepoName(url string) string {
 	return strings.ReplaceAll(filepath.Base(url), "_", "-")
 }
-
-// GitSecret
-type GitSecret struct {
-	Stringdata struct {
-		Identity    string `yaml:"identity"`
-		Identitypub string `yaml:"identity.pub"`
-	} `yaml:"stringData"`
-}
