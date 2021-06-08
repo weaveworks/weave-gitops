@@ -5,7 +5,6 @@ before:
   hooks:
     - go mod tidy
 release:
-  draft: true
   prerelease: true
 archives:
   -
