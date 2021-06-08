@@ -9,18 +9,10 @@ import (
 
 	"github.com/weaveworks/weave-gitops/pkg/override"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
-	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"github.com/weaveworks/weave-gitops/pkg/version"
 	"sigs.k8s.io/yaml"
 )
-
-const fluxSystemNamespace = `apiVersion: v1
-kind: Namespace
-metadata:
-  name: flux-system
----
-`
 
 var (
 	fluxHandler interface{} = DefaultFluxHandler{}
@@ -93,32 +85,17 @@ func QuietInstall(namespace string) ([]byte, error) {
 }
 
 func installFlux(namespace string, verbose bool) ([]byte, error) {
-	var extraManifest []byte
-	if namespace != "flux-system" { // we need to have this namespace created
-		extraManifest = []byte(fluxSystemNamespace)
-	}
-
 	args := []string{
 		"install",
 		fmt.Sprintf("--namespace=%s", namespace),
-		"--export",
+		"--components-extra=image-reflector-controller,image-automation-controller",
 	}
 
-	if verbose {
-		manifests, err := CallFlux(args...)
-		if err != nil {
-			return nil, err
-		}
-		return append(extraManifest, manifests...), nil
+	manifests, err := CallFlux(args...)
+	if err != nil {
+		return nil, err
 	}
-
-	return WithFluxHandler(quietFluxHandler{}, func() ([]byte, error) {
-		manifests, err := CallFlux(args...)
-		if err != nil {
-			return nil, err
-		}
-		return append(extraManifest, manifests...), nil
-	})
+	return manifests, nil
 }
 
 func GetAllResourcesStatus(appName string) ([]byte, error) {
@@ -165,15 +142,6 @@ func GetOwnerFromEnv() (string, error) {
 	}
 
 	return GetUserFromHubCredentials()
-}
-
-// GetRepoName returns the name of the wego repo for the cluster (the repo holding controller defs)
-func GetRepoName() (string, error) {
-	clusterName, err := status.GetClusterName()
-	if err != nil {
-		return "", err
-	}
-	return clusterName + "-wego", nil
 }
 
 func GetUserFromHubCredentials() (string, error) {

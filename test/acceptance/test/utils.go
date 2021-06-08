@@ -107,7 +107,7 @@ func ResetOrCreateCluster(namespace string) (string, error) {
 
 	//For kubectl points to valid cluster, we will try to reset the namespace only
 	if namespace != "" && provider == "kubectl" {
-		err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s install --namespace %s| kubectl --ignore-not-found=true delete -f -", WEGO_BIN_PATH, namespace))
+		err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
 		if err != nil {
 			log.Infof("Failed to reset the namespace %s", namespace)
 			return clusterName, err
@@ -198,21 +198,9 @@ func VerifyControllersInCluster(namespace string) {
 	})
 }
 
-func getClusterName() string {
-	command := exec.Command("kubectl", "config", "current-context")
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
-	return strings.TrimSuffix(string(session.Wait().Out.Contents()), "\n")
-}
-
-func deleteRepos(appRepoName string, wegoRepoName string) {
+func deleteRepo(appRepoName string) {
 	log.Infof("Delete application repo: %s", os.Getenv("GITHUB_ORG")+"/"+appRepoName)
 	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", os.Getenv("GITHUB_ORG")+"/"+appRepoName)
-	log.Infof("Delete application repo: %s", os.Getenv("GITHUB_ORG")+"/"+wegoRepoName)
-	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", os.Getenv("GITHUB_ORG")+"/"+wegoRepoName)
-	log.Infof("Delete Repo from %s/.wego/repositories/%s", os.Getenv("HOME"), wegoRepoName)
-	_ = os.RemoveAll(fmt.Sprintf("%s/.wego/repositories/%s", os.Getenv("HOME"), wegoRepoName))
 }
 
 func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
@@ -222,10 +210,10 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 		privateRepo = "-p"
 	}
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
-							mkdir %s && 
-							cd %s && 
-							git init && 
-							hub create %s %s`, repoAbsolutePath, repoAbsolutePath, os.Getenv("GITHUB_ORG")+"/"+appRepoName, privateRepo))
+                            mkdir %s &&
+                            cd %s &&
+                            git init &&
+                            hub create %s %s`, repoAbsolutePath, repoAbsolutePath, os.Getenv("GITHUB_ORG")+"/"+appRepoName, privateRepo))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
@@ -234,11 +222,11 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 
 func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
-							cp -r %s %s &&
-							cd %s &&
-							git add . &&
-							git commit -m 'add workload manifest' &&
-							git push -u origin main`, appManifestFilePath, repoAbsolutePath, repoAbsolutePath))
+                            cp -r %s %s &&
+                            cd %s &&
+                            git add . &&
+                            git commit -m 'add workload manifest' &&
+                            git push -u origin main`, appManifestFilePath, repoAbsolutePath, repoAbsolutePath))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
@@ -257,9 +245,9 @@ func getRepoVisibility(org string, repo string) string {
 func setupSSHKey(sshKeyPath string) {
 	if _, err := os.Stat(sshKeyPath); os.IsNotExist(err) {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
-							echo "%s" >> %s &&
-							chmod 0600 %s &&
-							ls -la %s`, os.Getenv("GITHUB_KEY"), sshKeyPath, sshKeyPath, sshKeyPath))
+                            echo "%s" >> %s &&
+                            chmod 0600 %s &&
+                            ls -la %s`, os.Getenv("GITHUB_KEY"), sshKeyPath, sshKeyPath, sshKeyPath))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session).Should(gexec.Exit())
@@ -268,7 +256,7 @@ func setupSSHKey(sshKeyPath string) {
 
 func installAndVerifyWego(wegoNamespace string) {
 	By("And I run 'wego install' command with namespace "+wegoNamespace, func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s| kubectl apply -f -", WEGO_BIN_PATH, wegoNamespace))
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s", WEGO_BIN_PATH, wegoNamespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session).Should(gexec.Exit())
@@ -287,13 +275,12 @@ func runWegoAddCommandWithOutput(repoAbsolutePath string, addCommand string, weg
 	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
 }
 
-func verifyWegoAddCommand(appName string, wegoNamespace string) {
+func verifyWegoAddCommand(appRepoName string, wegoNamespace string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(" kubectl wait --for=condition=Ready --timeout=60s -n %s GitRepositories --all", wegoNamespace))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
-	Expect(waitForResource("GitRepositories", "wego", wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
-	Expect(waitForResource("GitRepositories", appName, wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("GitRepositories", appRepoName, wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 }
 
 func verifyWorkloadIsDeployed(workloadName string, workloadNamespace string) {
