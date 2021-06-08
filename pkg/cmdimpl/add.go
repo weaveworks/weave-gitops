@@ -13,14 +13,11 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
-
 	"github.com/fluxcd/go-git-providers/github"
-
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
