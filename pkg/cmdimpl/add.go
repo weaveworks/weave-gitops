@@ -13,16 +13,16 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/git"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 type DeploymentType string
+type SourceType string
+type ConfigType string
 
 const appYamlTemplate = `apiVersion: wego.weave.works/v1alpha1
 kind: Application
@@ -36,6 +36,12 @@ spec:
 const (
 	DeployTypeKustomize DeploymentType = "kustomize"
 	DeployTypeHelm      DeploymentType = "helm"
+
+	SourceTypeGit  SourceType = "git"
+	SourceTypeHelm SourceType = "helm"
+
+	ConfigTypeUserRepo ConfigType = ""
+	ConfigTypeNone     ConfigType = "NONE"
 )
 
 type AddParamSet struct {
@@ -49,9 +55,10 @@ type AddParamSet struct {
 	PrivateKeyPass string
 	DeploymentType string
 	Chart          string
+	SourceType     string
+	AppConfigUrl   string
 	Namespace      string
 	DryRun         bool
-	IsPrivate      bool
 }
 
 var (
@@ -62,53 +69,45 @@ type AddDependencies struct {
 	GitClient git.Git
 }
 
-func getClusterRepoName() (string, error) {
-	clusterName, err := status.GetClusterName()
-	if err != nil {
-		return "", wrapError(err, "could not get cluster name")
+func sanitizePath(path string) string {
+	trimmed := strings.TrimSuffix(path, "/")
+	return strings.ReplaceAll(strings.ReplaceAll(trimmed, "/", "-"), ".", "dot")
+}
+
+func generateAppName(dirOrUrl string) string {
+	base := strings.ReplaceAll(filepath.Base(dirOrUrl), "_", "-")
+	if params.Path != "./" {
+		return base + "-" + sanitizePath(params.Path)
 	}
-	return clusterName + "-wego", nil
+	return base
 }
 
 func updateParametersIfNecessary(gitClient git.Git) error {
+	params.SourceType = string(SourceTypeGit)
+	if params.Chart != "" {
+		params.SourceType = string(SourceTypeHelm)
+		params.DeploymentType = string(DeployTypeHelm)
+	}
+
 	if params.Name == "" {
-
-		name, err := getClusterRepoName()
-		if err != nil {
-			return wrapError(err, "could not update parameters")
-		}
-
 		if params.Url != "" {
-
-			repoName := strings.ReplaceAll(filepath.Base(params.Url), "_", "-")
-
-			params.Name = name + "-" + repoName
+			params.Name = generateAppName(strings.TrimSuffix(params.Url, ".git"))
 		} else {
 			repoPath, err := filepath.Abs(params.Dir)
+
 			if err != nil {
 				return wrapError(err, "could not get directory")
 			}
 
-			repoName := strings.ReplaceAll(filepath.Base(repoPath), "_", "-")
-
-			params.Name = name + "-" + repoName
+			params.Name = generateAppName(repoPath)
 		}
-
 	}
 
-	if params.Url == "" {
-
-		repo, err := gitClient.Open(params.Dir)
-		if err != nil {
-			return wrapError(err, fmt.Sprintf("failed to open repository: %s", params.Dir))
-		}
-
-		remote, err := repo.Remote("origin")
+	if params.Url == "" && !params.DryRun {
+		urls, err := getUrls(gitClient, "origin")
 		if err != nil {
 			return err
 		}
-
-		urls := remote.Config().URLs
 
 		if len(urls) == 0 {
 			return fmt.Errorf("remote config in %s does not have an url", params.Dir)
@@ -129,211 +128,102 @@ func updateParametersIfNecessary(gitClient git.Git) error {
 	return nil
 }
 
-func generateWegoSourceManifest() ([]byte, error) {
-	fluxRepoName, err := fluxops.GetRepoName()
-	if err != nil {
-		return nil, wrapError(err, "could not get flux repo name")
-	}
-
-	owner, err := getOwner()
-	if err != nil {
-		return nil, err
-	}
-
-	cmd := fmt.Sprintf(`create secret git "wego" \
-        --url="ssh://git@github.com/%s/%s" \
-        --private-key-file="%s" \
-        --namespace=%s`,
-		owner,
-		fluxRepoName,
-		params.PrivateKey,
-		params.Namespace)
-	if params.DryRun {
-		fmt.Printf(cmd + "\n")
-	} else {
-
-		_, err = fluxops.CallFlux(cmd)
+func getUrls(client git.Git, remote string) ([]string, error) {
+	if _, ok := client.(*git.GoGit); ok {
+		repo, err := client.Open(params.Dir)
 		if err != nil {
-			return nil, wrapError(err, "could not create git secret")
+			return nil, wrapError(err, fmt.Sprintf("failed to open repository: %s", params.Dir))
 		}
-	}
 
-	cmd = fmt.Sprintf(`create source git "wego" \
-        --url="ssh://git@github.com/%s/%s" \
-        --branch="%s" \
-        --secret-ref="wego" \
-        --interval=30s \
-        --export \
-        --namespace=%s`,
-		owner,
-		fluxRepoName,
-		params.Branch,
-		params.Namespace)
-	sourceManifest, err := fluxops.CallFlux(cmd)
-	if err != nil {
-		return nil, wrapError(err, "could not create source")
-	}
-
-	return sourceManifest, nil
-}
-
-func generateWegoKustomizeManifest() ([]byte, error) {
-	cmd := fmt.Sprintf(`create kustomization "wego" \
-        --path="./" \
-        --source="wego" \
-        --prune=true \
-        --validation=client \
-        --interval=5m \
-        --export \
-        --namespace=%s`,
-		params.Namespace)
-	kustomizeManifest, err := fluxops.CallFlux(cmd)
-	if err != nil {
-		return nil, wrapError(err, "could not create kustomization")
-	}
-
-	return kustomizeManifest, nil
-}
-
-func generateSourceManifestGit() ([]byte, error) {
-	secretName := params.Name
-
-	cmd := fmt.Sprintf(`create secret git "%s" \
-			--url="%s" \
-			--private-key-file="%s" \
-			--namespace=%s`,
-		secretName,
-		params.Url,
-		params.PrivateKey,
-		params.Namespace)
-	if params.DryRun {
-		fmt.Printf(cmd + "\n")
-	} else {
-
-		_, err := fluxops.CallFlux(cmd)
-
+		remote, err := repo.Remote("origin")
 		if err != nil {
-			return nil, wrapError(err, "could not create git secret")
+			return nil, err
 		}
-	}
 
-	cmd = fmt.Sprintf(`create source git "%s" \
-			--url="%s" \
-			--branch="%s" \
-			--secret-ref="%s" \
-			--interval=30s \
-			--export \
-			--namespace=%s `,
-		params.Name,
-		params.Url,
-		params.Branch,
-		secretName,
-		params.Namespace)
-	sourceManifest, err := fluxops.CallFlux(cmd)
-	if err != nil {
-		return nil, wrapError(err, "could not create git source")
+		return remote.Config().URLs, nil
 	}
-	return sourceManifest, nil
+	return []string{"ssh://git@github.com/auser/arepo"}, nil
 }
 
-func generateSourceManifestHelm() ([]byte, error) {
-	cmd := fmt.Sprintf(`create source helm %s \
-			--url="%s" \
-			--interval=30s \
-			--export \
-			--namespace=%s `,
-		params.Name,
-		params.Url,
-		params.Namespace)
-
-	sourceManifest, err := fluxops.CallFlux(cmd)
-	if err != nil {
-		return nil, wrapError(err, "could not create git source")
-	}
-	return sourceManifest, nil
-}
-
-func generateKustomizeManifest() ([]byte, error) {
+func generateKustomizeManifest(kustName, sourceName, path string) ([]byte, error) {
 	cmd := fmt.Sprintf(`create kustomization "%s" \
                 --path="%s" \
                 --source="%s" \
                 --prune=true \
                 --validation=client \
-                --interval=5m \
+                --interval=1m \
                 --export \
                 --namespace=%s`,
-		params.Name,
-		params.Path,
-		params.Name,
+		kustName,
+		path,
+		sourceName,
 		params.Namespace)
 	kustomizeManifest, err := fluxops.CallFlux(cmd)
 	if err != nil {
 		return nil, wrapError(err, "could not create kustomization manifest")
 	}
 
-	return kustomizeManifest, nil
+	return bytes.ReplaceAll(kustomizeManifest, []byte("path: ./wego"), []byte("path: .wego")), nil
 }
 
-func generateHelmManifestGit() ([]byte, error) {
+func generateSourceManifestHelm() ([]byte, error) {
+	cmd := fmt.Sprintf(`create source helm %s \
+            --url="%s" \
+            --interval=30s \
+            --export \
+            --namespace=%s `,
+		params.Name,
+		params.Url,
+		params.Namespace)
+
+	sourceManifest, err := fluxops.CallFlux(cmd)
+	if err != nil {
+		return nil, wrapError(err, "could not create git source")
+	}
+	return sourceManifest, nil
+}
+
+func generateHelmManifestGit(helmName, sourceName, path string) ([]byte, error) {
 	cmd := fmt.Sprintf(`create helmrelease %s \
-			--source="GitRepository/%s" \
-			--chart="%s" \
-			--interval=5m \
-			--export \
-			--namespace=%s`,
-		params.Name,
-		params.Name,
-		params.Path,
+            --source="GitRepository/%s" \
+            --chart="%s" \
+            --interval=1m \
+            --export \
+            --namespace=%s`,
+		helmName,
+		sourceName,
+		path,
 		params.Namespace,
 	)
-	return fluxops.CallFlux(cmd)
+	helmManifest, err := fluxops.CallFlux(cmd)
+	if err != nil {
+		return nil, wrapError(err, "could not create helm manifest")
+	}
+
+	return bytes.ReplaceAll(helmManifest, []byte("path: ./wego"), []byte("path: .wego")), nil
 }
 
-func generateHelmManifestHelm() ([]byte, error) {
+func generateHelmManifestHelm(helmName, chart string) ([]byte, error) {
 	cmd := fmt.Sprintf(`create helmrelease %s \
-			--source="HelmRepository/%s" \
-			--chart="%s" \
-			--interval=5m \
-			--export \
-			--namespace=%s`,
-		params.Name,
-		params.Name,
-		params.Chart,
+            --source="HelmRepository/%s" \
+            --chart="%s" \
+            --interval=5m \
+            --export \
+            --namespace=%s`,
+		helmName,
+		helmName,
+		chart,
 		params.Namespace,
 	)
 
 	return fluxops.CallFlux(cmd)
-}
-
-func getOwner() (string, error) {
-	owner, err := fluxops.GetOwnerFromEnv()
-	if err != nil || owner == "" {
-		owner, err = getOwnerFromUrl(params.Url)
-		if err != nil {
-			return "", fmt.Errorf("could not get owner %s", err)
-		}
-	}
-
-	// command flag has priority
-	if params.Owner != "" {
-		return params.Owner, nil
-	}
-
-	return owner, nil
-}
-
-// ie: ssh://git@github.com/weaveworks/some-repo
-func getOwnerFromUrl(url string) (string, error) {
-	parts := strings.Split(url, "/")
-
-	if len(parts) < 2 {
-		return "", fmt.Errorf("could not get owner from url %s", url)
-	}
-
-	return parts[len(parts)-2], nil
 }
 
 func commitAndPush(ctx context.Context, gitClient git.Git) error {
+	fmt.Fprintf(shims.Stdout(), "Commiting and pushing wego resources for application...\n")
+	if params.DryRun {
+		return nil
+	}
 	_, err := gitClient.Commit(git.Commit{
 		Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
 		Message: "Add App manifests",
@@ -358,6 +248,43 @@ func wrapError(err error, msg string) error {
 }
 
 // Add provides the implementation for the wego add command
+
+// Three models:
+// --app-config-url=none
+//
+// - Source created for user repo (GitRepository or HelmRepository)
+// - app.yaml created for app
+// - HelmRelease or Kustomize created for app dir within user repo
+// - app.yaml, Source, Helm Release or Kustomize applied directly to cluster
+//
+// --app-config-url=<URL>
+//
+// - Separate GOAT repo
+// - Source created for GOAT repo
+// - Kustomize created for targets/<target name> directory in GOAT repo
+// - Kustomize created for apps/<app name> directory within GOAT repo
+// - Source, Kustomizes applied directly to cluster
+// - app.yaml created for app
+// - app.yaml placed in apps/<app name>/app.yaml in GOAT repo
+// - Source created for user repo (GitRepository or HelmRepository)
+// - User repo Source placed in targets/<target name>/<app-name>/<app name>-gitops-runtime.yaml in GOAT repo
+// - HelmRelease or Kustomize referencing user repo source created for user app dir within user repo
+// - User app dir HelmRelease or Kustomize placed in targets/<target name>/<app name>/<app name>-gitops-runtime.yaml in GOAT repo
+// - PR created or commit directly pushed for GOAT repo
+//
+// --app-config-url="" (default)
+//
+// - Source created for user repo (GitRepository only)
+// - Kustomize created for .wego/targets/<target name> directory in user repo
+// - Kustomize created for .wego/apps/<app name> directory within user repo
+// - Source, Kustomizes applied directly to cluster
+// - app.yaml created for app
+// - app.yaml placed in apps/<app name>/app.yaml in .wego directory within user repo
+// - HelmRelease or Kustomize referencing user repo source created for app dir within user repo
+// - User app dir HelmRelease or Kustomize placed in targets/<target name>/<app name>/<app name>-gitops-runtime.yaml in .wego
+//   directory within user repo
+// - PR created or commit directly pushed for user repo
+
 func Add(args []string, allParams AddParamSet, deps *AddDependencies) error {
 	ctx := context.Background()
 
@@ -383,148 +310,289 @@ func Add(args []string, allParams AddParamSet, deps *AddDependencies) error {
 	case status.Unmodified:
 		return errors.New("WeGO not installed... exiting")
 	case status.Unknown:
-		return errors.New("WeGO can not define cluster status... exiting")
+		return errors.New("WeGO can not determine cluster status... exiting")
 	}
 
-	// Set up wego repository if required
-	wegoRepoName, err := fluxops.GetRepoName()
+	switch strings.ToUpper(params.AppConfigUrl) {
+	case string(ConfigTypeNone):
+		return addAppWithNoConfigRepo()
+	case string(ConfigTypeUserRepo):
+		return addAppWithConfigInUserRepo(ctx, deps.GitClient)
+	default:
+		return addAppWithConfigInExternalRepo(ctx, deps.GitClient)
+	}
+}
+
+func addAppWithNoConfigRepo() error {
+	// Source covers entire user repo
+	userSourceName := getUserRepoName()
+	userRepoSource, err := generateSource(userSourceName, params.Url, SourceTypeGit)
 	if err != nil {
-		return wrapError(err, "could not get flux repo name")
+		return wrapError(err, "could not set up GitOps for user repository")
 	}
+	appYaml, err := generateAppYaml()
+	if err != nil {
+		return wrapError(err, fmt.Sprintf("could not create app.yaml for '%s'", params.Name))
+	}
+	// kustomize or helm referencing single user repo source
+	applicationGOAT, err := generateApplicationGoat(userSourceName)
+	if err != nil {
+		return wrapError(err, fmt.Sprintf("could not create GitOps automation for '%s'", params.Name))
+	}
+	return applyToCluster(userRepoSource, appYaml, applicationGOAT)
+}
 
-	owner, err := getOwner()
+func addAppWithConfigInUserRepo(ctx context.Context, gitClient git.Git) error {
+	// Source covers entire user repo
+	userSourceName := getUserRepoName()
+	userRepoSource, err := generateSource(userSourceName, params.Url, SourceTypeGit)
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("Verifying %s repository exists...\n", wegoRepoName)
-	if _, err := gitproviders.RepositoryExists(wegoRepoName, owner); err != nil {
-		if errors.Is(err, gitprovider.ErrNotFound) {
-			fmt.Printf("Creating %s repository...\n", wegoRepoName)
-			if !params.DryRun {
-				if err := gitproviders.CreateRepository(wegoRepoName, owner, params.IsPrivate); err != nil {
-					return wrapError(err, "could not create repository")
-				}
-			}
-		} else {
-			return wrapError(err, "could not check repository exists")
-		}
-	}
-
-	wegoRepoDir, err := ioutil.TempDir("", wegoRepoName)
+	targetKustomize, err := generateTargetKustomize(userSourceName, ".wego")
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(wegoRepoDir)
-
-	gitClient := deps.GitClient
-
-	wegoRepoURL := fmt.Sprintf("ssh://git@github.com/%s/%s.git", owner, wegoRepoName)
-	fmt.Printf("Cloning %s...\n", wegoRepoURL)
-	if !params.DryRun {
-		if _, err := gitClient.Clone(ctx, wegoRepoDir, wegoRepoURL, params.Branch); err != nil {
-			return wrapError(err, fmt.Sprintf("could not clone repository: %s", wegoRepoURL))
-		}
+	appKustomize, err := generateAppKustomize(userSourceName, ".wego")
+	if err != nil {
+		return err
 	}
+	if err := applyToCluster(userRepoSource, targetKustomize, appKustomize); err != nil {
+		return err
+	}
+	appYaml, err := generateAppYaml()
+	if err != nil {
+		return wrapError(err, fmt.Sprintf("could not create app.yaml for '%s'", params.Name))
+	}
+	applicationGoat, err := generateApplicationGoat(userSourceName)
+	if err != nil {
+		return wrapError(err, fmt.Sprintf("could not create GitOps automation for '%s'", params.Name))
+	}
+	if err := writeAppYaml(gitClient, appYaml, ".wego"); err != nil {
+		return err
+	}
+	if err := writeGoats(gitClient, ".wego", applicationGoat); err != nil {
+		return err
+	}
+	return commitAndPush(ctx, gitClient)
+}
 
-	fmt.Fprintf(shims.Stdout(), "Applying wego platform resources...\n")
-	if !params.DryRun {
-		// Install Source and Kustomize controllers, and CRD for application (may already be present)
-		wegoSource, err := generateWegoSourceManifest()
-		if err != nil {
-			return wrapError(err, "could not generate wego source manifest")
-		}
+func addAppWithConfigInExternalRepo(ctx context.Context, gitClient git.Git) error {
+	// Source covers entire GOAT repo
+	goatSourceName := getGoatRepoName()
+	tmpDir, err := cloneToTempDir(ctx, gitClient) // leaves gitClient referencing cloned repo
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(tmpDir)
 
-		wegoKust, err := generateWegoKustomizeManifest()
-		if err != nil {
-			return wrapError(err, "could not generate wego kustomize manifest")
-		}
+	goatRepoSource, err := generateSource(goatSourceName, params.AppConfigUrl, SourceTypeGit)
+	if err != nil {
+		return err
+	}
+	goatTargetKustomize, err := generateTargetKustomize(goatSourceName, ".")
+	if err != nil {
+		return err
+	}
+	goatAppKustomize, err := generateAppKustomize(goatSourceName, ".")
+	if err != nil {
+		return err
+	}
+	if err := applyToCluster(goatRepoSource, goatTargetKustomize, goatAppKustomize); err != nil {
+		return err
+	}
+	// Source covers entire user repo
+	userSourceName := getUserRepoName()
+	userRepoSource, err := generateSource(userSourceName, params.Url, SourceType(params.SourceType))
+	if err != nil {
+		return err
+	}
+	userTargetKustomize, err := generateTargetKustomize(userSourceName, ".")
+	if err != nil {
+		return err
+	}
+	userAppKustomize, err := generateAppKustomize(userSourceName, ".")
+	if err != nil {
+		return err
+	}
+	appYaml, err := generateAppYaml()
+	if err != nil {
+		return wrapError(err, fmt.Sprintf("could not create app.yaml for '%s'", params.Name))
+	}
+	applicationGoat, err := generateApplicationGoat(userSourceName)
+	if err != nil {
+		return wrapError(err, fmt.Sprintf("could not create GitOps automation for '%s'", params.Name))
+	}
+	if err := writeAppYaml(gitClient, appYaml, "."); err != nil {
+		return err
+	}
+	if err := writeGoats(gitClient, "", userRepoSource, userTargetKustomize, userAppKustomize, applicationGoat); err != nil {
+		return err
+	}
+	return commitAndPush(ctx, gitClient)
+}
 
-		kubectlApply := fmt.Sprintf("kubectl apply --namespace=%s -f -", params.Namespace)
+func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, error) {
+	secretName := repoName
 
-		if err := utils.CallCommandForEffectWithInputPipe(kubectlApply, string(wegoSource)); err != nil {
-			return wrapError(err, "could not apply wego source")
-		}
-
-		if err := utils.CallCommandForEffectWithInputPipe(kubectlApply, string(wegoKust)); err != nil {
-			return wrapError(err, "could not apply wego kustomization")
-		}
-
-		// Create app.yaml
-		t, err := template.New("appYaml").Parse(appYamlTemplate)
-		if err != nil {
-			return wrapError(err, "could not parse app yaml template")
-		}
-
-		var populated bytes.Buffer
-		err = t.Execute(&populated, struct {
-			AppName string
-			AppPath string
-			AppURL  string
-		}{params.Name, params.Path, params.Url})
-		if err != nil {
-			return wrapError(err, "could not execute populated template")
-		}
-
-		// Create flux custom resources for new repo being added
-		var source []byte
-		var appManifests []byte
-
-		// If chart is set ignore deployment type. Going to revisit later
-		if params.Chart != "" {
-			source, err = generateSourceManifestHelm()
-			if err != nil {
-				return wrapError(err, "could not generate source manifest")
-			}
-			appManifests, err = generateHelmManifestHelm()
-			if err != nil {
-				return wrapError(err, "error generating manifest")
-			}
+	switch sourceType {
+	case SourceTypeGit:
+		cmd := fmt.Sprintf(`create secret git "%s" \
+            --url="%s" \
+            --private-key-file="%s" \
+            --namespace="%s"`,
+			secretName,
+			repoUrl,
+			params.PrivateKey,
+			params.Namespace)
+		if params.DryRun {
+			fmt.Printf(cmd + "\n")
 		} else {
-			source, err = generateSourceManifestGit()
+			_, err := fluxops.CallFlux(cmd)
+
 			if err != nil {
-				return wrapError(err, "could not generate source manifest")
-			}
-
-			switch params.DeploymentType {
-			case string(DeployTypeHelm):
-				appManifests, err = generateHelmManifestGit()
-			case string(DeployTypeKustomize):
-				appManifests, err = generateKustomizeManifest()
-			default:
-				return fmt.Errorf("deployment type not supported: %s", params.DeploymentType)
-			}
-			if err != nil {
-				return wrapError(err, "error generating manifest")
+				return nil, wrapError(err, "could not create git secret")
 			}
 		}
-
-		appSubdir := filepath.Join("apps", params.Name)
-		sourcePath := filepath.Join(appSubdir, "source-"+params.Name+".yaml")
-		manifestsPath := filepath.Join(appSubdir, fmt.Sprintf("%s-%s.yaml", params.DeploymentType, params.Name))
-		appYamlPath := filepath.Join(appSubdir, "app.yaml")
-
-		if err := gitClient.Write(sourcePath, source); err != nil {
-			return wrapError(err, "could not write source")
+		cmd = fmt.Sprintf(`create source git "%s" \
+            --url="%s" \
+            --branch="%s" \
+            --secret-ref="%s" \
+            --interval=30s \
+            --export \
+            --namespace="%s"`,
+			repoName,
+			repoUrl,
+			params.Branch,
+			secretName,
+			params.Namespace)
+		sourceManifest, err := fluxops.CallFlux(cmd)
+		if err != nil {
+			return nil, wrapError(err, "could not create git source")
 		}
+		return sourceManifest, nil
+	case SourceTypeHelm:
+		return generateSourceManifestHelm()
+	default:
+		return nil, fmt.Errorf("Unknown source type: %v", sourceType)
+	}
+}
 
-		if err := gitClient.Write(manifestsPath, appManifests); err != nil {
-			return wrapError(err, "could not write app manifests")
-		}
-
-		if err := gitClient.Write(appYamlPath, populated.Bytes()); err != nil {
-			return wrapError(err, "could not write app yaml populated template")
-		}
+func generateAppYaml() ([]byte, error) {
+	// Create app.yaml
+	t, err := template.New("appYaml").Parse(appYamlTemplate)
+	if err != nil {
+		return nil, wrapError(err, "could not parse app yaml template")
 	}
 
-	fmt.Fprintf(shims.Stdout(), "Commiting and pushing wego resources for application...\n")
-	if !params.DryRun {
-		if err := commitAndPush(ctx, gitClient); err != nil {
-			return wrapError(err, "could not commit and/or push")
+	var populated bytes.Buffer
+	err = t.Execute(&populated, struct {
+		AppName string
+		AppPath string
+		AppURL  string
+	}{params.Name, params.Path, params.Url})
+	if err != nil {
+		return nil, wrapError(err, "could not execute populated template")
+	}
+	return populated.Bytes(), nil
+}
+
+func generateApplicationGoat(sourceName string) ([]byte, error) {
+	switch params.DeploymentType {
+	case string(DeployTypeKustomize):
+		return generateKustomizeManifest(params.Name, sourceName, params.Path)
+	case string(DeployTypeHelm):
+		switch params.SourceType {
+		case string(SourceTypeHelm):
+			return generateHelmManifestHelm(params.Name, params.Chart)
+		case string(SourceTypeGit):
+			return generateHelmManifestGit(params.Name, sourceName, params.Path)
+		default:
+			return nil, fmt.Errorf("Invalid source type: %v", params.SourceType)
 		}
+	default:
+		return nil, fmt.Errorf("Invalid deployment type: %v", params.DeploymentType)
+	}
+}
+
+func generateTargetKustomize(sourceName, basePath string) ([]byte, error) {
+	clusterName, err := status.GetClusterName()
+	if err != nil {
+		return nil, err
+	}
+	return generateKustomizeManifest(clusterName+"-"+sourceName, sourceName, filepath.Join(basePath, "targets", clusterName))
+}
+
+func generateAppKustomize(sourceName, basePath string) ([]byte, error) {
+	return generateKustomizeManifest(params.Name, sourceName, filepath.Join(basePath, "apps", params.Name))
+}
+
+func applyToCluster(manifests ...[]byte) error {
+	if params.DryRun {
+		fmt.Printf("Applying:\n\n")
+		for _, manifest := range manifests {
+			fmt.Printf("%s\n", manifest)
+		}
+		return nil
 	}
 
-	fmt.Printf("Successfully added %s to the repository.\n", params.Name)
+	kubectlApply := fmt.Sprintf("kubectl apply --namespace=%s -f -", params.Namespace)
+
+	for _, manifest := range manifests {
+		if err := utils.CallCommandForEffectWithInputPipe(kubectlApply, string(manifest)); err != nil {
+			return wrapError(err, fmt.Sprintf("could not apply manifest: %s", manifest))
+		}
+	}
 
 	return nil
+}
+
+func writeAppYaml(gitClient git.Git, appYaml []byte, basePath string) error {
+	appYamlPath := filepath.Join(basePath, "apps", params.Name, "app.yaml")
+	if params.DryRun {
+		fmt.Printf("Writing app.yaml to '%s'\n", appYamlPath)
+		return nil
+	}
+	return gitClient.Write(appYamlPath, appYaml)
+}
+
+func writeGoats(gitClient git.Git, basePath string, manifests ...[]byte) error {
+	clusterName, err := status.GetClusterName()
+	if err != nil {
+		return err
+	}
+	goatPath := filepath.Join(basePath, "targets", clusterName, params.Name, fmt.Sprintf("%s-gitops-runtime.yaml", params.Name))
+	if params.DryRun {
+		fmt.Printf("Writing GitOps Automation to '%s'\n", goatPath)
+		return nil
+	}
+	goat := bytes.Join(manifests, []byte(""))
+	return gitClient.Write(goatPath, goat)
+}
+
+func cloneToTempDir(ctx context.Context, gitClient git.Git) (string, error) {
+	gitDir, err := ioutil.TempDir("", "git-")
+	if err != nil {
+		return "", wrapError(err, "TempDir")
+	}
+	if params.DryRun {
+		fmt.Printf("Cloning '%s' to temporary directory\n", params.AppConfigUrl)
+		return gitDir, nil
+	}
+	if _, err := gitClient.Clone(ctx, gitDir, params.AppConfigUrl, params.Branch); err != nil {
+		return "", err
+	}
+	return gitDir, nil
+}
+
+func getUserRepoName() string {
+	return urlToRepoName(strings.TrimSuffix(params.Url, ".git"))
+}
+
+func getGoatRepoName() string {
+	return urlToRepoName(strings.TrimSuffix(params.AppConfigUrl, ".git"))
+}
+
+func urlToRepoName(url string) string {
+	return strings.ReplaceAll(filepath.Base(url), "_", "-")
 }
