@@ -114,14 +114,6 @@ func (h fakeGitRepoHandler) RepositoryExists(ame string, owner string) (bool, er
 	return false, gitprovider.ErrNotFound
 }
 
-func createTestPrivateKeyFile() (*os.File, error) {
-	tmpFile, err := ioutil.TempFile("", "private-key")
-	if err != nil {
-		return nil, err
-	}
-	return tmpFile, ioutil.WriteFile(tmpFile.Name(), []byte(testKey), 0600)
-}
-
 func ensureFluxVersion() error {
 	path := os.Getenv("GITHUB_WORKSPACE")
 	if path == "" {
@@ -289,7 +281,6 @@ var _ = Describe("Test source manifest", func() {
 			func() override.Result {
 				params.DryRun = false
 				params.Namespace = "aNamespace"
-				params.PrivateKey = "/tmp/pkey"
 				params.Branch = "aBranch"
 
 				// source type will come into play when we have helmrepo support
@@ -369,10 +360,6 @@ var _ = Describe("Dry Run Add Test", func() {
 			Expect(ensureFluxVersion()).Should(Succeed())
 			fgphandler := fakeGitRepoHandler{}
 			shandler := statusHandler{}
-			privateKeyFile, err := createTestPrivateKeyFile()
-			Expect(err).To(BeNil())
-			privateKeyFileName := privateKeyFile.Name()
-			defer os.Remove(privateKeyFileName)
 			_ = override.WithOverrides(
 				func() override.Result {
 					deps := &AddDependencies{
@@ -385,7 +372,6 @@ var _ = Describe("Dry Run Add Test", func() {
 							Url:            "ssh://git@github.com/foobar/quux.git",
 							Path:           "./",
 							Branch:         "main",
-							PrivateKey:     privateKeyFileName,
 							DryRun:         true,
 							Namespace:      "wego-system",
 							DeploymentType: string(DeployTypeKustomize),
@@ -398,7 +384,6 @@ var _ = Describe("Dry Run Add Test", func() {
 							Url:            "",
 							Path:           "./foo",
 							Branch:         "main",
-							PrivateKey:     privateKeyFileName,
 							DryRun:         true,
 							Namespace:      "wego-system",
 							DeploymentType: string(DeployTypeKustomize),
@@ -412,7 +397,6 @@ var _ = Describe("Dry Run Add Test", func() {
 							AppConfigUrl:   "none",
 							Path:           "./foo",
 							Branch:         "main",
-							PrivateKey:     privateKeyFileName,
 							DryRun:         true,
 							Namespace:      "wego-system",
 							DeploymentType: string(DeployTypeKustomize),
@@ -426,7 +410,6 @@ var _ = Describe("Dry Run Add Test", func() {
 							AppConfigUrl:   "ssh://git@github.com/aUser/aRepo",
 							Path:           "./foo",
 							Branch:         "main",
-							PrivateKey:     privateKeyFileName,
 							DryRun:         true,
 							Namespace:      "wego-system",
 							DeploymentType: string(DeployTypeKustomize),
@@ -465,10 +448,6 @@ var _ = Describe("Wet Run Add Test", func() {
 			Expect(ensureFluxVersion()).Should(Succeed())
 			fgphandler := fakeGitRepoHandler{}
 			shandler := statusHandler{}
-			privateKeyFile, err := createTestPrivateKeyFile()
-			Expect(err).To(BeNil())
-			privateKeyFileName := privateKeyFile.Name()
-			defer os.Remove(privateKeyFileName)
 			_ = override.WithOverrides(
 				func() override.Result {
 					deps := &AddDependencies{
@@ -485,7 +464,6 @@ var _ = Describe("Wet Run Add Test", func() {
 							Url:            "ssh://git@github.com/foobar/quux.git",
 							Path:           "./",
 							Branch:         "main",
-							PrivateKey:     privateKeyFileName,
 							DryRun:         false,
 							Namespace:      "wego-system",
 							DeploymentType: string(DeployTypeKustomize),
@@ -498,7 +476,6 @@ var _ = Describe("Wet Run Add Test", func() {
 							Url:            "",
 							Path:           "./foo",
 							Branch:         "main",
-							PrivateKey:     privateKeyFileName,
 							DryRun:         false,
 							Namespace:      "wego-system",
 							DeploymentType: string(DeployTypeKustomize),
@@ -512,7 +489,6 @@ var _ = Describe("Wet Run Add Test", func() {
 							AppConfigUrl:   "none",
 							Path:           "./foo",
 							Branch:         "main",
-							PrivateKey:     privateKeyFileName,
 							DryRun:         false,
 							Namespace:      "wego-system",
 							DeploymentType: string(DeployTypeKustomize),
@@ -526,7 +502,6 @@ var _ = Describe("Wet Run Add Test", func() {
 							AppConfigUrl:   "ssh://git@github.com/aUser/aRepo",
 							Path:           "./foo",
 							Branch:         "main",
-							PrivateKey:     privateKeyFileName,
 							DryRun:         false,
 							Namespace:      "wego-system",
 							DeploymentType: string(DeployTypeKustomize),
