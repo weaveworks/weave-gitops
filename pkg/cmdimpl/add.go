@@ -21,7 +21,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
-	"gopkg.in/yaml.v2"
 )
 
 type DeploymentType string
@@ -55,8 +54,6 @@ type AddParamSet struct {
 	Url            string
 	Path           string
 	Branch         string
-	PrivateKey     string
-	PrivateKeyPass string
 	DeploymentType string
 	Chart          string
 	SourceType     string
@@ -443,26 +440,20 @@ func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, er
 	case SourceTypeGit:
 		cmd := fmt.Sprintf(`create secret git "%s" \
             --url="%s" \
-            --namespace="%s" \
-			--export`,
+            --namespace="%s"`,
 			secretName,
 			repoUrl,
 			params.Namespace)
 		if params.DryRun {
 			fmt.Printf(cmd + "\n")
 		} else {
-			authYaml, err := fluxops.CallFlux(cmd)
+			// TODO create a function for this in fluxops pkg
+			output, err := fluxops.WithFluxHandler(fluxops.QuietFluxHandler{}, func() ([]byte, error) {
+				return fluxops.CallFlux(cmd)
+			})
 			if err != nil {
 				return nil, wrapError(err, "could not create git secret")
 			}
-			if err = applyToCluster(authYaml); err != nil {
-				return nil, wrapError(err, "could not apply git secret to cluster")
-			}
-			var gitSecret GitSecret
-			if err = yaml.Unmarshal(authYaml, &gitSecret); err != nil {
-				return nil, fmt.Errorf("error marshalling flux git secret %s", err)
-			}
-			params.PrivateKey = gitSecret.Stringdata.Identity
 			// TODO: Create a function for this in gitproviders pkg
 			owner, err := getOwnerFromUrl(repoUrl)
 			if err != nil {
@@ -476,9 +467,14 @@ func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, er
 			if err != nil {
 				return nil, err
 			}
+			deployKeyBody := bytes.TrimPrefix(output, []byte("✚ deploy key: "))
+			deployKeyLines := bytes.Split(deployKeyBody, []byte("\n"))
+			if len(deployKeyBody) == 0 {
+				return nil, fmt.Errorf("no deploy key found [%s]", string(output))
+			}
 			deployKey := gitprovider.DeployKeyInfo{
 				Name: "weave-gitops-deploy-key",
-				Key:  []byte(gitSecret.Stringdata.Identitypub),
+				Key:  deployKeyLines[0],
 			}
 			switch ownerType {
 			case gitproviders.AccountTypeOrg:
