@@ -1,6 +1,6 @@
 # weave-gitops
 
-Weave GitOps core
+Weave GitOps
 
 [![Coverage Status](https://coveralls.io/repos/github/weaveworks/weave-gitops/badge.svg?branch=main)](https://coveralls.io/github/weaveworks/weave-gitops?branch=main)
 ![Test status](https://github.com/weaveworks/weave-gitops/actions/workflows/test.yml/badge.svg)
@@ -8,20 +8,22 @@ Weave GitOps core
 [![Contributors](https://img.shields.io/github/contributors/weaveworks/weave-gitops)](https://github.com/weaveworks/weave-gitops/graphs/contributors)
 [![Release](https://img.shields.io/github/v/release/weaveworks/weave-gitops?include_prereleases)](https://github.com/weaveworks/weave-gitops/releases/latest)
 
-## Overview
-Weave GitOps enables an effective GitOps workflow for continuous delivery. It is based on [CNCF Flux](https://fluxcd.io), a leading GitOps engine. Weave GitOps 
-provides pre-defined workflows and configuration around Flux to create effective GitOps flows. 
 
-Weave GitOps is in pre-release development and not all capabilities are available yet.
+
+## Overview
+Weave GitOps enables an effective GitOps workflow for continuous delivery of applications into Kubernetes clusters. 
+It is based on [CNCF Flux](https://fluxcd.io), a leading GitOps engine. 
+
+### Early access
+Weave GitOps is in early stages and iterating. Not all capabilities are available yet, and the CLI commands and other aspects may change. Please be aware this is not production ready yet. We would appreciate feedback and contributions of all kinds at this stage. 
 
 ## Getting Started
 
-### Installation
+### CLI Installation
 
-Mac Intel
+Mac / Intel
 ```console
-curl -L https://github.com/weaveworks/weave-gitops/releases/download/v0.0.2/weave-gitops_0.0.2_darwin_amd64.tar.gz -o wego.tar.gz
-tar -xf wego.tar.gz
+curl -L https://github.com/weaveworks/weave-gitops/releases/download/v0.0.4-rc0/wego-$(uname)-$(uname -m) -o wego
 chmod +x wego
 sudo mv ./wego /usr/local/bin/wego
 wego version
@@ -32,14 +34,13 @@ Please see the [getting started guide](https://docs.gitops.weave.works/docs/gett
 ## CLI Reference
 
 ```console
-$ wego 
 Weave GitOps
 
 Usage:
   wego [command]
 
 Available Commands:
-  add         Add a workload repository to a wego cluster
+  app
   flux        Use flux commands
   help        Help about any command
   install     Install or upgrade Wego
@@ -53,13 +54,14 @@ Flags:
 Use "wego [command] --help" for more information about a command.
 ```
 
+For more information please see the [docs](https://docs.gitops.weave.works/docs/cli-reference)
+
 ## CLI development
 
 To set up a development environment for the CLI
 
 1. Install go v1.16
 2. make 
-
 
 ## UI Development
 
@@ -71,3 +73,15 @@ To set up a development environment for the UI
 4. Run `npm install`
 5. To start up the HTTP server with automated re-compliation, run `make ui-dev`
 6. Run `npm start` to start the frontend dev server (with hot-reloading)
+
+## Contribution
+
+Need help or want to contribute? Please see the links below. 
+
+- Getting Started?
+    - Look at our [Get Started guide](https://docs.gitops.weave.works/docs/getting-started) and give us feedback
+- Need help?
+    - Talk to us in the #weave-gitops channel on [Weaveworks Users Slack](https://slack.weave.works/)
+- Have feature proposals or want to contribute?
+    - Please create a [Github issue](https://github.com/weaveworks/weave-gitops/issues)  
+
