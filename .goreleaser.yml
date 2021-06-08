@@ -18,6 +18,7 @@ builds:
       binary: "wego-{{.Os}}-{{.Arch}}"
       main: ./cmd/wego
       ldflags:
+        - -X github.com/weaveworks/weave-gitops/cmd/wego/version.Version={{.Version}}
         - -X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime={{.Date}}
         - -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch={{ .Env.BRANCH}}
         - -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit={{.Commit}}
