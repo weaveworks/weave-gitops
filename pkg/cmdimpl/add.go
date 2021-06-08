@@ -218,7 +218,7 @@ func generateHelmManifestHelm(helmName, chart string) ([]byte, error) {
 	return fluxops.CallFlux(cmd)
 }
 
-func commitAndPush(ctx context.Context, gitClient git.Git) error {
+func commitAndPush(ctx context.Context, gitClient git.Git, filters ...func(string) bool) error {
 	fmt.Fprintf(shims.Stdout(), "Commiting and pushing wego resources for application...\n")
 	if params.DryRun {
 		return nil
@@ -226,7 +226,8 @@ func commitAndPush(ctx context.Context, gitClient git.Git) error {
 	_, err := gitClient.Commit(git.Commit{
 		Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
 		Message: "Add App manifests",
-	})
+	},
+		filters...)
 	if err != nil && err != git.ErrNoStagedFiles {
 		return fmt.Errorf("failed to commit sync manifests: %w", err)
 	}
@@ -367,13 +368,15 @@ func addAppWithConfigInUserRepo(ctx context.Context, gitClient git.Git) error {
 	if err != nil {
 		return wrapError(err, fmt.Sprintf("could not create GitOps automation for '%s'", params.Name))
 	}
-	if err := writeAppYaml(gitClient, appYaml, ".wego"); err != nil {
+	if err := writeAppYaml(gitClient, ".wego", appYaml); err != nil {
 		return err
 	}
 	if err := writeGoats(gitClient, ".wego", applicationGoat); err != nil {
 		return err
 	}
-	return commitAndPush(ctx, gitClient)
+	return commitAndPush(ctx, gitClient, func(fname string) bool {
+		return strings.HasPrefix(fname, ".wego")
+	})
 }
 
 func addAppWithConfigInExternalRepo(ctx context.Context, gitClient git.Git) error {
@@ -422,7 +425,7 @@ func addAppWithConfigInExternalRepo(ctx context.Context, gitClient git.Git) erro
 	if err != nil {
 		return wrapError(err, fmt.Sprintf("could not create GitOps automation for '%s'", params.Name))
 	}
-	if err := writeAppYaml(gitClient, appYaml, "."); err != nil {
+	if err := writeAppYaml(gitClient, ".", appYaml); err != nil {
 		return err
 	}
 	if err := writeGoats(gitClient, "", userRepoSource, userTargetKustomize, userAppKustomize, applicationGoat); err != nil {
@@ -567,7 +570,7 @@ func applyToCluster(manifests ...[]byte) error {
 	return nil
 }
 
-func writeAppYaml(gitClient git.Git, appYaml []byte, basePath string) error {
+func writeAppYaml(gitClient git.Git, basePath string, appYaml []byte) error {
 	appYamlPath := filepath.Join(basePath, "apps", params.Name, "app.yaml")
 	if params.DryRun {
 		fmt.Printf("Writing app.yaml to '%s'\n", appYamlPath)

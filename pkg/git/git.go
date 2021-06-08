@@ -49,7 +49,7 @@ type Git interface {
 	Init(path, url, branch string) (bool, error)
 	Clone(ctx context.Context, path, url, branch string) (bool, error)
 	Write(path string, content []byte) error
-	Commit(message Commit) (string, error)
+	Commit(message Commit, filters ...func(string) bool) (string, error)
 	Push(ctx context.Context) error
 	Status() (bool, error)
 	Head() (string, error)

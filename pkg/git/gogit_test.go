@@ -73,6 +73,7 @@ var _ = Describe("Write", func() {
 })
 
 var _ = Describe("Commit", func() {
+
 	It("commits into a given repository", func() {
 		_, err = gitClient.Init(dir, "https://github.com/github/gitignore", "master")
 		Expect(err).ShouldNot(HaveOccurred())
@@ -94,6 +95,26 @@ var _ = Describe("Commit", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 
 		Expect(string(out)).To(ContainSubstring("test commit"))
+	})
+	It("commits into a given repository skipping filtered files", func() {
+		_, err = gitClient.Init(dir, "https://github.com/github/gitignore", "master")
+		Expect(err).ShouldNot(HaveOccurred())
+
+		filePath := "/test.txt"
+		content := []byte("testing")
+		err = gitClient.Write(filePath, content)
+
+		_, err = gitClient.Commit(git.Commit{
+			Author:  git.Author{Name: "test", Email: "test@example.com"},
+			Message: "test commit",
+		},
+			func(fname string) bool {
+				return false
+			})
+		Expect(err).Should(HaveOccurred())
+		isClean, err := gitClient.Status()
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(isClean).To(BeFalse())
 	})
 })
 
