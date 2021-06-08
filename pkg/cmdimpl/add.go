@@ -13,6 +13,12 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
+
+	"github.com/fluxcd/go-git-providers/github"
+
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
@@ -439,20 +445,70 @@ func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, er
 	case SourceTypeGit:
 		cmd := fmt.Sprintf(`create secret git "%s" \
             --url="%s" \
-            --private-key-file="%s" \
             --namespace="%s"`,
 			secretName,
 			repoUrl,
-			params.PrivateKey,
 			params.Namespace)
 		if params.DryRun {
 			fmt.Printf(cmd + "\n")
 		} else {
-			_, err := fluxops.CallFlux(cmd)
-
+			output, err := fluxops.CallFlux(cmd)
 			if err != nil {
 				return nil, wrapError(err, "could not create git secret")
 			}
+			// TODO: Create a function for this in gitproviders pkg
+			owner, err := getOwnerFromUrl(repoUrl)
+			if err != nil {
+				return nil, err
+			}
+			provider, err := gitproviders.GithubProvider()
+			if err != nil {
+				return nil, err
+			}
+			ownerType, err := gitproviders.GetAccountType(provider, owner)
+			if err != nil {
+				return nil, err
+			}
+			deployKeyBody := bytes.TrimPrefix(output, []byte("✚ deploy key: "))
+			deployKeyLines := bytes.Split(deployKeyBody, []byte("\n"))
+			if len(deployKeyBody) == 0 {
+				return nil, fmt.Errorf("no deploy key found [%s]", string(output))
+			}
+			deployKey := gitprovider.DeployKeyInfo{
+				Name: "weave-gitops-deploy-key",
+				Key:  deployKeyLines[0],
+			}
+			switch ownerType {
+			case gitproviders.AccountTypeOrg:
+				ctx := context.Background()
+				defer ctx.Done()
+				orgRef := gitproviders.NewOrgRepositoryRef(github.DefaultDomain, owner, repoName)
+				orgRepo, err := provider.OrgRepositories().Get(ctx, orgRef)
+				if err != nil {
+					return nil, fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s ", owner, repoName, err)
+				}
+				fmt.Println("Uploading deploy key")
+				_, err = orgRepo.DeployKeys().Create(ctx, deployKey)
+				if err != nil {
+					return nil, fmt.Errorf("error uploading deploy key %s", err)
+				}
+			case gitproviders.AccountTypeUser:
+				ctx := context.Background()
+				defer ctx.Done()
+				userRef := gitproviders.NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
+				userRepo, err := provider.UserRepositories().Get(ctx, userRef)
+				if err != nil {
+					return nil, fmt.Errorf("error getting user repo reference for owner %s, repo %s, %s ", owner, repoName, err)
+				}
+				fmt.Println("Uploading deploy key")
+				_, err = userRepo.DeployKeys().Create(ctx, deployKey)
+				if err != nil {
+					return nil, fmt.Errorf("error uploading deploy key %s", err)
+				}
+			default:
+				return nil, fmt.Errorf("account type not supported %s", ownerType)
+			}
+
 		}
 		cmd = fmt.Sprintf(`create source git "%s" \
             --url="%s" \
@@ -474,8 +530,16 @@ func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, er
 	case SourceTypeHelm:
 		return generateSourceManifestHelm()
 	default:
-		return nil, fmt.Errorf("Unknown source type: %v", sourceType)
+		return nil, fmt.Errorf("unknown source type: %v", sourceType)
 	}
+}
+
+func getOwnerFromUrl(url string) (string, error) {
+	parts := strings.Split(url, "/")
+	if len(parts) < 2 {
+		return "", fmt.Errorf("could not get owner from url %s", url)
+	}
+	return parts[len(parts)-2], nil
 }
 
 func generateAppYaml() ([]byte, error) {
