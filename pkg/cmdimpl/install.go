@@ -3,8 +3,10 @@ package cmdimpl
 import (
 	_ "embed"
 	"fmt"
+	"strings"
 
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
+	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
@@ -17,6 +19,16 @@ type InstallParamSet struct {
 }
 
 func Install(params InstallParamSet) error {
+	present, err := checkFluxPresent()
+	if err != nil {
+		return wrapError(err, "could not verify flux presence in the cluster")
+	}
+
+	if present {
+		fmt.Println("Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n  $ flux uninstall")
+		shims.Exit(1)
+	}
+
 	manifests, err := fluxops.Install(params.Namespace, params.DryRun)
 	if err != nil {
 		return fmt.Errorf("error on install %s", err)
@@ -33,4 +45,15 @@ func Install(params InstallParamSet) error {
 	}
 
 	return nil
+}
+
+func checkFluxPresent() (bool, error) {
+	out, err := utils.CallCommandSilently("kubectl get namespace flux-system")
+	if err != nil {
+		if strings.Contains(string(out), "not found") {
+			return false, nil
+		}
+	}
+
+	return true, nil
 }
