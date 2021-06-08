@@ -263,7 +263,6 @@ var _ = Describe("Test source manifest", func() {
 		secretCall := true
 		expectedSecret := `create secret git "sname" \
             --url="ssh://git@github.com/auser/arepo" \
-            --private-key-file="/tmp/pkey" \
             --namespace="aNamespace"`
 
 		expectedSource := `create source git "sname" \
