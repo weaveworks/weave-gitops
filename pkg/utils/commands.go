@@ -37,7 +37,7 @@ var (
 func processMocks(op CallOperation, cmdstr string) (bool, []byte, []byte, error) {
 	if behavior := behaviors[op]; behavior != nil {
 		if stdout, stderr, err := behavior.(func(...interface{}) ([]byte, []byte, error))(cmdstr); err != nil {
-			return true, nil, nil, err
+			return true, stdout, stderr, err
 		} else {
 			return true, stdout, stderr, nil
 		}

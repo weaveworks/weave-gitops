@@ -45,11 +45,9 @@ func Install(params InstallParamSet) ([]byte, error) {
 func checkFluxPresent() (bool, error) {
 	out, err := utils.CallCommandSilently("kubectl get namespace flux-system")
 	if err != nil {
-		return false, err
-	}
-
-	if strings.Contains(string(out), "not found") {
-		return false, nil
+		if strings.Contains(string(out), "not found") {
+			return false, nil
+		}
 	}
 
 	return true, nil
