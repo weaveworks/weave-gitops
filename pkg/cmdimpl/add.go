@@ -15,6 +15,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -51,8 +52,6 @@ type AddParamSet struct {
 	Url            string
 	Path           string
 	Branch         string
-	PrivateKey     string
-	PrivateKeyPass string
 	DeploymentType string
 	Chart          string
 	SourceType     string
@@ -442,20 +441,33 @@ func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, er
 	case SourceTypeGit:
 		cmd := fmt.Sprintf(`create secret git "%s" \
             --url="%s" \
-            --private-key-file="%s" \
             --namespace="%s"`,
 			secretName,
 			repoUrl,
-			params.PrivateKey,
 			params.Namespace)
 		if params.DryRun {
 			fmt.Printf(cmd + "\n")
 		} else {
-			_, err := fluxops.CallFlux(cmd)
-
+			// TODO create a function for this in fluxops pkg
+			output, err := fluxops.WithFluxHandler(fluxops.QuietFluxHandler{}, func() ([]byte, error) {
+				return fluxops.CallFlux(cmd)
+			})
 			if err != nil {
 				return nil, wrapError(err, "could not create git secret")
 			}
+			owner, err := getOwnerFromUrl(repoUrl)
+			if err != nil {
+				return nil, err
+			}
+			deployKeyBody := bytes.TrimPrefix(output, []byte("✚ deploy key: "))
+			deployKeyLines := bytes.Split(deployKeyBody, []byte("\n"))
+			if len(deployKeyBody) == 0 {
+				return nil, fmt.Errorf("no deploy key found [%s]", string(output))
+			}
+			if err := gitproviders.UploadDeployKey(owner, repoName, deployKeyLines[0]); err != nil {
+				return nil, wrapError(err, "error uploading deploy key")
+			}
+
 		}
 		cmd = fmt.Sprintf(`create source git "%s" \
             --url="%s" \
@@ -477,8 +489,16 @@ func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, er
 	case SourceTypeHelm:
 		return generateSourceManifestHelm()
 	default:
-		return nil, fmt.Errorf("Unknown source type: %v", sourceType)
+		return nil, fmt.Errorf("unknown source type: %v", sourceType)
 	}
+}
+
+func getOwnerFromUrl(url string) (string, error) {
+	parts := strings.Split(url, "/")
+	if len(parts) < 2 {
+		return "", fmt.Errorf("could not get owner from url %s", url)
+	}
+	return parts[len(parts)-2], nil
 }
 
 func generateAppYaml() ([]byte, error) {

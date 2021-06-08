@@ -33,9 +33,9 @@ func (h DefaultFluxHandler) Handle(arglist string) ([]byte, error) {
 	return utils.CallCommand(fmt.Sprintf("%s %s", fluxBinary, arglist))
 }
 
-type quietFluxHandler struct{}
+type QuietFluxHandler struct{}
 
-func (q quietFluxHandler) Handle(arglist string) ([]byte, error) {
+func (q QuietFluxHandler) Handle(arglist string) ([]byte, error) {
 	initFluxBinary()
 	return utils.CallCommandSilently(fmt.Sprintf("%s %s", fluxBinary, arglist))
 }
@@ -110,7 +110,7 @@ func GetAllResourcesStatus(appName string) ([]byte, error) {
 		appName,
 	}
 
-	return WithFluxHandler(quietFluxHandler{}, func() ([]byte, error) {
+	return WithFluxHandler(QuietFluxHandler{}, func() ([]byte, error) {
 		output, err := CallFlux(args...)
 		if err != nil {
 			return nil, err
@@ -128,7 +128,7 @@ func GetAllResources(namespace string) ([]byte, error) {
 		namespace,
 	}
 
-	return WithFluxHandler(quietFluxHandler{}, func() ([]byte, error) {
+	return WithFluxHandler(QuietFluxHandler{}, func() ([]byte, error) {
 		output, err := CallFlux(args...)
 		if err != nil {
 			return nil, err
