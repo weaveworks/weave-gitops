@@ -10,10 +10,8 @@ import (
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	//	gogit "github.com/go-git/go-git/v5"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops/fluxopsfakes"
@@ -34,7 +32,9 @@ var FailFluxHandler = &fluxopsfakes.FakeFluxHandler{
 		if strings.HasPrefix(command, "install") || strings.HasPrefix(command, "add") {
 			return nil, fmt.Errorf("failed")
 		}
-		return nil, nil
+		return []byte(`✚ deploy key: ssh-rsa ID==
+
+► secret 'secret name' created in 'wego-system' namespace`), nil
 	},
 }
 
@@ -62,6 +62,20 @@ func (h fakeGitRepoHandler) RepositoryExists(_ string, _ string) (bool, error) {
 }
 
 func (h fakeGitRepoHandler) UploadDeployKey(_, _ string, _ []byte) error {
+	return nil
+}
+
+type fakeGitRepoHandlerDeployKey struct{}
+
+func (h fakeGitRepoHandlerDeployKey) CreateRepository(_ string, _ string, private bool) error {
+	return nil
+}
+
+func (h fakeGitRepoHandlerDeployKey) RepositoryExists(_ string, _ string) (bool, error) {
+	return true, nil
+}
+
+func (h fakeGitRepoHandlerDeployKey) UploadDeployKey(_, _ string, _ []byte) error {
 	return nil
 }
 
@@ -220,7 +234,9 @@ var _ = Describe("Test source manifest", func() {
 				if secretCall {
 					Expect(args).Should(Equal(expectedSecret))
 					secretCall = false
-					return nil, nil
+					return []byte(`✚ deploy key: ssh-rsa ID==
+
+► secret 'test-repo-with-manifests-path' created in 'wego-system' namespace`), nil
 				} else {
 					Expect(args).Should(Equal(expectedSource))
 					return []byte("bar"), nil
@@ -228,6 +244,7 @@ var _ = Describe("Test source manifest", func() {
 			},
 		}
 
+		fgphandler := fakeGitRepoHandlerDeployKey{}
 		_ = override.WithOverrides(
 			func() override.Result {
 				params.DryRun = false
@@ -235,11 +252,15 @@ var _ = Describe("Test source manifest", func() {
 				params.Branch = "aBranch"
 
 				// source type will come into play when we have helmrepo support
+
 				Expect(generateSource(
 					"sname", "ssh://git@github.com/auser/arepo", "git")).Should(Equal([]byte("bar")))
 				return override.Result{}
 			},
-			fluxops.Override(fakeHandler))
+			fluxops.Override(fakeHandler),
+			utils.OverrideIgnore(utils.CallCommandForEffectWithInputPipeOp),
+			gitproviders.Override(fgphandler),
+		)
 	})
 })
 
@@ -397,7 +418,7 @@ var _ = Describe("Wet Run Add Test", func() {
 			Expect(os.Setenv("GITHUB_ORG", "archaeopteryx")).Should(Succeed())
 			Expect(os.Setenv("GITHUB_TOKEN", "archaeopteryx")).Should(Succeed())
 			Expect(ensureFluxVersion()).Should(Succeed())
-			fgphandler := fakeGitRepoHandler{}
+			fgphandler := fakeGitRepoHandlerDeployKey{}
 			shandler := statusHandler{}
 			_ = override.WithOverrides(
 				func() override.Result {

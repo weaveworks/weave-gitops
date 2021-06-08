@@ -461,7 +461,9 @@ func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, er
 			if len(deployKeyBody) == 0 {
 				return nil, fmt.Errorf("no deploy key found [%s]", string(output))
 			}
-			gitproviders.UploadDeployKey(owner, repoName, deployKeyLines[0])
+			if err := gitproviders.UploadDeployKey(owner, repoName, deployKeyLines[0]); err != nil {
+				return nil, wrapError(err, "error uploading deploy key")
+			}
 
 		}
 		cmd = fmt.Sprintf(`create source git "%s" \
