@@ -35,6 +35,7 @@ jobs:
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v1
         with:
+          version: latest
           args: release --release-notes=/tmp/release.txt --skip-validate
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

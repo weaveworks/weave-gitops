@@ -32,12 +32,6 @@ unit-tests: cmd/ui/dist/index.html
 bin:
 	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) cmd/wego/*.go
 
-release-binaries: dependencies
-	GOOS=linux GOARCH=amd64 go build -ldflags $(LDFLAGS) -o bin/wego-linux-x86_64 cmd/wego/*.go
-	GOOS=darwin GOARCH=amd64 go build -ldflags $(LDFLAGS) -o bin/wego-darwin-x86_64 cmd/wego/*.go
-	GOOS=linux GOARCH=arm64 go build -ldflags $(LDFLAGS) -o bin/wego-linux-arm64 cmd/wego/*.go
-	GOOS=darwin GOARCH=arm64 go build -ldflags $(LDFLAGS) -o bin/wego-darwin-arm64 cmd/wego/*.go
-
 # Build wego binary
 wego: dependencies bin
 

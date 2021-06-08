@@ -5,7 +5,10 @@ on:
 name: Deploy
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{matrix.os}}
+      strategy:
+        matrix:
+          os: [ ubuntu-latest, macOS-latest ]
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
@@ -18,9 +21,7 @@ jobs:
     - name: Build UI Assets
       run: make cmd/ui/dist/index.html
     - name: build
-      run: make release-binaries
-    - name: temp
-      run: ls -l bin
+      run: make all BINARY_NAME=wego-${{matrix.os}}
     - name: Store wego binaries
       uses: actions/upload-artifact@v2
       with:
@@ -85,7 +86,7 @@ jobs:
         path: bin
     - name: Change bin permissions
       run: |
-        cp bin/wego-$(uname | awk '{print tolower($0)}')-$(uname -m) bin/wego
+        cp bin/wego-ubuntu-latest bin/wego
         chmod +x bin/wego
         ls -la bin
     - name: Download dependecies
@@ -149,8 +150,11 @@ jobs:
       if: always()
 
   publish-binaries:
-    runs-on: ubuntu-latest
+    runs-on: ${{matrix.os}}
     needs: [acceptance-tests]
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macOS-latest ]
     steps:
     - name: Download wego binaries
       uses: actions/download-artifact@v2
@@ -164,4 +168,4 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-2
     - run: |
-        aws s3 cp bin/ s3://weave-gitops/temp/ --recursive
+        aws s3 cp bin/wego-${{matrix.os}} s3://weave-gitops/wego-${{matrix.os}}
