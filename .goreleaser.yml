@@ -4,11 +4,22 @@ env:
 before:
   hooks:
     - go mod tidy
+checksum:
+  name_template: "{{ .ProjectName }}_checksums.txt"
+release:
+  prerelease: true
+archives:
+  -
+   format: binary
+   replacements:
+     amd64: x86_64
+   name_template: "wego-{{.Os}}-{{.Arch}}"
 builds:
   - <<: &build_defaults
-      binary: wego
+      binary: "wego-{{.Os}}-{{.Arch}}"
       main: ./cmd/wego
       ldflags:
+        - -X github.com/weaveworks/weave-gitops/cmd/wego/version.Version={{.Version}}
         - -X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime={{.Date}}
         - -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch={{ .Env.BRANCH}}
         - -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit={{.Commit}}
