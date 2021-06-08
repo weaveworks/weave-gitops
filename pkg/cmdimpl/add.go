@@ -88,6 +88,11 @@ func updateParametersIfNecessary(gitClient git.Git) error {
 		params.DeploymentType = string(DeployTypeHelm)
 	}
 
+	if params.AppConfigUrl == "" && params.SourceType != string(SourceTypeGit) {
+		return fmt.Errorf("Cannot create .wego directory in helm repository:\n" +
+			"  you must either use --app-config-url=none or --appconfig-url=<url of external git repo>")
+	}
+
 	if params.Name == "" {
 		if params.Url != "" {
 			params.Name = generateAppName(strings.TrimSuffix(params.Url, ".git"))
@@ -326,7 +331,7 @@ func Add(args []string, allParams AddParamSet, deps *AddDependencies) error {
 func addAppWithNoConfigRepo() error {
 	// Source covers entire user repo
 	userSourceName := getUserRepoName()
-	userRepoSource, err := generateSource(userSourceName, params.Url, SourceTypeGit)
+	userRepoSource, err := generateSource(userSourceName, params.Url, SourceType(params.SourceType))
 	if err != nil {
 		return wrapError(err, "could not set up GitOps for user repository")
 	}
