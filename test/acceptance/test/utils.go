@@ -104,7 +104,7 @@ func waitForNamespaceToTerminate(namespace string, timeout time.Duration) error 
 		if i > timeoutInSeconds/2 && i%10 == 0 {
 			//Patch the finalizer
 			log.Infof("Patch the finalizer to unstuck the terminating namespace %s", namespace)
-			runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl patch ns %s -p '{\"metadata\":{\"finalizers\":[]}}' --type=merge", namespace))
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl patch ns %s -p '{\"metadata\":{\"finalizers\":[]}}' --type=merge", namespace))
 		}
 		time.Sleep(time.Duration(pollInterval) * time.Second)
 	}
@@ -139,7 +139,6 @@ func ResetOrCreateCluster(namespace string) (string, error) {
 
 	//For kubectl, point to a valid cluster, we will try to reset the namespace only
 	if namespace != "" && provider == "kubectl" {
-
 		err = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
 		if err != nil {
 			log.Infof("Failed to uninstall the wego runtime %s", namespace)
@@ -248,7 +247,7 @@ func deleteWorkload(workloadName string, workloadNamespace string) {
 }
 
 func runCommandAndReturnOutput(commandToRun string) (stdOut string, stdErr string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf(commandToRun))
+	command := exec.Command("sh", "-c", commandToRun)
 	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Eventually(session).Should(gexec.Exit())
 	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
