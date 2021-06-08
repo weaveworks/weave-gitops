@@ -46,10 +46,19 @@ func init() {
 func runCmd(cmd *cobra.Command, args []string) {
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 
+	if strings.HasPrefix(params.PrivateKey, "~/") {
+		dir, err := os.UserHomeDir()
+		if err != nil {
+			fmt.Fprintf(shims.Stderr(), "could not determine user home directory for ~")
+			shims.Exit(1)
+		}
+		params.PrivateKey = filepath.Join(dir, params.PrivateKey[2:])
+	}
+
 	authMethod, err := ssh.NewPublicKeysFromFile("git", params.PrivateKey, params.PrivateKeyPass)
 	if err != nil {
-		fmt.Printf("failed reading ssh keys: %s\n", err)
-		os.Exit(1)
+		fmt.Fprintf(shims.Stderr(), "failed reading ssh keys: %s\n", err)
+		shims.Exit(1)
 	}
 
 	gitClient := git.New(authMethod)
