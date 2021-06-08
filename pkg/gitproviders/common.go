@@ -25,6 +25,7 @@ const (
 type GitProviderHandler interface {
 	CreateRepository(name string, owner string, private bool) error
 	RepositoryExists(name string, owner string) (bool, error)
+	UploadDeployKey(owner, repoName string, deployKey []byte) error
 }
 
 var gitProviderHandler interface{} = defaultGitProviderHandler{}
@@ -112,12 +113,66 @@ func (h defaultGitProviderHandler) CreateRepository(name string, owner string, p
 	return nil
 }
 
+func (h defaultGitProviderHandler) UploadDeployKey(owner, repoName string, deployKey []byte) error {
+	provider, err := GithubProvider()
+	if err != nil {
+		return err
+	}
+
+	deployKeyInfo := gitprovider.DeployKeyInfo{
+		Name: "weave-gitops-deploy-key",
+		Key:  deployKey,
+	}
+
+	ownerType, err := GetAccountType(provider, owner)
+	if err != nil {
+		return err
+	}
+
+	switch ownerType {
+	case AccountTypeOrg:
+		ctx := context.Background()
+		defer ctx.Done()
+		orgRef := NewOrgRepositoryRef(github.DefaultDomain, owner, repoName)
+		orgRepo, err := provider.OrgRepositories().Get(ctx, orgRef)
+		if err != nil {
+			return fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s ", owner, repoName, err)
+		}
+		fmt.Println("Uploading deploy key")
+		_, err = orgRepo.DeployKeys().Create(ctx, deployKeyInfo)
+		if err != nil {
+			return fmt.Errorf("error uploading deploy key %s", err)
+		}
+	case AccountTypeUser:
+		ctx := context.Background()
+		defer ctx.Done()
+		userRef := NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
+		userRepo, err := provider.UserRepositories().Get(ctx, userRef)
+		if err != nil {
+			return fmt.Errorf("error getting user repo reference for owner %s, repo %s, %s ", owner, repoName, err)
+		}
+		fmt.Println("Uploading deploy key")
+		_, err = userRepo.DeployKeys().Create(ctx, deployKeyInfo)
+		if err != nil {
+			return fmt.Errorf("error uploading deploy key %s", err)
+		}
+	default:
+		return fmt.Errorf("account type not supported %s", ownerType)
+	}
+
+	return nil
+}
+
 func CreateRepository(name string, owner string, private bool) error {
 	return gitProviderHandler.(GitProviderHandler).CreateRepository(name, owner, private)
 }
 
 func RepositoryExists(name string, owner string) (bool, error) {
 	return gitProviderHandler.(GitProviderHandler).RepositoryExists(name, owner)
+}
+
+func UploadDeployKey(owner, repoName string, deployKey []byte) error {
+	return gitProviderHandler.(GitProviderHandler).UploadDeployKey(owner, repoName, deployKey)
 }
 
 func GetAccountType(provider gitprovider.Client, owner string) (ProviderAccountType, error) {

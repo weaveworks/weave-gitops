@@ -52,13 +52,17 @@ func (h statusHandler) GetClusterStatus() status.ClusterStatus {
 
 type fakeGitRepoHandler struct{}
 
-func (h fakeGitRepoHandler) CreateRepository(name string, owner string, private bool) error {
+func (h fakeGitRepoHandler) CreateRepository(_ string, _ string, private bool) error {
 	access = private
 	return nil
 }
 
-func (h fakeGitRepoHandler) RepositoryExists(ame string, owner string) (bool, error) {
+func (h fakeGitRepoHandler) RepositoryExists(_ string, _ string) (bool, error) {
 	return false, gitprovider.ErrNotFound
+}
+
+func (h fakeGitRepoHandler) UploadDeployKey(_, _ string, _ []byte) error {
+	return nil
 }
 
 func ensureFluxVersion() error {

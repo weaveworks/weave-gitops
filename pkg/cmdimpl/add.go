@@ -13,8 +13,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/fluxcd/go-git-providers/github"
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -454,16 +452,7 @@ func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, er
 			if err != nil {
 				return nil, wrapError(err, "could not create git secret")
 			}
-			// TODO: Create a function for this in gitproviders pkg
 			owner, err := getOwnerFromUrl(repoUrl)
-			if err != nil {
-				return nil, err
-			}
-			provider, err := gitproviders.GithubProvider()
-			if err != nil {
-				return nil, err
-			}
-			ownerType, err := gitproviders.GetAccountType(provider, owner)
 			if err != nil {
 				return nil, err
 			}
@@ -472,40 +461,7 @@ func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, er
 			if len(deployKeyBody) == 0 {
 				return nil, fmt.Errorf("no deploy key found [%s]", string(output))
 			}
-			deployKey := gitprovider.DeployKeyInfo{
-				Name: "weave-gitops-deploy-key",
-				Key:  deployKeyLines[0],
-			}
-			switch ownerType {
-			case gitproviders.AccountTypeOrg:
-				ctx := context.Background()
-				defer ctx.Done()
-				orgRef := gitproviders.NewOrgRepositoryRef(github.DefaultDomain, owner, repoName)
-				orgRepo, err := provider.OrgRepositories().Get(ctx, orgRef)
-				if err != nil {
-					return nil, fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s ", owner, repoName, err)
-				}
-				fmt.Println("Uploading deploy key")
-				_, err = orgRepo.DeployKeys().Create(ctx, deployKey)
-				if err != nil {
-					return nil, fmt.Errorf("error uploading deploy key %s", err)
-				}
-			case gitproviders.AccountTypeUser:
-				ctx := context.Background()
-				defer ctx.Done()
-				userRef := gitproviders.NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
-				userRepo, err := provider.UserRepositories().Get(ctx, userRef)
-				if err != nil {
-					return nil, fmt.Errorf("error getting user repo reference for owner %s, repo %s, %s ", owner, repoName, err)
-				}
-				fmt.Println("Uploading deploy key")
-				_, err = userRepo.DeployKeys().Create(ctx, deployKey)
-				if err != nil {
-					return nil, fmt.Errorf("error uploading deploy key %s", err)
-				}
-			default:
-				return nil, fmt.Errorf("account type not supported %s", ownerType)
-			}
+			gitproviders.UploadDeployKey(owner, repoName, deployKeyLines[0])
 
 		}
 		cmd = fmt.Sprintf(`create source git "%s" \
