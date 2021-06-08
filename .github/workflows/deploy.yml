@@ -8,9 +8,9 @@ name: Deploy
 jobs:
   build:
     runs-on: ${{matrix.os}}
-      strategy:
-        matrix:
-          os: [ ubuntu-latest, macOS-latest ]
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macOS-latest ]
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
