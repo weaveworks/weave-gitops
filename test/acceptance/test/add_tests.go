@@ -28,12 +28,15 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		var repoAbsolutePath string
 		private := true
 		appManifestFilePath := "./data/nginx.yaml"
+		workloadName := "nginx"
+		workloadNamespace := "my-nginx"
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		addCommand := "app add . "
 		appRepoName := "wego-test-app-" + RandString(8)
 		appName := appRepoName
 
 		defer deleteRepo(appRepoName)
+		defer deleteWorkload(workloadName, workloadNamespace)
 
 		By("And application repo does not already exist", func() {
 			deleteRepo(appRepoName)
@@ -70,11 +73,14 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		var repoAbsolutePath string
 		private := true
 		appManifestFilePath := "./data/nginx.yaml"
+		workloadName := "nginx"
+		workloadNamespace := "my-nginx"
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		addCommand := "app add ."
 		appRepoName := "wego-test-app-" + RandString(8)
 		appName := appRepoName
 		defer deleteRepo(appRepoName)
+		defer deleteWorkload(workloadName, workloadNamespace)
 
 		By("And application repo does not already exist", func() {
 			deleteRepo(appRepoName)
@@ -105,7 +111,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("And I should see workload is deployed to the cluster", func() {
-			verifyWorkloadIsDeployed("nginx", "my-nginx")
+			verifyWorkloadIsDeployed(workloadName, workloadNamespace)
 		})
 
 		By("And repos created have private visibility", func() {
@@ -118,6 +124,11 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		var repoAbsolutePath2 string
 		appManifestFilePath1 := "./data/nginx.yaml"
 		appManifestFilePath2 := "./data/nginx2.yaml"
+		workloadName1 := "nginx"
+		workloadName2 := "nginx2"
+		workloadNamespace1 := "my-nginx"
+		workloadNamespace2 := "my-nginx2"
+
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		appRepoName1 := "wego-test-app-" + RandString(8)
 		appRepoName2 := "wego-test-app-" + RandString(8)
@@ -128,6 +139,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		defer deleteRepo(appRepoName1)
 		defer deleteRepo(appRepoName2)
+		defer deleteWorkload(workloadName1, workloadNamespace1)
+		defer deleteWorkload(workloadName2, workloadNamespace2)
 
 		By("And application repos do not already exist", func() {
 			deleteRepo(appRepoName1)
@@ -175,11 +188,11 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("And I should see workload for app1 is deployed to the cluster", func() {
-			verifyWorkloadIsDeployed("nginx", "my-nginx")
+			verifyWorkloadIsDeployed(workloadName1, workloadNamespace1)
 		})
 
 		By("And I should see workload for app2 is deployed to the cluster", func() {
-			verifyWorkloadIsDeployed("nginx2", "my-nginx2")
+			verifyWorkloadIsDeployed(workloadName2, workloadNamespace2)
 		})
 
 		By("And repos created have private visibility", func() {
@@ -188,7 +201,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify helm repo can be added to the cluster by running 'wego add . --deployment-type=helm --path=./hello-world'", func() {
+	It("SmokeTest - Verify helm repo can be added to the cluster by running 'wego add . --deployment-type=helm --path=./hello-world'", func() {
 		var repoAbsolutePath string
 		private := true
 		appManifestFilePath := "./data/helm-repo/hello-world"
@@ -227,7 +240,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify 'wego add' cannot work without controllers installed", func() {
+	It("Verify 'wego add' does not work without controllers installed", func() {
 
 		var repoAbsolutePath string
 		private := true
