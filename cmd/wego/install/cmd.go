@@ -43,5 +43,5 @@ func init() {
 
 func runCmd(cmd *cobra.Command, args []string) {
 	_, err := cmdimpl.Install(params)
-	checkError("failed outputing install manifests", err)
+	checkError("failed to install wego", err)
 }
