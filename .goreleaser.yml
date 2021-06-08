@@ -12,6 +12,7 @@ archives:
    format: binary
    replacements:
      amd64: x86_64
+   name_template: "wego-{{.Os}}-{{.Arch}}"
 builds:
   - <<: &build_defaults
       binary: "wego-{{.Os}}-{{.Arch}}"
