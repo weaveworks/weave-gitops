@@ -39,9 +39,10 @@ func exit(code int) {
 
 func init() {
 	Cmd.Flags().StringVarP(&params.Namespace, "namespace", "n", "wego-system", "the namespace scope for this operation")
+	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "outputs all the manifests that would be installed")
 }
 
 func runCmd(cmd *cobra.Command, args []string) {
-	_, err := cmdimpl.Install(params)
+	err := cmdimpl.Install(params)
 	checkError("failed outputing install manifests", err)
 }
