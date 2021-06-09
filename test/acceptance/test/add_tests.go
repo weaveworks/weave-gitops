@@ -279,7 +279,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Smoke - Verify 'wego app add' with --dry-run flag does not modify the cluster", func() {
+	It("SmokeTest - Verify 'wego app add' with --dry-run flag does not modify the cluster", func() {
 		var repoAbsolutePath string
 		var session *gexec.Session
 		private := true
@@ -336,7 +336,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	})
 
 	// Eventually this test run will include all the remaining un-automated `wego app add` flags.
-	It("Smoke - Verify 'wego app add' works when --url flag is specified", func() {
+	It("SmokeTest - Verify 'wego app add' works when --url flag is specified", func() {
 		var repoAbsolutePath string
 		private := true
 		appRepoName := "wego-test-app-" + RandString(8)
