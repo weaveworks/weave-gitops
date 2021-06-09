@@ -15,7 +15,7 @@ Weave GitOps enables an effective GitOps workflow for continuous delivery of app
 It is based on [CNCF Flux](https://fluxcd.io), a leading GitOps engine. 
 
 ### Early access
-Weave GitOps is in early stages and iterating. Not all capabilities are available yet, and the CLI commands and other aspects may change. Please be aware this is not production ready yet. We would appreciate feedback and contributions of all kinds at this stage. 
+*Weave GitOps is in early stages and iterating. Not all capabilities are available yet, and the CLI commands and other aspects may change. Please be aware this is not production ready yet. We would appreciate feedback and contributions of all kinds at this stage.*
 
 ## Getting Started
 
@@ -23,7 +23,7 @@ Weave GitOps is in early stages and iterating. Not all capabilities are availabl
 
 Mac / Intel
 ```console
-curl -L https://github.com/weaveworks/weave-gitops/releases/download/v0.0.4-rc0/wego-$(uname)-$(uname -m) -o wego
+curl -L https://github.com/weaveworks/weave-gitops/releases/download/v0.0.4/wego-$(uname)-$(uname -m) -o wego
 chmod +x wego
 sudo mv ./wego /usr/local/bin/wego
 wego version
@@ -85,3 +85,4 @@ Need help or want to contribute? Please see the links below.
 - Have feature proposals or want to contribute?
     - Please create a [Github issue](https://github.com/weaveworks/weave-gitops/issues)  
 
+  
