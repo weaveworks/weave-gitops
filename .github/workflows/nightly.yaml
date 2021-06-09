@@ -88,7 +88,7 @@ jobs:
         OS_NAME=$(echo "${{matrix.os}}" | tr '[:upper:]' '[:lower:]')
         export CLUSTER_NAME=wego-nightly-cluster-$OS_NAME
         export CLUSTER_VERSION=1.19
-        export CLUSTER_REGION=eu-north-1
+        export CLUSTER_REGION=us-east-2
         export CLUSTER_EXISTS=$(eksctl get clusters --region $CLUSTER_REGION | grep -i $CLUSTER_NAME)
         if [ -z $CLUSTER_EXISTS ]
         then
