@@ -242,7 +242,55 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify 'wego add' does not work without controllers installed", func() {
+	// Eventually this test run will include all the remaining un-automated `wego app add` flags.
+	It("Smoke - Verify 'wego app add' works when --url flag is specified", func() {
+		var repoAbsolutePath string
+		private := true
+		appRepoName := "wego-test-app-" + RandString(8)
+		url := "ssh://git@github.com/weaveworks-gitops-test/" + appRepoName + ".git"
+		appManifestFilePath := "./data/nginx.yaml"
+		workloadName := "nginx"
+		workloadNamespace := "my-nginx"
+		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+		addCommand := "app add . --url=" + url
+		appName := appRepoName
+		var addCommandOutput string
+
+		defer deleteRepo(appRepoName)
+		defer deleteWorkload(workloadName, workloadNamespace)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(appRepoName)
+		})
+
+		By("When I create a private repo with my app workload", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+defaultSshKeyPath, func() {
+			setupSSHKey(defaultSshKeyPath)
+		})
+
+		By("And I run wego add command with url flag specified ", func() {
+			addCommandOutput, _ = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see wego using the specified url", func() {
+			Eventually(addCommandOutput).Should(ContainSubstring("using URL: '" + url + "'"))
+		})
+
+		By("Then I should see should see my workload deployed to the cluster", func() {
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+			verifyWorkloadIsDeployed("nginx", "my-nginx")
+		})
+	})
+
+	It("Verify 'wego app add' does not work without controllers installed", func() {
 
 		var repoAbsolutePath string
 		private := true
@@ -268,29 +316,28 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			setupSSHKey(defaultSshKeyPath)
 		})
 
-		By("And I run wego add command", func() {
+		By("And I run 'wego app add' command", func() {
 			addCommandOutput, addCommandErr = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("Then I should see relevant message in the console", func() {
-
 			Eventually(addCommandOutput).Should(MatchRegexp(`Checking cluster status[.?]+ (Unknown|Unmodified)`))
 			Eventually(addCommandErr).Should(MatchRegexp(`WeGO.*... exiting`))
 		})
 	})
 
-	It("Verify wego app add . --dry-run flag does not modify the cluster", func() {
+	It("Smoke - Verify 'wego app add' with --dry-run flag does not modify the cluster", func() {
 		var repoAbsolutePath string
 		var session *gexec.Session
 		private := true
-		branchName := "main"
+		branchName := "test-branch"
 		appManifestFilePath := "./data/nginx.yaml"
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		appRepoName := "wego-test-app-" + RandString(8)
 		workloadName := "nginx"
 		workloadNamespace := "my-nginx"
 		url := "ssh://git@github.com/weaveworks-gitops-test/" + appRepoName + ".git"
-		addCommand := "app add . --url=" + url + " --dry-run"
+		addCommand := "app add . --url=" + url + " --branch=" + branchName + " --dry-run"
 		appName := appRepoName
 		appType := "Kustomization"
 
@@ -314,11 +361,15 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			setupSSHKey(defaultSshKeyPath)
 		})
 
-		By("And I run wego add dry-run command", func() {
+		By("And I create a new branch", func() {
+			createGitRepoBranch(branchName)
+		})
+
+		By("And I run 'wego app add dry-run' command", func() {
 			session = runWegoAddCommandAndReturnSession(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("Then I should see dry-run output with: specified url, specified namespace", func() {
+		By("Then I should see dry-run output with specified: url, namespace, branch", func() {
 			Eventually(session).Should(gbytes.Say("using URL: '" + url + "'"))
 			Eventually(session).Should(gbytes.Say("Checking cluster status... FluxInstalled"))
 			Eventually(session).Should(gbytes.Say(`apiVersion:.*\nkind: GitRepository\nmetadata:\n\s*name: ` + appName + `\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE + `[a-z0-9:\n\s*]+branch: ` + branchName + `\n\s*.*\n\s*name: ` + appName + `\n\s*url: ` + url))
