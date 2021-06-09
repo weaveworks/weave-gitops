@@ -52,6 +52,8 @@ type AddParamSet struct {
 	Url            string
 	Path           string
 	Branch         string
+	PrivateKey     string
+	PrivateKeyPass string
 	DeploymentType string
 	Chart          string
 	SourceType     string
