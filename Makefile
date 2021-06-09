@@ -37,7 +37,7 @@ wego: dependencies bin
 
 # Clean up images and binaries
 clean:
-	rm -f bin/wego
+	rm -f bin/wego pkg/flux/bin/flux
 # Run go fmt against code
 fmt:
 	go fmt ./...
@@ -46,7 +46,7 @@ vet:
 	go vet ./...
 
 dependencies:
-	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
+	test -e pkg/flux/bin/flux || $(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
 
 package-lock.json:
 	npm install
@@ -65,6 +65,6 @@ bin/$(BINARY_NAME)_ui: cmd/ui/main.go
 
 ui-dev:
 	reflex -r '.go' -s -- sh -c 'go run cmd/ui/main.go'
-	
+
 lint:
 	golangci-lint run --out-format=github-actions --build-tags acceptance
