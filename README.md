@@ -21,7 +21,7 @@ It is based on [CNCF Flux](https://fluxcd.io), a leading GitOps engine.
 
 ### CLI Installation
 
-Mac / Intel
+Mac / Linux
 ```console
 curl -L https://github.com/weaveworks/weave-gitops/releases/download/v0.0.5/wego-$(uname)-$(uname -m) -o wego
 chmod +x wego
