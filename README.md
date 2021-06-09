@@ -23,7 +23,7 @@ It is based on [CNCF Flux](https://fluxcd.io), a leading GitOps engine.
 
 Mac / Intel
 ```console
-curl -L https://github.com/weaveworks/weave-gitops/releases/download/v0.0.4/wego-$(uname)-$(uname -m) -o wego
+curl -L https://github.com/weaveworks/weave-gitops/releases/download/v0.0.5/wego-$(uname)-$(uname -m) -o wego
 chmod +x wego
 sudo mv ./wego /usr/local/bin/wego
 wego version
