@@ -88,8 +88,8 @@ func updateParametersIfNecessary(gitClient git.Git) error {
 		params.DeploymentType = string(DeployTypeHelm)
 	}
 
-	if params.AppConfigUrl == "" && params.SourceType != string(SourceTypeGit) {
-		return fmt.Errorf("Cannot create .wego directory in helm repository:\n" +
+	if params.AppConfigUrl == string(ConfigTypeUserRepo) && params.SourceType != string(SourceTypeGit) {
+		return fmt.Errorf("cannot create .wego directory in helm repository:\n" +
 			"  you must either use --app-config-url=none or --appconfig-url=<url of external git repo>")
 	}
 
