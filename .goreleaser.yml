@@ -29,7 +29,7 @@ builds:
       hooks:
         pre:
           - curl -L https://github.com/fluxcd/flux2/releases/download/v{{.Env.FLUX_VERSION}}/flux_{{.Env.FLUX_VERSION}}_{{.Os}}_{{.Arch}}.tar.gz -o flux-tar.gz
-          - tar -C flux -xvf flux-tar.gz
+          - tar -xvf flux-tar.gz
           - mkdir -p ./pkg/flux/bin
           - mv ./flux ./pkg/flux/bin/flux
           - rm flux-tar.gz
