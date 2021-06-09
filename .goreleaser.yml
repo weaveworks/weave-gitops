@@ -38,8 +38,6 @@ builds:
       - linux
     goarch:
       - amd64
-      - arm64
-      - arm
     goarm:
       - 7
   - <<: *build_defaults
@@ -48,4 +46,4 @@ builds:
       - darwin
     goarch:
       - amd64
-      - arm64
+   
