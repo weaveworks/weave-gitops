@@ -48,7 +48,6 @@ const (
 type AddParamSet struct {
 	Dir            string
 	Name           string
-	Owner          string
 	Url            string
 	Path           string
 	Branch         string
