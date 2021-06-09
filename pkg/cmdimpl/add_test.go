@@ -150,9 +150,7 @@ var failGitClient = gitfakes.FakeGit{
 		return nil
 	},
 	StatusStub: func() (bool, error) {
-		fmt.Println("failing status")
-		shims.Exit(1)
-		return false, nil
+		return true, nil
 	},
 	WriteStub: func(a string, b []byte) error {
 		fmt.Println("failing write")
@@ -180,7 +178,7 @@ var ignoreGitClient = gitfakes.FakeGit{
 	},
 	StatusStub: func() (bool, error) {
 		fmt.Println("ignoring status")
-		return false, nil
+		return true, nil
 	},
 	WriteStub: func(a string, b []byte) error {
 		fmt.Println("ignoring write")

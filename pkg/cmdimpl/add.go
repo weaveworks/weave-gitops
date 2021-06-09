@@ -349,6 +349,14 @@ func addAppWithNoConfigRepo() error {
 }
 
 func addAppWithConfigInUserRepo(ctx context.Context, gitClient git.Git) error {
+	isClean, err := gitClient.Status()
+	if err != nil {
+		return wrapError(err, "error getting repo status")
+	}
+	if !isClean {
+		return fmt.Errorf("please commit and push the changes in your repository before proceeding")
+	}
+
 	// Source covers entire user repo
 	userSourceName := getUserRepoName()
 	userRepoSource, err := generateSource(userSourceName, params.Url, SourceTypeGit)
