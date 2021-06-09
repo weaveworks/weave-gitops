@@ -34,6 +34,10 @@ bin:
 # Build wego binary
 wego: dependencies bin
 
+# Install binaries to GOPATH
+install: bin bin/$(BINARY_NAME)_ui
+	cp bin/$(BINARY_NAME) bin/$(BINARY_NAME)_ui ${GOPATH}/bin/
+
 # Clean up images and binaries
 clean:
 	rm -f bin/wego
@@ -64,6 +68,6 @@ bin/$(BINARY_NAME)_ui: cmd/ui/main.go
 
 ui-dev:
 	reflex -r '.go' -s -- sh -c 'go run cmd/ui/main.go'
-	
+
 lint:
 	golangci-lint run --out-format=github-actions --build-tags acceptance
