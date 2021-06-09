@@ -79,9 +79,9 @@ To set up a development environment for the UI
 Need help or want to contribute? Please see the links below. 
 
 - Getting Started?
-    - Look at our [Get Started guide](https://docs.gitops.weave.works/docs/getting-started) and give us feedback
+    - Follow our [Get Started guide](https://docs.gitops.weave.works/docs/getting-started) and give us feedback
 - Need help?
-    - Talk to us in the #weave-gitops channel on [Weaveworks Users Slack](https://slack.weave.works/)
+    - Talk to us in the [#weave-gitops channel](https://app.slack.com/client/T2NDH1D9D/C0248LVC719/thread/C2ND76PAA-1621532937.019800) on Weaveworks Community Slack. [Invite yourself if you haven't joined yet.](https://slack.weave.works/)
 - Have feature proposals or want to contribute?
     - Please create a [Github issue](https://github.com/weaveworks/weave-gitops/issues)  
 
