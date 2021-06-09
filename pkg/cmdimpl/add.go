@@ -15,6 +15,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -87,6 +88,11 @@ func updateParametersIfNecessary(gitClient git.Git) error {
 	if params.Chart != "" {
 		params.SourceType = string(SourceTypeHelm)
 		params.DeploymentType = string(DeployTypeHelm)
+	}
+
+	if params.AppConfigUrl == string(ConfigTypeUserRepo) && params.SourceType != string(SourceTypeGit) {
+		return fmt.Errorf("cannot create .wego directory in helm repository:\n" +
+			"  you must either use --app-config-url=none or --appconfig-url=<url of external git repo>")
 	}
 
 	if params.Name == "" {
@@ -219,7 +225,7 @@ func generateHelmManifestHelm(helmName, chart string) ([]byte, error) {
 	return fluxops.CallFlux(cmd)
 }
 
-func commitAndPush(ctx context.Context, gitClient git.Git) error {
+func commitAndPush(ctx context.Context, gitClient git.Git, filters ...func(string) bool) error {
 	fmt.Fprintf(shims.Stdout(), "Commiting and pushing wego resources for application...\n")
 	if params.DryRun {
 		return nil
@@ -227,7 +233,8 @@ func commitAndPush(ctx context.Context, gitClient git.Git) error {
 	_, err := gitClient.Commit(git.Commit{
 		Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
 		Message: "Add App manifests",
-	})
+	},
+		filters...)
 	if err != nil && err != git.ErrNoStagedFiles {
 		return fmt.Errorf("failed to commit sync manifests: %w", err)
 	}
@@ -326,7 +333,7 @@ func Add(args []string, allParams AddParamSet, deps *AddDependencies) error {
 func addAppWithNoConfigRepo() error {
 	// Source covers entire user repo
 	userSourceName := getUserRepoName()
-	userRepoSource, err := generateSource(userSourceName, params.Url, SourceTypeGit)
+	userRepoSource, err := generateSource(userSourceName, params.Url, SourceType(params.SourceType))
 	if err != nil {
 		return wrapError(err, "could not set up GitOps for user repository")
 	}
@@ -368,13 +375,15 @@ func addAppWithConfigInUserRepo(ctx context.Context, gitClient git.Git) error {
 	if err != nil {
 		return wrapError(err, fmt.Sprintf("could not create GitOps automation for '%s'", params.Name))
 	}
-	if err := writeAppYaml(gitClient, appYaml, ".wego"); err != nil {
+	if err := writeAppYaml(gitClient, ".wego", appYaml); err != nil {
 		return err
 	}
 	if err := writeGoats(gitClient, ".wego", applicationGoat); err != nil {
 		return err
 	}
-	return commitAndPush(ctx, gitClient)
+	return commitAndPush(ctx, gitClient, func(fname string) bool {
+		return strings.HasPrefix(fname, ".wego")
+	})
 }
 
 func addAppWithConfigInExternalRepo(ctx context.Context, gitClient git.Git) error {
@@ -423,7 +432,7 @@ func addAppWithConfigInExternalRepo(ctx context.Context, gitClient git.Git) erro
 	if err != nil {
 		return wrapError(err, fmt.Sprintf("could not create GitOps automation for '%s'", params.Name))
 	}
-	if err := writeAppYaml(gitClient, appYaml, "."); err != nil {
+	if err := writeAppYaml(gitClient, ".", appYaml); err != nil {
 		return err
 	}
 	if err := writeGoats(gitClient, "", userRepoSource, userTargetKustomize, userAppKustomize, applicationGoat); err != nil {
@@ -439,20 +448,33 @@ func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, er
 	case SourceTypeGit:
 		cmd := fmt.Sprintf(`create secret git "%s" \
             --url="%s" \
-            --private-key-file="%s" \
             --namespace="%s"`,
 			secretName,
 			repoUrl,
-			params.PrivateKey,
 			params.Namespace)
 		if params.DryRun {
 			fmt.Printf(cmd + "\n")
 		} else {
-			_, err := fluxops.CallFlux(cmd)
-
+			// TODO create a function for this in fluxops pkg
+			output, err := fluxops.WithFluxHandler(fluxops.QuietFluxHandler{}, func() ([]byte, error) {
+				return fluxops.CallFlux(cmd)
+			})
 			if err != nil {
 				return nil, wrapError(err, "could not create git secret")
 			}
+			owner, err := getOwnerFromUrl(repoUrl)
+			if err != nil {
+				return nil, err
+			}
+			deployKeyBody := bytes.TrimPrefix(output, []byte("✚ deploy key: "))
+			deployKeyLines := bytes.Split(deployKeyBody, []byte("\n"))
+			if len(deployKeyBody) == 0 {
+				return nil, fmt.Errorf("no deploy key found [%s]", string(output))
+			}
+			if err := gitproviders.UploadDeployKey(owner, repoName, deployKeyLines[0]); err != nil {
+				return nil, wrapError(err, "error uploading deploy key")
+			}
+
 		}
 		cmd = fmt.Sprintf(`create source git "%s" \
             --url="%s" \
@@ -474,8 +496,16 @@ func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, er
 	case SourceTypeHelm:
 		return generateSourceManifestHelm()
 	default:
-		return nil, fmt.Errorf("Unknown source type: %v", sourceType)
+		return nil, fmt.Errorf("unknown source type: %v", sourceType)
 	}
+}
+
+func getOwnerFromUrl(url string) (string, error) {
+	parts := strings.Split(url, "/")
+	if len(parts) < 2 {
+		return "", fmt.Errorf("could not get owner from url %s", url)
+	}
+	return parts[len(parts)-2], nil
 }
 
 func generateAppYaml() ([]byte, error) {
@@ -547,7 +577,7 @@ func applyToCluster(manifests ...[]byte) error {
 	return nil
 }
 
-func writeAppYaml(gitClient git.Git, appYaml []byte, basePath string) error {
+func writeAppYaml(gitClient git.Git, basePath string, appYaml []byte) error {
 	appYamlPath := filepath.Join(basePath, "apps", params.Name, "app.yaml")
 	if params.DryRun {
 		fmt.Printf("Writing app.yaml to '%s'\n", appYamlPath)

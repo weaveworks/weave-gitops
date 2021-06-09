@@ -10,10 +10,8 @@ import (
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	//	gogit "github.com/go-git/go-git/v5"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops/fluxopsfakes"
@@ -27,59 +25,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/version"
 )
 
-const testKey = `-----BEGIN RSA PRIVATE KEY-----
-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
------END RSA PRIVATE KEY-----
-`
-
 var FailFluxHandler = &fluxopsfakes.FakeFluxHandler{
 	HandleStub: func(arglist string) ([]byte, error) {
 		commandEnd := strings.Index(arglist, " ")
@@ -87,7 +32,9 @@ var FailFluxHandler = &fluxopsfakes.FakeFluxHandler{
 		if strings.HasPrefix(command, "install") || strings.HasPrefix(command, "add") {
 			return nil, fmt.Errorf("failed")
 		}
-		return nil, nil
+		return []byte(`✚ deploy key: ssh-rsa ID==
+
+► secret 'secret name' created in 'wego-system' namespace`), nil
 	},
 }
 
@@ -105,21 +52,31 @@ func (h statusHandler) GetClusterStatus() status.ClusterStatus {
 
 type fakeGitRepoHandler struct{}
 
-func (h fakeGitRepoHandler) CreateRepository(name string, owner string, private bool) error {
+func (h fakeGitRepoHandler) CreateRepository(_ string, _ string, private bool) error {
 	access = private
 	return nil
 }
 
-func (h fakeGitRepoHandler) RepositoryExists(ame string, owner string) (bool, error) {
+func (h fakeGitRepoHandler) RepositoryExists(_ string, _ string) (bool, error) {
 	return false, gitprovider.ErrNotFound
 }
 
-func createTestPrivateKeyFile() (*os.File, error) {
-	tmpFile, err := ioutil.TempFile("", "private-key")
-	if err != nil {
-		return nil, err
-	}
-	return tmpFile, ioutil.WriteFile(tmpFile.Name(), []byte(testKey), 0600)
+func (h fakeGitRepoHandler) UploadDeployKey(_, _ string, _ []byte) error {
+	return nil
+}
+
+type fakeGitRepoHandlerDeployKey struct{}
+
+func (h fakeGitRepoHandlerDeployKey) CreateRepository(_ string, _ string, private bool) error {
+	return nil
+}
+
+func (h fakeGitRepoHandlerDeployKey) RepositoryExists(_ string, _ string) (bool, error) {
+	return true, nil
+}
+
+func (h fakeGitRepoHandlerDeployKey) UploadDeployKey(_, _ string, _ []byte) error {
+	return nil
 }
 
 func ensureFluxVersion() error {
@@ -177,7 +134,7 @@ var failGitClient = gitfakes.FakeGit{
 		shims.Exit(1)
 		return false, nil
 	},
-	CommitStub: func(commit git.Commit) (string, error) {
+	CommitStub: func(commit git.Commit, filters ...func(string) bool) (string, error) {
 		fmt.Println("failing commit")
 		shims.Exit(1)
 		return "", nil
@@ -209,7 +166,7 @@ var ignoreGitClient = gitfakes.FakeGit{
 		fmt.Println("ignoring clone")
 		return false, nil
 	},
-	CommitStub: func(commit git.Commit) (string, error) {
+	CommitStub: func(commit git.Commit, filters ...func(string) bool) (string, error) {
 		fmt.Println("ignoring commit")
 		return "", nil
 	},
@@ -263,7 +220,6 @@ var _ = Describe("Test source manifest", func() {
 		secretCall := true
 		expectedSecret := `create secret git "sname" \
             --url="ssh://git@github.com/auser/arepo" \
-            --private-key-file="/tmp/pkey" \
             --namespace="aNamespace"`
 
 		expectedSource := `create source git "sname" \
@@ -278,7 +234,9 @@ var _ = Describe("Test source manifest", func() {
 				if secretCall {
 					Expect(args).Should(Equal(expectedSecret))
 					secretCall = false
-					return nil, nil
+					return []byte(`✚ deploy key: ssh-rsa ID==
+
+► secret 'test-repo-with-manifests-path' created in 'wego-system' namespace`), nil
 				} else {
 					Expect(args).Should(Equal(expectedSource))
 					return []byte("bar"), nil
@@ -286,19 +244,23 @@ var _ = Describe("Test source manifest", func() {
 			},
 		}
 
+		fgphandler := fakeGitRepoHandlerDeployKey{}
 		_ = override.WithOverrides(
 			func() override.Result {
 				params.DryRun = false
 				params.Namespace = "aNamespace"
-				params.PrivateKey = "/tmp/pkey"
 				params.Branch = "aBranch"
 
 				// source type will come into play when we have helmrepo support
+
 				Expect(generateSource(
 					"sname", "ssh://git@github.com/auser/arepo", "git")).Should(Equal([]byte("bar")))
 				return override.Result{}
 			},
-			fluxops.Override(fakeHandler))
+			fluxops.Override(fakeHandler),
+			utils.OverrideIgnore(utils.CallCommandForEffectWithInputPipeOp),
+			gitproviders.Override(fgphandler),
+		)
 	})
 })
 
@@ -370,10 +332,6 @@ var _ = Describe("Dry Run Add Test", func() {
 			Expect(ensureFluxVersion()).Should(Succeed())
 			fgphandler := fakeGitRepoHandler{}
 			shandler := statusHandler{}
-			privateKeyFile, err := createTestPrivateKeyFile()
-			Expect(err).To(BeNil())
-			privateKeyFileName := privateKeyFile.Name()
-			defer os.Remove(privateKeyFileName)
 			_ = override.WithOverrides(
 				func() override.Result {
 					deps := &AddDependencies{
@@ -386,7 +344,6 @@ var _ = Describe("Dry Run Add Test", func() {
 							Url:            "ssh://git@github.com/foobar/quux.git",
 							Path:           "./",
 							Branch:         "main",
-							PrivateKey:     privateKeyFileName,
 							DryRun:         true,
 							Namespace:      "wego-system",
 							DeploymentType: string(DeployTypeKustomize),
@@ -399,7 +356,6 @@ var _ = Describe("Dry Run Add Test", func() {
 							Url:            "",
 							Path:           "./foo",
 							Branch:         "main",
-							PrivateKey:     privateKeyFileName,
 							DryRun:         true,
 							Namespace:      "wego-system",
 							DeploymentType: string(DeployTypeKustomize),
@@ -413,7 +369,6 @@ var _ = Describe("Dry Run Add Test", func() {
 							AppConfigUrl:   "none",
 							Path:           "./foo",
 							Branch:         "main",
-							PrivateKey:     privateKeyFileName,
 							DryRun:         true,
 							Namespace:      "wego-system",
 							DeploymentType: string(DeployTypeKustomize),
@@ -427,7 +382,6 @@ var _ = Describe("Dry Run Add Test", func() {
 							AppConfigUrl:   "ssh://git@github.com/aUser/aRepo",
 							Path:           "./foo",
 							Branch:         "main",
-							PrivateKey:     privateKeyFileName,
 							DryRun:         true,
 							Namespace:      "wego-system",
 							DeploymentType: string(DeployTypeKustomize),
@@ -464,12 +418,8 @@ var _ = Describe("Wet Run Add Test", func() {
 			Expect(os.Setenv("GITHUB_ORG", "archaeopteryx")).Should(Succeed())
 			Expect(os.Setenv("GITHUB_TOKEN", "archaeopteryx")).Should(Succeed())
 			Expect(ensureFluxVersion()).Should(Succeed())
-			fgphandler := fakeGitRepoHandler{}
+			fgphandler := fakeGitRepoHandlerDeployKey{}
 			shandler := statusHandler{}
-			privateKeyFile, err := createTestPrivateKeyFile()
-			Expect(err).To(BeNil())
-			privateKeyFileName := privateKeyFile.Name()
-			defer os.Remove(privateKeyFileName)
 			_ = override.WithOverrides(
 				func() override.Result {
 					deps := &AddDependencies{
@@ -486,7 +436,6 @@ var _ = Describe("Wet Run Add Test", func() {
 							Url:            "ssh://git@github.com/foobar/quux.git",
 							Path:           "./",
 							Branch:         "main",
-							PrivateKey:     privateKeyFileName,
 							DryRun:         false,
 							Namespace:      "wego-system",
 							DeploymentType: string(DeployTypeKustomize),
@@ -499,7 +448,6 @@ var _ = Describe("Wet Run Add Test", func() {
 							Url:            "",
 							Path:           "./foo",
 							Branch:         "main",
-							PrivateKey:     privateKeyFileName,
 							DryRun:         false,
 							Namespace:      "wego-system",
 							DeploymentType: string(DeployTypeKustomize),
@@ -513,7 +461,6 @@ var _ = Describe("Wet Run Add Test", func() {
 							AppConfigUrl:   "none",
 							Path:           "./foo",
 							Branch:         "main",
-							PrivateKey:     privateKeyFileName,
 							DryRun:         false,
 							Namespace:      "wego-system",
 							DeploymentType: string(DeployTypeKustomize),
@@ -527,7 +474,6 @@ var _ = Describe("Wet Run Add Test", func() {
 							AppConfigUrl:   "ssh://git@github.com/aUser/aRepo",
 							Path:           "./foo",
 							Branch:         "main",
-							PrivateKey:     privateKeyFileName,
 							DryRun:         false,
 							Namespace:      "wego-system",
 							DeploymentType: string(DeployTypeKustomize),

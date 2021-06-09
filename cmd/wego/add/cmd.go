@@ -9,13 +9,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/weaveworks/weave-gitops/pkg/cmdimpl"
-
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/pkg/cmdimpl"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 var params cmdimpl.AddParamSet
@@ -38,7 +38,7 @@ func init() {
 	Cmd.Flags().StringVar(&params.Branch, "branch", "main", "Branch to watch within git repository")
 	Cmd.Flags().StringVar(&params.DeploymentType, "deployment-type", "kustomize", "deployment type [kustomize, helm]")
 	Cmd.Flags().StringVar(&params.Chart, "chart", "", "Specify chart for helm source")
-	Cmd.Flags().StringVar(&params.PrivateKey, "private-key", filepath.Join(os.Getenv("HOME"), ".ssh", "id_rsa"), "Private key that provides access to git repository")
+	Cmd.Flags().StringVar(&params.PrivateKey, "private-key", "", "Private key to access git repository over ssh")
 	Cmd.Flags().StringVar(&params.AppConfigUrl, "app-config-url", "", "URL of external repository (if any) which will hold automation manifests; NONE to store only in the cluster")
 	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'wego add' will not make any changes to the system; it will just display the actions that would have been taken")
 }
@@ -46,10 +46,17 @@ func init() {
 func runCmd(cmd *cobra.Command, args []string) {
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 
+	if strings.HasPrefix(params.PrivateKey, "~/") {
+		dir := getHomeDir()
+		params.PrivateKey = filepath.Join(dir, params.PrivateKey[2:])
+	} else if params.PrivateKey == "" {
+		params.PrivateKey = findPrivateKeyFile()
+	}
+
 	authMethod, err := ssh.NewPublicKeysFromFile("git", params.PrivateKey, params.PrivateKeyPass)
 	if err != nil {
-		fmt.Printf("failed reading ssh keys: %s\n", err)
-		os.Exit(1)
+		fmt.Fprintf(shims.Stderr(), "failed reading ssh keys: %s\n", err)
+		shims.Exit(1)
 	}
 
 	gitClient := git.New(authMethod)
@@ -61,4 +68,28 @@ func runCmd(cmd *cobra.Command, args []string) {
 		fmt.Fprintf(shims.Stderr(), "%v\n", err)
 		shims.Exit(1)
 	}
+}
+
+func getHomeDir() string {
+	dir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintf(shims.Stderr(), "could not determine user home directory\n")
+		shims.Exit(1)
+	}
+	return dir
+}
+
+func findPrivateKeyFile() string {
+	dir := getHomeDir()
+	modernFilePath := filepath.Join(dir, ".ssh", "id_ed25519")
+	if utils.Exists(modernFilePath) {
+		return modernFilePath
+	}
+	legacyFilePath := filepath.Join(dir, ".ssh", "id_rsa")
+	if utils.Exists(legacyFilePath) {
+		return legacyFilePath
+	}
+	fmt.Fprintf(shims.Stderr(), "could not locate ssh key file; please specify '--private-key'\n")
+	shims.Exit(1)
+	return ""
 }

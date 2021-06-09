@@ -127,8 +127,8 @@ jobs:
         export CLUSTER_PROVIDER=kubectl
         export K8S_VERSION=1.19.1
         # cleanup the cluster
-        $WEGO_BIN_PATH install | kubectl --ignore-not-found=true delete -f -
-        $WEGO_BIN_PATH install --namespace test-namespace| kubectl --ignore-not-found=true delete -f -
+        $WEGO_BIN_PATH flux uninstall --silent
+        $WEGO_BIN_PATH flux uninstall --namespace test-namespace --silent
         kubectl get all --all-namespaces -o wide
         ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v ./test/acceptance/test/...
       if: always()
@@ -210,11 +210,11 @@ jobs:
         export CLUSTER_PROVIDER=kubectl
         export K8S_VERSION=1.19.1
         # cleanup the cluster
-        $WEGO_BIN_PATH install | kubectl --ignore-not-found=true delete -f -
-        $WEGO_BIN_PATH install --namespace test-namespace| kubectl --ignore-not-found=true delete -f -
+        $WEGO_BIN_PATH flux uninstall --silent
+        $WEGO_BIN_PATH flux uninstall --namespace test-namespace --silent
         kubectl get all --all-namespaces -o wide
         ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v ./test/acceptance/test/...
-  
+      if: always()
   publish:
     if: success()
     needs: [test-eks, test-gke]

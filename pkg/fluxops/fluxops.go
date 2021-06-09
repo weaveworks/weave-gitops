@@ -33,9 +33,9 @@ func (h DefaultFluxHandler) Handle(arglist string) ([]byte, error) {
 	return utils.CallCommand(fmt.Sprintf("%s %s", fluxBinary, arglist))
 }
 
-type quietFluxHandler struct{}
+type QuietFluxHandler struct{}
 
-func (q quietFluxHandler) Handle(arglist string) ([]byte, error) {
+func (q QuietFluxHandler) Handle(arglist string) ([]byte, error) {
 	initFluxBinary()
 	return utils.CallCommandSilently(fmt.Sprintf("%s %s", fluxBinary, arglist))
 }
@@ -76,19 +76,23 @@ func CallFlux(arglist ...string) ([]byte, error) {
 	return fluxHandler.(FluxHandler).Handle(strings.Join(arglist, " "))
 }
 
-func Install(namespace string) ([]byte, error) {
-	return installFlux(namespace, true)
+func Install(namespace string, export bool) ([]byte, error) {
+	return installFlux(namespace, export)
 }
 
 func QuietInstall(namespace string) ([]byte, error) {
 	return installFlux(namespace, false)
 }
 
-func installFlux(namespace string, verbose bool) ([]byte, error) {
+func installFlux(namespace string, export bool) ([]byte, error) {
 	args := []string{
 		"install",
 		fmt.Sprintf("--namespace=%s", namespace),
 		"--components-extra=image-reflector-controller,image-automation-controller",
+	}
+
+	if export {
+		args = append(args, "--export")
 	}
 
 	manifests, err := CallFlux(args...)
@@ -106,7 +110,7 @@ func GetAllResourcesStatus(appName string) ([]byte, error) {
 		appName,
 	}
 
-	return WithFluxHandler(quietFluxHandler{}, func() ([]byte, error) {
+	return WithFluxHandler(QuietFluxHandler{}, func() ([]byte, error) {
 		output, err := CallFlux(args...)
 		if err != nil {
 			return nil, err
@@ -124,7 +128,7 @@ func GetAllResources(namespace string) ([]byte, error) {
 		namespace,
 	}
 
-	return WithFluxHandler(quietFluxHandler{}, func() ([]byte, error) {
+	return WithFluxHandler(QuietFluxHandler{}, func() ([]byte, error) {
 		output, err := CallFlux(args...)
 		if err != nil {
 			return nil, err
