@@ -1,6 +1,12 @@
+#on:
+#  schedule:
+#    - cron: '8 0 * * *'
+
 on:
-  schedule:
-    - cron: '8 0 * * *'
+  push:
+    branches:
+      - main
+  pull_request:
 
 name: Nightly
 jobs:
@@ -82,7 +88,7 @@ jobs:
         OS_NAME=$(echo "${{matrix.os}}" | tr '[:upper:]' '[:lower:]')
         export CLUSTER_NAME=wego-nightly-cluster-$OS_NAME
         export CLUSTER_VERSION=1.19
-        export CLUSTER_REGION=eu-north-1
+        export CLUSTER_REGION=us-east-1
         export CLUSTER_EXISTS=$(eksctl get clusters --region $CLUSTER_REGION | grep -i $CLUSTER_NAME)
         if [ -z $CLUSTER_EXISTS ]
         then
@@ -93,7 +99,7 @@ jobs:
         ls -la $HOME/.kube
         kubectl get nodes -A
         kubectl get all --all-namespaces -o wide
-      if: always()
+      if: matrix.os == 'ubuntu-latest'
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: Download wego binaries
