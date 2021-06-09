@@ -9,6 +9,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
+	"github.com/onsi/gomega/gexec"
 )
 
 var _ = Describe("Weave GitOps Add Tests", func() {
@@ -277,4 +279,55 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
+	It("Verify wego app add . --dry-run flag does not modify the cluster", func() {
+		var repoAbsolutePath string
+		var session *gexec.Session
+		private := true
+		branchName := "main"
+		appManifestFilePath := "./data/nginx.yaml"
+		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+		appRepoName := "wego-test-app-" + RandString(8)
+		workloadName := "nginx"
+		workloadNamespace := "my-nginx"
+		url := "ssh://git@github.com/weaveworks-gitops-test/" + appRepoName + ".git"
+		addCommand := "app add . --url=" + url + " --dry-run"
+		appName := appRepoName
+		appType := "Kustomization"
+
+		defer deleteRepo(appRepoName)
+		defer deleteWorkload(workloadName, workloadNamespace)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(appRepoName)
+		})
+
+		By("When I create a private repo with my app workload", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+defaultSshKeyPath, func() {
+			setupSSHKey(defaultSshKeyPath)
+		})
+
+		By("And I run wego add dry-run command", func() {
+			session = runWegoAddCommandAndReturnSession(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see dry-run output with: specified url, specified namespace", func() {
+			Eventually(session).Should(gbytes.Say("using URL: '" + url + "'"))
+			Eventually(session).Should(gbytes.Say("Checking cluster status... FluxInstalled"))
+			Eventually(session).Should(gbytes.Say(`apiVersion:.*\nkind: GitRepository\nmetadata:\n\s*name: ` + appName + `\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE + `[a-z0-9:\n\s*]+branch: ` + branchName + `\n\s*.*\n\s*name: ` + appName + `\n\s*url: ` + url))
+			Eventually(session).Should(gbytes.Say(
+				`apiVersion:.*\nkind: ` + appType + `\nmetadata:\n\s*name: ` + appName + `\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE + `[\w\d\W\n\s*]+kind: GitRepository\n\s*name: ` + appName))
+		})
+
+		By("And I should not see any workload deployed to the cluster", func() {
+			verifyWegoAddCommandWithDryRun(appRepoName, WEGO_DEFAULT_NAMESPACE)
+		})
+	})
 })
