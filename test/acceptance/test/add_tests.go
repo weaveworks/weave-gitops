@@ -278,7 +278,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Eventually(addCommandErr).Should(MatchRegexp(`WeGO.*... exiting`))
 		})
 	})
-	It("Smoke - Verify wego app add . --dry-run flag does not modify the cluster", func() {
+
+	It("Verify wego app add . --dry-run flag does not modify the cluster", func() {
 		var repoAbsolutePath string
 		var session *gexec.Session
 		private := true
@@ -329,5 +330,4 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			verifyWegoAddCommandWithDryRun(appRepoName, WEGO_DEFAULT_NAMESPACE)
 		})
 	})
-
 })
