@@ -2,7 +2,6 @@ package main
 
 import (
 	"embed"
-	"encoding/json"
 	"io/fs"
 	"net/http"
 	"os"
@@ -17,28 +16,7 @@ func main() {
 
 	mux.Handle("/health/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-	}))
-
-	mux.Handle("/api/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		res := struct {
-			Ok bool `json:"ok"`
-		}{
-			Ok: true,
-		}
-
-		b, err := json.Marshal(res)
-
-		if err != nil {
-			log.Errorf("could not marshal: %s", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		if _, err := w.Write(b); err != nil {
-			log.Errorf("error writing bytes: %s", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+		w.Write([]byte("ok"))
 	}))
 
 	assetFS := getAssets()

@@ -1,0 +1,28 @@
+
+syntax = "proto3";
+
+package wego_server.v1;
+
+option go_package = "github.com/weaveworks/weave-gitops/pkg/protos/applications";
+
+import "google/api/annotations.proto";
+
+service Applications {
+    rpc ListApplications(ListApplicationsReq) returns (ListApplicationsRes) {
+        option (google.api.http) = {
+            get : "/v1/applications"
+          };
+    }
+}
+
+message Application {
+    string name = 1;
+}
+
+message ListApplicationsReq {
+
+}
+
+message ListApplicationsRes {
+   repeated Application applications = 1;
+}

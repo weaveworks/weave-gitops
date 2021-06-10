@@ -70,9 +70,6 @@ cmd/ui/dist/main.js: package-lock.json
 bin/$(BINARY_NAME)_ui: cmd/ui/main.go
 	go build -ldflags "-X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION)" -o bin/$(BINARY_NAME)_ui cmd/ui/main.go
 
-ui-dev:
-	reflex -r '.go' -s -- sh -c 'go run cmd/ui/main.go'
-
 lint:
 	golangci-lint run --out-format=github-actions --build-tags acceptance
 
@@ -84,3 +81,21 @@ ui-test:
 
 ui-audit:
 	npm audit
+
+
+proto-deps:
+	@go get \
+		github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
+		google.golang.org/protobuf/cmd/protoc-gen-go \
+		google.golang.org/grpc/cmd/protoc-gen-go-grpc \
+		github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
+		github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts \
+		github.com/deepmap/oapi-codegen/cmd/oapi-codegen
+	buf beta mod update
+
+proto:
+	buf generate
+	oapi-codegen -config oapi-codegen.config.yaml api/applications/applications.swagger.json
+
+api-dev:
+	reflex -r '.go' -s -- sh -c 'go run cmd/wego-server/main.go'
