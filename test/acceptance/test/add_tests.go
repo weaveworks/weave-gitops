@@ -289,7 +289,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appRepoName := "wego-test-app-" + RandString(8)
 		workloadName := "nginx"
 		workloadNamespace := "my-nginx"
-		url := url := "ssh://git@github.com/" + os.Getenv("GITHUB_ORG") + "/" + appRepoName + ".git"
+		url := "ssh://git@github.com/" + os.Getenv("GITHUB_ORG") + "/" + appRepoName + ".git"
 		addCommand := "app add . --url=" + url + " --branch=" + branchName + " --dry-run"
 		appName := appRepoName
 		appType := "Kustomization"
