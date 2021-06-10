@@ -501,7 +501,7 @@ var _ = Describe("Wet Run Add Test", func() {
 		})
 	})
 
-	FIt("fails when the repository is in a dirty state", func() {
+	It("fails when the repository is in a dirty state", func() {
 		fgphandler := fakeGitRepoHandlerDeployKey{}
 		shandler := statusHandler{}
 		_ = override.WithOverrides(
