@@ -35,6 +35,10 @@ bin:
 # Build wego binary
 wego: dependencies bin
 
+# Install binaries to GOPATH
+install: bin bin/$(BINARY_NAME)_ui
+	cp bin/$(BINARY_NAME) bin/$(BINARY_NAME)_ui ${GOPATH}/bin/
+
 # Clean up images and binaries
 clean:
 	rm -f bin/wego pkg/flux/bin/flux
