@@ -12,13 +12,13 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/pkg/cmdimpl"
 	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
-var params cmdimpl.AddParamSet
+var params app.Params
 
 var Cmd = &cobra.Command{
 	Use:   "add [--name <name>] [--url <url>] [--branch <branch>] [--path <path within repository>] [--private-key <keyfile>] <repository directory>",
@@ -58,12 +58,30 @@ func runCmd(cmd *cobra.Command, args []string) {
 		shims.Exit(1)
 	}
 
+	if params.Url == "" {
+		if len(args) == 0 {
+			fmt.Fprint(shims.Stderr(), "no app --url or app location specified")
+			shims.Exit(1)
+		} else {
+			params.Dir = args[0]
+		}
+	}
+
 	gitClient := git.New(authMethod)
 
-	deps := &cmdimpl.AddDependencies{
+	// deps := &cmdimpl.AddDependencies{
+	// 	GitClient: gitClient,
+	// }
+	// if err := cmdimpl.Add(args, params, deps); err != nil {
+	// 	fmt.Fprintf(shims.Stderr(), "%v\n", err)
+	// 	shims.Exit(1)
+	// }
+	deps := &app.Dependencies{
 		GitClient: gitClient,
 	}
-	if err := cmdimpl.Add(args, params, deps); err != nil {
+	appService := app.New(deps)
+
+	if err := appService.Add(params); err != nil {
 		fmt.Fprintf(shims.Stderr(), "%v\n", err)
 		shims.Exit(1)
 	}
