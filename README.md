@@ -15,24 +15,13 @@ It is based on [CNCF Flux](https://fluxcd.io), a leading GitOps engine.
 
 ### Early access
 
-<<<<<<< HEAD
 _Weave GitOps is in early stages and iterating. Not all capabilities are available yet, and the CLI commands and other aspects may change. Please be aware this is not production ready yet. We would appreciate feedback and contributions of all kinds at this stage._
-=======
-
-Weave GitOps is in early stages and iterating. Not all capabilities are available yet, and the CLI commands and other aspects may change. Please be aware this is not production ready yet. We would appreciate feedback and contributions of all kinds at this stage.
-
-> > > > > > > Add UI layout and nav with fake data
 
 ## Getting Started
 
 ### CLI Installation
 
-<<<<<<< HEAD
 Mac / Linux
-=======
-Mac / Intel
-
-> > > > > > > Add UI layout and nav with fake data
 
 ```console
 curl -L https://github.com/weaveworks/weave-gitops/releases/download/v0.0.5/wego-$(uname)-$(uname -m) -o wego
