@@ -1,0 +1,20 @@
+{
+    "extends": [
+        "eslint:recommended",
+        "plugin:import/errors",
+        "plugin:import/warnings",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:import/typescript"
+    ],
+    "rules": {
+        "import/default": 0,
+        "import/no-named-as-default-member": 0,
+        "import/named": 2,
+        "import/order": 2,
+        "@typescript-eslint/explicit-module-boundary-types": 0,
+        "@typescript-eslint/no-explicit-any": 0,
+        "@typescript-eslint/ban-ts-comment": 0,
+        "import/no-named-as-default": 0
+    },
+    "ignorePatterns": "rpc"
+}
