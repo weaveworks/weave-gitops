@@ -283,13 +283,13 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		var repoAbsolutePath string
 		var session *gexec.Session
 		private := true
-		branchName := "ci-test-branch"
+		branchName := "test-branch"
 		appManifestFilePath := "./data/nginx.yaml"
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		appRepoName := "wego-test-app-" + RandString(8)
 		workloadName := "nginx"
 		workloadNamespace := "my-nginx"
-		url := os.Getenv("GITHUB_ORG") + "/" + appRepoName + ".git"
+		url := url := "ssh://git@github.com/" + os.Getenv("GITHUB_ORG") + "/" + appRepoName + ".git"
 		addCommand := "app add . --url=" + url + " --branch=" + branchName + " --dry-run"
 		appName := appRepoName
 		appType := "Kustomization"
@@ -340,7 +340,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		var repoAbsolutePath string
 		private := true
 		appRepoName := "wego-test-app-" + RandString(8)
-		url := os.Getenv("GITHUB_ORG") + "/" + appRepoName + ".git"
+		url := "ssh://git@github.com/" + os.Getenv("GITHUB_ORG") + "/" + appRepoName + ".git"
 		appManifestFilePath := "./data/nginx.yaml"
 		workloadName := "nginx"
 		workloadNamespace := "my-nginx"
