@@ -11,8 +11,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/status"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 type DeploymentType string
@@ -49,6 +49,7 @@ type Params struct {
 type Dependencies struct {
 	Git  git.Git
 	Flux flux.Flux
+	Kube kube.Kube
 }
 
 type AppService interface {
@@ -58,12 +59,14 @@ type AppService interface {
 type App struct {
 	git  git.Git
 	flux flux.Flux
+	kube kube.Kube
 }
 
 func New(deps *Dependencies) *App {
 	return &App{
 		git:  deps.Git,
 		flux: deps.Flux,
+		kube: deps.Kube,
 	}
 }
 
@@ -168,35 +171,25 @@ func (a *App) addAppWithNoConfigRepo(params Params) error {
 	var sourceManifest, appManifest, appGoatManifest []byte
 	// Source covers entire user repo
 	fmt.Println("Generating source manifest...")
-	if !params.DryRun {
-		sourceManifest, err = a.generateSource(params)
-		if err != nil {
-			return errors.Wrap(err, "could not set up GitOps for user repository")
-		}
+	sourceManifest, err = a.generateSource(params)
+	if err != nil {
+		return errors.Wrap(err, "could not set up GitOps for user repository")
 	}
 
 	fmt.Println("Generating app manifest...")
-	if !params.DryRun {
-		appManifest, err = generateAppYaml(params)
-		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("could not create app.yaml for '%s'", params.Name))
-		}
+	appManifest, err = generateAppYaml(params)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("could not create app.yaml for '%s'", params.Name))
 	}
 
 	// kustomize or helm referencing single user repo source
 	fmt.Println("Generating GitOps automation manifests...")
-	if !params.DryRun {
-		appGoatManifest, err = a.generateApplicationGoat(params)
-		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("could not create GitOps automation for '%s'", params.Name))
-		}
+	appGoatManifest, err = a.generateApplicationGoat(params)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("could not create GitOps automation for '%s'", params.Name))
 	}
 
 	fmt.Println("Applying manifests to the cluster...")
-	if params.DryRun {
-		return nil
-	}
-
 	return a.applyToCluster(params, sourceManifest, appManifest, appGoatManifest)
 }
 
@@ -254,18 +247,15 @@ func (a *App) generateApplicationGoat(params Params) ([]byte, error) {
 
 func (a *App) applyToCluster(params Params, manifests ...[]byte) error {
 	if params.DryRun {
-		fmt.Printf("Applying:\n\n")
 		for _, manifest := range manifests {
 			fmt.Printf("%s\n", manifest)
 		}
 		return nil
 	}
 
-	kubectlApply := fmt.Sprintf("kubectl apply --namespace=%s -f -", params.Namespace)
-
 	for _, manifest := range manifests {
-		if err := utils.CallCommandForEffectWithInputPipe(kubectlApply, string(manifest)); err != nil {
-			return errors.Wrap(err, fmt.Sprintf("could not apply manifest: %s", manifest))
+		if out, err := a.kube.Apply(manifest, params.Namespace); err != nil {
+			return errors.Wrap(err, fmt.Sprintf("could not apply manifest: %s", string(out)))
 		}
 	}
 
@@ -273,7 +263,8 @@ func (a *App) applyToCluster(params Params, manifests ...[]byte) error {
 }
 
 func generateAppYaml(params Params) ([]byte, error) {
-	const appYamlTemplate = `apiVersion: wego.weave.works/v1alpha1
+	const appYamlTemplate = `---
+apiVersion: wego.weave.works/v1alpha1
 kind: Application
 metadata:
   name: {{ .AppName }}
