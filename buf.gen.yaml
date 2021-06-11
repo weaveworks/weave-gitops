@@ -13,3 +13,4 @@ plugins:
     out: ./
   - name: grpc-gateway-ts
     out: ./ui/lib
+    opt: fetch_module_directory=./api/applications

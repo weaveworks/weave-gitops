@@ -99,3 +99,6 @@ proto:
 
 api-dev:
 	reflex -r '.go' -s -- sh -c 'go run cmd/wego-server/main.go'
+
+ui-dev: cmd/ui/dist/main.js
+	reflex -r '.go' -s -- sh -c 'go run cmd/ui/main.go'

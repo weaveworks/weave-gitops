@@ -25,8 +25,11 @@ func NewAPIServerCommand() *cobra.Command {
 	return cmd
 }
 
+var addr = "0.0.0.0:8000"
+
 func StartServer() error {
-	return RunInProcessGateway(context.Background(), "0.0.0.0:8000")
+	log.Infof("wego api server started. listen address: %s", addr)
+	return RunInProcessGateway(context.Background(), addr)
 }
 
 // RunInProcessGateway starts the invoke in process http gateway.

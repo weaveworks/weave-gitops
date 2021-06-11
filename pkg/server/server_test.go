@@ -14,6 +14,6 @@ var _ = Describe("ApplicationsServer", func() {
 
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(len(res.Applications)).To(Equal(5))
+		Expect(len(res.Applications)).To(Equal(3))
 	})
 })

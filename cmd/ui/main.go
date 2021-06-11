@@ -2,16 +2,23 @@ package main
 
 import (
 	"embed"
+	"flag"
 	"io/fs"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
 	"path/filepath"
 
 	"github.com/sirupsen/logrus"
 )
 
+var log = logrus.New()
+var proxyUrl string
+
 func main() {
-	log := logrus.New()
+	apiUrlFlag := flag.String("api-url", "http://localhost:8000", "The URL for the applications API server")
+
 	mux := http.NewServeMux()
 
 	mux.Handle("/health/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -22,6 +29,20 @@ func main() {
 	assetFS := getAssets()
 	assetHandler := http.FileServer(http.FS(assetFS))
 	redirector := createRedirector(assetFS, log)
+
+	apiUrl, err := url.Parse(*apiUrlFlag)
+
+	if err != nil {
+		log.Errorf("could not parse proxy url")
+		os.Exit(1)
+		return
+	}
+
+	log.Infof("api proxy url set to %s", apiUrl.String())
+
+	mux.Handle("/v1/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		proxy(apiUrl, w, r)
+	}))
 
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// Assume anything with a file extension in the name is a static asset.
@@ -93,4 +114,16 @@ func createRedirector(fsys fs.FS, log logrus.FieldLogger) http.HandlerFunc {
 			return
 		}
 	}
+}
+
+func proxy(u *url.URL, w http.ResponseWriter, r *http.Request) {
+	proxy := httputil.NewSingleHostReverseProxy(u)
+
+	r.URL.Host = u.Host
+	r.URL.Scheme = u.Scheme
+	r.Header.Set("X-Forwarded-Host", r.Header.Get("Host"))
+	r.Host = u.Host
+
+	// Note that ServeHttp is non blocking and uses a go routine under the hood
+	proxy.ServeHTTP(w, r)
 }
