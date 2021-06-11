@@ -14,7 +14,7 @@ type Flux interface {
 	CreateSourceGit(name string, url string, branch string, secretRef string, namespace string) ([]byte, error)
 	CreateSourceHelm(name string, url string, namespace string) ([]byte, error)
 	CreateKustomization(name string, path string, namespace string) ([]byte, error)
-	CreateHelmReleaseGitRepository(name string, namespace string) ([]byte, error)
+	CreateHelmReleaseGitRepository(name string, path string, namespace string) ([]byte, error)
 	CreateHelmReleaseHelmRepository(name string, chart string, namespace string) ([]byte, error)
 	CreateSecretGit(name string, url string, namespace string) ([]byte, error)
 }
@@ -49,19 +49,76 @@ func (f *FluxClient) CreateSourceGit(name string, url string, branch string, sec
 }
 
 func (f *FluxClient) CreateSourceHelm(name string, url string, namespace string) ([]byte, error) {
-	return []byte{}, nil
+	args := []string{
+		"create", "source", "helm", name,
+		"--url", url,
+		"--namespace", namespace,
+		"--interval", "30s",
+		"--export",
+	}
+
+	out, err := f.runFluxCmd(args...)
+	if err != nil {
+		return out, fmt.Errorf("failed to create source helm: %w", err)
+	}
+
+	return out, nil
 }
 
 func (f *FluxClient) CreateKustomization(name string, path string, namespace string) ([]byte, error) {
-	return []byte{}, nil
+	args := []string{
+		"create", "kustomization", name,
+		"--path", path,
+		"--source", name,
+		"--namespace", namespace,
+		"--prune", "true",
+		"--validation", "client",
+		"--interval", "1m",
+		"--export",
+	}
+
+	out, err := f.runFluxCmd(args...)
+	if err != nil {
+		return out, fmt.Errorf("failed to create kustomization: %w", err)
+	}
+
+	return out, nil
 }
 
-func (f *FluxClient) CreateHelmReleaseGitRepository(name string, namespace string) ([]byte, error) {
-	return []byte{}, nil
+func (f *FluxClient) CreateHelmReleaseGitRepository(name string, chartPath string, namespace string) ([]byte, error) {
+	args := []string{
+		"create", "helmrelease", name,
+		"--source", "GitRepository/" + name,
+		"--chart", chartPath,
+		"--namespace", namespace,
+		"--interval", "5m",
+		"--export",
+	}
+
+	out, err := f.runFluxCmd(args...)
+	if err != nil {
+		return out, fmt.Errorf("failed to create helm release git repo: %w", err)
+	}
+
+	return out, nil
 }
 
 func (f *FluxClient) CreateHelmReleaseHelmRepository(name string, chart string, namespace string) ([]byte, error) {
-	return []byte{}, nil
+	args := []string{
+		"create", "helmrelease", name,
+		"--source", "HelmRepository/" + name,
+		"--chart", chart,
+		"--namespace", namespace,
+		"--interval", "5m",
+		"--export",
+	}
+
+	out, err := f.runFluxCmd(args...)
+	if err != nil {
+		return out, fmt.Errorf("failed to create helm release helm repo: %w", err)
+	}
+
+	return out, nil
 }
 
 // CreatSecretGit Creates a Git secret returns the deploy key

@@ -9,7 +9,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/status"
@@ -156,10 +155,12 @@ func (a *App) getGitRemoteUrl(params Params) (string, error) {
 }
 
 func (a *App) addAppWithNoConfigRepo(params Params) error {
-	fmt.Println("Generating deploy key...")
-	if !params.DryRun {
-		if err := a.generateDeployKey(params); err != nil {
-			return errors.Wrap(err, "could not generate deploy key")
+	if SourceType(params.SourceType) == SourceTypeGit {
+		fmt.Println("Generating deploy key...")
+		if !params.DryRun {
+			if err := a.createAndUploadDeployKey(params); err != nil {
+				return errors.Wrap(err, "could not generate deploy key")
+			}
 		}
 	}
 
@@ -199,7 +200,7 @@ func (a *App) addAppWithNoConfigRepo(params Params) error {
 	return a.applyToCluster(params, sourceManifest, appManifest, appGoatManifest)
 }
 
-func (a *App) generateDeployKey(params Params) error {
+func (a *App) createAndUploadDeployKey(params Params) error {
 	deployKey, err := a.flux.CreateSecretGit(params.Name, params.Url, params.Namespace)
 	if err != nil {
 		return errors.Wrap(err, "could not create git secret")
@@ -227,27 +228,48 @@ func (a *App) generateSource(params Params) ([]byte, error) {
 
 		return sourceManifest, nil
 	case SourceTypeHelm:
-		return a.generateSourceHelmManifest(params)
+		return a.flux.CreateHelmReleaseHelmRepository(params.Name, params.Url, params.Namespace)
 	default:
 		return nil, fmt.Errorf("unknown source type: %v", params.SourceType)
 	}
 }
 
-func (a *App) generateSourceHelmManifest(params Params) ([]byte, error) {
-	cmd := fmt.Sprintf(`create source helm %s \
-            --url="%s" \
-            --interval=30s \
-            --export \
-            --namespace=%s `,
-		params.Name,
-		params.Url,
-		params.Namespace)
-
-	sourceManifest, err := fluxops.CallFlux(cmd)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not create git source")
+func (a *App) generateApplicationGoat(params Params) ([]byte, error) {
+	switch params.DeploymentType {
+	case string(DeployTypeKustomize):
+		return a.flux.CreateKustomization(params.Name, params.Path, params.Namespace)
+	case string(DeployTypeHelm):
+		switch params.SourceType {
+		case string(SourceTypeHelm):
+			return a.flux.CreateHelmReleaseHelmRepository(params.Name, params.Chart, params.Namespace)
+		case string(SourceTypeGit):
+			return a.flux.CreateHelmReleaseGitRepository(params.Name, params.Path, params.Namespace)
+		default:
+			return nil, fmt.Errorf("invalid source type: %v", params.SourceType)
+		}
+	default:
+		return nil, fmt.Errorf("invalid deployment type: %v", params.DeploymentType)
 	}
-	return sourceManifest, nil
+}
+
+func (a *App) applyToCluster(params Params, manifests ...[]byte) error {
+	if params.DryRun {
+		fmt.Printf("Applying:\n\n")
+		for _, manifest := range manifests {
+			fmt.Printf("%s\n", manifest)
+		}
+		return nil
+	}
+
+	kubectlApply := fmt.Sprintf("kubectl apply --namespace=%s -f -", params.Namespace)
+
+	for _, manifest := range manifests {
+		if err := utils.CallCommandForEffectWithInputPipe(kubectlApply, string(manifest)); err != nil {
+			return errors.Wrap(err, fmt.Sprintf("could not apply manifest: %s", manifest))
+		}
+	}
+
+	return nil
 }
 
 func generateAppYaml(params Params) ([]byte, error) {
@@ -275,101 +297,6 @@ spec:
 		return nil, errors.Wrap(err, "could not execute populated template")
 	}
 	return populated.Bytes(), nil
-}
-
-func (a *App) generateApplicationGoat(params Params) ([]byte, error) {
-	switch params.DeploymentType {
-	case string(DeployTypeKustomize):
-		return a.generateKustomizeManifest(params)
-	case string(DeployTypeHelm):
-		switch params.SourceType {
-		case string(SourceTypeHelm):
-			return a.generateHelmManifestHelmRepository(params)
-		case string(SourceTypeGit):
-			return a.generateHelmManifestGitRepository(params)
-		default:
-			return nil, fmt.Errorf("Invalid source type: %v", params.SourceType)
-		}
-	default:
-		return nil, fmt.Errorf("Invalid deployment type: %v", params.DeploymentType)
-	}
-}
-
-func (a *App) generateKustomizeManifest(params Params) ([]byte, error) {
-	cmd := fmt.Sprintf(`create kustomization "%s" \
-                --path="%s" \
-                --source="%s" \
-                --prune=true \
-                --validation=client \
-                --interval=1m \
-                --export \
-                --namespace=%s`,
-		params.Name,
-		params.Path,
-		params.Name,
-		params.Namespace)
-	kustomizeManifest, err := fluxops.CallFlux(cmd)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not create kustomization manifest")
-	}
-
-	return bytes.ReplaceAll(kustomizeManifest, []byte("path: ./wego"), []byte("path: .wego")), nil
-}
-
-func (a *App) generateHelmManifestHelmRepository(params Params) ([]byte, error) {
-	cmd := fmt.Sprintf(`create helmrelease %s \
-            --source="HelmRepository/%s" \
-            --chart="%s" \
-            --interval=5m \
-            --export \
-            --namespace=%s`,
-		params.Name,
-		params.Name,
-		params.Chart,
-		params.Namespace,
-	)
-
-	return fluxops.CallFlux(cmd)
-}
-
-func (a *App) generateHelmManifestGitRepository(params Params) ([]byte, error) {
-	cmd := fmt.Sprintf(`create helmrelease %s \
-            --source="GitRepository/%s" \
-            --chart="%s" \
-            --interval=1m \
-            --export \
-            --namespace=%s`,
-		params.Name,
-		params.Name,
-		params.Name,
-		params.Namespace,
-	)
-	helmManifest, err := fluxops.CallFlux(cmd)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not create helm manifest")
-	}
-
-	return bytes.ReplaceAll(helmManifest, []byte("path: ./wego"), []byte("path: .wego")), nil
-}
-
-func (a *App) applyToCluster(params Params, manifests ...[]byte) error {
-	if params.DryRun {
-		fmt.Printf("Applying:\n\n")
-		for _, manifest := range manifests {
-			fmt.Printf("%s\n", manifest)
-		}
-		return nil
-	}
-
-	kubectlApply := fmt.Sprintf("kubectl apply --namespace=%s -f -", params.Namespace)
-
-	for _, manifest := range manifests {
-		if err := utils.CallCommandForEffectWithInputPipe(kubectlApply, string(manifest)); err != nil {
-			return errors.Wrap(err, fmt.Sprintf("could not apply manifest: %s", manifest))
-		}
-	}
-
-	return nil
 }
 
 func generateAppName(url string) string {
