@@ -39,7 +39,7 @@ export function withTheme(element) {
 export function withContext(
   TestComponent,
   url: string,
-  appOverrides: ApplicationOverrides
+  appOverrides?: ApplicationOverrides
 ) {
   const history = createMemoryHistory();
   history.push(url);

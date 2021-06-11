@@ -14,7 +14,6 @@ import (
 )
 
 var log = logrus.New()
-var proxyUrl string
 
 func main() {
 	apiUrlFlag := flag.String("api-url", "http://localhost:8000", "The URL for the applications API server")
@@ -23,7 +22,11 @@ func main() {
 
 	mux.Handle("/health/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
+		_, err := w.Write([]byte("ok"))
+
+		if err != nil {
+			log.Error(err.Error())
+		}
 	}))
 
 	assetFS := getAssets()

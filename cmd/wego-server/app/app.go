@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -36,7 +37,9 @@ func StartServer() error {
 func RunInProcessGateway(ctx context.Context, addr string, opts ...runtime.ServeMuxOption) error {
 	mux := runtime.NewServeMux(opts...)
 
-	pb.RegisterApplicationsHandlerServer(ctx, mux, server.NewApplicationsServer())
+	if err := pb.RegisterApplicationsHandlerServer(ctx, mux, server.NewApplicationsServer()); err != nil {
+		return fmt.Errorf("could not register application: %w", err)
+	}
 	s := &http.Server{
 		Addr:    addr,
 		Handler: mux,
