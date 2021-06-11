@@ -1,7 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import _ from "lodash";
 import * as React from "react";
-import { Applications } from "../../lib/api/applications/applications.pb";
 import { withContext } from "../../lib/test-utils";
 import useApplications from "../applications";
 
@@ -16,9 +15,10 @@ describe("useApplications", () => {
     container = null;
   });
 
-  it("lists applications", () => {
-    const mockResponses: typeof Applications = {
-      ListApplications: () => [],
+  it("lists applications", async () => {
+    const name = "some app";
+    const mockResponses = {
+      ListApplications: { applications: [{ name }] },
     };
     const TestComponent = () => {
       const { applications } = useApplications();
@@ -36,6 +36,6 @@ describe("useApplications", () => {
 
     render(withContext(TestComponent, `/`, mockResponses));
 
-    expect(screen.getByTestId(id).textContent).toEqual(id);
+    expect((await screen.findByTestId(name)).textContent).toEqual(name);
   });
 });
