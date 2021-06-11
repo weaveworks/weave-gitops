@@ -1,13 +1,13 @@
 version: v1beta1
 plugins:
   - name: go
-    out: ./
+    out: pkg
     opt: paths=source_relative
   - name: go-grpc
-    out: ./
+    out: pkg
     opt: paths=source_relative
   - name: grpc-gateway
-    out: ./
+    out: pkg
     opt: paths=source_relative
   - name: openapiv2
     out: ./

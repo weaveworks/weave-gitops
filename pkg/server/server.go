@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 
-	pb "github.com/weaveworks/weave-gitops/api/applications"
+	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 )
 
 type server struct {

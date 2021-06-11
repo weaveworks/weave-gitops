@@ -5,7 +5,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops/api/applications"
+	"github.com/weaveworks/weave-gitops/pkg/api/applications"
 )
 
 var _ = Describe("ApplicationsServer", func() {

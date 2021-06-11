@@ -8,7 +8,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	pb "github.com/weaveworks/weave-gitops/api/applications"
+	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
