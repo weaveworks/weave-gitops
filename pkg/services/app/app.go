@@ -8,6 +8,7 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -47,7 +48,8 @@ type Params struct {
 }
 
 type Dependencies struct {
-	GitClient git.Git
+	Git  git.Git
+	Flux flux.Flux
 }
 
 type AppService interface {
@@ -55,12 +57,14 @@ type AppService interface {
 }
 
 type App struct {
-	gitClient git.Git
+	git  git.Git
+	flux flux.Flux
 }
 
 func New(deps *Dependencies) *App {
 	return &App{
-		gitClient: deps.GitClient,
+		git:  deps.Git,
+		flux: deps.Flux,
 	}
 }
 
@@ -133,7 +137,7 @@ func (a *App) updateParametersIfNecessary(params Params) (Params, error) {
 }
 
 func (a *App) getGitRemoteUrl(params Params) (string, error) {
-	repo, err := a.gitClient.Open(params.Dir)
+	repo, err := a.git.Open(params.Dir)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to open repository: %s", params.Dir)
 	}
@@ -152,73 +156,75 @@ func (a *App) getGitRemoteUrl(params Params) (string, error) {
 }
 
 func (a *App) addAppWithNoConfigRepo(params Params) error {
+	fmt.Println("Generating deploy key...")
+	if !params.DryRun {
+		if err := a.generateDeployKey(params); err != nil {
+			return errors.Wrap(err, "could not generate deploy key")
+		}
+	}
+
+	var err error
+	var sourceManifest, appManifest, appGoatManifest []byte
 	// Source covers entire user repo
-	userRepoSource, err := a.generateSource(params)
-	if err != nil {
-		return errors.Wrap(err, "could not set up GitOps for user repository")
+	fmt.Println("Generating source manifest...")
+	if !params.DryRun {
+		sourceManifest, err = a.generateSource(params)
+		if err != nil {
+			return errors.Wrap(err, "could not set up GitOps for user repository")
+		}
 	}
-	appYaml, err := generateAppYaml(params)
-	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("could not create app.yaml for '%s'", params.Name))
+
+	fmt.Println("Generating app manifest...")
+	if !params.DryRun {
+		appManifest, err = generateAppYaml(params)
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("could not create app.yaml for '%s'", params.Name))
+		}
 	}
+
 	// kustomize or helm referencing single user repo source
-	applicationGOAT, err := a.generateApplicationGoat(params)
-	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("could not create GitOps automation for '%s'", params.Name))
+	fmt.Println("Generating GitOps automation manifests...")
+	if !params.DryRun {
+		appGoatManifest, err = a.generateApplicationGoat(params)
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("could not create GitOps automation for '%s'", params.Name))
+		}
 	}
-	return a.applyToCluster(params, userRepoSource, appYaml, applicationGOAT)
+
+	fmt.Println("Applying manifests to the cluster...")
+	if params.DryRun {
+		return nil
+	}
+
+	return a.applyToCluster(params, sourceManifest, appManifest, appGoatManifest)
+}
+
+func (a *App) generateDeployKey(params Params) error {
+	deployKey, err := a.flux.CreateSecretGit(params.Name, params.Url, params.Namespace)
+	if err != nil {
+		return errors.Wrap(err, "could not create git secret")
+	}
+
+	owner, err := getOwnerFromUrl(params.Url)
+	if err != nil {
+		return err
+	}
+
+	if err := gitproviders.UploadDeployKey(owner, params.Name, deployKey); err != nil {
+		return errors.Wrap(err, "error uploading deploy key")
+	}
+
+	return nil
 }
 
 func (a *App) generateSource(params Params) ([]byte, error) {
-	secretName := params.Name
-
 	switch SourceType(params.SourceType) {
 	case SourceTypeGit:
-		cmd := fmt.Sprintf(`create secret git "%s" \
-            --url="%s" \
-            --namespace="%s"`,
-			secretName,
-			params.Url,
-			params.Namespace)
-		if params.DryRun {
-			fmt.Printf(cmd + "\n")
-		} else {
-			// TODO create a function for this in fluxops pkg
-			output, err := fluxops.WithFluxHandler(fluxops.QuietFluxHandler{}, func() ([]byte, error) {
-				return fluxops.CallFlux(cmd)
-			})
-			if err != nil {
-				return nil, errors.Wrap(err, "could not create git secret")
-			}
-			owner, err := getOwnerFromUrl(params.Url)
-			if err != nil {
-				return nil, err
-			}
-			deployKeyBody := bytes.TrimPrefix(output, []byte("✚ deploy key: "))
-			deployKeyLines := bytes.Split(deployKeyBody, []byte("\n"))
-			if len(deployKeyBody) == 0 {
-				return nil, fmt.Errorf("no deploy key found [%s]", string(output))
-			}
-			if err := gitproviders.UploadDeployKey(owner, params.Name, deployKeyLines[0]); err != nil {
-				return nil, errors.Wrap(err, "error uploading deploy key")
-			}
-		}
-		cmd = fmt.Sprintf(`create source git "%s" \
-            --url="%s" \
-            --branch="%s" \
-            --secret-ref="%s" \
-            --interval=30s \
-            --export \
-            --namespace="%s"`,
-			params.Name,
-			params.Url,
-			params.Branch,
-			secretName,
-			params.Namespace)
-		sourceManifest, err := fluxops.CallFlux(cmd)
+		sourceManifest, err := a.flux.CreateSourceGit(params.Name, params.Url, params.Branch, params.Name, params.Namespace)
 		if err != nil {
 			return nil, errors.Wrap(err, "could not create git source")
 		}
+
 		return sourceManifest, nil
 	case SourceTypeHelm:
 		return a.generateSourceHelmManifest(params)

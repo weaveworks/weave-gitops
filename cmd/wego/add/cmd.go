@@ -12,6 +12,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
@@ -68,16 +69,11 @@ func runCmd(cmd *cobra.Command, args []string) {
 	}
 
 	gitClient := git.New(authMethod)
+	fluxClient := flux.New()
 
-	// deps := &cmdimpl.AddDependencies{
-	// 	GitClient: gitClient,
-	// }
-	// if err := cmdimpl.Add(args, params, deps); err != nil {
-	// 	fmt.Fprintf(shims.Stderr(), "%v\n", err)
-	// 	shims.Exit(1)
-	// }
 	deps := &app.Dependencies{
-		GitClient: gitClient,
+		Git:  gitClient,
+		Flux: fluxClient,
 	}
 	appService := app.New(deps)
 
