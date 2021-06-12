@@ -8,20 +8,21 @@ Weave GitOps
 [![Contributors](https://img.shields.io/github/contributors/weaveworks/weave-gitops)](https://github.com/weaveworks/weave-gitops/graphs/contributors)
 [![Release](https://img.shields.io/github/v/release/weaveworks/weave-gitops?include_prereleases)](https://github.com/weaveworks/weave-gitops/releases/latest)
 
-
-
 ## Overview
-Weave GitOps enables an effective GitOps workflow for continuous delivery of applications into Kubernetes clusters. 
-It is based on [CNCF Flux](https://fluxcd.io), a leading GitOps engine. 
+
+Weave GitOps enables an effective GitOps workflow for continuous delivery of applications into Kubernetes clusters.
+It is based on [CNCF Flux](https://fluxcd.io), a leading GitOps engine.
 
 ### Early access
-*Weave GitOps is in early stages and iterating. Not all capabilities are available yet, and the CLI commands and other aspects may change. Please be aware this is not production ready yet. We would appreciate feedback and contributions of all kinds at this stage.*
+
+_Weave GitOps is in early stages and iterating. Not all capabilities are available yet, and the CLI commands and other aspects may change. Please be aware this is not production ready yet. We would appreciate feedback and contributions of all kinds at this stage._
 
 ## Getting Started
 
 ### CLI Installation
 
 Mac / Linux
+
 ```console
 curl -L https://github.com/weaveworks/weave-gitops/releases/download/v0.0.5/wego-$(uname)-$(uname -m) -o wego
 chmod +x wego
@@ -61,7 +62,7 @@ For more information please see the [docs](https://docs.gitops.weave.works/docs/
 To set up a development environment for the CLI
 
 1. Install go v1.16
-2. make 
+2. make
 
 ## UI Development
 
@@ -74,15 +75,50 @@ To set up a development environment for the UI
 5. To start up the HTTP server with automated re-compliation, run `make ui-dev`
 6. Run `npm start` to start the frontend dev server (with hot-reloading)
 
+Lint frontend code with `make ui-lint`
+
+Run frontend tests with `make ui-test`
+
+Check dependency vulnerabilities with `make ui-audit`
+
+### Recommended Snippets
+
+To create a new styled React component (with typescript):
+
+```json
+{
+  "Export Default React Component": {
+    "prefix": "tsx",
+    "body": [
+      "import * as React from 'react';",
+      "import styled from 'styled-components'",
+      "",
+      "type Props = {",
+      "  className?: string",
+      "}",
+      "",
+      "function ${1:} ({ className }: Props) {",
+      "  return (",
+      "    <div className={className}>",
+      "      ${0}",
+      "    </div>",
+      "  );",
+      "}",
+      "",
+      "export default styled(${1:})``"
+    ],
+    "description": "Create a default-exported, styled React Component."
+  }
+}
+```
+
 ## Contribution
 
-Need help or want to contribute? Please see the links below. 
+Need help or want to contribute? Please see the links below.
 
 - Getting Started?
-    - Follow our [Get Started guide](https://docs.gitops.weave.works/docs/getting-started) and give us feedback
+  - Follow our [Get Started guide](https://docs.gitops.weave.works/docs/getting-started) and give us feedback
 - Need help?
-    - Talk to us in the [#weave-gitops channel](https://app.slack.com/client/T2NDH1D9D/C0248LVC719/thread/C2ND76PAA-1621532937.019800) on Weaveworks Community Slack. [Invite yourself if you haven't joined yet.](https://slack.weave.works/)
+  - Talk to us in the [#weave-gitops channel](https://app.slack.com/client/T2NDH1D9D/C0248LVC719/thread/C2ND76PAA-1621532937.019800) on Weaveworks Community Slack. [Invite yourself if you haven't joined yet.](https://slack.weave.works/)
 - Have feature proposals or want to contribute?
-    - Please create a [Github issue](https://github.com/weaveworks/weave-gitops/issues)  
-
-  
+  - Please create a [Github issue](https://github.com/weaveworks/weave-gitops/issues)

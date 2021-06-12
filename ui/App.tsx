@@ -1,26 +1,43 @@
+import { MuiThemeProvider } from "@material-ui/core";
 import * as React from "react";
+import {
+  BrowserRouter as Router,
+  Redirect,
+  Route,
+  Switch,
+} from "react-router-dom";
+import { ThemeProvider } from "styled-components";
+import ErrorBoundary from "./components/ErrorBoundary";
+import theme, { GlobalStyle, muiTheme } from "./lib/theme";
+import { PageRoute } from "./lib/types";
+import ApplicationDetail from "./pages/ApplicationDetail";
+import Applications from "./pages/Applications";
+import Error from "./pages/Error";
 
 export default function App() {
-  const [ok, setOk] = React.useState(false);
-  const [error, setError] = React.useState(null);
-
-  React.useEffect(() => {
-    fetch("/api")
-      .then((res) => res.json())
-      .then((res) => {
-        setOk(res);
-      })
-      .catch((err) => {
-        setError(err);
-      });
-  }, []);
-
   return (
-    <div>
-      Weave GitOps UI
-      <p>API Server Reponse:</p>
-      <pre>{JSON.stringify(ok)}</pre>
-      {error && <p>{error.msg}</p>}
-    </div>
+    <MuiThemeProvider theme={muiTheme}>
+      <ThemeProvider theme={theme}>
+        <GlobalStyle />
+        <Router>
+          <ErrorBoundary>
+            <Switch>
+              <Route
+                exact
+                path={PageRoute.Applications}
+                component={Applications}
+              />
+              <Route
+                exact
+                path={PageRoute.ApplicationDetail}
+                component={ApplicationDetail}
+              />
+              <Redirect exact from="/" to={PageRoute.Applications} />
+              <Route exact path="*" component={Error} />
+            </Switch>
+          </ErrorBoundary>
+        </Router>
+      </ThemeProvider>
+    </MuiThemeProvider>
   );
 }
