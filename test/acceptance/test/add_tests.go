@@ -373,7 +373,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			createGitRepoBranch(repoAbsolutePath, branchName)
 		})
 
-		By("And I run wego add command with url flag specified", func() {
+		By("And I run wego add command with specified branch", func() {
 			addCommandOutput, _ = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
