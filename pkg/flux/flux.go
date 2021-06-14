@@ -13,8 +13,8 @@ import (
 type Flux interface {
 	CreateSourceGit(name string, url string, branch string, secretRef string, namespace string) ([]byte, error)
 	CreateSourceHelm(name string, url string, namespace string) ([]byte, error)
-	CreateKustomization(name string, path string, namespace string) ([]byte, error)
-	CreateHelmReleaseGitRepository(name string, path string, namespace string) ([]byte, error)
+	CreateKustomization(name string, source string, path string, namespace string) ([]byte, error)
+	CreateHelmReleaseGitRepository(name string, source string, path string, namespace string) ([]byte, error)
 	CreateHelmReleaseHelmRepository(name string, chart string, namespace string) ([]byte, error)
 	CreateSecretGit(name string, url string, namespace string) ([]byte, error)
 }
@@ -65,11 +65,11 @@ func (f *FluxClient) CreateSourceHelm(name string, url string, namespace string)
 	return out, nil
 }
 
-func (f *FluxClient) CreateKustomization(name string, path string, namespace string) ([]byte, error) {
+func (f *FluxClient) CreateKustomization(name string, source string, path string, namespace string) ([]byte, error) {
 	args := []string{
 		"create", "kustomization", name,
 		"--path", path,
-		"--source", name,
+		"--source", source,
 		"--namespace", namespace,
 		"--prune", "true",
 		"--validation", "client",
@@ -85,10 +85,10 @@ func (f *FluxClient) CreateKustomization(name string, path string, namespace str
 	return out, nil
 }
 
-func (f *FluxClient) CreateHelmReleaseGitRepository(name string, chartPath string, namespace string) ([]byte, error) {
+func (f *FluxClient) CreateHelmReleaseGitRepository(name string, source string, chartPath string, namespace string) ([]byte, error) {
 	args := []string{
 		"create", "helmrelease", name,
-		"--source", "GitRepository/" + name,
+		"--source", "GitRepository/" + source,
 		"--chart", chartPath,
 		"--namespace", namespace,
 		"--interval", "5m",
