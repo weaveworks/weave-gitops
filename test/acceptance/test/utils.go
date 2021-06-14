@@ -356,3 +356,11 @@ func verifyWorkloadIsDeployed(workloadName string, workloadNamespace string) {
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
 }
+
+func createGitRepoBranch(repoAbsolutePath string, branchName string) string {
+	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && git checkout -b %s && git push --set-upstream origin %s", repoAbsolutePath, branchName, branchName))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+	return string(session.Wait().Out.Contents())
+}
