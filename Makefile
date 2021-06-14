@@ -82,6 +82,9 @@ ui-test:
 ui-audit:
 	npm audit
 
+ui-coverage:
+	npm run test -- --coverage
+
 
 proto-deps:
 	@go get \
