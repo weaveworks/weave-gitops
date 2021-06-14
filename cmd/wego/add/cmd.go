@@ -26,7 +26,7 @@ var Cmd = &cobra.Command{
 	Long: strings.TrimSpace(dedent.Dedent(`
         Associates an additional application in a git repository with a wego cluster so that its contents may be managed via GitOps
     `)),
-	Example: "wego add .",
+	Example: "wego app add .",
 	Run:     runCmd,
 }
 

@@ -41,7 +41,7 @@ Usage:
   wego [command]
 
 Available Commands:
-  app
+  app         Add or Status application
   flux        Use flux commands
   help        Help about any command
   install     Install or upgrade Wego
