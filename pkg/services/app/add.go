@@ -83,7 +83,6 @@ func (a *App) Add(params AddParams) error {
 	}
 
 	return a.addAppWithNoConfigRepo(params, clusterName)
-
 }
 
 func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
@@ -101,6 +100,12 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 		}
 
 		params.Url = url
+	} else {
+		// making sure url is in the correct format
+		params.Url = sanitizeRepoUrl(params.Url)
+
+		// resetting Dir param since Url has priority over it
+		params.Dir = ""
 	}
 
 	fmt.Printf("using URL: '%s' of origin from git config...\n\n", params.Url)
@@ -150,98 +155,65 @@ func (a *App) getGitRemoteUrl(params AddParams) (string, error) {
 func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string) error {
 	var secretRef string
 	var err error
-	if SourceType(params.SourceType) == SourceTypeGit {
-		fmt.Println("Generating deploy key...")
-		if !params.DryRun {
-			secretRef, err = a.createAndUploadDeployKey(params.Url, clusterName, params.Namespace)
-			if err != nil {
-				return errors.Wrap(err, "could not generate deploy key")
-			}
+	fmt.Println("Generating deploy key...")
+	if !params.DryRun {
+		secretRef, err = a.createAndUploadDeployKey(params.Url, clusterName, params.Namespace)
+		if err != nil {
+			return errors.Wrap(err, "could not generate deploy key")
 		}
 	}
 
-	var sourceManifest, appManifest, appGoatManifest []byte
-	// Source covers entire user repo
-	fmt.Println("Generating source manifest...")
-	sourceManifest, err = a.generateSource(params, secretRef)
+	// Returns the source, app spec and kustomization
+	source, appGoat, appSpec, err := a.generateAppManifests(params, secretRef, clusterName)
 	if err != nil {
-		return errors.Wrap(err, "could not set up GitOps for user repository")
-	}
-
-	fmt.Println("Generating app manifest...")
-	appManifest, err = generateAppYaml(params)
-	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("could not create app.yaml for '%s'", params.Name))
-	}
-
-	// kustomize or helm referencing single user repo source
-	fmt.Println("Generating GitOps automation manifests...")
-	appGoatManifest, err = a.generateApplicationGoat(params)
-	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("could not create GitOps automation for '%s'", params.Name))
+		return errors.Wrap(err, "could not generate application GitOps Automation manifests")
 	}
 
 	fmt.Println("Applying manifests to the cluster...")
-	return a.applyToCluster(params, sourceManifest, appManifest, appGoatManifest)
+	return a.applyToCluster(params, source, appGoat, appSpec)
 }
 
 func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string) error {
 	var secretRef string
 	var err error
-	if SourceType(params.SourceType) == SourceTypeGit {
-		fmt.Println("Generating deploy key...")
-		if !params.DryRun {
-			secretRef, err = a.createAndUploadDeployKey(params.Url, clusterName, params.Namespace)
-			if err != nil {
-				return errors.Wrap(err, "could not generate deploy key")
-			}
+	fmt.Println("Generating deploy key...")
+	if !params.DryRun {
+		secretRef, err = a.createAndUploadDeployKey(params.Url, clusterName, params.Namespace)
+		if err != nil {
+			return errors.Wrap(err, "could not generate deploy key")
 		}
 	}
 
-	var sourceManifest, appManifest, appGoatManifest []byte
-	// Source covers entire user repo
-	fmt.Println("Generating source manifest...")
-	sourceManifest, err = a.generateSource(params, secretRef)
+	// Returns the source, app spec and kustomization
+	source, appGoat, appSpec, err := a.generateAppManifests(params, secretRef, clusterName)
 	if err != nil {
-		return errors.Wrap(err, "could not set up GitOps for user repository")
-	}
-
-	fmt.Println("Generating app manifest...")
-	appManifest, err = generateAppYaml(params)
-	if err != nil {
-		return errors.Wrapf(err, "could not create app.yaml for '%s'", params.Name)
-	}
-
-	// kustomize or helm referencing single user repo source
-	fmt.Println("Generating GitOps automation manifests...")
-	appGoatManifest, err = a.generateApplicationGoat(params)
-	if err != nil {
-		return errors.Wrapf(err, "could not create GitOps automation for '%s'", params.Name)
+		return errors.Wrap(err, "could not generate application GitOps Automation manifests")
 	}
 
 	fmt.Println("Applying manifests to the cluster...")
-	if err := a.applyToCluster(params, sourceManifest, appManifest, appGoatManifest); err != nil {
+	if err := a.applyToCluster(params, source, appGoat, appSpec); err != nil {
 		return errors.Wrap(err, "could not apply manifests to the cluster")
 	}
 
 	// a local directory has not been passed, so we clone the repo passed in the --url
 	if params.Dir == "" {
+		fmt.Printf("Cloning %s...\n", params.Url)
 		if err := a.cloneRepo(params.Url, params.Branch); err != nil {
 			return errors.Wrap(err, "failed to clone application repo")
 		}
 	}
 
 	fmt.Println("Writing manifests to disk...")
-	if err := a.writeAppYaml(".wego", params.Name, appManifest); err != nil {
+	if err := a.writeAppYaml(".wego", params.Name, appSpec); err != nil {
 		return errors.Wrap(err, "failed writing app.yaml to disk")
 	}
 
-	if err := a.writeAppGoats(".wego", params.Name, clusterName, sourceManifest, appGoatManifest); err != nil {
+	if err := a.writeAppGoats(".wego", params.Name, clusterName, source, appGoat); err != nil {
 		return errors.Wrap(err, "failed writing app.yaml to disk")
 	}
 
 	return a.commitAndPush(params, func(fname string) bool {
-		return strings.HasPrefix(fname, ".wego")
+		return strings.Contains(fname, ".wego")
 	})
 }
 
@@ -259,39 +231,19 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 		}
 	}
 
-	var appSourceManifest, appManifest, appGoatManifest []byte
-	// Source covers entire user repo
-	fmt.Println("Generating source manifest...")
-	appSourceManifest, err = a.generateSource(params, secretRef)
+	// Returns the source, app spec and kustomization
+	appSource, appGoat, appSpec, err := a.generateAppManifests(params, secretRef, clusterName)
 	if err != nil {
-		return errors.Wrap(err, "could not set up GitOps for user repository")
+		return errors.Wrap(err, "could not generate application GitOps Automation manifests")
 	}
 
-	fmt.Println("Generating app manifest...")
-	appManifest, err = generateAppYaml(params)
+	targetSource, targetGoat, err := a.generateTargetManifests(params, secretRef, clusterName)
 	if err != nil {
-		return errors.Wrapf(err, "could not create app.yaml for '%s'", params.Name)
-	}
-
-	// kustomize or helm referencing single user repo source
-	fmt.Println("Generating GitOps automation manifests...")
-	appGoatManifest, err = a.generateApplicationGoat(params)
-	if err != nil {
-		return errors.Wrapf(err, "could not create GitOps automation for '%s'", params.Name)
-	}
-
-	targetSourceManifest, err := a.generateTargetSource(params, secretRef)
-	if err != nil {
-		return errors.Wrap(err, "could not generate target source manifests")
-	}
-
-	targetGoatManifest, err := a.generateTargetGoat(params, clusterName)
-	if err != nil {
-		return errors.Wrap(err, "could not generate target goat manifests")
+		return errors.Wrap(err, "could not generate target GitOps Automation manifests")
 	}
 
 	fmt.Println("Applying manifests to the cluster...")
-	if err := a.applyToCluster(params, appSourceManifest, appManifest, appGoatManifest, targetSourceManifest, targetGoatManifest); err != nil {
+	if err := a.applyToCluster(params, appSource, appGoat, appSpec, targetSource, targetGoat); err != nil {
 		return errors.Wrapf(err, "could not apply manifests to the cluster")
 	}
 
@@ -300,11 +252,11 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 	}
 
 	fmt.Println("Writing manifests to disk...")
-	if err := a.writeAppYaml(params.AutomationRepoPath, params.Name, appManifest); err != nil {
+	if err := a.writeAppYaml(params.AutomationRepoPath, params.Name, appSpec); err != nil {
 		return errors.Wrap(err, "failed writing app.yaml to disk")
 	}
 
-	if err := a.writeAppGoats(params.AutomationRepoPath, params.Name, clusterName, appSourceManifest, appGoatManifest); err != nil {
+	if err := a.writeAppGoats(params.AutomationRepoPath, params.Name, clusterName, appSource, appGoat); err != nil {
 		return errors.Wrap(err, "failed writing app.yaml to disk")
 	}
 
@@ -313,26 +265,43 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 	})
 }
 
-func (a *App) writeAppYaml(basePath string, name string, manifest []byte) error {
-	manifestPath := filepath.Join(basePath, "apps", name, "app.yaml")
+func (a *App) generateAppManifests(params AddParams, secretRef string, clusterName string) ([]byte, []byte, []byte, error) {
+	var sourceManifest, appManifest, appGoatManifest []byte
+	var err error
+	fmt.Println("Generating Source manifest...")
+	sourceManifest, err = a.generateSource(params, secretRef)
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, "could not set up GitOps for user repository")
+	}
 
-	return a.git.Write(manifestPath, manifest)
+	fmt.Println("Generating GitOps automation manifests...")
+	appGoatManifest, err = a.generateApplicationGoat(params)
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, fmt.Sprintf("could not create GitOps automation for '%s'", params.Name))
+	}
+
+	fmt.Println("Generating Application spec manifest...")
+	appManifest, err = generateAppYaml(params)
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, fmt.Sprintf("could not create app.yaml for '%s'", params.Name))
+	}
+
+	return sourceManifest, appGoatManifest, appManifest, nil
 }
 
-func (a *App) writeAppGoats(basePath string, name string, clusterName string, manifests ...[]byte) error {
-	goatPath := filepath.Join(basePath, "targets", clusterName, name, fmt.Sprintf("%s-gitops-runtime.yaml", name))
+func (a *App) generateTargetManifests(params AddParams, secretRef string, clusterName string) ([]byte, []byte, error) {
+	targetSource, err := a.generateTargetSource(params, secretRef)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "could not generate target source manifests")
+	}
 
-	goat := bytes.Join(manifests, []byte(""))
-	return a.git.Write(goatPath, goat)
+	targetGoat, err := a.generateTargetGoat(params, clusterName)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "could not generate target goat manifests")
+	}
+
+	return targetSource, targetGoat, nil
 }
-
-// NOTE: ready to save the targets automation in phase 2
-// func (a *App) writeTargetGoats(basePath string, name string, manifests ...[]byte) error {
-// 	goatPath := filepath.Join(basePath, "targets", fmt.Sprintf("%s-gitops-runtime.yaml", name))
-
-// 	goat := bytes.Join(manifests, []byte(""))
-// 	return a.git.Write(goatPath, goat)
-// }
 
 func (a *App) generateTargetSource(params AddParams, secretRef string) ([]byte, error) {
 	repoName := generateResourceName(params.AutomationRepo)
@@ -448,6 +417,19 @@ func (a *App) applyToCluster(params AddParams, manifests ...[]byte) error {
 	return nil
 }
 
+func (a *App) writeAppYaml(basePath string, name string, manifest []byte) error {
+	manifestPath := filepath.Join(basePath, "apps", name, "app.yaml")
+
+	return a.git.Write(manifestPath, manifest)
+}
+
+func (a *App) writeAppGoats(basePath string, name string, clusterName string, manifests ...[]byte) error {
+	goatPath := filepath.Join(basePath, "targets", clusterName, name, fmt.Sprintf("%s-gitops-runtime.yaml", name))
+
+	goat := bytes.Join(manifests, []byte(""))
+	return a.git.Write(goatPath, goat)
+}
+
 func generateAppYaml(params AddParams) ([]byte, error) {
 	const appYamlTemplate = `---
 apiVersion: wego.weave.works/v1alpha1
@@ -511,3 +493,11 @@ func sanitizeRepoUrl(url string) string {
 
 	return url
 }
+
+// NOTE: ready to save the targets automation in phase 2
+// func (a *App) writeTargetGoats(basePath string, name string, manifests ...[]byte) error {
+// 	goatPath := filepath.Join(basePath, "targets", fmt.Sprintf("%s-gitops-runtime.yaml", name))
+
+// 	goat := bytes.Join(manifests, []byte(""))
+// 	return a.git.Write(goatPath, goat)
+// }
