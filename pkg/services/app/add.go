@@ -41,7 +41,7 @@ type AddParams struct {
 	DeploymentType       string
 	Chart                string
 	SourceType           string
-	AppConfigUrl         string
+	CommitManifests      bool
 	AutomationRepo       string
 	AutomationRepoPath   string
 	AutomationRepoBranch string
@@ -74,16 +74,16 @@ func (a *App) Add(params AddParams) error {
 		return err
 	}
 
-	// switch strings.ToUpper(params.AppConfigUrl) {
-	// case string(ConfigTypeNone):
-	// 	return a.addAppWithNoConfigRepo(params)
-	// case string(ConfigTypeUserRepo):
-	// 	return a.addAppWithConfigInUserRepo(params)
-	// default:
-	// 	return a.addAppWithConfigInExternalRepo(params)
-	// }
+	if params.AutomationRepo != "" {
+		return a.addAppWithConfigInExternalRepo(params, clusterName)
+	}
 
-	return a.addAppWithConfigInExternalRepo(params, clusterName)
+	if params.CommitManifests {
+		return a.addAppWithConfigInAppRepo(params, clusterName)
+	}
+
+	return a.addAppWithNoConfigRepo(params, clusterName)
+
 }
 
 func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
@@ -91,11 +91,6 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 	if params.Chart != "" {
 		params.SourceType = string(SourceTypeHelm)
 		params.DeploymentType = string(DeployTypeHelm)
-	}
-
-	if params.AppConfigUrl == string(ConfigTypeUserRepo) && params.SourceType != string(SourceTypeGit) {
-		return params, fmt.Errorf("cannot create .wego directory in helm repository:\n" +
-			"  you must either use --app-config-url=none or --appconfig-url=<url of external git repo>")
 	}
 
 	// Identifying repo url if not set by the user
@@ -125,7 +120,6 @@ func (a *App) cloneRepo(url string, branch string) error {
 		return errors.Wrap(err, "failed creating temp. directory to clone repo")
 	}
 
-	fmt.Println("clonning to: ", repoDir)
 	_, err = a.git.Clone(context.Background(), repoDir, url, branch)
 	if err != nil {
 		return errors.Wrapf(err, "failed cloning user repo: %s", url)
@@ -159,7 +153,7 @@ func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string) error
 	if SourceType(params.SourceType) == SourceTypeGit {
 		fmt.Println("Generating deploy key...")
 		if !params.DryRun {
-			secretRef, err = a.createAndUploadDeployKey(params.AutomationRepo, clusterName, params.Namespace)
+			secretRef, err = a.createAndUploadDeployKey(params.Url, clusterName, params.Namespace)
 			if err != nil {
 				return errors.Wrap(err, "could not generate deploy key")
 			}
@@ -191,13 +185,13 @@ func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string) error
 	return a.applyToCluster(params, sourceManifest, appManifest, appGoatManifest)
 }
 
-func (a *App) addAppWithConfigInUserRepo(params AddParams, clusterName string) error {
+func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string) error {
 	var secretRef string
 	var err error
 	if SourceType(params.SourceType) == SourceTypeGit {
 		fmt.Println("Generating deploy key...")
 		if !params.DryRun {
-			secretRef, err = a.createAndUploadDeployKey(params.AutomationRepo, clusterName, params.Namespace)
+			secretRef, err = a.createAndUploadDeployKey(params.Url, clusterName, params.Namespace)
 			if err != nil {
 				return errors.Wrap(err, "could not generate deploy key")
 			}
