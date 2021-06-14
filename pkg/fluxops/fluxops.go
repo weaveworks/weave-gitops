@@ -9,7 +9,6 @@ import (
 
 	"github.com/weaveworks/weave-gitops/pkg/override"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
-	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"github.com/weaveworks/weave-gitops/pkg/version"
 	"sigs.k8s.io/yaml"
@@ -34,9 +33,9 @@ func (h DefaultFluxHandler) Handle(arglist string) ([]byte, error) {
 	return utils.CallCommand(fmt.Sprintf("%s %s", fluxBinary, arglist))
 }
 
-type quietFluxHandler struct{}
+type QuietFluxHandler struct{}
 
-func (q quietFluxHandler) Handle(arglist string) ([]byte, error) {
+func (q QuietFluxHandler) Handle(arglist string) ([]byte, error) {
 	initFluxBinary()
 	return utils.CallCommandSilently(fmt.Sprintf("%s %s", fluxBinary, arglist))
 }
@@ -77,19 +76,23 @@ func CallFlux(arglist ...string) ([]byte, error) {
 	return fluxHandler.(FluxHandler).Handle(strings.Join(arglist, " "))
 }
 
-func Install(namespace string) ([]byte, error) {
-	return installFlux(namespace, true)
+func Install(namespace string, export bool) ([]byte, error) {
+	return installFlux(namespace, export)
 }
 
 func QuietInstall(namespace string) ([]byte, error) {
 	return installFlux(namespace, false)
 }
 
-func installFlux(namespace string, verbose bool) ([]byte, error) {
+func installFlux(namespace string, export bool) ([]byte, error) {
 	args := []string{
 		"install",
 		fmt.Sprintf("--namespace=%s", namespace),
 		"--components-extra=image-reflector-controller,image-automation-controller",
+	}
+
+	if export {
+		args = append(args, "--export")
 	}
 
 	manifests, err := CallFlux(args...)
@@ -107,7 +110,7 @@ func GetAllResourcesStatus(appName string) ([]byte, error) {
 		appName,
 	}
 
-	return WithFluxHandler(quietFluxHandler{}, func() ([]byte, error) {
+	return WithFluxHandler(QuietFluxHandler{}, func() ([]byte, error) {
 		output, err := CallFlux(args...)
 		if err != nil {
 			return nil, err
@@ -125,7 +128,7 @@ func GetAllResources(namespace string) ([]byte, error) {
 		namespace,
 	}
 
-	return WithFluxHandler(quietFluxHandler{}, func() ([]byte, error) {
+	return WithFluxHandler(QuietFluxHandler{}, func() ([]byte, error) {
 		output, err := CallFlux(args...)
 		if err != nil {
 			return nil, err
@@ -143,15 +146,6 @@ func GetOwnerFromEnv() (string, error) {
 	}
 
 	return GetUserFromHubCredentials()
-}
-
-// GetRepoName returns the name of the wego repo for the cluster (the repo holding controller defs)
-func GetRepoName() (string, error) {
-	clusterName, err := status.GetClusterName()
-	if err != nil {
-		return "", err
-	}
-	return clusterName + "-wego", nil
 }
 
 func GetUserFromHubCredentials() (string, error) {

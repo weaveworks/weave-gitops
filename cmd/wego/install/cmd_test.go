@@ -51,7 +51,13 @@ var _ = Describe("Run Command Test", func() {
 
 					return override.Result{}
 				},
-				utils.OverrideIgnore(utils.CallCommandForEffectWithInputPipeOp))
+				utils.OverrideIgnore(utils.CallCommandForEffectWithInputPipeOp),
+				utils.OverrideBehavior(utils.CallCommandSilentlyOp,
+					func(args ...interface{}) ([]byte, []byte, error) {
+						return []byte("not found"), []byte("not found"), fmt.Errorf("exit 1")
+					},
+				),
+			)
 		})
 	})
 })
