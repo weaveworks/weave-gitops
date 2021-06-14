@@ -20,7 +20,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
-var params app.Params
+var params app.AddParams
 
 var Cmd = &cobra.Command{
 	Use:   "add [--name <name>] [--url <url>] [--branch <branch>] [--path <path within repository>] [--private-key <keyfile>] <repository directory>",
