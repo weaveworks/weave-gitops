@@ -26,7 +26,7 @@ endif
 all: wego
 
 # Run tests
-unit-tests: cmd/ui/dist/index.html
+unit-tests:
 	CGO_ENABLED=0 go test -v -tags unittest ./...
 
 debug: 
@@ -82,9 +82,29 @@ ui-test:
 ui-audit:
 	npm audit
 
-ui-coverage:
+# Directory for coverage data
+coverage:
+	mkdir -p coverage
+
+# JS coverage info
+coverage/lcov.info:
 	npm run test -- --coverage
 
+# Golang gocov data. Not compatible with coveralls at this point.
+coverage.out: coverage
+	go get -u github.com/ory/go-acc
+	go-acc --ignore fakes,acceptance,pkg/api -o coverage.out ./... -- -v --timeout=496s -tags test
+	@go mod tidy
+
+# Convert gocov to lcov for coveralls
+coverage/golang.info: coverage.out
+	@go get -u github.com/jandelgado/gcov2lcov
+	gcov2lcov -infile=coverage.out -outfile=coverage/golang.info
+
+# Concat the JS and Go coverage files for the coveralls report/
+# Note: you need to install `lcov` to run this locally.
+coverage/merged.lcov: coverage/lcov.info coverage/golang.info
+	lcov --add-tracefile coverage/golang.info -a coverage/lcov.info -o merged.lcov
 
 proto-deps:
 	@go get \
