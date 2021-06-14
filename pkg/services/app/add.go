@@ -2,12 +2,15 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"fmt"
+	"io/ioutil"
 	"path/filepath"
 	"strings"
 	"text/template"
 
 	"github.com/pkg/errors"
+	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/status"
 )
@@ -28,19 +31,22 @@ const (
 )
 
 type AddParams struct {
-	Dir            string
-	Name           string
-	Url            string
-	Path           string
-	Branch         string
-	PrivateKey     string
-	PrivateKeyPass string
-	DeploymentType string
-	Chart          string
-	SourceType     string
-	AppConfigUrl   string
-	Namespace      string
-	DryRun         bool
+	Dir                  string
+	Name                 string
+	Url                  string
+	Path                 string
+	Branch               string
+	PrivateKey           string
+	PrivateKeyPass       string
+	DeploymentType       string
+	Chart                string
+	SourceType           string
+	AppConfigUrl         string
+	AutomationRepo       string
+	AutomationRepoPath   string
+	AutomationRepoBranch string
+	Namespace            string
+	DryRun               bool
 }
 
 func (a *App) Add(params AddParams) error {
@@ -95,13 +101,12 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 		}
 
 		params.Url = url
+	} else {
+		if err := a.cloneRepo(params); err != nil {
+			return params, err
+		}
 	}
 
-	sshPrefix := "git@github.com:"
-	if strings.HasPrefix(params.Url, sshPrefix) {
-		trimmed := strings.TrimPrefix(params.Url, sshPrefix)
-		params.Url = "ssh://git@github.com/" + trimmed
-	}
 	fmt.Printf("using URL: '%s' of origin from git config...\n\n", params.Url)
 
 	if params.Name == "" {
@@ -109,6 +114,22 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 	}
 
 	return params, nil
+}
+
+func (a *App) cloneRepo(params AddParams) error {
+	url := sanitizeRepoUrl(params.Url)
+
+	repoDir, err := ioutil.TempDir("", "user-repo-")
+	if err != nil {
+		return errors.Wrap(err, "failed creating temp. directory to clone repo")
+	}
+
+	_, err = a.git.Clone(context.Background(), repoDir, url, params.Branch)
+	if err != nil {
+		return errors.Wrapf(err, "failed cloning user repo: %s", url)
+	}
+
+	return nil
 }
 
 func (a *App) getGitRemoteUrl(params AddParams) (string, error) {
@@ -127,7 +148,7 @@ func (a *App) getGitRemoteUrl(params AddParams) (string, error) {
 		return "", errors.Errorf("remote config in %s does not have an url", params.Dir)
 	}
 
-	return urls[0], nil
+	return sanitizeRepoUrl(urls[0]), nil
 }
 
 func (a *App) addAppWithNoConfigRepo(params AddParams) error {
@@ -167,6 +188,97 @@ func (a *App) addAppWithNoConfigRepo(params AddParams) error {
 }
 
 func (a *App) addAppWithConfigInUserRepo(params AddParams) error {
+	if SourceType(params.SourceType) == SourceTypeGit {
+		fmt.Println("Generating deploy key...")
+		if !params.DryRun {
+			if err := a.createAndUploadDeployKey(params); err != nil {
+				return errors.Wrap(err, "could not generate deploy key")
+			}
+		}
+	}
+
+	var err error
+	var sourceManifest, appManifest, appGoatManifest []byte
+	// Source covers entire user repo
+	fmt.Println("Generating source manifest...")
+	sourceManifest, err = a.generateSource(params)
+	if err != nil {
+		return errors.Wrap(err, "could not set up GitOps for user repository")
+	}
+
+	fmt.Println("Generating app manifest...")
+	appManifest, err = generateAppYaml(params)
+	if err != nil {
+		return errors.Wrapf(err, "could not create app.yaml for '%s'", params.Name)
+	}
+
+	// kustomize or helm referencing single user repo source
+	fmt.Println("Generating GitOps automation manifests...")
+	appGoatManifest, err = a.generateApplicationGoat(params)
+	if err != nil {
+		return errors.Wrapf(err, "could not create GitOps automation for '%s'", params.Name)
+	}
+
+	fmt.Println("Applying manifests to the cluster...")
+	if err := a.applyToCluster(params, sourceManifest, appManifest, appGoatManifest); err != nil {
+		return errors.Wrapf(err, "could not apply manifests to the cluster")
+	}
+
+	fmt.Println("Writing manifests to disk...")
+	if err := a.writeAppYaml(params, appManifest); err != nil {
+		return errors.Wrap(err, "failed writing app.yaml to disk")
+	}
+
+	if err := a.writeGoats(params, sourceManifest, appGoatManifest); err != nil {
+		return errors.Wrap(err, "failed writing app.yaml to disk")
+	}
+
+	return a.commitAndPush(params, func(fname string) bool {
+		return strings.HasPrefix(fname, ".wego")
+	})
+}
+
+func (a *App) writeAppYaml(params AddParams, manifest []byte) error {
+	manifestPath := filepath.Join(".wego", "apps", params.Name, "app.yaml")
+
+	return a.git.Write(manifestPath, manifest)
+}
+
+func (a *App) writeGoats(params AddParams, manifests ...[]byte) error {
+	clusterName, err := status.GetClusterName()
+	if err != nil {
+		return err
+	}
+
+	goatPath := filepath.Join(".wego", "targets", clusterName, params.Name, fmt.Sprintf("%s-gitops-runtime.yaml", params.Name))
+
+	goat := bytes.Join(manifests, []byte(""))
+	return a.git.Write(goatPath, goat)
+}
+
+func (a *App) commitAndPush(params AddParams, filters ...func(string) bool) error {
+	fmt.Println("Commiting and pushing wego resources for application...")
+	if params.DryRun {
+		return nil
+	}
+
+	_, err := a.git.Commit(git.Commit{
+		Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
+		Message: "Add App manifests",
+	}, filters...)
+	if err != nil && err != git.ErrNoStagedFiles {
+		return fmt.Errorf("failed to commit sync manifests: %w", err)
+	}
+
+	if err == nil {
+		fmt.Println("Pushing app manifests to repository...")
+		if err = a.git.Push(context.Background()); err != nil {
+			return fmt.Errorf("failed to push manifests: %w", err)
+		}
+	} else {
+		fmt.Println("App manifests are up to date")
+	}
+
 	return nil
 }
 
@@ -277,4 +389,16 @@ func getOwnerFromUrl(url string) (string, error) {
 		return "", fmt.Errorf("could not get owner from url %s", url)
 	}
 	return parts[len(parts)-2], nil
+}
+
+func sanitizeRepoUrl(url string) string {
+	sanitizedUrl := url
+
+	sshPrefix := "git@github.com:"
+	if strings.HasPrefix(url, sshPrefix) {
+		trimmed := strings.TrimPrefix(url, sshPrefix)
+		sanitizedUrl = "ssh://git@github.com/" + trimmed
+	}
+
+	return sanitizedUrl
 }
