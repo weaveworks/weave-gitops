@@ -47,3 +47,7 @@ jobs:
       - run: make ui-lint
       - run: make ui-test
       - run: make ui-audit
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
