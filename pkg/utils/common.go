@@ -34,11 +34,13 @@ type callback func()
 func CaptureStdout(c callback) string {
 	r, w, _ := os.Pipe()
 	tmp := os.Stdout
+	defer func() {
+		os.Stdout = tmp
+	}()
 	os.Stdout = w
 	c()
 	w.Close()
 	stdout, _ := ioutil.ReadAll(r)
-	os.Stdout = tmp
 
 	return string(stdout)
 }
