@@ -54,10 +54,6 @@ var _ = BeforeEach(func() {
 })
 
 var _ = Describe("Add", func() {
-	BeforeEach(func() {
-
-	})
-
 	It("checks for cluster status", func() {
 		err := appSrv.Add(defaultParams)
 		Expect(err).ShouldNot(HaveOccurred())
