@@ -454,7 +454,6 @@ func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, er
 		if params.DryRun {
 			fmt.Printf(cmd + "\n")
 		} else {
-			// TODO create a function for this in fluxops pkg
 			output, err := fluxops.WithFluxHandler(fluxops.QuietFluxHandler{}, func() ([]byte, error) {
 				return fluxops.CallFlux(cmd)
 			})
@@ -470,7 +469,11 @@ func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, er
 			if len(deployKeyBody) == 0 {
 				return nil, fmt.Errorf("no deploy key found [%s]", string(output))
 			}
-			if err := gitproviders.UploadDeployKey(owner, repoName, deployKeyLines[0]); err != nil {
+			githubProvider, err := gitproviders.GithubProvider()
+			if err != nil {
+				return nil, fmt.Errorf("error getting github provider %s", err)
+			}
+			if err := gitproviders.UploadDeployKey(githubProvider, owner, repoName, deployKeyLines[0]); err != nil {
 				return nil, wrapError(err, "error uploading deploy key")
 			}
 

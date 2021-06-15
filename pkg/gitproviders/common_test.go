@@ -3,6 +3,7 @@ package gitproviders
 import (
 	"context"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -11,9 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/fluxcd/go-git-providers/gitlab"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	"github.com/dnaeon/go-vcr/cassette"
 	"github.com/dnaeon/go-vcr/recorder"
@@ -463,6 +463,88 @@ var _ = Describe("Test for Org repo info", func() {
 
 		err := GetRepoInfo(githubTestClient, AccountTypeOrg, accounts.GithubOrgName, "repoNotExisted")
 		Expect(err).Should(HaveOccurred())
+
+	})
+})
+
+var _ = Describe("Test deploy keys creation", func() {
+	It("Upload a new deploy key for a brand new user repo and show proper message if trying to re-add it", func() {
+
+		accounts := getAccounts()
+
+		repoName := "test-deploy-key-user-repo"
+		userRepoRef := NewUserRepositoryRef(github.DefaultDomain, accounts.GithubUserName, repoName)
+		repoInfo := NewRepositoryInfo("test user repository", gitprovider.RepositoryVisibilityPrivate)
+		opts := &gitprovider.RepositoryCreateOptions{
+			AutoInit: gitprovider.BoolVar(true),
+		}
+
+		err := CreateUserRepository(githubTestClient, userRepoRef, repoInfo, opts)
+		Expect(err).ShouldNot(HaveOccurred())
+		err = utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
+			return GetUserRepo(githubTestClient, accounts.GithubUserName, repoName)
+		})
+		Expect(err).ShouldNot(HaveOccurred())
+
+		deployKey := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBmym4XOiTj4rY3AcJKoJ8QupfgpFWtgNzDxzL0TrzfnurUQm+snozKLHGtOtS7PjMQsMaW9phyhhXv2KxadVI1uweFkC1TK4rPNWrqYX2g0JLXEScvaafSiv+SqozWLN/zhQ0e0jrtrYphtkd+H72RYsdq3mngY4WPJXM7z+HSjHSKilxj7XsxENt0dxT08LArxDC4OQXv9EYFgCyZ7SuLPBgA9160Co46Jm27enB/oBPx5zWd1MlkI+RtUi+XV2pLMzIpvYi2r2iWwOfDqE0N2cfpD0bY7cIOlv0iS7v6Qkmf7pBD+tRGTIZFcD5tGmZl1DOaeCZZ/VAN66aX+rN"
+
+		stdout := utils.CaptureStdout(func() {
+			err = UploadDeployKey(githubTestClient, accounts.GithubUserName, repoName, []byte(deployKey))
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		Expect(stdout).To(Equal("uploading deploy key\n"))
+
+		stdout = utils.CaptureStdout(func() {
+			err = UploadDeployKey(githubTestClient, accounts.GithubUserName, repoName, []byte(deployKey))
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		Expect(stdout).To(Equal(fmt.Sprintf("deploy key weave-gitops-deploy-key already exists for repo %s \n", repoName)))
+
+		ctx := context.Background()
+		user, err := githubTestClient.UserRepositories().Get(ctx, userRepoRef)
+		Expect(err).ShouldNot(HaveOccurred())
+		err = user.Delete(ctx)
+		Expect(err).ShouldNot(HaveOccurred())
+
+	})
+
+	It("Upload a new deploy key for a brand new org repo and show proper message if trying to re-add it", func() {
+
+		accounts := getAccounts()
+
+		repoName := "test-deploy-key-org-repo"
+		orgRepoRef := NewOrgRepositoryRef(github.DefaultDomain, accounts.GithubOrgName, repoName)
+		repoInfo := NewRepositoryInfo("test user repository", gitprovider.RepositoryVisibilityPrivate)
+		opts := &gitprovider.RepositoryCreateOptions{
+			AutoInit: gitprovider.BoolVar(true),
+		}
+
+		err := CreateOrgRepository(githubTestClient, orgRepoRef, repoInfo, opts)
+		Expect(err).ShouldNot(HaveOccurred())
+		err = utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
+			return GetUserRepo(githubTestClient, accounts.GithubOrgName, repoName)
+		})
+		Expect(err).ShouldNot(HaveOccurred())
+
+		deployKey := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBmym4XOiTj4rY3AcJKoJ8QupfgpFWtgNzDxzL0TrzfnurUQm+snozKLHGtOtS7PjMQsMaW9phyhhXv2KxadVI1uweFkC1TK4rPNWrqYX2g0JLXEScvaafSiv+SqozWLN/zhQ0e0jrtrYphtkd+H72RYsdq3mngY4WPJXM7z+HSjHSKilxj7XsxENt0dxT08LArxDC4OQXv9EYFgCyZ7SuLPBgA9160Co46Jm27enB/oBPx5zWd1MlkI+RtUi+XV2pLMzIpvYi2r2iWwOfDqE0N2cfpD0bY7cIOlv0iS7v6Qkmf7pBD+tRGTIZFcD5tGmZl1DOaeCZZ/VAN66aX+rN"
+
+		stdout := utils.CaptureStdout(func() {
+			err = UploadDeployKey(githubTestClient, accounts.GithubOrgName, repoName, []byte(deployKey))
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		Expect(stdout).To(Equal("uploading deploy key\n"))
+
+		stdout = utils.CaptureStdout(func() {
+			err = UploadDeployKey(githubTestClient, accounts.GithubOrgName, repoName, []byte(deployKey))
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		Expect(stdout).To(Equal(fmt.Sprintf("deploy key weave-gitops-deploy-key already exists for repo %s \n", repoName)))
+
+		ctx := context.Background()
+		user, err := githubTestClient.OrgRepositories().Get(ctx, orgRepoRef)
+		Expect(err).ShouldNot(HaveOccurred())
+		err = user.Delete(ctx)
+		Expect(err).ShouldNot(HaveOccurred())
 
 	})
 })
