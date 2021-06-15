@@ -11,7 +11,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/weaveworks/weave-gitops/pkg/git"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
@@ -93,9 +92,13 @@ func (a *App) Add(params AddParams) error {
 
 func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 	params.SourceType = string(SourceTypeGit)
+
 	if params.Chart != "" {
 		params.SourceType = string(SourceTypeHelm)
 		params.DeploymentType = string(DeployTypeHelm)
+		params.Name = params.Chart
+
+		return params, nil
 	}
 
 	// Identifying repo url if not set by the user
@@ -331,7 +334,7 @@ func (a *App) createAndUploadDeployKey(reposUrls []string, clusterName string, n
 		}
 
 		repoName := urlToRepoName(repoUrl)
-		if err := gitproviders.UploadDeployKey(owner, repoName, deployKey); err != nil {
+		if err := a.gitProviders.UploadDeployKey(owner, repoName, deployKey); err != nil {
 			return "", errors.Wrap(err, "error uploading deploy key")
 		}
 	}
@@ -349,7 +352,7 @@ func (a *App) generateSource(params AddParams, secretRef string) ([]byte, error)
 
 		return sourceManifest, nil
 	case SourceTypeHelm:
-		return a.flux.CreateHelmReleaseHelmRepository(params.Name, params.Url, params.Namespace)
+		return a.flux.CreateSourceHelm(params.Name, params.Url, params.Namespace)
 	default:
 		return nil, fmt.Errorf("unknown source type: %v", params.SourceType)
 	}

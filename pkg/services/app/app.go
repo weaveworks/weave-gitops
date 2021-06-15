@@ -3,13 +3,15 @@ package app
 import (
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
 type Dependencies struct {
-	Git  git.Git
-	Flux flux.Flux
-	Kube kube.Kube
+	Git          git.Git
+	GitProviders gitproviders.GitProviderHandler
+	Flux         flux.Flux
+	Kube         kube.Kube
 }
 
 type AppService interface {
@@ -20,16 +22,18 @@ type AppService interface {
 }
 
 type App struct {
-	git  git.Git
-	flux flux.Flux
-	kube kube.Kube
+	git          git.Git
+	flux         flux.Flux
+	kube         kube.Kube
+	gitProviders gitproviders.GitProviderHandler
 }
 
 func New(deps *Dependencies) *App {
 	return &App{
-		git:  deps.Git,
-		flux: deps.Flux,
-		kube: deps.Kube,
+		git:          deps.Git,
+		flux:         deps.Flux,
+		kube:         deps.Kube,
+		gitProviders: deps.GitProviders,
 	}
 }
 

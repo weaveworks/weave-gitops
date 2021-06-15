@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
@@ -75,11 +76,13 @@ func runCmd(cmd *cobra.Command, args []string) {
 	gitClient := git.New(authMethod)
 	fluxClient := flux.New()
 	kubeClient := kube.New()
+	gitProviders := gitproviders.New()
 
 	deps := &app.Dependencies{
-		Git:  gitClient,
-		Flux: fluxClient,
-		Kube: kubeClient,
+		Git:          gitClient,
+		Flux:         fluxClient,
+		Kube:         kubeClient,
+		GitProviders: gitProviders,
 	}
 	appService := app.New(deps)
 
