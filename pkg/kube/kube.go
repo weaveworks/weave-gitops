@@ -9,6 +9,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
 const kubectlPath = "kubectl"
 
 type ClusterStatus int
@@ -32,6 +34,7 @@ var toStatusString = map[ClusterStatus]string{
 	WeGOInstalled: "WeGOInstalled",
 }
 
+//counterfeiter:generate . Kube
 type Kube interface {
 	Apply(manifests []byte, namespace string) ([]byte, error)
 	GetClusterName() (string, error)
