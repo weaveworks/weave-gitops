@@ -138,7 +138,7 @@ func (h defaultGitProviderHandler) UploadDeployKey(owner, repoName string, deplo
 		if err != nil {
 			return fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s ", owner, repoName, err)
 		}
-		fmt.Println("Uploading deploy key")
+		fmt.Printf("Uploading deploy key to %s\n", repoName)
 		_, err = orgRepo.DeployKeys().Create(ctx, deployKeyInfo)
 		if err != nil {
 			return fmt.Errorf("error uploading deploy key %s", err)

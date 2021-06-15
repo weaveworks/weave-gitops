@@ -75,7 +75,7 @@ func (a *App) Add(params AddParams) error {
 	}
 
 	fmt.Println("Generating deploy key...")
-	secretRef, err := a.createAndUploadDeployKey(params.Url, clusterName, params.Namespace, params.DryRun)
+	secretRef, err := a.createAndUploadDeployKey([]string{params.Url, params.AutomationRepo}, clusterName, params.Namespace, params.DryRun)
 	if err != nil {
 		return errors.Wrap(err, "could not generate deploy key")
 	}
@@ -307,27 +307,33 @@ func (a *App) commitAndPush(params AddParams, filters ...func(string) bool) erro
 	return nil
 }
 
-func (a *App) createAndUploadDeployKey(repoUrl string, clusterName string, namespace string, dryRun bool) (string, error) {
-	repoUrl = sanitizeRepoUrl(repoUrl)
+func (a *App) createAndUploadDeployKey(reposUrls []string, clusterName string, namespace string, dryRun bool) (string, error) {
 	secretRef := fmt.Sprintf("weave-gitops-%s", clusterName)
-
 	if dryRun {
 		return secretRef, nil
 	}
 
-	deployKey, err := a.flux.CreateSecretGit(secretRef, repoUrl, namespace)
-	if err != nil {
-		return "", errors.Wrap(err, "could not create git secret")
-	}
+	for _, repoUrl := range reposUrls {
+		if repoUrl == "" {
+			continue
+		}
 
-	owner, err := getOwnerFromUrl(repoUrl)
-	if err != nil {
-		return "", err
-	}
+		repoUrl = sanitizeRepoUrl(repoUrl)
 
-	repoName := urlToRepoName(repoUrl)
-	if err := gitproviders.UploadDeployKey(owner, repoName, deployKey); err != nil {
-		return "", errors.Wrap(err, "error uploading deploy key")
+		deployKey, err := a.flux.CreateSecretGit(secretRef, repoUrl, namespace)
+		if err != nil {
+			return "", errors.Wrap(err, "could not create git secret")
+		}
+
+		owner, err := getOwnerFromUrl(repoUrl)
+		if err != nil {
+			return "", err
+		}
+
+		repoName := urlToRepoName(repoUrl)
+		if err := gitproviders.UploadDeployKey(owner, repoName, deployKey); err != nil {
+			return "", errors.Wrap(err, "error uploading deploy key")
+		}
 	}
 
 	return secretRef, nil
@@ -463,6 +469,10 @@ func urlToRepoName(url string) string {
 
 func sanitizeRepoUrl(url string) string {
 	trimmed := ""
+
+	if !strings.HasSuffix(url, ".git") {
+		url = url + ".git"
+	}
 
 	sshPrefix := "git@github.com:"
 	if strings.HasPrefix(url, sshPrefix) {
