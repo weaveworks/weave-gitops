@@ -1,23 +1,22 @@
 package main
 
 import (
+	"context"
 	"embed"
-	"flag"
 	"io/fs"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 	"os"
 	"path/filepath"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/sirupsen/logrus"
+	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	"github.com/weaveworks/weave-gitops/pkg/server"
 )
 
 var log = logrus.New()
 
 func main() {
-	apiUrlFlag := flag.String("api-url", "http://localhost:8000", "The URL for the applications API server")
-
 	mux := http.NewServeMux()
 
 	mux.Handle("/health/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -32,23 +31,12 @@ func main() {
 	assetHandler := http.FileServer(http.FS(assetFS))
 	redirector := createRedirector(assetFS, log)
 
-	apiUrl, err := url.Parse(*apiUrlFlag)
+	gMux := runtime.NewServeMux()
+	mux.Handle("/v1/", gMux)
 
-	if err != nil {
-		log.Errorf("could not parse proxy url: %s", err)
-		os.Exit(1)
+	if err := pb.RegisterApplicationsHandlerServer(context.Background(), gMux, server.NewApplicationsServer()); err != nil {
+		log.Fatalf("could not register application: %s", err)
 	}
-
-	log.Infof("api proxy url set to %s", apiUrl.String())
-
-	proxy := createProxy(apiUrl)
-	mux.Handle("/v1/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Host = apiUrl.Host
-		r.URL.Scheme = apiUrl.Scheme
-		r.Header.Set("X-Forwarded-Host", r.Header.Get("Host"))
-		r.Host = apiUrl.Host
-		proxy.ServeHTTP(w, r)
-	}))
 
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// Assume anything with a file extension in the name is a static asset.
@@ -120,10 +108,4 @@ func createRedirector(fsys fs.FS, log logrus.FieldLogger) http.HandlerFunc {
 			return
 		}
 	}
-}
-
-func createProxy(u *url.URL) http.Handler {
-	proxy := httputil.NewSingleHostReverseProxy(u)
-
-	return proxy
 }
