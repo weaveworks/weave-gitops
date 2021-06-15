@@ -18,7 +18,9 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ApplicationsClient interface {
-	ListApplications(ctx context.Context, in *ListApplicationsReq, opts ...grpc.CallOption) (*ListApplicationsRes, error)
+	//
+	// ListApplications returns the list of WeGo applications that the authenticated user has access to.
+	ListApplications(ctx context.Context, in *ListApplicationsRequest, opts ...grpc.CallOption) (*ListApplicationsResponse, error)
 }
 
 type applicationsClient struct {
@@ -29,8 +31,8 @@ func NewApplicationsClient(cc grpc.ClientConnInterface) ApplicationsClient {
 	return &applicationsClient{cc}
 }
 
-func (c *applicationsClient) ListApplications(ctx context.Context, in *ListApplicationsReq, opts ...grpc.CallOption) (*ListApplicationsRes, error) {
-	out := new(ListApplicationsRes)
+func (c *applicationsClient) ListApplications(ctx context.Context, in *ListApplicationsRequest, opts ...grpc.CallOption) (*ListApplicationsResponse, error) {
+	out := new(ListApplicationsResponse)
 	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/ListApplications", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -42,7 +44,9 @@ func (c *applicationsClient) ListApplications(ctx context.Context, in *ListAppli
 // All implementations must embed UnimplementedApplicationsServer
 // for forward compatibility
 type ApplicationsServer interface {
-	ListApplications(context.Context, *ListApplicationsReq) (*ListApplicationsRes, error)
+	//
+	// ListApplications returns the list of WeGo applications that the authenticated user has access to.
+	ListApplications(context.Context, *ListApplicationsRequest) (*ListApplicationsResponse, error)
 	mustEmbedUnimplementedApplicationsServer()
 }
 
@@ -50,7 +54,7 @@ type ApplicationsServer interface {
 type UnimplementedApplicationsServer struct {
 }
 
-func (UnimplementedApplicationsServer) ListApplications(context.Context, *ListApplicationsReq) (*ListApplicationsRes, error) {
+func (UnimplementedApplicationsServer) ListApplications(context.Context, *ListApplicationsRequest) (*ListApplicationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListApplications not implemented")
 }
 func (UnimplementedApplicationsServer) mustEmbedUnimplementedApplicationsServer() {}
@@ -67,7 +71,7 @@ func RegisterApplicationsServer(s grpc.ServiceRegistrar, srv ApplicationsServer)
 }
 
 func _Applications_ListApplications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListApplicationsReq)
+	in := new(ListApplicationsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -79,7 +83,7 @@ func _Applications_ListApplications_Handler(srv interface{}, ctx context.Context
 		FullMethod: "/wego_server.v1.Applications/ListApplications",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).ListApplications(ctx, req.(*ListApplicationsReq))
+		return srv.(ApplicationsServer).ListApplications(ctx, req.(*ListApplicationsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

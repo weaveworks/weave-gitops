@@ -32,7 +32,7 @@ var _ = utilities.NewDoubleArray
 var _ = metadata.Join
 
 func request_Applications_ListApplications_0(ctx context.Context, marshaler runtime.Marshaler, client ApplicationsClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListApplicationsReq
+	var protoReq ListApplicationsRequest
 	var metadata runtime.ServerMetadata
 
 	msg, err := client.ListApplications(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -41,7 +41,7 @@ func request_Applications_ListApplications_0(ctx context.Context, marshaler runt
 }
 
 func local_request_Applications_ListApplications_0(ctx context.Context, marshaler runtime.Marshaler, server ApplicationsServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListApplicationsReq
+	var protoReq ListApplicationsRequest
 	var metadata runtime.ServerMetadata
 
 	msg, err := server.ListApplications(ctx, &protoReq)

@@ -10,7 +10,7 @@ import (
 
 var _ = Describe("ApplicationsServer", func() {
 	It("AddApplication", func() {
-		res, err := client.ListApplications(context.Background(), &applications.ListApplicationsReq{})
+		res, err := client.ListApplications(context.Background(), &applications.ListApplicationsRequest{})
 
 		Expect(err).NotTo(HaveOccurred())
 

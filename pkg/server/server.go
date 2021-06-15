@@ -14,7 +14,7 @@ func NewApplicationsServer() pb.ApplicationsServer {
 	return &server{}
 }
 
-func (s *server) ListApplications(ctx context.Context, msg *pb.ListApplicationsReq) (*pb.ListApplicationsRes, error) {
+func (s *server) ListApplications(ctx context.Context, msg *pb.ListApplicationsRequest) (*pb.ListApplicationsResponse, error) {
 
 	fakeApps := []string{"cool-app", "slick-app", "neat-app"}
 
@@ -23,7 +23,7 @@ func (s *server) ListApplications(ctx context.Context, msg *pb.ListApplicationsR
 	for _, a := range fakeApps {
 		list = append(list, &pb.Application{Name: a})
 	}
-	return &pb.ListApplicationsRes{
+	return &pb.ListApplicationsResponse{
 		Applications: list,
 	}, nil
 }

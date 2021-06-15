@@ -9,15 +9,15 @@ export type Application = {
   name?: string
 }
 
-export type ListApplicationsReq = {
+export type ListApplicationsRequest = {
 }
 
-export type ListApplicationsRes = {
+export type ListApplicationsResponse = {
   applications?: Application[]
 }
 
 export class Applications {
-  static ListApplications(req: ListApplicationsReq, initReq?: fm.InitReq): Promise<ListApplicationsRes> {
-    return fm.fetchReq<ListApplicationsReq, ListApplicationsRes>(`/v1/applications?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  static ListApplications(req: ListApplicationsRequest, initReq?: fm.InitReq): Promise<ListApplicationsResponse> {
+    return fm.fetchReq<ListApplicationsRequest, ListApplicationsResponse>(`/v1/applications?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

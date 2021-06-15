@@ -18,12 +18,13 @@
   "paths": {
     "/v1/applications": {
       "get": {
+        "summary": "ListApplications returns the list of WeGo applications that the authenticated user has access to.",
         "operationId": "Applications_ListApplications",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1ListApplicationsRes"
+              "$ref": "#/definitions/v1ListApplicationsResponse"
             }
           },
           "default": {
@@ -78,7 +79,7 @@
         }
       }
     },
-    "v1ListApplicationsRes": {
+    "v1ListApplicationsResponse": {
       "type": "object",
       "properties": {
         "applications": {
