@@ -21,7 +21,11 @@ func main() {
 	mux := http.NewServeMux()
 
 	mux.Handle("/health/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
+		_, err := w.Write([]byte("ok"))
+
+		if err != nil {
+			log.Errorf("error writing health check: %s", err)
+		}
 	}))
 
 	assetFS := getAssets()
