@@ -22,11 +22,6 @@ func main() {
 
 	mux.Handle("/health/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		_, err := w.Write([]byte("ok"))
-
-		if err != nil {
-			log.Error(err.Error())
-		}
 	}))
 
 	assetFS := getAssets()
@@ -36,15 +31,19 @@ func main() {
 	apiUrl, err := url.Parse(*apiUrlFlag)
 
 	if err != nil {
-		log.Errorf("could not parse proxy url")
+		log.Errorf("could not parse proxy url: %s", err)
 		os.Exit(1)
-		return
 	}
 
 	log.Infof("api proxy url set to %s", apiUrl.String())
 
+	proxy := createProxy(apiUrl)
 	mux.Handle("/v1/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		proxy(apiUrl, w, r)
+		r.URL.Host = apiUrl.Host
+		r.URL.Scheme = apiUrl.Scheme
+		r.Header.Set("X-Forwarded-Host", r.Header.Get("Host"))
+		r.Host = apiUrl.Host
+		proxy.ServeHTTP(w, r)
 	}))
 
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -119,13 +118,8 @@ func createRedirector(fsys fs.FS, log logrus.FieldLogger) http.HandlerFunc {
 	}
 }
 
-func proxy(u *url.URL, w http.ResponseWriter, r *http.Request) {
+func createProxy(u *url.URL) http.Handler {
 	proxy := httputil.NewSingleHostReverseProxy(u)
 
-	r.URL.Host = u.Host
-	r.URL.Scheme = u.Scheme
-	r.Header.Set("X-Forwarded-Host", r.Header.Get("Host"))
-	r.Host = u.Host
-
-	proxy.ServeHTTP(w, r)
+	return proxy
 }
