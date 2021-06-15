@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/status"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
 type DeploymentType string
@@ -59,17 +59,17 @@ func (a *App) Add(params AddParams) error {
 	fmt.Print("done\n\n")
 	fmt.Print("Checking cluster status... ")
 
-	clusterStatus := status.GetClusterStatus()
+	clusterStatus := a.kube.GetClusterStatus()
 	fmt.Printf("%s\n\n", clusterStatus)
 
 	switch clusterStatus {
-	case status.Unmodified:
+	case kube.Unmodified:
 		return errors.New("WeGO not installed... exiting")
-	case status.Unknown:
+	case kube.Unknown:
 		return errors.New("WeGO can not determine cluster status... exiting")
 	}
 
-	clusterName, err := status.GetClusterName()
+	clusterName, err := a.kube.GetClusterName()
 	if err != nil {
 		return err
 	}
