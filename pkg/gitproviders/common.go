@@ -26,7 +26,7 @@ const (
 type GitProviderHandler interface {
 	CreateRepository(name string, owner string, private bool) error
 	RepositoryExists(name string, owner string) (bool, error)
-	UploadDeployKey(provider gitprovider.Client, owner, repoName string, deployKey []byte) error
+	UploadDeployKey(owner, repoName string, deployKey []byte) error
 }
 
 var gitProviderHandler interface{} = defaultGitProviderHandler{}
@@ -114,7 +114,12 @@ func (h defaultGitProviderHandler) CreateRepository(name string, owner string, p
 	return nil
 }
 
-func (h defaultGitProviderHandler) UploadDeployKey(provider gitprovider.Client, owner, repoName string, deployKey []byte) error {
+func (h defaultGitProviderHandler) UploadDeployKey(owner, repoName string, deployKey []byte) error {
+
+	provider, err := GithubProvider()
+	if err != nil {
+		return err
+	}
 
 	deployKeyName := "weave-gitops-deploy-key"
 	deployKeyInfo := gitprovider.DeployKeyInfo{
@@ -198,8 +203,8 @@ func RepositoryExists(name string, owner string) (bool, error) {
 	return gitProviderHandler.(GitProviderHandler).RepositoryExists(name, owner)
 }
 
-func UploadDeployKey(provider gitprovider.Client, owner, repoName string, deployKey []byte) error {
-	return gitProviderHandler.(GitProviderHandler).UploadDeployKey(provider, owner, repoName, deployKey)
+func UploadDeployKey(owner, repoName string, deployKey []byte) error {
+	return gitProviderHandler.(GitProviderHandler).UploadDeployKey(owner, repoName, deployKey)
 }
 
 func GetAccountType(provider gitprovider.Client, owner string) (ProviderAccountType, error) {

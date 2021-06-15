@@ -3,7 +3,6 @@ package gitproviders
 import (
 	"context"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -11,6 +10,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -472,6 +473,8 @@ var _ = Describe("Test deploy keys creation", func() {
 
 		accounts := getAccounts()
 
+		SetGithubProvider(githubTestClient)
+
 		repoName := "test-deploy-key-user-repo"
 		userRepoRef := NewUserRepositoryRef(github.DefaultDomain, accounts.GithubUserName, repoName)
 		repoInfo := NewRepositoryInfo("test user repository", gitprovider.RepositoryVisibilityPrivate)
@@ -489,13 +492,13 @@ var _ = Describe("Test deploy keys creation", func() {
 		deployKey := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBmym4XOiTj4rY3AcJKoJ8QupfgpFWtgNzDxzL0TrzfnurUQm+snozKLHGtOtS7PjMQsMaW9phyhhXv2KxadVI1uweFkC1TK4rPNWrqYX2g0JLXEScvaafSiv+SqozWLN/zhQ0e0jrtrYphtkd+H72RYsdq3mngY4WPJXM7z+HSjHSKilxj7XsxENt0dxT08LArxDC4OQXv9EYFgCyZ7SuLPBgA9160Co46Jm27enB/oBPx5zWd1MlkI+RtUi+XV2pLMzIpvYi2r2iWwOfDqE0N2cfpD0bY7cIOlv0iS7v6Qkmf7pBD+tRGTIZFcD5tGmZl1DOaeCZZ/VAN66aX+rN"
 
 		stdout := utils.CaptureStdout(func() {
-			err = UploadDeployKey(githubTestClient, accounts.GithubUserName, repoName, []byte(deployKey))
+			err = UploadDeployKey(accounts.GithubUserName, repoName, []byte(deployKey))
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 		Expect(stdout).To(Equal("uploading deploy key\n"))
 
 		stdout = utils.CaptureStdout(func() {
-			err = UploadDeployKey(githubTestClient, accounts.GithubUserName, repoName, []byte(deployKey))
+			err = UploadDeployKey(accounts.GithubUserName, repoName, []byte(deployKey))
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 		Expect(stdout).To(Equal(fmt.Sprintf("deploy key weave-gitops-deploy-key already exists for repo %s \n", repoName)))
@@ -529,13 +532,13 @@ var _ = Describe("Test deploy keys creation", func() {
 		deployKey := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBmym4XOiTj4rY3AcJKoJ8QupfgpFWtgNzDxzL0TrzfnurUQm+snozKLHGtOtS7PjMQsMaW9phyhhXv2KxadVI1uweFkC1TK4rPNWrqYX2g0JLXEScvaafSiv+SqozWLN/zhQ0e0jrtrYphtkd+H72RYsdq3mngY4WPJXM7z+HSjHSKilxj7XsxENt0dxT08LArxDC4OQXv9EYFgCyZ7SuLPBgA9160Co46Jm27enB/oBPx5zWd1MlkI+RtUi+XV2pLMzIpvYi2r2iWwOfDqE0N2cfpD0bY7cIOlv0iS7v6Qkmf7pBD+tRGTIZFcD5tGmZl1DOaeCZZ/VAN66aX+rN"
 
 		stdout := utils.CaptureStdout(func() {
-			err = UploadDeployKey(githubTestClient, accounts.GithubOrgName, repoName, []byte(deployKey))
+			err = UploadDeployKey(accounts.GithubOrgName, repoName, []byte(deployKey))
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 		Expect(stdout).To(Equal("uploading deploy key\n"))
 
 		stdout = utils.CaptureStdout(func() {
-			err = UploadDeployKey(githubTestClient, accounts.GithubOrgName, repoName, []byte(deployKey))
+			err = UploadDeployKey(accounts.GithubOrgName, repoName, []byte(deployKey))
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 		Expect(stdout).To(Equal(fmt.Sprintf("deploy key weave-gitops-deploy-key already exists for repo %s \n", repoName)))

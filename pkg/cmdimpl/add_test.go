@@ -61,7 +61,7 @@ func (h fakeGitRepoHandler) RepositoryExists(_ string, _ string) (bool, error) {
 	return false, gitprovider.ErrNotFound
 }
 
-func (h fakeGitRepoHandler) UploadDeployKey(_ gitprovider.Client, _, _ string, _ []byte) error {
+func (h fakeGitRepoHandler) UploadDeployKey(_, _ string, _ []byte) error {
 	return nil
 }
 
@@ -75,7 +75,7 @@ func (h fakeGitRepoHandlerDeployKey) RepositoryExists(_ string, _ string) (bool,
 	return true, nil
 }
 
-func (h fakeGitRepoHandlerDeployKey) UploadDeployKey(_ gitprovider.Client, _, _ string, _ []byte) error {
+func (h fakeGitRepoHandlerDeployKey) UploadDeployKey(_, _ string, _ []byte) error {
 	return nil
 }
 

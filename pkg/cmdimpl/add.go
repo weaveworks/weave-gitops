@@ -469,11 +469,7 @@ func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, er
 			if len(deployKeyBody) == 0 {
 				return nil, fmt.Errorf("no deploy key found [%s]", string(output))
 			}
-			githubProvider, err := gitproviders.GithubProvider()
-			if err != nil {
-				return nil, fmt.Errorf("error getting github provider %s", err)
-			}
-			if err := gitproviders.UploadDeployKey(githubProvider, owner, repoName, deployKeyLines[0]); err != nil {
+			if err := gitproviders.UploadDeployKey(owner, repoName, deployKeyLines[0]); err != nil {
 				return nil, wrapError(err, "error uploading deploy key")
 			}
 
