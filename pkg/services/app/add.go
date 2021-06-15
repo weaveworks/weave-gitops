@@ -74,15 +74,21 @@ func (a *App) Add(params AddParams) error {
 		return err
 	}
 
+	fmt.Println("Generating deploy key...")
+	secretRef, err := a.createAndUploadDeployKey(params.Url, clusterName, params.Namespace, params.DryRun)
+	if err != nil {
+		return errors.Wrap(err, "could not generate deploy key")
+	}
+
 	if params.AutomationRepo != "" {
-		return a.addAppWithConfigInExternalRepo(params, clusterName)
+		return a.addAppWithConfigInExternalRepo(params, clusterName, secretRef)
 	}
 
 	if params.CommitManifests {
-		return a.addAppWithConfigInAppRepo(params, clusterName)
+		return a.addAppWithConfigInAppRepo(params, clusterName, secretRef)
 	}
 
-	return a.addAppWithNoConfigRepo(params, clusterName)
+	return a.addAppWithNoConfigRepo(params, clusterName, secretRef)
 }
 
 func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
@@ -117,22 +123,6 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 	return params, nil
 }
 
-func (a *App) cloneRepo(url string, branch string) error {
-	url = sanitizeRepoUrl(url)
-
-	repoDir, err := ioutil.TempDir("", "user-repo-")
-	if err != nil {
-		return errors.Wrap(err, "failed creating temp. directory to clone repo")
-	}
-
-	_, err = a.git.Clone(context.Background(), repoDir, url, branch)
-	if err != nil {
-		return errors.Wrapf(err, "failed cloning user repo: %s", url)
-	}
-
-	return nil
-}
-
 func (a *App) getGitRemoteUrl(params AddParams) (string, error) {
 	repo, err := a.git.Open(params.Dir)
 	if err != nil {
@@ -152,17 +142,7 @@ func (a *App) getGitRemoteUrl(params AddParams) (string, error) {
 	return sanitizeRepoUrl(urls[0]), nil
 }
 
-func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string) error {
-	var secretRef string
-	var err error
-	fmt.Println("Generating deploy key...")
-	if !params.DryRun {
-		secretRef, err = a.createAndUploadDeployKey(params.Url, clusterName, params.Namespace)
-		if err != nil {
-			return errors.Wrap(err, "could not generate deploy key")
-		}
-	}
-
+func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secretRef string) error {
 	// Returns the source, app spec and kustomization
 	source, appGoat, appSpec, err := a.generateAppManifests(params, secretRef, clusterName)
 	if err != nil {
@@ -173,17 +153,7 @@ func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string) error
 	return a.applyToCluster(params, source, appGoat, appSpec)
 }
 
-func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string) error {
-	var secretRef string
-	var err error
-	fmt.Println("Generating deploy key...")
-	if !params.DryRun {
-		secretRef, err = a.createAndUploadDeployKey(params.Url, clusterName, params.Namespace)
-		if err != nil {
-			return errors.Wrap(err, "could not generate deploy key")
-		}
-	}
-
+func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, secretRef string) error {
 	// Returns the source, app spec and kustomization
 	source, appGoat, appSpec, err := a.generateAppManifests(params, secretRef, clusterName)
 	if err != nil {
@@ -198,18 +168,20 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string) er
 	// a local directory has not been passed, so we clone the repo passed in the --url
 	if params.Dir == "" {
 		fmt.Printf("Cloning %s...\n", params.Url)
-		if err := a.cloneRepo(params.Url, params.Branch); err != nil {
+		if err := a.cloneRepo(params.Url, params.Branch, params.DryRun); err != nil {
 			return errors.Wrap(err, "failed to clone application repo")
 		}
 	}
 
 	fmt.Println("Writing manifests to disk...")
-	if err := a.writeAppYaml(".wego", params.Name, appSpec); err != nil {
-		return errors.Wrap(err, "failed writing app.yaml to disk")
-	}
+	if !params.DryRun {
+		if err := a.writeAppYaml(".wego", params.Name, appSpec); err != nil {
+			return errors.Wrap(err, "failed writing app.yaml to disk")
+		}
 
-	if err := a.writeAppGoats(".wego", params.Name, clusterName, source, appGoat); err != nil {
-		return errors.Wrap(err, "failed writing app.yaml to disk")
+		if err := a.writeAppGoats(".wego", params.Name, clusterName, source, appGoat); err != nil {
+			return errors.Wrap(err, "failed writing app.yaml to disk")
+		}
 	}
 
 	return a.commitAndPush(params, func(fname string) bool {
@@ -217,19 +189,9 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string) er
 	})
 }
 
-func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName string) error {
+func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName string, secretRef string) error {
 	// making sure the url is in good format
 	params.AutomationRepo = sanitizeRepoUrl(params.AutomationRepo)
-
-	fmt.Println("Generating deploy key...")
-	var secretRef string
-	var err error
-	if !params.DryRun {
-		secretRef, err = a.createAndUploadDeployKey(params.AutomationRepo, clusterName, params.Namespace)
-		if err != nil {
-			return errors.Wrap(err, "could not generate deploy key")
-		}
-	}
 
 	// Returns the source, app spec and kustomization
 	appSource, appGoat, appSpec, err := a.generateAppManifests(params, secretRef, clusterName)
@@ -247,17 +209,19 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 		return errors.Wrapf(err, "could not apply manifests to the cluster")
 	}
 
-	if err := a.cloneRepo(params.AutomationRepo, params.AutomationRepoBranch); err != nil {
+	if err := a.cloneRepo(params.AutomationRepo, params.AutomationRepoBranch, params.DryRun); err != nil {
 		return errors.Wrap(err, "failed to clone application repo")
 	}
 
 	fmt.Println("Writing manifests to disk...")
-	if err := a.writeAppYaml(params.AutomationRepoPath, params.Name, appSpec); err != nil {
-		return errors.Wrap(err, "failed writing app.yaml to disk")
-	}
+	if !params.DryRun {
+		if err := a.writeAppYaml(params.AutomationRepoPath, params.Name, appSpec); err != nil {
+			return errors.Wrap(err, "failed writing app.yaml to disk")
+		}
 
-	if err := a.writeAppGoats(params.AutomationRepoPath, params.Name, clusterName, appSource, appGoat); err != nil {
-		return errors.Wrap(err, "failed writing app.yaml to disk")
+		if err := a.writeAppGoats(params.AutomationRepoPath, params.Name, clusterName, appSource, appGoat); err != nil {
+			return errors.Wrap(err, "failed writing app.yaml to disk")
+		}
 	}
 
 	return a.commitAndPush(params, func(fname string) bool {
@@ -343,10 +307,13 @@ func (a *App) commitAndPush(params AddParams, filters ...func(string) bool) erro
 	return nil
 }
 
-func (a *App) createAndUploadDeployKey(repoUrl string, clusterName string, namespace string) (string, error) {
+func (a *App) createAndUploadDeployKey(repoUrl string, clusterName string, namespace string, dryRun bool) (string, error) {
 	repoUrl = sanitizeRepoUrl(repoUrl)
-
 	secretRef := fmt.Sprintf("weave-gitops-%s", clusterName)
+
+	if dryRun {
+		return secretRef, nil
+	}
 
 	deployKey, err := a.flux.CreateSecretGit(secretRef, repoUrl, namespace)
 	if err != nil {
@@ -412,6 +379,26 @@ func (a *App) applyToCluster(params AddParams, manifests ...[]byte) error {
 		if out, err := a.kube.Apply(manifest, params.Namespace); err != nil {
 			return errors.Wrap(err, fmt.Sprintf("could not apply manifest: %s", string(out)))
 		}
+	}
+
+	return nil
+}
+
+func (a *App) cloneRepo(url string, branch string, dryRun bool) error {
+	if dryRun {
+		return nil
+	}
+
+	url = sanitizeRepoUrl(url)
+
+	repoDir, err := ioutil.TempDir("", "user-repo-")
+	if err != nil {
+		return errors.Wrap(err, "failed creating temp. directory to clone repo")
+	}
+
+	_, err = a.git.Clone(context.Background(), repoDir, url, branch)
+	if err != nil {
+		return errors.Wrapf(err, "failed cloning user repo: %s", url)
 	}
 
 	return nil
