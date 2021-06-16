@@ -164,6 +164,8 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 
+	SetGithubProvider(githubTestClient)
+
 	rand.Seed(time.Now().UnixNano())
 
 	exitCode := m.Run()
@@ -242,10 +244,7 @@ func TestRepositoryExistsOrg(t *testing.T) {
 
 	repoName := "repo-exists-org"
 
-	SetGithubProvider(githubTestClient)
-	defer SetGithubProvider(nil)
-
-	err := CreateRepository(accounts.GithubOrgName, repoName, true)
+	err := CreateRepository(repoName, accounts.GithubOrgName, true)
 	assert.NoError(t, err)
 
 	exists, err := RepositoryExists(repoName, accounts.GithubOrgName)
@@ -268,11 +267,8 @@ func TestRepositoryExistsPersonal(t *testing.T) {
 
 	repoName := "personal-repo-exists"
 
-	err := CreateRepository(accounts.GithubOrgName, repoName, true)
+	err := CreateRepository(repoName, accounts.GithubUserName, true)
 	assert.NoError(t, err)
-
-	SetGithubProvider(githubTestClient)
-	defer SetGithubProvider(nil)
 
 	exists, err := RepositoryExists(repoName, accounts.GithubUserName)
 	assert.NoError(t, err)
@@ -294,8 +290,6 @@ func TestCreateRepository(t *testing.T) {
 	privateOrgRepoName := "private-test-org-repo-0"
 	publicOrgRepoName := "public-test-org-repo-0"
 	userRepoName := "test-user-repo-0"
-
-	SetGithubProvider(githubTestClient)
 
 	err := CreateRepository(privateOrgRepoName, accounts.GithubOrgName, true)
 	assert.NoError(t, err)
@@ -495,8 +489,6 @@ var _ = Describe("Test deploy keys creation", func() {
 
 		accounts := getAccounts()
 
-		SetGithubProvider(githubTestClient)
-
 		repoName := "test-deploy-key-user-repo"
 		userRepoRef := NewUserRepositoryRef(github.DefaultDomain, accounts.GithubUserName, repoName)
 		repoInfo := NewRepositoryInfo("test user repository", gitprovider.RepositoryVisibilityPrivate)
@@ -536,8 +528,6 @@ var _ = Describe("Test deploy keys creation", func() {
 	It("Upload a new deploy key for a brand new org repo and show proper message if trying to re-add it", func() {
 
 		accounts := getAccounts()
-
-		SetGithubProvider(githubTestClient)
 
 		repoName := "test-deploy-key-org-repo"
 		orgRepoRef := NewOrgRepositoryRef(github.DefaultDomain, accounts.GithubOrgName, repoName)
