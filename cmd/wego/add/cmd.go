@@ -74,9 +74,10 @@ func runCmd(cmd *cobra.Command, args []string) {
 		}
 	}
 
+	cliRunner := &runner.CLIRunner{}
+	fluxClient := flux.New(cliRunner)
+	kubeClient := kube.New(cliRunner)
 	gitClient := git.New(authMethod)
-	fluxClient := flux.New(&runner.CLIRunner{})
-	kubeClient := kube.New()
 	gitProviders := gitproviders.New()
 
 	deps := &app.Dependencies{
