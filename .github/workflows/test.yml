@@ -143,8 +143,8 @@ jobs:
         export PATH=${PATH}:`go env GOPATH`/bin
         export WEGO_BIN_PATH=$(pwd)/bin/wego
         export CLUSTER_PROVIDER=kubectl
-        go get github.com/onsi/ginkgo
-        go get github.com/onsi/gomega
+        go get -u github.com/onsi/ginkgo/ginkgo
+        go get -u github.com/onsi/gomega
         ginkgo --focus=SmokeTest --randomizeSuites --reportFile=$(pwd)/test-results/smoke-test-results.xml -v ./test/acceptance/test/...
 
   acceptance-tests:
