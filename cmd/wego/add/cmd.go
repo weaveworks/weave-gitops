@@ -18,7 +18,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
-	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
@@ -61,14 +60,14 @@ func runCmd(cmd *cobra.Command, args []string) {
 
 	authMethod, err := ssh.NewPublicKeysFromFile("git", params.PrivateKey, params.PrivateKeyPass)
 	if err != nil {
-		fmt.Fprintf(shims.Stderr(), "failed reading ssh keys: %s\n", err)
-		shims.Exit(1)
+		fmt.Fprintf(os.Stderr, "failed reading ssh keys: %s\n", err)
+		os.Exit(1)
 	}
 
 	if params.Url == "" {
 		if len(args) == 0 {
-			fmt.Fprint(shims.Stderr(), "no app --url or app location specified")
-			shims.Exit(1)
+			fmt.Fprint(os.Stderr, "no app --url or app location specified")
+			os.Exit(1)
 		} else {
 			params.Dir = args[0]
 		}
@@ -89,16 +88,16 @@ func runCmd(cmd *cobra.Command, args []string) {
 	appService := app.New(deps)
 
 	if err := appService.Add(params); err != nil {
-		fmt.Fprintf(shims.Stderr(), "%v\n", err)
-		shims.Exit(1)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
 	}
 }
 
 func getHomeDir() string {
 	dir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Fprintf(shims.Stderr(), "could not determine user home directory\n")
-		shims.Exit(1)
+		fmt.Fprintf(os.Stderr, "could not determine user home directory\n")
+		os.Exit(1)
 	}
 	return dir
 }
@@ -113,7 +112,7 @@ func findPrivateKeyFile() string {
 	if utils.Exists(legacyFilePath) {
 		return legacyFilePath
 	}
-	fmt.Fprintf(shims.Stderr(), "could not locate ssh key file; please specify '--private-key'\n")
-	shims.Exit(1)
+	fmt.Fprintf(os.Stderr, "could not locate ssh key file; please specify '--private-key'\n")
+	os.Exit(1)
 	return ""
 }
