@@ -45,9 +45,9 @@ type KubeClient struct {
 	runner runner.Runner
 }
 
-func New() *KubeClient {
+func New(cliRunner runner.Runner) *KubeClient {
 	return &KubeClient{
-		runner: &runner.CLIRunner{},
+		runner: cliRunner,
 	}
 }
 
