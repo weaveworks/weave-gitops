@@ -1,5 +1,5 @@
 .PHONY: ui-dev
-VERSION=$(shell git describe --tags --always --match "v*")
+VERSION=$(shell git describe --always --match "v*")
 GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
 
