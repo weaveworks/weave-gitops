@@ -17,7 +17,7 @@ import (
 
 func init() {
 	if os.Getenv("LOG_LEVEL") == "DEBUG" {
-		// Only log the warning severity or above.
+		// Only log the debug severity or above.
 		log.SetLevel(log.DebugLevel)
 	} else if os.Getenv("LOG_LEVEL") == "WARN" {
 		// Only log the warning severity or above.
