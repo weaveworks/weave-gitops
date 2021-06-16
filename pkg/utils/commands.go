@@ -69,7 +69,6 @@ func CallCommand(cmdstr string) ([]byte, error) {
 		defer wg.Done()
 		for stdoutScanner.Scan() {
 			data := stdoutScanner.Text()
-			fmt.Println(data)
 			out.WriteString(data)
 			out.WriteRune('\n')
 		}
@@ -81,7 +80,6 @@ func CallCommand(cmdstr string) ([]byte, error) {
 		defer wg.Done()
 		for stderrScanner.Scan() {
 			data := stderrScanner.Text()
-			fmt.Println(data)
 			out.WriteString(data)
 			out.WriteRune('\n')
 		}

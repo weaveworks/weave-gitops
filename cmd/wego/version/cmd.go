@@ -2,9 +2,10 @@ package version
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/weaveworks/go-checkpoint"
-	"github.com/weaveworks/weave-gitops/pkg/version"
+	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 
 	"github.com/spf13/cobra"
 )
@@ -26,7 +27,12 @@ func runCmd(cmd *cobra.Command, args []string) {
 	fmt.Println("GitCommit:", GitCommit)
 	fmt.Println("BuildTime:", BuildTime)
 	fmt.Println("Branch:", Branch)
-	fmt.Println("Flux Version:", version.FluxVersion)
+	version, err := CheckFluxVersion()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("Flux Version:", version)
 }
 
 func CheckVersion() (string, error) {
@@ -36,7 +42,7 @@ func CheckVersion() (string, error) {
 	})
 
 	if err != nil {
-		return "", fmt.Errorf("Unable to retrieve latest version: %v", err)
+		return "", fmt.Errorf("unable to retrieve latest version: %v", err)
 	}
 
 	if checkResponse.Outdated {
@@ -45,4 +51,16 @@ func CheckVersion() (string, error) {
 	}
 
 	return "", nil
+}
+
+func CheckFluxVersion() (string, error) {
+	output, err := fluxops.CallFlux("-v")
+	if err != nil {
+		return "", err
+	}
+
+	// change string format to match other version info
+	version := strings.ReplaceAll(string(output), "flux version ", "v")
+
+	return version, nil
 }

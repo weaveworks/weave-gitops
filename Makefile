@@ -1,5 +1,5 @@
 .PHONY: ui-dev
-VERSION=$(shell git describe --always --match "v*")
+VERSION=$(shell git describe --tags --always --match "v*")
 GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
 
@@ -8,7 +8,7 @@ BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT=$(shell git log -n1 --pretty='%h')
 CURRENT_DIR=$(shell pwd)
 FLUX_VERSION=$(shell $(CURRENT_DIR)/tools/bin/stoml $(CURRENT_DIR)/tools/dependencies.toml flux.version)
-LDFLAGS = "-X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION)"
+LDFLAGS = "-X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION) -X github.com/weaveworks/weave-gitops/cmd/wego/version.Version=$(VERSION)"
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -68,7 +68,7 @@ cmd/ui/dist/main.js: package-lock.json
 	npm run build
 
 bin/$(BINARY_NAME)_ui: cmd/ui/main.go
-	go build -ldflags "-X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION)" -o bin/$(BINARY_NAME)_ui cmd/ui/main.go
+	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME)_ui cmd/ui/main.go
 
 lint:
 	golangci-lint run --out-format=github-actions --build-tags acceptance
