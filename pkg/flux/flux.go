@@ -3,10 +3,10 @@ package flux
 import (
 	"bytes"
 	"fmt"
+	"os"
 
 	"github.com/pkg/errors"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
-	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/version"
 )
 
@@ -26,9 +26,9 @@ type FluxClient struct {
 	runner runner.Runner
 }
 
-func New() Flux {
+func New(cliRunner runner.Runner) *FluxClient {
 	return &FluxClient{
-		runner: &runner.CLIRunner{},
+		runner: cliRunner,
 	}
 }
 
@@ -160,9 +160,9 @@ func (f *FluxClient) runFluxCmd(args ...string) ([]byte, error) {
 }
 
 func (f *FluxClient) fluxPath() (string, error) {
-	homeDir, err := shims.UserHomeDir()
+	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "failed getting user home directory")
 	}
 	path := fmt.Sprintf("%v/.wego/bin", homeDir)
 	return fmt.Sprintf("%v/flux-%v", path, version.FluxVersion), nil

@@ -16,6 +16,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -74,7 +75,7 @@ func runCmd(cmd *cobra.Command, args []string) {
 	}
 
 	gitClient := git.New(authMethod)
-	fluxClient := flux.New()
+	fluxClient := flux.New(&runner.CLIRunner{})
 	kubeClient := kube.New()
 	gitProviders := gitproviders.New()
 
