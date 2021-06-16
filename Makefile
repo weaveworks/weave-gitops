@@ -82,22 +82,19 @@ ui-test:
 ui-audit:
 	npm audit
 
-# Directory for coverage data
-coverage:
-	mkdir -p coverage
-
 # JS coverage info
 coverage/lcov.info:
 	npm run test -- --coverage
 
 # Golang gocov data. Not compatible with coveralls at this point.
-coverage.out: coverage
+coverage.out:
 	go get -u github.com/ory/go-acc
 	go-acc --ignore fakes,acceptance,pkg/api -o coverage.out ./... -- -v --timeout=496s -tags test
 	@go mod tidy
 
 # Convert gocov to lcov for coveralls
 coverage/golang.info: coverage.out
+	@mkdir -p coverage
 	@go get -u github.com/jandelgado/gcov2lcov
 	gcov2lcov -infile=coverage.out -outfile=coverage/golang.info
 
