@@ -139,7 +139,7 @@ func ResetOrCreateCluster(namespace string) (string, error) {
 
 	//For kubectl, point to a valid cluster, we will try to reset the namespace only
 	if namespace != "" && provider == "kubectl" {
-		err = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
+		err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
 		if err != nil {
 			log.Infof("Failed to uninstall the wego runtime %s", namespace)
 			return clusterName, err
@@ -225,6 +225,8 @@ func VerifyControllersInCluster(namespace string) {
 	Expect(waitForResource("deploy", "kustomize-controller", namespace, INSTALL_PODS_READY_TIMEOUT))
 	Expect(waitForResource("deploy", "notification-controller", namespace, INSTALL_PODS_READY_TIMEOUT))
 	Expect(waitForResource("deploy", "source-controller", namespace, INSTALL_PODS_READY_TIMEOUT))
+	Expect(waitForResource("deploy", "image-automation-controller", namespace, INSTALL_PODS_READY_TIMEOUT))
+	Expect(waitForResource("deploy", "image-reflector-controller", namespace, INSTALL_PODS_READY_TIMEOUT))
 	Expect(waitForResource("pods", "", namespace, INSTALL_PODS_READY_TIMEOUT))
 
 	By("And I wait for the wego controllers to be ready", func() {
@@ -242,7 +244,7 @@ func deleteRepo(appRepoName string) {
 
 func deleteWorkload(workloadName string, workloadNamespace string) {
 	log.Infof("Delete the namespace %s along with workload %s", workloadNamespace, workloadName)
-	_ = runCommandPassThrough([]string{}, "kubeclt", "delete", "ns", namespace)
+	_ = runCommandPassThrough([]string{}, "kubectl", "delete", "ns", workloadNamespace)
 	_ = waitForNamespaceToTerminate(workloadNamespace, INSTALL_RESET_TIMEOUT)
 }
 
