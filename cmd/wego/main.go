@@ -38,8 +38,10 @@ func configureLogger() {
 }
 
 var ApplicationCmd = &cobra.Command{
-	Use:  "app [subcommand]",
+	Use:   "app [app Add or status application]",
+	Short: "Use app commands",
 	Args: cobra.MinimumNArgs(1),
+	DisableFlagParsing: true,
 }
 
 func main() {
