@@ -44,6 +44,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			deleteRepo(appRepoName)
 		})
 
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(workloadName, workloadNamespace)
+		})
+
 		By("When I create a private repo with my app workload", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
@@ -86,6 +90,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("And application repo does not already exist", func() {
 			deleteRepo(appRepoName)
+		})
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(workloadName, workloadNamespace)
 		})
 
 		By("When I create an empty private repo", func() {
@@ -147,6 +155,11 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		By("And application repos do not already exist", func() {
 			deleteRepo(appRepoName1)
 			deleteRepo(appRepoName2)
+		})
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(workloadName1, workloadNamespace1)
+			deleteWorkload(workloadName2, workloadNamespace2)
 		})
 
 		By("When I create an empty private repo for app1", func() {
@@ -301,6 +314,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			deleteRepo(appRepoName)
 		})
 
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(workloadName, workloadNamespace)
+		})
+
 		By("When I create a private repo with my app workload", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
@@ -354,6 +371,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("And application repo does not already exist", func() {
 			deleteRepo(appRepoName)
+		})
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(workloadName, workloadNamespace)
 		})
 
 		By("When I create a private repo with my app workload", func() {
