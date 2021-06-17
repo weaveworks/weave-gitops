@@ -45,6 +45,7 @@ func New(auth transport.AuthMethod) *GoGit {
 	}
 }
 
+// Open opens a git repository in the provided path, and returns a repository.
 func (g *GoGit) Open(path string) (*gogit.Repository, error) {
 	g.path = path
 	repo, err := gogit.PlainOpen(path)
@@ -57,6 +58,10 @@ func (g *GoGit) Open(path string) (*gogit.Repository, error) {
 	return repo, nil
 }
 
+// Init initialises the directory at path with the remote and branch provided.
+//
+// If the directory is successfully initialised it returns true, otherwise if
+// the directory is already initialised, it returns false.
 func (g *GoGit) Init(path, url, branch string) (bool, error) {
 	if g.repository != nil {
 		return false, nil

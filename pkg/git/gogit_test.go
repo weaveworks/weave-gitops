@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
+	gogit "github.com/go-git/go-git/v5"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -37,6 +38,32 @@ var _ = Describe("Init", func() {
 
 		_, err = gitClient.Open(dir)
 		Expect(err).ShouldNot(HaveOccurred())
+	})
+
+	It("does nothing when the repository has already been initialized", func() {
+		init, err := gitClient.Init(dir, "https://github.com/github/gitignore", "master")
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(init).To(BeTrue())
+
+		init, err = gitClient.Init(dir, "https://github.com/github/gitignore", "master")
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(init).To(BeFalse())
+	})
+
+	It("returns an error when the directory already contains a repository", func() {
+		_, err := gitClient.Init(dir, "https://github.com/github/gitignore", "master")
+		Expect(err).ShouldNot(HaveOccurred())
+
+		init, err := git.New(nil).Init(dir, "https://github.com/github/gitignore", "master")
+		Expect(err).Should(MatchError("repository already exists"))
+		Expect(init).To(BeFalse())
+	})
+})
+
+var _ = Describe("Open", func() {
+	It("fails when the directory is an empty directory", func() {
+		_, err := gitClient.Open(dir)
+		Expect(err).To(MatchError("repository does not exist"))
 	})
 })
 
@@ -70,6 +97,14 @@ var _ = Describe("Write", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 
 		Expect(content).To(Equal(fileContent))
+	})
+
+	It("fails when the repository has not been initialized", func() {
+		_, err := gitClient.Init(dir, "https://github.com/github/gitignore", "master")
+
+		gc := git.New(nil)
+		err = gc.Write("testing.txt", []byte("testing"))
+		Expect(err).To(MatchError("no git repository"))
 	})
 })
 
@@ -153,6 +188,11 @@ var _ = Describe("Status", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(isClean).To(BeFalse())
 	})
+
+	It("fails if not initialized", func() {
+		_, err := gitClient.Status()
+		Expect(err).Should(MatchError("no git repository"))
+	})
 })
 
 var _ = Describe("Head", func() {
@@ -180,6 +220,21 @@ var _ = Describe("Head", func() {
 
 		Expect(string(out)).To(ContainSubstring(hash))
 	})
+
+	It("fails if not initialized", func() {
+		_, err := gitClient.Head()
+		Expect(err).Should(MatchError("no git repository"))
+	})
+
+	It("fails if no commits in the git repository", func() {
+		_, err := gogit.PlainInit(dir, true)
+		Expect(err).ShouldNot(HaveOccurred())
+		_, err = gitClient.Open(dir)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		_, err = gitClient.Head()
+		Expect(err).Should(MatchError("reference not found"))
+	})
 })
 
 var _ = Describe("Push", func() {
@@ -200,4 +255,20 @@ var _ = Describe("Push", func() {
 		err := gitClient.Push(context.Background())
 		Expect(err).Should(HaveOccurred())
 	})
+
+	It("fails if not initialized", func() {
+		err := gitClient.Push(context.Background())
+		Expect(err).Should(MatchError("no git repository"))
+	})
+
+	It("fails if no commits in the git repository", func() {
+		_, err := gogit.PlainInit(dir, true)
+		Expect(err).ShouldNot(HaveOccurred())
+		_, err = gitClient.Open(dir)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		err = gitClient.Push(context.Background())
+		Expect(err).Should(MatchError("remote not found"))
+	})
+
 })
