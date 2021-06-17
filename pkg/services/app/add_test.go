@@ -58,6 +58,18 @@ var _ = Describe("Add", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 
 		Expect(kubeClient.GetClusterStatusCallCount()).To(Equal(1))
+
+		kubeClient.GetClusterStatusStub = func() kube.ClusterStatus {
+			return kube.Unmodified
+		}
+		err = appSrv.Add(defaultParams)
+		Expect(err).To(MatchError("WeGO not installed... exiting"))
+
+		kubeClient.GetClusterStatusStub = func() kube.ClusterStatus {
+			return kube.Unknown
+		}
+		err = appSrv.Add(defaultParams)
+		Expect(err).To(MatchError("WeGO can not determine cluster status... exiting"))
 	})
 
 	It("gets the cluster name", func() {
@@ -563,6 +575,20 @@ var _ = Describe("Add", func() {
 			}))
 
 			Expect(len(filters)).To(Equal(0))
+		})
+	})
+
+	Context("when using dry-run", func() {
+		It("doesnt execute any action", func() {
+			defaultParams.DryRun = true
+
+			err := appSrv.Add(defaultParams)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(0))
+			Expect(gitClient.CloneCallCount()).To(Equal(0))
+			Expect(gitClient.WriteCallCount()).To(Equal(0))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(0))
 		})
 	})
 })

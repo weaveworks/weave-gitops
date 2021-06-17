@@ -97,11 +97,6 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 		return params, nil
 	}
 
-	if params.AppConfigUrl == string(ConfigTypeUserRepo) && params.SourceType != string(SourceTypeGit) {
-		return params, fmt.Errorf("cannot create .wego directory in helm repository:\n" +
-			"  you must either use --app-config-url=none or --appconfig-url=<url of external git repo>")
-	}
-
 	// Identifying repo url if not set by the user
 	if params.Url == "" {
 		url, err := a.getGitRemoteUrl(params)
