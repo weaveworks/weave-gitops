@@ -454,7 +454,6 @@ func generateSource(repoName, repoUrl string, sourceType SourceType) ([]byte, er
 		if params.DryRun {
 			fmt.Printf(cmd + "\n")
 		} else {
-			// TODO create a function for this in fluxops pkg
 			output, err := fluxops.WithFluxHandler(fluxops.QuietFluxHandler{}, func() ([]byte, error) {
 				return fluxops.CallFlux(cmd)
 			})

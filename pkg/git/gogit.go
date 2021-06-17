@@ -174,7 +174,7 @@ func (g *GoGit) Commit(message Commit, filters ...func(string) bool) (string, er
 		}
 		skip := false
 		for _, filter := range filters {
-			if !filter(abspath) {
+			if !filter(file) {
 				skip = true
 				break
 			}
