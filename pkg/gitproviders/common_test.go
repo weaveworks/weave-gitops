@@ -489,6 +489,8 @@ var _ = Describe("Test deploy keys creation", func() {
 
 		accounts := getAccounts()
 
+		SetGithubProvider(githubTestClient)
+
 		repoName := "test-deploy-key-user-repo"
 		userRepoRef := NewUserRepositoryRef(github.DefaultDomain, accounts.GithubUserName, repoName)
 		repoInfo := NewRepositoryInfo("test user repository", gitprovider.RepositoryVisibilityPrivate)
