@@ -1,6 +1,10 @@
 package app_test
 
 import (
+	"github.com/go-git/go-billy/v5/memfs"
+	gogit "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/storage/memory"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
@@ -206,7 +210,20 @@ var _ = Describe("Add", func() {
 
 	Context("add app with config in app repo", func() {
 		BeforeEach(func() {
+			defaultParams.Url = ""
 			defaultParams.AppConfigUrl = ""
+
+			gitClient.OpenStub = func(s string) (*gogit.Repository, error) {
+				r, err := gogit.Init(memory.NewStorage(), memfs.New())
+				Expect(err).ShouldNot(HaveOccurred())
+
+				_, err = r.CreateRemote(&config.RemoteConfig{
+					Name: "origin",
+					URLs: []string{"git@github.com:foo/bar.git"},
+				})
+				Expect(err).ShouldNot(HaveOccurred())
+				return r, nil
+			}
 		})
 
 		Describe("generates source manifest", func() {
@@ -318,6 +335,24 @@ var _ = Describe("Add", func() {
 			appSpecManifest, namespace := kubeClient.ApplyArgsForCall(2)
 			Expect(string(appSpecManifest)).To(ContainSubstring("kind: Application"))
 			Expect(namespace).To(Equal("wego-system"))
+		})
+
+		Context("when using URL", func() {
+			BeforeEach(func() {
+				defaultParams.Url = "ssh://git@github.com/foo/bar.git"
+			})
+
+			It("clones the repo to a temp dir", func() {
+				err := appSrv.Add(defaultParams)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				Expect(gitClient.CloneCallCount()).To(Equal(1))
+				_, repoDir, url, branch := gitClient.CloneArgsForCall(0)
+
+				Expect(repoDir).To(ContainSubstring("user-repo-"))
+				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
+				Expect(branch).To(Equal("main"))
+			})
 		})
 
 		It("writes the files to the disk", func() {
