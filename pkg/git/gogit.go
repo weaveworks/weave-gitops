@@ -113,7 +113,8 @@ func (g *GoGit) Clone(ctx context.Context, path, url, branch string) (bool, erro
 		Tags:          gogit.NoTags,
 	})
 	if err != nil {
-		if err == transport.ErrEmptyRemoteRepository || isRemoteBranchNotFoundErr(err) {
+		if err == transport.ErrEmptyRemoteRepository ||
+			errors.Is(err, gogit.NoMatchingRefSpecError{}) {
 			return g.Init(path, url, branch)
 		}
 		return false, err
@@ -246,8 +247,4 @@ func (g *GoGit) Head() (string, error) {
 		return "", err
 	}
 	return head.Hash().String(), nil
-}
-
-func isRemoteBranchNotFoundErr(err error) bool {
-	return errors.Is(err, gogit.NoMatchingRefSpecError{})
 }
