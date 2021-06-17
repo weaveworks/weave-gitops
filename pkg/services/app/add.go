@@ -318,7 +318,6 @@ func (a *App) createAndUploadDeployKey(reposUrls []string, clusterName string, n
 	}
 
 	for _, repoUrl := range reposUrls {
-
 		if repoUrl == "" || ConfigType(repoUrl) == ConfigTypeNone {
 			continue
 		}
