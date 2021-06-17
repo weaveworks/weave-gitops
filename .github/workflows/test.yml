@@ -139,7 +139,7 @@ jobs:
       run: go get github.com/onsi/ginkgo/ginkgo@v1.16.1
     - name: Run smoke tests from acceptance suite
       env:
-        GITHUB_ORG: wkp-example-org
+        GITHUB_ORG: weaveworks-gitops-test
         GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
         GITHUB_KEY: "${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}"
       run: |
@@ -194,7 +194,7 @@ jobs:
       run: go get github.com/onsi/ginkgo/ginkgo@v1.16.1
     - name: Run Full Acceptance Suite
       env:
-        GITHUB_ORG: wkp-example-org
+        GITHUB_ORG: weaveworks-gitops-test
         GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
         GITHUB_KEY: "${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}"
       run: |
