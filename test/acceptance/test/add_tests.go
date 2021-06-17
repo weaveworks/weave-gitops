@@ -341,7 +341,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("Then I should see dry-run output with specified: url, namespace, branch", func() {
 			Eventually(session).Should(gbytes.Say("using URL: '" + url + "'"))
-			Eventually(session).Should(gbytes.Say("Checking cluster status... FluxInstalled"))
+			Eventually(session).Should(gbytes.Say("Checking cluster status... WeGOInstalled"))
 			Eventually(session).Should(gbytes.Say(`apiVersion:.*\nkind: GitRepository\nmetadata:\n\s*name: ` + appName + `\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE + `[a-z0-9:\n\s*]+branch: ` + branchName + `\n\s*.*\n\s*name: ` + appName + `\n\s*url: ` + url))
 			Eventually(session).Should(gbytes.Say(
 				`apiVersion:.*\nkind: ` + appType + `\nmetadata:\n\s*name: ` + appName + `\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE + `[\w\d\W\n\s*]+kind: GitRepository\n\s*name: ` + appName))
