@@ -85,4 +85,15 @@ error occurred some error, retrying in 1s
 `))
 
 	})
+
+	It("Verify CaptureStdout captures whatever is printed out to stdout in the callback", func() {
+
+		var d = func() {
+			fmt.Fprintf(os.Stdout, "my output")
+		}
+
+		stdout := CaptureStdout(d)
+		Expect(stdout).To(Equal("my output"))
+
+	})
 })

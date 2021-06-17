@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -124,13 +125,15 @@ func (h defaultGitProviderHandler) CreateRepository(name string, owner string, p
 }
 
 func (h defaultGitProviderHandler) UploadDeployKey(owner, repoName string, deployKey []byte) error {
+
 	provider, err := GithubProvider()
 	if err != nil {
 		return err
 	}
 
+	deployKeyName := "weave-gitops-deploy-key"
 	deployKeyInfo := gitprovider.DeployKeyInfo{
-		Name: "weave-gitops-deploy-key",
+		Name: deployKeyName,
 		Key:  deployKey,
 	}
 
@@ -139,32 +142,61 @@ func (h defaultGitProviderHandler) UploadDeployKey(owner, repoName string, deplo
 		return err
 	}
 
+	ctx := context.Background()
+	defer ctx.Done()
 	switch ownerType {
 	case AccountTypeOrg:
-		ctx := context.Background()
-		defer ctx.Done()
 		orgRef := NewOrgRepositoryRef(github.DefaultDomain, owner, repoName)
 		orgRepo, err := provider.OrgRepositories().Get(ctx, orgRef)
 		if err != nil {
 			return fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s ", owner, repoName, err)
 		}
-		fmt.Printf("Uploading deploy key to %s\n", repoName)
-		_, err = orgRepo.DeployKeys().Create(ctx, deployKeyInfo)
+		_, err = orgRepo.DeployKeys().Get(ctx, deployKeyName)
 		if err != nil {
-			return fmt.Errorf("error uploading deploy key %s", err)
+			if errors.Is(err, gitprovider.ErrNotFound) {
+				fmt.Println("uploading deploy key")
+				_, err = orgRepo.DeployKeys().Create(ctx, deployKeyInfo)
+				if err != nil {
+					return fmt.Errorf("error uploading deploy key %s", err)
+				}
+				if err = utils.WaitUntil(os.Stdout, time.Second, time.Second*10, func() error {
+					_, err = orgRepo.DeployKeys().Get(ctx, deployKeyName)
+					return err
+				}); err != nil {
+					return fmt.Errorf("error getting deploy key %s for repo %s. %s", deployKeyName, repoName, err)
+				}
+			} else {
+				return fmt.Errorf("error getting deploy key %s for repo %s. %s", deployKeyName, repoName, err)
+			}
+		} else {
+			fmt.Printf("deploy key %s already exists for repo %s \n", deployKeyName, repoName)
 		}
+
 	case AccountTypeUser:
-		ctx := context.Background()
-		defer ctx.Done()
 		userRef := NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
 		userRepo, err := provider.UserRepositories().Get(ctx, userRef)
 		if err != nil {
 			return fmt.Errorf("error getting user repo reference for owner %s, repo %s, %s ", owner, repoName, err)
 		}
-		fmt.Println("Uploading deploy key")
-		_, err = userRepo.DeployKeys().Create(ctx, deployKeyInfo)
-		if err != nil {
-			return fmt.Errorf("error uploading deploy key %s", err)
+		_, err = userRepo.DeployKeys().Get(ctx, deployKeyName)
+		if err != nil && !strings.Contains(err.Error(), "key is already in use") {
+			if errors.Is(err, gitprovider.ErrNotFound) {
+				fmt.Println("uploading deploy key")
+				_, err = userRepo.DeployKeys().Create(ctx, deployKeyInfo)
+				if err != nil {
+					return fmt.Errorf("error uploading deploy key %s", err)
+				}
+				if err = utils.WaitUntil(os.Stdout, time.Second, time.Second*10, func() error {
+					_, err = userRepo.DeployKeys().Get(ctx, deployKeyName)
+					return err
+				}); err != nil {
+					return fmt.Errorf("error getting deploy key %s for repo %s. %s", deployKeyName, repoName, err)
+				}
+			} else {
+				return fmt.Errorf("error getting deploy key %s for repo %s. %s", deployKeyName, repoName, err)
+			}
+		} else {
+			fmt.Printf("deploy key %s already exists for repo %s \n", deployKeyName, repoName)
 		}
 	default:
 		return fmt.Errorf("account type not supported %s", ownerType)

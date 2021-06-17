@@ -44,6 +44,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			deleteRepo(appRepoName)
 		})
 
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(workloadName, workloadNamespace)
+		})
+
 		By("When I create a private repo with my app workload", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
@@ -86,6 +90,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("And application repo does not already exist", func() {
 			deleteRepo(appRepoName)
+		})
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(workloadName, workloadNamespace)
 		})
 
 		By("When I create an empty private repo", func() {
@@ -147,6 +155,11 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		By("And application repos do not already exist", func() {
 			deleteRepo(appRepoName1)
 			deleteRepo(appRepoName2)
+		})
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(workloadName1, workloadNamespace1)
+			deleteWorkload(workloadName2, workloadNamespace2)
 		})
 
 		By("When I create an empty private repo for app1", func() {
@@ -283,7 +296,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		var repoAbsolutePath string
 		var session *gexec.Session
 		private := true
-		branchName := "test-branch"
+		branchName := "test-branch-01"
 		appManifestFilePath := "./data/nginx.yaml"
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		appRepoName := "wego-test-app-" + RandString(8)
@@ -301,6 +314,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			deleteRepo(appRepoName)
 		})
 
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(workloadName, workloadNamespace)
+		})
+
 		By("When I create a private repo with my app workload", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
@@ -315,7 +332,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("And I create a new branch", func() {
-			createGitRepoBranch(branchName)
+			createGitRepoBranch(repoAbsolutePath, branchName)
 		})
 
 		By("And I run 'wego app add dry-run' command", func() {
@@ -336,16 +353,16 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	})
 
 	// Eventually this test run will include all the remaining un-automated `wego app add` flags.
-	It("Verify 'wego app add' works when --url flag is specified", func() {
+	It("Verify 'wego app add' works with user-specified branch", func() {
 		var repoAbsolutePath string
 		private := true
 		appRepoName := "wego-test-app-" + RandString(8)
-		url := "ssh://git@github.com/" + os.Getenv("GITHUB_ORG") + "/" + appRepoName + ".git"
+		branchName := "test-branch-02"
 		appManifestFilePath := "./data/nginx.yaml"
 		workloadName := "nginx"
 		workloadNamespace := "my-nginx"
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
-		addCommand := "app add . --url=" + url
+		addCommand := "app add . --branch=" + branchName
 		appName := appRepoName
 		var addCommandOutput string
 
@@ -354,6 +371,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("And application repo does not already exist", func() {
 			deleteRepo(appRepoName)
+		})
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(workloadName, workloadNamespace)
 		})
 
 		By("When I create a private repo with my app workload", func() {
@@ -369,12 +390,16 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			setupSSHKey(defaultSshKeyPath)
 		})
 
-		By("And I run wego add command with url flag specified", func() {
+		By("And I create a new branch", func() {
+			createGitRepoBranch(repoAbsolutePath, branchName)
+		})
+
+		By("And I run wego add command with specified branch", func() {
 			addCommandOutput, _ = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("Then I should see wego using the specified url", func() {
-			Eventually(addCommandOutput).Should(ContainSubstring("using URL: '" + url + "'"))
+			Eventually(addCommandOutput).Should(ContainSubstring("branch: " + branchName))
 		})
 
 		By("And I should see should see my workload deployed to the cluster", func() {

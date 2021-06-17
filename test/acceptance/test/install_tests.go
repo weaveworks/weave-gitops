@@ -13,14 +13,12 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var (
+/*var (
 	err       error
 	namespace string
-)
+)*/
 
 var _ = Describe("Weave GitOps Install Tests", func() {
-
-	var session *gexec.Session
 
 	BeforeEach(func() {
 		By("Given I have a wego binary installed on my local machine", func() {
@@ -30,6 +28,8 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 	It("Validate that wego displays help text for 'install' command", func() {
 
+		var session *gexec.Session
+		var err error
 		By("When I run the command 'wego install -h'", func() {
 			command := exec.Command(WEGO_BIN_PATH, "install", "-h")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -63,7 +63,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		By("When I run 'wego install' command with default namespace", func() {
 			command := exec.Command("sh", "-c", fmt.Sprintf("%s install", WEGO_BIN_PATH))
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 			Eventually(session).Should(gexec.Exit())
 		})
@@ -73,7 +73,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 	It("Verify that wego can add flux controllers to a user-specified namespace", func() {
 
-		namespace = "test-namespace"
+		namespace := "test-namespace"
 
 		By("And I have a brand new cluster", func() {
 			_, err := ResetOrCreateCluster(namespace)
@@ -82,14 +82,14 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		By("And I create a namespace for my controllers", func() {
 			command := exec.Command("kubectl", "create", "namespace", namespace)
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 			Eventually(session).Should(gexec.Exit())
 		})
 
 		By("When I run 'wego install' command with specified namespace", func() {
 			command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace %s", WEGO_BIN_PATH, namespace))
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 			Eventually(session).Should(gexec.Exit())
 		})

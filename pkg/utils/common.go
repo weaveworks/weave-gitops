@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"time"
 )
@@ -26,4 +27,20 @@ func WaitUntil(out io.Writer, poll, timeout time.Duration, checkDone func() erro
 		fmt.Fprintf(out, "error occurred %s, retrying in %s\n", err, poll.String())
 	}
 	return fmt.Errorf("timeout reached %s", timeout.String())
+}
+
+type callback func()
+
+func CaptureStdout(c callback) string {
+	r, w, _ := os.Pipe()
+	tmp := os.Stdout
+	defer func() {
+		os.Stdout = tmp
+	}()
+	os.Stdout = w
+	c()
+	w.Close()
+	stdout, _ := ioutil.ReadAll(r)
+
+	return string(stdout)
 }
