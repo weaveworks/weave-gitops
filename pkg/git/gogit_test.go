@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -115,6 +116,27 @@ var _ = Describe("Commit", func() {
 		isClean, err := gitClient.Status()
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(isClean).To(BeFalse())
+	})
+
+	It("commits into a given repository skipping filtered files on .wego folder", func() {
+		_, err = gitClient.Init(dir, "https://github.com/github/gitignore", "master")
+		Expect(err).ShouldNot(HaveOccurred())
+
+		filePath := ".wego/test.txt"
+		content := []byte("testing")
+		err = gitClient.Write(filePath, content)
+
+		_, err = gitClient.Commit(git.Commit{
+			Author:  git.Author{Name: "test", Email: "test@example.com"},
+			Message: "test commit",
+		},
+			func(fname string) bool {
+				return strings.HasPrefix(fname, ".wego")
+			})
+		Expect(err).ShouldNot(HaveOccurred())
+		isClean, err := gitClient.Status()
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(isClean).To(BeTrue())
 	})
 })
 
