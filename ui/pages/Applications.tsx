@@ -4,7 +4,8 @@ import DataTable from "../components/DataTable";
 import Icon, { IconType } from "../components/Icon";
 import Link from "../components/Link";
 import Page from "../components/Page";
-import Timestamp from "../components/Timestamp";
+import useApplications from "../hooks/applications";
+import { Application } from "../lib/api/applications/applications.pb";
 import { PageRoute } from "../lib/types";
 import { formatURL } from "../lib/utils";
 
@@ -12,17 +13,9 @@ type Props = {
   className?: string;
 };
 
-const rows = [
-  {
-    name: "my-cool-app",
-    status: "Ready",
-    lastUpdate: "2006-01-02T15:04:05-0700",
-  },
-  { name: "podinfo", status: "Ready", lastUpdate: "2006-01-02T15:04:05-0700" },
-  { name: "nginx", status: "Ready", lastUpdate: "2006-01-02T15:04:05-0700" },
-];
-
 function Applications({ className }: Props) {
+  const { applications } = useApplications();
+
   return (
     <Page title="Applications" className={className}>
       <DataTable
@@ -30,7 +23,7 @@ function Applications({ className }: Props) {
         fields={[
           {
             label: "Name",
-            value: ({ name }) => (
+            value: ({ name }: Application) => (
               <Link to={formatURL(PageRoute.ApplicationDetail, { name })}>
                 {name}
               </Link>
@@ -47,12 +40,8 @@ function Applications({ className }: Props) {
               />
             ),
           },
-          {
-            label: "Last Updated",
-            value: (v) => <Timestamp time={v.lastUpdate} />,
-          },
         ]}
-        rows={rows}
+        rows={applications}
       />
     </Page>
   );
