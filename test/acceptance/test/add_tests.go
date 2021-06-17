@@ -249,7 +249,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("Then I should see should see my workload deployed to the cluster", func() {
-			verifyWegoAddCommand(appRepoName, WEGO_DEFAULT_NAMESPACE)
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
 			Expect(waitForResource("apps", appName, WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 			Expect(waitForResource("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 		})
