@@ -76,13 +76,7 @@ func runCmd(cmd *cobra.Command, args []string) {
 	gitClient := git.New(authMethod)
 	gitProviders := gitproviders.New()
 
-	deps := &app.Dependencies{
-		Git:          gitClient,
-		Flux:         fluxClient,
-		Kube:         kubeClient,
-		GitProviders: gitProviders,
-	}
-	appService := app.New(deps)
+	appService := app.New(gitClient, fluxClient, kubeClient, gitProviders)
 
 	if err := appService.Add(params); err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)

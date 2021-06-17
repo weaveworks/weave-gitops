@@ -7,13 +7,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
-type Dependencies struct {
-	Git          git.Git
-	GitProviders gitproviders.GitProviderHandler
-	Flux         flux.Flux
-	Kube         kube.Kube
-}
-
 type AppService interface {
 	Add(params AddParams) error
 	Status(params StatusParams) error
@@ -28,12 +21,12 @@ type App struct {
 	gitProviders gitproviders.GitProviderHandler
 }
 
-func New(deps *Dependencies) *App {
+func New(git git.Git, flux flux.Flux, kube kube.Kube, gitProviders gitproviders.GitProviderHandler) *App {
 	return &App{
-		git:          deps.Git,
-		flux:         deps.Flux,
-		kube:         deps.Kube,
-		gitProviders: deps.GitProviders,
+		git:          git,
+		flux:         flux,
+		kube:         kube,
+		gitProviders: gitProviders,
 	}
 }
 

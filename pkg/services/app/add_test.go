@@ -39,14 +39,7 @@ var _ = BeforeEach(func() {
 	}
 	gitProviders = &gitprovidersfakes.FakeGitProviderHandler{}
 
-	deps := &app.Dependencies{
-		Git:          gitClient,
-		Flux:         fluxClient,
-		Kube:         kubeClient,
-		GitProviders: gitProviders,
-	}
-
-	appSrv = app.New(deps)
+	appSrv = app.New(gitClient, fluxClient, kubeClient, gitProviders)
 
 	defaultParams = app.AddParams{
 		Url:            "https://github.com/foo/bar",
