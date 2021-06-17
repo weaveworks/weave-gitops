@@ -15,6 +15,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/override"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
 type ProviderAccountType string
 
 const (
@@ -23,10 +25,18 @@ const (
 )
 
 // GitProvider Handler
+//counterfeiter:generate . GitProviderHandler
 type GitProviderHandler interface {
 	CreateRepository(name string, owner string, private bool) error
 	RepositoryExists(name string, owner string) (bool, error)
 	UploadDeployKey(owner, repoName string, deployKey []byte) error
+}
+
+// making sure it implements the interface
+var _ GitProviderHandler = defaultGitProviderHandler{}
+
+func New() defaultGitProviderHandler {
+	return defaultGitProviderHandler{}
 }
 
 var gitProviderHandler interface{} = defaultGitProviderHandler{}

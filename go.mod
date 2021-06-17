@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/dnaeon/go-vcr v1.2.0
 	github.com/fluxcd/go-git-providers v0.1.1
+	github.com/go-git/go-billy/v5 v5.3.1
 	github.com/go-git/go-git/v5 v5.4.1
 	github.com/golang/glog v0.0.0-20210429001901-424d2337a529 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.4.0
@@ -13,6 +14,7 @@ require (
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.13.0
+	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
