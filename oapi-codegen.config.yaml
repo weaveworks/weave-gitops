@@ -1,0 +1,5 @@
+output: pkg/openapi-client/wego_server.go
+package: wego_client
+generate:
+  - types
+  - client
