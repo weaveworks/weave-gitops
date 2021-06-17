@@ -9,9 +9,6 @@ import (
 
 type AppService interface {
 	Add(params AddParams) error
-	Status(params StatusParams) error
-	Install(params InstallParams) error
-	Uninstall(params UninstallParams) error
 }
 
 type App struct {
