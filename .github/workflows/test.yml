@@ -188,8 +188,6 @@ jobs:
         git config --global user.email "weave-test-user@example.com"
         git config --global user.name "Testy McTestFace"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-    - name: Install Ginkgo binary
-      run: go get github.com/onsi/ginkgo/ginkgo@v1.16.1
     - name: Run Full Acceptance Suite
       env:
         GITHUB_ORG: wkp-example-org
@@ -198,6 +196,6 @@ jobs:
       run: |
         export PATH=${PATH}:`go env GOPATH`/bin
         export WEGO_BIN_PATH=$(pwd)/bin/wego
-        go get -u github.com/onsi/ginkgo/ginkgo
-        go get -u github.com/onsi/gomega
+        go get github.com/onsi/ginkgo/ginkgo
+        go get github.com/onsi/gomega/...
         ginkgo --randomizeSuites --reportFile=$(pwd)/test-results/smoke-test-results.xml -v ./test/acceptance/test/...
