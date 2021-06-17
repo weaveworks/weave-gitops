@@ -122,22 +122,21 @@ func updateParametersIfNecessary(gitClient git.Git) error {
 
 	}
 
-	sshPrefix := "git@github.com:"
-	if strings.HasPrefix(params.Url, sshPrefix) {
-		trimmed := strings.TrimPrefix(params.Url, sshPrefix)
-		params.Url = "ssh://git@github.com/" + trimmed
-	}
+	parseSSHURLIfNecessary(&params.Url)
 
-	if params.AppConfigUrl != "" {
-		if strings.HasPrefix(params.AppConfigUrl, sshPrefix) {
-			trimmed := strings.TrimPrefix(params.AppConfigUrl, sshPrefix)
-			params.AppConfigUrl = "ssh://git@github.com/" + trimmed
-		}
-	}
+	parseSSHURLIfNecessary(&params.AppConfigUrl)
 
 	fmt.Printf("using URL: '%s' of origin from git config...\n\n", params.Url)
 
 	return nil
+}
+
+func parseSSHURLIfNecessary(url *string) {
+	sshPrefix := "git@github.com:"
+	if strings.HasPrefix(*url, sshPrefix) {
+		trimmed := strings.TrimPrefix(*url, sshPrefix)
+		*url = "ssh://git@github.com/" + trimmed
+	}
 }
 
 func getUrls(client git.Git, remote string) ([]string, error) {
