@@ -19,11 +19,11 @@ package git
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	gogit "github.com/go-git/go-git/v5"
@@ -113,7 +113,7 @@ func (g *GoGit) Clone(ctx context.Context, path, url, branch string) (bool, erro
 		Tags:          gogit.NoTags,
 	})
 	if err != nil {
-		if err == transport.ErrEmptyRemoteRepository || isRemoteBranchNotFoundErr(err, branchRef.String()) {
+		if err == transport.ErrEmptyRemoteRepository || isRemoteBranchNotFoundErr(err) {
 			return g.Init(path, url, branch)
 		}
 		return false, err
@@ -248,6 +248,6 @@ func (g *GoGit) Head() (string, error) {
 	return head.Hash().String(), nil
 }
 
-func isRemoteBranchNotFoundErr(err error, ref string) bool {
-	return strings.Contains(err.Error(), fmt.Sprintf("couldn't find remote ref %q", ref))
+func isRemoteBranchNotFoundErr(err error) bool {
+	return errors.Is(err, gogit.NoMatchingRefSpecError{})
 }
