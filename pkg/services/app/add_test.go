@@ -50,6 +50,7 @@ var _ = BeforeEach(func() {
 		Dir:            ".",
 		DeploymentType: "kustomize",
 		Namespace:      "wego-system",
+		AppConfigUrl:   "NONE",
 	}
 })
 
@@ -91,8 +92,6 @@ var _ = Describe("Add", func() {
 
 	Context("add app with no config repo", func() {
 		BeforeEach(func() {
-			defaultParams.AutomationRepo = ""
-			defaultParams.CommitManifests = false
 		})
 
 		Describe("generates source manifest", func() {

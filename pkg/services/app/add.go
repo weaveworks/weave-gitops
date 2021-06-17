@@ -30,22 +30,19 @@ const (
 )
 
 type AddParams struct {
-	Dir                  string
-	Name                 string
-	Url                  string
-	Path                 string
-	Branch               string
-	PrivateKey           string
-	PrivateKeyPass       string
-	DeploymentType       string
-	Chart                string
-	SourceType           string
-	CommitManifests      bool
-	AutomationRepo       string
-	AutomationRepoPath   string
-	AutomationRepoBranch string
-	Namespace            string
-	DryRun               bool
+	Dir            string
+	Name           string
+	Url            string
+	Path           string
+	Branch         string
+	PrivateKey     string
+	PrivateKeyPass string
+	DeploymentType string
+	Chart          string
+	SourceType     string
+	AppConfigUrl   string
+	Namespace      string
+	DryRun         bool
 }
 
 func (a *App) Add(params AddParams) error {
@@ -73,21 +70,22 @@ func (a *App) Add(params AddParams) error {
 		return err
 	}
 
+	params.AppConfigUrl = strings.ToUpper(params.AppConfigUrl)
+
 	fmt.Println("Generating deploy key...")
-	secretRef, err := a.createAndUploadDeployKey([]string{params.Url, params.AutomationRepo}, clusterName, params.Namespace, params.DryRun)
+	secretRef, err := a.createAndUploadDeployKey([]string{params.Url, params.AppConfigUrl}, clusterName, params.Namespace, params.DryRun)
 	if err != nil {
 		return errors.Wrap(err, "could not generate deploy key")
 	}
 
-	if params.AutomationRepo != "" {
+	switch params.AppConfigUrl {
+	case string(ConfigTypeNone):
+		return a.addAppWithNoConfigRepo(params, clusterName, secretRef)
+	case string(ConfigTypeUserRepo):
+		return a.addAppWithConfigInAppRepo(params, clusterName, secretRef)
+	default:
 		return a.addAppWithConfigInExternalRepo(params, clusterName, secretRef)
 	}
-
-	if params.CommitManifests {
-		return a.addAppWithConfigInAppRepo(params, clusterName, secretRef)
-	}
-
-	return a.addAppWithNoConfigRepo(params, clusterName, secretRef)
 }
 
 func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
@@ -99,6 +97,11 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 		params.Name = params.Chart
 
 		return params, nil
+	}
+
+	if params.AppConfigUrl == string(ConfigTypeUserRepo) && params.SourceType != string(SourceTypeGit) {
+		return params, fmt.Errorf("cannot create .wego directory in helm repository:\n" +
+			"  you must either use --app-config-url=none or --appconfig-url=<url of external git repo>")
 	}
 
 	// Identifying repo url if not set by the user
@@ -194,7 +197,7 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 
 func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName string, secretRef string) error {
 	// making sure the url is in good format
-	params.AutomationRepo = sanitizeRepoUrl(params.AutomationRepo)
+	params.AppConfigUrl = sanitizeRepoUrl(params.AppConfigUrl)
 
 	// Returns the source, app spec and kustomization
 	appSource, appGoat, appSpec, err := a.generateAppManifests(params, secretRef, clusterName)
@@ -212,24 +215,22 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 		return errors.Wrapf(err, "could not apply manifests to the cluster")
 	}
 
-	if err := a.cloneRepo(params.AutomationRepo, params.AutomationRepoBranch, params.DryRun); err != nil {
+	if err := a.cloneRepo(params.AppConfigUrl, params.Branch, params.DryRun); err != nil {
 		return errors.Wrap(err, "failed to clone application repo")
 	}
 
 	fmt.Println("Writing manifests to disk...")
 	if !params.DryRun {
-		if err := a.writeAppYaml(params.AutomationRepoPath, params.Name, appSpec); err != nil {
+		if err := a.writeAppYaml(".", params.Name, appSpec); err != nil {
 			return errors.Wrap(err, "failed writing app.yaml to disk")
 		}
 
-		if err := a.writeAppGoats(params.AutomationRepoPath, params.Name, clusterName, appSource, appGoat); err != nil {
+		if err := a.writeAppGoats(".", params.Name, clusterName, appSource, appGoat); err != nil {
 			return errors.Wrap(err, "failed writing app.yaml to disk")
 		}
 	}
 
-	return a.commitAndPush(params, func(fname string) bool {
-		return strings.Contains(fname, strings.TrimPrefix(params.AutomationRepoPath, "./"))
-	})
+	return a.commitAndPush(params)
 }
 
 func (a *App) generateAppManifests(params AddParams, secretRef string, clusterName string) ([]byte, []byte, []byte, error) {
@@ -271,15 +272,15 @@ func (a *App) generateTargetManifests(params AddParams, secretRef string, cluste
 }
 
 func (a *App) generateTargetSource(params AddParams, secretRef string) ([]byte, error) {
-	repoName := generateResourceName(params.AutomationRepo)
+	repoName := generateResourceName(params.AppConfigUrl)
 
-	return a.flux.CreateSourceGit(repoName, params.AutomationRepo, params.AutomationRepoBranch, secretRef, params.Namespace)
+	return a.flux.CreateSourceGit(repoName, params.AppConfigUrl, params.Branch, secretRef, params.Namespace)
 }
 
 func (a *App) generateTargetGoat(params AddParams, clusterName string) ([]byte, error) {
-	repoName := urlToRepoName(params.AutomationRepo)
+	repoName := urlToRepoName(params.AppConfigUrl)
 
-	targetPath := filepath.Join(params.AutomationRepoPath, "targets", clusterName)
+	targetPath := filepath.Join(".", "targets", clusterName)
 
 	return a.flux.CreateKustomization(fmt.Sprintf("weave-gitops-%s", clusterName), repoName, targetPath, params.Namespace)
 }
@@ -317,7 +318,8 @@ func (a *App) createAndUploadDeployKey(reposUrls []string, clusterName string, n
 	}
 
 	for _, repoUrl := range reposUrls {
-		if repoUrl == "" {
+
+		if repoUrl == "" || ConfigType(repoUrl) == ConfigTypeNone {
 			continue
 		}
 

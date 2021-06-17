@@ -41,11 +41,8 @@ func init() {
 	Cmd.Flags().StringVar(&params.DeploymentType, "deployment-type", "kustomize", "deployment type [kustomize, helm]")
 	Cmd.Flags().StringVar(&params.Chart, "chart", "", "Specify chart for helm source")
 	Cmd.Flags().StringVar(&params.PrivateKey, "private-key", "", "Private key to access git repository over ssh")
-	Cmd.Flags().BoolVar(&params.CommitManifests, "commit-manifests", true, "commits gitops automation manifests into the application repository. When using using '--automation-repo' this flag is ignored and it always commits.")
+	Cmd.Flags().StringVar(&params.AppConfigUrl, "app-config-url", "", "URL of external repository (if any) which will hold automation manifests; NONE to store only in the cluster")
 	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'wego add' will not make any changes to the system; it will just display the actions that would have been taken")
-	Cmd.Flags().StringVar(&params.AutomationRepo, "automation-repo", "", "Repository that will hold the Gitops Automation manifests")
-	Cmd.Flags().StringVar(&params.AutomationRepoBranch, "automation-repo-branch", "main", "Repository branch that will hold the Gitops Automation manifests")
-	Cmd.Flags().StringVar(&params.AutomationRepoPath, "automation-repo-path", "./wego", "Repository path that will hold the Gitops Automation manifests")
 }
 
 func runCmd(cmd *cobra.Command, args []string) {
