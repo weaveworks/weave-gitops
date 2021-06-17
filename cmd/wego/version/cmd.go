@@ -54,6 +54,7 @@ func CheckVersion() (string, error) {
 }
 
 func CheckFluxVersion() (string, error) {
+	fluxops.SetFluxHandler(&fluxops.QuietFluxHandler{})
 	output, err := fluxops.CallFlux("-v")
 	if err != nil {
 		return "", err
