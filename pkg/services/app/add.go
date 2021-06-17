@@ -70,15 +70,13 @@ func (a *App) Add(params AddParams) error {
 		return err
 	}
 
-	params.AppConfigUrl = strings.ToUpper(params.AppConfigUrl)
-
 	fmt.Println("Generating deploy key...")
 	secretRef, err := a.createAndUploadDeployKey([]string{params.Url, params.AppConfigUrl}, clusterName, params.Namespace, params.DryRun)
 	if err != nil {
 		return errors.Wrap(err, "could not generate deploy key")
 	}
 
-	switch params.AppConfigUrl {
+	switch strings.ToUpper(params.AppConfigUrl) {
 	case string(ConfigTypeNone):
 		return a.addAppWithNoConfigRepo(params, clusterName, secretRef)
 	case string(ConfigTypeUserRepo):
@@ -318,7 +316,7 @@ func (a *App) createAndUploadDeployKey(reposUrls []string, clusterName string, n
 	}
 
 	for _, repoUrl := range reposUrls {
-		if repoUrl == "" || ConfigType(repoUrl) == ConfigTypeNone {
+		if repoUrl == "" || ConfigType(strings.ToUpper(repoUrl)) == ConfigTypeNone {
 			continue
 		}
 
