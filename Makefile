@@ -68,7 +68,7 @@ cmd/ui/dist/main.js: package-lock.json
 	npm run build
 
 bin/$(BINARY_NAME)_ui: cmd/ui/main.go
-	go build -ldflags "-X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION)" -o bin/$(BINARY_NAME)_ui cmd/ui/main.go
+	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME)_ui cmd/ui/main.go
 
 lint:
 	golangci-lint run --out-format=github-actions --build-tags acceptance
