@@ -159,8 +159,14 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 		return errors.Wrap(err, "could not generate application GitOps Automation manifests")
 	}
 
+	// Kustomization pointing to the in repo .wego directory
+	appWegoGoat, err := a.generateAppWegoManifests(params, clusterName)
+	if err != nil {
+		return errors.Wrap(err, "could not create GitOps automation for .wego directory")
+	}
+
 	fmt.Println("Applying manifests to the cluster...")
-	if err := a.applyToCluster(params, source, appGoat, appSpec); err != nil {
+	if err := a.applyToCluster(params, source, appGoat, appSpec, appWegoGoat); err != nil {
 		return errors.Wrap(err, "could not apply manifests to the cluster")
 	}
 
@@ -198,7 +204,7 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 		return errors.Wrap(err, "could not generate application GitOps Automation manifests")
 	}
 
-	targetSource, targetGoat, err := a.generateTargetManifests(params, secretRef, clusterName)
+	targetSource, targetGoat, err := a.generateExternalRepoManifests(params, secretRef, clusterName)
 	if err != nil {
 		return errors.Wrap(err, "could not generate target GitOps Automation manifests")
 	}
@@ -250,32 +256,39 @@ func (a *App) generateAppManifests(params AddParams, secretRef string, clusterNa
 	return sourceManifest, appGoatManifest, appManifest, nil
 }
 
-func (a *App) generateTargetManifests(params AddParams, secretRef string, clusterName string) ([]byte, []byte, error) {
-	targetSource, err := a.generateTargetSource(params, secretRef)
+func (a *App) generateAppWegoManifests(params AddParams, clusterName string) ([]byte, error) {
+	wegoPath := ".wego"
+
+	appsDirManifest, err := a.flux.CreateKustomization(params.Name+"-wego-apps-dir", params.Name, filepath.Join(wegoPath, "apps", params.Name), params.Namespace)
+	if err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("could not create kustomization for '%s' .wego/apps", params.Name))
+	}
+
+	targetDirManifest, err := a.flux.CreateKustomization(fmt.Sprintf("%s-%s", clusterName, params.Name), params.Name, filepath.Join(wegoPath, "targets", clusterName), params.Namespace)
+	if err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("could not create kustomization for '%s' .wego/apps", params.Name))
+	}
+
+	manifests := bytes.Join([][]byte{appsDirManifest, targetDirManifest}, []byte(""))
+
+	return bytes.ReplaceAll(manifests, []byte("path: ./wego"), []byte("path: .wego")), nil
+}
+
+func (a *App) generateExternalRepoManifests(params AddParams, secretRef string, clusterName string) ([]byte, []byte, error) {
+	repoName := generateResourceName(params.AppConfigUrl)
+
+	targetSource, err := a.flux.CreateSourceGit(repoName, params.AppConfigUrl, params.Branch, secretRef, params.Namespace)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not generate target source manifests")
 	}
 
-	targetGoat, err := a.generateTargetGoat(params, clusterName)
+	targetPath := filepath.Join(".", "targets", clusterName)
+	targetGoat, err := a.flux.CreateKustomization(fmt.Sprintf("weave-gitops-%s", clusterName), repoName, targetPath, params.Namespace)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not generate target goat manifests")
 	}
 
 	return targetSource, targetGoat, nil
-}
-
-func (a *App) generateTargetSource(params AddParams, secretRef string) ([]byte, error) {
-	repoName := generateResourceName(params.AppConfigUrl)
-
-	return a.flux.CreateSourceGit(repoName, params.AppConfigUrl, params.Branch, secretRef, params.Namespace)
-}
-
-func (a *App) generateTargetGoat(params AddParams, clusterName string) ([]byte, error) {
-	repoName := urlToRepoName(params.AppConfigUrl)
-
-	targetPath := filepath.Join(".", "targets", clusterName)
-
-	return a.flux.CreateKustomization(fmt.Sprintf("weave-gitops-%s", clusterName), repoName, targetPath, params.Namespace)
 }
 
 func (a *App) commitAndPush(params AddParams, filters ...func(string) bool) error {

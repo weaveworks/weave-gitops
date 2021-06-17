@@ -118,7 +118,7 @@ var _ = Describe("Add", func() {
 				Expect(namespace).To(Equal("wego-system"))
 			})
 
-			It("creates HelmResitory when source type is helm", func() {
+			It("creates HelmRepository when source type is helm", func() {
 				defaultParams.Url = "https://charts.kube-ops.io"
 				defaultParams.Chart = "loki"
 
@@ -248,7 +248,7 @@ var _ = Describe("Add", func() {
 				Expect(namespace).To(Equal("wego-system"))
 			})
 
-			It("creates HelmResitory when source type is helm", func() {
+			It("creates HelmRepository when source type is helm", func() {
 				defaultParams.Url = "https://charts.kube-ops.io"
 				defaultParams.Chart = "loki"
 
@@ -269,12 +269,24 @@ var _ = Describe("Add", func() {
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				Expect(fluxClient.CreateKustomizationCallCount()).To(Equal(1))
+				Expect(fluxClient.CreateKustomizationCallCount()).To(Equal(3))
 
 				name, source, path, namespace := fluxClient.CreateKustomizationArgsForCall(0)
 				Expect(name).To(Equal("bar"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("./kustomize"))
+				Expect(namespace).To(Equal("wego-system"))
+
+				name, source, path, namespace = fluxClient.CreateKustomizationArgsForCall(1)
+				Expect(name).To(Equal("bar-wego-apps-dir"))
+				Expect(source).To(Equal("bar"))
+				Expect(path).To(Equal(".wego/apps/bar"))
+				Expect(namespace).To(Equal("wego-system"))
+
+				name, source, path, namespace = fluxClient.CreateKustomizationArgsForCall(2)
+				Expect(name).To(Equal("test-cluster-bar"))
+				Expect(source).To(Equal("bar"))
+				Expect(path).To(Equal(".wego/targets/test-cluster"))
 				Expect(namespace).To(Equal("wego-system"))
 			})
 
@@ -327,7 +339,7 @@ var _ = Describe("Add", func() {
 			err := appSrv.Add(defaultParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(kubeClient.ApplyCallCount()).To(Equal(3))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(4))
 
 			sourceManifest, namespace := kubeClient.ApplyArgsForCall(0)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
@@ -339,6 +351,10 @@ var _ = Describe("Add", func() {
 
 			appSpecManifest, namespace := kubeClient.ApplyArgsForCall(2)
 			Expect(string(appSpecManifest)).To(ContainSubstring("kind: Application"))
+			Expect(namespace).To(Equal("wego-system"))
+
+			appWegoManifest, namespace := kubeClient.ApplyArgsForCall(3)
+			Expect(string(appWegoManifest)).To(ContainSubstring("kustomization"))
 			Expect(namespace).To(Equal("wego-system"))
 		})
 
@@ -428,7 +444,7 @@ var _ = Describe("Add", func() {
 				Expect(namespace).To(Equal("wego-system"))
 			})
 
-			It("creates HelmResitory when source type is helm", func() {
+			It("creates HelmRepository when source type is helm", func() {
 				defaultParams.Url = "https://charts.kube-ops.io"
 				defaultParams.Chart = "loki"
 
