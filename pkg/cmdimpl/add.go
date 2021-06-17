@@ -128,6 +128,13 @@ func updateParametersIfNecessary(gitClient git.Git) error {
 		params.Url = "ssh://git@github.com/" + trimmed
 	}
 
+	if params.AppConfigUrl != "" {
+		if strings.HasPrefix(params.AppConfigUrl, sshPrefix) {
+			trimmed := strings.TrimPrefix(params.AppConfigUrl, sshPrefix)
+			params.AppConfigUrl = "ssh://git@github.com/" + trimmed
+		}
+	}
+
 	fmt.Printf("using URL: '%s' of origin from git config...\n\n", params.Url)
 
 	return nil
