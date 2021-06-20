@@ -150,9 +150,7 @@ var failGitClient = gitfakes.FakeGit{
 		return nil
 	},
 	StatusStub: func() (bool, error) {
-		fmt.Println("failing status")
-		shims.Exit(1)
-		return false, nil
+		return true, nil
 	},
 	WriteStub: func(a string, b []byte) error {
 		fmt.Println("failing write")
@@ -180,7 +178,7 @@ var ignoreGitClient = gitfakes.FakeGit{
 	},
 	StatusStub: func() (bool, error) {
 		fmt.Println("ignoring status")
-		return false, nil
+		return true, nil
 	},
 	WriteStub: func(a string, b []byte) error {
 		fmt.Println("ignoring write")
@@ -501,5 +499,59 @@ var _ = Describe("Wet Run Add Test", func() {
 				gitproviders.Override(fgphandler),
 				status.Override(shandler))
 		})
+	})
+
+	It("fails when the repository is in a dirty state", func() {
+		fgphandler := fakeGitRepoHandlerDeployKey{}
+		shandler := statusHandler{}
+		_ = override.WithOverrides(
+			func() override.Result {
+				deps := &AddDependencies{
+					GitClient: &gitfakes.FakeGit{
+						StatusStub: func() (bool, error) {
+							return false, nil
+						},
+					},
+				}
+				gitDir, err := ioutil.TempDir("", "git-")
+				Expect(err).To(BeNil())
+				defer os.RemoveAll(gitDir)
+				_, err = deps.GitClient.Init(gitDir, "a url we ignore", "main")
+				Expect(err).To(BeNil())
+
+				err = Add([]string{"."},
+					AddParamSet{
+						Name:           "",
+						Url:            "",
+						Dir:            ".",
+						AppConfigUrl:   "",
+						Path:           "./foo",
+						Branch:         "main",
+						DryRun:         false,
+						Namespace:      "wego-system",
+						DeploymentType: string(DeployTypeKustomize),
+					}, deps)
+
+				Expect(err).To(HaveOccurred())
+				return override.Result{}
+			},
+			utils.OverrideIgnore(utils.CallCommandForEffectWithInputPipeOp),
+			utils.OverrideIgnore(utils.CallCommandForEffectWithDebugOp),
+			utils.OverrideBehavior(utils.CallCommandForEffectOp, handleGitLsRemote),
+			utils.OverrideBehavior(utils.CallCommandSeparatingOutputStreamsOp,
+				func(args ...interface{}) ([]byte, []byte, error) {
+					case0Kubectl := `kubectl config current-context`
+					Expect(args[0].(string)).Should(Equal(case0Kubectl))
+					switch (args[0]).(string) {
+					case case0Kubectl:
+						return []byte("my-cluster"), []byte(""), nil
+					default:
+						return nil, nil, fmt.Errorf("arguments not expected %s", args)
+					}
+
+				}),
+			fluxops.Override(FailFluxHandler),
+			gitproviders.Override(fgphandler),
+			status.Override(shandler))
 	})
 })
