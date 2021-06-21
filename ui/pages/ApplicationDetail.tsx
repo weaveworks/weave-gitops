@@ -33,11 +33,7 @@ function ApplicationDetail({ className }: Props) {
       <KeyValueTable
         columns={4}
         pairs={[
-<<<<<<< HEAD
           { key: "Name", value: app.name },
-=======
-          { key: "name", value: app.name },
->>>>>>> Add GetApplication to API and Frontend
           { key: "URL", value: app.url },
           { key: "Path", value: app.path },
         ]}
