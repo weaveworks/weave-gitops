@@ -22,6 +22,18 @@ type FakeKube struct {
 		result1 []byte
 		result2 error
 	}
+	FluxPresentStub        func() (bool, error)
+	fluxPresentMutex       sync.RWMutex
+	fluxPresentArgsForCall []struct {
+	}
+	fluxPresentReturns struct {
+		result1 bool
+		result2 error
+	}
+	fluxPresentReturnsOnCall map[int]struct {
+		result1 bool
+		result2 error
+	}
 	GetClusterNameStub        func() (string, error)
 	getClusterNameMutex       sync.RWMutex
 	getClusterNameArgsForCall []struct {
@@ -114,6 +126,62 @@ func (fake *FakeKube) ApplyReturnsOnCall(i int, result1 []byte, result2 error) {
 	}
 	fake.applyReturnsOnCall[i] = struct {
 		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeKube) FluxPresent() (bool, error) {
+	fake.fluxPresentMutex.Lock()
+	ret, specificReturn := fake.fluxPresentReturnsOnCall[len(fake.fluxPresentArgsForCall)]
+	fake.fluxPresentArgsForCall = append(fake.fluxPresentArgsForCall, struct {
+	}{})
+	stub := fake.FluxPresentStub
+	fakeReturns := fake.fluxPresentReturns
+	fake.recordInvocation("FluxPresent", []interface{}{})
+	fake.fluxPresentMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeKube) FluxPresentCallCount() int {
+	fake.fluxPresentMutex.RLock()
+	defer fake.fluxPresentMutex.RUnlock()
+	return len(fake.fluxPresentArgsForCall)
+}
+
+func (fake *FakeKube) FluxPresentCalls(stub func() (bool, error)) {
+	fake.fluxPresentMutex.Lock()
+	defer fake.fluxPresentMutex.Unlock()
+	fake.FluxPresentStub = stub
+}
+
+func (fake *FakeKube) FluxPresentReturns(result1 bool, result2 error) {
+	fake.fluxPresentMutex.Lock()
+	defer fake.fluxPresentMutex.Unlock()
+	fake.FluxPresentStub = nil
+	fake.fluxPresentReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeKube) FluxPresentReturnsOnCall(i int, result1 bool, result2 error) {
+	fake.fluxPresentMutex.Lock()
+	defer fake.fluxPresentMutex.Unlock()
+	fake.FluxPresentStub = nil
+	if fake.fluxPresentReturnsOnCall == nil {
+		fake.fluxPresentReturnsOnCall = make(map[int]struct {
+			result1 bool
+			result2 error
+		})
+	}
+	fake.fluxPresentReturnsOnCall[i] = struct {
+		result1 bool
 		result2 error
 	}{result1, result2}
 }
@@ -232,6 +300,8 @@ func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.applyMutex.RLock()
 	defer fake.applyMutex.RUnlock()
+	fake.fluxPresentMutex.RLock()
+	defer fake.fluxPresentMutex.RUnlock()
 	fake.getClusterNameMutex.RLock()
 	defer fake.getClusterNameMutex.RUnlock()
 	fake.getClusterStatusMutex.RLock()
