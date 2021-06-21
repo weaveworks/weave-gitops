@@ -42,14 +42,20 @@ func (f *FluxClient) Install(namespace string, export bool) ([]byte, error) {
 
 	if export {
 		args = append(args, "--export")
+
+		out, err := f.runFluxCmd(args...)
+		if err != nil {
+			return out, errors.Wrap(err, "failed to run flux install")
+		}
+
+		return out, nil
 	}
 
-	out, err := f.runFluxCmd(args...)
-	if err != nil {
-		return out, errors.Wrap(err, "failed to run flux install")
+	if _, err := f.runFluxCmdOutputStream(args...); err != nil {
+		return []byte{}, errors.Wrap(err, "failed to run flux binary")
 	}
 
-	return out, nil
+	return []byte{}, nil
 }
 
 func (f *FluxClient) CreateSourceGit(name string, url string, branch string, secretRef string, namespace string) ([]byte, error) {
@@ -173,7 +179,20 @@ func (f *FluxClient) runFluxCmd(args ...string) ([]byte, error) {
 	}
 	out, err := f.runner.Run(fluxPath, args...)
 	if err != nil {
-		return []byte{}, fmt.Errorf("failed to run git with output: %s", string(out))
+		return []byte{}, fmt.Errorf("failed to run flux with output: %s", string(out))
+	}
+
+	return out, nil
+}
+
+func (f *FluxClient) runFluxCmdOutputStream(args ...string) ([]byte, error) {
+	fluxPath, err := f.fluxPath()
+	if err != nil {
+		return []byte{}, errors.Wrap(err, "error getting flux binary path")
+	}
+	out, err := f.runner.RunWithOutputStream(fluxPath, args...)
+	if err != nil {
+		return []byte{}, fmt.Errorf("failed to run flux with output: %s", string(out))
 	}
 
 	return out, nil
