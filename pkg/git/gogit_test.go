@@ -27,8 +27,7 @@ var _ = BeforeEach(func() {
 })
 
 var _ = AfterEach(func() {
-	err := os.RemoveAll(dir)
-	Expect(err).ShouldNot(HaveOccurred())
+	Expect(os.RemoveAll(dir)).To(Succeed())
 })
 
 var _ = Describe("Init", func() {
@@ -91,7 +90,7 @@ var _ = Describe("Write", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 		filePath := "/test.txt"
 		content := []byte("testing")
-		err = gitClient.Write(filePath, content)
+		Expect(gitClient.Write(filePath, content)).To(Succeed())
 
 		fileContent, err := ioutil.ReadFile(dir + filePath)
 		Expect(err).ShouldNot(HaveOccurred())
@@ -101,10 +100,21 @@ var _ = Describe("Write", func() {
 
 	It("fails when the repository has not been initialized", func() {
 		_, err := gitClient.Init(dir, "https://github.com/github/gitignore", "master")
+		Expect(err).ShouldNot(HaveOccurred())
 
 		gc := git.New(nil)
 		err = gc.Write("testing.txt", []byte("testing"))
 		Expect(err).To(MatchError("no git repository"))
+	})
+
+	It("returns an error if the repository is bare", func() {
+		_, err = gogit.PlainInit(dir, true)
+		Expect(err).ShouldNot(HaveOccurred())
+		_, err = gitClient.Open(dir)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		err := gitClient.Write("testing.txt", []byte("testing"))
+		Expect(err).Should(MatchError("failed to open the worktree: worktree not available in a bare repository"))
 	})
 })
 
@@ -115,7 +125,7 @@ var _ = Describe("Commit", func() {
 
 		filePath := "/test.txt"
 		content := []byte("testing")
-		err = gitClient.Write(filePath, content)
+		Expect(gitClient.Write(filePath, content)).To(Succeed())
 
 		_, err = gitClient.Commit(git.Commit{
 			Author:  git.Author{Name: "test", Email: "test@example.com"},
@@ -133,7 +143,7 @@ var _ = Describe("Commit", func() {
 
 		filePath := "/test.txt"
 		content := []byte("testing")
-		err = gitClient.Write(filePath, content)
+		Expect(gitClient.Write(filePath, content)).To(Succeed())
 
 		_, err = gitClient.Commit(git.Commit{
 			Author:  git.Author{Name: "test", Email: "test@example.com"},
@@ -154,7 +164,7 @@ var _ = Describe("Commit", func() {
 
 		filePath := ".wego/test.txt"
 		content := []byte("testing")
-		err = gitClient.Write(filePath, content)
+		Expect(gitClient.Write(filePath, content)).To(Succeed())
 
 		_, err = gitClient.Commit(git.Commit{
 			Author:  git.Author{Name: "test", Email: "test@example.com"},
@@ -174,7 +184,7 @@ var _ = Describe("Commit", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 		filePath := "/test.txt"
 		content := []byte("testing")
-		err = gitClient.Write(filePath, content)
+		Expect(gitClient.Write(filePath, content)).To(Succeed())
 
 		_, err = gitClient.Commit(git.Commit{
 			Author:  git.Author{Name: "test", Email: "test@example.com"},
@@ -209,7 +219,7 @@ var _ = Describe("Status", func() {
 
 		filePath := "/test.txt"
 		content := []byte("testing")
-		err = gitClient.Write(filePath, content)
+		Expect(gitClient.Write(filePath, content)).To(Succeed())
 
 		isClean, err := gitClient.Status()
 		Expect(err).ShouldNot(HaveOccurred())
@@ -238,7 +248,7 @@ var _ = Describe("Head", func() {
 
 		filePath := "/test.txt"
 		content := []byte("testing")
-		err = gitClient.Write(filePath, content)
+		Expect(gitClient.Write(filePath, content)).To(Succeed())
 
 		_, err = gitClient.Commit(git.Commit{
 			Author:  git.Author{Name: "test", Email: "test@example.com"},
@@ -249,11 +259,8 @@ var _ = Describe("Head", func() {
 		hash, err := gitClient.Head()
 		Expect(err).ShouldNot(HaveOccurred())
 
-		err = os.Chdir(dir)
+		out := executeCommand(dir, "sh", "-c", `git log -1`)
 		Expect(err).ShouldNot(HaveOccurred())
-		out, err := exec.Command("sh", "-c", `git log -1`).Output()
-		Expect(err).ShouldNot(HaveOccurred())
-
 		Expect(out).To(ContainSubstring(hash))
 	})
 
@@ -280,7 +287,7 @@ var _ = Describe("Push", func() {
 
 		filePath := "/test.txt"
 		content := []byte("testing")
-		err = gitClient.Write(filePath, content)
+		Expect(gitClient.Write(filePath, content)).To(Succeed())
 
 		_, err = gitClient.Commit(git.Commit{
 			Author:  git.Author{Name: "test", Email: "test@example.com"},

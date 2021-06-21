@@ -99,6 +99,11 @@ func (g *GoGit) Init(path, url, branch string) (bool, error) {
 	return true, nil
 }
 
+// Clone clones a starting repository URL to a path, and checks out the provided
+// branch name.
+//
+// If the directory is successfully initialised, it returns true, otherwise it
+// returns false.
 func (g *GoGit) Clone(ctx context.Context, path, url, branch string) (bool, error) {
 	g.path = path
 	branchRef := plumbing.NewBranchReferenceName(branch)
@@ -113,7 +118,7 @@ func (g *GoGit) Clone(ctx context.Context, path, url, branch string) (bool, erro
 		Tags:          gogit.NoTags,
 	})
 	if err != nil {
-		if err == transport.ErrEmptyRemoteRepository ||
+		if errors.Is(err, transport.ErrEmptyRemoteRepository) ||
 			errors.Is(err, gogit.NoMatchingRefSpecError{}) {
 			return g.Init(path, url, branch)
 		}
@@ -124,6 +129,8 @@ func (g *GoGit) Clone(ctx context.Context, path, url, branch string) (bool, erro
 	return true, nil
 }
 
+// Write writes the provided content to the path, if the file exists, it will be
+// truncated.
 func (g *GoGit) Write(path string, content []byte) error {
 	if g.repository == nil {
 		return ErrNoGitRepository
@@ -131,12 +138,12 @@ func (g *GoGit) Write(path string, content []byte) error {
 
 	wt, err := g.repository.Worktree()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open the worktree: %w", err)
 	}
 
 	f, err := wt.Filesystem.Create(path)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create file in %s: %w", path, err)
 	}
 	defer f.Close()
 
@@ -151,7 +158,7 @@ func (g *GoGit) Commit(message Commit, filters ...func(string) bool) (string, er
 
 	wt, err := g.repository.Worktree()
 	if err != nil {
-		return "", fmt.Errorf("failed to open the worktree: %s", err)
+		return "", fmt.Errorf("failed to open the worktree: %w", err)
 	}
 
 	status, err := wt.Status()
