@@ -477,28 +477,30 @@ func urlToRepoName(url string) string {
 	return strings.TrimSuffix(filepath.Base(url), ".git")
 }
 
-func sanitizeRepoUrl(url string) string {
-	trimmed := ""
+func sanitizeRepoUrl(sourceURL string) string {
 
-	if !strings.HasSuffix(url, ".git") {
-		url = url + ".git"
+	gitSuffix := ".git"
+	if strings.HasSuffix(sourceURL, gitSuffix) {
+		sourceURL = strings.TrimSuffix(sourceURL, gitSuffix)
 	}
 
-	sshPrefix := "git@github.com:"
-	if strings.HasPrefix(url, sshPrefix) {
-		trimmed = strings.TrimPrefix(url, sshPrefix)
+	gitSSHPrefix := "git@github.com:"
+	if strings.HasPrefix(sourceURL, gitSSHPrefix) {
+		sourceURL = strings.TrimPrefix(sourceURL, gitSSHPrefix)
 	}
 
 	httpsPrefix := "https://github.com/"
-	if strings.HasPrefix(url, httpsPrefix) {
-		trimmed = strings.TrimPrefix(url, httpsPrefix)
+	if strings.HasPrefix(sourceURL, httpsPrefix) {
+		sourceURL = strings.TrimPrefix(sourceURL, httpsPrefix)
 	}
 
-	if trimmed != "" {
-		return "ssh://git@github.com/" + trimmed
+	sshPrefix := "ssh://git@github.com/"
+	if strings.HasPrefix(sourceURL, sshPrefix) {
+		return sourceURL
 	}
 
-	return url
+	return sshPrefix + sourceURL
+
 }
 
 // NOTE: ready to save the targets automation in phase 2

@@ -1,4 +1,4 @@
-package app_test
+package app
 
 import (
 	"github.com/go-git/go-billy/v5/memfs"
@@ -13,7 +13,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	"github.com/weaveworks/weave-gitops/pkg/services/app"
 )
 
 var (
@@ -22,8 +21,8 @@ var (
 	kubeClient   *kubefakes.FakeKube
 	gitProviders *gitprovidersfakes.FakeGitProviderHandler
 
-	appSrv        app.AppService
-	defaultParams app.AddParams
+	appSrv        AppService
+	defaultParams AddParams
 )
 
 var _ = BeforeEach(func() {
@@ -39,9 +38,9 @@ var _ = BeforeEach(func() {
 	}
 	gitProviders = &gitprovidersfakes.FakeGitProviderHandler{}
 
-	appSrv = app.New(gitClient, fluxClient, kubeClient, gitProviders)
+	appSrv = New(gitClient, fluxClient, kubeClient, gitProviders)
 
-	defaultParams = app.AddParams{
+	defaultParams = AddParams{
 		Url:            "https://github.com/foo/bar",
 		Path:           "./kustomize",
 		Branch:         "main",
@@ -103,7 +102,7 @@ var _ = Describe("Add", func() {
 	Context("add app with no config repo", func() {
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
-				defaultParams.SourceType = string(app.SourceTypeGit)
+				defaultParams.SourceType = string(SourceTypeGit)
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -164,7 +163,7 @@ var _ = Describe("Add", func() {
 
 			It("creates a helm release using a git source if source type is git", func() {
 				defaultParams.Path = "./charts/my-chart"
-				defaultParams.DeploymentType = string(app.DeployTypeHelm)
+				defaultParams.DeploymentType = string(DeployTypeHelm)
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -233,7 +232,7 @@ var _ = Describe("Add", func() {
 
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
-				defaultParams.SourceType = string(app.SourceTypeGit)
+				defaultParams.SourceType = string(SourceTypeGit)
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -306,7 +305,7 @@ var _ = Describe("Add", func() {
 
 			It("creates a helm release using a git source if source type is git", func() {
 				defaultParams.Path = "./charts/my-chart"
-				defaultParams.DeploymentType = string(app.DeployTypeHelm)
+				defaultParams.DeploymentType = string(DeployTypeHelm)
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -390,7 +389,7 @@ var _ = Describe("Add", func() {
 			Expect(gitClient.WriteCallCount()).To(Equal(2))
 
 			path, content := gitClient.WriteArgsForCall(0)
-			Expect(path).To(Equal(".wego/apps/bar/app.yaml"))
+			Expect(path).To(Equal(".wego/apps/bar/yaml"))
 			Expect(string(content)).To(ContainSubstring("kind: Application"))
 
 			path, content = gitClient.WriteArgsForCall(1)
@@ -422,7 +421,7 @@ var _ = Describe("Add", func() {
 
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
-				defaultParams.SourceType = string(app.SourceTypeGit)
+				defaultParams.SourceType = string(SourceTypeGit)
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -496,7 +495,7 @@ var _ = Describe("Add", func() {
 
 			It("creates a helm release using a git source if source type is git", func() {
 				defaultParams.Path = "./charts/my-chart"
-				defaultParams.DeploymentType = string(app.DeployTypeHelm)
+				defaultParams.DeploymentType = string(DeployTypeHelm)
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -570,7 +569,7 @@ var _ = Describe("Add", func() {
 			Expect(gitClient.WriteCallCount()).To(Equal(2))
 
 			path, content := gitClient.WriteArgsForCall(0)
-			Expect(path).To(Equal("apps/repo/app.yaml"))
+			Expect(path).To(Equal("apps/repo/yaml"))
 			Expect(string(content)).To(ContainSubstring("kind: Application"))
 
 			path, content = gitClient.WriteArgsForCall(1)
@@ -606,5 +605,59 @@ var _ = Describe("Add", func() {
 			Expect(gitClient.WriteCallCount()).To(Equal(0))
 			Expect(kubeClient.ApplyCallCount()).To(Equal(0))
 		})
+	})
+})
+
+var _ = Describe("sanitizeRepoUrl", func() {
+
+	goodURL := "ssh://git@github.com/user/test-repo"
+
+	It("should return proper ssh format for git@github.com:user/test-repo.git ", func() {
+
+		url := "git@github.com:user/test-repo.git"
+
+		sURL := sanitizeRepoUrl(url)
+		Expect(goodURL).To(Equal(sURL))
+
+	})
+	It("should return proper ssh format for git@github.com:user/test-repo ", func() {
+
+		url := "git@github.com:user/test-repo"
+
+		sURL := sanitizeRepoUrl(url)
+		Expect(goodURL).To(Equal(sURL))
+
+	})
+	It("should return proper ssh format for https://github.com/user/test-repo.git ", func() {
+
+		url := "https://github.com/user/test-repo.git"
+
+		sURL := sanitizeRepoUrl(url)
+		Expect(goodURL).To(Equal(sURL))
+
+	})
+	It("should return proper ssh format for https://github.com/user/test-repo ", func() {
+
+		url := "https://github.com/user/test-repo"
+
+		sURL := sanitizeRepoUrl(url)
+		Expect(goodURL).To(Equal(sURL))
+
+	})
+	It("should return proper ssh format for ssh://git@github.com/user/test-repo.git ", func() {
+
+		url := "ssh://git@github.com/user/test-repo.git"
+
+		sURL := sanitizeRepoUrl(url)
+		Expect(goodURL).To(Equal(sURL))
+
+	})
+	It("should return proper ssh format for ssh://git@github.com/user/test-repo ", func() {
+
+		url := "ssh://git@github.com/user/test-repo"
+
+		sURL := sanitizeRepoUrl(url)
+		Expect(goodURL).To(Equal(sURL))
+
 	})
 })
