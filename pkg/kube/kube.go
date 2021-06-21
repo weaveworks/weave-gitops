@@ -39,6 +39,7 @@ type Kube interface {
 	Apply(manifests []byte, namespace string) ([]byte, error)
 	GetClusterName() (string, error)
 	GetClusterStatus() ClusterStatus
+	FluxPresent() (bool, error)
 }
 
 type KubeClient struct {
@@ -99,6 +100,18 @@ func (k *KubeClient) GetClusterStatus() ClusterStatus {
 	return Unknown
 }
 
+// FluxPresent checks flux presence in the cluster
+func (k *KubeClient) FluxPresent() (bool, error) {
+	out, err := k.runKubectlCmd([]string{"get", "namespace", "flux-system"})
+	if err != nil {
+		if strings.Contains(string(out), "not found") {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
 func (k *KubeClient) resourceLookup(args string) error {
 	_, err := k.runKubectlCmd(strings.Split(args, " "))
 	if err != nil {
@@ -111,7 +124,7 @@ func (k *KubeClient) resourceLookup(args string) error {
 func (k *KubeClient) runKubectlCmd(args []string) ([]byte, error) {
 	out, err := k.runner.Run(kubectlPath, args...)
 	if err != nil {
-		return []byte{}, fmt.Errorf("failed to run kubectl with output: %s", string(out))
+		return out, fmt.Errorf("failed to run kubectl with output: %s", string(out))
 	}
 
 	return out, nil
@@ -120,7 +133,7 @@ func (k *KubeClient) runKubectlCmd(args []string) ([]byte, error) {
 func (k *KubeClient) runKubectlCmdWithInput(args []string, input []byte) ([]byte, error) {
 	out, err := k.runner.RunWithStdin(kubectlPath, args, input)
 	if err != nil {
-		return []byte{}, fmt.Errorf("failed to run kubectl with output: %s", string(out))
+		return out, fmt.Errorf("failed to run kubectl with output: %s", string(out))
 	}
 
 	return out, nil

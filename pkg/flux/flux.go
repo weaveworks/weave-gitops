@@ -14,6 +14,7 @@ import (
 
 //counterfeiter:generate . Flux
 type Flux interface {
+	Install(namespace string, export bool) ([]byte, error)
 	CreateSourceGit(name string, url string, branch string, secretRef string, namespace string) ([]byte, error)
 	CreateSourceHelm(name string, url string, namespace string) ([]byte, error)
 	CreateKustomization(name string, source string, path string, namespace string) ([]byte, error)
@@ -30,6 +31,25 @@ func New(cliRunner runner.Runner) *FluxClient {
 	return &FluxClient{
 		runner: cliRunner,
 	}
+}
+
+func (f *FluxClient) Install(namespace string, export bool) ([]byte, error) {
+	args := []string{
+		"install",
+		"--namespace", namespace,
+		"--components-extra", "image-reflector-controller,image-automation-controller",
+	}
+
+	if export {
+		args = append(args, "--export")
+	}
+
+	out, err := f.runFluxCmd(args...)
+	if err != nil {
+		return out, errors.Wrap(err, "failed to run flux install")
+	}
+
+	return out, nil
 }
 
 func (f *FluxClient) CreateSourceGit(name string, url string, branch string, secretRef string, namespace string) ([]byte, error) {

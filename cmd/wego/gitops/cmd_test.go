@@ -1,4 +1,4 @@
-package install
+package gitops
 
 import (
 	"fmt"
