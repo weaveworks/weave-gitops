@@ -115,7 +115,8 @@ proto-deps:
 
 proto:
 	buf generate
-	oapi-codegen -config oapi-codegen.config.yaml api/applications/applications.swagger.json
+# 	This job is complaining about a missing plugin and error-ing out
+#	oapi-codegen -config oapi-codegen.config.yaml api/applications/applications.swagger.json
 
 api-dev:
 	reflex -r '.go' -s -- sh -c 'go run cmd/wego-server/main.go'
