@@ -90,7 +90,7 @@ var _ = Describe("Add", func() {
 
 		secretRef, repoUrl, namespace := fluxClient.CreateSecretGitArgsForCall(0)
 		Expect(secretRef).To(Equal("weave-gitops-test-cluster"))
-		Expect(repoUrl).To(Equal("ssh://git@github.com/foo/bar.git"))
+		Expect(repoUrl).To(Equal("ssh://git@github.com/foo/bar"))
 		Expect(namespace).To(Equal("wego-system"))
 
 		owner, repoName, deployKey := gitProviders.UploadDeployKeyArgsForCall(0)
@@ -111,7 +111,7 @@ var _ = Describe("Add", func() {
 
 				name, url, branch, secretRef, namespace := fluxClient.CreateSourceGitArgsForCall(0)
 				Expect(name).To(Equal("bar"))
-				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
+				Expect(url).To(Equal("ssh://git@github.com/foo/bar"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("weave-gitops-test-cluster"))
 				Expect(namespace).To(Equal("wego-system"))
@@ -241,7 +241,7 @@ var _ = Describe("Add", func() {
 
 				name, url, branch, secretRef, namespace := fluxClient.CreateSourceGitArgsForCall(0)
 				Expect(name).To(Equal("bar"))
-				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
+				Expect(url).To(Equal("ssh://git@github.com/foo/bar"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("weave-gitops-test-cluster"))
 				Expect(namespace).To(Equal("wego-system"))
@@ -370,7 +370,7 @@ var _ = Describe("Add", func() {
 				_, repoDir, url, branch := gitClient.CloneArgsForCall(0)
 
 				Expect(repoDir).To(ContainSubstring("user-repo-"))
-				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
+				Expect(url).To(Equal("ssh://git@github.com/foo/bar"))
 				Expect(branch).To(Equal("main"))
 			})
 		})
@@ -389,7 +389,7 @@ var _ = Describe("Add", func() {
 			Expect(gitClient.WriteCallCount()).To(Equal(2))
 
 			path, content := gitClient.WriteArgsForCall(0)
-			Expect(path).To(Equal(".wego/apps/bar/yaml"))
+			Expect(path).To(Equal(".wego/apps/bar/app.yaml"))
 			Expect(string(content)).To(ContainSubstring("kind: Application"))
 
 			path, content = gitClient.WriteArgsForCall(1)
@@ -430,7 +430,7 @@ var _ = Describe("Add", func() {
 
 				name, url, branch, secretRef, namespace := fluxClient.CreateSourceGitArgsForCall(0)
 				Expect(name).To(Equal("repo"))
-				Expect(url).To(Equal("ssh://git@github.com/user/repo.git"))
+				Expect(url).To(Equal("ssh://git@github.com/user/repo"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("weave-gitops-test-cluster"))
 				Expect(namespace).To(Equal("wego-system"))
@@ -551,7 +551,7 @@ var _ = Describe("Add", func() {
 			_, repoDir, url, branch := gitClient.CloneArgsForCall(0)
 
 			Expect(repoDir).To(ContainSubstring("user-repo-"))
-			Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
+			Expect(url).To(Equal("ssh://git@github.com/foo/bar"))
 			Expect(branch).To(Equal("main"))
 		})
 
@@ -569,7 +569,7 @@ var _ = Describe("Add", func() {
 			Expect(gitClient.WriteCallCount()).To(Equal(2))
 
 			path, content := gitClient.WriteArgsForCall(0)
-			Expect(path).To(Equal("apps/repo/yaml"))
+			Expect(path).To(Equal("apps/repo/app.yaml"))
 			Expect(string(content)).To(ContainSubstring("kind: Application"))
 
 			path, content = gitClient.WriteArgsForCall(1)
