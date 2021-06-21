@@ -479,20 +479,11 @@ func urlToRepoName(url string) string {
 
 func sanitizeRepoUrl(sourceURL string) string {
 
-	gitSuffix := ".git"
-	if strings.HasSuffix(sourceURL, gitSuffix) {
-		sourceURL = strings.TrimSuffix(sourceURL, gitSuffix)
-	}
+	sourceURL = strings.TrimSuffix(sourceURL, ".git")
 
-	gitSSHPrefix := "git@github.com:"
-	if strings.HasPrefix(sourceURL, gitSSHPrefix) {
-		sourceURL = strings.TrimPrefix(sourceURL, gitSSHPrefix)
-	}
+	sourceURL = strings.TrimPrefix(sourceURL, "git@github.com:")
 
-	httpsPrefix := "https://github.com/"
-	if strings.HasPrefix(sourceURL, httpsPrefix) {
-		sourceURL = strings.TrimPrefix(sourceURL, httpsPrefix)
-	}
+	sourceURL = strings.TrimPrefix(sourceURL, "https://github.com/")
 
 	sshPrefix := "ssh://git@github.com/"
 	if strings.HasPrefix(sourceURL, sshPrefix) {
