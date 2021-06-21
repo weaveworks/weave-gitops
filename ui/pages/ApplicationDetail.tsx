@@ -35,7 +35,7 @@ function ApplicationDetail({ className }: Props) {
       <KeyValueTable
         columns={4}
         pairs={[
-          { key: "name", value: app.name },
+          { key: "Name", value: app.name },
           { key: "URL", value: app.url },
           { key: "Path", value: app.path },
         ]}
