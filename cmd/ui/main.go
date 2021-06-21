@@ -11,6 +11,8 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/sirupsen/logrus"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 )
 
@@ -34,7 +36,9 @@ func main() {
 	gMux := runtime.NewServeMux()
 	mux.Handle("/v1/", gMux)
 
-	if err := pb.RegisterApplicationsHandlerServer(context.Background(), gMux, server.NewApplicationsServer()); err != nil {
+	kubeClient := kube.New(&runner.CLIRunner{})
+
+	if err := pb.RegisterApplicationsHandlerServer(context.Background(), gMux, server.NewApplicationsServer(kubeClient)); err != nil {
 		log.Fatalf("could not register application: %s", err)
 	}
 

@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
@@ -30,6 +31,7 @@ var apps pb.ApplicationsServer
 var client pb.ApplicationsClient
 var conn *grpc.ClientConn
 var err error
+var kubeClient *kubefakes.FakeKube
 
 func bufDialer(context.Context, string) (net.Conn, error) {
 	return lis.Dial()
@@ -38,7 +40,10 @@ func bufDialer(context.Context, string) (net.Conn, error) {
 var _ = BeforeEach(func() {
 	lis = bufconn.Listen(bufSize)
 	s = grpc.NewServer()
-	apps = server.NewApplicationsServer()
+
+	kubeClient = &kubefakes.FakeKube{}
+
+	apps = server.NewApplicationsServer(kubeClient)
 	pb.RegisterApplicationsServer(s, apps)
 
 	go func() {

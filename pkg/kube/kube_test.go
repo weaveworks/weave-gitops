@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	k8sApps "github.com/weaveworks/weave-gitops/api/v1alpha"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -111,9 +111,10 @@ var _ = Describe("GetClusterName", func() {
 
 var _ = Describe("GetApplication", func() {
 	It("gets an application by name", func() {
-		res, err := json.Marshal(&k8sApps.Application{
-			Spec: k8sApps.ApplicationSpec{
-				Foo: "bar",
+		res, err := json.Marshal(&wego.Application{
+			Spec: wego.ApplicationSpec{
+				Path: "some/path",
+				URL:  "example.com/some-org/some-repo",
 			},
 		})
 		Expect(err).ShouldNot(HaveOccurred())
@@ -125,6 +126,6 @@ var _ = Describe("GetApplication", func() {
 		out, err := kubeClient.GetApplication("my-app")
 
 		Expect(err).ShouldNot(HaveOccurred())
-		Expect(out.Spec.Foo).To(Equal("bar"))
+		Expect(out.Spec.Path).To(Equal("some/path"))
 	})
 })

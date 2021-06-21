@@ -28,8 +28,10 @@ type ApplicationSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Application. Edit application_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// URL is the address of the git repository for this application
+	URL string `json:"url,omitempty"`
+	// Path is the path in the repository where the k8s yaml files for this application are stored.
+	Path string `json:"path,omitempty"`
 }
 
 // ApplicationStatus defines the observed state of Application
