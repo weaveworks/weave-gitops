@@ -437,7 +437,7 @@ var _ = Describe("Add", func() {
 
 				name, url, branch, secretRef, namespace = fluxClient.CreateSourceGitArgsForCall(1)
 				Expect(name).To(Equal("bar"))
-				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
+				Expect(url).To(Equal("ssh://git@github.com/foo/bar"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("weave-gitops-test-cluster"))
 				Expect(namespace).To(Equal("wego-system"))
