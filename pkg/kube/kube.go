@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"strings"
 
+	"encoding/json"
+
 	"github.com/pkg/errors"
+	k8sApps "github.com/weaveworks/weave-gitops/api/v1alpha"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
@@ -39,6 +42,7 @@ type Kube interface {
 	Apply(manifests []byte, namespace string) ([]byte, error)
 	GetClusterName() (string, error)
 	GetClusterStatus() ClusterStatus
+	GetApplication(name string) (*k8sApps.Application, error)
 }
 
 type KubeClient struct {
@@ -97,6 +101,23 @@ func (k *KubeClient) GetClusterStatus() ClusterStatus {
 	}
 
 	return Unknown
+}
+
+func (k *KubeClient) GetApplication(name string) (*k8sApps.Application, error) {
+	cmd := []string{"get app", name, " -o json"}
+	o, err := k.runKubectlCmd(cmd)
+
+	if err != nil {
+		return nil, fmt.Errorf("could not run kubectl command: %s", err)
+	}
+
+	a := k8sApps.Application{}
+
+	if err := json.Unmarshal(o, &a); err != nil {
+		return nil, fmt.Errorf("could not unmarshal json: %s", err)
+	}
+
+	return &a, nil
 }
 
 func (k *KubeClient) resourceLookup(args string) error {

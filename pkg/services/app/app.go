@@ -1,6 +1,7 @@
 package app
 
 import (
+	k8sApps "github.com/weaveworks/weave-gitops/api/v1alpha"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -9,6 +10,7 @@ import (
 
 type AppService interface {
 	Add(params AddParams) error
+	Get(name string) (*k8sApps.Application, error)
 }
 
 type App struct {

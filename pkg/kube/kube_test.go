@@ -1,8 +1,11 @@
 package kube_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
+
+	k8sApps "github.com/weaveworks/weave-gitops/api/v1alpha"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -103,5 +106,25 @@ var _ = Describe("GetClusterName", func() {
 		Expect(cmd).To(Equal("kubectl"))
 
 		Expect(strings.Join(args, " ")).To(Equal("config current-context"))
+	})
+})
+
+var _ = Describe("GetApplication", func() {
+	It("gets an application by name", func() {
+		res, err := json.Marshal(&k8sApps.Application{
+			Spec: k8sApps.ApplicationSpec{
+				Foo: "bar",
+			},
+		})
+		Expect(err).ShouldNot(HaveOccurred())
+
+		runner.RunStub = func(cmd string, args ...string) ([]byte, error) {
+			return res, nil
+		}
+
+		out, err := kubeClient.GetApplication("my-app")
+
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(out.Spec.Foo).To(Equal("bar"))
 	})
 })

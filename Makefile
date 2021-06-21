@@ -122,3 +122,6 @@ api-dev:
 
 ui-dev: cmd/ui/dist/main.js
 	reflex -r '.go' -s -- sh -c 'go run cmd/ui/main.go'
+
+fakes:
+	go generate ./...
