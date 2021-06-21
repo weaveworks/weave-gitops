@@ -315,7 +315,9 @@ func installAndVerifyWego(wegoNamespace string) {
 		VerifyControllersInCluster(wegoNamespace)
 	})
 }
+
 func runWegoAddCommand(repoAbsolutePath string, addCommand string, wegoNamespace string) {
+	log.Infof("Add command to run: %s in namespace %s from dir %s", addCommand, wegoNamespace, repoAbsolutePath)
 	_, _ = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, wegoNamespace)
 }
 
