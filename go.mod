@@ -12,6 +12,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.4.0
 	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.1 // indirect
 	github.com/hashicorp/go-retryablehttp v0.6.8 // indirect
+	github.com/jandelgado/gcov2lcov v1.0.5 // indirect
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/onsi/ginkgo v1.16.4

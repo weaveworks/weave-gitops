@@ -89,7 +89,7 @@ coverage/lcov.info:
 # Golang gocov data. Not compatible with coveralls at this point.
 coverage.out:
 	go get -u github.com/ory/go-acc
-	go-acc --ignore fakes,acceptance,pkg/api -o coverage.out ./... -- -v --timeout=496s -tags test
+	go-acc --ignore fakes,acceptance,pkg/api,api -o coverage.out ./... -- -v --timeout=496s -tags test
 	@go mod tidy
 
 # Convert gocov to lcov for coveralls
