@@ -156,7 +156,7 @@ func (g *GoGit) Commit(message Commit, filters ...func(string) bool) (string, er
 
 	status, err := wt.Status()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get the worktree status: %w", err)
 	}
 
 	// go-git has [a bug](https://github.com/go-git/go-git/issues/253)
@@ -166,11 +166,11 @@ func (g *GoGit) Commit(message Commit, filters ...func(string) bool) (string, er
 	var changed bool
 	for file := range status {
 		abspath := filepath.Join(g.path, file)
-		info, err := os.Lstat(abspath)
+		isLink, err := isSymLink(abspath)
 		if err != nil {
-			return "", fmt.Errorf("checking if %s is a symlink: %w", file, err)
+			return "", err
 		}
-		if info.Mode()&os.ModeSymlink > 0 {
+		if isLink {
 			// symlinks are OK; broken symlinks are probably a result
 			// of the bug mentioned above, but not of interest in any
 			// case.
@@ -193,7 +193,7 @@ func (g *GoGit) Commit(message Commit, filters ...func(string) bool) (string, er
 	if !changed {
 		head, err := g.repository.Head()
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("failed to get the worktree HEAD reference: %w", err)
 		}
 		return head.Hash().String(), ErrNoStagedFiles
 	}
@@ -206,7 +206,7 @@ func (g *GoGit) Commit(message Commit, filters ...func(string) bool) (string, er
 		},
 	})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to commit changes: %w", err)
 	}
 	return commit.String(), nil
 }
@@ -223,17 +223,18 @@ func (g *GoGit) Push(ctx context.Context) error {
 	})
 }
 
+// Status returns true if no files in the repository have been modified.
 func (g *GoGit) Status() (bool, error) {
 	if g.repository == nil {
 		return false, ErrNoGitRepository
 	}
 	wt, err := g.repository.Worktree()
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to open the worktree: %w", err)
 	}
 	status, err := wt.Status()
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to get the worktree status: %w", err)
 	}
 	return status.IsClean(), nil
 }
@@ -247,4 +248,15 @@ func (g *GoGit) Head() (string, error) {
 		return "", err
 	}
 	return head.Hash().String(), nil
+}
+
+func isSymLink(fname string) (bool, error) {
+	info, err := os.Lstat(fname)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if %s is a symlink: %w", fname, err)
+	}
+	if info.Mode()&os.ModeSymlink > 0 {
+		return true, nil
+	}
+	return false, nil
 }
