@@ -15,7 +15,14 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 )
 
-var params gitops.InstallParams
+type params struct {
+	Namespace string
+	DryRun    bool
+}
+
+var (
+	gitopsParams params
+)
 
 var Cmd = &cobra.Command{
 	Use:   "gitops",
@@ -30,32 +37,65 @@ var installCmd = &cobra.Command{
 If a previous version is installed, then an in-place upgrade will be performed.`,
 	Example: `  # Install wego in the wego-system namespace
   wego install`,
-	RunE:          runCmd,
+	RunE:          installRunCmd,
+	SilenceErrors: true,
+	SilenceUsage:  true,
+}
+
+var uinstallCmd = &cobra.Command{
+	Use:   "uninstall",
+	Short: "Uninstall Wego",
+	Long:  `The uninstall command removes Wego components from the cluster.`,
+	Example: `  # Uninstall wego in the wego-system namespace
+  wego uninstall`,
+	RunE:          uninstallRunCmd,
 	SilenceErrors: true,
 	SilenceUsage:  true,
 }
 
 func init() {
-	installCmd.Flags().StringVarP(&params.Namespace, "namespace", "n", "wego-system", "the namespace scope for this operation")
-	installCmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "outputs all the manifests that would be installed")
+	Cmd.PersistentFlags().StringVarP(&gitopsParams.Namespace, "namespace", "n", "wego-system", "the namespace scope for this operation")
+	Cmd.PersistentFlags().BoolVar(&gitopsParams.DryRun, "dry-run", false, "outputs all the manifests that would be installed")
 
 	Cmd.AddCommand(installCmd)
+	Cmd.AddCommand(uinstallCmd)
 }
 
-func runCmd(cmd *cobra.Command, args []string) error {
+func installRunCmd(cmd *cobra.Command, args []string) error {
 	cliRunner := &runner.CLIRunner{}
 	fluxClient := flux.New(cliRunner)
 	kubeClient := kube.New(cliRunner)
 
 	gitopsService := gitops.New(fluxClient, kubeClient)
 
-	manifests, err := gitopsService.Install(params)
+	manifests, err := gitopsService.Install(gitops.InstallParams{
+		Namespace: gitopsParams.Namespace,
+		DryRun:    gitopsParams.DryRun,
+	})
 	if err != nil {
 		return err
 	}
 
-	if params.DryRun {
+	if gitopsParams.DryRun {
 		fmt.Println(string(manifests))
+	}
+
+	return nil
+}
+
+func uninstallRunCmd(cmd *cobra.Command, args []string) error {
+	cliRunner := &runner.CLIRunner{}
+	fluxClient := flux.New(cliRunner)
+	kubeClient := kube.New(cliRunner)
+
+	gitopsService := gitops.New(fluxClient, kubeClient)
+
+	err := gitopsService.Uninstall(gitops.UinstallParams{
+		Namespace: gitopsParams.Namespace,
+		DryRun:    gitopsParams.DryRun,
+	})
+	if err != nil {
+		return err
 	}
 
 	return nil

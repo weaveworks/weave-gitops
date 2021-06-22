@@ -22,6 +22,20 @@ type FakeKube struct {
 		result1 []byte
 		result2 error
 	}
+	DeleteStub        func([]byte, string) ([]byte, error)
+	deleteMutex       sync.RWMutex
+	deleteArgsForCall []struct {
+		arg1 []byte
+		arg2 string
+	}
+	deleteReturns struct {
+		result1 []byte
+		result2 error
+	}
+	deleteReturnsOnCall map[int]struct {
+		result1 []byte
+		result2 error
+	}
 	FluxPresentStub        func() (bool, error)
 	fluxPresentMutex       sync.RWMutex
 	fluxPresentArgsForCall []struct {
@@ -125,6 +139,76 @@ func (fake *FakeKube) ApplyReturnsOnCall(i int, result1 []byte, result2 error) {
 		})
 	}
 	fake.applyReturnsOnCall[i] = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeKube) Delete(arg1 []byte, arg2 string) ([]byte, error) {
+	var arg1Copy []byte
+	if arg1 != nil {
+		arg1Copy = make([]byte, len(arg1))
+		copy(arg1Copy, arg1)
+	}
+	fake.deleteMutex.Lock()
+	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
+	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
+		arg1 []byte
+		arg2 string
+	}{arg1Copy, arg2})
+	stub := fake.DeleteStub
+	fakeReturns := fake.deleteReturns
+	fake.recordInvocation("Delete", []interface{}{arg1Copy, arg2})
+	fake.deleteMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeKube) DeleteCallCount() int {
+	fake.deleteMutex.RLock()
+	defer fake.deleteMutex.RUnlock()
+	return len(fake.deleteArgsForCall)
+}
+
+func (fake *FakeKube) DeleteCalls(stub func([]byte, string) ([]byte, error)) {
+	fake.deleteMutex.Lock()
+	defer fake.deleteMutex.Unlock()
+	fake.DeleteStub = stub
+}
+
+func (fake *FakeKube) DeleteArgsForCall(i int) ([]byte, string) {
+	fake.deleteMutex.RLock()
+	defer fake.deleteMutex.RUnlock()
+	argsForCall := fake.deleteArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeKube) DeleteReturns(result1 []byte, result2 error) {
+	fake.deleteMutex.Lock()
+	defer fake.deleteMutex.Unlock()
+	fake.DeleteStub = nil
+	fake.deleteReturns = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeKube) DeleteReturnsOnCall(i int, result1 []byte, result2 error) {
+	fake.deleteMutex.Lock()
+	defer fake.deleteMutex.Unlock()
+	fake.DeleteStub = nil
+	if fake.deleteReturnsOnCall == nil {
+		fake.deleteReturnsOnCall = make(map[int]struct {
+			result1 []byte
+			result2 error
+		})
+	}
+	fake.deleteReturnsOnCall[i] = struct {
 		result1 []byte
 		result2 error
 	}{result1, result2}
@@ -300,6 +384,8 @@ func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.applyMutex.RLock()
 	defer fake.applyMutex.RUnlock()
+	fake.deleteMutex.RLock()
+	defer fake.deleteMutex.RUnlock()
 	fake.fluxPresentMutex.RLock()
 	defer fake.fluxPresentMutex.RUnlock()
 	fake.getClusterNameMutex.RLock()

@@ -15,6 +15,7 @@ import (
 //counterfeiter:generate . Flux
 type Flux interface {
 	Install(namespace string, export bool) ([]byte, error)
+	Uninstall(namespace string, export bool) error
 	CreateSourceGit(name string, url string, branch string, secretRef string, namespace string) ([]byte, error)
 	CreateSourceHelm(name string, url string, namespace string) ([]byte, error)
 	CreateKustomization(name string, source string, path string, namespace string) ([]byte, error)
@@ -33,6 +34,8 @@ func New(cliRunner runner.Runner) *FluxClient {
 	}
 }
 
+var _ Flux = &FluxClient{}
+
 func (f *FluxClient) Install(namespace string, export bool) ([]byte, error) {
 	args := []string{
 		"install",
@@ -45,10 +48,10 @@ func (f *FluxClient) Install(namespace string, export bool) ([]byte, error) {
 
 		out, err := f.runFluxCmd(args...)
 		if err != nil {
-			return out, errors.Wrap(err, "failed to run flux install")
+			return out, errors.Wrapf(err, "failed to run flux install: %s", string(out))
 		}
 
-		return out, nil
+		return []byte{}, nil
 	}
 
 	if _, err := f.runFluxCmdOutputStream(args...); err != nil {
@@ -56,6 +59,23 @@ func (f *FluxClient) Install(namespace string, export bool) ([]byte, error) {
 	}
 
 	return []byte{}, nil
+}
+
+func (f *FluxClient) Uninstall(namespace string, dryRun bool) error {
+	args := []string{
+		"uninstall", "-s",
+		"--namespace", namespace,
+	}
+
+	if dryRun {
+		args = append(args, "--dry-run")
+	}
+
+	if _, err := f.runFluxCmdOutputStream(args...); err != nil {
+		return errors.Wrap(err, "failed to run flux binary")
+	}
+
+	return nil
 }
 
 func (f *FluxClient) CreateSourceGit(name string, url string, branch string, secretRef string, namespace string) ([]byte, error) {

@@ -37,6 +37,7 @@ var toStatusString = map[ClusterStatus]string{
 //counterfeiter:generate . Kube
 type Kube interface {
 	Apply(manifests []byte, namespace string) ([]byte, error)
+	Delete(manifests []byte, namespace string) ([]byte, error)
 	GetClusterName() (string, error)
 	GetClusterStatus() ClusterStatus
 	FluxPresent() (bool, error)
@@ -57,6 +58,21 @@ var _ Kube = &KubeClient{}
 func (k *KubeClient) Apply(manifests []byte, namespace string) ([]byte, error) {
 	args := []string{
 		"apply",
+		"--namespace", namespace,
+		"-f", "-",
+	}
+
+	out, err := k.runKubectlCmdWithInput(args, manifests)
+	if err != nil {
+		return out, err
+	}
+
+	return out, nil
+}
+
+func (k *KubeClient) Delete(manifests []byte, namespace string) ([]byte, error) {
+	args := []string{
+		"delete",
 		"--namespace", namespace,
 		"-f", "-",
 	}
