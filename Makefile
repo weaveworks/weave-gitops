@@ -126,3 +126,10 @@ ui-dev: cmd/ui/dist/main.js
 
 fakes:
 	go generate ./...
+
+# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
+CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
+
+crd:
+	@go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1
+	controller-gen $(CRD_OPTIONS) paths="./..." output:crd:artifacts:config=config/crd
