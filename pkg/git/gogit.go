@@ -19,11 +19,11 @@ package git
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	gogit "github.com/go-git/go-git/v5"
@@ -45,6 +45,7 @@ func New(auth transport.AuthMethod) *GoGit {
 	}
 }
 
+// Open opens a git repository in the provided path, and returns a repository.
 func (g *GoGit) Open(path string) (*gogit.Repository, error) {
 	g.path = path
 	repo, err := gogit.PlainOpen(path)
@@ -57,6 +58,10 @@ func (g *GoGit) Open(path string) (*gogit.Repository, error) {
 	return repo, nil
 }
 
+// Init initialises the directory at path with the remote and branch provided.
+//
+// If the directory is successfully initialised it returns true, otherwise if
+// the directory is already initialised, it returns false.
 func (g *GoGit) Init(path, url, branch string) (bool, error) {
 	if g.repository != nil {
 		return false, nil
@@ -94,6 +99,11 @@ func (g *GoGit) Init(path, url, branch string) (bool, error) {
 	return true, nil
 }
 
+// Clone clones a starting repository URL to a path, and checks out the provided
+// branch name.
+//
+// If the directory is successfully initialised, it returns true, otherwise it
+// returns false.
 func (g *GoGit) Clone(ctx context.Context, path, url, branch string) (bool, error) {
 	g.path = path
 	branchRef := plumbing.NewBranchReferenceName(branch)
@@ -108,7 +118,8 @@ func (g *GoGit) Clone(ctx context.Context, path, url, branch string) (bool, erro
 		Tags:          gogit.NoTags,
 	})
 	if err != nil {
-		if err == transport.ErrEmptyRemoteRepository || isRemoteBranchNotFoundErr(err, branchRef.String()) {
+		if errors.Is(err, transport.ErrEmptyRemoteRepository) ||
+			errors.Is(err, gogit.NoMatchingRefSpecError{}) {
 			return g.Init(path, url, branch)
 		}
 		return false, err
@@ -118,6 +129,8 @@ func (g *GoGit) Clone(ctx context.Context, path, url, branch string) (bool, erro
 	return true, nil
 }
 
+// Write writes the provided content to the path, if the file exists, it will be
+// truncated.
 func (g *GoGit) Write(path string, content []byte) error {
 	if g.repository == nil {
 		return ErrNoGitRepository
@@ -125,12 +138,12 @@ func (g *GoGit) Write(path string, content []byte) error {
 
 	wt, err := g.repository.Worktree()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open the worktree: %w", err)
 	}
 
 	f, err := wt.Filesystem.Create(path)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create file in %s: %w", path, err)
 	}
 	defer f.Close()
 
@@ -145,12 +158,12 @@ func (g *GoGit) Commit(message Commit, filters ...func(string) bool) (string, er
 
 	wt, err := g.repository.Worktree()
 	if err != nil {
-		return "", fmt.Errorf("failed to open the worktree: %s", err)
+		return "", fmt.Errorf("failed to open the worktree: %w", err)
 	}
 
 	status, err := wt.Status()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get the worktree status: %w", err)
 	}
 
 	// go-git has [a bug](https://github.com/go-git/go-git/issues/253)
@@ -160,11 +173,11 @@ func (g *GoGit) Commit(message Commit, filters ...func(string) bool) (string, er
 	var changed bool
 	for file := range status {
 		abspath := filepath.Join(g.path, file)
-		info, err := os.Lstat(abspath)
+		isLink, err := isSymLink(abspath)
 		if err != nil {
-			return "", fmt.Errorf("checking if %s is a symlink: %w", file, err)
+			return "", err
 		}
-		if info.Mode()&os.ModeSymlink > 0 {
+		if isLink {
 			// symlinks are OK; broken symlinks are probably a result
 			// of the bug mentioned above, but not of interest in any
 			// case.
@@ -187,7 +200,7 @@ func (g *GoGit) Commit(message Commit, filters ...func(string) bool) (string, er
 	if !changed {
 		head, err := g.repository.Head()
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("failed to get the worktree HEAD reference: %w", err)
 		}
 		return head.Hash().String(), ErrNoStagedFiles
 	}
@@ -200,7 +213,7 @@ func (g *GoGit) Commit(message Commit, filters ...func(string) bool) (string, er
 		},
 	})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to commit changes: %w", err)
 	}
 	return commit.String(), nil
 }
@@ -217,17 +230,18 @@ func (g *GoGit) Push(ctx context.Context) error {
 	})
 }
 
+// Status returns true if no files in the repository have been modified.
 func (g *GoGit) Status() (bool, error) {
 	if g.repository == nil {
 		return false, ErrNoGitRepository
 	}
 	wt, err := g.repository.Worktree()
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to open the worktree: %w", err)
 	}
 	status, err := wt.Status()
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to get the worktree status: %w", err)
 	}
 	return status.IsClean(), nil
 }
@@ -243,6 +257,13 @@ func (g *GoGit) Head() (string, error) {
 	return head.Hash().String(), nil
 }
 
-func isRemoteBranchNotFoundErr(err error, ref string) bool {
-	return strings.Contains(err.Error(), fmt.Sprintf("couldn't find remote ref %q", ref))
+func isSymLink(fname string) (bool, error) {
+	info, err := os.Lstat(fname)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if %s is a symlink: %w", fname, err)
+	}
+	if info.Mode()&os.ModeSymlink > 0 {
+		return true, nil
+	}
+	return false, nil
 }
