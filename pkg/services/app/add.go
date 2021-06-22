@@ -70,7 +70,7 @@ func (a *App) Add(params AddParams) error {
 		return err
 	}
 
-	fmt.Println("Generating deploy key...")
+	fmt.Printf("Generating deploy key for repo %s ...\n", params.Url)
 	secretRef, err := a.createAndUploadDeployKey(params.Url, clusterName, params.Namespace, params.DryRun)
 	if err != nil {
 		return errors.Wrap(err, "could not generate deploy key")
@@ -82,12 +82,7 @@ func (a *App) Add(params AddParams) error {
 	case string(ConfigTypeUserRepo):
 		return a.addAppWithConfigInAppRepo(params, clusterName, secretRef)
 	default:
-		fmt.Println("Generating deploy key...")
-		appConfigSecretRef, err := a.createAndUploadDeployKey(params.AppConfigUrl, clusterName, params.Namespace, params.DryRun)
-		if err != nil {
-			return errors.Wrap(err, "could not generate deploy key")
-		}
-		return a.addAppWithConfigInExternalRepo(params, clusterName, secretRef, appConfigSecretRef)
+		return a.addAppWithConfigInExternalRepo(params, clusterName, secretRef)
 	}
 }
 
@@ -199,17 +194,23 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 	})
 }
 
-func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName string, secretRef string, appConfigSecretRef string) error {
+func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName string, appSecretRef string) error {
 	// making sure the url is in good format
 	params.AppConfigUrl = sanitizeRepoUrl(params.AppConfigUrl)
 
+	fmt.Printf("Generating deploy key for repo %s ...\n", params.AppConfigUrl)
+	appConfigSecretName, err := a.createAndUploadDeployKey(params.AppConfigUrl, clusterName, params.Namespace, params.DryRun)
+	if err != nil {
+		return errors.Wrap(err, "could not generate deploy key")
+	}
+
 	// Returns the source, app spec and kustomization
-	appSource, appGoat, appSpec, err := a.generateAppManifests(params, secretRef, clusterName)
+	appSource, appGoat, appSpec, err := a.generateAppManifests(params, appSecretRef, clusterName)
 	if err != nil {
 		return errors.Wrap(err, "could not generate application GitOps Automation manifests")
 	}
 
-	targetSource, targetGoat, err := a.generateExternalRepoManifests(params, appConfigSecretRef, clusterName)
+	targetSource, targetGoat, err := a.generateExternalRepoManifests(params, appConfigSecretName, clusterName)
 	if err != nil {
 		return errors.Wrap(err, "could not generate target GitOps Automation manifests")
 	}
@@ -326,18 +327,14 @@ func (a *App) createAndUploadDeployKey(repoUrl string, clusterName string, names
 
 	repoName := urlToRepoName(repoUrl)
 
-	secretRef := fmt.Sprintf("weave-gitops-%s-%s", repoName, clusterName)
+	secretRefName := fmt.Sprintf("weave-gitops-%s-%s", clusterName, repoName)
 	if dryRun {
-		return secretRef, nil
-	}
-
-	if repoUrl == "" || ConfigType(strings.ToUpper(repoUrl)) == ConfigTypeNone {
-		return "", nil
+		return secretRefName, nil
 	}
 
 	repoUrl = sanitizeRepoUrl(repoUrl)
 
-	deployKey, err := a.flux.CreateSecretGit(secretRef, repoUrl, namespace)
+	deployKey, err := a.flux.CreateSecretGit(secretRefName, repoUrl, namespace)
 	if err != nil {
 		return "", errors.Wrap(err, "could not create git secret")
 	}
@@ -351,7 +348,7 @@ func (a *App) createAndUploadDeployKey(repoUrl string, clusterName string, names
 		return "", errors.Wrap(err, "error uploading deploy key")
 	}
 
-	return secretRef, nil
+	return secretRefName, nil
 }
 
 func (a *App) generateSource(params AddParams, secretRef string) ([]byte, error) {
