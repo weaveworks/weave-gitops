@@ -33,4 +33,8 @@ require (
 	k8s.io/apimachinery v0.21.2
 	sigs.k8s.io/controller-runtime v0.9.1
 	sigs.k8s.io/yaml v1.2.0
+
 )
+
+// https://github.com/gorilla/websocket/security/advisories/GHSA-jf24-p9p9-4rjh
+replace github.com/gorilla/websocket v0.0.0 => github.com/gorilla/websocket v1.4.1
