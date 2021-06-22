@@ -325,6 +325,10 @@ func (a *App) commitAndPush(params AddParams, filters ...func(string) bool) erro
 
 func (a *App) createAndUploadDeployKey(repoUrl string, clusterName string, namespace string, dryRun bool) (string, error) {
 
+	if repoUrl == "" {
+		return "", nil
+	}
+
 	repoName := urlToRepoName(repoUrl)
 
 	secretRefName := fmt.Sprintf("weave-gitops-%s-%s", clusterName, repoName)
