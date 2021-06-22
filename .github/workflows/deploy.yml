@@ -172,4 +172,5 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-2
     - run: |
-        aws s3 cp bin/wego-${{matrix.os}} s3://weave-gitops/wego-${{matrix.os}}
+        git_hash=$(git rev-parse --short "$GITHUB_SHA")
+        aws s3 cp bin/wego-${{matrix.os}} s3://weave-gitops/wego-${{matrix.os}}-$git_hash
