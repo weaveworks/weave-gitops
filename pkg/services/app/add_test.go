@@ -440,7 +440,7 @@ var _ = Describe("Add", func() {
 				Expect(name).To(Equal("bar"))
 				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
-				Expect(secretRef).To(Equal("weave-gitops-test-cluster"))
+				Expect(secretRef).To(Equal("weave-gitops-test-cluster-bar"))
 				Expect(namespace).To(Equal("wego-system"))
 			})
 
