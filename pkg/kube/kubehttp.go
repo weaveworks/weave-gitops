@@ -56,43 +56,43 @@ func NewKubeHTTPClient() (Kube, error) {
 		return nil, fmt.Errorf("kubernetes client initialization failed: %w", err)
 	}
 
-	return &kubeHTTP{client: kubeClient, clusterName: kubeContext}, nil
+	return &KubeHTTP{Client: kubeClient, ClusterName: kubeContext}, nil
 }
 
-type kubeHTTP struct {
-	client      client.Client
-	clusterName string
+type KubeHTTP struct {
+	Client      client.Client
+	ClusterName string
 }
 
-func (c *kubeHTTP) GetClusterName() (string, error) {
-	return c.clusterName, nil
+func (c *KubeHTTP) GetClusterName() (string, error) {
+	return c.ClusterName, nil
 }
 
-func (c *kubeHTTP) GetClusterStatus() ClusterStatus {
+func (c *KubeHTTP) GetClusterStatus() ClusterStatus {
 	tName := types.NamespacedName{
 		Name: "apps.wego.weave.works",
 	}
 
 	crd := v1.CustomResourceDefinition{}
 
-	if c.client.Get(context.Background(), tName, &crd) == nil {
+	if c.Client.Get(context.Background(), tName, &crd) == nil {
 		return WeGOInstalled
 	}
 
 	return Unknown
 }
 
-func (c *kubeHTTP) Apply(manifests []byte, namespace string) ([]byte, error) {
+func (c *KubeHTTP) Apply(manifests []byte, namespace string) ([]byte, error) {
 	return nil, errors.New("Apply not implemented for kubeHTTP")
 }
 
-func (c *kubeHTTP) GetApplication(name string) (*wego.Application, error) {
+func (c *KubeHTTP) GetApplication(name string) (*wego.Application, error) {
 	tName := types.NamespacedName{
 		Name:      name,
 		Namespace: "",
 	}
 	app := wego.Application{}
-	if err := c.client.Get(context.Background(), tName, &app); err != nil {
+	if err := c.Client.Get(context.Background(), tName, &app); err != nil {
 		return nil, fmt.Errorf("could not get application: %s", err)
 	}
 
