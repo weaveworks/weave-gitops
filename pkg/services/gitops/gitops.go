@@ -12,7 +12,7 @@ var appCRD []byte
 
 type GitopsService interface {
 	Install(params InstallParams) ([]byte, error)
-	// Uninstall()
+	Uninstall(params UinstallParams) error
 }
 
 type Gitops struct {

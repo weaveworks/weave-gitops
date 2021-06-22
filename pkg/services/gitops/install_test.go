@@ -8,26 +8,20 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 )
 
-var (
-	fluxClient *fluxfakes.FakeFlux
-	kubeClient *kubefakes.FakeKube
-
-	gitopsSrv     gitops.GitopsService
-	installParams gitops.InstallParams
-)
-
-var _ = BeforeEach(func() {
-	fluxClient = &fluxfakes.FakeFlux{}
-	kubeClient = &kubefakes.FakeKube{}
-	gitopsSrv = gitops.New(fluxClient, kubeClient)
-
-	installParams = gitops.InstallParams{
-		Namespace: "wego-system",
-		DryRun:    false,
-	}
-})
+var installParams gitops.InstallParams
 
 var _ = Describe("Install", func() {
+	BeforeEach(func() {
+		fluxClient = &fluxfakes.FakeFlux{}
+		kubeClient = &kubefakes.FakeKube{}
+		gitopsSrv = gitops.New(fluxClient, kubeClient)
+
+		installParams = gitops.InstallParams{
+			Namespace: "wego-system",
+			DryRun:    false,
+		}
+	})
+
 	It("checks flux presence on the cluster", func() {
 		kubeClient.FluxPresentStub = func() (bool, error) {
 			return true, nil
