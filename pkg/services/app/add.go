@@ -42,6 +42,7 @@ type AddParams struct {
 	AppConfigUrl   string
 	Namespace      string
 	DryRun         bool
+	AutoMerge      bool
 }
 
 func (a *App) Add(params AddParams) error {
