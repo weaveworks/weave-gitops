@@ -140,7 +140,7 @@ jobs:
     - name: Run smoke tests from acceptance suite
       env:
         GITHUB_ORG: weaveworks-gitops-test
-        GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
+        GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}"
       run: |
         export PATH=${PATH}:`go env GOPATH`/bin
@@ -195,7 +195,7 @@ jobs:
     - name: Run Full Acceptance Suite
       env:
         GITHUB_ORG: weaveworks-gitops-test
-        GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
+        GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}"
       run: |
         export PATH=${PATH}:`go env GOPATH`/bin
