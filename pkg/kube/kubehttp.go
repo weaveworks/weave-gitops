@@ -59,6 +59,9 @@ func NewKubeHTTPClient() (Kube, error) {
 	return &KubeHTTP{Client: kubeClient, ClusterName: kubeContext}, nil
 }
 
+// This is an alternative implementation of the kube.Kube interface,
+// specifically designed to query the K8s API directly instead of relying on
+// `kubectl` to be present in the PATH.
 type KubeHTTP struct {
 	Client      client.Client
 	ClusterName string
@@ -89,7 +92,7 @@ func (c *KubeHTTP) Apply(manifests []byte, namespace string) ([]byte, error) {
 func (c *KubeHTTP) GetApplication(name string) (*wego.Application, error) {
 	tName := types.NamespacedName{
 		Name:      name,
-		Namespace: "",
+		Namespace: "default",
 	}
 	app := wego.Application{}
 	if err := c.Client.Get(context.Background(), tName, &app); err != nil {

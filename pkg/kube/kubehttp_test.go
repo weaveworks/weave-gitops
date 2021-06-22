@@ -49,7 +49,7 @@ var _ = Describe("KubeHTTP", func() {
 		name := "my-app"
 		app := &wego.Application{ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: "",
+			Namespace: "default",
 		}}
 
 		err = testclient.Create(context.Background(), app)
