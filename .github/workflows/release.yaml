@@ -23,7 +23,7 @@ jobs:
       - name: Generate release notes
         run: |
           echo 'CHANGELOG' > /tmp/release.txt
-          github-release-notes -org weaveworks -repo weave-gitops -include-author >> /tmp/release.txt
+          github-release-notes -org weaveworks -repo weave-gitops -include-author -since-latest-release >> /tmp/release.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Set env var
