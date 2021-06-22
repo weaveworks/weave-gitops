@@ -70,10 +70,13 @@ func (a *App) Add(params AddParams) error {
 		return err
 	}
 
-	fmt.Printf("Generating deploy key for repo %s ...\n", params.Url)
-	secretRef, err := a.createAndUploadDeployKey(params.Url, clusterName, params.Namespace, params.DryRun)
-	if err != nil {
-		return errors.Wrap(err, "could not generate deploy key")
+	var secretRef string
+	if SourceType(params.SourceType) == SourceTypeGit {
+		fmt.Printf("Generating deploy key for repo %s ...\n", params.Url)
+		secretRef, err = a.createAndUploadDeployKey(params.Url, clusterName, params.Namespace, params.DryRun)
+		if err != nil {
+			return errors.Wrap(err, "could not generate deploy key")
+		}
 	}
 
 	switch strings.ToUpper(params.AppConfigUrl) {
@@ -324,10 +327,6 @@ func (a *App) commitAndPush(params AddParams, filters ...func(string) bool) erro
 }
 
 func (a *App) createAndUploadDeployKey(repoUrl string, clusterName string, namespace string, dryRun bool) (string, error) {
-
-	if repoUrl == "" {
-		return "", nil
-	}
 
 	repoName := urlToRepoName(repoUrl)
 
