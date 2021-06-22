@@ -2,6 +2,7 @@ on:
   push:
     branches:
       - main
+  pull_request:
   workflow_dispatch:
 
 name: Deploy
@@ -115,6 +116,7 @@ jobs:
         export PATH=${PATH}:`go env GOPATH`/bin
         export WEGO_BIN_PATH=$(pwd)/bin/wego
         go get github.com/onsi/ginkgo/ginkgo
+        go get github.com/onsi/gomega
         ginkgo --randomizeSuites --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v ./test/acceptance/test/...
     - name: Store acceptance-tests results
       uses: actions/upload-artifact@v2
