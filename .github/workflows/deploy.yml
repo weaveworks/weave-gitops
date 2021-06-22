@@ -114,7 +114,7 @@ jobs:
       run: |
         export PATH=${PATH}:`go env GOPATH`/bin
         export WEGO_BIN_PATH=$(pwd)/bin/wego
-        go get -u github.com/onsi/ginkgo/ginkgo
+        go get github.com/onsi/ginkgo/ginkgo
         ginkgo --randomizeSuites --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v ./test/acceptance/test/...
     - name: Store acceptance-tests results
       uses: actions/upload-artifact@v2
@@ -162,7 +162,7 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: wego-binaries
-        path: bin    
+        path: bin
     - name: publish to s3
       uses: aws-actions/configure-aws-credentials@v1
       with:

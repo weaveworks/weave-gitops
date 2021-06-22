@@ -26,7 +26,7 @@ endif
 all: wego
 
 # Run tests
-unit-tests: cmd/ui/dist/index.html
+unit-tests:
 	CGO_ENABLED=0 go test -v -tags unittest ./...
 
 debug: 
@@ -68,10 +68,7 @@ cmd/ui/dist/main.js: package-lock.json
 	npm run build
 
 bin/$(BINARY_NAME)_ui: cmd/ui/main.go
-	go build -ldflags "-X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION)" -o bin/$(BINARY_NAME)_ui cmd/ui/main.go
-
-ui-dev:
-	reflex -r '.go' -s -- sh -c 'go run cmd/ui/main.go'
+	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME)_ui cmd/ui/main.go
 
 lint:
 	golangci-lint run --out-format=github-actions --build-tags acceptance
@@ -84,3 +81,44 @@ ui-test:
 
 ui-audit:
 	npm audit
+
+# JS coverage info
+coverage/lcov.info:
+	npm run test -- --coverage
+
+# Golang gocov data. Not compatible with coveralls at this point.
+coverage.out:
+	go get -u github.com/ory/go-acc
+	go-acc --ignore fakes,acceptance,pkg/api -o coverage.out ./... -- -v --timeout=496s -tags test
+	@go mod tidy
+
+# Convert gocov to lcov for coveralls
+coverage/golang.info: coverage.out
+	@mkdir -p coverage
+	@go get -u github.com/jandelgado/gcov2lcov
+	gcov2lcov -infile=coverage.out -outfile=coverage/golang.info
+
+# Concat the JS and Go coverage files for the coveralls report/
+# Note: you need to install `lcov` to run this locally.
+coverage/merged.lcov: coverage/lcov.info coverage/golang.info
+	lcov --add-tracefile coverage/golang.info -a coverage/lcov.info -o merged.lcov
+
+proto-deps:
+	@go get \
+		github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
+		google.golang.org/protobuf/cmd/protoc-gen-go \
+		google.golang.org/grpc/cmd/protoc-gen-go-grpc \
+		github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
+		github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts \
+		github.com/deepmap/oapi-codegen/cmd/oapi-codegen
+	buf beta mod update
+
+proto:
+	buf generate
+	oapi-codegen -config oapi-codegen.config.yaml api/applications/applications.swagger.json
+
+api-dev:
+	reflex -r '.go' -s -- sh -c 'go run cmd/wego-server/main.go'
+
+ui-dev: cmd/ui/dist/main.js
+	reflex -r '.go' -s -- sh -c 'go run cmd/ui/main.go'
