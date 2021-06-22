@@ -12,7 +12,7 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -67,18 +67,18 @@ type KubeHTTP struct {
 	ClusterName string
 }
 
-func (c *KubeHTTP) GetClusterName() (string, error) {
+func (c *KubeHTTP) GetClusterName(ctx context.Context) (string, error) {
 	return c.ClusterName, nil
 }
 
-func (c *KubeHTTP) GetClusterStatus() ClusterStatus {
+func (c *KubeHTTP) GetClusterStatus(ctx context.Context) ClusterStatus {
 	tName := types.NamespacedName{
 		Name: "apps.wego.weave.works",
 	}
 
 	crd := v1.CustomResourceDefinition{}
 
-	if c.Client.Get(context.Background(), tName, &crd) == nil {
+	if c.Client.Get(ctx, tName, &crd) == nil {
 		return WeGOInstalled
 	}
 
@@ -89,17 +89,25 @@ func (c *KubeHTTP) Apply(manifests []byte, namespace string) ([]byte, error) {
 	return nil, errors.New("Apply not implemented for kubeHTTP")
 }
 
-func (c *KubeHTTP) GetApplication(name string) (*wego.Application, error) {
+func (c *KubeHTTP) GetApplication(ctx context.Context, name string) (*wego.Application, error) {
 	tName := types.NamespacedName{
 		Name:      name,
 		Namespace: "default",
 	}
 	app := wego.Application{}
-	if err := c.Client.Get(context.Background(), tName, &app); err != nil {
+	if err := c.Client.Get(ctx, tName, &app); err != nil {
 		return nil, fmt.Errorf("could not get application: %s", err)
 	}
 
 	return &app, nil
+}
+
+func (c *KubeHTTP) Delete(manifests []byte, namespace string) ([]byte, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (c *KubeHTTP) FluxPresent() (bool, error) {
+	return false, errors.New("not implemented")
 }
 
 func initialContexts(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (contexts []string, currentCtx string, err error) {

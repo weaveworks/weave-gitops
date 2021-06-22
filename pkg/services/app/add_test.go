@@ -1,6 +1,8 @@
 package app_test
 
 import (
+	"context"
+
 	"github.com/go-git/go-billy/v5/memfs"
 	gogit "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
@@ -30,10 +32,10 @@ var _ = BeforeEach(func() {
 	gitClient = &gitfakes.FakeGit{}
 	fluxClient = &fluxfakes.FakeFlux{}
 	kubeClient = &kubefakes.FakeKube{
-		GetClusterNameStub: func() (string, error) {
+		GetClusterNameStub: func(ctx context.Context) (string, error) {
 			return "test-cluster", nil
 		},
-		GetClusterStatusStub: func() kube.ClusterStatus {
+		GetClusterStatusStub: func(ctx context.Context) kube.ClusterStatus {
 			return kube.WeGOInstalled
 		},
 	}
@@ -59,13 +61,13 @@ var _ = Describe("Add", func() {
 
 		Expect(kubeClient.GetClusterStatusCallCount()).To(Equal(1))
 
-		kubeClient.GetClusterStatusStub = func() kube.ClusterStatus {
+		kubeClient.GetClusterStatusStub = func(ctx context.Context) kube.ClusterStatus {
 			return kube.Unmodified
 		}
 		err = appSrv.Add(defaultParams)
 		Expect(err).To(MatchError("WeGO not installed... exiting"))
 
-		kubeClient.GetClusterStatusStub = func() kube.ClusterStatus {
+		kubeClient.GetClusterStatusStub = func(ctx context.Context) kube.ClusterStatus {
 			return kube.Unknown
 		}
 		err = appSrv.Add(defaultParams)

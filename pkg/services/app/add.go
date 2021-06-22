@@ -45,6 +45,7 @@ type AddParams struct {
 }
 
 func (a *App) Add(params AddParams) error {
+	ctx := context.Background()
 	fmt.Print("Updating parameters from environment... ")
 	params, err := a.updateParametersIfNecessary(params)
 	if err != nil {
@@ -54,7 +55,7 @@ func (a *App) Add(params AddParams) error {
 	fmt.Print("done\n\n")
 	fmt.Print("Checking cluster status... ")
 
-	clusterStatus := a.kube.GetClusterStatus()
+	clusterStatus := a.kube.GetClusterStatus(ctx)
 	fmt.Printf("%s\n\n", clusterStatus)
 
 	switch clusterStatus {
@@ -64,7 +65,7 @@ func (a *App) Add(params AddParams) error {
 		return errors.New("WeGO can not determine cluster status... exiting")
 	}
 
-	clusterName, err := a.kube.GetClusterName()
+	clusterName, err := a.kube.GetClusterName(ctx)
 	if err != nil {
 		return err
 	}

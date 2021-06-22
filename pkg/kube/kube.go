@@ -2,6 +2,7 @@ package kube
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"strings"
 
@@ -41,12 +42,12 @@ var toStatusString = map[ClusterStatus]string{
 type Kube interface {
 	Apply(manifests []byte, namespace string) ([]byte, error)
 	Delete(manifests []byte, namespace string) ([]byte, error)
-	GetClusterName() (string, error)
-	GetClusterStatus() ClusterStatus
 	FluxPresent() (bool, error)
 	SecretPresent(secretName string, namespace string) (bool, error)
-	GetApplication(name string) (*wego.Application, error)
 	GetApplications(namespace string) (*[]wego.Application, error)
+	GetClusterName(ctx context.Context) (string, error)
+	GetClusterStatus(ctx context.Context) ClusterStatus
+	GetApplication(ctx context.Context, name string) (*wego.Application, error)
 }
 
 type KubeClient struct {
@@ -91,7 +92,7 @@ func (k *KubeClient) Delete(manifests []byte, namespace string) ([]byte, error) 
 	return out, nil
 }
 
-func (k *KubeClient) GetClusterName() (string, error) {
+func (k *KubeClient) GetClusterName(ctx context.Context) (string, error) {
 	args := []string{
 		"config", "current-context",
 	}
@@ -104,7 +105,7 @@ func (k *KubeClient) GetClusterName() (string, error) {
 	return string(bytes.TrimSuffix(out, []byte("\n"))), nil
 }
 
-func (k *KubeClient) GetClusterStatus() ClusterStatus {
+func (k *KubeClient) GetClusterStatus(ctx context.Context) ClusterStatus {
 	// Checking wego presence
 	if k.resourceLookup("get crd apps.wego.weave.works") == nil {
 		return WeGOInstalled
@@ -146,7 +147,7 @@ func (k *KubeClient) SecretPresent(secretName, namespace string) (bool, error) {
 	return true, nil
 }
 
-func (k *KubeClient) GetApplication(name string) (*wego.Application, error) {
+func (k *KubeClient) GetApplication(ctx context.Context, name string) (*wego.Application, error) {
 	cmd := []string{"get", "app", name, "-o", "json"}
 	o, err := k.runKubectlCmd(cmd)
 

@@ -2,6 +2,7 @@
 package kubefakes
 
 import (
+	"context"
 	"sync"
 
 	"github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -49,10 +50,11 @@ type FakeKube struct {
 		result1 bool
 		result2 error
 	}
-	GetApplicationStub        func(string) (*v1alpha1.Application, error)
+	GetApplicationStub        func(context.Context, string) (*v1alpha1.Application, error)
 	getApplicationMutex       sync.RWMutex
 	getApplicationArgsForCall []struct {
-		arg1 string
+		arg1 context.Context
+		arg2 string
 	}
 	getApplicationReturns struct {
 		result1 *v1alpha1.Application
@@ -62,6 +64,7 @@ type FakeKube struct {
 		result1 *v1alpha1.Application
 		result2 error
 	}
+<<<<<<< HEAD
 	GetApplicationsStub        func(string) (*[]v1alpha1.Application, error)
 	getApplicationsMutex       sync.RWMutex
 	getApplicationsArgsForCall []struct {
@@ -76,8 +79,12 @@ type FakeKube struct {
 		result2 error
 	}
 	GetClusterNameStub        func() (string, error)
+=======
+	GetClusterNameStub        func(context.Context) (string, error)
+>>>>>>> Add context to function signatures
 	getClusterNameMutex       sync.RWMutex
 	getClusterNameArgsForCall []struct {
+		arg1 context.Context
 	}
 	getClusterNameReturns struct {
 		result1 string
@@ -87,9 +94,10 @@ type FakeKube struct {
 		result1 string
 		result2 error
 	}
-	GetClusterStatusStub        func() kube.ClusterStatus
+	GetClusterStatusStub        func(context.Context) kube.ClusterStatus
 	getClusterStatusMutex       sync.RWMutex
 	getClusterStatusArgsForCall []struct {
+		arg1 context.Context
 	}
 	getClusterStatusReturns struct {
 		result1 kube.ClusterStatus
@@ -311,18 +319,19 @@ func (fake *FakeKube) FluxPresentReturnsOnCall(i int, result1 bool, result2 erro
 	}{result1, result2}
 }
 
-func (fake *FakeKube) GetApplication(arg1 string) (*v1alpha1.Application, error) {
+func (fake *FakeKube) GetApplication(arg1 context.Context, arg2 string) (*v1alpha1.Application, error) {
 	fake.getApplicationMutex.Lock()
 	ret, specificReturn := fake.getApplicationReturnsOnCall[len(fake.getApplicationArgsForCall)]
 	fake.getApplicationArgsForCall = append(fake.getApplicationArgsForCall, struct {
-		arg1 string
-	}{arg1})
+		arg1 context.Context
+		arg2 string
+	}{arg1, arg2})
 	stub := fake.GetApplicationStub
 	fakeReturns := fake.getApplicationReturns
-	fake.recordInvocation("GetApplication", []interface{}{arg1})
+	fake.recordInvocation("GetApplication", []interface{}{arg1, arg2})
 	fake.getApplicationMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -336,17 +345,17 @@ func (fake *FakeKube) GetApplicationCallCount() int {
 	return len(fake.getApplicationArgsForCall)
 }
 
-func (fake *FakeKube) GetApplicationCalls(stub func(string) (*v1alpha1.Application, error)) {
+func (fake *FakeKube) GetApplicationCalls(stub func(context.Context, string) (*v1alpha1.Application, error)) {
 	fake.getApplicationMutex.Lock()
 	defer fake.getApplicationMutex.Unlock()
 	fake.GetApplicationStub = stub
 }
 
-func (fake *FakeKube) GetApplicationArgsForCall(i int) string {
+func (fake *FakeKube) GetApplicationArgsForCall(i int) (context.Context, string) {
 	fake.getApplicationMutex.RLock()
 	defer fake.getApplicationMutex.RUnlock()
 	argsForCall := fake.getApplicationArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeKube) GetApplicationReturns(result1 *v1alpha1.Application, result2 error) {
@@ -375,6 +384,7 @@ func (fake *FakeKube) GetApplicationReturnsOnCall(i int, result1 *v1alpha1.Appli
 	}{result1, result2}
 }
 
+<<<<<<< HEAD
 func (fake *FakeKube) GetApplications(arg1 string) (*[]v1alpha1.Application, error) {
 	fake.getApplicationsMutex.Lock()
 	ret, specificReturn := fake.getApplicationsReturnsOnCall[len(fake.getApplicationsArgsForCall)]
@@ -440,16 +450,20 @@ func (fake *FakeKube) GetApplicationsReturnsOnCall(i int, result1 *[]v1alpha1.Ap
 }
 
 func (fake *FakeKube) GetClusterName() (string, error) {
+=======
+func (fake *FakeKube) GetClusterName(arg1 context.Context) (string, error) {
+>>>>>>> Add context to function signatures
 	fake.getClusterNameMutex.Lock()
 	ret, specificReturn := fake.getClusterNameReturnsOnCall[len(fake.getClusterNameArgsForCall)]
 	fake.getClusterNameArgsForCall = append(fake.getClusterNameArgsForCall, struct {
-	}{})
+		arg1 context.Context
+	}{arg1})
 	stub := fake.GetClusterNameStub
 	fakeReturns := fake.getClusterNameReturns
-	fake.recordInvocation("GetClusterName", []interface{}{})
+	fake.recordInvocation("GetClusterName", []interface{}{arg1})
 	fake.getClusterNameMutex.Unlock()
 	if stub != nil {
-		return stub()
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -463,10 +477,17 @@ func (fake *FakeKube) GetClusterNameCallCount() int {
 	return len(fake.getClusterNameArgsForCall)
 }
 
-func (fake *FakeKube) GetClusterNameCalls(stub func() (string, error)) {
+func (fake *FakeKube) GetClusterNameCalls(stub func(context.Context) (string, error)) {
 	fake.getClusterNameMutex.Lock()
 	defer fake.getClusterNameMutex.Unlock()
 	fake.GetClusterNameStub = stub
+}
+
+func (fake *FakeKube) GetClusterNameArgsForCall(i int) context.Context {
+	fake.getClusterNameMutex.RLock()
+	defer fake.getClusterNameMutex.RUnlock()
+	argsForCall := fake.getClusterNameArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeKube) GetClusterNameReturns(result1 string, result2 error) {
@@ -495,17 +516,18 @@ func (fake *FakeKube) GetClusterNameReturnsOnCall(i int, result1 string, result2
 	}{result1, result2}
 }
 
-func (fake *FakeKube) GetClusterStatus() kube.ClusterStatus {
+func (fake *FakeKube) GetClusterStatus(arg1 context.Context) kube.ClusterStatus {
 	fake.getClusterStatusMutex.Lock()
 	ret, specificReturn := fake.getClusterStatusReturnsOnCall[len(fake.getClusterStatusArgsForCall)]
 	fake.getClusterStatusArgsForCall = append(fake.getClusterStatusArgsForCall, struct {
-	}{})
+		arg1 context.Context
+	}{arg1})
 	stub := fake.GetClusterStatusStub
 	fakeReturns := fake.getClusterStatusReturns
-	fake.recordInvocation("GetClusterStatus", []interface{}{})
+	fake.recordInvocation("GetClusterStatus", []interface{}{arg1})
 	fake.getClusterStatusMutex.Unlock()
 	if stub != nil {
-		return stub()
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
@@ -519,10 +541,17 @@ func (fake *FakeKube) GetClusterStatusCallCount() int {
 	return len(fake.getClusterStatusArgsForCall)
 }
 
-func (fake *FakeKube) GetClusterStatusCalls(stub func() kube.ClusterStatus) {
+func (fake *FakeKube) GetClusterStatusCalls(stub func(context.Context) kube.ClusterStatus) {
 	fake.getClusterStatusMutex.Lock()
 	defer fake.getClusterStatusMutex.Unlock()
 	fake.GetClusterStatusStub = stub
+}
+
+func (fake *FakeKube) GetClusterStatusArgsForCall(i int) context.Context {
+	fake.getClusterStatusMutex.RLock()
+	defer fake.getClusterStatusMutex.RUnlock()
+	argsForCall := fake.getClusterStatusArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeKube) GetClusterStatusReturns(result1 kube.ClusterStatus) {

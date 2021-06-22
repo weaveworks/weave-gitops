@@ -5,7 +5,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
@@ -46,16 +46,17 @@ var _ = BeforeEach(func() {
 
 var _ = Describe("KubeHTTP", func() {
 	It("GetApplication", func() {
+		ctx := context.Background()
 		name := "my-app"
 		app := &wego.Application{ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: "default",
 		}}
 
-		err = testclient.Create(context.Background(), app)
+		err = testclient.Create(ctx, app)
 		Expect(err).NotTo(HaveOccurred())
 
-		a, err := k.GetApplication(name)
+		a, err := k.GetApplication(ctx, name)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(a.Name).To(Equal(name))
 	})

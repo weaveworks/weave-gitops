@@ -1,6 +1,7 @@
 package kube_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -70,7 +71,7 @@ var _ = Describe("GetClusterStatus", func() {
 			return []byte("error"), fmt.Errorf("error")
 		}
 
-		status := kubeClient.GetClusterStatus()
+		status := kubeClient.GetClusterStatus(context.Background())
 		Expect(status).To(Equal(kube.WeGOInstalled))
 	})
 
@@ -83,7 +84,7 @@ var _ = Describe("GetClusterStatus", func() {
 			return []byte("error"), fmt.Errorf("error")
 		}
 
-		status := kubeClient.GetClusterStatus()
+		status := kubeClient.GetClusterStatus(context.Background())
 		Expect(status).To(Equal(kube.FluxInstalled))
 	})
 
@@ -96,7 +97,7 @@ var _ = Describe("GetClusterStatus", func() {
 			return []byte("error"), fmt.Errorf("error")
 		}
 
-		status := kubeClient.GetClusterStatus()
+		status := kubeClient.GetClusterStatus(context.Background())
 		Expect(status).To(Equal(kube.Unmodified))
 	})
 
@@ -105,7 +106,7 @@ var _ = Describe("GetClusterStatus", func() {
 			return []byte("error"), fmt.Errorf("error")
 		}
 
-		status := kubeClient.GetClusterStatus()
+		status := kubeClient.GetClusterStatus(context.Background())
 		Expect(status).To(Equal(kube.Unknown))
 	})
 })
@@ -116,7 +117,7 @@ var _ = Describe("GetClusterName", func() {
 			return []byte("cluster-name\n"), nil
 		}
 
-		out, err := kubeClient.GetClusterName()
+		out, err := kubeClient.GetClusterName(context.Background())
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(string(out)).To(Equal("cluster-name"))
 
@@ -173,7 +174,7 @@ var _ = Describe("GetApplication", func() {
 			return res, nil
 		}
 
-		out, err := kubeClient.GetApplication("my-app")
+		out, err := kubeClient.GetApplication(context.Background(), "my-app")
 
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out.Spec.Path).To(Equal("some/path"))
