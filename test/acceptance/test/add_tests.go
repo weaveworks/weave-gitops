@@ -619,4 +619,62 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			verifyWorkloadIsDeployed("nginx", "my-nginx")
 		})
 	})
+
+	It("SmokeTest - Verify that wego can deploy multiple workloads from a single app repo", func() {
+		var repoAbsolutePath string
+		appManifestFilePath1 := "./data/nginx.yaml"
+		appManifestFilePath2 := "./data/nginx2.yaml"
+		workloadName1 := "nginx"
+		workloadName2 := "nginx2"
+		workloadNamespace1 := "my-nginx"
+		workloadNamespace2 := "my-nginx2"
+		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+		appRepoName := "wego-test-app-" + RandString(8)
+		appName := appRepoName
+		addCommand := "app add . --name=" + appName
+
+		defer deleteRepo(appRepoName)
+		defer deleteWorkload(workloadName1, workloadNamespace1)
+		defer deleteWorkload(workloadName2, workloadNamespace2)
+
+		By("And application repos do not already exist", func() {
+			deleteRepo(appRepoName)
+		})
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(workloadName1, workloadNamespace1)
+			deleteWorkload(workloadName2, workloadNamespace2)
+		})
+
+		By("When I create an empty private repo for app1", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, true)
+		})
+
+		By("And I git add-commit-push for app with multiple workloads", func() {
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath1)
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath2)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+defaultSshKeyPath, func() {
+			setupSSHKey(defaultSshKeyPath)
+		})
+
+		By("And I run wego add command for 1st app", func() {
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see wego add command linked the repo  to the cluster", func() {
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I should see workload for app1 is deployed to the cluster", func() {
+			verifyWorkloadIsDeployed(workloadName1, workloadNamespace1)
+			verifyWorkloadIsDeployed(workloadName2, workloadNamespace2)
+		})
+	})
+
 })
