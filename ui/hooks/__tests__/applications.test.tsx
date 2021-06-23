@@ -38,4 +38,25 @@ describe("useApplications", () => {
 
     expect((await screen.findByTestId(name)).textContent).toEqual(name);
   });
+  it("get application", async () => {
+    const url = "example.com/somepath";
+    const mockResponses = {
+      ListApplications: { applications: [{ name: "some-name" }] },
+      GetApplication: { application: { url } },
+    };
+    const TestComponent = () => {
+      const { getApplication } = useApplications();
+      const [app, setApp] = React.useState({} as any);
+
+      React.useEffect(() => {
+        getApplication("my-app").then((a) => setApp(a as any));
+      }, []);
+
+      return <p data-testid="url">{app.url}</p>;
+    };
+
+    render(withContext(TestComponent, `/`, mockResponses));
+
+    expect((await screen.findByTestId("url")).textContent).toEqual(url);
+  });
 });

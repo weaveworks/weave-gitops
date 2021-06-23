@@ -12,22 +12,20 @@ type Props = {
 };
 
 function ApplicationDetail({ className }: Props) {
-  const [app, setApp] = React.useState<Application>(null);
+  const [app, setApp] = React.useState<Application>({});
   const {
     query: { name },
   } = useNavigation<{ name: string }>();
-  const { getApplication } = useApplications();
+
+  const { getApplication, loading } = useApplications();
 
   React.useEffect(() => {
-    getApplication(name).then((res) => setApp(res.application));
-  }, [name]);
-
-  if (!app) {
-    return null;
-  }
+    getApplication(name).then((app) => setApp(app || {}));
+  }, []);
 
   return (
     <Page
+      loading={loading}
       breadcrumbs={[{ page: PageRoute.Applications }]}
       title={name}
       className={className}
