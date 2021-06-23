@@ -2,7 +2,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
   workflow_dispatch:
 
 name: Deploy
@@ -119,7 +118,7 @@ jobs:
         export WEGO_BIN_PATH=$(pwd)/bin/wego
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega
-        #ginkgo --randomizeSuites --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v ./test/acceptance/test/...
+        ginkgo --randomizeSuites --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v ./test/acceptance/test/...
     - name: Store acceptance-tests results
       uses: actions/upload-artifact@v2
       with:
@@ -162,8 +161,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, macOS-latest]
     steps:
-    - name: checkout
-      uses: actions/checkout@v2
     - name: Download wego binaries
       uses: actions/download-artifact@v2
       with:
@@ -176,5 +173,4 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-2
     - run: |
-
         aws s3 cp bin/wego-${{matrix.os}}-* s3://weave-gitops/
