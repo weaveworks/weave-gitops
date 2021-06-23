@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"strings"
 
+	"encoding/json"
+
 	"github.com/pkg/errors"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
@@ -41,6 +44,7 @@ type Kube interface {
 	GetClusterName() (string, error)
 	GetClusterStatus() ClusterStatus
 	FluxPresent() (bool, error)
+	GetApplication(name string) (*wego.Application, error)
 }
 
 type KubeClient struct {
@@ -126,6 +130,23 @@ func (k *KubeClient) FluxPresent() (bool, error) {
 	}
 
 	return true, nil
+}
+
+func (k *KubeClient) GetApplication(name string) (*wego.Application, error) {
+	cmd := []string{"get", "app", name, "-o", "json"}
+	o, err := k.runKubectlCmd(cmd)
+
+	if err != nil {
+		return nil, fmt.Errorf("could not run kubectl command: %s", err)
+	}
+
+	a := wego.Application{}
+
+	if err := json.Unmarshal(o, &a); err != nil {
+		return nil, fmt.Errorf("could not unmarshal json: %s", err)
+	}
+
+	return &a, nil
 }
 
 func (k *KubeClient) resourceLookup(args string) error {

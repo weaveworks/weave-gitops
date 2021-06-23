@@ -26,7 +26,7 @@ function KeyValueTable({ className, pairs, columns }: Props) {
           {_.map(arr, (a, i) => (
             <tr key={i}>
               {_.map(a, ({ key, value }) => {
-                const label = _.capitalize(key);
+                const label = key;
 
                 return (
                   <td role="listitem" key={key}>

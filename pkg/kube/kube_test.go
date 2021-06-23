@@ -1,8 +1,11 @@
 package kube_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
+
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -153,5 +156,26 @@ var _ = Describe("FluxPresent", func() {
 		present, err := kubeClient.FluxPresent()
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(present).To(Equal(false))
+	})
+})
+
+var _ = Describe("GetApplication", func() {
+	It("gets an application by name", func() {
+		res, err := json.Marshal(&wego.Application{
+			Spec: wego.ApplicationSpec{
+				Path: "some/path",
+				URL:  "example.com/some-org/some-repo",
+			},
+		})
+		Expect(err).ShouldNot(HaveOccurred())
+
+		runner.RunStub = func(cmd string, args ...string) ([]byte, error) {
+			return res, nil
+		}
+
+		out, err := kubeClient.GetApplication("my-app")
+
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(out.Spec.Path).To(Equal("some/path"))
 	})
 })

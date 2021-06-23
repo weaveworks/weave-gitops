@@ -12,7 +12,11 @@ export default function useApplications() {
       .then((res) => setApplications(res.applications));
   }, []);
 
+  const getApplication = (applicationName: string) =>
+    applicationsClient.GetApplication({ applicationName });
+
   return {
     applications,
+    getApplication,
   };
 }
