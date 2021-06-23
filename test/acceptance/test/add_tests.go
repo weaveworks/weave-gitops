@@ -297,7 +297,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify 'wego app add' with --dry-run flag does not modify the cluster", func() {
+	It("SmokeTest - Verify 'wego app add' with --dry-run flag does not modify the cluster", func() {
 
 		var repoAbsolutePath string
 		var session *gexec.Session
@@ -350,7 +350,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Eventually(session).Should(gbytes.Say("Checking cluster status... WeGOInstalled"))
 
 			Eventually(session).Should(gbytes.Say(
-				`Generating deploy key...\nGenerating Source manifest...\nGenerating GitOps automation manifests...\nGenerating Application spec manifest...\nApplying manifests to the cluster...`))
+				`Generating deploy key for repo ` + url + `\nGenerating Source manifest...\nGenerating GitOps automation manifests...\nGenerating Application spec manifest...\nApplying manifests to the cluster...`))
 
 			Eventually(session).Should(gbytes.Say(
 				`apiVersion:.*\nkind: GitRepository\nmetadata:\n\s*name: ` + appName + `\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE + `[a-z0-9:\n\s*]+branch: ` + branchName + `[a-zA-Z0-9:\n\s*-]+url: ` + url))
