@@ -185,6 +185,11 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 
 	fmt.Println("Writing manifests to disk...")
 	if !params.DryRun {
+
+		if !params.AutoMerge {
+			return createPullRequestToRepo(params, appSpec, appGoat)
+		}
+
 		if err := a.writeAppYaml(".wego", params.Name, appSpec); err != nil {
 			return errors.Wrap(err, "failed writing app.yaml to disk")
 		}
@@ -193,11 +198,6 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 			return errors.Wrap(err, "failed writing app.yaml to disk")
 		}
 	}
-
-	if !params.AutoMerge {
-		return createPullRequestToRepo(params, appGoat, appWegoGoat)
-	}
-
 	return a.commitAndPush(params, func(fname string) bool {
 		return strings.Contains(fname, ".wego")
 	})
@@ -234,6 +234,10 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 
 	fmt.Println("Writing manifests to disk...")
 	if !params.DryRun {
+		if !params.AutoMerge {
+			return createPullRequestToRepo(params, appSpec, appGoat)
+		}
+
 		if err := a.writeAppYaml(".", params.Name, appSpec); err != nil {
 			return errors.Wrap(err, "failed writing app.yaml to disk")
 		}
@@ -266,7 +270,6 @@ func (a *App) generateAppManifests(params AddParams, secretRef string, clusterNa
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, fmt.Sprintf("could not create app.yaml for '%s'", params.Name))
 	}
-	fmt.Println(string(appManifest))
 
 	return sourceManifest, appGoatManifest, appManifest, nil
 }

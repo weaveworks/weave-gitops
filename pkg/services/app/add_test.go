@@ -51,6 +51,7 @@ var _ = BeforeEach(func() {
 		DeploymentType: "kustomize",
 		Namespace:      "wego-system",
 		AppConfigUrl:   "NONE",
+		AutoMerge:      true,
 	}
 })
 
@@ -658,14 +659,27 @@ var _ = Describe("Add", func() {
 	Context("when using dry-run", func() {
 		It("doesnt execute any action", func() {
 			defaultParams.DryRun = true
+			defaultParams.AutoMerge = true
 
 			err := appSrv.Add(defaultParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(0))
-			Expect(gitClient.CloneCallCount()).To(Equal(0))
+			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(1))
+			Expect(gitClient.CloneCallCount()).To(Equal(1))
+			Expect(gitClient.WriteCallCount()).To(Equal(1))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(1))
+		})
+	})
+
+	Context("Add app with automerge false", func() {
+		It("does not write the files to the disk", func() {
+			err := appSrv.Add(defaultParams)
+			Expect(err).ShouldNot(HaveOccurred())
+
 			Expect(gitClient.WriteCallCount()).To(Equal(0))
-			Expect(kubeClient.ApplyCallCount()).To(Equal(0))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(3))
+			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(1))
+			Expect(gitClient.CloneCallCount()).To(Equal(0))
 		})
 	})
 })

@@ -55,8 +55,8 @@ func GetAppHash(url, path string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func SetCommmitMessageFromArgs(cmd string, args []string, name string) {
-	commitMessage = fmt.Sprintf("wego %s %s %s", cmd, args, name)
+func SetCommmitMessageFromArgs(cmd string, name string) {
+	commitMessage = fmt.Sprintf("%s %s", cmd, name)
 }
 
 func GetCommitMessage() string {
