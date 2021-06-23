@@ -295,7 +295,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	FIt("SmokeTest - Verify 'wego app add' with --dry-run flag does not modify the cluster", func() {
+	It("Verify 'wego app add' with --dry-run flag does not modify the cluster", func() {
 
 		var repoAbsolutePath string
 		var addCommandOutput string
