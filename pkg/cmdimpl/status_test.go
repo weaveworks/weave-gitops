@@ -96,8 +96,7 @@ wego-system	kustomization/kustomize-app	True 	Applied revision: main/a2b5b8c0919
 			os.Stdout = writer
 
 			// Command parameters
-			params := AddParamSet{}
-			params.DeploymentType = "kustomize"
+			params := StatusParams{}
 			params.Namespace = "wego-system"
 			params.Name = appName
 			Expect(Status(params)).Should(Succeed())
