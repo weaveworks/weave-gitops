@@ -19,6 +19,7 @@ import (
 )
 
 const EVENTUALLY_DEFAULT_TIME_OUT time.Duration = 60 * time.Second
+const TIMEOUT_TWO_SECONDS time.Duration = 120 * time.Second
 const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
 const NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
 const INSTALL_PODS_READY_TIMEOUT time.Duration = 180 * time.Second
@@ -311,7 +312,7 @@ func installAndVerifyWego(wegoNamespace string) {
 		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s", WEGO_BIN_PATH, wegoNamespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session).Should(gexec.Exit())
+		Eventually(session, TIMEOUT_TWO_SECONDS).Should(gexec.Exit())
 		VerifyControllersInCluster(wegoNamespace)
 	})
 }

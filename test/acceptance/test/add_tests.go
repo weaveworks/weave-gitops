@@ -411,7 +411,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("SmokeTest - Verify app repo can be added to the cluster by running 'wego add path/to/repo/dir' ", func() {
+	It("Verify app repo can be added to the cluster by running 'wego add path/to/repo/dir' ", func() {
 		var repoAbsolutePath string
 		private := true
 		appManifestFilePath := "./data/nginx.yaml"
@@ -461,7 +461,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("SmokeTest - Verify app repo can be added to the cluster by running 'wego add . --app-config-url=<git ssh url>' ", func() {
+	It("Verify app repo can be added to the cluster by running 'wego add . --app-config-url=<git ssh url>' ", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		private := true
@@ -517,7 +517,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("SmokeTest - Verify app repo can be added to the cluster by running 'wego add --url=<app repo url> --app-config-url=<git ssh url>' ", func() {
+	It("Verify app repo can be added to the cluster by running 'wego add --url=<app repo url> --app-config-url=<git ssh url>' ", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		private := true
@@ -574,7 +574,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("SmokeTest - Verify app repo can be added to the cluster by running 'wego add --url=<app repo url>' ", func() {
+	It("Verify app repo can be added to the cluster by running 'wego add --url=<app repo url>' ", func() {
 		var repoAbsolutePath string
 		private := false
 		appManifestFilePath := "./data/nginx.yaml"
@@ -620,7 +620,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("SmokeTest - Verify that wego can deploy multiple workloads from a single app repo", func() {
+	It("Verify that wego can deploy multiple workloads from a single app repo", func() {
 		var repoAbsolutePath string
 		appManifestFilePath1 := "./data/nginx.yaml"
 		appManifestFilePath2 := "./data/nginx2.yaml"
