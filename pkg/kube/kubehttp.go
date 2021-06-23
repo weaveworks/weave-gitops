@@ -27,6 +27,9 @@ func CreateScheme() *apiruntime.Scheme {
 	return scheme
 }
 
+var WeGONamespace = "wego-system"
+var WeGOCRDName = "apps.wego.weave.works"
+
 func NewKubeHTTPClient() (Kube, error) {
 	cfgLoadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
 
@@ -73,7 +76,7 @@ func (c *KubeHTTP) GetClusterName(ctx context.Context) (string, error) {
 
 func (c *KubeHTTP) GetClusterStatus(ctx context.Context) ClusterStatus {
 	tName := types.NamespacedName{
-		Name: "apps.wego.weave.works",
+		Name: WeGOCRDName,
 	}
 
 	crd := v1.CustomResourceDefinition{}
@@ -92,7 +95,7 @@ func (c *KubeHTTP) Apply(manifests []byte, namespace string) ([]byte, error) {
 func (c *KubeHTTP) GetApplication(ctx context.Context, name string) (*wego.Application, error) {
 	tName := types.NamespacedName{
 		Name:      name,
-		Namespace: "default",
+		Namespace: WeGONamespace,
 	}
 	app := wego.Application{}
 	if err := c.Client.Get(ctx, tName, &app); err != nil {
