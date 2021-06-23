@@ -10,15 +10,15 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 )
 
-/*var (
-	err       error
-	namespace string
-)*/
-
 var _ = Describe("Weave GitOps Install Tests", func() {
+
+	var session *gexec.Session
+	var err error
+	var namespace string
 
 	BeforeEach(func() {
 		By("Given I have a wego binary installed on my local machine", func() {
@@ -28,8 +28,6 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 	It("Validate that wego displays help text for 'install' command", func() {
 
-		var session *gexec.Session
-		var err error
 		By("When I run the command 'wego install -h'", func() {
 			command := exec.Command(WEGO_BIN_PATH, "install", "-h")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -68,12 +66,12 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 			Eventually(session).Should(gexec.Exit())
 		})
 
-		VerifyControllersInCluster(WEGO_DEFAULT_NAMESPACE)
+		verifyControllersInCluster(WEGO_DEFAULT_NAMESPACE)
 	})
 
 	It("Verify that wego can add flux controllers to a user-specified namespace", func() {
 
-		namespace := "test-namespace"
+		namespace = "test-namespace"
 
 		By("And I have a brand new cluster", func() {
 			_, err := ResetOrCreateCluster(namespace)
@@ -81,10 +79,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 
 		By("And I create a namespace for my controllers", func() {
-			command := exec.Command("kubectl", "create", "namespace", namespace)
-			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).ShouldNot(HaveOccurred())
-			Eventually(session).Should(gexec.Exit())
+			createNamespace(namespace)
 		})
 
 		By("When I run 'wego install' command with specified namespace", func() {
@@ -94,11 +89,37 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 			Eventually(session).Should(gexec.Exit())
 		})
 
-		VerifyControllersInCluster(namespace)
+		verifyControllersInCluster(namespace)
 
 		By("Clean up the namespace", func() {
 			_, err := ResetOrCreateCluster(namespace)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 	})
+
+	It("Verify that wego installation quits if flux-system namespace is present", func() {
+
+		namespace = "flux-system"
+
+		By("And I have a brand new cluster", func() {
+			_, err := ResetOrCreateCluster(namespace)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		By("And I create a namespace for my controllers", func() {
+			createNamespace(namespace)
+		})
+
+		By("When I run wego install", func() {
+			command := exec.Command("sh", "-c", fmt.Sprintf("%s install", WEGO_BIN_PATH))
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
+			Eventually(session).Should(gexec.Exit())
+		})
+
+		By("Then I should see wego install quit message", func() {
+			Eventually(session.Err).Should(gbytes.Say(`Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n\s*. flux uninstall`))
+		})
+	})
+
 })
