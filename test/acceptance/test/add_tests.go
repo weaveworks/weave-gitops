@@ -349,13 +349,13 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Eventually(session).Should(gbytes.Say("using URL: '" + url + "'"))
 			Eventually(session).Should(gbytes.Say("Checking cluster status... WeGOInstalled"))
 
-			Eventually(session).Should(gbytes.Say(
+			Eventually(session).Should(ContainSubstring(
 				`Generating deploy key for repo ` + url + `\nGenerating Source manifest...\nGenerating GitOps automation manifests...\nGenerating Application spec manifest...\nApplying manifests to the cluster...`))
 
-			Eventually(session).Should(gbytes.Say(
+			Eventually(session).Should(ContainSubstring(
 				`apiVersion:.*\nkind: GitRepository\nmetadata:\n\s*name: ` + appName + `\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE + `[a-z0-9:\n\s*]+branch: ` + branchName + `[a-zA-Z0-9:\n\s*-]+url: ` + url))
 
-			Eventually(session).Should(gbytes.Say(
+			Eventually(session).Should(ContainSubstring(
 				`apiVersion:.*\nkind: ` + appType + `\nmetadata:\n\s*name: ` + appName + `\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE + `[\w\d\W\n\s*]+kind: GitRepository\n\s*name: ` + appName))
 		})
 
