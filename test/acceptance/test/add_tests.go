@@ -145,8 +145,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		addCommand1 := "app add . --name=" + appName1
 		addCommand2 := "app add . --name=" + appName2
 
-		// var statusOutput string
-
 		defer deleteRepo(appRepoName1)
 		defer deleteRepo(appRepoName2)
 		defer deleteWorkload(workloadName1, workloadNamespace1)
@@ -214,10 +212,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), appRepoName1)).Should(ContainSubstring("true"))
 			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), appRepoName2)).Should(ContainSubstring("false"))
 		})
-
-		// By("When I run wego app status for running apps", func() {
-		// 	statusOutput, _ := runCommandAndReturnOutput()
-		// })
 	})
 
 	It("SmokeTest - Verify helm repo can be added to the cluster by running 'wego add . --deployment-type=helm --path=./hello-world'", func() {
