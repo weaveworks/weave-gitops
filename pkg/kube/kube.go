@@ -109,7 +109,7 @@ func (k *KubeClient) GetClusterStatus() ClusterStatus {
 		return FluxInstalled
 	}
 
-	if k.resourceLookup("deployment coredns -n kube-system") == nil {
+	if k.resourceLookup("get deployment coredns -n kube-system") == nil {
 		return Unmodified
 	}
 

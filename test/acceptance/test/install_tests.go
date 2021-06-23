@@ -27,11 +27,10 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 	})
 
 	It("Validate that wego displays help text for 'install' command", func() {
-
 		var session *gexec.Session
 		var err error
-		By("When I run the command 'wego install -h'", func() {
-			command := exec.Command(WEGO_BIN_PATH, "install", "-h")
+		By("When I run the command 'wego gitops install -h'", func() {
+			command := exec.Command(WEGO_BIN_PATH, "gitops", "install", "-h")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 			Eventually(session).Should(gexec.Exit())
@@ -62,7 +61,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 
 		By("When I run 'wego install' command with default namespace", func() {
-			command := exec.Command("sh", "-c", fmt.Sprintf("%s install", WEGO_BIN_PATH))
+			command := exec.Command("sh", "-c", fmt.Sprintf("%s gitops install", WEGO_BIN_PATH))
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 			Eventually(session).Should(gexec.Exit())
