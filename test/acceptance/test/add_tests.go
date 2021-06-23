@@ -348,7 +348,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Eventually(addCommandOutput).Should(MatchRegexp(`Checking cluster status... WeGOInstalled`))
 
 			Eventually(addCommandOutput).Should(MatchRegexp(
-				`Generating deploy key for repo ` + url + `\nGenerating Source manifest...\nGenerating GitOps automation manifests...\nGenerating Application spec manifest...\nApplying manifests to the cluster...`))
+				`Generating deploy key for repo ` + url + ` ...\nGenerating Source manifest...\nGenerating GitOps automation manifests...\nGenerating Application spec manifest...\nApplying manifests to the cluster...`))
 
 			Eventually(addCommandOutput).Should(MatchRegexp(
 				`apiVersion:.*\nkind: GitRepository\nmetadata:\n\s*name: ` + appName + `\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE + `[a-z0-9:\n\s*]+branch: ` + branchName + `[a-zA-Z0-9:\n\s*-]+url: ` + url))
