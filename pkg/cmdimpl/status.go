@@ -11,6 +11,10 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
+type DeploymentType string
+type SourceType string
+type ConfigType string
+
 type StatusParams struct {
 	Namespace string
 	Name      string
