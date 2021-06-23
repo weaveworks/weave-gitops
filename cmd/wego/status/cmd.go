@@ -17,4 +17,4 @@ var Cmd = &cobra.Command{
 	},
 }
 
-var params cmdimpl.AddParamSet
+var params cmdimpl.StatusParams

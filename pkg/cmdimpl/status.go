@@ -11,9 +11,13 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
-// Status provides the implementation for the wego status application command
-func Status(allParams AddParamSet) error {
+type StatusParams struct {
+	Namespace string
+	Name      string
+}
 
+// Status provides the implementation for the wego status application command
+func Status(allParams StatusParams) error {
 	deploymentType, err := getDeploymentType(allParams.Namespace, allParams.Name)
 	if err != nil {
 		return fmt.Errorf("error getting deployment type [%s]", err)
@@ -44,7 +48,6 @@ type Yaml struct {
 }
 
 func getLatestSuccessfulDeploymentTime(namespace, appName string, deploymentType DeploymentType) (string, error) {
-
 	c := fmt.Sprintf(`kubectl \
 			-n %s \
 			get %s/%s -oyaml`,
@@ -55,22 +58,21 @@ func getLatestSuccessfulDeploymentTime(namespace, appName string, deploymentType
 
 	stdout, stderr, err := utils.CallCommandSeparatingOutputStreams(c)
 	if err != nil {
-		return "", fmt.Errorf("error getting resource info [%s %s]\n", err.Error(), string(stderr))
+		return "", fmt.Errorf("error getting resource info [%s %s]", err.Error(), string(stderr))
 	}
 	var yamlOutput Yaml
 	err = yaml.Unmarshal(stdout, &yamlOutput)
 	if err != nil {
-		return "", fmt.Errorf("error unmarshalling yaml output [%s] \n", err.Error())
+		return "", fmt.Errorf("error unmarshalling yaml output [%s]", err.Error())
 	}
 	if len(yamlOutput.Status.Conditions) == 0 {
-		return "", fmt.Errorf("error getting latest deployment time [%s] \n", stdout)
+		return "", fmt.Errorf("error getting latest deployment time [%s]", stdout)
 	}
 
 	return yamlOutput.Status.Conditions[0].LastTransitionTime, nil
 }
 
 func getDeploymentType(namespace, appName string) (DeploymentType, error) {
-
 	stdout, err := fluxops.GetAllResources(namespace)
 	if err != nil && !strings.Contains(err.Error(), "exit status 1") {
 		return "", err
@@ -85,5 +87,4 @@ func getDeploymentType(namespace, appName string) (DeploymentType, error) {
 	}
 
 	return DeploymentType(matches[0][1]), nil
-
 }
