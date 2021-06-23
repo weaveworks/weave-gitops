@@ -86,7 +86,7 @@ var _ = Describe("GetClusterStatus", func() {
 
 	It("returns unmodified cluster", func() {
 		runner.RunStub = func(cmd string, args ...string) ([]byte, error) {
-			if strings.Join(args, " ") == "deployment coredns -n kube-system" {
+			if strings.Join(args, " ") == "get deployment coredns -n kube-system" {
 				return []byte("out"), nil
 			}
 
