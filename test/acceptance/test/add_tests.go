@@ -9,8 +9,6 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
-	"github.com/onsi/gomega/gexec"
 )
 
 var _ = Describe("Weave GitOps Add Tests", func() {
@@ -264,13 +262,13 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	It("Verify 'wego add' does not work without controllers installed", func() {
 
 		var repoAbsolutePath string
+		var addCommandOutput string
+		var addCommandErr string
 		private := true
 		appManifestFilePath := "./data/nginx.yaml"
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		addCommand := "app add . "
 		appRepoName := "wego-test-app-" + RandString(8)
-		var addCommandOutput string
-		var addCommandErr string
 
 		defer deleteRepo(appRepoName)
 
@@ -297,10 +295,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("SmokeTest - Verify 'wego app add' with --dry-run flag does not modify the cluster", func() {
+	FIt("SmokeTest - Verify 'wego app add' with --dry-run flag does not modify the cluster", func() {
 
 		var repoAbsolutePath string
-		var session *gexec.Session
+		var addCommandOutput string
 		private := true
 		branchName := "test-branch-01"
 		appManifestFilePath := "./data/nginx.yaml"
@@ -342,20 +340,20 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("And I run 'wego app add dry-run' command", func() {
-			session = runWegoAddCommandAndReturnSession(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+			addCommandOutput, _ = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("Then I should see dry-run output with specified: url, namespace, branch", func() {
-			Eventually(session).Should(gbytes.Say("using URL: '" + url + "'"))
-			Eventually(session).Should(gbytes.Say("Checking cluster status... WeGOInstalled"))
+			Eventually(addCommandOutput).Should(MatchRegexp(`using URL: '` + url + `'`))
+			Eventually(addCommandOutput).Should(MatchRegexp(`Checking cluster status... WeGOInstalled`))
 
-			Eventually(session).Should(ContainSubstring(
+			Eventually(addCommandOutput).Should(MatchRegexp(
 				`Generating deploy key for repo ` + url + `\nGenerating Source manifest...\nGenerating GitOps automation manifests...\nGenerating Application spec manifest...\nApplying manifests to the cluster...`))
 
-			Eventually(session).Should(ContainSubstring(
+			Eventually(addCommandOutput).Should(MatchRegexp(
 				`apiVersion:.*\nkind: GitRepository\nmetadata:\n\s*name: ` + appName + `\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE + `[a-z0-9:\n\s*]+branch: ` + branchName + `[a-zA-Z0-9:\n\s*-]+url: ` + url))
 
-			Eventually(session).Should(ContainSubstring(
+			Eventually(addCommandOutput).Should(MatchRegexp(
 				`apiVersion:.*\nkind: ` + appType + `\nmetadata:\n\s*name: ` + appName + `\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE + `[\w\d\W\n\s*]+kind: GitRepository\n\s*name: ` + appName))
 		})
 
