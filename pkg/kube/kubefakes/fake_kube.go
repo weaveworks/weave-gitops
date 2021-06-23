@@ -4,6 +4,7 @@ package kubefakes
 import (
 	"sync"
 
+	v1alpha1 "github.com/weaveworks/weave-gitops/api/v1alpha"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
@@ -20,6 +21,19 @@ type FakeKube struct {
 	}
 	applyReturnsOnCall map[int]struct {
 		result1 []byte
+		result2 error
+	}
+	GetApplicationStub        func(string) (*v1alpha1.Application, error)
+	getApplicationMutex       sync.RWMutex
+	getApplicationArgsForCall []struct {
+		arg1 string
+	}
+	getApplicationReturns struct {
+		result1 *v1alpha1.Application
+		result2 error
+	}
+	getApplicationReturnsOnCall map[int]struct {
+		result1 *v1alpha1.Application
 		result2 error
 	}
 	GetClusterNameStub        func() (string, error)
@@ -114,6 +128,70 @@ func (fake *FakeKube) ApplyReturnsOnCall(i int, result1 []byte, result2 error) {
 	}
 	fake.applyReturnsOnCall[i] = struct {
 		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeKube) GetApplication(arg1 string) (*v1alpha1.Application, error) {
+	fake.getApplicationMutex.Lock()
+	ret, specificReturn := fake.getApplicationReturnsOnCall[len(fake.getApplicationArgsForCall)]
+	fake.getApplicationArgsForCall = append(fake.getApplicationArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.GetApplicationStub
+	fakeReturns := fake.getApplicationReturns
+	fake.recordInvocation("GetApplication", []interface{}{arg1})
+	fake.getApplicationMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeKube) GetApplicationCallCount() int {
+	fake.getApplicationMutex.RLock()
+	defer fake.getApplicationMutex.RUnlock()
+	return len(fake.getApplicationArgsForCall)
+}
+
+func (fake *FakeKube) GetApplicationCalls(stub func(string) (*v1alpha1.Application, error)) {
+	fake.getApplicationMutex.Lock()
+	defer fake.getApplicationMutex.Unlock()
+	fake.GetApplicationStub = stub
+}
+
+func (fake *FakeKube) GetApplicationArgsForCall(i int) string {
+	fake.getApplicationMutex.RLock()
+	defer fake.getApplicationMutex.RUnlock()
+	argsForCall := fake.getApplicationArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeKube) GetApplicationReturns(result1 *v1alpha1.Application, result2 error) {
+	fake.getApplicationMutex.Lock()
+	defer fake.getApplicationMutex.Unlock()
+	fake.GetApplicationStub = nil
+	fake.getApplicationReturns = struct {
+		result1 *v1alpha1.Application
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeKube) GetApplicationReturnsOnCall(i int, result1 *v1alpha1.Application, result2 error) {
+	fake.getApplicationMutex.Lock()
+	defer fake.getApplicationMutex.Unlock()
+	fake.GetApplicationStub = nil
+	if fake.getApplicationReturnsOnCall == nil {
+		fake.getApplicationReturnsOnCall = make(map[int]struct {
+			result1 *v1alpha1.Application
+			result2 error
+		})
+	}
+	fake.getApplicationReturnsOnCall[i] = struct {
+		result1 *v1alpha1.Application
 		result2 error
 	}{result1, result2}
 }
@@ -232,6 +310,8 @@ func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.applyMutex.RLock()
 	defer fake.applyMutex.RUnlock()
+	fake.getApplicationMutex.RLock()
+	defer fake.getApplicationMutex.RUnlock()
 	fake.getClusterNameMutex.RLock()
 	defer fake.getClusterNameMutex.RUnlock()
 	fake.getClusterStatusMutex.RLock()

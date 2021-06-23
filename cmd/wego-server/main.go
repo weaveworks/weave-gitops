@@ -12,6 +12,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 )
 
@@ -59,7 +61,7 @@ func StartServer() error {
 func RunInProcessGateway(ctx context.Context, addr string, opts ...runtime.ServeMuxOption) error {
 	mux := runtime.NewServeMux(opts...)
 
-	if err := pb.RegisterApplicationsHandlerServer(ctx, mux, server.NewApplicationsServer()); err != nil {
+	if err := pb.RegisterApplicationsHandlerServer(ctx, mux, server.NewApplicationsServer(kube.New(&runner.CLIRunner{}))); err != nil {
 		return fmt.Errorf("could not register application: %w", err)
 	}
 	s := &http.Server{
