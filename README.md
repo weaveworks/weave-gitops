@@ -57,12 +57,13 @@ Use "wego [command] --help" for more information about a command.
 
 For more information please see the [docs](https://docs.gitops.weave.works/docs/cli-reference)
 
-## CLI development
+## CLI/API development
 
 To set up a development environment for the CLI
 
 1. Install go v1.16
-2. make
+2. Install [buf](https://github.com/bufbuild/buf)
+3. make
 
 ## UI Development
 

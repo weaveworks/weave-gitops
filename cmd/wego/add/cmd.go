@@ -11,14 +11,18 @@ import (
 
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/lithammer/dedent"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/pkg/cmdimpl"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
-	"github.com/weaveworks/weave-gitops/pkg/shims"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
-var params cmdimpl.AddParamSet
+var params app.AddParams
 
 var Cmd = &cobra.Command{
 	Use:   "add [--name <name>] [--url <url>] [--branch <branch>] [--path <path within repository>] [--private-key <keyfile>] <repository directory>",
@@ -27,7 +31,7 @@ var Cmd = &cobra.Command{
         Associates an additional application in a git repository with a wego cluster so that its contents may be managed via GitOps
     `)),
 	Example: "wego app add .",
-	Run:     runCmd,
+	RunE:    runCmd,
 }
 
 func init() {
@@ -42,53 +46,71 @@ func init() {
 	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'wego add' will not make any changes to the system; it will just display the actions that would have been taken")
 }
 
-func runCmd(cmd *cobra.Command, args []string) {
+func runCmd(cmd *cobra.Command, args []string) error {
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 
 	if strings.HasPrefix(params.PrivateKey, "~/") {
-		dir := getHomeDir()
+		dir, err := getHomeDir()
+		if err != nil {
+			return err
+		}
 		params.PrivateKey = filepath.Join(dir, params.PrivateKey[2:])
 	} else if params.PrivateKey == "" {
-		params.PrivateKey = findPrivateKeyFile()
+		privateKey, err := findPrivateKeyFile()
+		if err != nil {
+			return err
+		}
+		params.PrivateKey = privateKey
 	}
 
 	authMethod, err := ssh.NewPublicKeysFromFile("git", params.PrivateKey, params.PrivateKeyPass)
 	if err != nil {
-		fmt.Fprintf(shims.Stderr(), "failed reading ssh keys: %s\n", err)
-		shims.Exit(1)
+		return errors.Wrap(err, "failed reading ssh keys: %s")
 	}
 
+	if params.Url == "" {
+		if len(args) == 0 {
+			return fmt.Errorf("no app --url or app location specified")
+		} else {
+			params.Dir = args[0]
+		}
+	}
+
+	cliRunner := &runner.CLIRunner{}
+	fluxClient := flux.New(cliRunner)
+	kubeClient := kube.New(cliRunner)
 	gitClient := git.New(authMethod)
+	gitProviders := gitproviders.New()
 
-	deps := &cmdimpl.AddDependencies{
-		GitClient: gitClient,
+	appService := app.New(gitClient, fluxClient, kubeClient, gitProviders)
+
+	if err := appService.Add(params); err != nil {
+		return errors.Wrapf(err, "failed to add the app %s", params.Name)
 	}
-	if err := cmdimpl.Add(args, params, deps); err != nil {
-		fmt.Fprintf(shims.Stderr(), "%v\n", err)
-		shims.Exit(1)
-	}
+
+	return nil
 }
 
-func getHomeDir() string {
+func getHomeDir() (string, error) {
 	dir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Fprintf(shims.Stderr(), "could not determine user home directory\n")
-		shims.Exit(1)
+		return "", fmt.Errorf("could not determine user home directory")
 	}
-	return dir
+	return dir, nil
 }
 
-func findPrivateKeyFile() string {
-	dir := getHomeDir()
+func findPrivateKeyFile() (string, error) {
+	dir, err := getHomeDir()
+	if err != nil {
+		return "", err
+	}
 	modernFilePath := filepath.Join(dir, ".ssh", "id_ed25519")
 	if utils.Exists(modernFilePath) {
-		return modernFilePath
+		return modernFilePath, nil
 	}
 	legacyFilePath := filepath.Join(dir, ".ssh", "id_rsa")
 	if utils.Exists(legacyFilePath) {
-		return legacyFilePath
+		return legacyFilePath, nil
 	}
-	fmt.Fprintf(shims.Stderr(), "could not locate ssh key file; please specify '--private-key'\n")
-	shims.Exit(1)
-	return ""
+	return "", fmt.Errorf("could not locate ssh key file; please specify '--private-key'")
 }

@@ -8,7 +8,8 @@
     "start": "parcel serve --port 4567 ui/index.html",
     "lint": "eslint ui",
     "test": "jest",
-    "watch": "jest --runInBand --watch"
+    "watch": "jest --runInBand --watch",
+    "coverage": "jest --coverage"
   },
   "repository": {
     "type": "git",
@@ -70,7 +71,8 @@
     "postcss": "8.3.0",
     "ejs": "^3.1.6",
     "ws": "^7.4.6",
-    "css-what": "^5.0.1"
+    "css-what": "^5.0.1",
+    "normalize-url": "^5.3.1"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.16.1"

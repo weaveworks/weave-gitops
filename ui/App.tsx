@@ -8,6 +8,8 @@ import {
 } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
 import ErrorBoundary from "./components/ErrorBoundary";
+import AppContextProvider from "./contexts/AppContext";
+import { Applications as appsClient } from "./lib/api/applications/applications.pb";
 import theme, { GlobalStyle, muiTheme } from "./lib/theme";
 import { PageRoute } from "./lib/types";
 import ApplicationDetail from "./pages/ApplicationDetail";
@@ -21,20 +23,22 @@ export default function App() {
         <GlobalStyle />
         <Router>
           <ErrorBoundary>
-            <Switch>
-              <Route
-                exact
-                path={PageRoute.Applications}
-                component={Applications}
-              />
-              <Route
-                exact
-                path={PageRoute.ApplicationDetail}
-                component={ApplicationDetail}
-              />
-              <Redirect exact from="/" to={PageRoute.Applications} />
-              <Route exact path="*" component={Error} />
-            </Switch>
+            <AppContextProvider applicationsClient={appsClient}>
+              <Switch>
+                <Route
+                  exact
+                  path={PageRoute.Applications}
+                  component={Applications}
+                />
+                <Route
+                  exact
+                  path={PageRoute.ApplicationDetail}
+                  component={ApplicationDetail}
+                />
+                <Redirect exact from="/" to={PageRoute.Applications} />
+                <Route exact path="*" component={Error} />
+              </Switch>
+            </AppContextProvider>
           </ErrorBoundary>
         </Router>
       </ThemeProvider>

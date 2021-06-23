@@ -1,0 +1,140 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "WeGo Applications API",
+    "description": "The WeGo Applications API handles operations for Weave GitOps Applications",
+    "version": "0.1"
+  },
+  "tags": [
+    {
+      "name": "Applications"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/applications": {
+      "get": {
+        "summary": "ListApplications returns the list of WeGo applications that the authenticated user has access to.",
+        "operationId": "Applications_ListApplications",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListApplicationsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Applications"
+        ]
+      }
+    },
+    "/v1/applications/{applicationName}": {
+      "get": {
+        "summary": "GetApplication returns a given application",
+        "operationId": "Applications_GetApplication",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetApplicationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "applicationName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Applications"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1Application": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      }
+    },
+    "v1GetApplicationResponse": {
+      "type": "object",
+      "properties": {
+        "application": {
+          "$ref": "#/definitions/v1Application"
+        }
+      }
+    },
+    "v1ListApplicationsResponse": {
+      "type": "object",
+      "properties": {
+        "applications": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Application"
+          }
+        }
+      }
+    }
+  }
+}

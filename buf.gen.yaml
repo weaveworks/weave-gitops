@@ -1,0 +1,16 @@
+version: v1beta1
+plugins:
+  - name: go
+    out: pkg
+    opt: paths=source_relative
+  - name: go-grpc
+    out: pkg
+    opt: paths=source_relative
+  - name: grpc-gateway
+    out: pkg
+    opt: paths=source_relative
+  - name: openapiv2
+    out: ./
+  - name: grpc-gateway-ts
+    out: ./ui/lib
+    opt: fetch_module_directory=./api/applications
