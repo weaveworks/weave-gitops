@@ -51,7 +51,7 @@ func (f *FluxClient) Install(namespace string, export bool) ([]byte, error) {
 			return out, errors.Wrapf(err, "failed to run flux install: %s", string(out))
 		}
 
-		return []byte{}, nil
+		return out, nil
 	}
 
 	if _, err := f.runFluxCmdOutputStream(args...); err != nil {
