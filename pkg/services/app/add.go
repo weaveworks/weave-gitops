@@ -9,9 +9,14 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/status"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 type DeploymentType string
@@ -189,6 +194,10 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 		}
 	}
 
+	if !params.AutoMerge {
+		return createPullRequestToRepo(params, appGoat, appWegoGoat)
+	}
+
 	return a.commitAndPush(params, func(fname string) bool {
 		return strings.Contains(fname, ".wego")
 	})
@@ -257,6 +266,7 @@ func (a *App) generateAppManifests(params AddParams, secretRef string, clusterNa
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, fmt.Sprintf("could not create app.yaml for '%s'", params.Name))
 	}
+	fmt.Println(string(appManifest))
 
 	return sourceManifest, appGoatManifest, appManifest, nil
 }
@@ -460,6 +470,8 @@ apiVersion: wego.weave.works/v1alpha1
 kind: Application
 metadata:
   name: {{ .AppName }}
+  labels:
+    name: {{ .AppHash }}
 spec:
   path: {{ .AppPath }}
   url: {{ .AppURL }}
@@ -470,12 +482,15 @@ spec:
 		return nil, errors.Wrap(err, "could not parse app yaml template")
 	}
 
+	appHash := utils.GetAppHash(params.Url, params.Path)
+
 	var populated bytes.Buffer
 	err = t.Execute(&populated, struct {
 		AppName string
+		AppHash string
 		AppPath string
 		AppURL  string
-	}{params.Name, params.Path, params.Url})
+	}{params.Name, fmt.Sprintf("wego-%s", appHash), params.Path, params.Url})
 	if err != nil {
 		return nil, errors.Wrap(err, "could not execute populated template")
 	}
@@ -520,6 +535,65 @@ func sanitizeRepoUrl(url string) string {
 	}
 
 	return url
+}
+
+func createPullRequestToRepo(params AddParams, appYaml, applicationGoatYaml []byte) error {
+	repoName := generateResourceName(params.Url)
+	provider, err := gitproviders.GithubProvider()
+	if err != nil {
+		return err
+	}
+
+	appPath := filepath.Join(".wego", "apps", params.Name, "app.yaml")
+
+	clusterName, err := status.GetClusterName()
+	if err != nil {
+		return err
+	}
+
+	goatPath := filepath.Join(".wego", "targets", clusterName, params.Name, fmt.Sprintf("%s-gitops-runtime.yaml", params.Name))
+	if params.DryRun {
+		fmt.Printf("Writing GitOps Automation to '%s'\n", goatPath)
+		return nil
+	}
+
+	appcontent := string(appYaml)
+	goatContent := string(applicationGoatYaml)
+	files := []gitprovider.CommitFile{
+		gitprovider.CommitFile{
+			Path:    &appPath,
+			Content: &appcontent,
+		},
+		gitprovider.CommitFile{
+			Path:    &goatPath,
+			Content: &goatContent,
+		},
+	}
+
+	owner, err := getOwnerFromUrl(params.Url)
+	if err != nil {
+		return nil
+	}
+
+	accountType, err := gitproviders.GetAccountType(provider, owner)
+	if err != nil {
+		return nil
+	}
+
+	appHash := utils.GetAppHash(params.Url, params.Path)
+
+	if accountType == gitproviders.AccountTypeUser {
+		userRepoRef := gitproviders.NewUserRepositoryRef(provider.SupportedDomain(), owner, repoName)
+		return gitproviders.CreatePullRequestToUserRepo(provider, userRepoRef, params.Branch, fmt.Sprintf("wego-%s", appHash), files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
+	}
+
+	org, err := fluxops.GetOwnerFromEnv()
+	if err != nil {
+		return nil
+	}
+
+	orgRepoRef := gitproviders.NewOrgRepositoryRef(provider.SupportedDomain(), org, repoName)
+	return gitproviders.CreatePullRequestToOrgRepo(provider, orgRepoRef, params.Branch, fmt.Sprintf("wego-%s", appHash), files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
 }
 
 // NOTE: ready to save the targets automation in phase 2

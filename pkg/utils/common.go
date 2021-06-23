@@ -1,12 +1,16 @@
 package utils
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"time"
 )
+
+var commitMessage string
 
 func Exists(filePath string) bool {
 	if _, err := os.Stat(filePath); err != nil {
@@ -43,4 +47,18 @@ func CaptureStdout(c callback) string {
 	stdout, _ := ioutil.ReadAll(r)
 
 	return string(stdout)
+}
+
+func GetAppHash(url, path string) string {
+	h := md5.New()
+	h.Write([]byte(url + path))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+func SetCommmitMessageFromArgs(cmd string, args []string, name string) {
+	commitMessage = fmt.Sprintf("wego %s %s %s", cmd, args, name)
+}
+
+func GetCommitMessage() string {
+	return commitMessage
 }
