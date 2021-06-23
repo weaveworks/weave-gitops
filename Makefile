@@ -89,7 +89,7 @@ coverage/lcov.info:
 # Golang gocov data. Not compatible with coveralls at this point.
 coverage.out:
 	go get -u github.com/ory/go-acc
-	go-acc --ignore fakes,acceptance,pkg/api -o coverage.out ./... -- -v --timeout=496s -tags test
+	go-acc --ignore fakes,acceptance,pkg/api,api -o coverage.out ./... -- -v --timeout=496s -tags test
 	@go mod tidy
 
 # Convert gocov to lcov for coveralls
@@ -115,10 +115,14 @@ proto-deps:
 
 proto:
 	buf generate
-	oapi-codegen -config oapi-codegen.config.yaml api/applications/applications.swagger.json
+# 	This job is complaining about a missing plugin and error-ing out
+#	oapi-codegen -config oapi-codegen.config.yaml api/applications/applications.swagger.json
 
 api-dev:
 	reflex -r '.go' -s -- sh -c 'go run cmd/wego-server/main.go'
 
 ui-dev: cmd/ui/dist/main.js
 	reflex -r '.go' -s -- sh -c 'go run cmd/ui/main.go'
+
+fakes:
+	go generate ./...

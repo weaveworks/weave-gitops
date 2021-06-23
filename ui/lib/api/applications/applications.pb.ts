@@ -7,6 +7,8 @@
 import * as fm from "./fetch.pb"
 export type Application = {
   name?: string
+  path?: string
+  url?: string
 }
 
 export type ListApplicationsRequest = {
@@ -16,8 +18,19 @@ export type ListApplicationsResponse = {
   applications?: Application[]
 }
 
+export type GetApplicationRequest = {
+  applicationName?: string
+}
+
+export type GetApplicationResponse = {
+  application?: Application
+}
+
 export class Applications {
   static ListApplications(req: ListApplicationsRequest, initReq?: fm.InitReq): Promise<ListApplicationsResponse> {
     return fm.fetchReq<ListApplicationsRequest, ListApplicationsResponse>(`/v1/applications?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetApplication(req: GetApplicationRequest, initReq?: fm.InitReq): Promise<GetApplicationResponse> {
+    return fm.fetchReq<GetApplicationRequest, GetApplicationResponse>(`/v1/applications/${req["applicationName"]}?${fm.renderURLSearchParams(req, ["applicationName"])}`, {...initReq, method: "GET"})
   }
 }
