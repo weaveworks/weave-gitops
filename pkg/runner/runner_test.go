@@ -36,3 +36,17 @@ var _ = Describe("RunWithStdin", func() {
 		Expect(string(out)).To(Equal("bla"))
 	})
 })
+
+var _ = Describe("RunWithOutputStream", func() {
+	It("runs a command outputting data into stdout in real time", func() {
+		output := CaptureStdout(func() {
+			out, err := cliRunner.RunWithOutputStream("sh", "-c", "echo stdout; echo 1>&2 stderr")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(string(out)).To(ContainSubstring("stdout"))
+			Expect(string(out)).To(ContainSubstring("stderr"))
+		})
+
+		Expect(output).To(ContainSubstring("stdout"))
+		Expect(output).To(ContainSubstring("stderr"))
+	})
+})
