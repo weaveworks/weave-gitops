@@ -47,7 +47,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`Flags:`))
 			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`-h, --help[\s]+help for install`))
 			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`Global Flags`))
-			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--namespace string[\s]+gitops runtime namespace \(default "wego-system"\)`))
+			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--namespace string[\s]+the namespace scope for this operation \(default "wego-system"\)`))
 			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`-v, --verbose[\s]+Enable verbose output`))
 		})
 
