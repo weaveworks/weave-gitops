@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	"github.com/weaveworks/weave-gitops/manifests"
 )
 
 type UinstallParams struct {
@@ -18,10 +19,10 @@ func (g *Gitops) Uninstall(params UinstallParams) error {
 	}
 
 	if params.DryRun {
-		fmt.Println("Deleting Application CRD")
+		fmt.Println("Deleting App CRD")
 	} else {
-		if out, err := g.kube.Delete(appCRD, params.Namespace); err != nil {
-			return errors.Wrapf(err, "failed to delete Application CRD: %s", string(out))
+		if out, err := g.kube.Delete(manifests.AppCRD, params.Namespace); err != nil {
+			return errors.Wrapf(err, "failed to delete App CRD: %s", string(out))
 		}
 	}
 

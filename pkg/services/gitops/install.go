@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	"github.com/weaveworks/weave-gitops/manifests"
 )
 
 type InstallParams struct {
@@ -21,18 +22,18 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 		return []byte{}, fmt.Errorf("Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n  $ flux uninstall")
 	}
 
-	manifests, err := g.flux.Install(params.Namespace, params.DryRun)
+	fluxManifests, err := g.flux.Install(params.Namespace, params.DryRun)
 	if err != nil {
-		return manifests, fmt.Errorf("error on flux install %s", err)
+		return fluxManifests, fmt.Errorf("error on flux install %s", err)
 	}
 
 	if params.DryRun {
-		manifests = append(manifests, appCRD...)
+		fluxManifests = append(fluxManifests, manifests.AppCRD...)
 	} else {
-		if out, err := g.kube.Apply(appCRD, params.Namespace); err != nil {
-			return []byte{}, errors.Wrapf(err, "failed to apply Application spec CR: %s", string(out))
+		if out, err := g.kube.Apply(manifests.AppCRD, params.Namespace); err != nil {
+			return []byte{}, errors.Wrapf(err, "failed to apply App spec CR: %s", string(out))
 		}
 	}
 
-	return manifests, nil
+	return fluxManifests, nil
 }

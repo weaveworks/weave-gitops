@@ -49,7 +49,7 @@ var _ = Describe("Install", func() {
 		Expect(kubeClient.ApplyCallCount()).To(Equal(1))
 
 		appCRD, namespace := kubeClient.ApplyArgsForCall(0)
-		Expect(appCRD).To(ContainSubstring("kind: Application"))
+		Expect(appCRD).To(ContainSubstring("kind: App"))
 		Expect(namespace).To(Equal("wego-system"))
 	})
 
@@ -77,7 +77,7 @@ var _ = Describe("Install", func() {
 			manifests, err := gitopsSrv.Install(installParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(string(manifests)).To(ContainSubstring("kind: Application"))
+			Expect(string(manifests)).To(ContainSubstring("kind: App"))
 		})
 
 		It("does not call kube apply", func() {

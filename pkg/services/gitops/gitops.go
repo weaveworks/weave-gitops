@@ -1,14 +1,9 @@
 package gitops
 
 import (
-	_ "embed"
-
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
-
-//go:embed manifests/app-crd.yaml
-var appCRD []byte
 
 type GitopsService interface {
 	Install(params InstallParams) ([]byte, error)

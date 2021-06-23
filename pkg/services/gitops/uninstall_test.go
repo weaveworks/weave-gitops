@@ -40,7 +40,7 @@ var _ = Describe("Uninstall", func() {
 		Expect(kubeClient.DeleteCallCount()).To(Equal(1))
 
 		appCRD, namespace := kubeClient.DeleteArgsForCall(0)
-		Expect(appCRD).To(ContainSubstring("kind: Application"))
+		Expect(appCRD).To(ContainSubstring("kind: App"))
 		Expect(namespace).To(Equal("wego-system"))
 	})
 
