@@ -36,7 +36,7 @@ var installCmd = &cobra.Command{
 	Long: `The install command deploys Wego in the specified namespace.
 If a previous version is installed, then an in-place upgrade will be performed.`,
 	Example: `  # Install wego in the wego-system namespace
-  wego install`,
+  wego gitops install`,
 	RunE:          installRunCmd,
 	SilenceErrors: true,
 	SilenceUsage:  true,
