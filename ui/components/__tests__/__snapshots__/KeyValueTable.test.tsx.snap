@@ -24,10 +24,10 @@ exports[`KeyValueTable snapshots renders 1`] = `
           role="listitem"
         >
           <div
-            aria-label="Name"
+            aria-label="name"
             className="c1"
           >
-            Name
+            name
           </div>
           <div
             className=""
@@ -39,10 +39,10 @@ exports[`KeyValueTable snapshots renders 1`] = `
           role="listitem"
         >
           <div
-            aria-label="Status"
+            aria-label="status"
             className="c1"
           >
-            Status
+            status
           </div>
           <div
             className=""
@@ -54,10 +54,10 @@ exports[`KeyValueTable snapshots renders 1`] = `
           role="listitem"
         >
           <div
-            aria-label="Last updated"
+            aria-label="Last Updated"
             className="c1"
           >
-            Last updated
+            Last Updated
           </div>
           <div
             className=""

@@ -7,6 +7,8 @@ option go_package = "github.com/weaveworks/weave-gitops/pkg/protos/applications"
 
 import "google/api/annotations.proto";
 
+import "protoc-gen-openapiv2/options/annotations.proto";
+
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     info: {
       title: "WeGo Applications API",
@@ -26,10 +28,20 @@ service Applications {
             get : "/v1/applications"
         };
     }
+    /**
+    * GetApplication returns a given application
+    */
+    rpc GetApplication(GetApplicationRequest) returns (GetApplicationResponse) {
+        option (google.api.http) = {
+            get : "/v1/applications/{application_name}"
+        };
+    }
 }
 
 message Application {
-    string name = 1; // The name of the application
+    string name = 1;  // The name of the application
+    string path = 2;  // The file path where the k8s yaml files for this application are stored.
+    string url  = 3;  // The git repository URL for this application
 }
 
 message ListApplicationsRequest {
@@ -38,4 +50,12 @@ message ListApplicationsRequest {
 
 message ListApplicationsResponse {
    repeated Application applications = 1; // A list of applications
+}
+
+message GetApplicationRequest {
+    string application_name = 1; // The name of an application
+}
+
+message GetApplicationResponse {
+    Application application = 1;
 }
