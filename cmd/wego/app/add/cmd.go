@@ -106,7 +106,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	appService := app.New(gitClient, fluxClient, kubeClient, gitProviders)
 
-	utils.SetCommmitMessageFromArgs("wego app add", params.Name)
+	utils.SetCommmitMessageFromArgs("wego app add", params.Url, params.Path, params.Name)
 
 	if err := appService.Add(params); err != nil {
 		return errors.Wrapf(err, "failed to add the app %s", params.Name)
