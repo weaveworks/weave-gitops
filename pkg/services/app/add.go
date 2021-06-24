@@ -200,7 +200,9 @@ func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secre
 	}
 
 	if !params.AutoMerge {
-		a.createPullRequestToRepo(params, appSpec, appGoat, clusterName)
+		if err := a.createPullRequestToRepo(params, appSpec, appGoat, clusterName); err != nil {
+			return err
+		}
 	}
 
 	fmt.Println("Applying manifests to the cluster...")
@@ -240,7 +242,9 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 
 	if !params.DryRun {
 		if !params.AutoMerge {
-			a.createPullRequestToRepo(params, appSpec, appGoat, clusterName)
+			if err := a.createPullRequestToRepo(params, appSpec, appGoat, clusterName); err != nil {
+				return err
+			}
 		} else {
 			fmt.Println("Writing manifests to disk...")
 
@@ -300,7 +304,9 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 
 	if !params.DryRun {
 		if !params.AutoMerge {
-			a.createPullRequestToRepo(params, appSpec, appGoat, clusterName)
+			if err := a.createPullRequestToRepo(params, appSpec, appGoat, clusterName); err != nil {
+				return err
+			}
 		} else {
 			fmt.Println("Writing manifests to disk...")
 
