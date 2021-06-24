@@ -15,7 +15,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
@@ -396,14 +395,8 @@ var _ = Describe("Add", func() {
 
 		Describe("Add app with automerge false", func() {
 			It("create pr with branch hash name", func() {
-				githubTestClient, err := newGithubTestClient()
-				if err != nil {
-					panic(err)
-				}
-				gitproviders.SetGithubProvider(githubTestClient)
-
 				defaultParams.AutoMerge = false
-				err = appSrv.Add(defaultParams)
+				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				_, _, _, newBranch, files, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
@@ -610,15 +603,8 @@ var _ = Describe("Add", func() {
 
 		Describe("Add app with automerge false", func() {
 			It("create pr with branch hash name", func() {
-
-				githubTestClient, err := newGithubTestClient()
-				if err != nil {
-					panic(err)
-				}
-				gitproviders.SetGithubProvider(githubTestClient)
-
 				defaultParams.AutoMerge = false
-				err = appSrv.Add(defaultParams)
+				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				_, _, _, newBranch, files, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)

@@ -611,7 +611,7 @@ func (a *App) createPullRequestToRepo(params AddParams, appYaml, applicationGoat
 		return nil
 	}
 
-	accountType, err := gitproviders.GetAccountType(provider, owner)
+	accountType, err := a.gitProviders.GetAccountType(provider, owner)
 	if err != nil {
 		return nil
 	}
