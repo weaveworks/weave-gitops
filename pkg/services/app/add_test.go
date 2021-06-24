@@ -390,22 +390,20 @@ var _ = Describe("Add", func() {
 			})
 		})
 
-		Describe("Add app with automerge false", func() {
-			It("create pr with branch hash name", func() {
-				defaultParams.AutoMerge = false
-				err := appSrv.Add(defaultParams)
-				Expect(err).ShouldNot(HaveOccurred())
+		It("create pr with branch hash name", func() {
+			defaultParams.AutoMerge = false
+			err := appSrv.Add(defaultParams)
+			Expect(err).ShouldNot(HaveOccurred())
 
-				_, _, newBranch, files, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
-				Expect(newBranch).To(Equal("wego-a0dea343aa6fbd327f209e74326b7583"))
-				Expect(files).To(Not(BeEmpty()))
+			_, _, newBranch, files, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
+			Expect(newBranch).To(Equal("wego-a0dea343aa6fbd327f209e74326b7583"))
+			Expect(files).To(Not(BeEmpty()))
 
-				Expect(gitClient.WriteCallCount()).To(Equal(0))
-				Expect(kubeClient.ApplyCallCount()).To(Equal(4))
-				Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(1))
-				Expect(gitClient.CloneCallCount()).To(Equal(0))
-				Expect(gitProviders.CreatePullRequestToUserRepoCallCount()).To(Equal(1))
-			})
+			Expect(gitClient.WriteCallCount()).To(Equal(0))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(4))
+			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(1))
+			Expect(gitClient.CloneCallCount()).To(Equal(0))
+			Expect(gitProviders.CreatePullRequestToUserRepoCallCount()).To(Equal(1))
 		})
 
 		It("applies the manifests to the cluster", func() {
@@ -598,22 +596,20 @@ var _ = Describe("Add", func() {
 			})
 		})
 
-		Describe("Add app with automerge false", func() {
-			It("create pr with branch hash name", func() {
-				defaultParams.AutoMerge = false
-				err := appSrv.Add(defaultParams)
-				Expect(err).ShouldNot(HaveOccurred())
+		It("create pr with branch hash name", func() {
+			defaultParams.AutoMerge = false
+			err := appSrv.Add(defaultParams)
+			Expect(err).ShouldNot(HaveOccurred())
 
-				_, _, newBranch, files, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
-				Expect(newBranch).To(Equal("wego-6fa1886a8c378f5e2c73408a7987a02c"))
-				Expect(files).To(Not(BeEmpty()))
+			_, _, newBranch, files, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
+			Expect(newBranch).To(Equal("wego-6fa1886a8c378f5e2c73408a7987a02c"))
+			Expect(files).To(Not(BeEmpty()))
 
-				Expect(gitClient.WriteCallCount()).To(Equal(0))
-				Expect(kubeClient.ApplyCallCount()).To(Equal(5))
-				Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(2))
-				Expect(gitClient.CloneCallCount()).To(Equal(1))
-				Expect(gitProviders.CreatePullRequestToUserRepoCallCount()).To(Equal(1))
-			})
+			Expect(gitClient.WriteCallCount()).To(Equal(0))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(5))
+			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(2))
+			Expect(gitClient.CloneCallCount()).To(Equal(1))
+			Expect(gitProviders.CreatePullRequestToUserRepoCallCount()).To(Equal(1))
 		})
 
 		It("applies the manifests to the cluster", func() {
