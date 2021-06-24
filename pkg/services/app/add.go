@@ -147,6 +147,11 @@ func (a *App) getGitRemoteUrl(params AddParams) (string, error) {
 }
 
 func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secretRef string) error {
+	appHash := fmt.Sprintf("wego-%s", utils.GetAppHash(params.Url, params.Path))
+	// if appHash exists as a label in the cluster we fail to create a PR
+	if err := a.kube.LabelExistsInCluster(appHash); err != nil {
+		return err
+	}
 	// Returns the source, app spec and kustomization
 	source, appGoat, appSpec, err := a.generateAppManifests(params, secretRef, clusterName)
 	if err != nil {
@@ -185,9 +190,14 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 
 	fmt.Println("Writing manifests to disk...")
 	if !params.DryRun {
+		appHash := fmt.Sprintf("wego-%s", utils.GetAppHash(params.Url, params.Path))
+		// if appHash exists as a label in the cluster we fail to create a PR
+		if err := a.kube.LabelExistsInCluster(appHash); err != nil {
+			return err
+		}
 
 		if !params.AutoMerge {
-			return createPullRequestToRepo(params, appSpec, appGoat)
+			return a.createPullRequestToRepo(params, appSpec, appGoat)
 		}
 
 		if err := a.writeAppYaml(".wego", params.Name, appSpec); err != nil {
@@ -234,8 +244,14 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 
 	fmt.Println("Writing manifests to disk...")
 	if !params.DryRun {
+		appHash := fmt.Sprintf("wego-%s", utils.GetAppHash(params.Url, params.Path))
+		// if appHash exists as a label in the cluster we fail to create a PR
+		if err := a.kube.LabelExistsInCluster(appHash); err != nil {
+			return err
+		}
+
 		if !params.AutoMerge {
-			return createPullRequestToRepo(params, appSpec, appGoat)
+			return a.createPullRequestToRepo(params, appSpec, appGoat)
 		}
 
 		if err := a.writeAppYaml(".", params.Name, appSpec); err != nil {
@@ -540,7 +556,7 @@ func sanitizeRepoUrl(url string) string {
 	return url
 }
 
-func createPullRequestToRepo(params AddParams, appYaml, applicationGoatYaml []byte) error {
+func (a *App) createPullRequestToRepo(params AddParams, appYaml, applicationGoatYaml []byte) error {
 	repoName := generateResourceName(params.Url)
 	provider, err := gitproviders.GithubProvider()
 	if err != nil {
@@ -583,11 +599,11 @@ func createPullRequestToRepo(params AddParams, appYaml, applicationGoatYaml []by
 		return nil
 	}
 
-	appHash := utils.GetAppHash(params.Url, params.Path)
+	appHash := fmt.Sprintf("wego-%s", utils.GetAppHash(params.Url, params.Path))
 
 	if accountType == gitproviders.AccountTypeUser {
 		userRepoRef := gitproviders.NewUserRepositoryRef(provider.SupportedDomain(), owner, repoName)
-		return gitproviders.CreatePullRequestToUserRepo(provider, userRepoRef, params.Branch, fmt.Sprintf("wego-%s", appHash), files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
+		return a.gitProviders.CreatePullRequestToUserRepo(provider, userRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
 	}
 
 	org, err := fluxops.GetOwnerFromEnv()
@@ -596,7 +612,7 @@ func createPullRequestToRepo(params AddParams, appYaml, applicationGoatYaml []by
 	}
 
 	orgRepoRef := gitproviders.NewOrgRepositoryRef(provider.SupportedDomain(), org, repoName)
-	return gitproviders.CreatePullRequestToOrgRepo(provider, orgRepoRef, params.Branch, fmt.Sprintf("wego-%s", appHash), files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
+	return a.gitProviders.CreatePullRequestToOrgRepo(provider, orgRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
 }
 
 // NOTE: ready to save the targets automation in phase 2

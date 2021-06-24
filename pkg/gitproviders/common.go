@@ -31,6 +31,8 @@ type GitProviderHandler interface {
 	RepositoryExists(name string, owner string) (bool, error)
 	DeployKeyExists(owner, repoName string) (bool, error)
 	UploadDeployKey(owner, repoName string, deployKey []byte) error
+	CreatePullRequestToUserRepo(provider gitprovider.Client, userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error
+	CreatePullRequestToOrgRepo(provider gitprovider.Client, orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error
 }
 
 // making sure it implements the interface
@@ -257,6 +259,13 @@ func UploadDeployKey(owner, repoName string, deployKey []byte) error {
 func DeployKeyExists(owner, repoName string) (bool, error) {
 	return gitProviderHandler.(GitProviderHandler).DeployKeyExists(owner, repoName)
 }
+func CreatePullRequestToUserRepo(provider gitprovider.Client, userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
+	return gitProviderHandler.(GitProviderHandler).CreatePullRequestToUserRepo(provider, userRepRef, targetBranch, newBranch, files, commitMessage, prTitle, prDescription)
+}
+
+func CreatePullRequestToOrgRepo(provider gitprovider.Client, orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
+	return gitProviderHandler.(GitProviderHandler).CreatePullRequestToOrgRepo(provider, orgRepRef, targetBranch, newBranch, files, commitMessage, prTitle, prDescription)
+}
 
 func GetAccountType(provider gitprovider.Client, owner string) (ProviderAccountType, error) {
 	ctx := context.Background()
@@ -354,7 +363,7 @@ func Override(handler GitProviderHandler) override.Override {
 	return override.Override{Handler: &gitProviderHandler, Mock: handler, Original: gitProviderHandler}
 }
 
-func CreatePullRequestToUserRepo(provider gitprovider.Client, userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
+func (h defaultGitProviderHandler) CreatePullRequestToUserRepo(provider gitprovider.Client, userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
 	ctx := context.Background()
 
 	ur, err := provider.UserRepositories().Get(ctx, userRepRef)
@@ -392,7 +401,7 @@ func CreatePullRequestToUserRepo(provider gitprovider.Client, userRepRef gitprov
 	return nil
 }
 
-func CreatePullRequestToOrgRepo(provider gitprovider.Client, orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
+func (h defaultGitProviderHandler) CreatePullRequestToOrgRepo(provider gitprovider.Client, orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
 	ctx := context.Background()
 
 	ur, err := provider.OrgRepositories().Get(ctx, orgRepRef)

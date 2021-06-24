@@ -48,6 +48,7 @@ type Kube interface {
 	GetClusterName(ctx context.Context) (string, error)
 	GetClusterStatus(ctx context.Context) ClusterStatus
 	GetApplication(ctx context.Context, name string) (*wego.Application, error)
+	LabelExistsInCluster(label string) error
 }
 
 type KubeClient struct {
@@ -177,6 +178,17 @@ func (k *KubeClient) GetApplications(ctx context.Context, ns string) ([]wego.App
 	}
 
 	return a.Items, nil
+}
+func (k *KubeClient) LabelExistsInCluster(label string) error {
+	cmd := []string{"get", "pods", "--namespace=wego-system", "--show-labels"}
+	o, err := k.runKubectlCmd(cmd)
+	if err != nil {
+		return fmt.Errorf("could not run kubectl command: %s", err)
+	}
+	if strings.Contains(string(o), label) {
+		return fmt.Errorf("unable to create resource, resource already exists in cluster")
+	}
+	return nil
 }
 
 func (k *KubeClient) resourceLookup(args string) error {
