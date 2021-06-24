@@ -401,21 +401,13 @@ var _ = Describe("Add", func() {
 			err := appSrv.Add(defaultParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(kubeClient.ApplyCallCount()).To(Equal(4))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(2))
 
 			sourceManifest, namespace := kubeClient.ApplyArgsForCall(0)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
 			Expect(namespace).To(Equal("wego-system"))
 
-			kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(1)
-			Expect(kustomizationManifest).To(Equal([]byte("kustomization")))
-			Expect(namespace).To(Equal("wego-system"))
-
-			appSpecManifest, namespace := kubeClient.ApplyArgsForCall(2)
-			Expect(string(appSpecManifest)).To(ContainSubstring("kind: Application"))
-			Expect(namespace).To(Equal("wego-system"))
-
-			appWegoManifest, namespace := kubeClient.ApplyArgsForCall(3)
+			appWegoManifest, namespace := kubeClient.ApplyArgsForCall(1)
 			Expect(string(appWegoManifest)).To(ContainSubstring("kustomization"))
 			Expect(namespace).To(Equal("wego-system"))
 		})
@@ -485,7 +477,7 @@ var _ = Describe("Add", func() {
 			Expect(files).To(Not(BeEmpty()))
 
 			Expect(gitClient.WriteCallCount()).To(Equal(0))
-			Expect(kubeClient.ApplyCallCount()).To(Equal(4))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(2))
 			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(1))
 			Expect(gitClient.CloneCallCount()).To(Equal(0))
 			Expect(gitProviders.CreatePullRequestToUserRepoCallCount()).To(Equal(1))
@@ -607,7 +599,7 @@ var _ = Describe("Add", func() {
 			err := appSrv.Add(defaultParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(kubeClient.ApplyCallCount()).To(Equal(5))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(2))
 
 			sourceManifest, namespace := kubeClient.ApplyArgsForCall(0)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
@@ -615,10 +607,6 @@ var _ = Describe("Add", func() {
 
 			kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(1)
 			Expect(kustomizationManifest).To(Equal([]byte("kustomization")))
-			Expect(namespace).To(Equal("wego-system"))
-
-			appSpecManifest, namespace := kubeClient.ApplyArgsForCall(2)
-			Expect(string(appSpecManifest)).To(ContainSubstring("kind: Application"))
 			Expect(namespace).To(Equal("wego-system"))
 		})
 
@@ -670,22 +658,22 @@ var _ = Describe("Add", func() {
 
 			Expect(len(filters)).To(Equal(0))
 		})
-	})
 
-	It("creates a pr with branch hash name", func() {
-		defaultParams.AutoMerge = false
-		err := appSrv.Add(defaultParams)
-		Expect(err).ShouldNot(HaveOccurred())
+		It("creates a pr with branch hash name", func() {
+			defaultParams.AutoMerge = false
+			err := appSrv.Add(defaultParams)
+			Expect(err).ShouldNot(HaveOccurred())
 
-		_, _, newBranch, files, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
-		Expect(newBranch).To(Equal("wego-6fa1886a8c378f5e2c73408a7987a02c"))
-		Expect(files).To(Not(BeEmpty()))
+			_, _, newBranch, files, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
+			Expect(newBranch).To(Equal("wego-6fa1886a8c378f5e2c73408a7987a02c"))
+			Expect(files).To(Not(BeEmpty()))
 
-		Expect(gitClient.WriteCallCount()).To(Equal(0))
-		Expect(kubeClient.ApplyCallCount()).To(Equal(5))
-		Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(2))
-		Expect(gitClient.CloneCallCount()).To(Equal(1))
-		Expect(gitProviders.CreatePullRequestToUserRepoCallCount()).To(Equal(1))
+			Expect(gitClient.WriteCallCount()).To(Equal(0))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(2))
+			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(2))
+			Expect(gitClient.CloneCallCount()).To(Equal(1))
+			Expect(gitProviders.CreatePullRequestToUserRepoCallCount()).To(Equal(1))
+		})
 	})
 
 	Context("when using dry-run", func() {
