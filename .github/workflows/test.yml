@@ -103,7 +103,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Setup Kubernetes
-    - uses: engineerd/setup-kind@v0.5.0
+      uses: engineerd/setup-kind@v0.5.0
       with:
         cluster_name: "${{ format('katc-{0}', github.run_id) }}"
         version: "v0.10.0"
@@ -160,7 +160,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Setup Kubernetes
-    - uses: engineerd/setup-kind@v0.5.0
+      uses: engineerd/setup-kind@v0.5.0
       with:
         cluster_name: "${{ format('katc-{0}', github.run_id) }}"
         version: "v0.10.0"
