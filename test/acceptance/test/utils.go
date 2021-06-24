@@ -362,11 +362,3 @@ func createGitRepoBranch(repoAbsolutePath string, branchName string) string {
 	Eventually(session).Should(gexec.Exit())
 	return string(session.Wait().Out.Contents())
 }
-
-func checkGitBranch(repoAbsolutePath string) string {
-	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && git branch --show-current", repoAbsolutePath))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
-	return string(session.Wait().Out.Contents())
-}

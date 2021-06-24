@@ -5,6 +5,7 @@
 package acceptance
 
 import (
+	"fmt"
 	"os"
 
 	. "github.com/onsi/ginkgo"
@@ -404,13 +405,14 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, wegoNamespace)
 		})
 
-		By("And I should see my workload deployed to the cluster", func() {
+		By("Then I should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appName, wegoNamespace)
 			verifyWorkloadIsDeployed("nginx", "my-nginx")
 		})
 
-		By("And I verify my specified branch name", func() {
-			branchOutput := checkGitBranch(repoAbsolutePath)
+		By("And my app is deployed under specified branch name", func() {
+			branchOutput, _ := runCommandAndReturnOutput(fmt.Sprintf("kubectl get -n %s GitRepositories", wegoNamespace))
+			Eventually(branchOutput).Should(ContainSubstring(appName))
 			Eventually(branchOutput).Should(ContainSubstring(branchName))
 		})
 	})
