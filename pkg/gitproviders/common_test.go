@@ -282,7 +282,8 @@ func Test_CreatePullRequestToOrgRepo(t *testing.T) {
 		userName string
 	}{
 		{"github", githubTestClient, github.DefaultDomain, accounts.GithubOrgName, accounts.GithubUserName},
-		{"gitlab", gitlabTestClient, gitlab.DefaultDomain, accounts.GitlabOrgName, accounts.GitlabUserName},
+		//Remove this for now as we dont support it yet.
+		// {"gitlab", gitlabTestClient, gitlab.DefaultDomain, accounts.GitlabOrgName, accounts.GitlabUserName},
 	}
 
 	testNameFormat := "create pr for %s account [%s]"
@@ -388,6 +389,7 @@ func CreateTestPullRequestToOrgRepo(t *testing.T, client gitprovider.Client, dom
 	branchName := "test-org-branch"
 
 	doesNotExistOrg := "doesnotexists"
+	SetGithubProvider(client)
 
 	orgRepoRef := NewOrgRepositoryRef(domain, orgName, repoName)
 	doesNotExistOrgRepoRef := NewOrgRepositoryRef(domain, doesNotExistOrg, repoName)
@@ -438,6 +440,8 @@ func CreateTestPullRequestToUserRepo(t *testing.T, client gitprovider.Client, do
 	branchName := "test-user-branch"
 
 	doesnotExistUserAccount := "doesnotexists"
+
+	SetGithubProvider(client)
 
 	userRepoRef := NewUserRepositoryRef(domain, userAccount, repoName)
 	doesNotExistsUserRepoRef := NewUserRepositoryRef(domain, doesnotExistUserAccount, repoName)
