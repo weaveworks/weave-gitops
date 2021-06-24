@@ -16,7 +16,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/status"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
@@ -205,6 +204,8 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 
 	fmt.Println("Writing manifests to disk...")
 	if !params.DryRun {
+
+		fmt.Println("---------------------------------------- before a thing")
 
 		if !params.AutoMerge {
 			return a.createPullRequestToRepo(params, appSpec, appGoat)
@@ -579,7 +580,7 @@ func (a *App) createPullRequestToRepo(params AddParams, appYaml, applicationGoat
 
 	appPath := filepath.Join(".wego", "apps", params.Name, "app.yaml")
 
-	clusterName, err := status.GetClusterName()
+	clusterName, err := a.kube.GetClusterName()
 	if err != nil {
 		return err
 	}
