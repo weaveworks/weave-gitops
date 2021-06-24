@@ -9,7 +9,8 @@
     "lint": "eslint ui",
     "test": "jest",
     "watch": "jest --runInBand --watch",
-    "coverage": "jest --coverage"
+    "coverage": "jest --coverage",
+    "pin-github-action": "pin-github-action"
   },
   "repository": {
     "type": "git",
@@ -75,6 +76,7 @@
     "normalize-url": "^5.3.1"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.16.1"
+    "@typescript-eslint/eslint-plugin": "^4.16.1",
+    "pin-github-action": "1.3.0"
   }
 }
