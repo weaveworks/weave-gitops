@@ -501,6 +501,7 @@ var _ = Describe("Get Account Type Tests", func() {
 	It("Verify GetAccountType succeed for user account ", func() {
 
 		accounts := getAccounts()
+		SetGithubProvider(githubTestClient)
 
 		accountType, err := GetAccountType(accounts.GithubUserName)
 		Expect(err).ShouldNot(HaveOccurred())
@@ -512,6 +513,7 @@ var _ = Describe("Get User repo info", func() {
 	It("Succeed on getting user repo info", func() {
 
 		accounts := getAccounts()
+		SetGithubProvider(githubTestClient)
 
 		repoName := "test-user-repo-info"
 		userRepoRef := NewUserRepositoryRef(github.DefaultDomain, accounts.GithubUserName, repoName)
