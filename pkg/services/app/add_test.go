@@ -2,10 +2,7 @@ package app_test
 
 import (
 	"context"
-	"os"
 
-	"github.com/fluxcd/go-git-providers/github"
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/go-git/go-billy/v5/memfs"
 	gogit "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
@@ -710,12 +707,3 @@ var _ = Describe("Add", func() {
 		})
 	})
 })
-
-func newGithubTestClient() (gitprovider.Client, error) {
-	token := os.Getenv("GITHUB_TOKEN")
-	if token == "" { // This is the case when the tests run in the ci/cd tool. No need to have a value as everything is cached
-		token = " "
-	}
-
-	return github.NewClient()
-}

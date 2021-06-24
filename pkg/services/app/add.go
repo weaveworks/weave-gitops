@@ -622,18 +622,18 @@ func (a *App) createPullRequestToRepo(params AddParams, appYaml, applicationGoat
 	}
 	appHash := fmt.Sprintf("wego-%s", hash)
 
-	if accountType == gitproviders.AccountTypeUser {
-		userRepoRef := gitproviders.NewUserRepositoryRef(provider.SupportedDomain(), owner, repoName)
-		return a.gitProviders.CreatePullRequestToUserRepo(provider, userRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
+	if accountType == gitproviders.AccountTypeOrg {
+		org, err := fluxops.GetOwnerFromEnv()
+		if err != nil {
+			return nil
+		}
+
+		orgRepoRef := gitproviders.NewOrgRepositoryRef(provider.SupportedDomain(), org, repoName)
+		return a.gitProviders.CreatePullRequestToOrgRepo(provider, orgRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
 	}
 
-	org, err := fluxops.GetOwnerFromEnv()
-	if err != nil {
-		return nil
-	}
-
-	orgRepoRef := gitproviders.NewOrgRepositoryRef(provider.SupportedDomain(), org, repoName)
-	return a.gitProviders.CreatePullRequestToOrgRepo(provider, orgRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
+	userRepoRef := gitproviders.NewUserRepositoryRef(provider.SupportedDomain(), owner, repoName)
+	return a.gitProviders.CreatePullRequestToUserRepo(provider, userRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
 }
 
 // NOTE: ready to save the targets automation in phase 2
