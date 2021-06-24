@@ -33,6 +33,7 @@ type GitProviderHandler interface {
 	UploadDeployKey(owner, repoName string, deployKey []byte) error
 	CreatePullRequestToUserRepo(provider gitprovider.Client, userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error
 	CreatePullRequestToOrgRepo(provider gitprovider.Client, orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error
+	GetAccountType(provider gitprovider.Client, owner string) (ProviderAccountType, error)
 }
 
 // making sure it implements the interface
@@ -53,7 +54,7 @@ func (h defaultGitProviderHandler) RepositoryExists(name string, owner string) (
 		return false, err
 	}
 
-	ownerType, err := GetAccountType(provider, owner)
+	ownerType, err := h.GetAccountType(provider, owner)
 	if err != nil {
 		return false, err
 	}
@@ -101,7 +102,7 @@ func (h defaultGitProviderHandler) CreateRepository(name string, owner string, p
 		LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
 	}
 
-	ownerType, err := GetAccountType(provider, owner)
+	ownerType, err := h.GetAccountType(provider, owner)
 	if err != nil {
 		return err
 	}
@@ -195,7 +196,7 @@ func (h defaultGitProviderHandler) UploadDeployKey(owner, repoName string, deplo
 		Key:  deployKey,
 	}
 
-	ownerType, err := GetAccountType(provider, owner)
+	ownerType, err := h.GetAccountType(provider, owner)
 	if err != nil {
 		return err
 	}
@@ -268,6 +269,10 @@ func CreatePullRequestToOrgRepo(provider gitprovider.Client, orgRepRef gitprovid
 }
 
 func GetAccountType(provider gitprovider.Client, owner string) (ProviderAccountType, error) {
+	return gitProviderHandler.(GitProviderHandler).GetAccountType(provider, owner)
+}
+
+func (h defaultGitProviderHandler) GetAccountType(provider gitprovider.Client, owner string) (ProviderAccountType, error) {
 	ctx := context.Background()
 	defer ctx.Done()
 
