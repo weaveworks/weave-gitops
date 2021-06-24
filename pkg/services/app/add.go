@@ -9,6 +9,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
@@ -575,10 +576,6 @@ func sanitizeRepoUrl(url string) string {
 
 func (a *App) createPullRequestToRepo(params AddParams, appYaml, applicationGoatYaml []byte) error {
 	repoName := generateResourceName(params.Url)
-	provider, err := gitproviders.GithubProvider()
-	if err != nil {
-		return err
-	}
 
 	appPath := filepath.Join(".wego", "apps", params.Name, "app.yaml")
 
@@ -611,7 +608,7 @@ func (a *App) createPullRequestToRepo(params AddParams, appYaml, applicationGoat
 		return nil
 	}
 
-	accountType, err := a.gitProviders.GetAccountType(provider, owner)
+	accountType, err := a.gitProviders.GetAccountType(owner)
 	if err != nil {
 		return nil
 	}
@@ -628,12 +625,12 @@ func (a *App) createPullRequestToRepo(params AddParams, appYaml, applicationGoat
 			return nil
 		}
 
-		orgRepoRef := gitproviders.NewOrgRepositoryRef(provider.SupportedDomain(), org, repoName)
-		return a.gitProviders.CreatePullRequestToOrgRepo(provider, orgRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
+		orgRepoRef := gitproviders.NewOrgRepositoryRef(github.DefaultDomain, org, repoName)
+		return a.gitProviders.CreatePullRequestToOrgRepo(orgRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
 	}
 
-	userRepoRef := gitproviders.NewUserRepositoryRef(provider.SupportedDomain(), owner, repoName)
-	return a.gitProviders.CreatePullRequestToUserRepo(provider, userRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
+	userRepoRef := gitproviders.NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
+	return a.gitProviders.CreatePullRequestToUserRepo(userRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
 }
 
 // NOTE: ready to save the targets automation in phase 2

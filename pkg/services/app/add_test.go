@@ -396,7 +396,7 @@ var _ = Describe("Add", func() {
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				_, _, _, newBranch, files, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
+				_, _, newBranch, files, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
 				Expect(newBranch).To(Equal("wego-a0dea343aa6fbd327f209e74326b7583"))
 				Expect(files).To(Not(BeEmpty()))
 
@@ -604,7 +604,7 @@ var _ = Describe("Add", func() {
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				_, _, _, newBranch, files, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
+				_, _, newBranch, files, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
 				Expect(newBranch).To(Equal("wego-6fa1886a8c378f5e2c73408a7987a02c"))
 				Expect(files).To(Not(BeEmpty()))
 

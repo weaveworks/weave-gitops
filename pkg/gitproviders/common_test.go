@@ -415,13 +415,13 @@ func CreateTestPullRequestToOrgRepo(t *testing.T, client gitprovider.Client, dom
 	prTitle := "config files"
 	prDescription := "test description"
 
-	err = CreatePullRequestToOrgRepo(client, orgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	err = CreatePullRequestToOrgRepo(orgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.NoError(t, err)
 
-	err = CreatePullRequestToOrgRepo(client, orgRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
+	err = CreatePullRequestToOrgRepo(orgRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
 	assert.Error(t, err)
 
-	err = CreatePullRequestToOrgRepo(client, doesNotExistOrgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	err = CreatePullRequestToOrgRepo(doesNotExistOrgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.Error(t, err)
 
 	t.Cleanup(func() {
@@ -465,13 +465,13 @@ func CreateTestPullRequestToUserRepo(t *testing.T, client gitprovider.Client, do
 	prTitle := "config files"
 	prDescription := "test description"
 
-	err = CreatePullRequestToUserRepo(client, userRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	err = CreatePullRequestToUserRepo(userRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.NoError(t, err)
 
-	err = CreatePullRequestToUserRepo(client, userRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
+	err = CreatePullRequestToUserRepo(userRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
 	assert.Error(t, err)
 
-	err = CreatePullRequestToUserRepo(client, doesNotExistsUserRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	err = CreatePullRequestToUserRepo(doesNotExistsUserRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.Error(t, err)
 
 	t.Cleanup(func() {
@@ -487,7 +487,7 @@ func TestGetAccountType(t *testing.T) {
 
 	accounts := getAccounts()
 
-	ownerType, err := GetAccountType(githubTestClient, accounts.GithubOrgName)
+	ownerType, err := GetAccountType(accounts.GithubOrgName)
 
 	assert.NoError(t, err)
 	assert.Equal(t, AccountTypeOrg, ownerType)
@@ -498,7 +498,7 @@ var _ = Describe("Get Account Type Tests", func() {
 
 		accounts := getAccounts()
 
-		accountType, err := GetAccountType(githubTestClient, accounts.GithubUserName)
+		accountType, err := GetAccountType(accounts.GithubUserName)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(accountType).Should(Equal(AccountTypeUser))
 	})

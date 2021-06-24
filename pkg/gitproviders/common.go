@@ -31,9 +31,9 @@ type GitProviderHandler interface {
 	RepositoryExists(name string, owner string) (bool, error)
 	DeployKeyExists(owner, repoName string) (bool, error)
 	UploadDeployKey(owner, repoName string, deployKey []byte) error
-	CreatePullRequestToUserRepo(provider gitprovider.Client, userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error
-	CreatePullRequestToOrgRepo(provider gitprovider.Client, orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error
-	GetAccountType(provider gitprovider.Client, owner string) (ProviderAccountType, error)
+	CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error
+	CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error
+	GetAccountType(owner string) (ProviderAccountType, error)
 }
 
 // making sure it implements the interface
@@ -54,7 +54,7 @@ func (h defaultGitProviderHandler) RepositoryExists(name string, owner string) (
 		return false, err
 	}
 
-	ownerType, err := h.GetAccountType(provider, owner)
+	ownerType, err := h.GetAccountType(owner)
 	if err != nil {
 		return false, err
 	}
@@ -102,7 +102,7 @@ func (h defaultGitProviderHandler) CreateRepository(name string, owner string, p
 		LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
 	}
 
-	ownerType, err := h.GetAccountType(provider, owner)
+	ownerType, err := h.GetAccountType(owner)
 	if err != nil {
 		return err
 	}
@@ -196,7 +196,7 @@ func (h defaultGitProviderHandler) UploadDeployKey(owner, repoName string, deplo
 		Key:  deployKey,
 	}
 
-	ownerType, err := h.GetAccountType(provider, owner)
+	ownerType, err := h.GetAccountType(owner)
 	if err != nil {
 		return err
 	}
@@ -260,23 +260,27 @@ func UploadDeployKey(owner, repoName string, deployKey []byte) error {
 func DeployKeyExists(owner, repoName string) (bool, error) {
 	return gitProviderHandler.(GitProviderHandler).DeployKeyExists(owner, repoName)
 }
-func CreatePullRequestToUserRepo(provider gitprovider.Client, userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
-	return gitProviderHandler.(GitProviderHandler).CreatePullRequestToUserRepo(provider, userRepRef, targetBranch, newBranch, files, commitMessage, prTitle, prDescription)
+func CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
+	return gitProviderHandler.(GitProviderHandler).CreatePullRequestToUserRepo(userRepRef, targetBranch, newBranch, files, commitMessage, prTitle, prDescription)
 }
 
-func CreatePullRequestToOrgRepo(provider gitprovider.Client, orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
-	return gitProviderHandler.(GitProviderHandler).CreatePullRequestToOrgRepo(provider, orgRepRef, targetBranch, newBranch, files, commitMessage, prTitle, prDescription)
+func CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
+	return gitProviderHandler.(GitProviderHandler).CreatePullRequestToOrgRepo(orgRepRef, targetBranch, newBranch, files, commitMessage, prTitle, prDescription)
 }
 
-func GetAccountType(provider gitprovider.Client, owner string) (ProviderAccountType, error) {
-	return gitProviderHandler.(GitProviderHandler).GetAccountType(provider, owner)
+func GetAccountType(owner string) (ProviderAccountType, error) {
+	return gitProviderHandler.(GitProviderHandler).GetAccountType(owner)
 }
 
-func (h defaultGitProviderHandler) GetAccountType(provider gitprovider.Client, owner string) (ProviderAccountType, error) {
+func (h defaultGitProviderHandler) GetAccountType(owner string) (ProviderAccountType, error) {
+	provider, err := GithubProvider()
+	if err != nil {
+		return "", err
+	}
 	ctx := context.Background()
 	defer ctx.Done()
 
-	_, err := provider.Organizations().Get(ctx, gitprovider.OrganizationRef{
+	_, err = provider.Organizations().Get(ctx, gitprovider.OrganizationRef{
 		Domain:       github.DefaultDomain,
 		Organization: owner,
 	})
@@ -368,7 +372,12 @@ func Override(handler GitProviderHandler) override.Override {
 	return override.Override{Handler: &gitProviderHandler, Mock: handler, Original: gitProviderHandler}
 }
 
-func (h defaultGitProviderHandler) CreatePullRequestToUserRepo(provider gitprovider.Client, userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
+func (h defaultGitProviderHandler) CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
+	provider, err := GithubProvider()
+	if err != nil {
+		return err
+	}
+
 	ctx := context.Background()
 
 	ur, err := provider.UserRepositories().Get(ctx, userRepRef)
@@ -406,7 +415,11 @@ func (h defaultGitProviderHandler) CreatePullRequestToUserRepo(provider gitprovi
 	return nil
 }
 
-func (h defaultGitProviderHandler) CreatePullRequestToOrgRepo(provider gitprovider.Client, orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
+func (h defaultGitProviderHandler) CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
+	provider, err := GithubProvider()
+	if err != nil {
+		return err
+	}
 	ctx := context.Background()
 
 	ur, err := provider.OrgRepositories().Get(ctx, orgRepRef)
