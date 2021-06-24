@@ -2,7 +2,10 @@ package app_test
 
 import (
 	"context"
+	"os"
 
+	"github.com/fluxcd/go-git-providers/github"
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/go-git/go-billy/v5/memfs"
 	gogit "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
@@ -12,6 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
@@ -392,8 +396,14 @@ var _ = Describe("Add", func() {
 
 		Describe("Add app with automerge false", func() {
 			It("create pr with branch hash name", func() {
+				githubTestClient, err := newGithubTestClient()
+				if err != nil {
+					panic(err)
+				}
+				gitproviders.SetGithubProvider(githubTestClient)
+
 				defaultParams.AutoMerge = false
-				err := appSrv.Add(defaultParams)
+				err = appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				_, _, _, newBranch, files, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
@@ -600,8 +610,15 @@ var _ = Describe("Add", func() {
 
 		Describe("Add app with automerge false", func() {
 			It("create pr with branch hash name", func() {
+
+				githubTestClient, err := newGithubTestClient()
+				if err != nil {
+					panic(err)
+				}
+				gitproviders.SetGithubProvider(githubTestClient)
+
 				defaultParams.AutoMerge = false
-				err := appSrv.Add(defaultParams)
+				err = appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				_, _, _, newBranch, files, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
@@ -707,3 +724,12 @@ var _ = Describe("Add", func() {
 		})
 	})
 })
+
+func newGithubTestClient() (gitprovider.Client, error) {
+	token := os.Getenv("GITHUB_TOKEN")
+	if token == "" { // This is the case when the tests run in the ci/cd tool. No need to have a value as everything is cached
+		token = " "
+	}
+
+	return github.NewClient()
+}

@@ -167,6 +167,16 @@ func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secre
 }
 
 func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, secretRef string) error {
+	hash, err := utils.GetAppHash(params.Url, params.Path)
+	if err != nil {
+		return err
+	}
+	appHash := fmt.Sprintf("wego-%s", hash)
+	// if appHash exists as a label in the cluster we fail to create a PR
+	if err := a.kube.LabelExistsInCluster(appHash); err != nil {
+		return err
+	}
+
 	// Returns the source, app spec and kustomization
 	source, appGoat, appSpec, err := a.generateAppManifests(params, secretRef, clusterName)
 	if err != nil {
@@ -194,15 +204,6 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 
 	fmt.Println("Writing manifests to disk...")
 	if !params.DryRun {
-		hash, err := utils.GetAppHash(params.Url, params.Path)
-		if err != nil {
-			return err
-		}
-		appHash := fmt.Sprintf("wego-%s", hash)
-		// if appHash exists as a label in the cluster we fail to create a PR
-		if err := a.kube.LabelExistsInCluster(appHash); err != nil {
-			return err
-		}
 
 		if !params.AutoMerge {
 			return a.createPullRequestToRepo(params, appSpec, appGoat)
@@ -222,6 +223,16 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 }
 
 func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName string, appSecretRef string) error {
+	hash, err := utils.GetAppHash(params.Url, params.Path)
+	if err != nil {
+		return err
+	}
+	appHash := fmt.Sprintf("wego-%s", hash)
+	// if appHash exists as a label in the cluster we fail to create a PR
+	if err := a.kube.LabelExistsInCluster(appHash); err != nil {
+		return err
+	}
+
 	// making sure the url is in good format
 	params.AppConfigUrl = sanitizeRepoUrl(params.AppConfigUrl)
 
@@ -252,16 +263,6 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 
 	fmt.Println("Writing manifests to disk...")
 	if !params.DryRun {
-		hash, err := utils.GetAppHash(params.Url, params.Path)
-		if err != nil {
-			return err
-		}
-		appHash := fmt.Sprintf("wego-%s", hash)
-		// if appHash exists as a label in the cluster we fail to create a PR
-		if err := a.kube.LabelExistsInCluster(appHash); err != nil {
-			return err
-		}
-
 		if !params.AutoMerge {
 			return a.createPullRequestToRepo(params, appSpec, appGoat)
 		}
