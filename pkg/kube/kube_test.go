@@ -42,6 +42,24 @@ var _ = Describe("Apply", func() {
 	})
 })
 
+var _ = Describe("Delete", func() {
+	It("delete manifests", func() {
+		runner.RunWithStdinStub = func(s1 string, s2 []string, b []byte) ([]byte, error) {
+			return []byte("out"), nil
+		}
+
+		out, err := kubeClient.Delete([]byte("manifests"), "wego-system")
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(out).To(Equal([]byte("out")))
+
+		cmd, args, manifests := runner.RunWithStdinArgsForCall(0)
+		Expect(cmd).To(Equal("kubectl"))
+
+		Expect(strings.Join(args, " ")).To(Equal("delete --namespace wego-system -f -"))
+		Expect(manifests).To(Equal([]byte("manifests")))
+	})
+})
+
 var _ = Describe("GetClusterStatus", func() {
 	It("returns wego is installed", func() {
 		runner.RunStub = func(cmd string, args ...string) ([]byte, error) {
@@ -71,7 +89,7 @@ var _ = Describe("GetClusterStatus", func() {
 
 	It("returns unmodified cluster", func() {
 		runner.RunStub = func(cmd string, args ...string) ([]byte, error) {
-			if strings.Join(args, " ") == "deployment coredns -n kube-system" {
+			if strings.Join(args, " ") == "get deployment coredns -n kube-system" {
 				return []byte("out"), nil
 			}
 
@@ -106,6 +124,38 @@ var _ = Describe("GetClusterName", func() {
 		Expect(cmd).To(Equal("kubectl"))
 
 		Expect(strings.Join(args, " ")).To(Equal("config current-context"))
+	})
+})
+
+var _ = Describe("FluxPresent", func() {
+	It("looks for flux-system namespace", func() {
+		_, err := kubeClient.FluxPresent()
+		Expect(err).ShouldNot(HaveOccurred())
+
+		cmd, args := runner.RunArgsForCall(0)
+		Expect(cmd).To(Equal("kubectl"))
+
+		Expect(strings.Join(args, " ")).To(Equal("get namespace flux-system"))
+	})
+
+	It("returns true if flux is present in the cluster", func() {
+		runner.RunStub = func(cmd string, args ...string) ([]byte, error) {
+			return []byte("namespace"), nil
+		}
+
+		present, err := kubeClient.FluxPresent()
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(present).To(Equal(true))
+	})
+
+	It("returns false if flux is not present in the cluster", func() {
+		runner.RunStub = func(cmd string, args ...string) ([]byte, error) {
+			return []byte("not found"), fmt.Errorf("error")
+		}
+
+		present, err := kubeClient.FluxPresent()
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(present).To(Equal(false))
 	})
 })
 

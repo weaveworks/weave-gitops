@@ -23,6 +23,59 @@ var _ = BeforeEach(func() {
 	fluxClient = flux.New(runner)
 })
 
+var _ = Describe("Install", func() {
+	It("installs flux", func() {
+		_, err := fluxClient.Install("wego-system", false)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		Expect(runner.RunWithOutputStreamCallCount()).To(Equal(1))
+
+		cmd, args := runner.RunWithOutputStreamArgsForCall(0)
+		Expect(cmd).To(Equal(fluxPath()))
+		Expect(strings.Join(args, " ")).To(Equal("install --namespace wego-system --components-extra image-reflector-controller,image-automation-controller"))
+	})
+
+	It("exports the install manifests", func() {
+		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
+			return []byte("out"), nil
+		}
+
+		out, err := fluxClient.Install("wego-system", true)
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(out).To(Equal([]byte("out")))
+
+		Expect(runner.RunCallCount()).To(Equal(1))
+
+		cmd, args := runner.RunArgsForCall(0)
+		Expect(cmd).To(Equal(fluxPath()))
+		Expect(strings.Join(args, " ")).To(Equal("install --namespace wego-system --components-extra image-reflector-controller,image-automation-controller --export"))
+	})
+})
+
+var _ = Describe("Uninstall", func() {
+	It("uninstalls flux", func() {
+		err := fluxClient.Uninstall("wego-system", false)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		Expect(runner.RunWithOutputStreamCallCount()).To(Equal(1))
+
+		cmd, args := runner.RunWithOutputStreamArgsForCall(0)
+		Expect(cmd).To(Equal(fluxPath()))
+		Expect(strings.Join(args, " ")).To(Equal("uninstall -s --namespace wego-system"))
+	})
+
+	It("add dry-run to the call", func() {
+		err := fluxClient.Uninstall("wego-system", true)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		Expect(runner.RunWithOutputStreamCallCount()).To(Equal(1))
+
+		cmd, args := runner.RunWithOutputStreamArgsForCall(0)
+		Expect(cmd).To(Equal(fluxPath()))
+		Expect(strings.Join(args, " ")).To(Equal("uninstall -s --namespace wego-system --dry-run"))
+	})
+})
+
 var _ = Describe("CreateSourceGit", func() {
 	It("creates a source git", func() {
 		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
@@ -31,6 +84,8 @@ var _ = Describe("CreateSourceGit", func() {
 		out, err := fluxClient.CreateSourceGit("my-name", "https://github.com/foo/my-name", "main", "my-secret", "wego-system")
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
+
+		Expect(runner.RunCallCount()).To(Equal(1))
 
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
@@ -48,6 +103,8 @@ var _ = Describe("CreateSourceHelm", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
 
+		Expect(runner.RunCallCount()).To(Equal(1))
+
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
 
@@ -63,6 +120,8 @@ var _ = Describe("CreateKustomization", func() {
 		out, err := fluxClient.CreateKustomization("my-name", "my-source", "./path", "wego-system")
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
+
+		Expect(runner.RunCallCount()).To(Equal(1))
 
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
@@ -80,6 +139,8 @@ var _ = Describe("CreateHelmReleaseGitRepository", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
 
+		Expect(runner.RunCallCount()).To(Equal(1))
+
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
 
@@ -96,6 +157,8 @@ var _ = Describe("CreateHelmReleaseHelmRepository", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
 
+		Expect(runner.RunCallCount()).To(Equal(1))
+
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
 
@@ -111,6 +174,8 @@ var _ = Describe("CreateSecretGit", func() {
 		out, err := fluxClient.CreateSecretGit("my-secret", "ssh://git@github.com/foo/bar.git", "wego-system")
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCh...")))
+
+		Expect(runner.RunCallCount()).To(Equal(1))
 
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))

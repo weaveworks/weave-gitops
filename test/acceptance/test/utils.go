@@ -309,7 +309,7 @@ func setupSSHKey(sshKeyPath string) {
 
 func installAndVerifyWego(wegoNamespace string) {
 	By("And I run 'wego install' command with namespace "+wegoNamespace, func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s", WEGO_BIN_PATH, wegoNamespace))
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s gitops install --namespace=%s", WEGO_BIN_PATH, wegoNamespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, TIMEOUT_TWO_SECONDS).Should(gexec.Exit())

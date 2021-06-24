@@ -1,0 +1,70 @@
+package gitops_test
+
+import (
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
+	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
+	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
+)
+
+var uninstallParams gitops.UinstallParams
+
+var _ = Describe("Uninstall", func() {
+	BeforeEach(func() {
+		fluxClient = &fluxfakes.FakeFlux{}
+		kubeClient = &kubefakes.FakeKube{}
+		gitopsSrv = gitops.New(fluxClient, kubeClient)
+
+		uninstallParams = gitops.UinstallParams{
+			Namespace: "wego-system",
+			DryRun:    false,
+		}
+	})
+
+	It("calls flux uninstall", func() {
+		err := gitopsSrv.Uninstall(uninstallParams)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		Expect(fluxClient.UninstallCallCount()).To(Equal(1))
+
+		namespace, dryRun := fluxClient.UninstallArgsForCall(0)
+		Expect(namespace).To(Equal("wego-system"))
+		Expect(dryRun).To(Equal(false))
+	})
+
+	It("deletes app crd", func() {
+		err := gitopsSrv.Uninstall(uninstallParams)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		Expect(kubeClient.DeleteCallCount()).To(Equal(1))
+
+		appCRD, namespace := kubeClient.DeleteArgsForCall(0)
+		Expect(appCRD).To(ContainSubstring("kind: App"))
+		Expect(namespace).To(Equal("wego-system"))
+	})
+
+	Context("when dry-run", func() {
+		BeforeEach(func() {
+			uninstallParams.DryRun = true
+		})
+
+		It("calls flux uninstall", func() {
+			err := gitopsSrv.Uninstall(uninstallParams)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			Expect(fluxClient.UninstallCallCount()).To(Equal(1))
+
+			namespace, dryRun := fluxClient.UninstallArgsForCall(0)
+			Expect(namespace).To(Equal("wego-system"))
+			Expect(dryRun).To(Equal(true))
+		})
+
+		It("does not call kube apply", func() {
+			err := gitopsSrv.Uninstall(uninstallParams)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			Expect(kubeClient.DeleteCallCount()).To(Equal(0))
+		})
+	})
+})
