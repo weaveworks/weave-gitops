@@ -147,7 +147,11 @@ func (a *App) getGitRemoteUrl(params AddParams) (string, error) {
 }
 
 func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secretRef string) error {
-	appHash := fmt.Sprintf("wego-%s", utils.GetAppHash(params.Url, params.Path))
+	hash, err := utils.GetAppHash(params.Url, params.Path)
+	if err != nil {
+		return err
+	}
+	appHash := fmt.Sprintf("wego-%s", hash)
 	// if appHash exists as a label in the cluster we fail to create a PR
 	if err := a.kube.LabelExistsInCluster(appHash); err != nil {
 		return err
@@ -190,7 +194,11 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 
 	fmt.Println("Writing manifests to disk...")
 	if !params.DryRun {
-		appHash := fmt.Sprintf("wego-%s", utils.GetAppHash(params.Url, params.Path))
+		hash, err := utils.GetAppHash(params.Url, params.Path)
+		if err != nil {
+			return err
+		}
+		appHash := fmt.Sprintf("wego-%s", hash)
 		// if appHash exists as a label in the cluster we fail to create a PR
 		if err := a.kube.LabelExistsInCluster(appHash); err != nil {
 			return err
@@ -244,7 +252,11 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 
 	fmt.Println("Writing manifests to disk...")
 	if !params.DryRun {
-		appHash := fmt.Sprintf("wego-%s", utils.GetAppHash(params.Url, params.Path))
+		hash, err := utils.GetAppHash(params.Url, params.Path)
+		if err != nil {
+			return err
+		}
+		appHash := fmt.Sprintf("wego-%s", hash)
 		// if appHash exists as a label in the cluster we fail to create a PR
 		if err := a.kube.LabelExistsInCluster(appHash); err != nil {
 			return err
@@ -501,7 +513,11 @@ spec:
 		return nil, errors.Wrap(err, "could not parse app yaml template")
 	}
 
-	appHash := utils.GetAppHash(params.Url, params.Path)
+	hash, err := utils.GetAppHash(params.Url, params.Path)
+	if err != nil {
+		return nil, err
+	}
+	appHash := fmt.Sprintf("wego-%s", hash)
 
 	var populated bytes.Buffer
 	err = t.Execute(&populated, struct {
@@ -599,7 +615,11 @@ func (a *App) createPullRequestToRepo(params AddParams, appYaml, applicationGoat
 		return nil
 	}
 
-	appHash := fmt.Sprintf("wego-%s", utils.GetAppHash(params.Url, params.Path))
+	hash, err := utils.GetAppHash(params.Url, params.Path)
+	if err != nil {
+		return err
+	}
+	appHash := fmt.Sprintf("wego-%s", hash)
 
 	if accountType == gitproviders.AccountTypeUser {
 		userRepoRef := gitproviders.NewUserRepositoryRef(provider.SupportedDomain(), owner, repoName)

@@ -49,10 +49,13 @@ func CaptureStdout(c callback) string {
 	return string(stdout)
 }
 
-func GetAppHash(url, path string) string {
+func GetAppHash(url, path string) (string, error) {
 	h := md5.New()
-	h.Write([]byte(url + path))
-	return hex.EncodeToString(h.Sum(nil))
+	_, err := h.Write([]byte(url + path))
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
 func SetCommmitMessageFromArgs(cmd string, url, path, name string) {
