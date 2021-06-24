@@ -410,4 +410,271 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			verifyWorkloadIsDeployed("nginx", "my-nginx")
 		})
 	})
+
+	It("Verify app repo can be added to the cluster by running 'wego add path/to/repo/dir' ", func() {
+		var repoAbsolutePath string
+		private := true
+		appManifestFilePath := "./data/nginx.yaml"
+		workloadName := "nginx"
+		workloadNamespace := "my-nginx"
+		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+		appRepoName := "wego-test-app-" + RandString(8)
+		addCommand := "app add " + appRepoName + "/"
+		appName := appRepoName
+
+		defer deleteRepo(appRepoName)
+		defer deleteWorkload(workloadName, workloadNamespace)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(appRepoName)
+		})
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(workloadName, workloadNamespace)
+		})
+
+		By("When I create a private repo with my app workload", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+defaultSshKeyPath, func() {
+			setupSSHKey(defaultSshKeyPath)
+		})
+
+		By("And I run wego add command from repo parent dir", func() {
+			pathToRepoParentDir := repoAbsolutePath + "/../"
+			runWegoAddCommand(pathToRepoParentDir, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see should see my workload deployed to the cluster", func() {
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+			verifyWorkloadIsDeployed("nginx", "my-nginx")
+		})
+
+		By("And repos created have private visibility", func() {
+			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), appRepoName)).Should(ContainSubstring("true"))
+		})
+	})
+
+	It("Verify app repo can be added to the cluster by running 'wego add . --app-config-url=<git ssh url>' ", func() {
+		var repoAbsolutePath string
+		var configRepoRemoteURL string
+		private := true
+		appManifestFilePath := "./data/nginx.yaml"
+		workloadName := "nginx"
+		workloadNamespace := "my-nginx"
+		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+		appRepoName := "wego-test-app-" + RandString(8)
+		appConfigRepoName := "wego-config-repo-" + RandString(8)
+		configRepoRemoteURL = "ssh://git@github.com/" + os.Getenv("GITHUB_ORG") + "/" + appConfigRepoName + ".git"
+		addCommand := "app add . --app-config-url=" + configRepoRemoteURL
+		appName := appRepoName
+
+		defer deleteRepo(appRepoName)
+		defer deleteRepo(appConfigRepoName)
+		defer deleteWorkload(workloadName, workloadNamespace)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(appRepoName)
+			deleteRepo(appConfigRepoName)
+
+		})
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(workloadName, workloadNamespace)
+		})
+
+		By("When I create a private repo for wego app config", func() {
+			appCofigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, private)
+			gitAddCommitPush(appCofigRepoAbsPath, appManifestFilePath)
+		})
+
+		By("When I create a private repo with my app workload", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+defaultSshKeyPath, func() {
+			setupSSHKey(defaultSshKeyPath)
+		})
+
+		By("And I run wego add command with --app-config-url param", func() {
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see should see my workload deployed to the cluster", func() {
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+			verifyWorkloadIsDeployed("nginx", "my-nginx")
+		})
+	})
+
+	It("Verify app repo can be added to the cluster by running 'wego add --url=<app repo url> --app-config-url=<git ssh url>' ", func() {
+		var repoAbsolutePath string
+		var configRepoRemoteURL string
+		private := true
+		appManifestFilePath := "./data/nginx.yaml"
+		workloadName := "nginx"
+		workloadNamespace := "my-nginx"
+		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+		appRepoName := "wego-test-app-" + RandString(8)
+		appConfigRepoName := "wego-config-repo-" + RandString(8)
+		appRepoRemoteURL := "ssh://git@github.com/" + os.Getenv("GITHUB_ORG") + "/" + appRepoName + ".git"
+		configRepoRemoteURL = "ssh://git@github.com/" + os.Getenv("GITHUB_ORG") + "/" + appConfigRepoName + ".git"
+		addCommand := "app add --url=" + appRepoRemoteURL + " --app-config-url=" + configRepoRemoteURL
+		appName := appRepoName
+
+		defer deleteRepo(appRepoName)
+		defer deleteRepo(appConfigRepoName)
+		defer deleteWorkload(workloadName, workloadNamespace)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(appRepoName)
+			deleteRepo(appConfigRepoName)
+
+		})
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(workloadName, workloadNamespace)
+		})
+
+		By("When I create a private repo for wego app config", func() {
+			appCofigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, private)
+			gitAddCommitPush(appCofigRepoAbsPath, appManifestFilePath)
+		})
+
+		By("When I create a private repo with my app workload", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+defaultSshKeyPath, func() {
+			setupSSHKey(defaultSshKeyPath)
+		})
+
+		By("And I run wego add command with --url and --app-config-url params", func() {
+			runWegoAddCommand(repoAbsolutePath+"/../", addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see should see my workload deployed to the cluster", func() {
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+			verifyWorkloadIsDeployed("nginx", "my-nginx")
+		})
+	})
+
+	It("Verify app repo can be added to the cluster by running 'wego add --url=<app repo url>' ", func() {
+		var repoAbsolutePath string
+		private := false
+		appManifestFilePath := "./data/nginx.yaml"
+		workloadName := "nginx"
+		workloadNamespace := "my-nginx"
+		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+		appRepoName := "wego-test-app-" + RandString(8)
+		appRepoRemoteURL := "ssh://git@github.com/" + os.Getenv("GITHUB_ORG") + "/" + appRepoName + ".git"
+		addCommand := "app add --url=" + appRepoRemoteURL
+		appName := appRepoName
+
+		defer deleteRepo(appRepoName)
+		defer deleteWorkload(workloadName, workloadNamespace)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(appRepoName)
+		})
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(workloadName, workloadNamespace)
+		})
+
+		By("When I create a private repo with my app workload", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+defaultSshKeyPath, func() {
+			setupSSHKey(defaultSshKeyPath)
+		})
+
+		By("And I run wego add command with --url", func() {
+			runWegoAddCommand(repoAbsolutePath+"/../", addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see should see my workload deployed to the cluster", func() {
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+			verifyWorkloadIsDeployed("nginx", "my-nginx")
+		})
+	})
+
+	It("Verify that wego can deploy multiple workloads from a single app repo", func() {
+		var repoAbsolutePath string
+		appManifestFilePath1 := "./data/nginx.yaml"
+		appManifestFilePath2 := "./data/nginx2.yaml"
+		workloadName1 := "nginx"
+		workloadName2 := "nginx2"
+		workloadNamespace1 := "my-nginx"
+		workloadNamespace2 := "my-nginx2"
+		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+		appRepoName := "wego-test-app-" + RandString(8)
+		appName := appRepoName
+		addCommand := "app add . --name=" + appName
+
+		defer deleteRepo(appRepoName)
+		defer deleteWorkload(workloadName1, workloadNamespace1)
+		defer deleteWorkload(workloadName2, workloadNamespace2)
+
+		By("And application repos do not already exist", func() {
+			deleteRepo(appRepoName)
+		})
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(workloadName1, workloadNamespace1)
+			deleteWorkload(workloadName2, workloadNamespace2)
+		})
+
+		By("When I create an empty private repo for app1", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, true)
+		})
+
+		By("And I git add-commit-push for app with multiple workloads", func() {
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath1)
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath2)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+defaultSshKeyPath, func() {
+			setupSSHKey(defaultSshKeyPath)
+		})
+
+		By("And I run wego add command for 1st app", func() {
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see wego add command linked the repo  to the cluster", func() {
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I should see workload for app1 is deployed to the cluster", func() {
+			verifyWorkloadIsDeployed(workloadName1, workloadNamespace1)
+			verifyWorkloadIsDeployed(workloadName2, workloadNamespace2)
+		})
+	})
+
 })
