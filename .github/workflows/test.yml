@@ -125,7 +125,7 @@ jobs:
     - name: Set up ssh agent
       uses: webfactory/ssh-agent@v0.5.2
       with:
-        ssh-private-key: ${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}
+        ssh-private-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
     - name: Configure git settings
       run: |
         git config --global init.defaultBranch main
@@ -138,7 +138,7 @@ jobs:
       env:
         GITHUB_ORG: weaveworks-gitops-test
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
-        GITHUB_KEY: "${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}"
+        GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
       run: |
         export PATH=${PATH}:`go env GOPATH`/bin
         export WEGO_BIN_PATH=$(pwd)/bin/wego
@@ -181,7 +181,7 @@ jobs:
     - name: Set up ssh agent
       uses: webfactory/ssh-agent@v0.5.2
       with:
-        ssh-private-key: ${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}
+        ssh-private-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
     - name: Configure git settings
       run: |
         git config --global init.defaultBranch main
@@ -192,7 +192,7 @@ jobs:
       env:
         GITHUB_ORG: weaveworks-gitops-test
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
-        GITHUB_KEY: "${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}"
+        GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
       run: |
         export PATH=${PATH}:`go env GOPATH`/bin
         export WEGO_BIN_PATH=$(pwd)/bin/wego
