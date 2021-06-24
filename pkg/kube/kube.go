@@ -40,8 +40,10 @@ var toStatusString = map[ClusterStatus]string{
 //counterfeiter:generate . Kube
 type Kube interface {
 	Apply(manifests []byte, namespace string) ([]byte, error)
+	Delete(manifests []byte, namespace string) ([]byte, error)
 	GetClusterName() (string, error)
 	GetClusterStatus() ClusterStatus
+	FluxPresent() (bool, error)
 	GetApplication(name string) (*wego.Application, error)
 }
 
@@ -60,6 +62,21 @@ var _ Kube = &KubeClient{}
 func (k *KubeClient) Apply(manifests []byte, namespace string) ([]byte, error) {
 	args := []string{
 		"apply",
+		"--namespace", namespace,
+		"-f", "-",
+	}
+
+	out, err := k.runKubectlCmdWithInput(args, manifests)
+	if err != nil {
+		return out, err
+	}
+
+	return out, nil
+}
+
+func (k *KubeClient) Delete(manifests []byte, namespace string) ([]byte, error) {
+	args := []string{
+		"delete",
 		"--namespace", namespace,
 		"-f", "-",
 	}
@@ -96,11 +113,23 @@ func (k *KubeClient) GetClusterStatus() ClusterStatus {
 		return FluxInstalled
 	}
 
-	if k.resourceLookup("deployment coredns -n kube-system") == nil {
+	if k.resourceLookup("get deployment coredns -n kube-system") == nil {
 		return Unmodified
 	}
 
 	return Unknown
+}
+
+// FluxPresent checks flux presence in the cluster
+func (k *KubeClient) FluxPresent() (bool, error) {
+	out, err := k.runKubectlCmd([]string{"get", "namespace", "flux-system"})
+	if err != nil {
+		if strings.Contains(string(out), "not found") {
+			return false, nil
+		}
+	}
+
+	return true, nil
 }
 
 func (k *KubeClient) GetApplication(name string) (*wego.Application, error) {
@@ -132,7 +161,7 @@ func (k *KubeClient) resourceLookup(args string) error {
 func (k *KubeClient) runKubectlCmd(args []string) ([]byte, error) {
 	out, err := k.runner.Run(kubectlPath, args...)
 	if err != nil {
-		return []byte{}, fmt.Errorf("failed to run kubectl with output: %s", string(out))
+		return out, fmt.Errorf("failed to run kubectl with output: %s", string(out))
 	}
 
 	return out, nil
@@ -141,7 +170,7 @@ func (k *KubeClient) runKubectlCmd(args []string) ([]byte, error) {
 func (k *KubeClient) runKubectlCmdWithInput(args []string, input []byte) ([]byte, error) {
 	out, err := k.runner.RunWithStdin(kubectlPath, args, input)
 	if err != nil {
-		return []byte{}, fmt.Errorf("failed to run kubectl with output: %s", string(out))
+		return out, fmt.Errorf("failed to run kubectl with output: %s", string(out))
 	}
 
 	return out, nil

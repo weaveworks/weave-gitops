@@ -102,6 +102,32 @@ type FakeFlux struct {
 		result1 []byte
 		result2 error
 	}
+	InstallStub        func(string, bool) ([]byte, error)
+	installMutex       sync.RWMutex
+	installArgsForCall []struct {
+		arg1 string
+		arg2 bool
+	}
+	installReturns struct {
+		result1 []byte
+		result2 error
+	}
+	installReturnsOnCall map[int]struct {
+		result1 []byte
+		result2 error
+	}
+	UninstallStub        func(string, bool) error
+	uninstallMutex       sync.RWMutex
+	uninstallArgsForCall []struct {
+		arg1 string
+		arg2 bool
+	}
+	uninstallReturns struct {
+		result1 error
+	}
+	uninstallReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -506,6 +532,133 @@ func (fake *FakeFlux) CreateSourceHelmReturnsOnCall(i int, result1 []byte, resul
 	}{result1, result2}
 }
 
+func (fake *FakeFlux) Install(arg1 string, arg2 bool) ([]byte, error) {
+	fake.installMutex.Lock()
+	ret, specificReturn := fake.installReturnsOnCall[len(fake.installArgsForCall)]
+	fake.installArgsForCall = append(fake.installArgsForCall, struct {
+		arg1 string
+		arg2 bool
+	}{arg1, arg2})
+	stub := fake.InstallStub
+	fakeReturns := fake.installReturns
+	fake.recordInvocation("Install", []interface{}{arg1, arg2})
+	fake.installMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeFlux) InstallCallCount() int {
+	fake.installMutex.RLock()
+	defer fake.installMutex.RUnlock()
+	return len(fake.installArgsForCall)
+}
+
+func (fake *FakeFlux) InstallCalls(stub func(string, bool) ([]byte, error)) {
+	fake.installMutex.Lock()
+	defer fake.installMutex.Unlock()
+	fake.InstallStub = stub
+}
+
+func (fake *FakeFlux) InstallArgsForCall(i int) (string, bool) {
+	fake.installMutex.RLock()
+	defer fake.installMutex.RUnlock()
+	argsForCall := fake.installArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeFlux) InstallReturns(result1 []byte, result2 error) {
+	fake.installMutex.Lock()
+	defer fake.installMutex.Unlock()
+	fake.InstallStub = nil
+	fake.installReturns = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeFlux) InstallReturnsOnCall(i int, result1 []byte, result2 error) {
+	fake.installMutex.Lock()
+	defer fake.installMutex.Unlock()
+	fake.InstallStub = nil
+	if fake.installReturnsOnCall == nil {
+		fake.installReturnsOnCall = make(map[int]struct {
+			result1 []byte
+			result2 error
+		})
+	}
+	fake.installReturnsOnCall[i] = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeFlux) Uninstall(arg1 string, arg2 bool) error {
+	fake.uninstallMutex.Lock()
+	ret, specificReturn := fake.uninstallReturnsOnCall[len(fake.uninstallArgsForCall)]
+	fake.uninstallArgsForCall = append(fake.uninstallArgsForCall, struct {
+		arg1 string
+		arg2 bool
+	}{arg1, arg2})
+	stub := fake.UninstallStub
+	fakeReturns := fake.uninstallReturns
+	fake.recordInvocation("Uninstall", []interface{}{arg1, arg2})
+	fake.uninstallMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeFlux) UninstallCallCount() int {
+	fake.uninstallMutex.RLock()
+	defer fake.uninstallMutex.RUnlock()
+	return len(fake.uninstallArgsForCall)
+}
+
+func (fake *FakeFlux) UninstallCalls(stub func(string, bool) error) {
+	fake.uninstallMutex.Lock()
+	defer fake.uninstallMutex.Unlock()
+	fake.UninstallStub = stub
+}
+
+func (fake *FakeFlux) UninstallArgsForCall(i int) (string, bool) {
+	fake.uninstallMutex.RLock()
+	defer fake.uninstallMutex.RUnlock()
+	argsForCall := fake.uninstallArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeFlux) UninstallReturns(result1 error) {
+	fake.uninstallMutex.Lock()
+	defer fake.uninstallMutex.Unlock()
+	fake.UninstallStub = nil
+	fake.uninstallReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeFlux) UninstallReturnsOnCall(i int, result1 error) {
+	fake.uninstallMutex.Lock()
+	defer fake.uninstallMutex.Unlock()
+	fake.UninstallStub = nil
+	if fake.uninstallReturnsOnCall == nil {
+		fake.uninstallReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.uninstallReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeFlux) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -521,6 +674,10 @@ func (fake *FakeFlux) Invocations() map[string][][]interface{} {
 	defer fake.createSourceGitMutex.RUnlock()
 	fake.createSourceHelmMutex.RLock()
 	defer fake.createSourceHelmMutex.RUnlock()
+	fake.installMutex.RLock()
+	defer fake.installMutex.RUnlock()
+	fake.uninstallMutex.RLock()
+	defer fake.uninstallMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
