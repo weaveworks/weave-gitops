@@ -15,29 +15,26 @@ export GITHUB_ORG=<github-org>
 export GITHUB_TOKEN=<api-token>
 export GITHUB_KEY=<ssh-key>
 ```
+Please make sure that GITHUB_TOKEN have repo create and delete permissions on $GITHUB_ORG
 
+To use an existing cluster with active kubectl context, export the following variable before running the tests.
+
+```
+export CLUSTER_PROVIDER=kubectl
+```
 # Smoke Tests
 
 To run the **smoke tests** from the suite, run the following the command from the repo root directory.
 
 ```
-ginkgo -v -tags=smoke ./test/acceptance/test/...
-```
-Or
-
-```
-go test -v -tags=smoke ./test/acceptance/test/...
+ginkgo --focus=SmokeTest --randomizeSuites  -v ./test/acceptance/test/...
 ```
 # Acceptance Tests
 To run the full **acceptance suite**, run the command
 
 
 ```
-ginkgo -v -tags=acceptance ./test/acceptance/test/...
-```
-Or 
-```
-go test -v -tags=acceptance ./test/acceptance/test/...
+ginkgo --randomizeSuites -v ./test/acceptance/test/...
 ```
 
 # How to add new test
