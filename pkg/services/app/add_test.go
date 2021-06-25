@@ -22,8 +22,10 @@ var (
 	kubeClient   *kubefakes.FakeKube
 	gitProviders *gitprovidersfakes.FakeGitProviderHandler
 
-	appSrv        app.AppService
-	defaultParams app.AddParams
+	appSrv           app.AppService
+	defaultParams    app.AddParams
+	deployKeyLookups int
+	deployKeyUploads int
 )
 
 var _ = BeforeEach(func() {
@@ -40,6 +42,19 @@ var _ = BeforeEach(func() {
 	gitProviders = &gitprovidersfakes.FakeGitProviderHandler{}
 
 	appSrv = app.New(gitClient, fluxClient, kubeClient, gitProviders)
+
+	deployKeyLookups = 0
+	deployKeyUploads = 0
+
+	gitProviders.UploadDeployKeyStub = func(s1, s2 string, key []byte) error {
+		deployKeyUploads += 1
+		return nil
+	}
+
+	gitProviders.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
+		deployKeyLookups += 1
+		return false, nil
+	}
 
 	defaultParams = app.AddParams{
 		Url:            "https://github.com/foo/bar",
@@ -104,14 +119,6 @@ var _ = Describe("Add", func() {
 		It("looks up deploy key and skips creating secret if found", func() {
 			defaultParams.SourceType = string(app.SourceTypeGit)
 
-			deployKeyLookups := 0
-			deployKeyUploads := 0
-
-			gitProviders.UploadDeployKeyStub = func(s1, s2 string, key []byte) error {
-				deployKeyUploads += 1
-				return nil
-			}
-
 			gitProviders.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
 				deployKeyLookups += 1
 				return true, nil
@@ -126,19 +133,6 @@ var _ = Describe("Add", func() {
 		It("looks up deploy key and creates secret if not found", func() {
 			defaultParams.SourceType = string(app.SourceTypeGit)
 
-			deployKeyLookups := 0
-			deployKeyUploads := 0
-
-			gitProviders.UploadDeployKeyStub = func(s1, s2 string, key []byte) error {
-				deployKeyUploads += 1
-				return nil
-			}
-
-			gitProviders.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
-				deployKeyLookups += 1
-				return false, nil
-			}
-
 			err := appSrv.Add(defaultParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(deployKeyUploads).To(Equal(1))
@@ -151,19 +145,6 @@ var _ = Describe("Add", func() {
 			It("skips secret creation and lookup when source type is helm", func() {
 				defaultParams.Url = "https://charts.kube-ops.io"
 				defaultParams.Chart = "loki"
-
-				deployKeyLookups := 0
-				deployKeyUploads := 0
-
-				gitProviders.UploadDeployKeyStub = func(s1, s2 string, key []byte) error {
-					deployKeyUploads += 1
-					return nil
-				}
-
-				gitProviders.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
-					deployKeyLookups += 1
-					return false, nil
-				}
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -305,19 +286,6 @@ var _ = Describe("Add", func() {
 			It("skips secret creation and lookup when source type is helm", func() {
 				defaultParams.Url = "https://charts.kube-ops.io"
 				defaultParams.Chart = "loki"
-
-				deployKeyLookups := 0
-				deployKeyUploads := 0
-
-				gitProviders.UploadDeployKeyStub = func(s1, s2 string, key []byte) error {
-					deployKeyUploads += 1
-					return nil
-				}
-
-				gitProviders.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
-					deployKeyLookups += 1
-					return false, nil
-				}
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
