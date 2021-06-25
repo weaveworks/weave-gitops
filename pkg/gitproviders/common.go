@@ -178,8 +178,6 @@ func (h defaultGitProviderHandler) DeployKeyExists(owner, repoName string) (bool
 	default:
 		return false, fmt.Errorf("account type not supported %s", ownerType)
 	}
-
-	return false, nil
 }
 
 func (h defaultGitProviderHandler) UploadDeployKey(owner, repoName string, deployKey []byte) error {
