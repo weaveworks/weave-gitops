@@ -495,8 +495,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("When I create a private repo for wego app config", func() {
-			appCofigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, private)
-			gitAddCommitPush(appCofigRepoAbsPath, appManifestFilePath)
+			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, private)
+			gitAddCommitPush(appConfigRepoAbsPath, appManifestFilePath)
 		})
 
 		By("When I create a private repo with my app workload", func() {
@@ -552,8 +552,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("When I create a private repo for wego app config", func() {
-			appCofigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, private)
-			gitAddCommitPush(appCofigRepoAbsPath, appManifestFilePath)
+			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, private)
+			gitAddCommitPush(appConfigRepoAbsPath, appManifestFilePath)
 		})
 
 		By("When I create a private repo with my app workload", func() {
