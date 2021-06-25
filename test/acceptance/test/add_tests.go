@@ -390,7 +390,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("And I install wego under my specified namespace", func() {
 			installAndVerifyWego(wegoNamespace)
-			VerifyControllersInCluster(wegoNamespace)
 		})
 
 		By("And I have my default ssh key on path "+defaultSshKeyPath, func() {
