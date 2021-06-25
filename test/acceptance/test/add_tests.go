@@ -40,7 +40,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		private := true
 		tip := generateTestInputs()
 
-		addCommand := "app add . "
+		addCommand := "app add . --auto-merge=true"
 		appName := tip.appRepoName
 
 		defer deleteRepo(tip.appRepoName)
