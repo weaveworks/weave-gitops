@@ -15,7 +15,7 @@ export GITHUB_ORG=<github-org>
 export GITHUB_TOKEN=<api-token>
 export GITHUB_KEY=<ssh-key>
 ```
-Please make sure that GITHUB_TOKEN have repo create and delete permissions on $GITHUB_ORG
+Please make sure that `GITHUB_TOKEN` has repo create and delete permissions on `GITHUB_ORG`
 
 To use an existing cluster with active kubectl context, export the following variable before running the tests.
 
