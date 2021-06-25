@@ -140,7 +140,12 @@ func ResetOrCreateCluster(namespace string) (string, error) {
 
 	//For kubectl, point to a valid cluster, we will try to reset the namespace only
 	if namespace != "" && provider == "kubectl" {
-		err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
+		err := runCommandPassThrough([]string{}, "./scripts/reset-wego.sh", namespace)
+		if err != nil {
+			log.Infof("Failed to reset the wego runtime in namespace %s", namespace)
+			return clusterName, err
+		}
+		/*err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
 		if err != nil {
 			log.Infof("Failed to uninstall the wego runtime %s", namespace)
 			return clusterName, err
@@ -150,6 +155,7 @@ func ResetOrCreateCluster(namespace string) (string, error) {
 			log.Infof("Failed to delete crd apps.wego.weave.works")
 		}
 		Expect(waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)).To(Succeed())
+		*/
 	}
 
 	if provider == "kind" {
@@ -361,4 +367,11 @@ func createGitRepoBranch(repoAbsolutePath string, branchName string) string {
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
 	return string(session.Wait().Out.Contents())
+}
+
+func getUniqueWorkload(placeHolderSuffix string, uniqueSuffix string) string {
+	workloadTemplateFilePath := "./data/nginx-template.yaml"
+	absWorkloadManifestFilePath := "./data/nginx-" + uniqueSuffix + ".yaml"
+	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("sed 's/%s/%s/g' %s > %s", placeHolderSuffix, uniqueSuffix, workloadTemplateFilePath, absWorkloadManifestFilePath))
+	return absWorkloadManifestFilePath
 }
