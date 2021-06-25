@@ -100,7 +100,78 @@ var _ = Describe("Add", func() {
 		Expect(deployKey).To(Equal([]byte("deploy key")))
 	})
 
+	Describe("checks for existing deploy key before creating secret", func() {
+		It("looks up deploy key and skips creating secret if found", func() {
+			defaultParams.SourceType = string(app.SourceTypeGit)
+
+			deployKeyLookups := 0
+			deployKeyUploads := 0
+
+			gitProviders.UploadDeployKeyStub = func(s1, s2 string, key []byte) error {
+				deployKeyUploads += 1
+				return nil
+			}
+
+			gitProviders.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
+				deployKeyLookups += 1
+				return true, nil
+			}
+
+			err := appSrv.Add(defaultParams)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(deployKeyUploads).To(Equal(0))
+			Expect(deployKeyLookups).To(Equal(1))
+		})
+
+		It("looks up deploy key and creates secret if not found", func() {
+			defaultParams.SourceType = string(app.SourceTypeGit)
+
+			deployKeyLookups := 0
+			deployKeyUploads := 0
+
+			gitProviders.UploadDeployKeyStub = func(s1, s2 string, key []byte) error {
+				deployKeyUploads += 1
+				return nil
+			}
+
+			gitProviders.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
+				deployKeyLookups += 1
+				return false, nil
+			}
+
+			err := appSrv.Add(defaultParams)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(deployKeyUploads).To(Equal(1))
+			Expect(deployKeyLookups).To(Equal(1))
+		})
+	})
+
 	Context("add app with no config repo", func() {
+		Describe("avoids deploy key for helm", func() {
+			It("skips secret creation and lookup when source type is helm", func() {
+				defaultParams.Url = "https://charts.kube-ops.io"
+				defaultParams.Chart = "loki"
+
+				deployKeyLookups := 0
+				deployKeyUploads := 0
+
+				gitProviders.UploadDeployKeyStub = func(s1, s2 string, key []byte) error {
+					deployKeyUploads += 1
+					return nil
+				}
+
+				gitProviders.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
+					deployKeyLookups += 1
+					return false, nil
+				}
+
+				err := appSrv.Add(defaultParams)
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(deployKeyUploads).To(Equal(0))
+				Expect(deployKeyLookups).To(Equal(0))
+			})
+		})
+
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
 				defaultParams.SourceType = string(app.SourceTypeGit)
@@ -124,7 +195,6 @@ var _ = Describe("Add", func() {
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
-
 				Expect(fluxClient.CreateSourceHelmCallCount()).To(Equal(1))
 
 				name, url, namespace := fluxClient.CreateSourceHelmArgsForCall(0)
@@ -229,6 +299,31 @@ var _ = Describe("Add", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 				return r, nil
 			}
+		})
+
+		Describe("avoids deploy key for helm", func() {
+			It("skips secret creation and lookup when source type is helm", func() {
+				defaultParams.Url = "https://charts.kube-ops.io"
+				defaultParams.Chart = "loki"
+
+				deployKeyLookups := 0
+				deployKeyUploads := 0
+
+				gitProviders.UploadDeployKeyStub = func(s1, s2 string, key []byte) error {
+					deployKeyUploads += 1
+					return nil
+				}
+
+				gitProviders.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
+					deployKeyLookups += 1
+					return false, nil
+				}
+
+				err := appSrv.Add(defaultParams)
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(deployKeyUploads).To(Equal(0))
+				Expect(deployKeyLookups).To(Equal(0))
+			})
 		})
 
 		Describe("generates source manifest", func() {
