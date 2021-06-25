@@ -22,6 +22,20 @@ type FakeRunner struct {
 		result1 []byte
 		result2 error
 	}
+	RunWithOutputStreamStub        func(string, ...string) ([]byte, error)
+	runWithOutputStreamMutex       sync.RWMutex
+	runWithOutputStreamArgsForCall []struct {
+		arg1 string
+		arg2 []string
+	}
+	runWithOutputStreamReturns struct {
+		result1 []byte
+		result2 error
+	}
+	runWithOutputStreamReturnsOnCall map[int]struct {
+		result1 []byte
+		result2 error
+	}
 	RunWithStdinStub        func(string, []string, []byte) ([]byte, error)
 	runWithStdinMutex       sync.RWMutex
 	runWithStdinArgsForCall []struct {
@@ -101,6 +115,71 @@ func (fake *FakeRunner) RunReturnsOnCall(i int, result1 []byte, result2 error) {
 		})
 	}
 	fake.runReturnsOnCall[i] = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRunner) RunWithOutputStream(arg1 string, arg2 ...string) ([]byte, error) {
+	fake.runWithOutputStreamMutex.Lock()
+	ret, specificReturn := fake.runWithOutputStreamReturnsOnCall[len(fake.runWithOutputStreamArgsForCall)]
+	fake.runWithOutputStreamArgsForCall = append(fake.runWithOutputStreamArgsForCall, struct {
+		arg1 string
+		arg2 []string
+	}{arg1, arg2})
+	stub := fake.RunWithOutputStreamStub
+	fakeReturns := fake.runWithOutputStreamReturns
+	fake.recordInvocation("RunWithOutputStream", []interface{}{arg1, arg2})
+	fake.runWithOutputStreamMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2...)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeRunner) RunWithOutputStreamCallCount() int {
+	fake.runWithOutputStreamMutex.RLock()
+	defer fake.runWithOutputStreamMutex.RUnlock()
+	return len(fake.runWithOutputStreamArgsForCall)
+}
+
+func (fake *FakeRunner) RunWithOutputStreamCalls(stub func(string, ...string) ([]byte, error)) {
+	fake.runWithOutputStreamMutex.Lock()
+	defer fake.runWithOutputStreamMutex.Unlock()
+	fake.RunWithOutputStreamStub = stub
+}
+
+func (fake *FakeRunner) RunWithOutputStreamArgsForCall(i int) (string, []string) {
+	fake.runWithOutputStreamMutex.RLock()
+	defer fake.runWithOutputStreamMutex.RUnlock()
+	argsForCall := fake.runWithOutputStreamArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeRunner) RunWithOutputStreamReturns(result1 []byte, result2 error) {
+	fake.runWithOutputStreamMutex.Lock()
+	defer fake.runWithOutputStreamMutex.Unlock()
+	fake.RunWithOutputStreamStub = nil
+	fake.runWithOutputStreamReturns = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRunner) RunWithOutputStreamReturnsOnCall(i int, result1 []byte, result2 error) {
+	fake.runWithOutputStreamMutex.Lock()
+	defer fake.runWithOutputStreamMutex.Unlock()
+	fake.RunWithOutputStreamStub = nil
+	if fake.runWithOutputStreamReturnsOnCall == nil {
+		fake.runWithOutputStreamReturnsOnCall = make(map[int]struct {
+			result1 []byte
+			result2 error
+		})
+	}
+	fake.runWithOutputStreamReturnsOnCall[i] = struct {
 		result1 []byte
 		result2 error
 	}{result1, result2}
@@ -187,6 +266,8 @@ func (fake *FakeRunner) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
+	fake.runWithOutputStreamMutex.RLock()
+	defer fake.runWithOutputStreamMutex.RUnlock()
 	fake.runWithStdinMutex.RLock()
 	defer fake.runWithStdinMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

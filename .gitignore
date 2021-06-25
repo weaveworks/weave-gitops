@@ -10,3 +10,4 @@ dist/
 node_modules
 coverage
 *.lcov
+ginkgo.report

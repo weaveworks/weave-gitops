@@ -14,6 +14,8 @@ import (
 
 //counterfeiter:generate . Flux
 type Flux interface {
+	Install(namespace string, export bool) ([]byte, error)
+	Uninstall(namespace string, export bool) error
 	CreateSourceGit(name string, url string, branch string, secretRef string, namespace string) ([]byte, error)
 	CreateSourceHelm(name string, url string, namespace string) ([]byte, error)
 	CreateKustomization(name string, source string, path string, namespace string) ([]byte, error)
@@ -30,6 +32,50 @@ func New(cliRunner runner.Runner) *FluxClient {
 	return &FluxClient{
 		runner: cliRunner,
 	}
+}
+
+var _ Flux = &FluxClient{}
+
+func (f *FluxClient) Install(namespace string, export bool) ([]byte, error) {
+	args := []string{
+		"install",
+		"--namespace", namespace,
+		"--components-extra", "image-reflector-controller,image-automation-controller",
+	}
+
+	if export {
+		args = append(args, "--export")
+
+		out, err := f.runFluxCmd(args...)
+		if err != nil {
+			return out, errors.Wrapf(err, "failed to run flux install: %s", string(out))
+		}
+
+		return out, nil
+	}
+
+	if _, err := f.runFluxCmdOutputStream(args...); err != nil {
+		return []byte{}, errors.Wrap(err, "failed to run flux binary")
+	}
+
+	return []byte{}, nil
+}
+
+func (f *FluxClient) Uninstall(namespace string, dryRun bool) error {
+	args := []string{
+		"uninstall", "-s",
+		"--namespace", namespace,
+	}
+
+	if dryRun {
+		args = append(args, "--dry-run")
+	}
+
+	if _, err := f.runFluxCmdOutputStream(args...); err != nil {
+		return errors.Wrap(err, "failed to run flux binary")
+	}
+
+	return nil
 }
 
 func (f *FluxClient) CreateSourceGit(name string, url string, branch string, secretRef string, namespace string) ([]byte, error) {
@@ -153,7 +199,20 @@ func (f *FluxClient) runFluxCmd(args ...string) ([]byte, error) {
 	}
 	out, err := f.runner.Run(fluxPath, args...)
 	if err != nil {
-		return []byte{}, fmt.Errorf("failed to run git with output: %s", string(out))
+		return []byte{}, fmt.Errorf("failed to run flux with output: %s", string(out))
+	}
+
+	return out, nil
+}
+
+func (f *FluxClient) runFluxCmdOutputStream(args ...string) ([]byte, error) {
+	fluxPath, err := f.fluxPath()
+	if err != nil {
+		return []byte{}, errors.Wrap(err, "error getting flux binary path")
+	}
+	out, err := f.runner.RunWithOutputStream(fluxPath, args...)
+	if err != nil {
+		return []byte{}, fmt.Errorf("failed to run flux with output: %s", string(out))
 	}
 
 	return out, nil

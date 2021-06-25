@@ -1,6 +1,8 @@
 package runner_test
 
 import (
+	"io/ioutil"
+	"os"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -10,4 +12,18 @@ import (
 func TestRunner(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Runner Suite")
+}
+
+func CaptureStdout(c func()) string {
+	r, w, _ := os.Pipe()
+	tmp := os.Stdout
+	defer func() {
+		os.Stdout = tmp
+	}()
+	os.Stdout = w
+	c()
+	w.Close()
+	stdout, _ := ioutil.ReadAll(r)
+
+	return string(stdout)
 }

@@ -1,13 +1,13 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: wego.app.crd
+  name: apps.wego.weave.works
 spec:
-  group: app.crd
-  scope: Namespaced
+  group: wego.weave.works
+  scope: Cluster
   names:
-    kind: App
-    listKind: AppList
+    kind: Application
+    listKind: ApplicationList
     plural: apps
     singular: app
   versions:
@@ -20,12 +20,19 @@ spec:
           properties:
             spec:
               type: object
-              required: ["url"]
+              required: ["url", "path"]
               properties:
                 url:
                   type: "string"
+                  description: URL for the repo
+                  minimum: 1
+                  maximum: 1
+                path:
+                  type: "string"
+                  description: Path to application manifests within the repo
                   minimum: 1
                   maximum: 1
           type: object
       served: true
       storage: true
+---
