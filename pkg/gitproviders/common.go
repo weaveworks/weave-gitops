@@ -29,6 +29,7 @@ const (
 type GitProviderHandler interface {
 	CreateRepository(name string, owner string, private bool) error
 	RepositoryExists(name string, owner string) (bool, error)
+	DeployKeyExists(owner, repoName string) (bool, error)
 	UploadDeployKey(owner, repoName string, deployKey []byte) error
 }
 
@@ -124,6 +125,63 @@ func (h defaultGitProviderHandler) CreateRepository(name string, owner string, p
 	return nil
 }
 
+func (h defaultGitProviderHandler) DeployKeyExists(owner, repoName string) (bool, error) {
+
+	provider, err := GithubProvider()
+	if err != nil {
+		return false, err
+	}
+
+	deployKeyName := "weave-gitops-deploy-key"
+
+	ownerType, err := GetAccountType(provider, owner)
+	if err != nil {
+		return false, err
+	}
+
+	ctx := context.Background()
+	defer ctx.Done()
+	switch ownerType {
+	case AccountTypeOrg:
+		orgRef := NewOrgRepositoryRef(github.DefaultDomain, owner, repoName)
+		orgRepo, err := provider.OrgRepositories().Get(ctx, orgRef)
+		if err != nil {
+			return false, fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s ", owner, repoName, err)
+		}
+		_, err = orgRepo.DeployKeys().Get(ctx, deployKeyName)
+		if err != nil && !strings.Contains(err.Error(), "key is already in use") {
+			if errors.Is(err, gitprovider.ErrNotFound) {
+				return false, nil
+			} else {
+				return false, fmt.Errorf("error getting deploy key %s for repo %s. %s", deployKeyName, repoName, err)
+			}
+		} else {
+			return true, nil
+		}
+
+	case AccountTypeUser:
+		userRef := NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
+		userRepo, err := provider.UserRepositories().Get(ctx, userRef)
+		if err != nil {
+			return false, fmt.Errorf("error getting user repo reference for owner %s, repo %s, %s ", owner, repoName, err)
+		}
+		_, err = userRepo.DeployKeys().Get(ctx, deployKeyName)
+		if err != nil && !strings.Contains(err.Error(), "key is already in use") {
+			if errors.Is(err, gitprovider.ErrNotFound) {
+				return false, nil
+			} else {
+				return false, fmt.Errorf("error getting deploy key %s for repo %s. %s", deployKeyName, repoName, err)
+			}
+		} else {
+			return true, nil
+		}
+	default:
+		return false, fmt.Errorf("account type not supported %s", ownerType)
+	}
+
+	return false, nil
+}
+
 func (h defaultGitProviderHandler) UploadDeployKey(owner, repoName string, deployKey []byte) error {
 
 	provider, err := GithubProvider()
@@ -215,6 +273,10 @@ func RepositoryExists(name string, owner string) (bool, error) {
 
 func UploadDeployKey(owner, repoName string, deployKey []byte) error {
 	return gitProviderHandler.(GitProviderHandler).UploadDeployKey(owner, repoName, deployKey)
+}
+
+func DeployKeyExists(owner, repoName string) (bool, error) {
+	return gitProviderHandler.(GitProviderHandler).DeployKeyExists(owner, repoName)
 }
 
 func GetAccountType(provider gitprovider.Client, owner string) (ProviderAccountType, error) {

@@ -485,7 +485,7 @@ var _ = Describe("Test for Org repo info", func() {
 })
 
 var _ = Describe("Test deploy keys creation", func() {
-	It("Upload a new deploy key for a brand new user repo and show proper message if trying to re-add it", func() {
+	It("Uploads a new deploy key for a brand new user repo, checks for presence of the key, and shows proper message if trying to re-add it", func() {
 
 		accounts := getAccounts()
 
@@ -507,11 +507,19 @@ var _ = Describe("Test deploy keys creation", func() {
 
 		deployKey := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBmym4XOiTj4rY3AcJKoJ8QupfgpFWtgNzDxzL0TrzfnurUQm+snozKLHGtOtS7PjMQsMaW9phyhhXv2KxadVI1uweFkC1TK4rPNWrqYX2g0JLXEScvaafSiv+SqozWLN/zhQ0e0jrtrYphtkd+H72RYsdq3mngY4WPJXM7z+HSjHSKilxj7XsxENt0dxT08LArxDC4OQXv9EYFgCyZ7SuLPBgA9160Co46Jm27enB/oBPx5zWd1MlkI+RtUi+XV2pLMzIpvYi2r2iWwOfDqE0N2cfpD0bY7cIOlv0iS7v6Qkmf7pBD+tRGTIZFcD5tGmZl1DOaeCZZ/VAN66aX+rN"
 
+		// exists, err := DeployKeyExists(accounts.GithubUserName, repoName)
+		// Expect(err).ShouldNot(HaveOccurred())
+		// Expect(exists).To(BeFalse())
+
 		stdout := utils.CaptureStdout(func() {
 			err = UploadDeployKey(accounts.GithubUserName, repoName, []byte(deployKey))
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 		Expect(stdout).To(Equal("uploading deploy key\n"))
+
+		// exists, err = DeployKeyExists(accounts.GithubUserName, repoName)
+		// Expect(err).ShouldNot(HaveOccurred())
+		// Expect(exists).To(BeTrue())
 
 		stdout = utils.CaptureStdout(func() {
 			err = UploadDeployKey(accounts.GithubUserName, repoName, []byte(deployKey))
@@ -547,11 +555,19 @@ var _ = Describe("Test deploy keys creation", func() {
 
 		deployKey := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBmym4XOiTj4rY3AcJKoJ8QupfgpFWtgNzDxzL0TrzfnurUQm+snozKLHGtOtS7PjMQsMaW9phyhhXv2KxadVI1uweFkC1TK4rPNWrqYX2g0JLXEScvaafSiv+SqozWLN/zhQ0e0jrtrYphtkd+H72RYsdq3mngY4WPJXM7z+HSjHSKilxj7XsxENt0dxT08LArxDC4OQXv9EYFgCyZ7SuLPBgA9160Co46Jm27enB/oBPx5zWd1MlkI+RtUi+XV2pLMzIpvYi2r2iWwOfDqE0N2cfpD0bY7cIOlv0iS7v6Qkmf7pBD+tRGTIZFcD5tGmZl1DOaeCZZ/VAN66aX+rN"
 
+		// exists, err := DeployKeyExists(accounts.GithubUserName, repoName)
+		// Expect(err).ShouldNot(HaveOccurred())
+		// Expect(exists).To(BeFalse())
+
 		stdout := utils.CaptureStdout(func() {
 			err = UploadDeployKey(accounts.GithubOrgName, repoName, []byte(deployKey))
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 		Expect(stdout).To(Equal("uploading deploy key\n"))
+
+		// exists, err = DeployKeyExists(accounts.GithubUserName, repoName)
+		// Expect(err).ShouldNot(HaveOccurred())
+		// Expect(exists).To(BeTrue())
 
 		stdout = utils.CaptureStdout(func() {
 			err = UploadDeployKey(accounts.GithubOrgName, repoName, []byte(deployKey))
