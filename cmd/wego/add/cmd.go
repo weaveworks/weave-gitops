@@ -20,6 +20,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
+	"golang.org/x/term"
 )
 
 var params app.AddParams
@@ -65,9 +66,18 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		params.PrivateKey = privateKey
 	}
 
-	authMethod, err := ssh.NewPublicKeysFromFile("git", params.PrivateKey, params.PrivateKeyPass)
+	authMethod, err := ssh.NewPublicKeysFromFile("git", params.PrivateKey, "")
 	if err != nil {
-		return errors.Wrap(err, "failed reading ssh keys: %s")
+		fmt.Print("Private Key Password: ")
+		pw, err := term.ReadPassword(int(os.Stdin.Fd()))
+		if err != nil {
+			return errors.Wrap(err, "failed reading ssh key password")
+		}
+
+		authMethod, err = ssh.NewPublicKeysFromFile("git", params.PrivateKey, string(pw))
+		if err != nil {
+			return errors.Wrap(err, "failed reading ssh keys")
+		}
 	}
 
 	if params.Url == "" {
@@ -111,13 +121,16 @@ func findPrivateKeyFile() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	modernFilePath := filepath.Join(dir, ".ssh", "id_ed25519")
 	if utils.Exists(modernFilePath) {
 		return modernFilePath, nil
 	}
+
 	legacyFilePath := filepath.Join(dir, ".ssh", "id_rsa")
 	if utils.Exists(legacyFilePath) {
 		return legacyFilePath, nil
 	}
+
 	return "", fmt.Errorf("could not locate ssh key file; please specify '--private-key'")
 }
