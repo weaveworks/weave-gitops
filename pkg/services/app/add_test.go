@@ -473,7 +473,7 @@ var _ = Describe("Add", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			_, _, newBranch, files, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
-			Expect(newBranch).To(Equal("wego-a0dea343aa6fbd327f209e74326b7583"))
+			Expect(newBranch).To(Equal("wego-bf22e886ea99b1891c16bba5529d7f0b"))
 			Expect(files).To(Not(BeEmpty()))
 
 			Expect(gitClient.WriteCallCount()).To(Equal(0))
@@ -665,7 +665,7 @@ var _ = Describe("Add", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			_, _, newBranch, files, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
-			Expect(newBranch).To(Equal("wego-6fa1886a8c378f5e2c73408a7987a02c"))
+			Expect(newBranch).To(Equal("wego-5009d214c7edba2e8fb5a725eeeaeda5"))
 			Expect(files).To(Not(BeEmpty()))
 
 			Expect(gitClient.WriteCallCount()).To(Equal(0))
