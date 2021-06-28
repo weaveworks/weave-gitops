@@ -41,20 +41,11 @@ var _ = BeforeEach(func() {
 	}
 	gitProviders = &gitprovidersfakes.FakeGitProviderHandler{}
 
-	appSrv = app.New(gitClient, fluxClient, kubeClient, gitProviders)
-
-	deployKeyLookups = 0
-	deployKeyUploads = 0
-
-	gitProviders.UploadDeployKeyStub = func(s1, s2 string, key []byte) error {
-		deployKeyUploads += 1
-		return nil
-	}
-
 	gitProviders.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
-		deployKeyLookups += 1
 		return false, nil
 	}
+
+	appSrv = app.New(gitClient, fluxClient, kubeClient, gitProviders)
 
 	defaultParams = app.AddParams{
 		Url:            "https://github.com/foo/bar",
@@ -120,14 +111,13 @@ var _ = Describe("Add", func() {
 			defaultParams.SourceType = string(app.SourceTypeGit)
 
 			gitProviders.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
-				deployKeyLookups += 1
 				return true, nil
 			}
 
 			err := appSrv.Add(defaultParams)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(deployKeyUploads).To(Equal(0))
-			Expect(deployKeyLookups).To(Equal(1))
+			Expect(gitProviders.UploadDeployKeyCallCount()).To(Equal(0))
+			Expect(gitProviders.DeployKeyExistsCallCount()).To(Equal(1))
 		})
 
 		It("looks up deploy key and creates secret if not found", func() {
@@ -135,8 +125,8 @@ var _ = Describe("Add", func() {
 
 			err := appSrv.Add(defaultParams)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(deployKeyUploads).To(Equal(1))
-			Expect(deployKeyLookups).To(Equal(1))
+			Expect(gitProviders.UploadDeployKeyCallCount()).To(Equal(1))
+			Expect(gitProviders.DeployKeyExistsCallCount()).To(Equal(1))
 		})
 	})
 
@@ -148,8 +138,8 @@ var _ = Describe("Add", func() {
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(deployKeyUploads).To(Equal(0))
-				Expect(deployKeyLookups).To(Equal(0))
+				Expect(gitProviders.UploadDeployKeyCallCount()).To(Equal(0))
+				Expect(gitProviders.DeployKeyExistsCallCount()).To(Equal(0))
 			})
 		})
 
