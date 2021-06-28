@@ -198,12 +198,6 @@ func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secre
 		return errors.Wrap(err, "could not generate application GitOps Automation manifests")
 	}
 
-	if !params.AutoMerge {
-		if err := a.createPullRequestToRepo(params, appSpec, appGoat, clusterName); err != nil {
-			return err
-		}
-	}
-
 	fmt.Println("Applying manifests to the cluster...")
 	return a.applyToCluster(params, source, appGoat, appSpec)
 }
