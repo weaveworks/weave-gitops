@@ -59,11 +59,17 @@ func CheckpointParams() *checkpoint.CheckParams {
 // CheckpointParamsWithFlags adds the object and command from the arguments list to the checkpoint parameters
 func CheckpointParamsWithFlags(params *checkpoint.CheckParams, c *cobra.Command) *checkpoint.CheckParams {
 	// wego uses noun verb command syntax and the parent command will have the noun and the command passed in will be the verb
-	params.Flags = map[string]string{
-		"object":  c.Parent().Name(),
-		"command": c.Name(),
+	p := params
+	if params == nil {
+		p = CheckpointParams()
 	}
-	return params
+	if c.HasParent() && c.Parent().Name() != "wego" {
+		p.Flags = map[string]string{
+			"object":  c.Parent().Name(),
+			"command": c.Name(),
+		}
+	}
+	return p
 }
 func CheckFluxVersion() (string, error) {
 	fluxops.SetFluxHandler(&fluxops.QuietFluxHandler{})
