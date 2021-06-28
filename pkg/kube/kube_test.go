@@ -224,14 +224,14 @@ var _ = Describe("LabelExistsInCluster", func() {
 			return []byte("No resources found"), nil
 		}
 
-		err := kubeClient.LabelExistsInCluster("wego-differenttestlabel")
+		err := kubeClient.LabelExistsInCluster("wego-differenttestlabel", "wego-system")
 		Expect(err).ShouldNot(HaveOccurred())
 
 		runner.RunStub = func(cmd string, args ...string) ([]byte, error) {
 			return []byte("NAME  AGE testapp   4m19s"), nil
 		}
 
-		err = kubeClient.LabelExistsInCluster("wego-testlabel")
+		err = kubeClient.LabelExistsInCluster("wego-testlabel", "wego-system")
 		Expect(err).Should(HaveOccurred())
 
 	})

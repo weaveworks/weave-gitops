@@ -117,6 +117,16 @@ func (a *App) Add(params AddParams) error {
 	if err != nil {
 		return errors.Wrap(err, "could not generate deploy key")
 	}
+
+	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
+	if err != nil {
+		return err
+	}
+	// if appHash exists as a label in the cluster we fail to create a PR
+	if err := a.kube.LabelExistsInCluster(appHash); err != nil {
+		return err
+	}
+
 	switch strings.ToUpper(params.AppConfigUrl) {
 	case string(ConfigTypeNone):
 		return a.addAppWithNoConfigRepo(params, clusterName, secretRef)
@@ -183,15 +193,6 @@ func (a *App) getGitRemoteUrl(params AddParams) (string, error) {
 }
 
 func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secretRef string) error {
-	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
-	if err != nil {
-		return err
-	}
-	// if appHash exists as a label in the cluster we fail to create a PR
-	if err := a.kube.LabelExistsInCluster(appHash); err != nil {
-		return err
-	}
-
 	// Returns the source, app spec and kustomization
 	source, appGoat, appSpec, err := a.generateAppManifests(params, secretRef, clusterName)
 	if err != nil {
@@ -203,15 +204,6 @@ func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secre
 }
 
 func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, secretRef string) error {
-	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
-	if err != nil {
-		return err
-	}
-	// if appHash exists as a label in the cluster we fail to create a PR
-	if err := a.kube.LabelExistsInCluster(appHash); err != nil {
-		return err
-	}
-
 	// Returns the source, app spec and kustomization
 	source, appGoat, appSpec, err := a.generateAppManifests(params, secretRef, clusterName)
 	if err != nil {
@@ -261,15 +253,6 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 }
 
 func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName string, appSecretRef string) error {
-	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
-	if err != nil {
-		return err
-	}
-	// if appHash exists as a label in the cluster we fail to create a PR
-	if err := a.kube.LabelExistsInCluster(appHash); err != nil {
-		return err
-	}
-
 	// making sure the url is in good format
 	params.AppConfigUrl = sanitizeRepoUrl(params.AppConfigUrl)
 
