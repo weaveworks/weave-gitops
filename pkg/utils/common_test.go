@@ -36,6 +36,14 @@ func TestExists(t *testing.T) {
 
 }
 
+func TestAppHash(t *testing.T) {
+	url := "github.com/testurl"
+	path := "./"
+	appHash, err := GetAppHash(url, path)
+	require.NoError(t, err)
+	require.Equal(t, "wego-0a7a5a1def0f32479d07a932a0037811", appHash)
+}
+
 var _ = Describe("Test common utils", func() {
 
 	It("Verify WaitUntil succeeds at first attempt in less than 1 millisecond", func() {

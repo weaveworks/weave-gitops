@@ -55,7 +55,7 @@ func GetAppHash(url, path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return hex.EncodeToString(h.Sum(nil)), nil
+	return "wego-" + hex.EncodeToString(h.Sum(nil)), nil
 }
 
 func SetCommmitMessageFromArgs(cmd string, url, path, name string) {

@@ -183,11 +183,10 @@ func (a *App) getGitRemoteUrl(params AddParams) (string, error) {
 }
 
 func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secretRef string) error {
-	hash, err := utils.GetAppHash(params.Url, params.Path)
+	appHash, err := utils.GetAppHash(params.Url, params.Path)
 	if err != nil {
 		return err
 	}
-	appHash := fmt.Sprintf("wego-%s", hash)
 	// if appHash exists as a label in the cluster we fail to create a PR
 	if err := a.kube.LabelExistsInCluster(appHash); err != nil {
 		return err
@@ -210,11 +209,10 @@ func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secre
 }
 
 func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, secretRef string) error {
-	hash, err := utils.GetAppHash(params.Url, params.Path)
+	appHash, err := utils.GetAppHash(params.Url, params.Path)
 	if err != nil {
 		return err
 	}
-	appHash := fmt.Sprintf("wego-%s", hash)
 	// if appHash exists as a label in the cluster we fail to create a PR
 	if err := a.kube.LabelExistsInCluster(appHash); err != nil {
 		return err
@@ -269,11 +267,10 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 }
 
 func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName string, appSecretRef string) error {
-	hash, err := utils.GetAppHash(params.Url, params.Path)
+	appHash, err := utils.GetAppHash(params.Url, params.Path)
 	if err != nil {
 		return err
 	}
-	appHash := fmt.Sprintf("wego-%s", hash)
 	// if appHash exists as a label in the cluster we fail to create a PR
 	if err := a.kube.LabelExistsInCluster(appHash); err != nil {
 		return err
@@ -563,11 +560,10 @@ spec:
 		return nil, errors.Wrap(err, "could not parse app yaml template")
 	}
 
-	hash, err := utils.GetAppHash(params.Url, params.Path)
+	appHash, err := utils.GetAppHash(params.Url, params.Path)
 	if err != nil {
 		return nil, err
 	}
-	appHash := fmt.Sprintf("wego-%s", hash)
 
 	var populated bytes.Buffer
 	err = t.Execute(&populated, struct {
@@ -575,7 +571,7 @@ spec:
 		AppHash string
 		AppPath string
 		AppURL  string
-	}{params.Name, fmt.Sprintf("wego-%s", appHash), params.Path, params.Url})
+	}{params.Name, appHash, params.Path, params.Url})
 	if err != nil {
 		return nil, errors.Wrap(err, "could not execute populated template")
 	}
@@ -656,11 +652,10 @@ func (a *App) createPullRequestToRepo(params AddParams, appYaml, applicationGoat
 		return nil
 	}
 
-	hash, err := utils.GetAppHash(params.Url, params.Path)
+	appHash, err := utils.GetAppHash(params.Url, params.Path)
 	if err != nil {
 		return err
 	}
-	appHash := fmt.Sprintf("wego-%s", hash)
 
 	if accountType == gitproviders.AccountTypeOrg {
 		org, err := fluxops.GetOwnerFromEnv()
