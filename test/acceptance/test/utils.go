@@ -278,6 +278,15 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 	return repoAbsolutePath
 }
 
+func createSubDir(subDirName string, repoAbsolutePath string) string {
+	subDirAbsolutePath := fmt.Sprintf(`%s/%s`, repoAbsolutePath, subDirName)
+	command := exec.Command("sh", "-c", fmt.Sprintf(`mkdir -p %s`, subDirAbsolutePath))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+	return subDirAbsolutePath
+}
+
 func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cp -r %s %s &&

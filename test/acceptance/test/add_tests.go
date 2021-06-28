@@ -358,7 +358,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	})
 
 	// Eventually this test run will include all the remaining un-automated `wego app add` flags.
-	FIt("Verify 'wego app add' works with user-specified branch, namespace", func() {
+	It("Verify 'wego app add' works with user-specified branch, namespace", func() {
 		var repoAbsolutePath string
 		private := true
 		appRepoName := "wego-test-app-" + RandString(8)
@@ -686,7 +686,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	FIt("Verify multiple apps dir can be added to the cluster using single repo for wego config", func() {
+	It("Verify multiple apps dir can be added to the cluster using single repo for wego config", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		private := true
@@ -746,6 +746,61 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName2, private)
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath2)
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see should see my workloads for app1 and app2 are deployed to the cluster", func() {
+			verifyWegoAddCommand(appName1, WEGO_DEFAULT_NAMESPACE)
+			verifyWegoAddCommand(appName2, WEGO_DEFAULT_NAMESPACE)
+			verifyWorkloadIsDeployed("nginx", workloadNamespace1)
+			verifyWorkloadIsDeployed("nginx2", workloadNamespace2)
+		})
+	})
+
+	FIt("Verify multiple apps dir can be added to the cluster using single app and wego config repos", func() {
+		var repoAbsolutePath string
+		private := true
+		appManifestFilePath1 := "./data/nginx.yaml"
+		appManifestFilePath2 := "./data/nginx2.yaml"
+		workloadName1 := "nginx"
+		workloadName2 := "nginx2"
+		workloadNamespace1 := "my-nginx"
+		workloadNamespace2 := "my-nginx2"
+		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+		appRepoName := "wego-test-app-" + RandString(8)
+		appName1 := "app1"
+		appName2 := "app2"
+		addCommand1 := "app add . --path=./" + appName1 + " --name=" + appName1
+		addCommand2 := "app add . --path=./" + appName2 + " --name=" + appName2
+
+		defer deleteRepo(appRepoName)
+		defer deleteWorkload(workloadName1, workloadNamespace1)
+		defer deleteWorkload(workloadName2, workloadNamespace2)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(appRepoName)
+		})
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(workloadName1, workloadNamespace1)
+			deleteWorkload(workloadName2, workloadNamespace2)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+defaultSshKeyPath, func() {
+			setupSSHKey(defaultSshKeyPath)
+		})
+
+		By("And I create a repo with my app1 workload and run the add the command on it", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
+			app1Path := createSubDir(appName1, repoAbsolutePath)
+			app2Path := createSubDir(appName2, repoAbsolutePath)
+			gitAddCommitPush(app1Path, appManifestFilePath1)
+			gitAddCommitPush(app2Path, appManifestFilePath2)
+			runWegoAddCommand(repoAbsolutePath, addCommand1, WEGO_DEFAULT_NAMESPACE)
+			runWegoAddCommand(repoAbsolutePath, addCommand2, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("Then I should see should see my workloads for app1 and app2 are deployed to the cluster", func() {

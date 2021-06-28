@@ -64,7 +64,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		VerifyControllersInCluster(WEGO_DEFAULT_NAMESPACE)
 	})
 
-	FIt("Verify that wego can add flux controllers to a user-specified namespace", func() {
+	It("Verify that wego can add flux controllers to a user-specified namespace", func() {
 
 		namespace := "test-namespace"
 
