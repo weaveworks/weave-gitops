@@ -70,7 +70,7 @@ func (a *App) Add(params AddParams) error {
 	}
 
 	fmt.Printf("Generating deploy key for repo %s ...\n", params.Url)
-	secretRef, err := a.createAndUploadDeployKey(params.Url, clusterName, params.Namespace, params.DryRun)
+	secretRef, err := a.createAndUploadDeployKey(params.Url, SourceType(params.SourceType), clusterName, params.Namespace, params.DryRun)
 	if err != nil {
 		return errors.Wrap(err, "could not generate deploy key")
 	}
@@ -198,7 +198,7 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 	params.AppConfigUrl = sanitizeRepoUrl(params.AppConfigUrl)
 
 	fmt.Printf("Generating deploy key for repo %s ...\n", params.AppConfigUrl)
-	appConfigSecretName, err := a.createAndUploadDeployKey(params.AppConfigUrl, clusterName, params.Namespace, params.DryRun)
+	appConfigSecretName, err := a.createAndUploadDeployKey(params.AppConfigUrl, SourceType(params.SourceType), clusterName, params.Namespace, params.DryRun)
 	if err != nil {
 		return errors.Wrap(err, "could not generate deploy key")
 	}
@@ -322,7 +322,10 @@ func (a *App) commitAndPush(params AddParams, filters ...func(string) bool) erro
 	return nil
 }
 
-func (a *App) createAndUploadDeployKey(repoUrl string, clusterName string, namespace string, dryRun bool) (string, error) {
+func (a *App) createAndUploadDeployKey(repoUrl string, sourceType SourceType, clusterName string, namespace string, dryRun bool) (string, error) {
+	if SourceType(sourceType) == SourceTypeHelm {
+		return "", nil
+	}
 
 	if repoUrl == "" {
 		return "", nil
@@ -337,18 +340,25 @@ func (a *App) createAndUploadDeployKey(repoUrl string, clusterName string, names
 
 	repoUrl = sanitizeRepoUrl(repoUrl)
 
-	deployKey, err := a.flux.CreateSecretGit(secretRefName, repoUrl, namespace)
-	if err != nil {
-		return "", errors.Wrap(err, "could not create git secret")
-	}
-
 	owner, err := getOwnerFromUrl(repoUrl)
 	if err != nil {
 		return "", err
 	}
 
-	if err := a.gitProviders.UploadDeployKey(owner, repoName, deployKey); err != nil {
-		return "", errors.Wrap(err, "error uploading deploy key")
+	deployKeyExists, err := a.gitProviders.DeployKeyExists(owner, repoName)
+	if err != nil {
+		return "", errors.Wrap(err, "could not check for existing deploy key")
+	}
+
+	if !deployKeyExists {
+		deployKey, err := a.flux.CreateSecretGit(secretRefName, repoUrl, namespace)
+		if err != nil {
+			return "", errors.Wrap(err, "could not create git secret")
+		}
+
+		if err := a.gitProviders.UploadDeployKey(owner, repoName, deployKey); err != nil {
+			return "", errors.Wrap(err, "error uploading deploy key")
+		}
 	}
 
 	return secretRefName, nil
@@ -508,8 +518,8 @@ func sanitizeRepoUrl(url string) string {
 
 // NOTE: ready to save the targets automation in phase 2
 // func (a *App) writeTargetGoats(basePath string, name string, manifests ...[]byte) error {
-// 	goatPath := filepath.Join(basePath, "targets", fmt.Sprintf("%s-gitops-runtime.yaml", name))
+//  goatPath := filepath.Join(basePath, "targets", fmt.Sprintf("%s-gitops-runtime.yaml", name))
 
-// 	goat := bytes.Join(manifests, []byte(""))
-// 	return a.git.Write(goatPath, goat)
+//  goat := bytes.Join(manifests, []byte(""))
+//  return a.git.Write(goatPath, goat)
 // }
