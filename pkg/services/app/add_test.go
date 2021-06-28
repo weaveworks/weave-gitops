@@ -114,6 +114,7 @@ var _ = Describe("Add", func() {
 
 			err := appSrv.Add(defaultParams)
 			Expect(err).ShouldNot(HaveOccurred())
+			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(0))
 			Expect(gitProviders.UploadDeployKeyCallCount()).To(Equal(0))
 			Expect(gitProviders.DeployKeyExistsCallCount()).To(Equal(1))
 		})
@@ -123,6 +124,7 @@ var _ = Describe("Add", func() {
 
 			err := appSrv.Add(defaultParams)
 			Expect(err).ShouldNot(HaveOccurred())
+			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(1))
 			Expect(gitProviders.UploadDeployKeyCallCount()).To(Equal(1))
 			Expect(gitProviders.DeployKeyExistsCallCount()).To(Equal(1))
 		})
@@ -136,6 +138,7 @@ var _ = Describe("Add", func() {
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
+				Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(0))
 				Expect(gitProviders.UploadDeployKeyCallCount()).To(Equal(0))
 				Expect(gitProviders.DeployKeyExistsCallCount()).To(Equal(0))
 			})
@@ -277,6 +280,7 @@ var _ = Describe("Add", func() {
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
+				Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(0))
 				Expect(gitProviders.UploadDeployKeyCallCount()).To(Equal(0))
 				Expect(gitProviders.DeployKeyExistsCallCount()).To(Equal(0))
 			})
