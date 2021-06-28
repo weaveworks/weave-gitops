@@ -5,6 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/weaveworks/weave-gitops/manifests"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
 type UinstallParams struct {
@@ -13,6 +14,10 @@ type UinstallParams struct {
 }
 
 func (g *Gitops) Uninstall(params UinstallParams) error {
+	if g.kube.GetClusterStatus() != kube.WeGOInstalled {
+		return fmt.Errorf("Wego is not installed... exiting")
+	}
+
 	err := g.flux.Uninstall(params.Namespace, params.DryRun)
 	if err != nil {
 		return fmt.Errorf("error on flux install %s", err)
