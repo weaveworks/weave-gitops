@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/go-checkpoint"
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 
@@ -20,6 +21,9 @@ var Cmd = &cobra.Command{
 	Use:   "version",
 	Short: "Display wego version",
 	Run:   runCmd,
+	PostRun: func(cmd *cobra.Command, args []string) {
+		CheckVersion(CheckpointParams())
+	},
 }
 
 func runCmd(cmd *cobra.Command, args []string) {
@@ -35,24 +39,32 @@ func runCmd(cmd *cobra.Command, args []string) {
 	fmt.Println("Flux Version:", version)
 }
 
-func CheckVersion() (string, error) {
-	checkResponse, err := checkpoint.Check(&checkpoint.CheckParams{
-		Product: "weave-gitops",
-		Version: Version,
-	})
-
-	if err != nil {
-		return "", fmt.Errorf("unable to retrieve latest version: %v", err)
+// CheckVersion looks to see if there is a newer version of the software available
+func CheckVersion(p *checkpoint.CheckParams) {
+	checkResponse, err := checkpoint.Check(p)
+	if err == nil && checkResponse.Outdated {
+		log.Infof("wego version %s is available; please update at %s",
+			checkResponse.CurrentVersion, checkResponse.CurrentDownloadURL)
 	}
-
-	if checkResponse.Outdated {
-		return fmt.Sprintf("wego version %s is available; please update at %s",
-			checkResponse.CurrentVersion, checkResponse.CurrentDownloadURL), nil
-	}
-
-	return "", nil
 }
 
+// CheckpointParams creates the structure to pass to CheckVersion
+func CheckpointParams() *checkpoint.CheckParams {
+	return &checkpoint.CheckParams{
+		Product: "weave-gitops",
+		Version: Version,
+	}
+}
+
+// CheckpointParamsWithFlags adds the object and command from the arguments list to the checkpoint parameters
+func CheckpointParamsWithFlags(params *checkpoint.CheckParams, c *cobra.Command) *checkpoint.CheckParams {
+	// wego uses noun verb command syntax and the parent command will have the noun and the command passed in will be the verb
+	params.Flags = map[string]string{
+		"object":  c.Parent().Name(),
+		"command": c.Name(),
+	}
+	return params
+}
 func CheckFluxVersion() (string, error) {
 	fluxops.SetFluxHandler(&fluxops.QuietFluxHandler{})
 	output, err := fluxops.CallFlux("-v")

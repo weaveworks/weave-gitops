@@ -61,8 +61,4 @@ func main() {
 		os.Exit(1)
 	}
 
-	versionInfo, _ := version.CheckVersion()
-	if versionInfo != "" {
-		log.Info(versionInfo)
-	}
 }
