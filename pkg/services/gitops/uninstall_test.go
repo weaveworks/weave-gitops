@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 )
@@ -13,13 +14,32 @@ var uninstallParams gitops.UinstallParams
 var _ = Describe("Uninstall", func() {
 	BeforeEach(func() {
 		fluxClient = &fluxfakes.FakeFlux{}
-		kubeClient = &kubefakes.FakeKube{}
+		kubeClient = &kubefakes.FakeKube{
+			GetClusterStatusStub: func() kube.ClusterStatus {
+				return kube.WeGOInstalled
+			},
+		}
 		gitopsSrv = gitops.New(fluxClient, kubeClient)
 
 		uninstallParams = gitops.UinstallParams{
 			Namespace: "wego-system",
 			DryRun:    false,
 		}
+	})
+
+	It("checks if wego is installed before proceeding", func() {
+		err := gitopsSrv.Uninstall(uninstallParams)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		Expect(kubeClient.GetClusterStatusCallCount()).To(Equal(1))
+		Expect(fluxClient.UninstallCallCount()).To(Equal(1))
+
+		kubeClient.GetClusterStatusStub = func() kube.ClusterStatus {
+			return kube.Unmodified
+		}
+
+		err = gitopsSrv.Uninstall(uninstallParams)
+		Expect(err).Should(MatchError("Wego is not installed... exiting"))
 	})
 
 	It("calls flux uninstall", func() {
