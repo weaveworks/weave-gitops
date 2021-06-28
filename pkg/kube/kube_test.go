@@ -221,11 +221,15 @@ var _ = Describe("GetApplication", func() {
 var _ = Describe("LabelExistsInCluster", func() {
 	It("checks if label exists in cluster", func() {
 		runner.RunStub = func(cmd string, args ...string) ([]byte, error) {
-			return []byte("wego-testlabel"), nil
+			return []byte("No resources found"), nil
 		}
 
 		err := kubeClient.LabelExistsInCluster("wego-differenttestlabel")
 		Expect(err).ShouldNot(HaveOccurred())
+
+		runner.RunStub = func(cmd string, args ...string) ([]byte, error) {
+			return []byte("NAME  AGE testapp   4m19s"), nil
+		}
 
 		err = kubeClient.LabelExistsInCluster("wego-testlabel")
 		Expect(err).Should(HaveOccurred())
