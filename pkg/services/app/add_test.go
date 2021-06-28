@@ -39,10 +39,6 @@ var _ = BeforeEach(func() {
 	}
 	gitProviders = &gitprovidersfakes.FakeGitProviderHandler{}
 
-	gitProviders.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
-		return false, nil
-	}
-
 	appSrv = app.New(gitClient, fluxClient, kubeClient, gitProviders)
 
 	defaultParams = app.AddParams{
