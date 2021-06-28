@@ -13,6 +13,7 @@ import (
 	"github.com/lithammer/dedent"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/cmd/wego/version"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -33,6 +34,9 @@ var Cmd = &cobra.Command{
     `)),
 	Example: "wego app add .",
 	RunE:    runCmd,
+	PostRun: func(cmd *cobra.Command, args []string) {
+		version.CheckVersion(version.CheckpointParamsWithFlags(version.CheckpointParams(), cmd))
+	},
 }
 
 func init() {
