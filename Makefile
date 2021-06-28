@@ -132,4 +132,4 @@ CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 
 crd:
 	@go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1
-	controller-gen $(CRD_OPTIONS) paths="./..." output:crd:artifacts:config=config/crd
+	controller-gen $(CRD_OPTIONS) paths="./..." output:crd:artifacts:config=manifests/crds
