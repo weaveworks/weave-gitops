@@ -49,9 +49,9 @@ func CaptureStdout(c callback) string {
 	return string(stdout)
 }
 
-func GetAppHash(url, path string) (string, error) {
+func GetAppHash(url, path, branch string) (string, error) {
 	h := md5.New()
-	_, err := h.Write([]byte(url + path))
+	_, err := h.Write([]byte(url + path + branch))
 	if err != nil {
 		return "", err
 	}

@@ -183,7 +183,7 @@ func (a *App) getGitRemoteUrl(params AddParams) (string, error) {
 }
 
 func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secretRef string) error {
-	appHash, err := utils.GetAppHash(params.Url, params.Path)
+	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
 	if err != nil {
 		return err
 	}
@@ -209,7 +209,7 @@ func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secre
 }
 
 func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, secretRef string) error {
-	appHash, err := utils.GetAppHash(params.Url, params.Path)
+	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
 	if err != nil {
 		return err
 	}
@@ -267,7 +267,7 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 }
 
 func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName string, appSecretRef string) error {
-	appHash, err := utils.GetAppHash(params.Url, params.Path)
+	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
 	if err != nil {
 		return err
 	}
@@ -560,7 +560,7 @@ spec:
 		return nil, errors.Wrap(err, "could not parse app yaml template")
 	}
 
-	appHash, err := utils.GetAppHash(params.Url, params.Path)
+	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
 	if err != nil {
 		return nil, err
 	}
@@ -652,7 +652,7 @@ func (a *App) createPullRequestToRepo(params AddParams, appYaml, applicationGoat
 		return nil
 	}
 
-	appHash, err := utils.GetAppHash(params.Url, params.Path)
+	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
 	if err != nil {
 		return err
 	}

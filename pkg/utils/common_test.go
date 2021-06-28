@@ -39,9 +39,10 @@ func TestExists(t *testing.T) {
 func TestAppHash(t *testing.T) {
 	url := "github.com/testurl"
 	path := "./"
-	appHash, err := GetAppHash(url, path)
+	branch := "main"
+	appHash, err := GetAppHash(url, path, branch)
 	require.NoError(t, err)
-	require.Equal(t, "wego-0a7a5a1def0f32479d07a932a0037811", appHash)
+	require.Equal(t, "wego-9ed80cdc46f151f8686ecb399ef82498", appHash)
 }
 
 var _ = Describe("Test common utils", func() {
