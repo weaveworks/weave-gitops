@@ -756,7 +756,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	FIt("Verify multiple apps dir can be added to the cluster using single app and wego config repos", func() {
+	It("Verify multiple apps dir can be added to the cluster using single app and wego config repos", func() {
 		var repoAbsolutePath string
 		private := true
 		appManifestFilePath1 := "./data/nginx.yaml"
@@ -793,7 +793,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			setupSSHKey(defaultSshKeyPath)
 		})
 
-		By("And I create a repo with my app1 workload and run the add the command on it", func() {
+		By("And I create a repo with my app1 and app2 workloads and run the add the command for each app", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
 			app1Path := createSubDir(appName1, repoAbsolutePath)
 			app2Path := createSubDir(appName2, repoAbsolutePath)
@@ -806,8 +806,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		By("Then I should see should see my workloads for app1 and app2 are deployed to the cluster", func() {
 			verifyWegoAddCommand(appName1, WEGO_DEFAULT_NAMESPACE)
 			verifyWegoAddCommand(appName2, WEGO_DEFAULT_NAMESPACE)
-			verifyWorkloadIsDeployed("nginx", workloadNamespace1)
-			verifyWorkloadIsDeployed("nginx2", workloadNamespace2)
+			verifyWorkloadIsDeployed(workloadName1, workloadNamespace1)
+			verifyWorkloadIsDeployed(workloadName2, workloadNamespace2)
 		})
 	})
 })
