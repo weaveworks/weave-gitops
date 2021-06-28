@@ -102,11 +102,11 @@ func waitForNamespaceToTerminate(namespace string, timeout time.Duration) error 
 		if out == "" {
 			return nil
 		}
-		if i > timeoutInSeconds/2 && i%10 == 0 {
-			//Patch the finalizer
-			log.Infof("Patch the finalizer to unstuck the terminating namespace %s", namespace)
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl patch ns %s -p '{\"metadata\":{\"finalizers\":[]}}' --type=merge", namespace))
-		}
+		// if i > timeoutInSeconds/2 && i%10 == 0 {
+		// 	//Patch the finalizer
+		// 	log.Infof("Patch the finalizer to unstuck the terminating namespace %s", namespace)
+		// 	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl patch ns %s -p '{\"metadata\":{\"finalizers\":[]}}' --type=merge", namespace))
+		// }
 		time.Sleep(time.Duration(pollInterval) * time.Second)
 	}
 	return fmt.Errorf("Error: Failed to terminate the namespace %s", namespace)
@@ -145,15 +145,15 @@ func ResetOrCreateCluster(namespace string) (string, error) {
 
 	//For kubectl, point to a valid cluster, we will try to reset the namespace only
 	if namespace != "" && provider == "kubectl" {
-		err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
+		err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s gitops uninstall --namespace %s", WEGO_BIN_PATH, namespace))
 		if err != nil {
 			log.Infof("Failed to uninstall the wego runtime %s", namespace)
 			return clusterName, err
 		}
-		err = runCommandPassThrough([]string{}, "sh", "-c", "kubectl delete crd apps.wego.weave.works")
-		if err != nil {
-			log.Infof("Failed to delete crd apps.wego.weave.works")
-		}
+		// err = runCommandPassThrough([]string{}, "sh", "-c", "kubectl delete crd apps.wego.weave.works")
+		// if err != nil {
+		// 	log.Infof("Failed to delete crd apps.wego.weave.works")
+		// }
 		Expect(waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)).To(Succeed())
 	}
 
