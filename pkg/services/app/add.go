@@ -543,7 +543,7 @@ kind: Application
 metadata:
   name: {{ .AppName }}
   labels:
-    name: {{ .AppHash }}
+    weave-gitops.weave.works/app-identifier: {{ .AppHash }}
 spec:
   path: {{ .AppPath }}
   url: {{ .AppURL }}

@@ -70,6 +70,19 @@ type FakeGitProviderHandler struct {
 		result1 bool
 		result2 error
 	}
+	GetAccountTypeStub        func(string) (gitproviders.ProviderAccountType, error)
+	getAccountTypeMutex       sync.RWMutex
+	getAccountTypeArgsForCall []struct {
+		arg1 string
+	}
+	getAccountTypeReturns struct {
+		result1 gitproviders.ProviderAccountType
+		result2 error
+	}
+	getAccountTypeReturnsOnCall map[int]struct {
+		result1 gitproviders.ProviderAccountType
+		result2 error
+	}
 	RepositoryExistsStub        func(string, string) (bool, error)
 	repositoryExistsMutex       sync.RWMutex
 	repositoryExistsArgsForCall []struct {
@@ -320,7 +333,7 @@ func (fake *FakeGitProviderHandler) DeployKeyExists(arg1 string, arg2 string) (b
 	fake.recordInvocation("DeployKeyExists", []interface{}{arg1, arg2})
 	fake.deployKeyExistsMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -369,6 +382,70 @@ func (fake *FakeGitProviderHandler) DeployKeyExistsReturnsOnCall(i int, result1 
 	}
 	fake.deployKeyExistsReturnsOnCall[i] = struct {
 		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGitProviderHandler) GetAccountType(arg1 string) (gitproviders.ProviderAccountType, error) {
+	fake.getAccountTypeMutex.Lock()
+	ret, specificReturn := fake.getAccountTypeReturnsOnCall[len(fake.getAccountTypeArgsForCall)]
+	fake.getAccountTypeArgsForCall = append(fake.getAccountTypeArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.GetAccountTypeStub
+	fakeReturns := fake.getAccountTypeReturns
+	fake.recordInvocation("GetAccountType", []interface{}{arg1})
+	fake.getAccountTypeMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeGitProviderHandler) GetAccountTypeCallCount() int {
+	fake.getAccountTypeMutex.RLock()
+	defer fake.getAccountTypeMutex.RUnlock()
+	return len(fake.getAccountTypeArgsForCall)
+}
+
+func (fake *FakeGitProviderHandler) GetAccountTypeCalls(stub func(string) (gitproviders.ProviderAccountType, error)) {
+	fake.getAccountTypeMutex.Lock()
+	defer fake.getAccountTypeMutex.Unlock()
+	fake.GetAccountTypeStub = stub
+}
+
+func (fake *FakeGitProviderHandler) GetAccountTypeArgsForCall(i int) string {
+	fake.getAccountTypeMutex.RLock()
+	defer fake.getAccountTypeMutex.RUnlock()
+	argsForCall := fake.getAccountTypeArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeGitProviderHandler) GetAccountTypeReturns(result1 gitproviders.ProviderAccountType, result2 error) {
+	fake.getAccountTypeMutex.Lock()
+	defer fake.getAccountTypeMutex.Unlock()
+	fake.GetAccountTypeStub = nil
+	fake.getAccountTypeReturns = struct {
+		result1 gitproviders.ProviderAccountType
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGitProviderHandler) GetAccountTypeReturnsOnCall(i int, result1 gitproviders.ProviderAccountType, result2 error) {
+	fake.getAccountTypeMutex.Lock()
+	defer fake.getAccountTypeMutex.Unlock()
+	fake.GetAccountTypeStub = nil
+	if fake.getAccountTypeReturnsOnCall == nil {
+		fake.getAccountTypeReturnsOnCall = make(map[int]struct {
+			result1 gitproviders.ProviderAccountType
+			result2 error
+		})
+	}
+	fake.getAccountTypeReturnsOnCall[i] = struct {
+		result1 gitproviders.ProviderAccountType
 		result2 error
 	}{result1, result2}
 }
@@ -517,6 +594,8 @@ func (fake *FakeGitProviderHandler) Invocations() map[string][][]interface{} {
 	defer fake.createRepositoryMutex.RUnlock()
 	fake.deployKeyExistsMutex.RLock()
 	defer fake.deployKeyExistsMutex.RUnlock()
+	fake.getAccountTypeMutex.RLock()
+	defer fake.getAccountTypeMutex.RUnlock()
 	fake.repositoryExistsMutex.RLock()
 	defer fake.repositoryExistsMutex.RUnlock()
 	fake.uploadDeployKeyMutex.RLock()

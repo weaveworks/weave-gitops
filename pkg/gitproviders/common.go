@@ -137,7 +137,7 @@ func (h defaultGitProviderHandler) DeployKeyExists(owner, repoName string) (bool
 
 	deployKeyName := "weave-gitops-deploy-key"
 
-	ownerType, err := GetAccountType(provider, owner)
+	ownerType, err := GetAccountType(owner)
 	if err != nil {
 		return false, err
 	}
