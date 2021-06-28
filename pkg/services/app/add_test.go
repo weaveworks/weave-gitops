@@ -22,10 +22,8 @@ var (
 	kubeClient   *kubefakes.FakeKube
 	gitProviders *gitprovidersfakes.FakeGitProviderHandler
 
-	appSrv           app.AppService
-	defaultParams    app.AddParams
-	deployKeyLookups int
-	deployKeyUploads int
+	appSrv        app.AppService
+	defaultParams app.AddParams
 )
 
 var _ = BeforeEach(func() {
@@ -279,8 +277,8 @@ var _ = Describe("Add", func() {
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(deployKeyUploads).To(Equal(0))
-				Expect(deployKeyLookups).To(Equal(0))
+				Expect(gitProviders.UploadDeployKeyCallCount()).To(Equal(0))
+				Expect(gitProviders.DeployKeyExistsCallCount()).To(Equal(0))
 			})
 		})
 
