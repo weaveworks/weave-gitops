@@ -13,11 +13,6 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-/*var (
-	err       error
-	namespace string
-)*/
-
 var _ = Describe("Weave GitOps Install Tests", func() {
 
 	BeforeEach(func() {
@@ -69,7 +64,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		VerifyControllersInCluster(WEGO_DEFAULT_NAMESPACE)
 	})
 
-	It("Verify that wego can add flux controllers to a user-specified namespace", func() {
+	FIt("Verify that wego can add flux controllers to a user-specified namespace", func() {
 
 		namespace := "test-namespace"
 

@@ -112,6 +112,11 @@ func waitForNamespaceToTerminate(namespace string, timeout time.Duration) error 
 	return fmt.Errorf("Error: Failed to terminate the namespace %s", namespace)
 }
 
+func namespaceOrClusterReset(namespace string) {
+	_, err := ResetOrCreateCluster(namespace)
+	Expect(err).ShouldNot(HaveOccurred())
+}
+
 func ResetOrCreateCluster(namespace string) (string, error) {
 
 	supportedProviders := []string{"kind", "kubectl"}
