@@ -767,7 +767,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			verifyWegoAddCommand(appName1, WEGO_DEFAULT_NAMESPACE)
 			verifyWegoAddCommand(appName2, WEGO_DEFAULT_NAMESPACE)
 			verifyWorkloadIsDeployed(workloadName1, workloadNamespace1)
-			verifyWorkloadIsDeployed(workloadName1, workloadNamespace2)
+			verifyWorkloadIsDeployed(workloadName2, workloadNamespace2)
 		})
 	})
 
