@@ -254,6 +254,61 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
+	It("Focus - Verify helm repo can be added to the cluster by running 'wego add . --app-config-url=<URL> --deployment-type=helm --path=./hello-world'", func() {
+		var repoAbsolutePath string
+		private := true
+		appManifestFilePath := "./data/helm-repo/hello-world"
+		configRepoFiles := "./data/config-repo"
+		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+		appName := "my-helm-app"
+		appRepoName := "wego-test-app-" + RandString(8)
+		configRepoName := "wego-test-config-repo-" + RandString(8)
+		configRepoUrl := fmt.Sprintf("ssh://git@github.com/%s/%s.git", os.Getenv("GITHUB_ORG"), configRepoName)
+
+		addCommand := fmt.Sprintf("app add . --app-config-url=%s --deployment-type=helm --path=./hello-world --name=%s", configRepoUrl, appName)
+
+		defer deleteRepo(appRepoName)
+		defer deleteRepo(configRepoName)
+
+		By("Application and config repo does not already exist", func() {
+			deleteRepo(appRepoName)
+			deleteRepo(configRepoName)
+		})
+
+		By("When I create a private repo with my app workload", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
+		})
+
+		By("When I create a private repo for my config files", func() {
+			configRepoAbsolutePath := initAndCreateEmptyRepo(configRepoName, private)
+			gitAddCommitPush(configRepoAbsolutePath, configRepoFiles)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+defaultSshKeyPath, func() {
+			setupSSHKey(defaultSshKeyPath)
+		})
+
+		By("And I run wego add command", func() {
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see my workload deployed to the cluster", func() {
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+			Expect(waitForResource("apps", appName, WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+			Expect(waitForResource("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+		})
+
+		By("There is no .wego folder in the app repo", func() {
+			_, err := os.Stat(repoAbsolutePath + "/.wego")
+			Expect(os.IsNotExist(err)).To(Equal(true))
+		})
+	})
+
 	It("Verify 'wego add' does not work without controllers installed", func() {
 
 		var repoAbsolutePath string
