@@ -22,12 +22,14 @@ func NewApplicationsServer(kubeSvc kube.Kube) pb.ApplicationsServer {
 
 func (s *server) ListApplications(ctx context.Context, msg *pb.ListApplicationsRequest) (*pb.ListApplicationsResponse, error) {
 
-	fakeApps := []string{"cool-app", "slick-app", "neat-app"}
+	apps, err := s.kube.GetApplications("wego-system")
+	if err != nil {
+		return nil, err
+	}
 
 	list := []*pb.Application{}
-
-	for _, a := range fakeApps {
-		list = append(list, &pb.Application{Name: a})
+	for _, a := range *apps {
+		list = append(list, &pb.Application{Name: a.Name})
 	}
 	return &pb.ListApplicationsResponse{
 		Applications: list,

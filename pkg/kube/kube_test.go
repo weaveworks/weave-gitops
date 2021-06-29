@@ -178,4 +178,41 @@ var _ = Describe("GetApplication", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out.Spec.Path).To(Equal("some/path"))
 	})
+
+	It("get all applications", func() {
+
+		appsList := &wego.ApplicationList{Items: []wego.Application{
+			{
+				Spec: wego.ApplicationSpec{
+					Path: "some/path0",
+					URL:  "example.com/some-org/some-repo0",
+				},
+			},
+			{
+				Spec: wego.ApplicationSpec{
+					Path: "some/path1",
+					URL:  "example.com/some-org/some-repo1",
+				},
+			},
+		}}
+
+		res, err := json.Marshal(appsList)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		runner.RunStub = func(cmd string, args ...string) ([]byte, error) {
+			return res, nil
+		}
+
+		apps, err := kubeClient.GetApplications("wego-system")
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(2).To(Equal(len(*apps)))
+
+		for i, a := range appsList.Items {
+			apps := *apps
+			Expect(a.Name).To(Equal(apps[i].Name))
+			Expect(a.Spec.Path).To(Equal(apps[i].Spec.Path))
+			Expect(a.Spec.URL).To(Equal(apps[i].Spec.URL))
+		}
+
+	})
 })

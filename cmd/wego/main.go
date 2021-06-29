@@ -4,12 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/weaveworks/weave-gitops/cmd/wego/status"
-
 	log "github.com/sirupsen/logrus"
-
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/cmd/wego/add"
+	"github.com/weaveworks/weave-gitops/cmd/wego/app"
 	"github.com/weaveworks/weave-gitops/cmd/wego/flux"
 	"github.com/weaveworks/weave-gitops/cmd/wego/gitops"
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
@@ -37,11 +34,6 @@ func configureLogger() {
 	}
 }
 
-var ApplicationCmd = &cobra.Command{
-	Use:  "app [subcommand]",
-	Args: cobra.MinimumNArgs(1),
-}
-
 func main() {
 	fluxBin.SetupFluxBin()
 	rootCmd.PersistentFlags().BoolVarP(&options.verbose, "verbose", "v", false, "Enable verbose output")
@@ -51,10 +43,7 @@ func main() {
 	rootCmd.AddCommand(version.Cmd)
 	rootCmd.AddCommand(flux.Cmd)
 
-	ApplicationCmd.AddCommand(status.Cmd)
-	ApplicationCmd.AddCommand(add.Cmd)
-
-	rootCmd.AddCommand(ApplicationCmd)
+	rootCmd.AddCommand(app.ApplicationCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
