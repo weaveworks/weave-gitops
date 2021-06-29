@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Weave GitOps Add Tests", func() {
+var _ = FDescribe("Weave GitOps Add Tests", func() {
 
 	BeforeEach(func() {
 		By("Given I have a brand new cluster", func() {
