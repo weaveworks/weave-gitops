@@ -23,7 +23,9 @@ jobs:
     - name: Build UI Assets
       run: make cmd/ui/dist/index.html
     - name: build
-      run: make all BINARY_NAME=wego-${{matrix.os}}
+      run: |
+        git_hash=$(git rev-parse --short "$GITHUB_SHA")
+        make all BINARY_NAME=wego-${{matrix.os}}-$git_hash
     - name: Store wego binaries
       uses: actions/upload-artifact@v2
       with:
@@ -88,7 +90,7 @@ jobs:
         path: bin
     - name: Change bin permissions
       run: |
-        cp bin/wego-ubuntu-latest bin/wego
+        cp bin/wego-ubuntu-latest-* bin/wego
         chmod +x bin/wego
         ls -la bin
     - name: Download dependecies
@@ -97,7 +99,7 @@ jobs:
     - name: Set up ssh agent
       uses: webfactory/ssh-agent@v0.5.2
       with:
-        ssh-private-key: ${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}
+        ssh-private-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
     - name: Configure git settings
       run: |
         git config --global init.defaultBranch main
@@ -108,13 +110,14 @@ jobs:
       run: go get github.com/onsi/ginkgo/ginkgo@v1.16.1
     - name: Run acceptance tests
       env:
-        GITHUB_ORG: wkp-example-org
-        GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
-        GITHUB_KEY: "${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}"
+        GITHUB_ORG: weaveworks-gitops-test
+        GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
+        GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
       run: |
         export PATH=${PATH}:`go env GOPATH`/bin
         export WEGO_BIN_PATH=$(pwd)/bin/wego
         go get github.com/onsi/ginkgo/ginkgo
+        go get github.com/onsi/gomega
         ginkgo --randomizeSuites --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v ./test/acceptance/test/...
     - name: Store acceptance-tests results
       uses: actions/upload-artifact@v2
@@ -170,4 +173,4 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-2
     - run: |
-        aws s3 cp bin/wego-${{matrix.os}} s3://weave-gitops/wego-${{matrix.os}}
+        aws s3 cp bin/wego-${{matrix.os}}-* s3://weave-gitops/

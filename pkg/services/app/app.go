@@ -1,6 +1,7 @@
 package app
 
 import (
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -9,6 +10,7 @@ import (
 
 type AppService interface {
 	Add(params AddParams) error
+	Get(name string) (*wego.Application, error)
 }
 
 type App struct {

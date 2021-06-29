@@ -1,10 +1,10 @@
 import * as React from "react";
 import styled from "styled-components";
-import Icon, { IconType } from "../components/Icon";
 import KeyValueTable from "../components/KeyValueTable";
 import Page from "../components/Page";
-import Timestamp from "../components/Timestamp";
+import useApplications from "../hooks/applications";
 import useNavigation from "../hooks/navigation";
+import { Application } from "../lib/api/applications/applications.pb";
 import { PageRoute } from "../lib/types";
 
 type Props = {
@@ -12,12 +12,20 @@ type Props = {
 };
 
 function ApplicationDetail({ className }: Props) {
+  const [app, setApp] = React.useState<Application>({});
   const {
     query: { name },
   } = useNavigation<{ name: string }>();
 
+  const { getApplication, loading } = useApplications();
+
+  React.useEffect(() => {
+    getApplication(name).then((app) => setApp(app || {}));
+  }, []);
+
   return (
     <Page
+      loading={loading}
       breadcrumbs={[{ page: PageRoute.Applications }]}
       title={name}
       className={className}
@@ -25,22 +33,9 @@ function ApplicationDetail({ className }: Props) {
       <KeyValueTable
         columns={4}
         pairs={[
-          { key: "name", value: name },
-          {
-            key: "status",
-            value: (
-              <Icon
-                size="medium"
-                color="success"
-                type={IconType.CheckMark}
-                text="Ready"
-              />
-            ),
-          },
-          {
-            key: "Last Updated",
-            value: <Timestamp time="2006-01-02T15:04:05-0700" />,
-          },
+          { key: "Name", value: app.name },
+          { key: "URL", value: app.url },
+          { key: "Path", value: app.path },
         ]}
       />
     </Page>

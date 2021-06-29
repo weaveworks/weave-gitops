@@ -13,6 +13,7 @@ import (
 	"github.com/lithammer/dedent"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/cmd/wego/version"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -20,6 +21,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
+	"golang.org/x/term"
 )
 
 var params app.AddParams
@@ -30,8 +32,13 @@ var Cmd = &cobra.Command{
 	Long: strings.TrimSpace(dedent.Dedent(`
         Associates an additional application in a git repository with a wego cluster so that its contents may be managed via GitOps
     `)),
-	Example: "wego app add .",
-	RunE:    runCmd,
+	Example:       "wego app add .",
+	RunE:          runCmd,
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	PostRun: func(cmd *cobra.Command, args []string) {
+		version.CheckVersion(version.CheckpointParamsWithFlags(version.CheckpointParams(), cmd))
+	},
 }
 
 func init() {
@@ -63,16 +70,30 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		params.PrivateKey = privateKey
 	}
 
-	authMethod, err := ssh.NewPublicKeysFromFile("git", params.PrivateKey, params.PrivateKeyPass)
+	authMethod, err := ssh.NewPublicKeysFromFile("git", params.PrivateKey, "")
 	if err != nil {
-		return errors.Wrap(err, "failed reading ssh keys: %s")
+		fmt.Print("Private Key Password: ")
+		pw, err := term.ReadPassword(int(os.Stdin.Fd()))
+		if err != nil {
+			return errors.Wrap(err, "failed reading ssh key password")
+		}
+
+		authMethod, err = ssh.NewPublicKeysFromFile("git", params.PrivateKey, string(pw))
+		if err != nil {
+			return errors.Wrap(err, "failed reading ssh keys")
+		}
 	}
 
 	if params.Url == "" {
 		if len(args) == 0 {
 			return fmt.Errorf("no app --url or app location specified")
 		} else {
-			params.Dir = args[0]
+			path, err := filepath.Abs(args[0])
+			if err != nil {
+				return fmt.Errorf("failed to get absolute path for the repo directory")
+			}
+
+			params.Dir = path
 		}
 	}
 
@@ -104,13 +125,16 @@ func findPrivateKeyFile() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	modernFilePath := filepath.Join(dir, ".ssh", "id_ed25519")
 	if utils.Exists(modernFilePath) {
 		return modernFilePath, nil
 	}
+
 	legacyFilePath := filepath.Join(dir, ".ssh", "id_rsa")
 	if utils.Exists(legacyFilePath) {
 		return legacyFilePath, nil
 	}
+
 	return "", fmt.Errorf("could not locate ssh key file; please specify '--private-key'")
 }

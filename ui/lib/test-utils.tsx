@@ -5,11 +5,15 @@ import * as React from "react";
 import { Router } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
 import AppContextProvider from "../contexts/AppContext";
-import { ListApplicationsResponse } from "./api/applications/applications.pb";
+import {
+  GetApplicationResponse,
+  ListApplicationsResponse,
+} from "./api/applications/applications.pb";
 import theme, { muiTheme } from "./theme";
 
 type ApplicationOverrides = {
-  ListApplications: ListApplicationsResponse;
+  ListApplications?: ListApplicationsResponse;
+  GetApplication?: GetApplicationResponse;
 };
 
 // Don't make the user wire up all the promise stuff to be interface-compliant

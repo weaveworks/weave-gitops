@@ -36,7 +36,6 @@ type AddParams struct {
 	Path           string
 	Branch         string
 	PrivateKey     string
-	PrivateKeyPass string
 	DeploymentType string
 	Chart          string
 	SourceType     string
@@ -337,18 +336,25 @@ func (a *App) createAndUploadDeployKey(repoUrl string, clusterName string, names
 
 	repoUrl = sanitizeRepoUrl(repoUrl)
 
-	deployKey, err := a.flux.CreateSecretGit(secretRefName, repoUrl, namespace)
-	if err != nil {
-		return "", errors.Wrap(err, "could not create git secret")
-	}
-
 	owner, err := getOwnerFromUrl(repoUrl)
 	if err != nil {
 		return "", err
 	}
 
-	if err := a.gitProviders.UploadDeployKey(owner, repoName, deployKey); err != nil {
-		return "", errors.Wrap(err, "error uploading deploy key")
+	deployKeyExists, err := a.gitProviders.DeployKeyExists(owner, repoName)
+	if err != nil {
+		return "", errors.Wrap(err, "could not check for existing deploy key")
+	}
+
+	if !deployKeyExists {
+		deployKey, err := a.flux.CreateSecretGit(secretRefName, repoUrl, namespace)
+		if err != nil {
+			return "", errors.Wrap(err, "could not create git secret")
+		}
+
+		if err := a.gitProviders.UploadDeployKey(owner, repoName, deployKey); err != nil {
+			return "", errors.Wrap(err, "error uploading deploy key")
+		}
 	}
 
 	return secretRefName, nil
@@ -508,8 +514,8 @@ func sanitizeRepoUrl(url string) string {
 
 // NOTE: ready to save the targets automation in phase 2
 // func (a *App) writeTargetGoats(basePath string, name string, manifests ...[]byte) error {
-// 	goatPath := filepath.Join(basePath, "targets", fmt.Sprintf("%s-gitops-runtime.yaml", name))
+//  goatPath := filepath.Join(basePath, "targets", fmt.Sprintf("%s-gitops-runtime.yaml", name))
 
-// 	goat := bytes.Join(manifests, []byte(""))
-// 	return a.git.Write(goatPath, goat)
+//  goat := bytes.Join(manifests, []byte(""))
+//  return a.git.Write(goatPath, goat)
 // }

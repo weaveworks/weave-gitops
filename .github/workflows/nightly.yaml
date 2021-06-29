@@ -26,7 +26,7 @@ jobs:
       uses: golangci/golangci-lint-action@v2
       with:
         version: v1.29
-        args: --build-tags acceptance
+        args: --timeout=600s
 
   build:
     runs-on: ${{matrix.os}}
@@ -108,7 +108,7 @@ jobs:
     - name: Set up ssh agent
       uses: webfactory/ssh-agent@v0.5.2
       with:
-        ssh-private-key: ${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}
+        ssh-private-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
     - name: Configure git settings
       run: |
         git config --global init.defaultBranch main
@@ -119,12 +119,13 @@ jobs:
       run: go get github.com/onsi/ginkgo/ginkgo
     - name: User Acceptance Tests (${{matrix.os}})
       env:
-        GITHUB_ORG: wkp-example-org
-        GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
-        GITHUB_KEY: "${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}"
+        GITHUB_ORG: weaveworks-gitops-test
+        GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
+        GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}-nightly
         export CLUSTER_PROVIDER=kubectl
+        export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         export K8S_VERSION=1.19.1
         # cleanup the cluster
         $WEGO_BIN_PATH flux uninstall --silent
@@ -191,7 +192,7 @@ jobs:
     - name: Set up ssh agent
       uses: webfactory/ssh-agent@v0.5.2
       with:
-        ssh-private-key: ${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}
+        ssh-private-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
     - name: Configure git settings
       run: |
         git config --global init.defaultBranch main
@@ -202,12 +203,13 @@ jobs:
       run: go get github.com/onsi/ginkgo/ginkgo
     - name: User Acceptance Tests (${{matrix.os}})
       env:
-        GITHUB_ORG: wkp-example-org
-        GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
-        GITHUB_KEY: "${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}"
+        GITHUB_ORG: weaveworks-gitops-test
+        GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
+        GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}-nightly
         export CLUSTER_PROVIDER=kubectl
+        export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         export K8S_VERSION=1.19.1
         # cleanup the cluster
         $WEGO_BIN_PATH flux uninstall --silent

@@ -21,6 +21,20 @@ type FakeGitProviderHandler struct {
 	createRepositoryReturnsOnCall map[int]struct {
 		result1 error
 	}
+	DeployKeyExistsStub        func(string, string) (bool, error)
+	deployKeyExistsMutex       sync.RWMutex
+	deployKeyExistsArgsForCall []struct {
+		arg1 string
+		arg2 string
+	}
+	deployKeyExistsReturns struct {
+		result1 bool
+		result2 error
+	}
+	deployKeyExistsReturnsOnCall map[int]struct {
+		result1 bool
+		result2 error
+	}
 	RepositoryExistsStub        func(string, string) (bool, error)
 	repositoryExistsMutex       sync.RWMutex
 	repositoryExistsArgsForCall []struct {
@@ -113,6 +127,71 @@ func (fake *FakeGitProviderHandler) CreateRepositoryReturnsOnCall(i int, result1
 	fake.createRepositoryReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
+}
+
+func (fake *FakeGitProviderHandler) DeployKeyExists(arg1 string, arg2 string) (bool, error) {
+	fake.deployKeyExistsMutex.Lock()
+	ret, specificReturn := fake.deployKeyExistsReturnsOnCall[len(fake.deployKeyExistsArgsForCall)]
+	fake.deployKeyExistsArgsForCall = append(fake.deployKeyExistsArgsForCall, struct {
+		arg1 string
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.DeployKeyExistsStub
+	fakeReturns := fake.deployKeyExistsReturns
+	fake.recordInvocation("DeployKeyExists", []interface{}{arg1, arg2})
+	fake.deployKeyExistsMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeGitProviderHandler) DeployKeyExistsCallCount() int {
+	fake.deployKeyExistsMutex.RLock()
+	defer fake.deployKeyExistsMutex.RUnlock()
+	return len(fake.deployKeyExistsArgsForCall)
+}
+
+func (fake *FakeGitProviderHandler) DeployKeyExistsCalls(stub func(string, string) (bool, error)) {
+	fake.deployKeyExistsMutex.Lock()
+	defer fake.deployKeyExistsMutex.Unlock()
+	fake.DeployKeyExistsStub = stub
+}
+
+func (fake *FakeGitProviderHandler) DeployKeyExistsArgsForCall(i int) (string, string) {
+	fake.deployKeyExistsMutex.RLock()
+	defer fake.deployKeyExistsMutex.RUnlock()
+	argsForCall := fake.deployKeyExistsArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeGitProviderHandler) DeployKeyExistsReturns(result1 bool, result2 error) {
+	fake.deployKeyExistsMutex.Lock()
+	defer fake.deployKeyExistsMutex.Unlock()
+	fake.DeployKeyExistsStub = nil
+	fake.deployKeyExistsReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGitProviderHandler) DeployKeyExistsReturnsOnCall(i int, result1 bool, result2 error) {
+	fake.deployKeyExistsMutex.Lock()
+	defer fake.deployKeyExistsMutex.Unlock()
+	fake.DeployKeyExistsStub = nil
+	if fake.deployKeyExistsReturnsOnCall == nil {
+		fake.deployKeyExistsReturnsOnCall = make(map[int]struct {
+			result1 bool
+			result2 error
+		})
+	}
+	fake.deployKeyExistsReturnsOnCall[i] = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeGitProviderHandler) RepositoryExists(arg1 string, arg2 string) (bool, error) {
@@ -253,6 +332,8 @@ func (fake *FakeGitProviderHandler) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.createRepositoryMutex.RLock()
 	defer fake.createRepositoryMutex.RUnlock()
+	fake.deployKeyExistsMutex.RLock()
+	defer fake.deployKeyExistsMutex.RUnlock()
 	fake.repositoryExistsMutex.RLock()
 	defer fake.repositoryExistsMutex.RUnlock()
 	fake.uploadDeployKeyMutex.RLock()

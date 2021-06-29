@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/wego/add"
 	"github.com/weaveworks/weave-gitops/cmd/wego/flux"
-	"github.com/weaveworks/weave-gitops/cmd/wego/install"
+	"github.com/weaveworks/weave-gitops/cmd/wego/gitops"
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
 	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
 )
@@ -46,7 +46,8 @@ func main() {
 	fluxBin.SetupFluxBin()
 	rootCmd.PersistentFlags().BoolVarP(&options.verbose, "verbose", "v", false, "Enable verbose output")
 	rootCmd.PersistentFlags().String("namespace", "wego-system", "gitops runtime namespace")
-	rootCmd.AddCommand(install.Cmd)
+
+	rootCmd.AddCommand(gitops.Cmd)
 	rootCmd.AddCommand(version.Cmd)
 	rootCmd.AddCommand(flux.Cmd)
 
@@ -60,8 +61,4 @@ func main() {
 		os.Exit(1)
 	}
 
-	versionInfo, _ := version.CheckVersion()
-	if versionInfo != "" {
-		log.Info(versionInfo)
-	}
 }
