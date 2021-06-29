@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

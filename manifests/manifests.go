@@ -4,5 +4,5 @@ import (
 	_ "embed"
 )
 
-//go:embed crds/app.yaml
+//go:embed crds/wego.weave.works_apps.yaml
 var AppCRD []byte

@@ -41,9 +41,9 @@ var _ = Describe("Weave GitOps Version Tests", func() {
 			Eventually(session).Should(gbytes.Say("BuildTime: [0-9-_:]+\n"))
 		})
 
-		By("And branch name", func() {
-			Eventually(session).Should(gbytes.Say("Branch: main|HEAD\n"))
-		})
+		// By("And branch name", func() {
+		// 	Eventually(session).Should(gbytes.Say("Branch: main|HEAD\n"))
+		// })
 
 		By("And flux version", func() {
 			Eventually(session).Should(gbytes.Say("Flux Version: v[0-9].[0-9][0-9].[0-9]\n"))
