@@ -112,12 +112,21 @@ func waitForNamespaceToTerminate(namespace string, timeout time.Duration) error 
 	return fmt.Errorf("Error: Failed to terminate the namespace %s", namespace)
 }
 
-func namespaceOrClusterReset(namespace string) {
-	_, err := ResetOrCreateCluster(namespace)
-	Expect(err).ShouldNot(HaveOccurred())
+func uninstallWegoRuntime(namespace string) {
+	log.Infof("About to delete WeGO runtime from namespace: %s", namespace)
+	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
+	if err != nil {
+		log.Infof("Failed to uninstall the wego runtime %s", namespace)
+	}
+
+	err = runCommandPassThrough([]string{}, "sh", "-c", "kubectl delete crd apps.wego.weave.works")
+	if err != nil {
+		log.Infof("Failed to delete crd apps.wego.weave.works")
+	}
+	Expect(waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)).To(Succeed())
 }
 
-func ResetOrCreateCluster(namespace string) (string, error) {
+func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool) (string, error) {
 
 	supportedProviders := []string{"kind", "kubectl"}
 	supportedK8SVersions := []string{"1.19.1", "1.20.2", "1.21.1"}
@@ -145,16 +154,14 @@ func ResetOrCreateCluster(namespace string) (string, error) {
 
 	//For kubectl, point to a valid cluster, we will try to reset the namespace only
 	if namespace != "" && provider == "kubectl" {
-		err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
+		err := runCommandPassThrough([]string{}, "./scripts/reset-wego.sh", namespace)
 		if err != nil {
-			log.Infof("Failed to uninstall the wego runtime %s", namespace)
-			return clusterName, err
+			log.Infof("Failed to reset the wego runtime in namespace %s", namespace)
 		}
-		err = runCommandPassThrough([]string{}, "sh", "-c", "kubectl delete crd apps.wego.weave.works")
-		if err != nil {
-			log.Infof("Failed to delete crd apps.wego.weave.works")
+
+		if deleteWegoRuntime {
+			uninstallWegoRuntime(namespace)
 		}
-		Expect(waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)).To(Succeed())
 	}
 
 	if provider == "kind" {
@@ -203,7 +210,7 @@ func waitForResource(resourceType string, resourceName string, namespace string,
 		}
 		time.Sleep(time.Duration(pollInterval) * time.Second)
 	}
-	return fmt.Errorf("Error: Failed to find the resource, timeout reached")
+	return fmt.Errorf("Error: Failed to find the resource %s of type %s, timeout reached", resourceName, resourceType)
 }
 
 // Run a command, passing through stdout/stderr to the OS standard streams
@@ -375,4 +382,11 @@ func createGitRepoBranch(repoAbsolutePath string, branchName string) string {
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
 	return string(session.Wait().Out.Contents())
+}
+
+func getUniqueWorkload(placeHolderSuffix string, uniqueSuffix string) string {
+	workloadTemplateFilePath := "./data/nginx-template.yaml"
+	absWorkloadManifestFilePath := "/tmp/nginx-" + uniqueSuffix + ".yaml"
+	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("sed 's/%s/%s/g' %s > %s", placeHolderSuffix, uniqueSuffix, workloadTemplateFilePath, absWorkloadManifestFilePath))
+	return absWorkloadManifestFilePath
 }

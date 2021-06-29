@@ -6,8 +6,10 @@ import {
   Route,
   Switch,
 } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 import { ThemeProvider } from "styled-components";
 import ErrorBoundary from "./components/ErrorBoundary";
+import Layout from "./components/Layout";
 import AppContextProvider from "./contexts/AppContext";
 import { Applications as appsClient } from "./lib/api/applications/applications.pb";
 import theme, { GlobalStyle, muiTheme } from "./lib/theme";
@@ -22,24 +24,31 @@ export default function App() {
       <ThemeProvider theme={theme}>
         <GlobalStyle />
         <Router>
-          <ErrorBoundary>
-            <AppContextProvider applicationsClient={appsClient}>
-              <Switch>
-                <Route
-                  exact
-                  path={PageRoute.Applications}
-                  component={Applications}
-                />
-                <Route
-                  exact
-                  path={PageRoute.ApplicationDetail}
-                  component={ApplicationDetail}
-                />
-                <Redirect exact from="/" to={PageRoute.Applications} />
-                <Route exact path="*" component={Error} />
-              </Switch>
-            </AppContextProvider>
-          </ErrorBoundary>
+          <AppContextProvider applicationsClient={appsClient}>
+            <Layout>
+              <ErrorBoundary>
+                <Switch>
+                  <Route
+                    exact
+                    path={PageRoute.Applications}
+                    component={Applications}
+                  />
+                  <Route
+                    exact
+                    path={PageRoute.ApplicationDetail}
+                    component={ApplicationDetail}
+                  />
+                  <Redirect exact from="/" to={PageRoute.Applications} />
+                  <Route exact path="*" component={Error} />
+                </Switch>
+              </ErrorBoundary>
+              <ToastContainer
+                position="top-center"
+                autoClose={10000}
+                newestOnTop={false}
+              />
+            </Layout>
+          </AppContextProvider>
         </Router>
       </ThemeProvider>
     </MuiThemeProvider>

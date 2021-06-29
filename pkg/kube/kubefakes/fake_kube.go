@@ -4,7 +4,7 @@ package kubefakes
 import (
 	"sync"
 
-	v1alpha1 "github.com/weaveworks/weave-gitops/api/v1alpha"
+	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 

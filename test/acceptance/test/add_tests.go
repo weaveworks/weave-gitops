@@ -14,9 +14,14 @@ import (
 
 var _ = Describe("Weave GitOps Add Tests", func() {
 
+	deleteWegoRuntime := false
+	if os.Getenv("DELETE_WEGO_RUNTIME_ON_EACH_TEST") == "true" {
+		deleteWegoRuntime = true
+	}
+
 	BeforeEach(func() {
 		By("Given I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE)
+			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -28,9 +33,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	It("Verify private repo can be added to the cluster by running 'wego add .' ", func() {
 		var repoAbsolutePath string
 		private := true
-		appManifestFilePath := "./data/nginx.yaml"
-		workloadName := "nginx"
-		workloadNamespace := "my-nginx"
+		uniqueSuffix := RandString(6)
+		appManifestFilePath := getUniqueWorkload("xxyyzz", uniqueSuffix)
+		workloadName := "nginx-" + uniqueSuffix
+		workloadNamespace := "my-nginx-" + uniqueSuffix
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		addCommand := "app add . "
 		appRepoName := "wego-test-app-" + RandString(8)
@@ -66,7 +72,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("Then I should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
-			verifyWorkloadIsDeployed("nginx", "my-nginx")
+			verifyWorkloadIsDeployed(workloadName, workloadNamespace)
 		})
 
 		By("And repos created have private visibility", func() {
@@ -77,9 +83,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	It("Verify that wego can deploy an app after it is setup with an empty repo initially", func() {
 		var repoAbsolutePath string
 		private := true
-		appManifestFilePath := "./data/nginx.yaml"
-		workloadName := "nginx"
-		workloadNamespace := "my-nginx"
+		uniqueSuffix := RandString(6)
+		appManifestFilePath := getUniqueWorkload("xxyyzz", uniqueSuffix)
+		workloadName := "nginx-" + uniqueSuffix
+		workloadNamespace := "my-nginx-" + uniqueSuffix
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		addCommand := "app add ."
 		appRepoName := "wego-test-app-" + RandString(8)
@@ -315,8 +322,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		var addCommandOutput string
 		var addCommandErr string
 		private := true
-		appManifestFilePath := "./data/nginx.yaml"
-		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+		uniqueSuffix := RandString(6)
+		appManifestFilePath := getUniqueWorkload("xxyyzz", uniqueSuffix)
 		addCommand := "app add . "
 		appRepoName := "wego-test-app-" + RandString(8)
 
@@ -331,8 +338,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 
-		By("And I have my default ssh key on path "+defaultSshKeyPath, func() {
-			setupSSHKey(defaultSshKeyPath)
+		By("And WeGO runtime is not installed", func() {
+			uninstallWegoRuntime(WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("And I run wego add command", func() {
@@ -346,16 +353,16 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	})
 
 	It("Verify 'wego app add' with --dry-run flag does not modify the cluster", func() {
-
 		var repoAbsolutePath string
 		var addCommandOutput string
 		private := true
 		branchName := "test-branch-01"
-		appManifestFilePath := "./data/nginx.yaml"
+		uniqueSuffix := RandString(6)
+		appManifestFilePath := getUniqueWorkload("xxyyzz", uniqueSuffix)
+		workloadName := "nginx-" + uniqueSuffix
+		workloadNamespace := "my-nginx-" + uniqueSuffix
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		appRepoName := "wego-test-app-" + RandString(8)
-		workloadName := "nginx"
-		workloadNamespace := "my-nginx"
 		url := "ssh://git@github.com/" + os.Getenv("GITHUB_ORG") + "/" + appRepoName + ".git"
 		addCommand := "app add . --url=" + url + " --branch=" + branchName + " --dry-run"
 		appName := appRepoName
@@ -418,9 +425,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		private := true
 		appRepoName := "wego-test-app-" + RandString(8)
 		branchName := "test-branch-02"
-		appManifestFilePath := "./data/nginx.yaml"
-		workloadName := "nginx"
-		workloadNamespace := "my-nginx"
+		uniqueSuffix := RandString(6)
+		appManifestFilePath := getUniqueWorkload("xxyyzz", uniqueSuffix)
+		workloadName := "nginx-" + uniqueSuffix
+		workloadNamespace := "my-nginx-" + uniqueSuffix
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		wegoNamespace := "my-space"
 		addCommand := "app add . --branch=" + branchName + " --namespace=" + wegoNamespace
@@ -428,7 +436,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		defer deleteRepo(appRepoName)
 		defer deleteWorkload(workloadName, workloadNamespace)
-		defer namespaceOrClusterReset(wegoNamespace)
+		defer uninstallWegoRuntime(wegoNamespace)
 
 		By("And application repo does not already exist", func() {
 			deleteRepo(appRepoName)
@@ -439,7 +447,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("And namespace: "+wegoNamespace+" doesn't exist", func() {
-			namespaceOrClusterReset(wegoNamespace)
+			uninstallWegoRuntime(wegoNamespace)
 		})
 
 		By("When I create a private repo with my app workload", func() {
@@ -465,7 +473,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("Then I should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appName, wegoNamespace)
-			verifyWorkloadIsDeployed("nginx", "my-nginx")
+			verifyWorkloadIsDeployed(workloadName, workloadNamespace)
 		})
 
 		By("And my app is deployed under specified branch name", func() {
@@ -478,9 +486,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	It("Verify app repo can be added to the cluster by running 'wego add path/to/repo/dir' ", func() {
 		var repoAbsolutePath string
 		private := true
-		appManifestFilePath := "./data/nginx.yaml"
-		workloadName := "nginx"
-		workloadNamespace := "my-nginx"
+		uniqueSuffix := RandString(6)
+		appManifestFilePath := getUniqueWorkload("xxyyzz", uniqueSuffix)
+		workloadName := "nginx-" + uniqueSuffix
+		workloadNamespace := "my-nginx-" + uniqueSuffix
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		appRepoName := "wego-test-app-" + RandString(8)
 		addCommand := "app add " + appRepoName + "/"
@@ -517,7 +526,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("Then I should see should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
-			verifyWorkloadIsDeployed("nginx", "my-nginx")
+			verifyWorkloadIsDeployed(workloadName, workloadNamespace)
 		})
 
 		By("And repos created have private visibility", func() {
@@ -529,9 +538,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		private := true
-		appManifestFilePath := "./data/nginx.yaml"
-		workloadName := "nginx"
-		workloadNamespace := "my-nginx"
+		uniqueSuffix := RandString(6)
+		appManifestFilePath := getUniqueWorkload("xxyyzz", uniqueSuffix)
+		workloadName := "nginx-" + uniqueSuffix
+		workloadNamespace := "my-nginx-" + uniqueSuffix
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		appRepoName := "wego-test-app-" + RandString(8)
 		appConfigRepoName := "wego-config-repo-" + RandString(8)
@@ -577,7 +587,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("Then I should see should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
-			verifyWorkloadIsDeployed("nginx", "my-nginx")
+			verifyWorkloadIsDeployed(workloadName, workloadNamespace)
 		})
 	})
 
@@ -585,9 +595,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		private := true
-		appManifestFilePath := "./data/nginx.yaml"
-		workloadName := "nginx"
-		workloadNamespace := "my-nginx"
+		uniqueSuffix := RandString(6)
+		appManifestFilePath := getUniqueWorkload("xxyyzz", uniqueSuffix)
+		workloadName := "nginx-" + uniqueSuffix
+		workloadNamespace := "my-nginx-" + uniqueSuffix
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		appRepoName := "wego-test-app-" + RandString(8)
 		appConfigRepoName := "wego-config-repo-" + RandString(8)
@@ -603,7 +614,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		By("And application repo does not already exist", func() {
 			deleteRepo(appRepoName)
 			deleteRepo(appConfigRepoName)
-
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -634,16 +644,17 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("Then I should see should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
-			verifyWorkloadIsDeployed("nginx", "my-nginx")
+			verifyWorkloadIsDeployed(workloadName, workloadNamespace)
 		})
 	})
 
 	It("Verify app repo can be added to the cluster by running 'wego add --url=<app repo url>' ", func() {
 		var repoAbsolutePath string
 		private := false
-		appManifestFilePath := "./data/nginx.yaml"
-		workloadName := "nginx"
-		workloadNamespace := "my-nginx"
+		uniqueSuffix := RandString(6)
+		appManifestFilePath := getUniqueWorkload("xxyyzz", uniqueSuffix)
+		workloadName := "nginx-" + uniqueSuffix
+		workloadNamespace := "my-nginx-" + uniqueSuffix
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		appRepoName := "wego-test-app-" + RandString(8)
 		appRepoRemoteURL := "ssh://git@github.com/" + os.Getenv("GITHUB_ORG") + "/" + appRepoName + ".git"
@@ -680,18 +691,20 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("Then I should see should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
-			verifyWorkloadIsDeployed("nginx", "my-nginx")
+			verifyWorkloadIsDeployed(workloadName, workloadNamespace)
 		})
 	})
 
 	It("Verify that wego can deploy multiple workloads from a single app repo", func() {
 		var repoAbsolutePath string
-		appManifestFilePath1 := "./data/nginx.yaml"
-		appManifestFilePath2 := "./data/nginx2.yaml"
-		workloadName1 := "nginx"
-		workloadName2 := "nginx2"
-		workloadNamespace1 := "my-nginx"
-		workloadNamespace2 := "my-nginx2"
+		uniqueSuffix := RandString(6)
+		appManifestFilePath1 := getUniqueWorkload("xxyyzz", uniqueSuffix)
+		workloadName1 := "nginx-" + uniqueSuffix
+		workloadNamespace1 := "my-nginx-" + uniqueSuffix
+		uniqueSuffix = RandString(6)
+		appManifestFilePath2 := getUniqueWorkload("xxyyzz", uniqueSuffix)
+		workloadName2 := "nginx-" + uniqueSuffix
+		workloadNamespace2 := "my-nginx-" + uniqueSuffix
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		appRepoName := "wego-test-app-" + RandString(8)
 		appName := appRepoName
@@ -745,13 +758,15 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		private := true
-		appManifestFilePath1 := "./data/nginx.yaml"
-		appManifestFilePath2 := "./data/nginx2.yaml"
 		readmeFilePath := "./data/README.md"
-		workloadName1 := "nginx"
-		workloadName2 := "nginx2"
-		workloadNamespace1 := "my-nginx"
-		workloadNamespace2 := "my-nginx2"
+		uniqueSuffix := RandString(6)
+		appManifestFilePath1 := getUniqueWorkload("xxyyzz", uniqueSuffix)
+		workloadName1 := "nginx-" + uniqueSuffix
+		workloadNamespace1 := "my-nginx-" + uniqueSuffix
+		uniqueSuffix = RandString(6)
+		appManifestFilePath2 := getUniqueWorkload("xxyyzz", uniqueSuffix)
+		workloadName2 := "nginx-" + uniqueSuffix
+		workloadNamespace2 := "my-nginx-" + uniqueSuffix
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		appRepoName1 := "wego-test-app-" + RandString(8)
 		appRepoName2 := "wego-test-app-" + RandString(8)
@@ -806,20 +821,22 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		By("Then I should see should see my workloads for app1 and app2 are deployed to the cluster", func() {
 			verifyWegoAddCommand(appName1, WEGO_DEFAULT_NAMESPACE)
 			verifyWegoAddCommand(appName2, WEGO_DEFAULT_NAMESPACE)
-			verifyWorkloadIsDeployed("nginx", workloadNamespace1)
-			verifyWorkloadIsDeployed("nginx2", workloadNamespace2)
+			verifyWorkloadIsDeployed(workloadName1, workloadNamespace1)
+			verifyWorkloadIsDeployed(workloadName2, workloadNamespace2)
 		})
 	})
 
 	It("Verify multiple apps dir can be added to the cluster using single app and wego config repos", func() {
 		var repoAbsolutePath string
 		private := true
-		appManifestFilePath1 := "./data/nginx.yaml"
-		appManifestFilePath2 := "./data/nginx2.yaml"
-		workloadName1 := "nginx"
-		workloadName2 := "nginx2"
-		workloadNamespace1 := "my-nginx"
-		workloadNamespace2 := "my-nginx2"
+		uniqueSuffix := RandString(6)
+		appManifestFilePath1 := getUniqueWorkload("xxyyzz", uniqueSuffix)
+		workloadName1 := "nginx-" + uniqueSuffix
+		workloadNamespace1 := "my-nginx-" + uniqueSuffix
+		uniqueSuffix = RandString(6)
+		appManifestFilePath2 := getUniqueWorkload("xxyyzz", uniqueSuffix)
+		workloadName2 := "nginx-" + uniqueSuffix
+		workloadNamespace2 := "my-nginx-" + uniqueSuffix
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		appRepoName := "wego-test-app-" + RandString(8)
 		appName1 := "app1"

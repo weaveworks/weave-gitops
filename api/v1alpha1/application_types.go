@@ -20,14 +20,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 // ApplicationSpec defines the desired state of Application
 type ApplicationSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
 	// URL is the address of the git repository for this application
 	URL string `json:"url,omitempty"`
 	// Path is the path in the repository where the k8s yaml files for this application are stored.
@@ -42,6 +38,7 @@ type ApplicationStatus struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:resource:singular=app,path=apps
 
 // Application is the Schema for the applications API
 type Application struct {
