@@ -770,7 +770,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appRepoName2 := "wego-test-app-" + RandString(8)
 		appConfigRepoName := "wego-config-repo-" + RandString(8)
 		configRepoRemoteURL = "ssh://git@github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
-		addCommand := "app add . --app-config-url=" + configRepoRemoteURL
+		addCommand := "app add . --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
 		appName1 := appRepoName1
 		appName2 := appRepoName2
 
@@ -833,8 +833,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appRepoName := "wego-test-app-" + RandString(8)
 		appName1 := "app1"
 		appName2 := "app2"
-		addCommand1 := "app add . --path=./" + appName1 + " --name=" + appName1
-		addCommand2 := "app add . --path=./" + appName2 + " --name=" + appName2
+		addCommand1 := "app add . --path=./" + appName1 + " --name=" + appName1 + " --auto-merge=true"
+		addCommand2 := "app add . --path=./" + appName2 + " --name=" + appName2 + " --auto-merge=true"
 
 		defer deleteRepo(appRepoName)
 		defer deleteWorkload(tip1.workloadName, tip1.workloadNamespace)
