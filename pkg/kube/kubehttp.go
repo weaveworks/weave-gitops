@@ -2,7 +2,6 @@ package kube
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -12,8 +11,11 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	"github.com/pkg/errors"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -31,6 +33,7 @@ func CreateScheme() *apiruntime.Scheme {
 
 var WeGONamespace = "wego-system"
 var WeGOCRDName = "apps.wego.weave.works"
+var FluxNamespace = "flux-system"
 
 func NewKubeHTTPClient() (Kube, error) {
 	cfgLoadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
@@ -87,11 +90,28 @@ func (c *KubeHTTP) GetClusterStatus(ctx context.Context) ClusterStatus {
 		return WeGOInstalled
 	}
 
-	return Unknown
+	if ok, _ := c.FluxPresent(ctx); ok {
+		return FluxInstalled
+	}
+
+	dep := appsv1.Deployment{}
+	coreDnsName := types.NamespacedName{
+		Name:      "coredns",
+		Namespace: "kube-system",
+	}
+
+	if err := c.Client.Get(ctx, coreDnsName, &dep); err != nil {
+		// Couldn't find the coredns deployment.
+		// We don't know what state the cluster is in.
+		return Unknown
+	} else {
+		// Request for the coredns namespace was successfull.
+		return Unmodified
+	}
 }
 
 func (c *KubeHTTP) Apply(manifests []byte, namespace string) ([]byte, error) {
-	return nil, errors.New("Apply not implemented for kubeHTTP")
+	return nil, errors.New("Apply is not implemented for kubeHTTP")
 }
 
 func (c *KubeHTTP) GetApplication(ctx context.Context, name string) (*wego.Application, error) {
@@ -111,8 +131,21 @@ func (c *KubeHTTP) Delete(manifests []byte, namespace string) ([]byte, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (c *KubeHTTP) FluxPresent() (bool, error) {
-	return false, errors.New("not implemented")
+func (c *KubeHTTP) FluxPresent(ctx context.Context) (bool, error) {
+	key := types.NamespacedName{
+		Name: FluxNamespace,
+	}
+
+	ns := corev1.Namespace{}
+
+	if err := c.Client.Get(ctx, key, &ns); err != nil {
+		if apierrors.IsNotFound(err) {
+			return false, nil
+		}
+		return false, errors.Wrap(err, "could not find flux namespace")
+	}
+
+	return true, nil
 }
 
 func initialContexts(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (contexts []string, currentCtx string, err error) {

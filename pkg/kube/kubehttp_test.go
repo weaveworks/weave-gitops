@@ -27,11 +27,10 @@ var ns corev1.Namespace
 var _ = BeforeSuite(func() {
 	testenv = &envtest.Environment{CRDDirectoryPaths: []string{"../../manifests/crds"}}
 
+	scheme = kube.CreateScheme()
 	cfg, err = testenv.Start()
 
 	Expect(err).NotTo(HaveOccurred())
-
-	scheme = kube.CreateScheme()
 
 	ns = corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{Name: "wego-system"},
@@ -52,6 +51,49 @@ var _ = BeforeEach(func() {
 })
 
 var _ = Describe("KubeHTTP", func() {
+	It("GetClusterName", func() {
+		name, err := k.GetClusterName(context.Background())
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(name).To(Equal(testClustername))
+	})
+	It("GetClusterStatus", func() {
+		ctx := context.Background()
+		status := k.GetClusterStatus(ctx)
+
+		Expect(status.String()).To(Equal(kube.Unknown.String()))
+		// At present, tests are execute in the same testenv instance.
+		// As a result tests will interfere with each other.
+		// For that reason, only the initial unknown case is testable.
+		// TODO: ensure test are all isolated.
+
+	})
+	It("FluxPresent", func() {
+		ctx := context.Background()
+
+		exists1, err := k.FluxPresent(ctx)
+		Expect(err).NotTo(HaveOccurred())
+
+		// Flux doesn't exist yet
+		Expect(exists1).To(BeFalse())
+
+		fluxNs := corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: kube.FluxNamespace,
+			},
+		}
+
+		// Create the namespace
+		err = testclient.Create(ctx, &fluxNs)
+		Expect(err).NotTo(HaveOccurred())
+
+		exists2, err := k.FluxPresent(ctx)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(exists2).To(BeTrue())
+
+	})
+
 	It("GetApplication", func() {
 		ctx := context.Background()
 		name := "my-app"

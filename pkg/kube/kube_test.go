@@ -130,7 +130,7 @@ var _ = Describe("GetClusterName", func() {
 
 var _ = Describe("FluxPresent", func() {
 	It("looks for flux-system namespace", func() {
-		_, err := kubeClient.FluxPresent()
+		_, err := kubeClient.FluxPresent(context.Background())
 		Expect(err).ShouldNot(HaveOccurred())
 
 		cmd, args := runner.RunArgsForCall(0)
@@ -144,7 +144,7 @@ var _ = Describe("FluxPresent", func() {
 			return []byte("namespace"), nil
 		}
 
-		present, err := kubeClient.FluxPresent()
+		present, err := kubeClient.FluxPresent(context.Background())
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(present).To(Equal(true))
 	})
@@ -154,7 +154,7 @@ var _ = Describe("FluxPresent", func() {
 			return []byte("not found"), fmt.Errorf("error")
 		}
 
-		present, err := kubeClient.FluxPresent()
+		present, err := kubeClient.FluxPresent(context.Background())
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(present).To(Equal(false))
 	})

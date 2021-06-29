@@ -42,9 +42,9 @@ var toStatusString = map[ClusterStatus]string{
 type Kube interface {
 	Apply(manifests []byte, namespace string) ([]byte, error)
 	Delete(manifests []byte, namespace string) ([]byte, error)
-	FluxPresent() (bool, error)
 	SecretPresent(secretName string, namespace string) (bool, error)
 	GetApplications(namespace string) (*[]wego.Application, error)
+	FluxPresent(ctx context.Context) (bool, error)
 	GetClusterName(ctx context.Context) (string, error)
 	GetClusterStatus(ctx context.Context) ClusterStatus
 	GetApplication(ctx context.Context, name string) (*wego.Application, error)
@@ -124,7 +124,7 @@ func (k *KubeClient) GetClusterStatus(ctx context.Context) ClusterStatus {
 }
 
 // FluxPresent checks flux presence in the cluster
-func (k *KubeClient) FluxPresent() (bool, error) {
+func (k *KubeClient) FluxPresent(ctx context.Context) (bool, error) {
 	out, err := k.runKubectlCmd([]string{"get", "namespace", "flux-system"})
 	if err != nil {
 		if strings.Contains(string(out), "not found") {
