@@ -1,17 +1,20 @@
 package gitproviders
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"github.com/stretchr/testify/assert"
+	"io"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 	"time"
-
-	"github.com/stretchr/testify/assert"
 
 	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -33,6 +36,57 @@ var (
 	GitlabOrgTestName  = "weaveworks"
 	GitlabUserTestName = "bot"
 )
+
+type customTransport struct {
+	transport http.RoundTripper
+	mux       *sync.Mutex
+}
+
+func getBodyFromReaderWithoutConsuming(r *io.ReadCloser) string {
+	body, _ := ioutil.ReadAll(*r)
+	(*r).Close()
+	*r = ioutil.NopCloser(bytes.NewBuffer(body))
+	return string(body)
+}
+
+const (
+	ConnectionResetByPeer    = "connection reset by peer"
+	ProjectStillBeingDeleted = "The project is still being deleted"
+)
+
+func (t *customTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	t.mux.Lock()
+	defer t.mux.Unlock()
+
+	var resp *http.Response
+	var err error
+	var responseBody string
+	var requestBody string
+	retryCount := 15
+	for retryCount != 0 {
+		responseBody = ""
+		requestBody = ""
+		if req != nil && req.Body != nil {
+			requestBody = getBodyFromReaderWithoutConsuming(&req.Body)
+		}
+		resp, err = t.transport.RoundTrip(req)
+		if resp != nil && resp.Body != nil {
+			responseBody = getBodyFromReaderWithoutConsuming(&resp.Body)
+		}
+		if (err != nil && (strings.Contains(err.Error(), ConnectionResetByPeer))) ||
+			strings.Contains(string(responseBody), ProjectStillBeingDeleted) {
+			time.Sleep(4 * time.Second)
+			if req != nil && req.Body != nil {
+				req.Body = ioutil.NopCloser(strings.NewReader(requestBody))
+			}
+			retryCount--
+			continue
+		}
+		break
+	}
+
+	return resp, err
+}
 
 func SetRecorder(recorder *recorder.Recorder) gitprovider.ChainableRoundTripperFunc {
 	return func(transport http.RoundTripper) http.RoundTripper {
@@ -143,16 +197,22 @@ func TestMain(m *testing.M) {
 
 	accounts := getAccounts()
 
+	t := customTransport{}
+
 	var err error
 	cacheGithubRecorder, err := NewRecorder("github", accounts)
 	if err != nil {
 		panic(err)
 	}
 
+	cacheGithubRecorder.SetTransport(&t)
+
 	cacheGitlabRecorder, err := NewRecorder("gitlab", accounts)
 	if err != nil {
 		panic(err)
 	}
+
+	cacheGitlabRecorder.SetTransport(&t)
 
 	githubTestClient, err = newGithubTestClient(SetRecorder(cacheGithubRecorder))
 	if err != nil {
@@ -507,11 +567,9 @@ var _ = Describe("Test deploy keys creation", func() {
 
 		deployKey := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBmym4XOiTj4rY3AcJKoJ8QupfgpFWtgNzDxzL0TrzfnurUQm+snozKLHGtOtS7PjMQsMaW9phyhhXv2KxadVI1uweFkC1TK4rPNWrqYX2g0JLXEScvaafSiv+SqozWLN/zhQ0e0jrtrYphtkd+H72RYsdq3mngY4WPJXM7z+HSjHSKilxj7XsxENt0dxT08LArxDC4OQXv9EYFgCyZ7SuLPBgA9160Co46Jm27enB/oBPx5zWd1MlkI+RtUi+XV2pLMzIpvYi2r2iWwOfDqE0N2cfpD0bY7cIOlv0iS7v6Qkmf7pBD+tRGTIZFcD5tGmZl1DOaeCZZ/VAN66aX+rN"
 
-		// Uncomment these when the recording is fixed
-
-		// exists, err := DeployKeyExists(accounts.GithubUserName, repoName)
-		// Expect(err).ShouldNot(HaveOccurred())
-		// Expect(exists).To(BeFalse())
+		exists, err := DeployKeyExists(accounts.GithubUserName, repoName)
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(exists).To(BeFalse())
 
 		stdout := utils.CaptureStdout(func() {
 			err = UploadDeployKey(accounts.GithubUserName, repoName, []byte(deployKey))
@@ -519,15 +577,15 @@ var _ = Describe("Test deploy keys creation", func() {
 		})
 		Expect(stdout).To(Equal("uploading deploy key\n"))
 
-		// exists, err = DeployKeyExists(accounts.GithubUserName, repoName)
-		// Expect(err).ShouldNot(HaveOccurred())
-		// Expect(exists).To(BeTrue())
+		exists, err = DeployKeyExists(accounts.GithubUserName, repoName)
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(exists).To(BeTrue())
 
 		stdout = utils.CaptureStdout(func() {
 			err = UploadDeployKey(accounts.GithubUserName, repoName, []byte(deployKey))
-			Expect(err).ShouldNot(HaveOccurred())
+			Expect(err).Should(HaveOccurred())
 		})
-		Expect(stdout).To(Equal(fmt.Sprintf("deploy key weave-gitops-deploy-key already exists for repo %s \n", repoName)))
+		Expect(stdout).To(Equal("uploading deploy key\n"))
 
 		ctx := context.Background()
 		user, err := githubTestClient.UserRepositories().Get(ctx, userRepoRef)
@@ -541,6 +599,8 @@ var _ = Describe("Test deploy keys creation", func() {
 
 		accounts := getAccounts()
 
+		SetGithubProvider(githubTestClient)
+
 		repoName := "test-deploy-key-org-repo"
 		orgRepoRef := NewOrgRepositoryRef(github.DefaultDomain, accounts.GithubOrgName, repoName)
 		repoInfo := NewRepositoryInfo("test user repository", gitprovider.RepositoryVisibilityPrivate)
@@ -551,15 +611,15 @@ var _ = Describe("Test deploy keys creation", func() {
 		err := CreateOrgRepository(githubTestClient, orgRepoRef, repoInfo, opts)
 		Expect(err).ShouldNot(HaveOccurred())
 		err = utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
-			return GetUserRepo(githubTestClient, accounts.GithubOrgName, repoName)
+			return GetOrgRepo(githubTestClient, accounts.GithubOrgName, repoName)
 		})
 		Expect(err).ShouldNot(HaveOccurred())
 
-		deployKey := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBmym4XOiTj4rY3AcJKoJ8QupfgpFWtgNzDxzL0TrzfnurUQm+snozKLHGtOtS7PjMQsMaW9phyhhXv2KxadVI1uweFkC1TK4rPNWrqYX2g0JLXEScvaafSiv+SqozWLN/zhQ0e0jrtrYphtkd+H72RYsdq3mngY4WPJXM7z+HSjHSKilxj7XsxENt0dxT08LArxDC4OQXv9EYFgCyZ7SuLPBgA9160Co46Jm27enB/oBPx5zWd1MlkI+RtUi+XV2pLMzIpvYi2r2iWwOfDqE0N2cfpD0bY7cIOlv0iS7v6Qkmf7pBD+tRGTIZFcD5tGmZl1DOaeCZZ/VAN66aX+rN"
+		deployKey := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDorjCI1Ai7xhZx4e2dYImHbjzbEc0gH1mjnkcb3Tqc5Zs/tQVxo282YIMeXq8IABt2AcwTzDHAviajbPqC05GNRwCmEFrYOnYKhMrdrKtYuCtmEhgnhPQlItXJlF00XwHfYetjfIzFSk8vdLJcwmGp6PPemDW2Xv6CPBAN23OGqTbYYsFuO7+hdU3CgGcR9WPDdzN7/4q1aq4Tk7qhNl5Yxw1DQ0OVgiAQnBJHeViOar14Dw1olhtzL2s88e/TE9t47p9iLXFXwN4irER25A4NUa7DYGpNfUEGQdlf1k81ctegQeA8fOZ4uT4zYSja7mG6QYRgPwN4ZB8ywTcHeON6EzWucSWKM4TcJgASmvJtJn5RifbuzMJTtqpCtIFmpo5/ItQFKYjI18Omqh0ZJe/P9YtYtM+Ac3FIOC0yKU7Ozsx/N7wq3uSIOTv8KCxkEgq2fBi9gF/+kE0BGSVao0RfY/fAUjS/ScuNvo30+MrW+8NmWeWRdhMJkJ25kLGuWBE="
 
-		// exists, err := DeployKeyExists(accounts.GithubUserName, repoName)
-		// Expect(err).ShouldNot(HaveOccurred())
-		// Expect(exists).To(BeFalse())
+		exists, err := DeployKeyExists(accounts.GithubOrgName, repoName)
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(exists).To(BeFalse())
 
 		stdout := utils.CaptureStdout(func() {
 			err = UploadDeployKey(accounts.GithubOrgName, repoName, []byte(deployKey))
@@ -567,15 +627,15 @@ var _ = Describe("Test deploy keys creation", func() {
 		})
 		Expect(stdout).To(Equal("uploading deploy key\n"))
 
-		// exists, err = DeployKeyExists(accounts.GithubUserName, repoName)
-		// Expect(err).ShouldNot(HaveOccurred())
-		// Expect(exists).To(BeTrue())
+		exists, err = DeployKeyExists(accounts.GithubOrgName, repoName)
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(exists).To(BeTrue())
 
 		stdout = utils.CaptureStdout(func() {
 			err = UploadDeployKey(accounts.GithubOrgName, repoName, []byte(deployKey))
-			Expect(err).ShouldNot(HaveOccurred())
+			Expect(err).Should(HaveOccurred())
 		})
-		Expect(stdout).To(Equal(fmt.Sprintf("deploy key weave-gitops-deploy-key already exists for repo %s \n", repoName)))
+		Expect(stdout).To(Equal("uploading deploy key\n"))
 
 		ctx := context.Background()
 		user, err := githubTestClient.OrgRepositories().Get(ctx, orgRepoRef)

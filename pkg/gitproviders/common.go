@@ -212,6 +212,12 @@ func (h defaultGitProviderHandler) UploadDeployKey(owner, repoName string, deplo
 		if err != nil {
 			return fmt.Errorf("error uploading deploy key %s", err)
 		}
+		if err = utils.WaitUntil(os.Stdout, time.Second, time.Second*10, func() error {
+			_, err = orgRepo.DeployKeys().Get(ctx, deployKeyName)
+			return err
+		}); err != nil {
+			return fmt.Errorf("error verifying deploy key %s existance for repo %s. %s", deployKeyName, repoName, err)
+		}
 	case AccountTypeUser:
 		userRef := NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
 		userRepo, err := provider.UserRepositories().Get(ctx, userRef)
@@ -222,6 +228,12 @@ func (h defaultGitProviderHandler) UploadDeployKey(owner, repoName string, deplo
 		_, err = userRepo.DeployKeys().Create(ctx, deployKeyInfo)
 		if err != nil {
 			return fmt.Errorf("error uploading deploy key %s", err)
+		}
+		if err = utils.WaitUntil(os.Stdout, time.Second, time.Second*10, func() error {
+			_, err = userRepo.DeployKeys().Get(ctx, deployKeyName)
+			return err
+		}); err != nil {
+			return fmt.Errorf("error verifying deploy key %s existance for repo %s. %s", deployKeyName, repoName, err)
 		}
 	default:
 		return fmt.Errorf("account type not supported %s", ownerType)
