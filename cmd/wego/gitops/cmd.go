@@ -9,6 +9,7 @@ import (
 	_ "embed"
 
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/cmd/wego/version"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
@@ -40,6 +41,9 @@ If a previous version is installed, then an in-place upgrade will be performed.`
 	RunE:          installRunCmd,
 	SilenceErrors: true,
 	SilenceUsage:  true,
+	PostRun: func(cmd *cobra.Command, args []string) {
+		version.CheckVersion(version.CheckpointParamsWithFlags(version.CheckpointParams(), cmd))
+	},
 }
 
 var uinstallCmd = &cobra.Command{
@@ -51,6 +55,9 @@ var uinstallCmd = &cobra.Command{
 	RunE:          uninstallRunCmd,
 	SilenceErrors: true,
 	SilenceUsage:  true,
+	PostRun: func(cmd *cobra.Command, args []string) {
+		version.CheckVersion(version.CheckpointParamsWithFlags(version.CheckpointParams(), cmd))
+	},
 }
 
 func init() {

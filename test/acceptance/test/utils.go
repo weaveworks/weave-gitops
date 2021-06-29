@@ -112,6 +112,11 @@ func waitForNamespaceToTerminate(namespace string, timeout time.Duration) error 
 	return fmt.Errorf("Error: Failed to terminate the namespace %s", namespace)
 }
 
+func namespaceOrClusterReset(namespace string) {
+	_, err := ResetOrCreateCluster(namespace)
+	Expect(err).ShouldNot(HaveOccurred())
+}
+
 func ResetOrCreateCluster(namespace string) (string, error) {
 
 	supportedProviders := []string{"kind", "kubectl"}
@@ -277,6 +282,15 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
 	return repoAbsolutePath
+}
+
+func createSubDir(subDirName string, repoAbsolutePath string) string {
+	subDirAbsolutePath := fmt.Sprintf(`%s/%s`, repoAbsolutePath, subDirName)
+	command := exec.Command("sh", "-c", fmt.Sprintf(`mkdir -p %s`, subDirAbsolutePath))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+	return subDirAbsolutePath
 }
 
 func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {

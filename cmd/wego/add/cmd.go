@@ -13,6 +13,7 @@ import (
 	"github.com/lithammer/dedent"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/cmd/wego/version"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -31,8 +32,13 @@ var Cmd = &cobra.Command{
 	Long: strings.TrimSpace(dedent.Dedent(`
         Associates an additional application in a git repository with a wego cluster so that its contents may be managed via GitOps
     `)),
-	Example: "wego app add .",
-	RunE:    runCmd,
+	Example:       "wego app add .",
+	RunE:          runCmd,
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	PostRun: func(cmd *cobra.Command, args []string) {
+		version.CheckVersion(version.CheckpointParamsWithFlags(version.CheckpointParams(), cmd))
+	},
 }
 
 func init() {
@@ -82,7 +88,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
 			return fmt.Errorf("no app --url or app location specified")
 		} else {
-			params.Dir = args[0]
+			path, err := filepath.Abs(args[0])
+			if err != nil {
+				return fmt.Errorf("failed to get absolute path for the repo directory")
+			}
+
+			params.Dir = path
 		}
 	}
 

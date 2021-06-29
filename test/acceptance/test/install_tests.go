@@ -13,11 +13,6 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-/*var (
-	err       error
-	namespace string
-)*/
-
 var _ = Describe("Weave GitOps Install Tests", func() {
 
 	BeforeEach(func() {
