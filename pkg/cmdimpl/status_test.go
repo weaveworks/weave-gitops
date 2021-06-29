@@ -37,20 +37,20 @@ var _ = Describe("Run Command Status Test", func() {
 
 		// flux mocks
 		case0 := "get all -n wego-system"
-		output0 := `NAME                     	READY	MESSAGE                                                        	REVISION                                     SUSPENDED
-gitrepository/wego       	True 	Fetched revision: main/00b92bf6606e040c59404a7257508d65d300bc91	main/00b92bf6606e040c59404a7257508d65d300bc91False
-gitrepository/kustomize-app	True 	Fetched revision: main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	main/a2b5b8c0919f405e52619bfc52b5304240d9ef76False
+		output0 := `NAME                        READY	MESSAGE                                                         REVISION                                     SUSPENDED
+gitrepository/wego          True    Fetched revision: main/00b92bf6606e040c59404a7257508d65d300bc91	main/00b92bf6606e040c59404a7257508d65d300bc91False
+gitrepository/kustomize-app	True    Fetched revision: main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	main/a2b5b8c0919f405e52619bfc52b5304240d9ef76False
 
-NAME                     	READY	MESSAGE                                                        	REVISION                                     SUSPENDED
-kustomization/wego       	True 	Applied revision: main/00b92bf6606e040c59404a7257508d65d300bc91	main/00b92bf6606e040c59404a7257508d65d300bc91False
-kustomization/kustomize-app	True 	Applied revision: main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	main/a2b5b8c0919f405e52619bfc52b5304240d9ef76False`
+NAME                        READY	MESSAGE                                                         REVISION                                     SUSPENDED
+kustomization/wego          True    Applied revision: main/00b92bf6606e040c59404a7257508d65d300bc91	main/00b92bf6606e040c59404a7257508d65d300bc91False
+kustomization/kustomize-app	True    Applied revision: main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	main/a2b5b8c0919f405e52619bfc52b5304240d9ef76False`
 
 		case1 := "get all -A kustomize-app"
-		output1 := `NAMESPACE   	NAME                     	READY	MESSAGE                                                        	REVISION                                     	SUSPENDED
-wego-system	gitrepository/kustomize-app	True 	Fetched revision: main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	False
+		output1 := `NAMESPACE       NAME                        READY	MESSAGE                                                         REVISION                                        SUSPENDED
+wego-system	gitrepository/kustomize-app	True    Fetched revision: main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	False
 
-NAMESPACE   	NAME                     	READY	MESSAGE                                                        	REVISION                                     	SUSPENDED
-wego-system	kustomization/kustomize-app	True 	Applied revision: main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	False
+NAMESPACE       NAME                        READY	MESSAGE                                                         REVISION                                        SUSPENDED
+wego-system	kustomization/kustomize-app	True    Applied revision: main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	False
 `
 
 		fakeHandler := &fluxopsfakes.FakeFluxHandler{
@@ -77,17 +77,17 @@ wego-system	kustomization/kustomize-app	True 	Applied revision: main/a2b5b8c0919
   conditions:
   - lastTransitionTime: "2021-05-24T22:48:28Z"`
 		case1Kubectl := `kubectl \
-			-n wego-system \
-			get kustomization/kustomize-app -oyaml`
+            -n wego-system \
+            get kustomization/kustomize-app -oyaml`
 
 		_ = override.WithOverrides(func() override.Result {
 
 			expectedOutput := `Latest successful deployment time: 2021-05-24T22:48:28Z
-NAMESPACE   	NAME                     	READY	MESSAGE                                                        	REVISION                                     	SUSPENDED
-wego-system	gitrepository/kustomize-app	True 	Fetched revision: main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	False
+NAMESPACE       NAME                        READY	MESSAGE                                                         REVISION                                        SUSPENDED
+wego-system	gitrepository/kustomize-app	True    Fetched revision: main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	False
 
-NAMESPACE   	NAME                     	READY	MESSAGE                                                        	REVISION                                     	SUSPENDED
-wego-system	kustomization/kustomize-app	True 	Applied revision: main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	False
+NAMESPACE       NAME                        READY	MESSAGE                                                         REVISION                                        SUSPENDED
+wego-system	kustomization/kustomize-app	True    Applied revision: main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	main/a2b5b8c0919f405e52619bfc52b5304240d9ef76	False
 
 `
 
@@ -167,7 +167,7 @@ var _ = Describe("GetDeployment tests", func() {
 		fluxops.SetFluxHandler(fakeHandler)
 
 		deploymentType, err := getDeploymentType(ns, myAppName)
-		Expect(err).Should(MatchError("error trying to get the deployment type of the app. raw output => wronginfo"))
+		Expect(err).Should(MatchError("no app found with name: my-app-name\n"))
 		Expect(deploymentType).To(BeEmpty())
 
 	})
