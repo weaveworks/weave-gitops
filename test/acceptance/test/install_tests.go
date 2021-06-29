@@ -50,7 +50,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 	It("Verify that wego can install required controllers under default namespace `wego-system`", func() {
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE)
+			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -69,7 +69,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		namespace := "test-namespace"
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(namespace)
+			_, err := ResetOrCreateCluster(namespace, true)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -90,7 +90,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		VerifyControllersInCluster(namespace)
 
 		By("Clean up the namespace", func() {
-			_, err := ResetOrCreateCluster(namespace)
+			_, err := ResetOrCreateCluster(namespace, true)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 	})
