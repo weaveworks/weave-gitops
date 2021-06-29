@@ -38,9 +38,10 @@ type FakeKube struct {
 		result1 []byte
 		result2 error
 	}
-	FluxPresentStub        func() (bool, error)
+	FluxPresentStub        func(context.Context) (bool, error)
 	fluxPresentMutex       sync.RWMutex
 	fluxPresentArgsForCall []struct {
+		arg1 context.Context
 	}
 	fluxPresentReturns struct {
 		result1 bool
@@ -263,17 +264,18 @@ func (fake *FakeKube) DeleteReturnsOnCall(i int, result1 []byte, result2 error) 
 	}{result1, result2}
 }
 
-func (fake *FakeKube) FluxPresent() (bool, error) {
+func (fake *FakeKube) FluxPresent(arg1 context.Context) (bool, error) {
 	fake.fluxPresentMutex.Lock()
 	ret, specificReturn := fake.fluxPresentReturnsOnCall[len(fake.fluxPresentArgsForCall)]
 	fake.fluxPresentArgsForCall = append(fake.fluxPresentArgsForCall, struct {
-	}{})
+		arg1 context.Context
+	}{arg1})
 	stub := fake.FluxPresentStub
 	fakeReturns := fake.fluxPresentReturns
-	fake.recordInvocation("FluxPresent", []interface{}{})
+	fake.recordInvocation("FluxPresent", []interface{}{arg1})
 	fake.fluxPresentMutex.Unlock()
 	if stub != nil {
-		return stub()
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -287,10 +289,17 @@ func (fake *FakeKube) FluxPresentCallCount() int {
 	return len(fake.fluxPresentArgsForCall)
 }
 
-func (fake *FakeKube) FluxPresentCalls(stub func() (bool, error)) {
+func (fake *FakeKube) FluxPresentCalls(stub func(context.Context) (bool, error)) {
 	fake.fluxPresentMutex.Lock()
 	defer fake.fluxPresentMutex.Unlock()
 	fake.FluxPresentStub = stub
+}
+
+func (fake *FakeKube) FluxPresentArgsForCall(i int) context.Context {
+	fake.fluxPresentMutex.RLock()
+	defer fake.fluxPresentMutex.RUnlock()
+	argsForCall := fake.fluxPresentArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeKube) FluxPresentReturns(result1 bool, result2 error) {
