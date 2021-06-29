@@ -664,6 +664,8 @@ func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	defer fake.getClusterNameMutex.RUnlock()
 	fake.getClusterStatusMutex.RLock()
 	defer fake.getClusterStatusMutex.RUnlock()
+	fake.labelExistsInClusterMutex.RLock()
+	defer fake.labelExistsInClusterMutex.RUnlock()
 	fake.secretPresentMutex.RLock()
 	defer fake.secretPresentMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
