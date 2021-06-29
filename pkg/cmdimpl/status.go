@@ -53,8 +53,8 @@ type Yaml struct {
 
 func getLatestSuccessfulDeploymentTime(namespace, appName string, deploymentType DeploymentType) (string, error) {
 	c := fmt.Sprintf(`kubectl \
-			-n %s \
-			get %s/%s -oyaml`,
+            -n %s \
+            get %s/%s -oyaml`,
 		namespace,
 		deploymentType,
 		appName,
@@ -82,7 +82,7 @@ func getDeploymentType(namespace, appName string) (DeploymentType, error) {
 		return "", err
 	}
 
-	var re = regexp.MustCompile(fmt.Sprintf(`(?m)(kustomization|helmrelease)\/%s`, appName))
+	var re = regexp.MustCompile(fmt.Sprintf(`(?m)(kustomization|helmrelease)\/%s[[:space:]]`, appName))
 
 	matches := re.FindAllStringSubmatch(string(stdout), -1)
 
