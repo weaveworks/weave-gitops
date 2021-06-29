@@ -14,10 +14,10 @@ type Props = {
 };
 
 function Applications({ className }: Props) {
-  const { applications } = useApplications();
+  const { applications, loading } = useApplications();
 
   return (
-    <Page title="Applications" className={className}>
+    <Page loading={loading} title="Applications" className={className}>
       <DataTable
         sortFields={["name"]}
         fields={[

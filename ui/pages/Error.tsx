@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import Flex from "../components/Flex";
 import Page from "../components/Page";
 
 type Props = {
@@ -10,7 +11,9 @@ type Props = {
 function ErrorPage({ className }: Props) {
   return (
     <Page className={className} title="Error">
-      <h2>404</h2>
+      <Flex wide center>
+        <h2>404</h2>
+      </Flex>
     </Page>
   );
 }
