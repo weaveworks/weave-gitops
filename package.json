@@ -25,6 +25,7 @@
     "@babel/preset-typescript": "^7.13.0",
     "@material-ui/core": "^4.11.4",
     "@material-ui/icons": "^4.11.2",
+    "@material-ui/lab": "^4.0.0-alpha.58",
     "@parcel/config-default": "^2.0.0-beta.3.1",
     "@parcel/transformer-typescript-tsc": "^2.0.0-beta.3.1",
     "@testing-library/jest-dom": "^5.12.0",
@@ -56,6 +57,7 @@
     "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0",
     "react-test-renderer": "^17.0.2",
+    "react-toastify": "^7.0.4",
     "styled-components": "^5.3.0",
     "ts-jest": "^26.5.6",
     "typescript": "^4.2.4"

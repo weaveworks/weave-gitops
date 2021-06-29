@@ -24,7 +24,7 @@ type StatusParams struct {
 func Status(allParams StatusParams) error {
 	deploymentType, err := getDeploymentType(allParams.Namespace, allParams.Name)
 	if err != nil {
-		return fmt.Errorf("error getting deployment type [%s]", err)
+		return err
 	}
 
 	latestDeploymentTime, err := getLatestSuccessfulDeploymentTime(allParams.Namespace, allParams.Name, deploymentType)
@@ -53,8 +53,8 @@ type Yaml struct {
 
 func getLatestSuccessfulDeploymentTime(namespace, appName string, deploymentType DeploymentType) (string, error) {
 	c := fmt.Sprintf(`kubectl \
-			-n %s \
-			get %s/%s -oyaml`,
+            -n %s \
+            get %s/%s -oyaml`,
 		namespace,
 		deploymentType,
 		appName,
@@ -82,13 +82,16 @@ func getDeploymentType(namespace, appName string) (DeploymentType, error) {
 		return "", err
 	}
 
-	var re = regexp.MustCompile(fmt.Sprintf(`(?m)(kustomization|helmrelease)\/%s`, appName))
+	var re = regexp.MustCompile(fmt.Sprintf(`(?m)(kustomization|helmrelease)\/%s[[:space:]]`, appName))
 
 	matches := re.FindAllStringSubmatch(string(stdout), -1)
 
-	if len(matches) != 1 {
+	switch len(matches) {
+	case 0:
+		return "", fmt.Errorf("no app found with name: %s\n", appName)
+	case 1:
+		return DeploymentType(matches[0][1]), nil
+	default:
 		return "", fmt.Errorf("error trying to get the deployment type of the app. raw output => %s", stdout)
 	}
-
-	return DeploymentType(matches[0][1]), nil
 }
