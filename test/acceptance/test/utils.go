@@ -301,6 +301,7 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
                             mkdir %s &&
                             cd %s &&
                             git init &&
+							git checkout -b main &&
                             hub create %s %s`, repoAbsolutePath, repoAbsolutePath, GITHUB_ORG+"/"+appRepoName, privateRepo))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())

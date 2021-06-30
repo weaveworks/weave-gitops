@@ -22,7 +22,7 @@ func NewApplicationsServer(kubeSvc kube.Kube) pb.ApplicationsServer {
 
 func (s *server) ListApplications(ctx context.Context, msg *pb.ListApplicationsRequest) (*pb.ListApplicationsResponse, error) {
 
-	apps, err := s.kube.GetApplications("wego-system")
+	apps, err := s.kube.GetApplications(msg.GetNamespace())
 	if err != nil {
 		return nil, err
 	}

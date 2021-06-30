@@ -12,6 +12,7 @@ export type Application = {
 }
 
 export type ListApplicationsRequest = {
+  namespace?: string
 }
 
 export type ListApplicationsResponse = {
