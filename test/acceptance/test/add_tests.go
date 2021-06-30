@@ -294,7 +294,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		configRepoName := "wego-test-config-repo-" + RandString(8)
 		configRepoUrl := fmt.Sprintf("ssh://git@github.com/%s/%s.git", os.Getenv("GITHUB_ORG"), configRepoName)
 
-		addCommand := fmt.Sprintf("app add . --app-config-url=%s --deployment-type=helm --path=./hello-world --name=%s", configRepoUrl, appName)
+		addCommand := fmt.Sprintf("app add . --app-config-url=%s --deployment-type=helm --path=./hello-world --name=%s --auto-merge=true", configRepoUrl, appName)
 
 		defer deleteRepo(appRepoName)
 		defer deleteRepo(configRepoName)
@@ -930,7 +930,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appRepoName := "wego-test-app-" + RandString(8)
 		uniqueSuffix := RandString(6)
 		appManifestFilePath := getUniqueWorkload("xxyyzz", uniqueSuffix)
-		addCommand := "app add . --url=https://github.com/foo/bar"
+		addCommand := "app add . --url=https://github.com/foo/bar --auto-merge=true"
 
 		repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, true)
 		gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
