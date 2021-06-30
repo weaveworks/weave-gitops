@@ -47,10 +47,12 @@ jobs:
     - name: Build UI Assets
       run: make cmd/ui/dist/main.js
     - name: Setup Kubernetes
-      uses: helm/kind-action@v1.1.0
+      uses: engineerd/setup-kind@v0.5.0
       with:
-        cluster_name: "${{ format('katc-{0}', github.run_id) }}"
-        version: "v0.10.0"
+        name: "${{ format('katc-{0}', github.run_id) }}"
+        version: "v0.11.0"
+        image: kindest/node:v1.20.7
+        config: "./test/acceptance/test/configs/kind-config.yaml"
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: unit tests with coverage
@@ -76,10 +78,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Setup Kubernetes
-      uses: helm/kind-action@v1.1.0
+      uses: engineerd/setup-kind@v0.5.0
       with:
-        cluster_name: "${{ format('katc-{0}', github.run_id) }}"
-        version: "v0.10.0"
+        name: "${{ format('katc-{0}', github.run_id) }}"
+        version: "v0.11.0"
+        image: kindest/node:v1.20.7
+        config: "./test/acceptance/test/configs/kind-config.yaml"
     - name: Kind-check
       run: |
        kubectl get pods -A
