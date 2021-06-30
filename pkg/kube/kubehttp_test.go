@@ -109,4 +109,21 @@ var _ = Describe("KubeHTTP", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(a.Name).To(Equal(name))
 	})
+	It("SecretPresent", func() {
+		name := "my-secret"
+		ns := "default"
+		ctx := context.Background()
+		secret := corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: ns},
+		}
+
+		err = testclient.Create(ctx, &secret)
+		Expect(err).NotTo(HaveOccurred())
+
+		exists, err := k.SecretPresent(ctx, name, ns)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(exists).To(BeTrue())
+
+	})
 })

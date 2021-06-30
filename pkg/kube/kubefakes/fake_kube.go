@@ -106,11 +106,12 @@ type FakeKube struct {
 	getClusterStatusReturnsOnCall map[int]struct {
 		result1 kube.ClusterStatus
 	}
-	SecretPresentStub        func(string, string) (bool, error)
+	SecretPresentStub        func(context.Context, string, string) (bool, error)
 	secretPresentMutex       sync.RWMutex
 	secretPresentArgsForCall []struct {
-		arg1 string
+		arg1 context.Context
 		arg2 string
+		arg3 string
 	}
 	secretPresentReturns struct {
 		result1 bool
@@ -586,19 +587,20 @@ func (fake *FakeKube) GetClusterStatusReturnsOnCall(i int, result1 kube.ClusterS
 	}{result1}
 }
 
-func (fake *FakeKube) SecretPresent(arg1 string, arg2 string) (bool, error) {
+func (fake *FakeKube) SecretPresent(arg1 context.Context, arg2 string, arg3 string) (bool, error) {
 	fake.secretPresentMutex.Lock()
 	ret, specificReturn := fake.secretPresentReturnsOnCall[len(fake.secretPresentArgsForCall)]
 	fake.secretPresentArgsForCall = append(fake.secretPresentArgsForCall, struct {
-		arg1 string
+		arg1 context.Context
 		arg2 string
-	}{arg1, arg2})
+		arg3 string
+	}{arg1, arg2, arg3})
 	stub := fake.SecretPresentStub
 	fakeReturns := fake.secretPresentReturns
-	fake.recordInvocation("SecretPresent", []interface{}{arg1, arg2})
+	fake.recordInvocation("SecretPresent", []interface{}{arg1, arg2, arg3})
 	fake.secretPresentMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -612,17 +614,17 @@ func (fake *FakeKube) SecretPresentCallCount() int {
 	return len(fake.secretPresentArgsForCall)
 }
 
-func (fake *FakeKube) SecretPresentCalls(stub func(string, string) (bool, error)) {
+func (fake *FakeKube) SecretPresentCalls(stub func(context.Context, string, string) (bool, error)) {
 	fake.secretPresentMutex.Lock()
 	defer fake.secretPresentMutex.Unlock()
 	fake.SecretPresentStub = stub
 }
 
-func (fake *FakeKube) SecretPresentArgsForCall(i int) (string, string) {
+func (fake *FakeKube) SecretPresentArgsForCall(i int) (context.Context, string, string) {
 	fake.secretPresentMutex.RLock()
 	defer fake.secretPresentMutex.RUnlock()
 	argsForCall := fake.secretPresentArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeKube) SecretPresentReturns(result1 bool, result2 error) {

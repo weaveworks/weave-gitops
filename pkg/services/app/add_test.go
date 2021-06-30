@@ -110,7 +110,7 @@ var _ = Describe("Add", func() {
 				return true, nil
 			}
 
-			kubeClient.SecretPresentStub = func(s1, s2 string) (bool, error) {
+			kubeClient.SecretPresentStub = func(ctx context.Context, s1, s2 string) (bool, error) {
 				return true, nil
 			}
 

@@ -136,7 +136,7 @@ func (k *KubeClient) FluxPresent(ctx context.Context) (bool, error) {
 }
 
 // SecretPresent checks for a specific secret within a specified namespace
-func (k *KubeClient) SecretPresent(secretName, namespace string) (bool, error) {
+func (k *KubeClient) SecretPresent(ctx context.Context, secretName, namespace string) (bool, error) {
 	out, err := k.runKubectlCmd([]string{"get", "secret", secretName, "-n", namespace})
 	if err != nil {
 		if strings.Contains(string(out), "not found") {

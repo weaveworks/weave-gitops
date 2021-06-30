@@ -349,7 +349,7 @@ func (a *App) createAndUploadDeployKey(repoUrl string, sourceType SourceType, cl
 		return "", errors.Wrap(err, "could not check for existing deploy key")
 	}
 
-	secretPresent, err := a.kube.SecretPresent(secretRefName, namespace)
+	secretPresent, err := a.kube.SecretPresent(context.Background(), secretRefName, namespace)
 	if err != nil {
 		return "", errors.Wrap(err, "could not check for existing secret")
 	}

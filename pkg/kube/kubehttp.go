@@ -148,6 +148,23 @@ func (c *KubeHTTP) FluxPresent(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
+func (c *KubeHTTP) SecretPresent(ctx context.Context, secretName string, namespace string) (bool, error) {
+	name := types.NamespacedName{
+		Name:      secretName,
+		Namespace: namespace,
+	}
+
+	secret := corev1.Secret{}
+	if err := c.Client.Get(ctx, name, &secret); err != nil {
+		if apierrors.IsNotFound(err) {
+			return false, nil
+		}
+		return false, errors.Wrap(err, "could not get secret")
+	}
+
+	return true, nil
+}
+
 func initialContexts(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (contexts []string, currentCtx string, err error) {
 	rules, err := cfgLoadingRules.Load()
 
