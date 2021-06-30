@@ -7,7 +7,7 @@ import (
 
 var Cmd = &cobra.Command{
 	Use:     "status <app-name>",
-	Short:   "Get status of an app",
+	Short:   "Get status of a workload under wego control",
 	Args:    cobra.MinimumNArgs(1),
 	Example: "wego app status podinfo",
 	RunE: func(cmd *cobra.Command, args []string) error {
