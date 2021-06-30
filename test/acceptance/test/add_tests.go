@@ -30,6 +30,42 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
+	It("Verify 'wego add' does not work without controllers installed", func() {
+
+		var repoAbsolutePath string
+		var addCommandOutput string
+		var addCommandErr string
+		private := true
+		uniqueSuffix := RandString(6)
+		appManifestFilePath := getUniqueWorkload("xxyyzz", uniqueSuffix)
+		addCommand := "app add . "
+		appRepoName := "wego-test-app-" + RandString(8)
+
+		defer deleteRepo(appRepoName)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(appRepoName)
+		})
+
+		By("When I create a private repo with my app workload", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
+		})
+
+		By("And WeGO runtime is not installed", func() {
+			uninstallWegoRuntime(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I run wego add command", func() {
+			addCommandOutput, addCommandErr = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see relevant message in the console", func() {
+			Eventually(addCommandOutput).Should(MatchRegexp(`Checking cluster status[.?]+ (Unknown|Unmodified)`))
+			Eventually(addCommandErr).Should(MatchRegexp(`WeGO.*... exiting`))
+		})
+	})
+
 	It("Verify private repo can be added to the cluster by running 'wego add .' ", func() {
 		var repoAbsolutePath string
 		private := true
@@ -261,42 +297,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify 'wego add' does not work without controllers installed", func() {
-
-		var repoAbsolutePath string
-		var addCommandOutput string
-		var addCommandErr string
-		private := true
-		uniqueSuffix := RandString(6)
-		appManifestFilePath := getUniqueWorkload("xxyyzz", uniqueSuffix)
-		addCommand := "app add . "
-		appRepoName := "wego-test-app-" + RandString(8)
-
-		defer deleteRepo(appRepoName)
-
-		By("And application repo does not already exist", func() {
-			deleteRepo(appRepoName)
-		})
-
-		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
-			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
-		})
-
-		By("And WeGO runtime is not installed", func() {
-			uninstallWegoRuntime(WEGO_DEFAULT_NAMESPACE)
-		})
-
-		By("And I run wego add command", func() {
-			addCommandOutput, addCommandErr = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
-		})
-
-		By("Then I should see relevant message in the console", func() {
-			Eventually(addCommandOutput).Should(MatchRegexp(`Checking cluster status[.?]+ (Unknown|Unmodified)`))
-			Eventually(addCommandErr).Should(MatchRegexp(`WeGO.*... exiting`))
-		})
-	})
-
 	It("Verify 'wego app add' with --dry-run flag does not modify the cluster", func() {
 		var repoAbsolutePath string
 		var addCommandOutput string
@@ -309,7 +309,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		appRepoName := "wego-test-app-" + RandString(8)
 		url := "ssh://git@github.com/" + os.Getenv("GITHUB_ORG") + "/" + appRepoName + ".git"
-		addCommand := "app add . --url=" + url + " --branch=" + branchName + " --dry-run"
+		addCommand := "app add --url=" + url + " --branch=" + branchName + " --dry-run"
 		appName := appRepoName
 		appType := "Kustomization"
 
@@ -365,7 +365,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	})
 
 	// Eventually this test run will include all the remaining un-automated `wego app add` flags.
-	It("Verify 'wego app add' works with user-specified branch, namespace", func() {
+	It("Verify 'wego app add' works with user-specified branch, namespace, url", func() {
 		var repoAbsolutePath string
 		private := true
 		appRepoName := "wego-test-app-" + RandString(8)
@@ -376,7 +376,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		workloadNamespace := "my-nginx-" + uniqueSuffix
 		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 		wegoNamespace := "my-space"
-		addCommand := "app add . --branch=" + branchName + " --namespace=" + wegoNamespace
+		url := "ssh://git@github.com/" + os.Getenv("GITHUB_ORG") + "/" + appRepoName + ".git"
+		addCommand := "app add --url=" + url + " --branch=" + branchName + " --namespace=" + wegoNamespace
 		appName := appRepoName
 
 		defer deleteRepo(appRepoName)
@@ -412,7 +413,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			createGitRepoBranch(repoAbsolutePath, branchName)
 		})
 
-		By("And I run wego add command with specified branch", func() {
+		By("And I run wego add command with specified branch, namespace, url", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, wegoNamespace)
 		})
 
@@ -827,4 +828,58 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			verifyWorkloadIsDeployed(workloadName2, workloadNamespace2)
 		})
 	})
+
+	FIt("Verify wego can add kustomize-based app with 'app-config-url=NONE'", func() {
+		var repoAbsolutePath string
+		private := true
+		appRepoName := "wego-test-app-" + RandString(8)
+		uniqueSuffix := RandString(6)
+		appManifestFilePath := getUniqueWorkload("xxyyzz", uniqueSuffix)
+		workloadName := "nginx-" + uniqueSuffix
+		workloadNamespace := "my-nginx-" + uniqueSuffix
+		defaultSshKeyPath := "~/.ssh/id_rsa"
+		addCommand := "app add . --app-config-url=NONE"
+		appName := appRepoName
+
+		defer deleteRepo(appRepoName)
+		defer deleteWorkload(workloadName, workloadNamespace)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(appRepoName)
+		})
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(workloadName, workloadNamespace)
+		})
+
+		By("When I create a private repo with my app workload", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
+		})
+
+		By("And I install wego under my namespace: "+WEGO_DEFAULT_NAMESPACE, func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+defaultSshKeyPath, func() {
+			setupSSHKey(defaultSshKeyPath)
+		})
+
+		By("And I run wego add command with app-config-url set to 'none'", func() {
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see my workload deployed to the cluster", func() {
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+			verifyWorkloadIsDeployed(workloadName, workloadNamespace)
+		})
+
+		By("And I should not see wego components in git repo", func() {
+			folderOutput, _ := runCommandAndReturnOutput(fmt.Sprintf("cd %s && ls -al", repoAbsolutePath))
+			Eventually(folderOutput).ShouldNot(ContainSubstring(".wego"))
+			Eventually(folderOutput).ShouldNot(ContainSubstring("apps"))
+			Eventually(folderOutput).ShouldNot(ContainSubstring("targets"))
+		})
+	})
+
 })
