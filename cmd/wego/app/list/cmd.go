@@ -8,11 +8,10 @@ import (
 )
 
 var Cmd = &cobra.Command{
-	Use:                "list",
-	Short:              "list applications",
-	DisableFlagParsing: true,
-	Example:            "wego app list",
-	RunE:               runCmd,
+	Use:     "list",
+	Short:   "list applications",
+	Example: "wego app list",
+	RunE:    runCmd,
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
