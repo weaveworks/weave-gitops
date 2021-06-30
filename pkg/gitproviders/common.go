@@ -207,52 +207,33 @@ func (h defaultGitProviderHandler) UploadDeployKey(owner, repoName string, deplo
 		if err != nil {
 			return fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s ", owner, repoName, err)
 		}
-		_, err = orgRepo.DeployKeys().Get(ctx, deployKeyName)
+		fmt.Println("uploading deploy key")
+		_, err = orgRepo.DeployKeys().Create(ctx, deployKeyInfo)
 		if err != nil {
-			if errors.Is(err, gitprovider.ErrNotFound) {
-				fmt.Println("uploading deploy key")
-				_, err = orgRepo.DeployKeys().Create(ctx, deployKeyInfo)
-				if err != nil {
-					return fmt.Errorf("error uploading deploy key %s", err)
-				}
-				if err = utils.WaitUntil(os.Stdout, time.Second, time.Second*10, func() error {
-					_, err = orgRepo.DeployKeys().Get(ctx, deployKeyName)
-					return err
-				}); err != nil {
-					return fmt.Errorf("error getting deploy key %s for repo %s. %s", deployKeyName, repoName, err)
-				}
-			} else {
-				return fmt.Errorf("error getting deploy key %s for repo %s. %s", deployKeyName, repoName, err)
-			}
-		} else {
-			fmt.Printf("deploy key %s already exists for repo %s \n", deployKeyName, repoName)
+			return fmt.Errorf("error uploading deploy key %s", err)
 		}
-
+		if err = utils.WaitUntil(os.Stdout, time.Second, time.Second*10, func() error {
+			_, err = orgRepo.DeployKeys().Get(ctx, deployKeyName)
+			return err
+		}); err != nil {
+			return fmt.Errorf("error verifying deploy key %s existance for repo %s. %s", deployKeyName, repoName, err)
+		}
 	case AccountTypeUser:
 		userRef := NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
 		userRepo, err := provider.UserRepositories().Get(ctx, userRef)
 		if err != nil {
 			return fmt.Errorf("error getting user repo reference for owner %s, repo %s, %s ", owner, repoName, err)
 		}
-		_, err = userRepo.DeployKeys().Get(ctx, deployKeyName)
-		if err != nil && !strings.Contains(err.Error(), "key is already in use") {
-			if errors.Is(err, gitprovider.ErrNotFound) {
-				fmt.Println("uploading deploy key")
-				_, err = userRepo.DeployKeys().Create(ctx, deployKeyInfo)
-				if err != nil {
-					return fmt.Errorf("error uploading deploy key %s", err)
-				}
-				if err = utils.WaitUntil(os.Stdout, time.Second, time.Second*10, func() error {
-					_, err = userRepo.DeployKeys().Get(ctx, deployKeyName)
-					return err
-				}); err != nil {
-					return fmt.Errorf("error getting deploy key %s for repo %s. %s", deployKeyName, repoName, err)
-				}
-			} else {
-				return fmt.Errorf("error getting deploy key %s for repo %s. %s", deployKeyName, repoName, err)
-			}
-		} else {
-			fmt.Printf("deploy key %s already exists for repo %s \n", deployKeyName, repoName)
+		fmt.Println("uploading deploy key")
+		_, err = userRepo.DeployKeys().Create(ctx, deployKeyInfo)
+		if err != nil {
+			return fmt.Errorf("error uploading deploy key %s", err)
+		}
+		if err = utils.WaitUntil(os.Stdout, time.Second, time.Second*10, func() error {
+			_, err = userRepo.DeployKeys().Get(ctx, deployKeyName)
+			return err
+		}); err != nil {
+			return fmt.Errorf("error verifying deploy key %s existance for repo %s. %s", deployKeyName, repoName, err)
 		}
 	default:
 		return fmt.Errorf("account type not supported %s", ownerType)
