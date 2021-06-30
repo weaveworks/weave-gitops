@@ -33,7 +33,7 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	ns = corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{Name: "wego-system"},
+		ObjectMeta: metav1.ObjectMeta{Name: kube.WeGONamespace},
 	}
 
 	testclient, err = client.New(cfg, client.Options{Scheme: scheme})

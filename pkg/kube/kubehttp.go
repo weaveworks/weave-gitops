@@ -31,9 +31,9 @@ func CreateScheme() *apiruntime.Scheme {
 	return scheme
 }
 
-var WeGONamespace = "wego-system"
-var WeGOCRDName = "apps.wego.weave.works"
-var FluxNamespace = "flux-system"
+const WeGONamespace = "wego-system"
+const WeGOCRDName = "apps.wego.weave.works"
+const FluxNamespace = "flux-system"
 
 func NewKubeHTTPClient() (Kube, error) {
 	cfgLoadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
