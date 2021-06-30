@@ -4,6 +4,7 @@
 package acceptance
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -136,7 +137,6 @@ func uninstallWegoRuntime(namespace string) {
 }
 
 func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool) (string, error) {
-
 	supportedProviders := []string{"kind", "kubectl"}
 	supportedK8SVersions := []string{"1.19.1", "1.20.2", "1.21.1"}
 	clusterName := ""
@@ -171,6 +171,10 @@ func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool) (string, err
 		if deleteWegoRuntime {
 			uninstallWegoRuntime(namespace)
 		}
+
+		out, err := exec.Command("kubectl", "config", "current-context").Output()
+		Expect(err).ShouldNot(HaveOccurred())
+		clusterName = string(bytes.TrimSuffix(out, []byte("\n")))
 	}
 
 	if provider == "kind" {
@@ -242,7 +246,6 @@ func runCommandPassThroughWithoutOutput(env []string, name string, arg ...string
 }
 
 func VerifyControllersInCluster(namespace string) {
-
 	Expect(waitForResource("deploy", "helm-controller", namespace, INSTALL_PODS_READY_TIMEOUT))
 	Expect(waitForResource("deploy", "kustomize-controller", namespace, INSTALL_PODS_READY_TIMEOUT))
 	Expect(waitForResource("deploy", "notification-controller", namespace, INSTALL_PODS_READY_TIMEOUT))
@@ -321,6 +324,15 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
                             git add . &&
                             git commit -m 'add workload manifest' &&
                             git push -u origin main`, appManifestFilePath, repoAbsolutePath, repoAbsolutePath))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+}
+
+func pullBranch(repoAbsolutePath string, branch string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf(`
+                            cd %s &&
+                            git pull origin %s`, repoAbsolutePath, branch))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
