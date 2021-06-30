@@ -25,7 +25,7 @@ const EVENTUALLY_DEFAULT_TIME_OUT time.Duration = 60 * time.Second
 const TIMEOUT_TWO_MINUTES time.Duration = 120 * time.Second
 const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
 const NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
-const INSTALL_PODS_READY_TIMEOUT time.Duration = 240 * time.Second
+const INSTALL_PODS_READY_TIMEOUT time.Duration = 180 * time.Second
 const WEGO_DEFAULT_NAMESPACE = "wego-system"
 
 var DEFAULT_SSH_KEY_PATH string
