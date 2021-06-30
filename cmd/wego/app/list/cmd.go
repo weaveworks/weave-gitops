@@ -9,7 +9,7 @@ import (
 
 var Cmd = &cobra.Command{
 	Use:     "list",
-	Short:   "list applications",
+	Short:   "List applications",
 	Example: "wego app list",
 	RunE:    runCmd,
 }
