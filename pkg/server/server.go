@@ -27,6 +27,12 @@ func (s *server) ListApplications(ctx context.Context, msg *pb.ListApplicationsR
 		return nil, err
 	}
 
+	if apps == nil {
+		return &pb.ListApplicationsResponse{
+			Applications: []*pb.Application{},
+		}, nil
+	}
+
 	list := []*pb.Application{}
 	for _, a := range *apps {
 		list = append(list, &pb.Application{Name: a.Name})
