@@ -525,6 +525,7 @@ apiVersion: wego.weave.works/v1alpha1
 kind: Application
 metadata:
   name: {{ .AppName }}
+  namespace: {{ .Namespace }}
   labels:
     weave-gitops.weave.works/app-identifier: {{ .AppHash }}
 spec:
@@ -544,11 +545,12 @@ spec:
 
 	var populated bytes.Buffer
 	err = t.Execute(&populated, struct {
-		AppName string
-		AppHash string
-		AppPath string
-		AppURL  string
-	}{params.Name, appHash, params.Path, params.Url})
+		AppName   string
+		Namespace string
+		AppHash   string
+		AppPath   string
+		AppURL    string
+	}{params.Name, params.Namespace, appHash, params.Path, params.Url})
 	if err != nil {
 		return nil, errors.Wrap(err, "could not execute populated template")
 	}
