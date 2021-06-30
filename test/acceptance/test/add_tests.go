@@ -829,7 +829,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("SmokeTest -Verify wego can add kustomize-based app with 'app-config-url=NONE'", func() {
+	It("Verify wego can add kustomize-based app with 'app-config-url=NONE'", func() {
 		var repoAbsolutePath string
 		private := true
 		appRepoName := "wego-test-app-" + RandString(8)
@@ -874,7 +874,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			verifyWorkloadIsDeployed(workloadName, workloadNamespace)
 		})
 
-		By("And I should not see wego components in git repo", func() {
+		By("And I should not see wego components in the remote git repo", func() {
 			folderOutput, _ := runCommandAndReturnOutput(fmt.Sprintf("cd %s && ls -al", repoAbsolutePath))
 			Eventually(folderOutput).ShouldNot(ContainSubstring(".wego"))
 			Eventually(folderOutput).ShouldNot(ContainSubstring("apps"))

@@ -21,7 +21,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 	})
 
-	It("Validate that wego displays help text for 'install' command", func() {
+	It("SmokeTest - Validate that wego displays help text for 'install' command", func() {
 
 		var session *gexec.Session
 		var err error
@@ -39,7 +39,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 	})
 
-	It("SmokeTest -Verify that wego can install & uninstall wego components under default namespace `wego-system`", func() {
+	It("SmokeTest - Verify that wego can install & uninstall wego components under default namespace `wego-system`", func() {
 
 		By("And I have a brand new cluster", func() {
 			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true)
@@ -55,7 +55,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 			Eventually(session).Should(gexec.Exit())
 		})
 
-		_ = waitForNamespaceToTerminate(WEGO_DEFAULT_NAMESPACE, TIMEOUT_TWO_MINUTES)
+		_ = waitForNamespaceToTerminate(WEGO_DEFAULT_NAMESPACE, NAMESPACE_TERMINATE_TIMEOUT)
 
 		By("Then I should not see any wego components", func() {
 			_, errOutput := runCommandAndReturnOutput("kubectl get ns " + WEGO_DEFAULT_NAMESPACE)
@@ -63,7 +63,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 	})
 
-	It("SmokeTest -Verify that wego can install & uninstall wego components under a user-specified namespace", func() {
+	It("SmokeTest - Verify that wego can install & uninstall wego components under a user-specified namespace", func() {
 
 		namespace := "test-namespace"
 
@@ -81,7 +81,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 			Eventually(session).Should(gexec.Exit())
 		})
 
-		_ = waitForNamespaceToTerminate(namespace, TIMEOUT_TWO_MINUTES)
+		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)
 
 		By("Then I should not see any wego components", func() {
 			_, errOutput := runCommandAndReturnOutput("kubectl get ns " + namespace)
