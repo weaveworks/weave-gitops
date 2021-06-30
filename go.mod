@@ -3,12 +3,15 @@ module github.com/weaveworks/weave-gitops
 go 1.16
 
 require (
+	github.com/bufbuild/buf v0.37.0 // indirect
+	github.com/deepmap/oapi-codegen v1.8.1 // indirect
 	github.com/dnaeon/go-vcr v1.2.0
 	github.com/fluxcd/go-git-providers v0.1.1
 	github.com/go-git/go-billy/v5 v5.3.1
 	github.com/go-git/go-git/v5 v5.4.1
 	github.com/golang/glog v0.0.0-20210429001901-424d2337a529 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.4.0
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.5.0
+	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.1 // indirect
 	github.com/hashicorp/go-retryablehttp v0.6.8 // indirect
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
@@ -22,9 +25,10 @@ require (
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed // indirect
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
 	golang.org/x/tools v0.1.3 // indirect
-	google.golang.org/genproto v0.0.0-20210426193834-eac7f76ac494
-	google.golang.org/grpc v1.37.0
-	google.golang.org/protobuf v1.26.0
+	google.golang.org/genproto v0.0.0-20210617175327-b9e0b3197ced
+	google.golang.org/grpc v1.38.0
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0 // indirect
+	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/apimachinery v0.21.2
 	sigs.k8s.io/controller-runtime v0.9.1
