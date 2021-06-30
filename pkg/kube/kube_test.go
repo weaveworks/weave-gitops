@@ -208,10 +208,10 @@ var _ = Describe("GetApplication", func() {
 		Expect(2).To(Equal(len(*apps)))
 
 		for i, a := range appsList.Items {
-			apps := *apps
-			Expect(a.Name).To(Equal(apps[i].Name))
-			Expect(a.Spec.Path).To(Equal(apps[i].Spec.Path))
-			Expect(a.Spec.URL).To(Equal(apps[i].Spec.URL))
+			app := (*apps)[i]
+			Expect(a.Name).To(Equal(app.Name))
+			Expect(a.Spec.Path).To(Equal(app.Spec.Path))
+			Expect(a.Spec.URL).To(Equal(app.Spec.URL))
 		}
 
 	})
