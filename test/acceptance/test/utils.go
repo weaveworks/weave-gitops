@@ -298,6 +298,7 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cp -r %s %s &&
                             cd %s &&
+							sleep 10s &&
                             git add . &&
                             git commit -m 'add workload manifest' &&
                             git push -u origin main`, appManifestFilePath, repoAbsolutePath, repoAbsolutePath))
