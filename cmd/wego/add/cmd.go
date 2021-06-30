@@ -56,6 +56,19 @@ func init() {
 func runCmd(cmd *cobra.Command, args []string) error {
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 
+	if params.Url != "" && len(args) > 0 {
+		return fmt.Errorf("you should choose either --url or the app directory")
+	}
+
+	if len(args) > 0 {
+		path, err := filepath.Abs(args[0])
+		if err != nil {
+			return fmt.Errorf("failed to get absolute path for the repo directory")
+		}
+
+		params.Dir = path
+	}
+
 	if strings.HasPrefix(params.PrivateKey, "~/") {
 		dir, err := getHomeDir()
 		if err != nil {
@@ -81,19 +94,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		authMethod, err = ssh.NewPublicKeysFromFile("git", params.PrivateKey, string(pw))
 		if err != nil {
 			return errors.Wrap(err, "failed reading ssh keys")
-		}
-	}
-
-	if params.Url == "" {
-		if len(args) == 0 {
-			return fmt.Errorf("no app --url or app location specified")
-		} else {
-			path, err := filepath.Abs(args[0])
-			if err != nil {
-				return fmt.Errorf("failed to get absolute path for the repo directory")
-			}
-
-			params.Dir = path
 		}
 	}
 

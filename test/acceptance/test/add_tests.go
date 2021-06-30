@@ -881,4 +881,18 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Eventually(folderOutput).ShouldNot(ContainSubstring("targets"))
 		})
 	})
+
+	It("Verify url and directory validation", func() {
+		var repoAbsolutePath string
+		appRepoName := "wego-test-app-" + RandString(8)
+		uniqueSuffix := RandString(6)
+		appManifestFilePath := getUniqueWorkload("xxyyzz", uniqueSuffix)
+		addCommand := "app add . --url=https://github.com/foo/bar"
+
+		repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, true)
+		gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
+
+		_, errOut := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, "wego-system")
+		Expect(errOut).To(ContainSubstring("you should choose either --url or the app directory"))
+	})
 })
