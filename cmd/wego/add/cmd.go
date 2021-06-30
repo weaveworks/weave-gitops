@@ -63,7 +63,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	if len(args) > 0 {
 		path, err := filepath.Abs(args[0])
 		if err != nil {
-			return fmt.Errorf("failed to get absolute path for the repo directory")
+			return errors.Wrap(err, "failed to get absolute path for the repo directory")
 		}
 
 		params.Dir = path
