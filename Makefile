@@ -26,7 +26,7 @@ endif
 all: wego
 
 # Run tests
-unit-tests:
+unit-tests: wego cmd/ui/dist/main.js
 	CGO_ENABLED=0 go test -v -tags unittest ./...
 
 debug: 
