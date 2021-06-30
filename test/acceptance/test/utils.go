@@ -25,7 +25,16 @@ const NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
 const INSTALL_PODS_READY_TIMEOUT time.Duration = 180 * time.Second
 const WEGO_DEFAULT_NAMESPACE = "wego-system"
 
+var DEFAULT_SSH_KEY_PATH string
+
 var WEGO_BIN_PATH string
+
+type TestInputs struct {
+	appRepoName         string
+	appManifestFilePath string
+	workloadName        string
+	workloadNamespace   string
+}
 
 const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
 
@@ -266,6 +275,16 @@ func runCommandAndReturnOutput(commandToRun string) (stdOut string, stdErr strin
 	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Eventually(session).Should(gexec.Exit())
 	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
+}
+
+func generateTestInputs() TestInputs {
+	var inputs TestInputs
+	uniqueSuffix := RandString(6)
+	inputs.appRepoName = "wego-test-app-" + RandString(8)
+	inputs.appManifestFilePath = getUniqueWorkload("xxyyzz", uniqueSuffix)
+	inputs.workloadName = "nginx-" + uniqueSuffix
+	inputs.workloadNamespace = "my-nginx-" + uniqueSuffix
+	return inputs
 }
 
 func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
