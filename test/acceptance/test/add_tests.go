@@ -30,42 +30,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify 'wego add' does not work without controllers installed", func() {
-
-		var repoAbsolutePath string
-		var addCommandOutput string
-		var addCommandErr string
-		private := true
-		uniqueSuffix := RandString(6)
-		appManifestFilePath := getUniqueWorkload("xxyyzz", uniqueSuffix)
-		addCommand := "app add . "
-		appRepoName := "wego-test-app-" + RandString(8)
-
-		defer deleteRepo(appRepoName)
-
-		By("And application repo does not already exist", func() {
-			deleteRepo(appRepoName)
-		})
-
-		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
-			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
-		})
-
-		By("And WeGO runtime is not installed", func() {
-			uninstallWegoRuntime(WEGO_DEFAULT_NAMESPACE)
-		})
-
-		By("And I run wego add command", func() {
-			addCommandOutput, addCommandErr = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
-		})
-
-		By("Then I should see relevant message in the console", func() {
-			Eventually(addCommandOutput).Should(MatchRegexp(`Checking cluster status[.?]+ (Unknown|Unmodified)`))
-			Eventually(addCommandErr).Should(MatchRegexp(`WeGO.*... exiting`))
-		})
-	})
-
 	It("Verify private repo can be added to the cluster by running 'wego add .' ", func() {
 		var repoAbsolutePath string
 		private := true
@@ -294,6 +258,42 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
 			Expect(waitForResource("apps", appName, WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 			Expect(waitForResource("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+		})
+	})
+
+	It("Verify 'wego add' does not work without controllers installed", func() {
+
+		var repoAbsolutePath string
+		var addCommandOutput string
+		var addCommandErr string
+		private := true
+		uniqueSuffix := RandString(6)
+		appManifestFilePath := getUniqueWorkload("xxyyzz", uniqueSuffix)
+		addCommand := "app add . "
+		appRepoName := "wego-test-app-" + RandString(8)
+
+		defer deleteRepo(appRepoName)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(appRepoName)
+		})
+
+		By("When I create a private repo with my app workload", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
+		})
+
+		By("And WeGO runtime is not installed", func() {
+			uninstallWegoRuntime(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I run wego add command", func() {
+			addCommandOutput, addCommandErr = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see relevant message in the console", func() {
+			Eventually(addCommandOutput).Should(MatchRegexp(`Checking cluster status[.?]+ (Unknown|Unmodified)`))
+			Eventually(addCommandErr).Should(MatchRegexp(`WeGO.*... exiting`))
 		})
 	})
 
