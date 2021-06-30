@@ -26,7 +26,7 @@ const INSTALL_PODS_READY_TIMEOUT time.Duration = 180 * time.Second
 const WEGO_DEFAULT_NAMESPACE = "wego-system"
 
 var DEFAULT_SSH_KEY_PATH string
-
+var GITHUB_ORG string
 var WEGO_BIN_PATH string
 
 type TestInputs struct {
@@ -260,8 +260,8 @@ func VerifyControllersInCluster(namespace string) {
 }
 
 func deleteRepo(appRepoName string) {
-	log.Infof("Delete application repo: %s", os.Getenv("GITHUB_ORG")+"/"+appRepoName)
-	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", os.Getenv("GITHUB_ORG")+"/"+appRepoName)
+	log.Infof("Delete application repo: %s", GITHUB_ORG+"/"+appRepoName)
+	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", GITHUB_ORG+"/"+appRepoName)
 }
 
 func deleteWorkload(workloadName string, workloadNamespace string) {
@@ -297,7 +297,8 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
                             mkdir %s &&
                             cd %s &&
                             git init &&
-                            hub create %s %s`, repoAbsolutePath, repoAbsolutePath, os.Getenv("GITHUB_ORG")+"/"+appRepoName, privateRepo))
+                            hub create %s %s &&
+							sleep 10s`, repoAbsolutePath, repoAbsolutePath, GITHUB_ORG+"/"+appRepoName, privateRepo))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
@@ -317,7 +318,6 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cp -r %s %s &&
                             cd %s &&
-							sleep 10s &&
                             git add . &&
                             git commit -m 'add workload manifest' &&
                             git push -u origin main`, appManifestFilePath, repoAbsolutePath, repoAbsolutePath))

@@ -72,7 +72,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("And repos created have private visibility", func() {
-			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), tip.appRepoName)).Should(ContainSubstring("true"))
+			Expect(getRepoVisibility(GITHUB_ORG, tip.appRepoName)).Should(ContainSubstring("true"))
 		})
 	})
 
@@ -123,7 +123,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("And repos created have private visibility", func() {
-			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), tip.appRepoName)).Should(ContainSubstring("true"))
+			Expect(getRepoVisibility(GITHUB_ORG, tip.appRepoName)).Should(ContainSubstring("true"))
 		})
 	})
 
@@ -202,8 +202,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("And repos created have private visibility", func() {
-			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), tip1.appRepoName)).Should(ContainSubstring("true"))
-			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), tip2.appRepoName)).Should(ContainSubstring("false"))
+			Expect(getRepoVisibility(GITHUB_ORG, tip1.appRepoName)).Should(ContainSubstring("true"))
+			Expect(getRepoVisibility(GITHUB_ORG, tip2.appRepoName)).Should(ContainSubstring("false"))
 		})
 	})
 
@@ -287,7 +287,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		tip := generateTestInputs()
 		branchName := "test-branch-01"
 
-		url := "ssh://git@github.com/" + os.Getenv("GITHUB_ORG") + "/" + tip.appRepoName + ".git"
+		url := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 		addCommand := "app add --url=" + url + " --branch=" + branchName + " --dry-run"
 		appName := tip.appRepoName
 		appType := "Kustomization"
@@ -351,7 +351,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		branchName := "test-branch-02"
 
 		wegoNamespace := "my-space"
-		url := "ssh://git@github.com/" + os.Getenv("GITHUB_ORG") + "/" + tip.appRepoName + ".git"
+		url := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 		addCommand := "app add --url=" + url + " --branch=" + branchName + " --namespace=" + wegoNamespace
 		appName := tip.appRepoName
 
@@ -447,7 +447,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("And repos created have private visibility", func() {
-			Expect(getRepoVisibility(os.Getenv("GITHUB_ORG"), tip.appRepoName)).Should(ContainSubstring("true"))
+			Expect(getRepoVisibility(GITHUB_ORG, tip.appRepoName)).Should(ContainSubstring("true"))
 		})
 	})
 
@@ -458,7 +458,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		tip := generateTestInputs()
 
 		appConfigRepoName := "wego-config-repo-" + RandString(8)
-		configRepoRemoteURL = "ssh://git@github.com/" + os.Getenv("GITHUB_ORG") + "/" + appConfigRepoName + ".git"
+		configRepoRemoteURL = "ssh://git@github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
 		addCommand := "app add . --app-config-url=" + configRepoRemoteURL
 		appName := tip.appRepoName
 
@@ -511,8 +511,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		tip := generateTestInputs()
 
 		appConfigRepoName := "wego-config-repo-" + RandString(8)
-		appRepoRemoteURL := "ssh://git@github.com/" + os.Getenv("GITHUB_ORG") + "/" + tip.appRepoName + ".git"
-		configRepoRemoteURL = "ssh://git@github.com/" + os.Getenv("GITHUB_ORG") + "/" + appConfigRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		configRepoRemoteURL = "ssh://git@github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
 		addCommand := "app add --url=" + appRepoRemoteURL + " --app-config-url=" + configRepoRemoteURL
 		appName := tip.appRepoName
 
@@ -562,7 +562,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		private := false
 		tip := generateTestInputs()
 
-		appRepoRemoteURL := "ssh://git@github.com/" + os.Getenv("GITHUB_ORG") + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 		addCommand := "app add --url=" + appRepoRemoteURL
 		appName := tip.appRepoName
 
@@ -664,7 +664,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appRepoName1 := "wego-test-app-" + RandString(8)
 		appRepoName2 := "wego-test-app-" + RandString(8)
 		appConfigRepoName := "wego-config-repo-" + RandString(8)
-		configRepoRemoteURL = "ssh://git@github.com/" + os.Getenv("GITHUB_ORG") + "/" + appConfigRepoName + ".git"
+		configRepoRemoteURL = "ssh://git@github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
 		addCommand := "app add . --app-config-url=" + configRepoRemoteURL
 		appName1 := appRepoName1
 		appName2 := appRepoName2
