@@ -12,16 +12,19 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Weave GitOps Add Tests", func() {
+var clusterName string
 
+var _ = Describe("Weave GitOps Add Tests", func() {
 	deleteWegoRuntime := false
 	if os.Getenv("DELETE_WEGO_RUNTIME_ON_EACH_TEST") == "true" {
 		deleteWegoRuntime = true
 	}
 
-	BeforeEach(func() {
+	var _ = BeforeEach(func() {
 		By("Given I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime)
+			var err error
+
+			clusterName, err = ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -246,8 +249,74 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify 'wego add' does not work without controllers installed", func() {
+	It("Verify helm repo can be added to the cluster by running 'wego add . --app-config-url=<URL> --deployment-type=helm --path=./hello-world'", func() {
+		var repoAbsolutePath string
+		var configRepoAbsolutePath string
+		private := true
+		appManifestFilePath := "./data/helm-repo/hello-world"
+		configRepoFiles := "./data/config-repo"
+		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+		appName := "my-helm-app"
+		appRepoName := "wego-test-app-" + RandString(8)
+		configRepoName := "wego-test-config-repo-" + RandString(8)
+		configRepoUrl := fmt.Sprintf("ssh://git@github.com/%s/%s.git", os.Getenv("GITHUB_ORG"), configRepoName)
 
+		addCommand := fmt.Sprintf("app add . --app-config-url=%s --deployment-type=helm --path=./hello-world --name=%s", configRepoUrl, appName)
+
+		defer deleteRepo(appRepoName)
+		defer deleteRepo(configRepoName)
+
+		By("Application and config repo does not already exist", func() {
+			deleteRepo(appRepoName)
+			deleteRepo(configRepoName)
+		})
+
+		By("When I create a private repo with my app workload", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
+		})
+
+		By("When I create a private repo for my config files", func() {
+			configRepoAbsolutePath = initAndCreateEmptyRepo(configRepoName, private)
+			gitAddCommitPush(configRepoAbsolutePath, configRepoFiles)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+defaultSshKeyPath, func() {
+			setupSSHKey(defaultSshKeyPath)
+		})
+
+		By("And I run wego add command", func() {
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("There is no .wego folder in the app repo", func() {
+			_, err := os.Stat(repoAbsolutePath + "/.wego")
+			Expect(os.IsNotExist(err)).To(Equal(true))
+		})
+
+		By("The manifests are present in the config repo", func() {
+			pullBranch(configRepoAbsolutePath, "main")
+
+			_, err := os.Stat(fmt.Sprintf("%s/apps/%s/app.yaml", configRepoAbsolutePath, appName))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			_, err = os.Stat(fmt.Sprintf("%s/targets/%s/%s/%s-gitops-runtime.yaml", configRepoAbsolutePath, clusterName, appName, appName))
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		By("Then I should see my workload deployed to the cluster", func() {
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+			Expect(waitForResource("apps", appName, WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+			Expect(waitForResource("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+		})
+
+	})
+
+	It("Verify 'wego add' does not work without controllers installed", func() {
 		var repoAbsolutePath string
 		var addCommandOutput string
 		var addCommandErr string
