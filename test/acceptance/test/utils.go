@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -300,11 +301,17 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
                             mkdir %s &&
                             cd %s &&
                             git init &&
-                            hub create %s %s &&
-							sleep 10s`, repoAbsolutePath, repoAbsolutePath, GITHUB_ORG+"/"+appRepoName, privateRepo))
+                            hub create %s %s`, repoAbsolutePath, repoAbsolutePath, GITHUB_ORG+"/"+appRepoName, privateRepo))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
+
+	Expect(utils.WaitUntil(os.Stdout, time.Second, 20*time.Second, func() error {
+		cmd := fmt.Sprintf(`hub api repos/%s/%s`, os.Getenv("GITHUB_ORG"), appRepoName)
+		command := exec.Command("sh", "-c", cmd)
+		return command.Run()
+	})).ShouldNot(HaveOccurred())
+
 	return repoAbsolutePath
 }
 
