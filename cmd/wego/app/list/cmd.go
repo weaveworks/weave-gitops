@@ -9,7 +9,7 @@ import (
 
 var Cmd = &cobra.Command{
 	Use:                "list",
-	Short:              "Use flux commands",
+	Short:              "list applications",
 	DisableFlagParsing: true,
 	Example:            "wego app list",
 	RunE:               runCmd,
