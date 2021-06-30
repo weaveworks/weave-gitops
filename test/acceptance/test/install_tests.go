@@ -55,7 +55,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 			Eventually(session).Should(gexec.Exit())
 		})
 
-		waitForNamespaceToTerminate(WEGO_DEFAULT_NAMESPACE, TIMEOUT_TWO_MINUTES)
+		_ = waitForNamespaceToTerminate(WEGO_DEFAULT_NAMESPACE, TIMEOUT_TWO_MINUTES)
 
 		By("Then I should not see any wego components", func() {
 			_, errOutput := runCommandAndReturnOutput("kubectl get ns " + WEGO_DEFAULT_NAMESPACE)
@@ -81,7 +81,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 			Eventually(session).Should(gexec.Exit())
 		})
 
-		waitForNamespaceToTerminate(namespace, TIMEOUT_TWO_MINUTES)
+		_ = waitForNamespaceToTerminate(namespace, TIMEOUT_TWO_MINUTES)
 
 		By("Then I should not see any wego components", func() {
 			_, errOutput := runCommandAndReturnOutput("kubectl get ns " + namespace)
