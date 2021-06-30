@@ -22,8 +22,10 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 	})
 
 	It("Validate that wego displays help text for 'install' command", func() {
+
 		var session *gexec.Session
 		var err error
+
 		By("When I run the command 'wego gitops install -h'", func() {
 			command := exec.Command(WEGO_BIN_PATH, "gitops", "install", "-h")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -32,39 +34,36 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 
 		By("Then I should see wego help text displayed for 'install' command", func() {
-			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`The install command deploys Wego in the specified namespace.`))
-			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`If a previous version is installed, then an in-place upgrade will be performed.`))
-			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`Usage:`))
-			Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("wego gitops install [flags]"))
-			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`Examples:`))
-			Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("# Install wego in the wego-system namespace"))
-			Eventually(string(session.Wait().Out.Contents())).Should(ContainSubstring("wego gitops install"))
-			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`Flags:`))
-			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`-h, --help[\s]+help for install`))
-			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`Global Flags`))
-			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`--namespace string[\s]+the namespace scope for this operation \(default "wego-system"\)`))
-			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(`-v, --verbose[\s]+Enable verbose output`))
+			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(
+				`The install command deploys Wego in the specified namespace.\nIf a previous version is installed, then an in-place upgrade will be performed.\n*Usage:\n\s*wego gitops install \[flags]\n*Examples:\n\s*# Install wego in the wego-system namespace\n\s*wego gitops install\n*Flags:\n\s*-h, --help\s*help for install\n*Global Flags:\n\s*--dry-run\s*outputs all the manifests that would be installed\n\s*-n, --namespace string\s*the namespace scope for this operation \(default "wego-system"\)\n\s*-v, --verbose\s*Enable verbose output`))
 		})
 	})
 
-	It("Verify that wego can install required controllers under default namespace `wego-system`", func() {
+	It("Verify that wego can install & uninstall wego components under default namespace `wego-system`", func() {
 
 		By("And I have a brand new cluster", func() {
 			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
-		By("When I run 'wego install' command with default namespace", func() {
-			command := exec.Command("sh", "-c", fmt.Sprintf("%s gitops install", WEGO_BIN_PATH))
+		installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+
+		By("When I run 'wego gitops uninstall' command", func() {
+			command := exec.Command("sh", "-c", fmt.Sprintf("%s gitops uninstall --namespace %s", WEGO_BIN_PATH, WEGO_DEFAULT_NAMESPACE))
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
-			Eventually(session, TIMEOUT_TWO_SECONDS).Should(gexec.Exit())
+			Eventually(session).Should(gexec.Exit())
 		})
 
-		VerifyControllersInCluster(WEGO_DEFAULT_NAMESPACE)
+		_ = waitForNamespaceToTerminate(WEGO_DEFAULT_NAMESPACE, NAMESPACE_TERMINATE_TIMEOUT)
+
+		By("Then I should not see any wego components", func() {
+			_, errOutput := runCommandAndReturnOutput("kubectl get ns " + WEGO_DEFAULT_NAMESPACE)
+			Eventually(errOutput).Should(ContainSubstring(`Error from server (NotFound): namespaces "` + WEGO_DEFAULT_NAMESPACE + `" not found`))
+		})
 	})
 
-	It("Verify that wego can add flux controllers to a user-specified namespace", func() {
+	It("Verify that wego can install & uninstall wego components under a user-specified namespace", func() {
 
 		namespace := "test-namespace"
 
@@ -73,25 +72,20 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
-		By("And I create a namespace for my controllers", func() {
-			command := exec.Command("kubectl", "create", "namespace", namespace)
+		installAndVerifyWego(namespace)
+
+		By("When I run 'wego gitops uninstall' command", func() {
+			command := exec.Command("sh", "-c", fmt.Sprintf("%s gitops uninstall --namespace %s", WEGO_BIN_PATH, namespace))
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 			Eventually(session).Should(gexec.Exit())
 		})
 
-		By("When I run 'wego install' command with specified namespace", func() {
-			command := exec.Command("sh", "-c", fmt.Sprintf("%s gitops install --namespace %s", WEGO_BIN_PATH, namespace))
-			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).ShouldNot(HaveOccurred())
-			Eventually(session, TIMEOUT_TWO_SECONDS).Should(gexec.Exit())
-		})
+		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)
 
-		VerifyControllersInCluster(namespace)
-
-		By("Clean up the namespace", func() {
-			_, err := ResetOrCreateCluster(namespace, true)
-			Expect(err).ShouldNot(HaveOccurred())
+		By("Then I should not see any wego components", func() {
+			_, errOutput := runCommandAndReturnOutput("kubectl get ns " + namespace)
+			Eventually(errOutput).Should(ContainSubstring(`Error from server (NotFound): namespaces "` + namespace + `" not found`))
 		})
 	})
 })

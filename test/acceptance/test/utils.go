@@ -19,13 +19,22 @@ import (
 )
 
 const EVENTUALLY_DEFAULT_TIME_OUT time.Duration = 60 * time.Second
-const TIMEOUT_TWO_SECONDS time.Duration = 120 * time.Second
+const TIMEOUT_TWO_MINUTES time.Duration = 120 * time.Second
 const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
 const NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
 const INSTALL_PODS_READY_TIMEOUT time.Duration = 180 * time.Second
 const WEGO_DEFAULT_NAMESPACE = "wego-system"
 
+var DEFAULT_SSH_KEY_PATH string
+var GITHUB_ORG string
 var WEGO_BIN_PATH string
+
+type TestInputs struct {
+	appRepoName         string
+	appManifestFilePath string
+	workloadName        string
+	workloadNamespace   string
+}
 
 const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
 
@@ -251,8 +260,8 @@ func VerifyControllersInCluster(namespace string) {
 }
 
 func deleteRepo(appRepoName string) {
-	log.Infof("Delete application repo: %s", os.Getenv("GITHUB_ORG")+"/"+appRepoName)
-	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", os.Getenv("GITHUB_ORG")+"/"+appRepoName)
+	log.Infof("Delete application repo: %s", GITHUB_ORG+"/"+appRepoName)
+	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", GITHUB_ORG+"/"+appRepoName)
 }
 
 func deleteWorkload(workloadName string, workloadNamespace string) {
@@ -268,6 +277,16 @@ func runCommandAndReturnOutput(commandToRun string) (stdOut string, stdErr strin
 	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
 }
 
+func generateTestInputs() TestInputs {
+	var inputs TestInputs
+	uniqueSuffix := RandString(6)
+	inputs.appRepoName = "wego-test-app-" + RandString(8)
+	inputs.appManifestFilePath = getUniqueWorkload("xxyyzz", uniqueSuffix)
+	inputs.workloadName = "nginx-" + uniqueSuffix
+	inputs.workloadNamespace = "my-nginx-" + uniqueSuffix
+	return inputs
+}
+
 func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 	repoAbsolutePath := "/tmp/" + appRepoName
 	privateRepo := ""
@@ -278,7 +297,8 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
                             mkdir %s &&
                             cd %s &&
                             git init &&
-                            hub create %s %s`, repoAbsolutePath, repoAbsolutePath, os.Getenv("GITHUB_ORG")+"/"+appRepoName, privateRepo))
+                            hub create %s %s &&
+							sleep 10s`, repoAbsolutePath, repoAbsolutePath, GITHUB_ORG+"/"+appRepoName, privateRepo))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
@@ -316,6 +336,13 @@ func getRepoVisibility(org string, repo string) string {
 	return visibilityStr
 }
 
+func pullGitRepo(repoAbsolutePath string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && git pull", repoAbsolutePath))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+}
+
 func setupSSHKey(sshKeyPath string) {
 	if _, err := os.Stat(sshKeyPath); os.IsNotExist(err) {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
@@ -333,7 +360,7 @@ func installAndVerifyWego(wegoNamespace string) {
 		command := exec.Command("sh", "-c", fmt.Sprintf("%s gitops install --namespace=%s", WEGO_BIN_PATH, wegoNamespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, TIMEOUT_TWO_SECONDS).Should(gexec.Exit())
+		Eventually(session, TIMEOUT_TWO_MINUTES).Should(gexec.Exit())
 		VerifyControllersInCluster(wegoNamespace)
 	})
 }
