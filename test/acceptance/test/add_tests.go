@@ -829,7 +829,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	FIt("Verify wego can add kustomize-based app with 'app-config-url=NONE'", func() {
+	It("Verify wego can add kustomize-based app with 'app-config-url=NONE'", func() {
 		var repoAbsolutePath string
 		private := true
 		appRepoName := "wego-test-app-" + RandString(8)
