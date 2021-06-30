@@ -197,7 +197,6 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 	// making sure the url is in good format
 	params.AppConfigUrl = sanitizeRepoUrl(params.AppConfigUrl)
 
-	fmt.Printf("Generating deploy key for repo %s ...\n", params.AppConfigUrl)
 	appConfigSecretName, err := a.createAndUploadDeployKey(params.AppConfigUrl, SourceType(params.SourceType), clusterName, params.Namespace, params.DryRun)
 	if err != nil {
 		return errors.Wrap(err, "could not generate deploy key")
@@ -350,7 +349,13 @@ func (a *App) createAndUploadDeployKey(repoUrl string, sourceType SourceType, cl
 		return "", errors.Wrap(err, "could not check for existing deploy key")
 	}
 
-	if !deployKeyExists {
+	secretPresent, err := a.kube.SecretPresent(secretRefName, namespace)
+	if err != nil {
+		return "", errors.Wrap(err, "could not check for existing secret")
+	}
+
+	if !deployKeyExists || !secretPresent {
+		fmt.Printf("Generating deploy key for repo %s ...\n", repoUrl)
 		deployKey, err := a.flux.CreateSecretGit(secretRefName, repoUrl, namespace)
 		if err != nil {
 			return "", errors.Wrap(err, "could not create git secret")

@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 
 	"github.com/pkg/errors"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
@@ -44,6 +44,7 @@ type Kube interface {
 	GetClusterName() (string, error)
 	GetClusterStatus() ClusterStatus
 	FluxPresent() (bool, error)
+	SecretPresent(secretName string, namespace string) (bool, error)
 	GetApplication(name string) (*wego.Application, error)
 }
 
@@ -123,6 +124,18 @@ func (k *KubeClient) GetClusterStatus() ClusterStatus {
 // FluxPresent checks flux presence in the cluster
 func (k *KubeClient) FluxPresent() (bool, error) {
 	out, err := k.runKubectlCmd([]string{"get", "namespace", "flux-system"})
+	if err != nil {
+		if strings.Contains(string(out), "not found") {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
+// SecretPresent checks for a specific secret within a specified namespace
+func (k *KubeClient) SecretPresent(secretName, namespace string) (bool, error) {
+	out, err := k.runKubectlCmd([]string{"get", "secret", secretName, "-n", namespace})
 	if err != nil {
 		if strings.Contains(string(out), "not found") {
 			return false, nil

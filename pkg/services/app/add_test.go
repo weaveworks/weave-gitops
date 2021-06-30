@@ -108,10 +108,15 @@ var _ = Describe("Add", func() {
 				return true, nil
 			}
 
+			kubeClient.SecretPresentStub = func(s1, s2 string) (bool, error) {
+				return true, nil
+			}
+
 			err := appSrv.Add(defaultParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(0))
 			Expect(gitProviders.UploadDeployKeyCallCount()).To(Equal(0))
+			Expect(kubeClient.SecretPresentCallCount()).To(Equal(1))
 			Expect(gitProviders.DeployKeyExistsCallCount()).To(Equal(1))
 		})
 
@@ -122,6 +127,7 @@ var _ = Describe("Add", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(1))
 			Expect(gitProviders.UploadDeployKeyCallCount()).To(Equal(1))
+			Expect(kubeClient.SecretPresentCallCount()).To(Equal(1))
 			Expect(gitProviders.DeployKeyExistsCallCount()).To(Equal(1))
 		})
 	})
@@ -136,6 +142,7 @@ var _ = Describe("Add", func() {
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(0))
 				Expect(gitProviders.UploadDeployKeyCallCount()).To(Equal(0))
+				Expect(kubeClient.SecretPresentCallCount()).To(Equal(0))
 				Expect(gitProviders.DeployKeyExistsCallCount()).To(Equal(0))
 			})
 		})
@@ -279,6 +286,7 @@ var _ = Describe("Add", func() {
 				Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(0))
 				Expect(gitProviders.UploadDeployKeyCallCount()).To(Equal(0))
 				Expect(gitProviders.DeployKeyExistsCallCount()).To(Equal(0))
+				Expect(kubeClient.SecretPresentCallCount()).To(Equal(0))
 			})
 		})
 

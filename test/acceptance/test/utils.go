@@ -210,7 +210,7 @@ func waitForResource(resourceType string, resourceName string, namespace string,
 		}
 		time.Sleep(time.Duration(pollInterval) * time.Second)
 	}
-	return fmt.Errorf("Error: Failed to find the resource, timeout reached")
+	return fmt.Errorf("Error: Failed to find the resource %s of type %s, timeout reached", resourceName, resourceType)
 }
 
 // Run a command, passing through stdout/stderr to the OS standard streams
