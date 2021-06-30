@@ -264,7 +264,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Focus Verify helm repo can be added to the cluster by running 'wego add . --app-config-url=<URL> --deployment-type=helm --path=./hello-world'", func() {
+	It("Verify helm repo can be added to the cluster by running 'wego add . --app-config-url=<URL> --deployment-type=helm --path=./hello-world'", func() {
 		var repoAbsolutePath string
 		var configRepoAbsolutePath string
 		private := true
