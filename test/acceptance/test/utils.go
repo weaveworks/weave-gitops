@@ -266,6 +266,11 @@ func VerifyControllersInCluster(namespace string) {
 	})
 }
 
+func uninstallWego() {
+	log.Infof("Uninstalling wego")
+	_ = runCommandPassThrough([]string{}, "wego", "gitops", "uninstall")
+}
+
 func deleteRepo(appRepoName string) {
 	log.Infof("Delete application repo: %s", GITHUB_ORG+"/"+appRepoName)
 	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", GITHUB_ORG+"/"+appRepoName)
@@ -304,7 +309,7 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
                             mkdir %s &&
                             cd %s &&
                             git init &&
-							git checkout -b main &&
+                            git checkout -b main &&
                             hub create %s %s`, repoAbsolutePath, repoAbsolutePath, GITHUB_ORG+"/"+appRepoName, privateRepo))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
@@ -409,12 +414,28 @@ func verifyWegoAddCommand(appName string, wegoNamespace string) {
 	Expect(waitForResource("GitRepositories", appName, wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 }
 
+func verifyWegoHelmAddCommand(appName string, wegoNamespace string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf(" kubectl wait --for=condition=Ready --timeout=60s -n %s HelmRepositories --all", wegoNamespace))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
+	Expect(waitForResource("HelmRepositories", appName, wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+}
+
 func verifyWegoAddCommandWithDryRun(appRepoName string, wegoNamespace string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(" kubectl wait --for=condition=Ready --timeout=30s -n %s GitRepositories --all", wegoNamespace))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
 	Expect(waitForResource("GitRepositories", appRepoName, wegoNamespace, 30*time.Second)).ToNot(Succeed())
+}
+
+func verifyHelmPodWorkloadIsDeployed(workloadName string, workloadNamespace string) {
+	Expect(waitForResource("pods", workloadName, workloadNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=360s -n %s --all pods", workloadNamespace))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
 }
 
 func verifyWorkloadIsDeployed(workloadName string, workloadNamespace string) {
