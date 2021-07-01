@@ -46,6 +46,7 @@ type Kube interface {
 	FluxPresent() (bool, error)
 	SecretPresent(secretName string, namespace string) (bool, error)
 	GetApplication(name string) (*wego.Application, error)
+	GetApplications(namespace string) (*[]wego.Application, error)
 }
 
 type KubeClient struct {
@@ -160,6 +161,21 @@ func (k *KubeClient) GetApplication(name string) (*wego.Application, error) {
 	}
 
 	return &a, nil
+}
+
+func (k *KubeClient) GetApplications(ns string) (*[]wego.Application, error) {
+	cmd := []string{"get", "apps", "-n", ns, "-o", "json"}
+	output, err := k.runKubectlCmd(cmd)
+	if err != nil {
+		return nil, fmt.Errorf("could not get applications: %s", err)
+	}
+
+	a := wego.ApplicationList{}
+	if err := json.Unmarshal(output, &a); err != nil {
+		return nil, fmt.Errorf("could not unmarshal applications json: %s", err)
+	}
+
+	return &a.Items, nil
 }
 
 func (k *KubeClient) resourceLookup(args string) error {

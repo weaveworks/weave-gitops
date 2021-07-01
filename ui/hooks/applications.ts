@@ -11,7 +11,7 @@ export default function useApplications() {
     setLoading(true);
 
     applicationsClient
-      .ListApplications({})
+      .ListApplications({namespace:"wego-system"})
       .then((res) => setApplications(res.applications))
       .catch((err) => {
         doAsyncError(err.message, err.detail);

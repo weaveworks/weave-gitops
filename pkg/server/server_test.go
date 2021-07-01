@@ -12,11 +12,25 @@ import (
 
 var _ = Describe("ApplicationsServer", func() {
 	It("AddApplication", func() {
+
+		kubeClient.GetApplicationsStub = func(ns string) (*[]wego.Application, error) {
+			return &[]wego.Application{
+				{
+					ObjectMeta: v1.ObjectMeta{Name: "my-app"},
+					Spec:       wego.ApplicationSpec{Path: "bar"},
+				},
+				{
+					ObjectMeta: v1.ObjectMeta{Name: "my-app1"},
+					Spec:       wego.ApplicationSpec{Path: "bar2"},
+				},
+			}, nil
+		}
+
 		res, err := client.ListApplications(context.Background(), &applications.ListApplicationsRequest{})
 
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(len(res.Applications)).To(Equal(3))
+		Expect(len(res.Applications)).To(Equal(2))
 	})
 	It("GetApplication", func() {
 		kubeClient.GetApplicationStub = func(name string) (*wego.Application, error) {

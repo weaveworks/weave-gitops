@@ -45,7 +45,7 @@ message Application {
 }
 
 message ListApplicationsRequest {
-
+    string namespace = 1;  // The namespace to look for applications
 }
 
 message ListApplicationsResponse {
