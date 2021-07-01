@@ -89,7 +89,7 @@ coverage/lcov.info:
 
 # Golang gocov data. Not compatible with coveralls at this point.
 coverage.out:
-	go get -u github.com/ory/go-acc
+	go get github.com/ory/go-acc
 	go-acc --ignore fakes,acceptance,pkg/api,api -o coverage.out ./... -- -v --timeout=496s -tags test
 	@go mod tidy
 
@@ -105,13 +105,6 @@ coverage/merged.lcov: coverage/lcov.info coverage/golang.info
 	lcov --add-tracefile coverage/golang.info -a coverage/lcov.info -o merged.lcov
 
 proto-deps:
-	@go get \
-		github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
-		google.golang.org/protobuf/cmd/protoc-gen-go \
-		google.golang.org/grpc/cmd/protoc-gen-go-grpc \
-		github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
-		github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts \
-		github.com/deepmap/oapi-codegen/cmd/oapi-codegen
 	buf beta mod update
 
 proto:
