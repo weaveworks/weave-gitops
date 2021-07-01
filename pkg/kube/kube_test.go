@@ -204,12 +204,12 @@ var _ = Describe("GetApplication", func() {
 			return res, nil
 		}
 
-		apps, err := kubeClient.GetApplications("wego-system")
+		apps, err := kubeClient.GetApplications(context.Background(), "wego-system")
 		Expect(err).ShouldNot(HaveOccurred())
-		Expect(2).To(Equal(len(*apps)))
+		Expect(2).To(Equal(len(apps)))
 
 		for i, a := range appsList.Items {
-			app := (*apps)[i]
+			app := (apps)[i]
 			Expect(a.Name).To(Equal(app.Name))
 			Expect(a.Spec.Path).To(Equal(app.Spec.Path))
 			Expect(a.Spec.URL).To(Equal(app.Spec.URL))

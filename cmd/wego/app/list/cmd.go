@@ -1,7 +1,9 @@
 package list
 
 import (
+	"context"
 	"fmt"
+
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
@@ -23,13 +25,13 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	apps, err := kubeClient.GetApplications(ns)
+	apps, err := kubeClient.GetApplications(context.Background(), ns)
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("NAME")
-	for _, app := range *apps {
+	for _, app := range apps {
 		fmt.Println(app.Name)
 	}
 

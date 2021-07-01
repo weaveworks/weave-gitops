@@ -165,6 +165,16 @@ func (c *KubeHTTP) SecretPresent(ctx context.Context, secretName string, namespa
 	return true, nil
 }
 
+func (c *KubeHTTP) GetApplications(ctx context.Context, namespace string) ([]wego.Application, error) {
+	result := wego.ApplicationList{}
+
+	if err := c.Client.List(ctx, &result); err != nil {
+		return nil, errors.Wrap(err, "could not list wego applications")
+	}
+
+	return result.Items, nil
+}
+
 func initialContexts(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (contexts []string, currentCtx string, err error) {
 	rules, err := cfgLoadingRules.Load()
 

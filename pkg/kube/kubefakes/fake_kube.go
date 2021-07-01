@@ -65,24 +65,21 @@ type FakeKube struct {
 		result1 *v1alpha1.Application
 		result2 error
 	}
-<<<<<<< HEAD
-	GetApplicationsStub        func(string) (*[]v1alpha1.Application, error)
+	GetApplicationsStub        func(context.Context, string) ([]v1alpha1.Application, error)
 	getApplicationsMutex       sync.RWMutex
 	getApplicationsArgsForCall []struct {
-		arg1 string
+		arg1 context.Context
+		arg2 string
 	}
 	getApplicationsReturns struct {
-		result1 *[]v1alpha1.Application
+		result1 []v1alpha1.Application
 		result2 error
 	}
 	getApplicationsReturnsOnCall map[int]struct {
-		result1 *[]v1alpha1.Application
+		result1 []v1alpha1.Application
 		result2 error
 	}
-	GetClusterNameStub        func() (string, error)
-=======
 	GetClusterNameStub        func(context.Context) (string, error)
->>>>>>> Add context to function signatures
 	getClusterNameMutex       sync.RWMutex
 	getClusterNameArgsForCall []struct {
 		arg1 context.Context
@@ -394,19 +391,19 @@ func (fake *FakeKube) GetApplicationReturnsOnCall(i int, result1 *v1alpha1.Appli
 	}{result1, result2}
 }
 
-<<<<<<< HEAD
-func (fake *FakeKube) GetApplications(arg1 string) (*[]v1alpha1.Application, error) {
+func (fake *FakeKube) GetApplications(arg1 context.Context, arg2 string) ([]v1alpha1.Application, error) {
 	fake.getApplicationsMutex.Lock()
 	ret, specificReturn := fake.getApplicationsReturnsOnCall[len(fake.getApplicationsArgsForCall)]
 	fake.getApplicationsArgsForCall = append(fake.getApplicationsArgsForCall, struct {
-		arg1 string
-	}{arg1})
+		arg1 context.Context
+		arg2 string
+	}{arg1, arg2})
 	stub := fake.GetApplicationsStub
 	fakeReturns := fake.getApplicationsReturns
-	fake.recordInvocation("GetApplications", []interface{}{arg1})
+	fake.recordInvocation("GetApplications", []interface{}{arg1, arg2})
 	fake.getApplicationsMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -420,49 +417,46 @@ func (fake *FakeKube) GetApplicationsCallCount() int {
 	return len(fake.getApplicationsArgsForCall)
 }
 
-func (fake *FakeKube) GetApplicationsCalls(stub func(string) (*[]v1alpha1.Application, error)) {
+func (fake *FakeKube) GetApplicationsCalls(stub func(context.Context, string) ([]v1alpha1.Application, error)) {
 	fake.getApplicationsMutex.Lock()
 	defer fake.getApplicationsMutex.Unlock()
 	fake.GetApplicationsStub = stub
 }
 
-func (fake *FakeKube) GetApplicationsArgsForCall(i int) string {
+func (fake *FakeKube) GetApplicationsArgsForCall(i int) (context.Context, string) {
 	fake.getApplicationsMutex.RLock()
 	defer fake.getApplicationsMutex.RUnlock()
 	argsForCall := fake.getApplicationsArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeKube) GetApplicationsReturns(result1 *[]v1alpha1.Application, result2 error) {
+func (fake *FakeKube) GetApplicationsReturns(result1 []v1alpha1.Application, result2 error) {
 	fake.getApplicationsMutex.Lock()
 	defer fake.getApplicationsMutex.Unlock()
 	fake.GetApplicationsStub = nil
 	fake.getApplicationsReturns = struct {
-		result1 *[]v1alpha1.Application
+		result1 []v1alpha1.Application
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeKube) GetApplicationsReturnsOnCall(i int, result1 *[]v1alpha1.Application, result2 error) {
+func (fake *FakeKube) GetApplicationsReturnsOnCall(i int, result1 []v1alpha1.Application, result2 error) {
 	fake.getApplicationsMutex.Lock()
 	defer fake.getApplicationsMutex.Unlock()
 	fake.GetApplicationsStub = nil
 	if fake.getApplicationsReturnsOnCall == nil {
 		fake.getApplicationsReturnsOnCall = make(map[int]struct {
-			result1 *[]v1alpha1.Application
+			result1 []v1alpha1.Application
 			result2 error
 		})
 	}
 	fake.getApplicationsReturnsOnCall[i] = struct {
-		result1 *[]v1alpha1.Application
+		result1 []v1alpha1.Application
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeKube) GetClusterName() (string, error) {
-=======
 func (fake *FakeKube) GetClusterName(arg1 context.Context) (string, error) {
->>>>>>> Add context to function signatures
 	fake.getClusterNameMutex.Lock()
 	ret, specificReturn := fake.getClusterNameReturnsOnCall[len(fake.getClusterNameArgsForCall)]
 	fake.getClusterNameArgsForCall = append(fake.getClusterNameArgsForCall, struct {

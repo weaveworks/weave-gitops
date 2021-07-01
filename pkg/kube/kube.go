@@ -42,8 +42,8 @@ var toStatusString = map[ClusterStatus]string{
 type Kube interface {
 	Apply(manifests []byte, namespace string) ([]byte, error)
 	Delete(manifests []byte, namespace string) ([]byte, error)
-	SecretPresent(secretName string, namespace string) (bool, error)
-	GetApplications(namespace string) (*[]wego.Application, error)
+	SecretPresent(ctx context.Context, string, namespace string) (bool, error)
+	GetApplications(ctx context.Context, namespace string) ([]wego.Application, error)
 	FluxPresent(ctx context.Context) (bool, error)
 	GetClusterName(ctx context.Context) (string, error)
 	GetClusterStatus(ctx context.Context) ClusterStatus
@@ -164,7 +164,7 @@ func (k *KubeClient) GetApplication(ctx context.Context, name string) (*wego.App
 	return &a, nil
 }
 
-func (k *KubeClient) GetApplications(ns string) (*[]wego.Application, error) {
+func (k *KubeClient) GetApplications(ctx context.Context, ns string) ([]wego.Application, error) {
 	cmd := []string{"get", "apps", "-n", ns, "-o", "json"}
 	output, err := k.runKubectlCmd(cmd)
 	if err != nil {
@@ -176,7 +176,7 @@ func (k *KubeClient) GetApplications(ns string) (*[]wego.Application, error) {
 		return nil, fmt.Errorf("could not unmarshal applications json: %s", err)
 	}
 
-	return &a.Items, nil
+	return a.Items, nil
 }
 
 func (k *KubeClient) resourceLookup(args string) error {

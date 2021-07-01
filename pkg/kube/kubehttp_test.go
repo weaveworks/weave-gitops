@@ -124,6 +124,18 @@ var _ = Describe("KubeHTTP", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(exists).To(BeTrue())
+	})
+	It("GetApplications", func() {
+		ctx := context.Background()
+		name := "my-app"
+		// TODO: this currently relies on the previous GetApplication test case.
+		// This is very bad and I intend on fixing the
+		// entire test environment isolation issue in a later PR.
+
+		list, err := k.GetApplications(ctx, name)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(len(list)).To(Equal(1))
+		Expect(list[0].Name).To(Equal(name))
 
 	})
 })

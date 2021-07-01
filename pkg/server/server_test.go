@@ -12,9 +12,8 @@ import (
 
 var _ = Describe("ApplicationsServer", func() {
 	It("AddApplication", func() {
-
-		kubeClient.GetApplicationsStub = func(ns string) (*[]wego.Application, error) {
-			return &[]wego.Application{
+		kubeClient.GetApplicationsStub = func(ctx context.Context, ns string) ([]wego.Application, error) {
+			return []wego.Application{
 				{
 					ObjectMeta: v1.ObjectMeta{Name: "my-app"},
 					Spec:       wego.ApplicationSpec{Path: "bar"},
