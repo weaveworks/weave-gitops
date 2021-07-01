@@ -42,7 +42,7 @@ func (s *server) ListApplications(ctx context.Context, msg *pb.ListApplicationsR
 }
 
 func (s *server) GetApplication(ctx context.Context, msg *pb.GetApplicationRequest) (*pb.GetApplicationResponse, error) {
-	app, err := s.kube.GetApplication(ctx, msg.ApplicationName)
+	app, err := s.kube.GetApplication(ctx, msg.ApplicationName, msg.ApplicationNamespace)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not get application: %s", err)

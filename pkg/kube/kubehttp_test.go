@@ -10,6 +10,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/rand"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
@@ -51,6 +52,23 @@ var _ = BeforeEach(func() {
 })
 
 var _ = Describe("KubeHTTP", func() {
+	var (
+		namespace *corev1.Namespace
+		err       error
+	)
+
+	BeforeEach(func() {
+		namespace = &corev1.Namespace{}
+		namespace.Name = "kube-test-" + rand.String(5)
+		err = k8sClient.Create(context.Background(), namespace)
+		Expect(err).NotTo(HaveOccurred(), "failed to create test namespace")
+
+		k = &kube.KubeHTTP{Client: k8sClient, ClusterName: testClustername}
+	})
+	AfterEach(func() {
+		err = k8sClient.Delete(context.Background(), namespace)
+		Expect(err).NotTo(HaveOccurred(), "failed to delete test namespace")
+	})
 	It("GetClusterName", func() {
 		name, err := k.GetClusterName(context.Background())
 		Expect(err).NotTo(HaveOccurred())

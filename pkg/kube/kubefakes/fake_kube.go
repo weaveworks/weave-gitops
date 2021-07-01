@@ -51,11 +51,12 @@ type FakeKube struct {
 		result1 bool
 		result2 error
 	}
-	GetApplicationStub        func(context.Context, string) (*v1alpha1.Application, error)
+	GetApplicationStub        func(context.Context, string, string) (*v1alpha1.Application, error)
 	getApplicationMutex       sync.RWMutex
 	getApplicationArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
+		arg3 string
 	}
 	getApplicationReturns struct {
 		result1 *v1alpha1.Application
@@ -338,19 +339,20 @@ func (fake *FakeKube) FluxPresentReturnsOnCall(i int, result1 bool, result2 erro
 	}{result1, result2}
 }
 
-func (fake *FakeKube) GetApplication(arg1 context.Context, arg2 string) (*v1alpha1.Application, error) {
+func (fake *FakeKube) GetApplication(arg1 context.Context, arg2 string, arg3 string) (*v1alpha1.Application, error) {
 	fake.getApplicationMutex.Lock()
 	ret, specificReturn := fake.getApplicationReturnsOnCall[len(fake.getApplicationArgsForCall)]
 	fake.getApplicationArgsForCall = append(fake.getApplicationArgsForCall, struct {
 		arg1 context.Context
 		arg2 string
-	}{arg1, arg2})
+		arg3 string
+	}{arg1, arg2, arg3})
 	stub := fake.GetApplicationStub
 	fakeReturns := fake.getApplicationReturns
-	fake.recordInvocation("GetApplication", []interface{}{arg1, arg2})
+	fake.recordInvocation("GetApplication", []interface{}{arg1, arg2, arg3})
 	fake.getApplicationMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -364,17 +366,17 @@ func (fake *FakeKube) GetApplicationCallCount() int {
 	return len(fake.getApplicationArgsForCall)
 }
 
-func (fake *FakeKube) GetApplicationCalls(stub func(context.Context, string) (*v1alpha1.Application, error)) {
+func (fake *FakeKube) GetApplicationCalls(stub func(context.Context, string, string) (*v1alpha1.Application, error)) {
 	fake.getApplicationMutex.Lock()
 	defer fake.getApplicationMutex.Unlock()
 	fake.GetApplicationStub = stub
 }
 
-func (fake *FakeKube) GetApplicationArgsForCall(i int) (context.Context, string) {
+func (fake *FakeKube) GetApplicationArgsForCall(i int) (context.Context, string, string) {
 	fake.getApplicationMutex.RLock()
 	defer fake.getApplicationMutex.RUnlock()
 	argsForCall := fake.getApplicationArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeKube) GetApplicationReturns(result1 *v1alpha1.Application, result2 error) {

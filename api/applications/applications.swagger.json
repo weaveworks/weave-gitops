@@ -72,6 +72,12 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "applicationNamespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [

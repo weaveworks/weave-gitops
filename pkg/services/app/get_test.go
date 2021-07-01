@@ -10,13 +10,13 @@ import (
 
 var _ = Describe("Get", func() {
 	It("gets an app", func() {
-		kubeClient.GetApplicationStub = func(ctx context.Context, name string) (*wego.Application, error) {
+		kubeClient.GetApplicationStub = func(ctx context.Context, name, namespace string) (*wego.Application, error) {
 			return &wego.Application{
 				Spec: wego.ApplicationSpec{Path: "bar"},
 			}, nil
 		}
 
-		a, err := appSrv.Get(defaultParams.Name)
+		a, err := appSrv.Get(defaultParams.Name, defaultParams.Namespace)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		Expect(a.Spec.Path).To(Equal("bar"))

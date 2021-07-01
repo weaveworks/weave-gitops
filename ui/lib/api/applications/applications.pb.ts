@@ -21,6 +21,7 @@ export type ListApplicationsResponse = {
 
 export type GetApplicationRequest = {
   applicationName?: string
+  applicationNamespace?: string
 }
 
 export type GetApplicationResponse = {

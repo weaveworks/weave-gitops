@@ -15,6 +15,7 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -27,6 +28,7 @@ func CreateScheme() *apiruntime.Scheme {
 	_ = helmv2.AddToScheme(scheme)
 	_ = wego.AddToScheme(scheme)
 	_ = corev1.AddToScheme(scheme)
+	_ = extensionsv1.AddToScheme(scheme)
 
 	return scheme
 }
@@ -114,10 +116,10 @@ func (c *KubeHTTP) Apply(manifests []byte, namespace string) ([]byte, error) {
 	return nil, errors.New("Apply is not implemented for kubeHTTP")
 }
 
-func (c *KubeHTTP) GetApplication(ctx context.Context, name string) (*wego.Application, error) {
+func (c *KubeHTTP) GetApplication(ctx context.Context, name, namespace string) (*wego.Application, error) {
 	tName := types.NamespacedName{
 		Name:      name,
-		Namespace: WeGONamespace,
+		Namespace: namespace,
 	}
 	app := wego.Application{}
 	if err := c.Client.Get(ctx, tName, &app); err != nil {
@@ -168,7 +170,7 @@ func (c *KubeHTTP) SecretPresent(ctx context.Context, secretName string, namespa
 func (c *KubeHTTP) GetApplications(ctx context.Context, namespace string) ([]wego.Application, error) {
 	result := wego.ApplicationList{}
 
-	if err := c.Client.List(ctx, &result); err != nil {
+	if err := c.Client.List(ctx, &result, namespaceOpts(namespace)); err != nil {
 		return nil, fmt.Errorf("could not list wego applications: %s", err)
 	}
 
@@ -191,4 +193,13 @@ func initialContexts(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (conte
 	}
 
 	return contexts, rules.CurrentContext, nil
+}
+
+func namespaceOpts(ns string) *client.ListOptions {
+	opts := client.ListOptions{}
+	if ns != "" {
+		opts.Namespace = ns
+	}
+
+	return &opts
 }

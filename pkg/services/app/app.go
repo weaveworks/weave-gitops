@@ -10,7 +10,7 @@ import (
 
 type AppService interface {
 	Add(params AddParams) error
-	Get(name string) (*wego.Application, error)
+	Get(name, namespace string) (*wego.Application, error)
 }
 
 type App struct {
