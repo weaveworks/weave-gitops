@@ -82,10 +82,14 @@ jobs:
     #   run: npm audit
     - name: Build UI Assets
       run: make cmd/ui/dist/main.js
+    - name: Set up kubebuilder
+      uses: fluxcd/pkg/actions/kubebuilder@main
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: Unit Tests with Coverage
       run: make coverage/merged.lcov
+      env:
+        KUBEBUILDER_ASSETS: ${{ github.workspace }}/kubebuilder/bin
     - name: Coveralls
       uses: coverallsapp/github-action@v1.1.2
       with:

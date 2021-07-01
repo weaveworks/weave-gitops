@@ -1,6 +1,8 @@
 package gitops_test
 
 import (
+	"context"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
@@ -15,7 +17,7 @@ var _ = Describe("Uninstall", func() {
 	BeforeEach(func() {
 		fluxClient = &fluxfakes.FakeFlux{}
 		kubeClient = &kubefakes.FakeKube{
-			GetClusterStatusStub: func() kube.ClusterStatus {
+			GetClusterStatusStub: func(ctx context.Context) kube.ClusterStatus {
 				return kube.WeGOInstalled
 			},
 		}
@@ -34,7 +36,7 @@ var _ = Describe("Uninstall", func() {
 		Expect(kubeClient.GetClusterStatusCallCount()).To(Equal(1))
 		Expect(fluxClient.UninstallCallCount()).To(Equal(1))
 
-		kubeClient.GetClusterStatusStub = func() kube.ClusterStatus {
+		kubeClient.GetClusterStatusStub = func(ctx context.Context) kube.ClusterStatus {
 			return kube.Unmodified
 		}
 

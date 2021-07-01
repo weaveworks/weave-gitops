@@ -12,7 +12,6 @@ import (
 	"github.com/sirupsen/logrus"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 )
 
@@ -36,7 +35,10 @@ func main() {
 	gMux := runtime.NewServeMux()
 	mux.Handle("/v1/", gMux)
 
-	kubeClient := kube.New(&runner.CLIRunner{})
+	kubeClient, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		log.Fatalf("could not create http client: %s", err)
+	}
 
 	if err := pb.RegisterApplicationsHandlerServer(context.Background(), gMux, server.NewApplicationsServer(kubeClient)); err != nil {
 		log.Fatalf("could not register application: %s", err)

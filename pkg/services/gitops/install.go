@@ -1,6 +1,7 @@
 package gitops
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/pkg/errors"
@@ -13,7 +14,7 @@ type InstallParams struct {
 }
 
 func (g *Gitops) Install(params InstallParams) ([]byte, error) {
-	present, err := g.kube.FluxPresent()
+	present, err := g.kube.FluxPresent(context.Background())
 	if err != nil {
 		return []byte{}, errors.Wrap(err, "could not verify flux presence in the cluster")
 	}
