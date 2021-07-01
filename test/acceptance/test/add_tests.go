@@ -79,6 +79,37 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
+	It("SmokeTest - Verify helm repo with app-config-url=NONE can be added to the cluster by running 'wego app add --url=https://charts.kube-ops.io --chart=loki --app-config-url=NONE' ", func() {
+		defaultSshKeyPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+		addCommand := "app add --url=https://charts.kube-ops.io --chart=loki --app-config-url=NONE"
+		appName := "loki"
+		workloadName := "loki-0"
+		workloadNamespace := WEGO_DEFAULT_NAMESPACE
+
+		defer uninstallWego()
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(workloadName, workloadNamespace)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+defaultSshKeyPath, func() {
+			setupSSHKey(defaultSshKeyPath)
+		})
+
+		By("And I run wego add command", func() {
+			runWegoAddCommand(".", addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see my workload deployed to the cluster", func() {
+			verifyWegoHelmAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+			verifyHelmPodWorkloadIsDeployed(workloadName, workloadNamespace)
+		})
+	})
+
 	It("Verify that wego can deploy an app after it is setup with an empty repo initially", func() {
 		var repoAbsolutePath string
 		private := true

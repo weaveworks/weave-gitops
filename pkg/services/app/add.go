@@ -74,7 +74,6 @@ func (a *App) Add(params AddParams) error {
 	if err != nil {
 		return errors.Wrap(err, "could not generate deploy key")
 	}
-
 	switch strings.ToUpper(params.AppConfigUrl) {
 	case string(ConfigTypeNone):
 		return a.addAppWithNoConfigRepo(params, clusterName, secretRef)
