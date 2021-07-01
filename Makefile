@@ -29,8 +29,8 @@ all: wego
 unit-tests: wego cmd/ui/dist/main.js
 	CGO_ENABLED=0 go test -v -tags unittest ./...
 
-debug: 
-	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) -gcflags='all=-N -l' cmd/wego/*.go 
+debug:
+	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) -gcflags='all=-N -l' cmd/wego/*.go
 
 bin:
 	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) cmd/wego/*.go

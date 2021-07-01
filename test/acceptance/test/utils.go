@@ -7,12 +7,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"math/rand"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -172,10 +173,6 @@ func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool) (string, err
 		if deleteWegoRuntime {
 			uninstallWegoRuntime(namespace)
 		}
-
-		out, err := exec.Command("kubectl", "config", "current-context").Output()
-		Expect(err).ShouldNot(HaveOccurred())
-		clusterName = string(bytes.TrimSuffix(out, []byte("\n")))
 	}
 
 	if provider == "kind" {
@@ -197,6 +194,12 @@ func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool) (string, err
 	}
 
 	return clusterName, nil
+}
+
+func getClusterName() string {
+	out, err := exec.Command("kubectl", "config", "current-context").Output()
+	Expect(err).ShouldNot(HaveOccurred())
+	return string(bytes.TrimSuffix(out, []byte("\n")))
 }
 
 func waitForResource(resourceType string, resourceName string, namespace string, timeout time.Duration) error {
