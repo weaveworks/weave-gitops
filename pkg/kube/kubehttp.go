@@ -142,7 +142,7 @@ func (c *KubeHTTP) FluxPresent(ctx context.Context) (bool, error) {
 		if apierrors.IsNotFound(err) {
 			return false, nil
 		}
-		return false, errors.Wrap(err, "could not find flux namespace")
+		return false, fmt.Errorf("could not find flux namespace: %s", err)
 	}
 
 	return true, nil
@@ -159,7 +159,7 @@ func (c *KubeHTTP) SecretPresent(ctx context.Context, secretName string, namespa
 		if apierrors.IsNotFound(err) {
 			return false, nil
 		}
-		return false, errors.Wrap(err, "could not get secret")
+		return false, fmt.Errorf("could not get secret: %s", err)
 	}
 
 	return true, nil
@@ -169,7 +169,7 @@ func (c *KubeHTTP) GetApplications(ctx context.Context, namespace string) ([]weg
 	result := wego.ApplicationList{}
 
 	if err := c.Client.List(ctx, &result); err != nil {
-		return nil, errors.Wrap(err, "could not list wego applications")
+		return nil, fmt.Errorf("could not list wego applications: %s", err)
 	}
 
 	return result.Items, nil
