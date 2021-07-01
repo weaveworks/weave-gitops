@@ -352,9 +352,9 @@ func (a *App) generateExternalRepoManifests(params AddParams, secretRef string, 
 		return nil, nil, errors.Wrap(err, "could not generate target source manifests")
 	}
 
-	AppGoat, err := a.flux.CreateKustomization(params.Name, repoName, filepath.Join(".", "apps", params.Name), params.Namespace)
+	appGoat, err := a.flux.CreateKustomization(params.Name, repoName, filepath.Join(".", "apps", params.Name), params.Namespace)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, fmt.Sprintf("could not create kustomization for '%s' .wego/apps", params.Name))
+		return nil, nil, errors.Wrap(err, fmt.Sprintf("could not create kustomization for '%s' ./apps", params.Name))
 	}
 
 	targetPath := filepath.Join(".", "targets", clusterName)
@@ -363,7 +363,7 @@ func (a *App) generateExternalRepoManifests(params AddParams, secretRef string, 
 		return nil, nil, errors.Wrap(err, "could not generate target goat manifests")
 	}
 
-	manifests := bytes.Join([][]byte{targetGoat, AppGoat}, []byte(""))
+	manifests := bytes.Join([][]byte{targetGoat, appGoat}, []byte(""))
 
 	return targetSource, manifests, nil
 }

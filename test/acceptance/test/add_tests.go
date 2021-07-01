@@ -35,7 +35,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify private repo can be added to the cluster by running 'wego add .' ", func() {
+	It("Verify private repo can be added to the cluster by running 'wego add . --auto-merge=true' ", func() {
 		var repoAbsolutePath string
 		private := true
 		tip := generateTestInputs()
