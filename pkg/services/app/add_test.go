@@ -408,7 +408,7 @@ var _ = Describe("Add", func() {
 			Expect(namespace).To(Equal("wego-system"))
 
 			appWegoManifest, namespace := kubeClient.ApplyArgsForCall(1)
-			Expect(string(appWegoManifest)).To(ContainSubstring("kustomization"))
+			Expect(appWegoManifest).To(Equal([]byte("kustomizationkustomization")))
 			Expect(namespace).To(Equal("wego-system"))
 		})
 
@@ -535,7 +535,7 @@ var _ = Describe("Add", func() {
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				Expect(fluxClient.CreateKustomizationCallCount()).To(Equal(2))
+				Expect(fluxClient.CreateKustomizationCallCount()).To(Equal(3))
 
 				name, source, path, namespace := fluxClient.CreateKustomizationArgsForCall(0)
 				Expect(name).To(Equal("repo"))
@@ -544,9 +544,9 @@ var _ = Describe("Add", func() {
 				Expect(namespace).To(Equal("wego-system"))
 
 				name, source, path, namespace = fluxClient.CreateKustomizationArgsForCall(1)
-				Expect(name).To(Equal("weave-gitops-test-cluster"))
+				Expect(name).To(Equal("repo"))
 				Expect(source).To(Equal("bar"))
-				Expect(path).To(Equal("targets/test-cluster"))
+				Expect(path).To(Equal("apps/repo"))
 				Expect(namespace).To(Equal("wego-system"))
 			})
 
@@ -606,7 +606,7 @@ var _ = Describe("Add", func() {
 			Expect(namespace).To(Equal("wego-system"))
 
 			kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(1)
-			Expect(kustomizationManifest).To(Equal([]byte("kustomization")))
+			Expect(kustomizationManifest).To(Equal([]byte("kustomizationkustomization")))
 			Expect(namespace).To(Equal("wego-system"))
 		})
 
@@ -665,7 +665,7 @@ var _ = Describe("Add", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			_, _, newBranch, files, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
-			Expect(newBranch).To(Equal("wego-5009d214c7edba2e8fb5a725eeeaeda5"))
+			Expect(newBranch).To(Equal("wego-bf22e886ea99b1891c16bba5529d7f0b"))
 			Expect(files).To(Not(BeEmpty()))
 
 			Expect(gitClient.WriteCallCount()).To(Equal(0))

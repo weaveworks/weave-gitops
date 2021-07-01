@@ -118,15 +118,6 @@ func (a *App) Add(params AddParams) error {
 		return errors.Wrap(err, "could not generate deploy key")
 	}
 
-	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
-	if err != nil {
-		return err
-	}
-	// if appHash exists as a label in the cluster we fail to create a PR
-	if err := a.kube.LabelExistsInCluster(appHash); err != nil {
-		return err
-	}
-
 	switch strings.ToUpper(params.AppConfigUrl) {
 	case string(ConfigTypeNone):
 		return a.addAppWithNoConfigRepo(params, clusterName, secretRef)
@@ -193,8 +184,17 @@ func (a *App) getGitRemoteUrl(params AddParams) (string, error) {
 }
 
 func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secretRef string) error {
+	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
+	if err != nil {
+		return err
+	}
+	// if appHash exists as a label in the cluster we fail to create a PR
+	if err := a.kube.LabelExistsInCluster(appHash); err != nil {
+		return err
+	}
+
 	// Returns the source, app spec and kustomization
-	source, appGoat, appSpec, err := a.generateAppManifests(params, secretRef, clusterName)
+	source, appGoat, appSpec, err := a.generateAppManifests(params, params.Url, secretRef, clusterName)
 	if err != nil {
 		return errors.Wrap(err, "could not generate application GitOps Automation manifests")
 	}
@@ -204,8 +204,17 @@ func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secre
 }
 
 func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, secretRef string) error {
+	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
+	if err != nil {
+		return err
+	}
+	// if appHash exists as a label in the cluster we fail to create a PR
+	if err := a.kube.LabelExistsInCluster(appHash); err != nil {
+		return err
+	}
+
 	// Returns the source, app spec and kustomization
-	source, appGoat, appSpec, err := a.generateAppManifests(params, secretRef, clusterName)
+	source, appGoat, appSpec, err := a.generateAppManifests(params, params.Url, secretRef, clusterName)
 	if err != nil {
 		return errors.Wrap(err, "could not generate application GitOps Automation manifests")
 	}
@@ -256,13 +265,22 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 	// making sure the url is in good format
 	params.AppConfigUrl = sanitizeRepoUrl(params.AppConfigUrl)
 
+	appHash, err := utils.GetAppHash(params.AppConfigUrl, params.Path, params.Branch)
+	if err != nil {
+		return err
+	}
+	// if appHash exists as a label in the cluster we fail to create a PR
+	if err := a.kube.LabelExistsInCluster(appHash); err != nil {
+		return err
+	}
+
 	appConfigSecretName, err := a.createAndUploadDeployKey(params.AppConfigUrl, SourceType(params.SourceType), clusterName, params.Namespace, params.DryRun)
 	if err != nil {
 		return errors.Wrap(err, "could not generate deploy key")
 	}
 
 	// Returns the source, app spec and kustomization
-	appSource, appGoat, appSpec, err := a.generateAppManifests(params, appSecretRef, clusterName)
+	appSource, appGoat, appSpec, err := a.generateAppManifests(params, params.AppConfigUrl, appSecretRef, clusterName)
 	if err != nil {
 		return errors.Wrap(err, "could not generate application GitOps Automation manifests")
 	}
@@ -302,7 +320,7 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 	return a.commitAndPush(params)
 }
 
-func (a *App) generateAppManifests(params AddParams, secretRef string, clusterName string) ([]byte, []byte, []byte, error) {
+func (a *App) generateAppManifests(params AddParams, repo string, secretRef string, clusterName string) ([]byte, []byte, []byte, error) {
 	var sourceManifest, appManifest, appGoatManifest []byte
 	var err error
 	fmt.Println("Generating Source manifest...")
@@ -318,7 +336,7 @@ func (a *App) generateAppManifests(params AddParams, secretRef string, clusterNa
 	}
 
 	fmt.Println("Generating Application spec manifest...")
-	appManifest, err = generateAppYaml(params)
+	appManifest, err = generateAppYaml(params, repo)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, fmt.Sprintf("could not create app.yaml for '%s'", params.Name))
 	}
@@ -354,7 +372,7 @@ func (a *App) generateExternalRepoManifests(params AddParams, secretRef string, 
 
 	appGoat, err := a.flux.CreateKustomization(params.Name, repoName, filepath.Join(".", "apps", params.Name), params.Namespace)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, fmt.Sprintf("could not create kustomization for '%s' ./apps", params.Name))
+		return nil, nil, errors.Wrap(err, "could not generate target goat manifests")
 	}
 
 	targetPath := filepath.Join(".", "targets", clusterName)
@@ -526,7 +544,7 @@ func (a *App) writeAppGoats(basePath string, name string, clusterName string, ma
 	return a.git.Write(goatPath, goat)
 }
 
-func generateAppYaml(params AddParams) ([]byte, error) {
+func generateAppYaml(params AddParams, repo string) ([]byte, error) {
 	const appYamlTemplate = `---
 apiVersion: wego.weave.works/v1alpha1
 kind: Application
@@ -545,7 +563,7 @@ spec:
 		return nil, errors.Wrap(err, "could not parse app yaml template")
 	}
 
-	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
+	appHash, err := utils.GetAppHash(repo, params.Path, params.Branch)
 	if err != nil {
 		return nil, err
 	}
