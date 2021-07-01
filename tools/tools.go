@@ -7,6 +7,7 @@ import (
 	_ "github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts"
 	_ "github.com/jandelgado/gcov2lcov"
 	_ "github.com/maxbrunsfeld/counterfeiter/v6"
+	_ "google.golang.org/genproto"
 	_ "google.golang.org/grpc/cmd/protoc-gen-go-grpc"
 )
 

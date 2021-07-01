@@ -29,8 +29,8 @@ all: wego
 unit-tests: wego cmd/ui/dist/main.js
 	CGO_ENABLED=0 go test -v -tags unittest ./...
 
-debug: 
-	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) -gcflags='all=-N -l' cmd/wego/*.go 
+debug:
+	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) -gcflags='all=-N -l' cmd/wego/*.go
 
 bin:
 	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) cmd/wego/*.go
@@ -89,7 +89,7 @@ coverage/lcov.info:
 
 # Golang gocov data. Not compatible with coveralls at this point.
 coverage.out:
-	go get -u github.com/ory/go-acc
+	go get github.com/ory/go-acc
 	go-acc --ignore fakes,acceptance,pkg/api,api -o coverage.out ./... -- -v --timeout=496s -tags test
 	@go mod tidy
 
