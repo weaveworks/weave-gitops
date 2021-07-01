@@ -282,7 +282,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify helm repo can be added to the cluster by running 'wego add . --app-config-url=<URL> --deployment-type=helm --path=./hello-world'", func() {
+	It("Verify helm repo can be added to the cluster by running 'wego add . --app-config-url=<URL> --deployment-type=helm --path=./hello-world --auto-merge=true'", func() {
 		var repoAbsolutePath string
 		var configRepoAbsolutePath string
 		private := true
@@ -556,7 +556,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify app repo can be added to the cluster by running 'wego add . --app-config-url=<git ssh url>' ", func() {
+	It("Verify app repo can be added to the cluster by running 'wego add . --app-config-url=<git ssh url> --auto-merge=true' ", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		private := true
@@ -609,7 +609,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify app repo can be added to the cluster by running 'wego add --url=<app repo url> --app-config-url=<git ssh url>' ", func() {
+	It("Verify app repo can be added to the cluster by running 'wego add --url=<app repo url> --app-config-url=<git ssh url> --auto-merge=true' ", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		private := true
@@ -662,7 +662,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify app repo can be added to the cluster by running 'wego add --url=<app repo url>' ", func() {
+	It("Verify app repo can be added to the cluster by running 'wego add --url=<app repo url> --auto-merge=true' ", func() {
 		var repoAbsolutePath string
 		private := false
 		tip := generateTestInputs()

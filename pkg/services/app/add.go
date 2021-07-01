@@ -226,7 +226,7 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 
 	if !params.DryRun {
 		if !params.AutoMerge {
-			if err := a.createPullRequestToRepo(params, appSpec, appGoat, clusterName); err != nil {
+			if err := a.createPullRequestToRepo(params, params.Url, appSpec, appGoat, clusterName); err != nil {
 				return err
 			}
 		} else {
@@ -267,7 +267,7 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 		return errors.Wrap(err, "could not generate application GitOps Automation manifests")
 	}
 
-	targetSource, targetGoat, err := a.generateExternalRepoManifests(params, appConfigSecretName, clusterName)
+	targetSource, targetGoats, err := a.generateExternalRepoManifests(params, appConfigSecretName, clusterName)
 	if err != nil {
 		return errors.Wrap(err, "could not generate target GitOps Automation manifests")
 	}
@@ -278,7 +278,7 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 
 	if !params.DryRun {
 		if !params.AutoMerge {
-			if err := a.createPullRequestToRepo(params, appSpec, appGoat, clusterName); err != nil {
+			if err := a.createPullRequestToRepo(params, params.AppConfigUrl, appSpec, appGoat, clusterName); err != nil {
 				return err
 			}
 		} else {
@@ -295,7 +295,7 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 	}
 
 	fmt.Println("Applying manifests to the cluster...")
-	if err := a.applyToCluster(params, targetSource, targetGoat); err != nil {
+	if err := a.applyToCluster(params, targetSource, targetGoats); err != nil {
 		return errors.Wrapf(err, "could not apply manifests to the cluster")
 	}
 
@@ -352,18 +352,25 @@ func (a *App) generateExternalRepoManifests(params AddParams, secretRef string, 
 		return nil, nil, errors.Wrap(err, "could not generate target source manifests")
 	}
 
+	AppGoat, err := a.flux.CreateKustomization(params.Name, repoName, filepath.Join(".", "apps", params.Name), params.Namespace)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, fmt.Sprintf("could not create kustomization for '%s' .wego/apps", params.Name))
+	}
+
 	targetPath := filepath.Join(".", "targets", clusterName)
 	targetGoat, err := a.flux.CreateKustomization(fmt.Sprintf("weave-gitops-%s", clusterName), repoName, targetPath, params.Namespace)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not generate target goat manifests")
 	}
 
-	return targetSource, targetGoat, nil
+	manifests := bytes.Join([][]byte{targetGoat, AppGoat}, []byte(""))
+
+	return targetSource, manifests, nil
 }
 
 func (a *App) commitAndPush(params AddParams, filters ...func(string) bool) error {
 	fmt.Println("Commiting and pushing wego resources for application...")
-	if params.DryRun {
+	if params.DryRun || !params.AutoMerge {
 		return nil
 	}
 
@@ -597,8 +604,8 @@ func sanitizeRepoUrl(url string) string {
 	return url
 }
 
-func (a *App) createPullRequestToRepo(params AddParams, appYaml, applicationGoatYaml []byte, clusterName string) error {
-	repoName := generateResourceName(params.Url)
+func (a *App) createPullRequestToRepo(params AddParams, repo string, appYaml, applicationGoatYaml []byte, clusterName string) error {
+	repoName := generateResourceName(repo)
 
 	appPath := filepath.Join(".wego", "apps", params.Name, "app.yaml")
 
@@ -621,7 +628,7 @@ func (a *App) createPullRequestToRepo(params AddParams, appYaml, applicationGoat
 		},
 	}
 
-	owner, err := getOwnerFromUrl(params.Url)
+	owner, err := getOwnerFromUrl(repo)
 	if err != nil {
 		return nil
 	}
@@ -631,7 +638,7 @@ func (a *App) createPullRequestToRepo(params AddParams, appYaml, applicationGoat
 		return nil
 	}
 
-	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
+	appHash, err := utils.GetAppHash(repo, params.Path, params.Branch)
 	if err != nil {
 		return err
 	}
