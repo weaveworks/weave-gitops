@@ -88,8 +88,8 @@ jobs:
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: Unit Tests with Coverage
       run: make coverage/merged.lcov
-        env:
-          KUBEBUILDER_ASSETS: ${{ github.workspace }}/kubebuilder/bin
+      env:
+        KUBEBUILDER_ASSETS: ${{ github.workspace }}/kubebuilder/bin
     - name: Coveralls
       uses: coverallsapp/github-action@v1.1.2
       with:
