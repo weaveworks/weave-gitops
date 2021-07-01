@@ -21,8 +21,7 @@ func NewApplicationsServer(kubeSvc kube.Kube) pb.ApplicationsServer {
 }
 
 func (s *server) ListApplications(ctx context.Context, msg *pb.ListApplicationsRequest) (*pb.ListApplicationsResponse, error) {
-
-	apps, err := s.kube.GetApplications(msg.GetNamespace())
+	apps, err := s.kube.GetApplications(ctx, msg.GetNamespace())
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +33,7 @@ func (s *server) ListApplications(ctx context.Context, msg *pb.ListApplicationsR
 	}
 
 	list := []*pb.Application{}
-	for _, a := range *apps {
+	for _, a := range apps {
 		list = append(list, &pb.Application{Name: a.Name})
 	}
 	return &pb.ListApplicationsResponse{
@@ -43,7 +42,7 @@ func (s *server) ListApplications(ctx context.Context, msg *pb.ListApplicationsR
 }
 
 func (s *server) GetApplication(ctx context.Context, msg *pb.GetApplicationRequest) (*pb.GetApplicationResponse, error) {
-	app, err := s.kube.GetApplication(msg.ApplicationName)
+	app, err := s.kube.GetApplication(ctx, msg.ApplicationName)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not get application: %s", err)

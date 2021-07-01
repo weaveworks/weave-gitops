@@ -1,6 +1,7 @@
 package gitops
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/pkg/errors"
@@ -14,7 +15,7 @@ type UinstallParams struct {
 }
 
 func (g *Gitops) Uninstall(params UinstallParams) error {
-	if g.kube.GetClusterStatus() != kube.WeGOInstalled {
+	if g.kube.GetClusterStatus(context.Background()) != kube.WeGOInstalled {
 		return fmt.Errorf("Wego is not installed... exiting")
 	}
 

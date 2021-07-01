@@ -1,6 +1,7 @@
 package kube_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -70,7 +71,7 @@ var _ = Describe("GetClusterStatus", func() {
 			return []byte("error"), fmt.Errorf("error")
 		}
 
-		status := kubeClient.GetClusterStatus()
+		status := kubeClient.GetClusterStatus(context.Background())
 		Expect(status).To(Equal(kube.WeGOInstalled))
 	})
 
@@ -83,7 +84,7 @@ var _ = Describe("GetClusterStatus", func() {
 			return []byte("error"), fmt.Errorf("error")
 		}
 
-		status := kubeClient.GetClusterStatus()
+		status := kubeClient.GetClusterStatus(context.Background())
 		Expect(status).To(Equal(kube.FluxInstalled))
 	})
 
@@ -96,7 +97,7 @@ var _ = Describe("GetClusterStatus", func() {
 			return []byte("error"), fmt.Errorf("error")
 		}
 
-		status := kubeClient.GetClusterStatus()
+		status := kubeClient.GetClusterStatus(context.Background())
 		Expect(status).To(Equal(kube.Unmodified))
 	})
 
@@ -105,7 +106,7 @@ var _ = Describe("GetClusterStatus", func() {
 			return []byte("error"), fmt.Errorf("error")
 		}
 
-		status := kubeClient.GetClusterStatus()
+		status := kubeClient.GetClusterStatus(context.Background())
 		Expect(status).To(Equal(kube.Unknown))
 	})
 })
@@ -116,7 +117,7 @@ var _ = Describe("GetClusterName", func() {
 			return []byte("cluster-name\n"), nil
 		}
 
-		out, err := kubeClient.GetClusterName()
+		out, err := kubeClient.GetClusterName(context.Background())
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(string(out)).To(Equal("cluster-name"))
 
@@ -129,7 +130,7 @@ var _ = Describe("GetClusterName", func() {
 
 var _ = Describe("FluxPresent", func() {
 	It("looks for flux-system namespace", func() {
-		_, err := kubeClient.FluxPresent()
+		_, err := kubeClient.FluxPresent(context.Background())
 		Expect(err).ShouldNot(HaveOccurred())
 
 		cmd, args := runner.RunArgsForCall(0)
@@ -143,7 +144,7 @@ var _ = Describe("FluxPresent", func() {
 			return []byte("namespace"), nil
 		}
 
-		present, err := kubeClient.FluxPresent()
+		present, err := kubeClient.FluxPresent(context.Background())
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(present).To(Equal(true))
 	})
@@ -153,7 +154,7 @@ var _ = Describe("FluxPresent", func() {
 			return []byte("not found"), fmt.Errorf("error")
 		}
 
-		present, err := kubeClient.FluxPresent()
+		present, err := kubeClient.FluxPresent(context.Background())
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(present).To(Equal(false))
 	})
@@ -173,7 +174,7 @@ var _ = Describe("GetApplication", func() {
 			return res, nil
 		}
 
-		out, err := kubeClient.GetApplication("my-app")
+		out, err := kubeClient.GetApplication(context.Background(), "my-app")
 
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out.Spec.Path).To(Equal("some/path"))
@@ -203,12 +204,12 @@ var _ = Describe("GetApplication", func() {
 			return res, nil
 		}
 
-		apps, err := kubeClient.GetApplications("wego-system")
+		apps, err := kubeClient.GetApplications(context.Background(), "wego-system")
 		Expect(err).ShouldNot(HaveOccurred())
-		Expect(2).To(Equal(len(*apps)))
+		Expect(2).To(Equal(len(apps)))
 
 		for i, a := range appsList.Items {
-			app := (*apps)[i]
+			app := (apps)[i]
 			Expect(a.Name).To(Equal(app.Name))
 			Expect(a.Spec.Path).To(Equal(app.Spec.Path))
 			Expect(a.Spec.URL).To(Equal(app.Spec.URL))

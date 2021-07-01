@@ -2,6 +2,7 @@ package kube
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"strings"
 
@@ -41,12 +42,12 @@ var toStatusString = map[ClusterStatus]string{
 type Kube interface {
 	Apply(manifests []byte, namespace string) ([]byte, error)
 	Delete(manifests []byte, namespace string) ([]byte, error)
-	GetClusterName() (string, error)
-	GetClusterStatus() ClusterStatus
-	FluxPresent() (bool, error)
-	SecretPresent(secretName string, namespace string) (bool, error)
-	GetApplication(name string) (*wego.Application, error)
-	GetApplications(namespace string) (*[]wego.Application, error)
+	SecretPresent(ctx context.Context, string, namespace string) (bool, error)
+	GetApplications(ctx context.Context, namespace string) ([]wego.Application, error)
+	FluxPresent(ctx context.Context) (bool, error)
+	GetClusterName(ctx context.Context) (string, error)
+	GetClusterStatus(ctx context.Context) ClusterStatus
+	GetApplication(ctx context.Context, name string) (*wego.Application, error)
 }
 
 type KubeClient struct {
@@ -91,7 +92,7 @@ func (k *KubeClient) Delete(manifests []byte, namespace string) ([]byte, error) 
 	return out, nil
 }
 
-func (k *KubeClient) GetClusterName() (string, error) {
+func (k *KubeClient) GetClusterName(ctx context.Context) (string, error) {
 	args := []string{
 		"config", "current-context",
 	}
@@ -104,7 +105,7 @@ func (k *KubeClient) GetClusterName() (string, error) {
 	return string(bytes.TrimSuffix(out, []byte("\n"))), nil
 }
 
-func (k *KubeClient) GetClusterStatus() ClusterStatus {
+func (k *KubeClient) GetClusterStatus(ctx context.Context) ClusterStatus {
 	// Checking wego presence
 	if k.resourceLookup("get crd apps.wego.weave.works") == nil {
 		return WeGOInstalled
@@ -123,7 +124,7 @@ func (k *KubeClient) GetClusterStatus() ClusterStatus {
 }
 
 // FluxPresent checks flux presence in the cluster
-func (k *KubeClient) FluxPresent() (bool, error) {
+func (k *KubeClient) FluxPresent(ctx context.Context) (bool, error) {
 	out, err := k.runKubectlCmd([]string{"get", "namespace", "flux-system"})
 	if err != nil {
 		if strings.Contains(string(out), "not found") {
@@ -135,7 +136,7 @@ func (k *KubeClient) FluxPresent() (bool, error) {
 }
 
 // SecretPresent checks for a specific secret within a specified namespace
-func (k *KubeClient) SecretPresent(secretName, namespace string) (bool, error) {
+func (k *KubeClient) SecretPresent(ctx context.Context, secretName, namespace string) (bool, error) {
 	out, err := k.runKubectlCmd([]string{"get", "secret", secretName, "-n", namespace})
 	if err != nil {
 		if strings.Contains(string(out), "not found") {
@@ -146,7 +147,7 @@ func (k *KubeClient) SecretPresent(secretName, namespace string) (bool, error) {
 	return true, nil
 }
 
-func (k *KubeClient) GetApplication(name string) (*wego.Application, error) {
+func (k *KubeClient) GetApplication(ctx context.Context, name string) (*wego.Application, error) {
 	cmd := []string{"get", "app", name, "-o", "json"}
 	o, err := k.runKubectlCmd(cmd)
 
@@ -163,7 +164,7 @@ func (k *KubeClient) GetApplication(name string) (*wego.Application, error) {
 	return &a, nil
 }
 
-func (k *KubeClient) GetApplications(ns string) (*[]wego.Application, error) {
+func (k *KubeClient) GetApplications(ctx context.Context, ns string) ([]wego.Application, error) {
 	cmd := []string{"get", "apps", "-n", ns, "-o", "json"}
 	output, err := k.runKubectlCmd(cmd)
 	if err != nil {
@@ -175,7 +176,7 @@ func (k *KubeClient) GetApplications(ns string) (*[]wego.Application, error) {
 		return nil, fmt.Errorf("could not unmarshal applications json: %s", err)
 	}
 
-	return &a.Items, nil
+	return a.Items, nil
 }
 
 func (k *KubeClient) resourceLookup(args string) error {

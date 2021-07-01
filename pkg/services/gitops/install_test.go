@@ -1,6 +1,8 @@
 package gitops_test
 
 import (
+	"context"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
@@ -23,7 +25,7 @@ var _ = Describe("Install", func() {
 	})
 
 	It("checks flux presence on the cluster", func() {
-		kubeClient.FluxPresentStub = func() (bool, error) {
+		kubeClient.FluxPresentStub = func(ctx context.Context) (bool, error) {
 			return true, nil
 		}
 
