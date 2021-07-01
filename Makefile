@@ -26,7 +26,7 @@ endif
 all: wego
 
 # Run tests
-unit-tests:
+unit-tests: wego cmd/ui/dist/main.js
 	CGO_ENABLED=0 go test -v -tags unittest ./...
 
 debug: 
@@ -45,6 +45,7 @@ install: bin bin/$(BINARY_NAME)_ui
 # Clean up images and binaries
 clean:
 	rm -f bin/wego pkg/flux/bin/flux
+	rm -rf cmd/ui/dist
 # Run go fmt against code
 fmt:
 	go fmt ./...
