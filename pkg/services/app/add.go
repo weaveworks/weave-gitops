@@ -184,12 +184,13 @@ func (a *App) getGitRemoteUrl(params AddParams) (string, error) {
 }
 
 func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secretRef string) error {
+	ctx := context.Background()
 	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
 	if err != nil {
 		return err
 	}
 	// if appHash exists as a label in the cluster we fail to create a PR
-	if err := a.kube.LabelExistsInCluster(appHash); err != nil {
+	if err := a.kube.LabelExistsInCluster(ctx, appHash); err != nil {
 		return err
 	}
 
@@ -204,12 +205,13 @@ func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secre
 }
 
 func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, secretRef string) error {
+	ctx := context.Background()
 	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
 	if err != nil {
 		return err
 	}
 	// if appHash exists as a label in the cluster we fail to create a PR
-	if err := a.kube.LabelExistsInCluster(appHash); err != nil {
+	if err := a.kube.LabelExistsInCluster(ctx, appHash); err != nil {
 		return err
 	}
 
@@ -262,6 +264,7 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 }
 
 func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName string, appSecretRef string) error {
+	ctx := context.Background()
 	// making sure the url is in good format
 	params.AppConfigUrl = sanitizeRepoUrl(params.AppConfigUrl)
 
@@ -270,7 +273,7 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 		return err
 	}
 	// if appHash exists as a label in the cluster we fail to create a PR
-	if err := a.kube.LabelExistsInCluster(appHash); err != nil {
+	if err := a.kube.LabelExistsInCluster(ctx, appHash); err != nil {
 		return err
 	}
 
