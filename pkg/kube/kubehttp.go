@@ -170,7 +170,7 @@ func (c *KubeHTTP) SecretPresent(ctx context.Context, secretName string, namespa
 func (c *KubeHTTP) GetApplications(ctx context.Context, namespace string) ([]wego.Application, error) {
 	result := wego.ApplicationList{}
 
-	if err := c.Client.List(ctx, &result, namespaceOpts(namespace)); err != nil {
+	if err := c.Client.List(ctx, &result, client.InNamespace(namespace)); err != nil {
 		return nil, fmt.Errorf("could not list wego applications: %s", err)
 	}
 
@@ -195,11 +195,11 @@ func initialContexts(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (conte
 	return contexts, rules.CurrentContext, nil
 }
 
-func namespaceOpts(ns string) *client.ListOptions {
-	opts := client.ListOptions{}
-	if ns != "" {
-		opts.Namespace = ns
-	}
+// func namespaceOpts(ns string) *client.ListOptions {
+// 	opts := client.ListOptions{}
+// 	if ns != "" {
+// 		opts.Namespace = ns
+// 	}
 
-	return &opts
-}
+// 	return &opts
+// }

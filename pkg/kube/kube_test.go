@@ -174,7 +174,7 @@ var _ = Describe("GetApplication", func() {
 			return res, nil
 		}
 
-		out, err := kubeClient.GetApplication(context.Background(), "my-app")
+		out, err := kubeClient.GetApplication(context.Background(), "my-app", kube.WeGONamespace)
 
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out.Spec.Path).To(Equal("some/path"))

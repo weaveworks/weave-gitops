@@ -9,47 +9,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/rand"
-	"k8s.io/client-go/rest"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/envtest"
 )
-
-var testClustername = "test-cluster"
-var testenv *envtest.Environment
-var cfg *rest.Config
-var testclient client.Client
-var err error
-var scheme *apiruntime.Scheme
-var k kube.Kube
-var ns corev1.Namespace
-
-var _ = BeforeSuite(func() {
-	testenv = &envtest.Environment{CRDDirectoryPaths: []string{"../../manifests/crds"}}
-
-	scheme = kube.CreateScheme()
-	cfg, err = testenv.Start()
-
-	Expect(err).NotTo(HaveOccurred())
-
-	ns = corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{Name: kube.WeGONamespace},
-	}
-
-	testclient, err = client.New(cfg, client.Options{Scheme: scheme})
-	Expect(err).NotTo(HaveOccurred())
-
-	err = testclient.Create(context.Background(), &ns)
-	Expect(err).NotTo(HaveOccurred())
-})
-
-var _ = BeforeEach(func() {
-	k = &kube.KubeHTTP{
-		Client:      testclient,
-		ClusterName: testClustername,
-	}
-})
 
 var _ = Describe("KubeHTTP", func() {
 	var (
@@ -79,12 +40,10 @@ var _ = Describe("KubeHTTP", func() {
 		ctx := context.Background()
 		status := k.GetClusterStatus(ctx)
 
-		Expect(status.String()).To(Equal(kube.Unknown.String()))
-		// At present, tests are execute in the same testenv instance.
-		// As a result tests will interfere with each other.
-		// For that reason, only the initial unknown case is testable.
-		// TODO: ensure test are all isolated.
-
+		// To determine cluster status, we check for the wego CRD.
+		// We cannot remove that CRD for tests, so we can only test this
+		// cluster state.
+		Expect(status.String()).To(Equal(kube.WeGOInstalled.String()))
 	})
 	It("FluxPresent", func() {
 		ctx := context.Background()
@@ -102,7 +61,7 @@ var _ = Describe("KubeHTTP", func() {
 		}
 
 		// Create the namespace
-		err = testclient.Create(ctx, &fluxNs)
+		err = k8sClient.Create(ctx, &fluxNs)
 		Expect(err).NotTo(HaveOccurred())
 
 		exists2, err := k.FluxPresent(ctx)
@@ -117,28 +76,26 @@ var _ = Describe("KubeHTTP", func() {
 		name := "my-app"
 		app := &wego.Application{ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: kube.WeGONamespace,
+			Namespace: namespace.Name,
 		}}
 
-		err = testclient.Create(ctx, app)
-		Expect(err).NotTo(HaveOccurred())
+		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
 
-		a, err := k.GetApplication(ctx, name)
+		a, err := k.GetApplication(ctx, name, namespace.Name)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(a.Name).To(Equal(name))
 	})
 	It("SecretPresent", func() {
 		name := "my-secret"
-		ns := "default"
 		ctx := context.Background()
 		secret := corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: ns},
+			ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: namespace.Name},
 		}
 
-		err = testclient.Create(ctx, &secret)
+		err = k8sClient.Create(ctx, &secret)
 		Expect(err).NotTo(HaveOccurred())
 
-		exists, err := k.SecretPresent(ctx, name, ns)
+		exists, err := k.SecretPresent(ctx, name, namespace.Name)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(exists).To(BeTrue())
@@ -146,13 +103,16 @@ var _ = Describe("KubeHTTP", func() {
 	It("GetApplications", func() {
 		ctx := context.Background()
 		name := "my-app"
-		// TODO: this currently relies on the previous GetApplication test case.
-		// This is very bad and I intend on fixing the
-		// entire test environment isolation issue in a later PR.
+		app := &wego.Application{ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace.Name,
+		}}
 
-		list, err := k.GetApplications(ctx, name)
+		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
+
+		list, err := k.GetApplications(ctx, namespace.Name)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(len(list)).To(Equal(1))
+		Expect(list).To(HaveLen(1))
 		Expect(list[0].Name).To(Equal(name))
 
 	})

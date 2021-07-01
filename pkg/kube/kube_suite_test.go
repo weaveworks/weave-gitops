@@ -10,9 +10,20 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	corev1 "k8s.io/api/core/v1"
+	apiruntime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/rest"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 )
+
+var testEnv *envtest.Environment
+var testClustername = "test-cluster"
+var cfg *rest.Config
+var k8sClient client.Client
+var scheme *apiruntime.Scheme
+var k kube.Kube
+var k8sManager ctrl.Manager
 
 func TestKube(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -53,8 +64,7 @@ var _ = BeforeSuite(func(done Done) {
 
 var _ = AfterSuite(func() {
 	By("tearing down the test environment")
-	err := testEnv.Stop()
-	Expect(err).ToNot(HaveOccurred())
+	Expect(testEnv.Stop()).To(Succeed())
 })
 
 func init() {
