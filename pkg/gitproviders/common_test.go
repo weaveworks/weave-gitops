@@ -282,7 +282,8 @@ func Test_CreatePullRequestToOrgRepo(t *testing.T) {
 		userName string
 	}{
 		{"github", githubTestClient, github.DefaultDomain, accounts.GithubOrgName, accounts.GithubUserName},
-		{"gitlab", gitlabTestClient, gitlab.DefaultDomain, accounts.GitlabOrgName, accounts.GitlabUserName},
+		//Remove this for now as we dont support it yet.
+		// {"gitlab", gitlabTestClient, gitlab.DefaultDomain, accounts.GitlabOrgName, accounts.GitlabUserName},
 	}
 
 	testNameFormat := "create pr for %s account [%s]"
@@ -388,6 +389,7 @@ func CreateTestPullRequestToOrgRepo(t *testing.T, client gitprovider.Client, dom
 	branchName := "test-org-branch"
 
 	doesNotExistOrg := "doesnotexists"
+	SetGithubProvider(client)
 
 	orgRepoRef := NewOrgRepositoryRef(domain, orgName, repoName)
 	doesNotExistOrgRepoRef := NewOrgRepositoryRef(domain, doesNotExistOrg, repoName)
@@ -415,13 +417,13 @@ func CreateTestPullRequestToOrgRepo(t *testing.T, client gitprovider.Client, dom
 	prTitle := "config files"
 	prDescription := "test description"
 
-	err = CreatePullRequestToOrgRepo(client, orgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	err = CreatePullRequestToOrgRepo(orgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.NoError(t, err)
 
-	err = CreatePullRequestToOrgRepo(client, orgRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
+	err = CreatePullRequestToOrgRepo(orgRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
 	assert.Error(t, err)
 
-	err = CreatePullRequestToOrgRepo(client, doesNotExistOrgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	err = CreatePullRequestToOrgRepo(doesNotExistOrgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.Error(t, err)
 
 	t.Cleanup(func() {
@@ -438,6 +440,8 @@ func CreateTestPullRequestToUserRepo(t *testing.T, client gitprovider.Client, do
 	branchName := "test-user-branch"
 
 	doesnotExistUserAccount := "doesnotexists"
+
+	SetGithubProvider(client)
 
 	userRepoRef := NewUserRepositoryRef(domain, userAccount, repoName)
 	doesNotExistsUserRepoRef := NewUserRepositoryRef(domain, doesnotExistUserAccount, repoName)
@@ -465,13 +469,13 @@ func CreateTestPullRequestToUserRepo(t *testing.T, client gitprovider.Client, do
 	prTitle := "config files"
 	prDescription := "test description"
 
-	err = CreatePullRequestToUserRepo(client, userRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	err = CreatePullRequestToUserRepo(userRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.NoError(t, err)
 
-	err = CreatePullRequestToUserRepo(client, userRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
+	err = CreatePullRequestToUserRepo(userRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
 	assert.Error(t, err)
 
-	err = CreatePullRequestToUserRepo(client, doesNotExistsUserRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	err = CreatePullRequestToUserRepo(doesNotExistsUserRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.Error(t, err)
 
 	t.Cleanup(func() {
@@ -487,7 +491,7 @@ func TestGetAccountType(t *testing.T) {
 
 	accounts := getAccounts()
 
-	ownerType, err := GetAccountType(githubTestClient, accounts.GithubOrgName)
+	ownerType, err := GetAccountType(accounts.GithubOrgName)
 
 	assert.NoError(t, err)
 	assert.Equal(t, AccountTypeOrg, ownerType)
@@ -497,8 +501,9 @@ var _ = Describe("Get Account Type Tests", func() {
 	It("Verify GetAccountType succeed for user account ", func() {
 
 		accounts := getAccounts()
+		SetGithubProvider(githubTestClient)
 
-		accountType, err := GetAccountType(githubTestClient, accounts.GithubUserName)
+		accountType, err := GetAccountType(accounts.GithubUserName)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(accountType).Should(Equal(AccountTypeUser))
 	})
@@ -508,6 +513,7 @@ var _ = Describe("Get User repo info", func() {
 	It("Succeed on getting user repo info", func() {
 
 		accounts := getAccounts()
+		SetGithubProvider(githubTestClient)
 
 		repoName := "test-user-repo-info"
 		userRepoRef := NewUserRepositoryRef(github.DefaultDomain, accounts.GithubUserName, repoName)
