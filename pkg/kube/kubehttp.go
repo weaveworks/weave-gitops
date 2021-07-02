@@ -175,6 +175,10 @@ func (c *KubeHTTP) GetApplications(ctx context.Context, namespace string) ([]weg
 	return result.Items, nil
 }
 
+func (c *KubeHTTP) LabelExistsInCluster(ctx context.Context, label string) error {
+	return errors.New("LabelExistsInCluster is not implemented for kubeHTTP")
+}
+
 func initialContexts(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (contexts []string, currentCtx string, err error) {
 	rules, err := cfgLoadingRules.Load()
 

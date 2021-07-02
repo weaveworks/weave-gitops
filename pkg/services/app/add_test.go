@@ -51,6 +51,7 @@ var _ = BeforeEach(func() {
 		DeploymentType: "kustomize",
 		Namespace:      "wego-system",
 		AppConfigUrl:   "NONE",
+		AutoMerge:      true,
 	}
 })
 
@@ -400,22 +401,14 @@ var _ = Describe("Add", func() {
 			err := appSrv.Add(defaultParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(kubeClient.ApplyCallCount()).To(Equal(4))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(2))
 
 			sourceManifest, namespace := kubeClient.ApplyArgsForCall(0)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
 			Expect(namespace).To(Equal("wego-system"))
 
-			kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(1)
-			Expect(kustomizationManifest).To(Equal([]byte("kustomization")))
-			Expect(namespace).To(Equal("wego-system"))
-
-			appSpecManifest, namespace := kubeClient.ApplyArgsForCall(2)
-			Expect(string(appSpecManifest)).To(ContainSubstring("kind: Application"))
-			Expect(namespace).To(Equal("wego-system"))
-
-			appWegoManifest, namespace := kubeClient.ApplyArgsForCall(3)
-			Expect(string(appWegoManifest)).To(ContainSubstring("kustomization"))
+			appWegoManifest, namespace := kubeClient.ApplyArgsForCall(1)
+			Expect(appWegoManifest).To(Equal([]byte("kustomizationkustomization")))
 			Expect(namespace).To(Equal("wego-system"))
 		})
 
@@ -473,6 +466,22 @@ var _ = Describe("Add", func() {
 
 			Expect(filters[0](".wego/file.txt")).To(BeTrue())
 		})
+
+		It("creates a pr with branch hash name", func() {
+			defaultParams.AutoMerge = false
+			err := appSrv.Add(defaultParams)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			_, _, newBranch, files, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
+			Expect(newBranch).To(Equal("wego-bf22e886ea99b1891c16bba5529d7f0b"))
+			Expect(files).To(Not(BeEmpty()))
+
+			Expect(gitClient.WriteCallCount()).To(Equal(0))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(2))
+			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(1))
+			Expect(gitClient.CloneCallCount()).To(Equal(0))
+			Expect(gitProviders.CreatePullRequestToUserRepoCallCount()).To(Equal(1))
+		})
 	})
 
 	Context("add app with external config repo", func() {
@@ -526,7 +535,7 @@ var _ = Describe("Add", func() {
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				Expect(fluxClient.CreateKustomizationCallCount()).To(Equal(2))
+				Expect(fluxClient.CreateKustomizationCallCount()).To(Equal(3))
 
 				name, source, path, namespace := fluxClient.CreateKustomizationArgsForCall(0)
 				Expect(name).To(Equal("repo"))
@@ -535,9 +544,9 @@ var _ = Describe("Add", func() {
 				Expect(namespace).To(Equal("wego-system"))
 
 				name, source, path, namespace = fluxClient.CreateKustomizationArgsForCall(1)
-				Expect(name).To(Equal("weave-gitops-test-cluster"))
+				Expect(name).To(Equal("repo"))
 				Expect(source).To(Equal("bar"))
-				Expect(path).To(Equal("targets/test-cluster"))
+				Expect(path).To(Equal("apps/repo"))
 				Expect(namespace).To(Equal("wego-system"))
 			})
 
@@ -590,18 +599,14 @@ var _ = Describe("Add", func() {
 			err := appSrv.Add(defaultParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(kubeClient.ApplyCallCount()).To(Equal(5))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(2))
 
 			sourceManifest, namespace := kubeClient.ApplyArgsForCall(0)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
 			Expect(namespace).To(Equal("wego-system"))
 
 			kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(1)
-			Expect(kustomizationManifest).To(Equal([]byte("kustomization")))
-			Expect(namespace).To(Equal("wego-system"))
-
-			appSpecManifest, namespace := kubeClient.ApplyArgsForCall(2)
-			Expect(string(appSpecManifest)).To(ContainSubstring("kind: Application"))
+			Expect(kustomizationManifest).To(Equal([]byte("kustomizationkustomization")))
 			Expect(namespace).To(Equal("wego-system"))
 		})
 
@@ -653,11 +658,28 @@ var _ = Describe("Add", func() {
 
 			Expect(len(filters)).To(Equal(0))
 		})
+
+		It("creates a pr with branch hash name", func() {
+			defaultParams.AutoMerge = false
+			err := appSrv.Add(defaultParams)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			_, _, newBranch, files, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
+			Expect(newBranch).To(Equal("wego-bf22e886ea99b1891c16bba5529d7f0b"))
+			Expect(files).To(Not(BeEmpty()))
+
+			Expect(gitClient.WriteCallCount()).To(Equal(0))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(2))
+			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(2))
+			Expect(gitClient.CloneCallCount()).To(Equal(1))
+			Expect(gitProviders.CreatePullRequestToUserRepoCallCount()).To(Equal(1))
+		})
 	})
 
 	Context("when using dry-run", func() {
 		It("doesnt execute any action", func() {
 			defaultParams.DryRun = true
+			defaultParams.AutoMerge = true
 
 			err := appSrv.Add(defaultParams)
 			Expect(err).ShouldNot(HaveOccurred())

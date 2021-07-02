@@ -48,6 +48,7 @@ type Kube interface {
 	GetClusterName(ctx context.Context) (string, error)
 	GetClusterStatus(ctx context.Context) ClusterStatus
 	GetApplication(ctx context.Context, name string) (*wego.Application, error)
+	LabelExistsInCluster(ctx context.Context, label string) error
 }
 
 type KubeClient struct {
@@ -204,4 +205,15 @@ func (k *KubeClient) runKubectlCmdWithInput(args []string, input []byte) ([]byte
 	}
 
 	return out, nil
+}
+func (k *KubeClient) LabelExistsInCluster(ctx context.Context, label string) error {
+	cmd := []string{"get", "app", "-l", fmt.Sprintf("weave-gitops.weave.works/app-identifier=%s", label)}
+	o, err := k.runKubectlCmd(cmd)
+	if err != nil {
+		return fmt.Errorf("could not run kubectl command: %s", err)
+	}
+	if !strings.Contains(string(o), "No resources found") {
+		return fmt.Errorf("unable to create resource, resource already exists in cluster")
+	}
+	return nil
 }
