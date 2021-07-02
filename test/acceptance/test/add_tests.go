@@ -969,6 +969,56 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
+	It("SmokeTest - Verify wego can add kustomize-based app with 'app-config-url=NONE' and a URL", func() {
+		var repoAbsolutePath string
+		private := true
+		tip := generateTestInputs()
+		DEFAULT_SSH_KEY_PATH := "~/.ssh/id_rsa"
+		appName := tip.appRepoName
+		addCommand := fmt.Sprintf("app add --url='ssh://git@github.com/%s' --app-config-url=NONE", GITHUB_ORG+"/"+appName)
+
+		defer deleteRepo(tip.appRepoName)
+		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(tip.appRepoName)
+		})
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(tip.workloadName, tip.workloadNamespace)
+		})
+
+		By("When I create a private repo with my app workload", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, private)
+			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
+		})
+
+		By("And I install wego under my namespace: "+WEGO_DEFAULT_NAMESPACE, func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
+		By("And I run wego add command with app-config-url set to 'none'", func() {
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see my workload deployed to the cluster", func() {
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
+		})
+
+		By("And I should not see wego components in the remote git repo", func() {
+			pullGitRepo(repoAbsolutePath)
+			folderOutput, _ := runCommandAndReturnOutput(fmt.Sprintf("cd %s && ls -al", repoAbsolutePath))
+			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
+			Expect(folderOutput).ShouldNot(ContainSubstring("apps"))
+			Expect(folderOutput).ShouldNot(ContainSubstring("targets"))
+		})
+	})
+
 	It("Verify url and directory validation", func() {
 		var repoAbsolutePath string
 		appRepoName := "wego-test-app-" + RandString(8)
