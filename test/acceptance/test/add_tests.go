@@ -35,12 +35,12 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify private repo can be added to the cluster by running 'wego add .' ", func() {
+	It("Verify private repo can be added to the cluster by running 'wego add . --auto-merge=true' ", func() {
 		var repoAbsolutePath string
 		private := true
 		tip := generateTestInputs()
 
-		addCommand := "app add . "
+		addCommand := "app add . --auto-merge=true"
 		appName := tip.appRepoName
 
 		defer deleteRepo(tip.appRepoName)
@@ -117,7 +117,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		private := true
 		tip := generateTestInputs()
 
-		addCommand := "app add ."
+		addCommand := "app add . --auto-merge=true"
 		appName := tip.appRepoName
 		defer deleteRepo(tip.appRepoName)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
@@ -171,8 +171,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		appName1 := tip1.appRepoName
 		appName2 := tip2.appRepoName
-		addCommand1 := "app add . --name=" + appName1
-		addCommand2 := "app add . --name=" + appName2
+		addCommand1 := "app add . --name=" + appName1 + " --auto-merge=true"
+		addCommand2 := "app add . --name=" + appName2 + " --auto-merge=true"
 
 		defer deleteRepo(tip1.appRepoName)
 		defer deleteRepo(tip2.appRepoName)
@@ -249,7 +249,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appManifestFilePath := "./data/helm-repo/hello-world"
 
 		appName := "my-helm-app"
-		addCommand := "app add . --deployment-type=helm --path=./hello-world --name=" + appName
+		addCommand := "app add . --deployment-type=helm --path=./hello-world --name=" + appName + " --auto-merge=true"
 		appRepoName := "wego-test-app-" + RandString(8)
 
 		defer deleteRepo(appRepoName)
@@ -282,7 +282,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify helm repo can be added to the cluster by running 'wego add . --app-config-url=<URL> --deployment-type=helm --path=./hello-world'", func() {
+	It("Verify helm repo can be added to the cluster by running 'wego add . --app-config-url=<URL> --deployment-type=helm --path=./hello-world --auto-merge=true'", func() {
 		var repoAbsolutePath string
 		var configRepoAbsolutePath string
 		private := true
@@ -294,7 +294,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		configRepoName := "wego-test-config-repo-" + RandString(8)
 		configRepoUrl := fmt.Sprintf("ssh://git@github.com/%s/%s.git", os.Getenv("GITHUB_ORG"), configRepoName)
 
-		addCommand := fmt.Sprintf("app add . --app-config-url=%s --deployment-type=helm --path=./hello-world --name=%s", configRepoUrl, appName)
+		addCommand := fmt.Sprintf("app add . --app-config-url=%s --deployment-type=helm --path=./hello-world --name=%s --auto-merge=true", configRepoUrl, appName)
 
 		defer deleteRepo(appRepoName)
 		defer deleteRepo(configRepoName)
@@ -355,7 +355,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		var addCommandErr string
 		private := true
 		tip := generateTestInputs()
-		addCommand := "app add . "
+		addCommand := "app add . --auto-merge=true"
 
 		defer deleteRepo(tip.appRepoName)
 
@@ -390,7 +390,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		branchName := "test-branch-01"
 
 		url := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
-		addCommand := "app add --url=" + url + " --branch=" + branchName + " --dry-run"
+		addCommand := "app add --url=" + url + " --branch=" + branchName + " --dry-run" + " --auto-merge=true"
 		appName := tip.appRepoName
 		appType := "Kustomization"
 
@@ -431,13 +431,16 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Eventually(addCommandOutput).Should(MatchRegexp(`Checking cluster status... WeGOInstalled`))
 
 			Eventually(addCommandOutput).Should(MatchRegexp(
-				`Generating deploy key for repo ` + url + ` ...\nGenerating Source manifest...\nGenerating GitOps automation manifests...\nGenerating Application spec manifest...\nApplying manifests to the cluster...`))
+				`Generating deploy key for repo ` + url + ` ...\nGenerating Source manifest...\nGenerating GitOps automation manifests...\nGenerating Application spec manifest...`))
+
+			Eventually(addCommandOutput).Should(MatchRegexp(`Applying manifests to the cluster...`))
 
 			Eventually(addCommandOutput).Should(MatchRegexp(
 				`apiVersion:.*\nkind: GitRepository\nmetadata:\n\s*name: ` + appName + `\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE + `[a-z0-9:\n\s*]+branch: ` + branchName + `[a-zA-Z0-9:\n\s*-]+url: ` + url))
 
 			Eventually(addCommandOutput).Should(MatchRegexp(
-				`apiVersion:.*\nkind: ` + appType + `\nmetadata:\n\s*name: ` + appName + `\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE + `[\w\d\W\n\s*]+kind: GitRepository\n\s*name: ` + appName))
+				`apiVersion:.*\nkind: ` + appType + `\nmetadata:\n\s*name: ` + appName + `-wego-apps-dir\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE))
+
 		})
 
 		By("And I should not see any workload deployed to the cluster", func() {
@@ -454,7 +457,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		wegoNamespace := "my-space"
 		url := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
-		addCommand := "app add --url=" + url + " --branch=" + branchName + " --namespace=" + wegoNamespace
+		addCommand := "app add --url=" + url + " --branch=" + branchName + " --namespace=" + wegoNamespace + " --auto-merge=true"
 		appName := tip.appRepoName
 
 		defer deleteRepo(tip.appRepoName)
@@ -511,7 +514,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		private := true
 		tip := generateTestInputs()
 
-		addCommand := "app add " + tip.appRepoName + "/"
+		addCommand := "app add " + tip.appRepoName + "/" + " --auto-merge=true"
 		appName := tip.appRepoName
 
 		defer deleteRepo(tip.appRepoName)
@@ -553,7 +556,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify app repo can be added to the cluster by running 'wego add . --app-config-url=<git ssh url>' ", func() {
+	It("Verify app repo can be added to the cluster by running 'wego add . --app-config-url=<git ssh url> --auto-merge=true' ", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		private := true
@@ -561,7 +564,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		appConfigRepoName := "wego-config-repo-" + RandString(8)
 		configRepoRemoteURL = "ssh://git@github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
-		addCommand := "app add . --app-config-url=" + configRepoRemoteURL
+		addCommand := "app add . --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
 		appName := tip.appRepoName
 
 		defer deleteRepo(tip.appRepoName)
@@ -606,7 +609,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify app repo can be added to the cluster by running 'wego add --url=<app repo url> --app-config-url=<git ssh url>' ", func() {
+	It("Verify app repo can be added to the cluster by running 'wego add --url=<app repo url> --app-config-url=<git ssh url> --auto-merge=true' ", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		private := true
@@ -615,7 +618,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appConfigRepoName := "wego-config-repo-" + RandString(8)
 		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 		configRepoRemoteURL = "ssh://git@github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
-		addCommand := "app add --url=" + appRepoRemoteURL + " --app-config-url=" + configRepoRemoteURL
+		addCommand := "app add --url=" + appRepoRemoteURL + " --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
 		appName := tip.appRepoName
 
 		defer deleteRepo(tip.appRepoName)
@@ -659,13 +662,13 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify app repo can be added to the cluster by running 'wego add --url=<app repo url>' ", func() {
+	It("Verify app repo can be added to the cluster by running 'wego add --url=<app repo url> --auto-merge=true' ", func() {
 		var repoAbsolutePath string
 		private := false
 		tip := generateTestInputs()
 
 		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
-		addCommand := "app add --url=" + appRepoRemoteURL
+		addCommand := "app add --url=" + appRepoRemoteURL + " --auto-merge=true"
 		appName := tip.appRepoName
 
 		defer deleteRepo(tip.appRepoName)
@@ -709,7 +712,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		appRepoName := "wego-test-app-" + RandString(8)
 		appName := appRepoName
-		addCommand := "app add . --name=" + appName
+		addCommand := "app add . --name=" + appName + " --auto-merge=true"
 
 		defer deleteRepo(appRepoName)
 		defer deleteWorkload(tip1.workloadName, tip1.workloadNamespace)
@@ -767,7 +770,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appRepoName2 := "wego-test-app-" + RandString(8)
 		appConfigRepoName := "wego-config-repo-" + RandString(8)
 		configRepoRemoteURL = "ssh://git@github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
-		addCommand := "app add . --app-config-url=" + configRepoRemoteURL
+		addCommand := "app add . --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
 		appName1 := appRepoName1
 		appName2 := appRepoName2
 
@@ -830,8 +833,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appRepoName := "wego-test-app-" + RandString(8)
 		appName1 := "app1"
 		appName2 := "app2"
-		addCommand1 := "app add . --path=./" + appName1 + " --name=" + appName1
-		addCommand2 := "app add . --path=./" + appName2 + " --name=" + appName2
+		addCommand1 := "app add . --path=./" + appName1 + " --name=" + appName1 + " --auto-merge=true"
+		addCommand2 := "app add . --path=./" + appName2 + " --name=" + appName2 + " --auto-merge=true"
 
 		defer deleteRepo(appRepoName)
 		defer deleteWorkload(tip1.workloadName, tip1.workloadNamespace)
@@ -927,7 +930,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appRepoName := "wego-test-app-" + RandString(8)
 		uniqueSuffix := RandString(6)
 		appManifestFilePath := getUniqueWorkload("xxyyzz", uniqueSuffix)
-		addCommand := "app add . --url=https://github.com/foo/bar"
+		addCommand := "app add . --url=https://github.com/foo/bar --auto-merge=true"
 
 		repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, true)
 		gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
