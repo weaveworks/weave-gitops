@@ -461,3 +461,12 @@ func getUniqueWorkload(placeHolderSuffix string, uniqueSuffix string) string {
 	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("sed 's/%s/%s/g' %s > %s", placeHolderSuffix, uniqueSuffix, workloadTemplateFilePath, absWorkloadManifestFilePath))
 	return absWorkloadManifestFilePath
 }
+
+func verifyPRCreated(repoAbsolutePath, appName string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && hub pr list", repoAbsolutePath))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+	output := string(session.Wait().Out.Contents())
+	Expect(output).To(ContainSubstring(fmt.Sprintf("wego add %s", appName)))
+}

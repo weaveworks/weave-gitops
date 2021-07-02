@@ -1032,4 +1032,139 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		_, errOut := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, "wego-system")
 		Expect(errOut).To(ContainSubstring("you should choose either --url or the app directory"))
 	})
+
+	It("Verify a PR is created in user repo using `wego app add .", func() {
+		var repoAbsolutePath string
+		tip := generateTestInputs()
+
+		appName := tip.appRepoName
+		addCommand := "app add . --name=" + appName
+
+		defer deleteRepo(tip.appRepoName)
+		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(tip.appRepoName)
+		})
+
+		By("When I create an empty private repo for app", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, true)
+		})
+
+		By("And I git add-commit-push for app with workload", func() {
+			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
+		By("And I run wego app add command for app", func() {
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I should see a PR is created in user repo", func() {
+			verifyPRCreated(repoAbsolutePath, appName)
+		})
+	})
+
+	It("Verify PR can be created in external repo 'wego add . --app-config-url=<git ssh url>' ", func() {
+		var repoAbsolutePath string
+		var configRepoRemoteURL string
+		var appCofigRepoAbsPath string
+		private := true
+		tip := generateTestInputs()
+
+		appConfigRepoName := "wego-config-repo-" + RandString(8)
+		configRepoRemoteURL = "ssh://git@github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
+		addCommand := "app add . --app-config-url=" + configRepoRemoteURL
+		appName := tip.appRepoName
+
+		defer deleteRepo(tip.appRepoName)
+		defer deleteRepo(appConfigRepoName)
+		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(tip.appRepoName)
+			deleteRepo(appConfigRepoName)
+
+		})
+
+		By("When I create a private repo for wego app config", func() {
+			appCofigRepoAbsPath = initAndCreateEmptyRepo(appConfigRepoName, private)
+			gitAddCommitPush(appCofigRepoAbsPath, tip.appManifestFilePath)
+		})
+
+		By("When I create a private repo with my app workload", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, private)
+			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
+		By("And I run wego add command with --app-config-url param", func() {
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I should see a PR is created for external repo", func() {
+			verifyPRCreated(appCofigRepoAbsPath, appName)
+		})
+	})
+
+	It("Verify PR fails if branch exists", func() {
+		var repoAbsolutePath string
+		tip := generateTestInputs()
+		tip2 := generateTestInputs()
+
+		appName := tip.appRepoName
+		appName2 := tip2.appRepoName
+		addCommand := "app add . --name=" + appName
+		addCommand2 := "app add . --name=" + appName2
+
+		defer deleteRepo(tip.appRepoName)
+		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(tip.appRepoName)
+		})
+
+		By("When I create an empty private repo for app", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, true)
+		})
+
+		By("And I git add-commit-push for app with workload", func() {
+			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
+		By("And I run wego app add command for app", func() {
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I should see a PR is created", func() {
+			verifyPRCreated(repoAbsolutePath, appName)
+		})
+
+		By("And I run wego app add command for app again with different name", func() {
+			_, addCommandErr := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand2, WEGO_DEFAULT_NAMESPACE)
+			Expect(addCommandErr).Should(ContainSubstring("422 Reference already exists"))
+		})
+	})
 })
