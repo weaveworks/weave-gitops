@@ -13,9 +13,15 @@ DEP_FILE=${1}
 TAG=${2:-$(${SCRIPT_DIR}/image-tag)}
 BIN_DIR=${3:-${SCRIPT_DIR}/bin}
 RELEASE_GOOS=${RELEASE_GOOS:-$(go env GOOS)}
+SKIP_FETCH_TOOLS=${SKIP_FETCH_TOOLS:-""}
 
 # Derive from GOOS
 RELEASE_OS=$(title_case "$RELEASE_GOOS")
+
+if [ ! -z "$SKIP_FETCH_TOOLS" ]; then
+    echo "skipping fetch tools..."
+    exit 0
+fi
 
 # create bin directory
 rm -rf "${BIN_DIR}"
@@ -73,7 +79,7 @@ download_dependency() {
     tarpath=$(instantiate_url "$(run_stoml tarpath)")
     local custom_bindir
     custom_bindir=$(run_stoml bindir)
-    mkdir -p $custom_bindir
+    mkdir -p ${custom_bindir:-$bin_dir}
     echo $tarpath
     if check_url "${binarypath}"; then
         url_and_path="${binarypath}"

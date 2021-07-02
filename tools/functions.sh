@@ -117,11 +117,11 @@ do_curl_tarball_with_path() {
     local cmd="${1}"
     local url_and_path=(${2//;/ })
     local default_path="${HOME}/.wego/bin"
-    local path="${3:-${default_path}}"/"${cmd}"
+    local path="${3:-${default_path}}"
 
     dldir="$(mktempdir)"
-    mkdir "${dldir}/${cmd}"
+    mkdir -p "${dldir}/${cmd}/${url_and_path[1]}"
     do_curl "${dldir}/${cmd}.tar.gz" "${url_and_path[0]}"
     tar -C "${dldir}/${cmd}" -xvf "${dldir}/${cmd}.tar.gz"
-    mv "${dldir}/${url_and_path[1]}/${cmd}" "${path}"
+    mv "${dldir}/${cmd}/${url_and_path[1]}" "${path}/${cmd}"
 }

@@ -10,6 +10,8 @@ CURRENT_DIR=$(shell pwd)
 FLUX_VERSION=$(shell $(CURRENT_DIR)/tools/bin/stoml $(CURRENT_DIR)/tools/dependencies.toml flux.version)
 LDFLAGS = "-X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION)"
 
+KUBEBUILDER_ASSETS="$(CURRENT_DIR)/tools/bin/envtest"
+
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
@@ -27,10 +29,11 @@ all: wego
 
 # Run tests
 unit-tests: wego cmd/ui/dist/main.js
-	CGO_ENABLED=0 go test -v -tags unittest ./...
+	# To avoid downloading depencencies every time use `SKIP_FETCH_TOOLS=1 unit-tests`
+	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v -tags unittest ./...
 
-debug: 
-	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) -gcflags='all=-N -l' cmd/wego/*.go 
+debug:
+	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) -gcflags='all=-N -l' cmd/wego/*.go
 
 bin:
 	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) cmd/wego/*.go
@@ -54,7 +57,7 @@ vet:
 	go vet ./...
 
 dependencies:
-	test -e pkg/flux/bin/flux || $(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
+	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
 
 package-lock.json:
 	npm install
