@@ -969,7 +969,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("SmokeTest - Verify wego can add kustomize-based app with 'app-config-url=NONE' and a URL", func() {
+	It("Verify wego can add kustomize-based app with 'app-config-url=NONE' and a URL", func() {
 		var repoAbsolutePath string
 		private := true
 		tip := generateTestInputs()
