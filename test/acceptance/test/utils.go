@@ -109,7 +109,7 @@ func waitForNamespaceToTerminate(namespace string, timeout time.Duration) error 
 
 	for i := pollInterval; i < timeoutInSeconds; i += pollInterval {
 		log.Infof("Waiting for namespace: %s to terminate : %d second(s) passed of %d seconds timeout", namespace, i, timeoutInSeconds)
-		out, _ := runCommandAndReturnOutput(fmt.Sprintf("kubectl get ns %s --ignore-not-found=true | grep -i terminating", namespace))
+		out, _ := runCommandAndReturnStringOutput(fmt.Sprintf("kubectl get ns %s --ignore-not-found=true | grep -i terminating", namespace))
 		out = strings.TrimSpace(out)
 		if out == "" {
 			return nil
@@ -282,11 +282,18 @@ func deleteWorkload(workloadName string, workloadNamespace string) {
 	_ = waitForNamespaceToTerminate(workloadNamespace, INSTALL_RESET_TIMEOUT)
 }
 
-func runCommandAndReturnOutput(commandToRun string) (stdOut string, stdErr string) {
+func runCommandAndReturnStringOutput(commandToRun string) (stdOut string, stdErr string) {
 	command := exec.Command("sh", "-c", commandToRun)
 	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Eventually(session).Should(gexec.Exit())
 	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
+}
+
+func runCommandAndReturnSessionOutput(commandToRun string) *gexec.Session {
+	command := exec.Command("sh", "-c", commandToRun)
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	return session
 }
 
 func generateTestInputs() TestInputs {

@@ -58,7 +58,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		_ = waitForNamespaceToTerminate(WEGO_DEFAULT_NAMESPACE, NAMESPACE_TERMINATE_TIMEOUT)
 
 		By("Then I should not see any wego components", func() {
-			_, errOutput := runCommandAndReturnOutput("kubectl get ns " + WEGO_DEFAULT_NAMESPACE)
+			_, errOutput := runCommandAndReturnStringOutput("kubectl get ns " + WEGO_DEFAULT_NAMESPACE)
 			Eventually(errOutput).Should(ContainSubstring(`Error from server (NotFound): namespaces "` + WEGO_DEFAULT_NAMESPACE + `" not found`))
 		})
 	})
@@ -84,7 +84,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)
 
 		By("Then I should not see any wego components", func() {
-			_, errOutput := runCommandAndReturnOutput("kubectl get ns " + namespace)
+			_, errOutput := runCommandAndReturnStringOutput("kubectl get ns " + namespace)
 			Eventually(errOutput).Should(ContainSubstring(`Error from server (NotFound): namespaces "` + namespace + `" not found`))
 		})
 	})
