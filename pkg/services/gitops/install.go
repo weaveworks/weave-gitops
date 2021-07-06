@@ -6,6 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/weaveworks/weave-gitops/manifests"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
 type InstallParams struct {
@@ -14,13 +15,13 @@ type InstallParams struct {
 }
 
 func (g *Gitops) Install(params InstallParams) ([]byte, error) {
-	present, err := g.kube.FluxPresent(context.Background())
-	if err != nil {
-		return []byte{}, errors.Wrap(err, "could not verify flux presence in the cluster")
-	}
+	status := g.kube.GetClusterStatus(context.Background())
 
-	if present {
-		return []byte{}, fmt.Errorf("Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n  $ flux uninstall")
+	switch status {
+	case kube.FluxInstalled:
+		return []byte{}, errors.New("Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n  $ flux uninstall")
+	case kube.Unknown:
+		return []byte{}, errors.New("Weave GitOps cannot talk to the cluster")
 	}
 
 	fluxManifests, err := g.flux.Install(params.Namespace, params.DryRun)
