@@ -1218,7 +1218,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Expect(addCommandErr).Should(ContainSubstring("unable to create resource, resource already exists in cluster"))
 		})
 	})
-  
+
 	It("SmokeTest - Verify wego can add an app from helm-repository with 'app-config-url=url'", func() {
 		var repoAbsolutePath string
 		private := true
@@ -1244,9 +1244,9 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
 		})
 
-    By("And I install wego under my namespace: "+WEGO_DEFAULT_NAMESPACE, func() {
-      installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
-    }
+		By("And I install wego under my namespace: "+WEGO_DEFAULT_NAMESPACE, func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
 
 		By("And I run wego add command with app-config-url set with"+appRepoRemoteURL, func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
@@ -1256,4 +1256,5 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			verifyWegoHelmAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
 			verifyHelmPodWorkloadIsDeployed(workloadName, WEGO_DEFAULT_NAMESPACE)
 		})
+	})
 })
