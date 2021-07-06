@@ -68,7 +68,7 @@ func local_request_Applications_ListApplications_0(ctx context.Context, marshale
 }
 
 var (
-	filter_Applications_GetApplication_0 = &utilities.DoubleArray{Encoding: map[string]int{"application_name": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	filter_Applications_GetApplication_0 = &utilities.DoubleArray{Encoding: map[string]int{"name": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_Applications_GetApplication_0(ctx context.Context, marshaler runtime.Marshaler, client ApplicationsClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -82,14 +82,14 @@ func request_Applications_GetApplication_0(ctx context.Context, marshaler runtim
 		_   = err
 	)
 
-	val, ok = pathParams["application_name"]
+	val, ok = pathParams["name"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "application_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
 	}
 
-	protoReq.ApplicationName, err = runtime.String(val)
+	protoReq.Name, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "application_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -115,14 +115,14 @@ func local_request_Applications_GetApplication_0(ctx context.Context, marshaler 
 		_   = err
 	)
 
-	val, ok = pathParams["application_name"]
+	val, ok = pathParams["name"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "application_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
 	}
 
-	protoReq.ApplicationName, err = runtime.String(val)
+	protoReq.Name, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "application_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -172,7 +172,7 @@ func RegisterApplicationsHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_server.v1.Applications/GetApplication", runtime.WithHTTPPathPattern("/v1/applications/{application_name}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/wego_server.v1.Applications/GetApplication", runtime.WithHTTPPathPattern("/v1/applications/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -254,7 +254,7 @@ func RegisterApplicationsHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_server.v1.Applications/GetApplication", runtime.WithHTTPPathPattern("/v1/applications/{application_name}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/wego_server.v1.Applications/GetApplication", runtime.WithHTTPPathPattern("/v1/applications/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -276,7 +276,7 @@ func RegisterApplicationsHandlerClient(ctx context.Context, mux *runtime.ServeMu
 var (
 	pattern_Applications_ListApplications_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "applications"}, ""))
 
-	pattern_Applications_GetApplication_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "applications", "application_name"}, ""))
+	pattern_Applications_GetApplication_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "applications", "name"}, ""))
 )
 
 var (

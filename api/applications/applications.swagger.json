@@ -48,7 +48,7 @@
         ]
       }
     },
-    "/v1/applications/{applicationName}": {
+    "/v1/applications/{name}": {
       "get": {
         "summary": "GetApplication returns a given application",
         "operationId": "Applications_GetApplication",
@@ -68,13 +68,13 @@
         },
         "parameters": [
           {
-            "name": "applicationName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
-            "name": "applicationNamespace",
+            "name": "namespace",
             "in": "query",
             "required": false,
             "type": "string"
