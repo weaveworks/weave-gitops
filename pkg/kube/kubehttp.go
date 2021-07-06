@@ -116,13 +116,9 @@ func (c *KubeHTTP) Apply(manifests []byte, namespace string) ([]byte, error) {
 	return nil, errors.New("Apply is not implemented for kubeHTTP")
 }
 
-func (c *KubeHTTP) GetApplication(ctx context.Context, name, namespace string) (*wego.Application, error) {
-	tName := types.NamespacedName{
-		Name:      name,
-		Namespace: namespace,
-	}
+func (c *KubeHTTP) GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error) {
 	app := wego.Application{}
-	if err := c.Client.Get(ctx, tName, &app); err != nil {
+	if err := c.Client.Get(ctx, name, &app); err != nil {
 		return nil, fmt.Errorf("could not get application: %s", err)
 	}
 

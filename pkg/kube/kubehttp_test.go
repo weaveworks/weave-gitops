@@ -9,6 +9,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
@@ -81,7 +82,7 @@ var _ = Describe("KubeHTTP", func() {
 
 		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
 
-		a, err := k.GetApplication(ctx, name, namespace.Name)
+		a, err := k.GetApplication(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name})
 		Expect(err).NotTo(HaveOccurred())
 		Expect(a.Name).To(Equal(name))
 	})

@@ -6,6 +6,7 @@ import (
 
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 type server struct {
@@ -42,7 +43,7 @@ func (s *server) ListApplications(ctx context.Context, msg *pb.ListApplicationsR
 }
 
 func (s *server) GetApplication(ctx context.Context, msg *pb.GetApplicationRequest) (*pb.GetApplicationResponse, error) {
-	app, err := s.kube.GetApplication(ctx, msg.ApplicationName, msg.ApplicationNamespace)
+	app, err := s.kube.GetApplication(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace})
 
 	if err != nil {
 		return nil, fmt.Errorf("could not get application: %s", err)

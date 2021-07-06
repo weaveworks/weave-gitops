@@ -6,11 +6,12 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 type AppService interface {
 	Add(params AddParams) error
-	Get(name, namespace string) (*wego.Application, error)
+	Get(name types.NamespacedName) (*wego.Application, error)
 }
 
 type App struct {
