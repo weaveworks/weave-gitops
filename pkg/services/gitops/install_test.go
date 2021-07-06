@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 )
@@ -15,7 +16,11 @@ var installParams gitops.InstallParams
 var _ = Describe("Install", func() {
 	BeforeEach(func() {
 		fluxClient = &fluxfakes.FakeFlux{}
-		kubeClient = &kubefakes.FakeKube{}
+		kubeClient = &kubefakes.FakeKube{
+			GetClusterStatusStub: func(c context.Context) kube.ClusterStatus {
+				return kube.Unmodified
+			},
+		}
 		gitopsSrv = gitops.New(fluxClient, kubeClient)
 
 		installParams = gitops.InstallParams{
@@ -24,13 +29,18 @@ var _ = Describe("Install", func() {
 		}
 	})
 
-	It("checks flux presence on the cluster", func() {
-		kubeClient.FluxPresentStub = func(ctx context.Context) (bool, error) {
-			return true, nil
+	It("checks cluster status", func() {
+		kubeClient.GetClusterStatusStub = func(c context.Context) kube.ClusterStatus {
+			return kube.FluxInstalled
 		}
-
 		_, err := gitopsSrv.Install(installParams)
-		Expect(err).Should(HaveOccurred())
+		Expect(err).Should(MatchError("Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n  $ flux uninstall"))
+
+		kubeClient.GetClusterStatusStub = func(c context.Context) kube.ClusterStatus {
+			return kube.Unknown
+		}
+		_, err = gitopsSrv.Install(installParams)
+		Expect(err).Should(MatchError("Weave GitOps cannot talk to the cluster"))
 	})
 
 	It("calls flux install", func() {

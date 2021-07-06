@@ -131,6 +131,8 @@ func (k *KubeClient) FluxPresent(ctx context.Context) (bool, error) {
 		if strings.Contains(string(out), "not found") {
 			return false, nil
 		}
+
+		return false, err
 	}
 
 	return true, nil
