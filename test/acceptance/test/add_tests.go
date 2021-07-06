@@ -1162,9 +1162,57 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			verifyPRCreated(repoAbsolutePath, appName)
 		})
 
-		By("And I run wego app add command for app again with different name", func() {
+		By("And I fail to create a PR with the same app", func() {
 			_, addCommandErr := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand2, WEGO_DEFAULT_NAMESPACE)
 			Expect(addCommandErr).Should(ContainSubstring("422 Reference already exists"))
+		})
+	})
+
+	It("MyTest2 - Verify PR fails if app exists", func() {
+		var repoAbsolutePath string
+		tip := generateTestInputs()
+		tip2 := generateTestInputs()
+
+		appName := tip.appRepoName
+		appName2 := tip2.appRepoName
+		addCommand := "app add . --name=" + appName + " --auto-merge=true"
+		addCommand2 := "app add . --name=" + appName2
+
+		defer deleteRepo(tip.appRepoName)
+		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(tip.appRepoName)
+		})
+
+		By("When I create an empty private repo for app", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, true)
+		})
+
+		By("And I git add-commit-push for app with workload", func() {
+			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
+		By("And I run wego app add command for app", func() {
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see my workload deployed to the cluster", func() {
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
+		})
+
+		By("And I fail to create a PR with the same app", func() {
+			_, addCommandErr := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand2, WEGO_DEFAULT_NAMESPACE)
+			Expect(addCommandErr).Should(ContainSubstring("unable to create resource, resource already exists in cluster"))
 		})
 	})
 })
