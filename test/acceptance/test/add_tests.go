@@ -1259,7 +1259,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("Then I should see my workload deployed to the cluster", func() {
-			verifyWegoHelmAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+			verifyWegoHelmAddCommand(appName, workloadNamespace)
 			verifyHelmPodWorkloadIsDeployed(workloadName, workloadNamespace)
 		})
 
