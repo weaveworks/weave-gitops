@@ -20,7 +20,8 @@ export type ListApplicationsResponse = {
 }
 
 export type GetApplicationRequest = {
-  applicationName?: string
+  name?: string
+  namespace?: string
 }
 
 export type GetApplicationResponse = {
@@ -32,6 +33,6 @@ export class Applications {
     return fm.fetchReq<ListApplicationsRequest, ListApplicationsResponse>(`/v1/applications?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetApplication(req: GetApplicationRequest, initReq?: fm.InitReq): Promise<GetApplicationResponse> {
-    return fm.fetchReq<GetApplicationRequest, GetApplicationResponse>(`/v1/applications/${req["applicationName"]}?${fm.renderURLSearchParams(req, ["applicationName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetApplicationRequest, GetApplicationResponse>(`/v1/applications/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
 }
