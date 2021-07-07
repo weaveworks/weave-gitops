@@ -112,7 +112,6 @@ func (a *App) Add(params AddParams) error {
 		return err
 	}
 
-	fmt.Printf("Generating deploy key for repo %s ...\n", params.Url)
 	secretRef, err := a.createAndUploadDeployKey(params.Url, SourceType(params.SourceType), clusterName, params.Namespace, params.DryRun)
 	if err != nil {
 		return errors.Wrap(err, "could not generate deploy key")
@@ -277,7 +276,7 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 		return err
 	}
 
-	appConfigSecretName, err := a.createAndUploadDeployKey(params.AppConfigUrl, SourceType(params.SourceType), clusterName, params.Namespace, params.DryRun)
+	appConfigSecretName, err := a.createAndUploadDeployKey(params.AppConfigUrl, SourceTypeGit, clusterName, params.Namespace, params.DryRun)
 	if err != nil {
 		return errors.Wrap(err, "could not generate deploy key")
 	}
