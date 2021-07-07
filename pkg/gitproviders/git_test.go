@@ -8,9 +8,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestGit(t *testing.T) {
+func TestGitProviders(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Git Tests")
+	RunSpecs(t, "GitProviders Tests")
 }
 
 var _ = Describe("Gitlab Tests", func() {

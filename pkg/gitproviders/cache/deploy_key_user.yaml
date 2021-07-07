@@ -1,0 +1,1180 @@
+---
+version: 1
+interactions:
+- request:
+    body: |
+      {"name":"test-deploy-key-user-repo","description":"test user repository","private":true,"visibility":"private","auto_init":true}
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.baptiste-preview+json, application/vnd.github.nebula-preview+json
+      Content-Type:
+      - application/json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/user/repos
+    method: POST
+  response:
+    body: '{"id":383630243,"node_id":"MDEwOlJlcG9zaXRvcnkzODM2MzAyNDM=","name":"test-deploy-key-user-repo","full_name":"bot/test-deploy-key-user-repo","private":true,"owner":{"login":"bot","id":3892786,"node_id":"MDQ6VXNlcjM4OTI3ODY=","avatar_url":"https://avatars.githubusercontent.com/u/3892786?v=4","gravatar_id":"","url":"https://api.github.com/users/bot","html_url":"https://github.com/bot","followers_url":"https://api.github.com/users/bot/followers","following_url":"https://api.github.com/users/bot/following{/other_user}","gists_url":"https://api.github.com/users/bot/gists{/gist_id}","starred_url":"https://api.github.com/users/bot/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/bot/subscriptions","organizations_url":"https://api.github.com/users/bot/orgs","repos_url":"https://api.github.com/users/bot/repos","events_url":"https://api.github.com/users/bot/events{/privacy}","received_events_url":"https://api.github.com/users/bot/received_events","type":"User","site_admin":false},"html_url":"https://github.com/bot/test-deploy-key-user-repo","description":"test
+      user repository","fork":false,"url":"https://api.github.com/repos/bot/test-deploy-key-user-repo","forks_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/forks","keys_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/keys{/key_id}","collaborators_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/collaborators{/collaborator}","teams_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/teams","hooks_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/hooks","issue_events_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/issues/events{/number}","events_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/events","assignees_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/assignees{/user}","branches_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/branches{/branch}","tags_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/tags","blobs_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/blobs{/sha}","git_tags_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/tags{/sha}","git_refs_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/refs{/sha}","trees_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/trees{/sha}","statuses_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/statuses/{sha}","languages_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/languages","stargazers_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/stargazers","contributors_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/contributors","subscribers_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/subscribers","subscription_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/subscription","commits_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/commits{/sha}","git_commits_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/commits{/sha}","comments_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/comments{/number}","issue_comment_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/issues/comments{/number}","contents_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/contents/{+path}","compare_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/compare/{base}...{head}","merges_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/merges","archive_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/{archive_format}{/ref}","downloads_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/downloads","issues_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/issues{/number}","pulls_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/pulls{/number}","milestones_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/milestones{/number}","notifications_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/notifications{?since,all,participating}","labels_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/labels{/name}","releases_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/releases{/id}","deployments_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/deployments","created_at":"2021-07-07T00:26:36Z","updated_at":"2021-07-07T00:26:36Z","pushed_at":"2021-07-07T00:26:36Z","git_url":"git://github.com/bot/test-deploy-key-user-repo.git","ssh_url":"git@github.com:bot/test-deploy-key-user-repo.git","clone_url":"https://github.com/bot/test-deploy-key-user-repo.git","svn_url":"https://github.com/bot/test-deploy-key-user-repo","homepage":null,"size":0,"stargazers_count":0,"watchers_count":0,"language":null,"has_issues":true,"has_projects":true,"has_downloads":true,"has_wiki":true,"has_pages":false,"forks_count":0,"mirror_url":null,"archived":false,"disabled":false,"open_issues_count":0,"license":null,"is_template":false,"visibility":"private","forks":0,"open_issues":0,"watchers":0,"default_branch":"main","permissions":{"admin":true,"push":true,"pull":true},"allow_squash_merge":true,"allow_merge_commit":true,"allow_rebase_merge":true,"delete_branch_on_merge":false,"network_count":0,"subscribers_count":1}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Length:
+      - "5815"
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:36 GMT
+      Etag:
+      - '"fbc8937b8f77c04bc3ffb488934bffe6e428586e61798da93bd9618be676f5b3"'
+      Location:
+      - https://api.github.com/repos/bot/test-deploy-key-user-repo
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - public_repo, repo
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.baptiste-preview; format=json, github.nebula-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A231:6012B4F:60E4F4BB
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4948"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "52"
+      X-Xss-Protection:
+      - "0"
+    status: 201 Created
+    code: 201
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.scarlet-witch-preview+json, application/vnd.github.mercy-preview+json,
+        application/vnd.github.baptiste-preview+json, application/vnd.github.nebula-preview+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/bot/test-deploy-key-user-repo
+    method: GET
+  response:
+    body: '{"id":383630243,"node_id":"MDEwOlJlcG9zaXRvcnkzODM2MzAyNDM=","name":"test-deploy-key-user-repo","full_name":"bot/test-deploy-key-user-repo","private":true,"owner":{"login":"bot","id":3892786,"node_id":"MDQ6VXNlcjM4OTI3ODY=","avatar_url":"https://avatars.githubusercontent.com/u/3892786?v=4","gravatar_id":"","url":"https://api.github.com/users/bot","html_url":"https://github.com/bot","followers_url":"https://api.github.com/users/bot/followers","following_url":"https://api.github.com/users/bot/following{/other_user}","gists_url":"https://api.github.com/users/bot/gists{/gist_id}","starred_url":"https://api.github.com/users/bot/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/bot/subscriptions","organizations_url":"https://api.github.com/users/bot/orgs","repos_url":"https://api.github.com/users/bot/repos","events_url":"https://api.github.com/users/bot/events{/privacy}","received_events_url":"https://api.github.com/users/bot/received_events","type":"User","site_admin":false},"html_url":"https://github.com/bot/test-deploy-key-user-repo","description":"test
+      user repository","fork":false,"url":"https://api.github.com/repos/bot/test-deploy-key-user-repo","forks_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/forks","keys_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/keys{/key_id}","collaborators_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/collaborators{/collaborator}","teams_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/teams","hooks_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/hooks","issue_events_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/issues/events{/number}","events_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/events","assignees_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/assignees{/user}","branches_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/branches{/branch}","tags_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/tags","blobs_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/blobs{/sha}","git_tags_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/tags{/sha}","git_refs_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/refs{/sha}","trees_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/trees{/sha}","statuses_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/statuses/{sha}","languages_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/languages","stargazers_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/stargazers","contributors_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/contributors","subscribers_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/subscribers","subscription_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/subscription","commits_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/commits{/sha}","git_commits_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/commits{/sha}","comments_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/comments{/number}","issue_comment_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/issues/comments{/number}","contents_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/contents/{+path}","compare_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/compare/{base}...{head}","merges_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/merges","archive_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/{archive_format}{/ref}","downloads_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/downloads","issues_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/issues{/number}","pulls_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/pulls{/number}","milestones_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/milestones{/number}","notifications_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/notifications{?since,all,participating}","labels_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/labels{/name}","releases_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/releases{/id}","deployments_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/deployments","created_at":"2021-07-07T00:26:36Z","updated_at":"2021-07-07T00:26:36Z","pushed_at":"2021-07-07T00:26:36Z","git_url":"git://github.com/bot/test-deploy-key-user-repo.git","ssh_url":"git@github.com:bot/test-deploy-key-user-repo.git","clone_url":"https://github.com/bot/test-deploy-key-user-repo.git","svn_url":"https://github.com/bot/test-deploy-key-user-repo","homepage":null,"size":0,"stargazers_count":0,"watchers_count":0,"language":null,"has_issues":true,"has_projects":true,"has_downloads":true,"has_wiki":true,"has_pages":false,"forks_count":0,"mirror_url":null,"archived":false,"disabled":false,"open_issues_count":0,"license":null,"topics":[],"is_template":false,"visibility":"private","forks":0,"open_issues":0,"watchers":0,"default_branch":"main","permissions":{"admin":true,"push":true,"pull":true},"code_of_conduct":{"key":"none","name":"None","html_url":null,"url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/community/code_of_conduct"},"temp_clone_token":"AA5WMMQUX3Z4SBUMOI5WWYDA4T26S","allow_squash_merge":true,"allow_merge_commit":true,"allow_rebase_merge":true,"delete_branch_on_merge":false,"network_count":0,"subscribers_count":1}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:37 GMT
+      Etag:
+      - W/"93e9c336e0cf7aaae73425ea2758de999d8876442fd2aa28b1bca58ac7f98e92"
+      Last-Modified:
+      - Wed, 07 Jul 2021 00:26:36 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - repo
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.scarlet-witch-preview; format=json, github.mercy-preview; format=json,
+        github.baptiste-preview; format=json, github.nebula-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A29D:6012C13:60E4F4BB
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4947"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "53"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.surtur-preview+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/orgs/bot
+    method: GET
+  response:
+    body: '{"message":"Not Found","documentation_url":"https://docs.github.com/rest/reference/orgs#get-an-organization"}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:37 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - admin:org, read:org, repo, user, write:org
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.surtur-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A2AD:6012C35:60E4F4BC
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4946"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "54"
+      X-Xss-Protection:
+      - "0"
+    status: 404 Not Found
+    code: 404
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.scarlet-witch-preview+json, application/vnd.github.mercy-preview+json,
+        application/vnd.github.baptiste-preview+json, application/vnd.github.nebula-preview+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/bot/test-deploy-key-user-repo
+    method: GET
+  response:
+    body: '{"id":383630243,"node_id":"MDEwOlJlcG9zaXRvcnkzODM2MzAyNDM=","name":"test-deploy-key-user-repo","full_name":"bot/test-deploy-key-user-repo","private":true,"owner":{"login":"bot","id":3892786,"node_id":"MDQ6VXNlcjM4OTI3ODY=","avatar_url":"https://avatars.githubusercontent.com/u/3892786?v=4","gravatar_id":"","url":"https://api.github.com/users/bot","html_url":"https://github.com/bot","followers_url":"https://api.github.com/users/bot/followers","following_url":"https://api.github.com/users/bot/following{/other_user}","gists_url":"https://api.github.com/users/bot/gists{/gist_id}","starred_url":"https://api.github.com/users/bot/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/bot/subscriptions","organizations_url":"https://api.github.com/users/bot/orgs","repos_url":"https://api.github.com/users/bot/repos","events_url":"https://api.github.com/users/bot/events{/privacy}","received_events_url":"https://api.github.com/users/bot/received_events","type":"User","site_admin":false},"html_url":"https://github.com/bot/test-deploy-key-user-repo","description":"test
+      user repository","fork":false,"url":"https://api.github.com/repos/bot/test-deploy-key-user-repo","forks_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/forks","keys_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/keys{/key_id}","collaborators_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/collaborators{/collaborator}","teams_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/teams","hooks_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/hooks","issue_events_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/issues/events{/number}","events_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/events","assignees_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/assignees{/user}","branches_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/branches{/branch}","tags_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/tags","blobs_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/blobs{/sha}","git_tags_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/tags{/sha}","git_refs_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/refs{/sha}","trees_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/trees{/sha}","statuses_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/statuses/{sha}","languages_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/languages","stargazers_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/stargazers","contributors_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/contributors","subscribers_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/subscribers","subscription_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/subscription","commits_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/commits{/sha}","git_commits_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/commits{/sha}","comments_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/comments{/number}","issue_comment_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/issues/comments{/number}","contents_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/contents/{+path}","compare_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/compare/{base}...{head}","merges_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/merges","archive_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/{archive_format}{/ref}","downloads_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/downloads","issues_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/issues{/number}","pulls_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/pulls{/number}","milestones_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/milestones{/number}","notifications_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/notifications{?since,all,participating}","labels_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/labels{/name}","releases_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/releases{/id}","deployments_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/deployments","created_at":"2021-07-07T00:26:36Z","updated_at":"2021-07-07T00:26:36Z","pushed_at":"2021-07-07T00:26:36Z","git_url":"git://github.com/bot/test-deploy-key-user-repo.git","ssh_url":"git@github.com:bot/test-deploy-key-user-repo.git","clone_url":"https://github.com/bot/test-deploy-key-user-repo.git","svn_url":"https://github.com/bot/test-deploy-key-user-repo","homepage":null,"size":0,"stargazers_count":0,"watchers_count":0,"language":null,"has_issues":true,"has_projects":true,"has_downloads":true,"has_wiki":true,"has_pages":false,"forks_count":0,"mirror_url":null,"archived":false,"disabled":false,"open_issues_count":0,"license":null,"topics":[],"is_template":false,"visibility":"private","forks":0,"open_issues":0,"watchers":0,"default_branch":"main","permissions":{"admin":true,"push":true,"pull":true},"code_of_conduct":{"key":"none","name":"None","html_url":null,"url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/community/code_of_conduct"},"temp_clone_token":"AA5WMMQUX3Z4SBUMOI5WWYDA4T26S","allow_squash_merge":true,"allow_merge_commit":true,"allow_rebase_merge":true,"delete_branch_on_merge":false,"network_count":0,"subscribers_count":1}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:37 GMT
+      Etag:
+      - W/"93e9c336e0cf7aaae73425ea2758de999d8876442fd2aa28b1bca58ac7f98e92"
+      Last-Modified:
+      - Wed, 07 Jul 2021 00:26:36 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - repo
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.scarlet-witch-preview; format=json, github.mercy-preview; format=json,
+        github.baptiste-preview; format=json, github.nebula-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A2B9:6012C46:60E4F4BD
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4945"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "55"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.v3+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/bot/test-deploy-key-user-repo/keys
+    method: GET
+  response:
+    body: '[]'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Length:
+      - "2"
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:37 GMT
+      Etag:
+      - '"b30b6bd29b317fbf586fdf89719ebb6b161c95a4603652f273c41bf9e5e792ad"'
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - ""
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.v3; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A2D2:6012C70:60E4F4BD
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4944"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "56"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.surtur-preview+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/orgs/bot
+    method: GET
+  response:
+    body: '{"message":"Not Found","documentation_url":"https://docs.github.com/rest/reference/orgs#get-an-organization"}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:37 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - admin:org, read:org, repo, user, write:org
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.surtur-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A2DA:6012C8E:60E4F4BD
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4943"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "57"
+      X-Xss-Protection:
+      - "0"
+    status: 404 Not Found
+    code: 404
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.scarlet-witch-preview+json, application/vnd.github.mercy-preview+json,
+        application/vnd.github.baptiste-preview+json, application/vnd.github.nebula-preview+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/bot/test-deploy-key-user-repo
+    method: GET
+  response:
+    body: '{"id":383630243,"node_id":"MDEwOlJlcG9zaXRvcnkzODM2MzAyNDM=","name":"test-deploy-key-user-repo","full_name":"bot/test-deploy-key-user-repo","private":true,"owner":{"login":"bot","id":3892786,"node_id":"MDQ6VXNlcjM4OTI3ODY=","avatar_url":"https://avatars.githubusercontent.com/u/3892786?v=4","gravatar_id":"","url":"https://api.github.com/users/bot","html_url":"https://github.com/bot","followers_url":"https://api.github.com/users/bot/followers","following_url":"https://api.github.com/users/bot/following{/other_user}","gists_url":"https://api.github.com/users/bot/gists{/gist_id}","starred_url":"https://api.github.com/users/bot/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/bot/subscriptions","organizations_url":"https://api.github.com/users/bot/orgs","repos_url":"https://api.github.com/users/bot/repos","events_url":"https://api.github.com/users/bot/events{/privacy}","received_events_url":"https://api.github.com/users/bot/received_events","type":"User","site_admin":false},"html_url":"https://github.com/bot/test-deploy-key-user-repo","description":"test
+      user repository","fork":false,"url":"https://api.github.com/repos/bot/test-deploy-key-user-repo","forks_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/forks","keys_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/keys{/key_id}","collaborators_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/collaborators{/collaborator}","teams_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/teams","hooks_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/hooks","issue_events_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/issues/events{/number}","events_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/events","assignees_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/assignees{/user}","branches_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/branches{/branch}","tags_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/tags","blobs_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/blobs{/sha}","git_tags_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/tags{/sha}","git_refs_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/refs{/sha}","trees_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/trees{/sha}","statuses_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/statuses/{sha}","languages_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/languages","stargazers_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/stargazers","contributors_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/contributors","subscribers_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/subscribers","subscription_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/subscription","commits_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/commits{/sha}","git_commits_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/commits{/sha}","comments_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/comments{/number}","issue_comment_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/issues/comments{/number}","contents_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/contents/{+path}","compare_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/compare/{base}...{head}","merges_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/merges","archive_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/{archive_format}{/ref}","downloads_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/downloads","issues_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/issues{/number}","pulls_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/pulls{/number}","milestones_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/milestones{/number}","notifications_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/notifications{?since,all,participating}","labels_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/labels{/name}","releases_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/releases{/id}","deployments_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/deployments","created_at":"2021-07-07T00:26:36Z","updated_at":"2021-07-07T00:26:36Z","pushed_at":"2021-07-07T00:26:36Z","git_url":"git://github.com/bot/test-deploy-key-user-repo.git","ssh_url":"git@github.com:bot/test-deploy-key-user-repo.git","clone_url":"https://github.com/bot/test-deploy-key-user-repo.git","svn_url":"https://github.com/bot/test-deploy-key-user-repo","homepage":null,"size":0,"stargazers_count":0,"watchers_count":0,"language":null,"has_issues":true,"has_projects":true,"has_downloads":true,"has_wiki":true,"has_pages":false,"forks_count":0,"mirror_url":null,"archived":false,"disabled":false,"open_issues_count":0,"license":null,"topics":[],"is_template":false,"visibility":"private","forks":0,"open_issues":0,"watchers":0,"default_branch":"main","permissions":{"admin":true,"push":true,"pull":true},"code_of_conduct":{"key":"none","name":"None","html_url":null,"url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/community/code_of_conduct"},"temp_clone_token":"AA5WMMQUX3Z4SBUMOI5WWYDA4T26S","allow_squash_merge":true,"allow_merge_commit":true,"allow_rebase_merge":true,"delete_branch_on_merge":false,"network_count":0,"subscribers_count":1}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:37 GMT
+      Etag:
+      - W/"93e9c336e0cf7aaae73425ea2758de999d8876442fd2aa28b1bca58ac7f98e92"
+      Last-Modified:
+      - Wed, 07 Jul 2021 00:26:36 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - repo
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.scarlet-witch-preview; format=json, github.mercy-preview; format=json,
+        github.baptiste-preview; format=json, github.nebula-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A2EA:6012CA7:60E4F4BD
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4942"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "58"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: |
+      {"key":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBmym4XOiTj4rY3AcJKoJ8QupfgpFWtgNzDxzL0TrzfnurUQm+snozKLHGtOtS7PjMQsMaW9phyhhXv2KxadVI1uweFkC1TK4rPNWrqYX2g0JLXEScvaafSiv+SqozWLN/zhQ0e0jrtrYphtkd+H72RYsdq3mngY4WPJXM7z+HSjHSKilxj7XsxENt0dxT08LArxDC4OQXv9EYFgCyZ7SuLPBgA9160Co46Jm27enB/oBPx5zWd1MlkI+RtUi+XV2pLMzIpvYi2r2iWwOfDqE0N2cfpD0bY7cIOlv0iS7v6Qkmf7pBD+tRGTIZFcD5tGmZl1DOaeCZZ/VAN66aX+rN","title":"weave-gitops-deploy-key","read_only":true}
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.v3+json
+      Content-Type:
+      - application/json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/bot/test-deploy-key-user-repo/keys
+    method: POST
+  response:
+    body: '{"id":54579987,"key":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBmym4XOiTj4rY3AcJKoJ8QupfgpFWtgNzDxzL0TrzfnurUQm+snozKLHGtOtS7PjMQsMaW9phyhhXv2KxadVI1uweFkC1TK4rPNWrqYX2g0JLXEScvaafSiv+SqozWLN/zhQ0e0jrtrYphtkd+H72RYsdq3mngY4WPJXM7z+HSjHSKilxj7XsxENt0dxT08LArxDC4OQXv9EYFgCyZ7SuLPBgA9160Co46Jm27enB/oBPx5zWd1MlkI+RtUi+XV2pLMzIpvYi2r2iWwOfDqE0N2cfpD0bY7cIOlv0iS7v6Qkmf7pBD+tRGTIZFcD5tGmZl1DOaeCZZ/VAN66aX+rN","url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/keys/54579987","title":"weave-gitops-deploy-key","verified":true,"created_at":"2021-07-07T00:26:37Z","read_only":true}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Length:
+      - "595"
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:38 GMT
+      Etag:
+      - '"1094799dc9c8f85733ffdd7c6012b170d43d3cfe731b2cb1eaec63e9701c4daa"'
+      Location:
+      - https://api.github.com/repos/bot/test-deploy-key-user-repo/keys/54579987
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - ""
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.v3; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A2FA:6012CC5:60E4F4BD
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4941"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "59"
+      X-Xss-Protection:
+      - "0"
+    status: 201 Created
+    code: 201
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.v3+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/bot/test-deploy-key-user-repo/keys
+    method: GET
+  response:
+    body: '[{"id":54579987,"key":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBmym4XOiTj4rY3AcJKoJ8QupfgpFWtgNzDxzL0TrzfnurUQm+snozKLHGtOtS7PjMQsMaW9phyhhXv2KxadVI1uweFkC1TK4rPNWrqYX2g0JLXEScvaafSiv+SqozWLN/zhQ0e0jrtrYphtkd+H72RYsdq3mngY4WPJXM7z+HSjHSKilxj7XsxENt0dxT08LArxDC4OQXv9EYFgCyZ7SuLPBgA9160Co46Jm27enB/oBPx5zWd1MlkI+RtUi+XV2pLMzIpvYi2r2iWwOfDqE0N2cfpD0bY7cIOlv0iS7v6Qkmf7pBD+tRGTIZFcD5tGmZl1DOaeCZZ/VAN66aX+rN","url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/keys/54579987","title":"weave-gitops-deploy-key","verified":true,"created_at":"2021-07-07T00:26:37Z","read_only":true}]'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:38 GMT
+      Etag:
+      - W/"6613d6c0b6891c0f260de745ffeff5d718750ca51aec785e756679215c026859"
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - ""
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.v3; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A314:6012D05:60E4F4BD
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4940"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "60"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.surtur-preview+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/orgs/bot
+    method: GET
+  response:
+    body: '{"message":"Not Found","documentation_url":"https://docs.github.com/rest/reference/orgs#get-an-organization"}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:48 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - admin:org, read:org, repo, user, write:org
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.surtur-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A66F:601342A:60E4F4BE
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4939"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "61"
+      X-Xss-Protection:
+      - "0"
+    status: 404 Not Found
+    code: 404
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.scarlet-witch-preview+json, application/vnd.github.mercy-preview+json,
+        application/vnd.github.baptiste-preview+json, application/vnd.github.nebula-preview+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/bot/test-deploy-key-user-repo
+    method: GET
+  response:
+    body: '{"id":383630243,"node_id":"MDEwOlJlcG9zaXRvcnkzODM2MzAyNDM=","name":"test-deploy-key-user-repo","full_name":"bot/test-deploy-key-user-repo","private":true,"owner":{"login":"bot","id":3892786,"node_id":"MDQ6VXNlcjM4OTI3ODY=","avatar_url":"https://avatars.githubusercontent.com/u/3892786?v=4","gravatar_id":"","url":"https://api.github.com/users/bot","html_url":"https://github.com/bot","followers_url":"https://api.github.com/users/bot/followers","following_url":"https://api.github.com/users/bot/following{/other_user}","gists_url":"https://api.github.com/users/bot/gists{/gist_id}","starred_url":"https://api.github.com/users/bot/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/bot/subscriptions","organizations_url":"https://api.github.com/users/bot/orgs","repos_url":"https://api.github.com/users/bot/repos","events_url":"https://api.github.com/users/bot/events{/privacy}","received_events_url":"https://api.github.com/users/bot/received_events","type":"User","site_admin":false},"html_url":"https://github.com/bot/test-deploy-key-user-repo","description":"test
+      user repository","fork":false,"url":"https://api.github.com/repos/bot/test-deploy-key-user-repo","forks_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/forks","keys_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/keys{/key_id}","collaborators_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/collaborators{/collaborator}","teams_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/teams","hooks_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/hooks","issue_events_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/issues/events{/number}","events_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/events","assignees_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/assignees{/user}","branches_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/branches{/branch}","tags_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/tags","blobs_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/blobs{/sha}","git_tags_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/tags{/sha}","git_refs_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/refs{/sha}","trees_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/trees{/sha}","statuses_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/statuses/{sha}","languages_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/languages","stargazers_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/stargazers","contributors_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/contributors","subscribers_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/subscribers","subscription_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/subscription","commits_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/commits{/sha}","git_commits_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/commits{/sha}","comments_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/comments{/number}","issue_comment_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/issues/comments{/number}","contents_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/contents/{+path}","compare_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/compare/{base}...{head}","merges_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/merges","archive_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/{archive_format}{/ref}","downloads_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/downloads","issues_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/issues{/number}","pulls_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/pulls{/number}","milestones_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/milestones{/number}","notifications_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/notifications{?since,all,participating}","labels_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/labels{/name}","releases_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/releases{/id}","deployments_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/deployments","created_at":"2021-07-07T00:26:36Z","updated_at":"2021-07-07T00:26:39Z","pushed_at":"2021-07-07T00:26:36Z","git_url":"git://github.com/bot/test-deploy-key-user-repo.git","ssh_url":"git@github.com:bot/test-deploy-key-user-repo.git","clone_url":"https://github.com/bot/test-deploy-key-user-repo.git","svn_url":"https://github.com/bot/test-deploy-key-user-repo","homepage":null,"size":0,"stargazers_count":0,"watchers_count":0,"language":null,"has_issues":true,"has_projects":true,"has_downloads":true,"has_wiki":true,"has_pages":false,"forks_count":0,"mirror_url":null,"archived":false,"disabled":false,"open_issues_count":0,"license":null,"topics":[],"is_template":false,"visibility":"private","forks":0,"open_issues":0,"watchers":0,"default_branch":"main","permissions":{"admin":true,"push":true,"pull":true},"code_of_conduct":{"key":"none","name":"None","html_url":null,"url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/community/code_of_conduct"},"temp_clone_token":"AA5WMMV2SZV6RD3T4OJJAFLA4T27I","allow_squash_merge":true,"allow_merge_commit":true,"allow_rebase_merge":true,"delete_branch_on_merge":false,"network_count":0,"subscribers_count":1}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:48 GMT
+      Etag:
+      - W/"c489619872b715f90f80784baa4ef80f4b31fe57145770a80bb991f30cf802ae"
+      Last-Modified:
+      - Wed, 07 Jul 2021 00:26:39 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - repo
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.scarlet-witch-preview; format=json, github.mercy-preview; format=json,
+        github.baptiste-preview; format=json, github.nebula-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A67A:601343E:60E4F4C8
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4938"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "62"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.v3+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/bot/test-deploy-key-user-repo/keys
+    method: GET
+  response:
+    body: '[{"id":54579987,"key":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBmym4XOiTj4rY3AcJKoJ8QupfgpFWtgNzDxzL0TrzfnurUQm+snozKLHGtOtS7PjMQsMaW9phyhhXv2KxadVI1uweFkC1TK4rPNWrqYX2g0JLXEScvaafSiv+SqozWLN/zhQ0e0jrtrYphtkd+H72RYsdq3mngY4WPJXM7z+HSjHSKilxj7XsxENt0dxT08LArxDC4OQXv9EYFgCyZ7SuLPBgA9160Co46Jm27enB/oBPx5zWd1MlkI+RtUi+XV2pLMzIpvYi2r2iWwOfDqE0N2cfpD0bY7cIOlv0iS7v6Qkmf7pBD+tRGTIZFcD5tGmZl1DOaeCZZ/VAN66aX+rN","url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/keys/54579987","title":"weave-gitops-deploy-key","verified":true,"created_at":"2021-07-07T00:26:37Z","read_only":true}]'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:48 GMT
+      Etag:
+      - W/"6613d6c0b6891c0f260de745ffeff5d718750ca51aec785e756679215c026859"
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - ""
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.v3; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A688:6013469:60E4F4C8
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4937"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "63"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.surtur-preview+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/orgs/bot
+    method: GET
+  response:
+    body: '{"message":"Not Found","documentation_url":"https://docs.github.com/rest/reference/orgs#get-an-organization"}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:48 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - admin:org, read:org, repo, user, write:org
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.surtur-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A691:601347A:60E4F4C8
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4936"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "64"
+      X-Xss-Protection:
+      - "0"
+    status: 404 Not Found
+    code: 404
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.scarlet-witch-preview+json, application/vnd.github.mercy-preview+json,
+        application/vnd.github.baptiste-preview+json, application/vnd.github.nebula-preview+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/bot/test-deploy-key-user-repo
+    method: GET
+  response:
+    body: '{"id":383630243,"node_id":"MDEwOlJlcG9zaXRvcnkzODM2MzAyNDM=","name":"test-deploy-key-user-repo","full_name":"bot/test-deploy-key-user-repo","private":true,"owner":{"login":"bot","id":3892786,"node_id":"MDQ6VXNlcjM4OTI3ODY=","avatar_url":"https://avatars.githubusercontent.com/u/3892786?v=4","gravatar_id":"","url":"https://api.github.com/users/bot","html_url":"https://github.com/bot","followers_url":"https://api.github.com/users/bot/followers","following_url":"https://api.github.com/users/bot/following{/other_user}","gists_url":"https://api.github.com/users/bot/gists{/gist_id}","starred_url":"https://api.github.com/users/bot/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/bot/subscriptions","organizations_url":"https://api.github.com/users/bot/orgs","repos_url":"https://api.github.com/users/bot/repos","events_url":"https://api.github.com/users/bot/events{/privacy}","received_events_url":"https://api.github.com/users/bot/received_events","type":"User","site_admin":false},"html_url":"https://github.com/bot/test-deploy-key-user-repo","description":"test
+      user repository","fork":false,"url":"https://api.github.com/repos/bot/test-deploy-key-user-repo","forks_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/forks","keys_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/keys{/key_id}","collaborators_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/collaborators{/collaborator}","teams_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/teams","hooks_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/hooks","issue_events_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/issues/events{/number}","events_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/events","assignees_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/assignees{/user}","branches_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/branches{/branch}","tags_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/tags","blobs_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/blobs{/sha}","git_tags_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/tags{/sha}","git_refs_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/refs{/sha}","trees_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/trees{/sha}","statuses_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/statuses/{sha}","languages_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/languages","stargazers_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/stargazers","contributors_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/contributors","subscribers_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/subscribers","subscription_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/subscription","commits_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/commits{/sha}","git_commits_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/commits{/sha}","comments_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/comments{/number}","issue_comment_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/issues/comments{/number}","contents_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/contents/{+path}","compare_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/compare/{base}...{head}","merges_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/merges","archive_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/{archive_format}{/ref}","downloads_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/downloads","issues_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/issues{/number}","pulls_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/pulls{/number}","milestones_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/milestones{/number}","notifications_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/notifications{?since,all,participating}","labels_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/labels{/name}","releases_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/releases{/id}","deployments_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/deployments","created_at":"2021-07-07T00:26:36Z","updated_at":"2021-07-07T00:26:39Z","pushed_at":"2021-07-07T00:26:36Z","git_url":"git://github.com/bot/test-deploy-key-user-repo.git","ssh_url":"git@github.com:bot/test-deploy-key-user-repo.git","clone_url":"https://github.com/bot/test-deploy-key-user-repo.git","svn_url":"https://github.com/bot/test-deploy-key-user-repo","homepage":null,"size":0,"stargazers_count":0,"watchers_count":0,"language":null,"has_issues":true,"has_projects":true,"has_downloads":true,"has_wiki":true,"has_pages":false,"forks_count":0,"mirror_url":null,"archived":false,"disabled":false,"open_issues_count":0,"license":null,"topics":[],"is_template":false,"visibility":"private","forks":0,"open_issues":0,"watchers":0,"default_branch":"main","permissions":{"admin":true,"push":true,"pull":true},"code_of_conduct":{"key":"none","name":"None","html_url":null,"url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/community/code_of_conduct"},"temp_clone_token":"AA5WMMV2SZV6RD3T4OJJAFLA4T27I","allow_squash_merge":true,"allow_merge_commit":true,"allow_rebase_merge":true,"delete_branch_on_merge":false,"network_count":0,"subscribers_count":1}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:48 GMT
+      Etag:
+      - W/"c489619872b715f90f80784baa4ef80f4b31fe57145770a80bb991f30cf802ae"
+      Last-Modified:
+      - Wed, 07 Jul 2021 00:26:39 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - repo
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.scarlet-witch-preview; format=json, github.mercy-preview; format=json,
+        github.baptiste-preview; format=json, github.nebula-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A698:6013490:60E4F4C8
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4935"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "65"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: |
+      {"key":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBmym4XOiTj4rY3AcJKoJ8QupfgpFWtgNzDxzL0TrzfnurUQm+snozKLHGtOtS7PjMQsMaW9phyhhXv2KxadVI1uweFkC1TK4rPNWrqYX2g0JLXEScvaafSiv+SqozWLN/zhQ0e0jrtrYphtkd+H72RYsdq3mngY4WPJXM7z+HSjHSKilxj7XsxENt0dxT08LArxDC4OQXv9EYFgCyZ7SuLPBgA9160Co46Jm27enB/oBPx5zWd1MlkI+RtUi+XV2pLMzIpvYi2r2iWwOfDqE0N2cfpD0bY7cIOlv0iS7v6Qkmf7pBD+tRGTIZFcD5tGmZl1DOaeCZZ/VAN66aX+rN","title":"weave-gitops-deploy-key","read_only":true}
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.v3+json
+      Content-Type:
+      - application/json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/bot/test-deploy-key-user-repo/keys
+    method: POST
+  response:
+    body: '{"message":"Validation Failed","errors":[{"resource":"PublicKey","code":"custom","field":"key","message":"key
+      is already in use"}],"documentation_url":"https://docs.github.com/rest/reference/repos#create-a-deploy-key"}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Content-Length:
+      - "218"
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:49 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - ""
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.v3; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A6AB:60134B5:60E4F4C8
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4934"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "66"
+      X-Xss-Protection:
+      - "0"
+    status: 422 Unprocessable Entity
+    code: 422
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.scarlet-witch-preview+json, application/vnd.github.mercy-preview+json,
+        application/vnd.github.baptiste-preview+json, application/vnd.github.nebula-preview+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/bot/test-deploy-key-user-repo
+    method: GET
+  response:
+    body: '{"id":383630243,"node_id":"MDEwOlJlcG9zaXRvcnkzODM2MzAyNDM=","name":"test-deploy-key-user-repo","full_name":"bot/test-deploy-key-user-repo","private":true,"owner":{"login":"bot","id":3892786,"node_id":"MDQ6VXNlcjM4OTI3ODY=","avatar_url":"https://avatars.githubusercontent.com/u/3892786?v=4","gravatar_id":"","url":"https://api.github.com/users/bot","html_url":"https://github.com/bot","followers_url":"https://api.github.com/users/bot/followers","following_url":"https://api.github.com/users/bot/following{/other_user}","gists_url":"https://api.github.com/users/bot/gists{/gist_id}","starred_url":"https://api.github.com/users/bot/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/bot/subscriptions","organizations_url":"https://api.github.com/users/bot/orgs","repos_url":"https://api.github.com/users/bot/repos","events_url":"https://api.github.com/users/bot/events{/privacy}","received_events_url":"https://api.github.com/users/bot/received_events","type":"User","site_admin":false},"html_url":"https://github.com/bot/test-deploy-key-user-repo","description":"test
+      user repository","fork":false,"url":"https://api.github.com/repos/bot/test-deploy-key-user-repo","forks_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/forks","keys_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/keys{/key_id}","collaborators_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/collaborators{/collaborator}","teams_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/teams","hooks_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/hooks","issue_events_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/issues/events{/number}","events_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/events","assignees_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/assignees{/user}","branches_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/branches{/branch}","tags_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/tags","blobs_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/blobs{/sha}","git_tags_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/tags{/sha}","git_refs_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/refs{/sha}","trees_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/trees{/sha}","statuses_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/statuses/{sha}","languages_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/languages","stargazers_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/stargazers","contributors_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/contributors","subscribers_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/subscribers","subscription_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/subscription","commits_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/commits{/sha}","git_commits_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/git/commits{/sha}","comments_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/comments{/number}","issue_comment_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/issues/comments{/number}","contents_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/contents/{+path}","compare_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/compare/{base}...{head}","merges_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/merges","archive_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/{archive_format}{/ref}","downloads_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/downloads","issues_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/issues{/number}","pulls_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/pulls{/number}","milestones_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/milestones{/number}","notifications_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/notifications{?since,all,participating}","labels_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/labels{/name}","releases_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/releases{/id}","deployments_url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/deployments","created_at":"2021-07-07T00:26:36Z","updated_at":"2021-07-07T00:26:39Z","pushed_at":"2021-07-07T00:26:36Z","git_url":"git://github.com/bot/test-deploy-key-user-repo.git","ssh_url":"git@github.com:bot/test-deploy-key-user-repo.git","clone_url":"https://github.com/bot/test-deploy-key-user-repo.git","svn_url":"https://github.com/bot/test-deploy-key-user-repo","homepage":null,"size":0,"stargazers_count":0,"watchers_count":0,"language":null,"has_issues":true,"has_projects":true,"has_downloads":true,"has_wiki":true,"has_pages":false,"forks_count":0,"mirror_url":null,"archived":false,"disabled":false,"open_issues_count":0,"license":null,"topics":[],"is_template":false,"visibility":"private","forks":0,"open_issues":0,"watchers":0,"default_branch":"main","permissions":{"admin":true,"push":true,"pull":true},"code_of_conduct":{"key":"none","name":"None","html_url":null,"url":"https://api.github.com/repos/bot/test-deploy-key-user-repo/community/code_of_conduct"},"temp_clone_token":"AA5WMMQZRSZ7CUN2VFBAUBLA4T27K","allow_squash_merge":true,"allow_merge_commit":true,"allow_rebase_merge":true,"delete_branch_on_merge":false,"network_count":0,"subscribers_count":1}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:49 GMT
+      Etag:
+      - W/"c489619872b715f90f80784baa4ef80f4b31fe57145770a80bb991f30cf802ae"
+      Last-Modified:
+      - Wed, 07 Jul 2021 00:26:39 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - repo
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.scarlet-witch-preview; format=json, github.mercy-preview; format=json,
+        github.baptiste-preview; format=json, github.nebula-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A6BB:60134E0:60E4F4C8
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4933"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "67"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.v3+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/bot/test-deploy-key-user-repo
+    method: DELETE
+  response:
+    body: ""
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Content-Security-Policy:
+      - default-src 'none'
+      Date:
+      - Wed, 07 Jul 2021 00:26:49 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - ""
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.v3; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A6CD:60134F9:60E4F4C9
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4932"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "68"
+      X-Xss-Protection:
+      - "0"
+    status: 204 No Content
+    code: 204
+    duration: ""

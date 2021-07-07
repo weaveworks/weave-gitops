@@ -119,12 +119,6 @@ func (h defaultGitProviderHandler) CreateRepository(name string, owner string, p
 		}
 	}
 
-	if err = utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
-		return GetRepoInfo(githubProvider, ownerType, owner, name)
-	}); err != nil {
-		return fmt.Errorf("could not verify repo existence %s", err)
-	}
-
 	return nil
 }
 
@@ -137,7 +131,7 @@ func (h defaultGitProviderHandler) DeployKeyExists(owner, repoName string) (bool
 
 	deployKeyName := "weave-gitops-deploy-key"
 
-	ownerType, err := GetAccountType(owner)
+	ownerType, err := h.GetAccountType(owner)
 	if err != nil {
 		return false, err
 	}
@@ -215,7 +209,7 @@ func (h defaultGitProviderHandler) UploadDeployKey(owner, repoName string, deplo
 		if err != nil {
 			return fmt.Errorf("error uploading deploy key %s", err)
 		}
-		if err = utils.WaitUntil(os.Stdout, time.Second, time.Second*10, func() error {
+		if err = utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
 			_, err = orgRepo.DeployKeys().Get(ctx, deployKeyName)
 			return err
 		}); err != nil {
@@ -232,7 +226,7 @@ func (h defaultGitProviderHandler) UploadDeployKey(owner, repoName string, deplo
 		if err != nil {
 			return fmt.Errorf("error uploading deploy key %s", err)
 		}
-		if err = utils.WaitUntil(os.Stdout, time.Second, time.Second*10, func() error {
+		if err = utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
 			_, err = userRepo.DeployKeys().Get(ctx, deployKeyName)
 			return err
 		}); err != nil {
@@ -266,10 +260,6 @@ func CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targe
 
 func CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
 	return gitProviderHandler.(GitProviderHandler).CreatePullRequestToOrgRepo(orgRepRef, targetBranch, newBranch, files, commitMessage, prTitle, prDescription)
-}
-
-func GetAccountType(owner string) (ProviderAccountType, error) {
-	return gitProviderHandler.(GitProviderHandler).GetAccountType(owner)
 }
 
 func (h defaultGitProviderHandler) GetAccountType(owner string) (ProviderAccountType, error) {
@@ -353,7 +343,7 @@ func CreateOrgRepository(provider gitprovider.Client, orgRepoRef gitprovider.Org
 		return fmt.Errorf("error creating repo %s", err)
 	}
 
-	return nil
+	return waitUntilRepoCreated(AccountTypeOrg,orgRepoRef.Organization,orgRepoRef.RepositoryName)
 }
 
 func CreateUserRepository(provider gitprovider.Client, userRepoRef gitprovider.UserRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
@@ -365,7 +355,7 @@ func CreateUserRepository(provider gitprovider.Client, userRepoRef gitprovider.U
 		return fmt.Errorf("error creating repo %s", err)
 	}
 
-	return nil
+	return waitUntilRepoCreated(AccountTypeUser,userRepoRef.UserLogin,userRepoRef.RepositoryName)
 }
 
 func Override(handler GitProviderHandler) override.Override {
@@ -482,4 +472,13 @@ func NewUserRepositoryRef(domain, user, repoName string) gitprovider.UserReposit
 			UserLogin: user,
 		},
 	}
+}
+
+func waitUntilRepoCreated(ownerType ProviderAccountType,owner, name string) error{
+	if err := utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
+		return GetRepoInfo(githubProvider, ownerType, owner, name)
+	}); err != nil {
+		return fmt.Errorf("could not verify repo existence %s", err)
+	}
+	return nil
 }

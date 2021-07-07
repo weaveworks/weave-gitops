@@ -1,0 +1,1212 @@
+---
+version: 1
+interactions:
+- request:
+    body: |
+      {"name":"test-deploy-key-org-repo","description":"test user repository","private":true,"visibility":"private","auto_init":true}
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.baptiste-preview+json, application/vnd.github.nebula-preview+json
+      Content-Type:
+      - application/json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/orgs/weaveworks/repos
+    method: POST
+  response:
+    body: '{"id":383630276,"node_id":"MDEwOlJlcG9zaXRvcnkzODM2MzAyNzY=","name":"test-deploy-key-org-repo","full_name":"weaveworks/test-deploy-key-org-repo","private":true,"owner":{"login":"weaveworks","id":72046441,"node_id":"MDEyOk9yZ2FuaXphdGlvbjcyMDQ2NDQx","avatar_url":"https://avatars.githubusercontent.com/u/72046441?v=4","gravatar_id":"","url":"https://api.github.com/users/weaveworks","html_url":"https://github.com/weaveworks","followers_url":"https://api.github.com/users/weaveworks/followers","following_url":"https://api.github.com/users/weaveworks/following{/other_user}","gists_url":"https://api.github.com/users/weaveworks/gists{/gist_id}","starred_url":"https://api.github.com/users/weaveworks/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/weaveworks/subscriptions","organizations_url":"https://api.github.com/users/weaveworks/orgs","repos_url":"https://api.github.com/users/weaveworks/repos","events_url":"https://api.github.com/users/weaveworks/events{/privacy}","received_events_url":"https://api.github.com/users/weaveworks/received_events","type":"Organization","site_admin":false},"html_url":"https://github.com/weaveworks/test-deploy-key-org-repo","description":"test
+      user repository","fork":false,"url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo","forks_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/forks","keys_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/keys{/key_id}","collaborators_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/collaborators{/collaborator}","teams_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/teams","hooks_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/hooks","issue_events_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/issues/events{/number}","events_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/events","assignees_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/assignees{/user}","branches_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/branches{/branch}","tags_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/tags","blobs_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/blobs{/sha}","git_tags_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/tags{/sha}","git_refs_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/refs{/sha}","trees_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/trees{/sha}","statuses_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/statuses/{sha}","languages_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/languages","stargazers_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/stargazers","contributors_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/contributors","subscribers_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/subscribers","subscription_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/subscription","commits_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/commits{/sha}","git_commits_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/commits{/sha}","comments_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/comments{/number}","issue_comment_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/issues/comments{/number}","contents_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/contents/{+path}","compare_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/compare/{base}...{head}","merges_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/merges","archive_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/{archive_format}{/ref}","downloads_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/downloads","issues_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/issues{/number}","pulls_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/pulls{/number}","milestones_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/milestones{/number}","notifications_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/notifications{?since,all,participating}","labels_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/labels{/name}","releases_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/releases{/id}","deployments_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/deployments","created_at":"2021-07-07T00:26:49Z","updated_at":"2021-07-07T00:26:49Z","pushed_at":"2021-07-07T00:26:50Z","git_url":"git://github.com/weaveworks/test-deploy-key-org-repo.git","ssh_url":"git@github.com:weaveworks/test-deploy-key-org-repo.git","clone_url":"https://github.com/weaveworks/test-deploy-key-org-repo.git","svn_url":"https://github.com/weaveworks/test-deploy-key-org-repo","homepage":null,"size":0,"stargazers_count":0,"watchers_count":0,"language":null,"has_issues":true,"has_projects":true,"has_downloads":true,"has_wiki":true,"has_pages":false,"forks_count":0,"mirror_url":null,"archived":false,"disabled":false,"open_issues_count":0,"license":null,"is_template":false,"visibility":"private","forks":0,"open_issues":0,"watchers":0,"default_branch":"main","permissions":{"admin":true,"push":true,"pull":true},"allow_squash_merge":true,"allow_merge_commit":true,"allow_rebase_merge":true,"delete_branch_on_merge":false,"organization":{"login":"weaveworks","id":72046441,"node_id":"MDEyOk9yZ2FuaXphdGlvbjcyMDQ2NDQx","avatar_url":"https://avatars.githubusercontent.com/u/72046441?v=4","gravatar_id":"","url":"https://api.github.com/users/weaveworks","html_url":"https://github.com/weaveworks","followers_url":"https://api.github.com/users/weaveworks/followers","following_url":"https://api.github.com/users/weaveworks/following{/other_user}","gists_url":"https://api.github.com/users/weaveworks/gists{/gist_id}","starred_url":"https://api.github.com/users/weaveworks/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/weaveworks/subscriptions","organizations_url":"https://api.github.com/users/weaveworks/orgs","repos_url":"https://api.github.com/users/weaveworks/repos","events_url":"https://api.github.com/users/weaveworks/events{/privacy}","received_events_url":"https://api.github.com/users/weaveworks/received_events","type":"Organization","site_admin":false},"network_count":0,"subscribers_count":1}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Length:
+      - "7028"
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:50 GMT
+      Etag:
+      - '"8d3d393ddc67df936858bf6b0a127d0d0febfa0766557c976500e813c0bee106"'
+      Location:
+      - https://api.github.com/repos/weaveworks/test-deploy-key-org-repo
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - public_repo, repo
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.baptiste-preview; format=json, github.nebula-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A6E3:601352B:60E4F4C9
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4931"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "69"
+      X-Xss-Protection:
+      - "0"
+    status: 201 Created
+    code: 201
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.scarlet-witch-preview+json, application/vnd.github.mercy-preview+json,
+        application/vnd.github.baptiste-preview+json, application/vnd.github.nebula-preview+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/weaveworks/test-deploy-key-org-repo
+    method: GET
+  response:
+    body: '{"id":383630276,"node_id":"MDEwOlJlcG9zaXRvcnkzODM2MzAyNzY=","name":"test-deploy-key-org-repo","full_name":"weaveworks/test-deploy-key-org-repo","private":true,"owner":{"login":"weaveworks","id":72046441,"node_id":"MDEyOk9yZ2FuaXphdGlvbjcyMDQ2NDQx","avatar_url":"https://avatars.githubusercontent.com/u/72046441?v=4","gravatar_id":"","url":"https://api.github.com/users/weaveworks","html_url":"https://github.com/weaveworks","followers_url":"https://api.github.com/users/weaveworks/followers","following_url":"https://api.github.com/users/weaveworks/following{/other_user}","gists_url":"https://api.github.com/users/weaveworks/gists{/gist_id}","starred_url":"https://api.github.com/users/weaveworks/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/weaveworks/subscriptions","organizations_url":"https://api.github.com/users/weaveworks/orgs","repos_url":"https://api.github.com/users/weaveworks/repos","events_url":"https://api.github.com/users/weaveworks/events{/privacy}","received_events_url":"https://api.github.com/users/weaveworks/received_events","type":"Organization","site_admin":false},"html_url":"https://github.com/weaveworks/test-deploy-key-org-repo","description":"test
+      user repository","fork":false,"url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo","forks_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/forks","keys_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/keys{/key_id}","collaborators_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/collaborators{/collaborator}","teams_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/teams","hooks_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/hooks","issue_events_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/issues/events{/number}","events_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/events","assignees_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/assignees{/user}","branches_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/branches{/branch}","tags_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/tags","blobs_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/blobs{/sha}","git_tags_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/tags{/sha}","git_refs_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/refs{/sha}","trees_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/trees{/sha}","statuses_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/statuses/{sha}","languages_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/languages","stargazers_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/stargazers","contributors_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/contributors","subscribers_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/subscribers","subscription_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/subscription","commits_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/commits{/sha}","git_commits_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/commits{/sha}","comments_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/comments{/number}","issue_comment_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/issues/comments{/number}","contents_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/contents/{+path}","compare_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/compare/{base}...{head}","merges_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/merges","archive_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/{archive_format}{/ref}","downloads_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/downloads","issues_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/issues{/number}","pulls_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/pulls{/number}","milestones_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/milestones{/number}","notifications_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/notifications{?since,all,participating}","labels_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/labels{/name}","releases_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/releases{/id}","deployments_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/deployments","created_at":"2021-07-07T00:26:49Z","updated_at":"2021-07-07T00:26:49Z","pushed_at":"2021-07-07T00:26:50Z","git_url":"git://github.com/weaveworks/test-deploy-key-org-repo.git","ssh_url":"git@github.com:weaveworks/test-deploy-key-org-repo.git","clone_url":"https://github.com/weaveworks/test-deploy-key-org-repo.git","svn_url":"https://github.com/weaveworks/test-deploy-key-org-repo","homepage":null,"size":0,"stargazers_count":0,"watchers_count":0,"language":null,"has_issues":true,"has_projects":true,"has_downloads":true,"has_wiki":true,"has_pages":false,"forks_count":0,"mirror_url":null,"archived":false,"disabled":false,"open_issues_count":0,"license":null,"topics":[],"is_template":false,"visibility":"private","forks":0,"open_issues":0,"watchers":0,"default_branch":"main","permissions":{"admin":true,"push":true,"pull":true},"code_of_conduct":{"key":"none","name":"None","html_url":null,"url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/community/code_of_conduct"},"temp_clone_token":"AA5WMMRMDQ3CH4DJOPFSJQLA4T27M","allow_squash_merge":true,"allow_merge_commit":true,"allow_rebase_merge":true,"delete_branch_on_merge":false,"organization":{"login":"weaveworks","id":72046441,"node_id":"MDEyOk9yZ2FuaXphdGlvbjcyMDQ2NDQx","avatar_url":"https://avatars.githubusercontent.com/u/72046441?v=4","gravatar_id":"","url":"https://api.github.com/users/weaveworks","html_url":"https://github.com/weaveworks","followers_url":"https://api.github.com/users/weaveworks/followers","following_url":"https://api.github.com/users/weaveworks/following{/other_user}","gists_url":"https://api.github.com/users/weaveworks/gists{/gist_id}","starred_url":"https://api.github.com/users/weaveworks/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/weaveworks/subscriptions","organizations_url":"https://api.github.com/users/weaveworks/orgs","repos_url":"https://api.github.com/users/weaveworks/repos","events_url":"https://api.github.com/users/weaveworks/events{/privacy}","received_events_url":"https://api.github.com/users/weaveworks/received_events","type":"Organization","site_admin":false},"network_count":0,"subscribers_count":1}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:50 GMT
+      Etag:
+      - W/"7e3e5ab2c9bcd395890ccd7f24c4c16970515220c34b532e6f112f24b49611a2"
+      Last-Modified:
+      - Wed, 07 Jul 2021 00:26:49 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - repo
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.scarlet-witch-preview; format=json, github.mercy-preview; format=json,
+        github.baptiste-preview; format=json, github.nebula-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A743:60135E7:60E4F4C9
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4930"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "70"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.surtur-preview+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/orgs/weaveworks
+    method: GET
+  response:
+    body: '{"login":"weaveworks","id":72046441,"node_id":"MDEyOk9yZ2FuaXphdGlvbjcyMDQ2NDQx","url":"https://api.github.com/orgs/weaveworks","repos_url":"https://api.github.com/orgs/weaveworks/repos","events_url":"https://api.github.com/orgs/weaveworks/events","hooks_url":"https://api.github.com/orgs/weaveworks/hooks","issues_url":"https://api.github.com/orgs/weaveworks/issues","members_url":"https://api.github.com/orgs/weaveworks/members{/member}","public_members_url":"https://api.github.com/orgs/weaveworks/public_members{/member}","avatar_url":"https://avatars.githubusercontent.com/u/72046441?v=4","description":"test
+      description","name":"my organization name","company":null,"blog":null,"location":null,"email":null,"twitter_username":null,"is_verified":false,"has_organization_projects":true,"has_repository_projects":true,"public_repos":1,"public_gists":0,"followers":0,"following":0,"html_url":"https://github.com/weaveworks","created_at":"2020-09-28T20:22:26Z","updated_at":"2021-04-26T22:24:23Z","type":"Organization","total_private_repos":64,"owned_private_repos":64,"private_gists":0,"disk_usage":187,"collaborators":0,"billing_email":"bot@gmail.com","default_repository_permission":"read","members_can_create_repositories":true,"two_factor_requirement_enabled":false,"members_allowed_repository_creation_type":"all","members_can_create_public_repositories":true,"members_can_create_private_repositories":true,"members_can_create_internal_repositories":false,"members_can_create_pages":true,"members_can_create_public_pages":true,"members_can_create_private_pages":true,"plan":{"name":"free","space":976562499,"private_repos":10000,"filled_seats":1,"seats":0}}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:51 GMT
+      Etag:
+      - W/"1ecf54b6c0d3b9c2eb669e7bc87025030f0b10b6901abcce2deaaaf637172196"
+      Last-Modified:
+      - Mon, 26 Apr 2021 22:24:23 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - admin:org, read:org, repo, user, write:org
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.surtur-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A758:6013613:60E4F4CA
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4929"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "71"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.scarlet-witch-preview+json, application/vnd.github.mercy-preview+json,
+        application/vnd.github.baptiste-preview+json, application/vnd.github.nebula-preview+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/weaveworks/test-deploy-key-org-repo
+    method: GET
+  response:
+    body: '{"id":383630276,"node_id":"MDEwOlJlcG9zaXRvcnkzODM2MzAyNzY=","name":"test-deploy-key-org-repo","full_name":"weaveworks/test-deploy-key-org-repo","private":true,"owner":{"login":"weaveworks","id":72046441,"node_id":"MDEyOk9yZ2FuaXphdGlvbjcyMDQ2NDQx","avatar_url":"https://avatars.githubusercontent.com/u/72046441?v=4","gravatar_id":"","url":"https://api.github.com/users/weaveworks","html_url":"https://github.com/weaveworks","followers_url":"https://api.github.com/users/weaveworks/followers","following_url":"https://api.github.com/users/weaveworks/following{/other_user}","gists_url":"https://api.github.com/users/weaveworks/gists{/gist_id}","starred_url":"https://api.github.com/users/weaveworks/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/weaveworks/subscriptions","organizations_url":"https://api.github.com/users/weaveworks/orgs","repos_url":"https://api.github.com/users/weaveworks/repos","events_url":"https://api.github.com/users/weaveworks/events{/privacy}","received_events_url":"https://api.github.com/users/weaveworks/received_events","type":"Organization","site_admin":false},"html_url":"https://github.com/weaveworks/test-deploy-key-org-repo","description":"test
+      user repository","fork":false,"url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo","forks_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/forks","keys_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/keys{/key_id}","collaborators_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/collaborators{/collaborator}","teams_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/teams","hooks_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/hooks","issue_events_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/issues/events{/number}","events_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/events","assignees_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/assignees{/user}","branches_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/branches{/branch}","tags_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/tags","blobs_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/blobs{/sha}","git_tags_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/tags{/sha}","git_refs_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/refs{/sha}","trees_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/trees{/sha}","statuses_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/statuses/{sha}","languages_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/languages","stargazers_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/stargazers","contributors_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/contributors","subscribers_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/subscribers","subscription_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/subscription","commits_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/commits{/sha}","git_commits_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/commits{/sha}","comments_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/comments{/number}","issue_comment_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/issues/comments{/number}","contents_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/contents/{+path}","compare_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/compare/{base}...{head}","merges_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/merges","archive_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/{archive_format}{/ref}","downloads_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/downloads","issues_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/issues{/number}","pulls_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/pulls{/number}","milestones_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/milestones{/number}","notifications_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/notifications{?since,all,participating}","labels_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/labels{/name}","releases_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/releases{/id}","deployments_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/deployments","created_at":"2021-07-07T00:26:49Z","updated_at":"2021-07-07T00:26:49Z","pushed_at":"2021-07-07T00:26:50Z","git_url":"git://github.com/weaveworks/test-deploy-key-org-repo.git","ssh_url":"git@github.com:weaveworks/test-deploy-key-org-repo.git","clone_url":"https://github.com/weaveworks/test-deploy-key-org-repo.git","svn_url":"https://github.com/weaveworks/test-deploy-key-org-repo","homepage":null,"size":0,"stargazers_count":0,"watchers_count":0,"language":null,"has_issues":true,"has_projects":true,"has_downloads":true,"has_wiki":true,"has_pages":false,"forks_count":0,"mirror_url":null,"archived":false,"disabled":false,"open_issues_count":0,"license":null,"topics":[],"is_template":false,"visibility":"private","forks":0,"open_issues":0,"watchers":0,"default_branch":"main","permissions":{"admin":true,"push":true,"pull":true},"code_of_conduct":{"key":"none","name":"None","html_url":null,"url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/community/code_of_conduct"},"temp_clone_token":"AA5WMMVTQ3ILRWNNCAAY4ELA4T27O","allow_squash_merge":true,"allow_merge_commit":true,"allow_rebase_merge":true,"delete_branch_on_merge":false,"organization":{"login":"weaveworks","id":72046441,"node_id":"MDEyOk9yZ2FuaXphdGlvbjcyMDQ2NDQx","avatar_url":"https://avatars.githubusercontent.com/u/72046441?v=4","gravatar_id":"","url":"https://api.github.com/users/weaveworks","html_url":"https://github.com/weaveworks","followers_url":"https://api.github.com/users/weaveworks/followers","following_url":"https://api.github.com/users/weaveworks/following{/other_user}","gists_url":"https://api.github.com/users/weaveworks/gists{/gist_id}","starred_url":"https://api.github.com/users/weaveworks/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/weaveworks/subscriptions","organizations_url":"https://api.github.com/users/weaveworks/orgs","repos_url":"https://api.github.com/users/weaveworks/repos","events_url":"https://api.github.com/users/weaveworks/events{/privacy}","received_events_url":"https://api.github.com/users/weaveworks/received_events","type":"Organization","site_admin":false},"network_count":0,"subscribers_count":1}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:51 GMT
+      Etag:
+      - W/"7e3e5ab2c9bcd395890ccd7f24c4c16970515220c34b532e6f112f24b49611a2"
+      Last-Modified:
+      - Wed, 07 Jul 2021 00:26:49 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - repo
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.scarlet-witch-preview; format=json, github.mercy-preview; format=json,
+        github.baptiste-preview; format=json, github.nebula-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A767:6013633:60E4F4CA
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4928"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "72"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.v3+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/keys
+    method: GET
+  response:
+    body: '[]'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Length:
+      - "2"
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:51 GMT
+      Etag:
+      - '"b30b6bd29b317fbf586fdf89719ebb6b161c95a4603652f273c41bf9e5e792ad"'
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - ""
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.v3; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A77E:6013651:60E4F4CB
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4927"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "73"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.surtur-preview+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/orgs/weaveworks
+    method: GET
+  response:
+    body: '{"login":"weaveworks","id":72046441,"node_id":"MDEyOk9yZ2FuaXphdGlvbjcyMDQ2NDQx","url":"https://api.github.com/orgs/weaveworks","repos_url":"https://api.github.com/orgs/weaveworks/repos","events_url":"https://api.github.com/orgs/weaveworks/events","hooks_url":"https://api.github.com/orgs/weaveworks/hooks","issues_url":"https://api.github.com/orgs/weaveworks/issues","members_url":"https://api.github.com/orgs/weaveworks/members{/member}","public_members_url":"https://api.github.com/orgs/weaveworks/public_members{/member}","avatar_url":"https://avatars.githubusercontent.com/u/72046441?v=4","description":"test
+      description","name":"my organization name","company":null,"blog":null,"location":null,"email":null,"twitter_username":null,"is_verified":false,"has_organization_projects":true,"has_repository_projects":true,"public_repos":1,"public_gists":0,"followers":0,"following":0,"html_url":"https://github.com/weaveworks","created_at":"2020-09-28T20:22:26Z","updated_at":"2021-04-26T22:24:23Z","type":"Organization","total_private_repos":64,"owned_private_repos":64,"private_gists":0,"disk_usage":187,"collaborators":0,"billing_email":"bot@gmail.com","default_repository_permission":"read","members_can_create_repositories":true,"two_factor_requirement_enabled":false,"members_allowed_repository_creation_type":"all","members_can_create_public_repositories":true,"members_can_create_private_repositories":true,"members_can_create_internal_repositories":false,"members_can_create_pages":true,"members_can_create_public_pages":true,"members_can_create_private_pages":true,"plan":{"name":"free","space":976562499,"private_repos":10000,"filled_seats":1,"seats":0}}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:51 GMT
+      Etag:
+      - W/"1ecf54b6c0d3b9c2eb669e7bc87025030f0b10b6901abcce2deaaaf637172196"
+      Last-Modified:
+      - Mon, 26 Apr 2021 22:24:23 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - admin:org, read:org, repo, user, write:org
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.surtur-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A787:601365E:60E4F4CB
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4926"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "74"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.scarlet-witch-preview+json, application/vnd.github.mercy-preview+json,
+        application/vnd.github.baptiste-preview+json, application/vnd.github.nebula-preview+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/weaveworks/test-deploy-key-org-repo
+    method: GET
+  response:
+    body: '{"id":383630276,"node_id":"MDEwOlJlcG9zaXRvcnkzODM2MzAyNzY=","name":"test-deploy-key-org-repo","full_name":"weaveworks/test-deploy-key-org-repo","private":true,"owner":{"login":"weaveworks","id":72046441,"node_id":"MDEyOk9yZ2FuaXphdGlvbjcyMDQ2NDQx","avatar_url":"https://avatars.githubusercontent.com/u/72046441?v=4","gravatar_id":"","url":"https://api.github.com/users/weaveworks","html_url":"https://github.com/weaveworks","followers_url":"https://api.github.com/users/weaveworks/followers","following_url":"https://api.github.com/users/weaveworks/following{/other_user}","gists_url":"https://api.github.com/users/weaveworks/gists{/gist_id}","starred_url":"https://api.github.com/users/weaveworks/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/weaveworks/subscriptions","organizations_url":"https://api.github.com/users/weaveworks/orgs","repos_url":"https://api.github.com/users/weaveworks/repos","events_url":"https://api.github.com/users/weaveworks/events{/privacy}","received_events_url":"https://api.github.com/users/weaveworks/received_events","type":"Organization","site_admin":false},"html_url":"https://github.com/weaveworks/test-deploy-key-org-repo","description":"test
+      user repository","fork":false,"url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo","forks_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/forks","keys_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/keys{/key_id}","collaborators_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/collaborators{/collaborator}","teams_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/teams","hooks_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/hooks","issue_events_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/issues/events{/number}","events_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/events","assignees_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/assignees{/user}","branches_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/branches{/branch}","tags_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/tags","blobs_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/blobs{/sha}","git_tags_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/tags{/sha}","git_refs_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/refs{/sha}","trees_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/trees{/sha}","statuses_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/statuses/{sha}","languages_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/languages","stargazers_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/stargazers","contributors_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/contributors","subscribers_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/subscribers","subscription_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/subscription","commits_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/commits{/sha}","git_commits_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/commits{/sha}","comments_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/comments{/number}","issue_comment_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/issues/comments{/number}","contents_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/contents/{+path}","compare_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/compare/{base}...{head}","merges_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/merges","archive_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/{archive_format}{/ref}","downloads_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/downloads","issues_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/issues{/number}","pulls_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/pulls{/number}","milestones_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/milestones{/number}","notifications_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/notifications{?since,all,participating}","labels_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/labels{/name}","releases_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/releases{/id}","deployments_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/deployments","created_at":"2021-07-07T00:26:49Z","updated_at":"2021-07-07T00:26:49Z","pushed_at":"2021-07-07T00:26:50Z","git_url":"git://github.com/weaveworks/test-deploy-key-org-repo.git","ssh_url":"git@github.com:weaveworks/test-deploy-key-org-repo.git","clone_url":"https://github.com/weaveworks/test-deploy-key-org-repo.git","svn_url":"https://github.com/weaveworks/test-deploy-key-org-repo","homepage":null,"size":0,"stargazers_count":0,"watchers_count":0,"language":null,"has_issues":true,"has_projects":true,"has_downloads":true,"has_wiki":true,"has_pages":false,"forks_count":0,"mirror_url":null,"archived":false,"disabled":false,"open_issues_count":0,"license":null,"topics":[],"is_template":false,"visibility":"private","forks":0,"open_issues":0,"watchers":0,"default_branch":"main","permissions":{"admin":true,"push":true,"pull":true},"code_of_conduct":{"key":"none","name":"None","html_url":null,"url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/community/code_of_conduct"},"temp_clone_token":"AA5WMMVTQ3ILRWNNCAAY4ELA4T27O","allow_squash_merge":true,"allow_merge_commit":true,"allow_rebase_merge":true,"delete_branch_on_merge":false,"organization":{"login":"weaveworks","id":72046441,"node_id":"MDEyOk9yZ2FuaXphdGlvbjcyMDQ2NDQx","avatar_url":"https://avatars.githubusercontent.com/u/72046441?v=4","gravatar_id":"","url":"https://api.github.com/users/weaveworks","html_url":"https://github.com/weaveworks","followers_url":"https://api.github.com/users/weaveworks/followers","following_url":"https://api.github.com/users/weaveworks/following{/other_user}","gists_url":"https://api.github.com/users/weaveworks/gists{/gist_id}","starred_url":"https://api.github.com/users/weaveworks/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/weaveworks/subscriptions","organizations_url":"https://api.github.com/users/weaveworks/orgs","repos_url":"https://api.github.com/users/weaveworks/repos","events_url":"https://api.github.com/users/weaveworks/events{/privacy}","received_events_url":"https://api.github.com/users/weaveworks/received_events","type":"Organization","site_admin":false},"network_count":0,"subscribers_count":1}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:51 GMT
+      Etag:
+      - W/"7e3e5ab2c9bcd395890ccd7f24c4c16970515220c34b532e6f112f24b49611a2"
+      Last-Modified:
+      - Wed, 07 Jul 2021 00:26:49 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - repo
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.scarlet-witch-preview; format=json, github.mercy-preview; format=json,
+        github.baptiste-preview; format=json, github.nebula-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A791:6013683:60E4F4CB
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4925"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "75"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: |
+      {"key":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDorjCI1Ai7xhZx4e2dYImHbjzbEc0gH1mjnkcb3Tqc5Zs/tQVxo282YIMeXq8IABt2AcwTzDHAviajbPqC05GNRwCmEFrYOnYKhMrdrKtYuCtmEhgnhPQlItXJlF00XwHfYetjfIzFSk8vdLJcwmGp6PPemDW2Xv6CPBAN23OGqTbYYsFuO7+hdU3CgGcR9WPDdzN7/4q1aq4Tk7qhNl5Yxw1DQ0OVgiAQnBJHeViOar14Dw1olhtzL2s88e/TE9t47p9iLXFXwN4irER25A4NUa7DYGpNfUEGQdlf1k81ctegQeA8fOZ4uT4zYSja7mG6QYRgPwN4ZB8ywTcHeON6EzWucSWKM4TcJgASmvJtJn5RifbuzMJTtqpCtIFmpo5/ItQFKYjI18Omqh0ZJe/P9YtYtM+Ac3FIOC0yKU7Ozsx/N7wq3uSIOTv8KCxkEgq2fBi9gF/+kE0BGSVao0RfY/fAUjS/ScuNvo30+MrW+8NmWeWRdhMJkJ25kLGuWBE=","title":"weave-gitops-deploy-key","read_only":true}
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.v3+json
+      Content-Type:
+      - application/json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/keys
+    method: POST
+  response:
+    body: '{"id":54579990,"key":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDorjCI1Ai7xhZx4e2dYImHbjzbEc0gH1mjnkcb3Tqc5Zs/tQVxo282YIMeXq8IABt2AcwTzDHAviajbPqC05GNRwCmEFrYOnYKhMrdrKtYuCtmEhgnhPQlItXJlF00XwHfYetjfIzFSk8vdLJcwmGp6PPemDW2Xv6CPBAN23OGqTbYYsFuO7+hdU3CgGcR9WPDdzN7/4q1aq4Tk7qhNl5Yxw1DQ0OVgiAQnBJHeViOar14Dw1olhtzL2s88e/TE9t47p9iLXFXwN4irER25A4NUa7DYGpNfUEGQdlf1k81ctegQeA8fOZ4uT4zYSja7mG6QYRgPwN4ZB8ywTcHeON6EzWucSWKM4TcJgASmvJtJn5RifbuzMJTtqpCtIFmpo5/ItQFKYjI18Omqh0ZJe/P9YtYtM+Ac3FIOC0yKU7Ozsx/N7wq3uSIOTv8KCxkEgq2fBi9gF/+kE0BGSVao0RfY/fAUjS/ScuNvo30+MrW+8NmWeWRdhMJkJ25kLGuWBE=","url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/keys/54579990","title":"weave-gitops-deploy-key","verified":true,"created_at":"2021-07-07T00:26:52Z","read_only":true}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Length:
+      - "770"
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:52 GMT
+      Etag:
+      - '"e4f3ebdaf2df969658b7a09b0f4da399e88f45d6264fd0e110a3fdcbce035cea"'
+      Location:
+      - https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/keys/54579990
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - ""
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.v3; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A7A2:60136A7:60E4F4CB
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4924"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "76"
+      X-Xss-Protection:
+      - "0"
+    status: 201 Created
+    code: 201
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.v3+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/keys
+    method: GET
+  response:
+    body: '[{"id":54579990,"key":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDorjCI1Ai7xhZx4e2dYImHbjzbEc0gH1mjnkcb3Tqc5Zs/tQVxo282YIMeXq8IABt2AcwTzDHAviajbPqC05GNRwCmEFrYOnYKhMrdrKtYuCtmEhgnhPQlItXJlF00XwHfYetjfIzFSk8vdLJcwmGp6PPemDW2Xv6CPBAN23OGqTbYYsFuO7+hdU3CgGcR9WPDdzN7/4q1aq4Tk7qhNl5Yxw1DQ0OVgiAQnBJHeViOar14Dw1olhtzL2s88e/TE9t47p9iLXFXwN4irER25A4NUa7DYGpNfUEGQdlf1k81ctegQeA8fOZ4uT4zYSja7mG6QYRgPwN4ZB8ywTcHeON6EzWucSWKM4TcJgASmvJtJn5RifbuzMJTtqpCtIFmpo5/ItQFKYjI18Omqh0ZJe/P9YtYtM+Ac3FIOC0yKU7Ozsx/N7wq3uSIOTv8KCxkEgq2fBi9gF/+kE0BGSVao0RfY/fAUjS/ScuNvo30+MrW+8NmWeWRdhMJkJ25kLGuWBE=","url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/keys/54579990","title":"weave-gitops-deploy-key","verified":true,"created_at":"2021-07-07T00:26:52Z","read_only":true}]'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:26:52 GMT
+      Etag:
+      - W/"b40f3e8cb9f80632250f360d05ce7d0bbd63b908c557acd9d7bb838c1742dd2c"
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - ""
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.v3; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321A7D0:60136F9:60E4F4CB
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4923"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "77"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.surtur-preview+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/orgs/weaveworks
+    method: GET
+  response:
+    body: '{"login":"weaveworks","id":72046441,"node_id":"MDEyOk9yZ2FuaXphdGlvbjcyMDQ2NDQx","url":"https://api.github.com/orgs/weaveworks","repos_url":"https://api.github.com/orgs/weaveworks/repos","events_url":"https://api.github.com/orgs/weaveworks/events","hooks_url":"https://api.github.com/orgs/weaveworks/hooks","issues_url":"https://api.github.com/orgs/weaveworks/issues","members_url":"https://api.github.com/orgs/weaveworks/members{/member}","public_members_url":"https://api.github.com/orgs/weaveworks/public_members{/member}","avatar_url":"https://avatars.githubusercontent.com/u/72046441?v=4","description":"test
+      description","name":"my organization name","company":null,"blog":null,"location":null,"email":null,"twitter_username":null,"is_verified":false,"has_organization_projects":true,"has_repository_projects":true,"public_repos":1,"public_gists":0,"followers":0,"following":0,"html_url":"https://github.com/weaveworks","created_at":"2020-09-28T20:22:26Z","updated_at":"2021-04-26T22:24:23Z","type":"Organization","total_private_repos":64,"owned_private_repos":64,"private_gists":0,"disk_usage":187,"collaborators":0,"billing_email":"bot@gmail.com","default_repository_permission":"read","members_can_create_repositories":true,"two_factor_requirement_enabled":false,"members_allowed_repository_creation_type":"all","members_can_create_public_repositories":true,"members_can_create_private_repositories":true,"members_can_create_internal_repositories":false,"members_can_create_pages":true,"members_can_create_public_pages":true,"members_can_create_private_pages":true,"plan":{"name":"free","space":976562499,"private_repos":10000,"filled_seats":1,"seats":0}}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:27:02 GMT
+      Etag:
+      - W/"1ecf54b6c0d3b9c2eb669e7bc87025030f0b10b6901abcce2deaaaf637172196"
+      Last-Modified:
+      - Mon, 26 Apr 2021 22:24:23 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - admin:org, read:org, repo, user, write:org
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.surtur-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321AB4F:6013E54:60E4F4CC
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4922"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "78"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.scarlet-witch-preview+json, application/vnd.github.mercy-preview+json,
+        application/vnd.github.baptiste-preview+json, application/vnd.github.nebula-preview+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/weaveworks/test-deploy-key-org-repo
+    method: GET
+  response:
+    body: '{"id":383630276,"node_id":"MDEwOlJlcG9zaXRvcnkzODM2MzAyNzY=","name":"test-deploy-key-org-repo","full_name":"weaveworks/test-deploy-key-org-repo","private":true,"owner":{"login":"weaveworks","id":72046441,"node_id":"MDEyOk9yZ2FuaXphdGlvbjcyMDQ2NDQx","avatar_url":"https://avatars.githubusercontent.com/u/72046441?v=4","gravatar_id":"","url":"https://api.github.com/users/weaveworks","html_url":"https://github.com/weaveworks","followers_url":"https://api.github.com/users/weaveworks/followers","following_url":"https://api.github.com/users/weaveworks/following{/other_user}","gists_url":"https://api.github.com/users/weaveworks/gists{/gist_id}","starred_url":"https://api.github.com/users/weaveworks/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/weaveworks/subscriptions","organizations_url":"https://api.github.com/users/weaveworks/orgs","repos_url":"https://api.github.com/users/weaveworks/repos","events_url":"https://api.github.com/users/weaveworks/events{/privacy}","received_events_url":"https://api.github.com/users/weaveworks/received_events","type":"Organization","site_admin":false},"html_url":"https://github.com/weaveworks/test-deploy-key-org-repo","description":"test
+      user repository","fork":false,"url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo","forks_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/forks","keys_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/keys{/key_id}","collaborators_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/collaborators{/collaborator}","teams_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/teams","hooks_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/hooks","issue_events_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/issues/events{/number}","events_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/events","assignees_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/assignees{/user}","branches_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/branches{/branch}","tags_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/tags","blobs_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/blobs{/sha}","git_tags_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/tags{/sha}","git_refs_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/refs{/sha}","trees_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/trees{/sha}","statuses_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/statuses/{sha}","languages_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/languages","stargazers_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/stargazers","contributors_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/contributors","subscribers_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/subscribers","subscription_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/subscription","commits_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/commits{/sha}","git_commits_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/commits{/sha}","comments_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/comments{/number}","issue_comment_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/issues/comments{/number}","contents_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/contents/{+path}","compare_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/compare/{base}...{head}","merges_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/merges","archive_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/{archive_format}{/ref}","downloads_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/downloads","issues_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/issues{/number}","pulls_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/pulls{/number}","milestones_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/milestones{/number}","notifications_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/notifications{?since,all,participating}","labels_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/labels{/name}","releases_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/releases{/id}","deployments_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/deployments","created_at":"2021-07-07T00:26:49Z","updated_at":"2021-07-07T00:26:53Z","pushed_at":"2021-07-07T00:26:50Z","git_url":"git://github.com/weaveworks/test-deploy-key-org-repo.git","ssh_url":"git@github.com:weaveworks/test-deploy-key-org-repo.git","clone_url":"https://github.com/weaveworks/test-deploy-key-org-repo.git","svn_url":"https://github.com/weaveworks/test-deploy-key-org-repo","homepage":null,"size":0,"stargazers_count":0,"watchers_count":0,"language":null,"has_issues":true,"has_projects":true,"has_downloads":true,"has_wiki":true,"has_pages":false,"forks_count":0,"mirror_url":null,"archived":false,"disabled":false,"open_issues_count":0,"license":null,"topics":[],"is_template":false,"visibility":"private","forks":0,"open_issues":0,"watchers":0,"default_branch":"main","permissions":{"admin":true,"push":true,"pull":true},"code_of_conduct":{"key":"none","name":"None","html_url":null,"url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/community/code_of_conduct"},"temp_clone_token":"AA5WMMXERN3HJSAX4LQ7KJLA4T3AE","allow_squash_merge":true,"allow_merge_commit":true,"allow_rebase_merge":true,"delete_branch_on_merge":false,"organization":{"login":"weaveworks","id":72046441,"node_id":"MDEyOk9yZ2FuaXphdGlvbjcyMDQ2NDQx","avatar_url":"https://avatars.githubusercontent.com/u/72046441?v=4","gravatar_id":"","url":"https://api.github.com/users/weaveworks","html_url":"https://github.com/weaveworks","followers_url":"https://api.github.com/users/weaveworks/followers","following_url":"https://api.github.com/users/weaveworks/following{/other_user}","gists_url":"https://api.github.com/users/weaveworks/gists{/gist_id}","starred_url":"https://api.github.com/users/weaveworks/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/weaveworks/subscriptions","organizations_url":"https://api.github.com/users/weaveworks/orgs","repos_url":"https://api.github.com/users/weaveworks/repos","events_url":"https://api.github.com/users/weaveworks/events{/privacy}","received_events_url":"https://api.github.com/users/weaveworks/received_events","type":"Organization","site_admin":false},"network_count":0,"subscribers_count":1}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:27:02 GMT
+      Etag:
+      - W/"eb26342cbecaacf28822377007e02003ea108b63387538150949b37d926efdb9"
+      Last-Modified:
+      - Wed, 07 Jul 2021 00:26:53 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - repo
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.scarlet-witch-preview; format=json, github.mercy-preview; format=json,
+        github.baptiste-preview; format=json, github.nebula-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321AB80:6013EA0:60E4F4D6
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4921"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "79"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.v3+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/keys
+    method: GET
+  response:
+    body: '[{"id":54579990,"key":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDorjCI1Ai7xhZx4e2dYImHbjzbEc0gH1mjnkcb3Tqc5Zs/tQVxo282YIMeXq8IABt2AcwTzDHAviajbPqC05GNRwCmEFrYOnYKhMrdrKtYuCtmEhgnhPQlItXJlF00XwHfYetjfIzFSk8vdLJcwmGp6PPemDW2Xv6CPBAN23OGqTbYYsFuO7+hdU3CgGcR9WPDdzN7/4q1aq4Tk7qhNl5Yxw1DQ0OVgiAQnBJHeViOar14Dw1olhtzL2s88e/TE9t47p9iLXFXwN4irER25A4NUa7DYGpNfUEGQdlf1k81ctegQeA8fOZ4uT4zYSja7mG6QYRgPwN4ZB8ywTcHeON6EzWucSWKM4TcJgASmvJtJn5RifbuzMJTtqpCtIFmpo5/ItQFKYjI18Omqh0ZJe/P9YtYtM+Ac3FIOC0yKU7Ozsx/N7wq3uSIOTv8KCxkEgq2fBi9gF/+kE0BGSVao0RfY/fAUjS/ScuNvo30+MrW+8NmWeWRdhMJkJ25kLGuWBE=","url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/keys/54579990","title":"weave-gitops-deploy-key","verified":true,"created_at":"2021-07-07T00:26:52Z","read_only":true}]'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:27:03 GMT
+      Etag:
+      - W/"b40f3e8cb9f80632250f360d05ce7d0bbd63b908c557acd9d7bb838c1742dd2c"
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - ""
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.v3; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321AB9B:6013ED0:60E4F4D6
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4920"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "80"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.surtur-preview+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/orgs/weaveworks
+    method: GET
+  response:
+    body: '{"login":"weaveworks","id":72046441,"node_id":"MDEyOk9yZ2FuaXphdGlvbjcyMDQ2NDQx","url":"https://api.github.com/orgs/weaveworks","repos_url":"https://api.github.com/orgs/weaveworks/repos","events_url":"https://api.github.com/orgs/weaveworks/events","hooks_url":"https://api.github.com/orgs/weaveworks/hooks","issues_url":"https://api.github.com/orgs/weaveworks/issues","members_url":"https://api.github.com/orgs/weaveworks/members{/member}","public_members_url":"https://api.github.com/orgs/weaveworks/public_members{/member}","avatar_url":"https://avatars.githubusercontent.com/u/72046441?v=4","description":"test
+      description","name":"my organization name","company":null,"blog":null,"location":null,"email":null,"twitter_username":null,"is_verified":false,"has_organization_projects":true,"has_repository_projects":true,"public_repos":1,"public_gists":0,"followers":0,"following":0,"html_url":"https://github.com/weaveworks","created_at":"2020-09-28T20:22:26Z","updated_at":"2021-04-26T22:24:23Z","type":"Organization","total_private_repos":64,"owned_private_repos":64,"private_gists":0,"disk_usage":187,"collaborators":0,"billing_email":"bot@gmail.com","default_repository_permission":"read","members_can_create_repositories":true,"two_factor_requirement_enabled":false,"members_allowed_repository_creation_type":"all","members_can_create_public_repositories":true,"members_can_create_private_repositories":true,"members_can_create_internal_repositories":false,"members_can_create_pages":true,"members_can_create_public_pages":true,"members_can_create_private_pages":true,"plan":{"name":"free","space":976562499,"private_repos":10000,"filled_seats":1,"seats":0}}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:27:03 GMT
+      Etag:
+      - W/"1ecf54b6c0d3b9c2eb669e7bc87025030f0b10b6901abcce2deaaaf637172196"
+      Last-Modified:
+      - Mon, 26 Apr 2021 22:24:23 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - admin:org, read:org, repo, user, write:org
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.surtur-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321ABB2:6013EF9:60E4F4D6
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4919"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "81"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.scarlet-witch-preview+json, application/vnd.github.mercy-preview+json,
+        application/vnd.github.baptiste-preview+json, application/vnd.github.nebula-preview+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/weaveworks/test-deploy-key-org-repo
+    method: GET
+  response:
+    body: '{"id":383630276,"node_id":"MDEwOlJlcG9zaXRvcnkzODM2MzAyNzY=","name":"test-deploy-key-org-repo","full_name":"weaveworks/test-deploy-key-org-repo","private":true,"owner":{"login":"weaveworks","id":72046441,"node_id":"MDEyOk9yZ2FuaXphdGlvbjcyMDQ2NDQx","avatar_url":"https://avatars.githubusercontent.com/u/72046441?v=4","gravatar_id":"","url":"https://api.github.com/users/weaveworks","html_url":"https://github.com/weaveworks","followers_url":"https://api.github.com/users/weaveworks/followers","following_url":"https://api.github.com/users/weaveworks/following{/other_user}","gists_url":"https://api.github.com/users/weaveworks/gists{/gist_id}","starred_url":"https://api.github.com/users/weaveworks/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/weaveworks/subscriptions","organizations_url":"https://api.github.com/users/weaveworks/orgs","repos_url":"https://api.github.com/users/weaveworks/repos","events_url":"https://api.github.com/users/weaveworks/events{/privacy}","received_events_url":"https://api.github.com/users/weaveworks/received_events","type":"Organization","site_admin":false},"html_url":"https://github.com/weaveworks/test-deploy-key-org-repo","description":"test
+      user repository","fork":false,"url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo","forks_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/forks","keys_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/keys{/key_id}","collaborators_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/collaborators{/collaborator}","teams_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/teams","hooks_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/hooks","issue_events_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/issues/events{/number}","events_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/events","assignees_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/assignees{/user}","branches_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/branches{/branch}","tags_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/tags","blobs_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/blobs{/sha}","git_tags_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/tags{/sha}","git_refs_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/refs{/sha}","trees_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/trees{/sha}","statuses_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/statuses/{sha}","languages_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/languages","stargazers_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/stargazers","contributors_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/contributors","subscribers_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/subscribers","subscription_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/subscription","commits_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/commits{/sha}","git_commits_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/commits{/sha}","comments_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/comments{/number}","issue_comment_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/issues/comments{/number}","contents_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/contents/{+path}","compare_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/compare/{base}...{head}","merges_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/merges","archive_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/{archive_format}{/ref}","downloads_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/downloads","issues_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/issues{/number}","pulls_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/pulls{/number}","milestones_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/milestones{/number}","notifications_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/notifications{?since,all,participating}","labels_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/labels{/name}","releases_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/releases{/id}","deployments_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/deployments","created_at":"2021-07-07T00:26:49Z","updated_at":"2021-07-07T00:26:53Z","pushed_at":"2021-07-07T00:26:50Z","git_url":"git://github.com/weaveworks/test-deploy-key-org-repo.git","ssh_url":"git@github.com:weaveworks/test-deploy-key-org-repo.git","clone_url":"https://github.com/weaveworks/test-deploy-key-org-repo.git","svn_url":"https://github.com/weaveworks/test-deploy-key-org-repo","homepage":null,"size":0,"stargazers_count":0,"watchers_count":0,"language":null,"has_issues":true,"has_projects":true,"has_downloads":true,"has_wiki":true,"has_pages":false,"forks_count":0,"mirror_url":null,"archived":false,"disabled":false,"open_issues_count":0,"license":null,"topics":[],"is_template":false,"visibility":"private","forks":0,"open_issues":0,"watchers":0,"default_branch":"main","permissions":{"admin":true,"push":true,"pull":true},"code_of_conduct":{"key":"none","name":"None","html_url":null,"url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/community/code_of_conduct"},"temp_clone_token":"AA5WMMUCOSSQEIVK3PHBIFDA4T3AG","allow_squash_merge":true,"allow_merge_commit":true,"allow_rebase_merge":true,"delete_branch_on_merge":false,"organization":{"login":"weaveworks","id":72046441,"node_id":"MDEyOk9yZ2FuaXphdGlvbjcyMDQ2NDQx","avatar_url":"https://avatars.githubusercontent.com/u/72046441?v=4","gravatar_id":"","url":"https://api.github.com/users/weaveworks","html_url":"https://github.com/weaveworks","followers_url":"https://api.github.com/users/weaveworks/followers","following_url":"https://api.github.com/users/weaveworks/following{/other_user}","gists_url":"https://api.github.com/users/weaveworks/gists{/gist_id}","starred_url":"https://api.github.com/users/weaveworks/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/weaveworks/subscriptions","organizations_url":"https://api.github.com/users/weaveworks/orgs","repos_url":"https://api.github.com/users/weaveworks/repos","events_url":"https://api.github.com/users/weaveworks/events{/privacy}","received_events_url":"https://api.github.com/users/weaveworks/received_events","type":"Organization","site_admin":false},"network_count":0,"subscribers_count":1}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:27:03 GMT
+      Etag:
+      - W/"eb26342cbecaacf28822377007e02003ea108b63387538150949b37d926efdb9"
+      Last-Modified:
+      - Wed, 07 Jul 2021 00:26:53 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - repo
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.scarlet-witch-preview; format=json, github.mercy-preview; format=json,
+        github.baptiste-preview; format=json, github.nebula-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321ABD5:6013F30:60E4F4D7
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4918"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "82"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: |
+      {"key":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDorjCI1Ai7xhZx4e2dYImHbjzbEc0gH1mjnkcb3Tqc5Zs/tQVxo282YIMeXq8IABt2AcwTzDHAviajbPqC05GNRwCmEFrYOnYKhMrdrKtYuCtmEhgnhPQlItXJlF00XwHfYetjfIzFSk8vdLJcwmGp6PPemDW2Xv6CPBAN23OGqTbYYsFuO7+hdU3CgGcR9WPDdzN7/4q1aq4Tk7qhNl5Yxw1DQ0OVgiAQnBJHeViOar14Dw1olhtzL2s88e/TE9t47p9iLXFXwN4irER25A4NUa7DYGpNfUEGQdlf1k81ctegQeA8fOZ4uT4zYSja7mG6QYRgPwN4ZB8ywTcHeON6EzWucSWKM4TcJgASmvJtJn5RifbuzMJTtqpCtIFmpo5/ItQFKYjI18Omqh0ZJe/P9YtYtM+Ac3FIOC0yKU7Ozsx/N7wq3uSIOTv8KCxkEgq2fBi9gF/+kE0BGSVao0RfY/fAUjS/ScuNvo30+MrW+8NmWeWRdhMJkJ25kLGuWBE=","title":"weave-gitops-deploy-key","read_only":true}
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.v3+json
+      Content-Type:
+      - application/json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/keys
+    method: POST
+  response:
+    body: '{"message":"Validation Failed","errors":[{"resource":"PublicKey","code":"custom","field":"key","message":"key
+      is already in use"}],"documentation_url":"https://docs.github.com/rest/reference/repos#create-a-deploy-key"}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Content-Length:
+      - "218"
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:27:03 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - ""
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.v3; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321ABFB:6013F7D:60E4F4D7
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4917"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "83"
+      X-Xss-Protection:
+      - "0"
+    status: 422 Unprocessable Entity
+    code: 422
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.scarlet-witch-preview+json, application/vnd.github.mercy-preview+json,
+        application/vnd.github.baptiste-preview+json, application/vnd.github.nebula-preview+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/weaveworks/test-deploy-key-org-repo
+    method: GET
+  response:
+    body: '{"id":383630276,"node_id":"MDEwOlJlcG9zaXRvcnkzODM2MzAyNzY=","name":"test-deploy-key-org-repo","full_name":"weaveworks/test-deploy-key-org-repo","private":true,"owner":{"login":"weaveworks","id":72046441,"node_id":"MDEyOk9yZ2FuaXphdGlvbjcyMDQ2NDQx","avatar_url":"https://avatars.githubusercontent.com/u/72046441?v=4","gravatar_id":"","url":"https://api.github.com/users/weaveworks","html_url":"https://github.com/weaveworks","followers_url":"https://api.github.com/users/weaveworks/followers","following_url":"https://api.github.com/users/weaveworks/following{/other_user}","gists_url":"https://api.github.com/users/weaveworks/gists{/gist_id}","starred_url":"https://api.github.com/users/weaveworks/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/weaveworks/subscriptions","organizations_url":"https://api.github.com/users/weaveworks/orgs","repos_url":"https://api.github.com/users/weaveworks/repos","events_url":"https://api.github.com/users/weaveworks/events{/privacy}","received_events_url":"https://api.github.com/users/weaveworks/received_events","type":"Organization","site_admin":false},"html_url":"https://github.com/weaveworks/test-deploy-key-org-repo","description":"test
+      user repository","fork":false,"url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo","forks_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/forks","keys_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/keys{/key_id}","collaborators_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/collaborators{/collaborator}","teams_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/teams","hooks_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/hooks","issue_events_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/issues/events{/number}","events_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/events","assignees_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/assignees{/user}","branches_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/branches{/branch}","tags_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/tags","blobs_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/blobs{/sha}","git_tags_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/tags{/sha}","git_refs_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/refs{/sha}","trees_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/trees{/sha}","statuses_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/statuses/{sha}","languages_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/languages","stargazers_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/stargazers","contributors_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/contributors","subscribers_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/subscribers","subscription_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/subscription","commits_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/commits{/sha}","git_commits_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/git/commits{/sha}","comments_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/comments{/number}","issue_comment_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/issues/comments{/number}","contents_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/contents/{+path}","compare_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/compare/{base}...{head}","merges_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/merges","archive_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/{archive_format}{/ref}","downloads_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/downloads","issues_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/issues{/number}","pulls_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/pulls{/number}","milestones_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/milestones{/number}","notifications_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/notifications{?since,all,participating}","labels_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/labels{/name}","releases_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/releases{/id}","deployments_url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/deployments","created_at":"2021-07-07T00:26:49Z","updated_at":"2021-07-07T00:26:53Z","pushed_at":"2021-07-07T00:26:50Z","git_url":"git://github.com/weaveworks/test-deploy-key-org-repo.git","ssh_url":"git@github.com:weaveworks/test-deploy-key-org-repo.git","clone_url":"https://github.com/weaveworks/test-deploy-key-org-repo.git","svn_url":"https://github.com/weaveworks/test-deploy-key-org-repo","homepage":null,"size":0,"stargazers_count":0,"watchers_count":0,"language":null,"has_issues":true,"has_projects":true,"has_downloads":true,"has_wiki":true,"has_pages":false,"forks_count":0,"mirror_url":null,"archived":false,"disabled":false,"open_issues_count":0,"license":null,"topics":[],"is_template":false,"visibility":"private","forks":0,"open_issues":0,"watchers":0,"default_branch":"main","permissions":{"admin":true,"push":true,"pull":true},"code_of_conduct":{"key":"none","name":"None","html_url":null,"url":"https://api.github.com/repos/weaveworks/test-deploy-key-org-repo/community/code_of_conduct"},"temp_clone_token":"AA5WMMQLJPWHSKGR2U6H6YDA4T3AI","allow_squash_merge":true,"allow_merge_commit":true,"allow_rebase_merge":true,"delete_branch_on_merge":false,"organization":{"login":"weaveworks","id":72046441,"node_id":"MDEyOk9yZ2FuaXphdGlvbjcyMDQ2NDQx","avatar_url":"https://avatars.githubusercontent.com/u/72046441?v=4","gravatar_id":"","url":"https://api.github.com/users/weaveworks","html_url":"https://github.com/weaveworks","followers_url":"https://api.github.com/users/weaveworks/followers","following_url":"https://api.github.com/users/weaveworks/following{/other_user}","gists_url":"https://api.github.com/users/weaveworks/gists{/gist_id}","starred_url":"https://api.github.com/users/weaveworks/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/weaveworks/subscriptions","organizations_url":"https://api.github.com/users/weaveworks/orgs","repos_url":"https://api.github.com/users/weaveworks/repos","events_url":"https://api.github.com/users/weaveworks/events{/privacy}","received_events_url":"https://api.github.com/users/weaveworks/received_events","type":"Organization","site_admin":false},"network_count":0,"subscribers_count":1}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Cache-Control:
+      - private, max-age=60, s-maxage=60
+      Content-Security-Policy:
+      - default-src 'none'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 07 Jul 2021 00:27:04 GMT
+      Etag:
+      - W/"eb26342cbecaacf28822377007e02003ea108b63387538150949b37d926efdb9"
+      Last-Modified:
+      - Wed, 07 Jul 2021 00:26:53 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept, Authorization, Cookie, X-GitHub-OTP
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - repo
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.scarlet-witch-preview; format=json, github.mercy-preview; format=json,
+        github.baptiste-preview; format=json, github.nebula-preview; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321AC1E:6013FCF:60E4F4D7
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4916"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "84"
+      X-Xss-Protection:
+      - "0"
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Accept:
+      - application/vnd.github.v3+json
+      User-Agent:
+      - go-github
+    url: https://api.github.com/repos/weaveworks/test-deploy-key-org-repo
+    method: DELETE
+  response:
+    body: ""
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining,
+        X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes,
+        X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation,
+        Sunset
+      Content-Security-Policy:
+      - default-src 'none'
+      Date:
+      - Wed, 07 Jul 2021 00:27:04 GMT
+      Referrer-Policy:
+      - origin-when-cross-origin, strict-origin-when-cross-origin
+      Server:
+      - GitHub.com
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubdomains; preload
+      Vary:
+      - Accept-Encoding, Accept, X-Requested-With
+      X-Accepted-Oauth-Scopes:
+      - ""
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - deny
+      X-Github-Media-Type:
+      - github.v3; format=json
+      X-Github-Request-Id:
+      - EDA9:439C:321AC3A:6013FFF:60E4F4D7
+      X-Oauth-Scopes:
+      - admin:enterprise, admin:gpg_key, admin:org, admin:org_hook, admin:public_key,
+        admin:repo_hook, delete:packages, delete_repo, gist, notifications, repo,
+        user, workflow, write:discussion, write:packages
+      X-Ratelimit-Limit:
+      - "5000"
+      X-Ratelimit-Remaining:
+      - "4915"
+      X-Ratelimit-Reset:
+      - "1625619283"
+      X-Ratelimit-Resource:
+      - core
+      X-Ratelimit-Used:
+      - "85"
+      X-Xss-Protection:
+      - "0"
+    status: 204 No Content
+    code: 204
+    duration: ""
