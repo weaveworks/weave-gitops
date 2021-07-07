@@ -13,12 +13,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/weaveworks/weave-gitops/pkg/utils"
-
 	"github.com/dnaeon/go-vcr/cassette"
 	"github.com/dnaeon/go-vcr/recorder"
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -68,7 +67,7 @@ func (t *customTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 			responseBody = getBodyFromReaderWithoutConsuming(&resp.Body)
 		}
 		if (err != nil && (strings.Contains(err.Error(), ConnectionResetByPeer))) ||
-			strings.Contains(string(responseBody), ProjectStillBeingDeleted) {
+			strings.Contains(responseBody, ProjectStillBeingDeleted) {
 			time.Sleep(4 * time.Second)
 			if req != nil && req.Body != nil {
 				req.Body = ioutil.NopCloser(strings.NewReader(requestBody))
@@ -96,8 +95,8 @@ type accounts struct {
 	GitlabUserName string
 }
 
-func NewRecorder(provider string, accounts *accounts) (*recorder.Recorder, error) {
-	r, err := recorder.New(fmt.Sprintf("./cache/%s", provider))
+func NewRecorder(cassetteID string, accounts *accounts) (*recorder.Recorder, error) {
+	r, err := recorder.New(fmt.Sprintf("./cache/%s", cassetteID))
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +116,10 @@ func NewRecorder(provider string, accounts *accounts) (*recorder.Recorder, error
 	})
 
 	r.AddSaveFilter(func(i *cassette.Interaction) error {
-		if accounts.GithubOrgName != GithubOrgTestName {
+		if accounts.GithubOrgName != GithubOrgTestName ||
+			accounts.GithubUserName != GithubUserTestName ||
+			accounts.GitlabOrgName != GitlabOrgTestName ||
+			accounts.GitlabUserName != GitlabUserTestName {
 			i.Response.Body = strings.Replace(i.Response.Body, accounts.GithubOrgName, GithubOrgTestName, -1)
 			i.Response.Body = strings.Replace(i.Response.Body, accounts.GithubUserName, GithubUserTestName, -1)
 			i.Response.Body = strings.Replace(i.Response.Body, accounts.GitlabOrgName, GitlabOrgTestName, -1)
@@ -444,7 +446,7 @@ var _ = Describe("Get User repo info", func() {
 	repoName := "test-user-repo-info"
 
 	BeforeEach(func() {
-		client, recorder, err = getTestClientWithCassette("get_repo_info")
+		client, recorder, err = getTestClientWithCassette("get_user_repo_info")
 		Expect(err).NotTo(HaveOccurred())
 		SetGithubProvider(client)
 
@@ -588,7 +590,6 @@ var _ = Describe("Test org deploy keys creation", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 		Expect(stdout).To(Equal("uploading deploy key\n"))
-		time.Sleep(time.Second * 10)
 
 		exists, err = DeployKeyExists(accounts.GithubOrgName, repoName)
 		Expect(err).ShouldNot(HaveOccurred())
