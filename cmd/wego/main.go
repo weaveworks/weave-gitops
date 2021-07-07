@@ -39,7 +39,7 @@ var rootCmd = &cobra.Command{
 	 --name podinfo
 
   # Add applicaiton to wego control from a remote github repository
-  wego app add \
+  wego app add
 	--name podinfo
 	--url git@github.com:myorg/podinfo
 	--private-key ${HOME}/.ssh/podinfo-key
@@ -50,7 +50,7 @@ var rootCmd = &cobra.Command{
 
   # Get help for wego app add command
   wego app add -h
-  wego app help add
+  wego help app add
 
   # Show manifests that would be installed by the wego gitops install command
   wego gitops install --dry-run
