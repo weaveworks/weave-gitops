@@ -1233,7 +1233,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
 		helmRepoURL := "https://charts.bitnami.com/bitnami"
 		appName := "nginx"
-		addCommand := "app add --url=" + helmRepoURL + " --chart=" + appName + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true"
+		addCommand := "app add --url=" + helmRepoURL + " --chart=" + appName + " --app-config-url=" + appRepoRemoteURL + workloadNamespace + " --auto-merge=true"
 
 		defer deleteRepo(appRepoName)
 		defer deleteWorkload(workloadName, workloadNamespace)
@@ -1254,7 +1254,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			installAndVerifyWego(workloadNamespace)
 		})
 
-		By("And I run wego add command with app-config-url set with"+appRepoRemoteURL, func() {
+		By("And I run wego add command with app-config-url set with "+appRepoRemoteURL, func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, workloadNamespace)
 		})
 
