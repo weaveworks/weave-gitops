@@ -17,7 +17,6 @@ import (
 	"github.com/dnaeon/go-vcr/cassette"
 	"github.com/dnaeon/go-vcr/recorder"
 	"github.com/fluxcd/go-git-providers/github"
-	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 
 	. "github.com/onsi/ginkgo"
@@ -217,21 +216,6 @@ func newGithubTestClient(customTransportFactory gitprovider.ChainableRoundTrippe
 		github.WithOAuth2Token(token),
 		github.WithPreChainTransportHook(customTransportFactory),
 		github.WithDestructiveAPICalls(true),
-	)
-}
-
-func newGitlabTestClient(customTransportFactory gitprovider.ChainableRoundTripperFunc) (gitprovider.Client, error) {
-	token := os.Getenv("GITLAB_TOKEN")
-	if token == "" { // This is the case when the tests run in the ci/cd tool. No need to have a value as everything is cached
-		token = " "
-	}
-
-	return gitlab.NewClient(
-		"",
-		"",
-		gitlab.WithOAuth2Token(token),
-		gitlab.WithPreChainTransportHook(customTransportFactory),
-		gitlab.WithDestructiveAPICalls(true),
 	)
 }
 
