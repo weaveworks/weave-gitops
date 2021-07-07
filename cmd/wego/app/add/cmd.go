@@ -43,25 +43,11 @@ var Cmd = &cobra.Command{
   wego app status podinfo
 `,
 	RunE:    runCmd,
+	SilenceUsage:  true,
+	SilenceErrors: true,
 	PostRun: func(cmd *cobra.Command, args []string) {
 		version.CheckVersion(version.CheckpointParamsWithFlags(version.CheckpointParams(), cmd))
 	},
-	SilenceUsage:  true,
-	SilenceErrors: true,
-	Short: "Add a workload repository to a wego cluster",
-	Long: strings.TrimSpace(dedent.Dedent(`
-		Associates an additional application in a git repository with a wego cluster so that its contents may be managed via GitOps
-	`)),
-	Example: `
-  # Add podinfo application to wego control from local git repository
-  wego app add .
-
-  # Add podinfo application to wego control from github repository
-  wego app add github.com/myorg/podinfo
-
-  # Get status of podinfo application
-  wego app status podinfo
-`,
 }
 
 func init() {

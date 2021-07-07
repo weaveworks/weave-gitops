@@ -37,7 +37,6 @@ var rootCmd = &cobra.Command{
   wego app add
 	 --path ./podinfo
 	 --name podinfo
-	 --namespace podinfo
 
   # Add applicaiton to wego control from a remote github repository
   wego app add \
@@ -45,10 +44,9 @@ var rootCmd = &cobra.Command{
 	--url git@github.com:myorg/podinfo
 	--private-key ${HOME}/.ssh/podinfo-key
 	--branch prod-podinfo
-	--namespace prod-podinfo
 
   # Get status of deployed application
-  wego app status podinfo --namespace prod-podinfo
+  wego app status podinfo
 
   # Get help for wego app add command
   wego app add -h
@@ -59,9 +57,6 @@ var rootCmd = &cobra.Command{
 
   # Install wego in the wego-system namespace
   wego gitops install
-
-  # Install wego in a custom namespace
-  wego gitops install --namespace my-app-namespace
 
   # Get the version of wego along with commit, branch, and flux version
   wego version
@@ -81,25 +76,9 @@ func configureLogger() {
 	}
 }
 
-var ApplicationCmd = &cobra.Command{
-	Use:   "app [subcommand]",
-	Short: "Manages your applications",
-	Long:  `
-  Add:    Add an application to wego control,
-  Status: Get status of application under wego control`,
-	Example:`
-  # Add an application to wego from local git repository
-  wego app add ./myapp --name myapp
-
-  # Status an application under wego control
-  wego app status myapp`,
-	Args: cobra.MinimumNArgs(1),
-}
-
 func main() {
 	fluxBin.SetupFluxBin()
 	rootCmd.PersistentFlags().BoolVarP(&options.verbose, "verbose", "v", false, "Enable verbose output")
-	rootCmd.PersistentFlags().String("namespace", "wego-system", "gitops runtime namespace")
 
 	rootCmd.AddCommand(gitops.Cmd)
 	rootCmd.AddCommand(version.Cmd)
