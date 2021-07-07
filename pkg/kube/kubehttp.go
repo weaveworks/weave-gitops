@@ -42,7 +42,7 @@ func NewKubeHTTPClient() (Kube, error) {
 
 	_, kubeContext, err := initialContexts(cfgLoadingRules)
 	if err != nil {
-		return nil, fmt.Errorf("could not get initial context: %s", err)
+		return nil, fmt.Errorf("could not get initial context: %w", err)
 	}
 
 	configOverrides := clientcmd.ConfigOverrides{CurrentContext: kubeContext}
@@ -119,7 +119,7 @@ func (c *KubeHTTP) Apply(manifests []byte, namespace string) ([]byte, error) {
 func (c *KubeHTTP) GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error) {
 	app := wego.Application{}
 	if err := c.Client.Get(ctx, name, &app); err != nil {
-		return nil, fmt.Errorf("could not get application: %s", err)
+		return nil, fmt.Errorf("could not get application: %w", err)
 	}
 
 	return &app, nil
@@ -140,7 +140,7 @@ func (c *KubeHTTP) FluxPresent(ctx context.Context) (bool, error) {
 		if apierrors.IsNotFound(err) {
 			return false, nil
 		}
-		return false, fmt.Errorf("could not find flux namespace: %s", err)
+		return false, fmt.Errorf("could not find flux namespace: %w", err)
 	}
 
 	return true, nil
@@ -157,7 +157,7 @@ func (c *KubeHTTP) SecretPresent(ctx context.Context, secretName string, namespa
 		if apierrors.IsNotFound(err) {
 			return false, nil
 		}
-		return false, fmt.Errorf("could not get secret: %s", err)
+		return false, fmt.Errorf("could not get secret: %w", err)
 	}
 
 	return true, nil
@@ -167,7 +167,7 @@ func (c *KubeHTTP) GetApplications(ctx context.Context, namespace string) ([]weg
 	result := wego.ApplicationList{}
 
 	if err := c.Client.List(ctx, &result, client.InNamespace(namespace)); err != nil {
-		return nil, fmt.Errorf("could not list wego applications: %s", err)
+		return nil, fmt.Errorf("could not list wego applications: %w", err)
 	}
 
 	return result.Items, nil
@@ -190,12 +190,3 @@ func initialContexts(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (conte
 
 	return contexts, rules.CurrentContext, nil
 }
-
-// func namespaceOpts(ns string) *client.ListOptions {
-// 	opts := client.ListOptions{}
-// 	if ns != "" {
-// 		opts.Namespace = ns
-// 	}
-
-// 	return &opts
-// }
