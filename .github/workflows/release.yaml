@@ -9,11 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # pin@v2
       - name: Unshallow
         run: git fetch --prune --unshallow
       - name: Setup Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@37335c7bb261b353407cff977110895fa0b4f7d8 # pin@v2
         with:
           go-version: 1.16.x
       - name: Download release notes utility
@@ -32,7 +32,7 @@ jobs:
           echo "BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
           echo "FLUX_VERSION=$($(pwd)/tools/bin/stoml $(pwd)/tools/dependencies.toml flux.version)" >> $GITHUB_ENV
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v1
+        uses: goreleaser/goreleaser-action@6e37040623d14330555c7be1603a9182cf92d32a # pin@v1
         with:
           version: latest
           args: release --release-notes=/tmp/release.txt --skip-validate

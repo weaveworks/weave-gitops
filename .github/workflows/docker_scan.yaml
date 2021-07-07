@@ -15,16 +15,16 @@ jobs:
         working-directory: ./controllers/wego-controller
     steps:
       - name: Login to GitHub Packages Docker Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9 # pin@v1
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # pin@v2
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@0d135e0c2fc0dba0729c1a47ecfcf5a3c7f8579e # pin@v1
       - name: Build and push
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc # pin@v2
         with:
           context: .
           push: true
@@ -35,9 +35,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # pin@v2
       - name: Run FOSSA scan and upload build data
-        uses: fossa-contrib/fossa-action@v1
+        uses: fossa-contrib/fossa-action@ba681392537bba019eae621dbbe95c89edc32a22 # pin@v1
         with:
           fossa-api-key: ${{ secrets.FOSSA_API_KEY }}
           github-token: ${{ github.token }}
@@ -47,19 +47,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # pin@v2
       - name: Fake Install flux
         run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
       - name: Remove UI deps from Scan
         run: rm package-lock.json && rm package.json && make cmd/ui/dist/index.html
       - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/golang@master
+        uses: snyk/actions/golang@ff5624d62e916ba958d7c0df9893ee9d2d2378de # pin@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
         with:
           args: --sarif-file-output=snyk.code.sarif
       - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@cf6e01948098c3a455ebd0e4ef4ca9d6ae29ff1e # pin@v1
         with:
           sarif_file: snyk.code.sarif
       - name: Remove fake flux
@@ -73,19 +73,19 @@ jobs:
       run:
         working-directory: ./controllers/wego-controller
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # pin@v2
       - name: Run Snyk to check Docker image for vulnerabilities
         # Snyk can be used to break the build when it detects vulnerabilities.
         # In this case we want to upload the issues to GitHub Code Scanning
         continue-on-error: true
-        uses: snyk/actions/docker@master
+        uses: snyk/actions/docker@ff5624d62e916ba958d7c0df9893ee9d2d2378de # pin@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
         with:
           image: weaveworks/wego-controller:${{ github.sha }}
           args: --file=Dockerfile
       - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@cf6e01948098c3a455ebd0e4ef4ca9d6ae29ff1e # pin@v1
         with:
           sarif_file: snyk.sarif
 
@@ -95,14 +95,14 @@ jobs:
     needs: push_to_registry
     steps:
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@ac8de07fd168680dd0331bef43681c0e150e9ad1 # pin@master
         with:
           image-ref: weaveworks/wego-controller:${{ github.sha }}
           format: "template"
           template: "@/contrib/sarif.tpl"
           output: "trivy-results.sarif"
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@cf6e01948098c3a455ebd0e4ef4ca9d6ae29ff1e # pin@v1
         with:
           sarif_file: "trivy-results.sarif"
 
@@ -111,12 +111,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # pin@v2
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v1
+        uses: github/codeql-action/init@cf6e01948098c3a455ebd0e4ef4ca9d6ae29ff1e # pin@v1
         with:
           languages: go
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v1
+        uses: github/codeql-action/autobuild@cf6e01948098c3a455ebd0e4ef4ca9d6ae29ff1e # pin@v1
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v1
+        uses: github/codeql-action/analyze@cf6e01948098c3a455ebd0e4ef4ca9d6ae29ff1e # pin@v1
