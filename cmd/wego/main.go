@@ -66,7 +66,6 @@ var rootCmd = &cobra.Command{
 	},
 }
 
-
 func configureLogger() {
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp: true,
