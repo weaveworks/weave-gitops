@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -13,6 +12,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	"github.com/dnaeon/go-vcr/cassette"
 	"github.com/dnaeon/go-vcr/recorder"
@@ -186,25 +187,24 @@ func getAccounts() *accounts {
 	return accounts
 }
 
-func getTestClientWithCassette(cassetteID string) (gitprovider.Client,*recorder.Recorder,error){
+func getTestClientWithCassette(cassetteID string) (gitprovider.Client, *recorder.Recorder, error) {
 	t := customTransport{}
 
 	var err error
 	cacheGithubRecorder, err := NewRecorder(cassetteID, getAccounts())
 	if err != nil {
-		return nil,nil,err
+		return nil, nil, err
 	}
 
 	cacheGithubRecorder.SetTransport(&t)
 
 	githubTestClient, err := newGithubTestClient(SetRecorder(cacheGithubRecorder))
 	if err != nil {
-		return nil,nil,err
+		return nil, nil, err
 	}
 
-	return githubTestClient,cacheGithubRecorder,nil
+	return githubTestClient, cacheGithubRecorder, nil
 }
-
 
 func newGithubTestClient(customTransportFactory gitprovider.ChainableRoundTripperFunc) (gitprovider.Client, error) {
 	token := os.Getenv("GITHUB_TOKEN")
@@ -227,7 +227,6 @@ var _ = Describe("pull requests", func() {
 	var err error
 
 	type tier struct {
-		provider string
 		client   gitprovider.Client
 		domain   string
 		orgName  string
@@ -237,12 +236,12 @@ var _ = Describe("pull requests", func() {
 	var providers []tier
 
 	BeforeEach(func() {
-		client,recorder,err = getTestClientWithCassette("pull_requests")
+		client, recorder, err = getTestClientWithCassette("pull_requests")
 		Expect(err).NotTo(HaveOccurred())
 		SetGithubProvider(client)
 
 		providers = []tier{
-			{"github", client, github.DefaultDomain, accounts.GithubOrgName, accounts.GithubUserName},
+			{client, github.DefaultDomain, accounts.GithubOrgName, accounts.GithubUserName},
 			// Remove this for now as we dont support it yet.
 			// {"gitlab", gitlabTestClient, gitlab.DefaultDomain, accounts.GitlabOrgName, accounts.GitlabUserName},
 		}
@@ -272,7 +271,7 @@ var _ = Describe("test org repo exists", func() {
 	var err error
 	repoName := "repo-exists-org"
 	BeforeEach(func() {
-		client,recorder,err = getTestClientWithCassette("repo_org_exists")
+		client, recorder, err = getTestClientWithCassette("repo_org_exists")
 		Expect(err).NotTo(HaveOccurred())
 		SetGithubProvider(client)
 	})
@@ -308,7 +307,7 @@ var _ = Describe("test personal repo exists", func() {
 	var err error
 	repoName := "repo-exists-personal"
 	BeforeEach(func() {
-		client,recorder,err = getTestClientWithCassette("repo_personal_exists")
+		client, recorder, err = getTestClientWithCassette("repo_personal_exists")
 		Expect(err).NotTo(HaveOccurred())
 		SetGithubProvider(client)
 	})
@@ -445,7 +444,7 @@ var _ = Describe("Get User repo info", func() {
 	repoName := "test-user-repo-info"
 
 	BeforeEach(func() {
-		client,recorder,err = getTestClientWithCassette("get_repo_info")
+		client, recorder, err = getTestClientWithCassette("get_repo_info")
 		Expect(err).NotTo(HaveOccurred())
 		SetGithubProvider(client)
 
@@ -491,7 +490,7 @@ var _ = Describe("Test user deploy keys creation", func() {
 	var deployKey string
 
 	BeforeEach(func() {
-		client,recorder,err = getTestClientWithCassette("deploy_key_user")
+		client, recorder, err = getTestClientWithCassette("deploy_key_user")
 		Expect(err).NotTo(HaveOccurred())
 		SetGithubProvider(client)
 
@@ -510,7 +509,6 @@ var _ = Describe("Test user deploy keys creation", func() {
 
 		deployKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBmym4XOiTj4rY3AcJKoJ8QupfgpFWtgNzDxzL0TrzfnurUQm+snozKLHGtOtS7PjMQsMaW9phyhhXv2KxadVI1uweFkC1TK4rPNWrqYX2g0JLXEScvaafSiv+SqozWLN/zhQ0e0jrtrYphtkd+H72RYsdq3mngY4WPJXM7z+HSjHSKilxj7XsxENt0dxT08LArxDC4OQXv9EYFgCyZ7SuLPBgA9160Co46Jm27enB/oBPx5zWd1MlkI+RtUi+XV2pLMzIpvYi2r2iWwOfDqE0N2cfpD0bY7cIOlv0iS7v6Qkmf7pBD+tRGTIZFcD5tGmZl1DOaeCZZ/VAN66aX+rN"
 	})
-
 
 	It("Uploads a new deploy key for a brand new user repo, checks for presence of the key, and shows proper message if trying to re-add it", func() {
 
@@ -559,7 +557,7 @@ var _ = Describe("Test org deploy keys creation", func() {
 	var deployKey string
 
 	BeforeEach(func() {
-		client,recorder,err = getTestClientWithCassette("deploy_key_org")
+		client, recorder, err = getTestClientWithCassette("deploy_key_org")
 		Expect(err).NotTo(HaveOccurred())
 		SetGithubProvider(client)
 
@@ -579,7 +577,6 @@ var _ = Describe("Test org deploy keys creation", func() {
 		deployKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDorjCI1Ai7xhZx4e2dYImHbjzbEc0gH1mjnkcb3Tqc5Zs/tQVxo282YIMeXq8IABt2AcwTzDHAviajbPqC05GNRwCmEFrYOnYKhMrdrKtYuCtmEhgnhPQlItXJlF00XwHfYetjfIzFSk8vdLJcwmGp6PPemDW2Xv6CPBAN23OGqTbYYsFuO7+hdU3CgGcR9WPDdzN7/4q1aq4Tk7qhNl5Yxw1DQ0OVgiAQnBJHeViOar14Dw1olhtzL2s88e/TE9t47p9iLXFXwN4irER25A4NUa7DYGpNfUEGQdlf1k81ctegQeA8fOZ4uT4zYSja7mG6QYRgPwN4ZB8ywTcHeON6EzWucSWKM4TcJgASmvJtJn5RifbuzMJTtqpCtIFmpo5/ItQFKYjI18Omqh0ZJe/P9YtYtM+Ac3FIOC0yKU7Ozsx/N7wq3uSIOTv8KCxkEgq2fBi9gF/+kE0BGSVao0RfY/fAUjS/ScuNvo30+MrW+8NmWeWRdhMJkJ25kLGuWBE="
 	})
 
-
 	It("Uploads a new deploy key for a brand new user repo, checks for presence of the key, and shows proper message if trying to re-add it", func() {
 
 		exists, err := DeployKeyExists(accounts.GithubOrgName, repoName)
@@ -591,7 +588,7 @@ var _ = Describe("Test org deploy keys creation", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 		Expect(stdout).To(Equal("uploading deploy key\n"))
-		time.Sleep(time.Second*10)
+		time.Sleep(time.Second * 10)
 
 		exists, err = DeployKeyExists(accounts.GithubOrgName, repoName)
 		Expect(err).ShouldNot(HaveOccurred())
