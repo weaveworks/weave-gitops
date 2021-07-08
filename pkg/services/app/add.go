@@ -389,7 +389,7 @@ func (a *App) generateExternalRepoManifests(params AddParams, secretRef string, 
 }
 
 func (a *App) commitAndPush(params AddParams, filters ...func(string) bool) error {
-	fmt.Println("Commiting and pushing wego resources for application...")
+	fmt.Println("Committing and pushing wego resources for application...")
 	if params.DryRun || !params.AutoMerge {
 		return nil
 	}
@@ -624,12 +624,13 @@ func sanitizeRepoUrl(url string) string {
 	return url
 }
 
-func (a *App) createPullRequestToRepo(params AddParams, path, repo string, appYaml, applicationGoatYaml []byte, clusterName string) error {
+func (a *App) createPullRequestToRepo(params AddParams, basePath string, repo string, appYaml, applicationGoatYaml []byte, clusterName string) error {
 	repoName := generateResourceName(repo)
 
-	appPath := filepath.Join(path, "apps", params.Name, "app.yaml")
+	appPath := filepath.Join(basePath, "apps", params.Name, "app.yaml")
 
-	goatPath := filepath.Join(path, "targets", clusterName, params.Name, fmt.Sprintf("%s-gitops-runtime.yaml", params.Name))
+	goatPath := filepath.Join(basePath, "targets", clusterName, params.Name, fmt.Sprintf("%s-gitops-runtime.yaml", params.Name))
+
 	if params.DryRun {
 		fmt.Printf("Writing GitOps Automation to '%s'\n", goatPath)
 		return nil
