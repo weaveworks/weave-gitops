@@ -271,6 +271,13 @@ func uninstallWego() {
 	_ = runCommandPassThrough([]string{}, "wego", "gitops", "uninstall")
 }
 
+func deleteNamespace(namespace string) {
+	log.Infof("Deleting namespace: " + namespace)
+	command := exec.Command("kubectl", "delete", "ns", namespace)
+	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Eventually(session).Should(gexec.Exit())
+}
+
 func deleteRepo(appRepoName string) {
 	log.Infof("Delete application repo: %s", GITHUB_ORG+"/"+appRepoName)
 	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", GITHUB_ORG+"/"+appRepoName)
@@ -352,10 +359,26 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 	Eventually(session).Should(gexec.Exit())
 }
 
+// func setMainBranchUpstreamInEmptyRepo(repoAbsolutePath string) {
+// 	command := exec.Command("sh", "-c", fmt.Sprintf(`
+//                             cd %s &&
+//                             git push --set-upstream origin main`, repoAbsolutePath))
+// 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+// 	Expect(err).ShouldNot(HaveOccurred())
+// 	Eventually(session).Should(gexec.Exit())
+// }
+
 func pullBranch(repoAbsolutePath string, branch string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cd %s &&
                             git pull origin %s`, repoAbsolutePath, branch))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+}
+
+func pullGitRepo(repoAbsolutePath string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && git pull", repoAbsolutePath))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
@@ -369,13 +392,6 @@ func getRepoVisibility(org string, repo string) string {
 	visibilityStr := strings.TrimSpace(string(session.Wait().Out.Contents()))
 	log.Infof("Repo visibility private=%s", visibilityStr)
 	return visibilityStr
-}
-
-func pullGitRepo(repoAbsolutePath string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && git pull", repoAbsolutePath))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
 }
 
 func setupSSHKey(sshKeyPath string) {

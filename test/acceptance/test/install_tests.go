@@ -10,10 +10,14 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 )
 
 var _ = Describe("Weave GitOps Install Tests", func() {
+
+	var session *gexec.Session
+	var err error
 
 	BeforeEach(func() {
 		By("Given I have a wego binary installed on my local machine", func() {
@@ -22,9 +26,6 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 	})
 
 	It("Validate that wego displays help text for 'install' command", func() {
-
-		var session *gexec.Session
-		var err error
 
 		By("When I run the command 'wego gitops install -h'", func() {
 			command := exec.Command(WEGO_BIN_PATH, "gitops", "install", "-h")
@@ -36,6 +37,33 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		By("Then I should see wego help text displayed for 'install' command", func() {
 			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(
 				`The install command deploys Wego in the specified namespace.\nIf a previous version is installed, then an in-place upgrade will be performed.\n*Usage:\n\s*wego gitops install \[flags]\n*Examples:\n\s*# Install wego in the wego-system namespace\n\s*wego gitops install\n*Flags:\n\s*-h, --help\s*help for install\n*Global Flags:\n\s*--dry-run\s*outputs all the manifests that would be installed\n\s*-n, --namespace string\s*the namespace scope for this operation \(default "wego-system"\)\n\s*-v, --verbose\s*Enable verbose output`))
+		})
+	})
+
+	It("SmokeTest - Verify that wego quits if flux-system namespace is present", func() {
+
+		var errOutput string
+		namespace := "flux-system"
+
+		defer deleteNamespace(namespace)
+
+		By("And I have a brand new cluster", func() {
+			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		By("When I create a '"+namespace+"' namespace", func() {
+			namespaceCreatedMsg := runCommandAndReturnSessionOutput("kubectl create ns " + namespace)
+			Eventually(namespaceCreatedMsg).Should(gbytes.Say("namespace/" + namespace + " created"))
+		})
+
+		By("And I run 'wego gitops install' command", func() {
+			_, errOutput = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " gitops install")
+		})
+
+		By("Then I should see a quitting message", func() {
+			Eventually(errOutput).Should(MatchRegexp(
+				`Error: Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n\s*. flux uninstall`))
 		})
 	})
 

@@ -84,15 +84,15 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	})
 
 	It("SmokeTest - Verify helm repo with app-config-url=NONE can be added to the cluster by running 'wego app add --url=https://charts.kube-ops.io --chart=loki --app-config-url=NONE' ", func() {
-		addCommand := "app add --url=https://charts.kube-ops.io --chart=loki --app-config-url=NONE"
 		appName := "loki"
 		workloadName := "loki-0"
-		workloadNamespace := WEGO_DEFAULT_NAMESPACE
+		helmRepoURL := "https://charts.kube-ops.io"
+		addCommand := "app add --url=" + helmRepoURL + " --chart=" + appName + " --app-config-url=NONE"
 
 		defer uninstallWego()
 
 		By("And application workload is not already deployed to cluster", func() {
-			deleteWorkload(workloadName, workloadNamespace)
+			deleteWorkload(workloadName, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("And I install wego to my active cluster", func() {
@@ -109,7 +109,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("Then I should see my workload deployed to the cluster", func() {
 			verifyWegoHelmAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
-			verifyHelmPodWorkloadIsDeployed(workloadName, workloadNamespace)
+			verifyHelmPodWorkloadIsDeployed(workloadName, WEGO_DEFAULT_NAMESPACE)
 		})
 	})
 
@@ -1227,49 +1227,53 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	It("SmokeTest - Verify wego can add an app from helm-repository with 'app-config-url=url'", func() {
 		var repoAbsolutePath string
 		private := true
+		appName := "loki"
+		workloadName := "loki-0"
+		readmeFilePath := "./data/README.md"
 		appRepoName := generateTestInputs().appRepoName
-		workloadName := generateTestInputs().workloadName
-		workloadNamespace := generateTestInputs().workloadNamespace
 		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
-		helmRepoURL := "https://charts.bitnami.com/bitnami"
-		appName := "nginx"
-		addCommand := "app add --url=" + helmRepoURL + " --chart=" + appName + " --app-config-url=" + appRepoRemoteURL + " --namespace=" + workloadNamespace + " --auto-merge=true"
+		helmRepoURL := "https://charts.kube-ops.io"
+		addCommand := "app add --url=" + helmRepoURL + " --chart=" + appName + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true"
 
 		defer deleteRepo(appRepoName)
-		defer deleteWorkload(workloadName, workloadNamespace)
+		defer deleteWorkload(workloadName, WEGO_DEFAULT_NAMESPACE)
 
 		By("And application repo does not already exist", func() {
 			deleteRepo(appRepoName)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
-			deleteWorkload(workloadName, workloadNamespace)
+			deleteWorkload(workloadName, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("When I create a private git repo", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
+			gitAddCommitPush(repoAbsolutePath, readmeFilePath)
 		})
 
-		By("And I install wego under my namespace: "+workloadNamespace, func() {
-			installAndVerifyWego(workloadNamespace)
+		By("And I install wego under my namespace: "+WEGO_DEFAULT_NAMESPACE, func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("And I run wego add command with app-config-url set with "+appRepoRemoteURL, func() {
-			runWegoAddCommand(repoAbsolutePath, addCommand, workloadNamespace)
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
+		By("And I run wego add command with app-config-url set with: "+appRepoRemoteURL, func() {
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("Then I should see my workload deployed to the cluster", func() {
-			verifyWegoHelmAddCommand(appName, workloadNamespace)
-			verifyHelmPodWorkloadIsDeployed(workloadName, workloadNamespace)
+			verifyWegoHelmAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+			verifyHelmPodWorkloadIsDeployed(workloadName, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("And I should not see wego components in the remote git repo", func() {
+		By("And I should see wego components in the remote git repo", func() {
 			pullGitRepo(repoAbsolutePath)
 			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && ls -al", repoAbsolutePath))
 			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
 			Expect(folderOutput).Should(ContainSubstring("apps"))
 			Expect(folderOutput).Should(ContainSubstring("targets"))
 		})
-
 	})
 })
