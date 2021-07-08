@@ -5,6 +5,7 @@ package gitops
 
 import (
 	"fmt"
+	"os"
 
 	_ "embed"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 )
@@ -73,7 +75,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	fluxClient := flux.New(cliRunner)
 	kubeClient := kube.New(cliRunner)
 
-	gitopsService := gitops.New(fluxClient, kubeClient)
+	gitopsService := gitops.New(logger.New(os.Stdout), fluxClient, kubeClient)
 
 	manifests, err := gitopsService.Install(gitops.InstallParams{
 		Namespace: gitopsParams.Namespace,
@@ -95,7 +97,7 @@ func uninstallRunCmd(cmd *cobra.Command, args []string) error {
 	fluxClient := flux.New(cliRunner)
 	kubeClient := kube.New(cliRunner)
 
-	gitopsService := gitops.New(fluxClient, kubeClient)
+	gitopsService := gitops.New(logger.New(os.Stdout), fluxClient, kubeClient)
 
 	err := gitopsService.Uninstall(gitops.UinstallParams{
 		Namespace: gitopsParams.Namespace,
