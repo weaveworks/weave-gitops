@@ -88,7 +88,6 @@ type AddParams struct {
 
 func (a *App) Add(params AddParams) error {
 	ctx := context.Background()
-	// a.logger.Actionf("Updating parameters from environment")
 	params, err := a.updateParametersIfNecessary(params)
 	if err != nil {
 		return errors.Wrap(err, "could not update parameters")
