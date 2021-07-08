@@ -484,3 +484,21 @@ func verifyPRCreated(repoAbsolutePath, appName string) {
 	output := string(session.Wait().Out.Contents())
 	Expect(output).To(ContainSubstring(fmt.Sprintf("wego add %s", appName)))
 }
+
+func mergePR(repoAbsolutePath string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s ", repoAbsolutePath)+"&& hub pr list -f %U")
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+	output := string(session.Wait().Out.Contents())
+
+	command = exec.Command("sh", "-c", fmt.Sprintf("cd %s && hub merge %s", repoAbsolutePath, output))
+	session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+
+	command = exec.Command("sh", "-c", fmt.Sprintf("cd %s && git push", repoAbsolutePath))
+	session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+}
