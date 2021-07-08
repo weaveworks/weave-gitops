@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -47,8 +48,8 @@ type Kube interface {
 	FluxPresent(ctx context.Context) (bool, error)
 	GetClusterName(ctx context.Context) (string, error)
 	GetClusterStatus(ctx context.Context) ClusterStatus
-	GetApplication(ctx context.Context, name string) (*wego.Application, error)
 	LabelExistsInCluster(ctx context.Context, label string) error
+	GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error)
 }
 
 type KubeClient struct {
@@ -150,8 +151,8 @@ func (k *KubeClient) SecretPresent(ctx context.Context, secretName, namespace st
 	return true, nil
 }
 
-func (k *KubeClient) GetApplication(ctx context.Context, name string) (*wego.Application, error) {
-	cmd := []string{"get", "app", name, "-o", "json"}
+func (k *KubeClient) GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error) {
+	cmd := []string{"get", "app", name.Name, "-o", "json"}
 	o, err := k.runKubectlCmd(cmd)
 
 	if err != nil {

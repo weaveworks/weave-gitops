@@ -7,6 +7,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 type FakeKube struct {
@@ -51,11 +52,11 @@ type FakeKube struct {
 		result1 bool
 		result2 error
 	}
-	GetApplicationStub        func(context.Context, string) (*v1alpha1.Application, error)
+	GetApplicationStub        func(context.Context, types.NamespacedName) (*v1alpha1.Application, error)
 	getApplicationMutex       sync.RWMutex
 	getApplicationArgsForCall []struct {
 		arg1 context.Context
-		arg2 string
+		arg2 types.NamespacedName
 	}
 	getApplicationReturns struct {
 		result1 *v1alpha1.Application
@@ -338,12 +339,12 @@ func (fake *FakeKube) FluxPresentReturnsOnCall(i int, result1 bool, result2 erro
 	}{result1, result2}
 }
 
-func (fake *FakeKube) GetApplication(arg1 context.Context, arg2 string) (*v1alpha1.Application, error) {
+func (fake *FakeKube) GetApplication(arg1 context.Context, arg2 types.NamespacedName) (*v1alpha1.Application, error) {
 	fake.getApplicationMutex.Lock()
 	ret, specificReturn := fake.getApplicationReturnsOnCall[len(fake.getApplicationArgsForCall)]
 	fake.getApplicationArgsForCall = append(fake.getApplicationArgsForCall, struct {
 		arg1 context.Context
-		arg2 string
+		arg2 types.NamespacedName
 	}{arg1, arg2})
 	stub := fake.GetApplicationStub
 	fakeReturns := fake.getApplicationReturns
@@ -364,13 +365,13 @@ func (fake *FakeKube) GetApplicationCallCount() int {
 	return len(fake.getApplicationArgsForCall)
 }
 
-func (fake *FakeKube) GetApplicationCalls(stub func(context.Context, string) (*v1alpha1.Application, error)) {
+func (fake *FakeKube) GetApplicationCalls(stub func(context.Context, types.NamespacedName) (*v1alpha1.Application, error)) {
 	fake.getApplicationMutex.Lock()
 	defer fake.getApplicationMutex.Unlock()
 	fake.GetApplicationStub = stub
 }
 
-func (fake *FakeKube) GetApplicationArgsForCall(i int) (context.Context, string) {
+func (fake *FakeKube) GetApplicationArgsForCall(i int) (context.Context, types.NamespacedName) {
 	fake.getApplicationMutex.RLock()
 	defer fake.getApplicationMutex.RUnlock()
 	argsForCall := fake.getApplicationArgsForCall[i]

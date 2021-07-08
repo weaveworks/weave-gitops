@@ -638,11 +638,11 @@ func (a *App) createPullRequestToRepo(params AddParams, repo string, appYaml, ap
 	appcontent := string(appYaml)
 	goatContent := string(applicationGoatYaml)
 	files := []gitprovider.CommitFile{
-		gitprovider.CommitFile{
+		{
 			Path:    &appPath,
 			Content: &appcontent,
 		},
-		gitprovider.CommitFile{
+		{
 			Path:    &goatPath,
 			Content: &goatContent,
 		},
