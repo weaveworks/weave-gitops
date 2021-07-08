@@ -1238,6 +1238,11 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		defer deleteRepo(appRepoName)
 		defer deleteWorkload(workloadName, WEGO_DEFAULT_NAMESPACE)
 
+		By("And I have a brand new cluster", func() {
+			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+		
 		By("And application repo does not already exist", func() {
 			deleteRepo(appRepoName)
 		})
