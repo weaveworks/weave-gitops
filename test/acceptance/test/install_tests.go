@@ -55,7 +55,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 	})
 
-	It("SmokeTest - Verify that wego quits if flux-system namespace is present", func() {
+	It("Verify that wego quits if flux-system namespace is present", func() {
 
 		var errOutput string
 		namespace := "flux-system"
