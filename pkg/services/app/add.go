@@ -236,7 +236,7 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 
 	if !params.DryRun {
 		if !params.AutoMerge {
-			if err := a.createPullRequestToRepo(params, params.Url, appSpec, appGoat, clusterName); err != nil {
+			if err := a.createPullRequestToRepo(params, ".wego", params.Url, appSpec, appGoat, clusterName); err != nil {
 				return err
 			}
 		} else {
@@ -298,7 +298,7 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 
 	if !params.DryRun {
 		if !params.AutoMerge {
-			if err := a.createPullRequestToRepo(params, params.AppConfigUrl, appSpec, appGoat, clusterName); err != nil {
+			if err := a.createPullRequestToRepo(params, ".", params.AppConfigUrl, appSpec, appGoat, clusterName); err != nil {
 				return err
 			}
 		} else {
@@ -624,12 +624,12 @@ func sanitizeRepoUrl(url string) string {
 	return url
 }
 
-func (a *App) createPullRequestToRepo(params AddParams, repo string, appYaml, applicationGoatYaml []byte, clusterName string) error {
+func (a *App) createPullRequestToRepo(params AddParams, path, repo string, appYaml, applicationGoatYaml []byte, clusterName string) error {
 	repoName := generateResourceName(repo)
 
-	appPath := filepath.Join(".wego", "apps", params.Name, "app.yaml")
+	appPath := filepath.Join(path, "apps", params.Name, "app.yaml")
 
-	goatPath := filepath.Join(".wego", "targets", clusterName, params.Name, fmt.Sprintf("%s-gitops-runtime.yaml", params.Name))
+	goatPath := filepath.Join(path, "targets", clusterName, params.Name, fmt.Sprintf("%s-gitops-runtime.yaml", params.Name))
 	if params.DryRun {
 		fmt.Printf("Writing GitOps Automation to '%s'\n", goatPath)
 		return nil
