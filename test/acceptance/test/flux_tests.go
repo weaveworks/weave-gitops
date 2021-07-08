@@ -5,8 +5,6 @@
 package acceptance
 
 import (
-	"os/exec"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -14,8 +12,7 @@ import (
 
 var _ = Describe("WEGO Flux Tests", func() {
 
-	var session *gexec.Session
-	var err error
+	var sessionOutput *gexec.Session
 
 	BeforeEach(func() {
 
@@ -27,14 +24,22 @@ var _ = Describe("WEGO Flux Tests", func() {
 	It("Verify that wego-flux displays error message when provided with the wrong flag", func() {
 
 		By("When I run the command 'wego flux foo'", func() {
-			command := exec.Command(WEGO_BIN_PATH, "flux", "foo")
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).ShouldNot(HaveOccurred())
-
+			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " flux foo")
 		})
 
 		By("Then I should see wego error message", func() {
-			Eventually(session.Wait().Out.Contents()).Should(ContainSubstring("✗ unknown command \"foo\" for \"flux\""))
+			Eventually(sessionOutput.Wait().Out.Contents()).Should(ContainSubstring("✗ unknown command \"foo\" for \"flux\""))
+		})
+	})
+
+	It("Verify that wego-flux can print out the version of flux", func() {
+
+		By("When I run the command 'wego flux foo'", func() {
+			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " flux -v")
+		})
+
+		By("Then I should see flux version", func() {
+			Eventually(sessionOutput.Wait().Out.Contents()).Should(MatchRegexp(`flux version 0.[0-9][0-9].[0-9]\d*`))
 		})
 	})
 })
