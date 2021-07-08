@@ -1070,6 +1070,15 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		By("And I should see a PR is created in user repo", func() {
 			verifyPRCreated(repoAbsolutePath, appName)
 		})
+
+		By("And I merge the created PR", func() {
+			mergePR(repoAbsolutePath)
+		})
+
+		By("Then I should see my workload deployed to the cluster", func() {
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
+		})
 	})
 
 	It("Verify PR can be created in external repo 'wego add . --app-config-url=<git ssh url>' ", func() {
@@ -1118,6 +1127,15 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("And I should see a PR is created for external repo", func() {
 			verifyPRCreated(appCofigRepoAbsPath, appName)
+		})
+
+		By("And I merge the created PR", func() {
+			mergePR(appCofigRepoAbsPath)
+		})
+
+		By("Then I should see my workload deployed to the cluster", func() {
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
 		})
 	})
 
@@ -1168,7 +1186,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("MyTest2 - Verify PR fails if app exists", func() {
+	It("Verify PR fails if app exists", func() {
 		var repoAbsolutePath string
 		tip := generateTestInputs()
 		tip2 := generateTestInputs()
