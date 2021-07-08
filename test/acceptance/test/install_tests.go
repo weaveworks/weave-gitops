@@ -40,6 +40,21 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 	})
 
+	It("Validate that wego displays help text for 'uninstall' command", func() {
+
+		By("When I run the command 'wego gitops uninstall -h'", func() {
+			command := exec.Command(WEGO_BIN_PATH, "gitops", "uninstall", "-h")
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
+			Eventually(session).Should(gexec.Exit())
+		})
+
+		By("Then I should see wego help text displayed for 'uninstall' command", func() {
+			Eventually(string(session.Wait().Out.Contents())).Should(MatchRegexp(
+				`The uninstall command removes Wego components from the cluster.\n*Usage:\n\s*wego gitops uninstall \[flags]\n*Examples:\n\s*# Uninstall wego in the wego-system namespace\n\s*wego uninstall\n*Flags:\n\s*-h, --help\s*help for uninstall\n*Global Flags:\n\s*--dry-run\s*outputs all the manifests that would be installed\n\s*-n, --namespace string \s*the namespace scope for this operation \(default "wego-system"\)\n\s*-v, --verbose\s*Enable verbose output`))
+		})
+	})
+
 	It("SmokeTest - Verify that wego quits if flux-system namespace is present", func() {
 
 		var errOutput string

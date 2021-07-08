@@ -359,15 +359,6 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 	Eventually(session).Should(gexec.Exit())
 }
 
-// func setMainBranchUpstreamInEmptyRepo(repoAbsolutePath string) {
-// 	command := exec.Command("sh", "-c", fmt.Sprintf(`
-//                             cd %s &&
-//                             git push --set-upstream origin main`, repoAbsolutePath))
-// 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-// 	Expect(err).ShouldNot(HaveOccurred())
-// 	Eventually(session).Should(gexec.Exit())
-// }
-
 func pullBranch(repoAbsolutePath string, branch string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cd %s &&
