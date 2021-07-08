@@ -421,8 +421,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("Then I should see relevant message in the console", func() {
-			Eventually(addCommandOutput).Should(MatchRegexp(`Checking cluster status[.?]+ (Unknown|Unmodified)`))
-			Eventually(addCommandErr).Should(MatchRegexp(`WeGO.*... exiting`))
+			Eventually(addCommandOutput).Should(MatchRegexp(`No flux or wego installed`))
+			Eventually(addCommandErr).Should(MatchRegexp(`Wego.*... exiting`))
 		})
 	})
 
@@ -470,21 +470,21 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			addCommandOutput, _ = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("Then I should see dry-run output with specified: url, namespace, branch", func() {
-			Eventually(addCommandOutput).Should(MatchRegexp(`using URL: '` + url + `'`))
-			Eventually(addCommandOutput).Should(MatchRegexp(`Checking cluster status... WeGOInstalled`))
+		By("Then I should see dry-run output with summary: name, url, path, branch and type", func() {
+			Eventually(addCommandOutput).Should(MatchRegexp(`Name: ` + appName))
+			Eventually(addCommandOutput).Should(MatchRegexp(`Url: ` + url))
+			Eventually(addCommandOutput).Should(MatchRegexp(`Path: ./`))
+			Eventually(addCommandOutput).Should(MatchRegexp(`Branch: ` + branchName))
+			Eventually(addCommandOutput).Should(MatchRegexp(`Type: kustomize`))
 
 			Eventually(addCommandOutput).Should(MatchRegexp(
-				`Generating Source manifest...\nGenerating GitOps automation manifests...\nGenerating Application spec manifest...`))
-
-			Eventually(addCommandOutput).Should(MatchRegexp(`Applying manifests to the cluster...`))
+				`✚ Generating Source manifest\n✚ Generating GitOps automation manifests\n✚ Generating Application spec manifest\n► Applying manifests to the cluster`))
 
 			Eventually(addCommandOutput).Should(MatchRegexp(
 				`apiVersion:.*\nkind: GitRepository\nmetadata:\n\s*name: ` + appName + `\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE + `[a-z0-9:\n\s*]+branch: ` + branchName + `[a-zA-Z0-9:\n\s*-]+url: ` + url))
 
 			Eventually(addCommandOutput).Should(MatchRegexp(
 				`apiVersion:.*\nkind: ` + appType + `\nmetadata:\n\s*name: ` + appName + `-wego-apps-dir\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE))
-
 		})
 
 		By("And I should not see any workload deployed to the cluster", func() {
