@@ -33,8 +33,9 @@ const (
 	SourceTypeGit  SourceType = "git"
 	SourceTypeHelm SourceType = "helm"
 
-	ConfigTypeUserRepo ConfigType = ""
-	ConfigTypeNone     ConfigType = "NONE"
+	ConfigTypeUserRepo        ConfigType = ""
+	ConfigTypeNone            ConfigType = "NONE"
+	WeGOAppIdentifierLabelKey            = "weave-gitops.weave.works/app-identifier"
 )
 
 type AddParams struct {
@@ -560,7 +561,7 @@ func (a *App) writeAppGoats(basePath string, name string, clusterName string, ma
 	return a.git.Write(goatPath, goat)
 }
 
-func generateAppYaml(params AddParams, repo string) ([]byte, error) {
+func makeWegoApplication(params AddParams) wego.Application {
 	gvk := wego.GroupVersion.WithKind(wego.ApplicationKind)
 	app := wego.Application{
 		TypeMeta: metav1.TypeMeta{
@@ -575,6 +576,21 @@ func generateAppYaml(params AddParams, repo string) ([]byte, error) {
 			URL:  params.Url,
 			Path: params.Path,
 		},
+	}
+
+	return app
+}
+
+func generateAppYaml(params AddParams, repo string) ([]byte, error) {
+	app := makeWegoApplication(params)
+
+	appHash, err := utils.GetAppHash(repo, params.Path, params.Branch)
+	if err != nil {
+		return nil, fmt.Errorf("could not generate app hash: %w", err)
+	}
+
+	app.ObjectMeta.Labels = map[string]string{
+		WeGOAppIdentifierLabelKey: appHash,
 	}
 
 	b, err := yaml.Marshal(&app)
@@ -693,7 +709,8 @@ func (a *App) createPullRequestToRepo(params AddParams, basePath string, repo st
 // K8s/reconcilers will populate these fields after creation.
 // https://github.com/fluxcd/flux2/blob/0ae39d5a0a5220c177b29e71fc8824babd1e0d7c/cmd/flux/export.go#L111
 func sanitizeK8sYaml(data []byte) []byte {
+	out := []byte("---\n")
 	data = bytes.Replace(data, []byte("  creationTimestamp: null\n"), []byte(""), 1)
 	data = bytes.Replace(data, []byte("status: {}\n"), []byte(""), 1)
-	return data
+	return append(out, data...)
 }
