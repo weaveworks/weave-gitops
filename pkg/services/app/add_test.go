@@ -1,4 +1,4 @@
-package app_test
+package app
 
 import (
 	"context"
@@ -17,7 +17,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/services/app"
 )
 
 var (
@@ -26,8 +25,8 @@ var (
 	kubeClient   *kubefakes.FakeKube
 	gitProviders *gitprovidersfakes.FakeGitProviderHandler
 
-	appSrv        app.AppService
-	defaultParams app.AddParams
+	appSrv        AppService
+	defaultParams AddParams
 )
 
 var _ = BeforeEach(func() {
@@ -43,9 +42,9 @@ var _ = BeforeEach(func() {
 	}
 	gitProviders = &gitprovidersfakes.FakeGitProviderHandler{}
 
-	appSrv = app.New(logger.New(os.Stderr), gitClient, fluxClient, kubeClient, gitProviders)
+	appSrv = New(logger.New(os.Stderr), gitClient, fluxClient, kubeClient, gitProviders)
 
-	defaultParams = app.AddParams{
+	defaultParams = AddParams{
 		Url:            "https://github.com/foo/bar",
 		Path:           "./kustomize",
 		Branch:         "main",
@@ -107,7 +106,7 @@ var _ = Describe("Add", func() {
 
 	Describe("checks for existing deploy key before creating secret", func() {
 		It("looks up deploy key and skips creating secret if found", func() {
-			defaultParams.SourceType = string(app.SourceTypeGit)
+			defaultParams.SourceType = string(SourceTypeGit)
 
 			gitProviders.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
 				return true, nil
@@ -126,7 +125,7 @@ var _ = Describe("Add", func() {
 		})
 
 		It("looks up deploy key and creates secret if not found", func() {
-			defaultParams.SourceType = string(app.SourceTypeGit)
+			defaultParams.SourceType = string(SourceTypeGit)
 
 			err := appSrv.Add(defaultParams)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -154,7 +153,7 @@ var _ = Describe("Add", func() {
 
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
-				defaultParams.SourceType = string(app.SourceTypeGit)
+				defaultParams.SourceType = string(SourceTypeGit)
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -214,7 +213,7 @@ var _ = Describe("Add", func() {
 
 			It("creates a helm release using a git source if source type is git", func() {
 				defaultParams.Path = "./charts/my-chart"
-				defaultParams.DeploymentType = string(app.DeployTypeHelm)
+				defaultParams.DeploymentType = string(DeployTypeHelm)
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -297,7 +296,7 @@ var _ = Describe("Add", func() {
 
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
-				defaultParams.SourceType = string(app.SourceTypeGit)
+				defaultParams.SourceType = string(SourceTypeGit)
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -370,7 +369,7 @@ var _ = Describe("Add", func() {
 
 			It("creates a helm release using a git source if source type is git", func() {
 				defaultParams.Path = "./charts/my-chart"
-				defaultParams.DeploymentType = string(app.DeployTypeHelm)
+				defaultParams.DeploymentType = string(DeployTypeHelm)
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -494,7 +493,7 @@ var _ = Describe("Add", func() {
 
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
-				defaultParams.SourceType = string(app.SourceTypeGit)
+				defaultParams.SourceType = string(SourceTypeGit)
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -568,7 +567,7 @@ var _ = Describe("Add", func() {
 
 			It("creates a helm release using a git source if source type is git", func() {
 				defaultParams.Path = "./charts/my-chart"
-				defaultParams.DeploymentType = string(app.DeployTypeHelm)
+				defaultParams.DeploymentType = string(DeployTypeHelm)
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
