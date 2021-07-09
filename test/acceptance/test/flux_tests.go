@@ -34,7 +34,7 @@ var _ = Describe("WEGO Flux Tests", func() {
 
 	It("Verify that wego-flux can print out the version of flux", func() {
 
-		By("When I run the command 'wego flux foo'", func() {
+		By("When I run the command 'wego flux -v'", func() {
 			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " flux -v")
 		})
 
