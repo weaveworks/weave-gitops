@@ -34,15 +34,15 @@ var rootCmd = &cobra.Command{
   wego help app
 
   # Add application to wego control from a local git repository
-  wego app add
-	 --path ./podinfo
+  wego app add \
+	 --path ./podinfo \
 	 --name podinfo
 
   # Add applicaiton to wego control from a remote github repository
-  wego app add
-	--name podinfo
-	--url git@github.com:myorg/podinfo
-	--private-key ${HOME}/.ssh/podinfo-key
+  wego app add \
+	--name podinfo \
+	--url git@github.com:myorg/podinfo \
+	--private-key ${HOME}/.ssh/podinfo-key \
 	--branch prod-podinfo
 
   # Get status of deployed application
@@ -78,6 +78,7 @@ func configureLogger() {
 func main() {
 	fluxBin.SetupFluxBin()
 	rootCmd.PersistentFlags().BoolVarP(&options.verbose, "verbose", "v", false, "Enable verbose output")
+	rootCmd.PersistentFlags().String("namespace", "wego-system", "gitops runtime namespace")
 
 	rootCmd.AddCommand(gitops.Cmd)
 	rootCmd.AddCommand(version.Cmd)
