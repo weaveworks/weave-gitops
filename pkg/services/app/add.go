@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"strings"
-	"text/template"
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -17,6 +16,10 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
+
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/yaml"
 )
 
 type DeploymentType string
@@ -30,8 +33,9 @@ const (
 	SourceTypeGit  SourceType = "git"
 	SourceTypeHelm SourceType = "helm"
 
-	ConfigTypeUserRepo ConfigType = ""
-	ConfigTypeNone     ConfigType = "NONE"
+	ConfigTypeUserRepo        ConfigType = ""
+	ConfigTypeNone            ConfigType = "NONE"
+	WeGOAppIdentifierLabelKey            = "weave-gitops.weave.works/app-identifier"
 )
 
 type AddParams struct {
@@ -557,42 +561,44 @@ func (a *App) writeAppGoats(basePath string, name string, clusterName string, ma
 	return a.git.Write(goatPath, goat)
 }
 
-func generateAppYaml(params AddParams, repo string) ([]byte, error) {
-	const appYamlTemplate = `---
-apiVersion: wego.weave.works/v1alpha1
-kind: Application
-metadata:
-  name: {{ .AppName }}
-  namespace: {{ .Namespace }}
-  labels:
-    weave-gitops.weave.works/app-identifier: {{ .AppHash }}
-spec:
-  path: {{ .AppPath }}
-  url: {{ .AppURL }}
-`
-	// Create app.yaml
-	t, err := template.New("appYaml").Parse(appYamlTemplate)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not parse app yaml template")
+func makeWegoApplication(params AddParams) wego.Application {
+	gvk := wego.GroupVersion.WithKind(wego.ApplicationKind)
+	app := wego.Application{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       gvk.Kind,
+			APIVersion: gvk.GroupVersion().String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      params.Name,
+			Namespace: params.Namespace,
+		},
+		Spec: wego.ApplicationSpec{
+			URL:  params.Url,
+			Path: params.Path,
+		},
 	}
+
+	return app
+}
+
+func generateAppYaml(params AddParams, repo string) ([]byte, error) {
+	app := makeWegoApplication(params)
 
 	appHash, err := utils.GetAppHash(repo, params.Path, params.Branch)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not generate app hash: %w", err)
 	}
 
-	var populated bytes.Buffer
-	err = t.Execute(&populated, struct {
-		AppName   string
-		Namespace string
-		AppHash   string
-		AppPath   string
-		AppURL    string
-	}{params.Name, params.Namespace, appHash, params.Path, params.Url})
-	if err != nil {
-		return nil, errors.Wrap(err, "could not execute populated template")
+	app.ObjectMeta.Labels = map[string]string{
+		WeGOAppIdentifierLabelKey: appHash,
 	}
-	return populated.Bytes(), nil
+
+	b, err := yaml.Marshal(&app)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal yaml: %w", err)
+	}
+
+	return sanitizeK8sYaml(b), nil
 }
 
 func generateResourceName(url string) string {
@@ -698,3 +704,13 @@ func (a *App) createPullRequestToRepo(params AddParams, basePath string, repo st
 //  goat := bytes.Join(manifests, []byte(""))
 //  return a.git.Write(goatPath, goat)
 // }
+
+// Remove some problematic fields before saving the yaml files.
+// K8s/reconcilers will populate these fields after creation.
+// https://github.com/fluxcd/flux2/blob/0ae39d5a0a5220c177b29e71fc8824babd1e0d7c/cmd/flux/export.go#L111
+func sanitizeK8sYaml(data []byte) []byte {
+	out := []byte("---\n")
+	data = bytes.Replace(data, []byte("  creationTimestamp: null\n"), []byte(""), 1)
+	data = bytes.Replace(data, []byte("status: {}\n"), []byte(""), 1)
+	return append(out, data...)
+}

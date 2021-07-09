@@ -1,15 +1,18 @@
-package app_test
+package app
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/go-git/go-billy/v5/memfs"
 	gogit "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/storage/memory"
+	"github.com/google/go-cmp/cmp"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
@@ -17,7 +20,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/services/app"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
+	"sigs.k8s.io/yaml"
 )
 
 var (
@@ -26,8 +30,8 @@ var (
 	kubeClient   *kubefakes.FakeKube
 	gitProviders *gitprovidersfakes.FakeGitProviderHandler
 
-	appSrv        app.AppService
-	defaultParams app.AddParams
+	appSrv        AppService
+	defaultParams AddParams
 )
 
 var _ = BeforeEach(func() {
@@ -43,9 +47,9 @@ var _ = BeforeEach(func() {
 	}
 	gitProviders = &gitprovidersfakes.FakeGitProviderHandler{}
 
-	appSrv = app.New(logger.New(os.Stderr), gitClient, fluxClient, kubeClient, gitProviders)
+	appSrv = New(logger.New(os.Stderr), gitClient, fluxClient, kubeClient, gitProviders)
 
-	defaultParams = app.AddParams{
+	defaultParams = AddParams{
 		Url:            "https://github.com/foo/bar",
 		Path:           "./kustomize",
 		Branch:         "main",
@@ -107,7 +111,7 @@ var _ = Describe("Add", func() {
 
 	Describe("checks for existing deploy key before creating secret", func() {
 		It("looks up deploy key and skips creating secret if found", func() {
-			defaultParams.SourceType = string(app.SourceTypeGit)
+			defaultParams.SourceType = string(SourceTypeGit)
 
 			gitProviders.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
 				return true, nil
@@ -126,7 +130,7 @@ var _ = Describe("Add", func() {
 		})
 
 		It("looks up deploy key and creates secret if not found", func() {
-			defaultParams.SourceType = string(app.SourceTypeGit)
+			defaultParams.SourceType = string(SourceTypeGit)
 
 			err := appSrv.Add(defaultParams)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -154,7 +158,7 @@ var _ = Describe("Add", func() {
 
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
-				defaultParams.SourceType = string(app.SourceTypeGit)
+				defaultParams.SourceType = string(SourceTypeGit)
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -214,7 +218,7 @@ var _ = Describe("Add", func() {
 
 			It("creates a helm release using a git source if source type is git", func() {
 				defaultParams.Path = "./charts/my-chart"
-				defaultParams.DeploymentType = string(app.DeployTypeHelm)
+				defaultParams.DeploymentType = string(DeployTypeHelm)
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -297,7 +301,7 @@ var _ = Describe("Add", func() {
 
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
-				defaultParams.SourceType = string(app.SourceTypeGit)
+				defaultParams.SourceType = string(SourceTypeGit)
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -370,7 +374,7 @@ var _ = Describe("Add", func() {
 
 			It("creates a helm release using a git source if source type is git", func() {
 				defaultParams.Path = "./charts/my-chart"
-				defaultParams.DeploymentType = string(app.DeployTypeHelm)
+				defaultParams.DeploymentType = string(DeployTypeHelm)
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -494,7 +498,7 @@ var _ = Describe("Add", func() {
 
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
-				defaultParams.SourceType = string(app.SourceTypeGit)
+				defaultParams.SourceType = string(SourceTypeGit)
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -529,6 +533,43 @@ var _ = Describe("Add", func() {
 				Expect(name).To(Equal("loki"))
 				Expect(url).To(Equal("https://charts.kube-ops.io"))
 				Expect(namespace).To(Equal("wego-system"))
+			})
+		})
+
+		Describe("generateAppYaml", func() {
+			It("generates the app yaml", func() {
+				params := AddParams{
+					Name:      "my-app",
+					Namespace: "wego-system",
+					Url:       "ssh://git@github.com/example/my-source",
+					Path:      "manifests",
+					Branch:    "main",
+				}
+				repo := "some-repo"
+
+				desired2 := makeWegoApplication(params)
+				hash, err := utils.GetAppHash(repo, params.Path, params.Branch)
+				Expect(err).To(BeNil())
+
+				desired2.ObjectMeta.Labels = map[string]string{WeGOAppIdentifierLabelKey: hash}
+
+				out, err := generateAppYaml(params, repo)
+				Expect(err).To(BeNil())
+
+				result := wego.Application{}
+				// Convert back to a struct to make the comparison more forgiving.
+				// A straight string/byte comparison doesn't account for un-ordered keys in yaml.
+				Expect(yaml.Unmarshal(out, &result))
+
+				diff := cmp.Diff(result, desired2)
+				Expect(diff).To(Equal(""))
+
+				// Not entirely sure how to get gomega to pretty-print the output of `diff`,
+				// so we assert it should be empty above, and conditionally print the diff to make a nice assertion message.
+				// `diff` is a formatted string
+				if diff != "" {
+					fmt.Println(diff)
+				}
 			})
 		})
 
@@ -568,7 +609,7 @@ var _ = Describe("Add", func() {
 
 			It("creates a helm release using a git source if source type is git", func() {
 				defaultParams.Path = "./charts/my-chart"
-				defaultParams.DeploymentType = string(app.DeployTypeHelm)
+				defaultParams.DeploymentType = string(DeployTypeHelm)
 
 				err := appSrv.Add(defaultParams)
 				Expect(err).ShouldNot(HaveOccurred())
