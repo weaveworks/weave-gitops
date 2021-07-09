@@ -33,11 +33,11 @@ var Cmd = &cobra.Command{
 		Associates an additional application in a git repository with a wego cluster so that its contents may be managed via GitOps
 	`)),
 	Example: `
-  # Add podinfo application to wego control from local git repository
+  # Add application to wego control from local git repository
   wego app add .
 
   # Add podinfo application to wego control from github repository
-  wego app add github.com/myorg/podinfo
+  wego app add --url git@github.com:myorg/podinfo
 
   # Get status of podinfo application
   wego app status podinfo
@@ -51,7 +51,7 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.Flags().StringVar(&params.Name, "name", "", "Name of remote git repository")
+	Cmd.Flags().StringVar(&params.Name, "name", "", "Name of application")
 	Cmd.Flags().StringVar(&params.Url, "url", "", "URL of remote repository")
 	Cmd.Flags().StringVar(&params.Path, "path", "./", "Path of files within git repository")
 	Cmd.Flags().StringVar(&params.Branch, "branch", "main", "Branch to watch within git repository")
