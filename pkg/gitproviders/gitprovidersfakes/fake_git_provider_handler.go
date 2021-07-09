@@ -9,7 +9,7 @@ import (
 )
 
 type FakeGitProviderHandler struct {
-	CreatePullRequestToOrgRepoStub        func(gitprovider.OrgRepositoryRef, string, string, []gitprovider.CommitFile, string, string, string) error
+	CreatePullRequestToOrgRepoStub        func(gitprovider.OrgRepositoryRef, string, string, []gitprovider.CommitFile, string, string, string) (string, error)
 	createPullRequestToOrgRepoMutex       sync.RWMutex
 	createPullRequestToOrgRepoArgsForCall []struct {
 		arg1 gitprovider.OrgRepositoryRef
@@ -21,12 +21,14 @@ type FakeGitProviderHandler struct {
 		arg7 string
 	}
 	createPullRequestToOrgRepoReturns struct {
-		result1 error
+		result1 string
+		result2 error
 	}
 	createPullRequestToOrgRepoReturnsOnCall map[int]struct {
-		result1 error
+		result1 string
+		result2 error
 	}
-	CreatePullRequestToUserRepoStub        func(gitprovider.UserRepositoryRef, string, string, []gitprovider.CommitFile, string, string, string) error
+	CreatePullRequestToUserRepoStub        func(gitprovider.UserRepositoryRef, string, string, []gitprovider.CommitFile, string, string, string) (string, error)
 	createPullRequestToUserRepoMutex       sync.RWMutex
 	createPullRequestToUserRepoArgsForCall []struct {
 		arg1 gitprovider.UserRepositoryRef
@@ -38,10 +40,12 @@ type FakeGitProviderHandler struct {
 		arg7 string
 	}
 	createPullRequestToUserRepoReturns struct {
-		result1 error
+		result1 string
+		result2 error
 	}
 	createPullRequestToUserRepoReturnsOnCall map[int]struct {
-		result1 error
+		result1 string
+		result2 error
 	}
 	CreateRepositoryStub        func(string, string, bool) error
 	createRepositoryMutex       sync.RWMutex
@@ -114,7 +118,7 @@ type FakeGitProviderHandler struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeGitProviderHandler) CreatePullRequestToOrgRepo(arg1 gitprovider.OrgRepositoryRef, arg2 string, arg3 string, arg4 []gitprovider.CommitFile, arg5 string, arg6 string, arg7 string) error {
+func (fake *FakeGitProviderHandler) CreatePullRequestToOrgRepo(arg1 gitprovider.OrgRepositoryRef, arg2 string, arg3 string, arg4 []gitprovider.CommitFile, arg5 string, arg6 string, arg7 string) (string, error) {
 	var arg4Copy []gitprovider.CommitFile
 	if arg4 != nil {
 		arg4Copy = make([]gitprovider.CommitFile, len(arg4))
@@ -139,9 +143,9 @@ func (fake *FakeGitProviderHandler) CreatePullRequestToOrgRepo(arg1 gitprovider.
 		return stub(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 	}
 	if specificReturn {
-		return ret.result1
+		return ret.result1, ret.result2
 	}
-	return fakeReturns.result1
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeGitProviderHandler) CreatePullRequestToOrgRepoCallCount() int {
@@ -150,7 +154,7 @@ func (fake *FakeGitProviderHandler) CreatePullRequestToOrgRepoCallCount() int {
 	return len(fake.createPullRequestToOrgRepoArgsForCall)
 }
 
-func (fake *FakeGitProviderHandler) CreatePullRequestToOrgRepoCalls(stub func(gitprovider.OrgRepositoryRef, string, string, []gitprovider.CommitFile, string, string, string) error) {
+func (fake *FakeGitProviderHandler) CreatePullRequestToOrgRepoCalls(stub func(gitprovider.OrgRepositoryRef, string, string, []gitprovider.CommitFile, string, string, string) (string, error)) {
 	fake.createPullRequestToOrgRepoMutex.Lock()
 	defer fake.createPullRequestToOrgRepoMutex.Unlock()
 	fake.CreatePullRequestToOrgRepoStub = stub
@@ -163,30 +167,33 @@ func (fake *FakeGitProviderHandler) CreatePullRequestToOrgRepoArgsForCall(i int)
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6, argsForCall.arg7
 }
 
-func (fake *FakeGitProviderHandler) CreatePullRequestToOrgRepoReturns(result1 error) {
+func (fake *FakeGitProviderHandler) CreatePullRequestToOrgRepoReturns(result1 string, result2 error) {
 	fake.createPullRequestToOrgRepoMutex.Lock()
 	defer fake.createPullRequestToOrgRepoMutex.Unlock()
 	fake.CreatePullRequestToOrgRepoStub = nil
 	fake.createPullRequestToOrgRepoReturns = struct {
-		result1 error
-	}{result1}
+		result1 string
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *FakeGitProviderHandler) CreatePullRequestToOrgRepoReturnsOnCall(i int, result1 error) {
+func (fake *FakeGitProviderHandler) CreatePullRequestToOrgRepoReturnsOnCall(i int, result1 string, result2 error) {
 	fake.createPullRequestToOrgRepoMutex.Lock()
 	defer fake.createPullRequestToOrgRepoMutex.Unlock()
 	fake.CreatePullRequestToOrgRepoStub = nil
 	if fake.createPullRequestToOrgRepoReturnsOnCall == nil {
 		fake.createPullRequestToOrgRepoReturnsOnCall = make(map[int]struct {
-			result1 error
+			result1 string
+			result2 error
 		})
 	}
 	fake.createPullRequestToOrgRepoReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
+		result1 string
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *FakeGitProviderHandler) CreatePullRequestToUserRepo(arg1 gitprovider.UserRepositoryRef, arg2 string, arg3 string, arg4 []gitprovider.CommitFile, arg5 string, arg6 string, arg7 string) error {
+func (fake *FakeGitProviderHandler) CreatePullRequestToUserRepo(arg1 gitprovider.UserRepositoryRef, arg2 string, arg3 string, arg4 []gitprovider.CommitFile, arg5 string, arg6 string, arg7 string) (string, error) {
 	var arg4Copy []gitprovider.CommitFile
 	if arg4 != nil {
 		arg4Copy = make([]gitprovider.CommitFile, len(arg4))
@@ -211,9 +218,9 @@ func (fake *FakeGitProviderHandler) CreatePullRequestToUserRepo(arg1 gitprovider
 		return stub(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 	}
 	if specificReturn {
-		return ret.result1
+		return ret.result1, ret.result2
 	}
-	return fakeReturns.result1
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeGitProviderHandler) CreatePullRequestToUserRepoCallCount() int {
@@ -222,7 +229,7 @@ func (fake *FakeGitProviderHandler) CreatePullRequestToUserRepoCallCount() int {
 	return len(fake.createPullRequestToUserRepoArgsForCall)
 }
 
-func (fake *FakeGitProviderHandler) CreatePullRequestToUserRepoCalls(stub func(gitprovider.UserRepositoryRef, string, string, []gitprovider.CommitFile, string, string, string) error) {
+func (fake *FakeGitProviderHandler) CreatePullRequestToUserRepoCalls(stub func(gitprovider.UserRepositoryRef, string, string, []gitprovider.CommitFile, string, string, string) (string, error)) {
 	fake.createPullRequestToUserRepoMutex.Lock()
 	defer fake.createPullRequestToUserRepoMutex.Unlock()
 	fake.CreatePullRequestToUserRepoStub = stub
@@ -235,27 +242,30 @@ func (fake *FakeGitProviderHandler) CreatePullRequestToUserRepoArgsForCall(i int
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6, argsForCall.arg7
 }
 
-func (fake *FakeGitProviderHandler) CreatePullRequestToUserRepoReturns(result1 error) {
+func (fake *FakeGitProviderHandler) CreatePullRequestToUserRepoReturns(result1 string, result2 error) {
 	fake.createPullRequestToUserRepoMutex.Lock()
 	defer fake.createPullRequestToUserRepoMutex.Unlock()
 	fake.CreatePullRequestToUserRepoStub = nil
 	fake.createPullRequestToUserRepoReturns = struct {
-		result1 error
-	}{result1}
+		result1 string
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *FakeGitProviderHandler) CreatePullRequestToUserRepoReturnsOnCall(i int, result1 error) {
+func (fake *FakeGitProviderHandler) CreatePullRequestToUserRepoReturnsOnCall(i int, result1 string, result2 error) {
 	fake.createPullRequestToUserRepoMutex.Lock()
 	defer fake.createPullRequestToUserRepoMutex.Unlock()
 	fake.CreatePullRequestToUserRepoStub = nil
 	if fake.createPullRequestToUserRepoReturnsOnCall == nil {
 		fake.createPullRequestToUserRepoReturnsOnCall = make(map[int]struct {
-			result1 error
+			result1 string
+			result2 error
 		})
 	}
 	fake.createPullRequestToUserRepoReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
+		result1 string
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeGitProviderHandler) CreateRepository(arg1 string, arg2 string, arg3 bool) error {

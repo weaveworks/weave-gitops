@@ -31,8 +31,8 @@ type GitProviderHandler interface {
 	RepositoryExists(name string, owner string) (bool, error)
 	DeployKeyExists(owner, repoName string) (bool, error)
 	UploadDeployKey(owner, repoName string, deployKey []byte) error
-	CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error
-	CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error
+	CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (string, error)
+	CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (string, error)
 	GetAccountType(owner string) (ProviderAccountType, error)
 }
 
@@ -260,11 +260,11 @@ func UploadDeployKey(owner, repoName string, deployKey []byte) error {
 func DeployKeyExists(owner, repoName string) (bool, error) {
 	return gitProviderHandler.(GitProviderHandler).DeployKeyExists(owner, repoName)
 }
-func CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
+func CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (string, error) {
 	return gitProviderHandler.(GitProviderHandler).CreatePullRequestToUserRepo(userRepRef, targetBranch, newBranch, files, commitMessage, prTitle, prDescription)
 }
 
-func CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
+func CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (string, error) {
 	return gitProviderHandler.(GitProviderHandler).CreatePullRequestToOrgRepo(orgRepRef, targetBranch, newBranch, files, commitMessage, prTitle, prDescription)
 }
 
@@ -372,17 +372,17 @@ func Override(handler GitProviderHandler) override.Override {
 	return override.Override{Handler: &gitProviderHandler, Mock: handler, Original: gitProviderHandler}
 }
 
-func (h defaultGitProviderHandler) CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
+func (h defaultGitProviderHandler) CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (string, error) {
 	provider, err := GithubProvider()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	ctx := context.Background()
 
 	ur, err := provider.UserRepositories().Get(ctx, userRepRef)
 	if err != nil {
-		return fmt.Errorf("error getting info for repo [%s] err [%s]", userRepRef.String(), err)
+		return "", fmt.Errorf("error getting info for repo [%s] err [%s]", userRepRef.String(), err)
 	}
 
 	if targetBranch == "" {
@@ -391,40 +391,41 @@ func (h defaultGitProviderHandler) CreatePullRequestToUserRepo(userRepRef gitpro
 
 	commits, err := ur.Commits().ListPage(ctx, targetBranch, 1, 0)
 	if err != nil {
-		return fmt.Errorf("error getting commits for repo[%s] err [%s]", userRepRef.String(), err)
+		return "", fmt.Errorf("error getting commits for repo[%s] err [%s]", userRepRef.String(), err)
 	}
 
 	if len(commits) == 0 {
-		return fmt.Errorf("targetBranch[%s] does not exists", targetBranch)
+		return "", fmt.Errorf("targetBranch[%s] does not exists", targetBranch)
 	}
 
 	latestCommit := commits[0]
 
 	if err := ur.Branches().Create(ctx, newBranch, latestCommit.Get().Sha); err != nil {
-		return fmt.Errorf("error creating branch[%s] for repo[%s] err [%s]", newBranch, userRepRef.String(), err)
+		return "", fmt.Errorf("error creating branch[%s] for repo[%s] err [%s]", newBranch, userRepRef.String(), err)
 	}
 
 	if _, err := ur.Commits().Create(ctx, newBranch, commitMessage, files); err != nil {
-		return fmt.Errorf("error creating commit for branch[%s] for repo[%s] err [%s]", newBranch, userRepRef.String(), err)
+		return "", fmt.Errorf("error creating commit for branch[%s] for repo[%s] err [%s]", newBranch, userRepRef.String(), err)
 	}
 
-	if err := ur.PullRequests().Create(ctx, prTitle, newBranch, targetBranch, prDescription); err != nil {
-		return fmt.Errorf("error creating pull request[%s] for branch[%s] for repo[%s] err [%s]", prTitle, newBranch, userRepRef.String(), err)
+	pr, err := ur.PullRequests().Create(ctx, prTitle, newBranch, targetBranch, prDescription)
+	if err != nil {
+		return "", fmt.Errorf("error creating pull request[%s] for branch[%s] for repo[%s] err [%s]", prTitle, newBranch, userRepRef.String(), err)
 	}
 
-	return nil
+	return pr.Get().WebURL, nil
 }
 
-func (h defaultGitProviderHandler) CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) error {
+func (h defaultGitProviderHandler) CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (string, error) {
 	provider, err := GithubProvider()
 	if err != nil {
-		return err
+		return "", err
 	}
 	ctx := context.Background()
 
 	ur, err := provider.OrgRepositories().Get(ctx, orgRepRef)
 	if err != nil {
-		return fmt.Errorf("error getting info for repo [%s] err [%s]", orgRepRef.String(), err)
+		return "", fmt.Errorf("error getting info for repo [%s] err [%s]", orgRepRef.String(), err)
 	}
 
 	if targetBranch == "" {
@@ -433,28 +434,29 @@ func (h defaultGitProviderHandler) CreatePullRequestToOrgRepo(orgRepRef gitprovi
 
 	commits, err := ur.Commits().ListPage(ctx, targetBranch, 1, 0)
 	if err != nil {
-		return fmt.Errorf("error getting commits for repo[%s] err [%s]", orgRepRef.String(), err)
+		return "", fmt.Errorf("error getting commits for repo[%s] err [%s]", orgRepRef.String(), err)
 	}
 
 	if len(commits) == 0 {
-		return fmt.Errorf("targetBranch[%s] does not exists", targetBranch)
+		return "", fmt.Errorf("targetBranch[%s] does not exists", targetBranch)
 	}
 
 	latestCommit := commits[0]
 
 	if err := ur.Branches().Create(ctx, newBranch, latestCommit.Get().Sha); err != nil {
-		return fmt.Errorf("error creating branch[%s] for repo[%s] err [%s]", newBranch, orgRepRef.String(), err)
+		return "", fmt.Errorf("error creating branch[%s] for repo[%s] err [%s]", newBranch, orgRepRef.String(), err)
 	}
 
 	if _, err := ur.Commits().Create(ctx, newBranch, commitMessage, files); err != nil {
-		return fmt.Errorf("error creating commit for branch[%s] for repo[%s] err [%s]", newBranch, orgRepRef.String(), err)
+		return "", fmt.Errorf("error creating commit for branch[%s] for repo[%s] err [%s]", newBranch, orgRepRef.String(), err)
 	}
 
-	if err := ur.PullRequests().Create(ctx, prTitle, newBranch, targetBranch, prDescription); err != nil {
-		return fmt.Errorf("error creating pull request[%s] for branch[%s] for repo[%s] err [%s]", prTitle, newBranch, orgRepRef.String(), err)
+	pr, err := ur.PullRequests().Create(ctx, prTitle, newBranch, targetBranch, prDescription)
+	if err != nil {
+		return "", fmt.Errorf("error creating pull request[%s] for branch[%s] for repo[%s] err [%s]", prTitle, newBranch, orgRepRef.String(), err)
 	}
 
-	return nil
+	return pr.Get().WebURL, nil
 }
 
 func NewRepositoryInfo(description string, visibility gitprovider.RepositoryVisibility) gitprovider.RepositoryInfo {

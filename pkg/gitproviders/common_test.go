@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -15,6 +14,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -417,13 +418,14 @@ func CreateTestPullRequestToOrgRepo(t *testing.T, client gitprovider.Client, dom
 	prTitle := "config files"
 	prDescription := "test description"
 
-	err = CreatePullRequestToOrgRepo(orgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	prLink, err := CreatePullRequestToOrgRepo(orgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.NoError(t, err)
+	assert.Equal(t, "https://github.com/weaveworks/test-org-repo/pull/1", prLink)
 
-	err = CreatePullRequestToOrgRepo(orgRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
+	_, err = CreatePullRequestToOrgRepo(orgRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
 	assert.Error(t, err)
 
-	err = CreatePullRequestToOrgRepo(doesNotExistOrgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	_, err = CreatePullRequestToOrgRepo(doesNotExistOrgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.Error(t, err)
 
 	t.Cleanup(func() {
@@ -469,13 +471,14 @@ func CreateTestPullRequestToUserRepo(t *testing.T, client gitprovider.Client, do
 	prTitle := "config files"
 	prDescription := "test description"
 
-	err = CreatePullRequestToUserRepo(userRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	prLink, err := CreatePullRequestToUserRepo(userRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.NoError(t, err)
+	assert.Equal(t, "https://github.com/bot/test-user-repo/pull/1", prLink)
 
-	err = CreatePullRequestToUserRepo(userRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
+	_, err = CreatePullRequestToUserRepo(userRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
 	assert.Error(t, err)
 
-	err = CreatePullRequestToUserRepo(doesNotExistsUserRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	_, err = CreatePullRequestToUserRepo(doesNotExistsUserRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.Error(t, err)
 
 	t.Cleanup(func() {
