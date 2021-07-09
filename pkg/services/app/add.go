@@ -247,7 +247,7 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 
 	if !params.DryRun {
 		if !params.AutoMerge {
-			if err := a.createPullRequestToRepo(params, params.Url, appSpec, appGoat, clusterName); err != nil {
+			if err := a.createPullRequestToRepo(params, ".wego", params.Url, clusterName, appSpec, appGoat); err != nil {
 				return err
 			}
 		} else {
@@ -309,7 +309,7 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 
 	if !params.DryRun {
 		if !params.AutoMerge {
-			if err := a.createPullRequestToRepo(params, params.AppConfigUrl, appSpec, appGoat, clusterName); err != nil {
+			if err := a.createPullRequestToRepo(params, ".", params.AppConfigUrl, clusterName, appSpec, appGoat, appSource); err != nil {
 				return err
 			}
 		} else {
@@ -400,7 +400,7 @@ func (a *App) generateExternalRepoManifests(params AddParams, secretRef string, 
 }
 
 func (a *App) commitAndPush(params AddParams, filters ...func(string) bool) error {
-	a.logger.Actionf("Commiting and pushing wego resources for application")
+	a.logger.Actionf("Committing and pushing wego resources for application")
 	if params.DryRun || !params.AutoMerge {
 		return nil
 	}
@@ -635,19 +635,22 @@ func sanitizeRepoUrl(url string) string {
 	return url
 }
 
-func (a *App) createPullRequestToRepo(params AddParams, repo string, appYaml, applicationGoatYaml []byte, clusterName string) error {
+func (a *App) createPullRequestToRepo(params AddParams, basePath string, repo string, clusterName string, appYaml []byte, goatManifests ...[]byte) error {
 	repoName := generateResourceName(repo)
 
-	appPath := filepath.Join(".wego", "apps", params.Name, "app.yaml")
+	appPath := filepath.Join(basePath, "apps", params.Name, "app.yaml")
 
-	goatPath := filepath.Join(".wego", "targets", clusterName, params.Name, fmt.Sprintf("%s-gitops-runtime.yaml", params.Name))
+	goatPath := filepath.Join(basePath, "targets", clusterName, params.Name, fmt.Sprintf("%s-gitops-runtime.yaml", params.Name))
+
+	goat := bytes.Join(goatManifests, []byte(""))
+
 	if params.DryRun {
 		fmt.Printf("Writing GitOps Automation to '%s'\n", goatPath)
 		return nil
 	}
 
 	appcontent := string(appYaml)
-	goatContent := string(applicationGoatYaml)
+	goatContent := string(goat)
 	files := []gitprovider.CommitFile{
 		{
 			Path:    &appPath,
