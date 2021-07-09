@@ -95,7 +95,7 @@ var _ = Describe("WEGO Help Tests", func() {
 
 	It("Verify that wego app status help flag prints the help text", func() {
 
-		By("When I run the command 'wego app add -h' ", func() {
+		By("When I run the command 'wego app status -h' ", func() {
 			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app status -h")
 		})
 
