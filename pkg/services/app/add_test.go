@@ -2,6 +2,7 @@ package app_test
 
 import (
 	"context"
+	"os"
 
 	"github.com/go-git/go-billy/v5/memfs"
 	gogit "github.com/go-git/go-git/v5"
@@ -15,6 +16,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 )
 
@@ -41,7 +43,7 @@ var _ = BeforeEach(func() {
 	}
 	gitProviders = &gitprovidersfakes.FakeGitProviderHandler{}
 
-	appSrv = app.New(gitClient, fluxClient, kubeClient, gitProviders)
+	appSrv = app.New(logger.New(os.Stderr), gitClient, fluxClient, kubeClient, gitProviders)
 
 	defaultParams = app.AddParams{
 		Url:            "https://github.com/foo/bar",
@@ -66,13 +68,13 @@ var _ = Describe("Add", func() {
 			return kube.Unmodified
 		}
 		err = appSrv.Add(defaultParams)
-		Expect(err).To(MatchError("WeGO not installed... exiting"))
+		Expect(err).To(MatchError("Wego not installed... exiting"))
 
 		kubeClient.GetClusterStatusStub = func(ctx context.Context) kube.ClusterStatus {
 			return kube.Unknown
 		}
 		err = appSrv.Add(defaultParams)
-		Expect(err).To(MatchError("WeGO can not determine cluster status... exiting"))
+		Expect(err).To(MatchError("Wego can not determine cluster status... exiting"))
 	})
 
 	It("gets the cluster name", func() {

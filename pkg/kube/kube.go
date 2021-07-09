@@ -33,10 +33,10 @@ func (cs ClusterStatus) String() string {
 }
 
 var toStatusString = map[ClusterStatus]string{
-	Unknown:       "Unknown",
-	Unmodified:    "Unmodified",
-	FluxInstalled: "FluxInstalled",
-	WeGOInstalled: "WeGOInstalled",
+	Unknown:       "Unable to talk to the cluster",
+	Unmodified:    "No flux or wego installed",
+	FluxInstalled: "Flux installed",
+	WeGOInstalled: "Wego installed",
 }
 
 //counterfeiter:generate . Kube
