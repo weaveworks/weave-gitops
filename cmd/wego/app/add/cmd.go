@@ -104,7 +104,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	kubeClient := kube.New(cliRunner)
 	gitClient := git.New(authMethod)
 	gitProviders := gitproviders.New()
-	logger := logger.New(os.Stderr)
+	logger := logger.New(os.Stdout)
 
 	appService := app.New(logger, gitClient, fluxClient, kubeClient, gitProviders)
 

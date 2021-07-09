@@ -471,13 +471,15 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("Then I should see dry-run output with summary: name, url, path, branch and type", func() {
 			Eventually(addCommandOutput).Should(MatchRegexp(`Name: ` + appName))
-			Eventually(addCommandOutput).Should(MatchRegexp(`Url: ` + url))
+			Eventually(addCommandOutput).Should(MatchRegexp(`URL: ` + appRepoRemoteURL))
 			Eventually(addCommandOutput).Should(MatchRegexp(`Path: ./`))
 			Eventually(addCommandOutput).Should(MatchRegexp(`Branch: ` + branchName))
 			Eventually(addCommandOutput).Should(MatchRegexp(`Type: kustomize`))
 
-			Eventually(addCommandOutput).Should(MatchRegexp(
-				`✚ Generating Source manifest\n✚ Generating GitOps automation manifests\n✚ Generating Application spec manifest\n► Applying manifests to the cluster`))
+			Eventually(addCommandOutput).Should(MatchRegexp(`✚ Generating Source manifest`))
+			Eventually(addCommandOutput).Should(MatchRegexp(`✚ Generating GitOps automation manifests`))
+			Eventually(addCommandOutput).Should(MatchRegexp(`✚ Generating Application spec manifest`))
+			Eventually(addCommandOutput).Should(MatchRegexp(`► Applying manifests to the cluster`))
 
 			Eventually(addCommandOutput).Should(MatchRegexp(
 				`apiVersion:.*\nkind: GitRepository\nmetadata:\n\s*name: ` + appName + `\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE + `[a-z0-9:\n\s*]+branch: ` + branchName + `[a-zA-Z0-9:\n\s*-]+url: ` + appRepoRemoteURL))
