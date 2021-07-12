@@ -404,10 +404,10 @@ func (a *App) generateExternalRepoManifests(params AddParams, secretRef string, 
 }
 
 func (a *App) commitAndPush(params AddParams, filters ...func(string) bool) error {
-	a.logger.Actionf("Committing and pushing wego resources for application")
 	if params.DryRun || !params.AutoMerge {
 		return nil
 	}
+	a.logger.Actionf("Committing and pushing wego resources for application")
 
 	_, err := a.git.Commit(git.Commit{
 		Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
@@ -690,11 +690,21 @@ func (a *App) createPullRequestToRepo(params AddParams, basePath string, repo st
 		}
 
 		orgRepoRef := gitproviders.NewOrgRepositoryRef(github.DefaultDomain, org, repoName)
-		return a.gitProviders.CreatePullRequestToOrgRepo(orgRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
+		prLink, err := a.gitProviders.CreatePullRequestToOrgRepo(orgRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
+		if err != nil {
+			return fmt.Errorf("unable to create pull request: %s", err)
+		}
+		a.logger.Println("Pull Request created: %s\n", prLink.Get().WebURL)
+		return nil
 	}
 
 	userRepoRef := gitproviders.NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
-	return a.gitProviders.CreatePullRequestToUserRepo(userRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
+	prLink, err := a.gitProviders.CreatePullRequestToUserRepo(userRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
+	if err != nil {
+		return fmt.Errorf("unable to create pull request: %s", err)
+	}
+	a.logger.Println("Pull Request created: %s\n", prLink.Get().WebURL)
+	return nil
 }
 
 // NOTE: ready to save the targets automation in phase 2
