@@ -104,7 +104,7 @@ var _ = Describe("GetClusterStatus", func() {
 
 	It("returns unknown when it cant talk to the cluster", func() {
 		runner.RunStub = func(cmd string, args ...string) ([]byte, error) {
-			return []byte("error"), fmt.Errorf("error")
+			return []byte("was refused - did you specify the right host or port?"), fmt.Errorf("error")
 		}
 
 		status := kubeClient.GetClusterStatus(context.Background())
