@@ -692,18 +692,18 @@ func (a *App) createPullRequestToRepo(params AddParams, basePath string, repo st
 		orgRepoRef := gitproviders.NewOrgRepositoryRef(github.DefaultDomain, org, repoName)
 		prLink, err := a.gitProviders.CreatePullRequestToOrgRepo(orgRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
 		if err != nil {
-			return err
+			return fmt.Errorf("unable to create pull request: %s", err)
 		}
-		a.logger.Println("Pull Request created: %s\n", prLink)
+		a.logger.Println("Pull Request created: %s\n", prLink.Get().WebURL)
 		return nil
 	}
 
 	userRepoRef := gitproviders.NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
 	prLink, err := a.gitProviders.CreatePullRequestToUserRepo(userRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to create pull request: %s", err)
 	}
-	a.logger.Println("Pull Request created: %s\n", prLink)
+	a.logger.Println("Pull Request created: %s\n", prLink.Get().WebURL)
 	return nil
 }
 

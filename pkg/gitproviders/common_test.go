@@ -420,7 +420,7 @@ func CreateTestPullRequestToOrgRepo(t *testing.T, client gitprovider.Client, dom
 
 	prLink, err := CreatePullRequestToOrgRepo(orgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.NoError(t, err)
-	assert.Equal(t, "https://github.com/weaveworks/test-org-repo/pull/1", prLink)
+	assert.Equal(t, "https://github.com/weaveworks/test-org-repo/pull/1", prLink.Get().WebURL)
 
 	_, err = CreatePullRequestToOrgRepo(orgRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
 	assert.Error(t, err)
@@ -473,7 +473,7 @@ func CreateTestPullRequestToUserRepo(t *testing.T, client gitprovider.Client, do
 
 	prLink, err := CreatePullRequestToUserRepo(userRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	assert.NoError(t, err)
-	assert.Equal(t, "https://github.com/bot/test-user-repo/pull/1", prLink)
+	assert.Equal(t, "https://github.com/bot/test-user-repo/pull/1", prLink.Get().WebURL)
 
 	_, err = CreatePullRequestToUserRepo(userRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
 	assert.Error(t, err)
