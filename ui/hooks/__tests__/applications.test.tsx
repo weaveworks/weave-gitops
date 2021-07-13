@@ -19,9 +19,14 @@ describe("useApplications", () => {
     const name = "some app";
     const mockResponses = {
       ListApplications: { applications: [{ name }] },
+      GetUser: { user: { email: "user@example.com" } },
     };
     const TestComponent = () => {
-      const { applications } = useApplications();
+      const { listApplications, applications } = useApplications();
+
+      React.useEffect(() => {
+        listApplications();
+      }, []);
 
       return (
         <ul>
@@ -43,13 +48,13 @@ describe("useApplications", () => {
     const mockResponses = {
       ListApplications: { applications: [{ name: "some-name" }] },
       GetApplication: { application: { url } },
+      GetUser: { user: { email: "user@example.com" } },
     };
     const TestComponent = () => {
-      const { getApplication } = useApplications();
-      const [app, setApp] = React.useState({} as any);
+      const { currentApplication: app, getApplication } = useApplications();
 
       React.useEffect(() => {
-        getApplication("my-app").then((a) => setApp(a as any));
+        getApplication("my-app");
       }, []);
 
       return <p data-testid="url">{app.url}</p>;

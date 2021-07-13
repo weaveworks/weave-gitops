@@ -8,14 +8,16 @@ require (
 	github.com/fluxcd/go-git-providers v0.2.0
 	github.com/fluxcd/helm-controller/api v0.11.1
 	github.com/fluxcd/kustomize-controller/api v0.13.0
-	github.com/fluxcd/pkg/apis/meta v0.10.0 // indirect
+	github.com/fluxcd/pkg/apis/meta v0.10.0
 	github.com/fluxcd/source-controller/api v0.15.2
 	github.com/go-git/go-billy/v5 v5.3.1
 	github.com/go-git/go-git/v5 v5.4.1
 	github.com/google/go-cmp v0.5.6
+	github.com/google/go-github/v32 v32.1.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.5.0
 	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.1
 	github.com/jandelgado/gcov2lcov v1.0.5
+	github.com/joho/godotenv v1.3.0
 	github.com/lithammer/dedent v1.1.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/onsi/ginkgo v1.16.4
@@ -27,18 +29,17 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed // indirect
+	golang.org/x/oauth2 v0.0.0-20210615190721-d04028783cf1
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
 	google.golang.org/genproto v0.0.0-20210617175327-b9e0b3197ced
 	google.golang.org/grpc v1.38.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/protobuf v1.27.1
-	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.21.2
 	k8s.io/apiextensions-apiserver v0.21.2
 	k8s.io/apimachinery v0.21.2
 	k8s.io/client-go v0.21.2
 	sigs.k8s.io/controller-runtime v0.9.1
-	sigs.k8s.io/controller-tools v0.4.1 // indirect
 	sigs.k8s.io/yaml v1.2.0
 
 )

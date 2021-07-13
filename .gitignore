@@ -12,3 +12,4 @@ coverage
 *.lcov
 ginkgo.report
 .deps
+.env

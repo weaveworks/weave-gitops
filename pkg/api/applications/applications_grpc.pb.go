@@ -24,6 +24,13 @@ type ApplicationsClient interface {
 	//
 	// GetApplication returns a given application
 	GetApplication(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*GetApplicationResponse, error)
+	//
+	// GetAuthenticationProviders returns a list of the available authentication providers
+	GetAuthenticationProviders(ctx context.Context, in *GetAuthenticationProvidersRequest, opts ...grpc.CallOption) (*GetAuthenticationProvidersResponse, error)
+	//
+	// Authenticate exchanges a code recieved from an OAuth2 callback for a user token
+	Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
+	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserResponse, error)
 }
 
 type applicationsClient struct {
@@ -52,6 +59,33 @@ func (c *applicationsClient) GetApplication(ctx context.Context, in *GetApplicat
 	return out, nil
 }
 
+func (c *applicationsClient) GetAuthenticationProviders(ctx context.Context, in *GetAuthenticationProvidersRequest, opts ...grpc.CallOption) (*GetAuthenticationProvidersResponse, error) {
+	out := new(GetAuthenticationProvidersResponse)
+	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/GetAuthenticationProviders", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationsClient) Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error) {
+	out := new(AuthenticateResponse)
+	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/Authenticate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationsClient) GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserResponse, error) {
+	out := new(GetUserResponse)
+	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/GetUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ApplicationsServer is the server API for Applications service.
 // All implementations must embed UnimplementedApplicationsServer
 // for forward compatibility
@@ -62,6 +96,13 @@ type ApplicationsServer interface {
 	//
 	// GetApplication returns a given application
 	GetApplication(context.Context, *GetApplicationRequest) (*GetApplicationResponse, error)
+	//
+	// GetAuthenticationProviders returns a list of the available authentication providers
+	GetAuthenticationProviders(context.Context, *GetAuthenticationProvidersRequest) (*GetAuthenticationProvidersResponse, error)
+	//
+	// Authenticate exchanges a code recieved from an OAuth2 callback for a user token
+	Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error)
+	GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error)
 	mustEmbedUnimplementedApplicationsServer()
 }
 
@@ -74,6 +115,15 @@ func (UnimplementedApplicationsServer) ListApplications(context.Context, *ListAp
 }
 func (UnimplementedApplicationsServer) GetApplication(context.Context, *GetApplicationRequest) (*GetApplicationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetApplication not implemented")
+}
+func (UnimplementedApplicationsServer) GetAuthenticationProviders(context.Context, *GetAuthenticationProvidersRequest) (*GetAuthenticationProvidersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAuthenticationProviders not implemented")
+}
+func (UnimplementedApplicationsServer) Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Authenticate not implemented")
+}
+func (UnimplementedApplicationsServer) GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
 func (UnimplementedApplicationsServer) mustEmbedUnimplementedApplicationsServer() {}
 
@@ -124,6 +174,60 @@ func _Applications_GetApplication_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Applications_GetAuthenticationProviders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAuthenticationProvidersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationsServer).GetAuthenticationProviders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wego_server.v1.Applications/GetAuthenticationProviders",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationsServer).GetAuthenticationProviders(ctx, req.(*GetAuthenticationProvidersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Applications_Authenticate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthenticateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationsServer).Authenticate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wego_server.v1.Applications/Authenticate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationsServer).Authenticate(ctx, req.(*AuthenticateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Applications_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationsServer).GetUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wego_server.v1.Applications/GetUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationsServer).GetUser(ctx, req.(*GetUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Applications_ServiceDesc is the grpc.ServiceDesc for Applications service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -138,6 +242,18 @@ var Applications_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetApplication",
 			Handler:    _Applications_GetApplication_Handler,
+		},
+		{
+			MethodName: "GetAuthenticationProviders",
+			Handler:    _Applications_GetAuthenticationProviders_Handler,
+		},
+		{
+			MethodName: "Authenticate",
+			Handler:    _Applications_Authenticate_Handler,
+		},
+		{
+			MethodName: "GetUser",
+			Handler:    _Applications_GetUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -7,12 +7,14 @@ import (
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/api/applications"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"golang.org/x/oauth2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
 var _ = Describe("ApplicationsServer", func() {
-	It("AddApplication", func() {
+	It("ListApplications", func() {
 		kubeClient.GetApplicationsStub = func(ctx context.Context, ns string) ([]wego.Application, error) {
 			return []wego.Application{
 				{
@@ -44,5 +46,30 @@ var _ = Describe("ApplicationsServer", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(res.Application.Name).To(Equal("my-app"))
+	})
+	It("GetAuthenticationProviders", func() {
+		res, err := client.GetAuthenticationProviders(context.Background(), &applications.GetAuthenticationProvidersRequest{})
+		Expect(err).NotTo(HaveOccurred())
+
+		expected := &applications.OauthProvider{
+			Name: string(gitproviders.ProviderNameGithub),
+		}
+
+		Expect(res.Providers).Should(ContainElement(expected))
+	})
+	It("Authenticate", func() {
+		token := "def456xyz"
+		fakeOauthProvider.ExchangeStub = func(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error) {
+			return &oauth2.Token{AccessToken: token}, nil
+		}
+		body := &applications.AuthenticateRequest{
+			ProviderName: string(gitproviders.ProviderNameGithub),
+			Code:         "abc123supersecretcode",
+		}
+
+		res, err := client.Authenticate(context.Background(), body)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(res.Token).To(Equal(token))
 	})
 })

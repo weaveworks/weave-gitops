@@ -9,11 +9,12 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 )
 
@@ -28,6 +29,9 @@ func init() {
 }
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatal(err.Error())
+	}
 	rand.Seed(time.Now().UnixNano())
 
 	command := NewAPIServerCommand()
@@ -61,12 +65,19 @@ func StartServer() error {
 func RunInProcessGateway(ctx context.Context, addr string, opts ...runtime.ServeMuxOption) error {
 	mux := runtime.NewServeMux(opts...)
 
-	if err := pb.RegisterApplicationsHandlerServer(ctx, mux, server.NewApplicationsServer(kube.New(&runner.CLIRunner{}))); err != nil {
+	kubeClient, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		return fmt.Errorf("could not create kube http client: %w", err)
+	}
+
+	appsSrv := server.NewApplicationsServer(kubeClient)
+
+	if err := pb.RegisterApplicationsHandlerServer(ctx, mux, appsSrv); err != nil {
 		return fmt.Errorf("could not register application: %w", err)
 	}
 	s := &http.Server{
 		Addr:    addr,
-		Handler: mux,
+		Handler: middleware.WithToken(middleware.WithLogging(mux)),
 	}
 
 	go func() {

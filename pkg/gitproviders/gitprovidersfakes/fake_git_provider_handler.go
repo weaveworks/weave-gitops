@@ -2,10 +2,12 @@
 package gitprovidersfakes
 
 import (
+	"context"
 	"sync"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"golang.org/x/oauth2"
 )
 
 type FakeGitProviderHandler struct {
@@ -86,6 +88,30 @@ type FakeGitProviderHandler struct {
 	getAccountTypeReturnsOnCall map[int]struct {
 		result1 gitproviders.ProviderAccountType
 		result2 error
+	}
+	GetUserStub        func(context.Context, *oauth2.Token) (*gitproviders.User, error)
+	getUserMutex       sync.RWMutex
+	getUserArgsForCall []struct {
+		arg1 context.Context
+		arg2 *oauth2.Token
+	}
+	getUserReturns struct {
+		result1 *gitproviders.User
+		result2 error
+	}
+	getUserReturnsOnCall map[int]struct {
+		result1 *gitproviders.User
+		result2 error
+	}
+	OauthConfigStub        func() gitproviders.OauthProviderConfig
+	oauthConfigMutex       sync.RWMutex
+	oauthConfigArgsForCall []struct {
+	}
+	oauthConfigReturns struct {
+		result1 gitproviders.OauthProviderConfig
+	}
+	oauthConfigReturnsOnCall map[int]struct {
+		result1 gitproviders.OauthProviderConfig
 	}
 	RepositoryExistsStub        func(string, string) (bool, error)
 	repositoryExistsMutex       sync.RWMutex
@@ -460,6 +486,124 @@ func (fake *FakeGitProviderHandler) GetAccountTypeReturnsOnCall(i int, result1 g
 	}{result1, result2}
 }
 
+func (fake *FakeGitProviderHandler) GetUser(arg1 context.Context, arg2 *oauth2.Token) (*gitproviders.User, error) {
+	fake.getUserMutex.Lock()
+	ret, specificReturn := fake.getUserReturnsOnCall[len(fake.getUserArgsForCall)]
+	fake.getUserArgsForCall = append(fake.getUserArgsForCall, struct {
+		arg1 context.Context
+		arg2 *oauth2.Token
+	}{arg1, arg2})
+	stub := fake.GetUserStub
+	fakeReturns := fake.getUserReturns
+	fake.recordInvocation("GetUser", []interface{}{arg1, arg2})
+	fake.getUserMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeGitProviderHandler) GetUserCallCount() int {
+	fake.getUserMutex.RLock()
+	defer fake.getUserMutex.RUnlock()
+	return len(fake.getUserArgsForCall)
+}
+
+func (fake *FakeGitProviderHandler) GetUserCalls(stub func(context.Context, *oauth2.Token) (*gitproviders.User, error)) {
+	fake.getUserMutex.Lock()
+	defer fake.getUserMutex.Unlock()
+	fake.GetUserStub = stub
+}
+
+func (fake *FakeGitProviderHandler) GetUserArgsForCall(i int) (context.Context, *oauth2.Token) {
+	fake.getUserMutex.RLock()
+	defer fake.getUserMutex.RUnlock()
+	argsForCall := fake.getUserArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeGitProviderHandler) GetUserReturns(result1 *gitproviders.User, result2 error) {
+	fake.getUserMutex.Lock()
+	defer fake.getUserMutex.Unlock()
+	fake.GetUserStub = nil
+	fake.getUserReturns = struct {
+		result1 *gitproviders.User
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGitProviderHandler) GetUserReturnsOnCall(i int, result1 *gitproviders.User, result2 error) {
+	fake.getUserMutex.Lock()
+	defer fake.getUserMutex.Unlock()
+	fake.GetUserStub = nil
+	if fake.getUserReturnsOnCall == nil {
+		fake.getUserReturnsOnCall = make(map[int]struct {
+			result1 *gitproviders.User
+			result2 error
+		})
+	}
+	fake.getUserReturnsOnCall[i] = struct {
+		result1 *gitproviders.User
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGitProviderHandler) OauthConfig() gitproviders.OauthProviderConfig {
+	fake.oauthConfigMutex.Lock()
+	ret, specificReturn := fake.oauthConfigReturnsOnCall[len(fake.oauthConfigArgsForCall)]
+	fake.oauthConfigArgsForCall = append(fake.oauthConfigArgsForCall, struct {
+	}{})
+	stub := fake.OauthConfigStub
+	fakeReturns := fake.oauthConfigReturns
+	fake.recordInvocation("OauthConfig", []interface{}{})
+	fake.oauthConfigMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeGitProviderHandler) OauthConfigCallCount() int {
+	fake.oauthConfigMutex.RLock()
+	defer fake.oauthConfigMutex.RUnlock()
+	return len(fake.oauthConfigArgsForCall)
+}
+
+func (fake *FakeGitProviderHandler) OauthConfigCalls(stub func() gitproviders.OauthProviderConfig) {
+	fake.oauthConfigMutex.Lock()
+	defer fake.oauthConfigMutex.Unlock()
+	fake.OauthConfigStub = stub
+}
+
+func (fake *FakeGitProviderHandler) OauthConfigReturns(result1 gitproviders.OauthProviderConfig) {
+	fake.oauthConfigMutex.Lock()
+	defer fake.oauthConfigMutex.Unlock()
+	fake.OauthConfigStub = nil
+	fake.oauthConfigReturns = struct {
+		result1 gitproviders.OauthProviderConfig
+	}{result1}
+}
+
+func (fake *FakeGitProviderHandler) OauthConfigReturnsOnCall(i int, result1 gitproviders.OauthProviderConfig) {
+	fake.oauthConfigMutex.Lock()
+	defer fake.oauthConfigMutex.Unlock()
+	fake.OauthConfigStub = nil
+	if fake.oauthConfigReturnsOnCall == nil {
+		fake.oauthConfigReturnsOnCall = make(map[int]struct {
+			result1 gitproviders.OauthProviderConfig
+		})
+	}
+	fake.oauthConfigReturnsOnCall[i] = struct {
+		result1 gitproviders.OauthProviderConfig
+	}{result1}
+}
+
 func (fake *FakeGitProviderHandler) RepositoryExists(arg1 string, arg2 string) (bool, error) {
 	fake.repositoryExistsMutex.Lock()
 	ret, specificReturn := fake.repositoryExistsReturnsOnCall[len(fake.repositoryExistsArgsForCall)]
@@ -606,6 +750,10 @@ func (fake *FakeGitProviderHandler) Invocations() map[string][][]interface{} {
 	defer fake.deployKeyExistsMutex.RUnlock()
 	fake.getAccountTypeMutex.RLock()
 	defer fake.getAccountTypeMutex.RUnlock()
+	fake.getUserMutex.RLock()
+	defer fake.getUserMutex.RUnlock()
+	fake.oauthConfigMutex.RLock()
+	defer fake.oauthConfigMutex.RUnlock()
 	fake.repositoryExistsMutex.RLock()
 	defer fake.repositoryExistsMutex.RUnlock()
 	fake.uploadDeployKeyMutex.RLock()

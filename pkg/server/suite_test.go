@@ -9,6 +9,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"google.golang.org/grpc"
@@ -32,6 +34,8 @@ var client pb.ApplicationsClient
 var conn *grpc.ClientConn
 var err error
 var kubeClient *kubefakes.FakeKube
+var fakeGitProvider *gitprovidersfakes.FakeGitProviderHandler
+var fakeOauthProvider *gitprovidersfakes.FakeOauthProviderConfig
 
 func bufDialer(context.Context, string) (net.Conn, error) {
 	return lis.Dial()
@@ -42,8 +46,19 @@ var _ = BeforeEach(func() {
 	s = grpc.NewServer()
 
 	kubeClient = &kubefakes.FakeKube{}
+	fakeGitProvider = &gitprovidersfakes.FakeGitProviderHandler{}
+	fakeOauthProvider = &gitprovidersfakes.FakeOauthProviderConfig{}
 
-	apps = server.NewApplicationsServer(kubeClient)
+	fakeGitProvider.OauthConfigStub = func() gitproviders.OauthProviderConfig {
+		return fakeOauthProvider
+	}
+
+	apps = &server.Server{
+		Kube: kubeClient,
+		CreateProvider: func(name gitproviders.ProviderName) (gitproviders.GitProviderHandler, error) {
+			return fakeGitProvider, nil
+		},
+	}
 	pb.RegisterApplicationsServer(s, apps)
 
 	go func() {

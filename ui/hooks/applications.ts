@@ -1,39 +1,41 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { AppContext } from "../contexts/AppContext";
 import { Application } from "../lib/api/applications/applications.pb";
+import { AsyncError } from "../lib/types";
 
 const WeGONamespace = "wego-system";
 
 export default function useApplications() {
-  const { applicationsClient, doAsyncError } = useContext(AppContext);
+  const { applicationsClient } = useContext(AppContext);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<AsyncError>(null);
   const [applications, setApplications] = useState<Application[]>([]);
-
-  useEffect(() => {
-    setLoading(true);
-
-    applicationsClient
-      .ListApplications({ namespace: WeGONamespace })
-      .then((res) => setApplications(res.applications))
-      .catch((err) => {
-        doAsyncError(err.message, err.detail);
-      })
-      .finally(() => setLoading(false));
-  }, []);
+  const [currentApplication, setCurrentApplication] = useState<Application>({});
 
   const getApplication = (name: string) => {
-    setLoading(true);
-
-    return applicationsClient
+    applicationsClient
       .GetApplication({ name, namespace: WeGONamespace })
-      .then((res) => res.application)
-      .catch((err) => doAsyncError("Error fetching application", err.message))
+      .then(({ application }) => setCurrentApplication(application))
+      .catch((err) =>
+        setError({ message: "Could not get application", detail: err.message })
+      )
+      .finally(() => setLoading(false));
+  };
+
+  const listApplications = () => {
+    applicationsClient
+      .ListApplications({})
+      .then(({ applications }) => setApplications(applications))
+      .catch((err) => setError(err))
       .finally(() => setLoading(false));
   };
 
   return {
     loading,
+    error,
+    currentApplication,
     applications,
     getApplication,
+    listApplications,
   };
 }

@@ -36,6 +36,33 @@ service Applications {
             get : "/v1/applications/{name}"
         };
     }
+
+    /**
+    * GetAuthenticationProviders returns a list of the available authentication providers
+    */
+    rpc GetAuthenticationProviders(GetAuthenticationProvidersRequest) returns(GetAuthenticationProvidersResponse) {
+        option (google.api.http) = {
+            get : "/v1/auth_providers"
+        }; 
+    }
+    /**
+    * Authenticate exchanges a code recieved from an OAuth2 callback for a user token
+    */
+    rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse) {
+        option (google.api.http) = {
+            post : "/v1/authenticate/{provider_name}"
+            body: "*"
+        };
+    }
+
+    /**
+    * GetUser returns data about the currently authenticated user
+    */
+    rpc GetUser(GetUserRequest) returns (GetUserResponse) {
+        option (google.api.http) = {
+            get : "/v1/user"
+        }; 
+    }
 }
 
 message Application {
@@ -59,4 +86,39 @@ message GetApplicationRequest {
 
 message GetApplicationResponse {
     Application application = 1;
+}
+
+message GetAuthenticationProvidersRequest {
+
+}
+
+message OauthProvider {
+    string name         = 1;  // The name of the provider, ie 'github', 'gitlab'
+    string auth_url     = 2;  // The URL that will be used for the OAuth2 callback flow
+    string redirect_uri = 3;  // The URI that users will be taken to after visiting the auth_url
+}
+
+message GetAuthenticationProvidersResponse {
+    repeated OauthProvider providers = 1;
+}
+
+message AuthenticateRequest {
+    string provider_name = 1;  // The name of the OAuth provider
+    string code          = 2;  // The code received from the OAuth provider via callback
+}
+
+message User {
+    string email = 1; // The user's email address
+}
+
+message AuthenticateResponse {
+    string token = 1; // The token that was exchanged for the callback code with the OAuth2 provider
+}
+
+message GetUserRequest {
+
+}
+
+message GetUserResponse {
+    User user = 1; // Data about the current authenticated user
 }

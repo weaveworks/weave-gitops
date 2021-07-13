@@ -3,8 +3,7 @@ import { Alert, AlertTitle } from "@material-ui/lab";
 import _ from "lodash";
 import React from "react";
 import styled from "styled-components";
-import useCommon from "../hooks/common";
-import { PageRoute } from "../lib/types";
+import { AsyncError, PageRoute } from "../lib/types";
 import { formatURL } from "../lib/utils";
 import Flex from "./Flex";
 import Link from "./Link";
@@ -16,6 +15,7 @@ type Props = {
   title?: string;
   breadcrumbs?: { page: PageRoute; query?: any }[];
   loading?: boolean;
+  error: null | AsyncError;
 };
 
 const Content = styled.div`
@@ -49,9 +49,14 @@ function pageLookup(p: PageRoute) {
   }
 }
 
-function Page({ className, children, title, breadcrumbs, loading }: Props) {
-  const { appState } = useCommon();
-
+function Page({
+  className,
+  children,
+  title,
+  breadcrumbs,
+  loading,
+  error,
+}: Props) {
   if (loading) {
     return <LoadingPage />;
   }
@@ -70,11 +75,11 @@ function Page({ className, children, title, breadcrumbs, loading }: Props) {
             <h2>{title}</h2>
           </Breadcrumbs>
         </TitleBar>
-        {appState.error && (
+        {error && (
           <Flex center wide>
             <Alert severity="error">
-              <AlertTitle>{appState.error.message}</AlertTitle>
-              {appState.error.detail}
+              <AlertTitle>{error.message}</AlertTitle>
+              {error.detail}
             </Alert>
           </Flex>
         )}

@@ -59,11 +59,12 @@ For more information please see the [docs](https://docs.gitops.weave.works/docs/
 
 ## CLI/API development
 
-To set up a development environment for the CLI
+To set up a development environment for the CLI and API
 
 1. Install go v1.16
 2. Install [buf](https://github.com/bufbuild/buf)
-3. make
+3. Copy the `env.example`, updated the values with the correct secrets (from a coworker), and save it as `.env`
+4. make
 
 ## UI Development
 

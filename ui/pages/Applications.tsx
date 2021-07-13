@@ -13,10 +13,19 @@ type Props = {
 };
 
 function Applications({ className }: Props) {
-  const { applications, loading } = useApplications();
+  const { applications, listApplications, loading, error } = useApplications();
+
+  React.useEffect(() => {
+    listApplications();
+  }, []);
 
   return (
-    <Page loading={loading} title="Applications" className={className}>
+    <Page
+      loading={loading}
+      error={error}
+      title="Applications"
+      className={className}
+    >
       <DataTable
         sortFields={["name"]}
         fields={[

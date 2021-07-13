@@ -35,7 +35,7 @@ var Cmd = &cobra.Command{
 		}
 
 		gitClient := git.New(nil)
-		gitProviders := gitproviders.New()
+		gitProviders, _ := gitproviders.New(gitproviders.ProviderNameGithub)
 		logger := logger.New(os.Stdout)
 
 		appService := app.New(logger, gitClient, fluxClient, kubeClient, gitProviders)

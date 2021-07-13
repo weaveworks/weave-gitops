@@ -29,6 +29,7 @@ export const theme: DefaultTheme = {
     white: "#fff",
     primary: "#00b3ec",
     success: "#27AE60",
+    negativeSpace: "#E6E6E6",
   },
   spacing: {
     // 16px

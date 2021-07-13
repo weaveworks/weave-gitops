@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import * as React from "react";
-import { withContext } from "../../lib/test-utils";
+import { withRouter } from "../../lib/test-utils";
 import useNavigation from "../navigation";
 
 describe("useNavigation", () => {
@@ -14,17 +14,18 @@ describe("useNavigation", () => {
     container = null;
   });
 
-  it("returns the query", () => {
+  it("returns the query", async () => {
     const id = "custom-element";
     const myVar = "myVar";
+
     const TestComponent = () => {
       const { query } = useNavigation<{ someKey: string }>();
 
       return <p data-testid={id}>{query.someKey}</p>;
     };
 
-    render(withContext(TestComponent, `/?someKey=${myVar}`));
+    render(withRouter(TestComponent, `/?someKey=${myVar}`));
 
-    expect(screen.getByTestId(id).textContent).toEqual(myVar);
+    expect((await screen.getByTestId(id)).textContent).toEqual(myVar);
   });
 });

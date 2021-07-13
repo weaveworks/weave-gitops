@@ -1,6 +1,5 @@
 import _ from "lodash";
 import qs from "query-string";
-import { useEffect, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import { PageRoute } from "../lib/types";
 import { formatURL } from "../lib/utils";
@@ -12,26 +11,21 @@ export const normalizePath = (pathname) => {
 export default function useNavigation<T>(): {
   currentPage: string;
   query: T;
-  navigate: (PageRoute, any) => void;
+  navigate: (PageRoute, any?) => void;
 } {
   const history = useHistory();
   const location = useLocation();
-  const [currentPage, setCurrentPage] = useState("");
-
-  useEffect(() => {
-    const [pageName] = normalizePath(location.pathname);
-    setCurrentPage(pageName as string);
-  }, [location]);
+  const [pageName] = normalizePath(location.pathname);
 
   const navigate = (page: PageRoute, query: any) => {
     history.push(formatURL(page, query));
   };
 
-  const q = qs.parse(location.search) as any;
+  const query = qs.parse(location.search) as any;
 
   return {
-    currentPage,
-    query: q,
+    currentPage: pageName as string,
+    query,
     navigate,
   };
 }

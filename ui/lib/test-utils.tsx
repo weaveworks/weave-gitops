@@ -7,6 +7,7 @@ import { ThemeProvider } from "styled-components";
 import AppContextProvider from "../contexts/AppContext";
 import {
   GetApplicationResponse,
+  GetUserResponse,
   ListApplicationsResponse,
 } from "./api/applications/applications.pb";
 import theme, { muiTheme } from "./theme";
@@ -14,6 +15,7 @@ import theme, { muiTheme } from "./theme";
 type ApplicationOverrides = {
   ListApplications?: ListApplicationsResponse;
   GetApplication?: GetApplicationResponse;
+  GetUser?: GetUserResponse;
 };
 
 // Don't make the user wire up all the promise stuff to be interface-compliant
@@ -37,6 +39,16 @@ export function withTheme(element) {
     <MuiThemeProvider theme={muiTheme}>
       <ThemeProvider theme={theme}>{element}</ThemeProvider>
     </MuiThemeProvider>
+  );
+}
+
+export function withRouter(TestComponent, url) {
+  const history = createMemoryHistory();
+  history.push(url);
+  return (
+    <Router history={history}>
+      <TestComponent />
+    </Router>
   );
 }
 
