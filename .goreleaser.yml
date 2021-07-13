@@ -7,7 +7,7 @@ before:
 checksum:
   name_template: "{{ .ProjectName }}_checksums.txt"
 release:
-  prerelease: true
+  prerelease: auto
 archives:
   -
    format: binary
@@ -68,4 +68,4 @@ builds:
       - darwin
     goarch:
       - arm64
-   
+

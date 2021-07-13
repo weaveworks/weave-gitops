@@ -1,4 +1,4 @@
-.PHONY: ui-dev
+.PHONY: debug bin wego install clean fmt vet depencencies lint ui ui-lint ui-test ui-dev unit-tests proto proto-deps api-dev ui-dev fakes crd
 VERSION=$(shell git describe --always --match "v*")
 GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
@@ -28,14 +28,14 @@ endif
 all: wego
 
 # Run tests
-unit-tests: wego cmd/ui/dist/main.js
+unit-tests: dependencies cmd/ui/dist/index.html
 	# To avoid downloading depencencies every time use `SKIP_FETCH_TOOLS=1 unit-tests`
 	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v -tags unittest ./...
 
 debug:
 	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) -gcflags='all=-N -l' cmd/wego/*.go
 
-bin:
+bin: ui
 	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) cmd/wego/*.go
 
 # Build wego binary
@@ -49,6 +49,9 @@ install: bin bin/$(BINARY_NAME)_ui
 clean:
 	rm -f bin/wego pkg/flux/bin/flux
 	rm -rf cmd/ui/dist
+	rm -rf coverage
+	rm -rf node_modules
+	rm .deps
 # Run go fmt against code
 fmt:
 	go fmt ./...
@@ -56,10 +59,13 @@ fmt:
 vet:
 	go vet ./...
 
-dependencies:
+.deps:
 	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
+	@touch .deps
 
-package-lock.json:
+dependencies: .deps
+
+node_modules:
 	npm install
 
 cmd/ui/dist:
@@ -68,7 +74,7 @@ cmd/ui/dist:
 cmd/ui/dist/index.html: cmd/ui/dist
 	touch cmd/ui/dist/index.html
 
-cmd/ui/dist/main.js: package-lock.json
+cmd/ui/dist/main.js:
 	npm run build
 
 bin/$(BINARY_NAME)_ui: cmd/ui/main.go
@@ -85,6 +91,8 @@ ui-test:
 
 ui-audit:
 	npm audit
+
+ui: node_modules cmd/ui/dist/main.js
 
 # JS coverage info
 coverage/lcov.info:

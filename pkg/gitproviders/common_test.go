@@ -13,12 +13,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/weaveworks/weave-gitops/pkg/utils"
+
 	"github.com/dnaeon/go-vcr/cassette"
 	"github.com/dnaeon/go-vcr/recorder"
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -371,13 +371,14 @@ func CreateTestPullRequestToOrgRepo(client gitprovider.Client, domain string, or
 	prTitle := "config files"
 	prDescription := "test description"
 
-	err = CreatePullRequestToOrgRepo(orgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	prLink, err := CreatePullRequestToOrgRepo(orgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	Expect(err).ToNot(HaveOccurred())
+	Expect("https://github.com/weaveworks/test-org-repo/pull/1", prLink.Get().WebURL)
 
-	err = CreatePullRequestToOrgRepo(orgRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
+	_, err = CreatePullRequestToOrgRepo(orgRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
 	Expect(err).To(HaveOccurred())
 
-	err = CreatePullRequestToOrgRepo(doesNotExistOrgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	_, err = CreatePullRequestToOrgRepo(doesNotExistOrgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	Expect(err).To(HaveOccurred())
 
 	ctx := context.Background()
@@ -419,13 +420,14 @@ func CreateTestPullRequestToUserRepo(client gitprovider.Client, domain string, u
 	prTitle := "config files"
 	prDescription := "test description"
 
-	err = CreatePullRequestToUserRepo(userRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	prLink, err := CreatePullRequestToUserRepo(userRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	Expect(err).NotTo(HaveOccurred())
+	Expect("https://github.com/bot/test-user-repo/pull/1", prLink.Get().WebURL)
 
-	err = CreatePullRequestToUserRepo(userRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
+	_, err = CreatePullRequestToUserRepo(userRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
 	Expect(err).To(HaveOccurred())
 
-	err = CreatePullRequestToUserRepo(doesNotExistsUserRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	_, err = CreatePullRequestToUserRepo(doesNotExistsUserRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
 	Expect(err).To(HaveOccurred())
 
 	ctx := context.Background()

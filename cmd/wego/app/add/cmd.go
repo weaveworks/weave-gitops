@@ -18,6 +18,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -103,8 +104,9 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	kubeClient := kube.New(cliRunner)
 	gitClient := git.New(authMethod)
 	gitProviders := gitproviders.New()
+	logger := logger.New(os.Stdout)
 
-	appService := app.New(gitClient, fluxClient, kubeClient, gitProviders)
+	appService := app.New(logger, gitClient, fluxClient, kubeClient, gitProviders)
 
 	utils.SetCommmitMessageFromArgs("wego app add", params.Url, params.Path, params.Name)
 

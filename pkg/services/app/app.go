@@ -6,11 +6,13 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 type AppService interface {
 	Add(params AddParams) error
-	Get(name string) (*wego.Application, error)
+	Get(name types.NamespacedName) (*wego.Application, error)
 }
 
 type App struct {
@@ -18,14 +20,16 @@ type App struct {
 	flux         flux.Flux
 	kube         kube.Kube
 	gitProviders gitproviders.GitProviderHandler
+	logger       logger.Logger
 }
 
-func New(git git.Git, flux flux.Flux, kube kube.Kube, gitProviders gitproviders.GitProviderHandler) *App {
+func New(logger logger.Logger, git git.Git, flux flux.Flux, kube kube.Kube, gitProviders gitproviders.GitProviderHandler) *App {
 	return &App{
 		git:          git,
 		flux:         flux,
 		kube:         kube,
 		gitProviders: gitProviders,
+		logger:       logger,
 	}
 }
 

@@ -15,6 +15,7 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -27,6 +28,7 @@ func CreateScheme() *apiruntime.Scheme {
 	_ = helmv2.AddToScheme(scheme)
 	_ = wego.AddToScheme(scheme)
 	_ = corev1.AddToScheme(scheme)
+	_ = extensionsv1.AddToScheme(scheme)
 
 	return scheme
 }
@@ -40,7 +42,7 @@ func NewKubeHTTPClient() (Kube, error) {
 
 	_, kubeContext, err := initialContexts(cfgLoadingRules)
 	if err != nil {
-		return nil, fmt.Errorf("could not get initial context: %s", err)
+		return nil, fmt.Errorf("could not get initial context: %w", err)
 	}
 
 	configOverrides := clientcmd.ConfigOverrides{CurrentContext: kubeContext}
@@ -114,14 +116,10 @@ func (c *KubeHTTP) Apply(manifests []byte, namespace string) ([]byte, error) {
 	return nil, errors.New("Apply is not implemented for kubeHTTP")
 }
 
-func (c *KubeHTTP) GetApplication(ctx context.Context, name string) (*wego.Application, error) {
-	tName := types.NamespacedName{
-		Name:      name,
-		Namespace: WeGONamespace,
-	}
+func (c *KubeHTTP) GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error) {
 	app := wego.Application{}
-	if err := c.Client.Get(ctx, tName, &app); err != nil {
-		return nil, fmt.Errorf("could not get application: %s", err)
+	if err := c.Client.Get(ctx, name, &app); err != nil {
+		return nil, fmt.Errorf("could not get application: %w", err)
 	}
 
 	return &app, nil
@@ -142,7 +140,7 @@ func (c *KubeHTTP) FluxPresent(ctx context.Context) (bool, error) {
 		if apierrors.IsNotFound(err) {
 			return false, nil
 		}
-		return false, fmt.Errorf("could not find flux namespace: %s", err)
+		return false, fmt.Errorf("could not find flux namespace: %w", err)
 	}
 
 	return true, nil
@@ -159,7 +157,7 @@ func (c *KubeHTTP) SecretPresent(ctx context.Context, secretName string, namespa
 		if apierrors.IsNotFound(err) {
 			return false, nil
 		}
-		return false, fmt.Errorf("could not get secret: %s", err)
+		return false, fmt.Errorf("could not get secret: %w", err)
 	}
 
 	return true, nil
@@ -168,8 +166,8 @@ func (c *KubeHTTP) SecretPresent(ctx context.Context, secretName string, namespa
 func (c *KubeHTTP) GetApplications(ctx context.Context, namespace string) ([]wego.Application, error) {
 	result := wego.ApplicationList{}
 
-	if err := c.Client.List(ctx, &result); err != nil {
-		return nil, fmt.Errorf("could not list wego applications: %s", err)
+	if err := c.Client.List(ctx, &result, client.InNamespace(namespace)); err != nil {
+		return nil, fmt.Errorf("could not list wego applications: %w", err)
 	}
 
 	return result.Items, nil

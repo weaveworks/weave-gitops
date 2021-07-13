@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"k8s.io/apimachinery/pkg/types"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -103,7 +104,7 @@ var _ = Describe("GetClusterStatus", func() {
 
 	It("returns unknown when it cant talk to the cluster", func() {
 		runner.RunStub = func(cmd string, args ...string) ([]byte, error) {
-			return []byte("error"), fmt.Errorf("error")
+			return []byte("was refused - did you specify the right host or port?"), fmt.Errorf("error")
 		}
 
 		status := kubeClient.GetClusterStatus(context.Background())
@@ -174,7 +175,7 @@ var _ = Describe("GetApplication", func() {
 			return res, nil
 		}
 
-		out, err := kubeClient.GetApplication(context.Background(), "my-app")
+		out, err := kubeClient.GetApplication(context.Background(), types.NamespacedName{Name: "my-app", Namespace: kube.WeGONamespace})
 
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out.Spec.Path).To(Equal("some/path"))

@@ -2,6 +2,8 @@ import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../contexts/AppContext";
 import { Application } from "../lib/api/applications/applications.pb";
 
+const WeGONamespace = "wego-system";
+
 export default function useApplications() {
   const { applicationsClient, doAsyncError } = useContext(AppContext);
   const [loading, setLoading] = useState(true);
@@ -11,7 +13,7 @@ export default function useApplications() {
     setLoading(true);
 
     applicationsClient
-      .ListApplications({namespace:"wego-system"})
+      .ListApplications({ namespace: WeGONamespace })
       .then((res) => setApplications(res.applications))
       .catch((err) => {
         doAsyncError(err.message, err.detail);
@@ -19,11 +21,11 @@ export default function useApplications() {
       .finally(() => setLoading(false));
   }, []);
 
-  const getApplication = (applicationName: string) => {
+  const getApplication = (name: string) => {
     setLoading(true);
 
     return applicationsClient
-      .GetApplication({ applicationName })
+      .GetApplication({ name, namespace: WeGONamespace })
       .then((res) => res.application)
       .catch((err) => doAsyncError("Error fetching application", err.message))
       .finally(() => setLoading(false));

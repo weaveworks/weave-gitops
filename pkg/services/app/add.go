@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"strings"
-	"text/template"
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -17,6 +16,10 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
+
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/yaml"
 )
 
 type DeploymentType string
@@ -30,8 +33,9 @@ const (
 	SourceTypeGit  SourceType = "git"
 	SourceTypeHelm SourceType = "helm"
 
-	ConfigTypeUserRepo ConfigType = ""
-	ConfigTypeNone     ConfigType = "NONE"
+	ConfigTypeUserRepo        ConfigType = ""
+	ConfigTypeNone            ConfigType = "NONE"
+	WeGOAppIdentifierLabelKey            = "weave-gitops.weave.works/app-identifier"
 )
 
 type AddParams struct {
@@ -88,23 +92,22 @@ type AddParams struct {
 
 func (a *App) Add(params AddParams) error {
 	ctx := context.Background()
-	fmt.Print("Updating parameters from environment... ")
 	params, err := a.updateParametersIfNecessary(params)
 	if err != nil {
 		return errors.Wrap(err, "could not update parameters")
 	}
 
-	fmt.Print("done\n\n")
-	fmt.Print("Checking cluster status... ")
+	a.printAddSummary(params)
 
+	a.logger.Waitingf("Checking cluster status")
 	clusterStatus := a.kube.GetClusterStatus(ctx)
-	fmt.Printf("%s\n\n", clusterStatus)
+	a.logger.Successf(clusterStatus.String())
 
 	switch clusterStatus {
 	case kube.Unmodified:
-		return errors.New("WeGO not installed... exiting")
+		return errors.New("Wego not installed... exiting")
 	case kube.Unknown:
-		return errors.New("WeGO can not determine cluster status... exiting")
+		return errors.New("Wego can not determine cluster status... exiting")
 	}
 
 	clusterName, err := a.kube.GetClusterName(ctx)
@@ -125,6 +128,20 @@ func (a *App) Add(params AddParams) error {
 	default:
 		return a.addAppWithConfigInExternalRepo(params, clusterName, secretRef)
 	}
+}
+func (a *App) printAddSummary(params AddParams) {
+	a.logger.Println("Adding application:\n")
+	a.logger.Println("Name: %s", params.Name)
+	a.logger.Println("URL: %s", params.Url)
+	a.logger.Println("Path: %s", params.Path)
+	a.logger.Println("Branch: %s", params.Branch)
+	a.logger.Println("Type: %s", params.DeploymentType)
+
+	if params.Chart != "" {
+		a.logger.Println("Chart: %s", params.Url)
+	}
+
+	a.logger.Println("")
 }
 
 func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
@@ -153,8 +170,6 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 		// resetting Dir param since Url has priority over it
 		params.Dir = ""
 	}
-
-	fmt.Printf("using URL: '%s' of origin from git config...\n\n", params.Url)
 
 	if params.Name == "" {
 		params.Name = generateResourceName(params.Url)
@@ -199,7 +214,7 @@ func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secre
 		return errors.Wrap(err, "could not generate application GitOps Automation manifests")
 	}
 
-	fmt.Println("Applying manifests to the cluster...")
+	a.logger.Actionf("Applying manifests to the cluster")
 	return a.applyToCluster(params, source, appGoat, appSpec)
 }
 
@@ -228,7 +243,7 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 
 	// a local directory has not been passed, so we clone the repo passed in the --url
 	if params.Dir == "" {
-		fmt.Printf("Cloning %s...\n", params.Url)
+		a.logger.Actionf("Cloning %s", params.Url)
 		if err := a.cloneRepo(params.Url, params.Branch, params.DryRun); err != nil {
 			return errors.Wrap(err, "failed to clone application repo")
 		}
@@ -236,11 +251,11 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 
 	if !params.DryRun {
 		if !params.AutoMerge {
-			if err := a.createPullRequestToRepo(params, params.Url, appSpec, appGoat, clusterName); err != nil {
+			if err := a.createPullRequestToRepo(params, ".wego", params.Url, clusterName, appSpec, appGoat); err != nil {
 				return err
 			}
 		} else {
-			fmt.Println("Writing manifests to disk...")
+			a.logger.Actionf("Writing manifests to disk")
 
 			if err := a.writeAppYaml(".wego", params.Name, appSpec); err != nil {
 				return errors.Wrap(err, "failed writing app.yaml to disk")
@@ -252,7 +267,7 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 		}
 	}
 
-	fmt.Println("Applying manifests to the cluster...")
+	a.logger.Actionf("Applying manifests to the cluster")
 	if err := a.applyToCluster(params, source, appWegoGoat); err != nil {
 		return errors.Wrap(err, "could not apply manifests to the cluster")
 	}
@@ -298,11 +313,11 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 
 	if !params.DryRun {
 		if !params.AutoMerge {
-			if err := a.createPullRequestToRepo(params, params.AppConfigUrl, appSpec, appGoat, clusterName); err != nil {
+			if err := a.createPullRequestToRepo(params, ".", params.AppConfigUrl, clusterName, appSpec, appGoat, appSource); err != nil {
 				return err
 			}
 		} else {
-			fmt.Println("Writing manifests to disk...")
+			a.logger.Actionf("Writing manifests to disk")
 
 			if err := a.writeAppYaml(".", params.Name, appSpec); err != nil {
 				return errors.Wrap(err, "failed writing app.yaml to disk")
@@ -314,7 +329,7 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 		}
 	}
 
-	fmt.Println("Applying manifests to the cluster...")
+	a.logger.Actionf("Applying manifests to the cluster")
 	if err := a.applyToCluster(params, targetSource, targetGoats); err != nil {
 		return errors.Wrapf(err, "could not apply manifests to the cluster")
 	}
@@ -325,19 +340,19 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 func (a *App) generateAppManifests(params AddParams, repo string, secretRef string, clusterName string) ([]byte, []byte, []byte, error) {
 	var sourceManifest, appManifest, appGoatManifest []byte
 	var err error
-	fmt.Println("Generating Source manifest...")
+	a.logger.Generatef("Generating Source manifest")
 	sourceManifest, err = a.generateSource(params, secretRef)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, "could not set up GitOps for user repository")
 	}
 
-	fmt.Println("Generating GitOps automation manifests...")
+	a.logger.Generatef("Generating GitOps automation manifests")
 	appGoatManifest, err = a.generateApplicationGoat(params)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, fmt.Sprintf("could not create GitOps automation for '%s'", params.Name))
 	}
 
-	fmt.Println("Generating Application spec manifest...")
+	a.logger.Generatef("Generating Application spec manifest")
 	appManifest, err = generateAppYaml(params, repo)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, fmt.Sprintf("could not create app.yaml for '%s'", params.Name))
@@ -389,10 +404,10 @@ func (a *App) generateExternalRepoManifests(params AddParams, secretRef string, 
 }
 
 func (a *App) commitAndPush(params AddParams, filters ...func(string) bool) error {
-	fmt.Println("Commiting and pushing wego resources for application...")
 	if params.DryRun || !params.AutoMerge {
 		return nil
 	}
+	a.logger.Actionf("Committing and pushing wego resources for application")
 
 	_, err := a.git.Commit(git.Commit{
 		Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
@@ -403,12 +418,12 @@ func (a *App) commitAndPush(params AddParams, filters ...func(string) bool) erro
 	}
 
 	if err == nil {
-		fmt.Println("Pushing app manifests to repository...")
+		a.logger.Actionf("Pushing app manifests to repository")
 		if err = a.git.Push(context.Background()); err != nil {
 			return fmt.Errorf("failed to push manifests: %w", err)
 		}
 	} else {
-		fmt.Println("App manifests are up to date")
+		a.logger.Successf("App manifests are up to date")
 	}
 
 	return nil
@@ -448,7 +463,7 @@ func (a *App) createAndUploadDeployKey(repoUrl string, sourceType SourceType, cl
 	}
 
 	if !deployKeyExists || !secretPresent {
-		fmt.Printf("Generating deploy key for repo %s ...\n", repoUrl)
+		a.logger.Generatef("Generating deploy key for repo %s", repoUrl)
 		deployKey, err := a.flux.CreateSecretGit(secretRefName, repoUrl, namespace)
 		if err != nil {
 			return "", errors.Wrap(err, "could not create git secret")
@@ -546,42 +561,44 @@ func (a *App) writeAppGoats(basePath string, name string, clusterName string, ma
 	return a.git.Write(goatPath, goat)
 }
 
-func generateAppYaml(params AddParams, repo string) ([]byte, error) {
-	const appYamlTemplate = `---
-apiVersion: wego.weave.works/v1alpha1
-kind: Application
-metadata:
-  name: {{ .AppName }}
-  namespace: {{ .Namespace }}
-  labels:
-    weave-gitops.weave.works/app-identifier: {{ .AppHash }}
-spec:
-  path: {{ .AppPath }}
-  url: {{ .AppURL }}
-`
-	// Create app.yaml
-	t, err := template.New("appYaml").Parse(appYamlTemplate)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not parse app yaml template")
+func makeWegoApplication(params AddParams) wego.Application {
+	gvk := wego.GroupVersion.WithKind(wego.ApplicationKind)
+	app := wego.Application{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       gvk.Kind,
+			APIVersion: gvk.GroupVersion().String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      params.Name,
+			Namespace: params.Namespace,
+		},
+		Spec: wego.ApplicationSpec{
+			URL:  params.Url,
+			Path: params.Path,
+		},
 	}
+
+	return app
+}
+
+func generateAppYaml(params AddParams, repo string) ([]byte, error) {
+	app := makeWegoApplication(params)
 
 	appHash, err := utils.GetAppHash(repo, params.Path, params.Branch)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not generate app hash: %w", err)
 	}
 
-	var populated bytes.Buffer
-	err = t.Execute(&populated, struct {
-		AppName   string
-		Namespace string
-		AppHash   string
-		AppPath   string
-		AppURL    string
-	}{params.Name, params.Namespace, appHash, params.Path, params.Url})
-	if err != nil {
-		return nil, errors.Wrap(err, "could not execute populated template")
+	app.ObjectMeta.Labels = map[string]string{
+		WeGOAppIdentifierLabelKey: appHash,
 	}
-	return populated.Bytes(), nil
+
+	b, err := yaml.Marshal(&app)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal yaml: %w", err)
+	}
+
+	return sanitizeK8sYaml(b), nil
 }
 
 func generateResourceName(url string) string {
@@ -624,25 +641,28 @@ func sanitizeRepoUrl(url string) string {
 	return url
 }
 
-func (a *App) createPullRequestToRepo(params AddParams, repo string, appYaml, applicationGoatYaml []byte, clusterName string) error {
+func (a *App) createPullRequestToRepo(params AddParams, basePath string, repo string, clusterName string, appYaml []byte, goatManifests ...[]byte) error {
 	repoName := generateResourceName(repo)
 
-	appPath := filepath.Join(".wego", "apps", params.Name, "app.yaml")
+	appPath := filepath.Join(basePath, "apps", params.Name, "app.yaml")
 
-	goatPath := filepath.Join(".wego", "targets", clusterName, params.Name, fmt.Sprintf("%s-gitops-runtime.yaml", params.Name))
+	goatPath := filepath.Join(basePath, "targets", clusterName, params.Name, fmt.Sprintf("%s-gitops-runtime.yaml", params.Name))
+
+	goat := bytes.Join(goatManifests, []byte(""))
+
 	if params.DryRun {
 		fmt.Printf("Writing GitOps Automation to '%s'\n", goatPath)
 		return nil
 	}
 
 	appcontent := string(appYaml)
-	goatContent := string(applicationGoatYaml)
+	goatContent := string(goat)
 	files := []gitprovider.CommitFile{
-		gitprovider.CommitFile{
+		{
 			Path:    &appPath,
 			Content: &appcontent,
 		},
-		gitprovider.CommitFile{
+		{
 			Path:    &goatPath,
 			Content: &goatContent,
 		},
@@ -670,11 +690,21 @@ func (a *App) createPullRequestToRepo(params AddParams, repo string, appYaml, ap
 		}
 
 		orgRepoRef := gitproviders.NewOrgRepositoryRef(github.DefaultDomain, org, repoName)
-		return a.gitProviders.CreatePullRequestToOrgRepo(orgRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
+		prLink, err := a.gitProviders.CreatePullRequestToOrgRepo(orgRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
+		if err != nil {
+			return fmt.Errorf("unable to create pull request: %s", err)
+		}
+		a.logger.Println("Pull Request created: %s\n", prLink.Get().WebURL)
+		return nil
 	}
 
 	userRepoRef := gitproviders.NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
-	return a.gitProviders.CreatePullRequestToUserRepo(userRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
+	prLink, err := a.gitProviders.CreatePullRequestToUserRepo(userRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
+	if err != nil {
+		return fmt.Errorf("unable to create pull request: %s", err)
+	}
+	a.logger.Println("Pull Request created: %s\n", prLink.Get().WebURL)
+	return nil
 }
 
 // NOTE: ready to save the targets automation in phase 2
@@ -684,3 +714,13 @@ func (a *App) createPullRequestToRepo(params AddParams, repo string, appYaml, ap
 //  goat := bytes.Join(manifests, []byte(""))
 //  return a.git.Write(goatPath, goat)
 // }
+
+// Remove some problematic fields before saving the yaml files.
+// K8s/reconcilers will populate these fields after creation.
+// https://github.com/fluxcd/flux2/blob/0ae39d5a0a5220c177b29e71fc8824babd1e0d7c/cmd/flux/export.go#L111
+func sanitizeK8sYaml(data []byte) []byte {
+	out := []byte("---\n")
+	data = bytes.Replace(data, []byte("  creationTimestamp: null\n"), []byte(""), 1)
+	data = bytes.Replace(data, []byte("status: {}\n"), []byte(""), 1)
+	return append(out, data...)
+}
