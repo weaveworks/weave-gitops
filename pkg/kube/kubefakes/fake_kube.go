@@ -116,6 +116,21 @@ type FakeKube struct {
 	labelExistsInClusterReturnsOnCall map[int]struct {
 		result1 error
 	}
+	LatestSuccessfulDeploymentTimeStub        func(context.Context, types.NamespacedName, string) (string, error)
+	latestSuccessfulDeploymentTimeMutex       sync.RWMutex
+	latestSuccessfulDeploymentTimeArgsForCall []struct {
+		arg1 context.Context
+		arg2 types.NamespacedName
+		arg3 string
+	}
+	latestSuccessfulDeploymentTimeReturns struct {
+		result1 string
+		result2 error
+	}
+	latestSuccessfulDeploymentTimeReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	SecretPresentStub        func(context.Context, string, string) (bool, error)
 	secretPresentMutex       sync.RWMutex
 	secretPresentArgsForCall []struct {
@@ -656,6 +671,72 @@ func (fake *FakeKube) LabelExistsInClusterReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeKube) LatestSuccessfulDeploymentTime(arg1 context.Context, arg2 types.NamespacedName, arg3 string) (string, error) {
+	fake.latestSuccessfulDeploymentTimeMutex.Lock()
+	ret, specificReturn := fake.latestSuccessfulDeploymentTimeReturnsOnCall[len(fake.latestSuccessfulDeploymentTimeArgsForCall)]
+	fake.latestSuccessfulDeploymentTimeArgsForCall = append(fake.latestSuccessfulDeploymentTimeArgsForCall, struct {
+		arg1 context.Context
+		arg2 types.NamespacedName
+		arg3 string
+	}{arg1, arg2, arg3})
+	stub := fake.LatestSuccessfulDeploymentTimeStub
+	fakeReturns := fake.latestSuccessfulDeploymentTimeReturns
+	fake.recordInvocation("LatestSuccessfulDeploymentTime", []interface{}{arg1, arg2, arg3})
+	fake.latestSuccessfulDeploymentTimeMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeKube) LatestSuccessfulDeploymentTimeCallCount() int {
+	fake.latestSuccessfulDeploymentTimeMutex.RLock()
+	defer fake.latestSuccessfulDeploymentTimeMutex.RUnlock()
+	return len(fake.latestSuccessfulDeploymentTimeArgsForCall)
+}
+
+func (fake *FakeKube) LatestSuccessfulDeploymentTimeCalls(stub func(context.Context, types.NamespacedName, string) (string, error)) {
+	fake.latestSuccessfulDeploymentTimeMutex.Lock()
+	defer fake.latestSuccessfulDeploymentTimeMutex.Unlock()
+	fake.LatestSuccessfulDeploymentTimeStub = stub
+}
+
+func (fake *FakeKube) LatestSuccessfulDeploymentTimeArgsForCall(i int) (context.Context, types.NamespacedName, string) {
+	fake.latestSuccessfulDeploymentTimeMutex.RLock()
+	defer fake.latestSuccessfulDeploymentTimeMutex.RUnlock()
+	argsForCall := fake.latestSuccessfulDeploymentTimeArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeKube) LatestSuccessfulDeploymentTimeReturns(result1 string, result2 error) {
+	fake.latestSuccessfulDeploymentTimeMutex.Lock()
+	defer fake.latestSuccessfulDeploymentTimeMutex.Unlock()
+	fake.LatestSuccessfulDeploymentTimeStub = nil
+	fake.latestSuccessfulDeploymentTimeReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeKube) LatestSuccessfulDeploymentTimeReturnsOnCall(i int, result1 string, result2 error) {
+	fake.latestSuccessfulDeploymentTimeMutex.Lock()
+	defer fake.latestSuccessfulDeploymentTimeMutex.Unlock()
+	fake.LatestSuccessfulDeploymentTimeStub = nil
+	if fake.latestSuccessfulDeploymentTimeReturnsOnCall == nil {
+		fake.latestSuccessfulDeploymentTimeReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.latestSuccessfulDeploymentTimeReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeKube) SecretPresent(arg1 context.Context, arg2 string, arg3 string) (bool, error) {
 	fake.secretPresentMutex.Lock()
 	ret, specificReturn := fake.secretPresentReturnsOnCall[len(fake.secretPresentArgsForCall)]
@@ -741,6 +822,8 @@ func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	defer fake.getClusterStatusMutex.RUnlock()
 	fake.labelExistsInClusterMutex.RLock()
 	defer fake.labelExistsInClusterMutex.RUnlock()
+	fake.latestSuccessfulDeploymentTimeMutex.RLock()
+	defer fake.latestSuccessfulDeploymentTimeMutex.RUnlock()
 	fake.secretPresentMutex.RLock()
 	defer fake.secretPresentMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

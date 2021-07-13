@@ -13,6 +13,7 @@ import (
 type AppService interface {
 	Add(params AddParams) error
 	Get(name types.NamespacedName) (*wego.Application, error)
+	Status(params StatusParams) error
 }
 
 type App struct {

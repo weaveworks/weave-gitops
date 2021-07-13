@@ -102,6 +102,47 @@ type FakeFlux struct {
 		result1 []byte
 		result2 error
 	}
+	GetAllResourcesStatusStub        func(string) ([]byte, error)
+	getAllResourcesStatusMutex       sync.RWMutex
+	getAllResourcesStatusArgsForCall []struct {
+		arg1 string
+	}
+	getAllResourcesStatusReturns struct {
+		result1 []byte
+		result2 error
+	}
+	getAllResourcesStatusReturnsOnCall map[int]struct {
+		result1 []byte
+		result2 error
+	}
+	GetDeploymentTypeStub        func(string, string) (flux.DeploymentType, error)
+	getDeploymentTypeMutex       sync.RWMutex
+	getDeploymentTypeArgsForCall []struct {
+		arg1 string
+		arg2 string
+	}
+	getDeploymentTypeReturns struct {
+		result1 flux.DeploymentType
+		result2 error
+	}
+	getDeploymentTypeReturnsOnCall map[int]struct {
+		result1 flux.DeploymentType
+		result2 error
+	}
+	HelmReleaseExistsStub        func(string, string) (bool, error)
+	helmReleaseExistsMutex       sync.RWMutex
+	helmReleaseExistsArgsForCall []struct {
+		arg1 string
+		arg2 string
+	}
+	helmReleaseExistsReturns struct {
+		result1 bool
+		result2 error
+	}
+	helmReleaseExistsReturnsOnCall map[int]struct {
+		result1 bool
+		result2 error
+	}
 	InstallStub        func(string, bool) ([]byte, error)
 	installMutex       sync.RWMutex
 	installArgsForCall []struct {
@@ -532,6 +573,200 @@ func (fake *FakeFlux) CreateSourceHelmReturnsOnCall(i int, result1 []byte, resul
 	}{result1, result2}
 }
 
+func (fake *FakeFlux) GetAllResourcesStatus(arg1 string) ([]byte, error) {
+	fake.getAllResourcesStatusMutex.Lock()
+	ret, specificReturn := fake.getAllResourcesStatusReturnsOnCall[len(fake.getAllResourcesStatusArgsForCall)]
+	fake.getAllResourcesStatusArgsForCall = append(fake.getAllResourcesStatusArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.GetAllResourcesStatusStub
+	fakeReturns := fake.getAllResourcesStatusReturns
+	fake.recordInvocation("GetAllResourcesStatus", []interface{}{arg1})
+	fake.getAllResourcesStatusMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeFlux) GetAllResourcesStatusCallCount() int {
+	fake.getAllResourcesStatusMutex.RLock()
+	defer fake.getAllResourcesStatusMutex.RUnlock()
+	return len(fake.getAllResourcesStatusArgsForCall)
+}
+
+func (fake *FakeFlux) GetAllResourcesStatusCalls(stub func(string) ([]byte, error)) {
+	fake.getAllResourcesStatusMutex.Lock()
+	defer fake.getAllResourcesStatusMutex.Unlock()
+	fake.GetAllResourcesStatusStub = stub
+}
+
+func (fake *FakeFlux) GetAllResourcesStatusArgsForCall(i int) string {
+	fake.getAllResourcesStatusMutex.RLock()
+	defer fake.getAllResourcesStatusMutex.RUnlock()
+	argsForCall := fake.getAllResourcesStatusArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeFlux) GetAllResourcesStatusReturns(result1 []byte, result2 error) {
+	fake.getAllResourcesStatusMutex.Lock()
+	defer fake.getAllResourcesStatusMutex.Unlock()
+	fake.GetAllResourcesStatusStub = nil
+	fake.getAllResourcesStatusReturns = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeFlux) GetAllResourcesStatusReturnsOnCall(i int, result1 []byte, result2 error) {
+	fake.getAllResourcesStatusMutex.Lock()
+	defer fake.getAllResourcesStatusMutex.Unlock()
+	fake.GetAllResourcesStatusStub = nil
+	if fake.getAllResourcesStatusReturnsOnCall == nil {
+		fake.getAllResourcesStatusReturnsOnCall = make(map[int]struct {
+			result1 []byte
+			result2 error
+		})
+	}
+	fake.getAllResourcesStatusReturnsOnCall[i] = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeFlux) GetDeploymentType(arg1 string, arg2 string) (flux.DeploymentType, error) {
+	fake.getDeploymentTypeMutex.Lock()
+	ret, specificReturn := fake.getDeploymentTypeReturnsOnCall[len(fake.getDeploymentTypeArgsForCall)]
+	fake.getDeploymentTypeArgsForCall = append(fake.getDeploymentTypeArgsForCall, struct {
+		arg1 string
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.GetDeploymentTypeStub
+	fakeReturns := fake.getDeploymentTypeReturns
+	fake.recordInvocation("GetDeploymentType", []interface{}{arg1, arg2})
+	fake.getDeploymentTypeMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeFlux) GetDeploymentTypeCallCount() int {
+	fake.getDeploymentTypeMutex.RLock()
+	defer fake.getDeploymentTypeMutex.RUnlock()
+	return len(fake.getDeploymentTypeArgsForCall)
+}
+
+func (fake *FakeFlux) GetDeploymentTypeCalls(stub func(string, string) (flux.DeploymentType, error)) {
+	fake.getDeploymentTypeMutex.Lock()
+	defer fake.getDeploymentTypeMutex.Unlock()
+	fake.GetDeploymentTypeStub = stub
+}
+
+func (fake *FakeFlux) GetDeploymentTypeArgsForCall(i int) (string, string) {
+	fake.getDeploymentTypeMutex.RLock()
+	defer fake.getDeploymentTypeMutex.RUnlock()
+	argsForCall := fake.getDeploymentTypeArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeFlux) GetDeploymentTypeReturns(result1 flux.DeploymentType, result2 error) {
+	fake.getDeploymentTypeMutex.Lock()
+	defer fake.getDeploymentTypeMutex.Unlock()
+	fake.GetDeploymentTypeStub = nil
+	fake.getDeploymentTypeReturns = struct {
+		result1 flux.DeploymentType
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeFlux) GetDeploymentTypeReturnsOnCall(i int, result1 flux.DeploymentType, result2 error) {
+	fake.getDeploymentTypeMutex.Lock()
+	defer fake.getDeploymentTypeMutex.Unlock()
+	fake.GetDeploymentTypeStub = nil
+	if fake.getDeploymentTypeReturnsOnCall == nil {
+		fake.getDeploymentTypeReturnsOnCall = make(map[int]struct {
+			result1 flux.DeploymentType
+			result2 error
+		})
+	}
+	fake.getDeploymentTypeReturnsOnCall[i] = struct {
+		result1 flux.DeploymentType
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeFlux) HelmReleaseExists(arg1 string, arg2 string) (bool, error) {
+	fake.helmReleaseExistsMutex.Lock()
+	ret, specificReturn := fake.helmReleaseExistsReturnsOnCall[len(fake.helmReleaseExistsArgsForCall)]
+	fake.helmReleaseExistsArgsForCall = append(fake.helmReleaseExistsArgsForCall, struct {
+		arg1 string
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.HelmReleaseExistsStub
+	fakeReturns := fake.helmReleaseExistsReturns
+	fake.recordInvocation("HelmReleaseExists", []interface{}{arg1, arg2})
+	fake.helmReleaseExistsMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeFlux) HelmReleaseExistsCallCount() int {
+	fake.helmReleaseExistsMutex.RLock()
+	defer fake.helmReleaseExistsMutex.RUnlock()
+	return len(fake.helmReleaseExistsArgsForCall)
+}
+
+func (fake *FakeFlux) HelmReleaseExistsCalls(stub func(string, string) (bool, error)) {
+	fake.helmReleaseExistsMutex.Lock()
+	defer fake.helmReleaseExistsMutex.Unlock()
+	fake.HelmReleaseExistsStub = stub
+}
+
+func (fake *FakeFlux) HelmReleaseExistsArgsForCall(i int) (string, string) {
+	fake.helmReleaseExistsMutex.RLock()
+	defer fake.helmReleaseExistsMutex.RUnlock()
+	argsForCall := fake.helmReleaseExistsArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeFlux) HelmReleaseExistsReturns(result1 bool, result2 error) {
+	fake.helmReleaseExistsMutex.Lock()
+	defer fake.helmReleaseExistsMutex.Unlock()
+	fake.HelmReleaseExistsStub = nil
+	fake.helmReleaseExistsReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeFlux) HelmReleaseExistsReturnsOnCall(i int, result1 bool, result2 error) {
+	fake.helmReleaseExistsMutex.Lock()
+	defer fake.helmReleaseExistsMutex.Unlock()
+	fake.HelmReleaseExistsStub = nil
+	if fake.helmReleaseExistsReturnsOnCall == nil {
+		fake.helmReleaseExistsReturnsOnCall = make(map[int]struct {
+			result1 bool
+			result2 error
+		})
+	}
+	fake.helmReleaseExistsReturnsOnCall[i] = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeFlux) Install(arg1 string, arg2 bool) ([]byte, error) {
 	fake.installMutex.Lock()
 	ret, specificReturn := fake.installReturnsOnCall[len(fake.installArgsForCall)]
@@ -674,6 +909,12 @@ func (fake *FakeFlux) Invocations() map[string][][]interface{} {
 	defer fake.createSourceGitMutex.RUnlock()
 	fake.createSourceHelmMutex.RLock()
 	defer fake.createSourceHelmMutex.RUnlock()
+	fake.getAllResourcesStatusMutex.RLock()
+	defer fake.getAllResourcesStatusMutex.RUnlock()
+	fake.getDeploymentTypeMutex.RLock()
+	defer fake.getDeploymentTypeMutex.RUnlock()
+	fake.helmReleaseExistsMutex.RLock()
+	defer fake.helmReleaseExistsMutex.RUnlock()
 	fake.installMutex.RLock()
 	defer fake.installMutex.RUnlock()
 	fake.uninstallMutex.RLock()

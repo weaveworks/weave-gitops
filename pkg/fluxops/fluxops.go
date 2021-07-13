@@ -1,7 +1,6 @@
 package fluxops
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -101,67 +100,6 @@ func installFlux(namespace string, export bool) ([]byte, error) {
 		return nil, err
 	}
 	return manifests, nil
-}
-
-func GetAllResourcesStatus(appName string) ([]byte, error) {
-	args := []string{
-		"get",
-		"all",
-		"-A",
-		appName,
-	}
-
-	return WithFluxHandler(QuietFluxHandler{}, func() ([]byte, error) {
-		output, err := CallFlux(args...)
-		if err != nil {
-			return nil, err
-		}
-		return output, nil
-	})
-}
-
-func GetAllResources(namespace string) ([]byte, error) {
-	args := []string{
-		"get",
-		"all",
-		"-n",
-		namespace,
-	}
-
-	return WithFluxHandler(QuietFluxHandler{}, func() ([]byte, error) {
-		output, err := CallFlux(args...)
-		if err != nil {
-			return nil, err
-		}
-		return output, nil
-	})
-}
-
-func HelmReleaseExists(namespace, name string) (bool, error) {
-	args := []string{
-		"get",
-		"helmrelease",
-		name,
-		"-n",
-		namespace,
-	}
-
-	output, err := WithFluxHandler(QuietFluxHandler{}, func() ([]byte, error) {
-		output, err := CallFlux(args...)
-		if err != nil {
-			return nil, err
-		}
-		return output, nil
-	})
-	if err != nil {
-		return false, fmt.Errorf("error getting helmrelease object %s", err)
-	}
-
-	if bytes.Contains(output, []byte("no HelmRelease objects found")) {
-		return false, nil
-	}
-
-	return false, nil
 }
 
 // GetOwnerFromEnv determines the owner of a new repository based on the GITHUB_ORG

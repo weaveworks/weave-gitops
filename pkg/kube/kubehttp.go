@@ -177,6 +177,10 @@ func (c *KubeHTTP) LabelExistsInCluster(ctx context.Context, label string) error
 	return errors.New("LabelExistsInCluster is not implemented for kubeHTTP")
 }
 
+func (c *KubeHTTP) LatestSuccessfulDeploymentTime(ctx context.Context, name types.NamespacedName, objectType string) (string, error) {
+	return "", nil
+}
+
 func initialContexts(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (contexts []string, currentCtx string, err error) {
 	rules, err := cfgLoadingRules.Load()
 

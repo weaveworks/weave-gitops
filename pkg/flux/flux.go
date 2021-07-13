@@ -22,7 +22,17 @@ type Flux interface {
 	CreateHelmReleaseGitRepository(name string, source string, path string, namespace string) ([]byte, error)
 	CreateHelmReleaseHelmRepository(name string, chart string, namespace string) ([]byte, error)
 	CreateSecretGit(name string, url string, namespace string) ([]byte, error)
+	HelmReleaseExists(namespace, name string) (bool, error)
+	GetDeploymentType(namespace, name string) (DeploymentType, error)
+	GetAllResourcesStatus(name string) ([]byte, error)
 }
+
+type DeploymentType string
+
+const (
+	DeploymentTypeHelmRelease   DeploymentType = "helmrelease"
+	DeploymentTypeKustomization DeploymentType = "kustomization"
+)
 
 type FluxClient struct {
 	runner runner.Runner
@@ -190,6 +200,54 @@ func (f *FluxClient) CreateSecretGit(name string, url string, namespace string) 
 	}
 
 	return deployKeyLines[0], nil
+}
+
+func (f *FluxClient) HelmReleaseExists(namespace, name string) (bool, error) {
+	args := []string{
+		"get",
+		"helmrelease",
+		name,
+		"-n",
+		namespace,
+	}
+	output, err := f.runFluxCmd(args...)
+	if err != nil {
+		return false, fmt.Errorf("failed to get helmrelease object: %s", err)
+	}
+
+	if bytes.Contains(output, []byte("no HelmRelease objects found")) {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func (f *FluxClient) GetDeploymentType(namespace, name string) (DeploymentType, error) {
+	helmObjExists, err := f.HelmReleaseExists(namespace, name)
+	if err != nil {
+		return "", err
+	}
+	if helmObjExists {
+		return DeploymentTypeHelmRelease, nil
+	} else {
+		return DeploymentTypeKustomization, nil
+	}
+	return "", nil
+}
+
+func (f *FluxClient) GetAllResourcesStatus(name string) ([]byte, error) {
+	args := []string{
+		"get",
+		"all",
+		"-A",
+		name,
+	}
+	output, err := f.runFluxCmd(args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all resources for %s: %s", name, err)
+	}
+
+	return output, nil
 }
 
 func (f *FluxClient) runFluxCmd(args ...string) ([]byte, error) {

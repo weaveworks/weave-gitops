@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -50,6 +51,7 @@ type Kube interface {
 	GetClusterStatus(ctx context.Context) ClusterStatus
 	LabelExistsInCluster(ctx context.Context, label string) error
 	GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error)
+	LatestSuccessfulDeploymentTime(ctx context.Context, name types.NamespacedName, objectType string) (string, error)
 }
 
 type KubeClient struct {
@@ -183,6 +185,39 @@ func (k *KubeClient) GetApplications(ctx context.Context, ns string) ([]wego.App
 	}
 
 	return a.Items, nil
+}
+
+func (k *KubeClient) LatestSuccessfulDeploymentTime(ctx context.Context, name types.NamespacedName, objectType string) (string, error) {
+	cmd := []string{
+		"-n",
+		name.Namespace,
+		"get",
+		fmt.Sprintf("%s/%s", objectType, name.Name),
+		"-oyaml",
+	}
+	output, err := k.runKubectlCmd(cmd)
+	if err != nil {
+		return "", fmt.Errorf("could not get k8s object %s", err)
+	}
+
+	type Yaml struct {
+		Status struct {
+			Conditions []struct {
+				LastTransitionTime string `yaml:"lastTransitionTime"`
+			} `yaml:"conditions"`
+		} `yaml:"status"`
+	}
+
+	var yamlOutput Yaml
+	err = yaml.Unmarshal(output, &yamlOutput)
+	if err != nil {
+		return "", fmt.Errorf("error unmarshalling yaml output [%s]", err.Error())
+	}
+	if len(yamlOutput.Status.Conditions) == 0 {
+		return "", fmt.Errorf("error getting latest deployment time [%s]", output)
+	}
+
+	return yamlOutput.Status.Conditions[0].LastTransitionTime, nil
 }
 
 func (k *KubeClient) runKubectlCmd(args []string) ([]byte, error) {
