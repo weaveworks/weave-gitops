@@ -1,10 +1,9 @@
 package main
 
 import (
-	"fmt"
+	log "github.com/sirupsen/logrus"
 	"os"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/wego/app"
 	"github.com/weaveworks/weave-gitops/cmd/wego/flux"
@@ -46,7 +45,6 @@ func main() {
 	rootCmd.AddCommand(app.ApplicationCmd)
 
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 

@@ -2,8 +2,18 @@ package cmdimpl
 
 import (
 	"fmt"
-	"regexp"
-	"strings"
+	"os"
+
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+
+	"k8s.io/apimachinery/pkg/types"
+
+	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
+
+	"github.com/weaveworks/weave-gitops/pkg/logger"
+
+	"github.com/weaveworks/weave-gitops/pkg/services/app"
 
 	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"gopkg.in/yaml.v2"
@@ -12,6 +22,12 @@ import (
 )
 
 type DeploymentType string
+
+const (
+	DeploymentTypeHelmRelease   DeploymentType = "helmrelease"
+	DeploymentTypeKustomization DeploymentType = "kustomization"
+)
+
 type SourceType string
 type ConfigType string
 
@@ -22,6 +38,18 @@ type StatusParams struct {
 
 // Status provides the implementation for the wego status application command
 func Status(allParams StatusParams) error {
+
+	cliRunner := &runner.CLIRunner{}
+	fluxClient := flux.New(cliRunner)
+	kubeClient := kube.New(cliRunner)
+
+	appService := app.New(logger.New(os.Stdout), nil, fluxClient, kubeClient, nil)
+
+	_, err := appService.Get(types.NamespacedName{Name: allParams.Name, Namespace: allParams.Namespace})
+	if err != nil {
+		return err
+	}
+
 	deploymentType, err := getDeploymentType(allParams.Namespace, allParams.Name)
 	if err != nil {
 		return err
@@ -77,21 +105,13 @@ func getLatestSuccessfulDeploymentTime(namespace, appName string, deploymentType
 }
 
 func getDeploymentType(namespace, appName string) (DeploymentType, error) {
-	stdout, err := fluxops.GetAllResources(namespace)
-	if err != nil && !strings.Contains(err.Error(), "exit status 1") {
+	helmObjExists, err := fluxops.HelmReleaseExists(appName, namespace)
+	if err != nil {
 		return "", err
 	}
-
-	var re = regexp.MustCompile(fmt.Sprintf(`(?m)(kustomization|helmrelease)\/%s[[:space:]]`, appName))
-
-	matches := re.FindAllStringSubmatch(string(stdout), -1)
-
-	switch len(matches) {
-	case 0:
-		return "", fmt.Errorf("no app found with name: %s\n", appName)
-	case 1:
-		return DeploymentType(matches[0][1]), nil
-	default:
-		return "", fmt.Errorf("error trying to get the deployment type of the app. raw output => %s", stdout)
+	if helmObjExists {
+		return DeploymentTypeHelmRelease, nil
+	} else {
+		return DeploymentTypeKustomization, nil
 	}
 }

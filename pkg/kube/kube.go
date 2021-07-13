@@ -152,7 +152,7 @@ func (k *KubeClient) SecretPresent(ctx context.Context, secretName, namespace st
 }
 
 func (k *KubeClient) GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error) {
-	cmd := []string{"get", "app", name.Name, "-o", "json"}
+	cmd := []string{"get", "app", name.Name, "-o", "json", "-n", name.Namespace}
 	o, err := k.runKubectlCmd(cmd)
 
 	if err != nil {
