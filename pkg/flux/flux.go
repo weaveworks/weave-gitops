@@ -232,7 +232,6 @@ func (f *FluxClient) GetDeploymentType(namespace, name string) (DeploymentType, 
 	} else {
 		return DeploymentTypeKustomization, nil
 	}
-	return "", nil
 }
 
 func (f *FluxClient) GetAllResourcesStatus(name string) ([]byte, error) {
