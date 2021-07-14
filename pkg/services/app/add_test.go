@@ -520,7 +520,7 @@ var _ = Describe("Add", func() {
 			})
 		})
 
-		Describe("generateAppYaml", func() {
+		FDescribe("generateAppYaml", func() {
 			It("generates the app yaml", func() {
 				repoURL := "ssh://git@github.com/example/my-source"
 				params := AddParams{
@@ -537,7 +537,9 @@ var _ = Describe("Add", func() {
 
 				desired2.ObjectMeta.Labels = map[string]string{WeGOAppIdentifierLabelKey: hash}
 
-				app := App{}
+				app := App{hash: ""}
+				err = app.setAppHash(params)
+				Expect(err).NotTo(HaveOccurred())
 				out, err := app.generateAppYaml(params)
 				Expect(err).To(BeNil())
 

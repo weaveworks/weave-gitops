@@ -120,7 +120,11 @@ func (a *App) Add(params AddParams) error {
 		return errors.Wrap(err, "could not generate deploy key")
 	}
 
-	if err = a.setAppHashAndValidateIfExistsInCluster(ctx, params); err != nil {
+	if err = a.setAppHash( params); err != nil {
+		return err
+	}
+	// if appHash exists as a label in the cluster we fail to create a PR
+	if err = a.kube.LabelExistsInCluster(ctx, a.hash); err != nil {
 		return err
 	}
 
@@ -134,15 +138,10 @@ func (a *App) Add(params AddParams) error {
 	}
 }
 
-func (a *App) setAppHashAndValidateIfExistsInCluster(ctx context.Context, params AddParams) error {
+func (a *App) setAppHash( params AddParams) error {
 
 	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
 	if err != nil {
-		return err
-	}
-
-	// if appHash exists as a label in the cluster we fail to create a PR
-	if err = a.kube.LabelExistsInCluster(ctx, a.hash); err != nil {
 		return err
 	}
 
