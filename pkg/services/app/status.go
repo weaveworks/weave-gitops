@@ -17,7 +17,7 @@ type StatusParams struct {
 }
 
 func (a *App) Status(params StatusParams) (string, string, error) {
-	fluxtOutput, err := a.flux.GetAllResourcesStatus(params.Name, params.Namespace)
+	fluxOutput, err := a.flux.GetAllResourcesStatus(params.Name, params.Namespace)
 	if err != nil {
 		return "", "", fmt.Errorf("failed getting app status: %w", err)
 	}
@@ -33,7 +33,7 @@ func (a *App) Status(params StatusParams) (string, string, error) {
 		return "", "", fmt.Errorf("failed getting last successful reconciliation: %w", err)
 	}
 
-	return string(fluxtOutput), lastRecon, nil
+	return string(fluxOutput), lastRecon, nil
 }
 
 func (a *App) getDeploymentType(ctx context.Context, params StatusParams) (DeploymentType, error) {

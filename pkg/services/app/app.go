@@ -21,9 +21,14 @@ const (
 	SourceTypeHelm SourceType = "helm"
 )
 
+// AppService entity that mananages applications
 type AppService interface {
+	// Add adds a new application to the cluster
 	Add(params AddParams) error
+	// Get returns a given applicaiton
 	Get(name types.NamespacedName) (*wego.Application, error)
+	// Status returns flux resources status and the last successful reconciliation time
+	Status(params StatusParams) (string, string, error)
 }
 
 type App struct {
