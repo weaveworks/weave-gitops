@@ -1,6 +1,6 @@
 import _ from "lodash";
 import * as React from "react";
-import { Applications } from "../lib/api/applications/applications.pb";
+import { Applications, User } from "../lib/api/applications/applications.pb";
 import { getToken } from "../lib/storage";
 
 type AppState = {
@@ -11,6 +11,8 @@ export type AppContextType = {
   applicationsClient: typeof Applications;
   doAsyncError: (message: string, detail: string) => void;
   appState: AppState;
+  user: User;
+  loading: boolean;
 };
 
 // Due to the way the grpc-gateway typescript client is generated,
@@ -44,10 +46,13 @@ export const AppContext = React.createContext<AppContextType>(
 );
 
 export default function AppContextProvider({ applicationsClient, ...props }) {
+  const [loading, setLoading] = React.useState(true);
+  const [user, setUser] = React.useState<User>();
   const [appState, setAppState] = React.useState({
     error: null,
   });
 
+  const appsClient = wrapClient<typeof Applications>(applicationsClient);
   React.useEffect(() => {
     // clear the error state on navigation
     setAppState({
@@ -55,6 +60,15 @@ export default function AppContextProvider({ applicationsClient, ...props }) {
       error: null,
     });
   }, [window.location]);
+
+  React.useEffect(() => {
+    appsClient
+      .GetUser({})
+      .then((res) => {
+        setUser(res.user);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const doAsyncError = (message: string, detail: string) => {
     console.error(message);
@@ -65,9 +79,11 @@ export default function AppContextProvider({ applicationsClient, ...props }) {
   };
 
   const value: AppContextType = {
-    applicationsClient: wrapClient(applicationsClient),
+    applicationsClient: appsClient,
     doAsyncError,
     appState,
+    user,
+    loading,
   };
 
   return <AppContext.Provider {...props} value={value} />;

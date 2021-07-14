@@ -8,6 +8,7 @@ import {
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { ThemeProvider } from "styled-components";
+import AuthenticatedRoute from "./components/AuthenticatedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Layout from "./components/Layout";
 import AppContextProvider from "./contexts/AppContext";
@@ -30,12 +31,12 @@ export default function App() {
             <Layout>
               <ErrorBoundary>
                 <Switch>
-                  <Route
+                  <AuthenticatedRoute
                     exact
                     path={PageRoute.Applications}
                     component={Applications}
                   />
-                  <Route
+                  <AuthenticatedRoute
                     exact
                     path={PageRoute.ApplicationDetail}
                     component={ApplicationDetail}

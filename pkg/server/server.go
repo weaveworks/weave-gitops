@@ -91,13 +91,7 @@ func (s *server) Authenticate(ctx context.Context, msg *pb.AuthenticateRequest) 
 		return nil, fmt.Errorf("could not exchange code: %w", err)
 	}
 
-	user, err := gh.GetUser(ctx, token)
-	if err != nil {
-		return nil, fmt.Errorf("could not get user: %w", err)
-	}
-
 	return &pb.AuthenticateResponse{
-		User:  &pb.User{Email: user.Email},
 		Token: token.AccessToken,
 	}, nil
 }

@@ -12,9 +12,12 @@ export default function useApplications() {
   useEffect(() => {
     setLoading(true);
 
+    console.trace();
     applicationsClient
       .ListApplications({ namespace: WeGONamespace })
-      .then((res) => setApplications(res.applications))
+      .then((res) => {
+        setApplications(res.applications);
+      })
       .catch((err) => {
         doAsyncError(err.message, err.detail);
       })
@@ -23,6 +26,7 @@ export default function useApplications() {
 
   const getApplication = (name: string) => {
     setLoading(true);
+    console.log("running get application");
 
     return applicationsClient
       .GetApplication({ name, namespace: WeGONamespace })

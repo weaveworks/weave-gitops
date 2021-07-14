@@ -102,12 +102,7 @@ const UserAvatar = styled(Icon)`
 
 function Layout({ className, children }: Props) {
   const { currentPage } = useNavigation();
-  const { getUser, user } = useAuth();
-
-  React.useEffect(() => {
-    // authenticate("", "github");
-    getUser();
-  }, []);
+  const { user } = useAuth();
 
   return (
     <div className={className}>

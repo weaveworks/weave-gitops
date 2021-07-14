@@ -73,12 +73,15 @@ const LoginButton = styled(Button)`
 // `;
 
 function AuthPage({ className }: Props) {
-  const { loading, providers } = useAuth();
+  const { loading, providers, getProviders } = useAuth();
+
   const doAuth = (url) => {
     window.location.href = url;
   };
 
-  console.log(providers);
+  React.useEffect(() => {
+    getProviders();
+  }, []);
 
   return (
     <Page loading={loading} title="Login" className={className}>

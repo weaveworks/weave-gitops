@@ -21,7 +21,7 @@ function ApplicationDetail({ className }: Props) {
 
   React.useEffect(() => {
     getApplication(name).then((app) => setApp(app || {}));
-  }, []);
+  }, [name]);
 
   return (
     <Page
