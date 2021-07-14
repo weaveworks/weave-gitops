@@ -10,6 +10,17 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
+type DeploymentType string
+type SourceType string
+
+const (
+	DeployTypeKustomize DeploymentType = "kustomize"
+	DeployTypeHelm      DeploymentType = "helm"
+
+	SourceTypeGit  SourceType = "git"
+	SourceTypeHelm SourceType = "helm"
+)
+
 type AppService interface {
 	Add(params AddParams) error
 	Get(name types.NamespacedName) (*wego.Application, error)

@@ -36,6 +36,13 @@ spec:
           spec:
             description: ApplicationSpec defines the desired state of Application
             properties:
+              deployment_type:
+                description: DeploymentType is the deployment method used to apply
+                  the manifests
+                enum:
+                - helm
+                - kustomize
+                type: string
               path:
                 description: Path is the path in the repository where the k8s yaml
                   files for this application are stored.

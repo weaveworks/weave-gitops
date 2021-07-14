@@ -401,7 +401,7 @@ func (h defaultGitProviderHandler) CreatePullRequestToUserRepo(userRepRef gitpro
 	latestCommit := commits[0]
 
 	if err := ur.Branches().Create(ctx, newBranch, latestCommit.Get().Sha); err != nil {
-		return fmt.Errorf("error creating branch[%s] for repo[%s] err [%s]", newBranch, userRepRef.String(), err)
+		return fmt.Errorf("error creating branch %s for %s: %w", newBranch, userRepRef.String(), err)
 	}
 
 	if _, err := ur.Commits().Create(ctx, newBranch, commitMessage, files); err != nil {
