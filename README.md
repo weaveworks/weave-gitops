@@ -113,6 +113,9 @@ To create a new styled React component (with typescript):
 }
 ```
 
+## FAQ
+Please see our Weave GitOps Core [FAQ](https://www.weave.works/faqs-for-weave-gitops-core/)
+
 ## Contribution
 
 Need help or want to contribute? Please see the links below.
