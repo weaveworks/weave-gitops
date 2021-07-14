@@ -353,7 +353,7 @@ func (a *App) generateAppManifests(params AddParams, repo string, secretRef stri
 	}
 
 	a.logger.Generatef("Generating Application spec manifest")
-	appManifest, err = generateAppYaml(params, repo)
+	appManifest, err = generateAppYaml(params)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, fmt.Sprintf("could not create app.yaml for '%s'", params.Name))
 	}
@@ -581,10 +581,10 @@ func makeWegoApplication(params AddParams) wego.Application {
 	return app
 }
 
-func generateAppYaml(params AddParams, repo string) ([]byte, error) {
+func generateAppYaml(params AddParams) ([]byte, error) {
 	app := makeWegoApplication(params)
 
-	appHash, err := utils.GetAppHash(repo, params.Path, params.Branch)
+	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
 	if err != nil {
 		return nil, fmt.Errorf("could not generate app hash: %w", err)
 	}
