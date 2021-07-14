@@ -5,8 +5,6 @@ import styled from "styled-components";
 /*eslint import/no-unresolved: [0]*/
 // @ts-ignore
 import githubLogo from "url:../images/github.png";
-// @ts-ignore
-import googleLogo from "url:../images/google-logo.svg";
 import Page from "../components/Page";
 import useAuth from "../hooks/auth";
 
@@ -51,7 +49,6 @@ const LoginButton = styled(Button)`
     .fab.fa-google {
       display: none;
     }
-    background-image: url(${googleLogo});
     background-repeat: no-repeat;
     /* Center on whitespace */
     /* 20(width of fa icons) + 12px(padding-right) */
