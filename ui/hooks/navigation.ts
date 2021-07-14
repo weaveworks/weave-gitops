@@ -12,7 +12,7 @@ export const normalizePath = (pathname) => {
 export default function useNavigation<T>(): {
   currentPage: string;
   query: T;
-  navigate: (PageRoute, any) => void;
+  navigate: (PageRoute, any?) => void;
 } {
   const history = useHistory();
   const location = useLocation();

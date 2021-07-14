@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/weaveworks/weave-gitops/pkg/utils"
+	"golang.org/x/oauth2"
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -24,6 +25,13 @@ const (
 	AccountTypeOrg  ProviderAccountType = "organization"
 )
 
+type ProviderName string
+
+const (
+	ProviderNameGithub ProviderName = "github"
+	ProviderNameGitlab ProviderName = "gitlab"
+)
+
 // GitProvider Handler
 //counterfeiter:generate . GitProviderHandler
 type GitProviderHandler interface {
@@ -34,16 +42,32 @@ type GitProviderHandler interface {
 	CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
 	CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
 	GetAccountType(owner string) (ProviderAccountType, error)
+	OauthConfig() *oauth2.Config
+	GetUser(ctx context.Context, token *oauth2.Token) (*User, error)
 }
 
 // making sure it implements the interface
 var _ GitProviderHandler = defaultGitProviderHandler{}
 
-func New() defaultGitProviderHandler {
-	return defaultGitProviderHandler{}
+type User struct {
+	Email string
+}
+
+// TODO: currently, this always returns the github implementation.
+// This eventually needs to return the different git provider implementations.
+func New(providerName ProviderName) (defaultGitProviderHandler, error) {
+	switch providerName {
+	case ProviderNameGithub:
+		return defaultGitProviderHandler{}, nil
+	}
+	return defaultGitProviderHandler{}, fmt.Errorf("provider name %s is not supported", providerName)
 }
 
 var gitProviderHandler interface{} = defaultGitProviderHandler{}
+
+func GetSupportedProviders() []ProviderName {
+	return []ProviderName{ProviderNameGithub}
+}
 
 // TODO: implement the New method and inject dependencies in the struct
 type defaultGitProviderHandler struct{}
@@ -457,6 +481,23 @@ func (h defaultGitProviderHandler) CreatePullRequestToOrgRepo(orgRepRef gitprovi
 	}
 
 	return pr, nil
+}
+
+func (h defaultGitProviderHandler) OauthConfig() *oauth2.Config {
+	gh := defaultGithubProviderHandler{}
+
+	return gh.OauthConfig()
+}
+
+func (h defaultGitProviderHandler) GetUser(ctx context.Context, token *oauth2.Token) (*User, error) {
+	gh := defaultGithubProviderHandler{}
+
+	user, err := gh.GetUser(ctx, token)
+	if err != nil {
+		return nil, fmt.Errorf("could not get github user: %w", err)
+	}
+
+	return &User{Email: user.Email}, nil
 }
 
 func NewRepositoryInfo(description string, visibility gitprovider.RepositoryVisibility) gitprovider.RepositoryInfo {

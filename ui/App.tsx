@@ -16,7 +16,9 @@ import theme, { GlobalStyle, muiTheme } from "./lib/theme";
 import { PageRoute } from "./lib/types";
 import ApplicationDetail from "./pages/ApplicationDetail";
 import Applications from "./pages/Applications";
+import Auth from "./pages/Auth";
 import Error from "./pages/Error";
+import OAuthCallback from "./pages/OAuthCallback";
 
 export default function App() {
   return (
@@ -37,6 +39,12 @@ export default function App() {
                     exact
                     path={PageRoute.ApplicationDetail}
                     component={ApplicationDetail}
+                  />
+                  <Route exact path={PageRoute.Auth} component={Auth} />
+                  <Route
+                    exact
+                    path={PageRoute.OAuthCallback}
+                    component={OAuthCallback}
                   />
                   <Redirect exact from="/" to={PageRoute.Applications} />
                   <Route exact path="*" component={Error} />

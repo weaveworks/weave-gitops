@@ -2,6 +2,7 @@ import { Tab, Tabs } from "@material-ui/core";
 import _ from "lodash";
 import React, { forwardRef } from "react";
 import styled from "styled-components";
+import useAuth from "../hooks/auth";
 import useNavigation from "../hooks/navigation";
 import { PageRoute } from "../lib/types";
 import { formatURL, getNavValue } from "../lib/utils";
@@ -101,6 +102,12 @@ const UserAvatar = styled(Icon)`
 
 function Layout({ className, children }: Props) {
   const { currentPage } = useNavigation();
+  const { getUser, user } = useAuth();
+
+  React.useEffect(() => {
+    // authenticate("", "github");
+    getUser();
+  }, []);
 
   return (
     <div className={className}>
@@ -108,6 +115,7 @@ function Layout({ className, children }: Props) {
         <TopToolBar between align>
           <Logo />
           <UserAvatar size="xl" type={IconType.Account} color="white" />
+          <p>{(user || {}).email}</p>
         </TopToolBar>
         <Main wide>
           <NavContainer>
