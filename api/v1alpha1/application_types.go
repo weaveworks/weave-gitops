@@ -30,7 +30,12 @@ type ApplicationSpec struct {
 	URL string `json:"url,omitempty"`
 	// Path is the path in the repository where the k8s yaml files for this application are stored.
 	Path string `json:"path,omitempty"`
+	// DeploymentType is the deployment method used to apply the manifests
+	DeploymentType DeploymentType `json:"deployment_type,omitempty"`
 }
+
+// +kubebuilder:validation:Enum=helm;kustomize
+type DeploymentType string
 
 // ApplicationStatus defines the observed state of Application
 type ApplicationStatus struct {
