@@ -18,6 +18,7 @@ var options struct {
 }
 
 var rootCmd = &cobra.Command{
+	Use: "wego",
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	Short:         "Weave GitOps",
@@ -32,7 +33,7 @@ var rootCmd = &cobra.Command{
   # Add application to wego control from a local git repository
   wego app add . --name <myapp>
   OR
-  wego app add <myapp directory>
+  wego app add <myapp-directory>
 
   # Add application to wego control from a github repository
   wego app add \

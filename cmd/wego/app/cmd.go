@@ -8,14 +8,14 @@ import (
 )
 
 var ApplicationCmd = &cobra.Command{
-	Use:   "app [subcommand]",
+	Use:   "app",
 	Short: "Manages your applications",
 	Long:  `
   Add:    Add an application to wego control,
   Status: Get status of application under wego control`,
 	Example:`
   # Add an application to wego from local git repository
-  wego app add ./myapp --name myapp
+  wego app add . --name myapp
 
   # Status an application under wego control
   wego app status myapp`,
