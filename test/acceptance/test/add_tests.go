@@ -976,8 +976,9 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("Then I can see app status", func() {
-			Eventually(statusOutput).Should(gbytes.Say(
-				`Last successful reconciliation: 202[0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9]Z\n.*\n.*gitrepository\/` + appName + `\s*True\s*Fetched revision: main\/.{40}\smain\/.{40}\s*False\s*\n.*\n.*kustomization\/` + appName + `\s*True\s*Applied revision: main\/.{40}\smain\/.{40}\s*False`))
+			Eventually(statusOutput).Should(gbytes.Say(`Last successful reconciliation:`))
+			Eventually(statusOutput).Should(gbytes.Say(`gitrepository/` + appName))
+			Eventually(statusOutput).Should(gbytes.Say(`kustomization/` + appName))
 		})
 	})
 
