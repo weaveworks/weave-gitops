@@ -21,6 +21,7 @@ type App struct {
 	kube         kube.Kube
 	gitProviders gitproviders.GitProviderHandler
 	logger       logger.Logger
+	hash         string
 }
 
 func New(logger logger.Logger, git git.Git, flux flux.Flux, kube kube.Kube, gitProviders gitproviders.GitProviderHandler) *App {
