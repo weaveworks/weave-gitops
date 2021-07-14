@@ -444,22 +444,6 @@ var _ = Describe("Add", func() {
 
 			Expect(filters[0](".wego/file.txt")).To(BeTrue())
 		})
-
-		It("creates a pr with branch hash name", func() {
-			addParams.AutoMerge = false
-			err := appSrv.Add(addParams)
-			Expect(err).ShouldNot(HaveOccurred())
-
-			_, _, newBranch, files, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
-			Expect(newBranch).To(Equal("wego-bf22e886ea99b1891c16bba5529d7f0b"))
-			Expect(files).To(Not(BeEmpty()))
-
-			Expect(gitClient.WriteCallCount()).To(Equal(0))
-			Expect(kubeClient.ApplyCallCount()).To(Equal(2))
-			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(1))
-			Expect(gitClient.CloneCallCount()).To(Equal(0))
-			Expect(gitProviders.CreatePullRequestToUserRepoCallCount()).To(Equal(1))
-		})
 	})
 
 	Context("add app with external config repo", func() {
@@ -672,22 +656,6 @@ var _ = Describe("Add", func() {
 			}))
 
 			Expect(len(filters)).To(Equal(0))
-		})
-
-		It("creates a pr with branch hash name", func() {
-			addParams.AutoMerge = false
-			err := appSrv.Add(addParams)
-			Expect(err).ShouldNot(HaveOccurred())
-
-			_, _, newBranch, files, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
-			Expect(newBranch).To(Equal("wego-bf22e886ea99b1891c16bba5529d7f0b"))
-			Expect(files).To(Not(BeEmpty()))
-
-			Expect(gitClient.WriteCallCount()).To(Equal(0))
-			Expect(kubeClient.ApplyCallCount()).To(Equal(2))
-			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(2))
-			Expect(gitClient.CloneCallCount()).To(Equal(1))
-			Expect(gitProviders.CreatePullRequestToUserRepoCallCount()).To(Equal(1))
 		})
 	})
 

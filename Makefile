@@ -51,6 +51,7 @@ clean:
 	rm -rf cmd/ui/dist
 	rm -rf coverage
 	rm -rf node_modules
+	rm .deps
 # Run go fmt against code
 fmt:
 	go fmt ./...
@@ -58,8 +59,11 @@ fmt:
 vet:
 	go vet ./...
 
-dependencies:
+.deps:
 	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
+	@touch .deps
+
+dependencies: .deps
 
 node_modules:
 	npm install

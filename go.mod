@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/deepmap/oapi-codegen v1.8.1
 	github.com/dnaeon/go-vcr v1.2.0
-	github.com/fluxcd/go-git-providers v0.1.1
+	github.com/fluxcd/go-git-providers v0.2.0
 	github.com/fluxcd/helm-controller/api v0.11.1
 	github.com/fluxcd/kustomize-controller/api v0.13.0
 	github.com/fluxcd/pkg/apis/meta v0.10.0 // indirect
