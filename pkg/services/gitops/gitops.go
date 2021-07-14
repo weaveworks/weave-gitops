@@ -3,6 +3,7 @@ package gitops
 import (
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
 type GitopsService interface {
@@ -11,14 +12,16 @@ type GitopsService interface {
 }
 
 type Gitops struct {
-	flux flux.Flux
-	kube kube.Kube
+	flux   flux.Flux
+	kube   kube.Kube
+	logger logger.Logger
 }
 
-func New(flux flux.Flux, kube kube.Kube) *Gitops {
+func New(logger logger.Logger, flux flux.Flux, kube kube.Kube) *Gitops {
 	return &Gitops{
-		flux: flux,
-		kube: kube,
+		flux:   flux,
+		kube:   kube,
+		logger: logger,
 	}
 }
 

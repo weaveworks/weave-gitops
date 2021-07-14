@@ -51,7 +51,6 @@ jobs:
   test-eks:
     needs: [lint, build]
     runs-on: ${{matrix.os}}
-    timeout-minutes: 60
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]
@@ -136,7 +135,6 @@ jobs:
   test-gke:
     needs: [lint, build]
     runs-on: ${{matrix.os}}
-    timeout-minutes: 60
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]

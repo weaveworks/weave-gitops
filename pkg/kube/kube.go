@@ -33,10 +33,10 @@ func (cs ClusterStatus) String() string {
 }
 
 var toStatusString = map[ClusterStatus]string{
-	Unknown:       "Unknown",
-	Unmodified:    "Unmodified",
-	FluxInstalled: "FluxInstalled",
-	WeGOInstalled: "WeGOInstalled",
+	Unknown:       "Unable to talk to the cluster",
+	Unmodified:    "No flux or wego installed",
+	FluxInstalled: "Flux installed",
+	WeGOInstalled: "Wego installed",
 }
 
 //counterfeiter:generate . Kube
@@ -109,16 +109,18 @@ func (k *KubeClient) GetClusterName(ctx context.Context) (string, error) {
 
 func (k *KubeClient) GetClusterStatus(ctx context.Context) ClusterStatus {
 	// Checking wego presence
-	if k.resourceLookup("get crd apps.wego.weave.works") == nil {
+	if _, err := k.runKubectlCmd([]string{"get", "crd", "apps.wego.weave.works"}); err == nil {
 		return WeGOInstalled
 	}
 
 	// Checking flux presence
-	if k.resourceLookup("get namespace flux-system") == nil {
+	if _, err := k.runKubectlCmd([]string{"get", "namespace", "flux-system"}); err == nil {
 		return FluxInstalled
 	}
 
-	if k.resourceLookup("get deployment coredns -n kube-system") == nil {
+	hostPortError := "was refused - did you specify the right host or port?"
+	if out, err := k.runKubectlCmd([]string{"get", "deployment", "coredns", "-n", "kube-system"}); err == nil ||
+		!strings.Contains(string(out), hostPortError) {
 		return Unmodified
 	}
 
@@ -181,15 +183,6 @@ func (k *KubeClient) GetApplications(ctx context.Context, ns string) ([]wego.App
 	}
 
 	return a.Items, nil
-}
-
-func (k *KubeClient) resourceLookup(args string) error {
-	_, err := k.runKubectlCmd(strings.Split(args, " "))
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (k *KubeClient) runKubectlCmd(args []string) ([]byte, error) {
