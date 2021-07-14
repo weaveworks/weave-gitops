@@ -21,7 +21,7 @@ const (
 	SourceTypeHelm SourceType = "helm"
 )
 
-// AppService entity that mananages applications
+// AppService entity that manages applications
 type AppService interface {
 	// Add adds a new application to the cluster
 	Add(params AddParams) error
