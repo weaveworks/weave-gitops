@@ -520,7 +520,7 @@ var _ = Describe("Add", func() {
 			})
 		})
 
-		FDescribe("generateAppYaml", func() {
+		Describe("generateAppYaml", func() {
 			It("generates the app yaml", func() {
 				repoURL := "ssh://git@github.com/example/my-source"
 				params := AddParams{
