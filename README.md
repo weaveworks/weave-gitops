@@ -63,7 +63,7 @@ To set up a development environment for the CLI
 
 1. Install go v1.16
 2. Install [buf](https://github.com/bufbuild/buf)
-3. make
+3. make or make unit-tests to ensure everything built correctly.
 
 ## UI Development
 
