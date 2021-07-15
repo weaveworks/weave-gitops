@@ -38,7 +38,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify that wego cannot work without wego components installed in the cluster", func() {
+	It("SmokeTest - Verify that wego cannot work without wego components installed in the cluster", func() {
 		var repoAbsolutePath string
 		var addCommandErr string
 		private := true
@@ -63,6 +63,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("And WeGO runtime is not installed", func() {
 			uninstallWegoRuntime(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("And I run wego add command", func() {
@@ -1138,13 +1142,13 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify that a PR fails when raised against the same app-repo with different branch and app", func() {
+	It("SmoketTest - Verify that a PR fails when raised against the same app-repo with different branch and app", func() {
 		var repoAbsolutePath string
 		tip := generateTestInputs()
 		tip2 := generateTestInputs()
 		appName := tip.appRepoName
 		appName2 := tip2.appRepoName
-		prLink := ""
+		prLink := "https://github.com/" + GITHUB_ORG + "/" + tip.appRepoName + "/pull/1"
 
 		addCommand := "app add . --name=" + appName
 		addCommand2 := "app add . --name=" + appName2
