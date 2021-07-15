@@ -124,6 +124,21 @@ func waitForNamespaceToTerminate(namespace string, timeout time.Duration) error 
 	return fmt.Errorf("Error: Failed to terminate the namespace %s", namespace)
 }
 
+func deletePersistingHelmApp(namespace string, workloadName string, timeout time.Duration) {
+	//check if application exists before cleaning up
+	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl get -n %s pod/%s", namespace, workloadName))
+	if err != nil {
+		fmt.Println("No workloads exist under the namespace: " + namespace + ", nothing to clean — skipping...")
+	} else {
+		log.Infof("Found persisting helm workload under the namespace: " + namespace + ", cleaning up...")
+		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmreleases.helm.toolkit.fluxcd.io --all", namespace))
+		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmcharts.source.toolkit.fluxcd.io --all", namespace))
+		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmrepositories.source.toolkit.fluxcd.io --all", namespace))
+		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete apps -n %s --all", namespace))
+		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=delete pod/%s -n %s --timeout=%s", workloadName, namespace, timeout))
+	}
+}
+
 func uninstallWegoRuntime(namespace string) {
 	log.Infof("About to delete WeGO runtime from namespace: %s", namespace)
 	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
@@ -213,7 +228,7 @@ func waitForResource(resourceType string, resourceName string, namespace string,
 		log.Infof("Waiting for %s in namespace: %s... : %d second(s) passed of %d seconds timeout", resourceType+"/"+resourceName, namespace, i, timeoutInSeconds)
 		err := runCommandPassThroughWithoutOutput([]string{}, "sh", "-c", fmt.Sprintf("kubectl get %s %s -n %s", resourceType, resourceName, namespace))
 		if err == nil {
-			log.Infof("%s are available in cluster", resourceType+"/"+resourceName)
+			log.Infof("%s is available in cluster", resourceType+"/"+resourceName)
 			command := exec.Command("sh", "-c", fmt.Sprintf("kubectl get %s %s -n %s", resourceType, resourceName, namespace))
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -264,11 +279,6 @@ func VerifyControllersInCluster(namespace string) {
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
 	})
-}
-
-func uninstallWego() {
-	log.Infof("Uninstalling wego")
-	_ = runCommandPassThrough([]string{}, "wego", "gitops", "uninstall")
 }
 
 func deleteNamespace(namespace string) {
