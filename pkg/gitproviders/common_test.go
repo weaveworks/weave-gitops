@@ -6,30 +6,22 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 	"sync"
-	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-
-	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	"github.com/dnaeon/go-vcr/cassette"
 	"github.com/dnaeon/go-vcr/recorder"
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
-
-var githubTestClient, gitlabTestClient gitprovider.Client
 
 var (
 	GithubOrgTestName  = "weaveworks"
@@ -75,7 +67,7 @@ func (t *customTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 			responseBody = getBodyFromReaderWithoutConsuming(&resp.Body)
 		}
 		if (err != nil && (strings.Contains(err.Error(), ConnectionResetByPeer))) ||
-			strings.Contains(string(responseBody), ProjectStillBeingDeleted) {
+			strings.Contains(responseBody, ProjectStillBeingDeleted) {
 			time.Sleep(4 * time.Second)
 			if req != nil && req.Body != nil {
 				req.Body = ioutil.NopCloser(strings.NewReader(requestBody))
@@ -103,8 +95,8 @@ type accounts struct {
 	GitlabUserName string
 }
 
-func NewRecorder(provider string, accounts *accounts) (*recorder.Recorder, error) {
-	r, err := recorder.New(fmt.Sprintf("./cache/%s", provider))
+func NewRecorder(cassetteID string, accounts *accounts) (*recorder.Recorder, error) {
+	r, err := recorder.New(fmt.Sprintf("./cache/%s", cassetteID))
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +116,10 @@ func NewRecorder(provider string, accounts *accounts) (*recorder.Recorder, error
 	})
 
 	r.AddSaveFilter(func(i *cassette.Interaction) error {
-		if accounts.GithubOrgName != GithubOrgTestName {
+		if accounts.GithubOrgName != GithubOrgTestName ||
+			accounts.GithubUserName != GithubUserTestName ||
+			accounts.GitlabOrgName != GitlabOrgTestName ||
+			accounts.GitlabUserName != GitlabUserTestName {
 			i.Response.Body = strings.Replace(i.Response.Body, accounts.GithubOrgName, GithubOrgTestName, -1)
 			i.Response.Body = strings.Replace(i.Response.Body, accounts.GithubUserName, GithubUserTestName, -1)
 			i.Response.Body = strings.Replace(i.Response.Body, accounts.GitlabOrgName, GitlabOrgTestName, -1)
@@ -194,54 +189,23 @@ func getAccounts() *accounts {
 	return accounts
 }
 
-func TestMain(m *testing.M) {
-
-	accounts := getAccounts()
-
+func getTestClientWithCassette(cassetteID string) (gitprovider.Client, *recorder.Recorder, error) {
 	t := customTransport{}
 
 	var err error
-	cacheGithubRecorder, err := NewRecorder("github", accounts)
+	cacheGithubRecorder, err := NewRecorder(cassetteID, getAccounts())
 	if err != nil {
-		panic(err)
+		return nil, nil, err
 	}
 
 	cacheGithubRecorder.SetTransport(&t)
 
-	cacheGitlabRecorder, err := NewRecorder("gitlab", accounts)
+	githubTestClient, err := newGithubTestClient(SetRecorder(cacheGithubRecorder))
 	if err != nil {
-		panic(err)
+		return nil, nil, err
 	}
 
-	cacheGitlabRecorder.SetTransport(&t)
-
-	githubTestClient, err = newGithubTestClient(SetRecorder(cacheGithubRecorder))
-	if err != nil {
-		panic(err)
-	}
-
-	gitlabTestClient, err = newGitlabTestClient(SetRecorder(cacheGitlabRecorder))
-	if err != nil {
-		panic(err)
-	}
-
-	SetGithubProvider(githubTestClient)
-
-	rand.Seed(time.Now().UnixNano())
-
-	exitCode := m.Run()
-
-	err = cacheGithubRecorder.Stop()
-	if err != nil {
-		panic(err)
-	}
-
-	err = cacheGitlabRecorder.Stop()
-	if err != nil {
-		panic(err)
-	}
-
-	os.Exit(exitCode)
+	return githubTestClient, cacheGithubRecorder, nil
 }
 
 func newGithubTestClient(customTransportFactory gitprovider.ChainableRoundTripperFunc) (gitprovider.Client, error) {
@@ -257,140 +221,129 @@ func newGithubTestClient(customTransportFactory gitprovider.ChainableRoundTrippe
 	)
 }
 
-func newGitlabTestClient(customTransportFactory gitprovider.ChainableRoundTripperFunc) (gitprovider.Client, error) {
-	token := os.Getenv("GITLAB_TOKEN")
-	if token == "" { // This is the case when the tests run in the ci/cd tool. No need to have a value as everything is cached
-		token = " "
-	}
-
-	return gitlab.NewClient(
-		"",
-		"",
-		gitlab.WithOAuth2Token(token),
-		gitlab.WithPreChainTransportHook(customTransportFactory),
-		gitlab.WithDestructiveAPICalls(true),
-	)
-}
-
-func Test_CreatePullRequestToOrgRepo(t *testing.T) {
+var _ = Describe("pull requests", func() {
 	accounts := getAccounts()
 
-	providers := []struct {
-		provider string
+	var client gitprovider.Client
+	var recorder *recorder.Recorder
+	var err error
+
+	type tier struct {
 		client   gitprovider.Client
 		domain   string
 		orgName  string
 		userName string
-	}{
-		{"github", githubTestClient, github.DefaultDomain, accounts.GithubOrgName, accounts.GithubUserName},
-		//Remove this for now as we dont support it yet.
-		// {"gitlab", gitlabTestClient, gitlab.DefaultDomain, accounts.GitlabOrgName, accounts.GitlabUserName},
 	}
 
-	testNameFormat := "create pr for %s account [%s]"
-	for _, p := range providers {
-		testName := fmt.Sprintf(testNameFormat, "org", p.provider)
-		t.Run(testName, func(t *testing.T) {
-			CreateTestPullRequestToOrgRepo(t, p.client, p.domain, p.orgName)
-		})
-		testName = fmt.Sprintf(testNameFormat, "user", p.provider)
-		t.Run(testName, func(t *testing.T) {
-			CreateTestPullRequestToUserRepo(t, p.client, p.domain, p.userName)
-		})
+	var providers []tier
 
-	}
-}
+	BeforeEach(func() {
+		client, recorder, err = getTestClientWithCassette("pull_requests")
+		Expect(err).NotTo(HaveOccurred())
+		SetGithubProvider(client)
 
-func TestRepositoryExistsOrg(t *testing.T) {
+		providers = []tier{
+			{client, github.DefaultDomain, accounts.GithubOrgName, accounts.GithubUserName},
+			// Remove this for now as we dont support it yet.
+			// {"gitlab", gitlabTestClient, gitlab.DefaultDomain, accounts.GitlabOrgName, accounts.GitlabUserName},
+		}
+
+	})
+
+	It("should create pr user and org accounts in github", func() {
+		for _, p := range providers {
+			CreateTestPullRequestToOrgRepo(p.client, p.domain, p.orgName)
+			CreateTestPullRequestToUserRepo(p.client, p.domain, p.userName)
+		}
+	})
+
+	AfterEach(func() {
+		err = recorder.Stop()
+		Expect(err).ToNot(HaveOccurred())
+	})
+
+})
+
+var _ = Describe("test org repo exists", func() {
+
 	accounts := getAccounts()
 
+	var client gitprovider.Client
+	var recorder *recorder.Recorder
+	var err error
 	repoName := "repo-exists-org"
+	BeforeEach(func() {
+		client, recorder, err = getTestClientWithCassette("repo_org_exists")
+		Expect(err).NotTo(HaveOccurred())
+		SetGithubProvider(client)
+	})
 
-	err := CreateRepository(repoName, accounts.GithubOrgName, true)
-	assert.NoError(t, err)
+	It("succeed on validating repo existence", func() {
+		err = CreateRepository(repoName, accounts.GithubOrgName, true)
+		Expect(err).NotTo(HaveOccurred())
 
-	exists, err := RepositoryExists(repoName, accounts.GithubOrgName)
-	assert.NoError(t, err)
-	assert.Equal(t, true, exists)
+		exists, err := RepositoryExists(repoName, accounts.GithubOrgName)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(true).To(Equal(exists))
+	})
 
-	t.Cleanup(func() {
+	AfterEach(func() {
 		ctx := context.Background()
 		orgRepoRef := NewOrgRepositoryRef(github.DefaultDomain, accounts.GithubOrgName, repoName)
-		org, err := githubTestClient.OrgRepositories().Get(ctx, orgRepoRef)
-		assert.NoError(t, err)
+		org, err := client.OrgRepositories().Get(ctx, orgRepoRef)
+		Expect(err).NotTo(HaveOccurred())
 		err = org.Delete(ctx)
-		assert.NoError(t, err)
+		Expect(err).NotTo(HaveOccurred())
+		err = recorder.Stop()
+		Expect(err).NotTo(HaveOccurred())
 	})
 
-}
+})
 
-func TestRepositoryExistsPersonal(t *testing.T) {
+var _ = Describe("test personal repo exists", func() {
+
 	accounts := getAccounts()
 
-	repoName := "personal-repo-exists"
+	var client gitprovider.Client
+	var recorder *recorder.Recorder
+	var err error
+	repoName := "repo-exists-personal"
+	BeforeEach(func() {
+		client, recorder, err = getTestClientWithCassette("repo_personal_exists")
+		Expect(err).NotTo(HaveOccurred())
+		SetGithubProvider(client)
+	})
 
-	err := CreateRepository(repoName, accounts.GithubUserName, true)
-	assert.NoError(t, err)
+	It("succeed on validating repo existence", func() {
 
-	exists, err := RepositoryExists(repoName, accounts.GithubUserName)
-	assert.NoError(t, err)
-	assert.Equal(t, true, exists)
+		accounts := getAccounts()
 
-	t.Cleanup(func() {
+		err := CreateRepository(repoName, accounts.GithubUserName, true)
+		Expect(err).NotTo(HaveOccurred())
+
+		exists, err := RepositoryExists(repoName, accounts.GithubUserName)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(true).To(Equal(exists))
+	})
+
+	AfterEach(func() {
 		ctx := context.Background()
 		userRepoRef := NewUserRepositoryRef(github.DefaultDomain, accounts.GithubUserName, repoName)
-		user, err := githubTestClient.UserRepositories().Get(ctx, userRepoRef)
-		assert.NoError(t, err)
+		user, err := client.UserRepositories().Get(ctx, userRepoRef)
+		Expect(err).NotTo(HaveOccurred())
 		err = user.Delete(ctx)
-		assert.NoError(t, err)
+		Expect(err).NotTo(HaveOccurred())
+		err = recorder.Stop()
+		Expect(err).NotTo(HaveOccurred())
 	})
-}
 
-func TestCreateRepository(t *testing.T) {
-	accounts := getAccounts()
+})
 
-	privateOrgRepoName := "private-test-org-repo-0"
-	publicOrgRepoName := "public-test-org-repo-0"
-	userRepoName := "test-user-repo-0"
-
-	err := CreateRepository(privateOrgRepoName, accounts.GithubOrgName, true)
-	assert.NoError(t, err)
-
-	err = CreateRepository(publicOrgRepoName, accounts.GithubOrgName, false)
-	assert.NoError(t, err)
-
-	err = CreateRepository(userRepoName, accounts.GithubUserName, true)
-	assert.NoError(t, err)
-
-	t.Cleanup(func() {
-		ctx := context.Background()
-		defer ctx.Done()
-		orgRepoRef := NewOrgRepositoryRef(github.DefaultDomain, accounts.GithubOrgName, privateOrgRepoName)
-		orgRepo, err := githubTestClient.OrgRepositories().Get(ctx, orgRepoRef)
-		assert.NoError(t, err)
-		err = orgRepo.Delete(ctx)
-		assert.NoError(t, err)
-
-		orgRepoRef = NewOrgRepositoryRef(github.DefaultDomain, accounts.GithubOrgName, publicOrgRepoName)
-		orgRepo, err = githubTestClient.OrgRepositories().Get(ctx, orgRepoRef)
-		assert.NoError(t, err)
-		err = orgRepo.Delete(ctx)
-		assert.NoError(t, err)
-
-		userRepoRef := NewUserRepositoryRef(github.DefaultDomain, accounts.GithubUserName, userRepoName)
-		userRepo, err := githubTestClient.UserRepositories().Get(ctx, userRepoRef)
-		assert.NoError(t, err)
-		err = userRepo.Delete(ctx)
-		assert.NoError(t, err)
-	})
-}
-
-func CreateTestPullRequestToOrgRepo(t *testing.T, client gitprovider.Client, domain string, orgName string) {
+func CreateTestPullRequestToOrgRepo(client gitprovider.Client, domain string, orgName string) {
 	repoName := "test-org-repo"
 	branchName := "test-org-branch"
 
 	doesNotExistOrg := "doesnotexists"
-	SetGithubProvider(client)
 
 	orgRepoRef := NewOrgRepositoryRef(domain, orgName, repoName)
 	doesNotExistOrgRepoRef := NewOrgRepositoryRef(domain, doesNotExistOrg, repoName)
@@ -400,10 +353,10 @@ func CreateTestPullRequestToOrgRepo(t *testing.T, client gitprovider.Client, dom
 	}
 
 	err := CreateOrgRepository(client, orgRepoRef, repoInfo, opts)
-	assert.NoError(t, err)
+	Expect(err).NotTo(HaveOccurred())
 
 	err = CreateOrgRepository(client, doesNotExistOrgRepoRef, repoInfo, opts)
-	assert.Error(t, err)
+	Expect(err).To(HaveOccurred())
 
 	path := "setup/config.yaml"
 	content := "init content"
@@ -419,31 +372,27 @@ func CreateTestPullRequestToOrgRepo(t *testing.T, client gitprovider.Client, dom
 	prDescription := "test description"
 
 	prLink, err := CreatePullRequestToOrgRepo(orgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
-	assert.NoError(t, err)
-	assert.Equal(t, "https://github.com/weaveworks/test-org-repo/pull/1", prLink.Get().WebURL)
+	Expect(err).ToNot(HaveOccurred())
+	Expect("https://github.com/weaveworks/test-org-repo/pull/1", prLink.Get().WebURL)
 
 	_, err = CreatePullRequestToOrgRepo(orgRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
-	assert.Error(t, err)
+	Expect(err).To(HaveOccurred())
 
 	_, err = CreatePullRequestToOrgRepo(doesNotExistOrgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
-	assert.Error(t, err)
+	Expect(err).To(HaveOccurred())
 
-	t.Cleanup(func() {
-		ctx := context.Background()
-		org, err := client.OrgRepositories().Get(ctx, orgRepoRef)
-		assert.NoError(t, err)
-		err = org.Delete(ctx)
-		assert.NoError(t, err)
-	})
+	ctx := context.Background()
+	org, err := client.OrgRepositories().Get(ctx, orgRepoRef)
+	Expect(err).ToNot(HaveOccurred())
+	err = org.Delete(ctx)
+	Expect(err).ToNot(HaveOccurred())
 }
 
-func CreateTestPullRequestToUserRepo(t *testing.T, client gitprovider.Client, domain string, userAccount string) {
+func CreateTestPullRequestToUserRepo(client gitprovider.Client, domain string, userAccount string) {
 	repoName := "test-user-repo"
 	branchName := "test-user-branch"
 
 	doesnotExistUserAccount := "doesnotexists"
-
-	SetGithubProvider(client)
 
 	userRepoRef := NewUserRepositoryRef(domain, userAccount, repoName)
 	doesNotExistsUserRepoRef := NewUserRepositoryRef(domain, doesnotExistUserAccount, repoName)
@@ -453,10 +402,10 @@ func CreateTestPullRequestToUserRepo(t *testing.T, client gitprovider.Client, do
 	}
 
 	err := CreateUserRepository(client, userRepoRef, repoInfo, opts)
-	assert.NoError(t, err)
+	Expect(err).NotTo(HaveOccurred())
 
 	err = CreateUserRepository(client, doesNotExistsUserRepoRef, repoInfo, opts)
-	assert.Error(t, err)
+	Expect(err).To(HaveOccurred())
 
 	path := "setup/config.yaml"
 	content := "init content"
@@ -472,109 +421,100 @@ func CreateTestPullRequestToUserRepo(t *testing.T, client gitprovider.Client, do
 	prDescription := "test description"
 
 	prLink, err := CreatePullRequestToUserRepo(userRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
-	assert.NoError(t, err)
-	assert.Equal(t, "https://github.com/bot/test-user-repo/pull/1", prLink.Get().WebURL)
+	Expect(err).NotTo(HaveOccurred())
+	Expect("https://github.com/bot/test-user-repo/pull/1", prLink.Get().WebURL)
 
 	_, err = CreatePullRequestToUserRepo(userRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
-	assert.Error(t, err)
+	Expect(err).To(HaveOccurred())
 
 	_, err = CreatePullRequestToUserRepo(doesNotExistsUserRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
-	assert.Error(t, err)
+	Expect(err).To(HaveOccurred())
 
-	t.Cleanup(func() {
-		ctx := context.Background()
-		user, err := client.UserRepositories().Get(ctx, userRepoRef)
-		assert.NoError(t, err)
-		err = user.Delete(ctx)
-		assert.NoError(t, err)
-	})
+	ctx := context.Background()
+	user, err := client.UserRepositories().Get(ctx, userRepoRef)
+	Expect(err).NotTo(HaveOccurred())
+	err = user.Delete(ctx)
+	Expect(err).NotTo(HaveOccurred())
+
 }
-
-func TestGetAccountType(t *testing.T) {
-
-	accounts := getAccounts()
-
-	ownerType, err := GetAccountType(accounts.GithubOrgName)
-
-	assert.NoError(t, err)
-	assert.Equal(t, AccountTypeOrg, ownerType)
-}
-
-var _ = Describe("Get Account Type Tests", func() {
-	It("Verify GetAccountType succeed for user account ", func() {
-
-		accounts := getAccounts()
-		SetGithubProvider(githubTestClient)
-
-		accountType, err := GetAccountType(accounts.GithubUserName)
-		Expect(err).ShouldNot(HaveOccurred())
-		Expect(accountType).Should(Equal(AccountTypeUser))
-	})
-})
 
 var _ = Describe("Get User repo info", func() {
-	It("Succeed on getting user repo info", func() {
 
-		accounts := getAccounts()
-		SetGithubProvider(githubTestClient)
+	accounts := getAccounts()
+	var client gitprovider.Client
+	var recorder *recorder.Recorder
+	var err error
+	var userRepoRef gitprovider.UserRepositoryRef
+	repoName := "test-user-repo-info"
 
-		repoName := "test-user-repo-info"
-		userRepoRef := NewUserRepositoryRef(github.DefaultDomain, accounts.GithubUserName, repoName)
+	BeforeEach(func() {
+		client, recorder, err = getTestClientWithCassette("get_user_repo_info")
+		Expect(err).NotTo(HaveOccurred())
+		SetGithubProvider(client)
+
+		userRepoRef = NewUserRepositoryRef(github.DefaultDomain, accounts.GithubUserName, repoName)
+
 		repoInfo := NewRepositoryInfo("test user repository", gitprovider.RepositoryVisibilityPrivate)
 		opts := &gitprovider.RepositoryCreateOptions{
 			AutoInit: gitprovider.BoolVar(true),
 		}
+		err := CreateUserRepository(client, userRepoRef, repoInfo, opts)
+		Expect(err).ShouldNot(HaveOccurred())
+	})
 
-		err := CreateUserRepository(githubTestClient, userRepoRef, repoInfo, opts)
+	It("Succeed on getting user repo info", func() {
+
+		err = GetRepoInfo(client, AccountTypeUser, accounts.GithubUserName, repoName)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		err = GetRepoInfo(githubTestClient, AccountTypeUser, accounts.GithubUserName, repoName)
-		Expect(err).ShouldNot(HaveOccurred())
-
-		err = GetRepoInfo(githubTestClient, AccountTypeUser, accounts.GithubUserName, "repoNotExisted")
+		err = GetRepoInfo(client, AccountTypeUser, accounts.GithubUserName, "repoNotExisted")
 		Expect(err).Should(HaveOccurred())
 
+	})
+
+	AfterEach(func() {
 		ctx := context.Background()
-		user, err := githubTestClient.UserRepositories().Get(ctx, userRepoRef)
+		user, err := client.UserRepositories().Get(ctx, userRepoRef)
 		Expect(err).ShouldNot(HaveOccurred())
 		err = user.Delete(ctx)
 		Expect(err).ShouldNot(HaveOccurred())
+		err = recorder.Stop()
+		Expect(err).ShouldNot(HaveOccurred())
 	})
 })
 
-var _ = Describe("Test for Org repo info", func() {
-	It("Fail on getting org info", func() {
+var _ = Describe("Test user deploy keys creation", func() {
 
-		accounts := getAccounts()
+	accounts := getAccounts()
+	var client gitprovider.Client
+	var recorder *recorder.Recorder
+	var err error
+	var userRepoRef gitprovider.UserRepositoryRef
+	repoName := "test-deploy-key-user-repo"
+	var deployKey string
 
-		err := GetRepoInfo(githubTestClient, AccountTypeOrg, accounts.GithubOrgName, "repoNotExisted")
-		Expect(err).Should(HaveOccurred())
+	BeforeEach(func() {
+		client, recorder, err = getTestClientWithCassette("deploy_key_user")
+		Expect(err).NotTo(HaveOccurred())
+		SetGithubProvider(client)
 
-	})
-})
-
-var _ = Describe("Test deploy keys creation", func() {
-	It("Uploads a new deploy key for a brand new user repo, checks for presence of the key, and shows proper message if trying to re-add it", func() {
-
-		accounts := getAccounts()
-
-		SetGithubProvider(githubTestClient)
-
-		repoName := "test-deploy-key-user-repo"
-		userRepoRef := NewUserRepositoryRef(github.DefaultDomain, accounts.GithubUserName, repoName)
+		userRepoRef = NewUserRepositoryRef(github.DefaultDomain, accounts.GithubUserName, repoName)
 		repoInfo := NewRepositoryInfo("test user repository", gitprovider.RepositoryVisibilityPrivate)
 		opts := &gitprovider.RepositoryCreateOptions{
 			AutoInit: gitprovider.BoolVar(true),
 		}
 
-		err := CreateUserRepository(githubTestClient, userRepoRef, repoInfo, opts)
+		err = CreateUserRepository(client, userRepoRef, repoInfo, opts)
 		Expect(err).ShouldNot(HaveOccurred())
 		err = utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
-			return GetUserRepo(githubTestClient, accounts.GithubUserName, repoName)
+			return GetUserRepo(client, accounts.GithubUserName, repoName)
 		})
 		Expect(err).ShouldNot(HaveOccurred())
 
-		deployKey := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBmym4XOiTj4rY3AcJKoJ8QupfgpFWtgNzDxzL0TrzfnurUQm+snozKLHGtOtS7PjMQsMaW9phyhhXv2KxadVI1uweFkC1TK4rPNWrqYX2g0JLXEScvaafSiv+SqozWLN/zhQ0e0jrtrYphtkd+H72RYsdq3mngY4WPJXM7z+HSjHSKilxj7XsxENt0dxT08LArxDC4OQXv9EYFgCyZ7SuLPBgA9160Co46Jm27enB/oBPx5zWd1MlkI+RtUi+XV2pLMzIpvYi2r2iWwOfDqE0N2cfpD0bY7cIOlv0iS7v6Qkmf7pBD+tRGTIZFcD5tGmZl1DOaeCZZ/VAN66aX+rN"
+		deployKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBmym4XOiTj4rY3AcJKoJ8QupfgpFWtgNzDxzL0TrzfnurUQm+snozKLHGtOtS7PjMQsMaW9phyhhXv2KxadVI1uweFkC1TK4rPNWrqYX2g0JLXEScvaafSiv+SqozWLN/zhQ0e0jrtrYphtkd+H72RYsdq3mngY4WPJXM7z+HSjHSKilxj7XsxENt0dxT08LArxDC4OQXv9EYFgCyZ7SuLPBgA9160Co46Jm27enB/oBPx5zWd1MlkI+RtUi+XV2pLMzIpvYi2r2iWwOfDqE0N2cfpD0bY7cIOlv0iS7v6Qkmf7pBD+tRGTIZFcD5tGmZl1DOaeCZZ/VAN66aX+rN"
+	})
+
+	It("Uploads a new deploy key for a brand new user repo, checks for presence of the key, and shows proper message if trying to re-add it", func() {
 
 		exists, err := DeployKeyExists(accounts.GithubUserName, repoName)
 		Expect(err).ShouldNot(HaveOccurred())
@@ -596,35 +536,52 @@ var _ = Describe("Test deploy keys creation", func() {
 		})
 		Expect(stdout).To(Equal("uploading deploy key\n"))
 
+	})
+
+	AfterEach(func() {
 		ctx := context.Background()
-		user, err := githubTestClient.UserRepositories().Get(ctx, userRepoRef)
+		user, err := client.UserRepositories().Get(ctx, userRepoRef)
 		Expect(err).ShouldNot(HaveOccurred())
 		err = user.Delete(ctx)
 		Expect(err).ShouldNot(HaveOccurred())
-
+		err = recorder.Stop()
+		Expect(err).ShouldNot(HaveOccurred())
 	})
 
-	It("Upload a new deploy key for a brand new org repo and show proper message if trying to re-add it", func() {
+})
 
-		accounts := getAccounts()
+var _ = Describe("Test org deploy keys creation", func() {
 
-		SetGithubProvider(githubTestClient)
+	accounts := getAccounts()
+	var client gitprovider.Client
+	var recorder *recorder.Recorder
+	var err error
+	var orgRepoRef gitprovider.OrgRepositoryRef
+	repoName := "test-deploy-key-org-repo"
+	var deployKey string
 
-		repoName := "test-deploy-key-org-repo"
-		orgRepoRef := NewOrgRepositoryRef(github.DefaultDomain, accounts.GithubOrgName, repoName)
+	BeforeEach(func() {
+		client, recorder, err = getTestClientWithCassette("deploy_key_org")
+		Expect(err).NotTo(HaveOccurred())
+		SetGithubProvider(client)
+
+		orgRepoRef = NewOrgRepositoryRef(github.DefaultDomain, accounts.GithubOrgName, repoName)
 		repoInfo := NewRepositoryInfo("test user repository", gitprovider.RepositoryVisibilityPrivate)
 		opts := &gitprovider.RepositoryCreateOptions{
 			AutoInit: gitprovider.BoolVar(true),
 		}
 
-		err := CreateOrgRepository(githubTestClient, orgRepoRef, repoInfo, opts)
+		err = CreateOrgRepository(client, orgRepoRef, repoInfo, opts)
 		Expect(err).ShouldNot(HaveOccurred())
 		err = utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
-			return GetOrgRepo(githubTestClient, accounts.GithubOrgName, repoName)
+			return GetOrgRepo(client, accounts.GithubOrgName, repoName)
 		})
 		Expect(err).ShouldNot(HaveOccurred())
 
-		deployKey := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDorjCI1Ai7xhZx4e2dYImHbjzbEc0gH1mjnkcb3Tqc5Zs/tQVxo282YIMeXq8IABt2AcwTzDHAviajbPqC05GNRwCmEFrYOnYKhMrdrKtYuCtmEhgnhPQlItXJlF00XwHfYetjfIzFSk8vdLJcwmGp6PPemDW2Xv6CPBAN23OGqTbYYsFuO7+hdU3CgGcR9WPDdzN7/4q1aq4Tk7qhNl5Yxw1DQ0OVgiAQnBJHeViOar14Dw1olhtzL2s88e/TE9t47p9iLXFXwN4irER25A4NUa7DYGpNfUEGQdlf1k81ctegQeA8fOZ4uT4zYSja7mG6QYRgPwN4ZB8ywTcHeON6EzWucSWKM4TcJgASmvJtJn5RifbuzMJTtqpCtIFmpo5/ItQFKYjI18Omqh0ZJe/P9YtYtM+Ac3FIOC0yKU7Ozsx/N7wq3uSIOTv8KCxkEgq2fBi9gF/+kE0BGSVao0RfY/fAUjS/ScuNvo30+MrW+8NmWeWRdhMJkJ25kLGuWBE="
+		deployKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDorjCI1Ai7xhZx4e2dYImHbjzbEc0gH1mjnkcb3Tqc5Zs/tQVxo282YIMeXq8IABt2AcwTzDHAviajbPqC05GNRwCmEFrYOnYKhMrdrKtYuCtmEhgnhPQlItXJlF00XwHfYetjfIzFSk8vdLJcwmGp6PPemDW2Xv6CPBAN23OGqTbYYsFuO7+hdU3CgGcR9WPDdzN7/4q1aq4Tk7qhNl5Yxw1DQ0OVgiAQnBJHeViOar14Dw1olhtzL2s88e/TE9t47p9iLXFXwN4irER25A4NUa7DYGpNfUEGQdlf1k81ctegQeA8fOZ4uT4zYSja7mG6QYRgPwN4ZB8ywTcHeON6EzWucSWKM4TcJgASmvJtJn5RifbuzMJTtqpCtIFmpo5/ItQFKYjI18Omqh0ZJe/P9YtYtM+Ac3FIOC0yKU7Ozsx/N7wq3uSIOTv8KCxkEgq2fBi9gF/+kE0BGSVao0RfY/fAUjS/ScuNvo30+MrW+8NmWeWRdhMJkJ25kLGuWBE="
+	})
+
+	It("Uploads a new deploy key for a brand new user repo, checks for presence of the key, and shows proper message if trying to re-add it", func() {
 
 		exists, err := DeployKeyExists(accounts.GithubOrgName, repoName)
 		Expect(err).ShouldNot(HaveOccurred())
@@ -646,11 +603,15 @@ var _ = Describe("Test deploy keys creation", func() {
 		})
 		Expect(stdout).To(Equal("uploading deploy key\n"))
 
-		ctx := context.Background()
-		user, err := githubTestClient.OrgRepositories().Get(ctx, orgRepoRef)
-		Expect(err).ShouldNot(HaveOccurred())
-		err = user.Delete(ctx)
-		Expect(err).ShouldNot(HaveOccurred())
+	})
 
+	AfterEach(func() {
+		ctx := context.Background()
+		org, err := client.OrgRepositories().Get(ctx, orgRepoRef)
+		Expect(err).ShouldNot(HaveOccurred())
+		err = org.Delete(ctx)
+		Expect(err).ShouldNot(HaveOccurred())
+		err = recorder.Stop()
+		Expect(err).ShouldNot(HaveOccurred())
 	})
 })

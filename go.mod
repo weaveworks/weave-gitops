@@ -8,6 +8,7 @@ require (
 	github.com/fluxcd/go-git-providers v0.2.0
 	github.com/fluxcd/helm-controller/api v0.11.1
 	github.com/fluxcd/kustomize-controller/api v0.13.0
+	github.com/fluxcd/pkg/apis/meta v0.10.0 // indirect
 	github.com/fluxcd/source-controller/api v0.15.2
 	github.com/go-git/go-billy/v5 v5.3.1
 	github.com/go-git/go-git/v5 v5.4.1
@@ -37,6 +38,7 @@ require (
 	k8s.io/apimachinery v0.21.2
 	k8s.io/client-go v0.21.2
 	sigs.k8s.io/controller-runtime v0.9.1
+	sigs.k8s.io/controller-tools v0.4.1 // indirect
 	sigs.k8s.io/yaml v1.2.0
 
 )

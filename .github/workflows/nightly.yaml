@@ -19,6 +19,8 @@ jobs:
         go-version: 1.16.x
     - name: Checkout code
       uses: actions/checkout@v2
+    - name: Clean
+      run: make clean
     - name: build
       run: make all BINARY_NAME=wego-${{matrix.os}}-nightly
     - name: Store wego binaries
@@ -112,7 +114,7 @@ jobs:
         ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v ./test/acceptance/test/...
       if: always()
   test-gke:
-    needs: [lint, build]
+    needs: [build]
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
