@@ -150,7 +150,7 @@ jobs:
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
       run: |
         export PATH=${PATH}:`go env GOPATH`/bin
-        export WEGO_BIN_PATH=$(pwd)/bin-${{ github.run_id }}/wego
+        export WEGO_BIN_PATH=$(pwd)/bin/wego
         export CLUSTER_PROVIDER=kubectl
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         go get github.com/onsi/ginkgo/ginkgo
