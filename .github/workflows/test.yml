@@ -122,12 +122,12 @@ jobs:
     - name: Download wego binaries
       uses: actions/download-artifact@v2
       with:
-        name: wego-binaries
-        path: bin-${{ github.run_id }}
+        name: wego-binaries ${{ github.run_id }}
+        path: bin
     - name: Change bin permissions
       run: |
-        chmod +x bin-${{ github.run_id }}/wego
-        ls -la bin-${{ github.run_id }}
+        chmod +x bin/wego
+        ls -la bin
     - name: Download dependecies
       run: |
         make dependencies
@@ -149,7 +149,7 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
       run: |
-        export PATH=${PATH}:`go env GOPATH`/bin-${{ github.run_id }}
+        export PATH=${PATH}:`go env GOPATH`/bin
         export WEGO_BIN_PATH=$(pwd)/bin-${{ github.run_id }}/wego
         export CLUSTER_PROVIDER=kubectl
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
@@ -182,12 +182,12 @@ jobs:
     - name: Download wego binaries
       uses: actions/download-artifact@v2
       with:
-        name: wego-binaries
-        path: bin-${{ github.run_id }}
+        name: wego-binaries ${{ github.run_id }}
+        path: bin
     - name: Change bin permissions
       run: |
-        chmod +x bin-${{ github.run_id }}/wego
-        ls -la bin-${{ github.run_id }}
+        chmod +x bin/wego
+        ls -la bin
     - name: Download dependecies
       run: |
         make dependencies
@@ -207,8 +207,8 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
       run: |
-        export PATH=${PATH}:`go env GOPATH`/bin-${{ github.run_id }}
-        export WEGO_BIN_PATH=$(pwd)/bin-${{ github.run_id }}/wego
+        export PATH=${PATH}:`go env GOPATH`/bin
+        export WEGO_BIN_PATH=$(pwd)/bin/wego
         export CLUSTER_PROVIDER=kubectl
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega/...
