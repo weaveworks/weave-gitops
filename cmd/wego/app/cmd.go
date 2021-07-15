@@ -15,10 +15,10 @@ var ApplicationCmd = &cobra.Command{
   Status: Get status of application under wego control`,
 	Example:`
   # Add an application to wego from local git repository
-  wego app add . --name myapp
+  wego app add . --name <app-name>
 
   # Status an application under wego control
-  wego app status myapp`,
+  wego app status <app-name>`,
 	Args: cobra.MinimumNArgs(1),
 }
 
