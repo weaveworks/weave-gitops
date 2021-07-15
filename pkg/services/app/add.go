@@ -120,7 +120,7 @@ func (a *App) Add(params AddParams) error {
 		return errors.Wrap(err, "could not generate deploy key")
 	}
 
-	if err = a.setAppHash( params); err != nil {
+	if err = a.setAppHash(params); err != nil {
 		return err
 	}
 	// if appHash exists as a label in the cluster we fail to create a PR
@@ -130,7 +130,7 @@ func (a *App) Add(params AddParams) error {
 
 	switch strings.ToUpper(params.AppConfigUrl) {
 	case string(ConfigTypeNone):
-		return a.addAppWithNoConfigRepo(params, clusterName, secretRef)
+		return a.addAppWithNoConfigRepo(params, secretRef)
 	case string(ConfigTypeUserRepo):
 		return a.addAppWithConfigInAppRepo(params, clusterName, secretRef)
 	default:
@@ -138,7 +138,7 @@ func (a *App) Add(params AddParams) error {
 	}
 }
 
-func (a *App) setAppHash( params AddParams) error {
+func (a *App) setAppHash(params AddParams) error {
 
 	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
 	if err != nil {
@@ -218,9 +218,9 @@ func (a *App) getGitRemoteUrl(params AddParams) (string, error) {
 	return sanitizeRepoUrl(urls[0]), nil
 }
 
-func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secretRef string) error {
+func (a *App) addAppWithNoConfigRepo(params AddParams, secretRef string) error {
 	// Returns the source, app spec and kustomization
-	source, appGoat, appSpec, err := a.generateAppManifests(params, params.Url, secretRef, clusterName)
+	source, appGoat, appSpec, err := a.generateAppManifests(params, secretRef)
 	if err != nil {
 		return errors.Wrap(err, "could not generate application GitOps Automation manifests")
 	}
@@ -232,7 +232,7 @@ func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secre
 func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, secretRef string) error {
 
 	// Returns the source, app spec and kustomization
-	source, appGoat, appSpec, err := a.generateAppManifests(params, params.Url, secretRef, clusterName)
+	source, appGoat, appSpec, err := a.generateAppManifests(params, secretRef)
 	if err != nil {
 		return errors.Wrap(err, "could not generate application GitOps Automation manifests")
 	}
@@ -289,7 +289,7 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 	}
 
 	// Returns the source, app spec and kustomization
-	appSource, appGoat, appSpec, err := a.generateAppManifests(params, params.AppConfigUrl, appSecretRef, clusterName)
+	appSource, appGoat, appSpec, err := a.generateAppManifests(params, appSecretRef)
 	if err != nil {
 		return errors.Wrap(err, "could not generate application GitOps Automation manifests")
 	}
@@ -329,7 +329,7 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 	return a.commitAndPush(params)
 }
 
-func (a *App) generateAppManifests(params AddParams, repo string, secretRef string, clusterName string) ([]byte, []byte, []byte, error) {
+func (a *App) generateAppManifests(params AddParams, secretRef string) ([]byte, []byte, []byte, error) {
 	var sourceManifest, appManifest, appGoatManifest []byte
 	var err error
 	a.logger.Generatef("Generating Source manifest")
