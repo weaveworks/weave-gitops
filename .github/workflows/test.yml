@@ -57,6 +57,13 @@ jobs:
       run: make clean
     - name: build
       run: make wego
+    - name: Print out wego version
+      run: |
+        bin/wego version
+    - name: Debug - Print out git changes
+      run: |
+        git status
+        git --no-pager log -n1
     - name: Debug print out run_id
       run: echo ${{ github.run_id }}
     - name: Store wego binaries
