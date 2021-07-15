@@ -57,11 +57,13 @@ jobs:
       run: make clean
     - name: build
       run: make wego
+    - name: Debug print out run_id
+      run: echo ${{ github.run_id }}
     - name: Store wego binaries
       uses: actions/upload-artifact@v2
       with:
           name: wego-binaries
-          path: bin-"${{ github.run_id }}"
+          path: bin-${{ github.run_id }}
           retention-days: 1
 
   test:
@@ -115,15 +117,17 @@ jobs:
     - name: Kind-check
       run: |
        kubectl get pods -A
+    - name: Debug print out run_id
+      run: echo ${{ github.run_id }}
     - name: Download wego binaries
       uses: actions/download-artifact@v2
       with:
         name: wego-binaries
-        path: bin-"${{ github.run_id }}"
+        path: bin-${{ github.run_id }}
     - name: Change bin permissions
       run: |
-        chmod +x bin-"${{ github.run_id }}"/wego
-        ls -la bin-"${{ github.run_id }}"
+        chmod +x bin-${{ github.run_id }}/wego
+        ls -la bin-${{ github.run_id }}
     - name: Download dependecies
       run: |
         make dependencies
@@ -145,8 +149,8 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
       run: |
-        export PATH=${PATH}:`go env GOPATH`/bin-"${{ github.run_id }}"
-        export WEGO_BIN_PATH=$(pwd)/bin-"${{ github.run_id }}"/wego
+        export PATH=${PATH}:`go env GOPATH`/bin-${{ github.run_id }}
+        export WEGO_BIN_PATH=$(pwd)/bin-${{ github.run_id }}/wego
         export CLUSTER_PROVIDER=kubectl
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         go get github.com/onsi/ginkgo/ginkgo
@@ -179,11 +183,11 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: wego-binaries
-        path: bin-"${{ github.run_id }}"
+        path: bin-${{ github.run_id }}
     - name: Change bin permissions
       run: |
-        chmod +x bin-"${{ github.run_id }}"/wego
-        ls -la bin-"${{ github.run_id }}"
+        chmod +x bin-${{ github.run_id }}/wego
+        ls -la bin-${{ github.run_id }}
     - name: Download dependecies
       run: |
         make dependencies
@@ -203,8 +207,8 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
       run: |
-        export PATH=${PATH}:`go env GOPATH`/bin-"${{ github.run_id }}"
-        export WEGO_BIN_PATH=$(pwd)/bin-"${{ github.run_id }}"/wego
+        export PATH=${PATH}:`go env GOPATH`/bin-${{ github.run_id }}
+        export WEGO_BIN_PATH=$(pwd)/bin-${{ github.run_id }}/wego
         export CLUSTER_PROVIDER=kubectl
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega/...
