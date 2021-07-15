@@ -991,8 +991,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
 			Expect(folderOutput).Should(ContainSubstring("apps"))
 			Expect(folderOutput).Should(ContainSubstring("targets"))
+		})
 	})
-
 	//deployment-type=default h | url=helmrepo | chart=helmchart | app-config-url=NONE
 	It("Verify that wego can deploy a helm app from a helm repo with app-config-url set to NONE", func() {
 		appName := "loki"
@@ -1029,8 +1029,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		var repoAbsolutePath string
 		tip := generateTestInputs()
 		appName := tip.appRepoName
-    prLink := ""
-    
+		prLink := ""
+
 		addCommand := "app add . --name=" + appName + " --auto-merge=false"
 
 		defer deleteRepo(tip.appRepoName)
@@ -1080,7 +1080,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var appConfigRepoAbsPath string
-    prLink := ""
+		prLink := ""
 		private := true
 		tip := generateTestInputs()
 		appName := tip.appRepoName
@@ -1127,7 +1127,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("When I merge the created PR", func() {
-			mergePR(appConfigRepoAbsPath)
+			mergePR(appConfigRepoAbsPath, prLink)
 		})
 
 		By("Then I should see my workload deployed to the cluster", func() {
@@ -1142,6 +1142,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		tip2 := generateTestInputs()
 		appName := tip.appRepoName
 		appName2 := tip2.appRepoName
+		prLink := ""
 
 		addCommand := "app add . --name=" + appName
 		addCommand2 := "app add . --name=" + appName2
@@ -1183,7 +1184,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("When I merge the previous PR", func() {
-			mergePR(repoAbsolutePath)
+			mergePR(repoAbsolutePath, prLink)
 		})
 
 		By("Then I should see my workload deployed to the cluster", func() {
