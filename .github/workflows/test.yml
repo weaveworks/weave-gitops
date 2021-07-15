@@ -63,7 +63,7 @@ jobs:
     - name: Debug - Print out git changes
       run: |
         git status
-        git --no-pager log -n1
+        git --no-pager log -n10
     - name: Debug print out run_id
       run: echo ${{ github.run_id }}
     - name: Store wego binaries
