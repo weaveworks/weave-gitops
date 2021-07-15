@@ -37,9 +37,9 @@ var rootCmd = &cobra.Command{
 
   # Add application to wego control from a github repository
   wego app add \
-	--name <myapp> \
-	--url git@github.com:myorg/<myapp> \
-	--private-key ${HOME}/.ssh/<SSH key for myapp> \
+	--name <myapp>
+	--url git@github.com:myorg/<myapp>
+	--private-key ${HOME}/.ssh/<SSH key for myapp>
 	--branch prod-<myapp>
 
   # Get status of application under wego control
