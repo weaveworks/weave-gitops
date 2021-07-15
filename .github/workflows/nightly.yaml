@@ -1,14 +1,14 @@
 on:
-  schedule:
-    - cron: '8 0 * * *'
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
 
 name: Nightly
 jobs:
   lint:
-    runs-on: ${{matrix.os}}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macOS-latest]
+    runs-on: ubuntu-latest
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
