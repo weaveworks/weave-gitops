@@ -177,6 +177,18 @@ func (c *KubeHTTP) LabelExistsInCluster(ctx context.Context, label string) error
 	return errors.New("LabelExistsInCluster is not implemented for kubeHTTP")
 }
 
+func (c *KubeHTTP) GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error {
+	if err := c.Client.Get(ctx, name, resource); err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil
+		}
+
+		return fmt.Errorf("error getting resource: %w", err)
+	}
+
+	return nil
+}
+
 func initialContexts(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (contexts []string, currentCtx string, err error) {
 	rules, err := cfgLoadingRules.Load()
 

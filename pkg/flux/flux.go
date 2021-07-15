@@ -22,6 +22,7 @@ type Flux interface {
 	CreateHelmReleaseGitRepository(name string, source string, path string, namespace string) ([]byte, error)
 	CreateHelmReleaseHelmRepository(name string, chart string, namespace string) ([]byte, error)
 	CreateSecretGit(name string, url string, namespace string) ([]byte, error)
+	GetAllResourcesStatus(name string, namespace string) ([]byte, error)
 }
 
 type FluxClient struct {
@@ -190,6 +191,19 @@ func (f *FluxClient) CreateSecretGit(name string, url string, namespace string) 
 	}
 
 	return deployKeyLines[0], nil
+}
+
+func (f *FluxClient) GetAllResourcesStatus(name string, namespace string) ([]byte, error) {
+	args := []string{
+		"get", "all", "--namespace", namespace, name,
+	}
+
+	out, err := f.runFluxCmd(args...)
+	if err != nil {
+		return out, fmt.Errorf("failed to get flux resources status: %w", err)
+	}
+
+	return out, nil
 }
 
 func (f *FluxClient) runFluxCmd(args ...string) ([]byte, error) {
