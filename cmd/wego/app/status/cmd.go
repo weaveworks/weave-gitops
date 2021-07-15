@@ -19,7 +19,7 @@ var Cmd = &cobra.Command{
 	Short:         "Get status of a workload under wego control",
 	Args:          cobra.MinimumNArgs(1),
   SilenceUsage:  true,
-  SilenceErros:  true,
+  SilenceErrors: true,
 	Example:       "wego app status podinfo",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		params := app.StatusParams{}
