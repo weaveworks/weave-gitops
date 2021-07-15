@@ -104,6 +104,19 @@ type FakeKube struct {
 	getClusterStatusReturnsOnCall map[int]struct {
 		result1 kube.ClusterStatus
 	}
+	GetResourceStub        func(context.Context, types.NamespacedName, kube.Resource) error
+	getResourceMutex       sync.RWMutex
+	getResourceArgsForCall []struct {
+		arg1 context.Context
+		arg2 types.NamespacedName
+		arg3 kube.Resource
+	}
+	getResourceReturns struct {
+		result1 error
+	}
+	getResourceReturnsOnCall map[int]struct {
+		result1 error
+	}
 	LabelExistsInClusterStub        func(context.Context, string) error
 	labelExistsInClusterMutex       sync.RWMutex
 	labelExistsInClusterArgsForCall []struct {
@@ -594,6 +607,69 @@ func (fake *FakeKube) GetClusterStatusReturnsOnCall(i int, result1 kube.ClusterS
 	}{result1}
 }
 
+func (fake *FakeKube) GetResource(arg1 context.Context, arg2 types.NamespacedName, arg3 kube.Resource) error {
+	fake.getResourceMutex.Lock()
+	ret, specificReturn := fake.getResourceReturnsOnCall[len(fake.getResourceArgsForCall)]
+	fake.getResourceArgsForCall = append(fake.getResourceArgsForCall, struct {
+		arg1 context.Context
+		arg2 types.NamespacedName
+		arg3 kube.Resource
+	}{arg1, arg2, arg3})
+	stub := fake.GetResourceStub
+	fakeReturns := fake.getResourceReturns
+	fake.recordInvocation("GetResource", []interface{}{arg1, arg2, arg3})
+	fake.getResourceMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeKube) GetResourceCallCount() int {
+	fake.getResourceMutex.RLock()
+	defer fake.getResourceMutex.RUnlock()
+	return len(fake.getResourceArgsForCall)
+}
+
+func (fake *FakeKube) GetResourceCalls(stub func(context.Context, types.NamespacedName, kube.Resource) error) {
+	fake.getResourceMutex.Lock()
+	defer fake.getResourceMutex.Unlock()
+	fake.GetResourceStub = stub
+}
+
+func (fake *FakeKube) GetResourceArgsForCall(i int) (context.Context, types.NamespacedName, kube.Resource) {
+	fake.getResourceMutex.RLock()
+	defer fake.getResourceMutex.RUnlock()
+	argsForCall := fake.getResourceArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeKube) GetResourceReturns(result1 error) {
+	fake.getResourceMutex.Lock()
+	defer fake.getResourceMutex.Unlock()
+	fake.GetResourceStub = nil
+	fake.getResourceReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeKube) GetResourceReturnsOnCall(i int, result1 error) {
+	fake.getResourceMutex.Lock()
+	defer fake.getResourceMutex.Unlock()
+	fake.GetResourceStub = nil
+	if fake.getResourceReturnsOnCall == nil {
+		fake.getResourceReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.getResourceReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeKube) LabelExistsInCluster(arg1 context.Context, arg2 string) error {
 	fake.labelExistsInClusterMutex.Lock()
 	ret, specificReturn := fake.labelExistsInClusterReturnsOnCall[len(fake.labelExistsInClusterArgsForCall)]
@@ -739,6 +815,8 @@ func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	defer fake.getClusterNameMutex.RUnlock()
 	fake.getClusterStatusMutex.RLock()
 	defer fake.getClusterStatusMutex.RUnlock()
+	fake.getResourceMutex.RLock()
+	defer fake.getResourceMutex.RUnlock()
 	fake.labelExistsInClusterMutex.RLock()
 	defer fake.labelExistsInClusterMutex.RUnlock()
 	fake.secretPresentMutex.RLock()
