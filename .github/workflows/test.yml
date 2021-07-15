@@ -128,6 +128,9 @@ jobs:
       run: |
         chmod +x bin/wego
         ls -la bin
+    - name: Print out wego version
+      run: |
+        .bin/wego version
     - name: Download dependecies
       run: |
         make dependencies
@@ -188,6 +191,9 @@ jobs:
       run: |
         chmod +x bin/wego
         ls -la bin
+    - name: Print out wego version
+      run: |
+        .bin/wego version
     - name: Download dependecies
       run: |
         make dependencies
