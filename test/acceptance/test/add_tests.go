@@ -41,6 +41,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	It("SmokeTest - Verify that wego cannot work without wego components installed in the cluster", func() {
 		var repoAbsolutePath string
 		var addCommandErr string
+		var addCommandOut string
 		private := true
 		tip := generateTestInputs()
 
@@ -70,11 +71,12 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("And I run wego add command", func() {
-			_, addCommandErr = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+			addCommandOut, addCommandErr = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("Then I should see relevant message in the console", func() {
-			Eventually(addCommandErr).Should(MatchRegexp(`WeGO not installed... exiting`))
+			Eventually(addCommandOut).Should(MatchRegexp(`✔ No flux or wego installed`))
+			Eventually(addCommandErr).Should(ContainSubstring("Wego not installed... exiting"))
 		})
 	})
 
@@ -1142,7 +1144,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("SmoketTest - Verify that a PR fails when raised against the same app-repo with different branch and app", func() {
+	It("Verify that a PR fails when raised against the same app-repo with different branch and app", func() {
 		var repoAbsolutePath string
 		tip := generateTestInputs()
 		tip2 := generateTestInputs()
