@@ -130,7 +130,7 @@ jobs:
         ls -la bin
     - name: Print out wego version
       run: |
-        .bin/wego version
+        bin/wego version
     - name: Download dependecies
       run: |
         make dependencies
@@ -193,7 +193,7 @@ jobs:
         ls -la bin
     - name: Print out wego version
       run: |
-        .bin/wego version
+        bin/wego version
     - name: Download dependecies
       run: |
         make dependencies
