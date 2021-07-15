@@ -757,8 +757,9 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("Then I should see the status for "+appName1, func() {
-			Eventually(appStatus1).Should(gbytes.Say(
-				`Latest successful deployment time: 202[0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9]Z\n.*\n.*gitrepository\/` + appName1 + `\s*True\s*Fetched revision: main\/.{40}\smain\/.{40}\s*False\s*\n.*\n.*kustomization\/` + appName1 + `\s*True\s*Applied revision: main\/.{40}\smain\/.{40}\s*False`))
+			Eventually(appStatus1).Should(gbytes.Say(`Last successful reconciliation:`))
+			Eventually(appStatus1).Should(gbytes.Say(`gitrepository/` + appName1))
+			Eventually(appStatus1).Should(gbytes.Say(`kustomization/` + appName1))
 		})
 
 		By("When I check the app status for "+appName2, func() {
@@ -766,8 +767,9 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("Then I should see the status for "+appName2, func() {
-			Eventually(appStatus2).Should(gbytes.Say(
-				`Latest successful deployment time: 202[0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9]Z\n.*\n.*gitrepository\/` + appName2 + `\s*True\s*Fetched revision: main\/.{40}\smain\/.{40}\s*False\s*\n.*\n.*kustomization\/` + appName2 + `\s*True\s*Applied revision: main\/.{40}\smain\/.{40}\s*False`))
+			Eventually(appStatus2).Should(gbytes.Say(`Last successful reconciliation:`))
+			Eventually(appStatus2).Should(gbytes.Say(`gitrepository/` + appName2))
+			Eventually(appStatus2).Should(gbytes.Say(`kustomization/` + appName2))
 		})
 
 		By("When I check for apps list", func() {
