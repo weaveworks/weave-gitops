@@ -124,20 +124,19 @@ func waitForNamespaceToTerminate(namespace string, timeout time.Duration) error 
 	return fmt.Errorf("Error: Failed to terminate the namespace %s", namespace)
 }
 
-func deletePersistingHelmApp(namespace string, workloadName string, timeout time.Duration) error {
+func deletePersistingHelmApp(namespace string, workloadName string, timeout time.Duration) {
 	//check if application exists before cleaning up
 	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl get -n %s pod/%s", namespace, workloadName))
 	if err != nil {
 		fmt.Println("No workloads exist under the namespace: " + namespace + ", nothing to clean — skipping...")
 	} else {
 		log.Infof("Found persisting helm workload under the namespace: " + namespace + ", cleaning up...")
-		runCommandPassThroughWithoutOutput([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmreleases.helm.toolkit.fluxcd.io --all", namespace))
-		runCommandPassThroughWithoutOutput([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmcharts.source.toolkit.fluxcd.io --all", namespace))
-		runCommandPassThroughWithoutOutput([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmrepositories.source.toolkit.fluxcd.io --all", namespace))
-		runCommandPassThroughWithoutOutput([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete apps -n %s --all", namespace))
-		runCommandPassThroughWithoutOutput([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=delete pod/%s -n %s --timeout=%s", workloadName, namespace, timeout))
+		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmreleases.helm.toolkit.fluxcd.io --all", namespace))
+		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmcharts.source.toolkit.fluxcd.io --all", namespace))
+		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmrepositories.source.toolkit.fluxcd.io --all", namespace))
+		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete apps -n %s --all", namespace))
+		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=delete pod/%s -n %s --timeout=%s", workloadName, namespace, timeout))
 	}
-	return fmt.Errorf("Error: Failed to terminate the application %s", workloadName)
 }
 
 func uninstallWegoRuntime(namespace string) {
