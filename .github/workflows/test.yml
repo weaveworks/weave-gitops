@@ -54,7 +54,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Debug - Print out git sha
-      run: echo {{ github.sha }}
+      run: echo ${{ github.sha }}
     - name: Get git sha
       run: git rev-parse --short HEAD
     - name: Debug - Print out git changes right after checkout code
