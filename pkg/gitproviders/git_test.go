@@ -8,9 +8,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestGit(t *testing.T) {
+func TestGitProviders(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Git Tests")
+	RunSpecs(t, "GitProviders Tests")
 }
 
 var _ = Describe("Gitlab Tests", func() {
@@ -24,7 +24,15 @@ var _ = Describe("Gitlab Tests", func() {
 })
 
 var _ = Describe("Github Tests", func() {
+
+	var token_backup string
+	BeforeEach(func() {
+		token_backup = os.Getenv("GITHUB_TOKEN")
+	})
+
 	AfterEach(func() {
+		err := os.Setenv("GITHUB_TOKEN", token_backup)
+		Expect(err).To(BeNil())
 		SetGithubProvider(nil)
 	})
 
@@ -33,20 +41,17 @@ var _ = Describe("Github Tests", func() {
 			err := os.Setenv("GITHUB_TOKEN", "dummy")
 			Expect(err).To(BeNil())
 			client, err := GithubProvider()
-			Expect(err).To(BeNil())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(client).To(Not(BeNil()))
 		})
 	})
 	It("Verify that we fail to create a provider for github if token not set", func() {
 		By("Invoking the creation function", func() {
-			tokenval := os.Getenv("GITHUB_TOKEN")
 			err := os.Unsetenv("GITHUB_TOKEN")
 			Expect(err).To(BeNil())
 			client, err := GithubProvider()
 			Expect(err).To(Not(BeNil()))
 			Expect(client).To(BeNil())
-			err = os.Setenv("GITHUB_TOKEN", tokenval)
-			Expect(err).To(BeNil())
 		})
 	})
 })

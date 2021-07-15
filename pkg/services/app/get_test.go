@@ -1,4 +1,4 @@
-package app_test
+package app
 
 import (
 	"context"
@@ -17,9 +17,8 @@ var _ = Describe("Get", func() {
 			}, nil
 		}
 
-		a, err := appSrv.Get(types.NamespacedName{Name: defaultParams.Name, Namespace: defaultParams.Namespace})
+		a, err := appSrv.Get(types.NamespacedName{Name: "my-app", Namespace: "my-namespace"})
 		Expect(err).ShouldNot(HaveOccurred())
-
 		Expect(a.Spec.Path).To(Equal("bar"))
 	})
 })

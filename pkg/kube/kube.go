@@ -11,8 +11,15 @@ import (
 	"github.com/pkg/errors"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 )
+
+type Resource interface {
+	metav1.Object
+	runtime.Object
+}
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
@@ -50,6 +57,7 @@ type Kube interface {
 	GetClusterStatus(ctx context.Context) ClusterStatus
 	LabelExistsInCluster(ctx context.Context, label string) error
 	GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error)
+	GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error
 }
 
 type KubeClient struct {
@@ -109,16 +117,18 @@ func (k *KubeClient) GetClusterName(ctx context.Context) (string, error) {
 
 func (k *KubeClient) GetClusterStatus(ctx context.Context) ClusterStatus {
 	// Checking wego presence
-	if k.resourceLookup("get crd apps.wego.weave.works") == nil {
+	if _, err := k.runKubectlCmd([]string{"get", "crd", "apps.wego.weave.works"}); err == nil {
 		return WeGOInstalled
 	}
 
 	// Checking flux presence
-	if k.resourceLookup("get namespace flux-system") == nil {
+	if _, err := k.runKubectlCmd([]string{"get", "namespace", "flux-system"}); err == nil {
 		return FluxInstalled
 	}
 
-	if k.resourceLookup("get deployment coredns -n kube-system") == nil {
+	hostPortError := "was refused - did you specify the right host or port?"
+	if out, err := k.runKubectlCmd([]string{"get", "deployment", "coredns", "-n", "kube-system"}); err == nil ||
+		!strings.Contains(string(out), hostPortError) {
 		return Unmodified
 	}
 
@@ -152,7 +162,7 @@ func (k *KubeClient) SecretPresent(ctx context.Context, secretName, namespace st
 }
 
 func (k *KubeClient) GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error) {
-	cmd := []string{"get", "app", name.Name, "-o", "json"}
+	cmd := []string{"get", "app", name.Name, "-n", name.Namespace, "-o", "json"}
 	o, err := k.runKubectlCmd(cmd)
 
 	if err != nil {
@@ -183,13 +193,8 @@ func (k *KubeClient) GetApplications(ctx context.Context, ns string) ([]wego.App
 	return a.Items, nil
 }
 
-func (k *KubeClient) resourceLookup(args string) error {
-	_, err := k.runKubectlCmd(strings.Split(args, " "))
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (k *KubeClient) GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error {
+	return errors.New("method not implemented, use the go-client implementation of the kube interface")
 }
 
 func (k *KubeClient) runKubectlCmd(args []string) ([]byte, error) {

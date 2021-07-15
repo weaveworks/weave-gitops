@@ -22,13 +22,20 @@ import (
 
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+const ApplicationKind = "Application"
+
 // ApplicationSpec defines the desired state of Application
 type ApplicationSpec struct {
 	// URL is the address of the git repository for this application
 	URL string `json:"url,omitempty"`
 	// Path is the path in the repository where the k8s yaml files for this application are stored.
 	Path string `json:"path,omitempty"`
+	// DeploymentType is the deployment method used to apply the manifests
+	DeploymentType DeploymentType `json:"deployment_type,omitempty"`
 }
+
+// +kubebuilder:validation:Enum=helm;kustomize
+type DeploymentType string
 
 // ApplicationStatus defines the observed state of Application
 type ApplicationStatus struct {

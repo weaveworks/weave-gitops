@@ -7,6 +7,7 @@ package acceptance
 import (
 	"fmt"
 	"os"
+	"regexp"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -990,7 +991,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
 			Expect(folderOutput).Should(ContainSubstring("apps"))
 			Expect(folderOutput).Should(ContainSubstring("targets"))
-		})
 	})
 
 	//deployment-type=default h | url=helmrepo | chart=helmchart | app-config-url=NONE
@@ -1029,7 +1029,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		var repoAbsolutePath string
 		tip := generateTestInputs()
 		appName := tip.appRepoName
-
+    prLink := ""
+    
 		addCommand := "app add . --name=" + appName + " --auto-merge=false"
 
 		defer deleteRepo(tip.appRepoName)
@@ -1056,7 +1057,9 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("When I run wego app add command for app", func() {
-			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+			output, _ := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+			re := regexp.MustCompile(`(http|ftp|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?`)
+			prLink = re.FindAllString(output, -1)[0]
 		})
 
 		By("Then I should see a PR created in user repo", func() {
@@ -1064,7 +1067,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("When I merge the created PR", func() {
-			mergePR(repoAbsolutePath)
+			mergePR(repoAbsolutePath, prLink)
 		})
 
 		By("Then I should see my workload deployed to the cluster", func() {
@@ -1077,6 +1080,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var appConfigRepoAbsPath string
+    prLink := ""
 		private := true
 		tip := generateTestInputs()
 		appName := tip.appRepoName
@@ -1113,7 +1117,9 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("And I run wego add command with --app-config-url param", func() {
-			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+			output, _ := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+			re := regexp.MustCompile(`(http|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?`)
+			prLink = re.FindAllString(output, 1)[0]
 		})
 
 		By("Then I should see a PR created for external repo", func() {
