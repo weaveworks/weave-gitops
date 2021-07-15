@@ -53,6 +53,10 @@ jobs:
         go-version: 1.16.x
     - name: Checkout code
       uses: actions/checkout@v2
+    - name: Debug - Print out git changes right after checkout code
+      run: |
+        git status
+        git --no-pager log -n10
     - name: Clean
       run: make clean
     - name: build
