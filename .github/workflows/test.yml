@@ -62,8 +62,8 @@ jobs:
     - name: Store wego binaries
       uses: actions/upload-artifact@v2
       with:
-          name: wego-binaries
-          path: bin-${{ github.run_id }}
+          name: wego-binaries ${{ github.run_id }}
+          path: bin
           retention-days: 1
 
   test:
