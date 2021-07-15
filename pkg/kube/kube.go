@@ -11,8 +11,15 @@ import (
 	"github.com/pkg/errors"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 )
+
+type Resource interface {
+	metav1.Object
+	runtime.Object
+}
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
@@ -50,6 +57,7 @@ type Kube interface {
 	GetClusterStatus(ctx context.Context) ClusterStatus
 	LabelExistsInCluster(ctx context.Context, label string) error
 	GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error)
+	GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error
 }
 
 type KubeClient struct {
@@ -154,7 +162,7 @@ func (k *KubeClient) SecretPresent(ctx context.Context, secretName, namespace st
 }
 
 func (k *KubeClient) GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error) {
-	cmd := []string{"get", "app", name.Name, "-o", "json"}
+	cmd := []string{"get", "app", name.Name, "-n", name.Namespace, "-o", "json"}
 	o, err := k.runKubectlCmd(cmd)
 
 	if err != nil {
@@ -183,6 +191,10 @@ func (k *KubeClient) GetApplications(ctx context.Context, ns string) ([]wego.App
 	}
 
 	return a.Items, nil
+}
+
+func (k *KubeClient) GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error {
+	return errors.New("method not implemented, use the go-client implementation of the kube interface")
 }
 
 func (k *KubeClient) runKubectlCmd(args []string) ([]byte, error) {

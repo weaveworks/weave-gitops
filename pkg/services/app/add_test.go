@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/go-git/go-billy/v5/memfs"
 	gogit "github.com/go-git/go-git/v5"
@@ -13,57 +12,30 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
 	"github.com/weaveworks/weave-gitops/pkg/git"
-	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"sigs.k8s.io/yaml"
 )
 
-var (
-	gitClient    *gitfakes.FakeGit
-	fluxClient   *fluxfakes.FakeFlux
-	kubeClient   *kubefakes.FakeKube
-	gitProviders *gitprovidersfakes.FakeGitProviderHandler
-
-	appSrv        AppService
-	defaultParams AddParams
-)
-
-var _ = BeforeEach(func() {
-	gitClient = &gitfakes.FakeGit{}
-	fluxClient = &fluxfakes.FakeFlux{}
-	kubeClient = &kubefakes.FakeKube{
-		GetClusterNameStub: func(ctx context.Context) (string, error) {
-			return "test-cluster", nil
-		},
-		GetClusterStatusStub: func(ctx context.Context) kube.ClusterStatus {
-			return kube.WeGOInstalled
-		},
-	}
-	gitProviders = &gitprovidersfakes.FakeGitProviderHandler{}
-
-	appSrv = New(logger.New(os.Stderr), gitClient, fluxClient, kubeClient, gitProviders)
-
-	defaultParams = AddParams{
-		Url:            "https://github.com/foo/bar",
-		Path:           "./kustomize",
-		Branch:         "main",
-		Dir:            ".",
-		DeploymentType: "kustomize",
-		Namespace:      "wego-system",
-		AppConfigUrl:   "NONE",
-		AutoMerge:      true,
-	}
-})
+var addParams AddParams
 
 var _ = Describe("Add", func() {
+	var _ = BeforeEach(func() {
+		addParams = AddParams{
+			Url:            "https://github.com/foo/bar",
+			Path:           "./kustomize",
+			Branch:         "main",
+			Dir:            ".",
+			DeploymentType: "kustomize",
+			Namespace:      "wego-system",
+			AppConfigUrl:   "NONE",
+			AutoMerge:      true,
+		}
+	})
+
 	It("checks for cluster status", func() {
-		err := appSrv.Add(defaultParams)
+		err := appSrv.Add(addParams)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		Expect(kubeClient.GetClusterStatusCallCount()).To(Equal(1))
@@ -71,18 +43,18 @@ var _ = Describe("Add", func() {
 		kubeClient.GetClusterStatusStub = func(ctx context.Context) kube.ClusterStatus {
 			return kube.Unmodified
 		}
-		err = appSrv.Add(defaultParams)
+		err = appSrv.Add(addParams)
 		Expect(err).To(MatchError("Wego not installed... exiting"))
 
 		kubeClient.GetClusterStatusStub = func(ctx context.Context) kube.ClusterStatus {
 			return kube.Unknown
 		}
-		err = appSrv.Add(defaultParams)
+		err = appSrv.Add(addParams)
 		Expect(err).To(MatchError("Wego can not determine cluster status... exiting"))
 	})
 
 	It("gets the cluster name", func() {
-		err := appSrv.Add(defaultParams)
+		err := appSrv.Add(addParams)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		Expect(kubeClient.GetClusterNameCallCount()).To(Equal(1))
@@ -93,7 +65,7 @@ var _ = Describe("Add", func() {
 			return []byte("deploy key"), nil
 		}
 
-		err := appSrv.Add(defaultParams)
+		err := appSrv.Add(addParams)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(1))
@@ -111,7 +83,7 @@ var _ = Describe("Add", func() {
 
 	Describe("checks for existing deploy key before creating secret", func() {
 		It("looks up deploy key and skips creating secret if found", func() {
-			defaultParams.SourceType = string(SourceTypeGit)
+			addParams.SourceType = string(SourceTypeGit)
 
 			gitProviders.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
 				return true, nil
@@ -121,7 +93,7 @@ var _ = Describe("Add", func() {
 				return true, nil
 			}
 
-			err := appSrv.Add(defaultParams)
+			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(0))
 			Expect(gitProviders.UploadDeployKeyCallCount()).To(Equal(0))
@@ -130,9 +102,9 @@ var _ = Describe("Add", func() {
 		})
 
 		It("looks up deploy key and creates secret if not found", func() {
-			defaultParams.SourceType = string(SourceTypeGit)
+			addParams.SourceType = string(SourceTypeGit)
 
-			err := appSrv.Add(defaultParams)
+			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(1))
 			Expect(gitProviders.UploadDeployKeyCallCount()).To(Equal(1))
@@ -144,10 +116,10 @@ var _ = Describe("Add", func() {
 	Context("add app with no config repo", func() {
 		Describe("avoids deploy key for helm", func() {
 			It("skips secret creation and lookup when source type is helm", func() {
-				defaultParams.Url = "https://charts.kube-ops.io"
-				defaultParams.Chart = "loki"
+				addParams.Url = "https://charts.kube-ops.io"
+				addParams.Chart = "loki"
 
-				err := appSrv.Add(defaultParams)
+				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(0))
 				Expect(gitProviders.UploadDeployKeyCallCount()).To(Equal(0))
@@ -158,9 +130,9 @@ var _ = Describe("Add", func() {
 
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
-				defaultParams.SourceType = string(SourceTypeGit)
+				addParams.SourceType = string(SourceTypeGit)
 
-				err := appSrv.Add(defaultParams)
+				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(fluxClient.CreateSourceGitCallCount()).To(Equal(1))
@@ -174,10 +146,10 @@ var _ = Describe("Add", func() {
 			})
 
 			It("creates HelmRepository when source type is helm", func() {
-				defaultParams.Url = "https://charts.kube-ops.io"
-				defaultParams.Chart = "loki"
+				addParams.Url = "https://charts.kube-ops.io"
+				addParams.Chart = "loki"
 
-				err := appSrv.Add(defaultParams)
+				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(fluxClient.CreateSourceHelmCallCount()).To(Equal(1))
 
@@ -190,7 +162,7 @@ var _ = Describe("Add", func() {
 
 		Describe("generates application goat", func() {
 			It("creates a kustomization if deployment type kustomize", func() {
-				err := appSrv.Add(defaultParams)
+				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(fluxClient.CreateKustomizationCallCount()).To(Equal(1))
@@ -203,9 +175,9 @@ var _ = Describe("Add", func() {
 			})
 
 			It("creates helm release using a helm repository if source type is helm", func() {
-				defaultParams.Chart = "loki"
+				addParams.Chart = "loki"
 
-				err := appSrv.Add(defaultParams)
+				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(fluxClient.CreateHelmReleaseHelmRepositoryCallCount()).To(Equal(1))
@@ -217,10 +189,10 @@ var _ = Describe("Add", func() {
 			})
 
 			It("creates a helm release using a git source if source type is git", func() {
-				defaultParams.Path = "./charts/my-chart"
-				defaultParams.DeploymentType = string(DeployTypeHelm)
+				addParams.Path = "./charts/my-chart"
+				addParams.DeploymentType = string(DeployTypeHelm)
 
-				err := appSrv.Add(defaultParams)
+				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(fluxClient.CreateHelmReleaseGitRepositoryCallCount()).To(Equal(1))
@@ -233,9 +205,9 @@ var _ = Describe("Add", func() {
 			})
 
 			It("fails if deployment type is invalid", func() {
-				defaultParams.DeploymentType = "foo"
+				addParams.DeploymentType = "foo"
 
-				err := appSrv.Add(defaultParams)
+				err := appSrv.Add(addParams)
 				Expect(err).Should(HaveOccurred())
 			})
 		})
@@ -248,7 +220,7 @@ var _ = Describe("Add", func() {
 				return []byte("kustomization"), nil
 			}
 
-			err := appSrv.Add(defaultParams)
+			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(kubeClient.ApplyCallCount()).To(Equal(3))
@@ -269,8 +241,8 @@ var _ = Describe("Add", func() {
 
 	Context("add app with config in app repo", func() {
 		BeforeEach(func() {
-			defaultParams.Url = ""
-			defaultParams.AppConfigUrl = ""
+			addParams.Url = ""
+			addParams.AppConfigUrl = ""
 
 			gitClient.OpenStub = func(s string) (*gogit.Repository, error) {
 				r, err := gogit.Init(memory.NewStorage(), memfs.New())
@@ -287,10 +259,10 @@ var _ = Describe("Add", func() {
 
 		Describe("avoids deploy key for helm", func() {
 			It("skips secret creation and lookup when source type is helm", func() {
-				defaultParams.Url = "https://charts.kube-ops.io"
-				defaultParams.Chart = "loki"
+				addParams.Url = "https://charts.kube-ops.io"
+				addParams.Chart = "loki"
 
-				err := appSrv.Add(defaultParams)
+				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(0))
 				Expect(gitProviders.UploadDeployKeyCallCount()).To(Equal(0))
@@ -301,9 +273,9 @@ var _ = Describe("Add", func() {
 
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
-				defaultParams.SourceType = string(SourceTypeGit)
+				addParams.SourceType = string(SourceTypeGit)
 
-				err := appSrv.Add(defaultParams)
+				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(fluxClient.CreateSourceGitCallCount()).To(Equal(1))
@@ -317,10 +289,10 @@ var _ = Describe("Add", func() {
 			})
 
 			It("creates HelmRepository when source type is helm", func() {
-				defaultParams.Url = "https://charts.kube-ops.io"
-				defaultParams.Chart = "loki"
+				addParams.Url = "https://charts.kube-ops.io"
+				addParams.Chart = "loki"
 
-				err := appSrv.Add(defaultParams)
+				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(fluxClient.CreateSourceHelmCallCount()).To(Equal(1))
@@ -334,7 +306,7 @@ var _ = Describe("Add", func() {
 
 		Describe("generates application goat", func() {
 			It("creates a kustomization if deployment type kustomize", func() {
-				err := appSrv.Add(defaultParams)
+				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(fluxClient.CreateKustomizationCallCount()).To(Equal(3))
@@ -359,9 +331,9 @@ var _ = Describe("Add", func() {
 			})
 
 			It("creates helm release using a helm repository if source type is helm", func() {
-				defaultParams.Chart = "loki"
+				addParams.Chart = "loki"
 
-				err := appSrv.Add(defaultParams)
+				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(fluxClient.CreateHelmReleaseHelmRepositoryCallCount()).To(Equal(1))
@@ -373,10 +345,10 @@ var _ = Describe("Add", func() {
 			})
 
 			It("creates a helm release using a git source if source type is git", func() {
-				defaultParams.Path = "./charts/my-chart"
-				defaultParams.DeploymentType = string(DeployTypeHelm)
+				addParams.Path = "./charts/my-chart"
+				addParams.DeploymentType = string(DeployTypeHelm)
 
-				err := appSrv.Add(defaultParams)
+				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(fluxClient.CreateHelmReleaseGitRepositoryCallCount()).To(Equal(1))
@@ -389,9 +361,9 @@ var _ = Describe("Add", func() {
 			})
 
 			It("fails if deployment type is invalid", func() {
-				defaultParams.DeploymentType = "foo"
+				addParams.DeploymentType = "foo"
 
-				err := appSrv.Add(defaultParams)
+				err := appSrv.Add(addParams)
 				Expect(err).Should(HaveOccurred())
 			})
 		})
@@ -404,7 +376,7 @@ var _ = Describe("Add", func() {
 				return []byte("kustomization"), nil
 			}
 
-			err := appSrv.Add(defaultParams)
+			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(kubeClient.ApplyCallCount()).To(Equal(2))
@@ -420,11 +392,11 @@ var _ = Describe("Add", func() {
 
 		Context("when using URL", func() {
 			BeforeEach(func() {
-				defaultParams.Url = "ssh://git@github.com/foo/bar.git"
+				addParams.Url = "ssh://git@github.com/foo/bar.git"
 			})
 
 			It("clones the repo to a temp dir", func() {
-				err := appSrv.Add(defaultParams)
+				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(gitClient.CloneCallCount()).To(Equal(1))
@@ -444,7 +416,7 @@ var _ = Describe("Add", func() {
 				return []byte("kustomization"), nil
 			}
 
-			err := appSrv.Add(defaultParams)
+			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(gitClient.WriteCallCount()).To(Equal(2))
@@ -459,7 +431,7 @@ var _ = Describe("Add", func() {
 		})
 
 		It("commit and pushes the files", func() {
-			err := appSrv.Add(defaultParams)
+			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(gitClient.CommitCallCount()).To(Equal(1))
@@ -476,15 +448,15 @@ var _ = Describe("Add", func() {
 
 	Context("add app with external config repo", func() {
 		BeforeEach(func() {
-			defaultParams.Url = "https://github.com/user/repo"
-			defaultParams.AppConfigUrl = "https://github.com/foo/bar"
+			addParams.Url = "https://github.com/user/repo"
+			addParams.AppConfigUrl = "https://github.com/foo/bar"
 		})
 
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
-				defaultParams.SourceType = string(SourceTypeGit)
+				addParams.SourceType = string(SourceTypeGit)
 
-				err := appSrv.Add(defaultParams)
+				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(fluxClient.CreateSourceGitCallCount()).To(Equal(2))
@@ -505,10 +477,10 @@ var _ = Describe("Add", func() {
 			})
 
 			It("creates HelmRepository when source type is helm", func() {
-				defaultParams.Url = "https://charts.kube-ops.io"
-				defaultParams.Chart = "loki"
+				addParams.Url = "https://charts.kube-ops.io"
+				addParams.Chart = "loki"
 
-				err := appSrv.Add(defaultParams)
+				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(fluxClient.CreateSourceHelmCallCount()).To(Equal(1))
@@ -562,7 +534,7 @@ var _ = Describe("Add", func() {
 
 		Describe("generates application goat", func() {
 			It("creates a kustomization if deployment type kustomize", func() {
-				err := appSrv.Add(defaultParams)
+				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(fluxClient.CreateKustomizationCallCount()).To(Equal(3))
@@ -581,9 +553,9 @@ var _ = Describe("Add", func() {
 			})
 
 			It("creates helm release using a helm repository if source type is helm", func() {
-				defaultParams.Chart = "loki"
+				addParams.Chart = "loki"
 
-				err := appSrv.Add(defaultParams)
+				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(fluxClient.CreateHelmReleaseHelmRepositoryCallCount()).To(Equal(1))
@@ -595,10 +567,10 @@ var _ = Describe("Add", func() {
 			})
 
 			It("creates a helm release using a git source if source type is git", func() {
-				defaultParams.Path = "./charts/my-chart"
-				defaultParams.DeploymentType = string(DeployTypeHelm)
+				addParams.Path = "./charts/my-chart"
+				addParams.DeploymentType = string(DeployTypeHelm)
 
-				err := appSrv.Add(defaultParams)
+				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(fluxClient.CreateHelmReleaseGitRepositoryCallCount()).To(Equal(1))
@@ -611,9 +583,9 @@ var _ = Describe("Add", func() {
 			})
 
 			It("fails if deployment type is invalid", func() {
-				defaultParams.DeploymentType = "foo"
+				addParams.DeploymentType = "foo"
 
-				err := appSrv.Add(defaultParams)
+				err := appSrv.Add(addParams)
 				Expect(err).Should(HaveOccurred())
 			})
 		})
@@ -626,7 +598,7 @@ var _ = Describe("Add", func() {
 				return []byte("kustomization"), nil
 			}
 
-			err := appSrv.Add(defaultParams)
+			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(kubeClient.ApplyCallCount()).To(Equal(2))
@@ -641,7 +613,7 @@ var _ = Describe("Add", func() {
 		})
 
 		It("clones the repo to a temp dir", func() {
-			err := appSrv.Add(defaultParams)
+			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(gitClient.CloneCallCount()).To(Equal(1))
@@ -660,7 +632,7 @@ var _ = Describe("Add", func() {
 				return []byte("kustomization"), nil
 			}
 
-			err := appSrv.Add(defaultParams)
+			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(gitClient.WriteCallCount()).To(Equal(2))
@@ -675,7 +647,7 @@ var _ = Describe("Add", func() {
 		})
 
 		It("commit and pushes the files", func() {
-			err := appSrv.Add(defaultParams)
+			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(gitClient.CommitCallCount()).To(Equal(1))
@@ -692,10 +664,10 @@ var _ = Describe("Add", func() {
 
 	Context("when using dry-run", func() {
 		It("doesnt execute any action", func() {
-			defaultParams.DryRun = true
-			defaultParams.AutoMerge = true
+			addParams.DryRun = true
+			addParams.AutoMerge = true
 
-			err := appSrv.Add(defaultParams)
+			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(0))

@@ -22,20 +22,13 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-type DeploymentType string
-type SourceType string
 type ConfigType string
 
 const (
-	DeployTypeKustomize DeploymentType = "kustomize"
-	DeployTypeHelm      DeploymentType = "helm"
+	ConfigTypeUserRepo ConfigType = ""
+	ConfigTypeNone     ConfigType = "NONE"
 
-	SourceTypeGit  SourceType = "git"
-	SourceTypeHelm SourceType = "helm"
-
-	ConfigTypeUserRepo        ConfigType = ""
-	ConfigTypeNone            ConfigType = "NONE"
-	WeGOAppIdentifierLabelKey            = "weave-gitops.weave.works/app-identifier"
+	WeGOAppIdentifierLabelKey = "weave-gitops.weave.works/app-identifier"
 )
 
 type AddParams struct {
@@ -565,8 +558,9 @@ func makeWegoApplication(params AddParams) wego.Application {
 			Namespace: params.Namespace,
 		},
 		Spec: wego.ApplicationSpec{
-			URL:  params.Url,
-			Path: params.Path,
+			URL:            params.Url,
+			Path:           params.Path,
+			DeploymentType: wego.DeploymentType(params.DeploymentType),
 		},
 	}
 
