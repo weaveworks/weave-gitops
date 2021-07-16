@@ -681,7 +681,7 @@ var _ = Describe("Add", func() {
 			addParams.Url = "https://github.com/owner/repo1"
 			addParams.Chart = "nginx"
 			addParams.Branch = "main"
-			addParams.SourceType = string(DeployTypeHelm)
+			addParams.DeploymentType = string(DeployTypeHelm)
 
 			appHash, err := getAppHash(addParams)
 			Expect(err).NotTo(HaveOccurred())
