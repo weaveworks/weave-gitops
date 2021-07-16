@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -323,29 +324,46 @@ func generateTestInputs() TestInputs {
 	return inputs
 }
 
-func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
+func createRepository(appRepoName string, IsPrivateRepo bool) string {
 	repoAbsolutePath := "/tmp/" + appRepoName
 	privateRepo := ""
 	if IsPrivateRepo {
 		privateRepo = "-p"
 	}
-	command := exec.Command("sh", "-c", fmt.Sprintf(`
-                            mkdir %s &&
-                            cd %s &&
-                            git init &&
-                            git checkout -b main &&
-                            hub create %s %s`, repoAbsolutePath, repoAbsolutePath, GITHUB_ORG+"/"+appRepoName, privateRepo))
+	cmdArgs := fmt.Sprintf(`hub create %s %s`, GITHUB_ORG+"/"+appRepoName, privateRepo)
+	command := exec.Command("sh", "-c", cmdArgs)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
 
 	Expect(utils.WaitUntil(os.Stdout, time.Second, 20*time.Second, func() error {
-		cmd := fmt.Sprintf(`hub api repos/%s/%s`, os.Getenv("GITHUB_ORG"), appRepoName)
+		cmd := fmt.Sprintf(`hub api repos/%s/%s`, GITHUB_ORG, appRepoName)
 		command := exec.Command("sh", "-c", cmd)
 		return command.Run()
 	})).ShouldNot(HaveOccurred())
 
 	return repoAbsolutePath
+}
+
+func cloneAndInitEmptyRepo(appRepoName string) {
+	repoAbsolutePath := "/tmp/" + appRepoName
+	command := exec.Command("sh", "-c", fmt.Sprintf(`
+                            hub clone %s %s
+                            git checkout -b main`, GITHUB_ORG+"/"+appRepoName, repoAbsolutePath))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+
+	err = ioutil.WriteFile(repoAbsolutePath+"/pushTest", []byte(""), 0755)
+	Expect(err).NotTo(HaveOccurred())
+
+	cmdArgs := fmt.Sprintf("git add %s && git commit -m \"pus test\"", repoAbsolutePath+"/pushTest")
+	Expect(exec.Command("sh", "-c", cmdArgs).Run()).NotTo(HaveOccurred())
+
+	Expect(utils.WaitUntil(os.Stdout, time.Second, 20*time.Second, func() error {
+		command = exec.Command("sh", "-c", "git push")
+		return command.Run()
+	})).ShouldNot(HaveOccurred())
 }
 
 func createSubDir(subDirName string, repoAbsolutePath string) string {
