@@ -674,4 +674,40 @@ var _ = Describe("Add", func() {
 			Expect(kubeClient.ApplyCallCount()).To(Equal(0))
 		})
 	})
+
+	Describe("Test app hash", func() {
+		It("should return right hash for a helm app", func() {
+
+			addParams.Url = "https://github.com/owner/repo1"
+			addParams.Chart = "nginx"
+			addParams.Branch = "main"
+			addParams.SourceType = string(DeployTypeHelm)
+
+			appHash, err := getAppHash(addParams)
+			Expect(err).NotTo(HaveOccurred())
+
+			expectedHash, err := utils.GetAppHash(addParams.Url, addParams.Chart, addParams.Branch)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(appHash).To(Equal(expectedHash))
+
+		})
+
+		It("should return right hash for a kustomize app", func() {
+
+			addParams.Url = "https://github.com/owner/repo1"
+			addParams.Path = "custompath"
+			addParams.Branch = "main"
+			addParams.DeploymentType = string(DeployTypeKustomize)
+
+			appHash, err := getAppHash(addParams)
+			Expect(err).NotTo(HaveOccurred())
+
+			expectedHash, err := utils.GetAppHash(addParams.Url, addParams.Path, addParams.Branch)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(appHash).To(Equal(expectedHash))
+
+		})
+	})
 })

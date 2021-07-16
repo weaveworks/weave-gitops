@@ -113,7 +113,7 @@ func (a *App) Add(params AddParams) error {
 		return errors.Wrap(err, "could not generate deploy key")
 	}
 
-	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
+	appHash, err := getAppHash(params)
 	if err != nil {
 		return err
 	}
@@ -130,6 +130,23 @@ func (a *App) Add(params AddParams) error {
 	default:
 		return a.addAppWithConfigInExternalRepo(params, clusterName, secretRef, appHash)
 	}
+}
+
+func getAppHash(params AddParams) (string, error) {
+	var appHash string
+	var err error
+	if DeploymentType(params.DeploymentType) == DeployTypeHelm {
+		appHash, err = utils.GetAppHash(params.Url, params.Chart, params.Branch)
+		if err != nil {
+			return "", err
+		}
+	} else {
+		appHash, err = utils.GetAppHash(params.Url, params.Path, params.Branch)
+		if err != nil {
+			return "", err
+		}
+	}
+	return appHash, nil
 }
 
 func (a *App) printAddSummary(params AddParams) {
