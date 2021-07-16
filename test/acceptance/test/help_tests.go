@@ -9,7 +9,8 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("WEGO Help Tests", func() {
+//Disabling WEGO Help Tests Suite Until Further Notice...
+var _ = XDescribe("WEGO Help Tests", func() {
 
 	var sessionOutput *gexec.Session
 	var stringOutput string
