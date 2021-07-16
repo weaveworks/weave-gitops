@@ -494,22 +494,23 @@ var _ = Describe("Add", func() {
 
 		Describe("generateAppYaml", func() {
 			It("generates the app yaml", func() {
+				repoURL := "ssh://git@github.com/example/my-source"
 				params := AddParams{
 					Name:      "my-app",
 					Namespace: "wego-system",
-					Url:       "ssh://git@github.com/example/my-source",
+					Url:       repoURL,
 					Path:      "manifests",
 					Branch:    "main",
 				}
-				repo := "some-repo"
 
 				desired2 := makeWegoApplication(params)
-				hash, err := utils.GetAppHash(repo, params.Path, params.Branch)
+				hash, err := utils.GetAppHash(repoURL, params.Path, params.Branch)
 				Expect(err).To(BeNil())
 
 				desired2.ObjectMeta.Labels = map[string]string{WeGOAppIdentifierLabelKey: hash}
 
-				out, err := generateAppYaml(params, repo)
+				Expect(err).NotTo(HaveOccurred())
+				out, err := generateAppYaml(params, hash)
 				Expect(err).To(BeNil())
 
 				result := wego.Application{}
