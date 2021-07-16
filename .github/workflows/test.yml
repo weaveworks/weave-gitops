@@ -51,15 +51,15 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
-    - name: Checkout code
-      uses: actions/checkout@v2
     - name: Debug
       run: |
         echo $GITHUB_REF
         echo $GITHUB_REF
         echo $GITHUB_HEAD_REF
-        git rev-parse origin/$GITHUB_HEAD_REF
         echo $GITHUB_BASE_REF
+        echo $GITHUB_SHA
+    - name: Checkout code
+      uses: actions/checkout@v2
     - name: Clean
       run: make clean
     - name: build
