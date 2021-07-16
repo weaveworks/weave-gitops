@@ -56,6 +56,8 @@ jobs:
       run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
     - name: Checkout code
       uses: actions/checkout@v2
+    - name: Print out GITHUB_SHA
+      run: echo ${GITHUB_SHA}
     - name: Check outputs
       run: echo ${{ steps.vars.outputs.sha_short }}
     - name: Debug - Print out git sha
