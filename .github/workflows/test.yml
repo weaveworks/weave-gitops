@@ -56,9 +56,9 @@ jobs:
     - name: Debug
       run: |
         echo $GITHUB_REF
-        git rev-parse $GITHUB_REF
-        git rev-parse $GITHUB_HEAD_REF
-        git rev-parse $GITHUB_BASE_REF
+        echo $GITHUB_REF
+        echo $GITHUB_HEAD_REF
+        echo $GITHUB_BASE_REF
     - name: Clean
       run: make clean
     - name: build
