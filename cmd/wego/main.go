@@ -72,17 +72,17 @@ func configureLogger() {
 	}
 }
 
-func main() {
-	fluxBin.SetupFluxBin()
-	rootCmd.PersistentFlags().BoolVarP(&options.verbose, "verbose", "v", false, "Enable verbose output")
-	rootCmd.PersistentFlags().String("namespace", "wego-system", "gitops runtime namespace")
-
 var ApplicationCmd = &cobra.Command {
 	Use:    "app [app Add or status application]",
 	Short:  "Add or status application",
 	Args:   cobra.MinimumNArgs(1),
 	DisableFlagParsing: true,
 }
+
+func main() {
+	fluxBin.SetupFluxBin()
+	rootCmd.PersistentFlags().BoolVarP(&options.verbose, "verbose", "v", false, "Enable verbose output")
+	rootCmd.PersistentFlags().String("namespace", "wego-system", "gitops runtime namespace")
 
 	rootCmd.AddCommand(gitops.Cmd)
 	rootCmd.AddCommand(version.Cmd)
