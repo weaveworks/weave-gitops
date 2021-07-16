@@ -325,44 +325,66 @@ func generateTestInputs() TestInputs {
 }
 
 func createRepository(appRepoName string, IsPrivateRepo bool) string {
-	repoAbsolutePath := "/tmp/" + appRepoName
+	fmt.Println("Creating repo")
+	repoAbsolutePath, err := ioutil.TempDir("", "repo-"+appRepoName)
+	Expect(err).NotTo(HaveOccurred())
 	privateRepo := ""
 	if IsPrivateRepo {
 		privateRepo = "-p"
 	}
-	cmdArgs := fmt.Sprintf(`hub create %s %s`, GITHUB_ORG+"/"+appRepoName, privateRepo)
-	command := exec.Command("sh", "-c", cmdArgs)
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
 
+	command := exec.Command("sh", "-c", "git init")
+	command.Dir = repoAbsolutePath
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Eventually(session).Should(gexec.Exit())
+	Expect(err).ShouldNot(HaveOccurred())
+
+	fmt.Println("Waiting repo creation")
+	Expect(utils.WaitUntil(os.Stdout, time.Second, 20*time.Second, func() error {
+		cmdArgs := fmt.Sprintf(`hub create %s %s`, GITHUB_ORG+"/"+appRepoName, privateRepo)
+		command = exec.Command("sh", "-c", cmdArgs)
+		command.Dir = repoAbsolutePath
+		session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Eventually(session).Should(gexec.Exit())
+		return err
+	})).ShouldNot(HaveOccurred())
+
+	fmt.Println("Waiting repo exists")
 	Expect(utils.WaitUntil(os.Stdout, time.Second, 20*time.Second, func() error {
 		cmd := fmt.Sprintf(`hub api repos/%s/%s`, GITHUB_ORG, appRepoName)
-		command := exec.Command("sh", "-c", cmd)
-		return command.Run()
+		command = exec.Command("sh", "-c", cmd)
+		command.Dir = repoAbsolutePath
+		session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Eventually(session).Should(gexec.Exit())
+		return err
 	})).ShouldNot(HaveOccurred())
 
 	return repoAbsolutePath
 }
 
-func cloneAndInitEmptyRepo(appRepoName string) {
-	repoAbsolutePath := "/tmp/" + appRepoName
-	command := exec.Command("sh", "-c", fmt.Sprintf(`
-                            hub clone %s %s
-                            git checkout -b main`, GITHUB_ORG+"/"+appRepoName, repoAbsolutePath))
+func cloneAndInitEmptyRepo(repoAbsolutePath, appRepoName string) {
+	fmt.Printf("Cloning and initializing repo\n\n")
+
+	err := ioutil.WriteFile(repoAbsolutePath+"/pushTest", []byte(""), 0755)
+	Expect(err).NotTo(HaveOccurred())
+
+	cmdArgs := fmt.Sprintf(`git add . && 
+					git commit -m "pus test" &&
+					git branch -M main &&
+					git push --set-upstream origin main`)
+	command := exec.Command("sh", "-c", cmdArgs)
+	command.Dir = repoAbsolutePath
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
 
-	err = ioutil.WriteFile(repoAbsolutePath+"/pushTest", []byte(""), 0755)
-	Expect(err).NotTo(HaveOccurred())
-
-	cmdArgs := fmt.Sprintf("git add %s && git commit -m \"pus test\"", repoAbsolutePath+"/pushTest")
-	Expect(exec.Command("sh", "-c", cmdArgs).Run()).NotTo(HaveOccurred())
-
 	Expect(utils.WaitUntil(os.Stdout, time.Second, 20*time.Second, func() error {
 		command = exec.Command("sh", "-c", "git push")
-		return command.Run()
+		command.Dir = repoAbsolutePath
+		session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Expect(err).ShouldNot(HaveOccurred())
+		Eventually(session).Should(gexec.Exit())
+		return err
 	})).ShouldNot(HaveOccurred())
 }
 
@@ -376,12 +398,15 @@ func createSubDir(subDirName string, repoAbsolutePath string) string {
 }
 
 func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf(`
-                            cp -r %s %s &&
-                            cd %s &&
+	fmt.Println("Adding file to repo")
+	cmdArgs := fmt.Sprintf(`
+                            cp -r %s . &&
                             git add . &&
                             git commit -m 'add workload manifest' &&
-                            git push -u origin main`, appManifestFilePath, repoAbsolutePath, repoAbsolutePath))
+                            git push`, appManifestFilePath)
+	fmt.Println("CmdArgs", cmdArgs)
+	command := exec.Command("sh", "-c", cmdArgs)
+	command.Dir = repoAbsolutePath
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
@@ -441,7 +466,8 @@ func runWegoAddCommand(repoAbsolutePath string, addCommand string, wegoNamespace
 }
 
 func runWegoAddCommandWithOutput(repoAbsolutePath string, addCommand string, wegoNamespace string) (string, string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand))
+	command := exec.Command("sh", "-c", fmt.Sprintf("%s %s", WEGO_BIN_PATH, addCommand))
+	command.Dir = repoAbsolutePath
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
