@@ -51,25 +51,12 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
-    - name: Debug - Print out git sha
-      run: echo ${{ github.sha }}
-    - name: Saving right latest sha
-      id: vars
-      run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+    - name: Debug
+      run: |
+        echo $GITHUB_REF
+        git rev-parse $GITHUB_REF
     - name: Checkout code
       uses: actions/checkout@v2
-    - name: Print out GITHUB_SHA
-      run: echo ${GITHUB_SHA}
-    - name: Check outputs
-      run: echo ${{ steps.vars.outputs.sha_short }}
-    - name: Debug - Print out git sha
-      run: echo ${{ github.sha }}
-    - name: Get git sha
-      run: git rev-parse --short HEAD
-    - name: Debug - Print out git changes right after checkout code
-      run: |
-        git status
-        git --no-pager log -n10
     - name: Clean
       run: make clean
     - name: build
@@ -77,12 +64,6 @@ jobs:
     - name: Print out wego version
       run: |
         bin/wego version
-    - name: Debug - Print out git changes
-      run: |
-        git status
-        git --no-pager log -n10
-    - name: Debug print out run_id
-      run: echo ${{ github.run_id }}
     - name: Store wego binaries
       uses: actions/upload-artifact@v2
       with:
