@@ -43,7 +43,7 @@ var Cmd = &cobra.Command{
   # Get status of podinfo application
   wego app status podinfo
 `,
-	RunE:    runCmd,
+	RunE:          runCmd,
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	PostRun: func(cmd *cobra.Command, args []string) {

@@ -368,11 +368,10 @@ func cloneAndInitEmptyRepo(repoAbsolutePath, appRepoName string) {
 	err := ioutil.WriteFile(repoAbsolutePath+"/pushTest", []byte(""), 0755)
 	Expect(err).NotTo(HaveOccurred())
 
-	cmdArgs := fmt.Sprintf(`git add . && 
+	command := exec.Command("sh", "-c", `git add . && 
 					git commit -m "pus test" &&
 					git branch -M main &&
 					git push --set-upstream origin main`)
-	command := exec.Command("sh", "-c", cmdArgs)
 	command.Dir = repoAbsolutePath
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())

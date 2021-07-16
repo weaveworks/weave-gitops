@@ -10,7 +10,7 @@ import (
 var ApplicationCmd = &cobra.Command{
 	Use:   "app",
 	Short: "Manages your applications",
-	Example:`
+	Example: `
   # Add an application to wego from local git repository
   wego app add . --name <app-name>
 
