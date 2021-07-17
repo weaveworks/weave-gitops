@@ -7,6 +7,7 @@ package acceptance
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 
 	. "github.com/onsi/ginkgo"
@@ -809,7 +810,9 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	It("SmokeTest - Verify that wego can deploy a helm app from a git repo with app-config-url set to NONE", func() {
 		var repoAbsolutePath string
 		private := true
-		appManifestFilePath := "./data/helm-repo/hello-world"
+		pwd, err := os.Getwd()
+		Expect(err).ShouldNot(HaveOccurred())
+		appManifestFilePath := filepath.Join(pwd, "data/helm-repo/hello-world")
 		appName := "my-helm-app"
 		appRepoName := "wego-test-app-" + RandString(8)
 
@@ -859,7 +862,9 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		var repoAbsolutePath string
 		public := false
 		appName := "my-helm-app"
-		appManifestFilePath := "./data/helm-repo/hello-world"
+		pwd, err := os.Getwd()
+		Expect(err).ShouldNot(HaveOccurred())
+		appManifestFilePath := filepath.Join(pwd, "data/helm-repo/hello-world")
 		appRepoName := "wego-test-app-" + RandString(8)
 
 		addCommand := "app add . --deployment-type=helm --path=./hello-world --name=" + appName + " --auto-merge=true"
