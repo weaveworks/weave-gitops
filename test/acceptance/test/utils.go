@@ -368,7 +368,7 @@ func cloneAndInitEmptyRepo(repoAbsolutePath, appRepoName string) {
 
 	fmt.Println("check0")
 	err := ioutil.WriteFile(filepath.Join(repoAbsolutePath, "pushTest"), []byte(""), 0755)
-	Expect(err).NotTo(HaveOccurred())
+	Expect(err).ShouldNot(HaveOccurred())
 
 	fmt.Println("check1")
 	command := exec.Command("sh", "-c", `git add . && 
@@ -414,7 +414,6 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
                             git add . &&
                             git commit -m 'add workload manifest' &&
                             git push`, appManifestFilePath)
-	fmt.Println("CmdArgs", cmdArgs)
 	command := exec.Command("sh", "-c", cmdArgs)
 	command.Dir = repoAbsolutePath
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
