@@ -934,7 +934,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("When I create a private repo for my config files", func() {
 			configRepoAbsolutePath = createRepository(configRepoName, private)
-			cloneAndInitEmptyRepo(repoAbsolutePath, configRepoName)
+			cloneAndInitEmptyRepo(configRepoAbsolutePath, configRepoName)
 			gitAddCommitPush(configRepoAbsolutePath, configRepoFiles)
 		})
 
