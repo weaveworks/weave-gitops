@@ -11,6 +11,7 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -363,25 +364,35 @@ func createRepository(appRepoName string, IsPrivateRepo bool) string {
 }
 
 func cloneAndInitEmptyRepo(repoAbsolutePath, appRepoName string) {
-	fmt.Printf("Cloning and initializing repo\n\n")
+	fmt.Println("Cloning and initializing repo")
 
-	err := ioutil.WriteFile(repoAbsolutePath+"/pushTest", []byte(""), 0755)
+	fmt.Println("check0")
+	err := ioutil.WriteFile(filepath.Join(repoAbsolutePath, "pushTest"), []byte(""), 0755)
 	Expect(err).NotTo(HaveOccurred())
 
+	fmt.Println("check1")
 	command := exec.Command("sh", "-c", `git add . && 
 					git commit -m "pus test" &&
 					git branch -M main &&
 					git push --set-upstream origin main`)
+	fmt.Println("check1.1")
 	command.Dir = repoAbsolutePath
+	fmt.Println("check1.2")
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	fmt.Println("check1.3")
 	Expect(err).ShouldNot(HaveOccurred())
+	fmt.Println("check1.4")
 	Eventually(session).Should(gexec.Exit())
 
+	fmt.Println("check2")
 	Expect(utils.WaitUntil(os.Stdout, time.Second, 20*time.Second, func() error {
+		fmt.Println("check2.1")
 		command = exec.Command("sh", "-c", "git push")
+		fmt.Println("check2.2")
 		command.Dir = repoAbsolutePath
+		fmt.Println("check2.3")
 		session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
+		fmt.Println("check2.4")
 		Eventually(session).Should(gexec.Exit())
 		return err
 	})).ShouldNot(HaveOccurred())
