@@ -1155,7 +1155,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("And I run wego add command with --app-config-url param", func() {
-			output, _ := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+			output, err := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+			Expect(err).NotTo(HaveOccurred())
 			re := regexp.MustCompile(`(http|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?`)
 			res := re.FindAllString(output, 1)
 			Expect(len(res) >= 1).To(Equal(true))
