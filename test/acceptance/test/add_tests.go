@@ -909,8 +909,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		var repoAbsolutePath string
 		var configRepoAbsolutePath string
 		private := true
-		appManifestFilePath := "./data/helm-repo/hello-world"
-		configRepoFiles := "./data/config-repo"
+		pwd, err := os.Getwd()
+		Expect(err).ShouldNot(HaveOccurred())
+		appManifestFilePath := filepath.Join(pwd, "./data/helm-repo/hello-world")
+		configRepoFiles := filepath.Join(pwd, "./data/config-repo")
 		appName := "my-helm-app"
 		appRepoName := "wego-test-app-" + RandString(8)
 		configRepoName := "wego-test-config-repo-" + RandString(8)
