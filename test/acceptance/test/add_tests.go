@@ -984,7 +984,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		private := true
 		appName := "loki"
 		workloadName := "loki-0"
-		readmeFilePath := "./data/README.md"
+
+		pwd, err := os.Getwd()
+		Expect(err).ShouldNot(HaveOccurred())
+		readmeFilePath := filepath.Join(pwd, "data/README.md")
 		appRepoName := "wego-test-app-" + RandString(8)
 		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
 		helmRepoURL := "https://charts.kube-ops.io"
