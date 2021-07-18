@@ -573,7 +573,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		private := true
 		tip1 := generateTestInputs()
 		tip2 := generateTestInputs()
-		readmeFilePath := "./data/README.md"
+
+		pwd, err := os.Getwd()
+		Expect(err).ShouldNot(HaveOccurred())
+		readmeFilePath := filepath.Join(pwd, "data/README.md")
 		appRepoName1 := "wego-test-app-" + RandString(8)
 		appRepoName2 := "wego-test-app-" + RandString(8)
 		appConfigRepoName := "wego-config-repo-" + RandString(8)
@@ -610,7 +613,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("When I create a private repo for wego app config", func() {
 			appConfigRepoAbsPath := createRepository(appConfigRepoName, private)
-			cloneAndInitEmptyRepo(repoAbsolutePath, appConfigRepoName)
+			cloneAndInitEmptyRepo(appConfigRepoAbsPath, appConfigRepoName)
 			gitAddCommitPush(appConfigRepoAbsPath, readmeFilePath)
 		})
 
