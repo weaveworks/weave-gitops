@@ -3,6 +3,8 @@ package app
 import (
 	"bytes"
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -136,17 +138,30 @@ func getAppHash(params AddParams) (string, error) {
 	var appHash string
 	var err error
 	if DeploymentType(params.DeploymentType) == DeployTypeHelm {
-		appHash, err = utils.GetHash(params.Url, params.Chart, params.Branch)
+		appHash, err = getHash(params.Url, params.Chart, params.Branch)
 		if err != nil {
 			return "", err
 		}
 	} else {
-		appHash, err = utils.GetHash(params.Url, params.Path, params.Branch)
+		appHash, err = getHash(params.Url, params.Path, params.Branch)
 		if err != nil {
 			return "", err
 		}
 	}
-	return appHash, nil
+	return "wego-" + appHash, nil
+}
+
+func getHash(inputs ...string) (string, error) {
+	h := md5.New()
+	final := ""
+	for _, input := range inputs {
+		final += input
+	}
+	_, err := h.Write([]byte(final))
+	if err != nil {
+		return "", fmt.Errorf("error generating app hash %s", err)
+	}
+	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
 func (a *App) printAddSummary(params AddParams) {

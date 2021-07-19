@@ -14,7 +14,6 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"sigs.k8s.io/yaml"
 )
 
@@ -504,7 +503,7 @@ var _ = Describe("Add", func() {
 				}
 
 				desired2 := makeWegoApplication(params)
-				hash, err := utils.GetHash(repoURL, params.Path, params.Branch)
+				hash, err := getHash(repoURL, params.Path, params.Branch)
 				Expect(err).To(BeNil())
 
 				desired2.ObjectMeta.Labels = map[string]string{WeGOAppIdentifierLabelKey: hash}
@@ -686,7 +685,7 @@ var _ = Describe("Add", func() {
 			appHash, err := getAppHash(addParams)
 			Expect(err).NotTo(HaveOccurred())
 
-			expectedHash, err := utils.GetHash(addParams.Url, addParams.Chart, addParams.Branch)
+			expectedHash, err := getHash(addParams.Url, addParams.Chart, addParams.Branch)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(appHash).To(Equal(expectedHash))
@@ -703,7 +702,7 @@ var _ = Describe("Add", func() {
 			appHash, err := getAppHash(addParams)
 			Expect(err).NotTo(HaveOccurred())
 
-			expectedHash, err := utils.GetHash(addParams.Url, addParams.Path, addParams.Branch)
+			expectedHash, err := getHash(addParams.Url, addParams.Path, addParams.Branch)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(appHash).To(Equal(expectedHash))
