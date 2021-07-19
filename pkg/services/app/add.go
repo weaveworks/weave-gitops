@@ -673,24 +673,24 @@ func (a *App) createPullRequestToRepo(params AddParams, basePath string, repo st
 
 	owner, err := getOwnerFromUrl(repo)
 	if err != nil {
-		return nil
+		return fmt.Errorf("failed to retrieve owner: %w", err)
 	}
 
 	accountType, err := a.gitProviders.GetAccountType(owner)
 	if err != nil {
-		return nil
+		return fmt.Errorf("failed to retrieve account type: %w", err)
 	}
 
 	if accountType == gitproviders.AccountTypeOrg {
 		org, err := fluxops.GetOwnerFromEnv()
 		if err != nil {
-			return nil
+			return fmt.Errorf("failed to retrieve user for org repository: %w", err)
 		}
 
 		orgRepoRef := gitproviders.NewOrgRepositoryRef(github.DefaultDomain, org, repoName)
 		prLink, err := a.gitProviders.CreatePullRequestToOrgRepo(orgRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
 		if err != nil {
-			return fmt.Errorf("unable to create pull request: %s", err)
+			return fmt.Errorf("unable to create pull request: %w", err)
 		}
 		a.logger.Println("Pull Request created: %s\n", prLink.Get().WebURL)
 		return nil
@@ -699,7 +699,7 @@ func (a *App) createPullRequestToRepo(params AddParams, basePath string, repo st
 	userRepoRef := gitproviders.NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
 	prLink, err := a.gitProviders.CreatePullRequestToUserRepo(userRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
 	if err != nil {
-		return fmt.Errorf("unable to create pull request: %s", err)
+		return fmt.Errorf("unable to create pull request: %w", err)
 	}
 	a.logger.Println("Pull Request created: %s\n", prLink.Get().WebURL)
 	return nil
