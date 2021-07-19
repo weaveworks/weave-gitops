@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -47,15 +45,6 @@ func CaptureStdout(c callback) string {
 	stdout, _ := ioutil.ReadAll(r)
 
 	return string(stdout)
-}
-
-func GetAppHash(url, path, branch string) (string, error) {
-	h := md5.New()
-	_, err := h.Write([]byte(url + path + branch))
-	if err != nil {
-		return "", fmt.Errorf("error generating app hash %s", err)
-	}
-	return "wego-" + hex.EncodeToString(h.Sum(nil)), nil
 }
 
 func SetCommmitMessageFromArgs(cmd string, url, path, name string) {
