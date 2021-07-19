@@ -17,7 +17,7 @@ jobs:
           go-version: 1.16.x
       - name: Set env var
         run: |
-          make dependencies
+          make -B dependencies
           echo "BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
           echo "FLUX_VERSION=$($(pwd)/tools/bin/stoml $(pwd)/tools/dependencies.toml flux.version)" >> $GITHUB_ENV
       - name: Run GoReleaser

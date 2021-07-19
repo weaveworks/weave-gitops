@@ -30,10 +30,19 @@ var Cmd = &cobra.Command{
 	Use:   "add [--name <name>] [--url <url>] [--branch <branch>] [--path <path within repository>] [--private-key <keyfile>] <repository directory>",
 	Short: "Add a workload repository to a wego cluster",
 	Long: strings.TrimSpace(dedent.Dedent(`
-        Associates an additional application in a git repository with a wego cluster so that its contents may be managed via GitOps
-    `)),
-	Example:       "wego app add .",
-	RunE:          runCmd,
+		Associates an additional application in a git repository with a wego cluster so that its contents may be managed via GitOps
+	`)),
+	Example: `
+  # Add application to wego control from local git repository
+  wego app add .
+
+  # Add podinfo application to wego control from github repository
+  wego app add --url git@github.com:myorg/podinfo
+
+  # Get status of podinfo application
+  wego app status podinfo
+`,
+	RunE:    runCmd,
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	PostRun: func(cmd *cobra.Command, args []string) {
@@ -42,7 +51,7 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.Flags().StringVar(&params.Name, "name", "", "Name of remote git repository")
+	Cmd.Flags().StringVar(&params.Name, "name", "", "Name of application")
 	Cmd.Flags().StringVar(&params.Url, "url", "", "URL of remote repository")
 	Cmd.Flags().StringVar(&params.Path, "path", "./", "Path of files within git repository")
 	Cmd.Flags().StringVar(&params.Branch, "branch", "main", "Branch to watch within git repository")

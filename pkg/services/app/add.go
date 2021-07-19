@@ -3,6 +3,8 @@ package app
 import (
 	"bytes"
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -119,15 +121,56 @@ func (a *App) Add(params AddParams) error {
 		return errors.Wrap(err, "could not generate deploy key")
 	}
 
+	appHash, err := getAppHash(params)
+	if err != nil {
+		return err
+	}
+	// if appHash exists as a label in the cluster we fail to create a PR
+	if err = a.kube.LabelExistsInCluster(ctx, appHash); err != nil {
+		return err
+	}
+
 	switch strings.ToUpper(params.AppConfigUrl) {
 	case string(ConfigTypeNone):
-		return a.addAppWithNoConfigRepo(params, clusterName, secretRef)
+		return a.addAppWithNoConfigRepo(params, secretRef, appHash)
 	case string(ConfigTypeUserRepo):
-		return a.addAppWithConfigInAppRepo(params, gitProvider, clusterName, secretRef)
+		return a.addAppWithConfigInAppRepo(params, gitProvider, clusterName, secretRef, appHash)
 	default:
-		return a.addAppWithConfigInExternalRepo(params, gitProvider, clusterName, secretRef)
+		return a.addAppWithConfigInExternalRepo(params, gitProvider, clusterName, secretRef, appHash)
 	}
 }
+
+func getAppHash(params AddParams) (string, error) {
+	var appHash string
+	var err error
+
+	var getHash = func(inputs ...string) (string, error) {
+		h := md5.New()
+		final := ""
+		for _, input := range inputs {
+			final += input
+		}
+		_, err := h.Write([]byte(final))
+		if err != nil {
+			return "", fmt.Errorf("error generating app hash %s", err)
+		}
+		return hex.EncodeToString(h.Sum(nil)), nil
+	}
+
+	if DeploymentType(params.DeploymentType) == DeployTypeHelm {
+		appHash, err = getHash(params.Url, params.Chart, params.Branch)
+		if err != nil {
+			return "", err
+		}
+	} else {
+		appHash, err = getHash(params.Url, params.Path, params.Branch)
+		if err != nil {
+			return "", err
+		}
+	}
+	return "wego-" + appHash, nil
+}
+
 func (a *App) printAddSummary(params AddParams) {
 	a.logger.Println("Adding application:\n")
 	a.logger.Println("Name: %s", params.Name)
@@ -196,19 +239,9 @@ func (a *App) getGitRemoteUrl(params AddParams) (string, error) {
 	return sanitizeRepoUrl(urls[0]), nil
 }
 
-func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secretRef string) error {
-	ctx := context.Background()
-	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
-	if err != nil {
-		return err
-	}
-	// if appHash exists as a label in the cluster we fail to create a PR
-	if err := a.kube.LabelExistsInCluster(ctx, appHash); err != nil {
-		return err
-	}
-
+func (a *App) addAppWithNoConfigRepo(params AddParams, secretRef string, appHash string) error {
 	// Returns the source, app spec and kustomization
-	source, appGoat, appSpec, err := a.generateAppManifests(params, params.Url, secretRef, clusterName)
+	source, appGoat, appSpec, err := a.generateAppManifests(params, secretRef, appHash)
 	if err != nil {
 		return errors.Wrap(err, "could not generate application GitOps Automation manifests")
 	}
@@ -217,19 +250,9 @@ func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secre
 	return a.applyToCluster(params, source, appGoat, appSpec)
 }
 
-func (a *App) addAppWithConfigInAppRepo(params AddParams, gitProvider gitproviders.GitProvider, clusterName string, secretRef string) error {
-	ctx := context.Background()
-	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
-	if err != nil {
-		return err
-	}
-	// if appHash exists as a label in the cluster we fail to create a PR
-	if err := a.kube.LabelExistsInCluster(ctx, appHash); err != nil {
-		return err
-	}
-
+func (a *App) addAppWithConfigInAppRepo(params AddParams, gitProvider gitproviders.GitProvider, clusterName string, secretRef string, appHash string) error {
 	// Returns the source, app spec and kustomization
-	source, appGoat, appSpec, err := a.generateAppManifests(params, params.Url, secretRef, clusterName)
+	source, appGoat, appSpec, err := a.generateAppManifests(params, secretRef, appHash)
 	if err != nil {
 		return errors.Wrap(err, "could not generate application GitOps Automation manifests")
 	}
@@ -250,7 +273,7 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, gitProvider gitprovide
 
 	if !params.DryRun {
 		if !params.AutoMerge {
-			if err := a.createPullRequestToRepo(params, gitProvider, ".wego", params.Url, clusterName, appSpec, appGoat); err != nil {
+			if err := a.createPullRequestToRepo(params, gitProvider, ".wego", params.Url, clusterName, appHash, appSpec, appGoat); err != nil {
 				return err
 			}
 		} else {
@@ -276,19 +299,9 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, gitProvider gitprovide
 	})
 }
 
-func (a *App) addAppWithConfigInExternalRepo(params AddParams, gitProvider gitproviders.GitProvider, clusterName string, appSecretRef string) error {
-	ctx := context.Background()
+func (a *App) addAppWithConfigInExternalRepo(params AddParams, gitProvider gitproviders.GitProvider, clusterName string, appSecretRef string, appHash string) error {
 	// making sure the url is in good format
 	params.AppConfigUrl = sanitizeRepoUrl(params.AppConfigUrl)
-
-	appHash, err := utils.GetAppHash(params.AppConfigUrl, params.Path, params.Branch)
-	if err != nil {
-		return err
-	}
-	// if appHash exists as a label in the cluster we fail to create a PR
-	if err := a.kube.LabelExistsInCluster(ctx, appHash); err != nil {
-		return err
-	}
 
 	appConfigSecretName, err := a.createAndUploadDeployKey(params, params.AppConfigUrl, clusterName, gitProvider)
 	if err != nil {
@@ -296,7 +309,7 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, gitProvider gitpr
 	}
 
 	// Returns the source, app spec and kustomization
-	appSource, appGoat, appSpec, err := a.generateAppManifests(params, params.AppConfigUrl, appSecretRef, clusterName)
+	appSource, appGoat, appSpec, err := a.generateAppManifests(params, appSecretRef, appHash)
 	if err != nil {
 		return errors.Wrap(err, "could not generate application GitOps Automation manifests")
 	}
@@ -312,7 +325,7 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, gitProvider gitpr
 
 	if !params.DryRun {
 		if !params.AutoMerge {
-			if err := a.createPullRequestToRepo(params, gitProvider, ".", params.AppConfigUrl, clusterName, appSpec, appGoat, appSource); err != nil {
+			if err := a.createPullRequestToRepo(params, gitProvider, ".", params.AppConfigUrl, clusterName, appHash, appSpec, appGoat, appSource); err != nil {
 				return err
 			}
 		} else {
@@ -336,7 +349,7 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, gitProvider gitpr
 	return a.commitAndPush(params)
 }
 
-func (a *App) generateAppManifests(params AddParams, repo string, secretRef string, clusterName string) ([]byte, []byte, []byte, error) {
+func (a *App) generateAppManifests(params AddParams, secretRef string, appHash string) ([]byte, []byte, []byte, error) {
 	var sourceManifest, appManifest, appGoatManifest []byte
 	var err error
 	a.logger.Generatef("Generating Source manifest")
@@ -352,7 +365,7 @@ func (a *App) generateAppManifests(params AddParams, repo string, secretRef stri
 	}
 
 	a.logger.Generatef("Generating Application spec manifest")
-	appManifest, err = generateAppYaml(params, repo)
+	appManifest, err = generateAppYaml(params, appHash)
 	if err != nil {
 		return nil, nil, nil, errors.Wrap(err, fmt.Sprintf("could not create app.yaml for '%s'", params.Name))
 	}
@@ -581,13 +594,8 @@ func makeWegoApplication(params AddParams) wego.Application {
 	return app
 }
 
-func generateAppYaml(params AddParams, repo string) ([]byte, error) {
+func generateAppYaml(params AddParams, appHash string) ([]byte, error) {
 	app := makeWegoApplication(params)
-
-	appHash, err := utils.GetAppHash(repo, params.Path, params.Branch)
-	if err != nil {
-		return nil, fmt.Errorf("could not generate app hash: %w", err)
-	}
 
 	app.ObjectMeta.Labels = map[string]string{
 		WeGOAppIdentifierLabelKey: appHash,
@@ -641,7 +649,7 @@ func sanitizeRepoUrl(url string) string {
 	return url
 }
 
-func (a *App) createPullRequestToRepo(params AddParams, gitProvider gitproviders.GitProvider, basePath string, repo string, clusterName string, appYaml []byte, goatManifests ...[]byte) error {
+func (a *App) createPullRequestToRepo(params AddParams, gitProvider gitproviders.GitProvider, basePath string, repo string, clusterName string, appHash string, appYaml []byte, goatManifests ...[]byte) error {
 	repoName := generateResourceName(repo)
 
 	appPath := filepath.Join(basePath, "apps", params.Name, "app.yaml")
@@ -674,11 +682,6 @@ func (a *App) createPullRequestToRepo(params AddParams, gitProvider gitproviders
 	accountType, err := gitProvider.GetAccountType(owner)
 	if err != nil {
 		return nil
-	}
-
-	appHash, err := utils.GetAppHash(repo, params.Path, params.Branch)
-	if err != nil {
-		return err
 	}
 
 	if accountType == gitproviders.AccountTypeOrg {
