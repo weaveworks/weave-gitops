@@ -207,7 +207,6 @@ jobs:
         export CLUSTER_PROVIDER=kubectl
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega/...
-#        ginkgo --randomizeSuites --reportFile=$(pwd)/test-results/smoke-test-results.xml -v ./test/acceptance/test/...
         mkdir my-repo-folder
         cd my-repo-folder
         git init
