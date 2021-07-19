@@ -43,7 +43,7 @@ type defaultGitProvider struct {
 }
 
 func New(config Config) (GitProvider, error) {
-	provider, err := BuildGitProvider(config)
+	provider, err := buildGitProvider(config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build git provider: %w", err)
 	}

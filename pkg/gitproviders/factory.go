@@ -30,10 +30,7 @@ type Config struct {
 	Token string
 }
 
-// BuildGitProvider builds a gitprovider.Client for the provided
-// Config. It returns an error if the Config.Provider
-// is not supported, or if the construction of the client fails.
-func BuildGitProvider(config Config) (gitprovider.Client, error) {
+func buildGitProvider(config Config) (gitprovider.Client, error) {
 	if config.Token == "" {
 		return nil, fmt.Errorf("no git provider token present")
 	}
