@@ -16,7 +16,6 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
@@ -99,14 +98,18 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	params, err = setGitProviderToken(params)
+	if err != nil {
+		return err
+	}
+
 	cliRunner := &runner.CLIRunner{}
 	fluxClient := flux.New(cliRunner)
 	kubeClient := kube.New(cliRunner)
 	gitClient := git.New(authMethod)
-	gitProviders := gitproviders.New()
 	logger := logger.New(os.Stdout)
 
-	appService := app.New(logger, gitClient, fluxClient, kubeClient, gitProviders)
+	appService := app.New(logger, gitClient, fluxClient, kubeClient)
 
 	utils.SetCommmitMessageFromArgs("wego app add", params.Url, params.Path, params.Name)
 
@@ -142,4 +145,15 @@ func findPrivateKeyFile() (string, error) {
 	}
 
 	return "", fmt.Errorf("could not locate ssh key file; please specify '--private-key'")
+}
+
+func setGitProviderToken(params app.AddParams) (app.AddParams, error) {
+	providerToken, found := os.LookupEnv("GITHUB_TOKEN")
+	if !found {
+		return params, fmt.Errorf("GITHUB_TOKEN not set in environment")
+	}
+
+	params.GitProviderToken = providerToken
+
+	return params, nil
 }

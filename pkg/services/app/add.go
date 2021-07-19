@@ -32,19 +32,20 @@ const (
 )
 
 type AddParams struct {
-	Dir            string
-	Name           string
-	Url            string
-	Path           string
-	Branch         string
-	PrivateKey     string
-	DeploymentType string
-	Chart          string
-	SourceType     string
-	AppConfigUrl   string
-	Namespace      string
-	DryRun         bool
-	AutoMerge      bool
+	Dir              string
+	Name             string
+	Url              string
+	Path             string
+	Branch           string
+	PrivateKey       string
+	DeploymentType   string
+	Chart            string
+	SourceType       string
+	AppConfigUrl     string
+	Namespace        string
+	DryRun           bool
+	AutoMerge        bool
+	GitProviderToken string
 }
 
 // Three models:
@@ -108,7 +109,12 @@ func (a *App) Add(params AddParams) error {
 		return err
 	}
 
-	secretRef, err := a.createAndUploadDeployKey(params.Url, SourceType(params.SourceType), clusterName, params.Namespace, params.DryRun)
+	gitProvider, err := a.gitProviderFactory(params.GitProviderToken)
+	if err != nil {
+		return err
+	}
+
+	secretRef, err := a.createAndUploadDeployKey(params, params.Url, clusterName, gitProvider)
 	if err != nil {
 		return errors.Wrap(err, "could not generate deploy key")
 	}
@@ -117,9 +123,9 @@ func (a *App) Add(params AddParams) error {
 	case string(ConfigTypeNone):
 		return a.addAppWithNoConfigRepo(params, clusterName, secretRef)
 	case string(ConfigTypeUserRepo):
-		return a.addAppWithConfigInAppRepo(params, clusterName, secretRef)
+		return a.addAppWithConfigInAppRepo(params, gitProvider, clusterName, secretRef)
 	default:
-		return a.addAppWithConfigInExternalRepo(params, clusterName, secretRef)
+		return a.addAppWithConfigInExternalRepo(params, gitProvider, clusterName, secretRef)
 	}
 }
 func (a *App) printAddSummary(params AddParams) {
@@ -211,7 +217,7 @@ func (a *App) addAppWithNoConfigRepo(params AddParams, clusterName string, secre
 	return a.applyToCluster(params, source, appGoat, appSpec)
 }
 
-func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, secretRef string) error {
+func (a *App) addAppWithConfigInAppRepo(params AddParams, gitProvider gitproviders.GitProvider, clusterName string, secretRef string) error {
 	ctx := context.Background()
 	appHash, err := utils.GetAppHash(params.Url, params.Path, params.Branch)
 	if err != nil {
@@ -244,7 +250,7 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 
 	if !params.DryRun {
 		if !params.AutoMerge {
-			if err := a.createPullRequestToRepo(params, ".wego", params.Url, clusterName, appSpec, appGoat); err != nil {
+			if err := a.createPullRequestToRepo(params, gitProvider, ".wego", params.Url, clusterName, appSpec, appGoat); err != nil {
 				return err
 			}
 		} else {
@@ -270,7 +276,7 @@ func (a *App) addAppWithConfigInAppRepo(params AddParams, clusterName string, se
 	})
 }
 
-func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName string, appSecretRef string) error {
+func (a *App) addAppWithConfigInExternalRepo(params AddParams, gitProvider gitproviders.GitProvider, clusterName string, appSecretRef string) error {
 	ctx := context.Background()
 	// making sure the url is in good format
 	params.AppConfigUrl = sanitizeRepoUrl(params.AppConfigUrl)
@@ -284,7 +290,7 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 		return err
 	}
 
-	appConfigSecretName, err := a.createAndUploadDeployKey(params.AppConfigUrl, SourceTypeGit, clusterName, params.Namespace, params.DryRun)
+	appConfigSecretName, err := a.createAndUploadDeployKey(params, params.AppConfigUrl, clusterName, gitProvider)
 	if err != nil {
 		return errors.Wrap(err, "could not generate deploy key")
 	}
@@ -306,7 +312,7 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, clusterName strin
 
 	if !params.DryRun {
 		if !params.AutoMerge {
-			if err := a.createPullRequestToRepo(params, ".", params.AppConfigUrl, clusterName, appSpec, appGoat, appSource); err != nil {
+			if err := a.createPullRequestToRepo(params, gitProvider, ".", params.AppConfigUrl, clusterName, appSpec, appGoat, appSource); err != nil {
 				return err
 			}
 		} else {
@@ -422,8 +428,8 @@ func (a *App) commitAndPush(params AddParams, filters ...func(string) bool) erro
 	return nil
 }
 
-func (a *App) createAndUploadDeployKey(repoUrl string, sourceType SourceType, clusterName string, namespace string, dryRun bool) (string, error) {
-	if SourceType(sourceType) == SourceTypeHelm {
+func (a *App) createAndUploadDeployKey(params AddParams, repoUrl string, clusterName string, gitProvider gitproviders.GitProvider) (string, error) {
+	if SourceType(params.SourceType) == SourceTypeHelm {
 		return "", nil
 	}
 
@@ -434,7 +440,7 @@ func (a *App) createAndUploadDeployKey(repoUrl string, sourceType SourceType, cl
 	repoName := urlToRepoName(repoUrl)
 
 	secretRefName := fmt.Sprintf("weave-gitops-%s-%s", clusterName, repoName)
-	if dryRun {
+	if params.DryRun {
 		return secretRefName, nil
 	}
 
@@ -445,24 +451,24 @@ func (a *App) createAndUploadDeployKey(repoUrl string, sourceType SourceType, cl
 		return "", err
 	}
 
-	deployKeyExists, err := a.gitProviders.DeployKeyExists(owner, repoName)
+	deployKeyExists, err := gitProvider.DeployKeyExists(owner, repoName)
 	if err != nil {
 		return "", errors.Wrap(err, "could not check for existing deploy key")
 	}
 
-	secretPresent, err := a.kube.SecretPresent(context.Background(), secretRefName, namespace)
+	secretPresent, err := a.kube.SecretPresent(context.Background(), secretRefName, params.Namespace)
 	if err != nil {
 		return "", errors.Wrap(err, "could not check for existing secret")
 	}
 
 	if !deployKeyExists || !secretPresent {
 		a.logger.Generatef("Generating deploy key for repo %s", repoUrl)
-		deployKey, err := a.flux.CreateSecretGit(secretRefName, repoUrl, namespace)
+		deployKey, err := a.flux.CreateSecretGit(secretRefName, repoUrl, params.Namespace)
 		if err != nil {
 			return "", errors.Wrap(err, "could not create git secret")
 		}
 
-		if err := a.gitProviders.UploadDeployKey(owner, repoName, deployKey); err != nil {
+		if err := gitProvider.UploadDeployKey(owner, repoName, deployKey); err != nil {
 			return "", errors.Wrap(err, "error uploading deploy key")
 		}
 	}
@@ -635,13 +641,11 @@ func sanitizeRepoUrl(url string) string {
 	return url
 }
 
-func (a *App) createPullRequestToRepo(params AddParams, basePath string, repo string, clusterName string, appYaml []byte, goatManifests ...[]byte) error {
+func (a *App) createPullRequestToRepo(params AddParams, gitProvider gitproviders.GitProvider, basePath string, repo string, clusterName string, appYaml []byte, goatManifests ...[]byte) error {
 	repoName := generateResourceName(repo)
 
 	appPath := filepath.Join(basePath, "apps", params.Name, "app.yaml")
-
 	goatPath := filepath.Join(basePath, "targets", clusterName, params.Name, fmt.Sprintf("%s-gitops-runtime.yaml", params.Name))
-
 	goat := bytes.Join(goatManifests, []byte(""))
 
 	if params.DryRun {
@@ -667,7 +671,7 @@ func (a *App) createPullRequestToRepo(params AddParams, basePath string, repo st
 		return nil
 	}
 
-	accountType, err := a.gitProviders.GetAccountType(owner)
+	accountType, err := gitProvider.GetAccountType(owner)
 	if err != nil {
 		return nil
 	}
@@ -684,7 +688,7 @@ func (a *App) createPullRequestToRepo(params AddParams, basePath string, repo st
 		}
 
 		orgRepoRef := gitproviders.NewOrgRepositoryRef(github.DefaultDomain, org, repoName)
-		prLink, err := a.gitProviders.CreatePullRequestToOrgRepo(orgRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
+		prLink, err := gitProvider.CreatePullRequestToOrgRepo(orgRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
 		if err != nil {
 			return fmt.Errorf("unable to create pull request: %s", err)
 		}
@@ -693,7 +697,7 @@ func (a *App) createPullRequestToRepo(params AddParams, basePath string, repo st
 	}
 
 	userRepoRef := gitproviders.NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
-	prLink, err := a.gitProviders.CreatePullRequestToUserRepo(userRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
+	prLink, err := gitProvider.CreatePullRequestToUserRepo(userRepoRef, params.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", params.Name), fmt.Sprintf("Added yamls for %s", params.Name))
 	if err != nil {
 		return fmt.Errorf("unable to create pull request: %s", err)
 	}
