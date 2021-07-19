@@ -49,9 +49,13 @@ func CaptureStdout(c callback) string {
 	return string(stdout)
 }
 
-func GetAppHash(url, path, branch string) (string, error) {
+func GetHash(inputs ...string) (string, error) {
 	h := md5.New()
-	_, err := h.Write([]byte(url + path + branch))
+	final := ""
+	for _, input := range inputs {
+		final += input
+	}
+	_, err := h.Write([]byte(final))
 	if err != nil {
 		return "", fmt.Errorf("error generating app hash %s", err)
 	}
