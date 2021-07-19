@@ -688,7 +688,7 @@ var _ = Describe("Add", func() {
 			expectedHash, err := getHash(addParams.Url, addParams.Chart, addParams.Branch)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(appHash).To(Equal(expectedHash))
+			Expect(appHash).To(Equal("wego-" + expectedHash))
 
 		})
 
@@ -705,7 +705,7 @@ var _ = Describe("Add", func() {
 			expectedHash, err := getHash(addParams.Url, addParams.Path, addParams.Branch)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(appHash).To(Equal(expectedHash))
+			Expect(appHash).To(Equal("wego-" + expectedHash))
 
 		})
 	})
