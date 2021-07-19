@@ -53,7 +53,7 @@ func GetAppHash(url, path, branch string) (string, error) {
 	h := md5.New()
 	_, err := h.Write([]byte(url + path + branch))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error generating app hash %s", err)
 	}
 	return "wego-" + hex.EncodeToString(h.Sum(nil)), nil
 }
