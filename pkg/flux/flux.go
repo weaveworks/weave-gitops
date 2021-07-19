@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
@@ -22,6 +23,7 @@ type Flux interface {
 	CreateHelmReleaseGitRepository(name string, source string, path string, namespace string) ([]byte, error)
 	CreateHelmReleaseHelmRepository(name string, chart string, namespace string) ([]byte, error)
 	CreateSecretGit(name string, url string, namespace string) ([]byte, error)
+	GetVersion() (string, error)
 	GetAllResourcesStatus(name string, namespace string) ([]byte, error)
 }
 
@@ -204,6 +206,16 @@ func (f *FluxClient) GetAllResourcesStatus(name string, namespace string) ([]byt
 	}
 
 	return out, nil
+}
+
+func (f *FluxClient) GetVersion() (string, error) {
+	out, err := f.runFluxCmd("-v")
+	if err != nil {
+		return "", err
+	}
+	// change string format to match our versioning standard
+	version := strings.ReplaceAll(string(out), "flux version ", "v")
+	return version, nil
 }
 
 func (f *FluxClient) runFluxCmd(args ...string) ([]byte, error) {

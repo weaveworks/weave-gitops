@@ -8,8 +8,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/weave-gitops/pkg/fluxops"
-	"github.com/weaveworks/weave-gitops/pkg/override"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"github.com/weaveworks/weave-gitops/pkg/version"
@@ -126,32 +124,3 @@ func TestSetupFluxBin(t *testing.T) {
 	binPath = fmt.Sprintf("%v/flux-%v", fluxPath, version.FluxVersion)
 	require.FileExists(t, binPath)
 }
-
-var _ = Describe("Flux Setup Failure", func() {
-	It("Verify that exit is called with expected code", func() {
-		By("Executing a code path that contains checkError", func() {
-			exitCode := -1
-			_ = override.WithOverrides(
-				func() override.Result {
-					checkError(fmt.Errorf("An error"))
-					return override.Result{}
-				},
-				shims.OverrideExit(localExitHandler{action: func(code int) { exitCode = code }}))
-			Expect(exitCode).To(Equal(1))
-		})
-	})
-
-	It("Verify that os.UserHomeDir failures are handled correctly", func() {
-		By("Setting the shim to fail and invoking calls that will trigger it", func() {
-			res := override.WithOverrides(
-				func() override.Result {
-					out, err := fluxops.QuietInstall("flux-system")
-					return override.Result{Output: out, Err: err}
-				},
-				shims.OverrideExit(shims.IgnoreExitHandler{}),
-				shims.OverrideHomeDir(localHomeDirHandler{action: func() (string, error) { return "", fmt.Errorf("failed") }}))
-			Expect(res.Err).To(Not(BeNil()))
-		})
-	})
-
-})
