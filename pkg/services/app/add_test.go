@@ -504,7 +504,7 @@ var _ = Describe("Add", func() {
 				}
 
 				desired2 := makeWegoApplication(params)
-				hash, err := utils.GetAppHash(repoURL, params.Path, params.Branch)
+				hash, err := utils.GetHash(repoURL, params.Path, params.Branch)
 				Expect(err).To(BeNil())
 
 				desired2.ObjectMeta.Labels = map[string]string{WeGOAppIdentifierLabelKey: hash}
@@ -686,7 +686,7 @@ var _ = Describe("Add", func() {
 			appHash, err := getAppHash(addParams)
 			Expect(err).NotTo(HaveOccurred())
 
-			expectedHash, err := utils.GetAppHash(addParams.Url, addParams.Chart, addParams.Branch)
+			expectedHash, err := utils.GetHash(addParams.Url, addParams.Chart, addParams.Branch)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(appHash).To(Equal(expectedHash))
@@ -703,7 +703,7 @@ var _ = Describe("Add", func() {
 			appHash, err := getAppHash(addParams)
 			Expect(err).NotTo(HaveOccurred())
 
-			expectedHash, err := utils.GetAppHash(addParams.Url, addParams.Path, addParams.Branch)
+			expectedHash, err := utils.GetHash(addParams.Url, addParams.Path, addParams.Branch)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(appHash).To(Equal(expectedHash))
