@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 
 	"github.com/go-git/go-billy/v5/memfs"
@@ -675,6 +677,7 @@ var _ = Describe("Add", func() {
 	})
 
 	Describe("Test app hash", func() {
+
 		It("should return right hash for a helm app", func() {
 
 			addParams.Url = "https://github.com/owner/repo1"
@@ -710,3 +713,16 @@ var _ = Describe("Add", func() {
 		})
 	})
 })
+
+func getHash(inputs ...string) (string, error) {
+	h := md5.New()
+	final := ""
+	for _, input := range inputs {
+		final += input
+	}
+	_, err := h.Write([]byte(final))
+	if err != nil {
+		return "", fmt.Errorf("error generating app hash %s", err)
+	}
+	return hex.EncodeToString(h.Sum(nil)), nil
+}
