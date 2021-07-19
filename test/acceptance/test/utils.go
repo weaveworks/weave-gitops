@@ -5,6 +5,7 @@ package acceptance
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -12,6 +13,9 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/fluxcd/go-git-providers/github"
+	"github.com/fluxcd/go-git-providers/gitprovider"
 
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 
@@ -323,27 +327,69 @@ func generateTestInputs() TestInputs {
 	return inputs
 }
 
-func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
-	repoAbsolutePath := "/tmp/" + appRepoName
-	privateRepo := ""
-	if IsPrivateRepo {
-		privateRepo = "-p"
+func createRepository(repoName string, private bool) error {
+
+	visibility := gitprovider.RepositoryVisibilityPrivate
+	if !private {
+		visibility = gitprovider.RepositoryVisibilityPublic
 	}
+
+	description := "Weave Gitops test repo"
+	defaultBranch := "main"
+	repoInfo := gitprovider.RepositoryInfo{
+		Description:   &description,
+		Visibility:    &visibility,
+		DefaultBranch: &defaultBranch,
+	}
+
+	repoCreateOpts := &gitprovider.RepositoryCreateOptions{
+		AutoInit:        gitprovider.BoolVar(true),
+		LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
+	}
+
+	orgRef := gitprovider.OrgRepositoryRef{
+		RepositoryName: repoName,
+		OrganizationRef: gitprovider.OrganizationRef{
+			Domain:       github.DefaultDomain,
+			Organization: GITHUB_ORG,
+		},
+	}
+	ctx := context.Background()
+	githubProvider, err := github.NewClient(
+		github.WithOAuth2Token(os.Getenv("GITHUB_TOKEN")),
+		github.WithDestructiveAPICalls(true),
+	)
+	if err != nil {
+		return err
+	}
+
+	if err := utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
+		_, err := githubProvider.OrgRepositories().Create(ctx, orgRef, repoInfo, repoCreateOpts)
+		return err
+	}); err != nil {
+		return fmt.Errorf("error creating repo %s", err)
+	}
+
+	return utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
+		_, err := githubProvider.OrgRepositories().Get(ctx, orgRef)
+		return err
+	})
+}
+
+func initAndCreateEmptyRepo(appRepoName string, isPrivateRepo bool) string {
+	repoAbsolutePath := "/tmp/" + appRepoName
+
+	err := createRepository(appRepoName, isPrivateRepo)
+	Expect(err).ShouldNot(HaveOccurred())
+
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
-                            mkdir %s &&
-                            cd %s &&
-                            git init &&
-                            git checkout -b main &&
-                            hub create %s %s`, repoAbsolutePath, repoAbsolutePath, GITHUB_ORG+"/"+appRepoName, privateRepo))
+                            hub clone %s %s &&
+							cd %s`,
+		GITHUB_ORG+"/"+appRepoName, repoAbsolutePath,
+		repoAbsolutePath))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
-
-	Expect(utils.WaitUntil(os.Stdout, time.Second, 20*time.Second, func() error {
-		cmd := fmt.Sprintf(`hub api repos/%s/%s`, os.Getenv("GITHUB_ORG"), appRepoName)
-		command := exec.Command("sh", "-c", cmd)
-		return command.Run()
-	})).ShouldNot(HaveOccurred())
 
 	return repoAbsolutePath
 }
