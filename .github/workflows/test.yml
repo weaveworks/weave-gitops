@@ -211,6 +211,6 @@ jobs:
         mkdir my-repo-folder
         cd my-repo-folder
         git init
-#        echo ${GITHUB_ORG}
-#        hub create $GITHUB_ORG/my-test-repo-2 -p
-#        echo "finished"
+        echo ${GITHUB_ORG}
+        hub create ${GITHUB_ORG}/my-test-repo-2 -p
+        echo "finished"
