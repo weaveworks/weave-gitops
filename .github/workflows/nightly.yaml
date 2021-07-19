@@ -1,6 +1,9 @@
 on:
-  schedule:
-    - cron: '8 0 * * *'
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
 
 name: Nightly
 jobs:
