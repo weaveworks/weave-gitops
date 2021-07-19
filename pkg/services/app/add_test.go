@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 
 	"github.com/go-git/go-billy/v5/memfs"
@@ -14,7 +16,6 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"sigs.k8s.io/yaml"
 )
 
@@ -504,7 +505,7 @@ var _ = Describe("Add", func() {
 				}
 
 				desired2 := makeWegoApplication(params)
-				hash, err := utils.GetAppHash(repoURL, params.Path, params.Branch)
+				hash, err := getHash(repoURL, params.Path, params.Branch)
 				Expect(err).To(BeNil())
 
 				desired2.ObjectMeta.Labels = map[string]string{WeGOAppIdentifierLabelKey: hash}
@@ -674,4 +675,54 @@ var _ = Describe("Add", func() {
 			Expect(kubeClient.ApplyCallCount()).To(Equal(0))
 		})
 	})
+
+	Describe("Test app hash", func() {
+
+		It("should return right hash for a helm app", func() {
+
+			addParams.Url = "https://github.com/owner/repo1"
+			addParams.Chart = "nginx"
+			addParams.Branch = "main"
+			addParams.DeploymentType = string(DeployTypeHelm)
+
+			appHash, err := getAppHash(addParams)
+			Expect(err).NotTo(HaveOccurred())
+
+			expectedHash, err := getHash(addParams.Url, addParams.Chart, addParams.Branch)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(appHash).To(Equal("wego-" + expectedHash))
+
+		})
+
+		It("should return right hash for a kustomize app", func() {
+
+			addParams.Url = "https://github.com/owner/repo1"
+			addParams.Path = "custompath"
+			addParams.Branch = "main"
+			addParams.DeploymentType = string(DeployTypeKustomize)
+
+			appHash, err := getAppHash(addParams)
+			Expect(err).NotTo(HaveOccurred())
+
+			expectedHash, err := getHash(addParams.Url, addParams.Path, addParams.Branch)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(appHash).To(Equal("wego-" + expectedHash))
+
+		})
+	})
 })
+
+func getHash(inputs ...string) (string, error) {
+	h := md5.New()
+	final := ""
+	for _, input := range inputs {
+		final += input
+	}
+	_, err := h.Write([]byte(final))
+	if err != nil {
+		return "", fmt.Errorf("error generating app hash %s", err)
+	}
+	return hex.EncodeToString(h.Sum(nil)), nil
+}
