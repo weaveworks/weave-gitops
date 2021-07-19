@@ -4,30 +4,6 @@ on:
 
 name: Nightly
 jobs:
-  lint:
-    runs-on: ${{matrix.os}}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macOS-latest]
-    steps:
-    - name: Install Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.16.x
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Clean
-      run: make clean
-    - name: Dependencies
-      run: make dependencies
-    - name: Fake Install flux
-      run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
-    - name: Run linters
-      uses: golangci/golangci-lint-action@v2
-      with:
-        version: v1.29
-        args: --timeout=600s
-
   build:
     runs-on: ${{matrix.os}}
     strategy:
@@ -51,7 +27,7 @@ jobs:
           path: bin
           retention-days: 1
   test-eks:
-    needs: [lint, build]
+    needs: [build]
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
@@ -135,7 +111,7 @@ jobs:
         ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v ./test/acceptance/test/...
       if: always()
   test-gke:
-    needs: [lint, build]
+    needs: [build]
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
