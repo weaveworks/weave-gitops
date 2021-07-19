@@ -166,7 +166,7 @@ func getAppHash(params AddParams) (string, error) {
 }
 
 func (a *App) printAddSummary(params AddParams) {
-	a.logger.Println("Adding application:\n")
+	a.logger.Println("Adding application1:\n")
 	a.logger.Println("Name: %s", params.Name)
 	a.logger.Println("URL: %s", params.Url)
 	a.logger.Println("Path: %s", params.Path)
