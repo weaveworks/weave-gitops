@@ -5,10 +5,20 @@
 */
 
 import * as fm from "./fetch.pb"
+export type Condition = {
+  type?: string
+  status?: string
+  reason?: string
+  message?: string
+  timestamp?: number
+}
+
 export type Application = {
   name?: string
   path?: string
   url?: string
+  sourceConditions?: Condition[]
+  deploymentConditions?: Condition[]
 }
 
 export type ListApplicationsRequest = {
