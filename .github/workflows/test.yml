@@ -208,9 +208,9 @@ jobs:
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega/...
 #        ginkgo --randomizeSuites --reportFile=$(pwd)/test-results/smoke-test-results.xml -v ./test/acceptance/test/...
-        mkdir my-repo-folder
-        cd my-repo-folder
-        git init
-        echo $GITHUB_ORG
-        hub create $GITHUB_ORG/my-test-repo-2 -p
-        echo "finished"
+#        mkdir my-repo-folder
+#        cd my-repo-folder
+#        git init
+#        echo $GITHUB_ORG
+#        hub create $GITHUB_ORG/my-test-repo-2 -p
+#        echo "finished"
