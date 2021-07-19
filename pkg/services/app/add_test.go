@@ -15,6 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"sigs.k8s.io/yaml"
 )
@@ -658,6 +659,21 @@ var _ = Describe("Add", func() {
 			}))
 
 			Expect(len(filters)).To(Equal(0))
+		})
+	})
+
+	Context("when creating a pull request", func() {
+		It("generates an appropriate error when the owner cannot be retrieved from the URL", func() {
+			err := appSrv.(*App).createPullRequestToRepo(addParams, ".", "foo", "cluster", "hash", []byte{})
+			Expect(err.Error()).To(HavePrefix("failed to retrieve owner"))
+		})
+
+		It("generates an appropriate error when the account type cannot be retrieved for an owner", func() {
+			gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
+				return gitproviders.AccountTypeOrg, fmt.Errorf("no account found")
+			}
+			err := appSrv.(*App).createPullRequestToRepo(addParams, ".", "ssh://git@github.com/ewojfewoj3323w/abc", "cluster", "hash", []byte{})
+			Expect(err.Error()).To(HavePrefix("failed to retrieve account type"))
 		})
 	})
 

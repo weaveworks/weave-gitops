@@ -2,13 +2,14 @@ package flux
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 	"github.com/weaveworks/weave-gitops/pkg/override"
 	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -85,20 +86,12 @@ func processStatus() ([]byte, []byte, error) {
 
 // Test Setup
 
-type localExitHandler struct {
-	action func(int)
-}
-
-func (h localExitHandler) Handle(code int) {
-	h.action(code)
-}
-
 type localHomeDirHandler struct {
-	action func() (string, error)
+	dir string
 }
 
 func (h localHomeDirHandler) Handle() (string, error) {
-	return h.action()
+	return h.dir, nil
 }
 
 func TestSetup(t *testing.T) {
@@ -110,48 +103,26 @@ func TestSetup(t *testing.T) {
 }
 
 func TestSetupFluxBin(t *testing.T) {
-	version.FluxVersion = "0.11.0"
-	SetupFluxBin()
-	homeDir, err := shims.UserHomeDir()
+	dir, err := ioutil.TempDir(t.TempDir(), "a-home-dir")
 	require.NoError(t, err)
+	defer os.RemoveAll(dir)
+	override.WithOverrides(func() override.Result {
+		version.FluxVersion = "0.11.0"
+		SetupFluxBin()
+		homeDir, err := shims.UserHomeDir()
+		require.NoError(t, err)
 
-	fluxPath := fmt.Sprintf("%v/.wego/bin", homeDir)
-	require.DirExists(t, fluxPath)
-	binPath := fmt.Sprintf("%v/flux-%v", fluxPath, version.FluxVersion)
-	require.FileExists(t, binPath)
+		fluxPath := fmt.Sprintf("%v/.wego/bin", homeDir)
+		require.DirExists(t, fluxPath)
+		binPath := fmt.Sprintf("%v/flux-%v", fluxPath, version.FluxVersion)
+		require.FileExists(t, binPath)
 
-	version.FluxVersion = "0.12.0"
-	SetupFluxBin()
-	require.NoFileExists(t, binPath)
-	binPath = fmt.Sprintf("%v/flux-%v", fluxPath, version.FluxVersion)
-	require.FileExists(t, binPath)
+		version.FluxVersion = "0.12.0"
+		SetupFluxBin()
+		require.NoFileExists(t, binPath)
+		binPath = fmt.Sprintf("%v/flux-%v", fluxPath, version.FluxVersion)
+		require.FileExists(t, binPath)
+		return override.Result{}
+	},
+		shims.OverrideHomeDir(localHomeDirHandler{dir: dir}))
 }
-
-var _ = Describe("Flux Setup Failure", func() {
-	It("Verify that exit is called with expected code", func() {
-		By("Executing a code path that contains checkError", func() {
-			exitCode := -1
-			_ = override.WithOverrides(
-				func() override.Result {
-					checkError(fmt.Errorf("An error"))
-					return override.Result{}
-				},
-				shims.OverrideExit(localExitHandler{action: func(code int) { exitCode = code }}))
-			Expect(exitCode).To(Equal(1))
-		})
-	})
-
-	It("Verify that os.UserHomeDir failures are handled correctly", func() {
-		By("Setting the shim to fail and invoking calls that will trigger it", func() {
-			res := override.WithOverrides(
-				func() override.Result {
-					out, err := fluxops.QuietInstall("flux-system")
-					return override.Result{Output: out, Err: err}
-				},
-				shims.OverrideExit(shims.IgnoreExitHandler{}),
-				shims.OverrideHomeDir(localHomeDirHandler{action: func() (string, error) { return "", fmt.Errorf("failed") }}))
-			Expect(res.Err).To(Not(BeNil()))
-		})
-	})
-
-})

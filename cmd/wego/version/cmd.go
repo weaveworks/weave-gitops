@@ -2,11 +2,11 @@ package version
 
 import (
 	"fmt"
-	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/go-checkpoint"
-	"github.com/weaveworks/weave-gitops/pkg/fluxops"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
 
 	"github.com/spf13/cobra"
 )
@@ -72,14 +72,7 @@ func CheckpointParamsWithFlags(params *checkpoint.CheckParams, c *cobra.Command)
 	return p
 }
 func CheckFluxVersion() (string, error) {
-	fluxops.SetFluxHandler(&fluxops.QuietFluxHandler{})
-	output, err := fluxops.CallFlux("-v")
-	if err != nil {
-		return "", err
-	}
-
-	// change string format to match other version info
-	version := strings.ReplaceAll(string(output), "flux version ", "v")
-
-	return version, nil
+	cliRunner := &runner.CLIRunner{}
+	fluxClient := flux.New(cliRunner)
+	return fluxClient.GetVersion()
 }
