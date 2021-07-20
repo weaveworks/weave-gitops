@@ -30,8 +30,8 @@ var Cmd = &cobra.Command{
 	Use:   "add [--name <name>] [--url <url>] [--branch <branch>] [--path <path within repository>] [--private-key <keyfile>] <repository directory>",
 	Short: "Add a workload repository to a wego cluster",
 	Long: strings.TrimSpace(dedent.Dedent(`
-		Associates an additional application in a git repository with a wego cluster so that its contents may be managed via GitOps
-	`)),
+        Associates an additional application in a git repository with a wego cluster so that its contents may be managed via GitOps
+    `)),
 	Example: `
   # Add application to wego control from local git repository
   wego app add .
@@ -42,7 +42,7 @@ var Cmd = &cobra.Command{
   # Get status of podinfo application
   wego app status podinfo
 `,
-	RunE:    runCmd,
+	RunE:          runCmd,
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	PostRun: func(cmd *cobra.Command, args []string) {
