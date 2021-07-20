@@ -55,3 +55,13 @@ func (s *server) GetApplication(ctx context.Context, msg *pb.GetApplicationReque
 		Path: app.Spec.Path,
 	}}, nil
 }
+
+func (s *server) DeleteApplication(ctx context.Context, msg *pb.DeleteApplicationRequest) (*longrunning.Operation, error) {
+	success, err := s.kube.RemoveApplication(ctx, msg.ApplicationName)
+
+	if err != nil {
+		return nil, fmt.Errorf("could not remove application: %s", err)
+	}
+
+	return &longrunning.Operation{}, nil
+}

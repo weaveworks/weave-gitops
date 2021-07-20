@@ -5,7 +5,10 @@ package wego_server.v1;
 
 option go_package = "github.com/weaveworks/weave-gitops/pkg/protos/applications";
 
+import "google/longrunning/operations.proto";
 import "google/api/annotations.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
 
 import "protoc-gen-openapiv2/options/annotations.proto";
 
@@ -36,12 +39,32 @@ service Applications {
             get : "/v1/applications/{name}"
         };
     }
+    /**
+    * DeleteApplication removes the GitOps for a given application and also deletes the workload
+    * from the cluster if remove-workload is specified
+    */
+    rpc DeleteApplication(DeleteApplicationRequest) returns (google.longrunning.Operation) {
+        option (google.api.http) = {
+            delete : "/v1/applications/{application_name}:remove"
+        };
+        option (google.longrunning.operation_info) = {
+            response_type: "google.protobuf.Empty"
+            metadata_type: "OperationMetadata"
+        };
+    }
 }
 
 message Application {
+    option (google.api.resource) = {
+      style: DECLARATIVE_FRIENDLY
+    };
     string name = 1;  // The name of the application
     string path = 2;  // The file path where the k8s yaml files for this application are stored.
     string url  = 3;  // The git repository URL for this application
+    map<string, string> annotations = 4;
+    google.protobuf.Timestamp create_time = 5;
+    google.protobuf.Timestamp update_time = 6;
+    string etag = 7;
 }
 
 message ListApplicationsRequest {
@@ -59,4 +82,11 @@ message GetApplicationRequest {
 
 message GetApplicationResponse {
     Application application = 1;
+}
+
+message DeleteApplicationRequest {
+    string application_name = 1;  // The name of the application for which to remove GitOps
+    string namespace = 2;  // The name of the application for which to remove GitOps
+    bool remove_workload = 3;  // Whether or not to remove the workload
+    string etag = 4;
 }
