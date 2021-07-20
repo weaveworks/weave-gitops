@@ -4,7 +4,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/wego/app/add"
 	"github.com/weaveworks/weave-gitops/cmd/wego/app/list"
+	"github.com/weaveworks/weave-gitops/cmd/wego/app/pause"
 	"github.com/weaveworks/weave-gitops/cmd/wego/app/status"
+	"github.com/weaveworks/weave-gitops/cmd/wego/app/unpause"
 )
 
 var ApplicationCmd = &cobra.Command{
@@ -26,4 +28,6 @@ func init() {
 	ApplicationCmd.AddCommand(status.Cmd)
 	ApplicationCmd.AddCommand(add.Cmd)
 	ApplicationCmd.AddCommand(list.Cmd)
+	ApplicationCmd.AddCommand(pause.Cmd)
+	ApplicationCmd.AddCommand(unpause.Cmd)
 }

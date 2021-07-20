@@ -20,6 +20,10 @@ type AppService interface {
 	Get(name types.NamespacedName) (*wego.Application, error)
 	// Status returns flux resources status and the last successful reconciliation time
 	Status(params StatusParams) (string, string, error)
+	// Pause pauses the gitops automation for an app
+	Pause(params PauseParams) error
+	// Unpause resumes the gitops automation for an app
+	Unpause(params UnpauseParams) error
 }
 
 type App struct {
