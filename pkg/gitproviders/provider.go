@@ -12,7 +12,6 @@ import (
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	"github.com/weaveworks/weave-gitops/pkg/override"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -25,8 +24,8 @@ const (
 )
 
 // GitProvider Handler
-//counterfeiter:generate . GitProviderHandler
-type GitProviderHandler interface {
+//counterfeiter:generate . GitProvider
+type GitProvider interface {
 	CreateRepository(name string, owner string, private bool) error
 	RepositoryExists(name string, owner string) (bool, error)
 	DeployKeyExists(owner, repoName string) (bool, error)
@@ -37,24 +36,25 @@ type GitProviderHandler interface {
 }
 
 // making sure it implements the interface
-var _ GitProviderHandler = defaultGitProviderHandler{}
+var _ GitProvider = defaultGitProvider{}
 
-func New() defaultGitProviderHandler {
-	return defaultGitProviderHandler{}
+type defaultGitProvider struct {
+	provider gitprovider.Client
 }
 
-var gitProviderHandler interface{} = defaultGitProviderHandler{}
-
-// TODO: implement the New method and inject dependencies in the struct
-type defaultGitProviderHandler struct{}
-
-func (h defaultGitProviderHandler) RepositoryExists(name string, owner string) (bool, error) {
-	provider, err := GithubProvider()
+func New(config Config) (GitProvider, error) {
+	provider, err := buildGitProvider(config)
 	if err != nil {
-		return false, err
+		return nil, fmt.Errorf("failed to build git provider: %w", err)
 	}
 
-	ownerType, err := h.GetAccountType(owner)
+	return defaultGitProvider{
+		provider: provider,
+	}, nil
+}
+
+func (p defaultGitProvider) RepositoryExists(name string, owner string) (bool, error) {
+	ownerType, err := p.GetAccountType(owner)
 	if err != nil {
 		return false, err
 	}
@@ -66,7 +66,7 @@ func (h defaultGitProviderHandler) RepositoryExists(name string, owner string) (
 			OrganizationRef: gitprovider.OrganizationRef{Domain: github.DefaultDomain, Organization: owner},
 			RepositoryName:  name,
 		}
-		if _, err := provider.OrgRepositories().Get(ctx, orgRef); err != nil {
+		if _, err := p.provider.OrgRepositories().Get(ctx, orgRef); err != nil {
 			return false, err
 		}
 
@@ -77,20 +77,14 @@ func (h defaultGitProviderHandler) RepositoryExists(name string, owner string) (
 		UserRef:        gitprovider.UserRef{Domain: github.DefaultDomain, UserLogin: owner},
 		RepositoryName: name,
 	}
-	if _, err := provider.UserRepositories().Get(ctx, userRepoRef); err != nil {
+	if _, err := p.provider.UserRepositories().Get(ctx, userRepoRef); err != nil {
 		return false, err
 	}
 
 	return true, nil
 }
 
-func (h defaultGitProviderHandler) CreateRepository(name string, owner string, private bool) error {
-	// TODO: detect or receive the provider when necessary
-	provider, err := GithubProvider()
-	if err != nil {
-		return err
-	}
-
+func (p defaultGitProvider) CreateRepository(name string, owner string, private bool) error {
 	visibility := gitprovider.RepositoryVisibilityPrivate
 	if !private {
 		visibility = gitprovider.RepositoryVisibilityPublic
@@ -102,19 +96,19 @@ func (h defaultGitProviderHandler) CreateRepository(name string, owner string, p
 		LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
 	}
 
-	ownerType, err := h.GetAccountType(owner)
+	ownerType, err := p.GetAccountType(owner)
 	if err != nil {
 		return err
 	}
 
 	if ownerType == AccountTypeOrg {
 		orgRef := NewOrgRepositoryRef(github.DefaultDomain, owner, name)
-		if err = CreateOrgRepository(provider, orgRef, repoInfo, repoCreateOpts); err != nil {
+		if err = p.CreateOrgRepository(orgRef, repoInfo, repoCreateOpts); err != nil {
 			return err
 		}
 	} else {
 		userRef := NewUserRepositoryRef(github.DefaultDomain, owner, name)
-		if err = CreateUserRepository(provider, userRef, repoInfo, repoCreateOpts); err != nil {
+		if err = p.CreateUserRepository(userRef, repoInfo, repoCreateOpts); err != nil {
 			return err
 		}
 	}
@@ -122,16 +116,10 @@ func (h defaultGitProviderHandler) CreateRepository(name string, owner string, p
 	return nil
 }
 
-func (h defaultGitProviderHandler) DeployKeyExists(owner, repoName string) (bool, error) {
-
-	provider, err := GithubProvider()
-	if err != nil {
-		return false, err
-	}
-
+func (p defaultGitProvider) DeployKeyExists(owner, repoName string) (bool, error) {
 	deployKeyName := "weave-gitops-deploy-key"
 
-	ownerType, err := h.GetAccountType(owner)
+	ownerType, err := p.GetAccountType(owner)
 	if err != nil {
 		return false, err
 	}
@@ -141,7 +129,7 @@ func (h defaultGitProviderHandler) DeployKeyExists(owner, repoName string) (bool
 	switch ownerType {
 	case AccountTypeOrg:
 		orgRef := NewOrgRepositoryRef(github.DefaultDomain, owner, repoName)
-		orgRepo, err := provider.OrgRepositories().Get(ctx, orgRef)
+		orgRepo, err := p.provider.OrgRepositories().Get(ctx, orgRef)
 		if err != nil {
 			return false, fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s ", owner, repoName, err)
 		}
@@ -158,7 +146,7 @@ func (h defaultGitProviderHandler) DeployKeyExists(owner, repoName string) (bool
 
 	case AccountTypeUser:
 		userRef := NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
-		userRepo, err := provider.UserRepositories().Get(ctx, userRef)
+		userRepo, err := p.provider.UserRepositories().Get(ctx, userRef)
 		if err != nil {
 			return false, fmt.Errorf("error getting user repo reference for owner %s, repo %s, %s ", owner, repoName, err)
 		}
@@ -177,20 +165,14 @@ func (h defaultGitProviderHandler) DeployKeyExists(owner, repoName string) (bool
 	}
 }
 
-func (h defaultGitProviderHandler) UploadDeployKey(owner, repoName string, deployKey []byte) error {
-
-	provider, err := GithubProvider()
-	if err != nil {
-		return err
-	}
-
+func (p defaultGitProvider) UploadDeployKey(owner, repoName string, deployKey []byte) error {
 	deployKeyName := "weave-gitops-deploy-key"
 	deployKeyInfo := gitprovider.DeployKeyInfo{
 		Name: deployKeyName,
 		Key:  deployKey,
 	}
 
-	ownerType, err := h.GetAccountType(owner)
+	ownerType, err := p.GetAccountType(owner)
 	if err != nil {
 		return err
 	}
@@ -200,7 +182,7 @@ func (h defaultGitProviderHandler) UploadDeployKey(owner, repoName string, deplo
 	switch ownerType {
 	case AccountTypeOrg:
 		orgRef := NewOrgRepositoryRef(github.DefaultDomain, owner, repoName)
-		orgRepo, err := provider.OrgRepositories().Get(ctx, orgRef)
+		orgRepo, err := p.provider.OrgRepositories().Get(ctx, orgRef)
 		if err != nil {
 			return fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s ", owner, repoName, err)
 		}
@@ -217,7 +199,7 @@ func (h defaultGitProviderHandler) UploadDeployKey(owner, repoName string, deplo
 		}
 	case AccountTypeUser:
 		userRef := NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
-		userRepo, err := provider.UserRepositories().Get(ctx, userRef)
+		userRepo, err := p.provider.UserRepositories().Get(ctx, userRef)
 		if err != nil {
 			return fmt.Errorf("error getting user repo reference for owner %s, repo %s, %s ", owner, repoName, err)
 		}
@@ -239,38 +221,11 @@ func (h defaultGitProviderHandler) UploadDeployKey(owner, repoName string, deplo
 	return nil
 }
 
-func CreateRepository(name string, owner string, private bool) error {
-	return gitProviderHandler.(GitProviderHandler).CreateRepository(name, owner, private)
-}
-
-func RepositoryExists(name string, owner string) (bool, error) {
-	return gitProviderHandler.(GitProviderHandler).RepositoryExists(name, owner)
-}
-
-func UploadDeployKey(owner, repoName string, deployKey []byte) error {
-	return gitProviderHandler.(GitProviderHandler).UploadDeployKey(owner, repoName, deployKey)
-}
-
-func DeployKeyExists(owner, repoName string) (bool, error) {
-	return gitProviderHandler.(GitProviderHandler).DeployKeyExists(owner, repoName)
-}
-func CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
-	return gitProviderHandler.(GitProviderHandler).CreatePullRequestToUserRepo(userRepRef, targetBranch, newBranch, files, commitMessage, prTitle, prDescription)
-}
-
-func CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
-	return gitProviderHandler.(GitProviderHandler).CreatePullRequestToOrgRepo(orgRepRef, targetBranch, newBranch, files, commitMessage, prTitle, prDescription)
-}
-
-func (h defaultGitProviderHandler) GetAccountType(owner string) (ProviderAccountType, error) {
-	provider, err := GithubProvider()
-	if err != nil {
-		return "", err
-	}
+func (p defaultGitProvider) GetAccountType(owner string) (ProviderAccountType, error) {
 	ctx := context.Background()
 	defer ctx.Done()
 
-	_, err = provider.Organizations().Get(ctx, gitprovider.OrganizationRef{
+	_, err := p.provider.Organizations().Get(ctx, gitprovider.OrganizationRef{
 		Domain:       github.DefaultDomain,
 		Organization: owner,
 	})
@@ -286,17 +241,17 @@ func (h defaultGitProviderHandler) GetAccountType(owner string) (ProviderAccount
 	return AccountTypeOrg, nil
 }
 
-func GetRepoInfo(provider gitprovider.Client, accountType ProviderAccountType, owner string, repoName string) error {
+func (p defaultGitProvider) GetRepoInfo(accountType ProviderAccountType, owner string, repoName string) error {
 	ctx := context.Background()
 	defer ctx.Done()
 
 	switch accountType {
 	case AccountTypeOrg:
-		if err := GetOrgRepo(provider, owner, repoName); err != nil {
+		if err := p.GetOrgRepo(owner, repoName); err != nil {
 			return err
 		}
 	case AccountTypeUser:
-		if err := GetUserRepo(provider, owner, repoName); err != nil {
+		if err := p.GetUserRepo(owner, repoName); err != nil {
 			return err
 		}
 	default:
@@ -306,13 +261,13 @@ func GetRepoInfo(provider gitprovider.Client, accountType ProviderAccountType, o
 	return nil
 }
 
-func GetOrgRepo(provider gitprovider.Client, org string, repoName string) error {
+func (p defaultGitProvider) GetOrgRepo(org string, repoName string) error {
 	ctx := context.Background()
 	defer ctx.Done()
 
 	orgRepoRef := NewOrgRepositoryRef(github.DefaultDomain, org, repoName)
 
-	_, err := provider.OrgRepositories().Get(ctx, orgRepoRef)
+	_, err := p.provider.OrgRepositories().Get(ctx, orgRepoRef)
 	if err != nil {
 		return fmt.Errorf("error getting org repository %s", err)
 	}
@@ -320,13 +275,13 @@ func GetOrgRepo(provider gitprovider.Client, org string, repoName string) error 
 	return nil
 }
 
-func GetUserRepo(provider gitprovider.Client, user string, repoName string) error {
+func (p defaultGitProvider) GetUserRepo(user string, repoName string) error {
 	ctx := context.Background()
 	defer ctx.Done()
 
 	userRepoRef := NewUserRepositoryRef(github.DefaultDomain, user, repoName)
 
-	_, err := provider.UserRepositories().Get(ctx, userRepoRef)
+	_, err := p.provider.UserRepositories().Get(ctx, userRepoRef)
 	if err != nil {
 		return err
 	}
@@ -334,43 +289,34 @@ func GetUserRepo(provider gitprovider.Client, user string, repoName string) erro
 	return nil
 }
 
-func CreateOrgRepository(provider gitprovider.Client, orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
+func (p defaultGitProvider) CreateOrgRepository(orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
 	ctx := context.Background()
 	defer ctx.Done()
 
-	_, err := provider.OrgRepositories().Create(ctx, orgRepoRef, repoInfo, opts...)
+	_, err := p.provider.OrgRepositories().Create(ctx, orgRepoRef, repoInfo, opts...)
 	if err != nil {
 		return fmt.Errorf("error creating repo %s", err)
 	}
 
-	return waitUntilRepoCreated(AccountTypeOrg, orgRepoRef.Organization, orgRepoRef.RepositoryName)
+	return p.waitUntilRepoCreated(AccountTypeOrg, orgRepoRef.Organization, orgRepoRef.RepositoryName)
 }
 
-func CreateUserRepository(provider gitprovider.Client, userRepoRef gitprovider.UserRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
+func (p defaultGitProvider) CreateUserRepository(userRepoRef gitprovider.UserRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
 	ctx := context.Background()
 	defer ctx.Done()
 
-	_, err := provider.UserRepositories().Create(ctx, userRepoRef, repoInfo, opts...)
+	_, err := p.provider.UserRepositories().Create(ctx, userRepoRef, repoInfo, opts...)
 	if err != nil {
 		return fmt.Errorf("error creating repo %s", err)
 	}
 
-	return waitUntilRepoCreated(AccountTypeUser, userRepoRef.UserLogin, userRepoRef.RepositoryName)
+	return p.waitUntilRepoCreated(AccountTypeUser, userRepoRef.UserLogin, userRepoRef.RepositoryName)
 }
 
-func Override(handler GitProviderHandler) override.Override {
-	return override.Override{Handler: &gitProviderHandler, Mock: handler, Original: gitProviderHandler}
-}
-
-func (h defaultGitProviderHandler) CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
-	provider, err := GithubProvider()
-	if err != nil {
-		return nil, err
-	}
-
+func (p defaultGitProvider) CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
 	ctx := context.Background()
 
-	ur, err := provider.UserRepositories().Get(ctx, userRepRef)
+	ur, err := p.provider.UserRepositories().Get(ctx, userRepRef)
 	if err != nil {
 		return nil, fmt.Errorf("error getting info for repo [%s] err [%s]", userRepRef.String(), err)
 	}
@@ -406,14 +352,10 @@ func (h defaultGitProviderHandler) CreatePullRequestToUserRepo(userRepRef gitpro
 	return pr, nil
 }
 
-func (h defaultGitProviderHandler) CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
-	provider, err := GithubProvider()
-	if err != nil {
-		return nil, err
-	}
+func (p defaultGitProvider) CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
 	ctx := context.Background()
 
-	ur, err := provider.OrgRepositories().Get(ctx, orgRepRef)
+	ur, err := p.provider.OrgRepositories().Get(ctx, orgRepRef)
 	if err != nil {
 		return nil, fmt.Errorf("error getting info for repo [%s] err [%s]", orgRepRef.String(), err)
 	}
@@ -476,9 +418,9 @@ func NewUserRepositoryRef(domain, user, repoName string) gitprovider.UserReposit
 	}
 }
 
-func waitUntilRepoCreated(ownerType ProviderAccountType, owner, name string) error {
+func (p defaultGitProvider) waitUntilRepoCreated(ownerType ProviderAccountType, owner, name string) error {
 	if err := utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
-		return GetRepoInfo(githubProvider, ownerType, owner, name)
+		return p.GetRepoInfo(ownerType, owner, name)
 	}); err != nil {
 		return fmt.Errorf("could not verify repo existence %s", err)
 	}

@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
@@ -35,10 +34,9 @@ var Cmd = &cobra.Command{
 		}
 
 		gitClient := git.New(nil)
-		gitProviders := gitproviders.New()
 		logger := logger.New(os.Stdout)
 
-		appService := app.New(logger, gitClient, fluxClient, kubeClient, gitProviders)
+		appService := app.New(logger, gitClient, fluxClient, kubeClient)
 
 		fluxOutput, lastSuccessReconciliation, err := appService.Status(params)
 		if err != nil {

@@ -664,7 +664,7 @@ var _ = Describe("Add", func() {
 
 	Context("when creating a pull request", func() {
 		It("generates an appropriate error when the owner cannot be retrieved from the URL", func() {
-			err := appSrv.(*App).createPullRequestToRepo(addParams, ".", "foo", "cluster", "hash", []byte{})
+			err := appSrv.(*App).createPullRequestToRepo(addParams, gitProviders, ".", "foo", "cluster", "hash", []byte{})
 			Expect(err.Error()).To(HavePrefix("failed to retrieve owner"))
 		})
 
@@ -672,7 +672,7 @@ var _ = Describe("Add", func() {
 			gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
 				return gitproviders.AccountTypeOrg, fmt.Errorf("no account found")
 			}
-			err := appSrv.(*App).createPullRequestToRepo(addParams, ".", "ssh://git@github.com/ewojfewoj3323w/abc", "cluster", "hash", []byte{})
+			err := appSrv.(*App).createPullRequestToRepo(addParams, gitProviders, ".", "ssh://git@github.com/ewojfewoj3323w/abc", "cluster", "hash", []byte{})
 			Expect(err.Error()).To(HavePrefix("failed to retrieve account type"))
 		})
 	})
@@ -712,7 +712,6 @@ var _ = Describe("Add", func() {
 		})
 
 		It("should return right hash for a kustomize app", func() {
-
 			addParams.Url = "https://github.com/owner/repo1"
 			addParams.Path = "custompath"
 			addParams.Branch = "main"

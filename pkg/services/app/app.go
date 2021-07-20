@@ -1,6 +1,8 @@
 package app
 
 import (
+	"fmt"
+
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -32,22 +34,34 @@ type AppService interface {
 }
 
 type App struct {
-	git          git.Git
-	flux         flux.Flux
-	kube         kube.Kube
-	gitProviders gitproviders.GitProviderHandler
-	logger       logger.Logger
+	git                git.Git
+	flux               flux.Flux
+	kube               kube.Kube
+	logger             logger.Logger
+	gitProviderFactory func(token string) (gitproviders.GitProvider, error)
 }
 
-func New(logger logger.Logger, git git.Git, flux flux.Flux, kube kube.Kube, gitProviders gitproviders.GitProviderHandler) *App {
+func New(logger logger.Logger, git git.Git, flux flux.Flux, kube kube.Kube) *App {
 	return &App{
-		git:          git,
-		flux:         flux,
-		kube:         kube,
-		gitProviders: gitProviders,
-		logger:       logger,
+		git:                git,
+		flux:               flux,
+		kube:               kube,
+		logger:             logger,
+		gitProviderFactory: createGitProvider,
 	}
 }
 
 // Make sure App implements all the required methods.
 var _ AppService = &App{}
+
+func createGitProvider(token string) (gitproviders.GitProvider, error) {
+	provider, err := gitproviders.New(gitproviders.Config{
+		Provider: gitproviders.GitProviderGitHub,
+		Token:    token,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed initializing git provider: %w", err)
+	}
+
+	return provider, nil
+}

@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
@@ -19,7 +20,7 @@ var (
 	gitClient    *gitfakes.FakeGit
 	fluxClient   *fluxfakes.FakeFlux
 	kubeClient   *kubefakes.FakeKube
-	gitProviders *gitprovidersfakes.FakeGitProviderHandler
+	gitProviders *gitprovidersfakes.FakeGitProvider
 
 	appSrv AppService
 )
@@ -35,9 +36,14 @@ var _ = BeforeEach(func() {
 			return kube.WeGOInstalled
 		},
 	}
-	gitProviders = &gitprovidersfakes.FakeGitProviderHandler{}
 
-	appSrv = New(logger.New(os.Stderr), gitClient, fluxClient, kubeClient, gitProviders)
+	gitProviders = &gitprovidersfakes.FakeGitProvider{}
+
+	appSrv = New(logger.New(os.Stderr), gitClient, fluxClient, kubeClient)
+
+	appSrv.(*App).gitProviderFactory = func(token string) (gitproviders.GitProvider, error) {
+		return gitProviders, nil
+	}
 })
 
 func TestApp(t *testing.T) {
