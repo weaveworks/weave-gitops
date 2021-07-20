@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -57,4 +58,13 @@ func createGitProvider(token string) (gitproviders.GitProvider, error) {
 	}
 
 	return provider, nil
+}
+
+func (a *App) getDeploymentType(ctx context.Context, name, namespace string) (DeploymentType, error) {
+	app, err := a.kube.GetApplication(ctx, types.NamespacedName{Name: name, Namespace: namespace})
+	if err != nil {
+		return DeployTypeKustomize, err
+	}
+
+	return DeploymentType(app.Spec.DeploymentType), nil
 }

@@ -142,6 +142,36 @@ type FakeFlux struct {
 		result1 []byte
 		result2 error
 	}
+	ResumeAppStub        func(string, string, string) ([]byte, error)
+	resumeAppMutex       sync.RWMutex
+	resumeAppArgsForCall []struct {
+		arg1 string
+		arg2 string
+		arg3 string
+	}
+	resumeAppReturns struct {
+		result1 []byte
+		result2 error
+	}
+	resumeAppReturnsOnCall map[int]struct {
+		result1 []byte
+		result2 error
+	}
+	SuspendAppStub        func(string, string, string) ([]byte, error)
+	suspendAppMutex       sync.RWMutex
+	suspendAppArgsForCall []struct {
+		arg1 string
+		arg2 string
+		arg3 string
+	}
+	suspendAppReturns struct {
+		result1 []byte
+		result2 error
+	}
+	suspendAppReturnsOnCall map[int]struct {
+		result1 []byte
+		result2 error
+	}
 	UninstallStub        func(string, bool) error
 	uninstallMutex       sync.RWMutex
 	uninstallArgsForCall []struct {
@@ -744,6 +774,138 @@ func (fake *FakeFlux) InstallReturnsOnCall(i int, result1 []byte, result2 error)
 	}{result1, result2}
 }
 
+func (fake *FakeFlux) ResumeApp(arg1 string, arg2 string, arg3 string) ([]byte, error) {
+	fake.resumeAppMutex.Lock()
+	ret, specificReturn := fake.resumeAppReturnsOnCall[len(fake.resumeAppArgsForCall)]
+	fake.resumeAppArgsForCall = append(fake.resumeAppArgsForCall, struct {
+		arg1 string
+		arg2 string
+		arg3 string
+	}{arg1, arg2, arg3})
+	stub := fake.ResumeAppStub
+	fakeReturns := fake.resumeAppReturns
+	fake.recordInvocation("ResumeApp", []interface{}{arg1, arg2, arg3})
+	fake.resumeAppMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeFlux) ResumeAppCallCount() int {
+	fake.resumeAppMutex.RLock()
+	defer fake.resumeAppMutex.RUnlock()
+	return len(fake.resumeAppArgsForCall)
+}
+
+func (fake *FakeFlux) ResumeAppCalls(stub func(string, string, string) ([]byte, error)) {
+	fake.resumeAppMutex.Lock()
+	defer fake.resumeAppMutex.Unlock()
+	fake.ResumeAppStub = stub
+}
+
+func (fake *FakeFlux) ResumeAppArgsForCall(i int) (string, string, string) {
+	fake.resumeAppMutex.RLock()
+	defer fake.resumeAppMutex.RUnlock()
+	argsForCall := fake.resumeAppArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeFlux) ResumeAppReturns(result1 []byte, result2 error) {
+	fake.resumeAppMutex.Lock()
+	defer fake.resumeAppMutex.Unlock()
+	fake.ResumeAppStub = nil
+	fake.resumeAppReturns = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeFlux) ResumeAppReturnsOnCall(i int, result1 []byte, result2 error) {
+	fake.resumeAppMutex.Lock()
+	defer fake.resumeAppMutex.Unlock()
+	fake.ResumeAppStub = nil
+	if fake.resumeAppReturnsOnCall == nil {
+		fake.resumeAppReturnsOnCall = make(map[int]struct {
+			result1 []byte
+			result2 error
+		})
+	}
+	fake.resumeAppReturnsOnCall[i] = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeFlux) SuspendApp(arg1 string, arg2 string, arg3 string) ([]byte, error) {
+	fake.suspendAppMutex.Lock()
+	ret, specificReturn := fake.suspendAppReturnsOnCall[len(fake.suspendAppArgsForCall)]
+	fake.suspendAppArgsForCall = append(fake.suspendAppArgsForCall, struct {
+		arg1 string
+		arg2 string
+		arg3 string
+	}{arg1, arg2, arg3})
+	stub := fake.SuspendAppStub
+	fakeReturns := fake.suspendAppReturns
+	fake.recordInvocation("SuspendApp", []interface{}{arg1, arg2, arg3})
+	fake.suspendAppMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeFlux) SuspendAppCallCount() int {
+	fake.suspendAppMutex.RLock()
+	defer fake.suspendAppMutex.RUnlock()
+	return len(fake.suspendAppArgsForCall)
+}
+
+func (fake *FakeFlux) SuspendAppCalls(stub func(string, string, string) ([]byte, error)) {
+	fake.suspendAppMutex.Lock()
+	defer fake.suspendAppMutex.Unlock()
+	fake.SuspendAppStub = stub
+}
+
+func (fake *FakeFlux) SuspendAppArgsForCall(i int) (string, string, string) {
+	fake.suspendAppMutex.RLock()
+	defer fake.suspendAppMutex.RUnlock()
+	argsForCall := fake.suspendAppArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeFlux) SuspendAppReturns(result1 []byte, result2 error) {
+	fake.suspendAppMutex.Lock()
+	defer fake.suspendAppMutex.Unlock()
+	fake.SuspendAppStub = nil
+	fake.suspendAppReturns = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeFlux) SuspendAppReturnsOnCall(i int, result1 []byte, result2 error) {
+	fake.suspendAppMutex.Lock()
+	defer fake.suspendAppMutex.Unlock()
+	fake.SuspendAppStub = nil
+	if fake.suspendAppReturnsOnCall == nil {
+		fake.suspendAppReturnsOnCall = make(map[int]struct {
+			result1 []byte
+			result2 error
+		})
+	}
+	fake.suspendAppReturnsOnCall[i] = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeFlux) Uninstall(arg1 string, arg2 bool) error {
 	fake.uninstallMutex.Lock()
 	ret, specificReturn := fake.uninstallReturnsOnCall[len(fake.uninstallArgsForCall)]
@@ -827,6 +989,10 @@ func (fake *FakeFlux) Invocations() map[string][][]interface{} {
 	defer fake.getVersionMutex.RUnlock()
 	fake.installMutex.RLock()
 	defer fake.installMutex.RUnlock()
+	fake.resumeAppMutex.RLock()
+	defer fake.resumeAppMutex.RUnlock()
+	fake.suspendAppMutex.RLock()
+	defer fake.suspendAppMutex.RUnlock()
 	fake.uninstallMutex.RLock()
 	defer fake.uninstallMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

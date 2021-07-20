@@ -1,9 +1,8 @@
 package app
 
 import (
+	"context"
 	"fmt"
-
-	"github.com/weaveworks/weave-gitops/pkg/fluxops"
 )
 
 type UnpauseParams struct {
@@ -13,19 +12,25 @@ type UnpauseParams struct {
 }
 
 func (a *App) Unpause(params UnpauseParams) error {
-	switch params.DeploymentType {
-	case string(DeployTypeKustomize):
-		params.DeploymentType = "kustomization"
-	case string(DeployTypeHelm):
-		params.DeploymentType = "helmrelease"
-	default:
-		return fmt.Errorf("invalid deployment type: %v", params.DeploymentType)
+	ctx := context.Background()
+	deploymentType, err := a.getDeploymentType(ctx, params.Name, params.Namespace)
+	if err != nil {
+		return fmt.Errorf("unable to determine deployment type: %s", err)
 	}
 
-	_, err := fluxops.CallFlux("resume", params.DeploymentType, params.Name, fmt.Sprintf("--namespace=%s", params.Namespace))
-	if err != nil {
-		return fmt.Errorf("unable to unpause %s err: %s", params.Name, err)
+	switch deploymentType {
+	case DeployTypeKustomize:
+		deploymentType = "kustomization"
+	case DeployTypeHelm:
+		deploymentType = "helmrelease"
+	default:
+		return fmt.Errorf("invalid deployment type: %v", deploymentType)
 	}
-	a.logger.Printf("gitops automation unpaused for %s", params.Name)
+
+	_, err = a.flux.ResumeApp(params.Name, params.Namespace, string(deploymentType))
+	if err != nil {
+		return fmt.Errorf("unable to resume %s err: %s", params.Name, err)
+	}
+	a.logger.Printf("gitops automation resumed for %s\n", params.Name)
 	return nil
 }

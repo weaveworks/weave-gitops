@@ -24,7 +24,7 @@ func (a *App) Status(params StatusParams) (string, string, error) {
 	}
 
 	ctx := context.Background()
-	deploymentType, err := a.getDeploymentType(ctx, params)
+	deploymentType, err := a.getDeploymentType(ctx, params.Name, params.Namespace)
 	if err != nil {
 		return "", "", fmt.Errorf("failed getting app deployment type: %w", err)
 	}

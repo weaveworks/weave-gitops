@@ -41,7 +41,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	kubeClient := kube.New(cliRunner)
 	logger := logger.New(os.Stdout)
 
-	appService := app.New(logger, nil, fluxClient, kubeClient, nil)
+	appService := app.New(logger, nil, fluxClient, kubeClient)
 
 	if err := appService.Pause(params); err != nil {
 		return errors.Wrapf(err, "failed to pause the app %s", params.Name)

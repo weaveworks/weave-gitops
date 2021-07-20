@@ -41,10 +41,10 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	kubeClient := kube.New(cliRunner)
 	logger := logger.New(os.Stdout)
 
-	appService := app.New(logger, nil, fluxClient, kubeClient, nil)
+	appService := app.New(logger, nil, fluxClient, kubeClient)
 
 	if err := appService.Unpause(params); err != nil {
-		return errors.Wrapf(err, "failed to unPause the app %s", params.Name)
+		return errors.Wrapf(err, "failed to unpause the app %s", params.Name)
 	}
 
 	return nil
