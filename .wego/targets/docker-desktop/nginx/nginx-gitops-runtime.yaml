@@ -1,0 +1,15 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta1
+kind: Kustomization
+metadata:
+  name: nginx
+  namespace: wego-system
+spec:
+  interval: 1m0s
+  path: ./
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: nginx
+  validation: client
+
