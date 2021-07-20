@@ -115,9 +115,12 @@ func (a *App) Add(params AddParams) error {
 		return err
 	}
 
-	secretRef, err := a.createAndUploadDeployKey(params, params.Url, clusterName, gitProvider)
-	if err != nil {
-		return errors.Wrap(err, "could not generate deploy key")
+	var secretRef string
+	if SourceType(params.SourceType) == SourceTypeGit {
+		secretRef, err = a.createAndUploadDeployKey(params, params.Url, clusterName, gitProvider)
+		if err != nil {
+			return errors.Wrap(err, "could not generate deploy key")
+		}
 	}
 
 	appHash, err := getAppHash(params)
@@ -441,10 +444,6 @@ func (a *App) commitAndPush(params AddParams, filters ...func(string) bool) erro
 }
 
 func (a *App) createAndUploadDeployKey(params AddParams, repoUrl string, clusterName string, gitProvider gitproviders.GitProvider) (string, error) {
-	if SourceType(params.SourceType) == SourceTypeHelm {
-		return "", nil
-	}
-
 	if repoUrl == "" {
 		return "", nil
 	}
