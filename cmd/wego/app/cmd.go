@@ -12,7 +12,7 @@ import (
 var ApplicationCmd = &cobra.Command{
 	Use:   "app",
 	Short: "Manages your applications",
-	Example:`
+	Example: `
   # Add an application to wego from local git repository
   wego app add . --name <app-name>
 
@@ -20,7 +20,13 @@ var ApplicationCmd = &cobra.Command{
   wego app status <app-name>
 
   # List applications under wego control
-  wego app list`,
+  wego app list
+
+  # Pause gitops automation
+  wego app pause <app-name>
+
+  # Unpause gitops automation
+  wego app unpause <app-name>`,
 	Args: cobra.MinimumNArgs(1),
 }
 
