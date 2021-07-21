@@ -32,7 +32,7 @@ var _ = Describe("Install", func() {
 
 		cmd, args := runner.RunWithOutputStreamArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
-		Expect(strings.Join(args, " ")).To(Equal("install --namespace wego-system --components-extra image-reflector-controller,image-automation-controller"))
+		Expect(strings.Join(args, " ")).To(Equal("install --namespace wego-system"))
 	})
 
 	It("exports the install manifests", func() {
