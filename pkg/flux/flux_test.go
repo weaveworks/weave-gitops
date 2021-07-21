@@ -48,7 +48,7 @@ var _ = Describe("Install", func() {
 
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
-		Expect(strings.Join(args, " ")).To(Equal("install --namespace wego-system --components-extra image-reflector-controller,image-automation-controller --export"))
+		Expect(strings.Join(args, " ")).To(Equal("install --namespace wego-system --export"))
 	})
 })
 
