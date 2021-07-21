@@ -1,6 +1,7 @@
 package unpause
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/pkg/errors"
@@ -28,18 +29,17 @@ var Cmd = &cobra.Command{
 	},
 }
 
-func init() {
-	Cmd.Flags().StringVar(&params.DeploymentType, "deployment-type", "kustomize", "deployment type [kustomize, helm]")
-}
-
 func runCmd(cmd *cobra.Command, args []string) error {
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 	params.Name = args[0]
 
 	cliRunner := &runner.CLIRunner{}
 	fluxClient := flux.New(cliRunner)
-	kubeClient := kube.New(cliRunner)
 	logger := logger.New(os.Stdout)
+	kubeClient, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		return fmt.Errorf("error initializing kube client: %w", err)
+	}
 
 	appService := app.New(logger, nil, fluxClient, kubeClient)
 

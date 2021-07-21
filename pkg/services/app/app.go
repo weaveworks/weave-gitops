@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -11,6 +13,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // AppService entity that manages applications
@@ -67,4 +70,31 @@ func (a *App) getDeploymentType(ctx context.Context, name, namespace string) (De
 	}
 
 	return DeploymentType(app.Spec.DeploymentType), nil
+}
+
+func (a *App) getSuspendedStatus(ctx context.Context, name, namespace string, deploymentType DeploymentType) (bool, error) {
+	var automation client.Object
+
+	switch deploymentType {
+	case DeployTypeKustomize:
+		automation = &kustomizev1.Kustomization{}
+	case DeployTypeHelm:
+		automation = &helmv2.HelmRelease{}
+	default:
+		return false, fmt.Errorf("invalid deployment type: %v", deploymentType)
+	}
+
+	if err := a.kube.GetResource(ctx, types.NamespacedName{Namespace: namespace, Name: name}, automation); err != nil {
+		return false, err
+	}
+
+	suspendStatus := false
+
+	switch at := automation.(type) {
+	case *kustomizev1.Kustomization:
+		suspendStatus = at.Spec.Suspend
+	case *helmv2.HelmRelease:
+		suspendStatus = at.Spec.Suspend
+	}
+	return suspendStatus, nil
 }
