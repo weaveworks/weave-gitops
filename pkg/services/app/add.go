@@ -338,7 +338,7 @@ func (a *App) addAppWithConfigInExternalRepo(params AddParams, gitProvider gitpr
 			}
 
 			if err := a.writeAppGoats(".", params.Name, clusterName, appSource, appGoat); err != nil {
-				return errors.Wrap(err, "failed writing app.yaml to disk")
+				return fmt.Errorf("failed writing application gitops manifests to disk: %w", err)
 			}
 		}
 	}
