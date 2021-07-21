@@ -464,12 +464,12 @@ func (a *App) createAndUploadDeployKey(params AddParams, repoUrl string, cluster
 
 	deployKeyExists, err := gitProvider.DeployKeyExists(owner, repoName)
 	if err != nil {
-		return "", errors.Wrap(err, "could not check for existing deploy key")
+		return "", fmt.Errorf("failed check for existing deploy key: %w", err)
 	}
 
 	secretPresent, err := a.kube.SecretPresent(context.Background(), secretRefName, params.Namespace)
 	if err != nil {
-		return "", errors.Wrap(err, "could not check for existing secret")
+		return "", fmt.Errorf("failed check for existing secret: %w", err)
 	}
 
 	if !deployKeyExists || !secretPresent {
