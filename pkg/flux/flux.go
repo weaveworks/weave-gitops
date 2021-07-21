@@ -43,7 +43,7 @@ func (f *FluxClient) Install(namespace string, export bool) ([]byte, error) {
 	args := []string{
 		"install",
 		"--namespace", namespace,
-		"--components-extra", "image-reflector-controller,image-automation-controller",
+		//"--components-extra", "image-reflector-controller,image-automation-controller",
 	}
 
 	if export {
