@@ -128,7 +128,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		c.Stderr = os.Stderr
 		err := c.Run()
 		fmt.Println("error on command: ", err)
-		body, err := ioutil.ReadFile(DEFAULT_SSH_KEY_PATH)
+		body, err := ioutil.ReadFile(os.Getenv("SSH_AUTH_SOCK"))
 		fmt.Println("Error reading ssh key file", err)
 		fmt.Println("Content:", string(body))
 		addCommand := "app add --url=" + appRepoRemoteURL + " --branch=" + branchName + " --private-key=" + DEFAULT_SSH_KEY_PATH + " --dry-run" + " --auto-merge=true"
