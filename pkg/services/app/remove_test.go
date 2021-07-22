@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"sigs.k8s.io/yaml"
 )
 
 var appYaml = `apiVersion: wego.weave.works/v1alpha1
@@ -83,6 +84,8 @@ spec:
         - containerPort: 80
 `)
 
+const cluster string = "test-cluster"
+
 var application wego.Application
 
 func populateAppRepo() (string, error) {
@@ -90,6 +93,7 @@ func populateAppRepo() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	workloadPath1 := filepath.Join(dir, "kustomize", "one", "path", "to", "files")
 	workloadPath2 := filepath.Join(dir, "kustomize", "another", "path", "to", "more", "files")
 	if err := os.MkdirAll(workloadPath1, 0777); err != nil {
@@ -98,13 +102,38 @@ func populateAppRepo() (string, error) {
 	if err := os.MkdirAll(workloadPath2, 0777); err != nil {
 		return "", err
 	}
+
 	if err := ioutil.WriteFile(filepath.Join(workloadPath1, "nginx.yaml"), []byte(workloadYaml1), 0644); err != nil {
 		return "", err
 	}
 	if err := ioutil.WriteFile(filepath.Join(workloadPath2, "nginx.yaml"), []byte(workloadYaml2), 0644); err != nil {
 		return "", err
 	}
+
 	return dir, nil
+}
+
+func populateConfigRepo(root string, app wego.Application) (string, error) {
+	dir, err := ioutil.TempDir("", "an-app-dir")
+	if err != nil {
+		return "", err
+	}
+
+	appPath := filepath.Join(dir, root, "apps")
+	if err := os.MkdirAll(appPath, 0777); err != nil {
+		return "", err
+	}
+
+	manifest, err := yaml.Marshal(application)
+	if err != nil {
+		return "", err
+	}
+
+	if err := ioutil.WriteFile(filepath.Join(appPath, "nginx", "app.yaml"), manifest, 0644); err != nil {
+		return "", err
+	}
+
+	return filepath.Join(dir, root), nil
 }
 
 var _ = Describe("Remove", func() {

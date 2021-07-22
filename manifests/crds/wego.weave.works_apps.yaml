@@ -36,6 +36,14 @@ spec:
           spec:
             description: ApplicationSpec defines the desired state of Application
             properties:
+              bfanch:
+                description: Branch is the branch in the repository where the k8s
+                  yaml files for this application are stored.
+                type: string
+              config_url:
+                description: ConfigURL is the address of the git repository containing
+                  the automation for this application
+                type: string
               deployment_type:
                 description: DeploymentType is the deployment method used to apply
                   the manifests
@@ -46,6 +54,13 @@ spec:
               path:
                 description: Path is the path in the repository where the k8s yaml
                   files for this application are stored.
+                type: string
+              source_type:
+                description: SourceType is the type of repository containing the app
+                  manifests
+                enum:
+                - helm
+                - git
                 type: string
               url:
                 description: URL is the address of the git repository for this application

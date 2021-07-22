@@ -10,6 +10,11 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 )
 
+type AutomationManifestPaths struct { // source for automation isn't currently stored
+	AppDirAutomationPath    string
+	TargetDirAutomationPath string
+}
+
 func dirExists(d string) bool {
 	info, err := os.Stat(d)
 	if os.IsNotExist(err) {
@@ -18,6 +23,7 @@ func dirExists(d string) bool {
 	return info.IsDir()
 }
 
+// findAppManifests locates all manifests associated with a specific application within a repository
 func findAppManifests(application wego.Application, repoDir string) ([][]byte, error) {
 	root := filepath.Join(repoDir, application.Spec.Path)
 	if !dirExists(root) {
