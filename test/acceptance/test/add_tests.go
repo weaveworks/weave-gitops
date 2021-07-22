@@ -126,7 +126,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		c := exec.Command("ls", "-lha", os.Getenv("HOME")+"/.ssh")
 		c.Stdout = os.Stdout
 		c.Stderr = os.Stderr
-		c.Run()
+		err := c.Run()
+		fmt.Println("error on command: ", err)
 		body, err := ioutil.ReadFile(DEFAULT_SSH_KEY_PATH)
 		fmt.Println("Error reading ssh key file", err)
 		fmt.Println("Content:", string(body))
