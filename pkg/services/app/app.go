@@ -98,3 +98,49 @@ func (a *App) getSuspendedStatus(ctx context.Context, name, namespace string, de
 	}
 	return suspendStatus, nil
 }
+
+func (a *App) pauseOrUnpause(pause bool, name, namespace string) error {
+	ctx := context.Background()
+	deploymentType, err := a.getDeploymentType(ctx, name, namespace)
+	if err != nil {
+		return fmt.Errorf("unable to determine deployment type for %s: %s", name, err)
+	}
+
+	suspendStatus, err := a.getSuspendedStatus(ctx, name, namespace, deploymentType)
+	if err != nil {
+		return fmt.Errorf("failed to get suspended status: %s", err)
+	}
+
+	switch deploymentType {
+	case DeployTypeKustomize:
+		deploymentType = "kustomization"
+	case DeployTypeHelm:
+		deploymentType = "helmrelease"
+	default:
+		return fmt.Errorf("invalid deployment type: %v", deploymentType)
+	}
+
+	if pause {
+		if suspendStatus {
+			a.logger.Printf("app %s is already paused\n", name)
+			return nil
+		}
+		out, err := a.flux.SuspendOrResumeApp("suspend", name, namespace, string(deploymentType))
+		if err != nil {
+			return fmt.Errorf("unable to pause %s err: %s", name, err)
+		}
+		a.logger.Printf("%s\n gitops automation paused for %s\n", string(out), name)
+		return nil
+	}
+
+	if !suspendStatus {
+		a.logger.Printf("app %s is already reconciling\n", name)
+		return nil
+	}
+	out, err := a.flux.SuspendOrResumeApp("resume", name, namespace, string(deploymentType))
+	if err != nil {
+		return fmt.Errorf("unable to unpause %s err: %s", name, err)
+	}
+	a.logger.Printf("%s\n gitops automation unpaused for %s\n", string(out), name)
+	return nil
+}

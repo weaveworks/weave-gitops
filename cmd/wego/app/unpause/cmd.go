@@ -18,7 +18,7 @@ var params app.UnpauseParams
 
 var Cmd = &cobra.Command{
 	Use:           "unpause <app-name>",
-	Short:         "unpause an app",
+	Short:         "Unpause an application",
 	Args:          cobra.MinimumNArgs(1),
 	Example:       "wego app unpause podinfo",
 	RunE:          runCmd,
