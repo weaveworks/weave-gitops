@@ -109,7 +109,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	})
 
 	//deployment-type=default k | repo=private | url=giturl | branch| dry-run | app-config-url=""
-	It("Verify that wego does not modify the cluster when run with --dry-run flag", func() {
+	It("SmokeTest - Verify that wego does not modify the cluster when run with --dry-run flag", func() {
 		var repoAbsolutePath string
 		var addCommandOutput string
 		private := true
@@ -119,7 +119,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appName := tip.appRepoName
 		appType := "Kustomization"
 
-		addCommand := "app add --url=" + appRepoRemoteURL + " --branch=" + branchName + "--private-key=" + DEFAULT_SSH_KEY_PATH + " --dry-run" + " --auto-merge=true"
+		addCommand := "app add --url=" + appRepoRemoteURL + " --branch=" + branchName + " --private-key=" + DEFAULT_SSH_KEY_PATH + " --dry-run" + " --auto-merge=true"
 
 		defer deleteRepo(tip.appRepoName)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
@@ -228,7 +228,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 	//deployment-type=default k | repo=private | url=giturl | branch | namespace | private-key=~/ | app-config-url=NONE
 	// Eventually this test run will include all the remaining un-automated `wego app add` flags.
-	It("Verify that wego can deploy app when user specifies branch, namespace, url, private-key, deployment-type", func() {
+	It("SmokeTest - Verify that wego can deploy app when user specifies branch, namespace, url, private-key, deployment-type", func() {
 		var repoAbsolutePath string
 		private := true
 		DEFAULT_SSH_KEY_PATH := "~/.ssh/id_rsa"
@@ -940,7 +940,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	})
 
 	//deployment-type=default h | repo=private | url=helmrepo | chart=helmchart | app-config-url=url
-	It("Verify that wego can deploy multiple helm apps from a helm repo with app-config-url set to <url>", func() {
+	It("SmokeTest - Verify that wego can deploy multiple helm apps from a helm repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var listOutput string
 		var appStatus1 *gexec.Session
