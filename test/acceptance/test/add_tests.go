@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"regexp"
 
 	. "github.com/onsi/ginkgo"
@@ -121,6 +122,11 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appType := "Kustomization"
 
 		fmt.Printf("DEFAULT_SSH_KEY_PATH[%s]\n", DEFAULT_SSH_KEY_PATH)
+		fmt.Printf("SSH_AUTH_SOCK[%s]\n", os.Getenv("SSH_AUTH_SOCK"))
+		c := exec.Command("ls", "-lha", os.Getenv("HOME")+"/.ssh")
+		c.Stdout = os.Stdout
+		c.Stderr = os.Stderr
+		c.Run()
 		body, err := ioutil.ReadFile(DEFAULT_SSH_KEY_PATH)
 		fmt.Println("Error reading ssh key file", err)
 		fmt.Println("Content:", string(body))
