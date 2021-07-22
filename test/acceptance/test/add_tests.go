@@ -119,6 +119,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appName := tip.appRepoName
 		appType := "Kustomization"
 
+		fmt.Printf("DEFAULT_SSH_KEY_PATH[%s]\n", DEFAULT_SSH_KEY_PATH)
 		addCommand := "app add --url=" + appRepoRemoteURL + " --branch=" + branchName + " --private-key=" + DEFAULT_SSH_KEY_PATH + " --dry-run" + " --auto-merge=true"
 
 		defer deleteRepo(tip.appRepoName)
