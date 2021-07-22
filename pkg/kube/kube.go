@@ -3,6 +3,7 @@ package kube
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"strings"
 
@@ -24,7 +25,9 @@ type Resource interface {
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
-const kubectlPath = "kubectl"
+const KubectlPath = "kubectl"
+const GitTokenSecretName = "git-secret"
+const GitTokenKeyName = "gitToken"
 
 type ClusterStatus int
 
@@ -201,7 +204,7 @@ func (k *KubeClient) GetResource(ctx context.Context, name types.NamespacedName,
 }
 
 func (k *KubeClient) runKubectlCmd(args []string) ([]byte, error) {
-	out, err := k.runner.Run(kubectlPath, args...)
+	out, err := k.runner.Run(KubectlPath, args...)
 	if err != nil {
 		return out, fmt.Errorf("failed to run kubectl with output: %s", string(out))
 	}
@@ -210,7 +213,7 @@ func (k *KubeClient) runKubectlCmd(args []string) ([]byte, error) {
 }
 
 func (k *KubeClient) runKubectlCmdWithInput(args []string, input []byte) ([]byte, error) {
-	out, err := k.runner.RunWithStdin(kubectlPath, args, input)
+	out, err := k.runner.RunWithStdin(KubectlPath, args, input)
 	if err != nil {
 		return out, fmt.Errorf("failed to run kubectl with output: %s", string(out))
 	}
@@ -255,9 +258,6 @@ func (k *KubeClient) GetSecret(ctx context.Context, name, key string, namespace 
 		fmt.Sprintf("--template={{.data.%s}}", key),
 		"-n",
 		namespace,
-		"|",
-		"base64",
-		"-D",
 	}
 
 	output, err := k.runKubectlCmd(cmd)
@@ -265,5 +265,10 @@ func (k *KubeClient) GetSecret(ctx context.Context, name, key string, namespace 
 		return nil, fmt.Errorf("could not run kubectl command: %s", err)
 	}
 
-	return output, nil
+	decoded, err := base64.StdEncoding.DecodeString(string(output))
+	if err != nil {
+		return nil, fmt.Errorf("error decoding base64 string: %w", err)
+	}
+
+	return decoded, nil
 }

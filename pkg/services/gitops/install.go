@@ -34,7 +34,7 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 		fluxManifests = append(fluxManifests, manifests.AppCRD...)
 	} else {
 		ctx := context.Background()
-		if err := g.kube.CreateSecret(ctx, "git-token", "git-token", params.GitToken, params.Namespace); err != nil {
+		if err := g.kube.CreateSecret(ctx, kube.GitTokenSecretName, kube.GitTokenKeyName, params.GitToken, params.Namespace); err != nil {
 			return nil, errors.Wrap(err, "could not create git token secret")
 		}
 		if out, err := g.kube.Apply(manifests.AppCRD, params.Namespace); err != nil {

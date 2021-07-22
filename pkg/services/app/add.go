@@ -108,7 +108,7 @@ func (a *App) Add(params AddParams) error {
 		return err
 	}
 
-	gitToken, err := a.kube.GetSecret(ctx, "git-token", "git-token", params.Namespace)
+	gitToken, err := a.kube.GetSecret(ctx, kube.GitTokenSecretName, kube.GitTokenKeyName, params.Namespace)
 	if err != nil {
 		return err
 	}
