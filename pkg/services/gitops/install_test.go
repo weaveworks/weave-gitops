@@ -60,7 +60,7 @@ var _ = Describe("Install", func() {
 		_, err := gitopsSrv.Install(installParams)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		Expect(kubeClient.ApplyCallCount()).To(Equal(1))
+		Expect(kubeClient.ApplyCallCount()).To(Equal(4))
 
 		appCRD, namespace := kubeClient.ApplyArgsForCall(0)
 		Expect(appCRD).To(ContainSubstring("kind: App"))
