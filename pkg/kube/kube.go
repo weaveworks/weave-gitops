@@ -119,7 +119,7 @@ func (k *KubeClient) GetClusterName(ctx context.Context) (string, error) {
 }
 
 func sanitize(name string) string {
-	reRemoveUnAllowed := regexp.MustCompile(`![^a-z0-9\s-]+$`)
+	reRemoveUnAllowed := regexp.MustCompile(`[^a-z0-9\s-]+`)
 	reNoDupDashes := regexp.MustCompile(`^--+`)
 	reNoOutsideDashes := regexp.MustCompile(`^-+|-$`)
 
