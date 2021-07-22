@@ -25,8 +25,15 @@ type Flux interface {
 	CreateSecretGit(name string, url string, namespace string) ([]byte, error)
 	GetVersion() (string, error)
 	GetAllResourcesStatus(name string, namespace string) ([]byte, error)
-	SuspendOrResumeApp(action, name, namespace, deploymentType string) ([]byte, error)
+	SuspendOrResumeApp(pause SuspendAction, name, namespace, deploymentType string) ([]byte, error)
 }
+
+type SuspendAction string
+
+const (
+	Suspend SuspendAction = "supend"
+	Resume  SuspendAction = "resume"
+)
 
 type FluxClient struct {
 	runner runner.Runner
@@ -254,9 +261,9 @@ func (f *FluxClient) fluxPath() (string, error) {
 	return fmt.Sprintf("%v/flux-%v", path, version.FluxVersion), nil
 }
 
-func (f *FluxClient) SuspendOrResumeApp(action, name, namespace string, deploymentType string) ([]byte, error) {
+func (f *FluxClient) SuspendOrResumeApp(suspend SuspendAction, name, namespace string, deploymentType string) ([]byte, error) {
 	args := []string{
-		action, deploymentType, name, fmt.Sprintf("--namespace=%s", namespace),
+		string(suspend), deploymentType, name, fmt.Sprintf("--namespace=%s", namespace),
 	}
 
 	return f.runFluxCmd(args...)
