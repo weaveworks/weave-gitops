@@ -142,7 +142,7 @@ var _ = Describe("FixInvalidClusterName", func() {
 			{"cluster-name-\n", "cluster-name"},
 			{"cluster-name$\n", "cluster-name"},
 			{"$cluster-name\n", "cluster-name"},
-			{"clustner-name@1\n", "cluster-name1"},
+			{"cluster-name@1\n", "cluster-name1"},
 			{"1@#$%^&*(_+w2\n", "1-w2"},
 		} {
 
