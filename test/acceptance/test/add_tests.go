@@ -6,6 +6,7 @@ package acceptance
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"regexp"
 
@@ -120,6 +121,9 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appType := "Kustomization"
 
 		fmt.Printf("DEFAULT_SSH_KEY_PATH[%s]\n", DEFAULT_SSH_KEY_PATH)
+		body, err := ioutil.ReadFile(DEFAULT_SSH_KEY_PATH)
+		fmt.Println("Error reading ssh key file", err)
+		fmt.Println("Content:", string(body))
 		addCommand := "app add --url=" + appRepoRemoteURL + " --branch=" + branchName + " --private-key=" + DEFAULT_SSH_KEY_PATH + " --dry-run" + " --auto-merge=true"
 
 		defer deleteRepo(tip.appRepoName)
