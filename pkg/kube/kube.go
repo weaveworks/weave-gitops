@@ -59,6 +59,8 @@ type Kube interface {
 	LabelExistsInCluster(ctx context.Context, label string) error
 	GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error)
 	GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error
+	CreateSecret(ctx context.Context, name, key, value string, namespace string) error
+	GetSecret(ctx context.Context, name, key string, namespace string) ([]byte, error)
 }
 
 type KubeClient struct {
@@ -225,4 +227,43 @@ func (k *KubeClient) LabelExistsInCluster(ctx context.Context, label string) err
 		return fmt.Errorf("unable to create resource, resource already exists in cluster")
 	}
 	return nil
+}
+
+func (k *KubeClient) CreateSecret(ctx context.Context, name, key, value string, namespace string) error {
+	cmd := []string{
+		"create",
+		"secret",
+		"generic",
+		name,
+		fmt.Sprintf("--from-literal=%s=%s", key, value),
+		"-n",
+		namespace,
+	}
+
+	_, err := k.runKubectlCmd(cmd)
+	if err != nil {
+		return fmt.Errorf("could not run kubectl command: %s", err)
+	}
+
+	return nil
+}
+
+func (k *KubeClient) GetSecret(ctx context.Context, name, key string, namespace string) ([]byte, error) {
+	cmd := []string{
+		"get",
+		fmt.Sprintf("secret/%s", name),
+		fmt.Sprintf("--template={{.data.%s}}", key),
+		"-n",
+		namespace,
+		"|",
+		"base64",
+		"-D",
+	}
+
+	output, err := k.runKubectlCmd(cmd)
+	if err != nil {
+		return nil, fmt.Errorf("could not run kubectl command: %s", err)
+	}
+
+	return output, nil
 }

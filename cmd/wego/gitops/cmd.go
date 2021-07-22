@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/pkg/errors"
+	"golang.org/x/term"
+
 	_ "embed"
 
 	"github.com/spf13/cobra"
@@ -75,11 +78,25 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	fluxClient := flux.New(cliRunner)
 	kubeClient := kube.New(cliRunner)
 
+	var gitToken string
+	gitToken = os.Getenv("GITHUB_TOKEN")
+	if gitToken == "" {
+		fmt.Print("Github token: ")
+		input, err := term.ReadPassword(int(os.Stdin.Fd()))
+		if err != nil {
+			return errors.Wrap(err, "failed reading ssh key password")
+		}
+		gitToken = string(input)
+	} else {
+		fmt.Println("Using env GITHUB_TOKEN")
+	}
+
 	gitopsService := gitops.New(logger.New(os.Stdout), fluxClient, kubeClient)
 
 	manifests, err := gitopsService.Install(gitops.InstallParams{
 		Namespace: gitopsParams.Namespace,
 		DryRun:    gitopsParams.DryRun,
+		GitToken:  gitToken,
 	})
 	if err != nil {
 		return err

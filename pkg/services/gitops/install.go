@@ -12,6 +12,7 @@ import (
 type InstallParams struct {
 	Namespace string
 	DryRun    bool
+	GitToken  string
 }
 
 func (g *Gitops) Install(params InstallParams) ([]byte, error) {
@@ -32,8 +33,21 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 	if params.DryRun {
 		fluxManifests = append(fluxManifests, manifests.AppCRD...)
 	} else {
+		ctx := context.Background()
+		if err := g.kube.CreateSecret(ctx, "git-token", "git-token", params.GitToken, params.Namespace); err != nil {
+			return nil, errors.Wrap(err, "could not create git token secret")
+		}
 		if out, err := g.kube.Apply(manifests.AppCRD, params.Namespace); err != nil {
 			return []byte{}, errors.Wrapf(err, "failed to apply App spec CR: %s", string(out))
+		}
+		if out, err := g.kube.Apply(manifests.ServiceAccountApiService, params.Namespace); err != nil {
+			return []byte{}, errors.Wrapf(err, "failed to apply service account manifest for api-service: %s", string(out))
+		}
+		if out, err := g.kube.Apply(manifests.RoleApiService, params.Namespace); err != nil {
+			return []byte{}, errors.Wrapf(err, "failed to apply role manifest for api-service: %s", string(out))
+		}
+		if out, err := g.kube.Apply(manifests.RoleBindingApiService, params.Namespace); err != nil {
+			return []byte{}, errors.Wrapf(err, "failed to apply rolebinding for api-service: %s", string(out))
 		}
 	}
 

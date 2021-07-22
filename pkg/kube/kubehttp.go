@@ -189,6 +189,14 @@ func (c *KubeHTTP) GetResource(ctx context.Context, name types.NamespacedName, r
 	return nil
 }
 
+func (c *KubeHTTP) CreateSecret(ctx context.Context, name, key, value string, namespace string) error {
+	return nil
+}
+
+func (c *KubeHTTP) GetSecret(ctx context.Context, name, key string, namespace string) ([]byte, error) {
+	return nil, nil
+}
+
 func initialContexts(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (contexts []string, currentCtx string, err error) {
 	rules, err := cfgLoadingRules.Load()
 

@@ -33,20 +33,19 @@ const (
 )
 
 type AddParams struct {
-	Dir              string
-	Name             string
-	Url              string
-	Path             string
-	Branch           string
-	PrivateKey       string
-	DeploymentType   string
-	Chart            string
-	SourceType       string
-	AppConfigUrl     string
-	Namespace        string
-	DryRun           bool
-	AutoMerge        bool
-	GitProviderToken string
+	Dir            string
+	Name           string
+	Url            string
+	Path           string
+	Branch         string
+	PrivateKey     string
+	DeploymentType string
+	Chart          string
+	SourceType     string
+	AppConfigUrl   string
+	Namespace      string
+	DryRun         bool
+	AutoMerge      bool
 }
 
 // Three models:
@@ -110,7 +109,12 @@ func (a *App) Add(params AddParams) error {
 		return err
 	}
 
-	gitProvider, err := a.gitProviderFactory(params.GitProviderToken)
+	gitToken, err := a.kube.GetSecret(ctx, "git-token", "git-token", params.Namespace)
+	if err != nil {
+		return err
+	}
+
+	gitProvider, err := a.gitProviderFactory(string(gitToken))
 	if err != nil {
 		return err
 	}

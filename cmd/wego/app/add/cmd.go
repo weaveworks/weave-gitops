@@ -107,11 +107,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	params, err = setGitProviderToken(params)
-	if err != nil {
-		return err
-	}
-
 	cliRunner := &runner.CLIRunner{}
 	fluxClient := flux.New(cliRunner)
 	kubeClient := kube.New(cliRunner)
@@ -154,15 +149,4 @@ func findPrivateKeyFile() (string, error) {
 	}
 
 	return "", fmt.Errorf("could not locate ssh key file; please specify '--private-key'")
-}
-
-func setGitProviderToken(params app.AddParams) (app.AddParams, error) {
-	providerToken, found := os.LookupEnv("GITHUB_TOKEN")
-	if !found {
-		return params, fmt.Errorf("GITHUB_TOKEN not set in environment")
-	}
-
-	params.GitProviderToken = providerToken
-
-	return params, nil
 }

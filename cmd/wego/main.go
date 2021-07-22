@@ -18,12 +18,12 @@ var options struct {
 }
 
 var rootCmd = &cobra.Command{
-	Use: "wego",
+	Use:           "wego",
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	Short:         "Weave GitOps",
 	Long:          "Command line utility for managing Kubernetes applications via GitOps.",
-	Example:`
+	Example: `
   # Get verbose output for any wego command
   wego [command] -v, --verbose
 
