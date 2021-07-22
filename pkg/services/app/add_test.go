@@ -506,14 +506,17 @@ var _ = Describe("Add", func() {
 					Branch:    "main",
 				}
 
-				desired2 := makeWegoApplication(params)
-				hash, err := getHash(repoURL, params.Path, params.Branch)
+				info, err := appSrv.(*App).getInfoFromAddParams(params)
+				Expect(err).NotTo(HaveOccurred())
+
+				desired2 := info.Application
+				hash, err := getHash(repoURL, info.Spec.Path, info.Spec.Branch)
 				Expect(err).To(BeNil())
 
 				desired2.ObjectMeta.Labels = map[string]string{WeGOAppIdentifierLabelKey: hash}
 
 				Expect(err).NotTo(HaveOccurred())
-				out, err := generateAppYaml(params, hash)
+				out, err := generateAppYaml(info, hash)
 				Expect(err).To(BeNil())
 
 				result := wego.Application{}
@@ -548,7 +551,7 @@ var _ = Describe("Add", func() {
 
 				name, source, path, namespace = fluxClient.CreateKustomizationArgsForCall(1)
 				Expect(name).To(Equal("repo-apps-dir"))
-				Expect(source).To(Equal("bar"))
+				Expect(source).To(Equal("repo"))
 				Expect(path).To(Equal("apps/repo"))
 				Expect(namespace).To(Equal("wego-system"))
 			})
@@ -665,7 +668,10 @@ var _ = Describe("Add", func() {
 
 	Context("when creating a pull request", func() {
 		It("generates an appropriate error when the owner cannot be retrieved from the URL", func() {
-			err := appSrv.(*App).createPullRequestToRepo(addParams, gitProviders, ".", "foo", "cluster", "hash", []byte{})
+			addParams.ClusterName = "cluster"
+			info, err := appSrv.(*App).getInfoFromAddParams(addParams)
+			Expect(err).ShouldNot(HaveOccurred())
+			err = appSrv.(*App).createPullRequestToRepo(info, gitProviders, "foo", "hash", []byte{})
 			Expect(err.Error()).To(HavePrefix("failed to retrieve owner"))
 		})
 
@@ -673,7 +679,10 @@ var _ = Describe("Add", func() {
 			gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
 				return gitproviders.AccountTypeOrg, fmt.Errorf("no account found")
 			}
-			err := appSrv.(*App).createPullRequestToRepo(addParams, gitProviders, ".", "ssh://git@github.com/ewojfewoj3323w/abc", "cluster", "hash", []byte{})
+			addParams.ClusterName = "cluster"
+			info, err := appSrv.(*App).getInfoFromAddParams(addParams)
+			Expect(err).ShouldNot(HaveOccurred())
+			err = appSrv.(*App).createPullRequestToRepo(info, gitProviders, "ssh://git@github.com/ewojfewoj3323w/abc", "hash", []byte{})
 			Expect(err.Error()).To(HavePrefix("failed to retrieve account type"))
 		})
 	})
