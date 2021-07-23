@@ -294,7 +294,7 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 
 	if !params.DryRun {
 		if !params.AutoMerge {
-			if err := a.createPullRequestToRepo(info, gitProvider, info.Spec.URL, appHash, appSpec, appGoat); err != nil {
+			if err := a.createPullRequestToRepo(info, gitProvider, info.Spec.URL, appHash, appSpec, appGoat, source); err != nil {
 				return err
 			}
 		} else {
@@ -427,7 +427,7 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, secretRef str
 
 	appGoat, err := a.flux.CreateKustomization(
 		info.automationAppsDirKustomizationName(),
-		info.Name,
+		repoName,
 		info.appYamlDir(),
 		info.Namespace)
 	if err != nil {

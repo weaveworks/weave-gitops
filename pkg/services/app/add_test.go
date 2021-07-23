@@ -550,7 +550,7 @@ var _ = Describe("Add", func() {
 
 				name, source, path, namespace = fluxClient.CreateKustomizationArgsForCall(1)
 				Expect(name).To(Equal("repo-apps-dir"))
-				Expect(source).To(Equal("repo"))
+				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("apps/repo"))
 				Expect(namespace).To(Equal("wego-system"))
 			})
