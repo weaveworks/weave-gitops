@@ -8,21 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	"sigs.k8s.io/yaml"
 )
-
-var appYaml = `apiVersion: wego.weave.works/v1alpha1
-kind: Application
-metadata:
-  labels:
-    weave-gitops.weave.works/app-identifier: wego-f7dd7f92989e8395387209a716c376a5
-  name: wego-test
-  namespace: wego-system
-spec:
-  deployment_type: kustomize
-  path: ./
-  url: ssh://git@github.com/owner/wego-test-repo.git
-`
 
 var workloadYaml1 = []byte(`apiVersion: v1
 kind: Namespace
@@ -84,8 +70,6 @@ spec:
         - containerPort: 80
 `)
 
-const cluster string = "test-cluster"
-
 var application wego.Application
 
 func populateAppRepo() (string, error) {
@@ -111,29 +95,6 @@ func populateAppRepo() (string, error) {
 	}
 
 	return dir, nil
-}
-
-func populateConfigRepo(root string, app wego.Application) (string, error) {
-	dir, err := ioutil.TempDir("", "an-app-dir")
-	if err != nil {
-		return "", err
-	}
-
-	appPath := filepath.Join(dir, root, "apps")
-	if err := os.MkdirAll(appPath, 0777); err != nil {
-		return "", err
-	}
-
-	manifest, err := yaml.Marshal(application)
-	if err != nil {
-		return "", err
-	}
-
-	if err := ioutil.WriteFile(filepath.Join(appPath, "nginx", "app.yaml"), manifest, 0644); err != nil {
-		return "", err
-	}
-
-	return filepath.Join(dir, root), nil
 }
 
 var _ = Describe("Remove", func() {
