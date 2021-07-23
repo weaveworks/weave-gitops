@@ -5,7 +5,6 @@ package add
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -80,7 +79,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		params.Dir = path
 	}
 
-	fmt.Println("PRIVATE-KEY0", params.PrivateKey)
 	if strings.HasPrefix(params.PrivateKey, "~/") {
 		dir, err := getHomeDir()
 		if err != nil {
@@ -94,14 +92,8 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 		params.PrivateKey = privateKey
 	}
-	fmt.Println("PRIVATE-KEY1 ", params.PrivateKey)
-
-	body, err := ioutil.ReadFile(params.PrivateKey)
-	fmt.Println("error reading private key", err)
-	fmt.Println("content private key", string(body))
 
 	authMethod, err := ssh.NewPublicKeysFromFile("git", params.PrivateKey, "")
-	fmt.Println("Error reading private key", err)
 	if err != nil {
 		fmt.Print("Private Key Password: ")
 		pw, err := term.ReadPassword(int(os.Stdin.Fd()))
@@ -114,7 +106,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			return errors.Wrap(err, "failed reading ssh keys")
 		}
 	}
-	fmt.Println("There was no error", authMethod.Name())
 
 	params, err = setGitProviderToken(params)
 	if err != nil {
@@ -151,17 +142,14 @@ func findPrivateKeyFile() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println("HOME-DIR", dir)
 
 	modernFilePath := filepath.Join(dir, ".ssh", "id_ed25519")
 	if utils.Exists(modernFilePath) {
-		fmt.Println(modernFilePath, "exists")
 		return modernFilePath, nil
 	}
 
 	legacyFilePath := filepath.Join(dir, ".ssh", "id_rsa")
 	if utils.Exists(legacyFilePath) {
-		fmt.Println(legacyFilePath, "exists")
 		return legacyFilePath, nil
 	}
 

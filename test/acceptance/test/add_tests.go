@@ -6,9 +6,7 @@ package acceptance
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
-	"os/exec"
 	"regexp"
 
 	. "github.com/onsi/ginkgo"
@@ -121,30 +119,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appName := tip.appRepoName
 		appType := "Kustomization"
 
-		dir, err := os.UserHomeDir()
-		fmt.Println("error reading home dir", err)
-		fmt.Println("HOME-DIR", dir)
-		c := exec.Command("ls", "-lha", dir+"/.ssh")
-		c.Stdout = os.Stdout
-		c.Stderr = os.Stderr
-		err = c.Run()
-		fmt.Println("error on command 0: ", err)
-		body, err := ioutil.ReadFile(DEFAULT_SSH_KEY_PATH)
-		fmt.Println("Error reading ssh key file", err)
-		fmt.Println("Content id_rsa:", string(body))
-		fmt.Printf("DEFAULT_SSH_KEY_PATH[%s]\n", DEFAULT_SSH_KEY_PATH)
-		fmt.Printf("SSH_AUTH_SOCK[%s]\n", os.Getenv("SSH_AUTH_SOCK"))
-		c = exec.Command("ls", "-lha", os.Getenv("HOME")+"/.ssh")
-		c.Stdout = os.Stdout
-		c.Stderr = os.Stderr
-		err = c.Run()
-		fmt.Println("error on command: ", err)
-		body, err = ioutil.ReadFile(os.Getenv("SSH_AUTH_SOCK"))
-		fmt.Println("Error reading ssh key file", err)
-		if len(body) > 20 {
-			fmt.Println("Content:", string(body[:20]))
-		}
-		fmt.Println("Content:", string(body))
 		addCommand := "app add --url=" + appRepoRemoteURL + " --branch=" + branchName + " --private-key=" + DEFAULT_SSH_KEY_PATH + " --dry-run" + " --auto-merge=true"
 
 		defer deleteRepo(tip.appRepoName)
