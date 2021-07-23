@@ -109,7 +109,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	})
 
 	//deployment-type=default k | repo=private | url=giturl | branch| dry-run | app-config-url=""
-	It("SmokeTest - Verify that wego does not modify the cluster when run with --dry-run flag", func() {
+	It("Verify that wego does not modify the cluster when run with --dry-run flag", func() {
 		var repoAbsolutePath string
 		var addCommandOutput string
 		private := true
@@ -232,7 +232,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 	//deployment-type=default k | repo=private | url=giturl | branch | namespace | private-key=~/ | app-config-url=NONE
 	// Eventually this test run will include all the remaining un-automated `wego app add` flags.
-	It("SmokeTest - Verify that wego can deploy app when user specifies branch, namespace, url, private-key, deployment-type", func() {
+	It("Verify that wego can deploy app when user specifies branch, namespace, url, private-key, deployment-type", func() {
 		var repoAbsolutePath string
 		private := true
 		DEFAULT_SSH_KEY_PATH := "~/.ssh/id_rsa"
@@ -1047,6 +1047,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Eventually(appStatus2).Should(gbytes.Say(`helmrelease/` + appName2))
 		})
 	})
+
 	//deployment-type=default h | url=helmrepo | chart=helmchart | app-config-url=NONE
 	It("Verify that wego can deploy a helm app from a helm repo with app-config-url set to NONE", func() {
 		appName := "loki"
