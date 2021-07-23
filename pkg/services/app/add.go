@@ -115,7 +115,7 @@ func (a *App) Add(params AddParams) error {
 		return err
 	}
 
-	info := a.getAppResourceInfo(makeWegoApplication(params), clusterName)
+	info := getAppResourceInfo(makeWegoApplication(params), clusterName)
 
 	gitProvider, err := a.gitProviderFactory(params.GitProviderToken)
 	if err != nil {
@@ -720,7 +720,7 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, gitProvider gitprov
 	return nil
 }
 
-func (a *App) getAppResourceInfo(app wego.Application, clusterName string) *AppResourceInfo {
+func getAppResourceInfo(app wego.Application, clusterName string) *AppResourceInfo {
 	return &AppResourceInfo{
 		Application: app,
 		clusterName: clusterName,

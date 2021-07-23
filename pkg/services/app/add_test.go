@@ -506,7 +506,7 @@ var _ = Describe("Add", func() {
 					Branch:    "main",
 				}
 
-				info := appSrv.(*App).getAppResourceInfo(makeWegoApplication(params), "")
+				info := getAppResourceInfo(makeWegoApplication(params), "")
 
 				desired2 := info.Application
 				hash, err := getHash(repoURL, info.Spec.Path, info.Spec.Branch)
@@ -667,7 +667,7 @@ var _ = Describe("Add", func() {
 
 	Context("when creating a pull request", func() {
 		It("generates an appropriate error when the owner cannot be retrieved from the URL", func() {
-			info := appSrv.(*App).getAppResourceInfo(makeWegoApplication(addParams), "cluster")
+			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
 			err := appSrv.(*App).createPullRequestToRepo(info, gitProviders, "foo", "hash", []byte{})
 			Expect(err.Error()).To(HavePrefix("failed to retrieve owner"))
 		})
@@ -676,7 +676,7 @@ var _ = Describe("Add", func() {
 			gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
 				return gitproviders.AccountTypeOrg, fmt.Errorf("no account found")
 			}
-			info := appSrv.(*App).getAppResourceInfo(makeWegoApplication(addParams), "cluster")
+			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
 			err := appSrv.(*App).createPullRequestToRepo(info, gitProviders, "ssh://git@github.com/ewojfewoj3323w/abc", "hash", []byte{})
 			Expect(err.Error()).To(HavePrefix("failed to retrieve account type"))
 		})
@@ -706,7 +706,7 @@ var _ = Describe("Add", func() {
 			addParams.Branch = "main"
 			addParams.DeploymentType = string(DeployTypeHelm)
 
-			info := appSrv.(*App).getAppResourceInfo(makeWegoApplication(addParams), "")
+			info := getAppResourceInfo(makeWegoApplication(addParams), "")
 
 			appHash, err := getAppHash(info)
 			Expect(err).NotTo(HaveOccurred())
@@ -724,7 +724,7 @@ var _ = Describe("Add", func() {
 			addParams.Branch = "main"
 			addParams.DeploymentType = string(DeployTypeKustomize)
 
-			info := appSrv.(*App).getAppResourceInfo(makeWegoApplication(addParams), "")
+			info := getAppResourceInfo(makeWegoApplication(addParams), "")
 
 			appHash, err := getAppHash(info)
 			Expect(err).NotTo(HaveOccurred())
