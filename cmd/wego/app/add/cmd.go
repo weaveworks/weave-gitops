@@ -79,6 +79,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		params.Dir = path
 	}
 
+	fmt.Println("PRIVATE-KEY0", params.PrivateKey)
 	if strings.HasPrefix(params.PrivateKey, "~/") {
 		dir, err := getHomeDir()
 		if err != nil {
@@ -92,8 +93,10 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 		params.PrivateKey = privateKey
 	}
+	fmt.Println("PRIVATE-KEY1", params.PrivateKey)
 
 	authMethod, err := ssh.NewPublicKeysFromFile("git", params.PrivateKey, "")
+	fmt.Println("Error reading private key")
 	if err != nil {
 		fmt.Print("Private Key Password: ")
 		pw, err := term.ReadPassword(int(os.Stdin.Fd()))
@@ -106,6 +109,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			return errors.Wrap(err, "failed reading ssh keys")
 		}
 	}
+	fmt.Println("There was no error")
 
 	params, err = setGitProviderToken(params)
 	if err != nil {
