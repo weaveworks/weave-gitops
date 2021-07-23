@@ -431,7 +431,7 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, secretRef str
 
 	targetGoat, err := a.flux.CreateKustomization(
 		info.automationTargetDirKustomizationName(),
-		info.Name,
+		repoName,
 		info.appAutomationDir(),
 		info.Namespace)
 	if err != nil {
