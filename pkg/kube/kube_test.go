@@ -9,8 +9,10 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/types"
 
-	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
+
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/runner/runnerfakes"
 )
@@ -130,36 +132,25 @@ var _ = Describe("GetClusterName", func() {
 })
 
 var _ = Describe("FixInvalidClusterName", func() {
-	It("returns a valid cluster name", func() {
-
-		for _, each := range []struct{
-			Invalid string
-			Valid   string
-		}{
-			{"cluster_name\n", "cluster-name"},
-			{"Cluster@name\n", "clustername"},
-			{"--cluster-name\n", "cluster-name"},
-			{"cluster-name-\n", "cluster-name"},
-			{"cluster-name$\n", "cluster-name"},
-			{"$cluster-name\n", "cluster-name"},
-			{"cluster-name@1\n", "cluster-name1"},
-			{"1@#$%^&*(_+w2\n", "1-w2"},
-		} {
-
+	DescribeTable("checks to verify that cluster names are sanitized",
+		func(invalid string, valid string, expected bool)  {
 			runner.RunStub = func(cmd string, args ...string) ([]byte, error) {
-				return []byte(each.Invalid), nil
+				return []byte(invalid), nil
 			}
 
 			out, err := kubeClient.GetClusterName(context.Background())
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(string(out)).To(Equal(each.Valid))
-
-			cmd, args := runner.RunArgsForCall(0)
-			Expect(cmd).To(Equal("kubectl"))
-
-			Expect(strings.Join(args, " ")).To(Equal("config current-context"))
-		}
-	})
+			Expect(out == valid).Should(Equal(expected))
+		},
+		Entry("underscore to dash", "cluster_name\n", "cluster-name", true),
+		Entry("remove invalid @", "Cluster@name\n", "clustername", true),
+		Entry("remove front -'s", "--cluster-name\n", "cluster-name", true),
+		Entry("remove back -'s", "cluster-name-\n", "cluster-name", true),
+		Entry("remove (str)$", "cluster-name$\n", "cluster-name", true),
+		Entry("remove $(str)", "$cluster-name\n", "cluster-name", true),
+		Entry("remove embed @", "cluster-name@1\n", "cluster-name1", true),
+		Entry("remove invalid chars", "1@#$%^&*(_+w2\n", "1-w2", true),
+	)
 })
 
 var _ = Describe("FluxPresent", func() {
