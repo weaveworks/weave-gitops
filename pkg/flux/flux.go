@@ -31,7 +31,7 @@ type Flux interface {
 type SuspendAction string
 
 const (
-	Suspend SuspendAction = "supend"
+	Suspend SuspendAction = "suspend"
 	Resume  SuspendAction = "resume"
 )
 
