@@ -30,11 +30,6 @@ type AppResourceInfo struct {
 	targetName  string
 }
 
-type ResourceRef struct {
-	kind string
-	name string
-}
-
 const (
 	ConfigTypeUserRepo ConfigType = ""
 	ConfigTypeNone     ConfigType = "NONE"
