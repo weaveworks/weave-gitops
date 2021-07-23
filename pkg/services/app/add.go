@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -284,9 +285,11 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 	// a local directory has not been passed, so we clone the repo passed in the --url
 	if params.Dir == "" {
 		a.logger.Actionf("Cloning %s", info.Spec.URL)
-		if err := a.cloneRepo(info.Spec.URL, info.Spec.Branch, params.DryRun); err != nil {
+		remover, err := a.cloneRepo(info.Spec.URL, info.Spec.Branch, params.DryRun)
+		if err != nil {
 			return fmt.Errorf("failed to clone application repo: %w", err)
 		}
+		defer remover()
 	}
 
 	if !params.DryRun {
@@ -334,9 +337,11 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 		return fmt.Errorf("could not generate target GitOps Automation manifests: %w", err)
 	}
 
-	if err := a.cloneRepo(info.Spec.ConfigURL, info.Spec.Branch, params.DryRun); err != nil {
-		return fmt.Errorf("failed to clone application repo: %w", err)
+	remover, err := a.cloneRepo(info.Spec.ConfigURL, info.Spec.Branch, params.DryRun)
+	if err != nil {
+		return fmt.Errorf("failed to clone configuration repo: %w", err)
 	}
+	defer remover()
 
 	if !params.DryRun {
 		if !params.AutoMerge {
@@ -563,24 +568,26 @@ func (a *App) applyToCluster(info *AppResourceInfo, dryRun bool, manifests ...[]
 	return nil
 }
 
-func (a *App) cloneRepo(url string, branch string, dryRun bool) error {
+func (a *App) cloneRepo(url string, branch string, dryRun bool) (func(), error) {
 	if dryRun {
-		return nil
+		return func() {}, nil
 	}
 
 	url = sanitizeRepoUrl(url)
 
 	repoDir, err := ioutil.TempDir("", "user-repo-")
 	if err != nil {
-		return fmt.Errorf("failed creating temp. directory to clone repo: %w", err)
+		return nil, fmt.Errorf("failed creating temp. directory to clone repo: %w", err)
 	}
 
 	_, err = a.git.Clone(context.Background(), repoDir, url, branch)
 	if err != nil {
-		return fmt.Errorf("failed cloning user repo: %s: %w", url, err)
+		return nil, fmt.Errorf("failed cloning user repo: %s: %w", url, err)
 	}
 
-	return nil
+	return func() {
+		os.RemoveAll(repoDir)
+	}, nil
 }
 
 func (a *App) writeAppYaml(info *AppResourceInfo, manifest []byte) error {
