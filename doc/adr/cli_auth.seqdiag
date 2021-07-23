@@ -1,0 +1,10 @@
+wego add .->WeGO UI Server:Starts local web server
+wego add .->github.com/authorize: wego CLI opens browser to the git provider auth page
+github.com/authorize->WeGO UI Server: Redirect back to OAuth callback with ?code=1234
+WeGO UI Server->github.com/login/oauth/access_token:Exchanges the code for an access_token
+github.com/login/oauth/access_token->WeGO UI Server: Returns access_token and sets "ok" flag
+wego add .-->WeGO UI Server:Polls for "ok"
+WeGO UI Server->wego add .:Returns access_token for short-term use (expires in minutes)
+wego add .->api.github.com/repos:Pushes a deploy key to the repository
+wego add .->api.github.com/repos:Commits the .wego directory to a branch 
+wego add .->api.github.com/repos:Creates a PR or auto-merges the branch

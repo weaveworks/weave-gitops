@@ -1,0 +1,83 @@
+# 5. Weave GitOps Core Auth Strategy
+
+Date: 2021-07-22
+
+## Status
+
+Proposal
+
+## Context
+
+Weave GitOps needs to be able to do read and write operations against three different "back ends":
+
+- The git repository for an Application
+- The repository "host" (Github, Gitlab, Bitbucket, etc), known as a Git Provider, for an Application
+- The Kubernetes cluster where we want to run the Application
+
+Each of these back ends have different authn/authz requirements:
+
+### Git Repository
+
+The operations for the git repository are the typically the ones done with the `git` CLI, ie: `git clone`, `git commit`, `git push`. We assume that git providers will allow for repository-specific keys to be added; GitHub and Gitlab calls these "deploy keys", other providers might call them "access keys". These are typically ssh key-pairs.
+
+These deploy keys are outside the scope of a git repo, so we will need a higher level of access in the form of a Git Provider access token to add deploy keys programmatically.
+
+### Git Provider
+
+Operations such as creating pull requests (or "merge requests" in the case of Gitlab), adding deploy keys, and retrieving user data will need to be completed via HTTP requests. Each major Git Provider has some form of OAuth flow:
+
+- [GitHub OAuth Flow](https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps#web-application-flow)
+  - Notice that `localhost` redirect_uris are permitted: https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps#localhost-redirect-urls
+  - This approach requires a `CLIENT_SECRET` be embedded in the binary, thus exposing the secret leaking by decompiling the binary
+- [Github Device Flow](https://docs.github.com/en/developers/apps/building-github-apps/identifying-and-authorizing-users-for-github-apps#device-flow)
+  - This approach doesn't require a `CLIENT_SECRET` or callback page
+  - Probably won't work for a UI
+- [Gitlab Proof Key for Code Exchange (PKCE) Flow](https://docs.gitlab.com/ee/api/oauth2.html#authorization-code-with-proof-key-for-code-exchange-pkce)
+  - Note that the documentation explicitly calls out that PKCE is optimal for client-side apps without a public cloud server (our use case)
+  - The documentation example specifies a `CLIENT_SECRET`, but that may be a documentation bug. A `CLIENT_SECRET` should not be necessary
+- [Bitbucket Implicit Grant](https://developer.atlassian.com/cloud/bitbucket/oauth-2/#2--implicit-grant--4-2-)
+  - No `CLIENT_SECRET` required here
+
+### Kubernetes Cluster
+
+All operations will need to go through an API server that is installed on the cluster via the `wego gitops install` command. This API server will run with a service account that provides the ability to do the following:
+
+- Create `Namespace` resources
+- Create `Application`, `Source`, and `Kustomize|Helm` resources
+- Read all Kubernetes objects, in all namespaces
+
+### Security Concerns
+
+Each of the Git Providers listed above support some sort of "personal access token" that allow for "impersonation" style authorization. These tokens never expire, and provide "sudo" access to the user's Github account.
+
+For this reason, we want to utilize the more short-lived OAuth tokens to avoid exposing a personal access token. We also don't want to persist these tokens longer than we have to.
+
+In addition, flows that require a `CLIENT_SECRET` will require us to embed it in the binary, which leaves us open to exposing it via decompilation.
+
+### UX Concerns
+
+Given that the Weave GitOps UI and API server may be running on a user's cluster, we may not always know the OAuth callback URL ahead of time. For this reason, we will need to use OAuth flows that do not require a static callback URLs. The flows listed above in the Git Providers section fit that constraint.
+
+We will need to ensure that the callback URL is configurable by the user via environment variables. This will allow them to run and expose the UI/API servers on whichever endpoint they choose.
+
+## Design
+
+Since most modern Git Providers will support a form of browser-based OAuth, **we will utilize the browser for both the CLI and UI authentication with Git Providers**.
+
+In the case of the CLI, we can utilize a short-lived browser session that will recieve the OAuth callback and pass the token to the CLI:
+
+![CLI Auth Diagram](cli_auth.svg)
+
+UI auth will work in a similar way, with a more straight-forward set of steps:
+
+![UI Auth Diagram](ui_auth.svg)
+
+## Decision
+
+Implement the flow(s) defined in the "Design" section
+
+## Consequences
+
+A SaaS application would be able to hide their `CLIENT_SECRET` behind their firewalled infrastructure. We do not have that luxury, so we will have to ship the `CLIENT_SECRET` with the binary. The only flow that requires this is the GitHub OAuth Flow, which gives us the alternative Device Flow specially built for our exact use case. We may be able to utilize their Device Flow as a one-off (since other providers do not have that feature).
+
+This document does not seek to provide any mapping between Kubernetes users and Git Provider users. That may be out of scope for the Weave GitOps Core edition, or may be implemented later.
