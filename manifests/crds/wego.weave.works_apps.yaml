@@ -36,7 +36,7 @@ spec:
           spec:
             description: ApplicationSpec defines the desired state of Application
             properties:
-              bfanch:
+              branch:
                 description: Branch is the branch in the repository where the k8s
                   yaml files for this application are stored.
                 type: string

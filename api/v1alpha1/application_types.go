@@ -33,7 +33,7 @@ type ApplicationSpec struct {
 	// Path is the path in the repository where the k8s yaml files for this application are stored.
 	Path string `json:"path,omitempty"`
 	// Branch is the branch in the repository where the k8s yaml files for this application are stored.
-	Branch string `json:"bfanch,omitempty"`
+	Branch string `json:"branch,omitempty"`
 	// DeploymentType is the deployment method used to apply the manifests
 	DeploymentType DeploymentType `json:"deployment_type,omitempty"`
 	// SourceType is the type of repository containing the app manifests
