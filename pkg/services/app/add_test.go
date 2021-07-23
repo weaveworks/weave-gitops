@@ -506,8 +506,7 @@ var _ = Describe("Add", func() {
 					Branch:    "main",
 				}
 
-				info, err := appSrv.(*App).getInfoFromAddParams(params)
-				Expect(err).NotTo(HaveOccurred())
+				info := appSrv.(*App).getAppResourceInfo(makeWegoApplication(params), "")
 
 				desired2 := info.Application
 				hash, err := getHash(repoURL, info.Spec.Path, info.Spec.Branch)
@@ -668,10 +667,8 @@ var _ = Describe("Add", func() {
 
 	Context("when creating a pull request", func() {
 		It("generates an appropriate error when the owner cannot be retrieved from the URL", func() {
-			addParams.ClusterName = "cluster"
-			info, err := appSrv.(*App).getInfoFromAddParams(addParams)
-			Expect(err).ShouldNot(HaveOccurred())
-			err = appSrv.(*App).createPullRequestToRepo(info, gitProviders, "foo", "hash", []byte{})
+			info := appSrv.(*App).getAppResourceInfo(makeWegoApplication(addParams), "cluster")
+			err := appSrv.(*App).createPullRequestToRepo(info, gitProviders, "foo", "hash", []byte{})
 			Expect(err.Error()).To(HavePrefix("failed to retrieve owner"))
 		})
 
@@ -679,10 +676,8 @@ var _ = Describe("Add", func() {
 			gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
 				return gitproviders.AccountTypeOrg, fmt.Errorf("no account found")
 			}
-			addParams.ClusterName = "cluster"
-			info, err := appSrv.(*App).getInfoFromAddParams(addParams)
-			Expect(err).ShouldNot(HaveOccurred())
-			err = appSrv.(*App).createPullRequestToRepo(info, gitProviders, "ssh://git@github.com/ewojfewoj3323w/abc", "hash", []byte{})
+			info := appSrv.(*App).getAppResourceInfo(makeWegoApplication(addParams), "cluster")
+			err := appSrv.(*App).createPullRequestToRepo(info, gitProviders, "ssh://git@github.com/ewojfewoj3323w/abc", "hash", []byte{})
 			Expect(err.Error()).To(HavePrefix("failed to retrieve account type"))
 		})
 	})
@@ -711,8 +706,7 @@ var _ = Describe("Add", func() {
 			addParams.Branch = "main"
 			addParams.DeploymentType = string(DeployTypeHelm)
 
-			info, err := appSrv.(*App).getInfoFromAddParams(addParams)
-			Expect(err).NotTo(HaveOccurred())
+			info := appSrv.(*App).getAppResourceInfo(makeWegoApplication(addParams), "")
 
 			appHash, err := getAppHash(info)
 			Expect(err).NotTo(HaveOccurred())
@@ -730,8 +724,7 @@ var _ = Describe("Add", func() {
 			addParams.Branch = "main"
 			addParams.DeploymentType = string(DeployTypeKustomize)
 
-			info, err := appSrv.(*App).getInfoFromAddParams(addParams)
-			Expect(err).NotTo(HaveOccurred())
+			info := appSrv.(*App).getAppResourceInfo(makeWegoApplication(addParams), "")
 
 			appHash, err := getAppHash(info)
 			Expect(err).NotTo(HaveOccurred())

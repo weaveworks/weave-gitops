@@ -57,7 +57,6 @@ type AddParams struct {
 	DryRun           bool
 	AutoMerge        bool
 	GitProviderToken string
-	ClusterName      string
 }
 
 // Three models:
@@ -116,10 +115,12 @@ func (a *App) Add(params AddParams) error {
 		return fmt.Errorf("Wego can not determine cluster status... exiting")
 	}
 
-	info, err := a.getInfoFromAddParams(params)
+	clusterName, err := a.kube.GetClusterName(ctx)
 	if err != nil {
 		return err
 	}
+
+	info := a.getAppResourceInfo(makeWegoApplication(params), clusterName)
 
 	gitProvider, err := a.gitProviderFactory(params.GitProviderToken)
 	if err != nil {
@@ -231,12 +232,6 @@ func (a *App) printAddSummary(params AddParams) {
 }
 
 func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
-	ctx := context.Background()
-	clusterName, err := a.kube.GetClusterName(ctx)
-	if err != nil {
-		return params, err
-	}
-	params.ClusterName = clusterName
 	params.SourceType = string(SourceTypeGit)
 
 	if params.Chart != "" {
@@ -761,16 +756,12 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, gitProvider gitprov
 	return nil
 }
 
-func (a *App) getInfoFromAddParams(params AddParams) (*AppResourceInfo, error) {
-	return a.getAppResourceInfo(makeWegoApplication(params), params.ClusterName)
-}
-
-func (a *App) getAppResourceInfo(app wego.Application, clusterName string) (*AppResourceInfo, error) {
+func (a *App) getAppResourceInfo(app wego.Application, clusterName string) *AppResourceInfo {
 	return &AppResourceInfo{
 		Application: app,
 		clusterName: clusterName,
 		targetName:  clusterName,
-	}, nil
+	}
 }
 
 func (a *AppResourceInfo) automationRoot() string {
