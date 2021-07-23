@@ -118,8 +118,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		tip := generateTestInputs()
 		branchName := "test-branch-01"
 		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
-		appName := tip.appRepoName
-		appType := "Kustomization"
+		//appName := tip.appRepoName
+		//appType := "Kustomization"
 
 		dir, err := os.UserHomeDir()
 		fmt.Println("error reading home dir", err)
@@ -175,24 +175,24 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			addCommandOutput, _ = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("Then I should see dry-run output with summary: name, url, path, branch and type", func() {
-			Eventually(addCommandOutput).Should(MatchRegexp(`Name: ` + appName))
-			Eventually(addCommandOutput).Should(MatchRegexp(`URL: ` + appRepoRemoteURL))
-			Eventually(addCommandOutput).Should(MatchRegexp(`Path: ./`))
-			Eventually(addCommandOutput).Should(MatchRegexp(`Branch: ` + branchName))
-			Eventually(addCommandOutput).Should(MatchRegexp(`Type: kustomize`))
-
-			Eventually(addCommandOutput).Should(MatchRegexp(`✚ Generating Source manifest`))
-			Eventually(addCommandOutput).Should(MatchRegexp(`✚ Generating GitOps automation manifests`))
-			Eventually(addCommandOutput).Should(MatchRegexp(`✚ Generating Application spec manifest`))
-			Eventually(addCommandOutput).Should(MatchRegexp(`► Applying manifests to the cluster`))
-
-			Eventually(addCommandOutput).Should(MatchRegexp(
-				`apiVersion:.*\nkind: GitRepository\nmetadata:\n\s*name: ` + appName + `\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE + `[a-z0-9:\n\s*]+branch: ` + branchName + `[a-zA-Z0-9:\n\s*-]+url: ` + appRepoRemoteURL))
-
-			Eventually(addCommandOutput).Should(MatchRegexp(
-				`apiVersion:.*\nkind: ` + appType + `\nmetadata:\n\s*name: ` + appName + `-wego-apps-dir\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE))
-		})
+		//By("Then I should see dry-run output with summary: name, url, path, branch and type", func() {
+		//	Eventually(addCommandOutput).Should(MatchRegexp(`Name: ` + appName))
+		//	Eventually(addCommandOutput).Should(MatchRegexp(`URL: ` + appRepoRemoteURL))
+		//	Eventually(addCommandOutput).Should(MatchRegexp(`Path: ./`))
+		//	Eventually(addCommandOutput).Should(MatchRegexp(`Branch: ` + branchName))
+		//	Eventually(addCommandOutput).Should(MatchRegexp(`Type: kustomize`))
+		//
+		//	Eventually(addCommandOutput).Should(MatchRegexp(`✚ Generating Source manifest`))
+		//	Eventually(addCommandOutput).Should(MatchRegexp(`✚ Generating GitOps automation manifests`))
+		//	Eventually(addCommandOutput).Should(MatchRegexp(`✚ Generating Application spec manifest`))
+		//	Eventually(addCommandOutput).Should(MatchRegexp(`► Applying manifests to the cluster`))
+		//
+		//	Eventually(addCommandOutput).Should(MatchRegexp(
+		//		`apiVersion:.*\nkind: GitRepository\nmetadata:\n\s*name: ` + appName + `\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE + `[a-z0-9:\n\s*]+branch: ` + branchName + `[a-zA-Z0-9:\n\s*-]+url: ` + appRepoRemoteURL))
+		//
+		//	Eventually(addCommandOutput).Should(MatchRegexp(
+		//		`apiVersion:.*\nkind: ` + appType + `\nmetadata:\n\s*name: ` + appName + `-wego-apps-dir\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE))
+		//})
 
 		By("And I should not see any workload deployed to the cluster", func() {
 			verifyWegoAddCommandWithDryRun(tip.appRepoName, WEGO_DEFAULT_NAMESPACE)
