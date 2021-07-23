@@ -758,39 +758,6 @@ func (a *AppResourceInfo) appAutomationPath() string {
 func (a *AppResourceInfo) appAutomationDir() string {
 	return filepath.Join(a.automationRoot(), "targets", a.clusterName, a.Name)
 }
-
-func (a *AppResourceInfo) sourceKind() string {
-	result := "GitRepository"
-
-	if a.Spec.SourceType == "helm" {
-		result = "HelmRepository"
-	}
-
-	return result
-}
-
-func (a *AppResourceInfo) sinkKind() string {
-	result := "Kustomization"
-
-	if a.Spec.DeploymentType == "helm" {
-		result = "HelmRelease"
-	}
-
-	return result
-}
-
-func (a *AppResourceInfo) appSourceName() string {
-	return a.Name
-}
-
-func (a *AppResourceInfo) appSinkName() string {
-	return a.Name
-}
-
-func (a *AppResourceInfo) appResourceName() string {
-	return a.Name
-}
-
 func (a *AppResourceInfo) appSecretName(repoURL string) string {
 	return fmt.Sprintf("weave-gitops-%s-%s", a.targetName, urlToRepoName(repoURL))
 }
@@ -801,50 +768,6 @@ func (a *AppResourceInfo) automationAppsDirKustomizationName() string {
 
 func (a *AppResourceInfo) automationTargetDirKustomizationName() string {
 	return fmt.Sprintf("%s-%s", a.targetName, a.Name)
-}
-
-func (a *AppResourceInfo) clusterResources() []ResourceRef {
-	resources := []ResourceRef{}
-	// Application GOAT, common to all three modes
-	resources = append(
-		resources,
-		ResourceRef{kind: a.sourceKind(), name: a.appSourceName()},
-		ResourceRef{kind: a.sinkKind(), name: a.appSinkName()},
-		ResourceRef{kind: "Application", name: a.appResourceName()})
-
-	// Secret for deploy key associated with app repository;
-	// common to all three modes when not using upstream Helm repository
-	if a.sourceKind() == "GitRepository" {
-		resources = append(
-			resources,
-			ResourceRef{kind: "Secret", name: a.appSecretName(a.Spec.URL)})
-	}
-
-	if strings.ToUpper(a.Spec.ConfigURL) == string(ConfigTypeNone) {
-		// Only app resources present in cluster; no resources to manage config
-		return resources
-	}
-
-	// App dir and target dir resources are common to app and external repo modes
-	resources = append(
-		resources,
-		// Kustomization for .wego/apps/<app-name> directory
-		ResourceRef{kind: "Kustomization", name: a.automationAppsDirKustomizationName()},
-		// Kustomization for .wego/targets/<cluster-name>/<app-name> directory
-		ResourceRef{kind: "Kustomization", name: a.automationTargetDirKustomizationName()})
-
-	// External repo adds a secret and source for the external repo
-	if a.Spec.ConfigURL != string(ConfigTypeUserRepo) && a.Spec.ConfigURL != a.Spec.URL {
-		// Config stored in external repo
-		resources = append(
-			resources,
-			// Secret for deploy key associated with config repository
-			ResourceRef{kind: "Secret", name: a.appSecretName(a.Spec.ConfigURL)},
-			// Source for config repository
-			ResourceRef{kind: "GitRepository", name: generateResourceName(a.Spec.ConfigURL)})
-	}
-
-	return resources
 }
 
 // NOTE: ready to save the targets automation in phase 2
