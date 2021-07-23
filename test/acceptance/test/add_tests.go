@@ -273,6 +273,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			createGitRepoBranch(repoAbsolutePath, branchName)
 		})
 
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
 		By("And I run wego add command with specified branch, namespace, url, deplyment-type, private-key", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, wegoNamespace)
 		})
