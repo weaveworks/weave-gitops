@@ -169,7 +169,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 				`apiVersion:.*\nkind: GitRepository\nmetadata:\n\s*name: ` + appName + `\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE + `[a-z0-9:\n\s*]+branch: ` + branchName + `[a-zA-Z0-9:\n\s*-]+url: ` + appRepoRemoteURL))
 
 			Eventually(addCommandOutput).Should(MatchRegexp(
-				`apiVersion:.*\nkind: ` + appType + `\nmetadata:\n\s*name: ` + appName + `-wego-apps-dir\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE))
+				`apiVersion:.*\nkind: ` + appType + `\nmetadata:\n\s*name: ` + appName + `-apps-dir\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE))
 		})
 
 		By("And I should not see any workload deployed to the cluster", func() {
