@@ -155,11 +155,13 @@ func findPrivateKeyFile() (string, error) {
 
 	modernFilePath := filepath.Join(dir, ".ssh", "id_ed25519")
 	if utils.Exists(modernFilePath) {
+		fmt.Println(modernFilePath, "exists")
 		return modernFilePath, nil
 	}
 
 	legacyFilePath := filepath.Join(dir, ".ssh", "id_rsa")
 	if utils.Exists(legacyFilePath) {
+		fmt.Println(legacyFilePath, "exists")
 		return legacyFilePath, nil
 	}
 

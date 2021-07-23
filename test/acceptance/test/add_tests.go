@@ -128,6 +128,9 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		c.Stdout = os.Stdout
 		c.Stderr = os.Stderr
 		err = c.Run()
+		body, err := ioutil.ReadFile(DEFAULT_SSH_KEY_PATH)
+		fmt.Println("Error reading ssh key file", err)
+		fmt.Println("Content id_rsa:", string(body))
 		fmt.Println("error on command 0: ", err)
 		fmt.Printf("DEFAULT_SSH_KEY_PATH[%s]\n", DEFAULT_SSH_KEY_PATH)
 		fmt.Printf("SSH_AUTH_SOCK[%s]\n", os.Getenv("SSH_AUTH_SOCK"))
@@ -136,7 +139,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		c.Stderr = os.Stderr
 		err = c.Run()
 		fmt.Println("error on command: ", err)
-		body, err := ioutil.ReadFile(os.Getenv("SSH_AUTH_SOCK"))
+		body, err = ioutil.ReadFile(os.Getenv("SSH_AUTH_SOCK"))
 		fmt.Println("Error reading ssh key file", err)
 		if len(body) > 20 {
 			fmt.Println("Content:", string(body[:20]))
