@@ -111,7 +111,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	})
 
 	//deployment-type=default k | repo=private | url=giturl | branch| dry-run | app-config-url=""
-	It("SmokeTest - Verify that wego does not modify the cluster when run with --dry-run flag", func() {
+	It("SmokeTest1 - Verify that wego does not modify the cluster when run with --dry-run flag", func() {
 		var repoAbsolutePath string
 		var addCommandOutput string
 		private := true
@@ -200,7 +200,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	})
 
 	//deployment-type=default k | repo=private, initially empty | app-config-url=""
-	It("Verify that wego can deploy an app after it is setup with an empty repo initially", func() {
+	It("SmokeTest1 Verify that wego can deploy an app after it is setup with an empty repo initially", func() {
 		var repoAbsolutePath string
 		private := true
 		tip := generateTestInputs()

@@ -151,7 +151,7 @@ jobs:
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega
-        ginkgo --focus="Verify that wego can deploy an app after it is setup with an empty repo initially" --randomizeSuites --reportFile=$(pwd)/test-results/smoke-test-results.xml -v ./test/acceptance/test/...
+        ginkgo --focus="SmokeTest1" --randomizeSuites --reportFile=$(pwd)/test-results/smoke-test-results.xml -v ./test/acceptance/test/...
 
   acceptance-tests:
     runs-on: ubuntu-latest
