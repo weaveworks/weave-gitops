@@ -10,66 +10,6 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 )
 
-var workloadYaml1 = []byte(`apiVersion: v1
-kind: Namespace
-metadata:
-  name: my-nginx
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nginx
-  namespace: my-nginx
-  labels:
-    name: nginx
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      name: nginx
-  template:
-    metadata:
-      namespace: my-nginx
-      labels:
-        name: nginx
-    spec:
-      containers:
-      - name: nginx
-        image: nginx
-        ports:
-        - containerPort: 80
-`)
-
-var workloadYaml2 = []byte(`apiVersion: v1
-kind: Namespace
-metadata:
-  name: my-nginx2
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nginx2
-  namespace: my-nginx2
-  labels:
-    name: nginx2
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      name: nginx2
-  template:
-    metadata:
-      namespace: my-nginx2
-      labels:
-        name: nginx2
-    spec:
-      containers:
-      - name: nginx2
-        image: nginx
-        ports:
-        - containerPort: 80
-`)
-
 var application wego.Application
 
 func populateAppRepo() (string, error) {
@@ -87,10 +27,10 @@ func populateAppRepo() (string, error) {
 		return "", err
 	}
 
-	if err := ioutil.WriteFile(filepath.Join(workloadPath1, "nginx.yaml"), []byte(workloadYaml1), 0644); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(workloadPath1, "nginx.yaml"), []byte("file1"), 0644); err != nil {
 		return "", err
 	}
-	if err := ioutil.WriteFile(filepath.Join(workloadPath2, "nginx.yaml"), []byte(workloadYaml2), 0644); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(workloadPath2, "nginx.yaml"), []byte("file2"), 0644); err != nil {
 		return "", err
 	}
 
@@ -128,7 +68,7 @@ var _ = Describe("Remove", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(len(manifests)).To(Equal(2))
 		for _, manifest := range manifests {
-			Expect(manifest).To(Or(Equal(workloadYaml1), Equal(workloadYaml2)))
+			Expect(manifest).To(Or(Equal([]byte("file1")), Equal([]byte("file2"))))
 		}
 	})
 })
