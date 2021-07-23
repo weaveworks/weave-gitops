@@ -12,3 +12,4 @@ echo "Delete any running applications"
 kubectl delete apps -n $1 --all
 echo "Delete all secrets"
 for s in $(kubectl get secrets -n $1| grep weave-gitops-|cut -d' ' -f1); do kubectl delete secrets $s -n $1; done
+kubectl delete secret git-secret -n $1
