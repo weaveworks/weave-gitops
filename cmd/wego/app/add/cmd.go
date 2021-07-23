@@ -5,6 +5,7 @@ package add
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -95,8 +96,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 	fmt.Println("PRIVATE-KEY1", params.PrivateKey)
 
+	body, err := ioutil.ReadFile(params.PrivateKey)
+	fmt.Println("error reading private key", err)
+	fmt.Println("content private key", string(body))
+
 	authMethod, err := ssh.NewPublicKeysFromFile("git", params.PrivateKey, "")
-	fmt.Println("Error reading private key")
+	fmt.Println("Error reading private key", err)
 	if err != nil {
 		fmt.Print("Private Key Password: ")
 		pw, err := term.ReadPassword(int(os.Stdin.Fd()))
@@ -109,7 +114,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			return errors.Wrap(err, "failed reading ssh keys")
 		}
 	}
-	fmt.Println("There was no error")
+	fmt.Println("There was no error", authMethod.Name())
 
 	params, err = setGitProviderToken(params)
 	if err != nil {
