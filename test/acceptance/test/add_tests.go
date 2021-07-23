@@ -119,7 +119,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appName := tip.appRepoName
 		appType := "Kustomization"
 
-		addCommand := "app add --url=" + appRepoRemoteURL + " --branch=" + branchName + " --private-key=" + DEFAULT_SSH_KEY_PATH + " --dry-run" + " --auto-merge=true"
+		addCommand := "app add --url=" + appRepoRemoteURL + " --branch=" + branchName + " --dry-run" + " --auto-merge=true"
 
 		defer deleteRepo(tip.appRepoName)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
@@ -139,6 +139,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("And I install wego to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("And I create a new branch", func() {
@@ -238,7 +242,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		appName := tip.appRepoName
 		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appName + ".git"
 
-		addCommand := "app add --url=" + appRepoRemoteURL + " --branch=" + branchName + " --namespace=" + wegoNamespace + " --deployment-type=kustomize --private-key=" + DEFAULT_SSH_KEY_PATH + " --app-config-url=NONE"
+		addCommand := "app add --url=" + appRepoRemoteURL + " --branch=" + branchName + " --namespace=" + wegoNamespace + " --deployment-type=kustomize --app-config-url=NONE"
 
 		defer deleteRepo(tip.appRepoName)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
@@ -263,6 +267,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("And I install wego under my namespace: "+wegoNamespace, func() {
 			installAndVerifyWego(wegoNamespace)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("And I create a new branch", func() {
