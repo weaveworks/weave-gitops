@@ -4,7 +4,6 @@ package applications
 
 import (
 	context "context"
-	longrunning "google.golang.org/genproto/googleapis/longrunning"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -25,10 +24,6 @@ type ApplicationsClient interface {
 	//
 	// GetApplication returns a given application
 	GetApplication(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*GetApplicationResponse, error)
-	//
-	// RemoveApplication removes the GitOps for a given application and also removes the application
-	// from the cluster if remove-workload is specified
-	DeleteApplication(ctx context.Context, in *DeleteApplicationRequest, opts ...grpc.CallOption) (*longrunning.Operation, error)
 }
 
 type applicationsClient struct {
@@ -57,15 +52,6 @@ func (c *applicationsClient) GetApplication(ctx context.Context, in *GetApplicat
 	return out, nil
 }
 
-func (c *applicationsClient) DeleteApplication(ctx context.Context, in *DeleteApplicationRequest, opts ...grpc.CallOption) (*longrunning.Operation, error) {
-	out := new(longrunning.Operation)
-	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/DeleteApplication", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // ApplicationsServer is the server API for Applications service.
 // All implementations must embed UnimplementedApplicationsServer
 // for forward compatibility
@@ -76,10 +62,6 @@ type ApplicationsServer interface {
 	//
 	// GetApplication returns a given application
 	GetApplication(context.Context, *GetApplicationRequest) (*GetApplicationResponse, error)
-	//
-	// RemoveApplication removes the GitOps for a given application and also removes the application
-	// from the cluster if remove-workload is specified
-	DeleteApplication(context.Context, *DeleteApplicationRequest) (*longrunning.Operation, error)
 	mustEmbedUnimplementedApplicationsServer()
 }
 
@@ -92,9 +74,6 @@ func (UnimplementedApplicationsServer) ListApplications(context.Context, *ListAp
 }
 func (UnimplementedApplicationsServer) GetApplication(context.Context, *GetApplicationRequest) (*GetApplicationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetApplication not implemented")
-}
-func (UnimplementedApplicationsServer) DeleteApplication(context.Context, *DeleteApplicationRequest) (*longrunning.Operation, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteApplication not implemented")
 }
 func (UnimplementedApplicationsServer) mustEmbedUnimplementedApplicationsServer() {}
 
@@ -145,24 +124,6 @@ func _Applications_GetApplication_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Applications_DeleteApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteApplicationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ApplicationsServer).DeleteApplication(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/wego_server.v1.Applications/DeleteApplication",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).DeleteApplication(ctx, req.(*DeleteApplicationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Applications_ServiceDesc is the grpc.ServiceDesc for Applications service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -177,10 +138,6 @@ var Applications_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetApplication",
 			Handler:    _Applications_GetApplication_Handler,
-		},
-		{
-			MethodName: "DeleteApplication",
-			Handler:    _Applications_DeleteApplication_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
