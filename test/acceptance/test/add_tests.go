@@ -173,6 +173,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("And I run 'wego app add dry-run' command", func() {
 			addCommandOutput, _ = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+			fmt.Println("OUTPUT-ADD", addCommandOutput)
 		})
 
 		//By("Then I should see dry-run output with summary: name, url, path, branch and type", func() {
