@@ -142,6 +142,7 @@ func findPrivateKeyFile() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	fmt.Println("HOME-DIR", dir)
 
 	modernFilePath := filepath.Join(dir, ".ssh", "id_ed25519")
 	if utils.Exists(modernFilePath) {
