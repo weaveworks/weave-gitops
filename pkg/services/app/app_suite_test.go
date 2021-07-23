@@ -39,7 +39,7 @@ var _ = BeforeEach(func() {
 
 	gitProviders = &gitprovidersfakes.FakeGitProvider{}
 
-	appSrv = New(logger.New(os.Stderr), gitClient, fluxClient, kubeClient)
+	appSrv = New(logger.NewCLILogger(os.Stderr), gitClient, fluxClient, kubeClient)
 
 	appSrv.(*App).gitProviderFactory = func(token string) (gitproviders.GitProvider, error) {
 		return gitProviders, nil
