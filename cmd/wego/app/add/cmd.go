@@ -94,7 +94,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 		params.PrivateKey = privateKey
 	}
-	fmt.Println("PRIVATE-KEY1", params.PrivateKey)
+	fmt.Println("PRIVATE-KEY1 ", params.PrivateKey)
 
 	body, err := ioutil.ReadFile(params.PrivateKey)
 	fmt.Println("error reading private key", err)
