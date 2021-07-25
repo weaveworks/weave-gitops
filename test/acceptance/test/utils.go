@@ -345,9 +345,15 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 	Expect(session.ExitCode()).Should(Equal(0))
 	Expect(session.Err).ShouldNot(gbytes.Say(fmt.Sprintf("mkdir: /tmp/%s: File exists", appRepoName)))
 	Expect(session.Err).ShouldNot(gbytes.Say("Existing repository detected"))
-	Expect(session.Out).Should(gbytes.Say(fmt.Sprintf(`Initialized empty Git repository in /private/tmp/%s/.git/
+	if os.Getenv("CI") == "true" {
+		Expect(session.Out).Should(gbytes.Say(fmt.Sprintf(`Initialized empty Git repository in /tmp/%s/.git/
 Updating origin
 https://github.com/%s/%s`, appRepoName, GITHUB_ORG, appRepoName)))
+	} else {
+		Expect(session.Out).Should(gbytes.Say(fmt.Sprintf(`Initialized empty Git repository in /private/tmp/%s/.git/
+Updating origin
+https://github.com/%s/%s`, appRepoName, GITHUB_ORG, appRepoName)))
+	}
 
 	Expect(utils.WaitUntil(os.Stdout, time.Second, 20*time.Second, func() error {
 		cmd := fmt.Sprintf(`hub api repos/%s/%s`, GITHUB_ORG, appRepoName)
