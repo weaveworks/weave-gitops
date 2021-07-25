@@ -13,12 +13,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/weaveworks/weave-gitops/pkg/utils"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 const EVENTUALLY_DEFAULT_TIME_OUT time.Duration = 60 * time.Second
@@ -329,6 +329,10 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 	if IsPrivateRepo {
 		privateRepo = "-p"
 	}
+
+	// We need this step in case running a single test case locally
+	os.RemoveAll(repoAbsolutePath)
+
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
                             mkdir %s &&
                             cd %s &&
@@ -337,12 +341,20 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
                             hub create %s %s`, repoAbsolutePath, repoAbsolutePath, GITHUB_ORG+"/"+appRepoName, privateRepo))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
+	Eventually(session, 10).Should(gexec.Exit())
+	Expect(session.ExitCode()).Should(Equal(0))
+	Expect(session.Err).ShouldNot(gbytes.Say(fmt.Sprintf("mkdir: /tmp/%s: File exists", appRepoName)))
+	Expect(session.Err).ShouldNot(gbytes.Say("Existing repository detected"))
+	Expect(session.Out).Should(gbytes.Say(fmt.Sprintf(`Initialized empty Git repository in /private/tmp/%s/.git/
+Updating origin
+https://github.com/%s/%s`, appRepoName, GITHUB_ORG, appRepoName)))
 
 	Expect(utils.WaitUntil(os.Stdout, time.Second, 20*time.Second, func() error {
-		cmd := fmt.Sprintf(`hub api repos/%s/%s`, os.Getenv("GITHUB_ORG"), appRepoName)
+		cmd := fmt.Sprintf(`hub api repos/%s/%s`, GITHUB_ORG, appRepoName)
 		command := exec.Command("sh", "-c", cmd)
-		return command.Run()
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Eventually(session, 10).Should(gexec.Exit())
+		return err
 	})).ShouldNot(HaveOccurred())
 
 	return repoAbsolutePath
