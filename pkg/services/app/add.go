@@ -129,7 +129,7 @@ func (a *App) Add(params AddParams) error {
 	}
 
 	var secretRef string
-	if SourceType(params.SourceType) == SourceTypeGit {
+	if wego.SourceType(params.SourceType) == wego.SourceTypeGit {
 		secretRef, err = a.createAndUploadDeployKey(info, params.DryRun, info.Spec.URL, gitProvider)
 		if err != nil {
 			return fmt.Errorf("could not generate deploy key: %w", err)
@@ -172,7 +172,7 @@ func getAppHash(info *AppResourceInfo) (string, error) {
 		return hex.EncodeToString(h.Sum(nil)), nil
 	}
 
-	if DeploymentType(info.Spec.DeploymentType) == DeployTypeHelm {
+	if info.Spec.DeploymentType == wego.DeploymentTypeHelm {
 		appHash, err = getHash(info.Spec.URL, info.Name, info.Spec.Branch)
 		if err != nil {
 			return "", err
@@ -202,11 +202,11 @@ func (a *App) printAddSummary(params AddParams) {
 }
 
 func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
-	params.SourceType = string(SourceTypeGit)
+	params.SourceType = string(wego.SourceTypeGit)
 
 	if params.Chart != "" {
-		params.SourceType = string(SourceTypeHelm)
-		params.DeploymentType = string(DeployTypeHelm)
+		params.SourceType = string(wego.SourceTypeHelm)
+		params.DeploymentType = string(wego.DeploymentTypeHelm)
 		params.Path = params.Chart
 		if params.Name == "" {
 			params.Name = params.Chart
@@ -522,15 +522,15 @@ func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoU
 }
 
 func (a *App) generateSource(info *AppResourceInfo, secretRef string) ([]byte, error) {
-	switch SourceType(info.Spec.SourceType) {
-	case SourceTypeGit:
+	switch info.Spec.SourceType {
+	case wego.SourceTypeGit:
 		sourceManifest, err := a.flux.CreateSourceGit(info.Name, info.Spec.URL, info.Spec.Branch, secretRef, info.Namespace)
 		if err != nil {
 			return nil, fmt.Errorf("could not create git source: %w", err)
 		}
 
 		return sourceManifest, nil
-	case SourceTypeHelm:
+	case wego.SourceTypeHelm:
 		return a.flux.CreateSourceHelm(info.Name, info.Spec.URL, info.Namespace)
 	default:
 		return nil, fmt.Errorf("unknown source type: %v", info.Spec.SourceType)
@@ -538,14 +538,14 @@ func (a *App) generateSource(info *AppResourceInfo, secretRef string) ([]byte, e
 }
 
 func (a *App) generateApplicationGoat(info *AppResourceInfo) ([]byte, error) {
-	switch string(info.Spec.DeploymentType) {
-	case string(DeployTypeKustomize):
+	switch info.Spec.DeploymentType {
+	case wego.DeploymentTypeKustomize:
 		return a.flux.CreateKustomization(info.Name, info.Name, info.Spec.Path, info.Namespace)
-	case string(DeployTypeHelm):
-		switch string(info.Spec.SourceType) {
-		case string(SourceTypeHelm):
+	case wego.DeploymentTypeHelm:
+		switch info.Spec.SourceType {
+		case wego.SourceTypeHelm:
 			return a.flux.CreateHelmReleaseHelmRepository(info.Name, info.Spec.Path, info.Namespace)
-		case string(SourceTypeGit):
+		case wego.SourceTypeGit:
 			return a.flux.CreateHelmReleaseGitRepository(info.Name, info.Name, info.Spec.Path, info.Namespace)
 		default:
 			return nil, fmt.Errorf("invalid source type: %v", info.Spec.SourceType)

@@ -12,19 +12,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-type DeploymentType string
-type SourceType string
-
-const (
-	// TODO: use wego.DeployType and wego.SourceType everywhere
-	// Convert these for now to avoid having to change large parts of the code base to the wego types
-	DeployTypeKustomize DeploymentType = DeploymentType(wego.DeploymentTypeKustomize)
-	DeployTypeHelm      DeploymentType = DeploymentType(wego.DeploymentTypeHelm)
-
-	SourceTypeGit  SourceType = SourceType(wego.SourceTypeGit)
-	SourceTypeHelm SourceType = SourceType(wego.SourceTypeHelm)
-)
-
 // AppService entity that manages applications
 type AppService interface {
 	// Add adds a new application to the cluster
