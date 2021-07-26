@@ -34,20 +34,20 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 		fluxManifests = append(fluxManifests, manifests.AppCRD...)
 	} else {
 		ctx := context.Background()
-		if err := g.kube.CreateSecret(ctx, kube.GitTokenSecretName, kube.GitTokenKeyName, params.GitToken, params.Namespace); err != nil {
-			return nil, errors.Wrap(err, "could not create git token secret")
+		if err = g.kube.CreateSecret(ctx, kube.GitTokenSecretName, kube.GitTokenKeyName, params.GitToken, params.Namespace); err != nil {
+			return nil, fmt.Errorf("could not create git token secret: %s", err)
 		}
 		if out, err := g.kube.Apply(manifests.AppCRD, params.Namespace); err != nil {
-			return []byte{}, errors.Wrapf(err, "failed to apply App spec CR: %s", string(out))
+			return []byte{}, fmt.Errorf("failed to apply App spec CR: %s", string(out))
 		}
 		if out, err := g.kube.Apply(manifests.ServiceAccountApiService, params.Namespace); err != nil {
-			return []byte{}, errors.Wrapf(err, "failed to apply service account manifest for api-service: %s", string(out))
+			return []byte{}, fmt.Errorf("failed to apply service account manifest for api-service: %s", string(out))
 		}
 		if out, err := g.kube.Apply(manifests.RoleApiService, params.Namespace); err != nil {
-			return []byte{}, errors.Wrapf(err, "failed to apply role manifest for api-service: %s", string(out))
+			return []byte{}, fmt.Errorf("failed to apply role manifest for api-service: %s", string(out))
 		}
 		if out, err := g.kube.Apply(manifests.RoleBindingApiService, params.Namespace); err != nil {
-			return []byte{}, errors.Wrapf(err, "failed to apply rolebinding for api-service: %s", string(out))
+			return []byte{}, fmt.Errorf("failed to apply rolebinding for api-service: %s", string(out))
 		}
 	}
 
