@@ -1,4 +1,4 @@
-# 5. When to use wego, weave-gitops, and Weave GitOps
+# 6. When to use wego, weave-gitops, and Weave GitOps
 
 Date: 2021-07-26
 
