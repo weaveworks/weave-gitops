@@ -13,7 +13,6 @@ import (
 	"github.com/spf13/cobra"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 )
 
@@ -61,7 +60,12 @@ func StartServer() error {
 func RunInProcessGateway(ctx context.Context, addr string, opts ...runtime.ServeMuxOption) error {
 	mux := runtime.NewServeMux(opts...)
 
-	if err := pb.RegisterApplicationsHandlerServer(ctx, mux, server.NewApplicationsServer(kube.New(&runner.CLIRunner{}))); err != nil {
+	kubeClient, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		return fmt.Errorf("could not create kube http client: %w", err)
+	}
+
+	if err := pb.RegisterApplicationsHandlerServer(ctx, mux, server.NewApplicationsServer(kubeClient)); err != nil {
 		return fmt.Errorf("could not register application: %w", err)
 	}
 	s := &http.Server{

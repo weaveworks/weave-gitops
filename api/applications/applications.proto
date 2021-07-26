@@ -38,10 +38,22 @@ service Applications {
     }
 }
 
+// This object represents a single condition for a Kubernetes object.
+// It roughly matches the Kubernetes type defined here: https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1#Condition
+message Condition {
+    string type      = 1;
+    string status    = 2;
+    string reason    = 3;
+    string message   = 4;
+    int32 timestamp = 5;
+}
+
 message Application {
-    string name = 1;  // The name of the application
-    string path = 2;  // The file path where the k8s yaml files for this application are stored.
-    string url  = 3;  // The git repository URL for this application
+    string   name                            = 1;  // The name of the application
+    string   path                            = 2;  // The file path where the k8s yaml files for this application are stored.
+    string   url                             = 3;  // The git repository URL for this application
+    repeated Condition source_conditions     = 4;  // A list of conditions for the Source related to this Application
+    repeated Condition deployment_conditions = 5;  // A list of conditions for the Kustomization or HelmRelease for this application
 }
 
 message ListApplicationsRequest {
