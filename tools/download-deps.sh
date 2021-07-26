@@ -110,8 +110,7 @@ validate_flux_binary() {
     prefix="SHA256(flux)= ";
     flux_hash=${hash_result#$prefix}; #Remove prefix
 
-    if grep -q ${flux_hash} fluxchecksums.txt; then
-    else
+    if ! grep -q ${flux_hash} fluxchecksums.txt; then
         echo flux binary not valid
         exit 1
     fi
