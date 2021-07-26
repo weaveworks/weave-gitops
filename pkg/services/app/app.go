@@ -16,11 +16,13 @@ type DeploymentType string
 type SourceType string
 
 const (
-	DeployTypeKustomize DeploymentType = "kustomize"
-	DeployTypeHelm      DeploymentType = "helm"
+	// TODO: use wego.DeployType and wego.SourceType everywhere
+	// Convert these for now to avoid having to change large parts of the code base to the wego types
+	DeployTypeKustomize DeploymentType = DeploymentType(wego.DeploymentTypeKustomize)
+	DeployTypeHelm      DeploymentType = DeploymentType(wego.DeploymentTypeHelm)
 
-	SourceTypeGit  SourceType = "git"
-	SourceTypeHelm SourceType = "helm"
+	SourceTypeGit  SourceType = SourceType(wego.SourceTypeGit)
+	SourceTypeHelm SourceType = SourceType(wego.SourceTypeHelm)
 )
 
 // AppService entity that manages applications
