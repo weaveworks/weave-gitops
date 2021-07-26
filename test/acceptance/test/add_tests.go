@@ -302,7 +302,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	})
 
 	//deployment-type=default k | repo=private | app-config-url=url***
-	It("Verify that wego can deploy an app with app-config-url set to <url>", func() {
+	It("SmokeTest - Verify that wego can deploy an app with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		private := true
@@ -631,7 +631,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	})
 
 	//deployment-type=default k | repo=private | workload=1,2 | app-config-url=url***
-	It("Verify that wego can add multiple apps dir to the cluster using single app and wego config repo", func() {
+	It("SmokeTest - Verify that wego can add multiple apps dir to the cluster using single app and wego config repo", func() {
 		var repoAbsolutePath string
 		private := true
 		tip1 := generateTestInputs()
