@@ -108,8 +108,7 @@ do_curl_tarball() {
     dldir="$(mktempdir)"
     mkdir "${dldir}/${cmd}"
     do_curl "${dldir}/${cmd}.tar.gz" "${url}"
-    tar -C "${dldir}/${cmd}" -xvf "${dldir}/${cmd}.tar.gz"
-    mv "${dldir}/${cmd}/${cmd}" "${path}"
+    mv "${dldir}/${cmd}.tar.gz" "${path}"
     rm -rf "${dldir}"
 }
 
@@ -125,3 +124,17 @@ do_curl_tarball_with_path() {
     tar -C "${dldir}/${cmd}" -xvf "${dldir}/${cmd}.tar.gz"
     mv "${dldir}/${cmd}/${url_and_path[1]}" "${path}/${cmd}"
 }
+
+do_curl_txt() {
+    local cmd="${1}"
+    local url="${2}"
+    local default_path="${HOME}/.wego/bin"
+    local path="${3:-${default_path}}"/"${cmd}"
+
+    dldir="$(mktempdir)"
+    mkdir "${dldir}/${cmd}"
+    do_curl "${dldir}/${cmd}.txt" "${url}"
+    mv "${dldir}/${cmd}.txt" "${path}.txt"
+    rm -rf "${dldir}"
+}
+
