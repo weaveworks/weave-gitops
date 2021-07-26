@@ -232,7 +232,7 @@ func (k *KubeClient) LabelExistsInCluster(ctx context.Context, label string) err
 	return nil
 }
 
-func (k *KubeClient) CreateSecret(ctx context.Context, name, key, value string, namespace string) error {
+func (k *KubeClient) CreateSecret(ctx context.Context, name string, key string, value string, namespace string) error {
 	cmd := []string{
 		"create",
 		"secret",
@@ -251,7 +251,7 @@ func (k *KubeClient) CreateSecret(ctx context.Context, name, key, value string, 
 	return nil
 }
 
-func (k *KubeClient) GetSecret(ctx context.Context, name, key string, namespace string) ([]byte, error) {
+func (k *KubeClient) GetSecret(ctx context.Context, name string, key string, namespace string) ([]byte, error) {
 	cmd := []string{
 		"get",
 		fmt.Sprintf("secret/%s", name),
