@@ -78,15 +78,15 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	fluxClient := flux.New(cliRunner)
 	kubeClient := kube.New(cliRunner)
 
-	var gitToken string
-	gitToken = os.Getenv("GITHUB_TOKEN")
-	if gitToken == "" {
+	var gitProviderToken string
+	gitProviderToken = os.Getenv("GITHUB_TOKEN")
+	if gitProviderToken == "" {
 		fmt.Print("Github token will be used to create deployment keys and pull requests: ")
 		input, err := term.ReadPassword(int(os.Stdin.Fd()))
 		if err != nil {
 			return errors.Wrap(err, "failed reading ssh key password")
 		}
-		gitToken = string(input)
+		gitProviderToken = string(input)
 	} else {
 		fmt.Println("Using env GITHUB_TOKEN")
 	}
@@ -96,7 +96,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	manifests, err := gitopsService.Install(gitops.InstallParams{
 		Namespace: gitopsParams.Namespace,
 		DryRun:    gitopsParams.DryRun,
-		GitToken:  gitToken,
+		GitToken:  gitProviderToken,
 	})
 	if err != nil {
 		return err
