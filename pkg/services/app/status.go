@@ -7,6 +7,7 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
 	"github.com/fluxcd/pkg/apis/meta"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -36,25 +37,25 @@ func (a *App) Status(params StatusParams) (string, string, error) {
 	return string(fluxOutput), lastRecon, nil
 }
 
-func (a *App) getDeploymentType(ctx context.Context, params StatusParams) (DeploymentType, error) {
+func (a *App) getDeploymentType(ctx context.Context, params StatusParams) (wego.DeploymentType, error) {
 	app, err := a.kube.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
 	if err != nil {
-		return DeployTypeKustomize, err
+		return wego.DeploymentTypeKustomize, err
 	}
 
-	return DeploymentType(app.Spec.DeploymentType), nil
+	return wego.DeploymentType(app.Spec.DeploymentType), nil
 }
 
-func (a *App) getLastSuccessfulReconciliation(ctx context.Context, deploymentType DeploymentType, params StatusParams) (string, error) {
+func (a *App) getLastSuccessfulReconciliation(ctx context.Context, deploymentType wego.DeploymentType, params StatusParams) (string, error) {
 	conditions := []metav1.Condition{}
 	switch deploymentType {
-	case DeployTypeKustomize:
+	case wego.DeploymentTypeKustomize:
 		kust := &kustomizev1.Kustomization{}
 		if err := a.kube.GetResource(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace}, kust); err != nil {
 			return "", fmt.Errorf("failed getting resource: %w", err)
 		}
 		conditions = kust.Status.Conditions
-	case DeployTypeHelm:
+	case wego.DeploymentTypeHelm:
 		helm := &helmv2.HelmRelease{}
 		if err := a.kube.GetResource(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace}, helm); err != nil {
 			return "", fmt.Errorf("failed getting resource: %w", err)
