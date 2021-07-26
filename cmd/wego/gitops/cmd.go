@@ -81,7 +81,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	var gitToken string
 	gitToken = os.Getenv("GITHUB_TOKEN")
 	if gitToken == "" {
-		fmt.Print("Github token: ")
+		fmt.Print("Github token will be used to create deployment keys and pull requests: ")
 		input, err := term.ReadPassword(int(os.Stdin.Fd()))
 		if err != nil {
 			return errors.Wrap(err, "failed reading ssh key password")
