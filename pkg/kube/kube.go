@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"encoding/json"
@@ -118,7 +119,19 @@ func (k *KubeClient) GetClusterName(ctx context.Context) (string, error) {
 		return "", errors.Wrap(err, "failed to get kubectl current-context")
 	}
 
-	return string(bytes.TrimSuffix(out, []byte("\n"))), nil
+	clusterName := sanitize(string(bytes.TrimSuffix(out, []byte("\n"))))
+	return clusterName, nil
+}
+
+func sanitize(name string) string {
+	reRemoveUnAllowed := regexp.MustCompile(`[^a-z0-9\s-]+`)
+	reNoDupDashes := regexp.MustCompile(`^--+`)
+	reNoOutsideDashes := regexp.MustCompile(`^-+|-$`)
+
+	replaceUnderscores := strings.ReplaceAll(strings.ToLower(name), "_", "-")
+	notAllowed := reRemoveUnAllowed.ReplaceAllString(replaceUnderscores, "")
+	noDupDashes := reNoDupDashes.ReplaceAllString(notAllowed, "")
+	return reNoOutsideDashes.ReplaceAllString(noDupDashes, "")
 }
 
 func (k *KubeClient) GetClusterStatus(ctx context.Context) ClusterStatus {

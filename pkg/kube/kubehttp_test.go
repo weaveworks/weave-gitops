@@ -75,10 +75,16 @@ var _ = Describe("KubeHTTP", func() {
 	It("GetApplication", func() {
 		ctx := context.Background()
 		name := "my-app"
-		app := &wego.Application{ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace.Name,
-		}}
+		app := &wego.Application{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace.Name,
+			},
+			Spec: wego.ApplicationSpec{
+				SourceType:     wego.SourceTypeGit,
+				DeploymentType: wego.DeploymentTypeKustomize,
+			},
+		}
 
 		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
 
@@ -104,10 +110,16 @@ var _ = Describe("KubeHTTP", func() {
 	It("GetApplications", func() {
 		ctx := context.Background()
 		name := "my-app"
-		app := &wego.Application{ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace.Name,
-		}}
+		app := &wego.Application{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace.Name,
+			},
+			Spec: wego.ApplicationSpec{
+				DeploymentType: wego.DeploymentTypeKustomize,
+				SourceType:     wego.SourceTypeGit,
+			},
+		}
 
 		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
 

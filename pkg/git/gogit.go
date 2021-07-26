@@ -151,6 +151,20 @@ func (g *GoGit) Write(path string, content []byte) error {
 	return err
 }
 
+// Remove removes the file at path
+func (g *GoGit) Remove(path string) error {
+	if g.repository == nil {
+		return ErrNoGitRepository
+	}
+
+	wt, err := g.repository.Worktree()
+	if err != nil {
+		return fmt.Errorf("failed to open the worktree: %w", err)
+	}
+
+	return wt.Filesystem.Remove(path)
+}
+
 func (g *GoGit) Commit(message Commit, filters ...func(string) bool) (string, error) {
 	if g.repository == nil {
 		return "", ErrNoGitRepository

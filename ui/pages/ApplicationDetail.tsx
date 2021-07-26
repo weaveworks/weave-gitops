@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import ConditionsTable from "../components/ConditionsTable";
 import KeyValueTable from "../components/KeyValueTable";
 import Page from "../components/Page";
 import useApplications from "../hooks/applications";
@@ -38,6 +39,10 @@ function ApplicationDetail({ className }: Props) {
           { key: "Path", value: app.path },
         ]}
       />
+      <h3>Source Conditions</h3>
+      <ConditionsTable conditions={app.sourceConditions} />
+      <h3>Automation Conditions</h3>
+      <ConditionsTable conditions={app.deploymentConditions} />
     </Page>
   );
 }
