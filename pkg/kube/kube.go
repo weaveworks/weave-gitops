@@ -62,8 +62,8 @@ type Kube interface {
 	LabelExistsInCluster(ctx context.Context, label string) error
 	GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error)
 	GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error
-	CreateSecret(ctx context.Context, name, key, value string, namespace string) error
-	GetSecret(ctx context.Context, name, key string, namespace string) ([]byte, error)
+	CreateSecret(ctx context.Context, name string, key string, value string, namespace string) error
+	GetSecret(ctx context.Context, name string, key string, namespace string) ([]byte, error)
 }
 
 type KubeClient struct {
