@@ -117,4 +117,19 @@ var _ = Describe("KubeHTTP", func() {
 		Expect(list[0].Name).To(Equal(name))
 
 	})
+	It("Create/Get Secret", func() {
+		ctx := context.Background()
+
+		secretName := "testing-tokens"
+		tokenKey := "tokenKey"
+		tokenValue := "tokenValue"
+
+		err := k.CreateSecret(ctx, secretName, tokenKey, tokenValue, namespace.Namespace)
+		Expect(err).NotTo(HaveOccurred())
+
+		bts, err := k.GetSecret(ctx, secretName, tokenKey, namespace.Namespace)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(tokenValue).To(Equal(string(bts)))
+	})
 })
