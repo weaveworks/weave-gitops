@@ -17,6 +17,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -190,11 +191,41 @@ func (c *KubeHTTP) GetResource(ctx context.Context, name types.NamespacedName, r
 }
 
 func (c *KubeHTTP) CreateSecret(ctx context.Context, name, key, value string, namespace string) error {
+
+	secret := corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Data: map[string][]byte{
+			key: []byte(value),
+		},
+		Type: corev1.SecretTypeOpaque,
+	}
+
+	if err := c.Client.Create(ctx, &secret); err != nil {
+		return fmt.Errorf("error creating secret %s: %s", name, err)
+	}
+
 	return nil
+
 }
 
 func (c *KubeHTTP) GetSecret(ctx context.Context, name, key string, namespace string) ([]byte, error) {
-	return nil, nil
+
+	nName := types.NamespacedName{
+		Name:      name,
+		Namespace: namespace,
+	}
+
+	secret := corev1.Secret{}
+
+	if err := c.Client.Get(ctx, nName, &secret); err != nil {
+		return nil, fmt.Errorf("error getting secret %s", name)
+	}
+
+	return secret.Data[key], nil
+
 }
 
 func initialContexts(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (contexts []string, currentCtx string, err error) {
