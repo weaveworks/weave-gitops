@@ -620,8 +620,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	//deployment-type=default k, default  | repo=private | app-config-url=url***
-	FIt("SmokeTest - Verify that wego can deploy an app with app-config-url set to <url>", func() {
+	//deployment-type=default k, default h, custom h| repo=private | app status | app list | app-config-url=url
+	It("SmokeTest - Verify that wego can deploy an app with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var listOutput string
@@ -631,10 +631,11 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		private := true
 		readmeFilePath := "./data/README.md"
 		tip := generateTestInputs()
+		appFilesRepoName := tip.appRepoName
 		appConfigRepoName := "wego-config-repo-" + RandString(8)
 		configRepoRemoteURL = "ssh://git@github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
 		helmRepoURL := "https://charts.kube-ops.io"
-		appName1 := tip.appRepoName
+		appName1 := appFilesRepoName
 		workloadName1 := tip.workloadName
 		workloadNamespace1 := tip.workloadNamespace
 		appManifestFilePath1 := tip.appManifestFilePath
@@ -647,13 +648,13 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		addCommand2 := "app add . --deployment-type=helm --path=./hello-world --name=" + appName2 + " --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
 		addCommand3 := "app add --url=" + helmRepoURL + " --chart=" + appName3 + " --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
 
-		defer deleteRepo(tip.appRepoName)
+		defer deleteRepo(appFilesRepoName)
 		defer deleteRepo(appConfigRepoName)
 		defer deleteWorkload(workloadName1, workloadNamespace1)
 		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName3, EVENTUALLY_DEFAULT_TIME_OUT)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName)
+			deleteRepo(appFilesRepoName)
 			deleteRepo(appConfigRepoName)
 		})
 
@@ -668,7 +669,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("When I create a private repo with app1 workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, private)
+			repoAbsolutePath = initAndCreateEmptyRepo(appFilesRepoName, private)
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath1)
 		})
 
@@ -703,7 +704,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Expect(waitForResource("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 		})
 
-		By("When I run wego app add command for app3: ", func() {
+		By("When I run wego app add command for app3: "+appName3, func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand3, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -712,7 +713,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			verifyHelmPodWorkloadIsDeployed(workloadName3, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("When I check the app status for "+appName1, func() {
+		By("When I check the app status for app1", func() {
 			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName1))
 		})
 
@@ -722,7 +723,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Eventually(appStatus1).Should(gbytes.Say(`kustomization/` + appName1))
 		})
 
-		By("When I check the app status for "+appName2, func() {
+		By("When I check the app status for app2", func() {
 			appStatus2 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName2))
 		})
 
@@ -732,7 +733,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Eventually(appStatus2).Should(gbytes.Say(`helmrelease/` + appName2))
 		})
 
-		By("When I check the app status for "+appName3, func() {
+		By("When I check the app status for app3", func() {
 			appStatus3 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName3))
 		})
 
@@ -750,6 +751,21 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Eventually(listOutput).Should(ContainSubstring(appName1))
 			Eventually(listOutput).Should(ContainSubstring(appName2))
 			Eventually(listOutput).Should(ContainSubstring(appName3))
+		})
+
+		By("And I should not see wego components in app repo: "+appFilesRepoName, func() {
+			pullGitRepo(repoAbsolutePath)
+			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && ls -al", repoAbsolutePath))
+			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
+			Expect(folderOutput).ShouldNot(ContainSubstring("apps"))
+			Expect(folderOutput).ShouldNot(ContainSubstring("targets"))
+		})
+
+		By("And I should see wego components in config repo: "+appConfigRepoName, func() {
+			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && git clone %s && cd %s && ls -al", repoAbsolutePath, configRepoRemoteURL, appConfigRepoName))
+			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
+			Expect(folderOutput).Should(ContainSubstring("apps"))
+			Expect(folderOutput).Should(ContainSubstring("targets"))
 		})
 	})
 
