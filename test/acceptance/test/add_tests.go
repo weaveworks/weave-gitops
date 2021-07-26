@@ -232,7 +232,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 	//deployment-type=default k | repo=private | url=giturl | branch | namespace | private-key=~/ | app-config-url=NONE
 	// Eventually this test run will include all the remaining un-automated `wego app add` flags.
-	It("Verify that wego can deploy app when user specifies branch, namespace, url, private-key, deployment-type", func() {
+	It("Verify that wego can deploy app when user specifies branch, namespace, url, deployment-type", func() {
 		var repoAbsolutePath string
 		private := true
 		DEFAULT_SSH_KEY_PATH := "~/.ssh/id_rsa"
@@ -301,7 +301,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	//deployment-type=default k | repo=private | app-config-url=url
+	//deployment-type=default k | repo=private | app-config-url=url***
 	It("Verify that wego can deploy an app with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
@@ -351,6 +351,15 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		By("Then I should see should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
 			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
+		})
+
+		By("When I check for apps list", func() {
+			statusOutput, _ := runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName)
+			fmt.Println(statusOutput)
+			listOutput, _ := runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app list")
+			fmt.Println(listOutput)
+			output, _ := runCommandAndReturnStringOutput("kubectl get apps -A")
+			fmt.Println(output)
 		})
 	})
 
@@ -621,7 +630,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	//deployment-type=default k | repo=private | workload=1,2 | app-config-url=url
+	//deployment-type=default k | repo=private | workload=1,2 | app-config-url=url***
 	It("Verify that wego can add multiple apps dir to the cluster using single app and wego config repo", func() {
 		var repoAbsolutePath string
 		private := true
@@ -670,6 +679,13 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			verifyWegoAddCommand(appName2, WEGO_DEFAULT_NAMESPACE)
 			verifyWorkloadIsDeployed(tip1.workloadName, tip1.workloadNamespace)
 			verifyWorkloadIsDeployed(tip2.workloadName, tip2.workloadNamespace)
+		})
+
+		By("When I check for apps list", func() {
+			listOutput, _ := runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app list")
+			fmt.Println(listOutput)
+			output, _ := runCommandAndReturnStringOutput("kubectl get apps -A")
+			fmt.Println(output)
 		})
 	})
 
@@ -948,7 +964,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	})
 
 	//deployment-type=default h | repo=private | url=helmrepo | chart=helmchart | app-config-url=url
-	It("SmokeTest - Verify that wego can deploy multiple helm apps from a helm repo with app-config-url set to <url>", func() {
+	It("Verify that wego can deploy multiple helm apps from a helm repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var listOutput string
 		var appStatus1 *gexec.Session
