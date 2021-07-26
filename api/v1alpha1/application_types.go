@@ -26,16 +26,25 @@ const ApplicationKind = "Application"
 
 // ApplicationSpec defines the desired state of Application
 type ApplicationSpec struct {
+	// ConfigURL is the address of the git repository containing the automation for this application
+	ConfigURL string `json:"config_url,omitempty"`
 	// URL is the address of the git repository for this application
 	URL string `json:"url,omitempty"`
 	// Path is the path in the repository where the k8s yaml files for this application are stored.
 	Path string `json:"path,omitempty"`
+	// Branch is the branch in the repository where the k8s yaml files for this application are stored.
+	Branch string `json:"branch,omitempty"`
 	// DeploymentType is the deployment method used to apply the manifests
 	DeploymentType DeploymentType `json:"deployment_type,omitempty"`
+	// SourceType is the type of repository containing the app manifests
+	SourceType SourceType `json:"source_type,omitempty"`
 }
 
 // +kubebuilder:validation:Enum=helm;kustomize
 type DeploymentType string
+
+// +kubebuilder:validation:Enum=helm;git
+type SourceType string
 
 // ApplicationStatus defines the observed state of Application
 type ApplicationStatus struct {

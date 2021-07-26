@@ -320,7 +320,7 @@ var _ = Describe("Add", func() {
 				Expect(namespace).To(Equal("wego-system"))
 
 				name, source, path, namespace = fluxClient.CreateKustomizationArgsForCall(1)
-				Expect(name).To(Equal("bar-wego-apps-dir"))
+				Expect(name).To(Equal("bar-apps-dir"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal(".wego/apps/bar"))
 				Expect(namespace).To(Equal("wego-system"))
@@ -328,7 +328,7 @@ var _ = Describe("Add", func() {
 				name, source, path, namespace = fluxClient.CreateKustomizationArgsForCall(2)
 				Expect(name).To(Equal("test-cluster-bar"))
 				Expect(source).To(Equal("bar"))
-				Expect(path).To(Equal(".wego/targets/test-cluster"))
+				Expect(path).To(Equal(".wego/targets/test-cluster/bar"))
 				Expect(namespace).To(Equal("wego-system"))
 			})
 
@@ -408,28 +408,29 @@ var _ = Describe("Add", func() {
 				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
 			})
-		})
 
-		It("writes the files to the disk", func() {
-			fluxClient.CreateSourceGitStub = func(s1, s2, s3, s4, s5 string) ([]byte, error) {
-				return []byte("git"), nil
-			}
-			fluxClient.CreateKustomizationStub = func(s1, s2, s3, s4 string) ([]byte, error) {
-				return []byte("kustomization"), nil
-			}
+			It("writes the files to the disk", func() {
+				addParams.AppConfigUrl = addParams.Url // so we know the root is ".wego"
+				fluxClient.CreateSourceGitStub = func(s1, s2, s3, s4, s5 string) ([]byte, error) {
+					return []byte("git"), nil
+				}
+				fluxClient.CreateKustomizationStub = func(s1, s2, s3, s4 string) ([]byte, error) {
+					return []byte("kustomization"), nil
+				}
 
-			err := appSrv.Add(addParams)
-			Expect(err).ShouldNot(HaveOccurred())
+				err := appSrv.Add(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(gitClient.WriteCallCount()).To(Equal(2))
+				Expect(gitClient.WriteCallCount()).To(Equal(2))
 
-			path, content := gitClient.WriteArgsForCall(0)
-			Expect(path).To(Equal(".wego/apps/bar/app.yaml"))
-			Expect(string(content)).To(ContainSubstring("kind: Application"))
+				path, content := gitClient.WriteArgsForCall(0)
+				Expect(path).To(Equal(".wego/apps/bar/app.yaml"))
+				Expect(string(content)).To(ContainSubstring("kind: Application"))
 
-			path, content = gitClient.WriteArgsForCall(1)
-			Expect(path).To(Equal(".wego/targets/test-cluster/bar/bar-gitops-runtime.yaml"))
-			Expect(content).To(Equal([]byte("gitkustomization")))
+				path, content = gitClient.WriteArgsForCall(1)
+				Expect(path).To(Equal(".wego/targets/test-cluster/bar/bar-gitops-runtime.yaml"))
+				Expect(content).To(Equal([]byte("gitkustomization")))
+			})
 		})
 
 		It("commit and pushes the files", func() {
@@ -505,14 +506,16 @@ var _ = Describe("Add", func() {
 					Branch:    "main",
 				}
 
-				desired2 := makeWegoApplication(params)
-				hash, err := getHash(repoURL, params.Path, params.Branch)
+				info := getAppResourceInfo(makeWegoApplication(params), "")
+
+				desired2 := info.Application
+				hash, err := getHash(repoURL, info.Spec.Path, info.Spec.Branch)
 				Expect(err).To(BeNil())
 
 				desired2.ObjectMeta.Labels = map[string]string{WeGOAppIdentifierLabelKey: hash}
 
 				Expect(err).NotTo(HaveOccurred())
-				out, err := generateAppYaml(params, hash)
+				out, err := generateAppYaml(info, hash)
 				Expect(err).To(BeNil())
 
 				result := wego.Application{}
@@ -546,7 +549,7 @@ var _ = Describe("Add", func() {
 				Expect(namespace).To(Equal("wego-system"))
 
 				name, source, path, namespace = fluxClient.CreateKustomizationArgsForCall(1)
-				Expect(name).To(Equal("repo"))
+				Expect(name).To(Equal("repo-apps-dir"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("apps/repo"))
 				Expect(namespace).To(Equal("wego-system"))
@@ -664,7 +667,8 @@ var _ = Describe("Add", func() {
 
 	Context("when creating a pull request", func() {
 		It("generates an appropriate error when the owner cannot be retrieved from the URL", func() {
-			err := appSrv.(*App).createPullRequestToRepo(addParams, gitProviders, ".", "foo", "cluster", "hash", []byte{})
+			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
+			err := appSrv.(*App).createPullRequestToRepo(info, gitProviders, "foo", "hash", []byte{})
 			Expect(err.Error()).To(HavePrefix("failed to retrieve owner"))
 		})
 
@@ -672,7 +676,8 @@ var _ = Describe("Add", func() {
 			gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
 				return gitproviders.AccountTypeOrg, fmt.Errorf("no account found")
 			}
-			err := appSrv.(*App).createPullRequestToRepo(addParams, gitProviders, ".", "ssh://git@github.com/ewojfewoj3323w/abc", "cluster", "hash", []byte{})
+			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
+			err := appSrv.(*App).createPullRequestToRepo(info, gitProviders, "ssh://git@github.com/ewojfewoj3323w/abc", "hash", []byte{})
 			Expect(err.Error()).To(HavePrefix("failed to retrieve account type"))
 		})
 	})
@@ -701,10 +706,12 @@ var _ = Describe("Add", func() {
 			addParams.Branch = "main"
 			addParams.DeploymentType = string(DeployTypeHelm)
 
-			appHash, err := getAppHash(addParams)
+			info := getAppResourceInfo(makeWegoApplication(addParams), "")
+
+			appHash, err := getAppHash(info)
 			Expect(err).NotTo(HaveOccurred())
 
-			expectedHash, err := getHash(addParams.Url, addParams.Chart, addParams.Branch)
+			expectedHash, err := getHash(info.Spec.URL, info.Name, info.Spec.Branch)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(appHash).To(Equal("wego-" + expectedHash))
@@ -717,10 +724,12 @@ var _ = Describe("Add", func() {
 			addParams.Branch = "main"
 			addParams.DeploymentType = string(DeployTypeKustomize)
 
-			appHash, err := getAppHash(addParams)
+			info := getAppResourceInfo(makeWegoApplication(addParams), "")
+
+			appHash, err := getAppHash(info)
 			Expect(err).NotTo(HaveOccurred())
 
-			expectedHash, err := getHash(addParams.Url, addParams.Path, addParams.Branch)
+			expectedHash, err := getHash(info.Spec.URL, info.Spec.Path, info.Spec.Branch)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(appHash).To(Equal("wego-" + expectedHash))
