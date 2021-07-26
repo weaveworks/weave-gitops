@@ -2,11 +2,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: read-secrets
-  namespace: wego-system
 subjects:
   - kind: ServiceAccount
     name: api-service-account
-    namespace: wego-system
 roleRef:
   kind: Role
   name: secret-reader
