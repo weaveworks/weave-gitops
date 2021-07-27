@@ -1,8 +1,6 @@
 package acceptance
 
 import (
-	"os/exec"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -12,7 +10,6 @@ import (
 var _ = Describe("Weave GitOps Version Tests", func() {
 
 	var session *gexec.Session
-	var err error
 
 	BeforeEach(func() {
 
@@ -24,9 +21,7 @@ var _ = Describe("Weave GitOps Version Tests", func() {
 	It("SmokeTest - Verify that command wego version prints the version information", func() {
 
 		By("When I run the command 'wego version'", func() {
-			command := exec.Command(WEGO_BIN_PATH, "version")
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).ShouldNot(HaveOccurred())
+			session = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " version")
 		})
 
 		By("Then I should see the wego version printed in format vm.n.n with newline character", func() {
@@ -41,12 +36,8 @@ var _ = Describe("Weave GitOps Version Tests", func() {
 			Eventually(session).Should(gbytes.Say("BuildTime: [0-9-_:]+\n"))
 		})
 
-		By("And branch name", func() {
-			Eventually(session).Should(gbytes.Say("Branch: main|HEAD\n"))
-		})
-
 		By("And flux version", func() {
-			Eventually(session).Should(gbytes.Say("Flux Version: [0-9].[0-9][0-9].[0-9]\n"))
+			Eventually(session).Should(gbytes.Say("Flux Version: v[0-9].[0-9][0-9].[0-9]\n"))
 		})
 	})
 })

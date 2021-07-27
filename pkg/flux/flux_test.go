@@ -1,162 +1,192 @@
-package flux
+package flux_test
 
 import (
 	"fmt"
-	"testing"
+	"os"
+	"path/filepath"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/weave-gitops/pkg/fluxops"
-	"github.com/weaveworks/weave-gitops/pkg/override"
-	"github.com/weaveworks/weave-gitops/pkg/shims"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
-	"github.com/weaveworks/weave-gitops/pkg/version"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/runner/runnerfakes"
 )
 
-var testFluxLogResponse = []byte(`2021-04-12T19:53:58.545Z info Alert - Starting EventSource
-2021-04-12T19:53:58.545Z info Receiver - Starting EventSource
-2021-04-12T19:53:58.545Z info Provider - Starting EventSource
-2021-04-12T19:53:58.646Z info Alert - Starting Controller
-2021-04-12T19:53:58.647Z info Alert - Starting workers
-2021-04-12T19:53:58.652Z info Provider - Starting Controller
-2021-04-12T19:53:58.652Z info Provider - Starting workers
-2021-04-12T19:54:23.373Z info GitRepository/flux-system.flux-system - Discarding event, no alerts found for the involved object
-2021-04-13T20:37:20.565Z info Kustomization/flux-system.flux-system - Discarding event, no alerts found for the involved object
-2021-04-13T20:37:21.213Z info GitRepository/podinfo.flux-system - Discarding event, no alerts found for the involved object
-2021-04-13T20:39:30.367Z info GitRepository/flux-system.flux-system - Discarding event, no alerts found for the involved object
+var (
+	runner     *runnerfakes.FakeRunner
+	fluxClient *flux.FluxClient
+)
 
-2021-04-12T19:54:02.383Z info  - metrics server is starting to listen
-2021-04-12T19:54:02.384Z info  - starting manager
-2021-04-12T19:54:02.385Z info  - starting metrics server
-2021-04-12T19:54:02.486Z info  - starting file server
-2021-04-12T19:54:02.486Z info HelmRepository - Starting EventSource
-2021-04-12T19:54:02.486Z info Bucket - Starting EventSource
-2021-04-12T19:54:02.486Z info HelmChart - Starting EventSource
-2021-04-12T19:54:02.486Z info HelmChart - Starting EventSource
-2021-04-12T19:54:02.487Z info HelmChart - Starting EventSource
-2021-04-12T19:54:02.587Z info GitRepository - Starting workers
-2021-04-12T19:54:02.588Z info HelmChart - Starting Controller
-2021-04-12T19:54:02.588Z info HelmRepository - Starting workers
-2021-04-12T19:54:02.588Z info HelmChart - Starting workers
-2021-04-12T19:54:02.588Z info Bucket - Starting Controller
-2021-04-12T19:54:02.589Z info Bucket - Starting workers
-2021-04-12T21:02:22.808Z info GitRepository/flux-system.flux-system - Reconciliation finished in 873.5428ms, next run in 1m0s
-2021-04-12T21:03:23.646Z info GitRepository/flux-system.flux-system - Reconciliation finished in 907.3404ms, next run in 1m0s`)
+var _ = BeforeEach(func() {
+	runner = &runnerfakes.FakeRunner{}
 
-func TestFlux(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Flux Tests")
-}
+	fluxClient = flux.New(runner)
+})
 
-var _ = Describe("Log Fetching Test", func() {
-	It("Verify that log fetching works correctly", func() {
-		By("Invoking getLastLogForNamespaces", func() {
-			result, err := getLastLogForNamespaces(testFluxLogResponse)
-			Expect(err).To(BeNil())
-			Expect(len(result)).To(Equal(11))
+var _ = Describe("Install", func() {
+	It("installs flux", func() {
+		_, err := fluxClient.Install("wego-system", false)
+		Expect(err).ShouldNot(HaveOccurred())
 
-			emptyResult, err := getLastLogForNamespaces(nil)
-			Expect(err).To(BeNil())
-			Expect(len(emptyResult)).To(Equal(0))
-		})
+		Expect(runner.RunWithOutputStreamCallCount()).To(Equal(1))
+
+		cmd, args := runner.RunWithOutputStreamArgsForCall(0)
+		Expect(cmd).To(Equal(fluxPath()))
+		Expect(strings.Join(args, " ")).To(Equal("install --namespace wego-system --components-extra image-reflector-controller,image-automation-controller"))
+	})
+
+	It("exports the install manifests", func() {
+		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
+			return []byte("out"), nil
+		}
+
+		out, err := fluxClient.Install("wego-system", true)
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(out).To(Equal([]byte("out")))
+
+		Expect(runner.RunCallCount()).To(Equal(1))
+
+		cmd, args := runner.RunArgsForCall(0)
+		Expect(cmd).To(Equal(fluxPath()))
+		Expect(strings.Join(args, " ")).To(Equal("install --namespace wego-system --components-extra image-reflector-controller,image-automation-controller --export"))
 	})
 })
 
-var _ = Describe("Latest Status For All Namespaces Test", func() {
-	It("Verify that the bulk namespace operation works correctly on the success path", func() {
-		By("Invoking the operation with a mock command", func() {
-			_, _, err := utils.WithResultsFrom(utils.CallCommandOp, testFluxLogResponse, nil, nil, processStatus)
-			Expect(err).To(BeNil())
-		})
+var _ = Describe("Uninstall", func() {
+	It("uninstalls flux", func() {
+		err := fluxClient.Uninstall("wego-system", false)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		Expect(runner.RunWithOutputStreamCallCount()).To(Equal(1))
+
+		cmd, args := runner.RunWithOutputStreamArgsForCall(0)
+		Expect(cmd).To(Equal(fluxPath()))
+		Expect(strings.Join(args, " ")).To(Equal("uninstall -s --namespace wego-system"))
 	})
-	It("Verify that the bulk namespace operation works correctly on the failure path", func() {
-		By("Invoking the operation with a mock command", func() {
-			_, _, err := utils.WithResultsFrom(utils.CallCommandOp, nil, nil, fmt.Errorf("failed"), processStatus)
-			Expect(err).To(Not(BeNil()))
-		})
+
+	It("add dry-run to the call", func() {
+		err := fluxClient.Uninstall("wego-system", true)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		Expect(runner.RunWithOutputStreamCallCount()).To(Equal(1))
+
+		cmd, args := runner.RunWithOutputStreamArgsForCall(0)
+		Expect(cmd).To(Equal(fluxPath()))
+		Expect(strings.Join(args, " ")).To(Equal("uninstall -s --namespace wego-system --dry-run"))
 	})
 })
 
-func processStatus() ([]byte, []byte, error) {
-	strs, err := GetLatestStatusAllNamespaces()
-	if err != nil {
-		return nil, nil, err
-	} else {
-		return []byte(strs[0]), nil, nil
-	}
-}
+var _ = Describe("CreateSourceGit", func() {
+	It("creates a source git", func() {
+		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
+			return []byte("out"), nil
+		}
+		out, err := fluxClient.CreateSourceGit("my-name", "https://github.com/foo/my-name", "main", "my-secret", "wego-system")
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(out).To(Equal([]byte("out")))
 
-// Test Setup
+		Expect(runner.RunCallCount()).To(Equal(1))
 
-type localExitHandler struct {
-	action func(int)
-}
+		cmd, args := runner.RunArgsForCall(0)
+		Expect(cmd).To(Equal(fluxPath()))
 
-func (h localExitHandler) Handle(code int) {
-	h.action(code)
-}
-
-type localHomeDirHandler struct {
-	action func() (string, error)
-}
-
-func (h localHomeDirHandler) Handle() (string, error) {
-	return h.action()
-}
-
-func TestSetup(t *testing.T) {
-	_, err := GetFluxBinPath()
-	require.NoError(t, err)
-
-	_, err = GetFluxExePath()
-	require.NoError(t, err)
-}
-
-func TestSetupFluxBin(t *testing.T) {
-	version.FluxVersion = "0.11.0"
-	SetupFluxBin()
-	homeDir, err := shims.UserHomeDir()
-	require.NoError(t, err)
-
-	fluxPath := fmt.Sprintf("%v/.wego/bin", homeDir)
-	require.DirExists(t, fluxPath)
-	binPath := fmt.Sprintf("%v/flux-%v", fluxPath, version.FluxVersion)
-	require.FileExists(t, binPath)
-
-	version.FluxVersion = "0.12.0"
-	SetupFluxBin()
-	require.NoFileExists(t, binPath)
-	binPath = fmt.Sprintf("%v/flux-%v", fluxPath, version.FluxVersion)
-	require.FileExists(t, binPath)
-}
-
-var _ = Describe("Flux Setup Failure", func() {
-	It("Verify that exit is called with expected code", func() {
-		By("Executing a code path that contains checkError", func() {
-			exitCode := -1
-			_ = override.WithOverrides(
-				func() override.Result {
-					checkError(fmt.Errorf("An error"))
-					return override.Result{}
-				},
-				shims.OverrideExit(localExitHandler{action: func(code int) { exitCode = code }}))
-			Expect(exitCode).To(Equal(1))
-		})
+		Expect(strings.Join(args, " ")).To(Equal("create source git my-name --url https://github.com/foo/my-name --branch main --secret-ref my-secret --namespace wego-system --interval 30s --export"))
 	})
-
-	It("Verify that os.UserHomeDir failures are handled correctly", func() {
-		By("Setting the shim to fail and invoking calls that will trigger it", func() {
-			res := override.WithOverrides(
-				func() override.Result {
-					out, err := fluxops.QuietInstall("flux-system")
-					return override.Result{Output: out, Err: err}
-				},
-				shims.OverrideExit(shims.IgnoreExitHandler{}),
-				shims.OverrideHomeDir(localHomeDirHandler{action: func() (string, error) { return "", fmt.Errorf("failed") }}))
-			Expect(res.Err).To(Not(BeNil()))
-		})
-	})
-
 })
+
+var _ = Describe("CreateSourceHelm", func() {
+	It("creates a source helm", func() {
+		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
+			return []byte("out"), nil
+		}
+		out, err := fluxClient.CreateSourceHelm("my-name", "https://github.com/foo/my-name", "wego-system")
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(out).To(Equal([]byte("out")))
+
+		Expect(runner.RunCallCount()).To(Equal(1))
+
+		cmd, args := runner.RunArgsForCall(0)
+		Expect(cmd).To(Equal(fluxPath()))
+
+		Expect(strings.Join(args, " ")).To(Equal("create source helm my-name --url https://github.com/foo/my-name --namespace wego-system --interval 30s --export"))
+	})
+})
+
+var _ = Describe("CreateKustomization", func() {
+	It("creates a kustomization", func() {
+		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
+			return []byte("out"), nil
+		}
+		out, err := fluxClient.CreateKustomization("my-name", "my-source", "./path", "wego-system")
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(out).To(Equal([]byte("out")))
+
+		Expect(runner.RunCallCount()).To(Equal(1))
+
+		cmd, args := runner.RunArgsForCall(0)
+		Expect(cmd).To(Equal(fluxPath()))
+
+		Expect(strings.Join(args, " ")).To(Equal("create kustomization my-name --path ./path --source my-source --namespace wego-system --prune true --validation client --interval 1m --export"))
+	})
+})
+
+var _ = Describe("CreateHelmReleaseGitRepository", func() {
+	It("creates a helm release with a git repository", func() {
+		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
+			return []byte("out"), nil
+		}
+		out, err := fluxClient.CreateHelmReleaseGitRepository("my-name", "my-source", "./chart-path", "wego-system")
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(out).To(Equal([]byte("out")))
+
+		Expect(runner.RunCallCount()).To(Equal(1))
+
+		cmd, args := runner.RunArgsForCall(0)
+		Expect(cmd).To(Equal(fluxPath()))
+
+		Expect(strings.Join(args, " ")).To(Equal("create helmrelease my-name --source GitRepository/my-source --chart ./chart-path --namespace wego-system --interval 5m --export"))
+	})
+})
+
+var _ = Describe("CreateHelmReleaseHelmRepository", func() {
+	It("creates a helm release with a helm repository", func() {
+		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
+			return []byte("out"), nil
+		}
+		out, err := fluxClient.CreateHelmReleaseHelmRepository("my-name", "my-chart", "wego-system")
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(out).To(Equal([]byte("out")))
+
+		Expect(runner.RunCallCount()).To(Equal(1))
+
+		cmd, args := runner.RunArgsForCall(0)
+		Expect(cmd).To(Equal(fluxPath()))
+
+		Expect(strings.Join(args, " ")).To(Equal("create helmrelease my-name --source HelmRepository/my-name --chart my-chart --namespace wego-system --interval 5m --export"))
+	})
+})
+
+var _ = Describe("CreateSecretGit", func() {
+	It("creates a git secret and returns the deploy key", func() {
+		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
+			return []byte(`✚ deploy key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCh...`), nil
+		}
+		out, err := fluxClient.CreateSecretGit("my-secret", "ssh://git@github.com/foo/bar.git", "wego-system")
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(out).To(Equal([]byte("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCh...")))
+
+		Expect(runner.RunCallCount()).To(Equal(1))
+
+		cmd, args := runner.RunArgsForCall(0)
+		Expect(cmd).To(Equal(fluxPath()))
+
+		fmt.Println(strings.Join(args, " "))
+		Expect(strings.Join(args, " ")).To(Equal("create secret git my-secret --url ssh://git@github.com/foo/bar.git --namespace wego-system"))
+	})
+})
+
+func fluxPath() string {
+	homeDir, err := os.UserHomeDir()
+	Expect(err).ShouldNot(HaveOccurred())
+	return filepath.Join(homeDir, ".wego", "bin", "flux-0.12.0")
+}

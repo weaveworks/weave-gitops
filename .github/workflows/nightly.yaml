@@ -4,30 +4,6 @@ on:
 
 name: Nightly
 jobs:
-  lint:
-    runs-on: ${{matrix.os}}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macOS-latest]
-    steps:
-    - name: Install Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.16.x
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Install UI Deps
-      run: npm ci
-    - name: Build UI Assets
-      run: make cmd/ui/dist/main.js
-    - name: Fake Install flux
-      run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
-    - name: Run linters
-      uses: golangci/golangci-lint-action@v2
-      with:
-        version: v1.29
-        args: --build-tags acceptance
-
   build:
     runs-on: ${{matrix.os}}
     strategy:
@@ -40,6 +16,8 @@ jobs:
         go-version: 1.16.x
     - name: Checkout code
       uses: actions/checkout@v2
+    - name: Clean
+      run: make clean
     - name: build
       run: make all BINARY_NAME=wego-${{matrix.os}}-nightly
     - name: Store wego binaries
@@ -49,9 +27,8 @@ jobs:
           path: bin
           retention-days: 1
   test-eks:
-    needs: [lint, build]
+    needs: [build]
     runs-on: ${{matrix.os}}
-    timeout-minutes: 60
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]
@@ -108,7 +85,7 @@ jobs:
     - name: Set up ssh agent
       uses: webfactory/ssh-agent@v0.5.2
       with:
-        ssh-private-key: ${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}
+        ssh-private-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
     - name: Configure git settings
       run: |
         git config --global init.defaultBranch main
@@ -116,15 +93,16 @@ jobs:
         git config --global user.name "Testy McTestFace"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     - name: Install Ginkgo binary
-      run: go get -u github.com/onsi/ginkgo/ginkgo
+      run: go get github.com/onsi/ginkgo/ginkgo
     - name: User Acceptance Tests (${{matrix.os}})
       env:
-        GITHUB_ORG: wkp-example-org
-        GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
-        GITHUB_KEY: "${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}"
+        GITHUB_ORG: weaveworks-gitops-test
+        GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
+        GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}-nightly
         export CLUSTER_PROVIDER=kubectl
+        export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         export K8S_VERSION=1.19.1
         # cleanup the cluster
         $WEGO_BIN_PATH flux uninstall --silent
@@ -133,9 +111,8 @@ jobs:
         ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v ./test/acceptance/test/...
       if: always()
   test-gke:
-    needs: [lint, build]
+    needs: [build]
     runs-on: ${{matrix.os}}
-    timeout-minutes: 60
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]
@@ -153,7 +130,7 @@ jobs:
         service_account_key: ${{ secrets.GCP_SA_KEY }}
         export_default_credentials: true
     - name: Use gcloud CLI
-      run: | 
+      run: |
         gcloud info
         gcloud container clusters list
     - name: Kubectl tool installer
@@ -191,7 +168,7 @@ jobs:
     - name: Set up ssh agent
       uses: webfactory/ssh-agent@v0.5.2
       with:
-        ssh-private-key: ${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}
+        ssh-private-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
     - name: Configure git settings
       run: |
         git config --global init.defaultBranch main
@@ -199,15 +176,16 @@ jobs:
         git config --global user.name "Testy McTestFace"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     - name: Install Ginkgo binary
-      run: go get -u github.com/onsi/ginkgo/ginkgo
+      run: go get github.com/onsi/ginkgo/ginkgo
     - name: User Acceptance Tests (${{matrix.os}})
       env:
-        GITHUB_ORG: wkp-example-org
-        GITHUB_TOKEN: "${{ secrets.WKP_EXAMPLE_ORG_KEY }}"
-        GITHUB_KEY: "${{ secrets.WKP_EXAMPLE_ORG_SSH_KEY }}"
+        GITHUB_ORG: weaveworks-gitops-test
+        GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
+        GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}-nightly
         export CLUSTER_PROVIDER=kubectl
+        export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         export K8S_VERSION=1.19.1
         # cleanup the cluster
         $WEGO_BIN_PATH flux uninstall --silent

@@ -8,3 +8,7 @@ dist/
 .cache
 .parcel-cache
 node_modules
+coverage
+*.lcov
+ginkgo.report
+.deps

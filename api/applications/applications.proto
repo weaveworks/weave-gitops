@@ -1,0 +1,74 @@
+
+syntax = "proto3";
+
+package wego_server.v1;
+
+option go_package = "github.com/weaveworks/weave-gitops/pkg/protos/applications";
+
+import "google/api/annotations.proto";
+
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+    info: {
+      title: "WeGo Applications API",
+      version: "0.1";
+      description: "The WeGo Applications API handles operations for Weave GitOps Applications";
+    };
+    consumes: "application/json";
+    produces: "application/json";
+};
+
+service Applications {
+    /**
+     * ListApplications returns the list of WeGo applications that the authenticated user has access to.
+    */
+    rpc ListApplications(ListApplicationsRequest) returns (ListApplicationsResponse) {
+        option (google.api.http) = {
+            get : "/v1/applications"
+        };
+    }
+    /**
+    * GetApplication returns a given application
+    */
+    rpc GetApplication(GetApplicationRequest) returns (GetApplicationResponse) {
+        option (google.api.http) = {
+            get : "/v1/applications/{name}"
+        };
+    }
+}
+
+// This object represents a single condition for a Kubernetes object.
+// It roughly matches the Kubernetes type defined here: https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1#Condition
+message Condition {
+    string type      = 1;
+    string status    = 2;
+    string reason    = 3;
+    string message   = 4;
+    int32 timestamp = 5;
+}
+
+message Application {
+    string   name                            = 1;  // The name of the application
+    string   path                            = 2;  // The file path where the k8s yaml files for this application are stored.
+    string   url                             = 3;  // The git repository URL for this application
+    repeated Condition source_conditions     = 4;  // A list of conditions for the Source related to this Application
+    repeated Condition deployment_conditions = 5;  // A list of conditions for the Kustomization or HelmRelease for this application
+}
+
+message ListApplicationsRequest {
+    string namespace = 1;  // The namespace to look for applications
+}
+
+message ListApplicationsResponse {
+   repeated Application applications = 1; // A list of applications
+}
+
+message GetApplicationRequest {
+    string name      = 1;  // The name of an application
+    string namespace = 2;  // The kubernetes namespace of the application. Default is `wego-system`
+}
+
+message GetApplicationResponse {
+    Application application = 1;
+}

@@ -1,49 +1,48 @@
 package main
 
 import (
+	"context"
 	"embed"
-	"encoding/json"
 	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/sirupsen/logrus"
+	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/server"
 )
 
+var log = logrus.New()
+
 func main() {
-	log := logrus.New()
 	mux := http.NewServeMux()
 
 	mux.Handle("/health/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
-
-	mux.Handle("/api/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		res := struct {
-			Ok bool `json:"ok"`
-		}{
-			Ok: true,
-		}
-
-		b, err := json.Marshal(res)
+		_, err := w.Write([]byte("ok"))
 
 		if err != nil {
-			log.Errorf("could not marshal: %s", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		if _, err := w.Write(b); err != nil {
-			log.Errorf("error writing bytes: %s", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+			log.Errorf("error writing health check: %s", err)
 		}
 	}))
 
 	assetFS := getAssets()
 	assetHandler := http.FileServer(http.FS(assetFS))
 	redirector := createRedirector(assetFS, log)
+
+	gMux := runtime.NewServeMux()
+	mux.Handle("/v1/", gMux)
+
+	kubeClient, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		log.Fatalf("could not create http client: %s", err)
+	}
+
+	if err := pb.RegisterApplicationsHandlerServer(context.Background(), gMux, server.NewApplicationsServer(kubeClient)); err != nil {
+		log.Fatalf("could not register application: %s", err)
+	}
 
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// Assume anything with a file extension in the name is a static asset.

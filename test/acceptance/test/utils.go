@@ -4,6 +4,7 @@
 package acceptance
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -12,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/weaveworks/weave-gitops/pkg/utils"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -19,12 +22,22 @@ import (
 )
 
 const EVENTUALLY_DEFAULT_TIME_OUT time.Duration = 60 * time.Second
+const TIMEOUT_TWO_MINUTES time.Duration = 120 * time.Second
 const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
 const NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
 const INSTALL_PODS_READY_TIMEOUT time.Duration = 180 * time.Second
 const WEGO_DEFAULT_NAMESPACE = "wego-system"
 
+var DEFAULT_SSH_KEY_PATH string
+var GITHUB_ORG string
 var WEGO_BIN_PATH string
+
+type TestInputs struct {
+	appRepoName         string
+	appManifestFilePath string
+	workloadName        string
+	workloadNamespace   string
+}
 
 const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
 
@@ -89,6 +102,7 @@ func waitForNamespaceToTerminate(namespace string, timeout time.Duration) error 
 	timeoutInSeconds := int(timeout.Seconds())
 
 	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl get ns %s", namespace))
+
 	if err != nil {
 		log.Infof("Namespace %s doesn't exist, nothing to clean, Skipping...", namespace)
 		return nil
@@ -96,7 +110,8 @@ func waitForNamespaceToTerminate(namespace string, timeout time.Duration) error 
 
 	for i := pollInterval; i < timeoutInSeconds; i += pollInterval {
 		log.Infof("Waiting for namespace: %s to terminate : %d second(s) passed of %d seconds timeout", namespace, i, timeoutInSeconds)
-		out, _ := runCommandAndReturnOutput(fmt.Sprintf("kubectl get ns %s --ignore-not-found=true | grep -i terminating", namespace))
+
+		out, _ := runCommandAndReturnStringOutput(fmt.Sprintf("kubectl get ns %s --ignore-not-found=true | grep -i terminating", namespace))
 		out = strings.TrimSpace(out)
 		if out == "" {
 			return nil
@@ -111,8 +126,36 @@ func waitForNamespaceToTerminate(namespace string, timeout time.Duration) error 
 	return fmt.Errorf("Error: Failed to terminate the namespace %s", namespace)
 }
 
-func ResetOrCreateCluster(namespace string) (string, error) {
+func deletePersistingHelmApp(namespace string, workloadName string, timeout time.Duration) {
+	//check if application exists before cleaning up
+	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl get -n %s pod/%s", namespace, workloadName))
+	if err != nil {
+		fmt.Println("No workloads exist under the namespace: " + namespace + ", nothing to clean — skipping...")
+	} else {
+		log.Infof("Found persisting helm workload under the namespace: " + namespace + ", cleaning up...")
+		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmreleases.helm.toolkit.fluxcd.io --all", namespace))
+		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmcharts.source.toolkit.fluxcd.io --all", namespace))
+		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmrepositories.source.toolkit.fluxcd.io --all", namespace))
+		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete apps -n %s --all", namespace))
+		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=delete pod/%s -n %s --timeout=%s", workloadName, namespace, timeout))
+	}
+}
 
+func uninstallWegoRuntime(namespace string) {
+	log.Infof("About to delete WeGO runtime from namespace: %s", namespace)
+	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
+	if err != nil {
+		log.Infof("Failed to uninstall the wego runtime %s", namespace)
+	}
+
+	err = runCommandPassThrough([]string{}, "sh", "-c", "kubectl delete crd apps.wego.weave.works")
+	if err != nil {
+		log.Infof("Failed to delete crd apps.wego.weave.works")
+	}
+	Expect(waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)).To(Succeed())
+}
+
+func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool) (string, error) {
 	supportedProviders := []string{"kind", "kubectl"}
 	supportedK8SVersions := []string{"1.19.1", "1.20.2", "1.21.1"}
 	clusterName := ""
@@ -139,16 +182,14 @@ func ResetOrCreateCluster(namespace string) (string, error) {
 
 	//For kubectl, point to a valid cluster, we will try to reset the namespace only
 	if namespace != "" && provider == "kubectl" {
-		err = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
+		err := runCommandPassThrough([]string{}, "./scripts/reset-wego.sh", namespace)
 		if err != nil {
-			log.Infof("Failed to uninstall the wego runtime %s", namespace)
-			return clusterName, err
+			log.Infof("Failed to reset the wego runtime in namespace %s", namespace)
 		}
-		err = runCommandPassThrough([]string{}, "sh", "-c", "kubectl delete crd apps.wego.weave.works")
-		if err != nil {
-			log.Infof("Failed to delete crd apps.wego.weave.works")
+
+		if deleteWegoRuntime {
+			uninstallWegoRuntime(namespace)
 		}
-		Expect(waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)).To(Succeed())
 	}
 
 	if provider == "kind" {
@@ -172,6 +213,12 @@ func ResetOrCreateCluster(namespace string) (string, error) {
 	return clusterName, nil
 }
 
+func getClusterName() string {
+	out, err := exec.Command("kubectl", "config", "current-context").Output()
+	Expect(err).ShouldNot(HaveOccurred())
+	return string(bytes.TrimSuffix(out, []byte("\n")))
+}
+
 func waitForResource(resourceType string, resourceName string, namespace string, timeout time.Duration) error {
 	pollInterval := 5
 	if timeout < 5*time.Second {
@@ -183,7 +230,7 @@ func waitForResource(resourceType string, resourceName string, namespace string,
 		log.Infof("Waiting for %s in namespace: %s... : %d second(s) passed of %d seconds timeout", resourceType+"/"+resourceName, namespace, i, timeoutInSeconds)
 		err := runCommandPassThroughWithoutOutput([]string{}, "sh", "-c", fmt.Sprintf("kubectl get %s %s -n %s", resourceType, resourceName, namespace))
 		if err == nil {
-			log.Infof("%s are available in cluster", resourceType+"/"+resourceName)
+			log.Infof("%s is available in cluster", resourceType+"/"+resourceName)
 			command := exec.Command("sh", "-c", fmt.Sprintf("kubectl get %s %s -n %s", resourceType, resourceName, namespace))
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -197,7 +244,7 @@ func waitForResource(resourceType string, resourceName string, namespace string,
 		}
 		time.Sleep(time.Duration(pollInterval) * time.Second)
 	}
-	return fmt.Errorf("Error: Failed to find the resource, timeout reached")
+	return fmt.Errorf("Error: Failed to find the resource %s of type %s, timeout reached", resourceName, resourceType)
 }
 
 // Run a command, passing through stdout/stderr to the OS standard streams
@@ -220,11 +267,12 @@ func runCommandPassThroughWithoutOutput(env []string, name string, arg ...string
 }
 
 func VerifyControllersInCluster(namespace string) {
-
 	Expect(waitForResource("deploy", "helm-controller", namespace, INSTALL_PODS_READY_TIMEOUT))
 	Expect(waitForResource("deploy", "kustomize-controller", namespace, INSTALL_PODS_READY_TIMEOUT))
 	Expect(waitForResource("deploy", "notification-controller", namespace, INSTALL_PODS_READY_TIMEOUT))
 	Expect(waitForResource("deploy", "source-controller", namespace, INSTALL_PODS_READY_TIMEOUT))
+	Expect(waitForResource("deploy", "image-automation-controller", namespace, INSTALL_PODS_READY_TIMEOUT))
+	Expect(waitForResource("deploy", "image-reflector-controller", namespace, INSTALL_PODS_READY_TIMEOUT))
 	Expect(waitForResource("pods", "", namespace, INSTALL_PODS_READY_TIMEOUT))
 
 	By("And I wait for the wego controllers to be ready", func() {
@@ -235,22 +283,46 @@ func VerifyControllersInCluster(namespace string) {
 	})
 }
 
+func deleteNamespace(namespace string) {
+	log.Infof("Deleting namespace: " + namespace)
+	command := exec.Command("kubectl", "delete", "ns", namespace)
+	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Eventually(session).Should(gexec.Exit())
+}
+
 func deleteRepo(appRepoName string) {
-	log.Infof("Delete application repo: %s", os.Getenv("GITHUB_ORG")+"/"+appRepoName)
-	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", os.Getenv("GITHUB_ORG")+"/"+appRepoName)
+	log.Infof("Delete application repo: %s", GITHUB_ORG+"/"+appRepoName)
+	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", GITHUB_ORG+"/"+appRepoName)
 }
 
 func deleteWorkload(workloadName string, workloadNamespace string) {
 	log.Infof("Delete the namespace %s along with workload %s", workloadNamespace, workloadName)
-	_ = runCommandPassThrough([]string{}, "kubeclt", "delete", "ns", namespace)
+	_ = runCommandPassThrough([]string{}, "kubectl", "delete", "ns", workloadNamespace)
 	_ = waitForNamespaceToTerminate(workloadNamespace, INSTALL_RESET_TIMEOUT)
 }
 
-func runCommandAndReturnOutput(commandToRun string) (stdOut string, stdErr string) {
+func runCommandAndReturnStringOutput(commandToRun string) (stdOut string, stdErr string) {
 	command := exec.Command("sh", "-c", commandToRun)
 	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Eventually(session).Should(gexec.Exit())
 	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
+}
+
+func runCommandAndReturnSessionOutput(commandToRun string) *gexec.Session {
+	command := exec.Command("sh", "-c", commandToRun)
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	return session
+}
+
+func generateTestInputs() TestInputs {
+	var inputs TestInputs
+	uniqueSuffix := RandString(6)
+	inputs.appRepoName = "wego-test-app-" + RandString(8)
+	inputs.appManifestFilePath = getUniqueWorkload("xxyyzz", uniqueSuffix)
+	inputs.workloadName = "nginx-" + uniqueSuffix
+	inputs.workloadNamespace = "my-nginx-" + uniqueSuffix
+	return inputs
 }
 
 func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
@@ -263,11 +335,28 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
                             mkdir %s &&
                             cd %s &&
                             git init &&
-                            hub create %s %s`, repoAbsolutePath, repoAbsolutePath, os.Getenv("GITHUB_ORG")+"/"+appRepoName, privateRepo))
+                            git checkout -b main &&
+                            hub create %s %s`, repoAbsolutePath, repoAbsolutePath, GITHUB_ORG+"/"+appRepoName, privateRepo))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
+
+	Expect(utils.WaitUntil(os.Stdout, time.Second, 20*time.Second, func() error {
+		cmd := fmt.Sprintf(`hub api repos/%s/%s`, os.Getenv("GITHUB_ORG"), appRepoName)
+		command := exec.Command("sh", "-c", cmd)
+		return command.Run()
+	})).ShouldNot(HaveOccurred())
+
 	return repoAbsolutePath
+}
+
+func createSubDir(subDirName string, repoAbsolutePath string) string {
+	subDirAbsolutePath := fmt.Sprintf(`%s/%s`, repoAbsolutePath, subDirName)
+	command := exec.Command("sh", "-c", fmt.Sprintf(`mkdir -p %s`, subDirAbsolutePath))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+	return subDirAbsolutePath
 }
 
 func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
@@ -277,6 +366,22 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
                             git add . &&
                             git commit -m 'add workload manifest' &&
                             git push -u origin main`, appManifestFilePath, repoAbsolutePath, repoAbsolutePath))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+}
+
+func pullBranch(repoAbsolutePath string, branch string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf(`
+                            cd %s &&
+                            git pull origin %s`, repoAbsolutePath, branch))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+}
+
+func pullGitRepo(repoAbsolutePath string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && git pull", repoAbsolutePath))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
@@ -306,14 +411,16 @@ func setupSSHKey(sshKeyPath string) {
 
 func installAndVerifyWego(wegoNamespace string) {
 	By("And I run 'wego install' command with namespace "+wegoNamespace, func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s", WEGO_BIN_PATH, wegoNamespace))
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s gitops install --namespace=%s", WEGO_BIN_PATH, wegoNamespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session).Should(gexec.Exit())
+		Eventually(session, TIMEOUT_TWO_MINUTES).Should(gexec.Exit())
 		VerifyControllersInCluster(wegoNamespace)
 	})
 }
+
 func runWegoAddCommand(repoAbsolutePath string, addCommand string, wegoNamespace string) {
+	log.Infof("Add command to run: %s in namespace %s from dir %s", addCommand, wegoNamespace, repoAbsolutePath)
 	_, _ = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, wegoNamespace)
 }
 
@@ -325,27 +432,36 @@ func runWegoAddCommandWithOutput(repoAbsolutePath string, addCommand string, weg
 	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
 }
 
-func runWegoAddCommandAndReturnSession(repoAbsolutePath string, addCommand string, wegoNamespace string) *gexec.Session {
-	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	return session
-}
-
-func verifyWegoAddCommand(appRepoName string, wegoNamespace string) {
+func verifyWegoAddCommand(appName string, wegoNamespace string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(" kubectl wait --for=condition=Ready --timeout=60s -n %s GitRepositories --all", wegoNamespace))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
-	Expect(waitForResource("GitRepositories", appRepoName, wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("GitRepositories", appName, wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+}
+
+func verifyWegoHelmAddCommand(appName string, wegoNamespace string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=60s -n %s HelmRepositories --all", wegoNamespace))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
+	Expect(waitForResource("HelmRepositories", appName, wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 }
 
 func verifyWegoAddCommandWithDryRun(appRepoName string, wegoNamespace string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf(" kubectl wait --for=condition=Ready --timeout=30s -n %s GitRepositories --all", wegoNamespace))
+	command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=30s -n %s GitRepositories --all", wegoNamespace))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
 	Expect(waitForResource("GitRepositories", appRepoName, wegoNamespace, 30*time.Second)).ToNot(Succeed())
+}
+
+func verifyHelmPodWorkloadIsDeployed(workloadName string, workloadNamespace string) {
+	Expect(waitForResource("pods", workloadName, workloadNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=360s -n %s --all pods", workloadNamespace))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
 }
 
 func verifyWorkloadIsDeployed(workloadName string, workloadNamespace string) {
@@ -363,4 +479,32 @@ func createGitRepoBranch(repoAbsolutePath string, branchName string) string {
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
 	return string(session.Wait().Out.Contents())
+}
+
+func getUniqueWorkload(placeHolderSuffix string, uniqueSuffix string) string {
+	workloadTemplateFilePath := "./data/nginx-template.yaml"
+	absWorkloadManifestFilePath := "/tmp/nginx-" + uniqueSuffix + ".yaml"
+	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("sed 's/%s/%s/g' %s > %s", placeHolderSuffix, uniqueSuffix, workloadTemplateFilePath, absWorkloadManifestFilePath))
+	return absWorkloadManifestFilePath
+}
+
+func verifyPRCreated(repoAbsolutePath, appName string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && hub pr list", repoAbsolutePath))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+	output := string(session.Wait().Out.Contents())
+	Expect(output).To(ContainSubstring(fmt.Sprintf("wego add %s", appName)))
+}
+
+func mergePR(repoAbsolutePath, prLink string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && hub merge %s", repoAbsolutePath, prLink))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+
+	command = exec.Command("sh", "-c", fmt.Sprintf("cd %s && git push", repoAbsolutePath))
+	session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
 }

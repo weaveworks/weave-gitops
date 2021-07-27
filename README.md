@@ -24,7 +24,7 @@ _Weave GitOps is in early stages and iterating. Not all capabilities are availab
 Mac / Linux
 
 ```console
-curl -L https://github.com/weaveworks/weave-gitops/releases/download/v0.0.5/wego-$(uname)-$(uname -m) -o wego
+curl -L https://github.com/weaveworks/weave-gitops/releases/download/v0.2.1/wego-$(uname)-$(uname -m) -o wego
 chmod +x wego
 sudo mv ./wego /usr/local/bin/wego
 wego version
@@ -41,7 +41,7 @@ Usage:
   wego [command]
 
 Available Commands:
-  app         Add or Status application
+  app         Add or status application
   flux        Use flux commands
   help        Help about any command
   install     Install or upgrade Wego
@@ -57,12 +57,13 @@ Use "wego [command] --help" for more information about a command.
 
 For more information please see the [docs](https://docs.gitops.weave.works/docs/cli-reference)
 
-## CLI development
+## CLI/API development
 
 To set up a development environment for the CLI
 
 1. Install go v1.16
-2. make
+2. Install [buf](https://github.com/bufbuild/buf)
+3. make
 
 ## UI Development
 

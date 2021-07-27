@@ -1,4 +1,5 @@
 import qs from "query-string";
+import { toast } from "react-toastify";
 import { PageRoute } from "./types";
 
 export const formatURL = (page: string, query: any = {}) => {
@@ -16,3 +17,11 @@ export const getNavValue = (currentPage: any): PageRoute | boolean => {
       return false;
   }
 };
+
+export function notifySuccess(message: string) {
+  toast["success"](message);
+}
+
+export function notifyError(message: string) {
+  toast["error"](`Error: ${message}`);
+}
