@@ -1111,17 +1111,17 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			appStatus1, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName1)
 		})
 
-		By("Then I should see the status for "+appName1, func() {
+		By("Then I should see the status for app1", func() {
 			Eventually(appStatus1).Should(ContainSubstring(`Last successful reconciliation:`))
 			Eventually(appStatus1).Should(ContainSubstring(`helmrepository/` + appName1))
 			Eventually(appStatus1).Should(ContainSubstring(`helmrelease/` + appName1))
 		})
 
 		By("When I check the app status for "+appName2, func() {
-			appStatus2, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appStatus2)
+			appStatus2, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName2)
 		})
 
-		By("Then I should see the status for "+appName2, func() {
+		By("Then I should see the status for app2", func() {
 			Eventually(appStatus2).Should(ContainSubstring(`Last successful reconciliation:`))
 			Eventually(appStatus2).Should(ContainSubstring(`helmrepository/` + appName2))
 			Eventually(appStatus2).Should(ContainSubstring(`helmrelease/` + appName2))
