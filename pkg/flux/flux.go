@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/version"
 )
@@ -25,6 +26,7 @@ type Flux interface {
 	CreateSecretGit(name string, url string, namespace string) ([]byte, error)
 	GetVersion() (string, error)
 	GetAllResourcesStatus(name string, namespace string) ([]byte, error)
+	SuspendOrResumeApp(pause wego.SuspendActionType, name, namespace, deploymentType string) ([]byte, error)
 }
 
 type FluxClient struct {
@@ -251,4 +253,12 @@ func (f *FluxClient) fluxPath() (string, error) {
 	}
 	path := fmt.Sprintf("%v/.wego/bin", homeDir)
 	return fmt.Sprintf("%v/flux-%v", path, version.FluxVersion), nil
+}
+
+func (f *FluxClient) SuspendOrResumeApp(suspend wego.SuspendActionType, name, namespace string, deploymentType string) ([]byte, error) {
+	args := []string{
+		string(suspend), deploymentType, name, fmt.Sprintf("--namespace=%s", namespace),
+	}
+
+	return f.runFluxCmd(args...)
 }
