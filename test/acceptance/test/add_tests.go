@@ -108,7 +108,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	//deployment-type=default k | repo=private | url=giturl | branch| dry-run | app-config-url=""
 	It("Verify that wego does not modify the cluster when run with --dry-run flag", func() {
 		var repoAbsolutePath string
 		var addCommandOutput string
@@ -177,7 +176,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	//deployment-type=default k | repo=private, initially empty | app-config-url=""
 	It("Verify that wego can deploy an app after it is setup with an empty repo initially", func() {
 		var repoAbsolutePath string
 		private := true
@@ -230,8 +228,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	//deployment-type=default k | repo=private | url=giturl | branch | namespace | private-key=~/ | app-config-url=NONE
-	// Eventually this test run will include all the remaining un-automated `wego app add` flags.
 	It("Verify that wego can deploy app when user specifies branch, namespace, url, deployment-type", func() {
 		var repoAbsolutePath string
 		private := true
@@ -277,7 +273,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			createGitRepoBranch(repoAbsolutePath, branchName)
 		})
 
-		By("And I run wego add command with specified branch, namespace, url, deplyment-type, private-key", func() {
+		By("And I run wego add command with specified branch, namespace, url, deployment-type", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, wegoNamespace)
 		})
 
@@ -301,7 +297,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	//deployment-type=default k | repo=private | url | app-config-url=url
 	It("Verify that wego can deploy an app with specified config-url and app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
@@ -355,7 +350,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	//deployment-type=default k | repo=private | app-config-url=url
 	It("Verify that wego can deploy an app with specified config-url and app-config-url set to default", func() {
 		var repoAbsolutePath string
 		private := false
@@ -399,7 +393,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	//deployment-type=default k | repo=private | path/to/repo/dir | app-config-url=""
 	It("Verify that wego can deploy an app when provided with relative path: 'path/to/repo/dir'", func() {
 		var repoAbsolutePath string
 		private := true
@@ -447,7 +440,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	//deployment-type=default k | repo=private | name | workload=1,2 | app-config-url=""
 	It("Verify that wego can deploy multiple workloads from a single app repo", func() {
 		var repoAbsolutePath string
 		tip1 := generateTestInputs()
@@ -501,7 +493,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	//deployment-type=default k | repo=private | workload=1,2 | app-config-url=url
 	It("Verify that wego can add multiple apps dir to the cluster using single repo for wego config", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
@@ -568,7 +559,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	//deployment-type=default k | repo=private | workload=1,2 | app-config-url=url
 	It("Verify that wego can add multiple apps dir to the cluster using single app and wego config repo", func() {
 		var repoAbsolutePath string
 		private := true
@@ -620,14 +610,13 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	//deployment-type=default k, default h, custom h| repo=private | app status | app list | app-config-url=url
 	It("SmokeTest - Verify that wego can deploy an app with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var listOutput string
-		var appStatus1 *gexec.Session
-		var appStatus2 *gexec.Session
-		var appStatus3 *gexec.Session
+		var appStatus1 string
+		var appStatus2 string
+		var appStatus3 string
 		private := true
 		readmeFilePath := "./data/README.md"
 		tip := generateTestInputs()
@@ -714,33 +703,33 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("When I check the app status for app1", func() {
-			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName1))
+			appStatus1, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName1)
 		})
 
 		By("Then I should see the status for "+appName1, func() {
-			Eventually(appStatus1).Should(gbytes.Say(`Last successful reconciliation:`))
-			Eventually(appStatus1).Should(gbytes.Say(`gitrepository/` + appName1))
-			Eventually(appStatus1).Should(gbytes.Say(`kustomization/` + appName1))
+			Eventually(appStatus1).Should(ContainSubstring(`Last successful reconciliation:`))
+			Eventually(appStatus1).Should(ContainSubstring(`gitrepository/` + appName1))
+			Eventually(appStatus1).Should(ContainSubstring(`kustomization/` + appName1))
 		})
 
 		By("When I check the app status for app2", func() {
-			appStatus2 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName2))
+			appStatus2, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName2)
 		})
 
 		By("Then I should see the status for "+appName2, func() {
-			Eventually(appStatus2).Should(gbytes.Say(`Last successful reconciliation:`))
-			Eventually(appStatus2).Should(gbytes.Say(`gitrepository/` + appName2))
-			Eventually(appStatus2).Should(gbytes.Say(`helmrelease/` + appName2))
+			Eventually(appStatus2).Should(ContainSubstring(`Last successful reconciliation:`))
+			Eventually(appStatus2).Should(ContainSubstring(`gitrepository/` + appName2))
+			Eventually(appStatus2).Should(ContainSubstring(`helmrelease/` + appName2))
 		})
 
 		By("When I check the app status for app3", func() {
-			appStatus3 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName3))
+			appStatus3, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName3)
 		})
 
 		By("Then I should see the status for "+appName3, func() {
-			Eventually(appStatus3).Should(gbytes.Say(`Last successful reconciliation:`))
-			Eventually(appStatus3).Should(gbytes.Say(`helmrepository/` + appName3))
-			Eventually(appStatus3).Should(gbytes.Say(`helmrelease/` + appName3))
+			Eventually(appStatus3).Should(ContainSubstring(`Last successful reconciliation:`))
+			Eventually(appStatus3).Should(ContainSubstring(`helmrepository/` + appName3))
+			Eventually(appStatus3).Should(ContainSubstring(`helmrelease/` + appName3))
 		})
 
 		By("When I check for apps list", func() {
@@ -769,7 +758,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	//deployment-type=default k | repo=private + public | app status | app list | app-config-url="" | e2e
 	It("SmokeTest - Verify that wego can deploy multiple apps one with private and other with public repo", func() {
 		var listOutput string
 		var appStatus1 *gexec.Session
@@ -884,7 +872,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	//deployment-type=helm | repo=private | path=helmchart | name=appname | app-config-url=NONE
 	It("SmokeTest - Verify that wego can deploy a helm app from a git repo with app-config-url set to NONE", func() {
 		var repoAbsolutePath string
 		private := true
@@ -932,7 +919,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	//deployment-type=helm | repo=public | path=helmchart | name=appname | app-config-url=""
 	It("SmokeTest - Verify that wego can deploy a helm app from a git repo with app-config-url set to default", func() {
 		var repoAbsolutePath string
 		public := false
@@ -976,7 +962,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	//deployment-type=helm | repo=private | path=helmchart | name=appname | app-config-url=url
 	It("Verify that wego can deploy a helm app from a git repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoAbsolutePath string
@@ -1043,7 +1028,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 	})
 
-	//deployment-type=default h | repo=private | url=helmrepo | chart=helmchart | app-config-url=url
 	It("Verify that wego can deploy multiple helm apps from a helm repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var listOutput string
@@ -1144,7 +1128,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	//deployment-type=default h | url=helmrepo | chart=helmchart | app-config-url=NONE
 	It("Verify that wego can deploy a helm app from a helm repo with app-config-url set to NONE", func() {
 		appName := "loki"
 		workloadName := "loki-0"
