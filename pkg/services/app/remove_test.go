@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -17,6 +18,12 @@ import (
 )
 
 var application wego.Application
+
+var fluxDir string
+
+var createdResources map[string][]string
+
+var goatPaths map[string]bool
 
 func populateAppRepo() (string, error) {
 	dir, err := ioutil.TempDir("", "an-app-dir")
@@ -55,9 +62,102 @@ func sliceRemove(item string, slice []string) []string {
 	return append(slice[:location], slice[location+1:]...)
 }
 
-var fluxDir string
+func storeCreatedResource(manifestData []byte) error {
+	manifests := bytes.Split(manifestData, []byte("\n---\n"))
+	for _, manifest := range manifests {
+		manifestMap := map[string]interface{}{}
 
-var createdResources map[string][]string
+		if err := yaml.Unmarshal(manifest, &manifestMap); err != nil {
+			return err
+		}
+
+		metamap := manifestMap["metadata"].(map[string]interface{})
+		kind := manifestMap["kind"].(string)
+
+		if createdResources[kind] == nil {
+			createdResources[kind] = []string{}
+		}
+
+		createdResources[kind] = append(createdResources[kind], metamap["name"].(string))
+	}
+	return nil
+}
+
+func storeGOATPath(path string) {
+	goatPaths[path] = true
+}
+
+func setupFlux() error {
+	dir, err := ioutil.TempDir("", "a-home-dir")
+	if err != nil {
+		return err
+	}
+
+	fluxDir = dir
+	cliRunner := &runner.CLIRunner{}
+	osysClient := &osysfakes.FakeOsys{}
+	fluxClient := flux.New(osysClient, cliRunner)
+	osysClient.UserHomeDirStub = func() (string, error) {
+		return dir, nil
+	}
+	appSrv.(*App).flux = fluxClient
+	fluxBin, err := ioutil.ReadFile(filepath.Join("..", "..", "flux", "bin", "flux"))
+	if err != nil {
+		return err
+	}
+
+	binPath, err := fluxClient.GetBinPath()
+	if err != nil {
+		return err
+	}
+
+	err = os.MkdirAll(binPath, 0777)
+	if err != nil {
+		return err
+	}
+
+	exePath, err := fluxClient.GetExePath()
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(exePath, fluxBin, 0777)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func runAddAndCollectResources(addParams AddParams) ([]ResourceRef, error) {
+	params, err := appSrv.(*App).updateParametersIfNecessary(addParams)
+	if err != nil {
+		return nil, err
+	}
+	if err := appSrv.Add(params); err != nil {
+		return nil, err
+	}
+	info := getAppResourceInfo(makeWegoApplication(params), "test-cluster")
+	return info.clusterResources(), nil
+}
+
+func checkResults(appResources []ResourceRef) error {
+	fmt.Printf("CR: %#+v\n", createdResources)
+	for _, res := range appResources {
+		resources := createdResources[res.kind]
+		if len(resources) == 0 {
+			return fmt.Errorf("expected resources to be created")
+		}
+		createdResources[res.kind] = sliceRemove(res.name, resources)
+	}
+
+	for kind, leftovers := range createdResources {
+		if len(leftovers) > 0 {
+			return fmt.Errorf("unexpected %s resources: %#+v\n", kind, leftovers)
+		}
+	}
+	return nil
+}
 
 var _ = Describe("Remove", func() {
 	var _ = BeforeEach(func() {
@@ -96,53 +196,17 @@ var _ = Describe("Remove", func() {
 
 	Context("Collecting resources deployed to cluster", func() {
 		var _ = BeforeEach(func() {
-			addParams = AddParams{
-				Url:            "https://charts.kube-ops.io",
-				Branch:         "main",
-				DeploymentType: "helm",
-				Namespace:      "wego-system",
-				AppConfigUrl:   "NONE",
-				AutoMerge:      true,
-			}
-			dir, err := ioutil.TempDir("", "a-home-dir")
-			Expect(err).ShouldNot(HaveOccurred())
+			Expect(setupFlux()).To(Succeed())
 
-			fluxDir = dir
-			cliRunner := &runner.CLIRunner{}
-			osysClient := &osysfakes.FakeOsys{}
-			fluxClient := flux.New(osysClient, cliRunner)
-			osysClient.UserHomeDirStub = func() (string, error) {
-				return dir, nil
+			gitClient.WriteStub = func(path string, manifest []byte) error {
+				storeGOATPath(path)
+				return storeCreatedResource(manifest)
 			}
-			appSrv.(*App).flux = fluxClient
-			fluxBin, err := ioutil.ReadFile(filepath.Join("..", "..", "flux", "bin", "flux"))
-			Expect(err).ShouldNot(HaveOccurred())
-			binPath, err := fluxClient.GetBinPath()
-			Expect(err).ShouldNot(HaveOccurred())
-			err = os.MkdirAll(binPath, 0777)
-			Expect(err).ShouldNot(HaveOccurred())
-			exePath, err := fluxClient.GetExePath()
-			Expect(err).ShouldNot(HaveOccurred())
-			err = ioutil.WriteFile(exePath, fluxBin, 0777)
-			Expect(err).ShouldNot(HaveOccurred())
-
-			createdResources = map[string][]string{}
 
 			kubeClient.ApplyStub = func(manifest []byte, namespace string) ([]byte, error) {
-				manifestMap := map[string]interface{}{}
-
-				if err := yaml.Unmarshal(manifest, &manifestMap); err != nil {
+				if err := storeCreatedResource(manifest); err != nil {
 					return nil, err
 				}
-
-				metamap := manifestMap["metadata"].(map[string]interface{})
-				kind := manifestMap["kind"].(string)
-
-				if createdResources[kind] == nil {
-					createdResources[kind] = []string{}
-				}
-
-				createdResources[kind] = append(createdResources[kind], metamap["name"].(string))
 				return []byte(""), nil
 			}
 		})
@@ -151,47 +215,103 @@ var _ = Describe("Remove", func() {
 			os.RemoveAll(fluxDir)
 		})
 
-		It("collects cluster resources for helm with configURL = NONE", func() {
-			addParams.Chart = "loki"
-			addParams, err := appSrv.(*App).updateParametersIfNecessary(addParams)
-			Expect(err).ShouldNot(HaveOccurred())
+		Context("Collecting resources for helm charts", func() {
+			var _ = BeforeEach(func() {
+				addParams = AddParams{
+					Url:            "https://charts.kube-ops.io",
+					Branch:         "main",
+					DeploymentType: "helm",
+					Namespace:      "wego-system",
+					AppConfigUrl:   "NONE",
+					AutoMerge:      true,
+				}
 
-			err = appSrv.Add(addParams)
-			Expect(err).ShouldNot(HaveOccurred())
+				goatPaths = map[string]bool{}
+				createdResources = map[string][]string{}
+			})
 
-			info := getAppResourceInfo(makeWegoApplication(addParams), "test-cluster")
-			appResources := info.clusterResources()
+			It("collects cluster resources for helm chart from helm repo with configURL = NONE", func() {
+				addParams.Chart = "loki"
 
-			for _, res := range appResources {
-				resources := createdResources[res.kind]
-				Expect(resources).To(Not(BeEmpty()))
-				createdResources[res.kind] = sliceRemove(res.name, resources)
-			}
+				appResources, err := runAddAndCollectResources(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
 
-			for _, leftovers := range createdResources {
-				Expect(leftovers).To(BeEmpty())
-			}
+				Expect(checkResults(appResources)).To(Succeed())
+			})
+
+			It("collects cluster resources for helm chart from git repo with configURL = NONE", func() {
+				addParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
+				addParams.Path = "./"
+
+				appResources, err := runAddAndCollectResources(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				Expect(checkResults(appResources)).To(Succeed())
+			})
+
+			It("collects cluster resources for helm chart from helm repo with configURL = <url>", func() {
+				addParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
+				addParams.Chart = "loki"
+
+				appResources, err := runAddAndCollectResources(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				Expect(checkResults(appResources)).To(Succeed())
+			})
+
+			It("collects cluster resources for helm chart from git repo with configURL = <url>", func() {
+				addParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
+				addParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
+				addParams.Path = "./"
+
+				appResources, err := runAddAndCollectResources(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				Expect(checkResults(appResources)).To(Succeed())
+			})
 		})
 
-		It("collects cluster resources for helm with configURL = <url>", func() {
-			addParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
-			addParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
-			addParams.Path = "./"
-			addParams, err := appSrv.(*App).updateParametersIfNecessary(addParams)
-			Expect(err).ShouldNot(HaveOccurred())
-			fmt.Printf("AP: %#+v\n", addParams)
-			err = appSrv.Add(addParams)
-			Expect(err).ShouldNot(HaveOccurred())
+		Context("Collecting resources for non-helm apps", func() {
+			var _ = BeforeEach(func() {
+				addParams = AddParams{
+					Url:            "ssh://git@github.com/user/wego-fork-test.git",
+					Branch:         "main",
+					DeploymentType: "kustomize",
+					Namespace:      "wego-system",
+					Path:           "./",
+					AppConfigUrl:   "NONE",
+					AutoMerge:      true,
+				}
 
-			info := getAppResourceInfo(makeWegoApplication(addParams), "test-cluster")
-			appResources := info.clusterResources()
-			fmt.Printf("CR: %#+v\n", createdResources)
-			for _, res := range appResources {
-				fmt.Printf("KIND: %s\n", res.kind)
-				resources := createdResources[res.kind]
-				Expect(resources).To(Not(BeEmpty()))
-				createdResources[res.kind] = sliceRemove(res.name, resources)
-			}
+				goatPaths = map[string]bool{}
+				createdResources = map[string][]string{}
+			})
+
+			It("collects cluster resources for non-helm app with configURL = NONE", func() {
+				appResources, err := runAddAndCollectResources(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				Expect(checkResults(appResources)).To(Succeed())
+			})
+
+			It("collects cluster resources for non-helm app configURL = ''", func() {
+				addParams.AppConfigUrl = ""
+
+				appResources, err := runAddAndCollectResources(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
+				fmt.Printf("AR: %#+v\n", appResources)
+				Expect(checkResults(appResources)).To(Succeed())
+			})
+
+			It("collects cluster resources for non-helm app with configURL = <url>", func() {
+				addParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
+				addParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
+
+				appResources, err := runAddAndCollectResources(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				Expect(checkResults(appResources)).To(Succeed())
+			})
 		})
 	})
 })
