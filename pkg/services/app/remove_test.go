@@ -50,18 +50,6 @@ func populateAppRepo() (string, error) {
 	return dir, nil
 }
 
-func sliceRemove(item string, slice []string) []string {
-	location := 0
-
-	for idx, val := range slice {
-		if item == val {
-			location = idx
-			break
-		}
-	}
-	return append(slice[:location], slice[location+1:]...)
-}
-
 func storeCreatedResource(manifestData []byte) error {
 	manifests := bytes.Split(manifestData, []byte("\n---\n"))
 	for _, manifest := range manifests {
