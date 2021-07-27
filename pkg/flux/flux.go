@@ -227,7 +227,7 @@ func (f *FluxClient) runFluxCmd(args ...string) ([]byte, error) {
 	}
 	out, err := f.runner.Run(fluxPath, args...)
 	if err != nil {
-		return []byte{}, fmt.Errorf("failed to run flux with output: %s", string(out))
+		return []byte{}, fmt.Errorf("failed to run flux with output: %s and error: %w", string(out), err)
 	}
 
 	return out, nil
@@ -240,7 +240,7 @@ func (f *FluxClient) runFluxCmdOutputStream(args ...string) ([]byte, error) {
 	}
 	out, err := f.runner.RunWithOutputStream(fluxPath, args...)
 	if err != nil {
-		return []byte{}, fmt.Errorf("failed to run flux with output: %s", string(out))
+		return []byte{}, fmt.Errorf("failed to run flux with output: %s and error: %w", string(out), err)
 	}
 
 	return out, nil
