@@ -29,7 +29,7 @@ var _ = Describe("Status", func() {
 
 		kubeClient.GetApplicationStub = func(ctx context.Context, name types.NamespacedName) (*wego.Application, error) {
 			return &wego.Application{
-				Spec: wego.ApplicationSpec{DeploymentType: wego.DeploymentType(DeployTypeKustomize)},
+				Spec: wego.ApplicationSpec{DeploymentType: wego.DeploymentTypeKustomize},
 			}, nil
 		}
 	})
@@ -74,7 +74,7 @@ var _ = Describe("Status", func() {
 		It("returns when using helm", func() {
 			kubeClient.GetApplicationStub = func(ctx context.Context, name types.NamespacedName) (*wego.Application, error) {
 				return &wego.Application{
-					Spec: wego.ApplicationSpec{DeploymentType: wego.DeploymentType(DeployTypeHelm)},
+					Spec: wego.ApplicationSpec{DeploymentType: wego.DeploymentTypeHelm},
 				}, nil
 			}
 
