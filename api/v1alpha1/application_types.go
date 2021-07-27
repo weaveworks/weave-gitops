@@ -57,11 +57,11 @@ const (
 )
 
 // SuspendAction defines the command run to pause/unpause an application
-type SuspendAction string
+type SuspendActionType string
 
 const (
-	Suspend SuspendAction = "suspend"
-	Resume  SuspendAction = "resume"
+	SuspendAction SuspendActionType = "suspend"
+	ResumeAction  SuspendActionType = "resume"
 )
 
 // ApplicationStatus defines the observed state of Application

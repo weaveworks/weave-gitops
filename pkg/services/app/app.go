@@ -99,7 +99,7 @@ func (a *App) getSuspendedStatus(ctx context.Context, name, namespace string, de
 	return suspendStatus, nil
 }
 
-func (a *App) pauseOrUnpause(suspendAction wego.SuspendAction, name, namespace string) error {
+func (a *App) pauseOrUnpause(suspendAction wego.SuspendActionType, name, namespace string) error {
 	ctx := context.Background()
 	deploymentType, err := a.getDeploymentType(ctx, name, namespace)
 	if err != nil {
@@ -121,7 +121,7 @@ func (a *App) pauseOrUnpause(suspendAction wego.SuspendAction, name, namespace s
 	}
 
 	switch suspendAction {
-	case wego.Suspend:
+	case wego.SuspendAction:
 		if suspendStatus {
 			a.logger.Printf("app %s is already paused\n", name)
 			return nil
@@ -132,7 +132,7 @@ func (a *App) pauseOrUnpause(suspendAction wego.SuspendAction, name, namespace s
 		}
 		a.logger.Printf("%s\n gitops automation paused for %s\n", string(out), name)
 		return nil
-	case wego.Resume:
+	case wego.ResumeAction:
 		if !suspendStatus {
 			a.logger.Printf("app %s is already reconciling\n", name)
 			return nil

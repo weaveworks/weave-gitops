@@ -8,5 +8,5 @@ type UnpauseParams struct {
 }
 
 func (a *App) Unpause(params UnpauseParams) error {
-	return a.pauseOrUnpause(wego.Resume, params.Name, params.Namespace)
+	return a.pauseOrUnpause(wego.ResumeAction, params.Name, params.Namespace)
 }

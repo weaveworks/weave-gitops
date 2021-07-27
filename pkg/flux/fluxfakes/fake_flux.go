@@ -143,10 +143,10 @@ type FakeFlux struct {
 		result1 []byte
 		result2 error
 	}
-	SuspendOrResumeAppStub        func(v1alpha1.SuspendAction, string, string, string) ([]byte, error)
+	SuspendOrResumeAppStub        func(v1alpha1.SuspendActionType, string, string, string) ([]byte, error)
 	suspendOrResumeAppMutex       sync.RWMutex
 	suspendOrResumeAppArgsForCall []struct {
-		arg1 v1alpha1.SuspendAction
+		arg1 v1alpha1.SuspendActionType
 		arg2 string
 		arg3 string
 		arg4 string
@@ -761,11 +761,11 @@ func (fake *FakeFlux) InstallReturnsOnCall(i int, result1 []byte, result2 error)
 	}{result1, result2}
 }
 
-func (fake *FakeFlux) SuspendOrResumeApp(arg1 v1alpha1.SuspendAction, arg2 string, arg3 string, arg4 string) ([]byte, error) {
+func (fake *FakeFlux) SuspendOrResumeApp(arg1 v1alpha1.SuspendActionType, arg2 string, arg3 string, arg4 string) ([]byte, error) {
 	fake.suspendOrResumeAppMutex.Lock()
 	ret, specificReturn := fake.suspendOrResumeAppReturnsOnCall[len(fake.suspendOrResumeAppArgsForCall)]
 	fake.suspendOrResumeAppArgsForCall = append(fake.suspendOrResumeAppArgsForCall, struct {
-		arg1 v1alpha1.SuspendAction
+		arg1 v1alpha1.SuspendActionType
 		arg2 string
 		arg3 string
 		arg4 string
@@ -789,13 +789,13 @@ func (fake *FakeFlux) SuspendOrResumeAppCallCount() int {
 	return len(fake.suspendOrResumeAppArgsForCall)
 }
 
-func (fake *FakeFlux) SuspendOrResumeAppCalls(stub func(v1alpha1.SuspendAction, string, string, string) ([]byte, error)) {
+func (fake *FakeFlux) SuspendOrResumeAppCalls(stub func(v1alpha1.SuspendActionType, string, string, string) ([]byte, error)) {
 	fake.suspendOrResumeAppMutex.Lock()
 	defer fake.suspendOrResumeAppMutex.Unlock()
 	fake.SuspendOrResumeAppStub = stub
 }
 
-func (fake *FakeFlux) SuspendOrResumeAppArgsForCall(i int) (v1alpha1.SuspendAction, string, string, string) {
+func (fake *FakeFlux) SuspendOrResumeAppArgsForCall(i int) (v1alpha1.SuspendActionType, string, string, string) {
 	fake.suspendOrResumeAppMutex.RLock()
 	defer fake.suspendOrResumeAppMutex.RUnlock()
 	argsForCall := fake.suspendOrResumeAppArgsForCall[i]

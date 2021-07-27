@@ -8,5 +8,5 @@ type PauseParams struct {
 }
 
 func (a *App) Pause(params PauseParams) error {
-	return a.pauseOrUnpause(wego.Suspend, params.Name, params.Namespace)
+	return a.pauseOrUnpause(wego.SuspendAction, params.Name, params.Namespace)
 }

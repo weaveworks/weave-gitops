@@ -26,7 +26,7 @@ type Flux interface {
 	CreateSecretGit(name string, url string, namespace string) ([]byte, error)
 	GetVersion() (string, error)
 	GetAllResourcesStatus(name string, namespace string) ([]byte, error)
-	SuspendOrResumeApp(pause wego.SuspendAction, name, namespace, deploymentType string) ([]byte, error)
+	SuspendOrResumeApp(pause wego.SuspendActionType, name, namespace, deploymentType string) ([]byte, error)
 }
 
 type FluxClient struct {
@@ -255,7 +255,7 @@ func (f *FluxClient) fluxPath() (string, error) {
 	return fmt.Sprintf("%v/flux-%v", path, version.FluxVersion), nil
 }
 
-func (f *FluxClient) SuspendOrResumeApp(suspend wego.SuspendAction, name, namespace string, deploymentType string) ([]byte, error) {
+func (f *FluxClient) SuspendOrResumeApp(suspend wego.SuspendActionType, name, namespace string, deploymentType string) ([]byte, error) {
 	args := []string{
 		string(suspend), deploymentType, name, fmt.Sprintf("--namespace=%s", namespace),
 	}
