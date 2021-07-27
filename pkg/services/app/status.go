@@ -37,15 +37,6 @@ func (a *App) Status(params StatusParams) (string, string, error) {
 	return string(fluxOutput), lastRecon, nil
 }
 
-func (a *App) getDeploymentType(ctx context.Context, params StatusParams) (wego.DeploymentType, error) {
-	app, err := a.kube.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
-	if err != nil {
-		return wego.DeploymentTypeKustomize, err
-	}
-
-	return wego.DeploymentType(app.Spec.DeploymentType), nil
-}
-
 func (a *App) getLastSuccessfulReconciliation(ctx context.Context, deploymentType wego.DeploymentType, params StatusParams) (string, error) {
 	conditions := []metav1.Condition{}
 	switch deploymentType {

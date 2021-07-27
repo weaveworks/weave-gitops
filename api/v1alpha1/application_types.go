@@ -56,6 +56,14 @@ const (
 	SourceTypeHelm SourceType = "helm"
 )
 
+// SuspendAction defines the command run to pause/unpause an application
+type SuspendAction string
+
+const (
+	Suspend SuspendAction = "suspend"
+	Resume  SuspendAction = "resume"
+)
+
 // ApplicationStatus defines the observed state of Application
 type ApplicationStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster

@@ -1,6 +1,6 @@
 package app
 
-import "github.com/weaveworks/weave-gitops/pkg/flux"
+import wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 
 type PauseParams struct {
 	Name      string
@@ -8,5 +8,5 @@ type PauseParams struct {
 }
 
 func (a *App) Pause(params PauseParams) error {
-	return a.pauseOrUnpause(flux.Suspend, params.Name, params.Namespace)
+	return a.pauseOrUnpause(wego.Suspend, params.Name, params.Namespace)
 }

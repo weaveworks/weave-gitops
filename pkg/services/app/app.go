@@ -63,22 +63,22 @@ func createGitProvider(token string) (gitproviders.GitProvider, error) {
 	return provider, nil
 }
 
-func (a *App) getDeploymentType(ctx context.Context, name, namespace string) (DeploymentType, error) {
+func (a *App) getDeploymentType(ctx context.Context, name string, namespace string) (wego.DeploymentType, error) {
 	app, err := a.kube.GetApplication(ctx, types.NamespacedName{Name: name, Namespace: namespace})
 	if err != nil {
-		return DeployTypeKustomize, err
+		return wego.DeploymentTypeKustomize, err
 	}
 
-	return DeploymentType(app.Spec.DeploymentType), nil
+	return wego.DeploymentType(app.Spec.DeploymentType), nil
 }
 
-func (a *App) getSuspendedStatus(ctx context.Context, name, namespace string, deploymentType DeploymentType) (bool, error) {
+func (a *App) getSuspendedStatus(ctx context.Context, name, namespace string, deploymentType wego.DeploymentType) (bool, error) {
 	var automation client.Object
 
 	switch deploymentType {
-	case DeployTypeKustomize:
+	case wego.DeploymentTypeKustomize:
 		automation = &kustomizev1.Kustomization{}
-	case DeployTypeHelm:
+	case wego.DeploymentTypeHelm:
 		automation = &helmv2.HelmRelease{}
 	default:
 		return false, fmt.Errorf("invalid deployment type: %v", deploymentType)
@@ -99,7 +99,7 @@ func (a *App) getSuspendedStatus(ctx context.Context, name, namespace string, de
 	return suspendStatus, nil
 }
 
-func (a *App) pauseOrUnpause(suspendAction flux.SuspendAction, name, namespace string) error {
+func (a *App) pauseOrUnpause(suspendAction wego.SuspendAction, name, namespace string) error {
 	ctx := context.Background()
 	deploymentType, err := a.getDeploymentType(ctx, name, namespace)
 	if err != nil {
@@ -112,16 +112,16 @@ func (a *App) pauseOrUnpause(suspendAction flux.SuspendAction, name, namespace s
 	}
 
 	switch deploymentType {
-	case DeployTypeKustomize:
+	case wego.DeploymentTypeKustomize:
 		deploymentType = "kustomization"
-	case DeployTypeHelm:
+	case wego.DeploymentTypeHelm:
 		deploymentType = "helmrelease"
 	default:
 		return fmt.Errorf("invalid deployment type: %v", deploymentType)
 	}
 
 	switch suspendAction {
-	case flux.Suspend:
+	case wego.Suspend:
 		if suspendStatus {
 			a.logger.Printf("app %s is already paused\n", name)
 			return nil
@@ -132,7 +132,7 @@ func (a *App) pauseOrUnpause(suspendAction flux.SuspendAction, name, namespace s
 		}
 		a.logger.Printf("%s\n gitops automation paused for %s\n", string(out), name)
 		return nil
-	case flux.Resume:
+	case wego.Resume:
 		if !suspendStatus {
 			a.logger.Printf("app %s is already reconciling\n", name)
 			return nil
