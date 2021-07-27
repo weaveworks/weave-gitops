@@ -21,7 +21,7 @@ var application wego.Application
 
 var fluxDir string
 
-var createdResources map[string][]string
+var createdResources map[string]map[string]bool
 
 var goatPaths map[string]bool
 
@@ -75,10 +75,10 @@ func storeCreatedResource(manifestData []byte) error {
 		kind := manifestMap["kind"].(string)
 
 		if createdResources[kind] == nil {
-			createdResources[kind] = []string{}
+			createdResources[kind] = map[string]bool{}
 		}
 
-		createdResources[kind] = append(createdResources[kind], metamap["name"].(string))
+		createdResources[kind][metamap["name"].(string)] = true
 	}
 	return nil
 }
@@ -129,7 +129,7 @@ func setupFlux() error {
 	return nil
 }
 
-func runAddAndCollectResources(addParams AddParams) ([]ResourceRef, error) {
+func runAddAndCollectInfo(addParams AddParams) (*AppResourceInfo, error) {
 	params, err := appSrv.(*App).updateParametersIfNecessary(addParams)
 	if err != nil {
 		return nil, err
@@ -137,18 +137,17 @@ func runAddAndCollectResources(addParams AddParams) ([]ResourceRef, error) {
 	if err := appSrv.Add(params); err != nil {
 		return nil, err
 	}
-	info := getAppResourceInfo(makeWegoApplication(params), "test-cluster")
-	return info.clusterResources(), nil
+	return getAppResourceInfo(makeWegoApplication(params), "test-cluster"), nil
 }
 
-func checkResults(appResources []ResourceRef) error {
-	fmt.Printf("CR: %#+v\n", createdResources)
+func checkResults(info *AppResourceInfo) error {
+	appResources := info.clusterResources()
 	for _, res := range appResources {
 		resources := createdResources[res.kind]
 		if len(resources) == 0 {
-			return fmt.Errorf("expected resources to be created")
+			return fmt.Errorf("expected %s resources to be created", res.kind)
 		}
-		createdResources[res.kind] = sliceRemove(res.name, resources)
+		delete(resources, res.name)
 	}
 
 	for kind, leftovers := range createdResources {
@@ -156,6 +155,15 @@ func checkResults(appResources []ResourceRef) error {
 			return fmt.Errorf("unexpected %s resources: %#+v\n", kind, leftovers)
 		}
 	}
+
+	for _, path := range info.clusterResourcePaths() {
+		delete(goatPaths, path)
+	}
+
+	if len(goatPaths) > 0 {
+		return fmt.Errorf("unexpected paths: %#+v\n", goatPaths)
+	}
+
 	return nil
 }
 
@@ -227,36 +235,36 @@ var _ = Describe("Remove", func() {
 				}
 
 				goatPaths = map[string]bool{}
-				createdResources = map[string][]string{}
+				createdResources = map[string]map[string]bool{}
 			})
 
 			It("collects cluster resources for helm chart from helm repo with configURL = NONE", func() {
 				addParams.Chart = "loki"
 
-				appResources, err := runAddAndCollectResources(addParams)
+				info, err := runAddAndCollectInfo(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				Expect(checkResults(appResources)).To(Succeed())
+				Expect(checkResults(info)).To(Succeed())
 			})
 
 			It("collects cluster resources for helm chart from git repo with configURL = NONE", func() {
 				addParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
 				addParams.Path = "./"
 
-				appResources, err := runAddAndCollectResources(addParams)
+				info, err := runAddAndCollectInfo(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				Expect(checkResults(appResources)).To(Succeed())
+				Expect(checkResults(info)).To(Succeed())
 			})
 
 			It("collects cluster resources for helm chart from helm repo with configURL = <url>", func() {
 				addParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
 				addParams.Chart = "loki"
 
-				appResources, err := runAddAndCollectResources(addParams)
+				info, err := runAddAndCollectInfo(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				Expect(checkResults(appResources)).To(Succeed())
+				Expect(checkResults(info)).To(Succeed())
 			})
 
 			It("collects cluster resources for helm chart from git repo with configURL = <url>", func() {
@@ -264,10 +272,10 @@ var _ = Describe("Remove", func() {
 				addParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
 				addParams.Path = "./"
 
-				appResources, err := runAddAndCollectResources(addParams)
+				info, err := runAddAndCollectInfo(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				Expect(checkResults(appResources)).To(Succeed())
+				Expect(checkResults(info)).To(Succeed())
 			})
 		})
 
@@ -284,33 +292,32 @@ var _ = Describe("Remove", func() {
 				}
 
 				goatPaths = map[string]bool{}
-				createdResources = map[string][]string{}
+				createdResources = map[string]map[string]bool{}
 			})
 
 			It("collects cluster resources for non-helm app with configURL = NONE", func() {
-				appResources, err := runAddAndCollectResources(addParams)
+				info, err := runAddAndCollectInfo(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				Expect(checkResults(appResources)).To(Succeed())
+				Expect(checkResults(info)).To(Succeed())
 			})
 
 			It("collects cluster resources for non-helm app configURL = ''", func() {
 				addParams.AppConfigUrl = ""
 
-				appResources, err := runAddAndCollectResources(addParams)
+				info, err := runAddAndCollectInfo(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
-				fmt.Printf("AR: %#+v\n", appResources)
-				Expect(checkResults(appResources)).To(Succeed())
+				Expect(checkResults(info)).To(Succeed())
 			})
 
 			It("collects cluster resources for non-helm app with configURL = <url>", func() {
 				addParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
 				addParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
 
-				appResources, err := runAddAndCollectResources(addParams)
+				info, err := runAddAndCollectInfo(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				Expect(checkResults(appResources)).To(Succeed())
+				Expect(checkResults(info)).To(Succeed())
 			})
 		})
 	})

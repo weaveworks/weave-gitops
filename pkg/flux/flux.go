@@ -110,7 +110,6 @@ func (f *FluxClient) CreateSourceGit(name string, url string, branch string, sec
 		return out, fmt.Errorf("failed to create source git: %w", err)
 	}
 
-	fmt.Printf("SG: %s\n", out)
 	return out, nil
 }
 
@@ -148,7 +147,6 @@ func (f *FluxClient) CreateKustomization(name string, source string, path string
 		return out, fmt.Errorf("failed to create kustomization: %w", err)
 	}
 
-	fmt.Printf("K: %s\n", out)
 	return out, nil
 }
 
@@ -167,7 +165,6 @@ func (f *FluxClient) CreateHelmReleaseGitRepository(name string, source string, 
 		return out, fmt.Errorf("failed to create helm release git repo: %w", err)
 	}
 
-	fmt.Printf("HRGR: %s\n", out)
 	return out, nil
 }
 

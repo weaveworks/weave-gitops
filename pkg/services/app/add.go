@@ -866,6 +866,10 @@ func (a *AppResourceInfo) clusterResources() []ResourceRef {
 	return resources
 }
 
+func (a *AppResourceInfo) clusterResourcePaths() []string {
+	return []string{a.appYamlPath(), a.appAutomationPath()}
+}
+
 // NOTE: ready to save the targets automation in phase 2
 // func (a *App) writeTargetGoats(basePath string, name string, manifests ...[]byte) error {
 //  goatPath := filepath.Join(basePath, "targets", fmt.Sprintf("%s-gitops-runtime.yaml", name))
