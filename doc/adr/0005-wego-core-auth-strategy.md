@@ -44,7 +44,7 @@ All operations will need to go through an API server that is installed on the cl
 
 - Create `Namespace` resources
 - Create `Application`, `Source`, and `Kustomize|Helm` resources
-- Read all Kubernetes objects, in all namespaces
+- Read Kubernetes objects in the `wego-system` namespace
 
 ### Security Concerns
 
