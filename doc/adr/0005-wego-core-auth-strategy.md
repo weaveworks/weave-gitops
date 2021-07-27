@@ -26,9 +26,6 @@ These deploy keys are outside the scope of a git repo, so we will need a higher 
 
 Operations such as creating pull requests (or "merge requests" in the case of Gitlab), adding deploy keys, and retrieving user data will need to be completed via HTTP requests. Each major Git Provider has some form of OAuth flow:
 
-- [GitHub OAuth Flow](https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps#web-application-flow)
-  - Notice that `localhost` redirect_uris are permitted: https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps#localhost-redirect-urls
-  - This approach requires a `CLIENT_SECRET` be embedded in the binary, thus exposing the secret leaking by decompiling the binary
 - [Github Device Flow](https://docs.github.com/en/developers/apps/building-github-apps/identifying-and-authorizing-users-for-github-apps#device-flow)
   - This approach doesn't require a `CLIENT_SECRET` or callback page
   - We can do these steps from a browser if we feel that is the best UX
@@ -58,7 +55,7 @@ In addition, flows that require a `CLIENT_SECRET` will require us to embed it in
 
 Given that the Weave GitOps UI and API server may be running on a user's cluster, we may not always know the OAuth callback URL ahead of time. For this reason, we will need to use OAuth flows that do not require a static `redirect_uri`. The flows listed above in the Git Providers section fit that constraint.
 
-We will need to ensure that the callback URL is configurable by the user via environment variables. This will allow them to run and expose the UI/API servers on whichever endpoint they choose.
+We will need to ensure that the `redirect_uri` is configurable by the user via environment variables. This will allow users to run and expose the UI/API servers on whichever endpoint they choose.
 
 ## Design
 
@@ -122,7 +119,5 @@ Alternatively, pass in a token on standard input by using --with-token. The mini
 Implement the flow(s) defined in the "Design" section
 
 ## Consequences
-
-A SaaS application would be able to hide their `CLIENT_SECRET` behind their firewalled infrastructure. We do not have that luxury, so we will have to ship the `CLIENT_SECRET` with the binary. The only flow that requires this is the GitHub OAuth Flow, which gives us the alternative Device Flow specially built for our exact use case. We may be able to utilize their Device Flow as a one-off (since other providers do not have that feature).
 
 This document does not seek to provide any mapping between Kubernetes users and Git Provider users. That may be out of scope for the Weave GitOps Core edition, or may be implemented later.
