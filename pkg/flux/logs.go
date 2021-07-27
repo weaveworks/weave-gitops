@@ -8,8 +8,8 @@ import (
 )
 
 // GetLast log for each flux namespace
-func GetLatestStatusAllNamespaces() ([]string, error) {
-	exePath, err := GetFluxExePath()
+func (f *FluxClient) GetLatestStatusAllNamespaces() ([]string, error) {
+	exePath, err := f.GetExePath()
 	if err != nil {
 		return nil, err
 	}

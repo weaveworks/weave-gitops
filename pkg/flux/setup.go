@@ -13,10 +13,10 @@ import (
 var fluxExe []byte
 
 //SetupFluxBin creates flux binary from embedded file if it doesnt already exist
-func SetupFluxBin() {
-	exePath, err := GetFluxExePath()
+func (f *FluxClient) SetupBin() {
+	exePath, err := f.GetExePath()
 	checkError(err)
-	binPath, err := GetFluxBinPath()
+	binPath, err := f.GetBinPath()
 	checkError(err)
 
 	if _, err := os.Stat(exePath); os.IsNotExist(err) {
@@ -28,8 +28,8 @@ func SetupFluxBin() {
 }
 
 //GetFluxBinPath -
-func GetFluxBinPath() (string, error) {
-	homeDir, err := shims.UserHomeDir()
+func (f *FluxClient) GetBinPath() (string, error) {
+	homeDir, err := f.osys.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
@@ -38,8 +38,8 @@ func GetFluxBinPath() (string, error) {
 }
 
 //GetFluxExePath -
-func GetFluxExePath() (string, error) {
-	path, err := GetFluxBinPath()
+func (f *FluxClient) GetExePath() (string, error) {
+	path, err := f.GetBinPath()
 	if err != nil {
 		return "", err
 	}

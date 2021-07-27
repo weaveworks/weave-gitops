@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/weave-gitops/pkg/override"
-	"github.com/weaveworks/weave-gitops/pkg/shims"
+	"github.com/weaveworks/weave-gitops/pkg/osys/osysfakes"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"github.com/weaveworks/weave-gitops/pkg/version"
 )
@@ -46,6 +47,21 @@ var testFluxLogResponse = []byte(`2021-04-12T19:53:58.545Z info Alert - Starting
 2021-04-12T21:02:22.808Z info GitRepository/flux-system.flux-system - Reconciliation finished in 873.5428ms, next run in 1m0s
 2021-04-12T21:03:23.646Z info GitRepository/flux-system.flux-system - Reconciliation finished in 907.3404ms, next run in 1m0s`)
 
+// Test Setup
+
+var fluxClient Flux
+
+var homeDir string
+
+func init() {
+	cliRunner := &runner.CLIRunner{}
+	osysClient := &osysfakes.FakeOsys{}
+	osysClient.UserHomeDirStub = func() (string, error) {
+		return homeDir, nil
+	}
+	fluxClient = New(osysClient, cliRunner)
+}
+
 var _ = Describe("Log Fetching Test", func() {
 	It("Verify that log fetching works correctly", func() {
 		By("Invoking getLastLogForNamespaces", func() {
@@ -76,7 +92,7 @@ var _ = Describe("Latest Status For All Namespaces Test", func() {
 })
 
 func processStatus() ([]byte, []byte, error) {
-	strs, err := GetLatestStatusAllNamespaces()
+	strs, err := fluxClient.GetLatestStatusAllNamespaces()
 	if err != nil {
 		return nil, nil, err
 	} else {
@@ -84,45 +100,31 @@ func processStatus() ([]byte, []byte, error) {
 	}
 }
 
-// Test Setup
-
-type localHomeDirHandler struct {
-	dir string
-}
-
-func (h localHomeDirHandler) Handle() (string, error) {
-	return h.dir, nil
-}
-
 func TestSetup(t *testing.T) {
-	_, err := GetFluxBinPath()
+	homeDir = "/home/user"
+	binPath, err := fluxClient.GetBinPath()
 	require.NoError(t, err)
-
-	_, err = GetFluxExePath()
+	require.Equal(t, binPath, filepath.Join(homeDir, ".wego", "bin"))
+	exePath, err := fluxClient.GetExePath()
 	require.NoError(t, err)
+	require.Equal(t, exePath, filepath.Join(homeDir, ".wego", "bin", "flux-"+version.FluxVersion))
 }
 
 func TestSetupFluxBin(t *testing.T) {
 	dir, err := ioutil.TempDir(t.TempDir(), "a-home-dir")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
-	override.WithOverrides(func() override.Result {
-		version.FluxVersion = "0.11.0"
-		SetupFluxBin()
-		homeDir, err := shims.UserHomeDir()
-		require.NoError(t, err)
+	homeDir = dir
+	version.FluxVersion = "0.11.0"
+	fluxClient.SetupBin()
+	fluxPath := fmt.Sprintf("%v/.wego/bin", homeDir)
+	require.DirExists(t, fluxPath)
+	binPath := fmt.Sprintf("%v/flux-%v", fluxPath, version.FluxVersion)
+	require.FileExists(t, binPath)
 
-		fluxPath := fmt.Sprintf("%v/.wego/bin", homeDir)
-		require.DirExists(t, fluxPath)
-		binPath := fmt.Sprintf("%v/flux-%v", fluxPath, version.FluxVersion)
-		require.FileExists(t, binPath)
-
-		version.FluxVersion = "0.12.0"
-		SetupFluxBin()
-		require.NoFileExists(t, binPath)
-		binPath = fmt.Sprintf("%v/flux-%v", fluxPath, version.FluxVersion)
-		require.FileExists(t, binPath)
-		return override.Result{}
-	},
-		shims.OverrideHomeDir(localHomeDirHandler{dir: dir}))
+	version.FluxVersion = "0.12.0"
+	fluxClient.SetupBin()
+	require.NoFileExists(t, binPath)
+	binPath = fmt.Sprintf("%v/flux-%v", fluxPath, version.FluxVersion)
+	require.FileExists(t, binPath)
 }

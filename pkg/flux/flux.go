@@ -1,13 +1,15 @@
 package flux
 
 import (
-	"bytes"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/pkg/errors"
+<<<<<<< HEAD
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+=======
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+>>>>>>> 4b27474 (rebase-on-main)
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/version"
 )
@@ -16,6 +18,9 @@ import (
 
 //counterfeiter:generate . Flux
 type Flux interface {
+	SetupBin()
+	GetBinPath() (string, error)
+	GetExePath() (string, error)
 	Install(namespace string, export bool) ([]byte, error)
 	Uninstall(namespace string, export bool) error
 	CreateSourceGit(name string, url string, branch string, secretRef string, namespace string) ([]byte, error)
@@ -26,15 +31,21 @@ type Flux interface {
 	CreateSecretGit(name string, url string, namespace string) ([]byte, error)
 	GetVersion() (string, error)
 	GetAllResourcesStatus(name string, namespace string) ([]byte, error)
+<<<<<<< HEAD
 	SuspendOrResumeApp(pause wego.SuspendActionType, name, namespace, deploymentType string) ([]byte, error)
+=======
+	GetLatestStatusAllNamespaces() ([]string, error)
+>>>>>>> 4b27474 (rebase-on-main)
 }
 
 type FluxClient struct {
+	osys   osys.Osys
 	runner runner.Runner
 }
 
-func New(cliRunner runner.Runner) *FluxClient {
+func New(osysClient osys.Osys, cliRunner runner.Runner) *FluxClient {
 	return &FluxClient{
+		osys:   osysClient,
 		runner: cliRunner,
 	}
 }
@@ -99,6 +110,7 @@ func (f *FluxClient) CreateSourceGit(name string, url string, branch string, sec
 		return out, fmt.Errorf("failed to create source git: %w", err)
 	}
 
+	fmt.Printf("SG: %s\n", out)
 	return out, nil
 }
 
@@ -136,6 +148,7 @@ func (f *FluxClient) CreateKustomization(name string, source string, path string
 		return out, fmt.Errorf("failed to create kustomization: %w", err)
 	}
 
+	fmt.Printf("K: %s\n", out)
 	return out, nil
 }
 
@@ -154,6 +167,7 @@ func (f *FluxClient) CreateHelmReleaseGitRepository(name string, source string, 
 		return out, fmt.Errorf("failed to create helm release git repo: %w", err)
 	}
 
+	fmt.Printf("HRGR: %s\n", out)
 	return out, nil
 }
 
@@ -181,6 +195,7 @@ func (f *FluxClient) CreateSecretGit(name string, url string, namespace string) 
 		"create", "secret", "git", name,
 		"--url", url,
 		"--namespace", namespace,
+		"--export",
 	}
 
 	out, err := f.runFluxCmd(args...)
@@ -188,13 +203,7 @@ func (f *FluxClient) CreateSecretGit(name string, url string, namespace string) 
 		return out, fmt.Errorf("failed to create secret git: %w", err)
 	}
 
-	deployKeyBody := bytes.TrimPrefix(out, []byte("✚ deploy key: "))
-	deployKeyLines := bytes.Split(deployKeyBody, []byte("\n"))
-	if len(deployKeyBody) == 0 {
-		return nil, fmt.Errorf("error getting deploy key from flux output: %s", string(out))
-	}
-
-	return deployKeyLines[0], nil
+	return out, nil
 }
 
 func (f *FluxClient) GetAllResourcesStatus(name string, namespace string) ([]byte, error) {
@@ -247,7 +256,7 @@ func (f *FluxClient) runFluxCmdOutputStream(args ...string) ([]byte, error) {
 }
 
 func (f *FluxClient) fluxPath() (string, error) {
-	homeDir, err := os.UserHomeDir()
+	homeDir, err := f.osys.UserHomeDir()
 	if err != nil {
 		return "", errors.Wrap(err, "failed getting user home directory")
 	}
