@@ -112,7 +112,7 @@ coverage/golang.info: coverage.out
 
 # Concat the JS and Go coverage files for the coveralls report/
 # Note: you need to install `lcov` to run this locally.
-coverage/merged.lcov: coverage/lcov.info coverage/golang.info
+coverage/merged.lcov: dependencies coverage/lcov.info coverage/golang.info
 	lcov --add-tracefile coverage/golang.info -a coverage/lcov.info -o merged.lcov
 
 proto-deps:
@@ -120,7 +120,7 @@ proto-deps:
 
 proto:
 	buf generate
-# 	This job is complaining about a missing plugin and error-ing out
+#	This job is complaining about a missing plugin and error-ing out
 #	oapi-codegen -config oapi-codegen.config.yaml api/applications/applications.swagger.json
 
 api-dev:
