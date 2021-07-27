@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/weaveworks/weave-gitops/pkg/shims"
 	"github.com/weaveworks/weave-gitops/pkg/version"
 )
 
@@ -15,15 +14,15 @@ var fluxExe []byte
 //SetupFluxBin creates flux binary from embedded file if it doesnt already exist
 func (f *FluxClient) SetupBin() {
 	exePath, err := f.GetExePath()
-	checkError(err)
+	f.checkError(err)
 	binPath, err := f.GetBinPath()
-	checkError(err)
+	f.checkError(err)
 
 	if _, err := os.Stat(exePath); os.IsNotExist(err) {
 		// Clean bin if file doesnt exist
-		checkError(os.RemoveAll(binPath))
-		checkError(os.MkdirAll(binPath, 0755))
-		checkError(os.WriteFile(exePath, fluxExe, 0755))
+		f.checkError(os.RemoveAll(binPath))
+		f.checkError(os.MkdirAll(binPath, 0755))
+		f.checkError(os.WriteFile(exePath, fluxExe, 0755))
 	}
 }
 
@@ -46,9 +45,9 @@ func (f *FluxClient) GetExePath() (string, error) {
 	return fmt.Sprintf("%v/flux-%v", path, version.FluxVersion), nil
 }
 
-func checkError(err error) {
+func (f *FluxClient) checkError(err error) {
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		shims.Exit(1)
+		fmt.Fprintf(f.osys.Stderr(), "Error: %v\n", err)
+		f.osys.Exit(1)
 	}
 }

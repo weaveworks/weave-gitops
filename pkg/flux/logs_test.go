@@ -12,8 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/weave-gitops/pkg/osys/osysfakes"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
+	"github.com/weaveworks/weave-gitops/pkg/runner/runnerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/version"
 )
 
@@ -49,12 +48,14 @@ var testFluxLogResponse = []byte(`2021-04-12T19:53:58.545Z info Alert - Starting
 
 // Test Setup
 
-var fluxClient Flux
+var fluxClient *FluxClient
+
+var cliRunner *runnerfakes.FakeRunner
 
 var homeDir string
 
 func init() {
-	cliRunner := &runner.CLIRunner{}
+	cliRunner = &runnerfakes.FakeRunner{}
 	osysClient := &osysfakes.FakeOsys{}
 	osysClient.UserHomeDirStub = func() (string, error) {
 		return homeDir, nil
@@ -79,24 +80,30 @@ var _ = Describe("Log Fetching Test", func() {
 var _ = Describe("Latest Status For All Namespaces Test", func() {
 	It("Verify that the bulk namespace operation works correctly on the success path", func() {
 		By("Invoking the operation with a mock command", func() {
-			_, _, err := utils.WithResultsFrom(utils.CallCommandOp, testFluxLogResponse, nil, nil, processStatus)
+			cliRunner.RunStub = func(cmd string, args ...string) ([]byte, error) {
+				return testFluxLogResponse, nil
+			}
+			_, err := processStatus()
 			Expect(err).To(BeNil())
 		})
 	})
 	It("Verify that the bulk namespace operation works correctly on the failure path", func() {
 		By("Invoking the operation with a mock command", func() {
-			_, _, err := utils.WithResultsFrom(utils.CallCommandOp, nil, nil, fmt.Errorf("failed"), processStatus)
+			cliRunner.RunStub = func(cmd string, args ...string) ([]byte, error) {
+				return nil, fmt.Errorf("failed")
+			}
+			_, err := processStatus()
 			Expect(err).To(Not(BeNil()))
 		})
 	})
 })
 
-func processStatus() ([]byte, []byte, error) {
+func processStatus() ([]byte, error) {
 	strs, err := fluxClient.GetLatestStatusAllNamespaces()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	} else {
-		return []byte(strs[0]), nil, nil
+		return []byte(strs[0]), nil
 	}
 }
 
