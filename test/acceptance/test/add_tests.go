@@ -1031,8 +1031,8 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 	It("Verify that wego can deploy multiple helm apps from a helm repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var listOutput string
-		var appStatus1 *gexec.Session
-		var appStatus2 *gexec.Session
+		var appStatus1 string
+		var appStatus2 string
 		private := true
 		appName1 := "rabbitmq"
 		appName2 := "zookeeper"
@@ -1108,23 +1108,23 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("When I check the app status for "+appName1, func() {
-			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName1))
+			appStatus1, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName1)
 		})
 
 		By("Then I should see the status for "+appName1, func() {
-			Eventually(appStatus1).Should(gbytes.Say(`Last successful reconciliation:`))
-			Eventually(appStatus1).Should(gbytes.Say(`helmrepository/` + appName1))
-			Eventually(appStatus1).Should(gbytes.Say(`helmrelease/` + appName1))
+			Eventually(appStatus1).Should(ContainSubstring(`Last successful reconciliation:`))
+			Eventually(appStatus1).Should(ContainSubstring(`helmrepository/` + appName1))
+			Eventually(appStatus1).Should(ContainSubstring(`helmrelease/` + appName1))
 		})
 
 		By("When I check the app status for "+appName2, func() {
-			appStatus2 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName2))
+			appStatus2, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appStatus2)
 		})
 
 		By("Then I should see the status for "+appName2, func() {
-			Eventually(appStatus2).Should(gbytes.Say(`Last successful reconciliation:`))
-			Eventually(appStatus2).Should(gbytes.Say(`helmrepository/` + appName2))
-			Eventually(appStatus2).Should(gbytes.Say(`helmrelease/` + appName2))
+			Eventually(appStatus2).Should(ContainSubstring(`Last successful reconciliation:`))
+			Eventually(appStatus2).Should(ContainSubstring(`helmrepository/` + appName2))
+			Eventually(appStatus2).Should(ContainSubstring(`helmrelease/` + appName2))
 		})
 	})
 
