@@ -3,12 +3,12 @@
 The current release process for weave gitops is fairly straightforward. You need to:
 - Create the actual release
 - Update the `weave-gitops-docs` repository with documentation for the new version
-- Update the `CLI Installation` section of the README.md in the `weave-gitops` repository to reference the new version
+- Update the `CLI Installation` section of the `README.md` in the `weave-gitops` repository to reference the new version
 
 # Creating the release
 - Go to the `Releases` page for the weave-gitops repository
 - Click on `Draft a New Release`
-- Fill in the `Tag Version` field with the new version (format: `vN.N.N` or `vN.N.N-rc.N` for a pre-release). We have configured go-releaser to implicitly make a version ending in `-rc.N` a pre-release and one without the `rc-0` a full release (but that can be changed after the fact by editing the release if so desired).
+- Fill in the `Tag Version` field with the new version (format: `vN.N.N` or `vN.N.N-rc.N` for a pre-release). We have configured go-releaser to implicitly make a version ending in `-rc.N` a pre-release and one without the `rc-N` a full release (but that can be changed after the fact by editing the release if so desired).
 - Fill in the `Release Title` with the same version from the `Tag Version`
 - Click on `Publish Release`
 
@@ -34,7 +34,7 @@ where the `N.N.N` matches the `N.N.N` from the weave gitops version.
 - Create a PR and merge when approved
 
 # Updating the README
-- Once the release is available, change the version in the `curl` command shown in the `CLI Installation` section of the README.md in the weave-gitops repository
+- Once the release is available, change the version in the `curl` command shown in the `CLI Installation` section of the `README.md` in the weave-gitops repository
 - Create a PR and merge when approved
 
 That's it!
