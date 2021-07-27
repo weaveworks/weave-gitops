@@ -64,7 +64,9 @@ We will need to ensure that the callback URL is configurable by the user via env
 
 Since most modern Git Providers will support a form of browser-based OAuth, **we will utilize the browser for both the CLI and UI authentication with Git Providers**.
 
-In the case of the CLI, we can utilize a short-lived browser session that will recieve the OAuth callback and pass the token to the CLI. Note that we can skip the OAuth portion of the flow if a user provides a `--token=<some value>` flag to the CLI command:
+In the case of the CLI, we can utilize a short-lived browser session that will recieve the OAuth callback and pass the token to the CLI.
+
+**Note that we can skip the OAuth portion of the flow if a user provides a `--token=<some value>` flag to the CLI command:**
 
 ![CLI Auth Diagram](cli_auth.svg)
 
