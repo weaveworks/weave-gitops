@@ -5,11 +5,8 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-<<<<<<< HEAD
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-=======
 	"github.com/weaveworks/weave-gitops/pkg/osys"
->>>>>>> 4b27474 (rebase-on-main)
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/version"
 )
@@ -31,11 +28,8 @@ type Flux interface {
 	CreateSecretGit(name string, url string, namespace string) ([]byte, error)
 	GetVersion() (string, error)
 	GetAllResourcesStatus(name string, namespace string) ([]byte, error)
-<<<<<<< HEAD
 	SuspendOrResumeApp(pause wego.SuspendActionType, name, namespace, deploymentType string) ([]byte, error)
-=======
 	GetLatestStatusAllNamespaces() ([]string, error)
->>>>>>> 4b27474 (rebase-on-main)
 }
 
 type FluxClient struct {
