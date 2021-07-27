@@ -83,8 +83,8 @@ jobs:
       run: make cmd/ui/dist/main.js
     - name: Set up kubebuilder
       uses: fluxcd/pkg/actions/kubebuilder@main
-    - name: Fake Install flux
-      run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
+    - name: Set up flux dir
+      run: mkdir -p pkg/flux/bin
     - name: Unit Tests with Coverage
       run: make coverage/merged.lcov
       env:
