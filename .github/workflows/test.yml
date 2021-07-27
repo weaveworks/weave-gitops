@@ -83,7 +83,7 @@ jobs:
       run: make cmd/ui/dist/main.js
     - name: Set up kubebuilder
       uses: fluxcd/pkg/actions/kubebuilder@main
-    - name: Set up flux dir
+    - name: Set up flux dir but let dependencies install flux
       run: mkdir -p pkg/flux/bin
     - name: Unit Tests with Coverage
       run: make coverage/merged.lcov
