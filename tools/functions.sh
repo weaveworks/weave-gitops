@@ -108,7 +108,10 @@ do_curl_tarball() {
     dldir="$(mktempdir)"
     mkdir "${dldir}/${cmd}"
     do_curl "${dldir}/${cmd}.tar.gz" "${url}"
-    mv "${dldir}/${cmd}.tar.gz" "${path}"
+    ## need to validate flux here because unpacking the tar changes the hash
+    validate_flux "${path}.txt" "${dldir}/${cmd}.tar.gz"
+    tar -C "${dldir}/${cmd}" -xvf "${dldir}/${cmd}.tar.gz"
+    mv "${dldir}/${cmd}/${cmd}" "${path}"
     rm -rf "${dldir}"
 }
 
@@ -131,10 +134,14 @@ do_curl_txt() {
     local default_path="${HOME}/.wego/bin"
     local path="${3:-${default_path}}"/"${cmd}"
 
-    dldir="$(mktempdir)"
-    mkdir "${dldir}/${cmd}"
-    do_curl "${dldir}/${cmd}.txt" "${url}"
-    mv "${dldir}/${cmd}.txt" "${path}.txt"
-    rm -rf "${dldir}"
+    do_curl "${path}.txt" "${url}"
 }
 
+validate_flux() {
+    local checksums_path="${1}"
+    local flux_path="${2}"
+    if ! grep $(openssl dgst -sha256 ${flux_path} | cut -d ' ' -f 2) ${checksums_path}; then
+        echo flux binary not valid
+        exit 1
+    fi
+}

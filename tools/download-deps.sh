@@ -83,6 +83,13 @@ download_dependency() {
     custom_bindir=$(run_stoml bindir)
     mkdir -p ${custom_bindir:-$bin_dir}
     echo $tarpath
+    if check_url "${txtpath}"; then
+        url_and_path="${txtpath}"
+        fetch=do_curl_txt
+
+        "${fetch}" "${tool}" "${url_and_path}" "${custom_bindir:-$bin_dir}"
+    fi
+
     if check_url "${binarypath}"; then
         url_and_path="${binarypath}"
         fetch=do_curl_binary
@@ -92,28 +99,12 @@ download_dependency() {
     elif check_url "${tarpath}"; then
         url_and_path="${tarpath}"
         fetch=do_curl_tarball
-    elif check_url "${txtpath}"; then
-        url_and_path="${txtpath}"
-        fetch=do_curl_txt
     else
         echo "No valid path for tool:" "${tool}"
         exit 1
     fi
 
     "${fetch}" "${tool}" "${url_and_path}" "${custom_bindir:-$bin_dir}"
-}
-
-validate_flux_binary() {
-    cd ../pkg/flux/bin
-    local flux_hash
-    hash_result=$(openssl dgst -sha256 flux)
-    prefix="SHA256(flux)= ";
-    flux_hash=${hash_result#$prefix}; #Remove prefix
-
-    if ! grep -q ${flux_hash} fluxchecksums.txt; then
-        echo flux binary not valid
-        exit 1
-    fi
 }
 
 # Don't use $RELEASE_GOOS here, should be whatever is running the script.
@@ -125,5 +116,3 @@ tools=$("${BIN_DIR}"/stoml "${DEP_FILE}" .)
 for tool in $tools; do
     download_dependency "${tool}" "${BIN_DIR}"
 done
-
-validate_flux_binary
