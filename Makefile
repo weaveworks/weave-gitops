@@ -99,7 +99,7 @@ coverage/lcov.info:
 	npm run test -- --coverage
 
 # Golang gocov data. Not compatible with coveralls at this point.
-coverage.out:
+coverage.out: dependencies
 	go get github.com/ory/go-acc
 	go-acc --ignore fakes,acceptance,pkg/api,api -o coverage.out ./... -- -v --timeout=496s -tags test
 	@go mod tidy
@@ -112,7 +112,7 @@ coverage/golang.info: coverage.out
 
 # Concat the JS and Go coverage files for the coveralls report/
 # Note: you need to install `lcov` to run this locally.
-coverage/merged.lcov: dependencies coverage/lcov.info coverage/golang.info
+coverage/merged.lcov: coverage/lcov.info coverage/golang.info
 	lcov --add-tracefile coverage/golang.info -a coverage/lcov.info -o merged.lcov
 
 proto-deps:
