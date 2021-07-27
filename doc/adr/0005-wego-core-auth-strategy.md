@@ -56,7 +56,7 @@ In addition, flows that require a `CLIENT_SECRET` will require us to embed it in
 
 ### UX Concerns
 
-Given that the Weave GitOps UI and API server may be running on a user's cluster, we may not always know the OAuth callback URL ahead of time. For this reason, we will need to use OAuth flows that do not require a static callback URLs. The flows listed above in the Git Providers section fit that constraint.
+Given that the Weave GitOps UI and API server may be running on a user's cluster, we may not always know the OAuth callback URL ahead of time. For this reason, we will need to use OAuth flows that do not require a static `redirect_uri`. The flows listed above in the Git Providers section fit that constraint.
 
 We will need to ensure that the callback URL is configurable by the user via environment variables. This will allow them to run and expose the UI/API servers on whichever endpoint they choose.
 
@@ -64,13 +64,50 @@ We will need to ensure that the callback URL is configurable by the user via env
 
 Since most modern Git Providers will support a form of browser-based OAuth, **we will utilize the browser for both the CLI and UI authentication with Git Providers**.
 
-In the case of the CLI, we can utilize a short-lived browser session that will recieve the OAuth callback and pass the token to the CLI:
+In the case of the CLI, we can utilize a short-lived browser session that will recieve the OAuth callback and pass the token to the CLI. Note that we can skip the OAuth portion of the flow if a user provides a `--token=<some value>` flag to the CLI command:
 
 ![CLI Auth Diagram](cli_auth.svg)
 
 UI auth will work in a similar way, with a more straight-forward set of steps:
 
 ![UI Auth Diagram](ui_auth.svg)
+
+For browser security, we will convert the Git Provider OAuth token to a JSON Web Token (JWT) to protect against Cross-site Scripting (XSS) attacks. The encrypted JWT will allow a malicious script to authenticate with the Weave GitOps API only, whereas passing the unencrypted OAuth token to the browser would allow a malicious script to authenticate with the Github API.
+
+Additionally, we do not plan on adding third-party scripts to the Weave GitOps UI to minimize the surface area for XSS attacks. This does NOT, however, account for NPM modules or other dependencies that we add to our app at build time.
+
+## Prior Art
+
+This authentication approach is inspired by other CLI tools that have very smooth user experiences. For example, the `gcloud` CLI for Google Cloud Platform utilizes the browser to authenciate the user:
+
+```
+$ gcloud auth login
+
+Your browser has been opened to visit:
+
+https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=1234.apps.googleusercontent.com&redirect_uri=http%3A%2F%2Flocalhost%3A8085%2F&scope=...
+
+Opening in existing browser session.
+
+```
+
+In the browser:
+
+![gcloud auth UI](gcloud_auth.png)
+
+<hr />
+
+GitHub's own CLI works in a similar way, and allows users to pass in their own token:
+
+[https://cli.github.com/manual/gh_auth_login](https://cli.github.com/manual/gh_auth_login)
+
+```
+Authenticate with a GitHub host.
+
+The default authentication mode is a web-based browser flow.
+
+Alternatively, pass in a token on standard input by using --with-token. The minimum required scopes for the token are: "repo", "read:org".
+```
 
 ## Decision
 
