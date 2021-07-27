@@ -12,7 +12,7 @@ Weave GitOps needs to be able to do read and write operations against three diff
 
 - The git repository for an Application
 - The repository "host" (Github, Gitlab, Bitbucket, etc), known as a Git Provider, for an Application
-- The Kubernetes cluster where we want to run the Application
+- The Kubernetes cluster where we want to run the Application. (**Note: this doc does not seek to address K8s authn/authz. That will need to be a separate ADR)**
 
 Each of these back ends have different authn/authz requirements:
 
@@ -31,7 +31,7 @@ Operations such as creating pull requests (or "merge requests" in the case of Gi
   - This approach requires a `CLIENT_SECRET` be embedded in the binary, thus exposing the secret leaking by decompiling the binary
 - [Github Device Flow](https://docs.github.com/en/developers/apps/building-github-apps/identifying-and-authorizing-users-for-github-apps#device-flow)
   - This approach doesn't require a `CLIENT_SECRET` or callback page
-  - Probably won't work for a UI
+  - We can do these steps from a browser if we feel that is the best UX
 - [Gitlab Proof Key for Code Exchange (PKCE) Flow](https://docs.gitlab.com/ee/api/oauth2.html#authorization-code-with-proof-key-for-code-exchange-pkce)
   - Note that the documentation explicitly calls out that PKCE is optimal for client-side apps without a public cloud server (our use case)
   - The documentation example specifies a `CLIENT_SECRET`, but that may be a documentation bug. A `CLIENT_SECRET` should not be necessary
@@ -73,6 +73,12 @@ In the case of the CLI, we can utilize a short-lived browser session that will r
 UI auth will work in a similar way, with a more straight-forward set of steps:
 
 ![UI Auth Diagram](ui_auth.svg)
+
+TLDR:
+
+1. The user does OAuth with their Git Provider
+2. We use the resulting access_token to push a Deploy Key to the repository (giving us `git` permissions)
+3. We create a pull request for the repository via the Git Provider HTTP API
 
 For browser security, we will convert the Git Provider OAuth token to a JSON Web Token (JWT) to protect against Cross-site Scripting (XSS) attacks. The encrypted JWT will allow a malicious script to authenticate with the Weave GitOps API only, whereas passing the unencrypted OAuth token to the browser would allow a malicious script to authenticate with the Github API.
 
