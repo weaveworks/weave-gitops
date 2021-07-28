@@ -104,12 +104,15 @@ do_curl_tarball() {
     local url="${2}"
     local default_path="${HOME}/.wego/bin"
     local path="${3:-${default_path}}"/"${cmd}"
+    local checksum_path=${4}
 
     dldir="$(mktempdir)"
     mkdir "${dldir}/${cmd}"
     do_curl "${dldir}/${cmd}.tar.gz" "${url}"
-    ## need to validate flux here because unpacking the tar changes the hash
-    validate_flux "${path}.txt" "${dldir}/${cmd}.tar.gz"
+    if ! ${checksums_path} == ""; then 
+        ## need to validate file here because unpacking the tar changes the hash
+        validate_file "${checksum_path}" "${dldir}/${cmd}.tar.gz" "${cmd}"
+    fi
     tar -C "${dldir}/${cmd}" -xvf "${dldir}/${cmd}.tar.gz"
     mv "${dldir}/${cmd}/${cmd}" "${path}"
     rm -rf "${dldir}"
@@ -128,20 +131,12 @@ do_curl_tarball_with_path() {
     mv "${dldir}/${cmd}/${url_and_path[1]}" "${path}/${cmd}"
 }
 
-do_curl_txt() {
-    local cmd="${1}"
-    local url="${2}"
-    local default_path="${HOME}/.wego/bin"
-    local path="${3:-${default_path}}"/"${cmd}"
-
-    do_curl "${path}.txt" "${url}"
-}
-
-validate_flux() {
+validate_file() {
     local checksums_path="${1}"
-    local flux_path="${2}"
-    if ! grep $(openssl dgst -sha256 ${flux_path} | cut -d ' ' -f 2) ${checksums_path}; then
-        echo flux binary not valid
+    local file_path="${2}"
+    local cmd="${3}"
+    if ! grep $(openssl dgst -sha256 ${file_path} | cut -d ' ' -f 2) ${checksums_path}; then
+        echo ${cmd} is not a valid file
         exit 1
     fi
 }

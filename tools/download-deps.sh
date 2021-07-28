@@ -82,12 +82,13 @@ download_dependency() {
     local custom_bindir
     custom_bindir=$(run_stoml bindir)
     mkdir -p ${custom_bindir:-$bin_dir}
+    local checksum_path
     echo $tarpath
     if check_url "${txtpath}"; then
         url_and_path="${txtpath}"
-        fetch=do_curl_txt
+        checksum_path="${custom_bindir}"/"${tool}_checksum.txt"
 
-        "${fetch}" "${tool}" "${url_and_path}" "${custom_bindir:-$bin_dir}"
+        do_curl "${checksum_path}" "${url_and_path}"
     fi
 
     if check_url "${binarypath}"; then
@@ -104,7 +105,7 @@ download_dependency() {
         exit 1
     fi
 
-    "${fetch}" "${tool}" "${url_and_path}" "${custom_bindir:-$bin_dir}"
+    "${fetch}" "${tool}" "${url_and_path}" "${custom_bindir:-$bin_dir}" "${checksum_path}"
 }
 
 # Don't use $RELEASE_GOOS here, should be whatever is running the script.
