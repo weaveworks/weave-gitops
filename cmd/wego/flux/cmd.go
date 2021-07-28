@@ -24,19 +24,15 @@ var StatusCmd = &cobra.Command{
 	Run:   runStatusCmd,
 }
 
-var fluxClient *flux.FluxClient
-
-var osysClient *osys.OsysClient
-
 func init() {
 	Cmd.AddCommand(StatusCmd)
-	cliRunner := &runner.CLIRunner{}
-	osysClient = osys.New()
-	fluxClient = flux.New(osysClient, cliRunner)
 }
 
 // Example flux command with flags 'wego flux -- install -h'
 func runCmd(cmd *cobra.Command, args []string) {
+	cliRunner := &runner.CLIRunner{}
+	osysClient := osys.New()
+	fluxClient := flux.New(osysClient, cliRunner)
 	exePath, err := fluxClient.GetExePath()
 	if err != nil {
 		fmt.Fprintf(osysClient.Stderr(), "Error: %v\n", err)
@@ -51,6 +47,9 @@ func runCmd(cmd *cobra.Command, args []string) {
 }
 
 func runStatusCmd(cmd *cobra.Command, args []string) {
+	cliRunner := &runner.CLIRunner{}
+	osysClient := osys.New()
+	fluxClient := flux.New(osysClient, cliRunner)
 	status, err := fluxClient.GetLatestStatusAllNamespaces()
 	if err != nil {
 		fmt.Fprintf(osysClient.Stderr(), "Error: %v\n", err)

@@ -295,6 +295,7 @@ var _ = Describe("Remove", func() {
 
 				info, err := runAddAndCollectInfo(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
+
 				Expect(checkResults(info)).To(Succeed())
 			})
 
