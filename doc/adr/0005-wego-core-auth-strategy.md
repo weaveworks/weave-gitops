@@ -6,7 +6,7 @@ Date: 2021-07-22
 
 Proposal
 
-## Context
+## Problem
 
 Weave GitOps needs to be able to do read and write operations against three different "back ends":
 
@@ -27,13 +27,23 @@ These deploy keys are outside the scope of a git repo, so we will need a higher 
 Operations such as creating pull requests (or "merge requests" in the case of Gitlab), adding deploy keys, and retrieving user data will need to be completed via HTTP requests. Each major Git Provider has some form of OAuth flow:
 
 - [Github Device Flow](https://docs.github.com/en/developers/apps/building-github-apps/identifying-and-authorizing-users-for-github-apps#device-flow)
-  - This approach doesn't require a `CLIENT_SECRET` or callback page
-  - We can do these steps from a browser if we feel that is the best UX
+
+  - This approach doesn't require a `client_secret` or callback page
+  - We can do these steps from a browser
+  - Access tokens cannot be refreshed, and expire in a matter of minutes (GitHub docs suggest 900 seconds, which may be configurable)
+  - Users will need to do this often if using GitHub
+
 - [Gitlab Proof Key for Code Exchange (PKCE) Flow](https://docs.gitlab.com/ee/api/oauth2.html#authorization-code-with-proof-key-for-code-exchange-pkce)
   - Note that the documentation explicitly calls out that PKCE is optimal for client-side apps without a public cloud server (our use case)
-  - The documentation example specifies a `CLIENT_SECRET`, but that may be a documentation bug. A `CLIENT_SECRET` should not be necessary
+  - The documentation example specifies a `client_secret`, but that may be a documentation bug. A `client_secret` should not be necessary
 - [Bitbucket Implicit Grant](https://developer.atlassian.com/cloud/bitbucket/oauth-2/#2--implicit-grant--4-2-)
-  - No `CLIENT_SECRET` required here
+
+  - No `client_secret` required here
+
+- [Github Web Application Flow](https://docs.github.com/en/developers/apps/building-github-apps/identifying-and-authorizing-users-for-github-apps#web-application-flow)
+  - Note: this flow **does** require a `client_secret`, so to utilize it, users will need to create their own GitHub app (`client_id` and `client_secret` pair), then secure and reveal those to Weave GitOps as environment variables.
+  - This is considered the "advanced" use case for users who wish to install Weave GitOps as a permanent resident in the cluster.
+  - See the Design -> Advanced Use Case section below
 
 ### Kubernetes Cluster
 
@@ -49,7 +59,7 @@ Each of the Git Providers listed above support some sort of "personal access tok
 
 For this reason, we want to utilize the more short-lived OAuth tokens to avoid exposing a personal access token. We also don't want to persist these tokens longer than we have to.
 
-In addition, flows that require a `CLIENT_SECRET` will require us to embed it in the binary, which leaves us open to exposing it via decompilation.
+In addition, flows that require a `client_secret` will require us to embed it in the binary, which leaves us open to exposing it via decompilation.
 
 ### UX Concerns
 
@@ -79,11 +89,33 @@ TLDR:
 
 For browser security, we will convert the Git Provider OAuth token to a JSON Web Token (JWT) to protect against Cross-site Scripting (XSS) attacks. The encrypted JWT will allow a malicious script to authenticate with the Weave GitOps API only, whereas passing the unencrypted OAuth token to the browser would allow a malicious script to authenticate with the Github API.
 
+In the intitial implementation, the key for encrypting and decrypting the JWT will be read as an environment variable. If the environment variable is not present, Weave GitOps will randomly generate a key on startup and store it in memory; this assumes a single-tenant installation, and that every time Weave GitOps starts up, users will need to re-authenticate.
+
 Additionally, we do not plan on adding third-party scripts to the Weave GitOps UI to minimize the surface area for XSS attacks. This does NOT, however, account for NPM modules or other dependencies that we add to our app at build time.
 
-CI will inject any sensitive information into the binary to avoid keeping data in version control in a public repo. We are still susceptible to leaking data via decompilation.
+In any of the documented flows from the Git Provider section, the `client_id` will be publicly exposed on every OAuth request via URL parameters. One possible attack vectory for exploiting the `client_id` will be to saturate the Git Provider and fill a given `client_id` request quota, effectively doing a denial-of-service attack. Luckily, it appears that Git Providers do their rate limiting on a per user or per IP Address basis:
 
-## Prior Art
+[Github docs on user-to-server rate limits](https://docs.github.com/en/developers/apps/building-github-apps/rate-limits-for-github-apps#normal-user-to-server-rate-limits)
+
+[Gitlab.com docs on rate limits](https://docs.gitlab.com/ee/user/gitlab_com/index.html#gitlabcom-specific-rate-limits)
+
+[Bitbucket docs (see "How calls are measured" section)](https://support.atlassian.com/bitbucket-cloud/docs/api-request-limits/)
+
+### Advanced Use Case
+
+Most users who want to use Weave GitOps in a production setting will want to set up an OAuth 2.0 Authorization Code Grant flow, as this provides the best user experience\*. Weave GitOps will allow for configuration of such a flow by consuming environment variables supplied by the user. Users will need to register an application with their desired Git Provider supply their own `client_id` and `client_secret`, effectively taking the storing of those values out of the purview of Weave GitOps.
+
+\*Access tokens from the Authorization Code Grant can be refreshed, so the user needs to complete the OAuth flow less often.
+
+### Alternatives Considered
+
+We considered these alternative impelmentations when designing our solution:
+
+- Store a Git Provider personal access token in the cluster as a secret: we decided against this approach as it would leave a very priveleged credential inside a running cluster for an indefinite period of time (forever).
+
+- Use a public-facing cloud endpoint to handle OAuth callbacks and `client_secret` security: users might not want us "phoning home", and we are not in a position to implement and maintain new cloud services.
+
+### Prior Art
 
 This authentication approach is inspired by other CLI tools that have very smooth user experiences. For example, the `gcloud` CLI for Google Cloud Platform utilizes the browser to authenciate the user:
 
