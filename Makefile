@@ -99,7 +99,7 @@ coverage/lcov.info:
 	npm run test -- --coverage
 
 # Golang gocov data. Not compatible with coveralls at this point.
-coverage.out:
+coverage.out: dependencies
 	go get github.com/ory/go-acc
 	go-acc --ignore fakes,acceptance,pkg/api,api -o coverage.out ./... -- -v --timeout=496s -tags test
 	@go mod tidy
@@ -120,7 +120,7 @@ proto-deps:
 
 proto:
 	buf generate
-# 	This job is complaining about a missing plugin and error-ing out
+#	This job is complaining about a missing plugin and error-ing out
 #	oapi-codegen -config oapi-codegen.config.yaml api/applications/applications.swagger.json
 
 api-dev:

@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/go-checkpoint"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 
 	"github.com/spf13/cobra"
@@ -73,6 +74,7 @@ func CheckpointParamsWithFlags(params *checkpoint.CheckParams, c *cobra.Command)
 }
 func CheckFluxVersion() (string, error) {
 	cliRunner := &runner.CLIRunner{}
-	fluxClient := flux.New(cliRunner)
+	osysClient := osys.New()
+	fluxClient := flux.New(osysClient, cliRunner)
 	return fluxClient.GetVersion()
 }
