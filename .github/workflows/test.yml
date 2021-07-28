@@ -84,7 +84,7 @@ jobs:
     - name: Set up kubebuilder
       uses: fluxcd/pkg/actions/kubebuilder@main
     - name: Set up flux dir but let dependencies install flux
-      run: mkdir -p pkg/flux/bin && tools/download-deps.sh tools/dependencies.toml
+      run: mkdir -p pkg/flux/bin && tools/download-deps.sh $PWD/tools/dependencies.toml
     - name: Unit Tests with Coverage
       run: make coverage/merged.lcov
       env:
