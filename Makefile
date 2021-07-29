@@ -47,7 +47,8 @@ install: bin bin/$(BINARY_NAME)_ui
 
 # Clean up images and binaries
 clean:
-	rm -f bin/wego pkg/flux/bin/flux
+	rm -f bin/wego
+	rm -rf pkg/flux/bin/
 	rm -rf cmd/ui/dist
 	rm -rf coverage
 	rm -rf node_modules
