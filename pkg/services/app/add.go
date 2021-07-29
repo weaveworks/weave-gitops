@@ -46,16 +46,16 @@ const (
 	ConfigTypeUserRepo ConfigType = ""
 	ConfigTypeNone     ConfigType = "NONE"
 
-	ConfigModeClusterOnly  = ConfigMode("clusterOnly")
-	ConfigModeUserRepo     = ConfigMode("userRepo")
-	ConfigModeExternalRepo = ConfigMode("externalRepo")
+	ConfigModeClusterOnly  ConfigMode = "clusterOnly"
+	ConfigModeUserRepo     ConfigMode = "userRepo"
+	ConfigModeExternalRepo ConfigMode = "externalRepo"
 
-	ResourceKindApplication    = ResourceKind("Application")
-	ResourceKindSecret         = ResourceKind("Secret")
-	ResourceKindGitRepository  = ResourceKind("GitRepository")
-	ResourceKindHelmRepository = ResourceKind("HelmRepository")
-	ResourceKindKustomization  = ResourceKind("Kustomization")
-	ResourceKindHelmRelease    = ResourceKind("HelmRelease")
+	ResourceKindApplication    ResourceKind = "Application"
+	ResourceKindSecret         ResourceKind = "Secret"
+	ResourceKindGitRepository  ResourceKind = "GitRepository"
+	ResourceKindHelmRepository ResourceKind = "HelmRepository"
+	ResourceKindKustomization  ResourceKind = "Kustomization"
+	ResourceKindHelmRelease    ResourceKind = "HelmRelease"
 
 	WeGOAppIdentifierLabelKey = "weave-gitops.weave.works/app-identifier"
 )
@@ -471,23 +471,23 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, secretRef str
 }
 
 func (a *App) commitAndPush(filters ...func(string) bool) error {
-	a.logger.Actionf("Committing and pushing wego resources for application")
+	a.logger.Actionf("Committing and pushing wego updates for application")
 
 	_, err := a.git.Commit(git.Commit{
 		Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
 		Message: "Add App manifests",
 	}, filters...)
 	if err != nil && err != git.ErrNoStagedFiles {
-		return fmt.Errorf("failed to commit sync manifests: %w", err)
+		return fmt.Errorf("failed to update the repository: %w", err)
 	}
 
 	if err == nil {
-		a.logger.Actionf("Pushing app manifests to repository")
+		a.logger.Actionf("Pushing app changes to repository")
 		if err = a.git.Push(context.Background()); err != nil {
-			return fmt.Errorf("failed to push manifests: %w", err)
+			return fmt.Errorf("failed to push changes: %w", err)
 		}
 	} else {
-		a.logger.Successf("App manifests are up to date")
+		a.logger.Successf("App is up to date")
 	}
 
 	return nil

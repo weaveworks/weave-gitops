@@ -60,6 +60,7 @@ func populateAppRepo() (string, error) {
 	return dir, nil
 }
 
+// Track all resources created during a "wego app add" so that they can be looked up by "kind" and "name"
 func storeCreatedResource(manifestData []byte) error {
 	manifests := bytes.Split(manifestData, []byte("\n---\n"))
 	for _, manifest := range manifests {
@@ -82,10 +83,14 @@ func storeCreatedResource(manifestData []byte) error {
 	return nil
 }
 
+// Remove all tracking for a resource based on its path in the repository
 func removeCreatedResourceByPath(path string) error {
-	return removeCreatedResource(manifestsByPath[path])
+	manifest := manifestsByPath[path]
+	delete(manifestsByPath, path)
+	return removeCreatedResource(manifest)
 }
 
+// Remove tracking for a resource given its manifest
 func removeCreatedResource(manifestData []byte) error {
 	manifests := bytes.Split(manifestData, []byte("\n---\n"))
 	for _, manifest := range manifests {
@@ -107,11 +112,15 @@ func removeCreatedResource(manifestData []byte) error {
 	return nil
 }
 
+// Store the path of a resource tracked in the repo
+// and associate its manifest with the path for later lookup
 func storeGOATPath(path string, manifest []byte) {
 	goatPaths[path] = true
 	manifestsByPath[path] = manifest
 }
 
+// Stop tracking a stored path; used to ensure after calling remove
+// that all paths have been handled
 func removeGOATPath(path string) error {
 	if !goatPaths[path] {
 		return fmt.Errorf("goat path: %s not found in repository", path)
@@ -121,6 +130,7 @@ func removeGOATPath(path string) error {
 	return nil
 }
 
+// Set up a flux binary in a temp dir that will be used to generate flux manifests
 func setupFlux() error {
 	dir, err := ioutil.TempDir("", "a-home-dir")
 	if err != nil {
@@ -163,6 +173,7 @@ func setupFlux() error {
 	return nil
 }
 
+// Run 'wego app add' and gather the resources we expect to be generated
 func runAddAndCollectInfo() error {
 	params, err := appSrv.(*App).updateParametersIfNecessary(addParams)
 	if err != nil {
@@ -181,6 +192,8 @@ func runAddAndCollectInfo() error {
 	return nil
 }
 
+// Make sure that each of the expected resources was created and the expected files were
+// written to the repo
 func checkAddResults() error {
 	for _, res := range appResources {
 		resources := createdResources[res.kind]
@@ -211,6 +224,7 @@ func checkAddResults() error {
 	return nil
 }
 
+// Ensure that every resource that was written to the repository gets removed
 func checkRemoveResults() error {
 	if len(goatPaths) > 0 {
 		return fmt.Errorf("unexpected paths: %#+v", goatPaths)
@@ -267,11 +281,13 @@ var _ = Describe("Remove", func() {
 		var _ = BeforeEach(func() {
 			Expect(setupFlux()).To(Succeed())
 
+			// Track the resources added to the cluster via files added to the repository
 			gitClient.WriteStub = func(path string, manifest []byte) error {
 				storeGOATPath(path, manifest)
 				return storeCreatedResource(manifest)
 			}
 
+			// Track the resources added directly to the cluster
 			kubeClient.ApplyStub = func(manifest []byte, namespace string) ([]byte, error) {
 				if err := storeCreatedResource(manifest); err != nil {
 					return nil, err

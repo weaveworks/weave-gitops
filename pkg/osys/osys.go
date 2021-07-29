@@ -52,6 +52,11 @@ func (o *OsysClient) Setenv(envVar, value string) error {
 	return os.Setenv(envVar, value)
 }
 
+// The following three functions are used by both "app add" and "app remove".
+// They are here rather than in "utils" so they can use the (potentially mocked)
+// local versions of UserHomeDir, LookupEnv, and Stdin and so that they can also
+// be mocked (e.g. we might want to mock the private key password handing).
+
 func (o *OsysClient) GetGitProviderToken() (string, error) {
 	providerToken, found := o.LookupEnv("GITHUB_TOKEN")
 	if !found {

@@ -12,11 +12,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-// type AutomationManifestPaths struct { // source for automation isn't currently stored
-//  AppDirAutomationPath    string
-//  TargetDirAutomationPath string
-// }
-
 type RemoveParams struct {
 	Name      string
 	Namespace string
@@ -27,6 +22,7 @@ type RemoveParams struct {
 	GitProviderToken string
 }
 
+// Remove removes the Weave GitOps automation for an application
 func (a *App) Remove(params RemoveParams) error {
 	ctx := context.Background()
 
@@ -40,10 +36,17 @@ func (a *App) Remove(params RemoveParams) error {
 		return err
 	}
 
+	// Find all resources created when adding this app
 	info := getAppResourceInfo(*application, clusterName)
 	resources := info.clusterResources()
 
-	remover, err := a.cloneRepo(info.Spec.ConfigURL, info.Spec.Branch, params.DryRun)
+	cloneURL := info.Spec.ConfigURL
+
+	if cloneURL == string(ConfigTypeUserRepo) {
+		cloneURL = info.Spec.URL
+	}
+
+	remover, err := a.cloneRepo(cloneURL, info.Spec.Branch, params.DryRun)
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)
 	}
@@ -55,12 +58,16 @@ func (a *App) Remove(params RemoveParams) error {
 			a.logger.Actionf("Removing manifests from disk")
 
 			for _, resourceRef := range resources {
-				if resourceRef.repositoryPath != "" {
-					a.git.Remove(resourceRef.repositoryPath)
+				if resourceRef.repositoryPath != "" { // Some of the automation doesn't get stored
+					if err := a.git.Remove(resourceRef.repositoryPath); err != nil {
+						return err
+					}
 				}
 			}
 
-			a.commitAndPush()
+			if err := a.commitAndPush(); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -75,7 +82,8 @@ func dirExists(d string) bool {
 	return info.IsDir()
 }
 
-// findAppManifests locates all manifests associated with a specific application within a repository
+// findAppManifests locates all manifests associated with a specific application within a repository;
+// only used when "RemoveWorkload" is specified
 func findAppManifests(application wego.Application, repoDir string) ([][]byte, error) {
 	root := filepath.Join(repoDir, application.Spec.Path)
 	if !dirExists(root) {
