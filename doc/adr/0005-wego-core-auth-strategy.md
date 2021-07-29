@@ -34,9 +34,11 @@ Operations such as creating pull requests (or "merge requests" in the case of Gi
   - Users will need to do this often if using GitHub
 
 - [Gitlab Proof Key for Code Exchange (PKCE) Flow](https://docs.gitlab.com/ee/api/oauth2.html#authorization-code-with-proof-key-for-code-exchange-pkce)
+
   - Note that the documentation explicitly calls out that PKCE is optimal for client-side apps without a public cloud server (our use case)
   - The documentation example specifies a `client_secret`, but that may be a documentation bug. A `client_secret` should not be necessary
-- [Bitbucket Implicit Grant](https://developer.atlassian.com/cloud/bitbucket/oauth-2/#2--implicit-grant--4-2-)
+
+- [Bitbucket Implicit Grant](https://developer.atlassian.com/cloud/bitbucket/oauth-2/#2--implicit-grant--4-2-)s
 
   - No `client_secret` required here
 
@@ -51,7 +53,7 @@ All operations will need to go through an API server that is installed on the cl
 
 - Create `Namespace` resources
 - Create `Application`, `Source`, and `Kustomize|Helm` resources
-- Read Kubernetes objects in the `wego-system` namespace
+- Create, Read, Update, List, and Destroy privileges Kubernetes objects in the `wego-system` namespace
 
 ### Security Concerns
 
@@ -59,7 +61,7 @@ Each of the Git Providers listed above support some sort of "personal access tok
 
 For this reason, we want to utilize the more short-lived OAuth tokens to avoid exposing a personal access token. We also don't want to persist these tokens longer than we have to.
 
-In addition, flows that require a `client_secret` will require us to embed it in the binary, which leaves us open to exposing it via decompilation.
+In addition, flows that require a `client_secret` would require us to embed it in the binary, which leaves us open to exposing it via decompilation. For that reason, we will NOT be implmenting the Access Code Grant flow for the basic use case (see Design -> Advanced Use Case for more info).
 
 ### UX Concerns
 
@@ -73,7 +75,7 @@ Since most modern Git Providers will support a form of browser-based OAuth, **we
 
 In the case of the CLI, we can utilize a short-lived browser session that will recieve the OAuth callback and pass the token to the CLI.
 
-**Note that we can skip the OAuth portion of the flow if a user provides a `--token=<some value>` flag to the CLI command:**
+**Note that we can skip the OAuth portion of the flow we detect a Weave Gitops-specific access_token environment variable. For example, if `WEGO_GITHUB_ACCESS_TOKEN` or `WEGO_GITLAB_ACCESS_TOKEN` is present in the environment, we will use that token.**
 
 ![CLI Auth Diagram](cli_auth.svg)
 
