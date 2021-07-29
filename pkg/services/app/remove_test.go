@@ -2,6 +2,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -14,16 +15,25 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/osys/osysfakes"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/yaml"
 )
 
+var removeParams RemoveParams
+
 var application wego.Application
+
+var info *AppResourceInfo
+
+var appResources []ResourceRef
 
 var fluxDir string
 
-var createdResources map[string]map[string]bool
+var createdResources map[ResourceKind]map[string]bool
 
 var goatPaths map[string]bool
+
+var manifestsByPath map[string][]byte
 
 func populateAppRepo() (string, error) {
 	dir, err := ioutil.TempDir("", "an-app-dir")
@@ -60,19 +70,55 @@ func storeCreatedResource(manifestData []byte) error {
 		}
 
 		metamap := manifestMap["metadata"].(map[string]interface{})
-		kind := manifestMap["kind"].(string)
+		kind := ResourceKind(manifestMap["kind"].(string))
+		name := metamap["name"].(string)
 
 		if createdResources[kind] == nil {
 			createdResources[kind] = map[string]bool{}
 		}
 
-		createdResources[kind][metamap["name"].(string)] = true
+		createdResources[kind][name] = true
 	}
 	return nil
 }
 
-func storeGOATPath(path string) {
+func removeCreatedResourceByPath(path string) error {
+	return removeCreatedResource(manifestsByPath[path])
+}
+
+func removeCreatedResource(manifestData []byte) error {
+	manifests := bytes.Split(manifestData, []byte("\n---\n"))
+	for _, manifest := range manifests {
+		manifestMap := map[string]interface{}{}
+
+		if err := yaml.Unmarshal(manifest, &manifestMap); err != nil {
+			return err
+		}
+
+		metamap := manifestMap["metadata"].(map[string]interface{})
+		kind := ResourceKind(manifestMap["kind"].(string))
+
+		if createdResources[kind] == nil {
+			return fmt.Errorf("expected %s resources to be present", kind)
+		}
+
+		delete(createdResources[kind], metamap["name"].(string))
+	}
+	return nil
+}
+
+func storeGOATPath(path string, manifest []byte) {
 	goatPaths[path] = true
+	manifestsByPath[path] = manifest
+}
+
+func removeGOATPath(path string) error {
+	if !goatPaths[path] {
+		return fmt.Errorf("goat path: %s not found in repository", path)
+	}
+
+	delete(goatPaths, path)
+	return nil
 }
 
 func setupFlux() error {
@@ -117,19 +163,25 @@ func setupFlux() error {
 	return nil
 }
 
-func runAddAndCollectInfo(addParams AddParams) (*AppResourceInfo, error) {
+func runAddAndCollectInfo() error {
 	params, err := appSrv.(*App).updateParametersIfNecessary(addParams)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if err := appSrv.Add(params); err != nil {
-		return nil, err
+
+	addParams = params
+	application = makeWegoApplication(addParams)
+	info = getAppResourceInfo(application, "test-cluster")
+	appResources = info.clusterResources()
+
+	if err := appSrv.Add(addParams); err != nil {
+		return err
 	}
-	return getAppResourceInfo(makeWegoApplication(params), "test-cluster"), nil
+
+	return nil
 }
 
-func checkResults(info *AppResourceInfo) error {
-	appResources := info.clusterResources()
+func checkAddResults() error {
 	for _, res := range appResources {
 		resources := createdResources[res.kind]
 		if len(resources) == 0 {
@@ -140,8 +192,12 @@ func checkResults(info *AppResourceInfo) error {
 
 	for kind, leftovers := range createdResources {
 		if len(leftovers) > 0 {
-			return fmt.Errorf("unexpected %s resources: %#+v\n", kind, leftovers)
+			return fmt.Errorf("unexpected %s resources: %#+v", kind, leftovers)
 		}
+	}
+
+	if len(goatPaths) != len(info.clusterResourcePaths()) {
+		return fmt.Errorf("expected %d goat paths, found: %d", len(info.clusterResourcePaths()), len(goatPaths))
 	}
 
 	for _, path := range info.clusterResourcePaths() {
@@ -149,7 +205,24 @@ func checkResults(info *AppResourceInfo) error {
 	}
 
 	if len(goatPaths) > 0 {
-		return fmt.Errorf("unexpected paths: %#+v\n", goatPaths)
+		return fmt.Errorf("unexpected paths: %#+v", goatPaths)
+	}
+
+	return nil
+}
+
+func checkRemoveResults() error {
+	if len(goatPaths) > 0 {
+		return fmt.Errorf("unexpected paths: %#+v", goatPaths)
+	}
+
+	for _, res := range appResources {
+		if res.repositoryPath != "" {
+			resources := createdResources[res.kind]
+			if resources[res.name] {
+				return fmt.Errorf("expected %s named %s to be removed from the repository", res.kind, res.name)
+			}
+		}
 	}
 
 	return nil
@@ -195,7 +268,7 @@ var _ = Describe("Remove", func() {
 			Expect(setupFlux()).To(Succeed())
 
 			gitClient.WriteStub = func(path string, manifest []byte) error {
-				storeGOATPath(path)
+				storeGOATPath(path, manifest)
 				return storeCreatedResource(manifest)
 			}
 
@@ -223,36 +296,31 @@ var _ = Describe("Remove", func() {
 				}
 
 				goatPaths = map[string]bool{}
-				createdResources = map[string]map[string]bool{}
+				createdResources = map[ResourceKind]map[string]bool{}
+				manifestsByPath = map[string][]byte{}
 			})
 
 			It("collects cluster resources for helm chart from helm repo with configURL = NONE", func() {
 				addParams.Chart = "loki"
 
-				info, err := runAddAndCollectInfo(addParams)
-				Expect(err).ShouldNot(HaveOccurred())
-
-				Expect(checkResults(info)).To(Succeed())
+				Expect(runAddAndCollectInfo()).To(Succeed())
+				Expect(checkAddResults()).To(Succeed())
 			})
 
 			It("collects cluster resources for helm chart from git repo with configURL = NONE", func() {
 				addParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
 				addParams.Path = "./"
 
-				info, err := runAddAndCollectInfo(addParams)
-				Expect(err).ShouldNot(HaveOccurred())
-
-				Expect(checkResults(info)).To(Succeed())
+				Expect(runAddAndCollectInfo()).To(Succeed())
+				Expect(checkAddResults()).To(Succeed())
 			})
 
 			It("collects cluster resources for helm chart from helm repo with configURL = <url>", func() {
 				addParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
 				addParams.Chart = "loki"
 
-				info, err := runAddAndCollectInfo(addParams)
-				Expect(err).ShouldNot(HaveOccurred())
-
-				Expect(checkResults(info)).To(Succeed())
+				Expect(runAddAndCollectInfo()).To(Succeed())
+				Expect(checkAddResults()).To(Succeed())
 			})
 
 			It("collects cluster resources for helm chart from git repo with configURL = <url>", func() {
@@ -260,10 +328,8 @@ var _ = Describe("Remove", func() {
 				addParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
 				addParams.Path = "./"
 
-				info, err := runAddAndCollectInfo(addParams)
-				Expect(err).ShouldNot(HaveOccurred())
-
-				Expect(checkResults(info)).To(Succeed())
+				Expect(runAddAndCollectInfo()).To(Succeed())
+				Expect(checkAddResults()).To(Succeed())
 			})
 		})
 
@@ -280,33 +346,162 @@ var _ = Describe("Remove", func() {
 				}
 
 				goatPaths = map[string]bool{}
-				createdResources = map[string]map[string]bool{}
+				createdResources = map[ResourceKind]map[string]bool{}
+				manifestsByPath = map[string][]byte{}
 			})
 
 			It("collects cluster resources for non-helm app with configURL = NONE", func() {
-				info, err := runAddAndCollectInfo(addParams)
-				Expect(err).ShouldNot(HaveOccurred())
-
-				Expect(checkResults(info)).To(Succeed())
+				Expect(runAddAndCollectInfo()).To(Succeed())
+				Expect(checkAddResults()).To(Succeed())
 			})
 
 			It("collects cluster resources for non-helm app configURL = ''", func() {
 				addParams.AppConfigUrl = ""
 
-				info, err := runAddAndCollectInfo(addParams)
-				Expect(err).ShouldNot(HaveOccurred())
-
-				Expect(checkResults(info)).To(Succeed())
+				Expect(runAddAndCollectInfo()).To(Succeed())
+				Expect(checkAddResults()).To(Succeed())
 			})
 
 			It("collects cluster resources for non-helm app with configURL = <url>", func() {
 				addParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
 				addParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
 
-				info, err := runAddAndCollectInfo(addParams)
-				Expect(err).ShouldNot(HaveOccurred())
+				Expect(runAddAndCollectInfo()).To(Succeed())
+				Expect(checkAddResults()).To(Succeed())
+			})
+		})
+	})
 
-				Expect(checkResults(info)).To(Succeed())
+	Context("Removing resources from cluster", func() {
+		var _ = BeforeEach(func() {
+			Expect(setupFlux()).To(Succeed())
+
+			gitClient.WriteStub = func(path string, manifest []byte) error {
+				storeGOATPath(path, manifest)
+				return storeCreatedResource(manifest)
+			}
+
+			gitClient.RemoveStub = func(path string) error {
+				if err := removeGOATPath(path); err != nil {
+					return err
+				}
+
+				return removeCreatedResourceByPath(path)
+			}
+
+			kubeClient.ApplyStub = func(manifest []byte, namespace string) ([]byte, error) {
+				if err := storeCreatedResource(manifest); err != nil {
+					return nil, err
+				}
+				return []byte(""), nil
+			}
+
+			kubeClient.GetApplicationStub = func(_ context.Context, name types.NamespacedName) (*wego.Application, error) {
+				return &application, nil
+			}
+		})
+
+		var _ = AfterEach(func() {
+			os.RemoveAll(fluxDir)
+		})
+
+		Context("Removing resources for helm charts", func() {
+			var _ = BeforeEach(func() {
+				addParams = AddParams{
+					Url:            "https://charts.kube-ops.io",
+					Branch:         "main",
+					DeploymentType: "helm",
+					Namespace:      "wego-system",
+					AppConfigUrl:   "NONE",
+					AutoMerge:      true,
+				}
+
+				removeParams = RemoveParams{
+					Name:      "loki",
+					AutoMerge: true,
+				}
+
+				goatPaths = map[string]bool{}
+				createdResources = map[ResourceKind]map[string]bool{}
+			})
+
+			It("removes cluster resources for helm chart from helm repo with configURL = NONE", func() {
+				addParams.Chart = "loki"
+
+				Expect(runAddAndCollectInfo()).To(Succeed())
+				Expect(appSrv.Remove(removeParams)).To(Succeed())
+				Expect(checkRemoveResults()).To(Succeed())
+			})
+
+			It("removes cluster resources for helm chart from git repo with configURL = NONE", func() {
+				addParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
+				addParams.Path = "./"
+
+				Expect(runAddAndCollectInfo()).To(Succeed())
+				Expect(appSrv.Remove(removeParams)).To(Succeed())
+				Expect(checkRemoveResults()).To(Succeed())
+			})
+
+			It("removes cluster resources for helm chart from helm repo with configURL = <url>", func() {
+				addParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
+				addParams.Chart = "loki"
+
+				Expect(runAddAndCollectInfo()).To(Succeed())
+				Expect(appSrv.Remove(removeParams)).To(Succeed())
+				Expect(checkRemoveResults()).To(Succeed())
+			})
+
+			It("removes cluster resources for helm chart from git repo with configURL = <url>", func() {
+				addParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
+				addParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
+				addParams.Path = "./"
+
+				Expect(runAddAndCollectInfo()).To(Succeed())
+				Expect(appSrv.Remove(removeParams)).To(Succeed())
+				Expect(checkRemoveResults()).To(Succeed())
+			})
+
+			Context("Removing resources for non-helm apps", func() {
+				var _ = BeforeEach(func() {
+					addParams = AddParams{
+						Url:            "ssh://git@github.com/user/wego-fork-test.git",
+						Branch:         "main",
+						DeploymentType: "kustomize",
+						Namespace:      "wego-system",
+						Path:           "./",
+						AppConfigUrl:   "NONE",
+						AutoMerge:      true,
+					}
+
+					removeParams = RemoveParams{
+						Name:      "thor",
+						AutoMerge: true,
+					}
+
+					goatPaths = map[string]bool{}
+					createdResources = map[ResourceKind]map[string]bool{}
+				})
+
+				It("removes cluster resources for non-helm app with configURL = NONE", func() {
+					Expect(runAddAndCollectInfo()).To(Succeed())
+					Expect(appSrv.Remove(removeParams)).To(Succeed())
+					Expect(checkRemoveResults()).To(Succeed())
+				})
+
+				It("removes cluster resources for non-helm app configURL = ''", func() {
+					Expect(runAddAndCollectInfo()).To(Succeed())
+					Expect(appSrv.Remove(removeParams)).To(Succeed())
+					Expect(checkRemoveResults()).To(Succeed())
+				})
+
+				It("removes cluster resources for non-helm app with configURL = <url>", func() {
+					addParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
+					addParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
+
+					Expect(runAddAndCollectInfo()).To(Succeed())
+					Expect(appSrv.Remove(removeParams)).To(Succeed())
+					Expect(checkRemoveResults()).To(Succeed())
+				})
 			})
 		})
 	})

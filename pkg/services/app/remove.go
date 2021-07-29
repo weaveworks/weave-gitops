@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -8,11 +9,62 @@ import (
 	"path/filepath"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
-type AutomationManifestPaths struct { // source for automation isn't currently stored
-	AppDirAutomationPath    string
-	TargetDirAutomationPath string
+// type AutomationManifestPaths struct { // source for automation isn't currently stored
+//  AppDirAutomationPath    string
+//  TargetDirAutomationPath string
+// }
+
+type RemoveParams struct {
+	Name      string
+	Namespace string
+	//    RemoveWorkload bool
+	PrivateKey       string
+	DryRun           bool
+	AutoMerge        bool
+	GitProviderToken string
+}
+
+func (a *App) Remove(params RemoveParams) error {
+	ctx := context.Background()
+
+	clusterName, err := a.kube.GetClusterName(ctx)
+	if err != nil {
+		return err
+	}
+
+	application, err := a.kube.GetApplication(ctx, types.NamespacedName{Namespace: params.Namespace, Name: params.Name})
+	if err != nil {
+		return err
+	}
+
+	info := getAppResourceInfo(*application, clusterName)
+	resources := info.clusterResources()
+
+	remover, err := a.cloneRepo(info.Spec.ConfigURL, info.Spec.Branch, params.DryRun)
+	if err != nil {
+		return fmt.Errorf("failed to clone configuration repo: %w", err)
+	}
+
+	defer remover()
+
+	if !params.DryRun {
+		if params.AutoMerge {
+			a.logger.Actionf("Removing manifests from disk")
+
+			for _, resourceRef := range resources {
+				if resourceRef.repositoryPath != "" {
+					a.git.Remove(resourceRef.repositoryPath)
+				}
+			}
+
+			a.commitAndPush()
+		}
+	}
+
+	return nil
 }
 
 func dirExists(d string) bool {
