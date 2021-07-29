@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/go-logr/zapr"
-	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/spf13/cobra"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
@@ -19,8 +18,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"go.uber.org/zap"
 )
-
-var customFunc grpc_zap.CodeToLevel
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
@@ -68,7 +65,7 @@ func RunInProcessGateway(ctx context.Context, addr string) error {
 
 	appsSrv := server.NewApplicationsServer(kubeClient)
 
-	mux := runtime.NewServeMux(middleware.InjectErrorIntoContext())
+	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 	httpHandler := middleware.WithLogging(log, mux)
 
 	if err := pb.RegisterApplicationsHandlerServer(ctx, mux, appsSrv); err != nil {
@@ -94,9 +91,4 @@ func RunInProcessGateway(ctx context.Context, addr string) error {
 		return err
 	}
 	return nil
-}
-
-func CustomHTTPError(ctx context.Context, mux *runtime.ServeMux, marshaler runtime.Marshaler, w http.ResponseWriter, r *http.Request, err error) {
-
-	runtime.DefaultHTTPErrorHandler(ctx, mux, marshaler, w, r, err)
 }
