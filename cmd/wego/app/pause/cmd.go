@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 )
@@ -34,14 +35,15 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	params.Name = args[0]
 
 	cliRunner := &runner.CLIRunner{}
-	fluxClient := flux.New(cliRunner)
+	osysClient := osys.New()
+	fluxClient := flux.New(osysClient, cliRunner)
 	logger := logger.New(os.Stdout)
 	kubeClient, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return fmt.Errorf("error initializing kube client: %w", err)
 	}
 
-	appService := app.New(logger, nil, fluxClient, kubeClient)
+	appService := app.New(logger, nil, fluxClient, kubeClient, osysClient)
 
 	if err := appService.Pause(params); err != nil {
 		return errors.Wrapf(err, "failed to pause the app %s", params.Name)

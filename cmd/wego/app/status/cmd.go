@@ -9,6 +9,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 )
@@ -27,7 +28,8 @@ var Cmd = &cobra.Command{
 		params.Namespace, _ = cmd.Parent().Parent().Flags().GetString("namespace")
 
 		cliRunner := &runner.CLIRunner{}
-		fluxClient := flux.New(cliRunner)
+		osysClient := osys.New()
+		fluxClient := flux.New(osysClient, cliRunner)
 		kubeClient, err := kube.NewKubeHTTPClient()
 		if err != nil {
 			return fmt.Errorf("error initializing kube client: %w", err)
@@ -36,7 +38,7 @@ var Cmd = &cobra.Command{
 		gitClient := git.New(nil)
 		logger := logger.New(os.Stdout)
 
-		appService := app.New(logger, gitClient, fluxClient, kubeClient)
+		appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)
 
 		fluxOutput, lastSuccessReconciliation, err := appService.Status(params)
 		if err != nil {

@@ -117,6 +117,42 @@ type FakeFlux struct {
 		result1 []byte
 		result2 error
 	}
+	GetBinPathStub        func() (string, error)
+	getBinPathMutex       sync.RWMutex
+	getBinPathArgsForCall []struct {
+	}
+	getBinPathReturns struct {
+		result1 string
+		result2 error
+	}
+	getBinPathReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
+	GetExePathStub        func() (string, error)
+	getExePathMutex       sync.RWMutex
+	getExePathArgsForCall []struct {
+	}
+	getExePathReturns struct {
+		result1 string
+		result2 error
+	}
+	getExePathReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
+	GetLatestStatusAllNamespacesStub        func() ([]string, error)
+	getLatestStatusAllNamespacesMutex       sync.RWMutex
+	getLatestStatusAllNamespacesArgsForCall []struct {
+	}
+	getLatestStatusAllNamespacesReturns struct {
+		result1 []string
+		result2 error
+	}
+	getLatestStatusAllNamespacesReturnsOnCall map[int]struct {
+		result1 []string
+		result2 error
+	}
 	GetVersionStub        func() (string, error)
 	getVersionMutex       sync.RWMutex
 	getVersionArgsForCall []struct {
@@ -142,6 +178,10 @@ type FakeFlux struct {
 	installReturnsOnCall map[int]struct {
 		result1 []byte
 		result2 error
+	}
+	SetupBinStub        func()
+	setupBinMutex       sync.RWMutex
+	setupBinArgsForCall []struct {
 	}
 	SuspendOrResumeAppStub        func(v1alpha1.SuspendActionType, string, string, string) ([]byte, error)
 	suspendOrResumeAppMutex       sync.RWMutex
@@ -640,6 +680,174 @@ func (fake *FakeFlux) GetAllResourcesStatusReturnsOnCall(i int, result1 []byte, 
 	}{result1, result2}
 }
 
+func (fake *FakeFlux) GetBinPath() (string, error) {
+	fake.getBinPathMutex.Lock()
+	ret, specificReturn := fake.getBinPathReturnsOnCall[len(fake.getBinPathArgsForCall)]
+	fake.getBinPathArgsForCall = append(fake.getBinPathArgsForCall, struct {
+	}{})
+	stub := fake.GetBinPathStub
+	fakeReturns := fake.getBinPathReturns
+	fake.recordInvocation("GetBinPath", []interface{}{})
+	fake.getBinPathMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeFlux) GetBinPathCallCount() int {
+	fake.getBinPathMutex.RLock()
+	defer fake.getBinPathMutex.RUnlock()
+	return len(fake.getBinPathArgsForCall)
+}
+
+func (fake *FakeFlux) GetBinPathCalls(stub func() (string, error)) {
+	fake.getBinPathMutex.Lock()
+	defer fake.getBinPathMutex.Unlock()
+	fake.GetBinPathStub = stub
+}
+
+func (fake *FakeFlux) GetBinPathReturns(result1 string, result2 error) {
+	fake.getBinPathMutex.Lock()
+	defer fake.getBinPathMutex.Unlock()
+	fake.GetBinPathStub = nil
+	fake.getBinPathReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeFlux) GetBinPathReturnsOnCall(i int, result1 string, result2 error) {
+	fake.getBinPathMutex.Lock()
+	defer fake.getBinPathMutex.Unlock()
+	fake.GetBinPathStub = nil
+	if fake.getBinPathReturnsOnCall == nil {
+		fake.getBinPathReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.getBinPathReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeFlux) GetExePath() (string, error) {
+	fake.getExePathMutex.Lock()
+	ret, specificReturn := fake.getExePathReturnsOnCall[len(fake.getExePathArgsForCall)]
+	fake.getExePathArgsForCall = append(fake.getExePathArgsForCall, struct {
+	}{})
+	stub := fake.GetExePathStub
+	fakeReturns := fake.getExePathReturns
+	fake.recordInvocation("GetExePath", []interface{}{})
+	fake.getExePathMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeFlux) GetExePathCallCount() int {
+	fake.getExePathMutex.RLock()
+	defer fake.getExePathMutex.RUnlock()
+	return len(fake.getExePathArgsForCall)
+}
+
+func (fake *FakeFlux) GetExePathCalls(stub func() (string, error)) {
+	fake.getExePathMutex.Lock()
+	defer fake.getExePathMutex.Unlock()
+	fake.GetExePathStub = stub
+}
+
+func (fake *FakeFlux) GetExePathReturns(result1 string, result2 error) {
+	fake.getExePathMutex.Lock()
+	defer fake.getExePathMutex.Unlock()
+	fake.GetExePathStub = nil
+	fake.getExePathReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeFlux) GetExePathReturnsOnCall(i int, result1 string, result2 error) {
+	fake.getExePathMutex.Lock()
+	defer fake.getExePathMutex.Unlock()
+	fake.GetExePathStub = nil
+	if fake.getExePathReturnsOnCall == nil {
+		fake.getExePathReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.getExePathReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeFlux) GetLatestStatusAllNamespaces() ([]string, error) {
+	fake.getLatestStatusAllNamespacesMutex.Lock()
+	ret, specificReturn := fake.getLatestStatusAllNamespacesReturnsOnCall[len(fake.getLatestStatusAllNamespacesArgsForCall)]
+	fake.getLatestStatusAllNamespacesArgsForCall = append(fake.getLatestStatusAllNamespacesArgsForCall, struct {
+	}{})
+	stub := fake.GetLatestStatusAllNamespacesStub
+	fakeReturns := fake.getLatestStatusAllNamespacesReturns
+	fake.recordInvocation("GetLatestStatusAllNamespaces", []interface{}{})
+	fake.getLatestStatusAllNamespacesMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeFlux) GetLatestStatusAllNamespacesCallCount() int {
+	fake.getLatestStatusAllNamespacesMutex.RLock()
+	defer fake.getLatestStatusAllNamespacesMutex.RUnlock()
+	return len(fake.getLatestStatusAllNamespacesArgsForCall)
+}
+
+func (fake *FakeFlux) GetLatestStatusAllNamespacesCalls(stub func() ([]string, error)) {
+	fake.getLatestStatusAllNamespacesMutex.Lock()
+	defer fake.getLatestStatusAllNamespacesMutex.Unlock()
+	fake.GetLatestStatusAllNamespacesStub = stub
+}
+
+func (fake *FakeFlux) GetLatestStatusAllNamespacesReturns(result1 []string, result2 error) {
+	fake.getLatestStatusAllNamespacesMutex.Lock()
+	defer fake.getLatestStatusAllNamespacesMutex.Unlock()
+	fake.GetLatestStatusAllNamespacesStub = nil
+	fake.getLatestStatusAllNamespacesReturns = struct {
+		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeFlux) GetLatestStatusAllNamespacesReturnsOnCall(i int, result1 []string, result2 error) {
+	fake.getLatestStatusAllNamespacesMutex.Lock()
+	defer fake.getLatestStatusAllNamespacesMutex.Unlock()
+	fake.GetLatestStatusAllNamespacesStub = nil
+	if fake.getLatestStatusAllNamespacesReturnsOnCall == nil {
+		fake.getLatestStatusAllNamespacesReturnsOnCall = make(map[int]struct {
+			result1 []string
+			result2 error
+		})
+	}
+	fake.getLatestStatusAllNamespacesReturnsOnCall[i] = struct {
+		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeFlux) GetVersion() (string, error) {
 	fake.getVersionMutex.Lock()
 	ret, specificReturn := fake.getVersionReturnsOnCall[len(fake.getVersionArgsForCall)]
@@ -759,6 +967,30 @@ func (fake *FakeFlux) InstallReturnsOnCall(i int, result1 []byte, result2 error)
 		result1 []byte
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeFlux) SetupBin() {
+	fake.setupBinMutex.Lock()
+	fake.setupBinArgsForCall = append(fake.setupBinArgsForCall, struct {
+	}{})
+	stub := fake.SetupBinStub
+	fake.recordInvocation("SetupBin", []interface{}{})
+	fake.setupBinMutex.Unlock()
+	if stub != nil {
+		fake.SetupBinStub()
+	}
+}
+
+func (fake *FakeFlux) SetupBinCallCount() int {
+	fake.setupBinMutex.RLock()
+	defer fake.setupBinMutex.RUnlock()
+	return len(fake.setupBinArgsForCall)
+}
+
+func (fake *FakeFlux) SetupBinCalls(stub func()) {
+	fake.setupBinMutex.Lock()
+	defer fake.setupBinMutex.Unlock()
+	fake.SetupBinStub = stub
 }
 
 func (fake *FakeFlux) SuspendOrResumeApp(arg1 v1alpha1.SuspendActionType, arg2 string, arg3 string, arg4 string) ([]byte, error) {
@@ -907,10 +1139,18 @@ func (fake *FakeFlux) Invocations() map[string][][]interface{} {
 	defer fake.createSourceHelmMutex.RUnlock()
 	fake.getAllResourcesStatusMutex.RLock()
 	defer fake.getAllResourcesStatusMutex.RUnlock()
+	fake.getBinPathMutex.RLock()
+	defer fake.getBinPathMutex.RUnlock()
+	fake.getExePathMutex.RLock()
+	defer fake.getExePathMutex.RUnlock()
+	fake.getLatestStatusAllNamespacesMutex.RLock()
+	defer fake.getLatestStatusAllNamespacesMutex.RUnlock()
 	fake.getVersionMutex.RLock()
 	defer fake.getVersionMutex.RUnlock()
 	fake.installMutex.RLock()
 	defer fake.installMutex.RUnlock()
+	fake.setupBinMutex.RLock()
+	defer fake.setupBinMutex.RUnlock()
 	fake.suspendOrResumeAppMutex.RLock()
 	defer fake.suspendOrResumeAppMutex.RUnlock()
 	fake.uninstallMutex.RLock()

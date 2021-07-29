@@ -18,6 +18,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -56,7 +57,6 @@ func init() {
 	Cmd.Flags().StringVar(&params.Path, "path", "./", "Path of files within git repository")
 	Cmd.Flags().StringVar(&params.Branch, "branch", "main", "Branch to watch within git repository")
 	Cmd.Flags().StringVar(&params.DeploymentType, "deployment-type", "kustomize", "deployment type [kustomize, helm]")
-	Cmd.Flags().StringVar(&params.SourceType, "source-type", "git", "source type [git, helm]")
 	Cmd.Flags().StringVar(&params.Chart, "chart", "", "Specify chart for helm source")
 	Cmd.Flags().StringVar(&params.PrivateKey, "private-key", "", "Private key to access git repository over ssh")
 	Cmd.Flags().StringVar(&params.AppConfigUrl, "app-config-url", "", "URL of external repository (if any) which will hold automation manifests; NONE to store only in the cluster")
@@ -114,12 +114,13 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	cliRunner := &runner.CLIRunner{}
-	fluxClient := flux.New(cliRunner)
+	osysClient := osys.New()
+	fluxClient := flux.New(osysClient, cliRunner)
 	kubeClient := kube.New(cliRunner)
 	gitClient := git.New(authMethod)
 	logger := logger.New(os.Stdout)
 
-	appService := app.New(logger, gitClient, fluxClient, kubeClient)
+	appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)
 
 	utils.SetCommmitMessageFromArgs("wego app add", params.Url, params.Path, params.Name)
 
