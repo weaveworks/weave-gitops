@@ -128,8 +128,42 @@
         },
         "url": {
           "type": "string"
+        },
+        "sourceConditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Condition"
+          }
+        },
+        "deploymentConditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Condition"
+          }
         }
       }
+    },
+    "v1Condition": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "This object represents a single condition for a Kubernetes object.\nIt roughly matches the Kubernetes type defined here: https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1#Condition"
     },
     "v1GetApplicationResponse": {
       "type": "object",

@@ -63,8 +63,17 @@ var _ = Describe("Add", func() {
 	})
 
 	It("creates and deploys a git secret", func() {
+		secret := `apiVersion: v1
+kind: Secret
+metadata:
+  name: foo
+  namespace: foo
+stringData:
+  identity: foo
+  identity.pub: foo
+`
 		fluxClient.CreateSecretGitStub = func(s1, s2, s3 string) ([]byte, error) {
-			return []byte("deploy key"), nil
+			return []byte(secret), nil
 		}
 
 		err := appSrv.Add(addParams)
@@ -80,12 +89,12 @@ var _ = Describe("Add", func() {
 		owner, repoName, deployKey := gitProviders.UploadDeployKeyArgsForCall(0)
 		Expect(owner).To(Equal("foo"))
 		Expect(repoName).To(Equal("bar"))
-		Expect(deployKey).To(Equal([]byte("deploy key")))
+		Expect(deployKey).To(Equal([]byte("foo")))
 	})
 
 	Describe("checks for existing deploy key before creating secret", func() {
 		It("looks up deploy key and skips creating secret if found", func() {
-			addParams.SourceType = string(SourceTypeGit)
+			addParams.SourceType = string(wego.SourceTypeGit)
 
 			gitProviders.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
 				return true, nil
@@ -104,7 +113,7 @@ var _ = Describe("Add", func() {
 		})
 
 		It("looks up deploy key and creates secret if not found", func() {
-			addParams.SourceType = string(SourceTypeGit)
+			addParams.SourceType = string(wego.SourceTypeGit)
 
 			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -132,7 +141,7 @@ var _ = Describe("Add", func() {
 
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
-				addParams.SourceType = string(SourceTypeGit)
+				addParams.SourceType = string(wego.SourceTypeGit)
 
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -192,7 +201,7 @@ var _ = Describe("Add", func() {
 
 			It("creates a helm release using a git source if source type is git", func() {
 				addParams.Path = "./charts/my-chart"
-				addParams.DeploymentType = string(DeployTypeHelm)
+				addParams.DeploymentType = string(wego.DeploymentTypeHelm)
 
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -225,17 +234,17 @@ var _ = Describe("Add", func() {
 			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(kubeClient.ApplyCallCount()).To(Equal(3))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(4))
 
-			sourceManifest, namespace := kubeClient.ApplyArgsForCall(0)
+			sourceManifest, namespace := kubeClient.ApplyArgsForCall(1)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
 			Expect(namespace).To(Equal("wego-system"))
 
-			kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(1)
+			kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(2)
 			Expect(kustomizationManifest).To(Equal([]byte("kustomization")))
 			Expect(namespace).To(Equal("wego-system"))
 
-			appSpecManifest, namespace := kubeClient.ApplyArgsForCall(2)
+			appSpecManifest, namespace := kubeClient.ApplyArgsForCall(3)
 			Expect(string(appSpecManifest)).To(ContainSubstring("kind: Application"))
 			Expect(namespace).To(Equal("wego-system"))
 		})
@@ -275,7 +284,7 @@ var _ = Describe("Add", func() {
 
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
-				addParams.SourceType = string(SourceTypeGit)
+				addParams.SourceType = string(wego.SourceTypeGit)
 
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -348,7 +357,7 @@ var _ = Describe("Add", func() {
 
 			It("creates a helm release using a git source if source type is git", func() {
 				addParams.Path = "./charts/my-chart"
-				addParams.DeploymentType = string(DeployTypeHelm)
+				addParams.DeploymentType = string(wego.DeploymentTypeHelm)
 
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -381,13 +390,13 @@ var _ = Describe("Add", func() {
 			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(kubeClient.ApplyCallCount()).To(Equal(2))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(3))
 
-			sourceManifest, namespace := kubeClient.ApplyArgsForCall(0)
+			sourceManifest, namespace := kubeClient.ApplyArgsForCall(1)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
 			Expect(namespace).To(Equal("wego-system"))
 
-			appWegoManifest, namespace := kubeClient.ApplyArgsForCall(1)
+			appWegoManifest, namespace := kubeClient.ApplyArgsForCall(2)
 			Expect(appWegoManifest).To(Equal([]byte("kustomizationkustomization")))
 			Expect(namespace).To(Equal("wego-system"))
 		})
@@ -457,7 +466,7 @@ var _ = Describe("Add", func() {
 
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
-				addParams.SourceType = string(SourceTypeGit)
+				addParams.SourceType = string(wego.SourceTypeGit)
 
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -571,7 +580,7 @@ var _ = Describe("Add", func() {
 
 			It("creates a helm release using a git source if source type is git", func() {
 				addParams.Path = "./charts/my-chart"
-				addParams.DeploymentType = string(DeployTypeHelm)
+				addParams.DeploymentType = string(wego.DeploymentTypeHelm)
 
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -604,13 +613,13 @@ var _ = Describe("Add", func() {
 			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(kubeClient.ApplyCallCount()).To(Equal(2))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(4))
 
-			sourceManifest, namespace := kubeClient.ApplyArgsForCall(0)
+			sourceManifest, namespace := kubeClient.ApplyArgsForCall(2)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
 			Expect(namespace).To(Equal("wego-system"))
 
-			kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(1)
+			kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(3)
 			Expect(kustomizationManifest).To(Equal([]byte("kustomizationkustomization")))
 			Expect(namespace).To(Equal("wego-system"))
 		})
@@ -704,7 +713,7 @@ var _ = Describe("Add", func() {
 			addParams.Url = "https://github.com/owner/repo1"
 			addParams.Chart = "nginx"
 			addParams.Branch = "main"
-			addParams.DeploymentType = string(DeployTypeHelm)
+			addParams.DeploymentType = string(wego.DeploymentTypeHelm)
 
 			info := getAppResourceInfo(makeWegoApplication(addParams), "")
 
@@ -722,7 +731,7 @@ var _ = Describe("Add", func() {
 			addParams.Url = "https://github.com/owner/repo1"
 			addParams.Path = "custompath"
 			addParams.Branch = "main"
-			addParams.DeploymentType = string(DeployTypeKustomize)
+			addParams.DeploymentType = string(wego.DeploymentTypeKustomize)
 
 			info := getAppResourceInfo(makeWegoApplication(addParams), "")
 

@@ -43,8 +43,26 @@ type ApplicationSpec struct {
 // +kubebuilder:validation:Enum=helm;kustomize
 type DeploymentType string
 
+const (
+	DeploymentTypeHelm      DeploymentType = "helm"
+	DeploymentTypeKustomize DeploymentType = "kustomize"
+)
+
 // +kubebuilder:validation:Enum=helm;git
 type SourceType string
+
+const (
+	SourceTypeGit  SourceType = "git"
+	SourceTypeHelm SourceType = "helm"
+)
+
+// SuspendAction defines the command run to pause/unpause an application
+type SuspendActionType string
+
+const (
+	SuspendAction SuspendActionType = "suspend"
+	ResumeAction  SuspendActionType = "resume"
+)
 
 // ApplicationStatus defines the observed state of Application
 type ApplicationStatus struct {
