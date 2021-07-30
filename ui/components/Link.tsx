@@ -1,6 +1,8 @@
 import * as React from "react";
+import { useContext } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import styled from "styled-components";
+import { AppContext } from "../contexts/AppContext";
 import Text from "./Text";
 
 type Props = {
@@ -10,9 +12,10 @@ type Props = {
   children?: any;
 };
 
-function Link({ children, ...props }: Props) {
+function Link({ children, to, ...props }: Props) {
+  const { linkResolver } = useContext(AppContext);
   return (
-    <RouterLink {...props}>
+    <RouterLink {...props} to={linkResolver(to)}>
       <Text color="primary">{children}</Text>
     </RouterLink>
   );

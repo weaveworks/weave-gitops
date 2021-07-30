@@ -5,17 +5,33 @@ type AppState = {
   error: null | { fatal: boolean; message: string; detail?: string };
 };
 
+export type LinkResolver = (incoming: string) => string;
+
+function defaultLinkResolver(incoming: string): string {
+  return incoming;
+}
+
 export type AppContextType = {
   applicationsClient: typeof Applications;
   doAsyncError: (message: string, detail: string) => void;
   appState: AppState;
+  linkResolver: LinkResolver;
 };
 
 export const AppContext = React.createContext<AppContextType>(
   null as AppContextType
 );
 
-export default function AppContextProvider({ applicationsClient, ...props }) {
+export interface Props {
+  applicationsClient: typeof Applications;
+  linkResolver?: LinkResolver;
+  children?: any;
+}
+
+export default function AppContextProvider({
+  applicationsClient,
+  ...props
+}: Props) {
   const [appState, setAppState] = React.useState({
     error: null,
   });
@@ -40,6 +56,7 @@ export default function AppContextProvider({ applicationsClient, ...props }) {
     applicationsClient,
     doAsyncError,
     appState,
+    linkResolver: props.linkResolver || defaultLinkResolver,
   };
 
   return <AppContext.Provider {...props} value={value} />;
