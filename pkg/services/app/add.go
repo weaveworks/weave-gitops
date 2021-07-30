@@ -860,16 +860,6 @@ func (a *AppResourceInfo) deployKind() ResourceKind {
 	return result
 }
 
-func getRepositoryPath(resources []ResourceRef, kind ResourceKind, name string) string {
-	for _, resource := range resources {
-		if resource.kind == kind && resource.name == name {
-			return resource.repositoryPath
-		}
-	}
-
-	return ""
-}
-
 func (a *AppResourceInfo) clusterResources() []ResourceRef {
 	resources := []ResourceRef{}
 
