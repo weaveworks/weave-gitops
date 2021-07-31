@@ -112,6 +112,17 @@ func removeCreatedResource(manifestData []byte) error {
 	return nil
 }
 
+// Remove tracking for a resource given its name and kind
+func removeCreatedResourceByName(name, kindString string) error {
+	kind := ResourceKind(kindString)
+	if createdResources[kind] == nil {
+		return fmt.Errorf("expected %s resources to be present", kind)
+	}
+
+	delete(createdResources[kind], name)
+	return nil
+}
+
 // Store the path of a resource tracked in the repo
 // and associate its manifest with the path for later lookup
 func storeGOATPath(path string, manifest []byte) {
@@ -231,7 +242,7 @@ func checkRemoveResults() error {
 	}
 
 	for _, res := range appResources {
-		if res.repositoryPath != "" {
+		if res.repositoryPath != "" || res.kind == ResourceKindKustomization || res.kind == ResourceKindHelmRelease {
 			resources := createdResources[res.kind]
 			if resources[res.name] {
 				return fmt.Errorf("expected %s named %s to be removed from the repository", res.kind, res.name)
@@ -407,6 +418,13 @@ var _ = Describe("Remove", func() {
 
 			kubeClient.ApplyStub = func(manifest []byte, namespace string) ([]byte, error) {
 				if err := storeCreatedResource(manifest); err != nil {
+					return nil, err
+				}
+				return []byte(""), nil
+			}
+
+			kubeClient.DeleteByNameStub = func(name, kind, namespace string) ([]byte, error) {
+				if err := removeCreatedResourceByName(name, kind); err != nil {
 					return nil, err
 				}
 				return []byte(""), nil

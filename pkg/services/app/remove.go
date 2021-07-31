@@ -62,6 +62,12 @@ func (a *App) Remove(params RemoveParams) error {
 					if err := a.git.Remove(resourceRef.repositoryPath); err != nil {
 						return err
 					}
+				} else if resourceRef.kind == ResourceKindKustomization ||
+					resourceRef.kind == ResourceKindHelmRelease {
+					out, err := a.kube.DeleteByName(resourceRef.name, string(resourceRef.kind), info.Namespace)
+					if err != nil {
+						return fmt.Errorf("failed to delete resource: %s with error: %w", out, err)
+					}
 				}
 			}
 
