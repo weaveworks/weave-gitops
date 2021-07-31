@@ -40,6 +40,22 @@ func (a *App) Remove(params RemoveParams) error {
 	info := getAppResourceInfo(*application, clusterName)
 	resources := info.clusterResources()
 
+	if info.configMode() == ConfigModeClusterOnly {
+		out, err := a.kube.DeleteByName(info.appResourceName(), "app", info.Namespace)
+		if err != nil {
+			return clusterDeleteError(out, err)
+		}
+		out, err = a.kube.DeleteByName(info.appSourceName(), string(info.sourceKind()), info.Namespace)
+		if err != nil {
+			return clusterDeleteError(out, err)
+		}
+		out, err = a.kube.DeleteByName(info.appDeployName(), string(info.deployKind()), info.Namespace)
+		if err != nil {
+			return clusterDeleteError(out, err)
+		}
+		return nil
+	}
+
 	cloneURL := info.Spec.ConfigURL
 
 	if cloneURL == string(ConfigTypeUserRepo) {
@@ -66,7 +82,7 @@ func (a *App) Remove(params RemoveParams) error {
 					resourceRef.kind == ResourceKindHelmRelease {
 					out, err := a.kube.DeleteByName(resourceRef.name, string(resourceRef.kind), info.Namespace)
 					if err != nil {
-						return fmt.Errorf("failed to delete resource: %s with error: %w", out, err)
+						return clusterDeleteError(out, err)
 					}
 				}
 			}
@@ -78,6 +94,10 @@ func (a *App) Remove(params RemoveParams) error {
 	}
 
 	return nil
+}
+
+func clusterDeleteError(out []byte, err error) error {
+	return fmt.Errorf("failed to delete resource: %s with error: %w", out, err)
 }
 
 func dirExists(d string) bool {

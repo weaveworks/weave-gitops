@@ -775,12 +775,12 @@ func getAppResourceInfo(app wego.Application, clusterName string) *AppResourceIn
 }
 
 func (a *AppResourceInfo) configMode() ConfigMode {
-	if a.Spec.ConfigURL == string(ConfigTypeUserRepo) || a.Spec.ConfigURL == a.Spec.URL {
-		return ConfigModeUserRepo
+	if strings.ToUpper(a.Spec.ConfigURL) == string(ConfigTypeNone) {
+		return ConfigModeClusterOnly
 	}
 
-	if a.Spec.ConfigURL == string(ConfigTypeNone) {
-		return ConfigModeClusterOnly
+	if a.Spec.ConfigURL == string(ConfigTypeUserRepo) || a.Spec.ConfigURL == a.Spec.URL {
+		return ConfigModeUserRepo
 	}
 
 	return ConfigModeExternalRepo
