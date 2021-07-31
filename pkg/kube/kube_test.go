@@ -9,9 +9,9 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/types"
 
-	. "github.com/onsi/gomega"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/gomega"
 
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/runner/runnerfakes"
@@ -133,7 +133,7 @@ var _ = Describe("GetClusterName", func() {
 
 var _ = Describe("FixInvalidClusterName", func() {
 	DescribeTable("checks to verify that cluster names are sanitized",
-		func(invalid string, valid string, expected bool)  {
+		func(invalid string, valid string, expected bool) {
 			runner.RunStub = func(cmd string, args ...string) ([]byte, error) {
 				return []byte(invalid), nil
 			}
