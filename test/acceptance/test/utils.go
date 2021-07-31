@@ -325,14 +325,6 @@ func generateTestInputs() TestInputs {
 	return inputs
 }
 
-func customFun() bool {
-
-	panic("testinPANIC")
-
-	return true
-
-}
-
 func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 	repoAbsolutePath := "/tmp/" + appRepoName
 	privateRepo := ""

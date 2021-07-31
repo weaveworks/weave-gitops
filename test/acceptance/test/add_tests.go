@@ -27,8 +27,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		By("Given I have a brand new cluster", func() {
 			var err error
 
-			Expect(customFun()).To(BeTrue())
-
 			_, err = ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime)
 			Expect(err).ShouldNot(HaveOccurred())
 
