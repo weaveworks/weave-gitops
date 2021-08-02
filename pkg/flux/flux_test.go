@@ -78,7 +78,7 @@ var _ = Describe("Uninstall", func() {
 })
 
 var _ = Describe("CreateSourceGit", func() {
-	It("creates a source git", func() {
+	It("creates a git source", func() {
 		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
 			return []byte("out"), nil
 		}
@@ -91,7 +91,22 @@ var _ = Describe("CreateSourceGit", func() {
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
 
-		Expect(strings.Join(args, " ")).To(Equal("create source git my-name --url https://github.com/foo/my-name --branch main --secret-ref my-secret --namespace wego-system --interval 30s --export"))
+		Expect(strings.Join(args, " ")).To(Equal("create source git my-name --branch main --namespace wego-system --interval 30s --export --secret-ref my-secret --url https://github.com/foo/my-name"))
+	})
+	It("creates a git source for a public repo", func() {
+		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
+			return []byte("out"), nil
+		}
+		out, err := fluxClient.CreateSourceGit("my-name", "ssh://git@github.com/foo/my-name", "main", "", "wego-system")
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(out).To(Equal([]byte("out")))
+
+		Expect(runner.RunCallCount()).To(Equal(1))
+
+		cmd, args := runner.RunArgsForCall(0)
+		Expect(cmd).To(Equal(fluxPath()))
+
+		Expect(strings.Join(args, " ")).To(Equal("create source git my-name --branch main --namespace wego-system --interval 30s --export --url https://github.com/foo/my-name.git"))
 	})
 })
 

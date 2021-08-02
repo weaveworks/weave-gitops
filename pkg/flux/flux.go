@@ -91,12 +91,16 @@ func (f *FluxClient) Uninstall(namespace string, dryRun bool) error {
 func (f *FluxClient) CreateSourceGit(name string, url string, branch string, secretRef string, namespace string) ([]byte, error) {
 	args := []string{
 		"create", "source", "git", name,
-		"--url", url,
 		"--branch", branch,
-		"--secret-ref", secretRef,
 		"--namespace", namespace,
 		"--interval", "30s",
 		"--export",
+	}
+
+	if secretRef != "" {
+		args = append(args, "--secret-ref", secretRef, "--url", url)
+	} else {
+		args = append(args, "--url", makePublicUrl(url))
 	}
 
 	out, err := f.runFluxCmd(args...)
@@ -105,6 +109,28 @@ func (f *FluxClient) CreateSourceGit(name string, url string, branch string, sec
 	}
 
 	return out, nil
+}
+
+func makePublicUrl(url string) string {
+	trimmed := ""
+
+	if !strings.HasSuffix(url, ".git") {
+		url = url + ".git"
+	}
+
+	gitSshPrefix := "git@github.com:"
+	sshPrefix := "ssh://git@github.com/"
+	if strings.HasPrefix(url, gitSshPrefix) {
+		trimmed = strings.TrimPrefix(url, gitSshPrefix)
+	} else if strings.HasPrefix(url, sshPrefix) {
+		trimmed = strings.TrimPrefix(url, sshPrefix)
+	}
+
+	if trimmed != "" {
+		return "https://github.com/" + trimmed
+	}
+
+	return url
 }
 
 func (f *FluxClient) CreateSourceHelm(name string, url string, namespace string) ([]byte, error) {

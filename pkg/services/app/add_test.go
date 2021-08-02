@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/go-git/go-billy/v5/memfs"
 	gogit "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
@@ -90,6 +91,26 @@ stringData:
 		Expect(owner).To(Equal("foo"))
 		Expect(repoName).To(Equal("bar"))
 		Expect(deployKey).To(Equal([]byte("foo")))
+	})
+
+	It("Passes no secret ref to source creation when given a public repository", func() {
+		gitProviders.GetAccountTypeStub = func(owner string) (gitproviders.ProviderAccountType, error) {
+			return gitproviders.AccountTypeOrg, nil
+		}
+
+		gitProviders.GetRepoInfoStub = func(accountType gitproviders.ProviderAccountType, owner, repoName string) (*gitprovider.RepositoryInfo, error) {
+			branch := "main"
+			visibility := gitprovider.RepositoryVisibility("public")
+			return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: &branch, Visibility: &visibility}, nil
+		}
+
+		secretRef, err := appSrv.(*App).createAndUploadDeployKey(
+			getAppResourceInfo(makeWegoApplication(addParams), "test-cluster"),
+			false,
+			"ssh://git@github.com/owner/repo.git",
+			gitProviders)
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(secretRef).To(Equal(""))
 	})
 
 	Describe("checks for existing deploy key before creating secret", func() {

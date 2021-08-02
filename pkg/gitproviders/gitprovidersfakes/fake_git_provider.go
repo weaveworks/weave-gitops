@@ -87,6 +87,21 @@ type FakeGitProvider struct {
 		result1 gitproviders.ProviderAccountType
 		result2 error
 	}
+	GetRepoInfoStub        func(gitproviders.ProviderAccountType, string, string) (*gitprovider.RepositoryInfo, error)
+	getRepoInfoMutex       sync.RWMutex
+	getRepoInfoArgsForCall []struct {
+		arg1 gitproviders.ProviderAccountType
+		arg2 string
+		arg3 string
+	}
+	getRepoInfoReturns struct {
+		result1 *gitprovider.RepositoryInfo
+		result2 error
+	}
+	getRepoInfoReturnsOnCall map[int]struct {
+		result1 *gitprovider.RepositoryInfo
+		result2 error
+	}
 	RepositoryExistsStub        func(string, string) (bool, error)
 	repositoryExistsMutex       sync.RWMutex
 	repositoryExistsArgsForCall []struct {
@@ -460,6 +475,72 @@ func (fake *FakeGitProvider) GetAccountTypeReturnsOnCall(i int, result1 gitprovi
 	}{result1, result2}
 }
 
+func (fake *FakeGitProvider) GetRepoInfo(arg1 gitproviders.ProviderAccountType, arg2 string, arg3 string) (*gitprovider.RepositoryInfo, error) {
+	fake.getRepoInfoMutex.Lock()
+	ret, specificReturn := fake.getRepoInfoReturnsOnCall[len(fake.getRepoInfoArgsForCall)]
+	fake.getRepoInfoArgsForCall = append(fake.getRepoInfoArgsForCall, struct {
+		arg1 gitproviders.ProviderAccountType
+		arg2 string
+		arg3 string
+	}{arg1, arg2, arg3})
+	stub := fake.GetRepoInfoStub
+	fakeReturns := fake.getRepoInfoReturns
+	fake.recordInvocation("GetRepoInfo", []interface{}{arg1, arg2, arg3})
+	fake.getRepoInfoMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeGitProvider) GetRepoInfoCallCount() int {
+	fake.getRepoInfoMutex.RLock()
+	defer fake.getRepoInfoMutex.RUnlock()
+	return len(fake.getRepoInfoArgsForCall)
+}
+
+func (fake *FakeGitProvider) GetRepoInfoCalls(stub func(gitproviders.ProviderAccountType, string, string) (*gitprovider.RepositoryInfo, error)) {
+	fake.getRepoInfoMutex.Lock()
+	defer fake.getRepoInfoMutex.Unlock()
+	fake.GetRepoInfoStub = stub
+}
+
+func (fake *FakeGitProvider) GetRepoInfoArgsForCall(i int) (gitproviders.ProviderAccountType, string, string) {
+	fake.getRepoInfoMutex.RLock()
+	defer fake.getRepoInfoMutex.RUnlock()
+	argsForCall := fake.getRepoInfoArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeGitProvider) GetRepoInfoReturns(result1 *gitprovider.RepositoryInfo, result2 error) {
+	fake.getRepoInfoMutex.Lock()
+	defer fake.getRepoInfoMutex.Unlock()
+	fake.GetRepoInfoStub = nil
+	fake.getRepoInfoReturns = struct {
+		result1 *gitprovider.RepositoryInfo
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGitProvider) GetRepoInfoReturnsOnCall(i int, result1 *gitprovider.RepositoryInfo, result2 error) {
+	fake.getRepoInfoMutex.Lock()
+	defer fake.getRepoInfoMutex.Unlock()
+	fake.GetRepoInfoStub = nil
+	if fake.getRepoInfoReturnsOnCall == nil {
+		fake.getRepoInfoReturnsOnCall = make(map[int]struct {
+			result1 *gitprovider.RepositoryInfo
+			result2 error
+		})
+	}
+	fake.getRepoInfoReturnsOnCall[i] = struct {
+		result1 *gitprovider.RepositoryInfo
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeGitProvider) RepositoryExists(arg1 string, arg2 string) (bool, error) {
 	fake.repositoryExistsMutex.Lock()
 	ret, specificReturn := fake.repositoryExistsReturnsOnCall[len(fake.repositoryExistsArgsForCall)]
@@ -606,6 +687,8 @@ func (fake *FakeGitProvider) Invocations() map[string][][]interface{} {
 	defer fake.deployKeyExistsMutex.RUnlock()
 	fake.getAccountTypeMutex.RLock()
 	defer fake.getAccountTypeMutex.RUnlock()
+	fake.getRepoInfoMutex.RLock()
+	defer fake.getRepoInfoMutex.RUnlock()
 	fake.repositoryExistsMutex.RLock()
 	defer fake.repositoryExistsMutex.RUnlock()
 	fake.uploadDeployKeyMutex.RLock()
