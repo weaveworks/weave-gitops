@@ -118,7 +118,7 @@ func (p defaultGitProvider) CreateRepository(name string, owner string, private 
 }
 
 func (p defaultGitProvider) DeployKeyExists(owner, repoName string) (bool, error) {
-	deployKeyName := "weave-gitops-deploy-key"
+	deployKeyName := "wego-deploy-key"
 
 	ownerType, err := p.GetAccountType(owner)
 	if err != nil {
@@ -167,7 +167,7 @@ func (p defaultGitProvider) DeployKeyExists(owner, repoName string) (bool, error
 }
 
 func (p defaultGitProvider) UploadDeployKey(owner, repoName string, deployKey []byte) error {
-	deployKeyName := "weave-gitops-deploy-key"
+	deployKeyName := "wego-deploy-key"
 	deployKeyInfo := gitprovider.DeployKeyInfo{
 		Name: deployKeyName,
 		Key:  deployKey,

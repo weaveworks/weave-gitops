@@ -230,7 +230,7 @@ func (k *KubeClient) runKubectlCmdWithInput(args []string, input []byte) ([]byte
 	return out, nil
 }
 func (k *KubeClient) LabelExistsInCluster(ctx context.Context, label string) error {
-	cmd := []string{"get", "app", "-l", fmt.Sprintf("weave-gitops.weave.works/app-identifier=%s", label), "--all-namespaces"}
+	cmd := []string{"get", "app", "-l", fmt.Sprintf("wego.weave.works/app-identifier=%s", label), "--all-namespaces"}
 	o, err := k.runKubectlCmd(cmd)
 	if err != nil {
 		return fmt.Errorf("could not run kubectl command: %s", err)

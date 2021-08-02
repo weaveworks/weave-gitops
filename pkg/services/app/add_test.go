@@ -83,7 +83,7 @@ stringData:
 		Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(1))
 
 		secretRef, repoUrl, namespace := fluxClient.CreateSecretGitArgsForCall(0)
-		Expect(secretRef).To(Equal("weave-gitops-test-cluster-bar"))
+		Expect(secretRef).To(Equal("wego-test-cluster-bar"))
 		Expect(repoUrl).To(Equal("ssh://git@github.com/foo/bar.git"))
 		Expect(namespace).To(Equal("wego-system"))
 
@@ -173,7 +173,7 @@ stringData:
 				Expect(name).To(Equal("bar"))
 				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
-				Expect(secretRef).To(Equal("weave-gitops-test-cluster-bar"))
+				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
 				Expect(namespace).To(Equal("wego-system"))
 			})
 
@@ -316,7 +316,7 @@ stringData:
 				Expect(name).To(Equal("bar"))
 				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
-				Expect(secretRef).To(Equal("weave-gitops-test-cluster-bar"))
+				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
 				Expect(namespace).To(Equal("wego-system"))
 			})
 
@@ -502,14 +502,14 @@ stringData:
 				Expect(name).To(Equal("repo"))
 				Expect(url).To(Equal("ssh://git@github.com/user/repo.git"))
 				Expect(branch).To(Equal("main"))
-				Expect(secretRef).To(Equal("weave-gitops-test-cluster-repo"))
+				Expect(secretRef).To(Equal("wego-test-cluster-repo"))
 				Expect(namespace).To(Equal("wego-system"))
 
 				name, url, branch, secretRef, namespace = fluxClient.CreateSourceGitArgsForCall(1)
 				Expect(name).To(Equal("bar"))
 				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
-				Expect(secretRef).To(Equal("weave-gitops-test-cluster-bar"))
+				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
 				Expect(namespace).To(Equal("wego-system"))
 			})
 

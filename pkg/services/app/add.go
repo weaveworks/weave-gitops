@@ -57,7 +57,7 @@ const (
 	ResourceKindKustomization  ResourceKind = "Kustomization"
 	ResourceKindHelmRelease    ResourceKind = "HelmRelease"
 
-	WeGOAppIdentifierLabelKey = "weave-gitops.weave.works/app-identifier"
+	WeGOAppIdentifierLabelKey = "wego.weave.works/app-identifier"
 )
 
 type AddParams struct {
@@ -844,7 +844,7 @@ func (a *AppResourceInfo) appResourceName() string {
 }
 
 func (a *AppResourceInfo) appSecretName(repoURL string) string {
-	return fmt.Sprintf("weave-gitops-%s-%s", a.targetName, urlToRepoName(repoURL))
+	return fmt.Sprintf("wego-%s-%s", a.targetName, urlToRepoName(repoURL))
 }
 
 func (a *AppResourceInfo) automationAppsDirKustomizationName() string {
