@@ -430,15 +430,19 @@ stringData:
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				Expect(gitClient.WriteCallCount()).To(Equal(2))
+				Expect(gitClient.WriteCallCount()).To(Equal(3))
 
 				path, content := gitClient.WriteArgsForCall(0)
 				Expect(path).To(Equal(".wego/apps/bar/app.yaml"))
 				Expect(string(content)).To(ContainSubstring("kind: Application"))
 
 				path, content = gitClient.WriteArgsForCall(1)
-				Expect(path).To(Equal(".wego/targets/test-cluster/bar/bar-gitops-runtime.yaml"))
-				Expect(content).To(Equal([]byte("gitkustomization")))
+				Expect(path).To(Equal(".wego/targets/test-cluster/bar/bar-gitops-source.yaml"))
+				Expect(content).To(Equal([]byte("git")))
+
+				path, content = gitClient.WriteArgsForCall(2)
+				Expect(path).To(Equal(".wego/targets/test-cluster/bar/bar-gitops-deploy.yaml"))
+				Expect(content).To(Equal([]byte("kustomization")))
 			})
 		})
 
@@ -647,15 +651,19 @@ stringData:
 			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(gitClient.WriteCallCount()).To(Equal(2))
+			Expect(gitClient.WriteCallCount()).To(Equal(3))
 
 			path, content := gitClient.WriteArgsForCall(0)
 			Expect(path).To(Equal("apps/repo/app.yaml"))
 			Expect(string(content)).To(ContainSubstring("kind: Application"))
 
 			path, content = gitClient.WriteArgsForCall(1)
-			Expect(path).To(Equal("targets/test-cluster/repo/repo-gitops-runtime.yaml"))
-			Expect(content).To(Equal([]byte("gitkustomization")))
+			Expect(path).To(Equal("targets/test-cluster/repo/repo-gitops-source.yaml"))
+			Expect(content).To(Equal([]byte("git")))
+
+			path, content = gitClient.WriteArgsForCall(2)
+			Expect(path).To(Equal("targets/test-cluster/repo/repo-gitops-deploy.yaml"))
+			Expect(content).To(Equal([]byte("kustomization")))
 		})
 
 		It("commit and pushes the files", func() {
@@ -677,7 +685,7 @@ stringData:
 	Context("when creating a pull request", func() {
 		It("generates an appropriate error when the owner cannot be retrieved from the URL", func() {
 			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
-			err := appSrv.(*App).createPullRequestToRepo(info, gitProviders, "foo", "hash", []byte{})
+			err := appSrv.(*App).createPullRequestToRepo(info, gitProviders, "foo", "hash", []byte{}, []byte{}, []byte{})
 			Expect(err.Error()).To(HavePrefix("failed to retrieve owner"))
 		})
 
@@ -686,7 +694,7 @@ stringData:
 				return gitproviders.AccountTypeOrg, fmt.Errorf("no account found")
 			}
 			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
-			err := appSrv.(*App).createPullRequestToRepo(info, gitProviders, "ssh://git@github.com/ewojfewoj3323w/abc", "hash", []byte{})
+			err := appSrv.(*App).createPullRequestToRepo(info, gitProviders, "ssh://git@github.com/ewojfewoj3323w/abc", "hash", []byte{}, []byte{}, []byte{})
 			Expect(err.Error()).To(HavePrefix("failed to retrieve account type"))
 		})
 	})

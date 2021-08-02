@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -8,11 +9,91 @@ import (
 	"path/filepath"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
-type AutomationManifestPaths struct { // source for automation isn't currently stored
-	AppDirAutomationPath    string
-	TargetDirAutomationPath string
+type RemoveParams struct {
+	Name             string
+	Namespace        string
+	PrivateKey       string
+	DryRun           bool
+	GitProviderToken string
+}
+
+// Remove removes the Weave GitOps automation for an application
+func (a *App) Remove(params RemoveParams) error {
+	ctx := context.Background()
+
+	clusterName, err := a.kube.GetClusterName(ctx)
+	if err != nil {
+		return err
+	}
+
+	application, err := a.kube.GetApplication(ctx, types.NamespacedName{Namespace: params.Namespace, Name: params.Name})
+	if err != nil {
+		return err
+	}
+
+	// Find all resources created when adding this app
+	info := getAppResourceInfo(*application, clusterName)
+	resources := info.clusterResources()
+
+	if info.configMode() == ConfigModeClusterOnly {
+		out, err := a.kube.DeleteByName(info.appResourceName(), "app", info.Namespace)
+		if err != nil {
+			return clusterDeleteError(out, err)
+		}
+		out, err = a.kube.DeleteByName(info.appSourceName(), string(info.sourceKind()), info.Namespace)
+		if err != nil {
+			return clusterDeleteError(out, err)
+		}
+		out, err = a.kube.DeleteByName(info.appDeployName(), string(info.deployKind()), info.Namespace)
+		if err != nil {
+			return clusterDeleteError(out, err)
+		}
+		return nil
+	}
+
+	cloneURL := info.Spec.ConfigURL
+
+	if cloneURL == string(ConfigTypeUserRepo) {
+		cloneURL = info.Spec.URL
+	}
+
+	remover, err := a.cloneRepo(cloneURL, info.Spec.Branch, params.DryRun)
+	if err != nil {
+		return fmt.Errorf("failed to clone configuration repo: %w", err)
+	}
+
+	defer remover()
+
+	a.logger.Actionf("Removing application from cluster and repository")
+
+	if !params.DryRun {
+		for _, resourceRef := range resources {
+			if resourceRef.repositoryPath != "" { // Some of the automation doesn't get stored
+				if err := a.git.Remove(resourceRef.repositoryPath); err != nil {
+					return err
+				}
+			} else if resourceRef.kind == ResourceKindKustomization ||
+				resourceRef.kind == ResourceKindHelmRelease {
+				out, err := a.kube.DeleteByName(resourceRef.name, string(resourceRef.kind), info.Namespace)
+				if err != nil {
+					return clusterDeleteError(out, err)
+				}
+			}
+		}
+
+		if err := a.commitAndPush(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func clusterDeleteError(out []byte, err error) error {
+	return fmt.Errorf("failed to delete resource: %s with error: %w", out, err)
 }
 
 func dirExists(d string) bool {
@@ -23,7 +104,8 @@ func dirExists(d string) bool {
 	return info.IsDir()
 }
 
-// findAppManifests locates all manifests associated with a specific application within a repository
+// findAppManifests locates all manifests associated with a specific application within a repository;
+// only used when "RemoveWorkload" is specified
 func findAppManifests(application wego.Application, repoDir string) ([][]byte, error) {
 	root := filepath.Join(repoDir, application.Spec.Path)
 	if !dirExists(root) {

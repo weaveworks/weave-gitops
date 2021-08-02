@@ -315,6 +315,21 @@ var _ = Describe("Push", func() {
 	})
 })
 
+var _ = Describe("Remove", func() {
+	It("fails if no file present at path in the git repository", func() {
+		_, err = gitClient.Init(dir, "https://github.com/github/gitignore", "master")
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(gitClient.Remove("foo")).ShouldNot(Succeed())
+	})
+
+	It("succeeds if file present at path in the git repository", func() {
+		_, err = gitClient.Init(dir, "https://github.com/github/gitignore", "master")
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(gitClient.Write("foo", []byte("bar"))).To(Succeed())
+		Expect(gitClient.Remove("foo")).To(Succeed())
+	})
+})
+
 func executeCommand(workingDir, cmd string, args ...string) []byte {
 	c := exec.Command(cmd, args...)
 	c.Dir = workingDir
