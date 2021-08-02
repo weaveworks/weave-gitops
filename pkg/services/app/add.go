@@ -221,6 +221,12 @@ func (a *App) printAddSummary(params AddParams) {
 func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 	params.SourceType = string(wego.SourceTypeGit)
 
+	// making sure the config url is in good format
+	if strings.ToUpper(params.AppConfigUrl) != string(ConfigTypeNone) &&
+		strings.ToUpper(params.AppConfigUrl) != string(ConfigTypeUserRepo) {
+		params.AppConfigUrl = sanitizeRepoUrl(params.AppConfigUrl)
+	}
+
 	if params.Chart != "" {
 		params.SourceType = string(wego.SourceTypeHelm)
 		params.DeploymentType = string(wego.DeploymentTypeHelm)
@@ -247,12 +253,6 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 
 		// resetting Dir param since Url has priority over it
 		params.Dir = ""
-	}
-
-	// making sure the config url is in good format
-	if strings.ToUpper(params.AppConfigUrl) != string(ConfigTypeNone) &&
-		strings.ToUpper(params.AppConfigUrl) != string(ConfigTypeUserRepo) {
-		params.AppConfigUrl = sanitizeRepoUrl(params.AppConfigUrl)
 	}
 
 	if params.Name == "" {
