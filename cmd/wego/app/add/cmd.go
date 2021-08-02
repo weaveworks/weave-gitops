@@ -22,6 +22,10 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
+const (
+	SSHAuthSock = "SSH_AUTH_SOCK"
+)
+
 var params app.AddParams
 
 var Cmd = &cobra.Command{
