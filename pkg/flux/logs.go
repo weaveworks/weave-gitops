@@ -1,20 +1,12 @@
 package flux
 
 import (
-	"fmt"
 	"strings"
-
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 // GetLast log for each flux namespace
-func GetLatestStatusAllNamespaces() ([]string, error) {
-	exePath, err := GetFluxExePath()
-	if err != nil {
-		return nil, err
-	}
-
-	logs, err := utils.CallCommand(fmt.Sprintf("%s logs --all-namespaces", exePath))
+func (f *FluxClient) GetLatestStatusAllNamespaces() ([]string, error) {
+	logs, err := f.runFluxCmd("logs", "--all-namespaces")
 	if err != nil {
 		return nil, err
 	}

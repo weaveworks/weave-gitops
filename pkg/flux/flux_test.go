@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner/runnerfakes"
 )
 
@@ -20,7 +21,7 @@ var (
 var _ = BeforeEach(func() {
 	runner = &runnerfakes.FakeRunner{}
 
-	fluxClient = flux.New(runner)
+	fluxClient = flux.New(osys.New(), runner)
 })
 
 var _ = Describe("Install", func() {
@@ -169,7 +170,7 @@ var _ = Describe("CreateHelmReleaseHelmRepository", func() {
 var _ = Describe("CreateSecretGit", func() {
 	It("creates a git secret and returns the deploy key", func() {
 		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
-			return []byte(`✚ deploy key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCh...`), nil
+			return []byte(`ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCh...`), nil
 		}
 		out, err := fluxClient.CreateSecretGit("my-secret", "ssh://git@github.com/foo/bar.git", "wego-system")
 		Expect(err).ShouldNot(HaveOccurred())
@@ -181,7 +182,7 @@ var _ = Describe("CreateSecretGit", func() {
 		Expect(cmd).To(Equal(fluxPath()))
 
 		fmt.Println(strings.Join(args, " "))
-		Expect(strings.Join(args, " ")).To(Equal("create secret git my-secret --url ssh://git@github.com/foo/bar.git --namespace wego-system"))
+		Expect(strings.Join(args, " ")).To(Equal("create secret git my-secret --url ssh://git@github.com/foo/bar.git --namespace wego-system --export"))
 	})
 })
 

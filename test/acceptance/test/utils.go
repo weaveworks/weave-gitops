@@ -102,6 +102,7 @@ func waitForNamespaceToTerminate(namespace string, timeout time.Duration) error 
 	timeoutInSeconds := int(timeout.Seconds())
 
 	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl get ns %s", namespace))
+
 	if err != nil {
 		log.Infof("Namespace %s doesn't exist, nothing to clean, Skipping...", namespace)
 		return nil
@@ -109,6 +110,7 @@ func waitForNamespaceToTerminate(namespace string, timeout time.Duration) error 
 
 	for i := pollInterval; i < timeoutInSeconds; i += pollInterval {
 		log.Infof("Waiting for namespace: %s to terminate : %d second(s) passed of %d seconds timeout", namespace, i, timeoutInSeconds)
+
 		out, _ := runCommandAndReturnStringOutput(fmt.Sprintf("kubectl get ns %s --ignore-not-found=true | grep -i terminating", namespace))
 		out = strings.TrimSpace(out)
 		if out == "" {

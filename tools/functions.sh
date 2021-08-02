@@ -104,10 +104,15 @@ do_curl_tarball() {
     local url="${2}"
     local default_path="${HOME}/.wego/bin"
     local path="${3:-${default_path}}"/"${cmd}"
+    local checksum_path=${4}
 
     dldir="$(mktempdir)"
     mkdir "${dldir}/${cmd}"
     do_curl "${dldir}/${cmd}.tar.gz" "${url}"
+    if ! ${checksums_path} == ""; then 
+        ## need to validate file here because unpacking the tar changes the hash
+        validate_file "${checksum_path}" "${dldir}/${cmd}.tar.gz" "${cmd}"
+    fi
     tar -C "${dldir}/${cmd}" -xvf "${dldir}/${cmd}.tar.gz"
     mv "${dldir}/${cmd}/${cmd}" "${path}"
     rm -rf "${dldir}"
@@ -124,4 +129,14 @@ do_curl_tarball_with_path() {
     do_curl "${dldir}/${cmd}.tar.gz" "${url_and_path[0]}"
     tar -C "${dldir}/${cmd}" -xvf "${dldir}/${cmd}.tar.gz"
     mv "${dldir}/${cmd}/${url_and_path[1]}" "${path}/${cmd}"
+}
+
+validate_file() {
+    local checksums_path="${1}"
+    local file_path="${2}"
+    local cmd="${3}"
+    if ! grep $(openssl dgst -sha256 ${file_path} | cut -d ' ' -f 2) ${checksums_path}; then
+        echo ${cmd} is not a valid file
+        exit 1
+    fi
 }

@@ -11,6 +11,8 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/wego/gitops"
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
 	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
 var options struct {
@@ -18,12 +20,12 @@ var options struct {
 }
 
 var rootCmd = &cobra.Command{
-	Use: "wego",
+	Use:           "wego",
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	Short:         "Weave GitOps",
 	Long:          "Command line utility for managing Kubernetes applications via GitOps.",
-	Example:`
+	Example: `
   # Get verbose output for any wego command
   wego [command] -v, --verbose
 
@@ -37,10 +39,10 @@ var rootCmd = &cobra.Command{
 
   # Add application to wego control from a github repository
   wego app add \
-	--name <myapp> \
-	--url git@github.com:myorg/<myapp> \
-	--private-key ${HOME}/.ssh/<SSH key for myapp> \
-	--branch prod-<myapp>
+    --name <myapp> \
+    --url git@github.com:myorg/<myapp> \
+    --private-key ${HOME}/.ssh/<SSH key for myapp> \
+    --branch prod-<myapp>
 
   # Get status of application under wego control
   wego app status podinfo
@@ -73,7 +75,10 @@ func configureLogger() {
 }
 
 func main() {
-	fluxBin.SetupFluxBin()
+	cliRunner := &runner.CLIRunner{}
+	osysClient := osys.New()
+	fluxClient := fluxBin.New(osysClient, cliRunner)
+	fluxClient.SetupBin()
 	rootCmd.PersistentFlags().BoolVarP(&options.verbose, "verbose", "v", false, "Enable verbose output")
 	rootCmd.PersistentFlags().String("namespace", "wego-system", "gitops runtime namespace")
 
