@@ -23,7 +23,7 @@ var _ = Describe("Install", func() {
 				return kube.Unmodified
 			},
 		}
-		gitopsSrv = gitops.New(logger.New(os.Stderr), fluxClient, kubeClient)
+		gitopsSrv = gitops.New(logger.NewCLILogger(os.Stderr), fluxClient, kubeClient)
 
 		installParams = gitops.InstallParams{
 			Namespace: "wego-system",

@@ -23,7 +23,7 @@ var _ = Describe("Uninstall", func() {
 				return kube.WeGOInstalled
 			},
 		}
-		gitopsSrv = gitops.New(logger.New(os.Stderr), fluxClient, kubeClient)
+		gitopsSrv = gitops.New(logger.NewCLILogger(os.Stderr), fluxClient, kubeClient)
 
 		uninstallParams = gitops.UinstallParams{
 			Namespace: "wego-system",
