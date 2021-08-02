@@ -484,10 +484,10 @@ var _ = Describe("Get User repo info", func() {
 	})
 
 	It("Succeed on getting user repo info", func() {
-		err = gitProvider.GetRepoInfo(AccountTypeUser, accounts.GithubUserName, repoName)
+		_, err = gitProvider.GetRepoInfo(AccountTypeUser, accounts.GithubUserName, repoName)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		err = gitProvider.GetRepoInfo(AccountTypeUser, accounts.GithubUserName, "repoNotExisted")
+		_, err = gitProvider.GetRepoInfo(AccountTypeUser, accounts.GithubUserName, "repoNotExisted")
 		Expect(err).Should(HaveOccurred())
 
 	})
@@ -528,7 +528,8 @@ var _ = Describe("Test user deploy keys creation", func() {
 		err = gitProvider.CreateUserRepository(userRepoRef, repoInfo, opts)
 		Expect(err).ShouldNot(HaveOccurred())
 		err = utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
-			return gitProvider.GetUserRepo(accounts.GithubUserName, repoName)
+			_, err := gitProvider.GetUserRepo(accounts.GithubUserName, repoName)
+			return err
 		})
 		Expect(err).ShouldNot(HaveOccurred())
 
@@ -595,7 +596,8 @@ var _ = Describe("Test org deploy keys creation", func() {
 		err = gitProvider.CreateOrgRepository(orgRepoRef, repoInfo, opts)
 		Expect(err).ShouldNot(HaveOccurred())
 		err = utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
-			return gitProvider.GetOrgRepo(accounts.GithubOrgName, repoName)
+			_, err := gitProvider.GetOrgRepo(accounts.GithubOrgName, repoName)
+			return err
 		})
 		Expect(err).ShouldNot(HaveOccurred())
 

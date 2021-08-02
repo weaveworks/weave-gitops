@@ -29,6 +29,7 @@ type GitProvider interface {
 	CreateRepository(name string, owner string, private bool) error
 	RepositoryExists(name string, owner string) (bool, error)
 	DeployKeyExists(owner, repoName string) (bool, error)
+	GetRepoInfo(accountType ProviderAccountType, owner string, repoName string) (*gitprovider.RepositoryInfo, error)
 	UploadDeployKey(owner, repoName string, deployKey []byte) error
 	CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
 	CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
@@ -241,52 +242,56 @@ func (p defaultGitProvider) GetAccountType(owner string) (ProviderAccountType, e
 	return AccountTypeOrg, nil
 }
 
-func (p defaultGitProvider) GetRepoInfo(accountType ProviderAccountType, owner string, repoName string) error {
+func (p defaultGitProvider) GetRepoInfo(accountType ProviderAccountType, owner string, repoName string) (*gitprovider.RepositoryInfo, error) {
 	ctx := context.Background()
 	defer ctx.Done()
 
 	switch accountType {
 	case AccountTypeOrg:
-		if err := p.GetOrgRepo(owner, repoName); err != nil {
-			return err
+		repo, err := p.GetOrgRepo(owner, repoName)
+		if err != nil {
+			return nil, err
 		}
+		info := repo.Get()
+		return &info, nil
 	case AccountTypeUser:
-		if err := p.GetUserRepo(owner, repoName); err != nil {
-			return err
+		repo, err := p.GetUserRepo(owner, repoName)
+		if err != nil {
+			return nil, err
 		}
+		info := repo.Get()
+		return &info, nil
 	default:
-		return fmt.Errorf("unexpected account type %s", accountType)
+		return nil, fmt.Errorf("unexpected account type %s", accountType)
 	}
-
-	return nil
 }
 
-func (p defaultGitProvider) GetOrgRepo(org string, repoName string) error {
+func (p defaultGitProvider) GetOrgRepo(org string, repoName string) (gitprovider.OrgRepository, error) {
 	ctx := context.Background()
 	defer ctx.Done()
 
 	orgRepoRef := NewOrgRepositoryRef(github.DefaultDomain, org, repoName)
 
-	_, err := p.provider.OrgRepositories().Get(ctx, orgRepoRef)
+	repo, err := p.provider.OrgRepositories().Get(ctx, orgRepoRef)
 	if err != nil {
-		return fmt.Errorf("error getting org repository %s", err)
+		return nil, fmt.Errorf("error getting org repository %w", err)
 	}
 
-	return nil
+	return repo, nil
 }
 
-func (p defaultGitProvider) GetUserRepo(user string, repoName string) error {
+func (p defaultGitProvider) GetUserRepo(user string, repoName string) (gitprovider.UserRepository, error) {
 	ctx := context.Background()
 	defer ctx.Done()
 
 	userRepoRef := NewUserRepositoryRef(github.DefaultDomain, user, repoName)
 
-	_, err := p.provider.UserRepositories().Get(ctx, userRepoRef)
+	repo, err := p.provider.UserRepositories().Get(ctx, userRepoRef)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("error getting user repository %w", err)
 	}
 
-	return nil
+	return repo, nil
 }
 
 func (p defaultGitProvider) CreateOrgRepository(orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
@@ -295,7 +300,7 @@ func (p defaultGitProvider) CreateOrgRepository(orgRepoRef gitprovider.OrgReposi
 
 	_, err := p.provider.OrgRepositories().Create(ctx, orgRepoRef, repoInfo, opts...)
 	if err != nil {
-		return fmt.Errorf("error creating repo %s", err)
+		return fmt.Errorf("error creating repo %w", err)
 	}
 
 	return p.waitUntilRepoCreated(AccountTypeOrg, orgRepoRef.Organization, orgRepoRef.RepositoryName)
@@ -420,7 +425,8 @@ func NewUserRepositoryRef(domain, user, repoName string) gitprovider.UserReposit
 
 func (p defaultGitProvider) waitUntilRepoCreated(ownerType ProviderAccountType, owner, name string) error {
 	if err := utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
-		return p.GetRepoInfo(ownerType, owner, name)
+		_, err := p.GetRepoInfo(ownerType, owner, name)
+		return err
 	}); err != nil {
 		return fmt.Errorf("could not verify repo existence %s", err)
 	}

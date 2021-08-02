@@ -511,6 +511,21 @@ func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoU
 	}
 
 	repoName := urlToRepoName(repoUrl)
+
+	accountType, err := gitProvider.GetAccountType(owner)
+	if err != nil {
+		return "", err
+	}
+
+	repoInfo, err := gitProvider.GetRepoInfo(accountType, owner, repoName)
+	if err != nil {
+		return "", err
+	}
+
+	if repoInfo != nil && repoInfo.Visibility != nil && *repoInfo.Visibility == gitprovider.RepositoryVisibilityPublic {
+		return "", nil
+	}
+
 	deployKeyExists, err := gitProvider.DeployKeyExists(owner, repoName)
 	if err != nil {
 		return "", fmt.Errorf("failed check for existing deploy key: %w", err)
