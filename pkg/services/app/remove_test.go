@@ -455,8 +455,7 @@ var _ = Describe("Remove", func() {
 				}
 
 				removeParams = RemoveParams{
-					Name:      "loki",
-					AutoMerge: true,
+					Name: "loki",
 				}
 
 				goatPaths = map[string]bool{}
@@ -512,8 +511,7 @@ var _ = Describe("Remove", func() {
 					}
 
 					removeParams = RemoveParams{
-						Name:      "thor",
-						AutoMerge: true,
+						Name: "thor",
 					}
 
 					goatPaths = map[string]bool{}

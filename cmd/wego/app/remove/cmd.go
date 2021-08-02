@@ -24,7 +24,7 @@ import (
 var params app.RemoveParams
 
 var Cmd = &cobra.Command{
-	Use:   "remove [--auto-merge <true|false>] [--private-key <keyfile>] <app name>",
+	Use:   "remove [--private-key <keyfile>] <app name>",
 	Short: "Add a workload repository to a wego cluster",
 	Long: strings.TrimSpace(dedent.Dedent(`
         Associates an additional application in a git repository with a wego cluster so that its contents may be managed via GitOps
@@ -34,7 +34,7 @@ var Cmd = &cobra.Command{
   wego app remove podinfo
 
   # Remove application from wego control via immediate commit
-  wego app remove --auto-merge true podinfo
+  wego app remove podinfo
 `,
 	RunE:          runCmd,
 	SilenceUsage:  true,
@@ -48,7 +48,6 @@ func init() {
 	Cmd.Flags().StringVar(&params.Name, "name", "", "Name of application")
 	Cmd.Flags().StringVar(&params.PrivateKey, "private-key", "", "Private key to access git repository over ssh")
 	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'wego remove' will not make any changes to the system; it will just display the actions that would have been taken")
-	Cmd.Flags().BoolVar(&params.AutoMerge, "auto-merge", false, "If set, 'wego remove' will merge its repository updates immediately")
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {

@@ -13,12 +13,10 @@ import (
 )
 
 type RemoveParams struct {
-	Name      string
-	Namespace string
-	//    RemoveWorkload bool
+	Name             string
+	Namespace        string
 	PrivateKey       string
 	DryRun           bool
-	AutoMerge        bool
 	GitProviderToken string
 }
 
@@ -69,27 +67,25 @@ func (a *App) Remove(params RemoveParams) error {
 
 	defer remover()
 
-	if !params.DryRun {
-		if params.AutoMerge {
-			a.logger.Actionf("Removing manifests from disk")
+	a.logger.Actionf("Removing application from cluster and repository")
 
-			for _, resourceRef := range resources {
-				if resourceRef.repositoryPath != "" { // Some of the automation doesn't get stored
-					if err := a.git.Remove(resourceRef.repositoryPath); err != nil {
-						return err
-					}
-				} else if resourceRef.kind == ResourceKindKustomization ||
-					resourceRef.kind == ResourceKindHelmRelease {
-					out, err := a.kube.DeleteByName(resourceRef.name, string(resourceRef.kind), info.Namespace)
-					if err != nil {
-						return clusterDeleteError(out, err)
-					}
+	if !params.DryRun {
+		for _, resourceRef := range resources {
+			if resourceRef.repositoryPath != "" { // Some of the automation doesn't get stored
+				if err := a.git.Remove(resourceRef.repositoryPath); err != nil {
+					return err
+				}
+			} else if resourceRef.kind == ResourceKindKustomization ||
+				resourceRef.kind == ResourceKindHelmRelease {
+				out, err := a.kube.DeleteByName(resourceRef.name, string(resourceRef.kind), info.Namespace)
+				if err != nil {
+					return clusterDeleteError(out, err)
 				}
 			}
+		}
 
-			if err := a.commitAndPush(); err != nil {
-				return err
-			}
+		if err := a.commitAndPush(); err != nil {
+			return err
 		}
 	}
 

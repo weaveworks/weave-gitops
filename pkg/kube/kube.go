@@ -82,12 +82,7 @@ func (k *KubeClient) Apply(manifests []byte, namespace string) ([]byte, error) {
 		"-f", "-",
 	}
 
-	out, err := k.runKubectlCmdWithInput(args, manifests)
-	if err != nil {
-		return out, err
-	}
-
-	return out, nil
+	return k.runKubectlCmdWithInput(args, manifests)
 }
 
 func (k *KubeClient) Delete(manifests []byte, namespace string) ([]byte, error) {
@@ -97,12 +92,7 @@ func (k *KubeClient) Delete(manifests []byte, namespace string) ([]byte, error) 
 		"-f", "-",
 	}
 
-	out, err := k.runKubectlCmdWithInput(args, manifests)
-	if err != nil {
-		return out, err
-	}
-
-	return out, nil
+	return k.runKubectlCmdWithInput(args, manifests)
 }
 
 func (k *KubeClient) DeleteByName(name, kind, namespace string) ([]byte, error) {
@@ -112,12 +102,7 @@ func (k *KubeClient) DeleteByName(name, kind, namespace string) ([]byte, error) 
 		kind, name,
 	}
 
-	out, err := k.runKubectlCmd(args)
-	if err != nil {
-		return out, err
-	}
-
-	return out, nil
+	return k.runKubectlCmd(args)
 }
 
 func (k *KubeClient) GetClusterName(ctx context.Context) (string, error) {
