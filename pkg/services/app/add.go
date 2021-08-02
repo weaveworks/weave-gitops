@@ -26,9 +26,14 @@ import (
 
 type ConfigType string
 
+type ConfigMode string
+
+type ResourceKind string
+
 type ResourceRef struct {
-	kind string
-	name string
+	kind           ResourceKind
+	name           string
+	repositoryPath string
 }
 
 type AppResourceInfo struct {
@@ -40,6 +45,17 @@ type AppResourceInfo struct {
 const (
 	ConfigTypeUserRepo ConfigType = ""
 	ConfigTypeNone     ConfigType = "NONE"
+
+	ConfigModeClusterOnly  ConfigMode = "clusterOnly"
+	ConfigModeUserRepo     ConfigMode = "userRepo"
+	ConfigModeExternalRepo ConfigMode = "externalRepo"
+
+	ResourceKindApplication    ResourceKind = "Application"
+	ResourceKindSecret         ResourceKind = "Secret"
+	ResourceKindGitRepository  ResourceKind = "GitRepository"
+	ResourceKindHelmRepository ResourceKind = "HelmRepository"
+	ResourceKindKustomization  ResourceKind = "Kustomization"
+	ResourceKindHelmRelease    ResourceKind = "HelmRelease"
 
 	WeGOAppIdentifierLabelKey = "weave-gitops.weave.works/app-identifier"
 )
@@ -321,7 +337,7 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 		return fmt.Errorf("could not apply manifests to the cluster: %w", err)
 	}
 
-	return a.commitAndPush(params, func(fname string) bool {
+	return a.commitAndPush(func(fname string) bool {
 		return strings.Contains(fname, ".wego")
 	})
 }
@@ -372,7 +388,7 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 		return fmt.Errorf("could not apply manifests to the cluster: %w", err)
 	}
 
-	return a.commitAndPush(params)
+	return a.commitAndPush()
 }
 
 func (a *App) generateAppManifests(info *AppResourceInfo, secretRef string, appHash string) ([]byte, []byte, []byte, error) {
@@ -454,27 +470,24 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, secretRef str
 	return targetSource, manifests, nil
 }
 
-func (a *App) commitAndPush(params AddParams, filters ...func(string) bool) error {
-	if params.DryRun || !params.AutoMerge {
-		return nil
-	}
-	a.logger.Actionf("Committing and pushing wego resources for application")
+func (a *App) commitAndPush(filters ...func(string) bool) error {
+	a.logger.Actionf("Committing and pushing wego updates for application")
 
 	_, err := a.git.Commit(git.Commit{
 		Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
 		Message: "Add App manifests",
 	}, filters...)
 	if err != nil && err != git.ErrNoStagedFiles {
-		return fmt.Errorf("failed to commit sync manifests: %w", err)
+		return fmt.Errorf("failed to update the repository: %w", err)
 	}
 
 	if err == nil {
-		a.logger.Actionf("Pushing app manifests to repository")
+		a.logger.Actionf("Pushing app changes to repository")
 		if err = a.git.Push(context.Background()); err != nil {
-			return fmt.Errorf("failed to push manifests: %w", err)
+			return fmt.Errorf("failed to push changes: %w", err)
 		}
 	} else {
-		a.logger.Successf("App manifests are up to date")
+		a.logger.Successf("App is up to date")
 	}
 
 	return nil
@@ -611,9 +624,12 @@ func (a *App) writeAppYaml(info *AppResourceInfo, manifest []byte) error {
 	return a.git.Write(info.appYamlPath(), manifest)
 }
 
-func (a *App) writeAppGoats(info *AppResourceInfo, manifests ...[]byte) error {
-	goat := bytes.Join(manifests, []byte(""))
-	return a.git.Write(info.appAutomationPath(), goat)
+func (a *App) writeAppGoats(info *AppResourceInfo, sourceManifest, deployManifest []byte) error {
+	if err := a.git.Write(info.appAutomationSourcePath(), sourceManifest); err != nil {
+		return err
+	}
+
+	return a.git.Write(info.appAutomationDeployPath(), deployManifest)
 }
 
 func makeWegoApplication(params AddParams) wego.Application {
@@ -695,23 +711,29 @@ func sanitizeRepoUrl(url string) string {
 	return url
 }
 
-func (a *App) createPullRequestToRepo(info *AppResourceInfo, gitProvider gitproviders.GitProvider, repo string, appHash string, appYaml []byte, goatManifests ...[]byte) error {
+func (a *App) createPullRequestToRepo(info *AppResourceInfo, gitProvider gitproviders.GitProvider, repo string, appHash string, appYaml []byte, goatSource, goatDeploy []byte) error {
 	repoName := generateResourceName(repo)
 
 	appPath := info.appYamlPath()
-	goatPath := info.appAutomationPath()
-	goat := bytes.Join(goatManifests, []byte(""))
+	goatSourcePath := info.appAutomationSourcePath()
+	goatDeployPath := info.appAutomationDeployPath()
 
-	appcontent := string(appYaml)
-	goatContent := string(goat)
+	appContent := string(appYaml)
+	goatSourceContent := string(goatSource)
+	goatDeployContent := string(goatDeploy)
+
 	files := []gitprovider.CommitFile{
 		{
 			Path:    &appPath,
-			Content: &appcontent,
+			Content: &appContent,
 		},
 		{
-			Path:    &goatPath,
-			Content: &goatContent,
+			Path:    &goatSourcePath,
+			Content: &goatSourceContent,
+		},
+		{
+			Path:    &goatDeployPath,
+			Content: &goatDeployContent,
 		},
 	}
 
@@ -752,10 +774,22 @@ func getAppResourceInfo(app wego.Application, clusterName string) *AppResourceIn
 	}
 }
 
+func (a *AppResourceInfo) configMode() ConfigMode {
+	if strings.ToUpper(a.Spec.ConfigURL) == string(ConfigTypeNone) {
+		return ConfigModeClusterOnly
+	}
+
+	if a.Spec.ConfigURL == string(ConfigTypeUserRepo) || a.Spec.ConfigURL == a.Spec.URL {
+		return ConfigModeUserRepo
+	}
+
+	return ConfigModeExternalRepo
+}
+
 func (a *AppResourceInfo) automationRoot() string {
 	root := "."
 
-	if a.Spec.ConfigURL == string(ConfigTypeUserRepo) || a.Spec.ConfigURL == a.Spec.URL {
+	if a.configMode() == ConfigModeUserRepo {
 		root = ".wego"
 	}
 
@@ -770,8 +804,12 @@ func (a *AppResourceInfo) appYamlDir() string {
 	return filepath.Join(a.automationRoot(), "apps", a.Name)
 }
 
-func (a *AppResourceInfo) appAutomationPath() string {
-	return filepath.Join(a.appAutomationDir(), fmt.Sprintf("%s-gitops-runtime.yaml", a.Name))
+func (a *AppResourceInfo) appAutomationSourcePath() string {
+	return filepath.Join(a.appAutomationDir(), fmt.Sprintf("%s-gitops-source.yaml", a.Name))
+}
+
+func (a *AppResourceInfo) appAutomationDeployPath() string {
+	return filepath.Join(a.appAutomationDir(), fmt.Sprintf("%s-gitops-deploy.yaml", a.Name))
 }
 
 func (a *AppResourceInfo) appAutomationDir() string {
@@ -802,21 +840,21 @@ func (a *AppResourceInfo) automationTargetDirKustomizationName() string {
 	return fmt.Sprintf("%s-%s", a.targetName, a.Name)
 }
 
-func (a *AppResourceInfo) sourceKind() string {
-	result := "GitRepository"
+func (a *AppResourceInfo) sourceKind() ResourceKind {
+	result := ResourceKindGitRepository
 
 	if a.Spec.SourceType == "helm" {
-		result = "HelmRepository"
+		result = ResourceKindHelmRepository
 	}
 
 	return result
 }
 
-func (a *AppResourceInfo) deployKind() string {
-	result := "Kustomization"
+func (a *AppResourceInfo) deployKind() ResourceKind {
+	result := ResourceKindKustomization
 
 	if a.Spec.DeploymentType == "helm" {
-		result = "HelmRelease"
+		result = ResourceKindHelmRelease
 	}
 
 	return result
@@ -824,19 +862,41 @@ func (a *AppResourceInfo) deployKind() string {
 
 func (a *AppResourceInfo) clusterResources() []ResourceRef {
 	resources := []ResourceRef{}
+
 	// Application GOAT, common to all three modes
+	appPath := a.appYamlPath()
+	automationSourcePath := a.appAutomationSourcePath()
+	automationDeployPath := a.appAutomationDeployPath()
+
+	if a.configMode() == ConfigModeClusterOnly {
+		appPath = ""
+		automationSourcePath = ""
+		automationDeployPath = ""
+	}
+
 	resources = append(
 		resources,
-		ResourceRef{kind: a.sourceKind(), name: a.appSourceName()},
-		ResourceRef{kind: a.deployKind(), name: a.appDeployName()},
-		ResourceRef{kind: "Application", name: a.appResourceName()})
+		ResourceRef{
+			kind:           a.sourceKind(),
+			name:           a.appSourceName(),
+			repositoryPath: automationSourcePath},
+		ResourceRef{
+			kind:           a.deployKind(),
+			name:           a.appDeployName(),
+			repositoryPath: automationDeployPath},
+		ResourceRef{
+			kind:           ResourceKindApplication,
+			name:           a.appResourceName(),
+			repositoryPath: appPath})
 
 	// Secret for deploy key associated with app repository;
 	// common to all three modes when not using upstream Helm repository
-	if a.sourceKind() == "GitRepository" {
+	if a.sourceKind() == ResourceKindGitRepository {
 		resources = append(
 			resources,
-			ResourceRef{kind: "Secret", name: a.appSecretName(a.Spec.URL)})
+			ResourceRef{
+				kind: ResourceKindSecret,
+				name: a.appSecretName(a.Spec.URL)})
 	}
 
 	if strings.ToUpper(a.Spec.ConfigURL) == string(ConfigTypeNone) {
@@ -848,9 +908,13 @@ func (a *AppResourceInfo) clusterResources() []ResourceRef {
 	resources = append(
 		resources,
 		// Kustomization for .wego/apps/<app-name> directory
-		ResourceRef{kind: "Kustomization", name: a.automationAppsDirKustomizationName()},
+		ResourceRef{
+			kind: ResourceKindKustomization,
+			name: a.automationAppsDirKustomizationName()},
 		// Kustomization for .wego/targets/<cluster-name>/<app-name> directory
-		ResourceRef{kind: "Kustomization", name: a.automationTargetDirKustomizationName()})
+		ResourceRef{
+			kind: ResourceKindKustomization,
+			name: a.automationTargetDirKustomizationName()})
 
 	// External repo adds a secret and source for the external repo
 	if a.Spec.ConfigURL != string(ConfigTypeUserRepo) && a.Spec.ConfigURL != a.Spec.URL {
@@ -858,16 +922,24 @@ func (a *AppResourceInfo) clusterResources() []ResourceRef {
 		resources = append(
 			resources,
 			// Secret for deploy key associated with config repository
-			ResourceRef{kind: "Secret", name: a.appSecretName(a.Spec.ConfigURL)},
+			ResourceRef{
+				kind: ResourceKindSecret,
+				name: a.appSecretName(a.Spec.ConfigURL)},
 			// Source for config repository
-			ResourceRef{kind: "GitRepository", name: generateResourceName(a.Spec.ConfigURL)})
+			ResourceRef{
+				kind: ResourceKindGitRepository,
+				name: generateResourceName(a.Spec.ConfigURL)})
 	}
 
 	return resources
 }
 
 func (a *AppResourceInfo) clusterResourcePaths() []string {
-	return []string{a.appYamlPath(), a.appAutomationPath()}
+	if a.configMode() == ConfigModeClusterOnly {
+		return []string{}
+	}
+
+	return []string{a.appYamlPath(), a.appAutomationSourcePath(), a.appAutomationDeployPath()}
 }
 
 // NOTE: ready to save the targets automation in phase 2

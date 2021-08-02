@@ -1,11 +1,10 @@
-package add
+package remove
 
-// Provides support for adding an application to wego managment.
+// Provides support for removing an application from wego management.
 
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/lithammer/dedent"
@@ -22,23 +21,20 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
-var params app.AddParams
+var params app.RemoveParams
 
 var Cmd = &cobra.Command{
-	Use:   "add [--name <name>] [--url <url>] [--branch <branch>] [--path <path within repository>] [--private-key <keyfile>] <repository directory>",
+	Use:   "remove [--private-key <keyfile>] <app name>",
 	Short: "Add a workload repository to a wego cluster",
 	Long: strings.TrimSpace(dedent.Dedent(`
         Associates an additional application in a git repository with a wego cluster so that its contents may be managed via GitOps
     `)),
 	Example: `
-  # Add application to wego control from local git repository
-  wego app add .
+  # Remove application from wego control via pull request
+  wego app remove podinfo
 
-  # Add podinfo application to wego control from github repository
-  wego app add --url git@github.com:myorg/podinfo
-
-  # Get status of podinfo application
-  wego app status podinfo
+  # Remove application from wego control via immediate commit
+  wego app remove podinfo
 `,
 	RunE:          runCmd,
 	SilenceUsage:  true,
@@ -50,31 +46,16 @@ var Cmd = &cobra.Command{
 
 func init() {
 	Cmd.Flags().StringVar(&params.Name, "name", "", "Name of application")
-	Cmd.Flags().StringVar(&params.Url, "url", "", "URL of remote repository")
-	Cmd.Flags().StringVar(&params.Path, "path", "./", "Path of files within git repository")
-	Cmd.Flags().StringVar(&params.Branch, "branch", "main", "Branch to watch within git repository")
-	Cmd.Flags().StringVar(&params.DeploymentType, "deployment-type", "kustomize", "deployment type [kustomize, helm]")
-	Cmd.Flags().StringVar(&params.Chart, "chart", "", "Specify chart for helm source")
 	Cmd.Flags().StringVar(&params.PrivateKey, "private-key", "", "Private key to access git repository over ssh")
-	Cmd.Flags().StringVar(&params.AppConfigUrl, "app-config-url", "", "URL of external repository (if any) which will hold automation manifests; NONE to store only in the cluster")
-	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'wego add' will not make any changes to the system; it will just display the actions that would have been taken")
-	Cmd.Flags().BoolVar(&params.AutoMerge, "auto-merge", false, "If set, 'wego add' will merge automatically into the set --branch")
+	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'wego remove' will not make any changes to the system; it will just display the actions that would have been taken")
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
+	params.Name = args[0]
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 
-	if params.Url != "" && len(args) > 0 {
-		return fmt.Errorf("you should choose either --url or the app directory")
-	}
-
-	if len(args) > 0 {
-		path, err := filepath.Abs(args[0])
-		if err != nil {
-			return errors.Wrap(err, "failed to get absolute path for the repo directory")
-		}
-
-		params.Dir = path
+	if len(args) == 0 {
+		return fmt.Errorf("you must specify an application name")
 	}
 
 	osysClient := osys.New()
@@ -105,10 +86,10 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)
 
-	utils.SetCommmitMessageFromArgs("wego app add", params.Url, params.Path, params.Name)
+	utils.SetCommmitMessage(fmt.Sprintf("wego app remove %s", params.Name))
 
-	if err := appService.Add(params); err != nil {
-		return errors.Wrapf(err, "failed to add the app %s", params.Name)
+	if err := appService.Remove(params); err != nil {
+		return errors.Wrapf(err, "failed to remove the app %s", params.Name)
 	}
 
 	return nil
