@@ -17,16 +17,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type DeploymentType string
-type SourceType string
+// type DeploymentType string
+// type SourceType string
 
-const (
-	DeployTypeKustomize DeploymentType = "kustomize"
-	DeployTypeHelm      DeploymentType = "helm"
+// const (
+//  DeployTypeKustomize DeploymentType = "kustomize"
+//  DeployTypeHelm      DeploymentType = "helm"
 
-	SourceTypeGit  SourceType = "git"
-	SourceTypeHelm SourceType = "helm"
-)
+//  SourceTypeGit  SourceType = "git"
+//  SourceTypeHelm SourceType = "helm"
+// )
 
 // AppService entity that manages applications
 type AppService interface {
@@ -34,6 +34,8 @@ type AppService interface {
 	Add(params AddParams) error
 	// Get returns a given applicaiton
 	Get(name types.NamespacedName) (*wego.Application, error)
+	// Remove removes an application from the cluster
+	Remove(params RemoveParams) error
 	// Status returns flux resources status and the last successful reconciliation time
 	Status(params StatusParams) (string, string, error)
 	// Pause pauses the gitops automation for an app

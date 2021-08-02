@@ -39,6 +39,21 @@ type FakeKube struct {
 		result1 []byte
 		result2 error
 	}
+	DeleteByNameStub        func(string, string, string) ([]byte, error)
+	deleteByNameMutex       sync.RWMutex
+	deleteByNameArgsForCall []struct {
+		arg1 string
+		arg2 string
+		arg3 string
+	}
+	deleteByNameReturns struct {
+		result1 []byte
+		result2 error
+	}
+	deleteByNameReturnsOnCall map[int]struct {
+		result1 []byte
+		result2 error
+	}
 	FluxPresentStub        func(context.Context) (bool, error)
 	fluxPresentMutex       sync.RWMutex
 	fluxPresentArgsForCall []struct {
@@ -283,6 +298,72 @@ func (fake *FakeKube) DeleteReturnsOnCall(i int, result1 []byte, result2 error) 
 		})
 	}
 	fake.deleteReturnsOnCall[i] = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeKube) DeleteByName(arg1 string, arg2 string, arg3 string) ([]byte, error) {
+	fake.deleteByNameMutex.Lock()
+	ret, specificReturn := fake.deleteByNameReturnsOnCall[len(fake.deleteByNameArgsForCall)]
+	fake.deleteByNameArgsForCall = append(fake.deleteByNameArgsForCall, struct {
+		arg1 string
+		arg2 string
+		arg3 string
+	}{arg1, arg2, arg3})
+	stub := fake.DeleteByNameStub
+	fakeReturns := fake.deleteByNameReturns
+	fake.recordInvocation("DeleteByName", []interface{}{arg1, arg2, arg3})
+	fake.deleteByNameMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeKube) DeleteByNameCallCount() int {
+	fake.deleteByNameMutex.RLock()
+	defer fake.deleteByNameMutex.RUnlock()
+	return len(fake.deleteByNameArgsForCall)
+}
+
+func (fake *FakeKube) DeleteByNameCalls(stub func(string, string, string) ([]byte, error)) {
+	fake.deleteByNameMutex.Lock()
+	defer fake.deleteByNameMutex.Unlock()
+	fake.DeleteByNameStub = stub
+}
+
+func (fake *FakeKube) DeleteByNameArgsForCall(i int) (string, string, string) {
+	fake.deleteByNameMutex.RLock()
+	defer fake.deleteByNameMutex.RUnlock()
+	argsForCall := fake.deleteByNameArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeKube) DeleteByNameReturns(result1 []byte, result2 error) {
+	fake.deleteByNameMutex.Lock()
+	defer fake.deleteByNameMutex.Unlock()
+	fake.DeleteByNameStub = nil
+	fake.deleteByNameReturns = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeKube) DeleteByNameReturnsOnCall(i int, result1 []byte, result2 error) {
+	fake.deleteByNameMutex.Lock()
+	defer fake.deleteByNameMutex.Unlock()
+	fake.DeleteByNameStub = nil
+	if fake.deleteByNameReturnsOnCall == nil {
+		fake.deleteByNameReturnsOnCall = make(map[int]struct {
+			result1 []byte
+			result2 error
+		})
+	}
+	fake.deleteByNameReturnsOnCall[i] = struct {
 		result1 []byte
 		result2 error
 	}{result1, result2}
@@ -805,6 +886,8 @@ func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	defer fake.applyMutex.RUnlock()
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
+	fake.deleteByNameMutex.RLock()
+	defer fake.deleteByNameMutex.RUnlock()
 	fake.fluxPresentMutex.RLock()
 	defer fake.fluxPresentMutex.RUnlock()
 	fake.getApplicationMutex.RLock()

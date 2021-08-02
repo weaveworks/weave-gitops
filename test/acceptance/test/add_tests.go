@@ -1016,7 +1016,10 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			_, err := os.Stat(fmt.Sprintf("%s/apps/%s/app.yaml", configRepoAbsolutePath, appName))
 			Expect(err).ShouldNot(HaveOccurred())
 
-			_, err = os.Stat(fmt.Sprintf("%s/targets/%s/%s/%s-gitops-runtime.yaml", configRepoAbsolutePath, clusterName, appName, appName))
+			_, err = os.Stat(fmt.Sprintf("%s/targets/%s/%s/%s-gitops-source.yaml", configRepoAbsolutePath, clusterName, appName, appName))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			_, err = os.Stat(fmt.Sprintf("%s/targets/%s/%s/%s-gitops-deploy.yaml", configRepoAbsolutePath, clusterName, appName, appName))
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 

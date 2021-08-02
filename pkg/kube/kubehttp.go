@@ -129,6 +129,10 @@ func (c *KubeHTTP) Delete(manifests []byte, namespace string) ([]byte, error) {
 	return nil, errors.New("not implemented")
 }
 
+func (c *KubeHTTP) DeleteByName(name, kind, namespace string) ([]byte, error) {
+	return nil, errors.New("not implemented")
+}
+
 func (c *KubeHTTP) FluxPresent(ctx context.Context) (bool, error) {
 	key := types.NamespacedName{
 		Name: FluxNamespace,

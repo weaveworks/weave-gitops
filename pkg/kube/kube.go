@@ -52,6 +52,7 @@ var toStatusString = map[ClusterStatus]string{
 type Kube interface {
 	Apply(manifests []byte, namespace string) ([]byte, error)
 	Delete(manifests []byte, namespace string) ([]byte, error)
+	DeleteByName(name, kind, namespace string) ([]byte, error)
 	SecretPresent(ctx context.Context, string, namespace string) (bool, error)
 	GetApplications(ctx context.Context, namespace string) ([]wego.Application, error)
 	FluxPresent(ctx context.Context) (bool, error)
@@ -81,12 +82,7 @@ func (k *KubeClient) Apply(manifests []byte, namespace string) ([]byte, error) {
 		"-f", "-",
 	}
 
-	out, err := k.runKubectlCmdWithInput(args, manifests)
-	if err != nil {
-		return out, err
-	}
-
-	return out, nil
+	return k.runKubectlCmdWithInput(args, manifests)
 }
 
 func (k *KubeClient) Delete(manifests []byte, namespace string) ([]byte, error) {
@@ -96,12 +92,17 @@ func (k *KubeClient) Delete(manifests []byte, namespace string) ([]byte, error) 
 		"-f", "-",
 	}
 
-	out, err := k.runKubectlCmdWithInput(args, manifests)
-	if err != nil {
-		return out, err
+	return k.runKubectlCmdWithInput(args, manifests)
+}
+
+func (k *KubeClient) DeleteByName(name, kind, namespace string) ([]byte, error) {
+	args := []string{
+		"delete",
+		"--namespace", namespace,
+		kind, name,
 	}
 
-	return out, nil
+	return k.runKubectlCmd(args)
 }
 
 func (k *KubeClient) GetClusterName(ctx context.Context) (string, error) {

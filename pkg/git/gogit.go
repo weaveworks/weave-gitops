@@ -185,7 +185,12 @@ func (g *GoGit) Commit(message Commit, filters ...func(string) bool) (string, er
 	// modified. There's no circumstance in which we want to commit a
 	// change to a broken symlink: so, detect and skip those.
 	var changed bool
-	for file := range status {
+	for file, stat := range status {
+		if stat.Worktree == gogit.Deleted {
+			_, _ = wt.Add(file)
+			changed = true
+			continue
+		}
 		abspath := filepath.Join(g.path, file)
 		isLink, err := isSymLink(abspath)
 		if err != nil {
