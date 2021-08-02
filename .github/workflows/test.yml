@@ -43,6 +43,8 @@ jobs:
       with:
         version: v1.29
         args: --timeout=600s
+    - name: Format
+      run: if [ "$(gofmt -l . | wc -l)" -gt 0 ]; then exit 1; fi
 
   build:
     runs-on: ubuntu-latest
