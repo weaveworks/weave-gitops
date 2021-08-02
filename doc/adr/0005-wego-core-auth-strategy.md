@@ -4,7 +4,7 @@ Date: 2021-07-22
 
 ## Status
 
-Proposal
+Accepted
 
 ## Problem
 
