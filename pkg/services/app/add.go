@@ -218,6 +218,7 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 		if params.Name == "" {
 			params.Name = params.Chart
 		}
+
 		return params, nil
 	}
 
@@ -233,6 +234,7 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 	} else {
 		// making sure url is in the correct format
 		params.Url = sanitizeRepoUrl(params.Url)
+
 		// resetting Dir param since Url has priority over it
 		params.Dir = ""
 	}
