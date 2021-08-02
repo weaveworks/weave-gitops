@@ -97,7 +97,7 @@ var _ = Describe("CreateSourceGit", func() {
 		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
 			return []byte("out"), nil
 		}
-		out, err := fluxClient.CreateSourceGit("my-name", "https://github.com/foo/my-name", "main", "", "wego-system")
+		out, err := fluxClient.CreateSourceGit("my-name", "ssh://git@github.com/foo/my-name", "main", "", "wego-system")
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
 
