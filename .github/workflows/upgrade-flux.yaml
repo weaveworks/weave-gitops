@@ -76,6 +76,7 @@ jobs:
           signoff: true
           branch: update-flux2-version
           title: Update flux2 version
+          base: main
           body: |
             ${{ steps.update.outputs.pr_body }}
 
