@@ -31,6 +31,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 type GoGit struct {
@@ -274,6 +275,26 @@ func (g *GoGit) Head() (string, error) {
 		return "", err
 	}
 	return head.Hash().String(), nil
+}
+
+// GetRemoteUrl returns the url of the first listed remote server
+func (g *GoGit) GetRemoteUrl(dir string, remoteName string) (string, error) {
+	repo, err := g.Open(dir)
+	if err != nil {
+		return "", fmt.Errorf("failed to open repository: %s: %w", dir, err)
+	}
+
+	remote, err := repo.Remote(remoteName)
+	if err != nil {
+		return "", fmt.Errorf("failed to find the origin remote in the repository: %w", err)
+	}
+
+	urls := remote.Config().URLs
+	if len(urls) == 0 {
+		return "", fmt.Errorf("remote config in %s does not have an url", dir)
+	}
+
+	return utils.SanitizeRepoUrl(urls[0]), nil
 }
 
 func isSymLink(fname string) (bool, error) {
