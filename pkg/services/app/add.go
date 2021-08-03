@@ -120,6 +120,13 @@ func (a *App) Add(params AddParams) error {
 		return fmt.Errorf("could not update parameters: %w", err)
 	}
 
+	if params.SourceType != string(wego.SourceTypeHelm) {
+		err = a.git.ValidateAccess(ctx, params.Url, params.Branch)
+		if err != nil {
+			return err
+		}
+	}
+
 	a.printAddSummary(params)
 
 	a.logger.Waitingf("Checking cluster status")

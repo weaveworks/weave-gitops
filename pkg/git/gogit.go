@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -274,6 +275,34 @@ func (g *GoGit) Head() (string, error) {
 		return "", err
 	}
 	return head.Hash().String(), nil
+}
+
+func (g *GoGit) ValidateAccess(ctx context.Context, url string, branch string) error {
+
+	path, err := ioutil.TempDir("", "temp-src")
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(path)
+
+	branchRef := plumbing.NewBranchReferenceName(branch)
+	_, err = gogit.PlainCloneContext(ctx, path, true, &gogit.CloneOptions{
+		URL:           url,
+		Auth:          g.auth,
+		RemoteName:    gogit.DefaultRemoteName,
+		ReferenceName: branchRef,
+		SingleBranch:  true,
+		NoCheckout:    false,
+		Progress:      nil,
+		Depth:         1,
+		Tags:          gogit.NoTags,
+	})
+
+	if err != nil && !(errors.Is(err, transport.ErrEmptyRemoteRepository) ||
+		errors.Is(err, gogit.NoMatchingRefSpecError{})) {
+		return fmt.Errorf("error validating git repo access %w", err)
+	}
+	return nil
 }
 
 func isSymLink(fname string) (bool, error) {

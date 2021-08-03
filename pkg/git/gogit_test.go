@@ -84,6 +84,18 @@ var _ = Describe("Clone", func() {
 	})
 })
 
+var _ = Describe("ValidateAccess", func() {
+	It("validate access to a given repository successfully", func() {
+		err := gitClient.ValidateAccess(context.Background(), "https://github.com/notexisted/repo", "master")
+		Expect(err).ShouldNot(HaveOccurred())
+	})
+
+	It("fails to validate access to a possible private repository", func() {
+		err := gitClient.ValidateAccess(context.Background(), "https://github.com/notexisted/repo", "master")
+		Expect(err).Should(HaveOccurred())
+	})
+})
+
 var _ = Describe("Write", func() {
 	It("writes a file into a given repository", func() {
 		_, err = gitClient.Init(dir, "https://github.com/github/gitignore", "master")

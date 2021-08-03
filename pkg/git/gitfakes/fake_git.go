@@ -114,6 +114,19 @@ type FakeGit struct {
 		result1 bool
 		result2 error
 	}
+	ValidateAccessStub        func(context.Context, string, string) error
+	validateAccessMutex       sync.RWMutex
+	validateAccessArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+	}
+	validateAccessReturns struct {
+		result1 error
+	}
+	validateAccessReturnsOnCall map[int]struct {
+		result1 error
+	}
 	WriteStub        func(string, []byte) error
 	writeMutex       sync.RWMutex
 	writeArgsForCall []struct {
@@ -626,6 +639,69 @@ func (fake *FakeGit) StatusReturnsOnCall(i int, result1 bool, result2 error) {
 	}{result1, result2}
 }
 
+func (fake *FakeGit) ValidateAccess(arg1 context.Context, arg2 string, arg3 string) error {
+	fake.validateAccessMutex.Lock()
+	ret, specificReturn := fake.validateAccessReturnsOnCall[len(fake.validateAccessArgsForCall)]
+	fake.validateAccessArgsForCall = append(fake.validateAccessArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+	}{arg1, arg2, arg3})
+	stub := fake.ValidateAccessStub
+	fakeReturns := fake.validateAccessReturns
+	fake.recordInvocation("ValidateAccess", []interface{}{arg1, arg2, arg3})
+	fake.validateAccessMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeGit) ValidateAccessCallCount() int {
+	fake.validateAccessMutex.RLock()
+	defer fake.validateAccessMutex.RUnlock()
+	return len(fake.validateAccessArgsForCall)
+}
+
+func (fake *FakeGit) ValidateAccessCalls(stub func(context.Context, string, string) error) {
+	fake.validateAccessMutex.Lock()
+	defer fake.validateAccessMutex.Unlock()
+	fake.ValidateAccessStub = stub
+}
+
+func (fake *FakeGit) ValidateAccessArgsForCall(i int) (context.Context, string, string) {
+	fake.validateAccessMutex.RLock()
+	defer fake.validateAccessMutex.RUnlock()
+	argsForCall := fake.validateAccessArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeGit) ValidateAccessReturns(result1 error) {
+	fake.validateAccessMutex.Lock()
+	defer fake.validateAccessMutex.Unlock()
+	fake.ValidateAccessStub = nil
+	fake.validateAccessReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeGit) ValidateAccessReturnsOnCall(i int, result1 error) {
+	fake.validateAccessMutex.Lock()
+	defer fake.validateAccessMutex.Unlock()
+	fake.ValidateAccessStub = nil
+	if fake.validateAccessReturnsOnCall == nil {
+		fake.validateAccessReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.validateAccessReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeGit) Write(arg1 string, arg2 []byte) error {
 	var arg2Copy []byte
 	if arg2 != nil {
@@ -712,6 +788,8 @@ func (fake *FakeGit) Invocations() map[string][][]interface{} {
 	defer fake.removeMutex.RUnlock()
 	fake.statusMutex.RLock()
 	defer fake.statusMutex.RUnlock()
+	fake.validateAccessMutex.RLock()
+	defer fake.validateAccessMutex.RUnlock()
 	fake.writeMutex.RLock()
 	defer fake.writeMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
