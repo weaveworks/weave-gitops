@@ -1,0 +1,83 @@
+name: Update Components
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 * * * *"
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  update-components:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.x
+      - name: Update component versions
+        id: update
+        run: |
+
+          local latestFluxVersion="$(curl -s --request GET --url "https://api.github.com/repos/fluxcd/flux2/releases?per_page=1" | jq . | jq '.[0] | .tag_name' | jq -r | sed -e 's/v//')"
+
+            local currentFluxVersion="$(sed -n 's/version="\([0-9\.]*\)"/\1/p' tools/dependencies.toml | head -1)"
+
+            echo "$latestFluxVersion"
+            echo "$currentFluxVersion"
+
+            if [[ "$latestFluxVersion" == "$currentFluxVersion" ]]; then
+              exit 0
+            fi
+
+            local newContent=$(sed -e "/version\=\"[0-9\.]*\"/{s//version=\"$latestFluxVersion\"/;:a" -e '$!N;$!ba' -e '}' tools/dependencies.toml)
+
+            echo "$newContent" > tools/dependencies.toml
+
+            local PR_BODY="<!-- Describe what has changed in this PR -->
+          **What changed?**
+          Upgrade flux version from $currentFluxVersion to $latestFluxVersion
+
+          <!-- Tell your future self why have you made these changes -->
+          **Why?**
+          To be up to date with latest flux2 releases
+
+          <!-- How have you verified this change? Tested locally? Added unit test/integration/acceptance test(s)? -->
+          **How did you test it?**
+          Test suites on CI
+
+          <!-- Is it notable for release? e.g. schema updates, configuration or data migration required? If so, please mention it. -->
+          **Release notes**
+
+          <!-- Are there any documentation updates that should be made for these changes? -->
+          **Documentation Changes**"
+
+          {
+            # diff change
+            git diff
+            # export PR_BODY for PR and commit
+            echo "::set-output name=pr_body::$PR_BODY"
+          }
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: |
+            Update flux2 version
+            ${{ steps.update.outputs.pr_body }}
+          committer: GitHub <noreply@github.com>
+          author: weave-test-user <weave-test-user@example.com>
+          signoff: true
+          branch: update-flux2-version
+          title: Update flux2 version
+          body: |
+            ${{ steps.update.outputs.pr_body }}
+
+      - name: Check output
+        run: |
+          echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+          echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
