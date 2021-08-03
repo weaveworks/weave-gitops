@@ -261,6 +261,8 @@ func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, 
 	}
 
 	if params.Branch == "" {
+		params.Branch = "main"
+
 		if params.SourceType == string(wego.SourceTypeGit) {
 			branch, err := a.getDefaultBranch(params.Url, gitProvider)
 			if err != nil {
@@ -268,8 +270,6 @@ func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, 
 			} else {
 				params.Branch = branch
 			}
-		} else {
-			params.Branch = "main"
 		}
 	}
 
