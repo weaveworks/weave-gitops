@@ -77,6 +77,32 @@ type AddParams struct {
 	GitProviderToken string
 }
 
+const (
+	DefaultName           = ""
+	DefaultURL            = ""
+	DefaultPath           = "./"
+	DefaultBranch         = "main"
+	DefaultDeploymentType = "kustomize"
+	DefaultChart          = ""
+	DefaultPrivateKey     = ""
+	DefaultAppConfigURL   = ""
+	DefaultDryRun         = false
+	DefaultAutoMerge      = false
+)
+
+func (a AddParams) PopulateDefaultValues() {
+	a.Name = DefaultName
+	a.Url = DefaultURL
+	a.Path = DefaultPath
+	a.Branch = DefaultBranch
+	a.DeploymentType = DefaultDeploymentType
+	a.Chart = DefaultChart
+	a.PrivateKey = DefaultPrivateKey
+	a.AppConfigUrl = DefaultAppConfigURL
+	a.DryRun = DefaultDryRun
+	a.AutoMerge = DefaultAutoMerge
+}
+
 // Three models:
 // --app-config-url=none
 //

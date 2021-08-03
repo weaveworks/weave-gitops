@@ -49,16 +49,16 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.Flags().StringVar(&params.Name, "name", "", "Name of application")
-	Cmd.Flags().StringVar(&params.Url, "url", "", "URL of remote repository")
-	Cmd.Flags().StringVar(&params.Path, "path", "./", "Path of files within git repository")
-	Cmd.Flags().StringVar(&params.Branch, "branch", "main", "Branch to watch within git repository")
-	Cmd.Flags().StringVar(&params.DeploymentType, "deployment-type", "kustomize", "deployment type [kustomize, helm]")
-	Cmd.Flags().StringVar(&params.Chart, "chart", "", "Specify chart for helm source")
-	Cmd.Flags().StringVar(&params.PrivateKey, "private-key", "", "Private key to access git repository over ssh")
-	Cmd.Flags().StringVar(&params.AppConfigUrl, "app-config-url", "", "URL of external repository (if any) which will hold automation manifests; NONE to store only in the cluster")
-	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'wego add' will not make any changes to the system; it will just display the actions that would have been taken")
-	Cmd.Flags().BoolVar(&params.AutoMerge, "auto-merge", false, "If set, 'wego add' will merge automatically into the set --branch")
+	Cmd.Flags().StringVar(&params.Name, "name", app.DefaultName, "Name of application")
+	Cmd.Flags().StringVar(&params.Url, "url", app.DefaultURL, "URL of remote repository")
+	Cmd.Flags().StringVar(&params.Path, "path", app.DefaultPath, "Path of files within git repository")
+	Cmd.Flags().StringVar(&params.Branch, "branch", app.DefaultBranch, "Branch to watch within git repository")
+	Cmd.Flags().StringVar(&params.DeploymentType, "deployment-type", app.DefaultDeploymentType, "deployment type [kustomize, helm]")
+	Cmd.Flags().StringVar(&params.Chart, "chart", app.DefaultChart, "Specify chart for helm source")
+	Cmd.Flags().StringVar(&params.PrivateKey, "private-key", app.DefaultPrivateKey, "Private key to access git repository over ssh")
+	Cmd.Flags().StringVar(&params.AppConfigUrl, "app-config-url", app.DefaultAppConfigURL, "URL of external repository (if any) which will hold automation manifests; NONE to store only in the cluster")
+	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", app.DefaultDryRun, "If set, 'wego add' will not make any changes to the system; it will just display the actions that would have been taken")
+	Cmd.Flags().BoolVar(&params.AutoMerge, "auto-merge", app.DefaultAutoMerge, "If set, 'wego add' will merge automatically into the set --branch")
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
