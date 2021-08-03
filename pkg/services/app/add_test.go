@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/go-git/go-billy/v5/memfs"
@@ -34,6 +35,10 @@ var _ = Describe("Add", func() {
 			Namespace:      "wego-system",
 			AppConfigUrl:   "NONE",
 			AutoMerge:      true,
+		}
+
+		gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
+			return "main", nil
 		}
 	})
 
@@ -98,10 +103,13 @@ stringData:
 			return gitproviders.AccountTypeOrg, nil
 		}
 
+		gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
+			return "main", nil
+		}
+
 		gitProviders.GetRepoInfoStub = func(accountType gitproviders.ProviderAccountType, owner, repoName string) (*gitprovider.RepositoryInfo, error) {
-			branch := "main"
 			visibility := gitprovider.RepositoryVisibility("public")
-			return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: &branch, Visibility: &visibility}, nil
+			return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: nil, Visibility: &visibility}, nil
 		}
 
 		secretRef, err := appSrv.(*App).createAndUploadDeployKey(
@@ -114,13 +122,17 @@ stringData:
 	})
 	Context("Looking up repo default branch", func() {
 		var _ = BeforeEach(func() {
-			gitProviders.GetRepoInfoStub = func(accountType gitproviders.ProviderAccountType, owner, repoName string) (*gitprovider.RepositoryInfo, error) {
+			gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
 				branch := "an-unusual-branch" // for app repository
-				if repoName != "bar" {
+				if !strings.Contains(url, "bar") {
 					branch = "config-branch" // for config repository
 				}
+				return branch, nil
+			}
+
+			gitProviders.GetRepoInfoStub = func(accountType gitproviders.ProviderAccountType, owner, repoName string) (*gitprovider.RepositoryInfo, error) {
 				visibility := gitprovider.RepositoryVisibility("public")
-				return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: &branch, Visibility: &visibility}, nil
+				return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: nil, Visibility: &visibility}, nil
 			}
 
 			addParams.Branch = ""
@@ -137,16 +149,6 @@ stringData:
 			updated, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(updated.Branch).To(Equal("an-overriding-branch"))
-		})
-
-		It("Defaults to 'main' if the repo returns no default branch", func() {
-			gitProviders.GetRepoInfoStub = func(accountType gitproviders.ProviderAccountType, owner, repoName string) (*gitprovider.RepositoryInfo, error) {
-				visibility := gitprovider.RepositoryVisibility("public")
-				return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: nil, Visibility: &visibility}, nil
-			}
-			updated, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(updated.Branch).To(Equal("main"))
 		})
 	})
 

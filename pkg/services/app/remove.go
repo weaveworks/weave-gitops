@@ -104,7 +104,7 @@ func (a *App) getConfigUrlAndBranch(info *AppResourceInfo, token string) (string
 			return "", "", err
 		}
 
-		branch, err = a.getDefaultBranch(cloneURL, gitProvider)
+		branch, err = gitProvider.GetDefaultBranch(cloneURL)
 		if err != nil {
 			return "", "", err
 		}

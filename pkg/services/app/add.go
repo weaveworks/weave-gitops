@@ -264,7 +264,7 @@ func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, 
 		params.Branch = "main"
 
 		if params.SourceType == string(wego.SourceTypeGit) {
-			branch, err := a.getDefaultBranch(params.Url, gitProvider)
+			branch, err := gitProvider.GetDefaultBranch(params.Url)
 			if err != nil {
 				return params, err
 			} else {
@@ -274,23 +274,6 @@ func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, 
 	}
 
 	return params, nil
-}
-
-func (a *App) getDefaultBranch(url string, gitProvider gitproviders.GitProvider) (string, error) {
-	repoInfoRef, err := a.getRepoInfo(url, gitProvider)
-
-	if err != nil {
-		return "", err
-	}
-
-	if repoInfoRef != nil {
-		repoInfo := *repoInfoRef
-		if repoInfo.DefaultBranch != nil {
-			return *repoInfo.DefaultBranch, nil
-		}
-	}
-
-	return "main", nil
 }
 
 func (a *App) getGitRemoteUrl(params AddParams) (string, error) {
@@ -385,7 +368,7 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 		return fmt.Errorf("could not generate application GitOps Automation manifests: %w", err)
 	}
 
-	configBranch, err := a.getDefaultBranch(info.Spec.ConfigURL, gitProvider)
+	configBranch, err := gitProvider.GetDefaultBranch(info.Spec.ConfigURL)
 	if err != nil {
 		return fmt.Errorf("could not determine default branch for config repository: %w", err)
 	}
@@ -480,6 +463,7 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, secretRef, br
 
 	targetSource, err := a.flux.CreateSourceGit(repoName, info.Spec.ConfigURL, branch, secretRef, info.Namespace)
 	if err != nil {
+		fmt.Printf("RN: %s, CURL: %s, branch: %s, secretRef: %s, ns: %s\n", repoName, info.Spec.ConfigURL, branch, secretRef, info.Namespace)
 		return nil, nil, fmt.Errorf("could not generate target source manifests: %w", err)
 	}
 
@@ -529,27 +513,6 @@ func (a *App) commitAndPush(filters ...func(string) bool) error {
 	return nil
 }
 
-func (a *App) getRepoInfo(repoUrl string, gitProvider gitproviders.GitProvider) (*gitprovider.RepositoryInfo, error) {
-	owner, err := getOwnerFromUrl(repoUrl)
-	if err != nil {
-		return nil, err
-	}
-
-	repoName := urlToRepoName(repoUrl)
-
-	accountType, err := gitProvider.GetAccountType(owner)
-	if err != nil {
-		return nil, err
-	}
-
-	repoInfo, err := gitProvider.GetRepoInfo(accountType, owner, repoName)
-	if err != nil {
-		return nil, err
-	}
-
-	return repoInfo, nil
-}
-
 func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoUrl string, gitProvider gitproviders.GitProvider) (string, error) {
 	if repoUrl == "" {
 		return "", nil
@@ -562,12 +525,12 @@ func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoU
 
 	repoUrl = sanitizeRepoUrl(repoUrl)
 
-	owner, err := getOwnerFromUrl(repoUrl)
+	owner, err := utils.GetOwnerFromUrl(repoUrl)
 	if err != nil {
 		return "", err
 	}
 
-	repoName := urlToRepoName(repoUrl)
+	repoName := utils.UrlToRepoName(repoUrl)
 
 	accountType, err := gitProvider.GetAccountType(owner)
 	if err != nil {
@@ -744,19 +707,7 @@ func generateAppYaml(info *AppResourceInfo, appHash string) ([]byte, error) {
 }
 
 func generateResourceName(url string) string {
-	return strings.ReplaceAll(urlToRepoName(url), "_", "-")
-}
-
-func getOwnerFromUrl(url string) (string, error) {
-	parts := strings.Split(url, "/")
-	if len(parts) < 2 {
-		return "", fmt.Errorf("could not get owner from url %s", url)
-	}
-	return parts[len(parts)-2], nil
-}
-
-func urlToRepoName(url string) string {
-	return strings.TrimSuffix(filepath.Base(url), ".git")
+	return strings.ReplaceAll(utils.UrlToRepoName(url), "_", "-")
 }
 
 func sanitizeRepoUrl(url string) string {
@@ -809,7 +760,7 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, gitProvider gitprov
 		},
 	}
 
-	owner, err := getOwnerFromUrl(repo)
+	owner, err := utils.GetOwnerFromUrl(repo)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve owner: %w", err)
 	}
@@ -901,7 +852,7 @@ func (a *AppResourceInfo) appResourceName() string {
 }
 
 func (a *AppResourceInfo) appSecretName(repoURL string) string {
-	return fmt.Sprintf("wego-%s-%s", a.targetName, urlToRepoName(repoURL))
+	return fmt.Sprintf("wego-%s-%s", a.targetName, utils.UrlToRepoName(repoURL))
 }
 
 func (a *AppResourceInfo) automationAppsDirKustomizationName() string {

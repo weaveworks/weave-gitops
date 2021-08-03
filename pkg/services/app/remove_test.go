@@ -279,7 +279,12 @@ var _ = Describe("Remove", func() {
 			AppConfigUrl:   "NONE",
 			AutoMerge:      true,
 		}
+
 		application = makeWegoApplication(localAddParams)
+
+		gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
+			return "main", nil
+		}
 	})
 
 	It("gives a correct error message when app path not found", func() {
@@ -304,10 +309,13 @@ var _ = Describe("Remove", func() {
 	})
 
 	It("Looks up config repo default branch", func() {
+		gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
+			return "config-branch", nil
+		}
+
 		gitProviders.GetRepoInfoStub = func(accountType gitproviders.ProviderAccountType, owner, repoName string) (*gitprovider.RepositoryInfo, error) {
-			branch := "config-branch" // for config repository
 			visibility := gitprovider.RepositoryVisibility("public")
-			return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: &branch, Visibility: &visibility}, nil
+			return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: nil, Visibility: &visibility}, nil
 		}
 
 		kubeClient.GetApplicationStub = func(_ context.Context, name types.NamespacedName) (*wego.Application, error) {
