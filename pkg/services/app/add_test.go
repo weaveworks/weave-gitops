@@ -112,6 +112,40 @@ stringData:
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(secretRef).To(Equal(""))
 	})
+	Context("Looking up repo default branch", func() {
+		var _ = BeforeEach(func() {
+			gitProviders.GetRepoInfoStub = func(accountType gitproviders.ProviderAccountType, owner, repoName string) (*gitprovider.RepositoryInfo, error) {
+				branch := "an-unusual-branch"
+				visibility := gitprovider.RepositoryVisibility("public")
+				return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: &branch, Visibility: &visibility}, nil
+			}
+
+			addParams.Branch = ""
+		})
+
+		It("Uses the default branch from the repository if no branch is specified", func() {
+			updated, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(updated.Branch).To(Equal("an-unusual-branch"))
+		})
+
+		It("Allows a specified branch to override the repo's default branch", func() {
+			addParams.Branch = "an-overriding-branch"
+			updated, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(updated.Branch).To(Equal("an-overriding-branch"))
+		})
+
+		It("Defaults to 'main' if the repo returns no default branch", func() {
+			gitProviders.GetRepoInfoStub = func(accountType gitproviders.ProviderAccountType, owner, repoName string) (*gitprovider.RepositoryInfo, error) {
+				visibility := gitprovider.RepositoryVisibility("public")
+				return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: nil, Visibility: &visibility}, nil
+			}
+			updated, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(updated.Branch).To(Equal("main"))
+		})
+	})
 
 	Describe("checks for existing deploy key before creating secret", func() {
 		It("looks up deploy key and skips creating secret if found", func() {

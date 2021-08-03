@@ -190,7 +190,7 @@ func setupFlux() error {
 
 // Run 'wego app add' and gather the resources we expect to be generated
 func runAddAndCollectInfo() error {
-	params, err := appSrv.(*App).updateParametersIfNecessary(addParams)
+	params, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
 	if err != nil {
 		return err
 	}

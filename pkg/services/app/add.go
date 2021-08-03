@@ -115,7 +115,13 @@ type AddParams struct {
 
 func (a *App) Add(params AddParams) error {
 	ctx := context.Background()
-	params, err := a.updateParametersIfNecessary(params)
+
+	gitProvider, err := a.gitProviderFactory(params.GitProviderToken)
+	if err != nil {
+		return err
+	}
+
+	params, err = a.updateParametersIfNecessary(gitProvider, params)
 	if err != nil {
 		return fmt.Errorf("could not update parameters: %w", err)
 	}
@@ -139,11 +145,6 @@ func (a *App) Add(params AddParams) error {
 	}
 
 	info := getAppResourceInfo(makeWegoApplication(params), clusterName)
-
-	gitProvider, err := a.gitProviderFactory(params.GitProviderToken)
-	if err != nil {
-		return err
-	}
 
 	var secretRef string
 	if wego.SourceType(params.SourceType) == wego.SourceTypeGit {
@@ -218,7 +219,7 @@ func (a *App) printAddSummary(params AddParams) {
 	a.logger.Println("")
 }
 
-func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
+func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, params AddParams) (AddParams, error) {
 	params.SourceType = string(wego.SourceTypeGit)
 
 	// making sure the config url is in good format
@@ -257,6 +258,23 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 
 	if params.Name == "" {
 		params.Name = generateResourceName(params.Url)
+	}
+
+	if params.Branch == "" {
+		repoInfoRef, err := a.getRepoInfo(params.Url, gitProvider)
+
+		if err != nil {
+			return params, err
+		}
+
+		params.Branch = "main"
+
+		if repoInfoRef != nil {
+			repoInfo := *repoInfoRef
+			if repoInfo.DefaultBranch != nil {
+				params.Branch = *repoInfo.DefaultBranch
+			}
+		}
 	}
 
 	return params, nil
@@ -491,6 +509,27 @@ func (a *App) commitAndPush(filters ...func(string) bool) error {
 	}
 
 	return nil
+}
+
+func (a *App) getRepoInfo(repoUrl string, gitProvider gitproviders.GitProvider) (*gitprovider.RepositoryInfo, error) {
+	owner, err := getOwnerFromUrl(repoUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	repoName := urlToRepoName(repoUrl)
+
+	accountType, err := gitProvider.GetAccountType(owner)
+	if err != nil {
+		return nil, err
+	}
+
+	repoInfo, err := gitProvider.GetRepoInfo(accountType, owner, repoName)
+	if err != nil {
+		return nil, err
+	}
+
+	return repoInfo, nil
 }
 
 func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoUrl string, gitProvider gitproviders.GitProvider) (string, error) {
