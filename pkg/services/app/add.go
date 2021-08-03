@@ -220,6 +220,9 @@ func (a *App) printAddSummary(params AddParams) {
 }
 
 func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, params AddParams) (AddParams, error) {
+	specifiedBranch := params.Branch
+	params.Branch = "main"
+
 	params.SourceType = string(wego.SourceTypeGit)
 
 	// making sure the config url is in good format
@@ -260,14 +263,12 @@ func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, 
 		params.Name = generateResourceName(params.Url)
 	}
 
-	if params.Branch == "" {
+	if specifiedBranch == "" && params.SourceType == string(wego.SourceTypeGit) {
 		repoInfoRef, err := a.getRepoInfo(params.Url, gitProvider)
 
 		if err != nil {
 			return params, err
 		}
-
-		params.Branch = "main"
 
 		if repoInfoRef != nil {
 			repoInfo := *repoInfoRef
