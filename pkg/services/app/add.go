@@ -463,7 +463,6 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, secretRef, br
 
 	targetSource, err := a.flux.CreateSourceGit(repoName, info.Spec.ConfigURL, branch, secretRef, info.Namespace)
 	if err != nil {
-		fmt.Printf("RN: %s, CURL: %s, branch: %s, secretRef: %s, ns: %s\n", repoName, info.Spec.ConfigURL, branch, secretRef, info.Namespace)
 		return nil, nil, fmt.Errorf("could not generate target source manifests: %w", err)
 	}
 

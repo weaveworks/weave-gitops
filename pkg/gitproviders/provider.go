@@ -246,16 +246,13 @@ func (p defaultGitProvider) GetAccountType(owner string) (ProviderAccountType, e
 func (p defaultGitProvider) GetDefaultBranch(url string) (string, error) {
 	repoInfoRef, err := p.GetRepoInfoFromUrl(url)
 
-	fmt.Printf("RIR: %v\n", repoInfoRef)
 	if err != nil {
 		return "", err
 	}
 
 	if repoInfoRef != nil {
 		repoInfo := *repoInfoRef
-		fmt.Printf("RI: %#+v\n", repoInfo)
 		if repoInfo.DefaultBranch != nil {
-			fmt.Printf("DB: %#+v\n", *repoInfo.DefaultBranch)
 			return *repoInfo.DefaultBranch, nil
 		}
 	}
