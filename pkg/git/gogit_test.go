@@ -86,7 +86,7 @@ var _ = Describe("Clone", func() {
 
 var _ = Describe("ValidateAccess", func() {
 	It("validate access to a given repository successfully", func() {
-		err := gitClient.ValidateAccess(context.Background(), "https://github.com/notexisted/repo", "master")
+		err := gitClient.ValidateAccess(context.Background(), "https://github.com/githubtraining/hellogitworld", "master")
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 
