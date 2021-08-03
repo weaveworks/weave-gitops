@@ -7,42 +7,57 @@ import (
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/api/applications"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/rand"
 )
 
 var _ = Describe("ApplicationsServer", func() {
-	It("AddApplication", func() {
-		kubeClient.GetApplicationsStub = func(ctx context.Context, ns string) ([]wego.Application, error) {
-			return []wego.Application{
-				{
-					ObjectMeta: v1.ObjectMeta{Name: "my-app"},
-					Spec:       wego.ApplicationSpec{Path: "bar"},
-				},
-				{
-					ObjectMeta: v1.ObjectMeta{Name: "my-app1"},
-					Spec:       wego.ApplicationSpec{Path: "bar2"},
-				},
-			}, nil
-		}
+	var (
+		namespace *corev1.Namespace
+		err       error
+	)
 
-		res, err := client.ListApplications(context.Background(), &applications.ListApplicationsRequest{})
+	BeforeEach(func() {
+		namespace = &corev1.Namespace{}
+		namespace.Name = "kube-test-" + rand.String(5)
+		err = k8sClient.Create(context.Background(), namespace)
+		Expect(err).NotTo(HaveOccurred(), "failed to create test namespace")
+
+		k = &kube.KubeHTTP{Client: k8sClient, ClusterName: testClustername}
+	})
+	It("ListApplication", func() {
+		ctx := context.Background()
+		name := "my-app"
+		app := &wego.Application{ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace.Name,
+		}}
+
+		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
+
+		res, err := appsClient.ListApplications(context.Background(), &applications.ListApplicationsRequest{})
 
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(len(res.Applications)).To(Equal(2))
+		Expect(len(res.Applications)).To(Equal(1))
 	})
 	It("GetApplication", func() {
-		kubeClient.GetApplicationStub = func(ctx context.Context, name types.NamespacedName) (*wego.Application, error) {
-			return &wego.Application{
-				ObjectMeta: v1.ObjectMeta{Name: "my-app"},
-				Spec:       wego.ApplicationSpec{Path: "bar"},
-			}, nil
-		}
+		ctx := context.Background()
+		name := "my-app"
+		app := &wego.Application{ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace.Name,
+		}}
 
-		res, err := client.GetApplication(context.Background(), &applications.GetApplicationRequest{Name: "my-app"})
+		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
+		res, err := appsClient.GetApplication(context.Background(), &applications.GetApplicationRequest{
+			Name:      name,
+			Namespace: namespace.Name,
+		})
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(res.Application.Name).To(Equal("my-app"))
+		Expect(res.Application.Name).To(Equal(name))
 	})
 })
