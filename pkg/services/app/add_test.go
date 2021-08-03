@@ -115,7 +115,10 @@ stringData:
 	Context("Looking up repo default branch", func() {
 		var _ = BeforeEach(func() {
 			gitProviders.GetRepoInfoStub = func(accountType gitproviders.ProviderAccountType, owner, repoName string) (*gitprovider.RepositoryInfo, error) {
-				branch := "an-unusual-branch"
+				branch := "an-unusual-branch" // for app repository
+				if repoName != "bar" {
+					branch = "config-branch" // for config repository
+				}
 				visibility := gitprovider.RepositoryVisibility("public")
 				return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: &branch, Visibility: &visibility}, nil
 			}

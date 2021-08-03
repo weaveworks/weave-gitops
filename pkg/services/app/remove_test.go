@@ -8,10 +8,12 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/osys/osysfakes"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 
@@ -188,8 +190,7 @@ func setupFlux() error {
 	return nil
 }
 
-// Run 'wego app add' and gather the resources we expect to be generated
-func runAddAndCollectInfo() error {
+func updateAppInfoFromParams() error {
 	params, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
 	if err != nil {
 		return err
@@ -199,6 +200,14 @@ func runAddAndCollectInfo() error {
 	application = makeWegoApplication(addParams)
 	info = getAppResourceInfo(application, "test-cluster")
 	appResources = info.clusterResources()
+	return nil
+}
+
+// Run 'wego app add' and gather the resources we expect to be generated
+func runAddAndCollectInfo() error {
+	if err := updateAppInfoFromParams(); err != nil {
+		return err
+	}
 
 	if err := appSrv.Add(addParams); err != nil {
 		return err
@@ -290,6 +299,26 @@ var _ = Describe("Remove", func() {
 		for _, manifest := range manifests {
 			Expect(manifest).To(Or(Equal([]byte("file1")), Equal([]byte("file2"))))
 		}
+	})
+
+	It("Looks up config repo default branch", func() {
+		gitProviders.GetRepoInfoStub = func(accountType gitproviders.ProviderAccountType, owner, repoName string) (*gitprovider.RepositoryInfo, error) {
+			branch := "config-branch" // for config repository
+			visibility := gitprovider.RepositoryVisibility("public")
+			return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: &branch, Visibility: &visibility}, nil
+		}
+
+		kubeClient.GetApplicationStub = func(_ context.Context, name types.NamespacedName) (*wego.Application, error) {
+			return &application, nil
+		}
+
+		addParams.AppConfigUrl = "https://github.com/foo/quux"
+		Expect(updateAppInfoFromParams()).To(Succeed())
+
+		url, branch, err := appSrv.(*App).getConfigUrlAndBranch(info, "token")
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(url).To(Equal(addParams.AppConfigUrl))
+		Expect(branch).To(Equal("config-branch"))
 	})
 
 	Context("Collecting resources deployed to cluster", func() {
