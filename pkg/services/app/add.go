@@ -264,21 +264,32 @@ func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, 
 	}
 
 	if specifiedBranch == "" && params.SourceType == string(wego.SourceTypeGit) {
-		repoInfoRef, err := a.getRepoInfo(params.Url, gitProvider)
-
+		branch, err := a.getDefaultBranch(params.Url, gitProvider)
 		if err != nil {
 			return params, err
-		}
-
-		if repoInfoRef != nil {
-			repoInfo := *repoInfoRef
-			if repoInfo.DefaultBranch != nil {
-				params.Branch = *repoInfo.DefaultBranch
-			}
+		} else {
+			params.Branch = branch
 		}
 	}
 
 	return params, nil
+}
+
+func (a *App) getDefaultBranch(url string, gitProvider gitproviders.GitProvider) (string, error) {
+	repoInfoRef, err := a.getRepoInfo(url, gitProvider)
+
+	if err != nil {
+		return "", err
+	}
+
+	if repoInfoRef != nil {
+		repoInfo := *repoInfoRef
+		if repoInfo.DefaultBranch != nil {
+			return *repoInfo.DefaultBranch, nil
+		}
+	}
+
+	return "main", nil
 }
 
 func (a *App) getGitRemoteUrl(params AddParams) (string, error) {
@@ -373,7 +384,7 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 		return fmt.Errorf("could not generate application GitOps Automation manifests: %w", err)
 	}
 
-	targetSource, targetGoats, err := a.generateExternalRepoManifests(info, appConfigSecretName)
+	targetSource, targetGoats, err := a.generateExternalRepoManifests(info, appConfigSecretName, gitProvider)
 	if err != nil {
 		return fmt.Errorf("could not generate target GitOps Automation manifests: %w", err)
 	}
@@ -458,10 +469,15 @@ func (a *App) generateAppWegoManifests(info *AppResourceInfo) ([]byte, error) {
 	return bytes.ReplaceAll(manifests, []byte("path: ./wego"), []byte("path: .wego")), nil
 }
 
-func (a *App) generateExternalRepoManifests(info *AppResourceInfo, secretRef string) ([]byte, []byte, error) {
+func (a *App) generateExternalRepoManifests(info *AppResourceInfo, secretRef string, gitProvider gitproviders.GitProvider) ([]byte, []byte, error) {
 	repoName := generateResourceName(info.Spec.ConfigURL)
+	branch, err := a.getDefaultBranch(info.Spec.ConfigURL, gitProvider)
 
-	targetSource, err := a.flux.CreateSourceGit(repoName, info.Spec.ConfigURL, info.Spec.Branch, secretRef, info.Namespace)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not determine default branch: %w", err)
+	}
+
+	targetSource, err := a.flux.CreateSourceGit(repoName, info.Spec.ConfigURL, branch, secretRef, info.Namespace)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not generate target source manifests: %w", err)
 	}
