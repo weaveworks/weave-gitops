@@ -21,6 +21,8 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+var localAddParams AddParams
+
 var removeParams RemoveParams
 
 var application wego.Application
@@ -191,13 +193,13 @@ func setupFlux() error {
 }
 
 func updateAppInfoFromParams() error {
-	params, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+	params, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, localAddParams)
 	if err != nil {
 		return err
 	}
 
-	addParams = params
-	application = makeWegoApplication(addParams)
+	localAddParams = params
+	application = makeWegoApplication(localAddParams)
 	info = getAppResourceInfo(application, "test-cluster")
 	appResources = info.clusterResources()
 	return nil
@@ -209,7 +211,7 @@ func runAddAndCollectInfo() error {
 		return err
 	}
 
-	if err := appSrv.Add(addParams); err != nil {
+	if err := appSrv.Add(localAddParams); err != nil {
 		return err
 	}
 
@@ -268,16 +270,16 @@ func checkRemoveResults() error {
 
 var _ = Describe("Remove", func() {
 	var _ = BeforeEach(func() {
-		application = makeWegoApplication(AddParams{
+		localAddParams = AddParams{
 			Url:            "https://github.com/foo/bar",
 			Path:           "./kustomize",
 			Branch:         "main",
-			Dir:            ".",
 			DeploymentType: "kustomize",
 			Namespace:      "wego-system",
 			AppConfigUrl:   "NONE",
 			AutoMerge:      true,
-		})
+		}
+		application = makeWegoApplication(localAddParams)
 	})
 
 	It("gives a correct error message when app path not found", func() {
@@ -312,12 +314,12 @@ var _ = Describe("Remove", func() {
 			return &application, nil
 		}
 
-		addParams.AppConfigUrl = "https://github.com/foo/quux"
+		localAddParams.AppConfigUrl = "https://github.com/foo/quux"
 		Expect(updateAppInfoFromParams()).To(Succeed())
 
 		url, branch, err := appSrv.(*App).getConfigUrlAndBranch(info, "token")
 		Expect(err).ShouldNot(HaveOccurred())
-		Expect(url).To(Equal(addParams.AppConfigUrl))
+		Expect(url).To(Equal(localAddParams.AppConfigUrl))
 		Expect(branch).To(Equal("config-branch"))
 	})
 
@@ -346,7 +348,7 @@ var _ = Describe("Remove", func() {
 
 		Context("Collecting resources for helm charts", func() {
 			var _ = BeforeEach(func() {
-				addParams = AddParams{
+				localAddParams = AddParams{
 					Url:            "https://charts.kube-ops.io",
 					Branch:         "main",
 					DeploymentType: "helm",
@@ -361,32 +363,32 @@ var _ = Describe("Remove", func() {
 			})
 
 			It("collects cluster resources for helm chart from helm repo with configURL = NONE", func() {
-				addParams.Chart = "loki"
+				localAddParams.Chart = "loki"
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
 				Expect(checkAddResults()).To(Succeed())
 			})
 
 			It("collects cluster resources for helm chart from git repo with configURL = NONE", func() {
-				addParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
-				addParams.Path = "./"
+				localAddParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
+				localAddParams.Path = "./"
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
 				Expect(checkAddResults()).To(Succeed())
 			})
 
 			It("collects cluster resources for helm chart from helm repo with configURL = <url>", func() {
-				addParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
-				addParams.Chart = "loki"
+				localAddParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
+				localAddParams.Chart = "loki"
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
 				Expect(checkAddResults()).To(Succeed())
 			})
 
 			It("collects cluster resources for helm chart from git repo with configURL = <url>", func() {
-				addParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
-				addParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
-				addParams.Path = "./"
+				localAddParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
+				localAddParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
+				localAddParams.Path = "./"
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
 				Expect(checkAddResults()).To(Succeed())
@@ -395,7 +397,7 @@ var _ = Describe("Remove", func() {
 
 		Context("Collecting resources for non-helm apps", func() {
 			var _ = BeforeEach(func() {
-				addParams = AddParams{
+				localAddParams = AddParams{
 					Url:            "ssh://git@github.com/user/wego-fork-test.git",
 					Branch:         "main",
 					DeploymentType: "kustomize",
@@ -416,15 +418,15 @@ var _ = Describe("Remove", func() {
 			})
 
 			It("collects cluster resources for non-helm app configURL = ''", func() {
-				addParams.AppConfigUrl = ""
+				localAddParams.AppConfigUrl = ""
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
 				Expect(checkAddResults()).To(Succeed())
 			})
 
 			It("collects cluster resources for non-helm app with configURL = <url>", func() {
-				addParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
-				addParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
+				localAddParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
+				localAddParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
 				Expect(checkAddResults()).To(Succeed())
@@ -474,7 +476,7 @@ var _ = Describe("Remove", func() {
 
 		Context("Removing resources for helm charts", func() {
 			var _ = BeforeEach(func() {
-				addParams = AddParams{
+				localAddParams = AddParams{
 					Url:            "https://charts.kube-ops.io",
 					Branch:         "main",
 					DeploymentType: "helm",
@@ -492,7 +494,7 @@ var _ = Describe("Remove", func() {
 			})
 
 			It("removes cluster resources for helm chart from helm repo with configURL = NONE", func() {
-				addParams.Chart = "loki"
+				localAddParams.Chart = "loki"
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
 				Expect(appSrv.Remove(removeParams)).To(Succeed())
@@ -500,8 +502,8 @@ var _ = Describe("Remove", func() {
 			})
 
 			It("removes cluster resources for helm chart from git repo with configURL = NONE", func() {
-				addParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
-				addParams.Path = "./"
+				localAddParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
+				localAddParams.Path = "./"
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
 				Expect(appSrv.Remove(removeParams)).To(Succeed())
@@ -509,8 +511,8 @@ var _ = Describe("Remove", func() {
 			})
 
 			It("removes cluster resources for helm chart from helm repo with configURL = <url>", func() {
-				addParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
-				addParams.Chart = "loki"
+				localAddParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
+				localAddParams.Chart = "loki"
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
 				Expect(appSrv.Remove(removeParams)).To(Succeed())
@@ -518,9 +520,9 @@ var _ = Describe("Remove", func() {
 			})
 
 			It("removes cluster resources for helm chart from git repo with configURL = <url>", func() {
-				addParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
-				addParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
-				addParams.Path = "./"
+				localAddParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
+				localAddParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
+				localAddParams.Path = "./"
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
 				Expect(appSrv.Remove(removeParams)).To(Succeed())
@@ -529,7 +531,7 @@ var _ = Describe("Remove", func() {
 
 			Context("Removing resources for non-helm apps", func() {
 				var _ = BeforeEach(func() {
-					addParams = AddParams{
+					localAddParams = AddParams{
 						Url:            "ssh://git@github.com/user/wego-fork-test.git",
 						Branch:         "main",
 						DeploymentType: "kustomize",
@@ -560,8 +562,8 @@ var _ = Describe("Remove", func() {
 				})
 
 				It("removes cluster resources for non-helm app with configURL = <url>", func() {
-					addParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
-					addParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
+					localAddParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
+					localAddParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
 
 					Expect(runAddAndCollectInfo()).To(Succeed())
 					Expect(appSrv.Remove(removeParams)).To(Succeed())
