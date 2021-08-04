@@ -69,7 +69,7 @@ type AddParams struct {
 	PrivateKey       string
 	DeploymentType   string
 	Chart            string
-	SourceType       string
+	SourceType       wego.SourceType
 	AppConfigUrl     string
 	Namespace        string
 	DryRun           bool
@@ -120,7 +120,7 @@ func (a *App) Add(params AddParams) error {
 		return fmt.Errorf("could not update parameters: %w", err)
 	}
 
-	if params.SourceType != string(wego.SourceTypeHelm) {
+	if params.SourceType != wego.SourceTypeHelm {
 		err = a.git.ValidateAccess(ctx, params.Url, params.Branch)
 		if err != nil {
 			return err
@@ -226,7 +226,7 @@ func (a *App) printAddSummary(params AddParams) {
 }
 
 func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
-	params.SourceType = string(wego.SourceTypeGit)
+	params.SourceType = wego.SourceTypeGit
 
 	// making sure the config url is in good format
 	if strings.ToUpper(params.AppConfigUrl) != string(ConfigTypeNone) &&
@@ -235,7 +235,7 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 	}
 
 	if params.Chart != "" {
-		params.SourceType = string(wego.SourceTypeHelm)
+		params.SourceType = wego.SourceTypeHelm
 		params.DeploymentType = string(wego.DeploymentTypeHelm)
 		params.Path = params.Chart
 		if params.Name == "" {

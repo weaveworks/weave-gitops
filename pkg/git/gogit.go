@@ -281,7 +281,7 @@ func (g *GoGit) ValidateAccess(ctx context.Context, url string, branch string) e
 
 	path, err := ioutil.TempDir("", "temp-src")
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating temporary folder %w", err)
 	}
 	defer os.RemoveAll(path)
 
