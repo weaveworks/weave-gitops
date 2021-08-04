@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-logr/logr"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 

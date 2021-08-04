@@ -1,0 +1,58 @@
+syntax = "proto3";
+option go_package = "github.com/weaveworks/weave-gitops/pkg/protos/ping";
+
+// Echo Service
+//
+// Echo Service API consists of a single service which returns
+// a message.
+package grpc.gateway.examples.internal.proto.examplepb;
+
+import "google/api/annotations.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/struct.proto";
+
+message Empty {
+}
+
+message PingRequest {
+  string value = 1;
+  int32 sleep_time_ms = 2;
+  uint32 error_code_returned = 3;
+}
+
+message PingResponse {
+  string Value = 1;
+  int32 counter = 2;
+}
+
+service TestService {
+  rpc PingEmpty(Empty) returns (PingResponse) {
+    option (google.api.http) = {
+        get: "/v1/ping/empty"
+    };
+  }
+
+  rpc Ping(PingRequest) returns (PingResponse) {
+    option (google.api.http) = {
+        post: "/v1/ping"
+    };
+  }
+
+  rpc PingError(PingRequest) returns (Empty) {
+    option (google.api.http) = {
+        post: "/v1/ping/error"
+    };
+  }
+
+  rpc PingList(PingRequest) returns (stream PingResponse) {
+    option (google.api.http) = {
+        get: "/v1/ping"
+    };
+  }
+
+  rpc PingStream(stream PingRequest) returns (stream PingResponse) {
+    option (google.api.http) = {
+        get: "/v1/ping_stream"
+    };
+  }
+}
