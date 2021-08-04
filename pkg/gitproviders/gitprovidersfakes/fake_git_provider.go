@@ -87,6 +87,19 @@ type FakeGitProvider struct {
 		result1 gitproviders.ProviderAccountType
 		result2 error
 	}
+	GetDefaultBranchStub        func(string) (string, error)
+	getDefaultBranchMutex       sync.RWMutex
+	getDefaultBranchArgsForCall []struct {
+		arg1 string
+	}
+	getDefaultBranchReturns struct {
+		result1 string
+		result2 error
+	}
+	getDefaultBranchReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	GetRepoInfoStub        func(gitproviders.ProviderAccountType, string, string) (*gitprovider.RepositoryInfo, error)
 	getRepoInfoMutex       sync.RWMutex
 	getRepoInfoArgsForCall []struct {
@@ -99,6 +112,19 @@ type FakeGitProvider struct {
 		result2 error
 	}
 	getRepoInfoReturnsOnCall map[int]struct {
+		result1 *gitprovider.RepositoryInfo
+		result2 error
+	}
+	GetRepoInfoFromUrlStub        func(string) (*gitprovider.RepositoryInfo, error)
+	getRepoInfoFromUrlMutex       sync.RWMutex
+	getRepoInfoFromUrlArgsForCall []struct {
+		arg1 string
+	}
+	getRepoInfoFromUrlReturns struct {
+		result1 *gitprovider.RepositoryInfo
+		result2 error
+	}
+	getRepoInfoFromUrlReturnsOnCall map[int]struct {
 		result1 *gitprovider.RepositoryInfo
 		result2 error
 	}
@@ -475,6 +501,70 @@ func (fake *FakeGitProvider) GetAccountTypeReturnsOnCall(i int, result1 gitprovi
 	}{result1, result2}
 }
 
+func (fake *FakeGitProvider) GetDefaultBranch(arg1 string) (string, error) {
+	fake.getDefaultBranchMutex.Lock()
+	ret, specificReturn := fake.getDefaultBranchReturnsOnCall[len(fake.getDefaultBranchArgsForCall)]
+	fake.getDefaultBranchArgsForCall = append(fake.getDefaultBranchArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.GetDefaultBranchStub
+	fakeReturns := fake.getDefaultBranchReturns
+	fake.recordInvocation("GetDefaultBranch", []interface{}{arg1})
+	fake.getDefaultBranchMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeGitProvider) GetDefaultBranchCallCount() int {
+	fake.getDefaultBranchMutex.RLock()
+	defer fake.getDefaultBranchMutex.RUnlock()
+	return len(fake.getDefaultBranchArgsForCall)
+}
+
+func (fake *FakeGitProvider) GetDefaultBranchCalls(stub func(string) (string, error)) {
+	fake.getDefaultBranchMutex.Lock()
+	defer fake.getDefaultBranchMutex.Unlock()
+	fake.GetDefaultBranchStub = stub
+}
+
+func (fake *FakeGitProvider) GetDefaultBranchArgsForCall(i int) string {
+	fake.getDefaultBranchMutex.RLock()
+	defer fake.getDefaultBranchMutex.RUnlock()
+	argsForCall := fake.getDefaultBranchArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeGitProvider) GetDefaultBranchReturns(result1 string, result2 error) {
+	fake.getDefaultBranchMutex.Lock()
+	defer fake.getDefaultBranchMutex.Unlock()
+	fake.GetDefaultBranchStub = nil
+	fake.getDefaultBranchReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGitProvider) GetDefaultBranchReturnsOnCall(i int, result1 string, result2 error) {
+	fake.getDefaultBranchMutex.Lock()
+	defer fake.getDefaultBranchMutex.Unlock()
+	fake.GetDefaultBranchStub = nil
+	if fake.getDefaultBranchReturnsOnCall == nil {
+		fake.getDefaultBranchReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.getDefaultBranchReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeGitProvider) GetRepoInfo(arg1 gitproviders.ProviderAccountType, arg2 string, arg3 string) (*gitprovider.RepositoryInfo, error) {
 	fake.getRepoInfoMutex.Lock()
 	ret, specificReturn := fake.getRepoInfoReturnsOnCall[len(fake.getRepoInfoArgsForCall)]
@@ -536,6 +626,70 @@ func (fake *FakeGitProvider) GetRepoInfoReturnsOnCall(i int, result1 *gitprovide
 		})
 	}
 	fake.getRepoInfoReturnsOnCall[i] = struct {
+		result1 *gitprovider.RepositoryInfo
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGitProvider) GetRepoInfoFromUrl(arg1 string) (*gitprovider.RepositoryInfo, error) {
+	fake.getRepoInfoFromUrlMutex.Lock()
+	ret, specificReturn := fake.getRepoInfoFromUrlReturnsOnCall[len(fake.getRepoInfoFromUrlArgsForCall)]
+	fake.getRepoInfoFromUrlArgsForCall = append(fake.getRepoInfoFromUrlArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.GetRepoInfoFromUrlStub
+	fakeReturns := fake.getRepoInfoFromUrlReturns
+	fake.recordInvocation("GetRepoInfoFromUrl", []interface{}{arg1})
+	fake.getRepoInfoFromUrlMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeGitProvider) GetRepoInfoFromUrlCallCount() int {
+	fake.getRepoInfoFromUrlMutex.RLock()
+	defer fake.getRepoInfoFromUrlMutex.RUnlock()
+	return len(fake.getRepoInfoFromUrlArgsForCall)
+}
+
+func (fake *FakeGitProvider) GetRepoInfoFromUrlCalls(stub func(string) (*gitprovider.RepositoryInfo, error)) {
+	fake.getRepoInfoFromUrlMutex.Lock()
+	defer fake.getRepoInfoFromUrlMutex.Unlock()
+	fake.GetRepoInfoFromUrlStub = stub
+}
+
+func (fake *FakeGitProvider) GetRepoInfoFromUrlArgsForCall(i int) string {
+	fake.getRepoInfoFromUrlMutex.RLock()
+	defer fake.getRepoInfoFromUrlMutex.RUnlock()
+	argsForCall := fake.getRepoInfoFromUrlArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeGitProvider) GetRepoInfoFromUrlReturns(result1 *gitprovider.RepositoryInfo, result2 error) {
+	fake.getRepoInfoFromUrlMutex.Lock()
+	defer fake.getRepoInfoFromUrlMutex.Unlock()
+	fake.GetRepoInfoFromUrlStub = nil
+	fake.getRepoInfoFromUrlReturns = struct {
+		result1 *gitprovider.RepositoryInfo
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGitProvider) GetRepoInfoFromUrlReturnsOnCall(i int, result1 *gitprovider.RepositoryInfo, result2 error) {
+	fake.getRepoInfoFromUrlMutex.Lock()
+	defer fake.getRepoInfoFromUrlMutex.Unlock()
+	fake.GetRepoInfoFromUrlStub = nil
+	if fake.getRepoInfoFromUrlReturnsOnCall == nil {
+		fake.getRepoInfoFromUrlReturnsOnCall = make(map[int]struct {
+			result1 *gitprovider.RepositoryInfo
+			result2 error
+		})
+	}
+	fake.getRepoInfoFromUrlReturnsOnCall[i] = struct {
 		result1 *gitprovider.RepositoryInfo
 		result2 error
 	}{result1, result2}
@@ -687,8 +841,12 @@ func (fake *FakeGitProvider) Invocations() map[string][][]interface{} {
 	defer fake.deployKeyExistsMutex.RUnlock()
 	fake.getAccountTypeMutex.RLock()
 	defer fake.getAccountTypeMutex.RUnlock()
+	fake.getDefaultBranchMutex.RLock()
+	defer fake.getDefaultBranchMutex.RUnlock()
 	fake.getRepoInfoMutex.RLock()
 	defer fake.getRepoInfoMutex.RUnlock()
+	fake.getRepoInfoFromUrlMutex.RLock()
+	defer fake.getRepoInfoFromUrlMutex.RUnlock()
 	fake.repositoryExistsMutex.RLock()
 	defer fake.repositoryExistsMutex.RUnlock()
 	fake.uploadDeployKeyMutex.RLock()

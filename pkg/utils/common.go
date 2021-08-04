@@ -5,6 +5,8 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -57,4 +59,16 @@ func SetCommmitMessage(msg string) {
 
 func GetCommitMessage() string {
 	return commitMessage
+}
+
+func UrlToRepoName(url string) string {
+	return strings.TrimSuffix(filepath.Base(url), ".git")
+}
+
+func GetOwnerFromUrl(url string) (string, error) {
+	parts := strings.Split(url, "/")
+	if len(parts) < 2 {
+		return "", fmt.Errorf("could not get owner from url %s", url)
+	}
+	return parts[len(parts)-2], nil
 }
