@@ -102,7 +102,7 @@ func (o *OsysClient) SelectAuthMethod(privateKeyPath string) (ssh.AuthMethod, er
 	case privateKeyPath != "":
 		authMethod, authErr = o.authMethodFromKeyFile(privateKeyPath)
 	default: // no private key given, try ssh-agent or find a likely key file
-		authMethod, authErr = o.NewSshAgentOrFindKeyFile()
+		authMethod, authErr = o.newSshAgentOrFindKeyFile()
 	}
 
 	if authErr != nil {
@@ -157,7 +157,7 @@ type SshAgentOrFindKeyFile struct {
 	oclient         *OsysClient
 }
 
-func (o *OsysClient) NewSshAgentOrFindKeyFile() (*SshAgentOrFindKeyFile, error) {
+func (o *OsysClient) newSshAgentOrFindKeyFile() (*SshAgentOrFindKeyFile, error) {
 	auth := &SshAgentOrFindKeyFile{oclient: o}
 	if o.Getenv(SSHAuthSock) != "" {
 		a, err := ssh.NewSSHAgentAuth("") // empty means figure it out for yourself
