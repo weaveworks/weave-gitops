@@ -67,9 +67,9 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	params.GitProviderToken = token
 
-	authMethod, authErr := osysClient.SelectAuthMethod(params.PrivateKey)
-	if authErr != nil {
-		return authErr
+	authMethod, err := osysClient.SelectAuthMethod(params.PrivateKey)
+	if err != nil {
+		return err
 	}
 
 	cliRunner := &runner.CLIRunner{}
