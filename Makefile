@@ -28,7 +28,7 @@ endif
 all: wego
 
 # Run tests
-unit-tests: dependencies cmd/ui/dist/index.html
+unit-tests: dependencies cmd/wego/ui/run/dist/index.html
 	# To avoid downloading depencencies every time use `SKIP_FETCH_TOOLS=1 unit-tests`
 	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v -tags unittest ./...
 
@@ -49,7 +49,7 @@ install: bin bin/$(BINARY_NAME)_ui
 clean:
 	rm -f bin/wego
 	rm -rf pkg/flux/bin/
-	rm -rf cmd/ui/dist
+	rm -rf cmd/wego/ui/run/dist
 	rm -rf coverage
 	rm -rf node_modules
 	rm -f .deps
@@ -69,13 +69,13 @@ dependencies: .deps
 node_modules:
 	npm install
 
-cmd/ui/dist:
-	mkdir -p cmd/ui/dist
+cmd/wego/ui/run/dist:
+	mkdir -p cmd/wego/ui/run/dist
 
-cmd/ui/dist/index.html: cmd/ui/dist
-	touch cmd/ui/dist/index.html
+cmd/wego/ui/run/dist/index.html: cmd/wego/ui/run/dist
+	touch cmd/wego/ui/run/dist/index.html
 
-cmd/ui/dist/main.js:
+cmd/wego/ui/run/dist/main.js:
 	npm run build
 
 bin/$(BINARY_NAME)_ui: cmd/ui/main.go
@@ -93,7 +93,7 @@ ui-test:
 ui-audit:
 	npm audit
 
-ui: node_modules cmd/ui/dist/main.js
+ui: node_modules cmd/wego/ui/run/dist/main.js
 
 # JS coverage info
 coverage/lcov.info:
@@ -127,7 +127,7 @@ proto:
 api-dev:
 	reflex -r '.go' -s -- sh -c 'go run cmd/wego-server/main.go'
 
-ui-dev: cmd/ui/dist/main.js
+ui-dev: cmd/wego/ui/run/dist/main.js
 	reflex -r '.go' -s -- sh -c 'go run cmd/ui/main.go'
 
 fakes:

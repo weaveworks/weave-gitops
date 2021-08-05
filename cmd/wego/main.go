@@ -9,6 +9,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/wego/app"
 	"github.com/weaveworks/weave-gitops/cmd/wego/flux"
 	"github.com/weaveworks/weave-gitops/cmd/wego/gitops"
+	"github.com/weaveworks/weave-gitops/cmd/wego/ui"
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
 	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
@@ -85,6 +86,7 @@ func main() {
 	rootCmd.AddCommand(gitops.Cmd)
 	rootCmd.AddCommand(version.Cmd)
 	rootCmd.AddCommand(flux.Cmd)
+	rootCmd.AddCommand(ui.Cmd)
 
 	rootCmd.AddCommand(app.ApplicationCmd)
 
