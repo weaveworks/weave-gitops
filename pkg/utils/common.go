@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	validation "k8s.io/apimachinery/pkg/api/validation"
 )
 
 var commitMessage string
@@ -71,4 +73,12 @@ func GetOwnerFromUrl(url string) (string, error) {
 		return "", fmt.Errorf("could not get owner from url %s", url)
 	}
 	return parts[len(parts)-2], nil
+}
+
+func ValidateNamespace(ns string) error {
+	if errList := validation.ValidateNamespaceName(ns, false); len(errList) != 0 {
+		return fmt.Errorf("invalid namespace: %s", strings.Join(errList, ", "))
+	}
+
+	return nil
 }
