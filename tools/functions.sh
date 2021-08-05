@@ -104,13 +104,13 @@ do_curl_tarball() {
     local url="${2}"
     local default_path="${HOME}/.wego/bin"
     local path="${3:-${default_path}}"/"${cmd}"
-    local checksum_path=${4}
+    local checksum_path=""
 
     dldir="$(mktempdir)"
     mkdir "${dldir}/${cmd}"
     do_curl "${dldir}/${cmd}.tar.gz" "${url}"
     ## if checksum_path is set validate tarball
-    if [ ${checksum_path:+1} ]
+    if [ -n "${checksum_path}" ]
     then
         ## need to validate file here because unpacking the tar changes the hash
         validate_file "${checksum_path}" "${dldir}/${cmd}.tar.gz" "${cmd}"
