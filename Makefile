@@ -52,7 +52,7 @@ clean:
 	rm -rf cmd/wego/ui/run/dist
 	rm -rf coverage
 	rm -rf node_modules
-	rm .deps
+	rm -f .deps
 # Run go fmt against code
 fmt:
 	go fmt ./...
