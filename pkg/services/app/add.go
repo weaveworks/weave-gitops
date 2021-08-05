@@ -574,7 +574,7 @@ func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoU
 		}
 
 		if out, err := a.kube.Apply(secret, info.Namespace); err != nil {
-			return "", fmt.Errorf("could not apply manifest: %s: %w", string(out), err)
+			return "", fmt.Errorf("could not apply secret manifest: %s: %w", string(out), err)
 		}
 	}
 
@@ -851,7 +851,9 @@ func (a *AppResourceInfo) appResourceName() string {
 }
 
 func (a *AppResourceInfo) appSecretName(repoURL string) string {
-	return fmt.Sprintf("wego-%s-%s", a.targetName, utils.UrlToRepoName(repoURL))
+	repoName := utils.UrlToRepoName(repoURL)
+	repoName = strings.ReplaceAll(repoName, "_", "-")
+	return fmt.Sprintf("wego-%s-%s", a.targetName, repoName)
 }
 
 func (a *AppResourceInfo) automationAppsDirKustomizationName() string {
