@@ -109,7 +109,9 @@ do_curl_tarball() {
     dldir="$(mktempdir)"
     mkdir "${dldir}/${cmd}"
     do_curl "${dldir}/${cmd}.tar.gz" "${url}"
-    if ! ${checksums_path} == ""; then 
+    ## if checksum_path is set validate tarball
+    if [ ${checksum_path:+1} ]
+    then
         ## need to validate file here because unpacking the tar changes the hash
         validate_file "${checksum_path}" "${dldir}/${cmd}.tar.gz" "${cmd}"
     fi
@@ -137,6 +139,7 @@ validate_file() {
     local cmd="${3}"
     if ! grep $(openssl dgst -sha256 ${file_path} | cut -d ' ' -f 2) ${checksums_path}; then
         echo ${cmd} is not a valid file
+        rm -rf ${file_path}
         exit 1
     fi
 }
