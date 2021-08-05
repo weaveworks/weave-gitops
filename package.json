@@ -4,7 +4,7 @@
   "description": "Weave GitOps core",
   "scripts": {
     "preinstall": "npx npm-force-resolutions",
-    "build": "parcel build --no-source-maps ui/index.html --dist-dir cmd/ui/dist",
+    "build": "parcel build --no-source-maps ui/index.html --dist-dir cmd/wego/ui/run/dist",
     "start": "parcel serve --port 4567 ui/index.html",
     "lint": "eslint ui",
     "test": "jest",

@@ -43,7 +43,7 @@ jobs:
     - name: Install UI Deps
       run: npm ci
     - name: Build UI Assets
-      run: make cmd/ui/dist/main.js
+      run: make cmd/wego/ui/run/dist/main.js
     - name: Setup Kubernetes
       uses: engineerd/setup-kind@v0.5.0
       with:
