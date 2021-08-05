@@ -30,10 +30,10 @@ var (
 var Cmd = &cobra.Command{
 	Use:   "run",
 	Short: "Runs wego ui",
-	Run:   runCmd,
+	RunE:  runCmd,
 }
 
-func runCmd(cmd *cobra.Command, args []string) {
+func runCmd(cmd *cobra.Command, args []string) error {
 	var log = logrus.New()
 
 	mux := http.NewServeMux()
@@ -55,11 +55,11 @@ func runCmd(cmd *cobra.Command, args []string) {
 
 	kubeClient, err := kube.NewKubeHTTPClient()
 	if err != nil {
-		log.Fatalf("could not create http client: %s", err)
+		return fmt.Errorf("could not create http client: %w", err)
 	}
 
 	if err := pb.RegisterApplicationsHandlerServer(context.Background(), gMux, server.NewApplicationsServer(kubeClient)); err != nil {
-		log.Fatalf("could not register application: %s", err)
+		return fmt.Errorf("could not register application: %w", err)
 	}
 
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -92,7 +92,9 @@ func runCmd(cmd *cobra.Command, args []string) {
 		url := fmt.Sprintf("http://%s/%s", addr, path)
 
 		log.Printf("Openning browser at %s", url)
-		browser.OpenURL(url)
+		if err := browser.OpenURL(url); err != nil {
+			return fmt.Errorf("failed to open the browser: %w", err)
+		}
 	}
 
 	// graceful shutdown
@@ -106,8 +108,10 @@ func runCmd(cmd *cobra.Command, args []string) {
 	}()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("Server Shutdown Failed:%+v", err)
+		return fmt.Errorf("Server Shutdown Failed: %w", err)
 	}
+
+	return nil
 }
 
 //go:embed dist/*
