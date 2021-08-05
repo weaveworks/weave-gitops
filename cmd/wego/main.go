@@ -67,6 +67,10 @@ var rootCmd = &cobra.Command{
 
 		ns, _ := cmd.Flags().GetString("namespace")
 
+		if ns == "" {
+			return
+		}
+
 		if nserr := utils.ValidateNamespace(ns); nserr != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", nserr)
 			os.Exit(1)

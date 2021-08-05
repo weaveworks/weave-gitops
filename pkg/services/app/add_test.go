@@ -513,7 +513,7 @@ stringData:
 				addParams.HelmReleaseTargetNamespace = "sock-shop&*&*&*&"
 
 				badNamespaceErr := appSrv.Add(addParams)
-				Expect(badNamespaceErr).To(HaveOccurred())
+				Expect(badNamespaceErr.Error()).To(HavePrefix("could not update parameters: invalid namespace"))
 			})
 
 			It("fails if deployment type is invalid", func() {
