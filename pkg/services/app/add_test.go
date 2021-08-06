@@ -253,10 +253,11 @@ stringData:
 
 				Expect(fluxClient.CreateHelmReleaseHelmRepositoryCallCount()).To(Equal(1))
 
-				name, chart, namespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
+				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(chart).To(Equal("loki"))
 				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal(""))
 			})
 
 			It("creates a helm release using a git source if source type is git", func() {
@@ -268,11 +269,46 @@ stringData:
 
 				Expect(fluxClient.CreateHelmReleaseGitRepositoryCallCount()).To(Equal(1))
 
-				name, source, path, namespace := fluxClient.CreateHelmReleaseGitRepositoryArgsForCall(0)
+				name, source, path, namespace, targetNamespace := fluxClient.CreateHelmReleaseGitRepositoryArgsForCall(0)
 				Expect(name).To(Equal("bar"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("./charts/my-chart"))
 				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal(""))
+			})
+
+			It("creates helm release for helm repository with target namespace if source type is helm", func() {
+				addParams.Chart = "loki"
+				addParams.HelmReleaseTargetNamespace = "sock-shop"
+
+				err := appSrv.Add(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				Expect(fluxClient.CreateHelmReleaseHelmRepositoryCallCount()).To(Equal(1))
+
+				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
+				Expect(name).To(Equal("loki"))
+				Expect(chart).To(Equal("loki"))
+				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal("sock-shop"))
+			})
+
+			It("creates a helm release for git repository with target namespace if source type is git", func() {
+				addParams.Path = "./charts/my-chart"
+				addParams.DeploymentType = string(wego.DeploymentTypeHelm)
+				addParams.HelmReleaseTargetNamespace = "sock-shop"
+
+				err := appSrv.Add(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				Expect(fluxClient.CreateHelmReleaseGitRepositoryCallCount()).To(Equal(1))
+
+				name, source, path, namespace, targetNamespace := fluxClient.CreateHelmReleaseGitRepositoryArgsForCall(0)
+				Expect(name).To(Equal("bar"))
+				Expect(source).To(Equal("bar"))
+				Expect(path).To(Equal("./charts/my-chart"))
+				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal("sock-shop"))
 			})
 
 			It("fails if deployment type is invalid", func() {
@@ -402,6 +438,7 @@ stringData:
 			})
 
 			It("creates helm release using a helm repository if source type is helm", func() {
+				addParams.Url = "https://charts.kube-ops.io"
 				addParams.Chart = "loki"
 
 				err := appSrv.Add(addParams)
@@ -409,10 +446,11 @@ stringData:
 
 				Expect(fluxClient.CreateHelmReleaseHelmRepositoryCallCount()).To(Equal(1))
 
-				name, chart, namespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
+				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(chart).To(Equal("loki"))
 				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal(""))
 			})
 
 			It("creates a helm release using a git source if source type is git", func() {
@@ -424,11 +462,61 @@ stringData:
 
 				Expect(fluxClient.CreateHelmReleaseGitRepositoryCallCount()).To(Equal(1))
 
-				name, source, path, namespace := fluxClient.CreateHelmReleaseGitRepositoryArgsForCall(0)
+				name, source, path, namespace, targetNamespace := fluxClient.CreateHelmReleaseGitRepositoryArgsForCall(0)
 				Expect(name).To(Equal("bar"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("./charts/my-chart"))
 				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal(""))
+			})
+
+			It("creates helm release for helm repository with target namespace if source type is helm", func() {
+				addParams.Url = "https://charts.kube-ops.io"
+				addParams.Chart = "loki"
+				addParams.HelmReleaseTargetNamespace = "sock-shop"
+
+				err := appSrv.Add(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				Expect(fluxClient.CreateHelmReleaseHelmRepositoryCallCount()).To(Equal(1))
+
+				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
+				Expect(name).To(Equal("loki"))
+				Expect(chart).To(Equal("loki"))
+				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal("sock-shop"))
+			})
+
+			It("creates a helm release for git repository with target namespace if source type is git", func() {
+				addParams.Path = "./charts/my-chart"
+				addParams.DeploymentType = string(wego.DeploymentTypeHelm)
+				addParams.HelmReleaseTargetNamespace = "sock-shop"
+
+				err := appSrv.Add(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				Expect(fluxClient.CreateHelmReleaseGitRepositoryCallCount()).To(Equal(1))
+
+				name, source, path, namespace, targetNamespace := fluxClient.CreateHelmReleaseGitRepositoryArgsForCall(0)
+				Expect(name).To(Equal("bar"))
+				Expect(source).To(Equal("bar"))
+				Expect(path).To(Equal("./charts/my-chart"))
+				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal("sock-shop"))
+			})
+
+			It("validates namespace passed as target namespace", func() {
+				addParams.Url = "https://charts.kube-ops.io"
+				addParams.Chart = "loki"
+				addParams.HelmReleaseTargetNamespace = "sock-shop"
+
+				goodNamespaceErr := appSrv.Add(addParams)
+				Expect(goodNamespaceErr).ShouldNot(HaveOccurred())
+
+				addParams.HelmReleaseTargetNamespace = "sock-shop&*&*&*&"
+
+				badNamespaceErr := appSrv.Add(addParams)
+				Expect(badNamespaceErr.Error()).To(HavePrefix("could not update parameters: invalid namespace"))
 			})
 
 			It("fails if deployment type is invalid", func() {
@@ -636,10 +724,11 @@ stringData:
 
 				Expect(fluxClient.CreateHelmReleaseHelmRepositoryCallCount()).To(Equal(1))
 
-				name, chart, namespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
+				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(chart).To(Equal("loki"))
 				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal(""))
 			})
 
 			It("creates a helm release using a git source if source type is git", func() {
@@ -651,11 +740,46 @@ stringData:
 
 				Expect(fluxClient.CreateHelmReleaseGitRepositoryCallCount()).To(Equal(1))
 
-				name, source, path, namespace := fluxClient.CreateHelmReleaseGitRepositoryArgsForCall(0)
+				name, source, path, namespace, targetNamespace := fluxClient.CreateHelmReleaseGitRepositoryArgsForCall(0)
 				Expect(name).To(Equal("repo"))
 				Expect(source).To(Equal("repo"))
 				Expect(path).To(Equal("./charts/my-chart"))
 				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal(""))
+			})
+
+			It("creates helm release for helm repository with target namespace if source type is helm", func() {
+				addParams.Chart = "loki"
+				addParams.HelmReleaseTargetNamespace = "sock-shop"
+
+				err := appSrv.Add(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				Expect(fluxClient.CreateHelmReleaseHelmRepositoryCallCount()).To(Equal(1))
+
+				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
+				Expect(name).To(Equal("loki"))
+				Expect(chart).To(Equal("loki"))
+				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal("sock-shop"))
+			})
+
+			It("creates a helm release for git repository with target namespace if source type is git", func() {
+				addParams.Path = "./charts/my-chart"
+				addParams.DeploymentType = string(wego.DeploymentTypeHelm)
+				addParams.HelmReleaseTargetNamespace = "sock-shop"
+
+				err := appSrv.Add(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				Expect(fluxClient.CreateHelmReleaseGitRepositoryCallCount()).To(Equal(1))
+
+				name, source, path, namespace, targetNamespace := fluxClient.CreateHelmReleaseGitRepositoryArgsForCall(0)
+				Expect(name).To(Equal("repo"))
+				Expect(source).To(Equal("repo"))
+				Expect(path).To(Equal("./charts/my-chart"))
+				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal("sock-shop"))
 			})
 
 			It("fails if deployment type is invalid", func() {

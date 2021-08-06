@@ -38,6 +38,8 @@ type ApplicationSpec struct {
 	DeploymentType DeploymentType `json:"deployment_type,omitempty"`
 	// SourceType is the type of repository containing the app manifests
 	SourceType SourceType `json:"source_type,omitempty"`
+	// HelmTargetNamespace is the namespace in which to deploy an added Helm Chart
+	HelmTargetNamespace string `json:"helm_target_namespace,omitempty"`
 }
 
 // +kubebuilder:validation:Enum=helm;kustomize

@@ -61,20 +61,21 @@ const (
 )
 
 type AddParams struct {
-	Dir              string
-	Name             string
-	Url              string
-	Path             string
-	Branch           string
-	PrivateKey       string
-	DeploymentType   string
-	Chart            string
-	SourceType       string
-	AppConfigUrl     string
-	Namespace        string
-	DryRun           bool
-	AutoMerge        bool
-	GitProviderToken string
+	Dir                        string
+	Name                       string
+	Url                        string
+	Path                       string
+	Branch                     string
+	PrivateKey                 string
+	DeploymentType             string
+	Chart                      string
+	SourceType                 string
+	AppConfigUrl               string
+	Namespace                  string
+	DryRun                     bool
+	AutoMerge                  bool
+	GitProviderToken           string
+	HelmReleaseTargetNamespace string
 }
 
 // Three models:
@@ -228,19 +229,19 @@ func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, 
 		params.AppConfigUrl = sanitizeRepoUrl(params.AppConfigUrl)
 	}
 
-	if params.Chart != "" {
+	switch {
+	case params.Chart != "":
 		params.SourceType = string(wego.SourceTypeHelm)
 		params.DeploymentType = string(wego.DeploymentTypeHelm)
 		params.Path = params.Chart
 		if params.Name == "" {
 			params.Name = params.Chart
 		}
-
-		return params, nil
-	}
-
-	// Identifying repo url if not set by the user
-	if params.Url == "" {
+		if params.Url == "" {
+			return params, fmt.Errorf("--url must be specified for helm repositories")
+		}
+	case params.Url == "":
+		// Git repository -- identifying repo url if not set by the user
 		url, err := a.getGitRemoteUrl(params)
 
 		if err != nil {
@@ -248,7 +249,7 @@ func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, 
 		}
 
 		params.Url = url
-	} else {
+	default:
 		// making sure url is in the correct format
 		params.Url = sanitizeRepoUrl(params.Url)
 
@@ -270,6 +271,13 @@ func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, 
 			} else {
 				params.Branch = branch
 			}
+		}
+	}
+
+	// Validate namespace argument for helm
+	if params.HelmReleaseTargetNamespace != "" {
+		if nserr := utils.ValidateNamespace(params.HelmReleaseTargetNamespace); nserr != nil {
+			return params, nserr
 		}
 	}
 
@@ -604,9 +612,9 @@ func (a *App) generateApplicationGoat(info *AppResourceInfo) ([]byte, error) {
 	case wego.DeploymentTypeHelm:
 		switch info.Spec.SourceType {
 		case wego.SourceTypeHelm:
-			return a.flux.CreateHelmReleaseHelmRepository(info.Name, info.Spec.Path, info.Namespace)
+			return a.flux.CreateHelmReleaseHelmRepository(info.Name, info.Spec.Path, info.Namespace, info.Spec.HelmTargetNamespace)
 		case wego.SourceTypeGit:
-			return a.flux.CreateHelmReleaseGitRepository(info.Name, info.Name, info.Spec.Path, info.Namespace)
+			return a.flux.CreateHelmReleaseGitRepository(info.Name, info.Name, info.Spec.Path, info.Namespace, info.Spec.HelmTargetNamespace)
 		default:
 			return nil, fmt.Errorf("invalid source type: %v", info.Spec.SourceType)
 		}
@@ -678,12 +686,13 @@ func makeWegoApplication(params AddParams) wego.Application {
 			Namespace: params.Namespace,
 		},
 		Spec: wego.ApplicationSpec{
-			ConfigURL:      params.AppConfigUrl,
-			Branch:         params.Branch,
-			URL:            params.Url,
-			Path:           params.Path,
-			DeploymentType: wego.DeploymentType(params.DeploymentType),
-			SourceType:     wego.SourceType(params.SourceType),
+			ConfigURL:           params.AppConfigUrl,
+			Branch:              params.Branch,
+			URL:                 params.Url,
+			Path:                params.Path,
+			DeploymentType:      wego.DeploymentType(params.DeploymentType),
+			SourceType:          wego.SourceType(params.SourceType),
+			HelmTargetNamespace: params.HelmReleaseTargetNamespace,
 		},
 	}
 

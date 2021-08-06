@@ -51,6 +51,10 @@ spec:
                 - helm
                 - kustomize
                 type: string
+              helm_target_namespace:
+                description: HelmTargetNamespace is the namespace in which to deploy
+                  an added Helm Chart
+                type: string
               path:
                 description: Path is the path in the repository where the k8s yaml
                   files for this application are stored.

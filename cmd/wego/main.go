@@ -14,6 +14,7 @@ import (
 	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 var options struct {
@@ -63,6 +64,17 @@ var rootCmd = &cobra.Command{
 `,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		configureLogger()
+
+		ns, _ := cmd.Flags().GetString("namespace")
+
+		if ns == "" {
+			return
+		}
+
+		if nserr := utils.ValidateNamespace(ns); nserr != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", nserr)
+			os.Exit(1)
+		}
 	},
 }
 
