@@ -763,8 +763,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		var listOutput string
 		var pauseOutput string
 		var unpauseOutput string
-		// var publicRepoOutput string
-		// var privateRepoOutput string
 		var appStatus1 *gexec.Session
 		var appStatus2 *gexec.Session
 		var repoAbsolutePath1 string
@@ -890,7 +888,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			appManifestFile1, _ = runCommandAndReturnStringOutput("cd " + repoAbsolutePath1 + " && ls")
 			createAppReplicas(repoAbsolutePath1, appManifestFile1, replicaSetValue, tip1.workloadName)
 			gitUpdateCommitPush(repoAbsolutePath1)
-			waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIME_OUT)
+			_ = waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIME_OUT)
 			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=100s -n %s --all pods", tip1.workloadNamespace))
 		})
 
@@ -916,7 +914,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("And I should see app replicas created in the cluster", func() {
-			waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIME_OUT)
+			_ = waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIME_OUT)
 			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=100s -n %s --all pods", tip1.workloadNamespace))
 			replicaOutput, _ := runCommandAndReturnStringOutput("kubectl get pods -n " + tip1.workloadNamespace + " --field-selector=status.phase=Running --no-headers=true | wc -l")
 			Expect(replicaOutput).To(ContainSubstring(strconv.Itoa(replicaSetValue)))
