@@ -13,6 +13,7 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -62,6 +63,7 @@ type Kube interface {
 	AppExistsInCluster(ctx context.Context, namespace string, appHash string) error
 	GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error)
 	GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error
+	GetSecret(ctx context.Context, name types.NamespacedName) (*corev1.Secret, error)
 }
 
 type KubeClient struct {
@@ -211,6 +213,23 @@ func (k *KubeClient) GetApplications(ctx context.Context, ns string) ([]wego.App
 
 func (k *KubeClient) GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error {
 	return errors.New("method not implemented, use the go-client implementation of the kube interface")
+}
+
+func (k *KubeClient) GetSecret(ctx context.Context, name types.NamespacedName) (*corev1.Secret, error) {
+	cmd := []string{"get", "secret", name.Name, "-n", name.Namespace, "-o", "json"}
+
+	output, err := k.runKubectlCmd(cmd)
+	if err != nil {
+		return nil, fmt.Errorf("could not get secret %w", err)
+	}
+
+	s := &corev1.Secret{}
+	if err := json.Unmarshal(output, s); err != nil {
+		return nil, fmt.Errorf("error unmarshalling secret: %w", err)
+	}
+
+	return s, nil
+
 }
 
 func (k *KubeClient) runKubectlCmd(args []string) ([]byte, error) {

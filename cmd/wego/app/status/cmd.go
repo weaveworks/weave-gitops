@@ -32,7 +32,7 @@ var Cmd = &cobra.Command{
 		cliRunner := &runner.CLIRunner{}
 		osysClient := osys.New()
 		fluxClient := flux.New(osysClient, cliRunner)
-		kubeClient, err := kube.NewKubeHTTPClient()
+		kubeClient, _, err := kube.NewKubeHTTPClient()
 		if err != nil {
 			return fmt.Errorf("error initializing kube client: %w", err)
 		}

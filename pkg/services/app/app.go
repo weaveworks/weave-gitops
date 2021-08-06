@@ -8,14 +8,13 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops/pkg/auth"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -54,6 +53,12 @@ type App struct {
 	kube               kube.Kube
 	logger             logger.Logger
 	gitProviderFactory func(token string) (gitproviders.GitProvider, error)
+	// TODO: @jpellizzari adding this as a temporary stop-gap to maintain the current behavior for external config repos.
+	// As of https://github.com/weaveworks/weave-gitops/pull/587,
+	// we are not addressing this case yet. Many of the unit tests check for exact function call
+	// arguments, which will get skipped when the AuthService is used (and therefore tests will fail).
+	// Follow up issue where this will be addressed: https://github.com/weaveworks/weave-gitops/issues/592
+	temporaryGitClientFactory func(osysClient osys.Osys, privKeypath string) (git.Git, error)
 }
 
 func New(logger logger.Logger, git git.Git, flux flux.Flux, kube kube.Kube, osys osys.Osys) *App {
@@ -168,18 +173,28 @@ func (a *App) pauseOrUnpause(suspendAction wego.SuspendActionType, name, namespa
 
 // DoAppRepoCLIAuth is a helper function that encapsulates the CLI auth flow.
 // This is meant to be re-used in whichever commands need to authenticate with a Git Provider.
-func DoAppRepoCLIAuth(url string, w io.Writer) (string, error) {
-	providerName, err := gitproviders.DetectGitProviderFromUrl(utils.SanitizeRepoUrl(url))
-	if err != nil {
-		return "", fmt.Errorf("could not determine provider name from url %s: %w", url, err)
-	}
-
+func DoAppRepoCLIAuth(url string, providerName gitproviders.GitProviderName, w io.Writer) (string, error) {
 	// CLI auth experience will vary between Git Providers.
-	authHandler, err := auth.NewAuthProvider(providerName)
+	authHandler, err := auth.NewAuthCLIHandler(providerName)
 	if err != nil {
 		return "", fmt.Errorf("could not get auth handler for provider %s: %w", providerName, err)
 	}
 
 	// authHandler will take over the CLI and block until the flow is complete.
 	return authHandler(context.Background(), w)
+}
+
+func IsClusterReady(l logger.Logger, k kube.Kube) error {
+	l.Waitingf("Checking cluster status")
+	clusterStatus := k.GetClusterStatus(context.Background())
+
+	switch clusterStatus {
+	case kube.Unmodified:
+		return fmt.Errorf("Wego not installed... exiting")
+	case kube.Unknown:
+		return fmt.Errorf("Wego can not determine cluster status... exiting")
+	}
+	l.Successf(clusterStatus.String())
+
+	return nil
 }

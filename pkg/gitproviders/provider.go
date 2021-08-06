@@ -173,8 +173,9 @@ func (p defaultGitProvider) DeployKeyExists(owner, repoName string) (bool, error
 
 func (p defaultGitProvider) UploadDeployKey(owner, repoName string, deployKey []byte) error {
 	deployKeyInfo := gitprovider.DeployKeyInfo{
-		Name: deployKeyName,
-		Key:  deployKey,
+		Name:     deployKeyName,
+		Key:      deployKey,
+		ReadOnly: gitprovider.BoolVar(false),
 	}
 
 	ownerType, err := p.GetAccountType(owner)
@@ -516,7 +517,7 @@ func (p defaultGitProvider) waitUntilRepoCreated(ownerType ProviderAccountType, 
 // The raw URL is assumed to be something like ssh://git@github.com/myorg/myrepo.git.
 // The common `git clone` variant of `git@github.com:myorg/myrepo.git` is not supported.
 func DetectGitProviderFromUrl(raw string) (GitProviderName, error) {
-	u, err := url.Parse(raw)
+	u, err := url.Parse(utils.SanitizeRepoUrl(raw))
 	if err != nil {
 		return "", fmt.Errorf("could not parse git repo url %q", raw)
 	}

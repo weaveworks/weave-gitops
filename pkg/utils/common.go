@@ -12,8 +12,15 @@ import (
 	"time"
 
 	"github.com/olekukonko/tablewriter"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	validation "k8s.io/apimachinery/pkg/api/validation"
+
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/envtest"
+
+	corev1 "k8s.io/api/core/v1"
 )
 
 var commitMessage string
@@ -178,4 +185,45 @@ func CleanCommitCreatedAt(createdAt time.Time) string {
 
 func ConvertCommitHashToShort(hash string) string {
 	return hash[:7]
+}
+
+func CreateAppSecretName(targetName string, repoURL string) string {
+	return fmt.Sprintf("wego-%s-%s", targetName, UrlToRepoName(repoURL))
+}
+
+func StartK8sTestEnvironment() (client.Client, error) {
+	testEnv := &envtest.Environment{
+		CRDDirectoryPaths: []string{
+			"../../manifests/crds",
+			"../../tools/testcrds",
+		},
+	}
+
+	var err error
+	cfg, err := testEnv.Start()
+	if err != nil {
+		return nil, fmt.Errorf("could not start testEnv: %w", err)
+	}
+
+	scheme := kube.CreateScheme()
+
+	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
+		ClientDisableCacheFor: []client.Object{
+			&wego.Application{},
+			&corev1.Namespace{},
+			&corev1.Secret{},
+		},
+		Scheme: scheme,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("could not create controller manager: %w", err)
+	}
+
+	go func() {
+		if err := k8sManager.Start(ctrl.SetupSignalHandler()); err != nil {
+			fmt.Printf("error starting k8s manager: %s", err.Error())
+		}
+	}()
+
+	return k8sManager.GetClient(), nil
 }

@@ -14,7 +14,6 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -141,15 +140,8 @@ func (a *App) Add(params AddParams) error {
 
 	a.printAddSummary(params)
 
-	a.logger.Waitingf("Checking cluster status")
-	clusterStatus := a.kube.GetClusterStatus(ctx)
-	a.logger.Successf(clusterStatus.String())
-
-	switch clusterStatus {
-	case kube.Unmodified:
-		return fmt.Errorf("Wego not installed... exiting")
-	case kube.Unknown:
-		return fmt.Errorf("Wego can not determine cluster status... exiting")
+	if err := IsClusterReady(a.logger, a.kube); err != nil {
+		return err
 	}
 
 	clusterName, err := a.kube.GetClusterName(ctx)
@@ -183,6 +175,16 @@ func (a *App) Add(params AddParams) error {
 	case string(ConfigTypeUserRepo):
 		return a.addAppWithConfigInAppRepo(info, params, gitProvider, secretRef, appHash)
 	default:
+
+		// TODO: @jpellizzari As of https://github.com/weaveworks/weave-gitops/pull/587,
+		// we are not using deploy keys for external repos yet.
+		// Followup created here: https://github.com/weaveworks/weave-gitops/issues/592
+		gitClient, err := a.temporaryGitClientFactory(a.osys, params.PrivateKey)
+		if err != nil {
+			return fmt.Errorf("error selecting auth method for external config repo: %w", err)
+		}
+		// Overriding the internal git service
+		a.git = gitClient
 		return a.addAppWithConfigInExternalRepo(info, params, gitProvider, secretRef, appHash)
 	}
 }
@@ -556,6 +558,10 @@ func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoU
 	}
 
 	if !deployKeyExists || !secretPresent {
+		// TODO: @jpellizzari As of https://github.com/weaveworks/weave-gitops/pull/587/files,
+		// deployKeyExists and secretPresent should always be true, meaning we will never hit this block.
+		// A lot of our unit tests rely on the individual function calls being called in this block,
+		// so they were left in for now and will be handled in a follow up PR.
 		a.logger.Generatef("Generating deploy key for repo %s", repoUrl)
 		secret, err := a.flux.CreateSecretGit(secretRefName, repoUrl, info.Namespace)
 		if err != nil {
