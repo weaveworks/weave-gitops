@@ -21,6 +21,7 @@ type ProviderAccountType string
 const (
 	AccountTypeUser ProviderAccountType = "user"
 	AccountTypeOrg  ProviderAccountType = "organization"
+	deployKeyName                       = "wego-deploy-key"
 )
 
 // GitProvider Handler
@@ -30,6 +31,8 @@ type GitProvider interface {
 	RepositoryExists(name string, owner string) (bool, error)
 	DeployKeyExists(owner, repoName string) (bool, error)
 	GetRepoInfo(accountType ProviderAccountType, owner string, repoName string) (*gitprovider.RepositoryInfo, error)
+	GetRepoInfoFromUrl(url string) (*gitprovider.RepositoryInfo, error)
+	GetDefaultBranch(url string) (string, error)
 	UploadDeployKey(owner, repoName string, deployKey []byte) error
 	CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
 	CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
@@ -118,7 +121,6 @@ func (p defaultGitProvider) CreateRepository(name string, owner string, private 
 }
 
 func (p defaultGitProvider) DeployKeyExists(owner, repoName string) (bool, error) {
-	deployKeyName := "weave-gitops-deploy-key"
 
 	ownerType, err := p.GetAccountType(owner)
 	if err != nil {
@@ -167,7 +169,6 @@ func (p defaultGitProvider) DeployKeyExists(owner, repoName string) (bool, error
 }
 
 func (p defaultGitProvider) UploadDeployKey(owner, repoName string, deployKey []byte) error {
-	deployKeyName := "weave-gitops-deploy-key"
 	deployKeyInfo := gitprovider.DeployKeyInfo{
 		Name: deployKeyName,
 		Key:  deployKey,
@@ -240,6 +241,44 @@ func (p defaultGitProvider) GetAccountType(owner string) (ProviderAccountType, e
 	}
 
 	return AccountTypeOrg, nil
+}
+
+func (p defaultGitProvider) GetDefaultBranch(url string) (string, error) {
+	repoInfoRef, err := p.GetRepoInfoFromUrl(url)
+
+	if err != nil {
+		return "", err
+	}
+
+	if repoInfoRef != nil {
+		repoInfo := *repoInfoRef
+		if repoInfo.DefaultBranch != nil {
+			return *repoInfo.DefaultBranch, nil
+		}
+	}
+
+	return "main", nil
+}
+
+func (p defaultGitProvider) GetRepoInfoFromUrl(repoUrl string) (*gitprovider.RepositoryInfo, error) {
+	owner, err := utils.GetOwnerFromUrl(repoUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	repoName := utils.UrlToRepoName(repoUrl)
+
+	accountType, err := p.GetAccountType(owner)
+	if err != nil {
+		return nil, err
+	}
+
+	repoInfo, err := p.GetRepoInfo(accountType, owner, repoName)
+	if err != nil {
+		return nil, err
+	}
+
+	return repoInfo, nil
 }
 
 func (p defaultGitProvider) GetRepoInfo(accountType ProviderAccountType, owner string, repoName string) (*gitprovider.RepositoryInfo, error) {

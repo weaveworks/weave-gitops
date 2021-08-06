@@ -1,23 +1,41 @@
-package main
+package run
 
 import (
 	"context"
 	"embed"
+	"fmt"
 	"io/fs"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"syscall"
+	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/mattn/go-isatty"
+	"github.com/pkg/browser"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 )
 
-var log = logrus.New()
+var (
+	port string
+	path string
+)
 
-func main() {
+var Cmd = &cobra.Command{
+	Use:   "run",
+	Short: "Runs wego ui",
+	RunE:  runCmd,
+}
+
+func runCmd(cmd *cobra.Command, args []string) error {
+	var log = logrus.New()
+
 	mux := http.NewServeMux()
 
 	mux.Handle("/health/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -37,11 +55,11 @@ func main() {
 
 	kubeClient, err := kube.NewKubeHTTPClient()
 	if err != nil {
-		log.Fatalf("could not create http client: %s", err)
+		return fmt.Errorf("could not create http client: %w", err)
 	}
 
 	if err := pb.RegisterApplicationsHandlerServer(context.Background(), gMux, server.NewApplicationsServer(kubeClient)); err != nil {
-		log.Fatalf("could not register application: %s", err)
+		return fmt.Errorf("could not register application: %w", err)
 	}
 
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -57,14 +75,43 @@ func main() {
 		assetHandler.ServeHTTP(w, req)
 	}))
 
-	port := ":9001"
-
-	log.Infof("Serving on port %s", port)
-
-	if err := http.ListenAndServe(port, mux); err != nil {
-		log.Error(err, "server exited")
-		os.Exit(1)
+	addr := "0.0.0.0:" + port
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: mux,
 	}
+	go func() {
+		log.Infof("Serving on port %s", port)
+		if err := srv.ListenAndServe(); err != nil {
+			log.Error(err, "server exited")
+			os.Exit(1)
+		}
+	}()
+
+	if isatty.IsTerminal(os.Stdout.Fd()) {
+		url := fmt.Sprintf("http://%s/%s", addr, path)
+
+		log.Printf("Openning browser at %s", url)
+		if err := browser.OpenURL(url); err != nil {
+			return fmt.Errorf("failed to open the browser: %w", err)
+		}
+	}
+
+	// graceful shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer func() {
+		cancel()
+	}()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		return fmt.Errorf("Server Shutdown Failed: %w", err)
+	}
+
+	return nil
 }
 
 //go:embed dist/*
@@ -114,4 +161,9 @@ func createRedirector(fsys fs.FS, log logrus.FieldLogger) http.HandlerFunc {
 			return
 		}
 	}
+}
+
+func init() {
+	Cmd.Flags().StringVar(&port, "port", "9001", "UI port")
+	Cmd.Flags().StringVar(&path, "path", "", "Path url")
 }

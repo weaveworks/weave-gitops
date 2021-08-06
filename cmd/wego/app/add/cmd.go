@@ -22,6 +22,10 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
+const (
+	SSHAuthSock = "SSH_AUTH_SOCK"
+)
+
 var params app.AddParams
 
 var Cmd = &cobra.Command{
@@ -52,7 +56,7 @@ func init() {
 	Cmd.Flags().StringVar(&params.Name, "name", "", "Name of application")
 	Cmd.Flags().StringVar(&params.Url, "url", "", "URL of remote repository")
 	Cmd.Flags().StringVar(&params.Path, "path", "./", "Path of files within git repository")
-	Cmd.Flags().StringVar(&params.Branch, "branch", "main", "Branch to watch within git repository")
+	Cmd.Flags().StringVar(&params.Branch, "branch", "", "Branch to watch within git repository")
 	Cmd.Flags().StringVar(&params.DeploymentType, "deployment-type", "kustomize", "deployment type [kustomize, helm]")
 	Cmd.Flags().StringVar(&params.Chart, "chart", "", "Specify chart for helm source")
 	Cmd.Flags().StringVar(&params.PrivateKey, "private-key", "", "Private key to access git repository over ssh")
@@ -78,17 +82,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	osysClient := osys.New()
-	privateKey, err := osysClient.CanonicalPrivateKeyFile(params.PrivateKey)
-	if err != nil {
-		return err
-	}
-
-	params.PrivateKey = privateKey
-
-	authMethod, err := osysClient.RetrievePublicKeyFromFile(params.PrivateKey)
-	if err != nil {
-		return err
-	}
 
 	token, err := osysClient.GetGitProviderToken()
 	if err != nil {
@@ -96,6 +89,11 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	params.GitProviderToken = token
+
+	authMethod, err := osysClient.SelectAuthMethod(params.PrivateKey)
+	if err != nil {
+		return err
+	}
 
 	cliRunner := &runner.CLIRunner{}
 	fluxClient := flux.New(osysClient, cliRunner)

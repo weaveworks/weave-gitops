@@ -10,19 +10,6 @@ import (
 )
 
 type FakeOsys struct {
-	CanonicalPrivateKeyFileStub        func(string) (string, error)
-	canonicalPrivateKeyFileMutex       sync.RWMutex
-	canonicalPrivateKeyFileArgsForCall []struct {
-		arg1 string
-	}
-	canonicalPrivateKeyFileReturns struct {
-		result1 string
-		result2 error
-	}
-	canonicalPrivateKeyFileReturnsOnCall map[int]struct {
-		result1 string
-		result2 error
-	}
 	ExitStub        func(int)
 	exitMutex       sync.RWMutex
 	exitArgsForCall []struct {
@@ -64,17 +51,17 @@ type FakeOsys struct {
 		result1 string
 		result2 bool
 	}
-	RetrievePublicKeyFromFileStub        func(string) (*ssh.PublicKeys, error)
-	retrievePublicKeyFromFileMutex       sync.RWMutex
-	retrievePublicKeyFromFileArgsForCall []struct {
+	SelectAuthMethodStub        func(string) (ssh.AuthMethod, error)
+	selectAuthMethodMutex       sync.RWMutex
+	selectAuthMethodArgsForCall []struct {
 		arg1 string
 	}
-	retrievePublicKeyFromFileReturns struct {
-		result1 *ssh.PublicKeys
+	selectAuthMethodReturns struct {
+		result1 ssh.AuthMethod
 		result2 error
 	}
-	retrievePublicKeyFromFileReturnsOnCall map[int]struct {
-		result1 *ssh.PublicKeys
+	selectAuthMethodReturnsOnCall map[int]struct {
+		result1 ssh.AuthMethod
 		result2 error
 	}
 	SetenvStub        func(string, string) error
@@ -133,70 +120,6 @@ type FakeOsys struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
-}
-
-func (fake *FakeOsys) CanonicalPrivateKeyFile(arg1 string) (string, error) {
-	fake.canonicalPrivateKeyFileMutex.Lock()
-	ret, specificReturn := fake.canonicalPrivateKeyFileReturnsOnCall[len(fake.canonicalPrivateKeyFileArgsForCall)]
-	fake.canonicalPrivateKeyFileArgsForCall = append(fake.canonicalPrivateKeyFileArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.CanonicalPrivateKeyFileStub
-	fakeReturns := fake.canonicalPrivateKeyFileReturns
-	fake.recordInvocation("CanonicalPrivateKeyFile", []interface{}{arg1})
-	fake.canonicalPrivateKeyFileMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeOsys) CanonicalPrivateKeyFileCallCount() int {
-	fake.canonicalPrivateKeyFileMutex.RLock()
-	defer fake.canonicalPrivateKeyFileMutex.RUnlock()
-	return len(fake.canonicalPrivateKeyFileArgsForCall)
-}
-
-func (fake *FakeOsys) CanonicalPrivateKeyFileCalls(stub func(string) (string, error)) {
-	fake.canonicalPrivateKeyFileMutex.Lock()
-	defer fake.canonicalPrivateKeyFileMutex.Unlock()
-	fake.CanonicalPrivateKeyFileStub = stub
-}
-
-func (fake *FakeOsys) CanonicalPrivateKeyFileArgsForCall(i int) string {
-	fake.canonicalPrivateKeyFileMutex.RLock()
-	defer fake.canonicalPrivateKeyFileMutex.RUnlock()
-	argsForCall := fake.canonicalPrivateKeyFileArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeOsys) CanonicalPrivateKeyFileReturns(result1 string, result2 error) {
-	fake.canonicalPrivateKeyFileMutex.Lock()
-	defer fake.canonicalPrivateKeyFileMutex.Unlock()
-	fake.CanonicalPrivateKeyFileStub = nil
-	fake.canonicalPrivateKeyFileReturns = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeOsys) CanonicalPrivateKeyFileReturnsOnCall(i int, result1 string, result2 error) {
-	fake.canonicalPrivateKeyFileMutex.Lock()
-	defer fake.canonicalPrivateKeyFileMutex.Unlock()
-	fake.CanonicalPrivateKeyFileStub = nil
-	if fake.canonicalPrivateKeyFileReturnsOnCall == nil {
-		fake.canonicalPrivateKeyFileReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 error
-		})
-	}
-	fake.canonicalPrivateKeyFileReturnsOnCall[i] = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
 }
 
 func (fake *FakeOsys) Exit(arg1 int) {
@@ -412,16 +335,16 @@ func (fake *FakeOsys) LookupEnvReturnsOnCall(i int, result1 string, result2 bool
 	}{result1, result2}
 }
 
-func (fake *FakeOsys) RetrievePublicKeyFromFile(arg1 string) (*ssh.PublicKeys, error) {
-	fake.retrievePublicKeyFromFileMutex.Lock()
-	ret, specificReturn := fake.retrievePublicKeyFromFileReturnsOnCall[len(fake.retrievePublicKeyFromFileArgsForCall)]
-	fake.retrievePublicKeyFromFileArgsForCall = append(fake.retrievePublicKeyFromFileArgsForCall, struct {
+func (fake *FakeOsys) SelectAuthMethod(arg1 string) (ssh.AuthMethod, error) {
+	fake.selectAuthMethodMutex.Lock()
+	ret, specificReturn := fake.selectAuthMethodReturnsOnCall[len(fake.selectAuthMethodArgsForCall)]
+	fake.selectAuthMethodArgsForCall = append(fake.selectAuthMethodArgsForCall, struct {
 		arg1 string
 	}{arg1})
-	stub := fake.RetrievePublicKeyFromFileStub
-	fakeReturns := fake.retrievePublicKeyFromFileReturns
-	fake.recordInvocation("RetrievePublicKeyFromFile", []interface{}{arg1})
-	fake.retrievePublicKeyFromFileMutex.Unlock()
+	stub := fake.SelectAuthMethodStub
+	fakeReturns := fake.selectAuthMethodReturns
+	fake.recordInvocation("SelectAuthMethod", []interface{}{arg1})
+	fake.selectAuthMethodMutex.Unlock()
 	if stub != nil {
 		return stub(arg1)
 	}
@@ -431,47 +354,47 @@ func (fake *FakeOsys) RetrievePublicKeyFromFile(arg1 string) (*ssh.PublicKeys, e
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeOsys) RetrievePublicKeyFromFileCallCount() int {
-	fake.retrievePublicKeyFromFileMutex.RLock()
-	defer fake.retrievePublicKeyFromFileMutex.RUnlock()
-	return len(fake.retrievePublicKeyFromFileArgsForCall)
+func (fake *FakeOsys) SelectAuthMethodCallCount() int {
+	fake.selectAuthMethodMutex.RLock()
+	defer fake.selectAuthMethodMutex.RUnlock()
+	return len(fake.selectAuthMethodArgsForCall)
 }
 
-func (fake *FakeOsys) RetrievePublicKeyFromFileCalls(stub func(string) (*ssh.PublicKeys, error)) {
-	fake.retrievePublicKeyFromFileMutex.Lock()
-	defer fake.retrievePublicKeyFromFileMutex.Unlock()
-	fake.RetrievePublicKeyFromFileStub = stub
+func (fake *FakeOsys) SelectAuthMethodCalls(stub func(string) (ssh.AuthMethod, error)) {
+	fake.selectAuthMethodMutex.Lock()
+	defer fake.selectAuthMethodMutex.Unlock()
+	fake.SelectAuthMethodStub = stub
 }
 
-func (fake *FakeOsys) RetrievePublicKeyFromFileArgsForCall(i int) string {
-	fake.retrievePublicKeyFromFileMutex.RLock()
-	defer fake.retrievePublicKeyFromFileMutex.RUnlock()
-	argsForCall := fake.retrievePublicKeyFromFileArgsForCall[i]
+func (fake *FakeOsys) SelectAuthMethodArgsForCall(i int) string {
+	fake.selectAuthMethodMutex.RLock()
+	defer fake.selectAuthMethodMutex.RUnlock()
+	argsForCall := fake.selectAuthMethodArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeOsys) RetrievePublicKeyFromFileReturns(result1 *ssh.PublicKeys, result2 error) {
-	fake.retrievePublicKeyFromFileMutex.Lock()
-	defer fake.retrievePublicKeyFromFileMutex.Unlock()
-	fake.RetrievePublicKeyFromFileStub = nil
-	fake.retrievePublicKeyFromFileReturns = struct {
-		result1 *ssh.PublicKeys
+func (fake *FakeOsys) SelectAuthMethodReturns(result1 ssh.AuthMethod, result2 error) {
+	fake.selectAuthMethodMutex.Lock()
+	defer fake.selectAuthMethodMutex.Unlock()
+	fake.SelectAuthMethodStub = nil
+	fake.selectAuthMethodReturns = struct {
+		result1 ssh.AuthMethod
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeOsys) RetrievePublicKeyFromFileReturnsOnCall(i int, result1 *ssh.PublicKeys, result2 error) {
-	fake.retrievePublicKeyFromFileMutex.Lock()
-	defer fake.retrievePublicKeyFromFileMutex.Unlock()
-	fake.RetrievePublicKeyFromFileStub = nil
-	if fake.retrievePublicKeyFromFileReturnsOnCall == nil {
-		fake.retrievePublicKeyFromFileReturnsOnCall = make(map[int]struct {
-			result1 *ssh.PublicKeys
+func (fake *FakeOsys) SelectAuthMethodReturnsOnCall(i int, result1 ssh.AuthMethod, result2 error) {
+	fake.selectAuthMethodMutex.Lock()
+	defer fake.selectAuthMethodMutex.Unlock()
+	fake.SelectAuthMethodStub = nil
+	if fake.selectAuthMethodReturnsOnCall == nil {
+		fake.selectAuthMethodReturnsOnCall = make(map[int]struct {
+			result1 ssh.AuthMethod
 			result2 error
 		})
 	}
-	fake.retrievePublicKeyFromFileReturnsOnCall[i] = struct {
-		result1 *ssh.PublicKeys
+	fake.selectAuthMethodReturnsOnCall[i] = struct {
+		result1 ssh.AuthMethod
 		result2 error
 	}{result1, result2}
 }
@@ -756,8 +679,6 @@ func (fake *FakeOsys) UserHomeDirReturnsOnCall(i int, result1 string, result2 er
 func (fake *FakeOsys) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.canonicalPrivateKeyFileMutex.RLock()
-	defer fake.canonicalPrivateKeyFileMutex.RUnlock()
 	fake.exitMutex.RLock()
 	defer fake.exitMutex.RUnlock()
 	fake.getGitProviderTokenMutex.RLock()
@@ -766,8 +687,8 @@ func (fake *FakeOsys) Invocations() map[string][][]interface{} {
 	defer fake.getenvMutex.RUnlock()
 	fake.lookupEnvMutex.RLock()
 	defer fake.lookupEnvMutex.RUnlock()
-	fake.retrievePublicKeyFromFileMutex.RLock()
-	defer fake.retrievePublicKeyFromFileMutex.RUnlock()
+	fake.selectAuthMethodMutex.RLock()
+	defer fake.selectAuthMethodMutex.RUnlock()
 	fake.setenvMutex.RLock()
 	defer fake.setenvMutex.RUnlock()
 	fake.stderrMutex.RLock()
