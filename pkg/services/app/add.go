@@ -229,17 +229,19 @@ func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, 
 		params.AppConfigUrl = sanitizeRepoUrl(params.AppConfigUrl)
 	}
 
-	if params.Chart != "" {
+	switch {
+	case params.Chart != "":
 		params.SourceType = string(wego.SourceTypeHelm)
 		params.DeploymentType = string(wego.DeploymentTypeHelm)
 		params.Path = params.Chart
 		if params.Name == "" {
 			params.Name = params.Chart
 		}
-	}
-
-	// Identifying repo url if not set by the user
-	if params.Url == "" {
+		if params.Url == "" {
+			return params, fmt.Errorf("--url must be specified for helm repositories")
+		}
+	case params.Url == "":
+		// Git repository -- identifying repo url if not set by the user
 		url, err := a.getGitRemoteUrl(params)
 
 		if err != nil {
@@ -247,7 +249,7 @@ func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, 
 		}
 
 		params.Url = url
-	} else {
+	default:
 		// making sure url is in the correct format
 		params.Url = sanitizeRepoUrl(params.Url)
 
