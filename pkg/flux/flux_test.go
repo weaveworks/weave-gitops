@@ -151,7 +151,7 @@ var _ = Describe("CreateHelmReleaseGitRepository", func() {
 		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
 			return []byte("out"), nil
 		}
-		out, err := fluxClient.CreateHelmReleaseGitRepository("my-name", "my-source", "./chart-path", "wego-system")
+		out, err := fluxClient.CreateHelmReleaseGitRepository("my-name", "my-source", "./chart-path", "wego-system", "")
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
 
@@ -162,6 +162,22 @@ var _ = Describe("CreateHelmReleaseGitRepository", func() {
 
 		Expect(strings.Join(args, " ")).To(Equal("create helmrelease my-name --source GitRepository/my-source --chart ./chart-path --namespace wego-system --interval 5m --export"))
 	})
+
+	It("creates a helm release with a git repository and a target namespace", func() {
+		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
+			return []byte("out"), nil
+		}
+		out, err := fluxClient.CreateHelmReleaseGitRepository("my-name", "my-source", "./chart-path", "wego-system", "sock-shop")
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(out).To(Equal([]byte("out")))
+
+		Expect(runner.RunCallCount()).To(Equal(1))
+
+		cmd, args := runner.RunArgsForCall(0)
+		Expect(cmd).To(Equal(fluxPath()))
+
+		Expect(strings.Join(args, " ")).To(Equal("create helmrelease my-name --source GitRepository/my-source --chart ./chart-path --namespace wego-system --interval 5m --export --target-namespace sock-shop"))
+	})
 })
 
 var _ = Describe("CreateHelmReleaseHelmRepository", func() {
@@ -169,7 +185,7 @@ var _ = Describe("CreateHelmReleaseHelmRepository", func() {
 		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
 			return []byte("out"), nil
 		}
-		out, err := fluxClient.CreateHelmReleaseHelmRepository("my-name", "my-chart", "wego-system")
+		out, err := fluxClient.CreateHelmReleaseHelmRepository("my-name", "my-chart", "wego-system", "")
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
 
@@ -179,6 +195,22 @@ var _ = Describe("CreateHelmReleaseHelmRepository", func() {
 		Expect(cmd).To(Equal(fluxPath()))
 
 		Expect(strings.Join(args, " ")).To(Equal("create helmrelease my-name --source HelmRepository/my-name --chart my-chart --namespace wego-system --interval 5m --export"))
+	})
+
+	It("creates a helm release with a helm repository and a target namespace", func() {
+		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
+			return []byte("out"), nil
+		}
+		out, err := fluxClient.CreateHelmReleaseHelmRepository("my-name", "my-chart", "wego-system", "sock-shop")
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(out).To(Equal([]byte("out")))
+
+		Expect(runner.RunCallCount()).To(Equal(1))
+
+		cmd, args := runner.RunArgsForCall(0)
+		Expect(cmd).To(Equal(fluxPath()))
+
+		Expect(strings.Join(args, " ")).To(Equal("create helmrelease my-name --source HelmRepository/my-name --chart my-chart --namespace wego-system --interval 5m --export --target-namespace sock-shop"))
 	})
 })
 
