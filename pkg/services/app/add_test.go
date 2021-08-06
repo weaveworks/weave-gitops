@@ -226,7 +226,7 @@ stringData:
 
 				name, url, namespace := fluxClient.CreateSourceHelmArgsForCall(0)
 				Expect(name).To(Equal("loki"))
-				Expect(url).To(Equal("https://charts.kube-ops.io.git"))
+				Expect(url).To(Equal("https://charts.kube-ops.io"))
 				Expect(namespace).To(Equal("wego-system"))
 			})
 		})
@@ -406,7 +406,7 @@ stringData:
 
 				name, url, namespace := fluxClient.CreateSourceHelmArgsForCall(0)
 				Expect(name).To(Equal("loki"))
-				Expect(url).To(Equal("https://charts.kube-ops.io.git"))
+				Expect(url).To(Equal("https://charts.kube-ops.io"))
 				Expect(namespace).To(Equal("wego-system"))
 			})
 		})
@@ -438,6 +438,7 @@ stringData:
 			})
 
 			It("creates helm release using a helm repository if source type is helm", func() {
+				addParams.Url = "https://charts.kube-ops.io"
 				addParams.Chart = "loki"
 
 				err := appSrv.Add(addParams)
@@ -470,6 +471,7 @@ stringData:
 			})
 
 			It("creates helm release for helm repository with target namespace if source type is helm", func() {
+				addParams.Url = "https://charts.kube-ops.io"
 				addParams.Chart = "loki"
 				addParams.HelmReleaseTargetNamespace = "sock-shop"
 
@@ -504,6 +506,7 @@ stringData:
 			})
 
 			It("validates namespace passed as target namespace", func() {
+				addParams.Url = "https://charts.kube-ops.io"
 				addParams.Chart = "loki"
 				addParams.HelmReleaseTargetNamespace = "sock-shop"
 
@@ -648,7 +651,7 @@ stringData:
 
 				name, url, namespace := fluxClient.CreateSourceHelmArgsForCall(0)
 				Expect(name).To(Equal("loki"))
-				Expect(url).To(Equal("https://charts.kube-ops.io.git"))
+				Expect(url).To(Equal("https://charts.kube-ops.io"))
 				Expect(namespace).To(Equal("wego-system"))
 			})
 		})
