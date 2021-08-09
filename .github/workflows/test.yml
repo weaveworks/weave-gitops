@@ -44,7 +44,7 @@ jobs:
         version: v1.29
         args: --timeout=600s
     - name: Check Format
-    - run: make check-format
+      run: make check-format
 
   build:
     runs-on: ubuntu-latest
