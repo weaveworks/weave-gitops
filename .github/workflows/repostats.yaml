@@ -20,4 +20,4 @@ jobs:
         uses: jgehrcke/github-repo-stats@dab4a915b37a7521cd54033a3147daaeb868ec5c
         with:
           repository: ${{ matrix.statsRepo }}
-          ghtoken: ${{ secrets.BOT_GITHUB_TOKEN }}
+          ghtoken: ${{ secrets.github_token }}
