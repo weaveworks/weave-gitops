@@ -7,6 +7,7 @@ BUILD_TIME=$(shell date +'%Y-%m-%d_%T')
 BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT=$(shell git log -n1 --pretty='%h')
 CURRENT_DIR=$(shell pwd)
+FORMAT_LIST=$(shell gofmt -l .)
 FLUX_VERSION=$(shell $(CURRENT_DIR)/tools/bin/stoml $(CURRENT_DIR)/tools/dependencies.toml flux.version)
 LDFLAGS = "-X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION)"
 
@@ -139,3 +140,7 @@ CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 crd:
 	@go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1
 	controller-gen $(CRD_OPTIONS) paths="./..." output:crd:artifacts:config=manifests/crds
+
+# Check go format
+check-format: 
+	if [ ! -z "$(FORMAT_LIST)" ] ; then echo invalid format at: ${FORMAT_LIST} && exit 1; fi
