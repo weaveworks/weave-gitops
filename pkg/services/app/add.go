@@ -226,7 +226,7 @@ func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, 
 	// making sure the config url is in good format
 	if strings.ToUpper(params.AppConfigUrl) != string(ConfigTypeNone) &&
 		strings.ToUpper(params.AppConfigUrl) != string(ConfigTypeUserRepo) {
-		params.AppConfigUrl = sanitizeRepoUrl(params.AppConfigUrl)
+		params.AppConfigUrl = utils.SanitizeRepoUrl(params.AppConfigUrl)
 	}
 
 	switch {
@@ -251,7 +251,7 @@ func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, 
 		params.Url = url
 	default:
 		// making sure url is in the correct format
-		params.Url = sanitizeRepoUrl(params.Url)
+		params.Url = utils.SanitizeRepoUrl(params.Url)
 
 		// resetting Dir param since Url has priority over it
 		params.Dir = ""
@@ -300,7 +300,7 @@ func (a *App) getGitRemoteUrl(params AddParams) (string, error) {
 		return "", fmt.Errorf("remote config in %s does not have an url", params.Dir)
 	}
 
-	return sanitizeRepoUrl(urls[0]), nil
+	return utils.SanitizeRepoUrl(urls[0]), nil
 }
 
 func (a *App) addAppWithNoConfigRepo(info *AppResourceInfo, dryRun bool, secretRef string, appHash string) error {
@@ -530,7 +530,7 @@ func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoU
 		return secretRefName, nil
 	}
 
-	repoUrl = sanitizeRepoUrl(repoUrl)
+	repoUrl = utils.SanitizeRepoUrl(repoUrl)
 
 	owner, err := utils.GetOwnerFromUrl(repoUrl)
 	if err != nil {
@@ -645,7 +645,7 @@ func (a *App) cloneRepo(url string, branch string, dryRun bool) (func(), error) 
 		return func() {}, nil
 	}
 
-	url = sanitizeRepoUrl(url)
+	url = utils.SanitizeRepoUrl(url)
 
 	repoDir, err := ioutil.TempDir("", "user-repo-")
 	if err != nil {
@@ -716,30 +716,6 @@ func generateAppYaml(info *AppResourceInfo, appHash string) ([]byte, error) {
 
 func generateResourceName(url string) string {
 	return strings.ReplaceAll(utils.UrlToRepoName(url), "_", "-")
-}
-
-func sanitizeRepoUrl(url string) string {
-	trimmed := ""
-
-	if !strings.HasSuffix(url, ".git") {
-		url = url + ".git"
-	}
-
-	sshPrefix := "git@github.com:"
-	if strings.HasPrefix(url, sshPrefix) {
-		trimmed = strings.TrimPrefix(url, sshPrefix)
-	}
-
-	httpsPrefix := "https://github.com/"
-	if strings.HasPrefix(url, httpsPrefix) {
-		trimmed = strings.TrimPrefix(url, httpsPrefix)
-	}
-
-	if trimmed != "" {
-		return "ssh://git@github.com/" + trimmed
-	}
-
-	return url
 }
 
 func (a *App) createPullRequestToRepo(info *AppResourceInfo, gitProvider gitproviders.GitProvider, repo string, appHash string, appYaml []byte, goatSource, goatDeploy []byte) error {

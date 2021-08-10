@@ -82,3 +82,30 @@ func ValidateNamespace(ns string) error {
 
 	return nil
 }
+
+// SanitizeRepoUrl accepts a url like git@github.com:someuser/podinfo.git and converts it into
+// a string like ssh://git@github.com/someuser/podinfo.git. This helps standardize the different
+// user inputs that might be provided.
+func SanitizeRepoUrl(url string) string {
+	trimmed := ""
+
+	if !strings.HasSuffix(url, ".git") {
+		url = url + ".git"
+	}
+
+	sshPrefix := "git@github.com:"
+	if strings.HasPrefix(url, sshPrefix) {
+		trimmed = strings.TrimPrefix(url, sshPrefix)
+	}
+
+	httpsPrefix := "https://github.com/"
+	if strings.HasPrefix(url, httpsPrefix) {
+		trimmed = strings.TrimPrefix(url, httpsPrefix)
+	}
+
+	if trimmed != "" {
+		return "ssh://git@github.com/" + trimmed
+	}
+
+	return url
+}

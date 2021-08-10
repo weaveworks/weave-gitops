@@ -85,15 +85,33 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	osysClient := osys.New()
 
 	token, err := osysClient.GetGitProviderToken()
-	if err != nil {
-		return err
+
+	if err == osys.ErrNoGitProviderTokenSet {
+		// No provider token set, we need to do the auth flow.
+		url := params.Url
+		if url == "" {
+			// Find the url using an unauthenticated git client. We just need to read the URL.
+			// params.Dir must be defined here because we already checked for it above.
+			url, err = git.New(nil).GetRemoteUrl(params.Dir, "origin")
+			if err != nil {
+				return fmt.Errorf("could not get remote url for directory %s: %w", params.Dir, err)
+			}
+		}
+		// DoAppRepoCLIAuth will take over the CLI and block until the flow is complete.
+		token, err = app.DoAppRepoCLIAuth(url, osysClient.Stdout())
+		if err != nil {
+			return fmt.Errorf("could not complete auth flow: %w", err)
+		}
+	} else if err != nil {
+		// We didn't detect a NoGitProviderSet error, something else went wrong.
+		return fmt.Errorf("could not get access token: %w", err)
 	}
 
 	params.GitProviderToken = token
 
 	authMethod, err := osysClient.SelectAuthMethod(params.PrivateKey)
 	if err != nil {
-		return err
+		return fmt.Errorf("error selecting auth method: %w", err)
 	}
 
 	cliRunner := &runner.CLIRunner{}

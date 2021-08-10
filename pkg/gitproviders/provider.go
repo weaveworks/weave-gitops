@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -470,4 +471,24 @@ func (p defaultGitProvider) waitUntilRepoCreated(ownerType ProviderAccountType, 
 		return fmt.Errorf("could not verify repo existence %s", err)
 	}
 	return nil
+}
+
+// DetectGitProviderFromUrl accepts a url related to a git repo and
+// returns the name of the provider associated.
+// The raw URL is assumed to be something like ssh://git@github.com/myorg/myrepo.git.
+// The common `git clone` variant of `git@github.com:myorg/myrepo.git` is not supported.
+func DetectGitProviderFromUrl(raw string) (GitProviderName, error) {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return "", fmt.Errorf("could not parse git repo url %q", raw)
+	}
+
+	switch u.Hostname() {
+	case "github.com":
+		return GitProviderGitHub, nil
+	case "gitlab.com":
+		return GitProviderGitLab, nil
+	}
+
+	return "", fmt.Errorf("no git providers found for \"%s\"", raw)
 }
