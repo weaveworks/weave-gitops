@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
+	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
@@ -44,6 +45,10 @@ var _ = BeforeEach(func() {
 
 	appSrv.(*App).gitProviderFactory = func(token string) (gitproviders.GitProvider, error) {
 		return gitProviders, nil
+	}
+
+	appSrv.(*App).temporaryGitClientFactory = func(osysClient osys.Osys, privKeypath string) (git.Git, error) {
+		return gitClient, nil
 	}
 })
 

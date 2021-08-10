@@ -63,12 +63,13 @@ type App struct {
 
 func New(logger logger.Logger, git git.Git, flux flux.Flux, kube kube.Kube, osys osys.Osys) *App {
 	return &App{
-		git:                git,
-		flux:               flux,
-		kube:               kube,
-		logger:             logger,
-		osys:               osys,
-		gitProviderFactory: createGitProvider,
+		git:                       git,
+		flux:                      flux,
+		kube:                      kube,
+		logger:                    logger,
+		osys:                      osys,
+		gitProviderFactory:        createGitProvider,
+		temporaryGitClientFactory: temporaryCreateGitClient,
 	}
 }
 
@@ -85,6 +86,14 @@ func createGitProvider(token string) (gitproviders.GitProvider, error) {
 	}
 
 	return provider, nil
+}
+
+func temporaryCreateGitClient(osysClient osys.Osys, privKeypath string) (git.Git, error) {
+	auth, err := osysClient.SelectAuthMethod(privKeypath)
+	if err != nil {
+		return nil, fmt.Errorf("error selecting auth method for external config repo: %w", err)
+	}
+	return git.New(auth), nil
 }
 
 func (a *App) getDeploymentType(ctx context.Context, name string, namespace string) (wego.DeploymentType, error) {
