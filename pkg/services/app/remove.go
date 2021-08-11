@@ -54,13 +54,13 @@ func (a *App) Remove(params RemoveParams) error {
 		return nil
 	}
 
-	cloneURL := info.Spec.ConfigURL
-
-	if cloneURL == string(ConfigTypeUserRepo) {
-		cloneURL = info.Spec.URL
+	cloneURL, branch, err := a.getConfigUrlAndBranch(info, params.GitProviderToken)
+	if err != nil {
+		return fmt.Errorf("failed to obtain config URL and branch: %w", err)
 	}
 
-	remover, err := a.cloneRepo(cloneURL, info.Spec.Branch, params.DryRun)
+	remover, err := a.cloneRepo(cloneURL, branch, params.DryRun)
+
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)
 	}
@@ -90,6 +90,27 @@ func (a *App) Remove(params RemoveParams) error {
 	}
 
 	return nil
+}
+
+func (a *App) getConfigUrlAndBranch(info *AppResourceInfo, token string) (string, string, error) {
+	cloneURL := info.Spec.ConfigURL
+	branch := info.Spec.Branch
+
+	if cloneURL == string(ConfigTypeUserRepo) {
+		cloneURL = info.Spec.URL
+	} else {
+		gitProvider, err := a.gitProviderFactory(token)
+		if err != nil {
+			return "", "", err
+		}
+
+		branch, err = gitProvider.GetDefaultBranch(cloneURL)
+		if err != nil {
+			return "", "", err
+		}
+	}
+
+	return cloneURL, branch, nil
 }
 
 func clusterDeleteError(out []byte, err error) error {

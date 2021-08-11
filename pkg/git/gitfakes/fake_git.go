@@ -40,6 +40,20 @@ type FakeGit struct {
 		result1 string
 		result2 error
 	}
+	GetRemoteUrlStub        func(string, string) (string, error)
+	getRemoteUrlMutex       sync.RWMutex
+	getRemoteUrlArgsForCall []struct {
+		arg1 string
+		arg2 string
+	}
+	getRemoteUrlReturns struct {
+		result1 string
+		result2 error
+	}
+	getRemoteUrlReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	HeadStub        func() (string, error)
 	headMutex       sync.RWMutex
 	headArgsForCall []struct {
@@ -270,6 +284,71 @@ func (fake *FakeGit) CommitReturnsOnCall(i int, result1 string, result2 error) {
 		})
 	}
 	fake.commitReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGit) GetRemoteUrl(arg1 string, arg2 string) (string, error) {
+	fake.getRemoteUrlMutex.Lock()
+	ret, specificReturn := fake.getRemoteUrlReturnsOnCall[len(fake.getRemoteUrlArgsForCall)]
+	fake.getRemoteUrlArgsForCall = append(fake.getRemoteUrlArgsForCall, struct {
+		arg1 string
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.GetRemoteUrlStub
+	fakeReturns := fake.getRemoteUrlReturns
+	fake.recordInvocation("GetRemoteUrl", []interface{}{arg1, arg2})
+	fake.getRemoteUrlMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeGit) GetRemoteUrlCallCount() int {
+	fake.getRemoteUrlMutex.RLock()
+	defer fake.getRemoteUrlMutex.RUnlock()
+	return len(fake.getRemoteUrlArgsForCall)
+}
+
+func (fake *FakeGit) GetRemoteUrlCalls(stub func(string, string) (string, error)) {
+	fake.getRemoteUrlMutex.Lock()
+	defer fake.getRemoteUrlMutex.Unlock()
+	fake.GetRemoteUrlStub = stub
+}
+
+func (fake *FakeGit) GetRemoteUrlArgsForCall(i int) (string, string) {
+	fake.getRemoteUrlMutex.RLock()
+	defer fake.getRemoteUrlMutex.RUnlock()
+	argsForCall := fake.getRemoteUrlArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeGit) GetRemoteUrlReturns(result1 string, result2 error) {
+	fake.getRemoteUrlMutex.Lock()
+	defer fake.getRemoteUrlMutex.Unlock()
+	fake.GetRemoteUrlStub = nil
+	fake.getRemoteUrlReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGit) GetRemoteUrlReturnsOnCall(i int, result1 string, result2 error) {
+	fake.getRemoteUrlMutex.Lock()
+	defer fake.getRemoteUrlMutex.Unlock()
+	fake.GetRemoteUrlStub = nil
+	if fake.getRemoteUrlReturnsOnCall == nil {
+		fake.getRemoteUrlReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.getRemoteUrlReturnsOnCall[i] = struct {
 		result1 string
 		result2 error
 	}{result1, result2}
@@ -776,6 +855,8 @@ func (fake *FakeGit) Invocations() map[string][][]interface{} {
 	defer fake.cloneMutex.RUnlock()
 	fake.commitMutex.RLock()
 	defer fake.commitMutex.RUnlock()
+	fake.getRemoteUrlMutex.RLock()
+	defer fake.getRemoteUrlMutex.RUnlock()
 	fake.headMutex.RLock()
 	defer fake.headMutex.RUnlock()
 	fake.initMutex.RLock()

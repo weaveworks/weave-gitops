@@ -57,24 +57,25 @@ const (
 	ResourceKindKustomization  ResourceKind = "Kustomization"
 	ResourceKindHelmRelease    ResourceKind = "HelmRelease"
 
-	WeGOAppIdentifierLabelKey = "weave-gitops.weave.works/app-identifier"
+	WeGOAppIdentifierLabelKey = "wego.weave.works/app-identifier"
 )
 
 type AddParams struct {
-	Dir              string
-	Name             string
-	Url              string
-	Path             string
-	Branch           string
-	PrivateKey       string
-	DeploymentType   string
-	Chart            string
-	SourceType       wego.SourceType
-	AppConfigUrl     string
-	Namespace        string
-	DryRun           bool
-	AutoMerge        bool
-	GitProviderToken string
+	Dir                        string
+	Name                       string
+	Url                        string
+	Path                       string
+	Branch                     string
+	PrivateKey                 string
+	DeploymentType             string
+	Chart                      string
+	SourceType                 wego.SourceType
+	AppConfigUrl               string
+	Namespace                  string
+	DryRun                     bool
+	AutoMerge                  bool
+	GitProviderToken           string
+	HelmReleaseTargetNamespace string
 }
 
 // Three models:
@@ -115,7 +116,13 @@ type AddParams struct {
 
 func (a *App) Add(params AddParams) error {
 	ctx := context.Background()
-	params, err := a.updateParametersIfNecessary(params)
+
+	gitProvider, err := a.gitProviderFactory(params.GitProviderToken)
+	if err != nil {
+		return err
+	}
+
+	params, err = a.updateParametersIfNecessary(gitProvider, params)
 	if err != nil {
 		return fmt.Errorf("could not update parameters: %w", err)
 	}
@@ -146,11 +153,6 @@ func (a *App) Add(params AddParams) error {
 	}
 
 	info := getAppResourceInfo(makeWegoApplication(params), clusterName)
-
-	gitProvider, err := a.gitProviderFactory(params.GitProviderToken)
-	if err != nil {
-		return err
-	}
 
 	var secretRef string
 	if wego.SourceType(params.SourceType) == wego.SourceTypeGit {
@@ -225,28 +227,28 @@ func (a *App) printAddSummary(params AddParams) {
 	a.logger.Println("")
 }
 
-func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
+func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, params AddParams) (AddParams, error) {
 	params.SourceType = wego.SourceTypeGit
 
 	// making sure the config url is in good format
 	if strings.ToUpper(params.AppConfigUrl) != string(ConfigTypeNone) &&
 		strings.ToUpper(params.AppConfigUrl) != string(ConfigTypeUserRepo) {
-		params.AppConfigUrl = sanitizeRepoUrl(params.AppConfigUrl)
+		params.AppConfigUrl = utils.SanitizeRepoUrl(params.AppConfigUrl)
 	}
 
-	if params.Chart != "" {
+	switch {
+	case params.Chart != "":
 		params.SourceType = wego.SourceTypeHelm
 		params.DeploymentType = string(wego.DeploymentTypeHelm)
 		params.Path = params.Chart
 		if params.Name == "" {
 			params.Name = params.Chart
 		}
-
-		return params, nil
-	}
-
-	// Identifying repo url if not set by the user
-	if params.Url == "" {
+		if params.Url == "" {
+			return params, fmt.Errorf("--url must be specified for helm repositories")
+		}
+	case params.Url == "":
+		// Git repository -- identifying repo url if not set by the user
 		url, err := a.getGitRemoteUrl(params)
 
 		if err != nil {
@@ -254,9 +256,9 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 		}
 
 		params.Url = url
-	} else {
+	default:
 		// making sure url is in the correct format
-		params.Url = sanitizeRepoUrl(params.Url)
+		params.Url = utils.SanitizeRepoUrl(params.Url)
 
 		// resetting Dir param since Url has priority over it
 		params.Dir = ""
@@ -264,6 +266,26 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 
 	if params.Name == "" {
 		params.Name = generateResourceName(params.Url)
+	}
+
+	if params.Branch == "" {
+		params.Branch = "main"
+
+		if params.SourceType == wego.SourceTypeGit {
+			branch, err := gitProvider.GetDefaultBranch(params.Url)
+			if err != nil {
+				return params, err
+			} else {
+				params.Branch = branch
+			}
+		}
+	}
+
+	// Validate namespace argument for helm
+	if params.HelmReleaseTargetNamespace != "" {
+		if nserr := utils.ValidateNamespace(params.HelmReleaseTargetNamespace); nserr != nil {
+			return params, nserr
+		}
 	}
 
 	return params, nil
@@ -285,7 +307,7 @@ func (a *App) getGitRemoteUrl(params AddParams) (string, error) {
 		return "", fmt.Errorf("remote config in %s does not have an url", params.Dir)
 	}
 
-	return sanitizeRepoUrl(urls[0]), nil
+	return utils.SanitizeRepoUrl(urls[0]), nil
 }
 
 func (a *App) addAppWithNoConfigRepo(info *AppResourceInfo, dryRun bool, secretRef string, appHash string) error {
@@ -361,12 +383,17 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 		return fmt.Errorf("could not generate application GitOps Automation manifests: %w", err)
 	}
 
-	targetSource, targetGoats, err := a.generateExternalRepoManifests(info, appConfigSecretName)
+	configBranch, err := gitProvider.GetDefaultBranch(info.Spec.ConfigURL)
+	if err != nil {
+		return fmt.Errorf("could not determine default branch for config repository: %w", err)
+	}
+
+	targetSource, targetGoats, err := a.generateExternalRepoManifests(info, appConfigSecretName, configBranch)
 	if err != nil {
 		return fmt.Errorf("could not generate target GitOps Automation manifests: %w", err)
 	}
 
-	remover, err := a.cloneRepo(info.Spec.ConfigURL, info.Spec.Branch, params.DryRun)
+	remover, err := a.cloneRepo(info.Spec.ConfigURL, configBranch, params.DryRun)
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)
 	}
@@ -446,10 +473,10 @@ func (a *App) generateAppWegoManifests(info *AppResourceInfo) ([]byte, error) {
 	return bytes.ReplaceAll(manifests, []byte("path: ./wego"), []byte("path: .wego")), nil
 }
 
-func (a *App) generateExternalRepoManifests(info *AppResourceInfo, secretRef string) ([]byte, []byte, error) {
+func (a *App) generateExternalRepoManifests(info *AppResourceInfo, secretRef, branch string) ([]byte, []byte, error) {
 	repoName := generateResourceName(info.Spec.ConfigURL)
 
-	targetSource, err := a.flux.CreateSourceGit(repoName, info.Spec.ConfigURL, info.Spec.Branch, secretRef, info.Namespace)
+	targetSource, err := a.flux.CreateSourceGit(repoName, info.Spec.ConfigURL, branch, secretRef, info.Namespace)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not generate target source manifests: %w", err)
 	}
@@ -510,14 +537,14 @@ func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoU
 		return secretRefName, nil
 	}
 
-	repoUrl = sanitizeRepoUrl(repoUrl)
+	repoUrl = utils.SanitizeRepoUrl(repoUrl)
 
-	owner, err := getOwnerFromUrl(repoUrl)
+	owner, err := utils.GetOwnerFromUrl(repoUrl)
 	if err != nil {
 		return "", err
 	}
 
-	repoName := urlToRepoName(repoUrl)
+	repoName := utils.UrlToRepoName(repoUrl)
 
 	accountType, err := gitProvider.GetAccountType(owner)
 	if err != nil {
@@ -562,7 +589,7 @@ func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoU
 		}
 
 		if out, err := a.kube.Apply(secret, info.Namespace); err != nil {
-			return "", fmt.Errorf("could not apply manifest: %s: %w", string(out), err)
+			return "", fmt.Errorf("could not apply secret manifest: %s: %w", string(out), err)
 		}
 	}
 
@@ -592,9 +619,9 @@ func (a *App) generateApplicationGoat(info *AppResourceInfo) ([]byte, error) {
 	case wego.DeploymentTypeHelm:
 		switch info.Spec.SourceType {
 		case wego.SourceTypeHelm:
-			return a.flux.CreateHelmReleaseHelmRepository(info.Name, info.Spec.Path, info.Namespace)
+			return a.flux.CreateHelmReleaseHelmRepository(info.Name, info.Spec.Path, info.Namespace, info.Spec.HelmTargetNamespace)
 		case wego.SourceTypeGit:
-			return a.flux.CreateHelmReleaseGitRepository(info.Name, info.Name, info.Spec.Path, info.Namespace)
+			return a.flux.CreateHelmReleaseGitRepository(info.Name, info.Name, info.Spec.Path, info.Namespace, info.Spec.HelmTargetNamespace)
 		default:
 			return nil, fmt.Errorf("invalid source type: %v", info.Spec.SourceType)
 		}
@@ -625,7 +652,7 @@ func (a *App) cloneRepo(url string, branch string, dryRun bool) (func(), error) 
 		return func() {}, nil
 	}
 
-	url = sanitizeRepoUrl(url)
+	url = utils.SanitizeRepoUrl(url)
 
 	repoDir, err := ioutil.TempDir("", "user-repo-")
 	if err != nil {
@@ -666,12 +693,13 @@ func makeWegoApplication(params AddParams) wego.Application {
 			Namespace: params.Namespace,
 		},
 		Spec: wego.ApplicationSpec{
-			ConfigURL:      params.AppConfigUrl,
-			Branch:         params.Branch,
-			URL:            params.Url,
-			Path:           params.Path,
-			DeploymentType: wego.DeploymentType(params.DeploymentType),
-			SourceType:     wego.SourceType(params.SourceType),
+			ConfigURL:           params.AppConfigUrl,
+			Branch:              params.Branch,
+			URL:                 params.Url,
+			Path:                params.Path,
+			DeploymentType:      wego.DeploymentType(params.DeploymentType),
+			SourceType:          wego.SourceType(params.SourceType),
+			HelmTargetNamespace: params.HelmReleaseTargetNamespace,
 		},
 	}
 
@@ -694,43 +722,7 @@ func generateAppYaml(info *AppResourceInfo, appHash string) ([]byte, error) {
 }
 
 func generateResourceName(url string) string {
-	return strings.ReplaceAll(urlToRepoName(url), "_", "-")
-}
-
-func getOwnerFromUrl(url string) (string, error) {
-	parts := strings.Split(url, "/")
-	if len(parts) < 2 {
-		return "", fmt.Errorf("could not get owner from url %s", url)
-	}
-	return parts[len(parts)-2], nil
-}
-
-func urlToRepoName(url string) string {
-	return strings.TrimSuffix(filepath.Base(url), ".git")
-}
-
-func sanitizeRepoUrl(url string) string {
-	trimmed := ""
-
-	if !strings.HasSuffix(url, ".git") {
-		url = url + ".git"
-	}
-
-	sshPrefix := "git@github.com:"
-	if strings.HasPrefix(url, sshPrefix) {
-		trimmed = strings.TrimPrefix(url, sshPrefix)
-	}
-
-	httpsPrefix := "https://github.com/"
-	if strings.HasPrefix(url, httpsPrefix) {
-		trimmed = strings.TrimPrefix(url, httpsPrefix)
-	}
-
-	if trimmed != "" {
-		return "ssh://git@github.com/" + trimmed
-	}
-
-	return url
+	return strings.ReplaceAll(utils.UrlToRepoName(url), "_", "-")
 }
 
 func (a *App) createPullRequestToRepo(info *AppResourceInfo, gitProvider gitproviders.GitProvider, repo string, appHash string, appYaml []byte, goatSource, goatDeploy []byte) error {
@@ -759,7 +751,7 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, gitProvider gitprov
 		},
 	}
 
-	owner, err := getOwnerFromUrl(repo)
+	owner, err := utils.GetOwnerFromUrl(repo)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve owner: %w", err)
 	}
@@ -851,7 +843,9 @@ func (a *AppResourceInfo) appResourceName() string {
 }
 
 func (a *AppResourceInfo) appSecretName(repoURL string) string {
-	return fmt.Sprintf("weave-gitops-%s-%s", a.targetName, urlToRepoName(repoURL))
+	repoName := utils.UrlToRepoName(repoURL)
+	repoName = strings.ReplaceAll(repoName, "_", "-")
+	return fmt.Sprintf("wego-%s-%s", a.targetName, repoName)
 }
 
 func (a *AppResourceInfo) automationAppsDirKustomizationName() string {

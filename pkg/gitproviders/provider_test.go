@@ -20,6 +20,7 @@ import (
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 )
 
@@ -636,4 +637,16 @@ var _ = Describe("Test org deploy keys creation", func() {
 		err = recorder.Stop()
 		Expect(err).ShouldNot(HaveOccurred())
 	})
+})
+
+var _ = Describe("helpers", func() {
+	DescribeTable("DetectGitProviderFromUrl", func(input string, expected GitProviderName) {
+		result, err := DetectGitProviderFromUrl(input)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal(expected))
+	},
+		Entry("ssh+github", "ssh://git@github.com/weaveworks/weave-gitops.git", GitProviderGitHub),
+		Entry("ssh+gitlab", "ssh://git@gitlab.com/weaveworks/weave-gitops.git", GitProviderGitLab),
+	)
+
 })

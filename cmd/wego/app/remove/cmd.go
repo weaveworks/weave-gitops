@@ -59,17 +59,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	osysClient := osys.New()
-	privateKey, err := osysClient.CanonicalPrivateKeyFile(params.PrivateKey)
-	if err != nil {
-		return err
-	}
-
-	params.PrivateKey = privateKey
-
-	authMethod, err := osysClient.RetrievePublicKeyFromFile(params.PrivateKey)
-	if err != nil {
-		return err
-	}
 
 	token, err := osysClient.GetGitProviderToken()
 	if err != nil {
@@ -77,6 +66,11 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	params.GitProviderToken = token
+
+	authMethod, err := osysClient.SelectAuthMethod(params.PrivateKey)
+	if err != nil {
+		return err
+	}
 
 	cliRunner := &runner.CLIRunner{}
 	fluxClient := flux.New(osysClient, cliRunner)
