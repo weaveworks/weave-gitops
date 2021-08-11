@@ -41,7 +41,7 @@ func (a *App) GetCommits(params CommitParams) ([]gitprovider.Commit, error) {
 		return nil, fmt.Errorf("failed to retrieve account type: %w", err)
 	}
 
-	commits := []gitprovider.Commit{}
+	var commits []gitprovider.Commit
 
 	if accountType == gitproviders.AccountTypeUser {
 		userRepoRef := gitproviders.NewUserRepositoryRef(github.DefaultDomain, owner, params.Name)

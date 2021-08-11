@@ -532,7 +532,7 @@ func GetCommitToOrgRepo(client gitprovider.Client, domain string, orgName string
 	repoName := "test-org-commit"
 
 	orgRepoRef := NewOrgRepositoryRef(domain, orgName, repoName)
-	repoInfo := NewRepositoryInfo("test org repository", gitprovider.RepositoryVisibilityPrivate)
+	repoInfo := NewRepositoryInfo("test org commit", gitprovider.RepositoryVisibilityPrivate)
 	opts := &gitprovider.RepositoryCreateOptions{
 		AutoInit: gitprovider.BoolVar(true),
 	}
