@@ -19,7 +19,7 @@ var params app.CommitParams
 
 var Cmd = &cobra.Command{
 	Use:           "get-commits <app-name>",
-	Short:         "get-commits an application",
+	Short:         "Get the last 10 commits for an applications git repo",
 	Args:          cobra.MinimumNArgs(1),
 	Example:       "wego app get-commits podinfo",
 	RunE:          runCmd,

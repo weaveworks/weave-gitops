@@ -31,7 +31,10 @@ var ApplicationCmd = &cobra.Command{
   wego app pause <app-name>
 
   # Unpause gitops automation
-  wego app unpause <app-name>`,
+  wego app unpause <app-name>
+  
+  # Get last 10 commits for application repo
+  wego app get-commits <app-name>`,
 	Args: cobra.MinimumNArgs(1),
 }
 
