@@ -37,6 +37,8 @@ type GitProvider interface {
 	UploadDeployKey(owner, repoName string, deployKey []byte) error
 	CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
 	CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
+	GetCommitsFromUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string) ([]gitprovider.Commit, error)
+	GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string) ([]gitprovider.Commit, error)
 	GetAccountType(owner string) (ProviderAccountType, error)
 }
 
@@ -434,6 +436,47 @@ func (p defaultGitProvider) CreatePullRequestToOrgRepo(orgRepRef gitprovider.Org
 	}
 
 	return pr, nil
+}
+
+func (p defaultGitProvider) GetCommitsFromUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string) ([]gitprovider.Commit, error) {
+	ctx := context.Background()
+
+	ur, err := p.provider.UserRepositories().Get(ctx, userRepRef)
+	if err != nil {
+		return nil, fmt.Errorf("error getting info for repo [%s] err [%s]", userRepRef.String(), err)
+	}
+
+	// currently locking the commit list at 10. May discuss pagination options later.
+	commits, err := ur.Commits().ListPage(ctx, targetBranch, 10, 0)
+	if err != nil {
+		return nil, fmt.Errorf("error getting commits for repo[%s] err [%s]", userRepRef.String(), err)
+	}
+
+	if len(commits) == 0 {
+		return nil, fmt.Errorf("targetBranch[%s] has no commits", targetBranch)
+	}
+
+	return commits, nil
+}
+
+func (p defaultGitProvider) GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string) ([]gitprovider.Commit, error) {
+	ctx := context.Background()
+
+	ur, err := p.provider.OrgRepositories().Get(ctx, orgRepRef)
+	if err != nil {
+		return nil, fmt.Errorf("error getting info for repo [%s] err [%s]", orgRepRef.String(), err)
+	}
+
+	// currently locking the commit list at 10. May discuss pagination options later.
+	commits, err := ur.Commits().ListPage(ctx, targetBranch, 10, 0)
+	if err != nil {
+		return nil, fmt.Errorf("error getting commits for repo[%s] err [%s]", orgRepRef.String(), err)
+	}
+
+	if len(commits) == 0 {
+		return nil, fmt.Errorf("targetBranch[%s] has no commits", targetBranch)
+	}
+	return commits, nil
 }
 
 func NewRepositoryInfo(description string, visibility gitprovider.RepositoryVisibility) gitprovider.RepositoryInfo {

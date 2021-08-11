@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/wego/app/add"
+	"github.com/weaveworks/weave-gitops/cmd/wego/app/commit"
 	"github.com/weaveworks/weave-gitops/cmd/wego/app/list"
 	"github.com/weaveworks/weave-gitops/cmd/wego/app/pause"
 	"github.com/weaveworks/weave-gitops/cmd/wego/app/remove"
@@ -41,4 +42,5 @@ func init() {
 	ApplicationCmd.AddCommand(status.Cmd)
 	ApplicationCmd.AddCommand(pause.Cmd)
 	ApplicationCmd.AddCommand(unpause.Cmd)
+	ApplicationCmd.AddCommand(commit.Cmd)
 }
