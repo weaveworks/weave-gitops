@@ -42,15 +42,15 @@ func (a *App) GetCommits(params CommitParams) ([]gitprovider.Commit, error) {
 	}
 
 	var commits []gitprovider.Commit
+	repoName := utils.UrlToRepoName(app.Spec.URL)
 
 	if accountType == gitproviders.AccountTypeUser {
-		userRepoRef := gitproviders.NewUserRepositoryRef(github.DefaultDomain, owner, params.Name)
+		userRepoRef := gitproviders.NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
 		commits, err = gitProvider.GetCommitsFromUserRepo(userRepoRef, app.Spec.Branch)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get Commits for user repo: %s", err)
 		}
 	} else {
-		repoName := utils.UrlToRepoName(app.Spec.URL)
 		orgRepoRef := gitproviders.NewOrgRepositoryRef(github.DefaultDomain, owner, repoName)
 		commits, err = gitProvider.GetCommitsFromOrgRepo(orgRepoRef, app.Spec.Branch)
 		if err != nil {
