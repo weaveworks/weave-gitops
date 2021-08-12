@@ -79,8 +79,8 @@ cmd/wego/ui/run/dist/index.html: cmd/wego/ui/run/dist
 cmd/wego/ui/run/dist/main.js:
 	npm run build
 
-bin/$(BINARY_NAME)_ui: cmd/ui/main.go
-	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME)_ui cmd/ui/main.go
+bin/$(BINARY_NAME)_ui: cmd/wego-server/main.go
+	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME)_ui cmd/wego-server/main.go
 
 lint:
 	golangci-lint run --out-format=github-actions --build-tags acceptance
@@ -129,7 +129,7 @@ api-dev:
 	reflex -r '.go' -s -- sh -c 'go run cmd/wego-server/main.go'
 
 ui-dev: cmd/wego/ui/run/dist/main.js
-	reflex -r '.go' -s -- sh -c 'go run cmd/ui/main.go'
+	reflex -r '.go' -s -- sh -c 'go run cmd/wego-server/main.go'
 
 fakes:
 	go generate ./...
