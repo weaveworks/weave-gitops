@@ -246,13 +246,6 @@ var _ = Describe("GetApplication", func() {
 var _ = Describe("AppExistsInCluster", func() {
 	It("checks if an app exists in cluster", func() {
 		ctx := context.Background()
-		runner.RunStub = func(cmd string, args ...string) ([]byte, error) {
-			return []byte("No resources found"), nil
-		}
-
-		err := kubeClient.AppExistsInCluster(ctx, "wego-system", "wego-hashdoesntexist")
-		Expect(err).ShouldNot(HaveOccurred())
-
 		appsList := &wego.ApplicationList{Items: []wego.Application{
 			{
 				Spec: wego.ApplicationSpec{
@@ -271,6 +264,9 @@ var _ = Describe("AppExistsInCluster", func() {
 		}}
 
 		res, err := json.Marshal(appsList)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		err = kubeClient.AppExistsInCluster(ctx, "wego-system", "wego-hashdoesntexist")
 		Expect(err).ShouldNot(HaveOccurred())
 
 		runner.RunStub = func(cmd string, args ...string) ([]byte, error) {
