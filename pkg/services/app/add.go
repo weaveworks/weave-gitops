@@ -130,7 +130,7 @@ func (a *App) Add(params AddParams) error {
 	if params.SourceType != wego.SourceTypeHelm {
 		err = a.git.ValidateAccess(ctx, params.Url, params.Branch)
 		if err != nil {
-			return err
+			return fmt.Errorf("error validating access for app %s. %w", params.Url, err)
 		}
 	}
 
