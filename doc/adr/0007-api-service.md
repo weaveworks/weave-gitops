@@ -8,14 +8,7 @@ Proposed
 
 ## Context
 
-Currently, wego is a command-line application that needs constant interaction with the Kubernetes cluster to do its job. To carry out this interaction there are 2 different implementations of the `Kube` interface.
-One of these implementations exists in the `KubeClient` structure which uses a popular command-line tool known as `kubectl`.
-The other implementation is in a structure called `KubeHTTP` which uses a go client for Kubernetes.
-
-To add an application via CLI, `wego` generates some manifest files that are then applied to the cluster via `KubeClient`. On the other hand, the command to initialize the UI is `wego ui run`. It initializes a small webserver running on the client-side that uses the `KubeHTTP` implementation. For what to have 2 different implementations to perform the same task is not the best option as it will be required to maintain the same logic in 2 different places, which can result in different behaviors.
-
-By allowing these client-side implementations to be used, we are limiting the capabilities of `wego` and wasting the advantages that a Kubernetes environment can provide us.
-
+As basic processes, `wego` interacts with the kubernetes api and the github api. Currently, this interaction occurs on the client side. So, for example, for 2 users to access the graphical interface, they both need to have at least `kubectl` and permissions on the` .kubeconfig` file to access the cluster. The proposal is to run this interaction logic directly in the cluster so that in the near future it allows the creation of more powerful features for `wego`. One of those features could be the exposition of the graphical interface in a simpler way. It would also allow people to write their own tools for wego.
 
 ## Decision
 
