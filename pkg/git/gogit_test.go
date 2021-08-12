@@ -90,7 +90,7 @@ var _ = Describe("ValidateAccess", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 
-	FIt("fails to validate access to a possible private repository", func() {
+	It("fails to validate access to a possible private repository", func() {
 		err := gitClient.ValidateAccess(context.Background(), "https://github.com/notexisted/repo", "master")
 		Expect(err.Error()).Should(Equal("error validating git repo access authentication required"))
 	})
