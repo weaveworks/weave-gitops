@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"strconv"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -761,20 +760,16 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 	It("SmokeTest - Verify that wego can deploy multiple apps one with private and other with public repo", func() {
 		var listOutput string
-		var pauseOutput string
-		var unpauseOutput string
 		var appStatus1 *gexec.Session
 		var appStatus2 *gexec.Session
 		var repoAbsolutePath1 string
 		var repoAbsolutePath2 string
-		var appManifestFile1 string
 		tip1 := generateTestInputs()
 		tip2 := generateTestInputs()
 		appName1 := tip1.appRepoName
 		appName2 := tip2.appRepoName
 		private := true
 		public := false
-		replicaSetValue := 3
 
 		addCommand1 := "app add . --name=" + appName1 + " --auto-merge=true"
 		addCommand2 := "app add . --name=" + appName2 + " --auto-merge=true"
@@ -798,7 +793,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			repoAbsolutePath1 = initAndCreateEmptyRepo(tip1.appRepoName, private)
 		})
 
-		By("When I create an empty public repo for app2", func() {
+		By("When I create an empty private repo for app2", func() {
 			repoAbsolutePath2 = initAndCreateEmptyRepo(tip2.appRepoName, public)
 		})
 
@@ -874,58 +869,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		By("Then I should see appNames for both apps listed", func() {
 			Eventually(listOutput).Should(ContainSubstring(appName1))
 			Eventually(listOutput).Should(ContainSubstring(appName2))
-		})
-
-		By("When I pause an app: "+appName1, func() {
-			pauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app pause " + appName1)
-		})
-
-		By("Then I should see pause message", func() {
-			Expect(pauseOutput).To(ContainSubstring("gitops automation paused for " + appName1))
-		})
-
-		By("And changes to the app files should not be synchronized", func() {
-			appManifestFile1, _ = runCommandAndReturnStringOutput("cd " + repoAbsolutePath1 + " && ls")
-			createAppReplicas(repoAbsolutePath1, appManifestFile1, replicaSetValue, tip1.workloadName)
-			gitUpdateCommitPush(repoAbsolutePath1)
-			_ = waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIME_OUT)
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=100s -n %s --all pods", tip1.workloadNamespace))
-		})
-
-		By("And number of app replicas should remain same", func() {
-			replicaOutput, _ := runCommandAndReturnStringOutput("kubectl get pods -n " + tip1.workloadNamespace + " --field-selector=status.phase=Running --no-headers=true | wc -l")
-			Expect(replicaOutput).To(ContainSubstring("1"))
-		})
-
-		By("When I re-run app pause command", func() {
-			pauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app pause " + appName1)
-		})
-
-		By("Then I should see a console message without any errors", func() {
-			Expect(pauseOutput).To(ContainSubstring("app " + appName1 + " is already paused"))
-		})
-
-		By("When I unpause an app: "+appName1, func() {
-			unpauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app unpause " + appName1)
-		})
-
-		By("Then I should see unpause message", func() {
-			Expect(unpauseOutput).To(ContainSubstring("gitops automation unpaused for " + appName1))
-		})
-
-		By("And I should see app replicas created in the cluster", func() {
-			_ = waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIME_OUT)
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=100s -n %s --all pods", tip1.workloadNamespace))
-			replicaOutput, _ := runCommandAndReturnStringOutput("kubectl get pods -n " + tip1.workloadNamespace + " --field-selector=status.phase=Running --no-headers=true | wc -l")
-			Expect(replicaOutput).To(ContainSubstring(strconv.Itoa(replicaSetValue)))
-		})
-
-		By("When I re-run app unpause command", func() {
-			unpauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app unpause " + appName1)
-		})
-
-		By("Then I should see unpause message without any errors", func() {
-			Expect(unpauseOutput).To(ContainSubstring("app " + appName1 + " is already reconciling"))
 		})
 	})
 
