@@ -319,8 +319,7 @@ func (g *GoGit) ValidateAccess(ctx context.Context, url string, branch string) e
 		Tags:          gogit.NoTags,
 	})
 
-	if err != nil && !(errors.Is(err, transport.ErrEmptyRemoteRepository) ||
-		errors.Is(err, gogit.NoMatchingRefSpecError{})) {
+	if err != nil {
 		return fmt.Errorf("error validating git repo access %w", err)
 	}
 	return nil
