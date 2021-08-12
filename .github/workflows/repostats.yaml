@@ -1,0 +1,23 @@
+on:
+  schedule:
+    # Run this once per day, towards the end of the day for keeping the most
+    # recent data point most meaningful (hours are interpreted in UTC).
+    - cron: "0 23 * * *"
+  workflow_dispatch: # Allow for running this manually.
+
+jobs:
+  j1:
+    name: repostats-for-weave-gitops
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        statsRepo:
+        - weaveworks/weave-gitops
+      fail-fast: false
+      max-parallel: 1
+    steps:
+      - name: run-ghrs
+        uses: jgehrcke/github-repo-stats@dab4a915b37a7521cd54033a3147daaeb868ec5c
+        with:
+          repository: ${{ matrix.statsRepo }}
+          ghtoken: ${{ secrets.GHRS_TOKEN }}

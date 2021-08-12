@@ -37,12 +37,14 @@ jobs:
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: Build UI Assets
-      run: make cmd/ui/dist/index.html
+      run: make cmd/wego/ui/run/dist/index.html
     - name: Run linters
       uses: golangci/golangci-lint-action@v2
       with:
         version: v1.29
         args: --timeout=600s
+    - name: Check Format
+      run: make check-format
 
   build:
     runs-on: ubuntu-latest
@@ -80,7 +82,7 @@ jobs:
     # - name: NPM Audit
     #   run: npm audit
     - name: Build UI Assets
-      run: make cmd/ui/dist/main.js
+      run: make cmd/wego/ui/run/dist/main.js
     - name: Set up kubebuilder
       uses: fluxcd/pkg/actions/kubebuilder@main
     - name: Set up flux dir but let dependencies install flux

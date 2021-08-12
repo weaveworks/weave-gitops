@@ -9,10 +9,12 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/wego/app"
 	"github.com/weaveworks/weave-gitops/cmd/wego/flux"
 	"github.com/weaveworks/weave-gitops/cmd/wego/gitops"
+	"github.com/weaveworks/weave-gitops/cmd/wego/ui"
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
 	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 var options struct {
@@ -62,6 +64,17 @@ var rootCmd = &cobra.Command{
 `,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		configureLogger()
+
+		ns, _ := cmd.Flags().GetString("namespace")
+
+		if ns == "" {
+			return
+		}
+
+		if nserr := utils.ValidateNamespace(ns); nserr != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", nserr)
+			os.Exit(1)
+		}
 	},
 }
 
@@ -85,6 +98,7 @@ func main() {
 	rootCmd.AddCommand(gitops.Cmd)
 	rootCmd.AddCommand(version.Cmd)
 	rootCmd.AddCommand(flux.Cmd)
+	rootCmd.AddCommand(ui.Cmd)
 
 	rootCmd.AddCommand(app.ApplicationCmd)
 
