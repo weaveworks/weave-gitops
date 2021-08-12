@@ -82,7 +82,7 @@ This process of exposing `wego-api` will be executed for each command that is ex
 
 For production environments, it will be needed a docker repository, a token with permissions to push the image, and public access to those images.
 
-When a `wego` release is made, a Github action will be triggered that will make the corresponding release in the wego-api's docker repository using the same tag used for the` wego` release.
+When a `wego` release is made, a Github action will be triggered that will make the corresponding release in the wego-api's Github docker repository using the same tag used for the` wego` release.
 
 At runtime, we will use the version LD flag to tell `wego` which tag to use in the `wego-api` deployment.
 
@@ -96,7 +96,7 @@ The recommendation is to use `garden.io` because they use yaml files to set the 
 
 Since creating a pull request in `wego` triggers several tests. It will also be required to use the construction system of the previous point to create an image that is completely directed for the tests.
 
-To ensure that the construction of images of the wego-api in Github actions is as fast as possible, we will use Gihtub container registry and also a mechanism that will allow sharing the context of the docker builder. One option that seems simple to implement is https://github.com/docker/build-push-action.
+To ensure that the construction of images of the wego-api in Github actions is as fast as possible, a mechanism will be implemented that allows sharing the context of the docker builder. One option that seems simple to implement is https://github.com/docker/build-push-action.
 
 ## Consequences
 
