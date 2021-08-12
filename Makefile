@@ -125,9 +125,6 @@ proto:
 api-dev:
 	reflex -r '.go' -s -- sh -c 'go run cmd/wego-server/main.go'
 
-ui-dev: cmd/wego/ui/run/dist/main.js
-	reflex -r '.go' -s -- sh -c 'go run cmd/wego-server/main.go'
-
 fakes:
 	go generate ./...
 
