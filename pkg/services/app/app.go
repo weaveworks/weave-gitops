@@ -48,22 +48,22 @@ type AppService interface {
 }
 
 type App struct {
-	osys               osys.Osys
-	git                git.Git
-	flux               flux.Flux
-	kube               kube.Kube
-	logger             logger.Logger
-	gitProviderFactory func(token string) (gitproviders.GitProvider, error)
+	Osys               osys.Osys
+	Git                git.Git
+	Flux               flux.Flux
+	Kube               kube.Kube
+	Logger             logger.Logger
+	GitProviderFactory func(token string) (gitproviders.GitProvider, error)
 }
 
 func New(logger logger.Logger, git git.Git, flux flux.Flux, kube kube.Kube, osys osys.Osys) *App {
 	return &App{
-		git:                git,
-		flux:               flux,
-		kube:               kube,
-		logger:             logger,
-		osys:               osys,
-		gitProviderFactory: createGitProvider,
+		Git:                git,
+		Flux:               flux,
+		Kube:               kube,
+		Logger:             logger,
+		Osys:               osys,
+		GitProviderFactory: createGitProvider,
 	}
 }
 
@@ -83,7 +83,7 @@ func createGitProvider(token string) (gitproviders.GitProvider, error) {
 }
 
 func (a *App) getDeploymentType(ctx context.Context, name string, namespace string) (wego.DeploymentType, error) {
-	app, err := a.kube.GetApplication(ctx, types.NamespacedName{Name: name, Namespace: namespace})
+	app, err := a.Kube.GetApplication(ctx, types.NamespacedName{Name: name, Namespace: namespace})
 	if err != nil {
 		return wego.DeploymentTypeKustomize, err
 	}
@@ -103,7 +103,7 @@ func (a *App) getSuspendedStatus(ctx context.Context, name, namespace string, de
 		return false, fmt.Errorf("invalid deployment type: %v", deploymentType)
 	}
 
-	if err := a.kube.GetResource(ctx, types.NamespacedName{Namespace: namespace, Name: name}, automation); err != nil {
+	if err := a.Kube.GetResource(ctx, types.NamespacedName{Namespace: namespace, Name: name}, automation); err != nil {
 		return false, err
 	}
 
@@ -142,25 +142,25 @@ func (a *App) pauseOrUnpause(suspendAction wego.SuspendActionType, name, namespa
 	switch suspendAction {
 	case wego.SuspendAction:
 		if suspendStatus {
-			a.logger.Printf("app %s is already paused\n", name)
+			a.Logger.Printf("app %s is already paused\n", name)
 			return nil
 		}
-		out, err := a.flux.SuspendOrResumeApp(suspendAction, name, namespace, string(deploymentType))
+		out, err := a.Flux.SuspendOrResumeApp(suspendAction, name, namespace, string(deploymentType))
 		if err != nil {
 			return fmt.Errorf("unable to pause %s err: %s", name, err)
 		}
-		a.logger.Printf("%s\n gitops automation paused for %s\n", string(out), name)
+		a.Logger.Printf("%s\n gitops automation paused for %s\n", string(out), name)
 		return nil
 	case wego.ResumeAction:
 		if !suspendStatus {
-			a.logger.Printf("app %s is already reconciling\n", name)
+			a.Logger.Printf("app %s is already reconciling\n", name)
 			return nil
 		}
-		out, err := a.flux.SuspendOrResumeApp(suspendAction, name, namespace, string(deploymentType))
+		out, err := a.Flux.SuspendOrResumeApp(suspendAction, name, namespace, string(deploymentType))
 		if err != nil {
 			return fmt.Errorf("unable to unpause %s err: %s", name, err)
 		}
-		a.logger.Printf("%s\n gitops automation unpaused for %s\n", string(out), name)
+		a.Logger.Printf("%s\n gitops automation unpaused for %s\n", string(out), name)
 		return nil
 	}
 	return fmt.Errorf("invalid suspend action")
