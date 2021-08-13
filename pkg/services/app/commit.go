@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -18,12 +17,13 @@ type CommitParams struct {
 	GitProviderToken string
 }
 
+// GetCommits gets a list of commits from the repo/branch saved in the app manifest
 func (a *App) GetCommits(params CommitParams) ([]gitprovider.Commit, error) {
 	ctx := context.Background()
 
 	app, err := a.kube.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to get application for %s %w", params.Name, err)
 	}
 
 	owner, err := utils.GetOwnerFromUrl(app.Spec.URL)
@@ -48,28 +48,15 @@ func (a *App) GetCommits(params CommitParams) ([]gitprovider.Commit, error) {
 		userRepoRef := gitproviders.NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
 		commits, err = gitProvider.GetCommitsFromUserRepo(userRepoRef, app.Spec.Branch)
 		if err != nil {
-			return nil, fmt.Errorf("unable to get Commits for user repo: %s", err)
+			return nil, fmt.Errorf("unable to get Commits for user repo: %w", err)
 		}
 	} else {
 		orgRepoRef := gitproviders.NewOrgRepositoryRef(github.DefaultDomain, owner, repoName)
 		commits, err = gitProvider.GetCommitsFromOrgRepo(orgRepoRef, app.Spec.Branch)
 		if err != nil {
-			return nil, fmt.Errorf("unable to get Commits for org repo: %s", err)
+			return nil, fmt.Errorf("unable to get Commits for org repo: %w", err)
 		}
 	}
 
-	printCommitTable(commits)
-
 	return commits, nil
-}
-
-func printCommitTable(commits []gitprovider.Commit) {
-	header := []string{"Commit Hash", "Author", "Message", "Created At"}
-	rows := [][]string{}
-	for _, commit := range commits {
-		c := commit.Get()
-		rows = append(rows, []string{c.Sha, c.Author, c.Message, c.CreatedAt.String()})
-	}
-
-	utils.PrintTable(os.Stdout, header, rows)
 }

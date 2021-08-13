@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
@@ -13,6 +14,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 var params app.CommitParams
@@ -52,10 +54,23 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	appService := app.New(logger, nil, fluxClient, kubeClient, osysClient)
 
-	_, err = appService.GetCommits(params)
+	commits, err := appService.GetCommits(params)
 	if err != nil {
 		return errors.Wrapf(err, "failed to get commits for app %s", params.Name)
 	}
 
+	printCommitTable(logger, commits)
+
 	return nil
+}
+
+func printCommitTable(logger logger.Logger, commits []gitprovider.Commit) {
+	header := []string{"Commit Hash", "Author", "Message", "Created At"}
+	rows := [][]string{}
+	for _, commit := range commits {
+		c := commit.Get()
+		rows = append(rows, []string{c.Sha, c.Author, c.Message, c.CreatedAt.String()})
+	}
+
+	utils.PrintTable(logger, header, rows)
 }

@@ -378,22 +378,22 @@ func (p defaultGitProvider) CreatePullRequestToUserRepo(userRepRef gitprovider.U
 	}
 
 	if len(commits) == 0 {
-		return nil, fmt.Errorf("targetBranch[%s] does not exists", targetBranch)
+		return nil, fmt.Errorf("targetBranch [%s] does not exists", targetBranch)
 	}
 
 	latestCommit := commits[0]
 
 	if err := ur.Branches().Create(ctx, newBranch, latestCommit.Get().Sha); err != nil {
-		return nil, fmt.Errorf("error creating branch[%s] for repo[%s] err [%s]", newBranch, userRepRef.String(), err)
+		return nil, fmt.Errorf("error creating branch [%s] for repo [%s] err [%s]", newBranch, userRepRef.String(), err)
 	}
 
 	if _, err := ur.Commits().Create(ctx, newBranch, commitMessage, files); err != nil {
-		return nil, fmt.Errorf("error creating commit for branch[%s] for repo[%s] err [%s]", newBranch, userRepRef.String(), err)
+		return nil, fmt.Errorf("error creating commit for branch [%s] for repo [%s] err [%s]", newBranch, userRepRef.String(), err)
 	}
 
 	pr, err := ur.PullRequests().Create(ctx, prTitle, newBranch, targetBranch, prDescription)
 	if err != nil {
-		return nil, fmt.Errorf("error creating pull request[%s] for branch[%s] for repo[%s] err [%s]", prTitle, newBranch, userRepRef.String(), err)
+		return nil, fmt.Errorf("error creating pull request [%s] for branch [%s] for repo [%s] err [%s]", prTitle, newBranch, userRepRef.String(), err)
 	}
 
 	return pr, nil
@@ -413,31 +413,32 @@ func (p defaultGitProvider) CreatePullRequestToOrgRepo(orgRepRef gitprovider.Org
 
 	commits, err := ur.Commits().ListPage(ctx, targetBranch, 1, 0)
 	if err != nil {
-		return nil, fmt.Errorf("error getting commits for repo[%s] err [%s]", orgRepRef.String(), err)
+		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", orgRepRef.String(), err)
 	}
 
 	if len(commits) == 0 {
-		return nil, fmt.Errorf("targetBranch[%s] does not exists", targetBranch)
+		return nil, fmt.Errorf("targetBranch [%s] does not exists", targetBranch)
 	}
 
 	latestCommit := commits[0]
 
 	if err := ur.Branches().Create(ctx, newBranch, latestCommit.Get().Sha); err != nil {
-		return nil, fmt.Errorf("error creating branch[%s] for repo[%s] err [%s]", newBranch, orgRepRef.String(), err)
+		return nil, fmt.Errorf("error creating branch [%s] for repo [%s] err [%s]", newBranch, orgRepRef.String(), err)
 	}
 
 	if _, err := ur.Commits().Create(ctx, newBranch, commitMessage, files); err != nil {
-		return nil, fmt.Errorf("error creating commit for branch[%s] for repo[%s] err [%s]", newBranch, orgRepRef.String(), err)
+		return nil, fmt.Errorf("error creating commit for branch [%s] for repo [%s] err [%s]", newBranch, orgRepRef.String(), err)
 	}
 
 	pr, err := ur.PullRequests().Create(ctx, prTitle, newBranch, targetBranch, prDescription)
 	if err != nil {
-		return nil, fmt.Errorf("error creating pull request[%s] for branch[%s] for repo[%s] err [%s]", prTitle, newBranch, orgRepRef.String(), err)
+		return nil, fmt.Errorf("error creating pull request [%s] for branch [%s] for repo [%s] err [%s]", prTitle, newBranch, orgRepRef.String(), err)
 	}
 
 	return pr, nil
 }
 
+// GetCommitsFromUserRepo gets a limit of 10 commits from a user repo
 func (p defaultGitProvider) GetCommitsFromUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string) ([]gitprovider.Commit, error) {
 	ctx := context.Background()
 
@@ -449,16 +450,13 @@ func (p defaultGitProvider) GetCommitsFromUserRepo(userRepRef gitprovider.UserRe
 	// currently locking the commit list at 10. May discuss pagination options later.
 	commits, err := ur.Commits().ListPage(ctx, targetBranch, 10, 0)
 	if err != nil {
-		return nil, fmt.Errorf("error getting commits for repo[%s] err [%s]", userRepRef.String(), err)
-	}
-
-	if len(commits) == 0 {
-		return nil, fmt.Errorf("targetBranch[%s] has no commits", targetBranch)
+		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", userRepRef.String(), err)
 	}
 
 	return commits, nil
 }
 
+// GetCommitsFromUserRepo gets a limit of 10 commits from an organization
 func (p defaultGitProvider) GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string) ([]gitprovider.Commit, error) {
 	ctx := context.Background()
 
@@ -470,12 +468,9 @@ func (p defaultGitProvider) GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepos
 	// currently locking the commit list at 10. May discuss pagination options later.
 	commits, err := ur.Commits().ListPage(ctx, targetBranch, 10, 0)
 	if err != nil {
-		return nil, fmt.Errorf("error getting commits for repo[%s] err [%s]", orgRepRef.String(), err)
+		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", orgRepRef.String(), err)
 	}
 
-	if len(commits) == 0 {
-		return nil, fmt.Errorf("targetBranch[%s] has no commits", targetBranch)
-	}
 	return commits, nil
 }
 

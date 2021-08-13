@@ -54,3 +54,8 @@ func (l ApiLogger) Warningf(format string, a ...interface{}) {
 func (l ApiLogger) Failuref(format string, a ...interface{}) {
 	l.logger.Info(fmt.Sprintf(format, a...))
 }
+
+func (l ApiLogger) Write(p []byte) (n int, err error) {
+	// Not implemented yet
+	return 0, nil
+}
