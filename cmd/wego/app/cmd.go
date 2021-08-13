@@ -89,7 +89,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	appService := app.New(logger, nil, fluxClient, kubeClient, osysClient)
 
 	if command != "get" {
-		cmd.Help()
+		_ = cmd.Help()
 		return fmt.Errorf("invalid command %s", command)
 	}
 
@@ -97,7 +97,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	case "commits":
 		commits, err := appService.GetCommits(params)
 		if err != nil {
-			cmd.Help()
+			_ = cmd.Help()
 			return errors.Wrapf(err, "failed to get commits for app %s", params.Name)
 		}
 		printCommitTable(logger, commits)
