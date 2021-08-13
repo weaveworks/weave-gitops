@@ -56,6 +56,6 @@ func (l ApiLogger) Failuref(format string, a ...interface{}) {
 }
 
 func (l ApiLogger) Write(p []byte) (n int, err error) {
-	// Not implemented yet
-	return 0, nil
+	l.logger.Info(string(p))
+	return len(p), nil
 }

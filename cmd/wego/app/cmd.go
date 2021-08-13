@@ -99,7 +99,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 		printCommitTable(logger, commits)
 	default:
-		return fmt.Errorf("invalid object %s", object)
+		return fmt.Errorf("unkown resource type \"%s\"", object)
 	}
 
 	return nil
