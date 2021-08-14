@@ -56,8 +56,6 @@ const (
 	ResourceKindHelmRepository ResourceKind = "HelmRepository"
 	ResourceKindKustomization  ResourceKind = "Kustomization"
 	ResourceKindHelmRelease    ResourceKind = "HelmRelease"
-
-	WeGOAppIdentifierLabelKey = "wego.weave.works/app-identifier"
 )
 
 type AddParams struct {
@@ -708,7 +706,7 @@ func generateAppYaml(info *AppResourceInfo, appHash string) ([]byte, error) {
 	app := info.Application
 
 	app.ObjectMeta.Labels = map[string]string{
-		WeGOAppIdentifierLabelKey: appHash,
+		wego.WeGOAppIdentifierLabelKey: appHash,
 	}
 
 	b, err := yaml.Marshal(&app)

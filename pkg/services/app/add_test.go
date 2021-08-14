@@ -673,7 +673,7 @@ stringData:
 				hash, err := getHash(repoURL, info.Spec.Path, info.Spec.Branch)
 				Expect(err).To(BeNil())
 
-				desired2.ObjectMeta.Labels = map[string]string{WeGOAppIdentifierLabelKey: hash}
+				desired2.ObjectMeta.Labels = map[string]string{wego.WeGOAppIdentifierLabelKey: hash}
 
 				Expect(err).NotTo(HaveOccurred())
 				out, err := generateAppYaml(info, hash)

@@ -24,6 +24,8 @@ import (
 
 const ApplicationKind = "Application"
 
+const WeGOAppIdentifierLabelKey = "wego.weave.works/app-identifier"
+
 // ApplicationSpec defines the desired state of Application
 type ApplicationSpec struct {
 	// ConfigURL is the address of the git repository containing the automation for this application
