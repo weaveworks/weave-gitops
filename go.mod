@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/deepmap/oapi-codegen v1.8.1
 	github.com/dnaeon/go-vcr v1.2.0
-	github.com/fluxcd/go-git-providers v0.2.0
+	github.com/fluxcd/go-git-providers v0.2.1-0.20210810172205-2624ccb868e1
 	github.com/fluxcd/helm-controller/api v0.11.1
 	github.com/fluxcd/kustomize-controller/api v0.13.0
 	github.com/fluxcd/pkg/apis/meta v0.10.0
@@ -21,6 +21,7 @@ require (
 	github.com/lithammer/dedent v1.1.0
 	github.com/mattn/go-isatty v0.0.13
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
+	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.13.0
 	github.com/ory/go-acc v0.2.6
