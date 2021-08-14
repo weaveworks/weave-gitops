@@ -17,8 +17,12 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 func CreateScheme() *apiruntime.Scheme {
@@ -112,8 +116,29 @@ func (c *KubeHTTP) GetClusterStatus(ctx context.Context) ClusterStatus {
 	}
 }
 
-func (c *KubeHTTP) Apply(manifests []byte, namespace string) ([]byte, error) {
-	return nil, errors.New("Apply is not implemented for kubeHTTP")
+func (c *KubeHTTP) Apply(manifest []byte, namespace string) ([]byte, error) {
+	typeMeta := runtime.TypeMeta{}
+
+	if err := yaml.Unmarshal(manifest, &typeMeta); err != nil {
+		return nil, fmt.Errorf("could not unmarshal ")
+	}
+
+	obj := &unstructured.Unstructured{
+		Object: map[string]interface{}{},
+	}
+	obj.SetGroupVersionKind(schema.FromAPIVersionAndKind(typeMeta.APIVersion, typeMeta.Kind))
+
+	if err := yaml.Unmarshal(manifest, obj); err != nil {
+		return nil, fmt.Errorf("could not unmarshal manifest onto unstructured type: %w", err)
+	}
+
+	obj.SetNamespace(namespace)
+
+	if err := c.Client.Create(context.Background(), obj); err != nil {
+		return nil, fmt.Errorf("could not create manifest: %w", err)
+	}
+
+	return nil, nil
 }
 
 func (c *KubeHTTP) GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error) {
@@ -177,8 +202,23 @@ func (c *KubeHTTP) GetApplications(ctx context.Context, namespace string) ([]weg
 	return result.Items, nil
 }
 
-func (c *KubeHTTP) LabelExistsInCluster(ctx context.Context, label string) error {
-	return errors.New("LabelExistsInCluster is not implemented for kubeHTTP")
+func (c *KubeHTTP) LabelExistsInCluster(ctx context.Context, label string) (bool, error) {
+	list := wego.ApplicationList{}
+
+	if err := c.Client.List(ctx, &list); err != nil {
+		return false, fmt.Errorf("could not list applications: %w", err)
+	}
+
+	for _, a := range list.Items {
+		val, ok := a.Labels[wego.WeGOAppIdentifierLabelKey]
+
+		if ok && val == label {
+			return true, nil
+		}
+
+	}
+
+	return false, nil
 }
 
 func (c *KubeHTTP) GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error {

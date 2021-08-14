@@ -132,17 +132,19 @@ type FakeKube struct {
 	getResourceReturnsOnCall map[int]struct {
 		result1 error
 	}
-	LabelExistsInClusterStub        func(context.Context, string) error
+	LabelExistsInClusterStub        func(context.Context, string) (bool, error)
 	labelExistsInClusterMutex       sync.RWMutex
 	labelExistsInClusterArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
 	}
 	labelExistsInClusterReturns struct {
-		result1 error
+		result1 bool
+		result2 error
 	}
 	labelExistsInClusterReturnsOnCall map[int]struct {
-		result1 error
+		result1 bool
+		result2 error
 	}
 	SecretPresentStub        func(context.Context, string, string) (bool, error)
 	secretPresentMutex       sync.RWMutex
@@ -751,7 +753,7 @@ func (fake *FakeKube) GetResourceReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeKube) LabelExistsInCluster(arg1 context.Context, arg2 string) error {
+func (fake *FakeKube) LabelExistsInCluster(arg1 context.Context, arg2 string) (bool, error) {
 	fake.labelExistsInClusterMutex.Lock()
 	ret, specificReturn := fake.labelExistsInClusterReturnsOnCall[len(fake.labelExistsInClusterArgsForCall)]
 	fake.labelExistsInClusterArgsForCall = append(fake.labelExistsInClusterArgsForCall, struct {
@@ -766,9 +768,9 @@ func (fake *FakeKube) LabelExistsInCluster(arg1 context.Context, arg2 string) er
 		return stub(arg1, arg2)
 	}
 	if specificReturn {
-		return ret.result1
+		return ret.result1, ret.result2
 	}
-	return fakeReturns.result1
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeKube) LabelExistsInClusterCallCount() int {
@@ -777,7 +779,7 @@ func (fake *FakeKube) LabelExistsInClusterCallCount() int {
 	return len(fake.labelExistsInClusterArgsForCall)
 }
 
-func (fake *FakeKube) LabelExistsInClusterCalls(stub func(context.Context, string) error) {
+func (fake *FakeKube) LabelExistsInClusterCalls(stub func(context.Context, string) (bool, error)) {
 	fake.labelExistsInClusterMutex.Lock()
 	defer fake.labelExistsInClusterMutex.Unlock()
 	fake.LabelExistsInClusterStub = stub
@@ -790,27 +792,30 @@ func (fake *FakeKube) LabelExistsInClusterArgsForCall(i int) (context.Context, s
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeKube) LabelExistsInClusterReturns(result1 error) {
+func (fake *FakeKube) LabelExistsInClusterReturns(result1 bool, result2 error) {
 	fake.labelExistsInClusterMutex.Lock()
 	defer fake.labelExistsInClusterMutex.Unlock()
 	fake.LabelExistsInClusterStub = nil
 	fake.labelExistsInClusterReturns = struct {
-		result1 error
-	}{result1}
+		result1 bool
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *FakeKube) LabelExistsInClusterReturnsOnCall(i int, result1 error) {
+func (fake *FakeKube) LabelExistsInClusterReturnsOnCall(i int, result1 bool, result2 error) {
 	fake.labelExistsInClusterMutex.Lock()
 	defer fake.labelExistsInClusterMutex.Unlock()
 	fake.LabelExistsInClusterStub = nil
 	if fake.labelExistsInClusterReturnsOnCall == nil {
 		fake.labelExistsInClusterReturnsOnCall = make(map[int]struct {
-			result1 error
+			result1 bool
+			result2 error
 		})
 	}
 	fake.labelExistsInClusterReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
+		result1 bool
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeKube) SecretPresent(arg1 context.Context, arg2 string, arg3 string) (bool, error) {

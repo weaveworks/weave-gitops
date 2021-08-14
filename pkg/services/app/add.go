@@ -160,8 +160,13 @@ func (a *App) Add(params AddParams) error {
 		return err
 	}
 	// if appHash exists as a label in the cluster we fail to create a PR
-	if err = a.Kube.LabelExistsInCluster(ctx, appHash); err != nil {
+	exists, err := a.Kube.LabelExistsInCluster(ctx, appHash)
+	if err != nil {
 		return err
+	}
+
+	if exists {
+		return fmt.Errorf("app \"%s\" already exists on the cluster", params.Name)
 	}
 
 	switch strings.ToUpper(info.Spec.ConfigURL) {
