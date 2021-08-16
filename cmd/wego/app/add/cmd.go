@@ -103,11 +103,11 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	isHelmChart := params.Chart != ""
-	repoUrl := params.Url
-	if repoUrl == "" {
+	repoUrlString := params.Url
+	if repoUrlString == "" {
 		// Find the url using an unauthenticated git client. We just need to read the URL.
 		// params.Dir must be defined here because we already checked for it above.
-		repoUrl, err = git.New(nil).GetRemoteUrl(params.Dir, "origin")
+		repoUrlString, err = git.New(nil).GetRemoteUrl(params.Dir, "origin")
 		if err != nil {
 			return fmt.Errorf("could not get remote url for directory %s: %w", params.Dir, err)
 		}
@@ -118,7 +118,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	// There isn't really a concept of "provider" in helm charts, and there is nothing to push.
 	// Assume charts are always public and no auth needs to be done.
 	if !isHelmChart {
-		providerName, err = gitproviders.DetectGitProviderFromUrl(repoUrl)
+		providerName, err = gitproviders.DetectGitProviderFromUrl(repoUrlString)
 		if err != nil {
 			return fmt.Errorf("error detecting git provider: %w", err)
 		}
@@ -129,7 +129,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	if !isHelmChart && tokenErr == osys.ErrNoGitProviderTokenSet {
 		// No provider token set, we need to do the auth flow.
 		// DoAppRepoCLIAuth will take over the CLI and block until the flow is complete.
-		token, err = app.DoAppRepoCLIAuth(repoUrl, providerName, osysClient.Stdout())
+		token, err = app.DoAppRepoCLIAuth(repoUrlString, providerName, osysClient.Stdout())
 		if err != nil {
 			return fmt.Errorf("could not complete auth flow: %w", err)
 		}
@@ -159,11 +159,16 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("error getting target name: %w", err)
 		}
 
+		normalizedUrl, err := gitproviders.NewNormalizedRepoURL(repoUrlString)
+		if err != nil {
+			return fmt.Errorf("error creating normalized url: %w", err)
+		}
+
 		name := types.NamespacedName{
-			Name:      utils.CreateAppSecretName(targetName, repoUrl),
+			Name:      gitproviders.CreateAppSecretName(targetName, normalizedUrl),
 			Namespace: params.Namespace,
 		}
-		if err := authsvc.SetupDeployKey(ctx, name, targetName, repoUrl); err != nil {
+		if err := authsvc.SetupDeployKey(ctx, name, targetName, normalizedUrl); err != nil {
 			return fmt.Errorf("error setting up deploy keys: %w", err)
 		}
 

@@ -628,3 +628,7 @@ func (n NormalizedRepoURL) Provider() GitProviderName {
 func (n NormalizedRepoURL) Protocol() RepositoryURLProtocol {
 	return n.protocol
 }
+
+func CreateAppSecretName(targetName string, repoURL NormalizedRepoURL) string {
+	return fmt.Sprintf("wego-%s-%s", targetName, repoURL.RepositoryName())
+}

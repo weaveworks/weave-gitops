@@ -13,7 +13,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -33,7 +32,9 @@ func (r *actualFluxRunner) Run(command string, args ...string) ([]byte, error) {
 var _ = Describe("auth", func() {
 	var namespace *corev1.Namespace
 	testClustername := "test-cluster"
-	repoUrl := "ssh://git@github.com/my-org/my-repo.git"
+	repoUrlString := "ssh://git@github.com/my-org/my-repo.git"
+	repoUrl, err := gitproviders.NewNormalizedRepoURL(repoUrlString)
+	Expect(err).NotTo(HaveOccurred())
 	BeforeEach(func() {
 		namespace = &corev1.Namespace{}
 		namespace.Name = "kube-test-" + rand.String(5)
@@ -52,7 +53,8 @@ var _ = Describe("auth", func() {
 		)
 		BeforeEach(func() {
 			ctx = context.Background()
-			secretName = utils.CreateAppSecretName(testClustername, repoUrl)
+			secretName = gitproviders.CreateAppSecretName(testClustername, repoUrl)
+			Expect(err).NotTo(HaveOccurred())
 			osysClient = osys.New()
 			gp = gitprovidersfakes.FakeGitProvider{}
 			fluxClient = flux.New(osysClient, &actualFluxRunner{Runner: &runner.CLIRunner{}})
@@ -90,7 +92,7 @@ var _ = Describe("auth", func() {
 
 			Expect(secret.Data["identity"]).NotTo(BeNil())
 			Expect(secret.Data["identity.pub"]).NotTo(BeNil())
-			_, err := as.GitClient()
+			_, err = as.GitClient()
 			Expect(err).NotTo(HaveOccurred())
 		})
 		It("uses an existing deploy key when present", func() {

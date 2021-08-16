@@ -207,3 +207,7 @@ func IsClusterReady(l logger.Logger, k kube.Kube) error {
 
 	return nil
 }
+
+func CreateAppSecretName(targetName string, repoURL gitproviders.NormalizedRepoURL) string {
+	return fmt.Sprintf("wego-%s-%s", targetName, repoURL.RepositoryName())
+}

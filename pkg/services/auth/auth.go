@@ -13,7 +13,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -65,22 +64,15 @@ func NewAuthService(fluxClient flux.Flux, k8sClient client.Client, providerName 
 // SetupDeployKey instruments the AuthService with the neccesary data to provide a git client that uses deploy keys.
 // The user MUST call this function before calling .GitClient(), else an error will be returned.
 // The work of setting up deploy keys was NOT done in the constructor for the sake being explicit about what is happening.
-func (a *AuthService) SetupDeployKey(ctx context.Context, name types.NamespacedName, targetName string, repoUrl string) error {
-	repoUrl = utils.SanitizeRepoUrl(repoUrl)
-
-	owner, err := utils.GetOwnerFromUrl(repoUrl)
-	if err != nil {
-		return fmt.Errorf("error getting owner from URL: %w", err)
-	}
-
-	repoName := utils.UrlToRepoName(repoUrl)
-
-	accountType, err := a.gitProvider.GetAccountType(owner)
+func (a *AuthService) SetupDeployKey(ctx context.Context, name types.NamespacedName, targetName string, repo gitproviders.NormalizedRepoURL) error {
+	owner := repo.Owner()
+	repoName := repo.RepositoryName()
+	accountType, err := a.gitProvider.GetAccountType(repo.Owner())
 	if err != nil {
 		return fmt.Errorf("error getting account type: %w", err)
 	}
 
-	repoInfo, err := a.gitProvider.GetRepoInfo(accountType, owner, repoName)
+	repoInfo, err := a.gitProvider.GetRepoInfo(accountType, repo.Owner(), repo.RepositoryName())
 	if err != nil {
 		return fmt.Errorf("error getting repo info: %w", err)
 	}
@@ -99,7 +91,7 @@ func (a *AuthService) SetupDeployKey(ctx context.Context, name types.NamespacedN
 	if deployKeyExists {
 		a.logger.Println("Existing deploy key found")
 		secretName := types.NamespacedName{
-			Name:      utils.CreateAppSecretName(targetName, repoUrl),
+			Name:      gitproviders.CreateAppSecretName(targetName, repo),
 			Namespace: name.Namespace,
 		}
 		// The deploy key was found on the Git Provider, fetch it from the cluster.
@@ -127,7 +119,7 @@ func (a *AuthService) SetupDeployKey(ctx context.Context, name types.NamespacedN
 		return nil
 	}
 
-	deployKey, secret, err := a.generateDeployKey(targetName, name, repoUrl)
+	deployKey, secret, err := a.generateDeployKey(targetName, name, repo)
 	if err != nil {
 		return fmt.Errorf("error generating deploy key: %w", err)
 	}
@@ -169,8 +161,8 @@ func (a *AuthService) GitProvider() gitproviders.GitProvider {
 }
 
 // Generates an ssh keypair for upload to the Git Provider and for use in a git.Git client.
-func (a *AuthService) generateDeployKey(targetName string, secretName types.NamespacedName, repoUrl string) (*ssh.PublicKeys, *corev1.Secret, error) {
-	secret, err := a.createKeyPairSecret(targetName, secretName, repoUrl)
+func (a *AuthService) generateDeployKey(targetName string, secretName types.NamespacedName, repo gitproviders.NormalizedRepoURL) (*ssh.PublicKeys, *corev1.Secret, error) {
+	secret, err := a.createKeyPairSecret(targetName, secretName, repo)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not create key-pair secret: %w", err)
 	}
@@ -206,9 +198,9 @@ func (a *AuthService) retreiveDeployKey(ctx context.Context, name types.Namespac
 }
 
 // Uses flux to create a ssh key pair secret.
-func (a *AuthService) createKeyPairSecret(targetName string, name types.NamespacedName, repoUrl string) (*corev1.Secret, error) {
-	secretname := utils.CreateAppSecretName(targetName, repoUrl)
-	secretData, err := a.fluxClient.CreateSecretGit(secretname, repoUrl, name.Namespace)
+func (a *AuthService) createKeyPairSecret(targetName string, name types.NamespacedName, repo gitproviders.NormalizedRepoURL) (*corev1.Secret, error) {
+	secretname := gitproviders.CreateAppSecretName(targetName, repo)
+	secretData, err := a.fluxClient.CreateSecretGit(secretname, repo.String(), name.Namespace)
 	if err != nil {
 		return nil, fmt.Errorf("could not create git secret: %w", err)
 	}
