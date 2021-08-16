@@ -8,7 +8,7 @@ Proposed
 
 ## Context
 
-As basic processes, `wego` interacts with the kubernetes api and the github api. Currently, this interaction occurs on the client side. So, for example, for 2 users to access the graphical interface, they both need to have at least `kubectl` and permissions on the` .kubeconfig` file to access the cluster. The proposal is to run this interaction logic directly in the cluster so that in the near future it allows the creation of more powerful features for `wego`. One of those features could be the exposition of the graphical interface in a simpler way. It would also allow people to write their own tools for wego.
+As basic processes, `wego` interacts with the kubernetes api and the github api. Currently, this interaction occurs on the client side. So, for example, for 2 users to access the graphical interface, they both need to have at least `kubectl` and permissions on the `.kubeconfig` file to access the cluster. The proposal is to run this interaction logic directly in the cluster so that in the near future it allows the creation of more powerful features for `wego`. One of those features could be the exposition of the graphical interface in a simpler way. It would also allow people to write their own tools for wego.
 
 ## Decision
 
@@ -31,7 +31,7 @@ The part that needs to be run in this image is the HTTP server which is initiali
 
 To continue communicating with the Kubernetes API, it will be required to change the authentication method to one that allows communication from within the cluster called in-cluster client configuration.
 
-Kubectl and flux will be added to this docker image as well.
+Flux will be added to this docker image as well.
 
 ### Generate RBAC-based permissions to the wego-api and apply them when installing the GitOps runtime.
 
@@ -43,25 +43,27 @@ The resources that will be required are:
 - Deployment
 - Role
 - RoleBinding
-- Service
 
 The specific permissions for the Role resource will be:
 
 ```
 resources: ["apps.wego.weave.works"]
-verbs: ["get","create","list"]
+verbs: ["get","create","list","delete","watch"]
 
 resources: ["secret"]
 verbs: ["get","create"]
 
 resources: ["kustomizations.kustomize.toolkit.fluxcd.io"]
-verbs: ["get","create"]
+verbs: ["get","create","delete","list"]
 
 resources: ["helmreleases.helm.toolkit.fluxcd.io"]
-verbs: ["get","create"]
+verbs: ["get","create","delete","list"]
 
 resources: ["helmrepositories.source.toolkit.fluxcd.io"]
-verbs: ["get","create"]
+verbs: ["get","create","delete","list"]
+
+resources: ["gitrepositories.source.toolkit.fluxcd.io"]
+verbs: ["get","create","delete","list"]
 ```
 
 These resources will be applied when installing the GitOps engine.
@@ -74,9 +76,11 @@ Forwarding from 127.0.0.1:63701 -> 8283
 Forwarding from [::1]:63701 -> 8283
 ```
 
-The path to access `wego-api` will be `127.0.0.1:63701` 
+The path to access `wego-api` will be `http://127.0.0.1:63701`. UI will be accessed by using this base path. 
 
-This process of exposing `wego-api` will be executed for each command that is executed from CLI. With the exception of the `wego ui run` command that will keep `wego-api` exposure execution in the background for the duration of that command session, so that the UI can access the resource.
+Initially the only command using `wego-api` will be `wego ui run` which will run the port-forward command in the background, keep it running and open the browser using that same local address, as the UI web server lives in `wego-api`.
+
+By using this command there is security issue we need to solve. The issue is that `wego-api` could be accessed by any other program on the local machine. To fix this issue there will be an extra authorization layer that will be addressed in another ADR. 
 
 ### Automate the build of docker images from the `wego-api`.
 
@@ -99,6 +103,8 @@ Since creating a pull request in `wego` triggers several tests. It will also be 
 To ensure that the construction of images of the wego-api in Github actions is as fast as possible, a mechanism will be implemented that allows sharing the context of the docker builder. One option that seems simple to implement is https://github.com/docker/build-push-action.
 
 ## Consequences
+
+To avoid dealing with the complexity of authorizing commands that use the kubectl implementation, migrating the rest of the commands, in addition to `wego ui run`, will not be considered as part of this ADR. Since that implementation is being planned to be completely removed in the near future.
 
 `kubectl proxy` was also considered to expose `wego-api` but it also opens the kubernetes api, and we want to have less exposure.
 
