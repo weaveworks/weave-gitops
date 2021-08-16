@@ -16,8 +16,15 @@ func TestGitProviderAuth(t *testing.T) {
 	RunSpecs(t, "Auth Suite")
 }
 
+var cleanupK8s func()
+
 var _ = BeforeSuite(func() {
-	k, err := utils.StartK8sTestEnvironment()
+	k, stop, err := utils.StartK8sTestEnvironment()
 	Expect(err).NotTo(HaveOccurred())
+	cleanupK8s = stop
 	k8sClient = k
+})
+
+var _ = AfterSuite(func() {
+	cleanupK8s()
 })

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/olekukonko/tablewriter"
+	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	validation "k8s.io/apimachinery/pkg/api/validation"
 
@@ -158,7 +159,7 @@ func CreateAppSecretName(targetName string, repoURL string) string {
 	return fmt.Sprintf("wego-%s-%s", targetName, UrlToRepoName(repoURL))
 }
 
-func StartK8sTestEnvironment() (client.Client, error) {
+func StartK8sTestEnvironment() (client.Client, func(), error) {
 	testEnv := &envtest.Environment{
 		CRDDirectoryPaths: []string{
 			"../../manifests/crds",
@@ -169,7 +170,7 @@ func StartK8sTestEnvironment() (client.Client, error) {
 	var err error
 	cfg, err := testEnv.Start()
 	if err != nil {
-		return nil, fmt.Errorf("could not start testEnv: %w", err)
+		return nil, nil, fmt.Errorf("could not start testEnv: %w", err)
 	}
 
 	scheme := kube.CreateScheme()
@@ -183,14 +184,16 @@ func StartK8sTestEnvironment() (client.Client, error) {
 		Scheme: scheme,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("could not create controller manager: %w", err)
+		return nil, nil, fmt.Errorf("could not create controller manager: %w", err)
 	}
 
 	go func() {
-		if err := k8sManager.Start(ctrl.SetupSignalHandler()); err != nil {
-			fmt.Printf("error starting k8s manager: %s", err.Error())
-		}
+		err := k8sManager.Start(ctrl.SetupSignalHandler())
+		Expect(err).ToNot(HaveOccurred())
 	}()
 
-	return k8sManager.GetClient(), nil
+	return k8sManager.GetClient(), func() {
+		err := testEnv.Stop()
+		Expect(err).NotTo(HaveOccurred())
+	}, nil
 }
