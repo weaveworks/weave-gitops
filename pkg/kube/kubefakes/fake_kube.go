@@ -24,19 +24,18 @@ type FakeKube struct {
 	appExistsInClusterReturnsOnCall map[int]struct {
 		result1 error
 	}
-	ApplyStub        func([]byte, string) ([]byte, error)
+	ApplyStub        func(context.Context, []byte, string) error
 	applyMutex       sync.RWMutex
 	applyArgsForCall []struct {
-		arg1 []byte
-		arg2 string
+		arg1 context.Context
+		arg2 []byte
+		arg3 string
 	}
 	applyReturns struct {
-		result1 []byte
-		result2 error
+		result1 error
 	}
 	applyReturnsOnCall map[int]struct {
-		result1 []byte
-		result2 error
+		result1 error
 	}
 	DeleteStub        func([]byte, string) ([]byte, error)
 	deleteMutex       sync.RWMutex
@@ -227,29 +226,30 @@ func (fake *FakeKube) AppExistsInClusterReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeKube) Apply(arg1 []byte, arg2 string) ([]byte, error) {
-	var arg1Copy []byte
-	if arg1 != nil {
-		arg1Copy = make([]byte, len(arg1))
-		copy(arg1Copy, arg1)
+func (fake *FakeKube) Apply(arg1 context.Context, arg2 []byte, arg3 string) error {
+	var arg2Copy []byte
+	if arg2 != nil {
+		arg2Copy = make([]byte, len(arg2))
+		copy(arg2Copy, arg2)
 	}
 	fake.applyMutex.Lock()
 	ret, specificReturn := fake.applyReturnsOnCall[len(fake.applyArgsForCall)]
 	fake.applyArgsForCall = append(fake.applyArgsForCall, struct {
-		arg1 []byte
-		arg2 string
-	}{arg1Copy, arg2})
+		arg1 context.Context
+		arg2 []byte
+		arg3 string
+	}{arg1, arg2Copy, arg3})
 	stub := fake.ApplyStub
 	fakeReturns := fake.applyReturns
-	fake.recordInvocation("Apply", []interface{}{arg1Copy, arg2})
+	fake.recordInvocation("Apply", []interface{}{arg1, arg2Copy, arg3})
 	fake.applyMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
-		return ret.result1, ret.result2
+		return ret.result1
 	}
-	return fakeReturns.result1, fakeReturns.result2
+	return fakeReturns.result1
 }
 
 func (fake *FakeKube) ApplyCallCount() int {
@@ -258,43 +258,40 @@ func (fake *FakeKube) ApplyCallCount() int {
 	return len(fake.applyArgsForCall)
 }
 
-func (fake *FakeKube) ApplyCalls(stub func([]byte, string) ([]byte, error)) {
+func (fake *FakeKube) ApplyCalls(stub func(context.Context, []byte, string) error) {
 	fake.applyMutex.Lock()
 	defer fake.applyMutex.Unlock()
 	fake.ApplyStub = stub
 }
 
-func (fake *FakeKube) ApplyArgsForCall(i int) ([]byte, string) {
+func (fake *FakeKube) ApplyArgsForCall(i int) (context.Context, []byte, string) {
 	fake.applyMutex.RLock()
 	defer fake.applyMutex.RUnlock()
 	argsForCall := fake.applyArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeKube) ApplyReturns(result1 []byte, result2 error) {
+func (fake *FakeKube) ApplyReturns(result1 error) {
 	fake.applyMutex.Lock()
 	defer fake.applyMutex.Unlock()
 	fake.ApplyStub = nil
 	fake.applyReturns = struct {
-		result1 []byte
-		result2 error
-	}{result1, result2}
+		result1 error
+	}{result1}
 }
 
-func (fake *FakeKube) ApplyReturnsOnCall(i int, result1 []byte, result2 error) {
+func (fake *FakeKube) ApplyReturnsOnCall(i int, result1 error) {
 	fake.applyMutex.Lock()
 	defer fake.applyMutex.Unlock()
 	fake.ApplyStub = nil
 	if fake.applyReturnsOnCall == nil {
 		fake.applyReturnsOnCall = make(map[int]struct {
-			result1 []byte
-			result2 error
+			result1 error
 		})
 	}
 	fake.applyReturnsOnCall[i] = struct {
-		result1 []byte
-		result2 error
-	}{result1, result2}
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeKube) Delete(arg1 []byte, arg2 string) ([]byte, error) {

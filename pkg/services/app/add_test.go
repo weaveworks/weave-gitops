@@ -22,7 +22,10 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-var addParams AddParams
+var (
+	addParams AddParams
+	ctx       context.Context
+)
 
 var _ = Describe("Add", func() {
 	var _ = BeforeEach(func() {
@@ -40,6 +43,8 @@ var _ = Describe("Add", func() {
 		gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
 			return "main", nil
 		}
+
+		ctx = context.Background()
 	})
 
 	It("checks for cluster status", func() {
@@ -112,7 +117,7 @@ stringData:
 			return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: nil, Visibility: &visibility}, nil
 		}
 
-		secretRef, err := appSrv.(*App).createAndUploadDeployKey(
+		secretRef, err := appSrv.(*App).createAndUploadDeployKey(ctx,
 			getAppResourceInfo(makeWegoApplication(addParams), "test-cluster"),
 			false,
 			"ssh://git@github.com/owner/repo.git",
@@ -332,15 +337,15 @@ stringData:
 
 			Expect(kubeClient.ApplyCallCount()).To(Equal(4))
 
-			sourceManifest, namespace := kubeClient.ApplyArgsForCall(1)
+			_, sourceManifest, namespace := kubeClient.ApplyArgsForCall(1)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
 			Expect(namespace).To(Equal("wego-system"))
 
-			kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(2)
+			_, kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(2)
 			Expect(kustomizationManifest).To(Equal([]byte("kustomization")))
 			Expect(namespace).To(Equal("wego-system"))
 
-			appSpecManifest, namespace := kubeClient.ApplyArgsForCall(3)
+			_, appSpecManifest, namespace := kubeClient.ApplyArgsForCall(3)
 			Expect(string(appSpecManifest)).To(ContainSubstring("kind: Application"))
 			Expect(namespace).To(Equal("wego-system"))
 		})
@@ -540,11 +545,11 @@ stringData:
 
 			Expect(kubeClient.ApplyCallCount()).To(Equal(3))
 
-			sourceManifest, namespace := kubeClient.ApplyArgsForCall(1)
+			_, sourceManifest, namespace := kubeClient.ApplyArgsForCall(1)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
 			Expect(namespace).To(Equal("wego-system"))
 
-			appWegoManifest, namespace := kubeClient.ApplyArgsForCall(2)
+			_, appWegoManifest, namespace := kubeClient.ApplyArgsForCall(2)
 			Expect(appWegoManifest).To(Equal([]byte("kustomizationkustomization")))
 			Expect(namespace).To(Equal("wego-system"))
 		})
@@ -803,11 +808,11 @@ stringData:
 
 			Expect(kubeClient.ApplyCallCount()).To(Equal(4))
 
-			sourceManifest, namespace := kubeClient.ApplyArgsForCall(2)
+			_, sourceManifest, namespace := kubeClient.ApplyArgsForCall(2)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
 			Expect(namespace).To(Equal("wego-system"))
 
-			kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(3)
+			_, kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(3)
 			Expect(kustomizationManifest).To(Equal([]byte("kustomizationkustomization")))
 			Expect(namespace).To(Equal("wego-system"))
 		})

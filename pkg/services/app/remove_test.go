@@ -342,11 +342,8 @@ var _ = Describe("Remove", func() {
 			}
 
 			// Track the resources added directly to the cluster
-			kubeClient.ApplyStub = func(manifest []byte, namespace string) ([]byte, error) {
-				if err := storeCreatedResource(manifest); err != nil {
-					return nil, err
-				}
-				return []byte(""), nil
+			kubeClient.ApplyStub = func(ctx context.Context, manifest []byte, namespace string) error {
+				return storeCreatedResource(manifest)
 			}
 		})
 
@@ -459,11 +456,8 @@ var _ = Describe("Remove", func() {
 				return removeCreatedResourceByPath(path)
 			}
 
-			kubeClient.ApplyStub = func(manifest []byte, namespace string) ([]byte, error) {
-				if err := storeCreatedResource(manifest); err != nil {
-					return nil, err
-				}
-				return []byte(""), nil
+			kubeClient.ApplyStub = func(ctx context.Context, manifest []byte, namespace string) error {
+				return storeCreatedResource(manifest)
 			}
 
 			kubeClient.DeleteByNameStub = func(name, kind, namespace string) ([]byte, error) {

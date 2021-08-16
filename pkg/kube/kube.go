@@ -51,8 +51,7 @@ var toStatusString = map[ClusterStatus]string{
 
 //counterfeiter:generate . Kube
 type Kube interface {
-	Apply(manifests []byte, namespace string) ([]byte, error)
-	Apply2(ctx context.Context, manifest []byte, namespace string) error
+	Apply(ctx context.Context, manifest []byte, namespace string) error
 	Delete(manifests []byte, namespace string) ([]byte, error)
 	DeleteByName(name, kind, namespace string) ([]byte, error)
 	SecretPresent(ctx context.Context, string, namespace string) (bool, error)
@@ -77,18 +76,18 @@ func New(cliRunner runner.Runner) *KubeClient {
 
 var _ Kube = &KubeClient{}
 
-func (k *KubeClient) Apply(manifests []byte, namespace string) ([]byte, error) {
-	args := []string{
-		"apply",
-		"--namespace", namespace,
-		"-f", "-",
-	}
+// func (k *KubeClient) Apply(manifests []byte, namespace string) ([]byte, error) {
+// 	args := []string{
+// 		"apply",
+// 		"--namespace", namespace,
+// 		"-f", "-",
+// 	}
 
-	return k.runKubectlCmdWithInput(args, manifests)
-}
+// 	return k.runKubectlCmdWithInput(args, manifests)
+// }
 
-func (k *KubeClient) Apply2(ctx context.Context, manifests []byte, namespace string) error {
-	return fmt.Errorf("apply method not implemented")
+func (k *KubeClient) Apply(ctx context.Context, manifests []byte, namespace string) error {
+	return fmt.Errorf("apply from kubectl is deprecated, use the go-client implementation")
 }
 
 func (k *KubeClient) Delete(manifests []byte, namespace string) ([]byte, error) {

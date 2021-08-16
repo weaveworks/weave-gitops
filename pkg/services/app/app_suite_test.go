@@ -18,11 +18,12 @@ import (
 )
 
 var (
-	gitClient    *gitfakes.FakeGit
-	fluxClient   *fluxfakes.FakeFlux
-	kubeClient   *kubefakes.FakeKube
-	osysClient   osys.Osys
-	gitProviders *gitprovidersfakes.FakeGitProvider
+	gitClient      *gitfakes.FakeGit
+	fluxClient     *fluxfakes.FakeFlux
+	kubeClient     *kubefakes.FakeKube
+	kubeHttpClient *kubefakes.FakeKube
+	osysClient     osys.Osys
+	gitProviders   *gitprovidersfakes.FakeGitProvider
 
 	appSrv AppService
 )
@@ -39,10 +40,12 @@ var _ = BeforeEach(func() {
 			return kube.WeGOInstalled
 		},
 	}
+	kubeHttpClient = kubeClient
 
 	gitProviders = &gitprovidersfakes.FakeGitProvider{}
 	appSrv = New(logger.NewCLILogger(os.Stderr), gitClient, fluxClient, kubeClient, osysClient)
 
+	appSrv.(*App).kubeHttp = kubeHttpClient
 	appSrv.(*App).gitProviderFactory = func(token string) (gitproviders.GitProvider, error) {
 		return gitProviders, nil
 	}

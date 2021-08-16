@@ -87,7 +87,7 @@ func NewKubeHTTPClient() (Kube, error) {
 		return nil, fmt.Errorf("failed to initialize dynamic client: %s", err)
 	}
 
-	return &KubeHTTP{Client: kubeClient, ClusterName: kubeContext, restMapper: *mapper, dynClient: dyn}, nil
+	return &KubeHTTP{Client: kubeClient, ClusterName: kubeContext, restMapper: mapper, dynClient: dyn}, nil
 }
 
 // This is an alternative implementation of the kube.Kube interface,
@@ -97,7 +97,7 @@ type KubeHTTP struct {
 	Client      client.Client
 	ClusterName string
 	dynClient   dynamic.Interface
-	restMapper  restmapper.DeferredDiscoveryRESTMapper
+	restMapper  *restmapper.DeferredDiscoveryRESTMapper
 }
 
 func (c *KubeHTTP) GetClusterName(ctx context.Context) (string, error) {
@@ -135,13 +135,9 @@ func (c *KubeHTTP) GetClusterStatus(ctx context.Context) ClusterStatus {
 	}
 }
 
-func (c *KubeHTTP) Apply(manifests []byte, namespace string) ([]byte, error) {
-	return nil, errors.New("Apply is not implemented for kubeHTTP")
-}
-
 var decUnstructured = yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
 
-func (c *KubeHTTP) Apply2(ctx context.Context, manifest []byte, namespace string) error {
+func (c *KubeHTTP) Apply(ctx context.Context, manifest []byte, namespace string) error {
 	// 3. Decode YAML manifest into unstructured.Unstructured
 	obj := &unstructured.Unstructured{}
 	_, gvk, err := decUnstructured.Decode([]byte(manifest), nil, obj)

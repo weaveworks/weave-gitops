@@ -33,7 +33,7 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 	if params.DryRun {
 		fluxManifests = append(fluxManifests, manifests.AppCRD...)
 	} else {
-		if err := g.kube.Apply2(ctx, manifests.AppCRD, params.Namespace); err != nil {
+		if err := g.kube.Apply(ctx, manifests.AppCRD, params.Namespace); err != nil {
 			return []byte{}, fmt.Errorf("could not apply manifest: %w", err)
 		}
 	}

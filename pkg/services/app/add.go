@@ -157,7 +157,7 @@ func (a *App) Add(params AddParams) error {
 
 	var secretRef string
 	if wego.SourceType(params.SourceType) == wego.SourceTypeGit {
-		secretRef, err = a.createAndUploadDeployKey(info, params.DryRun, info.Spec.URL, gitProvider)
+		secretRef, err = a.createAndUploadDeployKey(ctx, info, params.DryRun, info.Spec.URL, gitProvider)
 		if err != nil {
 			return fmt.Errorf("could not generate deploy key: %w", err)
 		}
@@ -169,7 +169,7 @@ func (a *App) Add(params AddParams) error {
 	case string(ConfigTypeUserRepo):
 		return a.addAppWithConfigInAppRepo(info, params, gitProvider, secretRef, appHash)
 	default:
-		return a.addAppWithConfigInExternalRepo(info, params, gitProvider, secretRef, appHash)
+		return a.addAppWithConfigInExternalRepo(ctx, info, params, gitProvider, secretRef, appHash)
 	}
 }
 
@@ -332,8 +332,8 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 	})
 }
 
-func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddParams, gitProvider gitproviders.GitProvider, appSecretRef string, appHash string) error {
-	appConfigSecretName, err := a.createAndUploadDeployKey(info, params.DryRun, info.Spec.ConfigURL, gitProvider)
+func (a *App) addAppWithConfigInExternalRepo(ctx context.Context, info *AppResourceInfo, params AddParams, gitProvider gitproviders.GitProvider, appSecretRef string, appHash string) error {
+	appConfigSecretName, err := a.createAndUploadDeployKey(ctx, info, params.DryRun, info.Spec.ConfigURL, gitProvider)
 	if err != nil {
 		return fmt.Errorf("could not generate deploy key: %w", err)
 	}
@@ -488,7 +488,7 @@ func (a *App) commitAndPush(filters ...func(string) bool) error {
 	return nil
 }
 
-func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoUrl string, gitProvider gitproviders.GitProvider) (string, error) {
+func (a *App) createAndUploadDeployKey(ctx context.Context, info *AppResourceInfo, dryRun bool, repoUrl string, gitProvider gitproviders.GitProvider) (string, error) {
 	if repoUrl == "" {
 		return "", nil
 	}
@@ -549,8 +549,8 @@ func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoU
 			return "", fmt.Errorf("error uploading deploy key: %w", err)
 		}
 
-		if out, err := a.kube.Apply(secret, info.Namespace); err != nil {
-			return "", fmt.Errorf("could not apply secret manifest: %s: %w", string(out), err)
+		if err := a.kubeHttp.Apply(ctx, secret, info.Namespace); err != nil {
+			return "", fmt.Errorf("could not apply secret manifest:  %w", err)
 		}
 	}
 
@@ -600,7 +600,7 @@ func (a *App) applyToCluster(info *AppResourceInfo, dryRun bool, manifests ...[]
 	}
 
 	for _, manifest := range manifests {
-		if err := a.kubeHttp.Apply2(context.Background(), manifest, info.Namespace); err != nil {
+		if err := a.kubeHttp.Apply(context.Background(), manifest, info.Namespace); err != nil {
 			return fmt.Errorf("could not apply manifest: %w", err)
 		}
 	}
