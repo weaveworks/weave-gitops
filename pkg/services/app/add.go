@@ -14,6 +14,7 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -151,7 +152,7 @@ func (a *App) Add(params AddParams) error {
 
 	info := getAppResourceInfo(makeWegoApplication(params), clusterName)
 
-	appHash, err := utils.GetAppHash(info.Application)
+	appHash, err := kube.GetAppHash(info.Application)
 	if err != nil {
 		return err
 	}

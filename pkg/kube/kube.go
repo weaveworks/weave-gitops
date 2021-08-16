@@ -3,16 +3,17 @@ package kube
 import (
 	"bytes"
 	"context"
+	"crypto/md5"
 	"fmt"
 	"regexp"
 	"strings"
 
+	"encoding/hex"
 	"encoding/json"
 
 	"github.com/pkg/errors"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -249,6 +250,38 @@ func (k *KubeClient) runKubectlCmdWithInput(args []string, input []byte) ([]byte
 
 	return out, nil
 }
+
+func GetAppHash(app wego.Application) (string, error) {
+	var appHash string
+	var err error
+
+	var getHash = func(inputs ...string) (string, error) {
+		h := md5.New()
+		final := ""
+		for _, input := range inputs {
+			final += input
+		}
+		_, err := h.Write([]byte(final))
+		if err != nil {
+			return "", fmt.Errorf("error generating app hash %s", err)
+		}
+		return hex.EncodeToString(h.Sum(nil)), nil
+	}
+
+	if app.Spec.DeploymentType == wego.DeploymentTypeHelm {
+		appHash, err = getHash(app.Spec.URL, app.Name, app.Spec.Branch)
+		if err != nil {
+			return "", err
+		}
+	} else {
+		appHash, err = getHash(app.Spec.URL, app.Spec.Path, app.Spec.Branch)
+		if err != nil {
+			return "", err
+		}
+	}
+	return "wego-" + appHash, nil
+}
+
 func (k *KubeClient) AppExistsInCluster(ctx context.Context, namespace string, appHash string) error {
 	apps, err := k.GetApplications(ctx, namespace)
 	if err != nil {
@@ -256,7 +289,7 @@ func (k *KubeClient) AppExistsInCluster(ctx context.Context, namespace string, a
 	}
 
 	for _, app := range apps {
-		existingHash, err := utils.GetAppHash(app)
+		existingHash, err := GetAppHash(app)
 		if err != nil {
 			return err
 		}

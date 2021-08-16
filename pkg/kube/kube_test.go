@@ -2,6 +2,8 @@ package kube_test
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -275,6 +277,63 @@ var _ = Describe("AppExistsInCluster", func() {
 
 		err = kubeClient.AppExistsInCluster(ctx, "wego-system", "wego-4cd3a5f2bcd1ba2b9ed157a0c175c8d3")
 		Expect(err).Should(HaveOccurred())
+
+	})
+})
+
+func getHash(inputs ...string) (string, error) {
+	h := md5.New()
+	final := ""
+	for _, input := range inputs {
+		final += input
+	}
+	_, err := h.Write([]byte(final))
+	if err != nil {
+		return "", fmt.Errorf("error generating app hash %s", err)
+	}
+	return hex.EncodeToString(h.Sum(nil)), nil
+}
+
+var _ = Describe("Test app hash", func() {
+
+	It("should return right hash for a helm app", func() {
+
+		app := wego.Application{
+			Spec: wego.ApplicationSpec{
+				Branch:         "main",
+				URL:            "https://github.com/owner/repo1",
+				DeploymentType: wego.DeploymentTypeHelm,
+			},
+		}
+		app.Name = "nginx"
+
+		appHash, err := kube.GetAppHash(app)
+		Expect(err).NotTo(HaveOccurred())
+
+		expectedHash, err := getHash(app.Spec.URL, app.Name, app.Spec.Branch)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(appHash).To(Equal("wego-" + expectedHash))
+
+	})
+
+	It("should return right hash for a kustomize app", func() {
+		app := wego.Application{
+			Spec: wego.ApplicationSpec{
+				Branch:         "main",
+				URL:            "https://github.com/owner/repo1",
+				Path:           "custompath",
+				DeploymentType: wego.DeploymentTypeKustomize,
+			},
+		}
+
+		appHash, err := kube.GetAppHash(app)
+		Expect(err).NotTo(HaveOccurred())
+
+		expectedHash, err := getHash(app.Spec.URL, app.Spec.Path, app.Spec.Branch)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(appHash).To(Equal("wego-" + expectedHash))
 
 	})
 })

@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -119,37 +117,6 @@ func SanitizeRepoUrl(url string) string {
 	}
 
 	return url
-}
-
-func GetAppHash(app wego.Application) (string, error) {
-	var appHash string
-	var err error
-
-	var getHash = func(inputs ...string) (string, error) {
-		h := md5.New()
-		final := ""
-		for _, input := range inputs {
-			final += input
-		}
-		_, err := h.Write([]byte(final))
-		if err != nil {
-			return "", fmt.Errorf("error generating app hash %s", err)
-		}
-		return hex.EncodeToString(h.Sum(nil)), nil
-	}
-
-	if app.Spec.DeploymentType == wego.DeploymentTypeHelm {
-		appHash, err = getHash(app.Spec.URL, app.Name, app.Spec.Branch)
-		if err != nil {
-			return "", err
-		}
-	} else {
-		appHash, err = getHash(app.Spec.URL, app.Spec.Path, app.Spec.Branch)
-		if err != nil {
-			return "", err
-		}
-	}
-	return "wego-" + appHash, nil
 }
 
 func PrintTable(writer io.Writer, header []string, rows [][]string) {
