@@ -18,7 +18,7 @@ To illustrate, you could say that the `wego` command line could tell the wego-ap
 
 For security reasons, permissions will be implemented through RBAC so that the wego-api only has access to the resources it needs.
 
-With this proposal, the use of CLI options would still be required, however, it would be an intermediate step to eventually do
+With this proposal, the use of `kubectl` would still be required, however, it would be an intermediate step to eventually do
 a 100% migration into the cluster.
 
 Specifically, the proposed changes are as follows:
@@ -84,15 +84,17 @@ By using this command there is security issue we need to solve. The issue is tha
 
 ### Automate the build of docker images from the `wego-api`.
 
-For production environments, it will be needed a docker repository, a token with permissions to push the image, and public access to those images.
+For production environments the following items are required, a container repository (e.g. docker), a token with permissions to push the image, and public access to those images.
 
-When a `wego` release is made, a Github action will be triggered that will make the corresponding release in the wego-api's Github docker repository using the same tag used for the` wego` release.
+When a `wego` release is made, a Github action will be triggered that will make the corresponding release in the wego-api's Github docker repository using the same tag used for the` wego` release. This Github action will be a dependency to the wego binary release we already have, to avoid the issue like of wego not finding the right `wego-api` image. We will notify via slack message to the team channel if any error occurs.
 
 At runtime, we will use the version LD flag to tell `wego` which tag to use in the `wego-api` deployment.
 
+To build `wego-api` we will use a Dockerfile with two-stage builds where possible, so that the runtime container has a very minimal surface area.
+
 ### Use source to build locally the wego-api docker image for development mode.
 
-Part of the mechanism from the previous point will be used so that it can also be applied in development mode. And thus avoid wasting time publishing / downloading to a docker registry. Currently, there are many tools on the market to achieve this task, to mention a few there are `garden.io` and` tilt`.
+To avoid wasting time publishing / downloading to a docker registry. We want to improve the developer experience. Currently, there are many tools on the market to achieve this task, to mention a few there are `garden.io` and` tilt`.
 
 The recommendation is to use `garden.io` because they use yaml files to set the configuration which is something the team is already used to. Rather than `tilt` that relies on python which would enforce learning that language. 
 
