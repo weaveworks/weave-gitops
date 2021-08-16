@@ -2,9 +2,14 @@ package kube
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/discovery"
+	memory "k8s.io/client-go/discovery/cached"
+	"k8s.io/client-go/restmapper"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -17,8 +22,12 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/dynamic"
 )
 
 func CreateScheme() *apiruntime.Scheme {
@@ -61,12 +70,24 @@ func NewKubeHTTPClient() (Kube, error) {
 	kubeClient, err := client.New(restCfg, client.Options{
 		Scheme: scheme,
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("kubernetes client initialization failed: %w", err)
 	}
 
-	return &KubeHTTP{Client: kubeClient, ClusterName: kubeContext}, nil
+	// 1. Prepare a RESTMapper to find GVR
+	dc, err := discovery.NewDiscoveryClientForConfig(restCfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize discovery client: %s", err)
+	}
+	mapper := restmapper.NewDeferredDiscoveryRESTMapper(memory.NewMemCacheClient(dc))
+
+	// 2. Prepare the dynamic client
+	dyn, err := dynamic.NewForConfig(restCfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize dynamic client: %s", err)
+	}
+
+	return &KubeHTTP{Client: kubeClient, ClusterName: kubeContext, restMapper: *mapper, dynClient: dyn}, nil
 }
 
 // This is an alternative implementation of the kube.Kube interface,
@@ -75,6 +96,8 @@ func NewKubeHTTPClient() (Kube, error) {
 type KubeHTTP struct {
 	Client      client.Client
 	ClusterName string
+	dynClient   dynamic.Interface
+	restMapper  restmapper.DeferredDiscoveryRESTMapper
 }
 
 func (c *KubeHTTP) GetClusterName(ctx context.Context) (string, error) {
@@ -114,6 +137,51 @@ func (c *KubeHTTP) GetClusterStatus(ctx context.Context) ClusterStatus {
 
 func (c *KubeHTTP) Apply(manifests []byte, namespace string) ([]byte, error) {
 	return nil, errors.New("Apply is not implemented for kubeHTTP")
+}
+
+var decUnstructured = yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
+
+func (c *KubeHTTP) Apply2(ctx context.Context, manifest []byte, namespace string) error {
+	// 3. Decode YAML manifest into unstructured.Unstructured
+	obj := &unstructured.Unstructured{}
+	_, gvk, err := decUnstructured.Decode([]byte(manifest), nil, obj)
+	if err != nil {
+		return err
+	}
+
+	// 4. Find GVR
+	mapping, err := c.restMapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	if err != nil {
+		return err
+	}
+
+	// 5. Obtain REST interface for the GVR
+	var dr dynamic.ResourceInterface
+	if mapping.Scope.Name() == meta.RESTScopeNameNamespace {
+		// namespaced resources should specify the namespace
+		dr = c.dynClient.Resource(mapping.Resource).Namespace(obj.GetNamespace())
+	} else {
+		// for cluster-wide resources
+		dr = c.dynClient.Resource(mapping.Resource)
+	}
+
+	// 6. Marshal object into JSON
+	data, err := json.Marshal(obj)
+	if err != nil {
+		return err
+	}
+
+	// 7. Create or Update the object with SSA
+	//     types.ApplyPatchType indicates SSA.
+	//     FieldManager specifies the field owner ID.
+	_, err = dr.Patch(ctx, obj.GetName(), types.ApplyPatchType, data, metav1.PatchOptions{
+		FieldManager: "wego",
+	})
+	if err != nil {
+		return fmt.Errorf("failed applying %s: %w", string(data), err)
+	}
+
+	return nil
 }
 
 func (c *KubeHTTP) GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error) {

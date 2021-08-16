@@ -51,6 +51,7 @@ var toStatusString = map[ClusterStatus]string{
 //counterfeiter:generate . Kube
 type Kube interface {
 	Apply(manifests []byte, namespace string) ([]byte, error)
+	Apply2(ctx context.Context, manifest []byte, namespace string) error
 	Delete(manifests []byte, namespace string) ([]byte, error)
 	DeleteByName(name, kind, namespace string) ([]byte, error)
 	SecretPresent(ctx context.Context, string, namespace string) (bool, error)
@@ -83,6 +84,10 @@ func (k *KubeClient) Apply(manifests []byte, namespace string) ([]byte, error) {
 	}
 
 	return k.runKubectlCmdWithInput(args, manifests)
+}
+
+func (k *KubeClient) Apply2(ctx context.Context, manifests []byte, namespace string) error {
+	return fmt.Errorf("apply method not implemented")
 }
 
 func (k *KubeClient) Delete(manifests []byte, namespace string) ([]byte, error) {

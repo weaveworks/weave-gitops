@@ -52,15 +52,18 @@ type App struct {
 	git                git.Git
 	flux               flux.Flux
 	kube               kube.Kube
+	kubeHttp           kube.Kube
 	logger             logger.Logger
 	gitProviderFactory func(token string) (gitproviders.GitProvider, error)
 }
 
-func New(logger logger.Logger, git git.Git, flux flux.Flux, kube kube.Kube, osys osys.Osys) *App {
+func New(logger logger.Logger, git git.Git, flux flux.Flux, kubeClient kube.Kube, osys osys.Osys) *App {
+	kubeHttp, _ := kube.NewKubeHTTPClient()
 	return &App{
 		git:                git,
 		flux:               flux,
-		kube:               kube,
+		kube:               kubeClient,
+		kubeHttp:           kubeHttp,
 		logger:             logger,
 		osys:               osys,
 		gitProviderFactory: createGitProvider,
