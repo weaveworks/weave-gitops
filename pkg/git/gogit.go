@@ -319,7 +319,7 @@ func (g *GoGit) ValidateAccess(ctx context.Context, url string, branch string) e
 		Tags:          gogit.NoTags,
 	})
 
-	if err != nil {
+	if err != nil && !errors.Is(err, transport.ErrEmptyRemoteRepository) {
 		return fmt.Errorf("error validating git repo access %w", err)
 	}
 	return nil
