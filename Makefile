@@ -43,8 +43,8 @@ bin: ui
 wego: dependencies bin
 
 # Install binaries to GOPATH
-install: bin bin/$(BINARY_NAME)_ui
-	cp bin/$(BINARY_NAME) bin/$(BINARY_NAME)_ui ${GOPATH}/bin/
+install: bin
+	cp bin/$(BINARY_NAME) ${GOPATH}/bin/
 
 # Clean up images and binaries
 clean:
@@ -78,9 +78,6 @@ cmd/wego/ui/run/dist/index.html: cmd/wego/ui/run/dist
 
 cmd/wego/ui/run/dist/main.js:
 	npm run build
-
-bin/$(BINARY_NAME)_ui: cmd/ui/main.go
-	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME)_ui cmd/ui/main.go
 
 lint:
 	golangci-lint run --out-format=github-actions --build-tags acceptance
@@ -127,9 +124,6 @@ proto:
 
 api-dev:
 	reflex -r '.go' -s -- sh -c 'go run cmd/wego-server/main.go'
-
-ui-dev: cmd/wego/ui/run/dist/main.js
-	reflex -r '.go' -s -- sh -c 'go run cmd/ui/main.go'
 
 fakes:
 	go generate ./...
