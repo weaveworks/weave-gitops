@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
+
 	"github.com/lithammer/dedent"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -86,7 +88,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	token, err := osysClient.GetGitProviderToken()
 
-	goGit := &git.GotGit{}
+	goGit := wrapper.NewGoGit()
 	if err == osys.ErrNoGitProviderTokenSet {
 		// No provider token set, we need to do the auth flow.
 		url := params.Url

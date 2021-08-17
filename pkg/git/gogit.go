@@ -27,6 +27,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
+
 	gogit "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -35,28 +37,17 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
-type GotGit struct{}
-
-func (g *GotGit) PlainCloneContext(ctx context.Context, path string, isBare bool, o *gogit.CloneOptions) (*gogit.Repository, error) {
-	return gogit.PlainCloneContext(ctx, path, isBare, o)
-}
-
-//counterfeiter:generate . GoGitI
-type GoGitI interface {
-	PlainCloneContext(ctx context.Context, path string, isBare bool, o *gogit.CloneOptions) (*gogit.Repository, error)
-}
-
 type GoGit struct {
 	path       string
 	auth       transport.AuthMethod
 	repository *gogit.Repository
-	gitwrapper GoGitI
+	git        wrapper.Git
 }
 
-func New(auth transport.AuthMethod, wrapper GoGitI) *GoGit {
+func New(auth transport.AuthMethod, wrapper wrapper.Git) Git {
 	return &GoGit{
-		auth:       auth,
-		gitwrapper: wrapper,
+		auth: auth,
+		git:  wrapper,
 	}
 }
 
@@ -320,7 +311,7 @@ func (g *GoGit) ValidateAccess(ctx context.Context, url string, branch string) e
 	defer os.RemoveAll(path)
 
 	branchRef := plumbing.NewBranchReferenceName(branch)
-	_, err = g.gitwrapper.PlainCloneContext(ctx, path, true, &gogit.CloneOptions{
+	_, err = g.git.PlainCloneContext(ctx, path, true, &gogit.CloneOptions{
 		URL:           url,
 		Auth:          g.auth,
 		RemoteName:    gogit.DefaultRemoteName,

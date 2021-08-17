@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
+
 	"github.com/lithammer/dedent"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -75,7 +77,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	cliRunner := &runner.CLIRunner{}
 	fluxClient := flux.New(osysClient, cliRunner)
 	kubeClient := kube.New(cliRunner)
-	gitClient := git.New(authMethod, &git.GotGit{})
+	gitClient := git.New(authMethod, wrapper.NewGoGit())
 	logger := logger.NewCLILogger(os.Stdout)
 
 	appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)
