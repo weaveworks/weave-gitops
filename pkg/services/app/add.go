@@ -3,8 +3,6 @@ package app
 import (
 	"bytes"
 	"context"
-	"crypto/md5"
-	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -174,21 +172,22 @@ func (a *App) Add(params AddParams) error {
 
 	info := getAppResourceInfo(makeWegoApplication(params), clusterName)
 
+	appHash, err := utils.GetAppHash(info.Application)
+	if err != nil {
+		return err
+	}
+
+	// if application already exists in the cluster we fail to add the application
+	if err = a.kube.AppExistsInCluster(ctx, params.Namespace, appHash); err != nil {
+		return err
+	}
+
 	var secretRef string
 	if wego.SourceType(params.SourceType) == wego.SourceTypeGit {
 		secretRef, err = a.createAndUploadDeployKey(info, params.DryRun, info.Spec.URL, gitProvider)
 		if err != nil {
 			return fmt.Errorf("could not generate deploy key: %w", err)
 		}
-	}
-
-	appHash, err := getAppHash(info)
-	if err != nil {
-		return err
-	}
-	// if appHash exists as a label in the cluster we fail to create a PR
-	if err = a.kube.LabelExistsInCluster(ctx, appHash); err != nil {
-		return err
 	}
 
 	switch strings.ToUpper(info.Spec.ConfigURL) {
@@ -199,37 +198,6 @@ func (a *App) Add(params AddParams) error {
 	default:
 		return a.addAppWithConfigInExternalRepo(info, params, gitProvider, secretRef, appHash)
 	}
-}
-
-func getAppHash(info *AppResourceInfo) (string, error) {
-	var appHash string
-	var err error
-
-	var getHash = func(inputs ...string) (string, error) {
-		h := md5.New()
-		final := ""
-		for _, input := range inputs {
-			final += input
-		}
-		_, err := h.Write([]byte(final))
-		if err != nil {
-			return "", fmt.Errorf("error generating app hash %s", err)
-		}
-		return hex.EncodeToString(h.Sum(nil)), nil
-	}
-
-	if info.Spec.DeploymentType == wego.DeploymentTypeHelm {
-		appHash, err = getHash(info.Spec.URL, info.Name, info.Spec.Branch)
-		if err != nil {
-			return "", err
-		}
-	} else {
-		appHash, err = getHash(info.Spec.URL, info.Spec.Path, info.Spec.Branch)
-		if err != nil {
-			return "", err
-		}
-	}
-	return "wego-" + appHash, nil
 }
 
 func (a *App) printAddSummary(params AddParams) {
