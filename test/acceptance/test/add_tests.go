@@ -962,10 +962,14 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 	It("SmokeTest - Verify that wego can deploy a helm app from a git repo with app-config-url set to NONE", func() {
 		var repoAbsolutePath string
+		var reinstallOutput string
+		var reAddOutput string
+		var removeOutput *gexec.Session
 		private := true
 		appManifestFilePath := "./data/helm-repo/hello-world"
 		appName := "my-helm-app"
 		appRepoName := "wego-test-app-" + RandString(8)
+		badAppName := "foo"
 
 		addCommand := "app add . --deployment-type=helm --path=./hello-world --name=" + appName + " --app-config-url=NONE"
 
@@ -1004,6 +1008,49 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
 			Expect(folderOutput).ShouldNot(ContainSubstring("apps"))
 			Expect(folderOutput).ShouldNot(ContainSubstring("targets"))
+		})
+
+		By("When I rerun wego gitops install", func() {
+			reinstallOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " gitops install")
+		})
+
+		By("Then I should not see any errors", func() {
+			Eventually(reinstallOutput).Should(ContainSubstring("► installing components in " + WEGO_DEFAULT_NAMESPACE + " namespace"))
+			Eventually(reinstallOutput).Should(ContainSubstring("✔ image-reflector-controller: deployment ready"))
+			Eventually(reinstallOutput).Should(ContainSubstring("✔ image-automation-controller: deployment ready"))
+			Eventually(reinstallOutput).Should(ContainSubstring("✔ source-controller: deployment ready"))
+			Eventually(reinstallOutput).Should(ContainSubstring("✔ kustomize-controller: deployment ready"))
+			Eventually(reinstallOutput).Should(ContainSubstring("✔ helm-controller: deployment ready"))
+			Eventually(reinstallOutput).Should(ContainSubstring("✔ notification-controller: deployment ready"))
+		})
+
+		By("When I rerun wego app add command", func() {
+			_, reAddOutput = runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand))
+		})
+
+		By("Then I should see an error", func() {
+			Eventually(reAddOutput).Should(ContainSubstring("Error: failed to add the app " + appName + ": unable to create resource, resource already exists in cluster"))
+		})
+
+		By("And app status should remain same", func() {
+			out := runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app status " + appName)
+			Eventually(out).Should(gbytes.Say(`helmrelease/` + appName + `\s*True\s*.*False`))
+		})
+
+		By("When I run wego app remove", func() {
+			runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s app remove %s", WEGO_BIN_PATH, appName))
+		})
+
+		By("Then I should see app removed from the cluster", func() {
+			waitForAppRemoval(appName, APP_REMOVAL_TIMEOUT)
+		})
+
+		By("When I run wego app remove for a non-existent app", func() {
+			removeOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app remove " + badAppName)
+		})
+
+		By("Then I should get an error", func() {
+			Eventually(removeOutput.Err).Should(gbytes.Say(`Error: failed to remove the app ` + badAppName + `: could not run kubectl command: failed to run kubectl with output: Error from server \(NotFound\): apps.wego.weave.works "` + badAppName + `" not found`))
 		})
 	})
 
