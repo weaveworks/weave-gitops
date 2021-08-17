@@ -1038,11 +1038,11 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("When I run wego app remove", func() {
-			runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s app remove %s", WEGO_BIN_PATH, appName))
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s app remove %s", WEGO_BIN_PATH, appName))
 		})
 
 		By("Then I should see app removed from the cluster", func() {
-			waitForAppRemoval(appName, APP_REMOVAL_TIMEOUT)
+			_ = waitForAppRemoval(appName, APP_REMOVAL_TIMEOUT)
 		})
 
 		By("When I run wego app remove for a non-existent app", func() {
