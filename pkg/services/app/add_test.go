@@ -897,46 +897,6 @@ stringData:
 			Expect(kubeClient.ApplyCallCount()).To(Equal(0))
 		})
 	})
-
-	Describe("Test app hash", func() {
-
-		It("should return right hash for a helm app", func() {
-
-			addParams.Url = "https://github.com/owner/repo1"
-			addParams.Chart = "nginx"
-			addParams.Branch = "main"
-			addParams.DeploymentType = string(wego.DeploymentTypeHelm)
-
-			info := getAppResourceInfo(makeWegoApplication(addParams), "")
-
-			appHash, err := getAppHash(info)
-			Expect(err).NotTo(HaveOccurred())
-
-			expectedHash, err := getHash(info.Spec.URL, info.Name, info.Spec.Branch)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(appHash).To(Equal("wego-" + expectedHash))
-
-		})
-
-		It("should return right hash for a kustomize app", func() {
-			addParams.Url = "https://github.com/owner/repo1"
-			addParams.Path = "custompath"
-			addParams.Branch = "main"
-			addParams.DeploymentType = string(wego.DeploymentTypeKustomize)
-
-			info := getAppResourceInfo(makeWegoApplication(addParams), "")
-
-			appHash, err := getAppHash(info)
-			Expect(err).NotTo(HaveOccurred())
-
-			expectedHash, err := getHash(info.Spec.URL, info.Spec.Path, info.Spec.Branch)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(appHash).To(Equal("wego-" + expectedHash))
-
-		})
-	})
 })
 
 func getHash(inputs ...string) (string, error) {
