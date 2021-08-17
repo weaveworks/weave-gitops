@@ -35,7 +35,7 @@ var Cmd = &cobra.Command{
 			return fmt.Errorf("error initializing kube client: %w", err)
 		}
 
-		gitClient := git.New(nil)
+		gitClient := git.New(nil, &git.GotGit{})
 		logger := logger.NewCLILogger(os.Stdout)
 
 		appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)

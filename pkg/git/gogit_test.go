@@ -7,7 +7,12 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
+
+	"github.com/go-git/go-git/v5/plumbing/transport"
+
 	gogit "github.com/go-git/go-git/v5"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -20,7 +25,7 @@ var (
 )
 
 var _ = BeforeEach(func() {
-	gitClient = git.New(nil)
+	gitClient = git.New(nil, &git.GotGit{})
 
 	dir, err = ioutil.TempDir("", "wego-git-test-")
 	Expect(err).ShouldNot(HaveOccurred())
@@ -53,7 +58,7 @@ var _ = Describe("Init", func() {
 		_, err := gitClient.Init(dir, "https://github.com/github/gitignore", "master")
 		Expect(err).ShouldNot(HaveOccurred())
 
-		init, err := git.New(nil).Init(dir, "https://github.com/github/gitignore", "master")
+		init, err := git.New(nil, &git.GotGit{}).Init(dir, "https://github.com/github/gitignore", "master")
 		Expect(err).Should(MatchError("repository already exists"))
 		Expect(init).To(BeFalse())
 	})
@@ -90,6 +95,19 @@ var _ = Describe("ValidateAccess", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 
+	It("should not fail on an empty repo", func() {
+
+		fakeGoGit := &gitfakes.FakeGoGitI{}
+
+		fakeGoGit.PlainCloneContextReturns(nil, transport.ErrEmptyRemoteRepository)
+
+		fakeGitClient := git.New(nil, fakeGoGit)
+
+		err := fakeGitClient.ValidateAccess(context.Background(), "https://github.com/githubtraining/hellogitworld", "master")
+
+		Expect(err).ShouldNot(HaveOccurred())
+	})
+
 	It("fails to validate access to a possible private repository", func() {
 		err := gitClient.ValidateAccess(context.Background(), "https://github.com/notexisted/repo", "master")
 		Expect(err.Error()).Should(Equal("error validating git repo access authentication required"))
@@ -114,7 +132,7 @@ var _ = Describe("Write", func() {
 		_, err := gitClient.Init(dir, "https://github.com/github/gitignore", "master")
 		Expect(err).ShouldNot(HaveOccurred())
 
-		gc := git.New(nil)
+		gc := git.New(nil, &git.GotGit{})
 		err = gc.Write("testing.txt", []byte("testing"))
 		Expect(err).To(MatchError("no git repository"))
 	})
