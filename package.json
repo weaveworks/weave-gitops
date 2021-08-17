@@ -1,6 +1,6 @@
 {
   "name": "@weaveworks/weave-gitops",
-  "version": "0.0.4",
+  "version": "0.2.2",
   "description": "Weave GitOps core",
   "main": "dist/index.js",
   "scripts": {
