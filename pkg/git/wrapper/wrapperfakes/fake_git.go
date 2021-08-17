@@ -26,6 +26,33 @@ type FakeGit struct {
 		result1 *git.Repository
 		result2 error
 	}
+	PlainInitStub        func(string, bool) (*git.Repository, error)
+	plainInitMutex       sync.RWMutex
+	plainInitArgsForCall []struct {
+		arg1 string
+		arg2 bool
+	}
+	plainInitReturns struct {
+		result1 *git.Repository
+		result2 error
+	}
+	plainInitReturnsOnCall map[int]struct {
+		result1 *git.Repository
+		result2 error
+	}
+	PlainOpenStub        func(string) (*git.Repository, error)
+	plainOpenMutex       sync.RWMutex
+	plainOpenArgsForCall []struct {
+		arg1 string
+	}
+	plainOpenReturns struct {
+		result1 *git.Repository
+		result2 error
+	}
+	plainOpenReturnsOnCall map[int]struct {
+		result1 *git.Repository
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -97,11 +124,144 @@ func (fake *FakeGit) PlainCloneContextReturnsOnCall(i int, result1 *git.Reposito
 	}{result1, result2}
 }
 
+func (fake *FakeGit) PlainInit(arg1 string, arg2 bool) (*git.Repository, error) {
+	fake.plainInitMutex.Lock()
+	ret, specificReturn := fake.plainInitReturnsOnCall[len(fake.plainInitArgsForCall)]
+	fake.plainInitArgsForCall = append(fake.plainInitArgsForCall, struct {
+		arg1 string
+		arg2 bool
+	}{arg1, arg2})
+	stub := fake.PlainInitStub
+	fakeReturns := fake.plainInitReturns
+	fake.recordInvocation("PlainInit", []interface{}{arg1, arg2})
+	fake.plainInitMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeGit) PlainInitCallCount() int {
+	fake.plainInitMutex.RLock()
+	defer fake.plainInitMutex.RUnlock()
+	return len(fake.plainInitArgsForCall)
+}
+
+func (fake *FakeGit) PlainInitCalls(stub func(string, bool) (*git.Repository, error)) {
+	fake.plainInitMutex.Lock()
+	defer fake.plainInitMutex.Unlock()
+	fake.PlainInitStub = stub
+}
+
+func (fake *FakeGit) PlainInitArgsForCall(i int) (string, bool) {
+	fake.plainInitMutex.RLock()
+	defer fake.plainInitMutex.RUnlock()
+	argsForCall := fake.plainInitArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeGit) PlainInitReturns(result1 *git.Repository, result2 error) {
+	fake.plainInitMutex.Lock()
+	defer fake.plainInitMutex.Unlock()
+	fake.PlainInitStub = nil
+	fake.plainInitReturns = struct {
+		result1 *git.Repository
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGit) PlainInitReturnsOnCall(i int, result1 *git.Repository, result2 error) {
+	fake.plainInitMutex.Lock()
+	defer fake.plainInitMutex.Unlock()
+	fake.PlainInitStub = nil
+	if fake.plainInitReturnsOnCall == nil {
+		fake.plainInitReturnsOnCall = make(map[int]struct {
+			result1 *git.Repository
+			result2 error
+		})
+	}
+	fake.plainInitReturnsOnCall[i] = struct {
+		result1 *git.Repository
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGit) PlainOpen(arg1 string) (*git.Repository, error) {
+	fake.plainOpenMutex.Lock()
+	ret, specificReturn := fake.plainOpenReturnsOnCall[len(fake.plainOpenArgsForCall)]
+	fake.plainOpenArgsForCall = append(fake.plainOpenArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.PlainOpenStub
+	fakeReturns := fake.plainOpenReturns
+	fake.recordInvocation("PlainOpen", []interface{}{arg1})
+	fake.plainOpenMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeGit) PlainOpenCallCount() int {
+	fake.plainOpenMutex.RLock()
+	defer fake.plainOpenMutex.RUnlock()
+	return len(fake.plainOpenArgsForCall)
+}
+
+func (fake *FakeGit) PlainOpenCalls(stub func(string) (*git.Repository, error)) {
+	fake.plainOpenMutex.Lock()
+	defer fake.plainOpenMutex.Unlock()
+	fake.PlainOpenStub = stub
+}
+
+func (fake *FakeGit) PlainOpenArgsForCall(i int) string {
+	fake.plainOpenMutex.RLock()
+	defer fake.plainOpenMutex.RUnlock()
+	argsForCall := fake.plainOpenArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeGit) PlainOpenReturns(result1 *git.Repository, result2 error) {
+	fake.plainOpenMutex.Lock()
+	defer fake.plainOpenMutex.Unlock()
+	fake.PlainOpenStub = nil
+	fake.plainOpenReturns = struct {
+		result1 *git.Repository
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGit) PlainOpenReturnsOnCall(i int, result1 *git.Repository, result2 error) {
+	fake.plainOpenMutex.Lock()
+	defer fake.plainOpenMutex.Unlock()
+	fake.PlainOpenStub = nil
+	if fake.plainOpenReturnsOnCall == nil {
+		fake.plainOpenReturnsOnCall = make(map[int]struct {
+			result1 *git.Repository
+			result2 error
+		})
+	}
+	fake.plainOpenReturnsOnCall[i] = struct {
+		result1 *git.Repository
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeGit) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.plainCloneContextMutex.RLock()
 	defer fake.plainCloneContextMutex.RUnlock()
+	fake.plainInitMutex.RLock()
+	defer fake.plainInitMutex.RUnlock()
+	fake.plainOpenMutex.RLock()
+	defer fake.plainOpenMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

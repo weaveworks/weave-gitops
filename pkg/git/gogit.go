@@ -54,7 +54,7 @@ func New(auth transport.AuthMethod, wrapper wrapper.Git) Git {
 // Open opens a git repository in the provided path, and returns a repository.
 func (g *GoGit) Open(path string) (*gogit.Repository, error) {
 	g.path = path
-	repo, err := gogit.PlainOpen(path)
+	repo, err := g.git.PlainOpen(path)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (g *GoGit) Init(path, url, branch string) (bool, error) {
 
 	g.path = path
 
-	r, err := gogit.PlainInit(path, false)
+	r, err := g.git.PlainInit(path, false)
 	if err != nil {
 		return false, err
 	}
