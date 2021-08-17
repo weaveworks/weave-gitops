@@ -33,6 +33,8 @@ To continue communicating with the Kubernetes API, it will be required to change
 
 Flux will be added to this docker image as well.
 
+`wego version` will also show which container registry tag of `wego-api` it will use. 
+
 ### Generate RBAC-based permissions to the wego-api and apply them when installing the GitOps runtime.
 
 Since the wego-api needs to access resources within the cluster, RBAC permissions will be applied so that there are no security gaps. In consideration that the functionality of the wego-api will be specified only in actions within the namespace where the GitOps runtime is executed, the Role and RoleBinding resources will be used. Since the scope of this type of resource is by namespace. 
@@ -43,6 +45,7 @@ The resources that will be required are:
 - Deployment
 - Role
 - RoleBinding
+- Service
 
 The specific permissions for the Role resource will be:
 
@@ -70,7 +73,7 @@ These resources will be applied when installing the GitOps engine.
 
 ### Enable access to the wego-api from the client-side.
 
-To enable access to the `wego-api` from the client machine, we will use `kubectl` by running this command: `kubectl -n NAMESPACE port-forward deployment/wego-api :8283`. An example of the output would be: 
+To enable access to the `wego-api` from the client machine, we will use `kubectl` by running this command: `kubectl -n NAMESPACE port-forward service/wego-api :8283`. An example of the output would be: 
 ```
 Forwarding from 127.0.0.1:63701 -> 8283
 Forwarding from [::1]:63701 -> 8283
@@ -80,7 +83,9 @@ The path to access `wego-api` will be `http://127.0.0.1:63701`. UI will be acces
 
 Initially the only command using `wego-api` will be `wego ui run` which will run the port-forward command in the background, keep it running and open the browser using that same local address, as the UI web server lives in `wego-api`.
 
-By using this command there is security issue we need to solve. The issue is that `wego-api` could be accessed by any other program on the local machine. To fix this issue there will be an extra authorization layer that will be addressed in another ADR. 
+By using this command there is security issue we need to solve. The issue is that `wego-api` could be accessed by any other program on the local machine. To fix this issue there will be an extra authorization layer that will be addressed in another ADR.
+
+The flag `--wego-api-port` will be added to allow the user expose `wego-api` in the local port of their choice.
 
 ### Automate the build of docker images from the `wego-api`.
 
