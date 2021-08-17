@@ -56,6 +56,19 @@ type FakeLogger struct {
 		arg1 string
 		arg2 []interface{}
 	}
+	WriteStub        func([]byte) (int, error)
+	writeMutex       sync.RWMutex
+	writeArgsForCall []struct {
+		arg1 []byte
+	}
+	writeReturns struct {
+		result1 int
+		result2 error
+	}
+	writeReturnsOnCall map[int]struct {
+		result1 int
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -324,6 +337,75 @@ func (fake *FakeLogger) WarningfArgsForCall(i int) (string, []interface{}) {
 	return argsForCall.arg1, argsForCall.arg2
 }
 
+func (fake *FakeLogger) Write(arg1 []byte) (int, error) {
+	var arg1Copy []byte
+	if arg1 != nil {
+		arg1Copy = make([]byte, len(arg1))
+		copy(arg1Copy, arg1)
+	}
+	fake.writeMutex.Lock()
+	ret, specificReturn := fake.writeReturnsOnCall[len(fake.writeArgsForCall)]
+	fake.writeArgsForCall = append(fake.writeArgsForCall, struct {
+		arg1 []byte
+	}{arg1Copy})
+	stub := fake.WriteStub
+	fakeReturns := fake.writeReturns
+	fake.recordInvocation("Write", []interface{}{arg1Copy})
+	fake.writeMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeLogger) WriteCallCount() int {
+	fake.writeMutex.RLock()
+	defer fake.writeMutex.RUnlock()
+	return len(fake.writeArgsForCall)
+}
+
+func (fake *FakeLogger) WriteCalls(stub func([]byte) (int, error)) {
+	fake.writeMutex.Lock()
+	defer fake.writeMutex.Unlock()
+	fake.WriteStub = stub
+}
+
+func (fake *FakeLogger) WriteArgsForCall(i int) []byte {
+	fake.writeMutex.RLock()
+	defer fake.writeMutex.RUnlock()
+	argsForCall := fake.writeArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeLogger) WriteReturns(result1 int, result2 error) {
+	fake.writeMutex.Lock()
+	defer fake.writeMutex.Unlock()
+	fake.WriteStub = nil
+	fake.writeReturns = struct {
+		result1 int
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeLogger) WriteReturnsOnCall(i int, result1 int, result2 error) {
+	fake.writeMutex.Lock()
+	defer fake.writeMutex.Unlock()
+	fake.WriteStub = nil
+	if fake.writeReturnsOnCall == nil {
+		fake.writeReturnsOnCall = make(map[int]struct {
+			result1 int
+			result2 error
+		})
+	}
+	fake.writeReturnsOnCall[i] = struct {
+		result1 int
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeLogger) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -343,6 +425,8 @@ func (fake *FakeLogger) Invocations() map[string][][]interface{} {
 	defer fake.waitingfMutex.RUnlock()
 	fake.warningfMutex.RLock()
 	defer fake.warningfMutex.RUnlock()
+	fake.writeMutex.RLock()
+	defer fake.writeMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
