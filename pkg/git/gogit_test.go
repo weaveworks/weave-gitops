@@ -22,13 +22,18 @@ import (
 )
 
 var (
-	gitClient git.Git
-	dir       string
-	err       error
+	gitClient     git.Git
+	dir           string
+	err           error
+	fakeGit       *wrapperfakes.FakeGit
+	fakeGitClient git.Git
 )
 
 var _ = BeforeEach(func() {
 	gitClient = git.New(nil, wrapper.NewGoGit())
+
+	fakeGit = &wrapperfakes.FakeGit{}
+	fakeGitClient = git.New(nil, fakeGit)
 
 	dir, err = ioutil.TempDir("", "wego-git-test-")
 	Expect(err).ShouldNot(HaveOccurred())
@@ -100,11 +105,7 @@ var _ = Describe("ValidateAccess", func() {
 
 	It("should not fail on an empty repo", func() {
 
-		fakeGit := &wrapperfakes.FakeGit{}
-
 		fakeGit.PlainCloneContextReturns(nil, transport.ErrEmptyRemoteRepository)
-
-		fakeGitClient := git.New(nil, fakeGit)
 
 		err := fakeGitClient.ValidateAccess(context.Background(), "https://github.com/githubtraining/hellogitworld", "master")
 
@@ -113,13 +114,9 @@ var _ = Describe("ValidateAccess", func() {
 
 	It("should fail with custom error", func() {
 
-		fakeGit := &wrapperfakes.FakeGit{}
-
 		customError := errors.New("my-custom-error")
 
 		fakeGit.PlainCloneContextReturns(nil, customError)
-
-		fakeGitClient := git.New(nil, fakeGit)
 
 		err := fakeGitClient.ValidateAccess(context.Background(), "https://github.com/githubtraining/hellogitworld", "master")
 		Expect(err).Should(HaveOccurred())
