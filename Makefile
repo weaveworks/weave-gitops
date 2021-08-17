@@ -93,6 +93,9 @@ ui-audit:
 
 ui: node_modules cmd/wego/ui/run/dist/main.js
 
+dist/index.js:
+	npm run build:lib && cp package.json dist
+
 # JS coverage info
 coverage/lcov.info:
 	npm run test -- --coverage
