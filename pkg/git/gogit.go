@@ -129,7 +129,7 @@ func (g *GoGit) Clone(ctx context.Context, path, url, branch string) (bool, erro
 func (g *GoGit) clone(ctx context.Context, path, url, branch string, depth int) (*gogit.Repository, error) {
 
 	branchRef := plumbing.NewBranchReferenceName(branch)
-	r, err := gogit.PlainCloneContext(ctx, path, false, &gogit.CloneOptions{
+	r, err := g.git.PlainCloneContext(ctx, path, false, &gogit.CloneOptions{
 		URL:           url,
 		Auth:          g.auth,
 		RemoteName:    gogit.DefaultRemoteName,
