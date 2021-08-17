@@ -112,17 +112,8 @@ func (g *GoGit) Init(path, url, branch string) (bool, error) {
 // returns false.
 func (g *GoGit) Clone(ctx context.Context, path, url, branch string) (bool, error) {
 	g.path = path
-	branchRef := plumbing.NewBranchReferenceName(branch)
-	r, err := gogit.PlainCloneContext(ctx, path, false, &gogit.CloneOptions{
-		URL:           url,
-		Auth:          g.auth,
-		RemoteName:    gogit.DefaultRemoteName,
-		ReferenceName: branchRef,
-		SingleBranch:  true,
-		NoCheckout:    false,
-		Progress:      nil,
-		Tags:          gogit.NoTags,
-	})
+
+	r, err := g.clone(ctx, path, url, branch, 0)
 	if err != nil {
 		if errors.Is(err, transport.ErrEmptyRemoteRepository) ||
 			errors.Is(err, gogit.NoMatchingRefSpecError{}) {
@@ -133,6 +124,27 @@ func (g *GoGit) Clone(ctx context.Context, path, url, branch string) (bool, erro
 
 	g.repository = r
 	return true, nil
+}
+
+func (g *GoGit) clone(ctx context.Context, path, url, branch string, depth int) (*gogit.Repository, error) {
+
+	branchRef := plumbing.NewBranchReferenceName(branch)
+	r, err := gogit.PlainCloneContext(ctx, path, false, &gogit.CloneOptions{
+		URL:           url,
+		Auth:          g.auth,
+		RemoteName:    gogit.DefaultRemoteName,
+		ReferenceName: branchRef,
+		SingleBranch:  true,
+		NoCheckout:    false,
+		Progress:      nil,
+		Depth:         depth,
+		Tags:          gogit.NoTags,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }
 
 // Write writes the provided content to the path, if the file exists, it will be
@@ -310,19 +322,7 @@ func (g *GoGit) ValidateAccess(ctx context.Context, url string, branch string) e
 	}
 	defer os.RemoveAll(path)
 
-	branchRef := plumbing.NewBranchReferenceName(branch)
-	_, err = g.git.PlainCloneContext(ctx, path, true, &gogit.CloneOptions{
-		URL:           url,
-		Auth:          g.auth,
-		RemoteName:    gogit.DefaultRemoteName,
-		ReferenceName: branchRef,
-		SingleBranch:  true,
-		NoCheckout:    false,
-		Progress:      nil,
-		Depth:         1,
-		Tags:          gogit.NoTags,
-	})
-
+	_, err = g.clone(ctx, path, url, branch, 1)
 	if err != nil && !errors.Is(err, transport.ErrEmptyRemoteRepository) {
 		return fmt.Errorf("error validating git repo access %w", err)
 	}
