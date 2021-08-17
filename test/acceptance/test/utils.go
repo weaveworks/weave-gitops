@@ -22,6 +22,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const APP_REMOVAL_TIMEOUT time.Duration = 30 * time.Second
 const EVENTUALLY_DEFAULT_TIME_OUT time.Duration = 60 * time.Second
 const TIMEOUT_TWO_MINUTES time.Duration = 120 * time.Second
 const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
@@ -277,7 +278,7 @@ func waitForNamespaceToTerminate(namespace string, timeout time.Duration) error 
 	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl get ns %s", namespace))
 
 	if err != nil {
-		log.Infof("Namespace %s doesn't exist, nothing to clean, Skipping...", namespace)
+		log.Infof("Namespace %s doesn't exist, nothing to clean — skipping...", namespace)
 		return nil
 	}
 
@@ -384,31 +385,38 @@ func createAppReplicas(repoAbsolutePath string, appManifestFilePath string, repl
 func waitForReplicaCreation(namespace string, replicasSetValue int, timeout time.Duration) error {
 
 	replica := strconv.Itoa(replicasSetValue)
-	pollInterval := 5
-	if timeout < 5*time.Second {
-		timeout = 5 * time.Second
-	}
+	pollInterval := time.Second * 5
 	timeoutInSeconds := int(timeout.Seconds())
 
-	for i := pollInterval; i < timeoutInSeconds; i += pollInterval {
-		log.Infof("Waiting for replicas to be created under namespace: %s || %d second(s) passed of %d seconds timeout", namespace, i, timeoutInSeconds)
+	_ = utils.WaitUntil(os.Stdout, pollInterval, timeout, func() error {
+		log.Infof("Waiting for replicas to be created under namespace: %s || timeout: %d second(s)", namespace, timeoutInSeconds)
 
 		out, _ := runCommandAndReturnStringOutput(fmt.Sprintf("kubectl get pods -n %s --field-selector=status.phase=Running --no-headers=true | wc -l", namespace))
 		out = strings.TrimSpace(out)
-		if out != replica {
-			log.Infof("Replica(s) not created, waiting...")
-			output, _ := runCommandAndReturnStringOutput(fmt.Sprintf("kubectl get pods -n %s --field-selector=status.phase=Running --no-headers=true | wc -l", namespace))
-			if output == replica {
-				log.Infof("Replica(s) created, replicaset: %s || namespace: %s", output, namespace)
-				return nil
-			}
-		} else if out == replica {
-			log.Infof("Replica(s) created, replicaset: %s || namespace: %s", out, namespace)
+		if out == replica {
 			return nil
 		}
-		time.Sleep(time.Duration(pollInterval) * time.Second)
-	}
-	return fmt.Errorf("Error: Failed to create replicaset %s under namespace: %s, timeout reached", replica, namespace)
+		return fmt.Errorf(": Replica(s) not created, waiting...")
+	})
+	return fmt.Errorf("Timeout reached, failed to create replicas")
+}
+
+func waitForAppRemoval(appName string, timeout time.Duration) error {
+
+	pollInterval := time.Second * 5
+
+	_ = utils.WaitUntil(os.Stdout, pollInterval, timeout, func() error {
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s app list", WEGO_BIN_PATH))
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Expect(err).ShouldNot(HaveOccurred())
+		Eventually(session).Should(gexec.Exit())
+
+		if strings.Contains(string(session.Wait().Out.Contents()), appName) {
+			return fmt.Errorf(": Waiting for app: %s to delete", appName)
+		}
+		return nil
+	})
+	return fmt.Errorf("Failed to delete app")
 }
 
 // Run a command, passing through stdout/stderr to the OS standard streams

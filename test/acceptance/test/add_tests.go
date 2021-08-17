@@ -759,12 +759,13 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("SmokeTest - Verify that wego can deploy multiple apps one with private and other with public repo", func() {
+	FIt("SmokeTest - Verify that wego can deploy multiple apps one with private and other with public repo", func() {
 		var listOutput string
 		var pauseOutput string
 		var unpauseOutput string
 		var appStatus1 *gexec.Session
 		var appStatus2 *gexec.Session
+		var appRemoveOutput *gexec.Session
 		var repoAbsolutePath1 string
 		var repoAbsolutePath2 string
 		var appManifestFile1 string
@@ -884,6 +885,14 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Expect(pauseOutput).To(ContainSubstring("gitops automation paused for " + appName1))
 		})
 
+		By("When I check app status for paused app", func() {
+			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName1))
+		})
+
+		By("Then I should see pause status as suspended=true", func() {
+			Eventually(appStatus1).Should(gbytes.Say(`kustomization/` + appName1 + `\s*True\s*.*True`))
+		})
+
 		By("And changes to the app files should not be synchronized", func() {
 			appManifestFile1, _ = runCommandAndReturnStringOutput("cd " + repoAbsolutePath1 + " && ls")
 			createAppReplicas(repoAbsolutePath1, appManifestFile1, replicaSetValue, tip1.workloadName)
@@ -926,6 +935,28 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 		By("Then I should see unpause message without any errors", func() {
 			Expect(unpauseOutput).To(ContainSubstring("app " + appName1 + " is already reconciling"))
+		})
+
+		By("When I check app status for unpaused app", func() {
+			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName1))
+		})
+
+		By("Then I should see pause status as suspended=false", func() {
+			Eventually(appStatus1).Should(gbytes.Say(`kustomization/` + appName1 + `\s*True\s*.*False`))
+		})
+
+		By("When I remove an app", func() {
+			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app remove " + appName2)
+		})
+
+		By("Then I should see app removing message", func() {
+			Eventually(appRemoveOutput).Should(gbytes.Say("► Removing application from cluster and repository"))
+			Eventually(appRemoveOutput).Should(gbytes.Say("► Committing and pushing wego updates for application"))
+			Eventually(appRemoveOutput).Should(gbytes.Say("► Pushing app changes to repository"))
+		})
+
+		By("And app should get deleted from the cluster", func() {
+			_ = waitForAppRemoval(appName2, APP_REMOVAL_TIMEOUT)
 		})
 	})
 
