@@ -1,12 +1,12 @@
-
 # 0. TEMPLATE
-[The number of the ADR followed by a Short Description. E.g., 1. Record architecture decisions.  The file name should match the title, e.g., 0001-record-architecture-decisions]
+
+[The number of the ADR followed by a Short Description. E.g., 1. Record architecture decisions. The file name should match the title, e.g., 0001-record-architecture-decisions]
 
 ## Status
 
 [What is the status - Proposed, Accepted, Rejected, Deprecated, Superseded, etc.? If superseded, add the ADR that replaced it or information in the context for why.]
 
-## Context
+## Problem
 
 [The issue motivating this decision, and any context that influences or constrains the decision. ]
 
