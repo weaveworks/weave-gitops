@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -77,31 +78,10 @@ type AddParams struct {
 }
 
 const (
-	DefaultName                       = ""
-	DefaultURL                        = ""
-	DefaultPath                       = "./"
-	DefaultBranch                     = "main"
-	DefaultDeploymentType             = "kustomize"
-	DefaultChart                      = ""
-	DefaultPrivateKey                 = ""
-	DefaultAppConfigURL               = ""
-	DefaultHelmReleaseTargetNamespace = ""
-	DefaultDryRun                     = false
-	DefaultAutoMerge                  = false
+	DefaultPath           = "./"
+	DefaultBranch         = "main"
+	DefaultDeploymentType = "kustomize"
 )
-
-func (a AddParams) PopulateDefaultValues() {
-	a.Name = DefaultName
-	a.Url = DefaultURL
-	a.Path = DefaultPath
-	a.Branch = DefaultBranch
-	a.DeploymentType = DefaultDeploymentType
-	a.Chart = DefaultChart
-	a.PrivateKey = DefaultPrivateKey
-	a.AppConfigUrl = DefaultAppConfigURL
-	a.DryRun = DefaultDryRun
-	a.AutoMerge = DefaultAutoMerge
-}
 
 // Three models:
 // --app-config-url=none
@@ -246,6 +226,10 @@ func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, 
 		params.Url = url
 	default:
 		// making sure url is in the correct format
+		_, err := url.Parse(params.Url)
+		if err != nil {
+			return params, fmt.Errorf("error validating url %w", err)
+		}
 		params.Url = utils.SanitizeRepoUrl(params.Url)
 
 		// resetting Dir param since Url has priority over it
@@ -255,9 +239,15 @@ func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, 
 	if params.Name == "" {
 		params.Name = generateResourceName(params.Url)
 	}
+	if params.Path == "" {
+		params.Path = DefaultPath
+	}
+	if params.DeploymentType == "" {
+		params.DeploymentType = DefaultDeploymentType
+	}
 
 	if params.Branch == "" {
-		params.Branch = "main"
+		params.Branch = DefaultBranch
 
 		if params.SourceType == string(wego.SourceTypeGit) {
 			branch, err := gitProvider.GetDefaultBranch(params.Url)
