@@ -5,7 +5,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
+	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -19,7 +19,7 @@ func TestGitProviderAuth(t *testing.T) {
 var cleanupK8s func()
 
 var _ = BeforeSuite(func() {
-	k, stop, err := utils.StartK8sTestEnvironment()
+	k, stop, err := testutils.StartK8sTestEnvironment()
 	Expect(err).NotTo(HaveOccurred())
 	cleanupK8s = stop
 	k8sClient = k

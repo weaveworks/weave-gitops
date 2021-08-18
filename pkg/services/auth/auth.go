@@ -45,7 +45,7 @@ type authSvc struct {
 	gitProvider gitproviders.GitProvider
 }
 
-// NewAuthService constructs an auth service for doing git and GitProvider operations with authenticated clients.
+// NewAuthService constructs an auth service for doing git operations with an authenticated client.
 func NewAuthService(fluxClient flux.Flux, k8sClient client.Client, providerName gitproviders.GitProviderName, l logger.Logger, token string) (AuthService, error) {
 	provider, err := gitproviders.New(gitproviders.Config{Provider: providerName, Token: token})
 	if err != nil {
