@@ -168,14 +168,11 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			Name:      gitproviders.CreateAppSecretName(targetName, normalizedUrl),
 			Namespace: params.Namespace,
 		}
-		if err := authsvc.SetupDeployKey(ctx, name, targetName, normalizedUrl); err != nil {
+		gitClient, err = authsvc.SetupDeployKey(ctx, name, targetName, normalizedUrl)
+		if err != nil {
 			return fmt.Errorf("error setting up deploy keys: %w", err)
 		}
 
-		gitClient, err = authsvc.GitClient()
-		if err != nil {
-			return fmt.Errorf("error getting authenticated git client: %w", err)
-		}
 	}
 
 	appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)

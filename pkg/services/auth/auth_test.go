@@ -47,7 +47,7 @@ var _ = Describe("auth", func() {
 			secretName string
 			gp         gitprovidersfakes.FakeGitProvider
 			osysClient *osys.OsysClient
-			as         *AuthService
+			as         AuthService
 			name       types.NamespacedName
 			fluxClient flux.Flux
 		)
@@ -59,7 +59,7 @@ var _ = Describe("auth", func() {
 			gp = gitprovidersfakes.FakeGitProvider{}
 			fluxClient = flux.New(osysClient, &actualFluxRunner{Runner: &runner.CLIRunner{}})
 
-			as = &AuthService{
+			as = &authSvc{
 				logger:      logger.NewCLILogger(bytes.NewBuffer([]byte{})), //Stay silent in tests.
 				fluxClient:  fluxClient,
 				k8sClient:   k8sClient,
@@ -80,20 +80,15 @@ var _ = Describe("auth", func() {
 				}, nil
 			}
 		})
-		It("returns an error if deploy keys are not set up", func() {
-			_, err := as.GitClient()
-			Expect(err).To(MatchError(ErrNoDeployKeysSetup))
-		})
 		It("create and stores a deploy key if none exists", func() {
-			Expect(as.SetupDeployKey(ctx, name, testClustername, repoUrl)).To(Succeed())
+			_, err := as.SetupDeployKey(ctx, name, testClustername, repoUrl)
+			Expect(err).NotTo(HaveOccurred())
 			sn := types.NamespacedName{Name: secretName, Namespace: namespace.Name}
 			secret := &corev1.Secret{}
 			Expect(k8sClient.Get(ctx, sn, secret)).To(Succeed())
 
 			Expect(secret.Data["identity"]).NotTo(BeNil())
 			Expect(secret.Data["identity.pub"]).NotTo(BeNil())
-			_, err = as.GitClient()
-			Expect(err).NotTo(HaveOccurred())
 		})
 		It("uses an existing deploy key when present", func() {
 			gp.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
@@ -101,12 +96,11 @@ var _ = Describe("auth", func() {
 			}
 			sn := types.NamespacedName{Name: secretName, Namespace: namespace.Name}
 			// using `generateDeployKey` as a helper for the test setup.
-			_, secret, err := (&AuthService{fluxClient: fluxClient}).generateDeployKey(testClustername, sn, repoUrl)
+			_, secret, err := (&authSvc{fluxClient: fluxClient}).generateDeployKey(testClustername, sn, repoUrl)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(k8sClient.Create(ctx, secret)).To(Succeed())
 
-			Expect(as.SetupDeployKey(ctx, name, testClustername, repoUrl)).To(Succeed())
-			_, err = as.GitClient()
+			_, err = as.SetupDeployKey(ctx, name, testClustername, repoUrl)
 			Expect(err).NotTo(HaveOccurred())
 			// We should NOT have uploaded anything since the key already exists
 			Expect(gp.UploadDeployKeyCallCount()).To(Equal(0))
