@@ -910,6 +910,17 @@ stringData:
 			Expect(updated.Path).To(Equal(DefaultPath))
 			Expect(updated.Branch).To(Equal(DefaultBranch))
 		})
+
+		It("should fail when giving a wrong url format", func() {
+			addParams := AddParams{}
+			addParams.Url = "{http:/-*wrong-url-827"
+
+			_, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).Should(ContainSubstring("error validating url"))
+			Expect(err.Error()).Should(ContainSubstring(addParams.Url))
+
+		})
 	})
 })
 
