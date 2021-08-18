@@ -1,6 +1,7 @@
 package osys
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -61,10 +62,13 @@ func (o *OsysClient) Setenv(envVar, value string) error {
 // local versions of UserHomeDir, LookupEnv, and Stdin and so that they can also
 // be mocked (e.g. we might want to mock the private key password handing).
 
+var ErrNoGitProviderTokenSet = errors.New("no git provider token env variable set")
+
 func (o *OsysClient) GetGitProviderToken() (string, error) {
 	providerToken, found := o.LookupEnv("GITHUB_TOKEN")
-	if !found {
-		return "", fmt.Errorf("GITHUB_TOKEN not set in environment")
+
+	if !found || providerToken == "" {
+		return "", ErrNoGitProviderTokenSet
 	}
 
 	return providerToken, nil
