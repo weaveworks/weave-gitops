@@ -897,6 +897,20 @@ stringData:
 			Expect(kubeClient.ApplyCallCount()).To(Equal(0))
 		})
 	})
+
+	Context("check for default values on AddParameters", func() {
+		It("default values for path and deploymentType and branch should be correct", func() {
+			addParams := AddParams{}
+			addParams.Url = "http://something"
+
+			updated, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			Expect(updated.DeploymentType).To(Equal(DefaultDeploymentType))
+			Expect(updated.Path).To(Equal(DefaultPath))
+			Expect(updated.Branch).To(Equal(DefaultBranch))
+		})
+	})
 })
 
 func getHash(inputs ...string) (string, error) {
