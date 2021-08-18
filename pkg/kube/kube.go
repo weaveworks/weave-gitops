@@ -87,7 +87,15 @@ var _ Kube = &KubeClient{}
 // }
 
 func (k *KubeClient) Apply(ctx context.Context, manifests []byte, namespace string) error {
-	return fmt.Errorf("apply from kubectl is deprecated, use the go-client implementation")
+	// return fmt.Errorf("apply from kubectl is deprecated, use the go-client implementation")
+	args := []string{
+		"apply",
+		"--namespace", namespace,
+		"-f", "-",
+	}
+
+	_, err := k.runKubectlCmdWithInput(args, manifests)
+	return err
 }
 
 func (k *KubeClient) Delete(manifests []byte, namespace string) ([]byte, error) {
