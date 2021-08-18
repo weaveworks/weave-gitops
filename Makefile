@@ -68,7 +68,7 @@ vet:
 dependencies: .deps
 
 node_modules:
-	npm install
+	npm ci
 
 cmd/wego/ui/run/dist:
 	mkdir -p cmd/wego/ui/run/dist
@@ -92,6 +92,8 @@ ui-audit:
 	npm audit
 
 ui: node_modules cmd/wego/ui/run/dist/main.js
+
+ui-lib: node_modules dist/index.js
 
 dist/index.js:
 	npm run build:lib && cp package.json dist
