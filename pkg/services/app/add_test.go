@@ -902,6 +902,31 @@ stringData:
 			Expect(kubeClient.ApplyCallCount()).To(Equal(0))
 		})
 	})
+
+	Context("check for default values on AddParameters", func() {
+		It("default values for path and deploymentType and branch should be correct", func() {
+			addParams := AddParams{}
+			addParams.Url = "http://something"
+
+			updated, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			Expect(updated.DeploymentType).To(Equal(DefaultDeploymentType))
+			Expect(updated.Path).To(Equal(DefaultPath))
+			Expect(updated.Branch).To(Equal(DefaultBranch))
+		})
+
+		It("should fail when giving a wrong url format", func() {
+			addParams := AddParams{}
+			addParams.Url = "{http:/-*wrong-url-827"
+
+			_, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).Should(ContainSubstring("error validating url"))
+			Expect(err.Error()).Should(ContainSubstring(addParams.Url))
+
+		})
+	})
 })
 
 func getHash(inputs ...string) (string, error) {
