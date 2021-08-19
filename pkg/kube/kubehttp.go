@@ -18,6 +18,7 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/pkg/errors"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -261,7 +262,23 @@ func (c *KubeHTTP) GetApplications(ctx context.Context, namespace string) ([]weg
 }
 
 func (c *KubeHTTP) AppExistsInCluster(ctx context.Context, namespace string, appHash string) error {
-	return errors.New("LabelExistsInCluster is not implemented for kubeHTTP")
+	apps, err := c.GetApplications(ctx, namespace)
+	if err != nil {
+		return err
+	}
+
+	for _, app := range apps {
+		existingHash, err := utils.GetAppHash(app)
+		if err != nil {
+			return err
+		}
+
+		if appHash == existingHash {
+			return fmt.Errorf("unable to create resource, resource already exists in cluster")
+		}
+	}
+
+	return nil
 }
 
 func (c *KubeHTTP) GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error {

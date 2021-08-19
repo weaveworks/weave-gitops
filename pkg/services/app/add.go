@@ -159,7 +159,7 @@ func (a *App) Add(params AddParams) error {
 	}
 
 	// if application already exists in the cluster we fail to add the application
-	if err = a.kube.AppExistsInCluster(ctx, params.Namespace, appHash); err != nil {
+	if err = a.kubeHttp.AppExistsInCluster(ctx, params.Namespace, appHash); err != nil {
 		return err
 	}
 
