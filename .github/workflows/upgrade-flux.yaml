@@ -19,45 +19,14 @@ jobs:
         id: update
         run: |
 
-          latestFluxVersion="$(curl -s --request GET --url "https://api.github.com/repos/fluxcd/flux2/releases?per_page=1" | jq . | jq '.[0] | .tag_name' | jq -r | sed -e 's/v//')"
-
-          currentFluxVersion="$(sed -n 's/version="\([0-9\.]*\)"/\1/p' tools/dependencies.toml | head -1)"
-
-          echo "$latestFluxVersion"
-          echo "$currentFluxVersion"
-
-          if [[ "$latestFluxVersion" == "$currentFluxVersion" ]]; then
-            exit 0
-          fi
-
-          newContent=$(sed -e "/version\=\"[0-9\.]*\"/{s//version=\"$latestFluxVersion\"/;:a" -e '$!N;$!ba' -e '}' tools/dependencies.toml)
-
-          echo "$newContent" > tools/dependencies.toml
-
-          PR_BODY="
-          **What changed?**
-          Upgrade flux version from ${currentFluxVersion} to ${latestFluxVersion}
-
-          **Why?**
-          To be up to date with latest flux2 releases
-
-          **How did you test it?**
-          Test suites on CI
-
-          **Release notes**
-
-          **Documentation Changes**"
-
-          PR_BODY="${PR_BODY//'%'/'%25'}"
-          PR_BODY="${PR_BODY//$'\n'/'%0A'}"
-          PR_BODY="${PR_BODY//$'\r'/'%0D'}"
+          .github/scripts/current_and_old_flux_versions.sh
 
           {
             # diff change
             git diff
             # export PR_BODY for PR and commit
             echo "::set-output name=pr_body::$PR_BODY"
-            echo "::set-output name=pr_title::Upgrade flux version from $currentFluxVersion to $latestFluxVersion"
+            echo "::set-output name=pr_title::$PR_TITLE"
           }
       - name: Create Pull Request
         id: cpr
