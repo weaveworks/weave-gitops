@@ -6,7 +6,6 @@ on:
     - cron: "0 * * * *"
   push:
     branches: [main]
-  pull_request:
 
 jobs:
   update-components:
