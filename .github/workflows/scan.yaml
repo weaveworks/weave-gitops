@@ -28,7 +28,7 @@ jobs:
       - name: Fake Install flux
         run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
       - name: Remove UI deps from Scan
-        run: rm package-lock.json && rm package.json && make cmd/ui/dist/index.html
+        run: rm package-lock.json && rm package.json && make cmd/wego/ui/run/dist/index.html
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/golang@master
         env:

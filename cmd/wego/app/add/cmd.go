@@ -22,6 +22,10 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
+const (
+	SSHAuthSock = "SSH_AUTH_SOCK"
+)
+
 var params app.AddParams
 
 var Cmd = &cobra.Command{
@@ -51,12 +55,13 @@ var Cmd = &cobra.Command{
 func init() {
 	Cmd.Flags().StringVar(&params.Name, "name", "", "Name of application")
 	Cmd.Flags().StringVar(&params.Url, "url", "", "URL of remote repository")
-	Cmd.Flags().StringVar(&params.Path, "path", "./", "Path of files within git repository")
-	Cmd.Flags().StringVar(&params.Branch, "branch", "main", "Branch to watch within git repository")
-	Cmd.Flags().StringVar(&params.DeploymentType, "deployment-type", "kustomize", "deployment type [kustomize, helm]")
+	Cmd.Flags().StringVar(&params.Path, "path", app.DefaultPath, "Path of files within git repository")
+	Cmd.Flags().StringVar(&params.Branch, "branch", app.DefaultBranch, "Branch to watch within git repository")
+	Cmd.Flags().StringVar(&params.DeploymentType, "deployment-type", app.DefaultDeploymentType, "deployment type [kustomize, helm]")
 	Cmd.Flags().StringVar(&params.Chart, "chart", "", "Specify chart for helm source")
 	Cmd.Flags().StringVar(&params.PrivateKey, "private-key", "", "Private key to access git repository over ssh")
 	Cmd.Flags().StringVar(&params.AppConfigUrl, "app-config-url", "", "URL of external repository (if any) which will hold automation manifests; NONE to store only in the cluster")
+	Cmd.Flags().StringVar(&params.HelmReleaseTargetNamespace, "helm-release-target-namespace", "", "Namespace in which to deploy a helm chart; defaults to the wego installation namespace")
 	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'wego add' will not make any changes to the system; it will just display the actions that would have been taken")
 	Cmd.Flags().BoolVar(&params.AutoMerge, "auto-merge", false, "If set, 'wego add' will merge automatically into the set --branch")
 }
@@ -78,24 +83,36 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	osysClient := osys.New()
-	privateKey, err := osysClient.CanonicalPrivateKeyFile(params.PrivateKey)
-	if err != nil {
-		return err
-	}
-
-	params.PrivateKey = privateKey
-
-	authMethod, err := osysClient.RetrievePublicKeyFromFile(params.PrivateKey)
-	if err != nil {
-		return err
-	}
 
 	token, err := osysClient.GetGitProviderToken()
-	if err != nil {
-		return err
+
+	if err == osys.ErrNoGitProviderTokenSet {
+		// No provider token set, we need to do the auth flow.
+		url := params.Url
+		if url == "" {
+			// Find the url using an unauthenticated git client. We just need to read the URL.
+			// params.Dir must be defined here because we already checked for it above.
+			url, err = git.New(nil).GetRemoteUrl(params.Dir, "origin")
+			if err != nil {
+				return fmt.Errorf("could not get remote url for directory %s: %w", params.Dir, err)
+			}
+		}
+		// DoAppRepoCLIAuth will take over the CLI and block until the flow is complete.
+		token, err = app.DoAppRepoCLIAuth(url, osysClient.Stdout())
+		if err != nil {
+			return fmt.Errorf("could not complete auth flow: %w", err)
+		}
+	} else if err != nil {
+		// We didn't detect a NoGitProviderSet error, something else went wrong.
+		return fmt.Errorf("could not get access token: %w", err)
 	}
 
 	params.GitProviderToken = token
+
+	authMethod, err := osysClient.SelectAuthMethod(params.PrivateKey)
+	if err != nil {
+		return fmt.Errorf("error selecting auth method: %w", err)
+	}
 
 	cliRunner := &runner.CLIRunner{}
 	fluxClient := flux.New(osysClient, cliRunner)

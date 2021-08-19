@@ -175,8 +175,6 @@ jobs:
         git config --global user.email "test-user@weave.works"
         git config --global user.name "Testy McTestFace"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-    - name: Install Ginkgo binary
-      run: go get github.com/onsi/ginkgo/ginkgo
     - name: User Acceptance Tests (${{matrix.os}})
       env:
         GITHUB_ORG: weaveworks-gitops-test

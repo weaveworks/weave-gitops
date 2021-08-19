@@ -2,6 +2,8 @@ package utils
 
 import (
 	"bytes"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -11,7 +13,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 )
 
 func TestExists(t *testing.T) {
@@ -97,3 +101,72 @@ error occurred some error, retrying in 1s
 
 	})
 })
+
+var _ = Describe("Test app hash", func() {
+
+	It("should return right hash for a helm app", func() {
+
+		app := wego.Application{
+			Spec: wego.ApplicationSpec{
+				Branch:         "main",
+				URL:            "https://github.com/owner/repo1",
+				DeploymentType: wego.DeploymentTypeHelm,
+			},
+		}
+		app.Name = "nginx"
+
+		appHash, err := GetAppHash(app)
+		Expect(err).NotTo(HaveOccurred())
+
+		expectedHash, err := getHash(app.Spec.URL, app.Name, app.Spec.Branch)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(appHash).To(Equal("wego-" + expectedHash))
+
+	})
+
+	It("should return right hash for a kustomize app", func() {
+		app := wego.Application{
+			Spec: wego.ApplicationSpec{
+				Branch:         "main",
+				URL:            "https://github.com/owner/repo1",
+				Path:           "custompath",
+				DeploymentType: wego.DeploymentTypeKustomize,
+			},
+		}
+
+		appHash, err := GetAppHash(app)
+		Expect(err).NotTo(HaveOccurred())
+
+		expectedHash, err := getHash(app.Spec.URL, app.Spec.Path, app.Spec.Branch)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(appHash).To(Equal("wego-" + expectedHash))
+
+	})
+})
+
+var _ = DescribeTable("SanitizeRepoUrl", func(input string, expected string) {
+	result := SanitizeRepoUrl(input)
+	Expect(result).To(Equal(expected))
+},
+	Entry("git clone style", "git@github.com:someuser/podinfo.git", "ssh://git@github.com/someuser/podinfo.git"),
+	Entry("url style", "ssh://git@github.com/someuser/podinfo.git", "ssh://git@github.com/someuser/podinfo.git"),
+	// TODO: there is other code relying on everything looking like an SSH url.
+	// We need to refactor the SanitizeRepoUrl function .
+	// https://github.com/weaveworks/weave-gitops/issues/577
+	Entry("https style", "https://github.com/weaveworks/weave-gitops.git", "ssh://git@github.com/weaveworks/weave-gitops.git"),
+)
+
+func getHash(inputs ...string) (string, error) {
+	h := md5.New()
+	final := ""
+	for _, input := range inputs {
+		final += input
+	}
+	_, err := h.Write([]byte(final))
+	if err != nil {
+		return "", fmt.Errorf("error generating app hash %s", err)
+	}
+	return hex.EncodeToString(h.Sum(nil)), nil
+}

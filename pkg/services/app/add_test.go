@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/go-git/go-billy/v5/memfs"
@@ -34,6 +35,10 @@ var _ = Describe("Add", func() {
 			Namespace:      "wego-system",
 			AppConfigUrl:   "NONE",
 			AutoMerge:      true,
+		}
+
+		gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
+			return "main", nil
 		}
 	})
 
@@ -83,7 +88,7 @@ stringData:
 		Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(1))
 
 		secretRef, repoUrl, namespace := fluxClient.CreateSecretGitArgsForCall(0)
-		Expect(secretRef).To(Equal("weave-gitops-test-cluster-bar"))
+		Expect(secretRef).To(Equal("wego-test-cluster-bar"))
 		Expect(repoUrl).To(Equal("ssh://git@github.com/foo/bar.git"))
 		Expect(namespace).To(Equal("wego-system"))
 
@@ -98,10 +103,13 @@ stringData:
 			return gitproviders.AccountTypeOrg, nil
 		}
 
+		gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
+			return "main", nil
+		}
+
 		gitProviders.GetRepoInfoStub = func(accountType gitproviders.ProviderAccountType, owner, repoName string) (*gitprovider.RepositoryInfo, error) {
-			branch := "main"
 			visibility := gitprovider.RepositoryVisibility("public")
-			return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: &branch, Visibility: &visibility}, nil
+			return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: nil, Visibility: &visibility}, nil
 		}
 
 		secretRef, err := appSrv.(*App).createAndUploadDeployKey(
@@ -111,6 +119,37 @@ stringData:
 			gitProviders)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(secretRef).To(Equal(""))
+	})
+	Context("Looking up repo default branch", func() {
+		var _ = BeforeEach(func() {
+			gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
+				branch := "an-unusual-branch" // for app repository
+				if !strings.Contains(url, "bar") {
+					branch = "config-branch" // for config repository
+				}
+				return branch, nil
+			}
+
+			gitProviders.GetRepoInfoStub = func(accountType gitproviders.ProviderAccountType, owner, repoName string) (*gitprovider.RepositoryInfo, error) {
+				visibility := gitprovider.RepositoryVisibility("public")
+				return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: nil, Visibility: &visibility}, nil
+			}
+
+			addParams.Branch = ""
+		})
+
+		It("Uses the default branch from the repository if no branch is specified", func() {
+			updated, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(updated.Branch).To(Equal("an-unusual-branch"))
+		})
+
+		It("Allows a specified branch to override the repo's default branch", func() {
+			addParams.Branch = "an-overriding-branch"
+			updated, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(updated.Branch).To(Equal("an-overriding-branch"))
+		})
 	})
 
 	Describe("checks for existing deploy key before creating secret", func() {
@@ -173,7 +212,7 @@ stringData:
 				Expect(name).To(Equal("bar"))
 				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
-				Expect(secretRef).To(Equal("weave-gitops-test-cluster-bar"))
+				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
 				Expect(namespace).To(Equal("wego-system"))
 			})
 
@@ -214,10 +253,11 @@ stringData:
 
 				Expect(fluxClient.CreateHelmReleaseHelmRepositoryCallCount()).To(Equal(1))
 
-				name, chart, namespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
+				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(chart).To(Equal("loki"))
 				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal(""))
 			})
 
 			It("creates a helm release using a git source if source type is git", func() {
@@ -229,11 +269,46 @@ stringData:
 
 				Expect(fluxClient.CreateHelmReleaseGitRepositoryCallCount()).To(Equal(1))
 
-				name, source, path, namespace := fluxClient.CreateHelmReleaseGitRepositoryArgsForCall(0)
+				name, source, path, namespace, targetNamespace := fluxClient.CreateHelmReleaseGitRepositoryArgsForCall(0)
 				Expect(name).To(Equal("bar"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("./charts/my-chart"))
 				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal(""))
+			})
+
+			It("creates helm release for helm repository with target namespace if source type is helm", func() {
+				addParams.Chart = "loki"
+				addParams.HelmReleaseTargetNamespace = "sock-shop"
+
+				err := appSrv.Add(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				Expect(fluxClient.CreateHelmReleaseHelmRepositoryCallCount()).To(Equal(1))
+
+				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
+				Expect(name).To(Equal("loki"))
+				Expect(chart).To(Equal("loki"))
+				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal("sock-shop"))
+			})
+
+			It("creates a helm release for git repository with target namespace if source type is git", func() {
+				addParams.Path = "./charts/my-chart"
+				addParams.DeploymentType = string(wego.DeploymentTypeHelm)
+				addParams.HelmReleaseTargetNamespace = "sock-shop"
+
+				err := appSrv.Add(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				Expect(fluxClient.CreateHelmReleaseGitRepositoryCallCount()).To(Equal(1))
+
+				name, source, path, namespace, targetNamespace := fluxClient.CreateHelmReleaseGitRepositoryArgsForCall(0)
+				Expect(name).To(Equal("bar"))
+				Expect(source).To(Equal("bar"))
+				Expect(path).To(Equal("./charts/my-chart"))
+				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal("sock-shop"))
 			})
 
 			It("fails if deployment type is invalid", func() {
@@ -316,7 +391,7 @@ stringData:
 				Expect(name).To(Equal("bar"))
 				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
-				Expect(secretRef).To(Equal("weave-gitops-test-cluster-bar"))
+				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
 				Expect(namespace).To(Equal("wego-system"))
 			})
 
@@ -363,6 +438,7 @@ stringData:
 			})
 
 			It("creates helm release using a helm repository if source type is helm", func() {
+				addParams.Url = "https://charts.kube-ops.io"
 				addParams.Chart = "loki"
 
 				err := appSrv.Add(addParams)
@@ -370,10 +446,11 @@ stringData:
 
 				Expect(fluxClient.CreateHelmReleaseHelmRepositoryCallCount()).To(Equal(1))
 
-				name, chart, namespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
+				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(chart).To(Equal("loki"))
 				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal(""))
 			})
 
 			It("creates a helm release using a git source if source type is git", func() {
@@ -385,11 +462,61 @@ stringData:
 
 				Expect(fluxClient.CreateHelmReleaseGitRepositoryCallCount()).To(Equal(1))
 
-				name, source, path, namespace := fluxClient.CreateHelmReleaseGitRepositoryArgsForCall(0)
+				name, source, path, namespace, targetNamespace := fluxClient.CreateHelmReleaseGitRepositoryArgsForCall(0)
 				Expect(name).To(Equal("bar"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("./charts/my-chart"))
 				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal(""))
+			})
+
+			It("creates helm release for helm repository with target namespace if source type is helm", func() {
+				addParams.Url = "https://charts.kube-ops.io"
+				addParams.Chart = "loki"
+				addParams.HelmReleaseTargetNamespace = "sock-shop"
+
+				err := appSrv.Add(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				Expect(fluxClient.CreateHelmReleaseHelmRepositoryCallCount()).To(Equal(1))
+
+				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
+				Expect(name).To(Equal("loki"))
+				Expect(chart).To(Equal("loki"))
+				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal("sock-shop"))
+			})
+
+			It("creates a helm release for git repository with target namespace if source type is git", func() {
+				addParams.Path = "./charts/my-chart"
+				addParams.DeploymentType = string(wego.DeploymentTypeHelm)
+				addParams.HelmReleaseTargetNamespace = "sock-shop"
+
+				err := appSrv.Add(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				Expect(fluxClient.CreateHelmReleaseGitRepositoryCallCount()).To(Equal(1))
+
+				name, source, path, namespace, targetNamespace := fluxClient.CreateHelmReleaseGitRepositoryArgsForCall(0)
+				Expect(name).To(Equal("bar"))
+				Expect(source).To(Equal("bar"))
+				Expect(path).To(Equal("./charts/my-chart"))
+				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal("sock-shop"))
+			})
+
+			It("validates namespace passed as target namespace", func() {
+				addParams.Url = "https://charts.kube-ops.io"
+				addParams.Chart = "loki"
+				addParams.HelmReleaseTargetNamespace = "sock-shop"
+
+				goodNamespaceErr := appSrv.Add(addParams)
+				Expect(goodNamespaceErr).ShouldNot(HaveOccurred())
+
+				addParams.HelmReleaseTargetNamespace = "sock-shop&*&*&*&"
+
+				badNamespaceErr := appSrv.Add(addParams)
+				Expect(badNamespaceErr.Error()).To(HavePrefix("could not update parameters: invalid namespace"))
 			})
 
 			It("fails if deployment type is invalid", func() {
@@ -502,14 +629,14 @@ stringData:
 				Expect(name).To(Equal("repo"))
 				Expect(url).To(Equal("ssh://git@github.com/user/repo.git"))
 				Expect(branch).To(Equal("main"))
-				Expect(secretRef).To(Equal("weave-gitops-test-cluster-repo"))
+				Expect(secretRef).To(Equal("wego-test-cluster-repo"))
 				Expect(namespace).To(Equal("wego-system"))
 
 				name, url, branch, secretRef, namespace = fluxClient.CreateSourceGitArgsForCall(1)
 				Expect(name).To(Equal("bar"))
 				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
-				Expect(secretRef).To(Equal("weave-gitops-test-cluster-bar"))
+				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
 				Expect(namespace).To(Equal("wego-system"))
 			})
 
@@ -597,10 +724,11 @@ stringData:
 
 				Expect(fluxClient.CreateHelmReleaseHelmRepositoryCallCount()).To(Equal(1))
 
-				name, chart, namespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
+				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(chart).To(Equal("loki"))
 				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal(""))
 			})
 
 			It("creates a helm release using a git source if source type is git", func() {
@@ -612,11 +740,46 @@ stringData:
 
 				Expect(fluxClient.CreateHelmReleaseGitRepositoryCallCount()).To(Equal(1))
 
-				name, source, path, namespace := fluxClient.CreateHelmReleaseGitRepositoryArgsForCall(0)
+				name, source, path, namespace, targetNamespace := fluxClient.CreateHelmReleaseGitRepositoryArgsForCall(0)
 				Expect(name).To(Equal("repo"))
 				Expect(source).To(Equal("repo"))
 				Expect(path).To(Equal("./charts/my-chart"))
 				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal(""))
+			})
+
+			It("creates helm release for helm repository with target namespace if source type is helm", func() {
+				addParams.Chart = "loki"
+				addParams.HelmReleaseTargetNamespace = "sock-shop"
+
+				err := appSrv.Add(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				Expect(fluxClient.CreateHelmReleaseHelmRepositoryCallCount()).To(Equal(1))
+
+				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
+				Expect(name).To(Equal("loki"))
+				Expect(chart).To(Equal("loki"))
+				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal("sock-shop"))
+			})
+
+			It("creates a helm release for git repository with target namespace if source type is git", func() {
+				addParams.Path = "./charts/my-chart"
+				addParams.DeploymentType = string(wego.DeploymentTypeHelm)
+				addParams.HelmReleaseTargetNamespace = "sock-shop"
+
+				err := appSrv.Add(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				Expect(fluxClient.CreateHelmReleaseGitRepositoryCallCount()).To(Equal(1))
+
+				name, source, path, namespace, targetNamespace := fluxClient.CreateHelmReleaseGitRepositoryArgsForCall(0)
+				Expect(name).To(Equal("repo"))
+				Expect(source).To(Equal("repo"))
+				Expect(path).To(Equal("./charts/my-chart"))
+				Expect(namespace).To(Equal("wego-system"))
+				Expect(targetNamespace).To(Equal("sock-shop"))
 			})
 
 			It("fails if deployment type is invalid", func() {
@@ -735,42 +898,27 @@ stringData:
 		})
 	})
 
-	Describe("Test app hash", func() {
+	Context("check for default values on AddParameters", func() {
+		It("default values for path and deploymentType and branch should be correct", func() {
+			addParams := AddParams{}
+			addParams.Url = "http://something"
 
-		It("should return right hash for a helm app", func() {
+			updated, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			Expect(err).ShouldNot(HaveOccurred())
 
-			addParams.Url = "https://github.com/owner/repo1"
-			addParams.Chart = "nginx"
-			addParams.Branch = "main"
-			addParams.DeploymentType = string(wego.DeploymentTypeHelm)
-
-			info := getAppResourceInfo(makeWegoApplication(addParams), "")
-
-			appHash, err := getAppHash(info)
-			Expect(err).NotTo(HaveOccurred())
-
-			expectedHash, err := getHash(info.Spec.URL, info.Name, info.Spec.Branch)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(appHash).To(Equal("wego-" + expectedHash))
-
+			Expect(updated.DeploymentType).To(Equal(DefaultDeploymentType))
+			Expect(updated.Path).To(Equal(DefaultPath))
+			Expect(updated.Branch).To(Equal(DefaultBranch))
 		})
 
-		It("should return right hash for a kustomize app", func() {
-			addParams.Url = "https://github.com/owner/repo1"
-			addParams.Path = "custompath"
-			addParams.Branch = "main"
-			addParams.DeploymentType = string(wego.DeploymentTypeKustomize)
+		It("should fail when giving a wrong url format", func() {
+			addParams := AddParams{}
+			addParams.Url = "{http:/-*wrong-url-827"
 
-			info := getAppResourceInfo(makeWegoApplication(addParams), "")
-
-			appHash, err := getAppHash(info)
-			Expect(err).NotTo(HaveOccurred())
-
-			expectedHash, err := getHash(info.Spec.URL, info.Spec.Path, info.Spec.Branch)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(appHash).To(Equal("wego-" + expectedHash))
+			_, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).Should(ContainSubstring("error validating url"))
+			Expect(err.Error()).Should(ContainSubstring(addParams.Url))
 
 		})
 	})

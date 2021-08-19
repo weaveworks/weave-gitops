@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -21,6 +22,7 @@ type ProviderAccountType string
 const (
 	AccountTypeUser ProviderAccountType = "user"
 	AccountTypeOrg  ProviderAccountType = "organization"
+	deployKeyName                       = "wego-deploy-key"
 )
 
 // GitProvider Handler
@@ -30,9 +32,13 @@ type GitProvider interface {
 	RepositoryExists(name string, owner string) (bool, error)
 	DeployKeyExists(owner, repoName string) (bool, error)
 	GetRepoInfo(accountType ProviderAccountType, owner string, repoName string) (*gitprovider.RepositoryInfo, error)
+	GetRepoInfoFromUrl(url string) (*gitprovider.RepositoryInfo, error)
+	GetDefaultBranch(url string) (string, error)
 	UploadDeployKey(owner, repoName string, deployKey []byte) error
 	CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
 	CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
+	GetCommitsFromUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string) ([]gitprovider.Commit, error)
+	GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string) ([]gitprovider.Commit, error)
 	GetAccountType(owner string) (ProviderAccountType, error)
 }
 
@@ -118,7 +124,6 @@ func (p defaultGitProvider) CreateRepository(name string, owner string, private 
 }
 
 func (p defaultGitProvider) DeployKeyExists(owner, repoName string) (bool, error) {
-	deployKeyName := "weave-gitops-deploy-key"
 
 	ownerType, err := p.GetAccountType(owner)
 	if err != nil {
@@ -167,7 +172,6 @@ func (p defaultGitProvider) DeployKeyExists(owner, repoName string) (bool, error
 }
 
 func (p defaultGitProvider) UploadDeployKey(owner, repoName string, deployKey []byte) error {
-	deployKeyName := "weave-gitops-deploy-key"
 	deployKeyInfo := gitprovider.DeployKeyInfo{
 		Name: deployKeyName,
 		Key:  deployKey,
@@ -240,6 +244,44 @@ func (p defaultGitProvider) GetAccountType(owner string) (ProviderAccountType, e
 	}
 
 	return AccountTypeOrg, nil
+}
+
+func (p defaultGitProvider) GetDefaultBranch(url string) (string, error) {
+	repoInfoRef, err := p.GetRepoInfoFromUrl(url)
+
+	if err != nil {
+		return "", err
+	}
+
+	if repoInfoRef != nil {
+		repoInfo := *repoInfoRef
+		if repoInfo.DefaultBranch != nil {
+			return *repoInfo.DefaultBranch, nil
+		}
+	}
+
+	return "main", nil
+}
+
+func (p defaultGitProvider) GetRepoInfoFromUrl(repoUrl string) (*gitprovider.RepositoryInfo, error) {
+	owner, err := utils.GetOwnerFromUrl(repoUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	repoName := utils.UrlToRepoName(repoUrl)
+
+	accountType, err := p.GetAccountType(owner)
+	if err != nil {
+		return nil, err
+	}
+
+	repoInfo, err := p.GetRepoInfo(accountType, owner, repoName)
+	if err != nil {
+		return nil, err
+	}
+
+	return repoInfo, nil
 }
 
 func (p defaultGitProvider) GetRepoInfo(accountType ProviderAccountType, owner string, repoName string) (*gitprovider.RepositoryInfo, error) {
@@ -336,22 +378,22 @@ func (p defaultGitProvider) CreatePullRequestToUserRepo(userRepRef gitprovider.U
 	}
 
 	if len(commits) == 0 {
-		return nil, fmt.Errorf("targetBranch[%s] does not exists", targetBranch)
+		return nil, fmt.Errorf("targetBranch [%s] does not exists", targetBranch)
 	}
 
 	latestCommit := commits[0]
 
 	if err := ur.Branches().Create(ctx, newBranch, latestCommit.Get().Sha); err != nil {
-		return nil, fmt.Errorf("error creating branch[%s] for repo[%s] err [%s]", newBranch, userRepRef.String(), err)
+		return nil, fmt.Errorf("error creating branch [%s] for repo [%s] err [%s]", newBranch, userRepRef.String(), err)
 	}
 
 	if _, err := ur.Commits().Create(ctx, newBranch, commitMessage, files); err != nil {
-		return nil, fmt.Errorf("error creating commit for branch[%s] for repo[%s] err [%s]", newBranch, userRepRef.String(), err)
+		return nil, fmt.Errorf("error creating commit for branch [%s] for repo [%s] err [%s]", newBranch, userRepRef.String(), err)
 	}
 
 	pr, err := ur.PullRequests().Create(ctx, prTitle, newBranch, targetBranch, prDescription)
 	if err != nil {
-		return nil, fmt.Errorf("error creating pull request[%s] for branch[%s] for repo[%s] err [%s]", prTitle, newBranch, userRepRef.String(), err)
+		return nil, fmt.Errorf("error creating pull request [%s] for branch [%s] for repo [%s] err [%s]", prTitle, newBranch, userRepRef.String(), err)
 	}
 
 	return pr, nil
@@ -371,29 +413,65 @@ func (p defaultGitProvider) CreatePullRequestToOrgRepo(orgRepRef gitprovider.Org
 
 	commits, err := ur.Commits().ListPage(ctx, targetBranch, 1, 0)
 	if err != nil {
-		return nil, fmt.Errorf("error getting commits for repo[%s] err [%s]", orgRepRef.String(), err)
+		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", orgRepRef.String(), err)
 	}
 
 	if len(commits) == 0 {
-		return nil, fmt.Errorf("targetBranch[%s] does not exists", targetBranch)
+		return nil, fmt.Errorf("targetBranch [%s] does not exists", targetBranch)
 	}
 
 	latestCommit := commits[0]
 
 	if err := ur.Branches().Create(ctx, newBranch, latestCommit.Get().Sha); err != nil {
-		return nil, fmt.Errorf("error creating branch[%s] for repo[%s] err [%s]", newBranch, orgRepRef.String(), err)
+		return nil, fmt.Errorf("error creating branch [%s] for repo [%s] err [%s]", newBranch, orgRepRef.String(), err)
 	}
 
 	if _, err := ur.Commits().Create(ctx, newBranch, commitMessage, files); err != nil {
-		return nil, fmt.Errorf("error creating commit for branch[%s] for repo[%s] err [%s]", newBranch, orgRepRef.String(), err)
+		return nil, fmt.Errorf("error creating commit for branch [%s] for repo [%s] err [%s]", newBranch, orgRepRef.String(), err)
 	}
 
 	pr, err := ur.PullRequests().Create(ctx, prTitle, newBranch, targetBranch, prDescription)
 	if err != nil {
-		return nil, fmt.Errorf("error creating pull request[%s] for branch[%s] for repo[%s] err [%s]", prTitle, newBranch, orgRepRef.String(), err)
+		return nil, fmt.Errorf("error creating pull request [%s] for branch [%s] for repo [%s] err [%s]", prTitle, newBranch, orgRepRef.String(), err)
 	}
 
 	return pr, nil
+}
+
+// GetCommitsFromUserRepo gets a limit of 10 commits from a user repo
+func (p defaultGitProvider) GetCommitsFromUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string) ([]gitprovider.Commit, error) {
+	ctx := context.Background()
+
+	ur, err := p.provider.UserRepositories().Get(ctx, userRepRef)
+	if err != nil {
+		return nil, fmt.Errorf("error getting info for repo [%s] err [%s]", userRepRef.String(), err)
+	}
+
+	// currently locking the commit list at 10. May discuss pagination options later.
+	commits, err := ur.Commits().ListPage(ctx, targetBranch, 10, 0)
+	if err != nil {
+		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", userRepRef.String(), err)
+	}
+
+	return commits, nil
+}
+
+// GetCommitsFromUserRepo gets a limit of 10 commits from an organization
+func (p defaultGitProvider) GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string) ([]gitprovider.Commit, error) {
+	ctx := context.Background()
+
+	ur, err := p.provider.OrgRepositories().Get(ctx, orgRepRef)
+	if err != nil {
+		return nil, fmt.Errorf("error getting info for repo [%s] err [%s]", orgRepRef.String(), err)
+	}
+
+	// currently locking the commit list at 10. May discuss pagination options later.
+	commits, err := ur.Commits().ListPage(ctx, targetBranch, 10, 0)
+	if err != nil {
+		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", orgRepRef.String(), err)
+	}
+
+	return commits, nil
 }
 
 func NewRepositoryInfo(description string, visibility gitprovider.RepositoryVisibility) gitprovider.RepositoryInfo {
@@ -431,4 +509,24 @@ func (p defaultGitProvider) waitUntilRepoCreated(ownerType ProviderAccountType, 
 		return fmt.Errorf("could not verify repo existence %s", err)
 	}
 	return nil
+}
+
+// DetectGitProviderFromUrl accepts a url related to a git repo and
+// returns the name of the provider associated.
+// The raw URL is assumed to be something like ssh://git@github.com/myorg/myrepo.git.
+// The common `git clone` variant of `git@github.com:myorg/myrepo.git` is not supported.
+func DetectGitProviderFromUrl(raw string) (GitProviderName, error) {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return "", fmt.Errorf("could not parse git repo url %q", raw)
+	}
+
+	switch u.Hostname() {
+	case "github.com":
+		return GitProviderGitHub, nil
+	case "gitlab.com":
+		return GitProviderGitLab, nil
+	}
+
+	return "", fmt.Errorf("no git providers found for \"%s\"", raw)
 }

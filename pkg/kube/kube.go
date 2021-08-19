@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -58,7 +59,7 @@ type Kube interface {
 	FluxPresent(ctx context.Context) (bool, error)
 	GetClusterName(ctx context.Context) (string, error)
 	GetClusterStatus(ctx context.Context) ClusterStatus
-	LabelExistsInCluster(ctx context.Context, label string) error
+	AppExistsInCluster(ctx context.Context, namespace string, appHash string) error
 	GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error)
 	GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error
 }
@@ -229,14 +230,23 @@ func (k *KubeClient) runKubectlCmdWithInput(args []string, input []byte) ([]byte
 
 	return out, nil
 }
-func (k *KubeClient) LabelExistsInCluster(ctx context.Context, label string) error {
-	cmd := []string{"get", "app", "-l", fmt.Sprintf("weave-gitops.weave.works/app-identifier=%s", label), "--all-namespaces"}
-	o, err := k.runKubectlCmd(cmd)
+func (k *KubeClient) AppExistsInCluster(ctx context.Context, namespace string, appHash string) error {
+	apps, err := k.GetApplications(ctx, namespace)
 	if err != nil {
-		return fmt.Errorf("could not run kubectl command: %s", err)
+		return err
 	}
-	if !strings.Contains(string(o), "No resources found") {
-		return fmt.Errorf("unable to create resource, resource already exists in cluster")
+
+	for _, app := range apps {
+		existingHash, err := utils.GetAppHash(app)
+		if err != nil {
+			return err
+		}
+
+		if appHash == existingHash {
+			return fmt.Errorf("unable to create resource, resource already exists in cluster")
+		}
 	}
+
 	return nil
+
 }

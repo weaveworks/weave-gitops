@@ -16,6 +16,14 @@ limitations under the License.
 
 package logger
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
+// Higher verbosity means the message is less important
+var LogLevelDebug int = 3
+var LogLevelWarn int = 2
+var LogLevelError int = 1
+
+//counterfeiter:generate . Logger
 type Logger interface {
 	Println(format string, a ...interface{})
 	Printf(format string, a ...interface{})
@@ -25,4 +33,6 @@ type Logger interface {
 	Successf(format string, a ...interface{})
 	Warningf(format string, a ...interface{})
 	Failuref(format string, a ...interface{})
+	// added to satisfy io.Writer interface
+	Write(p []byte) (n int, err error)
 }
