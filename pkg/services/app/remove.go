@@ -39,25 +39,27 @@ func (a *App) Remove(params RemoveParams) error {
 	resources := info.clusterResources()
 
 	if info.configMode() == ConfigModeClusterOnly {
-		out, err := a.kube.DeleteByName(info.appResourceName(), "app", info.Namespace)
-		if err != nil {
-			return clusterDeleteError(out, err)
+		if err := a.kube.DeleteByName(ctx, info.appResourceName(), resourceKindToGVR(ResourceKindApplication), info.Namespace); err != nil {
+			return clusterDeleteError(info.appResourceName(), err)
 		}
-		out, err = a.kube.DeleteByName(info.appSourceName(), string(info.sourceKind()), info.Namespace)
-		if err != nil {
-			return clusterDeleteError(out, err)
+
+		if err := a.kube.DeleteByName(ctx, info.appSourceName(), resourceKindToGVR(info.sourceKind()), info.Namespace); err != nil {
+			return clusterDeleteError(info.appResourceName(), err)
 		}
-		out, err = a.kube.DeleteByName(info.appDeployName(), string(info.deployKind()), info.Namespace)
-		if err != nil {
-			return clusterDeleteError(out, err)
+
+		if err := a.kube.DeleteByName(ctx, info.appDeployName(), resourceKindToGVR(info.deployKind()), info.Namespace); err != nil {
+			return clusterDeleteError(info.appResourceName(), err)
 		}
+
 		return nil
 	}
 
-	cloneURL, branch, err := a.getConfigUrlAndBranch(info, params.GitProviderToken)
+	cloneURL, _, err := a.getConfigUrlAndBranch(info, params.GitProviderToken)
 	if err != nil {
 		return fmt.Errorf("failed to obtain config URL and branch: %w", err)
 	}
+
+	branch := "master"
 
 	remover, err := a.cloneRepo(cloneURL, branch, params.DryRun)
 
@@ -77,9 +79,8 @@ func (a *App) Remove(params RemoveParams) error {
 				}
 			} else if resourceRef.kind == ResourceKindKustomization ||
 				resourceRef.kind == ResourceKindHelmRelease {
-				out, err := a.kube.DeleteByName(resourceRef.name, string(resourceRef.kind), info.Namespace)
-				if err != nil {
-					return clusterDeleteError(out, err)
+				if err := a.kube.DeleteByName(ctx, resourceRef.name, resourceKindToGVR(resourceRef.kind), info.Namespace); err != nil {
+					return clusterDeleteError(info.appResourceName(), err)
 				}
 			}
 		}
@@ -113,8 +114,8 @@ func (a *App) getConfigUrlAndBranch(info *AppResourceInfo, token string) (string
 	return cloneURL, branch, nil
 }
 
-func clusterDeleteError(out []byte, err error) error {
-	return fmt.Errorf("failed to delete resource: %s with error: %w", out, err)
+func clusterDeleteError(name string, err error) error {
+	return fmt.Errorf("failed to delete resource: %s with error: %w", name, err)
 }
 
 func dirExists(d string) bool {

@@ -15,6 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
@@ -53,7 +54,7 @@ var toStatusString = map[ClusterStatus]string{
 type Kube interface {
 	Apply(ctx context.Context, manifest []byte, namespace string) error
 	Delete(manifests []byte, namespace string) ([]byte, error)
-	DeleteByName(name, kind, namespace string) ([]byte, error)
+	DeleteByName(ctx context.Context, name string, gvr schema.GroupVersionResource, namespace string) error
 	SecretPresent(ctx context.Context, string, namespace string) (bool, error)
 	GetApplications(ctx context.Context, namespace string) ([]wego.Application, error)
 	FluxPresent(ctx context.Context) (bool, error)
@@ -108,14 +109,8 @@ func (k *KubeClient) Delete(manifests []byte, namespace string) ([]byte, error) 
 	return k.runKubectlCmdWithInput(args, manifests)
 }
 
-func (k *KubeClient) DeleteByName(name, kind, namespace string) ([]byte, error) {
-	args := []string{
-		"delete",
-		"--namespace", namespace,
-		kind, name,
-	}
-
-	return k.runKubectlCmd(args)
+func (k *KubeClient) DeleteByName(ctx context.Context, name string, gvr schema.GroupVersionResource, namespace string) error {
+	return fmt.Errorf("kube.DeleteByName deprecated")
 }
 
 func (k *KubeClient) GetClusterName(ctx context.Context) (string, error) {

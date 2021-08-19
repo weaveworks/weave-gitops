@@ -19,6 +19,7 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/yaml"
 )
 
@@ -935,4 +936,21 @@ func sanitizeK8sYaml(data []byte) []byte {
 	data = bytes.Replace(data, []byte("  creationTimestamp: null\n"), []byte(""), 1)
 	data = bytes.Replace(data, []byte("status: {}\n"), []byte(""), 1)
 	return append(out, data...)
+}
+
+func resourceKindToGVR(resourceKind ResourceKind) schema.GroupVersionResource {
+	switch resourceKind {
+	case ResourceKindApplication:
+		return kube.GVRApp
+	case ResourceKindSecret:
+		return kube.GVRSecret
+	case ResourceKindGitRepository:
+		return kube.GVRGitRepository
+	case ResourceKindHelmRepository:
+		return kube.GVRHelmRepository
+	case ResourceKindHelmRelease:
+		return kube.GVRHelmRelease
+	default:
+		return kube.GVRKustomization
+	}
 }

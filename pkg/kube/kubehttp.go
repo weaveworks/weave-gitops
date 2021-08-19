@@ -25,6 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
@@ -45,6 +46,15 @@ func CreateScheme() *apiruntime.Scheme {
 const WeGONamespace = "wego-system"
 const WeGOCRDName = "apps.wego.weave.works"
 const FluxNamespace = "flux-system"
+
+var (
+	GVRSecret         schema.GroupVersionResource = corev1.SchemeGroupVersion.WithResource("secrets")
+	GVRApp            schema.GroupVersionResource = wego.GroupVersion.WithResource("apps")
+	GVRKustomization  schema.GroupVersionResource = kustomizev1.GroupVersion.WithResource("kustomizations")
+	GVRGitRepository  schema.GroupVersionResource = sourcev1.GroupVersion.WithResource("gitrepositories")
+	GVRHelmRepository schema.GroupVersionResource = helmv2.GroupVersion.WithResource("helmrepositories")
+	GVRHelmRelease    schema.GroupVersionResource = helmv2.GroupVersion.WithResource("helmreleases")
+)
 
 func NewKubeHTTPClient() (Kube, error) {
 	cfgLoadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
@@ -193,8 +203,17 @@ func (c *KubeHTTP) Delete(manifests []byte, namespace string) ([]byte, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (c *KubeHTTP) DeleteByName(name, kind, namespace string) ([]byte, error) {
-	return nil, errors.New("not implemented")
+func (c *KubeHTTP) DeleteByName(ctx context.Context, name string, gvr schema.GroupVersionResource, namespace string) error {
+	deletePolicy := metav1.DeletePropagationForeground
+	deleteOptions := metav1.DeleteOptions{
+		PropagationPolicy: &deletePolicy,
+	}
+
+	if err := c.dynClient.Resource(gvr).Namespace(namespace).Delete(ctx, name, deleteOptions); err != nil {
+		return fmt.Errorf("failed to delete resource name=%s resource-type=%#v namespace=%s error=%w", name, gvr, namespace, err)
+	}
+
+	return nil
 }
 
 func (c *KubeHTTP) FluxPresent(ctx context.Context) (bool, error) {
