@@ -22,7 +22,6 @@ jobs:
           .github/scripts/current_and_old_flux_versions.sh
 
           {
-            # export PR_BODY for PR and commit
             echo "::set-output name=pr_body::$PR_BODY"
             echo "::set-output name=pr_title::$PR_TITLE"
           }
