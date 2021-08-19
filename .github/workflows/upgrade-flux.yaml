@@ -76,7 +76,7 @@ jobs:
           branch: update-flux2-version
           title: ${{ steps.update.outputs.pr_title }}
           body: |
-          ${{ steps.update.outputs.pr_body }}
+            ${{ steps.update.outputs.pr_body }}
 
       - name: Check output
         run: |
