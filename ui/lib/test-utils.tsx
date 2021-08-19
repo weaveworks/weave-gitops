@@ -6,6 +6,7 @@ import { Router } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
 import AppContextProvider from "../contexts/AppContext";
 import {
+  Applications,
   GetApplicationResponse,
   ListApplicationsResponse,
 } from "./api/applications/applications.pb";
@@ -17,7 +18,7 @@ type ApplicationOverrides = {
 };
 
 // Don't make the user wire up all the promise stuff to be interface-compliant
-export const createMockClient = (ovr: ApplicationOverrides) => {
+export const createMockClient = (ovr: ApplicationOverrides): Applications => {
   const promisified = _.reduce(
     ovr,
     (result, desiredResponse, method) => {
@@ -49,7 +50,9 @@ export function withContext(
   history.push(url);
   return (
     <Router history={history}>
-      <AppContextProvider applicationsClient={createMockClient(appOverrides)}>
+      <AppContextProvider
+        applicationsClient={createMockClient(appOverrides) as any}
+      >
         <TestComponent />
       </AppContextProvider>
     </Router>
