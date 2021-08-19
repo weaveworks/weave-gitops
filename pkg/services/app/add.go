@@ -307,7 +307,7 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 		return fmt.Errorf("could not generate application GitOps Automation manifests: %w", err)
 	}
 
-	appWegoGoat, err := a.generateAppWegoManifests(info)
+	appDirGoat, targetDirGoat, err := a.generateAppWegoManifests(info)
 	if err != nil {
 		return fmt.Errorf("could not create GitOps automation for .wego directory: %w", err)
 	}
@@ -341,7 +341,7 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 	}
 
 	a.logger.Actionf("Applying manifests to the cluster")
-	if err := a.applyToCluster(info, params.DryRun, source, appWegoGoat); err != nil {
+	if err := a.applyToCluster(info, params.DryRun, source, appDirGoat, targetDirGoat); err != nil {
 		return fmt.Errorf("could not apply manifests to the cluster: %w", err)
 	}
 
@@ -367,7 +367,7 @@ func (a *App) addAppWithConfigInExternalRepo(ctx context.Context, info *AppResou
 		return fmt.Errorf("could not determine default branch for config repository: %w", err)
 	}
 
-	targetSource, targetGoats, err := a.generateExternalRepoManifests(info, appConfigSecretName, configBranch)
+	targetSource, targetGoat, appDirGoat, err := a.generateExternalRepoManifests(info, appConfigSecretName, configBranch)
 	if err != nil {
 		return fmt.Errorf("could not generate target GitOps Automation manifests: %w", err)
 	}
@@ -397,7 +397,7 @@ func (a *App) addAppWithConfigInExternalRepo(ctx context.Context, info *AppResou
 	}
 
 	a.logger.Actionf("Applying manifests to the cluster")
-	if err := a.applyToCluster(info, params.DryRun, targetSource, targetGoats); err != nil {
+	if err := a.applyToCluster(info, params.DryRun, targetSource, targetGoat, appDirGoat); err != nil {
 		return fmt.Errorf("could not apply manifests to the cluster: %w", err)
 	}
 
@@ -428,14 +428,14 @@ func (a *App) generateAppManifests(info *AppResourceInfo, secretRef string, appH
 	return sourceManifest, appGoatManifest, appManifest, nil
 }
 
-func (a *App) generateAppWegoManifests(info *AppResourceInfo) ([]byte, error) {
+func (a *App) generateAppWegoManifests(info *AppResourceInfo) ([]byte, []byte, error) {
 	appsDirManifest, err := a.flux.CreateKustomization(
 		info.automationAppsDirKustomizationName(),
 		info.Name,
 		info.appYamlDir(),
 		info.Namespace)
 	if err != nil {
-		return nil, fmt.Errorf("could not create app dir kustomization for '%s': %w", info.Name, err)
+		return nil, nil, fmt.Errorf("could not create app dir kustomization for '%s': %w", info.Name, err)
 	}
 
 	targetDirManifest, err := a.flux.CreateKustomization(
@@ -444,29 +444,27 @@ func (a *App) generateAppWegoManifests(info *AppResourceInfo) ([]byte, error) {
 		info.appAutomationDir(),
 		info.Namespace)
 	if err != nil {
-		return nil, fmt.Errorf("could not create target dir kustomization for '%s': %w", info.Name, err)
+		return nil, nil, fmt.Errorf("could not create target dir kustomization for '%s': %w", info.Name, err)
 	}
 
-	manifests := bytes.Join([][]byte{appsDirManifest, targetDirManifest}, []byte(""))
-
-	return bytes.ReplaceAll(manifests, []byte("path: ./wego"), []byte("path: .wego")), nil
+	return sanitizeWegoDirectory(appsDirManifest), sanitizeWegoDirectory(targetDirManifest), nil
 }
 
-func (a *App) generateExternalRepoManifests(info *AppResourceInfo, secretRef, branch string) ([]byte, []byte, error) {
+func (a *App) generateExternalRepoManifests(info *AppResourceInfo, secretRef, branch string) ([]byte, []byte, []byte, error) {
 	repoName := generateResourceName(info.Spec.ConfigURL)
 
 	targetSource, err := a.flux.CreateSourceGit(repoName, info.Spec.ConfigURL, branch, secretRef, info.Namespace)
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not generate target source manifests: %w", err)
+		return nil, nil, nil, fmt.Errorf("could not generate target source manifests: %w", err)
 	}
 
-	appGoat, err := a.flux.CreateKustomization(
+	appDirGoat, err := a.flux.CreateKustomization(
 		info.automationAppsDirKustomizationName(),
 		repoName,
 		info.appYamlDir(),
 		info.Namespace)
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not generate app dir kustomization for '%s': %w", info.Name, err)
+		return nil, nil, nil, fmt.Errorf("could not generate app dir kustomization for '%s': %w", info.Name, err)
 	}
 
 	targetGoat, err := a.flux.CreateKustomization(
@@ -475,12 +473,10 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, secretRef, br
 		info.appAutomationDir(),
 		info.Namespace)
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not generate target dir kustomization for '%s': %w", info.Name, err)
+		return nil, nil, nil, fmt.Errorf("could not generate target dir kustomization for '%s': %w", info.Name, err)
 	}
 
-	manifests := bytes.Join([][]byte{targetGoat, appGoat}, []byte(""))
-
-	return targetSource, manifests, nil
+	return targetSource, targetGoat, appDirGoat, nil
 }
 
 func (a *App) commitAndPush(filters ...func(string) bool) error {
@@ -953,6 +949,10 @@ func sanitizeK8sYaml(data []byte) []byte {
 	data = bytes.Replace(data, []byte("  creationTimestamp: null\n"), []byte(""), 1)
 	data = bytes.Replace(data, []byte("status: {}\n"), []byte(""), 1)
 	return append(out, data...)
+}
+
+func sanitizeWegoDirectory(manifest []byte) []byte {
+	return bytes.ReplaceAll(manifest, []byte("path: ./wego"), []byte("path: .wego"))
 }
 
 func resourceKindToGVR(resourceKind ResourceKind) schema.GroupVersionResource {
