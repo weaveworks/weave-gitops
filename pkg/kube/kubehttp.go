@@ -16,7 +16,6 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
-	"github.com/pkg/errors"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	appsv1 "k8s.io/api/apps/v1"
@@ -149,17 +148,32 @@ func (c *KubeHTTP) GetClusterStatus(ctx context.Context) ClusterStatus {
 var decUnstructured = yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
 
 func (c *KubeHTTP) Apply(ctx context.Context, manifest []byte, namespace string) error {
-	// 3. Decode YAML manifest into unstructured.Unstructured
+	dr, name, data, err := c.getResourceInterface(manifest)
+	if err != nil {
+		return err
+	}
+
+	_, err = dr.Patch(ctx, name, types.ApplyPatchType, data, metav1.PatchOptions{
+		FieldManager: "wego",
+	})
+	if err != nil {
+		return fmt.Errorf("failed applying %s: %w", string(data), err)
+	}
+
+	return nil
+}
+
+func (c *KubeHTTP) getResourceInterface(manifest []byte) (dynamic.ResourceInterface, string, []byte, error) {
 	obj := &unstructured.Unstructured{}
 	_, gvk, err := decUnstructured.Decode([]byte(manifest), nil, obj)
 	if err != nil {
-		return err
+		return nil, "", nil, err
 	}
 
 	// 4. Find GVR
 	mapping, err := c.restMapper.RESTMapping(gvk.GroupKind(), gvk.Version)
 	if err != nil {
-		return err
+		return nil, "", nil, err
 	}
 
 	// 5. Obtain REST interface for the GVR
@@ -175,20 +189,10 @@ func (c *KubeHTTP) Apply(ctx context.Context, manifest []byte, namespace string)
 	// 6. Marshal object into JSON
 	data, err := json.Marshal(obj)
 	if err != nil {
-		return err
+		return nil, "", nil, err
 	}
 
-	// 7. Create or Update the object with SSA
-	//     types.ApplyPatchType indicates SSA.
-	//     FieldManager specifies the field owner ID.
-	_, err = dr.Patch(ctx, obj.GetName(), types.ApplyPatchType, data, metav1.PatchOptions{
-		FieldManager: "wego",
-	})
-	if err != nil {
-		return fmt.Errorf("failed applying %s: %w", string(data), err)
-	}
-
-	return nil
+	return dr, obj.GetName(), data, nil
 }
 
 func (c *KubeHTTP) GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error) {
@@ -200,8 +204,22 @@ func (c *KubeHTTP) GetApplication(ctx context.Context, name types.NamespacedName
 	return &app, nil
 }
 
-func (c *KubeHTTP) Delete(manifests []byte, namespace string) ([]byte, error) {
-	return nil, errors.New("not implemented")
+func (c *KubeHTTP) Delete(ctx context.Context, manifest []byte, namespace string) error {
+	dr, name, data, err := c.getResourceInterface(manifest)
+	if err != nil {
+		return err
+	}
+	deletePolicy := metav1.DeletePropagationForeground
+	deleteOptions := metav1.DeleteOptions{
+		PropagationPolicy: &deletePolicy,
+	}
+
+	err = dr.Delete(ctx, name, deleteOptions)
+	if err != nil {
+		return fmt.Errorf("failed applying %s: %w", string(data), err)
+	}
+
+	return nil
 }
 
 func (c *KubeHTTP) DeleteByName(ctx context.Context, name string, gvr schema.GroupVersionResource, namespace string) error {

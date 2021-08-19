@@ -2,9 +2,9 @@ package gitops
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
-	"github.com/pkg/errors"
 	"github.com/weaveworks/weave-gitops/manifests"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
@@ -15,8 +15,9 @@ type UinstallParams struct {
 }
 
 func (g *Gitops) Uninstall(params UinstallParams) error {
-	if g.kube.GetClusterStatus(context.Background()) != kube.WeGOInstalled {
-		return fmt.Errorf("Wego is not installed... exiting")
+	ctx := context.Background()
+	if g.kube.GetClusterStatus(ctx) != kube.WeGOInstalled {
+		return errors.New("wego is not installed... exiting")
 	}
 
 	err := g.flux.Uninstall(params.Namespace, params.DryRun)
@@ -27,8 +28,8 @@ func (g *Gitops) Uninstall(params UinstallParams) error {
 	if params.DryRun {
 		g.logger.Actionf("Deleting App CRD")
 	} else {
-		if out, err := g.kube.Delete(manifests.AppCRD, params.Namespace); err != nil {
-			return errors.Wrapf(err, "failed to delete App CRD: %s", string(out))
+		if err := g.kube.Delete(ctx, manifests.AppCRD, params.Namespace); err != nil {
+			return fmt.Errorf("failed to delete App CRD: %w", err)
 		}
 	}
 

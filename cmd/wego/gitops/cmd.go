@@ -98,17 +98,15 @@ func uninstallRunCmd(cmd *cobra.Command, args []string) error {
 	cliRunner := &runner.CLIRunner{}
 	osysClient := osys.New()
 	fluxClient := flux.New(osysClient, cliRunner)
-	kubeClient := kube.New(cliRunner)
-
-	gitopsService := gitops.New(logger.NewCLILogger(os.Stdout), fluxClient, kubeClient)
-
-	err := gitopsService.Uninstall(gitops.UinstallParams{
-		Namespace: gitopsParams.Namespace,
-		DryRun:    gitopsParams.DryRun,
-	})
+	kubeClient, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return err
 	}
 
-	return nil
+	gitopsService := gitops.New(logger.NewCLILogger(os.Stdout), fluxClient, kubeClient)
+
+	return gitopsService.Uninstall(gitops.UinstallParams{
+		Namespace: gitopsParams.Namespace,
+		DryRun:    gitopsParams.DryRun,
+	})
 }

@@ -53,7 +53,7 @@ var toStatusString = map[ClusterStatus]string{
 //counterfeiter:generate . Kube
 type Kube interface {
 	Apply(ctx context.Context, manifest []byte, namespace string) error
-	Delete(manifests []byte, namespace string) ([]byte, error)
+	Delete(ctx context.Context, manifest []byte, namespace string) error
 	DeleteByName(ctx context.Context, name string, gvr schema.GroupVersionResource, namespace string) error
 	SecretPresent(ctx context.Context, string, namespace string) (bool, error)
 	GetApplications(ctx context.Context, namespace string) ([]wego.Application, error)
@@ -77,16 +77,6 @@ func New(cliRunner runner.Runner) *KubeClient {
 
 var _ Kube = &KubeClient{}
 
-// func (k *KubeClient) Apply(manifests []byte, namespace string) ([]byte, error) {
-// 	args := []string{
-// 		"apply",
-// 		"--namespace", namespace,
-// 		"-f", "-",
-// 	}
-
-// 	return k.runKubectlCmdWithInput(args, manifests)
-// }
-
 func (k *KubeClient) Apply(ctx context.Context, manifests []byte, namespace string) error {
 	// return fmt.Errorf("apply from kubectl is deprecated, use the go-client implementation")
 	args := []string{
@@ -99,14 +89,15 @@ func (k *KubeClient) Apply(ctx context.Context, manifests []byte, namespace stri
 	return err
 }
 
-func (k *KubeClient) Delete(manifests []byte, namespace string) ([]byte, error) {
+func (k *KubeClient) Delete(ctx context.Context, manifest []byte, namespace string) error {
 	args := []string{
 		"delete",
 		"--namespace", namespace,
 		"-f", "-",
 	}
 
-	return k.runKubectlCmdWithInput(args, manifests)
+	_, err := k.runKubectlCmdWithInput(args, manifest)
+	return err
 }
 
 func (k *KubeClient) DeleteByName(ctx context.Context, name string, gvr schema.GroupVersionResource, namespace string) error {
