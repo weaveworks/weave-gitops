@@ -42,6 +42,7 @@ func runCmd(cmd *cobra.Command, args []string) {
 	c := exec.Command(exePath, args...)
 	c.Stdin = osysClient.Stdin()
 	c.Stdout = osysClient.Stdout()
+	c.Stderr = osysClient.Stderr()
 	// run command
 	_ = c.Run()
 }
