@@ -10,7 +10,7 @@ if [[ "$latestFluxVersion" == "$currentFluxVersion" ]]; then
   exit 0
 fi
 
-newContent=$(sed -e "/version\=\"[0-9\.]*\"/{s//version=\"$latestFluxVersion\"/;:a" -e '$!N;$!ba' -e '}' tools/dependencies.toml)
+newContent=$(cat tools/dependencies.toml | tr '\n' '\r' | sed -e "/\[flux\]\rversion\=\"[0-9\.]*\"/{s//\[flux\]\rversion=\"$latestFluxVersion\"/;:a" -e '$!N;$!ba' -e '}' | tr '\r' '\n')
 
 echo "$newContent" > tools/dependencies.toml
 
