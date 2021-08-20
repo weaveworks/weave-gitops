@@ -41,9 +41,8 @@ var _ = Describe("Delete", func() {
 			return []byte("out"), nil
 		}
 
-		out, err := kubeClient.Delete([]byte("manifests"), "wego-system")
+		err := kubeClient.Delete(context.Background(), []byte("manifests"), "wego-system")
 		Expect(err).ShouldNot(HaveOccurred())
-		Expect(out).To(Equal([]byte("out")))
 
 		cmd, args, manifests := runner.RunWithStdinArgsForCall(0)
 		Expect(cmd).To(Equal("kubectl"))

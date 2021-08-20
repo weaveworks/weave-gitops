@@ -43,7 +43,7 @@ var _ = Describe("Uninstall", func() {
 		}
 
 		err = gitopsSrv.Uninstall(uninstallParams)
-		Expect(err).Should(MatchError("Wego is not installed... exiting"))
+		Expect(err).Should(MatchError("wego is not installed... exiting"))
 	})
 
 	It("calls flux uninstall", func() {
@@ -63,7 +63,7 @@ var _ = Describe("Uninstall", func() {
 
 		Expect(kubeClient.DeleteCallCount()).To(Equal(1))
 
-		appCRD, namespace := kubeClient.DeleteArgsForCall(0)
+		_, appCRD, namespace := kubeClient.DeleteArgsForCall(0)
 		Expect(appCRD).To(ContainSubstring("kind: App"))
 		Expect(namespace).To(Equal("wego-system"))
 	})
