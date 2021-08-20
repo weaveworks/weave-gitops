@@ -3,30 +3,33 @@ package app
 import (
 	"context"
 	"fmt"
+	"io"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/pkg/auth"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type DeploymentType string
-type SourceType string
+// type DeploymentType string
+// type SourceType string
 
-const (
-	DeployTypeKustomize DeploymentType = "kustomize"
-	DeployTypeHelm      DeploymentType = "helm"
+// const (
+//  DeployTypeKustomize DeploymentType = "kustomize"
+//  DeployTypeHelm      DeploymentType = "helm"
 
-	SourceTypeGit  SourceType = "git"
-	SourceTypeHelm SourceType = "helm"
-)
+//  SourceTypeGit  SourceType = "git"
+//  SourceTypeHelm SourceType = "helm"
+// )
 
 // AppService entity that manages applications
 type AppService interface {
@@ -34,6 +37,8 @@ type AppService interface {
 	Add(params AddParams) error
 	// Get returns a given applicaiton
 	Get(name types.NamespacedName) (*wego.Application, error)
+	// Remove removes an application from the cluster
+	Remove(params RemoveParams) error
 	// Status returns flux resources status and the last successful reconciliation time
 	Status(params StatusParams) (string, string, error)
 	// Pause pauses the gitops automation for an app
@@ -159,4 +164,22 @@ func (a *App) pauseOrUnpause(suspendAction wego.SuspendActionType, name, namespa
 		return nil
 	}
 	return fmt.Errorf("invalid suspend action")
+}
+
+// DoAppRepoCLIAuth is a helper function that encapsulates the CLI auth flow.
+// This is meant to be re-used in whichever commands need to authenticate with a Git Provider.
+func DoAppRepoCLIAuth(url string, w io.Writer) (string, error) {
+	providerName, err := gitproviders.DetectGitProviderFromUrl(utils.SanitizeRepoUrl(url))
+	if err != nil {
+		return "", fmt.Errorf("could not determine provider name from url %s: %w", url, err)
+	}
+
+	// CLI auth experience will vary between Git Providers.
+	authHandler, err := auth.NewAuthProvider(providerName)
+	if err != nil {
+		return "", fmt.Errorf("could not get auth handler for provider %s: %w", providerName, err)
+	}
+
+	// authHandler will take over the CLI and block until the flow is complete.
+	return authHandler(context.Background(), w)
 }

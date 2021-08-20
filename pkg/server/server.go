@@ -3,13 +3,20 @@ package server
 import (
 	"context"
 	"fmt"
+	"log"
+	"net/http"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	"github.com/go-logr/logr"
+	"github.com/go-logr/zapr"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/middleware"
+	"go.uber.org/zap"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -20,12 +27,56 @@ type server struct {
 	pb.UnimplementedApplicationsServer
 
 	kube kube.Kube
+	log  logr.Logger
 }
 
-func NewApplicationsServer(kubeSvc kube.Kube) pb.ApplicationsServer {
+// An ApplicationsConfig allows for the customization of an ApplicationsServer.
+// Use the DefaultConfig() to use the default dependencies.
+type ApplicationsConfig struct {
+	Logger     logr.Logger
+	KubeClient kube.Kube
+}
+
+// NewApplicationsServer creates a grpc Applications server
+func NewApplicationsServer(cfg *ApplicationsConfig) pb.ApplicationsServer {
 	return &server{
-		kube: kubeSvc,
+		kube: cfg.KubeClient,
+		log:  cfg.Logger,
 	}
+}
+
+// DefaultConfig creates a populated config with the dependencies for an ApplicationsServer
+func DefaultConfig() (*ApplicationsConfig, error) {
+	zapLog, err := zap.NewDevelopment()
+	if err != nil {
+		log.Fatalf("could not create zap logger: %v", err)
+	}
+	logr := zapr.NewLogger(zapLog)
+
+	kubeClient, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		return nil, fmt.Errorf("could not create kube http client: %w", err)
+	}
+
+	return &ApplicationsConfig{
+		Logger:     logr,
+		KubeClient: kubeClient,
+	}, nil
+}
+
+// NewApplicationsHandler allow for other applications to embed the Weave GitOps Applications HTTP API.
+// This handler can be muxed with other services or used as a standalone service.
+func NewApplicationsHandler(ctx context.Context, cfg *ApplicationsConfig, opts ...runtime.ServeMuxOption) (http.Handler, error) {
+	appsSrv := NewApplicationsServer(cfg)
+
+	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(cfg.Logger))
+	httpHandler := middleware.WithLogging(cfg.Logger, mux)
+
+	if err := pb.RegisterApplicationsHandlerServer(ctx, mux, appsSrv); err != nil {
+		return nil, fmt.Errorf("could not register application: %w", err)
+	}
+
+	return httpHandler, nil
 }
 
 func (s *server) ListApplications(ctx context.Context, msg *pb.ListApplicationsRequest) (*pb.ListApplicationsResponse, error) {
@@ -52,7 +103,7 @@ func (s *server) ListApplications(ctx context.Context, msg *pb.ListApplicationsR
 func (s *server) GetApplication(ctx context.Context, msg *pb.GetApplicationRequest) (*pb.GetApplicationResponse, error) {
 	app, err := s.kube.GetApplication(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace})
 	if err != nil {
-		return nil, fmt.Errorf("could not get application \"%s\": %w", app.Name, err)
+		return nil, fmt.Errorf("could not get application \"%s\": %w", msg.Name, err)
 	}
 
 	src, deployment, err := findFluxObjects(app)

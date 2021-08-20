@@ -129,6 +129,10 @@ func (c *KubeHTTP) Delete(manifests []byte, namespace string) ([]byte, error) {
 	return nil, errors.New("not implemented")
 }
 
+func (c *KubeHTTP) DeleteByName(name, kind, namespace string) ([]byte, error) {
+	return nil, errors.New("not implemented")
+}
+
 func (c *KubeHTTP) FluxPresent(ctx context.Context) (bool, error) {
 	key := types.NamespacedName{
 		Name: FluxNamespace,
@@ -173,7 +177,7 @@ func (c *KubeHTTP) GetApplications(ctx context.Context, namespace string) ([]weg
 	return result.Items, nil
 }
 
-func (c *KubeHTTP) LabelExistsInCluster(ctx context.Context, label string) error {
+func (c *KubeHTTP) AppExistsInCluster(ctx context.Context, namespace string, appHash string) error {
 	return errors.New("LabelExistsInCluster is not implemented for kubeHTTP")
 }
 

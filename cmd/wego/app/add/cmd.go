@@ -1,7 +1,6 @@
 package add
 
-// Provides support for adding a repository of manifests to a wego cluster. If the cluster does not have
-// wego installed, the user will be prompted to install wego and then the repository will be added.
+// Provides support for adding an application to wego managment.
 
 import (
 	"fmt"
@@ -9,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/lithammer/dedent"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -22,7 +20,10 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
-	"golang.org/x/term"
+)
+
+const (
+	SSHAuthSock = "SSH_AUTH_SOCK"
 )
 
 var params app.AddParams
@@ -54,12 +55,13 @@ var Cmd = &cobra.Command{
 func init() {
 	Cmd.Flags().StringVar(&params.Name, "name", "", "Name of application")
 	Cmd.Flags().StringVar(&params.Url, "url", "", "URL of remote repository")
-	Cmd.Flags().StringVar(&params.Path, "path", "./", "Path of files within git repository")
-	Cmd.Flags().StringVar(&params.Branch, "branch", "main", "Branch to watch within git repository")
-	Cmd.Flags().StringVar(&params.DeploymentType, "deployment-type", "kustomize", "deployment type [kustomize, helm]")
+	Cmd.Flags().StringVar(&params.Path, "path", app.DefaultPath, "Path of files within git repository")
+	Cmd.Flags().StringVar(&params.Branch, "branch", app.DefaultBranch, "Branch to watch within git repository")
+	Cmd.Flags().StringVar(&params.DeploymentType, "deployment-type", app.DefaultDeploymentType, "deployment type [kustomize, helm]")
 	Cmd.Flags().StringVar(&params.Chart, "chart", "", "Specify chart for helm source")
 	Cmd.Flags().StringVar(&params.PrivateKey, "private-key", "", "Private key to access git repository over ssh")
 	Cmd.Flags().StringVar(&params.AppConfigUrl, "app-config-url", "", "URL of external repository (if any) which will hold automation manifests; NONE to store only in the cluster")
+	Cmd.Flags().StringVar(&params.HelmReleaseTargetNamespace, "helm-release-target-namespace", "", "Namespace in which to deploy a helm chart; defaults to the wego installation namespace")
 	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'wego add' will not make any changes to the system; it will just display the actions that would have been taken")
 	Cmd.Flags().BoolVar(&params.AutoMerge, "auto-merge", false, "If set, 'wego add' will merge automatically into the set --branch")
 }
@@ -80,45 +82,43 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		params.Dir = path
 	}
 
-	if strings.HasPrefix(params.PrivateKey, "~/") {
-		dir, err := getHomeDir()
-		if err != nil {
-			return err
+	osysClient := osys.New()
+
+	token, err := osysClient.GetGitProviderToken()
+
+	if err == osys.ErrNoGitProviderTokenSet {
+		// No provider token set, we need to do the auth flow.
+		url := params.Url
+		if url == "" {
+			// Find the url using an unauthenticated git client. We just need to read the URL.
+			// params.Dir must be defined here because we already checked for it above.
+			url, err = git.New(nil).GetRemoteUrl(params.Dir, "origin")
+			if err != nil {
+				return fmt.Errorf("could not get remote url for directory %s: %w", params.Dir, err)
+			}
 		}
-		params.PrivateKey = filepath.Join(dir, params.PrivateKey[2:])
-	} else if params.PrivateKey == "" {
-		privateKey, err := findPrivateKeyFile()
+		// DoAppRepoCLIAuth will take over the CLI and block until the flow is complete.
+		token, err = app.DoAppRepoCLIAuth(url, osysClient.Stdout())
 		if err != nil {
-			return err
+			return fmt.Errorf("could not complete auth flow: %w", err)
 		}
-		params.PrivateKey = privateKey
+	} else if err != nil {
+		// We didn't detect a NoGitProviderSet error, something else went wrong.
+		return fmt.Errorf("could not get access token: %w", err)
 	}
 
-	authMethod, err := ssh.NewPublicKeysFromFile("git", params.PrivateKey, "")
-	if err != nil {
-		fmt.Print("Private Key Password: ")
-		pw, err := term.ReadPassword(int(os.Stdin.Fd()))
-		if err != nil {
-			return errors.Wrap(err, "failed reading ssh key password")
-		}
+	params.GitProviderToken = token
 
-		authMethod, err = ssh.NewPublicKeysFromFile("git", params.PrivateKey, string(pw))
-		if err != nil {
-			return errors.Wrap(err, "failed reading ssh keys")
-		}
-	}
-
-	params, err = setGitProviderToken(params)
+	authMethod, err := osysClient.SelectAuthMethod(params.PrivateKey)
 	if err != nil {
-		return err
+		return fmt.Errorf("error selecting auth method: %w", err)
 	}
 
 	cliRunner := &runner.CLIRunner{}
-	osysClient := osys.New()
 	fluxClient := flux.New(osysClient, cliRunner)
 	kubeClient := kube.New(cliRunner)
 	gitClient := git.New(authMethod)
-	logger := logger.New(os.Stdout)
+	logger := logger.NewCLILogger(os.Stdout)
 
 	appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)
 
@@ -129,42 +129,4 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
-}
-
-func getHomeDir() (string, error) {
-	dir, err := os.UserHomeDir()
-	if err != nil {
-		return "", fmt.Errorf("could not determine user home directory")
-	}
-	return dir, nil
-}
-
-func findPrivateKeyFile() (string, error) {
-	dir, err := getHomeDir()
-	if err != nil {
-		return "", err
-	}
-
-	modernFilePath := filepath.Join(dir, ".ssh", "id_ed25519")
-	if utils.Exists(modernFilePath) {
-		return modernFilePath, nil
-	}
-
-	legacyFilePath := filepath.Join(dir, ".ssh", "id_rsa")
-	if utils.Exists(legacyFilePath) {
-		return legacyFilePath, nil
-	}
-
-	return "", fmt.Errorf("could not locate ssh key file; please specify '--private-key'")
-}
-
-func setGitProviderToken(params app.AddParams) (app.AddParams, error) {
-	providerToken, found := os.LookupEnv("GITHUB_TOKEN")
-	if !found {
-		return params, fmt.Errorf("GITHUB_TOKEN not set in environment")
-	}
-
-	params.GitProviderToken = providerToken
-
-	return params, nil
 }

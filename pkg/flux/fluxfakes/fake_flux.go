@@ -9,13 +9,14 @@ import (
 )
 
 type FakeFlux struct {
-	CreateHelmReleaseGitRepositoryStub        func(string, string, string, string) ([]byte, error)
+	CreateHelmReleaseGitRepositoryStub        func(string, string, string, string, string) ([]byte, error)
 	createHelmReleaseGitRepositoryMutex       sync.RWMutex
 	createHelmReleaseGitRepositoryArgsForCall []struct {
 		arg1 string
 		arg2 string
 		arg3 string
 		arg4 string
+		arg5 string
 	}
 	createHelmReleaseGitRepositoryReturns struct {
 		result1 []byte
@@ -25,12 +26,13 @@ type FakeFlux struct {
 		result1 []byte
 		result2 error
 	}
-	CreateHelmReleaseHelmRepositoryStub        func(string, string, string) ([]byte, error)
+	CreateHelmReleaseHelmRepositoryStub        func(string, string, string, string) ([]byte, error)
 	createHelmReleaseHelmRepositoryMutex       sync.RWMutex
 	createHelmReleaseHelmRepositoryArgsForCall []struct {
 		arg1 string
 		arg2 string
 		arg3 string
+		arg4 string
 	}
 	createHelmReleaseHelmRepositoryReturns struct {
 		result1 []byte
@@ -215,7 +217,7 @@ type FakeFlux struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeFlux) CreateHelmReleaseGitRepository(arg1 string, arg2 string, arg3 string, arg4 string) ([]byte, error) {
+func (fake *FakeFlux) CreateHelmReleaseGitRepository(arg1 string, arg2 string, arg3 string, arg4 string, arg5 string) ([]byte, error) {
 	fake.createHelmReleaseGitRepositoryMutex.Lock()
 	ret, specificReturn := fake.createHelmReleaseGitRepositoryReturnsOnCall[len(fake.createHelmReleaseGitRepositoryArgsForCall)]
 	fake.createHelmReleaseGitRepositoryArgsForCall = append(fake.createHelmReleaseGitRepositoryArgsForCall, struct {
@@ -223,13 +225,14 @@ func (fake *FakeFlux) CreateHelmReleaseGitRepository(arg1 string, arg2 string, a
 		arg2 string
 		arg3 string
 		arg4 string
-	}{arg1, arg2, arg3, arg4})
+		arg5 string
+	}{arg1, arg2, arg3, arg4, arg5})
 	stub := fake.CreateHelmReleaseGitRepositoryStub
 	fakeReturns := fake.createHelmReleaseGitRepositoryReturns
-	fake.recordInvocation("CreateHelmReleaseGitRepository", []interface{}{arg1, arg2, arg3, arg4})
+	fake.recordInvocation("CreateHelmReleaseGitRepository", []interface{}{arg1, arg2, arg3, arg4, arg5})
 	fake.createHelmReleaseGitRepositoryMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4)
+		return stub(arg1, arg2, arg3, arg4, arg5)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -243,17 +246,17 @@ func (fake *FakeFlux) CreateHelmReleaseGitRepositoryCallCount() int {
 	return len(fake.createHelmReleaseGitRepositoryArgsForCall)
 }
 
-func (fake *FakeFlux) CreateHelmReleaseGitRepositoryCalls(stub func(string, string, string, string) ([]byte, error)) {
+func (fake *FakeFlux) CreateHelmReleaseGitRepositoryCalls(stub func(string, string, string, string, string) ([]byte, error)) {
 	fake.createHelmReleaseGitRepositoryMutex.Lock()
 	defer fake.createHelmReleaseGitRepositoryMutex.Unlock()
 	fake.CreateHelmReleaseGitRepositoryStub = stub
 }
 
-func (fake *FakeFlux) CreateHelmReleaseGitRepositoryArgsForCall(i int) (string, string, string, string) {
+func (fake *FakeFlux) CreateHelmReleaseGitRepositoryArgsForCall(i int) (string, string, string, string, string) {
 	fake.createHelmReleaseGitRepositoryMutex.RLock()
 	defer fake.createHelmReleaseGitRepositoryMutex.RUnlock()
 	argsForCall := fake.createHelmReleaseGitRepositoryArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
 func (fake *FakeFlux) CreateHelmReleaseGitRepositoryReturns(result1 []byte, result2 error) {
@@ -282,20 +285,21 @@ func (fake *FakeFlux) CreateHelmReleaseGitRepositoryReturnsOnCall(i int, result1
 	}{result1, result2}
 }
 
-func (fake *FakeFlux) CreateHelmReleaseHelmRepository(arg1 string, arg2 string, arg3 string) ([]byte, error) {
+func (fake *FakeFlux) CreateHelmReleaseHelmRepository(arg1 string, arg2 string, arg3 string, arg4 string) ([]byte, error) {
 	fake.createHelmReleaseHelmRepositoryMutex.Lock()
 	ret, specificReturn := fake.createHelmReleaseHelmRepositoryReturnsOnCall[len(fake.createHelmReleaseHelmRepositoryArgsForCall)]
 	fake.createHelmReleaseHelmRepositoryArgsForCall = append(fake.createHelmReleaseHelmRepositoryArgsForCall, struct {
 		arg1 string
 		arg2 string
 		arg3 string
-	}{arg1, arg2, arg3})
+		arg4 string
+	}{arg1, arg2, arg3, arg4})
 	stub := fake.CreateHelmReleaseHelmRepositoryStub
 	fakeReturns := fake.createHelmReleaseHelmRepositoryReturns
-	fake.recordInvocation("CreateHelmReleaseHelmRepository", []interface{}{arg1, arg2, arg3})
+	fake.recordInvocation("CreateHelmReleaseHelmRepository", []interface{}{arg1, arg2, arg3, arg4})
 	fake.createHelmReleaseHelmRepositoryMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -309,17 +313,17 @@ func (fake *FakeFlux) CreateHelmReleaseHelmRepositoryCallCount() int {
 	return len(fake.createHelmReleaseHelmRepositoryArgsForCall)
 }
 
-func (fake *FakeFlux) CreateHelmReleaseHelmRepositoryCalls(stub func(string, string, string) ([]byte, error)) {
+func (fake *FakeFlux) CreateHelmReleaseHelmRepositoryCalls(stub func(string, string, string, string) ([]byte, error)) {
 	fake.createHelmReleaseHelmRepositoryMutex.Lock()
 	defer fake.createHelmReleaseHelmRepositoryMutex.Unlock()
 	fake.CreateHelmReleaseHelmRepositoryStub = stub
 }
 
-func (fake *FakeFlux) CreateHelmReleaseHelmRepositoryArgsForCall(i int) (string, string, string) {
+func (fake *FakeFlux) CreateHelmReleaseHelmRepositoryArgsForCall(i int) (string, string, string, string) {
 	fake.createHelmReleaseHelmRepositoryMutex.RLock()
 	defer fake.createHelmReleaseHelmRepositoryMutex.RUnlock()
 	argsForCall := fake.createHelmReleaseHelmRepositoryArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
 func (fake *FakeFlux) CreateHelmReleaseHelmRepositoryReturns(result1 []byte, result2 error) {

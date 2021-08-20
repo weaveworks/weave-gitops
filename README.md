@@ -24,7 +24,7 @@ _Weave GitOps is in early stages and iterating. Not all capabilities are availab
 Mac / Linux
 
 ```console
-curl -L https://github.com/weaveworks/weave-gitops/releases/download/v0.2.1/wego-$(uname)-$(uname -m) -o wego
+curl -L https://github.com/weaveworks/weave-gitops/releases/download/v0.2.2/wego-$(uname)-$(uname -m) -o wego
 chmod +x wego
 sudo mv ./wego /usr/local/bin/wego
 wego version
@@ -112,6 +112,9 @@ To create a new styled React component (with typescript):
   }
 }
 ```
+
+## FAQ
+Please see our Weave GitOps Core [FAQ](https://www.weave.works/faqs-for-weave-gitops-core/)
 
 ## Contribution
 

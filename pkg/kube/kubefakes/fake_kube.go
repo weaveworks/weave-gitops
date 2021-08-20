@@ -11,6 +11,19 @@ import (
 )
 
 type FakeKube struct {
+	AppExistsInClusterStub        func(context.Context, string, string) error
+	appExistsInClusterMutex       sync.RWMutex
+	appExistsInClusterArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+	}
+	appExistsInClusterReturns struct {
+		result1 error
+	}
+	appExistsInClusterReturnsOnCall map[int]struct {
+		result1 error
+	}
 	ApplyStub        func([]byte, string) ([]byte, error)
 	applyMutex       sync.RWMutex
 	applyArgsForCall []struct {
@@ -36,6 +49,21 @@ type FakeKube struct {
 		result2 error
 	}
 	deleteReturnsOnCall map[int]struct {
+		result1 []byte
+		result2 error
+	}
+	DeleteByNameStub        func(string, string, string) ([]byte, error)
+	deleteByNameMutex       sync.RWMutex
+	deleteByNameArgsForCall []struct {
+		arg1 string
+		arg2 string
+		arg3 string
+	}
+	deleteByNameReturns struct {
+		result1 []byte
+		result2 error
+	}
+	deleteByNameReturnsOnCall map[int]struct {
 		result1 []byte
 		result2 error
 	}
@@ -117,18 +145,6 @@ type FakeKube struct {
 	getResourceReturnsOnCall map[int]struct {
 		result1 error
 	}
-	LabelExistsInClusterStub        func(context.Context, string) error
-	labelExistsInClusterMutex       sync.RWMutex
-	labelExistsInClusterArgsForCall []struct {
-		arg1 context.Context
-		arg2 string
-	}
-	labelExistsInClusterReturns struct {
-		result1 error
-	}
-	labelExistsInClusterReturnsOnCall map[int]struct {
-		result1 error
-	}
 	SecretPresentStub        func(context.Context, string, string) (bool, error)
 	secretPresentMutex       sync.RWMutex
 	secretPresentArgsForCall []struct {
@@ -146,6 +162,69 @@ type FakeKube struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeKube) AppExistsInCluster(arg1 context.Context, arg2 string, arg3 string) error {
+	fake.appExistsInClusterMutex.Lock()
+	ret, specificReturn := fake.appExistsInClusterReturnsOnCall[len(fake.appExistsInClusterArgsForCall)]
+	fake.appExistsInClusterArgsForCall = append(fake.appExistsInClusterArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+	}{arg1, arg2, arg3})
+	stub := fake.AppExistsInClusterStub
+	fakeReturns := fake.appExistsInClusterReturns
+	fake.recordInvocation("AppExistsInCluster", []interface{}{arg1, arg2, arg3})
+	fake.appExistsInClusterMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeKube) AppExistsInClusterCallCount() int {
+	fake.appExistsInClusterMutex.RLock()
+	defer fake.appExistsInClusterMutex.RUnlock()
+	return len(fake.appExistsInClusterArgsForCall)
+}
+
+func (fake *FakeKube) AppExistsInClusterCalls(stub func(context.Context, string, string) error) {
+	fake.appExistsInClusterMutex.Lock()
+	defer fake.appExistsInClusterMutex.Unlock()
+	fake.AppExistsInClusterStub = stub
+}
+
+func (fake *FakeKube) AppExistsInClusterArgsForCall(i int) (context.Context, string, string) {
+	fake.appExistsInClusterMutex.RLock()
+	defer fake.appExistsInClusterMutex.RUnlock()
+	argsForCall := fake.appExistsInClusterArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeKube) AppExistsInClusterReturns(result1 error) {
+	fake.appExistsInClusterMutex.Lock()
+	defer fake.appExistsInClusterMutex.Unlock()
+	fake.AppExistsInClusterStub = nil
+	fake.appExistsInClusterReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeKube) AppExistsInClusterReturnsOnCall(i int, result1 error) {
+	fake.appExistsInClusterMutex.Lock()
+	defer fake.appExistsInClusterMutex.Unlock()
+	fake.AppExistsInClusterStub = nil
+	if fake.appExistsInClusterReturnsOnCall == nil {
+		fake.appExistsInClusterReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.appExistsInClusterReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeKube) Apply(arg1 []byte, arg2 string) ([]byte, error) {
@@ -283,6 +362,72 @@ func (fake *FakeKube) DeleteReturnsOnCall(i int, result1 []byte, result2 error) 
 		})
 	}
 	fake.deleteReturnsOnCall[i] = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeKube) DeleteByName(arg1 string, arg2 string, arg3 string) ([]byte, error) {
+	fake.deleteByNameMutex.Lock()
+	ret, specificReturn := fake.deleteByNameReturnsOnCall[len(fake.deleteByNameArgsForCall)]
+	fake.deleteByNameArgsForCall = append(fake.deleteByNameArgsForCall, struct {
+		arg1 string
+		arg2 string
+		arg3 string
+	}{arg1, arg2, arg3})
+	stub := fake.DeleteByNameStub
+	fakeReturns := fake.deleteByNameReturns
+	fake.recordInvocation("DeleteByName", []interface{}{arg1, arg2, arg3})
+	fake.deleteByNameMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeKube) DeleteByNameCallCount() int {
+	fake.deleteByNameMutex.RLock()
+	defer fake.deleteByNameMutex.RUnlock()
+	return len(fake.deleteByNameArgsForCall)
+}
+
+func (fake *FakeKube) DeleteByNameCalls(stub func(string, string, string) ([]byte, error)) {
+	fake.deleteByNameMutex.Lock()
+	defer fake.deleteByNameMutex.Unlock()
+	fake.DeleteByNameStub = stub
+}
+
+func (fake *FakeKube) DeleteByNameArgsForCall(i int) (string, string, string) {
+	fake.deleteByNameMutex.RLock()
+	defer fake.deleteByNameMutex.RUnlock()
+	argsForCall := fake.deleteByNameArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeKube) DeleteByNameReturns(result1 []byte, result2 error) {
+	fake.deleteByNameMutex.Lock()
+	defer fake.deleteByNameMutex.Unlock()
+	fake.DeleteByNameStub = nil
+	fake.deleteByNameReturns = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeKube) DeleteByNameReturnsOnCall(i int, result1 []byte, result2 error) {
+	fake.deleteByNameMutex.Lock()
+	defer fake.deleteByNameMutex.Unlock()
+	fake.DeleteByNameStub = nil
+	if fake.deleteByNameReturnsOnCall == nil {
+		fake.deleteByNameReturnsOnCall = make(map[int]struct {
+			result1 []byte
+			result2 error
+		})
+	}
+	fake.deleteByNameReturnsOnCall[i] = struct {
 		result1 []byte
 		result2 error
 	}{result1, result2}
@@ -670,68 +815,6 @@ func (fake *FakeKube) GetResourceReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeKube) LabelExistsInCluster(arg1 context.Context, arg2 string) error {
-	fake.labelExistsInClusterMutex.Lock()
-	ret, specificReturn := fake.labelExistsInClusterReturnsOnCall[len(fake.labelExistsInClusterArgsForCall)]
-	fake.labelExistsInClusterArgsForCall = append(fake.labelExistsInClusterArgsForCall, struct {
-		arg1 context.Context
-		arg2 string
-	}{arg1, arg2})
-	stub := fake.LabelExistsInClusterStub
-	fakeReturns := fake.labelExistsInClusterReturns
-	fake.recordInvocation("LabelExistsInCluster", []interface{}{arg1, arg2})
-	fake.labelExistsInClusterMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeKube) LabelExistsInClusterCallCount() int {
-	fake.labelExistsInClusterMutex.RLock()
-	defer fake.labelExistsInClusterMutex.RUnlock()
-	return len(fake.labelExistsInClusterArgsForCall)
-}
-
-func (fake *FakeKube) LabelExistsInClusterCalls(stub func(context.Context, string) error) {
-	fake.labelExistsInClusterMutex.Lock()
-	defer fake.labelExistsInClusterMutex.Unlock()
-	fake.LabelExistsInClusterStub = stub
-}
-
-func (fake *FakeKube) LabelExistsInClusterArgsForCall(i int) (context.Context, string) {
-	fake.labelExistsInClusterMutex.RLock()
-	defer fake.labelExistsInClusterMutex.RUnlock()
-	argsForCall := fake.labelExistsInClusterArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeKube) LabelExistsInClusterReturns(result1 error) {
-	fake.labelExistsInClusterMutex.Lock()
-	defer fake.labelExistsInClusterMutex.Unlock()
-	fake.LabelExistsInClusterStub = nil
-	fake.labelExistsInClusterReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeKube) LabelExistsInClusterReturnsOnCall(i int, result1 error) {
-	fake.labelExistsInClusterMutex.Lock()
-	defer fake.labelExistsInClusterMutex.Unlock()
-	fake.LabelExistsInClusterStub = nil
-	if fake.labelExistsInClusterReturnsOnCall == nil {
-		fake.labelExistsInClusterReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.labelExistsInClusterReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeKube) SecretPresent(arg1 context.Context, arg2 string, arg3 string) (bool, error) {
 	fake.secretPresentMutex.Lock()
 	ret, specificReturn := fake.secretPresentReturnsOnCall[len(fake.secretPresentArgsForCall)]
@@ -801,10 +884,14 @@ func (fake *FakeKube) SecretPresentReturnsOnCall(i int, result1 bool, result2 er
 func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.appExistsInClusterMutex.RLock()
+	defer fake.appExistsInClusterMutex.RUnlock()
 	fake.applyMutex.RLock()
 	defer fake.applyMutex.RUnlock()
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
+	fake.deleteByNameMutex.RLock()
+	defer fake.deleteByNameMutex.RUnlock()
 	fake.fluxPresentMutex.RLock()
 	defer fake.fluxPresentMutex.RUnlock()
 	fake.getApplicationMutex.RLock()
@@ -817,8 +904,6 @@ func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	defer fake.getClusterStatusMutex.RUnlock()
 	fake.getResourceMutex.RLock()
 	defer fake.getResourceMutex.RUnlock()
-	fake.labelExistsInClusterMutex.RLock()
-	defer fake.labelExistsInClusterMutex.RUnlock()
 	fake.secretPresentMutex.RLock()
 	defer fake.secretPresentMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

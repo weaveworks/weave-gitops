@@ -20,6 +20,7 @@ import (
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 )
 
@@ -284,6 +285,50 @@ var _ = Describe("pull requests", func() {
 	})
 })
 
+var _ = Describe("commits", func() {
+	accounts := getAccounts()
+
+	var client gitprovider.Client
+	var recorder *recorder.Recorder
+	var err error
+
+	type tier struct {
+		client   gitprovider.Client
+		domain   string
+		orgName  string
+		userName string
+	}
+
+	var providers []tier
+
+	var _ = BeforeEach(func() {
+		client, recorder, err = getTestClientWithCassette("commits")
+		Expect(err).NotTo(HaveOccurred())
+		gitProvider = defaultGitProvider{
+			provider: client,
+		}
+
+		providers = []tier{
+			{client, github.DefaultDomain, accounts.GithubOrgName, accounts.GithubUserName},
+			// Remove this for now as we dont support it yet.
+			// {"gitlab", gitlabTestClient, gitlab.DefaultDomain, accounts.GitlabOrgName, accounts.GitlabUserName},
+		}
+
+	})
+
+	It("should get commits for user and org accounts in github", func() {
+		for _, p := range providers {
+			GetCommitToUserRepo(p.client, p.domain, p.userName)
+			GetCommitToOrgRepo(p.client, p.domain, p.orgName)
+		}
+	})
+
+	AfterEach(func() {
+		err = recorder.Stop()
+		Expect(err).ToNot(HaveOccurred())
+	})
+})
+
 var _ = Describe("test org repo exists", func() {
 	accounts := getAccounts()
 
@@ -458,6 +503,56 @@ func CreateTestPullRequestToUserRepo(client gitprovider.Client, domain string, u
 	Expect(err).NotTo(HaveOccurred())
 }
 
+func GetCommitToUserRepo(client gitprovider.Client, domain string, userAccount string) {
+	repoName := "test-user-commit"
+
+	userRepoRef := NewUserRepositoryRef(domain, userAccount, repoName)
+	repoInfo := NewRepositoryInfo("test user commit", gitprovider.RepositoryVisibilityPrivate)
+	opts := &gitprovider.RepositoryCreateOptions{
+		AutoInit: gitprovider.BoolVar(true),
+	}
+
+	err := gitProvider.CreateUserRepository(userRepoRef, repoInfo, opts)
+	Expect(err).NotTo(HaveOccurred())
+
+	commits, err := gitProvider.GetCommitsFromUserRepo(userRepoRef, "main")
+	Expect(err).NotTo(HaveOccurred())
+	Expect(commits[0].Get().Message).To(Equal("Initial commit"))
+	Expect(commits[0].Get().Author).To(Equal("bot"))
+
+	ctx := context.Background()
+	user, err := client.UserRepositories().Get(ctx, userRepoRef)
+	Expect(err).NotTo(HaveOccurred())
+	err = user.Delete(ctx)
+	Expect(err).NotTo(HaveOccurred())
+
+}
+
+func GetCommitToOrgRepo(client gitprovider.Client, domain string, orgName string) {
+	repoName := "test-org-commit"
+
+	orgRepoRef := NewOrgRepositoryRef(domain, orgName, repoName)
+	repoInfo := NewRepositoryInfo("test org commit", gitprovider.RepositoryVisibilityPrivate)
+	opts := &gitprovider.RepositoryCreateOptions{
+		AutoInit: gitprovider.BoolVar(true),
+	}
+
+	err := gitProvider.CreateOrgRepository(orgRepoRef, repoInfo, opts)
+	Expect(err).NotTo(HaveOccurred())
+
+	commits, err := gitProvider.GetCommitsFromOrgRepo(orgRepoRef, "main")
+	Expect(err).NotTo(HaveOccurred())
+	Expect(commits[0].Get().Message).To(Equal("Initial commit"))
+	Expect(commits[0].Get().Author).To(Equal("bot"))
+
+	ctx := context.Background()
+	user, err := client.OrgRepositories().Get(ctx, orgRepoRef)
+	Expect(err).NotTo(HaveOccurred())
+	err = user.Delete(ctx)
+	Expect(err).NotTo(HaveOccurred())
+
+}
+
 var _ = Describe("Get User repo info", func() {
 	accounts := getAccounts()
 	var client gitprovider.Client
@@ -484,10 +579,10 @@ var _ = Describe("Get User repo info", func() {
 	})
 
 	It("Succeed on getting user repo info", func() {
-		err = gitProvider.GetRepoInfo(AccountTypeUser, accounts.GithubUserName, repoName)
+		_, err = gitProvider.GetRepoInfo(AccountTypeUser, accounts.GithubUserName, repoName)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		err = gitProvider.GetRepoInfo(AccountTypeUser, accounts.GithubUserName, "repoNotExisted")
+		_, err = gitProvider.GetRepoInfo(AccountTypeUser, accounts.GithubUserName, "repoNotExisted")
 		Expect(err).Should(HaveOccurred())
 
 	})
@@ -528,7 +623,8 @@ var _ = Describe("Test user deploy keys creation", func() {
 		err = gitProvider.CreateUserRepository(userRepoRef, repoInfo, opts)
 		Expect(err).ShouldNot(HaveOccurred())
 		err = utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
-			return gitProvider.GetUserRepo(accounts.GithubUserName, repoName)
+			_, err := gitProvider.GetUserRepo(accounts.GithubUserName, repoName)
+			return err
 		})
 		Expect(err).ShouldNot(HaveOccurred())
 
@@ -595,7 +691,8 @@ var _ = Describe("Test org deploy keys creation", func() {
 		err = gitProvider.CreateOrgRepository(orgRepoRef, repoInfo, opts)
 		Expect(err).ShouldNot(HaveOccurred())
 		err = utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
-			return gitProvider.GetOrgRepo(accounts.GithubOrgName, repoName)
+			_, err := gitProvider.GetOrgRepo(accounts.GithubOrgName, repoName)
+			return err
 		})
 		Expect(err).ShouldNot(HaveOccurred())
 
@@ -634,4 +731,16 @@ var _ = Describe("Test org deploy keys creation", func() {
 		err = recorder.Stop()
 		Expect(err).ShouldNot(HaveOccurred())
 	})
+})
+
+var _ = Describe("helpers", func() {
+	DescribeTable("DetectGitProviderFromUrl", func(input string, expected GitProviderName) {
+		result, err := DetectGitProviderFromUrl(input)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal(expected))
+	},
+		Entry("ssh+github", "ssh://git@github.com/weaveworks/weave-gitops.git", GitProviderGitHub),
+		Entry("ssh+gitlab", "ssh://git@gitlab.com/weaveworks/weave-gitops.git", GitProviderGitLab),
+	)
+
 })

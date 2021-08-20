@@ -7,36 +7,31 @@ import (
 	"testing"
 
 	. "github.com/onsi/ginkgo"
-	ginkgo "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 )
 
-func GomegaFail(message string, callerSkip ...int) {
-	//Show all resources
-	err := ShowItems("")
-	if err != nil {
-		log.Infof("Failed to print the cluster resources")
-	}
-
-	err = ShowItems("GitRepositories")
-	if err != nil {
-		log.Infof("Failed to print the GitRepositories")
-	}
-
-	ShowWegoControllerLogs(WEGO_DEFAULT_NAMESPACE)
-
-	//Pass this down to the default handler for onward processing
-	ginkgo.Fail(message, callerSkip...)
-}
-
 func TestAcceptance(t *testing.T) {
+
+	defer func() {
+		err := ShowItems("")
+		if err != nil {
+			log.Infof("Failed to print the cluster resources")
+		}
+
+		err = ShowItems("GitRepositories")
+		if err != nil {
+			log.Infof("Failed to print the GitRepositories")
+		}
+
+		ShowWegoControllerLogs(WEGO_DEFAULT_NAMESPACE)
+	}()
 
 	if testing.Short() {
 		t.Skip("Skip User Acceptance Tests")
 	}
 
-	RegisterFailHandler(GomegaFail)
+	RegisterFailHandler(Fail)
 	RunSpecs(t, "Weave GitOps User Acceptance Tests")
 }
 

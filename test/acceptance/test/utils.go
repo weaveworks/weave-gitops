@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -389,6 +390,11 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 	Eventually(session, 10).Should(gexec.Exit())
 }
 
+func gitUpdateCommitPush(repoAbsolutePath string) {
+	log.Infof("Pushing changes made to file(s) in repo: %s", repoAbsolutePath)
+	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cd %s && git add -u && git commit -m 'edit repo file' && git push", repoAbsolutePath))
+}
+
 func pullBranch(repoAbsolutePath string, branch string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cd %s &&
@@ -525,4 +531,42 @@ func mergePR(repoAbsolutePath, prLink string) {
 	session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
+}
+
+func createAppReplicas(repoAbsolutePath string, appManifestFilePath string, replicasSetValue int, workloadName string) string {
+	log.Infof("Editing app-manifest file in git repo to create replicas of workload: %s", workloadName)
+	appManifestFile := repoAbsolutePath + "/" + appManifestFilePath
+	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("sed -ie 's/replicas: 1/replicas: %d/g' %s", replicasSetValue, appManifestFile))
+	changedValue, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cat %s", appManifestFile))
+	return changedValue
+}
+
+func waitForReplicaCreation(namespace string, replicasSetValue int, timeout time.Duration) error {
+
+	replica := strconv.Itoa(replicasSetValue)
+	pollInterval := 5
+	if timeout < 5*time.Second {
+		timeout = 5 * time.Second
+	}
+	timeoutInSeconds := int(timeout.Seconds())
+
+	for i := pollInterval; i < timeoutInSeconds; i += pollInterval {
+		log.Infof("Waiting for replicas to be created under namespace: %s || %d second(s) passed of %d seconds timeout", namespace, i, timeoutInSeconds)
+
+		out, _ := runCommandAndReturnStringOutput(fmt.Sprintf("kubectl get pods -n %s --field-selector=status.phase=Running --no-headers=true | wc -l", namespace))
+		out = strings.TrimSpace(out)
+		if out != replica {
+			log.Infof("Replica(s) not created, waiting...")
+			output, _ := runCommandAndReturnStringOutput(fmt.Sprintf("kubectl get pods -n %s --field-selector=status.phase=Running --no-headers=true | wc -l", namespace))
+			if output == replica {
+				log.Infof("Replica(s) created, replicaset: %s || namespace: %s", output, namespace)
+				return nil
+			}
+		} else if out == replica {
+			log.Infof("Replica(s) created, replicaset: %s || namespace: %s", out, namespace)
+			return nil
+		}
+		time.Sleep(time.Duration(pollInterval) * time.Second)
+	}
+	return fmt.Errorf("Error: Failed to create replicaset %s under namespace: %s, timeout reached", replica, namespace)
 }

@@ -5,6 +5,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 )
 
@@ -13,6 +14,67 @@ type FakeOsys struct {
 	exitMutex       sync.RWMutex
 	exitArgsForCall []struct {
 		arg1 int
+	}
+	GetGitProviderTokenStub        func() (string, error)
+	getGitProviderTokenMutex       sync.RWMutex
+	getGitProviderTokenArgsForCall []struct {
+	}
+	getGitProviderTokenReturns struct {
+		result1 string
+		result2 error
+	}
+	getGitProviderTokenReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
+	GetenvStub        func(string) string
+	getenvMutex       sync.RWMutex
+	getenvArgsForCall []struct {
+		arg1 string
+	}
+	getenvReturns struct {
+		result1 string
+	}
+	getenvReturnsOnCall map[int]struct {
+		result1 string
+	}
+	LookupEnvStub        func(string) (string, bool)
+	lookupEnvMutex       sync.RWMutex
+	lookupEnvArgsForCall []struct {
+		arg1 string
+	}
+	lookupEnvReturns struct {
+		result1 string
+		result2 bool
+	}
+	lookupEnvReturnsOnCall map[int]struct {
+		result1 string
+		result2 bool
+	}
+	SelectAuthMethodStub        func(string) (ssh.AuthMethod, error)
+	selectAuthMethodMutex       sync.RWMutex
+	selectAuthMethodArgsForCall []struct {
+		arg1 string
+	}
+	selectAuthMethodReturns struct {
+		result1 ssh.AuthMethod
+		result2 error
+	}
+	selectAuthMethodReturnsOnCall map[int]struct {
+		result1 ssh.AuthMethod
+		result2 error
+	}
+	SetenvStub        func(string, string) error
+	setenvMutex       sync.RWMutex
+	setenvArgsForCall []struct {
+		arg1 string
+		arg2 string
+	}
+	setenvReturns struct {
+		result1 error
+	}
+	setenvReturnsOnCall map[int]struct {
+		result1 error
 	}
 	StderrStub        func() *os.File
 	stderrMutex       sync.RWMutex
@@ -90,6 +152,313 @@ func (fake *FakeOsys) ExitArgsForCall(i int) int {
 	defer fake.exitMutex.RUnlock()
 	argsForCall := fake.exitArgsForCall[i]
 	return argsForCall.arg1
+}
+
+func (fake *FakeOsys) GetGitProviderToken() (string, error) {
+	fake.getGitProviderTokenMutex.Lock()
+	ret, specificReturn := fake.getGitProviderTokenReturnsOnCall[len(fake.getGitProviderTokenArgsForCall)]
+	fake.getGitProviderTokenArgsForCall = append(fake.getGitProviderTokenArgsForCall, struct {
+	}{})
+	stub := fake.GetGitProviderTokenStub
+	fakeReturns := fake.getGitProviderTokenReturns
+	fake.recordInvocation("GetGitProviderToken", []interface{}{})
+	fake.getGitProviderTokenMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeOsys) GetGitProviderTokenCallCount() int {
+	fake.getGitProviderTokenMutex.RLock()
+	defer fake.getGitProviderTokenMutex.RUnlock()
+	return len(fake.getGitProviderTokenArgsForCall)
+}
+
+func (fake *FakeOsys) GetGitProviderTokenCalls(stub func() (string, error)) {
+	fake.getGitProviderTokenMutex.Lock()
+	defer fake.getGitProviderTokenMutex.Unlock()
+	fake.GetGitProviderTokenStub = stub
+}
+
+func (fake *FakeOsys) GetGitProviderTokenReturns(result1 string, result2 error) {
+	fake.getGitProviderTokenMutex.Lock()
+	defer fake.getGitProviderTokenMutex.Unlock()
+	fake.GetGitProviderTokenStub = nil
+	fake.getGitProviderTokenReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeOsys) GetGitProviderTokenReturnsOnCall(i int, result1 string, result2 error) {
+	fake.getGitProviderTokenMutex.Lock()
+	defer fake.getGitProviderTokenMutex.Unlock()
+	fake.GetGitProviderTokenStub = nil
+	if fake.getGitProviderTokenReturnsOnCall == nil {
+		fake.getGitProviderTokenReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.getGitProviderTokenReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeOsys) Getenv(arg1 string) string {
+	fake.getenvMutex.Lock()
+	ret, specificReturn := fake.getenvReturnsOnCall[len(fake.getenvArgsForCall)]
+	fake.getenvArgsForCall = append(fake.getenvArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.GetenvStub
+	fakeReturns := fake.getenvReturns
+	fake.recordInvocation("Getenv", []interface{}{arg1})
+	fake.getenvMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeOsys) GetenvCallCount() int {
+	fake.getenvMutex.RLock()
+	defer fake.getenvMutex.RUnlock()
+	return len(fake.getenvArgsForCall)
+}
+
+func (fake *FakeOsys) GetenvCalls(stub func(string) string) {
+	fake.getenvMutex.Lock()
+	defer fake.getenvMutex.Unlock()
+	fake.GetenvStub = stub
+}
+
+func (fake *FakeOsys) GetenvArgsForCall(i int) string {
+	fake.getenvMutex.RLock()
+	defer fake.getenvMutex.RUnlock()
+	argsForCall := fake.getenvArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeOsys) GetenvReturns(result1 string) {
+	fake.getenvMutex.Lock()
+	defer fake.getenvMutex.Unlock()
+	fake.GetenvStub = nil
+	fake.getenvReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeOsys) GetenvReturnsOnCall(i int, result1 string) {
+	fake.getenvMutex.Lock()
+	defer fake.getenvMutex.Unlock()
+	fake.GetenvStub = nil
+	if fake.getenvReturnsOnCall == nil {
+		fake.getenvReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.getenvReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeOsys) LookupEnv(arg1 string) (string, bool) {
+	fake.lookupEnvMutex.Lock()
+	ret, specificReturn := fake.lookupEnvReturnsOnCall[len(fake.lookupEnvArgsForCall)]
+	fake.lookupEnvArgsForCall = append(fake.lookupEnvArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.LookupEnvStub
+	fakeReturns := fake.lookupEnvReturns
+	fake.recordInvocation("LookupEnv", []interface{}{arg1})
+	fake.lookupEnvMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeOsys) LookupEnvCallCount() int {
+	fake.lookupEnvMutex.RLock()
+	defer fake.lookupEnvMutex.RUnlock()
+	return len(fake.lookupEnvArgsForCall)
+}
+
+func (fake *FakeOsys) LookupEnvCalls(stub func(string) (string, bool)) {
+	fake.lookupEnvMutex.Lock()
+	defer fake.lookupEnvMutex.Unlock()
+	fake.LookupEnvStub = stub
+}
+
+func (fake *FakeOsys) LookupEnvArgsForCall(i int) string {
+	fake.lookupEnvMutex.RLock()
+	defer fake.lookupEnvMutex.RUnlock()
+	argsForCall := fake.lookupEnvArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeOsys) LookupEnvReturns(result1 string, result2 bool) {
+	fake.lookupEnvMutex.Lock()
+	defer fake.lookupEnvMutex.Unlock()
+	fake.LookupEnvStub = nil
+	fake.lookupEnvReturns = struct {
+		result1 string
+		result2 bool
+	}{result1, result2}
+}
+
+func (fake *FakeOsys) LookupEnvReturnsOnCall(i int, result1 string, result2 bool) {
+	fake.lookupEnvMutex.Lock()
+	defer fake.lookupEnvMutex.Unlock()
+	fake.LookupEnvStub = nil
+	if fake.lookupEnvReturnsOnCall == nil {
+		fake.lookupEnvReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 bool
+		})
+	}
+	fake.lookupEnvReturnsOnCall[i] = struct {
+		result1 string
+		result2 bool
+	}{result1, result2}
+}
+
+func (fake *FakeOsys) SelectAuthMethod(arg1 string) (ssh.AuthMethod, error) {
+	fake.selectAuthMethodMutex.Lock()
+	ret, specificReturn := fake.selectAuthMethodReturnsOnCall[len(fake.selectAuthMethodArgsForCall)]
+	fake.selectAuthMethodArgsForCall = append(fake.selectAuthMethodArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.SelectAuthMethodStub
+	fakeReturns := fake.selectAuthMethodReturns
+	fake.recordInvocation("SelectAuthMethod", []interface{}{arg1})
+	fake.selectAuthMethodMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeOsys) SelectAuthMethodCallCount() int {
+	fake.selectAuthMethodMutex.RLock()
+	defer fake.selectAuthMethodMutex.RUnlock()
+	return len(fake.selectAuthMethodArgsForCall)
+}
+
+func (fake *FakeOsys) SelectAuthMethodCalls(stub func(string) (ssh.AuthMethod, error)) {
+	fake.selectAuthMethodMutex.Lock()
+	defer fake.selectAuthMethodMutex.Unlock()
+	fake.SelectAuthMethodStub = stub
+}
+
+func (fake *FakeOsys) SelectAuthMethodArgsForCall(i int) string {
+	fake.selectAuthMethodMutex.RLock()
+	defer fake.selectAuthMethodMutex.RUnlock()
+	argsForCall := fake.selectAuthMethodArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeOsys) SelectAuthMethodReturns(result1 ssh.AuthMethod, result2 error) {
+	fake.selectAuthMethodMutex.Lock()
+	defer fake.selectAuthMethodMutex.Unlock()
+	fake.SelectAuthMethodStub = nil
+	fake.selectAuthMethodReturns = struct {
+		result1 ssh.AuthMethod
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeOsys) SelectAuthMethodReturnsOnCall(i int, result1 ssh.AuthMethod, result2 error) {
+	fake.selectAuthMethodMutex.Lock()
+	defer fake.selectAuthMethodMutex.Unlock()
+	fake.SelectAuthMethodStub = nil
+	if fake.selectAuthMethodReturnsOnCall == nil {
+		fake.selectAuthMethodReturnsOnCall = make(map[int]struct {
+			result1 ssh.AuthMethod
+			result2 error
+		})
+	}
+	fake.selectAuthMethodReturnsOnCall[i] = struct {
+		result1 ssh.AuthMethod
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeOsys) Setenv(arg1 string, arg2 string) error {
+	fake.setenvMutex.Lock()
+	ret, specificReturn := fake.setenvReturnsOnCall[len(fake.setenvArgsForCall)]
+	fake.setenvArgsForCall = append(fake.setenvArgsForCall, struct {
+		arg1 string
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.SetenvStub
+	fakeReturns := fake.setenvReturns
+	fake.recordInvocation("Setenv", []interface{}{arg1, arg2})
+	fake.setenvMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeOsys) SetenvCallCount() int {
+	fake.setenvMutex.RLock()
+	defer fake.setenvMutex.RUnlock()
+	return len(fake.setenvArgsForCall)
+}
+
+func (fake *FakeOsys) SetenvCalls(stub func(string, string) error) {
+	fake.setenvMutex.Lock()
+	defer fake.setenvMutex.Unlock()
+	fake.SetenvStub = stub
+}
+
+func (fake *FakeOsys) SetenvArgsForCall(i int) (string, string) {
+	fake.setenvMutex.RLock()
+	defer fake.setenvMutex.RUnlock()
+	argsForCall := fake.setenvArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeOsys) SetenvReturns(result1 error) {
+	fake.setenvMutex.Lock()
+	defer fake.setenvMutex.Unlock()
+	fake.SetenvStub = nil
+	fake.setenvReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeOsys) SetenvReturnsOnCall(i int, result1 error) {
+	fake.setenvMutex.Lock()
+	defer fake.setenvMutex.Unlock()
+	fake.SetenvStub = nil
+	if fake.setenvReturnsOnCall == nil {
+		fake.setenvReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.setenvReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeOsys) Stderr() *os.File {
@@ -312,6 +681,16 @@ func (fake *FakeOsys) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.exitMutex.RLock()
 	defer fake.exitMutex.RUnlock()
+	fake.getGitProviderTokenMutex.RLock()
+	defer fake.getGitProviderTokenMutex.RUnlock()
+	fake.getenvMutex.RLock()
+	defer fake.getenvMutex.RUnlock()
+	fake.lookupEnvMutex.RLock()
+	defer fake.lookupEnvMutex.RUnlock()
+	fake.selectAuthMethodMutex.RLock()
+	defer fake.selectAuthMethodMutex.RUnlock()
+	fake.setenvMutex.RLock()
+	defer fake.setenvMutex.RUnlock()
 	fake.stderrMutex.RLock()
 	defer fake.stderrMutex.RUnlock()
 	fake.stdinMutex.RLock()

@@ -16,11 +16,14 @@ limitations under the License.
 
 package logger
 
-import (
-	"fmt"
-	"io"
-)
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
+// Higher verbosity means the message is less important
+var LogLevelDebug int = 3
+var LogLevelWarn int = 2
+var LogLevelError int = 1
+
+//counterfeiter:generate . Logger
 type Logger interface {
 	Println(format string, a ...interface{})
 	Printf(format string, a ...interface{})
@@ -30,46 +33,6 @@ type Logger interface {
 	Successf(format string, a ...interface{})
 	Warningf(format string, a ...interface{})
 	Failuref(format string, a ...interface{})
-}
-
-type CLILogger struct {
-	stdout io.Writer
-}
-
-func New(writer io.Writer) Logger {
-	return CLILogger{
-		stdout: writer,
-	}
-}
-
-func (l CLILogger) Println(format string, a ...interface{}) {
-	fmt.Fprintln(l.stdout, fmt.Sprintf(format, a...))
-}
-
-func (l CLILogger) Printf(format string, a ...interface{}) {
-	fmt.Fprintf(l.stdout, format, a...)
-}
-
-func (l CLILogger) Actionf(format string, a ...interface{}) {
-	fmt.Fprintln(l.stdout, `►`, fmt.Sprintf(format, a...))
-}
-
-func (l CLILogger) Generatef(format string, a ...interface{}) {
-	fmt.Fprintln(l.stdout, `✚`, fmt.Sprintf(format, a...))
-}
-
-func (l CLILogger) Waitingf(format string, a ...interface{}) {
-	fmt.Fprintln(l.stdout, `◎`, fmt.Sprintf(format, a...))
-}
-
-func (l CLILogger) Successf(format string, a ...interface{}) {
-	fmt.Fprintln(l.stdout, `✔`, fmt.Sprintf(format, a...))
-}
-
-func (l CLILogger) Warningf(format string, a ...interface{}) {
-	fmt.Fprintln(l.stdout, `⚠️`, fmt.Sprintf(format, a...))
-}
-
-func (l CLILogger) Failuref(format string, a ...interface{}) {
-	fmt.Fprintln(l.stdout, `✗`, fmt.Sprintf(format, a...))
+	// added to satisfy io.Writer interface
+	Write(p []byte) (n int, err error)
 }

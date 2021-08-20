@@ -37,12 +37,14 @@ jobs:
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: Build UI Assets
-      run: make cmd/ui/dist/index.html
+      run: make cmd/wego/ui/run/dist/index.html
     - name: Run linters
       uses: golangci/golangci-lint-action@v2
       with:
         version: v1.29
         args: --timeout=600s
+    - name: Check Format
+      run: make check-format
 
   build:
     runs-on: ubuntu-latest
@@ -80,7 +82,7 @@ jobs:
     # - name: NPM Audit
     #   run: npm audit
     - name: Build UI Assets
-      run: make cmd/ui/dist/main.js
+      run: make cmd/wego/ui/run/dist/main.js
     - name: Set up kubebuilder
       uses: fluxcd/pkg/actions/kubebuilder@main
     - name: Set up flux dir but let dependencies install flux
@@ -137,15 +139,12 @@ jobs:
         git config --global user.email "weave-test-user@example.com"
         git config --global user.name "Testy McTestFace"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-    - name: Install Ginkgo binary
-      run: go get github.com/onsi/ginkgo/ginkgo@v1.16.1
     - name: Run smoke tests from acceptance suite
       env:
         GITHUB_ORG: weaveworks-gitops-test
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
       run: |
-        export PATH=${PATH}:`go env GOPATH`/bin
         export WEGO_BIN_PATH=$(pwd)/bin/wego
         export CLUSTER_PROVIDER=kubectl
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true

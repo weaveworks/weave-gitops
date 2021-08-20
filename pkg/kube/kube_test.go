@@ -9,9 +9,9 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/types"
 
-	. "github.com/onsi/gomega"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/gomega"
 
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/runner/runnerfakes"
@@ -133,7 +133,7 @@ var _ = Describe("GetClusterName", func() {
 
 var _ = Describe("FixInvalidClusterName", func() {
 	DescribeTable("checks to verify that cluster names are sanitized",
-		func(invalid string, valid string, expected bool)  {
+		func(invalid string, valid string, expected bool) {
 			runner.RunStub = func(cmd string, args ...string) ([]byte, error) {
 				return []byte(invalid), nil
 			}
@@ -243,21 +243,37 @@ var _ = Describe("GetApplication", func() {
 	})
 })
 
-var _ = Describe("LabelExistsInCluster", func() {
-	It("checks if label exists in cluster", func() {
+var _ = Describe("AppExistsInCluster", func() {
+	It("checks if an app exists in cluster", func() {
 		ctx := context.Background()
-		runner.RunStub = func(cmd string, args ...string) ([]byte, error) {
-			return []byte("No resources found"), nil
-		}
+		appsList := &wego.ApplicationList{Items: []wego.Application{
+			{
+				Spec: wego.ApplicationSpec{
+					Branch: "main",
+					Path:   "some/path0",
+					URL:    "example.com/some-org/some-repo0",
+				},
+			},
+			{
+				Spec: wego.ApplicationSpec{
+					Branch: "main",
+					Path:   "some/path1",
+					URL:    "example.com/some-org/some-repo1",
+				},
+			},
+		}}
 
-		err := kubeClient.LabelExistsInCluster(ctx, "wego-differenttestlabel")
+		res, err := json.Marshal(appsList)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		runner.RunStub = func(cmd string, args ...string) ([]byte, error) {
-			return []byte("NAME  AGE testapp   4m19s"), nil
+			return res, nil
 		}
 
-		err = kubeClient.LabelExistsInCluster(ctx, "wego-testlabel")
+		err = kubeClient.AppExistsInCluster(ctx, "wego-system", "wego-hashdoesntexist")
+		Expect(err).ShouldNot(HaveOccurred())
+
+		err = kubeClient.AppExistsInCluster(ctx, "wego-system", "wego-4cd3a5f2bcd1ba2b9ed157a0c175c8d3")
 		Expect(err).Should(HaveOccurred())
 
 	})

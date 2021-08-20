@@ -43,7 +43,8 @@ jobs:
         with:
           go-version: 1.16.x
       - run: npm ci
-      - run: make cmd/ui/dist/main.js
+      - run: make cmd/wego/ui/run/dist/main.js
       - run: make ui-lint
       - run: make ui-test
       - run: make ui-audit
+      - run: make ui-lib

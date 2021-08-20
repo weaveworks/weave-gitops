@@ -23,8 +23,8 @@ type Flux interface {
 	CreateSourceGit(name string, url string, branch string, secretRef string, namespace string) ([]byte, error)
 	CreateSourceHelm(name string, url string, namespace string) ([]byte, error)
 	CreateKustomization(name string, source string, path string, namespace string) ([]byte, error)
-	CreateHelmReleaseGitRepository(name string, source string, path string, namespace string) ([]byte, error)
-	CreateHelmReleaseHelmRepository(name string, chart string, namespace string) ([]byte, error)
+	CreateHelmReleaseGitRepository(name, source, path, namespace, targetNamespace string) ([]byte, error)
+	CreateHelmReleaseHelmRepository(name, chart, namespace, targetNamespace string) ([]byte, error)
 	CreateSecretGit(name string, url string, namespace string) ([]byte, error)
 	GetVersion() (string, error)
 	GetAllResourcesStatus(name string, namespace string) ([]byte, error)
@@ -91,12 +91,16 @@ func (f *FluxClient) Uninstall(namespace string, dryRun bool) error {
 func (f *FluxClient) CreateSourceGit(name string, url string, branch string, secretRef string, namespace string) ([]byte, error) {
 	args := []string{
 		"create", "source", "git", name,
-		"--url", url,
 		"--branch", branch,
-		"--secret-ref", secretRef,
 		"--namespace", namespace,
 		"--interval", "30s",
 		"--export",
+	}
+
+	if secretRef != "" {
+		args = append(args, "--secret-ref", secretRef, "--url", url)
+	} else {
+		args = append(args, "--url", makePublicUrl(url))
 	}
 
 	out, err := f.runFluxCmd(args...)
@@ -105,6 +109,28 @@ func (f *FluxClient) CreateSourceGit(name string, url string, branch string, sec
 	}
 
 	return out, nil
+}
+
+func makePublicUrl(url string) string {
+	trimmed := ""
+
+	if !strings.HasSuffix(url, ".git") {
+		url = url + ".git"
+	}
+
+	gitSshPrefix := "git@github.com:"
+	sshPrefix := "ssh://git@github.com/"
+	if strings.HasPrefix(url, gitSshPrefix) {
+		trimmed = strings.TrimPrefix(url, gitSshPrefix)
+	} else if strings.HasPrefix(url, sshPrefix) {
+		trimmed = strings.TrimPrefix(url, sshPrefix)
+	}
+
+	if trimmed != "" {
+		return "https://github.com/" + trimmed
+	}
+
+	return url
 }
 
 func (f *FluxClient) CreateSourceHelm(name string, url string, namespace string) ([]byte, error) {
@@ -144,7 +170,7 @@ func (f *FluxClient) CreateKustomization(name string, source string, path string
 	return out, nil
 }
 
-func (f *FluxClient) CreateHelmReleaseGitRepository(name string, source string, chartPath string, namespace string) ([]byte, error) {
+func (f *FluxClient) CreateHelmReleaseGitRepository(name, source, chartPath, namespace, targetNamespace string) ([]byte, error) {
 	args := []string{
 		"create", "helmrelease", name,
 		"--source", "GitRepository/" + source,
@@ -152,6 +178,10 @@ func (f *FluxClient) CreateHelmReleaseGitRepository(name string, source string, 
 		"--namespace", namespace,
 		"--interval", "5m",
 		"--export",
+	}
+
+	if targetNamespace != "" {
+		args = append(args, "--target-namespace", targetNamespace)
 	}
 
 	out, err := f.runFluxCmd(args...)
@@ -162,7 +192,7 @@ func (f *FluxClient) CreateHelmReleaseGitRepository(name string, source string, 
 	return out, nil
 }
 
-func (f *FluxClient) CreateHelmReleaseHelmRepository(name string, chart string, namespace string) ([]byte, error) {
+func (f *FluxClient) CreateHelmReleaseHelmRepository(name, chart, namespace, targetNamespace string) ([]byte, error) {
 	args := []string{
 		"create", "helmrelease", name,
 		"--source", "HelmRepository/" + name,
@@ -170,6 +200,10 @@ func (f *FluxClient) CreateHelmReleaseHelmRepository(name string, chart string, 
 		"--namespace", namespace,
 		"--interval", "5m",
 		"--export",
+	}
+
+	if targetNamespace != "" {
+		args = append(args, "--target-namespace", targetNamespace)
 	}
 
 	out, err := f.runFluxCmd(args...)

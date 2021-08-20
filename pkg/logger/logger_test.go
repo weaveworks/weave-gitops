@@ -16,7 +16,7 @@ var (
 var _ = Describe("Logger", func() {
 	BeforeEach(func() {
 		output = &bytes.Buffer{}
-		log = logger.New(output)
+		log = logger.NewCLILogger(output)
 	})
 
 	It("prints adding newline", func() {
