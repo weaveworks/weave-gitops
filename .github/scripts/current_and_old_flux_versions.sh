@@ -37,7 +37,7 @@ PR_BODY="${PR_BODY//'%'/'%25'}"
 PR_BODY="${PR_BODY//$'\n'/'%0A'}"
 PR_BODY="${PR_BODY//$'\r'/'%0D'}"
 
-PR_TITLE="Upgrade flux version from $currentFluxVersion to $latestFluxVersion"
+PR_TITLE="Upgrade flux version from ${currentFluxVersion} to ${latestFluxVersion}"
 
 echo "--TITLE--"
 echo "$PR_TITLE"
