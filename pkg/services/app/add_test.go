@@ -543,14 +543,18 @@ stringData:
 			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(kubeClient.ApplyCallCount()).To(Equal(3))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(4))
 
 			_, sourceManifest, namespace := kubeClient.ApplyArgsForCall(1)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
 			Expect(namespace).To(Equal("wego-system"))
 
 			_, appWegoManifest, namespace := kubeClient.ApplyArgsForCall(2)
-			Expect(appWegoManifest).To(Equal([]byte("kustomizationkustomization")))
+			Expect(appWegoManifest).To(Equal([]byte("kustomization")))
+			Expect(namespace).To(Equal("wego-system"))
+
+			_, targetManifest, namespace := kubeClient.ApplyArgsForCall(3)
+			Expect(targetManifest).To(Equal([]byte("kustomization")))
 			Expect(namespace).To(Equal("wego-system"))
 		})
 
@@ -806,14 +810,18 @@ stringData:
 			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(kubeClient.ApplyCallCount()).To(Equal(4))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(5))
 
 			_, sourceManifest, namespace := kubeClient.ApplyArgsForCall(2)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
 			Expect(namespace).To(Equal("wego-system"))
 
 			_, kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(3)
-			Expect(kustomizationManifest).To(Equal([]byte("kustomizationkustomization")))
+			Expect(kustomizationManifest).To(Equal([]byte("kustomization")))
+			Expect(namespace).To(Equal("wego-system"))
+
+			_, appDirManifest, namespace := kubeClient.ApplyArgsForCall(4)
+			Expect(appDirManifest).To(Equal([]byte("kustomization")))
 			Expect(namespace).To(Equal("wego-system"))
 		})
 
