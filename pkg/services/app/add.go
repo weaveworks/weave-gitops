@@ -533,7 +533,7 @@ func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoU
 
 	secretRefName := info.appSecretName(repoUrl)
 	if dryRun {
-		return secretRefName, nil
+		return secretRefName.String(), nil
 	}
 
 	repoUrl = utils.SanitizeRepoUrl(repoUrl)
@@ -564,7 +564,7 @@ func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoU
 		return "", fmt.Errorf("failed check for existing deploy key: %w", err)
 	}
 
-	secretPresent, err := a.kube.SecretPresent(context.Background(), secretRefName, info.Namespace)
+	secretPresent, err := a.kube.SecretPresent(context.Background(), secretRefName.String(), info.Namespace)
 	if err != nil {
 		return "", fmt.Errorf("failed check for existing secret: %w", err)
 	}
@@ -575,7 +575,7 @@ func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoU
 		// A lot of our unit tests rely on the individual function calls being called in this block,
 		// so they were left in for now and will be handled in a follow up PR.
 		a.logger.Generatef("Generating deploy key for repo %s", repoUrl)
-		secret, err := a.flux.CreateSecretGit(secretRefName, repoUrl, info.Namespace)
+		secret, err := a.flux.CreateSecretGit(secretRefName.String(), repoUrl, info.Namespace)
 		if err != nil {
 			return "", fmt.Errorf("could not create git secret: %w", err)
 		}
@@ -596,7 +596,7 @@ func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoU
 		}
 	}
 
-	return secretRefName, nil
+	return secretRefName.String(), nil
 }
 
 func (a *App) generateSource(info *AppResourceInfo, secretRef string) ([]byte, error) {
@@ -845,14 +845,20 @@ func (a *AppResourceInfo) appResourceName() string {
 	return a.Name
 }
 
-func (a *AppResourceInfo) appSecretName(repoURL string) string {
+type GeneratedSecretName string
+
+func (s GeneratedSecretName) String() string {
+	return string(s)
+}
+
+func (a *AppResourceInfo) appSecretName(repoURL string) GeneratedSecretName {
 	return CreateAppSecretName(a.clusterName, repoURL)
 }
 
-func CreateAppSecretName(targetName string, repoURL string) string {
+func CreateAppSecretName(targetName string, repoURL string) GeneratedSecretName {
 	repoName := utils.UrlToRepoName(repoURL)
 	repoName = strings.ReplaceAll(repoName, "_", "-")
-	return fmt.Sprintf("wego-%s-%s", targetName, repoName)
+	return GeneratedSecretName(fmt.Sprintf("wego-%s-%s", targetName, repoName))
 }
 
 func (a *AppResourceInfo) automationAppsDirKustomizationName() string {
@@ -919,7 +925,7 @@ func (a *AppResourceInfo) clusterResources() []ResourceRef {
 			resources,
 			ResourceRef{
 				kind: ResourceKindSecret,
-				name: a.appSecretName(a.Spec.URL)})
+				name: a.appSecretName(a.Spec.URL).String()})
 	}
 
 	if strings.ToUpper(a.Spec.ConfigURL) == string(ConfigTypeNone) {
@@ -947,7 +953,7 @@ func (a *AppResourceInfo) clusterResources() []ResourceRef {
 			// Secret for deploy key associated with config repository
 			ResourceRef{
 				kind: ResourceKindSecret,
-				name: a.appSecretName(a.Spec.ConfigURL)},
+				name: a.appSecretName(a.Spec.ConfigURL).String()},
 			// Source for config repository
 			ResourceRef{
 				kind: ResourceKindGitRepository,

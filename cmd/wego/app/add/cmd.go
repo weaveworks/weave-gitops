@@ -23,7 +23,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 const (
@@ -168,7 +167,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("error creating normalized url: %w", err)
 		}
 
-		name := types.NamespacedName{
+		name := auth.SecretName{
 			Name:      app.CreateAppSecretName(targetName, normalizedUrl.String()),
 			Namespace: params.Namespace,
 		}

@@ -16,7 +16,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
@@ -45,11 +44,11 @@ var _ = Describe("auth", func() {
 	Describe("AuthService", func() {
 		var (
 			ctx        context.Context
-			secretName string
+			secretName app.GeneratedSecretName
 			gp         gitprovidersfakes.FakeGitProvider
 			osysClient *osys.OsysClient
 			as         AuthService
-			name       types.NamespacedName
+			name       SecretName
 			fluxClient flux.Flux
 		)
 		BeforeEach(func() {
@@ -66,8 +65,8 @@ var _ = Describe("auth", func() {
 				k8sClient:   k8sClient,
 				gitProvider: &gp,
 			}
-			name = types.NamespacedName{
-				Name:      "my-repo",
+			name = SecretName{
+				Name:      secretName,
 				Namespace: namespace.Name,
 			}
 
@@ -84,9 +83,9 @@ var _ = Describe("auth", func() {
 		It("create and stores a deploy key if none exists", func() {
 			_, err := as.SetupDeployKey(ctx, name, testClustername, repoUrl)
 			Expect(err).NotTo(HaveOccurred())
-			sn := types.NamespacedName{Name: secretName, Namespace: namespace.Name}
+			sn := SecretName{Name: secretName, Namespace: namespace.Name}
 			secret := &corev1.Secret{}
-			Expect(k8sClient.Get(ctx, sn, secret)).To(Succeed())
+			Expect(k8sClient.Get(ctx, sn.NamespacedName(), secret)).To(Succeed())
 
 			Expect(secret.Data["identity"]).NotTo(BeNil())
 			Expect(secret.Data["identity.pub"]).NotTo(BeNil())
@@ -95,7 +94,7 @@ var _ = Describe("auth", func() {
 			gp.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
 				return true, nil
 			}
-			sn := types.NamespacedName{Name: secretName, Namespace: namespace.Name}
+			sn := SecretName{Name: secretName, Namespace: namespace.Name}
 			// using `generateDeployKey` as a helper for the test setup.
 			_, secret, err := (&authSvc{fluxClient: fluxClient}).generateDeployKey(testClustername, sn, repoUrl)
 			Expect(err).NotTo(HaveOccurred())
@@ -105,6 +104,35 @@ var _ = Describe("auth", func() {
 			Expect(err).NotTo(HaveOccurred())
 			// We should NOT have uploaded anything since the key already exists
 			Expect(gp.UploadDeployKeyCallCount()).To(Equal(0))
+		})
+		It("handles the case where a deploy key exists on the provider, but not the cluster", func() {
+			gp.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
+				return true, nil
+			}
+			sn := SecretName{Name: secretName, Namespace: namespace.Name}
+			// using `generateDeployKey` as a helper for the test setup.
+			_, secret, err := (&authSvc{fluxClient: fluxClient}).generateDeployKey(testClustername, sn, repoUrl)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(k8sClient.Create(ctx, secret)).To(Succeed())
+
+			savedSecret := &corev1.Secret{}
+			Expect(k8sClient.Get(ctx, sn.NamespacedName(), savedSecret)).To(Succeed())
+			secretId := string(savedSecret.GetUID())
+			Expect(secretId).NotTo(Equal(""))
+
+			_, err = as.SetupDeployKey(ctx, name, testClustername, repoUrl)
+			Expect(err).NotTo(HaveOccurred())
+
+			newSecret := &corev1.Secret{}
+			Expect(k8sClient.Get(ctx, sn.NamespacedName(), newSecret)).To(Succeed())
+			newSecretId := string(newSecret.GetUID())
+			Expect(secretId).NotTo(Equal(""))
+
+			// The new secret that is created should be a different object than the one we had before.
+			Expect(newSecretId).NotTo(Equal(secretId))
+
+			// Expect(gp.RemoveDeployKeyCallCount()).To(Equal(1))
+			Expect(gp.UploadDeployKeyCallCount()).To(Equal(1))
 		})
 	})
 })

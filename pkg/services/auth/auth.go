@@ -33,8 +33,28 @@ func NewAuthCLIHandler(name gitproviders.GitProviderName) (BlockingCLIAuthHandle
 	return nil, fmt.Errorf("unsupported auth provider \"%s\"", name)
 }
 
+type SecretName struct {
+	Name      app.GeneratedSecretName
+	Namespace string
+}
+
+func (sn SecretName) String() string {
+	nn := types.NamespacedName{
+		Namespace: sn.Namespace,
+		Name:      sn.Name.String(),
+	}
+	return nn.String()
+}
+
+func (sn SecretName) NamespacedName() types.NamespacedName {
+	return types.NamespacedName{
+		Namespace: sn.Namespace,
+		Name:      sn.Name.String(),
+	}
+}
+
 type AuthService interface {
-	SetupDeployKey(ctx context.Context, name types.NamespacedName, targetName string, repo gitproviders.NormalizedRepoURL) (git.Git, error)
+	SetupDeployKey(ctx context.Context, name SecretName, targetName string, repo gitproviders.NormalizedRepoURL) (git.Git, error)
 }
 
 type authSvc struct {
@@ -62,7 +82,7 @@ func NewAuthService(fluxClient flux.Flux, k8sClient client.Client, providerName 
 
 // SetupDeployKey creates a git.Git client instrumented with existing or generated deploy keys.
 // This ensures that git operations are done with stored deploy keys instead of a user's local ssh-agent or equivalent.
-func (a *authSvc) SetupDeployKey(ctx context.Context, name types.NamespacedName, targetName string, repo gitproviders.NormalizedRepoURL) (git.Git, error) {
+func (a *authSvc) SetupDeployKey(ctx context.Context, name SecretName, targetName string, repo gitproviders.NormalizedRepoURL) (git.Git, error) {
 	owner := repo.Owner()
 	repoName := repo.RepositoryName()
 	accountType, err := a.gitProvider.GetAccountType(repo.Owner())
@@ -87,17 +107,15 @@ func (a *authSvc) SetupDeployKey(ctx context.Context, name types.NamespacedName,
 
 	if deployKeyExists {
 		a.logger.Println("Existing deploy key found")
-		secretName := types.NamespacedName{
-			Name:      app.CreateAppSecretName(targetName, repo.String()),
-			Namespace: name.Namespace,
-		}
 		// The deploy key was found on the Git Provider, fetch it from the cluster.
-		secret, err := a.retrieveDeployKey(ctx, secretName)
+		secret, err := a.retrieveDeployKey(ctx, name)
 		if apierrors.IsNotFound(err) {
 			// Edge case where the deploy key exists on the Git Provider, but not on the cluster.
 			// Users might end up here if we uploaded the deploy key, but it failed to save on the cluster.
 			// TODO: What should we do to help the user out here? We can't read the key data from the Git Provider,
 			// do we delete and recreate?
+			// newKey, newSecret, err := a.generateDeployKey(targetName, secretName, repo)
+
 			return nil, fmt.Errorf("deploy key does not exist on cluster: %w", err)
 		} else if err != nil {
 			return nil, fmt.Errorf("error retrieving deploy key: %w", err)
@@ -136,7 +154,7 @@ func (a *authSvc) SetupDeployKey(ctx context.Context, name types.NamespacedName,
 }
 
 // Generates an ssh keypair for upload to the Git Provider and for use in a git.Git client.
-func (a *authSvc) generateDeployKey(targetName string, secretName types.NamespacedName, repo gitproviders.NormalizedRepoURL) (*ssh.PublicKeys, *corev1.Secret, error) {
+func (a *authSvc) generateDeployKey(targetName string, secretName SecretName, repo gitproviders.NormalizedRepoURL) (*ssh.PublicKeys, *corev1.Secret, error) {
 	secret, err := a.createKeyPairSecret(targetName, secretName, repo)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not create key-pair secret: %w", err)
@@ -163,9 +181,9 @@ func (a *authSvc) storeDeployKey(ctx context.Context, secret *corev1.Secret) err
 }
 
 // Wrapper to abstract how a key is fetched.
-func (a *authSvc) retrieveDeployKey(ctx context.Context, name types.NamespacedName) (*corev1.Secret, error) {
+func (a *authSvc) retrieveDeployKey(ctx context.Context, name SecretName) (*corev1.Secret, error) {
 	secret := &corev1.Secret{}
-	if err := a.k8sClient.Get(ctx, name, secret); err != nil {
+	if err := a.k8sClient.Get(ctx, name.NamespacedName(), secret); err != nil {
 		return nil, fmt.Errorf("error getting deploy key secret: %w", err)
 	}
 
@@ -173,9 +191,8 @@ func (a *authSvc) retrieveDeployKey(ctx context.Context, name types.NamespacedNa
 }
 
 // Uses flux to create a ssh key pair secret.
-func (a *authSvc) createKeyPairSecret(targetName string, name types.NamespacedName, repo gitproviders.NormalizedRepoURL) (*corev1.Secret, error) {
-	secretname := app.CreateAppSecretName(targetName, repo.String())
-	secretData, err := a.fluxClient.CreateSecretGit(secretname, repo.String(), name.Namespace)
+func (a *authSvc) createKeyPairSecret(targetName string, name SecretName, repo gitproviders.NormalizedRepoURL) (*corev1.Secret, error) {
+	secretData, err := a.fluxClient.CreateSecretGit(name.Name.String(), repo.String(), name.Namespace)
 	if err != nil {
 		return nil, fmt.Errorf("could not create git secret: %w", err)
 	}
