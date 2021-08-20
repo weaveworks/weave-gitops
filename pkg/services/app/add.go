@@ -3,6 +3,8 @@ package app
 import (
 	"bytes"
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"net/url"
@@ -14,7 +16,6 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -39,6 +40,39 @@ type AppResourceInfo struct {
 	wego.Application
 	clusterName string
 	targetName  string
+}
+
+func (info *AppResourceInfo) GetAppHash() (string, error) {
+
+	var appHash string
+	var err error
+
+	var getHash = func(inputs ...string) (string, error) {
+		h := md5.New()
+		final := ""
+		for _, input := range inputs {
+			final += input
+		}
+		_, err := h.Write([]byte(final))
+		if err != nil {
+			return "", fmt.Errorf("error generating app hash %s", err)
+		}
+		return hex.EncodeToString(h.Sum(nil)), nil
+	}
+
+	if info.Spec.DeploymentType == wego.DeploymentTypeHelm {
+		appHash, err = getHash(info.Spec.URL, info.Name, info.Spec.Branch)
+		if err != nil {
+			return "", err
+		}
+	} else {
+		appHash, err = getHash(info.Spec.URL, info.Spec.Path, info.Spec.Branch)
+		if err != nil {
+			return "", err
+		}
+	}
+	return "wego-" + appHash, nil
+
 }
 
 const (
@@ -152,14 +186,24 @@ func (a *App) Add(params AddParams) error {
 
 	info := getAppResourceInfo(makeWegoApplication(params), clusterName)
 
-	appHash, err := kube.GetAppHash(info.Application)
+	appHash, err := info.GetAppHash()
 	if err != nil {
 		return err
 	}
 
-	// if application already exists in the cluster we fail to add the application
-	if err = a.kube.AppExistsInCluster(ctx, params.Namespace, appHash); err != nil {
+	apps, err := a.kube.GetApplications(ctx, params.Namespace)
+	if err != nil {
 		return err
+	}
+	for _, app := range apps {
+		existingHash, err := getAppResourceInfo(app, clusterName).GetAppHash()
+		if err != nil {
+			return err
+		}
+
+		if appHash == existingHash {
+			return fmt.Errorf("unable to create resource, resource already exists in cluster")
+		}
 	}
 
 	var secretRef string

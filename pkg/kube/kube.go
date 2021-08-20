@@ -3,12 +3,10 @@ package kube
 import (
 	"bytes"
 	"context"
-	"crypto/md5"
 	"fmt"
 	"regexp"
 	"strings"
 
-	"encoding/hex"
 	"encoding/json"
 
 	"github.com/pkg/errors"
@@ -61,7 +59,6 @@ type Kube interface {
 	FluxPresent(ctx context.Context) (bool, error)
 	GetClusterName(ctx context.Context) (string, error)
 	GetClusterStatus(ctx context.Context) ClusterStatus
-	AppExistsInCluster(ctx context.Context, namespace string, appHash string) error
 	GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error)
 	GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error
 	GetSecret(ctx context.Context, name types.NamespacedName) (*corev1.Secret, error)
@@ -249,56 +246,4 @@ func (k *KubeClient) runKubectlCmdWithInput(args []string, input []byte) ([]byte
 	}
 
 	return out, nil
-}
-
-func GetAppHash(app wego.Application) (string, error) {
-	var appHash string
-	var err error
-
-	var getHash = func(inputs ...string) (string, error) {
-		h := md5.New()
-		final := ""
-		for _, input := range inputs {
-			final += input
-		}
-		_, err := h.Write([]byte(final))
-		if err != nil {
-			return "", fmt.Errorf("error generating app hash %s", err)
-		}
-		return hex.EncodeToString(h.Sum(nil)), nil
-	}
-
-	if app.Spec.DeploymentType == wego.DeploymentTypeHelm {
-		appHash, err = getHash(app.Spec.URL, app.Name, app.Spec.Branch)
-		if err != nil {
-			return "", err
-		}
-	} else {
-		appHash, err = getHash(app.Spec.URL, app.Spec.Path, app.Spec.Branch)
-		if err != nil {
-			return "", err
-		}
-	}
-	return "wego-" + appHash, nil
-}
-
-func (k *KubeClient) AppExistsInCluster(ctx context.Context, namespace string, appHash string) error {
-	apps, err := k.GetApplications(ctx, namespace)
-	if err != nil {
-		return err
-	}
-
-	for _, app := range apps {
-		existingHash, err := GetAppHash(app)
-		if err != nil {
-			return err
-		}
-
-		if appHash == existingHash {
-			return fmt.Errorf("unable to create resource, resource already exists in cluster")
-		}
-	}
-
-	return nil
-
 }
