@@ -83,16 +83,21 @@ func DefaultConfig() (*ServerConfig, error) {
 	}, nil
 }
 
-// NewApplicationsHandler allow for other applications to embed the Weave GitOps Applications HTTP API.
+// NewServerHandler allow for other applications to embed the Weave GitOps HTTP API.
 // This handler can be muxed with other services or used as a standalone service.
-func NewApplicationsHandler(ctx context.Context, cfg *ServerConfig, opts ...runtime.ServeMuxOption) (http.Handler, error) {
+func NewServerHandler(ctx context.Context, cfg *ServerConfig, opts ...runtime.ServeMuxOption) (http.Handler, error) {
 	appsSrv := NewApplicationsServer(cfg)
+	commitSrv := NewCommitsServer(cfg)
 
 	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(cfg.Logger))
 	httpHandler := middleware.WithLogging(cfg.Logger, mux)
 
 	if err := appspb.RegisterApplicationsHandlerServer(ctx, mux, appsSrv); err != nil {
 		return nil, fmt.Errorf("could not register application: %w", err)
+	}
+
+	if err := commitpb.RegisterCommitsHandlerServer(ctx, mux, commitSrv); err != nil {
+		return nil, fmt.Errorf("could not register commit: %w", err)
 	}
 
 	return httpHandler, nil

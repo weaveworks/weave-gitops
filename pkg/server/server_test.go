@@ -196,7 +196,7 @@ var _ = Describe("Applications handler", func() {
 			Logger:     log,
 		}
 
-		handler, err := server.NewApplicationsHandler(context.Background(), &cfg)
+		handler, err := server.NewServerHandler(context.Background(), &cfg)
 		Expect(err).NotTo(HaveOccurred())
 
 		ts := httptest.NewServer(handler)
