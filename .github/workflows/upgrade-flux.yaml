@@ -19,7 +19,7 @@ jobs:
         id: update
         run: |
 
-          source .github/scripts/current_and_old_flux_versions.sh
+          source tools/get-flux-update-pr.sh
 
           {
             echo "::set-output name=pr_body::$PR_BODY"
