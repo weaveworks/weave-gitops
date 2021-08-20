@@ -157,7 +157,7 @@ func (c *KubeHTTP) SecretPresent(ctx context.Context, secretName string, namespa
 	}
 
 	if _, err := c.GetSecret(ctx, name); err != nil {
-		return false, fmt.Errorf("error checking secret prescense for secret \"%s\": %w", secretName, err)
+		return false, fmt.Errorf("error checking secret presence for secret \"%s\": %w", secretName, err)
 	}
 
 	// No error, it must exist
