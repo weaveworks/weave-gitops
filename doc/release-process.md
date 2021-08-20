@@ -6,6 +6,7 @@ The current release process for weave gitops is fairly straightforward. You need
 - Update the `CLI Installation` section of the `README.md` in the `weave-gitops` repository to reference the new version
 
 # Creating the release
+- Update the package.json `version` field to reflect the new version. This change must be on `main` before creating a release.
 - Go to the `Releases` page for the weave-gitops repository
 - Click on `Draft a New Release`
 - Fill in the `Tag Version` field with the new version (format: `vN.N.N` or `vN.N.N-rc.N` for a pre-release). We have configured go-releaser to implicitly make a version ending in `-rc.N` a pre-release and one without the `rc-N` a full release (but that can be changed after the fact by editing the release if so desired).

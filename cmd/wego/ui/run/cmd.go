@@ -18,7 +18,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 )
 
@@ -53,12 +52,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	gMux := runtime.NewServeMux()
 	mux.Handle("/v1/", gMux)
 
-	kubeClient, err := kube.NewKubeHTTPClient()
+	cfg, err := server.DefaultConfig()
 	if err != nil {
 		return fmt.Errorf("could not create http client: %w", err)
 	}
 
-	if err := pb.RegisterApplicationsHandlerServer(context.Background(), gMux, server.NewApplicationsServer(kubeClient)); err != nil {
+	if err := pb.RegisterApplicationsHandlerServer(context.Background(), gMux, server.NewApplicationsServer(cfg)); err != nil {
 		return fmt.Errorf("could not register application: %w", err)
 	}
 
