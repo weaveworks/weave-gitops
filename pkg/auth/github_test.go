@@ -50,10 +50,10 @@ var _ = Describe("Github Device Flow", func() {
 			// Quick and dirty router to simulate the Github API
 			if strings.Contains(r.URL.Path, "/device/code") {
 				err := json.NewEncoder(w).Encode(&codeResponse{
-					DeviceCode:     "123456789",
-					UserCode:       userCode,
+					DeviceCode:		"123456789",
+					UserCode:		userCode,
 					VerficationURI: verificationUri,
-					Interval:       1,
+					Interval:		1,
 				})
 				Expect(err).NotTo(HaveOccurred())
 
@@ -62,12 +62,10 @@ var _ = Describe("Github Device Flow", func() {
 			if strings.Contains(r.URL.Path, "/oauth/access_token") {
 				err := json.NewEncoder(w).Encode(&githubAuthResponse{
 					AccessToken: token,
-					Error:       "",
+					Error:		 "",
 				})
 				Expect(err).NotTo(HaveOccurred())
 			}
-
-			w.WriteHeader(http.StatusBadRequest)
 		}))
 
 		client = ts.Client()
