@@ -1,6 +1,6 @@
 latestFluxVersion="$(curl -s --request GET --url "https://api.github.com/repos/fluxcd/flux2/releases?per_page=1" | jq . | jq '.[0] | .tag_name' | jq -r | sed -e 's/v//')"
 
-currentFluxVersion="$(sed -n 's/version="\([0-9\.]*\)"/\1/p' tools/dependencies.toml | head -1)"
+currentFluxVersion="$(tools/bin/stoml tools/dependencies.toml flux.version)"
 
 echo "Latest flux version $latestFluxVersion"
 echo "Current flux version $currentFluxVersion"
