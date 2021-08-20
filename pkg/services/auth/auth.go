@@ -111,12 +111,11 @@ func (a *authSvc) SetupDeployKey(ctx context.Context, name SecretName, targetNam
 		secret, err := a.retrieveDeployKey(ctx, name)
 		if apierrors.IsNotFound(err) {
 			// Edge case where the deploy key exists on the Git Provider, but not on the cluster.
-			// Users might end up here if we uploaded the deploy key, but it failed to save on the cluster.
-			// TODO: What should we do to help the user out here? We can't read the key data from the Git Provider,
-			// do we delete and recreate?
-			// newKey, newSecret, err := a.generateDeployKey(targetName, secretName, repo)
-
-			return nil, fmt.Errorf("deploy key does not exist on cluster: %w", err)
+			// Users might end up here if we uploaded the deploy key, but it failed to save on the cluster,
+			// or if a cluster was destroyed during development work.
+			// Create and upload a new deploy key.
+			a.logger.Warningf("A deploy key named %s was found on the git provider, but not in the cluster.", name.Name)
+			return a.provisionDeployKey(ctx, targetName, name, repo)
 		} else if err != nil {
 			return nil, fmt.Errorf("error retrieving deploy key: %w", err)
 		}
@@ -132,6 +131,10 @@ func (a *authSvc) SetupDeployKey(ctx context.Context, name SecretName, targetNam
 		return git.New(pubKey), nil
 	}
 
+	return a.provisionDeployKey(ctx, targetName, name, repo)
+}
+
+func (a *authSvc) provisionDeployKey(ctx context.Context, targetName string, name SecretName, repo gitproviders.NormalizedRepoURL) (git.Git, error) {
 	deployKey, secret, err := a.generateDeployKey(targetName, name, repo)
 	if err != nil {
 		return nil, fmt.Errorf("error generating deploy key: %w", err)
@@ -139,7 +142,7 @@ func (a *authSvc) SetupDeployKey(ctx context.Context, name SecretName, targetNam
 
 	publicKeyBytes := extractPublicKey(secret)
 
-	if err := a.gitProvider.UploadDeployKey(owner, repoName, publicKeyBytes); err != nil {
+	if err := a.gitProvider.UploadDeployKey(repo.Owner(), repo.RepositoryName(), publicKeyBytes); err != nil {
 		return nil, fmt.Errorf("error uploading deploy key: %w", err)
 	}
 
@@ -150,7 +153,6 @@ func (a *authSvc) SetupDeployKey(ctx context.Context, name SecretName, targetNam
 	a.logger.Println("Deploy key generated and uploaded to git provider")
 
 	return git.New(deployKey), nil
-
 }
 
 // Generates an ssh keypair for upload to the Git Provider and for use in a git.Git client.

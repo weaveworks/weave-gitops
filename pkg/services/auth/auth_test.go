@@ -110,27 +110,12 @@ var _ = Describe("auth", func() {
 				return true, nil
 			}
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}
-			// using `generateDeployKey` as a helper for the test setup.
-			_, secret, err := (&authSvc{fluxClient: fluxClient}).generateDeployKey(testClustername, sn, repoUrl)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(k8sClient.Create(ctx, secret)).To(Succeed())
-
-			savedSecret := &corev1.Secret{}
-			Expect(k8sClient.Get(ctx, sn.NamespacedName(), savedSecret)).To(Succeed())
-			secretId := string(savedSecret.GetUID())
-			Expect(secretId).NotTo(Equal(""))
 
 			_, err = as.SetupDeployKey(ctx, name, testClustername, repoUrl)
 			Expect(err).NotTo(HaveOccurred())
 
 			newSecret := &corev1.Secret{}
 			Expect(k8sClient.Get(ctx, sn.NamespacedName(), newSecret)).To(Succeed())
-			newSecretId := string(newSecret.GetUID())
-			Expect(secretId).NotTo(Equal(""))
-
-			// The new secret that is created should be a different object than the one we had before.
-			Expect(newSecretId).NotTo(Equal(secretId))
-
 			// Expect(gp.RemoveDeployKeyCallCount()).To(Equal(1))
 			Expect(gp.UploadDeployKeyCallCount()).To(Equal(1))
 		})
