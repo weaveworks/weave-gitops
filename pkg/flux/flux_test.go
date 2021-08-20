@@ -20,8 +20,7 @@ var (
 
 var _ = BeforeEach(func() {
 	runner = &runnerfakes.FakeRunner{}
-	osysClient = osys.New()
-	fluxClient = flux.New(osysClient, runner)
+	fluxClient = flux.New(osys.New(), runner)
 })
 
 var _ = Describe("Install", func() {
