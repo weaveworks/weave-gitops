@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"io"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
@@ -14,7 +13,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -180,19 +178,6 @@ func (a *App) pauseOrUnpause(suspendAction wego.SuspendActionType, name, namespa
 	return fmt.Errorf("invalid suspend action")
 }
 
-// DoAppRepoCLIAuth is a helper function that encapsulates the CLI auth flow.
-// This is meant to be re-used in whichever commands need to authenticate with a Git Provider.
-func DoAppRepoCLIAuth(url string, providerName gitproviders.GitProviderName, w io.Writer) (string, error) {
-	// CLI auth experience will vary between Git Providers.
-	authHandler, err := auth.NewAuthCLIHandler(providerName)
-	if err != nil {
-		return "", fmt.Errorf("could not get auth handler for provider %s: %w", providerName, err)
-	}
-
-	// authHandler will take over the CLI and block until the flow is complete.
-	return authHandler(context.Background(), w)
-}
-
 func IsClusterReady(l logger.Logger, k kube.Kube) error {
 	l.Waitingf("Checking cluster status")
 	clusterStatus := k.GetClusterStatus(context.Background())
@@ -206,8 +191,4 @@ func IsClusterReady(l logger.Logger, k kube.Kube) error {
 	l.Successf(clusterStatus.String())
 
 	return nil
-}
-
-func CreateAppSecretName(targetName string, repoURL gitproviders.NormalizedRepoURL) string {
-	return fmt.Sprintf("wego-%s-%s", targetName, repoURL.RepositoryName())
 }

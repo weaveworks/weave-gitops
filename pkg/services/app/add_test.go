@@ -937,7 +937,7 @@ var _ = Describe("Test app hash", func() {
 		}
 		app.Name = "nginx"
 
-		appHash, err := getAppResourceInfo(app, "my-cluster").GetAppHash()
+		appHash, err := getAppResourceInfo(app, "my-cluster").getAppHash()
 		Expect(err).NotTo(HaveOccurred())
 
 		expectedHash, err := getHash(app.Spec.URL, app.Name, app.Spec.Branch)
@@ -957,7 +957,7 @@ var _ = Describe("Test app hash", func() {
 			},
 		}
 
-		appHash, err := getAppResourceInfo(app, "my-cluster").GetAppHash()
+		appHash, err := getAppResourceInfo(app, "my-cluster").getAppHash()
 		Expect(err).NotTo(HaveOccurred())
 
 		expectedHash, err := getHash(app.Spec.URL, app.Spec.Path, app.Spec.Branch)

@@ -42,39 +42,6 @@ type AppResourceInfo struct {
 	targetName  string
 }
 
-func (info *AppResourceInfo) GetAppHash() (string, error) {
-
-	var appHash string
-	var err error
-
-	var getHash = func(inputs ...string) (string, error) {
-		h := md5.New()
-		final := ""
-		for _, input := range inputs {
-			final += input
-		}
-		_, err := h.Write([]byte(final))
-		if err != nil {
-			return "", fmt.Errorf("error generating app hash %s", err)
-		}
-		return hex.EncodeToString(h.Sum(nil)), nil
-	}
-
-	if info.Spec.DeploymentType == wego.DeploymentTypeHelm {
-		appHash, err = getHash(info.Spec.URL, info.Name, info.Spec.Branch)
-		if err != nil {
-			return "", err
-		}
-	} else {
-		appHash, err = getHash(info.Spec.URL, info.Spec.Path, info.Spec.Branch)
-		if err != nil {
-			return "", err
-		}
-	}
-	return "wego-" + appHash, nil
-
-}
-
 const (
 	ConfigTypeUserRepo ConfigType = ""
 	ConfigTypeNone     ConfigType = "NONE"
@@ -186,7 +153,7 @@ func (a *App) Add(params AddParams) error {
 
 	info := getAppResourceInfo(makeWegoApplication(params), clusterName)
 
-	appHash, err := info.GetAppHash()
+	appHash, err := info.getAppHash()
 	if err != nil {
 		return err
 	}
@@ -196,7 +163,7 @@ func (a *App) Add(params AddParams) error {
 		return err
 	}
 	for _, app := range apps {
-		existingHash, err := getAppResourceInfo(app, clusterName).GetAppHash()
+		existingHash, err := getAppResourceInfo(app, clusterName).getAppHash()
 		if err != nil {
 			return err
 		}
@@ -879,9 +846,13 @@ func (a *AppResourceInfo) appResourceName() string {
 }
 
 func (a *AppResourceInfo) appSecretName(repoURL string) string {
+	return CreateAppSecretName(a.clusterName, repoURL)
+}
+
+func CreateAppSecretName(targetName string, repoURL string) string {
 	repoName := utils.UrlToRepoName(repoURL)
 	repoName = strings.ReplaceAll(repoName, "_", "-")
-	return fmt.Sprintf("wego-%s-%s", a.targetName, repoName)
+	return fmt.Sprintf("wego-%s-%s", targetName, repoName)
 }
 
 func (a *AppResourceInfo) automationAppsDirKustomizationName() string {
@@ -992,6 +963,39 @@ func (a *AppResourceInfo) clusterResourcePaths() []string {
 	}
 
 	return []string{a.appYamlPath(), a.appAutomationSourcePath(), a.appAutomationDeployPath()}
+}
+
+func (info *AppResourceInfo) getAppHash() (string, error) {
+
+	var appHash string
+	var err error
+
+	var getHash = func(inputs ...string) (string, error) {
+		h := md5.New()
+		final := ""
+		for _, input := range inputs {
+			final += input
+		}
+		_, err := h.Write([]byte(final))
+		if err != nil {
+			return "", fmt.Errorf("error generating app hash %s", err)
+		}
+		return hex.EncodeToString(h.Sum(nil)), nil
+	}
+
+	if info.Spec.DeploymentType == wego.DeploymentTypeHelm {
+		appHash, err = getHash(info.Spec.URL, info.Name, info.Spec.Branch)
+		if err != nil {
+			return "", err
+		}
+	} else {
+		appHash, err = getHash(info.Spec.URL, info.Spec.Path, info.Spec.Branch)
+		if err != nil {
+			return "", err
+		}
+	}
+	return "wego-" + appHash, nil
+
 }
 
 // NOTE: ready to save the targets automation in phase 2

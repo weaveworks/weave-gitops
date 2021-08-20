@@ -128,8 +128,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	if !isHelmRepository && tokenErr == osys.ErrNoGitProviderTokenSet {
 		// No provider token set, we need to do the auth flow.
-		// DoAppRepoCLIAuth will take over the CLI and block until the flow is complete.
-		token, err = app.DoAppRepoCLIAuth(repoUrlString, providerName, osysClient.Stdout())
+		authHandler, err := auth.NewAuthCLIHandler(providerName)
+		if err != nil {
+			return fmt.Errorf("could not get auth handler for provider %s: %w", providerName, err)
+		}
+
+		token, err = authHandler(ctx, osysClient.Stdout())
 		if err != nil {
 			return fmt.Errorf("could not complete auth flow: %w", err)
 		}
@@ -165,7 +169,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 
 		name := types.NamespacedName{
-			Name:      gitproviders.CreateAppSecretName(targetName, normalizedUrl),
+			Name:      app.CreateAppSecretName(targetName, normalizedUrl.String()),
 			Namespace: params.Namespace,
 		}
 		gitClient, err = authsvc.SetupDeployKey(ctx, name, targetName, normalizedUrl)

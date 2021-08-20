@@ -12,6 +12,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -87,7 +88,7 @@ func (a *authSvc) SetupDeployKey(ctx context.Context, name types.NamespacedName,
 	if deployKeyExists {
 		a.logger.Println("Existing deploy key found")
 		secretName := types.NamespacedName{
-			Name:      gitproviders.CreateAppSecretName(targetName, repo),
+			Name:      app.CreateAppSecretName(targetName, repo.String()),
 			Namespace: name.Namespace,
 		}
 		// The deploy key was found on the Git Provider, fetch it from the cluster.
@@ -173,7 +174,7 @@ func (a *authSvc) retreiveDeployKey(ctx context.Context, name types.NamespacedNa
 
 // Uses flux to create a ssh key pair secret.
 func (a *authSvc) createKeyPairSecret(targetName string, name types.NamespacedName, repo gitproviders.NormalizedRepoURL) (*corev1.Secret, error) {
-	secretname := gitproviders.CreateAppSecretName(targetName, repo)
+	secretname := app.CreateAppSecretName(targetName, repo.String())
 	secretData, err := a.fluxClient.CreateSecretGit(secretname, repo.String(), name.Namespace)
 	if err != nil {
 		return nil, fmt.Errorf("could not create git secret: %w", err)
