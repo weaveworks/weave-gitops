@@ -102,7 +102,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	isHelmChart := params.Chart != ""
+	isHelmRepository := params.Chart != ""
 	repoUrlString := params.Url
 	if repoUrlString == "" {
 		// Find the url using an unauthenticated git client. We just need to read the URL.
@@ -117,7 +117,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	// We re-use the same --url flag for both git and helm sources.
 	// There isn't really a concept of "provider" in helm charts, and there is nothing to push.
 	// Assume charts are always public and no auth needs to be done.
-	if !isHelmChart {
+	if !isHelmRepository {
 		providerName, err = gitproviders.DetectGitProviderFromUrl(repoUrlString)
 		if err != nil {
 			return fmt.Errorf("error detecting git provider: %w", err)
@@ -126,14 +126,14 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	token, tokenErr := osysClient.GetGitProviderToken()
 
-	if !isHelmChart && tokenErr == osys.ErrNoGitProviderTokenSet {
+	if !isHelmRepository && tokenErr == osys.ErrNoGitProviderTokenSet {
 		// No provider token set, we need to do the auth flow.
 		// DoAppRepoCLIAuth will take over the CLI and block until the flow is complete.
 		token, err = app.DoAppRepoCLIAuth(repoUrlString, providerName, osysClient.Stdout())
 		if err != nil {
 			return fmt.Errorf("could not complete auth flow: %w", err)
 		}
-	} else if !isHelmChart && tokenErr != nil {
+	} else if !isHelmRepository && tokenErr != nil {
 		// We didn't detect a NoGitProviderSet error, something else went wrong.
 		return fmt.Errorf("could not get access token: %w", err)
 	}
@@ -148,7 +148,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	gitClient := git.New(authMethod)
 
 	// If we are NOT doing a helm chart, we want to use a git client with an embedded deploy key
-	if !isHelmChart {
+	if !isHelmRepository {
 		authsvc, err := auth.NewAuthService(fluxClient, rawClient, providerName, logger, token)
 		if err != nil {
 			return fmt.Errorf("error creating auth service: %w", err)
