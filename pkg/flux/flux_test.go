@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	runner	   *runnerfakes.FakeRunner
+	runner     *runnerfakes.FakeRunner
 	fluxClient *flux.FluxClient
 	osysClient *osys.OsysClient
 )

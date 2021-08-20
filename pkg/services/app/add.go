@@ -30,56 +30,56 @@ type ConfigMode string
 type ResourceKind string
 
 type ResourceRef struct {
-	kind		   ResourceKind
-	name		   string
+	kind           ResourceKind
+	name           string
 	repositoryPath string
 }
 
 type AppResourceInfo struct {
 	wego.Application
 	clusterName string
-	targetName	string
+	targetName  string
 }
 
 const (
 	ConfigTypeUserRepo ConfigType = ""
-	ConfigTypeNone	   ConfigType = "NONE"
+	ConfigTypeNone     ConfigType = "NONE"
 
 	ConfigModeClusterOnly  ConfigMode = "clusterOnly"
-	ConfigModeUserRepo	   ConfigMode = "userRepo"
+	ConfigModeUserRepo     ConfigMode = "userRepo"
 	ConfigModeExternalRepo ConfigMode = "externalRepo"
 
-	ResourceKindApplication	   ResourceKind = "Application"
-	ResourceKindSecret		   ResourceKind = "Secret"
+	ResourceKindApplication    ResourceKind = "Application"
+	ResourceKindSecret         ResourceKind = "Secret"
 	ResourceKindGitRepository  ResourceKind = "GitRepository"
 	ResourceKindHelmRepository ResourceKind = "HelmRepository"
 	ResourceKindKustomization  ResourceKind = "Kustomization"
-	ResourceKindHelmRelease	   ResourceKind = "HelmRelease"
+	ResourceKindHelmRelease    ResourceKind = "HelmRelease"
 
 	WeGOAppIdentifierLabelKey = "wego.weave.works/app-identifier"
 )
 
 type AddParams struct {
-	Dir						   string
-	Name					   string
-	Url						   string
-	Path					   string
-	Branch					   string
-	PrivateKey				   string
-	DeploymentType			   string
-	Chart					   string
-	SourceType				   string
-	AppConfigUrl			   string
-	Namespace				   string
-	DryRun					   bool
-	AutoMerge				   bool
-	GitProviderToken		   string
+	Dir                        string
+	Name                       string
+	Url                        string
+	Path                       string
+	Branch                     string
+	PrivateKey                 string
+	DeploymentType             string
+	Chart                      string
+	SourceType                 string
+	AppConfigUrl               string
+	Namespace                  string
+	DryRun                     bool
+	AutoMerge                  bool
+	GitProviderToken           string
 	HelmReleaseTargetNamespace string
 }
 
 const (
-	DefaultPath			  = "./"
-	DefaultBranch		  = "main"
+	DefaultPath           = "./"
+	DefaultBranch         = "main"
 	DefaultDeploymentType = "kustomize"
 )
 
@@ -116,7 +116,7 @@ const (
 // - app.yaml placed in apps/<app name>/app.yaml in .wego directory within user repo
 // - HelmRelease or Kustomize referencing user repo source created for app dir within user repo
 // - User app dir HelmRelease or Kustomize placed in targets/<target name>/<app name>/<app name>-gitops-runtime.yaml in .wego
-//	 directory within user repo
+//   directory within user repo
 // - PR created or commit directly pushed for user repo
 
 func (a *App) Add(params AddParams) error {
@@ -486,7 +486,7 @@ func (a *App) commitAndPush(filters ...func(string) bool) error {
 	a.logger.Actionf("Committing and pushing wego updates for application")
 
 	_, err := a.git.Commit(git.Commit{
-		Author:	 git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
+		Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
 		Message: "Add App manifests",
 	}, filters...)
 	if err != nil && err != git.ErrNoStagedFiles {
@@ -663,20 +663,20 @@ func makeWegoApplication(params AddParams) wego.Application {
 	gvk := wego.GroupVersion.WithKind(wego.ApplicationKind)
 	app := wego.Application{
 		TypeMeta: metav1.TypeMeta{
-			Kind:		gvk.Kind,
+			Kind:       gvk.Kind,
 			APIVersion: gvk.GroupVersion().String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:	   params.Name,
+			Name:      params.Name,
 			Namespace: params.Namespace,
 		},
 		Spec: wego.ApplicationSpec{
-			ConfigURL:			 params.AppConfigUrl,
-			Branch:				 params.Branch,
-			URL:				 params.Url,
-			Path:				 params.Path,
-			DeploymentType:		 wego.DeploymentType(params.DeploymentType),
-			SourceType:			 wego.SourceType(params.SourceType),
+			ConfigURL:           params.AppConfigUrl,
+			Branch:              params.Branch,
+			URL:                 params.Url,
+			Path:                params.Path,
+			DeploymentType:      wego.DeploymentType(params.DeploymentType),
+			SourceType:          wego.SourceType(params.SourceType),
 			HelmTargetNamespace: params.HelmReleaseTargetNamespace,
 		},
 	}
@@ -716,15 +716,15 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, gitProvider gitprov
 
 	files := []gitprovider.CommitFile{
 		{
-			Path:	 &appPath,
+			Path:    &appPath,
 			Content: &appContent,
 		},
 		{
-			Path:	 &goatSourcePath,
+			Path:    &goatSourcePath,
 			Content: &goatSourceContent,
 		},
 		{
-			Path:	 &goatDeployPath,
+			Path:    &goatDeployPath,
 			Content: &goatDeployContent,
 		},
 	}
@@ -762,7 +762,7 @@ func getAppResourceInfo(app wego.Application, clusterName string) *AppResourceIn
 	return &AppResourceInfo{
 		Application: app,
 		clusterName: clusterName,
-		targetName:	 clusterName,
+		targetName:  clusterName,
 	}
 }
 
@@ -871,16 +871,16 @@ func (a *AppResourceInfo) clusterResources() []ResourceRef {
 	resources = append(
 		resources,
 		ResourceRef{
-			kind:			a.sourceKind(),
-			name:			a.appSourceName(),
+			kind:           a.sourceKind(),
+			name:           a.appSourceName(),
 			repositoryPath: automationSourcePath},
 		ResourceRef{
-			kind:			a.deployKind(),
-			name:			a.appDeployName(),
+			kind:           a.deployKind(),
+			name:           a.appDeployName(),
 			repositoryPath: automationDeployPath},
 		ResourceRef{
-			kind:			ResourceKindApplication,
-			name:			a.appResourceName(),
+			kind:           ResourceKindApplication,
+			name:           a.appResourceName(),
 			repositoryPath: appPath})
 
 	// Secret for deploy key associated with app repository;
@@ -938,10 +938,10 @@ func (a *AppResourceInfo) clusterResourcePaths() []string {
 
 // NOTE: ready to save the targets automation in phase 2
 // func (a *App) writeTargetGoats(basePath string, name string, manifests ...[]byte) error {
-//	goatPath := filepath.Join(basePath, "targets", fmt.Sprintf("%s-gitops-runtime.yaml", name))
+//  goatPath := filepath.Join(basePath, "targets", fmt.Sprintf("%s-gitops-runtime.yaml", name))
 
-//	goat := bytes.Join(manifests, []byte(""))
-//	return a.git.Write(goatPath, goat)
+//  goat := bytes.Join(manifests, []byte(""))
+//  return a.git.Write(goatPath, goat)
 // }
 
 // Remove some problematic fields before saving the yaml files.
@@ -949,7 +949,7 @@ func (a *AppResourceInfo) clusterResourcePaths() []string {
 // https://github.com/fluxcd/flux2/blob/0ae39d5a0a5220c177b29e71fc8824babd1e0d7c/cmd/flux/export.go#L111
 func sanitizeK8sYaml(data []byte) []byte {
 	out := []byte("---\n")
-	data = bytes.Replace(data, []byte("	 creationTimestamp: null\n"), []byte(""), 1)
+	data = bytes.Replace(data, []byte("  creationTimestamp: null\n"), []byte(""), 1)
 	data = bytes.Replace(data, []byte("status: {}\n"), []byte(""), 1)
 	return append(out, data...)
 }

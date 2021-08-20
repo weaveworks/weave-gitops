@@ -10,7 +10,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
-
 )
 
 var uninstallParams gitops.UinstallParams
@@ -27,7 +26,7 @@ var _ = Describe("Uninstall", func() {
 
 		uninstallParams = gitops.UinstallParams{
 			Namespace: "wego-system",
-			DryRun:	   false,
+			DryRun:    false,
 		}
 	})
 

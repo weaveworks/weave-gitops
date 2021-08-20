@@ -27,14 +27,14 @@ var addParams AddParams
 var _ = Describe("Add", func() {
 	var _ = BeforeEach(func() {
 		addParams = AddParams{
-			Url:			"https://github.com/foo/bar",
-			Path:			"./kustomize",
-			Branch:			"main",
-			Dir:			".",
+			Url:            "https://github.com/foo/bar",
+			Path:           "./kustomize",
+			Branch:         "main",
+			Dir:            ".",
 			DeploymentType: "kustomize",
-			Namespace:		"wego-system",
-			AppConfigUrl:	"NONE",
-			AutoMerge:		true,
+			Namespace:      "wego-system",
+			AppConfigUrl:   "NONE",
+			AutoMerge:      true,
 		}
 
 		gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
@@ -43,6 +43,7 @@ var _ = Describe("Add", func() {
 	})
 
 	It("checks for cluster status", func() {
+		fmt.Fprintf(osysClient.Stderr(), "foo\n")
 		err := appSrv.Add(addParams)
 		Expect(err).ShouldNot(HaveOccurred())
 
@@ -602,7 +603,7 @@ stringData:
 
 			msg, filters := gitClient.CommitArgsForCall(0)
 			Expect(msg).To(Equal(git.Commit{
-				Author:	 git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
+				Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
 				Message: "Add App manifests",
 			}))
 
@@ -660,11 +661,11 @@ stringData:
 			It("generates the app yaml", func() {
 				repoURL := "ssh://git@github.com/example/my-source"
 				params := AddParams{
-					Name:	   "my-app",
+					Name:      "my-app",
 					Namespace: "wego-system",
-					Url:	   repoURL,
-					Path:	   "manifests",
-					Branch:	   "main",
+					Url:       repoURL,
+					Path:      "manifests",
+					Branch:    "main",
 				}
 
 				info := getAppResourceInfo(makeWegoApplication(params), "")
@@ -858,7 +859,7 @@ stringData:
 
 			msg, filters := gitClient.CommitArgsForCall(0)
 			Expect(msg).To(Equal(git.Commit{
-				Author:	 git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
+				Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
 				Message: "Add App manifests",
 			}))
 
