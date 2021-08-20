@@ -43,7 +43,6 @@ var _ = Describe("Add", func() {
 	})
 
 	It("checks for cluster status", func() {
-		fmt.Fprintf(osysClient.Stderr(), "foo\n")
 		err := appSrv.Add(addParams)
 		Expect(err).ShouldNot(HaveOccurred())
 
