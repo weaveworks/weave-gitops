@@ -92,7 +92,7 @@ func (a *authSvc) SetupDeployKey(ctx context.Context, name types.NamespacedName,
 			Namespace: name.Namespace,
 		}
 		// The deploy key was found on the Git Provider, fetch it from the cluster.
-		secret, err := a.retreiveDeployKey(ctx, secretName)
+		secret, err := a.retrieveDeployKey(ctx, secretName)
 		if apierrors.IsNotFound(err) {
 			// Edge case where the deploy key exists on the Git Provider, but not on the cluster.
 			// Users might end up here if we uploaded the deploy key, but it failed to save on the cluster.
@@ -163,7 +163,7 @@ func (a *authSvc) storeDeployKey(ctx context.Context, secret *corev1.Secret) err
 }
 
 // Wrapper to abstract how a key is fetched.
-func (a *authSvc) retreiveDeployKey(ctx context.Context, name types.NamespacedName) (*corev1.Secret, error) {
+func (a *authSvc) retrieveDeployKey(ctx context.Context, name types.NamespacedName) (*corev1.Secret, error) {
 	secret := &corev1.Secret{}
 	if err := a.k8sClient.Get(ctx, name, secret); err != nil {
 		return nil, fmt.Errorf("error getting deploy key secret: %w", err)
