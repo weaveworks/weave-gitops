@@ -53,7 +53,7 @@ func DefaultConfig() (*ApplicationsConfig, error) {
 	}
 	logr := zapr.NewLogger(zapLog)
 
-	kubeClient, err := kube.NewKubeHTTPClient()
+	kubeClient, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return nil, fmt.Errorf("could not create kube http client: %w", err)
 	}
