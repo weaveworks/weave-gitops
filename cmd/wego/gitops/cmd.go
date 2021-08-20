@@ -75,7 +75,10 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	cliRunner := &runner.CLIRunner{}
 	osysClient := osys.New()
 	fluxClient := flux.New(osysClient, cliRunner)
-	kubeClient := kube.New(cliRunner)
+	kubeClient, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		return err
+	}
 
 	gitopsService := gitops.New(logger.NewCLILogger(os.Stdout), fluxClient, kubeClient)
 
