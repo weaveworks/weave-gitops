@@ -9,7 +9,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	appspb "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	commitpb "github.com/weaveworks/weave-gitops/pkg/api/commits"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"google.golang.org/grpc"
@@ -35,8 +36,10 @@ const bufSize = 1024 * 1024
 var lis *bufconn.Listener
 
 var s *grpc.Server
-var apps pb.ApplicationsServer
-var appsClient pb.ApplicationsClient
+var apps appspb.ApplicationsServer
+var appsClient appspb.ApplicationsClient
+var coms commitpb.CommitsServer
+var commitClient commitpb.CommitsClient
 var conn *grpc.ClientConn
 var err error
 var k8sClient client.Client
@@ -98,7 +101,10 @@ var _ = BeforeEach(func() {
 	cfg := server.ApplicationsConfig{KubeClient: k}
 
 	apps = server.NewApplicationsServer(&cfg)
-	pb.RegisterApplicationsServer(s, apps)
+	appspb.RegisterApplicationsServer(s, apps)
+
+	coms = server.NewCommitsServer(&cfg)
+	commitpb.RegisterCommitsServer(s, coms)
 
 	go func() {
 		if err := s.Serve(lis); err != nil {
@@ -111,7 +117,7 @@ var _ = BeforeEach(func() {
 
 	Expect(err).NotTo(HaveOccurred())
 
-	appsClient = pb.NewApplicationsClient(conn)
+	appsClient = appspb.NewApplicationsClient(conn)
 })
 
 var _ = AfterEach(func() {

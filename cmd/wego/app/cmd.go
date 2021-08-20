@@ -63,6 +63,9 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	params := app.CommitParams{}
 	params.Name = args[0]
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
+	// Hardcode PageSize and PageToken until there is a plan around pagination for cli
+	params.PageSize = 10
+	params.PageToken = 0
 
 	command := args[1]
 	object := args[2]

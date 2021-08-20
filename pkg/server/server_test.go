@@ -15,7 +15,8 @@ import (
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/api/applications"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	appspb "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	"github.com/weaveworks/weave-gitops/pkg/api/commits"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/middleware"
@@ -73,11 +74,12 @@ var _ = Describe("ApplicationsServer", func() {
 
 		Expect(res.Application.Name).To(Equal(name))
 	})
+
 	Describe("middleware", func() {
 		Describe("logging", func() {
 			var log *fakelogr.FakeLogger
 			var kubeClient *kubefakes.FakeKube
-			var appsSrv pb.ApplicationsServer
+			var appsSrv appspb.ApplicationsServer
 			var mux *runtime.ServeMux
 			var httpHandler http.Handler
 			var err error
@@ -88,7 +90,7 @@ var _ = Describe("ApplicationsServer", func() {
 				appsSrv = server.NewApplicationsServer(&server.ApplicationsConfig{KubeClient: kubeClient})
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
-				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
+				err = appspb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("logs invalid requests", func() {
@@ -211,11 +213,43 @@ var _ = Describe("Applications handler", func() {
 		b, err := ioutil.ReadAll(res.Body)
 		Expect(err).NotTo(HaveOccurred())
 
-		r := &pb.ListApplicationsResponse{}
+		r := &appspb.ListApplicationsResponse{}
 		err = json.Unmarshal(b, r)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(r.Applications).To(HaveLen(1))
+	})
+})
+
+var _ = Describe("CommitsServer", func() {
+	var (
+		namespace *corev1.Namespace
+		err       error
+	)
+
+	BeforeEach(func() {
+		namespace = &corev1.Namespace{}
+		namespace.Name = "kube-test-" + rand.String(5)
+		err = k8sClient.Create(context.Background(), namespace)
+		Expect(err).NotTo(HaveOccurred(), "failed to create test namespace")
+
+		k = &kube.KubeHTTP{Client: k8sClient, ClusterName: testClustername}
+	})
+	It("ListCommits", func() {
+		ctx := context.Background()
+		name := "my-app"
+		app := &wego.Application{ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace.Name,
+		}}
+
+		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
+
+		res, err := commitClient.ListCommits(context.Background(), &commits.ListCommitsRequest{})
+
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(len(res.Commits)).To(Equal(1))
 	})
 })
 

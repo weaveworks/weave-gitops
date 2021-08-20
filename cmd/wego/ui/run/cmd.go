@@ -17,7 +17,8 @@ import (
 	"github.com/pkg/browser"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	appspb "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	commitspb "github.com/weaveworks/weave-gitops/pkg/api/commits"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 )
 
@@ -57,8 +58,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create http client: %w", err)
 	}
 
-	if err := pb.RegisterApplicationsHandlerServer(context.Background(), gMux, server.NewApplicationsServer(cfg)); err != nil {
+	if err := appspb.RegisterApplicationsHandlerServer(context.Background(), gMux, server.NewApplicationsServer(cfg)); err != nil {
 		return fmt.Errorf("could not register application: %w", err)
+	}
+
+	if err := commitspb.RegisterCommitsHandlerServer(context.Background(), gMux, server.NewCommitsServer(kubeClient)); err != nil {
+		return fmt.Errorf("could not register commit: %w", err)
 	}
 
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
