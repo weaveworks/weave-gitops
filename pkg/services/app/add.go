@@ -611,7 +611,7 @@ func (a *App) generateApplicationGoat(info *AppResourceInfo) ([]byte, error) {
 func (a *App) applyToCluster(info *AppResourceInfo, dryRun bool, manifests ...[]byte) error {
 	if dryRun {
 		for _, manifest := range manifests {
-			fmt.Printf("%s\n", manifest)
+			fmt.Fprintf(a.osys.Stdout(), "%s\n", manifest)
 		}
 		return nil
 	}
