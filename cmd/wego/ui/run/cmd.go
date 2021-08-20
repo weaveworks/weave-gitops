@@ -62,7 +62,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not register application: %w", err)
 	}
 
-	if err := commitspb.RegisterCommitsHandlerServer(context.Background(), gMux, server.NewCommitsServer(kubeClient)); err != nil {
+	if err := commitspb.RegisterCommitsHandlerServer(context.Background(), gMux, server.NewCommitsServer(cfg)); err != nil {
 		return fmt.Errorf("could not register commit: %w", err)
 	}
 

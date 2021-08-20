@@ -34,6 +34,13 @@ type applicationServer struct {
 	log  logr.Logger
 }
 
+type commitServer struct {
+	commitpb.UnimplementedCommitsServer
+
+	kube kube.Kube
+	log  logr.Logger
+}
+
 // An ServerConfig allows for the customization of an ApplicationsServer.
 // Use the DefaultConfig() to use the default dependencies.
 type ServerConfig struct {
@@ -43,13 +50,21 @@ type ServerConfig struct {
 
 // NewApplicationsServer creates a grpc Applications server
 func NewApplicationsServer(cfg *ServerConfig) appspb.ApplicationsServer {
-	return &server{
+	return &applicationServer{
 		kube: cfg.KubeClient,
 		log:  cfg.Logger,
 	}
 }
 
-// DefaultConfig creates a populated config with the dependencies for an ApplicationsServer
+// NewCommitsServer creates a grpc Commits server
+func NewCommitsServer(cfg *ServerConfig) commitpb.CommitsServer {
+	return &commitServer{
+		kube: cfg.KubeClient,
+		log:  cfg.Logger,
+	}
+}
+
+// DefaultConfig creates a populated config with the dependencies for a Server
 func DefaultConfig() (*ServerConfig, error) {
 	zapLog, err := zap.NewDevelopment()
 	if err != nil {
@@ -68,19 +83,6 @@ func DefaultConfig() (*ServerConfig, error) {
 	}, nil
 }
 
-type commitServer struct {
-	commitpb.UnimplementedCommitsServer
-
-	kube kube.Kube
-}
-
-func NewCommitsServer(cfg *ServerConfig) commitpb.CommitsServer {
-	return &server{
-		kube: cfg.KubeClient,
-		log:  cfg.Logger,
-	}
-}
-
 // NewApplicationsHandler allow for other applications to embed the Weave GitOps Applications HTTP API.
 // This handler can be muxed with other services or used as a standalone service.
 func NewApplicationsHandler(ctx context.Context, cfg *ServerConfig, opts ...runtime.ServeMuxOption) (http.Handler, error) {
@@ -89,7 +91,7 @@ func NewApplicationsHandler(ctx context.Context, cfg *ServerConfig, opts ...runt
 	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(cfg.Logger))
 	httpHandler := middleware.WithLogging(cfg.Logger, mux)
 
-	if err := pb.RegisterApplicationsHandlerServer(ctx, mux, appsSrv); err != nil {
+	if err := appspb.RegisterApplicationsHandlerServer(ctx, mux, appsSrv); err != nil {
 		return nil, fmt.Errorf("could not register application: %w", err)
 	}
 
@@ -200,7 +202,6 @@ func (s *commitServer) ListCommits(ctx context.Context, msg *commitpb.ListCommit
 			Commits: []*commitpb.Commit{},
 		}, fmt.Errorf("could not complete auth flow: %w", err)
 	}
-	fmt.Println("hit this bitch")
 
 	pageToken := 0
 	if msg.PageToken != nil {
@@ -215,13 +216,12 @@ func (s *commitServer) ListCommits(ctx context.Context, msg *commitpb.ListCommit
 			Commits: []*commitpb.Commit{},
 		}, err
 	}
-	fmt.Println("hit this bitch as well")
+
 	if commits == nil {
 		return &commitpb.ListCommitsResponse{
 			Commits: []*commitpb.Commit{},
 		}, nil
 	}
-	fmt.Println("hit this bitch also")
 
 	list := []*commitpb.Commit{}
 	for _, commit := range commits {
