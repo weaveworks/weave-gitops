@@ -15,7 +15,6 @@ import (
 var (
 	runner     *runnerfakes.FakeRunner
 	fluxClient *flux.FluxClient
-	osysClient *osys.OsysClient
 )
 
 var _ = BeforeEach(func() {
