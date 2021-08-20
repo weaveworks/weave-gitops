@@ -87,7 +87,7 @@ var _ = Describe("ApplicationsServer", func() {
 			BeforeEach(func() {
 				log = makeFakeLogr()
 				kubeClient = &kubefakes.FakeKube{}
-				appsSrv = server.NewApplicationsServer(&server.ApplicationsConfig{KubeClient: kubeClient})
+				appsSrv = server.NewApplicationsServer(&server.ServerConfig{KubeClient: kubeClient})
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
 				err = appspb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
@@ -191,7 +191,7 @@ var _ = Describe("Applications handler", func() {
 			}}, nil
 		}
 
-		cfg := server.ApplicationsConfig{
+		cfg := server.ServerConfig{
 			KubeClient: k,
 			Logger:     log,
 		}
