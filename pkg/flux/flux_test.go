@@ -1,7 +1,6 @@
 package flux_test
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,7 +19,6 @@ var (
 
 var _ = BeforeEach(func() {
 	runner = &runnerfakes.FakeRunner{}
-
 	fluxClient = flux.New(osys.New(), runner)
 })
 
@@ -228,7 +226,6 @@ var _ = Describe("CreateSecretGit", func() {
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
 
-		fmt.Println(strings.Join(args, " "))
 		Expect(strings.Join(args, " ")).To(Equal("create secret git my-secret --url ssh://git@github.com/foo/bar.git --namespace wego-system --export"))
 	})
 })

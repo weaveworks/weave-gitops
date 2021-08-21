@@ -30,7 +30,8 @@ func TestKube(t *testing.T) {
 	RunSpecs(t, "Kube Suite")
 }
 
-var _ = BeforeSuite(func(done Done) {
+var _ = BeforeSuite(func() {
+	done := make(chan interface{})
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths: []string{"../../manifests/crds"},
 	}
@@ -57,10 +58,14 @@ var _ = BeforeSuite(func(done Done) {
 		Expect(err).ToNot(HaveOccurred())
 	}()
 
+	go func() {
+		Eventually(done, 60).Should(BeClosed())
+	}()
+
 	k8sClient = k8sManager.GetClient()
 	Expect(k8sClient).ToNot(BeNil())
 	close(done)
-}, 60)
+})
 
 var _ = AfterSuite(func() {
 	By("tearing down the test environment")
