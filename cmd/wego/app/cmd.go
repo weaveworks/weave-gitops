@@ -106,11 +106,11 @@ func runCmd(cmd *cobra.Command, args []string) error {
 }
 
 func printCommitTable(logger logger.Logger, commits []gitprovider.Commit) {
-	header := []string{"Commit Hash", "Author", "Message", "Created At"}
+	header := []string{"Commit Hash", "Created At", "Author", "Message"}
 	rows := [][]string{}
 	for _, commit := range commits {
 		c := commit.Get()
-		rows = append(rows, []string{c.Sha, c.Author, c.Message, c.CreatedAt.String()})
+		rows = append(rows, []string{utils.ConvertCommitHashToShort(c.Sha), utils.CleanCommitCreatedAt(c.CreatedAt), c.Author, utils.CleanCommitMessage(c.Message)})
 	}
 
 	utils.PrintTable(logger, header, rows)
