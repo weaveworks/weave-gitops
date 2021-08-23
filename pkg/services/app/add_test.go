@@ -154,7 +154,7 @@ stringData:
 
 	Describe("checks for existing deploy key before creating secret", func() {
 		It("looks up deploy key and skips creating secret if found", func() {
-			addParams.SourceType = string(wego.SourceTypeGit)
+			addParams.SourceType = wego.SourceTypeGit
 
 			gitProviders.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
 				return true, nil
@@ -173,7 +173,7 @@ stringData:
 		})
 
 		It("looks up deploy key and creates secret if not found", func() {
-			addParams.SourceType = string(wego.SourceTypeGit)
+			addParams.SourceType = wego.SourceTypeGit
 
 			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -201,7 +201,7 @@ stringData:
 
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
-				addParams.SourceType = string(wego.SourceTypeGit)
+				addParams.SourceType = wego.SourceTypeGit
 
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -380,7 +380,7 @@ stringData:
 
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
-				addParams.SourceType = string(wego.SourceTypeGit)
+				addParams.SourceType = wego.SourceTypeGit
 
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -618,7 +618,7 @@ stringData:
 
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
-				addParams.SourceType = string(wego.SourceTypeGit)
+				addParams.SourceType = wego.SourceTypeGit
 
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())

@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
+
 	"github.com/lithammer/dedent"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -86,13 +88,14 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	token, err := osysClient.GetGitProviderToken()
 
+	goGit := wrapper.NewGoGit()
 	if err == osys.ErrNoGitProviderTokenSet {
 		// No provider token set, we need to do the auth flow.
 		url := params.Url
 		if url == "" {
 			// Find the url using an unauthenticated git client. We just need to read the URL.
 			// params.Dir must be defined here because we already checked for it above.
-			url, err = git.New(nil).GetRemoteUrl(params.Dir, "origin")
+			url, err = git.New(nil, goGit).GetRemoteUrl(params.Dir, "origin")
 			if err != nil {
 				return fmt.Errorf("could not get remote url for directory %s: %w", params.Dir, err)
 			}
@@ -117,7 +120,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	cliRunner := &runner.CLIRunner{}
 	fluxClient := flux.New(osysClient, cliRunner)
 	kubeClient := kube.New(cliRunner)
-	gitClient := git.New(authMethod)
+	gitClient := git.New(authMethod, goGit)
 	logger := logger.NewCLILogger(os.Stdout)
 
 	appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)
