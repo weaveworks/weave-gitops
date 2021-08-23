@@ -54,12 +54,10 @@ func (a *App) Remove(params RemoveParams) error {
 		return nil
 	}
 
-	cloneURL, _, err := a.getConfigUrlAndBranch(info, params.GitProviderToken)
+	cloneURL, branch, err := a.getConfigUrlAndBranch(info, params.GitProviderToken)
 	if err != nil {
 		return fmt.Errorf("failed to obtain config URL and branch: %w", err)
 	}
-
-	branch := "master"
 
 	remover, err := a.cloneRepo(cloneURL, branch, params.DryRun)
 
