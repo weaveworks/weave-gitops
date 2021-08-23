@@ -74,10 +74,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	cliRunner := &runner.CLIRunner{}
 	fluxClient := flux.New(osysClient, cliRunner)
-	kubeClient, err := kube.NewKubeHTTPClient()
-	if err != nil {
-		return err
-	}
+	kubeClient := kube.New(cliRunner)
 	gitClient := git.New(authMethod)
 	logger := logger.NewCLILogger(os.Stdout)
 
