@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -13,8 +12,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
+	"github.com/weaveworks/weave-gitops/pkg/osys/osysfakes"
 )
 
 var (
@@ -22,7 +21,7 @@ var (
 	fluxClient     *fluxfakes.FakeFlux
 	kubeClient     *kubefakes.FakeKube
 	kubeHttpClient *kubefakes.FakeKube
-	osysClient     osys.Osys
+	osysClient     *osysfakes.FakeOsys
 	gitProviders   *gitprovidersfakes.FakeGitProvider
 
 	appSrv AppService
@@ -31,7 +30,7 @@ var (
 var _ = BeforeEach(func() {
 	gitClient = &gitfakes.FakeGit{}
 	fluxClient = &fluxfakes.FakeFlux{}
-	osysClient = osys.New()
+	osysClient = &osysfakes.FakeOsys{}
 	kubeClient = &kubefakes.FakeKube{
 		GetClusterNameStub: func(ctx context.Context) (string, error) {
 			return "test-cluster", nil
@@ -43,7 +42,7 @@ var _ = BeforeEach(func() {
 	kubeHttpClient = kubeClient
 
 	gitProviders = &gitprovidersfakes.FakeGitProvider{}
-	appSrv = New(logger.NewCLILogger(os.Stderr), gitClient, fluxClient, kubeClient, osysClient)
+	appSrv = New(&loggerfakes.FakeLogger{}, gitClient, fluxClient, kubeClient, osysClient)
 
 	appSrv.(*App).kubeHttp = kubeHttpClient
 	appSrv.(*App).gitProviderFactory = func(token string) (gitproviders.GitProvider, error) {

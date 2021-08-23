@@ -2,14 +2,13 @@ package gitops_test
 
 import (
 	"context"
-	"os"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 )
 
@@ -23,7 +22,7 @@ var _ = Describe("Uninstall", func() {
 				return kube.WeGOInstalled
 			},
 		}
-		gitopsSrv = gitops.New(logger.NewCLILogger(os.Stderr), fluxClient, kubeClient)
+		gitopsSrv = gitops.New(&loggerfakes.FakeLogger{}, fluxClient, kubeClient)
 
 		uninstallParams = gitops.UinstallParams{
 			Namespace: "wego-system",
