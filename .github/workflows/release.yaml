@@ -20,6 +20,8 @@ jobs:
           make -B dependencies
           echo "BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
           echo "FLUX_VERSION=$($(pwd)/tools/bin/stoml $(pwd)/tools/dependencies.toml flux.version)" >> $GITHUB_ENV
+      - name: "Make All"
+        run: make all
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v1
         with:
