@@ -29,7 +29,7 @@ var _ = BeforeEach(func() {
 })
 
 var _ = Describe("Apply", func() {
-	It("applies manifests", func() {
+	XIt("applies manifests", func() {
 		err := kubeClient.Apply(context.Background(), []byte("manifests"), "wego-system")
 		Expect(err).Should(HaveOccurred())
 	})
