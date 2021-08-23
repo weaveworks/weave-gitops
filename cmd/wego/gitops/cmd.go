@@ -75,11 +75,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	cliRunner := &runner.CLIRunner{}
 	osysClient := osys.New()
 	fluxClient := flux.New(osysClient, cliRunner)
-	kubeClient, err := kube.NewKubeHTTPClient()
-	if err != nil {
-		return err
-	}
-
+	kubeClient := kube.New(cliRunner)
 	gitopsService := gitops.New(logger.NewCLILogger(os.Stdout), fluxClient, kubeClient)
 
 	manifests, err := gitopsService.Install(gitops.InstallParams{
@@ -101,11 +97,7 @@ func uninstallRunCmd(cmd *cobra.Command, args []string) error {
 	cliRunner := &runner.CLIRunner{}
 	osysClient := osys.New()
 	fluxClient := flux.New(osysClient, cliRunner)
-	kubeClient, err := kube.NewKubeHTTPClient()
-	if err != nil {
-		return err
-	}
-
+	kubeClient := kube.New(cliRunner)
 	gitopsService := gitops.New(logger.NewCLILogger(os.Stdout), fluxClient, kubeClient)
 
 	return gitopsService.Uninstall(gitops.UinstallParams{
