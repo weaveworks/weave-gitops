@@ -27,14 +27,11 @@ var params app.RemoveParams
 
 var Cmd = &cobra.Command{
 	Use:   "remove [--private-key <keyfile>] <app name>",
-	Short: "Add a workload repository to a wego cluster",
+	Short: "Remove an app from a wego cluster",
 	Long: strings.TrimSpace(dedent.Dedent(`
-        Associates an additional application in a git repository with a wego cluster so that its contents may be managed via GitOps
+        Removes an application from a wego cluster so it will no longer be managed via GitOps
     `)),
 	Example: `
-  # Remove application from wego control via pull request
-  wego app remove podinfo
-
   # Remove application from wego control via immediate commit
   wego app remove podinfo
 `,
