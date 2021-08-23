@@ -38,6 +38,7 @@ var Cmd = &cobra.Command{
   # Remove application from wego control via immediate commit
   wego app remove podinfo
 `,
+	Args:          cobra.MinimumNArgs(1),
 	RunE:          runCmd,
 	SilenceUsage:  true,
 	SilenceErrors: true,
@@ -55,10 +56,6 @@ func init() {
 func runCmd(cmd *cobra.Command, args []string) error {
 	params.Name = args[0]
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
-
-	if len(args) == 0 {
-		return fmt.Errorf("you must specify an application name")
-	}
 
 	osysClient := osys.New()
 
