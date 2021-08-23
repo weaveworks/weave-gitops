@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,32 +14,29 @@ import (
 	"github.com/go-logr/zapr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	appspb "github.com/weaveworks/weave-gitops/pkg/api/applications"
-	commitpb "github.com/weaveworks/weave-gitops/pkg/api/commits"
+	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"go.uber.org/zap"
+	"golang.org/x/oauth2"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+type key int
+
+const tokenKey key = iota
+
 type applicationServer struct {
-	appspb.UnimplementedApplicationsServer
+	pb.UnimplementedApplicationsServer
 
-	kube kube.Kube
-	log  logr.Logger
-}
-
-type commitServer struct {
-	commitpb.UnimplementedCommitsServer
-
-	kube kube.Kube
-	log  logr.Logger
+	kube       kube.Kube
+	log        logr.Logger
+	appService app.AppService
 }
 
 // An ServerConfig allows for the customization of an ApplicationsServer.
@@ -46,21 +44,15 @@ type commitServer struct {
 type ServerConfig struct {
 	Logger     logr.Logger
 	KubeClient kube.Kube
+	AppService app.AppService
 }
 
 // NewApplicationsServer creates a grpc Applications server
-func NewApplicationsServer(cfg *ServerConfig) appspb.ApplicationsServer {
+func NewApplicationsServer(cfg *ServerConfig) pb.ApplicationsServer {
 	return &applicationServer{
-		kube: cfg.KubeClient,
-		log:  cfg.Logger,
-	}
-}
-
-// NewCommitsServer creates a grpc Commits server
-func NewCommitsServer(cfg *ServerConfig) commitpb.CommitsServer {
-	return &commitServer{
-		kube: cfg.KubeClient,
-		log:  cfg.Logger,
+		kube:       cfg.KubeClient,
+		log:        cfg.Logger,
+		appService: cfg.AppService,
 	}
 }
 
@@ -77,9 +69,12 @@ func DefaultConfig() (*ServerConfig, error) {
 		return nil, fmt.Errorf("could not create kube http client: %w", err)
 	}
 
+	appSrv := app.New(nil, nil, nil, kubeClient, nil)
+
 	return &ServerConfig{
 		Logger:     logr,
 		KubeClient: kubeClient,
+		AppService: appSrv,
 	}, nil
 }
 
@@ -87,44 +82,39 @@ func DefaultConfig() (*ServerConfig, error) {
 // This handler can be muxed with other services or used as a standalone service.
 func NewServerHandler(ctx context.Context, cfg *ServerConfig, opts ...runtime.ServeMuxOption) (http.Handler, error) {
 	appsSrv := NewApplicationsServer(cfg)
-	commitSrv := NewCommitsServer(cfg)
 
 	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(cfg.Logger))
 	httpHandler := middleware.WithLogging(cfg.Logger, mux)
 
-	if err := appspb.RegisterApplicationsHandlerServer(ctx, mux, appsSrv); err != nil {
+	if err := pb.RegisterApplicationsHandlerServer(ctx, mux, appsSrv); err != nil {
 		return nil, fmt.Errorf("could not register application: %w", err)
-	}
-
-	if err := commitpb.RegisterCommitsHandlerServer(ctx, mux, commitSrv); err != nil {
-		return nil, fmt.Errorf("could not register commit: %w", err)
 	}
 
 	return httpHandler, nil
 }
 
-func (s *applicationServer) ListApplications(ctx context.Context, msg *appspb.ListApplicationsRequest) (*appspb.ListApplicationsResponse, error) {
+func (s *applicationServer) ListApplications(ctx context.Context, msg *pb.ListApplicationsRequest) (*pb.ListApplicationsResponse, error) {
 	apps, err := s.kube.GetApplications(ctx, msg.GetNamespace())
 	if err != nil {
 		return nil, err
 	}
 
 	if apps == nil {
-		return &appspb.ListApplicationsResponse{
-			Applications: []*appspb.Application{},
+		return &pb.ListApplicationsResponse{
+			Applications: []*pb.Application{},
 		}, nil
 	}
 
-	list := []*appspb.Application{}
+	list := []*pb.Application{}
 	for _, a := range apps {
-		list = append(list, &appspb.Application{Name: a.Name})
+		list = append(list, &pb.Application{Name: a.Name})
 	}
-	return &appspb.ListApplicationsResponse{
+	return &pb.ListApplicationsResponse{
 		Applications: list,
 	}, nil
 }
 
-func (s *applicationServer) GetApplication(ctx context.Context, msg *appspb.GetApplicationRequest) (*appspb.GetApplicationResponse, error) {
+func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetApplicationRequest) (*pb.GetApplicationResponse, error) {
 	app, err := s.kube.GetApplication(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace})
 	if err != nil {
 		return nil, fmt.Errorf("could not get application \"%s\": %w", msg.Name, err)
@@ -153,7 +143,7 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *appspb.GetA
 
 	// A Source is just an abstract interface, we need to get the underlying implementation.
 	var srcK8sConditions []metav1.Condition
-	var srcConditions []*appspb.Condition
+	var srcConditions []*pb.Condition
 
 	if src != nil {
 		// An src might be nil if it is not reconciled yet,
@@ -169,7 +159,7 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *appspb.GetA
 	}
 
 	var deploymentK8sConditions []metav1.Condition
-	var deploymentConditions []*appspb.Condition
+	var deploymentConditions []*pb.Condition
 	if deployment != nil {
 		// Same as a src. Deployment may not be created at this point.
 		switch at := deployment.(type) {
@@ -182,7 +172,7 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *appspb.GetA
 		deploymentConditions = mapConditions(deploymentK8sConditions)
 	}
 
-	return &appspb.GetApplicationResponse{Application: &appspb.Application{
+	return &pb.GetApplicationResponse{Application: &pb.Application{
 		Name:                 app.Name,
 		Url:                  app.Spec.URL,
 		Path:                 app.Spec.Path,
@@ -191,21 +181,35 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *appspb.GetA
 	}}, nil
 }
 
-func (s *commitServer) ListCommits(ctx context.Context, msg *commitpb.ListCommitsRequest) (*commitpb.ListCommitsResponse, error) {
-	logger := logger.NewApiLogger()
-
-	appService := app.New(logger, nil, nil, s.kube, nil)
-
-	a, err := s.kube.GetApplication(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace})
-	if err != nil {
-		return nil, fmt.Errorf("unable to get application for %s %w", msg.Name, err)
+//Until the middleware is done this function will not be able to get the token and will fail
+func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommitsRequest) (*pb.ListCommitsResponse, error) {
+	//Remove when middleware is done
+	type contextVals struct {
+		Token *oauth2.Token
 	}
 
-	token, err := app.DoAppRepoCLIAuth(a.Spec.URL, logger)
+	vals := contextVals{Token: &oauth2.Token{AccessToken: "fsdlkjfsdlkjfaslkjasdlkj"}}
+	ctx = context.WithValue(ctx, tokenKey, vals)
+
+	//Temporary solution to get this to build until middleware is done
+	extractToken := func(ctx context.Context) (string, error) {
+		c := ctx.Value(tokenKey)
+
+		vals, ok := c.(contextVals)
+		if !ok {
+			return "", errors.New("could not get token from context")
+		}
+
+		if vals.Token == nil || vals.Token.AccessToken == "" {
+			return "", errors.New("no token specified")
+		}
+
+		return vals.Token.AccessToken, nil
+	}
+
+	token, err := extractToken(ctx)
 	if err != nil {
-		return &commitpb.ListCommitsResponse{
-			Commits: []*commitpb.Commit{},
-		}, fmt.Errorf("could not complete auth flow: %w", err)
+		return nil, err
 	}
 
 	pageToken := 0
@@ -215,22 +219,22 @@ func (s *commitServer) ListCommits(ctx context.Context, msg *commitpb.ListCommit
 
 	params := app.CommitParams{Name: msg.Name, Namespace: msg.Namespace, GitProviderToken: token, PageSize: int(msg.PageSize), PageToken: pageToken}
 
-	commits, err := appService.GetCommits(params)
+	commits, err := s.appService.GetCommits(params)
 	if err != nil {
-		return &commitpb.ListCommitsResponse{
-			Commits: []*commitpb.Commit{},
+		return &pb.ListCommitsResponse{
+			Commits: []*pb.Commit{},
 		}, err
 	}
 
 	if commits == nil {
-		return &commitpb.ListCommitsResponse{
-			Commits: []*commitpb.Commit{},
+		return &pb.ListCommitsResponse{
+			Commits: []*pb.Commit{},
 		}, nil
 	}
 
-	list := []*commitpb.Commit{}
+	list := []*pb.Commit{}
 	for _, commit := range commits {
-		list = append(list, &commitpb.Commit{
+		list = append(list, &pb.Commit{
 			Author:     commit.Get().Author,
 			Message:    utils.CleanCommitMessage(commit.Get().Message),
 			CommitHash: commit.Get().Sha,
@@ -238,7 +242,7 @@ func (s *commitServer) ListCommits(ctx context.Context, msg *commitpb.ListCommit
 		})
 	}
 	nextPageToken := int32(pageToken + 1)
-	return &commitpb.ListCommitsResponse{
+	return &pb.ListCommitsResponse{
 		Commits:       list,
 		NextPageToken: nextPageToken,
 	}, nil
@@ -287,11 +291,11 @@ func findFluxObjects(app *wego.Application) (client.Object, client.Object, error
 }
 
 // Convert k8s conditions to protobuf conditions
-func mapConditions(conditions []metav1.Condition) []*appspb.Condition {
-	out := []*appspb.Condition{}
+func mapConditions(conditions []metav1.Condition) []*pb.Condition {
+	out := []*pb.Condition{}
 
 	for _, c := range conditions {
-		out = append(out, &appspb.Condition{
+		out = append(out, &pb.Condition{
 			Type:      c.Type,
 			Status:    string(c.Status),
 			Reason:    c.Reason,

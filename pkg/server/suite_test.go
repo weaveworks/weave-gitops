@@ -9,19 +9,17 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	appspb "github.com/weaveworks/weave-gitops/pkg/api/applications"
-	commitpb "github.com/weaveworks/weave-gitops/pkg/api/commits"
+	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
+	corev1 "k8s.io/api/core/v1"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
-
-	corev1 "k8s.io/api/core/v1"
 )
 
 func TestServer(t *testing.T) {
@@ -36,10 +34,8 @@ const bufSize = 1024 * 1024
 var lis *bufconn.Listener
 
 var s *grpc.Server
-var apps appspb.ApplicationsServer
-var appsClient appspb.ApplicationsClient
-var coms commitpb.CommitsServer
-var commitClient commitpb.CommitsClient
+var apps pb.ApplicationsServer
+var appsClient pb.ApplicationsClient
 var conn *grpc.ClientConn
 var err error
 var k8sClient client.Client
@@ -101,10 +97,7 @@ var _ = BeforeEach(func() {
 	cfg := server.ServerConfig{KubeClient: k}
 
 	apps = server.NewApplicationsServer(&cfg)
-	appspb.RegisterApplicationsServer(s, apps)
-
-	coms = server.NewCommitsServer(&cfg)
-	commitpb.RegisterCommitsServer(s, coms)
+	pb.RegisterApplicationsServer(s, apps)
 
 	go func() {
 		if err := s.Serve(lis); err != nil {
@@ -117,7 +110,7 @@ var _ = BeforeEach(func() {
 
 	Expect(err).NotTo(HaveOccurred())
 
-	appsClient = appspb.NewApplicationsClient(conn)
+	appsClient = pb.NewApplicationsClient(conn)
 })
 
 var _ = AfterEach(func() {

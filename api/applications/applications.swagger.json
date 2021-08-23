@@ -84,6 +84,58 @@
           "Applications"
         ]
       }
+    },
+    "/v1/commits": {
+      "get": {
+        "summary": "ListCommits returns the list of WeGo commits that the authenticated user has access to.",
+        "operationId": "Applications_ListCommits",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListCommitsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "description": "Optional. A pagination token returned from a previous call\nthat indicates where this listing should continue from.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "Applications"
+        ]
+      }
     }
   },
   "definitions": {
@@ -143,6 +195,23 @@
         }
       }
     },
+    "v1Commit": {
+      "type": "object",
+      "properties": {
+        "commitHash": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "v1Condition": {
       "type": "object",
       "properties": {
@@ -181,6 +250,22 @@
           "items": {
             "$ref": "#/definitions/v1Application"
           }
+        }
+      }
+    },
+    "v1ListCommitsResponse": {
+      "type": "object",
+      "properties": {
+        "commits": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Commit"
+          }
+        },
+        "nextPageToken": {
+          "type": "integer",
+          "format": "int32",
+          "description": "A pagination token returned from a previous call\nthat indicates from where listing should continue."
         }
       }
     }

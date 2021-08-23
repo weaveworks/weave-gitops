@@ -4,6 +4,7 @@
 * This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
 */
 
+import * as Wego_serverV1Commits from "./commits.pb"
 import * as fm from "./fetch.pb"
 export type Condition = {
   type?: string
@@ -44,5 +45,8 @@ export class Applications {
   }
   static GetApplication(req: GetApplicationRequest, initReq?: fm.InitReq): Promise<GetApplicationResponse> {
     return fm.fetchReq<GetApplicationRequest, GetApplicationResponse>(`/v1/applications/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
+  }
+  static ListCommits(req: Wego_serverV1Commits.ListCommitsRequest, initReq?: fm.InitReq): Promise<Wego_serverV1Commits.ListCommitsResponse> {
+    return fm.fetchReq<Wego_serverV1Commits.ListCommitsRequest, Wego_serverV1Commits.ListCommitsResponse>(`/v1/commits?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

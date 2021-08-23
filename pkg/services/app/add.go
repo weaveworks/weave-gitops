@@ -123,7 +123,7 @@ const (
 func (a *App) Add(params AddParams) error {
 	ctx := context.Background()
 
-	gitProvider, err := a.gitProviderFactory(params.GitProviderToken)
+	gitProvider, err := a.GitProviderFactory(params.GitProviderToken)
 	if err != nil {
 		return err
 	}

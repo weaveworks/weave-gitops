@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -35,6 +36,8 @@ type AppService interface {
 	Add(params AddParams) error
 	// Get returns a given applicaiton
 	Get(name types.NamespacedName) (*wego.Application, error)
+	// GetCommits returns a list of commits for an application
+	GetCommits(params CommitParams) ([]gitprovider.Commit, error)
 	// Remove removes an application from the cluster
 	Remove(params RemoveParams) error
 	// Status returns flux resources status and the last successful reconciliation time
@@ -51,7 +54,7 @@ type App struct {
 	flux               flux.Flux
 	kube               kube.Kube
 	logger             logger.Logger
-	gitProviderFactory func(token string) (gitproviders.GitProvider, error)
+	GitProviderFactory func(token string) (gitproviders.GitProvider, error)
 	// TODO: @jpellizzari adding this as a temporary stop-gap to maintain the current behavior for external config repos.
 	// As of https://github.com/weaveworks/weave-gitops/pull/587,
 	// we are not addressing this case yet. Many of the unit tests check for exact function call
@@ -62,13 +65,12 @@ type App struct {
 
 func New(logger logger.Logger, git git.Git, flux flux.Flux, kube kube.Kube, osys osys.Osys) *App {
 	return &App{
-		git:                       git,
-		flux:                      flux,
-		kube:                      kube,
-		logger:                    logger,
-		osys:                      osys,
-		gitProviderFactory:        createGitProvider,
-		temporaryGitClientFactory: temporaryCreateGitClient,
+		git:                git,
+		flux:               flux,
+		kube:               kube,
+		logger:             logger,
+		osys:               osys,
+		GitProviderFactory: createGitProvider,
 	}
 }
 

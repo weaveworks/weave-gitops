@@ -9,6 +9,8 @@ import "google/api/annotations.proto";
 
 import "protoc-gen-openapiv2/options/annotations.proto";
 
+import "api/applications/commits.proto";
+
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     info: {
       title: "WeGo Applications API",
@@ -34,6 +36,14 @@ service Applications {
     rpc GetApplication(GetApplicationRequest) returns (GetApplicationResponse) {
         option (google.api.http) = {
             get : "/v1/applications/{name}"
+        };
+    }
+    /**
+     * ListCommits returns the list of WeGo commits that the authenticated user has access to.
+    */
+    rpc ListCommits(ListCommitsRequest) returns (ListCommitsResponse) {
+        option (google.api.http) = {
+            get : "/v1/commits"
         };
     }
 }

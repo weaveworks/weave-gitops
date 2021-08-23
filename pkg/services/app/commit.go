@@ -37,7 +37,7 @@ func (a *App) GetCommits(params CommitParams) ([]gitprovider.Commit, error) {
 		return nil, fmt.Errorf("failed to retrieve owner: %w", err)
 	}
 
-	gitProvider, err := a.gitProviderFactory(params.GitProviderToken)
+	gitProvider, err := a.GitProviderFactory(params.GitProviderToken)
 	if err != nil {
 		return nil, err
 	}

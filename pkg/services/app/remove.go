@@ -99,7 +99,7 @@ func (a *App) getConfigUrlAndBranch(info *AppResourceInfo, token string) (string
 	if cloneURL == string(ConfigTypeUserRepo) {
 		cloneURL = info.Spec.URL
 	} else {
-		gitProvider, err := a.gitProviderFactory(token)
+		gitProvider, err := a.GitProviderFactory(token)
 		if err != nil {
 			return "", "", err
 		}
