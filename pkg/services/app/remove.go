@@ -39,15 +39,15 @@ func (a *App) Remove(params RemoveParams) error {
 	resources := info.clusterResources()
 
 	if info.configMode() == ConfigModeClusterOnly {
-		if err := a.kubeHttp.DeleteByName(ctx, info.appResourceName(), resourceKindToGVR(ResourceKindApplication), info.Namespace); err != nil {
+		if err := a.kube.DeleteByName(ctx, info.appResourceName(), resourceKindToGVR(ResourceKindApplication), info.Namespace); err != nil {
 			return clusterDeleteError(info.appResourceName(), err)
 		}
 
-		if err := a.kubeHttp.DeleteByName(ctx, info.appSourceName(), resourceKindToGVR(info.sourceKind()), info.Namespace); err != nil {
+		if err := a.kube.DeleteByName(ctx, info.appSourceName(), resourceKindToGVR(info.sourceKind()), info.Namespace); err != nil {
 			return clusterDeleteError(info.appResourceName(), err)
 		}
 
-		if err := a.kubeHttp.DeleteByName(ctx, info.appDeployName(), resourceKindToGVR(info.deployKind()), info.Namespace); err != nil {
+		if err := a.kube.DeleteByName(ctx, info.appDeployName(), resourceKindToGVR(info.deployKind()), info.Namespace); err != nil {
 			return clusterDeleteError(info.appResourceName(), err)
 		}
 
@@ -77,7 +77,7 @@ func (a *App) Remove(params RemoveParams) error {
 				}
 			} else if resourceRef.kind == ResourceKindKustomization ||
 				resourceRef.kind == ResourceKindHelmRelease {
-				if err := a.kubeHttp.DeleteByName(ctx, resourceRef.name, resourceKindToGVR(resourceRef.kind), info.Namespace); err != nil {
+				if err := a.kube.DeleteByName(ctx, resourceRef.name, resourceKindToGVR(resourceRef.kind), info.Namespace); err != nil {
 					return clusterDeleteError(info.appResourceName(), err)
 				}
 			}

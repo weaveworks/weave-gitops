@@ -29,9 +29,19 @@ var _ = BeforeEach(func() {
 })
 
 var _ = Describe("Apply", func() {
-	XIt("applies manifests", func() {
+	It("applies manifests", func() {
+		runner.RunWithStdinStub = func(s1 string, s2 []string, b []byte) ([]byte, error) {
+			return []byte("out"), nil
+		}
+
 		err := kubeClient.Apply(context.Background(), []byte("manifests"), "wego-system")
-		Expect(err).Should(HaveOccurred())
+		Expect(err).ShouldNot(HaveOccurred())
+
+		cmd, args, manifests := runner.RunWithStdinArgsForCall(0)
+		Expect(cmd).To(Equal("kubectl"))
+
+		Expect(strings.Join(args, " ")).To(Equal("apply --namespace wego-system -f -"))
+		Expect(manifests).To(Equal([]byte("manifests")))
 	})
 })
 

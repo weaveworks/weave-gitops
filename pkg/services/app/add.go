@@ -159,7 +159,7 @@ func (a *App) Add(params AddParams) error {
 	}
 
 	// if application already exists in the cluster we fail to add the application
-	if err = a.kubeHttp.AppExistsInCluster(ctx, params.Namespace, appHash); err != nil {
+	if err = a.kube.AppExistsInCluster(ctx, params.Namespace, appHash); err != nil {
 		return err
 	}
 
@@ -563,7 +563,7 @@ func (a *App) createAndUploadDeployKey(ctx context.Context, info *AppResourceInf
 			return "", fmt.Errorf("error uploading deploy key: %w", err)
 		}
 
-		if err := a.kubeHttp.Apply(ctx, secret, info.Namespace); err != nil {
+		if err := a.kube.Apply(ctx, secret, info.Namespace); err != nil {
 			return "", fmt.Errorf("could not apply secret manifest:  %w", err)
 		}
 	}
@@ -614,7 +614,7 @@ func (a *App) applyToCluster(info *AppResourceInfo, dryRun bool, manifests ...[]
 	}
 
 	for _, manifest := range manifests {
-		if err := a.kubeHttp.Apply(context.Background(), manifest, info.Namespace); err != nil {
+		if err := a.kube.Apply(context.Background(), manifest, info.Namespace); err != nil {
 			return fmt.Errorf("could not apply manifest: %w", err)
 		}
 	}

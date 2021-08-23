@@ -39,12 +39,10 @@ var _ = BeforeEach(func() {
 			return kube.WeGOInstalled
 		},
 	}
-	kubeHttpClient = kubeClient
 
 	gitProviders = &gitprovidersfakes.FakeGitProvider{}
 	appSrv = New(&loggerfakes.FakeLogger{}, gitClient, fluxClient, kubeClient, osysClient)
 
-	appSrv.(*App).kubeHttp = kubeHttpClient
 	appSrv.(*App).gitProviderFactory = func(token string) (gitproviders.GitProvider, error) {
 		return gitProviders, nil
 	}
