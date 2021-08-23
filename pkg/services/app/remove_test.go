@@ -118,7 +118,7 @@ func removeCreatedResource(manifestData []byte) error {
 	return nil
 }
 
-// Remove tracking for a resource given its name and kind
+// Remove tracking for a resource given itsq name and kind
 func removeCreatedResourceByName(name string, kind ResourceKind) error {
 	// if kindString == "app" { // figure out later why Application doesn't work
 	// 	kindString = "Application"
@@ -591,6 +591,6 @@ func GVRToResourceKind(gvr schema.GroupVersionResource) ResourceKind {
 	case kube.GVRHelmRelease:
 		return ResourceKindHelmRelease
 	default:
-		return ResourceKindApplication
+		return ResourceKindKustomization
 	}
 }
