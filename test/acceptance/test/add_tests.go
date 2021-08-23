@@ -1050,7 +1050,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("Then I should get an error", func() {
-			Eventually(removeOutput.Err).Should(gbytes.Say(`Error: failed to remove the app ` + badAppName + `: could not run kubectl command: failed to run kubectl with output: Error from server \(NotFound\): apps.wego.weave.works "` + badAppName + `" not found`))
+			Eventually(removeOutput.Err).Should(gbytes.Say(`Error: failed to remove the app ` + badAppName + `: could not get application:`))
 		})
 	})
 
