@@ -329,7 +329,7 @@ func installAndVerifyWego(wegoNamespace string) {
 
 func uninstallWegoRuntime(namespace string) {
 	log.Infof("About to delete WeGO runtime from namespace: %s", namespace)
-	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
+	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent --keep-namespace", WEGO_BIN_PATH, namespace))
 	if err != nil {
 		log.Infof("Failed to uninstall the wego runtime %s", namespace)
 	}
