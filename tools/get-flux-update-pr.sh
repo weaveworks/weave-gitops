@@ -2,7 +2,7 @@ GO111MODULE=on go get github.com/freshautomations/stoml
 
 latestFluxVersion="$(curl -s --request GET --url "https://api.github.com/repos/fluxcd/flux2/releases?per_page=1" | jq . | jq '.[0] | .tag_name' | jq -r | sed -e 's/v//')"
 
-currentFluxVersion="$(tools/bin/stoml tools/dependencies.toml flux.version)"
+currentFluxVersion="$(stoml tools/dependencies.toml flux.version)"
 
 echo "Latest flux version $latestFluxVersion"
 echo "Current flux version $currentFluxVersion"
