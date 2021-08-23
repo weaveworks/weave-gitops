@@ -17,12 +17,11 @@ import (
 )
 
 var (
-	gitClient      *gitfakes.FakeGit
-	fluxClient     *fluxfakes.FakeFlux
-	kubeClient     *kubefakes.FakeKube
-	kubeHttpClient *kubefakes.FakeKube
-	osysClient     *osysfakes.FakeOsys
-	gitProviders   *gitprovidersfakes.FakeGitProvider
+	gitClient    *gitfakes.FakeGit
+	fluxClient   *fluxfakes.FakeFlux
+	kubeClient   *kubefakes.FakeKube
+	osysClient   *osysfakes.FakeOsys
+	gitProviders *gitprovidersfakes.FakeGitProvider
 
 	appSrv AppService
 )
