@@ -2,25 +2,38 @@ package git_test
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
 
+	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/weaveworks/weave-gitops/pkg/git/wrapper/wrapperfakes"
+
+	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
+
 	gogit "github.com/go-git/go-git/v5"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 )
 
 var (
-	gitClient git.Git
-	dir       string
-	err       error
+	gitClient     git.Git
+	dir           string
+	err           error
+	fakeGit       *wrapperfakes.FakeGit
+	fakeGitClient git.Git
 )
 
 var _ = BeforeEach(func() {
-	gitClient = git.New(nil)
+	gitClient = git.New(nil, wrapper.NewGoGit())
+
+	fakeGit = &wrapperfakes.FakeGit{}
+	fakeGitClient = git.New(nil, fakeGit)
 
 	dir, err = ioutil.TempDir("", "wego-git-test-")
 	Expect(err).ShouldNot(HaveOccurred())
@@ -53,7 +66,7 @@ var _ = Describe("Init", func() {
 		_, err := gitClient.Init(dir, "https://github.com/github/gitignore", "master")
 		Expect(err).ShouldNot(HaveOccurred())
 
-		init, err := git.New(nil).Init(dir, "https://github.com/github/gitignore", "master")
+		init, err := git.New(nil, wrapper.NewGoGit()).Init(dir, "https://github.com/github/gitignore", "master")
 		Expect(err).Should(MatchError("repository already exists"))
 		Expect(init).To(BeFalse())
 	})
@@ -84,6 +97,50 @@ var _ = Describe("Clone", func() {
 	})
 })
 
+var _ = Describe("ValidateAccess", func() {
+	It("validate access to a given repository successfully", func() {
+		err := gitClient.ValidateAccess(context.Background(), "https://github.com/githubtraining/hellogitworld", "master")
+		Expect(err).ShouldNot(HaveOccurred())
+	})
+
+	It("should not fail on an empty repo", func() {
+
+		fakeGit.PlainCloneContextReturns(nil, transport.ErrEmptyRemoteRepository)
+
+		err := fakeGitClient.ValidateAccess(context.Background(), "https://github.com/githubtraining/hellogitworld", "master")
+
+		Expect(err).ShouldNot(HaveOccurred())
+	})
+
+	It("should fail with custom error", func() {
+
+		customError := errors.New("my-custom-error")
+
+		fakeGit.PlainCloneContextReturns(nil, customError)
+
+		err := fakeGitClient.ValidateAccess(context.Background(), "https://github.com/githubtraining/hellogitworld", "master")
+		Expect(err).Should(HaveOccurred())
+		Expect(err).Should(Equal(fmt.Errorf("error validating git repo access %w", customError)))
+	})
+
+	It("should fail to create temporary directory", func() {
+
+		tempDirName := "-*/3486rw7f"
+
+		os.Setenv("TMPDIR", tempDirName)
+		defer os.Unsetenv("TMPDIR")
+
+		err := gitClient.ValidateAccess(context.Background(), "https://github.com/githubtraining/hellogitworld", "master")
+		Expect(err).Should(HaveOccurred())
+		Expect(err.Error()).Should(Equal(fmt.Sprintf("error creating temporary folder stat %s: no such file or directory", tempDirName)))
+	})
+
+	It("fails to validate access to a possible private repository", func() {
+		err := gitClient.ValidateAccess(context.Background(), "https://github.com/notexisted/repo", "master")
+		Expect(err.Error()).Should(Equal("error validating git repo access authentication required"))
+	})
+})
+
 var _ = Describe("Write", func() {
 	It("writes a file into a given repository", func() {
 		_, err = gitClient.Init(dir, "https://github.com/github/gitignore", "master")
@@ -102,7 +159,7 @@ var _ = Describe("Write", func() {
 		_, err := gitClient.Init(dir, "https://github.com/github/gitignore", "master")
 		Expect(err).ShouldNot(HaveOccurred())
 
-		gc := git.New(nil)
+		gc := git.New(nil, wrapper.NewGoGit())
 		err = gc.Write("testing.txt", []byte("testing"))
 		Expect(err).To(MatchError("no git repository"))
 	})

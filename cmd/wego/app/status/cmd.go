@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
+
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -35,7 +37,7 @@ var Cmd = &cobra.Command{
 			return fmt.Errorf("error initializing kube client: %w", err)
 		}
 
-		gitClient := git.New(nil)
+		gitClient := git.New(nil, wrapper.NewGoGit())
 		logger := logger.NewCLILogger(os.Stdout)
 
 		appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)

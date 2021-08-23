@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
+
 	"github.com/lithammer/dedent"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -78,7 +80,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("error initializing kube client: %w", err)
 	}
-	gitClient := git.New(authMethod)
+	gitClient := git.New(authMethod, wrapper.NewGoGit())
 	logger := logger.NewCLILogger(os.Stdout)
 
 	appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)

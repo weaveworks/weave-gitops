@@ -33,6 +33,5 @@ type Logger interface {
 	Successf(format string, a ...interface{})
 	Warningf(format string, a ...interface{})
 	Failuref(format string, a ...interface{})
-	// added to satisfy io.Writer interface
-	Write(p []byte) (n int, err error)
+	Write(p []byte) (n int, err error) // added to satisfy io.Writer interface
 }

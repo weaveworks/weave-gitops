@@ -40,10 +40,11 @@ func runCmd(cmd *cobra.Command, args []string) {
 	}
 
 	c := exec.Command(exePath, args...)
-
+	c.Stdin = osysClient.Stdin()
+	c.Stdout = osysClient.Stdout()
+	c.Stderr = osysClient.Stderr()
 	// run command
-	output, _ := c.CombinedOutput()
-	fmt.Print(string(output))
+	_ = c.Run()
 }
 
 func runStatusCmd(cmd *cobra.Command, args []string) {
