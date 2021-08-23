@@ -66,8 +66,6 @@ var _ = Describe("Github Device Flow", func() {
 				})
 				Expect(err).NotTo(HaveOccurred())
 			}
-
-			w.WriteHeader(http.StatusBadRequest)
 		}))
 
 		client = ts.Client()
