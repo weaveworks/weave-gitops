@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    {{- range $key, $val := .Values.global.labels }}
+    {{ $key }}: {{ $val | quote }}
+    {{- end}}
+  name: {{ .Values.global.namespace }}

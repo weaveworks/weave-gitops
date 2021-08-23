@@ -1,0 +1,28 @@
+# Default values for Weave-GitOps.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+global:
+  namespace: wego-system
+
+  labels:
+    app.kubernetes.io/instance: wego-system
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/version: v0.16.0
+
+  helm_controller:
+    name: helm-controller
+
+  image_automation_controller:
+    name: image-automation-controller
+
+  image_reflector_controller:
+    name: image-reflector-controller
+
+  kustomize_controller:
+    name: kustomize-controller
+
+  notification_controller:
+    name: notification-controller
+
+  source_controller:
+    name: source-controller

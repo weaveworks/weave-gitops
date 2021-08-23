@@ -1,0 +1,60 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    {{- range $key, $val := .Values.global.labels }}
+    {{ $key }}: {{ $val | quote }}
+    {{- end}}
+    control-plane: controller
+  name: {{ .Values.global.notification_controller.name }}
+  namespace: {{ .Values.global.namespace }}
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+  selector:
+    app: {{ .Values.global.notification_controller.name }}
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    {{- range $key, $val := .Values.global.labels }}
+    {{ $key }}: {{ $val | quote }}
+    {{- end}}
+    control-plane: controller
+  name: {{ .Values.global.source_controller.name }}
+  namespace: {{ .Values.global.namespace }}
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+  selector:
+    app: {{ .Values.global.source_controller.name }}
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    {{- range $key, $val := .Values.global.labels }}
+    {{ $key }}: {{ $val | quote }}
+    {{- end}}
+    control-plane: controller
+  name: webhook-receiver
+  namespace: {{ .Values.global.namespace }}
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http-webhook
+  selector:
+    app: {{ .Values.global.notification_controller.name }}
+  type: ClusterIP

@@ -1,0 +1,461 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{- range $key, $val := .Values.global.labels }}
+    {{ $key }}: {{ $val | quote }}
+    {{- end}}
+    control-plane: controller
+  name: {{ .Values.global.helm_controller.name }}
+  namespace: {{ .Values.global.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.global.helm_controller.name }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      labels:
+        app: {{ .Values.global.helm_controller.name }}
+    spec:
+      containers:
+        - args:
+            - --events-addr=http://notification-controller/
+            - --watch-all-namespaces=true
+            - --log-level=info
+            - --log-encoding=json
+            - --enable-leader-election
+          env:
+            - name: RUNTIME_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          image: ghcr.io/fluxcd/helm-controller:v0.11.1
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: healthz
+          name: manager
+          ports:
+            - containerPort: 8080
+              name: http-prom
+            - containerPort: 9440
+              name: healthz
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: healthz
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - mountPath: /tmp
+              name: temp
+      nodeSelector:
+        kubernetes.io/os: linux
+      serviceAccountName: {{ .Values.global.helm_controller.name }}
+      terminationGracePeriodSeconds: 600
+      volumes:
+        - emptyDir: {}
+          name: temp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{- range $key, $val := .Values.global.labels }}
+    {{ $key }}: {{ $val | quote }}
+    {{- end}}
+    control-plane: controller
+  name: {{ .Values.global.image_automation_controller.name }}
+  namespace: {{ .Values.global.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.global.image_automation_controller.name }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      labels:
+        app: {{ .Values.global.image_automation_controller.name }}
+    spec:
+      containers:
+        - args:
+            - --events-addr=http://notification-controller/
+            - --watch-all-namespaces=true
+            - --log-level=info
+            - --log-encoding=json
+            - --enable-leader-election
+          env:
+            - name: RUNTIME_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          image: ghcr.io/fluxcd/image-automation-controller:v0.14.0
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: healthz
+          name: manager
+          ports:
+            - containerPort: 8080
+              name: http-prom
+            - containerPort: 9440
+              name: healthz
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: healthz
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - mountPath: /tmp
+              name: temp
+      nodeSelector:
+        kubernetes.io/os: linux
+      securityContext:
+        fsGroup: 1337
+      serviceAccountName: {{ .Values.global.image_automation_controller.name }}
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - emptyDir: {}
+          name: temp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{- range $key, $val := .Values.global.labels }}
+    {{ $key }}: {{ $val | quote }}
+    {{- end}}
+    control-plane: controller
+  name: {{ .Values.global.image_reflector_controller.name }}
+  namespace: {{ .Values.global.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.global.image_reflector_controller.name }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      labels:
+        app: {{ .Values.global.image_reflector_controller.name }}
+    spec:
+      containers:
+        - args:
+            - --events-addr=http://notification-controller/
+            - --watch-all-namespaces=true
+            - --log-level=info
+            - --log-encoding=json
+            - --enable-leader-election
+          env:
+            - name: RUNTIME_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          image: ghcr.io/fluxcd/image-reflector-controller:v0.11.0
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: healthz
+          name: manager
+          ports:
+            - containerPort: 8080
+              name: http-prom
+            - containerPort: 9440
+              name: healthz
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: healthz
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - mountPath: /tmp
+              name: temp
+            - mountPath: /data
+              name: data
+      nodeSelector:
+        kubernetes.io/os: linux
+      securityContext:
+        fsGroup: 1337
+      serviceAccountName: {{ .Values.global.image_reflector_controller.name }}
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - emptyDir: {}
+          name: temp
+        - emptyDir: {}
+          name: data
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{- range $key, $val := .Values.global.labels }}
+    {{ $key }}: {{ $val | quote }}
+    {{- end}}
+    control-plane: controller
+  name: {{ .Values.global.kustomize_controller.name }}
+  namespace: {{ .Values.global.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.global.kustomize_controller.name }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      labels:
+        app: {{ .Values.global.kustomize_controller.name }}
+    spec:
+      containers:
+        - args:
+            - --events-addr=http://notification-controller/
+            - --watch-all-namespaces=true
+            - --log-level=info
+            - --log-encoding=json
+            - --enable-leader-election
+          env:
+            - name: RUNTIME_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          image: ghcr.io/fluxcd/kustomize-controller:v0.13.1
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: healthz
+          name: manager
+          ports:
+            - containerPort: 8080
+              name: http-prom
+            - containerPort: 9440
+              name: healthz
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: healthz
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - mountPath: /tmp
+              name: temp
+      nodeSelector:
+        kubernetes.io/os: linux
+      securityContext:
+        fsGroup: 1337
+      serviceAccountName: {{ .Values.global.kustomize_controller.name }}
+      terminationGracePeriodSeconds: 60
+      volumes:
+        - emptyDir: {}
+          name: temp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{- range $key, $val := .Values.global.labels }}
+    {{ $key }}: {{ $val | quote }}
+    {{- end}}
+    control-plane: controller
+  name: {{ .Values.global.notification_controller.name }}
+  namespace: {{ .Values.global.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.global.notification_controller.name }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      labels:
+        app: {{ .Values.global.notification_controller.name }}
+    spec:
+      containers:
+        - args:
+            - --watch-all-namespaces=true
+            - --log-level=info
+            - --log-encoding=json
+            - --enable-leader-election
+          env:
+            - name: RUNTIME_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          image: ghcr.io/fluxcd/notification-controller:v0.15.0
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: healthz
+          name: manager
+          ports:
+            - containerPort: 9090
+              name: http
+            - containerPort: 9292
+              name: http-webhook
+            - containerPort: 8080
+              name: http-prom
+            - containerPort: 9440
+              name: healthz
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: healthz
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - mountPath: /tmp
+              name: temp
+      nodeSelector:
+        kubernetes.io/os: linux
+      serviceAccountName: {{ .Values.global.notification_controller.name }}
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - emptyDir: {}
+          name: temp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{- range $key, $val := .Values.global.labels }}
+    {{ $key }}: {{ $val | quote }}
+    {{- end}}
+    control-plane: controller
+  name: {{ .Values.global.source_controller.name }}
+  namespace: {{ .Values.global.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.global.source_controller.name }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      labels:
+        app: {{ .Values.global.source_controller.name }}
+    spec:
+      containers:
+        - args:
+            - --events-addr=http://notification-controller/
+            - --watch-all-namespaces=true
+            - --log-level=info
+            - --log-encoding=json
+            - --enable-leader-election
+            - --storage-path=/data
+            - --storage-adv-addr=source-controller.$(RUNTIME_NAMESPACE).svc.cluster.local.
+          env:
+            - name: RUNTIME_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          image: ghcr.io/fluxcd/source-controller:v0.15.3
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: healthz
+          name: manager
+          ports:
+            - containerPort: 9090
+              name: http
+            - containerPort: 8080
+              name: http-prom
+            - containerPort: 9440
+              name: healthz
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - mountPath: /data
+              name: data
+            - mountPath: /tmp
+              name: tmp
+      nodeSelector:
+        kubernetes.io/os: linux
+      securityContext:
+        fsGroup: 1337
+      serviceAccountName: {{ .Values.global.source_controller.name }}
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - emptyDir: {}
+          name: data
+        - emptyDir: {}
+          name: tmp

@@ -1,0 +1,58 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    {{- range $key, $val := .Values.global.labels }}
+    {{ $key }}: {{ $val | quote }}
+    {{- end}}
+  name: allow-egress
+  namespace: {{ .Values.global.namespace }}
+spec:
+  egress:
+    - {}
+  ingress:
+    - from:
+        - podSelector: {}
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    {{- range $key, $val := .Values.global.labels }}
+    {{ $key }}: {{ $val | quote }}
+    {{- end}}
+  name: allow-scraping
+  namespace: {{ .Values.global.namespace }}
+spec:
+  ingress:
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - port: 8080
+          protocol: TCP
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    {{- range $key, $val := .Values.global.labels }}
+    {{ $key }}: {{ $val | quote }}
+    {{- end}}
+  name: allow-webhooks
+  namespace: {{ .Values.global.namespace }}
+spec:
+  ingress:
+    - from:
+        - namespaceSelector: {}
+  podSelector:
+    matchLabels:
+      app: {{ .Values.global.notification_controller.name }}
+  policyTypes:
+    - Ingress
