@@ -162,3 +162,20 @@ func PrintTable(writer io.Writer, header []string, rows [][]string) {
 	table.AppendBulk(rows)
 	table.Render()
 }
+
+func CleanCommitMessage(msg string) string {
+	str := strings.ReplaceAll(msg, "\n", " ")
+	if len(str) > 50 {
+		str = str[:49] + "..."
+
+	}
+	return str
+}
+
+func CleanCommitCreatedAt(createdAt time.Time) string {
+	return strings.ReplaceAll(createdAt.String(), " +0000", "")
+}
+
+func ConvertCommitHashToShort(hash string) string {
+	return hash[:7]
+}

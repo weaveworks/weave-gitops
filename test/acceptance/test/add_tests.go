@@ -765,6 +765,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		var unpauseOutput string
 		var appStatus1 *gexec.Session
 		var appStatus2 *gexec.Session
+		var appRemoveOutput *gexec.Session
 		var repoAbsolutePath1 string
 		var repoAbsolutePath2 string
 		var appManifestFile1 string
@@ -884,6 +885,14 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Expect(pauseOutput).To(ContainSubstring("gitops automation paused for " + appName1))
 		})
 
+		By("When I check app status for paused app", func() {
+			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName1))
+		})
+
+		By("Then I should see pause status as suspended=true", func() {
+			Eventually(appStatus1).Should(gbytes.Say(`kustomization/` + appName1 + `\s*True\s*.*True`))
+		})
+
 		By("And changes to the app files should not be synchronized", func() {
 			appManifestFile1, _ = runCommandAndReturnStringOutput("cd " + repoAbsolutePath1 + " && ls")
 			createAppReplicas(repoAbsolutePath1, appManifestFile1, replicaSetValue, tip1.workloadName)
@@ -927,14 +936,40 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		By("Then I should see unpause message without any errors", func() {
 			Expect(unpauseOutput).To(ContainSubstring("app " + appName1 + " is already reconciling"))
 		})
+
+		By("When I check app status for unpaused app", func() {
+			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName1))
+		})
+
+		By("Then I should see pause status as suspended=false", func() {
+			Eventually(appStatus1).Should(gbytes.Say(`kustomization/` + appName1 + `\s*True\s*.*False`))
+		})
+
+		By("When I remove an app", func() {
+			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app remove " + appName2)
+		})
+
+		By("Then I should see app removing message", func() {
+			Eventually(appRemoveOutput).Should(gbytes.Say("► Removing application from cluster and repository"))
+			Eventually(appRemoveOutput).Should(gbytes.Say("► Committing and pushing wego updates for application"))
+			Eventually(appRemoveOutput).Should(gbytes.Say("► Pushing app changes to repository"))
+		})
+
+		By("And app should get deleted from the cluster", func() {
+			_ = waitForAppRemoval(appName2, APP_REMOVAL_TIMEOUT)
+		})
 	})
 
 	It("SmokeTest - Verify that wego can deploy a helm app from a git repo with app-config-url set to NONE", func() {
 		var repoAbsolutePath string
+		var reinstallOutput string
+		var reAddOutput string
+		var removeOutput *gexec.Session
 		private := true
 		appManifestFilePath := "./data/helm-repo/hello-world"
 		appName := "my-helm-app"
 		appRepoName := "wego-test-app-" + RandString(8)
+		badAppName := "foo"
 
 		addCommand := "app add . --deployment-type=helm --path=./hello-world --name=" + appName + " --app-config-url=NONE"
 
@@ -973,6 +1008,49 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
 			Expect(folderOutput).ShouldNot(ContainSubstring("apps"))
 			Expect(folderOutput).ShouldNot(ContainSubstring("targets"))
+		})
+
+		By("When I rerun wego gitops install", func() {
+			reinstallOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " gitops install")
+		})
+
+		By("Then I should not see any errors", func() {
+			Eventually(reinstallOutput).Should(ContainSubstring("► installing components in " + WEGO_DEFAULT_NAMESPACE + " namespace"))
+			Eventually(reinstallOutput).Should(ContainSubstring("✔ image-reflector-controller: deployment ready"))
+			Eventually(reinstallOutput).Should(ContainSubstring("✔ image-automation-controller: deployment ready"))
+			Eventually(reinstallOutput).Should(ContainSubstring("✔ source-controller: deployment ready"))
+			Eventually(reinstallOutput).Should(ContainSubstring("✔ kustomize-controller: deployment ready"))
+			Eventually(reinstallOutput).Should(ContainSubstring("✔ helm-controller: deployment ready"))
+			Eventually(reinstallOutput).Should(ContainSubstring("✔ notification-controller: deployment ready"))
+		})
+
+		By("When I rerun wego app add command", func() {
+			_, reAddOutput = runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand))
+		})
+
+		By("Then I should see an error", func() {
+			Eventually(reAddOutput).Should(ContainSubstring("Error: failed to add the app " + appName + ": unable to create resource, resource already exists in cluster"))
+		})
+
+		By("And app status should remain same", func() {
+			out := runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app status " + appName)
+			Eventually(out).Should(gbytes.Say(`helmrelease/` + appName + `\s*True\s*.*False`))
+		})
+
+		By("When I run wego app remove", func() {
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s app remove %s", WEGO_BIN_PATH, appName))
+		})
+
+		By("Then I should see app removed from the cluster", func() {
+			_ = waitForAppRemoval(appName, APP_REMOVAL_TIMEOUT)
+		})
+
+		By("When I run wego app remove for a non-existent app", func() {
+			removeOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app remove " + badAppName)
+		})
+
+		By("Then I should get an error", func() {
+			Eventually(removeOutput.Err).Should(gbytes.Say(`Error: failed to remove the app ` + badAppName + `: could not run kubectl command: failed to run kubectl with output: Error from server \(NotFound\): apps.wego.weave.works "` + badAppName + `" not found`))
 		})
 	})
 

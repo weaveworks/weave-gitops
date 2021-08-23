@@ -51,7 +51,8 @@ func bufDialer(context.Context, string) (net.Conn, error) {
 	return lis.Dial()
 }
 
-var _ = BeforeSuite(func(done Done) {
+var _ = BeforeSuite(func() {
+	done := make(chan interface{})
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths: []string{
 			"../../manifests/crds",
@@ -75,24 +76,28 @@ var _ = BeforeSuite(func(done Done) {
 		Scheme: scheme,
 	})
 	Expect(err).ToNot(HaveOccurred())
-
 	go func() {
 		err = k8sManager.Start(ctrl.SetupSignalHandler())
 		Expect(err).ToNot(HaveOccurred())
 	}()
 
+	go func() {
+		Eventually(done, 60).Should(BeClosed())
+	}()
+
 	k8sClient = k8sManager.GetClient()
 	Expect(k8sClient).ToNot(BeNil())
 	close(done)
-}, 60)
+})
 
 var _ = BeforeEach(func() {
 	lis = bufconn.Listen(bufSize)
 	s = grpc.NewServer()
 
 	k = &kube.KubeHTTP{Client: k8sClient, ClusterName: testClustername}
+	cfg := server.ApplicationsConfig{KubeClient: k}
 
-	apps = server.NewApplicationsServer(k)
+	apps = server.NewApplicationsServer(&cfg)
 	pb.RegisterApplicationsServer(s, apps)
 
 	go func() {

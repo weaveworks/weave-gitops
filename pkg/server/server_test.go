@@ -2,7 +2,9 @@ package server_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -81,17 +83,9 @@ var _ = Describe("ApplicationsServer", func() {
 			var err error
 
 			BeforeEach(func() {
-				log = &fakelogr.FakeLogger{}
-				log.WithValuesStub = func(i ...interface{}) logr.Logger {
-					return log
-				}
-
-				log.VStub = func(i int) logr.Logger {
-					return log
-				}
-
+				log = makeFakeLogr()
 				kubeClient = &kubefakes.FakeKube{}
-				appsSrv = server.NewApplicationsServer(kubeClient)
+				appsSrv = server.NewApplicationsServer(&server.ApplicationsConfig{KubeClient: kubeClient})
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
@@ -177,6 +171,64 @@ var _ = Describe("ApplicationsServer", func() {
 
 	})
 })
+
+var _ = Describe("Applications handler", func() {
+	It("works as a standalone handler", func() {
+		log := makeFakeLogr()
+		k := &kubefakes.FakeKube{}
+		k.GetApplicationsStub = func(c context.Context, s string) ([]wego.Application, error) {
+			return []wego.Application{{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "my-app",
+					Namespace: "wego-system",
+				},
+				Spec: wego.ApplicationSpec{
+					Branch: "main",
+					Path:   "./k8s",
+				},
+			}}, nil
+		}
+
+		cfg := server.ApplicationsConfig{
+			KubeClient: k,
+			Logger:     log,
+		}
+
+		handler, err := server.NewApplicationsHandler(context.Background(), &cfg)
+		Expect(err).NotTo(HaveOccurred())
+
+		ts := httptest.NewServer(handler)
+		defer ts.Close()
+
+		path := "/v1/applications"
+		url := ts.URL + path
+
+		res, err := http.Get(url)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(res.StatusCode).To(Equal(http.StatusOK))
+
+		b, err := ioutil.ReadAll(res.Body)
+		Expect(err).NotTo(HaveOccurred())
+
+		r := &pb.ListApplicationsResponse{}
+		err = json.Unmarshal(b, r)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(r.Applications).To(HaveLen(1))
+	})
+})
+
+func makeFakeLogr() *fakelogr.FakeLogger {
+	log := &fakelogr.FakeLogger{}
+	log.WithValuesStub = func(i ...interface{}) logr.Logger {
+		return log
+	}
+	log.VStub = func(i int) logr.Logger {
+		return log
+	}
+	return log
+}
 
 func formatLogVals(vals []interface{}) []string {
 	list := []string{}
