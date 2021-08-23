@@ -120,11 +120,6 @@ func removeCreatedResource(manifestData []byte) error {
 
 // Remove tracking for a resource given itsq name and kind
 func removeCreatedResourceByName(name string, kind ResourceKind) error {
-	// if kindString == "app" { // figure out later why Application doesn't work
-	// 	kindString = "Application"
-	// }
-
-	// kind := ResourceKind(kindString)
 	if createdResources[kind] == nil {
 		return fmt.Errorf("expected %s resources to be present", kind)
 	}

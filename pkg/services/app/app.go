@@ -56,11 +56,11 @@ type App struct {
 	gitProviderFactory func(token string) (gitproviders.GitProvider, error)
 }
 
-func New(logger logger.Logger, git git.Git, flux flux.Flux, kubeClient kube.Kube, osys osys.Osys) *App {
+func New(logger logger.Logger, git git.Git, flux flux.Flux, kube kube.Kube, osys osys.Osys) *App {
 	return &App{
 		git:                git,
 		flux:               flux,
-		kube:               kubeClient,
+		kube:               kube,
 		logger:             logger,
 		osys:               osys,
 		gitProviderFactory: createGitProvider,
