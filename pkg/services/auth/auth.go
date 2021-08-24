@@ -10,6 +10,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
@@ -97,7 +98,7 @@ func (a *authSvc) SetupDeployKey(ctx context.Context, name SecretName, targetNam
 
 	if repoInfo.Visibility != nil && *repoInfo.Visibility == gitprovider.RepositoryVisibilityPublic {
 		// This is a public repo. We don't need to add deploy keys to it.
-		return git.New(nil), nil
+		return git.New(nil, wrapper.NewGoGit()), nil
 	}
 
 	deployKeyExists, err := a.gitProvider.DeployKeyExists(owner, repoName)
@@ -128,7 +129,7 @@ func (a *authSvc) SetupDeployKey(ctx context.Context, name SecretName, targetNam
 		}
 
 		// Set the git client to use the existing deploy key.
-		return git.New(pubKey), nil
+		return git.New(pubKey, wrapper.NewGoGit()), nil
 	}
 
 	return a.provisionDeployKey(ctx, targetName, name, repo)
@@ -152,7 +153,7 @@ func (a *authSvc) provisionDeployKey(ctx context.Context, targetName string, nam
 
 	a.logger.Println("Deploy key generated and uploaded to git provider")
 
-	return git.New(deployKey), nil
+	return git.New(deployKey, wrapper.NewGoGit()), nil
 }
 
 // Generates an ssh keypair for upload to the Git Provider and for use in a git.Git client.

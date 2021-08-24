@@ -15,6 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
@@ -106,7 +107,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	if repoUrlString == "" {
 		// Find the url using an unauthenticated git client. We just need to read the URL.
 		// params.Dir must be defined here because we already checked for it above.
-		repoUrlString, err = git.New(nil).GetRemoteUrl(params.Dir, "origin")
+		repoUrlString, err = git.New(nil, wrapper.NewGoGit()).GetRemoteUrl(params.Dir, "origin")
 		if err != nil {
 			return fmt.Errorf("could not get remote url for directory %s: %w", params.Dir, err)
 		}
@@ -148,7 +149,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error selecting auth method: %w", err)
 	}
 
-	gitClient := git.New(authMethod)
+	gitClient := git.New(authMethod, wrapper.NewGoGit())
 
 	// If we are NOT doing a helm chart, we want to use a git client with an embedded deploy key
 	if !isHelmRepository {

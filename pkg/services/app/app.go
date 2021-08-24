@@ -9,6 +9,7 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
@@ -91,7 +92,7 @@ func temporaryCreateGitClient(osysClient osys.Osys, privKeypath string) (git.Git
 	if err != nil {
 		return nil, fmt.Errorf("error selecting auth method for external config repo: %w", err)
 	}
-	return git.New(auth), nil
+	return git.New(auth, wrapper.NewGoGit()), nil
 }
 
 func (a *App) getDeploymentType(ctx context.Context, name string, namespace string) (wego.DeploymentType, error) {
