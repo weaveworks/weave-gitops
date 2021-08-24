@@ -39,74 +39,52 @@ func TestExists(t *testing.T) {
 
 var _ = Describe("Test common utils", func() {
 
-	It("Verify timedRepeat succeeds at first attempt without updating the current time", func() {
+	It("Verify WaitUntil succeeds at first attempt in less than 1 millisecond", func() {
 
 		var output bytes.Buffer
 		start := time.Now()
-		resultTime, err := timedRepeat(
-			&output,
-			start,
-			time.Millisecond,
-			time.Millisecond,
-			func(currentTime time.Time) time.Time {
-				return currentTime.Add(time.Millisecond)
-			},
-			func() error {
-				return nil
-			})
-		Expect(resultTime.Sub(start)).Should(BeNumerically("==", 0))
+
+		err := WaitUntil(&output, time.Millisecond, time.Millisecond, func() error {
+			return nil
+		})
+		Expect(time.Since(start)).Should(BeNumerically("<=", time.Millisecond))
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(output.String()).To(BeEmpty())
 
 	})
 
-	It("Verify timedRepeat prints out proper messages after succeeding at second attempt", func() {
+	It("Verify WaitUntil prints out proper messages after succeeding at second attempt in less than 1 millisecond", func() {
 
 		counter := 0
 
 		var output bytes.Buffer
 		start := time.Now()
-		resultTime, err := timedRepeat(
-			&output,
-			start,
-			time.Millisecond,
-			time.Millisecond*10,
-			func(currentTime time.Time) time.Time {
-				return currentTime.Add(time.Millisecond)
-			},
-			func() error {
-				if counter == 0 {
-					counter++
-					return fmt.Errorf("some error")
-				}
-				return nil
-			})
-		Expect(resultTime.Sub(start)).Should(BeNumerically("==", time.Millisecond))
+		err := WaitUntil(&output, time.Millisecond, time.Millisecond*10, func() error {
+			if counter == 0 {
+				counter++
+				return fmt.Errorf("some error")
+			}
+			return nil
+		})
+		Expect(time.Since(start)).Should(BeNumerically("<=", time.Millisecond*3))
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(output.String()).To(Equal("error occurred some error, retrying in 1ms\n"))
 
 	})
 
-	It("Verify timedRepeat prints out proper messages after reaching limit", func() {
+	It("Verify WaitUntil prints out proper messages after reaching timeout", func() {
 
 		var output bytes.Buffer
 		start := time.Now()
-		resultTime, err := timedRepeat(
-			&output,
-			start,
-			time.Second,
-			time.Second*2,
-			func(currentTime time.Time) time.Time {
-				return currentTime.Add(time.Second)
-			},
-			func() error {
-				return fmt.Errorf("some error")
-			})
-		Expect(resultTime.Sub(start)).Should(BeNumerically("==", time.Second*2))
+		err := WaitUntil(&output, time.Second, time.Second*2, func() error {
+			return fmt.Errorf("some error")
+		})
+		Expect(time.Since(start)).Should(BeNumerically(">=", time.Second*2))
 		Expect(err).Should(MatchError("timeout reached 2s"))
 		Expect(output.String()).Should(Equal(`error occurred some error, retrying in 1s
 error occurred some error, retrying in 1s
 `))
+
 	})
 
 	It("Verify CaptureStdout captures whatever is printed out to stdout in the callback", func() {
