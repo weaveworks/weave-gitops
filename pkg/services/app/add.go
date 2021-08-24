@@ -3,6 +3,8 @@ package app
 import (
 	"bytes"
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"net/url"
@@ -14,7 +16,6 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -141,15 +142,8 @@ func (a *App) Add(params AddParams) error {
 
 	a.printAddSummary(params)
 
-	a.logger.Waitingf("Checking cluster status")
-	clusterStatus := a.kube.GetClusterStatus(ctx)
-	a.logger.Successf(clusterStatus.String())
-
-	switch clusterStatus {
-	case kube.Unmodified:
-		return fmt.Errorf("Wego not installed... exiting")
-	case kube.Unknown:
-		return fmt.Errorf("Wego can not determine cluster status... exiting")
+	if err := IsClusterReady(a.logger, a.kube); err != nil {
+		return err
 	}
 
 	clusterName, err := a.kube.GetClusterName(ctx)
@@ -159,14 +153,24 @@ func (a *App) Add(params AddParams) error {
 
 	info := getAppResourceInfo(makeWegoApplication(params), clusterName)
 
-	appHash, err := utils.GetAppHash(info.Application)
+	appHash, err := info.getAppHash()
 	if err != nil {
 		return err
 	}
 
-	// if application already exists in the cluster we fail to add the application
-	if err = a.kube.AppExistsInCluster(ctx, params.Namespace, appHash); err != nil {
+	apps, err := a.kube.GetApplications(ctx, params.Namespace)
+	if err != nil {
 		return err
+	}
+	for _, app := range apps {
+		existingHash, err := getAppResourceInfo(app, clusterName).getAppHash()
+		if err != nil {
+			return err
+		}
+
+		if appHash == existingHash {
+			return fmt.Errorf("unable to create resource, resource already exists in cluster")
+		}
 	}
 
 	var secretRef string
@@ -183,6 +187,16 @@ func (a *App) Add(params AddParams) error {
 	case string(ConfigTypeUserRepo):
 		return a.addAppWithConfigInAppRepo(info, params, gitProvider, secretRef, appHash)
 	default:
+
+		// TODO: @jpellizzari As of https://github.com/weaveworks/weave-gitops/pull/587,
+		// we are not using deploy keys for external repos yet.
+		// Followup created here: https://github.com/weaveworks/weave-gitops/issues/592
+		gitClient, err := a.temporaryGitClientFactory(a.osys, params.PrivateKey)
+		if err != nil {
+			return fmt.Errorf("error selecting auth method for external config repo: %w", err)
+		}
+		// Overriding the internal git service
+		a.git = gitClient
 		return a.addAppWithConfigInExternalRepo(info, params, gitProvider, secretRef, appHash)
 	}
 }
@@ -519,7 +533,7 @@ func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoU
 
 	secretRefName := info.appSecretName(repoUrl)
 	if dryRun {
-		return secretRefName, nil
+		return secretRefName.String(), nil
 	}
 
 	repoUrl = utils.SanitizeRepoUrl(repoUrl)
@@ -550,14 +564,18 @@ func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoU
 		return "", fmt.Errorf("failed check for existing deploy key: %w", err)
 	}
 
-	secretPresent, err := a.kube.SecretPresent(context.Background(), secretRefName, info.Namespace)
+	secretPresent, err := a.kube.SecretPresent(context.Background(), secretRefName.String(), info.Namespace)
 	if err != nil {
 		return "", fmt.Errorf("failed check for existing secret: %w", err)
 	}
 
 	if !deployKeyExists || !secretPresent {
+		// TODO: @jpellizzari As of https://github.com/weaveworks/weave-gitops/pull/587/files,
+		// deployKeyExists and secretPresent should always be true, meaning we will never hit this block.
+		// A lot of our unit tests rely on the individual function calls being called in this block,
+		// so they were left in for now and will be handled in a follow up PR.
 		a.logger.Generatef("Generating deploy key for repo %s", repoUrl)
-		secret, err := a.flux.CreateSecretGit(secretRefName, repoUrl, info.Namespace)
+		secret, err := a.flux.CreateSecretGit(secretRefName.String(), repoUrl, info.Namespace)
 		if err != nil {
 			return "", fmt.Errorf("could not create git secret: %w", err)
 		}
@@ -578,7 +596,7 @@ func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoU
 		}
 	}
 
-	return secretRefName, nil
+	return secretRefName.String(), nil
 }
 
 func (a *App) generateSource(info *AppResourceInfo, secretRef string) ([]byte, error) {
@@ -827,10 +845,20 @@ func (a *AppResourceInfo) appResourceName() string {
 	return a.Name
 }
 
-func (a *AppResourceInfo) appSecretName(repoURL string) string {
+type GeneratedSecretName string
+
+func (s GeneratedSecretName) String() string {
+	return string(s)
+}
+
+func (a *AppResourceInfo) appSecretName(repoURL string) GeneratedSecretName {
+	return CreateAppSecretName(a.clusterName, repoURL)
+}
+
+func CreateAppSecretName(targetName string, repoURL string) GeneratedSecretName {
 	repoName := utils.UrlToRepoName(repoURL)
 	repoName = strings.ReplaceAll(repoName, "_", "-")
-	return fmt.Sprintf("wego-%s-%s", a.targetName, repoName)
+	return GeneratedSecretName(fmt.Sprintf("wego-%s-%s", targetName, repoName))
 }
 
 func (a *AppResourceInfo) automationAppsDirKustomizationName() string {
@@ -897,7 +925,7 @@ func (a *AppResourceInfo) clusterResources() []ResourceRef {
 			resources,
 			ResourceRef{
 				kind: ResourceKindSecret,
-				name: a.appSecretName(a.Spec.URL)})
+				name: a.appSecretName(a.Spec.URL).String()})
 	}
 
 	if strings.ToUpper(a.Spec.ConfigURL) == string(ConfigTypeNone) {
@@ -925,7 +953,7 @@ func (a *AppResourceInfo) clusterResources() []ResourceRef {
 			// Secret for deploy key associated with config repository
 			ResourceRef{
 				kind: ResourceKindSecret,
-				name: a.appSecretName(a.Spec.ConfigURL)},
+				name: a.appSecretName(a.Spec.ConfigURL).String()},
 			// Source for config repository
 			ResourceRef{
 				kind: ResourceKindGitRepository,
@@ -941,6 +969,39 @@ func (a *AppResourceInfo) clusterResourcePaths() []string {
 	}
 
 	return []string{a.appYamlPath(), a.appAutomationSourcePath(), a.appAutomationDeployPath()}
+}
+
+func (info *AppResourceInfo) getAppHash() (string, error) {
+
+	var appHash string
+	var err error
+
+	var getHash = func(inputs ...string) (string, error) {
+		h := md5.New()
+		final := ""
+		for _, input := range inputs {
+			final += input
+		}
+		_, err := h.Write([]byte(final))
+		if err != nil {
+			return "", fmt.Errorf("error generating app hash %s", err)
+		}
+		return hex.EncodeToString(h.Sum(nil)), nil
+	}
+
+	if info.Spec.DeploymentType == wego.DeploymentTypeHelm {
+		appHash, err = getHash(info.Spec.URL, info.Name, info.Spec.Branch)
+		if err != nil {
+			return "", err
+		}
+	} else {
+		appHash, err = getHash(info.Spec.URL, info.Spec.Path, info.Spec.Branch)
+		if err != nil {
+			return "", err
+		}
+	}
+	return "wego-" + appHash, nil
+
 }
 
 // NOTE: ready to save the targets automation in phase 2

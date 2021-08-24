@@ -37,12 +37,12 @@ const WeGONamespace = "wego-system"
 const WeGOCRDName = "apps.wego.weave.works"
 const FluxNamespace = "flux-system"
 
-func NewKubeHTTPClient() (Kube, error) {
+func NewKubeHTTPClient() (Kube, client.Client, error) {
 	cfgLoadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
 
 	_, kubeContext, err := initialContexts(cfgLoadingRules)
 	if err != nil {
-		return nil, fmt.Errorf("could not get initial context: %w", err)
+		return nil, nil, fmt.Errorf("could not get initial context: %w", err)
 	}
 
 	configOverrides := clientcmd.ConfigOverrides{CurrentContext: kubeContext}
@@ -53,20 +53,20 @@ func NewKubeHTTPClient() (Kube, error) {
 	).ClientConfig()
 
 	if err != nil {
-		return nil, fmt.Errorf("could not create rest config: %w", err)
+		return nil, nil, fmt.Errorf("could not create rest config: %w", err)
 	}
 
 	scheme := CreateScheme()
 
-	kubeClient, err := client.New(restCfg, client.Options{
+	rawClient, err := client.New(restCfg, client.Options{
 		Scheme: scheme,
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("kubernetes client initialization failed: %w", err)
+		return nil, nil, fmt.Errorf("kubernetes client initialization failed: %w", err)
 	}
 
-	return &KubeHTTP{Client: kubeClient, ClusterName: kubeContext}, nil
+	return &KubeHTTP{Client: rawClient, ClusterName: kubeContext}, rawClient, nil
 }
 
 // This is an alternative implementation of the kube.Kube interface,
@@ -156,15 +156,24 @@ func (c *KubeHTTP) SecretPresent(ctx context.Context, secretName string, namespa
 		Namespace: namespace,
 	}
 
+	if _, err := c.GetSecret(ctx, name); err != nil {
+		return false, fmt.Errorf("error checking secret presence for secret \"%s\": %w", secretName, err)
+	}
+
+	// No error, it must exist
+	return true, nil
+}
+
+func (c KubeHTTP) GetSecret(ctx context.Context, name types.NamespacedName) (*corev1.Secret, error) {
 	secret := corev1.Secret{}
 	if err := c.Client.Get(ctx, name, &secret); err != nil {
 		if apierrors.IsNotFound(err) {
-			return false, nil
+			return nil, nil
 		}
-		return false, fmt.Errorf("could not get secret: %w", err)
+		return nil, fmt.Errorf("could not get secret: %w", err)
 	}
 
-	return true, nil
+	return &secret, nil
 }
 
 func (c *KubeHTTP) GetApplications(ctx context.Context, namespace string) ([]wego.Application, error) {
