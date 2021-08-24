@@ -39,6 +39,7 @@ func CreateScheme() *apiruntime.Scheme {
 	_ = wego.AddToScheme(scheme)
 	_ = corev1.AddToScheme(scheme)
 	_ = extensionsv1.AddToScheme(scheme)
+	_ = appsv1.AddToScheme(scheme)
 
 	return scheme
 }
