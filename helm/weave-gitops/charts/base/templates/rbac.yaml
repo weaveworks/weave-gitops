@@ -25,7 +25,7 @@ metadata:
     {{- range $key, $val := .Values.global.labels }}
     {{ $key }}: {{ $val | quote }}
     {{- end}}
-  name: {{ .Values.global.image_reflector_controller }}
+  name: {{ .Values.global.image_reflector_controller.name }}
   namespace: {{ .Values.global.namespace }}
 ---
 apiVersion: v1
