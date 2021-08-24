@@ -26,6 +26,10 @@ func (a *App) GetCommits(params CommitParams) ([]gitprovider.Commit, error) {
 		return nil, fmt.Errorf("unable to get application for %s %w", params.Name, err)
 	}
 
+	if app.Spec.SourceType == "helm" {
+		return nil, fmt.Errorf("unable to get commits for a helm chart")
+	}
+
 	owner, err := utils.GetOwnerFromUrl(app.Spec.URL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve owner: %w", err)
