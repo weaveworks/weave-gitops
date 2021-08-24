@@ -143,3 +143,8 @@ crd:
 # Check go format
 check-format: 
 	if [ ! -z "$(FORMAT_LIST)" ] ; then echo invalid format at: ${FORMAT_LIST} && exit 1; fi
+
+generate-helm: wego
+	kind create cluster --name wego-helm-generator
+	./bin/wego gitops install --dry-run > ./helm/weave-gitops/templates/generated_resources.yaml
+	kind delete cluster --name wego-helm-generator
