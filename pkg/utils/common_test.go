@@ -1,12 +1,13 @@
 package utils
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/onsi/gomega/gbytes"
 
 	"github.com/stretchr/testify/require"
 
@@ -39,52 +40,58 @@ func TestExists(t *testing.T) {
 
 var _ = Describe("Test common utils", func() {
 
-	It("Verify WaitUntil succeeds at  first attempt in less than 1 millisecond", func() {
-
-		var output bytes.Buffer
-		start := time.Now()
-
-		err := WaitUntil(&output, time.Millisecond, time.Millisecond, func() error {
-			return nil
-		})
-		Expect(time.Since(start)).Should(BeNumerically("<=", time.Millisecond))
-		Expect(err).ShouldNot(HaveOccurred())
-		Expect(output.String()).To(BeEmpty())
-
-	})
-
-	It("Verify WaitUntil prints out proper messages after succeeding at second attempt in less than 1 millisecond", func() {
+	It("Verify WaitUntil succeeds at  first attempt in less than 1 millisecond", func(done Done) {
 
 		counter := 0
-
-		var output bytes.Buffer
-		start := time.Now()
-		err := WaitUntil(&output, time.Millisecond, time.Millisecond*10, func() error {
-			if counter == 0 {
+		output := gbytes.NewBuffer()
+		go func() {
+			err := WaitUntil(output, time.Millisecond, time.Millisecond, func() error {
 				counter++
-				return fmt.Errorf("some error")
-			}
-			return nil
-		})
-		Expect(time.Since(start)).Should(BeNumerically("<=", time.Millisecond*3))
-		Expect(err).ShouldNot(HaveOccurred())
-		Expect(output.String()).To(Equal("error occurred some error, retrying in 1ms\n"))
+				return nil
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+			close(done)
+		}()
+		Eventually(output, time.Millisecond, time.Millisecond).Should(gbytes.Say(""))
+		Expect(counter).Should(Equal(1))
 
 	})
 
-	It("Verify WaitUntil prints out proper messages after reaching timeout", func() {
+	It("Verify WaitUntil prints out proper messages after succeeding at second attempt in less than 1 millisecond", func(done Done) {
 
-		var output bytes.Buffer
-		start := time.Now()
-		err := WaitUntil(&output, time.Second, time.Second*2, func() error {
-			return fmt.Errorf("some error")
-		})
-		Expect(time.Since(start)).Should(BeNumerically(">=", time.Second*2))
-		Expect(err).Should(MatchError("timeout reached 2s"))
-		Expect(output.String()).Should(Equal(`error occurred some error, retrying in 1s
-error occurred some error, retrying in 1s
-`))
+		counter := 0
+		output := gbytes.NewBuffer()
+		go func() {
+			err := WaitUntil(output, time.Millisecond, time.Millisecond*2, func() error {
+				if counter == 0 {
+					counter++
+					return fmt.Errorf("some error")
+				}
+				return nil
+			})
+			Expect(err).ShouldNot(HaveOccurred())
+			close(done)
+		}()
+		Eventually(output, time.Millisecond*2, time.Millisecond*2).Should(gbytes.Say("error occurred some error, retrying in 1ms\n"))
+		Expect(counter).Should(Equal(1))
+	})
 
+	It("Verify WaitUntil prints out proper messages after reaching timeout", func(done Done) {
+
+		counter := 0
+		output := gbytes.NewBuffer()
+		var err error
+		go func() {
+			defer GinkgoRecover()
+			err = WaitUntil(output, time.Millisecond, time.Millisecond*2, func() error {
+				counter++
+				return fmt.Errorf("some error")
+			})
+			Expect(err.Error()).Should(Equal("timeout reached 2ms"))
+			close(done)
+		}()
+		Eventually(output, time.Millisecond*2, time.Millisecond*2).Should(gbytes.Say("error occurred some error, retrying in 1ms\nerror occurred some error, retrying in 1ms\n"))
+		Expect(counter).Should(Equal(2))
 	})
 
 	It("Verify CaptureStdout captures whatever is printed out to stdout in the callback", func() {
