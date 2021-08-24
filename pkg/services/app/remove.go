@@ -24,12 +24,12 @@ type RemoveParams struct {
 func (a *App) Remove(params RemoveParams) error {
 	ctx := context.Background()
 
-	clusterName, err := a.kube.GetClusterName(ctx)
+	clusterName, err := a.Kube.GetClusterName(ctx)
 	if err != nil {
 		return err
 	}
 
-	application, err := a.kube.GetApplication(ctx, types.NamespacedName{Namespace: params.Namespace, Name: params.Name})
+	application, err := a.Kube.GetApplication(ctx, types.NamespacedName{Namespace: params.Namespace, Name: params.Name})
 	if err != nil {
 		return err
 	}
@@ -39,15 +39,15 @@ func (a *App) Remove(params RemoveParams) error {
 	resources := info.clusterResources()
 
 	if info.configMode() == ConfigModeClusterOnly {
-		out, err := a.kube.DeleteByName(info.appResourceName(), "app", info.Namespace)
+		out, err := a.Kube.DeleteByName(info.appResourceName(), "app", info.Namespace)
 		if err != nil {
 			return clusterDeleteError(out, err)
 		}
-		out, err = a.kube.DeleteByName(info.appSourceName(), string(info.sourceKind()), info.Namespace)
+		out, err = a.Kube.DeleteByName(info.appSourceName(), string(info.sourceKind()), info.Namespace)
 		if err != nil {
 			return clusterDeleteError(out, err)
 		}
-		out, err = a.kube.DeleteByName(info.appDeployName(), string(info.deployKind()), info.Namespace)
+		out, err = a.Kube.DeleteByName(info.appDeployName(), string(info.deployKind()), info.Namespace)
 		if err != nil {
 			return clusterDeleteError(out, err)
 		}
@@ -67,17 +67,17 @@ func (a *App) Remove(params RemoveParams) error {
 
 	defer remover()
 
-	a.logger.Actionf("Removing application from cluster and repository")
+	a.Logger.Actionf("Removing application from cluster and repository")
 
 	if !params.DryRun {
 		for _, resourceRef := range resources {
 			if resourceRef.repositoryPath != "" { // Some of the automation doesn't get stored
-				if err := a.git.Remove(resourceRef.repositoryPath); err != nil {
+				if err := a.Git.Remove(resourceRef.repositoryPath); err != nil {
 					return err
 				}
 			} else if resourceRef.kind == ResourceKindKustomization ||
 				resourceRef.kind == ResourceKindHelmRelease {
-				out, err := a.kube.DeleteByName(resourceRef.name, string(resourceRef.kind), info.Namespace)
+				out, err := a.Kube.DeleteByName(resourceRef.name, string(resourceRef.kind), info.Namespace)
 				if err != nil {
 					return clusterDeleteError(out, err)
 				}

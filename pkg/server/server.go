@@ -34,25 +34,22 @@ const tokenKey key = iota
 type applicationServer struct {
 	pb.UnimplementedApplicationsServer
 
-	kube       kube.Kube
-	log        logr.Logger
-	appService app.AppService
+	log logr.Logger
+	app *app.App
 }
 
 // An ServerConfig allows for the customization of an ApplicationsServer.
 // Use the DefaultConfig() to use the default dependencies.
 type ServerConfig struct {
-	Logger     logr.Logger
-	KubeClient kube.Kube
-	AppService app.AppService
+	Logger logr.Logger
+	App    *app.App
 }
 
 // NewApplicationsServer creates a grpc Applications server
 func NewApplicationsServer(cfg *ServerConfig) pb.ApplicationsServer {
 	return &applicationServer{
-		kube:       cfg.KubeClient,
-		log:        cfg.Logger,
-		appService: cfg.AppService,
+		log: cfg.Logger,
+		app: cfg.App,
 	}
 }
 
@@ -72,9 +69,8 @@ func DefaultConfig() (*ServerConfig, error) {
 	appSrv := app.New(nil, nil, nil, kubeClient, nil)
 
 	return &ServerConfig{
-		Logger:     logr,
-		KubeClient: kubeClient,
-		AppService: appSrv,
+		Logger: logr,
+		App:    appSrv,
 	}, nil
 }
 
@@ -94,7 +90,7 @@ func NewServerHandler(ctx context.Context, cfg *ServerConfig, opts ...runtime.Se
 }
 
 func (s *applicationServer) ListApplications(ctx context.Context, msg *pb.ListApplicationsRequest) (*pb.ListApplicationsResponse, error) {
-	apps, err := s.kube.GetApplications(ctx, msg.GetNamespace())
+	apps, err := s.app.Kube.GetApplications(ctx, msg.GetNamespace())
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +111,7 @@ func (s *applicationServer) ListApplications(ctx context.Context, msg *pb.ListAp
 }
 
 func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetApplicationRequest) (*pb.GetApplicationResponse, error) {
-	app, err := s.kube.GetApplication(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace})
+	app, err := s.app.Kube.GetApplication(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace})
 	if err != nil {
 		return nil, fmt.Errorf("could not get application \"%s\": %w", msg.Name, err)
 	}
@@ -127,14 +123,14 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 
 	name := types.NamespacedName{Name: app.Name, Namespace: app.Namespace}
 
-	if err := s.kube.GetResource(ctx, name, src); err != nil {
+	if err := s.app.Kube.GetResource(ctx, name, src); err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil, nil
 		}
 		return nil, fmt.Errorf("could not get source for app %s: %w", app.Name, err)
 	}
 
-	if err := s.kube.GetResource(ctx, name, deployment); err != nil {
+	if err := s.app.Kube.GetResource(ctx, name, deployment); err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil, nil
 		}
@@ -219,7 +215,7 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 
 	params := app.CommitParams{Name: msg.Name, Namespace: msg.Namespace, GitProviderToken: token, PageSize: int(msg.PageSize), PageToken: pageToken}
 
-	commits, err := s.appService.GetCommits(params)
+	commits, err := s.app.GetCommits(params)
 	if err != nil {
 		return &pb.ListCommitsResponse{
 			Commits: []*pb.Commit{},

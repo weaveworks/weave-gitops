@@ -23,7 +23,7 @@ type CommitParams struct {
 func (a *App) GetCommits(params CommitParams) ([]gitprovider.Commit, error) {
 	ctx := context.Background()
 
-	app, err := a.kube.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
+	app, err := a.Kube.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
 	if err != nil {
 		return nil, fmt.Errorf("unable to get application for %s %w", params.Name, err)
 	}

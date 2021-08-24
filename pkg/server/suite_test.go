@@ -12,6 +12,7 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
+	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
 	corev1 "k8s.io/api/core/v1"
@@ -94,7 +95,7 @@ var _ = BeforeEach(func() {
 	s = grpc.NewServer()
 
 	k = &kube.KubeHTTP{Client: k8sClient, ClusterName: testClustername}
-	cfg := server.ServerConfig{KubeClient: k}
+	cfg := server.ServerConfig{App: app.New(nil, nil, nil, k, nil)}
 
 	apps = server.NewApplicationsServer(&cfg)
 	pb.RegisterApplicationsServer(s, apps)

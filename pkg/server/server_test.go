@@ -94,7 +94,7 @@ var _ = Describe("ApplicationsServer", func() {
 			BeforeEach(func() {
 				log = makeFakeLogr()
 				kubeClient = &kubefakes.FakeKube{}
-				appsSrv = server.NewApplicationsServer(&server.ServerConfig{KubeClient: kubeClient})
+				appsSrv = server.NewApplicationsServer(&server.ServerConfig{App: app.New(nil, nil, nil, kubeClient, nil)})
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
@@ -199,8 +199,8 @@ var _ = Describe("Applications handler", func() {
 		}
 
 		cfg := server.ServerConfig{
-			KubeClient: k,
-			Logger:     log,
+			App:    app.New(nil, nil, nil, k, nil),
+			Logger: log,
 		}
 
 		handler, err := server.NewServerHandler(context.Background(), &cfg)
@@ -227,10 +227,10 @@ var _ = Describe("Applications handler", func() {
 		Expect(r.Applications).To(HaveLen(1))
 	})
 
-	FIt("gets commits", func() {
+	It("get commits", func() {
 		log := makeFakeLogr()
-		k := &kubefakes.FakeKube{}
-		k.GetApplicationStub = func(context.Context, types.NamespacedName) (*wego.Application, error) {
+		kubeClient := &kubefakes.FakeKube{}
+		kubeClient.GetApplicationStub = func(context.Context, types.NamespacedName) (*wego.Application, error) {
 			return &wego.Application{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "my-app",
@@ -244,7 +244,7 @@ var _ = Describe("Applications handler", func() {
 			}, nil
 		}
 
-		appSrv := app.New(logger.NewCLILogger(os.Stderr), nil, nil, k, nil)
+		appSrv := app.New(logger.NewCLILogger(os.Stderr), nil, nil, kubeClient, nil)
 		gitProviders := &gitprovidersfakes.FakeGitProvider{}
 		var commits []gitprovider.Commit
 		commits = append(commits, &fakeCommit{
@@ -264,9 +264,8 @@ var _ = Describe("Applications handler", func() {
 		}
 
 		cfg := server.ServerConfig{
-			KubeClient: k,
-			Logger:     log,
-			AppService: appSrv,
+			Logger: log,
+			App:    appSrv,
 		}
 
 		handler, err := server.NewServerHandler(context.Background(), &cfg)
