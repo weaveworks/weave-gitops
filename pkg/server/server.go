@@ -188,7 +188,7 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 		Token *oauth2.Token
 	}
 
-	vals := contextVals{Token: &oauth2.Token{AccessToken: "fsdlkjfsdlkjfaslkjasdlkj"}}
+	vals := contextVals{Token: &oauth2.Token{AccessToken: "temptoken"}}
 	ctx = context.WithValue(ctx, tokenKey, vals)
 
 	//Temporary solution to get this to build until middleware is done

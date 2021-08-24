@@ -244,11 +244,8 @@ var _ = Describe("Applications handler", func() {
 			}, nil
 		}
 
-		var appSrv app.AppService
-		appSrv = app.New(logger.NewCLILogger(os.Stderr), nil, nil, k, nil)
-
-		var gitProviders *gitprovidersfakes.FakeGitProvider
-		gitProviders = &gitprovidersfakes.FakeGitProvider{}
+		appSrv := app.New(logger.NewCLILogger(os.Stderr), nil, nil, k, nil)
+		gitProviders := &gitprovidersfakes.FakeGitProvider{}
 		var commits []gitprovider.Commit
 		commits = append(commits, &fakeCommit{
 			commitInfo: gitprovider.CommitInfo{Author: "testAuthor"},
@@ -262,7 +259,7 @@ var _ = Describe("Applications handler", func() {
 			return gitproviders.AccountTypeUser, nil
 		}
 
-		appSrv.(*app.App).GitProviderFactory = func(token string) (gitproviders.GitProvider, error) {
+		appSrv.GitProviderFactory = func(token string) (gitproviders.GitProvider, error) {
 			return gitProviders, nil
 		}
 
