@@ -39,7 +39,7 @@ func TestExists(t *testing.T) {
 
 var _ = Describe("Test common utils", func() {
 
-	It("Verify WaitUntil succeeds at first attempt in less than 1 millisecond", func() {
+	It("Verify WaitUntil succeeds at  first attempt in less than 1 millisecond", func() {
 
 		var output bytes.Buffer
 		start := time.Now()
