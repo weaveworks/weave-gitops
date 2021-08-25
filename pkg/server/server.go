@@ -38,7 +38,7 @@ type applicationServer struct {
 	app *app.App
 }
 
-// An ServerConfig allows for the customization of an ApplicationsServer.
+// An applicationConfig allows for the customization of an ApplicationsServer.
 // Use the DefaultConfig() to use the default dependencies.
 type applicationConfig struct {
 	Logger logr.Logger
@@ -79,9 +79,9 @@ func DefaultConfig() (*applicationConfig, error) {
 	}, nil
 }
 
-// NewServerHandler allow for other applications to embed the Weave GitOps HTTP API.
+// NewApplicationsHandler allow for other applications to embed the Weave GitOps HTTP API.
 // This handler can be muxed with other services or used as a standalone service.
-func NewServerHandler(ctx context.Context, cfg *applicationConfig, opts ...runtime.ServeMuxOption) (http.Handler, error) {
+func NewApplicationsHandler(ctx context.Context, cfg *applicationConfig, opts ...runtime.ServeMuxOption) (http.Handler, error) {
 	appsSrv := NewApplicationsServer(cfg)
 
 	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(cfg.Logger))

@@ -17,7 +17,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops/pkg/api/applications"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
@@ -57,7 +56,7 @@ var _ = Describe("ApplicationsServer", func() {
 
 		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
 
-		res, err := appsClient.ListApplications(context.Background(), &applications.ListApplicationsRequest{})
+		res, err := appsClient.ListApplications(context.Background(), &pb.ListApplicationsRequest{})
 
 		Expect(err).NotTo(HaveOccurred())
 
@@ -72,7 +71,7 @@ var _ = Describe("ApplicationsServer", func() {
 		}}
 
 		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
-		res, err := appsClient.GetApplication(context.Background(), &applications.GetApplicationRequest{
+		res, err := appsClient.GetApplication(context.Background(), &pb.GetApplicationRequest{
 			Name:      name,
 			Namespace: namespace.Name,
 		})
@@ -202,7 +201,7 @@ var _ = Describe("Applications handler", func() {
 			Logger: log,
 		}
 
-		handler, err := NewServerHandler(context.Background(), &cfg)
+		handler, err := NewApplicationsHandler(context.Background(), &cfg)
 		Expect(err).NotTo(HaveOccurred())
 
 		ts := httptest.NewServer(handler)
@@ -264,7 +263,7 @@ var _ = Describe("Applications handler", func() {
 			App:    appSrv,
 		}
 
-		handler, err := NewServerHandler(context.Background(), &cfg)
+		handler, err := NewApplicationsHandler(context.Background(), &cfg)
 		Expect(err).NotTo(HaveOccurred())
 
 		ts := httptest.NewServer(handler)

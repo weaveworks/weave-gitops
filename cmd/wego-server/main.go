@@ -35,7 +35,7 @@ func NewAPIServerCommand() *cobra.Command {
 				return err
 			}
 
-			s, err := server.NewServerHandler(context.Background(), cfg)
+			s, err := server.NewApplicationsHandler(context.Background(), cfg)
 			if err != nil {
 				return err
 			}
