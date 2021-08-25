@@ -2,7 +2,9 @@ package kube_test
 
 import (
 	"context"
+	"fmt"
 
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -127,6 +129,29 @@ var _ = Describe("KubeHTTP", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(list).To(HaveLen(1))
 		Expect(list[0].Name).To(Equal(name))
+	})
+	It("Apply", func() {
+		ctx := context.Background()
+		name := "my-app"
 
+		kust := fmt.Sprintf(`
+		apiVersion: kustomize.toolkit.fluxcd.io/v1beta1
+		kind: Kustomization
+		metadata:
+		  name: %s
+		  namespace: %s
+		spec:
+		  interval: 1m0s
+		  prune: true
+		  validation: client
+		`, name, namespace.Name)
+
+		Expect(k.Apply(ctx, []byte(kust), namespace.Name)).Should(Succeed())
+
+		kustObj := &kustomizev1.Kustomization{}
+		err := k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, kustObj)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(kustObj.Name).To(Equal(name))
 	})
 })
