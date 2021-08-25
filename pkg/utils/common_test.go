@@ -60,7 +60,7 @@ var _ = Describe("Test common utils", func() {
 
 	})
 
-	FIt("Verify WaitUntil prints out proper messages after succeeding at second attempt in less than 1 millisecond", func(done Done) {
+	It("Verify WaitUntil prints out proper messages after succeeding at second attempt in less than 1 millisecond", func(done Done) {
 
 		counter := 0
 		output := gbytes.NewBuffer()
