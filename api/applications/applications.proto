@@ -43,7 +43,7 @@ service Applications {
     */
     rpc ListCommits(ListCommitsRequest) returns (ListCommitsResponse) {
         option (google.api.http) = {
-            get : "/v1/commits"
+            get : "/v1/applications/{name}/commits"
         };
     }
 }

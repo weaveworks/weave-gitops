@@ -85,7 +85,7 @@
         ]
       }
     },
-    "/v1/commits": {
+    "/v1/applications/{name}/commits": {
       "get": {
         "summary": "ListCommits returns the list of WeGo commits that the authenticated user has access to.",
         "operationId": "Applications_ListCommits",
@@ -106,8 +106,8 @@
         "parameters": [
           {
             "name": "name",
-            "in": "query",
-            "required": false,
+            "in": "path",
+            "required": true,
             "type": "string"
           },
           {

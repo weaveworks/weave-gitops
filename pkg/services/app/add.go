@@ -142,7 +142,7 @@ func (a *App) Add(params AddParams) error {
 
 	a.printAddSummary(params)
 
-	if err := IsClusterReady(a.logger, a.kube); err != nil {
+	if err := IsClusterReady(a.Logger, a.Kube); err != nil {
 		return err
 	}
 
@@ -158,7 +158,7 @@ func (a *App) Add(params AddParams) error {
 		return err
 	}
 
-	apps, err := a.kube.GetApplications(ctx, params.Namespace)
+	apps, err := a.Kube.GetApplications(ctx, params.Namespace)
 	if err != nil {
 		return err
 	}
@@ -191,12 +191,12 @@ func (a *App) Add(params AddParams) error {
 		// TODO: @jpellizzari As of https://github.com/weaveworks/weave-gitops/pull/587,
 		// we are not using deploy keys for external repos yet.
 		// Followup created here: https://github.com/weaveworks/weave-gitops/issues/592
-		gitClient, err := a.temporaryGitClientFactory(a.osys, params.PrivateKey)
+		gitClient, err := a.temporaryGitClientFactory(a.Osys, params.PrivateKey)
 		if err != nil {
 			return fmt.Errorf("error selecting auth method for external config repo: %w", err)
 		}
 		// Overriding the internal git service
-		a.git = gitClient
+		a.Git = gitClient
 		return a.addAppWithConfigInExternalRepo(info, params, gitProvider, secretRef, appHash)
 	}
 }
@@ -564,7 +564,7 @@ func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoU
 		return "", fmt.Errorf("failed check for existing deploy key: %w", err)
 	}
 
-	secretPresent, err := a.kube.SecretPresent(context.Background(), secretRefName.String(), info.Namespace)
+	secretPresent, err := a.Kube.SecretPresent(context.Background(), secretRefName.String(), info.Namespace)
 	if err != nil {
 		return "", fmt.Errorf("failed check for existing secret: %w", err)
 	}
@@ -574,8 +574,8 @@ func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoU
 		// deployKeyExists and secretPresent should always be true, meaning we will never hit this block.
 		// A lot of our unit tests rely on the individual function calls being called in this block,
 		// so they were left in for now and will be handled in a follow up PR.
-		a.logger.Generatef("Generating deploy key for repo %s", repoUrl)
-		secret, err := a.flux.CreateSecretGit(secretRefName.String(), repoUrl, info.Namespace)
+		a.Logger.Generatef("Generating deploy key for repo %s", repoUrl)
+		secret, err := a.Flux.CreateSecretGit(secretRefName.String(), repoUrl, info.Namespace)
 		if err != nil {
 			return "", fmt.Errorf("could not create git secret: %w", err)
 		}

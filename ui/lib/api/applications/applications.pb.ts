@@ -47,6 +47,6 @@ export class Applications {
     return fm.fetchReq<GetApplicationRequest, GetApplicationResponse>(`/v1/applications/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
   static ListCommits(req: Wego_serverV1Commits.ListCommitsRequest, initReq?: fm.InitReq): Promise<Wego_serverV1Commits.ListCommitsResponse> {
-    return fm.fetchReq<Wego_serverV1Commits.ListCommitsRequest, Wego_serverV1Commits.ListCommitsResponse>(`/v1/commits?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<Wego_serverV1Commits.ListCommitsRequest, Wego_serverV1Commits.ListCommitsResponse>(`/v1/applications/${req["name"]}/commits?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
 }

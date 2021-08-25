@@ -1,4 +1,4 @@
-package server_test
+package server
 
 import (
 	"context"
@@ -11,7 +11,6 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
@@ -95,9 +94,9 @@ var _ = BeforeEach(func() {
 	s = grpc.NewServer()
 
 	k = &kube.KubeHTTP{Client: k8sClient, ClusterName: testClustername}
-	cfg := server.ServerConfig{App: app.New(nil, nil, nil, k, nil)}
+	cfg := applicationConfig{app: app.New(nil, nil, nil, k, nil)}
 
-	apps = server.NewApplicationsServer(&cfg)
+	apps = NewApplicationsServer(&cfg)
 	pb.RegisterApplicationsServer(s, apps)
 
 	go func() {

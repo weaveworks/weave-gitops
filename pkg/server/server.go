@@ -40,21 +40,26 @@ type applicationServer struct {
 
 // An ServerConfig allows for the customization of an ApplicationsServer.
 // Use the DefaultConfig() to use the default dependencies.
-type ServerConfig struct {
-	Logger logr.Logger
-	App    *app.App
+type applicationConfig struct {
+	logger logr.Logger
+	app    *app.App
+}
+
+//Remove when middleware is done
+type contextVals struct {
+	Token *oauth2.Token
 }
 
 // NewApplicationsServer creates a grpc Applications server
-func NewApplicationsServer(cfg *ServerConfig) pb.ApplicationsServer {
+func NewApplicationsServer(cfg *applicationConfig) pb.ApplicationsServer {
 	return &applicationServer{
-		log: cfg.Logger,
-		app: cfg.App,
+		log: cfg.logger,
+		app: cfg.app,
 	}
 }
 
 // DefaultConfig creates a populated config with the dependencies for a Server
-func DefaultConfig() (*ServerConfig, error) {
+func DefaultConfig() (*applicationConfig, error) {
 	zapLog, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatalf("could not create zap logger: %v", err)
@@ -68,19 +73,19 @@ func DefaultConfig() (*ServerConfig, error) {
 
 	appSrv := app.New(nil, nil, nil, kubeClient, nil)
 
-	return &ServerConfig{
-		Logger: logr,
-		App:    appSrv,
+	return &applicationConfig{
+		logger: logr,
+		app:    appSrv,
 	}, nil
 }
 
 // NewServerHandler allow for other applications to embed the Weave GitOps HTTP API.
 // This handler can be muxed with other services or used as a standalone service.
-func NewServerHandler(ctx context.Context, cfg *ServerConfig, opts ...runtime.ServeMuxOption) (http.Handler, error) {
+func NewServerHandler(ctx context.Context, cfg *applicationConfig, opts ...runtime.ServeMuxOption) (http.Handler, error) {
 	appsSrv := NewApplicationsServer(cfg)
 
-	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(cfg.Logger))
-	httpHandler := middleware.WithLogging(cfg.Logger, mux)
+	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(cfg.logger))
+	httpHandler := middleware.WithLogging(cfg.logger, mux)
 
 	if err := pb.RegisterApplicationsHandlerServer(ctx, mux, appsSrv); err != nil {
 		return nil, fmt.Errorf("could not register application: %w", err)
@@ -177,31 +182,26 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 	}}, nil
 }
 
+//Temporary solution to get this to build until middleware is done
+func extractToken(ctx context.Context) (string, error) {
+	c := ctx.Value(tokenKey)
+
+	vals, ok := c.(contextVals)
+	if !ok {
+		return "", errors.New("could not get token from context")
+	}
+
+	if vals.Token == nil || vals.Token.AccessToken == "" {
+		return "", errors.New("no token specified")
+	}
+
+	return vals.Token.AccessToken, nil
+}
+
 //Until the middleware is done this function will not be able to get the token and will fail
 func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommitsRequest) (*pb.ListCommitsResponse, error) {
-	//Remove when middleware is done
-	type contextVals struct {
-		Token *oauth2.Token
-	}
-
 	vals := contextVals{Token: &oauth2.Token{AccessToken: "temptoken"}}
 	ctx = context.WithValue(ctx, tokenKey, vals)
-
-	//Temporary solution to get this to build until middleware is done
-	extractToken := func(ctx context.Context) (string, error) {
-		c := ctx.Value(tokenKey)
-
-		vals, ok := c.(contextVals)
-		if !ok {
-			return "", errors.New("could not get token from context")
-		}
-
-		if vals.Token == nil || vals.Token.AccessToken == "" {
-			return "", errors.New("no token specified")
-		}
-
-		return vals.Token.AccessToken, nil
-	}
 
 	token, err := extractToken(ctx)
 	if err != nil {

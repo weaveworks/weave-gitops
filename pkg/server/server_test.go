@@ -1,4 +1,4 @@
-package server_test
+package server
 
 import (
 	"context"
@@ -25,7 +25,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/middleware"
-	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
 	corev1 "k8s.io/api/core/v1"
@@ -94,7 +93,7 @@ var _ = Describe("ApplicationsServer", func() {
 			BeforeEach(func() {
 				log = makeFakeLogr()
 				kubeClient = &kubefakes.FakeKube{}
-				appsSrv = server.NewApplicationsServer(&server.ServerConfig{App: app.New(nil, nil, nil, kubeClient, nil)})
+				appsSrv = NewApplicationsServer(&applicationConfig{app: app.New(nil, nil, nil, kubeClient, nil)})
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
@@ -198,12 +197,12 @@ var _ = Describe("Applications handler", func() {
 			}}, nil
 		}
 
-		cfg := server.ServerConfig{
-			App:    app.New(nil, nil, nil, k, nil),
-			Logger: log,
+		cfg := applicationConfig{
+			app:    app.New(nil, nil, nil, k, nil),
+			logger: log,
 		}
 
-		handler, err := server.NewServerHandler(context.Background(), &cfg)
+		handler, err := NewServerHandler(context.Background(), &cfg)
 		Expect(err).NotTo(HaveOccurred())
 
 		ts := httptest.NewServer(handler)
@@ -246,10 +245,7 @@ var _ = Describe("Applications handler", func() {
 
 		appSrv := app.New(logger.NewCLILogger(os.Stderr), nil, nil, kubeClient, nil)
 		gitProviders := &gitprovidersfakes.FakeGitProvider{}
-		var commits []gitprovider.Commit
-		commits = append(commits, &fakeCommit{
-			commitInfo: gitprovider.CommitInfo{Author: "testAuthor"},
-		})
+		commits := []gitprovider.Commit{&fakeCommit{}}
 
 		gitProviders.GetCommitsFromUserRepoStub = func(gitprovider.UserRepositoryRef, string, int, int) ([]gitprovider.Commit, error) {
 			return commits, nil
@@ -263,18 +259,18 @@ var _ = Describe("Applications handler", func() {
 			return gitProviders, nil
 		}
 
-		cfg := server.ServerConfig{
-			Logger: log,
-			App:    appSrv,
+		cfg := applicationConfig{
+			logger: log,
+			app:    appSrv,
 		}
 
-		handler, err := server.NewServerHandler(context.Background(), &cfg)
+		handler, err := NewServerHandler(context.Background(), &cfg)
 		Expect(err).NotTo(HaveOccurred())
 
 		ts := httptest.NewServer(handler)
 		defer ts.Close()
 
-		path := "/v1/commits"
+		path := "/v1/applications/testapp/commits"
 		url := ts.URL + path
 
 		res, err := http.Get(url)
