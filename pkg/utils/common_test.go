@@ -53,7 +53,7 @@ var _ = Describe("Test common utils", func() {
 			close(done)
 		}()
 		Eventually(output, time.Millisecond*2, time.Millisecond*2).Should(gbytes.Say(""))
-		Expect(counter).Should(Equal(1))
+		Eventually(counter).Should(Equal(1))
 
 	})
 
@@ -73,7 +73,7 @@ var _ = Describe("Test common utils", func() {
 			close(done)
 		}()
 		Eventually(output, time.Millisecond*3, time.Millisecond*3).Should(gbytes.Say("error occurred some error, retrying in 1ms\n"))
-		Expect(counter).Should(Equal(1))
+		Eventually(counter).Should(Equal(1))
 	})
 
 	It("Verify WaitUntil prints out proper messages after reaching timeout", func(done Done) {
@@ -91,7 +91,7 @@ var _ = Describe("Test common utils", func() {
 			close(done)
 		}()
 		Eventually(output, time.Millisecond*3, time.Millisecond*3).Should(gbytes.Say("error occurred some error, retrying in 1ms\nerror occurred some error, retrying in 1ms\n"))
-		Expect(counter).Should(Equal(2))
+		Eventually(counter).Should(Equal(2))
 	})
 
 	It("Verify CaptureStdout captures whatever is printed out to stdout in the callback", func() {
