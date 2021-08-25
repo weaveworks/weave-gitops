@@ -70,7 +70,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	cliRunner := &runner.CLIRunner{}
 	fluxClient := flux.New(osysClient, cliRunner)
-	kubeClient, err := kube.NewKubeHTTPClient()
+	kubeClient, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return fmt.Errorf("error initializing kube client: %w", err)
 	}

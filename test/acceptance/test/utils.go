@@ -20,6 +20,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	log "github.com/sirupsen/logrus"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 )
 
 const APP_REMOVAL_TIMEOUT time.Duration = 30 * time.Second
@@ -28,7 +29,7 @@ const TIMEOUT_TWO_MINUTES time.Duration = 120 * time.Second
 const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
 const NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
 const INSTALL_PODS_READY_TIMEOUT time.Duration = 180 * time.Second
-const WEGO_DEFAULT_NAMESPACE = "wego-system"
+const WEGO_DEFAULT_NAMESPACE = wego.DefaultNamespace
 
 var DEFAULT_SSH_KEY_PATH string
 var GITHUB_ORG string

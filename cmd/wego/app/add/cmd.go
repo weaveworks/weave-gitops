@@ -3,12 +3,11 @@ package add
 // Provides support for adding an application to wego managment.
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 
 	"github.com/lithammer/dedent"
 	"github.com/pkg/errors"
@@ -16,11 +15,14 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
@@ -69,6 +71,7 @@ func init() {
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
+	ctx := context.Background()
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 
 	if params.Url != "" && len(args) > 0 {
@@ -84,28 +87,57 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		params.Dir = path
 	}
 
+	var err error
 	osysClient := osys.New()
+	cliRunner := &runner.CLIRunner{}
+	fluxClient := flux.New(osysClient, cliRunner)
+	kubeClient := kube.New(cliRunner)
+	kube, rawClient, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		return fmt.Errorf("error creating k8s http client: %w", err)
+	}
 
-	token, err := osysClient.GetGitProviderToken()
+	logger := logger.NewCLILogger(os.Stdout)
+	if err := app.IsClusterReady(logger, kube); err != nil {
+		return err
+	}
 
-	goGit := wrapper.NewGoGit()
-	if err == osys.ErrNoGitProviderTokenSet {
-		// No provider token set, we need to do the auth flow.
-		url := params.Url
-		if url == "" {
-			// Find the url using an unauthenticated git client. We just need to read the URL.
-			// params.Dir must be defined here because we already checked for it above.
-			url, err = git.New(nil, goGit).GetRemoteUrl(params.Dir, "origin")
-			if err != nil {
-				return fmt.Errorf("could not get remote url for directory %s: %w", params.Dir, err)
-			}
+	isHelmRepository := params.Chart != ""
+	repoUrlString := params.Url
+	if repoUrlString == "" {
+		// Find the url using an unauthenticated git client. We just need to read the URL.
+		// params.Dir must be defined here because we already checked for it above.
+		repoUrlString, err = git.New(nil, wrapper.NewGoGit()).GetRemoteUrl(params.Dir, "origin")
+		if err != nil {
+			return fmt.Errorf("could not get remote url for directory %s: %w", params.Dir, err)
 		}
-		// DoAppRepoCLIAuth will take over the CLI and block until the flow is complete.
-		token, err = app.DoAppRepoCLIAuth(url, osysClient.Stdout())
+	}
+
+	var providerName gitproviders.GitProviderName
+	// We re-use the same --url flag for both git and helm sources.
+	// There isn't really a concept of "provider" in helm charts, and there is nothing to push.
+	// Assume charts are always public and no auth needs to be done.
+	if !isHelmRepository {
+		providerName, err = gitproviders.DetectGitProviderFromUrl(repoUrlString)
+		if err != nil {
+			return fmt.Errorf("error detecting git provider: %w", err)
+		}
+	}
+
+	token, tokenErr := osysClient.GetGitProviderToken()
+
+	if !isHelmRepository && tokenErr == osys.ErrNoGitProviderTokenSet {
+		// No provider token set, we need to do the auth flow.
+		authHandler, err := auth.NewAuthCLIHandler(providerName)
+		if err != nil {
+			return fmt.Errorf("could not get auth handler for provider %s: %w", providerName, err)
+		}
+
+		token, err = authHandler(ctx, osysClient.Stdout())
 		if err != nil {
 			return fmt.Errorf("could not complete auth flow: %w", err)
 		}
-	} else if err != nil {
+	} else if !isHelmRepository && tokenErr != nil {
 		// We didn't detect a NoGitProviderSet error, something else went wrong.
 		return fmt.Errorf("could not get access token: %w", err)
 	}
@@ -117,14 +149,35 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error selecting auth method: %w", err)
 	}
 
-	cliRunner := &runner.CLIRunner{}
-	fluxClient := flux.New(osysClient, cliRunner)
-	kubeClient, err := kube.NewKubeHTTPClient()
-	if err != nil {
-		return fmt.Errorf("error initializing kube client: %w", err)
+	gitClient := git.New(authMethod, wrapper.NewGoGit())
+
+	// If we are NOT doing a helm chart, we want to use a git client with an embedded deploy key
+	if !isHelmRepository {
+		authsvc, err := auth.NewAuthService(fluxClient, rawClient, providerName, logger, token)
+		if err != nil {
+			return fmt.Errorf("error creating auth service: %w", err)
+		}
+
+		targetName, err := kubeClient.GetClusterName(ctx)
+		if err != nil {
+			return fmt.Errorf("error getting target name: %w", err)
+		}
+
+		normalizedUrl, err := gitproviders.NewNormalizedRepoURL(repoUrlString)
+		if err != nil {
+			return fmt.Errorf("error creating normalized url: %w", err)
+		}
+
+		name := auth.SecretName{
+			Name:      app.CreateAppSecretName(targetName, normalizedUrl.String()),
+			Namespace: params.Namespace,
+		}
+		gitClient, err = authsvc.SetupDeployKey(ctx, name, targetName, normalizedUrl)
+		if err != nil {
+			return fmt.Errorf("error setting up deploy keys: %w", err)
+		}
+
 	}
-	gitClient := git.New(authMethod, goGit)
-	logger := logger.NewCLILogger(os.Stdout)
 
 	appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)
 

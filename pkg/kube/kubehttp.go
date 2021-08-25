@@ -17,7 +17,6 @@ import (
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -57,12 +56,12 @@ var (
 	GVRHelmRelease    schema.GroupVersionResource = helmv2.GroupVersion.WithResource("helmreleases")
 )
 
-func NewKubeHTTPClient() (Kube, error) {
+func NewKubeHTTPClient() (Kube, client.Client, error) {
 	cfgLoadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
 
 	_, kubeContext, err := initialContexts(cfgLoadingRules)
 	if err != nil {
-		return nil, fmt.Errorf("could not get initial context: %w", err)
+		return nil, nil, fmt.Errorf("could not get initial context: %w", err)
 	}
 
 	configOverrides := clientcmd.ConfigOverrides{CurrentContext: kubeContext}
@@ -73,32 +72,32 @@ func NewKubeHTTPClient() (Kube, error) {
 	).ClientConfig()
 
 	if err != nil {
-		return nil, fmt.Errorf("could not create rest config: %w", err)
+		return nil, nil, fmt.Errorf("could not create rest config: %w", err)
 	}
 
 	scheme := CreateScheme()
 
-	kubeClient, err := client.New(restCfg, client.Options{
+	rawClient, err := client.New(restCfg, client.Options{
 		Scheme: scheme,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("kubernetes client initialization failed: %w", err)
+		return nil, nil, fmt.Errorf("kubernetes client initialization failed: %w", err)
 	}
 
 	// 1. Prepare a RESTMapper to find GVR
 	dc, err := discovery.NewDiscoveryClientForConfig(restCfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize discovery client: %s", err)
+		return nil, nil, fmt.Errorf("failed to initialize discovery client: %s", err)
 	}
 	mapper := restmapper.NewDeferredDiscoveryRESTMapper(memory.NewMemCacheClient(dc))
 
 	// 2. Prepare the dynamic client
 	dyn, err := dynamic.NewForConfig(restCfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize dynamic client: %s", err)
+		return nil, nil, fmt.Errorf("failed to initialize dynamic client: %s", err)
 	}
 
-	return &KubeHTTP{Client: kubeClient, ClusterName: kubeContext, restMapper: mapper, dynClient: dyn}, nil
+	return &KubeHTTP{Client: rawClient, ClusterName: kubeContext, restMapper: mapper, dynClient: dyn}, rawClient, nil
 }
 
 // This is an alternative implementation of the kube.Kube interface,
@@ -259,15 +258,24 @@ func (c *KubeHTTP) SecretPresent(ctx context.Context, secretName string, namespa
 		Namespace: namespace,
 	}
 
+	if _, err := c.GetSecret(ctx, name); err != nil {
+		return false, fmt.Errorf("error checking secret presence for secret \"%s\": %w", secretName, err)
+	}
+
+	// No error, it must exist
+	return true, nil
+}
+
+func (c KubeHTTP) GetSecret(ctx context.Context, name types.NamespacedName) (*corev1.Secret, error) {
 	secret := corev1.Secret{}
 	if err := c.Client.Get(ctx, name, &secret); err != nil {
 		if apierrors.IsNotFound(err) {
-			return false, nil
+			return nil, nil
 		}
-		return false, fmt.Errorf("could not get secret: %w", err)
+		return nil, fmt.Errorf("could not get secret: %w", err)
 	}
 
-	return true, nil
+	return &secret, nil
 }
 
 func (c *KubeHTTP) GetApplications(ctx context.Context, namespace string) ([]wego.Application, error) {
@@ -278,26 +286,6 @@ func (c *KubeHTTP) GetApplications(ctx context.Context, namespace string) ([]weg
 	}
 
 	return result.Items, nil
-}
-
-func (c *KubeHTTP) AppExistsInCluster(ctx context.Context, namespace string, appHash string) error {
-	apps, err := c.GetApplications(ctx, namespace)
-	if err != nil {
-		return err
-	}
-
-	for _, app := range apps {
-		existingHash, err := utils.GetAppHash(app)
-		if err != nil {
-			return err
-		}
-
-		if appHash == existingHash {
-			return fmt.Errorf("unable to create resource, resource already exists in cluster")
-		}
-	}
-
-	return nil
 }
 
 func (c *KubeHTTP) GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error {

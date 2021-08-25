@@ -937,6 +937,50 @@ stringData:
 	})
 })
 
+var _ = Describe("Test app hash", func() {
+
+	It("should return right hash for a helm app", func() {
+
+		app := wego.Application{
+			Spec: wego.ApplicationSpec{
+				Branch:         "main",
+				URL:            "https://github.com/owner/repo1",
+				DeploymentType: wego.DeploymentTypeHelm,
+			},
+		}
+		app.Name = "nginx"
+
+		appHash, err := getAppResourceInfo(app, "my-cluster").getAppHash()
+		Expect(err).NotTo(HaveOccurred())
+
+		expectedHash, err := getHash(app.Spec.URL, app.Name, app.Spec.Branch)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(appHash).To(Equal("wego-" + expectedHash))
+
+	})
+
+	It("should return right hash for a kustomize app", func() {
+		app := wego.Application{
+			Spec: wego.ApplicationSpec{
+				Branch:         "main",
+				URL:            "https://github.com/owner/repo1",
+				Path:           "custompath",
+				DeploymentType: wego.DeploymentTypeKustomize,
+			},
+		}
+
+		appHash, err := getAppResourceInfo(app, "my-cluster").getAppHash()
+		Expect(err).NotTo(HaveOccurred())
+
+		expectedHash, err := getHash(app.Spec.URL, app.Spec.Path, app.Spec.Branch)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(appHash).To(Equal("wego-" + expectedHash))
+
+	})
+})
+
 func getHash(inputs ...string) (string, error) {
 	h := md5.New()
 	final := ""

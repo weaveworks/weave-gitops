@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -12,7 +10,15 @@ import (
 	"time"
 
 	"github.com/olekukonko/tablewriter"
+
+	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	corev1 "k8s.io/api/core/v1"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/envtest"
+
 	validation "k8s.io/apimachinery/pkg/api/validation"
 )
 
@@ -29,14 +35,32 @@ func Exists(filePath string) bool {
 
 // WaitUntil runs checkDone until a timeout is reached
 func WaitUntil(out io.Writer, poll, timeout time.Duration, checkDone func() error) error {
-	for start := time.Now(); time.Since(start) < timeout; time.Sleep(poll) {
+	_, err := timedRepeat(
+		out,
+		time.Now(),
+		poll,
+		timeout,
+		func(currentTime time.Time) time.Time {
+			time.Sleep(poll)
+			return time.Now()
+		},
+		checkDone)
+	return err
+}
+
+// timedRepeat runs checkDone until a timeout is reached by updating the current time via a specified operation
+func timedRepeat(out io.Writer, start time.Time, poll, timeout time.Duration, updater func(currentTime time.Time) time.Time, checkDone func() error) (time.Time, error) {
+	currentTime := start
+	endTime := currentTime.Add(timeout)
+
+	for ; currentTime.Before(endTime); currentTime = updater(currentTime) {
 		err := checkDone()
 		if err == nil {
-			return nil
+			return currentTime, nil
 		}
 		fmt.Fprintf(out, "error occurred %s, retrying in %s\n", err, poll.String())
 	}
-	return fmt.Errorf("timeout reached %s", timeout.String())
+	return currentTime, fmt.Errorf("timeout reached %s", timeout.String())
 }
 
 type callback func()
@@ -114,37 +138,6 @@ func SanitizeRepoUrl(url string) string {
 	return url
 }
 
-func GetAppHash(app wego.Application) (string, error) {
-	var appHash string
-	var err error
-
-	var getHash = func(inputs ...string) (string, error) {
-		h := md5.New()
-		final := ""
-		for _, input := range inputs {
-			final += input
-		}
-		_, err := h.Write([]byte(final))
-		if err != nil {
-			return "", fmt.Errorf("error generating app hash %s", err)
-		}
-		return hex.EncodeToString(h.Sum(nil)), nil
-	}
-
-	if app.Spec.DeploymentType == wego.DeploymentTypeHelm {
-		appHash, err = getHash(app.Spec.URL, app.Name, app.Spec.Branch)
-		if err != nil {
-			return "", err
-		}
-	} else {
-		appHash, err = getHash(app.Spec.URL, app.Spec.Path, app.Spec.Branch)
-		if err != nil {
-			return "", err
-		}
-	}
-	return "wego-" + appHash, nil
-}
-
 func PrintTable(writer io.Writer, header []string, rows [][]string) {
 	table := tablewriter.NewWriter(writer)
 	table.SetHeader(header)
@@ -178,4 +171,47 @@ func CleanCommitCreatedAt(createdAt time.Time) string {
 
 func ConvertCommitHashToShort(hash string) string {
 	return hash[:7]
+}
+
+func CreateAppSecretName(targetName string, repoURL string) string {
+	return fmt.Sprintf("wego-%s-%s", targetName, UrlToRepoName(repoURL))
+}
+
+func StartK8sTestEnvironment() (client.Client, func(), error) {
+	testEnv := &envtest.Environment{
+		CRDDirectoryPaths: []string{
+			"../../manifests/crds",
+			"../../tools/testcrds",
+		},
+	}
+
+	var err error
+	cfg, err := testEnv.Start()
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not start testEnv: %w", err)
+	}
+
+	scheme := kube.CreateScheme()
+
+	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
+		ClientDisableCacheFor: []client.Object{
+			&wego.Application{},
+			&corev1.Namespace{},
+			&corev1.Secret{},
+		},
+		Scheme: scheme,
+	})
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not create controller manager: %w", err)
+	}
+
+	go func() {
+		err := k8sManager.Start(ctrl.SetupSignalHandler())
+		Expect(err).ToNot(HaveOccurred())
+	}()
+
+	return k8sManager.GetClient(), func() {
+		err := testEnv.Stop()
+		Expect(err).NotTo(HaveOccurred())
+	}, nil
 }
