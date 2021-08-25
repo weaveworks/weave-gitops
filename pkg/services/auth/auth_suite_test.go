@@ -19,10 +19,10 @@ func TestGitProviderAuth(t *testing.T) {
 var cleanupK8s func()
 
 var _ = BeforeSuite(func() {
-	k, stop, err := testutils.StartK8sTestEnvironment()
+	k8sTestEnv, err := testutils.StartK8sTestEnvironment()
 	Expect(err).NotTo(HaveOccurred())
-	cleanupK8s = stop
-	k8sClient = k
+	cleanupK8s = k8sTestEnv.Stop
+	k8sClient = k8sTestEnv.Client
 })
 
 var _ = AfterSuite(func() {

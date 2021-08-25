@@ -12,10 +12,21 @@ import (
 
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/discovery"
+	memory "k8s.io/client-go/discovery/cached"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/restmapper"
 )
 
+type K8sTestEnv struct {
+	Client     client.Client
+	DynClient  dynamic.Interface
+	RestMapper *restmapper.DeferredDiscoveryRESTMapper
+	Stop       func()
+}
+
 // Starts a local k8s test environment for testing Kubernetes operations such as Create, Get, Delete, etc
-func StartK8sTestEnvironment() (client.Client, func(), error) {
+func StartK8sTestEnvironment() (*K8sTestEnv, error) {
 	testEnv := &envtest.Environment{
 		CRDDirectoryPaths: []string{
 			"../../manifests/crds",
@@ -26,7 +37,7 @@ func StartK8sTestEnvironment() (client.Client, func(), error) {
 	var err error
 	cfg, err := testEnv.Start()
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not start testEnv: %w", err)
+		return nil, fmt.Errorf("could not start testEnv: %w", err)
 	}
 
 	scheme := kube.CreateScheme()
@@ -40,7 +51,7 @@ func StartK8sTestEnvironment() (client.Client, func(), error) {
 		Scheme: scheme,
 	})
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not create controller manager: %w", err)
+		return nil, fmt.Errorf("could not create controller manager: %w", err)
 	}
 
 	go func() {
@@ -48,8 +59,24 @@ func StartK8sTestEnvironment() (client.Client, func(), error) {
 		Expect(err).ToNot(HaveOccurred())
 	}()
 
-	return k8sManager.GetClient(), func() {
-		err := testEnv.Stop()
-		Expect(err).NotTo(HaveOccurred())
+	dc, err := discovery.NewDiscoveryClientForConfig(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize discovery client: %s", err)
+	}
+	mapper := restmapper.NewDeferredDiscoveryRESTMapper(memory.NewMemCacheClient(dc))
+
+	dyn, err := dynamic.NewForConfig(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize dynamic client: %s", err)
+	}
+
+	return &K8sTestEnv{
+		Client:     k8sManager.GetClient(),
+		DynClient:  dyn,
+		RestMapper: mapper,
+		Stop: func() {
+			err := testEnv.Stop()
+			Expect(err).NotTo(HaveOccurred())
+		},
 	}, nil
 }

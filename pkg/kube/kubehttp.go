@@ -97,7 +97,7 @@ func NewKubeHTTPClient() (Kube, client.Client, error) {
 		return nil, nil, fmt.Errorf("failed to initialize dynamic client: %s", err)
 	}
 
-	return &KubeHTTP{Client: rawClient, ClusterName: kubeContext, restMapper: mapper, dynClient: dyn}, rawClient, nil
+	return &KubeHTTP{Client: rawClient, ClusterName: kubeContext, RestMapper: mapper, DynClient: dyn}, rawClient, nil
 }
 
 // This is an alternative implementation of the kube.Kube interface,
@@ -106,8 +106,8 @@ func NewKubeHTTPClient() (Kube, client.Client, error) {
 type KubeHTTP struct {
 	Client      client.Client
 	ClusterName string
-	dynClient   dynamic.Interface
-	restMapper  *restmapper.DeferredDiscoveryRESTMapper
+	DynClient   dynamic.Interface
+	RestMapper  *restmapper.DeferredDiscoveryRESTMapper
 }
 
 func (c *KubeHTTP) GetClusterName(ctx context.Context) (string, error) {
@@ -171,7 +171,7 @@ func (c *KubeHTTP) getResourceInterface(manifest []byte) (dynamic.ResourceInterf
 	}
 
 	// 4. Find GVR
-	mapping, err := c.restMapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	mapping, err := c.RestMapper.RESTMapping(gvk.GroupKind(), gvk.Version)
 	if err != nil {
 		return nil, "", nil, err
 	}
@@ -180,10 +180,10 @@ func (c *KubeHTTP) getResourceInterface(manifest []byte) (dynamic.ResourceInterf
 	var dr dynamic.ResourceInterface
 	if mapping.Scope.Name() == meta.RESTScopeNameNamespace {
 		// namespaced resources should specify the namespace
-		dr = c.dynClient.Resource(mapping.Resource).Namespace(obj.GetNamespace())
+		dr = c.DynClient.Resource(mapping.Resource).Namespace(obj.GetNamespace())
 	} else {
 		// for cluster-wide resources
-		dr = c.dynClient.Resource(mapping.Resource)
+		dr = c.DynClient.Resource(mapping.Resource)
 	}
 
 	// 6. Marshal object into JSON
@@ -228,7 +228,7 @@ func (c *KubeHTTP) DeleteByName(ctx context.Context, name string, gvr schema.Gro
 		PropagationPolicy: &deletePolicy,
 	}
 
-	if err := c.dynClient.Resource(gvr).Namespace(namespace).Delete(ctx, name, deleteOptions); err != nil {
+	if err := c.DynClient.Resource(gvr).Namespace(namespace).Delete(ctx, name, deleteOptions); err != nil {
 		return fmt.Errorf("failed to delete resource name=%s resource-type=%#v namespace=%s error=%w", name, gvr, namespace, err)
 	}
 
