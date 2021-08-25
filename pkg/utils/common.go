@@ -35,7 +35,7 @@ func Exists(filePath string) bool {
 
 // WaitUntil runs checkDone until a timeout is reached
 func WaitUntil(out io.Writer, poll, timeout time.Duration, checkDone func() error) error {
-	for start := time.Now(); time.Since(start) < timeout; time.Sleep(poll) {
+	for start := time.Now(); start.Before(start.Add(timeout)); time.Sleep(poll) {
 		err := checkDone()
 		if err == nil {
 			return nil
