@@ -131,9 +131,12 @@ func setupSSHKey(sshKeyPath string) {
 }
 
 func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool) (string, error) {
+	return ResetOrCreateClusterWithName(namespace, deleteWegoRuntime, "")
+}
+
+func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clusterName string) (string, error) {
 	supportedProviders := []string{"kind", "kubectl"}
 	supportedK8SVersions := []string{"1.19.1", "1.20.2", "1.21.1"}
-	clusterName := ""
 
 	provider, found := os.LookupEnv("CLUSTER_PROVIDER")
 	if !found {
@@ -168,7 +171,9 @@ func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool) (string, err
 	}
 
 	if provider == "kind" {
-		clusterName = provider + "-" + RandString(6)
+		if clusterName == "" {
+			clusterName = provider + "-" + RandString(6)
+		}
 		log.Infof("Creating a kind cluster %s", clusterName)
 		err := runCommandPassThrough([]string{}, "./scripts/kind-cluster.sh", clusterName, "kindest/node:v"+k8sVersion)
 		if err != nil {

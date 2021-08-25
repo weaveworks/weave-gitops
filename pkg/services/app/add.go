@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/md5"
-	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"net/url"
@@ -153,20 +152,14 @@ func (a *App) Add(params AddParams) error {
 
 	info := getAppResourceInfo(makeWegoApplication(params), clusterName)
 
-	appHash, err := info.getAppHash()
-	if err != nil {
-		return err
-	}
+	appHash := info.getAppHash()
 
 	apps, err := a.Kube.GetApplications(ctx, params.Namespace)
 	if err != nil {
 		return err
 	}
 	for _, app := range apps {
-		existingHash, err := getAppResourceInfo(app, clusterName).getAppHash()
-		if err != nil {
-			return err
-		}
+		existingHash := getAppResourceInfo(app, clusterName).getAppHash()
 
 		if appHash == existingHash {
 			return fmt.Errorf("unable to create resource, resource already exists in cluster")
@@ -215,6 +208,8 @@ func (a *App) printAddSummary(params AddParams) {
 
 	a.Logger.Println("")
 }
+
+const maxKubernetesResourceNameLength = 63
 
 func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, params AddParams) (AddParams, error) {
 	params.SourceType = wego.SourceTypeGit
@@ -278,6 +273,10 @@ func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, 
 				params.Branch = branch
 			}
 		}
+	}
+
+	if len(params.Name) > maxKubernetesResourceNameLength {
+		return params, fmt.Errorf("application name too long: %s; must be <= 63 characters", params.Name)
 	}
 
 	// Validate namespace argument for helm
@@ -855,10 +854,16 @@ func (a *AppResourceInfo) appSecretName(repoURL string) GeneratedSecretName {
 	return CreateAppSecretName(a.clusterName, repoURL)
 }
 
+func hashNameIfTooLong(name string) string {
+	if len(name) <= maxKubernetesResourceNameLength {
+		return name
+	}
+
+	return fmt.Sprintf("wego-%x", md5.Sum([]byte(name)))
+}
+
 func CreateAppSecretName(targetName string, repoURL string) GeneratedSecretName {
-	repoName := utils.UrlToRepoName(repoURL)
-	repoName = strings.ReplaceAll(repoName, "_", "-")
-	return GeneratedSecretName(fmt.Sprintf("wego-%s-%s", targetName, repoName))
+	return GeneratedSecretName(hashNameIfTooLong(fmt.Sprintf("wego-%s-%s", targetName, generateResourceName(repoURL))))
 }
 
 func (a *AppResourceInfo) automationAppsDirKustomizationName() string {
@@ -866,7 +871,7 @@ func (a *AppResourceInfo) automationAppsDirKustomizationName() string {
 }
 
 func (a *AppResourceInfo) automationTargetDirKustomizationName() string {
-	return fmt.Sprintf("%s-%s", a.targetName, a.Name)
+	return hashNameIfTooLong(fmt.Sprintf("%s-%s", a.targetName, a.Name))
 }
 
 func (a *AppResourceInfo) sourceKind() ResourceKind {
@@ -971,37 +976,17 @@ func (a *AppResourceInfo) clusterResourcePaths() []string {
 	return []string{a.appYamlPath(), a.appAutomationSourcePath(), a.appAutomationDeployPath()}
 }
 
-func (info *AppResourceInfo) getAppHash() (string, error) {
-
-	var appHash string
-	var err error
-
-	var getHash = func(inputs ...string) (string, error) {
-		h := md5.New()
-		final := ""
-		for _, input := range inputs {
-			final += input
-		}
-		_, err := h.Write([]byte(final))
-		if err != nil {
-			return "", fmt.Errorf("error generating app hash %s", err)
-		}
-		return hex.EncodeToString(h.Sum(nil)), nil
+func (info *AppResourceInfo) getAppHash() string {
+	var getHash = func(inputs ...string) string {
+		final := []byte(strings.Join(inputs, ""))
+		return fmt.Sprintf("%x", md5.Sum(final))
 	}
 
 	if info.Spec.DeploymentType == wego.DeploymentTypeHelm {
-		appHash, err = getHash(info.Spec.URL, info.Name, info.Spec.Branch)
-		if err != nil {
-			return "", err
-		}
+		return "wego-" + getHash(info.Spec.URL, info.Name, info.Spec.Branch)
 	} else {
-		appHash, err = getHash(info.Spec.URL, info.Spec.Path, info.Spec.Branch)
-		if err != nil {
-			return "", err
-		}
+		return "wego-" + getHash(info.Spec.URL, info.Spec.Path, info.Spec.Branch)
 	}
-	return "wego-" + appHash, nil
-
 }
 
 // NOTE: ready to save the targets automation in phase 2

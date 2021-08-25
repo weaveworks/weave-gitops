@@ -1474,3 +1474,116 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 })
+
+var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
+	deleteWegoRuntime := false
+	if os.Getenv("DELETE_WEGO_RUNTIME_ON_EACH_TEST") == "true" {
+		deleteWegoRuntime = true
+	}
+
+	var _ = BeforeEach(func() {
+		By("Given I have a brand new cluster with a long cluster name", func() {
+			var err error
+
+			clusterName = "kind-123456789012345678901234567890"
+			_, err = ResetOrCreateClusterWithName(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, clusterName)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		By("And I have a wego binary installed on my local machine", func() {
+			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
+		})
+	})
+
+	FIt("Verify that wego can deploy an app with app-config-url set to <url>", func() {
+		var repoAbsolutePath string
+		var configRepoRemoteURL string
+		var listOutput string
+		var appStatus string
+		private := true
+		readmeFilePath := "./data/README.md"
+		tip := generateTestInputs()
+		appFilesRepoName := tip.appRepoName + "123456789012345678901234567890"
+		appConfigRepoName := "wego-config-repo-" + RandString(8)
+		configRepoRemoteURL = "ssh://git@github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
+		appName := appFilesRepoName
+		workloadName := tip.workloadName
+		workloadNamespace := tip.workloadNamespace
+		appManifestFilePath := tip.appManifestFilePath
+
+		addCommand := "app add . --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
+
+		defer deleteRepo(appFilesRepoName)
+		defer deleteRepo(appConfigRepoName)
+		defer deleteWorkload(workloadName, workloadNamespace)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(appFilesRepoName)
+			deleteRepo(appConfigRepoName)
+		})
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(workloadName, workloadNamespace)
+		})
+
+		By("When I create a private repo for wego app config", func() {
+			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, private)
+			gitAddCommitPush(appConfigRepoAbsPath, readmeFilePath)
+		})
+
+		By("When I create a private repo with app workload", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appFilesRepoName, private)
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
+		By("And I run wego app add command for app: "+appName, func() {
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see should see my workload deployed for app", func() {
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+			verifyWorkloadIsDeployed(workloadName, workloadNamespace)
+		})
+
+		By("When I check the app status for app", func() {
+			appStatus, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName)
+		})
+
+		By("Then I should see the status for "+appName, func() {
+			Eventually(appStatus).Should(ContainSubstring(`Last successful reconciliation:`))
+			Eventually(appStatus).Should(ContainSubstring(`gitrepository/` + appName))
+			Eventually(appStatus).Should(ContainSubstring(`kustomization/` + appName))
+		})
+
+		By("When I check for apps list", func() {
+			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app list")
+		})
+
+		By("Then I should see appNames for all apps listed", func() {
+			Eventually(listOutput).Should(ContainSubstring(appName))
+		})
+
+		By("And I should not see wego components in app repo: "+appFilesRepoName, func() {
+			pullGitRepo(repoAbsolutePath)
+			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && ls -al", repoAbsolutePath))
+			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
+			Expect(folderOutput).ShouldNot(ContainSubstring("apps"))
+			Expect(folderOutput).ShouldNot(ContainSubstring("targets"))
+		})
+
+		By("And I should see wego components in config repo: "+appConfigRepoName, func() {
+			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && git clone %s && cd %s && ls -al", repoAbsolutePath, configRepoRemoteURL, appConfigRepoName))
+			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
+			Expect(folderOutput).Should(ContainSubstring("apps"))
+			Expect(folderOutput).Should(ContainSubstring("targets"))
+		})
+	})
+})
