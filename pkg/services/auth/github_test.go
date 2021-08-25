@@ -8,16 +8,10 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strings"
-	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
-
-func TestGitProviderAuth(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Auth Suite")
-}
 
 type testServerTransport struct {
 	testServeUrl string

@@ -744,3 +744,60 @@ var _ = Describe("helpers", func() {
 	)
 
 })
+
+type expectedRepoURL struct {
+	s        string
+	owner    string
+	name     string
+	provider GitProviderName
+	protocol RepositoryURLProtocol
+}
+
+var _ = DescribeTable("NormalizedRepoURL", func(input string, expected expectedRepoURL) {
+	result, err := NewNormalizedRepoURL(input)
+	Expect(err).NotTo(HaveOccurred())
+
+	Expect(result.String()).To(Equal(expected.s))
+	u, err := url.Parse(expected.s)
+	Expect(err).NotTo(HaveOccurred())
+	Expect(result.URL()).To(Equal(u))
+	Expect(result.Owner()).To(Equal(expected.owner))
+	Expect(result.Provider()).To(Equal(expected.provider))
+	Expect(result.Protocol()).To(Equal(expected.protocol))
+},
+	Entry("github git clone style", "git@github.com:someuser/podinfo.git", expectedRepoURL{
+		s:        "ssh://git@github.com/someuser/podinfo.git",
+		owner:    "someuser",
+		name:     "podinfo",
+		provider: GitProviderGitHub,
+		protocol: RepositoryURLProtocolSSH,
+	}),
+	Entry("github url style", "ssh://git@github.com/someuser/podinfo.git", expectedRepoURL{
+		s:        "ssh://git@github.com/someuser/podinfo.git",
+		owner:    "someuser",
+		name:     "podinfo",
+		provider: GitProviderGitHub,
+		protocol: RepositoryURLProtocolSSH,
+	}),
+	Entry("github https", "https://github.com/someuser/podinfo.git", expectedRepoURL{
+		s:        "https://github.com/someuser/podinfo.git",
+		owner:    "someuser",
+		name:     "podinfo",
+		provider: GitProviderGitHub,
+		protocol: RepositoryURLProtocolHTTPS,
+	}),
+	Entry("gitlab git clone style", "git@gitlab.com:someuser/podinfo.git", expectedRepoURL{
+		s:        "ssh://git@gitlab.com/someuser/podinfo.git",
+		owner:    "someuser",
+		name:     "podinfo",
+		provider: GitProviderGitLab,
+		protocol: RepositoryURLProtocolSSH,
+	}),
+	Entry("gitlab https", "https://gitlab.com/someuser/podinfo.git", expectedRepoURL{
+		s:        "https://gitlab.com/someuser/podinfo.git",
+		owner:    "someuser",
+		name:     "podinfo",
+		provider: GitProviderGitLab,
+		protocol: RepositoryURLProtocolHTTPS,
+	}),
+)

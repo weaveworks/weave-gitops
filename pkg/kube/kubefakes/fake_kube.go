@@ -7,6 +7,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -144,6 +145,20 @@ type FakeKube struct {
 	}
 	getResourceReturnsOnCall map[int]struct {
 		result1 error
+	}
+	GetSecretStub        func(context.Context, types.NamespacedName) (*v1.Secret, error)
+	getSecretMutex       sync.RWMutex
+	getSecretArgsForCall []struct {
+		arg1 context.Context
+		arg2 types.NamespacedName
+	}
+	getSecretReturns struct {
+		result1 *v1.Secret
+		result2 error
+	}
+	getSecretReturnsOnCall map[int]struct {
+		result1 *v1.Secret
+		result2 error
 	}
 	SecretPresentStub        func(context.Context, string, string) (bool, error)
 	secretPresentMutex       sync.RWMutex
@@ -815,6 +830,71 @@ func (fake *FakeKube) GetResourceReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeKube) GetSecret(arg1 context.Context, arg2 types.NamespacedName) (*v1.Secret, error) {
+	fake.getSecretMutex.Lock()
+	ret, specificReturn := fake.getSecretReturnsOnCall[len(fake.getSecretArgsForCall)]
+	fake.getSecretArgsForCall = append(fake.getSecretArgsForCall, struct {
+		arg1 context.Context
+		arg2 types.NamespacedName
+	}{arg1, arg2})
+	stub := fake.GetSecretStub
+	fakeReturns := fake.getSecretReturns
+	fake.recordInvocation("GetSecret", []interface{}{arg1, arg2})
+	fake.getSecretMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeKube) GetSecretCallCount() int {
+	fake.getSecretMutex.RLock()
+	defer fake.getSecretMutex.RUnlock()
+	return len(fake.getSecretArgsForCall)
+}
+
+func (fake *FakeKube) GetSecretCalls(stub func(context.Context, types.NamespacedName) (*v1.Secret, error)) {
+	fake.getSecretMutex.Lock()
+	defer fake.getSecretMutex.Unlock()
+	fake.GetSecretStub = stub
+}
+
+func (fake *FakeKube) GetSecretArgsForCall(i int) (context.Context, types.NamespacedName) {
+	fake.getSecretMutex.RLock()
+	defer fake.getSecretMutex.RUnlock()
+	argsForCall := fake.getSecretArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeKube) GetSecretReturns(result1 *v1.Secret, result2 error) {
+	fake.getSecretMutex.Lock()
+	defer fake.getSecretMutex.Unlock()
+	fake.GetSecretStub = nil
+	fake.getSecretReturns = struct {
+		result1 *v1.Secret
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeKube) GetSecretReturnsOnCall(i int, result1 *v1.Secret, result2 error) {
+	fake.getSecretMutex.Lock()
+	defer fake.getSecretMutex.Unlock()
+	fake.GetSecretStub = nil
+	if fake.getSecretReturnsOnCall == nil {
+		fake.getSecretReturnsOnCall = make(map[int]struct {
+			result1 *v1.Secret
+			result2 error
+		})
+	}
+	fake.getSecretReturnsOnCall[i] = struct {
+		result1 *v1.Secret
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeKube) SecretPresent(arg1 context.Context, arg2 string, arg3 string) (bool, error) {
 	fake.secretPresentMutex.Lock()
 	ret, specificReturn := fake.secretPresentReturnsOnCall[len(fake.secretPresentArgsForCall)]
@@ -904,6 +984,8 @@ func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	defer fake.getClusterStatusMutex.RUnlock()
 	fake.getResourceMutex.RLock()
 	defer fake.getResourceMutex.RUnlock()
+	fake.getSecretMutex.RLock()
+	defer fake.getSecretMutex.RUnlock()
 	fake.secretPresentMutex.RLock()
 	defer fake.secretPresentMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
