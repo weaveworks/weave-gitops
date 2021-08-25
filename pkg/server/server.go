@@ -38,9 +38,9 @@ type applicationServer struct {
 	app *app.App
 }
 
-// An applicationConfig allows for the customization of an ApplicationsServer.
+// An ApplicationConfig allows for the customization of an ApplicationsServer.
 // Use the DefaultConfig() to use the default dependencies.
-type applicationConfig struct {
+type ApplicationConfig struct {
 	Logger logr.Logger
 	App    *app.App
 }
@@ -51,7 +51,7 @@ type contextVals struct {
 }
 
 // NewApplicationsServer creates a grpc Applications server
-func NewApplicationsServer(cfg *applicationConfig) pb.ApplicationsServer {
+func NewApplicationsServer(cfg *ApplicationConfig) pb.ApplicationsServer {
 	return &applicationServer{
 		log: cfg.Logger,
 		app: cfg.App,
@@ -59,7 +59,7 @@ func NewApplicationsServer(cfg *applicationConfig) pb.ApplicationsServer {
 }
 
 // DefaultConfig creates a populated config with the dependencies for a Server
-func DefaultConfig() (*applicationConfig, error) {
+func DefaultConfig() (*ApplicationConfig, error) {
 	zapLog, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatalf("could not create zap logger: %v", err)
@@ -73,7 +73,7 @@ func DefaultConfig() (*applicationConfig, error) {
 
 	appSrv := app.New(nil, nil, nil, kubeClient, nil)
 
-	return &applicationConfig{
+	return &ApplicationConfig{
 		Logger: logr,
 		App:    appSrv,
 	}, nil
@@ -81,7 +81,7 @@ func DefaultConfig() (*applicationConfig, error) {
 
 // NewApplicationsHandler allow for other applications to embed the Weave GitOps HTTP API.
 // This handler can be muxed with other services or used as a standalone service.
-func NewApplicationsHandler(ctx context.Context, cfg *applicationConfig, opts ...runtime.ServeMuxOption) (http.Handler, error) {
+func NewApplicationsHandler(ctx context.Context, cfg *ApplicationConfig, opts ...runtime.ServeMuxOption) (http.Handler, error) {
 	appsSrv := NewApplicationsServer(cfg)
 
 	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(cfg.Logger))
@@ -213,7 +213,13 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 		pageToken = int(*msg.PageToken)
 	}
 
-	params := app.CommitParams{Name: msg.Name, Namespace: msg.Namespace, GitProviderToken: token, PageSize: int(msg.PageSize), PageToken: pageToken}
+	params := app.CommitParams{
+		Name:             msg.Name,
+		Namespace:        msg.Namespace,
+		GitProviderToken: token,
+		PageSize:         int(msg.PageSize),
+		PageToken:        pageToken,
+	}
 
 	commits, err := s.app.GetCommits(params)
 	if err != nil {
