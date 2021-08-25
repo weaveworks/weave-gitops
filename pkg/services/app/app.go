@@ -65,12 +65,13 @@ type App struct {
 
 func New(logger logger.Logger, git git.Git, flux flux.Flux, kube kube.Kube, osys osys.Osys) *App {
 	return &App{
-		Git:                git,
-		Flux:               flux,
-		Kube:               kube,
-		Logger:             logger,
-		Osys:               osys,
-		GitProviderFactory: createGitProvider,
+		Git:                       git,
+		Flux:                      flux,
+		Kube:                      kube,
+		Logger:                    logger,
+		Osys:                      osys,
+		GitProviderFactory:        createGitProvider,
+		temporaryGitClientFactory: temporaryCreateGitClient,
 	}
 }
 
