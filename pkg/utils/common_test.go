@@ -45,6 +45,7 @@ var _ = Describe("Test common utils", func() {
 		counter := 0
 		output := gbytes.NewBuffer()
 		go func() {
+			defer GinkgoRecover()
 			err := WaitUntil(output, time.Millisecond, time.Millisecond, func() error {
 				counter++
 				return nil
@@ -59,11 +60,12 @@ var _ = Describe("Test common utils", func() {
 
 	})
 
-	It("Verify WaitUntil prints out proper messages after succeeding at second attempt in less than 1 millisecond", func(done Done) {
+	FIt("Verify WaitUntil prints out proper messages after succeeding at second attempt in less than 1 millisecond", func(done Done) {
 
 		counter := 0
 		output := gbytes.NewBuffer()
 		go func() {
+			defer GinkgoRecover()
 			err := WaitUntil(output, time.Millisecond, time.Millisecond*2, func() error {
 				if counter == 0 {
 					counter++
