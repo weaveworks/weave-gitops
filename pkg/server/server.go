@@ -41,8 +41,8 @@ type applicationServer struct {
 // An ServerConfig allows for the customization of an ApplicationsServer.
 // Use the DefaultConfig() to use the default dependencies.
 type applicationConfig struct {
-	logger logr.Logger
-	app    *app.App
+	Logger logr.Logger
+	App    *app.App
 }
 
 //Remove when middleware is done
@@ -53,8 +53,8 @@ type contextVals struct {
 // NewApplicationsServer creates a grpc Applications server
 func NewApplicationsServer(cfg *applicationConfig) pb.ApplicationsServer {
 	return &applicationServer{
-		log: cfg.logger,
-		app: cfg.app,
+		log: cfg.Logger,
+		app: cfg.App,
 	}
 }
 
@@ -74,8 +74,8 @@ func DefaultConfig() (*applicationConfig, error) {
 	appSrv := app.New(nil, nil, nil, kubeClient, nil)
 
 	return &applicationConfig{
-		logger: logr,
-		app:    appSrv,
+		Logger: logr,
+		App:    appSrv,
 	}, nil
 }
 
@@ -84,8 +84,8 @@ func DefaultConfig() (*applicationConfig, error) {
 func NewServerHandler(ctx context.Context, cfg *applicationConfig, opts ...runtime.ServeMuxOption) (http.Handler, error) {
 	appsSrv := NewApplicationsServer(cfg)
 
-	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(cfg.logger))
-	httpHandler := middleware.WithLogging(cfg.logger, mux)
+	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(cfg.Logger))
+	httpHandler := middleware.WithLogging(cfg.Logger, mux)
 
 	if err := pb.RegisterApplicationsHandlerServer(ctx, mux, appsSrv); err != nil {
 		return nil, fmt.Errorf("could not register application: %w", err)
