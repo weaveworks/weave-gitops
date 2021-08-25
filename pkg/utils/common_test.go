@@ -50,6 +50,8 @@ var _ = Describe("Test common utils", func() {
 				return nil
 			})
 			Expect(err).ShouldNot(HaveOccurred())
+			Expect(output).Should(gbytes.Say(""))
+			Expect(counter).Should(Equal(1))
 			close(done)
 		}()
 		Eventually(output, time.Millisecond*2, time.Millisecond*2).Should(gbytes.Say(""))
@@ -70,6 +72,8 @@ var _ = Describe("Test common utils", func() {
 				return nil
 			})
 			Expect(err).ShouldNot(HaveOccurred())
+			Expect(output).Should(gbytes.Say("error occurred some error, retrying in 1ms\n"))
+			Expect(counter).Should(Equal(1))
 			close(done)
 		}()
 		Eventually(output, time.Millisecond*3, time.Millisecond*3).Should(gbytes.Say("error occurred some error, retrying in 1ms\n"))
@@ -88,6 +92,8 @@ var _ = Describe("Test common utils", func() {
 				return fmt.Errorf("some error")
 			})
 			Expect(err.Error()).Should(Equal("timeout reached 2ms"))
+			Expect(output).Should(gbytes.Say("error occurred some error, retrying in 1ms\nerror occurred some error, retrying in 1ms\n"))
+			Expect(counter).Should(Equal(2))
 			close(done)
 		}()
 		Eventually(output, time.Millisecond*3, time.Millisecond*3).Should(gbytes.Say("error occurred some error, retrying in 1ms\nerror occurred some error, retrying in 1ms\n"))
