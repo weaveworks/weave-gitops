@@ -226,6 +226,10 @@ func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, 
 		params.DeploymentType = string(wego.DeploymentTypeHelm)
 		params.Path = params.Chart
 		if params.Name == "" {
+			if nameTooLong(params.Chart) {
+				return params, fmt.Errorf("chart name %q is too long to use as application name; please specify name with '--name'", params.Chart)
+			}
+
 			params.Name = params.Chart
 		}
 		if params.Url == "" {
@@ -253,11 +257,18 @@ func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, 
 	}
 
 	if params.Name == "" {
+		repoName := utils.UrlToRepoName(params.Url)
+		if nameTooLong(repoName) {
+			return params, fmt.Errorf("url base name %q is too long to use as application name; please specify name with '--name'", repoName)
+		}
+
 		params.Name = generateResourceName(params.Url)
 	}
+
 	if params.Path == "" {
 		params.Path = DefaultPath
 	}
+
 	if params.DeploymentType == "" {
 		params.DeploymentType = DefaultDeploymentType
 	}
@@ -724,7 +735,7 @@ func generateAppYaml(info *AppResourceInfo, appHash string) ([]byte, error) {
 }
 
 func generateResourceName(url string) string {
-	return strings.ReplaceAll(utils.UrlToRepoName(url), "_", "-")
+	return hashNameIfTooLong(strings.ReplaceAll(utils.UrlToRepoName(url), "_", "-"))
 }
 
 func (a *App) createPullRequestToRepo(info *AppResourceInfo, gitProvider gitproviders.GitProvider, repo string, appHash string, appYaml []byte, goatSource, goatDeploy []byte) error {
@@ -854,8 +865,12 @@ func (a *AppResourceInfo) appSecretName(repoURL string) GeneratedSecretName {
 	return CreateAppSecretName(a.clusterName, repoURL)
 }
 
+func nameTooLong(name string) bool {
+	return len(name) > maxKubernetesResourceNameLength
+}
+
 func hashNameIfTooLong(name string) string {
-	if len(name) <= maxKubernetesResourceNameLength {
+	if !nameTooLong(name) {
 		return name
 	}
 
@@ -867,7 +882,7 @@ func CreateAppSecretName(targetName string, repoURL string) GeneratedSecretName 
 }
 
 func (a *AppResourceInfo) automationAppsDirKustomizationName() string {
-	return fmt.Sprintf("%s-apps-dir", a.Name)
+	return hashNameIfTooLong(fmt.Sprintf("%s-apps-dir", a.Name))
 }
 
 func (a *AppResourceInfo) automationTargetDirKustomizationName() string {

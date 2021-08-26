@@ -924,8 +924,21 @@ stringData:
 		It("ensures that app names are <= 63 characters", func() {
 			addParams.Name = "a23456789012345678901234567890123456789012345678901234567890123"
 			Expect(appSrv.Add(addParams)).To(Succeed())
+			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
+			Expect(info.automationAppsDirKustomizationName()).To(Equal("wego-" + getHash(fmt.Sprintf("%s-apps-dir", addParams.Name))))
 			addParams.Name = "a234567890123456789012345678901234567890123456789012345678901234"
 			Expect(appSrv.Add(addParams)).ShouldNot(Succeed())
+		})
+
+		It("ensures that url base names are <= 63 characters when used as names", func() {
+			addParams.Url = "https://github.com/foo/a23456789012345678901234567890123456789012345678901234567890123"
+			localParams, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(appSrv.Add(localParams)).To(Succeed())
+			addParams.Name = ""
+			addParams.Url = "https://github.com/foo/a234567890123456789012345678901234567890123456789012345678901234"
+			_, err = appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			Expect(err).Should(HaveOccurred())
 		})
 
 		It("specifies a short cluster name, base url, and app name and gets them all included in resource names", func() {
@@ -933,6 +946,7 @@ stringData:
 			addParams.Name = "app-name"
 			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
 
+			Expect(info.automationAppsDirKustomizationName()).To(Equal("app-name-apps-dir"))
 			Expect(info.automationTargetDirKustomizationName()).To(Equal("cluster-app-name"))
 			Expect(info.appSecretName(addParams.Url).String()).To(Equal("wego-cluster-url-base"))
 		})
