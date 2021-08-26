@@ -1,3 +1,6 @@
+<!-- Use # to add the issue this pull request is related to -->
+Closes: 
+
 <!-- Describe what has changed in this PR -->
 **What changed?**
 
