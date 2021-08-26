@@ -516,6 +516,7 @@ stringData:
 				addParams.HelmReleaseTargetNamespace = "sock-shop&*&*&*&"
 
 				badNamespaceErr := appSrv.Add(addParams)
+				Expect(badNamespaceErr).NotTo(BeNil())
 				Expect(badNamespaceErr.Error()).To(HavePrefix("could not update parameters: invalid namespace"))
 			})
 
