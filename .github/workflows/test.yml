@@ -117,6 +117,7 @@ jobs:
       with:
         selenoid-start-arguments: |
           --args "--disable-gpu --no-sandbox"
+          --browsers 'chrome' --last-versions 1
     - name: Setup Kubernetes
       uses: engineerd/setup-kind@v0.5.0
       with:
