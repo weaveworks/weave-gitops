@@ -63,6 +63,9 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	params := app.CommitParams{}
 	params.Name = args[0]
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
+	// Hardcode PageSize and PageToken until there is a plan around pagination for cli
+	params.PageSize = 10
+	params.PageToken = 0
 
 	command := args[1]
 	object := args[2]
@@ -71,7 +74,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	osysClient := osys.New()
 	fluxClient := flux.New(osysClient, cliRunner)
 	logger := logger.NewCLILogger(os.Stdout)
-	kubeClient, err := kube.NewKubeHTTPClient()
+	kubeClient, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return fmt.Errorf("error initializing kube client: %w", err)
 	}
@@ -94,11 +97,11 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	case "commits":
 		commits, err := appService.GetCommits(params)
 		if err != nil {
-			_ = cmd.Help()
 			return errors.Wrapf(err, "failed to get commits for app %s", params.Name)
 		}
 		printCommitTable(logger, commits)
 	default:
+		_ = cmd.Help()
 		return fmt.Errorf("unkown resource type \"%s\"", object)
 	}
 
@@ -106,11 +109,11 @@ func runCmd(cmd *cobra.Command, args []string) error {
 }
 
 func printCommitTable(logger logger.Logger, commits []gitprovider.Commit) {
-	header := []string{"Commit Hash", "Author", "Message", "Created At"}
+	header := []string{"Commit Hash", "Created At", "Author", "Message"}
 	rows := [][]string{}
 	for _, commit := range commits {
 		c := commit.Get()
-		rows = append(rows, []string{c.Sha, c.Author, c.Message, c.CreatedAt.String()})
+		rows = append(rows, []string{utils.ConvertCommitHashToShort(c.Sha), utils.CleanCommitCreatedAt(c.CreatedAt), c.Author, utils.CleanCommitMessage(c.Message)})
 	}
 
 	utils.PrintTable(logger, header, rows)

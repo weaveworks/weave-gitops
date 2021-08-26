@@ -28,7 +28,7 @@ var _ = Describe("WEGO Flux Tests", func() {
 		})
 
 		By("Then I should see wego error message", func() {
-			Eventually(sessionOutput.Wait().Out.Contents()).Should(ContainSubstring("✗ unknown command \"foo\" for \"flux\""))
+			Eventually(sessionOutput.Wait().Err.Contents()).Should(ContainSubstring("✗ unknown command \"foo\" for \"flux\""))
 		})
 	})
 

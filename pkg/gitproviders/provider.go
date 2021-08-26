@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -37,8 +38,8 @@ type GitProvider interface {
 	UploadDeployKey(owner, repoName string, deployKey []byte) error
 	CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
 	CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
-	GetCommitsFromUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string) ([]gitprovider.Commit, error)
-	GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string) ([]gitprovider.Commit, error)
+	GetCommitsFromUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
+	GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
 	GetAccountType(owner string) (ProviderAccountType, error)
 }
 
@@ -173,8 +174,9 @@ func (p defaultGitProvider) DeployKeyExists(owner, repoName string) (bool, error
 
 func (p defaultGitProvider) UploadDeployKey(owner, repoName string, deployKey []byte) error {
 	deployKeyInfo := gitprovider.DeployKeyInfo{
-		Name: deployKeyName,
-		Key:  deployKey,
+		Name:     deployKeyName,
+		Key:      deployKey,
+		ReadOnly: gitprovider.BoolVar(false),
 	}
 
 	ownerType, err := p.GetAccountType(owner)
@@ -439,7 +441,7 @@ func (p defaultGitProvider) CreatePullRequestToOrgRepo(orgRepRef gitprovider.Org
 }
 
 // GetCommitsFromUserRepo gets a limit of 10 commits from a user repo
-func (p defaultGitProvider) GetCommitsFromUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string) ([]gitprovider.Commit, error) {
+func (p defaultGitProvider) GetCommitsFromUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
 	ctx := context.Background()
 
 	ur, err := p.provider.UserRepositories().Get(ctx, userRepRef)
@@ -448,7 +450,7 @@ func (p defaultGitProvider) GetCommitsFromUserRepo(userRepRef gitprovider.UserRe
 	}
 
 	// currently locking the commit list at 10. May discuss pagination options later.
-	commits, err := ur.Commits().ListPage(ctx, targetBranch, 10, 0)
+	commits, err := ur.Commits().ListPage(ctx, targetBranch, pageSize, pageToken)
 	if err != nil {
 		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", userRepRef.String(), err)
 	}
@@ -457,7 +459,7 @@ func (p defaultGitProvider) GetCommitsFromUserRepo(userRepRef gitprovider.UserRe
 }
 
 // GetCommitsFromUserRepo gets a limit of 10 commits from an organization
-func (p defaultGitProvider) GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string) ([]gitprovider.Commit, error) {
+func (p defaultGitProvider) GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
 	ctx := context.Background()
 
 	ur, err := p.provider.OrgRepositories().Get(ctx, orgRepRef)
@@ -466,7 +468,7 @@ func (p defaultGitProvider) GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepos
 	}
 
 	// currently locking the commit list at 10. May discuss pagination options later.
-	commits, err := ur.Commits().ListPage(ctx, targetBranch, 10, 0)
+	commits, err := ur.Commits().ListPage(ctx, targetBranch, pageSize, pageToken)
 	if err != nil {
 		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", orgRepRef.String(), err)
 	}
@@ -529,4 +531,100 @@ func DetectGitProviderFromUrl(raw string) (GitProviderName, error) {
 	}
 
 	return "", fmt.Errorf("no git providers found for \"%s\"", raw)
+}
+
+type RepositoryURLProtocol string
+
+const RepositoryURLProtocolHTTPS RepositoryURLProtocol = "https"
+const RepositoryURLProtocolSSH RepositoryURLProtocol = "ssh"
+
+type NormalizedRepoURL struct {
+	repoName   string
+	owner      string
+	url        *url.URL
+	normalized string
+	provider   GitProviderName
+	protocol   RepositoryURLProtocol
+}
+
+var sshPrefixRe = regexp.MustCompile(`git@(.*):(.*)/(.*)`)
+
+func normalizeRepoURLString(url string) string {
+	if !strings.HasSuffix(url, ".git") {
+		url = url + ".git"
+	}
+
+	captured := sshPrefixRe.FindAllStringSubmatch(url, 1)
+
+	if len(captured) > 0 {
+		captured := sshPrefixRe.FindAllStringSubmatch(url, 1)
+		matches := captured[0]
+		if len(matches) >= 3 {
+			provider := matches[1]
+			org := matches[2]
+			repo := matches[3]
+			n := fmt.Sprintf("ssh://git@%s/%s/%s", provider, org, repo)
+			return n
+		}
+
+	}
+
+	return url
+}
+
+func NewNormalizedRepoURL(uri string) (NormalizedRepoURL, error) {
+	normalized := normalizeRepoURLString(uri)
+
+	u, err := url.Parse(normalized)
+	if err != nil {
+		return NormalizedRepoURL{}, fmt.Errorf("could not create normalized repo URL %s: %w", uri, err)
+	}
+
+	owner, err := utils.GetOwnerFromUrl(normalized)
+	if err != nil {
+		return NormalizedRepoURL{}, fmt.Errorf("could get owner name from URL %s: %w", uri, err)
+	}
+
+	providerName, err := DetectGitProviderFromUrl(normalized)
+	if err != nil {
+		return NormalizedRepoURL{}, fmt.Errorf("could get provider name from URL %s: %w", uri, err)
+	}
+
+	protocol := RepositoryURLProtocolSSH
+	if u.Scheme == "https" {
+		protocol = RepositoryURLProtocolHTTPS
+	}
+
+	return NormalizedRepoURL{
+		repoName:   utils.UrlToRepoName(uri),
+		owner:      owner,
+		url:        u,
+		normalized: normalized,
+		provider:   providerName,
+		protocol:   protocol,
+	}, nil
+}
+
+func (n NormalizedRepoURL) String() string {
+	return n.normalized
+}
+
+func (n NormalizedRepoURL) URL() *url.URL {
+	return n.url
+}
+
+func (n NormalizedRepoURL) Owner() string {
+	return n.owner
+}
+
+func (n NormalizedRepoURL) RepositoryName() string {
+	return n.repoName
+}
+
+func (n NormalizedRepoURL) Provider() GitProviderName {
+	return n.provider
+}
+
+func (n NormalizedRepoURL) Protocol() RepositoryURLProtocol {
+	return n.protocol
 }

@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"crypto/md5"
-	"encoding/hex"
 	"fmt"
 	"strings"
 
@@ -154,7 +153,7 @@ stringData:
 
 	Describe("checks for existing deploy key before creating secret", func() {
 		It("looks up deploy key and skips creating secret if found", func() {
-			addParams.SourceType = string(wego.SourceTypeGit)
+			addParams.SourceType = wego.SourceTypeGit
 
 			gitProviders.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
 				return true, nil
@@ -173,7 +172,7 @@ stringData:
 		})
 
 		It("looks up deploy key and creates secret if not found", func() {
-			addParams.SourceType = string(wego.SourceTypeGit)
+			addParams.SourceType = wego.SourceTypeGit
 
 			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -201,7 +200,7 @@ stringData:
 
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
-				addParams.SourceType = string(wego.SourceTypeGit)
+				addParams.SourceType = wego.SourceTypeGit
 
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -380,7 +379,7 @@ stringData:
 
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
-				addParams.SourceType = string(wego.SourceTypeGit)
+				addParams.SourceType = wego.SourceTypeGit
 
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -618,7 +617,7 @@ stringData:
 
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
-				addParams.SourceType = string(wego.SourceTypeGit)
+				addParams.SourceType = wego.SourceTypeGit
 
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -670,12 +669,10 @@ stringData:
 				info := getAppResourceInfo(makeWegoApplication(params), "")
 
 				desired2 := info.Application
-				hash, err := getHash(repoURL, info.Spec.Path, info.Spec.Branch)
-				Expect(err).To(BeNil())
+				hash := getHash(repoURL, info.Spec.Path, info.Spec.Branch)
 
 				desired2.ObjectMeta.Labels = map[string]string{WeGOAppIdentifierLabelKey: hash}
 
-				Expect(err).NotTo(HaveOccurred())
 				out, err := generateAppYaml(info, hash)
 				Expect(err).To(BeNil())
 
@@ -691,7 +688,7 @@ stringData:
 				// so we assert it should be empty above, and conditionally print the diff to make a nice assertion message.
 				// `diff` is a formatted string
 				if diff != "" {
-					fmt.Println(diff)
+					appSrv.(*App).Logger.Println(diff)
 				}
 			})
 		})
@@ -922,17 +919,102 @@ stringData:
 
 		})
 	})
+
+	Context("ensure that generated resource names are <= 63 characters in length", func() {
+		It("ensures that app names are <= 63 characters", func() {
+			addParams.Name = "a23456789012345678901234567890123456789012345678901234567890123"
+			Expect(appSrv.Add(addParams)).To(Succeed())
+			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
+			Expect(info.automationAppsDirKustomizationName()).To(Equal("wego-" + getHash(fmt.Sprintf("%s-apps-dir", addParams.Name))))
+			addParams.Name = "a234567890123456789012345678901234567890123456789012345678901234"
+			Expect(appSrv.Add(addParams)).ShouldNot(Succeed())
+		})
+
+		It("ensures that url base names are <= 63 characters when used as names", func() {
+			addParams.Url = "https://github.com/foo/a23456789012345678901234567890123456789012345678901234567890123"
+			localParams, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(appSrv.Add(localParams)).To(Succeed())
+			addParams.Name = ""
+			addParams.Url = "https://github.com/foo/a234567890123456789012345678901234567890123456789012345678901234"
+			_, err = appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			Expect(err).Should(HaveOccurred())
+		})
+
+		It("specifies a short cluster name, base url, and app name and gets them all included in resource names", func() {
+			addParams.Url = "https://github.com/foo/url-base"
+			addParams.Name = "app-name"
+			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
+
+			Expect(info.automationAppsDirKustomizationName()).To(Equal("app-name-apps-dir"))
+			Expect(info.automationTargetDirKustomizationName()).To(Equal("cluster-app-name"))
+			Expect(info.appSecretName(addParams.Url).String()).To(Equal("wego-cluster-url-base"))
+		})
+
+		It("specifies a cluster name, base url, and app name that generate 63 characters and gets them all included in resource names", func() {
+			addParams.Url = "https://github.com/foo/u"
+			addParams.Name = "a12345"
+			info := getAppResourceInfo(makeWegoApplication(addParams), "c2345678901234567890123456789012345678901234567890123456")
+
+			Expect(info.automationTargetDirKustomizationName()).To(Equal("c2345678901234567890123456789012345678901234567890123456-a12345"))
+			Expect(info.appSecretName(addParams.Url).String()).To(Equal("wego-c2345678901234567890123456789012345678901234567890123456-u"))
+		})
+
+		It("specifies a long cluster name, base url, and app name that generate 64 characters and gets hashed resource names", func() {
+			addParams.Name = "a123456"
+			addParams.Url = "https://github.com/foo/u1"
+			clusterName := "c2345678901234567890123456789012345678901234567890123456"
+			info := getAppResourceInfo(makeWegoApplication(addParams), clusterName)
+
+			kustName := info.automationTargetDirKustomizationName()
+			secretName := info.appSecretName(addParams.Url).String()
+			repoName := generateResourceName(addParams.Url)
+
+			Expect(kustName).To(Equal("wego-" + getHash(fmt.Sprintf("%s-%s", clusterName, addParams.Name))))
+			Expect(secretName).To(Equal("wego-" + getHash(fmt.Sprintf("wego-%s-%s", clusterName, repoName))))
+		})
+	})
 })
 
-func getHash(inputs ...string) (string, error) {
-	h := md5.New()
-	final := ""
-	for _, input := range inputs {
-		final += input
-	}
-	_, err := h.Write([]byte(final))
-	if err != nil {
-		return "", fmt.Errorf("error generating app hash %s", err)
-	}
-	return hex.EncodeToString(h.Sum(nil)), nil
+var _ = Describe("Test app hash", func() {
+
+	It("should return right hash for a helm app", func() {
+
+		app := wego.Application{
+			Spec: wego.ApplicationSpec{
+				Branch:         "main",
+				URL:            "https://github.com/owner/repo1",
+				DeploymentType: wego.DeploymentTypeHelm,
+			},
+		}
+		app.Name = "nginx"
+
+		appHash := getAppResourceInfo(app, "my-cluster").getAppHash()
+		expectedHash := getHash(app.Spec.URL, app.Name, app.Spec.Branch)
+
+		Expect(appHash).To(Equal("wego-" + expectedHash))
+
+	})
+
+	It("should return right hash for a kustomize app", func() {
+		app := wego.Application{
+			Spec: wego.ApplicationSpec{
+				Branch:         "main",
+				URL:            "https://github.com/owner/repo1",
+				Path:           "custompath",
+				DeploymentType: wego.DeploymentTypeKustomize,
+			},
+		}
+
+		appHash := getAppResourceInfo(app, "my-cluster").getAppHash()
+		expectedHash := getHash(app.Spec.URL, app.Spec.Path, app.Spec.Branch)
+
+		Expect(appHash).To(Equal("wego-" + expectedHash))
+
+	})
+})
+
+func getHash(inputs ...string) string {
+	final := []byte(strings.Join(inputs, ""))
+	return fmt.Sprintf("%x", md5.Sum(final))
 }

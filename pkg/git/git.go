@@ -55,4 +55,5 @@ type Git interface {
 	Status() (bool, error)
 	Head() (string, error)
 	GetRemoteUrl(dir string, remoteName string) (string, error)
+	ValidateAccess(ctx context.Context, url string, branch string) error
 }

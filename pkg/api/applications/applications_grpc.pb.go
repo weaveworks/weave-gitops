@@ -24,6 +24,9 @@ type ApplicationsClient interface {
 	//
 	// GetApplication returns a given application
 	GetApplication(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*GetApplicationResponse, error)
+	//
+	// ListCommits returns the list of WeGo commits that the authenticated user has access to.
+	ListCommits(ctx context.Context, in *ListCommitsRequest, opts ...grpc.CallOption) (*ListCommitsResponse, error)
 }
 
 type applicationsClient struct {
@@ -52,6 +55,15 @@ func (c *applicationsClient) GetApplication(ctx context.Context, in *GetApplicat
 	return out, nil
 }
 
+func (c *applicationsClient) ListCommits(ctx context.Context, in *ListCommitsRequest, opts ...grpc.CallOption) (*ListCommitsResponse, error) {
+	out := new(ListCommitsResponse)
+	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/ListCommits", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ApplicationsServer is the server API for Applications service.
 // All implementations must embed UnimplementedApplicationsServer
 // for forward compatibility
@@ -62,6 +74,9 @@ type ApplicationsServer interface {
 	//
 	// GetApplication returns a given application
 	GetApplication(context.Context, *GetApplicationRequest) (*GetApplicationResponse, error)
+	//
+	// ListCommits returns the list of WeGo commits that the authenticated user has access to.
+	ListCommits(context.Context, *ListCommitsRequest) (*ListCommitsResponse, error)
 	mustEmbedUnimplementedApplicationsServer()
 }
 
@@ -74,6 +89,9 @@ func (UnimplementedApplicationsServer) ListApplications(context.Context, *ListAp
 }
 func (UnimplementedApplicationsServer) GetApplication(context.Context, *GetApplicationRequest) (*GetApplicationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetApplication not implemented")
+}
+func (UnimplementedApplicationsServer) ListCommits(context.Context, *ListCommitsRequest) (*ListCommitsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListCommits not implemented")
 }
 func (UnimplementedApplicationsServer) mustEmbedUnimplementedApplicationsServer() {}
 
@@ -124,6 +142,24 @@ func _Applications_GetApplication_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Applications_ListCommits_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCommitsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationsServer).ListCommits(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wego_server.v1.Applications/ListCommits",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationsServer).ListCommits(ctx, req.(*ListCommitsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Applications_ServiceDesc is the grpc.ServiceDesc for Applications service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -138,6 +174,10 @@ var Applications_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetApplication",
 			Handler:    _Applications_GetApplication_Handler,
+		},
+		{
+			MethodName: "ListCommits",
+			Handler:    _Applications_ListCommits_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

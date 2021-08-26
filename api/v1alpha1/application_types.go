@@ -66,6 +66,8 @@ const (
 	ResumeAction  SuspendActionType = "resume"
 )
 
+const DefaultNamespace = "wego-system"
+
 // ApplicationStatus defines the observed state of Application
 type ApplicationStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster

@@ -7,6 +7,7 @@ package acceptance
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"regexp"
 	"strconv"
 
@@ -41,8 +42,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 
 	It("Verify that wego cannot work without wego components installed in the cluster", func() {
 		var repoAbsolutePath string
-		var addCommandErr string
-		var addCommandOut string
 		private := true
 		tip := generateTestInputs()
 
@@ -71,13 +70,18 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
+		var exitCode int
 		By("And I run wego add command", func() {
-			addCommandOut, addCommandErr = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+			command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand))
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
+			Eventually(session).Should(gexec.Exit())
+			exitCode = session.Wait().ExitCode()
 		})
 
 		By("Then I should see relevant message in the console", func() {
-			Eventually(addCommandOut).Should(MatchRegexp(`✔ No flux or wego installed`))
-			Eventually(addCommandErr).Should(ContainSubstring("Wego not installed... exiting"))
+			// Should  be a failure
+			Eventually(exitCode).ShouldNot(Equal(0))
 		})
 	})
 
@@ -765,6 +769,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		var unpauseOutput string
 		var appStatus1 *gexec.Session
 		var appStatus2 *gexec.Session
+		var appRemoveOutput *gexec.Session
 		var repoAbsolutePath1 string
 		var repoAbsolutePath2 string
 		var appManifestFile1 string
@@ -884,6 +889,14 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Expect(pauseOutput).To(ContainSubstring("gitops automation paused for " + appName1))
 		})
 
+		By("When I check app status for paused app", func() {
+			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName1))
+		})
+
+		By("Then I should see pause status as suspended=true", func() {
+			Eventually(appStatus1).Should(gbytes.Say(`kustomization/` + appName1 + `\s*True\s*.*True`))
+		})
+
 		By("And changes to the app files should not be synchronized", func() {
 			appManifestFile1, _ = runCommandAndReturnStringOutput("cd " + repoAbsolutePath1 + " && ls")
 			createAppReplicas(repoAbsolutePath1, appManifestFile1, replicaSetValue, tip1.workloadName)
@@ -927,14 +940,40 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		By("Then I should see unpause message without any errors", func() {
 			Expect(unpauseOutput).To(ContainSubstring("app " + appName1 + " is already reconciling"))
 		})
+
+		By("When I check app status for unpaused app", func() {
+			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName1))
+		})
+
+		By("Then I should see pause status as suspended=false", func() {
+			Eventually(appStatus1).Should(gbytes.Say(`kustomization/` + appName1 + `\s*True\s*.*False`))
+		})
+
+		By("When I remove an app", func() {
+			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app remove " + appName2)
+		})
+
+		By("Then I should see app removing message", func() {
+			Eventually(appRemoveOutput).Should(gbytes.Say("► Removing application from cluster and repository"))
+			Eventually(appRemoveOutput).Should(gbytes.Say("► Committing and pushing wego updates for application"))
+			Eventually(appRemoveOutput).Should(gbytes.Say("► Pushing app changes to repository"))
+		})
+
+		By("And app should get deleted from the cluster", func() {
+			_ = waitForAppRemoval(appName2, APP_REMOVAL_TIMEOUT)
+		})
 	})
 
 	It("SmokeTest - Verify that wego can deploy a helm app from a git repo with app-config-url set to NONE", func() {
 		var repoAbsolutePath string
+		var reinstallOutput string
+		var reAddOutput string
+		var removeOutput *gexec.Session
 		private := true
 		appManifestFilePath := "./data/helm-repo/hello-world"
 		appName := "my-helm-app"
 		appRepoName := "wego-test-app-" + RandString(8)
+		badAppName := "foo"
 
 		addCommand := "app add . --deployment-type=helm --path=./hello-world --name=" + appName + " --app-config-url=NONE"
 
@@ -973,6 +1012,49 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
 			Expect(folderOutput).ShouldNot(ContainSubstring("apps"))
 			Expect(folderOutput).ShouldNot(ContainSubstring("targets"))
+		})
+
+		By("When I rerun wego gitops install", func() {
+			reinstallOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " gitops install")
+		})
+
+		By("Then I should not see any errors", func() {
+			Eventually(reinstallOutput).Should(ContainSubstring("► installing components in " + WEGO_DEFAULT_NAMESPACE + " namespace"))
+			Eventually(reinstallOutput).Should(ContainSubstring("✔ image-reflector-controller: deployment ready"))
+			Eventually(reinstallOutput).Should(ContainSubstring("✔ image-automation-controller: deployment ready"))
+			Eventually(reinstallOutput).Should(ContainSubstring("✔ source-controller: deployment ready"))
+			Eventually(reinstallOutput).Should(ContainSubstring("✔ kustomize-controller: deployment ready"))
+			Eventually(reinstallOutput).Should(ContainSubstring("✔ helm-controller: deployment ready"))
+			Eventually(reinstallOutput).Should(ContainSubstring("✔ notification-controller: deployment ready"))
+		})
+
+		By("When I rerun wego app add command", func() {
+			_, reAddOutput = runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand))
+		})
+
+		By("Then I should see an error", func() {
+			Eventually(reAddOutput).Should(ContainSubstring("Error: failed to add the app " + appName + ": unable to create resource, resource already exists in cluster"))
+		})
+
+		By("And app status should remain same", func() {
+			out := runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app status " + appName)
+			Eventually(out).Should(gbytes.Say(`helmrelease/` + appName + `\s*True\s*.*False`))
+		})
+
+		By("When I run wego app remove", func() {
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s app remove %s", WEGO_BIN_PATH, appName))
+		})
+
+		By("Then I should see app removed from the cluster", func() {
+			_ = waitForAppRemoval(appName, APP_REMOVAL_TIMEOUT)
+		})
+
+		By("When I run wego app remove for a non-existent app", func() {
+			removeOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app remove " + badAppName)
+		})
+
+		By("Then I should get an error", func() {
+			Eventually(removeOutput.Err).Should(gbytes.Say(`Error: failed to remove the app ` + badAppName + `: could not run kubectl command: failed to run kubectl with output: Error from server \(NotFound\): apps.wego.weave.works "` + badAppName + `" not found`))
 		})
 	})
 
@@ -1389,6 +1471,119 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		By("And I should fail to create another PR with the same app", func() {
 			_, addCommandErr := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand2, WEGO_DEFAULT_NAMESPACE)
 			Expect(addCommandErr).Should(ContainSubstring("unable to create resource, resource already exists in cluster"))
+		})
+	})
+})
+
+var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
+	deleteWegoRuntime := false
+	if os.Getenv("DELETE_WEGO_RUNTIME_ON_EACH_TEST") == "true" {
+		deleteWegoRuntime = true
+	}
+
+	var _ = BeforeEach(func() {
+		By("Given I have a brand new cluster with a long cluster name", func() {
+			var err error
+
+			clusterName = "kind-123456789012345678901234567890"
+			_, err = ResetOrCreateClusterWithName(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, clusterName)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		By("And I have a wego binary installed on my local machine", func() {
+			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
+		})
+	})
+
+	It("Verify that wego can deploy an app with app-config-url set to <url>", func() {
+		var repoAbsolutePath string
+		var configRepoRemoteURL string
+		var listOutput string
+		var appStatus string
+		private := true
+		readmeFilePath := "./data/README.md"
+		tip := generateTestInputs()
+		appFilesRepoName := tip.appRepoName + "123456789012345678901234567890"
+		appConfigRepoName := "wego-config-repo-" + RandString(8)
+		configRepoRemoteURL = "ssh://git@github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
+		appName := appFilesRepoName
+		workloadName := tip.workloadName
+		workloadNamespace := tip.workloadNamespace
+		appManifestFilePath := tip.appManifestFilePath
+
+		addCommand := "app add . --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
+
+		defer deleteRepo(appFilesRepoName)
+		defer deleteRepo(appConfigRepoName)
+		defer deleteWorkload(workloadName, workloadNamespace)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(appFilesRepoName)
+			deleteRepo(appConfigRepoName)
+		})
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(workloadName, workloadNamespace)
+		})
+
+		By("When I create a private repo for wego app config", func() {
+			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, private)
+			gitAddCommitPush(appConfigRepoAbsPath, readmeFilePath)
+		})
+
+		By("When I create a private repo with app workload", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appFilesRepoName, private)
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
+		By("And I run wego app add command for app: "+appName, func() {
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see should see my workload deployed for app", func() {
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+			verifyWorkloadIsDeployed(workloadName, workloadNamespace)
+		})
+
+		By("When I check the app status for app", func() {
+			appStatus, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName)
+		})
+
+		By("Then I should see the status for "+appName, func() {
+			Eventually(appStatus).Should(ContainSubstring(`Last successful reconciliation:`))
+			Eventually(appStatus).Should(ContainSubstring(`gitrepository/` + appName))
+			Eventually(appStatus).Should(ContainSubstring(`kustomization/` + appName))
+		})
+
+		By("When I check for apps list", func() {
+			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app list")
+		})
+
+		By("Then I should see appNames for all apps listed", func() {
+			Eventually(listOutput).Should(ContainSubstring(appName))
+		})
+
+		By("And I should not see wego components in app repo: "+appFilesRepoName, func() {
+			pullGitRepo(repoAbsolutePath)
+			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && ls -al", repoAbsolutePath))
+			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
+			Expect(folderOutput).ShouldNot(ContainSubstring("apps"))
+			Expect(folderOutput).ShouldNot(ContainSubstring("targets"))
+		})
+
+		By("And I should see wego components in config repo: "+appConfigRepoName, func() {
+			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && git clone %s && cd %s && ls -al", repoAbsolutePath, configRepoRemoteURL, appConfigRepoName))
+			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
+			Expect(folderOutput).Should(ContainSubstring("apps"))
+			Expect(folderOutput).Should(ContainSubstring("targets"))
 		})
 	})
 })

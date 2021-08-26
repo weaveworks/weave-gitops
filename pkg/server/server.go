@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,57 +17,71 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/middleware"
+	"github.com/weaveworks/weave-gitops/pkg/services/app"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"go.uber.org/zap"
+	"golang.org/x/oauth2"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type server struct {
+type key int
+
+const tokenKey key = iota
+
+type applicationServer struct {
 	pb.UnimplementedApplicationsServer
 
-	kube kube.Kube
-	log  logr.Logger
+	log logr.Logger
+	app *app.App
 }
 
-// An ApplicationsConfig allows for the customization of an ApplicationsServer.
+// An ApplicationConfig allows for the customization of an ApplicationsServer.
 // Use the DefaultConfig() to use the default dependencies.
-type ApplicationsConfig struct {
-	Logger     logr.Logger
-	KubeClient kube.Kube
+type ApplicationConfig struct {
+	Logger logr.Logger
+	App    *app.App
+}
+
+//Remove when middleware is done
+type contextVals struct {
+	Token *oauth2.Token
 }
 
 // NewApplicationsServer creates a grpc Applications server
-func NewApplicationsServer(cfg *ApplicationsConfig) pb.ApplicationsServer {
-	return &server{
-		kube: cfg.KubeClient,
-		log:  cfg.Logger,
+func NewApplicationsServer(cfg *ApplicationConfig) pb.ApplicationsServer {
+	return &applicationServer{
+		log: cfg.Logger,
+		app: cfg.App,
 	}
 }
 
-// DefaultConfig creates a populated config with the dependencies for an ApplicationsServer
-func DefaultConfig() (*ApplicationsConfig, error) {
+// DefaultConfig creates a populated config with the dependencies for a Server
+func DefaultConfig() (*ApplicationConfig, error) {
 	zapLog, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatalf("could not create zap logger: %v", err)
 	}
 	logr := zapr.NewLogger(zapLog)
 
-	kubeClient, err := kube.NewKubeHTTPClient()
+	kubeClient, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return nil, fmt.Errorf("could not create kube http client: %w", err)
 	}
 
-	return &ApplicationsConfig{
-		Logger:     logr,
-		KubeClient: kubeClient,
+	appSrv := app.New(nil, nil, nil, kubeClient, nil)
+
+	return &ApplicationConfig{
+		Logger: logr,
+		App:    appSrv,
 	}, nil
 }
 
-// NewApplicationsHandler allow for other applications to embed the Weave GitOps Applications HTTP API.
+// NewApplicationsHandler allow for other applications to embed the Weave GitOps HTTP API.
 // This handler can be muxed with other services or used as a standalone service.
-func NewApplicationsHandler(ctx context.Context, cfg *ApplicationsConfig, opts ...runtime.ServeMuxOption) (http.Handler, error) {
+func NewApplicationsHandler(ctx context.Context, cfg *ApplicationConfig, opts ...runtime.ServeMuxOption) (http.Handler, error) {
 	appsSrv := NewApplicationsServer(cfg)
 
 	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(cfg.Logger))
@@ -79,8 +94,8 @@ func NewApplicationsHandler(ctx context.Context, cfg *ApplicationsConfig, opts .
 	return httpHandler, nil
 }
 
-func (s *server) ListApplications(ctx context.Context, msg *pb.ListApplicationsRequest) (*pb.ListApplicationsResponse, error) {
-	apps, err := s.kube.GetApplications(ctx, msg.GetNamespace())
+func (s *applicationServer) ListApplications(ctx context.Context, msg *pb.ListApplicationsRequest) (*pb.ListApplicationsResponse, error) {
+	apps, err := s.app.Kube.GetApplications(ctx, msg.GetNamespace())
 	if err != nil {
 		return nil, err
 	}
@@ -100,8 +115,8 @@ func (s *server) ListApplications(ctx context.Context, msg *pb.ListApplicationsR
 	}, nil
 }
 
-func (s *server) GetApplication(ctx context.Context, msg *pb.GetApplicationRequest) (*pb.GetApplicationResponse, error) {
-	app, err := s.kube.GetApplication(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace})
+func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetApplicationRequest) (*pb.GetApplicationResponse, error) {
+	app, err := s.app.Kube.GetApplication(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace})
 	if err != nil {
 		return nil, fmt.Errorf("could not get application \"%s\": %w", msg.Name, err)
 	}
@@ -113,14 +128,14 @@ func (s *server) GetApplication(ctx context.Context, msg *pb.GetApplicationReque
 
 	name := types.NamespacedName{Name: app.Name, Namespace: app.Namespace}
 
-	if err := s.kube.GetResource(ctx, name, src); err != nil {
+	if err := s.app.Kube.GetResource(ctx, name, src); err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil, nil
 		}
 		return nil, fmt.Errorf("could not get source for app %s: %w", app.Name, err)
 	}
 
-	if err := s.kube.GetResource(ctx, name, deployment); err != nil {
+	if err := s.app.Kube.GetResource(ctx, name, deployment); err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil, nil
 		}
@@ -165,6 +180,74 @@ func (s *server) GetApplication(ctx context.Context, msg *pb.GetApplicationReque
 		SourceConditions:     srcConditions,
 		DeploymentConditions: deploymentConditions,
 	}}, nil
+}
+
+//Temporary solution to get this to build until middleware is done
+func extractToken(ctx context.Context) (string, error) {
+	c := ctx.Value(tokenKey)
+
+	vals, ok := c.(contextVals)
+	if !ok {
+		return "", errors.New("could not get token from context")
+	}
+
+	if vals.Token == nil || vals.Token.AccessToken == "" {
+		return "", errors.New("no token specified")
+	}
+
+	return vals.Token.AccessToken, nil
+}
+
+//Until the middleware is done this function will not be able to get the token and will fail
+func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommitsRequest) (*pb.ListCommitsResponse, error) {
+	vals := contextVals{Token: &oauth2.Token{AccessToken: "temptoken"}}
+	ctx = context.WithValue(ctx, tokenKey, vals)
+
+	token, err := extractToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	pageToken := 0
+	if msg.PageToken != nil {
+		pageToken = int(*msg.PageToken)
+	}
+
+	params := app.CommitParams{
+		Name:             msg.Name,
+		Namespace:        msg.Namespace,
+		GitProviderToken: token,
+		PageSize:         int(msg.PageSize),
+		PageToken:        pageToken,
+	}
+
+	commits, err := s.app.GetCommits(params)
+	if err != nil {
+		return &pb.ListCommitsResponse{
+			Commits: []*pb.Commit{},
+		}, err
+	}
+
+	if commits == nil {
+		return &pb.ListCommitsResponse{
+			Commits: []*pb.Commit{},
+		}, nil
+	}
+
+	list := []*pb.Commit{}
+	for _, commit := range commits {
+		list = append(list, &pb.Commit{
+			Author:     commit.Get().Author,
+			Message:    utils.CleanCommitMessage(commit.Get().Message),
+			CommitHash: commit.Get().Sha,
+			Date:       commit.Get().CreatedAt.String(),
+		})
+	}
+	nextPageToken := int32(pageToken + 1)
+	return &pb.ListCommitsResponse{
+		Commits:       list,
+		NextPageToken: nextPageToken,
+	}, nil
 }
 
 // Returns k8s objects that can be used to find the cluster objects.
