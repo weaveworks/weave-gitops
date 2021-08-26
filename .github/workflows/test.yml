@@ -112,8 +112,6 @@ jobs:
     - name: Setup selenoid
       uses: Xotabu4/selenoid-github-action@v2
       with:
-        env:
-          SELENIUM_HUB_HOST: 'localhost'
         selenoid-start-arguments: |
           --args "-disable-gpu"
           --args "--no-sandbox"
