@@ -19,7 +19,7 @@ import (
 
 var clusterName string
 
-var _ = Describe("Weave GitOps Add Tests", func() {
+var _ = Describe("Weave GitOps App Add Tests", func() {
 	deleteWegoRuntime := false
 	if os.Getenv("DELETE_WEGO_RUNTIME_ON_EACH_TEST") == "true" {
 		deleteWegoRuntime = true
@@ -1058,7 +1058,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("SmokeTest - Verify that wego can deploy a helm app from a git repo with app-config-url set to default", func() {
+	It("Verify that wego can deploy a helm app from a git repo with app-config-url set to default", func() {
 		var repoAbsolutePath string
 		public := false
 		appName := "my-helm-app"

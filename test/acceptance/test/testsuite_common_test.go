@@ -44,4 +44,11 @@ var _ = BeforeSuite(func() {
 		WEGO_BIN_PATH = "/usr/local/bin/wego"
 	}
 	log.Infof("WEGO Binary Path: %s", WEGO_BIN_PATH)
+	// SELENIUM_SERVICE_URL = "http://localhost:4444/wd/hub"
+})
+
+var _ = AfterSuite(func() {
+	if webDriver != nil {
+		Expect(webDriver.Stop()).To(Succeed())
+	}
 })

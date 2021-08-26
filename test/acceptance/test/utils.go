@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/sclevine/agouti"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	. "github.com/onsi/ginkgo"
@@ -30,6 +31,7 @@ const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
 const NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
 const INSTALL_PODS_READY_TIMEOUT time.Duration = 180 * time.Second
 const WEGO_DEFAULT_NAMESPACE = wego.DefaultNamespace
+const WEGO_UI_URL = "http://localhost:9001"
 
 var DEFAULT_SSH_KEY_PATH string
 var GITHUB_ORG string
@@ -559,4 +561,20 @@ func mergePR(repoAbsolutePath, prLink string) {
 	session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
+}
+
+func initializeWebDriver(webDriver string) *agouti.WebDriver {
+	log.Infof("Initializing WebDriver: " + webDriver)
+
+	if webDriver == "chrome" {
+		chromeDriver := agouti.ChromeDriver()
+		Expect(chromeDriver.Start()).To(Succeed())
+		return chromeDriver
+	}
+	if webDriver == "remote" {
+		remoteDriver := agouti.Selenium()
+		Expect(remoteDriver.Start()).To(Succeed())
+		return remoteDriver
+	}
+	return nil
 }

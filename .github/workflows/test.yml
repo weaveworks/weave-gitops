@@ -107,6 +107,16 @@ jobs:
         go-version: 1.16.3
     - name: Checkout code
       uses: actions/checkout@v2
+    - name: Setup xvfb
+      uses: GabrielBB/xvfb-action@v1
+    - name: Setup selenoid
+      uses: Xotabu4/selenoid-github-action@v2
+      with:
+        env:
+          SELENIUM_HUB_HOST: 'localhost'
+        selenoid-start-arguments: |
+          --args "-disable-gpu"
+          --args "--no-sandbox"
     - name: Setup Kubernetes
       uses: engineerd/setup-kind@v0.5.0
       with:
