@@ -286,7 +286,7 @@ func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, 
 		}
 	}
 
-	if len(params.Name) > maxKubernetesResourceNameLength {
+	if nameTooLong(params.Name) {
 		return params, fmt.Errorf("application name too long: %s; must be <= 63 characters", params.Name)
 	}
 
