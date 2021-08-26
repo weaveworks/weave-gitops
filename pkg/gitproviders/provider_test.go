@@ -515,7 +515,7 @@ func GetCommitToUserRepo(client gitprovider.Client, domain string, userAccount s
 	err := gitProvider.CreateUserRepository(userRepoRef, repoInfo, opts)
 	Expect(err).NotTo(HaveOccurred())
 
-	commits, err := gitProvider.GetCommitsFromUserRepo(userRepoRef, "main")
+	commits, err := gitProvider.GetCommitsFromUserRepo(userRepoRef, "main", 10, 0)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(commits[0].Get().Message).To(Equal("Initial commit"))
 	Expect(commits[0].Get().Author).To(Equal("bot"))
@@ -540,7 +540,7 @@ func GetCommitToOrgRepo(client gitprovider.Client, domain string, orgName string
 	err := gitProvider.CreateOrgRepository(orgRepoRef, repoInfo, opts)
 	Expect(err).NotTo(HaveOccurred())
 
-	commits, err := gitProvider.GetCommitsFromOrgRepo(orgRepoRef, "main")
+	commits, err := gitProvider.GetCommitsFromOrgRepo(orgRepoRef, "main", 10, 0)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(commits[0].Get().Message).To(Equal("Initial commit"))
 	Expect(commits[0].Get().Author).To(Equal("bot"))

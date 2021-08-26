@@ -15,13 +15,15 @@ type CommitParams struct {
 	Name             string
 	Namespace        string
 	GitProviderToken string
+	PageSize         int
+	PageToken        int
 }
 
 // GetCommits gets a list of commits from the repo/branch saved in the app manifest
 func (a *App) GetCommits(params CommitParams) ([]gitprovider.Commit, error) {
 	ctx := context.Background()
 
-	app, err := a.kube.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
+	app, err := a.Kube.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
 	if err != nil {
 		return nil, fmt.Errorf("unable to get application for %s %w", params.Name, err)
 	}
@@ -35,7 +37,7 @@ func (a *App) GetCommits(params CommitParams) ([]gitprovider.Commit, error) {
 		return nil, fmt.Errorf("failed to retrieve owner: %w", err)
 	}
 
-	gitProvider, err := a.gitProviderFactory(params.GitProviderToken)
+	gitProvider, err := a.GitProviderFactory(params.GitProviderToken)
 	if err != nil {
 		return nil, err
 	}
@@ -50,13 +52,13 @@ func (a *App) GetCommits(params CommitParams) ([]gitprovider.Commit, error) {
 
 	if accountType == gitproviders.AccountTypeUser {
 		userRepoRef := gitproviders.NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
-		commits, err = gitProvider.GetCommitsFromUserRepo(userRepoRef, app.Spec.Branch)
+		commits, err = gitProvider.GetCommitsFromUserRepo(userRepoRef, app.Spec.Branch, params.PageSize, params.PageToken)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get Commits for user repo: %w", err)
 		}
 	} else {
 		orgRepoRef := gitproviders.NewOrgRepositoryRef(github.DefaultDomain, owner, repoName)
-		commits, err = gitProvider.GetCommitsFromOrgRepo(orgRepoRef, app.Spec.Branch)
+		commits, err = gitProvider.GetCommitsFromOrgRepo(orgRepoRef, app.Spec.Branch, params.PageSize, params.PageToken)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get Commits for org repo: %w", err)
 		}

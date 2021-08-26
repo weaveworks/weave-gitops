@@ -24,12 +24,12 @@ type RemoveParams struct {
 func (a *App) Remove(params RemoveParams) error {
 	ctx := context.Background()
 
-	clusterName, err := a.kube.GetClusterName(ctx)
+	clusterName, err := a.Kube.GetClusterName(ctx)
 	if err != nil {
 		return err
 	}
 
-	application, err := a.kube.GetApplication(ctx, types.NamespacedName{Namespace: params.Namespace, Name: params.Name})
+	application, err := a.Kube.GetApplication(ctx, types.NamespacedName{Namespace: params.Namespace, Name: params.Name})
 	if err != nil {
 		return err
 	}
@@ -39,15 +39,15 @@ func (a *App) Remove(params RemoveParams) error {
 	resources := info.clusterResources()
 
 	if info.configMode() == ConfigModeClusterOnly {
-		if err := a.kube.DeleteByName(ctx, info.appResourceName(), resourceKindToGVR(ResourceKindApplication), info.Namespace); err != nil {
+		if err := a.Kube.DeleteByName(ctx, info.appResourceName(), resourceKindToGVR(ResourceKindApplication), info.Namespace); err != nil {
 			return clusterDeleteError(info.appResourceName(), err)
 		}
 
-		if err := a.kube.DeleteByName(ctx, info.appSourceName(), resourceKindToGVR(info.sourceKind()), info.Namespace); err != nil {
+		if err := a.Kube.DeleteByName(ctx, info.appSourceName(), resourceKindToGVR(info.sourceKind()), info.Namespace); err != nil {
 			return clusterDeleteError(info.appResourceName(), err)
 		}
 
-		if err := a.kube.DeleteByName(ctx, info.appDeployName(), resourceKindToGVR(info.deployKind()), info.Namespace); err != nil {
+		if err := a.Kube.DeleteByName(ctx, info.appDeployName(), resourceKindToGVR(info.deployKind()), info.Namespace); err != nil {
 			return clusterDeleteError(info.appResourceName(), err)
 		}
 
@@ -67,17 +67,17 @@ func (a *App) Remove(params RemoveParams) error {
 
 	defer remover()
 
-	a.logger.Actionf("Removing application from cluster and repository")
+	a.Logger.Actionf("Removing application from cluster and repository")
 
 	if !params.DryRun {
 		for _, resourceRef := range resources {
 			if resourceRef.repositoryPath != "" { // Some of the automation doesn't get stored
-				if err := a.git.Remove(resourceRef.repositoryPath); err != nil {
+				if err := a.Git.Remove(resourceRef.repositoryPath); err != nil {
 					return err
 				}
 			} else if resourceRef.kind == ResourceKindKustomization ||
 				resourceRef.kind == ResourceKindHelmRelease {
-				if err := a.kube.DeleteByName(ctx, resourceRef.name, resourceKindToGVR(resourceRef.kind), info.Namespace); err != nil {
+				if err := a.Kube.DeleteByName(ctx, resourceRef.name, resourceKindToGVR(resourceRef.kind), info.Namespace); err != nil {
 					return clusterDeleteError(info.appResourceName(), err)
 				}
 			}
@@ -98,7 +98,7 @@ func (a *App) getConfigUrlAndBranch(info *AppResourceInfo, token string) (string
 	if cloneURL == string(ConfigTypeUserRepo) {
 		cloneURL = info.Spec.URL
 	} else {
-		gitProvider, err := a.gitProviderFactory(token)
+		gitProvider, err := a.GitProviderFactory(token)
 		if err != nil {
 			return "", "", err
 		}

@@ -38,8 +38,8 @@ type GitProvider interface {
 	UploadDeployKey(owner, repoName string, deployKey []byte) error
 	CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
 	CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
-	GetCommitsFromUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string) ([]gitprovider.Commit, error)
-	GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string) ([]gitprovider.Commit, error)
+	GetCommitsFromUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
+	GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
 	GetAccountType(owner string) (ProviderAccountType, error)
 }
 
@@ -441,7 +441,7 @@ func (p defaultGitProvider) CreatePullRequestToOrgRepo(orgRepRef gitprovider.Org
 }
 
 // GetCommitsFromUserRepo gets a limit of 10 commits from a user repo
-func (p defaultGitProvider) GetCommitsFromUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string) ([]gitprovider.Commit, error) {
+func (p defaultGitProvider) GetCommitsFromUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
 	ctx := context.Background()
 
 	ur, err := p.provider.UserRepositories().Get(ctx, userRepRef)
@@ -450,7 +450,7 @@ func (p defaultGitProvider) GetCommitsFromUserRepo(userRepRef gitprovider.UserRe
 	}
 
 	// currently locking the commit list at 10. May discuss pagination options later.
-	commits, err := ur.Commits().ListPage(ctx, targetBranch, 10, 0)
+	commits, err := ur.Commits().ListPage(ctx, targetBranch, pageSize, pageToken)
 	if err != nil {
 		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", userRepRef.String(), err)
 	}
@@ -459,7 +459,7 @@ func (p defaultGitProvider) GetCommitsFromUserRepo(userRepRef gitprovider.UserRe
 }
 
 // GetCommitsFromUserRepo gets a limit of 10 commits from an organization
-func (p defaultGitProvider) GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string) ([]gitprovider.Commit, error) {
+func (p defaultGitProvider) GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
 	ctx := context.Background()
 
 	ur, err := p.provider.OrgRepositories().Get(ctx, orgRepRef)
@@ -468,7 +468,7 @@ func (p defaultGitProvider) GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepos
 	}
 
 	// currently locking the commit list at 10. May discuss pagination options later.
-	commits, err := ur.Commits().ListPage(ctx, targetBranch, 10, 0)
+	commits, err := ur.Commits().ListPage(ctx, targetBranch, pageSize, pageToken)
 	if err != nil {
 		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", orgRepRef.String(), err)
 	}

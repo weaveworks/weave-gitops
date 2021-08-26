@@ -700,7 +700,7 @@ stringData:
 				// so we assert it should be empty above, and conditionally print the diff to make a nice assertion message.
 				// `diff` is a formatted string
 				if diff != "" {
-					appSrv.(*App).logger.Println(diff)
+					appSrv.(*App).Logger.Println(diff)
 				}
 			})
 		})

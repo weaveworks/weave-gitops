@@ -160,7 +160,7 @@ func setupFlux() error {
 	osysClient.UserHomeDirStub = func() (string, error) {
 		return dir, nil
 	}
-	appSrv.(*App).flux = fluxClient
+	appSrv.(*App).Flux = fluxClient
 	fluxBin, err := ioutil.ReadFile(filepath.Join("..", "..", "flux", "bin", "flux"))
 	if err != nil {
 		return err
