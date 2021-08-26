@@ -54,7 +54,6 @@ clean:
 	rm -rf coverage
 	rm -rf node_modules
 	rm -f .deps
-	rm -f ./helm/weave-gitops/templates/generated_resources.yaml
 # Run go fmt against code
 fmt:
 	go fmt ./...
