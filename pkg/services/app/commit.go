@@ -1,14 +1,13 @@
 package app
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 type CommitParams struct {
@@ -20,13 +19,7 @@ type CommitParams struct {
 }
 
 // GetCommits gets a list of commits from the repo/branch saved in the app manifest
-func (a *App) GetCommits(params CommitParams) ([]gitprovider.Commit, error) {
-	ctx := context.Background()
-
-	app, err := a.Kube.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
-	if err != nil {
-		return nil, fmt.Errorf("unable to get application for %s %w", params.Name, err)
-	}
+func (a *App) GetCommits(params CommitParams, app *v1alpha1.Application) ([]gitprovider.Commit, error) {
 
 	if app.Spec.SourceType == "helm" {
 		return nil, fmt.Errorf("unable to get commits for a helm chart")

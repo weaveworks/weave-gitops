@@ -13,6 +13,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -68,17 +69,22 @@ type authSvc struct {
 }
 
 // NewAuthService constructs an auth service for doing git operations with an authenticated client.
-func NewAuthService(fluxClient flux.Flux, k8sClient client.Client, providerName gitproviders.GitProviderName, l logger.Logger, token string) (AuthService, error) {
+func NewAuthService(ctx context.Context, fluxClient flux.Flux, k8sClient client.Client, osysClient *osys.OsysClient, providerName gitproviders.GitProviderName, l logger.Logger) (AuthService, string, error) {
+	token, err := getGitProviderToken(ctx, osysClient, providerName)
+	if err != nil {
+		return nil, "", fmt.Errorf("error getting git provider token: %w", err)
+	}
+
 	provider, err := gitproviders.New(gitproviders.Config{Provider: providerName, Token: token})
 	if err != nil {
-		return nil, fmt.Errorf("error creating git provider client: %w", err)
+		return nil, "", fmt.Errorf("error creating git provider client: %w", err)
 	}
 	return &authSvc{
 		logger:      l,
 		fluxClient:  fluxClient,
 		k8sClient:   k8sClient,
 		gitProvider: provider,
-	}, nil
+	}, token, nil
 }
 
 // SetupDeployKey creates a git.Git client instrumented with existing or generated deploy keys.
@@ -234,4 +240,26 @@ func extractPrivateKey(secret *corev1.Secret) []byte {
 
 func extractPublicKey(secret *corev1.Secret) []byte {
 	return extractSecretPart(secret, "identity.pub")
+}
+
+func getGitProviderToken(ctx context.Context, osysClient *osys.OsysClient, providerName gitproviders.GitProviderName) (string, error) {
+
+	token, tokenErr := osysClient.GetGitProviderToken()
+
+	if tokenErr == osys.ErrNoGitProviderTokenSet {
+		// No provider token set, we need to do the auth flow.
+		authHandler, err := NewAuthCLIHandler(providerName)
+		if err != nil {
+			return "", fmt.Errorf("could not get auth handler for provider %s: %w", providerName, err)
+		}
+
+		token, err = authHandler(ctx, osysClient.Stdout())
+		if err != nil {
+			return "", fmt.Errorf("could not complete auth flow: %w", err)
+		}
+	} else if tokenErr != nil {
+		// We didn't detect a NoGitProviderSet error, something else went wrong.
+		return "", fmt.Errorf("could not get access token: %w", tokenErr)
+	}
+	return token, nil
 }

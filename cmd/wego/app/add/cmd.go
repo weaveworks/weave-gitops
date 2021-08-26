@@ -113,37 +113,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	var providerName gitproviders.GitProviderName
-	// We re-use the same --url flag for both git and helm sources.
-	// There isn't really a concept of "provider" in helm charts, and there is nothing to push.
-	// Assume charts are always public and no auth needs to be done.
-	if !isHelmRepository {
-		providerName, err = gitproviders.DetectGitProviderFromUrl(repoUrlString)
-		if err != nil {
-			return fmt.Errorf("error detecting git provider: %w", err)
-		}
-	}
-
-	token, tokenErr := osysClient.GetGitProviderToken()
-
-	if !isHelmRepository && tokenErr == osys.ErrNoGitProviderTokenSet {
-		// No provider token set, we need to do the auth flow.
-		authHandler, err := auth.NewAuthCLIHandler(providerName)
-		if err != nil {
-			return fmt.Errorf("could not get auth handler for provider %s: %w", providerName, err)
-		}
-
-		token, err = authHandler(ctx, osysClient.Stdout())
-		if err != nil {
-			return fmt.Errorf("could not complete auth flow: %w", err)
-		}
-	} else if !isHelmRepository && tokenErr != nil {
-		// We didn't detect a NoGitProviderSet error, something else went wrong.
-		return fmt.Errorf("could not get access token: %w", err)
-	}
-
-	params.GitProviderToken = token
-
 	authMethod, err := osysClient.SelectAuthMethod(params.PrivateKey)
 	if err != nil {
 		return fmt.Errorf("error selecting auth method: %w", err)
@@ -151,12 +120,23 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	gitClient := git.New(authMethod, wrapper.NewGoGit())
 
+	var providerName gitproviders.GitProviderName
+	// We re-use the same --url flag for both git and helm sources.
+	// There isn't really a concept of "provider" in helm charts, and there is nothing to push.
+	// Assume charts are always public and no auth needs to be done.
 	// If we are NOT doing a helm chart, we want to use a git client with an embedded deploy key
 	if !isHelmRepository {
-		authsvc, err := auth.NewAuthService(fluxClient, rawClient, providerName, logger, token)
+		providerName, err = gitproviders.DetectGitProviderFromUrl(repoUrlString)
+		if err != nil {
+			return fmt.Errorf("error detecting git provider: %w", err)
+		}
+
+		authsvc, token, err := auth.NewAuthService(ctx, fluxClient, rawClient, osysClient, providerName, logger)
 		if err != nil {
 			return fmt.Errorf("error creating auth service: %w", err)
 		}
+
+		params.GitProviderToken = token
 
 		targetName, err := kubeClient.GetClusterName(ctx)
 		if err != nil {
@@ -176,7 +156,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("error setting up deploy keys: %w", err)
 		}
-
 	}
 
 	appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)

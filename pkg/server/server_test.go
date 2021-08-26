@@ -285,6 +285,43 @@ var _ = Describe("Applications handler", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(r.Commits).To(HaveLen(1))
+
+		commits = append(commits, &fakeCommit{})
+
+		res, err = http.Get(url)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(res.StatusCode).To(Equal(http.StatusOK))
+
+		b, err = ioutil.ReadAll(res.Body)
+		Expect(err).NotTo(HaveOccurred())
+
+		r = &pb.ListCommitsResponse{}
+		err = json.Unmarshal(b, r)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(r.Commits).To(HaveLen(1))
+
+		emptyCommits := []gitprovider.Commit{}
+
+		gitProviders.GetCommitsFromUserRepoStub = func(gitprovider.UserRepositoryRef, string, int, int) ([]gitprovider.Commit, error) {
+			return emptyCommits, nil
+		}
+
+		res, err = http.Get(url)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(res.StatusCode).To(Equal(http.StatusOK))
+
+		b, err = ioutil.ReadAll(res.Body)
+		Expect(err).NotTo(HaveOccurred())
+
+		r = &pb.ListCommitsResponse{}
+		err = json.Unmarshal(b, r)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(r.Commits).To(HaveLen(1))
+
 	})
 })
 

@@ -200,6 +200,15 @@ func extractToken(ctx context.Context) (string, error) {
 
 //Until the middleware is done this function will not be able to get the token and will fail
 func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommitsRequest) (*pb.ListCommitsResponse, error) {
+	appContent, err := s.app.Kube.GetApplication(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace})
+	if err != nil {
+		return nil, fmt.Errorf("unable to get application for %s %w", msg.Name, err)
+	}
+
+	if appContent.Spec.SourceType == "helm" {
+		return nil, fmt.Errorf("unable to get commits for a helm chart")
+	}
+
 	vals := contextVals{Token: &oauth2.Token{AccessToken: "temptoken"}}
 	ctx = context.WithValue(ctx, tokenKey, vals)
 
@@ -221,17 +230,11 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 		PageToken:        pageToken,
 	}
 
-	commits, err := s.app.GetCommits(params)
+	commits, err := s.app.GetCommits(params, appContent)
 	if err != nil {
 		return &pb.ListCommitsResponse{
 			Commits: []*pb.Commit{},
 		}, err
-	}
-
-	if commits == nil {
-		return &pb.ListCommitsResponse{
-			Commits: []*pb.Commit{},
-		}, nil
 	}
 
 	list := []*pb.Commit{}
