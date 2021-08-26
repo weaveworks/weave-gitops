@@ -213,7 +213,7 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, 10, 1).Should(gexec.Exit())
 
-	err = utils.WaitUntil(os.Stdout, time.Second*2, time.Second*20, func() error {
+	err = utils.WaitUntil(GinkgoWriter, time.Second*2, time.Second*20, func() error {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cd %s &&
                             hub create %s %s`, repoAbsolutePath, GITHUB_ORG+"/"+appRepoName, privateRepo))
@@ -238,7 +238,7 @@ https://github.com/%s/%s`, appRepoName, GITHUB_ORG, appRepoName)))
 	})
 	Expect(err).ShouldNot(HaveOccurred())
 
-	Expect(utils.WaitUntil(os.Stdout, time.Second, 20*time.Second, func() error {
+	Expect(utils.WaitUntil(GinkgoWriter, time.Second, 20*time.Second, func() error {
 		cmd := fmt.Sprintf(`hub api repos/%s/%s`, GITHUB_ORG, appRepoName)
 		command := exec.Command("sh", "-c", cmd)
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
