@@ -921,6 +921,13 @@ stringData:
 	})
 
 	Context("ensure that generated resource names are <= 63 characters in length", func() {
+		It("ensures that app names are <= 63 characters", func() {
+			addParams.Name = "a23456789012345678901234567890123456789012345678901234567890123"
+			Expect(appSrv.Add(addParams)).To(Succeed())
+			addParams.Name = "a234567890123456789012345678901234567890123456789012345678901234"
+			Expect(appSrv.Add(addParams)).ShouldNot(Succeed())
+		})
+
 		It("specifies a short cluster name, base url, and app name and gets them all included in resource names", func() {
 			addParams.Url = "https://github.com/foo/url-base"
 			addParams.Name = "app-name"
