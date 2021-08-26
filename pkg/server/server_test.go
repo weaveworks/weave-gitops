@@ -1,4 +1,4 @@
-package server_test
+package server
 
 import (
 	"context"
@@ -7,22 +7,28 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strconv"
+	"time"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops/pkg/api/applications"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/middleware"
-	"github.com/weaveworks/weave-gitops/pkg/server"
+	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
@@ -50,7 +56,7 @@ var _ = Describe("ApplicationsServer", func() {
 
 		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
 
-		res, err := appsClient.ListApplications(context.Background(), &applications.ListApplicationsRequest{})
+		res, err := appsClient.ListApplications(context.Background(), &pb.ListApplicationsRequest{})
 
 		Expect(err).NotTo(HaveOccurred())
 
@@ -65,7 +71,7 @@ var _ = Describe("ApplicationsServer", func() {
 		}}
 
 		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
-		res, err := appsClient.GetApplication(context.Background(), &applications.GetApplicationRequest{
+		res, err := appsClient.GetApplication(context.Background(), &pb.GetApplicationRequest{
 			Name:      name,
 			Namespace: namespace.Name,
 		})
@@ -73,6 +79,7 @@ var _ = Describe("ApplicationsServer", func() {
 
 		Expect(res.Application.Name).To(Equal(name))
 	})
+
 	Describe("middleware", func() {
 		Describe("logging", func() {
 			var log *fakelogr.FakeLogger
@@ -85,7 +92,7 @@ var _ = Describe("ApplicationsServer", func() {
 			BeforeEach(func() {
 				log = makeFakeLogr()
 				kubeClient = &kubefakes.FakeKube{}
-				appsSrv = server.NewApplicationsServer(&server.ApplicationsConfig{KubeClient: kubeClient})
+				appsSrv = NewApplicationsServer(&ApplicationConfig{App: app.New(nil, nil, nil, kubeClient, nil)})
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
@@ -189,12 +196,12 @@ var _ = Describe("Applications handler", func() {
 			}}, nil
 		}
 
-		cfg := server.ApplicationsConfig{
-			KubeClient: k,
-			Logger:     log,
+		cfg := ApplicationConfig{
+			App:    app.New(nil, nil, nil, k, nil),
+			Logger: log,
 		}
 
-		handler, err := server.NewApplicationsHandler(context.Background(), &cfg)
+		handler, err := NewApplicationsHandler(context.Background(), &cfg)
 		Expect(err).NotTo(HaveOccurred())
 
 		ts := httptest.NewServer(handler)
@@ -217,6 +224,68 @@ var _ = Describe("Applications handler", func() {
 
 		Expect(r.Applications).To(HaveLen(1))
 	})
+
+	It("get commits", func() {
+		log := makeFakeLogr()
+		kubeClient := &kubefakes.FakeKube{}
+		kubeClient.GetApplicationStub = func(context.Context, types.NamespacedName) (*wego.Application, error) {
+			return &wego.Application{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "my-app",
+					Namespace: "wego-system",
+				},
+				Spec: wego.ApplicationSpec{
+					Branch: "main",
+					Path:   "./k8s",
+					URL:    "github.com/test",
+				},
+			}, nil
+		}
+
+		appSrv := app.New(logger.NewCLILogger(os.Stderr), nil, nil, kubeClient, nil)
+		gitProviders := &gitprovidersfakes.FakeGitProvider{}
+		commits := []gitprovider.Commit{&fakeCommit{}}
+
+		gitProviders.GetCommitsFromUserRepoStub = func(gitprovider.UserRepositoryRef, string, int, int) ([]gitprovider.Commit, error) {
+			return commits, nil
+		}
+
+		gitProviders.GetAccountTypeStub = func(string) (gitproviders.ProviderAccountType, error) {
+			return gitproviders.AccountTypeUser, nil
+		}
+
+		appSrv.GitProviderFactory = func(token string) (gitproviders.GitProvider, error) {
+			return gitProviders, nil
+		}
+
+		cfg := ApplicationConfig{
+			Logger: log,
+			App:    appSrv,
+		}
+
+		handler, err := NewApplicationsHandler(context.Background(), &cfg)
+		Expect(err).NotTo(HaveOccurred())
+
+		ts := httptest.NewServer(handler)
+		defer ts.Close()
+
+		path := "/v1/applications/testapp/commits"
+		url := ts.URL + path
+
+		res, err := http.Get(url)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(res.StatusCode).To(Equal(http.StatusOK))
+
+		b, err := ioutil.ReadAll(res.Body)
+		Expect(err).NotTo(HaveOccurred())
+
+		r := &pb.ListCommitsResponse{}
+		err = json.Unmarshal(b, r)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(r.Commits).To(HaveLen(1))
+	})
 })
 
 func makeFakeLogr() *fakelogr.FakeLogger {
@@ -228,6 +297,27 @@ func makeFakeLogr() *fakelogr.FakeLogger {
 		return log
 	}
 	return log
+}
+
+type fakeCommit struct {
+	commitInfo gitprovider.CommitInfo
+}
+
+func (fc *fakeCommit) APIObject() interface{} {
+	return &fc.commitInfo
+}
+
+func (fc *fakeCommit) Get() gitprovider.CommitInfo {
+	return testCommit()
+}
+
+func testCommit() gitprovider.CommitInfo {
+	return gitprovider.CommitInfo{
+		Sha:       "testsha",
+		Author:    "testauthor",
+		Message:   "some awesome commit",
+		CreatedAt: time.Now(),
+	}
 }
 
 func formatLogVals(vals []interface{}) []string {
