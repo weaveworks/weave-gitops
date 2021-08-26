@@ -116,8 +116,7 @@ jobs:
       uses: Xotabu4/selenoid-github-action@v2
       with:
         selenoid-start-arguments: |
-          --args "-disable-gpu"
-          --args "--no-sandbox"
+          --args "--disable-gpu --no-sandbox"
     - name: Setup Kubernetes
       uses: engineerd/setup-kind@v0.5.0
       with:
