@@ -1495,7 +1495,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 	})
 
-	FIt("Verify that wego can deploy an app with app-config-url set to <url>", func() {
+	It("Verify that wego can deploy an app with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var listOutput string
