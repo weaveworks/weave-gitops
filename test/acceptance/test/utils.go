@@ -201,35 +201,48 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 	}
 
 	// We need this step in case running a single test case locally
-	os.RemoveAll(repoAbsolutePath)
+	err := os.RemoveAll(repoAbsolutePath)
+	Expect(err).ShouldNot(HaveOccurred())
 
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
                             mkdir %s &&
                             cd %s &&
                             git init &&
-                            git checkout -b main &&
-                            hub create %s %s`, repoAbsolutePath, repoAbsolutePath, GITHUB_ORG+"/"+appRepoName, privateRepo))
+                            git checkout -b main`, repoAbsolutePath, repoAbsolutePath))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session, 10).Should(gexec.Exit())
-	Expect(session.ExitCode()).Should(Equal(0))
-	Expect(session.Err).ShouldNot(gbytes.Say(fmt.Sprintf("mkdir: /tmp/%s: File exists", appRepoName)))
-	Expect(session.Err).ShouldNot(gbytes.Say("Existing repository detected"))
-	if os.Getenv("CI") == "true" {
-		Expect(session.Out).Should(gbytes.Say(fmt.Sprintf(`Initialized empty Git repository in /tmp/%s/.git/
+	Eventually(session, 10, 1).Should(gexec.Exit())
+
+	err = utils.WaitUntil(os.Stdout, time.Second*2, time.Second*20, func() error {
+		command := exec.Command("sh", "-c", fmt.Sprintf(`
+                            cd %s &&
+                            hub create %s %s`, repoAbsolutePath, GITHUB_ORG+"/"+appRepoName, privateRepo))
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		if err != nil {
+			return fmt.Errorf("error running command by ginkgo %w", err)
+		}
+		Eventually(session, 10, 1).Should(gexec.Exit())
+		if session.ExitCode() != 0 {
+			return fmt.Errorf("expecting exit code 0, got %d, err %s", session.ExitCode(), session.Err.Contents())
+		}
+		if os.Getenv("CI") == "true" {
+			Expect(session.Out).Should(gbytes.Say(fmt.Sprintf(`Initialized empty Git repository in /tmp/%s/.git/
 Updating origin
 https://github.com/%s/%s`, appRepoName, GITHUB_ORG, appRepoName)))
-	} else {
-		Expect(session.Out).Should(gbytes.Say(fmt.Sprintf(`Initialized empty Git repository in /private/tmp/%s/.git/
+		} else {
+			Expect(session.Out).Should(gbytes.Say(fmt.Sprintf(`Initialized empty Git repository in /private/tmp/%s/.git/
 Updating origin
 https://github.com/%s/%s`, appRepoName, GITHUB_ORG, appRepoName)))
-	}
+		}
+		return nil
+	})
+	Expect(err).ShouldNot(HaveOccurred())
 
 	Expect(utils.WaitUntil(os.Stdout, time.Second, 20*time.Second, func() error {
 		cmd := fmt.Sprintf(`hub api repos/%s/%s`, GITHUB_ORG, appRepoName)
 		command := exec.Command("sh", "-c", cmd)
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Eventually(session, 10).Should(gexec.Exit())
+		Eventually(session, 10, 1).Should(gexec.Exit())
 		return err
 	})).ShouldNot(HaveOccurred())
 
