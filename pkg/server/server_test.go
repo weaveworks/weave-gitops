@@ -285,43 +285,68 @@ var _ = Describe("Applications handler", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(r.Commits).To(HaveLen(1))
+	})
 
-		commits = append(commits, &fakeCommit{})
-
-		res, err = http.Get(url)
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(res.StatusCode).To(Equal(http.StatusOK))
-
-		b, err = ioutil.ReadAll(res.Body)
-		Expect(err).NotTo(HaveOccurred())
-
-		r = &pb.ListCommitsResponse{}
-		err = json.Unmarshal(b, r)
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(r.Commits).To(HaveLen(1))
-
-		emptyCommits := []gitprovider.Commit{}
-
-		gitProviders.GetCommitsFromUserRepoStub = func(gitprovider.UserRepositoryRef, string, int, int) ([]gitprovider.Commit, error) {
-			return emptyCommits, nil
+	It("get empty commits", func() {
+		log := makeFakeLogr()
+		kubeClient := &kubefakes.FakeKube{}
+		kubeClient.GetApplicationStub = func(context.Context, types.NamespacedName) (*wego.Application, error) {
+			return &wego.Application{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "my-app",
+					Namespace: "wego-system",
+				},
+				Spec: wego.ApplicationSpec{
+					Branch: "main",
+					Path:   "./k8s",
+					URL:    "github.com/test",
+				},
+			}, nil
 		}
 
-		res, err = http.Get(url)
+		appSrv := app.New(logger.NewCLILogger(os.Stderr), nil, nil, kubeClient, nil)
+		gitProviders := &gitprovidersfakes.FakeGitProvider{}
+		commits := []gitprovider.Commit{}
+
+		gitProviders.GetCommitsFromUserRepoStub = func(gitprovider.UserRepositoryRef, string, int, int) ([]gitprovider.Commit, error) {
+			return commits, nil
+		}
+
+		gitProviders.GetAccountTypeStub = func(string) (gitproviders.ProviderAccountType, error) {
+			return gitproviders.AccountTypeUser, nil
+		}
+
+		appSrv.GitProviderFactory = func(token string) (gitproviders.GitProvider, error) {
+			return gitProviders, nil
+		}
+
+		cfg := ApplicationConfig{
+			Logger: log,
+			App:    appSrv,
+		}
+
+		handler, err := NewApplicationsHandler(context.Background(), &cfg)
+		Expect(err).NotTo(HaveOccurred())
+
+		ts := httptest.NewServer(handler)
+		defer ts.Close()
+
+		path := "/v1/applications/testapp/commits"
+		url := ts.URL + path
+
+		res, err := http.Get(url)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(res.StatusCode).To(Equal(http.StatusOK))
 
-		b, err = ioutil.ReadAll(res.Body)
+		b, err := ioutil.ReadAll(res.Body)
 		Expect(err).NotTo(HaveOccurred())
 
-		r = &pb.ListCommitsResponse{}
+		r := &pb.ListCommitsResponse{}
 		err = json.Unmarshal(b, r)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(r.Commits).To(HaveLen(1))
-
+		Expect(r.Commits).To(HaveLen(0))
 	})
 })
 
