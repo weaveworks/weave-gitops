@@ -54,8 +54,6 @@ var ApplicationCmd = &cobra.Command{
 	RunE: runCmd,
 }
 
-var params app.CommitParams
-
 func init() {
 	ApplicationCmd.AddCommand(add.Cmd)
 	ApplicationCmd.AddCommand(remove.Cmd)

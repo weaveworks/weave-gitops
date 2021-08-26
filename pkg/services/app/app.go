@@ -7,7 +7,6 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
-	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -38,7 +37,7 @@ type AppService interface {
 	// Get returns a given applicaiton
 	Get(name types.NamespacedName) (*wego.Application, error)
 	// GetCommits returns a list of commits for an application
-	GetCommits(params CommitParams, app *v1alpha1.Application) ([]gitprovider.Commit, error)
+	GetCommits(params CommitParams, app *wego.Application) ([]gitprovider.Commit, error)
 	// Remove removes an application from the cluster
 	Remove(params RemoveParams) error
 	// Status returns flux resources status and the last successful reconciliation time
