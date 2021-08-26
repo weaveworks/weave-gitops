@@ -109,6 +109,9 @@ jobs:
       uses: actions/checkout@v2
     - name: Setup xvfb
       uses: GabrielBB/xvfb-action@v1
+      with: 
+        working-directory: ./test/acceptance/test/
+        run: pwd
     - name: Setup selenoid
       uses: Xotabu4/selenoid-github-action@v2
       with:
