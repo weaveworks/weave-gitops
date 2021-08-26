@@ -233,6 +233,54 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
+	It("Verify that wego can deploy with no ssh key", func() {
+		var repoAbsolutePath string
+		private := true
+		tip := generateTestInputs()
+		appName := tip.appRepoName
+
+		addCommand := "app add . --auto-merge=true"
+
+		defer deleteRepo(tip.appRepoName)
+		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(tip.appRepoName)
+		})
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(tip.workloadName, tip.workloadNamespace)
+		})
+
+		By("When I create an empty private repo", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, private)
+		})
+
+		By("And I install wego to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I run wego add command", func() {
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see wego add command linked the repo to the cluster", func() {
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I git add-commit-push app workload to repo", func() {
+			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
+		})
+
+		By("And I should see workload is deployed to the cluster", func() {
+			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
+		})
+
+		By("And repos created have private visibility", func() {
+			Expect(getRepoVisibility(GITHUB_ORG, tip.appRepoName)).Should(ContainSubstring("true"))
+		})
+	})
+
 	It("Verify that wego can deploy app when user specifies branch, namespace, url, deployment-type", func() {
 		var repoAbsolutePath string
 		private := true
