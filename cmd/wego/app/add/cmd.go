@@ -126,7 +126,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	token, tokenErr := osysClient.GetGitProviderToken()
 
-	if !isHelmRepository && tokenErr == osys.ErrNoGitProviderTokenSet {
+	if !params.DryRun && !isHelmRepository && tokenErr == osys.ErrNoGitProviderTokenSet {
 		// No provider token set, we need to do the auth flow.
 		authHandler, err := auth.NewAuthCLIHandler(providerName)
 		if err != nil {
@@ -137,6 +137,8 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("could not complete auth flow: %w", err)
 		}
+	} else if params.DryRun && tokenErr == osys.ErrNoGitProviderTokenSet {
+		logger.Warningf("No Git Provider token found. Skipping authentication for dry run.")
 	} else if !isHelmRepository && tokenErr != nil {
 		// We didn't detect a NoGitProviderSet error, something else went wrong.
 		return fmt.Errorf("could not get access token: %w", err)
@@ -152,7 +154,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	gitClient := git.New(authMethod, wrapper.NewGoGit())
 
 	// If we are NOT doing a helm chart, we want to use a git client with an embedded deploy key
-	if !isHelmRepository {
+	if !isHelmRepository && !params.DryRun {
 		authsvc, err := auth.NewAuthService(fluxClient, rawClient, providerName, logger, token)
 		if err != nil {
 			return fmt.Errorf("error creating auth service: %w", err)
@@ -172,11 +174,13 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			Name:      app.CreateAppSecretName(targetName, normalizedUrl.String()),
 			Namespace: params.Namespace,
 		}
-		gitClient, err = authsvc.SetupDeployKey(ctx, name, targetName, normalizedUrl)
-		if err != nil {
-			return fmt.Errorf("error setting up deploy keys: %w", err)
-		}
 
+		if !params.DryRun {
+			gitClient, err = authsvc.SetupDeployKey(ctx, name, targetName, normalizedUrl)
+			if err != nil {
+				return fmt.Errorf("error setting up deploy keys: %w", err)
+			}
+		}
 	}
 
 	appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)

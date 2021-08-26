@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/md5"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/url"
@@ -123,8 +124,12 @@ func (a *App) Add(params AddParams) error {
 	ctx := context.Background()
 
 	gitProvider, err := a.GitProviderFactory(params.GitProviderToken)
-	if err != nil {
-		return err
+	if errors.Is(err, gitproviders.ErrInvalidGitProviderToken) {
+		if !params.DryRun {
+			return err
+		}
+	} else if err != nil {
+		return fmt.Errorf("could not get git provider from factory: %w", err)
 	}
 
 	params, err = a.updateParametersIfNecessary(gitProvider, params)
@@ -132,7 +137,7 @@ func (a *App) Add(params AddParams) error {
 		return fmt.Errorf("could not update parameters: %w", err)
 	}
 
-	if params.SourceType != wego.SourceTypeHelm {
+	if !params.DryRun && params.SourceType != wego.SourceTypeHelm {
 		err = a.Git.ValidateAccess(ctx, params.Url, params.Branch)
 		if err != nil {
 			return fmt.Errorf("error validating access for app %s. %w", params.Url, err)

@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"crypto/md5"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -973,6 +974,28 @@ stringData:
 			Expect(kustName).To(Equal("wego-" + getHash(fmt.Sprintf("%s-%s", clusterName, addParams.Name))))
 			Expect(secretName).To(Equal("wego-" + getHash(fmt.Sprintf("wego-%s-%s", clusterName, repoName))))
 		})
+	})
+	It("completes a dry run with no auth token specified", func() {
+		addParams.DryRun = true
+		addParams.GitProviderToken = ""
+		addParams.AutoMerge = false
+
+		appSrv.(*App).GitProviderFactory = func(token string) (gitproviders.GitProvider, error) {
+			return nil, gitproviders.ErrInvalidGitProviderToken
+		}
+
+		Expect(appSrv.Add(addParams)).To(Succeed())
+	})
+	It("fails a dry run when a non-ErrInvalidGitProviderToken error is thrown", func() {
+		addParams.DryRun = true
+		addParams.GitProviderToken = ""
+		addParams.AutoMerge = false
+
+		appSrv.(*App).GitProviderFactory = func(token string) (gitproviders.GitProvider, error) {
+			return nil, errors.New("some other error")
+		}
+
+		Expect(appSrv.Add(addParams)).NotTo(Succeed())
 	})
 })
 

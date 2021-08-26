@@ -227,7 +227,7 @@ var gitProvider defaultGitProvider
 var _ = Describe("Initialization", func() {
 	It("it validates token presence", func() {
 		_, err := New(Config{})
-		Expect(err).Should(MatchError("failed to build git provider: no git provider token present"))
+		Expect(err).Should(HaveOccurred())
 	})
 
 	It("builds a github client", func() {

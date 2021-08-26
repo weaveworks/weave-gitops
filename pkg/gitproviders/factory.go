@@ -1,6 +1,7 @@
 package gitproviders
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/fluxcd/go-git-providers/github"
@@ -30,9 +31,11 @@ type Config struct {
 	Token string
 }
 
+var ErrInvalidGitProviderToken = errors.New("invalid git provider token")
+
 func buildGitProvider(config Config) (gitprovider.Client, error) {
 	if config.Token == "" {
-		return nil, fmt.Errorf("no git provider token present")
+		return nil, ErrInvalidGitProviderToken
 	}
 
 	var client gitprovider.Client
