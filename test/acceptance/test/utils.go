@@ -14,9 +14,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/onsi/gomega/gbytes"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	log "github.com/sirupsen/logrus"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -212,6 +213,11 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, 10, 1).Should(gexec.Exit())
+	if os.Getenv("CI") == "true" {
+		Expect(session.Out).Should(gbytes.Say(fmt.Sprintf(`Initialized empty Git repository in /tmp/%s/.git/`, appRepoName)))
+	} else {
+		Expect(session.Out).Should(gbytes.Say(fmt.Sprintf(`Initialized empty Git repository in /private/tmp/%s/.git/`, appRepoName)))
+	}
 
 	err = utils.WaitUntil(GinkgoWriter, time.Second*2, time.Second*20, func() error {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
@@ -225,15 +231,9 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 		if session.ExitCode() != 0 {
 			return fmt.Errorf("expecting exit code 0, got %d, err %s", session.ExitCode(), session.Err.Contents())
 		}
-		if os.Getenv("CI") == "true" {
-			Expect(session.Out).Should(gbytes.Say(fmt.Sprintf(`Initialized empty Git repository in /tmp/%s/.git/
-Updating origin
-https://github.com/%s/%s`, appRepoName, GITHUB_ORG, appRepoName)))
-		} else {
-			Expect(session.Out).Should(gbytes.Say(fmt.Sprintf(`Initialized empty Git repository in /private/tmp/%s/.git/
-Updating origin
-https://github.com/%s/%s`, appRepoName, GITHUB_ORG, appRepoName)))
-		}
+		Eventually(session, 10, 1).Should(gexec.Exit())
+		Expect(session.Out).Should(gbytes.Say(fmt.Sprintf(`Updating origin
+https://github.com/%s/%s`, GITHUB_ORG, appRepoName)))
 		return nil
 	})
 	Expect(err).ShouldNot(HaveOccurred())
