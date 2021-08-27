@@ -552,7 +552,7 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
                             git push -u origin main`, appManifestFilePath, repoAbsolutePath, repoAbsolutePath))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session, 10).Should(gexec.Exit())
+	Eventually(session, 10, 1).Should(gexec.Exit())
 }
 
 func gitUpdateCommitPush(repoAbsolutePath string) {
