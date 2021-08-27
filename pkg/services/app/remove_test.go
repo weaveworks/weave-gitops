@@ -318,10 +318,6 @@ var _ = Describe("Remove", func() {
 			return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: nil, Visibility: &visibility}, nil
 		}
 
-		kubeClient.GetApplicationStub = func(_ context.Context, name types.NamespacedName) (*wego.Application, error) {
-			return &application, nil
-		}
-
 		localAddParams.AppConfigUrl = "https://github.com/foo/quux"
 		Expect(updateAppInfoFromParams()).To(Succeed())
 
@@ -505,7 +501,7 @@ var _ = Describe("Remove", func() {
 				localAddParams.Chart = "loki"
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
-				Expect(appSrv.Remove(removeParams)).To(Succeed())
+				Expect(appSrv.Remove(removeParams, &application)).To(Succeed())
 				Expect(checkRemoveResults()).To(Succeed())
 			})
 
@@ -514,7 +510,7 @@ var _ = Describe("Remove", func() {
 				localAddParams.Path = "./"
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
-				Expect(appSrv.Remove(removeParams)).To(Succeed())
+				Expect(appSrv.Remove(removeParams, &application)).To(Succeed())
 				Expect(checkRemoveResults()).To(Succeed())
 			})
 
@@ -523,7 +519,7 @@ var _ = Describe("Remove", func() {
 				localAddParams.Chart = "loki"
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
-				Expect(appSrv.Remove(removeParams)).To(Succeed())
+				Expect(appSrv.Remove(removeParams, &application)).To(Succeed())
 				Expect(checkRemoveResults()).To(Succeed())
 			})
 
@@ -533,7 +529,7 @@ var _ = Describe("Remove", func() {
 				localAddParams.Path = "./"
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
-				Expect(appSrv.Remove(removeParams)).To(Succeed())
+				Expect(appSrv.Remove(removeParams, &application)).To(Succeed())
 				Expect(checkRemoveResults()).To(Succeed())
 			})
 
@@ -559,13 +555,13 @@ var _ = Describe("Remove", func() {
 
 				It("removes cluster resources for non-helm app with configURL = NONE", func() {
 					Expect(runAddAndCollectInfo()).To(Succeed())
-					Expect(appSrv.Remove(removeParams)).To(Succeed())
+					Expect(appSrv.Remove(removeParams, &application)).To(Succeed())
 					Expect(checkRemoveResults()).To(Succeed())
 				})
 
 				It("removes cluster resources for non-helm app configURL = ''", func() {
 					Expect(runAddAndCollectInfo()).To(Succeed())
-					Expect(appSrv.Remove(removeParams)).To(Succeed())
+					Expect(appSrv.Remove(removeParams, &application)).To(Succeed())
 					Expect(checkRemoveResults()).To(Succeed())
 				})
 
@@ -574,7 +570,7 @@ var _ = Describe("Remove", func() {
 					localAddParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
 
 					Expect(runAddAndCollectInfo()).To(Succeed())
-					Expect(appSrv.Remove(removeParams)).To(Succeed())
+					Expect(appSrv.Remove(removeParams, &application)).To(Succeed())
 					Expect(checkRemoveResults()).To(Succeed())
 				})
 			})

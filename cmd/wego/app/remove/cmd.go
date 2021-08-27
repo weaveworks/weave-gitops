@@ -3,11 +3,14 @@ package remove
 // Provides support for removing an application from wego management.
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/lithammer/dedent"
 	"github.com/pkg/errors"
@@ -20,6 +23,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
@@ -51,34 +55,75 @@ func init() {
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
+	ctx := context.Background()
 	params.Name = args[0]
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 
 	osysClient := osys.New()
 
-	token, err := osysClient.GetGitProviderToken()
+	cliRunner := &runner.CLIRunner{}
+	fluxClient := flux.New(osysClient, cliRunner)
+	kubeClient := kube.New(cliRunner)
+	kube, rawClient, err := kube.NewKubeHTTPClient()
 	if err != nil {
+		return fmt.Errorf("error creating k8s http client: %w", err)
+	}
+	logger := logger.NewCLILogger(os.Stdout)
+	if err := app.IsClusterReady(logger, kube); err != nil {
 		return err
 	}
-
-	params.GitProviderToken = token
 
 	authMethod, err := osysClient.SelectAuthMethod(params.PrivateKey)
 	if err != nil {
 		return err
 	}
 
-	cliRunner := &runner.CLIRunner{}
-	fluxClient := flux.New(osysClient, cliRunner)
-	kubeClient := kube.New(cliRunner)
 	gitClient := git.New(authMethod, wrapper.NewGoGit())
-	logger := logger.NewCLILogger(os.Stdout)
+
+	application, err := kubeClient.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
+	if err != nil {
+		return fmt.Errorf("unable to get application for %s %w", params.Name, err)
+	}
+
+	if application.Spec.SourceType == "helm" {
+		providerName, err := gitproviders.DetectGitProviderFromUrl(application.Spec.URL)
+		if err != nil {
+			return fmt.Errorf("error detecting git provider: %w", err)
+		}
+
+		authsvc, token, err := auth.NewAuthService(ctx, fluxClient, rawClient, osysClient, providerName, logger)
+		if err != nil {
+			return fmt.Errorf("error creating auth service: %w", err)
+		}
+
+		params.GitProviderToken = token
+
+		targetName, err := kubeClient.GetClusterName(ctx)
+		if err != nil {
+			return fmt.Errorf("error getting target name: %w", err)
+		}
+
+		normalizedUrl, err := gitproviders.NewNormalizedRepoURL(application.Spec.URL)
+		if err != nil {
+			return fmt.Errorf("error creating normalized url: %w", err)
+		}
+
+		name := auth.SecretName{
+			Name:      app.CreateAppSecretName(targetName, normalizedUrl.String()),
+			Namespace: params.Namespace,
+		}
+
+		gitClient, err = authsvc.SetupDeployKey(ctx, name, targetName, normalizedUrl)
+		if err != nil {
+			return fmt.Errorf("error setting up deploy keys: %w", err)
+		}
+	}
 
 	appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)
 
 	utils.SetCommmitMessage(fmt.Sprintf("wego app remove %s", params.Name))
 
-	if err := appService.Remove(params); err != nil {
+	if err := appService.Remove(params, application); err != nil {
 		return errors.Wrapf(err, "failed to remove the app %s", params.Name)
 	}
 

@@ -120,13 +120,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	gitClient := git.New(authMethod, wrapper.NewGoGit())
 
-	var providerName gitproviders.GitProviderName
 	// We re-use the same --url flag for both git and helm sources.
 	// There isn't really a concept of "provider" in helm charts, and there is nothing to push.
 	// Assume charts are always public and no auth needs to be done.
 	// If we are NOT doing a helm chart, we want to use a git client with an embedded deploy key
 	if !isHelmRepository {
-		providerName, err = gitproviders.DetectGitProviderFromUrl(repoUrlString)
+		providerName, err := gitproviders.DetectGitProviderFromUrl(repoUrlString)
 		if err != nil {
 			return fmt.Errorf("error detecting git provider: %w", err)
 		}

@@ -132,7 +132,7 @@ func (a *App) Add(params AddParams) error {
 		return fmt.Errorf("could not update parameters: %w", err)
 	}
 
-	if params.SourceType != wego.SourceTypeHelm {
+	if params.SourceType != wego.SourceTypeHelm && params.PrivateKey != "" {
 		err = a.Git.ValidateAccess(ctx, params.Url, params.Branch)
 		if err != nil {
 			return fmt.Errorf("error validating access for app %s. %w", params.Url, err)

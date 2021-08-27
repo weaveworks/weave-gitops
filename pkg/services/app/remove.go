@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 type RemoveParams struct {
@@ -21,15 +20,10 @@ type RemoveParams struct {
 }
 
 // Remove removes the Weave GitOps automation for an application
-func (a *App) Remove(params RemoveParams) error {
+func (a *App) Remove(params RemoveParams, application *wego.Application) error {
 	ctx := context.Background()
 
 	clusterName, err := a.Kube.GetClusterName(ctx)
-	if err != nil {
-		return err
-	}
-
-	application, err := a.Kube.GetApplication(ctx, types.NamespacedName{Namespace: params.Namespace, Name: params.Name})
 	if err != nil {
 		return err
 	}

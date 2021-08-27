@@ -39,7 +39,7 @@ type AppService interface {
 	// GetCommits returns a list of commits for an application
 	GetCommits(params CommitParams, app *wego.Application) ([]gitprovider.Commit, error)
 	// Remove removes an application from the cluster
-	Remove(params RemoveParams) error
+	Remove(params RemoveParams, app *wego.Application) error
 	// Status returns flux resources status and the last successful reconciliation time
 	Status(params StatusParams) (string, string, error)
 	// Pause pauses the gitops automation for an app

@@ -79,13 +79,18 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	cliRunner := &runner.CLIRunner{}
 	osysClient := osys.New()
 	fluxClient := flux.New(osysClient, cliRunner)
-	logger := logger.NewCLILogger(os.Stdout)
+	kubeClient := kube.New(cliRunner)
 	kube, rawClient, err := kube.NewKubeHTTPClient()
 	if err != nil {
-		return fmt.Errorf("error initializing kube client: %w", err)
+		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
-	appContent, err := kube.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
+	logger := logger.NewCLILogger(os.Stdout)
+	if err := app.IsClusterReady(logger, kube); err != nil {
+		return err
+	}
+
+	appContent, err := kubeClient.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
 	if err != nil {
 		return fmt.Errorf("unable to get application for %s %w", params.Name, err)
 	}
@@ -94,8 +99,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unable to get commits for a helm chart")
 	}
 
-	var providerName gitproviders.GitProviderName
-	providerName, err = gitproviders.DetectGitProviderFromUrl(appContent.Spec.URL)
+	providerName, err := gitproviders.DetectGitProviderFromUrl(appContent.Spec.URL)
 	if err != nil {
 		return fmt.Errorf("error detecting git provider: %w", err)
 	}
@@ -107,7 +111,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	params.GitProviderToken = token
 
-	targetName, err := kube.GetClusterName(ctx)
+	targetName, err := kubeClient.GetClusterName(ctx)
 	if err != nil {
 		return fmt.Errorf("error getting target name: %w", err)
 	}
@@ -127,7 +131,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error setting up deploy keys: %w", err)
 	}
 
-	appService := app.New(logger, gitClient, fluxClient, kube, osysClient)
+	appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)
 
 	if command != "get" {
 		_ = cmd.Help()
