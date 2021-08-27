@@ -228,7 +228,7 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 			return fmt.Errorf("error running command by ginkgo %w", err)
 		}
 		Eventually(session, 10, 1).Should(gexec.Exit())
-		if session.ExitCode() != 0 {
+		if session.ExitCode() != 0 && !bytes.Contains(session.Out.Contents(), []byte("Repository not found")) {
 			return fmt.Errorf("expecting exit code 0, got %d, err %s", session.ExitCode(), session.Err.Contents())
 		}
 		Eventually(session, 10, 1).Should(gexec.Exit())
