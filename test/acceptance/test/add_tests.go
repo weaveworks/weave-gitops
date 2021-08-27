@@ -233,42 +233,6 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("Verify that wego can deploy with no private key", func() {
-		var repoAbsolutePath string
-		private := true
-		tip := generateTestInputs()
-		appName := tip.appRepoName
-
-		addCommand := "app add ."
-
-		defer deleteRepo(tip.appRepoName)
-		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
-
-		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName)
-		})
-
-		By("And application workload is not already deployed to cluster", func() {
-			deleteWorkload(tip.workloadName, tip.workloadNamespace)
-		})
-
-		By("When I create an empty private repo", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, private)
-		})
-
-		By("And I install wego to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
-		})
-
-		By("And I run wego add command", func() {
-			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
-		})
-
-		By("Then I should see a PR created in user repo", func() {
-			verifyPRCreated(repoAbsolutePath, appName)
-		})
-	})
-
 	It("Verify that wego can deploy app when user specifies branch, namespace, url, deployment-type", func() {
 		var repoAbsolutePath string
 		private := true

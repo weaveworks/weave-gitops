@@ -155,6 +155,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("error setting up deploy keys: %w", err)
 		}
+	} else { // This is needed for helm until we remove private key
+		token, err := osysClient.GetGitProviderToken()
+		if err != nil {
+			return fmt.Errorf("error getting git provider token: %w", err)
+		}
+		params.GitProviderToken = token
 	}
 
 	appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)

@@ -15,6 +15,7 @@ import (
 	"github.com/lithammer/dedent"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -85,7 +86,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unable to get application for %s %w", params.Name, err)
 	}
 
-	if application.Spec.SourceType == "helm" {
+	if application.Spec.SourceType == wego.SourceTypeHelm {
 		providerName, err := gitproviders.DetectGitProviderFromUrl(application.Spec.URL)
 		if err != nil {
 			return fmt.Errorf("error detecting git provider: %w", err)
@@ -117,6 +118,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("error setting up deploy keys: %w", err)
 		}
+	} else { // This is needed for helm until we remove private key
+		token, err := osysClient.GetGitProviderToken()
+		if err != nil {
+			return fmt.Errorf("error getting git provider token: %w", err)
+		}
+		params.GitProviderToken = token
 	}
 
 	appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)
