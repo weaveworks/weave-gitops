@@ -106,7 +106,23 @@ jobs:
       with:
         go-version: 1.16.3
     - name: Checkout code
-      uses: actions/checkout@v2   
+      uses: actions/checkout@v2
+    - name: Setup selenium standalone server
+      run: | 
+        sudo apt-get update
+        sudo apt-get install -y xvfb
+        sudo apt-get install -y google-chrome-stable
+
+        wget https://chromedriver.storage.googleapis.com/92.0.4515.107/chromedriver_linux64.zip
+        unzip chromedriver_linux64.zip
+        sudo mv -f chromedriver /usr/local/bin/chromedriver
+
+        mkdir -p cmd/selenium
+        cd cmd/selenium
+        wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
+        mv selenium-server-standalone-3.14.0.jar selenium-server-standalone.jar
+        cd -
+
     - name: Setup Kubernetes
       uses: engineerd/setup-kind@v0.5.0
       with:
@@ -139,16 +155,6 @@ jobs:
         git config --global user.email "weave-test-user@example.com"
         git config --global user.name "Testy McTestFace"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-    - name: Setup selenoid
-      uses: Xotabu4/selenoid-github-action@v2
-      with:
-        selenoid-start-arguments: |
-          --args "--disable-gpu --no-sandbox --browsers 'chrome' --last-versions 1"
-    - name: Setup xvfb
-      uses: GabrielBB/xvfb-action@v1
-      with: 
-        working-directory: ./test/acceptance/test/
-        run: pwd
     - name: Run smoke tests from acceptance suite
       env:
         GITHUB_ORG: weaveworks-gitops-test
