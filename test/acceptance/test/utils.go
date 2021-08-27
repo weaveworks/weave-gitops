@@ -219,6 +219,7 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 		Expect(session.Out).Should(gbytes.Say(fmt.Sprintf(`Initialized empty Git repository in /private/tmp/%s/.git/`, appRepoName)))
 	}
 
+	fmt.Fprintf(GinkgoWriter, "wainting for creation")
 	err = utils.WaitUntil(GinkgoWriter, time.Second*2, time.Second*20, func() error {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cd %s &&
@@ -228,6 +229,8 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 			return fmt.Errorf("error running command by ginkgo %w", err)
 		}
 		Eventually(session, 10, 1).Should(gexec.Exit())
+		fmt.Fprintf(GinkgoWriter, "session.Out[%s]", session.Out.Contents())
+		fmt.Fprintf(GinkgoWriter, "session.Err[%s]", session.Err.Contents())
 		if session.ExitCode() != 0 && !bytes.Contains(session.Out.Contents(), []byte("Repository not found")) {
 			return fmt.Errorf("expecting exit code 0, got %d, err %s", session.ExitCode(), session.Err.Contents())
 		}
@@ -238,6 +241,7 @@ https://github.com/%s/%s`, GITHUB_ORG, appRepoName)))
 	})
 	Expect(err).ShouldNot(HaveOccurred())
 
+	fmt.Fprintf(GinkgoWriter, "wainting for confirmation")
 	Expect(utils.WaitUntil(GinkgoWriter, time.Second, 20*time.Second, func() error {
 		cmd := fmt.Sprintf(`hub api repos/%s/%s`, GITHUB_ORG, appRepoName)
 		command := exec.Command("sh", "-c", cmd)
@@ -245,6 +249,7 @@ https://github.com/%s/%s`, GITHUB_ORG, appRepoName)))
 		Eventually(session, 10, 1).Should(gexec.Exit())
 		return err
 	})).ShouldNot(HaveOccurred())
+	fmt.Fprintf(GinkgoWriter, "after confirmation")
 
 	return repoAbsolutePath
 }
