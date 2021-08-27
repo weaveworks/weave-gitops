@@ -219,11 +219,13 @@ func runAddAndCollectInfo() error {
 // written to the repo
 func checkAddResults() error {
 	for _, res := range appResources {
-		resources := createdResources[res.kind]
-		if len(resources) == 0 {
-			return fmt.Errorf("expected %s resources to be created", res.kind)
+		if res.kind != ResourceKindSecret {
+			resources := createdResources[res.kind]
+			if len(resources) == 0 {
+				return fmt.Errorf("expected %s resources to be created", res.kind)
+			}
+			delete(resources, res.name)
 		}
-		delete(resources, res.name)
 	}
 
 	for kind, leftovers := range createdResources {

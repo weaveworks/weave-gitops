@@ -19,7 +19,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/yaml"
@@ -140,13 +139,6 @@ func (a *App) Add(params AddParams) error {
 		return fmt.Errorf("could not update parameters: %w", err)
 	}
 
-	if params.SourceType != wego.SourceTypeHelm {
-		err = a.Git.ValidateAccess(ctx, params.Url, params.Branch)
-		if err != nil {
-			return fmt.Errorf("error validating access for app %s. %w", params.Url, err)
-		}
-	}
-
 	a.printAddSummary(params)
 
 	if err := IsClusterReady(a.Logger, a.Kube); err != nil {
@@ -174,13 +166,7 @@ func (a *App) Add(params AddParams) error {
 		}
 	}
 
-	var secretRef string
-	if wego.SourceType(params.SourceType) == wego.SourceTypeGit {
-		secretRef, err = a.createAndUploadDeployKey(ctx, info, params.DryRun, info.Spec.URL, gitProvider)
-		if err != nil {
-			return fmt.Errorf("could not generate deploy key: %w", err)
-		}
-	}
+	secretRef := info.repoSecretName(info.Spec.URL).String()
 
 	switch strings.ToUpper(info.Spec.ConfigURL) {
 	case string(ConfigTypeNone):
@@ -188,16 +174,7 @@ func (a *App) Add(params AddParams) error {
 	case string(ConfigTypeUserRepo):
 		return a.addAppWithConfigInAppRepo(info, params, gitProvider, secretRef, appHash)
 	default:
-		// TODO: @jpellizzari As of https://github.com/weaveworks/weave-gitops/pull/587,
-		// we are not using deploy keys for external repos yet.
-		// Followup created here: https://github.com/weaveworks/weave-gitops/issues/592
-		gitClient, err := a.temporaryGitClientFactory(a.Osys, params.PrivateKey)
-		if err != nil {
-			return fmt.Errorf("error selecting auth method for external config repo: %w", err)
-		}
-		// Overriding the internal git service
-		a.Git = gitClient
-		return a.addAppWithConfigInExternalRepo(ctx, info, params, gitProvider, secretRef, appHash)
+		return a.addAppWithConfigInExternalRepo(info, params, gitProvider, secretRef, appHash)
 	}
 }
 
@@ -218,12 +195,16 @@ func (a *App) printAddSummary(params AddParams) {
 
 const maxKubernetesResourceNameLength = 63
 
+func IsExternalConfigUrl(url string) bool {
+	return strings.ToUpper(url) != string(ConfigTypeNone) &&
+		strings.ToUpper(url) != string(ConfigTypeUserRepo)
+}
+
 func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, params AddParams) (AddParams, error) {
 	params.SourceType = wego.SourceTypeGit
 
 	// making sure the config url is in good format
-	if strings.ToUpper(params.AppConfigUrl) != string(ConfigTypeNone) &&
-		strings.ToUpper(params.AppConfigUrl) != string(ConfigTypeUserRepo) {
+	if IsExternalConfigUrl(params.AppConfigUrl) {
 		params.AppConfigUrl = utils.SanitizeRepoUrl(params.AppConfigUrl)
 	}
 
@@ -242,15 +223,6 @@ func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, 
 		if params.Url == "" {
 			return params, fmt.Errorf("--url must be specified for helm repositories")
 		}
-	case params.Url == "":
-		// Git repository -- identifying repo url if not set by the user
-		url, err := a.getGitRemoteUrl(params)
-
-		if err != nil {
-			return params, err
-		}
-
-		params.Url = url
 	default:
 		// making sure url is in the correct format
 		_, err := url.Parse(params.Url)
@@ -305,25 +277,6 @@ func (a *App) updateParametersIfNecessary(gitProvider gitproviders.GitProvider, 
 	}
 
 	return params, nil
-}
-
-func (a *App) getGitRemoteUrl(params AddParams) (string, error) {
-	repo, err := a.Git.Open(params.Dir)
-	if err != nil {
-		return "", fmt.Errorf("failed to open repository: %s: %w", params.Dir, err)
-	}
-
-	remote, err := repo.Remote("origin")
-	if err != nil {
-		return "", fmt.Errorf("failed to find the origin remote in the repository: %w", err)
-	}
-
-	urls := remote.Config().URLs
-	if len(urls) == 0 {
-		return "", fmt.Errorf("remote config in %s does not have an url", params.Dir)
-	}
-
-	return utils.SanitizeRepoUrl(urls[0]), nil
 }
 
 func (a *App) addAppWithNoConfigRepo(info *AppResourceInfo, dryRun bool, secretRef string, appHash string) error {
@@ -387,12 +340,7 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 	})
 }
 
-func (a *App) addAppWithConfigInExternalRepo(ctx context.Context, info *AppResourceInfo, params AddParams, gitProvider gitproviders.GitProvider, appSecretRef string, appHash string) error {
-	appConfigSecretName, err := a.createAndUploadDeployKey(ctx, info, params.DryRun, info.Spec.ConfigURL, gitProvider)
-	if err != nil {
-		return fmt.Errorf("could not generate deploy key: %w", err)
-	}
-
+func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddParams, gitProvider gitproviders.GitProvider, appSecretRef string, appHash string) error {
 	// Returns the source, app spec and kustomization
 	appSource, appGoat, appSpec, err := a.generateAppManifests(info, appSecretRef, appHash)
 	if err != nil {
@@ -404,8 +352,7 @@ func (a *App) addAppWithConfigInExternalRepo(ctx context.Context, info *AppResou
 		return fmt.Errorf("could not determine default branch for config repository: %w", err)
 	}
 
-	// targetSource, targetGoat, appDirGoat, err := a.generateExternalRepoManifests(info, appConfigSecretName, configBranch)
-	extRepoMan, err := a.generateExternalRepoManifests(info, appConfigSecretName, configBranch)
+	targetSource, targetGoats, err := a.generateExternalRepoManifests(info, configBranch)
 	if err != nil {
 		return fmt.Errorf("could not generate target GitOps Automation manifests: %w", err)
 	}
@@ -489,10 +436,10 @@ func (a *App) generateAppWegoManifests(info *AppResourceInfo) ([]byte, []byte, e
 
 }
 
-func (a *App) generateExternalRepoManifests(info *AppResourceInfo, secretRef, branch string) (*externalRepoManifests, error) {
+func (a *App) generateExternalRepoManifests(info *AppResourceInfo, branch string) ([]byte, []byte, error) {
 	repoName := generateResourceName(info.Spec.ConfigURL)
 
-	targetSource, err := a.Flux.CreateSourceGit(repoName, info.Spec.ConfigURL, branch, secretRef, info.Namespace)
+	targetSource, err := a.Flux.CreateSourceGit(repoName, info.Spec.ConfigURL, branch, info.repoSecretName(info.Spec.ConfigURL).String(), info.Namespace)
 	if err != nil {
 		return nil, fmt.Errorf("could not generate target source manifests: %w", err)
 	}
@@ -539,79 +486,6 @@ func (a *App) commitAndPush(filters ...func(string) bool) error {
 	}
 
 	return nil
-}
-
-func (a *App) createAndUploadDeployKey(ctx context.Context, info *AppResourceInfo, dryRun bool, repoUrl string, gitProvider gitproviders.GitProvider) (string, error) {
-	if repoUrl == "" {
-		return "", nil
-	}
-
-	secretRefName := info.appSecretName(repoUrl)
-	if dryRun {
-		return secretRefName.String(), nil
-	}
-
-	repoUrl = utils.SanitizeRepoUrl(repoUrl)
-
-	owner, err := utils.GetOwnerFromUrl(repoUrl)
-	if err != nil {
-		return "", err
-	}
-
-	repoName := utils.UrlToRepoName(repoUrl)
-
-	accountType, err := gitProvider.GetAccountType(owner)
-	if err != nil {
-		return "", err
-	}
-
-	repoInfo, err := gitProvider.GetRepoInfo(accountType, owner, repoName)
-	if err != nil {
-		return "", err
-	}
-
-	if repoInfo != nil && repoInfo.Visibility != nil && *repoInfo.Visibility == gitprovider.RepositoryVisibilityPublic {
-		return "", nil
-	}
-
-	deployKeyExists, err := gitProvider.DeployKeyExists(owner, repoName)
-	if err != nil {
-		return "", fmt.Errorf("failed check for existing deploy key: %w", err)
-	}
-
-	secretPresent, err := a.Kube.SecretPresent(context.Background(), secretRefName.String(), info.Namespace)
-	if err != nil {
-		return "", fmt.Errorf("failed check for existing secret: %w", err)
-	}
-
-	if !deployKeyExists || !secretPresent {
-		// TODO: @jpellizzari As of https://github.com/weaveworks/weave-gitops/pull/587/files,
-		// deployKeyExists and secretPresent should always be true, meaning we will never hit this block.
-		// A lot of our unit tests rely on the individual function calls being called in this block,
-		// so they were left in for now and will be handled in a follow up PR.
-		a.Logger.Generatef("Generating deploy key for repo %s", repoUrl)
-		secret, err := a.Flux.CreateSecretGit(secretRefName.String(), repoUrl, info.Namespace)
-		if err != nil {
-			return "", fmt.Errorf("could not create git secret: %w", err)
-		}
-		var secretData corev1.Secret
-		err = yaml.Unmarshal(secret, &secretData)
-		if err != nil {
-			return string(secret), fmt.Errorf("failed to unmarshal created secret: %w", err)
-		}
-
-		deployKey := []byte(secretData.StringData["identity.pub"])
-
-		if err := gitProvider.UploadDeployKey(owner, repoName, deployKey); err != nil {
-			return "", fmt.Errorf("error uploading deploy key: %w", err)
-		}
-
-		if err := a.Kube.Apply(ctx, secret, info.Namespace); err != nil {
-			return "", fmt.Errorf("could not apply secret manifest:  %w", err)
-		}
-	}
-
-	return secretRefName.String(), nil
 }
 
 func (a *App) generateSource(info *AppResourceInfo, secretRef string) ([]byte, error) {
@@ -866,8 +740,8 @@ func (s GeneratedSecretName) String() string {
 	return string(s)
 }
 
-func (a *AppResourceInfo) appSecretName(repoURL string) GeneratedSecretName {
-	return CreateAppSecretName(a.clusterName, repoURL)
+func (a *AppResourceInfo) repoSecretName(repoURL string) GeneratedSecretName {
+	return CreateRepoSecretName(a.clusterName, repoURL)
 }
 
 func nameTooLong(name string) bool {
@@ -882,7 +756,7 @@ func hashNameIfTooLong(name string) string {
 	return fmt.Sprintf("wego-%x", md5.Sum([]byte(name)))
 }
 
-func CreateAppSecretName(targetName string, repoURL string) GeneratedSecretName {
+func CreateRepoSecretName(targetName string, repoURL string) GeneratedSecretName {
 	return GeneratedSecretName(hashNameIfTooLong(fmt.Sprintf("wego-%s-%s", targetName, generateResourceName(repoURL))))
 }
 
@@ -950,7 +824,7 @@ func (a *AppResourceInfo) clusterResources() []ResourceRef {
 			resources,
 			ResourceRef{
 				kind: ResourceKindSecret,
-				name: a.appSecretName(a.Spec.URL).String()})
+				name: a.repoSecretName(a.Spec.URL).String()})
 	}
 
 	if strings.ToUpper(a.Spec.ConfigURL) == string(ConfigTypeNone) {
@@ -978,7 +852,7 @@ func (a *AppResourceInfo) clusterResources() []ResourceRef {
 			// Secret for deploy key associated with config repository
 			ResourceRef{
 				kind: ResourceKindSecret,
-				name: a.appSecretName(a.Spec.ConfigURL).String()},
+				name: a.repoSecretName(a.Spec.ConfigURL).String()},
 			// Source for config repository
 			ResourceRef{
 				kind: ResourceKindGitRepository,

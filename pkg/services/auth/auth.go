@@ -13,6 +13,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -32,6 +33,44 @@ func NewAuthCLIHandler(name gitproviders.GitProviderName) (BlockingCLIAuthHandle
 	}
 
 	return nil, fmt.Errorf("unsupported auth provider \"%s\"", name)
+}
+
+// GetGitProvider returns a GitProvider containing either the token stored in the <git provider>_TOKEN env var
+// or a token retrieved via the CLI auth flow
+func GetGitProvider(ctx context.Context, url string) (gitproviders.GitProvider, error) {
+	osysClient := osys.New()
+
+	providerName, providerNameErr := gitproviders.DetectGitProviderFromUrl(url)
+	if providerNameErr != nil {
+		return nil, fmt.Errorf("error detecting git provider: %w", providerNameErr)
+	}
+
+	token, tokenErr := osysClient.GetGitProviderToken()
+
+	if tokenErr == osys.ErrNoGitProviderTokenSet {
+		// No provider token set, we need to do the auth flow.
+		authHandler, authErr := NewAuthCLIHandler(providerName)
+		if authErr != nil {
+			return nil, fmt.Errorf("could not get auth handler for provider %s: %w", providerName, authErr)
+		}
+
+		generatedToken, generateTokenErr := authHandler(ctx, osysClient.Stdout())
+		if generateTokenErr != nil {
+			return nil, fmt.Errorf("could not complete auth flow: %w", generateTokenErr)
+		}
+
+		token = generatedToken
+	} else if tokenErr != nil {
+		// We didn't detect a NoGitProviderSet error, something else went wrong.
+		return nil, fmt.Errorf("could not get access token: %w", tokenErr)
+	}
+
+	provider, providerErr := gitproviders.New(gitproviders.Config{Provider: providerName, Token: token})
+	if providerErr != nil {
+		return nil, fmt.Errorf("error creating git provider client: %w", providerErr)
+	}
+
+	return provider, nil
 }
 
 type SecretName struct {
@@ -55,7 +94,7 @@ func (sn SecretName) NamespacedName() types.NamespacedName {
 }
 
 type AuthService interface {
-	SetupDeployKey(ctx context.Context, name SecretName, targetName string, repo gitproviders.NormalizedRepoURL) (git.Git, error)
+	CreateGitClient(ctx context.Context, repoUrl, targetName, namespace string) (git.Git, error)
 }
 
 type authSvc struct {
@@ -68,11 +107,7 @@ type authSvc struct {
 }
 
 // NewAuthService constructs an auth service for doing git operations with an authenticated client.
-func NewAuthService(fluxClient flux.Flux, k8sClient client.Client, providerName gitproviders.GitProviderName, l logger.Logger, token string) (AuthService, error) {
-	provider, err := gitproviders.New(gitproviders.Config{Provider: providerName, Token: token})
-	if err != nil {
-		return nil, fmt.Errorf("error creating git provider client: %w", err)
-	}
+func NewAuthService(fluxClient flux.Flux, k8sClient client.Client, provider gitproviders.GitProvider, l logger.Logger) (AuthService, error) {
 	return &authSvc{
 		logger:      l,
 		fluxClient:  fluxClient,
@@ -81,9 +116,31 @@ func NewAuthService(fluxClient flux.Flux, k8sClient client.Client, providerName 
 	}, nil
 }
 
-// SetupDeployKey creates a git.Git client instrumented with existing or generated deploy keys.
+// CreateGitClient creates a git.Git client instrumented with existing or generated deploy keys.
 // This ensures that git operations are done with stored deploy keys instead of a user's local ssh-agent or equivalent.
-func (a *authSvc) SetupDeployKey(ctx context.Context, name SecretName, targetName string, repo gitproviders.NormalizedRepoURL) (git.Git, error) {
+func (a *authSvc) CreateGitClient(ctx context.Context, targetName, namespace, repoUrl string) (git.Git, error) {
+	normalizedUrl, normalizeErr := gitproviders.NewNormalizedRepoURL(repoUrl)
+	if normalizeErr != nil {
+		return nil, fmt.Errorf("error creating normalized app url: %w", normalizeErr)
+	}
+
+	secretName := SecretName{
+		Name:      app.CreateRepoSecretName(targetName, normalizedUrl.String()),
+		Namespace: namespace,
+	}
+
+	pubKey, keyErr := a.setupDeployKey(ctx, secretName, targetName, normalizedUrl)
+	if keyErr != nil {
+		return nil, fmt.Errorf("error setting up deploy keys: %w", keyErr)
+	}
+
+	// Set the git client to use the existing deploy key.
+	return git.New(pubKey, wrapper.NewGoGit()), nil
+}
+
+// setupDeployKey creates a git.Git client instrumented with existing or generated deploy keys.
+// This ensures that git operations are done with stored deploy keys instead of a user's local ssh-agent or equivalent.
+func (a *authSvc) setupDeployKey(ctx context.Context, name SecretName, targetName string, repo gitproviders.NormalizedRepoURL) (*ssh.PublicKeys, error) {
 	owner := repo.Owner()
 	repoName := repo.RepositoryName()
 	accountType, err := a.gitProvider.GetAccountType(repo.Owner())
@@ -98,7 +155,7 @@ func (a *authSvc) SetupDeployKey(ctx context.Context, name SecretName, targetNam
 
 	if repoInfo.Visibility != nil && *repoInfo.Visibility == gitprovider.RepositoryVisibilityPublic {
 		// This is a public repo. We don't need to add deploy keys to it.
-		return git.New(nil, wrapper.NewGoGit()), nil
+		return nil, nil
 	}
 
 	deployKeyExists, err := a.gitProvider.DeployKeyExists(owner, repoName)
@@ -129,13 +186,13 @@ func (a *authSvc) SetupDeployKey(ctx context.Context, name SecretName, targetNam
 		}
 
 		// Set the git client to use the existing deploy key.
-		return git.New(pubKey, wrapper.NewGoGit()), nil
+		return pubKey, nil
 	}
 
 	return a.provisionDeployKey(ctx, targetName, name, repo)
 }
 
-func (a *authSvc) provisionDeployKey(ctx context.Context, targetName string, name SecretName, repo gitproviders.NormalizedRepoURL) (git.Git, error) {
+func (a *authSvc) provisionDeployKey(ctx context.Context, targetName string, name SecretName, repo gitproviders.NormalizedRepoURL) (*ssh.PublicKeys, error) {
 	deployKey, secret, err := a.generateDeployKey(targetName, name, repo)
 	if err != nil {
 		return nil, fmt.Errorf("error generating deploy key: %w", err)
@@ -153,7 +210,7 @@ func (a *authSvc) provisionDeployKey(ctx context.Context, targetName string, nam
 
 	a.logger.Println("Deploy key generated and uploaded to git provider")
 
-	return git.New(deployKey, wrapper.NewGoGit()), nil
+	return deployKey, nil
 }
 
 // Generates an ssh keypair for upload to the Git Provider and for use in a git.Git client.
