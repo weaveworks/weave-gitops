@@ -45,7 +45,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
 			initializeUISettings()
 
-			webDriver = initializeWebDriver("remote")
+			webDriver = initializeWebDriver("chrome")
 
 			By("When I navigate to WeGO dashboard", func() {
 				page, err = webDriver.NewPage(agouti.Desired(agouti.Capabilities{}.Browser("chrome")))
