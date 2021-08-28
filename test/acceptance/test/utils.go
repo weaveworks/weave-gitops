@@ -235,7 +235,7 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 		Eventually(session, 10, 1).Should(gexec.Exit())
 		fmt.Fprintf(GinkgoWriter, "%s session.Out[%s]", randStr, session.Out.Contents())
 		fmt.Fprintf(GinkgoWriter, "%s session.Err[%s]", randStr, session.Err.Contents())
-		if session.ExitCode() != 0 && !bytes.Contains(session.Out.Contents(), []byte("Repository not found")) {
+		if session.ExitCode() != 0 && !bytes.Contains(session.Err.Contents(), []byte("Repository not found")) {
 			return fmt.Errorf("%s expecting exit code 0, got %d, err %s", randStr, session.ExitCode(), session.Err.Contents())
 		}
 		Eventually(session, 10, 1).Should(gexec.Exit())
