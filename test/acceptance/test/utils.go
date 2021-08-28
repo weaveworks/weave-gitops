@@ -220,20 +220,23 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 		Expect(session.Out).Should(gbytes.Say(fmt.Sprintf(`Initialized empty Git repository in /private/tmp/%s/.git/`, appRepoName)))
 	}
 
-	fmt.Fprintf(GinkgoWriter, "wainting for creation")
+	randStr := RandString(10)
+	fmt.Println("RANDOM-STR", randStr)
+
+	fmt.Fprintf(GinkgoWriter, "%s wainting for creation", randStr)
 	err = utils.WaitUntil(GinkgoWriter, time.Second*2, time.Second*20, func() error {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cd %s &&
                             hub create %s %s`, repoAbsolutePath, GITHUB_ORG+"/"+appRepoName, privateRepo))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		if err != nil {
-			return fmt.Errorf("error running command by ginkgo %w", err)
+			return fmt.Errorf("%s error running command by ginkgo %w", randStr, err)
 		}
 		Eventually(session, 10, 1).Should(gexec.Exit())
-		fmt.Fprintf(GinkgoWriter, "session.Out[%s]", session.Out.Contents())
-		fmt.Fprintf(GinkgoWriter, "session.Err[%s]", session.Err.Contents())
+		fmt.Fprintf(GinkgoWriter, "%s session.Out[%s]", randStr, session.Out.Contents())
+		fmt.Fprintf(GinkgoWriter, "%s session.Err[%s]", randStr, session.Err.Contents())
 		if session.ExitCode() != 0 && !bytes.Contains(session.Out.Contents(), []byte("Repository not found")) {
-			return fmt.Errorf("expecting exit code 0, got %d, err %s", session.ExitCode(), session.Err.Contents())
+			return fmt.Errorf("%s expecting exit code 0, got %d, err %s", randStr, session.ExitCode(), session.Err.Contents())
 		}
 		Eventually(session, 10, 1).Should(gexec.Exit())
 		Expect(session.Out).Should(gbytes.Say(fmt.Sprintf(`Updating origin
@@ -242,7 +245,7 @@ https://github.com/%s/%s`, GITHUB_ORG, appRepoName)))
 	})
 	Expect(err).ShouldNot(HaveOccurred())
 
-	fmt.Fprintf(GinkgoWriter, "wainting for confirmation")
+	fmt.Fprintf(GinkgoWriter, "%s wainting for confirmation", randStr)
 	Expect(utils.WaitUntil(GinkgoWriter, time.Second, 20*time.Second, func() error {
 		cmd := fmt.Sprintf(`hub api repos/%s/%s`, GITHUB_ORG, appRepoName)
 		command := exec.Command("sh", "-c", cmd)
@@ -250,7 +253,7 @@ https://github.com/%s/%s`, GITHUB_ORG, appRepoName)))
 		Eventually(session, 10, 1).Should(gexec.Exit())
 		return err
 	})).ShouldNot(HaveOccurred())
-	fmt.Fprintf(GinkgoWriter, "after confirmation")
+	fmt.Fprintf(GinkgoWriter, "%s after confirmation", randStr)
 
 	return repoAbsolutePath
 }
