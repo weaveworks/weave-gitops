@@ -238,9 +238,7 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 		if session.ExitCode() != 0 && !bytes.Contains(session.Err.Contents(), []byte("Repository not found")) {
 			return fmt.Errorf("%s expecting exit code 0, got %d, err %s", randStr, session.ExitCode(), session.Err.Contents())
 		}
-		Eventually(session, 10, 1).Should(gexec.Exit())
-		Expect(session.Out).Should(gbytes.Say(fmt.Sprintf(`Updating origin
-https://github.com/%s/%s`, GITHUB_ORG, appRepoName)))
+		Expect(session.Out).Should(gbytes.Say("Updating origin"))
 		return nil
 	})
 	Expect(err).ShouldNot(HaveOccurred())
