@@ -214,11 +214,7 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, 10, 1).Should(gexec.Exit())
-	if os.Getenv("CI") == "true" {
-		Expect(session.Out).Should(gbytes.Say(fmt.Sprintf(`Initialized empty Git repository in /tmp/%s/.git/`, appRepoName)))
-	} else {
-		Expect(session.Out).Should(gbytes.Say(fmt.Sprintf(`Initialized empty Git repository in /private/tmp/%s/.git/`, appRepoName)))
-	}
+	Expect(session.Out).Should(MatchRegexp(fmt.Sprintf(`Initialized empty Git repository in /[private|tmp]/%s/.git/`, appRepoName)))
 
 	randStr := RandString(10)
 	fmt.Println("RANDOM-STR", randStr)
