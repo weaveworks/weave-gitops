@@ -190,7 +190,7 @@ func setupFlux() error {
 }
 
 func updateAppInfoFromParams() error {
-	params, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, localAddParams)
+	params, err := appSrv.(*App).updateParametersIfNecessary(localAddParams)
 	if err != nil {
 		return err
 	}
@@ -324,7 +324,7 @@ var _ = Describe("Remove", func() {
 		localAddParams.AppConfigUrl = "https://github.com/foo/quux"
 		Expect(updateAppInfoFromParams()).To(Succeed())
 
-		url, branch, err := appSrv.(*App).getConfigUrlAndBranch(info, "token")
+		url, branch, err := appSrv.(*App).getConfigUrlAndBranch(info)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(url).To(Equal(localAddParams.AppConfigUrl))
 		Expect(branch).To(Equal("config-branch"))

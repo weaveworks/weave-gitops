@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/pkg/errors"
@@ -15,12 +14,8 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/wego/app/remove"
 	"github.com/weaveworks/weave-gitops/cmd/wego/app/status"
 	"github.com/weaveworks/weave-gitops/cmd/wego/app/unpause"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/cliutils"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -33,7 +28,7 @@ var ApplicationCmd = &cobra.Command{
 	Example: `
   # Get last 10 commits for an application
   wego app <app-name> get commits
-  
+
   # Add an application to wego from local git repository
   wego app add . --name <app-name>
 
@@ -77,19 +72,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	command := args[1]
 	object := args[2]
 
-	cliRunner := &runner.CLIRunner{}
-	osysClient := osys.New()
-	fluxClient := flux.New(osysClient, cliRunner)
-	kubeClient := kube.New(cliRunner)
-	kube, rawClient, err := kube.NewKubeHTTPClient()
-	if err != nil {
-		return fmt.Errorf("error creating k8s http client: %w", err)
-	}
-
-	logger := logger.NewCLILogger(os.Stdout)
-	if err := app.IsClusterReady(logger, kube); err != nil {
-		return err
-	}
+	osysClient, fluxClient, kubeClient, logger := cliutils.GetBaseClients()
 
 	appContent, err := kubeClient.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
 	if err != nil {
@@ -100,52 +83,17 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unable to get commits for a helm chart")
 	}
 
-	normalizedUrl, err := gitproviders.NewNormalizedRepoURL(appContent.Spec.URL)
-	if err != nil {
-		return fmt.Errorf("error creating normalized url: %w", err)
+	targetName, targetErr := kubeClient.GetClusterName(ctx)
+	if targetErr != nil {
+		return fmt.Errorf("error getting target name: %w", targetErr)
 	}
 
-	token, tokenErr := osysClient.GetGitProviderToken()
-
-	if tokenErr == osys.ErrNoGitProviderTokenSet {
-		// No provider token set, we need to do the auth flow.
-		authHandler, err := auth.NewAuthCLIHandler(normalizedUrl.Provider())
-		if err != nil {
-			return fmt.Errorf("could not get auth handler for provider %s: %w", normalizedUrl.Provider(), err)
-		}
-
-		token, err = authHandler(ctx, osysClient.Stdout())
-		if err != nil {
-			return fmt.Errorf("could not complete auth flow: %w", err)
-		}
-	} else if tokenErr != nil {
-		// We didn't detect a NoGitProviderSet error, something else went wrong.
-		return fmt.Errorf("could not get access token: %w", err)
+	gitClient, gitProvider, clientErr := cliutils.GetGitClientsForApp(ctx, params.Name, targetName, params.Namespace)
+	if clientErr != nil {
+		return fmt.Errorf("error getting git client: %w", clientErr)
 	}
 
-	authsvc, err := auth.NewAuthService(fluxClient, rawClient, normalizedUrl.Provider(), logger, token)
-	if err != nil {
-		return fmt.Errorf("error creating auth service: %w", err)
-	}
-
-	params.GitProviderToken = token
-
-	targetName, err := kubeClient.GetClusterName(ctx)
-	if err != nil {
-		return fmt.Errorf("error getting target name: %w", err)
-	}
-
-	name := auth.SecretName{
-		Name:      app.CreateAppSecretName(targetName, normalizedUrl.String()),
-		Namespace: params.Namespace,
-	}
-
-	gitClient, err := authsvc.SetupDeployKey(ctx, name, targetName, normalizedUrl)
-	if err != nil {
-		return fmt.Errorf("error setting up deploy keys: %w", err)
-	}
-
-	appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)
+	appService := app.New(logger, gitClient, gitProvider, fluxClient, kubeClient, osysClient)
 
 	if command != "get" {
 		_ = cmd.Help()

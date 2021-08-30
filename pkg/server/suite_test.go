@@ -104,7 +104,7 @@ var _ = BeforeEach(func() {
 	secretKey = rand.String(20)
 
 	k = &kube.KubeHTTP{Client: k8sClient, ClusterName: testClustername}
-	cfg := ApplicationConfig{App: app.New(nil, nil, nil, k, nil), JwtClient: auth.NewJwtClient(secretKey)}
+	cfg := ApplicationConfig{App: app.New(nil, nil, nil, nil, k, nil), JwtClient: auth.NewJwtClient(secretKey)}
 
 	apps = NewApplicationsServer(&cfg)
 	pb.RegisterApplicationsServer(s, apps)

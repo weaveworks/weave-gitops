@@ -91,14 +91,14 @@ var _ = Describe("Add", func() {
 		})
 
 		It("Uses the default branch from the repository if no branch is specified", func() {
-			updated, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			updated, err := appSrv.(*App).updateParametersIfNecessary(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(updated.Branch).To(Equal("an-unusual-branch"))
 		})
 
 		It("Allows a specified branch to override the repo's default branch", func() {
 			addParams.Branch = "an-overriding-branch"
-			updated, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			updated, err := appSrv.(*App).updateParametersIfNecessary(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(updated.Branch).To(Equal("an-overriding-branch"))
 		})
@@ -758,7 +758,7 @@ var _ = Describe("Add", func() {
 	Context("when creating a pull request", func() {
 		It("generates an appropriate error when the owner cannot be retrieved from the URL", func() {
 			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
-			err := appSrv.(*App).createPullRequestToRepo(info, gitProviders, "foo", "hash", []byte{}, []byte{}, []byte{})
+			err := appSrv.(*App).createPullRequestToRepo(info, "foo", "hash", []byte{}, []byte{}, []byte{})
 			Expect(err.Error()).To(HavePrefix("failed to retrieve owner"))
 		})
 
@@ -767,7 +767,7 @@ var _ = Describe("Add", func() {
 				return gitproviders.AccountTypeOrg, fmt.Errorf("no account found")
 			}
 			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
-			err := appSrv.(*App).createPullRequestToRepo(info, gitProviders, "ssh://git@github.com/ewojfewoj3323w/abc", "hash", []byte{}, []byte{}, []byte{})
+			err := appSrv.(*App).createPullRequestToRepo(info, "ssh://git@github.com/ewojfewoj3323w/abc", "hash", []byte{}, []byte{}, []byte{})
 			Expect(err.Error()).To(HavePrefix("failed to retrieve account type"))
 		})
 	})
@@ -792,7 +792,7 @@ var _ = Describe("Add", func() {
 			addParams := AddParams{}
 			addParams.Url = "http://something"
 
-			updated, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			updated, err := appSrv.(*App).updateParametersIfNecessary(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(updated.DeploymentType).To(Equal(DefaultDeploymentType))
@@ -804,7 +804,7 @@ var _ = Describe("Add", func() {
 			addParams := AddParams{}
 			addParams.Url = "{http:/-*wrong-url-827"
 
-			_, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			_, err := appSrv.(*App).updateParametersIfNecessary(addParams)
 			Expect(err).Should(HaveOccurred())
 			Expect(err.Error()).Should(ContainSubstring("error validating url"))
 			Expect(err.Error()).Should(ContainSubstring(addParams.Url))
@@ -824,12 +824,12 @@ var _ = Describe("Add", func() {
 
 		It("ensures that url base names are <= 63 characters when used as names", func() {
 			addParams.Url = "https://github.com/foo/a23456789012345678901234567890123456789012345678901234567890123"
-			localParams, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			localParams, err := appSrv.(*App).updateParametersIfNecessary(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(appSrv.Add(localParams)).To(Succeed())
 			addParams.Name = ""
 			addParams.Url = "https://github.com/foo/a234567890123456789012345678901234567890123456789012345678901234"
-			_, err = appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			_, err = appSrv.(*App).updateParametersIfNecessary(addParams)
 			Expect(err).Should(HaveOccurred())
 		})
 

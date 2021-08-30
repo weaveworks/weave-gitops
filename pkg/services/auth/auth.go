@@ -95,6 +95,7 @@ func (sn SecretName) NamespacedName() types.NamespacedName {
 
 type AuthService interface {
 	CreateGitClient(ctx context.Context, repoUrl, targetName, namespace string) (git.Git, error)
+	GetGitProvider() gitproviders.GitProvider
 }
 
 type authSvc struct {
@@ -116,6 +117,11 @@ func NewAuthService(fluxClient flux.Flux, k8sClient client.Client, provider gitp
 	}, nil
 }
 
+// GetGitProvider returns the GitProvider associated with the AuthService instance
+func (a *authSvc) GetGitProvider() gitproviders.GitProvider {
+	return a.gitProvider
+}
+
 // CreateGitClient creates a git.Git client instrumented with existing or generated deploy keys.
 // This ensures that git operations are done with stored deploy keys instead of a user's local ssh-agent or equivalent.
 func (a *authSvc) CreateGitClient(ctx context.Context, targetName, namespace, repoUrl string) (git.Git, error) {
@@ -132,6 +138,12 @@ func (a *authSvc) CreateGitClient(ctx context.Context, targetName, namespace, re
 	pubKey, keyErr := a.setupDeployKey(ctx, secretName, targetName, normalizedUrl)
 	if keyErr != nil {
 		return nil, fmt.Errorf("error setting up deploy keys: %w", keyErr)
+	}
+
+	if pubKey == nil {
+		// Don't return git.New(pubkey, wrapper.NewGoGit()), nil here. It will fail
+		// "nil" of type *ssh.PublicKeys does not behave correctly
+		return git.New(nil, wrapper.NewGoGit()), nil
 	}
 
 	// Set the git client to use the existing deploy key.

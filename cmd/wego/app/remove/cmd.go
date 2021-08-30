@@ -3,22 +3,15 @@ package remove
 // Provides support for removing an application from wego management.
 
 import (
+	"context"
 	"fmt"
-	"os"
 	"strings"
-
-	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 
 	"github.com/lithammer/dedent"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/git"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/cliutils"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
@@ -51,33 +44,28 @@ func init() {
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
+	ctx := context.Background()
+
 	params.Name = args[0]
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 
-	osysClient := osys.New()
+	osysClient, fluxClient, kubeClient, logger := cliutils.GetBaseClients()
 
-	token, err := osysClient.GetGitProviderToken()
-	if err != nil {
-		return err
+	if readyErr := cliutils.IsClusterReady(logger); readyErr != nil {
+		return readyErr
 	}
 
-	params.GitProviderToken = token
-
-	authMethod, err := osysClient.SelectAuthMethod(params.PrivateKey)
-	if err != nil {
-		return err
+	targetName, targetErr := kubeClient.GetClusterName(ctx)
+	if targetErr != nil {
+		return fmt.Errorf("error getting target name: %w", targetErr)
 	}
 
-	cliRunner := &runner.CLIRunner{}
-	fluxClient := flux.New(osysClient, cliRunner)
-	kubeClient, _, err := kube.NewKubeHTTPClient()
-	if err != nil {
-		return fmt.Errorf("error initializing kube client: %w", err)
+	gitClient, gitProvider, clientErr := cliutils.GetGitClientsForApp(ctx, params.Name, targetName, params.Namespace)
+	if clientErr != nil {
+		return fmt.Errorf("error getting git client: %w", clientErr)
 	}
-	gitClient := git.New(authMethod, wrapper.NewGoGit())
-	logger := logger.NewCLILogger(os.Stdout)
 
-	appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)
+	appService := app.New(logger, gitClient, gitProvider, fluxClient, kubeClient, osysClient)
 
 	utils.SetCommmitMessage(fmt.Sprintf("wego app remove %s", params.Name))
 

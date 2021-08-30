@@ -67,7 +67,7 @@ func (a *App) Remove(params RemoveParams) error {
 		return nil
 	}
 
-	cloneURL, branch, err := a.getConfigUrlAndBranch(info, params.GitProviderToken)
+	cloneURL, branch, err := a.getConfigUrlAndBranch(info)
 	if err != nil {
 		return fmt.Errorf("failed to obtain config URL and branch: %w", err)
 	}
@@ -108,22 +108,19 @@ func (a *App) Remove(params RemoveParams) error {
 	return nil
 }
 
-func (a *App) getConfigUrlAndBranch(info *AppResourceInfo, token string) (string, string, error) {
+func (a *App) getConfigUrlAndBranch(info *AppResourceInfo) (string, string, error) {
 	cloneURL := info.Spec.ConfigURL
 	branch := info.Spec.Branch
 
 	if cloneURL == string(ConfigTypeUserRepo) {
 		cloneURL = info.Spec.URL
 	} else {
-		gitProvider, err := a.GitProviderFactory(token)
+		localBranch, err := a.GitProvider.GetDefaultBranch(cloneURL)
 		if err != nil {
 			return "", "", err
 		}
 
-		branch, err = gitProvider.GetDefaultBranch(cloneURL)
-		if err != nil {
-			return "", "", err
-		}
+		branch = localBranch
 	}
 
 	return cloneURL, branch, nil

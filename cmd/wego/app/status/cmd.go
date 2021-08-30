@@ -40,7 +40,7 @@ var Cmd = &cobra.Command{
 		gitClient := git.New(nil, wrapper.NewGoGit())
 		logger := logger.NewCLILogger(os.Stdout)
 
-		appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)
+		appService := app.New(logger, gitClient, nil, fluxClient, kubeClient, osysClient)
 
 		fluxOutput, lastSuccessReconciliation, err := appService.Status(params)
 		if err != nil {

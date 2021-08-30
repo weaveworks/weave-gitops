@@ -101,23 +101,23 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	osysClient, fluxClient, kubeClient, logger := cliutils.GetBaseClients()
 
+	if readyErr := cliutils.IsClusterReady(logger); readyErr != nil {
+		return readyErr
+	}
+
 	targetName, targetErr := kubeClient.GetClusterName(ctx)
 	if targetErr != nil {
 		return fmt.Errorf("error getting target name: %w", targetErr)
 	}
 
-	if readyErr := cliutils.IsClusterReady(logger); readyErr != nil {
-		return readyErr
-	}
-
 	isHelmRepository := params.Chart != ""
 
-	gitClient, clientErr := cliutils.GetGitClient(ctx, params.Dir, params.Url, params.AppConfigUrl, targetName, params.Namespace, isHelmRepository)
+	gitClient, gitProvider, clientErr := cliutils.GetGitClients(ctx, params.Url, params.AppConfigUrl, targetName, params.Namespace, isHelmRepository)
 	if clientErr != nil {
 		return fmt.Errorf("error getting git client: %w", clientErr)
 	}
 
-	appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)
+	appService := app.New(logger, gitClient, gitProvider, fluxClient, kubeClient, osysClient)
 
 	utils.SetCommmitMessageFromArgs("wego app add", params.Url, params.Path, params.Name)
 

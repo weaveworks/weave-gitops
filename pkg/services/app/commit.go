@@ -24,11 +24,6 @@ func (a *App) GetCommits(params CommitParams, application *wego.Application) ([]
 		return nil, fmt.Errorf("error creating normalized url: %w", err)
 	}
 
-	gitProvider, err := a.GitProviderFactory(params.GitProviderToken)
-	if err != nil {
-		return nil, err
-	}
-
 	accountType, err := gitProvider.GetAccountType(normalizedUrl.Owner())
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve account type: %w", err)
