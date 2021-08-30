@@ -3,7 +3,6 @@ package acceptance
 import (
 	"fmt"
 	"os"
-	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -45,9 +44,9 @@ var _ = Describe("Weave GitOps UI Test", func() {
 			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
 			initializeUISettings()
 
-			webDriver = initializeWebDriver("chrome")
+			webDriver = initializeWebDriver()
 
-			By("When I navigate to WeGO dashboard", func() {
+			By("When I open up a browser", func() {
 				page, err = webDriver.NewPage(agouti.Desired(agouti.Capabilities{}.Browser("chrome")))
 				Expect(err).NotTo(HaveOccurred())
 			})
@@ -60,10 +59,10 @@ var _ = Describe("Weave GitOps UI Test", func() {
 	})
 
 	It("SmokeTest - Verify wego can run UI without apps installed", func() {
-		Expect(page.Navigate(WEGO_UI_URL)).To(Succeed())
-		Expect(page.Title()).To(ContainSubstring("Weave GitOps"))
-		time.Sleep(5 * time.Second)
-		fmt.Println(page.Title())
-		installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		By("Then I should be able to navigate to WeGO dashboard", func() {
+			Expect(page.Navigate(WEGO_UI_URL)).To(Succeed())
+			Expect(page.Title()).To(ContainSubstring("Weave GitOps"))
+			fmt.Println(page.Title())
+		})
 	})
 })

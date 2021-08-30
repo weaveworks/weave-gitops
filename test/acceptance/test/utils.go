@@ -568,18 +568,12 @@ func mergePR(repoAbsolutePath, prLink string) {
 	Eventually(session).Should(gexec.Exit())
 }
 
-func initializeWebDriver(webDriver string) *agouti.WebDriver {
-	log.Infof("Initializing WebDriver: " + webDriver)
-
-	if webDriver == "chrome" {
+func initializeWebDriver() *agouti.WebDriver {
+	log.Infof("Initializing Chrome Driver...")
+	if webDriver == nil {
 		chromeDriver := agouti.ChromeDriver()
 		Expect(chromeDriver.Start()).To(Succeed())
 		return chromeDriver
-	}
-	if webDriver == "remote" {
-		remoteDriver := agouti.Selenium()
-		Expect(remoteDriver.Start()).To(Succeed())
-		return remoteDriver
 	}
 	return nil
 }
