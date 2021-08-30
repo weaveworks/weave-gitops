@@ -47,8 +47,17 @@ var _ = Describe("Weave GitOps UI Test", func() {
 			webDriver = initializeWebDriver()
 
 			By("When I open up a browser", func() {
-				page, err = webDriver.NewPage(agouti.Desired(agouti.Capabilities{}.Browser("chrome")))
+				page, err = webDriver.NewPage(agouti.Desired(agouti.Capabilities{
+					"chromeOptions": map[string][]string{
+						"args": {
+							"--disable-gpu",
+							"--no-sandbox",
+						}}}.Browser("chrome")))
 				Expect(err).NotTo(HaveOccurred())
+				if err != nil {
+					fmt.Println("Error creating new page: " + err.Error())
+					return
+				}
 			})
 
 		})
