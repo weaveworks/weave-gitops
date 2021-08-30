@@ -225,7 +225,7 @@ var _ = Describe("Applications handler", func() {
 		Expect(r.Applications).To(HaveLen(1))
 	})
 
-	It("get commits", func() {
+	giIt("get commits", func() {
 		log := makeFakeLogr()
 		kubeClient := &kubefakes.FakeKube{}
 		kubeClient.GetApplicationStub = func(context.Context, types.NamespacedName) (*wego.Application, error) {
@@ -237,7 +237,7 @@ var _ = Describe("Applications handler", func() {
 				Spec: wego.ApplicationSpec{
 					Branch: "main",
 					Path:   "./k8s",
-					URL:    "github.com/test",
+					URL:    "https://github.com/owner/repo1",
 				},
 			}, nil
 		}
