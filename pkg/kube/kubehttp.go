@@ -84,14 +84,12 @@ func NewKubeHTTPClient() (Kube, client.Client, error) {
 		return nil, nil, fmt.Errorf("kubernetes client initialization failed: %w", err)
 	}
 
-	// 1. Prepare a RESTMapper to find GVR
 	dc, err := discovery.NewDiscoveryClientForConfig(restCfg)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to initialize discovery client: %s", err)
 	}
 	mapper := restmapper.NewDeferredDiscoveryRESTMapper(memory.NewMemCacheClient(dc))
 
-	// 2. Prepare the dynamic client
 	dyn, err := dynamic.NewForConfig(restCfg)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to initialize dynamic client: %s", err)

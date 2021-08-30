@@ -143,7 +143,7 @@ var _ = Describe("KubeHTTP", func() {
 	})
 
 	Describe("Apply", func() {
-		It("applies a namespace manifest", func() {
+		It("applies a namespaced manifest", func() {
 			ctx := context.Background()
 			name := "my-app"
 
@@ -172,31 +172,14 @@ spec:
 
 		It("applies a cluster wide manifest", func() {
 			ctx := context.Background()
-			crd := `
-apiVersion: "apiextensions.k8s.io/v1beta1"
-kind: "CustomResourceDefinition"
+			namespace := `
+apiVersion: v1
+kind: Namespace
 metadata:
-  name: "foos.bla.com"
-spec:
-  group: "bla.com"
-  version: "v1alpha1"
-  scope: "Namespaced"
-  names:
-    plural: "foos"
-    singular: "foo"
-    kind: "Foo"
-  validation:
-    openAPIV3Schema:
-      required: ["spec"]
-      properties:
-       spec:
-         required: ["cert"]
-         properties:
-           cert:
-            type: "string"
-            minimum: 1`
+  name: foo
+`
 
-			Expect(k.Apply(ctx, []byte(crd), namespace.Name)).Should(Succeed())
+			Expect(k.Apply(ctx, []byte(namespace), "")).Should(Succeed())
 		})
 		It("fails to apply invalid manifest", func() {
 			ctx := context.Background()
