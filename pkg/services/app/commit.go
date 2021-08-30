@@ -7,7 +7,6 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 type CommitParams struct {
@@ -20,9 +19,9 @@ type CommitParams struct {
 
 // GetCommits gets a list of commits from the repo/branch saved in the app manifest
 func (a *App) GetCommits(params CommitParams, application *wego.Application) ([]gitprovider.Commit, error) {
-	owner, err := utils.GetOwnerFromUrl(application.Spec.URL)
+	normalizedUrl, err := gitproviders.NewNormalizedRepoURL(application.Spec.URL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve owner: %w", err)
+		return nil, fmt.Errorf("error creating normalized url: %w", err)
 	}
 
 	gitProvider, err := a.GitProviderFactory(params.GitProviderToken)
@@ -30,22 +29,22 @@ func (a *App) GetCommits(params CommitParams, application *wego.Application) ([]
 		return nil, err
 	}
 
-	accountType, err := gitProvider.GetAccountType(owner)
+	accountType, err := gitProvider.GetAccountType(normalizedUrl.Owner())
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve account type: %w", err)
 	}
+	normalizedUrl.Provider()
 
 	var commits []gitprovider.Commit
-	repoName := utils.UrlToRepoName(application.Spec.URL)
 
 	if accountType == gitproviders.AccountTypeUser {
-		userRepoRef := gitproviders.NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
+		userRepoRef := gitproviders.NewUserRepositoryRef(github.DefaultDomain, normalizedUrl.Owner(), normalizedUrl.RepositoryName())
 		commits, err = gitProvider.GetCommitsFromUserRepo(userRepoRef, application.Spec.Branch, params.PageSize, params.PageToken)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get Commits for user repo: %w", err)
 		}
 	} else {
-		orgRepoRef := gitproviders.NewOrgRepositoryRef(github.DefaultDomain, owner, repoName)
+		orgRepoRef := gitproviders.NewOrgRepositoryRef(github.DefaultDomain, normalizedUrl.Owner(), normalizedUrl.RepositoryName())
 		commits, err = gitProvider.GetCommitsFromOrgRepo(orgRepoRef, application.Spec.Branch, params.PageSize, params.PageToken)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get Commits for org repo: %w", err)

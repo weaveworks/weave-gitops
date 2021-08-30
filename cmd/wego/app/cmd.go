@@ -100,18 +100,18 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unable to get commits for a helm chart")
 	}
 
-	providerName, err := gitproviders.DetectGitProviderFromUrl(appContent.Spec.URL)
+	normalizedUrl, err := gitproviders.NewNormalizedRepoURL(appContent.Spec.URL)
 	if err != nil {
-		return fmt.Errorf("error detecting git provider: %w", err)
+		return fmt.Errorf("error creating normalized url: %w", err)
 	}
 
 	token, tokenErr := osysClient.GetGitProviderToken()
 
 	if tokenErr == osys.ErrNoGitProviderTokenSet {
 		// No provider token set, we need to do the auth flow.
-		authHandler, err := auth.NewAuthCLIHandler(providerName)
+		authHandler, err := auth.NewAuthCLIHandler(normalizedUrl.Provider())
 		if err != nil {
-			return fmt.Errorf("could not get auth handler for provider %s: %w", providerName, err)
+			return fmt.Errorf("could not get auth handler for provider %s: %w", normalizedUrl.Provider(), err)
 		}
 
 		token, err = authHandler(ctx, osysClient.Stdout())
@@ -123,7 +123,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not get access token: %w", err)
 	}
 
-	authsvc, err := auth.NewAuthService(fluxClient, rawClient, providerName, logger, token)
+	authsvc, err := auth.NewAuthService(fluxClient, rawClient, normalizedUrl.Provider(), logger, token)
 	if err != nil {
 		return fmt.Errorf("error creating auth service: %w", err)
 	}
@@ -133,11 +133,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	targetName, err := kubeClient.GetClusterName(ctx)
 	if err != nil {
 		return fmt.Errorf("error getting target name: %w", err)
-	}
-
-	normalizedUrl, err := gitproviders.NewNormalizedRepoURL(appContent.Spec.URL)
-	if err != nil {
-		return fmt.Errorf("error creating normalized url: %w", err)
 	}
 
 	name := auth.SecretName{
