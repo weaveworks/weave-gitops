@@ -113,7 +113,7 @@ jobs:
         sudo apt-get install -y xvfb
         sudo apt-get install -y google-chrome-stable
 
-        wget https://chromedriver.storage.googleapis.com/92.0.4515.107/chromedriver_linux64.zip
+        wget https://chromedriver.storage.googleapis.com/92.0.4515.159/chromedriver_linux64.zip
         unzip chromedriver_linux64.zip
         sudo mv -f chromedriver /usr/local/bin/chromedriver
 

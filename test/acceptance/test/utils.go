@@ -14,11 +14,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sclevine/agouti"
-	"github.com/onsi/gomega/gbytes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
+	"github.com/sclevine/agouti"
 	log "github.com/sirupsen/logrus"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
