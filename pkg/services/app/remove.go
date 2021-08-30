@@ -72,7 +72,7 @@ func (a *App) Remove(params RemoveParams) error {
 		return fmt.Errorf("failed to obtain config URL and branch: %w", err)
 	}
 
-	remover, err := a.cloneRepo(cloneURL, branch, params.DryRun)
+	remover, err := a.cloneRepo(a.ConfigGit, cloneURL, branch, params.DryRun)
 
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)
@@ -85,7 +85,7 @@ func (a *App) Remove(params RemoveParams) error {
 	if !params.DryRun {
 		for _, resourceRef := range resources {
 			if resourceRef.repositoryPath != "" { // Some of the automation doesn't get stored
-				if err := a.Git.Remove(resourceRef.repositoryPath); err != nil {
+				if err := a.ConfigGit.Remove(resourceRef.repositoryPath); err != nil {
 					return err
 				}
 			} else if resourceRef.kind == ResourceKindKustomization ||

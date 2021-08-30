@@ -163,7 +163,7 @@ func (a *App) Add(params AddParams) error {
 
 	secretRef := ""
 
-	if params.DeploymentType != string(wego.DeploymentTypeHelm) {
+	if params.SourceType != wego.SourceTypeHelm {
 		visibility, visibilityErr := a.GitProvider.GetRepoVisibility(info.Spec.URL)
 		if visibilityErr != nil {
 			return visibilityErr
@@ -311,7 +311,7 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 	// a local directory has not been passed, so we clone the repo passed in the --url
 	if params.Dir == "" {
 		a.Logger.Actionf("Cloning %s", info.Spec.URL)
-		remover, err := a.cloneRepo(info.Spec.URL, info.Spec.Branch, params.DryRun)
+		remover, err := a.cloneRepo(a.AppGit, info.Spec.URL, info.Spec.Branch, params.DryRun)
 		if err != nil {
 			return fmt.Errorf("failed to clone application repo: %w", err)
 		}
@@ -363,7 +363,7 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 		return fmt.Errorf("could not generate target GitOps Automation manifests: %w", err)
 	}
 
-	remover, err := a.cloneRepo(info.Spec.ConfigURL, configBranch, params.DryRun)
+	remover, err := a.cloneRepo(a.ConfigGit, info.Spec.ConfigURL, configBranch, params.DryRun)
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)
 	}
@@ -485,7 +485,7 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, branch string
 func (a *App) commitAndPush(filters ...func(string) bool) error {
 	a.Logger.Actionf("Committing and pushing wego updates for application")
 
-	_, err := a.Git.Commit(git.Commit{
+	_, err := a.ConfigGit.Commit(git.Commit{
 		Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
 		Message: "Add App manifests",
 	}, filters...)
@@ -495,7 +495,7 @@ func (a *App) commitAndPush(filters ...func(string) bool) error {
 
 	if err == nil {
 		a.Logger.Actionf("Pushing app changes to repository")
-		if err = a.Git.Push(context.Background()); err != nil {
+		if err = a.ConfigGit.Push(context.Background()); err != nil {
 			return fmt.Errorf("failed to push changes: %w", err)
 		}
 	} else {
@@ -556,7 +556,7 @@ func (a *App) applyToCluster(info *AppResourceInfo, dryRun bool, manifests ...[]
 	return nil
 }
 
-func (a *App) cloneRepo(url string, branch string, dryRun bool) (func(), error) {
+func (a *App) cloneRepo(client git.Git, url string, branch string, dryRun bool) (func(), error) {
 	if dryRun {
 		return func() {}, nil
 	}
@@ -568,7 +568,7 @@ func (a *App) cloneRepo(url string, branch string, dryRun bool) (func(), error) 
 		return nil, fmt.Errorf("failed creating temp. directory to clone repo: %w", err)
 	}
 
-	_, err = a.Git.Clone(context.Background(), repoDir, url, branch)
+	_, err = client.Clone(context.Background(), repoDir, url, branch)
 	if err != nil {
 		return nil, fmt.Errorf("failed cloning user repo: %s: %w", url, err)
 	}
@@ -579,15 +579,15 @@ func (a *App) cloneRepo(url string, branch string, dryRun bool) (func(), error) 
 }
 
 func (a *App) writeAppYaml(info *AppResourceInfo, manifest []byte) error {
-	return a.Git.Write(info.appYamlPath(), manifest)
+	return a.ConfigGit.Write(info.appYamlPath(), manifest)
 }
 
 func (a *App) writeAppGoats(info *AppResourceInfo, sourceManifest, deployManifest []byte) error {
-	if err := a.Git.Write(info.appAutomationSourcePath(), sourceManifest); err != nil {
+	if err := a.ConfigGit.Write(info.appAutomationSourcePath(), sourceManifest); err != nil {
 		return err
 	}
 
-	return a.Git.Write(info.appAutomationDeployPath(), deployManifest)
+	return a.ConfigGit.Write(info.appAutomationDeployPath(), deployManifest)
 }
 
 func makeWegoApplication(params AddParams) wego.Application {

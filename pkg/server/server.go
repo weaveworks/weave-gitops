@@ -89,7 +89,7 @@ func DefaultConfig() (*ApplicationConfig, error) {
 		return nil, fmt.Errorf("could not create kube http client: %w", err)
 	}
 
-	appSrv := app.New(nil, nil, nil, nil, kubeClient, nil)
+	appSrv := app.New(nil, nil, nil, nil, nil, kubeClient, nil)
 
 	rand.Seed(time.Now().UnixNano())
 	secretKey := rand.String(20)

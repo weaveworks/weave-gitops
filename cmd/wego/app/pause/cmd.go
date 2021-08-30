@@ -1,17 +1,10 @@
 package pause
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/cliutils"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 )
 
@@ -34,16 +27,8 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 	params.Name = args[0]
 
-	cliRunner := &runner.CLIRunner{}
-	osysClient := osys.New()
-	fluxClient := flux.New(osysClient, cliRunner)
-	logger := logger.NewCLILogger(os.Stdout)
-	kubeClient, _, err := kube.NewKubeHTTPClient()
-	if err != nil {
-		return fmt.Errorf("error initializing kube client: %w", err)
-	}
-
-	appService := app.New(logger, nil, nil, fluxClient, kubeClient, osysClient)
+	osysClient, fluxClient, kubeClient, logger := cliutils.GetBaseClients()
+	appService := app.New(logger, nil, nil, nil, fluxClient, kubeClient, osysClient)
 
 	if err := appService.Pause(params); err != nil {
 		return errors.Wrapf(err, "failed to pause the app %s", params.Name)

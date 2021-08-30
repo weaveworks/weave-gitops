@@ -60,12 +60,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error getting target name: %w", targetErr)
 	}
 
-	gitClient, gitProvider, clientErr := cliutils.GetGitClientsForApp(ctx, params.Name, targetName, params.Namespace)
+	appClient, configClient, gitProvider, clientErr := cliutils.GetGitClientsForApp(ctx, params.Name, targetName, params.Namespace)
 	if clientErr != nil {
-		return fmt.Errorf("error getting git client: %w", clientErr)
+		return fmt.Errorf("error getting git clients: %w", clientErr)
 	}
 
-	appService := app.New(logger, gitClient, gitProvider, fluxClient, kubeClient, osysClient)
+	appService := app.New(logger, appClient, configClient, gitProvider, fluxClient, kubeClient, osysClient)
 
 	utils.SetCommmitMessage(fmt.Sprintf("wego app remove %s", params.Name))
 

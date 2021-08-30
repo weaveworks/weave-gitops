@@ -42,21 +42,21 @@ func IsClusterReady(logger logger.Logger) error {
 	return nil
 }
 
-func GetGitClientsForApp(ctx context.Context, appName, targetName, namespace string) (git.Git, gitproviders.GitProvider, error) {
+func GetGitClientsForApp(ctx context.Context, appName, targetName, namespace string) (git.Git, git.Git, gitproviders.GitProvider, error) {
 	kube, _, kubeErr := kube.NewKubeHTTPClient()
 	if kubeErr != nil {
-		return nil, nil, fmt.Errorf("error creating k8s http client: %w", kubeErr)
+		return nil, nil, nil, fmt.Errorf("error creating k8s http client: %w", kubeErr)
 	}
 
 	app, appErr := kube.GetApplication(ctx, types.NamespacedName{Namespace: namespace, Name: appName})
 	if appErr != nil {
-		return nil, nil, fmt.Errorf("could not retrieve application %q: %w", appName, appErr)
+		return nil, nil, nil, fmt.Errorf("could not retrieve application %q: %w", appName, appErr)
 	}
 
 	return GetGitClients(ctx, app.Spec.URL, app.Spec.ConfigURL, targetName, namespace, app.Spec.SourceType == wego.SourceTypeHelm)
 }
 
-func GetGitClients(ctx context.Context, url, configUrl, targetName, namespace string, isHelmRepository bool) (git.Git, gitproviders.GitProvider, error) {
+func GetGitClients(ctx context.Context, url, configUrl, targetName, namespace string, isHelmRepository bool) (git.Git, git.Git, gitproviders.GitProvider, error) {
 	isExternalConfig := app.IsExternalConfigUrl(configUrl)
 
 	var providerUrl string
@@ -67,36 +67,36 @@ func GetGitClients(ctx context.Context, url, configUrl, targetName, namespace st
 	case isExternalConfig:
 		providerUrl = configUrl
 	default:
-		return nil, nil, nil
+		return nil, nil, nil, nil
 	}
 
 	authsvc, authsvcErr := getAuthService(ctx, providerUrl)
 	if authsvcErr != nil {
-		return nil, nil, fmt.Errorf("error creating auth service: %w", authsvcErr)
+		return nil, nil, nil, fmt.Errorf("error creating auth service: %w", authsvcErr)
 	}
 
-	var gitClient git.Git
+	var appClient, configClient git.Git
 
 	if !isHelmRepository {
 		// We need to do this even if we have an external config to set up the deploy key for the app repo
 		appRepoClient, appRepoErr := authsvc.CreateGitClient(ctx, targetName, namespace, url)
 		if appRepoErr != nil {
-			return nil, nil, appRepoErr
+			return nil, nil, nil, appRepoErr
 		}
 
-		gitClient = appRepoClient
+		appClient = appRepoClient
 	}
 
 	if isExternalConfig {
 		configRepoClient, configRepoErr := authsvc.CreateGitClient(ctx, targetName, namespace, utils.SanitizeRepoUrl(configUrl))
 		if configRepoErr != nil {
-			return nil, nil, configRepoErr
+			return nil, nil, nil, configRepoErr
 		}
 
-		gitClient = configRepoClient
+		configClient = configRepoClient
 	}
 
-	return gitClient, authsvc.GetGitProvider(), nil
+	return appClient, configClient, authsvc.GetGitProvider(), nil
 }
 
 func getAuthService(ctx context.Context, providerUrl string) (auth.AuthService, error) {

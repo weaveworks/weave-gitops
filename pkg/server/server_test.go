@@ -143,11 +143,15 @@ var _ = Describe("ApplicationsServer", func() {
 			BeforeEach(func() {
 				log = makeFakeLogr()
 				kubeClient = &kubefakes.FakeKube{}
+<<<<<<< HEAD
 
 				rand.Seed(time.Now().UnixNano())
 				secretKey := rand.String(20)
 
 				appsSrv = NewApplicationsServer(&ApplicationConfig{App: app.New(nil, nil, nil, nil, kubeClient, nil), JwtClient: auth.NewJwtClient(secretKey)})
+=======
+				appsSrv = NewApplicationsServer(&ApplicationConfig{App: app.New(nil, nil, nil, nil, nil, kubeClient, nil)})
+>>>>>>> 81e28f3b (Maintain separate app and config git clients)
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
@@ -291,7 +295,7 @@ var _ = Describe("Applications handler", func() {
 		}
 
 		cfg := ApplicationConfig{
-			App:    app.New(nil, nil, nil, nil, k, nil),
+			App:    app.New(nil, nil, nil, nil, nil, k, nil),
 			Logger: log,
 		}
 
@@ -337,7 +341,7 @@ var _ = Describe("Applications handler", func() {
 		}
 
 		gitProviders := &gitprovidersfakes.FakeGitProvider{}
-		appSrv := app.New(logger.NewCLILogger(os.Stderr), nil, gitProviders, nil, kubeClient, nil)
+		appSrv := app.New(logger.NewCLILogger(os.Stderr), nil, nil, gitProviders, nil, kubeClient, nil)
 		commits := []gitprovider.Commit{&fakeCommit{}}
 
 		gitProviders.GetCommitsFromUserRepoStub = func(gitprovider.UserRepositoryRef, string, int, int) ([]gitprovider.Commit, error) {

@@ -112,12 +112,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	isHelmRepository := params.Chart != ""
 
-	gitClient, gitProvider, clientErr := cliutils.GetGitClients(ctx, params.Url, params.AppConfigUrl, targetName, params.Namespace, isHelmRepository)
+	appClient, configClient, gitProvider, clientErr := cliutils.GetGitClients(ctx, params.Url, params.AppConfigUrl, targetName, params.Namespace, isHelmRepository)
 	if clientErr != nil {
-		return fmt.Errorf("error getting git client: %w", clientErr)
+		return fmt.Errorf("error getting git clients: %w", clientErr)
 	}
 
-	appService := app.New(logger, gitClient, gitProvider, fluxClient, kubeClient, osysClient)
+	appService := app.New(logger, appClient, configClient, gitProvider, fluxClient, kubeClient, osysClient)
 
 	utils.SetCommmitMessageFromArgs("wego app add", params.Url, params.Path, params.Name)
 

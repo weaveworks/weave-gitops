@@ -2,17 +2,9 @@ package status
 
 import (
 	"fmt"
-	"os"
-
-	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/git"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/cliutils"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 )
 
@@ -29,18 +21,8 @@ var Cmd = &cobra.Command{
 		params.Name = args[0]
 		params.Namespace, _ = cmd.Parent().Parent().Flags().GetString("namespace")
 
-		cliRunner := &runner.CLIRunner{}
-		osysClient := osys.New()
-		fluxClient := flux.New(osysClient, cliRunner)
-		kubeClient, _, err := kube.NewKubeHTTPClient()
-		if err != nil {
-			return fmt.Errorf("error initializing kube client: %w", err)
-		}
-
-		gitClient := git.New(nil, wrapper.NewGoGit())
-		logger := logger.NewCLILogger(os.Stdout)
-
-		appService := app.New(logger, gitClient, nil, fluxClient, kubeClient, osysClient)
+		osysClient, fluxClient, kubeClient, logger := cliutils.GetBaseClients()
+		appService := app.New(logger, nil, nil, nil, fluxClient, kubeClient, osysClient)
 
 		fluxOutput, lastSuccessReconciliation, err := appService.Status(params)
 		if err != nil {

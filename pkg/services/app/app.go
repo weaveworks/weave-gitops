@@ -49,16 +49,18 @@ type AppService interface {
 
 type App struct {
 	Osys        osys.Osys
-	Git         git.Git
+	AppGit      git.Git
+	ConfigGit   git.Git
 	Flux        flux.Flux
 	Kube        kube.Kube
 	Logger      logger.Logger
 	GitProvider gitproviders.GitProvider
 }
 
-func New(logger logger.Logger, git git.Git, gitProvider gitproviders.GitProvider, flux flux.Flux, kube kube.Kube, osys osys.Osys) *App {
+func New(logger logger.Logger, appGit, configGit git.Git, gitProvider gitproviders.GitProvider, flux flux.Flux, kube kube.Kube, osys osys.Osys) *App {
 	return &App{
-		Git:         git,
+		AppGit:      appGit,
+		ConfigGit:   configGit,
 		Flux:        flux,
 		Kube:        kube,
 		Logger:      logger,
