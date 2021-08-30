@@ -93,10 +93,16 @@ ui-audit:
 
 ui: node_modules cmd/wego/ui/run/dist/main.js
 
-ui-lib: node_modules dist/index.js
+ui-lib: node_modules dist/index.js dist/index.d.ts
+# Remove font files from the npm module.
+	@find dist -type f -iname \*.otf -delete
+	@find dist -type f -iname \*.woff -delete
 
 dist/index.js:
 	npm run build:lib && cp package.json dist
+
+dist/index.d.ts:
+	npm run typedefs
 
 # JS coverage info
 coverage/lcov.info:
@@ -143,3 +149,10 @@ crd:
 # Check go format
 check-format: 
 	if [ ! -z "$(FORMAT_LIST)" ] ; then echo invalid format at: ${FORMAT_LIST} && exit 1; fi
+
+generate-helm: wego
+	PREV_CONTEXT=$(shell kubectl config current-context)
+	kind create cluster --name wego-helm-generator
+	./bin/wego gitops install --dry-run > ./helm/weave-gitops/templates/generated_resources.yaml
+	kind delete cluster --name wego-helm-generator
+	test -n "$(PREV_CONTEXT)" && kubectl config use-context $(PREV_CONTEXT) || true

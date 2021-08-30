@@ -13,18 +13,17 @@ describe("useNavigation", () => {
     document.body.removeChild(container);
     container = null;
   });
-
-  it("returns the query", () => {
+  it("displays the current page", () => {
     const id = "custom-element";
-    const myVar = "myVar";
+    const myPage = "my_page";
     const TestComponent = () => {
-      const { query } = useNavigation<{ someKey: string }>();
+      const { currentPage } = useNavigation();
 
-      return <p data-testid={id}>{query.someKey}</p>;
+      return <p data-testid={id}>{currentPage}</p>;
     };
 
-    render(withContext(TestComponent, `/?someKey=${myVar}`));
+    render(withContext(TestComponent, `/${myPage}`));
 
-    expect(screen.getByTestId(id).textContent).toEqual(myVar);
+    expect(screen.getByTestId(id).textContent).toEqual(myPage);
   });
 });
