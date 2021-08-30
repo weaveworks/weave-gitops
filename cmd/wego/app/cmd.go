@@ -17,7 +17,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/cliutils"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"k8s.io/apimachinery/pkg/types"
 )
