@@ -1,6 +1,6 @@
 {
   "name": "@weaveworks/weave-gitops",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Weave GitOps core",
   "scripts": {
     "preinstall": "npm install --package-lock-only --ignore-scripts && npx npm-force-resolutions",
@@ -51,7 +51,9 @@
       "\\.(jpg|ico|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/ui/lib/fileMock.js",
       "\\.(css|less)$": "<rootDir>/ui/lib/fileMock.js"
     },
-    "modulePathIgnorePatterns": ["<rootDir>/dist/"]
+    "modulePathIgnorePatterns": [
+      "<rootDir>/dist/"
+    ]
   },
   "resolutions": {
     "postcss": "8.3.6",
