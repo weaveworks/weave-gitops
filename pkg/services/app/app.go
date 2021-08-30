@@ -70,22 +70,6 @@ func New(logger logger.Logger, git git.Git, gitProvider gitproviders.GitProvider
 // Make sure App implements all the required methods.
 var _ AppService = &App{}
 
-func createGitProvider(token string) (gitproviders.GitProvider, error) {
-	if token == "" {
-		return nil, nil
-	}
-
-	provider, err := gitproviders.New(gitproviders.Config{
-		Provider: gitproviders.GitProviderGitHub,
-		Token:    token,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed initializing git provider: %w", err)
-	}
-
-	return provider, nil
-}
-
 func (a *App) getDeploymentType(ctx context.Context, name string, namespace string) (wego.DeploymentType, error) {
 	app, err := a.Kube.GetApplication(ctx, types.NamespacedName{Name: name, Namespace: namespace})
 	if err != nil {
