@@ -221,17 +221,18 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 		PageToken:        pageToken,
 	}
 
-	commits, err := s.app.GetCommits(params)
+	application, err := s.app.Kube.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
 	if err != nil {
-		return &pb.ListCommitsResponse{
-			Commits: []*pb.Commit{},
-		}, err
+		return nil, fmt.Errorf("unable to get application for %s %w", params.Name, err)
 	}
 
-	if commits == nil {
-		return &pb.ListCommitsResponse{
-			Commits: []*pb.Commit{},
-		}, nil
+	if application.Spec.SourceType == wego.SourceTypeHelm {
+		return nil, fmt.Errorf("unable to get commits for a helm chart")
+	}
+
+	commits, err := s.app.GetCommits(params, application)
+	if err != nil {
+		return nil, err
 	}
 
 	list := []*pb.Commit{}
