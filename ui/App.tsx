@@ -1,4 +1,5 @@
 import { MuiThemeProvider } from "@material-ui/core";
+import qs from "query-string";
 import * as React from "react";
 import {
   BrowserRouter as Router,
@@ -36,7 +37,11 @@ export default function App() {
                   <Route
                     exact
                     path={PageRoute.ApplicationDetail}
-                    component={ApplicationDetail}
+                    component={({ location }) => {
+                      const params = qs.parse(location.search);
+
+                      return <ApplicationDetail name={params.name as string} />;
+                    }}
                   />
                   <Redirect exact from="/" to={PageRoute.Applications} />
                   <Route exact path="*" component={Error} />

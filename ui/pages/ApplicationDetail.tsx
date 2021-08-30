@@ -4,19 +4,16 @@ import ConditionsTable from "../components/ConditionsTable";
 import KeyValueTable from "../components/KeyValueTable";
 import Page from "../components/Page";
 import useApplications from "../hooks/applications";
-import useNavigation from "../hooks/navigation";
 import { Application } from "../lib/api/applications/applications.pb";
 import { PageRoute } from "../lib/types";
 
 type Props = {
   className?: string;
+  name: string;
 };
 
-function ApplicationDetail({ className }: Props) {
+function ApplicationDetail({ className, name }: Props) {
   const [app, setApp] = React.useState<Application>({});
-  const {
-    query: { name },
-  } = useNavigation<{ name: string }>();
 
   const { getApplication, loading } = useApplications();
 
