@@ -110,22 +110,22 @@ type KubeHTTP struct {
 	RestMapper  *restmapper.DeferredDiscoveryRESTMapper
 }
 
-func (c *KubeHTTP) GetClusterName(ctx context.Context) (string, error) {
-	return c.ClusterName, nil
+func (k *KubeHTTP) GetClusterName(ctx context.Context) (string, error) {
+	return k.ClusterName, nil
 }
 
-func (c *KubeHTTP) GetClusterStatus(ctx context.Context) ClusterStatus {
+func (k *KubeHTTP) GetClusterStatus(ctx context.Context) ClusterStatus {
 	tName := types.NamespacedName{
 		Name: WeGOCRDName,
 	}
 
 	crd := v1.CustomResourceDefinition{}
 
-	if c.Client.Get(ctx, tName, &crd) == nil {
+	if k.Client.Get(ctx, tName, &crd) == nil {
 		return WeGOInstalled
 	}
 
-	if ok, _ := c.FluxPresent(ctx); ok {
+	if ok, _ := k.FluxPresent(ctx); ok {
 		return FluxInstalled
 	}
 
@@ -135,7 +135,7 @@ func (c *KubeHTTP) GetClusterStatus(ctx context.Context) ClusterStatus {
 		Namespace: "kube-system",
 	}
 
-	if err := c.Client.Get(ctx, coreDnsName, &dep); err != nil {
+	if err := k.Client.Get(ctx, coreDnsName, &dep); err != nil {
 		// Couldn't find the coredns deployment.
 		// We don't know what state the cluster is in.
 		return Unknown
@@ -145,12 +145,10 @@ func (c *KubeHTTP) GetClusterStatus(ctx context.Context) ClusterStatus {
 	}
 }
 
-var decUnstructured = yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
-
-func (c *KubeHTTP) Apply(ctx context.Context, manifest []byte, namespace string) error {
-	dr, name, data, err := c.getResourceInterface(manifest)
+func (k *KubeHTTP) Apply(ctx context.Context, manifest []byte, namespace string) error {
+	dr, name, data, err := k.getResourceInterface(manifest, namespace)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to dynamic resource interface: %w", err)
 	}
 
 	_, err = dr.Patch(ctx, name, types.ApplyPatchType, data, metav1.PatchOptions{
@@ -163,51 +161,51 @@ func (c *KubeHTTP) Apply(ctx context.Context, manifest []byte, namespace string)
 	return nil
 }
 
-func (c *KubeHTTP) getResourceInterface(manifest []byte) (dynamic.ResourceInterface, string, []byte, error) {
+func (k *KubeHTTP) getResourceInterface(manifest []byte, namespace string) (dynamic.ResourceInterface, string, []byte, error) {
+	decUnstructured := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
 	obj := &unstructured.Unstructured{}
-	_, gvk, err := decUnstructured.Decode([]byte(manifest), nil, obj)
+	_, gvk, err := decUnstructured.Decode(manifest, nil, obj)
 	if err != nil {
-		return nil, "", nil, err
+		return nil, "", nil, fmt.Errorf("failed decoding manifest: %w", err)
 	}
 
-	// 4. Find GVR
-	mapping, err := c.RestMapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	mapping, err := k.RestMapper.RESTMapping(gvk.GroupKind(), gvk.Version)
 	if err != nil {
-		return nil, "", nil, err
+		return nil, "", nil, fmt.Errorf("failed getting rest mapping: %w", err)
 	}
 
-	// 5. Obtain REST interface for the GVR
 	var dr dynamic.ResourceInterface
 	if mapping.Scope.Name() == meta.RESTScopeNameNamespace {
-		// namespaced resources should specify the namespace
-		dr = c.DynClient.Resource(mapping.Resource).Namespace(obj.GetNamespace())
+		if namespace == "" {
+			namespace = obj.GetNamespace()
+		}
+
+		dr = k.DynClient.Resource(mapping.Resource).Namespace(namespace)
 	} else {
-		// for cluster-wide resources
-		dr = c.DynClient.Resource(mapping.Resource)
+		dr = k.DynClient.Resource(mapping.Resource)
 	}
 
-	// 6. Marshal object into JSON
 	data, err := json.Marshal(obj)
 	if err != nil {
-		return nil, "", nil, err
+		return nil, "", nil, fmt.Errorf("failed marshalling resource: %w", err)
 	}
 
 	return dr, obj.GetName(), data, nil
 }
 
-func (c *KubeHTTP) GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error) {
+func (k *KubeHTTP) GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error) {
 	app := wego.Application{}
-	if err := c.Client.Get(ctx, name, &app); err != nil {
+	if err := k.Client.Get(ctx, name, &app); err != nil {
 		return nil, fmt.Errorf("could not get application: %w", err)
 	}
 
 	return &app, nil
 }
 
-func (c *KubeHTTP) Delete(ctx context.Context, manifest []byte, namespace string) error {
-	dr, name, data, err := c.getResourceInterface(manifest)
+func (k *KubeHTTP) Delete(ctx context.Context, manifest []byte) error {
+	dr, name, data, err := k.getResourceInterface(manifest, "")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to dynamic resource interface: %w", err)
 	}
 	deletePolicy := metav1.DeletePropagationForeground
 	deleteOptions := metav1.DeleteOptions{
@@ -235,14 +233,14 @@ func (c *KubeHTTP) DeleteByName(ctx context.Context, name string, gvr schema.Gro
 	return nil
 }
 
-func (c *KubeHTTP) FluxPresent(ctx context.Context) (bool, error) {
+func (k *KubeHTTP) FluxPresent(ctx context.Context) (bool, error) {
 	key := types.NamespacedName{
 		Name: FluxNamespace,
 	}
 
 	ns := corev1.Namespace{}
 
-	if err := c.Client.Get(ctx, key, &ns); err != nil {
+	if err := k.Client.Get(ctx, key, &ns); err != nil {
 		if apierrors.IsNotFound(err) {
 			return false, nil
 		}
@@ -252,13 +250,13 @@ func (c *KubeHTTP) FluxPresent(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (c *KubeHTTP) SecretPresent(ctx context.Context, secretName string, namespace string) (bool, error) {
+func (k *KubeHTTP) SecretPresent(ctx context.Context, secretName string, namespace string) (bool, error) {
 	name := types.NamespacedName{
 		Name:      secretName,
 		Namespace: namespace,
 	}
 
-	if _, err := c.GetSecret(ctx, name); err != nil {
+	if _, err := k.GetSecret(ctx, name); err != nil {
 		return false, fmt.Errorf("error checking secret presence for secret \"%s\": %w", secretName, err)
 	}
 
@@ -266,9 +264,9 @@ func (c *KubeHTTP) SecretPresent(ctx context.Context, secretName string, namespa
 	return true, nil
 }
 
-func (c KubeHTTP) GetSecret(ctx context.Context, name types.NamespacedName) (*corev1.Secret, error) {
+func (k KubeHTTP) GetSecret(ctx context.Context, name types.NamespacedName) (*corev1.Secret, error) {
 	secret := corev1.Secret{}
-	if err := c.Client.Get(ctx, name, &secret); err != nil {
+	if err := k.Client.Get(ctx, name, &secret); err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil, nil
 		}
@@ -278,18 +276,18 @@ func (c KubeHTTP) GetSecret(ctx context.Context, name types.NamespacedName) (*co
 	return &secret, nil
 }
 
-func (c *KubeHTTP) GetApplications(ctx context.Context, namespace string) ([]wego.Application, error) {
+func (k *KubeHTTP) GetApplications(ctx context.Context, namespace string) ([]wego.Application, error) {
 	result := wego.ApplicationList{}
 
-	if err := c.Client.List(ctx, &result, client.InNamespace(namespace)); err != nil {
+	if err := k.Client.List(ctx, &result, client.InNamespace(namespace)); err != nil {
 		return nil, fmt.Errorf("could not list wego applications: %w", err)
 	}
 
 	return result.Items, nil
 }
 
-func (c *KubeHTTP) GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error {
-	if err := c.Client.Get(ctx, name, resource); err != nil {
+func (k *KubeHTTP) GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error {
+	if err := k.Client.Get(ctx, name, resource); err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil
 		}

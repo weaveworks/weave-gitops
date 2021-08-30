@@ -53,7 +53,7 @@ var toStatusString = map[ClusterStatus]string{
 //counterfeiter:generate . Kube
 type Kube interface {
 	Apply(ctx context.Context, manifest []byte, namespace string) error
-	Delete(ctx context.Context, manifest []byte, namespace string) error
+	Delete(ctx context.Context, manifest []byte) error
 	DeleteByName(ctx context.Context, name string, gvr schema.GroupVersionResource, namespace string) error
 	SecretPresent(ctx context.Context, string, namespace string) (bool, error)
 	GetApplications(ctx context.Context, namespace string) ([]wego.Application, error)
@@ -77,7 +77,7 @@ func New(cliRunner runner.Runner) *KubeClient {
 
 var _ Kube = &KubeClient{}
 
-func (k *KubeClient) Apply(ctx context.Context, manifests []byte, namespace string) error {
+func (k *KubeClient) Apply(_ context.Context, manifests []byte, namespace string) error {
 	args := []string{
 		"apply",
 		"--namespace", namespace,
@@ -88,10 +88,9 @@ func (k *KubeClient) Apply(ctx context.Context, manifests []byte, namespace stri
 	return err
 }
 
-func (k *KubeClient) Delete(ctx context.Context, manifest []byte, namespace string) error {
+func (k *KubeClient) Delete(_ context.Context, manifest []byte) error {
 	args := []string{
 		"delete",
-		"--namespace", namespace,
 		"-f", "-",
 	}
 
@@ -99,7 +98,7 @@ func (k *KubeClient) Delete(ctx context.Context, manifest []byte, namespace stri
 	return err
 }
 
-func (k *KubeClient) DeleteByName(ctx context.Context, name string, gvr schema.GroupVersionResource, namespace string) error {
+func (k *KubeClient) DeleteByName(_ context.Context, name string, gvr schema.GroupVersionResource, namespace string) error {
 	return fmt.Errorf("kube.DeleteByName deprecated")
 }
 

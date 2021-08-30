@@ -38,7 +38,7 @@ type customTransport struct {
 
 func getBodyFromReaderWithoutConsuming(r *io.ReadCloser) string {
 	body, _ := ioutil.ReadAll(*r)
-	_ = (*r).Close()
+	defer (*r).Close()
 	*r = ioutil.NopCloser(bytes.NewBuffer(body))
 	return string(body)
 }

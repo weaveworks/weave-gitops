@@ -2,6 +2,7 @@ package kube_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
@@ -141,11 +142,12 @@ var _ = Describe("KubeHTTP", func() {
 		Expect(list[0].Name).To(Equal(name))
 	})
 
-	It("Apply", func() {
-		ctx := context.Background()
-		name := "my-app"
+	Describe("Apply", func() {
+		It("applies a namespace manifest", func() {
+			ctx := context.Background()
+			name := "my-app"
 
-		kust := fmt.Sprintf(`
+			kust := fmt.Sprintf(`
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta1
 kind: Kustomization
 metadata:
@@ -159,48 +161,96 @@ spec:
     name: foo
     kind: GitRepository
 `, name, namespace.Name)
+			Expect(k.Apply(ctx, []byte(kust), namespace.Name)).Should(Succeed())
 
-		Expect(k.Apply(ctx, []byte(kust), namespace.Name)).Should(Succeed())
+			kustObj := &kustomizev1.Kustomization{}
+			err := k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, kustObj)
+			Expect(err).NotTo(HaveOccurred())
 
-		kustObj := &kustomizev1.Kustomization{}
-		err := k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, kustObj)
-		Expect(err).NotTo(HaveOccurred())
+			Expect(kustObj.Name).To(Equal(name))
+		})
 
-		Expect(kustObj.Name).To(Equal(name))
+		It("applies a cluster wide manifest", func() {
+			ctx := context.Background()
+			crd := `
+apiVersion: "apiextensions.k8s.io/v1beta1"
+kind: "CustomResourceDefinition"
+metadata:
+  name: "foos.bla.com"
+spec:
+  group: "bla.com"
+  version: "v1alpha1"
+  scope: "Namespaced"
+  names:
+    plural: "foos"
+    singular: "foo"
+    kind: "Foo"
+  validation:
+    openAPIV3Schema:
+      required: ["spec"]
+      properties:
+       spec:
+         required: ["cert"]
+         properties:
+           cert:
+            type: "string"
+            minimum: 1`
+
+			Expect(k.Apply(ctx, []byte(crd), namespace.Name)).Should(Succeed())
+		})
+		It("fails to apply invalid manifest", func() {
+			ctx := context.Background()
+
+			kust := "invalid yaml"
+
+			err := k.Apply(ctx, []byte(kust), namespace.Name)
+
+			Expect(errors.Unwrap(err).Error()).Should(ContainSubstring("failed decoding manifest"))
+		})
 	})
 
-	It("Delete", func() {
-		ctx := context.Background()
-		name := "my-app"
+	Describe("Delete", func() {
+		It("delete a manifest", func() {
+			ctx := context.Background()
+			name := "my-app"
 
-		app := &wego.Application{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      name,
-				Namespace: namespace.Name,
-			},
-			Spec: wego.ApplicationSpec{
-				Branch:         "master",
-				Path:           "/.kustomize",
-				DeploymentType: wego.DeploymentTypeKustomize,
-				SourceType:     wego.SourceTypeGit,
-			},
-		}
-		appYaml := fmt.Sprintf(`
+			app := &wego.Application{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: namespace.Name,
+				},
+				Spec: wego.ApplicationSpec{
+					Branch:         "master",
+					Path:           "/.kustomize",
+					DeploymentType: wego.DeploymentTypeKustomize,
+					SourceType:     wego.SourceTypeGit,
+				},
+			}
+			appYaml := fmt.Sprintf(`
 apiVersion: wego.weave.works/v1alpha1
 kind: Application
 metadata:
   name: %s
   namespace: %s
-spec:
-  branch: master
-  deployment_type: kustomize
-  path: ./kustomize
-  source_type: git
+  spec:
+    branch: master
+    deployment_type: kustomize
+    path: ./kustomize
+    source_type: git
 `, name, namespace.Name)
 
-		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
+			Expect(k8sClient.Create(ctx, app)).Should(Succeed())
 
-		Expect(k.Delete(ctx, []byte(appYaml), namespace.Name)).Should(Succeed())
+			Expect(k.Delete(ctx, []byte(appYaml))).Should(Succeed())
+		})
+
+		It("delete an invalid manifest", func() {
+			ctx := context.Background()
+			appYaml := "invalid"
+
+			err := k.Delete(ctx, []byte(appYaml))
+			Expect(errors.Unwrap(err).Error()).Should(ContainSubstring("failed decoding manifest"))
+		})
 	})
 
 	It("DeleteByName", func() {

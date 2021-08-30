@@ -26,12 +26,11 @@ type FakeKube struct {
 	applyReturnsOnCall map[int]struct {
 		result1 error
 	}
-	DeleteStub        func(context.Context, []byte, string) error
+	DeleteStub        func(context.Context, []byte) error
 	deleteMutex       sync.RWMutex
 	deleteArgsForCall []struct {
 		arg1 context.Context
 		arg2 []byte
-		arg3 string
 	}
 	deleteReturns struct {
 		result1 error
@@ -232,7 +231,7 @@ func (fake *FakeKube) ApplyReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeKube) Delete(arg1 context.Context, arg2 []byte, arg3 string) error {
+func (fake *FakeKube) Delete(arg1 context.Context, arg2 []byte) error {
 	var arg2Copy []byte
 	if arg2 != nil {
 		arg2Copy = make([]byte, len(arg2))
@@ -243,14 +242,13 @@ func (fake *FakeKube) Delete(arg1 context.Context, arg2 []byte, arg3 string) err
 	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
 		arg1 context.Context
 		arg2 []byte
-		arg3 string
-	}{arg1, arg2Copy, arg3})
+	}{arg1, arg2Copy})
 	stub := fake.DeleteStub
 	fakeReturns := fake.deleteReturns
-	fake.recordInvocation("Delete", []interface{}{arg1, arg2Copy, arg3})
+	fake.recordInvocation("Delete", []interface{}{arg1, arg2Copy})
 	fake.deleteMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
@@ -264,17 +262,17 @@ func (fake *FakeKube) DeleteCallCount() int {
 	return len(fake.deleteArgsForCall)
 }
 
-func (fake *FakeKube) DeleteCalls(stub func(context.Context, []byte, string) error) {
+func (fake *FakeKube) DeleteCalls(stub func(context.Context, []byte) error) {
 	fake.deleteMutex.Lock()
 	defer fake.deleteMutex.Unlock()
 	fake.DeleteStub = stub
 }
 
-func (fake *FakeKube) DeleteArgsForCall(i int) (context.Context, []byte, string) {
+func (fake *FakeKube) DeleteArgsForCall(i int) (context.Context, []byte) {
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
 	argsForCall := fake.deleteArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeKube) DeleteReturns(result1 error) {

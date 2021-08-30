@@ -28,7 +28,7 @@ func (g *Gitops) Uninstall(params UinstallParams) error {
 	if params.DryRun {
 		g.logger.Actionf("Deleting App CRD")
 	} else {
-		if err := g.kube.Delete(ctx, manifests.AppCRD, params.Namespace); err != nil {
+		if err := g.kube.Delete(ctx, manifests.AppCRD); err != nil {
 			return fmt.Errorf("failed to delete App CRD: %w", err)
 		}
 	}
