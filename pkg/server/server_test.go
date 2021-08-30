@@ -225,7 +225,7 @@ var _ = Describe("Applications handler", func() {
 		Expect(r.Applications).To(HaveLen(1))
 	})
 
-	giIt("get commits", func() {
+	It("get commits", func() {
 		log := makeFakeLogr()
 		kubeClient := &kubefakes.FakeKube{}
 		kubeClient.GetApplicationStub = func(context.Context, types.NamespacedName) (*wego.Application, error) {
