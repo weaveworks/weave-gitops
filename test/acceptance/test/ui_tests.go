@@ -7,7 +7,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
-	// . "github.com/sclevine/agouti/matchers"
 )
 
 var webDriver *agouti.WebDriver
@@ -47,19 +46,26 @@ var _ = Describe("Weave GitOps UI Test", func() {
 			webDriver = initializeWebDriver()
 
 			By("When I open up a browser", func() {
-				page, err = webDriver.NewPage(agouti.Desired(agouti.Capabilities{
+
+				seleniumURL := "http://localhost:4444/wd/hub"
+				page, err = agouti.NewPage(seleniumURL, agouti.Desired(agouti.Capabilities{
 					"chromeOptions": map[string][]string{
 						"args": {
 							"--disable-gpu",
 							"--no-sandbox",
 						}}}.Browser("chrome")))
+				// page, err = webDriver.NewPage(agouti.Desired(agouti.Capabilities{
+				// 	"chromeOptions": map[string][]string{
+				// 		"args": {
+				// 			"--disable-gpu",
+				// 			"--no-sandbox",
+				// 		}}}.Browser("chrome")))
 				Expect(err).NotTo(HaveOccurred())
 				if err != nil {
 					fmt.Println("Error creating new page: " + err.Error())
 					return
 				}
 			})
-
 		})
 	})
 
@@ -69,6 +75,14 @@ var _ = Describe("Weave GitOps UI Test", func() {
 
 	It("SmokeTest - Verify wego can run UI without apps installed", func() {
 		By("Then I should be able to navigate to WeGO dashboard", func() {
+			err := page.Navigate(WEGO_UI_URL)
+			if err != nil {
+				fmt.Println("Error navigating to dashboard: " + err.Error())
+				return
+			}
+			out, er := page.URL()
+			fmt.Println(out)
+			fmt.Println(er)
 			Expect(page.Navigate(WEGO_UI_URL)).To(Succeed())
 			Expect(page.Title()).To(ContainSubstring("Weave GitOps"))
 			fmt.Println(page.Title())
