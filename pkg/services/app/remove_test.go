@@ -14,9 +14,11 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/osys/osysfakes"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/yaml"
 )
@@ -116,13 +118,8 @@ func removeCreatedResource(manifestData []byte) error {
 	return nil
 }
 
-// Remove tracking for a resource given its name and kind
-func removeCreatedResourceByName(name, kindString string) error {
-	if kindString == "app" { // figure out later why Application doesn't work
-		kindString = "Application"
-	}
-
-	kind := ResourceKind(kindString)
+// Remove tracking for a resource given itsq name and kind
+func removeCreatedResourceByName(name string, kind ResourceKind) error {
 	if createdResources[kind] == nil {
 		return fmt.Errorf("expected %s resources to be present", kind)
 	}
@@ -342,11 +339,8 @@ var _ = Describe("Remove", func() {
 			}
 
 			// Track the resources added directly to the cluster
-			kubeClient.ApplyStub = func(manifest []byte, namespace string) ([]byte, error) {
-				if err := storeCreatedResource(manifest); err != nil {
-					return nil, err
-				}
-				return []byte(""), nil
+			kubeClient.ApplyStub = func(ctx context.Context, manifest []byte, namespace string) error {
+				return storeCreatedResource(manifest)
 			}
 		})
 
@@ -459,18 +453,15 @@ var _ = Describe("Remove", func() {
 				return removeCreatedResourceByPath(path)
 			}
 
-			kubeClient.ApplyStub = func(manifest []byte, namespace string) ([]byte, error) {
-				if err := storeCreatedResource(manifest); err != nil {
-					return nil, err
-				}
-				return []byte(""), nil
+			kubeClient.ApplyStub = func(ctx context.Context, manifest []byte, namespace string) error {
+				return storeCreatedResource(manifest)
 			}
 
-			kubeClient.DeleteByNameStub = func(name, kind, namespace string) ([]byte, error) {
-				if err := removeCreatedResourceByName(name, kind); err != nil {
-					return nil, err
+			kubeClient.DeleteByNameStub = func(ctx context.Context, name string, resource schema.GroupVersionResource, namespace string) error {
+				if err := removeCreatedResourceByName(name, GVRToResourceKind(resource)); err != nil {
+					return err
 				}
-				return []byte(""), nil
+				return nil
 			}
 
 			kubeClient.GetApplicationStub = func(_ context.Context, name types.NamespacedName) (*wego.Application, error) {
@@ -581,3 +572,20 @@ var _ = Describe("Remove", func() {
 		})
 	})
 })
+
+func GVRToResourceKind(gvr schema.GroupVersionResource) ResourceKind {
+	switch gvr {
+	case kube.GVRApp:
+		return ResourceKindApplication
+	case kube.GVRSecret:
+		return ResourceKindSecret
+	case kube.GVRGitRepository:
+		return ResourceKindGitRepository
+	case kube.GVRHelmRepository:
+		return ResourceKindHelmRepository
+	case kube.GVRHelmRelease:
+		return ResourceKindHelmRelease
+	default:
+		return ResourceKindKustomization
+	}
+}

@@ -15,6 +15,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
@@ -51,9 +52,9 @@ var toStatusString = map[ClusterStatus]string{
 
 //counterfeiter:generate . Kube
 type Kube interface {
-	Apply(manifests []byte, namespace string) ([]byte, error)
-	Delete(manifests []byte, namespace string) ([]byte, error)
-	DeleteByName(name, kind, namespace string) ([]byte, error)
+	Apply(ctx context.Context, manifest []byte, namespace string) error
+	Delete(ctx context.Context, manifest []byte) error
+	DeleteByName(ctx context.Context, name string, gvr schema.GroupVersionResource, namespace string) error
 	SecretPresent(ctx context.Context, string, namespace string) (bool, error)
 	GetApplications(ctx context.Context, namespace string) ([]wego.Application, error)
 	FluxPresent(ctx context.Context) (bool, error)
@@ -76,34 +77,29 @@ func New(cliRunner runner.Runner) *KubeClient {
 
 var _ Kube = &KubeClient{}
 
-func (k *KubeClient) Apply(manifests []byte, namespace string) ([]byte, error) {
+func (k *KubeClient) Apply(_ context.Context, manifests []byte, namespace string) error {
 	args := []string{
 		"apply",
 		"--namespace", namespace,
 		"-f", "-",
 	}
 
-	return k.runKubectlCmdWithInput(args, manifests)
+	_, err := k.runKubectlCmdWithInput(args, manifests)
+	return err
 }
 
-func (k *KubeClient) Delete(manifests []byte, namespace string) ([]byte, error) {
+func (k *KubeClient) Delete(_ context.Context, manifest []byte) error {
 	args := []string{
 		"delete",
-		"--namespace", namespace,
 		"-f", "-",
 	}
 
-	return k.runKubectlCmdWithInput(args, manifests)
+	_, err := k.runKubectlCmdWithInput(args, manifest)
+	return err
 }
 
-func (k *KubeClient) DeleteByName(name, kind, namespace string) ([]byte, error) {
-	args := []string{
-		"delete",
-		"--namespace", namespace,
-		kind, name,
-	}
-
-	return k.runKubectlCmd(args)
+func (k *KubeClient) DeleteByName(_ context.Context, name string, gvr schema.GroupVersionResource, namespace string) error {
+	return fmt.Errorf("kube.DeleteByName deprecated")
 }
 
 func (k *KubeClient) GetClusterName(ctx context.Context) (string, error) {

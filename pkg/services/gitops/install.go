@@ -15,7 +15,8 @@ type InstallParams struct {
 }
 
 func (g *Gitops) Install(params InstallParams) ([]byte, error) {
-	status := g.kube.GetClusterStatus(context.Background())
+	ctx := context.Background()
+	status := g.kube.GetClusterStatus(ctx)
 
 	switch status {
 	case kube.FluxInstalled:
@@ -32,8 +33,8 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 	if params.DryRun {
 		fluxManifests = append(fluxManifests, manifests.AppCRD...)
 	} else {
-		if out, err := g.kube.Apply(manifests.AppCRD, params.Namespace); err != nil {
-			return []byte{}, errors.Wrapf(err, "failed to apply App spec CR: %s", string(out))
+		if err := g.kube.Apply(ctx, manifests.AppCRD, params.Namespace); err != nil {
+			return []byte{}, fmt.Errorf("could not apply manifest: %w", err)
 		}
 	}
 
