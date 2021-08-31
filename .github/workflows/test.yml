@@ -145,6 +145,7 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
       run: |
+        curl -i -s --request GET --url 'https://api.github.com/repos/weaveworks/weave-gitops/releases?per_page=1' | grep 'x-ratelimit'
         export WEGO_BIN_PATH=$(pwd)/bin/wego
         export CLUSTER_PROVIDER=kubectl
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
@@ -201,6 +202,7 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
       run: |
+        curl -i -s --request GET --url 'https://api.github.com/repos/weaveworks/weave-gitops/releases?per_page=1' | grep 'x-ratelimit'
         export PATH=${PATH}:`go env GOPATH`/bin
         export WEGO_BIN_PATH=$(pwd)/bin/wego
         export CLUSTER_PROVIDER=kubectl
