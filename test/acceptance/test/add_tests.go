@@ -42,6 +42,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 	It("Verify that wego cannot work without wego components installed in the cluster", func() {
 		var repoAbsolutePath string
+		var exitCode int
 		private := true
 		tip := generateTestInputs()
 
@@ -70,7 +71,6 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
-		var exitCode int
 		By("And I run wego add command", func() {
 			command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand))
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -349,7 +349,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			runWegoAddCommand(repoAbsolutePath+"/../", addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("Then I should see should see my workload deployed to the cluster", func() {
+		By("Then I should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
 			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
 		})
@@ -392,7 +392,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			runWegoAddCommand(repoAbsolutePath+"/../", addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("Then I should see should see my workload deployed to the cluster", func() {
+		By("Then I should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
 			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
 		})
@@ -435,7 +435,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			runWegoAddCommand(pathToRepoParentDir, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("Then I should see should see my workload deployed to the cluster", func() {
+		By("Then I should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
 			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
 		})
@@ -556,7 +556,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("Then I should see should see my workloads for app1 and app2 are deployed to the cluster", func() {
+		By("Then I should see my workloads for app1 and app2 are deployed to the cluster", func() {
 			verifyWegoAddCommand(appName1, WEGO_DEFAULT_NAMESPACE)
 			verifyWegoAddCommand(appName2, WEGO_DEFAULT_NAMESPACE)
 			verifyWorkloadIsDeployed(tip1.workloadName, tip1.workloadNamespace)
@@ -607,7 +607,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand2, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("Then I should see should see my workloads for app1 and app2 are deployed to the cluster", func() {
+		By("Then I should see my workloads for app1 and app2 are deployed to the cluster", func() {
 			verifyWegoAddCommand(appName1, WEGO_DEFAULT_NAMESPACE)
 			verifyWegoAddCommand(appName2, WEGO_DEFAULT_NAMESPACE)
 			verifyWorkloadIsDeployed(tip1.workloadName, tip1.workloadNamespace)
@@ -679,7 +679,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand1, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("Then I should see should see my workload deployed for app1", func() {
+		By("Then I should see my workload deployed for app1", func() {
 			verifyWegoAddCommand(appName1, WEGO_DEFAULT_NAMESPACE)
 			verifyWorkloadIsDeployed(workloadName1, workloadNamespace1)
 		})
@@ -1548,7 +1548,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("Then I should see should see my workload deployed for app", func() {
+		By("Then I should see my workload deployed for app", func() {
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
 			verifyWorkloadIsDeployed(workloadName, workloadNamespace)
 		})
