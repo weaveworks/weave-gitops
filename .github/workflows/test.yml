@@ -123,7 +123,7 @@ jobs:
         mv selenium-server-standalone-3.14.0.jar selenium-server-standalone.jar
         cd -
         
-        xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
+        xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone.jar &
 
     - name: Setup Kubernetes
       uses: engineerd/setup-kind@v0.5.0
