@@ -311,7 +311,7 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 	// a local directory has not been passed, so we clone the repo passed in the --url
 	if params.Dir == "" {
 		a.Logger.Actionf("Cloning %s", info.Spec.URL)
-		remover, err := a.cloneRepo(a.AppGit, info.Spec.URL, info.Spec.Branch, params.DryRun)
+		remover, err := a.cloneRepo(a.ConfigGit, info.Spec.URL, info.Spec.Branch, params.DryRun)
 		if err != nil {
 			return fmt.Errorf("failed to clone application repo: %w", err)
 		}
@@ -326,11 +326,11 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 		} else {
 			a.Logger.Actionf("Writing manifests to disk")
 
-			if err := a.writeAppYaml(a.AppGit, info, appSpec); err != nil {
+			if err := a.writeAppYaml(info, appSpec); err != nil {
 				return fmt.Errorf("failed writing app.yaml to disk: %w", err)
 			}
 
-			if err := a.writeAppGoats(a.AppGit, info, source, appGoat); err != nil {
+			if err := a.writeAppGoats(info, source, appGoat); err != nil {
 				return fmt.Errorf("failed writing app.yaml to disk: %w", err)
 			}
 		}
@@ -341,7 +341,7 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 		return fmt.Errorf("could not apply manifests to the cluster: %w", err)
 	}
 
-	return a.commitAndPush(func(fname string) bool {
+	return a.commitAndPush(a.ConfigGit, func(fname string) bool {
 		return strings.Contains(fname, ".wego")
 	})
 }
@@ -377,11 +377,11 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 		} else {
 			a.Logger.Actionf("Writing manifests to disk")
 
-			if err := a.writeAppYaml(a.ConfigGit, info, appSpec); err != nil {
+			if err := a.writeAppYaml(info, appSpec); err != nil {
 				return fmt.Errorf("failed writing app.yaml to disk: %w", err)
 			}
 
-			if err := a.writeAppGoats(a.ConfigGit, info, appSource, appGoat); err != nil {
+			if err := a.writeAppGoats(info, appSource, appGoat); err != nil {
 				return fmt.Errorf("failed writing application gitops manifests to disk: %w", err)
 			}
 		}
@@ -392,7 +392,7 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 		return fmt.Errorf("could not apply manifests to the cluster: %w", err)
 	}
 
-	return a.commitAndPush()
+	return a.commitAndPush(a.ConfigGit)
 }
 
 func (a *App) generateAppManifests(info *AppResourceInfo, secretRef string, appHash string) ([]byte, []byte, []byte, error) {
@@ -482,10 +482,10 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, branch string
 	return &externalRepoManifests{source: targetSource, target: targetGoat, appDir: appDirGoat}, nil
 }
 
-func (a *App) commitAndPush(filters ...func(string) bool) error {
+func (a *App) commitAndPush(client git.Git, filters ...func(string) bool) error {
 	a.Logger.Actionf("Committing and pushing wego updates for application")
 
-	_, err := a.ConfigGit.Commit(git.Commit{
+	_, err := client.Commit(git.Commit{
 		Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
 		Message: "Add App manifests",
 	}, filters...)
@@ -495,7 +495,7 @@ func (a *App) commitAndPush(filters ...func(string) bool) error {
 
 	if err == nil {
 		a.Logger.Actionf("Pushing app changes to repository")
-		if err = a.ConfigGit.Push(context.Background()); err != nil {
+		if err = client.Push(context.Background()); err != nil {
 			return fmt.Errorf("failed to push changes: %w", err)
 		}
 	} else {
@@ -578,16 +578,16 @@ func (a *App) cloneRepo(client git.Git, url string, branch string, dryRun bool) 
 	}, nil
 }
 
-func (a *App) writeAppYaml(client git.Git, info *AppResourceInfo, manifest []byte) error {
-	return client.Write(info.appYamlPath(), manifest)
+func (a *App) writeAppYaml(info *AppResourceInfo, manifest []byte) error {
+	return a.ConfigGit.Write(info.appYamlPath(), manifest)
 }
 
-func (a *App) writeAppGoats(client git.Git, info *AppResourceInfo, sourceManifest, deployManifest []byte) error {
-	if err := client.Write(info.appAutomationSourcePath(), sourceManifest); err != nil {
+func (a *App) writeAppGoats(info *AppResourceInfo, sourceManifest, deployManifest []byte) error {
+	if err := a.ConfigGit.Write(info.appAutomationSourcePath(), sourceManifest); err != nil {
 		return err
 	}
 
-	return client.Write(info.appAutomationDeployPath(), deployManifest)
+	return a.ConfigGit.Write(info.appAutomationDeployPath(), deployManifest)
 }
 
 func makeWegoApplication(params AddParams) wego.Application {

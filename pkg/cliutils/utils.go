@@ -70,6 +70,7 @@ func GetGitClients(ctx context.Context, url, configUrl, targetName, namespace st
 		return nil, nil, nil, nil
 	}
 
+	fmt.Printf("PU: %s\n", providerUrl)
 	authsvc, authsvcErr := getAuthService(ctx, providerUrl)
 	if authsvcErr != nil {
 		return nil, nil, nil, fmt.Errorf("error creating auth service: %w", authsvcErr)
@@ -94,6 +95,8 @@ func GetGitClients(ctx context.Context, url, configUrl, targetName, namespace st
 		}
 
 		configClient = configRepoClient
+	} else {
+		configClient = appClient
 	}
 
 	return appClient, configClient, authsvc.GetGitProvider(), nil

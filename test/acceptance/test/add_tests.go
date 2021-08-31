@@ -763,7 +763,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("SmokeTest - Verify that wego can deploy multiple apps one with private and other with public repo", func() {
+	FIt("SmokeTest - Verify that wego can deploy multiple apps one with private and other with public repo", func() {
 		var listOutput string
 		var pauseOutput string
 		var unpauseOutput string

@@ -100,7 +100,7 @@ func (a *App) Remove(params RemoveParams) error {
 			}
 		}
 
-		if err := a.commitAndPush(); err != nil {
+		if err := a.commitAndPush(a.ConfigGit); err != nil {
 			return err
 		}
 	}
