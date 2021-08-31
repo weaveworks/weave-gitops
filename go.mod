@@ -10,13 +10,14 @@ require (
 	github.com/fluxcd/kustomize-controller/api v0.13.2
 	github.com/fluxcd/pkg/apis/meta v0.10.0
 	github.com/fluxcd/source-controller/api v0.15.3
+	github.com/freshautomations/stoml v0.7.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-logr/logr v0.4.0
 	github.com/go-logr/zapr v0.4.0
 	github.com/google/go-cmp v0.5.6
-	github.com/google/uuid v1.2.0 // indirect
 	github.com/google/go-github v17.0.0+incompatible
+	github.com/google/uuid v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.5.0
 	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.1
 	github.com/jandelgado/gcov2lcov v1.0.5
