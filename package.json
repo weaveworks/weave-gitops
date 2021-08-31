@@ -2,10 +2,25 @@
   "name": "@weaveworks/weave-gitops",
   "version": "0.2.4",
   "description": "Weave GitOps core",
+  "targets": {
+    "default": {
+      "distDir": "cmd/wego/ui/run/dist",
+      "source": "ui/index.html",
+      "sourceMap": false
+    },
+    "lib": {
+      "includeNodeModules": false,
+      "isLibrary": true,
+      "outputFormat": "commonjs",
+      "distDir": "dist",
+      "source": "ui/index.ts",
+      "sourceMap": false
+    }
+  },
   "scripts": {
     "preinstall": "npm install --package-lock-only --ignore-scripts && npx npm-force-resolutions",
-    "build": "parcel build --no-source-maps ui/index.html --dist-dir cmd/wego/ui/run/dist",
-    "build:lib": "parcel build --no-source-maps ui/index.ts --dist-dir dist",
+    "build": "parcel build --target default",
+    "build:lib": "parcel build --target lib",
     "typedefs": "npx -p typescript tsc ui/**/*.ts ui/**/*.tsx --skipLibCheck --esModuleInterop --jsx react-jsx --declaration --allowJs --emitDeclarationOnly --outDir dist",
     "start": "parcel serve --port 4567 ui/index.html",
     "lint": "eslint ui",
