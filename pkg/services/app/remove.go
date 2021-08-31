@@ -39,15 +39,28 @@ func (a *App) Remove(params RemoveParams) error {
 	resources := info.clusterResources()
 
 	if info.configMode() == ConfigModeClusterOnly {
-		if err := a.Kube.DeleteByName(ctx, info.appResourceName(), resourceKindToGVR(ResourceKindApplication), info.Namespace); err != nil {
+		gvrApp, err := ResourceKindApplication.ToGVR()
+		if err != nil {
+			return err
+		}
+
+		if err := a.Kube.DeleteByName(ctx, info.appResourceName(), gvrApp, info.Namespace); err != nil {
 			return clusterDeleteError(info.appResourceName(), err)
 		}
 
-		if err := a.Kube.DeleteByName(ctx, info.appSourceName(), resourceKindToGVR(info.sourceKind()), info.Namespace); err != nil {
+		gvrSource, err := info.sourceKind().ToGVR()
+		if err != nil {
+			return err
+		}
+		if err := a.Kube.DeleteByName(ctx, info.appSourceName(), gvrSource, info.Namespace); err != nil {
 			return clusterDeleteError(info.appResourceName(), err)
 		}
 
-		if err := a.Kube.DeleteByName(ctx, info.appDeployName(), resourceKindToGVR(info.deployKind()), info.Namespace); err != nil {
+		gvrDeployKind, err := info.deployKind().ToGVR()
+		if err != nil {
+			return err
+		}
+		if err := a.Kube.DeleteByName(ctx, info.appDeployName(), gvrDeployKind, info.Namespace); err != nil {
 			return clusterDeleteError(info.appResourceName(), err)
 		}
 
@@ -77,7 +90,11 @@ func (a *App) Remove(params RemoveParams) error {
 				}
 			} else if resourceRef.kind == ResourceKindKustomization ||
 				resourceRef.kind == ResourceKindHelmRelease {
-				if err := a.Kube.DeleteByName(ctx, resourceRef.name, resourceKindToGVR(resourceRef.kind), info.Namespace); err != nil {
+				gvrDeployKind, err := resourceRef.kind.ToGVR()
+				if err != nil {
+					return err
+				}
+				if err := a.Kube.DeleteByName(ctx, resourceRef.name, gvrDeployKind, info.Namespace); err != nil {
 					return clusterDeleteError(info.appResourceName(), err)
 				}
 			}

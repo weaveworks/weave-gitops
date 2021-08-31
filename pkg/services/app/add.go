@@ -86,6 +86,12 @@ const (
 	DefaultDeploymentType = "kustomize"
 )
 
+type externalRepoManifests struct {
+	source []byte
+	target []byte
+	appDir []byte
+}
+
 // Three models:
 // --app-config-url=none
 //
@@ -388,7 +394,8 @@ func (a *App) addAppWithConfigInExternalRepo(ctx context.Context, info *AppResou
 		return fmt.Errorf("could not determine default branch for config repository: %w", err)
 	}
 
-	targetSource, targetGoat, appDirGoat, err := a.generateExternalRepoManifests(info, appConfigSecretName, configBranch)
+	// targetSource, targetGoat, appDirGoat, err := a.generateExternalRepoManifests(info, appConfigSecretName, configBranch)
+	extRepoMan, err := a.generateExternalRepoManifests(info, appConfigSecretName, configBranch)
 	if err != nil {
 		return fmt.Errorf("could not generate target GitOps Automation manifests: %w", err)
 	}
@@ -418,7 +425,7 @@ func (a *App) addAppWithConfigInExternalRepo(ctx context.Context, info *AppResou
 	}
 
 	a.Logger.Actionf("Applying manifests to the cluster")
-	if err := a.applyToCluster(info, params.DryRun, targetSource, targetGoat, appDirGoat); err != nil {
+	if err := a.applyToCluster(info, params.DryRun, extRepoMan.source, extRepoMan.target, extRepoMan.appDir); err != nil {
 		return fmt.Errorf("could not apply manifests to the cluster: %w", err)
 	}
 
@@ -469,14 +476,15 @@ func (a *App) generateAppWegoManifests(info *AppResourceInfo) ([]byte, []byte, e
 	}
 
 	return sanitizeWegoDirectory(appsDirManifest), sanitizeWegoDirectory(targetDirManifest), nil
+
 }
 
-func (a *App) generateExternalRepoManifests(info *AppResourceInfo, secretRef, branch string) ([]byte, []byte, []byte, error) {
+func (a *App) generateExternalRepoManifests(info *AppResourceInfo, secretRef, branch string) (*externalRepoManifests, error) {
 	repoName := generateResourceName(info.Spec.ConfigURL)
 
 	targetSource, err := a.Flux.CreateSourceGit(repoName, info.Spec.ConfigURL, branch, secretRef, info.Namespace)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("could not generate target source manifests: %w", err)
+		return nil, fmt.Errorf("could not generate target source manifests: %w", err)
 	}
 
 	appDirGoat, err := a.Flux.CreateKustomization(
@@ -485,7 +493,7 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, secretRef, br
 		info.appYamlDir(),
 		info.Namespace)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("could not generate app dir kustomization for '%s': %w", info.Name, err)
+		return nil, fmt.Errorf("could not generate app dir kustomization for '%s': %w", info.Name, err)
 	}
 
 	targetGoat, err := a.Flux.CreateKustomization(
@@ -494,10 +502,10 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, secretRef, br
 		info.appAutomationDir(),
 		info.Namespace)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("could not generate target dir kustomization for '%s': %w", info.Name, err)
+		return nil, fmt.Errorf("could not generate target dir kustomization for '%s': %w", info.Name, err)
 	}
 
-	return targetSource, targetGoat, appDirGoat, nil
+	return &externalRepoManifests{source: targetSource, target: targetGoat, appDir: appDirGoat}, nil
 }
 
 func (a *App) commitAndPush(filters ...func(string) bool) error {
@@ -1023,19 +1031,21 @@ func sanitizeWegoDirectory(manifest []byte) []byte {
 	return bytes.ReplaceAll(manifest, []byte("path: ./wego"), []byte("path: .wego"))
 }
 
-func resourceKindToGVR(resourceKind ResourceKind) schema.GroupVersionResource {
-	switch resourceKind {
+func (rk ResourceKind) ToGVR() (schema.GroupVersionResource, error) {
+	switch rk {
 	case ResourceKindApplication:
-		return kube.GVRApp
+		return kube.GVRApp, nil
 	case ResourceKindSecret:
-		return kube.GVRSecret
+		return kube.GVRSecret, nil
 	case ResourceKindGitRepository:
-		return kube.GVRGitRepository
+		return kube.GVRGitRepository, nil
 	case ResourceKindHelmRepository:
-		return kube.GVRHelmRepository
+		return kube.GVRHelmRepository, nil
 	case ResourceKindHelmRelease:
-		return kube.GVRHelmRelease
+		return kube.GVRHelmRelease, nil
+	case ResourceKindKustomization:
+		return kube.GVRKustomization, nil
 	default:
-		return kube.GVRKustomization
+		return schema.GroupVersionResource{}, fmt.Errorf("no matching schema.GroupVersionResource to the ResourceKind: %s", string(rk))
 	}
 }
