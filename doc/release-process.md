@@ -4,6 +4,7 @@ The current release process for weave gitops is fairly straightforward. You need
 - Create the actual release
 - Update the `weave-gitops-docs` repository with documentation for the new version
 - Update the `CLI Installation` section of the `README.md` in the `weave-gitops` repository to reference the new version
+- Add a record of the new version in the checkpoint system
 
 # Creating the release
 - Update the package.json `version` field to reflect the new version. This change must be on `main` before creating a release.
@@ -37,5 +38,9 @@ where the `N.N.N` matches the `N.N.N` from the weave gitops version.
 # Updating the README
 - Once the release is available, change the version in the `curl` command shown in the `CLI Installation` section of the `README.md` in the weave-gitops repository
 - Create a PR and merge when approved
+
+# Record the new version 
+- Add a record in the [checkpoint system](https://checkpoint-api.weave.works/admin) to inform users of the new version.  The CLI checks for a more recent version and informs the user where to download it based on this data.
+    - _note: A Weaveworks employee must perform this step_
 
 That's it!

@@ -1,6 +1,6 @@
 // Typescript will handle type-checking/linting for this file
 /* eslint-disable */
-import { createMuiTheme } from "@material-ui/core";
+import { createTheme } from "@material-ui/core";
 import { createGlobalStyle, DefaultTheme } from "styled-components";
 // @ts-ignore
 import ProximaNovaBold from "url:../fonts/ProximaNovaBold.otf";
@@ -90,6 +90,6 @@ export const GlobalStyle = createGlobalStyle`
   }
 `;
 
-export const muiTheme = createMuiTheme({
+export const muiTheme = createTheme({
   typography: { fontFamily: "proxima-nova" },
 });
