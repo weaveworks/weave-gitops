@@ -1,12 +1,14 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"os"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/wego/app/add"
 	"github.com/weaveworks/weave-gitops/cmd/wego/app/list"
 	"github.com/weaveworks/weave-gitops/cmd/wego/app/pause"
@@ -14,12 +16,15 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/wego/app/status"
 	"github.com/weaveworks/weave-gitops/cmd/wego/app/unpause"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 var ApplicationCmd = &cobra.Command{
@@ -60,6 +65,8 @@ func init() {
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
+	ctx := context.Background()
+
 	params := app.CommitParams{}
 	params.Name = args[0]
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
@@ -73,20 +80,72 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	cliRunner := &runner.CLIRunner{}
 	osysClient := osys.New()
 	fluxClient := flux.New(osysClient, cliRunner)
-	logger := logger.NewCLILogger(os.Stdout)
-	kubeClient, _, err := kube.NewKubeHTTPClient()
+	kubeClient := kube.New(cliRunner)
+	kube, rawClient, err := kube.NewKubeHTTPClient()
 	if err != nil {
-		return fmt.Errorf("error initializing kube client: %w", err)
+		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
-	token, err := osysClient.GetGitProviderToken()
-	if err != nil {
+	logger := logger.NewCLILogger(os.Stdout)
+	if err := app.IsClusterReady(logger, kube); err != nil {
 		return err
+	}
+
+	appContent, err := kubeClient.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
+	if err != nil {
+		return fmt.Errorf("unable to get application for %s %w", params.Name, err)
+	}
+
+	if appContent.Spec.SourceType == wego.SourceTypeHelm {
+		return fmt.Errorf("unable to get commits for a helm chart")
+	}
+
+	normalizedUrl, err := gitproviders.NewNormalizedRepoURL(appContent.Spec.URL)
+	if err != nil {
+		return fmt.Errorf("error creating normalized url: %w", err)
+	}
+
+	token, tokenErr := osysClient.GetGitProviderToken()
+
+	if tokenErr == osys.ErrNoGitProviderTokenSet {
+		// No provider token set, we need to do the auth flow.
+		authHandler, err := auth.NewAuthCLIHandler(normalizedUrl.Provider())
+		if err != nil {
+			return fmt.Errorf("could not get auth handler for provider %s: %w", normalizedUrl.Provider(), err)
+		}
+
+		token, err = authHandler(ctx, osysClient.Stdout())
+		if err != nil {
+			return fmt.Errorf("could not complete auth flow: %w", err)
+		}
+	} else if tokenErr != nil {
+		// We didn't detect a NoGitProviderSet error, something else went wrong.
+		return fmt.Errorf("could not get access token: %w", err)
+	}
+
+	authsvc, err := auth.NewAuthService(fluxClient, rawClient, normalizedUrl.Provider(), logger, token)
+	if err != nil {
+		return fmt.Errorf("error creating auth service: %w", err)
 	}
 
 	params.GitProviderToken = token
 
-	appService := app.New(logger, nil, fluxClient, kubeClient, osysClient)
+	targetName, err := kubeClient.GetClusterName(ctx)
+	if err != nil {
+		return fmt.Errorf("error getting target name: %w", err)
+	}
+
+	name := auth.SecretName{
+		Name:      app.CreateAppSecretName(targetName, normalizedUrl.String()),
+		Namespace: params.Namespace,
+	}
+
+	gitClient, err := authsvc.SetupDeployKey(ctx, name, targetName, normalizedUrl)
+	if err != nil {
+		return fmt.Errorf("error setting up deploy keys: %w", err)
+	}
+
+	appService := app.New(logger, gitClient, fluxClient, kubeClient, osysClient)
 
 	if command != "get" {
 		_ = cmd.Help()
@@ -95,7 +154,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	switch object {
 	case "commits":
-		commits, err := appService.GetCommits(params)
+		commits, err := appService.GetCommits(params, appContent)
 		if err != nil {
 			return errors.Wrapf(err, "failed to get commits for app %s", params.Name)
 		}
