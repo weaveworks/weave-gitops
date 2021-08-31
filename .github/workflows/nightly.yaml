@@ -1,4 +1,5 @@
 on:
+  pull_request:
   schedule:
     - cron: '8 0 * * *'
   workflow_dispatch:
