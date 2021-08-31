@@ -29,14 +29,15 @@ var (
 var _ = Describe("Add", func() {
 	var _ = BeforeEach(func() {
 		addParams = AddParams{
-			Url:            "https://github.com/foo/bar",
-			Path:           "./kustomize",
-			Branch:         "main",
-			Dir:            ".",
-			DeploymentType: "kustomize",
-			Namespace:      "wego-system",
-			AppConfigUrl:   "NONE",
-			AutoMerge:      true,
+			Url:             "https://github.com/foo/bar",
+			Path:            "./kustomize",
+			Branch:          "main",
+			Dir:             ".",
+			DeploymentType:  "kustomize",
+			Namespace:       "wego-system",
+			AppConfigUrl:    "NONE",
+			AutoMerge:       true,
+			GitProviderName: gitproviders.GitProviderGitHub,
 		}
 
 		gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
@@ -879,7 +880,7 @@ stringData:
 	Context("when creating a pull request", func() {
 		It("generates an appropriate error when the owner cannot be retrieved from the URL", func() {
 			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
-			err := appSrv.(*App).createPullRequestToRepo(info, gitProviders, "foo", "hash", []byte{}, []byte{}, []byte{})
+			err := appSrv.(*App).createPullRequestToRepo(addParams.GitProviderName, info, gitProviders, "foo", "hash", []byte{}, []byte{}, []byte{})
 			Expect(err.Error()).To(HavePrefix("failed to retrieve owner"))
 		})
 
@@ -888,7 +889,7 @@ stringData:
 				return gitproviders.AccountTypeOrg, fmt.Errorf("no account found")
 			}
 			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
-			err := appSrv.(*App).createPullRequestToRepo(info, gitProviders, "ssh://git@github.com/ewojfewoj3323w/abc", "hash", []byte{}, []byte{}, []byte{})
+			err := appSrv.(*App).createPullRequestToRepo(addParams.GitProviderName, info, gitProviders, "ssh://git@github.com/ewojfewoj3323w/abc", "hash", []byte{}, []byte{}, []byte{})
 			Expect(err.Error()).To(HavePrefix("failed to retrieve account type"))
 		})
 	})

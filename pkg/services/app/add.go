@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -362,7 +361,7 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 
 	if !params.DryRun {
 		if !params.AutoMerge {
-			if err := a.createPullRequestToRepo(info, gitProvider, info.Spec.URL, appHash, appSpec, appGoat, source); err != nil {
+			if err := a.createPullRequestToRepo(params.GitProviderName, info, gitProvider, info.Spec.URL, appHash, appSpec, appGoat, source); err != nil {
 				return err
 			}
 		} else {
@@ -419,7 +418,7 @@ func (a *App) addAppWithConfigInExternalRepo(ctx context.Context, info *AppResou
 
 	if !params.DryRun {
 		if !params.AutoMerge {
-			if err := a.createPullRequestToRepo(info, gitProvider, info.Spec.ConfigURL, appHash, appSpec, appGoat, appSource); err != nil {
+			if err := a.createPullRequestToRepo(params.GitProviderName, info, gitProvider, info.Spec.ConfigURL, appHash, appSpec, appGoat, appSource); err != nil {
 				return err
 			}
 		} else {
@@ -744,7 +743,7 @@ func generateResourceName(url string) string {
 	return hashNameIfTooLong(strings.ReplaceAll(utils.UrlToRepoName(url), "_", "-"))
 }
 
-func (a *App) createPullRequestToRepo(info *AppResourceInfo, gitProvider gitproviders.GitProvider, repo string, appHash string, appYaml []byte, goatSource, goatDeploy []byte) error {
+func (a *App) createPullRequestToRepo(providerName gitproviders.GitProviderName, info *AppResourceInfo, gitProvider gitproviders.GitProvider, repo string, appHash string, appYaml []byte, goatSource, goatDeploy []byte) error {
 	repoName := generateResourceName(repo)
 
 	appPath := info.appYamlPath()
@@ -781,7 +780,7 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, gitProvider gitprov
 	}
 
 	if accountType == gitproviders.AccountTypeOrg {
-		orgRepoRef := gitproviders.NewOrgRepositoryRef(github.DefaultDomain, owner, repoName)
+		orgRepoRef := gitproviders.NewOrgRepositoryRef(string(providerName), owner, repoName)
 		prLink, err := gitProvider.CreatePullRequestToOrgRepo(orgRepoRef, info.Spec.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", info.Name), fmt.Sprintf("Added yamls for %s", info.Name))
 		if err != nil {
 			return fmt.Errorf("unable to create pull request: %w", err)
@@ -790,7 +789,7 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, gitProvider gitprov
 		return nil
 	}
 
-	userRepoRef := gitproviders.NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
+	userRepoRef := gitproviders.NewUserRepositoryRef(string(providerName), owner, repoName)
 	prLink, err := gitProvider.CreatePullRequestToUserRepo(userRepoRef, info.Spec.Branch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", info.Name), fmt.Sprintf("Added yamls for %s", info.Name))
 	if err != nil {
 		return fmt.Errorf("unable to create pull request: %w", err)
