@@ -87,7 +87,7 @@ var _ = Describe("ApplicationsServer", func() {
 		provider := "github"
 		token := "token"
 
-		expectedToken, err := auth.Generate(auth.SecretKey, auth.ExpirationTime, provider, token)
+		expectedToken, err := auth.Generate(auth.SecretKey, auth.ExpirationTime, gitproviders.GitProviderGitHub, token)
 		Expect(err).NotTo(HaveOccurred())
 
 		res, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
@@ -107,7 +107,7 @@ var _ = Describe("ApplicationsServer", func() {
 			ProviderName: provider,
 			AccessToken:  token,
 		})
-		Expect(err.Error()).NotTo(Equal(fmt.Sprintf("unknown provider name %s, expecting github or gitlab", provider)))
+		Expect(err.Error()).To(Equal(fmt.Sprintf("rpc error: code = Unknown desc = unknown provider name %s, expecting github or gitlab", provider)))
 
 	})
 	It("Authorize fails on empty provider token", func() {
@@ -118,7 +118,7 @@ var _ = Describe("ApplicationsServer", func() {
 			ProviderName: provider,
 			AccessToken:  "",
 		})
-		Expect(err.Error()).NotTo(Equal("access token is empty"))
+		Expect(err.Error()).To(Equal("rpc error: code = Unknown desc = access token is empty"))
 
 	})
 

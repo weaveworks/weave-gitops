@@ -21,7 +21,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 
 service Applications {
     /**
-    * Authenticate exchanges a code received from an OAuth2 callback for a user token
+    * Authenticate generates jwt token using git provider name and git provider token arguments
     */
     rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse) {
         option (google.api.http) = {
@@ -75,12 +75,12 @@ message Application {
 }
 
 message AuthenticateRequest {
-    string provider_name = 1;  // The name of the OAuth provider
-    string access_token          = 2;
+    string provider_name = 1;  // The name of the git provider
+    string access_token  = 2;  // The token of the git provider
 }
 
 message AuthenticateResponse {
-    string token = 1; // The token that was exchanged for the callback code with the OAuth2 provider
+    string token = 1;  // The jwt token that was generated using git provider name and git provider token
 }
 
 message ListApplicationsRequest {

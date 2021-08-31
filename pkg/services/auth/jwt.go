@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"time"
 
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -16,12 +17,12 @@ const ExpirationTime = time.Minute * 15
 // Claims is a custom JWT claims that contains some token information
 type Claims struct {
 	jwt.StandardClaims
-	Provider      string `json:"provider"`
+	Provider      gitproviders.GitProviderName `json:"provider"`
 	ProviderToken string `json:"provider_token"`
 }
 
 // Generate generates and signs a new token
-func Generate(secretKey string, expirationTime time.Duration, providerName, providerToken string) (string, error) {
+func Generate(secretKey string, expirationTime time.Duration, providerName gitproviders.GitProviderName, providerToken string) (string, error) {
 	claims := Claims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(expirationTime).Unix(),

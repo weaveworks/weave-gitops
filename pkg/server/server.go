@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+
 	"github.com/fluxcd/go-git-providers/gitlab"
 
 	"github.com/fluxcd/go-git-providers/github"
@@ -316,19 +318,19 @@ func mapConditions(conditions []metav1.Condition) []*pb.Condition {
 	return out
 }
 
-//Until the middleware is done this function will not be able to get the token and will fail
-func (s *applicationServer) Authenticate(ctx context.Context, r *pb.AuthenticateRequest) (*pb.AuthenticateResponse, error) {
+// Authenticate generates and returns a jwt token using git provider name and git provider token
+func (s *applicationServer) Authenticate(ctx context.Context, msg *pb.AuthenticateRequest) (*pb.AuthenticateResponse, error) {
 
-	if !strings.HasPrefix(github.DefaultDomain, r.ProviderName) &&
-		!strings.HasPrefix(gitlab.DefaultDomain, r.ProviderName) {
-		return nil, fmt.Errorf("unknown provider name %s, expecting github or gitlab", r.ProviderName)
+	if !strings.HasPrefix(github.DefaultDomain, msg.ProviderName) &&
+		!strings.HasPrefix(gitlab.DefaultDomain, msg.ProviderName) {
+		return nil, fmt.Errorf("unknown provider name %s, expecting github or gitlab", msg.ProviderName)
 	}
 
-	if r.AccessToken == "" {
+	if msg.AccessToken == "" {
 		return nil, fmt.Errorf("access token is empty")
 	}
 
-	token, err := auth.Generate(auth.SecretKey, auth.ExpirationTime, r.GetProviderName(), r.GetAccessToken())
+	token, err := auth.Generate(auth.SecretKey, auth.ExpirationTime, gitproviders.GitProviderName(msg.GetProviderName()), msg.GetAccessToken())
 	if err != nil {
 		return nil, fmt.Errorf("error generating jwt token. %w", err)
 	}

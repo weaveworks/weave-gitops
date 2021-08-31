@@ -19,7 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ApplicationsClient interface {
 	//
-	// Authenticate exchanges a code recieved from an OAuth2 callback for a user token
+	// Authenticate generates jwt token using git provider name and git provider token arguments
 	Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
 	//
 	// ListApplications returns the list of WeGo applications that the authenticated user has access to.
@@ -81,7 +81,7 @@ func (c *applicationsClient) ListCommits(ctx context.Context, in *ListCommitsReq
 // for forward compatibility
 type ApplicationsServer interface {
 	//
-	// Authenticate exchanges a code recieved from an OAuth2 callback for a user token
+	// Authenticate generates jwt token using git provider name and git provider token arguments
 	Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error)
 	//
 	// ListApplications returns the list of WeGo applications that the authenticated user has access to.

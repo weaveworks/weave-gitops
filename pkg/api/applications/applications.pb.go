@@ -187,8 +187,8 @@ type AuthenticateRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	ProviderName string `protobuf:"bytes,1,opt,name=provider_name,json=providerName,proto3" json:"provider_name,omitempty"` // The name of the OAuth provider
-	AccessToken  string `protobuf:"bytes,2,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	ProviderName string `protobuf:"bytes,1,opt,name=provider_name,json=providerName,proto3" json:"provider_name,omitempty"` // The name of the git provider
+	AccessToken  string `protobuf:"bytes,2,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`    // The token of the git provider
 }
 
 func (x *AuthenticateRequest) Reset() {
@@ -242,7 +242,7 @@ type AuthenticateResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"` // The token that was exchanged for the callback code with the OAuth2 provider
+	Token string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"` // The jwt token that was generated using git provider name and git provider token
 }
 
 func (x *AuthenticateResponse) Reset() {

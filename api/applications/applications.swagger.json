@@ -139,7 +139,7 @@
     },
     "/v1/authenticate/{providerName}": {
       "post": {
-        "summary": "Authenticate exchanges a code recieved from an OAuth2 callback for a user token",
+        "summary": "Authenticate generates jwt token using git provider name and git provider token arguments",
         "operationId": "Applications_Authenticate",
         "responses": {
           "200": {
