@@ -9,10 +9,9 @@ import (
 	"github.com/sclevine/agouti"
 )
 
-var webDriver *agouti.WebDriver
-var page *agouti.Page
+var webDriver *agouti.Page
 
-func initializeUISettings() {
+func initializeUISteps() {
 
 	By("And I install wego to my active cluster", func() {
 		installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
@@ -41,25 +40,15 @@ var _ = Describe("Weave GitOps UI Test", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
-			initializeUISettings()
-
-			webDriver = initializeWebDriver()
+			initializeUISteps()
 
 			By("When I open up a browser", func() {
-
-				seleniumURL := "http://localhost:4444/wd/hub"
-				page, err = agouti.NewPage(seleniumURL, agouti.Desired(agouti.Capabilities{
+				webDriver, err = agouti.NewPage(SELENIUM_SERVICE_URL, agouti.Desired(agouti.Capabilities{
 					"chromeOptions": map[string][]string{
 						"args": {
 							"--disable-gpu",
 							"--no-sandbox",
 						}}}.Browser("chrome")))
-				// page, err = webDriver.NewPage(agouti.Desired(agouti.Capabilities{
-				// 	"chromeOptions": map[string][]string{
-				// 		"args": {
-				// 			"--disable-gpu",
-				// 			"--no-sandbox",
-				// 		}}}.Browser("chrome")))
 				Expect(err).NotTo(HaveOccurred())
 				if err != nil {
 					fmt.Println("Error creating new page: " + err.Error())
@@ -70,22 +59,36 @@ var _ = Describe("Weave GitOps UI Test", func() {
 	})
 
 	AfterEach(func() {
-		Expect(page.Destroy()).To(Succeed())
+		Expect(webDriver.Destroy()).To(Succeed())
 	})
 
 	It("SmokeTest - Verify wego can run UI without apps installed", func() {
+
+		// var repoAbsolutePath string
+		// private := true
+		// tip := generateTestInputs()
+		// appName := tip.appRepoName
+
+		// addCommand := "app add . --auto-merge=true"
+
 		By("Then I should be able to navigate to WeGO dashboard", func() {
-			err := page.Navigate(WEGO_UI_URL)
-			if err != nil {
-				fmt.Println("Error navigating to dashboard: " + err.Error())
-				return
-			}
-			out, er := page.URL()
-			fmt.Println(out)
-			fmt.Println(er)
-			Expect(page.Navigate(WEGO_UI_URL)).To(Succeed())
-			Expect(page.Title()).To(ContainSubstring("Weave GitOps"))
-			fmt.Println(page.Title())
+			Expect(webDriver.Navigate(WEGO_UI_URL)).To(Succeed())
+			Expect(webDriver.Title()).To(ContainSubstring("Weave GitOps"))
 		})
+
+		// By("When I create a private repo with my app workload", func() {
+		// 	repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, private)
+		// 	gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
+		// })
+
+		// By("And I run wego app add command", func() {
+		// 	runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		// 	verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+		// 	verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
+		// })
+
+		// By("Then I should see my app in wego ui dashboard", func() {
+
+		// })
 	})
 })

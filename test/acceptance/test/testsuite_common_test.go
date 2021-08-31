@@ -45,9 +45,3 @@ var _ = BeforeSuite(func() {
 	}
 	log.Infof("WEGO Binary Path: %s", WEGO_BIN_PATH)
 })
-
-var _ = AfterSuite(func() {
-	if webDriver != nil {
-		Expect(webDriver.Stop()).To(Succeed())
-	}
-})

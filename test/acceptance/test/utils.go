@@ -10,6 +10,8 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+
+	// "path"
 	"strconv"
 	"strings"
 	"time"
@@ -18,7 +20,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	"github.com/sclevine/agouti"
 	log "github.com/sirupsen/logrus"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -32,6 +33,7 @@ const NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
 const INSTALL_PODS_READY_TIMEOUT time.Duration = 180 * time.Second
 const WEGO_DEFAULT_NAMESPACE = wego.DefaultNamespace
 const WEGO_UI_URL = "http://localhost:9001"
+const SELENIUM_SERVICE_URL = "http://localhost:4444/wd/hub"
 
 var DEFAULT_SSH_KEY_PATH string
 var GITHUB_ORG string
@@ -599,14 +601,4 @@ func mergePR(repoAbsolutePath, prLink string) {
 	session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
-}
-
-func initializeWebDriver() *agouti.WebDriver {
-	log.Infof("Initializing Chrome Driver...")
-	if webDriver == nil {
-		chromeDriver := agouti.ChromeDriver()
-		Expect(chromeDriver.Start()).To(Succeed())
-		return chromeDriver
-	}
-	return nil
 }
