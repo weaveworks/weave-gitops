@@ -99,7 +99,10 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return urlErr
 	}
 
-	osysClient, fluxClient, kubeClient, logger := cliutils.GetBaseClients()
+	osysClient, fluxClient, kubeClient, logger, baseClientErr := cliutils.GetBaseClients()
+	if baseClientErr != nil {
+		return fmt.Errorf("error initializing clients: %w", baseClientErr)
+	}
 
 	if readyErr := cliutils.IsClusterReady(logger); readyErr != nil {
 		return readyErr

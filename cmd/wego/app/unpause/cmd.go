@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
 	"github.com/weaveworks/weave-gitops/pkg/cliutils"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 )
 
@@ -30,10 +29,9 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 	params.Name = args[0]
 
-	osysClient, fluxClient, _, logger := cliutils.GetBaseClients()
-	kubeClient, _, kubeErr := kube.NewKubeHTTPClient()
-	if kubeErr != nil {
-		return fmt.Errorf("error initializing kube client: %w", kubeErr)
+	osysClient, fluxClient, kubeClient, logger, baseClientErr := cliutils.GetBaseClients()
+	if baseClientErr != nil {
+		return fmt.Errorf("error initializing clients: %w", baseClientErr)
 	}
 
 	appService := app.New(logger, nil, nil, nil, fluxClient, kubeClient, osysClient)

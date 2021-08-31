@@ -18,15 +18,19 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func GetBaseClients() (*osys.OsysClient, *flux.FluxClient, *kube.KubeClient, logger.Logger) {
+func GetBaseClients() (osys.Osys, flux.Flux, kube.Kube, logger.Logger, error) {
 	osysClient := osys.New()
 	cliRunner := &runner.CLIRunner{}
 	fluxClient := flux.New(osysClient, cliRunner)
 
-	kubeClient := kube.New(cliRunner)
+	kubeClient, _, kubeErr := kube.NewKubeHTTPClient()
+	if kubeErr != nil {
+		return nil, nil, nil, nil, fmt.Errorf("error creating k8s http client: %w", kubeErr)
+	}
+
 	logger := logger.NewCLILogger(osysClient.Stdout())
 
-	return osysClient, fluxClient, kubeClient, logger
+	return osysClient, fluxClient, kubeClient, logger, nil
 }
 
 func IsClusterReady(logger logger.Logger) error {

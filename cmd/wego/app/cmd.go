@@ -71,7 +71,10 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	command := args[1]
 	object := args[2]
 
-	osysClient, fluxClient, kubeClient, logger := cliutils.GetBaseClients()
+	osysClient, fluxClient, kubeClient, logger, baseClientErr := cliutils.GetBaseClients()
+	if baseClientErr != nil {
+		return fmt.Errorf("error initializing clients: %w", baseClientErr)
+	}
 
 	appContent, err := kubeClient.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
 	if err != nil {

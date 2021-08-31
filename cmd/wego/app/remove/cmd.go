@@ -49,10 +49,9 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	params.Name = args[0]
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 
-	osysClient, fluxClient, kubeClient, logger := cliutils.GetBaseClients()
-
-	if readyErr := cliutils.IsClusterReady(logger); readyErr != nil {
-		return readyErr
+	osysClient, fluxClient, kubeClient, logger, baseClientErr := cliutils.GetBaseClients()
+	if baseClientErr != nil {
+		return fmt.Errorf("error initializing clients: %w", baseClientErr)
 	}
 
 	targetName, targetErr := kubeClient.GetClusterName(ctx)
