@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/deepmap/oapi-codegen v1.8.1
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/dnaeon/go-vcr v1.2.0
 	github.com/fluxcd/go-git-providers v0.2.1-0.20210810172205-2624ccb868e1
 	github.com/fluxcd/helm-controller/api v0.11.1
@@ -15,8 +16,8 @@ require (
 	github.com/go-logr/logr v0.4.0
 	github.com/go-logr/zapr v0.4.0
 	github.com/google/go-cmp v0.5.6
-	github.com/google/uuid v1.2.0 // indirect
 	github.com/google/go-github v17.0.0+incompatible
+	github.com/google/uuid v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.5.0
 	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.1
 	github.com/jandelgado/gcov2lcov v1.0.5

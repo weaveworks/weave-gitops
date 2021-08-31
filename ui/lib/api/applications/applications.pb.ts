@@ -30,6 +30,15 @@ export type Application = {
   deploymentConditions?: Condition[]
 }
 
+export type AuthenticateRequest = {
+  providerName?: string
+  accessToken?: string
+}
+
+export type AuthenticateResponse = {
+  token?: string
+}
+
 export type ListApplicationsRequest = {
   namespace?: string
 }
@@ -70,6 +79,9 @@ export type ListCommitsResponse = {
 }
 
 export class Applications {
+  static Authenticate(req: AuthenticateRequest, initReq?: fm.InitReq): Promise<AuthenticateResponse> {
+    return fm.fetchReq<AuthenticateRequest, AuthenticateResponse>(`/v1/authenticate/${req["providerName"]}`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
   static ListApplications(req: ListApplicationsRequest, initReq?: fm.InitReq): Promise<ListApplicationsResponse> {
     return fm.fetchReq<ListApplicationsRequest, ListApplicationsResponse>(`/v1/applications?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }

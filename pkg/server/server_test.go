@@ -4,12 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/go-logr/logr"
@@ -78,6 +81,45 @@ var _ = Describe("ApplicationsServer", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(res.Application.Name).To(Equal(name))
+	})
+	It("Authorize", func() {
+		ctx := context.Background()
+		provider := "github"
+		token := "token"
+
+		expectedToken, err := auth.Generate(auth.SecretKey, auth.ExpirationTime, provider, token)
+		Expect(err).NotTo(HaveOccurred())
+
+		res, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
+			ProviderName: provider,
+			AccessToken:  token,
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(res.Token).To(Equal(expectedToken))
+	})
+	It("Authorize fails on wrong provider", func() {
+		ctx := context.Background()
+		provider := "wrong provider"
+		token := "token"
+
+		_, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
+			ProviderName: provider,
+			AccessToken:  token,
+		})
+		Expect(err.Error()).NotTo(Equal(fmt.Sprintf("unknown provider name %s, expecting github or gitlab", provider)))
+
+	})
+	It("Authorize fails on empty provider token", func() {
+		ctx := context.Background()
+		provider := "github"
+
+		_, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
+			ProviderName: provider,
+			AccessToken:  "",
+		})
+		Expect(err.Error()).NotTo(Equal("access token is empty"))
+
 	})
 
 	Describe("middleware", func() {

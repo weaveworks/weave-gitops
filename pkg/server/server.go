@@ -6,6 +6,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
+
+	"github.com/fluxcd/go-git-providers/gitlab"
+
+	"github.com/fluxcd/go-git-providers/github"
+
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
@@ -307,4 +314,24 @@ func mapConditions(conditions []metav1.Condition) []*pb.Condition {
 	}
 
 	return out
+}
+
+//Until the middleware is done this function will not be able to get the token and will fail
+func (s *applicationServer) Authenticate(ctx context.Context, r *pb.AuthenticateRequest) (*pb.AuthenticateResponse, error) {
+
+	if !strings.HasPrefix(github.DefaultDomain, r.ProviderName) &&
+		!strings.HasPrefix(gitlab.DefaultDomain, r.ProviderName) {
+		return nil, fmt.Errorf("unknown provider name %s, expecting github or gitlab", r.ProviderName)
+	}
+
+	if r.AccessToken == "" {
+		return nil, fmt.Errorf("access token is empty")
+	}
+
+	token, err := auth.Generate(auth.SecretKey, auth.ExpirationTime, r.GetProviderName(), r.GetAccessToken())
+	if err != nil {
+		return nil, fmt.Errorf("error generating jwt token. %w", err)
+	}
+
+	return &pb.AuthenticateResponse{Token: token}, nil
 }

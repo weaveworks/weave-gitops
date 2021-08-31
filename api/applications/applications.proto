@@ -21,6 +21,16 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 
 service Applications {
     /**
+    * Authenticate exchanges a code received from an OAuth2 callback for a user token
+    */
+    rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse) {
+        option (google.api.http) = {
+            post : "/v1/authenticate/{provider_name}"
+            body: "*"
+        };
+    }
+
+    /**
      * ListApplications returns the list of WeGo applications that the authenticated user has access to.
     */
     rpc ListApplications(ListApplicationsRequest) returns (ListApplicationsResponse) {
@@ -62,6 +72,15 @@ message Application {
     string   url                             = 3;  // The git repository URL for this application
     repeated Condition source_conditions     = 4;  // A list of conditions for the Source related to this Application
     repeated Condition deployment_conditions = 5;  // A list of conditions for the Kustomization or HelmRelease for this application
+}
+
+message AuthenticateRequest {
+    string provider_name = 1;  // The name of the OAuth provider
+    string access_token          = 2;
+}
+
+message AuthenticateResponse {
+    string token = 1; // The token that was exchanged for the callback code with the OAuth2 provider
 }
 
 message ListApplicationsRequest {
