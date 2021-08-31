@@ -62,7 +62,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	appClient, configClient, gitProvider, clientErr := cliutils.GetGitClientsForApp(ctx, params.Name, targetName, params.Namespace)
 	if clientErr != nil {
-		return fmt.Errorf("error getting git clients: %w", clientErr)
+		return fmt.Errorf("error accessing app %q: %w", params.Name, clientErr)
 	}
 
 	appService := app.New(logger, appClient, configClient, gitProvider, fluxClient, kubeClient, osysClient)

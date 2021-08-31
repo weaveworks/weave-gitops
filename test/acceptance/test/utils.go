@@ -560,7 +560,7 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 
 func gitUpdateCommitPush(repoAbsolutePath string) {
 	log.Infof("Pushing changes made to file(s) in repo: %s", repoAbsolutePath)
-	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cd %s && git add -u && git commit -m 'edit repo file' && git push", repoAbsolutePath))
+	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cd %s && git add -u && git commit -m 'edit repo file' && git pull --rebase && git push -f", repoAbsolutePath))
 }
 
 func pullBranch(repoAbsolutePath string, branch string) {

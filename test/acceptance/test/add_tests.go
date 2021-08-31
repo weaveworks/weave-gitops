@@ -763,7 +763,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 	})
 
-	It("SmokeTest - Verify that wego can deploy multiple apps one with private and other with public repo", func() {
+	FIt("SmokeTest - Verify that wego can deploy multiple apps one with private and other with public repo", func() {
 		var listOutput string
 		var pauseOutput string
 		var unpauseOutput string
@@ -1054,7 +1054,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("Then I should get an error", func() {
-			Eventually(removeOutput.Err).Should(gbytes.Say(`Error: failed to remove the app ` + badAppName + `: could not get application:`))
+			Eventually(removeOutput.Err).Should(gbytes.Say(`Error: error accessing app "` + badAppName + `": could not retrieve application "` + badAppName + `": could not get application: apps.wego.weave.works "` + badAppName + `" not found`))
 		})
 	})
 
