@@ -326,11 +326,11 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 		} else {
 			a.Logger.Actionf("Writing manifests to disk")
 
-			if err := a.writeAppYaml(info, appSpec); err != nil {
+			if err := a.writeAppYaml(a.AppGit, info, appSpec); err != nil {
 				return fmt.Errorf("failed writing app.yaml to disk: %w", err)
 			}
 
-			if err := a.writeAppGoats(info, source, appGoat); err != nil {
+			if err := a.writeAppGoats(a.AppGit, info, source, appGoat); err != nil {
 				return fmt.Errorf("failed writing app.yaml to disk: %w", err)
 			}
 		}
@@ -377,11 +377,11 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 		} else {
 			a.Logger.Actionf("Writing manifests to disk")
 
-			if err := a.writeAppYaml(info, appSpec); err != nil {
+			if err := a.writeAppYaml(a.ConfigGit, info, appSpec); err != nil {
 				return fmt.Errorf("failed writing app.yaml to disk: %w", err)
 			}
 
-			if err := a.writeAppGoats(info, appSource, appGoat); err != nil {
+			if err := a.writeAppGoats(a.ConfigGit, info, appSource, appGoat); err != nil {
 				return fmt.Errorf("failed writing application gitops manifests to disk: %w", err)
 			}
 		}
@@ -578,16 +578,16 @@ func (a *App) cloneRepo(client git.Git, url string, branch string, dryRun bool) 
 	}, nil
 }
 
-func (a *App) writeAppYaml(info *AppResourceInfo, manifest []byte) error {
-	return a.ConfigGit.Write(info.appYamlPath(), manifest)
+func (a *App) writeAppYaml(client git.Git, info *AppResourceInfo, manifest []byte) error {
+	return client.Write(info.appYamlPath(), manifest)
 }
 
-func (a *App) writeAppGoats(info *AppResourceInfo, sourceManifest, deployManifest []byte) error {
-	if err := a.ConfigGit.Write(info.appAutomationSourcePath(), sourceManifest); err != nil {
+func (a *App) writeAppGoats(client git.Git, info *AppResourceInfo, sourceManifest, deployManifest []byte) error {
+	if err := client.Write(info.appAutomationSourcePath(), sourceManifest); err != nil {
 		return err
 	}
 
-	return a.ConfigGit.Write(info.appAutomationDeployPath(), deployManifest)
+	return client.Write(info.appAutomationDeployPath(), deployManifest)
 }
 
 func makeWegoApplication(params AddParams) wego.Application {
