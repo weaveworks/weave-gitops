@@ -54,7 +54,7 @@ type App struct {
 	Flux               flux.Flux
 	Kube               kube.Kube
 	Logger             logger.Logger
-	GitProviderFactory func(token string) (gitproviders.GitProvider, error)
+	GitProviderFactory func(token string, providerName gitproviders.GitProviderName) (gitproviders.GitProvider, error)
 	// TODO: @jpellizzari adding this as a temporary stop-gap to maintain the current behavior for external config repos.
 	// As of https://github.com/weaveworks/weave-gitops/pull/587,
 	// we are not addressing this case yet. Many of the unit tests check for exact function call
@@ -78,9 +78,9 @@ func New(logger logger.Logger, git git.Git, flux flux.Flux, kube kube.Kube, osys
 // Make sure App implements all the required methods.
 var _ AppService = &App{}
 
-func createGitProvider(token string) (gitproviders.GitProvider, error) {
+func createGitProvider(token string, providerName gitproviders.GitProviderName) (gitproviders.GitProvider, error) {
 	provider, err := gitproviders.New(gitproviders.Config{
-		Provider: gitproviders.GitProviderGitHub,
+		Provider: providerName,
 		Token:    token,
 	})
 	if err != nil {

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -115,7 +116,7 @@ func (a *App) getConfigUrlAndBranch(info *AppResourceInfo, token string) (string
 	if cloneURL == string(ConfigTypeUserRepo) {
 		cloneURL = info.Spec.URL
 	} else {
-		gitProvider, err := a.GitProviderFactory(token)
+		gitProvider, err := a.GitProviderFactory(token, gitproviders.GitProviderGitHub)
 		if err != nil {
 			return "", "", err
 		}

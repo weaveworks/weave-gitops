@@ -113,24 +113,28 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	var providerName gitproviders.GitProviderName
+	var normalizedUrl gitproviders.NormalizedRepoURL
 	// We re-use the same --url flag for both git and helm sources.
 	// There isn't really a concept of "provider" in helm charts, and there is nothing to push.
 	// Assume charts are always public and no auth needs to be done.
 	if !isHelmRepository {
-		providerName, err = gitproviders.DetectGitProviderFromUrl(repoUrlString)
+		normalizedUrl, err = gitproviders.NewNormalizedRepoURL(repoUrlString)
 		if err != nil {
-			return fmt.Errorf("error detecting git provider: %w", err)
+			return fmt.Errorf("error creating normalized url: %w", err)
 		}
+		params.GitProviderName = normalizedUrl.Provider()
+	} else {
+		// helm doesnt use the gitprovider but it still needs to be set to something for now
+		params.GitProviderName = gitproviders.GitProviderGitHub
 	}
 
-	token, tokenErr := osysClient.GetGitProviderToken()
+	token, tokenErr := osysClient.GetGitProviderToken(params.GitProviderName)
 
 	if !isHelmRepository && tokenErr == osys.ErrNoGitProviderTokenSet {
 		// No provider token set, we need to do the auth flow.
-		authHandler, err := auth.NewAuthCLIHandler(providerName)
+		authHandler, err := auth.NewAuthCLIHandler(params.GitProviderName)
 		if err != nil {
-			return fmt.Errorf("could not get auth handler for provider %s: %w", providerName, err)
+			return fmt.Errorf("could not get auth handler for provider %s: %w", params.GitProviderName, err)
 		}
 
 		token, err = authHandler(ctx, osysClient.Stdout())
@@ -139,7 +143,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 	} else if !isHelmRepository && tokenErr != nil {
 		// We didn't detect a NoGitProviderSet error, something else went wrong.
-		return fmt.Errorf("could not get access token: %w", err)
+		return fmt.Errorf("could not get access token: %w", tokenErr)
 	}
 
 	params.GitProviderToken = token
@@ -153,7 +157,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	// If we are NOT doing a helm chart, we want to use a git client with an embedded deploy key
 	if !isHelmRepository {
-		authsvc, err := auth.NewAuthService(fluxClient, rawClient, providerName, logger, token)
+		authsvc, err := auth.NewAuthService(fluxClient, rawClient, params.GitProviderName, logger, params.GitProviderToken)
 		if err != nil {
 			return fmt.Errorf("error creating auth service: %w", err)
 		}
@@ -161,11 +165,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		targetName, err := kubeClient.GetClusterName(ctx)
 		if err != nil {
 			return fmt.Errorf("error getting target name: %w", err)
-		}
-
-		normalizedUrl, err := gitproviders.NewNormalizedRepoURL(repoUrlString)
-		if err != nil {
-			return fmt.Errorf("error creating normalized url: %w", err)
 		}
 
 		name := auth.SecretName{

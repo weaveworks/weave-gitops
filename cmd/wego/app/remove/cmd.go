@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 
 	"github.com/lithammer/dedent"
 	"github.com/pkg/errors"
@@ -56,7 +57,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	osysClient := osys.New()
 
-	token, err := osysClient.GetGitProviderToken()
+	token, err := osysClient.GetGitProviderToken(gitproviders.GitProviderGitHub)
 	if err != nil {
 		return err
 	}

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	cryptossh "golang.org/x/crypto/ssh"
 	"golang.org/x/term"
@@ -19,7 +20,7 @@ import (
 type Osys interface {
 	UserHomeDir() (string, error)
 	SelectAuthMethod(privateKeyPath string) (ssh.AuthMethod, error)
-	GetGitProviderToken() (string, error)
+	GetGitProviderToken(providerName gitproviders.GitProviderName) (string, error)
 	Getenv(envVar string) string
 	LookupEnv(envVar string) (string, bool)
 	Setenv(envVar, value string) error
@@ -64,8 +65,17 @@ func (o *OsysClient) Setenv(envVar, value string) error {
 
 var ErrNoGitProviderTokenSet = errors.New("no git provider token env variable set")
 
-func (o *OsysClient) GetGitProviderToken() (string, error) {
-	providerToken, found := o.LookupEnv("GITHUB_TOKEN")
+func (o *OsysClient) GetGitProviderToken(providerName gitproviders.GitProviderName) (string, error) {
+	var tokenEnvName string
+	switch providerName {
+	case gitproviders.GitProviderGitHub:
+		tokenEnvName = "GITHUB_TOKEN"
+	case gitproviders.GitProviderGitLab:
+		tokenEnvName = "GITLAB_TOKEN"
+	default:
+		return "", fmt.Errorf("invalid git providername")
+	}
+	providerToken, found := o.LookupEnv(tokenEnvName)
 
 	if !found || providerToken == "" {
 		return "", ErrNoGitProviderTokenSet

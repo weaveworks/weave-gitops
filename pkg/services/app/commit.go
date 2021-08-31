@@ -24,7 +24,7 @@ func (a *App) GetCommits(params CommitParams, application *wego.Application) ([]
 		return nil, fmt.Errorf("error creating normalized url: %w", err)
 	}
 
-	gitProvider, err := a.GitProviderFactory(params.GitProviderToken)
+	gitProvider, err := a.GitProviderFactory(params.GitProviderToken, normalizedUrl.Provider())
 	if err != nil {
 		return nil, err
 	}

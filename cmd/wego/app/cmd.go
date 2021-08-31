@@ -105,7 +105,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error creating normalized url: %w", err)
 	}
 
-	token, tokenErr := osysClient.GetGitProviderToken()
+	token, tokenErr := osysClient.GetGitProviderToken(normalizedUrl.Provider())
 
 	if tokenErr == osys.ErrNoGitProviderTokenSet {
 		// No provider token set, we need to do the auth flow.

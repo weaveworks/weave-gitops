@@ -76,6 +76,7 @@ type AddParams struct {
 	DryRun                     bool
 	AutoMerge                  bool
 	GitProviderToken           string
+	GitProviderName            gitproviders.GitProviderName
 	HelmReleaseTargetNamespace string
 }
 
@@ -130,7 +131,7 @@ type externalRepoManifests struct {
 func (a *App) Add(params AddParams) error {
 	ctx := context.Background()
 
-	gitProvider, err := a.GitProviderFactory(params.GitProviderToken)
+	gitProvider, err := a.GitProviderFactory(params.GitProviderToken, params.GitProviderName)
 	if err != nil {
 		return err
 	}
