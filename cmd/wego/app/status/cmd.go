@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/cliutils"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 )
 
@@ -21,7 +22,13 @@ var Cmd = &cobra.Command{
 		params.Name = args[0]
 		params.Namespace, _ = cmd.Parent().Parent().Flags().GetString("namespace")
 
-		osysClient, fluxClient, kubeClient, logger := cliutils.GetBaseClients()
+		osysClient, fluxClient, _, logger := cliutils.GetBaseClients()
+
+		kubeClient, _, kubeErr := kube.NewKubeHTTPClient()
+		if kubeErr != nil {
+			return fmt.Errorf("error initializing kube client: %w", kubeErr)
+		}
+
 		appService := app.New(logger, nil, nil, nil, fluxClient, kubeClient, osysClient)
 
 		fluxOutput, lastSuccessReconciliation, err := appService.Status(params)
