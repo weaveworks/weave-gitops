@@ -358,7 +358,7 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 		return fmt.Errorf("could not determine default branch for config repository: %w", err)
 	}
 
-	targetSource, targetGoats, err := a.generateExternalRepoManifests(info, configBranch)
+	extRepoMan, err := a.generateExternalRepoManifests(info, configBranch)
 	if err != nil {
 		return fmt.Errorf("could not generate target GitOps Automation manifests: %w", err)
 	}
@@ -442,14 +442,14 @@ func (a *App) generateAppWegoManifests(info *AppResourceInfo) ([]byte, []byte, e
 
 }
 
-func (a *App) generateExternalRepoManifests(info *AppResourceInfo, branch string) ([]byte, []byte, error) {
+func (a *App) generateExternalRepoManifests(info *AppResourceInfo, branch string) (*externalRepoManifests, error) {
 	repoName := generateResourceName(info.Spec.ConfigURL)
 
 	secretRef := ""
 
 	visibility, visibilityErr := a.GitProvider.GetRepoVisibility(info.Spec.ConfigURL)
 	if visibilityErr != nil {
-		return nil, nil, visibilityErr
+		return nil, visibilityErr
 	}
 
 	if *visibility != gitprovider.RepositoryVisibilityPublic {

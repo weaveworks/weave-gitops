@@ -552,7 +552,8 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
                             cd %s &&
                             git add . &&
                             git commit -m 'add workload manifest' &&
-                            git push -u origin main`, appManifestFilePath, repoAbsolutePath, repoAbsolutePath))
+                            git pull --rebase &&
+                            git push -f -u origin main`, appManifestFilePath, repoAbsolutePath, repoAbsolutePath))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, 10, 1).Should(gexec.Exit())
