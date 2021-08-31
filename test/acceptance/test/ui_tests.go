@@ -24,10 +24,6 @@ func initializeUISteps() {
 	By("And I run wego ui", func() {
 		_ = runCommandAndReturnSessionOutput(fmt.Sprintf("%s ui run &", WEGO_BIN_PATH))
 	})
-
-	By("And I start selenium server", func() {
-		_ = runCommandAndReturnSessionOutput(fmt.Sprintf("selenium-server &"))
-	})
 }
 
 var _ = Describe("Weave GitOps UI Test", func() {
@@ -66,7 +62,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		Expect(webDriver.Destroy()).To(Succeed())
 	})
 
-	FIt("SmokeTest - Verify wego can run UI without apps installed", func() {
+	It("SmokeTest - Verify wego can run UI without apps installed", func() {
 
 		// var repoAbsolutePath string
 		// private := true
