@@ -18,11 +18,10 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-  "github.com/weaveworks/weave-gitops/pkg/utils"
 	log "github.com/sirupsen/logrus"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 const APP_REMOVAL_TIMEOUT time.Duration = 30 * time.Second
