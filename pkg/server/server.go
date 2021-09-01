@@ -50,8 +50,9 @@ type applicationServer struct {
 // An ApplicationConfig allows for the customization of an ApplicationsServer.
 // Use the DefaultConfig() to use the default dependencies.
 type ApplicationConfig struct {
-	Logger logr.Logger
-	App    *app.App
+	Logger    logr.Logger
+	App       *app.App
+	JwtClient auth.JWTClient
 }
 
 //Remove when middleware is done
@@ -82,9 +83,12 @@ func DefaultConfig() (*ApplicationConfig, error) {
 
 	appSrv := app.New(nil, nil, nil, kubeClient, nil)
 
+	jwtClient := auth.NewJwtClient()
+
 	return &ApplicationConfig{
-		Logger: logr,
-		App:    appSrv,
+		Logger:    logr,
+		App:       appSrv,
+		JwtClient: jwtClient,
 	}, nil
 }
 
@@ -335,7 +339,7 @@ func (s *applicationServer) Authenticate(ctx context.Context, msg *pb.Authentica
 
 	token, err := auth.GenerateJWT(auth.SecretKey, auth.ExpirationTime, gitproviders.GitProviderName(msg.GetProviderName()), msg.GetAccessToken())
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "error generating jwt token. %w", err)
+		return nil, status.Errorf(codes.Internal, "error generating jwt token. %s", err)
 	}
 
 	return &pb.AuthenticateResponse{Token: token}, nil

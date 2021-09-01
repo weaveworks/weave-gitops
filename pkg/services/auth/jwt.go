@@ -10,8 +10,10 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/rand"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 )
+
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
 var SecretKey string
 
@@ -24,6 +26,19 @@ type Claims struct {
 	jwt.StandardClaims
 	Provider      gitproviders.GitProviderName `json:"provider"`
 	ProviderToken string                       `json:"provider_token"`
+}
+
+//counterfeiter:generate . JWTClient
+type JWTClient interface {
+	GenerateJWT(secretKey string, expirationTime time.Duration, providerName gitproviders.GitProviderName, providerToken string) (string, error)
+	VerifyJWT(secretKey string, accessToken string) (*Claims, error)
+}
+
+func NewJwtClient() JWTClient {
+	return &internalJwtClient{}
+}
+
+type internalJwtClient struct {
 }
 
 // GenerateJWT generates and signs a new token
@@ -41,7 +56,7 @@ func GenerateJWT(secretKey string, expirationTime time.Duration, providerName gi
 }
 
 // VerifyJWT verifies the access token string and return a user claim if the token is valid
-func VerifyJWT(secretKey string, accessToken string) (*Claims, error) {
+func (i internalJwtClient) VerifyJWT(secretKey string, accessToken string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(
 		accessToken,
 		&Claims{},

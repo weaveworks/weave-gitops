@@ -4,12 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 
 	"google.golang.org/grpc/codes"
 
@@ -88,7 +92,8 @@ var _ = Describe("ApplicationsServer", func() {
 		provider := "github"
 		token := "token"
 
-		expectedToken, err := auth.GenerateJWT(auth.SecretKey, auth.ExpirationTime, gitproviders.GitProviderGitHub, token)
+		jwtClient := auth.NewJwtClient()
+		expectedToken, err := jwtClient.GenerateJWT(auth.SecretKey, auth.ExpirationTime, gitproviders.GitProviderGitHub, token)
 		Expect(err).NotTo(HaveOccurred())
 
 		res, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
@@ -113,6 +118,7 @@ var _ = Describe("ApplicationsServer", func() {
 		Expect(err.Error()).To(ContainSubstring(codes.InvalidArgument.String()))
 
 	})
+
 	It("Authorize fails on empty provider token", func() {
 		ctx := context.Background()
 		provider := "github"
@@ -139,7 +145,7 @@ var _ = Describe("ApplicationsServer", func() {
 			BeforeEach(func() {
 				log = makeFakeLogr()
 				kubeClient = &kubefakes.FakeKube{}
-				appsSrv = NewApplicationsServer(&ApplicationConfig{App: app.New(nil, nil, nil, kubeClient, nil)})
+				appsSrv = NewApplicationsServer(&ApplicationConfig{App: app.New(nil, nil, nil, kubeClient, nil), JwtClient: auth.NewJwtClient()})
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
@@ -214,6 +220,46 @@ var _ = Describe("ApplicationsServer", func() {
 				Expect(log.InfoCallCount()).To(BeNumerically(">", 0))
 				msg, _ := log.InfoArgsForCall(0)
 				Expect(msg).To(ContainSubstring(middleware.RequestOkText))
+
+				vals := log.WithValuesArgsForCall(0)
+				list := formatLogVals(vals)
+
+				expectedStatus := strconv.Itoa(res.StatusCode)
+				Expect(list).To(ConsistOf("uri", path, "status", expectedStatus))
+			})
+			It("Authorize fails generating jwt token", func() {
+
+				fakeJWTToken := &authfakes.FakeJWTClient{}
+				fakeJWTToken.GenerateJWTStub = func(s2 string, duration time.Duration, name gitproviders.GitProviderName, s22 string) (string, error) {
+					return "", fmt.Errorf("some error")
+				}
+
+				appsSrv = NewApplicationsServer(&ApplicationConfig{App: app.New(nil, nil, nil, kubeClient, nil), JwtClient: fakeJWTToken})
+				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
+				httpHandler = middleware.WithLogging(log, mux)
+				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
+				Expect(err).NotTo(HaveOccurred())
+
+				ts := httptest.NewServer(httpHandler)
+				defer ts.Close()
+
+				// A valid URL for our server
+				path := "/v1/authenticate/github"
+				url := ts.URL + path
+
+				res, err := http.Post(url, "application/json", strings.NewReader("{\"accessToken\":\"sometoken\"}"))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(res.StatusCode).To(Equal(http.StatusInternalServerError))
+
+				response := make(map[string]interface{}, 0)
+				err = json.NewDecoder(res.Body).Decode(&response)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(response["message"]).To(Equal("error generating jwt token. some error"))
+
+				Expect(log.InfoCallCount()).To(BeNumerically(">", 0))
+				msg, _ := log.InfoArgsForCall(0)
+				Expect(msg).To(ContainSubstring(middleware.ServerErrorText))
 
 				vals := log.WithValuesArgsForCall(0)
 				list := formatLogVals(vals)

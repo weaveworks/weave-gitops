@@ -6,6 +6,8 @@ import (
 	"net"
 	"testing"
 
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -94,7 +96,7 @@ var _ = BeforeEach(func() {
 	s = grpc.NewServer()
 
 	k = &kube.KubeHTTP{Client: k8sClient, ClusterName: testClustername}
-	cfg := ApplicationConfig{App: app.New(nil, nil, nil, k, nil)}
+	cfg := ApplicationConfig{App: app.New(nil, nil, nil, k, nil), JwtClient: auth.NewJwtClient()}
 
 	apps = NewApplicationsServer(&cfg)
 	pb.RegisterApplicationsServer(s, apps)
