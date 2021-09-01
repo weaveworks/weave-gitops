@@ -2,19 +2,22 @@ package auth
 
 import (
 	"fmt"
-	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 
 	"k8s.io/apimachinery/pkg/util/rand"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 )
 
 var SecretKey string
 
 const ExpirationTime = time.Minute * 15
+
+var ErrUnauthorizedToken = errors.New("unauthorized token")
 
 // Claims is a custom JWT claims that contains some token information
 type Claims struct {
@@ -23,8 +26,8 @@ type Claims struct {
 	ProviderToken string                       `json:"provider_token"`
 }
 
-// Generate generates and signs a new token
-func Generate(secretKey string, expirationTime time.Duration, providerName gitproviders.GitProviderName, providerToken string) (string, error) {
+// GenerateJWT generates and signs a new token
+func GenerateJWT(secretKey string, expirationTime time.Duration, providerName gitproviders.GitProviderName, providerToken string) (string, error) {
 	claims := Claims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(expirationTime).Unix(),
@@ -37,8 +40,8 @@ func Generate(secretKey string, expirationTime time.Duration, providerName gitpr
 	return token.SignedString([]byte(secretKey))
 }
 
-// Verify verifies the access token string and return a user claim if the token is valid
-func Verify(secretKey string, accessToken string) (*Claims, error) {
+// VerifyJWT verifies the access token string and return a user claim if the token is valid
+func VerifyJWT(secretKey string, accessToken string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(
 		accessToken,
 		&Claims{},
@@ -53,8 +56,10 @@ func Verify(secretKey string, accessToken string) (*Claims, error) {
 	)
 
 	if err != nil {
-		if strings.Contains(err.Error(), "token is expired by") {
-			return nil, fmt.Errorf("unauthorized token")
+		if ve, ok := err.(*jwt.ValidationError); ok {
+			if ve.Errors&(jwt.ValidationErrorExpired) != 0 {
+				return nil, ErrUnauthorizedToken
+			}
 		}
 		return nil, fmt.Errorf("invalid token: %w", err)
 	}

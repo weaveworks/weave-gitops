@@ -7,6 +7,9 @@ import (
 	"log"
 	"net/http"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
@@ -34,6 +37,8 @@ import (
 type key int
 
 const tokenKey key = iota
+
+var ErrEmptyAccessToken = fmt.Errorf("access token is empty")
 
 type applicationServer struct {
 	pb.UnimplementedApplicationsServer
@@ -314,21 +319,23 @@ func mapConditions(conditions []metav1.Condition) []*pb.Condition {
 	return out
 }
 
+var BadErrProvider = errors.New("wrong provider name")
+
 // Authenticate generates and returns a jwt token using git provider name and git provider token
 func (s *applicationServer) Authenticate(ctx context.Context, msg *pb.AuthenticateRequest) (*pb.AuthenticateResponse, error) {
 
 	if string(gitproviders.GitProviderGitHub) != msg.ProviderName &&
 		string(gitproviders.GitProviderGitLab) != msg.ProviderName {
-		return nil, &runtime.HTTPStatusError{HTTPStatus: http.StatusInternalServerError, Err: fmt.Errorf("unknown provider name %s, expecting github or gitlab", msg.ProviderName)}
+		return nil, status.Errorf(codes.InvalidArgument, "%s expected github or gitlab, got %s", BadErrProvider.Error(), msg.ProviderName)
 	}
 
 	if msg.AccessToken == "" {
-		return nil, &runtime.HTTPStatusError{HTTPStatus: http.StatusInternalServerError, Err: fmt.Errorf("access token is empty")}
+		return nil, status.Error(codes.InvalidArgument, ErrEmptyAccessToken.Error())
 	}
 
-	token, err := auth.Generate(auth.SecretKey, auth.ExpirationTime, gitproviders.GitProviderName(msg.GetProviderName()), msg.GetAccessToken())
+	token, err := auth.GenerateJWT(auth.SecretKey, auth.ExpirationTime, gitproviders.GitProviderName(msg.GetProviderName()), msg.GetAccessToken())
 	if err != nil {
-		return nil, &runtime.HTTPStatusError{HTTPStatus: http.StatusInternalServerError, Err: fmt.Errorf("error generating jwt token. %w", err)}
+		return nil, status.Errorf(codes.Internal, "error generating jwt token. %w", err.Error())
 	}
 
 	return &pb.AuthenticateResponse{Token: token}, nil

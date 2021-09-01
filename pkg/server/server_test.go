@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -12,7 +11,7 @@ import (
 	"strconv"
 	"time"
 
-	"google.golang.org/grpc/status"
+	"google.golang.org/grpc/codes"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
@@ -89,7 +88,7 @@ var _ = Describe("ApplicationsServer", func() {
 		provider := "github"
 		token := "token"
 
-		expectedToken, err := auth.Generate(auth.SecretKey, auth.ExpirationTime, gitproviders.GitProviderGitHub, token)
+		expectedToken, err := auth.GenerateJWT(auth.SecretKey, auth.ExpirationTime, gitproviders.GitProviderGitHub, token)
 		Expect(err).NotTo(HaveOccurred())
 
 		res, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
@@ -110,12 +109,9 @@ var _ = Describe("ApplicationsServer", func() {
 			AccessToken:  token,
 		})
 
-		expectedErrMsg := fmt.Sprintf("unknown provider name %s, expecting github or gitlab", provider)
-		actualErr, ok := status.FromError(err)
-		Expect(ok).To(BeTrue())
+		Expect(err.Error()).To(ContainSubstring(BadErrProvider.Error()))
+		Expect(err.Error()).To(ContainSubstring(codes.InvalidArgument.String()))
 
-		Expect(runtime.HTTPStatusFromCode(actualErr.Code())).To(Equal(http.StatusInternalServerError))
-		Expect(actualErr.Message()).To(Equal(expectedErrMsg))
 	})
 	It("Authorize fails on empty provider token", func() {
 		ctx := context.Background()
@@ -126,12 +122,8 @@ var _ = Describe("ApplicationsServer", func() {
 			AccessToken:  "",
 		})
 
-		expectedErrMsg := "access token is empty"
-		actualErr, ok := status.FromError(err)
-		Expect(ok).To(BeTrue())
-
-		Expect(runtime.HTTPStatusFromCode(actualErr.Code())).To(Equal(http.StatusInternalServerError))
-		Expect(actualErr.Message()).To(Equal(expectedErrMsg))
+		Expect(err.Error()).To(ContainSubstring(ErrEmptyAccessToken.Error()))
+		Expect(err.Error()).To(ContainSubstring(codes.InvalidArgument.String()))
 
 	})
 

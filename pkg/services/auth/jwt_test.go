@@ -15,18 +15,18 @@ var _ = Describe("JWT tokens", func() {
 
 		token := "token"
 
-		jwtToken, err := Generate(SecretKey, time.Millisecond, gitproviders.GitProviderGitHub, token)
+		jwtToken, err := GenerateJWT(SecretKey, time.Millisecond, gitproviders.GitProviderGitHub, token)
 		Expect(err).NotTo(HaveOccurred())
 
-		claims, err := Verify(SecretKey, jwtToken)
+		claims, err := VerifyJWT(SecretKey, jwtToken)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(claims.Provider).To(Equal(gitproviders.GitProviderGitHub))
 		Expect(claims.ProviderToken).To(Equal(token))
 
 		time.Sleep(time.Second)
-		claims, err = Verify(SecretKey, jwtToken)
-		Expect(err.Error()).To(Equal("unauthorized token"))
+		claims, err = VerifyJWT(SecretKey, jwtToken)
+		Expect(err).To(Equal(ErrUnauthorizedToken))
 		Expect(claims).To(BeNil())
 
 	})
