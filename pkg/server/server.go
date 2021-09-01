@@ -335,7 +335,7 @@ func (s *applicationServer) Authenticate(ctx context.Context, msg *pb.Authentica
 
 	token, err := auth.GenerateJWT(auth.SecretKey, auth.ExpirationTime, gitproviders.GitProviderName(msg.GetProviderName()), msg.GetAccessToken())
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "error generating jwt token. %w", err.Error())
+		return nil, status.Errorf(codes.Internal, "error generating jwt token. %w", err)
 	}
 
 	return &pb.AuthenticateResponse{Token: token}, nil
