@@ -39,18 +39,31 @@ func (a *App) Remove(params RemoveParams) error {
 	resources := info.clusterResources()
 
 	if info.configMode() == ConfigModeClusterOnly {
-		out, err := a.Kube.DeleteByName(info.appResourceName(), "app", info.Namespace)
+		gvrApp, err := ResourceKindApplication.ToGVR()
 		if err != nil {
-			return clusterDeleteError(out, err)
+			return err
 		}
-		out, err = a.Kube.DeleteByName(info.appSourceName(), string(info.sourceKind()), info.Namespace)
+
+		if err := a.Kube.DeleteByName(ctx, info.appResourceName(), gvrApp, info.Namespace); err != nil {
+			return clusterDeleteError(info.appResourceName(), err)
+		}
+
+		gvrSource, err := info.sourceKind().ToGVR()
 		if err != nil {
-			return clusterDeleteError(out, err)
+			return err
 		}
-		out, err = a.Kube.DeleteByName(info.appDeployName(), string(info.deployKind()), info.Namespace)
+		if err := a.Kube.DeleteByName(ctx, info.appSourceName(), gvrSource, info.Namespace); err != nil {
+			return clusterDeleteError(info.appResourceName(), err)
+		}
+
+		gvrDeployKind, err := info.deployKind().ToGVR()
 		if err != nil {
-			return clusterDeleteError(out, err)
+			return err
 		}
+		if err := a.Kube.DeleteByName(ctx, info.appDeployName(), gvrDeployKind, info.Namespace); err != nil {
+			return clusterDeleteError(info.appResourceName(), err)
+		}
+
 		return nil
 	}
 
@@ -77,9 +90,12 @@ func (a *App) Remove(params RemoveParams) error {
 				}
 			} else if resourceRef.kind == ResourceKindKustomization ||
 				resourceRef.kind == ResourceKindHelmRelease {
-				out, err := a.Kube.DeleteByName(resourceRef.name, string(resourceRef.kind), info.Namespace)
+				gvrDeployKind, err := resourceRef.kind.ToGVR()
 				if err != nil {
-					return clusterDeleteError(out, err)
+					return err
+				}
+				if err := a.Kube.DeleteByName(ctx, resourceRef.name, gvrDeployKind, info.Namespace); err != nil {
+					return clusterDeleteError(info.appResourceName(), err)
 				}
 			}
 		}
@@ -113,8 +129,8 @@ func (a *App) getConfigUrlAndBranch(info *AppResourceInfo, token string) (string
 	return cloneURL, branch, nil
 }
 
-func clusterDeleteError(out []byte, err error) error {
-	return fmt.Errorf("failed to delete resource: %s with error: %w", out, err)
+func clusterDeleteError(name string, err error) error {
+	return fmt.Errorf("failed to delete resource: %s with error: %w", name, err)
 }
 
 func dirExists(d string) bool {

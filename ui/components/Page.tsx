@@ -53,7 +53,11 @@ function Page({ className, children, title, breadcrumbs, loading }: Props) {
   const { appState } = useCommon();
 
   if (loading) {
-    return <LoadingPage />;
+    return (
+      <Content>
+        <LoadingPage />
+      </Content>
+    );
   }
 
   return (
