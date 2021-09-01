@@ -2,7 +2,7 @@ import { Breadcrumbs } from "@material-ui/core";
 import { Alert, AlertTitle } from "@material-ui/lab";
 import _ from "lodash";
 import React from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import useCommon from "../hooks/common";
 import { PageRoute } from "../lib/types";
 import { formatURL } from "../lib/utils";
@@ -53,7 +53,11 @@ function Page({ className, children, title, breadcrumbs, loading }: Props) {
   const { appState } = useCommon();
 
   if (loading) {
-    return <LoadingPage />;
+    return (
+      <Content>
+        <LoadingPage />
+      </Content>
+    );
   }
 
   return (
