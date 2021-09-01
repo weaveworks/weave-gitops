@@ -15,11 +15,13 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/yaml"
 )
 
@@ -82,6 +84,12 @@ const (
 	DefaultBranch         = "main"
 	DefaultDeploymentType = "kustomize"
 )
+
+type externalRepoManifests struct {
+	source []byte
+	target []byte
+	appDir []byte
+}
 
 // Three models:
 // --app-config-url=none
@@ -168,7 +176,7 @@ func (a *App) Add(params AddParams) error {
 
 	var secretRef string
 	if wego.SourceType(params.SourceType) == wego.SourceTypeGit {
-		secretRef, err = a.createAndUploadDeployKey(info, params.DryRun, info.Spec.URL, gitProvider)
+		secretRef, err = a.createAndUploadDeployKey(ctx, info, params.DryRun, info.Spec.URL, gitProvider)
 		if err != nil {
 			return fmt.Errorf("could not generate deploy key: %w", err)
 		}
@@ -180,7 +188,6 @@ func (a *App) Add(params AddParams) error {
 	case string(ConfigTypeUserRepo):
 		return a.addAppWithConfigInAppRepo(info, params, gitProvider, secretRef, appHash)
 	default:
-
 		// TODO: @jpellizzari As of https://github.com/weaveworks/weave-gitops/pull/587,
 		// we are not using deploy keys for external repos yet.
 		// Followup created here: https://github.com/weaveworks/weave-gitops/issues/592
@@ -190,7 +197,7 @@ func (a *App) Add(params AddParams) error {
 		}
 		// Overriding the internal git service
 		a.Git = gitClient
-		return a.addAppWithConfigInExternalRepo(info, params, gitProvider, secretRef, appHash)
+		return a.addAppWithConfigInExternalRepo(ctx, info, params, gitProvider, secretRef, appHash)
 	}
 }
 
@@ -337,7 +344,7 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 		return fmt.Errorf("could not generate application GitOps Automation manifests: %w", err)
 	}
 
-	appWegoGoat, err := a.generateAppWegoManifests(info)
+	appDirGoat, targetDirGoat, err := a.generateAppWegoManifests(info)
 	if err != nil {
 		return fmt.Errorf("could not create GitOps automation for .wego directory: %w", err)
 	}
@@ -371,7 +378,7 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 	}
 
 	a.Logger.Actionf("Applying manifests to the cluster")
-	if err := a.applyToCluster(info, params.DryRun, source, appWegoGoat); err != nil {
+	if err := a.applyToCluster(info, params.DryRun, source, appDirGoat, targetDirGoat); err != nil {
 		return fmt.Errorf("could not apply manifests to the cluster: %w", err)
 	}
 
@@ -380,8 +387,8 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 	})
 }
 
-func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddParams, gitProvider gitproviders.GitProvider, appSecretRef string, appHash string) error {
-	appConfigSecretName, err := a.createAndUploadDeployKey(info, params.DryRun, info.Spec.ConfigURL, gitProvider)
+func (a *App) addAppWithConfigInExternalRepo(ctx context.Context, info *AppResourceInfo, params AddParams, gitProvider gitproviders.GitProvider, appSecretRef string, appHash string) error {
+	appConfigSecretName, err := a.createAndUploadDeployKey(ctx, info, params.DryRun, info.Spec.ConfigURL, gitProvider)
 	if err != nil {
 		return fmt.Errorf("could not generate deploy key: %w", err)
 	}
@@ -397,7 +404,8 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 		return fmt.Errorf("could not determine default branch for config repository: %w", err)
 	}
 
-	targetSource, targetGoats, err := a.generateExternalRepoManifests(info, appConfigSecretName, configBranch)
+	// targetSource, targetGoat, appDirGoat, err := a.generateExternalRepoManifests(info, appConfigSecretName, configBranch)
+	extRepoMan, err := a.generateExternalRepoManifests(info, appConfigSecretName, configBranch)
 	if err != nil {
 		return fmt.Errorf("could not generate target GitOps Automation manifests: %w", err)
 	}
@@ -427,7 +435,7 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 	}
 
 	a.Logger.Actionf("Applying manifests to the cluster")
-	if err := a.applyToCluster(info, params.DryRun, targetSource, targetGoats); err != nil {
+	if err := a.applyToCluster(info, params.DryRun, extRepoMan.source, extRepoMan.target, extRepoMan.appDir); err != nil {
 		return fmt.Errorf("could not apply manifests to the cluster: %w", err)
 	}
 
@@ -458,14 +466,14 @@ func (a *App) generateAppManifests(info *AppResourceInfo, secretRef string, appH
 	return sourceManifest, appGoatManifest, appManifest, nil
 }
 
-func (a *App) generateAppWegoManifests(info *AppResourceInfo) ([]byte, error) {
+func (a *App) generateAppWegoManifests(info *AppResourceInfo) ([]byte, []byte, error) {
 	appsDirManifest, err := a.Flux.CreateKustomization(
 		info.automationAppsDirKustomizationName(),
 		info.Name,
 		info.appYamlDir(),
 		info.Namespace)
 	if err != nil {
-		return nil, fmt.Errorf("could not create app dir kustomization for '%s': %w", info.Name, err)
+		return nil, nil, fmt.Errorf("could not create app dir kustomization for '%s': %w", info.Name, err)
 	}
 
 	targetDirManifest, err := a.Flux.CreateKustomization(
@@ -474,29 +482,28 @@ func (a *App) generateAppWegoManifests(info *AppResourceInfo) ([]byte, error) {
 		info.appAutomationDir(),
 		info.Namespace)
 	if err != nil {
-		return nil, fmt.Errorf("could not create target dir kustomization for '%s': %w", info.Name, err)
+		return nil, nil, fmt.Errorf("could not create target dir kustomization for '%s': %w", info.Name, err)
 	}
 
-	manifests := bytes.Join([][]byte{appsDirManifest, targetDirManifest}, []byte(""))
+	return sanitizeWegoDirectory(appsDirManifest), sanitizeWegoDirectory(targetDirManifest), nil
 
-	return bytes.ReplaceAll(manifests, []byte("path: ./wego"), []byte("path: .wego")), nil
 }
 
-func (a *App) generateExternalRepoManifests(info *AppResourceInfo, secretRef, branch string) ([]byte, []byte, error) {
+func (a *App) generateExternalRepoManifests(info *AppResourceInfo, secretRef, branch string) (*externalRepoManifests, error) {
 	repoName := generateResourceName(info.Spec.ConfigURL)
 
 	targetSource, err := a.Flux.CreateSourceGit(repoName, info.Spec.ConfigURL, branch, secretRef, info.Namespace)
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not generate target source manifests: %w", err)
+		return nil, fmt.Errorf("could not generate target source manifests: %w", err)
 	}
 
-	appGoat, err := a.Flux.CreateKustomization(
+	appDirGoat, err := a.Flux.CreateKustomization(
 		info.automationAppsDirKustomizationName(),
 		repoName,
 		info.appYamlDir(),
 		info.Namespace)
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not generate app dir kustomization for '%s': %w", info.Name, err)
+		return nil, fmt.Errorf("could not generate app dir kustomization for '%s': %w", info.Name, err)
 	}
 
 	targetGoat, err := a.Flux.CreateKustomization(
@@ -505,12 +512,10 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, secretRef, br
 		info.appAutomationDir(),
 		info.Namespace)
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not generate target dir kustomization for '%s': %w", info.Name, err)
+		return nil, fmt.Errorf("could not generate target dir kustomization for '%s': %w", info.Name, err)
 	}
 
-	manifests := bytes.Join([][]byte{targetGoat, appGoat}, []byte(""))
-
-	return targetSource, manifests, nil
+	return &externalRepoManifests{source: targetSource, target: targetGoat, appDir: appDirGoat}, nil
 }
 
 func (a *App) commitAndPush(filters ...func(string) bool) error {
@@ -536,7 +541,7 @@ func (a *App) commitAndPush(filters ...func(string) bool) error {
 	return nil
 }
 
-func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoUrl string, gitProvider gitproviders.GitProvider) (string, error) {
+func (a *App) createAndUploadDeployKey(ctx context.Context, info *AppResourceInfo, dryRun bool, repoUrl string, gitProvider gitproviders.GitProvider) (string, error) {
 	if repoUrl == "" {
 		return "", nil
 	}
@@ -601,8 +606,8 @@ func (a *App) createAndUploadDeployKey(info *AppResourceInfo, dryRun bool, repoU
 			return "", fmt.Errorf("error uploading deploy key: %w", err)
 		}
 
-		if out, err := a.Kube.Apply(secret, info.Namespace); err != nil {
-			return "", fmt.Errorf("could not apply secret manifest: %s: %w", string(out), err)
+		if err := a.Kube.Apply(ctx, secret, info.Namespace); err != nil {
+			return "", fmt.Errorf("could not apply secret manifest:  %w", err)
 		}
 	}
 
@@ -652,8 +657,8 @@ func (a *App) applyToCluster(info *AppResourceInfo, dryRun bool, manifests ...[]
 	}
 
 	for _, manifest := range manifests {
-		if out, err := a.Kube.Apply(manifest, info.Namespace); err != nil {
-			return fmt.Errorf("could not apply manifest: %s: %w", string(out), err)
+		if err := a.Kube.Apply(context.Background(), manifest, info.Namespace); err != nil {
+			return fmt.Errorf("could not apply manifest: %w", err)
 		}
 	}
 
@@ -1020,4 +1025,27 @@ func sanitizeK8sYaml(data []byte) []byte {
 	data = bytes.Replace(data, []byte("  creationTimestamp: null\n"), []byte(""), 1)
 	data = bytes.Replace(data, []byte("status: {}\n"), []byte(""), 1)
 	return append(out, data...)
+}
+
+func sanitizeWegoDirectory(manifest []byte) []byte {
+	return bytes.ReplaceAll(manifest, []byte("path: ./wego"), []byte("path: .wego"))
+}
+
+func (rk ResourceKind) ToGVR() (schema.GroupVersionResource, error) {
+	switch rk {
+	case ResourceKindApplication:
+		return kube.GVRApp, nil
+	case ResourceKindSecret:
+		return kube.GVRSecret, nil
+	case ResourceKindGitRepository:
+		return kube.GVRGitRepository, nil
+	case ResourceKindHelmRepository:
+		return kube.GVRHelmRepository, nil
+	case ResourceKindHelmRelease:
+		return kube.GVRHelmRelease, nil
+	case ResourceKindKustomization:
+		return kube.GVRKustomization, nil
+	default:
+		return schema.GroupVersionResource{}, fmt.Errorf("no matching schema.GroupVersionResource to the ResourceKind: %s", string(rk))
+	}
 }
