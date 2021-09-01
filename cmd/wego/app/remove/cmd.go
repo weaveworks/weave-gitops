@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
-	"github.com/weaveworks/weave-gitops/pkg/cliutils"
+	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
@@ -49,22 +49,10 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	params.Name = args[0]
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 
-	osysClient, fluxClient, kubeClient, logger, baseClientErr := cliutils.GetBaseClients()
-	if baseClientErr != nil {
-		return fmt.Errorf("error initializing clients: %w", baseClientErr)
+	appService, appError := apputils.GetAppService(ctx, params.Name, params.Namespace)
+	if appError != nil {
+		return fmt.Errorf("failed to create app service: %w", appError)
 	}
-
-	targetName, targetErr := kubeClient.GetClusterName(ctx)
-	if targetErr != nil {
-		return fmt.Errorf("error getting target name: %w", targetErr)
-	}
-
-	appClient, configClient, gitProvider, clientErr := cliutils.GetGitClientsForApp(ctx, params.Name, targetName, params.Namespace)
-	if clientErr != nil {
-		return fmt.Errorf("error accessing app %q: %w", params.Name, clientErr)
-	}
-
-	appService := app.New(logger, appClient, configClient, gitProvider, fluxClient, kubeClient, osysClient)
 
 	utils.SetCommmitMessage(fmt.Sprintf("wego app remove %s", params.Name))
 

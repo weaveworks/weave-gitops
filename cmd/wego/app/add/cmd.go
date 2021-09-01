@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
-	"github.com/weaveworks/weave-gitops/pkg/cliutils"
+	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
@@ -99,28 +99,16 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return urlErr
 	}
 
-	osysClient, fluxClient, kubeClient, logger, baseClientErr := cliutils.GetBaseClients()
-	if baseClientErr != nil {
-		return fmt.Errorf("error initializing clients: %w", baseClientErr)
-	}
-
-	if readyErr := cliutils.IsClusterReady(logger); readyErr != nil {
+	if readyErr := apputils.IsClusterReady(); readyErr != nil {
 		return readyErr
-	}
-
-	targetName, targetErr := kubeClient.GetClusterName(ctx)
-	if targetErr != nil {
-		return fmt.Errorf("error getting target name: %w", targetErr)
 	}
 
 	isHelmRepository := params.Chart != ""
 
-	appClient, configClient, gitProvider, clientErr := cliutils.GetGitClients(ctx, params.Url, params.AppConfigUrl, targetName, params.Namespace, isHelmRepository)
-	if clientErr != nil {
-		return fmt.Errorf("error getting git clients: %w", clientErr)
+	appService, appError := apputils.GetAppServiceForAdd(ctx, params.Url, params.AppConfigUrl, params.Namespace, isHelmRepository)
+	if appError != nil {
+		return fmt.Errorf("failed to create app service: %w", appError)
 	}
-
-	appService := app.New(logger, appClient, configClient, gitProvider, fluxClient, kubeClient, osysClient)
 
 	utils.SetCommmitMessageFromArgs("wego app add", params.Url, params.Path, params.Name)
 

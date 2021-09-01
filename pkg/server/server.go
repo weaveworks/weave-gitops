@@ -27,7 +27,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -49,17 +49,17 @@ var ErrEmptyAccessToken = fmt.Errorf("access token is empty")
 type applicationServer struct {
 	pb.UnimplementedApplicationsServer
 
-	log       logr.Logger
-	app       *app.App
-	jwtClient auth.JWTClient
+	log        logr.Logger
+	appFactory apputils.AppFactory
+	jwtClient  auth.JWTClient
 }
 
 // An ApplicationConfig allows for the customization of an ApplicationsServer.
 // Use the DefaultConfig() to use the default dependencies.
 type ApplicationConfig struct {
-	Logger    logr.Logger
-	App       *app.App
-	JwtClient auth.JWTClient
+	Logger     logr.Logger
+	AppFactory apputils.AppFactory
+	JwtClient  auth.JWTClient
 }
 
 //Remove when middleware is done
@@ -70,9 +70,9 @@ type contextVals struct {
 // NewApplicationsServer creates a grpc Applications server
 func NewApplicationsServer(cfg *ApplicationConfig) pb.ApplicationsServer {
 	return &applicationServer{
-		jwtClient: cfg.JwtClient,
-		log:       cfg.Logger,
-		app:       cfg.App,
+		jwtClient:  cfg.JwtClient,
+		log:        cfg.Logger,
+		appFactory: cfg.AppFactory,
 	}
 }
 
@@ -84,22 +84,14 @@ func DefaultConfig() (*ApplicationConfig, error) {
 	}
 	logr := zapr.NewLogger(zapLog)
 
-	kubeClient, _, err := kube.NewKubeHTTPClient()
-	if err != nil {
-		return nil, fmt.Errorf("could not create kube http client: %w", err)
-	}
-
-	appSrv := app.New(nil, nil, nil, nil, nil, kubeClient, nil)
-
 	rand.Seed(time.Now().UnixNano())
 	secretKey := rand.String(20)
-
 	jwtClient := auth.NewJwtClient(secretKey)
 
 	return &ApplicationConfig{
-		Logger:    logr,
-		App:       appSrv,
-		JwtClient: jwtClient,
+		Logger:     logr,
+		AppFactory: &apputils.DefaultAppFactory{},
+		JwtClient:  jwtClient,
 	}, nil
 }
 
@@ -119,7 +111,12 @@ func NewApplicationsHandler(ctx context.Context, cfg *ApplicationConfig, opts ..
 }
 
 func (s *applicationServer) ListApplications(ctx context.Context, msg *pb.ListApplicationsRequest) (*pb.ListApplicationsResponse, error) {
-	apps, err := s.app.Kube.GetApplications(ctx, msg.GetNamespace())
+	kubeService, kubeError := s.appFactory.GetKubeService()
+	if kubeError != nil {
+		return nil, fmt.Errorf("failed to create kube service: %w", kubeError)
+	}
+
+	apps, err := kubeService.GetApplications(ctx, msg.GetNamespace())
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +137,14 @@ func (s *applicationServer) ListApplications(ctx context.Context, msg *pb.ListAp
 }
 
 func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetApplicationRequest) (*pb.GetApplicationResponse, error) {
-	app, err := s.app.Kube.GetApplication(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace})
+	appService, appError := s.appFactory.GetAppService(ctx, msg.Name, msg.Namespace)
+	if appError != nil {
+		return nil, fmt.Errorf("failed to create app service: %w", appError)
+	}
+
+	kubeClient := appService.Kube
+
+	app, err := kubeClient.GetApplication(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace})
 	if err != nil {
 		return nil, fmt.Errorf("could not get application \"%s\": %w", msg.Name, err)
 	}
@@ -152,14 +156,14 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 
 	name := types.NamespacedName{Name: app.Name, Namespace: app.Namespace}
 
-	if err := s.app.Kube.GetResource(ctx, name, src); err != nil {
+	if err := kubeClient.GetResource(ctx, name, src); err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil, nil
 		}
 		return nil, fmt.Errorf("could not get source for app %s: %w", app.Name, err)
 	}
 
-	if err := s.app.Kube.GetResource(ctx, name, deployment); err != nil {
+	if err := kubeClient.GetResource(ctx, name, deployment); err != nil {
 		if apierrors.IsNotFound(err) {
 			return nil, nil
 		}
@@ -245,7 +249,12 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 		PageToken:        pageToken,
 	}
 
-	application, err := s.app.Kube.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
+	appService, appError := s.appFactory.GetAppService(ctx, params.Name, params.Namespace)
+	if appError != nil {
+		return nil, fmt.Errorf("failed to create app service: %w", appError)
+	}
+
+	application, err := appService.Kube.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
 	if err != nil {
 		return nil, fmt.Errorf("unable to get application for %s %w", params.Name, err)
 	}
@@ -254,7 +263,7 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 		return nil, fmt.Errorf("unable to get commits for a helm chart")
 	}
 
-	commits, err := s.app.GetCommits(params, application)
+	commits, err := appService.GetCommits(params, application)
 	if err != nil {
 		return nil, err
 	}
