@@ -42,7 +42,7 @@ type internalJwtClient struct {
 }
 
 // GenerateJWT generates and signs a new token
-func GenerateJWT(secretKey string, expirationTime time.Duration, providerName gitproviders.GitProviderName, providerToken string) (string, error) {
+func (i *internalJwtClient) GenerateJWT(secretKey string, expirationTime time.Duration, providerName gitproviders.GitProviderName, providerToken string) (string, error) {
 	claims := Claims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(expirationTime).Unix(),

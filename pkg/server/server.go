@@ -43,8 +43,9 @@ var ErrEmptyAccessToken = fmt.Errorf("access token is empty")
 type applicationServer struct {
 	pb.UnimplementedApplicationsServer
 
-	log logr.Logger
-	app *app.App
+	log       logr.Logger
+	app       *app.App
+	jwtClient auth.JWTClient
 }
 
 // An ApplicationConfig allows for the customization of an ApplicationsServer.
@@ -63,8 +64,9 @@ type contextVals struct {
 // NewApplicationsServer creates a grpc Applications server
 func NewApplicationsServer(cfg *ApplicationConfig) pb.ApplicationsServer {
 	return &applicationServer{
-		log: cfg.Logger,
-		app: cfg.App,
+		jwtClient: cfg.JwtClient,
+		log:       cfg.Logger,
+		app:       cfg.App,
 	}
 }
 
@@ -326,7 +328,7 @@ func mapConditions(conditions []metav1.Condition) []*pb.Condition {
 var BadErrProvider = errors.New("wrong provider name")
 
 // Authenticate generates and returns a jwt token using git provider name and git provider token
-func (s *applicationServer) Authenticate(ctx context.Context, msg *pb.AuthenticateRequest) (*pb.AuthenticateResponse, error) {
+func (s *applicationServer) Authenticate(_ context.Context, msg *pb.AuthenticateRequest) (*pb.AuthenticateResponse, error) {
 
 	if string(gitproviders.GitProviderGitHub) != msg.ProviderName &&
 		string(gitproviders.GitProviderGitLab) != msg.ProviderName {
@@ -337,7 +339,7 @@ func (s *applicationServer) Authenticate(ctx context.Context, msg *pb.Authentica
 		return nil, status.Error(codes.InvalidArgument, ErrEmptyAccessToken.Error())
 	}
 
-	token, err := auth.GenerateJWT(auth.SecretKey, auth.ExpirationTime, gitproviders.GitProviderName(msg.GetProviderName()), msg.GetAccessToken())
+	token, err := s.jwtClient.GenerateJWT(auth.SecretKey, auth.ExpirationTime, gitproviders.GitProviderName(msg.GetProviderName()), msg.GetAccessToken())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "error generating jwt token. %s", err)
 	}
