@@ -251,7 +251,7 @@ var _ = Describe("ApplicationsServer", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(res.StatusCode).To(Equal(http.StatusInternalServerError))
 
-				response := make(map[string]interface{}, 0)
+				response := make(map[string]interface{})
 				err = json.NewDecoder(res.Body).Decode(&response)
 				Expect(err).NotTo(HaveOccurred())
 
