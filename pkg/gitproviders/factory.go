@@ -12,8 +12,8 @@ import (
 type GitProviderName string
 
 const (
-	GitProviderGitHub GitProviderName = "github"
-	GitProviderGitLab GitProviderName = "gitlab"
+	GitProviderGitHub GitProviderName = "github.com"
+	GitProviderGitLab GitProviderName = "gitlab.com"
 )
 
 // Config defines the configuration for connecting to a GitProvider.
