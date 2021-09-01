@@ -62,7 +62,7 @@ var _ = Describe("Install", func() {
 
 		Expect(kubeClient.ApplyCallCount()).To(Equal(1))
 
-		appCRD, namespace := kubeClient.ApplyArgsForCall(0)
+		_, appCRD, namespace := kubeClient.ApplyArgsForCall(0)
 		Expect(appCRD).To(ContainSubstring("kind: App"))
 		Expect(namespace).To(Equal("wego-system"))
 	})

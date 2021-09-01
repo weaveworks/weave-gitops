@@ -16,7 +16,6 @@ require (
 	github.com/go-logr/zapr v0.4.0
 	github.com/google/go-cmp v0.5.6
 	github.com/google/uuid v1.2.0 // indirect
-	github.com/google/go-github v17.0.0+incompatible
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.5.0
 	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.1
 	github.com/jandelgado/gcov2lcov v1.0.5

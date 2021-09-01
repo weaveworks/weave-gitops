@@ -8,65 +8,49 @@ import (
 	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 )
 
 type FakeKube struct {
-	AppExistsInClusterStub        func(context.Context, string, string) error
-	appExistsInClusterMutex       sync.RWMutex
-	appExistsInClusterArgsForCall []struct {
-		arg1 context.Context
-		arg2 string
-		arg3 string
-	}
-	appExistsInClusterReturns struct {
-		result1 error
-	}
-	appExistsInClusterReturnsOnCall map[int]struct {
-		result1 error
-	}
-	ApplyStub        func([]byte, string) ([]byte, error)
+	ApplyStub        func(context.Context, []byte, string) error
 	applyMutex       sync.RWMutex
 	applyArgsForCall []struct {
-		arg1 []byte
-		arg2 string
-	}
-	applyReturns struct {
-		result1 []byte
-		result2 error
-	}
-	applyReturnsOnCall map[int]struct {
-		result1 []byte
-		result2 error
-	}
-	DeleteStub        func([]byte, string) ([]byte, error)
-	deleteMutex       sync.RWMutex
-	deleteArgsForCall []struct {
-		arg1 []byte
-		arg2 string
-	}
-	deleteReturns struct {
-		result1 []byte
-		result2 error
-	}
-	deleteReturnsOnCall map[int]struct {
-		result1 []byte
-		result2 error
-	}
-	DeleteByNameStub        func(string, string, string) ([]byte, error)
-	deleteByNameMutex       sync.RWMutex
-	deleteByNameArgsForCall []struct {
-		arg1 string
-		arg2 string
+		arg1 context.Context
+		arg2 []byte
 		arg3 string
 	}
+	applyReturns struct {
+		result1 error
+	}
+	applyReturnsOnCall map[int]struct {
+		result1 error
+	}
+	DeleteStub        func(context.Context, []byte) error
+	deleteMutex       sync.RWMutex
+	deleteArgsForCall []struct {
+		arg1 context.Context
+		arg2 []byte
+	}
+	deleteReturns struct {
+		result1 error
+	}
+	deleteReturnsOnCall map[int]struct {
+		result1 error
+	}
+	DeleteByNameStub        func(context.Context, string, schema.GroupVersionResource, string) error
+	deleteByNameMutex       sync.RWMutex
+	deleteByNameArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+		arg3 schema.GroupVersionResource
+		arg4 string
+	}
 	deleteByNameReturns struct {
-		result1 []byte
-		result2 error
+		result1 error
 	}
 	deleteByNameReturnsOnCall map[int]struct {
-		result1 []byte
-		result2 error
+		result1 error
 	}
 	FluxPresentStub        func(context.Context) (bool, error)
 	fluxPresentMutex       sync.RWMutex
@@ -179,18 +163,23 @@ type FakeKube struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeKube) AppExistsInCluster(arg1 context.Context, arg2 string, arg3 string) error {
-	fake.appExistsInClusterMutex.Lock()
-	ret, specificReturn := fake.appExistsInClusterReturnsOnCall[len(fake.appExistsInClusterArgsForCall)]
-	fake.appExistsInClusterArgsForCall = append(fake.appExistsInClusterArgsForCall, struct {
+func (fake *FakeKube) Apply(arg1 context.Context, arg2 []byte, arg3 string) error {
+	var arg2Copy []byte
+	if arg2 != nil {
+		arg2Copy = make([]byte, len(arg2))
+		copy(arg2Copy, arg2)
+	}
+	fake.applyMutex.Lock()
+	ret, specificReturn := fake.applyReturnsOnCall[len(fake.applyArgsForCall)]
+	fake.applyArgsForCall = append(fake.applyArgsForCall, struct {
 		arg1 context.Context
-		arg2 string
+		arg2 []byte
 		arg3 string
-	}{arg1, arg2, arg3})
-	stub := fake.AppExistsInClusterStub
-	fakeReturns := fake.appExistsInClusterReturns
-	fake.recordInvocation("AppExistsInCluster", []interface{}{arg1, arg2, arg3})
-	fake.appExistsInClusterMutex.Unlock()
+	}{arg1, arg2Copy, arg3})
+	stub := fake.ApplyStub
+	fakeReturns := fake.applyReturns
+	fake.recordInvocation("Apply", []interface{}{arg1, arg2Copy, arg3})
+	fake.applyMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2, arg3)
 	}
@@ -200,141 +189,71 @@ func (fake *FakeKube) AppExistsInCluster(arg1 context.Context, arg2 string, arg3
 	return fakeReturns.result1
 }
 
-func (fake *FakeKube) AppExistsInClusterCallCount() int {
-	fake.appExistsInClusterMutex.RLock()
-	defer fake.appExistsInClusterMutex.RUnlock()
-	return len(fake.appExistsInClusterArgsForCall)
-}
-
-func (fake *FakeKube) AppExistsInClusterCalls(stub func(context.Context, string, string) error) {
-	fake.appExistsInClusterMutex.Lock()
-	defer fake.appExistsInClusterMutex.Unlock()
-	fake.AppExistsInClusterStub = stub
-}
-
-func (fake *FakeKube) AppExistsInClusterArgsForCall(i int) (context.Context, string, string) {
-	fake.appExistsInClusterMutex.RLock()
-	defer fake.appExistsInClusterMutex.RUnlock()
-	argsForCall := fake.appExistsInClusterArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
-}
-
-func (fake *FakeKube) AppExistsInClusterReturns(result1 error) {
-	fake.appExistsInClusterMutex.Lock()
-	defer fake.appExistsInClusterMutex.Unlock()
-	fake.AppExistsInClusterStub = nil
-	fake.appExistsInClusterReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeKube) AppExistsInClusterReturnsOnCall(i int, result1 error) {
-	fake.appExistsInClusterMutex.Lock()
-	defer fake.appExistsInClusterMutex.Unlock()
-	fake.AppExistsInClusterStub = nil
-	if fake.appExistsInClusterReturnsOnCall == nil {
-		fake.appExistsInClusterReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.appExistsInClusterReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeKube) Apply(arg1 []byte, arg2 string) ([]byte, error) {
-	var arg1Copy []byte
-	if arg1 != nil {
-		arg1Copy = make([]byte, len(arg1))
-		copy(arg1Copy, arg1)
-	}
-	fake.applyMutex.Lock()
-	ret, specificReturn := fake.applyReturnsOnCall[len(fake.applyArgsForCall)]
-	fake.applyArgsForCall = append(fake.applyArgsForCall, struct {
-		arg1 []byte
-		arg2 string
-	}{arg1Copy, arg2})
-	stub := fake.ApplyStub
-	fakeReturns := fake.applyReturns
-	fake.recordInvocation("Apply", []interface{}{arg1Copy, arg2})
-	fake.applyMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
 func (fake *FakeKube) ApplyCallCount() int {
 	fake.applyMutex.RLock()
 	defer fake.applyMutex.RUnlock()
 	return len(fake.applyArgsForCall)
 }
 
-func (fake *FakeKube) ApplyCalls(stub func([]byte, string) ([]byte, error)) {
+func (fake *FakeKube) ApplyCalls(stub func(context.Context, []byte, string) error) {
 	fake.applyMutex.Lock()
 	defer fake.applyMutex.Unlock()
 	fake.ApplyStub = stub
 }
 
-func (fake *FakeKube) ApplyArgsForCall(i int) ([]byte, string) {
+func (fake *FakeKube) ApplyArgsForCall(i int) (context.Context, []byte, string) {
 	fake.applyMutex.RLock()
 	defer fake.applyMutex.RUnlock()
 	argsForCall := fake.applyArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeKube) ApplyReturns(result1 []byte, result2 error) {
+func (fake *FakeKube) ApplyReturns(result1 error) {
 	fake.applyMutex.Lock()
 	defer fake.applyMutex.Unlock()
 	fake.ApplyStub = nil
 	fake.applyReturns = struct {
-		result1 []byte
-		result2 error
-	}{result1, result2}
+		result1 error
+	}{result1}
 }
 
-func (fake *FakeKube) ApplyReturnsOnCall(i int, result1 []byte, result2 error) {
+func (fake *FakeKube) ApplyReturnsOnCall(i int, result1 error) {
 	fake.applyMutex.Lock()
 	defer fake.applyMutex.Unlock()
 	fake.ApplyStub = nil
 	if fake.applyReturnsOnCall == nil {
 		fake.applyReturnsOnCall = make(map[int]struct {
-			result1 []byte
-			result2 error
+			result1 error
 		})
 	}
 	fake.applyReturnsOnCall[i] = struct {
-		result1 []byte
-		result2 error
-	}{result1, result2}
+		result1 error
+	}{result1}
 }
 
-func (fake *FakeKube) Delete(arg1 []byte, arg2 string) ([]byte, error) {
-	var arg1Copy []byte
-	if arg1 != nil {
-		arg1Copy = make([]byte, len(arg1))
-		copy(arg1Copy, arg1)
+func (fake *FakeKube) Delete(arg1 context.Context, arg2 []byte) error {
+	var arg2Copy []byte
+	if arg2 != nil {
+		arg2Copy = make([]byte, len(arg2))
+		copy(arg2Copy, arg2)
 	}
 	fake.deleteMutex.Lock()
 	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
 	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
-		arg1 []byte
-		arg2 string
-	}{arg1Copy, arg2})
+		arg1 context.Context
+		arg2 []byte
+	}{arg1, arg2Copy})
 	stub := fake.DeleteStub
 	fakeReturns := fake.deleteReturns
-	fake.recordInvocation("Delete", []interface{}{arg1Copy, arg2})
+	fake.recordInvocation("Delete", []interface{}{arg1, arg2Copy})
 	fake.deleteMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2)
 	}
 	if specificReturn {
-		return ret.result1, ret.result2
+		return ret.result1
 	}
-	return fakeReturns.result1, fakeReturns.result2
+	return fakeReturns.result1
 }
 
 func (fake *FakeKube) DeleteCallCount() int {
@@ -343,64 +262,62 @@ func (fake *FakeKube) DeleteCallCount() int {
 	return len(fake.deleteArgsForCall)
 }
 
-func (fake *FakeKube) DeleteCalls(stub func([]byte, string) ([]byte, error)) {
+func (fake *FakeKube) DeleteCalls(stub func(context.Context, []byte) error) {
 	fake.deleteMutex.Lock()
 	defer fake.deleteMutex.Unlock()
 	fake.DeleteStub = stub
 }
 
-func (fake *FakeKube) DeleteArgsForCall(i int) ([]byte, string) {
+func (fake *FakeKube) DeleteArgsForCall(i int) (context.Context, []byte) {
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
 	argsForCall := fake.deleteArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeKube) DeleteReturns(result1 []byte, result2 error) {
+func (fake *FakeKube) DeleteReturns(result1 error) {
 	fake.deleteMutex.Lock()
 	defer fake.deleteMutex.Unlock()
 	fake.DeleteStub = nil
 	fake.deleteReturns = struct {
-		result1 []byte
-		result2 error
-	}{result1, result2}
+		result1 error
+	}{result1}
 }
 
-func (fake *FakeKube) DeleteReturnsOnCall(i int, result1 []byte, result2 error) {
+func (fake *FakeKube) DeleteReturnsOnCall(i int, result1 error) {
 	fake.deleteMutex.Lock()
 	defer fake.deleteMutex.Unlock()
 	fake.DeleteStub = nil
 	if fake.deleteReturnsOnCall == nil {
 		fake.deleteReturnsOnCall = make(map[int]struct {
-			result1 []byte
-			result2 error
+			result1 error
 		})
 	}
 	fake.deleteReturnsOnCall[i] = struct {
-		result1 []byte
-		result2 error
-	}{result1, result2}
+		result1 error
+	}{result1}
 }
 
-func (fake *FakeKube) DeleteByName(arg1 string, arg2 string, arg3 string) ([]byte, error) {
+func (fake *FakeKube) DeleteByName(arg1 context.Context, arg2 string, arg3 schema.GroupVersionResource, arg4 string) error {
 	fake.deleteByNameMutex.Lock()
 	ret, specificReturn := fake.deleteByNameReturnsOnCall[len(fake.deleteByNameArgsForCall)]
 	fake.deleteByNameArgsForCall = append(fake.deleteByNameArgsForCall, struct {
-		arg1 string
+		arg1 context.Context
 		arg2 string
-		arg3 string
-	}{arg1, arg2, arg3})
+		arg3 schema.GroupVersionResource
+		arg4 string
+	}{arg1, arg2, arg3, arg4})
 	stub := fake.DeleteByNameStub
 	fakeReturns := fake.deleteByNameReturns
-	fake.recordInvocation("DeleteByName", []interface{}{arg1, arg2, arg3})
+	fake.recordInvocation("DeleteByName", []interface{}{arg1, arg2, arg3, arg4})
 	fake.deleteByNameMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
-		return ret.result1, ret.result2
+		return ret.result1
 	}
-	return fakeReturns.result1, fakeReturns.result2
+	return fakeReturns.result1
 }
 
 func (fake *FakeKube) DeleteByNameCallCount() int {
@@ -409,43 +326,40 @@ func (fake *FakeKube) DeleteByNameCallCount() int {
 	return len(fake.deleteByNameArgsForCall)
 }
 
-func (fake *FakeKube) DeleteByNameCalls(stub func(string, string, string) ([]byte, error)) {
+func (fake *FakeKube) DeleteByNameCalls(stub func(context.Context, string, schema.GroupVersionResource, string) error) {
 	fake.deleteByNameMutex.Lock()
 	defer fake.deleteByNameMutex.Unlock()
 	fake.DeleteByNameStub = stub
 }
 
-func (fake *FakeKube) DeleteByNameArgsForCall(i int) (string, string, string) {
+func (fake *FakeKube) DeleteByNameArgsForCall(i int) (context.Context, string, schema.GroupVersionResource, string) {
 	fake.deleteByNameMutex.RLock()
 	defer fake.deleteByNameMutex.RUnlock()
 	argsForCall := fake.deleteByNameArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
-func (fake *FakeKube) DeleteByNameReturns(result1 []byte, result2 error) {
+func (fake *FakeKube) DeleteByNameReturns(result1 error) {
 	fake.deleteByNameMutex.Lock()
 	defer fake.deleteByNameMutex.Unlock()
 	fake.DeleteByNameStub = nil
 	fake.deleteByNameReturns = struct {
-		result1 []byte
-		result2 error
-	}{result1, result2}
+		result1 error
+	}{result1}
 }
 
-func (fake *FakeKube) DeleteByNameReturnsOnCall(i int, result1 []byte, result2 error) {
+func (fake *FakeKube) DeleteByNameReturnsOnCall(i int, result1 error) {
 	fake.deleteByNameMutex.Lock()
 	defer fake.deleteByNameMutex.Unlock()
 	fake.DeleteByNameStub = nil
 	if fake.deleteByNameReturnsOnCall == nil {
 		fake.deleteByNameReturnsOnCall = make(map[int]struct {
-			result1 []byte
-			result2 error
+			result1 error
 		})
 	}
 	fake.deleteByNameReturnsOnCall[i] = struct {
-		result1 []byte
-		result2 error
-	}{result1, result2}
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeKube) FluxPresent(arg1 context.Context) (bool, error) {
@@ -964,8 +878,6 @@ func (fake *FakeKube) SecretPresentReturnsOnCall(i int, result1 bool, result2 er
 func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.appExistsInClusterMutex.RLock()
-	defer fake.appExistsInClusterMutex.RUnlock()
 	fake.applyMutex.RLock()
 	defer fake.applyMutex.RUnlock()
 	fake.deleteMutex.RLock()
