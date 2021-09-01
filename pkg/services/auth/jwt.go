@@ -69,14 +69,8 @@ func (i internalJwtClient) VerifyJWT(secretKey string, accessToken string) (*Cla
 			return []byte(secretKey), nil
 		},
 	)
-
 	if err != nil {
-		if ve, ok := err.(*jwt.ValidationError); ok {
-			if ve.Errors&(jwt.ValidationErrorExpired) != 0 {
-				return nil, ErrUnauthorizedToken
-			}
-		}
-		return nil, fmt.Errorf("invalid token: %w", err)
+		return nil, ErrUnauthorizedToken
 	}
 
 	claims, ok := token.Claims.(*Claims)
