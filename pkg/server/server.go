@@ -116,7 +116,7 @@ func (s *applicationServer) ListApplications(ctx context.Context, msg *pb.ListAp
 		return nil, fmt.Errorf("failed to create kube service: %w", kubeError)
 	}
 
-	apps, err := kubeService.GetApplications(ctx, msg.GetNamespace())
+	apps, err := kubeService.GetApplications(ctx, msg.Namespace)
 	if err != nil {
 		return nil, err
 	}
