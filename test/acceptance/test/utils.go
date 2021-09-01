@@ -548,13 +548,13 @@ func verifyHelmPodWorkloadIsDeployed(workloadName string, workloadNamespace stri
 
 func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
-                            cd %s &&
-                            (git pull origin main || true) &&
+                            (cd %s && git pull origin main || true) &&
                             cp -r %s %s &&
+                            cd %s &&
                             git add . &&
                             git commit -m 'add workload manifest' &&
                             git push -u origin main`,
-		repoAbsolutePath, appManifestFilePath, repoAbsolutePath))
+		repoAbsolutePath, appManifestFilePath, repoAbsolutePath, repoAbsolutePath))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, 10, 1).Should(gexec.Exit())
