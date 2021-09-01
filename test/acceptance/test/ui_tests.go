@@ -34,7 +34,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 	}
 
 	BeforeEach(func() {
-		By("Given I have all the setup ready", func() {
+		By("Given I have a brand new cluster", func() {
 			var err error
 			_, err = ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -64,31 +64,10 @@ var _ = Describe("Weave GitOps UI Test", func() {
 
 	It("SmokeTest - Verify wego can run UI without apps installed", func() {
 
-		// var repoAbsolutePath string
-		// private := true
-		// tip := generateTestInputs()
-		// appName := tip.appRepoName
-
-		// addCommand := "app add . --auto-merge=true"
-
 		By("Then I should be able to navigate to WeGO dashboard", func() {
 			Expect(webDriver.Navigate(WEGO_UI_URL)).To(Succeed())
 			Expect(webDriver.Title()).To(ContainSubstring("Weave GitOps"))
 		})
 
-		// By("When I create a private repo with my app workload", func() {
-		// 	repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, private)
-		// 	gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
-		// })
-
-		// By("And I run wego app add command", func() {
-		// 	runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
-		// 	verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
-		// 	verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
-		// })
-
-		// By("Then I should see my app in wego ui dashboard", func() {
-
-		// })
 	})
 })
