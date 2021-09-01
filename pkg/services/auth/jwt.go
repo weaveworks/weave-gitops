@@ -56,7 +56,7 @@ func GenerateJWT(secretKey string, expirationTime time.Duration, providerName gi
 }
 
 // VerifyJWT verifies the access token string and return a user claim if the token is valid
-func (i internalJwtClient) VerifyJWT(secretKey string, accessToken string) (*Claims, error) {
+func (i *internalJwtClient) VerifyJWT(secretKey string, accessToken string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(
 		accessToken,
 		&Claims{},
