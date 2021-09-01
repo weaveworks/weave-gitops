@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"time"
 
+	"google.golang.org/grpc/status"
+
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -100,15 +102,20 @@ var _ = Describe("ApplicationsServer", func() {
 	})
 	It("Authorize fails on wrong provider", func() {
 		ctx := context.Background()
-		provider := "wrong provider"
+		provider := "wrong_provider"
 		token := "token"
 
 		_, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
 			ProviderName: provider,
 			AccessToken:  token,
 		})
-		Expect(err.Error()).To(Equal(fmt.Sprintf("rpc error: code = Unknown desc = unknown provider name %s, expecting github or gitlab", provider)))
 
+		expectedErrMsg := fmt.Sprintf("unknown provider name %s, expecting github or gitlab", provider)
+		actualErr, ok := status.FromError(err)
+		Expect(ok).To(BeTrue())
+
+		Expect(runtime.HTTPStatusFromCode(actualErr.Code())).To(Equal(http.StatusInternalServerError))
+		Expect(actualErr.Message()).To(Equal(expectedErrMsg))
 	})
 	It("Authorize fails on empty provider token", func() {
 		ctx := context.Background()
@@ -118,7 +125,13 @@ var _ = Describe("ApplicationsServer", func() {
 			ProviderName: provider,
 			AccessToken:  "",
 		})
-		Expect(err.Error()).To(Equal("rpc error: code = Unknown desc = access token is empty"))
+
+		expectedErrMsg := "access token is empty"
+		actualErr, ok := status.FromError(err)
+		Expect(ok).To(BeTrue())
+
+		Expect(runtime.HTTPStatusFromCode(actualErr.Code())).To(Equal(http.StatusInternalServerError))
+		Expect(actualErr.Message()).To(Equal(expectedErrMsg))
 
 	})
 

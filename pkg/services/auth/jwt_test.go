@@ -26,7 +26,7 @@ var _ = Describe("JWT tokens", func() {
 
 		time.Sleep(time.Second)
 		claims, err = Verify(SecretKey, jwtToken)
-		Expect(err.Error()).To(MatchRegexp("invalid token: token is expired by.*"))
+		Expect(err.Error()).To(Equal("unauthorized token"))
 		Expect(claims).To(BeNil())
 
 	})

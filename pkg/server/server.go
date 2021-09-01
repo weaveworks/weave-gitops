@@ -6,13 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-
-	"github.com/fluxcd/go-git-providers/gitlab"
-
-	"github.com/fluxcd/go-git-providers/github"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
@@ -322,18 +317,18 @@ func mapConditions(conditions []metav1.Condition) []*pb.Condition {
 // Authenticate generates and returns a jwt token using git provider name and git provider token
 func (s *applicationServer) Authenticate(ctx context.Context, msg *pb.AuthenticateRequest) (*pb.AuthenticateResponse, error) {
 
-	if !strings.HasPrefix(github.DefaultDomain, msg.ProviderName) &&
-		!strings.HasPrefix(gitlab.DefaultDomain, msg.ProviderName) {
-		return nil, fmt.Errorf("unknown provider name %s, expecting github or gitlab", msg.ProviderName)
+	if string(gitproviders.GitProviderGitHub) != msg.ProviderName &&
+		string(gitproviders.GitProviderGitLab) != msg.ProviderName {
+		return nil, &runtime.HTTPStatusError{HTTPStatus: http.StatusInternalServerError, Err: fmt.Errorf("unknown provider name %s, expecting github or gitlab", msg.ProviderName)}
 	}
 
 	if msg.AccessToken == "" {
-		return nil, fmt.Errorf("access token is empty")
+		return nil, &runtime.HTTPStatusError{HTTPStatus: http.StatusInternalServerError, Err: fmt.Errorf("access token is empty")}
 	}
 
 	token, err := auth.Generate(auth.SecretKey, auth.ExpirationTime, gitproviders.GitProviderName(msg.GetProviderName()), msg.GetAccessToken())
 	if err != nil {
-		return nil, fmt.Errorf("error generating jwt token. %w", err)
+		return nil, &runtime.HTTPStatusError{HTTPStatus: http.StatusInternalServerError, Err: fmt.Errorf("error generating jwt token. %w", err)}
 	}
 
 	return &pb.AuthenticateResponse{Token: token}, nil

@@ -2,8 +2,10 @@ package auth
 
 import (
 	"fmt"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"strings"
 	"time"
+
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 
 	"k8s.io/apimachinery/pkg/util/rand"
 
@@ -18,7 +20,7 @@ const ExpirationTime = time.Minute * 15
 type Claims struct {
 	jwt.StandardClaims
 	Provider      gitproviders.GitProviderName `json:"provider"`
-	ProviderToken string `json:"provider_token"`
+	ProviderToken string                       `json:"provider_token"`
 }
 
 // Generate generates and signs a new token
@@ -51,6 +53,9 @@ func Verify(secretKey string, accessToken string) (*Claims, error) {
 	)
 
 	if err != nil {
+		if strings.Contains(err.Error(), "token is expired by") {
+			return nil, fmt.Errorf("unauthorized token")
+		}
 		return nil, fmt.Errorf("invalid token: %w", err)
 	}
 
