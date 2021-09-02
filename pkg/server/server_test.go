@@ -117,7 +117,8 @@ var _ = Describe("ApplicationsServer", func() {
 			AccessToken:  token,
 		})
 
-		Expect(err).Should(MatchGRPCError(codes.InvalidArgument, ErrBadProvider))
+		Expect(err.Error()).To(ContainSubstring(ErrBadProvider.Error()))
+		Expect(err.Error()).To(ContainSubstring(codes.InvalidArgument.String()))
 
 	})
 
