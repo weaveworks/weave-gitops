@@ -273,6 +273,10 @@ func (p defaultGitProvider) GetRepoVisibility(url string) (*gitprovider.Reposito
 		return nil, err
 	}
 
+	return getVisibilityFromRepoInfo(url, repoInfoRef)
+}
+
+func getVisibilityFromRepoInfo(url string, repoInfoRef *gitprovider.RepositoryInfo) (*gitprovider.RepositoryVisibility, error) {
 	if repoInfoRef != nil {
 		repoInfo := *repoInfoRef
 		if repoInfo.Visibility != nil {

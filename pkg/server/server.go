@@ -111,9 +111,9 @@ func NewApplicationsHandler(ctx context.Context, cfg *ApplicationConfig, opts ..
 }
 
 func (s *applicationServer) ListApplications(ctx context.Context, msg *pb.ListApplicationsRequest) (*pb.ListApplicationsResponse, error) {
-	kubeService, kubeError := s.appFactory.GetKubeService()
-	if kubeError != nil {
-		return nil, fmt.Errorf("failed to create kube service: %w", kubeError)
+	kubeService, kubeErr := s.appFactory.GetKubeService()
+	if kubeErr != nil {
+		return nil, fmt.Errorf("failed to create kube service: %w", kubeErr)
 	}
 
 	apps, err := kubeService.GetApplications(ctx, msg.Namespace)
@@ -137,12 +137,10 @@ func (s *applicationServer) ListApplications(ctx context.Context, msg *pb.ListAp
 }
 
 func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetApplicationRequest) (*pb.GetApplicationResponse, error) {
-	appService, appError := s.appFactory.GetAppService(ctx, msg.Name, msg.Namespace)
-	if appError != nil {
-		return nil, fmt.Errorf("failed to create app service: %w", appError)
+	kubeClient, kubeErr := s.appFactory.GetKubeService()
+	if kubeErr != nil {
+		return nil, fmt.Errorf("failed to create kube service: %w", kubeErr)
 	}
-
-	kubeClient := appService.Kube
 
 	app, err := kubeClient.GetApplication(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace})
 	if err != nil {
@@ -249,12 +247,12 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 		PageToken:        pageToken,
 	}
 
-	appService, appError := s.appFactory.GetAppService(ctx, params.Name, params.Namespace)
-	if appError != nil {
-		return nil, fmt.Errorf("failed to create app service: %w", appError)
+	appService, appErr := s.appFactory.GetAppService(ctx, params.Name, params.Namespace)
+	if appErr != nil {
+		return nil, fmt.Errorf("failed to create app service: %w", appErr)
 	}
 
-	application, err := appService.Kube.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
+	application, err := appService.Get(types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
 	if err != nil {
 		return nil, fmt.Errorf("unable to get application for %s %w", params.Name, err)
 	}

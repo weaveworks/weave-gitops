@@ -51,7 +51,7 @@ var _ = BeforeEach(func() {
 		},
 	}
 
-	appSrv = New(&loggerfakes.FakeLogger{}, gitClient, gitClient, gitProviders, fluxClient, kubeClient, osysClient)
+	appSrv = New(context.Background(), &loggerfakes.FakeLogger{}, gitClient, gitClient, gitProviders, fluxClient, kubeClient, osysClient)
 })
 
 func TestApp(t *testing.T) {

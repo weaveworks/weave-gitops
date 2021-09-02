@@ -76,7 +76,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create app service: %w", appError)
 	}
 
-	appContent, err := appService.Kube.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
+	appContent, err := appService.Get(types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
 	if err != nil {
 		return fmt.Errorf("unable to get application for %s %w", params.Name, err)
 	}

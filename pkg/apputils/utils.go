@@ -22,13 +22,13 @@ import (
 //counterfeiter:generate . AppFactory
 type AppFactory interface {
 	GetKubeService() (kube.Kube, error)
-	GetAppService(ctx context.Context, name, namespace string) (*app.App, error)
+	GetAppService(ctx context.Context, name, namespace string) (app.AppService, error)
 }
 
 type DefaultAppFactory struct {
 }
 
-func (f *DefaultAppFactory) GetAppService(ctx context.Context, name, namespace string) (*app.App, error) {
+func (f *DefaultAppFactory) GetAppService(ctx context.Context, name, namespace string) (app.AppService, error) {
 	return GetAppService(ctx, name, namespace)
 }
 
@@ -75,7 +75,7 @@ func IsClusterReady() error {
 	return nil
 }
 
-func GetAppService(ctx context.Context, appName, namespace string) (*app.App, error) {
+func GetAppService(ctx context.Context, appName, namespace string) (app.AppService, error) {
 	osysClient, fluxClient, kubeClient, logger, baseClientErr := getBaseClients()
 	if baseClientErr != nil {
 		return nil, fmt.Errorf("error initializing clients: %w", baseClientErr)
@@ -86,10 +86,10 @@ func GetAppService(ctx context.Context, appName, namespace string) (*app.App, er
 		return nil, fmt.Errorf("error getting git clients: %w", clientErr)
 	}
 
-	return app.New(logger, appClient, configClient, gitProvider, fluxClient, kubeClient, osysClient), nil
+	return app.New(ctx, logger, appClient, configClient, gitProvider, fluxClient, kubeClient, osysClient), nil
 }
 
-func GetAppServiceForAdd(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool) (*app.App, error) {
+func GetAppServiceForAdd(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool) (app.AppService, error) {
 	osysClient, fluxClient, kubeClient, logger, baseClientErr := getBaseClients()
 	if baseClientErr != nil {
 		return nil, fmt.Errorf("error initializing clients: %w", baseClientErr)
@@ -100,7 +100,7 @@ func GetAppServiceForAdd(ctx context.Context, url, configUrl, namespace string, 
 		return nil, fmt.Errorf("error getting git clients: %w", clientErr)
 	}
 
-	return app.New(logger, appClient, configClient, gitProvider, fluxClient, kubeClient, osysClient), nil
+	return app.New(ctx, logger, appClient, configClient, gitProvider, fluxClient, kubeClient, osysClient), nil
 }
 
 func getGitClientsForApp(ctx context.Context, appName, namespace string) (git.Git, git.Git, gitproviders.GitProvider, error) {

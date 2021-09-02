@@ -11,7 +11,7 @@ import (
 )
 
 type FakeAppFactory struct {
-	GetAppServiceStub        func(context.Context, string, string) (*app.App, error)
+	GetAppServiceStub        func(context.Context, string, string) (app.AppService, error)
 	getAppServiceMutex       sync.RWMutex
 	getAppServiceArgsForCall []struct {
 		arg1 context.Context
@@ -19,11 +19,11 @@ type FakeAppFactory struct {
 		arg3 string
 	}
 	getAppServiceReturns struct {
-		result1 *app.App
+		result1 app.AppService
 		result2 error
 	}
 	getAppServiceReturnsOnCall map[int]struct {
-		result1 *app.App
+		result1 app.AppService
 		result2 error
 	}
 	GetKubeServiceStub        func() (kube.Kube, error)
@@ -42,7 +42,7 @@ type FakeAppFactory struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeAppFactory) GetAppService(arg1 context.Context, arg2 string, arg3 string) (*app.App, error) {
+func (fake *FakeAppFactory) GetAppService(arg1 context.Context, arg2 string, arg3 string) (app.AppService, error) {
 	fake.getAppServiceMutex.Lock()
 	ret, specificReturn := fake.getAppServiceReturnsOnCall[len(fake.getAppServiceArgsForCall)]
 	fake.getAppServiceArgsForCall = append(fake.getAppServiceArgsForCall, struct {
@@ -69,7 +69,7 @@ func (fake *FakeAppFactory) GetAppServiceCallCount() int {
 	return len(fake.getAppServiceArgsForCall)
 }
 
-func (fake *FakeAppFactory) GetAppServiceCalls(stub func(context.Context, string, string) (*app.App, error)) {
+func (fake *FakeAppFactory) GetAppServiceCalls(stub func(context.Context, string, string) (app.AppService, error)) {
 	fake.getAppServiceMutex.Lock()
 	defer fake.getAppServiceMutex.Unlock()
 	fake.GetAppServiceStub = stub
@@ -82,28 +82,28 @@ func (fake *FakeAppFactory) GetAppServiceArgsForCall(i int) (context.Context, st
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeAppFactory) GetAppServiceReturns(result1 *app.App, result2 error) {
+func (fake *FakeAppFactory) GetAppServiceReturns(result1 app.AppService, result2 error) {
 	fake.getAppServiceMutex.Lock()
 	defer fake.getAppServiceMutex.Unlock()
 	fake.GetAppServiceStub = nil
 	fake.getAppServiceReturns = struct {
-		result1 *app.App
+		result1 app.AppService
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeAppFactory) GetAppServiceReturnsOnCall(i int, result1 *app.App, result2 error) {
+func (fake *FakeAppFactory) GetAppServiceReturnsOnCall(i int, result1 app.AppService, result2 error) {
 	fake.getAppServiceMutex.Lock()
 	defer fake.getAppServiceMutex.Unlock()
 	fake.GetAppServiceStub = nil
 	if fake.getAppServiceReturnsOnCall == nil {
 		fake.getAppServiceReturnsOnCall = make(map[int]struct {
-			result1 *app.App
+			result1 app.AppService
 			result2 error
 		})
 	}
 	fake.getAppServiceReturnsOnCall[i] = struct {
-		result1 *app.App
+		result1 app.AppService
 		result2 error
 	}{result1, result2}
 }
