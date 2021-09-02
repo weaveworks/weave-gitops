@@ -10,13 +10,12 @@ import (
 )
 
 type FakeJWTClient struct {
-	GenerateJWTStub        func(string, time.Duration, gitproviders.GitProviderName, string) (string, error)
+	GenerateJWTStub        func(time.Duration, gitproviders.GitProviderName, string) (string, error)
 	generateJWTMutex       sync.RWMutex
 	generateJWTArgsForCall []struct {
-		arg1 string
-		arg2 time.Duration
-		arg3 gitproviders.GitProviderName
-		arg4 string
+		arg1 time.Duration
+		arg2 gitproviders.GitProviderName
+		arg3 string
 	}
 	generateJWTReturns struct {
 		result1 string
@@ -26,11 +25,10 @@ type FakeJWTClient struct {
 		result1 string
 		result2 error
 	}
-	VerifyJWTStub        func(string, string) (*auth.Claims, error)
+	VerifyJWTStub        func(string) (*auth.Claims, error)
 	verifyJWTMutex       sync.RWMutex
 	verifyJWTArgsForCall []struct {
 		arg1 string
-		arg2 string
 	}
 	verifyJWTReturns struct {
 		result1 *auth.Claims
@@ -44,21 +42,20 @@ type FakeJWTClient struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeJWTClient) GenerateJWT(arg1 string, arg2 time.Duration, arg3 gitproviders.GitProviderName, arg4 string) (string, error) {
+func (fake *FakeJWTClient) GenerateJWT(arg1 time.Duration, arg2 gitproviders.GitProviderName, arg3 string) (string, error) {
 	fake.generateJWTMutex.Lock()
 	ret, specificReturn := fake.generateJWTReturnsOnCall[len(fake.generateJWTArgsForCall)]
 	fake.generateJWTArgsForCall = append(fake.generateJWTArgsForCall, struct {
-		arg1 string
-		arg2 time.Duration
-		arg3 gitproviders.GitProviderName
-		arg4 string
-	}{arg1, arg2, arg3, arg4})
+		arg1 time.Duration
+		arg2 gitproviders.GitProviderName
+		arg3 string
+	}{arg1, arg2, arg3})
 	stub := fake.GenerateJWTStub
 	fakeReturns := fake.generateJWTReturns
-	fake.recordInvocation("GenerateJWT", []interface{}{arg1, arg2, arg3, arg4})
+	fake.recordInvocation("GenerateJWT", []interface{}{arg1, arg2, arg3})
 	fake.generateJWTMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -72,17 +69,17 @@ func (fake *FakeJWTClient) GenerateJWTCallCount() int {
 	return len(fake.generateJWTArgsForCall)
 }
 
-func (fake *FakeJWTClient) GenerateJWTCalls(stub func(string, time.Duration, gitproviders.GitProviderName, string) (string, error)) {
+func (fake *FakeJWTClient) GenerateJWTCalls(stub func(time.Duration, gitproviders.GitProviderName, string) (string, error)) {
 	fake.generateJWTMutex.Lock()
 	defer fake.generateJWTMutex.Unlock()
 	fake.GenerateJWTStub = stub
 }
 
-func (fake *FakeJWTClient) GenerateJWTArgsForCall(i int) (string, time.Duration, gitproviders.GitProviderName, string) {
+func (fake *FakeJWTClient) GenerateJWTArgsForCall(i int) (time.Duration, gitproviders.GitProviderName, string) {
 	fake.generateJWTMutex.RLock()
 	defer fake.generateJWTMutex.RUnlock()
 	argsForCall := fake.generateJWTArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeJWTClient) GenerateJWTReturns(result1 string, result2 error) {
@@ -111,19 +108,18 @@ func (fake *FakeJWTClient) GenerateJWTReturnsOnCall(i int, result1 string, resul
 	}{result1, result2}
 }
 
-func (fake *FakeJWTClient) VerifyJWT(arg1 string, arg2 string) (*auth.Claims, error) {
+func (fake *FakeJWTClient) VerifyJWT(arg1 string) (*auth.Claims, error) {
 	fake.verifyJWTMutex.Lock()
 	ret, specificReturn := fake.verifyJWTReturnsOnCall[len(fake.verifyJWTArgsForCall)]
 	fake.verifyJWTArgsForCall = append(fake.verifyJWTArgsForCall, struct {
 		arg1 string
-		arg2 string
-	}{arg1, arg2})
+	}{arg1})
 	stub := fake.VerifyJWTStub
 	fakeReturns := fake.verifyJWTReturns
-	fake.recordInvocation("VerifyJWT", []interface{}{arg1, arg2})
+	fake.recordInvocation("VerifyJWT", []interface{}{arg1})
 	fake.verifyJWTMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -137,17 +133,17 @@ func (fake *FakeJWTClient) VerifyJWTCallCount() int {
 	return len(fake.verifyJWTArgsForCall)
 }
 
-func (fake *FakeJWTClient) VerifyJWTCalls(stub func(string, string) (*auth.Claims, error)) {
+func (fake *FakeJWTClient) VerifyJWTCalls(stub func(string) (*auth.Claims, error)) {
 	fake.verifyJWTMutex.Lock()
 	defer fake.verifyJWTMutex.Unlock()
 	fake.VerifyJWTStub = stub
 }
 
-func (fake *FakeJWTClient) VerifyJWTArgsForCall(i int) (string, string) {
+func (fake *FakeJWTClient) VerifyJWTArgsForCall(i int) string {
 	fake.verifyJWTMutex.RLock()
 	defer fake.verifyJWTMutex.RUnlock()
 	argsForCall := fake.verifyJWTArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1
 }
 
 func (fake *FakeJWTClient) VerifyJWTReturns(result1 *auth.Claims, result2 error) {

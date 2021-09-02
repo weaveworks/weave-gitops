@@ -5,6 +5,9 @@ import (
 	"log"
 	"net"
 	"testing"
+	"time"
+
+	"k8s.io/apimachinery/pkg/util/rand"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
@@ -95,8 +98,11 @@ var _ = BeforeEach(func() {
 	lis = bufconn.Listen(bufSize)
 	s = grpc.NewServer()
 
+	rand.Seed(time.Now().UnixNano())
+	secretKey := rand.String(20)
+
 	k = &kube.KubeHTTP{Client: k8sClient, ClusterName: testClustername}
-	cfg := ApplicationConfig{App: app.New(nil, nil, nil, k, nil), JwtClient: auth.NewJwtClient()}
+	cfg := ApplicationConfig{App: app.New(nil, nil, nil, k, nil), JwtClient: auth.NewJwtClient(secretKey)}
 
 	apps = NewApplicationsServer(&cfg)
 	pb.RegisterApplicationsServer(s, apps)

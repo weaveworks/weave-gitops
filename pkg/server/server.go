@@ -6,6 +6,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
+	"time"
+
+	"github.com/fluxcd/go-git-providers/github"
+	"github.com/fluxcd/go-git-providers/gitlab"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -31,6 +36,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -85,7 +91,10 @@ func DefaultConfig() (*ApplicationConfig, error) {
 
 	appSrv := app.New(nil, nil, nil, kubeClient, nil)
 
-	jwtClient := auth.NewJwtClient()
+	rand.Seed(time.Now().UnixNano())
+	secretKey := rand.String(20)
+
+	jwtClient := auth.NewJwtClient(secretKey)
 
 	return &ApplicationConfig{
 		Logger:    logr,
@@ -325,21 +334,21 @@ func mapConditions(conditions []metav1.Condition) []*pb.Condition {
 	return out
 }
 
-var BadErrProvider = errors.New("wrong provider name")
+var ErrBadProvider = errors.New("wrong provider name")
 
 // Authenticate generates and returns a jwt token using git provider name and git provider token
 func (s *applicationServer) Authenticate(_ context.Context, msg *pb.AuthenticateRequest) (*pb.AuthenticateResponse, error) {
 
-	if string(gitproviders.GitProviderGitHub) != msg.ProviderName &&
-		string(gitproviders.GitProviderGitLab) != msg.ProviderName {
-		return nil, status.Errorf(codes.InvalidArgument, "%s expected github or gitlab, got %s", BadErrProvider.Error(), msg.ProviderName)
+	if !strings.HasPrefix(github.DefaultDomain, msg.ProviderName) &&
+		!strings.HasPrefix(gitlab.DefaultDomain, msg.ProviderName) {
+		return nil, status.Errorf(codes.InvalidArgument, "%s expected github or gitlab, got %s", ErrBadProvider, msg.ProviderName)
 	}
 
 	if msg.AccessToken == "" {
 		return nil, status.Error(codes.InvalidArgument, ErrEmptyAccessToken.Error())
 	}
 
-	token, err := s.jwtClient.GenerateJWT(auth.SecretKey, auth.ExpirationTime, gitproviders.GitProviderName(msg.GetProviderName()), msg.GetAccessToken())
+	token, err := s.jwtClient.GenerateJWT(auth.ExpirationTime, gitproviders.GitProviderName(msg.GetProviderName()), msg.GetAccessToken())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "error generating jwt token. %s", err)
 	}

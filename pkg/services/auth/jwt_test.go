@@ -3,6 +3,8 @@ package auth
 import (
 	"time"
 
+	"k8s.io/apimachinery/pkg/util/rand"
+
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 
 	. "github.com/onsi/ginkgo"
@@ -13,22 +15,23 @@ var _ = Describe("JWT tokens", func() {
 
 	It("Verify should fail after waiting longer than the expiration time", func() {
 
+		rand.Seed(time.Now().UnixNano())
+		secretKey := rand.String(20)
 		token := "token"
+		cli := NewJwtClient(secretKey)
 
-		cli := NewJwtClient()
-
-		jwtToken, err := cli.GenerateJWT(SecretKey, time.Millisecond, gitproviders.GitProviderGitHub, token)
+		jwtToken, err := cli.GenerateJWT( time.Millisecond, gitproviders.GitProviderGitHub, token)
 		Expect(err).NotTo(HaveOccurred())
 
-		claims, err := cli.VerifyJWT(SecretKey, jwtToken)
+		claims, err := cli.VerifyJWT(jwtToken)
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(claims.Provider).To(Equal(gitproviders.GitProviderGitHub))
 		Expect(claims.ProviderToken).To(Equal(token))
 
 		time.Sleep(time.Second)
-		claims, err = cli.VerifyJWT(SecretKey, jwtToken)
-		Expect(err).To(Equal(ErrUnauthorizedToken))
+		claims, err = cli.VerifyJWT(jwtToken)
+		Expect(err).To(MatchError(ErrUnauthorizedToken))
 		Expect(claims).To(BeNil())
 
 	})
