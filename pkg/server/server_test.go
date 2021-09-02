@@ -231,7 +231,7 @@ var _ = Describe("ApplicationsServer", func() {
 				expectedStatus := strconv.Itoa(res.StatusCode)
 				Expect(list).To(ConsistOf("uri", path, "status", expectedStatus))
 			})
-			FIt("Authorize fails generating jwt token", func() {
+			It("Authorize fails generating jwt token", func() {
 
 				fakeJWTToken := &authfakes.FakeJWTClient{}
 				fakeJWTToken.GenerateJWTStub = func(duration time.Duration, name gitproviders.GitProviderName, s22 string) (string, error) {
