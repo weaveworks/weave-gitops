@@ -4,17 +4,16 @@ import (
 	"context"
 	"testing"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
-	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/osys/osysfakes"
 )
 
@@ -41,16 +40,18 @@ var _ = BeforeEach(func() {
 		},
 	}
 
-	gitProviders = &gitprovidersfakes.FakeGitProvider{}
-	appSrv = New(&loggerfakes.FakeLogger{}, gitClient, fluxClient, kubeClient, osysClient)
+	gitProviders = &gitprovidersfakes.FakeGitProvider{
+		GetRepoVisibilityStub: func(url string) (*gitprovider.RepositoryVisibility, error) {
+			vis := gitprovider.RepositoryVisibilityPrivate
+			return &vis, nil
+		},
 
-	appSrv.(*App).GitProviderFactory = func(token string) (gitproviders.GitProvider, error) {
-		return gitProviders, nil
+		GetAccountTypeStub: func(owner string) (gitproviders.ProviderAccountType, error) {
+			return gitproviders.AccountTypeUser, nil
+		},
 	}
 
-	appSrv.(*App).temporaryGitClientFactory = func(osysClient osys.Osys, privKeypath string) (git.Git, error) {
-		return gitClient, nil
-	}
+	appSrv = New(context.Background(), &loggerfakes.FakeLogger{}, gitClient, gitClient, gitProviders, fluxClient, kubeClient, osysClient)
 })
 
 func TestApp(t *testing.T) {
