@@ -2,9 +2,9 @@ import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import ConditionsTable from "../components/ConditionsTable";
-import DataTable from "../components/DataTable";
 import KeyValueTable from "../components/KeyValueTable";
 import Page from "../components/Page";
+import ReconciliationGraph from "../components/ReconciliationGraph";
 import { AppContext } from "../contexts/AppContext";
 import useApplications from "../hooks/applications";
 import {
@@ -62,12 +62,19 @@ function ApplicationDetail({ className, name }: Props) {
           { key: "Path", value: app.path },
         ]}
       />
+
+      <ReconciliationGraph
+        objects={reconciledObjects}
+        parentObject={app}
+        parentObjectKind="Application"
+      />
+
       <h3>Source Conditions</h3>
       <ConditionsTable conditions={app.sourceConditions} />
       <h3>Automation Conditions</h3>
       <ConditionsTable conditions={app.deploymentConditions} />
-      <h3>Reconciled Objects</h3>
-      <DataTable
+      {/* <h3>Reconciled Objects</h3> */}
+      {/* <DataTable
         sortFields={["name"]}
         fields={[
           { label: "Name", value: "name" },
@@ -75,7 +82,7 @@ function ApplicationDetail({ className, name }: Props) {
           { label: "Status", value: "status" },
         ]}
         rows={reconciledObjects}
-      />
+      /> */}
     </Page>
   );
 }
