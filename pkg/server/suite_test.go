@@ -94,12 +94,14 @@ var _ = BeforeSuite(func() {
 	close(done)
 })
 
+var secretKey string
+
 var _ = BeforeEach(func() {
 	lis = bufconn.Listen(bufSize)
 	s = grpc.NewServer()
 
 	rand.Seed(time.Now().UnixNano())
-	secretKey := rand.String(20)
+	secretKey = rand.String(20)
 
 	k = &kube.KubeHTTP{Client: k8sClient, ClusterName: testClustername}
 	cfg := ApplicationConfig{App: app.New(nil, nil, nil, k, nil), JwtClient: auth.NewJwtClient(secretKey)}

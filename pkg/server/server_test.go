@@ -92,9 +92,6 @@ var _ = Describe("ApplicationsServer", func() {
 		provider := "github"
 		token := "token"
 
-		rand.Seed(time.Now().UnixNano())
-		secretKey := rand.String(20)
-
 		jwtClient := auth.NewJwtClient(secretKey)
 		expectedToken, err := jwtClient.GenerateJWT(auth.ExpirationTime, gitproviders.GitProviderGitHub, token)
 		Expect(err).NotTo(HaveOccurred())
