@@ -9,7 +9,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
+	log "github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 )
 
@@ -23,7 +23,7 @@ var _ = Describe("Install", func() {
 				return kube.Unmodified
 			},
 		}
-		gitopsSrv = gitops.New(logger.NewCLILogger(os.Stderr), fluxClient, kubeClient)
+		gitopsSrv = gitops.New(log.NewCLILogger(os.Stderr), fluxClient, kubeClient)
 
 		installParams = gitops.InstallParams{
 			Namespace: "wego-system",

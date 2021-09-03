@@ -5,7 +5,11 @@
 package acceptance
 
 import (
+	"context"
 	"fmt"
+
+	"github.com/weaveworks/weave-gitops/manifests"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -86,6 +90,38 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		By("When I run 'wego gitops uninstall' command", func() {
 			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s gitops uninstall --namespace %s", WEGO_BIN_PATH, namespace))
+		})
+
+		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)
+
+		By("Then I should not see any wego components", func() {
+			_, errOutput := runCommandAndReturnStringOutput("kubectl get ns " + namespace)
+			Eventually(errOutput).Should(ContainSubstring(`Error from server (NotFound): namespaces "` + namespace + `" not found`))
+		})
+	})
+
+	FIt("Verify that wego can uninstall flux if wego was not fully installed", func() {
+
+		namespace := "test-namespace"
+
+		By("And I have a brand new cluster", func() {
+			_, err := ResetOrCreateCluster(namespace, true)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		installAndVerifyWego(namespace)
+
+		ctx := context.Background()
+
+		kubeClient, _, kubeErr := kube.NewKubeHTTPClient()
+		Expect(kubeErr).ShouldNot(HaveOccurred())
+
+		crdErr := kubeClient.Delete(ctx, manifests.AppCRD)
+		Expect(crdErr).ShouldNot(HaveOccurred())
+
+		By("When I run 'wego gitops uninstall' command", func() {
+			runErr := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s gitops uninstall --namespace %s", WEGO_BIN_PATH, namespace))
+			Expect(runErr).ShouldNot(HaveOccurred())
 		})
 
 		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)
