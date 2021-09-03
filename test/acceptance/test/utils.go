@@ -5,6 +5,7 @@ package acceptance
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -14,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/onsi/gomega/gbytes"
-
+	"github.com/fluxcd/go-git-providers/github"
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -195,59 +196,24 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 	return clusterName, nil
 }
 
-func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
+func initAndCreateEmptyRepo(appRepoName string, isPrivateRepo bool) string {
 	repoAbsolutePath := "/tmp/" + appRepoName
-	privateRepo := ""
-	if IsPrivateRepo {
-		privateRepo = "-p"
-	}
 
 	// We need this step in case running a single test case locally
 	err := os.RemoveAll(repoAbsolutePath)
 	Expect(err).ShouldNot(HaveOccurred())
 
+	err = createRepository(appRepoName, isPrivateRepo)
+	Expect(err).ShouldNot(HaveOccurred())
+
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
-                            mkdir %s &&
-                            cd %s &&
-                            git init &&
-                            git checkout -b main`, repoAbsolutePath, repoAbsolutePath))
+                            hub clone %s %s &&
+							cd %s`,
+		GITHUB_ORG+"/"+appRepoName, repoAbsolutePath,
+		repoAbsolutePath))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session, 10, 1).Should(gexec.Exit())
-	Expect(string(session.Out.Contents())).Should(MatchRegexp(fmt.Sprintf(`Initialized empty Git repository in (/private)?/tmp/%s/.git/`, appRepoName)))
-
-	randStr := RandString(10)
-	fmt.Println("RANDOM-STR", randStr)
-
-	fmt.Fprintf(GinkgoWriter, "%s wainting for creation", randStr)
-	err = utils.WaitUntil(GinkgoWriter, time.Second*2, time.Second*20, func() error {
-		command := exec.Command("sh", "-c", fmt.Sprintf(`
-                            cd %s &&
-                            hub create %s %s`, repoAbsolutePath, GITHUB_ORG+"/"+appRepoName, privateRepo))
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		if err != nil {
-			return fmt.Errorf("%s error running command by ginkgo %w", randStr, err)
-		}
-		Eventually(session, 10, 1).Should(gexec.Exit())
-		fmt.Fprintf(GinkgoWriter, "%s session.Out[%s]", randStr, session.Out.Contents())
-		fmt.Fprintf(GinkgoWriter, "%s session.Err[%s]", randStr, session.Err.Contents())
-		if session.ExitCode() != 0 && !bytes.Contains(session.Err.Contents(), []byte("Repository not found")) {
-			return fmt.Errorf("%s expecting exit code 0, got %d, err %s", randStr, session.ExitCode(), session.Err.Contents())
-		}
-		Expect(session.Out).Should(gbytes.Say("Updating origin"))
-		return nil
-	})
-	Expect(err).ShouldNot(HaveOccurred())
-
-	fmt.Fprintf(GinkgoWriter, "%s wainting for confirmation", randStr)
-	Expect(utils.WaitUntil(GinkgoWriter, time.Second, 20*time.Second, func() error {
-		cmd := fmt.Sprintf(`hub api repos/%s/%s`, GITHUB_ORG, appRepoName)
-		command := exec.Command("sh", "-c", cmd)
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Eventually(session, 10, 1).Should(gexec.Exit())
-		return err
-	})).ShouldNot(HaveOccurred())
-	fmt.Fprintf(GinkgoWriter, "%s after confirmation", randStr)
+	Eventually(session).Should(gexec.Exit())
 
 	return repoAbsolutePath
 }
@@ -600,4 +566,54 @@ func mergePR(repoAbsolutePath, prLink string) {
 	session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
+}
+
+func createRepository(repoName string, private bool) error {
+
+	visibility := gitprovider.RepositoryVisibilityPrivate
+	if !private {
+		visibility = gitprovider.RepositoryVisibilityPublic
+	}
+
+	description := "Weave Gitops test repo"
+	defaultBranch := "main"
+	repoInfo := gitprovider.RepositoryInfo{
+		Description:   &description,
+		Visibility:    &visibility,
+		DefaultBranch: &defaultBranch,
+	}
+
+	repoCreateOpts := &gitprovider.RepositoryCreateOptions{
+		AutoInit:        gitprovider.BoolVar(true),
+		LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
+	}
+
+	orgRef := gitprovider.OrgRepositoryRef{
+		RepositoryName: repoName,
+		OrganizationRef: gitprovider.OrganizationRef{
+			Domain:       github.DefaultDomain,
+			Organization: GITHUB_ORG,
+		},
+	}
+
+	githubProvider, err := github.NewClient(
+		github.WithOAuth2Token(os.Getenv("GITHUB_TOKEN")),
+		github.WithDestructiveAPICalls(true),
+	)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+	if err := utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
+		_, err := githubProvider.OrgRepositories().Create(ctx, orgRef, repoInfo, repoCreateOpts)
+		return err
+	}); err != nil {
+		return fmt.Errorf("error creating repo %s", err)
+	}
+
+	return utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
+		_, err := githubProvider.OrgRepositories().Get(ctx, orgRef)
+		return err
+	})
 }
