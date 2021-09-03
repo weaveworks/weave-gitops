@@ -2,11 +2,10 @@ package gitops
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
 	"github.com/weaveworks/weave-gitops/manifests"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 type UinstallParams struct {
@@ -14,23 +13,39 @@ type UinstallParams struct {
 	DryRun    bool
 }
 
+type UninstallError struct{}
+
+func (e UninstallError) Error() string {
+	return "errors occurred during uninstall; the original state of the cluster may not be completely restored"
+}
+
 func (g *Gitops) Uninstall(params UinstallParams) error {
 	ctx := context.Background()
 	if g.kube.GetClusterStatus(ctx) != kube.WeGOInstalled {
-		return errors.New("wego is not installed... exiting")
+		g.logger.Println("wego is not fully installed... removing any partial installation\n")
 	}
 
-	err := g.flux.Uninstall(params.Namespace, params.DryRun)
-	if err != nil {
-		return fmt.Errorf("error on flux install %s", err)
+	errorOccurred := false
+
+	fluxErr := g.flux.Uninstall(params.Namespace, params.DryRun)
+	if fluxErr != nil {
+		g.logger.Printf("received error uninstalling flux: %q, continuing with uninstall", fluxErr)
+		errorOccurred = true
 	}
 
 	if params.DryRun {
 		g.logger.Actionf("Deleting App CRD")
 	} else {
-		if err := g.kube.Delete(ctx, manifests.AppCRD); err != nil {
-			return fmt.Errorf("failed to delete App CRD: %w", err)
+		if crdErr := g.kube.Delete(ctx, manifests.AppCRD); crdErr != nil {
+			if !apierrors.IsNotFound(crdErr) {
+				g.logger.Printf("received error uninstalling app CRD: %q", crdErr)
+				errorOccurred = true
+			}
 		}
+	}
+
+	if errorOccurred {
+		return UninstallError{}
 	}
 
 	return nil

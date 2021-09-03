@@ -5,17 +5,12 @@ package gitops
 
 import (
 	"fmt"
-	"os"
 
 	_ "embed"
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 )
 
@@ -72,11 +67,11 @@ func init() {
 }
 
 func installRunCmd(cmd *cobra.Command, args []string) error {
-	cliRunner := &runner.CLIRunner{}
-	osysClient := osys.New()
-	fluxClient := flux.New(osysClient, cliRunner)
-	kubeClient := kube.New(cliRunner)
-	gitopsService := gitops.New(logger.NewCLILogger(os.Stdout), fluxClient, kubeClient)
+	_, fluxClient, kubeClient, logger, clientErr := apputils.GetBaseClients()
+	if clientErr != nil {
+		return clientErr
+	}
+	gitopsService := gitops.New(logger, fluxClient, kubeClient)
 
 	manifests, err := gitopsService.Install(gitops.InstallParams{
 		Namespace: gitopsParams.Namespace,
@@ -94,14 +89,11 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 }
 
 func uninstallRunCmd(cmd *cobra.Command, args []string) error {
-	cliRunner := &runner.CLIRunner{}
-	osysClient := osys.New()
-	fluxClient := flux.New(osysClient, cliRunner)
-	kubeClient, _, err := kube.NewKubeHTTPClient()
-	if err != nil {
-		return err
+	_, fluxClient, kubeClient, logger, clientErr := apputils.GetBaseClients()
+	if clientErr != nil {
+		return clientErr
 	}
-	gitopsService := gitops.New(logger.NewCLILogger(os.Stdout), fluxClient, kubeClient)
+	gitopsService := gitops.New(logger, fluxClient, kubeClient)
 
 	return gitopsService.Uninstall(gitops.UinstallParams{
 		Namespace: gitopsParams.Namespace,

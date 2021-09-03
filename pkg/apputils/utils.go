@@ -46,7 +46,7 @@ func GetLogger() logger.Logger {
 	return logger.NewCLILogger(osysClient.Stdout())
 }
 
-func getBaseClients() (osys.Osys, flux.Flux, kube.Kube, logger.Logger, error) {
+func GetBaseClients() (osys.Osys, flux.Flux, kube.Kube, logger.Logger, error) {
 	osysClient := osys.New()
 	cliRunner := &runner.CLIRunner{}
 	fluxClient := flux.New(osysClient, cliRunner)
@@ -76,7 +76,7 @@ func IsClusterReady() error {
 }
 
 func GetAppService(ctx context.Context, appName, namespace string) (app.AppService, error) {
-	osysClient, fluxClient, kubeClient, logger, baseClientErr := getBaseClients()
+	osysClient, fluxClient, kubeClient, logger, baseClientErr := GetBaseClients()
 	if baseClientErr != nil {
 		return nil, fmt.Errorf("error initializing clients: %w", baseClientErr)
 	}
@@ -90,7 +90,7 @@ func GetAppService(ctx context.Context, appName, namespace string) (app.AppServi
 }
 
 func GetAppServiceForAdd(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool) (app.AppService, error) {
-	osysClient, fluxClient, kubeClient, logger, baseClientErr := getBaseClients()
+	osysClient, fluxClient, kubeClient, logger, baseClientErr := GetBaseClients()
 	if baseClientErr != nil {
 		return nil, fmt.Errorf("error initializing clients: %w", baseClientErr)
 	}
