@@ -72,58 +72,6 @@ var _ = Describe("Add", func() {
 		Expect(kubeClient.GetClusterNameCallCount()).To(Equal(1))
 	})
 
-	It("creates and deploys a git secret", func() {
-		secret := `apiVersion: v1
-kind: Secret
-metadata:
-  name: foo
-  namespace: foo
-stringData:
-  identity: foo
-  identity.pub: foo
-`
-		fluxClient.CreateSecretGitStub = func(s1, s2, s3 string) ([]byte, error) {
-			return []byte(secret), nil
-		}
-
-		err := appSrv.Add(addParams)
-		Expect(err).ShouldNot(HaveOccurred())
-
-		Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(1))
-
-		secretRef, repoUrl, namespace := fluxClient.CreateSecretGitArgsForCall(0)
-		Expect(secretRef).To(Equal("wego-test-cluster-bar"))
-		Expect(repoUrl).To(Equal("ssh://git@github.com/foo/bar.git"))
-		Expect(namespace).To(Equal("wego-system"))
-
-		owner, repoName, deployKey := gitProviders.UploadDeployKeyArgsForCall(0)
-		Expect(owner).To(Equal("foo"))
-		Expect(repoName).To(Equal("bar"))
-		Expect(deployKey).To(Equal([]byte("foo")))
-	})
-
-	It("Passes no secret ref to source creation when given a public repository", func() {
-		gitProviders.GetAccountTypeStub = func(owner string) (gitproviders.ProviderAccountType, error) {
-			return gitproviders.AccountTypeOrg, nil
-		}
-
-		gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
-			return "main", nil
-		}
-
-		gitProviders.GetRepoInfoStub = func(accountType gitproviders.ProviderAccountType, owner, repoName string) (*gitprovider.RepositoryInfo, error) {
-			visibility := gitprovider.RepositoryVisibility("public")
-			return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: nil, Visibility: &visibility}, nil
-		}
-
-		secretRef, err := appSrv.(*App).createAndUploadDeployKey(ctx,
-			getAppResourceInfo(makeWegoApplication(addParams), "test-cluster"),
-			false,
-			"ssh://git@github.com/owner/repo.git",
-			gitProviders)
-		Expect(err).ShouldNot(HaveOccurred())
-		Expect(secretRef).To(Equal(""))
-	})
 	Context("Looking up repo default branch", func() {
 		var _ = BeforeEach(func() {
 			gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
@@ -143,66 +91,20 @@ stringData:
 		})
 
 		It("Uses the default branch from the repository if no branch is specified", func() {
-			updated, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			updated, err := appSrv.(*App).updateParametersIfNecessary(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(updated.Branch).To(Equal("an-unusual-branch"))
 		})
 
 		It("Allows a specified branch to override the repo's default branch", func() {
 			addParams.Branch = "an-overriding-branch"
-			updated, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			updated, err := appSrv.(*App).updateParametersIfNecessary(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(updated.Branch).To(Equal("an-overriding-branch"))
 		})
 	})
 
-	Describe("checks for existing deploy key before creating secret", func() {
-		It("looks up deploy key and skips creating secret if found", func() {
-			addParams.SourceType = wego.SourceTypeGit
-
-			gitProviders.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
-				return true, nil
-			}
-
-			kubeClient.SecretPresentStub = func(ctx context.Context, s1, s2 string) (bool, error) {
-				return true, nil
-			}
-
-			err := appSrv.Add(addParams)
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(0))
-			Expect(gitProviders.UploadDeployKeyCallCount()).To(Equal(0))
-			Expect(kubeClient.SecretPresentCallCount()).To(Equal(1))
-			Expect(gitProviders.DeployKeyExistsCallCount()).To(Equal(1))
-		})
-
-		It("looks up deploy key and creates secret if not found", func() {
-			addParams.SourceType = wego.SourceTypeGit
-
-			err := appSrv.Add(addParams)
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(1))
-			Expect(gitProviders.UploadDeployKeyCallCount()).To(Equal(1))
-			Expect(kubeClient.SecretPresentCallCount()).To(Equal(1))
-			Expect(gitProviders.DeployKeyExistsCallCount()).To(Equal(1))
-		})
-	})
-
 	Context("add app with no config repo", func() {
-		Describe("avoids deploy key for helm", func() {
-			It("skips secret creation and lookup when source type is helm", func() {
-				addParams.Url = "https://charts.kube-ops.io"
-				addParams.Chart = "loki"
-
-				err := appSrv.Add(addParams)
-				Expect(err).ShouldNot(HaveOccurred())
-				Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(0))
-				Expect(gitProviders.UploadDeployKeyCallCount()).To(Equal(0))
-				Expect(kubeClient.SecretPresentCallCount()).To(Equal(0))
-				Expect(gitProviders.DeployKeyExistsCallCount()).To(Equal(0))
-			})
-		})
-
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
 				addParams.SourceType = wego.SourceTypeGit
@@ -334,17 +236,17 @@ stringData:
 			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(kubeClient.ApplyCallCount()).To(Equal(4))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(3))
 
-			_, sourceManifest, namespace := kubeClient.ApplyArgsForCall(1)
+			_, sourceManifest, namespace := kubeClient.ApplyArgsForCall(0)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
 			Expect(namespace).To(Equal("wego-system"))
 
-			_, kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(2)
+			_, kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(1)
 			Expect(kustomizationManifest).To(Equal([]byte("kustomization")))
 			Expect(namespace).To(Equal("wego-system"))
 
-			_, appSpecManifest, namespace := kubeClient.ApplyArgsForCall(3)
+			_, appSpecManifest, namespace := kubeClient.ApplyArgsForCall(2)
 			Expect(string(appSpecManifest)).To(ContainSubstring("kind: Application"))
 			Expect(namespace).To(Equal("wego-system"))
 		})
@@ -352,7 +254,7 @@ stringData:
 
 	Context("add app with config in app repo", func() {
 		BeforeEach(func() {
-			addParams.Url = ""
+			addParams.Url = "ssh://git@github.com/foo/bar.git"
 			addParams.AppConfigUrl = ""
 
 			gitClient.OpenStub = func(s string) (*gogit.Repository, error) {
@@ -368,24 +270,9 @@ stringData:
 			}
 		})
 
-		Describe("avoids deploy key for helm", func() {
-			It("skips secret creation and lookup when source type is helm", func() {
-				addParams.Url = "https://charts.kube-ops.io"
-				addParams.Chart = "loki"
-
-				err := appSrv.Add(addParams)
-				Expect(err).ShouldNot(HaveOccurred())
-				Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(0))
-				Expect(gitProviders.UploadDeployKeyCallCount()).To(Equal(0))
-				Expect(gitProviders.DeployKeyExistsCallCount()).To(Equal(0))
-				Expect(kubeClient.SecretPresentCallCount()).To(Equal(0))
-			})
-		})
-
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
 				addParams.SourceType = wego.SourceTypeGit
-
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
@@ -542,18 +429,14 @@ stringData:
 			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(kubeClient.ApplyCallCount()).To(Equal(4))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(3))
 
-			_, sourceManifest, namespace := kubeClient.ApplyArgsForCall(1)
+			_, sourceManifest, namespace := kubeClient.ApplyArgsForCall(0)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
 			Expect(namespace).To(Equal("wego-system"))
 
-			_, appWegoManifest, namespace := kubeClient.ApplyArgsForCall(2)
+			_, appWegoManifest, namespace := kubeClient.ApplyArgsForCall(1)
 			Expect(appWegoManifest).To(Equal([]byte("kustomization")))
-			Expect(namespace).To(Equal("wego-system"))
-
-			_, targetManifest, namespace := kubeClient.ApplyArgsForCall(3)
-			Expect(targetManifest).To(Equal([]byte("kustomization")))
 			Expect(namespace).To(Equal("wego-system"))
 		})
 
@@ -807,18 +690,14 @@ stringData:
 			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(kubeClient.ApplyCallCount()).To(Equal(5))
+			Expect(kubeClient.ApplyCallCount()).To(Equal(3))
 
-			_, sourceManifest, namespace := kubeClient.ApplyArgsForCall(2)
+			_, sourceManifest, namespace := kubeClient.ApplyArgsForCall(0)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
 			Expect(namespace).To(Equal("wego-system"))
 
-			_, kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(3)
+			_, kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(1)
 			Expect(kustomizationManifest).To(Equal([]byte("kustomization")))
-			Expect(namespace).To(Equal("wego-system"))
-
-			_, appDirManifest, namespace := kubeClient.ApplyArgsForCall(4)
-			Expect(appDirManifest).To(Equal([]byte("kustomization")))
 			Expect(namespace).To(Equal("wego-system"))
 		})
 
@@ -879,7 +758,7 @@ stringData:
 	Context("when creating a pull request", func() {
 		It("generates an appropriate error when the owner cannot be retrieved from the URL", func() {
 			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
-			err := appSrv.(*App).createPullRequestToRepo(info, gitProviders, "foo", "hash", []byte{}, []byte{}, []byte{})
+			err := appSrv.(*App).createPullRequestToRepo(info, "foo", "hash", []byte{}, []byte{}, []byte{})
 			Expect(err.Error()).To(HavePrefix("failed to retrieve owner"))
 		})
 
@@ -888,7 +767,7 @@ stringData:
 				return gitproviders.AccountTypeOrg, fmt.Errorf("no account found")
 			}
 			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
-			err := appSrv.(*App).createPullRequestToRepo(info, gitProviders, "ssh://git@github.com/ewojfewoj3323w/abc", "hash", []byte{}, []byte{}, []byte{})
+			err := appSrv.(*App).createPullRequestToRepo(info, "ssh://git@github.com/ewojfewoj3323w/abc", "hash", []byte{}, []byte{}, []byte{})
 			Expect(err.Error()).To(HavePrefix("failed to retrieve account type"))
 		})
 	})
@@ -913,7 +792,7 @@ stringData:
 			addParams := AddParams{}
 			addParams.Url = "http://something"
 
-			updated, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			updated, err := appSrv.(*App).updateParametersIfNecessary(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(updated.DeploymentType).To(Equal(DefaultDeploymentType))
@@ -925,7 +804,7 @@ stringData:
 			addParams := AddParams{}
 			addParams.Url = "{http:/-*wrong-url-827"
 
-			_, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			_, err := appSrv.(*App).updateParametersIfNecessary(addParams)
 			Expect(err).Should(HaveOccurred())
 			Expect(err.Error()).Should(ContainSubstring("error validating url"))
 			Expect(err.Error()).Should(ContainSubstring(addParams.Url))
@@ -945,12 +824,12 @@ stringData:
 
 		It("ensures that url base names are <= 63 characters when used as names", func() {
 			addParams.Url = "https://github.com/foo/a23456789012345678901234567890123456789012345678901234567890123"
-			localParams, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			localParams, err := appSrv.(*App).updateParametersIfNecessary(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(appSrv.Add(localParams)).To(Succeed())
 			addParams.Name = ""
 			addParams.Url = "https://github.com/foo/a234567890123456789012345678901234567890123456789012345678901234"
-			_, err = appSrv.(*App).updateParametersIfNecessary(gitProviders, addParams)
+			_, err = appSrv.(*App).updateParametersIfNecessary(addParams)
 			Expect(err).Should(HaveOccurred())
 		})
 
@@ -961,7 +840,7 @@ stringData:
 
 			Expect(info.automationAppsDirKustomizationName()).To(Equal("app-name-apps-dir"))
 			Expect(info.automationTargetDirKustomizationName()).To(Equal("cluster-app-name"))
-			Expect(info.appSecretName(addParams.Url).String()).To(Equal("wego-cluster-url-base"))
+			Expect(info.repoSecretName(addParams.Url).String()).To(Equal("wego-cluster-url-base"))
 		})
 
 		It("specifies a cluster name, base url, and app name that generate 63 characters and gets them all included in resource names", func() {
@@ -970,7 +849,7 @@ stringData:
 			info := getAppResourceInfo(makeWegoApplication(addParams), "c2345678901234567890123456789012345678901234567890123456")
 
 			Expect(info.automationTargetDirKustomizationName()).To(Equal("c2345678901234567890123456789012345678901234567890123456-a12345"))
-			Expect(info.appSecretName(addParams.Url).String()).To(Equal("wego-c2345678901234567890123456789012345678901234567890123456-u"))
+			Expect(info.repoSecretName(addParams.Url).String()).To(Equal("wego-c2345678901234567890123456789012345678901234567890123456-u"))
 		})
 
 		It("specifies a long cluster name, base url, and app name that generate 64 characters and gets hashed resource names", func() {
@@ -980,7 +859,7 @@ stringData:
 			info := getAppResourceInfo(makeWegoApplication(addParams), clusterName)
 
 			kustName := info.automationTargetDirKustomizationName()
-			secretName := info.appSecretName(addParams.Url).String()
+			secretName := info.repoSecretName(addParams.Url).String()
 			repoName := generateResourceName(addParams.Url)
 
 			Expect(kustName).To(Equal("wego-" + getHash(fmt.Sprintf("%s-%s", clusterName, addParams.Name))))

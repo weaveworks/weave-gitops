@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -26,11 +25,11 @@ import (
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	"github.com/weaveworks/weave-gitops/pkg/apputils/apputilsfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
@@ -147,7 +146,14 @@ var _ = Describe("ApplicationsServer", func() {
 				rand.Seed(time.Now().UnixNano())
 				secretKey := rand.String(20)
 
-				appsSrv = NewApplicationsServer(&ApplicationConfig{App: app.New(nil, nil, nil, kubeClient, nil), JwtClient: auth.NewJwtClient(secretKey)})
+				appFactory := &apputilsfakes.FakeAppFactory{}
+				appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
+					return app.New(ctx, nil, nil, nil, nil, nil, kubeClient, nil), nil
+				}
+				appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
+					return kubeClient, nil
+				}
+				appsSrv = NewApplicationsServer(&ApplicationConfig{AppFactory: appFactory, JwtClient: auth.NewJwtClient(secretKey)})
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
@@ -236,7 +242,14 @@ var _ = Describe("ApplicationsServer", func() {
 					return "", fmt.Errorf("some error")
 				}
 
-				appsSrv = NewApplicationsServer(&ApplicationConfig{App: app.New(nil, nil, nil, kubeClient, nil), JwtClient: fakeJWTToken})
+				appFactory := &apputilsfakes.FakeAppFactory{}
+				appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
+					return app.New(ctx, nil, nil, nil, nil, nil, kubeClient, nil), nil
+				}
+				appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
+					return kubeClient, nil
+				}
+				appsSrv = NewApplicationsServer(&ApplicationConfig{AppFactory: appFactory, JwtClient: fakeJWTToken})
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
@@ -290,9 +303,17 @@ var _ = Describe("Applications handler", func() {
 			}}, nil
 		}
 
+		appFactory := &apputilsfakes.FakeAppFactory{}
+		appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
+			return app.New(ctx, nil, nil, nil, nil, nil, k, nil), nil
+		}
+		appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
+			return k, nil
+		}
+
 		cfg := ApplicationConfig{
-			App:    app.New(nil, nil, nil, k, nil),
-			Logger: log,
+			AppFactory: appFactory,
+			Logger:     log,
 		}
 
 		handler, err := NewApplicationsHandler(context.Background(), &cfg)
@@ -336,9 +357,17 @@ var _ = Describe("Applications handler", func() {
 			}, nil
 		}
 
-		appSrv := app.New(logger.NewCLILogger(os.Stderr), nil, nil, kubeClient, nil)
 		gitProviders := &gitprovidersfakes.FakeGitProvider{}
+		appFactory := &apputilsfakes.FakeAppFactory{}
 		commits := []gitprovider.Commit{&fakeCommit{}}
+
+		appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
+			return app.New(ctx, nil, nil, nil, gitProviders, nil, kubeClient, nil), nil
+		}
+
+		appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
+			return kubeClient, nil
+		}
 
 		gitProviders.GetCommitsFromUserRepoStub = func(gitprovider.UserRepositoryRef, string, int, int) ([]gitprovider.Commit, error) {
 			return commits, nil
@@ -348,13 +377,9 @@ var _ = Describe("Applications handler", func() {
 			return gitproviders.AccountTypeUser, nil
 		}
 
-		appSrv.GitProviderFactory = func(token string) (gitproviders.GitProvider, error) {
-			return gitProviders, nil
-		}
-
 		cfg := ApplicationConfig{
-			Logger: log,
-			App:    appSrv,
+			Logger:     log,
+			AppFactory: appFactory,
 		}
 
 		handler, err := NewApplicationsHandler(context.Background(), &cfg)

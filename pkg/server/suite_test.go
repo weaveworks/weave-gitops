@@ -15,6 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	"github.com/weaveworks/weave-gitops/pkg/apputils/apputilsfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"google.golang.org/grpc"
@@ -104,8 +105,16 @@ var _ = BeforeEach(func() {
 	secretKey = rand.String(20)
 
 	k = &kube.KubeHTTP{Client: k8sClient, ClusterName: testClustername}
-	cfg := ApplicationConfig{App: app.New(nil, nil, nil, k, nil), JwtClient: auth.NewJwtClient(secretKey)}
 
+	appFactory := &apputilsfakes.FakeAppFactory{}
+	appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
+		return app.New(ctx, nil, nil, nil, nil, nil, k, nil), nil
+	}
+	appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
+		return k, nil
+	}
+
+	cfg := ApplicationConfig{AppFactory: appFactory, JwtClient: auth.NewJwtClient(secretKey)}
 	apps = NewApplicationsServer(&cfg)
 	pb.RegisterApplicationsServer(s, apps)
 
