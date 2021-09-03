@@ -3,6 +3,10 @@ package manifests
 import (
 	"bytes"
 	_ "embed"
+	"fmt"
+	"text/template"
+
+	"github.com/pkg/errors"
 
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
 )
@@ -11,10 +15,30 @@ import (
 var AppCRD []byte
 
 //go:embed wego-app/deployment.yaml
-var wegoAppDeployment []byte
+var WegoAppDeployment []byte
 
-func WegoAppDeployment() []byte {
-	return bytes.ReplaceAll(wegoAppDeployment, []byte("VERSION"), []byte(version.Version))
+type deploymentParameters struct {
+	Version string
+}
+
+var errInjectingValuesToTemplate = errors.New("error injecting values to template")
+
+// GenerateWegoAppDeploymentManifest generates wego-app deployment manifest from a template
+func GenerateWegoAppDeploymentManifest(deploymentTemplate []byte) ([]byte, error) {
+
+	deploymentValues := deploymentParameters{version.Version}
+
+	template := template.New("DeploymentTemplate")
+	var err error
+	template, _ = template.Parse(string(deploymentTemplate))
+
+	deploymentYaml := &bytes.Buffer{}
+	err = template.Execute(deploymentYaml, deploymentValues)
+	if err != nil {
+		return nil, fmt.Errorf("%s %w", errInjectingValuesToTemplate, err)
+	}
+
+	return deploymentYaml.Bytes(), nil
 }
 
 //go:embed wego-app/service-account.yaml
