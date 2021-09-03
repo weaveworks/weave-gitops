@@ -20,7 +20,7 @@ import (
 
 var clusterPool *cluster.ClusterPool
 
-var _ = FDescribe("Weave GitOps Add Tests", func() {
+var _ = Describe("Weave GitOps Add Tests", func() {
 
 	count := 0
 
