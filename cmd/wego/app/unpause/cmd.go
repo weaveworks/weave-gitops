@@ -1,17 +1,13 @@
 package unpause
 
 import (
+	"context"
 	"fmt"
-	"os"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 )
 
@@ -31,19 +27,15 @@ var Cmd = &cobra.Command{
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
+	ctx := context.Background()
+
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 	params.Name = args[0]
 
-	cliRunner := &runner.CLIRunner{}
-	osysClient := osys.New()
-	fluxClient := flux.New(osysClient, cliRunner)
-	logger := logger.NewCLILogger(os.Stdout)
-	kubeClient, _, err := kube.NewKubeHTTPClient()
-	if err != nil {
-		return fmt.Errorf("error initializing kube client: %w", err)
+	appService, appError := apputils.GetAppService(ctx, params.Name, params.Namespace)
+	if appError != nil {
+		return fmt.Errorf("failed to create app service: %w", appError)
 	}
-
-	appService := app.New(logger, nil, fluxClient, kubeClient, osysClient)
 
 	if err := appService.Unpause(params); err != nil {
 		return errors.Wrapf(err, "failed to unpause the app %s", params.Name)
