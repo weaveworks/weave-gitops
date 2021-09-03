@@ -134,21 +134,12 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 	It("Verify that wego can: install wego components, uninstall wego components, and work in dry-run mode", func() {
 
-		var errorOutput string
 		var installDryRunOutput string
 		var uninstallDryRunOutput string
 
 		By("And I have a brand new cluster", func() {
 			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true)
 			Expect(err).ShouldNot(HaveOccurred())
-		})
-
-		By("When I try to uninstall wego in dry-run mode without installing components first", func() {
-			_, errorOutput = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " gitops uninstall --dry-run")
-		})
-
-		By("Then I should see an error output", func() {
-			Eventually(errorOutput).Should(ContainSubstring("Error: wego is not installed... exiting"))
 		})
 
 		By("When I try to install wego in dry-run mode", func() {

@@ -18,7 +18,6 @@ var uninstallParams gitops.UinstallParams
 
 func checkFluxUninstallFailure() {
 	fluxErrMsg := "flux uninstall failed"
-	globalErrMsg := "errors occurred during uninstall; the original state of the cluster may not be completely restored"
 
 	loggedMsg := ""
 	logger.PrintfStub = func(str string, args ...interface{}) {
@@ -32,7 +31,7 @@ func checkFluxUninstallFailure() {
 	err := gitopsSrv.Uninstall(uninstallParams)
 
 	Expect(loggedMsg).To(Equal(fmt.Sprintf("received error uninstalling flux: %q, continuing with uninstall", fluxErrMsg)))
-	Expect(err.Error()).To(Equal(globalErrMsg))
+	Expect(err).To(MatchError(gitops.UninstallError{}))
 	Expect(kubeClient.GetClusterStatusCallCount()).To(Equal(1))
 	Expect(fluxClient.UninstallCallCount()).To(Equal(1))
 	namespace, dryRun := fluxClient.UninstallArgsForCall(0)
@@ -42,7 +41,6 @@ func checkFluxUninstallFailure() {
 
 func checkAppCRDUninstallFailure() {
 	crdErrMsg := "CRD uninstall failed"
-	globalErrMsg := "errors occurred during uninstall; the original state of the cluster may not be completely restored"
 
 	loggedMsg := ""
 	logger.PrintfStub = func(str string, args ...interface{}) {
@@ -56,7 +54,7 @@ func checkAppCRDUninstallFailure() {
 	err := gitopsSrv.Uninstall(uninstallParams)
 
 	Expect(loggedMsg).To(Equal(fmt.Sprintf("received error uninstalling app CRD: %q", crdErrMsg)))
-	Expect(err.Error()).To(Equal(globalErrMsg))
+	Expect(err).To(MatchError(gitops.UninstallError{}))
 	Expect(kubeClient.GetClusterStatusCallCount()).To(Equal(1))
 	Expect(fluxClient.UninstallCallCount()).To(Equal(1))
 	Expect(kubeClient.DeleteCallCount()).To(Equal(1))
@@ -68,11 +66,7 @@ func checkAppCRDUninstallFailure() {
 var _ = Describe("Uninstall", func() {
 	BeforeEach(func() {
 		fluxClient = &fluxfakes.FakeFlux{}
-		kubeClient = &kubefakes.FakeKube{
-			GetClusterStatusStub: func(ctx context.Context) kube.ClusterStatus {
-				return kube.WeGOInstalled
-			},
-		}
+		kubeClient = &kubefakes.FakeKube{}
 		logger = &loggerfakes.FakeLogger{}
 		gitopsSrv = gitops.New(logger, fluxClient, kubeClient)
 
@@ -111,6 +105,10 @@ var _ = Describe("Uninstall", func() {
 	})
 
 	It("Does not log warning information if wego is installed", func() {
+		kubeClient.GetClusterStatusStub = func(ctx context.Context) kube.ClusterStatus {
+			return kube.WeGOInstalled
+		}
+
 		loggedMsg := ""
 		logger.PrintlnStub = func(str string, args ...interface{}) {
 			loggedMsg = str
@@ -121,6 +119,10 @@ var _ = Describe("Uninstall", func() {
 	})
 
 	It("Generates an error if flux uninstall fails with wego installed", func() {
+		kubeClient.GetClusterStatusStub = func(ctx context.Context) kube.ClusterStatus {
+			return kube.WeGOInstalled
+		}
+
 		checkFluxUninstallFailure()
 	})
 
@@ -141,6 +143,10 @@ var _ = Describe("Uninstall", func() {
 	})
 
 	It("Generates an error if CRD uninstall fails with wego installed", func() {
+		kubeClient.GetClusterStatusStub = func(ctx context.Context) kube.ClusterStatus {
+			return kube.WeGOInstalled
+		}
+
 		checkAppCRDUninstallFailure()
 	})
 

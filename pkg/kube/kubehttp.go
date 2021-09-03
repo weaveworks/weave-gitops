@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -134,12 +133,10 @@ func (k *KubeHTTP) GetClusterStatus(ctx context.Context) ClusterStatus {
 		Namespace: "kube-system",
 	}
 
-	notFoundErr := `deployments.apps "coredns" not found`
-
 	if err := k.Client.Get(ctx, coreDnsName, &dep); err != nil {
 		// Some clusters don't have 'coredns'; if we get a "not found" error, we know we
 		// can talk to the cluster
-		if strings.Contains(err.Error(), notFoundErr) {
+		if apierrors.IsNotFound(err) {
 			return Unmodified
 		}
 
