@@ -42,6 +42,9 @@ bin:
 # Build wego binary
 wego: dependencies ui bin
 
+docker:
+	docker build -t ghcr.io/weaveworks/wego-app:latest .
+
 # Install binaries to GOPATH
 install: bin
 	cp bin/$(BINARY_NAME) ${GOPATH}/bin/
