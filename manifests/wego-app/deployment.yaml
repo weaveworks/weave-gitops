@@ -13,7 +13,7 @@ spec:
       serviceAccountName: api-service-account
       containers:
         - name: wego-app
-          image: weaveworks/weave-gitops:VERSION
+          image: ghcr.io/weaveworks/wego-app:VERSION
           ports:
             - containerPort: 8283
           imagePullPolicy: IfNotPresent
