@@ -91,7 +91,7 @@ var _ = Describe("ApplicationsServer", func() {
 	})
 	It("Authorize", func() {
 		ctx := context.Background()
-		provider := "github.com"
+		provider := "github"
 		token := "token"
 
 		jwtClient := auth.NewJwtClient(secretKey)

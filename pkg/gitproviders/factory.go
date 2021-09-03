@@ -12,8 +12,8 @@ import (
 type GitProviderName string
 
 const (
-	GitProviderGitHub GitProviderName = "github.com"
-	GitProviderGitLab GitProviderName = "gitlab.com"
+	GitProviderGitHub GitProviderName = "github"
+	GitProviderGitLab GitProviderName = "gitlab"
 )
 
 // Config defines the configuration for connecting to a GitProvider.
@@ -61,6 +61,5 @@ func buildGitProvider(config Config) (gitprovider.Client, error) {
 	default:
 		return nil, fmt.Errorf("unsupported Git provider '%s'", config.Provider)
 	}
-	providerName = config.Provider
 	return client, err
 }

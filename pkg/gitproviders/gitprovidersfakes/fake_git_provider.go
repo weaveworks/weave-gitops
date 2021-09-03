@@ -132,15 +132,15 @@ type FakeGitProvider struct {
 		result1 string
 		result2 error
 	}
-	GetProviderNameStub        func() gitproviders.GitProviderName
-	getProviderNameMutex       sync.RWMutex
-	getProviderNameArgsForCall []struct {
+	GetProviderDomainStub        func() string
+	getProviderDomainMutex       sync.RWMutex
+	getProviderDomainArgsForCall []struct {
 	}
-	getProviderNameReturns struct {
-		result1 gitproviders.GitProviderName
+	getProviderDomainReturns struct {
+		result1 string
 	}
-	getProviderNameReturnsOnCall map[int]struct {
-		result1 gitproviders.GitProviderName
+	getProviderDomainReturnsOnCall map[int]struct {
+		result1 string
 	}
 	GetRepoInfoStub        func(gitproviders.ProviderAccountType, string, string) (*gitprovider.RepositoryInfo, error)
 	getRepoInfoMutex       sync.RWMutex
@@ -754,15 +754,15 @@ func (fake *FakeGitProvider) GetDefaultBranchReturnsOnCall(i int, result1 string
 	}{result1, result2}
 }
 
-func (fake *FakeGitProvider) GetProviderName() gitproviders.GitProviderName {
-	fake.getProviderNameMutex.Lock()
-	ret, specificReturn := fake.getProviderNameReturnsOnCall[len(fake.getProviderNameArgsForCall)]
-	fake.getProviderNameArgsForCall = append(fake.getProviderNameArgsForCall, struct {
+func (fake *FakeGitProvider) GetProviderDomain() string {
+	fake.getProviderDomainMutex.Lock()
+	ret, specificReturn := fake.getProviderDomainReturnsOnCall[len(fake.getProviderDomainArgsForCall)]
+	fake.getProviderDomainArgsForCall = append(fake.getProviderDomainArgsForCall, struct {
 	}{})
-	stub := fake.GetProviderNameStub
-	fakeReturns := fake.getProviderNameReturns
-	fake.recordInvocation("GetProviderName", []interface{}{})
-	fake.getProviderNameMutex.Unlock()
+	stub := fake.GetProviderDomainStub
+	fakeReturns := fake.getProviderDomainReturns
+	fake.recordInvocation("GetProviderDomain", []interface{}{})
+	fake.getProviderDomainMutex.Unlock()
 	if stub != nil {
 		return stub()
 	}
@@ -772,38 +772,38 @@ func (fake *FakeGitProvider) GetProviderName() gitproviders.GitProviderName {
 	return fakeReturns.result1
 }
 
-func (fake *FakeGitProvider) GetProviderNameCallCount() int {
-	fake.getProviderNameMutex.RLock()
-	defer fake.getProviderNameMutex.RUnlock()
-	return len(fake.getProviderNameArgsForCall)
+func (fake *FakeGitProvider) GetProviderDomainCallCount() int {
+	fake.getProviderDomainMutex.RLock()
+	defer fake.getProviderDomainMutex.RUnlock()
+	return len(fake.getProviderDomainArgsForCall)
 }
 
-func (fake *FakeGitProvider) GetProviderNameCalls(stub func() gitproviders.GitProviderName) {
-	fake.getProviderNameMutex.Lock()
-	defer fake.getProviderNameMutex.Unlock()
-	fake.GetProviderNameStub = stub
+func (fake *FakeGitProvider) GetProviderDomainCalls(stub func() string) {
+	fake.getProviderDomainMutex.Lock()
+	defer fake.getProviderDomainMutex.Unlock()
+	fake.GetProviderDomainStub = stub
 }
 
-func (fake *FakeGitProvider) GetProviderNameReturns(result1 gitproviders.GitProviderName) {
-	fake.getProviderNameMutex.Lock()
-	defer fake.getProviderNameMutex.Unlock()
-	fake.GetProviderNameStub = nil
-	fake.getProviderNameReturns = struct {
-		result1 gitproviders.GitProviderName
+func (fake *FakeGitProvider) GetProviderDomainReturns(result1 string) {
+	fake.getProviderDomainMutex.Lock()
+	defer fake.getProviderDomainMutex.Unlock()
+	fake.GetProviderDomainStub = nil
+	fake.getProviderDomainReturns = struct {
+		result1 string
 	}{result1}
 }
 
-func (fake *FakeGitProvider) GetProviderNameReturnsOnCall(i int, result1 gitproviders.GitProviderName) {
-	fake.getProviderNameMutex.Lock()
-	defer fake.getProviderNameMutex.Unlock()
-	fake.GetProviderNameStub = nil
-	if fake.getProviderNameReturnsOnCall == nil {
-		fake.getProviderNameReturnsOnCall = make(map[int]struct {
-			result1 gitproviders.GitProviderName
+func (fake *FakeGitProvider) GetProviderDomainReturnsOnCall(i int, result1 string) {
+	fake.getProviderDomainMutex.Lock()
+	defer fake.getProviderDomainMutex.Unlock()
+	fake.GetProviderDomainStub = nil
+	if fake.getProviderDomainReturnsOnCall == nil {
+		fake.getProviderDomainReturnsOnCall = make(map[int]struct {
+			result1 string
 		})
 	}
-	fake.getProviderNameReturnsOnCall[i] = struct {
-		result1 gitproviders.GitProviderName
+	fake.getProviderDomainReturnsOnCall[i] = struct {
+		result1 string
 	}{result1}
 }
 
@@ -1153,8 +1153,8 @@ func (fake *FakeGitProvider) Invocations() map[string][][]interface{} {
 	defer fake.getCommitsFromUserRepoMutex.RUnlock()
 	fake.getDefaultBranchMutex.RLock()
 	defer fake.getDefaultBranchMutex.RUnlock()
-	fake.getProviderNameMutex.RLock()
-	defer fake.getProviderNameMutex.RUnlock()
+	fake.getProviderDomainMutex.RLock()
+	defer fake.getProviderDomainMutex.RUnlock()
 	fake.getRepoInfoMutex.RLock()
 	defer fake.getRepoInfoMutex.RUnlock()
 	fake.getRepoInfoFromUrlMutex.RLock()
