@@ -100,7 +100,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 	})
 
-	FIt("Verify that wego can uninstall flux if wego was not fully installed", func() {
+	It("Verify that wego can uninstall flux if wego was not fully installed", func() {
 
 		namespace := "test-namespace"
 
