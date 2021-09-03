@@ -151,7 +151,6 @@ jobs:
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega
         ginkgo --focus=SmokeTest --randomizeSuites --reportFile=$(pwd)/test-results/smoke-test-results.xml -v ./test/acceptance/test/...
-
   acceptance-tests:
     runs-on: ubuntu-latest
     needs: [lint, build, test]

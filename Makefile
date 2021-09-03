@@ -36,11 +36,11 @@ unit-tests: dependencies cmd/wego/ui/run/dist/index.html
 debug:
 	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) -gcflags='all=-N -l' cmd/wego/*.go
 
-bin: ui
+bin:
 	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) cmd/wego/*.go
 
 # Build wego binary
-wego: dependencies bin
+wego: dependencies ui bin
 
 # Install binaries to GOPATH
 install: bin
@@ -147,7 +147,7 @@ crd:
 	controller-gen $(CRD_OPTIONS) paths="./..." output:crd:artifacts:config=manifests/crds
 
 # Check go format
-check-format: 
+check-format:
 	if [ ! -z "$(FORMAT_LIST)" ] ; then echo invalid format at: ${FORMAT_LIST} && exit 1; fi
 
 generate-helm: wego
