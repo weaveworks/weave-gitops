@@ -1,6 +1,6 @@
 # UI build
 FROM node:14-buster AS ui
-RUN apt-get update -y && apt-get install -y build-essential g++ python
+RUN apt-get update -y && apt-get install -y build-essential
 RUN mkdir -p /home/app/node_modules && chown -R node:node /home/app
 WORKDIR /home/app
 USER node
