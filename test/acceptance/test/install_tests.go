@@ -112,7 +112,7 @@ package acceptance
 //		})
 //
 //		By("Then I should see an error output", func() {
-//			Eventually(errorOutput).Should(ContainSubstring("Error: Wego is not installed... exiting"))
+//			Eventually(errorOutput).Should(ContainSubstring("Error: wego is not installed... exiting"))
 //		})
 //
 //		By("When I try to install wego in dry-run mode", func() {
