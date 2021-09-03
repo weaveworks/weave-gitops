@@ -242,7 +242,14 @@ var _ = Describe("ApplicationsServer", func() {
 					return "", fmt.Errorf("some error")
 				}
 
-				appsSrv = NewApplicationsServer(&ApplicationConfig{App: app.New(nil, nil, nil, kubeClient, nil), JwtClient: fakeJWTToken})
+				appFactory := &apputilsfakes.FakeAppFactory{}
+				appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
+					return app.New(ctx, nil, nil, nil, nil, nil, kubeClient, nil), nil
+				}
+				appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
+					return kubeClient, nil
+				}
+				appsSrv = NewApplicationsServer(&ApplicationConfig{AppFactory: appFactory, JwtClient: fakeJWTToken})
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
