@@ -47,14 +47,14 @@ const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
 var seededRand *rand.Rand = rand.New(
 	rand.NewSource(time.Now().UnixNano()))
 
-func contains(s []string, str string) bool {
-	for _, v := range s {
-		if v == str {
-			return true
-		}
-	}
-	return false
-}
+//func contains(s []string, str string) bool {
+//	for _, v := range s {
+//		if v == str {
+//			return true
+//		}
+//	}
+//	return false
+//}
 
 func FileExists(name string) bool {
 	if _, err := os.Stat(name); err != nil {
@@ -65,11 +65,11 @@ func FileExists(name string) bool {
 	return true
 }
 
-func getClusterName() string {
-	out, err := exec.Command("kubectl", "config", "current-context").Output()
-	Expect(err).ShouldNot(HaveOccurred())
-	return string(bytes.TrimSuffix(out, []byte("\n")))
-}
+//func getClusterName() string {
+//	out, err := exec.Command("kubectl", "config", "current-context").Output()
+//	Expect(err).ShouldNot(HaveOccurred())
+//	return string(bytes.TrimSuffix(out, []byte("\n")))
+//}
 
 // showItems displays the current set of a specified object type in tabular format
 func ShowItems(itemType string, kubeconfig string) error {
@@ -308,38 +308,38 @@ func waitForResource(resourceType string, resourceName string, namespace string,
 	return fmt.Errorf("Error: Failed to find the resource %s of type %s, timeout reached", resourceName, resourceType)
 }
 
-func waitForNamespaceToTerminate(namespace string, timeout time.Duration, kubeconfigPath string) error {
-	//check if the namespace exist before cleaning up
-	pollInterval := 5
-	if timeout < 5*time.Second {
-		timeout = 5 * time.Second
-	}
-	timeoutInSeconds := int(timeout.Seconds())
-
-	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl get ns %s", namespace))
-
-	if err != nil {
-		log.Infof("Namespace %s doesn't exist, nothing to clean — skipping...", namespace)
-		return nil
-	}
-
-	for i := pollInterval; i < timeoutInSeconds; i += pollInterval {
-		log.Infof("Waiting for namespace: %s to terminate : %d second(s) passed of %d seconds timeout", namespace, i, timeoutInSeconds)
-
-		out, _ := runCommandAndReturnStringOutput(fmt.Sprintf("kubectl get ns %s --ignore-not-found=true | grep -i terminating", namespace), kubeconfigPath)
-		out = strings.TrimSpace(out)
-		if out == "" {
-			return nil
-		}
-		if i > timeoutInSeconds/2 && i%10 == 0 {
-			//Patch the finalizer
-			log.Infof("Patch the finalizer to unstuck the terminating namespace %s", namespace)
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl patch ns %s -p '{\"metadata\":{\"finalizers\":[]}}' --type=merge", namespace))
-		}
-		time.Sleep(time.Duration(pollInterval) * time.Second)
-	}
-	return fmt.Errorf("Error: Failed to terminate the namespace %s", namespace)
-}
+//func waitForNamespaceToTerminate(namespace string, timeout time.Duration, kubeconfigPath string) error {
+//	//check if the namespace exist before cleaning up
+//	pollInterval := 5
+//	if timeout < 5*time.Second {
+//		timeout = 5 * time.Second
+//	}
+//	timeoutInSeconds := int(timeout.Seconds())
+//
+//	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl get ns %s", namespace))
+//
+//	if err != nil {
+//		log.Infof("Namespace %s doesn't exist, nothing to clean — skipping...", namespace)
+//		return nil
+//	}
+//
+//	for i := pollInterval; i < timeoutInSeconds; i += pollInterval {
+//		log.Infof("Waiting for namespace: %s to terminate : %d second(s) passed of %d seconds timeout", namespace, i, timeoutInSeconds)
+//
+//		out, _ := runCommandAndReturnStringOutput(fmt.Sprintf("kubectl get ns %s --ignore-not-found=true | grep -i terminating", namespace), kubeconfigPath)
+//		out = strings.TrimSpace(out)
+//		if out == "" {
+//			return nil
+//		}
+//		if i > timeoutInSeconds/2 && i%10 == 0 {
+//			//Patch the finalizer
+//			log.Infof("Patch the finalizer to unstuck the terminating namespace %s", namespace)
+//			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl patch ns %s -p '{\"metadata\":{\"finalizers\":[]}}' --type=merge", namespace))
+//		}
+//		time.Sleep(time.Duration(pollInterval) * time.Second)
+//	}
+//	return fmt.Errorf("Error: Failed to terminate the namespace %s", namespace)
+//}
 
 func VerifyControllersInCluster(namespace string, kubeconfigPath string) {
 	Expect(waitForResource("deploy", "helm-controller", namespace, INSTALL_PODS_READY_TIMEOUT, kubeconfigPath))
@@ -386,12 +386,12 @@ func installAndVerifyWego(wegoNamespace string, kubeconfigPath string) {
 //	Expect(waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)).To(Succeed())
 //}
 
-func deleteNamespace(namespace string) {
-	log.Infof("Deleting namespace: " + namespace)
-	command := exec.Command("kubectl", "delete", "ns", namespace)
-	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Eventually(session).Should(gexec.Exit())
-}
+//func deleteNamespace(namespace string) {
+//	log.Infof("Deleting namespace: " + namespace)
+//	command := exec.Command("kubectl", "delete", "ns", namespace)
+//	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+//	Eventually(session).Should(gexec.Exit())
+//}
 
 func deleteRepo(appRepoName string) {
 	log.Infof("Delete application repo: %s", GITHUB_ORG+"/"+appRepoName)
