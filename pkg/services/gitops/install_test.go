@@ -56,11 +56,11 @@ var _ = Describe("Install", func() {
 		Expect(dryRun).To(Equal(false))
 	})
 
-	It("applies app crd", func() {
+	It("applies app crd and wego-app manifests", func() {
 		_, err := gitopsSrv.Install(installParams)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		Expect(kubeClient.ApplyCallCount()).To(Equal(1))
+		Expect(kubeClient.ApplyCallCount()).To(Equal(6))
 
 		_, appCRD, namespace := kubeClient.ApplyArgsForCall(0)
 		Expect(appCRD).To(ContainSubstring("kind: App"))
