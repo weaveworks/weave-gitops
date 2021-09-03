@@ -14,8 +14,9 @@ spec:
       containers:
         - name: wego-app
           image: ghcr.io/weaveworks/wego-app:VERSION
+          args: ["ui","run"]
           ports:
-            - containerPort: 8283
+            - containerPort: 9001
           imagePullPolicy: IfNotPresent
   selector:
     matchLabels:

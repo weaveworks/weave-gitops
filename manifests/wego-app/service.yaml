@@ -8,5 +8,5 @@ spec:
     app: wego-app
   ports:
     - protocol: TCP
-      port: 8283
-      targetPort: 8283
+      port: 9001
+      targetPort: 9001
