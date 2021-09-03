@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"k8s.io/client-go/rest"
+
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
@@ -57,6 +59,7 @@ var (
 )
 
 func NewKubeHTTPClient() (Kube, client.Client, error) {
+
 	cfgLoadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
 
 	_, kubeContext, err := initialContexts(cfgLoadingRules)
@@ -64,36 +67,40 @@ func NewKubeHTTPClient() (Kube, client.Client, error) {
 		return nil, nil, fmt.Errorf("could not get initial context: %w", err)
 	}
 
-	configOverrides := clientcmd.ConfigOverrides{CurrentContext: kubeContext}
+	config, err := rest.InClusterConfig()
+	if err == rest.ErrNotInCluster {
 
-	restCfg, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		cfgLoadingRules,
-		&configOverrides,
-	).ClientConfig()
+		configOverrides := clientcmd.ConfigOverrides{CurrentContext: kubeContext}
 
-	if err != nil {
-		return nil, nil, fmt.Errorf("could not create rest config: %w", err)
+		config, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+			cfgLoadingRules,
+			&configOverrides,
+		).ClientConfig()
+		if err != nil {
+			return nil, nil, fmt.Errorf("could not create rest config: %w", err)
+		}
 	}
 
 	scheme := CreateScheme()
 
-	rawClient, err := client.New(restCfg, client.Options{
+	rawClient, err := client.New(config, client.Options{
 		Scheme: scheme,
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("kubernetes client initialization failed: %w", err)
 	}
 
-	dc, err := discovery.NewDiscoveryClientForConfig(restCfg)
+	dc, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to initialize discovery client: %s", err)
 	}
 	mapper := restmapper.NewDeferredDiscoveryRESTMapper(memory.NewMemCacheClient(dc))
 
-	dyn, err := dynamic.NewForConfig(restCfg)
+	dyn, err := dynamic.NewForConfig(config)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to initialize dynamic client: %s", err)
 	}
+
 
 	return &KubeHTTP{Client: rawClient, ClusterName: kubeContext, RestMapper: mapper, DynClient: dyn}, rawClient, nil
 }
