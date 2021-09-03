@@ -34,7 +34,22 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 		fluxManifests = append(fluxManifests, manifests.AppCRD...)
 	} else {
 		if err := g.kube.Apply(ctx, manifests.AppCRD, params.Namespace); err != nil {
-			return []byte{}, fmt.Errorf("could not apply manifest: %w", err)
+			return []byte{}, fmt.Errorf("could not apply app crd manifest: %w", err)
+		}
+		if err := g.kube.Apply(ctx, manifests.WegoAppServiceAccount, params.Namespace); err != nil {
+			return []byte{}, fmt.Errorf("could not apply wego-app service account manifest: %w", err)
+		}
+		if err := g.kube.Apply(ctx, manifests.WegoAppRoleBinding, params.Namespace); err != nil {
+			return []byte{}, fmt.Errorf("could not apply wego-app role binding manifest: %w", err)
+		}
+		if err := g.kube.Apply(ctx, manifests.WegoAppRole, params.Namespace); err != nil {
+			return []byte{}, fmt.Errorf("could not apply wego-app role manifest: %w", err)
+		}
+		if err := g.kube.Apply(ctx, manifests.WegoAppDeployment(), params.Namespace); err != nil {
+			return []byte{}, fmt.Errorf("could not apply wego-app deployment manifest: %w", err)
+		}
+		if err := g.kube.Apply(ctx, manifests.WegoAppService, params.Namespace); err != nil {
+			return []byte{}, fmt.Errorf("could not apply wego-app service manifest: %w", err)
 		}
 	}
 

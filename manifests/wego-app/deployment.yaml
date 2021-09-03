@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wego-app
+  namespace: wego-system
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: wego-app
+    spec:
+      serviceAccountName: api-service-account
+      containers:
+        - name: wego-app
+          image: weaveworks/weave-gitops:VERSION
+          ports:
+            - containerPort: 8283
+          imagePullPolicy: IfNotPresent
+  selector:
+    matchLabels:
+      app: wego-app

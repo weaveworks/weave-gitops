@@ -1,0 +1,24 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: resources-reader
+  namespace: wego-system
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "watch", "list"]
+  - apiGroups: [""]
+    resources: [ "apps.wego.weave.works" ]
+    verbs: [ "get","create","list","delete","watch" ]
+  - apiGroups: [""]
+    resources: [ "kustomizations.kustomize.toolkit.fluxcd.io" ]
+    verbs: [ "get","create","delete","list" ]
+  - apiGroups: [""]
+    resources: [ "helmreleases.helm.toolkit.fluxcd.io" ]
+    verbs: [ "get","create","delete","list" ]
+  - apiGroups: [""]
+    resources: [ "helmrepositories.source.toolkit.fluxcd.io" ]
+    verbs: [ "get","create","delete","list" ]
+  - apiGroups: [""]
+    resources: [ "gitrepositories.source.toolkit.fluxcd.io" ]
+    verbs: [ "get","create","delete","list" ]
