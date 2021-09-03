@@ -1,15 +1,11 @@
 # UI build
 FROM node:14-buster AS ui
-
 RUN apt-get update -y && apt-get install -y build-essential g++ python
 RUN mkdir -p /home/app/node_modules && chown -R node:node /home/app
-
 WORKDIR /home/app
 USER node
-
 COPY --chown=node:node package*.json /home/app/
 RUN npm install
-
 COPY --chown=node:node . /home/app/
 RUN make ui
 
@@ -23,5 +19,4 @@ RUN make dependencies && make bin
 # Distroless
 FROM gcr.io/distroless/base
 COPY --from=go-build /app/bin/wego /wego
-
 ENTRYPOINT ["/wego"]
