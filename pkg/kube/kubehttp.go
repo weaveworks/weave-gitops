@@ -101,7 +101,6 @@ func NewKubeHTTPClient() (Kube, client.Client, error) {
 		return nil, nil, fmt.Errorf("failed to initialize dynamic client: %s", err)
 	}
 
-
 	return &KubeHTTP{Client: rawClient, ClusterName: kubeContext, RestMapper: mapper, DynClient: dyn}, rawClient, nil
 }
 
