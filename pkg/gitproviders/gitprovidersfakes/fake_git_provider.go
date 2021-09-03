@@ -160,6 +160,19 @@ type FakeGitProvider struct {
 		result1 *gitprovider.RepositoryInfo
 		result2 error
 	}
+	GetRepoVisibilityStub        func(string) (*gitprovider.RepositoryVisibility, error)
+	getRepoVisibilityMutex       sync.RWMutex
+	getRepoVisibilityArgsForCall []struct {
+		arg1 string
+	}
+	getRepoVisibilityReturns struct {
+		result1 *gitprovider.RepositoryVisibility
+		result2 error
+	}
+	getRepoVisibilityReturnsOnCall map[int]struct {
+		result1 *gitprovider.RepositoryVisibility
+		result2 error
+	}
 	RepositoryExistsStub        func(string, string) (bool, error)
 	repositoryExistsMutex       sync.RWMutex
 	repositoryExistsArgsForCall []struct {
@@ -861,6 +874,70 @@ func (fake *FakeGitProvider) GetRepoInfoFromUrlReturnsOnCall(i int, result1 *git
 	}{result1, result2}
 }
 
+func (fake *FakeGitProvider) GetRepoVisibility(arg1 string) (*gitprovider.RepositoryVisibility, error) {
+	fake.getRepoVisibilityMutex.Lock()
+	ret, specificReturn := fake.getRepoVisibilityReturnsOnCall[len(fake.getRepoVisibilityArgsForCall)]
+	fake.getRepoVisibilityArgsForCall = append(fake.getRepoVisibilityArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.GetRepoVisibilityStub
+	fakeReturns := fake.getRepoVisibilityReturns
+	fake.recordInvocation("GetRepoVisibility", []interface{}{arg1})
+	fake.getRepoVisibilityMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeGitProvider) GetRepoVisibilityCallCount() int {
+	fake.getRepoVisibilityMutex.RLock()
+	defer fake.getRepoVisibilityMutex.RUnlock()
+	return len(fake.getRepoVisibilityArgsForCall)
+}
+
+func (fake *FakeGitProvider) GetRepoVisibilityCalls(stub func(string) (*gitprovider.RepositoryVisibility, error)) {
+	fake.getRepoVisibilityMutex.Lock()
+	defer fake.getRepoVisibilityMutex.Unlock()
+	fake.GetRepoVisibilityStub = stub
+}
+
+func (fake *FakeGitProvider) GetRepoVisibilityArgsForCall(i int) string {
+	fake.getRepoVisibilityMutex.RLock()
+	defer fake.getRepoVisibilityMutex.RUnlock()
+	argsForCall := fake.getRepoVisibilityArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeGitProvider) GetRepoVisibilityReturns(result1 *gitprovider.RepositoryVisibility, result2 error) {
+	fake.getRepoVisibilityMutex.Lock()
+	defer fake.getRepoVisibilityMutex.Unlock()
+	fake.GetRepoVisibilityStub = nil
+	fake.getRepoVisibilityReturns = struct {
+		result1 *gitprovider.RepositoryVisibility
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGitProvider) GetRepoVisibilityReturnsOnCall(i int, result1 *gitprovider.RepositoryVisibility, result2 error) {
+	fake.getRepoVisibilityMutex.Lock()
+	defer fake.getRepoVisibilityMutex.Unlock()
+	fake.GetRepoVisibilityStub = nil
+	if fake.getRepoVisibilityReturnsOnCall == nil {
+		fake.getRepoVisibilityReturnsOnCall = make(map[int]struct {
+			result1 *gitprovider.RepositoryVisibility
+			result2 error
+		})
+	}
+	fake.getRepoVisibilityReturnsOnCall[i] = struct {
+		result1 *gitprovider.RepositoryVisibility
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeGitProvider) RepositoryExists(arg1 string, arg2 string) (bool, error) {
 	fake.repositoryExistsMutex.Lock()
 	ret, specificReturn := fake.repositoryExistsReturnsOnCall[len(fake.repositoryExistsArgsForCall)]
@@ -1017,6 +1094,8 @@ func (fake *FakeGitProvider) Invocations() map[string][][]interface{} {
 	defer fake.getRepoInfoMutex.RUnlock()
 	fake.getRepoInfoFromUrlMutex.RLock()
 	defer fake.getRepoInfoFromUrlMutex.RUnlock()
+	fake.getRepoVisibilityMutex.RLock()
+	defer fake.getRepoVisibilityMutex.RUnlock()
 	fake.repositoryExistsMutex.RLock()
 	defer fake.repositoryExistsMutex.RUnlock()
 	fake.uploadDeployKeyMutex.RLock()

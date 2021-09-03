@@ -548,11 +548,13 @@ func verifyHelmPodWorkloadIsDeployed(workloadName string, workloadNamespace stri
 
 func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
+                            (cd %s && git pull origin main || true) &&
                             cp -r %s %s &&
                             cd %s &&
                             git add . &&
                             git commit -m 'add workload manifest' &&
-                            git push -u origin main`, appManifestFilePath, repoAbsolutePath, repoAbsolutePath))
+                            git push -u origin main`,
+		repoAbsolutePath, appManifestFilePath, repoAbsolutePath, repoAbsolutePath))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, 10, 1).Should(gexec.Exit())
@@ -560,7 +562,7 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 
 func gitUpdateCommitPush(repoAbsolutePath string) {
 	log.Infof("Pushing changes made to file(s) in repo: %s", repoAbsolutePath)
-	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cd %s && git add -u && git commit -m 'edit repo file' && git push", repoAbsolutePath))
+	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cd %s && git add -u && git commit -m 'edit repo file' && git pull --rebase && git push -f", repoAbsolutePath))
 }
 
 func pullBranch(repoAbsolutePath string, branch string) {
