@@ -6,6 +6,18 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
+	"time"
+
+	"github.com/fluxcd/go-git-providers/github"
+	"github.com/fluxcd/go-git-providers/gitlab"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
@@ -24,6 +36,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -31,18 +44,22 @@ type key int
 
 const tokenKey key = iota
 
+var ErrEmptyAccessToken = fmt.Errorf("access token is empty")
+
 type applicationServer struct {
 	pb.UnimplementedApplicationsServer
 
-	log logr.Logger
-	app *app.App
+	log       logr.Logger
+	app       *app.App
+	jwtClient auth.JWTClient
 }
 
 // An ApplicationConfig allows for the customization of an ApplicationsServer.
 // Use the DefaultConfig() to use the default dependencies.
 type ApplicationConfig struct {
-	Logger logr.Logger
-	App    *app.App
+	Logger    logr.Logger
+	App       *app.App
+	JwtClient auth.JWTClient
 }
 
 //Remove when middleware is done
@@ -53,8 +70,9 @@ type contextVals struct {
 // NewApplicationsServer creates a grpc Applications server
 func NewApplicationsServer(cfg *ApplicationConfig) pb.ApplicationsServer {
 	return &applicationServer{
-		log: cfg.Logger,
-		app: cfg.App,
+		jwtClient: cfg.JwtClient,
+		log:       cfg.Logger,
+		app:       cfg.App,
 	}
 }
 
@@ -73,9 +91,15 @@ func DefaultConfig() (*ApplicationConfig, error) {
 
 	appSrv := app.New(nil, nil, nil, kubeClient, nil)
 
+	rand.Seed(time.Now().UnixNano())
+	secretKey := rand.String(20)
+
+	jwtClient := auth.NewJwtClient(secretKey)
+
 	return &ApplicationConfig{
-		Logger: logr,
-		App:    appSrv,
+		Logger:    logr,
+		App:       appSrv,
+		JwtClient: jwtClient,
 	}, nil
 }
 
@@ -308,4 +332,26 @@ func mapConditions(conditions []metav1.Condition) []*pb.Condition {
 	}
 
 	return out
+}
+
+var ErrBadProvider = errors.New("wrong provider name")
+
+// Authenticate generates and returns a jwt token using git provider name and git provider token
+func (s *applicationServer) Authenticate(_ context.Context, msg *pb.AuthenticateRequest) (*pb.AuthenticateResponse, error) {
+
+	if !strings.HasPrefix(github.DefaultDomain, msg.ProviderName) &&
+		!strings.HasPrefix(gitlab.DefaultDomain, msg.ProviderName) {
+		return nil, status.Errorf(codes.InvalidArgument, "%s expected github or gitlab, got %s", ErrBadProvider, msg.ProviderName)
+	}
+
+	if msg.AccessToken == "" {
+		return nil, status.Error(codes.InvalidArgument, ErrEmptyAccessToken.Error())
+	}
+
+	token, err := s.jwtClient.GenerateJWT(auth.ExpirationTime, gitproviders.GitProviderName(msg.GetProviderName()), msg.GetAccessToken())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "error generating jwt token. %s", err)
+	}
+
+	return &pb.AuthenticateResponse{Token: token}, nil
 }
