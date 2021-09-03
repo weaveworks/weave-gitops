@@ -79,7 +79,7 @@ func (c *ClusterPool) Generate() error {
 	fmt.Println("Creating kube config files on ", kubeConfigRoot)
 
 	go func() {
-		for c.end == false {
+		for !c.end {
 			cluster, err := CreateKindCluster(kubeConfigRoot)
 			if err != nil {
 				c.err = err
@@ -97,11 +97,10 @@ func (c *ClusterPool) Error() error {
 	return c.err
 }
 
-func (c *ClusterPool) End() error {
+func (c *ClusterPool) End() {
 	c.lastCluster.Delete()
 	c.lastCluster.DeleteKubeConfigFile()
 	c.end = true
-	return nil
 }
 
 func CreateFakeCluster(ind int64) (string, error) {
@@ -122,12 +121,12 @@ func CreateKindCluster(rootKubeConfigFilesPath string) (*Cluster, error) {
 		k8sVersion = "1.20.2"
 	}
 
-	if strings.Index(supportedProviders, provider) == -1 {
+	if !strings.Contains(supportedProviders, provider) {
 		log.Errorf("Cluster provider %s is not supported for testing", provider)
 		return nil, errors.New("Unsupported provider")
 	}
 
-	if strings.Index(supportedK8SVersions, k8sVersion) == -1 {
+	if !strings.Contains(supportedK8SVersions, k8sVersion) {
 		log.Errorf("Kubernetes version %s is not supported for testing", k8sVersion)
 		return nil, errors.New("Unsupported kubernetes version")
 	}

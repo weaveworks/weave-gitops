@@ -24,7 +24,8 @@ func TestAcceptance(t *testing.T) {
 
 var _ = BeforeSuite(func() {
 	clusterPool = cluster.NewClusterPool()
-	clusterPool.Generate()
+	err := clusterPool.Generate()
+	Expect(err).NotTo(HaveOccurred())
 	SetDefaultEventuallyTimeout(EVENTUALLY_DEFAULT_TIME_OUT)
 	DEFAULT_SSH_KEY_PATH = os.Getenv("HOME") + "/.ssh/id_rsa"
 	GITHUB_ORG = os.Getenv("GITHUB_ORG")
