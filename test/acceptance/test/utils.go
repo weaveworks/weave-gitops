@@ -352,8 +352,8 @@ func VerifyControllersInCluster(namespace string, kubeconfigPath string) {
 
 	By("And I wait for the wego controllers to be ready", func() {
 		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod", "120s", namespace))
-		fmt.Println("ENVIRON", os.Environ())
 		command.Env = os.Environ()
+		command.Env = append(command.Env, fmt.Sprintf("KUBECONFIG=%s", kubeconfigPath))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
