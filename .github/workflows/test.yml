@@ -146,7 +146,7 @@ jobs:
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/wego
-        export CLUSTER_PROVIDER=kubectl
+        export CLUSTER_PROVIDER=kind
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega
