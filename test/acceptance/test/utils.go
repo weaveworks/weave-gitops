@@ -605,15 +605,21 @@ func createRepository(repoName string, private bool) error {
 	}
 
 	ctx := context.Background()
+	fmt.Printf("creating repo %s ...\n", repoName)
 	if err := utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
 		_, err := githubProvider.OrgRepositories().Create(ctx, orgRef, repoInfo, repoCreateOpts)
 		return err
 	}); err != nil {
 		return fmt.Errorf("error creating repo %s", err)
 	}
+	fmt.Printf("repo %s created ...\n", repoName)
 
-	return utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
+	fmt.Printf("validating access to the repo %s ...\n", repoName)
+	err = utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
 		_, err := githubProvider.OrgRepositories().Get(ctx, orgRef)
 		return err
 	})
+	fmt.Printf("repo %s is accessible through the api ...\n", repoName)
+
+	return err
 }
