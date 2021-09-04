@@ -29,11 +29,10 @@ func GenerateWegoAppDeploymentManifest(deploymentTemplate []byte) ([]byte, error
 	deploymentValues := deploymentParameters{version.Version}
 
 	template := template.New("DeploymentTemplate")
-	var err error
 	template, _ = template.Parse(string(deploymentTemplate))
 
 	deploymentYaml := &bytes.Buffer{}
-	err = template.Execute(deploymentYaml, deploymentValues)
+	err := template.Execute(deploymentYaml, deploymentValues)
 	if err != nil {
 		return nil, fmt.Errorf("%s %w", errInjectingValuesToTemplate, err)
 	}

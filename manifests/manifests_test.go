@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
+	"sigs.k8s.io/yaml"
 )
 
 var _ = Describe("Testing WegoAppDeployment", func() {
@@ -17,7 +18,22 @@ var _ = Describe("Testing WegoAppDeployment", func() {
 		deploymentYaml, err := GenerateWegoAppDeploymentManifest(localDeploymentManifest)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(deploymentYaml).To(ContainSubstring(version.Version))
+		var Deployment struct {
+			Spec struct {
+				Template struct {
+					Spec struct {
+						Containers []struct {
+							Image string `yaml:"image"`
+						} `yaml:"containers"`
+					} `yaml:"spec"`
+				} `yaml:"template"`
+			} `yaml:"spec"`
+		}
+
+		err = yaml.Unmarshal(deploymentYaml, &Deployment)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(Deployment.Spec.Template.Spec.Containers[0].Image).To(ContainSubstring(version.Version))
 	})
 
 	It("should fail trying to parse the template", func() {
