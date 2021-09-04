@@ -20,7 +20,7 @@
   "scripts": {
     "preinstall": "npm install --package-lock-only --ignore-scripts && npx npm-force-resolutions",
     "build": "parcel build --target default",
-    "build:lib": "npx parcel build --target lib",
+    "build:lib": "parcel build --target lib",
     "typedefs": "npx -p typescript tsc ui/**/*.ts ui/**/*.tsx --skipLibCheck --esModuleInterop --jsx react-jsx --declaration --allowJs --emitDeclarationOnly --outDir dist",
     "start": "parcel serve --port 4567 ui/index.html",
     "lint": "eslint ui",
