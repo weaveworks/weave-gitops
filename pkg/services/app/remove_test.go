@@ -190,7 +190,7 @@ func setupFlux() error {
 }
 
 func updateAppInfoFromParams() error {
-	params, err := appSrv.(*App).updateParametersIfNecessary(gitProviders, localAddParams)
+	params, err := appSrv.(*App).updateParametersIfNecessary(localAddParams)
 	if err != nil {
 		return err
 	}
@@ -219,11 +219,13 @@ func runAddAndCollectInfo() error {
 // written to the repo
 func checkAddResults() error {
 	for _, res := range appResources {
-		resources := createdResources[res.kind]
-		if len(resources) == 0 {
-			return fmt.Errorf("expected %s resources to be created", res.kind)
+		if res.kind != ResourceKindSecret {
+			resources := createdResources[res.kind]
+			if len(resources) == 0 {
+				return fmt.Errorf("expected %s resources to be created", res.kind)
+			}
+			delete(resources, res.name)
 		}
-		delete(resources, res.name)
 	}
 
 	for kind, leftovers := range createdResources {
@@ -322,7 +324,7 @@ var _ = Describe("Remove", func() {
 		localAddParams.AppConfigUrl = "https://github.com/foo/quux"
 		Expect(updateAppInfoFromParams()).To(Succeed())
 
-		url, branch, err := appSrv.(*App).getConfigUrlAndBranch(info, "token")
+		url, branch, err := appSrv.(*App).getConfigUrlAndBranch(info)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(url).To(Equal(localAddParams.AppConfigUrl))
 		Expect(branch).To(Equal("config-branch"))

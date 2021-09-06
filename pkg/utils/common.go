@@ -173,7 +173,7 @@ func ConvertCommitHashToShort(hash string) string {
 	return hash[:7]
 }
 
-func CreateAppSecretName(targetName string, repoURL string) string {
+func CreateRepoSecretName(targetName string, repoURL string) string {
 	return fmt.Sprintf("wego-%s-%s", targetName, UrlToRepoName(repoURL))
 }
 

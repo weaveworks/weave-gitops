@@ -48,12 +48,11 @@ var _ = Describe("auth", func() {
 			gp         gitprovidersfakes.FakeGitProvider
 			osysClient *osys.OsysClient
 			as         AuthService
-			name       SecretName
 			fluxClient flux.Flux
 		)
 		BeforeEach(func() {
 			ctx = context.Background()
-			secretName = app.CreateAppSecretName(testClustername, repoUrl.String())
+			secretName = app.CreateRepoSecretName(testClustername, repoUrl.String())
 			Expect(err).NotTo(HaveOccurred())
 			osysClient = osys.New()
 			gp = gitprovidersfakes.FakeGitProvider{}
@@ -64,10 +63,6 @@ var _ = Describe("auth", func() {
 				fluxClient:  fluxClient,
 				k8sClient:   k8sClient,
 				gitProvider: &gp,
-			}
-			name = SecretName{
-				Name:      secretName,
-				Namespace: namespace.Name,
 			}
 
 			gp.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
@@ -81,7 +76,7 @@ var _ = Describe("auth", func() {
 			}
 		})
 		It("create and stores a deploy key if none exists", func() {
-			_, err := as.SetupDeployKey(ctx, name, testClustername, repoUrl)
+			_, err := as.CreateGitClient(ctx, testClustername, namespace.Name, repoUrl.String())
 			Expect(err).NotTo(HaveOccurred())
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}
 			secret := &corev1.Secret{}
@@ -100,7 +95,7 @@ var _ = Describe("auth", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(k8sClient.Create(ctx, secret)).To(Succeed())
 
-			_, err = as.SetupDeployKey(ctx, name, testClustername, repoUrl)
+			_, err = as.CreateGitClient(ctx, testClustername, namespace.Name, repoUrl.String())
 			Expect(err).NotTo(HaveOccurred())
 			// We should NOT have uploaded anything since the key already exists
 			Expect(gp.UploadDeployKeyCallCount()).To(Equal(0))
@@ -111,7 +106,7 @@ var _ = Describe("auth", func() {
 			}
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}
 
-			_, err = as.SetupDeployKey(ctx, name, testClustername, repoUrl)
+			_, err = as.CreateGitClient(ctx, testClustername, namespace.Name, repoUrl.String())
 			Expect(err).NotTo(HaveOccurred())
 
 			newSecret := &corev1.Secret{}
