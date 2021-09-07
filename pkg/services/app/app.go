@@ -10,7 +10,6 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
-	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
@@ -49,54 +48,31 @@ type AppService interface {
 }
 
 type App struct {
-	Osys               osys.Osys
-	Git                git.Git
-	Flux               flux.Flux
-	Kube               kube.Kube
-	Logger             logger.Logger
-	GitProviderFactory func(token string) (gitproviders.GitProvider, error)
-	// TODO: @jpellizzari adding this as a temporary stop-gap to maintain the current behavior for external config repos.
-	// As of https://github.com/weaveworks/weave-gitops/pull/587,
-	// we are not addressing this case yet. Many of the unit tests check for exact function call
-	// arguments, which will get skipped when the AuthService is used (and therefore tests will fail).
-	// Follow up issue where this will be addressed: https://github.com/weaveworks/weave-gitops/issues/592
-	temporaryGitClientFactory func(osysClient osys.Osys, privKeypath string) (git.Git, error)
+	Context     context.Context
+	Osys        osys.Osys
+	AppGit      git.Git
+	ConfigGit   git.Git
+	Flux        flux.Flux
+	Kube        kube.Kube
+	Logger      logger.Logger
+	GitProvider gitproviders.GitProvider
 }
 
-func New(logger logger.Logger, git git.Git, flux flux.Flux, kube kube.Kube, osys osys.Osys) *App {
+func New(ctx context.Context, logger logger.Logger, appGit, configGit git.Git, gitProvider gitproviders.GitProvider, flux flux.Flux, kube kube.Kube, osys osys.Osys) AppService {
 	return &App{
-		Git:                       git,
-		Flux:                      flux,
-		Kube:                      kube,
-		Logger:                    logger,
-		Osys:                      osys,
-		GitProviderFactory:        createGitProvider,
-		temporaryGitClientFactory: temporaryCreateGitClient,
+		Context:     ctx,
+		AppGit:      appGit,
+		ConfigGit:   configGit,
+		Flux:        flux,
+		Kube:        kube,
+		Logger:      logger,
+		Osys:        osys,
+		GitProvider: gitProvider,
 	}
 }
 
 // Make sure App implements all the required methods.
 var _ AppService = &App{}
-
-func createGitProvider(token string) (gitproviders.GitProvider, error) {
-	provider, err := gitproviders.New(gitproviders.Config{
-		Provider: gitproviders.GitProviderGitHub,
-		Token:    token,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed initializing git provider: %w", err)
-	}
-
-	return provider, nil
-}
-
-func temporaryCreateGitClient(osysClient osys.Osys, privKeypath string) (git.Git, error) {
-	auth, err := osysClient.SelectAuthMethod(privKeypath)
-	if err != nil {
-		return nil, fmt.Errorf("error selecting auth method for external config repo: %w", err)
-	}
-	return git.New(auth, wrapper.NewGoGit()), nil
-}
 
 func (a *App) getDeploymentType(ctx context.Context, name string, namespace string) (wego.DeploymentType, error) {
 	app, err := a.Kube.GetApplication(ctx, types.NamespacedName{Name: name, Namespace: namespace})

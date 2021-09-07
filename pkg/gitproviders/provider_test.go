@@ -801,3 +801,25 @@ var _ = DescribeTable("NormalizedRepoURL", func(input string, expected expectedR
 		protocol: RepositoryURLProtocolHTTPS,
 	}),
 )
+
+var _ = Describe("Test GetRepoVisiblity", func() {
+	url := "ssh://git@github.com/foo/bar"
+	It("tests that a nil info generates the appropriate error", func() {
+		result, underlyingError := getVisibilityFromRepoInfo(url, nil)
+		Expect(result).To(BeNil())
+		Expect(underlyingError.Error()).To(Equal(fmt.Sprintf("unable to obtain repository visibility for: %s", url)))
+	})
+
+	It("tests that a nil visibility reference generates the appropriate error", func() {
+		result, underlyingError := getVisibilityFromRepoInfo(url, &gitprovider.RepositoryInfo{Visibility: nil})
+		Expect(result).To(BeNil())
+		Expect(underlyingError.Error()).To(Equal(fmt.Sprintf("unable to obtain repository visibility for: %s", url)))
+	})
+
+	It("tests that a non-nil visibility reference is successful", func() {
+		public := gitprovider.RepositoryVisibilityPublic
+		result, underlyingError := getVisibilityFromRepoInfo(url, &gitprovider.RepositoryInfo{Visibility: &public})
+		Expect(underlyingError).To(BeNil())
+		Expect(result).To(Equal(&public))
+	})
+})

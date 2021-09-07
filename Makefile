@@ -36,11 +36,14 @@ unit-tests: dependencies cmd/wego/ui/run/dist/index.html
 debug:
 	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) -gcflags='all=-N -l' cmd/wego/*.go
 
-bin: ui
+bin:
 	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) cmd/wego/*.go
 
 # Build wego binary
-wego: dependencies bin
+wego: dependencies ui bin
+
+docker:
+	docker build -t ghcr.io/weaveworks/wego-app:latest .
 
 # Install binaries to GOPATH
 install: bin
@@ -147,12 +150,5 @@ crd:
 	controller-gen $(CRD_OPTIONS) paths="./..." output:crd:artifacts:config=manifests/crds
 
 # Check go format
-check-format: 
+check-format:
 	if [ ! -z "$(FORMAT_LIST)" ] ; then echo invalid format at: ${FORMAT_LIST} && exit 1; fi
-
-generate-helm: wego
-	PREV_CONTEXT=$(shell kubectl config current-context)
-	kind create cluster --name wego-helm-generator
-	./bin/wego gitops install --dry-run > ./helm/weave-gitops/templates/generated_resources.yaml
-	kind delete cluster --name wego-helm-generator
-	test -n "$(PREV_CONTEXT)" && kubectl config use-context $(PREV_CONTEXT) || true

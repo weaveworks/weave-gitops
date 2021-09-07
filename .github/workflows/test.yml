@@ -99,7 +99,7 @@ jobs:
 
   setup-for-ubuntu-tests:
     steps: 
-      step: &ubuntu-setup
+    - step: &ubuntu-setup
       - name: Install Go
         uses: actions/setup-go@v2
         with:
