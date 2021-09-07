@@ -898,7 +898,7 @@ var _ = Describe("Weave GitOps Add Tests", func() {
 		})
 
 		By("And changes to the app files should not be synchronized", func() {
-			appManifestFile1, _ = runCommandAndReturnStringOutput("cd " + repoAbsolutePath1 + " && ls")
+			appManifestFile1, _ = runCommandAndReturnStringOutput("cd " + repoAbsolutePath1 + " && ls | grep yaml")
 			createAppReplicas(repoAbsolutePath1, appManifestFile1, replicaSetValue, tip1.workloadName)
 			gitUpdateCommitPush(repoAbsolutePath1)
 			_ = waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIME_OUT)
