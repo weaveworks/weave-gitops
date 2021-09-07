@@ -105,7 +105,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.16.x
+        go-version: 1.16.3
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Setup selenium standalone server
@@ -134,7 +134,7 @@ jobs:
         config: "./test/acceptance/test/configs/kind-config.yaml"
     - name: Kind-check
       run: |
-      kubectl get pods -A
+        kubectl get pods -A
     - name: Download wego binaries
       uses: actions/download-artifact@v2
       with:
@@ -168,7 +168,7 @@ jobs:
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega
-        ginkgo --focus=SmokeTest --randomizeSuites --reportFile=$(pwd)/test-results/smoke-test-results.xml -v ./test/acceptance/test/...  
+        ginkgo --focus=SmokeTest --randomizeSuites --reportFile=$(pwd)/test-results/smoke-test-results.xml -v ./test/acceptance/test/...
 
   acceptance-tests:
     runs-on: ubuntu-latest
@@ -207,7 +207,7 @@ jobs:
         config: "./test/acceptance/test/configs/kind-config.yaml"
     - name: Kind-check
       run: |
-      kubectl get pods -A
+        kubectl get pods -A
     - name: Download wego binaries
       uses: actions/download-artifact@v2
       with:
@@ -229,7 +229,7 @@ jobs:
         git config --global init.defaultBranch main
         git config --global user.email "weave-test-user@example.com"
         git config --global user.name "Testy McTestFace"
-        git config --global url.ssh://git@github.com/.insteadOf https://github.com/ 
+        git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     - name: Run Full Acceptance Suite
       env:
         GITHUB_ORG: weaveworks-gitops-test
