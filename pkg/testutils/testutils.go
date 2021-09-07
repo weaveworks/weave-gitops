@@ -10,7 +10,9 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	ctrl "sigs.k8s.io/controller-runtime"
 
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
 	. "github.com/onsi/gomega"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/discovery"
 	memory "k8s.io/client-go/discovery/cached"
@@ -47,6 +49,8 @@ func StartK8sTestEnvironment() (*K8sTestEnv, error) {
 			&wego.Application{},
 			&corev1.Namespace{},
 			&corev1.Secret{},
+			&appsv1.Deployment{},
+			&kustomizev1.Kustomization{},
 		},
 		Scheme: scheme,
 	})
