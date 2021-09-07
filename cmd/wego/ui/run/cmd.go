@@ -113,7 +113,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-//go:embed dist/*
 var static embed.FS
 
 func getAssets() fs.FS {
