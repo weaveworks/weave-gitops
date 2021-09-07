@@ -114,7 +114,11 @@ var _ = BeforeEach(func() {
 		return k, nil
 	}
 
-	cfg := ApplicationConfig{AppFactory: appFactory, JwtClient: auth.NewJwtClient(secretKey)}
+	cfg := ApplicationsConfig{
+		AppFactory: appFactory,
+		JwtClient:  auth.NewJwtClient(secretKey),
+		KubeClient: k8sClient,
+	}
 	apps = NewApplicationsServer(&cfg)
 	pb.RegisterApplicationsServer(s, apps)
 
