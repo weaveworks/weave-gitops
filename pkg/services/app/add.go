@@ -665,7 +665,7 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, repo string, appHas
 		return fmt.Errorf("failed to retrieve owner: %w", err)
 	}
 
-	configBranch, branchErr := a.GitProvider.GetDefaultBranch(info.Spec.ConfigURL)
+	configBranch, branchErr := a.GitProvider.GetDefaultBranch(repo)
 	if branchErr != nil {
 		return branchErr
 	}
