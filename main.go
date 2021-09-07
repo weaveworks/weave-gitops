@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
+	log.Debug("just a test")
 }
 
 func test() string {
