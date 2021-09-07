@@ -259,3 +259,17 @@ jobs:
         name: acceptance-test-artifacts
         path: ${{ env.ARTIFACTS_BASE_DIR }}
         retention-days: 1
+        ginkgo --randomizeSuites --reportFile=$(pwd)/test-results/smoke-test-results.xml -v ./test/acceptance/test/...
+  library-integration-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@94ab11c41e45d028884a99163086648e898eed25
+      - name: Run Library Integration Test
+        env:
+          GITHUB_TOKEN: "${{ secrets.github_token }}"
+        run: make lib-test
+
+        
