@@ -7,7 +7,12 @@ Weave GitOps
 [![LICENSE](https://img.shields.io/github/license/weaveworks/weave-gitops)](https://github.com/weaveworks/weave-gitops/blob/master/LICENSE)
 [![Contributors](https://img.shields.io/github/contributors/weaveworks/weave-gitops)](https://github.com/weaveworks/weave-gitops/graphs/contributors)
 [![Release](https://img.shields.io/github/v/release/weaveworks/weave-gitops?include_prereleases)](https://github.com/weaveworks/weave-gitops/releases/latest)
+
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=large)](https://app.fossa.com/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops?ref=badge_large)
+
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=small)](https://app.fossa.com/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops?ref=badge_small)
+
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=shield)](https://app.fossa.com/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops?ref=badge_shield)
 
 ## Overview
 
