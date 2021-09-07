@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
+	appsv1 "k8s.io/api/apps/v1"
 	"sigs.k8s.io/yaml"
 )
 
@@ -18,18 +19,7 @@ var _ = Describe("Testing WegoAppDeployment", func() {
 		deploymentYaml, err := GenerateWegoAppDeploymentManifest(localDeploymentManifest)
 		Expect(err).NotTo(HaveOccurred())
 
-		var Deployment struct {
-			Spec struct {
-				Template struct {
-					Spec struct {
-						Containers []struct {
-							Image string `yaml:"image"`
-						} `yaml:"containers"`
-					} `yaml:"spec"`
-				} `yaml:"template"`
-			} `yaml:"spec"`
-		}
-
+		var Deployment appsv1.Deployment
 		err = yaml.Unmarshal(deploymentYaml, &Deployment)
 		Expect(err).NotTo(HaveOccurred())
 
