@@ -11,6 +11,7 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -568,6 +569,21 @@ func mergePR(repoAbsolutePath, prLink string) {
 	Eventually(session).Should(gexec.Exit())
 }
 
+func getWaitTimeFromErr(errOutput string) (time.Duration, error) {
+	var re = regexp.MustCompile(`(?m)\[rate reset in (.*)\]`)
+	match := re.FindAllStringSubmatch(errOutput, -1)
+
+	if len(match) >= 1 && len(match[1][0]) > 0 {
+		duration, err := time.ParseDuration(match[1][0])
+		if err != nil {
+			return 0, fmt.Errorf("error pasing rate reset time %w", err)
+		}
+		return duration, nil
+	}
+
+	return 0, fmt.Errorf("could not found a rate reset on string: %s", errOutput)
+}
+
 func createRepository(repoName string, private bool) error {
 
 	visibility := gitprovider.RepositoryVisibilityPrivate
@@ -608,6 +624,15 @@ func createRepository(repoName string, private bool) error {
 	fmt.Printf("creating repo %s ...\n", repoName)
 	if err := utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
 		_, err := githubProvider.OrgRepositories().Create(ctx, orgRef, repoInfo, repoCreateOpts)
+		if err != nil && strings.Contains(err.Error(), "rate limit exceeded") {
+			waitForRateQuota, err := getWaitTimeFromErr(err.Error())
+			if err != nil {
+				return err
+			}
+			fmt.Printf("Waiting for rate quota %s \n", waitForRateQuota.String())
+			time.Sleep(waitForRateQuota)
+			return nil
+		}
 		return err
 	}); err != nil {
 		return fmt.Errorf("error creating repo %s", err)
