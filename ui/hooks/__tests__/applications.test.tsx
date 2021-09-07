@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import _ from "lodash";
 import * as React from "react";
+import { Application } from "../../lib/api/applications/applications.pb";
 import { withContext } from "../../lib/test-utils";
 import useApplications from "../applications";
 
@@ -18,10 +19,17 @@ describe("useApplications", () => {
   it("lists applications", async () => {
     const name = "some app";
     const mockResponses = {
-      ListApplications: { applications: [{ name }] },
+      ListApplications: () => ({
+        applications: [{ name }],
+      }),
     };
     const TestComponent = () => {
-      const { applications } = useApplications();
+      const { listApplications } = useApplications();
+      const [applications, setApplications] = React.useState<Application[]>([]);
+
+      React.useEffect(() => {
+        listApplications().then((res) => setApplications(res as Application[]));
+      }, []);
 
       return (
         <ul>
@@ -41,8 +49,8 @@ describe("useApplications", () => {
   it("get application", async () => {
     const url = "example.com/somepath";
     const mockResponses = {
-      ListApplications: { applications: [{ name: "some-name" }] },
-      GetApplication: { application: { url } },
+      ListApplications: () => ({ applications: [{ name: "some-name" }] }),
+      GetApplication: () => ({ application: { url } }),
     };
     const TestComponent = () => {
       const { getApplication } = useApplications();

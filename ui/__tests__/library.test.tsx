@@ -15,8 +15,10 @@ import { createMockClient } from "../lib/test-utils";
 describe("Example Library App", () => {
   const name = "some app";
   const mockResponses = {
-    ListApplications: { applications: [{ name }] },
-    GetApplication: { application: { name } },
+    ListApplications: () => ({ applications: [{ name }] }),
+    GetApplication: () => ({ application: { name } }),
+    GetReconciledObjects: () => ({ objects: [] }),
+    GetChildObjects: () => ({ objects: [] }),
   };
 
   const wrap = (Component) => (
@@ -26,7 +28,7 @@ describe("Example Library App", () => {
         <Router>
           <AppContextProvider
             linkResolver={defaultLinkResolver}
-            applicationsClient={createMockClient(mockResponses) as any}
+            applicationsClient={createMockClient(mockResponses)}
           >
             <Component />
           </AppContextProvider>
