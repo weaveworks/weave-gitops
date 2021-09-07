@@ -789,34 +789,32 @@ var _ = Describe("Add", func() {
 		})
 
 		It("creates the pull request against the default branch for an org config repository", func() {
-			branch := ""
 			gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
 				return gitproviders.AccountTypeOrg, nil
 			}
 
 			gitProviders.CreatePullRequestToOrgRepoStub = func(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
-				branch = targetBranch
 				return dummyPullRequest{}, nil
 			}
 
 			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
 			Expect(appSrv.(*App).createPullRequestToRepo(info, "ssh://git@github.com/ewojfewoj3323w/abc", "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+			_, branch, _, _, _, _, _ := gitProviders.CreatePullRequestToOrgRepoArgsForCall(0)
 			Expect(branch).To(Equal("default-branch"))
 		})
 
 		It("creates the pull request against the default branch for a user config repository", func() {
-			branch := ""
 			gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
 				return gitproviders.AccountTypeUser, nil
 			}
 
 			gitProviders.CreatePullRequestToUserRepoStub = func(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
-				branch = targetBranch
 				return dummyPullRequest{}, nil
 			}
 
 			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
 			Expect(appSrv.(*App).createPullRequestToRepo(info, "ssh://git@github.com/ewojfewoj3323w/abc", "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+			_, branch, _, _, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
 			Expect(branch).To(Equal("default-branch"))
 		})
 	})
