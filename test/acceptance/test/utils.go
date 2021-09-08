@@ -207,14 +207,22 @@ func initAndCreateEmptyRepo(appRepoName string, isPrivateRepo bool) string {
 	err = createRepository(appRepoName, isPrivateRepo)
 	Expect(err).ShouldNot(HaveOccurred())
 
-	command := exec.Command("sh", "-c", fmt.Sprintf(`
+	err = utils.WaitUntil(os.Stdout, time.Second*3, time.Second*30, func() error {
+		command := exec.Command("sh", "-c", fmt.Sprintf(`
                             git clone %s &&
 							cd %s`,
-		GITHUB_ORG+"/"+appRepoName,
-		repoAbsolutePath))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			GITHUB_ORG+"/"+appRepoName,
+			repoAbsolutePath))
+		command.Stdout = os.Stdout
+		command.Stderr = os.Stderr
+		err := command.Run()
+		if err != nil {
+			os.RemoveAll(repoAbsolutePath)
+			return err
+		}
+		return nil
+	})
 	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
 
 	return repoAbsolutePath
 }
