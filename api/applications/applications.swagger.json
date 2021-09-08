@@ -48,6 +48,92 @@
         ]
       }
     },
+    "/v1/applications/child_objects": {
+      "post": {
+        "summary": "GetChildObjects returns the children of a given object, specified by a GroupVersionKind.\nNot all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.",
+        "operationId": "Applications_GetChildObjects",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetChildObjectsRes"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GetChildObjectsReq"
+            }
+          }
+        ],
+        "tags": [
+          "Applications"
+        ]
+      }
+    },
+    "/v1/applications/{automationName}/reconciled_objects": {
+      "post": {
+        "summary": "GetReconciledObjects returns a list of objects that were created as a result of the Application.\nThis list is derived by looking at the Kustomization that is associated with an Application.\nHelm Releases are not currently supported.",
+        "operationId": "Applications_GetReconciledObjects",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetReconciledObjectsRes"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "automationName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "automationNamespace": {
+                  "type": "string"
+                },
+                "automationKind": {
+                  "$ref": "#/definitions/GetReconciledObjectsReqAutomationKind"
+                },
+                "kinds": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1GroupVersionKind"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Applications"
+        ]
+      }
+    },
     "/v1/applications/{name}": {
       "get": {
         "summary": "GetApplication returns a given application",
@@ -183,6 +269,14 @@
     }
   },
   "definitions": {
+    "GetReconciledObjectsReqAutomationKind": {
+      "type": "string",
+      "enum": [
+        "Kustomize",
+        "Helm"
+      ],
+      "default": "Kustomize"
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -235,6 +329,18 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Condition"
+          }
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "deploymentType": {
+          "$ref": "#/definitions/v1GroupVersionKind"
+        },
+        "reconciledObjectKinds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1GroupVersionKind"
           }
         }
       }
@@ -294,6 +400,54 @@
         }
       }
     },
+    "v1GetChildObjectsReq": {
+      "type": "object",
+      "properties": {
+        "groupVersionKind": {
+          "$ref": "#/definitions/v1GroupVersionKind"
+        },
+        "parentUid": {
+          "type": "string"
+        }
+      }
+    },
+    "v1GetChildObjectsRes": {
+      "type": "object",
+      "properties": {
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1UnstructuredObject"
+          }
+        }
+      }
+    },
+    "v1GetReconciledObjectsRes": {
+      "type": "object",
+      "properties": {
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1UnstructuredObject"
+          }
+        }
+      }
+    },
+    "v1GroupVersionKind": {
+      "type": "object",
+      "properties": {
+        "group": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "title": "GroupVersionKind represents an objects Kubernetes API type data"
+    },
     "v1ListApplicationsResponse": {
       "type": "object",
       "properties": {
@@ -320,6 +474,27 @@
           "description": "A pagination token returned from a previous call\nthat indicates from where listing should continue."
         }
       }
+    },
+    "v1UnstructuredObject": {
+      "type": "object",
+      "properties": {
+        "groupVersionKind": {
+          "$ref": "#/definitions/v1GroupVersionKind"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "uid": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "title": "UnstructuredObject is a Kubernetes object of an unknown type"
     }
   }
 }

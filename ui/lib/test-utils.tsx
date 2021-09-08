@@ -7,30 +7,45 @@ import { ThemeProvider } from "styled-components";
 import AppContextProvider from "../contexts/AppContext";
 import {
   Applications,
+  GetApplicationRequest,
   GetApplicationResponse,
+  GetChildObjectsReq,
+  GetChildObjectsRes,
+  GetReconciledObjectsReq,
+  GetReconciledObjectsRes,
+  ListApplicationsRequest,
   ListApplicationsResponse,
+  ListCommitsRequest,
+  ListCommitsResponse,
 } from "./api/applications/applications.pb";
 import theme, { muiTheme } from "./theme";
 
 type ApplicationOverrides = {
-  ListApplications?: ListApplicationsResponse;
-  GetApplication?: GetApplicationResponse;
+  ListApplications?: (req: ListApplicationsRequest) => ListApplicationsResponse;
+  GetApplication?: (req: GetApplicationRequest) => GetApplicationResponse;
+  ListCommits?: (req: ListCommitsRequest) => ListCommitsResponse;
+  GetReconciledObjects?: (
+    req: GetReconciledObjectsReq
+  ) => GetReconciledObjectsRes;
+  GetChildObjects?: (req: GetChildObjectsReq) => GetChildObjectsRes;
 };
 
 // Don't make the user wire up all the promise stuff to be interface-compliant
-export const createMockClient = (ovr: ApplicationOverrides): Applications => {
+export const createMockClient = (
+  ovr: ApplicationOverrides
+): typeof Applications => {
   const promisified = _.reduce(
     ovr,
-    (result, desiredResponse, method) => {
-      result[method] = () =>
-        new Promise((accept) => accept(desiredResponse as any));
+    (result, handlerFn, method) => {
+      result[method] = (req) =>
+        new Promise((accept) => accept(handlerFn(req) as any));
 
       return result;
     },
     {}
   );
 
-  return promisified;
+  return promisified as typeof Applications;
 };
 
 export function withTheme(element) {
