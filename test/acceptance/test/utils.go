@@ -208,9 +208,9 @@ func initAndCreateEmptyRepo(appRepoName string, isPrivateRepo bool) string {
 	Expect(err).ShouldNot(HaveOccurred())
 
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
-                            hub clone %s %s &&
+                            git clone %s &&
 							cd %s`,
-		GITHUB_ORG+"/"+appRepoName, repoAbsolutePath,
+		GITHUB_ORG+"/"+appRepoName,
 		repoAbsolutePath))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
