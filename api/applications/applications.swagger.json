@@ -48,6 +48,62 @@
         ]
       }
     },
+    "/v1/applications/auth_providers/github": {
+      "get": {
+        "summary": "GetGithubDeviceCode retrieves a temporary device code for Github authentication.\nThis code is used to start the Github device-flow.",
+        "operationId": "Applications_GetGithubDeviceCode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetGithubDeviceCodeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Applications"
+        ]
+      }
+    },
+    "/v1/applications/auth_providers/github/status": {
+      "post": {
+        "summary": "GetGithubAuthStatus gets the status of the Github device flow authentication requests.\nOnce the user has completed the Github device flow, an access token will be returned.\nThis token will expired in 15 minutes, after which the user will need to complete the flow again\nto do Git Provider operations.",
+        "operationId": "Applications_GetGithubAuthStatus",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetGithubAuthStatusResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GetGithubAuthStatusRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Applications"
+        ]
+      }
+    },
     "/v1/applications/child_objects": {
       "post": {
         "summary": "GetChildObjects returns the children of a given object, specified by a GroupVersionKind.\nNot all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.",
@@ -422,6 +478,43 @@
           "items": {
             "$ref": "#/definitions/v1UnstructuredObject"
           }
+        }
+      }
+    },
+    "v1GetGithubAuthStatusRequest": {
+      "type": "object",
+      "properties": {
+        "deviceCode": {
+          "type": "string"
+        }
+      }
+    },
+    "v1GetGithubAuthStatusResponse": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "error": {
+          "type": "string"
+        }
+      }
+    },
+    "v1GetGithubDeviceCodeResponse": {
+      "type": "object",
+      "properties": {
+        "userCode": {
+          "type": "string"
+        },
+        "deviceCode": {
+          "type": "string"
+        },
+        "validationURI": {
+          "type": "string"
+        },
+        "interval": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },

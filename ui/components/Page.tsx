@@ -1,11 +1,11 @@
 import { Breadcrumbs } from "@material-ui/core";
-import { Alert, AlertTitle } from "@material-ui/lab";
 import _ from "lodash";
 import React from "react";
 import styled from "styled-components";
 import useCommon from "../hooks/common";
 import { PageRoute } from "../lib/types";
 import { formatURL } from "../lib/utils";
+import Alert from "./Alert";
 import Flex from "./Flex";
 import Link from "./Link";
 import LoadingPage from "./LoadingPage";
@@ -76,10 +76,11 @@ function Page({ className, children, title, breadcrumbs, loading }: Props) {
         </TitleBar>
         {appState.error && (
           <Flex center wide>
-            <Alert severity="error">
-              <AlertTitle>{appState.error.message}</AlertTitle>
-              {appState.error.detail}
-            </Alert>
+            <Alert
+              title={appState.error.message}
+              message={appState.error.detail}
+              severity="error"
+            />
           </Flex>
         )}
         <div>{children}</div>
