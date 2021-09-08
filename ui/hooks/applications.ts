@@ -1,25 +1,21 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { AppContext } from "../contexts/AppContext";
-import { Application } from "../lib/api/applications/applications.pb";
 
 const WeGONamespace = "wego-system";
 
 export default function useApplications() {
   const { applicationsClient, doAsyncError } = useContext(AppContext);
   const [loading, setLoading] = useState(true);
-  const [applications, setApplications] = useState<Application[]>([]);
 
-  useEffect(() => {
+  const listApplications = (namespace: string = WeGONamespace) => {
     setLoading(true);
 
-    applicationsClient
-      .ListApplications({ namespace: WeGONamespace })
-      .then((res) => setApplications(res.applications))
-      .catch((err) => {
-        doAsyncError(err.message, err.detail);
-      })
+    return applicationsClient
+      .ListApplications({ namespace: namespace })
+      .then((res) => res.applications)
+      .catch((err) => doAsyncError(err.message, err.detail))
       .finally(() => setLoading(false));
-  }, []);
+  };
 
   const getApplication = (name: string) => {
     setLoading(true);
@@ -33,7 +29,7 @@ export default function useApplications() {
 
   return {
     loading,
-    applications,
+    listApplications,
     getApplication,
   };
 }
