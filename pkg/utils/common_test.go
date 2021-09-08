@@ -119,6 +119,15 @@ error occurred some error, retrying in 1s
 		Expect(stdout).To(Equal("my output"))
 
 	})
+
+	It("Verify BuildCommitURL works on supported providers", func() {
+		githubURL := "ssh://git@github.com/J-Thompson12/nginx.git"
+		commitHash := "jslKI76"
+
+		commitURL := BuildCommitURL(githubURL, commitHash)
+		Expect(commitURL).To(Equal("https://github.com/J-Thompson12/nginx/commit/jslKI76"))
+
+	})
 })
 
 var _ = DescribeTable("SanitizeRepoUrl", func(input string, expected string) {
