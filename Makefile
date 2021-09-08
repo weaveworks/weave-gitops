@@ -27,6 +27,7 @@ endif
 .PHONY: bin
 
 all: wego ## Install dependencies and build WeGo binary
+	@git --no-pager diff
 
 ##@ Test
 unit-tests: dependencies cmd/wego/ui/run/dist/index.html ## Run unit tests
