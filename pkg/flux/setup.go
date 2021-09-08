@@ -8,6 +8,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/version"
 )
 
+//go:embed bin/flux
 var fluxExe []byte
 
 //SetupFluxBin creates flux binary from embedded file if it doesnt already exist
