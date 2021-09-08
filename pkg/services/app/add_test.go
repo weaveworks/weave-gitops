@@ -771,7 +771,6 @@ var _ = Describe("Add", func() {
 
 		BeforeEach(func() {
 			gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
-				fmt.Printf("U: %s, C: %s\n", addParams.Url, addParams.AppConfigUrl)
 				if url == addParams.Url {
 					return "default-app-branch", nil
 				}
