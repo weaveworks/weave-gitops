@@ -367,6 +367,9 @@
         },
         "message": {
           "type": "string"
+        },
+        "url": {
+          "type": "string"
         }
       }
     },

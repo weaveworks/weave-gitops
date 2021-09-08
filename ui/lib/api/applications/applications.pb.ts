@@ -70,6 +70,7 @@ export type Commit = {
   date?: string
   author?: string
   message?: string
+  url?: string
 }
 
 

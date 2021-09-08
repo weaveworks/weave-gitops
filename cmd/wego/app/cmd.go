@@ -98,7 +98,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to get commits for app %s", params.Name)
 		}
-		printCommitTable(logger, commits)
+		printCommitTable(logger, commits, appContent.Spec.URL)
 	default:
 		_ = cmd.Help()
 		return fmt.Errorf("unkown resource type \"%s\"", object)
@@ -107,12 +107,19 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func printCommitTable(logger logger.Logger, commits []gitprovider.Commit) {
-	header := []string{"Commit Hash", "Created At", "Author", "Message"}
+func printCommitTable(logger logger.Logger, commits []gitprovider.Commit, url string) {
+	header := []string{"Commit Hash", "Created At", "Author", "Message", "URL"}
 	rows := [][]string{}
 	for _, commit := range commits {
 		c := commit.Get()
-		rows = append(rows, []string{utils.ConvertCommitHashToShort(c.Sha), utils.CleanCommitCreatedAt(c.CreatedAt), c.Author, utils.CleanCommitMessage(c.Message)})
+		shortHash := utils.ConvertCommitHashToShort(c.Sha)
+		rows = append(rows, []string{
+			shortHash,
+			utils.CleanCommitCreatedAt(c.CreatedAt),
+			c.Author,
+			utils.CleanCommitMessage(c.Message),
+			utils.BuildCommitURL(url, shortHash),
+		})
 	}
 
 	utils.PrintTable(logger, header, rows)

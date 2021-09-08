@@ -130,6 +130,7 @@ message Commit {
     string   date        = 2;  // The date the commit was made.
     string   author      = 3;  // The author of the commit
     string   message     = 4;  // The commit message
+    string   url         = 5;  // The commit url
 }
 
 message ListCommitsRequest {

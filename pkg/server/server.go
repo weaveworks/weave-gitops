@@ -257,11 +257,14 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 
 	list := []*pb.Commit{}
 	for _, commit := range commits {
+		c := commit.Get()
+		shortHash := utils.ConvertCommitHashToShort(c.Sha)
 		list = append(list, &pb.Commit{
-			Author:     commit.Get().Author,
-			Message:    utils.CleanCommitMessage(commit.Get().Message),
-			CommitHash: commit.Get().Sha,
-			Date:       commit.Get().CreatedAt.String(),
+			Author:     c.Author,
+			Message:    utils.CleanCommitMessage(c.Message),
+			CommitHash: shortHash,
+			Date:       utils.CleanCommitCreatedAt(c.CreatedAt),
+			Url:        utils.BuildCommitURL(application.Spec.URL, shortHash),
 		})
 	}
 	nextPageToken := int32(pageToken + 1)
