@@ -803,7 +803,7 @@ var _ = Describe("Add", func() {
 			Expect(err.Error()).To(HavePrefix("failed to retrieve account type"))
 		})
 
-		Context("uses the default config branch for external config", func() {
+		Context("uses the default app branch for config in app repository", func() {
 			BeforeEach(func() {
 				addParams.AppConfigUrl = ""
 			})
