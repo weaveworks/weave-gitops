@@ -101,6 +101,7 @@ proto: ## Generate protobuf files
 
 node_modules: ## Install node modules
 	npm ci
+	npx npm-force-resolutions
 
 ui-lint: ## Run linter against the UI
 	npm run lint
