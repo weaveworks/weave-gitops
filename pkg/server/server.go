@@ -32,17 +32,12 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"go.uber.org/zap"
-	"golang.org/x/oauth2"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
-
-type key int
-
-const tokenKey key = iota
 
 var ErrEmptyAccessToken = fmt.Errorf("access token is empty")
 
@@ -60,11 +55,6 @@ type ApplicationConfig struct {
 	Logger     logr.Logger
 	AppFactory apputils.AppFactory
 	JwtClient  auth.JWTClient
-}
-
-//Remove when middleware is done
-type contextVals struct {
-	Token *oauth2.Token
 }
 
 // NewApplicationsServer creates a grpc Applications server
@@ -102,6 +92,7 @@ func NewApplicationsHandler(ctx context.Context, cfg *ApplicationConfig, opts ..
 
 	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(cfg.Logger))
 	httpHandler := middleware.WithLogging(cfg.Logger, mux)
+	httpHandler = middleware.WithProviderToken(cfg.JwtClient, httpHandler)
 
 	if err := pb.RegisterApplicationsHandlerServer(ctx, mux, appsSrv); err != nil {
 		return nil, fmt.Errorf("could not register application: %w", err)
@@ -208,28 +199,9 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 	}}, nil
 }
 
-//Temporary solution to get this to build until middleware is done
-func extractToken(ctx context.Context) (string, error) {
-	c := ctx.Value(tokenKey)
-
-	vals, ok := c.(contextVals)
-	if !ok {
-		return "", errors.New("could not get token from context")
-	}
-
-	if vals.Token == nil || vals.Token.AccessToken == "" {
-		return "", errors.New("no token specified")
-	}
-
-	return vals.Token.AccessToken, nil
-}
-
 //Until the middleware is done this function will not be able to get the token and will fail
 func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommitsRequest) (*pb.ListCommitsResponse, error) {
-	vals := contextVals{Token: &oauth2.Token{AccessToken: "temptoken"}}
-	ctx = context.WithValue(ctx, tokenKey, vals)
-
-	token, err := extractToken(ctx)
+	providerToken, err := middleware.ExtractProviderToken(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +214,7 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 	params := app.CommitParams{
 		Name:             msg.Name,
 		Namespace:        msg.Namespace,
-		GitProviderToken: token,
+		GitProviderToken: providerToken.AccessToken,
 		PageSize:         int(msg.PageSize),
 		PageToken:        pageToken,
 	}

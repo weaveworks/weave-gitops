@@ -3,12 +3,14 @@ package middleware
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"golang.org/x/oauth2"
 )
 
@@ -21,6 +23,10 @@ func (r *statusRecorder) WriteHeader(status int) {
 	r.Status = status
 	r.ResponseWriter.WriteHeader(status)
 }
+
+var (
+	ErrNoTokenSpecified = errors.New("no token specified")
+)
 
 var RequestOkText = "request success"
 var RequestErrorText = "request error"
@@ -66,7 +72,7 @@ func WithLogging(log logr.Logger, mux *runtime.ServeMux) http.Handler {
 }
 
 type contextVals struct {
-	Token *oauth2.Token
+	ProviderToken *oauth2.Token
 }
 
 type key int
@@ -75,11 +81,9 @@ const tokenKey key = iota
 
 // Injects the token into the request context to be retrieved later.
 // Use the ExtractToken func inside the server handler where appropriate.
-func WithToken(h http.Handler) http.Handler {
+func WithProviderToken(jwtClient auth.JWTClient, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenStr := r.Header.Get("Authorization")
-		// Token gets specified with the work "token", then the data.
-		// "token abc123def..."
 		tokenSlice := strings.Split(tokenStr, "token ")
 
 		if len(tokenSlice) < 2 {
@@ -92,7 +96,13 @@ func WithToken(h http.Handler) http.Handler {
 		// The actual token data
 		token := tokenSlice[1]
 
-		vals := contextVals{Token: &oauth2.Token{AccessToken: token}}
+		claims, err := jwtClient.VerifyJWT(token)
+		if err != nil {
+			http.Error(w, fmt.Errorf("failed verifying JWT token: %w", err).Error(), http.StatusForbidden)
+			return
+		}
+
+		vals := contextVals{ProviderToken: &oauth2.Token{AccessToken: claims.ProviderToken}}
 
 		c := context.WithValue(r.Context(), tokenKey, vals)
 		r = r.WithContext(c)
@@ -101,7 +111,7 @@ func WithToken(h http.Handler) http.Handler {
 }
 
 // Get the token from request context.
-func ExtractToken(ctx context.Context) (*oauth2.Token, error) {
+func ExtractProviderToken(ctx context.Context) (*oauth2.Token, error) {
 	c := ctx.Value(tokenKey)
 
 	vals, ok := c.(contextVals)
@@ -109,9 +119,9 @@ func ExtractToken(ctx context.Context) (*oauth2.Token, error) {
 		return nil, errors.New("could not get token from context")
 	}
 
-	if vals.Token == nil || vals.Token.AccessToken == "" {
-		return nil, errors.New("no token specified")
+	if vals.ProviderToken == nil || vals.ProviderToken.AccessToken == "" {
+		return nil, ErrNoTokenSpecified
 	}
 
-	return vals.Token, nil
+	return vals.ProviderToken, nil
 }
