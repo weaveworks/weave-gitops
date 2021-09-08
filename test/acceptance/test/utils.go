@@ -631,7 +631,7 @@ func createRepository(repoName string, private bool) error {
 			}
 			fmt.Printf("Waiting for rate quota %s \n", waitForRateQuota.String())
 			time.Sleep(waitForRateQuota)
-			return nil
+			return fmt.Errorf("retry after waiting for rate quota")
 		}
 		return err
 	}); err != nil {
