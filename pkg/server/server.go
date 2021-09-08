@@ -264,7 +264,7 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 			Message:    utils.CleanCommitMessage(c.Message),
 			CommitHash: shortHash,
 			Date:       utils.CleanCommitCreatedAt(c.CreatedAt),
-			Url:        utils.BuildCommitURL(application.Spec.URL, shortHash),
+			Url:        c.URL,
 		})
 	}
 	nextPageToken := int32(pageToken + 1)

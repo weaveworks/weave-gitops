@@ -118,7 +118,7 @@ func printCommitTable(logger logger.Logger, commits []gitprovider.Commit, url st
 			utils.CleanCommitCreatedAt(c.CreatedAt),
 			c.Author,
 			utils.CleanCommitMessage(c.Message),
-			utils.BuildCommitURL(url, shortHash),
+			c.URL,
 		})
 	}
 
