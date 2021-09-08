@@ -98,7 +98,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to get commits for app %s", params.Name)
 		}
-		printCommitTable(logger, commits)
+		printCommitTable(logger, commits, appContent.Spec.URL)
 	default:
 		_ = cmd.Help()
 		return fmt.Errorf("unkown resource type \"%s\"", object)
