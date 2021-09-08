@@ -19,6 +19,8 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.16.x
+      - name: Fake Install flux
+        run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
       - name: Run FOSSA scan and upload build data
         uses: fossa-contrib/fossa-action@v1
         with:
