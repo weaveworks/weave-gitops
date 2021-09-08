@@ -173,6 +173,12 @@ func ConvertCommitHashToShort(hash string) string {
 	return hash[:7]
 }
 
+func BuildCommitURL(url string, commitHash string) string {
+	url = strings.Replace(url, "ssh://git@", "https://", 1)
+	url = strings.Replace(url, ".git", "", 1)
+	return fmt.Sprintf("%s/commit/%s", url, commitHash)
+}
+
 func CreateRepoSecretName(targetName string, repoURL string) string {
 	return fmt.Sprintf("wego-%s-%s", targetName, UrlToRepoName(repoURL))
 }
