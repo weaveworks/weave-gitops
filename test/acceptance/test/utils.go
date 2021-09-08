@@ -209,8 +209,9 @@ func initAndCreateEmptyRepo(appRepoName string, isPrivateRepo bool) string {
 
 	err = utils.WaitUntil(os.Stdout, time.Second*3, time.Second*30, func() error {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
-                            git clone git@github.com:%s/%s.git`,
-			GITHUB_ORG, appRepoName))
+                            git clone git@github.com:%s/%s.git %s`,
+			GITHUB_ORG, appRepoName,
+			repoAbsolutePath))
 		command.Stdout = os.Stdout
 		command.Stderr = os.Stderr
 		err := command.Run()
