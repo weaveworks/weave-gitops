@@ -624,6 +624,9 @@ func createRepository(repoName string, private bool) error {
 	fmt.Printf("creating repo %s ...\n", repoName)
 	if err := utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
 		_, err := githubProvider.OrgRepositories().Create(ctx, orgRef, repoInfo, repoCreateOpts)
+		if err != nil {
+			fmt.Printf("DEBUG-on-repo-create[%s]\n", err.Error())
+		}
 		if err != nil && strings.Contains(err.Error(), "rate limit exceeded") {
 			waitForRateQuota, err := getWaitTimeFromErr(err.Error())
 			if err != nil {
