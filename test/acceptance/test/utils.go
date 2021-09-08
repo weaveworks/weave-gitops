@@ -222,12 +222,12 @@ func initAndCreateEmptyRepo(appRepoName string, isPrivateRepo bool) string {
 		return nil
 	})
 	Expect(err).ShouldNot(HaveOccurred())
+
 	command := exec.Command("sh", "-c", fmt.Sprintf(`cd %s`,
 		repoAbsolutePath))
-	command.Stdout = os.Stdout
-	command.Stderr = os.Stderr
-	err = command.Run()
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
 
 	return repoAbsolutePath
 }
@@ -613,8 +613,7 @@ func createRepository(repoName string, private bool) error {
 	}
 
 	repoCreateOpts := &gitprovider.RepositoryCreateOptions{
-		AutoInit:        gitprovider.BoolVar(true),
-		LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
+		AutoInit: gitprovider.BoolVar(true),
 	}
 
 	orgRef := gitprovider.OrgRepositoryRef{
@@ -637,9 +636,6 @@ func createRepository(repoName string, private bool) error {
 	fmt.Printf("creating repo %s ...\n", repoName)
 	if err := utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
 		_, err := githubProvider.OrgRepositories().Create(ctx, orgRef, repoInfo, repoCreateOpts)
-		if err != nil {
-			fmt.Printf("DEBUG-on-repo-create[%s]\n", err.Error())
-		}
 		if err != nil && strings.Contains(err.Error(), "rate limit exceeded") {
 			waitForRateQuota, err := getWaitTimeFromErr(err.Error())
 			if err != nil {
@@ -660,7 +656,10 @@ func createRepository(repoName string, private bool) error {
 		_, err := githubProvider.OrgRepositories().Get(ctx, orgRef)
 		return err
 	})
+	if err != nil {
+		return fmt.Errorf("error validating access to the repository %w", err)
+	}
 	fmt.Printf("repo %s is accessible through the api ...\n", repoName)
 
-	return err
+	return nil
 }
