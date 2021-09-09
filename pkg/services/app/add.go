@@ -298,7 +298,7 @@ func (a *App) addAppWithNoConfigRepo(info *AppResourceInfo, params AddParams, se
 	if info.Spec.SourceType != wego.SourceTypeHelm && !params.DryRun {
 		if !params.AutoMerge {
 			a.Logger.Actionf("Creating pull request for .keep file in application repository")
-			if err := a.createKeepFilePullRequest(info, appHash+"-generate-app-sentinel"); err != nil {
+			if err := a.createKeepFilePullRequest(info); err != nil {
 				return err
 			}
 		} else {
@@ -412,7 +412,7 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 
 			if info.Spec.SourceType != wego.SourceTypeHelm {
 				a.Logger.Actionf("Creating pull request for .keep file in application repository")
-				if err := a.createKeepFilePullRequest(info, appHash+"-generate-app-sentinel"); err != nil {
+				if err := a.createKeepFilePullRequest(info); err != nil {
 					return err
 				}
 			}
@@ -699,7 +699,7 @@ func generateResourceName(url string) string {
 	return hashNameIfTooLong(strings.ReplaceAll(utils.UrlToRepoName(url), "_", "-"))
 }
 
-func (a *App) createKeepFilePullRequest(info *AppResourceInfo, pullRequestBranchName string) error {
+func (a *App) createKeepFilePullRequest(info *AppResourceInfo) error {
 	appPath := info.appKeepFilePath()
 	appContent := keepFileContents
 
@@ -723,12 +723,14 @@ func (a *App) createKeepFilePullRequest(info *AppResourceInfo, pullRequestBranch
 		return fmt.Errorf("failed to retrieve account type: %w", err)
 	}
 
+	pullRequestBranchName := info.getKeepFilePullRequestBranchName()
+
 	if accountType == gitproviders.AccountTypeOrg {
 		orgRepoRef := gitproviders.NewOrgRepositoryRef(github.DefaultDomain, owner, repoName)
 
 		prLink, err := a.GitProvider.CreatePullRequestToOrgRepo(orgRepoRef, info.Spec.Branch, pullRequestBranchName, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", info.Name), fmt.Sprintf("Added sentinel file for %s", info.Name))
 		if err != nil {
-			return fmt.Errorf("unable to create pull request: %w", err)
+			return fmt.Errorf("unable to create sentinel file pull request: %w", err)
 		}
 		a.Logger.Println("Pull Request created: %s\n", prLink.Get().WebURL)
 		return nil
@@ -738,7 +740,7 @@ func (a *App) createKeepFilePullRequest(info *AppResourceInfo, pullRequestBranch
 
 	prLink, err := a.GitProvider.CreatePullRequestToUserRepo(userRepoRef, info.Spec.Branch, pullRequestBranchName, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", info.Name), fmt.Sprintf("Added sentinel file for %s", info.Name))
 	if err != nil {
-		return fmt.Errorf("unable to create pull request: %w", err)
+		return fmt.Errorf("unable to create sentinel file pull request: %w", err)
 	}
 	a.Logger.Println("Sentinel Pull Request created: %s\n", prLink.Get().WebURL)
 	return nil
@@ -1010,6 +1012,10 @@ func (a *AppResourceInfo) clusterResourcePaths() []string {
 	}
 
 	return []string{a.appYamlPath(), a.appAutomationSourcePath(), a.appAutomationDeployPath()}
+}
+
+func (a *AppResourceInfo) getKeepFilePullRequestBranchName() string {
+	return a.getAppHash() + "-generate-app-sentinel"
 }
 
 func (info *AppResourceInfo) getAppHash() string {

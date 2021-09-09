@@ -17,7 +17,9 @@ import (
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"sigs.k8s.io/yaml"
 )
@@ -952,123 +954,354 @@ var _ = Describe("Add", func() {
 		})
 	})
 
-	Context("ensure that a .keep file is created during 'wego app add' so that deletion of all app manifests will work correctly", func() {
+	Context("manage keep files so that deletion of all app manifests will work correctly", func() {
 		type testConfig struct {
 			autoMerge            bool
 			accountType          gitproviders.ProviderAccountType
 			chartName, configURL string
 		}
 
-		type testResults struct {
-			writeCallCount, orgPullRequestCallCount, userPullRequestCallCount int
-		}
-
 		BeforeEach(func() {
 			addParams.Branch = "non-default-branch"
-			appGitClient.WriteStub = func(path string, content []byte) error {
-				Expect(path).To(Equal(".keep"))
-				Expect(content).To(Equal([]byte(keepFileContents)))
 
-				return nil
+			appGitClient = &gitfakes.FakeGit{}
+
+			gitProviders = &gitprovidersfakes.FakeGitProvider{
+				GetRepoVisibilityStub: func(url string) (*gitprovider.RepositoryVisibility, error) {
+					vis := gitprovider.RepositoryVisibilityPrivate
+					return &vis, nil
+				},
 			}
 
-			gitProviders.CreatePullRequestToOrgRepoStub = func(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
-				if targetBranch == addParams.Branch {
-					Expect(len(files)).To(Equal(1))
-					Expect(*(files[0].Path)).To(Equal(".keep"))
-					Expect(*(files[0].Content)).To(Equal(keepFileContents))
-				}
-
-				return dummyPullRequest{}, nil
-			}
-
-			gitProviders.CreatePullRequestToUserRepoStub = func(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
-				if targetBranch == addParams.Branch {
-					Expect(len(files)).To(Equal(1))
-					Expect(*(files[0].Path)).To(Equal(".keep"))
-					Expect(*(files[0].Content)).To(Equal(keepFileContents))
-				}
-
-				return dummyPullRequest{}, nil
-			}
+			appSrv.(*App).AppGit = appGitClient
+			appSrv.(*App).GitProvider = gitProviders
 		})
 
-		DescribeTable("creates an empty '.keep' file for non-helm repos unless config is stored in app repo", func(conf testConfig, expected testResults) {
-			addParams.Chart = conf.chartName
-			addParams.AppConfigUrl = conf.configURL
-			addParams.AutoMerge = conf.autoMerge
+		Context("ensure that errors generated during keep file creation are propagated", func() {
+			BeforeEach(func() {
+				appGitClient.WriteStub = func(path string, content []byte) error {
+					return nil
+				}
 
-			gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-				return conf.accountType, nil
+				gitProviders.CreatePullRequestToOrgRepoStub = func(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
+					return dummyPullRequest{}, nil
+				}
+
+				gitProviders.CreatePullRequestToUserRepoStub = func(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
+					return dummyPullRequest{}, nil
+				}
+			})
+
+			DescribeTable("error during keep file write is propagated", func(conf testConfig, errorExpected bool) {
+				addParams.Chart = conf.chartName
+				addParams.AppConfigUrl = conf.configURL
+				addParams.AutoMerge = conf.autoMerge
+
+				writeError := fmt.Errorf("write failed")
+
+				appGitClient.WriteStub = func(path string, content []byte) error {
+					return writeError
+				}
+
+				gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
+					return conf.accountType, nil
+				}
+
+				err := appSrv.Add(addParams)
+
+				if errorExpected {
+					expectedErrorString := fmt.Sprintf("failed writing sentinel file to disk: %s", writeError.Error())
+					Expect(err.Error()).To(Equal(expectedErrorString))
+				} else {
+					Expect(err).To(BeNil())
+				}
+			},
+				Entry("helm, no stored config, org account",
+					testConfig{chartName: "loki", configURL: "NONE", accountType: gitproviders.AccountTypeOrg, autoMerge: true},
+					false),
+				Entry("helm, no stored config, user account",
+					testConfig{chartName: "loki", configURL: "NONE", accountType: gitproviders.AccountTypeUser, autoMerge: true},
+					false),
+				Entry("helm, external config, org account",
+					testConfig{chartName: "loki", configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeOrg, autoMerge: true},
+					false),
+				Entry("helm, external config, user account",
+					testConfig{chartName: "loki", configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeUser, autoMerge: true},
+					false),
+				Entry("kustomize, no stored config, org account",
+					testConfig{configURL: "NONE", accountType: gitproviders.AccountTypeOrg, autoMerge: true},
+					true),
+				Entry("kustomize, no stored config, user account",
+					testConfig{configURL: "NONE", accountType: gitproviders.AccountTypeUser, autoMerge: true},
+					true),
+				Entry("kustomize, config stored in app repo, org account",
+					testConfig{accountType: gitproviders.AccountTypeOrg, autoMerge: true},
+					false),
+				Entry("kustomize, config stored in app repo, user account",
+					testConfig{accountType: gitproviders.AccountTypeUser, autoMerge: true},
+					false),
+				Entry("kustomize, external config, org account",
+					testConfig{configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeOrg, autoMerge: true},
+					true),
+				Entry("kustomize, external config, user account",
+					testConfig{configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeUser, autoMerge: true},
+					true),
+
+				// pull requests
+				Entry("helm, no stored config, org account",
+					testConfig{chartName: "loki", configURL: "NONE", accountType: gitproviders.AccountTypeOrg},
+					false),
+				Entry("helm, no stored config, user account",
+					testConfig{chartName: "loki", configURL: "NONE", accountType: gitproviders.AccountTypeUser},
+					false),
+				Entry("helm, external config, org account",
+					testConfig{chartName: "loki", configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeOrg},
+					false),
+				Entry("helm, external config, user account",
+					testConfig{chartName: "loki", configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeUser},
+					false),
+				Entry("kustomize, no stored config, org account",
+					testConfig{configURL: "NONE", accountType: gitproviders.AccountTypeOrg},
+					false),
+				Entry("kustomize, no stored config, user account",
+					testConfig{configURL: "NONE", accountType: gitproviders.AccountTypeUser},
+					false),
+				Entry("kustomize, config stored in app repo, org account",
+					testConfig{accountType: gitproviders.AccountTypeOrg},
+					false),
+				Entry("kustomize, config stored in app repo, user account",
+					testConfig{accountType: gitproviders.AccountTypeUser},
+					false),
+				Entry("kustomize, external config, org account",
+					testConfig{configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeOrg},
+					false),
+				Entry("kustomize, external config, user account",
+					testConfig{configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeUser},
+					false),
+			)
+
+			orgPullRequestError := fmt.Errorf("org pull request failed")
+			userPullRequestError := fmt.Errorf("user pull request failed")
+
+			DescribeTable("error during keep file pull request is propagated", func(conf testConfig, errorExpected bool) {
+				addParams.Chart = conf.chartName
+				addParams.AppConfigUrl = conf.configURL
+				addParams.AutoMerge = conf.autoMerge
+
+				gitProviders.CreatePullRequestToOrgRepoStub = func(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
+					if targetBranch == addParams.Branch {
+						return dummyPullRequest{}, orgPullRequestError
+					}
+
+					return dummyPullRequest{}, nil
+				}
+
+				gitProviders.CreatePullRequestToUserRepoStub = func(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
+					if targetBranch == addParams.Branch {
+						return dummyPullRequest{}, userPullRequestError
+					}
+
+					return dummyPullRequest{}, nil
+				}
+
+				gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
+					return conf.accountType, nil
+				}
+
+				err := appSrv.Add(addParams)
+
+				if errorExpected {
+					expectedError := orgPullRequestError
+					if conf.accountType == gitproviders.AccountTypeUser {
+						expectedError = userPullRequestError
+					}
+
+					expectedErrorString := fmt.Sprintf("unable to create sentinel file pull request: %s", expectedError.Error())
+					Expect(err.Error()).To(Equal(expectedErrorString))
+				} else {
+					Expect(err).To(BeNil())
+				}
+			},
+				Entry("helm, no stored config, org account",
+					testConfig{chartName: "loki", configURL: "NONE", accountType: gitproviders.AccountTypeOrg, autoMerge: true},
+					false),
+				Entry("helm, no stored config, user account",
+					testConfig{chartName: "loki", configURL: "NONE", accountType: gitproviders.AccountTypeUser, autoMerge: true},
+					false),
+				Entry("helm, external config, org account",
+					testConfig{chartName: "loki", configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeOrg, autoMerge: true},
+					false),
+				Entry("helm, external config, user account",
+					testConfig{chartName: "loki", configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeUser, autoMerge: true},
+					false),
+				Entry("kustomize, no stored config, org account",
+					testConfig{configURL: "NONE", accountType: gitproviders.AccountTypeOrg, autoMerge: true},
+					false),
+				Entry("kustomize, no stored config, user account",
+					testConfig{configURL: "NONE", accountType: gitproviders.AccountTypeUser, autoMerge: true},
+					false),
+				Entry("kustomize, config stored in app repo, org account",
+					testConfig{accountType: gitproviders.AccountTypeOrg, autoMerge: true},
+					false),
+				Entry("kustomize, config stored in app repo, user account",
+					testConfig{accountType: gitproviders.AccountTypeUser, autoMerge: true},
+					false),
+				Entry("kustomize, external config, org account",
+					testConfig{configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeOrg, autoMerge: true},
+					false),
+				Entry("kustomize, external config, user account",
+					testConfig{configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeUser, autoMerge: true},
+					false),
+
+				// pull requests
+				Entry("helm, no stored config, org account",
+					testConfig{chartName: "loki", configURL: "NONE", accountType: gitproviders.AccountTypeOrg},
+					false),
+				Entry("helm, no stored config, user account",
+					testConfig{chartName: "loki", configURL: "NONE", accountType: gitproviders.AccountTypeUser},
+					false),
+				Entry("helm, external config, org account",
+					testConfig{chartName: "loki", configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeOrg},
+					false),
+				Entry("helm, external config, user account",
+					testConfig{chartName: "loki", configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeUser},
+					false),
+				Entry("kustomize, no stored config, org account",
+					testConfig{configURL: "NONE", accountType: gitproviders.AccountTypeOrg},
+					true),
+				Entry("kustomize, no stored config, user account",
+					testConfig{configURL: "NONE", accountType: gitproviders.AccountTypeUser},
+					true),
+				Entry("kustomize, config stored in app repo, org account",
+					testConfig{accountType: gitproviders.AccountTypeOrg},
+					false),
+				Entry("kustomize, config stored in app repo, user account",
+					testConfig{accountType: gitproviders.AccountTypeUser},
+					false),
+				Entry("kustomize, external config, org account",
+					testConfig{configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeOrg},
+					true),
+				Entry("kustomize, external config, user account",
+					testConfig{configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeUser},
+					true),
+			)
+		})
+
+		Context("ensure that a .keep file is created during 'wego app add' when appropriate", func() {
+			type testResults struct {
+				writeCallCount, orgPullRequestCallCount, userPullRequestCallCount int
 			}
 
-			Expect(appSrv.Add(addParams)).To(Succeed())
-			Expect(appGitClient.WriteCallCount()).To(Equal(expected.writeCallCount))
-			Expect(gitProviders.CreatePullRequestToOrgRepoCallCount()).To(Equal(expected.orgPullRequestCallCount))
-			Expect(gitProviders.CreatePullRequestToUserRepoCallCount()).To(Equal(expected.userPullRequestCallCount))
-		},
-			Entry("helm, no stored config, org account",
-				testConfig{chartName: "loki", configURL: "NONE", accountType: gitproviders.AccountTypeOrg, autoMerge: true},
-				testResults{}),
-			Entry("helm, no stored config, user account",
-				testConfig{chartName: "loki", configURL: "NONE", accountType: gitproviders.AccountTypeUser, autoMerge: true},
-				testResults{}),
-			Entry("helm, external config, org account",
-				testConfig{chartName: "loki", configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeOrg, autoMerge: true},
-				testResults{}),
-			Entry("helm, external config, user account",
-				testConfig{chartName: "loki", configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeUser, autoMerge: true},
-				testResults{}),
-			Entry("kustomize, no stored config, org account",
-				testConfig{configURL: "NONE", accountType: gitproviders.AccountTypeOrg, autoMerge: true},
-				testResults{writeCallCount: 1}),
-			Entry("kustomize, no stored config, user account",
-				testConfig{configURL: "NONE", accountType: gitproviders.AccountTypeUser, autoMerge: true},
-				testResults{writeCallCount: 1}),
-			Entry("kustomize, config stored in app repo, org account",
-				testConfig{accountType: gitproviders.AccountTypeOrg, autoMerge: true},
-				testResults{}),
-			Entry("kustomize, config stored in app repo, user account",
-				testConfig{accountType: gitproviders.AccountTypeUser, autoMerge: true},
-				testResults{}),
-			Entry("kustomize, external config, org account",
-				testConfig{configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeOrg, autoMerge: true},
-				testResults{writeCallCount: 1}),
-			Entry("kustomize, external config, user account",
-				testConfig{configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeUser, autoMerge: true},
-				testResults{writeCallCount: 1}),
+			DescribeTable("creates a '.keep' file for non-helm repos unless config is stored in app repo", func(conf testConfig, expected testResults) {
+				addParams.Chart = conf.chartName
+				addParams.AppConfigUrl = conf.configURL
+				addParams.AutoMerge = conf.autoMerge
+				localParams, err := appSrv.(*App).updateParametersIfNecessary(addParams)
+				Expect(err).To(BeNil())
 
-			// pull requests
-			Entry("helm, no stored config, org account",
-				testConfig{chartName: "loki", configURL: "NONE", accountType: gitproviders.AccountTypeOrg},
-				testResults{}),
-			Entry("helm, no stored config, user account",
-				testConfig{chartName: "loki", configURL: "NONE", accountType: gitproviders.AccountTypeUser},
-				testResults{}),
-			Entry("helm, external config, org account",
-				testConfig{chartName: "loki", configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeOrg},
-				testResults{orgPullRequestCallCount: 1}),
-			Entry("helm, external config, user account",
-				testConfig{chartName: "loki", configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeUser},
-				testResults{userPullRequestCallCount: 1}),
-			Entry("kustomize, no stored config, org account",
-				testConfig{configURL: "NONE", accountType: gitproviders.AccountTypeOrg},
-				testResults{orgPullRequestCallCount: 1}),
-			Entry("kustomize, no stored config, user account",
-				testConfig{configURL: "NONE", accountType: gitproviders.AccountTypeUser},
-				testResults{userPullRequestCallCount: 1}),
-			Entry("kustomize, config stored in app repo, org account",
-				testConfig{accountType: gitproviders.AccountTypeOrg},
-				testResults{orgPullRequestCallCount: 1}),
-			Entry("kustomize, config stored in app repo, user account",
-				testConfig{accountType: gitproviders.AccountTypeUser},
-				testResults{userPullRequestCallCount: 1}),
-			Entry("kustomize, external config, org account",
-				testConfig{configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeOrg},
-				testResults{orgPullRequestCallCount: 2}),
-			Entry("kustomize, external config, user account",
-				testConfig{configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeUser},
-				testResults{userPullRequestCallCount: 2}))
+				info := getAppResourceInfo(makeWegoApplication(localParams), "cluster")
+
+				gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
+					return conf.accountType, nil
+				}
+
+				appGitClient.WriteStub = func(path string, content []byte) error {
+					Expect(path).To(Equal(".keep"))
+					Expect(content).To(Equal([]byte(keepFileContents)))
+
+					return nil
+				}
+
+				gitProviders.CreatePullRequestToOrgRepoStub = func(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
+					if targetBranch == addParams.Branch {
+						Expect(newBranch).To(Equal(info.getKeepFilePullRequestBranchName()))
+						Expect(len(files)).To(Equal(1))
+						Expect(*(files[0].Path)).To(Equal(".keep"))
+						Expect(*(files[0].Content)).To(Equal(keepFileContents))
+					}
+
+					return dummyPullRequest{}, nil
+				}
+
+				gitProviders.CreatePullRequestToUserRepoStub = func(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
+					if targetBranch == addParams.Branch {
+						Expect(newBranch).To(Equal(info.getKeepFilePullRequestBranchName()))
+						Expect(len(files)).To(Equal(1))
+						Expect(*(files[0].Path)).To(Equal(".keep"))
+						Expect(*(files[0].Content)).To(Equal(keepFileContents))
+					}
+
+					return dummyPullRequest{}, nil
+				}
+
+				Expect(appSrv.Add(addParams)).To(Succeed())
+				Expect(appGitClient.WriteCallCount()).To(Equal(expected.writeCallCount))
+				Expect(gitProviders.CreatePullRequestToOrgRepoCallCount()).To(Equal(expected.orgPullRequestCallCount))
+				Expect(gitProviders.CreatePullRequestToUserRepoCallCount()).To(Equal(expected.userPullRequestCallCount))
+			},
+				Entry("helm, no stored config, org account",
+					testConfig{chartName: "loki", configURL: "NONE", accountType: gitproviders.AccountTypeOrg, autoMerge: true},
+					testResults{}),
+				Entry("helm, no stored config, user account",
+					testConfig{chartName: "loki", configURL: "NONE", accountType: gitproviders.AccountTypeUser, autoMerge: true},
+					testResults{}),
+				Entry("helm, external config, org account",
+					testConfig{chartName: "loki", configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeOrg, autoMerge: true},
+					testResults{}),
+				Entry("helm, external config, user account",
+					testConfig{chartName: "loki", configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeUser, autoMerge: true},
+					testResults{}),
+				Entry("kustomize, no stored config, org account",
+					testConfig{configURL: "NONE", accountType: gitproviders.AccountTypeOrg, autoMerge: true},
+					testResults{writeCallCount: 1}),
+				Entry("kustomize, no stored config, user account",
+					testConfig{configURL: "NONE", accountType: gitproviders.AccountTypeUser, autoMerge: true},
+					testResults{writeCallCount: 1}),
+				Entry("kustomize, config stored in app repo, org account",
+					testConfig{accountType: gitproviders.AccountTypeOrg, autoMerge: true},
+					testResults{}),
+				Entry("kustomize, config stored in app repo, user account",
+					testConfig{accountType: gitproviders.AccountTypeUser, autoMerge: true},
+					testResults{}),
+				Entry("kustomize, external config, org account",
+					testConfig{configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeOrg, autoMerge: true},
+					testResults{writeCallCount: 1}),
+				Entry("kustomize, external config, user account",
+					testConfig{configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeUser, autoMerge: true},
+					testResults{writeCallCount: 1}),
+
+				// pull requests
+				Entry("helm, no stored config, org account",
+					testConfig{chartName: "loki", configURL: "NONE", accountType: gitproviders.AccountTypeOrg},
+					testResults{}),
+				Entry("helm, no stored config, user account",
+					testConfig{chartName: "loki", configURL: "NONE", accountType: gitproviders.AccountTypeUser},
+					testResults{}),
+				Entry("helm, external config, org account",
+					testConfig{chartName: "loki", configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeOrg},
+					testResults{orgPullRequestCallCount: 1}),
+				Entry("helm, external config, user account",
+					testConfig{chartName: "loki", configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeUser},
+					testResults{userPullRequestCallCount: 1}),
+				Entry("kustomize, no stored config, org account",
+					testConfig{configURL: "NONE", accountType: gitproviders.AccountTypeOrg},
+					testResults{orgPullRequestCallCount: 1}),
+				Entry("kustomize, no stored config, user account",
+					testConfig{configURL: "NONE", accountType: gitproviders.AccountTypeUser},
+					testResults{userPullRequestCallCount: 1}),
+				Entry("kustomize, config stored in app repo, org account",
+					testConfig{accountType: gitproviders.AccountTypeOrg},
+					testResults{orgPullRequestCallCount: 1}),
+				Entry("kustomize, config stored in app repo, user account",
+					testConfig{accountType: gitproviders.AccountTypeUser},
+					testResults{userPullRequestCallCount: 1}),
+				Entry("kustomize, external config, org account",
+					testConfig{configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeOrg},
+					testResults{orgPullRequestCallCount: 2}),
+				Entry("kustomize, external config, user account",
+					testConfig{configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeUser},
+					testResults{userPullRequestCallCount: 2}))
+		})
 	})
 })
 
