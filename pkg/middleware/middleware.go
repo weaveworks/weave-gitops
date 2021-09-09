@@ -94,7 +94,7 @@ func WithProviderToken(jwtClient auth.JWTClient, h http.Handler) http.Handler {
 
 		claims, err := jwtClient.VerifyJWT(token)
 		if err != nil {
-			http.Error(w, fmt.Errorf("failed verifying JWT token: %w", err).Error(), http.StatusForbidden)
+			http.Error(w, fmt.Errorf("failed verifying JWT token: %w", err).Error(), http.StatusUnauthorized)
 			return
 		}
 

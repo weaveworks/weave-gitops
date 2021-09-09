@@ -66,7 +66,7 @@ var _ = Describe("WithProviderToken", func() {
 
 		midware.ServeHTTP(res, req)
 
-		Expect(res.Result().StatusCode).To(Equal(http.StatusForbidden))
+		Expect(res.Result().StatusCode).To(Equal(http.StatusUnauthorized))
 	})
 
 	It("passes the provider token into the context", func() {
