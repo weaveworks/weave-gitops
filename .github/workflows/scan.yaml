@@ -5,6 +5,8 @@ on:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
+
 
 jobs:
   fossa:
@@ -13,6 +15,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.x
+      - name: Fake Install flux
+        run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
+      - name: Fake dist for the ui cmd
+        run: mkdir -p cmd/wego/ui/run/dist && touch cmd/wego/ui/run/dist/index.js
       - name: Run FOSSA scan and upload build data
         uses: fossa-contrib/fossa-action@v1
         with:

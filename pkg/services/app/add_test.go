@@ -26,6 +26,17 @@ var (
 	ctx       context.Context
 )
 
+type dummyPullRequest struct {
+}
+
+func (d dummyPullRequest) Get() gitprovider.PullRequestInfo {
+	return gitprovider.PullRequestInfo{WebURL: ""}
+}
+
+func (d dummyPullRequest) APIObject() interface{} {
+	return nil
+}
+
 var _ = Describe("Add", func() {
 	var _ = BeforeEach(func() {
 		addParams = AddParams{
@@ -756,8 +767,29 @@ var _ = Describe("Add", func() {
 	})
 
 	Context("when creating a pull request", func() {
+		var info *AppResourceInfo
+
+		BeforeEach(func() {
+			gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
+				if url == addParams.Url {
+					return "default-app-branch", nil
+				}
+				return "default-config-branch", nil
+			}
+
+			gitProviders.CreatePullRequestToOrgRepoStub = func(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
+				return dummyPullRequest{}, nil
+			}
+
+			gitProviders.CreatePullRequestToUserRepoStub = func(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
+				return dummyPullRequest{}, nil
+			}
+
+			addParams.Url = "https://github.com/user/repo"
+			info = getAppResourceInfo(makeWegoApplication(addParams), "cluster")
+		})
+
 		It("generates an appropriate error when the owner cannot be retrieved from the URL", func() {
-			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
 			err := appSrv.(*App).createPullRequestToRepo(info, "foo", "hash", []byte{}, []byte{}, []byte{})
 			Expect(err.Error()).To(HavePrefix("failed to retrieve owner"))
 		})
@@ -766,9 +798,61 @@ var _ = Describe("Add", func() {
 			gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
 				return gitproviders.AccountTypeOrg, fmt.Errorf("no account found")
 			}
-			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
+
 			err := appSrv.(*App).createPullRequestToRepo(info, "ssh://git@github.com/ewojfewoj3323w/abc", "hash", []byte{}, []byte{}, []byte{})
 			Expect(err.Error()).To(HavePrefix("failed to retrieve account type"))
+		})
+
+		Context("uses the default app branch for config in app repository", func() {
+			BeforeEach(func() {
+				addParams.AppConfigUrl = ""
+			})
+
+			It("creates the pull request against the default branch for an org app repository", func() {
+				gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
+					return gitproviders.AccountTypeOrg, nil
+				}
+
+				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.Url, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+				_, branch, _, _, _, _, _ := gitProviders.CreatePullRequestToOrgRepoArgsForCall(0)
+				Expect(branch).To(Equal("default-app-branch"))
+			})
+
+			It("creates the pull request against the default branch for a user app repository", func() {
+				gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
+					return gitproviders.AccountTypeUser, nil
+				}
+
+				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.Url, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+				_, branch, _, _, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
+				Expect(branch).To(Equal("default-app-branch"))
+			})
+		})
+
+		Context("uses the default config branch for external config", func() {
+			BeforeEach(func() {
+				addParams.AppConfigUrl = "https://github.com/foo/bar"
+			})
+
+			It("creates the pull request against the default branch for an org config repository", func() {
+				gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
+					return gitproviders.AccountTypeOrg, nil
+				}
+
+				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+				_, branch, _, _, _, _, _ := gitProviders.CreatePullRequestToOrgRepoArgsForCall(0)
+				Expect(branch).To(Equal("default-config-branch"))
+			})
+
+			It("creates the pull request against the default branch for a user config repository", func() {
+				gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
+					return gitproviders.AccountTypeUser, nil
+				}
+
+				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+				_, branch, _, _, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
+				Expect(branch).To(Equal("default-config-branch"))
+			})
 		})
 	})
 

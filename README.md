@@ -7,6 +7,7 @@ Weave GitOps
 [![LICENSE](https://img.shields.io/github/license/weaveworks/weave-gitops)](https://github.com/weaveworks/weave-gitops/blob/master/LICENSE)
 [![Contributors](https://img.shields.io/github/contributors/weaveworks/weave-gitops)](https://github.com/weaveworks/weave-gitops/graphs/contributors)
 [![Release](https://img.shields.io/github/v/release/weaveworks/weave-gitops?include_prereleases)](https://github.com/weaveworks/weave-gitops/releases/latest)
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=shield)](https://app.fossa.com/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops?ref=badge_shield)
 
 ## Overview
 
@@ -24,7 +25,7 @@ _Weave GitOps is in early stages and iterating. Not all capabilities are availab
 Mac / Linux
 
 ```console
-curl -L "https://github.com/weaveworks/weave-gitops/releases/download/v0.2.4/wego-$(uname)-$(uname -m)" -o wego
+curl -L "https://github.com/weaveworks/weave-gitops/releases/download/v0.2.5/wego-$(uname)-$(uname -m)" -o wego
 chmod +x wego
 sudo mv ./wego /usr/local/bin/wego
 wego version
@@ -126,3 +127,7 @@ Need help or want to contribute? Please see the links below.
   - Talk to us in the [#weave-gitops channel](https://app.slack.com/client/T2NDH1D9D/C0248LVC719/thread/C2ND76PAA-1621532937.019800) on Weaveworks Community Slack. [Invite yourself if you haven't joined yet.](https://slack.weave.works/)
 - Have feature proposals or want to contribute?
   - Please create a [Github issue](https://github.com/weaveworks/weave-gitops/issues)
+
+## License scan details
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=large)](https://app.fossa.com/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops?ref=badge_large)
+
