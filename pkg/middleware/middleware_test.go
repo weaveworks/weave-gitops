@@ -11,7 +11,10 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 )
 
-var jwtClient *authfakes.FakeJWTClient
+var (
+	jwtClient      *authfakes.FakeJWTClient
+	defaultHandler http.HandlerFunc
+)
 
 var _ = Describe("WithProviderToken", func() {
 	_ = BeforeEach(func() {
@@ -22,20 +25,23 @@ var _ = Describe("WithProviderToken", func() {
 				}, nil
 			},
 		}
+
+		defaultHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 	})
 
 	It("does nothing when no token is passed", func() {
-		midware := middleware.WithProviderToken(jwtClient, http.NewServeMux())
+		midware := middleware.WithProviderToken(jwtClient, defaultHandler)
 
-		req := httptest.NewRequest(http.MethodGet, "http://www.foo.com", nil)
+		req := httptest.NewRequest(http.MethodGet, "http://www.foo.com/", nil)
 		res := httptest.NewRecorder()
 		midware.ServeHTTP(res, req)
 
+		Expect(res.Result().StatusCode).To(Equal(http.StatusOK))
 		Expect(jwtClient.VerifyJWTCallCount()).To(Equal(0))
 	})
 
 	It("extracts JWT token from the header", func() {
-		midware := middleware.WithProviderToken(jwtClient, http.NewServeMux())
+		midware := middleware.WithProviderToken(jwtClient, defaultHandler)
 
 		req := httptest.NewRequest(http.MethodGet, "http://www.foo.com", nil)
 		req.Header.Add("Authorization", "token my-jwt-token")
@@ -52,7 +58,7 @@ var _ = Describe("WithProviderToken", func() {
 			return nil, auth.ErrUnauthorizedToken
 		}
 
-		midware := middleware.WithProviderToken(jwtClient, http.NewServeMux())
+		midware := middleware.WithProviderToken(jwtClient, defaultHandler)
 		req := httptest.NewRequest(http.MethodGet, "http://www.foo.com", nil)
 		req.Header.Add("Authorization", "token my-jwt-token")
 
