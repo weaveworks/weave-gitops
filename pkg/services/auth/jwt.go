@@ -80,7 +80,3 @@ func (i *internalJWTClient) VerifyJWT(accessToken string) (*Claims, error) {
 
 	return claims, nil
 }
-
-func init() {
-
-}

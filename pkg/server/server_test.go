@@ -520,6 +520,13 @@ var _ = Describe("Applications handler", func() {
 		gitProviders := &gitprovidersfakes.FakeGitProvider{}
 		appFactory := &apputilsfakes.FakeAppFactory{}
 		commits := []gitprovider.Commit{&fakeCommit{}}
+		jwtClient := &authfakes.FakeJWTClient{
+			VerifyJWTStub: func(s string) (*auth.Claims, error) {
+				return &auth.Claims{
+					ProviderToken: "provider-token",
+				}, nil
+			},
+		}
 
 		appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
 			return app.New(ctx, nil, nil, nil, gitProviders, nil, kubeClient, nil), nil
@@ -540,6 +547,7 @@ var _ = Describe("Applications handler", func() {
 		cfg := ApplicationsConfig{
 			Logger:     log,
 			AppFactory: appFactory,
+			JwtClient:  jwtClient,
 		}
 
 		handler, err := NewApplicationsHandler(context.Background(), &cfg)
@@ -551,9 +559,12 @@ var _ = Describe("Applications handler", func() {
 		path := "/v1/applications/testapp/commits"
 		url := ts.URL + path
 
-		res, err := http.Get(url)
+		req, err := http.NewRequest(http.MethodGet, url, nil)
 		Expect(err).NotTo(HaveOccurred())
+		req.Header.Add("Authorization", "token my-jwt-token")
 
+		res, err := ts.Client().Do(req)
+		Expect(err).NotTo(HaveOccurred())
 		Expect(res.StatusCode).To(Equal(http.StatusOK))
 
 		b, err := ioutil.ReadAll(res.Body)
