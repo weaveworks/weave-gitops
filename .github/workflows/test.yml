@@ -23,6 +23,7 @@ jobs:
       with:
         version: v1.29
         args: --timeout=600s
+        skip-go-installation: true
     - name: Cache node modules
       uses: actions/cache@v2
       env:
