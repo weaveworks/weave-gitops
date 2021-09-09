@@ -13,6 +13,7 @@ import (
 	"github.com/go-git/go-git/v5/storage/memory"
 	"github.com/google/go-cmp/cmp"
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -268,7 +269,7 @@ var _ = Describe("Add", func() {
 			addParams.Url = "ssh://git@github.com/foo/bar.git"
 			addParams.AppConfigUrl = ""
 
-			gitClient.OpenStub = func(s string) (*gogit.Repository, error) {
+			configGitClient.OpenStub = func(s string) (*gogit.Repository, error) {
 				r, err := gogit.Init(memory.NewStorage(), memfs.New())
 				Expect(err).ShouldNot(HaveOccurred())
 
@@ -460,8 +461,8 @@ var _ = Describe("Add", func() {
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				Expect(gitClient.CloneCallCount()).To(Equal(1))
-				_, repoDir, url, branch := gitClient.CloneArgsForCall(0)
+				Expect(configGitClient.CloneCallCount()).To(Equal(1))
+				_, repoDir, url, branch := configGitClient.CloneArgsForCall(0)
 
 				Expect(repoDir).To(ContainSubstring("user-repo-"))
 				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
@@ -480,17 +481,17 @@ var _ = Describe("Add", func() {
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				Expect(gitClient.WriteCallCount()).To(Equal(3))
+				Expect(configGitClient.WriteCallCount()).To(Equal(3))
 
-				path, content := gitClient.WriteArgsForCall(0)
+				path, content := configGitClient.WriteArgsForCall(0)
 				Expect(path).To(Equal(".wego/apps/bar/app.yaml"))
 				Expect(string(content)).To(ContainSubstring("kind: Application"))
 
-				path, content = gitClient.WriteArgsForCall(1)
+				path, content = configGitClient.WriteArgsForCall(1)
 				Expect(path).To(Equal(".wego/targets/test-cluster/bar/bar-gitops-source.yaml"))
 				Expect(content).To(Equal([]byte("git")))
 
-				path, content = gitClient.WriteArgsForCall(2)
+				path, content = configGitClient.WriteArgsForCall(2)
 				Expect(path).To(Equal(".wego/targets/test-cluster/bar/bar-gitops-deploy.yaml"))
 				Expect(content).To(Equal([]byte("kustomization")))
 			})
@@ -500,9 +501,9 @@ var _ = Describe("Add", func() {
 			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(gitClient.CommitCallCount()).To(Equal(1))
+			Expect(configGitClient.CommitCallCount()).To(Equal(1))
 
-			msg, filters := gitClient.CommitArgsForCall(0)
+			msg, filters := configGitClient.CommitArgsForCall(0)
 			Expect(msg).To(Equal(git.Commit{
 				Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
 				Message: "Add App manifests",
@@ -716,8 +717,8 @@ var _ = Describe("Add", func() {
 			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(gitClient.CloneCallCount()).To(Equal(1))
-			_, repoDir, url, branch := gitClient.CloneArgsForCall(0)
+			Expect(configGitClient.CloneCallCount()).To(Equal(1))
+			_, repoDir, url, branch := configGitClient.CloneArgsForCall(0)
 
 			Expect(repoDir).To(ContainSubstring("user-repo-"))
 			Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
@@ -735,17 +736,17 @@ var _ = Describe("Add", func() {
 			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(gitClient.WriteCallCount()).To(Equal(3))
+			Expect(configGitClient.WriteCallCount()).To(Equal(3))
 
-			path, content := gitClient.WriteArgsForCall(0)
+			path, content := configGitClient.WriteArgsForCall(0)
 			Expect(path).To(Equal("apps/repo/app.yaml"))
 			Expect(string(content)).To(ContainSubstring("kind: Application"))
 
-			path, content = gitClient.WriteArgsForCall(1)
+			path, content = configGitClient.WriteArgsForCall(1)
 			Expect(path).To(Equal("targets/test-cluster/repo/repo-gitops-source.yaml"))
 			Expect(content).To(Equal([]byte("git")))
 
-			path, content = gitClient.WriteArgsForCall(2)
+			path, content = configGitClient.WriteArgsForCall(2)
 			Expect(path).To(Equal("targets/test-cluster/repo/repo-gitops-deploy.yaml"))
 			Expect(content).To(Equal([]byte("kustomization")))
 		})
@@ -754,9 +755,9 @@ var _ = Describe("Add", func() {
 			err := appSrv.Add(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(gitClient.CommitCallCount()).To(Equal(1))
+			Expect(configGitClient.CommitCallCount()).To(Equal(1))
 
-			msg, filters := gitClient.CommitArgsForCall(0)
+			msg, filters := configGitClient.CommitArgsForCall(0)
 			Expect(msg).To(Equal(git.Commit{
 				Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
 				Message: "Add App manifests",
@@ -865,8 +866,8 @@ var _ = Describe("Add", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(0))
-			Expect(gitClient.CloneCallCount()).To(Equal(0))
-			Expect(gitClient.WriteCallCount()).To(Equal(0))
+			Expect(configGitClient.CloneCallCount()).To(Equal(0))
+			Expect(configGitClient.WriteCallCount()).To(Equal(0))
 			Expect(kubeClient.ApplyCallCount()).To(Equal(0))
 		})
 	})
@@ -949,6 +950,125 @@ var _ = Describe("Add", func() {
 			Expect(kustName).To(Equal("wego-" + getHash(fmt.Sprintf("%s-%s", clusterName, addParams.Name))))
 			Expect(secretName).To(Equal("wego-" + getHash(fmt.Sprintf("wego-%s-%s", clusterName, repoName))))
 		})
+	})
+
+	Context("ensure that a .keep file is created during 'wego app add' so that deletion of all app manifests will work correctly", func() {
+		type testConfig struct {
+			autoMerge            bool
+			accountType          gitproviders.ProviderAccountType
+			chartName, configURL string
+		}
+
+		type testResults struct {
+			writeCallCount, orgPullRequestCallCount, userPullRequestCallCount int
+		}
+
+		BeforeEach(func() {
+			addParams.Branch = "non-default-branch"
+			appGitClient.WriteStub = func(path string, content []byte) error {
+				Expect(path).To(Equal(".keep"))
+				Expect(content).To(Equal([]byte(keepFileContents)))
+
+				return nil
+			}
+
+			gitProviders.CreatePullRequestToOrgRepoStub = func(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
+				if targetBranch == addParams.Branch {
+					Expect(len(files)).To(Equal(1))
+					Expect(*(files[0].Path)).To(Equal(".keep"))
+					Expect(*(files[0].Content)).To(Equal(keepFileContents))
+				}
+
+				return dummyPullRequest{}, nil
+			}
+
+			gitProviders.CreatePullRequestToUserRepoStub = func(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
+				if targetBranch == addParams.Branch {
+					Expect(len(files)).To(Equal(1))
+					Expect(*(files[0].Path)).To(Equal(".keep"))
+					Expect(*(files[0].Content)).To(Equal(keepFileContents))
+				}
+
+				return dummyPullRequest{}, nil
+			}
+		})
+
+		DescribeTable("creates an empty '.keep' file for non-helm repos unless config is stored in app repo", func(conf testConfig, expected testResults) {
+			addParams.Chart = conf.chartName
+			addParams.AppConfigUrl = conf.configURL
+			addParams.AutoMerge = conf.autoMerge
+
+			gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
+				return conf.accountType, nil
+			}
+
+			Expect(appSrv.Add(addParams)).To(Succeed())
+			Expect(appGitClient.WriteCallCount()).To(Equal(expected.writeCallCount))
+			Expect(gitProviders.CreatePullRequestToOrgRepoCallCount()).To(Equal(expected.orgPullRequestCallCount))
+			Expect(gitProviders.CreatePullRequestToUserRepoCallCount()).To(Equal(expected.userPullRequestCallCount))
+		},
+			Entry("helm, no stored config, org account",
+				testConfig{chartName: "loki", configURL: "NONE", accountType: gitproviders.AccountTypeOrg, autoMerge: true},
+				testResults{}),
+			Entry("helm, no stored config, user account",
+				testConfig{chartName: "loki", configURL: "NONE", accountType: gitproviders.AccountTypeUser, autoMerge: true},
+				testResults{}),
+			Entry("helm, external config, org account",
+				testConfig{chartName: "loki", configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeOrg, autoMerge: true},
+				testResults{}),
+			Entry("helm, external config, user account",
+				testConfig{chartName: "loki", configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeUser, autoMerge: true},
+				testResults{}),
+			Entry("kustomize, no stored config, org account",
+				testConfig{configURL: "NONE", accountType: gitproviders.AccountTypeOrg, autoMerge: true},
+				testResults{writeCallCount: 1}),
+			Entry("kustomize, no stored config, user account",
+				testConfig{configURL: "NONE", accountType: gitproviders.AccountTypeUser, autoMerge: true},
+				testResults{writeCallCount: 1}),
+			Entry("kustomize, config stored in app repo, org account",
+				testConfig{accountType: gitproviders.AccountTypeOrg, autoMerge: true},
+				testResults{}),
+			Entry("kustomize, config stored in app repo, user account",
+				testConfig{accountType: gitproviders.AccountTypeUser, autoMerge: true},
+				testResults{}),
+			Entry("kustomize, external config, org account",
+				testConfig{configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeOrg, autoMerge: true},
+				testResults{writeCallCount: 1}),
+			Entry("kustomize, external config, user account",
+				testConfig{configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeUser, autoMerge: true},
+				testResults{writeCallCount: 1}),
+
+			// pull requests
+			Entry("helm, no stored config, org account",
+				testConfig{chartName: "loki", configURL: "NONE", accountType: gitproviders.AccountTypeOrg},
+				testResults{}),
+			Entry("helm, no stored config, user account",
+				testConfig{chartName: "loki", configURL: "NONE", accountType: gitproviders.AccountTypeUser},
+				testResults{}),
+			Entry("helm, external config, org account",
+				testConfig{chartName: "loki", configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeOrg},
+				testResults{orgPullRequestCallCount: 1}),
+			Entry("helm, external config, user account",
+				testConfig{chartName: "loki", configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeUser},
+				testResults{userPullRequestCallCount: 1}),
+			Entry("kustomize, no stored config, org account",
+				testConfig{configURL: "NONE", accountType: gitproviders.AccountTypeOrg},
+				testResults{orgPullRequestCallCount: 1}),
+			Entry("kustomize, no stored config, user account",
+				testConfig{configURL: "NONE", accountType: gitproviders.AccountTypeUser},
+				testResults{userPullRequestCallCount: 1}),
+			Entry("kustomize, config stored in app repo, org account",
+				testConfig{accountType: gitproviders.AccountTypeOrg},
+				testResults{orgPullRequestCallCount: 1}),
+			Entry("kustomize, config stored in app repo, user account",
+				testConfig{accountType: gitproviders.AccountTypeUser},
+				testResults{userPullRequestCallCount: 1}),
+			Entry("kustomize, external config, org account",
+				testConfig{configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeOrg},
+				testResults{orgPullRequestCallCount: 2}),
+			Entry("kustomize, external config, user account",
+				testConfig{configURL: "https://github.com/foo/bar", accountType: gitproviders.AccountTypeUser},
+				testResults{userPullRequestCallCount: 2}))
 	})
 })
 

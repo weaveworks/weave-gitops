@@ -176,7 +176,7 @@ func (a *App) Add(params AddParams) error {
 
 	switch strings.ToUpper(info.Spec.ConfigURL) {
 	case string(ConfigTypeNone):
-		return a.addAppWithNoConfigRepo(info, params.DryRun, secretRef, appHash)
+		return a.addAppWithNoConfigRepo(info, params, secretRef, appHash)
 	case string(ConfigTypeUserRepo):
 		return a.addAppWithConfigInAppRepo(info, params, secretRef, appHash)
 	default:
@@ -288,16 +288,43 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 	return params, nil
 }
 
-func (a *App) addAppWithNoConfigRepo(info *AppResourceInfo, dryRun bool, secretRef string, appHash string) error {
+func (a *App) addAppWithNoConfigRepo(info *AppResourceInfo, params AddParams, secretRef string, appHash string) error {
 	// Returns the source, app spec and kustomization
 	source, appGoat, appSpec, err := a.generateAppManifests(info, secretRef, appHash)
 	if err != nil {
 		return fmt.Errorf("could not generate application GitOps Automation manifests: %w", err)
 	}
 
+	if info.Spec.SourceType != wego.SourceTypeHelm && !params.DryRun {
+		if !params.AutoMerge {
+			a.Logger.Actionf("Creating pull request for .keep file in application repository")
+			if err := a.createKeepFilePullRequest(info, appHash+"-generate-app-sentinel"); err != nil {
+				return err
+			}
+		} else {
+			a.Logger.Actionf("Writing .keep file to disk")
+
+			if err := a.writeAppKeepFile(info); err != nil {
+				return fmt.Errorf("failed writing sentinel file to disk: %w", err)
+			}
+		}
+
+		commitErr := a.commitAndPush(a.ConfigGit, func(fname string) bool {
+			return fname == ".keep"
+		})
+
+		if commitErr != nil {
+			return fmt.Errorf("could not commit sentinel file changes: %w", commitErr)
+		}
+	}
+
 	a.Logger.Actionf("Applying manifests to the cluster")
 
-	return a.applyToCluster(info, dryRun, source, appGoat, appSpec)
+	if err := a.applyToCluster(info, params.DryRun, source, appGoat, appSpec); err != nil {
+		return fmt.Errorf("could not apply manifests to the cluster: %w", err)
+	}
+
+	return nil
 }
 
 func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams, secretRef string, appHash string) error {
@@ -382,6 +409,13 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 			if err := a.createPullRequestToRepo(info, info.Spec.ConfigURL, appHash, appSpec, appGoat, appSource); err != nil {
 				return err
 			}
+
+			if info.Spec.SourceType != wego.SourceTypeHelm {
+				a.Logger.Actionf("Creating pull request for .keep file in application repository")
+				if err := a.createKeepFilePullRequest(info, appHash+"-generate-app-sentinel"); err != nil {
+					return err
+				}
+			}
 		} else {
 			a.Logger.Actionf("Writing manifests to disk")
 
@@ -391,6 +425,14 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 
 			if err := a.writeAppGoats(info, appSource, appGoat); err != nil {
 				return fmt.Errorf("failed writing application gitops manifests to disk: %w", err)
+			}
+
+			if info.Spec.SourceType != wego.SourceTypeHelm {
+				a.Logger.Actionf("Writing .keep file to disk")
+
+				if err := a.writeAppKeepFile(info); err != nil {
+					return fmt.Errorf("failed writing sentinel file to disk: %w", err)
+				}
 			}
 		}
 	}
@@ -593,6 +635,14 @@ func (a *App) cloneRepo(client git.Git, url string, branch string, dryRun bool) 
 	}, nil
 }
 
+const keepFileContents = `This file exists so that removing all manifests from your application will not cause
+a synchronization failure in the cluster. Please do not modify or remove this file unless you first remove the
+associated application from the cluster.`
+
+func (a *App) writeAppKeepFile(info *AppResourceInfo) error {
+	return a.AppGit.Write(info.appKeepFilePath(), []byte(keepFileContents))
+}
+
 func (a *App) writeAppYaml(info *AppResourceInfo, manifest []byte) error {
 	return a.ConfigGit.Write(info.appYamlPath(), manifest)
 }
@@ -647,6 +697,51 @@ func generateAppYaml(info *AppResourceInfo, appHash string) ([]byte, error) {
 
 func generateResourceName(url string) string {
 	return hashNameIfTooLong(strings.ReplaceAll(utils.UrlToRepoName(url), "_", "-"))
+}
+
+func (a *App) createKeepFilePullRequest(info *AppResourceInfo, pullRequestBranchName string) error {
+	appPath := info.appKeepFilePath()
+	appContent := keepFileContents
+
+	files := []gitprovider.CommitFile{
+		{
+			Path:    &appPath,
+			Content: &appContent,
+		},
+	}
+
+	repo := info.Spec.URL
+	repoName := generateResourceName(repo)
+
+	owner, err := utils.GetOwnerFromUrl(repo)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve owner: %w", err)
+	}
+
+	accountType, err := a.GitProvider.GetAccountType(owner)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve account type: %w", err)
+	}
+
+	if accountType == gitproviders.AccountTypeOrg {
+		orgRepoRef := gitproviders.NewOrgRepositoryRef(github.DefaultDomain, owner, repoName)
+
+		prLink, err := a.GitProvider.CreatePullRequestToOrgRepo(orgRepoRef, info.Spec.Branch, pullRequestBranchName, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", info.Name), fmt.Sprintf("Added sentinel file for %s", info.Name))
+		if err != nil {
+			return fmt.Errorf("unable to create pull request: %w", err)
+		}
+		a.Logger.Println("Pull Request created: %s\n", prLink.Get().WebURL)
+		return nil
+	}
+
+	userRepoRef := gitproviders.NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
+
+	prLink, err := a.GitProvider.CreatePullRequestToUserRepo(userRepoRef, info.Spec.Branch, pullRequestBranchName, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", info.Name), fmt.Sprintf("Added sentinel file for %s", info.Name))
+	if err != nil {
+		return fmt.Errorf("unable to create pull request: %w", err)
+	}
+	a.Logger.Println("Sentinel Pull Request created: %s\n", prLink.Get().WebURL)
+	return nil
 }
 
 func (a *App) createPullRequestToRepo(info *AppResourceInfo, repo string, appHash string, appYaml []byte, goatSource, goatDeploy []byte) error {
@@ -743,6 +838,10 @@ func (a *AppResourceInfo) automationRoot() string {
 	}
 
 	return root
+}
+
+func (a *AppResourceInfo) appKeepFilePath() string {
+	return ".keep"
 }
 
 func (a *AppResourceInfo) appYamlPath() string {

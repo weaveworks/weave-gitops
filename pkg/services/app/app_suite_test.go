@@ -18,17 +18,19 @@ import (
 )
 
 var (
-	gitClient    *gitfakes.FakeGit
-	fluxClient   *fluxfakes.FakeFlux
-	kubeClient   *kubefakes.FakeKube
-	osysClient   *osysfakes.FakeOsys
-	gitProviders *gitprovidersfakes.FakeGitProvider
+	appGitClient    *gitfakes.FakeGit
+	configGitClient *gitfakes.FakeGit
+	fluxClient      *fluxfakes.FakeFlux
+	kubeClient      *kubefakes.FakeKube
+	osysClient      *osysfakes.FakeOsys
+	gitProviders    *gitprovidersfakes.FakeGitProvider
 
 	appSrv AppService
 )
 
 var _ = BeforeEach(func() {
-	gitClient = &gitfakes.FakeGit{}
+	appGitClient = &gitfakes.FakeGit{}
+	configGitClient = &gitfakes.FakeGit{}
 	fluxClient = &fluxfakes.FakeFlux{}
 	osysClient = &osysfakes.FakeOsys{}
 	kubeClient = &kubefakes.FakeKube{
@@ -51,7 +53,7 @@ var _ = BeforeEach(func() {
 		},
 	}
 
-	appSrv = New(context.Background(), &loggerfakes.FakeLogger{}, gitClient, gitClient, gitProviders, fluxClient, kubeClient, osysClient)
+	appSrv = New(context.Background(), &loggerfakes.FakeLogger{}, appGitClient, configGitClient, gitProviders, fluxClient, kubeClient, osysClient)
 })
 
 func TestApp(t *testing.T) {

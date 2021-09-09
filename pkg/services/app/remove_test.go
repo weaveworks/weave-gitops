@@ -246,6 +246,7 @@ func checkAddResults() error {
 	}
 
 	if len(goatPaths) != len(info.clusterResourcePaths()) {
+		fmt.Printf("GP: %#+v\n", goatPaths)
 		return fmt.Errorf("expected %d goat paths, found: %d", len(info.clusterResourcePaths()), len(goatPaths))
 	}
 
@@ -346,7 +347,7 @@ var _ = Describe("Remove", func() {
 			Expect(setupFlux()).To(Succeed())
 
 			// Track the resources added to the cluster via files added to the repository
-			gitClient.WriteStub = func(path string, manifest []byte) error {
+			configGitClient.WriteStub = func(path string, manifest []byte) error {
 				storeGOATPath(path, manifest)
 				return storeCreatedResource(manifest)
 			}
@@ -453,12 +454,12 @@ var _ = Describe("Remove", func() {
 		var _ = BeforeEach(func() {
 			Expect(setupFlux()).To(Succeed())
 
-			gitClient.WriteStub = func(path string, manifest []byte) error {
+			configGitClient.WriteStub = func(path string, manifest []byte) error {
 				storeGOATPath(path, manifest)
 				return storeCreatedResource(manifest)
 			}
 
-			gitClient.RemoveStub = func(path string) error {
+			configGitClient.RemoveStub = func(path string) error {
 				if err := removeGOATPath(path); err != nil {
 					return err
 				}
