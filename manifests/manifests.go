@@ -11,6 +11,8 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/wego/version"
 )
 
+var Manifests [][]byte
+
 //go:embed crds/wego.weave.works_apps.yaml
 var AppCRD []byte
 
@@ -55,3 +57,13 @@ var WegoAppRole []byte
 
 //go:embed wego-app/role-binding.yaml
 var WegoAppRoleBinding []byte
+
+func init() {
+	Manifests = [][]byte{
+		AppCRD,
+		WegoAppServiceAccount,
+		WegoAppRoleBinding,
+		WegoAppRole,
+		WegoAppService,
+	}
+}
