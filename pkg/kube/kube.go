@@ -19,8 +19,6 @@ type Resource interface {
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
-const kubectlPath = "kubectl"
-
 type ClusterStatus int
 
 const (
