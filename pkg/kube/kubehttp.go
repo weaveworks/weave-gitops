@@ -59,7 +59,6 @@ var (
 )
 
 func NewKubeHTTPClient() (Kube, client.Client, error) {
-
 	cfgLoadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
 
 	_, kubeContext, err := initialContexts(cfgLoadingRules)
