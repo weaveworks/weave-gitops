@@ -16,14 +16,6 @@ jobs:
         go-version: 1.16.x
     - name: Checkout code
       uses: actions/checkout@v2
-    - name: Check Format
-      run: make check-format
-    - name: Run linters
-      uses: golangci/golangci-lint-action@v2
-      with:
-        version: v1.29
-        args: --timeout=600s
-        skip-go-installation: true
     - name: Cache node modules
       uses: actions/cache@v2
       env:
@@ -46,6 +38,14 @@ jobs:
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: Build UI Assets
       run: make cmd/wego/ui/run/dist/index.html
+    - name: Check Format
+      run: make check-format
+    - name: Run linters
+      uses: golangci/golangci-lint-action@v2
+      with:
+        version: v1.29
+        args: --timeout=600s
+        skip-go-installation: true
 
   build:
     runs-on: ubuntu-latest
