@@ -117,6 +117,6 @@ var _ = Describe("ExtractProviderToken", func() {
 		midware.ServeHTTP(res, req)
 
 		_, err := middleware.ExtractProviderToken(request.Context())
-		Expect(err).To(Equal(middleware.ErrNoTokenSpecified))
+		Expect(err).To(MatchError("no token specified"))
 	})
 })

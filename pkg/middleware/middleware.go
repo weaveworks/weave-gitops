@@ -24,10 +24,6 @@ func (r *statusRecorder) WriteHeader(status int) {
 	r.ResponseWriter.WriteHeader(status)
 }
 
-var (
-	ErrNoTokenSpecified = errors.New("no token specified")
-)
-
 var RequestOkText = "request success"
 var RequestErrorText = "request error"
 var ServerErrorText = "server error"
@@ -120,7 +116,7 @@ func ExtractProviderToken(ctx context.Context) (*oauth2.Token, error) {
 	}
 
 	if vals.ProviderToken == nil || vals.ProviderToken.AccessToken == "" {
-		return nil, ErrNoTokenSpecified
+		return nil, errors.New("no token specified")
 	}
 
 	return vals.ProviderToken, nil
