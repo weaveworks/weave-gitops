@@ -607,6 +607,7 @@ func testCommit() gitprovider.CommitInfo {
 		Author:    "testauthor",
 		Message:   "some awesome commit",
 		CreatedAt: time.Now(),
+		URL:       "http://github.com/testrepo/commit/2349898723987989234",
 	}
 }
 
