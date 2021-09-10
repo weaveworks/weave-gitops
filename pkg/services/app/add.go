@@ -675,7 +675,7 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, repo string, appHas
 	}
 
 	if accountType == gitproviders.AccountTypeOrg {
-		orgRepoRef := gitproviders.NewOrgRepositoryRef(string(a.GitProvider.GetProviderDomain()), owner, repoName)
+		orgRepoRef := gitproviders.NewOrgRepositoryRef(a.GitProvider.GetProviderDomain(), owner, repoName)
 
 		prLink, err := a.GitProvider.CreatePullRequestToOrgRepo(orgRepoRef, configBranch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", info.Name), fmt.Sprintf("Added yamls for %s", info.Name))
 		if err != nil {
@@ -685,7 +685,7 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, repo string, appHas
 		return nil
 	}
 
-	userRepoRef := gitproviders.NewUserRepositoryRef(string(a.GitProvider.GetProviderDomain()), owner, repoName)
+	userRepoRef := gitproviders.NewUserRepositoryRef(a.GitProvider.GetProviderDomain(), owner, repoName)
 
 	prLink, err := a.GitProvider.CreatePullRequestToUserRepo(userRepoRef, configBranch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", info.Name), fmt.Sprintf("Added yamls for %s", info.Name))
 	if err != nil {
