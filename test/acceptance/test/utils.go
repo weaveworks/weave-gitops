@@ -618,11 +618,8 @@ func takeScreenshot() string {
 	if webDriver != nil {
 		t := time.Now()
 		name := t.Format("Mon-02-Jan-2006-15:04:05.000000")
-		// dirpath := setArtifactsDir()
-		// filepath := dirpath + "/" + SCREENSHOTS_DIR + name + ".png"
-		// filepath := path.Join(SCREENSHOTS_DIR, name+".png")
 		filepath := path.Join(setArtifactsDir(), SCREENSHOTS_DIR, name+".png")
-		webDriver.Screenshot(filepath)
+		_ = webDriver.Screenshot(filepath)
 		return filepath
 	}
 	return ""

@@ -7,6 +7,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
+	. "github.com/sclevine/agouti/matchers"
+	"github.com/weaveworks/weave-gitops/test/acceptance/test/pages"
 )
 
 var webDriver *agouti.Page
@@ -61,8 +63,14 @@ var _ = Describe("Weave GitOps UI Test", func() {
 
 	It("SmokeTest - Verify wego can run UI without apps installed", func() {
 
+		dashboardPage := pages.Dashboard(webDriver)
+		expectedTitle := "Weave GitOps"
+
 		By("Then I should be able to navigate to WeGO dashboard", func() {
 			Expect(webDriver.Navigate(WEGO_UI_URL)).To(Succeed())
+			str, _ := webDriver.Title()
+			Expect(str).To(ContainSubstring(expectedTitle))
+			Expect(dashboardPage.ApplicationTab).Should(BeFound())
 		})
 	})
 })
