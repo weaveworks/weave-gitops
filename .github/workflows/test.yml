@@ -151,7 +151,7 @@ jobs:
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega
-        ginkgo --focus=SmokeTest --randomizeSuites -nodes=3 --stream --reportFile=$(pwd)/test-results/smoke-test-results.xml -v ./test/acceptance/test/...
+        ginkgo --focus=SmokeTest --randomizeSuites -nodes=2 --stream --reportFile=$(pwd)/test-results/smoke-test-results.xml -v ./test/acceptance/test/...
   acceptance-tests:
     runs-on: ubuntu-latest
     needs: [lint, build, test]
