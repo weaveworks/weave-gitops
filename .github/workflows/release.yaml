@@ -27,6 +27,8 @@ jobs:
           echo "FLUX_VERSION=$($(pwd)/tools/bin/stoml $(pwd)/tools/dependencies.toml flux.version)" >> $GITHUB_ENV
       - name: "Make All"
         run: make all
+      - name: "Git diff"
+        run: git --no-pager diff
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v1
         with:
