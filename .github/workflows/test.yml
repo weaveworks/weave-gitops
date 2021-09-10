@@ -176,7 +176,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with: 
         name: smoke-test-artifacts
-        path: ${{ env.ARTIFACTS_BASE_DIR }}
+        path: "/tmp/wego-test"
         retention-days: 1
 
   acceptance-tests:
