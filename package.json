@@ -1,6 +1,6 @@
 {
   "name": "@weaveworks/weave-gitops",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Weave GitOps core",
   "targets": {
     "default": {
@@ -48,16 +48,20 @@
     "@material-ui/core": "^4.12.3",
     "@material-ui/icons": "^4.11.2",
     "@material-ui/lab": "^4.0.0-alpha.58",
+    "d3": "^6.6.0",
+    "d3-selection": "^2.0.0",
+    "dagre": "^0.8.5",
+    "dagre-d3": "^0.6.4",
     "history": "^5.0.0",
     "lodash": "^4.17.21",
     "luxon": "^1.27.0",
     "postcss": "^8.3.6",
     "query-string": "^7.0.0",
-    "react-dom": "^17.0.2",
-    "react-router-dom": "^5.2.0",
-    "react-router": "^5.2.0",
-    "react-toastify": "^7.0.4",
     "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-router": "^5.2.0",
+    "react-router-dom": "^5.2.0",
+    "react-toastify": "^7.0.4",
     "styled-components": "^5.3.0"
   },
   "jest": {
