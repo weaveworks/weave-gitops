@@ -40,13 +40,16 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Verify that wego cannot work without wego components installed in the cluster", func() {
+	It("Verify that wego cannot work without wego components installed and with both url and directory provided", func() {
 		var repoAbsolutePath string
+		var errOutput string
 		var exitCode int
 		private := true
 		tip := generateTestInputs()
+		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 
-		addCommand := "app add . --auto-merge=true"
+		addCommand1 := "app add . --auto-merge=true"
+		addCommand2 := "app add . --url=" + appRepoRemoteURL + " --auto-merge=true"
 
 		defer deleteRepo(tip.appRepoName)
 
@@ -67,12 +70,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			uninstallWegoRuntime(WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
-		})
-
 		By("And I run wego add command", func() {
-			command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand))
+			command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand1))
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 			Eventually(session).Should(gexec.Exit())
@@ -83,29 +82,9 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			// Should  be a failure
 			Eventually(exitCode).ShouldNot(Equal(0))
 		})
-	})
 
-	It("Verify that wego cannot work with both url and directory provided", func() {
-		var repoAbsolutePath string
-		var errOutput string
-		tip := generateTestInputs()
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
-
-		addCommand := "app add . --url=" + appRepoRemoteURL + " --auto-merge=true"
-
-		defer deleteRepo(tip.appRepoName)
-
-		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName)
-		})
-
-		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, true)
-			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
-		})
-
-		By("And I run add command with both directory path and url specified", func() {
-			_, errOutput = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, "wego-system")
+		By("When I run add command with both directory path and url specified", func() {
+			_, errOutput = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand2, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("Then I should see an error", func() {
@@ -143,10 +122,6 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("And I install wego to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
-		})
-
-		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("And I create a new branch", func() {

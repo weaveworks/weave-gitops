@@ -17,10 +17,6 @@ func initializeUISteps() {
 		installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 	})
 
-	By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-		setupSSHKey(DEFAULT_SSH_KEY_PATH)
-	})
-
 	By("And I run wego ui", func() {
 		_ = runCommandAndReturnSessionOutput(fmt.Sprintf("%s ui run &", WEGO_BIN_PATH))
 	})
@@ -59,6 +55,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 	})
 
 	AfterEach(func() {
+		takeScreenshot()
 		Expect(webDriver.Destroy()).To(Succeed())
 	})
 
@@ -66,8 +63,6 @@ var _ = Describe("Weave GitOps UI Test", func() {
 
 		By("Then I should be able to navigate to WeGO dashboard", func() {
 			Expect(webDriver.Navigate(WEGO_UI_URL)).To(Succeed())
-			Expect(webDriver.Title()).To(ContainSubstring("Weave GitOps"))
 		})
-
 	})
 })

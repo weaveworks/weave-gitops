@@ -162,13 +162,21 @@ jobs:
         GITHUB_ORG: weaveworks-gitops-test
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
+        ARTIFACTS_BASE_DIR: "/tmp/wego-test"
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/wego
         export CLUSTER_PROVIDER=kubectl
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega
-        ginkgo --focus=SmokeTest --randomizeSuites --reportFile=$(pwd)/test-results/smoke-test-results.xml -v ./test/acceptance/test/...
+        ginkgo --focus=SmokeTest --randomizeSuites --reportFile=$(pwd)/${{ env. ARTIFACTS_BASE_DIR }}/smoke-test-results.xml -v ./test/acceptance/test/...
+    - name: Store acceptance test results
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v2
+      with: 
+        name: acceptance-test-artifacts
+        path: ${{ env.ARTIFACTS_BASE_DIR }}
+        retention-days: 1
 
   acceptance-tests:
     runs-on: ubuntu-latest
@@ -241,4 +249,11 @@ jobs:
         export CLUSTER_PROVIDER=kubectl
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega/...
-        ginkgo --randomizeSuites --reportFile=$(pwd)/test-results/smoke-test-results.xml -v ./test/acceptance/test/...
+        ginkgo --randomizeSuites --reportFile=$(pwd)/${{ env. ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml -v ./test/acceptance/test/...
+    - name: Store acceptance test results
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v2
+      with: 
+        name: acceptance-test-artifacts
+        path: ${{ env.ARTIFACTS_BASE_DIR }}
+        retention-days: 1
