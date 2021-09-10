@@ -25,10 +25,10 @@ import (
 
 const APP_REMOVAL_TIMEOUT time.Duration = 30 * time.Second
 const EVENTUALLY_DEFAULT_TIME_OUT time.Duration = 60 * time.Second
-const TIMEOUT_TWO_MINUTES time.Duration = 120 * time.Second
+const TIMEOUT_FOUR_MINUTES time.Duration = 4 * time.Minute
 const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
 const NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
-const INSTALL_PODS_READY_TIMEOUT time.Duration = 180 * time.Second
+const INSTALL_PODS_READY_TIMEOUT time.Duration = 4 * time.Minute
 const WEGO_DEFAULT_NAMESPACE = wego.DefaultNamespace
 
 var DEFAULT_SSH_KEY_PATH string
@@ -119,16 +119,16 @@ func getUniqueWorkload(placeHolderSuffix string, uniqueSuffix string) string {
 }
 
 func setupSSHKey(sshKeyPath string) {
-	if _, err := os.Stat(sshKeyPath); os.IsNotExist(err) {
-		fmt.Println("sshkeyPath", sshKeyPath, "doesn't exists")
-		command := exec.Command("sh", "-c", fmt.Sprintf(`
-	                       echo "%s" >> %s &&
-	                       chmod 0600 %s &&
-	                       ls -la %s`, os.Getenv("GITHUB_KEY"), sshKeyPath, sshKeyPath, sshKeyPath))
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session).Should(gexec.Exit())
-	}
+	//if _, err := os.Stat(sshKeyPath); os.IsNotExist(err) {
+	//	fmt.Println("sshkeyPath", sshKeyPath, "doesn't exists")
+	//	command := exec.Command("sh", "-c", fmt.Sprintf(`
+	//                       echo "%s" >> %s &&
+	//                       chmod 0600 %s &&
+	//                       ls -la %s`, os.Getenv("GITHUB_KEY"), sshKeyPath, sshKeyPath, sshKeyPath))
+	//	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	//	Expect(err).ShouldNot(HaveOccurred())
+	//	Eventually(session).Should(gexec.Exit())
+	//}
 }
 
 //func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool) (string, error) {
@@ -367,7 +367,7 @@ func installAndVerifyWego(wegoNamespace string, kubeconfigPath string) {
 		command.Env = append(command.Env, fmt.Sprintf("KUBECONFIG=%s", kubeconfigPath))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, TIMEOUT_TWO_MINUTES).Should(gexec.Exit())
+		Eventually(session, TIMEOUT_FOUR_MINUTES).Should(gexec.Exit())
 		VerifyControllersInCluster(wegoNamespace, kubeconfigPath)
 	})
 }
@@ -504,6 +504,7 @@ func runCommandAndReturnSessionOutput(commandToRun string, kubeConfigPath string
 }
 
 func runWegoAddCommand(repoAbsolutePath string, addCommand string, wegoNamespace string, kubeConfigPath string) {
+	fmt.Println("Using kubeconfigFILE", kubeConfigPath)
 	log.Infof("Add command to run: %s in namespace %s from dir %s", addCommand, wegoNamespace, repoAbsolutePath)
 	_, _ = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, wegoNamespace, kubeConfigPath)
 }
@@ -579,7 +580,7 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
                             git push -u origin main`, appManifestFilePath, repoAbsolutePath, repoAbsolutePath))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session, 10, 1).Should(gexec.Exit())
+	Eventually(session, 30, 1).Should(gexec.Exit())
 }
 
 func gitUpdateCommitPush(repoAbsolutePath string) {

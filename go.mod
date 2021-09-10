@@ -3,6 +3,7 @@ module github.com/weaveworks/weave-gitops
 go 1.16
 
 require (
+	github.com/boltdb/bolt v1.3.1 // indirect
 	github.com/deepmap/oapi-codegen v1.8.1
 	github.com/dnaeon/go-vcr v1.2.0
 	github.com/fluxcd/go-git-providers v0.2.1-0.20210810172205-2624ccb868e1
