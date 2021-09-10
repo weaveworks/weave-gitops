@@ -173,6 +173,13 @@ func ConvertCommitHashToShort(hash string) string {
 	return hash[:7]
 }
 
+func ConvertCommitURLToShort(url string) string {
+	urlArray := strings.SplitAfter(url, "commit/")
+	path := urlArray[0]
+	hash := urlArray[1][:7]
+	return path + hash
+}
+
 func CreateRepoSecretName(targetName string, repoURL string) string {
 	return fmt.Sprintf("wego-%s-%s", targetName, UrlToRepoName(repoURL))
 }

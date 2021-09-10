@@ -112,13 +112,12 @@ func printCommitTable(logger logger.Logger, commits []gitprovider.Commit) {
 	rows := [][]string{}
 	for _, commit := range commits {
 		c := commit.Get()
-		shortHash := utils.ConvertCommitHashToShort(c.Sha)
 		rows = append(rows, []string{
-			shortHash,
+			utils.ConvertCommitHashToShort(c.Sha),
 			utils.CleanCommitCreatedAt(c.CreatedAt),
 			c.Author,
 			utils.CleanCommitMessage(c.Message),
-			c.URL,
+			utils.ConvertCommitURLToShort(c.URL),
 		})
 	}
 
