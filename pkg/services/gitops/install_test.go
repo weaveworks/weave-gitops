@@ -9,7 +9,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
+	log "github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 )
 
@@ -23,7 +23,7 @@ var _ = Describe("Install", func() {
 				return kube.Unmodified
 			},
 		}
-		gitopsSrv = gitops.New(logger.NewCLILogger(os.Stderr), fluxClient, kubeClient)
+		gitopsSrv = gitops.New(log.NewCLILogger(os.Stderr), fluxClient, kubeClient)
 
 		installParams = gitops.InstallParams{
 			Namespace: "wego-system",
@@ -56,15 +56,34 @@ var _ = Describe("Install", func() {
 		Expect(dryRun).To(Equal(false))
 	})
 
-	It("applies app crd", func() {
+	It("applies app crd and wego-app manifests", func() {
 		_, err := gitopsSrv.Install(installParams)
 		Expect(err).ShouldNot(HaveOccurred())
-
-		Expect(kubeClient.ApplyCallCount()).To(Equal(1))
 
 		_, appCRD, namespace := kubeClient.ApplyArgsForCall(0)
 		Expect(appCRD).To(ContainSubstring("kind: App"))
 		Expect(namespace).To(Equal("wego-system"))
+
+		_, serviceAccount, namespace := kubeClient.ApplyArgsForCall(1)
+		Expect(serviceAccount).To(ContainSubstring("kind: ServiceAccount"))
+		Expect(namespace).To(Equal("wego-system"))
+
+		_, roleBinding, namespace := kubeClient.ApplyArgsForCall(2)
+		Expect(roleBinding).To(ContainSubstring("kind: RoleBinding"))
+		Expect(namespace).To(Equal("wego-system"))
+
+		_, role, namespace := kubeClient.ApplyArgsForCall(3)
+		Expect(role).To(ContainSubstring("kind: Role"))
+		Expect(namespace).To(Equal("wego-system"))
+
+		_, service, namespace := kubeClient.ApplyArgsForCall(4)
+		Expect(service).To(ContainSubstring("kind: Service"))
+		Expect(namespace).To(Equal("wego-system"))
+
+		_, deployment, namespace := kubeClient.ApplyArgsForCall(5)
+		Expect(deployment).To(ContainSubstring("kind: Deployment"))
+		Expect(namespace).To(Equal("wego-system"))
+
 	})
 
 	Context("when dry-run", func() {

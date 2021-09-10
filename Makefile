@@ -26,49 +26,97 @@ endif
 
 .PHONY: bin
 
-all: wego
+all: wego ## Install dependencies and build WeGo binary
 
-# Run tests
-unit-tests: dependencies cmd/wego/ui/run/dist/index.html
-	# To avoid downloading depencencies every time use `SKIP_FETCH_TOOLS=1 unit-tests`
+##@ Test
+unit-tests: dependencies cmd/wego/ui/run/dist/index.html ## Run unit tests
+	# To avoid downloading dependencies every time use `SKIP_FETCH_TOOLS=1 unit-tests`
 	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v -tags unittest ./...
 
-debug:
-	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) -gcflags='all=-N -l' cmd/wego/*.go
+fakes: ## Generate testing fakes
+	go generate ./...
 
-bin: ui
-	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) cmd/wego/*.go
+##@ Build
+wego: dependencies ui bin ## Install dependencies and build wego binary
 
-# Build wego binary
-wego: dependencies bin
-
-# Install binaries to GOPATH
-install: bin
+install: bin ## Install binaries to GOPATH
 	cp bin/$(BINARY_NAME) ${GOPATH}/bin/
 
+api-dev: ## Server and watch wego-server, will reload automatically on change
+	reflex -r '.go' -s -- sh -c 'go run cmd/wego-server/main.go'
+
+debug: ## Compile binary with optimisations and inlining disabled
+	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) -gcflags='all=-N -l' cmd/wego/*.go
+
+bin: ## Build wego binary
+	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) cmd/wego/*.go
+
+docker: ## Build wego-app docker image
+	docker build -t ghcr.io/weaveworks/wego-app:latest .
+
+
 # Clean up images and binaries
-clean:
+clean: ## Clean up images and binaries
 	rm -f bin/wego
 	rm -rf pkg/flux/bin/
 	rm -rf cmd/wego/ui/run/dist
 	rm -rf coverage
 	rm -rf node_modules
 	rm -f .deps
-# Run go fmt against code
-fmt:
+
+fmt: ## Run go fmt against code
 	go fmt ./...
-# Run go vet against code
-vet:
+
+vet: ## Run go vet against code
 	go vet ./...
+
+lint: ## Run linters against code
+	golangci-lint run --out-format=github-actions --build-tags acceptance
 
 .deps:
 	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
 	@touch .deps
 
-dependencies: .deps
+dependencies: .deps ## Install build dependencies
 
-node_modules:
+# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
+CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
+crd: ## Generate CRDs
+	@go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1
+	controller-gen $(CRD_OPTIONS) paths="./..." output:crd:artifacts:config=manifests/crds
+
+check-format: ## Check go format
+	if [ ! -z "$(FORMAT_LIST)" ] ; then echo invalid format at: ${FORMAT_LIST} && exit 1; fi
+
+proto-deps: ## Update protobuf dependencies
+	buf beta mod update
+
+proto: ## Generate protobuf files
+	buf generate
+#	This job is complaining about a missing plugin and error-ing out
+#	oapi-codegen -config oapi-codegen.config.yaml api/applications/applications.swagger.json
+
+##@ UI
+
+node_modules: ## Install node modules
 	npm ci
+	npx npm-force-resolutions
+
+ui-lint: ## Run linter against the UI
+	npm run lint
+
+ui-test: ## Run UI tests
+	npm run test
+
+ui-audit: ## Run audit against the UI
+	npm audit
+
+ui: node_modules cmd/wego/ui/run/dist/main.js ## Build the UI
+
+ui-lib: node_modules dist/index.js ## Build UI libraries
+# Remove font files from the npm module.
+	@find dist -type f -iname \*.otf -delete
+	@find dist -type f -iname \*.woff -delete
 
 cmd/wego/ui/run/dist:
 	mkdir -p cmd/wego/ui/run/dist
@@ -79,30 +127,13 @@ cmd/wego/ui/run/dist/index.html: cmd/wego/ui/run/dist
 cmd/wego/ui/run/dist/main.js:
 	npm run build
 
-lint:
-	golangci-lint run --out-format=github-actions --build-tags acceptance
-
-ui-lint:
-	npm run lint
-
-ui-test:
-	npm run test
-
-ui-audit:
-	npm audit
-
-ui: node_modules cmd/wego/ui/run/dist/main.js
-
-ui-lib: node_modules dist/index.js dist/index.d.ts
-# Remove font files from the npm module.
-	@find dist -type f -iname \*.otf -delete
-	@find dist -type f -iname \*.woff -delete
-
 dist/index.js:
 	npm run build:lib && cp package.json dist
 
 dist/index.d.ts:
 	npm run typedefs
+
+# Test coverage
 
 # JS coverage info
 coverage/lcov.info:
@@ -125,34 +156,13 @@ coverage/golang.info: coverage.out
 coverage/merged.lcov: coverage/lcov.info coverage/golang.info
 	lcov --add-tracefile coverage/golang.info -a coverage/lcov.info -o merged.lcov
 
-proto-deps:
-	buf beta mod update
+##@ Utilities
 
-proto:
-	buf generate
-#	This job is complaining about a missing plugin and error-ing out
-#	oapi-codegen -config oapi-codegen.config.yaml api/applications/applications.swagger.json
-
-api-dev:
-	reflex -r '.go' -s -- sh -c 'go run cmd/wego-server/main.go'
-
-fakes:
-	go generate ./...
-
-# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
-
-crd:
-	@go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1
-	controller-gen $(CRD_OPTIONS) paths="./..." output:crd:artifacts:config=manifests/crds
-
-# Check go format
-check-format: 
-	if [ ! -z "$(FORMAT_LIST)" ] ; then echo invalid format at: ${FORMAT_LIST} && exit 1; fi
-
-generate-helm: wego
-	PREV_CONTEXT=$(shell kubectl config current-context)
-	kind create cluster --name wego-helm-generator
-	./bin/wego gitops install --dry-run > ./helm/weave-gitops/templates/generated_resources.yaml
-	kind delete cluster --name wego-helm-generator
-	test -n "$(PREV_CONTEXT)" && kubectl config use-context $(PREV_CONTEXT) || true
+.PHONY: help
+# Thanks to https://www.thapaliya.com/en/writings/well-documented-makefiles/
+help:  ## Display this help.
+ifeq ($(OS),Windows_NT)
+				@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make <target>\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  %-40s %s\n", $$1, $$2 } /^##@/ { printf "\n%s\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+else
+				@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-40s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+endif

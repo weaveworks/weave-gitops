@@ -13,7 +13,12 @@ type Props = {
 };
 
 function Applications({ className }: Props) {
-  const { applications, loading } = useApplications();
+  const [applications, setApplications] = React.useState<Application[]>([]);
+  const { listApplications, loading } = useApplications();
+
+  React.useEffect(() => {
+    listApplications().then((res) => setApplications(res as Application[]));
+  }, []);
 
   return (
     <Page loading={loading} title="Applications" className={className}>

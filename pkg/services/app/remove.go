@@ -67,12 +67,12 @@ func (a *App) Remove(params RemoveParams) error {
 		return nil
 	}
 
-	cloneURL, branch, err := a.getConfigUrlAndBranch(info, params.GitProviderToken)
+	cloneURL, branch, err := a.getConfigUrlAndBranch(info)
 	if err != nil {
 		return fmt.Errorf("failed to obtain config URL and branch: %w", err)
 	}
 
-	remover, err := a.cloneRepo(cloneURL, branch, params.DryRun)
+	remover, err := a.cloneRepo(a.ConfigGit, cloneURL, branch, params.DryRun)
 
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)
@@ -85,7 +85,7 @@ func (a *App) Remove(params RemoveParams) error {
 	if !params.DryRun {
 		for _, resourceRef := range resources {
 			if resourceRef.repositoryPath != "" { // Some of the automation doesn't get stored
-				if err := a.Git.Remove(resourceRef.repositoryPath); err != nil {
+				if err := a.ConfigGit.Remove(resourceRef.repositoryPath); err != nil {
 					return err
 				}
 			} else if resourceRef.kind == ResourceKindKustomization ||
@@ -100,7 +100,7 @@ func (a *App) Remove(params RemoveParams) error {
 			}
 		}
 
-		if err := a.commitAndPush(); err != nil {
+		if err := a.commitAndPush(a.ConfigGit); err != nil {
 			return err
 		}
 	}
@@ -108,22 +108,19 @@ func (a *App) Remove(params RemoveParams) error {
 	return nil
 }
 
-func (a *App) getConfigUrlAndBranch(info *AppResourceInfo, token string) (string, string, error) {
+func (a *App) getConfigUrlAndBranch(info *AppResourceInfo) (string, string, error) {
 	cloneURL := info.Spec.ConfigURL
 	branch := info.Spec.Branch
 
 	if cloneURL == string(ConfigTypeUserRepo) {
 		cloneURL = info.Spec.URL
 	} else {
-		gitProvider, err := a.GitProviderFactory(token)
+		localBranch, err := a.GitProvider.GetDefaultBranch(cloneURL)
 		if err != nil {
 			return "", "", err
 		}
 
-		branch, err = gitProvider.GetDefaultBranch(cloneURL)
-		if err != nil {
-			return "", "", err
-		}
+		branch = localBranch
 	}
 
 	return cloneURL, branch, nil

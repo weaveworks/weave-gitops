@@ -21,6 +21,16 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 
 service Applications {
     /**
+    * Authenticate generates jwt token using git provider name and git provider token arguments
+    */
+    rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse) {
+        option (google.api.http) = {
+            post : "/v1/authenticate/{provider_name}"
+            body: "*"
+        };
+    }
+
+    /**
      * ListApplications returns the list of WeGo applications that the authenticated user has access to.
     */
     rpc ListApplications(ListApplicationsRequest) returns (ListApplicationsResponse) {
@@ -44,6 +54,28 @@ service Applications {
             get : "/v1/applications/{name}/commits"
         };
     }
+    /**
+    * GetReconciledObjects returns a list of objects that were created as a result of the Application.
+    * This list is derived by looking at the Kustomization that is associated with an Application.
+    * Helm Releases are not currently supported.
+    */
+    rpc GetReconciledObjects(GetReconciledObjectsReq) returns (GetReconciledObjectsRes) {
+        option (google.api.http) = {
+            post : "/v1/applications/{automationName}/reconciled_objects"
+            body: "*"
+        };
+    };
+
+    /**
+    * GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
+    * Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
+    */
+    rpc GetChildObjects(GetChildObjectsReq) returns (GetChildObjectsRes) {
+        option (google.api.http) = {
+            post : "/v1/applications/child_objects"
+            body: "*"
+        };
+    };
 }
 
 // This object represents a single condition for a Kubernetes object.
@@ -53,15 +85,27 @@ message Condition {
     string status    = 2;
     string reason    = 3;
     string message   = 4;
-    int32 timestamp = 5;
+    int32  timestamp = 5;
 }
 
 message Application {
-    string   name                            = 1;  // The name of the application
-    string   path                            = 2;  // The file path where the k8s yaml files for this application are stored.
-    string   url                             = 3;  // The git repository URL for this application
-    repeated Condition source_conditions     = 4;  // A list of conditions for the Source related to this Application
-    repeated Condition deployment_conditions = 5;  // A list of conditions for the Kustomization or HelmRelease for this application
+    string                    name                            = 1;  // The name of the application
+    string                    path                            = 2;  // The file path where the k8s yaml files for this application are stored.
+    string                    url                             = 3;  // The git repository URL for this application
+    repeated                  Condition source_conditions     = 4;  // A list of conditions for the Source related to this Application
+    repeated                  Condition deployment_conditions = 5;  // A list of conditions for the Kustomization or HelmRelease for this application
+    string                    namespace                       = 6;  // The kubernetes namespace of the application
+    GroupVersionKind          deployment_type                 = 7;  // An object representing the k8s Group, Version and Kind of a deployment
+    repeated GroupVersionKind reconciled_object_kinds         = 8;  // A list of unique object kinds for all resources that were created as a result of this application
+}
+
+message AuthenticateRequest {
+    string provider_name = 1;  // The name of the git provider
+    string access_token  = 2;  // The token of the git provider
+}
+
+message AuthenticateResponse {
+    string token = 1;  // The jwt token that was generated using git provider name and git provider token
 }
 
 message ListApplicationsRequest {
@@ -82,16 +126,17 @@ message GetApplicationResponse {
 }
 
 message Commit {
-    string   commit_hash = 1;  // The hash of the commit
-    string   date        = 2;  // The date the commit was made.
-    string   author      = 3;  // The author of the commit
-    string   message     = 4;  // The commit message
+    string   hash    = 1;  // The hash of the commit
+    string   date    = 2;  // The date the commit was made.
+    string   author  = 3;  // The author of the commit
+    string   message = 4;  // The commit message
+    string   url     = 5;  // The commit url
 }
 
 message ListCommitsRequest {
-    string name               = 1;  // The application name
-    string namespace          = 2;  // The namespace the application is in
-    int32 page_size           = 3;
+    string name      = 1;  // The application name
+    string namespace = 2;  // The namespace the application is in
+    int32  page_size = 3;
     // Optional. A pagination token returned from a previous call
     // that indicates where this listing should continue from.
     optional int32 page_token = 4;
@@ -102,4 +147,45 @@ message ListCommitsResponse {
     // A pagination token returned from a previous call
     // that indicates from where listing should continue.
     int32 next_page_token = 2;
+}
+
+// GroupVersionKind represents an objects Kubernetes API type data
+message GroupVersionKind {
+    string group   = 1;
+    string kind    = 2;
+    string version = 3;
+}
+
+// UnstructuredObject is a Kubernetes object of an unknown type
+message UnstructuredObject {
+    GroupVersionKind groupVersionKind = 1;
+    string           name             = 2;
+    string           namespace        = 3;
+    string           uid              = 4;
+    string           status           = 5;
+}
+
+message GetReconciledObjectsReq {
+    string   automationName      = 1;
+    string   automationNamespace = 2;
+    enum AutomationKind {
+        Kustomize = 0;
+        Helm      = 1;
+    }
+    AutomationKind automationKind = 3;
+    repeated GroupVersionKind kinds = 4;
+}
+
+message GetReconciledObjectsRes {
+    repeated UnstructuredObject objects = 1;
+}
+
+
+message GetChildObjectsReq {
+    GroupVersionKind groupVersionKind = 1;
+    string           parentUid        = 2;
+}
+
+message GetChildObjectsRes {
+    repeated UnstructuredObject objects = 1;
 }

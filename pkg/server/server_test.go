@@ -4,28 +4,38 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
+
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
+
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	"github.com/weaveworks/weave-gitops/pkg/apputils/apputilsfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -79,6 +89,206 @@ var _ = Describe("ApplicationsServer", func() {
 
 		Expect(res.Application.Name).To(Equal(name))
 	})
+	It("Authorize", func() {
+		ctx := context.Background()
+		provider := "github"
+		token := "token"
+
+		jwtClient := auth.NewJwtClient(secretKey)
+		expectedToken, err := jwtClient.GenerateJWT(auth.ExpirationTime, gitproviders.GitProviderGitHub, token)
+		Expect(err).NotTo(HaveOccurred())
+
+		res, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
+			ProviderName: provider,
+			AccessToken:  token,
+		})
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(res.Token).To(Equal(expectedToken))
+	})
+	It("Authorize fails on wrong provider", func() {
+		ctx := context.Background()
+		provider := "wrong_provider"
+		token := "token"
+
+		_, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
+			ProviderName: provider,
+			AccessToken:  token,
+		})
+
+		Expect(err.Error()).To(ContainSubstring(ErrBadProvider.Error()))
+		Expect(err.Error()).To(ContainSubstring(codes.InvalidArgument.String()))
+
+	})
+
+	It("Authorize fails on empty provider token", func() {
+		ctx := context.Background()
+		provider := "github"
+
+		_, err := appsClient.Authenticate(ctx, &pb.AuthenticateRequest{
+			ProviderName: provider,
+			AccessToken:  "",
+		})
+
+		Expect(err).Should(MatchGRPCError(codes.InvalidArgument, ErrEmptyAccessToken))
+	})
+	Describe("GetReconciledObjects", func() {
+		It("gets object with a kustomization + git repo configuration", func() {
+			ctx := context.Background()
+			name := "my-app"
+			kustomization := kustomizev1.Kustomization{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: namespace.Name,
+				},
+				Spec: kustomizev1.KustomizationSpec{
+					SourceRef: kustomizev1.CrossNamespaceSourceReference{
+						Kind: sourcev1.GitRepositoryKind,
+					},
+				},
+				Status: kustomizev1.KustomizationStatus{
+					Snapshot: &kustomizev1.Snapshot{
+						Entries: []kustomizev1.SnapshotEntry{
+							{
+								Namespace: namespace.Name,
+								Kinds: map[string]string{
+									namespace.Name: "Deployment",
+								},
+							},
+						},
+					},
+				},
+			}
+			reconciledObj := appsv1.Deployment{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "my-deployment",
+					Namespace: namespace.Name,
+					Labels: map[string]string{
+						KustomizeNameKey:      name,
+						KustomizeNamespaceKey: namespace.Name,
+					},
+				},
+				Spec: appsv1.DeploymentSpec{
+					Selector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"app": name,
+						},
+					},
+					Template: corev1.PodTemplateSpec{
+						ObjectMeta: metav1.ObjectMeta{
+							Labels: map[string]string{"app": name},
+						},
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{
+								Name:  "nginx",
+								Image: "nginx",
+							}},
+						},
+					},
+				},
+			}
+			app := &wego.Application{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: namespace.Name,
+				},
+				Spec: wego.ApplicationSpec{
+					DeploymentType: wego.DeploymentTypeKustomize,
+				},
+			}
+			Expect(k8sClient.Create(ctx, &kustomization)).Should(Succeed())
+			Expect(k8sClient.Create(ctx, &reconciledObj)).Should(Succeed())
+			Expect(k8sClient.Create(ctx, app)).Should(Succeed())
+			res, err := appsClient.GetReconciledObjects(ctx, &pb.GetReconciledObjectsReq{
+				AutomationName:      name,
+				AutomationNamespace: namespace.Name,
+				AutomationKind:      pb.GetReconciledObjectsReq_Kustomize,
+				Kinds:               []*pb.GroupVersionKind{{Group: "apps", Version: "v1", Kind: "Deployment"}},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res.Objects).To(HaveLen(1))
+
+			first := res.Objects[0]
+			Expect(first.GroupVersionKind.Kind).To(Equal("Deployment"))
+			Expect(first.Name).To(Equal(reconciledObj.Name))
+		})
+		It("returns an error when helm is specified as an automation type", func() {
+			ctx := context.Background()
+			name := "my-app"
+			_, err := appsClient.GetReconciledObjects(ctx, &pb.GetReconciledObjectsReq{
+				AutomationName:      name,
+				AutomationNamespace: namespace.Name,
+				AutomationKind:      pb.GetReconciledObjectsReq_Helm,
+				Kinds:               []*pb.GroupVersionKind{{Group: "apps", Version: "v1", Kind: "Deployment"}},
+			})
+
+			s, ok := status.FromError(err)
+			Expect(ok).To(BeTrue())
+			Expect(s.Code()).To(Equal(codes.Unimplemented))
+		})
+	})
+	Describe("GetChildObjects", func() {
+		It("returns child objects for a parent", func() {
+			ctx := context.Background()
+			name := "my-app"
+			deployment := &appsv1.Deployment{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "my-deployment",
+					Namespace: namespace.Name,
+				},
+				Spec: appsv1.DeploymentSpec{
+					Selector: &metav1.LabelSelector{
+						MatchLabels: map[string]string{
+							"app": name,
+						},
+					},
+					Template: corev1.PodTemplateSpec{
+						ObjectMeta: metav1.ObjectMeta{
+							Labels: map[string]string{"app": name},
+						},
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{{
+								Name:  "nginx",
+								Image: "nginx",
+							}},
+						},
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, deployment)).Should(Succeed())
+			Expect(k8sClient.Get(ctx, types.NamespacedName{Name: deployment.Name, Namespace: deployment.Namespace}, deployment))
+			Expect(deployment.UID).NotTo(Equal(""))
+			rs := &appsv1.ReplicaSet{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      fmt.Sprintf("%s-123abcd", name),
+					Namespace: namespace.Name,
+				},
+				Spec: appsv1.ReplicaSetSpec{
+					Template: deployment.Spec.Template,
+					Selector: deployment.Spec.Selector,
+				},
+			}
+			rs.SetOwnerReferences([]metav1.OwnerReference{{
+				UID:        deployment.UID,
+				APIVersion: deployment.APIVersion,
+				Kind:       deployment.Kind,
+				Name:       deployment.Name,
+			}})
+
+			Expect(k8sClient.Create(ctx, rs)).Should(Succeed())
+
+			res, err := appsClient.GetChildObjects(ctx, &pb.GetChildObjectsReq{
+				ParentUid:        string(deployment.UID),
+				GroupVersionKind: &pb.GroupVersionKind{Group: "apps", Version: "v1", Kind: "ReplicaSet"},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res.Objects).To(HaveLen(1))
+
+			first := res.Objects[0]
+			Expect(first.GroupVersionKind.Kind).To(Equal("ReplicaSet"))
+			Expect(first.Name).To(Equal(rs.Name))
+		})
+	})
 
 	Describe("middleware", func() {
 		Describe("logging", func() {
@@ -92,7 +302,18 @@ var _ = Describe("ApplicationsServer", func() {
 			BeforeEach(func() {
 				log = makeFakeLogr()
 				kubeClient = &kubefakes.FakeKube{}
-				appsSrv = NewApplicationsServer(&ApplicationConfig{App: app.New(nil, nil, nil, kubeClient, nil)})
+
+				rand.Seed(time.Now().UnixNano())
+				secretKey := rand.String(20)
+
+				appFactory := &apputilsfakes.FakeAppFactory{}
+				appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
+					return app.New(ctx, nil, nil, nil, nil, nil, kubeClient, nil), nil
+				}
+				appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
+					return kubeClient, nil
+				}
+				appsSrv = NewApplicationsServer(&ApplicationsConfig{AppFactory: appFactory, JwtClient: auth.NewJwtClient(secretKey)})
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
@@ -174,6 +395,52 @@ var _ = Describe("ApplicationsServer", func() {
 				expectedStatus := strconv.Itoa(res.StatusCode)
 				Expect(list).To(ConsistOf("uri", path, "status", expectedStatus))
 			})
+			It("Authorize fails generating jwt token", func() {
+
+				fakeJWTToken := &authfakes.FakeJWTClient{}
+				fakeJWTToken.GenerateJWTStub = func(duration time.Duration, name gitproviders.GitProviderName, s22 string) (string, error) {
+					return "", fmt.Errorf("some error")
+				}
+
+				appFactory := &apputilsfakes.FakeAppFactory{}
+				appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
+					return app.New(ctx, nil, nil, nil, nil, nil, kubeClient, nil), nil
+				}
+				appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
+					return kubeClient, nil
+				}
+				appsSrv = NewApplicationsServer(&ApplicationsConfig{AppFactory: appFactory, JwtClient: fakeJWTToken})
+				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
+				httpHandler = middleware.WithLogging(log, mux)
+				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
+				Expect(err).NotTo(HaveOccurred())
+
+				ts := httptest.NewServer(httpHandler)
+				defer ts.Close()
+
+				// A valid URL for our server
+				path := "/v1/authenticate/github"
+				url := ts.URL + path
+
+				res, err := http.Post(url, "application/json", strings.NewReader(`{"accessToken":"sometoken"}`))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(res.StatusCode).To(Equal(http.StatusInternalServerError))
+
+				bts, err := ioutil.ReadAll(res.Body)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(bts).To(MatchJSON(`{"code": 13,"message": "error generating jwt token. some error","details": []}`))
+
+				Expect(log.InfoCallCount()).To(BeNumerically(">", 0))
+				msg, _ := log.InfoArgsForCall(0)
+				Expect(msg).To(ContainSubstring(middleware.ServerErrorText))
+
+				vals := log.WithValuesArgsForCall(0)
+				list := formatLogVals(vals)
+
+				expectedStatus := strconv.Itoa(res.StatusCode)
+				Expect(list).To(ConsistOf("uri", path, "status", expectedStatus))
+			})
 		})
 
 	})
@@ -196,9 +463,17 @@ var _ = Describe("Applications handler", func() {
 			}}, nil
 		}
 
-		cfg := ApplicationConfig{
-			App:    app.New(nil, nil, nil, k, nil),
-			Logger: log,
+		appFactory := &apputilsfakes.FakeAppFactory{}
+		appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
+			return app.New(ctx, nil, nil, nil, nil, nil, k, nil), nil
+		}
+		appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
+			return k, nil
+		}
+
+		cfg := ApplicationsConfig{
+			AppFactory: appFactory,
+			Logger:     log,
 		}
 
 		handler, err := NewApplicationsHandler(context.Background(), &cfg)
@@ -242,9 +517,24 @@ var _ = Describe("Applications handler", func() {
 			}, nil
 		}
 
-		appSrv := app.New(logger.NewCLILogger(os.Stderr), nil, nil, kubeClient, nil)
 		gitProviders := &gitprovidersfakes.FakeGitProvider{}
+		appFactory := &apputilsfakes.FakeAppFactory{}
 		commits := []gitprovider.Commit{&fakeCommit{}}
+		jwtClient := &authfakes.FakeJWTClient{
+			VerifyJWTStub: func(s string) (*auth.Claims, error) {
+				return &auth.Claims{
+					ProviderToken: "provider-token",
+				}, nil
+			},
+		}
+
+		appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
+			return app.New(ctx, nil, nil, nil, gitProviders, nil, kubeClient, nil), nil
+		}
+
+		appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
+			return kubeClient, nil
+		}
 
 		gitProviders.GetCommitsFromUserRepoStub = func(gitprovider.UserRepositoryRef, string, int, int) ([]gitprovider.Commit, error) {
 			return commits, nil
@@ -254,13 +544,10 @@ var _ = Describe("Applications handler", func() {
 			return gitproviders.AccountTypeUser, nil
 		}
 
-		appSrv.GitProviderFactory = func(token string) (gitproviders.GitProvider, error) {
-			return gitProviders, nil
-		}
-
-		cfg := ApplicationConfig{
-			Logger: log,
-			App:    appSrv,
+		cfg := ApplicationsConfig{
+			Logger:     log,
+			AppFactory: appFactory,
+			JwtClient:  jwtClient,
 		}
 
 		handler, err := NewApplicationsHandler(context.Background(), &cfg)
@@ -272,9 +559,12 @@ var _ = Describe("Applications handler", func() {
 		path := "/v1/applications/testapp/commits"
 		url := ts.URL + path
 
-		res, err := http.Get(url)
+		req, err := http.NewRequest(http.MethodGet, url, nil)
 		Expect(err).NotTo(HaveOccurred())
+		req.Header.Add("Authorization", "token my-jwt-token")
 
+		res, err := ts.Client().Do(req)
+		Expect(err).NotTo(HaveOccurred())
 		Expect(res.StatusCode).To(Equal(http.StatusOK))
 
 		b, err := ioutil.ReadAll(res.Body)
@@ -285,6 +575,9 @@ var _ = Describe("Applications handler", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(r.Commits).To(HaveLen(1))
+		Expect(r.Commits[0].Url).To(Equal("http://github.com/testrepo/commit/2349898"))
+		Expect(r.Commits[0].Message).To(Equal("if a message is above fifty characters then it wi..."))
+		Expect(r.Commits[0].Hash).To(Equal("2349898"))
 	})
 })
 
@@ -313,10 +606,11 @@ func (fc *fakeCommit) Get() gitprovider.CommitInfo {
 
 func testCommit() gitprovider.CommitInfo {
 	return gitprovider.CommitInfo{
-		Sha:       "testsha",
+		Sha:       "23498987239879892348768",
 		Author:    "testauthor",
-		Message:   "some awesome commit",
+		Message:   "if a message is above fifty characters then it will be truncated",
 		CreatedAt: time.Now(),
+		URL:       "http://github.com/testrepo/commit/2349898723987989234",
 	}
 }
 

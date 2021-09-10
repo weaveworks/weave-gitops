@@ -5,7 +5,6 @@ import (
 	"os"
 	"sync"
 
-	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 )
 
@@ -50,19 +49,6 @@ type FakeOsys struct {
 	lookupEnvReturnsOnCall map[int]struct {
 		result1 string
 		result2 bool
-	}
-	SelectAuthMethodStub        func(string) (ssh.AuthMethod, error)
-	selectAuthMethodMutex       sync.RWMutex
-	selectAuthMethodArgsForCall []struct {
-		arg1 string
-	}
-	selectAuthMethodReturns struct {
-		result1 ssh.AuthMethod
-		result2 error
-	}
-	selectAuthMethodReturnsOnCall map[int]struct {
-		result1 ssh.AuthMethod
-		result2 error
 	}
 	SetenvStub        func(string, string) error
 	setenvMutex       sync.RWMutex
@@ -332,70 +318,6 @@ func (fake *FakeOsys) LookupEnvReturnsOnCall(i int, result1 string, result2 bool
 	fake.lookupEnvReturnsOnCall[i] = struct {
 		result1 string
 		result2 bool
-	}{result1, result2}
-}
-
-func (fake *FakeOsys) SelectAuthMethod(arg1 string) (ssh.AuthMethod, error) {
-	fake.selectAuthMethodMutex.Lock()
-	ret, specificReturn := fake.selectAuthMethodReturnsOnCall[len(fake.selectAuthMethodArgsForCall)]
-	fake.selectAuthMethodArgsForCall = append(fake.selectAuthMethodArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.SelectAuthMethodStub
-	fakeReturns := fake.selectAuthMethodReturns
-	fake.recordInvocation("SelectAuthMethod", []interface{}{arg1})
-	fake.selectAuthMethodMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeOsys) SelectAuthMethodCallCount() int {
-	fake.selectAuthMethodMutex.RLock()
-	defer fake.selectAuthMethodMutex.RUnlock()
-	return len(fake.selectAuthMethodArgsForCall)
-}
-
-func (fake *FakeOsys) SelectAuthMethodCalls(stub func(string) (ssh.AuthMethod, error)) {
-	fake.selectAuthMethodMutex.Lock()
-	defer fake.selectAuthMethodMutex.Unlock()
-	fake.SelectAuthMethodStub = stub
-}
-
-func (fake *FakeOsys) SelectAuthMethodArgsForCall(i int) string {
-	fake.selectAuthMethodMutex.RLock()
-	defer fake.selectAuthMethodMutex.RUnlock()
-	argsForCall := fake.selectAuthMethodArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeOsys) SelectAuthMethodReturns(result1 ssh.AuthMethod, result2 error) {
-	fake.selectAuthMethodMutex.Lock()
-	defer fake.selectAuthMethodMutex.Unlock()
-	fake.SelectAuthMethodStub = nil
-	fake.selectAuthMethodReturns = struct {
-		result1 ssh.AuthMethod
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeOsys) SelectAuthMethodReturnsOnCall(i int, result1 ssh.AuthMethod, result2 error) {
-	fake.selectAuthMethodMutex.Lock()
-	defer fake.selectAuthMethodMutex.Unlock()
-	fake.SelectAuthMethodStub = nil
-	if fake.selectAuthMethodReturnsOnCall == nil {
-		fake.selectAuthMethodReturnsOnCall = make(map[int]struct {
-			result1 ssh.AuthMethod
-			result2 error
-		})
-	}
-	fake.selectAuthMethodReturnsOnCall[i] = struct {
-		result1 ssh.AuthMethod
-		result2 error
 	}{result1, result2}
 }
 
@@ -687,8 +609,6 @@ func (fake *FakeOsys) Invocations() map[string][][]interface{} {
 	defer fake.getenvMutex.RUnlock()
 	fake.lookupEnvMutex.RLock()
 	defer fake.lookupEnvMutex.RUnlock()
-	fake.selectAuthMethodMutex.RLock()
-	defer fake.selectAuthMethodMutex.RUnlock()
 	fake.setenvMutex.RLock()
 	defer fake.setenvMutex.RUnlock()
 	fake.stderrMutex.RLock()

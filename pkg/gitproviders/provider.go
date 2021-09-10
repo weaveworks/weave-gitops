@@ -35,12 +35,14 @@ type GitProvider interface {
 	GetRepoInfo(accountType ProviderAccountType, owner string, repoName string) (*gitprovider.RepositoryInfo, error)
 	GetRepoInfoFromUrl(url string) (*gitprovider.RepositoryInfo, error)
 	GetDefaultBranch(url string) (string, error)
+	GetRepoVisibility(url string) (*gitprovider.RepositoryVisibility, error)
 	UploadDeployKey(owner, repoName string, deployKey []byte) error
 	CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
 	CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
 	GetCommitsFromUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
 	GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
 	GetAccountType(owner string) (ProviderAccountType, error)
+	GetProviderDomain() string
 }
 
 // making sure it implements the interface
@@ -265,6 +267,27 @@ func (p defaultGitProvider) GetDefaultBranch(url string) (string, error) {
 	return "main", nil
 }
 
+func (p defaultGitProvider) GetRepoVisibility(url string) (*gitprovider.RepositoryVisibility, error) {
+	repoInfoRef, err := p.GetRepoInfoFromUrl(url)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return getVisibilityFromRepoInfo(url, repoInfoRef)
+}
+
+func getVisibilityFromRepoInfo(url string, repoInfoRef *gitprovider.RepositoryInfo) (*gitprovider.RepositoryVisibility, error) {
+	if repoInfoRef != nil {
+		repoInfo := *repoInfoRef
+		if repoInfo.Visibility != nil {
+			return repoInfo.Visibility, nil
+		}
+	}
+
+	return nil, fmt.Errorf("unable to obtain repository visibility for: %s", url)
+}
+
 func (p defaultGitProvider) GetRepoInfoFromUrl(repoUrl string) (*gitprovider.RepositoryInfo, error) {
 	owner, err := utils.GetOwnerFromUrl(repoUrl)
 	if err != nil {
@@ -474,6 +497,10 @@ func (p defaultGitProvider) GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepos
 	}
 
 	return commits, nil
+}
+
+func (p defaultGitProvider) GetProviderDomain() string {
+	return string(GitProviderName(p.provider.ProviderID())) + ".com"
 }
 
 func NewRepositoryInfo(description string, visibility gitprovider.RepositoryVisibility) gitprovider.RepositoryInfo {

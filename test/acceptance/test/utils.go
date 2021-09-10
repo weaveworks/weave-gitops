@@ -563,7 +563,8 @@ func verifyWorkloadIsDeployed(workloadName string, workloadNamespace string, kub
 
 func verifyHelmPodWorkloadIsDeployed(workloadName string, workloadNamespace string, kubeconfigPath string) {
 	Expect(waitForResource("pods", workloadName, workloadNamespace, INSTALL_PODS_READY_TIMEOUT, kubeconfigPath)).To(Succeed())
-	command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=360s -n %s --all pods", workloadNamespace))
+	c := fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=360s -n %s --all pods --selector='app!=wego-app'", workloadNamespace)
+	command := exec.Command("sh", "-c", c)
 	command.Env = os.Environ()
 	command.Env = append(command.Env, fmt.Sprintf("KUBECONFIG=%s", kubeconfigPath))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -573,11 +574,13 @@ func verifyHelmPodWorkloadIsDeployed(workloadName string, workloadNamespace stri
 
 func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf(`
+                            (cd %s && git pull origin main || true) &&
                             cp -r %s %s &&
                             cd %s &&
                             git add . &&
                             git commit -m 'add workload manifest' &&
-                            git push -u origin main`, appManifestFilePath, repoAbsolutePath, repoAbsolutePath))
+                            git push -u origin main`,
+		repoAbsolutePath, appManifestFilePath, repoAbsolutePath, repoAbsolutePath))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, 30, 1).Should(gexec.Exit())
@@ -585,7 +588,7 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 
 func gitUpdateCommitPush(repoAbsolutePath string) {
 	log.Infof("Pushing changes made to file(s) in repo: %s", repoAbsolutePath)
-	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cd %s && git add -u && git commit -m 'edit repo file' && git push", repoAbsolutePath))
+	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cd %s && git add -u && git commit -m 'edit repo file' && git pull --rebase && git push -f", repoAbsolutePath))
 }
 
 func pullBranch(repoAbsolutePath string, branch string) {

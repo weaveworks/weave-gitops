@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"k8s.io/client-go/rest"
+
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
@@ -64,33 +66,36 @@ func NewKubeHTTPClient() (Kube, client.Client, error) {
 		return nil, nil, fmt.Errorf("could not get initial context: %w", err)
 	}
 
-	configOverrides := clientcmd.ConfigOverrides{CurrentContext: kubeContext}
+	config, err := rest.InClusterConfig()
+	if err == rest.ErrNotInCluster {
 
-	restCfg, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		cfgLoadingRules,
-		&configOverrides,
-	).ClientConfig()
+		configOverrides := clientcmd.ConfigOverrides{CurrentContext: kubeContext}
 
-	if err != nil {
-		return nil, nil, fmt.Errorf("could not create rest config: %w", err)
+		config, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+			cfgLoadingRules,
+			&configOverrides,
+		).ClientConfig()
+		if err != nil {
+			return nil, nil, fmt.Errorf("could not create rest config: %w", err)
+		}
 	}
 
 	scheme := CreateScheme()
 
-	rawClient, err := client.New(restCfg, client.Options{
+	rawClient, err := client.New(config, client.Options{
 		Scheme: scheme,
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("kubernetes client initialization failed: %w", err)
 	}
 
-	dc, err := discovery.NewDiscoveryClientForConfig(restCfg)
+	dc, err := discovery.NewDiscoveryClientForConfig(config)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to initialize discovery client: %s", err)
 	}
 	mapper := restmapper.NewDeferredDiscoveryRESTMapper(memory.NewMemCacheClient(dc))
 
-	dyn, err := dynamic.NewForConfig(restCfg)
+	dyn, err := dynamic.NewForConfig(config)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to initialize dynamic client: %s", err)
 	}
@@ -134,11 +139,15 @@ func (k *KubeHTTP) GetClusterStatus(ctx context.Context) ClusterStatus {
 	}
 
 	if err := k.Client.Get(ctx, coreDnsName, &dep); err != nil {
-		// Couldn't find the coredns deployment.
-		// We don't know what state the cluster is in.
+		// Some clusters don't have 'coredns'; if we get a "not found" error, we know we
+		// can talk to the cluster
+		if apierrors.IsNotFound(err) {
+			return Unmodified
+		}
+
 		return Unknown
 	} else {
-		// Request for the coredns namespace was successfull.
+		// Request for the coredns namespace was successful.
 		return Unmodified
 	}
 }
