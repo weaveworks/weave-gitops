@@ -994,21 +994,3 @@ func getHash(inputs ...string) string {
 	final := []byte(strings.Join(inputs, ""))
 	return fmt.Sprintf("%x", md5.Sum(final))
 }
-
-type fakePR struct {
-	prInfo gitprovider.PullRequestInfo
-}
-
-func (fpr *fakePR) APIObject() interface{} {
-	return &fpr.prInfo
-}
-
-func (fpr *fakePR) Get() gitprovider.PullRequestInfo {
-	return testPR()
-}
-
-func testPR() gitprovider.PullRequestInfo {
-	return gitprovider.PullRequestInfo{
-		WebURL: "www.github.com/testrepo/32423",
-	}
-}
