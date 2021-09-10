@@ -20,9 +20,9 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 
 	switch status {
 	case kube.FluxInstalled:
-		return []byte{}, errors.New("Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n  $ flux uninstall")
+		return nil, errors.New("Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n  $ flux uninstall")
 	case kube.Unknown:
-		return []byte{}, errors.New("Weave GitOps cannot talk to the cluster")
+		return nil, errors.New("Weave GitOps cannot talk to the cluster")
 	}
 
 	fluxManifests, err := g.flux.Install(params.Namespace, params.DryRun)
@@ -33,8 +33,19 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 	if params.DryRun {
 		fluxManifests = append(fluxManifests, manifests.AppCRD...)
 	} else {
-		if err := g.kube.Apply(ctx, manifests.AppCRD, params.Namespace); err != nil {
-			return []byte{}, fmt.Errorf("could not apply manifest: %w", err)
+
+		for _, manifest := range manifests.Manifests {
+			if err := g.kube.Apply(ctx, manifest, params.Namespace); err != nil {
+				return nil, fmt.Errorf("could not apply manifest: %w", err)
+			}
+		}
+
+		wegoAppDeploymentManifest, err := manifests.GenerateWegoAppDeploymentManifest(manifests.WegoAppDeployment)
+		if err != nil {
+			return nil, fmt.Errorf("error generating wego-app deployment, %w", err)
+		}
+		if err := g.kube.Apply(ctx, wegoAppDeploymentManifest, params.Namespace); err != nil {
+			return nil, fmt.Errorf("could not apply wego-app deployment manifest: %w", err)
 		}
 	}
 
