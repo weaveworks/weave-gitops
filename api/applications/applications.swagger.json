@@ -356,7 +356,7 @@
     "v1Commit": {
       "type": "object",
       "properties": {
-        "commitHash": {
+        "hash": {
           "type": "string"
         },
         "date": {
@@ -366,6 +366,9 @@
           "type": "string"
         },
         "message": {
+          "type": "string"
+        },
+        "url": {
           "type": "string"
         }
       }
