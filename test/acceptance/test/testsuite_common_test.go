@@ -69,7 +69,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	clusterPool2 = cluster.NewClusterPool2()
 
 	clusterPool2.GenerateClusters2(dbDirectory, config.GinkgoConfig.ParallelTotal)
-	go clusterPool2.GenerateClusters2(dbDirectory, config.GinkgoConfig.ParallelTotal)
+	go clusterPool2.GenerateClusters2(dbDirectory, 1)
 
 	globalCtx, globalCancel = context.WithCancel(context.Background())
 

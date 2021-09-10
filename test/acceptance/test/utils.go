@@ -25,7 +25,7 @@ import (
 
 const APP_REMOVAL_TIMEOUT time.Duration = 30 * time.Second
 const EVENTUALLY_DEFAULT_TIME_OUT time.Duration = 60 * time.Second
-const TIMEOUT_FOUR_MINUTES time.Duration = 4 * time.Minute
+const TIMEOUT_FIVE_MINUTES time.Duration = 5 * time.Minute
 const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
 const NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
 const INSTALL_PODS_READY_TIMEOUT time.Duration = 4 * time.Minute
@@ -367,7 +367,7 @@ func installAndVerifyWego(wegoNamespace string, kubeconfigPath string) {
 		command.Env = append(command.Env, fmt.Sprintf("KUBECONFIG=%s", kubeconfigPath))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, TIMEOUT_FOUR_MINUTES).Should(gexec.Exit())
+		Eventually(session, TIMEOUT_FIVE_MINUTES).Should(gexec.Exit())
 		VerifyControllersInCluster(wegoNamespace, kubeconfigPath)
 	})
 }
