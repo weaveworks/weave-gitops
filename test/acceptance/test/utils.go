@@ -617,7 +617,7 @@ func setArtifactsDir() string {
 func takeScreenshot() string {
 	if webDriver != nil {
 		t := time.Now()
-		name := t.Format("Mon-02-Jan-2006-15:04:05.000000")
+		name := t.Format("Mon-02-Jan-2006-15.04.05.000000")
 		filepath := path.Join(setArtifactsDir(), SCREENSHOTS_DIR, name+".png")
 		_ = webDriver.Screenshot(filepath)
 		return filepath

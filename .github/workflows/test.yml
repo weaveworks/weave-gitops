@@ -102,6 +102,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     timeout-minutes: 60
+    env:
+        GITHUB_ORG: weaveworks-gitops-test
+        GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
+        GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
+        ARTIFACTS_BASE_DIR: "/tmp/wego-test"
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
@@ -159,11 +164,6 @@ jobs:
         git config --global user.name "Testy McTestFace"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     - name: Run smoke tests from acceptance suite
-      env:
-        GITHUB_ORG: weaveworks-gitops-test
-        GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
-        GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
-        ARTIFACTS_BASE_DIR: "/tmp/wego-test"
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/wego
         export CLUSTER_PROVIDER=kubectl
@@ -176,13 +176,18 @@ jobs:
       uses: actions/upload-artifact@v2
       with: 
         name: smoke-test-artifacts
-        path: "/tmp/wego-test"
+        path: ${{ env. ARTIFACTS_BASE_DIR }}
         retention-days: 1
 
   acceptance-tests:
     runs-on: ubuntu-latest
     needs: [lint, build, test]
     timeout-minutes: 90
+    env:
+        GITHUB_ORG: weaveworks-gitops-test
+        GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
+        GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
+        ARTIFACTS_BASE_DIR: "/tmp/wego-test"
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
@@ -240,11 +245,6 @@ jobs:
         git config --global user.name "Testy McTestFace"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     - name: Run Full Acceptance Suite
-      env:
-        GITHUB_ORG: weaveworks-gitops-test
-        GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
-        GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
-        ARTIFACTS_BASE_DIR: "/tmp/wego-test"
       run: |
         export PATH=${PATH}:`go env GOPATH`/bin
         export WEGO_BIN_PATH=$(pwd)/bin/wego
