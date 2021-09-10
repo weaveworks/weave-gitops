@@ -577,7 +577,7 @@ var _ = Describe("Applications handler", func() {
 		Expect(r.Commits).To(HaveLen(1))
 		Expect(r.Commits[0].Url).To(Equal("http://github.com/testrepo/commit/2349898"))
 		Expect(r.Commits[0].Message).To(Equal("if a message is above fifty characters then it wi..."))
-		Expect(r.Commits[0].CommitHash).To(Equal("2349898"))
+		Expect(r.Commits[0].Hash).To(Equal("2349898"))
 	})
 })
 
