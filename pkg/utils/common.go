@@ -166,7 +166,7 @@ func CleanCommitMessage(msg string) string {
 }
 
 func CleanCommitCreatedAt(createdAt time.Time) string {
-	return strings.ReplaceAll(createdAt.String(), " +0000", "")
+	return strings.Split(createdAt.String(), " +0000")[0]
 }
 
 func ConvertCommitHashToShort(hash string) string {
