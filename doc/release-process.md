@@ -7,7 +7,9 @@ The current release process for weave gitops is fairly straightforward. You need
 - Add a record of the new version in the checkpoint system
 
 # Creating the release
-- Update the package.json `version` field to reflect the new version. This change must be on `main` before creating a release.
+- Update `package.json` and `package-lock.json` . These changes must be on `main` before creating a release.
+  - Update the package.json `version` field to reflect the new version.
+  - Run `npm ci` to update the file `package-lock.json`.
 - Go to the `Releases` page for the weave-gitops repository
 - Click on `Draft a New Release`
 - Fill in the `Tag Version` field with the new version (format: `vN.N.N` or `vN.N.N-rc.N` for a pre-release). We have configured go-releaser to implicitly make a version ending in `-rc.N` a pre-release and one without the `rc-N` a full release (but that can be changed after the fact by editing the release if so desired).
@@ -41,6 +43,15 @@ where the `N.N.N` matches the `N.N.N` from the weave gitops version.
 
 # Record the new version 
 - Add a record in the [checkpoint system](https://checkpoint-api.weave.works/admin) to inform users of the new version.  The CLI checks for a more recent version and informs the user where to download it based on this data.
-    - _note: A Weaveworks employee must perform this step_
+  - Record must match this template:
+     ```
+    Name: weave-gitops
+    Version: N.N.N
+    Release date: (current date in UTC. i.e.: 2021-09-08 12:41:00 )
+    Download URL: https://github.com/weaveworks/weave-gitops/releases/tag/vN.N.N
+    Changelog URL: https://github.com/weaveworks/weave-gitops/releases/tag/vN.N.N
+    Project Website: https://www.weave.works/product/gitops-core/
+    ```
+  - _note: A Weaveworks employee must perform this step_
 
 That's it!
