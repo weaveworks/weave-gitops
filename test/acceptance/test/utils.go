@@ -649,8 +649,8 @@ func createRepository(repoName string, private bool) error {
 	}
 
 	githubProvider, err := github.NewClient(
-		github.WithOAuth2Token(os.Getenv("GITHUB_TOKEN")),
-		github.WithDestructiveAPICalls(true),
+		gitprovider.WithOAuth2Token(os.Getenv("GITHUB_TOKEN")),
+		gitprovider.WithDestructiveAPICalls(true),
 	)
 	if err != nil {
 		return err
