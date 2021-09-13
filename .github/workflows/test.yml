@@ -114,8 +114,11 @@ jobs:
         go-version: 1.16.3
     - name: Install kind
       run: |
+        echo check0
         (cd $GOPATH && go get sigs.k8s.io/kind)
+        echo check1
         (cd $GOPATH && go get github.com/kubernetes/kubectl)
+        echo check2
     - name: Checkout code
       uses: actions/checkout@v2
 #    - uses: azure/setup-kubectl@v1
