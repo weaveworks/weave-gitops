@@ -620,7 +620,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		defer deleteRepo(appFilesRepoName)
 		defer deleteRepo(appConfigRepoName)
 		defer deleteWorkload(workloadName1, workloadNamespace1)
-		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName3, EVENTUALLY_DEFAULT_TIME_OUT)
+		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName3, EVENTUALLY_DEFAULT_TIMEOUT)
 
 		By("And application repo does not already exist", func() {
 			deleteRepo(appFilesRepoName)
@@ -629,7 +629,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("And application workload is not already deployed to cluster", func() {
 			deleteWorkload(workloadName1, workloadNamespace1)
-			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName3, EVENTUALLY_DEFAULT_TIME_OUT)
+			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName3, EVENTUALLY_DEFAULT_TIMEOUT)
 		})
 
 		By("When I create a private repo for wego app config", func() {
@@ -873,10 +873,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And changes to the app files should not be synchronized", func() {
-			appManifestFile1, _ = runCommandAndReturnStringOutput("cd " + repoAbsolutePath1 + " && ls")
+			appManifestFile1, _ = runCommandAndReturnStringOutput("cd " + repoAbsolutePath1 + " && ls | grep yaml")
 			createAppReplicas(repoAbsolutePath1, appManifestFile1, replicaSetValue, tip1.workloadName)
 			gitUpdateCommitPush(repoAbsolutePath1)
-			_ = waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIME_OUT)
+			_ = waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIMEOUT)
 			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=100s -n %s --all pods", tip1.workloadNamespace))
 		})
 
@@ -902,7 +902,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I should see app replicas created in the cluster", func() {
-			_ = waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIME_OUT)
+			_ = waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIMEOUT)
 			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=100s -n %s --all pods", tip1.workloadNamespace))
 			replicaOutput, _ := runCommandAndReturnStringOutput("kubectl get pods -n " + tip1.workloadNamespace + " --field-selector=status.phase=Running --no-headers=true | wc -l")
 			Expect(replicaOutput).To(ContainSubstring(strconv.Itoa(replicaSetValue)))
@@ -935,7 +935,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And app should get deleted from the cluster", func() {
-			_ = waitForAppRemoval(appName2, APP_REMOVAL_TIMEOUT)
+			_ = waitForAppRemoval(appName2, THIRTY_SECOND_TIMEOUT)
 		})
 	})
 
@@ -1021,7 +1021,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("Then I should see app removed from the cluster", func() {
-			_ = waitForAppRemoval(appName, APP_REMOVAL_TIMEOUT)
+			_ = waitForAppRemoval(appName, THIRTY_SECOND_TIMEOUT)
 		})
 
 		By("When I run wego app remove for a non-existent app", func() {
@@ -1163,8 +1163,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		addCommand1 := "app add --url=" + helmRepoURL + " --chart=" + appName1 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true"
 		addCommand2 := "app add --url=" + helmRepoURL + " --chart=" + appName2 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true"
 
-		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, EVENTUALLY_DEFAULT_TIME_OUT)
-		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName2, EVENTUALLY_DEFAULT_TIME_OUT)
+		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, EVENTUALLY_DEFAULT_TIMEOUT)
+		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName2, EVENTUALLY_DEFAULT_TIMEOUT)
 		defer deleteRepo(appRepoName)
 
 		By("And application repo does not already exist", func() {
@@ -1172,8 +1172,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
-			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, EVENTUALLY_DEFAULT_TIME_OUT)
-			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName2, EVENTUALLY_DEFAULT_TIME_OUT)
+			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, EVENTUALLY_DEFAULT_TIMEOUT)
+			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName2, EVENTUALLY_DEFAULT_TIMEOUT)
 		})
 
 		By("When I create a private git repo", func() {
@@ -1252,10 +1252,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		addCommand := "app add --url=" + helmRepoURL + " --chart=" + appName + " --app-config-url=NONE"
 
-		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName, EVENTUALLY_DEFAULT_TIME_OUT)
+		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName, EVENTUALLY_DEFAULT_TIMEOUT)
 
 		By("And application workload is not already deployed to cluster", func() {
-			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName, EVENTUALLY_DEFAULT_TIME_OUT)
+			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName, EVENTUALLY_DEFAULT_TIMEOUT)
 		})
 
 		By("And I install wego to my active cluster", func() {
