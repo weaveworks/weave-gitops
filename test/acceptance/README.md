@@ -13,7 +13,6 @@ Additional env vars used to run tests locally are:
 ```
 export GITHUB_ORG=<github-org>
 export GITHUB_TOKEN=<api-token>
-export GITHUB_KEY=<ssh-key>
 ```
 Please make sure that `GITHUB_TOKEN` has repo create and delete permissions on `GITHUB_ORG`
 

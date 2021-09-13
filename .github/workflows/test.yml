@@ -105,7 +105,6 @@ jobs:
     env:
         GITHUB_ORG: weaveworks-gitops-test
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
-        GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
         ARTIFACTS_BASE_DIR: "/tmp/wego-test"
     steps:
     - name: Install Go
@@ -182,7 +181,6 @@ jobs:
     env:
         GITHUB_ORG: weaveworks-gitops-test
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
-        GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
         ARTIFACTS_BASE_DIR: "/tmp/wego-test"
     steps:
     - name: Install Go

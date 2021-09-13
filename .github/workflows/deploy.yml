@@ -108,7 +108,6 @@ jobs:
       env:
         GITHUB_ORG: weaveworks-gitops-test
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
-        GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/wego
         go get github.com/onsi/ginkgo/ginkgo
