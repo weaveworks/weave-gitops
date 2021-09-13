@@ -19,14 +19,10 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
-const (
-	SSHAuthSock = "SSH_AUTH_SOCK"
-)
-
 var params app.AddParams
 
 var Cmd = &cobra.Command{
-	Use:   "add [--name <name>] [--url <url>] [--branch <branch>] [--path <path within repository>] [--private-key <keyfile>] <repository directory>",
+	Use:   "add [--name <name>] [--url <url>] [--branch <branch>] [--path <path within repository>] <repository directory>",
 	Short: "Add a workload repository to a wego cluster",
 	Long: strings.TrimSpace(dedent.Dedent(`
         Associates an additional application in a git repository with a wego cluster so that its contents may be managed via GitOps
@@ -56,7 +52,6 @@ func init() {
 	Cmd.Flags().StringVar(&params.Branch, "branch", app.DefaultBranch, "Branch to watch within git repository")
 	Cmd.Flags().StringVar(&params.DeploymentType, "deployment-type", app.DefaultDeploymentType, "deployment type [kustomize, helm]")
 	Cmd.Flags().StringVar(&params.Chart, "chart", "", "Specify chart for helm source")
-	Cmd.Flags().StringVar(&params.PrivateKey, "private-key", "", "Private key to access git repository over ssh")
 	Cmd.Flags().StringVar(&params.AppConfigUrl, "app-config-url", "", "URL of external repository (if any) which will hold automation manifests; NONE to store only in the cluster")
 	Cmd.Flags().StringVar(&params.HelmReleaseTargetNamespace, "helm-release-target-namespace", "", "Namespace in which to deploy a helm chart; defaults to the wego installation namespace")
 	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'wego add' will not make any changes to the system; it will just display the actions that would have been taken")

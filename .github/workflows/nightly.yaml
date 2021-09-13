@@ -83,10 +83,6 @@ jobs:
       run: |
         chmod +x bin/wego-${{matrix.os}}-nightly
         ls -la bin
-    - name: Set up ssh agent
-      uses: webfactory/ssh-agent@v0.5.2
-      with:
-        ssh-private-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
     - name: Configure git settings
       run: |
         git config --global init.defaultBranch main
@@ -166,10 +162,6 @@ jobs:
       run: |
         chmod +x bin/wego-${{matrix.os}}-nightly
         ls -la bin
-    - name: Set up ssh agent
-      uses: webfactory/ssh-agent@v0.5.2
-      with:
-        ssh-private-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
     - name: Configure git settings
       run: |
         git config --global init.defaultBranch main
