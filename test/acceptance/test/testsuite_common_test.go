@@ -41,7 +41,6 @@ func TestAcceptance(t *testing.T) {
 
 var _ = BeforeSuite(func() {
 	SetDefaultEventuallyTimeout(EVENTUALLY_DEFAULT_TIMEOUT)
-	DEFAULT_SSH_KEY_PATH = os.Getenv("HOME") + "/.ssh/id_rsa"
 	GITHUB_ORG = os.Getenv("GITHUB_ORG")
 	WEGO_BIN_PATH = os.Getenv("WEGO_BIN_PATH")
 	if WEGO_BIN_PATH == "" {
