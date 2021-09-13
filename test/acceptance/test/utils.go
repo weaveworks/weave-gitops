@@ -11,7 +11,9 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"path"
 	"regexp"
+
 	"strconv"
 	"strings"
 	"time"
@@ -20,6 +22,7 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	log "github.com/sirupsen/logrus"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -31,8 +34,11 @@ const EVENTUALLY_DEFAULT_TIME_OUT time.Duration = 60 * time.Second
 const TIMEOUT_TWO_MINUTES time.Duration = 120 * time.Second
 const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
 const NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
-const INSTALL_PODS_READY_TIMEOUT time.Duration = 180 * time.Second
+const INSTALL_PODS_READY_TIMEOUT time.Duration = 3 * time.Minute
 const WEGO_DEFAULT_NAMESPACE = wego.DefaultNamespace
+const WEGO_UI_URL = "http://localhost:9001"
+const SELENIUM_SERVICE_URL = "http://localhost:4444/wd/hub"
+const SCREENSHOTS_DIR string = "screenshots/"
 
 var DEFAULT_SSH_KEY_PATH string
 var GITHUB_ORG string
@@ -123,7 +129,6 @@ func getUniqueWorkload(placeHolderSuffix string, uniqueSuffix string) string {
 
 func setupSSHKey(sshKeyPath string) {
 	if _, err := os.Stat(sshKeyPath); os.IsNotExist(err) {
-		fmt.Println("sshkeyPath", sshKeyPath, "doesn't exists")
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
 	                       echo "%s" >> %s &&
 	                       chmod 0600 %s &&
@@ -520,7 +525,8 @@ func verifyWorkloadIsDeployed(workloadName string, workloadNamespace string) {
 
 func verifyHelmPodWorkloadIsDeployed(workloadName string, workloadNamespace string) {
 	Expect(waitForResource("pods", workloadName, workloadNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
-	command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=360s -n %s --all pods", workloadNamespace))
+	c := fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=360s -n %s --all pods --selector='app!=wego-app'", workloadNamespace)
+	command := exec.Command("sh", "-c", c)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
@@ -580,6 +586,25 @@ func mergePR(repoAbsolutePath, prLink string) {
 	session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
+}
+
+func setArtifactsDir() string {
+	path := "/tmp/wego-test"
+	if os.Getenv("ARTIFACTS_BASE_DIR") == "" {
+		return path
+	}
+	return os.Getenv("ARTIFACTS_BASE_DIR")
+}
+
+func takeScreenshot() string {
+	if webDriver != nil {
+		t := time.Now()
+		name := t.Format("Mon-02-Jan-2006-15.04.05.000000")
+		filepath := path.Join(setArtifactsDir(), SCREENSHOTS_DIR, name+".png")
+		_ = webDriver.Screenshot(filepath)
+		return filepath
+	}
+	return ""
 }
 
 func getWaitTimeFromErr(errOutput string) (time.Duration, error) {
