@@ -4,28 +4,30 @@
 package acceptance
 
 import (
-	"bytes"
+	"context"
 	"fmt"
 	"math/rand"
 	"os"
 	"os/exec"
 	"path"
+	"regexp"
 
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/fluxcd/go-git-providers/github"
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	log "github.com/sirupsen/logrus"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
-const APP_REMOVAL_TIMEOUT time.Duration = 30 * time.Second
-const EVENTUALLY_DEFAULT_TIME_OUT time.Duration = 60 * time.Second
+const THIRTY_SECOND_TIMEOUT time.Duration = 30 * time.Second
+const EVENTUALLY_DEFAULT_TIMEOUT time.Duration = 60 * time.Second
 const TIMEOUT_FIVE_MINUTES time.Duration = 5 * time.Minute
 const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
 const NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
@@ -34,6 +36,7 @@ const WEGO_DEFAULT_NAMESPACE = wego.DefaultNamespace
 const WEGO_UI_URL = "http://localhost:9001"
 const SELENIUM_SERVICE_URL = "http://localhost:4444/wd/hub"
 const SCREENSHOTS_DIR string = "screenshots/"
+const DEFAULT_BRANCH_NAME = "main"
 
 var DEFAULT_SSH_KEY_PATH string
 var GITHUB_ORG string
@@ -198,59 +201,37 @@ func setupSSHKey(sshKeyPath string) {
 //	return clusterName, nil
 //}
 
-func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
+func initAndCreateEmptyRepo(appRepoName string, isPrivateRepo bool) string {
 	repoAbsolutePath := "/tmp/" + appRepoName
-	privateRepo := ""
-	if IsPrivateRepo {
-		privateRepo = "-p"
-	}
 
 	// We need this step in case running a single test case locally
 	err := os.RemoveAll(repoAbsolutePath)
 	Expect(err).ShouldNot(HaveOccurred())
 
-	command := exec.Command("sh", "-c", fmt.Sprintf(`
-                            mkdir %s &&
-                            cd %s &&
-                            git init &&
-                            git checkout -b main`, repoAbsolutePath, repoAbsolutePath))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	err = createRepository(appRepoName, isPrivateRepo)
 	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session, 10, 1).Should(gexec.Exit())
-	Expect(string(session.Out.Contents())).Should(MatchRegexp(fmt.Sprintf(`Initialized empty Git repository in (/private)?/tmp/%s/.git/`, appRepoName)))
 
-	randStr := RandString(10)
-	fmt.Println("RANDOM-STR", randStr)
-
-	fmt.Fprintf(GinkgoWriter, "%s waiting for creation ", randStr)
-	err = utils.WaitUntil(GinkgoWriter, time.Second*2, time.Second*20, func() error {
+	err = utils.WaitUntil(os.Stdout, time.Second*3, time.Second*30, func() error {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
-                            cd %s &&
-                            hub create %s %s`, repoAbsolutePath, GITHUB_ORG+"/"+appRepoName, privateRepo))
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+                            git clone git@github.com:%s/%s.git %s`,
+			GITHUB_ORG, appRepoName,
+			repoAbsolutePath))
+		command.Stdout = os.Stdout
+		command.Stderr = os.Stderr
+		err := command.Run()
 		if err != nil {
-			return fmt.Errorf("%s error running command by ginkgo %w", randStr, err)
+			os.RemoveAll(repoAbsolutePath)
+			return err
 		}
-		Eventually(session, 10, 1).Should(gexec.Exit())
-		fmt.Fprintf(GinkgoWriter, "%s session.Out[%s]", randStr, session.Out.Contents())
-		fmt.Fprintf(GinkgoWriter, "%s session.Err[%s]", randStr, session.Err.Contents())
-		if session.ExitCode() != 0 && !bytes.Contains(session.Err.Contents(), []byte("Repository not found")) {
-			return fmt.Errorf("%s expecting exit code 0, got %d, err %s", randStr, session.ExitCode(), session.Err.Contents())
-		}
-		Expect(session.Out).Should(gbytes.Say("Updating origin"))
 		return nil
 	})
 	Expect(err).ShouldNot(HaveOccurred())
 
-	fmt.Fprintf(GinkgoWriter, "%s waiting for confirmation ", randStr)
-	Expect(utils.WaitUntil(GinkgoWriter, time.Second, 20*time.Second, func() error {
-		cmd := fmt.Sprintf(`hub api repos/%s/%s`, GITHUB_ORG, appRepoName)
-		command := exec.Command("sh", "-c", cmd)
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Eventually(session, 10, 1).Should(gexec.Exit())
-		return err
-	})).ShouldNot(HaveOccurred())
-	fmt.Fprintf(GinkgoWriter, "%s after confirmation", randStr)
+	command := exec.Command("sh", "-c", fmt.Sprintf(`cd %s`,
+		repoAbsolutePath))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
 
 	return repoAbsolutePath
 }
@@ -649,4 +630,86 @@ func takeScreenshot() string {
 		return filepath
 	}
 	return ""
+}
+
+func getWaitTimeFromErr(errOutput string) (time.Duration, error) {
+	var re = regexp.MustCompile(`(?m)\[rate reset in (.*)\]`)
+	match := re.FindAllStringSubmatch(errOutput, -1)
+
+	if len(match) >= 1 && len(match[1][0]) > 0 {
+		duration, err := time.ParseDuration(match[1][0])
+		if err != nil {
+			return 0, fmt.Errorf("error pasing rate reset time %w", err)
+		}
+		return duration, nil
+	}
+
+	return 0, fmt.Errorf("could not found a rate reset on string: %s", errOutput)
+}
+
+func createRepository(repoName string, private bool) error {
+
+	visibility := gitprovider.RepositoryVisibilityPublic
+	if private {
+		visibility = gitprovider.RepositoryVisibilityPrivate
+	}
+
+	description := "Weave Gitops test repo"
+	defaultBranch := DEFAULT_BRANCH_NAME
+	repoInfo := gitprovider.RepositoryInfo{
+		Description:   &description,
+		Visibility:    &visibility,
+		DefaultBranch: &defaultBranch,
+	}
+
+	repoCreateOpts := &gitprovider.RepositoryCreateOptions{
+		AutoInit: gitprovider.BoolVar(true),
+	}
+
+	orgRef := gitprovider.OrgRepositoryRef{
+		RepositoryName: repoName,
+		OrganizationRef: gitprovider.OrganizationRef{
+			Domain:       github.DefaultDomain,
+			Organization: GITHUB_ORG,
+		},
+	}
+
+	githubProvider, err := github.NewClient(
+		gitprovider.WithOAuth2Token(os.Getenv("GITHUB_TOKEN")),
+		gitprovider.WithDestructiveAPICalls(true),
+	)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+	fmt.Printf("creating repo %s ...\n", repoName)
+	if err := utils.WaitUntil(os.Stdout, time.Second, THIRTY_SECOND_TIMEOUT, func() error {
+		_, err := githubProvider.OrgRepositories().Create(ctx, orgRef, repoInfo, repoCreateOpts)
+		if err != nil && strings.Contains(err.Error(), "rate limit exceeded") {
+			waitForRateQuota, err := getWaitTimeFromErr(err.Error())
+			if err != nil {
+				return err
+			}
+			fmt.Printf("Waiting for rate quota %s \n", waitForRateQuota.String())
+			time.Sleep(waitForRateQuota)
+			return fmt.Errorf("retry after waiting for rate quota")
+		}
+		return err
+	}); err != nil {
+		return fmt.Errorf("error creating repo %s", err)
+	}
+	fmt.Printf("repo %s created ...\n", repoName)
+
+	fmt.Printf("validating access to the repo %s ...\n", repoName)
+	err = utils.WaitUntil(os.Stdout, time.Second, THIRTY_SECOND_TIMEOUT, func() error {
+		_, err := githubProvider.OrgRepositories().Get(ctx, orgRef)
+		return err
+	})
+	if err != nil {
+		return fmt.Errorf("error validating access to the repository %w", err)
+	}
+	fmt.Printf("repo %s is accessible through the api ...\n", repoName)
+
+	return nil
 }

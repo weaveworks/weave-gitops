@@ -894,10 +894,10 @@ var _ = Describe("Weave GitOps App Add Tests2", func() {
 		})
 
 		By("And changes to the app files should not be synchronized", func() {
-			appManifestFile1, _ = runCommandAndReturnStringOutput("cd "+repoAbsolutePath1+" && ls", "")
+			appManifestFile1, _ = runCommandAndReturnStringOutput("cd "+repoAbsolutePath1+" && ls | grep yaml", "")
 			createAppReplicas(repoAbsolutePath1, appManifestFile1, replicaSetValue, tip1.workloadName, syncCluster.KubeConfigPath)
 			gitUpdateCommitPush(repoAbsolutePath1)
-			_ = waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIME_OUT, syncCluster.KubeConfigPath)
+			_ = waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIMEOUT, syncCluster.KubeConfigPath)
 			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=100s -n %s --all pods", tip1.workloadNamespace))
 		})
 
@@ -923,7 +923,7 @@ var _ = Describe("Weave GitOps App Add Tests2", func() {
 		})
 
 		By("And I should see app replicas created in the cluster", func() {
-			_ = waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIME_OUT, syncCluster.KubeConfigPath)
+			_ = waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIMEOUT, syncCluster.KubeConfigPath)
 			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=100s -n %s --all pods", tip1.workloadNamespace))
 			replicaOutput, _ := runCommandAndReturnStringOutput("kubectl get pods -n "+tip1.workloadNamespace+" --field-selector=status.phase=Running --no-headers=true | wc -l", syncCluster.KubeConfigPath)
 			Expect(replicaOutput).To(ContainSubstring(strconv.Itoa(replicaSetValue)))
@@ -956,7 +956,7 @@ var _ = Describe("Weave GitOps App Add Tests2", func() {
 		})
 
 		By("And app should get deleted from the cluster", func() {
-			_ = waitForAppRemoval(appName2, APP_REMOVAL_TIMEOUT)
+			_ = waitForAppRemoval(appName2, THIRTY_SECOND_TIMEOUT)
 		})
 	})
 	//
@@ -1042,7 +1042,7 @@ var _ = Describe("Weave GitOps App Add Tests2", func() {
 		})
 
 		By("Then I should see app removed from the cluster", func() {
-			_ = waitForAppRemoval(appName, APP_REMOVAL_TIMEOUT)
+			_ = waitForAppRemoval(appName, THIRTY_SECOND_TIMEOUT)
 		})
 
 		By("When I run wego app remove for a non-existent app", func() {

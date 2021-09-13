@@ -30,7 +30,7 @@ require (
 	github.com/ory/go-acc v0.2.6
 	github.com/pkg/browser v0.0.0-20210706143420-7d21f8c997e2
 	github.com/pkg/errors v0.9.1
-	github.com/sclevine/agouti v0.0.0-20150218205057-b920a9cc7533 // indirect
+	github.com/sclevine/agouti v0.0.0-20150218205057-b920a9cc7533
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
