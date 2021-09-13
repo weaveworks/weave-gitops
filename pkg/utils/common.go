@@ -166,11 +166,18 @@ func CleanCommitMessage(msg string) string {
 }
 
 func CleanCommitCreatedAt(createdAt time.Time) string {
-	return strings.ReplaceAll(createdAt.String(), " +0000", "")
+	return strings.Split(createdAt.String(), " +0000")[0]
 }
 
 func ConvertCommitHashToShort(hash string) string {
 	return hash[:7]
+}
+
+func ConvertCommitURLToShort(url string) string {
+	urlArray := strings.SplitAfter(url, "commit/")
+	path := urlArray[0]
+	hash := urlArray[1][:7]
+	return path + hash
 }
 
 func CreateRepoSecretName(targetName string, repoURL string) string {

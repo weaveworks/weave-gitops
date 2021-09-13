@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -676,7 +675,7 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, repo string, appHas
 	}
 
 	if accountType == gitproviders.AccountTypeOrg {
-		orgRepoRef := gitproviders.NewOrgRepositoryRef(github.DefaultDomain, owner, repoName)
+		orgRepoRef := gitproviders.NewOrgRepositoryRef(a.GitProvider.GetProviderDomain(), owner, repoName)
 
 		prLink, err := a.GitProvider.CreatePullRequestToOrgRepo(orgRepoRef, configBranch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", info.Name), fmt.Sprintf("Added yamls for %s", info.Name))
 		if err != nil {
@@ -686,7 +685,7 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, repo string, appHas
 		return nil
 	}
 
-	userRepoRef := gitproviders.NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
+	userRepoRef := gitproviders.NewUserRepositoryRef(a.GitProvider.GetProviderDomain(), owner, repoName)
 
 	prLink, err := a.GitProvider.CreatePullRequestToUserRepo(userRepoRef, configBranch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", info.Name), fmt.Sprintf("Added yamls for %s", info.Name))
 	if err != nil {
