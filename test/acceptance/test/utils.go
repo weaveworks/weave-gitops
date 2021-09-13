@@ -127,18 +127,6 @@ func getUniqueWorkload(placeHolderSuffix string, uniqueSuffix string) string {
 	return absWorkloadManifestFilePath
 }
 
-func setupSSHKey(sshKeyPath string) {
-	if _, err := os.Stat(sshKeyPath); os.IsNotExist(err) {
-		command := exec.Command("sh", "-c", fmt.Sprintf(`
-	                       echo "%s" >> %s &&
-	                       chmod 0600 %s &&
-	                       ls -la %s`, os.Getenv("GITHUB_KEY"), sshKeyPath, sshKeyPath, sshKeyPath))
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session).Should(gexec.Exit())
-	}
-}
-
 func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool) (string, error) {
 	return ResetOrCreateClusterWithName(namespace, deleteWegoRuntime, "")
 }
