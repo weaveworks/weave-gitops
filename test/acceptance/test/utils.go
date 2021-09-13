@@ -28,8 +28,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
-const APP_REMOVAL_TIMEOUT time.Duration = 30 * time.Second
-const EVENTUALLY_DEFAULT_TIME_OUT time.Duration = 60 * time.Second
+const THIRTY_SECOND_TIMEOUT time.Duration = 30 * time.Second
+const EVENTUALLY_DEFAULT_TIMEOUT time.Duration = 60 * time.Second
 const TIMEOUT_TWO_MINUTES time.Duration = 120 * time.Second
 const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
 const NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
@@ -38,6 +38,7 @@ const WEGO_DEFAULT_NAMESPACE = wego.DefaultNamespace
 const WEGO_UI_URL = "http://localhost:9001"
 const SELENIUM_SERVICE_URL = "http://localhost:4444/wd/hub"
 const SCREENSHOTS_DIR string = "screenshots/"
+const DEFAULT_BRANCH_NAME = "main"
 
 var DEFAULT_SSH_KEY_PATH string
 var GITHUB_ORG string
@@ -623,13 +624,13 @@ func getWaitTimeFromErr(errOutput string) (time.Duration, error) {
 
 func createRepository(repoName string, private bool) error {
 
-	visibility := gitprovider.RepositoryVisibilityPrivate
-	if !private {
-		visibility = gitprovider.RepositoryVisibilityPublic
+	visibility := gitprovider.RepositoryVisibilityPublic
+	if private {
+		visibility = gitprovider.RepositoryVisibilityPrivate
 	}
 
 	description := "Weave Gitops test repo"
-	defaultBranch := "main"
+	defaultBranch := DEFAULT_BRANCH_NAME
 	repoInfo := gitprovider.RepositoryInfo{
 		Description:   &description,
 		Visibility:    &visibility,
@@ -658,7 +659,7 @@ func createRepository(repoName string, private bool) error {
 
 	ctx := context.Background()
 	fmt.Printf("creating repo %s ...\n", repoName)
-	if err := utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
+	if err := utils.WaitUntil(os.Stdout, time.Second, THIRTY_SECOND_TIMEOUT, func() error {
 		_, err := githubProvider.OrgRepositories().Create(ctx, orgRef, repoInfo, repoCreateOpts)
 		if err != nil && strings.Contains(err.Error(), "rate limit exceeded") {
 			waitForRateQuota, err := getWaitTimeFromErr(err.Error())
@@ -676,7 +677,7 @@ func createRepository(repoName string, private bool) error {
 	fmt.Printf("repo %s created ...\n", repoName)
 
 	fmt.Printf("validating access to the repo %s ...\n", repoName)
-	err = utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
+	err = utils.WaitUntil(os.Stdout, time.Second, THIRTY_SECOND_TIMEOUT, func() error {
 		_, err := githubProvider.OrgRepositories().Get(ctx, orgRef)
 		return err
 	})
