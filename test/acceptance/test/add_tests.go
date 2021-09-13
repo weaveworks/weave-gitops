@@ -183,6 +183,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
 		By("And I run wego add command", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
@@ -207,6 +211,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 	It("Verify that wego can deploy app when user specifies branch, namespace, url, deployment-type", func() {
 		var repoAbsolutePath string
 		private := true
+		DEFAULT_SSH_KEY_PATH := "~/.ssh/id_rsa"
 		tip := generateTestInputs()
 		branchName := "test-branch-02"
 		wegoNamespace := "my-space"
@@ -238,6 +243,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("And I install wego under my namespace: "+wegoNamespace, func() {
 			installAndVerifyWego(wegoNamespace)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("And I create a new branch", func() {
@@ -307,6 +316,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
 		By("And I run wego add command with --url and --app-config-url params", func() {
 			runWegoAddCommand(repoAbsolutePath+"/../", addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
@@ -346,6 +359,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
 		By("And I run wego add command with --url", func() {
 			runWegoAddCommand(repoAbsolutePath+"/../", addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
@@ -382,6 +399,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("And I install wego to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("And I run wego add command from repo parent dir", func() {
@@ -434,6 +455,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
 		By("And I run wego add command for 1st app", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
@@ -483,6 +508,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("And I install wego to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("When I create a private repo for wego app config", func() {
@@ -537,6 +566,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("And I install wego to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("And I create a repo with my app1 and app2 workloads and run the add the command for each app", func() {
@@ -611,6 +644,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("And I install wego to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("And I run wego app add command for app1: "+appName1, func() {
@@ -755,6 +792,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("And I install wego to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("And I run wego app add command for 1st app", func() {
@@ -926,6 +967,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
 		By("And I run wego add command", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
@@ -1012,6 +1057,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
 		By("And I run wego add command", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
@@ -1060,6 +1109,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("And I install wego to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("And I run wego add command", func() {
@@ -1130,6 +1183,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("And I install wego under my namespace: "+WEGO_DEFAULT_NAMESPACE, func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("And I run wego app add command for 1st app", func() {
@@ -1205,6 +1262,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
 		By("And I run wego add command", func() {
 			runWegoAddCommand(".", addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
@@ -1240,6 +1301,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("And I install wego to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("When I run wego app add command for app", func() {
@@ -1298,6 +1363,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
 		By("And I run wego add command with --app-config-url param", func() {
 			output, _ := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 			re := regexp.MustCompile(`(http|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?`)
@@ -1346,6 +1415,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("And I install wego to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("And I run app add command for "+appName, func() {
@@ -1440,6 +1513,10 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 
 		By("And I install wego to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("And I run wego app add command for app: "+appName, func() {
