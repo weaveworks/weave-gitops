@@ -7,16 +7,16 @@ import (
 
 var webDriver *agouti.Page
 
-func initializeUISteps() {
-
-	//By("And I install wego to my active cluster", func() {
-	//	installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
-	//})
-	//
-	//By("And I run wego ui", func() {
-	//	_ = runCommandAndReturnSessionOutput(fmt.Sprintf("%s ui run &", WEGO_BIN_PATH))
-	//})
-}
+//func initializeUISteps() {
+//
+//	//By("And I install wego to my active cluster", func() {
+//	//	installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+//	//})
+//	//
+//	//By("And I run wego ui", func() {
+//	//	_ = runCommandAndReturnSessionOutput(fmt.Sprintf("%s ui run &", WEGO_BIN_PATH))
+//	//})
+//}
 
 var _ = Describe("Weave GitOps UI Test", func() {
 

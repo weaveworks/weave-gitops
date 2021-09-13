@@ -58,11 +58,11 @@ func (c *Cluster) deleteKubeConfigFile() {
 }
 
 type ClusterPool struct {
-	cluster        chan *Cluster
-	lastCluster    *Cluster
-	end            bool
-	err            error
-	kubeConfigRoot string
+	cluster     chan *Cluster
+	lastCluster *Cluster
+	end         bool
+	err         error
+	//kubeConfigRoot string
 }
 
 // TODO: Start generating unit tests for ClusterPool
@@ -168,15 +168,15 @@ func CreateKindCluster(ctx context.Context, rootKubeConfigFilesPath string) (*Cl
 }
 
 // Run a command, passing through stdout/stderr to the OS standard streams
-func runCommandPassThrough(env []string, name string, arg ...string) error {
-	cmd := exec.Command(name, arg...)
-	if len(env) > 0 {
-		cmd.Env = env
-	}
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
-}
+//func runCommandPassThrough(env []string, name string, arg ...string) error {
+//	cmd := exec.Command(name, arg...)
+//	if len(env) > 0 {
+//		cmd.Env = env
+//	}
+//	cmd.Stdout = os.Stdout
+//	cmd.Stderr = os.Stderr
+//	return cmd.Run()
+//}
 
 func StringWithCharset(length int, charset string) string {
 	b := make([]byte, length)
@@ -548,8 +548,8 @@ func (c *ClusterPool2) CreateClusterOnRequest(ctx context.Context, dbPath string
 						return fmt.Errorf("error unmarshalling cluster %w", err)
 					}
 					//clusterID[%v] clusterID==nil[%v] \n",kClusterID,kClusterID==nil)
-					fmt.Sprintf("kClusterID==nil [%v]\n", kClusterID == nil)
-					fmt.Sprintf("kClusterID456 [%v]\n", kClusterID)
+					fmt.Printf("kClusterID==nil [%v]\n", kClusterID == nil)
+					fmt.Printf("kClusterID456 [%v]\n", kClusterID)
 					err = b.Put(kClusterID, bts)
 					if err != nil {
 						return fmt.Errorf("error updating cluster record %w", err)
@@ -708,121 +708,121 @@ func (c *ClusterPool2) GenerateClusters2(dbPath string, clusterCount int) {
 //	return nil
 //})
 
-func createDB() error {
-	db, err := bolt.Open("my.db", 0755, &bolt.Options{})
-	if err != nil {
-		return err
-	}
-	defer db.Close()
+//func createDB() error {
+//	db, err := bolt.Open("my.db", 0755, &bolt.Options{})
+//	if err != nil {
+//		return err
+//	}
+//	defer db.Close()
 
-	//var clusterID2 []byte
-	//err = db.Update(func(tx *bolt.Tx) error {
-	//
-	//	tx.CreateBucketIfNotExists([]byte(CLUSTER_DB))
-	//
-	//	b := tx.Bucket([]byte(CLUSTER_TABLE))
-	//
-	//	id, _ := b.NextSequence()
-	//	clusterID := int(id)
-	//
-	//	cluster := NewCluster2(clusterID,"name1","ctx1","path")
-	//
-	//	clusterID2 = itob(cluster.ID)
-	//
-	//	return b.Put(clusterID2,convertCluster2ToBytes(cluster))
-	//})
-	//if err != nil {
-	//	return err
-	//}
+//var clusterID2 []byte
+//err = db.Update(func(tx *bolt.Tx) error {
+//
+//	tx.CreateBucketIfNotExists([]byte(CLUSTER_DB))
+//
+//	b := tx.Bucket([]byte(CLUSTER_TABLE))
+//
+//	id, _ := b.NextSequence()
+//	clusterID := int(id)
+//
+//	cluster := NewCluster2(clusterID,"name1","ctx1","path")
+//
+//	clusterID2 = itob(cluster.ID)
+//
+//	return b.Put(clusterID2,convertCluster2ToBytes(cluster))
+//})
+//if err != nil {
+//	return err
+//}
 
-	//err = db.Batch(func(tx *bolt.Tx) error {
-	//	b := tx.Bucket([]byte(CLUSTER_TABLE))
-	//	bts := b.Get(clusterID2)
-	//	c := &Cluster2{}
-	//	err := json.Unmarshal(bts,c)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	fmt.Println("CName",c.Name)
-	//	fmt.Println("CContext",c.Context)
-	//	fmt.Println("CKubeConfigPath",c.KubeConfigPath)
-	//	return nil
-	//})
-	//if err != nil {
-	//	return err
-	//}
+//err = db.Batch(func(tx *bolt.Tx) error {
+//	b := tx.Bucket([]byte(CLUSTER_TABLE))
+//	bts := b.Get(clusterID2)
+//	c := &Cluster2{}
+//	err := json.Unmarshal(bts,c)
+//	if err != nil {
+//		return err
+//	}
+//	fmt.Println("CName",c.Name)
+//	fmt.Println("CContext",c.Context)
+//	fmt.Println("CKubeConfigPath",c.KubeConfigPath)
+//	return nil
+//})
+//if err != nil {
+//	return err
+//}
 
-	var wg sync.WaitGroup
+//	var wg sync.WaitGroup
+//
+//	wg.Add(1)
+//	go func() {
+//		defer wg.Done()
+//		db.View(func(tx *bolt.Tx) error {
+//			// Assume bucket exists and has keys
+//			b := tx.Bucket([]byte(CLUSTER_TABLE))
+//
+//			c := b.Cursor()
+//
+//			for k, v := c.First(); k != nil; k, v = c.Next() {
+//				fmt.Printf("key1=%s, value=%s\n", k, v)
+//			}
+//
+//			return nil
+//		})
+//	}()
+//
+//	wg.Add(1)
+//	go func() {
+//		defer wg.Done()
+//		db.View(func(tx *bolt.Tx) error {
+//			// Assume bucket exists and has keys
+//			b := tx.Bucket([]byte(CLUSTER_TABLE))
+//
+//			c := b.Cursor()
+//
+//			for k, v := c.First(); k != nil; k, v = c.Next() {
+//				fmt.Printf("key0=%s, value=%s\n", k, v)
+//			}
+//
+//			return nil
+//		})
+//	}()
+//
+//	wg.Wait()
+//
+//	return nil
+//
+//	//db.View(func(tx *bolt.Tx) error {
+//	//	// Assume bucket exists and has keys
+//	//	b := tx.Bucket([]byte(CLUSTER_TABLE))
+//	//
+//	//	c := b.Cursor()
+//	//
+//	//	for k, v := c.First(); k != nil; k, v = c.Next() {
+//	//		fmt.Printf("key=%s, value=%s\n", k, v)
+//	//	}
+//	//
+//	//	return nil
+//	//})
+//
+//}
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		db.View(func(tx *bolt.Tx) error {
-			// Assume bucket exists and has keys
-			b := tx.Bucket([]byte(CLUSTER_TABLE))
-
-			c := b.Cursor()
-
-			for k, v := c.First(); k != nil; k, v = c.Next() {
-				fmt.Printf("key1=%s, value=%s\n", k, v)
-			}
-
-			return nil
-		})
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		db.View(func(tx *bolt.Tx) error {
-			// Assume bucket exists and has keys
-			b := tx.Bucket([]byte(CLUSTER_TABLE))
-
-			c := b.Cursor()
-
-			for k, v := c.First(); k != nil; k, v = c.Next() {
-				fmt.Printf("key0=%s, value=%s\n", k, v)
-			}
-
-			return nil
-		})
-	}()
-
-	wg.Wait()
-
-	return nil
-
-	//db.View(func(tx *bolt.Tx) error {
-	//	// Assume bucket exists and has keys
-	//	b := tx.Bucket([]byte(CLUSTER_TABLE))
-	//
-	//	c := b.Cursor()
-	//
-	//	for k, v := c.First(); k != nil; k, v = c.Next() {
-	//		fmt.Printf("key=%s, value=%s\n", k, v)
-	//	}
-	//
-	//	return nil
-	//})
-
-}
-
-func showDbRecords(dbPath string) {
-
-	db, err := bolt.Open(filepath.Join(string(dbPath), CLUSTER_DB), 0755, &bolt.Options{})
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println("Checking DB records")
-	err = db.Batch(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(CLUSTER_TABLE))
-		return b.ForEach(func(clusterID, v []byte) error {
-			fmt.Printf("Record %v %s \n", clusterID, v)
-			return nil
-		})
-	})
-	if err != nil {
-		panic(err)
-	}
-}
+//func showDbRecords(dbPath string) {
+//
+//	db, err := bolt.Open(filepath.Join(string(dbPath), CLUSTER_DB), 0755, &bolt.Options{})
+//	if err != nil {
+//		panic(err)
+//	}
+//
+//	fmt.Println("Checking DB records")
+//	err = db.Batch(func(tx *bolt.Tx) error {
+//		b := tx.Bucket([]byte(CLUSTER_TABLE))
+//		return b.ForEach(func(clusterID, v []byte) error {
+//			fmt.Printf("Record %v %s \n", clusterID, v)
+//			return nil
+//		})
+//	})
+//	if err != nil {
+//		panic(err)
+//	}
+//}
