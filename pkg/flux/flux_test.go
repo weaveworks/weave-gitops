@@ -233,5 +233,6 @@ var _ = Describe("CreateSecretGit", func() {
 func fluxPath() string {
 	homeDir, err := os.UserHomeDir()
 	Expect(err).ShouldNot(HaveOccurred())
+
 	return filepath.Join(homeDir, ".wego", "bin", "flux-0.12.0")
 }

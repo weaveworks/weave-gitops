@@ -36,7 +36,9 @@ func buildGitProvider(config Config) (gitprovider.Client, error) {
 	}
 
 	var client gitprovider.Client
+
 	var err error
+
 	switch config.Provider {
 	case GitProviderGitHub:
 		opts := []github.ClientOption{
@@ -45,6 +47,7 @@ func buildGitProvider(config Config) (gitprovider.Client, error) {
 		if config.Hostname != "" {
 			opts = append(opts, github.WithDomain(config.Hostname))
 		}
+
 		if client, err = github.NewClient(opts...); err != nil {
 			return nil, err
 		}
@@ -55,11 +58,13 @@ func buildGitProvider(config Config) (gitprovider.Client, error) {
 		if config.Hostname != "" {
 			opts = append(opts, gitlab.WithDomain(config.Hostname))
 		}
+
 		if client, err = gitlab.NewClient(config.Token, "", opts...); err != nil {
 			return nil, err
 		}
 	default:
 		return nil, fmt.Errorf("unsupported Git provider '%s'", config.Provider)
 	}
+
 	return client, err
 }

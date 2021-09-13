@@ -55,6 +55,7 @@ func New(auth transport.AuthMethod, wrapper wrapper.Git) Git {
 func (g *GoGit) Open(path string) (*gogit.Repository, error) {
 	g.path = path
 	repo, err := g.git.PlainOpen(path)
+
 	if err != nil {
 		return nil, err
 	}
@@ -79,13 +80,16 @@ func (g *GoGit) Init(path, url, branch string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
 	if _, err = r.CreateRemote(&config.RemoteConfig{
 		Name: gogit.DefaultRemoteName,
 		URLs: []string{url},
 	}); err != nil {
 		return false, err
 	}
+
 	branchRef := plumbing.NewBranchReferenceName(branch)
+
 	if err = r.CreateBranch(&config.Branch{
 		Name:   branch,
 		Remote: gogit.DefaultRemoteName,
@@ -102,6 +106,7 @@ func (g *GoGit) Init(path, url, branch string) (bool, error) {
 	}
 
 	g.repository = r
+
 	return true, nil
 }
 
@@ -119,15 +124,16 @@ func (g *GoGit) Clone(ctx context.Context, path, url, branch string) (bool, erro
 			errors.Is(err, gogit.NoMatchingRefSpecError{}) {
 			return g.Init(path, url, branch)
 		}
+
 		return false, err
 	}
 
 	g.repository = r
+
 	return true, nil
 }
 
 func (g *GoGit) clone(ctx context.Context, path, url, branch string, depth int) (*gogit.Repository, error) {
-
 	branchRef := plumbing.NewBranchReferenceName(branch)
 	r, err := g.git.PlainCloneContext(ctx, path, false, &gogit.CloneOptions{
 		URL:           url,
@@ -140,6 +146,7 @@ func (g *GoGit) clone(ctx context.Context, path, url, branch string, depth int) 
 		Depth:         depth,
 		Tags:          gogit.NoTags,
 	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -166,6 +173,7 @@ func (g *GoGit) Write(path string, content []byte) error {
 	defer f.Close()
 
 	_, err = io.Copy(f, bytes.NewReader(content))
+
 	return err
 }
 
@@ -203,17 +211,22 @@ func (g *GoGit) Commit(message Commit, filters ...func(string) bool) (string, er
 	// modified. There's no circumstance in which we want to commit a
 	// change to a broken symlink: so, detect and skip those.
 	var changed bool
+
 	for file, stat := range status {
 		if stat.Worktree == gogit.Deleted {
 			_, _ = wt.Add(file)
 			changed = true
+
 			continue
 		}
+
 		abspath := filepath.Join(g.path, file)
+
 		isLink, err := isSymLink(abspath)
 		if err != nil {
 			return "", err
 		}
+
 		if isLink {
 			// symlinks are OK; broken symlinks are probably a result
 			// of the bug mentioned above, but not of interest in any
@@ -222,23 +235,28 @@ func (g *GoGit) Commit(message Commit, filters ...func(string) bool) (string, er
 				continue
 			}
 		}
+
 		skip := false
+
 		for _, filter := range filters {
 			if !filter(file) {
 				skip = true
 				break
 			}
 		}
+
 		if !skip {
 			_, _ = wt.Add(file)
 			changed = true
 		}
 	}
+
 	if !changed {
 		head, err := g.repository.Head()
 		if err != nil {
 			return "", fmt.Errorf("failed to get the worktree HEAD reference: %w", err)
 		}
+
 		return head.Hash().String(), ErrNoStagedFiles
 	}
 
@@ -252,6 +270,7 @@ func (g *GoGit) Commit(message Commit, filters ...func(string) bool) (string, er
 	if err != nil {
 		return "", fmt.Errorf("failed to commit changes: %w", err)
 	}
+
 	return commit.String(), nil
 }
 
@@ -272,14 +291,17 @@ func (g *GoGit) Status() (bool, error) {
 	if g.repository == nil {
 		return false, ErrNoGitRepository
 	}
+
 	wt, err := g.repository.Worktree()
 	if err != nil {
 		return false, fmt.Errorf("failed to open the worktree: %w", err)
 	}
+
 	status, err := wt.Status()
 	if err != nil {
 		return false, fmt.Errorf("failed to get the worktree status: %w", err)
 	}
+
 	return status.IsClean(), nil
 }
 
@@ -287,10 +309,12 @@ func (g *GoGit) Head() (string, error) {
 	if g.repository == nil {
 		return "", ErrNoGitRepository
 	}
+
 	head, err := g.repository.Head()
 	if err != nil {
 		return "", err
 	}
+
 	return head.Hash().String(), nil
 }
 
@@ -315,17 +339,18 @@ func (g *GoGit) GetRemoteUrl(dir string, remoteName string) (string, error) {
 }
 
 func (g *GoGit) ValidateAccess(ctx context.Context, url string, branch string) error {
-
 	path, err := ioutil.TempDir("", "temp-src")
 	if err != nil {
 		return fmt.Errorf("error creating temporary folder %w", err)
 	}
+
 	defer os.RemoveAll(path)
 
 	_, err = g.clone(ctx, path, url, branch, 1)
 	if err != nil && !errors.Is(err, transport.ErrEmptyRemoteRepository) {
 		return fmt.Errorf("error validating git repo access %w", err)
 	}
+
 	return nil
 }
 
@@ -334,8 +359,10 @@ func isSymLink(fname string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("failed to check if %s is a symlink: %w", fname, err)
 	}
+
 	if info.Mode()&os.ModeSymlink > 0 {
 		return true, nil
 	}
+
 	return false, nil
 }

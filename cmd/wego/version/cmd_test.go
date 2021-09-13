@@ -35,6 +35,7 @@ func TestCheckpointParamsWithFlagsUseParsing(t *testing.T) {
 		Use: "cmd asdf asdf;kljasd",
 	}
 	p1.AddCommand(p2)
+
 	expectedRes := map[string]string{
 		"object":  "obj",
 		"command": "cmd",

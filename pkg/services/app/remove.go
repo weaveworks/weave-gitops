@@ -52,6 +52,7 @@ func (a *App) Remove(params RemoveParams) error {
 		if err != nil {
 			return err
 		}
+
 		if err := a.Kube.DeleteByName(ctx, info.appSourceName(), gvrSource, info.Namespace); err != nil {
 			return clusterDeleteError(info.appResourceName(), err)
 		}
@@ -60,6 +61,7 @@ func (a *App) Remove(params RemoveParams) error {
 		if err != nil {
 			return err
 		}
+
 		if err := a.Kube.DeleteByName(ctx, info.appDeployName(), gvrDeployKind, info.Namespace); err != nil {
 			return clusterDeleteError(info.appResourceName(), err)
 		}
@@ -135,6 +137,7 @@ func dirExists(d string) bool {
 	if os.IsNotExist(err) {
 		return false
 	}
+
 	return info.IsDir()
 }
 

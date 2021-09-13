@@ -120,6 +120,7 @@ func makePublicUrl(url string) string {
 
 	gitSshPrefix := "git@github.com:"
 	sshPrefix := "ssh://git@github.com/"
+
 	if strings.HasPrefix(url, gitSshPrefix) {
 		trimmed = strings.TrimPrefix(url, gitSshPrefix)
 	} else if strings.HasPrefix(url, sshPrefix) {
@@ -251,6 +252,7 @@ func (f *FluxClient) GetVersion() (string, error) {
 	}
 	// change string format to match our versioning standard
 	version := strings.ReplaceAll(string(out), "flux version ", "v")
+
 	return version, nil
 }
 
@@ -259,6 +261,7 @@ func (f *FluxClient) runFluxCmd(args ...string) ([]byte, error) {
 	if err != nil {
 		return []byte{}, errors.Wrap(err, "error getting flux binary path")
 	}
+
 	out, err := f.runner.Run(fluxPath, args...)
 	if err != nil {
 		return []byte{}, fmt.Errorf("failed to run flux with output: %s and error: %w", string(out), err)
@@ -272,6 +275,7 @@ func (f *FluxClient) runFluxCmdOutputStream(args ...string) ([]byte, error) {
 	if err != nil {
 		return []byte{}, errors.Wrap(err, "error getting flux binary path")
 	}
+
 	out, err := f.runner.RunWithOutputStream(fluxPath, args...)
 	if err != nil {
 		return []byte{}, fmt.Errorf("failed to run flux with output: %s and error: %w", string(out), err)
@@ -285,7 +289,9 @@ func (f *FluxClient) fluxPath() (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "failed getting user home directory")
 	}
+
 	path := fmt.Sprintf("%v/.wego/bin", homeDir)
+
 	return fmt.Sprintf("%v/flux-%v", path, version.FluxVersion), nil
 }
 

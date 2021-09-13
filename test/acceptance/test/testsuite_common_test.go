@@ -12,7 +12,6 @@ import (
 )
 
 func TestAcceptance(t *testing.T) {
-
 	defer func() {
 		err := ShowItems("")
 		if err != nil {

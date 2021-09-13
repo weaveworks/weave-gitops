@@ -42,6 +42,7 @@ func (f *FluxClient) GetExePath() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return fmt.Sprintf("%v/flux-%v", path, version.FluxVersion), nil
 }
 

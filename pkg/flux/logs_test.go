@@ -112,6 +112,7 @@ func TestSetup(t *testing.T) {
 	binPath, err := fluxClient.GetBinPath()
 	require.NoError(t, err)
 	require.Equal(t, binPath, filepath.Join(homeDir, ".wego", "bin"))
+
 	exePath, err := fluxClient.GetExePath()
 	require.NoError(t, err)
 	require.Equal(t, exePath, filepath.Join(homeDir, ".wego", "bin", "flux-"+version.FluxVersion))
@@ -120,17 +121,24 @@ func TestSetup(t *testing.T) {
 func TestSetupFluxBin(t *testing.T) {
 	dir, err := ioutil.TempDir(t.TempDir(), "a-home-dir")
 	require.NoError(t, err)
+
 	defer os.RemoveAll(dir)
+
 	homeDir = dir
 	version.FluxVersion = "0.11.0"
+
 	fluxClient.SetupBin()
+
 	fluxPath := fmt.Sprintf("%v/.wego/bin", homeDir)
+
 	require.DirExists(t, fluxPath)
 	binPath := fmt.Sprintf("%v/flux-%v", fluxPath, version.FluxVersion)
 	require.FileExists(t, binPath)
 
 	version.FluxVersion = "0.12.0"
+
 	fluxClient.SetupBin()
+
 	require.NoFileExists(t, binPath)
 	binPath = fmt.Sprintf("%v/flux-%v", fluxPath, version.FluxVersion)
 	require.FileExists(t, binPath)

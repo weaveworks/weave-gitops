@@ -38,20 +38,26 @@ func (*CLIRunner) RunWithOutputStream(c string, args ...string) ([]byte, error) 
 	cmd := exec.Command(c, args...)
 
 	var out strings.Builder
+
 	stdoutReader, err := cmd.StdoutPipe()
 	if err != nil {
 		return nil, err
 	}
+
 	stderrReader, err := cmd.StderrPipe()
 	if err != nil {
 		return nil, err
 	}
 
 	var wg sync.WaitGroup
+
 	stdoutScanner := bufio.NewScanner(stdoutReader)
+
 	wg.Add(1)
+
 	go func() {
 		defer wg.Done()
+
 		for stdoutScanner.Scan() {
 			data := stdoutScanner.Text()
 			fmt.Println(data)
@@ -61,9 +67,12 @@ func (*CLIRunner) RunWithOutputStream(c string, args ...string) ([]byte, error) 
 	}()
 
 	stderrScanner := bufio.NewScanner(stderrReader)
+
 	wg.Add(1)
+
 	go func() {
 		defer wg.Done()
+
 		for stderrScanner.Scan() {
 			data := stderrScanner.Text()
 			fmt.Println(data)

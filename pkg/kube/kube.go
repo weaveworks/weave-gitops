@@ -85,6 +85,7 @@ func (k *KubeClient) Apply(_ context.Context, manifests []byte, namespace string
 	}
 
 	_, err := k.runKubectlCmdWithInput(args, manifests)
+
 	return err
 }
 
@@ -95,6 +96,7 @@ func (k *KubeClient) Delete(_ context.Context, manifest []byte) error {
 	}
 
 	_, err := k.runKubectlCmdWithInput(args, manifest)
+
 	return err
 }
 
@@ -113,6 +115,7 @@ func (k *KubeClient) GetClusterName(ctx context.Context) (string, error) {
 	}
 
 	clusterName := sanitize(string(bytes.TrimSuffix(out, []byte("\n"))))
+
 	return clusterName, nil
 }
 
@@ -124,6 +127,7 @@ func sanitize(name string) string {
 	replaceUnderscores := strings.ReplaceAll(strings.ToLower(name), "_", "-")
 	notAllowed := reRemoveUnAllowed.ReplaceAllString(replaceUnderscores, "")
 	noDupDashes := reNoDupDashes.ReplaceAllString(notAllowed, "")
+
 	return reNoOutsideDashes.ReplaceAllString(noDupDashes, "")
 }
 
@@ -192,6 +196,7 @@ func (k *KubeClient) GetApplication(ctx context.Context, name types.NamespacedNa
 
 func (k *KubeClient) GetApplications(ctx context.Context, ns string) ([]wego.Application, error) {
 	cmd := []string{"get", "apps", "-n", ns, "-o", "json"}
+
 	output, err := k.runKubectlCmd(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("could not get applications: %s", err)
@@ -223,7 +228,6 @@ func (k *KubeClient) GetSecret(ctx context.Context, name types.NamespacedName) (
 	}
 
 	return s, nil
-
 }
 
 func (k *KubeClient) runKubectlCmd(args []string) ([]byte, error) {

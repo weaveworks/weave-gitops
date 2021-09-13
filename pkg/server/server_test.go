@@ -586,6 +586,7 @@ func makeFakeLogr() *fakelogr.FakeLogger {
 	log.VStub = func(i int) logr.Logger {
 		return log
 	}
+
 	return log
 }
 
@@ -612,6 +613,7 @@ func testCommit() gitprovider.CommitInfo {
 
 func formatLogVals(vals []interface{}) []string {
 	list := []string{}
+
 	for _, v := range vals {
 		// vals is a slice of empty interfaces. convert them.
 		s, ok := v.(string)
@@ -620,7 +622,9 @@ func formatLogVals(vals []interface{}) []string {
 			n := v.(int)
 			s = strconv.Itoa(n)
 		}
+
 		list = append(list, s)
 	}
+
 	return list
 }

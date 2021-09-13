@@ -54,6 +54,7 @@ func contains(s []string, str string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -63,12 +64,14 @@ func FileExists(name string) bool {
 			return false
 		}
 	}
+
 	return true
 }
 
 func getClusterName() string {
 	out, err := exec.Command("kubectl", "config", "current-context").Output()
 	Expect(err).ShouldNot(HaveOccurred())
+
 	return string(bytes.TrimSuffix(out, []byte("\n")))
 }
 
@@ -77,6 +80,7 @@ func ShowItems(itemType string) error {
 	if itemType != "" {
 		return runCommandPassThrough([]string{}, "kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
 	}
+
 	return runCommandPassThrough([]string{}, "kubectl", "get", "all", "--all-namespaces", "-o", "wide")
 }
 
@@ -95,6 +99,7 @@ func StringWithCharset(length int, charset string) string {
 	for i := range b {
 		b[i] = charset[seededRand.Intn(len(charset))]
 	}
+
 	return string(b)
 }
 
@@ -104,11 +109,13 @@ func RandString(length int) string {
 
 func generateTestInputs() TestInputs {
 	var inputs TestInputs
+
 	uniqueSuffix := RandString(6)
 	inputs.appRepoName = "wego-test-app-" + RandString(8)
 	inputs.appManifestFilePath = getUniqueWorkload("xxyyzz", uniqueSuffix)
 	inputs.workloadName = "nginx-" + uniqueSuffix
 	inputs.workloadNamespace = "my-nginx-" + uniqueSuffix
+
 	return inputs
 }
 
@@ -116,6 +123,7 @@ func getUniqueWorkload(placeHolderSuffix string, uniqueSuffix string) string {
 	workloadTemplateFilePath := "./data/nginx-template.yaml"
 	absWorkloadManifestFilePath := "/tmp/nginx-" + uniqueSuffix + ".yaml"
 	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("sed 's/%s/%s/g' %s > %s", placeHolderSuffix, uniqueSuffix, workloadTemplateFilePath, absWorkloadManifestFilePath))
+
 	return absWorkloadManifestFilePath
 }
 
@@ -175,17 +183,23 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 		if clusterName == "" {
 			clusterName = provider + "-" + RandString(6)
 		}
+
 		log.Infof("Creating a kind cluster %s", clusterName)
+
 		err := runCommandPassThrough([]string{}, "./scripts/kind-cluster.sh", clusterName, "kindest/node:v"+k8sVersion)
+
 		if err != nil {
 			log.Infof("Failed to create kind cluster")
 			log.Fatal(err)
+
 			return clusterName, err
 		}
 	}
 
 	log.Info("Wait for the cluster to be ready")
+
 	err := runCommandPassThrough([]string{}, "kubectl", "wait", "--for=condition=Ready", "--timeout=300s", "-n", "kube-system", "--all", "pods")
+
 	if err != nil {
 		log.Infof("Cluster system pods are not ready after waiting for 5 minutes, This can cause tests failures.")
 		return clusterName, err
@@ -197,6 +211,7 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 	repoAbsolutePath := "/tmp/" + appRepoName
 	privateRepo := ""
+
 	if IsPrivateRepo {
 		privateRepo = "-p"
 	}
@@ -257,6 +272,7 @@ func createSubDir(subDirName string, repoAbsolutePath string) string {
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
+
 	return subDirAbsolutePath
 }
 
@@ -265,6 +281,7 @@ func createGitRepoBranch(repoAbsolutePath string, branchName string) string {
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
+
 	return string(session.Wait().Out.Contents())
 }
 
@@ -275,11 +292,13 @@ func getRepoVisibility(org string, repo string) string {
 	Eventually(session).Should(gexec.Exit())
 	visibilityStr := strings.TrimSpace(string(session.Wait().Out.Contents()))
 	log.Infof("Repo visibility private=%s", visibilityStr)
+
 	return visibilityStr
 }
 
 func waitForResource(resourceType string, resourceName string, namespace string, timeout time.Duration) error {
 	pollInterval := 5
+
 	if timeout < 5*time.Second {
 		timeout = 5 * time.Second
 	}
@@ -288,30 +307,38 @@ func waitForResource(resourceType string, resourceName string, namespace string,
 	for i := pollInterval; i < timeoutInSeconds; i += pollInterval {
 		log.Infof("Waiting for %s in namespace: %s... : %d second(s) passed of %d seconds timeout", resourceType+"/"+resourceName, namespace, i, timeoutInSeconds)
 		err := runCommandPassThroughWithoutOutput([]string{}, "sh", "-c", fmt.Sprintf("kubectl get %s %s -n %s", resourceType, resourceName, namespace))
+
 		if err == nil {
 			log.Infof("%s is available in cluster", resourceType+"/"+resourceName)
 			command := exec.Command("sh", "-c", fmt.Sprintf("kubectl get %s %s -n %s", resourceType, resourceName, namespace))
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 			Eventually(session).Should(gexec.Exit())
+
 			noResourcesFoundMessage := fmt.Sprintf("No resources found in %s namespace", namespace)
+
 			if strings.Contains(string(session.Wait().Out.Contents()), noResourcesFoundMessage) {
 				log.Infof("Got message => {" + noResourcesFoundMessage + "} Continue looking for resource(s)")
 				continue
 			}
+
 			return nil
 		}
+
 		time.Sleep(time.Duration(pollInterval) * time.Second)
 	}
+
 	return fmt.Errorf("Error: Failed to find the resource %s of type %s, timeout reached", resourceName, resourceType)
 }
 
 func waitForNamespaceToTerminate(namespace string, timeout time.Duration) error {
 	//check if the namespace exist before cleaning up
 	pollInterval := 5
+
 	if timeout < 5*time.Second {
 		timeout = 5 * time.Second
 	}
+
 	timeoutInSeconds := int(timeout.Seconds())
 
 	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl get ns %s", namespace))
@@ -326,16 +353,20 @@ func waitForNamespaceToTerminate(namespace string, timeout time.Duration) error 
 
 		out, _ := runCommandAndReturnStringOutput(fmt.Sprintf("kubectl get ns %s --ignore-not-found=true | grep -i terminating", namespace))
 		out = strings.TrimSpace(out)
+
 		if out == "" {
 			return nil
 		}
+
 		if i > timeoutInSeconds/2 && i%10 == 0 {
 			//Patch the finalizer
 			log.Infof("Patch the finalizer to unstuck the terminating namespace %s", namespace)
 			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl patch ns %s -p '{\"metadata\":{\"finalizers\":[]}}' --type=merge", namespace))
 		}
+
 		time.Sleep(time.Duration(pollInterval) * time.Second)
 	}
+
 	return fmt.Errorf("Error: Failed to terminate the namespace %s", namespace)
 }
 
@@ -369,6 +400,7 @@ func installAndVerifyWego(wegoNamespace string) {
 func uninstallWegoRuntime(namespace string) {
 	log.Infof("About to delete WeGO runtime from namespace: %s", namespace)
 	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
+
 	if err != nil {
 		log.Infof("Failed to uninstall the wego runtime %s", namespace)
 	}
@@ -377,6 +409,7 @@ func uninstallWegoRuntime(namespace string) {
 	if err != nil {
 		log.Infof("Failed to delete crd apps.wego.weave.works")
 	}
+
 	Expect(waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)).To(Succeed())
 }
 
@@ -415,14 +448,15 @@ func deletePersistingHelmApp(namespace string, workloadName string, timeout time
 
 func createAppReplicas(repoAbsolutePath string, appManifestFilePath string, replicasSetValue int, workloadName string) string {
 	log.Infof("Editing app-manifest file in git repo to create replicas of workload: %s", workloadName)
+
 	appManifestFile := repoAbsolutePath + "/" + appManifestFilePath
 	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("sed -ie 's/replicas: 1/replicas: %d/g' %s", replicasSetValue, appManifestFile))
 	changedValue, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cat %s", appManifestFile))
+
 	return changedValue
 }
 
 func waitForReplicaCreation(namespace string, replicasSetValue int, timeout time.Duration) error {
-
 	replica := strconv.Itoa(replicasSetValue)
 	pollInterval := time.Second * 5
 	timeoutInSeconds := int(timeout.Seconds())
@@ -437,11 +471,11 @@ func waitForReplicaCreation(namespace string, replicasSetValue int, timeout time
 		}
 		return fmt.Errorf(": Replica(s) not created, waiting...")
 	})
+
 	return fmt.Errorf("Timeout reached, failed to create replicas")
 }
 
 func waitForAppRemoval(appName string, timeout time.Duration) error {
-
 	pollInterval := time.Second * 5
 
 	_ = utils.WaitUntil(os.Stdout, pollInterval, timeout, func() error {
@@ -455,6 +489,7 @@ func waitForAppRemoval(appName string, timeout time.Duration) error {
 		}
 		return nil
 	})
+
 	return fmt.Errorf("Failed to delete app")
 }
 
@@ -464,8 +499,10 @@ func runCommandPassThrough(env []string, name string, arg ...string) error {
 	if len(env) > 0 {
 		cmd.Env = env
 	}
+
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
 	return cmd.Run()
 }
 
@@ -474,6 +511,7 @@ func runCommandPassThroughWithoutOutput(env []string, name string, arg ...string
 	if len(env) > 0 {
 		cmd.Env = env
 	}
+
 	return cmd.Run()
 }
 
@@ -481,6 +519,7 @@ func runCommandAndReturnStringOutput(commandToRun string) (stdOut string, stdErr
 	command := exec.Command("sh", "-c", commandToRun)
 	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Eventually(session).Should(gexec.Exit())
+
 	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
 }
 
@@ -488,6 +527,7 @@ func runCommandAndReturnSessionOutput(commandToRun string) *gexec.Session {
 	command := exec.Command("sh", "-c", commandToRun)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
+
 	return session
 }
 
@@ -501,6 +541,7 @@ func runWegoAddCommandWithOutput(repoAbsolutePath string, addCommand string, weg
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
+
 	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
 }
 

@@ -38,8 +38,9 @@ type customTransport struct {
 
 func getBodyFromReaderWithoutConsuming(r *io.ReadCloser) string {
 	body, _ := ioutil.ReadAll(*r)
-	defer (*r).Close()
+	_ = (*r).Close()
 	*r = ioutil.NopCloser(bytes.NewBuffer(body))
+
 	return string(body)
 }
 
@@ -52,30 +53,40 @@ func (t *customTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	t.mux.Lock()
 	defer t.mux.Unlock()
 
-	var resp *http.Response
-	var err error
-	var responseBody string
-	var requestBody string
+	var (
+		resp         *http.Response
+		err          error
+		responseBody string
+		requestBody  string
+	)
+
 	retryCount := 15
+
 	for retryCount != 0 {
 		responseBody = ""
 		requestBody = ""
+
 		if req != nil && req.Body != nil {
 			requestBody = getBodyFromReaderWithoutConsuming(&req.Body)
 		}
+
 		resp, err = t.transport.RoundTrip(req)
 		if resp != nil && resp.Body != nil {
 			responseBody = getBodyFromReaderWithoutConsuming(&resp.Body)
 		}
+
 		if (err != nil && (strings.Contains(err.Error(), ConnectionResetByPeer))) ||
 			strings.Contains(responseBody, ProjectStillBeingDeleted) {
 			time.Sleep(4 * time.Second)
+
 			if req != nil && req.Body != nil {
 				req.Body = ioutil.NopCloser(strings.NewReader(requestBody))
 			}
 			retryCount--
+
 			continue
 		}
+
 		break
 	}
 
@@ -194,6 +205,7 @@ func getTestClientWithCassette(cassetteID string) (gitprovider.Client, *recorder
 	t := customTransport{}
 
 	var err error
+
 	cacheGithubRecorder, err := NewRecorder(cassetteID, getAccounts())
 	if err != nil {
 		return nil, nil, err
@@ -525,7 +537,6 @@ func GetCommitToUserRepo(client gitprovider.Client, domain string, userAccount s
 	Expect(err).NotTo(HaveOccurred())
 	err = user.Delete(ctx)
 	Expect(err).NotTo(HaveOccurred())
-
 }
 
 func GetCommitToOrgRepo(client gitprovider.Client, domain string, orgName string) {
@@ -550,7 +561,6 @@ func GetCommitToOrgRepo(client gitprovider.Client, domain string, orgName string
 	Expect(err).NotTo(HaveOccurred())
 	err = user.Delete(ctx)
 	Expect(err).NotTo(HaveOccurred())
-
 }
 
 var _ = Describe("Get User repo info", func() {

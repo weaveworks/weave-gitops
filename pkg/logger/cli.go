@@ -52,8 +52,10 @@ func (l CLILogger) Write(p []byte) (n int, err error) {
 	if err != nil {
 		return n, err
 	}
+
 	if n != len(p) {
 		return n, io.ErrShortWrite
 	}
+
 	return len(p), nil
 }

@@ -160,13 +160,14 @@ func NewGithubDeviceFlowHandler(client *http.Client) BlockingCLIAuthHandler {
 
 				// An unexpected error happened, return it.
 				ticker.Stop()
+
 				return "", err
 			}
 
 			ticker.Stop()
 			fmt.Fprintf(w, "Authentication successful!\n\n")
-			return authToken, nil
 
+			return authToken, nil
 		}
 
 		return "", errors.New("failed to get github auth token")

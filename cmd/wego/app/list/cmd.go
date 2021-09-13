@@ -17,7 +17,6 @@ var Cmd = &cobra.Command{
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
-
 	kubeClient := kube.New(&runner.CLIRunner{})
 
 	ns, err := cmd.Parent().Parent().Flags().GetString("namespace")
@@ -31,6 +30,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Println("NAME")
+
 	for _, app := range apps {
 		fmt.Println(app.Name)
 	}

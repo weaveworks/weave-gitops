@@ -30,6 +30,7 @@ func Exists(filePath string) bool {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -45,6 +46,7 @@ func WaitUntil(out io.Writer, poll, timeout time.Duration, checkDone func() erro
 			return time.Now()
 		},
 		checkDone)
+
 	return err
 }
 
@@ -58,8 +60,10 @@ func timedRepeat(out io.Writer, start time.Time, poll, timeout time.Duration, up
 		if err == nil {
 			return currentTime, nil
 		}
+
 		fmt.Fprintf(out, "error occurred %s, retrying in %s\n", err, poll.String())
 	}
+
 	return currentTime, fmt.Errorf("timeout reached %s", timeout.String())
 }
 
@@ -68,12 +72,16 @@ type callback func()
 func CaptureStdout(c callback) string {
 	r, w, _ := os.Pipe()
 	tmp := os.Stdout
+
 	defer func() {
 		os.Stdout = tmp
 	}()
+
 	os.Stdout = w
+
 	c()
 	w.Close()
+
 	stdout, _ := ioutil.ReadAll(r)
 
 	return string(stdout)
@@ -100,6 +108,7 @@ func GetOwnerFromUrl(url string) (string, error) {
 	if len(parts) < 2 {
 		return "", fmt.Errorf("could not get owner from url %s", url)
 	}
+
 	return parts[len(parts)-2], nil
 }
 
@@ -160,8 +169,8 @@ func CleanCommitMessage(msg string) string {
 	str := strings.ReplaceAll(msg, "\n", " ")
 	if len(str) > 50 {
 		str = str[:49] + "..."
-
 	}
+
 	return str
 }
 
@@ -186,6 +195,7 @@ func StartK8sTestEnvironment() (client.Client, func(), error) {
 	}
 
 	var err error
+
 	cfg, err := testEnv.Start()
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not start testEnv: %w", err)

@@ -63,6 +63,7 @@ func GetBaseClients() (osys.Osys, flux.Flux, kube.Kube, logger.Logger, error) {
 
 func IsClusterReady() error {
 	logger := GetLogger()
+
 	kube, _, kubeErr := kube.NewKubeHTTPClient()
 	if kubeErr != nil {
 		return fmt.Errorf("error creating k8s http client: %w", kubeErr)
@@ -182,6 +183,7 @@ func getAuthService(ctx context.Context, providerUrl string) (auth.AuthService, 
 	cliRunner := &runner.CLIRunner{}
 	fluxClient := flux.New(osysClient, cliRunner)
 	logger := logger.NewCLILogger(osysClient.Stdout())
+
 	_, rawClient, kubeErr := kube.NewKubeHTTPClient()
 	if kubeErr != nil {
 		return nil, fmt.Errorf("error creating k8s http client: %w", kubeErr)
