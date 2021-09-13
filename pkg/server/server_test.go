@@ -575,6 +575,9 @@ var _ = Describe("Applications handler", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(r.Commits).To(HaveLen(1))
+		Expect(r.Commits[0].Url).To(Equal("http://github.com/testrepo/commit/2349898"))
+		Expect(r.Commits[0].Message).To(Equal("if a message is above fifty characters then it wi..."))
+		Expect(r.Commits[0].Hash).To(Equal("2349898"))
 	})
 })
 
@@ -603,10 +606,11 @@ func (fc *fakeCommit) Get() gitprovider.CommitInfo {
 
 func testCommit() gitprovider.CommitInfo {
 	return gitprovider.CommitInfo{
-		Sha:       "testsha",
+		Sha:       "23498987239879892348768",
 		Author:    "testauthor",
-		Message:   "some awesome commit",
+		Message:   "if a message is above fifty characters then it will be truncated",
 		CreatedAt: time.Now(),
+		URL:       "http://github.com/testrepo/commit/2349898723987989234",
 	}
 }
 
