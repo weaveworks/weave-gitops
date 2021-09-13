@@ -259,7 +259,6 @@ jobs:
         name: acceptance-test-artifacts
         path: ${{ env.ARTIFACTS_BASE_DIR }}
         retention-days: 1
-        ginkgo --randomizeSuites --reportFile=$(pwd)/test-results/smoke-test-results.xml -v ./test/acceptance/test/...
   library-integration-test:
     runs-on: ubuntu-latest
     steps:
