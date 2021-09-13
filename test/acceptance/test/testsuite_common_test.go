@@ -10,8 +10,10 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
+	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/weave-gitops/test/acceptance/test/cluster"
@@ -24,6 +26,7 @@ func TestAcceptance(t *testing.T) {
 	}
 
 	RegisterFailHandler(Fail)
+	gomega.RegisterFailHandler(GomegaFail)
 	RunSpecs(t, "Weave GitOps User Acceptance Tests")
 }
 
@@ -103,6 +106,14 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	//    if error then fail with Expected
 	//    createClusterReferences syncCluster based on record
 })
+
+func GomegaFail(message string, callerSkip ...int) {
+	if webDriver != nil {
+		filepath := takeScreenshot()
+		fmt.Printf("Failure screenshot is saved in file %s\n", filepath)
+	}
+	ginkgo.Fail(message, callerSkip...)
+}
 
 var _ = SynchronizedAfterSuite(func() {
 	//err := cluster.UpdateClusterToDeleted(gloablDbDirectory,globalclusterID,syncCluster)

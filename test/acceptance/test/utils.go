@@ -9,14 +9,15 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"path"
+
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/onsi/gomega/gbytes"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	log "github.com/sirupsen/logrus"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -30,6 +31,9 @@ const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
 const NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
 const INSTALL_PODS_READY_TIMEOUT time.Duration = 5 * time.Minute
 const WEGO_DEFAULT_NAMESPACE = wego.DefaultNamespace
+const WEGO_UI_URL = "http://localhost:9001"
+const SELENIUM_SERVICE_URL = "http://localhost:4444/wd/hub"
+const SCREENSHOTS_DIR string = "screenshots/"
 
 var DEFAULT_SSH_KEY_PATH string
 var GITHUB_ORG string
@@ -218,7 +222,7 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 	randStr := RandString(10)
 	fmt.Println("RANDOM-STR", randStr)
 
-	fmt.Fprintf(GinkgoWriter, "%s wainting for creation", randStr)
+	fmt.Fprintf(GinkgoWriter, "%s waiting for creation ", randStr)
 	err = utils.WaitUntil(GinkgoWriter, time.Second*2, time.Second*20, func() error {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
                             cd %s &&
@@ -238,7 +242,7 @@ func initAndCreateEmptyRepo(appRepoName string, IsPrivateRepo bool) string {
 	})
 	Expect(err).ShouldNot(HaveOccurred())
 
-	fmt.Fprintf(GinkgoWriter, "%s wainting for confirmation", randStr)
+	fmt.Fprintf(GinkgoWriter, "%s waiting for confirmation ", randStr)
 	Expect(utils.WaitUntil(GinkgoWriter, time.Second, 20*time.Second, func() error {
 		cmd := fmt.Sprintf(`hub api repos/%s/%s`, GITHUB_ORG, appRepoName)
 		command := exec.Command("sh", "-c", cmd)
@@ -626,4 +630,23 @@ func mergePR(repoAbsolutePath, prLink string) {
 	session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
+}
+
+func setArtifactsDir() string {
+	path := "/tmp/wego-test"
+	if os.Getenv("ARTIFACTS_BASE_DIR") == "" {
+		return path
+	}
+	return os.Getenv("ARTIFACTS_BASE_DIR")
+}
+
+func takeScreenshot() string {
+	if webDriver != nil {
+		t := time.Now()
+		name := t.Format("Mon-02-Jan-2006-15.04.05.000000")
+		filepath := path.Join(setArtifactsDir(), SCREENSHOTS_DIR, name+".png")
+		_ = webDriver.Screenshot(filepath)
+		return filepath
+	}
+	return ""
 }

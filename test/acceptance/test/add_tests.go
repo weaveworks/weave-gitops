@@ -6,11 +6,12 @@ package acceptance
 
 import (
 	"fmt"
-	"github.com/onsi/gomega/gbytes"
 	"os"
 	"os/exec"
 	"regexp"
 	"strconv"
+
+	"github.com/onsi/gomega/gbytes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -23,7 +24,7 @@ var globalDbDirectory []byte
 
 //var globalclusterID []byte
 
-var _ = Describe("Weave GitOps Add Tests2", func() {
+var _ = Describe("Weave GitOps App Add Tests2", func() {
 
 	count := 0
 
@@ -99,12 +100,16 @@ var _ = Describe("Weave GitOps Add Tests2", func() {
 	//[1]       <int>: 0
 	//[1]
 	//[1]   /Users/joseordaz/go/src/github.com/josecordaz/weave-gitops-ww/test/acceptance/test/add_tests.go:123
-	It("Verify that wego cannot work without wego components installed in the cluster", func() {
+	It("Verify that wego cannot work without wego components installed and with both url and directory provided", func() {
 		var repoAbsolutePath string
+		var errOutput string
+		var exitCode int
 		private := true
 		tip := generateTestInputs()
+		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 
-		addCommand := "app add . --auto-merge=true"
+		addCommand1 := "app add . --auto-merge=true"
+		addCommand2 := "app add . --url=" + appRepoRemoteURL + " --auto-merge=true"
 
 		defer deleteRepo(tip.appRepoName)
 
@@ -117,13 +122,8 @@ var _ = Describe("Weave GitOps Add Tests2", func() {
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
-		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
-		})
-
-		var exitCode int
 		By("And I run wego add command", func() {
-			command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand))
+			command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand1))
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 			Eventually(session).Should(gexec.Exit())
@@ -133,6 +133,14 @@ var _ = Describe("Weave GitOps Add Tests2", func() {
 		By("Then I should see relevant message in the console", func() {
 			// Should  be a failure
 			Eventually(exitCode).ShouldNot(Equal(0))
+		})
+
+		By("When I run add command with both directory path and url specified", func() {
+			_, errOutput = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand2, WEGO_DEFAULT_NAMESPACE, syncCluster.KubeConfigPath)
+		})
+
+		By("Then I should see an error", func() {
+			Expect(errOutput).To(ContainSubstring("you should choose either --url or the app directory"))
 		})
 	})
 	// This test needs a way to make the show logs not to fail when it finishes
@@ -189,10 +197,6 @@ var _ = Describe("Weave GitOps Add Tests2", func() {
 
 		By("And I install wego to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, syncCluster.KubeConfigPath)
-		})
-
-		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("And I create a new branch", func() {
@@ -374,7 +378,7 @@ var _ = Describe("Weave GitOps Add Tests2", func() {
 			runWegoAddCommand(repoAbsolutePath+"/../", addCommand, WEGO_DEFAULT_NAMESPACE, syncCluster.KubeConfigPath)
 		})
 
-		By("Then I should see should see my workload deployed to the cluster", func() {
+		By("Then I should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE, syncCluster.KubeConfigPath)
 			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace, syncCluster.KubeConfigPath)
 		})
@@ -415,7 +419,7 @@ var _ = Describe("Weave GitOps Add Tests2", func() {
 			runWegoAddCommand(repoAbsolutePath+"/../", addCommand, WEGO_DEFAULT_NAMESPACE, syncCluster.KubeConfigPath)
 		})
 
-		By("Then I should see should see my workload deployed to the cluster", func() {
+		By("Then I should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE, syncCluster.KubeConfigPath)
 			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace, syncCluster.KubeConfigPath)
 		})
@@ -456,7 +460,7 @@ var _ = Describe("Weave GitOps Add Tests2", func() {
 			runWegoAddCommand(pathToRepoParentDir, addCommand, WEGO_DEFAULT_NAMESPACE, syncCluster.KubeConfigPath)
 		})
 
-		By("Then I should see should see my workload deployed to the cluster", func() {
+		By("Then I should see my workload deployed to the cluster", func() {
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE, syncCluster.KubeConfigPath)
 			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace, syncCluster.KubeConfigPath)
 		})
@@ -569,7 +573,7 @@ var _ = Describe("Weave GitOps Add Tests2", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE, syncCluster.KubeConfigPath)
 		})
 
-		By("Then I should see should see my workloads for app1 and app2 are deployed to the cluster", func() {
+		By("Then I should see my workloads for app1 and app2 are deployed to the cluster", func() {
 			verifyWegoAddCommand(appName1, WEGO_DEFAULT_NAMESPACE, syncCluster.KubeConfigPath)
 			verifyWegoAddCommand(appName2, WEGO_DEFAULT_NAMESPACE, syncCluster.KubeConfigPath)
 			verifyWorkloadIsDeployed(tip1.workloadName, tip1.workloadNamespace, syncCluster.KubeConfigPath)
@@ -613,7 +617,7 @@ var _ = Describe("Weave GitOps Add Tests2", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand2, WEGO_DEFAULT_NAMESPACE, syncCluster.KubeConfigPath)
 		})
 
-		By("Then I should see should see my workloads for app1 and app2 are deployed to the cluster", func() {
+		By("Then I should see my workloads for app1 and app2 are deployed to the cluster", func() {
 			verifyWegoAddCommand(appName1, WEGO_DEFAULT_NAMESPACE, syncCluster.KubeConfigPath)
 			verifyWegoAddCommand(appName2, WEGO_DEFAULT_NAMESPACE, syncCluster.KubeConfigPath)
 			verifyWorkloadIsDeployed(tip1.workloadName, tip1.workloadNamespace, syncCluster.KubeConfigPath)
@@ -621,7 +625,7 @@ var _ = Describe("Weave GitOps Add Tests2", func() {
 		})
 	})
 
-	It("SmokeTest - Verify that wego can deploy an app with app-config-url set to <url>", func() {
+	It("Verify that wego can deploy an app with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var listOutput string
@@ -678,7 +682,7 @@ var _ = Describe("Weave GitOps Add Tests2", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand1, WEGO_DEFAULT_NAMESPACE, syncCluster.KubeConfigPath)
 		})
 
-		By("Then I should see should see my workload deployed for app1", func() {
+		By("Then I should see my workload deployed for app1", func() {
 			verifyWegoAddCommand(appName1, WEGO_DEFAULT_NAMESPACE, syncCluster.KubeConfigPath)
 			verifyWorkloadIsDeployed(workloadName1, workloadNamespace1, syncCluster.KubeConfigPath)
 		})
@@ -956,7 +960,7 @@ var _ = Describe("Weave GitOps Add Tests2", func() {
 		})
 	})
 	//
-	It("SmokeTest - Verify that wego can deploy a helm app from a git repo with app-config-url set to NONE", func() {
+	It("Verify that wego can deploy a helm app from a git repo with app-config-url set to NONE", func() {
 		var repoAbsolutePath string
 		var reinstallOutput string
 		var reAddOutput string
@@ -1050,7 +1054,7 @@ var _ = Describe("Weave GitOps Add Tests2", func() {
 		})
 	})
 	//
-	It("SmokeTest - Verify that wego can deploy a helm app from a git repo with app-config-url set to default", func() {
+	It("Verify that wego can deploy a helm app from a git repo with app-config-url set to default", func() {
 		var repoAbsolutePath string
 		public := false
 		appName := "my-helm-app"
@@ -1504,7 +1508,7 @@ var _ = Describe("Weave GitOps Add Tests2", func() {
 //
 //	})
 //
-//	It("Verify that wego can deploy an app with app-config-url set to <url>", func() {
+//	It("SmokeTest - Verify that wego can deploy an app with app-config-url set to <url>", func() {
 //		var repoAbsolutePath string
 //		var configRepoRemoteURL string
 //		var listOutput string
@@ -1680,7 +1684,7 @@ var _ = Describe("Weave GitOps Add Tests2", func() {
 ////			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 ////		})
 ////
-////		By("Then I should see should see my workload deployed for app", func() {
+////		By("Then I should see my workload deployed for app", func() {
 ////			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
 ////			verifyWorkloadIsDeployed(workloadName, workloadNamespace)
 ////		})
