@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/deepmap/oapi-codegen v1.8.1
 	github.com/dnaeon/go-vcr v1.2.0
-	github.com/fluxcd/go-git-providers v0.2.1-0.20210908163615-833963032787
+	github.com/fluxcd/go-git-providers v0.2.0
 	github.com/fluxcd/helm-controller/api v0.11.1
 	github.com/fluxcd/kustomize-controller/api v0.13.2
 	github.com/fluxcd/pkg/apis/meta v0.10.0
@@ -29,7 +29,7 @@ require (
 	github.com/ory/go-acc v0.2.6
 	github.com/pkg/browser v0.0.0-20210706143420-7d21f8c997e2
 	github.com/pkg/errors v0.9.1
-	github.com/sclevine/agouti v0.0.0-20150218205057-b920a9cc7533 // indirect
+	github.com/sclevine/agouti v0.0.0-20150218205057-b920a9cc7533
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
