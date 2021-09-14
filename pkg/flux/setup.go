@@ -18,11 +18,20 @@ func (f *FluxClient) SetupBin() {
 	binPath, err := f.GetBinPath()
 	f.checkError(err)
 
+	fluxBinary := fluxExe
+
+	fluxBinaryOverride := f.osys.Getenv(fluxBinaryPathEnvVar)
+	if fluxBinaryOverride != "" {
+		bin, err := os.ReadFile(fluxBinaryOverride)
+		f.checkError(err)
+		fluxBinary = bin
+	}
+
 	if _, err := os.Stat(exePath); os.IsNotExist(err) {
 		// Clean bin if file doesnt exist
 		f.checkError(os.RemoveAll(binPath))
 		f.checkError(os.MkdirAll(binPath, 0755))
-		f.checkError(os.WriteFile(exePath, fluxExe, 0755))
+		f.checkError(os.WriteFile(exePath, fluxBinary, 0755))
 	}
 }
 
