@@ -119,8 +119,6 @@ jobs:
         echo check1
         curl -LO "https://dl.k8s.io/release/v1.22.0/bin/darwin/amd64/kubectl"
         echo check2
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh
-        brew cask install docker
     - name: Checkout code
       uses: actions/checkout@v2
 #    - uses: azure/setup-kubectl@v1
