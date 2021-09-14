@@ -13,20 +13,32 @@ import (
 	"github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
-	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/weave-gitops/test/acceptance/test/cluster"
 )
 
 func TestAcceptance(t *testing.T) {
+	defer func() {
+		err := ShowItems("", "")
+		if err != nil {
+			log.Infof("Failed to print the cluster resources")
+		}
+
+		err = ShowItems("GitRepositories", "")
+		if err != nil {
+			log.Infof("Failed to print the GitRepositories")
+		}
+
+		ShowWegoControllerLogs(WEGO_DEFAULT_NAMESPACE, "")
+	}()
 
 	if testing.Short() {
 		t.Skip("Skip User Acceptance Tests")
 	}
 
 	RegisterFailHandler(Fail)
-	gomega.RegisterFailHandler(GomegaFail)
+	//gomega.RegisterFailHandler(GomegaFail)
 	RunSpecs(t, "Weave GitOps User Acceptance Tests")
 }
 
@@ -50,40 +62,36 @@ var globalCtx context.Context
 var globalCancel func()
 
 var _ = SynchronizedBeforeSuite(func() []byte {
-	//clusterPool = cluster.NewClusterPool()
-	//err := clusterPool.Generate()
-	//Expect(err).NotTo(HaveOccurred())
+	dbDirectory := ""
 
-	// go routine to generate kind clusters based on the nodes number N
-	//   it will have N clusters running at all times
-	//   cluster with deleted=false and cluster = waiting is available for selection
-	// it will iterate records in order
-	//   if all records have cluster = created then stop
-	// save error field to save if an error occurred at the moment of creation attempt
+	if os.Getenv("CI") == "" {
+		var err error
+		dbDirectory, err = ioutil.TempDir("", "db-directory")
+		Expect(err).NotTo(HaveOccurred())
 
-	dbDirectory, err := ioutil.TempDir("", "db-directory")
-	Expect(err).NotTo(HaveOccurred())
+		fmt.Println("context-directory", dbDirectory)
 
-	fmt.Println("TEMP-DIRECTORY", dbDirectory)
+		err = cluster.CreateClusterDB(dbDirectory)
+		Expect(err).NotTo(HaveOccurred())
 
-	err = cluster.CreateClusterDB(dbDirectory)
-	Expect(err).NotTo(HaveOccurred())
+		clusterPool2 = cluster.NewClusterPool2()
 
-	clusterPool2 = cluster.NewClusterPool2()
+		clusterPool2.GenerateClusters2(dbDirectory, config.GinkgoConfig.ParallelTotal)
+		go clusterPool2.GenerateClusters2(dbDirectory, 1)
 
-	clusterPool2.GenerateClusters2(dbDirectory, config.GinkgoConfig.ParallelTotal)
-	go clusterPool2.GenerateClusters2(dbDirectory, 1)
+		globalCtx, globalCancel = context.WithCancel(context.Background())
 
-	globalCtx, globalCancel = context.WithCancel(context.Background())
-
-	go clusterPool2.CreateClusterOnRequest(globalCtx, dbDirectory)
+		go clusterPool2.CreateClusterOnRequest(globalCtx, dbDirectory)
+	}
 
 	return []byte(dbDirectory)
 }, func(dbDirectory []byte) {
 
 	fmt.Println("Running Node ", config.GinkgoConfig.ParallelNode)
 
+	fmt.Println("dbDirectory", dbDirectory)
 	globalDbDirectory = dbDirectory
+	fmt.Println("globalDbDirectory", globalDbDirectory)
 
 	SetDefaultEventuallyTimeout(EVENTUALLY_DEFAULT_TIMEOUT)
 	DEFAULT_SSH_KEY_PATH = os.Getenv("HOME") + "/.ssh/id_rsa"
@@ -121,27 +129,38 @@ var _ = SynchronizedAfterSuite(func() {
 	//syncCluster.CleanUp()
 }, func() {
 	//globalCancel()
-	clusterPool2.End()
-	cmd := "kind delete clusters --all"
-	c := exec.Command("sh", "-c", cmd)
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	err := c.Run()
-	if err != nil {
-		fmt.Printf("Error deleting ramaining clusters %s\n", err)
-	}
-	err = os.RemoveAll(string(globalDbDirectory))
-	if err != nil {
-		fmt.Printf("Error deleting root folder %s\n", err)
-	}
-	errors := clusterPool2.Errors()
-	if len(errors) > 0 {
-		for _, err := range clusterPool2.Errors() {
-			fmt.Println("error", err)
+
+	if os.Getenv("CI") == "" {
+		clusterPool2.End()
+		cmd := "kind delete clusters --all"
+		c := exec.Command("sh", "-c", cmd)
+		c.Stdout = os.Stdout
+		c.Stderr = os.Stderr
+		err := c.Run()
+		if err != nil {
+			fmt.Printf("Error deleting ramaining clusters %s\n", err)
+		}
+		err = os.RemoveAll(string(globalDbDirectory))
+		if err != nil {
+			fmt.Printf("Error deleting root folder %s\n", err)
+		}
+		errors := clusterPool2.Errors()
+		if len(errors) > 0 {
+			for _, err := range clusterPool2.Errors() {
+				fmt.Println("error", err)
+			}
 		}
 	}
+
 })
 
 //var _ = BeforeSuite(func() {
-//
+//	SetDefaultEventuallyTimeout(EVENTUALLY_DEFAULT_TIMEOUT)
+//	DEFAULT_SSH_KEY_PATH = os.Getenv("HOME") + "/.ssh/id_rsa"
+//	GITHUB_ORG = os.Getenv("GITHUB_ORG")
+//	WEGO_BIN_PATH = os.Getenv("WEGO_BIN_PATH")
+//	if WEGO_BIN_PATH == "" {
+//		WEGO_BIN_PATH = "/usr/local/bin/wego"
+//	}
+//	log.Infof("WEGO Binary Path: %s", WEGO_BIN_PATH)
 //})

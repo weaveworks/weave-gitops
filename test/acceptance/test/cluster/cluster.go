@@ -147,8 +147,7 @@ func CreateKindCluster(ctx context.Context, rootKubeConfigFilesPath string) (*Cl
 		kubeConfigPath := filepath.Join(string(rootKubeConfigFilesPath), kubeConfigFile)
 		log.Infof("Creating a kind cluster %s", clusterName)
 
-		pwd, _ := os.Getwd()
-		fmt.Println("Creating cluster... ", pwd)
+		fmt.Println("Creating cluster... ")
 		c := fmt.Sprintf("kind create cluster --name=%s --kubeconfig %s --image=%s --config=configs/kind-config.yaml --wait 5m", clusterName, kubeConfigPath, "kindest/node:v"+k8sVersion)
 		cmd := exec.CommandContext(ctx, "sh", "-c", c)
 		cmd.Stdout = os.Stdout
@@ -314,6 +313,8 @@ func RequestClusterCreation(dbPath []byte) error {
 }
 
 func FindCreatedClusterAndAssignItToSomeRecord(dbPath []byte) ([]byte, Cluster2, error) {
+
+	fmt.Println("DB-PATH", string(dbPath))
 
 	var cc Cluster2
 	var kClusterID []byte
@@ -580,9 +581,11 @@ func (c *ClusterPool2) GenerateClusters2(dbPath string, clusterCount int) {
 	done := make(chan bool, 1)
 	go func() {
 		for cluster := range clusters {
-			err := CreateClusterRecord2(dbPath, *cluster)
-			if err != nil {
-				c.AppendError(fmt.Errorf("error creating record %w", err))
+			if cluster != nil {
+				err := CreateClusterRecord2(dbPath, *cluster)
+				if err != nil {
+					c.AppendError(fmt.Errorf("error creating record %w", err))
+				}
 			}
 		}
 		done <- true

@@ -4,7 +4,9 @@
 package acceptance
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"math/rand"
 	"os"
@@ -54,14 +56,14 @@ const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
 var seededRand *rand.Rand = rand.New(
 	rand.NewSource(time.Now().UnixNano()))
 
-//func contains(s []string, str string) bool {
-//	for _, v := range s {
-//		if v == str {
-//			return true
-//		}
-//	}
-//	return false
-//}
+func contains(s []string, str string) bool {
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
+	return false
+}
 
 func FileExists(name string) bool {
 	if _, err := os.Stat(name); err != nil {
@@ -72,11 +74,11 @@ func FileExists(name string) bool {
 	return true
 }
 
-//func getClusterName() string {
-//	out, err := exec.Command("kubectl", "config", "current-context").Output()
-//	Expect(err).ShouldNot(HaveOccurred())
-//	return string(bytes.TrimSuffix(out, []byte("\n")))
-//}
+func getClusterName() string {
+	out, err := exec.Command("kubectl", "config", "current-context").Output()
+	Expect(err).ShouldNot(HaveOccurred())
+	return string(bytes.TrimSuffix(out, []byte("\n")))
+}
 
 // showItems displays the current set of a specified object type in tabular format
 func ShowItems(itemType string, kubeconfig string) error {
@@ -138,68 +140,68 @@ func setupSSHKey(sshKeyPath string) {
 	//}
 }
 
-//func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool) (string, error) {
-//	return ResetOrCreateClusterWithName(namespace, deleteWegoRuntime, "")
-//}
+func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool, kubeConfigPath string) (string, error) {
+	return ResetOrCreateClusterWithName(namespace, deleteWegoRuntime, "", kubeConfigPath)
+}
 
-//func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clusterName string) (string, error) {
-//	supportedProviders := []string{"kind", "kubectl"}
-//	supportedK8SVersions := []string{"1.19.1", "1.20.2", "1.21.1"}
-//
-//	provider, found := os.LookupEnv("CLUSTER_PROVIDER")
-//	if !found {
-//		provider = "kind"
-//	}
-//
-//	k8sVersion, found := os.LookupEnv("K8S_VERSION")
-//	if !found {
-//		k8sVersion = "1.20.2"
-//	}
-//
-//	if !contains(supportedProviders, provider) {
-//		log.Errorf("Cluster provider %s is not supported for testing", provider)
-//		return clusterName, errors.New("Unsupported provider")
-//	}
-//
-//	if !contains(supportedK8SVersions, k8sVersion) {
-//		log.Errorf("Kubernetes version %s is not supported for testing", k8sVersion)
-//		return clusterName, errors.New("Unsupported kubernetes version")
-//	}
-//
-//	//For kubectl, point to a valid cluster, we will try to reset the namespace only
-//	if namespace != "" && provider == "kubectl" {
-//		err := runCommandPassThrough([]string{}, "./scripts/reset-wego.sh", namespace)
-//		if err != nil {
-//			log.Infof("Failed to reset the wego runtime in namespace %s", namespace)
-//		}
-//
-//		if deleteWegoRuntime {
-//			uninstallWegoRuntime(namespace)
-//		}
-//	}
-//
-//	if provider == "kind" {
-//		if clusterName == "" {
-//			clusterName = provider + "-" + RandString(6)
-//		}
-//		log.Infof("Creating a kind cluster %s", clusterName)
-//		err := runCommandPassThrough([]string{}, "./scripts/kind-cluster.sh", clusterName, "kindest/node:v"+k8sVersion)
-//		if err != nil {
-//			log.Infof("Failed to create kind cluster")
-//			log.Fatal(err)
-//			return clusterName, err
-//		}
-//	}
-//
-//	log.Info("Wait for the cluster to be ready")
-//	err := runCommandPassThrough([]string{}, "kubectl", "wait", "--for=condition=Ready", "--timeout=300s", "-n", "kube-system", "--all", "pods")
-//	if err != nil {
-//		log.Infof("Cluster system pods are not ready after waiting for 5 minutes, This can cause tests failures.")
-//		return clusterName, err
-//	}
-//
-//	return clusterName, nil
-//}
+func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clusterName string, kubeConfigPath string) (string, error) {
+	supportedProviders := []string{"kind", "kubectl"}
+	supportedK8SVersions := []string{"1.19.1", "1.20.2", "1.21.1"}
+
+	provider, found := os.LookupEnv("CLUSTER_PROVIDER")
+	if !found {
+		provider = "kind"
+	}
+
+	k8sVersion, found := os.LookupEnv("K8S_VERSION")
+	if !found {
+		k8sVersion = "1.20.2"
+	}
+
+	if !contains(supportedProviders, provider) {
+		log.Errorf("Cluster provider %s is not supported for testing", provider)
+		return clusterName, errors.New("Unsupported provider")
+	}
+
+	if !contains(supportedK8SVersions, k8sVersion) {
+		log.Errorf("Kubernetes version %s is not supported for testing", k8sVersion)
+		return clusterName, errors.New("Unsupported kubernetes version")
+	}
+
+	//For kubectl, point to a valid cluster, we will try to reset the namespace only
+	if namespace != "" && provider == "kubectl" {
+		err := runCommandPassThrough([]string{}, "./scripts/reset-wego.sh", namespace)
+		if err != nil {
+			log.Infof("Failed to reset the wego runtime in namespace %s", namespace)
+		}
+
+		if deleteWegoRuntime {
+			uninstallWegoRuntime(namespace, kubeConfigPath)
+		}
+	}
+
+	if provider == "kind" {
+		if clusterName == "" {
+			clusterName = provider + "-" + RandString(6)
+		}
+		log.Infof("Creating a kind cluster %s", clusterName)
+		err := runCommandPassThrough([]string{}, "./scripts/kind-cluster.sh", clusterName, "kindest/node:v"+k8sVersion)
+		if err != nil {
+			log.Infof("Failed to create kind cluster")
+			log.Fatal(err)
+			return clusterName, err
+		}
+	}
+
+	log.Info("Wait for the cluster to be ready")
+	err := runCommandPassThrough([]string{}, "kubectl", "wait", "--for=condition=Ready", "--timeout=300s", "-n", "kube-system", "--all", "pods")
+	if err != nil {
+		log.Infof("Cluster system pods are not ready after waiting for 5 minutes, This can cause tests failures.")
+		return clusterName, err
+	}
+
+	return clusterName, nil
+}
 
 func initAndCreateEmptyRepo(appRepoName string, isPrivateRepo bool) string {
 	repoAbsolutePath := "/tmp/" + appRepoName
@@ -293,38 +295,39 @@ func waitForResource(resourceType string, resourceName string, namespace string,
 	return fmt.Errorf("Error: Failed to find the resource %s of type %s, timeout reached", resourceName, resourceType)
 }
 
-//func waitForNamespaceToTerminate(namespace string, timeout time.Duration, kubeconfigPath string) error {
-//	//check if the namespace exist before cleaning up
-//	pollInterval := 5
-//	if timeout < 5*time.Second {
-//		timeout = 5 * time.Second
-//	}
-//	timeoutInSeconds := int(timeout.Seconds())
-//
-//	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl get ns %s", namespace))
-//
-//	if err != nil {
-//		log.Infof("Namespace %s doesn't exist, nothing to clean — skipping...", namespace)
-//		return nil
-//	}
-//
-//	for i := pollInterval; i < timeoutInSeconds; i += pollInterval {
-//		log.Infof("Waiting for namespace: %s to terminate : %d second(s) passed of %d seconds timeout", namespace, i, timeoutInSeconds)
-//
-//		out, _ := runCommandAndReturnStringOutput(fmt.Sprintf("kubectl get ns %s --ignore-not-found=true | grep -i terminating", namespace), kubeconfigPath)
-//		out = strings.TrimSpace(out)
-//		if out == "" {
-//			return nil
-//		}
-//		if i > timeoutInSeconds/2 && i%10 == 0 {
-//			//Patch the finalizer
-//			log.Infof("Patch the finalizer to unstuck the terminating namespace %s", namespace)
-//			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl patch ns %s -p '{\"metadata\":{\"finalizers\":[]}}' --type=merge", namespace))
-//		}
-//		time.Sleep(time.Duration(pollInterval) * time.Second)
-//	}
-//	return fmt.Errorf("Error: Failed to terminate the namespace %s", namespace)
-//}
+func waitForNamespaceToTerminate(namespace string, timeout time.Duration, kubeconfigPath string) error {
+	//check if the namespace exist before cleaning up
+	pollInterval := 5
+	if timeout < 5*time.Second {
+		timeout = 5 * time.Second
+	}
+	timeoutInSeconds := int(timeout.Seconds())
+
+	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl get ns %s", namespace))
+
+	if err != nil {
+		log.Infof("Namespace %s doesn't exist, nothing to clean — skipping...", namespace)
+		return nil
+	}
+
+	for i := pollInterval; i < timeoutInSeconds; i += pollInterval {
+		log.Infof("Waiting for namespace: %s to terminate : %d second(s) passed of %d seconds timeout", namespace, i, timeoutInSeconds)
+
+		cmd := fmt.Sprintf("kubectl get ns %s --ignore-not-found=true | grep -i terminating", namespace)
+		out, _ := runCommandAndReturnStringOutput(cmd, kubeconfigPath)
+		out = strings.TrimSpace(out)
+		if out == "" {
+			return nil
+		}
+		if i > timeoutInSeconds/2 && i%10 == 0 {
+			//Patch the finalizer
+			log.Infof("Patch the finalizer to unstuck the terminating namespace %s", namespace)
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl patch ns %s -p '{\"metadata\":{\"finalizers\":[]}}' --type=merge", namespace))
+		}
+		time.Sleep(time.Duration(pollInterval) * time.Second)
+	}
+	return fmt.Errorf("Error: Failed to terminate the namespace %s", namespace)
+}
 
 func VerifyControllersInCluster(namespace string, kubeconfigPath string) {
 	Expect(waitForResource("deploy", "helm-controller", namespace, INSTALL_PODS_READY_TIMEOUT, kubeconfigPath))
@@ -357,19 +360,19 @@ func installAndVerifyWego(wegoNamespace string, kubeconfigPath string) {
 	})
 }
 
-//func uninstallWegoRuntime(namespace string) {
-//	log.Infof("About to delete WeGO runtime from namespace: %s", namespace)
-//	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
-//	if err != nil {
-//		log.Infof("Failed to uninstall the wego runtime %s", namespace)
-//	}
-//
-//	err = runCommandPassThrough([]string{}, "sh", "-c", "kubectl delete crd apps.wego.weave.works")
-//	if err != nil {
-//		log.Infof("Failed to delete crd apps.wego.weave.works")
-//	}
-//	Expect(waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)).To(Succeed())
-//}
+func uninstallWegoRuntime(namespace string, kubeConfigPath string) {
+	log.Infof("About to delete WeGO runtime from namespace: %s", namespace)
+	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
+	if err != nil {
+		log.Infof("Failed to uninstall the wego runtime %s", namespace)
+	}
+
+	err = runCommandPassThrough([]string{}, "sh", "-c", "kubectl delete crd apps.wego.weave.works")
+	if err != nil {
+		log.Infof("Failed to delete crd apps.wego.weave.works")
+	}
+	Expect(waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT, kubeConfigPath)).To(Succeed())
+}
 
 //func deleteNamespace(namespace string) {
 //	log.Infof("Deleting namespace: " + namespace)
@@ -383,11 +386,11 @@ func deleteRepo(appRepoName string) {
 	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", GITHUB_ORG+"/"+appRepoName)
 }
 
-//func deleteWorkload(workloadName string, workloadNamespace string) {
-//	log.Infof("Delete the namespace %s along with workload %s", workloadNamespace, workloadName)
-//	_ = runCommandPassThrough([]string{}, "kubectl", "delete", "ns", workloadNamespace)
-//	_ = waitForNamespaceToTerminate(workloadNamespace, INSTALL_RESET_TIMEOUT)
-//}
+func deleteWorkload(workloadName string, workloadNamespace string, kubeConfigPath string) {
+	log.Infof("Delete the namespace %s along with workload %s", workloadNamespace, workloadName)
+	_ = runCommandPassThrough([]string{}, "kubectl", "delete", "ns", workloadNamespace)
+	_ = waitForNamespaceToTerminate(workloadNamespace, INSTALL_RESET_TIMEOUT, kubeConfigPath)
+}
 
 //func deletePersistingHelmApp(namespace string, workloadName string, timeout time.Duration) {
 //	//check if application exists before cleaning up
@@ -472,8 +475,10 @@ func runCommandPassThroughWithoutOutput(env []string, name string, arg ...string
 
 func runCommandAndReturnStringOutput(commandToRun string, kubeConfigPath string) (stdOut string, stdErr string) {
 	command := exec.Command("sh", "-c", commandToRun)
-	command.Env = os.Environ()
-	command.Env = append(command.Env, fmt.Sprintf("KUBECONFIG=%s", kubeConfigPath))
+	if kubeConfigPath != "" {
+		command.Env = os.Environ()
+		command.Env = append(command.Env, fmt.Sprintf("KUBECONFIG=%s", kubeConfigPath))
+	}
 	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Eventually(session).Should(gexec.Exit())
 	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
