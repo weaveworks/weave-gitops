@@ -119,8 +119,11 @@ jobs:
         echo check1
         curl -LO "https://dl.k8s.io/release/v1.22.0/bin/darwin/amd64/kubectl"
         echo check2
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-        echo check3
+    - name: Set up Homebrew
+      id: set-up-homebrew
+      uses: Homebrew/actions/setup-homebrew@master
+    - name: Install kind
+      run: |
         brew cask install docker
     - name: Checkout code
       uses: actions/checkout@v2
