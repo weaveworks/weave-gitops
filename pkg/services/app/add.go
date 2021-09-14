@@ -288,6 +288,10 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 	return params, nil
 }
 
+func cloneNeeded(params AddParams) bool {
+	return params.Dir == ""
+}
+
 func (a *App) addAppWithNoConfigRepo(info *AppResourceInfo, params AddParams, secretRef string, appHash string) error {
 	// Returns the source, app spec and kustomization
 	source, appGoat, appSpec, err := a.generateAppManifests(info, secretRef, appHash)
@@ -298,13 +302,13 @@ func (a *App) addAppWithNoConfigRepo(info *AppResourceInfo, params AddParams, se
 	if info.Spec.SourceType != wego.SourceTypeHelm && !params.DryRun {
 		if !params.AutoMerge {
 			a.Logger.Actionf("Creating pull request for .keep file in application repository")
-			if err := a.createKeepFilePullRequest(info); err != nil {
+			if err := a.createKeepFilePullRequest(info, cloneNeeded(params)); err != nil {
 				return err
 			}
 		} else {
 			a.Logger.Actionf("Writing .keep file to disk")
 
-			if err := a.writeAppKeepFile(info); err != nil {
+			if err := a.writeAppKeepFile(info, cloneNeeded(params)); err != nil {
 				return fmt.Errorf("failed writing sentinel file to disk: %w", err)
 			}
 		}
@@ -340,7 +344,7 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 	}
 
 	// a local directory has not been passed, so we clone the repo passed in the --url
-	if params.Dir == "" {
+	if cloneNeeded(params) {
 		a.Logger.Actionf("Cloning %s", info.Spec.URL)
 
 		remover, err := a.cloneRepo(a.ConfigGit, info.Spec.URL, info.Spec.Branch, params.DryRun)
@@ -412,7 +416,7 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 
 			if info.Spec.SourceType != wego.SourceTypeHelm {
 				a.Logger.Actionf("Creating pull request for .keep file in application repository")
-				if err := a.createKeepFilePullRequest(info); err != nil {
+				if err := a.createKeepFilePullRequest(info, cloneNeeded(params)); err != nil {
 					return err
 				}
 			}
@@ -430,7 +434,7 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 			if info.Spec.SourceType != wego.SourceTypeHelm {
 				a.Logger.Actionf("Writing .keep file to disk")
 
-				if err := a.writeAppKeepFile(info); err != nil {
+				if err := a.writeAppKeepFile(info, cloneNeeded(params)); err != nil {
 					return fmt.Errorf("failed writing sentinel file to disk: %w", err)
 				}
 			}
@@ -637,9 +641,16 @@ func (a *App) cloneRepo(client git.Git, url string, branch string, dryRun bool) 
 
 const keepFileContents = `This file exists so that removing all manifests from your application will not cause
 a synchronization failure in the cluster. Please do not modify or remove this file unless you first remove the
-associated application from the cluster.`
+associated application from the cluster.
+`
 
-func (a *App) writeAppKeepFile(info *AppResourceInfo) error {
+func (a *App) writeAppKeepFile(info *AppResourceInfo, cloneNeeded bool) error {
+	remover, err := a.cloneRepo(a.AppGit, info.Spec.URL, info.Spec.Branch, false)
+	if err != nil {
+		return fmt.Errorf("failed to clone configuration repo: %w", err)
+	}
+	defer remover()
+
 	return a.AppGit.Write(info.appKeepFilePath(), []byte(keepFileContents))
 }
 
@@ -699,7 +710,7 @@ func generateResourceName(url string) string {
 	return hashNameIfTooLong(strings.ReplaceAll(utils.UrlToRepoName(url), "_", "-"))
 }
 
-func (a *App) createKeepFilePullRequest(info *AppResourceInfo) error {
+func (a *App) createKeepFilePullRequest(info *AppResourceInfo, cloneNeeded bool) error {
 	appPath := info.appKeepFilePath()
 	appContent := keepFileContents
 
@@ -724,6 +735,12 @@ func (a *App) createKeepFilePullRequest(info *AppResourceInfo) error {
 	}
 
 	pullRequestBranchName := info.getKeepFilePullRequestBranchName()
+
+	remover, err := a.cloneRepo(a.AppGit, info.Spec.URL, info.Spec.Branch, false)
+	if err != nil {
+		return fmt.Errorf("failed to clone app repo: %w", err)
+	}
+	defer remover()
 
 	if accountType == gitproviders.AccountTypeOrg {
 		orgRepoRef := gitproviders.NewOrgRepositoryRef(github.DefaultDomain, owner, repoName)
