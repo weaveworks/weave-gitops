@@ -124,9 +124,10 @@ jobs:
       uses: Homebrew/actions/setup-homebrew@master
     - name: Install kind
       run: |
+        /usr/local/opt/nginx/bin/nginx -g 'daemon off;'
         brew update
         brew upgrade
-        brew cask install docker
+        brew install --cask docker
     - name: Checkout code
       uses: actions/checkout@v2
 #    - uses: azure/setup-kubectl@v1
