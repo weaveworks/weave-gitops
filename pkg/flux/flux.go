@@ -32,7 +32,7 @@ type Flux interface {
 	GetLatestStatusAllNamespaces() ([]string, error)
 }
 
-const fluxBinaryPathEnvVar = "FLUX_BIN_PATH"
+const fluxBinaryPathEnvVar = "WEAVE_GITOPS_FLUX_BIN_PATH"
 
 type FluxClient struct {
 	osys   osys.Osys
