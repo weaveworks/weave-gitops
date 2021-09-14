@@ -173,7 +173,7 @@ var _ = Describe("Set up flux bin", func() {
 		})
 
 		It("Fails if passed a bad binary path", func() {
-			osysClient.Setenv(fluxBinaryPathEnvVar, "a-path-pointing-nowhere")
+			Expect(osysClient.Setenv(fluxBinaryPathEnvVar, "a-path-pointing-nowhere")).Should(Succeed())
 			fluxClient.SetupBin()
 			Expect(osysClient.ExitCallCount()).Should(Equal(1))
 		})
