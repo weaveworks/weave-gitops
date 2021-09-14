@@ -64,7 +64,7 @@ var globalCancel func()
 var _ = SynchronizedBeforeSuite(func() []byte {
 	dbDirectory := ""
 
-	if os.Getenv("CI") == "" {
+	if os.Getenv(CI) == "" {
 		var err error
 		dbDirectory, err = ioutil.TempDir("", "db-directory")
 		Expect(err).NotTo(HaveOccurred())
@@ -89,7 +89,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 
 	fmt.Println("Running Node ", config.GinkgoConfig.ParallelNode)
 
-	fmt.Println("dbDirectory", dbDirectory)
+	fmt.Println("dbDirectory", string(dbDirectory))
 	globalDbDirectory = dbDirectory
 	fmt.Println("globalDbDirectory", globalDbDirectory)
 
@@ -130,7 +130,7 @@ var _ = SynchronizedAfterSuite(func() {
 }, func() {
 	//globalCancel()
 
-	if os.Getenv("CI") == "" {
+	if os.Getenv(CI) == "" {
 		clusterPool2.End()
 		cmd := "kind delete clusters --all"
 		c := exec.Command("sh", "-c", cmd)

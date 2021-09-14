@@ -41,8 +41,7 @@ var _ = Describe("Weave GitOps App Add Tests2", func() {
 	BeforeEach(func() {
 		namespace = WEGO_DEFAULT_NAMESPACE
 
-		fmt.Println("CI-CI", os.Getenv("CI"))
-		if os.Getenv("CI") == "" {
+		if os.Getenv(CI) == "" {
 			var err error
 			clusterID, cluster, err = cltr.FindCreatedClusterAndAssignItToSomeRecord(globalDbDirectory)
 			Expect(err).NotTo(HaveOccurred())
@@ -59,60 +58,19 @@ var _ = Describe("Weave GitOps App Add Tests2", func() {
 			})
 		}
 
-		//By("Given I have a brand new cluster", func() {
-		//	clusterName = clusterPool.GetNextClusterName()
-		//	fmt.Println("NEW-CLUSTER-NAME",clusterName)
-		//})
-
-		//By("And I have a wego binary installed on my local machine", func() {
-		//	Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
-		//})cLUSTER READ
-		//var err error
-		//clusterID, err = cluster.CreateClusterRecord(globalDbDirectory)
-		//Expect(err).NotTo(HaveOccurred())
-
-		//fmt.Println("getting CLUSTER", countUpdateClusterToDeleted, syncCluster == nil)
-
-		//cluster = syncCluster
-		//syncCluster = clusterPool.GetNextCluster()
-		//cname = syncCluster.Name
-		//contextName = cluster.Context
-		//syncCluster.KubeConfigPath = syncCluster.syncCluster.KubeConfigPath
-		//fmt.Println("KUBECONFIGFILE USED", syncCluster.KubeConfigPath)
-
 		By("And I have a wego binary installed on my local machine", func() {
 			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
 		})
 	})
 
 	AfterEach(func() {
-		//fmt.Println("kubeConfigPath-KUBECONFIGPATH", syncCluster.KubeConfigPath)
-		//err := ShowItems("", syncCluster.KubeConfigPath)
-		//if err != nil {
-		//	log.Infof("Failed to print the cluster resources %s", err)
-		//}
-		//
-		//err = ShowItems("GitRepositories", syncCluster.KubeConfigPath)
-		//if err != nil {
-		//	log.Infof("Failed to print the GitRepositories %s", err)
-		//}
-		//ShowWegoControllerLogs(namespace, syncCluster.KubeConfigPath)
-		//fmt.Printf("Deleting cluster kubeconfig[%s] name[%s]\n", syncCluster.syncCluster.KubeConfigPath, syncCluster.Name)
-		//syncCluster.CleanUp()
-
-		if os.Getenv("CI") == "" {
+		if os.Getenv(CI) == "" {
 			err := cltr.UpdateClusterToDeleted(globalDbDirectory, clusterID, cluster)
 			Expect(err).NotTo(HaveOccurred())
 			cluster.CleanUp()
 			err = cltr.RequestClusterCreation(globalDbDirectory)
 			Expect(err).NotTo(HaveOccurred())
 		}
-		//go func() {
-		//	kindCluster, err := cluster.CreateKindCluster(string(globalDbDirectory))
-		//	Expect(err).NotTo(HaveOccurred())
-		//	err = cluster.CreateClusterRecord2(string(globalDbDirectory), kindCluster)
-		//	Expect(err).NotTo(HaveOccurred())
-		//}()
 	})
 
 	It("Verify that wego cannot work without wego components installed and with both url and directory provided", func() {

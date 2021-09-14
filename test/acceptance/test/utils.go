@@ -39,6 +39,7 @@ const WEGO_UI_URL = "http://localhost:9001"
 const SELENIUM_SERVICE_URL = "http://localhost:4444/wd/hub"
 const SCREENSHOTS_DIR string = "screenshots/"
 const DEFAULT_BRANCH_NAME = "main"
+const CI = "CI"
 
 var DEFAULT_SSH_KEY_PATH string
 var GITHUB_ORG string
@@ -361,17 +362,19 @@ func installAndVerifyWego(wegoNamespace string, kubeconfigPath string) {
 }
 
 func uninstallWegoRuntime(namespace string, kubeConfigPath string) {
-	log.Infof("About to delete WeGO runtime from namespace: %s", namespace)
-	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
-	if err != nil {
-		log.Infof("Failed to uninstall the wego runtime %s", namespace)
-	}
+	if os.Getenv(CI) != "" {
+		log.Infof("About to delete WeGO runtime from namespace: %s", namespace)
+		err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
+		if err != nil {
+			log.Infof("Failed to uninstall the wego runtime %s", namespace)
+		}
 
-	err = runCommandPassThrough([]string{}, "sh", "-c", "kubectl delete crd apps.wego.weave.works")
-	if err != nil {
-		log.Infof("Failed to delete crd apps.wego.weave.works")
+		err = runCommandPassThrough([]string{}, "sh", "-c", "kubectl delete crd apps.wego.weave.works")
+		if err != nil {
+			log.Infof("Failed to delete crd apps.wego.weave.works")
+		}
+		Expect(waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT, kubeConfigPath)).To(Succeed())
 	}
-	Expect(waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT, kubeConfigPath)).To(Succeed())
 }
 
 //func deleteNamespace(namespace string) {
@@ -387,9 +390,11 @@ func deleteRepo(appRepoName string) {
 }
 
 func deleteWorkload(workloadName string, workloadNamespace string, kubeConfigPath string) {
-	log.Infof("Delete the namespace %s along with workload %s", workloadNamespace, workloadName)
-	_ = runCommandPassThrough([]string{}, "kubectl", "delete", "ns", workloadNamespace)
-	_ = waitForNamespaceToTerminate(workloadNamespace, INSTALL_RESET_TIMEOUT, kubeConfigPath)
+	if os.Getenv(CI) != "" {
+		log.Infof("Delete the namespace %s along with workload %s", workloadNamespace, workloadName)
+		_ = runCommandPassThrough([]string{}, "kubectl", "delete", "ns", workloadNamespace)
+		_ = waitForNamespaceToTerminate(workloadNamespace, INSTALL_RESET_TIMEOUT, kubeConfigPath)
+	}
 }
 
 //func deletePersistingHelmApp(namespace string, workloadName string, timeout time.Duration) {
