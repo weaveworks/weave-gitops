@@ -216,9 +216,9 @@ func newGithubTestClient(customTransportFactory gitprovider.ChainableRoundTrippe
 	}
 
 	return github.NewClient(
-		github.WithOAuth2Token(token),
-		github.WithPreChainTransportHook(customTransportFactory),
-		github.WithDestructiveAPICalls(true),
+		gitprovider.WithOAuth2Token(token),
+		gitprovider.WithPreChainTransportHook(customTransportFactory),
+		gitprovider.WithDestructiveAPICalls(true),
 	)
 }
 

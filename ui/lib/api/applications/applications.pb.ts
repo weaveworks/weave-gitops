@@ -66,10 +66,11 @@ export type GetApplicationResponse = {
 }
 
 export type Commit = {
-  commitHash?: string
+  hash?: string
   date?: string
   author?: string
   message?: string
+  url?: string
 }
 
 

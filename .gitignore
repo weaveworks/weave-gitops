@@ -12,3 +12,4 @@ coverage
 *.lcov
 ginkgo.report
 .deps
+test/library/wego-library-test
