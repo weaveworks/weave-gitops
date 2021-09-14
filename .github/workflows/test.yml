@@ -117,7 +117,7 @@ jobs:
         echo check0
         (cd $GOPATH && go get sigs.k8s.io/kind)
         echo check1
-        (cd $GOPATH && go get sigs.k8s.io/kubectl)
+        (cd $GOPATH && go get github.com/kubernetes/kubectl)
         echo check2
     - name: Checkout code
       uses: actions/checkout@v2
