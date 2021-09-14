@@ -743,7 +743,7 @@ func (a *App) createKeepFilePullRequest(info *AppResourceInfo, cloneNeeded bool)
 	defer remover()
 
 	if accountType == gitproviders.AccountTypeOrg {
-		orgRepoRef := gitproviders.NewOrgRepositoryRef(github.DefaultDomain, owner, repoName)
+		orgRepoRef := gitproviders.NewOrgRepositoryRef(a.GitProvider.GetProviderDomain(), owner, repoName)
 
 		prLink, err := a.GitProvider.CreatePullRequestToOrgRepo(orgRepoRef, info.Spec.Branch, pullRequestBranchName, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", info.Name), fmt.Sprintf("Added sentinel file for %s", info.Name))
 		if err != nil {
@@ -753,7 +753,7 @@ func (a *App) createKeepFilePullRequest(info *AppResourceInfo, cloneNeeded bool)
 		return nil
 	}
 
-	userRepoRef := gitproviders.NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
+	userRepoRef := gitproviders.NewUserRepositoryRef(a.GitProvider.GetProviderDomain(), owner, repoName)
 
 	prLink, err := a.GitProvider.CreatePullRequestToUserRepo(userRepoRef, info.Spec.Branch, pullRequestBranchName, files, utils.GetCommitMessage(), fmt.Sprintf("wego add %s", info.Name), fmt.Sprintf("Added sentinel file for %s", info.Name))
 	if err != nil {
