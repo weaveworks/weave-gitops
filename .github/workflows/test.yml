@@ -125,7 +125,6 @@ jobs:
     - name: Install kind
       run: |
         brew update
-        brew upgrade
         brew cask install docker
     - name: Checkout code
       uses: actions/checkout@v2
