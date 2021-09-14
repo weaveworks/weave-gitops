@@ -117,7 +117,7 @@ jobs:
         echo check0
         (cd $GOPATH && go get sigs.k8s.io/kind)
         echo check1
-        (cd $GOPATH && go get sigs.k8s.io/kubectl)
+        curl -LO "https://dl.k8s.io/release/v1.22.0/bin/darwin/amd64/kubectl"
         echo check2
     - name: Checkout code
       uses: actions/checkout@v2
