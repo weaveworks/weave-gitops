@@ -37,7 +37,10 @@ function DirectedGraph<T>({
       return;
     }
 
-    const graph = new dagreD3.graphlib.Graph()
+    const dagreD3LibRef = dagreD3;
+    const graph = new dagreD3LibRef.graphlib.Graph();
+
+    graph
       .setGraph({
         nodesep: 70,
         ranksep: 50,

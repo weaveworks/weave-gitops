@@ -111,7 +111,6 @@ var _ = Describe("auth", func() {
 
 			newSecret := &corev1.Secret{}
 			Expect(k8sClient.Get(ctx, sn.NamespacedName(), newSecret)).To(Succeed())
-			// Expect(gp.RemoveDeployKeyCallCount()).To(Equal(1))
 			Expect(gp.UploadDeployKeyCallCount()).To(Equal(1))
 		})
 	})
