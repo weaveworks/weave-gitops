@@ -795,20 +795,20 @@ var _ = Describe("Weave GitOps App Add Tests2", func() {
 		addCommand1 := "app add . --name=" + appName1 + " --auto-merge=true"
 		addCommand2 := "app add . --name=" + appName2 + " --auto-merge=true"
 
-		//defer deleteRepo(tip1.appRepoName)
-		//defer deleteRepo(tip2.appRepoName)
-		//defer deleteWorkload(tip1.workloadName, tip1.workloadNamespace, "")
-		//defer deleteWorkload(tip2.workloadName, tip2.workloadNamespace, "")
-		//
-		//By("And application repos do not already exist", func() {
-		//	deleteRepo(tip1.appRepoName)
-		//	deleteRepo(tip2.appRepoName)
-		//})
-		//
-		//By("And application workload is not already deployed to cluster", func() {
-		//	deleteWorkload(tip1.workloadName, tip1.workloadNamespace, "")
-		//	deleteWorkload(tip2.workloadName, tip2.workloadNamespace, "")
-		//})
+		defer deleteRepo(tip1.appRepoName)
+		defer deleteRepo(tip2.appRepoName)
+		defer deleteWorkload(tip1.workloadName, tip1.workloadNamespace, "")
+		defer deleteWorkload(tip2.workloadName, tip2.workloadNamespace, "")
+
+		By("And application repos do not already exist", func() {
+			deleteRepo(tip1.appRepoName)
+			deleteRepo(tip2.appRepoName)
+		})
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(tip1.workloadName, tip1.workloadNamespace, "")
+			deleteWorkload(tip2.workloadName, tip2.workloadNamespace, "")
+		})
 
 		By("When I create an empty private repo for app1", func() {
 			repoAbsolutePath1 = initAndCreateEmptyRepo(tip1.appRepoName, private)
@@ -1127,13 +1127,13 @@ var _ = Describe("Weave GitOps App Add Tests2", func() {
 
 		addCommand := fmt.Sprintf("app add . --app-config-url=%s --deployment-type=helm --path=./hello-world --name=%s --auto-merge=true", configRepoUrl, appName)
 
-		//defer deleteRepo(appRepoName)
-		//defer deleteRepo(configRepoName)
-		//
-		//By("Application and config repo does not already exist", func() {
-		//	deleteRepo(appRepoName)
-		//	deleteRepo(configRepoName)
-		//})
+		defer deleteRepo(appRepoName)
+		defer deleteRepo(configRepoName)
+
+		By("Application and config repo does not already exist", func() {
+			deleteRepo(appRepoName)
+			deleteRepo(configRepoName)
+		})
 
 		By("When I create a private repo with my app workload", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)

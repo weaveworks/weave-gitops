@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"testing"
 
 	"github.com/onsi/ginkgo"
@@ -76,7 +77,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		clusterPool2 = cluster.NewClusterPool2()
 
 		clusterPool2.GenerateClusters2(dbDirectory, config.GinkgoConfig.ParallelTotal)
-		//go clusterPool2.GenerateClusters2(dbDirectory, 1)
+		go clusterPool2.GenerateClusters2(dbDirectory, 1)
 
 		globalCtx, globalCancel = context.WithCancel(context.Background())
 
@@ -128,21 +129,20 @@ var _ = SynchronizedAfterSuite(func() {
 	//syncCluster.CleanUp()
 }, func() {
 	//globalCancel()
-
 	if os.Getenv(CI) == "" {
 		clusterPool2.End()
-		//cmd := "kind delete clusters --all"
-		//c := exec.Command("sh", "-c", cmd)
-		//c.Stdout = os.Stdout
-		//c.Stderr = os.Stderr
-		//err := c.Run()
-		//if err != nil {
-		//	fmt.Printf("Error deleting ramaining clusters %s\n", err)
-		//}
-		//err := os.`RemoveAll(string(globalDbDirectory))
-		//if err != nil {
-		//	fmt.Printf("Error deleting root folder %s\n", err)
-		//}`
+		cmd := "kind delete clusters --all"
+		c := exec.Command("sh", "-c", cmd)
+		c.Stdout = os.Stdout
+		c.Stderr = os.Stderr
+		err := c.Run()
+		if err != nil {
+			fmt.Printf("Error deleting ramaining clusters %s\n", err)
+		}
+		err = os.RemoveAll(string(globalDbDirectory))
+		if err != nil {
+			fmt.Printf("Error deleting root folder %s\n", err)
+		}
 		errors := clusterPool2.Errors()
 		if len(errors) > 0 {
 			for _, err := range clusterPool2.Errors() {
