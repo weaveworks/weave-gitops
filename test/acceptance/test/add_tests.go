@@ -1,5 +1,5 @@
 /**
-* All tests related to 'wego add' will go into this file
+* All tests related to 'gitops add' will go into this file
  */
 
 package acceptance
@@ -35,12 +35,12 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			clusterName = getClusterName()
 		})
 
-		By("And I have a wego binary installed on my local machine", func() {
+		By("And I have a gitops binary installed on my local machine", func() {
 			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
 		})
 	})
 
-	It("Verify that wego cannot work without wego components installed OR with both url and directory provided", func() {
+	It("Verify that gitops cannot work without gitops components installed OR with both url and directory provided", func() {
 		var repoAbsolutePath string
 		var errOutput string
 		var exitCode int
@@ -66,11 +66,11 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
-		By("And WeGO runtime is not installed", func() {
+		By("And Gitops runtime is not installed", func() {
 			uninstallWegoRuntime(WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("And I run wego add command", func() {
+		By("And I run gitops add command", func() {
 			command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand1))
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -92,7 +92,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Verify that wego does not modify the cluster when run with --dry-run flag", func() {
+	It("Verify that gitops does not modify the cluster when run with --dry-run flag", func() {
 		var repoAbsolutePath string
 		var addCommandOutput string
 		private := true
@@ -120,7 +120,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
-		By("And I install wego to my active cluster", func() {
+		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -128,7 +128,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			createGitRepoBranch(repoAbsolutePath, branchName)
 		})
 
-		By("And I run 'wego app add dry-run' command", func() {
+		By("And I run 'gitops app add dry-run' command", func() {
 			addCommandOutput, _ = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -156,7 +156,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Verify that wego can deploy an app after it is setup with an empty repo initially", func() {
+	It("Verify that gitops can deploy an app after it is setup with an empty repo initially", func() {
 		var repoAbsolutePath string
 		private := true
 		tip := generateTestInputs()
@@ -179,7 +179,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, private)
 		})
 
-		By("And I install wego to my active cluster", func() {
+		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -187,11 +187,11 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
-		By("And I run wego add command", func() {
+		By("And I run gitops add command", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("Then I should see wego add command linked the repo to the cluster", func() {
+		By("Then I should see gitops add command linked the repo to the cluster", func() {
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -208,7 +208,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Verify that wego can deploy app when user specifies branch, namespace, url, deployment-type", func() {
+	It("Verify that gitops can deploy app when user specifies branch, namespace, url, deployment-type", func() {
 		var repoAbsolutePath string
 		private := true
 		DEFAULT_SSH_KEY_PATH := "~/.ssh/id_rsa"
@@ -241,7 +241,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
-		By("And I install wego under my namespace: "+wegoNamespace, func() {
+		By("And I install gitops under my namespace: "+wegoNamespace, func() {
 			installAndVerifyWego(wegoNamespace)
 		})
 
@@ -253,7 +253,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			createGitRepoBranch(repoAbsolutePath, branchName)
 		})
 
-		By("And I run wego add command with specified branch, namespace, url, deployment-type", func() {
+		By("And I run gitops add command with specified branch, namespace, url, deployment-type", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, wegoNamespace)
 		})
 
@@ -268,7 +268,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Eventually(branchOutput).Should(ContainSubstring(branchName))
 		})
 
-		By("And I should not see wego components in the remote git repo", func() {
+		By("And I should not see gitops components in the remote git repo", func() {
 			pullGitRepo(repoAbsolutePath)
 			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && ls -al", repoAbsolutePath))
 			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
@@ -277,7 +277,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Verify that wego can deploy an app with specified config-url and app-config-url set to <url>", func() {
+	It("Verify that gitops can deploy an app with specified config-url and app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		private := true
@@ -302,7 +302,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			deleteWorkload(tip.workloadName, tip.workloadNamespace)
 		})
 
-		By("When I create a private repo for wego app config", func() {
+		By("When I create a private repo for gitops app config", func() {
 			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, private)
 			gitAddCommitPush(appConfigRepoAbsPath, tip.appManifestFilePath)
 		})
@@ -312,7 +312,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
-		By("And I install wego to my active cluster", func() {
+		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -320,7 +320,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
-		By("And I run wego add command with --url and --app-config-url params", func() {
+		By("And I run gitops add command with --url and --app-config-url params", func() {
 			runWegoAddCommand(repoAbsolutePath+"/../", addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -330,7 +330,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Verify that wego can deploy an app with specified config-url and app-config-url set to default", func() {
+	It("Verify that gitops can deploy an app with specified config-url and app-config-url set to default", func() {
 		var repoAbsolutePath string
 		private := false
 		tip := generateTestInputs()
@@ -355,7 +355,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
-		By("And I install wego to my active cluster", func() {
+		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -363,7 +363,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
-		By("And I run wego add command with --url", func() {
+		By("And I run gitops add command with --url", func() {
 			runWegoAddCommand(repoAbsolutePath+"/../", addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -373,7 +373,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Verify that wego can deploy an app when provided with relative path: 'path/to/repo/dir'", func() {
+	It("Verify that gitops can deploy an app when provided with relative path: 'path/to/repo/dir'", func() {
 		var repoAbsolutePath string
 		private := true
 		tip := generateTestInputs()
@@ -397,7 +397,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
-		By("And I install wego to my active cluster", func() {
+		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -405,7 +405,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
-		By("And I run wego add command from repo parent dir", func() {
+		By("And I run gitops add command from repo parent dir", func() {
 			pathToRepoParentDir := repoAbsolutePath + "/../"
 			runWegoAddCommand(pathToRepoParentDir, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
@@ -420,7 +420,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Verify that wego can deploy multiple workloads from a single app repo", func() {
+	It("Verify that gitops can deploy multiple workloads from a single app repo", func() {
 		var repoAbsolutePath string
 		tip1 := generateTestInputs()
 		tip2 := generateTestInputs()
@@ -451,7 +451,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			gitAddCommitPush(repoAbsolutePath, tip2.appManifestFilePath)
 		})
 
-		By("And I install wego to my active cluster", func() {
+		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -459,11 +459,11 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
-		By("And I run wego add command for 1st app", func() {
+		By("And I run gitops add command for 1st app", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("Then I should see wego add command linked the repo  to the cluster", func() {
+		By("Then I should see gitops add command linked the repo  to the cluster", func() {
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -473,7 +473,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Verify that wego can add multiple apps dir to the cluster using single repo for wego config", func() {
+	It("Verify that gitops can add multiple apps dir to the cluster using single repo for gitops config", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		private := true
@@ -506,7 +506,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			deleteWorkload(tip2.workloadName, tip2.workloadNamespace)
 		})
 
-		By("And I install wego to my active cluster", func() {
+		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -514,7 +514,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
-		By("When I create a private repo for wego app config", func() {
+		By("When I create a private repo for gitops app config", func() {
 			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, private)
 			gitAddCommitPush(appConfigRepoAbsPath, readmeFilePath)
 		})
@@ -539,7 +539,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Verify that wego can add multiple apps dir to the cluster using single app and wego config repo", func() {
+	It("Verify that gitops can add multiple apps dir to the cluster using single app and gitops config repo", func() {
 		var repoAbsolutePath string
 		private := true
 		tip1 := generateTestInputs()
@@ -564,7 +564,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			deleteWorkload(tip2.workloadName, tip2.workloadNamespace)
 		})
 
-		By("And I install wego to my active cluster", func() {
+		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -590,7 +590,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Verify that wego can deploy an app with app-config-url set to <url>", func() {
+	It("Verify that gitops can deploy an app with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var listOutput string
@@ -634,7 +634,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName3, EVENTUALLY_DEFAULT_TIMEOUT)
 		})
 
-		By("When I create a private repo for wego app config", func() {
+		By("When I create a private repo for gitops app config", func() {
 			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, private)
 			gitAddCommitPush(appConfigRepoAbsPath, readmeFilePath)
 		})
@@ -644,7 +644,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath1)
 		})
 
-		By("And I install wego to my active cluster", func() {
+		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -652,7 +652,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
-		By("And I run wego app add command for app1: "+appName1, func() {
+		By("And I run gitops app add command for app1: "+appName1, func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand1, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -665,7 +665,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath2)
 		})
 
-		By("And I run wego app add command for app2: "+appName2, func() {
+		By("And I run gitops app add command for app2: "+appName2, func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand2, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -675,7 +675,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Expect(waitForResource("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 		})
 
-		By("When I run wego app add command for app3: "+appName3, func() {
+		By("When I run gitops app add command for app3: "+appName3, func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand3, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -724,7 +724,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Eventually(listOutput).Should(ContainSubstring(appName3))
 		})
 
-		By("And I should not see wego components in app repo: "+appFilesRepoName, func() {
+		By("And I should not see gitops components in app repo: "+appFilesRepoName, func() {
 			pullGitRepo(repoAbsolutePath)
 			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && ls -al", repoAbsolutePath))
 			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
@@ -732,7 +732,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Expect(folderOutput).ShouldNot(ContainSubstring("targets"))
 		})
 
-		By("And I should see wego components in config repo: "+appConfigRepoName, func() {
+		By("And I should see gitops components in config repo: "+appConfigRepoName, func() {
 			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && git clone %s && cd %s && ls -al", repoAbsolutePath, configRepoRemoteURL, appConfigRepoName))
 			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
 			Expect(folderOutput).Should(ContainSubstring("apps"))
@@ -760,7 +760,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("SmokeTest - Verify that wego can deploy multiple apps one with private and other with public repo (e2e flow)", func() {
+	It("SmokeTest - Verify that gitops can deploy multiple apps one with private and other with public repo (e2e flow)", func() {
 		var listOutput string
 		var pauseOutput string
 		var unpauseOutput string
@@ -814,7 +814,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			gitAddCommitPush(repoAbsolutePath2, tip2.appManifestFilePath)
 		})
 
-		By("And I install wego to my active cluster", func() {
+		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -822,19 +822,19 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
-		By("And I run wego app add command for 1st app", func() {
+		By("And I run gitops app add command for 1st app", func() {
 			runWegoAddCommand(repoAbsolutePath1, addCommand1, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("And I run wego app add command for 2nd app", func() {
+		By("And I run gitops app add command for 2nd app", func() {
 			runWegoAddCommand(repoAbsolutePath2, addCommand2, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("Then I should see wego app add command linked the repo1 to the cluster", func() {
+		By("Then I should see gitops app add command linked the repo1 to the cluster", func() {
 			verifyWegoAddCommand(appName1, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("And I should see wego app add command linked the repo2 to the cluster", func() {
+		By("And I should see gitops app add command linked the repo2 to the cluster", func() {
 			verifyWegoAddCommand(appName2, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -965,7 +965,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("Then I should see app removing message", func() {
 			Eventually(appRemoveOutput).Should(gbytes.Say("► Removing application from cluster and repository"))
-			Eventually(appRemoveOutput).Should(gbytes.Say("► Committing and pushing wego updates for application"))
+			Eventually(appRemoveOutput).Should(gbytes.Say("► Committing and pushing gitops updates for application"))
 			Eventually(appRemoveOutput).Should(gbytes.Say("► Pushing app changes to repository"))
 		})
 
@@ -994,7 +994,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("SmokeTest - Verify that wego can deploy a helm app from a git repo with app-config-url set to NONE", func() {
+	It("SmokeTest - Verify that gitops can deploy a helm app from a git repo with app-config-url set to NONE", func() {
 		var repoAbsolutePath string
 		var reAddOutput string
 		var removeOutput *gexec.Session
@@ -1017,7 +1017,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 
-		By("And I install wego to my active cluster", func() {
+		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -1025,7 +1025,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
-		By("And I run wego add command", func() {
+		By("And I run gitops add command", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -1035,7 +1035,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Expect(waitForResource("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 		})
 
-		By("And I should not see wego components in the remote git repo", func() {
+		By("And I should not see gitops components in the remote git repo", func() {
 			pullGitRepo(repoAbsolutePath)
 			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && ls -al", repoAbsolutePath))
 			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
@@ -1043,15 +1043,15 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Expect(folderOutput).ShouldNot(ContainSubstring("targets"))
 		})
 
-		By("When I rerun wego gitops install", func() {
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s gitops install", WEGO_BIN_PATH))
+		By("When I rerun gitops install", func() {
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s install", WEGO_BIN_PATH))
 		})
 
 		By("Then I should not see any errors", func() {
 			VerifyControllersInCluster(WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("When I rerun wego app add command", func() {
+		By("When I rerun gitops app add command", func() {
 			_, reAddOutput = runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand))
 		})
 
@@ -1064,7 +1064,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Eventually(out).Should(gbytes.Say(`helmrelease/` + appName + `\s*True\s*.*False`))
 		})
 
-		By("When I run wego app remove", func() {
+		By("When I run gitops app remove", func() {
 			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s app remove %s", WEGO_BIN_PATH, appName))
 		})
 
@@ -1072,7 +1072,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			_ = waitForAppRemoval(appName, THIRTY_SECOND_TIMEOUT)
 		})
 
-		By("When I run wego app remove for a non-existent app", func() {
+		By("When I run gitops app remove for a non-existent app", func() {
 			removeOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app remove " + badAppName)
 		})
 
@@ -1081,7 +1081,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Verify that wego can deploy a helm app from a git repo with app-config-url set to default", func() {
+	It("Verify that gitops can deploy a helm app from a git repo with app-config-url set to default", func() {
 		var repoAbsolutePath string
 		public := false
 		appName := "my-helm-app"
@@ -1101,7 +1101,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 
-		By("And I install wego to my active cluster", func() {
+		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -1109,7 +1109,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
-		By("And I run wego add command", func() {
+		By("And I run gitops add command", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -1124,7 +1124,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Verify that wego can deploy a helm app from a git repo with app-config-url set to <url>", func() {
+	It("Verify that gitops can deploy a helm app from a git repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoAbsolutePath string
 		private := true
@@ -1155,7 +1155,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			gitAddCommitPush(configRepoAbsolutePath, configRepoFiles)
 		})
 
-		By("And I install wego to my active cluster", func() {
+		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -1163,7 +1163,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
-		By("And I run wego add command", func() {
+		By("And I run gitops add command", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -1193,7 +1193,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 	})
 
-	It("Verify that wego can deploy multiple helm apps from a helm repo with app-config-url set to <url>", func() {
+	It("Verify that gitops can deploy multiple helm apps from a helm repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var listOutput string
 		var appStatus1 string
@@ -1231,7 +1231,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			gitAddCommitPush(repoAbsolutePath, readmeFilePath)
 		})
 
-		By("And I install wego under my namespace: "+WEGO_DEFAULT_NAMESPACE, func() {
+		By("And I install gitops under my namespace: "+WEGO_DEFAULT_NAMESPACE, func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -1244,11 +1244,11 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Eventually(out).Should(ContainSubstring("namespace/" + workloadNamespace2 + " created"))
 		})
 
-		By("And I run wego app add command for 1st app", func() {
+		By("And I run gitops app add command for 1st app", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand1, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("And I run wego app add command for 2nd app", func() {
+		By("And I run gitops app add command for 2nd app", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand2, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -1262,7 +1262,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			verifyHelmPodWorkloadIsDeployed(workloadName2, workloadNamespace2)
 		})
 
-		By("And I should see wego components in the remote git repo", func() {
+		By("And I should see gitops components in the remote git repo", func() {
 			pullGitRepo(repoAbsolutePath)
 			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && ls -al", repoAbsolutePath))
 			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
@@ -1300,7 +1300,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Verify that wego can deploy a helm app from a helm repo with app-config-url set to NONE", func() {
+	It("Verify that gitops can deploy a helm app from a helm repo with app-config-url set to NONE", func() {
 		appName := "loki"
 		workloadName := "loki-0"
 		helmRepoURL := "https://charts.kube-ops.io"
@@ -1313,7 +1313,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName, EVENTUALLY_DEFAULT_TIMEOUT)
 		})
 
-		By("And I install wego to my active cluster", func() {
+		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -1321,7 +1321,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
-		By("And I run wego add command", func() {
+		By("And I run gitops add command", func() {
 			runWegoAddCommand(".", addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -1354,7 +1354,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
-		By("And I install wego to my active cluster", func() {
+		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -1362,7 +1362,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
-		By("When I run wego app add command for app", func() {
+		By("When I run gitops app add command for app", func() {
 			output, _ := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 			re := regexp.MustCompile(`(http|ftp|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?`)
 			prLink = re.FindAllString(output, -1)[0]
@@ -1404,7 +1404,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			deleteRepo(appConfigRepoName)
 		})
 
-		By("When I create a private repo for wego app config", func() {
+		By("When I create a private repo for gitops app config", func() {
 			appConfigRepoAbsPath = initAndCreateEmptyRepo(appConfigRepoName, private)
 			gitAddCommitPush(appConfigRepoAbsPath, tip.appManifestFilePath)
 		})
@@ -1414,7 +1414,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
-		By("And I install wego to my active cluster", func() {
+		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -1422,7 +1422,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
-		By("And I run wego add command with --app-config-url param", func() {
+		By("And I run gitops add command with --app-config-url param", func() {
 			output, _ := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 			re := regexp.MustCompile(`(http|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?`)
 			prLink = re.FindAllString(output, 1)[0]
@@ -1468,7 +1468,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
-		By("And I install wego to my active cluster", func() {
+		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -1520,12 +1520,12 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
-		By("And I have a wego binary installed on my local machine", func() {
+		By("And I have a gitops binary installed on my local machine", func() {
 			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
 		})
 	})
 
-	It("SmokeTest - Verify that wego can deploy an app with app-config-url set to <url>", func() {
+	It("SmokeTest - Verify that gitops can deploy an app with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var listOutput string
@@ -1556,7 +1556,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			deleteWorkload(workloadName, workloadNamespace)
 		})
 
-		By("When I create a private repo for wego app config", func() {
+		By("When I create a private repo for gitops app config", func() {
 			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, private)
 			gitAddCommitPush(appConfigRepoAbsPath, readmeFilePath)
 		})
@@ -1566,7 +1566,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 
-		By("And I install wego to my active cluster", func() {
+		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -1574,7 +1574,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
-		By("And I run wego app add command for app: "+appName, func() {
+		By("And I run gitops app add command for app: "+appName, func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -1601,7 +1601,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			Eventually(listOutput).Should(ContainSubstring(appName))
 		})
 
-		By("And I should not see wego components in app repo: "+appFilesRepoName, func() {
+		By("And I should not see gitops components in app repo: "+appFilesRepoName, func() {
 			pullGitRepo(repoAbsolutePath)
 			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && ls -al", repoAbsolutePath))
 			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
@@ -1609,7 +1609,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			Expect(folderOutput).ShouldNot(ContainSubstring("targets"))
 		})
 
-		By("And I should see wego components in config repo: "+appConfigRepoName, func() {
+		By("And I should see gitops components in config repo: "+appConfigRepoName, func() {
 			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && git clone %s && cd %s && ls -al", repoAbsolutePath, configRepoRemoteURL, appConfigRepoName))
 			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
 			Expect(folderOutput).Should(ContainSubstring("apps"))

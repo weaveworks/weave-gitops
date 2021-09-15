@@ -1,4 +1,4 @@
-.PHONY: debug bin wego install clean fmt vet depencencies lint ui ui-lint ui-test ui-dev unit-tests proto proto-deps api-dev ui-dev fakes crd
+.PHONY: debug bin gitops install clean fmt vet depencencies lint ui ui-lint ui-test ui-dev unit-tests proto proto-deps api-dev ui-dev fakes crd
 VERSION=$(shell git describe --always --match "v*")
 GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
@@ -9,7 +9,7 @@ GIT_COMMIT=$(shell git log -n1 --pretty='%h')
 CURRENT_DIR=$(shell pwd)
 FORMAT_LIST=$(shell gofmt -l .)
 FLUX_VERSION=$(shell $(CURRENT_DIR)/tools/bin/stoml $(CURRENT_DIR)/tools/dependencies.toml flux.version)
-LDFLAGS = "-X github.com/weaveworks/weave-gitops/cmd/wego/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/wego/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/wego/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION)"
+LDFLAGS = "-X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION)"
 
 KUBEBUILDER_ASSETS ?= "$(CURRENT_DIR)/tools/bin/envtest"
 
@@ -21,15 +21,15 @@ GOBIN=$(shell go env GOBIN)
 endif
 
 ifeq ($(BINARY_NAME),)
-BINARY_NAME := wego
+BINARY_NAME := gitops
 endif
 
 .PHONY: bin
 
-all: wego ## Install dependencies and build WeGo binary
+all: gitops ## Install dependencies and build Gitops binary
 
 ##@ Test
-unit-tests: dependencies cmd/wego/ui/run/dist/index.html ## Run unit tests
+unit-tests: dependencies cmd/gitops/ui/run/dist/index.html ## Run unit tests
 	# To avoid downloading dependencies every time use `SKIP_FETCH_TOOLS=1 unit-tests`
 	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v -tags unittest ./...
 
@@ -37,29 +37,29 @@ fakes: ## Generate testing fakes
 	go generate ./...
 
 ##@ Build
-wego: dependencies ui bin ## Install dependencies and build wego binary
+gitops: dependencies ui bin ## Install dependencies and build gitops binary
 
 install: bin ## Install binaries to GOPATH
 	cp bin/$(BINARY_NAME) ${GOPATH}/bin/
 
-api-dev: ## Server and watch wego-server, will reload automatically on change
-	reflex -r '.go' -s -- sh -c 'go run cmd/wego-server/main.go'
+api-dev: ## Server and watch gitops-server, will reload automatically on change
+	reflex -r '.go' -s -- sh -c 'go run cmd/gitops-server/main.go'
 
 debug: ## Compile binary with optimisations and inlining disabled
-	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) -gcflags='all=-N -l' cmd/wego/*.go
+	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) -gcflags='all=-N -l' cmd/gitops/*.go
 
-bin: ## Build wego binary
-	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) cmd/wego/*.go
+bin: ## Build gitops binary
+	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) cmd/gitops/*.go
 
-docker: ## Build wego-app docker image
-	docker build -t ghcr.io/weaveworks/wego-app:latest .
+docker: ## Build gitops-app docker image
+	docker build -t ghcr.io/weaveworks/gitops-app:latest .
 
 
 # Clean up images and binaries
 clean: ## Clean up images and binaries
-	rm -f bin/wego
+	rm -f bin/gitops
 	rm -rf pkg/flux/bin/
-	rm -rf cmd/wego/ui/run/dist
+	rm -rf cmd/gitops/ui/run/dist
 	rm -rf coverage
 	rm -rf node_modules
 	rm -f .deps
@@ -112,30 +112,30 @@ ui-test: ## Run UI tests
 ui-audit: ## Run audit against the UI
 	npm audit
 
-ui: node_modules cmd/wego/ui/run/dist/main.js ## Build the UI
+ui: node_modules cmd/gitops/ui/run/dist/main.js ## Build the UI
 
 ui-lib: node_modules dist/index.js ## Build UI libraries
 # Remove font files from the npm module.
 	@find dist -type f -iname \*.otf -delete
 	@find dist -type f -iname \*.woff -delete
 
-cmd/wego/ui/run/dist:
-	mkdir -p cmd/wego/ui/run/dist
+cmd/gitops/ui/run/dist:
+	mkdir -p cmd/gitops/ui/run/dist
 
-cmd/wego/ui/run/dist/index.html: cmd/wego/ui/run/dist
-	touch cmd/wego/ui/run/dist/index.html
+cmd/gitops/ui/run/dist/index.html: cmd/gitops/ui/run/dist
+	touch cmd/gitops/ui/run/dist/index.html
 
-cmd/wego/ui/run/dist/main.js:
+cmd/gitops/ui/run/dist/main.js:
 	npm run build
 
-# Runs a test to raise errors if the integration between WeGO Core and EE is 
+# Runs a test to raise errors if the integration between Gitops Core and EE is
 # in danger of breaking due to package API changes.
 # See the test/library dockerfile and test.sh script for more info.
 lib-test: dependencies
-	docker build -t wego-library-test -f test/library/libtest.dockerfile $(CURRENT_DIR)/test/library
+	docker build -t gitops-library-test -f test/library/libtest.dockerfile $(CURRENT_DIR)/test/library
 	docker run -e GITHUB_TOKEN=$$GITHUB_TOKEN -i --rm \
 		-v $(CURRENT_DIR):/go/src/github.com/weaveworks/weave-gitops \
-		 wego-library-test
+		 gitops-library-test
 
 dist/index.js: ui/index.ts
 	npm run build:lib && cp package.json dist

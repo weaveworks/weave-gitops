@@ -3,7 +3,7 @@ package manifests
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops/cmd/wego/version"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	appsv1 "k8s.io/api/apps/v1"
 	"sigs.k8s.io/yaml"
 )

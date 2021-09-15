@@ -6,7 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/cmd/wego/version"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 )
@@ -17,7 +17,7 @@ var Cmd = &cobra.Command{
 	Use:           "pause <app-name>",
 	Short:         "Pause an application",
 	Args:          cobra.MinimumNArgs(1),
-	Example:       "wego app pause podinfo",
+	Example:       "gitops app pause podinfo",
 	RunE:          runCmd,
 	SilenceUsage:  true,
 	SilenceErrors: true,

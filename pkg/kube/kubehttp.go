@@ -54,7 +54,7 @@ var (
 	GVRApp            schema.GroupVersionResource = wego.GroupVersion.WithResource("apps")
 	GVRKustomization  schema.GroupVersionResource = kustomizev1.GroupVersion.WithResource("kustomizations")
 	GVRGitRepository  schema.GroupVersionResource = sourcev1.GroupVersion.WithResource("gitrepositories")
-	GVRHelmRepository schema.GroupVersionResource = helmv2.GroupVersion.WithResource("helmrepositories")
+	GVRHelmRepository schema.GroupVersionResource = sourcev1.GroupVersion.WithResource("helmrepositories")
 	GVRHelmRelease    schema.GroupVersionResource = helmv2.GroupVersion.WithResource("helmreleases")
 )
 
