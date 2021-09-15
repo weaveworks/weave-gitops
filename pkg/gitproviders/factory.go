@@ -14,6 +14,7 @@ type GitProviderName string
 const (
 	GitProviderGitHub GitProviderName = "github"
 	GitProviderGitLab GitProviderName = "gitlab"
+	tokenTypeOauth    string          = "oauth2"
 )
 
 // Config defines the configuration for connecting to a GitProvider.
@@ -30,14 +31,10 @@ type Config struct {
 	Token string
 }
 
-func buildGitProvider(config Config) (gitprovider.Client, error) {
+func buildGitProvider(config Config) (gitprovider.Client, string, error) {
 	if config.Token == "" {
-		return nil, fmt.Errorf("no git provider token present")
+		return nil, "", fmt.Errorf("no git provider token present")
 	}
-
-	var client gitprovider.Client
-
-	var err error
 
 	switch config.Provider {
 	case GitProviderGitHub:
@@ -48,8 +45,10 @@ func buildGitProvider(config Config) (gitprovider.Client, error) {
 			opts = append(opts, gitprovider.WithDomain(config.Hostname))
 		}
 
-		if client, err = github.NewClient(opts...); err != nil {
-			return nil, err
+		if client, err := github.NewClient(opts...); err != nil {
+			return nil, "", err
+		} else {
+			return client, github.DefaultDomain, nil
 		}
 	case GitProviderGitLab:
 		opts := []gitprovider.ClientOption{
@@ -59,12 +58,12 @@ func buildGitProvider(config Config) (gitprovider.Client, error) {
 			opts = append(opts, gitprovider.WithDomain(config.Hostname))
 		}
 
-		if client, err = gitlab.NewClient(config.Token, "", opts...); err != nil {
-			return nil, err
+		if client, err := gitlab.NewClient(config.Token, tokenTypeOauth, opts...); err != nil {
+			return nil, "", err
+		} else {
+			return client, gitlab.DefaultDomain, nil
 		}
 	default:
-		return nil, fmt.Errorf("unsupported Git provider '%s'", config.Provider)
+		return nil, "", fmt.Errorf("unsupported Git provider '%s'", config.Provider)
 	}
-
-	return client, err
 }

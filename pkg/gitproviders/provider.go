@@ -12,7 +12,6 @@ import (
 
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 
-	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 )
 
@@ -24,6 +23,8 @@ const (
 	AccountTypeUser ProviderAccountType = "user"
 	AccountTypeOrg  ProviderAccountType = "organization"
 	deployKeyName                       = "wego-deploy-key"
+
+	defaultTimeout = time.Second * 30
 )
 
 // GitProvider Handler
@@ -45,20 +46,19 @@ type GitProvider interface {
 	GetProviderDomain() string
 }
 
-// making sure it implements the interface
-var _ GitProvider = defaultGitProvider{}
-
 type defaultGitProvider struct {
+	domain   string
 	provider gitprovider.Client
 }
 
 func New(config Config) (GitProvider, error) {
-	provider, err := buildGitProvider(config)
+	provider, domain, err := buildGitProvider(config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build git provider: %w", err)
 	}
 
 	return defaultGitProvider{
+		domain:   domain,
 		provider: provider,
 	}, nil
 }
@@ -73,7 +73,7 @@ func (p defaultGitProvider) RepositoryExists(name string, owner string) (bool, e
 
 	if ownerType == AccountTypeOrg {
 		orgRef := gitprovider.OrgRepositoryRef{
-			OrganizationRef: gitprovider.OrganizationRef{Domain: github.DefaultDomain, Organization: owner},
+			OrganizationRef: gitprovider.OrganizationRef{Domain: p.domain, Organization: owner},
 			RepositoryName:  name,
 		}
 		if _, err := p.provider.OrgRepositories().Get(ctx, orgRef); err != nil {
@@ -84,7 +84,7 @@ func (p defaultGitProvider) RepositoryExists(name string, owner string) (bool, e
 	}
 
 	userRepoRef := gitprovider.UserRepositoryRef{
-		UserRef:        gitprovider.UserRef{Domain: github.DefaultDomain, UserLogin: owner},
+		UserRef:        gitprovider.UserRef{Domain: p.domain, UserLogin: owner},
 		RepositoryName: name,
 	}
 	if _, err := p.provider.UserRepositories().Get(ctx, userRepoRef); err != nil {
@@ -113,12 +113,12 @@ func (p defaultGitProvider) CreateRepository(name string, owner string, private 
 	}
 
 	if ownerType == AccountTypeOrg {
-		orgRef := NewOrgRepositoryRef(github.DefaultDomain, owner, name)
+		orgRef := NewOrgRepositoryRef(p.domain, owner, name)
 		if err = p.CreateOrgRepository(orgRef, repoInfo, repoCreateOpts); err != nil {
 			return err
 		}
 	} else {
-		userRef := NewUserRepositoryRef(github.DefaultDomain, owner, name)
+		userRef := NewUserRepositoryRef(p.domain, owner, name)
 		if err = p.CreateUserRepository(userRef, repoInfo, repoCreateOpts); err != nil {
 			return err
 		}
@@ -138,8 +138,7 @@ func (p defaultGitProvider) DeployKeyExists(owner, repoName string) (bool, error
 
 	switch ownerType {
 	case AccountTypeOrg:
-		orgRef := NewOrgRepositoryRef(github.DefaultDomain, owner, repoName)
-
+		orgRef := NewOrgRepositoryRef(p.domain, owner, repoName)
 		orgRepo, err := p.provider.OrgRepositories().Get(ctx, orgRef)
 		if err != nil {
 			return false, fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s ", owner, repoName, err)
@@ -157,8 +156,7 @@ func (p defaultGitProvider) DeployKeyExists(owner, repoName string) (bool, error
 		}
 
 	case AccountTypeUser:
-		userRef := NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
-
+		userRef := NewUserRepositoryRef(p.domain, owner, repoName)
 		userRepo, err := p.provider.UserRepositories().Get(ctx, userRef)
 		if err != nil {
 			return false, fmt.Errorf("error getting user repo reference for owner %s, repo %s, %s ", owner, repoName, err)
@@ -196,8 +194,7 @@ func (p defaultGitProvider) UploadDeployKey(owner, repoName string, deployKey []
 
 	switch ownerType {
 	case AccountTypeOrg:
-		orgRef := NewOrgRepositoryRef(github.DefaultDomain, owner, repoName)
-
+		orgRef := NewOrgRepositoryRef(p.domain, owner, repoName)
 		orgRepo, err := p.provider.OrgRepositories().Get(ctx, orgRef)
 		if err != nil {
 			return fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s ", owner, repoName, err)
@@ -210,15 +207,14 @@ func (p defaultGitProvider) UploadDeployKey(owner, repoName string, deployKey []
 			return fmt.Errorf("error uploading deploy key %s", err)
 		}
 
-		if err = utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
+		if err = utils.WaitUntil(os.Stdout, time.Second, defaultTimeout, func() error {
 			_, err = orgRepo.DeployKeys().Get(ctx, deployKeyName)
 			return err
 		}); err != nil {
 			return fmt.Errorf("error verifying deploy key %s existance for repo %s. %s", deployKeyName, repoName, err)
 		}
 	case AccountTypeUser:
-		userRef := NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
-
+		userRef := NewUserRepositoryRef(p.domain, owner, repoName)
 		userRepo, err := p.provider.UserRepositories().Get(ctx, userRef)
 		if err != nil {
 			return fmt.Errorf("error getting user repo reference for owner %s, repo %s, %s ", owner, repoName, err)
@@ -231,7 +227,7 @@ func (p defaultGitProvider) UploadDeployKey(owner, repoName string, deployKey []
 			return fmt.Errorf("error uploading deploy key %s", err)
 		}
 
-		if err = utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
+		if err = utils.WaitUntil(os.Stdout, time.Second, defaultTimeout, func() error {
 			_, err = userRepo.DeployKeys().Get(ctx, deployKeyName)
 			return err
 		}); err != nil {
@@ -249,7 +245,7 @@ func (p defaultGitProvider) GetAccountType(owner string) (ProviderAccountType, e
 	defer ctx.Done()
 
 	_, err := p.provider.Organizations().Get(ctx, gitprovider.OrganizationRef{
-		Domain:       github.DefaultDomain,
+		Domain:       p.domain,
 		Organization: owner,
 	})
 
@@ -355,7 +351,7 @@ func (p defaultGitProvider) GetOrgRepo(org string, repoName string) (gitprovider
 	ctx := context.Background()
 	defer ctx.Done()
 
-	orgRepoRef := NewOrgRepositoryRef(github.DefaultDomain, org, repoName)
+	orgRepoRef := NewOrgRepositoryRef(p.domain, org, repoName)
 
 	repo, err := p.provider.OrgRepositories().Get(ctx, orgRepoRef)
 	if err != nil {
@@ -369,7 +365,7 @@ func (p defaultGitProvider) GetUserRepo(user string, repoName string) (gitprovid
 	ctx := context.Background()
 	defer ctx.Done()
 
-	userRepoRef := NewUserRepositoryRef(github.DefaultDomain, user, repoName)
+	userRepoRef := NewUserRepositoryRef(p.domain, user, repoName)
 
 	repo, err := p.provider.UserRepositories().Get(ctx, userRepoRef)
 	if err != nil {
@@ -549,7 +545,7 @@ func NewUserRepositoryRef(domain, user, repoName string) gitprovider.UserReposit
 }
 
 func (p defaultGitProvider) waitUntilRepoCreated(ownerType ProviderAccountType, owner, name string) error {
-	if err := utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
+	if err := utils.WaitUntil(os.Stdout, time.Second, defaultTimeout, func() error {
 		_, err := p.GetRepoInfo(ownerType, owner, name)
 		return err
 	}); err != nil {
