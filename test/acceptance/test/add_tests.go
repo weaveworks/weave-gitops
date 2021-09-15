@@ -72,9 +72,9 @@ var _ = Describe("Weave GitOps App Add Tests2", func() {
 		if os.Getenv(CI) == "" {
 			err := cltr.UpdateClusterToDeleted(globalDbDirectory, clusterID, cluster)
 			Expect(err).NotTo(HaveOccurred())
-			// cluster.CleanUp()
-			//err = cltr.RequestClusterCreation(globalDbDirectory)
-			//Expect(err).NotTo(HaveOccurred())
+			cluster.CleanUp()
+			err = cltr.RequestClusterCreation(globalDbDirectory)
+			Expect(err).NotTo(HaveOccurred())
 		}
 	})
 
