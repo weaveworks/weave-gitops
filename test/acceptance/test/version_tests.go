@@ -29,7 +29,7 @@ var _ = Describe("Weave GitOps Version Tests", func() {
 		})
 
 		By("And git commit with commit id", func() {
-			Eventually(session).Should(gbytes.Say("GitCommit: [a-f0-9]{7}\n"))
+			Eventually(session).Should(gbytes.Say("GitCommit: ([a-f0-9]{8})|([a-f0-9]{8}\n)"))
 		})
 
 		By("And build timestamp", func() {
