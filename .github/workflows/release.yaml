@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: wego-app
+  IMAGE_NAME: gitops-app
 
 jobs:
   goreleaser:
