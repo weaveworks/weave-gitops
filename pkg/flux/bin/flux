@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+echo -e "Flux binary not available
+exit 1
+
