@@ -1,15 +1,15 @@
 package flux
 
 import (
-	_ "embed"
+	"embed"
 	"fmt"
 	"os"
 
 	"github.com/weaveworks/weave-gitops/pkg/version"
 )
 
-//go:embed bin/flux
-var fluxExe []byte
+//go:embed bin/*
+var binFS embed.FS
 
 //SetupFluxBin creates flux binary from embedded file if it doesnt already exist
 func (f *FluxClient) SetupBin() {
@@ -18,10 +18,17 @@ func (f *FluxClient) SetupBin() {
 	binPath, err := f.GetBinPath()
 	f.checkError(err)
 
-	fluxBinary := fluxExe
-
+	var fluxBinary []byte
 	fluxBinaryOverride := f.osys.Getenv(fluxBinaryPathEnvVar)
-	if fluxBinaryOverride != "" {
+	if fluxBinaryOverride == "" {
+		// Try and read embedded binary, this won't work if weave-gitops
+		// is being used as a go module dependency by another module
+		// and the fluxBinaryPathEnvVar env var must be set
+		fluxBinary, err = binFS.ReadFile("bin/flux")
+		if err != nil {
+			f.checkError(fmt.Errorf(`error reading embedded flux binary: %v `, err))
+		}
+	} else {
 		bin, err := os.ReadFile(fluxBinaryOverride)
 		f.checkError(err)
 		fluxBinary = bin
