@@ -23,11 +23,11 @@ jobs:
     - name: build
       run: |
         git_hash=$(git rev-parse --short "$GITHUB_SHA")
-        make all BINARY_NAME=wego-${{matrix.os}}-$git_hash
-    - name: Store wego binaries
+        make all BINARY_NAME=gitops-${{matrix.os}}-$git_hash
+    - name: Store gitops binaries
       uses: actions/upload-artifact@v2
       with:
-          name: wego-binaries
+          name: gitops-binaries
           path: bin
           retention-days: 1
 
@@ -43,7 +43,7 @@ jobs:
     - name: Install UI Deps
       run: npm ci
     - name: Build UI Assets
-      run: make cmd/wego/ui/run/dist/main.js
+      run: make cmd/gitops/ui/run/dist/main.js
     - name: Setup Kubernetes
       uses: engineerd/setup-kind@v0.5.0
       with:

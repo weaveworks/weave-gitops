@@ -25,8 +25,8 @@ const addr = "0.0.0.0:8000"
 
 func NewAPIServerCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "wego-server",
-		Long: `The wego-server handles HTTP requests for Weave GitOps Applications`,
+		Use:  "gitops-server",
+		Long: `The gitops-server handles HTTP requests for Weave GitOps Applications`,
 
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
