@@ -122,9 +122,25 @@ func generateTestInputs() TestInputs {
 }
 
 func getUniqueWorkload(placeHolderSuffix string, uniqueSuffix string) string {
+	d, _ := os.Getwd()
+	fmt.Println("PWD", d)
 	workloadTemplateFilePath := "./data/nginx-template.yaml"
 	absWorkloadManifestFilePath := "/tmp/nginx-" + uniqueSuffix + ".yaml"
-	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("sed 's/%s/%s/g' %s > %s", placeHolderSuffix, uniqueSuffix, workloadTemplateFilePath, absWorkloadManifestFilePath))
+	cmd := fmt.Sprintf("sed 's/%s/%s/g' %s > %s", placeHolderSuffix, uniqueSuffix, workloadTemplateFilePath, absWorkloadManifestFilePath)
+	fmt.Println("CMDonpwd", cmd)
+	err := runCommandPassThrough([]string{}, "", "sh", "-c", cmd)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("checkpoint0")
+	c := exec.Command("sh", "-c", fmt.Sprintf("cat %s", absWorkloadManifestFilePath))
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	err = c.Run()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("checkpoint1")
 	return absWorkloadManifestFilePath
 }
 
@@ -230,11 +246,11 @@ func initAndCreateEmptyRepo(appRepoName string, isPrivateRepo bool) string {
 	})
 	Expect(err).ShouldNot(HaveOccurred())
 
-	command := exec.Command("sh", "-c", fmt.Sprintf(`cd %s`,
-		repoAbsolutePath))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).NotTo(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
+	//command := exec.Command("sh", "-c", fmt.Sprintf(`cd %s`,
+	//	repoAbsolutePath))
+	//session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	//Expect(err).NotTo(HaveOccurred())
+	//Eventually(session).Should(gexec.Exit())
 
 	return repoAbsolutePath
 }
@@ -340,7 +356,7 @@ func VerifyControllersInCluster(namespace string, kubeconfigPath string) {
 	Expect(waitForResource("pods", "", namespace, INSTALL_PODS_READY_TIMEOUT, kubeconfigPath))
 
 	By("And I wait for the wego controllers to be ready", func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod", "120s", namespace))
+		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "120s", namespace))
 		command.Env = os.Environ()
 		command.Env = append(command.Env, fmt.Sprintf("KUBECONFIG=%s", kubeconfigPath))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -397,26 +413,26 @@ func deleteWorkload(workloadName string, workloadNamespace string, kubeConfigPat
 	}
 }
 
-//func deletePersistingHelmApp(namespace string, workloadName string, timeout time.Duration) {
-//	//check if application exists before cleaning up
-//	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl get -n %s pod/%s", namespace, workloadName))
-//	if err != nil {
-//		fmt.Println("No workloads exist under the namespace: " + namespace + ", nothing to clean — skipping...")
-//	} else {
-//		log.Infof("Found persisting helm workload under the namespace: " + namespace + ", cleaning up...")
-//		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmreleases.helm.toolkit.fluxcd.io --all", namespace))
-//		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmcharts.source.toolkit.fluxcd.io --all", namespace))
-//		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmrepositories.source.toolkit.fluxcd.io --all", namespace))
-//		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete apps -n %s --all", namespace))
-//		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=delete pod/%s -n %s --timeout=%s", workloadName, namespace, timeout))
-//	}
-//}
+func deletePersistingHelmApp(namespace string, workloadName string, timeout time.Duration) {
+	//check if application exists before cleaning up
+	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl get -n %s pod/%s", namespace, workloadName))
+	if err != nil {
+		fmt.Println("No workloads exist under the namespace: " + namespace + ", nothing to clean — skipping...")
+	} else {
+		log.Infof("Found persisting helm workload under the namespace: " + namespace + ", cleaning up...")
+		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmreleases.helm.toolkit.fluxcd.io --all", namespace))
+		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmcharts.source.toolkit.fluxcd.io --all", namespace))
+		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmrepositories.source.toolkit.fluxcd.io --all", namespace))
+		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete apps -n %s --all", namespace))
+		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=delete pod/%s -n %s --timeout=%s", workloadName, namespace, timeout))
+	}
+}
 
 func createAppReplicas(repoAbsolutePath string, appManifestFilePath string, replicasSetValue int, workloadName string, kubeConfigPath string) string {
 	log.Infof("Editing app-manifest file in git repo to create replicas of workload: %s", workloadName)
 	appManifestFile := repoAbsolutePath + "/" + appManifestFilePath
 	_ = runCommandPassThrough([]string{fmt.Sprintf("KUBECONFIG=%s", kubeConfigPath)}, "sh", "-c", fmt.Sprintf("sed -ie 's/replicas: 1/replicas: %d/g' %s", replicasSetValue, appManifestFile))
-	changedValue, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cat %s", appManifestFile), "")
+	changedValue, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cat %s", appManifestFile), kubeConfigPath)
 	return changedValue
 }
 
@@ -429,7 +445,8 @@ func waitForReplicaCreation(namespace string, replicasSetValue int, timeout time
 	_ = utils.WaitUntil(os.Stdout, pollInterval, timeout, func() error {
 		log.Infof("Waiting for replicas to be created under namespace: %s || timeout: %d second(s)", namespace, timeoutInSeconds)
 
-		out, _ := runCommandAndReturnStringOutput(fmt.Sprintf("kubectl get pods -n %s --field-selector=status.phase=Running --no-headers=true | wc -l", namespace), kubeConfigPath)
+		out, err := runCommandAndReturnStringOutput(fmt.Sprintf("kubectl get pods -n %s --field-selector=status.phase=Running --no-headers=true --selector='app!=wego-app' | wc -l", namespace), kubeConfigPath)
+		fmt.Println("ERR", err)
 		out = strings.TrimSpace(out)
 		if out == replica {
 			return nil
@@ -458,11 +475,14 @@ func waitForAppRemoval(appName string, timeout time.Duration) error {
 }
 
 // Run a command, passing through stdout/stderr to the OS standard streams
-func runCommandPassThrough(env []string, name string, arg ...string) error {
+func runCommandPassThrough(env []string, kubeConfigPath string, name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
 	cmd.Env = os.Environ()
 	if len(env) > 0 {
 		cmd.Env = append(cmd.Env, env[0])
+	}
+	if os.Getenv(CI) == "" {
+		cmd.Env = append(cmd.Env, fmt.Sprintf("KUBECONFIG=%s", kubeConfigPath))
 	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -479,6 +499,7 @@ func runCommandPassThroughWithoutOutput(env []string, name string, arg ...string
 }
 
 func runCommandAndReturnStringOutput(commandToRun string, kubeConfigPath string) (stdOut string, stdErr string) {
+	fmt.Println("COMMAND", commandToRun)
 	command := exec.Command("sh", "-c", commandToRun)
 	if kubeConfigPath != "" {
 		command.Env = os.Environ()
@@ -575,7 +596,10 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
                             git add . &&
                             git commit -m 'add workload manifest' &&
                             git push -u origin main`,
-		repoAbsolutePath, appManifestFilePath, repoAbsolutePath, repoAbsolutePath))
+		repoAbsolutePath,
+		appManifestFilePath, repoAbsolutePath,
+		repoAbsolutePath))
+	fmt.Println("CMD", command)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, 30, 1).Should(gexec.Exit())
