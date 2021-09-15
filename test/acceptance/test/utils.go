@@ -211,7 +211,7 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 	}
 
 	log.Info("Wait for the cluster to be ready")
-	err := runCommandPassThrough([]string{}, "kubectl", "wait", "--for=condition=Ready", "--timeout=300s", "-n", "kube-system", "--all", "pods")
+	err := runCommandPassThrough([]string{}, "", "kubectl", "wait", "--for=condition=Ready", "--timeout=300s", "-n", "kube-system", "--all", "pods")
 	if err != nil {
 		log.Infof("Cluster system pods are not ready after waiting for 5 minutes, This can cause tests failures.")
 		return clusterName, err

@@ -56,7 +56,7 @@ var _ = Describe("Weave GitOps App Add Tests2", func() {
 				cluster = cltr.Cluster2{}
 
 				var err error
-				_, err = ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, cluster.KubeConfigPath)
+				_, err = ResetOrCreateCluster(namespace, deleteWegoRuntime, cluster.KubeConfigPath)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				cluster.Context = getClusterName()
