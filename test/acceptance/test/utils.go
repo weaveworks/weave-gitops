@@ -84,9 +84,9 @@ func getClusterName() string {
 // showItems displays the current set of a specified object type in tabular format
 func ShowItems(itemType string, kubeconfig string) error {
 	if itemType != "" {
-		return runCommandPassThrough([]string{fmt.Sprintf("KUBECONFIG=%s", kubeconfig)}, "kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
+		return runCommandPassThrough([]string{}, kubeconfig, "kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
 	}
-	return runCommandPassThrough([]string{fmt.Sprintf("KUBECONFIG=%s", kubeconfig)}, "kubectl", "get", "all", "--all-namespaces", "-o", "wide")
+	return runCommandPassThrough([]string{}, kubeconfig, "kubectl", "get", "all", "--all-namespaces", "-o", "wide")
 }
 
 func ShowWegoControllerLogs(ns string, kubeConfigPath string) {
@@ -95,7 +95,7 @@ func ShowWegoControllerLogs(ns string, kubeConfigPath string) {
 	for _, c := range controllers {
 		label := c + "-controller"
 		log.Infof("Logs for controller: %s", label)
-		_ = runCommandPassThrough([]string{fmt.Sprintf("KUBECONFIG=%s", kubeConfigPath)}, "kubectl", "logs", "-l", "app="+label, "-n", ns)
+		_ = runCommandPassThrough([]string{}, kubeConfigPath, "kubectl", "logs", "-l", "app="+label, "-n", ns)
 	}
 }
 
@@ -187,7 +187,7 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 
 	//For kubectl, point to a valid cluster, we will try to reset the namespace only
 	if namespace != "" && provider == "kubectl" {
-		err := runCommandPassThrough([]string{}, "./scripts/reset-wego.sh", namespace)
+		err := runCommandPassThrough([]string{}, kubeConfigPath, "./scripts/reset-wego.sh", namespace)
 		if err != nil {
 			log.Infof("Failed to reset the wego runtime in namespace %s", namespace)
 		}
@@ -202,7 +202,7 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 			clusterName = provider + "-" + RandString(6)
 		}
 		log.Infof("Creating a kind cluster %s", clusterName)
-		err := runCommandPassThrough([]string{}, "./scripts/kind-cluster.sh", clusterName, "kindest/node:v"+k8sVersion)
+		err := runCommandPassThrough([]string{}, "", "./scripts/kind-cluster.sh", clusterName, "kindest/node:v"+k8sVersion)
 		if err != nil {
 			log.Infof("Failed to create kind cluster")
 			log.Fatal(err)
@@ -320,7 +320,7 @@ func waitForNamespaceToTerminate(namespace string, timeout time.Duration, kubeco
 	}
 	timeoutInSeconds := int(timeout.Seconds())
 
-	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl get ns %s", namespace))
+	err := runCommandPassThrough([]string{}, kubeconfigPath, "sh", "-c", fmt.Sprintf("kubectl get ns %s", namespace))
 
 	if err != nil {
 		log.Infof("Namespace %s doesn't exist, nothing to clean — skipping...", namespace)
@@ -339,7 +339,7 @@ func waitForNamespaceToTerminate(namespace string, timeout time.Duration, kubeco
 		if i > timeoutInSeconds/2 && i%10 == 0 {
 			//Patch the finalizer
 			log.Infof("Patch the finalizer to unstuck the terminating namespace %s", namespace)
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl patch ns %s -p '{\"metadata\":{\"finalizers\":[]}}' --type=merge", namespace))
+			_ = runCommandPassThrough([]string{}, kubeconfigPath, "sh", "-c", fmt.Sprintf("kubectl patch ns %s -p '{\"metadata\":{\"finalizers\":[]}}' --type=merge", namespace))
 		}
 		time.Sleep(time.Duration(pollInterval) * time.Second)
 	}
@@ -380,12 +380,12 @@ func installAndVerifyWego(wegoNamespace string, kubeconfigPath string) {
 func uninstallWegoRuntime(namespace string, kubeConfigPath string) {
 	if os.Getenv(CI) != "" {
 		log.Infof("About to delete WeGO runtime from namespace: %s", namespace)
-		err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
+		err := runCommandPassThrough([]string{}, kubeConfigPath, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
 		if err != nil {
 			log.Infof("Failed to uninstall the wego runtime %s", namespace)
 		}
 
-		err = runCommandPassThrough([]string{}, "sh", "-c", "kubectl delete crd apps.wego.weave.works")
+		err = runCommandPassThrough([]string{}, kubeConfigPath, "sh", "-c", "kubectl delete crd apps.wego.weave.works")
 		if err != nil {
 			log.Infof("Failed to delete crd apps.wego.weave.works")
 		}
@@ -402,36 +402,36 @@ func uninstallWegoRuntime(namespace string, kubeConfigPath string) {
 
 func deleteRepo(appRepoName string) {
 	log.Infof("Delete application repo: %s", GITHUB_ORG+"/"+appRepoName)
-	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", GITHUB_ORG+"/"+appRepoName)
+	_ = runCommandPassThrough([]string{}, "", "hub", "delete", "-y", GITHUB_ORG+"/"+appRepoName)
 }
 
 func deleteWorkload(workloadName string, workloadNamespace string, kubeConfigPath string) {
 	if os.Getenv(CI) != "" {
 		log.Infof("Delete the namespace %s along with workload %s", workloadNamespace, workloadName)
-		_ = runCommandPassThrough([]string{}, "kubectl", "delete", "ns", workloadNamespace)
+		_ = runCommandPassThrough([]string{}, kubeConfigPath, "kubectl", "delete", "ns", workloadNamespace)
 		_ = waitForNamespaceToTerminate(workloadNamespace, INSTALL_RESET_TIMEOUT, kubeConfigPath)
 	}
 }
 
 func deletePersistingHelmApp(namespace string, workloadName string, timeout time.Duration) {
 	//check if application exists before cleaning up
-	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl get -n %s pod/%s", namespace, workloadName))
+	err := runCommandPassThrough([]string{}, "", "sh", "-c", fmt.Sprintf("kubectl get -n %s pod/%s", namespace, workloadName))
 	if err != nil {
 		fmt.Println("No workloads exist under the namespace: " + namespace + ", nothing to clean — skipping...")
 	} else {
 		log.Infof("Found persisting helm workload under the namespace: " + namespace + ", cleaning up...")
-		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmreleases.helm.toolkit.fluxcd.io --all", namespace))
-		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmcharts.source.toolkit.fluxcd.io --all", namespace))
-		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmrepositories.source.toolkit.fluxcd.io --all", namespace))
-		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete apps -n %s --all", namespace))
-		_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=delete pod/%s -n %s --timeout=%s", workloadName, namespace, timeout))
+		_ = runCommandPassThrough([]string{}, "", "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmreleases.helm.toolkit.fluxcd.io --all", namespace))
+		_ = runCommandPassThrough([]string{}, "", "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmcharts.source.toolkit.fluxcd.io --all", namespace))
+		_ = runCommandPassThrough([]string{}, "", "sh", "-c", fmt.Sprintf("kubectl delete -n %s helmrepositories.source.toolkit.fluxcd.io --all", namespace))
+		_ = runCommandPassThrough([]string{}, "", "sh", "-c", fmt.Sprintf("kubectl delete apps -n %s --all", namespace))
+		_ = runCommandPassThrough([]string{}, "", "sh", "-c", fmt.Sprintf("kubectl wait --for=delete pod/%s -n %s --timeout=%s", workloadName, namespace, timeout))
 	}
 }
 
 func createAppReplicas(repoAbsolutePath string, appManifestFilePath string, replicasSetValue int, workloadName string, kubeConfigPath string) string {
 	log.Infof("Editing app-manifest file in git repo to create replicas of workload: %s", workloadName)
 	appManifestFile := repoAbsolutePath + "/" + appManifestFilePath
-	_ = runCommandPassThrough([]string{fmt.Sprintf("KUBECONFIG=%s", kubeConfigPath)}, "sh", "-c", fmt.Sprintf("sed -ie 's/replicas: 1/replicas: %d/g' %s", replicasSetValue, appManifestFile))
+	_ = runCommandPassThrough([]string{}, kubeConfigPath, "sh", "-c", fmt.Sprintf("sed -ie 's/replicas: 1/replicas: %d/g' %s", replicasSetValue, appManifestFile))
 	changedValue, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cat %s", appManifestFile), kubeConfigPath)
 	return changedValue
 }
@@ -607,7 +607,10 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 
 func gitUpdateCommitPush(repoAbsolutePath string) {
 	log.Infof("Pushing changes made to file(s) in repo: %s", repoAbsolutePath)
-	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cd %s && git add -u && git commit -m 'edit repo file' && git pull --rebase && git push -f", repoAbsolutePath))
+	err := runCommandPassThrough([]string{}, "", "sh", "-c", fmt.Sprintf("cd %s && git add -u && git commit -m 'edit repo file' && git pull --rebase && git push -f", repoAbsolutePath))
+	if err != nil {
+		panic(err)
+	}
 }
 
 func pullBranch(repoAbsolutePath string, branch string) {

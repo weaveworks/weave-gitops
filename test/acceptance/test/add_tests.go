@@ -59,7 +59,7 @@ var _ = Describe("Weave GitOps App Add Tests2", func() {
 				_, err = ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, cluster.KubeConfigPath)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				cluster.Name = getClusterName()
+				cluster.Context = getClusterName()
 			})
 		}
 
@@ -771,8 +771,7 @@ var _ = Describe("Weave GitOps App Add Tests2", func() {
 		})
 	})
 
-	// This failed
-	FIt("SmokeTest - Verify that wego can deploy multiple apps one with private and other with public repo", func() {
+	It("SmokeTest - Verify that wego can deploy multiple apps one with private and other with public repo", func() {
 		var listOutput string
 		var pauseOutput string
 		var unpauseOutput string
@@ -790,23 +789,26 @@ var _ = Describe("Weave GitOps App Add Tests2", func() {
 		public := false
 		replicaSetValue := 3
 
+		fmt.Println("appName1", appName1)
+		fmt.Println("appName2", appName2)
+
 		addCommand1 := "app add . --name=" + appName1 + " --auto-merge=true"
 		addCommand2 := "app add . --name=" + appName2 + " --auto-merge=true"
 
-		defer deleteRepo(tip1.appRepoName)
-		defer deleteRepo(tip2.appRepoName)
-		defer deleteWorkload(tip1.workloadName, tip1.workloadNamespace, "")
-		defer deleteWorkload(tip2.workloadName, tip2.workloadNamespace, "")
-
-		By("And application repos do not already exist", func() {
-			deleteRepo(tip1.appRepoName)
-			deleteRepo(tip2.appRepoName)
-		})
-
-		By("And application workload is not already deployed to cluster", func() {
-			deleteWorkload(tip1.workloadName, tip1.workloadNamespace, "")
-			deleteWorkload(tip2.workloadName, tip2.workloadNamespace, "")
-		})
+		//defer deleteRepo(tip1.appRepoName)
+		//defer deleteRepo(tip2.appRepoName)
+		//defer deleteWorkload(tip1.workloadName, tip1.workloadNamespace, "")
+		//defer deleteWorkload(tip2.workloadName, tip2.workloadNamespace, "")
+		//
+		//By("And application repos do not already exist", func() {
+		//	deleteRepo(tip1.appRepoName)
+		//	deleteRepo(tip2.appRepoName)
+		//})
+		//
+		//By("And application workload is not already deployed to cluster", func() {
+		//	deleteWorkload(tip1.workloadName, tip1.workloadNamespace, "")
+		//	deleteWorkload(tip2.workloadName, tip2.workloadNamespace, "")
+		//})
 
 		By("When I create an empty private repo for app1", func() {
 			repoAbsolutePath1 = initAndCreateEmptyRepo(tip1.appRepoName, private)
@@ -1112,7 +1114,6 @@ var _ = Describe("Weave GitOps App Add Tests2", func() {
 		})
 	})
 
-	// This failed
 	It("Verify that wego can deploy a helm app from a git repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoAbsolutePath string
@@ -1126,13 +1127,13 @@ var _ = Describe("Weave GitOps App Add Tests2", func() {
 
 		addCommand := fmt.Sprintf("app add . --app-config-url=%s --deployment-type=helm --path=./hello-world --name=%s --auto-merge=true", configRepoUrl, appName)
 
-		defer deleteRepo(appRepoName)
-		defer deleteRepo(configRepoName)
-
-		By("Application and config repo does not already exist", func() {
-			deleteRepo(appRepoName)
-			deleteRepo(configRepoName)
-		})
+		//defer deleteRepo(appRepoName)
+		//defer deleteRepo(configRepoName)
+		//
+		//By("Application and config repo does not already exist", func() {
+		//	deleteRepo(appRepoName)
+		//	deleteRepo(configRepoName)
+		//})
 
 		By("When I create a private repo with my app workload", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
@@ -1167,10 +1168,10 @@ var _ = Describe("Weave GitOps App Add Tests2", func() {
 			_, err := os.Stat(fmt.Sprintf("%s/apps/%s/app.yaml", configRepoAbsolutePath, appName))
 			Expect(err).ShouldNot(HaveOccurred())
 
-			_, err = os.Stat(fmt.Sprintf("%s/targets/%s/%s/%s-gitops-source.yaml", configRepoAbsolutePath, cluster.Name, appName, appName))
+			_, err = os.Stat(fmt.Sprintf("%s/targets/%s/%s/%s-gitops-source.yaml", configRepoAbsolutePath, cluster.Context, appName, appName))
 			Expect(err).ShouldNot(HaveOccurred())
 
-			_, err = os.Stat(fmt.Sprintf("%s/targets/%s/%s/%s-gitops-deploy.yaml", configRepoAbsolutePath, cluster.Name, appName, appName))
+			_, err = os.Stat(fmt.Sprintf("%s/targets/%s/%s/%s-gitops-deploy.yaml", configRepoAbsolutePath, cluster.Context, appName, appName))
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -1313,7 +1314,6 @@ var _ = Describe("Weave GitOps App Add Tests2", func() {
 		})
 	})
 
-	// This failed
 	It("Verify that a PR is raised against a user repo when skipping auto-merge", func() {
 		var repoAbsolutePath string
 		tip := generateTestInputs()
@@ -1365,7 +1365,6 @@ var _ = Describe("Weave GitOps App Add Tests2", func() {
 		})
 	})
 
-	// This failed
 	It("Verify that a PR can be raised against an external repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
