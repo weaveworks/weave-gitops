@@ -496,7 +496,7 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, branch string
 }
 
 func (a *App) commitAndPush(client git.Git, filters ...func(string) bool) error {
-	a.Logger.Actionf("Committing and pushing wego updates for application")
+	a.Logger.Actionf("Committing and pushing gitops updates for application")
 
 	_, err := client.Commit(git.Commit{
 		Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
