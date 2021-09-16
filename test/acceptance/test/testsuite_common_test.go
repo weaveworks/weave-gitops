@@ -5,6 +5,7 @@ package acceptance
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/test/acceptance/test/metrics"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -82,6 +83,8 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		globalCtx, globalCancel = context.WithCancel(context.Background())
 
 		go clusterPool2.CreateClusterOnRequest(globalCtx, dbDirectory)
+	} else {
+		Recods = metrics.NewRecords()
 	}
 
 	return []byte(dbDirectory)
@@ -124,6 +127,8 @@ func GomegaFail(message string, callerSkip ...int) {
 }
 
 var _ = SynchronizedAfterSuite(func() {
+	records := Recods.GetJSArray()
+	fmt.Println("RECORDS", records)
 	//err := cluster.UpdateClusterToDeleted(gloablDbDirectory,globalclusterID,syncCluster)
 	//Expect(err).NotTo(HaveOccurred())
 	//syncCluster.CleanUp()
