@@ -1,10 +1,10 @@
+import _LoadingPage from "./components/LoadingPage";
 import _AppContextProvider from "./contexts/AppContext";
+import _useApplications from "./hooks/applications";
 import { Applications as appsClient } from "./lib/api/applications/applications.pb";
 import _Theme from "./lib/theme";
 import _ApplicationDetail from "./pages/ApplicationDetail";
 import _Applications from "./pages/Applications";
-import _useApplications from "./hooks/applications";
-import _LoadingPage from "./components/LoadingPage";
 
 export const theme = _Theme;
 export const AppContextProvider = _AppContextProvider;

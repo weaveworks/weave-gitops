@@ -27,7 +27,6 @@ endif
 .PHONY: bin
 
 all: wego ## Install dependencies and build WeGo binary
-	@git --no-pager diff
 
 ##@ Test
 unit-tests: dependencies cmd/wego/ui/run/dist/index.html ## Run unit tests
@@ -64,6 +63,7 @@ clean: ## Clean up images and binaries
 	rm -rf coverage
 	rm -rf node_modules
 	rm -f .deps
+	rm -rf dist
 
 fmt: ## Run go fmt against code
 	go fmt ./...
@@ -128,7 +128,16 @@ cmd/wego/ui/run/dist/index.html: cmd/wego/ui/run/dist
 cmd/wego/ui/run/dist/main.js:
 	npm run build
 
-dist/index.js:
+# Runs a test to raise errors if the integration between WeGO Core and EE is 
+# in danger of breaking due to package API changes.
+# See the test/library dockerfile and test.sh script for more info.
+lib-test: dependencies
+	docker build -t wego-library-test -f test/library/libtest.dockerfile $(CURRENT_DIR)/test/library
+	docker run -e GITHUB_TOKEN=$$GITHUB_TOKEN -i --rm \
+		-v $(CURRENT_DIR):/go/src/github.com/weaveworks/weave-gitops \
+		 wego-library-test
+
+dist/index.js: ui/index.ts
 	npm run build:lib && cp package.json dist
 
 dist/index.d.ts:

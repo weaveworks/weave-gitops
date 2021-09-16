@@ -6,7 +6,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
 var Cmd = &cobra.Command{
@@ -17,7 +16,10 @@ var Cmd = &cobra.Command{
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
-	kubeClient := kube.New(&runner.CLIRunner{})
+	kubeClient, _, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		return fmt.Errorf("error initializing kubernetes client: %w", err)
+	}
 
 	ns, err := cmd.Parent().Parent().Flags().GetString("namespace")
 	if err != nil {

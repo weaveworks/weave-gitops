@@ -42,6 +42,7 @@ type GitProvider interface {
 	GetCommitsFromUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
 	GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
 	GetAccountType(owner string) (ProviderAccountType, error)
+	GetProviderDomain() string
 }
 
 // making sure it implements the interface
@@ -514,6 +515,10 @@ func (p defaultGitProvider) GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepos
 	}
 
 	return commits, nil
+}
+
+func (p defaultGitProvider) GetProviderDomain() string {
+	return string(GitProviderName(p.provider.ProviderID())) + ".com"
 }
 
 func NewRepositoryInfo(description string, visibility gitprovider.RepositoryVisibility) gitprovider.RepositoryInfo {

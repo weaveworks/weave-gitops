@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -155,21 +154,6 @@ func (a *authSvc) CreateGitClient(ctx context.Context, targetName, namespace, re
 func (a *authSvc) setupDeployKey(ctx context.Context, name SecretName, targetName string, repo gitproviders.NormalizedRepoURL) (*ssh.PublicKeys, error) {
 	owner := repo.Owner()
 	repoName := repo.RepositoryName()
-
-	accountType, err := a.gitProvider.GetAccountType(repo.Owner())
-	if err != nil {
-		return nil, fmt.Errorf("error getting account type: %w", err)
-	}
-
-	repoInfo, err := a.gitProvider.GetRepoInfo(accountType, repo.Owner(), repo.RepositoryName())
-	if err != nil {
-		return nil, fmt.Errorf("error getting repo info: %w", err)
-	}
-
-	if repoInfo.Visibility != nil && *repoInfo.Visibility == gitprovider.RepositoryVisibilityPublic {
-		// This is a public repo. We don't need to add deploy keys to it.
-		return nil, nil
-	}
 
 	deployKeyExists, err := a.gitProvider.DeployKeyExists(owner, repoName)
 	if err != nil {

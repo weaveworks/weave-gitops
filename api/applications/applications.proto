@@ -126,10 +126,11 @@ message GetApplicationResponse {
 }
 
 message Commit {
-    string   commit_hash = 1;  // The hash of the commit
-    string   date        = 2;  // The date the commit was made.
-    string   author      = 3;  // The author of the commit
-    string   message     = 4;  // The commit message
+    string   hash    = 1;  // The hash of the commit
+    string   date    = 2;  // The date the commit was made.
+    string   author  = 3;  // The author of the commit
+    string   message = 4;  // The commit message
+    string   url     = 5;  // The commit url
 }
 
 message ListCommitsRequest {
