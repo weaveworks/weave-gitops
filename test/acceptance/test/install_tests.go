@@ -119,8 +119,8 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		crdErr := kubeClient.Delete(ctx, manifests.AppCRD)
 		Expect(crdErr).ShouldNot(HaveOccurred())
 
-		By("When I run 'gitops gitops uninstall' command", func() {
-			runErr := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s gitops uninstall --namespace %s", WEGO_BIN_PATH, namespace))
+		By("When I run 'gitops uninstall' command", func() {
+			runErr := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, namespace))
 			Expect(runErr).ShouldNot(HaveOccurred())
 		})
 
@@ -179,8 +179,8 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 			VerifyControllersInCluster(WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("When I run 'gitops gitops uninstall' command", func() {
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s gitops uninstall --namespace %s", WEGO_BIN_PATH, WEGO_DEFAULT_NAMESPACE))
+		By("When I run 'gitops uninstall' command", func() {
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, WEGO_DEFAULT_NAMESPACE))
 		})
 
 		_ = waitForNamespaceToTerminate(WEGO_DEFAULT_NAMESPACE, NAMESPACE_TERMINATE_TIMEOUT)
