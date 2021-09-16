@@ -1,5 +1,6 @@
-skip-dir:
-    - "pkg/vendorfakes/*"
+run:
+  skip-dirs:
+      - pkg/vendorfakes
 
 linters:
   enable:

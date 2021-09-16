@@ -30,6 +30,7 @@ func (g *Gitops) Uninstall(params UinstallParams) error {
 	fluxErr := g.flux.Uninstall(params.Namespace, params.DryRun)
 	if fluxErr != nil {
 		g.logger.Printf("received error uninstalling flux: %q, continuing with uninstall", fluxErr)
+
 		errorOccurred = true
 	}
 
@@ -39,6 +40,7 @@ func (g *Gitops) Uninstall(params UinstallParams) error {
 		if crdErr := g.kube.Delete(ctx, manifests.AppCRD); crdErr != nil {
 			if !apierrors.IsNotFound(crdErr) {
 				g.logger.Printf("received error uninstalling app CRD: %q", crdErr)
+
 				errorOccurred = true
 			}
 		}

@@ -81,6 +81,7 @@ func configureLogger() {
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp: true,
 	})
+
 	if options.verbose {
 		log.SetLevel(log.DebugLevel)
 	}

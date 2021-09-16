@@ -44,5 +44,6 @@ func NewAPIServerCommand() *cobra.Command {
 			return http.ListenAndServe(addr, s)
 		},
 	}
+
 	return cmd
 }
