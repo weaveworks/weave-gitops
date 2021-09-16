@@ -40,7 +40,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Verify that wego cannot work without wego components installed and with both url and directory provided", func() {
+	It("Verify that wego cannot work without wego components installed OR with both url and directory provided", func() {
 		var repoAbsolutePath string
 		var errOutput string
 		var exitCode int
@@ -597,6 +597,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		var appStatus1 string
 		var appStatus2 string
 		var appStatus3 string
+		var commitList1 string
+		var commitList2 string
 		private := true
 		readmeFilePath := "./data/README.md"
 		tip := generateTestInputs()
@@ -736,9 +738,29 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Expect(folderOutput).Should(ContainSubstring("apps"))
 			Expect(folderOutput).Should(ContainSubstring("targets"))
 		})
+
+		By("When I check for list of commits for app1", func() {
+			commitList1, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits", WEGO_BIN_PATH, appName1))
+		})
+
+		By("Then I should see the list of commits for app1", func() {
+			Eventually(commitList1).Should(MatchRegexp(`COMMIT HASH\s*CREATED AT\s*AUTHOR\s*MESSAGE\s*URL`))
+			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
+			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
+		})
+
+		By("When I check for list of commits for app2", func() {
+			commitList2, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits", WEGO_BIN_PATH, appName2))
+		})
+
+		By("Then I should see the list of commits for app2", func() {
+			Eventually(commitList2).Should(MatchRegexp(`COMMIT HASH\s*CREATED AT\s*AUTHOR\s*MESSAGE\s*URL`))
+			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
+			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
+		})
 	})
 
-	It("SmokeTest - Verify that wego can deploy multiple apps one with private and other with public repo", func() {
+	It("SmokeTest - Verify that wego can deploy multiple apps one with private and other with public repo (e2e flow)", func() {
 		var listOutput string
 		var pauseOutput string
 		var unpauseOutput string
@@ -748,6 +770,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		var repoAbsolutePath1 string
 		var repoAbsolutePath2 string
 		var appManifestFile1 string
+		var commitList1 string
+		var commitList2 string
 		tip1 := generateTestInputs()
 		tip2 := generateTestInputs()
 		appName1 := tip1.appRepoName
@@ -924,6 +948,17 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Eventually(appStatus1).Should(gbytes.Say(`kustomization/` + appName1 + `\s*True\s*.*False`))
 		})
 
+		By("When I check for list of commits for app2", func() {
+			commitList2, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits", WEGO_BIN_PATH, appName2))
+		})
+
+		By("Then I should see the list of commits for app2", func() {
+			Eventually(commitList2).Should(MatchRegexp(`COMMIT HASH\s*CREATED AT\s*AUTHOR\s*MESSAGE\s*URL`))
+			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z\s*Weave Gitops\s*Add App manifests`))
+			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
+			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
+		})
+
 		By("When I remove an app", func() {
 			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app remove " + appName2)
 		})
@@ -937,11 +972,30 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		By("And app should get deleted from the cluster", func() {
 			_ = waitForAppRemoval(appName2, THIRTY_SECOND_TIMEOUT)
 		})
+
+		By("When I check for list of commits for app1", func() {
+			commitList1, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits", WEGO_BIN_PATH, appName1))
+		})
+
+		By("Then I should see the list of commits for app1", func() {
+			Eventually(commitList1).Should(MatchRegexp(`COMMIT HASH\s*CREATED AT\s*AUTHOR\s*MESSAGE\s*URL`))
+			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z\s*Weave Gitops\s*Add App manifests`))
+			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
+			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
+		})
+
+		By("When I check for list of commits for a deleted app", func() {
+			_, commitList2 = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits", WEGO_BIN_PATH, appName2))
+		})
+
+		By("Then I should see the list of commits for app2", func() {
+			Eventually(commitList2).Should(ContainSubstring(`Error:`))
+			Eventually(commitList2).Should(MatchRegexp(`\"` + appName2 + `\" not found`))
+		})
 	})
 
-	It("Verify that wego can deploy a helm app from a git repo with app-config-url set to NONE", func() {
+	It("SmokeTest - Verify that wego can deploy a helm app from a git repo with app-config-url set to NONE", func() {
 		var repoAbsolutePath string
-		var reinstallOutput string
 		var reAddOutput string
 		var removeOutput *gexec.Session
 		private := true
@@ -990,17 +1044,11 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I rerun wego gitops install", func() {
-			reinstallOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " gitops install")
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s gitops install", WEGO_BIN_PATH))
 		})
 
 		By("Then I should not see any errors", func() {
-			Eventually(reinstallOutput).Should(ContainSubstring("► installing components in " + WEGO_DEFAULT_NAMESPACE + " namespace"))
-			Eventually(reinstallOutput).Should(ContainSubstring("✔ image-reflector-controller: deployment ready"))
-			Eventually(reinstallOutput).Should(ContainSubstring("✔ image-automation-controller: deployment ready"))
-			Eventually(reinstallOutput).Should(ContainSubstring("✔ source-controller: deployment ready"))
-			Eventually(reinstallOutput).Should(ContainSubstring("✔ kustomize-controller: deployment ready"))
-			Eventually(reinstallOutput).Should(ContainSubstring("✔ helm-controller: deployment ready"))
-			Eventually(reinstallOutput).Should(ContainSubstring("✔ notification-controller: deployment ready"))
+			VerifyControllersInCluster(WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("When I rerun wego app add command", func() {
@@ -1154,18 +1202,20 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		appName1 := "rabbitmq"
 		appName2 := "zookeeper"
 		workloadName1 := "rabbitmq-0"
-		workloadName2 := "zookeeper-0"
+		workloadName2 := "test-space-zookeeper-0"
+		workloadNamespace2 := "test-space"
 		readmeFilePath := "./data/README.md"
 		appRepoName := "wego-test-app-" + RandString(8)
 		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
 		helmRepoURL := "https://charts.bitnami.com/bitnami"
 
 		addCommand1 := "app add --url=" + helmRepoURL + " --chart=" + appName1 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true"
-		addCommand2 := "app add --url=" + helmRepoURL + " --chart=" + appName2 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true"
+		addCommand2 := "app add --url=" + helmRepoURL + " --chart=" + appName2 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true --helm-release-target-namespace=" + workloadNamespace2
 
 		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, EVENTUALLY_DEFAULT_TIMEOUT)
 		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName2, EVENTUALLY_DEFAULT_TIMEOUT)
 		defer deleteRepo(appRepoName)
+		defer deleteNamespace(workloadNamespace2)
 
 		By("And application repo does not already exist", func() {
 			deleteRepo(appRepoName)
@@ -1189,6 +1239,11 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
+		By("And I create a namespace for helm-app", func() {
+			out, _ := runCommandAndReturnStringOutput("kubectl create ns " + workloadNamespace2)
+			Eventually(out).Should(ContainSubstring("namespace/" + workloadNamespace2 + " created"))
+		})
+
 		By("And I run wego app add command for 1st app", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand1, WEGO_DEFAULT_NAMESPACE)
 		})
@@ -1204,7 +1259,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("And I should see workload2 deployed to the cluster", func() {
 			verifyWegoHelmAddCommand(appName2, WEGO_DEFAULT_NAMESPACE)
-			verifyHelmPodWorkloadIsDeployed(workloadName2, WEGO_DEFAULT_NAMESPACE)
+			verifyHelmPodWorkloadIsDeployed(workloadName2, workloadNamespace2)
 		})
 
 		By("And I should see wego components in the remote git repo", func() {
