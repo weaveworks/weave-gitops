@@ -165,7 +165,7 @@ jobs:
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     - name: Run smoke tests from acceptance suite
       run: |
-        export GITOPS_BIN_PATH=$(pwd)/bin/gitops
+        export WEGO_BIN_PATH=$(pwd)/bin/gitops
         export CLUSTER_PROVIDER=kubectl
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         go get github.com/onsi/ginkgo/ginkgo
