@@ -745,8 +745,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("Then I should see the list of commits for app1", func() {
 			Eventually(commitList1).Should(MatchRegexp(`COMMIT HASH\s*CREATED AT\s*AUTHOR\s*MESSAGE\s*URL`))
-			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]\s*[0-2][0-9]:[0-5][0-9]:[0-5][0-9]`))
-			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]\s*[0-2][0-9]:[0-5][0-9]:[0-5][0-9]`))
+			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
+			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
 		})
 
 		By("When I check for list of commits for app2", func() {
@@ -755,8 +755,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("Then I should see the list of commits for app2", func() {
 			Eventually(commitList2).Should(MatchRegexp(`COMMIT HASH\s*CREATED AT\s*AUTHOR\s*MESSAGE\s*URL`))
-			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]\s*[0-2][0-9]:[0-5][0-9]:[0-5][0-9]`))
-			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]\s*[0-2][0-9]:[0-5][0-9]:[0-5][0-9]`))
+			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
+			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
 		})
 	})
 
@@ -954,9 +954,9 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("Then I should see the list of commits for app2", func() {
 			Eventually(commitList2).Should(MatchRegexp(`COMMIT HASH\s*CREATED AT\s*AUTHOR\s*MESSAGE\s*URL`))
-			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]\s*[0-2][0-9]:[0-5][0-9]:[0-6][0-9]\s*Weave Gitops\s*Add App manifests`))
-			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]\s*[0-2][0-9]:[0-5][0-9]:[0-6][0-9]`))
-			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]\s*[0-2][0-9]:[0-5][0-9]:[0-6][0-9]`))
+			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z\s*Weave Gitops\s*Add App manifests`))
+			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
+			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
 		})
 
 		By("When I remove an app", func() {
@@ -979,9 +979,9 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("Then I should see the list of commits for app1", func() {
 			Eventually(commitList1).Should(MatchRegexp(`COMMIT HASH\s*CREATED AT\s*AUTHOR\s*MESSAGE\s*URL`))
-			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]\s*[0-2][0-9]:[0-5][0-9]:[0-6][0-9]\s*Weave Gitops\s*Add App manifests`))
-			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]\s*[0-2][0-9]:[0-5][0-9]:[0-6][0-9]`))
-			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]\s*[0-2][0-9]:[0-5][0-9]:[0-6][0-9]`))
+			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z\s*Weave Gitops\s*Add App manifests`))
+			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
+			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
 		})
 
 		By("When I check for list of commits for a deleted app", func() {
