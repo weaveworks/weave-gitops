@@ -122,6 +122,25 @@ export type GetChildObjectsRes = {
   objects?: UnstructuredObject[]
 }
 
+export type GetGithubDeviceCodeRequest = {
+}
+
+export type GetGithubDeviceCodeResponse = {
+  userCode?: string
+  deviceCode?: string
+  validationURI?: string
+  interval?: number
+}
+
+export type GetGithubAuthStatusRequest = {
+  deviceCode?: string
+}
+
+export type GetGithubAuthStatusResponse = {
+  accessToken?: string
+  error?: string
+}
+
 export class Applications {
   static Authenticate(req: AuthenticateRequest, initReq?: fm.InitReq): Promise<AuthenticateResponse> {
     return fm.fetchReq<AuthenticateRequest, AuthenticateResponse>(`/v1/authenticate/${req["providerName"]}`, {...initReq, method: "POST", body: JSON.stringify(req)})
@@ -140,5 +159,11 @@ export class Applications {
   }
   static GetChildObjects(req: GetChildObjectsReq, initReq?: fm.InitReq): Promise<GetChildObjectsRes> {
     return fm.fetchReq<GetChildObjectsReq, GetChildObjectsRes>(`/v1/applications/child_objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static GetGithubDeviceCode(req: GetGithubDeviceCodeRequest, initReq?: fm.InitReq): Promise<GetGithubDeviceCodeResponse> {
+    return fm.fetchReq<GetGithubDeviceCodeRequest, GetGithubDeviceCodeResponse>(`/v1/applications/auth_providers/github?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetGithubAuthStatus(req: GetGithubAuthStatusRequest, initReq?: fm.InitReq): Promise<GetGithubAuthStatusResponse> {
+    return fm.fetchReq<GetGithubAuthStatusRequest, GetGithubAuthStatusResponse>(`/v1/applications/auth_providers/github/status`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }
