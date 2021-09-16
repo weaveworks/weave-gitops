@@ -11,6 +11,10 @@ import {
   GetApplicationResponse,
   GetChildObjectsReq,
   GetChildObjectsRes,
+  GetGithubAuthStatusRequest,
+  GetGithubAuthStatusResponse,
+  GetGithubDeviceCodeRequest,
+  GetGithubDeviceCodeResponse,
   GetReconciledObjectsReq,
   GetReconciledObjectsRes,
   ListApplicationsRequest,
@@ -20,7 +24,7 @@ import {
 } from "./api/applications/applications.pb";
 import theme, { muiTheme } from "./theme";
 
-type ApplicationOverrides = {
+export type ApplicationOverrides = {
   ListApplications?: (req: ListApplicationsRequest) => ListApplicationsResponse;
   GetApplication?: (req: GetApplicationRequest) => GetApplicationResponse;
   ListCommits?: (req: ListCommitsRequest) => ListCommitsResponse;
@@ -28,6 +32,12 @@ type ApplicationOverrides = {
     req: GetReconciledObjectsReq
   ) => GetReconciledObjectsRes;
   GetChildObjects?: (req: GetChildObjectsReq) => GetChildObjectsRes;
+  GetGithubDeviceCode?: (
+    req: GetGithubDeviceCodeRequest
+  ) => GetGithubDeviceCodeResponse;
+  GetGithubAuthStatus?: (
+    req: GetGithubAuthStatusRequest
+  ) => GetGithubAuthStatusResponse;
 };
 
 // Don't make the user wire up all the promise stuff to be interface-compliant
@@ -63,12 +73,14 @@ export function withContext(
 ) {
   const history = createMemoryHistory();
   history.push(url);
+
+  const isElement = React.isValidElement(TestComponent);
   return (
     <Router history={history}>
       <AppContextProvider
         applicationsClient={createMockClient(appOverrides) as any}
       >
-        <TestComponent />
+        {isElement ? TestComponent : <TestComponent />}
       </AppContextProvider>
     </Router>
   );

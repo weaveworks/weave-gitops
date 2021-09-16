@@ -19,6 +19,7 @@ describe("Example Library App", () => {
     GetApplication: () => ({ application: { name } }),
     GetReconciledObjects: () => ({ objects: [] }),
     GetChildObjects: () => ({ objects: [] }),
+    ListCommits: () => ({ commits: [] }),
   };
 
   const wrap = (Component) => (

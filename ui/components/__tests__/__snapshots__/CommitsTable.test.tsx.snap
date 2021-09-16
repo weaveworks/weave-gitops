@@ -1,0 +1,131 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CommitsTable snapshots renders 1`] = `
+.c1 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+}
+
+.c3 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #00b3ec;
+}
+
+.c0 th {
+  font-weight: bold;
+}
+
+.c2 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
+}
+
+<div
+  class=""
+>
+  <div
+    class="c0"
+  >
+    <div
+      class="MuiTableContainer-root"
+    >
+      <table
+        aria-label="simple table"
+        class="MuiTable-root"
+      >
+        <thead
+          class="MuiTableHead-root"
+        >
+          <tr
+            class="MuiTableRow-root MuiTableRow-head"
+          >
+            <th
+              class="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              SHA
+            </th>
+            <th
+              class="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              Date
+            </th>
+            <th
+              class="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              Message
+            </th>
+            <th
+              class="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              Author
+            </th>
+          </tr>
+        </thead>
+        <tbody
+          class="MuiTableBody-root"
+        >
+          <tr
+            class="MuiTableRow-root"
+          >
+            <td
+              class="MuiTableCell-root MuiTableCell-body"
+            >
+              <span
+                class="c1"
+              >
+                <a
+                  class="c2"
+                  href="/"
+                >
+                  <span
+                    class="c3"
+                    color="primary"
+                  >
+                    123abc
+                  </span>
+                </a>
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root MuiTableCell-body"
+            >
+              <span
+                class="c1"
+              >
+                test timestamp
+              </span>
+            </td>
+            <td
+              class="MuiTableCell-root MuiTableCell-body"
+            >
+              <span
+                class="c1"
+              />
+            </td>
+            <td
+              class="MuiTableCell-root MuiTableCell-body"
+            >
+              <span
+                class="c1"
+              >
+                Example User
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;

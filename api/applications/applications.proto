@@ -51,7 +51,7 @@ service Applications {
     */
     rpc ListCommits(ListCommitsRequest) returns (ListCommitsResponse) {
         option (google.api.http) = {
-            get : "/v1/applications/{name}/commits"
+            get : "/v1/applications/{name}/commits",
         };
     }
     /**
@@ -76,6 +76,29 @@ service Applications {
             body: "*"
         };
     };
+
+    /** 
+    * GetGithubDeviceCode retrieves a temporary device code for Github authentication.
+    * This code is used to start the Github device-flow.
+    */
+    rpc GetGithubDeviceCode(GetGithubDeviceCodeRequest) returns (GetGithubDeviceCodeResponse) {
+        option (google.api.http) = {
+            get : "/v1/applications/auth_providers/github"
+        };
+    }
+
+    /**
+    * GetGithubAuthStatus gets the status of the Github device flow authentication requests.
+    * Once the user has completed the Github device flow, an access token will be returned.
+    * This token will expired in 15 minutes, after which the user will need to complete the flow again
+    * to do Git Provider operations.
+    */
+    rpc GetGithubAuthStatus(GetGithubAuthStatusRequest) returns (GetGithubAuthStatusResponse) {
+        option (google.api.http) = {
+            post : "/v1/applications/auth_providers/github/status"
+            body: "*"
+        };
+    }
 }
 
 // This object represents a single condition for a Kubernetes object.
@@ -188,4 +211,25 @@ message GetChildObjectsReq {
 
 message GetChildObjectsRes {
     repeated UnstructuredObject objects = 1;
+}
+
+
+message GetGithubDeviceCodeRequest {
+
+}
+
+message GetGithubDeviceCodeResponse {
+    string userCode      = 1; // The Github Device Flow code that will be shown to the user
+    string deviceCode    = 2; // A code that uniquely identifies a device
+    string validationURI = 3; // The URI that the user will visit to complete the flow
+    int32  interval      = 4; // How often the client should retry the request
+}
+
+message GetGithubAuthStatusRequest {
+    string deviceCode = 1; // The deviceCode returned from a GetGithubDeviceCodeResponse
+}
+
+message GetGithubAuthStatusResponse {
+    string accessToken = 1; // An access token that can be used to interact with the Weave GitOps API.
+    string error       = 2; // An error message.
 }
