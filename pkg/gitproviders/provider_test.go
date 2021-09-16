@@ -458,6 +458,7 @@ var _ = Describe("test gitlab project", func() {
 		client, recorder, err = getTestClientWithCassette("gitlab_repo_personal_exists", GitLabProviderName)
 		Expect(err).NotTo(HaveOccurred())
 		gitProvider = defaultGitProvider{
+			domain:   gitlab.DefaultDomain,
 			provider: client,
 		}
 	})
@@ -496,6 +497,7 @@ var _ = Describe("test gitlab group project", func() {
 		client, recorder, err = getTestClientWithCassette("gitlab_repo_group_exists", GitLabProviderName)
 		Expect(err).NotTo(HaveOccurred())
 		gitProvider = defaultGitProvider{
+			domain:   gitlab.DefaultDomain,
 			provider: client,
 		}
 	})
