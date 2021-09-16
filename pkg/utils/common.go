@@ -125,23 +125,27 @@ func ValidateNamespace(ns string) error {
 // user inputs that might be provided.
 func SanitizeRepoUrl(url string) string {
 	trimmed := ""
+	domain := "github"
+	if strings.Contains(url, "gitlab") {
+		domain = "gitlab"
+	}
 
 	if !strings.HasSuffix(url, ".git") {
 		url = url + ".git"
 	}
 
-	sshPrefix := "git@github.com:"
+	sshPrefix := fmt.Sprintf("git@%s.com:", domain)
 	if strings.HasPrefix(url, sshPrefix) {
 		trimmed = strings.TrimPrefix(url, sshPrefix)
 	}
 
-	httpsPrefix := "https://github.com/"
+	httpsPrefix := fmt.Sprintf("https://%s.com/", domain)
 	if strings.HasPrefix(url, httpsPrefix) {
 		trimmed = strings.TrimPrefix(url, httpsPrefix)
 	}
 
 	if trimmed != "" {
-		return "ssh://git@github.com/" + trimmed
+		return fmt.Sprintf("ssh://git@%s.com/%s", domain, trimmed)
 	}
 
 	return url

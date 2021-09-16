@@ -38,7 +38,7 @@ var _ = Describe("create github repo", func() {
 	var err error
 	BeforeEach(func() {
 	    var client gitprovider.Client
-		client, recorder, err = getTestClientWithCassette("CASSETTE_ID")
+		client, recorder, err = getTestClientWithCassette("CASSETTE_ID", "provider name")
 		Expect(err).NotTo(HaveOccurred())
 		gitProvider = defaultGitProvider{
 			provider: client,

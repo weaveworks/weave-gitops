@@ -5,6 +5,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 )
 
@@ -14,10 +15,10 @@ type FakeOsys struct {
 	exitArgsForCall []struct {
 		arg1 int
 	}
-	GetGitProviderTokenStub        func(string) (string, error)
+	GetGitProviderTokenStub        func(gitproviders.GitProviderName) (string, error)
 	getGitProviderTokenMutex       sync.RWMutex
 	getGitProviderTokenArgsForCall []struct {
-		arg1 string
+		arg1 gitproviders.GitProviderName
 	}
 	getGitProviderTokenReturns struct {
 		result1 string
@@ -152,11 +153,11 @@ func (fake *FakeOsys) ExitArgsForCall(i int) int {
 	return argsForCall.arg1
 }
 
-func (fake *FakeOsys) GetGitProviderToken(arg1 string) (string, error) {
+func (fake *FakeOsys) GetGitProviderToken(arg1 gitproviders.GitProviderName) (string, error) {
 	fake.getGitProviderTokenMutex.Lock()
 	ret, specificReturn := fake.getGitProviderTokenReturnsOnCall[len(fake.getGitProviderTokenArgsForCall)]
 	fake.getGitProviderTokenArgsForCall = append(fake.getGitProviderTokenArgsForCall, struct {
-		arg1 string
+		arg1 gitproviders.GitProviderName
 	}{arg1})
 	stub := fake.GetGitProviderTokenStub
 	fakeReturns := fake.getGitProviderTokenReturns
@@ -177,13 +178,13 @@ func (fake *FakeOsys) GetGitProviderTokenCallCount() int {
 	return len(fake.getGitProviderTokenArgsForCall)
 }
 
-func (fake *FakeOsys) GetGitProviderTokenCalls(stub func(string) (string, error)) {
+func (fake *FakeOsys) GetGitProviderTokenCalls(stub func(gitproviders.GitProviderName) (string, error)) {
 	fake.getGitProviderTokenMutex.Lock()
 	defer fake.getGitProviderTokenMutex.Unlock()
 	fake.GetGitProviderTokenStub = stub
 }
 
-func (fake *FakeOsys) GetGitProviderTokenArgsForCall(i int) string {
+func (fake *FakeOsys) GetGitProviderTokenArgsForCall(i int) gitproviders.GitProviderName {
 	fake.getGitProviderTokenMutex.RLock()
 	defer fake.getGitProviderTokenMutex.RUnlock()
 	argsForCall := fake.getGitProviderTokenArgsForCall[i]

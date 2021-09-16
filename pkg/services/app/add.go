@@ -234,6 +234,10 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 		}
 	default:
 		// making sure url is in the correct format
+		if strings.Contains(params.Url, "git@gitlab.com:") {
+			params.Url = strings.Replace(params.Url, ":", "/", 1)
+		}
+
 		_, err := url.Parse(params.Url)
 		if err != nil {
 			return params, fmt.Errorf("error validating url %w", err)

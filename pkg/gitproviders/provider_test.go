@@ -19,6 +19,7 @@ import (
 	"github.com/dnaeon/go-vcr/cassette"
 	"github.com/dnaeon/go-vcr/recorder"
 	"github.com/fluxcd/go-git-providers/github"
+	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
@@ -30,6 +31,8 @@ var (
 	GithubUserTestName = "bot"
 	GitlabOrgTestName  = "weaveworks"
 	GitlabUserTestName = "bot"
+	GitHubProviderName = "github"
+	GitLabProviderName = "gitlab"
 )
 
 type customTransport struct {
@@ -171,7 +174,7 @@ func NewRecorder(cassetteID string, accounts *accounts) (*recorder.Recorder, err
 func getAccounts() *accounts {
 	accounts := &accounts{}
 
-	ghOrgName := os.Getenv("GITHUB_ORG_NAME")
+	ghOrgName := os.Getenv("GITHUB_ORG")
 	if ghOrgName == "" {
 		accounts.GithubOrgName = GithubOrgTestName
 	} else {
@@ -185,7 +188,7 @@ func getAccounts() *accounts {
 		accounts.GithubUserName = ghUserName
 	}
 
-	glOrgName := os.Getenv("GITLAB_ORG_NAME")
+	glOrgName := os.Getenv("GITLAB_ORG")
 	if glOrgName == "" {
 		accounts.GitlabOrgName = GitlabOrgTestName
 	} else {
@@ -202,24 +205,30 @@ func getAccounts() *accounts {
 	return accounts
 }
 
-func getTestClientWithCassette(cassetteID string) (gitprovider.Client, *recorder.Recorder, error) {
+func getTestClientWithCassette(cassetteID string, providerName string) (gitprovider.Client, *recorder.Recorder, error) {
 	t := customTransport{}
 
 	var err error
-
-	cacheGithubRecorder, err := NewRecorder(cassetteID, getAccounts())
+	cacheGitRecorder, err := NewRecorder(cassetteID, getAccounts())
 	if err != nil {
 		return nil, nil, err
 	}
 
-	cacheGithubRecorder.SetTransport(&t)
-
-	githubTestClient, err := newGithubTestClient(SetRecorder(cacheGithubRecorder))
-	if err != nil {
-		return nil, nil, err
+	cacheGitRecorder.SetTransport(&t)
+	var gitTestClient gitprovider.Client
+	if providerName == GitHubProviderName {
+		gitTestClient, err = newGithubTestClient(SetRecorder(cacheGitRecorder))
+		if err != nil {
+			return nil, nil, err
+		}
+	} else {
+		gitTestClient, err = newGitlabTestClient(SetRecorder(cacheGitRecorder))
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
-	return githubTestClient, cacheGithubRecorder, nil
+	return gitTestClient, cacheGitRecorder, nil
 }
 
 func newGithubTestClient(customTransportFactory gitprovider.ChainableRoundTripperFunc) (gitprovider.Client, error) {
@@ -229,6 +238,21 @@ func newGithubTestClient(customTransportFactory gitprovider.ChainableRoundTrippe
 	}
 
 	return github.NewClient(
+		gitprovider.WithOAuth2Token(token),
+		gitprovider.WithPreChainTransportHook(customTransportFactory),
+		gitprovider.WithDestructiveAPICalls(true),
+	)
+}
+
+func newGitlabTestClient(customTransportFactory gitprovider.ChainableRoundTripperFunc) (gitprovider.Client, error) {
+	token := os.Getenv("GITLAB_TOKEN")
+	if token == "" { // This is the case when the tests run in the ci/cd tool. No need to have a value as everything is cached
+		token = " "
+	}
+
+	return gitlab.NewClient(
+		token,
+		"oauth2",
 		gitprovider.WithOAuth2Token(token),
 		gitprovider.WithPreChainTransportHook(customTransportFactory),
 		gitprovider.WithDestructiveAPICalls(true),
@@ -273,7 +297,7 @@ var _ = Describe("pull requests", func() {
 	var providers []tier
 
 	var _ = BeforeEach(func() {
-		client, recorder, err = getTestClientWithCassette("pull_requests")
+		client, recorder, err = getTestClientWithCassette("pull_requests", GitHubProviderName)
 		Expect(err).NotTo(HaveOccurred())
 		gitProvider = defaultGitProvider{
 			domain:   github.DefaultDomain,
@@ -318,7 +342,7 @@ var _ = Describe("commits", func() {
 	var providers []tier
 
 	var _ = BeforeEach(func() {
-		client, recorder, err = getTestClientWithCassette("commits")
+		client, recorder, err = getTestClientWithCassette("commits", GitHubProviderName)
 		Expect(err).NotTo(HaveOccurred())
 		gitProvider = defaultGitProvider{
 			domain:   github.DefaultDomain,
@@ -354,7 +378,7 @@ var _ = Describe("test org repo exists", func() {
 	var err error
 	repoName := "repo-exists-org"
 	BeforeEach(func() {
-		client, recorder, err = getTestClientWithCassette("repo_org_exists")
+		client, recorder, err = getTestClientWithCassette("repo_org_exists", GitHubProviderName)
 		Expect(err).NotTo(HaveOccurred())
 		gitProvider = defaultGitProvider{
 			domain:   github.DefaultDomain,
@@ -392,7 +416,7 @@ var _ = Describe("test personal repo exists", func() {
 	var err error
 	repoName := "repo-exists-personal"
 	BeforeEach(func() {
-		client, recorder, err = getTestClientWithCassette("repo_personal_exists")
+		client, recorder, err = getTestClientWithCassette("repo_personal_exists", GitHubProviderName)
 		Expect(err).NotTo(HaveOccurred())
 		gitProvider = defaultGitProvider{
 			domain:   github.DefaultDomain,
@@ -417,6 +441,83 @@ var _ = Describe("test personal repo exists", func() {
 		user, err := client.UserRepositories().Get(ctx, userRepoRef)
 		Expect(err).NotTo(HaveOccurred())
 		err = user.Delete(ctx)
+		Expect(err).NotTo(HaveOccurred())
+		err = recorder.Stop()
+		Expect(err).NotTo(HaveOccurred())
+	})
+
+})
+
+var _ = Describe("test gitlab project", func() {
+	accounts := getAccounts()
+
+	var client gitprovider.Client
+	var recorder *recorder.Recorder
+	var err error
+	repoName := "repo-exists-personal"
+	BeforeEach(func() {
+		client, recorder, err = getTestClientWithCassette("gitlab_repo_personal_exists", GitLabProviderName)
+		Expect(err).NotTo(HaveOccurred())
+		gitProvider = defaultGitProvider{
+			provider: client,
+		}
+	})
+
+	It("succeed on validating repo existence", func() {
+		accounts := getAccounts()
+
+		err := gitProvider.CreateRepository(repoName, accounts.GitlabUserName, true)
+		Expect(err).NotTo(HaveOccurred())
+
+		exists, err := gitProvider.RepositoryExists(repoName, accounts.GitlabUserName)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(true).To(Equal(exists))
+	})
+
+	AfterEach(func() {
+		ctx := context.Background()
+		userRepoRef := NewUserRepositoryRef(gitlab.DefaultDomain, accounts.GitlabUserName, repoName)
+		user, err := client.UserRepositories().Get(ctx, userRepoRef)
+		Expect(err).NotTo(HaveOccurred())
+		err = user.Delete(ctx)
+		Expect(err).NotTo(HaveOccurred())
+		err = recorder.Stop()
+		Expect(err).NotTo(HaveOccurred())
+	})
+})
+
+var _ = Describe("test gitlab group project", func() {
+	accounts := getAccounts()
+
+	var client gitprovider.Client
+	var recorder *recorder.Recorder
+	var err error
+	repoName := "repo-exists-group"
+	BeforeEach(func() {
+		client, recorder, err = getTestClientWithCassette("gitlab_repo_group_exists", GitLabProviderName)
+		Expect(err).NotTo(HaveOccurred())
+		gitProvider = defaultGitProvider{
+			provider: client,
+		}
+	})
+
+	It("succeed on validating repo existence", func() {
+		accounts := getAccounts()
+
+		err := gitProvider.CreateRepository(repoName, accounts.GitlabOrgName, true)
+		Expect(err).NotTo(HaveOccurred())
+
+		exists, err := gitProvider.RepositoryExists(repoName, accounts.GitlabOrgName)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(true).To(Equal(exists))
+	})
+
+	AfterEach(func() {
+		ctx := context.Background()
+		orgRepoRef := NewOrgRepositoryRef(gitlab.DefaultDomain, accounts.GitlabOrgName, repoName)
+		org, err := client.OrgRepositories().Get(ctx, orgRepoRef)
+		Expect(err).NotTo(HaveOccurred())
+		err = org.Delete(ctx)
 		Expect(err).NotTo(HaveOccurred())
 		err = recorder.Stop()
 		Expect(err).NotTo(HaveOccurred())
@@ -579,7 +680,7 @@ var _ = Describe("Get User repo info", func() {
 	repoName := "test-user-repo-info"
 
 	BeforeEach(func() {
-		client, recorder, err = getTestClientWithCassette("get_user_repo_info")
+		client, recorder, err = getTestClientWithCassette("get_user_repo_info", GitHubProviderName)
 		Expect(err).NotTo(HaveOccurred())
 		gitProvider = defaultGitProvider{
 			domain:   github.DefaultDomain,
@@ -626,7 +727,7 @@ var _ = Describe("Test user deploy keys creation", func() {
 	var deployKey string
 
 	BeforeEach(func() {
-		client, recorder, err = getTestClientWithCassette("deploy_key_user")
+		client, recorder, err = getTestClientWithCassette("deploy_key_user", GitHubProviderName)
 		Expect(err).NotTo(HaveOccurred())
 		gitProvider = defaultGitProvider{
 			domain:   github.DefaultDomain,
@@ -695,7 +796,7 @@ var _ = Describe("Test org deploy keys creation", func() {
 	var deployKey string
 
 	BeforeEach(func() {
-		client, recorder, err = getTestClientWithCassette("deploy_key_org")
+		client, recorder, err = getTestClientWithCassette("deploy_key_org", GitHubProviderName)
 		Expect(err).NotTo(HaveOccurred())
 		gitProvider = defaultGitProvider{
 			domain:   github.DefaultDomain,

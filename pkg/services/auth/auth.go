@@ -75,7 +75,7 @@ func getGitProviderWithClients(
 	token, err := osysClient.GetGitProviderToken(tokenVarName)
 	if err == osys.ErrNoGitProviderTokenSet {
 		// No provider token set, we need to do the auth flow.
-		logger.Warningf("Setting the %q environment variable to a valid token will allow ongoing use of the CLI without requiring a browser-based auth flow...\n", tokenVarName)
+		logger.Warningf("Setting the %q environment variable to a valid token will allow ongoing use of the CLI without requiring a browser-based auth flow...\n", tokenErr)
 
 		generatedToken, err := authHandler(ctx, osysClient.Stdout())
 		if err != nil {
@@ -94,17 +94,6 @@ func getGitProviderWithClients(
 	}
 
 	return provider, nil
-}
-
-func getTokenVarName(providerName gitproviders.GitProviderName) (string, error) {
-	switch providerName {
-	case gitproviders.GitProviderGitHub:
-		return "GITHUB_TOKEN", nil
-	case gitproviders.GitProviderGitLab:
-		return "GITLAB_TOKEN", nil
-	default:
-		return "", fmt.Errorf("unknown git provider: %q", providerName)
-	}
 }
 
 type SecretName struct {

@@ -990,6 +990,63 @@ var _ = Describe("Test app hash", func() {
 	})
 })
 
+var _ = Describe("Add Gitlab", func() {
+	var _ = BeforeEach(func() {
+		addParams = AddParams{
+			Url:            "https://gitlab.com/foo/bar",
+			Path:           "./kustomize",
+			Branch:         "main",
+			Dir:            ".",
+			DeploymentType: "kustomize",
+			Namespace:      "wego-system",
+			AppConfigUrl:   "NONE",
+			AutoMerge:      true,
+		}
+
+		gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
+			return "main", nil
+		}
+
+		ctx = context.Background()
+	})
+
+	Context("add app with config in app repo", func() {
+		BeforeEach(func() {
+			addParams.Url = "ssh://git@gitlab.com/foo/bar.git"
+			addParams.AppConfigUrl = ""
+
+			gitClient.OpenStub = func(s string) (*gogit.Repository, error) {
+				r, err := gogit.Init(memory.NewStorage(), memfs.New())
+				Expect(err).ShouldNot(HaveOccurred())
+
+				_, err = r.CreateRemote(&config.RemoteConfig{
+					Name: "origin",
+					URLs: []string{"git@gitlab.com:foo/bar.git"},
+				})
+				Expect(err).ShouldNot(HaveOccurred())
+				return r, nil
+			}
+		})
+
+		Describe("generates source manifest", func() {
+			It("creates GitRepository when source type is git", func() {
+				addParams.SourceType = wego.SourceTypeGit
+				err := appSrv.Add(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				Expect(fluxClient.CreateSourceGitCallCount()).To(Equal(1))
+
+				name, url, branch, secretRef, namespace := fluxClient.CreateSourceGitArgsForCall(0)
+				Expect(name).To(Equal("bar"))
+				Expect(url).To(Equal("ssh://git@gitlab.com/foo/bar.git"))
+				Expect(branch).To(Equal("main"))
+				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
+				Expect(namespace).To(Equal("wego-system"))
+			})
+		})
+	})
+})
+
 func getHash(inputs ...string) string {
 	final := []byte(strings.Join(inputs, ""))
 	return fmt.Sprintf("%x", md5.Sum(final))

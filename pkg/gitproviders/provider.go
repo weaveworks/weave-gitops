@@ -254,7 +254,7 @@ func (p defaultGitProvider) GetAccountType(owner string) (ProviderAccountType, e
 	})
 
 	if err != nil {
-		if errors.Is(err, gitprovider.ErrNotFound) {
+		if errors.Is(err, gitprovider.ErrNotFound) || strings.Contains(err.Error(), "404 Group Not Found") {
 			return AccountTypeUser, nil
 		}
 

@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/fluxcd/go-git-providers/github"
+	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -42,6 +43,7 @@ const DEFAULT_BRANCH_NAME = "main"
 
 var DEFAULT_SSH_KEY_PATH string
 var GITHUB_ORG string
+var GITLAB_ORG string
 var WEGO_BIN_PATH string
 
 type TestInputs struct {
@@ -216,20 +218,20 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 	return clusterName, nil
 }
 
-func initAndCreateEmptyRepo(appRepoName string, isPrivateRepo bool) string {
+func initAndCreateEmptyRepo(appRepoName string, providerName string, isPrivateRepo bool) string {
 	repoAbsolutePath := "/tmp/" + appRepoName
 
 	// We need this step in case running a single test case locally
 	err := os.RemoveAll(repoAbsolutePath)
 	Expect(err).ShouldNot(HaveOccurred())
 
-	err = createRepository(appRepoName, DEFAULT_BRANCH_NAME, isPrivateRepo)
+	err = createGitHubRepository(appRepoName, DEFAULT_BRANCH_NAME, isPrivateRepo)
 	Expect(err).ShouldNot(HaveOccurred())
 
 	err = utils.WaitUntil(os.Stdout, time.Second*3, time.Second*30, func() error {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
-                            git clone git@github.com:%s/%s.git %s`,
-			GITHUB_ORG, appRepoName,
+                            git clone git@%s.com:%s/%s.git %s`,
+			providerName, orgName, appRepoName,
 			repoAbsolutePath))
 		command.Stdout = os.Stdout
 		command.Stderr = os.Stderr
@@ -264,15 +266,50 @@ func createGitRepoBranch(repoAbsolutePath string, branchName string) string {
 	return string(session.Wait().Out.Contents())
 }
 
-func getRepoVisibility(org string, repo string) string {
-	command := exec.Command("sh", "-c", fmt.Sprintf("hub api --flat repos/%s/%s|grep -i private|cut -f2", org, repo))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+func getGitHubRepoVisibility(org string, repo string) string {
+	gitProvider, err := github.NewClient(
+		gitprovider.WithOAuth2Token(os.Getenv("GITHUB_TOKEN")),
+		gitprovider.WithDestructiveAPICalls(true),
+	)
 	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
-	visibilityStr := strings.TrimSpace(string(session.Wait().Out.Contents()))
-	log.Infof("Repo visibility private=%s", visibilityStr)
 
-	return visibilityStr
+	orgRef := gitprovider.OrgRepositoryRef{
+		RepositoryName: repo,
+		OrganizationRef: gitprovider.OrganizationRef{
+			Domain:       github.DefaultDomain,
+			Organization: GITHUB_ORG,
+		},
+	}
+
+	orgInfo, err := gitProvider.OrgRepositories().Get(context.Background(), orgRef)
+	Expect(err).ShouldNot(HaveOccurred())
+	visibility := string(*orgInfo.Get().Visibility)
+	log.Infof("Repo visibility private=%s", visibility)
+	return visibility
+}
+
+func getGitLabRepoVisibility(org string, repo string) string {
+	gitProvider, err := gitlab.NewClient(
+		os.Getenv("GITLAB_TOKEN"),
+		"oauth2",
+		gitprovider.WithOAuth2Token(os.Getenv("GITLAB_TOKEN")),
+		gitprovider.WithDestructiveAPICalls(true),
+	)
+	Expect(err).ShouldNot(HaveOccurred())
+
+	orgRef := gitprovider.OrgRepositoryRef{
+		RepositoryName: repo,
+		OrganizationRef: gitprovider.OrganizationRef{
+			Domain:       gitlab.DefaultDomain,
+			Organization: GITLAB_ORG,
+		},
+	}
+
+	orgInfo, err := gitProvider.OrgRepositories().Get(context.Background(), orgRef)
+	Expect(err).ShouldNot(HaveOccurred())
+	visibility := string(*orgInfo.Get().Visibility)
+	log.Infof("Repo visibility private=%s", visibility)
+	return visibility
 }
 
 func waitForResource(resourceType string, resourceName string, namespace string, timeout time.Duration) error {
@@ -400,9 +437,9 @@ func deleteNamespace(namespace string) {
 	Eventually(session).Should(gexec.Exit())
 }
 
-func deleteRepo(appRepoName string) {
-	log.Infof("Delete application repo: %s", GITHUB_ORG+"/"+appRepoName)
-	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", GITHUB_ORG+"/"+appRepoName)
+func deleteRepo(appRepoName string, org string) {
+	log.Infof("Delete application repo: %s", org+"/"+appRepoName)
+	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", org+"/"+appRepoName)
 }
 
 func deleteWorkload(workloadName string, workloadNamespace string) {
@@ -662,7 +699,7 @@ func getWaitTimeFromErr(errOutput string) (time.Duration, error) {
 	return 0, fmt.Errorf("could not found a rate reset on string: %s", errOutput)
 }
 
-func createRepository(repoName, branch string, private bool) error {
+func createGitHubRepository(repoName, branch string, private bool) error {
 	visibility := gitprovider.RepositoryVisibilityPublic
 	if private {
 		visibility = gitprovider.RepositoryVisibilityPrivate
@@ -688,7 +725,7 @@ func createRepository(repoName, branch string, private bool) error {
 		},
 	}
 
-	githubProvider, err := github.NewClient(
+	gitProvider, err := github.NewClient(
 		gitprovider.WithOAuth2Token(os.Getenv("GITHUB_TOKEN")),
 		gitprovider.WithDestructiveAPICalls(true),
 	)
@@ -701,7 +738,76 @@ func createRepository(repoName, branch string, private bool) error {
 	fmt.Printf("creating repo %s ...\n", repoName)
 
 	if err := utils.WaitUntil(os.Stdout, time.Second, THIRTY_SECOND_TIMEOUT, func() error {
-		_, err := githubProvider.OrgRepositories().Create(ctx, orgRef, repoInfo, repoCreateOpts)
+		_, err := gitProvider.OrgRepositories().Create(ctx, orgRef, repoInfo, repoCreateOpts)
+		if err != nil && strings.Contains(err.Error(), "rate limit exceeded") {
+			waitForRateQuota, err := getWaitTimeFromErr(err.Error())
+			if err != nil {
+				return err
+			}
+			fmt.Printf("Waiting for rate quota %s \n", waitForRateQuota.String())
+			time.Sleep(waitForRateQuota)
+			return fmt.Errorf("retry after waiting for rate quota")
+		}
+		return err
+	}); err != nil {
+		return fmt.Errorf("error creating repo %s", err)
+	}
+	fmt.Printf("repo %s created ...\n", repoName)
+
+	fmt.Printf("validating access to the repo %s ...\n", repoName)
+	err = utils.WaitUntil(os.Stdout, time.Second, THIRTY_SECOND_TIMEOUT, func() error {
+		_, err := gitProvider.OrgRepositories().Get(ctx, orgRef)
+		return err
+	})
+	if err != nil {
+		return fmt.Errorf("error validating access to the repository %w", err)
+	}
+	fmt.Printf("repo %s is accessible through the api ...\n", repoName)
+
+	return nil
+}
+
+func createGitLabRepository(repoName string, private bool) error {
+
+	visibility := gitprovider.RepositoryVisibilityPublic
+	if private {
+		visibility = gitprovider.RepositoryVisibilityPrivate
+	}
+
+	description := "Weave Gitops test repo"
+	defaultBranch := DEFAULT_BRANCH_NAME
+	repoInfo := gitprovider.RepositoryInfo{
+		Description:   &description,
+		Visibility:    &visibility,
+		DefaultBranch: &defaultBranch,
+	}
+
+	repoCreateOpts := &gitprovider.RepositoryCreateOptions{
+		AutoInit: gitprovider.BoolVar(true),
+	}
+
+	orgRef := gitprovider.OrgRepositoryRef{
+		RepositoryName: repoName,
+		OrganizationRef: gitprovider.OrganizationRef{
+			Domain:       gitlab.DefaultDomain,
+			Organization: GITLAB_ORG,
+		},
+	}
+
+	gitProvider, err := gitlab.NewClient(
+		os.Getenv("GITLAB_TOKEN"),
+		"oauth2",
+		gitprovider.WithOAuth2Token(os.Getenv("GITLAB_TOKEN")),
+		gitprovider.WithDestructiveAPICalls(true),
+	)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+	fmt.Printf("creating repo %s ...\n", repoName)
+	if err := utils.WaitUntil(os.Stdout, time.Second, THIRTY_SECOND_TIMEOUT, func() error {
+		_, err := gitProvider.OrgRepositories().Create(ctx, orgRef, repoInfo, repoCreateOpts)
 		if err != nil && strings.Contains(err.Error(), "rate limit exceeded") {
 			waitForRateQuota, err := getWaitTimeFromErr(err.Error())
 			if err != nil {
@@ -721,7 +827,7 @@ func createRepository(repoName, branch string, private bool) error {
 	fmt.Printf("validating access to the repo %s ...\n", repoName)
 
 	err = utils.WaitUntil(os.Stdout, time.Second, THIRTY_SECOND_TIMEOUT, func() error {
-		_, err := githubProvider.OrgRepositories().Get(ctx, orgRef)
+		_, err := gitProvider.OrgRepositories().Get(ctx, orgRef)
 		return err
 	})
 	if err != nil {
