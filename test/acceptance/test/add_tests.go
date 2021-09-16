@@ -40,7 +40,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Verify that wego cannot work without wego components installed and with both url and directory provided", func() {
+	It("Verify that wego cannot work without wego components installed OR with both url and directory provided", func() {
 		var repoAbsolutePath string
 		var errOutput string
 		var exitCode int
@@ -744,9 +744,9 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("Then I should see the list of commits for app1", func() {
-			Eventually(commitList1).Should(MatchRegexp(`COMMIT\s*HASH\s*CREATED\s*AT\s*AUTHOR\s*MESSAGE`))
-			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]\s*[0-2][0-9]:[0-5][0-9]:[0-6][0-9] UTC`))
-			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]\s*[0-2][0-9]:[0-5][0-9]:[0-6][0-9] UTC`))
+			Eventually(commitList1).Should(MatchRegexp(`COMMIT HASH\s*CREATED AT\s*AUTHOR\s*MESSAGE\s*URL`))
+			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]\s*[0-2][0-9]:[0-5][0-9]:[0-5][0-9]`))
+			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]\s*[0-2][0-9]:[0-5][0-9]:[0-5][0-9]`))
 		})
 
 		By("When I check for list of commits for app2", func() {
@@ -754,9 +754,9 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("Then I should see the list of commits for app2", func() {
-			Eventually(commitList2).Should(MatchRegexp(`COMMIT\s*HASH\s*CREATED\s*AT\s*AUTHOR\s*MESSAGE`))
-			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]\s*[0-2][0-9]:[0-5][0-9]:[0-6][0-9] UTC`))
-			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]\s*[0-2][0-9]:[0-5][0-9]:[0-6][0-9] UTC`))
+			Eventually(commitList2).Should(MatchRegexp(`COMMIT HASH\s*CREATED AT\s*AUTHOR\s*MESSAGE\s*URL`))
+			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]\s*[0-2][0-9]:[0-5][0-9]:[0-5][0-9]`))
+			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]\s*[0-2][0-9]:[0-5][0-9]:[0-5][0-9]`))
 		})
 	})
 
@@ -994,7 +994,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Verify that wego can deploy a helm app from a git repo with app-config-url set to NONE", func() {
+	It("SmokeTest - Verify that wego can deploy a helm app from a git repo with app-config-url set to NONE", func() {
 		var repoAbsolutePath string
 		var reAddOutput string
 		var removeOutput *gexec.Session
