@@ -30,7 +30,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 	It("Validate that gitops displays help text for 'install' command", func() {
 
 		By("When I run the command 'gitops install -h'", func() {
-			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " gitops install -h")
+			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " install -h")
 		})
 
 		By("Then I should see gitops help text displayed for 'install' command", func() {
@@ -42,7 +42,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 	It("Validate that gitops displays help text for 'uninstall' command", func() {
 
 		By("When I run the command 'gitops uninstall -h'", func() {
-			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " gitops uninstall -h")
+			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " uninstall -h")
 		})
 
 		By("Then I should see gitops help text displayed for 'uninstall' command", func() {
@@ -68,7 +68,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 
 		By("And I run 'gitops install' command", func() {
-			_, errOutput = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " gitops install")
+			_, errOutput = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " install")
 		})
 
 		By("Then I should see a quitting message", func() {
@@ -89,7 +89,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		installAndVerifyWego(namespace)
 
 		By("When I run 'gitops uninstall' command", func() {
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s gitops uninstall --namespace %s", WEGO_BIN_PATH, namespace))
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, namespace))
 		})
 
 		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)
@@ -143,7 +143,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 
 		By("When I try to install gitops in dry-run mode", func() {
-			installDryRunOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " gitops install --dry-run")
+			installDryRunOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " install --dry-run")
 		})
 
 		By("Then I should see install dry-run output in the console", func() {
