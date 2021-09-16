@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/fluxcd/go-git-providers/gitlab"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -243,13 +244,15 @@ var _ = Describe("Initialization", func() {
 	})
 
 	It("builds a github client", func() {
-		_, err := New(Config{Token: "bla", Provider: GitProviderGitHub})
+		client, err := New(Config{Token: "bla", Provider: GitProviderGitHub})
 		Expect(err).ToNot(HaveOccurred())
+		Expect(client.(defaultGitProvider).domain).To(Equal(github.DefaultDomain))
 	})
 
 	It("builds a gitlab client", func() {
-		_, err := New(Config{Token: "bla", Provider: GitProviderGitLab})
+		client, err := New(Config{Token: "bla", Provider: GitProviderGitLab})
 		Expect(err).ToNot(HaveOccurred())
+		Expect(client.(defaultGitProvider).domain).To(Equal(gitlab.DefaultDomain))
 	})
 })
 
@@ -273,11 +276,12 @@ var _ = Describe("pull requests", func() {
 		client, recorder, err = getTestClientWithCassette("pull_requests")
 		Expect(err).NotTo(HaveOccurred())
 		gitProvider = defaultGitProvider{
+			domain:   github.DefaultDomain,
 			provider: client,
 		}
 
 		providers = []tier{
-			{client, github.DefaultDomain, accounts.GithubOrgName, accounts.GithubUserName},
+			{client, gitProvider.domain, accounts.GithubOrgName, accounts.GithubUserName},
 			// Remove this for now as we dont support it yet.
 			// {"gitlab", gitlabTestClient, gitlab.DefaultDomain, accounts.GitlabOrgName, accounts.GitlabUserName},
 		}
@@ -317,11 +321,12 @@ var _ = Describe("commits", func() {
 		client, recorder, err = getTestClientWithCassette("commits")
 		Expect(err).NotTo(HaveOccurred())
 		gitProvider = defaultGitProvider{
+			domain:   github.DefaultDomain,
 			provider: client,
 		}
 
 		providers = []tier{
-			{client, github.DefaultDomain, accounts.GithubOrgName, accounts.GithubUserName},
+			{client, gitProvider.domain, accounts.GithubOrgName, accounts.GithubUserName},
 			// Remove this for now as we dont support it yet.
 			// {"gitlab", gitlabTestClient, gitlab.DefaultDomain, accounts.GitlabOrgName, accounts.GitlabUserName},
 		}
@@ -352,6 +357,7 @@ var _ = Describe("test org repo exists", func() {
 		client, recorder, err = getTestClientWithCassette("repo_org_exists")
 		Expect(err).NotTo(HaveOccurred())
 		gitProvider = defaultGitProvider{
+			domain:   github.DefaultDomain,
 			provider: client,
 		}
 	})
@@ -367,7 +373,7 @@ var _ = Describe("test org repo exists", func() {
 
 	AfterEach(func() {
 		ctx := context.Background()
-		orgRepoRef := NewOrgRepositoryRef(github.DefaultDomain, accounts.GithubOrgName, repoName)
+		orgRepoRef := NewOrgRepositoryRef(gitProvider.domain, accounts.GithubOrgName, repoName)
 		org, err := client.OrgRepositories().Get(ctx, orgRepoRef)
 		Expect(err).NotTo(HaveOccurred())
 		err = org.Delete(ctx)
@@ -389,6 +395,7 @@ var _ = Describe("test personal repo exists", func() {
 		client, recorder, err = getTestClientWithCassette("repo_personal_exists")
 		Expect(err).NotTo(HaveOccurred())
 		gitProvider = defaultGitProvider{
+			domain:   github.DefaultDomain,
 			provider: client,
 		}
 	})
@@ -406,7 +413,7 @@ var _ = Describe("test personal repo exists", func() {
 
 	AfterEach(func() {
 		ctx := context.Background()
-		userRepoRef := NewUserRepositoryRef(github.DefaultDomain, accounts.GithubUserName, repoName)
+		userRepoRef := NewUserRepositoryRef(gitProvider.domain, accounts.GithubUserName, repoName)
 		user, err := client.UserRepositories().Get(ctx, userRepoRef)
 		Expect(err).NotTo(HaveOccurred())
 		err = user.Delete(ctx)
@@ -575,10 +582,11 @@ var _ = Describe("Get User repo info", func() {
 		client, recorder, err = getTestClientWithCassette("get_user_repo_info")
 		Expect(err).NotTo(HaveOccurred())
 		gitProvider = defaultGitProvider{
+			domain:   github.DefaultDomain,
 			provider: client,
 		}
 
-		userRepoRef = NewUserRepositoryRef(github.DefaultDomain, accounts.GithubUserName, repoName)
+		userRepoRef = NewUserRepositoryRef(gitProvider.domain, accounts.GithubUserName, repoName)
 
 		repoInfo := NewRepositoryInfo("test user repository", gitprovider.RepositoryVisibilityPrivate)
 		opts := &gitprovider.RepositoryCreateOptions{
@@ -621,10 +629,11 @@ var _ = Describe("Test user deploy keys creation", func() {
 		client, recorder, err = getTestClientWithCassette("deploy_key_user")
 		Expect(err).NotTo(HaveOccurred())
 		gitProvider = defaultGitProvider{
+			domain:   github.DefaultDomain,
 			provider: client,
 		}
 
-		userRepoRef = NewUserRepositoryRef(github.DefaultDomain, accounts.GithubUserName, repoName)
+		userRepoRef = NewUserRepositoryRef(gitProvider.domain, accounts.GithubUserName, repoName)
 		repoInfo := NewRepositoryInfo("test user repository", gitprovider.RepositoryVisibilityPrivate)
 		opts := &gitprovider.RepositoryCreateOptions{
 			AutoInit: gitprovider.BoolVar(true),
@@ -689,10 +698,11 @@ var _ = Describe("Test org deploy keys creation", func() {
 		client, recorder, err = getTestClientWithCassette("deploy_key_org")
 		Expect(err).NotTo(HaveOccurred())
 		gitProvider = defaultGitProvider{
+			domain:   github.DefaultDomain,
 			provider: client,
 		}
 
-		orgRepoRef = NewOrgRepositoryRef(github.DefaultDomain, accounts.GithubOrgName, repoName)
+		orgRepoRef = NewOrgRepositoryRef(gitProvider.domain, accounts.GithubOrgName, repoName)
 		repoInfo := NewRepositoryInfo("test user repository", gitprovider.RepositoryVisibilityPrivate)
 		opts := &gitprovider.RepositoryCreateOptions{
 			AutoInit: gitprovider.BoolVar(true),
