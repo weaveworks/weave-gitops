@@ -92,6 +92,17 @@ type FakeOsys struct {
 	stdoutReturnsOnCall map[int]struct {
 		result1 *os.File
 	}
+	UnsetenvStub        func(string) error
+	unsetenvMutex       sync.RWMutex
+	unsetenvArgsForCall []struct {
+		arg1 string
+	}
+	unsetenvReturns struct {
+		result1 error
+	}
+	unsetenvReturnsOnCall map[int]struct {
+		result1 error
+	}
 	UserHomeDirStub        func() (string, error)
 	userHomeDirMutex       sync.RWMutex
 	userHomeDirArgsForCall []struct {
@@ -542,6 +553,67 @@ func (fake *FakeOsys) StdoutReturnsOnCall(i int, result1 *os.File) {
 	}{result1}
 }
 
+func (fake *FakeOsys) Unsetenv(arg1 string) error {
+	fake.unsetenvMutex.Lock()
+	ret, specificReturn := fake.unsetenvReturnsOnCall[len(fake.unsetenvArgsForCall)]
+	fake.unsetenvArgsForCall = append(fake.unsetenvArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.UnsetenvStub
+	fakeReturns := fake.unsetenvReturns
+	fake.recordInvocation("Unsetenv", []interface{}{arg1})
+	fake.unsetenvMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeOsys) UnsetenvCallCount() int {
+	fake.unsetenvMutex.RLock()
+	defer fake.unsetenvMutex.RUnlock()
+	return len(fake.unsetenvArgsForCall)
+}
+
+func (fake *FakeOsys) UnsetenvCalls(stub func(string) error) {
+	fake.unsetenvMutex.Lock()
+	defer fake.unsetenvMutex.Unlock()
+	fake.UnsetenvStub = stub
+}
+
+func (fake *FakeOsys) UnsetenvArgsForCall(i int) string {
+	fake.unsetenvMutex.RLock()
+	defer fake.unsetenvMutex.RUnlock()
+	argsForCall := fake.unsetenvArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeOsys) UnsetenvReturns(result1 error) {
+	fake.unsetenvMutex.Lock()
+	defer fake.unsetenvMutex.Unlock()
+	fake.UnsetenvStub = nil
+	fake.unsetenvReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeOsys) UnsetenvReturnsOnCall(i int, result1 error) {
+	fake.unsetenvMutex.Lock()
+	defer fake.unsetenvMutex.Unlock()
+	fake.UnsetenvStub = nil
+	if fake.unsetenvReturnsOnCall == nil {
+		fake.unsetenvReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.unsetenvReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeOsys) UserHomeDir() (string, error) {
 	fake.userHomeDirMutex.Lock()
 	ret, specificReturn := fake.userHomeDirReturnsOnCall[len(fake.userHomeDirArgsForCall)]
@@ -617,6 +689,8 @@ func (fake *FakeOsys) Invocations() map[string][][]interface{} {
 	defer fake.stdinMutex.RUnlock()
 	fake.stdoutMutex.RLock()
 	defer fake.stdoutMutex.RUnlock()
+	fake.unsetenvMutex.RLock()
+	defer fake.unsetenvMutex.RUnlock()
 	fake.userHomeDirMutex.RLock()
 	defer fake.userHomeDirMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

@@ -14,6 +14,7 @@ type Osys interface {
 	Getenv(envVar string) string
 	LookupEnv(envVar string) (string, bool)
 	Setenv(envVar, value string) error
+	Unsetenv(envVar string) error
 	Exit(code int)
 	Stdin() *os.File
 	Stdout() *os.File
@@ -42,6 +43,10 @@ func (o *OsysClient) LookupEnv(envVar string) (string, bool) {
 
 func (o *OsysClient) Setenv(envVar, value string) error {
 	return os.Setenv(envVar, value)
+}
+
+func (o *OsysClient) Unsetenv(envVar string) error {
+	return os.Unsetenv(envVar)
 }
 
 // The following three functions are used by both "app add" and "app remove".
