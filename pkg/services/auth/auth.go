@@ -34,6 +34,7 @@ func NewAuthCLIHandler(name gitproviders.GitProviderName) (BlockingCLIAuthHandle
 		if err != nil {
 			return nil, fmt.Errorf("could not create gitlab auth flow for CLI: %w", err)
 		}
+
 		return NewGitlabAuthFlowHandler(http.DefaultClient, authFlow), nil
 	}
 

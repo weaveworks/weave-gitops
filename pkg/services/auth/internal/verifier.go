@@ -32,6 +32,7 @@ func NewCodeVerifier(min, max int) (CodeVerifier, error) {
 func (c CodeVerifier) CodeChallenge() (string, error) {
 	h := sha256.New()
 	_, err := h.Write([]byte(c.value))
+
 	if err != nil {
 		return "", fmt.Errorf("code verifier issue hashing challenge: %w", err)
 	}

@@ -140,6 +140,7 @@ func (p defaultGitProvider) DeployKeyExists(owner, repoName string) (bool, error
 	case AccountTypeOrg:
 		orgRef := NewOrgRepositoryRef(p.domain, owner, repoName)
 		orgRepo, err := p.provider.OrgRepositories().Get(ctx, orgRef)
+
 		if err != nil {
 			return false, fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s ", owner, repoName, err)
 		}
@@ -158,6 +159,7 @@ func (p defaultGitProvider) DeployKeyExists(owner, repoName string) (bool, error
 	case AccountTypeUser:
 		userRef := NewUserRepositoryRef(p.domain, owner, repoName)
 		userRepo, err := p.provider.UserRepositories().Get(ctx, userRef)
+
 		if err != nil {
 			return false, fmt.Errorf("error getting user repo reference for owner %s, repo %s, %s ", owner, repoName, err)
 		}
@@ -196,6 +198,7 @@ func (p defaultGitProvider) UploadDeployKey(owner, repoName string, deployKey []
 	case AccountTypeOrg:
 		orgRef := NewOrgRepositoryRef(p.domain, owner, repoName)
 		orgRepo, err := p.provider.OrgRepositories().Get(ctx, orgRef)
+
 		if err != nil {
 			return fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s ", owner, repoName, err)
 		}
@@ -216,6 +219,7 @@ func (p defaultGitProvider) UploadDeployKey(owner, repoName string, deployKey []
 	case AccountTypeUser:
 		userRef := NewUserRepositoryRef(p.domain, owner, repoName)
 		userRepo, err := p.provider.UserRepositories().Get(ctx, userRef)
+
 		if err != nil {
 			return fmt.Errorf("error getting user repo reference for owner %s, repo %s, %s ", owner, repoName, err)
 		}

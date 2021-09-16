@@ -17,13 +17,16 @@ const (
 // such as 11, you would pass (11, 12) for the min and max respectively
 func GenerateRandomString(min, max int) (string, error) {
 	mrand.Seed(time.Now().UnixNano())
+
 	length := randInt(min, max)
 	value := make([]byte, length)
+
 	for i := 0; i < length; i++ {
 		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(alphaNumeric))))
 		if err != nil {
 			return "", fmt.Errorf("error generated random string: %w", err)
 		}
+
 		value[i] = alphaNumeric[num.Int64()]
 	}
 

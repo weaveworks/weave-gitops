@@ -69,8 +69,11 @@ func (gaf *gitlabAuthFlow) CallbackHandler(tokenState *types.TokenResponseState,
 			reqErr := fmt.Errorf("unable to generate request to fetch gitlab token, please try again later: %w", err)
 			tokenState.HttpStatusCode = http.StatusInternalServerError
 			tokenState.Err = reqErr
+
 			w.WriteHeader(http.StatusInternalServerError)
+
 			_, _ = w.Write([]byte(reqErr.Error()))
+
 			return
 		}
 
@@ -80,6 +83,7 @@ func (gaf *gitlabAuthFlow) CallbackHandler(tokenState *types.TokenResponseState,
 			_, _ = w.Write([]byte(http.StatusText(http.StatusInternalServerError)))
 			tokenState.HttpStatusCode = http.StatusInternalServerError
 			tokenState.Err = fmt.Errorf("gitlab token requeset client issue: %w", err)
+
 			return
 		}
 
@@ -90,6 +94,7 @@ func (gaf *gitlabAuthFlow) CallbackHandler(tokenState *types.TokenResponseState,
 				_, _ = w.Write([]byte(http.StatusText(http.StatusInternalServerError)))
 				tokenState.HttpStatusCode = http.StatusInternalServerError
 				tokenState.Err = fmt.Errorf("gitlab token response json decode: %w", err)
+
 				return
 			}
 
@@ -108,10 +113,13 @@ func (gaf *gitlabAuthFlow) CallbackHandler(tokenState *types.TokenResponseState,
 }
 
 func parseTokenResponseBody(body io.ReadCloser) (internal.GitlabTokenResponse, error) {
-	defer body.Close()
+	defer func() {
+		_ = body.Close()
+	}()
 
 	var tokenResponse internal.GitlabTokenResponse
 	err := json.NewDecoder(body).Decode(&tokenResponse)
+
 	if err != nil {
 		return internal.GitlabTokenResponse{}, err
 	}
@@ -129,26 +137,32 @@ func NewGitlabAuthFlowHandler(client *http.Client, flow types.AuthFlow) Blocking
 			return "", fmt.Errorf("could not do code request: %w", err)
 		}
 
-		fmt.Fprintf(w, "Starting authorization server:\n")
-		fmt.Fprintf(w, "Visit this URL to authenticate with Gitlab:\n\n")
-		fmt.Fprintf(w, "%s\n\n", req.URL.String())
-		fmt.Fprintf(w, "Waiting for authentication flow completion...\n\n")
+		_, _ = fmt.Fprintf(w, "Starting authorization server:\n")
+		_, _ = fmt.Fprintf(w, "Visit this URL to authenticate with Gitlab:\n\n")
+		_, _ = fmt.Fprintf(w, "%s\n\n", req.URL.String())
+		_, _ = fmt.Fprintf(w, "Waiting for authentication flow completion...\n\n")
 
 		serverShutdown := &sync.WaitGroup{}
 		serverShutdown.Add(1)
+
 		token := types.TokenResponseState{}
 		server := startAuthServerForCLI(serverShutdown, w, &token, flow)
 
 		_, clientErr := client.Do(req)
 		if clientErr != nil {
 			serverShutdown.Done()
+
 			token.Err = fmt.Errorf("gitlab auth client error: %w", clientErr)
 		}
 
 		serverShutdown.Wait()
+
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
 		defer cancel()
+
 		fmt.Fprintf(w, "Shutting the server down...\n")
+
 		if err := server.Shutdown(shutdownCtx); err != nil {
 			fmt.Fprintf(w, "An error occurred shutting down the server: %s\n", err.Error())
 		}
@@ -157,11 +171,13 @@ func NewGitlabAuthFlowHandler(client *http.Client, flow types.AuthFlow) Blocking
 
 		if token.Err != nil {
 			fmt.Fprintf(w, "There was an issue going through the Gitlab authentication flow:\n\n")
+
 			if token.HttpStatusCode == 0 || token.HttpStatusCode == http.StatusOK {
 				fmt.Fprintf(w, "%s", token.Err.Error())
 			} else {
 				fmt.Fprintf(w, "Gitlab returned status code %d with the error message: %s", token.HttpStatusCode, token.Err.Error())
 			}
+
 			return "", token.Err
 		} else {
 			return token.AccessToken, nil
@@ -173,6 +189,7 @@ func startAuthServerForCLI(wg *sync.WaitGroup, w io.Writer, token *types.TokenRe
 	srv := &http.Server{Addr: internal.GitlabTempServerPort}
 
 	http.Handle(internal.GitlabCallbackPath, flow.CallbackHandler(token, shutdownServerForCLI(token, wg)))
+
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			fmt.Fprintf(w, "Error starting server: %s", err.Error())
@@ -185,12 +202,12 @@ func startAuthServerForCLI(wg *sync.WaitGroup, w io.Writer, token *types.TokenRe
 func shutdownServerForCLI(token *types.TokenResponseState, wg *sync.WaitGroup) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		defer wg.Done()
+
 		if token.HttpStatusCode == http.StatusOK {
 			_, _ = w.Write([]byte(serverShutdownSuccessMessage))
 		} else {
 			_, _ = w.Write([]byte(serverShutdownErrorMessage))
 		}
-
 	}
 
 	return http.HandlerFunc(fn)

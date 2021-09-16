@@ -39,10 +39,12 @@ func GitlabAuthorizeUrl(redirectUri string, scopes []string, verifier CodeVerifi
 	params.Set("client_id", gitlabClientId)
 	params.Set("redirect_uri", redirectUri)
 	params.Set("response_type", "code")
+
 	codeChallenge, err := verifier.CodeChallenge()
 	if err != nil {
 		return url.URL{}, fmt.Errorf("gitlab authorize url generate code challenge: %w", err)
 	}
+
 	params.Set("code_challenge", codeChallenge)
 	params.Set("code_challenge_method", "S256")
 	params.Set("scope", strings.Join(scopes, " "))
