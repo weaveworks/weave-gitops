@@ -16,7 +16,6 @@ import (
 )
 
 func TestExists(t *testing.T) {
-
 	// Existing file
 	tempFile, err := ioutil.TempFile(t.TempDir(), "")
 	require.NoError(t, err)
@@ -34,7 +33,6 @@ func TestExists(t *testing.T) {
 	// Not existing file
 	require.NoError(t, os.Remove(tempFolder))
 	require.False(t, Exists(tempFolder))
-
 }
 
 var _ = Describe("Test common utils", func() {

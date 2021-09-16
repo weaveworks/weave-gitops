@@ -66,6 +66,18 @@ To set up a development environment for the CLI
 2. Install [buf](https://github.com/bufbuild/buf)
 3. make
 
+### Setup golangci-lint in your editor
+
+Link for golangci-lint editor integration: https://golangci-lint.run/usage/integrations/
+
+For VSCode, use these editor configuration flags:
+
+```json
+    "go.lintFlags": [
+        "--fast",
+    ],
+```
+
 ## UI Development
 
 To set up a development environment for the UI
@@ -115,6 +127,7 @@ To create a new styled React component (with typescript):
 ```
 
 ## FAQ
+
 Please see our Weave GitOps Core [FAQ](https://www.weave.works/faqs-for-weave-gitops-core/)
 
 ## Contribution
@@ -129,5 +142,5 @@ Need help or want to contribute? Please see the links below.
   - Please create a [Github issue](https://github.com/weaveworks/weave-gitops/issues)
 
 ## License scan details
-[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=large)](https://app.fossa.com/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops?ref=badge_large)
 
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=large)](https://app.fossa.com/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops?ref=badge_large)

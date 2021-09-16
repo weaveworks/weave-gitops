@@ -19,11 +19,13 @@ func (f *FluxClient) GetLatestStatusAllNamespaces() ([]string, error) {
 func getLastLogForNamespaces(logs []byte) ([]string, error) {
 	logsArray := strings.Split(string(logs), "\n")
 	namespaces := make(map[string]string)
+
 	for _, line := range logsArray {
 		splitLine := strings.Split(string(line), " ")
 		if len(splitLine) < 3 {
 			continue
 		}
+
 		namespaces[splitLine[2]] = line
 	}
 

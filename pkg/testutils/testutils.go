@@ -38,6 +38,7 @@ func StartK8sTestEnvironment() (*K8sTestEnv, error) {
 
 	var err error
 	cfg, err := testEnv.Start()
+
 	if err != nil {
 		return nil, fmt.Errorf("could not start testEnv: %w", err)
 	}
@@ -67,6 +68,7 @@ func StartK8sTestEnvironment() (*K8sTestEnv, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize discovery client: %s", err)
 	}
+
 	mapper := restmapper.NewDeferredDiscoveryRESTMapper(memory.NewMemCacheClient(dc))
 
 	dyn, err := dynamic.NewForConfig(cfg)

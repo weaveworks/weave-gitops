@@ -1,0 +1,9 @@
+run:
+  skip-dirs:
+      - pkg/vendorfakes
+
+linters:
+  enable:
+    - wsl
+
+linters-settings: {}

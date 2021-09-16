@@ -32,7 +32,6 @@ func TestServer(t *testing.T) {
 	RegisterFailHandler(Fail)
 
 	RunSpecs(t, "Server")
-
 }
 
 const bufSize = 1024 * 1024
