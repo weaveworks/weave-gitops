@@ -103,7 +103,7 @@ exports[`CommitsTable snapshots renders 1`] = `
               <span
                 class="c1"
               >
-                3 days ago
+                test timestamp
               </span>
             </td>
             <td

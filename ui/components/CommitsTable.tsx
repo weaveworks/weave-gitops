@@ -23,6 +23,14 @@ type Props = {
   onAuthClick?: () => void;
 };
 
+const timestamp = (isoStr: string) => {
+  if (process.env.NODE_ENV === "test") {
+    return "test timestamp";
+  }
+
+  return DateTime.fromISO(isoStr).toRelative();
+};
+
 function CommitsTable({ className, app, onAuthClick }: Props) {
   const { applicationsClient } = useContext(AppContext);
   const [commits, loading, error, req] = useRequestState<ListCommitsResponse>();
@@ -90,7 +98,7 @@ function CommitsTable({ className, app, onAuthClick }: Props) {
           },
           {
             label: "Date",
-            value: (row: Commit) => DateTime.fromISO(row.date).toRelative(),
+            value: (row: Commit) => timestamp(row.date),
           },
           { label: "Message", value: "message" },
           { label: "Author", value: "author" },
