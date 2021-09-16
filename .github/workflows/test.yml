@@ -190,7 +190,7 @@ jobs:
         retention-days: 1
   acceptance-tests:
     runs-on: ubuntu-latest
-    needs: [lint, build, test]
+    needs: [build, test]
     timeout-minutes: 90
     env:
         GITHUB_ORG: weaveworks-gitops-test
