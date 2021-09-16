@@ -630,6 +630,7 @@ func mergePR(repoAbsolutePath, prLink string) {
 
 func setArtifactsDir() string {
 	path := "/tmp/wego-test"
+
 	if os.Getenv("ARTIFACTS_BASE_DIR") == "" {
 		return path
 	}

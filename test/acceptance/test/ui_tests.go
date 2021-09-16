@@ -14,7 +14,6 @@ import (
 var webDriver *agouti.Page
 
 func initializeUISteps() {
-
 	By("And I install gitops to my active cluster", func() {
 		installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 	})
