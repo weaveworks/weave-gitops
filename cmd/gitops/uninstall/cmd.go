@@ -21,9 +21,9 @@ var (
 
 var Cmd = &cobra.Command{
 	Use:   "uninstall",
-	Short: "Uninstall Gitops",
-	Long:  `The uninstall command removes Gitops components from the cluster.`,
-	Example: `  # Uninstall gitops in the wego-system namespace
+	Short: "Uninstall GitOps",
+	Long:  `The uninstall command removes GitOps components from the cluster.`,
+	Example: `  # Uninstall GitOps from the wego-system namespace
   gitops uninstall`,
 	RunE:          uninstallRunCmd,
 	SilenceErrors: true,
@@ -35,7 +35,7 @@ var Cmd = &cobra.Command{
 
 func init() {
 	Cmd.PersistentFlags().StringVarP(&gitopsParams.Namespace, "namespace", "n", "wego-system", "the namespace scope for this operation")
-	Cmd.PersistentFlags().BoolVar(&gitopsParams.DryRun, "dry-run", false, "outputs all the manifests that would be installed")
+	Cmd.PersistentFlags().BoolVar(&gitopsParams.DryRun, "dry-run", false, "outputs all the manifests that would be uninstalled")
 }
 
 func uninstallRunCmd(cmd *cobra.Command, args []string) error {
