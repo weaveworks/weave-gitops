@@ -60,7 +60,9 @@ var ErrNoGitProviderTokenSet = errors.New("no git provider token env variable se
 
 func (o *OsysClient) GetGitProviderToken(providerName gitproviders.GitProviderName) (string, error) {
 	var providerToken string
+
 	var found bool
+
 	switch providerName {
 	case gitproviders.GitProviderGitHub:
 		providerToken, found = o.LookupEnv("GITHUB_TOKEN")

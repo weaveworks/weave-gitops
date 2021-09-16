@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/fluxcd/go-git-providers/gitlab"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -208,13 +207,13 @@ func getAccounts() *accounts {
 func getTestClientWithCassette(cassetteID string, providerName string) (gitprovider.Client, *recorder.Recorder, error) {
 	t := customTransport{}
 
-	var err error
 	cacheGitRecorder, err := NewRecorder(cassetteID, getAccounts())
 	if err != nil {
 		return nil, nil, err
 	}
 
 	cacheGitRecorder.SetTransport(&t)
+
 	var gitTestClient gitprovider.Client
 	if providerName == GitHubProviderName {
 		gitTestClient, err = newGithubTestClient(SetRecorder(cacheGitRecorder))

@@ -34,6 +34,7 @@ func (a *App) GetCommits(params CommitParams, application *wego.Application) ([]
 
 	if accountType == gitproviders.AccountTypeUser {
 		userRepoRef := gitproviders.NewUserRepositoryRef(a.GitProvider.GetProviderDomain(), normalizedUrl.Owner(), normalizedUrl.RepositoryName())
+
 		commits, err = a.GitProvider.GetCommitsFromUserRepo(userRepoRef, application.Spec.Branch, params.PageSize, params.PageToken)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get Commits for user repo: %w", err)

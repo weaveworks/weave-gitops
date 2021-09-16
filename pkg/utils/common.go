@@ -126,6 +126,7 @@ func ValidateNamespace(ns string) error {
 func SanitizeRepoUrl(url string) string {
 	trimmed := ""
 	domain := "github"
+
 	if strings.Contains(url, "gitlab") {
 		domain = "gitlab"
 	}
