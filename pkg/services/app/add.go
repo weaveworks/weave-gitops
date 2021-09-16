@@ -302,6 +302,7 @@ func (a *App) addAppWithNoConfigRepo(info *AppResourceInfo, params AddParams, se
 	if info.Spec.SourceType != wego.SourceTypeHelm && !params.DryRun {
 		if !params.AutoMerge {
 			a.Logger.Actionf("Creating pull request for .keep file in application repository")
+
 			if err := a.createKeepFilePullRequest(info, cloneNeeded(params)); err != nil {
 				return err
 			}
@@ -416,6 +417,7 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 
 			if info.Spec.SourceType != wego.SourceTypeHelm {
 				a.Logger.Actionf("Creating pull request for .keep file in application repository")
+
 				if err := a.createKeepFilePullRequest(info, cloneNeeded(params)); err != nil {
 					return err
 				}
@@ -516,6 +518,7 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, branch string
 	}
 
 	targetSource, err := a.Flux.CreateSourceGit(repoName, info.Spec.ConfigURL, branch, secretRef, info.Namespace)
+
 	if err != nil {
 		return nil, fmt.Errorf("could not generate target source manifests: %w", err)
 	}
@@ -649,6 +652,7 @@ func (a *App) writeAppKeepFile(info *AppResourceInfo, cloneNeeded bool) error {
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)
 	}
+
 	defer remover()
 
 	return a.AppGit.Write(info.appKeepFilePath(), []byte(keepFileContents))
@@ -740,6 +744,7 @@ func (a *App) createKeepFilePullRequest(info *AppResourceInfo, cloneNeeded bool)
 	if err != nil {
 		return fmt.Errorf("failed to clone app repo: %w", err)
 	}
+
 	defer remover()
 
 	if accountType == gitproviders.AccountTypeOrg {
@@ -749,7 +754,9 @@ func (a *App) createKeepFilePullRequest(info *AppResourceInfo, cloneNeeded bool)
 		if err != nil {
 			return fmt.Errorf("unable to create sentinel file pull request: %w", err)
 		}
+
 		a.Logger.Println("Pull Request created: %s\n", prLink.Get().WebURL)
+
 		return nil
 	}
 
@@ -759,7 +766,9 @@ func (a *App) createKeepFilePullRequest(info *AppResourceInfo, cloneNeeded bool)
 	if err != nil {
 		return fmt.Errorf("unable to create sentinel file pull request: %w", err)
 	}
+
 	a.Logger.Println("Sentinel Pull Request created: %s\n", prLink.Get().WebURL)
+
 	return nil
 }
 

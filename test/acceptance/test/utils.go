@@ -138,9 +138,9 @@ func getUniqueWorkload(placeHolderSuffix string, uniqueSuffix string) string {
 func setupSSHKey(sshKeyPath string) {
 	if _, err := os.Stat(sshKeyPath); os.IsNotExist(err) {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
-	                       echo "%s" >> %s &&
-	                       chmod 0600 %s &&
-	                       ls -la %s`, os.Getenv("GITHUB_KEY"), sshKeyPath, sshKeyPath, sshKeyPath))
+                           echo "%s" >> %s &&
+                           chmod 0600 %s &&
+                           ls -la %s`, os.Getenv("GITHUB_KEY"), sshKeyPath, sshKeyPath, sshKeyPath))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session).Should(gexec.Exit())
@@ -630,6 +630,7 @@ func mergePR(repoAbsolutePath, prLink string) {
 
 func setArtifactsDir() string {
 	path := "/tmp/wego-test"
+
 	if os.Getenv("ARTIFACTS_BASE_DIR") == "" {
 		return path
 	}

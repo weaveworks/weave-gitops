@@ -105,6 +105,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	<-quit
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
 	defer func() {
 		cancel()
 	}()
