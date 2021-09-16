@@ -99,6 +99,20 @@ message Application {
     repeated GroupVersionKind reconciled_object_kinds         = 8;  // A list of unique object kinds for all resources that were created as a result of this application
 }
 
+message Kustomization {
+    string name = 1;
+    string namespace = 2;
+    string targetNamespace = 3;
+    string path = 4;
+    repeated Condition conditions = 6;
+    string interval = 7;
+    bool prune = 8;
+    string reconcileRequestAt = 9;
+    string reconcileAt = 10;
+    string lastAppliedRevision = 13;
+    string lastAttemptedRevision = 14;
+}
+
 message AuthenticateRequest {
     string provider_name = 1;  // The name of the git provider
     string access_token  = 2;  // The token of the git provider
@@ -123,6 +137,7 @@ message GetApplicationRequest {
 
 message GetApplicationResponse {
     Application application = 1;
+    Kustomization kustomization = 2;
 }
 
 message Commit {

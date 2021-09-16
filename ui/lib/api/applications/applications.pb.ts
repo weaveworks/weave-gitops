@@ -39,6 +39,20 @@ export type Application = {
   reconciledObjectKinds?: GroupVersionKind[]
 }
 
+export type Kustomization = {
+  name?: string
+  namespace?: string
+  targetNamespace?: string
+  path?: string
+  conditions?: Condition[]
+  interval?: string
+  prune?: boolean
+  reconcileRequestAt?: string
+  reconcileAt?: string
+  lastAppliedRevision?: string
+  lastAttemptedRevision?: string
+}
+
 export type AuthenticateRequest = {
   providerName?: string
   accessToken?: string
@@ -63,6 +77,7 @@ export type GetApplicationRequest = {
 
 export type GetApplicationResponse = {
   application?: Application
+  kustomization?: Kustomization
 }
 
 export type Commit = {
