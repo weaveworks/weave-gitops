@@ -3,7 +3,6 @@ package middleware
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -77,7 +76,7 @@ const tokenKey key = iota
 
 // Injects the token into the request context to be retrieved later.
 // Use the ExtractToken func inside the server handler where appropriate.
-func WithProviderToken(jwtClient auth.JWTClient, h http.Handler) http.Handler {
+func WithProviderToken(jwtClient auth.JWTClient, h http.Handler, log logr.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenStr := r.Header.Get("Authorization")
 		tokenSlice := strings.Split(tokenStr, "token ")
@@ -94,7 +93,11 @@ func WithProviderToken(jwtClient auth.JWTClient, h http.Handler) http.Handler {
 
 		claims, err := jwtClient.VerifyJWT(token)
 		if err != nil {
-			http.Error(w, fmt.Errorf("failed verifying JWT token: %w", err).Error(), http.StatusUnauthorized)
+			log.V(logger.LogLevelWarn).Info("could not parse claims")
+			// Certain routes do not require a token, so pass the request through.
+			// If the route requires a token and it isn't present,
+			// the next handler will error and return that to the user.
+			h.ServeHTTP(w, r)
 			return
 		}
 

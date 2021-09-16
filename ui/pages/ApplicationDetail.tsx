@@ -1,8 +1,12 @@
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
+import Alert from "../components/Alert";
+import CommitsTable from "../components/CommitsTable";
 import ConditionsTable from "../components/ConditionsTable";
+import GithubDeviceAuthModal from "../components/GithubDeviceAuthModal";
 import KeyValueTable from "../components/KeyValueTable";
+import LoadingPage from "../components/LoadingPage";
 import Page from "../components/Page";
 import ReconciliationGraph from "../components/ReconciliationGraph";
 import { AppContext } from "../contexts/AppContext";
@@ -21,7 +25,9 @@ type Props = {
 
 function ApplicationDetail({ className, name }: Props) {
   const [app, setApp] = React.useState<Application>({});
-  const { applicationsClient } = React.useContext(AppContext);
+  const [authSuccess, setAuthSuccess] = React.useState(false);
+  const [githubAuthModalOpen, setGithubAuthModalOpen] = React.useState(false);
+  const { applicationsClient, doAsyncError } = React.useContext(AppContext);
   const [reconciledObjects, setReconciledObjects] = React.useState<
     UnstructuredObject[]
   >([]);
@@ -29,7 +35,13 @@ function ApplicationDetail({ className, name }: Props) {
   const { getApplication, loading } = useApplications();
 
   React.useEffect(() => {
-    getApplication(name).then((app) => setApp(app || {}));
+    getApplication(name)
+      .then((app) => {
+        setApp(app as Application);
+      })
+      .catch((err) =>
+        doAsyncError("Error fetching application detail", err.message)
+      );
   }, []);
 
   React.useEffect(() => {
@@ -47,6 +59,10 @@ function ApplicationDetail({ className, name }: Props) {
     );
   }, [app]);
 
+  if (loading) {
+    return <LoadingPage />;
+  }
+
   return (
     <Page
       loading={loading}
@@ -54,6 +70,9 @@ function ApplicationDetail({ className, name }: Props) {
       title={name}
       className={className}
     >
+      {authSuccess && (
+        <Alert severity="success" message="Authentication Successful" />
+      )}
       <KeyValueTable
         columns={4}
         pairs={[
@@ -62,27 +81,31 @@ function ApplicationDetail({ className, name }: Props) {
           { key: "Path", value: app.path },
         ]}
       />
-
       <ReconciliationGraph
         objects={reconciledObjects}
         parentObject={app}
         parentObjectKind="Application"
       />
-
       <h3>Source Conditions</h3>
       <ConditionsTable conditions={app.sourceConditions} />
       <h3>Automation Conditions</h3>
       <ConditionsTable conditions={app.deploymentConditions} />
-      {/* <h3>Reconciled Objects</h3> */}
-      {/* <DataTable
-        sortFields={["name"]}
-        fields={[
-          { label: "Name", value: "name" },
-          { label: "Kind", value: (v) => v.groupVersionKind.kind },
-          { label: "Status", value: "status" },
-        ]}
-        rows={reconciledObjects}
-      /> */}
+
+      <h3>Commits</h3>
+      <CommitsTable
+        app={app}
+        onAuthClick={() => setGithubAuthModalOpen(true)}
+      />
+      <GithubDeviceAuthModal
+        onSuccess={() => {
+          setAuthSuccess(true);
+          // Get CommitsTable to retry after auth
+          setApp({ ...app });
+        }}
+        repoName={app.url}
+        onClose={() => setGithubAuthModalOpen(false)}
+        open={githubAuthModalOpen}
+      />
     </Page>
   );
 }

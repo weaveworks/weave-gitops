@@ -1,5 +1,6 @@
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
+import LaunchIcon from "@material-ui/icons/Launch";
 import * as React from "react";
 import styled from "styled-components";
 import { colors, spacing } from "../typedefs/styled";
@@ -9,6 +10,7 @@ import Text from "./Text";
 export enum IconType {
   CheckMark,
   Account,
+  ExternalTab,
 }
 type Props = {
   className?: string;
@@ -25,6 +27,9 @@ function getIcon(i: IconType) {
 
     case IconType.Account:
       return AccountCircleIcon;
+
+    case IconType.ExternalTab:
+      return LaunchIcon;
 
     default:
       break;

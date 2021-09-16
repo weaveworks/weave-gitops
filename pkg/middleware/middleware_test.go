@@ -9,11 +9,14 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
+	"github.com/weaveworks/weave-gitops/pkg/testutils"
+	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
 )
 
 var (
 	jwtClient      *authfakes.FakeJWTClient
 	defaultHandler http.HandlerFunc
+	log            *fakelogr.FakeLogger
 )
 
 var _ = Describe("WithProviderToken", func() {
@@ -27,10 +30,11 @@ var _ = Describe("WithProviderToken", func() {
 		}
 
 		defaultHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
+		log = testutils.MakeFakeLogr()
 	})
 
 	It("does nothing when no token is passed", func() {
-		midware := middleware.WithProviderToken(jwtClient, defaultHandler)
+		midware := middleware.WithProviderToken(jwtClient, defaultHandler, log)
 
 		req := httptest.NewRequest(http.MethodGet, "http://www.foo.com/", nil)
 		res := httptest.NewRecorder()
@@ -41,7 +45,7 @@ var _ = Describe("WithProviderToken", func() {
 	})
 
 	It("extracts JWT token from the header", func() {
-		midware := middleware.WithProviderToken(jwtClient, defaultHandler)
+		midware := middleware.WithProviderToken(jwtClient, defaultHandler, log)
 
 		req := httptest.NewRequest(http.MethodGet, "http://www.foo.com", nil)
 		req.Header.Add("Authorization", "token my-jwt-token")
@@ -53,20 +57,23 @@ var _ = Describe("WithProviderToken", func() {
 		Expect(jwtClient.VerifyJWTArgsForCall(0)).To(Equal("my-jwt-token"))
 	})
 
-	It("returns forbidden when token is no valid", func() {
+	It("passes the request through when a token is invalid", func() {
 		jwtClient.VerifyJWTStub = func(s string) (*auth.Claims, error) {
 			return nil, auth.ErrUnauthorizedToken
 		}
 
-		midware := middleware.WithProviderToken(jwtClient, defaultHandler)
+		midware := middleware.WithProviderToken(jwtClient, defaultHandler, log)
 		req := httptest.NewRequest(http.MethodGet, "http://www.foo.com", nil)
 		req.Header.Add("Authorization", "token my-jwt-token")
 
 		res := httptest.NewRecorder()
+		// Ensure a 401 is not returned, since we pass invalid tokens through.
+		nextEndpointRes := http.StatusInternalServerError
+		res.WriteHeader(nextEndpointRes)
 
 		midware.ServeHTTP(res, req)
 
-		Expect(res.Result().StatusCode).To(Equal(http.StatusUnauthorized))
+		Expect(res.Result().StatusCode).To(Equal(nextEndpointRes))
 	})
 
 	It("passes the provider token into the context", func() {
@@ -76,7 +83,7 @@ var _ = Describe("WithProviderToken", func() {
 			request = r
 		})
 
-		midware := middleware.WithProviderToken(jwtClient, next)
+		midware := middleware.WithProviderToken(jwtClient, next, log)
 		req := httptest.NewRequest(http.MethodGet, "http://www.foo.com", nil)
 		req.Header.Add("Authorization", "token my-jwt-token")
 
@@ -108,7 +115,7 @@ var _ = Describe("ExtractProviderToken", func() {
 			request = r
 		})
 
-		midware := middleware.WithProviderToken(jwtClient, next)
+		midware := middleware.WithProviderToken(jwtClient, next, log)
 		req := httptest.NewRequest(http.MethodGet, "http://www.foo.com", nil)
 		req.Header.Add("Authorization", "token my-jwt-token")
 

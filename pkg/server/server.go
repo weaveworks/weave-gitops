@@ -48,28 +48,31 @@ var ErrEmptyAccessToken = fmt.Errorf("access token is empty")
 type applicationServer struct {
 	pb.UnimplementedApplicationsServer
 
-	appFactory apputils.AppFactory
-	jwtClient  auth.JWTClient
-	log        logr.Logger
-	kube       client.Client
+	appFactory   apputils.AppFactory
+	jwtClient    auth.JWTClient
+	log          logr.Logger
+	kube         client.Client
+	ghAuthClient auth.GithubAuthClient
 }
 
 // An ApplicationsConfig allows for the customization of an ApplicationsServer.
 // Use the DefaultConfig() to use the default dependencies.
 type ApplicationsConfig struct {
-	Logger     logr.Logger
-	AppFactory apputils.AppFactory
-	JwtClient  auth.JWTClient
-	KubeClient client.Client
+	Logger           logr.Logger
+	AppFactory       apputils.AppFactory
+	JwtClient        auth.JWTClient
+	KubeClient       client.Client
+	GithubAuthClient auth.GithubAuthClient
 }
 
 // NewApplicationsServer creates a grpc Applications server
 func NewApplicationsServer(cfg *ApplicationsConfig) pb.ApplicationsServer {
 	return &applicationServer{
-		jwtClient:  cfg.JwtClient,
-		log:        cfg.Logger,
-		appFactory: cfg.AppFactory,
-		kube:       cfg.KubeClient,
+		jwtClient:    cfg.JwtClient,
+		log:          cfg.Logger,
+		appFactory:   cfg.AppFactory,
+		kube:         cfg.KubeClient,
+		ghAuthClient: cfg.GithubAuthClient,
 	}
 }
 
@@ -92,10 +95,11 @@ func DefaultConfig() (*ApplicationsConfig, error) {
 	}
 
 	return &ApplicationsConfig{
-		Logger:     logr,
-		AppFactory: &apputils.DefaultAppFactory{},
-		JwtClient:  jwtClient,
-		KubeClient: rawClient,
+		Logger:           logr,
+		AppFactory:       &apputils.DefaultAppFactory{},
+		JwtClient:        jwtClient,
+		KubeClient:       rawClient,
+		GithubAuthClient: auth.NewGithubAuthProvider(http.DefaultClient),
 	}, nil
 }
 
@@ -106,7 +110,7 @@ func NewApplicationsHandler(ctx context.Context, cfg *ApplicationsConfig, opts .
 
 	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(cfg.Logger))
 	httpHandler := middleware.WithLogging(cfg.Logger, mux)
-	httpHandler = middleware.WithProviderToken(cfg.JwtClient, httpHandler)
+	httpHandler = middleware.WithProviderToken(cfg.JwtClient, httpHandler, cfg.Logger)
 
 	if err := pb.RegisterApplicationsHandlerServer(ctx, mux, appsSrv); err != nil {
 		return nil, fmt.Errorf("could not register application: %w", err)
@@ -228,7 +232,7 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommitsRequest) (*pb.ListCommitsResponse, error) {
 	providerToken, err := middleware.ExtractProviderToken(ctx)
 	if err != nil {
-		return nil, err
+		return nil, grpcStatus.Error(codes.Unauthenticated, fmt.Sprintf("error listing commits: %s", err.Error()))
 	}
 
 	pageToken := 0
@@ -388,6 +392,36 @@ Items:
 	}
 
 	return &pb.GetChildObjectsRes{Objects: objects}, nil
+}
+
+func (s *applicationServer) GetGithubDeviceCode(ctx context.Context, msg *pb.GetGithubDeviceCodeRequest) (*pb.GetGithubDeviceCodeResponse, error) {
+	res, err := s.ghAuthClient.GetDeviceCode()
+	if err != nil {
+		return nil, fmt.Errorf("error doing github code request: %w", err)
+	}
+
+	return &pb.GetGithubDeviceCodeResponse{
+		UserCode:      res.UserCode,
+		ValidationURI: res.VerificationURI,
+		DeviceCode:    res.DeviceCode,
+		Interval:      int32(res.Interval),
+	}, nil
+}
+
+func (s *applicationServer) GetGithubAuthStatus(ctx context.Context, msg *pb.GetGithubAuthStatusRequest) (*pb.GetGithubAuthStatusResponse, error) {
+	token, err := s.ghAuthClient.GetDeviceCodeAuthStatus(msg.DeviceCode)
+	if err == auth.ErrAuthPending {
+		return nil, grpcStatus.Error(codes.Unauthenticated, err.Error())
+	} else if err != nil {
+		return nil, fmt.Errorf("error getting github device code status: %w", err)
+	}
+
+	t, err := s.jwtClient.GenerateJWT(auth.ExpirationTime, gitproviders.GitProviderGitHub, token)
+	if err != nil {
+		return nil, fmt.Errorf("could not generate token: %w", err)
+	}
+
+	return &pb.GetGithubAuthStatusResponse{AccessToken: t}, nil
 }
 
 // Returns k8s objects that can be used to find the cluster objects.
