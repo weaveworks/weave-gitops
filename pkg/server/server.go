@@ -264,8 +264,10 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 	}
 
 	list := []*pb.Commit{}
+
 	for _, commit := range commits {
 		c := commit.Get()
+
 		list = append(list, &pb.Commit{
 			Author:  c.Author,
 			Message: utils.CleanCommitMessage(c.Message),

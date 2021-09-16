@@ -13,5 +13,6 @@ func Dashboard(webDriver *agouti.Page) DashboardWebDriver {
 	dashboard := DashboardWebDriver{
 		LogoImage:      webDriver.FindByXPath(`//*[@id="app"]/div//img`),
 		ApplicationTab: webDriver.FindByXPath(`//*[@id="app"]//div/a/span/span[1]`)}
+
 	return dashboard
 }

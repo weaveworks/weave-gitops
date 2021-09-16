@@ -54,5 +54,6 @@ func GomegaFail(message string, callerSkip ...int) {
 		filepath := takeScreenshot()
 		fmt.Printf("Failure screenshot is saved in file %s\n", filepath)
 	}
+
 	ginkgo.Fail(message, callerSkip...)
 }

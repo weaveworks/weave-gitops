@@ -633,6 +633,7 @@ func setArtifactsDir() string {
 	if os.Getenv("ARTIFACTS_BASE_DIR") == "" {
 		return path
 	}
+
 	return os.Getenv("ARTIFACTS_BASE_DIR")
 }
 
@@ -642,8 +643,10 @@ func takeScreenshot() string {
 		name := t.Format("Mon-02-Jan-2006-15.04.05.000000")
 		filepath := path.Join(setArtifactsDir(), SCREENSHOTS_DIR, name+".png")
 		_ = webDriver.Screenshot(filepath)
+
 		return filepath
 	}
+
 	return ""
 }
 
@@ -656,6 +659,7 @@ func getWaitTimeFromErr(errOutput string) (time.Duration, error) {
 		if err != nil {
 			return 0, fmt.Errorf("error pasing rate reset time %w", err)
 		}
+
 		return duration, nil
 	}
 
@@ -663,7 +667,6 @@ func getWaitTimeFromErr(errOutput string) (time.Duration, error) {
 }
 
 func createRepository(repoName string, private bool) error {
-
 	visibility := gitprovider.RepositoryVisibilityPublic
 	if private {
 		visibility = gitprovider.RepositoryVisibilityPrivate
@@ -698,7 +701,9 @@ func createRepository(repoName string, private bool) error {
 	}
 
 	ctx := context.Background()
+
 	fmt.Printf("creating repo %s ...\n", repoName)
+
 	if err := utils.WaitUntil(os.Stdout, time.Second, THIRTY_SECOND_TIMEOUT, func() error {
 		_, err := githubProvider.OrgRepositories().Create(ctx, orgRef, repoInfo, repoCreateOpts)
 		if err != nil && strings.Contains(err.Error(), "rate limit exceeded") {
@@ -714,9 +719,11 @@ func createRepository(repoName string, private bool) error {
 	}); err != nil {
 		return fmt.Errorf("error creating repo %s", err)
 	}
+
 	fmt.Printf("repo %s created ...\n", repoName)
 
 	fmt.Printf("validating access to the repo %s ...\n", repoName)
+
 	err = utils.WaitUntil(os.Stdout, time.Second, THIRTY_SECOND_TIMEOUT, func() error {
 		_, err := githubProvider.OrgRepositories().Get(ctx, orgRef)
 		return err
@@ -724,6 +731,7 @@ func createRepository(repoName string, private bool) error {
 	if err != nil {
 		return fmt.Errorf("error validating access to the repository %w", err)
 	}
+
 	fmt.Printf("repo %s is accessible through the api ...\n", repoName)
 
 	return nil

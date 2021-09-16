@@ -186,6 +186,7 @@ func ConvertCommitURLToShort(url string) string {
 	urlArray := strings.SplitAfter(url, "commit/")
 	path := urlArray[0]
 	hash := urlArray[1][:7]
+
 	return path + hash
 }
 
