@@ -98,6 +98,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return errors.Wrapf(err, "failed to get commits for app %s", params.Name)
 		}
+
 		printCommitTable(logger, commits)
 	default:
 		_ = cmd.Help()
@@ -110,6 +111,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 func printCommitTable(logger logger.Logger, commits []gitprovider.Commit) {
 	header := []string{"Commit Hash", "Created At", "Author", "Message", "URL"}
 	rows := [][]string{}
+
 	for _, commit := range commits {
 		c := commit.Get()
 		rows = append(rows, []string{

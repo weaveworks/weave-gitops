@@ -152,6 +152,7 @@ func (a *App) Add(params AddParams) error {
 	if err != nil {
 		return err
 	}
+
 	for _, app := range apps {
 		existingHash := getAppResourceInfo(app, clusterName).getAppHash()
 
@@ -218,6 +219,7 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 		params.SourceType = wego.SourceTypeHelm
 		params.DeploymentType = string(wego.DeploymentTypeHelm)
 		params.Path = params.Chart
+
 		if params.Name == "" {
 			if nameTooLong(params.Chart) {
 				return params, fmt.Errorf("chart name %q is too long to use as application name; please specify name with '--name'", params.Chart)
@@ -225,6 +227,7 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 
 			params.Name = params.Chart
 		}
+
 		if params.Url == "" {
 			return params, fmt.Errorf("--url must be specified for helm repositories")
 		}
@@ -234,6 +237,7 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 		if err != nil {
 			return params, fmt.Errorf("error validating url %w", err)
 		}
+
 		params.Url = utils.SanitizeRepoUrl(params.Url)
 
 		// resetting Dir param since Url has priority over it
@@ -292,6 +296,7 @@ func (a *App) addAppWithNoConfigRepo(info *AppResourceInfo, dryRun bool, secretR
 	}
 
 	a.Logger.Actionf("Applying manifests to the cluster")
+
 	return a.applyToCluster(info, dryRun, source, appGoat, appSpec)
 }
 
@@ -310,10 +315,12 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 	// a local directory has not been passed, so we clone the repo passed in the --url
 	if params.Dir == "" {
 		a.Logger.Actionf("Cloning %s", info.Spec.URL)
+
 		remover, err := a.cloneRepo(a.ConfigGit, info.Spec.URL, info.Spec.Branch, params.DryRun)
 		if err != nil {
 			return fmt.Errorf("failed to clone application repo: %w", err)
 		}
+
 		defer remover()
 	}
 
@@ -336,6 +343,7 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 	}
 
 	a.Logger.Actionf("Applying manifests to the cluster")
+
 	if err := a.applyToCluster(info, params.DryRun, source, appDirGoat, targetDirGoat); err != nil {
 		return fmt.Errorf("could not apply manifests to the cluster: %w", err)
 	}
@@ -366,6 +374,7 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)
 	}
+
 	defer remover()
 
 	if !params.DryRun {
@@ -387,6 +396,7 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 	}
 
 	a.Logger.Actionf("Applying manifests to the cluster")
+
 	if err := a.applyToCluster(info, params.DryRun, extRepoMan.source, extRepoMan.target, extRepoMan.appDir); err != nil {
 		return fmt.Errorf("could not apply manifests to the cluster: %w", err)
 	}
@@ -396,8 +406,11 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 
 func (a *App) generateAppManifests(info *AppResourceInfo, secretRef string, appHash string) ([]byte, []byte, []byte, error) {
 	var sourceManifest, appManifest, appGoatManifest []byte
+
 	var err error
+
 	a.Logger.Generatef("Generating Source manifest")
+
 	sourceManifest, err = a.generateSource(info, secretRef)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("could not set up GitOps for user repository: %w", err)
@@ -405,11 +418,13 @@ func (a *App) generateAppManifests(info *AppResourceInfo, secretRef string, appH
 
 	a.Logger.Generatef("Generating GitOps automation manifests")
 	appGoatManifest, err = a.generateApplicationGoat(info)
+
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("could not create GitOps automation for '%s': %w", info.Name, err)
 	}
 
 	a.Logger.Generatef("Generating Application spec manifest")
+
 	appManifest, err = generateAppYaml(info, appHash)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("could not create app.yaml for '%s': %w", info.Name, err)
@@ -438,7 +453,6 @@ func (a *App) generateAppWegoManifests(info *AppResourceInfo) ([]byte, []byte, e
 	}
 
 	return sanitizeWegoDirectory(appsDirManifest), sanitizeWegoDirectory(targetDirManifest), nil
-
 }
 
 func (a *App) generateExternalRepoManifests(info *AppResourceInfo, branch string) (*externalRepoManifests, error) {
@@ -494,6 +508,7 @@ func (a *App) commitAndPush(client git.Git, filters ...func(string) bool) error 
 
 	if err == nil {
 		a.Logger.Actionf("Pushing app changes to repository")
+
 		if err = client.Push(context.Background()); err != nil {
 			return fmt.Errorf("failed to push changes: %w", err)
 		}
@@ -543,6 +558,7 @@ func (a *App) applyToCluster(info *AppResourceInfo, dryRun bool, manifests ...[]
 		for _, manifest := range manifests {
 			fmt.Fprintf(a.Osys.Stdout(), "%s\n", manifest)
 		}
+
 		return nil
 	}
 
@@ -681,7 +697,9 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, repo string, appHas
 		if err != nil {
 			return fmt.Errorf("unable to create pull request: %w", err)
 		}
+
 		a.Logger.Println("Pull Request created: %s\n", prLink.Get().WebURL)
+
 		return nil
 	}
 
@@ -691,7 +709,9 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, repo string, appHas
 	if err != nil {
 		return fmt.Errorf("unable to create pull request: %w", err)
 	}
+
 	a.Logger.Println("Pull Request created: %s\n", prLink.Get().WebURL)
+
 	return nil
 }
 
@@ -921,6 +941,7 @@ func sanitizeK8sYaml(data []byte) []byte {
 	out := []byte("---\n")
 	data = bytes.Replace(data, []byte("  creationTimestamp: null\n"), []byte(""), 1)
 	data = bytes.Replace(data, []byte("status: {}\n"), []byte(""), 1)
+
 	return append(out, data...)
 }
 

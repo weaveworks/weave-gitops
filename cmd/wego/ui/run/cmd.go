@@ -79,8 +79,10 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		Addr:    addr,
 		Handler: mux,
 	}
+
 	go func() {
 		log.Infof("Serving on port %s", port)
+
 		if err := srv.ListenAndServe(); err != nil {
 			log.Error(err, "server exited")
 			os.Exit(1)
@@ -91,6 +93,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		url := fmt.Sprintf("http://%s/%s", addr, path)
 
 		log.Printf("Openning browser at %s", url)
+
 		if err := browser.OpenURL(url); err != nil {
 			return fmt.Errorf("failed to open the browser: %w", err)
 		}
@@ -122,6 +125,7 @@ func getAssets() fs.FS {
 	if err != nil {
 		panic(err)
 	}
+
 	return f
 }
 
@@ -134,12 +138,15 @@ func createRedirector(fsys fs.FS, log logrus.FieldLogger) http.HandlerFunc {
 		if err != nil {
 			log.Error(err, "could not open index.html page")
 			w.WriteHeader(http.StatusInternalServerError)
+
 			return
 		}
+
 		stat, err := indexPage.Stat()
 		if err != nil {
 			log.Error(err, "could not get index.html stat")
 			w.WriteHeader(http.StatusInternalServerError)
+
 			return
 		}
 
@@ -149,6 +156,7 @@ func createRedirector(fsys fs.FS, log logrus.FieldLogger) http.HandlerFunc {
 		if err != nil {
 			log.Error(err, "could not read index.html")
 			w.WriteHeader(http.StatusInternalServerError)
+
 			return
 		}
 
@@ -157,6 +165,7 @@ func createRedirector(fsys fs.FS, log logrus.FieldLogger) http.HandlerFunc {
 		if err != nil {
 			log.Error(err, "error writing index.html")
 			w.WriteHeader(http.StatusInternalServerError)
+
 			return
 		}
 	}

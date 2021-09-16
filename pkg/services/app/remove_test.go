@@ -49,9 +49,11 @@ func populateAppRepo() (string, error) {
 
 	workloadPath1 := filepath.Join(dir, "kustomize", "one", "path", "to", "files")
 	workloadPath2 := filepath.Join(dir, "kustomize", "another", "path", "to", "more", "files")
+
 	if err := os.MkdirAll(workloadPath1, 0777); err != nil {
 		return "", err
 	}
+
 	if err := os.MkdirAll(workloadPath2, 0777); err != nil {
 		return "", err
 	}
@@ -59,6 +61,7 @@ func populateAppRepo() (string, error) {
 	if err := ioutil.WriteFile(filepath.Join(workloadPath1, "nginx.yaml"), []byte("file1"), 0644); err != nil {
 		return "", err
 	}
+
 	if err := ioutil.WriteFile(filepath.Join(workloadPath2, "nginx.yaml"), []byte("file2"), 0644); err != nil {
 		return "", err
 	}
@@ -86,6 +89,7 @@ func storeCreatedResource(manifestData []byte) error {
 
 		createdResources[kind][name] = true
 	}
+
 	return nil
 }
 
@@ -93,6 +97,7 @@ func storeCreatedResource(manifestData []byte) error {
 func removeCreatedResourceByPath(path string) error {
 	manifest := manifestsByPath[path]
 	delete(manifestsByPath, path)
+
 	return removeCreatedResource(manifest)
 }
 
@@ -115,6 +120,7 @@ func removeCreatedResource(manifestData []byte) error {
 
 		delete(createdResources[kind], metamap["name"].(string))
 	}
+
 	return nil
 }
 
@@ -125,6 +131,7 @@ func removeCreatedResourceByName(name string, kind ResourceKind) error {
 	}
 
 	delete(createdResources[kind], name)
+
 	return nil
 }
 
@@ -143,6 +150,7 @@ func removeGOATPath(path string) error {
 	}
 
 	delete(goatPaths, path)
+
 	return nil
 }
 
@@ -161,6 +169,7 @@ func setupFlux() error {
 		return dir, nil
 	}
 	appSrv.(*App).Flux = fluxClient
+
 	fluxBin, err := ioutil.ReadFile(filepath.Join("..", "..", "flux", "bin", "flux"))
 	if err != nil {
 		return err
@@ -199,6 +208,7 @@ func updateAppInfoFromParams() error {
 	application = makeWegoApplication(localAddParams)
 	info = getAppResourceInfo(application, "test-cluster")
 	appResources = info.clusterResources()
+
 	return nil
 }
 
@@ -224,6 +234,7 @@ func checkAddResults() error {
 			if len(resources) == 0 {
 				return fmt.Errorf("expected %s resources to be created", res.kind)
 			}
+
 			delete(resources, res.name)
 		}
 	}

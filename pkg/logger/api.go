@@ -17,7 +17,9 @@ func NewApiLogger() Logger {
 	if err != nil {
 		panic(err)
 	}
+
 	logger := zapr.NewLogger(zap)
+
 	return ApiLogger{
 		logger: logger,
 	}

@@ -79,6 +79,7 @@ func DefaultConfig() (*ApplicationsConfig, error) {
 	if err != nil {
 		log.Fatalf("could not create zap logger: %v", err)
 	}
+
 	logr := zapr.NewLogger(zapLog)
 
 	rand.Seed(time.Now().UnixNano())
@@ -135,6 +136,7 @@ func (s *applicationServer) ListApplications(ctx context.Context, msg *pb.ListAp
 	for _, a := range apps {
 		list = append(list, &pb.Application{Name: a.Name})
 	}
+
 	return &pb.ListApplicationsResponse{
 		Applications: list,
 	}, nil
@@ -162,6 +164,7 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 		if apierrors.IsNotFound(err) {
 			return nil, nil
 		}
+
 		return nil, fmt.Errorf("could not get source for app %s: %w", app.Name, err)
 	}
 
@@ -169,11 +172,13 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 		if apierrors.IsNotFound(err) {
 			return nil, nil
 		}
+
 		return nil, fmt.Errorf("could not get deployment for app %s: %w", app.Name, err)
 	}
 
 	// A Source is just an abstract interface, we need to get the underlying implementation.
 	var srcK8sConditions []metav1.Condition
+
 	var srcConditions []*pb.Condition
 
 	if src != nil {
@@ -190,8 +195,11 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 	}
 
 	var deploymentK8sConditions []metav1.Condition
+
 	var deploymentConditions []*pb.Condition
+
 	reconciledKinds := []*pb.GroupVersionKind{}
+
 	if deployment != nil {
 		// Same as a src. Deployment may not be created at this point.
 		switch at := deployment.(type) {
@@ -256,8 +264,10 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 	}
 
 	list := []*pb.Commit{}
+
 	for _, commit := range commits {
 		c := commit.Get()
+
 		list = append(list, &pb.Commit{
 			Author:  c.Author,
 			Message: utils.CleanCommitMessage(c.Message),
@@ -266,7 +276,9 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 			Url:     utils.ConvertCommitURLToShort(c.URL),
 		})
 	}
+
 	nextPageToken := int32(pageToken + 1)
+
 	return &pb.ListCommitsResponse{
 		Commits:       list,
 		NextPageToken: nextPageToken,
@@ -280,6 +292,7 @@ func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.Ge
 	if msg.AutomationKind == pb.GetReconciledObjectsReq_Helm {
 		return nil, grpcStatus.Error(codes.Unimplemented, "Helm is not currently supported for this method")
 	}
+
 	result := []unstructured.Unstructured{}
 
 	for _, gvk := range msg.Kinds {
@@ -301,10 +314,10 @@ func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.Ge
 		}
 
 		result = append(result, list.Items...)
-
 	}
 
 	objects := []*pb.UnstructuredObject{}
+
 	for _, obj := range result {
 		res, err := status.Compute(&obj)
 
@@ -324,6 +337,7 @@ func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.Ge
 			Uid:       string(obj.GetUID()),
 		})
 	}
+
 	return &pb.GetReconciledObjectsRes{Objects: objects}, nil
 }
 
@@ -387,6 +401,7 @@ func findFluxObjects(app *wego.Application) (client.Object, client.Object, error
 	}
 
 	var src client.Object
+
 	switch st {
 	case wego.SourceTypeGit:
 		src = &sourcev1.GitRepository{}
@@ -403,7 +418,9 @@ func findFluxObjects(app *wego.Application) (client.Object, client.Object, error
 		// Same as above, default to kustomize to match CLI default.
 		at = wego.DeploymentTypeKustomize
 	}
+
 	var deployment client.Object
+
 	switch at {
 	case wego.DeploymentTypeHelm:
 		deployment = &helmv2.HelmRelease{}
@@ -439,7 +456,6 @@ var ErrBadProvider = errors.New("wrong provider name")
 
 // Authenticate generates and returns a jwt token using git provider name and git provider token
 func (s *applicationServer) Authenticate(_ context.Context, msg *pb.AuthenticateRequest) (*pb.AuthenticateResponse, error) {
-
 	if !strings.HasPrefix(github.DefaultDomain, msg.ProviderName) &&
 		!strings.HasPrefix(gitlab.DefaultDomain, msg.ProviderName) {
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "%s expected github or gitlab, got %s", ErrBadProvider, msg.ProviderName)
@@ -463,12 +479,14 @@ func addReconciledKinds(arr []*pb.GroupVersionKind, kustomization *kustomizev1.K
 	}
 
 	found := map[string]bool{}
+
 	for _, gvks := range kustomization.Status.Snapshot.NamespacedKinds() {
 		for _, gvk := range gvks {
 			s := gvk.String()
 
 			if !found[s] {
 				found[s] = true
+
 				arr = append(arr, &pb.GroupVersionKind{
 					Group:   gvk.Group,
 					Version: gvk.Version,
@@ -482,6 +500,7 @@ func addReconciledKinds(arr []*pb.GroupVersionKind, kustomization *kustomizev1.K
 		s := gvk.String()
 		if _, exists := found[s]; !exists {
 			found[s] = true
+
 			arr = append(arr, &pb.GroupVersionKind{
 				Group:   gvk.Group,
 				Version: gvk.Version,

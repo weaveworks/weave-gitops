@@ -115,6 +115,7 @@ func TestSetup(t *testing.T) {
 	binPath, err := fluxClient.GetBinPath()
 	require.NoError(t, err)
 	require.Equal(t, binPath, filepath.Join(homeDir, ".wego", "bin"))
+
 	exePath, err := fluxClient.GetExePath()
 	require.NoError(t, err)
 	require.Equal(t, exePath, filepath.Join(homeDir, ".wego", "bin", "flux-"+version.FluxVersion))

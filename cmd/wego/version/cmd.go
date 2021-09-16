@@ -32,11 +32,13 @@ func runCmd(cmd *cobra.Command, args []string) {
 	fmt.Println("GitCommit:", GitCommit)
 	fmt.Println("BuildTime:", BuildTime)
 	fmt.Println("Branch:", Branch)
+
 	version, err := CheckFluxVersion()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+
 	fmt.Println("Flux Version:", version)
 }
 
@@ -64,17 +66,20 @@ func CheckpointParamsWithFlags(params *checkpoint.CheckParams, c *cobra.Command)
 	if params == nil {
 		p = CheckpointParams()
 	}
+
 	if c.HasParent() && c.Parent().Name() != "wego" {
 		p.Flags = map[string]string{
 			"object":  c.Parent().Name(),
 			"command": c.Name(),
 		}
 	}
+
 	return p
 }
 func CheckFluxVersion() (string, error) {
 	cliRunner := &runner.CLIRunner{}
 	osysClient := osys.New()
 	fluxClient := flux.New(osysClient, cliRunner)
+
 	return fluxClient.GetVersion()
 }

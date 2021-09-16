@@ -19,6 +19,7 @@ func (f *FluxClient) SetupBin() {
 	f.checkError(err)
 
 	var fluxBinary []byte
+
 	fluxBinaryOverride := f.osys.Getenv(fluxBinaryPathEnvVar)
 	if fluxBinaryOverride == "" {
 		// Try and read embedded binary, this won't work if weave-gitops
@@ -58,6 +59,7 @@ func (f *FluxClient) GetExePath() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return fmt.Sprintf("%v/flux-%v", path, version.FluxVersion), nil
 }
 

@@ -52,6 +52,7 @@ func (i *internalJWTClient) GenerateJWT(expirationTime time.Duration, providerNa
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
+
 	return token.SignedString([]byte(i.secretKey))
 }
 
