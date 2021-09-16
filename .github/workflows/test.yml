@@ -43,7 +43,7 @@ jobs:
     - name: Run linters
       uses: golangci/golangci-lint-action@v2
       with:
-        version: v1.29
+        version: v1.42.1
         args: --timeout=600s
         skip-go-installation: true
 
@@ -97,7 +97,7 @@ jobs:
       with:
           github-token: ${{ secrets.github_token }}
           path-to-lcov: merged.lcov
-  
+
   smoke-tests:
     runs-on: ubuntu-latest
     needs: build
@@ -115,7 +115,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Setup selenium standalone server
-      run: | 
+      run: |
         sudo apt-get update
         sudo apt-get install -y xvfb
         sudo apt-get install -y google-chrome-stable
@@ -128,7 +128,7 @@ jobs:
         cd cmd/selenium
         wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
         mv selenium-server-standalone-3.14.0.jar selenium-server-standalone.jar
-        
+
         xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone.jar &
         cd -
     - name: Setup Kubernetes
@@ -174,7 +174,7 @@ jobs:
     - name: Store smoke test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
-      with: 
+      with:
         name: smoke-test-artifacts
         path: ${{ env. ARTIFACTS_BASE_DIR }}
         retention-days: 1
@@ -196,7 +196,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Setup selenium standalone server
-      run: | 
+      run: |
         sudo apt-get update
         sudo apt-get install -y xvfb
         sudo apt-get install -y google-chrome-stable
@@ -209,7 +209,7 @@ jobs:
         cd cmd/selenium
         wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
         mv selenium-server-standalone-3.14.0.jar selenium-server-standalone.jar
-        
+
         xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone.jar &
         cd -
     - name: Setup Kubernetes
@@ -255,7 +255,7 @@ jobs:
     - name: Store acceptance test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
-      with: 
+      with:
         name: acceptance-test-artifacts
         path: ${{ env.ARTIFACTS_BASE_DIR }}
         retention-days: 1
@@ -270,5 +270,3 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ secrets.github_token }}"
         run: make lib-test
-
-        

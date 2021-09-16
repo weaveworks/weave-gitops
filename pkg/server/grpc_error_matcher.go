@@ -23,7 +23,6 @@ type grpcErrorMatcher struct {
 }
 
 func (matcher *grpcErrorMatcher) Match(actual interface{}) (success bool, err error) {
-
 	actualErr, ok := actual.(error)
 	if !ok {
 		return false, fmt.Errorf("MatchGRPCError matcher expects an error")
@@ -41,7 +40,6 @@ func (matcher *grpcErrorMatcher) Match(actual interface{}) (success bool, err er
 }
 
 func (matcher *grpcErrorMatcher) FailureMessage(actual interface{}) (message string) {
-
 	actualStatus, _ := status.FromError(actual.(error))
 
 	return fmt.Sprintf("Expected \n\t%s\n to match: \n\t%s\nAnd \n\t%v\n to match: \n\t%v\n", actualStatus.Code().String(), matcher.codeExpected.(codes.Code).String(), actualStatus.Message(), matcher.errExpected.(error).Error())

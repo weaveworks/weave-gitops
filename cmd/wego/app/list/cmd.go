@@ -32,6 +32,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Println("NAME")
+
 	for _, app := range apps {
 		fmt.Println(app.Name)
 	}

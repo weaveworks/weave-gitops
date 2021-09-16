@@ -9,7 +9,6 @@ import (
 )
 
 func TestFlux(t *testing.T) {
-
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Flux Suite")
 }

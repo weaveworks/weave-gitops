@@ -392,5 +392,6 @@ func executeCommand(workingDir, cmd string, args ...string) []byte {
 	c.Dir = workingDir
 	out, err := c.Output()
 	Expect(err).ShouldNot(HaveOccurred())
+
 	return out
 }

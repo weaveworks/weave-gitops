@@ -24,6 +24,7 @@ func (a *App) Status(params StatusParams) (string, string, error) {
 	}
 
 	ctx := context.Background()
+
 	deploymentType, err := a.getDeploymentType(ctx, params.Name, params.Namespace)
 	if err != nil {
 		return "", "", fmt.Errorf("failed getting app deployment type: %w", err)
@@ -39,18 +40,21 @@ func (a *App) Status(params StatusParams) (string, string, error) {
 
 func (a *App) getLastSuccessfulReconciliation(ctx context.Context, deploymentType wego.DeploymentType, params StatusParams) (string, error) {
 	conditions := []metav1.Condition{}
+
 	switch deploymentType {
 	case wego.DeploymentTypeKustomize:
 		kust := &kustomizev1.Kustomization{}
 		if err := a.Kube.GetResource(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace}, kust); err != nil {
 			return "", fmt.Errorf("failed getting resource: %w", err)
 		}
+
 		conditions = kust.Status.Conditions
 	case wego.DeploymentTypeHelm:
 		helm := &helmv2.HelmRelease{}
 		if err := a.Kube.GetResource(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace}, helm); err != nil {
 			return "", fmt.Errorf("failed getting resource: %w", err)
 		}
+
 		conditions = helm.Status.Conditions
 	}
 

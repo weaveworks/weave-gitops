@@ -71,6 +71,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	if clientErr != nil {
 		return clientErr
 	}
+
 	gitopsService := gitops.New(logger, fluxClient, kubeClient)
 
 	manifests, err := gitopsService.Install(gitops.InstallParams{
@@ -93,6 +94,7 @@ func uninstallRunCmd(cmd *cobra.Command, args []string) error {
 	if clientErr != nil {
 		return clientErr
 	}
+
 	gitopsService := gitops.New(logger, fluxClient, kubeClient)
 
 	return gitopsService.Uninstall(gitops.UinstallParams{

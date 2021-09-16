@@ -33,6 +33,7 @@ func runCmd(cmd *cobra.Command, args []string) {
 	cliRunner := &runner.CLIRunner{}
 	osysClient := osys.New()
 	fluxClient := flux.New(osysClient, cliRunner)
+
 	exePath, err := fluxClient.GetExePath()
 	if err != nil {
 		fmt.Fprintf(osysClient.Stderr(), "Error: %v\n", err)
@@ -51,10 +52,12 @@ func runStatusCmd(cmd *cobra.Command, args []string) {
 	cliRunner := &runner.CLIRunner{}
 	osysClient := osys.New()
 	fluxClient := flux.New(osysClient, cliRunner)
+
 	status, err := fluxClient.GetLatestStatusAllNamespaces()
 	if err != nil {
 		fmt.Fprintf(osysClient.Stderr(), "Error: %v\n", err)
 		osysClient.Exit(1)
 	}
+
 	fmt.Printf("Status: %s\n", status)
 }

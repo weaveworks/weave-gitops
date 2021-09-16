@@ -25,9 +25,11 @@ func (t *testServerTransport) RoundTrip(r *http.Request) (*http.Response, error)
 	if err != nil {
 		return nil, err
 	}
+
 	tsUrl.Path = r.URL.Path
 
 	r.URL = tsUrl
+
 	return t.roundTripper.RoundTrip(r)
 }
 

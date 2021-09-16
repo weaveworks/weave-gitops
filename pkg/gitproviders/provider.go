@@ -99,6 +99,7 @@ func (p defaultGitProvider) CreateRepository(name string, owner string, private 
 	if !private {
 		visibility = gitprovider.RepositoryVisibilityPublic
 	}
+
 	repoInfo := NewRepositoryInfo("Weave Gitops repo", visibility)
 
 	repoCreateOpts := &gitprovider.RepositoryCreateOptions{
@@ -127,7 +128,6 @@ func (p defaultGitProvider) CreateRepository(name string, owner string, private 
 }
 
 func (p defaultGitProvider) DeployKeyExists(owner, repoName string) (bool, error) {
-
 	ownerType, err := p.GetAccountType(owner)
 	if err != nil {
 		return false, err
@@ -135,13 +135,16 @@ func (p defaultGitProvider) DeployKeyExists(owner, repoName string) (bool, error
 
 	ctx := context.Background()
 	defer ctx.Done()
+
 	switch ownerType {
 	case AccountTypeOrg:
 		orgRef := NewOrgRepositoryRef(github.DefaultDomain, owner, repoName)
+
 		orgRepo, err := p.provider.OrgRepositories().Get(ctx, orgRef)
 		if err != nil {
 			return false, fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s ", owner, repoName, err)
 		}
+
 		_, err = orgRepo.DeployKeys().Get(ctx, deployKeyName)
 		if err != nil && !strings.Contains(err.Error(), "key is already in use") {
 			if errors.Is(err, gitprovider.ErrNotFound) {
@@ -155,10 +158,12 @@ func (p defaultGitProvider) DeployKeyExists(owner, repoName string) (bool, error
 
 	case AccountTypeUser:
 		userRef := NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
+
 		userRepo, err := p.provider.UserRepositories().Get(ctx, userRef)
 		if err != nil {
 			return false, fmt.Errorf("error getting user repo reference for owner %s, repo %s, %s ", owner, repoName, err)
 		}
+
 		_, err = userRepo.DeployKeys().Get(ctx, deployKeyName)
 		if err != nil && !strings.Contains(err.Error(), "key is already in use") {
 			if errors.Is(err, gitprovider.ErrNotFound) {
@@ -188,18 +193,23 @@ func (p defaultGitProvider) UploadDeployKey(owner, repoName string, deployKey []
 
 	ctx := context.Background()
 	defer ctx.Done()
+
 	switch ownerType {
 	case AccountTypeOrg:
 		orgRef := NewOrgRepositoryRef(github.DefaultDomain, owner, repoName)
+
 		orgRepo, err := p.provider.OrgRepositories().Get(ctx, orgRef)
 		if err != nil {
 			return fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s ", owner, repoName, err)
 		}
+
 		fmt.Println("uploading deploy key")
+
 		_, err = orgRepo.DeployKeys().Create(ctx, deployKeyInfo)
 		if err != nil {
 			return fmt.Errorf("error uploading deploy key %s", err)
 		}
+
 		if err = utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
 			_, err = orgRepo.DeployKeys().Get(ctx, deployKeyName)
 			return err
@@ -208,15 +218,19 @@ func (p defaultGitProvider) UploadDeployKey(owner, repoName string, deployKey []
 		}
 	case AccountTypeUser:
 		userRef := NewUserRepositoryRef(github.DefaultDomain, owner, repoName)
+
 		userRepo, err := p.provider.UserRepositories().Get(ctx, userRef)
 		if err != nil {
 			return fmt.Errorf("error getting user repo reference for owner %s, repo %s, %s ", owner, repoName, err)
 		}
+
 		fmt.Println("uploading deploy key")
+
 		_, err = userRepo.DeployKeys().Create(ctx, deployKeyInfo)
 		if err != nil {
 			return fmt.Errorf("error uploading deploy key %s", err)
 		}
+
 		if err = utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
 			_, err = userRepo.DeployKeys().Get(ctx, deployKeyName)
 			return err
@@ -319,14 +333,18 @@ func (p defaultGitProvider) GetRepoInfo(accountType ProviderAccountType, owner s
 		if err != nil {
 			return nil, err
 		}
+
 		info := repo.Get()
+
 		return &info, nil
 	case AccountTypeUser:
 		repo, err := p.GetUserRepo(owner, repoName)
 		if err != nil {
 			return nil, err
 		}
+
 		info := repo.Get()
+
 		return &info, nil
 	default:
 		return nil, fmt.Errorf("unexpected account type %s", accountType)
@@ -537,6 +555,7 @@ func (p defaultGitProvider) waitUntilRepoCreated(ownerType ProviderAccountType, 
 	}); err != nil {
 		return fmt.Errorf("could not verify repo existence %s", err)
 	}
+
 	return nil
 }
 
@@ -586,14 +605,15 @@ func normalizeRepoURLString(url string) string {
 	if len(captured) > 0 {
 		captured := sshPrefixRe.FindAllStringSubmatch(url, 1)
 		matches := captured[0]
+
 		if len(matches) >= 3 {
 			provider := matches[1]
 			org := matches[2]
 			repo := matches[3]
 			n := fmt.Sprintf("ssh://git@%s/%s/%s", provider, org, repo)
+
 			return n
 		}
-
 	}
 
 	return url
