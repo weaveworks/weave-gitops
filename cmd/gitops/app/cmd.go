@@ -8,12 +8,12 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops/cmd/wego/app/add"
-	"github.com/weaveworks/weave-gitops/cmd/wego/app/list"
-	"github.com/weaveworks/weave-gitops/cmd/wego/app/pause"
-	"github.com/weaveworks/weave-gitops/cmd/wego/app/remove"
-	"github.com/weaveworks/weave-gitops/cmd/wego/app/status"
-	"github.com/weaveworks/weave-gitops/cmd/wego/app/unpause"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/app/add"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/app/list"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/app/pause"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/app/remove"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/app/status"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/app/unpause"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
@@ -26,25 +26,25 @@ var ApplicationCmd = &cobra.Command{
 	Short: "Manages your applications",
 	Example: `
   # Get last 10 commits for an application
-  wego app <app-name> get commits
+  gitops app <app-name> get commits
 
-  # Add an application to wego from local git repository
-  wego app add . --name <app-name>
+  # Add an application to gitops from local git repository
+  gitops app add . --name <app-name>
 
-  # Remove an application from wego
-  wego app remove <app-name>
+  # Remove an application from gitops
+  gitops app remove <app-name>
 
-  # Status an application under wego control
-  wego app status <app-name>
+  # Status an application under gitops control
+  gitops app status <app-name>
 
-  # List applications under wego control
-  wego app list
+  # List applications under gitops control
+  gitops app list
 
   # Pause gitops automation
-  wego app pause <app-name>
+  gitops app pause <app-name>
 
   # Unpause gitops automation
-  wego app unpause <app-name>`,
+  gitops app unpause <app-name>`,
 	Args: cobra.MinimumNArgs(3),
 	RunE: runCmd,
 }

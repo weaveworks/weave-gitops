@@ -20,11 +20,11 @@ jobs:
     - name: Clean
       run: make clean
     - name: build
-      run: make all BINARY_NAME=wego-${{matrix.os}}-nightly
-    - name: Store wego binaries
+      run: make all BINARY_NAME=gitops-${{matrix.os}}-nightly
+    - name: Store gitops binaries
       uses: actions/upload-artifact@v2
       with:
-          name: wego-binaries-${{matrix.os}}-nightly
+          name: gitops-binaries-${{matrix.os}}-nightly
           path: bin
           retention-days: 1
   test-eks:
@@ -74,14 +74,14 @@ jobs:
       if: always()
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
-    - name: Download wego binaries
+    - name: Download gitops binaries
       uses: actions/download-artifact@v2
       with:
-        name: wego-binaries-${{matrix.os}}-nightly
+        name: gitops-binaries-${{matrix.os}}-nightly
         path: bin
     - name: Change bin permissions
       run: |
-        chmod +x bin/wego-${{matrix.os}}-nightly
+        chmod +x bin/gitops-${{matrix.os}}-nightly
         ls -la bin
     - name: Set up ssh agent
       uses: webfactory/ssh-agent@v0.5.2
@@ -101,7 +101,7 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
       run: |
-        export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}-nightly
+        export WEGO_BIN_PATH=$(pwd)/bin/gitops-${{matrix.os}}-nightly
         export CLUSTER_PROVIDER=kubectl
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         export K8S_VERSION=1.19.1
@@ -157,14 +157,14 @@ jobs:
       if: always()
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
-    - name: Download wego binaries
+    - name: Download gitops binaries
       uses: actions/download-artifact@v2
       with:
-        name: wego-binaries-${{matrix.os}}-nightly
+        name: gitops-binaries-${{matrix.os}}-nightly
         path: bin
     - name: Change bin permissions
       run: |
-        chmod +x bin/wego-${{matrix.os}}-nightly
+        chmod +x bin/gitops-${{matrix.os}}-nightly
         ls -la bin
     - name: Set up ssh agent
       uses: webfactory/ssh-agent@v0.5.2
@@ -184,7 +184,7 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
       run: |
-        export WEGO_BIN_PATH=$(pwd)/bin/wego-${{matrix.os}}-nightly
+        export WEGO_BIN_PATH=$(pwd)/bin/gitops-${{matrix.os}}-nightly
         export CLUSTER_PROVIDER=kubectl
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         export K8S_VERSION=1.19.1
@@ -202,10 +202,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, macOS-latest]
     steps:
-    - name: Download tested wego binaries
+    - name: Download tested gitops binaries
       uses: actions/download-artifact@v2
       with:
-        name: wego-binaries-${{matrix.os}}-nightly
+        name: gitops-binaries-${{matrix.os}}-nightly
         path: bin
     - name: Get current date
       id: date
@@ -217,4 +217,4 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-2
     - run: |
-        aws s3 cp bin/wego-${{matrix.os}}-nightly s3://weave-gitops/nightly/${{ steps.date.outputs.date }}/wego-${{matrix.os}}
+        aws s3 cp bin/gitops-${{matrix.os}}-nightly s3://weave-gitops/nightly/${{ steps.date.outputs.date }}/gitops-${{matrix.os}}

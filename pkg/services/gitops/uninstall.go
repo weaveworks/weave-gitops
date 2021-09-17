@@ -8,7 +8,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
-type UinstallParams struct {
+type UninstallParams struct {
 	Namespace string
 	DryRun    bool
 }
@@ -19,7 +19,7 @@ func (e UninstallError) Error() string {
 	return "errors occurred during uninstall; the original state of the cluster may not be completely restored"
 }
 
-func (g *Gitops) Uninstall(params UinstallParams) error {
+func (g *Gitops) Uninstall(params UninstallParams) error {
 	ctx := context.Background()
 	if g.kube.GetClusterStatus(ctx) != kube.WeGOInstalled {
 		g.logger.Println("wego is not fully installed... removing any partial installation\n")

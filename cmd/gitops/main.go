@@ -6,11 +6,12 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/cmd/wego/app"
-	"github.com/weaveworks/weave-gitops/cmd/wego/flux"
-	"github.com/weaveworks/weave-gitops/cmd/wego/gitops"
-	"github.com/weaveworks/weave-gitops/cmd/wego/ui"
-	"github.com/weaveworks/weave-gitops/cmd/wego/version"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/app"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/flux"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/install"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/ui"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/uninstall"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
@@ -22,44 +23,44 @@ var options struct {
 }
 
 var rootCmd = &cobra.Command{
-	Use:           "wego",
+	Use:           "gitops",
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	Short:         "Weave GitOps",
 	Long:          "Command line utility for managing Kubernetes applications via GitOps.",
 	Example: `
-  # Get verbose output for any wego command
-  wego [command] -v, --verbose
+  # Get verbose output for any gitops command
+  gitops [command] -v, --verbose
 
-  # Get wego app help
-  wego help app
+  # Get gitops app help
+  gitops help app
 
-  # Add application to wego control from a local git repository
-  wego app add . --name <myapp>
+  # Add application to gitops control from a local git repository
+  gitops app add . --name <myapp>
   OR
-  wego app add <myapp-directory>
+  gitops app add <myapp-directory>
 
-  # Add application to wego control from a github repository
-  wego app add \
+  # Add application to gitops control from a github repository
+  gitops app add \
     --name <myapp> \
     --url git@github.com:myorg/<myapp> \
     --branch prod-<myapp>
 
-  # Get status of application under wego control
-  wego app status podinfo
+  # Get status of application under gitops control
+  gitops app status podinfo
 
-  # Get help for wego app add command
-  wego app add -h
-  wego help app add
+  # Get help for gitops app add command
+  gitops app add -h
+  gitops help app add
 
-  # Show manifests that would be installed by the wego gitops install command
-  wego gitops install --dry-run
+  # Show manifests that would be installed by the gitops gitops install command
+  gitops gitops install --dry-run
 
-  # Install wego in the wego-system namespace
-  wego gitops install
+  # Install gitops in the wego-system namespace
+  gitops install
 
-  # Get the version of wego along with commit, branch, and flux version
-  wego version
+  # Get the version of gitops along with commit, branch, and flux version
+  gitops version
 `,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		configureLogger()
@@ -95,7 +96,8 @@ func main() {
 	rootCmd.PersistentFlags().BoolVarP(&options.verbose, "verbose", "v", false, "Enable verbose output")
 	rootCmd.PersistentFlags().String("namespace", "wego-system", "gitops runtime namespace")
 
-	rootCmd.AddCommand(gitops.Cmd)
+	rootCmd.AddCommand(install.Cmd)
+	rootCmd.AddCommand(uninstall.Cmd)
 	rootCmd.AddCommand(version.Cmd)
 	rootCmd.AddCommand(flux.Cmd)
 	rootCmd.AddCommand(ui.Cmd)

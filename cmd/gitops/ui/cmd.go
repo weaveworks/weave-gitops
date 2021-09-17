@@ -2,15 +2,15 @@ package ui
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/cmd/wego/ui/run"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/ui/run"
 )
 
 var Cmd = &cobra.Command{
 	Use:   "ui",
-	Short: "Manages Wego UI",
+	Short: "Manages Gitops UI",
 	Example: `
-  # Run wego ui in your machine
-  wego ui run
+  # Run gitops ui in your machine
+  gitops ui run
 `,
 	Args: cobra.MinimumNArgs(1),
 }

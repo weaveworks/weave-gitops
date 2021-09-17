@@ -23,11 +23,11 @@ jobs:
     - name: build
       run: |
         git_hash=$(git rev-parse --short "$GITHUB_SHA")
-        make all BINARY_NAME=wego-${{matrix.os}}-$git_hash
-    - name: Store wego binaries
+        make all BINARY_NAME=gitops-${{matrix.os}}-$git_hash
+    - name: Store gitops binaries
       uses: actions/upload-artifact@v2
       with:
-          name: wego-binaries
+          name: gitops-binaries
           path: bin
           retention-days: 1
 
@@ -43,7 +43,7 @@ jobs:
     - name: Install UI Deps
       run: npm ci
     - name: Build UI Assets
-      run: make cmd/wego/ui/run/dist/main.js
+      run: make cmd/gitops/ui/run/dist/main.js
     - name: Setup Kubernetes
       uses: engineerd/setup-kind@v0.5.0
       with:
@@ -85,15 +85,15 @@ jobs:
     - name: Kind-check
       run: |
        kubectl get pods -A
-    - name: Download wego binaries
+    - name: Download gitops binaries
       uses: actions/download-artifact@v2
       with:
-        name: wego-binaries
+        name: gitops-binaries
         path: bin
     - name: Change bin permissions
       run: |
-        cp bin/wego-ubuntu-latest-* bin/wego
-        chmod +x bin/wego
+        cp bin/gitops-ubuntu-latest-* bin/gitops
+        chmod +x bin/gitops
         ls -la bin
     - name: Download dependecies
       run: |
@@ -114,7 +114,7 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
       run: |
-        export WEGO_BIN_PATH=$(pwd)/bin/wego
+        export WEGO_BIN_PATH=$(pwd)/bin/gitops
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega
         ginkgo --randomizeSuites --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v ./test/acceptance/test/...
@@ -160,10 +160,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, macOS-latest]
     steps:
-    - name: Download wego binaries
+    - name: Download gitops binaries
       uses: actions/download-artifact@v2
       with:
-        name: wego-binaries
+        name: gitops-binaries
         path: bin
     - name: publish to s3
       uses: aws-actions/configure-aws-credentials@v1
@@ -172,4 +172,4 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-2
     - run: |
-        aws s3 cp bin/wego-${{matrix.os}}-* s3://weave-gitops/
+        aws s3 cp bin/gitops-${{matrix.os}}-* s3://weave-gitops/

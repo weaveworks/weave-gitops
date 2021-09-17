@@ -4,7 +4,7 @@
   "description": "Weave GitOps core",
   "targets": {
     "default": {
-      "distDir": "cmd/wego/ui/run/dist",
+      "distDir": "cmd/gitops/ui/run/dist",
       "source": "ui/index.html",
       "sourceMap": false
     },
