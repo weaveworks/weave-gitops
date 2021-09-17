@@ -14,7 +14,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 )
 
-var uninstallParams gitops.UinstallParams
+var uninstallParams gitops.UninstallParams
 
 func checkFluxUninstallFailure() {
 	fluxErrMsg := "flux uninstall failed"
@@ -71,7 +71,7 @@ var _ = Describe("Uninstall", func() {
 		logger = &loggerfakes.FakeLogger{}
 		gitopsSrv = gitops.New(logger, fluxClient, kubeClient)
 
-		uninstallParams = gitops.UinstallParams{
+		uninstallParams = gitops.UninstallParams{
 			Namespace: "wego-system",
 			DryRun:    false,
 		}

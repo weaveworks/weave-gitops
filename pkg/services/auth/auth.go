@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth/internal"
 	"io"
 	"net/http"
 
@@ -28,6 +29,13 @@ func NewAuthCLIHandler(name gitproviders.GitProviderName) (BlockingCLIAuthHandle
 	switch name {
 	case gitproviders.GitProviderGitHub:
 		return NewGithubDeviceFlowHandler(http.DefaultClient), nil
+	case gitproviders.GitProviderGitLab:
+		authFlow, err := NewGitlabAuthFlow(internal.GitlabRedirectUriCLI, http.DefaultClient)
+		if err != nil {
+			return nil, fmt.Errorf("could not create gitlab auth flow for CLI: %w", err)
+		}
+
+		return NewGitlabAuthFlowHandler(http.DefaultClient, authFlow), nil
 	}
 
 	return nil, fmt.Errorf("unsupported auth provider \"%s\"", name)

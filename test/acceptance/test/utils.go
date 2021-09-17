@@ -138,9 +138,9 @@ func getUniqueWorkload(placeHolderSuffix string, uniqueSuffix string) string {
 func setupSSHKey(sshKeyPath string) {
 	if _, err := os.Stat(sshKeyPath); os.IsNotExist(err) {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
-	                       echo "%s" >> %s &&
-	                       chmod 0600 %s &&
-	                       ls -la %s`, os.Getenv("GITHUB_KEY"), sshKeyPath, sshKeyPath, sshKeyPath))
+                           echo "%s" >> %s &&
+                           chmod 0600 %s &&
+                           ls -la %s`, os.Getenv("GITHUB_KEY"), sshKeyPath, sshKeyPath, sshKeyPath))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session).Should(gexec.Exit())
@@ -364,7 +364,7 @@ func VerifyControllersInCluster(namespace string) {
 	Expect(waitForResource("deploy", "image-reflector-controller", namespace, INSTALL_PODS_READY_TIMEOUT))
 	Expect(waitForResource("pods", "", namespace, INSTALL_PODS_READY_TIMEOUT))
 
-	By("And I wait for the wego controllers to be ready", func() {
+	By("And I wait for the gitops controllers to be ready", func() {
 		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod", "120s", namespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
@@ -373,8 +373,8 @@ func VerifyControllersInCluster(namespace string) {
 }
 
 func installAndVerifyWego(wegoNamespace string) {
-	By("And I run 'wego install' command with namespace "+wegoNamespace, func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s gitops install --namespace=%s", WEGO_BIN_PATH, wegoNamespace))
+	By("And I run 'gitops install' command with namespace "+wegoNamespace, func() {
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s", WEGO_BIN_PATH, wegoNamespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, TIMEOUT_TWO_MINUTES).Should(gexec.Exit())
@@ -383,11 +383,11 @@ func installAndVerifyWego(wegoNamespace string) {
 }
 
 func uninstallWegoRuntime(namespace string) {
-	log.Infof("About to delete WeGO runtime from namespace: %s", namespace)
+	log.Infof("About to delete Gitops runtime from namespace: %s", namespace)
 	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
 
 	if err != nil {
-		log.Infof("Failed to uninstall the wego runtime %s", namespace)
+		log.Infof("Failed to uninstall the gitops runtime %s", namespace)
 	}
 
 	err = runCommandPassThrough([]string{}, "sh", "-c", "kubectl delete crd apps.wego.weave.works")
@@ -613,7 +613,7 @@ func verifyPRCreated(repoAbsolutePath, appName string) {
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
 	output := string(session.Wait().Out.Contents())
-	Expect(output).To(ContainSubstring(fmt.Sprintf("wego add %s", appName)))
+	Expect(output).To(ContainSubstring(fmt.Sprintf("gitops add %s", appName)))
 }
 
 func mergePR(repoAbsolutePath, prLink string) {
@@ -630,6 +630,7 @@ func mergePR(repoAbsolutePath, prLink string) {
 
 func setArtifactsDir() string {
 	path := "/tmp/wego-test"
+
 	if os.Getenv("ARTIFACTS_BASE_DIR") == "" {
 		return path
 	}

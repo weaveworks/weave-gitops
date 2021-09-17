@@ -44,9 +44,9 @@ var _ = BeforeSuite(func() {
 	GITHUB_ORG = os.Getenv("GITHUB_ORG")
 	WEGO_BIN_PATH = os.Getenv("WEGO_BIN_PATH")
 	if WEGO_BIN_PATH == "" {
-		WEGO_BIN_PATH = "/usr/local/bin/wego"
+		WEGO_BIN_PATH = "/usr/local/bin/gitops"
 	}
-	log.Infof("WEGO Binary Path: %s", WEGO_BIN_PATH)
+	log.Infof("GITOPS Binary Path: %s", WEGO_BIN_PATH)
 })
 
 func GomegaFail(message string, callerSkip ...int) {

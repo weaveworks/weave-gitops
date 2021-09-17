@@ -1,5 +1,6 @@
 import { useContext, useState } from "react";
 import { AppContext } from "../contexts/AppContext";
+import { Application } from "../lib/api/applications/applications.pb";
 
 const WeGONamespace = "wego-system";
 
@@ -27,9 +28,14 @@ export default function useApplications() {
       .finally(() => setLoading(false));
   };
 
+  const listCommits = (app: Application) => {
+    return applicationsClient.ListCommits({ ...app });
+  };
+
   return {
     loading,
     listApplications,
+    listCommits,
     getApplication,
   };
 }

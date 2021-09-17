@@ -39,6 +39,16 @@ type ApplicationsClient interface {
 	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
 	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
 	GetChildObjects(ctx context.Context, in *GetChildObjectsReq, opts ...grpc.CallOption) (*GetChildObjectsRes, error)
+	//
+	// GetGithubDeviceCode retrieves a temporary device code for Github authentication.
+	// This code is used to start the Github device-flow.
+	GetGithubDeviceCode(ctx context.Context, in *GetGithubDeviceCodeRequest, opts ...grpc.CallOption) (*GetGithubDeviceCodeResponse, error)
+	//
+	// GetGithubAuthStatus gets the status of the Github device flow authentication requests.
+	// Once the user has completed the Github device flow, an access token will be returned.
+	// This token will expired in 15 minutes, after which the user will need to complete the flow again
+	// to do Git Provider operations.
+	GetGithubAuthStatus(ctx context.Context, in *GetGithubAuthStatusRequest, opts ...grpc.CallOption) (*GetGithubAuthStatusResponse, error)
 }
 
 type applicationsClient struct {
@@ -103,6 +113,24 @@ func (c *applicationsClient) GetChildObjects(ctx context.Context, in *GetChildOb
 	return out, nil
 }
 
+func (c *applicationsClient) GetGithubDeviceCode(ctx context.Context, in *GetGithubDeviceCodeRequest, opts ...grpc.CallOption) (*GetGithubDeviceCodeResponse, error) {
+	out := new(GetGithubDeviceCodeResponse)
+	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/GetGithubDeviceCode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationsClient) GetGithubAuthStatus(ctx context.Context, in *GetGithubAuthStatusRequest, opts ...grpc.CallOption) (*GetGithubAuthStatusResponse, error) {
+	out := new(GetGithubAuthStatusResponse)
+	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/GetGithubAuthStatus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ApplicationsServer is the server API for Applications service.
 // All implementations must embed UnimplementedApplicationsServer
 // for forward compatibility
@@ -128,6 +156,16 @@ type ApplicationsServer interface {
 	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
 	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
 	GetChildObjects(context.Context, *GetChildObjectsReq) (*GetChildObjectsRes, error)
+	//
+	// GetGithubDeviceCode retrieves a temporary device code for Github authentication.
+	// This code is used to start the Github device-flow.
+	GetGithubDeviceCode(context.Context, *GetGithubDeviceCodeRequest) (*GetGithubDeviceCodeResponse, error)
+	//
+	// GetGithubAuthStatus gets the status of the Github device flow authentication requests.
+	// Once the user has completed the Github device flow, an access token will be returned.
+	// This token will expired in 15 minutes, after which the user will need to complete the flow again
+	// to do Git Provider operations.
+	GetGithubAuthStatus(context.Context, *GetGithubAuthStatusRequest) (*GetGithubAuthStatusResponse, error)
 	mustEmbedUnimplementedApplicationsServer()
 }
 
@@ -152,6 +190,12 @@ func (UnimplementedApplicationsServer) GetReconciledObjects(context.Context, *Ge
 }
 func (UnimplementedApplicationsServer) GetChildObjects(context.Context, *GetChildObjectsReq) (*GetChildObjectsRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetChildObjects not implemented")
+}
+func (UnimplementedApplicationsServer) GetGithubDeviceCode(context.Context, *GetGithubDeviceCodeRequest) (*GetGithubDeviceCodeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGithubDeviceCode not implemented")
+}
+func (UnimplementedApplicationsServer) GetGithubAuthStatus(context.Context, *GetGithubAuthStatusRequest) (*GetGithubAuthStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGithubAuthStatus not implemented")
 }
 func (UnimplementedApplicationsServer) mustEmbedUnimplementedApplicationsServer() {}
 
@@ -274,6 +318,42 @@ func _Applications_GetChildObjects_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Applications_GetGithubDeviceCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGithubDeviceCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationsServer).GetGithubDeviceCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wego_server.v1.Applications/GetGithubDeviceCode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationsServer).GetGithubDeviceCode(ctx, req.(*GetGithubDeviceCodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Applications_GetGithubAuthStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGithubAuthStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationsServer).GetGithubAuthStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wego_server.v1.Applications/GetGithubAuthStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationsServer).GetGithubAuthStatus(ctx, req.(*GetGithubAuthStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Applications_ServiceDesc is the grpc.ServiceDesc for Applications service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -304,6 +384,14 @@ var Applications_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetChildObjects",
 			Handler:    _Applications_GetChildObjects_Handler,
+		},
+		{
+			MethodName: "GetGithubDeviceCode",
+			Handler:    _Applications_GetGithubDeviceCode_Handler,
+		},
+		{
+			MethodName: "GetGithubAuthStatus",
+			Handler:    _Applications_GetGithubAuthStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -12,11 +12,11 @@ RUN make ui
 # Go build
 FROM golang:1.16 AS go-build
 COPY . /app
-COPY --from=ui /home/app/cmd/wego/ui/run/dist/ /app/cmd/wego/ui/run/dist/
+COPY --from=ui /home/app/cmd/gitops/ui/run/dist/ /app/cmd/gitops/ui/run/dist/
 WORKDIR /app
 RUN make dependencies && make bin
 
 # Distroless
 FROM gcr.io/distroless/base
-COPY --from=go-build /app/bin/wego /wego
-ENTRYPOINT ["/wego"]
+COPY --from=go-build /app/bin/gitops /gitops
+ENTRYPOINT ["/gitops"]
