@@ -11,12 +11,11 @@ import (
 )
 
 type params struct {
-	Namespace string
-	DryRun    bool
+	DryRun bool
 }
 
 var (
-	gitopsParams params
+	uninstallParams params
 )
 
 var Cmd = &cobra.Command{
@@ -34,11 +33,12 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.PersistentFlags().StringVarP(&gitopsParams.Namespace, "namespace", "n", "wego-system", "the namespace scope for this operation")
-	Cmd.PersistentFlags().BoolVar(&gitopsParams.DryRun, "dry-run", false, "outputs all the manifests that would be uninstalled")
+	Cmd.Flags().BoolVar(&uninstallParams.DryRun, "dry-run", false, "outputs all the manifests that would be uninstalled")
 }
 
 func uninstallRunCmd(cmd *cobra.Command, args []string) error {
+	namespace, _ := cmd.Parent().Flags().GetString("namespace")
+
 	_, fluxClient, kubeClient, logger, clientErr := apputils.GetBaseClients()
 	if clientErr != nil {
 		return clientErr
@@ -47,7 +47,7 @@ func uninstallRunCmd(cmd *cobra.Command, args []string) error {
 	gitopsService := gitops.New(logger, fluxClient, kubeClient)
 
 	return gitopsService.Uninstall(gitops.UninstallParams{
-		Namespace: gitopsParams.Namespace,
-		DryRun:    gitopsParams.DryRun,
+		Namespace: namespace,
+		DryRun:    uninstallParams.DryRun,
 	})
 }

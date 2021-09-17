@@ -35,11 +35,11 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		By("Then I should see gitops help text displayed for 'install' command", func() {
 			Eventually(string(sessionOutput.Wait().Out.Contents())).Should(MatchRegexp(
-				`The install command deploys GitOps in the specified namespace.\nIf a previous version is installed, then an in-place upgrade will be performed.\n*Usage:\n\s*gitops install \[flags]\n*Examples:\n\s*# Install GitOps in the wego-system namespace\n\s*gitops install\n*Flags:\n\s*--dry-run\s*outputs all the manifests that would be installed\n\s*-h, --help\s*help for install\n*Global Flags:\n\s*-n, --namespace string\s*the namespace scope for this operation \(default "wego-system"\)\n\s*-v, --verbose\s*Enable verbose output`))
+				`The install command deploys GitOps in the specified namespace.\nIf a previous version is installed, then an in-place upgrade will be performed.\n*Usage:\n\s*gitops install \[flags]\n*Examples:\n\s*# Install GitOps in the wego-system namespace\n\s*gitops install\n*Flags:\n\s*--dry-run\s*outputs all the manifests that would be installed\n\s*-h, --help\s*help for install\n*Global Flags:\n\s*--namespace string\s*gitops runtime namespace \(default "wego-system"\)\n\s*-v, --verbose\s*Enable verbose output`))
 		})
 	})
 
-	It("Validate that gitops displays help text for 'uninstall' command", func() {
+	FIt("Validate that gitops displays help text for 'uninstall' command", func() {
 
 		By("When I run the command 'gitops uninstall -h'", func() {
 			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " uninstall -h")
@@ -47,7 +47,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		By("Then I should see gitops help text displayed for 'uninstall' command", func() {
 			Eventually(string(sessionOutput.Wait().Out.Contents())).Should(MatchRegexp(
-				`The uninstall command removes GitOps components from the cluster.\n*Usage:\n\s*gitops uninstall \[flags]\n*Examples:\n\s*# Uninstall GitOps from the wego-system namespace\n\s*uninstall\n*Flags:\n\s*--dry-run\s*outputs all the manifests that would be uninstalled\n\s*-h, --help\s*help for uninstall\n*Global Flags:\n\s*-n, --namespace string \s*the namespace scope for this operation \(default "wego-system"\)\n\s*-v, --verbose\s*Enable verbose output`))
+				`The uninstall command removes GitOps components from the cluster.\n*Usage:\n\s*gitops uninstall \[flags]\n*Examples:\n\s*# Uninstall GitOps from the wego-system namespace\n\s*gitops uninstall\n*Flags:\n\s*--dry-run\s*outputs all the manifests that would be uninstalled\n\s*-h, --help\s*help for uninstall\n*Global Flags:\n\s*--namespace string\s*gitops runtime namespace \(default "wego-system"\)\n\s*-v, --verbose\s*Enable verbose output`))
 		})
 	})
 

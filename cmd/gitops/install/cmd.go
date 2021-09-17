@@ -15,12 +15,11 @@ import (
 )
 
 type params struct {
-	Namespace string
-	DryRun    bool
+	DryRun bool
 }
 
 var (
-	gitopsParams params
+	installParams params
 )
 
 var Cmd = &cobra.Command{
@@ -39,11 +38,12 @@ If a previous version is installed, then an in-place upgrade will be performed.`
 }
 
 func init() {
-	Cmd.PersistentFlags().StringVarP(&gitopsParams.Namespace, "namespace", "n", "wego-system", "the namespace scope for this operation")
-	Cmd.PersistentFlags().BoolVar(&gitopsParams.DryRun, "dry-run", false, "outputs all the manifests that would be installed")
+	Cmd.Flags().BoolVar(&installParams.DryRun, "dry-run", false, "outputs all the manifests that would be installed")
 }
 
 func installRunCmd(cmd *cobra.Command, args []string) error {
+	namespace, _ := cmd.Parent().Flags().GetString("namespace")
+
 	_, fluxClient, kubeClient, logger, clientErr := apputils.GetBaseClients()
 	if clientErr != nil {
 		return clientErr
@@ -52,14 +52,14 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	gitopsService := gitops.New(logger, fluxClient, kubeClient)
 
 	manifests, err := gitopsService.Install(gitops.InstallParams{
-		Namespace: gitopsParams.Namespace,
-		DryRun:    gitopsParams.DryRun,
+		Namespace: namespace,
+		DryRun:    installParams.DryRun,
 	})
 	if err != nil {
 		return err
 	}
 
-	if gitopsParams.DryRun {
+	if installParams.DryRun {
 		fmt.Println(string(manifests))
 	}
 
