@@ -15,6 +15,11 @@ type OneOf<T> =
         : never)
     : never);
 
+export enum SourceType {
+  Git = "Git",
+  Helm = "Helm",
+}
+
 export enum GetReconciledObjectsReqAutomationKind {
   Kustomize = "Kustomize",
   Helm = "Helm",
@@ -37,6 +42,9 @@ export type Application = {
   namespace?: string
   deploymentType?: GroupVersionKind
   reconciledObjectKinds?: GroupVersionKind[]
+  kustomization?: Kustomization
+  helmRelease?: HelmRelease
+  source?: Source
 }
 
 export type Kustomization = {
@@ -47,10 +55,35 @@ export type Kustomization = {
   conditions?: Condition[]
   interval?: string
   prune?: boolean
-  reconcileRequestAt?: string
-  reconcileAt?: string
   lastAppliedRevision?: string
-  lastAttemptedRevision?: string
+}
+
+export type HelmRelease = {
+  name?: string
+  namespace?: string
+  targetNamespace?: string
+  chart?: HelmChart
+  interval?: string
+  lastAppliedRevision?: string
+  conditions?: Condition[]
+}
+
+export type HelmChart = {
+  chart?: string
+  version?: string
+  valuesFiles?: string[]
+}
+
+export type Source = {
+  name?: string
+  url?: string
+  type?: SourceType
+  namespace?: string
+  interval?: string
+  reference?: string
+  suspend?: boolean
+  timeout?: string
+  conditions?: Condition[]
 }
 
 export type AuthenticateRequest = {
@@ -77,7 +110,6 @@ export type GetApplicationRequest = {
 
 export type GetApplicationResponse = {
   application?: Application
-  kustomization?: Kustomization
 }
 
 export type Commit = {

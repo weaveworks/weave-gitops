@@ -342,6 +342,15 @@
           "items": {
             "$ref": "#/definitions/v1GroupVersionKind"
           }
+        },
+        "kustomization": {
+          "$ref": "#/definitions/v1Kustomization"
+        },
+        "helmRelease": {
+          "$ref": "#/definitions/v1HelmRelease"
+        },
+        "source": {
+          "$ref": "#/definitions/v1Source"
         }
       }
     },
@@ -400,9 +409,6 @@
       "properties": {
         "application": {
           "$ref": "#/definitions/v1Application"
-        },
-        "kustomization": {
-          "$ref": "#/definitions/v1Kustomization"
         }
       }
     },
@@ -454,6 +460,52 @@
       },
       "title": "GroupVersionKind represents an objects Kubernetes API type data"
     },
+    "v1HelmChart": {
+      "type": "object",
+      "properties": {
+        "chart": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "valuesFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1HelmRelease": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "targetNamespace": {
+          "type": "string"
+        },
+        "chart": {
+          "$ref": "#/definitions/v1HelmChart"
+        },
+        "interval": {
+          "type": "string"
+        },
+        "lastAppliedRevision": {
+          "type": "string"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Condition"
+          }
+        }
+      }
+    },
     "v1Kustomization": {
       "type": "object",
       "properties": {
@@ -481,16 +533,7 @@
         "prune": {
           "type": "boolean"
         },
-        "reconcileRequestAt": {
-          "type": "string"
-        },
-        "reconcileAt": {
-          "type": "string"
-        },
         "lastAppliedRevision": {
-          "type": "string"
-        },
-        "lastAttemptedRevision": {
           "type": "string"
         }
       }
@@ -521,6 +564,49 @@
           "description": "A pagination token returned from a previous call\nthat indicates from where listing should continue."
         }
       }
+    },
+    "v1Source": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/v1SourceType"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "interval": {
+          "type": "string"
+        },
+        "reference": {
+          "type": "string"
+        },
+        "suspend": {
+          "type": "boolean"
+        },
+        "timeout": {
+          "type": "string"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Condition"
+          }
+        }
+      }
+    },
+    "v1SourceType": {
+      "type": "string",
+      "enum": [
+        "Git",
+        "Helm"
+      ],
+      "default": "Git"
     },
     "v1UnstructuredObject": {
       "type": "object",
