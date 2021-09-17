@@ -108,9 +108,10 @@ var _ = BeforeEach(func() {
 	k = &kube.KubeHTTP{Client: k8sClient, ClusterName: testClustername}
 
 	appFactory := &apputilsfakes.FakeAppFactory{}
-	appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
+	appFactory.GetAppServiceStub = func(ctx context.Context, url, configUrl, namespace string, b bool) (app.AppService, error) {
 		return app.New(ctx, nil, nil, nil, nil, nil, k, nil), nil
 	}
+
 	appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 		return k, nil
 	}

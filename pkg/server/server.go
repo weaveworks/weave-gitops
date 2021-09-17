@@ -313,14 +313,14 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 		PageToken:        pageToken,
 	}
 
-	appService, appErr := s.appFactory.GetAppService(ctx, params.Name, params.Namespace)
-	if appErr != nil {
-		return nil, fmt.Errorf("failed to create app service: %w", appErr)
+	application := &wego.Application{}
+	if err := s.kube.Get(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace}, application); err != nil {
+		return nil, fmt.Errorf("unable to get application for %s %w", params.Name, err)
 	}
 
-	application, err := appService.Get(types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
-	if err != nil {
-		return nil, fmt.Errorf("unable to get application for %s %w", params.Name, err)
+	appService, appErr := s.appFactory.GetAppService(ctx, application.Spec.URL, application.Spec.ConfigURL, params.Namespace, application.IsHelmRepository())
+	if appErr != nil {
+		return nil, fmt.Errorf("failed to create app service: %w", appErr)
 	}
 
 	commits, err := appService.GetCommits(params, application)

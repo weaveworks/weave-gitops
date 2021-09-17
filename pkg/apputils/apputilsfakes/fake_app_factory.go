@@ -11,12 +11,14 @@ import (
 )
 
 type FakeAppFactory struct {
-	GetAppServiceStub        func(context.Context, string, string) (app.AppService, error)
+	GetAppServiceStub        func(context.Context, string, string, string, bool) (app.AppService, error)
 	getAppServiceMutex       sync.RWMutex
 	getAppServiceArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
 		arg3 string
+		arg4 string
+		arg5 bool
 	}
 	getAppServiceReturns struct {
 		result1 app.AppService
@@ -42,20 +44,22 @@ type FakeAppFactory struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeAppFactory) GetAppService(arg1 context.Context, arg2 string, arg3 string) (app.AppService, error) {
+func (fake *FakeAppFactory) GetAppService(arg1 context.Context, arg2 string, arg3 string, arg4 string, arg5 bool) (app.AppService, error) {
 	fake.getAppServiceMutex.Lock()
 	ret, specificReturn := fake.getAppServiceReturnsOnCall[len(fake.getAppServiceArgsForCall)]
 	fake.getAppServiceArgsForCall = append(fake.getAppServiceArgsForCall, struct {
 		arg1 context.Context
 		arg2 string
 		arg3 string
-	}{arg1, arg2, arg3})
+		arg4 string
+		arg5 bool
+	}{arg1, arg2, arg3, arg4, arg5})
 	stub := fake.GetAppServiceStub
 	fakeReturns := fake.getAppServiceReturns
-	fake.recordInvocation("GetAppService", []interface{}{arg1, arg2, arg3})
+	fake.recordInvocation("GetAppService", []interface{}{arg1, arg2, arg3, arg4, arg5})
 	fake.getAppServiceMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2, arg3, arg4, arg5)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -69,17 +73,17 @@ func (fake *FakeAppFactory) GetAppServiceCallCount() int {
 	return len(fake.getAppServiceArgsForCall)
 }
 
-func (fake *FakeAppFactory) GetAppServiceCalls(stub func(context.Context, string, string) (app.AppService, error)) {
+func (fake *FakeAppFactory) GetAppServiceCalls(stub func(context.Context, string, string, string, bool) (app.AppService, error)) {
 	fake.getAppServiceMutex.Lock()
 	defer fake.getAppServiceMutex.Unlock()
 	fake.GetAppServiceStub = stub
 }
 
-func (fake *FakeAppFactory) GetAppServiceArgsForCall(i int) (context.Context, string, string) {
+func (fake *FakeAppFactory) GetAppServiceArgsForCall(i int) (context.Context, string, string, string, bool) {
 	fake.getAppServiceMutex.RLock()
 	defer fake.getAppServiceMutex.RUnlock()
 	argsForCall := fake.getAppServiceArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
 func (fake *FakeAppFactory) GetAppServiceReturns(result1 app.AppService, result2 error) {

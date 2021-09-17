@@ -87,6 +87,10 @@ type Application struct {
 	Status ApplicationStatus `json:"status,omitempty"`
 }
 
+func (a *Application) IsHelmRepository() bool {
+	return a.Spec.DeploymentType == DeploymentTypeHelm
+}
+
 //+kubebuilder:object:root=true
 
 // ApplicationList contains a list of Application

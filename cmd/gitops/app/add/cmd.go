@@ -105,7 +105,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	isHelmRepository := params.Chart != ""
 
-	appService, appError := apputils.GetAppServiceForAdd(ctx, params.Url, params.AppConfigUrl, params.Namespace, isHelmRepository, params.DryRun)
+	appService, appError := apputils.GetAppService(ctx, params.Url, params.AppConfigUrl, params.Namespace, isHelmRepository)
 	if appError != nil {
 		return fmt.Errorf("failed to create app service: %w", appError)
 	}

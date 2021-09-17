@@ -14,6 +14,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app/status"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app/unpause"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -70,14 +71,18 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	command := args[1]
 	object := args[2]
 
-	appService, appError := apputils.GetAppService(ctx, params.Name, params.Namespace)
-	if appError != nil {
-		return fmt.Errorf("failed to create app service: %w", appError)
+	kube, _, kubeErr := kube.NewKubeHTTPClient()
+	if kubeErr != nil {
+		return fmt.Errorf("error creating k8s http client: %w", kubeErr)
 	}
 
-	appContent, err := appService.Get(types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
+	appObj, err := kube.GetApplication(context.Background(), types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
 	if err != nil {
 		return fmt.Errorf("unable to get application for %s %w", params.Name, err)
+	}
+
+	if appObj.IsHelmRepository() {
+		return fmt.Errorf("unable to get commits for a helm chart")
 	}
 
 	if command != "get" {
@@ -85,11 +90,16 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid command %s", command)
 	}
 
+	appService, appError := apputils.GetAppService(ctx, appObj.Spec.URL, appObj.Spec.ConfigURL, appObj.Namespace, false)
+	if appError != nil {
+		return fmt.Errorf("failed to create app service: %w", appError)
+	}
+
 	logger := apputils.GetLogger()
 
 	switch object {
 	case "commits":
-		commits, err := appService.GetCommits(params, appContent)
+		commits, err := appService.GetCommits(params, appObj)
 		if err != nil {
 			return errors.Wrapf(err, "failed to get commits for app %s", params.Name)
 		}

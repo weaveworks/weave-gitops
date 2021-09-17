@@ -15,6 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
@@ -557,7 +558,7 @@ var _ = Describe("ApplicationsServer", func() {
 				secretKey := rand.String(20)
 
 				appFactory := &apputilsfakes.FakeAppFactory{}
-				appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
+				appFactory.GetAppServiceStub = func(ctx context.Context, url, configUrl, namespace string, b bool) (app.AppService, error) {
 					return app.New(ctx, nil, nil, nil, nil, nil, kubeClient, nil), nil
 				}
 				appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
@@ -653,7 +654,7 @@ var _ = Describe("ApplicationsServer", func() {
 				}
 
 				appFactory := &apputilsfakes.FakeAppFactory{}
-				appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
+				appFactory.GetAppServiceStub = func(ctx context.Context, url, configUrl, namespace string, b bool) (app.AppService, error) {
 					return app.New(ctx, nil, nil, nil, nil, nil, kubeClient, nil), nil
 				}
 				appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
@@ -714,7 +715,7 @@ var _ = Describe("Applications handler", func() {
 		}
 
 		appFactory := &apputilsfakes.FakeAppFactory{}
-		appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
+		appFactory.GetAppServiceStub = func(ctx context.Context, url, configUrl, namespace string, b bool) (app.AppService, error) {
 			return app.New(ctx, nil, nil, nil, nil, nil, k, nil), nil
 		}
 		appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
@@ -753,18 +754,16 @@ var _ = Describe("Applications handler", func() {
 	It("get commits", func() {
 		log := testutils.MakeFakeLogr()
 		kubeClient := &kubefakes.FakeKube{}
-		kubeClient.GetApplicationStub = func(context.Context, types.NamespacedName) (*wego.Application, error) {
-			return &wego.Application{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "my-app",
-					Namespace: "wego-system",
-				},
-				Spec: wego.ApplicationSpec{
-					Branch: "main",
-					Path:   "./k8s",
-					URL:    "https://github.com/owner/repo1",
-				},
-			}, nil
+		testApp := &wego.Application{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "testapp",
+				Namespace: "wego-system",
+			},
+			Spec: wego.ApplicationSpec{
+				Branch: "main",
+				Path:   "./k8s",
+				URL:    "https://github.com/owner/repo1",
+			},
 		}
 
 		gitProviders := &gitprovidersfakes.FakeGitProvider{}
@@ -778,7 +777,7 @@ var _ = Describe("Applications handler", func() {
 			},
 		}
 
-		appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
+		appFactory.GetAppServiceStub = func(ctx context.Context, url, configUrl, namespace string, b bool) (app.AppService, error) {
 			return app.New(ctx, nil, nil, nil, gitProviders, nil, kubeClient, nil), nil
 		}
 
@@ -798,6 +797,7 @@ var _ = Describe("Applications handler", func() {
 			Logger:     log,
 			AppFactory: appFactory,
 			JwtClient:  jwtClient,
+			KubeClient: fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build(),
 		}
 
 		handler, err := NewApplicationsHandler(context.Background(), &cfg)
@@ -806,7 +806,7 @@ var _ = Describe("Applications handler", func() {
 		ts := httptest.NewServer(handler)
 		defer ts.Close()
 
-		path := "/v1/applications/testapp/commits"
+		path := fmt.Sprintf("/v1/applications/%s/commits?namespace=%s", testApp.Name, testApp.Namespace)
 		url := ts.URL + path
 
 		req, err := http.NewRequest(http.MethodGet, url, nil)
