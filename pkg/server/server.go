@@ -255,9 +255,15 @@ func mapSourceSpecToReponse(src client.Object) *pb.Source {
 		source.Url = st.Spec.URL
 		source.Type = pb.Source_Git
 		source.Interval = st.Spec.Interval.Duration.String()
-		source.Timeout = st.Spec.Timeout.Duration.String()
 		source.Suspend = st.Spec.Suspend
-		source.Reference = st.Spec.Reference.Branch
+
+		if st.Spec.Timeout != nil {
+			source.Timeout = st.Spec.Timeout.Duration.String()
+		}
+
+		if st.Spec.Reference != nil {
+			source.Reference = st.Spec.Reference.Branch
+		}
 
 		source.Conditions = mapConditions(st.Status.Conditions)
 	case *sourcev1.HelmRepository:
@@ -266,8 +272,11 @@ func mapSourceSpecToReponse(src client.Object) *pb.Source {
 		source.Url = st.Spec.URL
 		source.Type = pb.Source_Helm
 		source.Interval = st.Spec.Interval.Duration.String()
-		source.Timeout = st.Spec.Timeout.Duration.String()
 		source.Suspend = st.Spec.Suspend
+
+		if st.Spec.Timeout != nil {
+			source.Timeout = st.Spec.Timeout.Duration.String()
+		}
 
 		source.Conditions = mapConditions(st.Status.Conditions)
 	}

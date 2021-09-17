@@ -98,7 +98,7 @@ message Application {
     GroupVersionKind          deployment_type                 = 7;  // An object representing the k8s Group, Version and Kind of a deployment
     repeated GroupVersionKind reconciled_object_kinds         = 8;  // A list of unique object kinds for all resources that were created as a result of this application
     Kustomization             kustomization                   = 9;  // Kustomization associated to this application
-    HelmRelease helm_release = 10;
+    HelmRelease               helm_release = 10;
     Source                    source = 11;
 }
 
@@ -134,7 +134,7 @@ message Source {
     string url = 2;
     enum Type {
         Git = 0;
-        Helm = 2;
+        Helm = 1;
     };
     Type type = 3;
     string namespace = 7;

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
@@ -72,23 +73,119 @@ var _ = Describe("ApplicationsServer", func() {
 
 		Expect(len(res.Applications)).To(Equal(1))
 	})
-	It("GetApplication", func() {
-		ctx := context.Background()
-		name := "my-app"
-		app := &wego.Application{ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace.Name,
-		}}
 
-		Expect(k8sClient.Create(ctx, app)).Should(Succeed())
-		res, err := appsClient.GetApplication(context.Background(), &pb.GetApplicationRequest{
-			Name:      name,
-			Namespace: namespace.Name,
+	Describe("GetApplication", func() {
+		var (
+			ctx  context.Context
+			name string
+			app  *wego.Application
+		)
+
+		BeforeEach(func() {
+			ctx = context.Background()
+			name = "my-app-" + rand.String(5)
+			app = &wego.Application{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: namespace.Name,
+				},
+				Spec: wego.ApplicationSpec{
+					SourceType: wego.SourceTypeGit,
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, app)).Should(Succeed())
 		})
-		Expect(err).NotTo(HaveOccurred())
 
-		Expect(res.Application.Name).To(Equal(name))
+		AfterEach(func() {
+			deletePolicy := metav1.DeletePropagationForeground
+			Expect(k8sClient.Delete(ctx, app, &client.DeleteOptions{PropagationPolicy: &deletePolicy})).Should(Succeed())
+		})
+
+		It("fetches an application", func() {
+			resp, err := appsClient.GetApplication(context.Background(), &pb.GetApplicationRequest{
+				Name:      name,
+				Namespace: namespace.Name,
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(resp.Application.Name).To(Equal(name))
+		})
+
+		Describe("fetches the application source", func() {
+			It("fetches a git repository", func() {
+				git := &sourcev1.GitRepository{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      name,
+						Namespace: namespace.Name,
+					},
+					Spec: sourcev1.GitRepositorySpec{
+						URL:       "ssh://my-repo",
+						Interval:  metav1.Duration{Duration: 1 * time.Second},
+						Timeout:   &metav1.Duration{Duration: 1 * time.Second},
+						Reference: &sourcev1.GitRepositoryRef{Branch: "master"},
+					},
+				}
+				Expect(k8sClient.Create(ctx, git)).Should(Succeed())
+
+				resp, err := appsClient.GetApplication(context.Background(), &pb.GetApplicationRequest{
+					Name:      name,
+					Namespace: namespace.Name,
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(resp.Application.Source.Type).To(Equal(pb.Source_Git))
+				Expect(resp.Application.Source.Url).To(Equal("ssh://my-repo"))
+				Expect(resp.Application.Source.Interval).To(Equal("1s"))
+				Expect(resp.Application.Source.Timeout).To(Equal("1s"))
+				Expect(resp.Application.Source.Reference).To(Equal("master"))
+
+				Expect(k8sClient.Delete(ctx, git)).Should(Succeed())
+			})
+
+			It("fetches a helm repository", func() {
+				name = "my-app-" + rand.String(5)
+				app = &wego.Application{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      name,
+						Namespace: namespace.Name,
+					},
+					Spec: wego.ApplicationSpec{
+						SourceType: wego.SourceTypeHelm,
+					},
+				}
+				Expect(k8sClient.Create(ctx, app)).Should(Succeed())
+
+				helm := &sourcev1.HelmRepository{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      name,
+						Namespace: namespace.Name,
+					},
+					Spec: sourcev1.HelmRepositorySpec{
+						URL:      "http://my-chart",
+						Interval: metav1.Duration{Duration: 10 * time.Second},
+						Timeout:  &metav1.Duration{Duration: 10 * time.Second},
+					},
+				}
+				Expect(k8sClient.Create(ctx, helm)).Should(Succeed())
+
+				resp, err := appsClient.GetApplication(context.Background(), &pb.GetApplicationRequest{
+					Name:      name,
+					Namespace: namespace.Name,
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(resp.Application.Source.Name).To(Equal(name))
+				Expect(resp.Application.Source.Url).To(Equal("http://my-chart"))
+				Expect(resp.Application.Source.Type).To(Equal(pb.Source_Helm))
+				Expect(resp.Application.Source.Interval).To(Equal("10s"))
+				Expect(resp.Application.Source.Timeout).To(Equal("10s"))
+
+				Expect(k8sClient.Delete(ctx, helm)).Should(Succeed())
+			})
+		})
 	})
+
 	It("Authorize", func() {
 		ctx := context.Background()
 		provider := "github"
@@ -120,7 +217,6 @@ var _ = Describe("ApplicationsServer", func() {
 		Expect(err.Error()).To(ContainSubstring(codes.InvalidArgument.String()))
 
 	})
-
 	It("Authorize fails on empty provider token", func() {
 		ctx := context.Background()
 		provider := "github"
