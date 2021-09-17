@@ -46,6 +46,37 @@
         "tags": [
           "Applications"
         ]
+      },
+      "post": {
+        "summary": "AddApplication adds an Application to a cluster via GitOps.",
+        "operationId": "Applications_AddApplication",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AddApplicationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1AddApplicationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Applications"
+        ]
       }
     },
     "/v1/applications/auth_providers/github": {
@@ -352,6 +383,43 @@
           "items": {
             "$ref": "#/definitions/protobufAny"
           }
+        }
+      }
+    },
+    "v1AddApplicationRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        },
+        "autoMerge": {
+          "type": "boolean"
+        },
+        "configUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "v1AddApplicationResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "application": {
+          "$ref": "#/definitions/v1Application"
         }
       }
     },

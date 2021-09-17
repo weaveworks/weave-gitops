@@ -10,7 +10,7 @@ import Flex from "./Flex";
 import Link from "./Link";
 import LoadingPage from "./LoadingPage";
 
-type Props = {
+export type PageProps = {
   className?: string;
   children?: any;
   title?: string;
@@ -29,7 +29,7 @@ const Content = styled.div`
   padding-bottom: ${(props) => props.theme.spacing.medium};
 `;
 
-const TitleBar = styled.div`
+export const TitleBar = styled.div`
   display: flex;
   align-items: center;
   margin-bottom: ${(props) => props.theme.spacing.small};
@@ -49,7 +49,7 @@ function pageLookup(p: PageRoute) {
   }
 }
 
-function Page({ className, children, title, breadcrumbs, loading }: Props) {
+function Page({ className, children, title, breadcrumbs, loading }: PageProps) {
   const { appState } = useCommon();
 
   if (loading) {

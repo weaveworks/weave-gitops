@@ -293,6 +293,60 @@ func mapSourceSpecToReponse(src client.Object) *pb.Source {
 	return source
 }
 
+func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddApplicationRequest) (*pb.AddApplicationResponse, error) {
+	appUrl, err := gitproviders.NewNormalizedRepoURL(msg.Url)
+	if err != nil {
+		return nil, grpcStatus.Error(codes.InvalidArgument, fmt.Sprintf("unable to parse app url %q: %s", msg.Url, err))
+	}
+
+	var configUrl gitproviders.NormalizedRepoURL
+	if msg.ConfigUrl != "" {
+		configUrl, err = gitproviders.NewNormalizedRepoURL(msg.ConfigUrl)
+		if err != nil {
+			return nil, grpcStatus.Error(codes.InvalidArgument, fmt.Sprintf("unable to parse config url %q: %s", msg.ConfigUrl, err))
+		}
+	}
+
+	appSrv, err := s.appFactory.GetAppServiceForAdd(ctx, apputils.AddServiceParams{
+		URL:              appUrl.String(),
+		ConfigURL:        configUrl.String(),
+		Namespace:        msg.Namespace,
+		IsHelmRepository: false,
+		DryRun:           false,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("could not create app service: %w", err)
+	}
+
+	token, err := middleware.ExtractProviderToken(ctx)
+	if err != nil {
+		return nil, grpcStatus.Error(codes.Unauthenticated, fmt.Sprintf("token error: %s", err.Error()))
+	}
+
+	params := app.AddParams{
+		Name:             msg.Name,
+		Namespace:        msg.Namespace,
+		Url:              appUrl.String(),
+		Path:             configUrl.String(),
+		GitProviderToken: token.AccessToken,
+		Branch:           msg.Branch,
+		AutoMerge:        msg.AutoMerge,
+		AppConfigUrl:     msg.ConfigUrl,
+	}
+
+	if err := appSrv.Add(params); err != nil {
+		return nil, fmt.Errorf("error adding app: %w", err)
+	}
+
+	return &pb.AddApplicationResponse{
+		Success: true,
+		Application: &pb.Application{
+			Name:      msg.Name,
+			Namespace: msg.Namespace,
+		},
+	}, nil
+}
+
 //Until the middleware is done this function will not be able to get the token and will fail
 func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommitsRequest) (*pb.ListCommitsResponse, error) {
 	providerToken, err := middleware.ExtractProviderToken(ctx)
