@@ -204,7 +204,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And repos created have private visibility", func() {
-			Expect(getGitHubRepoVisibility(GITHUB_ORG, tip.appRepoName)).Should(ContainSubstring("true"))
+			Expect(getGitHubRepoVisibility(GITHUB_ORG, tip.appRepoName)).Should(ContainSubstring("private"))
 		})
 	})
 
@@ -513,7 +513,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And repos created have private visibility", func() {
-			Expect(getGitHubRepoVisibility(GITHUB_ORG, tip.appRepoName)).Should(ContainSubstring("true"))
+			Expect(getGitHubRepoVisibility(GITHUB_ORG, tip.appRepoName)).Should(ContainSubstring("private"))
 		})
 	})
 
@@ -944,8 +944,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And repos created have proper visibility", func() {
-			Eventually(getGitHubRepoVisibility(GITHUB_ORG, tip1.appRepoName)).Should(ContainSubstring("true"))
-			Eventually(getGitHubRepoVisibility(GITHUB_ORG, tip2.appRepoName)).Should(ContainSubstring("false"))
+			Eventually(getGitHubRepoVisibility(GITHUB_ORG, tip1.appRepoName)).Should(ContainSubstring("private"))
+			Eventually(getGitHubRepoVisibility(GITHUB_ORG, tip2.appRepoName)).Should(ContainSubstring("public"))
 		})
 
 		By("When I check the app status for "+appName1, func() {
