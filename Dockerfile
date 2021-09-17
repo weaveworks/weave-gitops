@@ -1,11 +1,12 @@
 # UI build
 FROM node:14-buster AS ui
 RUN apt-get update -y && apt-get install -y build-essential
-RUN mkdir -p /home/app/node_modules && chown -R node:node /home/app
+RUN mkdir -p /home/app && chown -R node:node /home/app
 WORKDIR /home/app
 USER node
 COPY --chown=node:node package*.json /home/app/
-RUN npm install
+COPY --chown=node:node Makefile /home/app/
+RUN make node_modules
 COPY --chown=node:node . /home/app/
 RUN make ui
 
