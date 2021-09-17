@@ -129,4 +129,5 @@ var _ = DescribeTable("SanitizeRepoUrl", func(input string, expected string) {
 	// We need to refactor the SanitizeRepoUrl function .
 	// https://github.com/weaveworks/weave-gitops/issues/577
 	Entry("https style", "https://github.com/weaveworks/weave-gitops.git", "ssh://git@github.com/weaveworks/weave-gitops.git"),
+	Entry("gitlab", "ssh://git@gitlab.com/someuser/podinfo.git", "ssh://git@gitlab.com/someuser/podinfo.git"),
 )
