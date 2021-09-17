@@ -39,7 +39,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 	})
 
-	FIt("Validate that gitops displays help text for 'uninstall' command", func() {
+	It("Validate that gitops displays help text for 'uninstall' command", func() {
 
 		By("When I run the command 'gitops uninstall -h'", func() {
 			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " uninstall -h")
