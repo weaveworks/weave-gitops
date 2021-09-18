@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/services/app/internal"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -29,13 +30,13 @@ var removeParams RemoveParams
 
 var application wego.Application
 
-var info *AppResourceInfo
+var info *internal.AppResourceInfo
 
-var appResources []ResourceRef
+var appResources []internal.ResourceRef
 
 var fluxDir string
 
-var createdResources map[ResourceKind]map[string]bool
+var createdResources map[internal.ResourceKind]map[string]bool
 
 var goatPaths map[string]bool
 
@@ -80,7 +81,7 @@ func storeCreatedResource(manifestData []byte) error {
 		}
 
 		metamap := manifestMap["metadata"].(map[string]interface{})
-		kind := ResourceKind(manifestMap["kind"].(string))
+		kind := internal.ResourceKind(manifestMap["kind"].(string))
 		name := metamap["name"].(string)
 
 		if createdResources[kind] == nil {
@@ -112,7 +113,7 @@ func removeCreatedResource(manifestData []byte) error {
 		}
 
 		metamap := manifestMap["metadata"].(map[string]interface{})
-		kind := ResourceKind(manifestMap["kind"].(string))
+		kind := internal.ResourceKind(manifestMap["kind"].(string))
 
 		if createdResources[kind] == nil {
 			return fmt.Errorf("expected %s resources to be present", kind)
@@ -125,7 +126,7 @@ func removeCreatedResource(manifestData []byte) error {
 }
 
 // Remove tracking for a resource given itsq name and kind
-func removeCreatedResourceByName(name string, kind ResourceKind) error {
+func removeCreatedResourceByName(name string, kind internal.ResourceKind) error {
 	if createdResources[kind] == nil {
 		return fmt.Errorf("expected %s resources to be present", kind)
 	}
@@ -199,15 +200,15 @@ func setupFlux() error {
 }
 
 func updateAppInfoFromParams() error {
-	params, err := appSrv.(*App).updateParametersIfNecessary(localAddParams)
+	params, err := localAddParams.SetDefaultValues(appSrv.(*App).GitProvider)
 	if err != nil {
 		return err
 	}
 
 	localAddParams = params
 	application = makeWegoApplication(localAddParams)
-	info = getAppResourceInfo(application, "test-cluster")
-	appResources = info.clusterResources()
+	info = internal.NewResourceInfo(application, "test-cluster")
+	appResources = info.ClusterResources()
 
 	return nil
 }
@@ -229,13 +230,13 @@ func runAddAndCollectInfo() error {
 // written to the repo
 func checkAddResults() error {
 	for _, res := range appResources {
-		if res.kind != ResourceKindSecret {
-			resources := createdResources[res.kind]
+		if res.Kind != internal.ResourceKindSecret {
+			resources := createdResources[res.Kind]
 			if len(resources) == 0 {
-				return fmt.Errorf("expected %s resources to be created", res.kind)
+				return fmt.Errorf("expected %s resources to be created", res.Kind)
 			}
 
-			delete(resources, res.name)
+			delete(resources, res.Name)
 		}
 	}
 
@@ -245,11 +246,11 @@ func checkAddResults() error {
 		}
 	}
 
-	if len(goatPaths) != len(info.clusterResourcePaths()) {
-		return fmt.Errorf("expected %d goat paths, found: %d", len(info.clusterResourcePaths()), len(goatPaths))
+	if len(goatPaths) != len(info.ClusterResourcePaths()) {
+		return fmt.Errorf("expected %d goat paths, found: %d", len(info.ClusterResourcePaths()), len(goatPaths))
 	}
 
-	for _, path := range info.clusterResourcePaths() {
+	for _, path := range info.ClusterResourcePaths() {
 		delete(goatPaths, path)
 	}
 
@@ -267,10 +268,10 @@ func checkRemoveResults() error {
 	}
 
 	for _, res := range appResources {
-		if res.repositoryPath != "" || res.kind == ResourceKindKustomization || res.kind == ResourceKindHelmRelease {
-			resources := createdResources[res.kind]
-			if resources[res.name] {
-				return fmt.Errorf("expected %s named %s to be removed from the repository", res.kind, res.name)
+		if res.RepositoryPath != "" || res.Kind == internal.ResourceKindKustomization || res.Kind == internal.ResourceKindHelmRelease {
+			resources := createdResources[res.Kind]
+			if resources[res.Name] {
+				return fmt.Errorf("expected %s named %s to be removed from the repository", res.Kind, res.Name)
 			}
 		}
 	}
@@ -373,7 +374,7 @@ var _ = Describe("Remove", func() {
 				}
 
 				goatPaths = map[string]bool{}
-				createdResources = map[ResourceKind]map[string]bool{}
+				createdResources = map[internal.ResourceKind]map[string]bool{}
 				manifestsByPath = map[string][]byte{}
 			})
 
@@ -423,7 +424,7 @@ var _ = Describe("Remove", func() {
 				}
 
 				goatPaths = map[string]bool{}
-				createdResources = map[ResourceKind]map[string]bool{}
+				createdResources = map[internal.ResourceKind]map[string]bool{}
 				manifestsByPath = map[string][]byte{}
 			})
 
@@ -502,7 +503,7 @@ var _ = Describe("Remove", func() {
 				}
 
 				goatPaths = map[string]bool{}
-				createdResources = map[ResourceKind]map[string]bool{}
+				createdResources = map[internal.ResourceKind]map[string]bool{}
 			})
 
 			It("removes cluster resources for helm chart from helm repo with configURL = NONE", func() {
@@ -558,7 +559,7 @@ var _ = Describe("Remove", func() {
 					}
 
 					goatPaths = map[string]bool{}
-					createdResources = map[ResourceKind]map[string]bool{}
+					createdResources = map[internal.ResourceKind]map[string]bool{}
 				})
 
 				It("removes cluster resources for non-helm app with configURL = NONE", func() {
@@ -586,19 +587,19 @@ var _ = Describe("Remove", func() {
 	})
 })
 
-func GVRToResourceKind(gvr schema.GroupVersionResource) ResourceKind {
+func GVRToResourceKind(gvr schema.GroupVersionResource) internal.ResourceKind {
 	switch gvr {
 	case kube.GVRApp:
-		return ResourceKindApplication
+		return internal.ResourceKindApplication
 	case kube.GVRSecret:
-		return ResourceKindSecret
+		return internal.ResourceKindSecret
 	case kube.GVRGitRepository:
-		return ResourceKindGitRepository
+		return internal.ResourceKindGitRepository
 	case kube.GVRHelmRepository:
-		return ResourceKindHelmRepository
+		return internal.ResourceKindHelmRepository
 	case kube.GVRHelmRelease:
-		return ResourceKindHelmRelease
+		return internal.ResourceKindHelmRelease
 	default:
-		return ResourceKindKustomization
+		return internal.ResourceKindKustomization
 	}
 }

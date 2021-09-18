@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/services/app/internal"
 	"io/fs"
 	"io/ioutil"
 	"os"
@@ -35,35 +36,35 @@ func (a *App) Remove(params RemoveParams) error {
 	}
 
 	// Find all resources created when adding this app
-	info := getAppResourceInfo(*application, clusterName)
-	resources := info.clusterResources()
+	info := internal.NewResourceInfo(*application, clusterName)
+	resources := info.ClusterResources()
 
-	if info.configMode() == ConfigModeClusterOnly {
-		gvrApp, err := ResourceKindApplication.ToGVR()
+	if info.ConfigMode() == internal.ConfigModeClusterOnly {
+		gvrApp, err := internal.ResourceKindApplication.ToGVR()
 		if err != nil {
 			return err
 		}
 
-		if err := a.Kube.DeleteByName(ctx, info.appResourceName(), gvrApp, info.Namespace); err != nil {
-			return clusterDeleteError(info.appResourceName(), err)
+		if err := a.Kube.DeleteByName(ctx, info.AppResourceName(), gvrApp, info.Namespace); err != nil {
+			return clusterDeleteError(info.AppResourceName(), err)
 		}
 
-		gvrSource, err := info.sourceKind().ToGVR()
+		gvrSource, err := info.SourceKind().ToGVR()
 		if err != nil {
 			return err
 		}
 
-		if err := a.Kube.DeleteByName(ctx, info.appSourceName(), gvrSource, info.Namespace); err != nil {
-			return clusterDeleteError(info.appResourceName(), err)
+		if err := a.Kube.DeleteByName(ctx, info.AppSourceName(), gvrSource, info.Namespace); err != nil {
+			return clusterDeleteError(info.AppResourceName(), err)
 		}
 
-		gvrDeployKind, err := info.deployKind().ToGVR()
+		gvrDeployKind, err := info.DeployKind().ToGVR()
 		if err != nil {
 			return err
 		}
 
-		if err := a.Kube.DeleteByName(ctx, info.appDeployName(), gvrDeployKind, info.Namespace); err != nil {
-			return clusterDeleteError(info.appResourceName(), err)
+		if err := a.Kube.DeleteByName(ctx, info.AppDeployName(), gvrDeployKind, info.Namespace); err != nil {
+			return clusterDeleteError(info.AppResourceName(), err)
 		}
 
 		return nil
@@ -86,18 +87,18 @@ func (a *App) Remove(params RemoveParams) error {
 
 	if !params.DryRun {
 		for _, resourceRef := range resources {
-			if resourceRef.repositoryPath != "" { // Some of the automation doesn't get stored
-				if err := a.ConfigGit.Remove(resourceRef.repositoryPath); err != nil {
+			if resourceRef.RepositoryPath != "" { // Some of the automation doesn't get stored
+				if err := a.ConfigGit.Remove(resourceRef.RepositoryPath); err != nil {
 					return err
 				}
-			} else if resourceRef.kind == ResourceKindKustomization ||
-				resourceRef.kind == ResourceKindHelmRelease {
-				gvrDeployKind, err := resourceRef.kind.ToGVR()
+			} else if resourceRef.Kind == internal.ResourceKindKustomization ||
+				resourceRef.Kind == internal.ResourceKindHelmRelease {
+				gvrDeployKind, err := resourceRef.Kind.ToGVR()
 				if err != nil {
 					return err
 				}
-				if err := a.Kube.DeleteByName(ctx, resourceRef.name, gvrDeployKind, info.Namespace); err != nil {
-					return clusterDeleteError(info.appResourceName(), err)
+				if err := a.Kube.DeleteByName(ctx, resourceRef.Name, gvrDeployKind, info.Namespace); err != nil {
+					return clusterDeleteError(info.AppResourceName(), err)
 				}
 			}
 		}
@@ -110,11 +111,11 @@ func (a *App) Remove(params RemoveParams) error {
 	return nil
 }
 
-func (a *App) getConfigUrlAndBranch(info *AppResourceInfo) (string, string, error) {
+func (a *App) getConfigUrlAndBranch(info *internal.AppResourceInfo) (string, string, error) {
 	cloneURL := info.Spec.ConfigURL
 	branch := info.Spec.Branch
 
-	if cloneURL == string(ConfigTypeUserRepo) {
+	if cloneURL == string(internal.ConfigTypeUserRepo) {
 		cloneURL = info.Spec.URL
 	} else {
 		localBranch, err := a.GitProvider.GetDefaultBranch(cloneURL)

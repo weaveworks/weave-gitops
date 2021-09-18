@@ -3,84 +3,32 @@ package app
 import (
 	"bytes"
 	"context"
-	"crypto/md5"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/services/app/internal"
 	"io/ioutil"
-	"net/url"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/yaml"
 )
 
 type ConfigType string
 
-type ConfigMode string
-
-type ResourceKind string
-
-type ResourceRef struct {
-	kind           ResourceKind
-	name           string
-	repositoryPath string
-}
-
-type AppResourceInfo struct {
-	wego.Application
-	clusterName string
-	targetName  string
-}
-
 const (
-	ConfigTypeUserRepo ConfigType = ""
-	ConfigTypeNone     ConfigType = "NONE"
-
-	ConfigModeClusterOnly  ConfigMode = "clusterOnly"
-	ConfigModeUserRepo     ConfigMode = "userRepo"
-	ConfigModeExternalRepo ConfigMode = "externalRepo"
-
-	ResourceKindApplication    ResourceKind = "Application"
-	ResourceKindSecret         ResourceKind = "Secret"
-	ResourceKindGitRepository  ResourceKind = "GitRepository"
-	ResourceKindHelmRepository ResourceKind = "HelmRepository"
-	ResourceKindKustomization  ResourceKind = "Kustomization"
-	ResourceKindHelmRelease    ResourceKind = "HelmRelease"
-
 	WeGOAppIdentifierLabelKey = "wego.weave.works/app-identifier"
 )
-
-type AddParams struct {
-	Dir                        string
-	Name                       string
-	Url                        string
-	Path                       string
-	Branch                     string
-	PrivateKey                 string
-	DeploymentType             string
-	Chart                      string
-	SourceType                 wego.SourceType
-	AppConfigUrl               string
-	Namespace                  string
-	DryRun                     bool
-	AutoMerge                  bool
-	GitProviderToken           string
-	HelmReleaseTargetNamespace string
-}
 
 const (
 	DefaultPath           = "./"
 	DefaultBranch         = "main"
-	DefaultDeploymentType = "kustomize"
+	DefaultDeploymentType = wego.DeploymentTypeKustomize
 )
 
 type externalRepoManifests struct {
@@ -128,7 +76,7 @@ type externalRepoManifests struct {
 func (a *App) Add(params AddParams) error {
 	ctx := context.Background()
 
-	params, err := a.updateParametersIfNecessary(params)
+	params, err := params.SetDefaultValues(a.GitProvider)
 	if err != nil {
 		return fmt.Errorf("could not update parameters: %w", err)
 	}
@@ -144,9 +92,9 @@ func (a *App) Add(params AddParams) error {
 		return err
 	}
 
-	info := getAppResourceInfo(makeWegoApplication(params), clusterName)
+	info := internal.NewResourceInfo(makeWegoApplication(params), clusterName)
 
-	appHash := info.getAppHash()
+	appHash := info.GetAppHash()
 
 	apps, err := a.Kube.GetApplications(ctx, params.Namespace)
 	if err != nil {
@@ -154,7 +102,7 @@ func (a *App) Add(params AddParams) error {
 	}
 
 	for _, app := range apps {
-		existingHash := getAppResourceInfo(app, clusterName).getAppHash()
+		existingHash := internal.NewResourceInfo(app, clusterName).GetAppHash()
 
 		if appHash == existingHash {
 			return fmt.Errorf("unable to create resource, resource already exists in cluster")
@@ -170,14 +118,14 @@ func (a *App) Add(params AddParams) error {
 		}
 
 		if *visibility != gitprovider.RepositoryVisibilityPublic {
-			secretRef = info.repoSecretName(info.Spec.URL).String()
+			secretRef = info.RepoSecretName(info.Spec.URL).String()
 		}
 	}
 
 	switch strings.ToUpper(info.Spec.ConfigURL) {
-	case string(ConfigTypeNone):
+	case string(internal.ConfigTypeNone):
 		return a.addAppWithNoConfigRepo(info, params.DryRun, secretRef, appHash)
-	case string(ConfigTypeUserRepo):
+	case string(internal.ConfigTypeUserRepo):
 		return a.addAppWithConfigInAppRepo(info, params, secretRef, appHash)
 	default:
 		return a.addAppWithConfigInExternalRepo(info, params, secretRef, appHash)
@@ -199,96 +147,12 @@ func (a *App) printAddSummary(params AddParams) {
 	a.Logger.Println("")
 }
 
-const maxKubernetesResourceNameLength = 63
-
 func IsExternalConfigUrl(url string) bool {
-	return strings.ToUpper(url) != string(ConfigTypeNone) &&
-		strings.ToUpper(url) != string(ConfigTypeUserRepo)
+	return strings.ToUpper(url) != string(internal.ConfigTypeNone) &&
+		strings.ToUpper(url) != string(internal.ConfigTypeUserRepo)
 }
 
-func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
-	params.SourceType = wego.SourceTypeGit
-
-	// making sure the config url is in good format
-	if IsExternalConfigUrl(params.AppConfigUrl) {
-		params.AppConfigUrl = utils.SanitizeRepoUrl(params.AppConfigUrl)
-	}
-
-	switch {
-	case params.Chart != "":
-		params.SourceType = wego.SourceTypeHelm
-		params.DeploymentType = string(wego.DeploymentTypeHelm)
-		params.Path = params.Chart
-
-		if params.Name == "" {
-			if nameTooLong(params.Chart) {
-				return params, fmt.Errorf("chart name %q is too long to use as application name; please specify name with '--name'", params.Chart)
-			}
-
-			params.Name = params.Chart
-		}
-
-		if params.Url == "" {
-			return params, fmt.Errorf("--url must be specified for helm repositories")
-		}
-	default:
-		// making sure url is in the correct format
-		_, err := url.Parse(params.Url)
-		if err != nil {
-			return params, fmt.Errorf("error validating url %w", err)
-		}
-
-		params.Url = utils.SanitizeRepoUrl(params.Url)
-
-		// resetting Dir param since Url has priority over it
-		params.Dir = ""
-	}
-
-	if params.Name == "" {
-		repoName := utils.UrlToRepoName(params.Url)
-		if nameTooLong(repoName) {
-			return params, fmt.Errorf("url base name %q is too long to use as application name; please specify name with '--name'", repoName)
-		}
-
-		params.Name = generateResourceName(params.Url)
-	}
-
-	if params.Path == "" {
-		params.Path = DefaultPath
-	}
-
-	if params.DeploymentType == "" {
-		params.DeploymentType = DefaultDeploymentType
-	}
-
-	if params.Branch == "" {
-		params.Branch = DefaultBranch
-
-		if params.SourceType == wego.SourceTypeGit {
-			branch, err := a.GitProvider.GetDefaultBranch(params.Url)
-			if err != nil {
-				return params, err
-			} else {
-				params.Branch = branch
-			}
-		}
-	}
-
-	if nameTooLong(params.Name) {
-		return params, fmt.Errorf("application name too long: %s; must be <= 63 characters", params.Name)
-	}
-
-	// Validate namespace argument for helm
-	if params.HelmReleaseTargetNamespace != "" {
-		if nserr := utils.ValidateNamespace(params.HelmReleaseTargetNamespace); nserr != nil {
-			return params, nserr
-		}
-	}
-
-	return params, nil
-}
-
-func (a *App) addAppWithNoConfigRepo(info *AppResourceInfo, dryRun bool, secretRef string, appHash string) error {
+func (a *App) addAppWithNoConfigRepo(info *internal.AppResourceInfo, dryRun bool, secretRef string, appHash string) error {
 	// Returns the source, app spec and kustomization
 	source, appGoat, appSpec, err := a.generateAppManifests(info, secretRef, appHash)
 	if err != nil {
@@ -300,7 +164,7 @@ func (a *App) addAppWithNoConfigRepo(info *AppResourceInfo, dryRun bool, secretR
 	return a.applyToCluster(info, dryRun, source, appGoat, appSpec)
 }
 
-func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams, secretRef string, appHash string) error {
+func (a *App) addAppWithConfigInAppRepo(info *internal.AppResourceInfo, params AddParams, secretRef string, appHash string) error {
 	// Returns the source, app spec and kustomization
 	source, appGoat, appSpec, err := a.generateAppManifests(info, secretRef, appHash)
 	if err != nil {
@@ -353,7 +217,7 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 	})
 }
 
-func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddParams, appSecretRef string, appHash string) error {
+func (a *App) addAppWithConfigInExternalRepo(info *internal.AppResourceInfo, params AddParams, appSecretRef string, appHash string) error {
 	// Returns the source, app spec and kustomization
 	appSource, appGoat, appSpec, err := a.generateAppManifests(info, appSecretRef, appHash)
 	if err != nil {
@@ -404,7 +268,7 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 	return a.commitAndPush(a.ConfigGit)
 }
 
-func (a *App) generateAppManifests(info *AppResourceInfo, secretRef string, appHash string) ([]byte, []byte, []byte, error) {
+func (a *App) generateAppManifests(info *internal.AppResourceInfo, secretRef string, appHash string) ([]byte, []byte, []byte, error) {
 	var sourceManifest, appManifest, appGoatManifest []byte
 
 	var err error
@@ -433,20 +297,20 @@ func (a *App) generateAppManifests(info *AppResourceInfo, secretRef string, appH
 	return sourceManifest, appGoatManifest, appManifest, nil
 }
 
-func (a *App) generateAppWegoManifests(info *AppResourceInfo) ([]byte, []byte, error) {
+func (a *App) generateAppWegoManifests(info *internal.AppResourceInfo) ([]byte, []byte, error) {
 	appsDirManifest, err := a.Flux.CreateKustomization(
-		info.automationAppsDirKustomizationName(),
+		info.AutomationAppsDirKustomizationName(),
 		info.Name,
-		info.appYamlDir(),
+		info.AppYamlDir(),
 		info.Namespace)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not create app dir kustomization for '%s': %w", info.Name, err)
 	}
 
 	targetDirManifest, err := a.Flux.CreateKustomization(
-		info.automationTargetDirKustomizationName(),
+		info.AutomationTargetDirKustomizationName(),
 		info.Name,
-		info.appAutomationDir(),
+		info.AppAutomationDir(),
 		info.Namespace)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not create target dir kustomization for '%s': %w", info.Name, err)
@@ -455,8 +319,8 @@ func (a *App) generateAppWegoManifests(info *AppResourceInfo) ([]byte, []byte, e
 	return sanitizeWegoDirectory(appsDirManifest), sanitizeWegoDirectory(targetDirManifest), nil
 }
 
-func (a *App) generateExternalRepoManifests(info *AppResourceInfo, branch string) (*externalRepoManifests, error) {
-	repoName := generateResourceName(info.Spec.ConfigURL)
+func (a *App) generateExternalRepoManifests(info *internal.AppResourceInfo, branch string) (*externalRepoManifests, error) {
+	repoName := internal.GenerateResourceName(info.Spec.ConfigURL)
 
 	secretRef := ""
 
@@ -466,7 +330,7 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, branch string
 	}
 
 	if *visibility != gitprovider.RepositoryVisibilityPublic {
-		secretRef = info.repoSecretName(info.Spec.ConfigURL).String()
+		secretRef = info.RepoSecretName(info.Spec.ConfigURL).String()
 	}
 
 	targetSource, err := a.Flux.CreateSourceGit(repoName, info.Spec.ConfigURL, branch, secretRef, info.Namespace)
@@ -475,18 +339,18 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, branch string
 	}
 
 	appDirGoat, err := a.Flux.CreateKustomization(
-		info.automationAppsDirKustomizationName(),
+		info.AutomationAppsDirKustomizationName(),
 		repoName,
-		info.appYamlDir(),
+		info.AppYamlDir(),
 		info.Namespace)
 	if err != nil {
 		return nil, fmt.Errorf("could not generate app dir kustomization for '%s': %w", info.Name, err)
 	}
 
 	targetGoat, err := a.Flux.CreateKustomization(
-		info.automationTargetDirKustomizationName(),
+		info.AutomationTargetDirKustomizationName(),
 		repoName,
-		info.appAutomationDir(),
+		info.AppAutomationDir(),
 		info.Namespace)
 	if err != nil {
 		return nil, fmt.Errorf("could not generate target dir kustomization for '%s': %w", info.Name, err)
@@ -519,7 +383,7 @@ func (a *App) commitAndPush(client git.Git, filters ...func(string) bool) error 
 	return nil
 }
 
-func (a *App) generateSource(info *AppResourceInfo, secretRef string) ([]byte, error) {
+func (a *App) generateSource(info *internal.AppResourceInfo, secretRef string) ([]byte, error) {
 	switch info.Spec.SourceType {
 	case wego.SourceTypeGit:
 		sourceManifest, err := a.Flux.CreateSourceGit(info.Name, info.Spec.URL, info.Spec.Branch, secretRef, info.Namespace)
@@ -535,7 +399,7 @@ func (a *App) generateSource(info *AppResourceInfo, secretRef string) ([]byte, e
 	}
 }
 
-func (a *App) generateApplicationGoat(info *AppResourceInfo) ([]byte, error) {
+func (a *App) generateApplicationGoat(info *internal.AppResourceInfo) ([]byte, error) {
 	switch info.Spec.DeploymentType {
 	case wego.DeploymentTypeKustomize:
 		return a.Flux.CreateKustomization(info.Name, info.Name, info.Spec.Path, info.Namespace)
@@ -553,7 +417,7 @@ func (a *App) generateApplicationGoat(info *AppResourceInfo) ([]byte, error) {
 	}
 }
 
-func (a *App) applyToCluster(info *AppResourceInfo, dryRun bool, manifests ...[]byte) error {
+func (a *App) applyToCluster(info *internal.AppResourceInfo, dryRun bool, manifests ...[]byte) error {
 	if dryRun {
 		for _, manifest := range manifests {
 			fmt.Fprintf(a.Osys.Stdout(), "%s\n", manifest)
@@ -593,16 +457,16 @@ func (a *App) cloneRepo(client git.Git, url string, branch string, dryRun bool) 
 	}, nil
 }
 
-func (a *App) writeAppYaml(info *AppResourceInfo, manifest []byte) error {
-	return a.ConfigGit.Write(info.appYamlPath(), manifest)
+func (a *App) writeAppYaml(info *internal.AppResourceInfo, manifest []byte) error {
+	return a.ConfigGit.Write(info.AppYamlPath(), manifest)
 }
 
-func (a *App) writeAppGoats(info *AppResourceInfo, sourceManifest, deployManifest []byte) error {
-	if err := a.ConfigGit.Write(info.appAutomationSourcePath(), sourceManifest); err != nil {
+func (a *App) writeAppGoats(info *internal.AppResourceInfo, sourceManifest, deployManifest []byte) error {
+	if err := a.ConfigGit.Write(info.AppAutomationSourcePath(), sourceManifest); err != nil {
 		return err
 	}
 
-	return a.ConfigGit.Write(info.appAutomationDeployPath(), deployManifest)
+	return a.ConfigGit.Write(info.AppAutomationDeployPath(), deployManifest)
 }
 
 func makeWegoApplication(params AddParams) wego.Application {
@@ -630,7 +494,7 @@ func makeWegoApplication(params AddParams) wego.Application {
 	return app
 }
 
-func generateAppYaml(info *AppResourceInfo, appHash string) ([]byte, error) {
+func generateAppYaml(info *internal.AppResourceInfo, appHash string) ([]byte, error) {
 	app := info.Application
 
 	app.ObjectMeta.Labels = map[string]string{
@@ -645,16 +509,12 @@ func generateAppYaml(info *AppResourceInfo, appHash string) ([]byte, error) {
 	return sanitizeK8sYaml(b), nil
 }
 
-func generateResourceName(url string) string {
-	return hashNameIfTooLong(strings.ReplaceAll(utils.UrlToRepoName(url), "_", "-"))
-}
+func (a *App) createPullRequestToRepo(info *internal.AppResourceInfo, repo string, appHash string, appYaml []byte, goatSource, goatDeploy []byte) error {
+	repoName := internal.GenerateResourceName(repo)
 
-func (a *App) createPullRequestToRepo(info *AppResourceInfo, repo string, appHash string, appYaml []byte, goatSource, goatDeploy []byte) error {
-	repoName := generateResourceName(repo)
-
-	appPath := info.appYamlPath()
-	goatSourcePath := info.appAutomationSourcePath()
-	goatDeployPath := info.appAutomationDeployPath()
+	appPath := info.AppYamlPath()
+	goatSourcePath := info.AppAutomationSourcePath()
+	goatDeployPath := info.AppAutomationDeployPath()
 
 	appContent := string(appYaml)
 	goatSourceContent := string(goatSource)
@@ -715,217 +575,6 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, repo string, appHas
 	return nil
 }
 
-func getAppResourceInfo(app wego.Application, clusterName string) *AppResourceInfo {
-	return &AppResourceInfo{
-		Application: app,
-		clusterName: clusterName,
-		targetName:  clusterName,
-	}
-}
-
-func (a *AppResourceInfo) configMode() ConfigMode {
-	if strings.ToUpper(a.Spec.ConfigURL) == string(ConfigTypeNone) {
-		return ConfigModeClusterOnly
-	}
-
-	if a.Spec.ConfigURL == string(ConfigTypeUserRepo) || a.Spec.ConfigURL == a.Spec.URL {
-		return ConfigModeUserRepo
-	}
-
-	return ConfigModeExternalRepo
-}
-
-func (a *AppResourceInfo) automationRoot() string {
-	root := "."
-
-	if a.configMode() == ConfigModeUserRepo {
-		root = ".wego"
-	}
-
-	return root
-}
-
-func (a *AppResourceInfo) appYamlPath() string {
-	return filepath.Join(a.appYamlDir(), "app.yaml")
-}
-
-func (a *AppResourceInfo) appYamlDir() string {
-	return filepath.Join(a.automationRoot(), "apps", a.Name)
-}
-
-func (a *AppResourceInfo) appAutomationSourcePath() string {
-	return filepath.Join(a.appAutomationDir(), fmt.Sprintf("%s-gitops-source.yaml", a.Name))
-}
-
-func (a *AppResourceInfo) appAutomationDeployPath() string {
-	return filepath.Join(a.appAutomationDir(), fmt.Sprintf("%s-gitops-deploy.yaml", a.Name))
-}
-
-func (a *AppResourceInfo) appAutomationDir() string {
-	return filepath.Join(a.automationRoot(), "targets", a.clusterName, a.Name)
-}
-
-func (a *AppResourceInfo) appSourceName() string {
-	return a.Name
-}
-
-func (a *AppResourceInfo) appDeployName() string {
-	return a.Name
-}
-
-func (a *AppResourceInfo) appResourceName() string {
-	return a.Name
-}
-
-type GeneratedSecretName string
-
-func (s GeneratedSecretName) String() string {
-	return string(s)
-}
-
-func (a *AppResourceInfo) repoSecretName(repoURL string) GeneratedSecretName {
-	return CreateRepoSecretName(a.clusterName, repoURL)
-}
-
-func nameTooLong(name string) bool {
-	return len(name) > maxKubernetesResourceNameLength
-}
-
-func hashNameIfTooLong(name string) string {
-	if !nameTooLong(name) {
-		return name
-	}
-
-	return fmt.Sprintf("wego-%x", md5.Sum([]byte(name)))
-}
-
-func CreateRepoSecretName(targetName string, repoURL string) GeneratedSecretName {
-	return GeneratedSecretName(hashNameIfTooLong(fmt.Sprintf("wego-%s-%s", targetName, generateResourceName(repoURL))))
-}
-
-func (a *AppResourceInfo) automationAppsDirKustomizationName() string {
-	return hashNameIfTooLong(fmt.Sprintf("%s-apps-dir", a.Name))
-}
-
-func (a *AppResourceInfo) automationTargetDirKustomizationName() string {
-	return hashNameIfTooLong(fmt.Sprintf("%s-%s", a.targetName, a.Name))
-}
-
-func (a *AppResourceInfo) sourceKind() ResourceKind {
-	result := ResourceKindGitRepository
-
-	if a.Spec.SourceType == "helm" {
-		result = ResourceKindHelmRepository
-	}
-
-	return result
-}
-
-func (a *AppResourceInfo) deployKind() ResourceKind {
-	result := ResourceKindKustomization
-
-	if a.Spec.DeploymentType == "helm" {
-		result = ResourceKindHelmRelease
-	}
-
-	return result
-}
-
-func (a *AppResourceInfo) clusterResources() []ResourceRef {
-	resources := []ResourceRef{}
-
-	// Application GOAT, common to all three modes
-	appPath := a.appYamlPath()
-	automationSourcePath := a.appAutomationSourcePath()
-	automationDeployPath := a.appAutomationDeployPath()
-
-	if a.configMode() == ConfigModeClusterOnly {
-		appPath = ""
-		automationSourcePath = ""
-		automationDeployPath = ""
-	}
-
-	resources = append(
-		resources,
-		ResourceRef{
-			kind:           a.sourceKind(),
-			name:           a.appSourceName(),
-			repositoryPath: automationSourcePath},
-		ResourceRef{
-			kind:           a.deployKind(),
-			name:           a.appDeployName(),
-			repositoryPath: automationDeployPath},
-		ResourceRef{
-			kind:           ResourceKindApplication,
-			name:           a.appResourceName(),
-			repositoryPath: appPath})
-
-	// Secret for deploy key associated with app repository;
-	// common to all three modes when not using upstream Helm repository
-	if a.sourceKind() == ResourceKindGitRepository {
-		resources = append(
-			resources,
-			ResourceRef{
-				kind: ResourceKindSecret,
-				name: a.repoSecretName(a.Spec.URL).String()})
-	}
-
-	if strings.ToUpper(a.Spec.ConfigURL) == string(ConfigTypeNone) {
-		// Only app resources present in cluster; no resources to manage config
-		return resources
-	}
-
-	// App dir and target dir resources are common to app and external repo modes
-	resources = append(
-		resources,
-		// Kustomization for .wego/apps/<app-name> directory
-		ResourceRef{
-			kind: ResourceKindKustomization,
-			name: a.automationAppsDirKustomizationName()},
-		// Kustomization for .wego/targets/<cluster-name>/<app-name> directory
-		ResourceRef{
-			kind: ResourceKindKustomization,
-			name: a.automationTargetDirKustomizationName()})
-
-	// External repo adds a secret and source for the external repo
-	if a.Spec.ConfigURL != string(ConfigTypeUserRepo) && a.Spec.ConfigURL != a.Spec.URL {
-		// Config stored in external repo
-		resources = append(
-			resources,
-			// Secret for deploy key associated with config repository
-			ResourceRef{
-				kind: ResourceKindSecret,
-				name: a.repoSecretName(a.Spec.ConfigURL).String()},
-			// Source for config repository
-			ResourceRef{
-				kind: ResourceKindGitRepository,
-				name: generateResourceName(a.Spec.ConfigURL)})
-	}
-
-	return resources
-}
-
-func (a *AppResourceInfo) clusterResourcePaths() []string {
-	if a.configMode() == ConfigModeClusterOnly {
-		return []string{}
-	}
-
-	return []string{a.appYamlPath(), a.appAutomationSourcePath(), a.appAutomationDeployPath()}
-}
-
-func (info *AppResourceInfo) getAppHash() string {
-	var getHash = func(inputs ...string) string {
-		final := []byte(strings.Join(inputs, ""))
-		return fmt.Sprintf("%x", md5.Sum(final))
-	}
-
-	if info.Spec.DeploymentType == wego.DeploymentTypeHelm {
-		return "wego-" + getHash(info.Spec.URL, info.Name, info.Spec.Branch)
-	} else {
-		return "wego-" + getHash(info.Spec.URL, info.Spec.Path, info.Spec.Branch)
-	}
-}
-
 // NOTE: ready to save the targets automation in phase 2
 // func (a *App) writeTargetGoats(basePath string, name string, manifests ...[]byte) error {
 //  goatPath := filepath.Join(basePath, "targets", fmt.Sprintf("%s-gitops-runtime.yaml", name))
@@ -947,23 +596,4 @@ func sanitizeK8sYaml(data []byte) []byte {
 
 func sanitizeWegoDirectory(manifest []byte) []byte {
 	return bytes.ReplaceAll(manifest, []byte("path: ./wego"), []byte("path: .wego"))
-}
-
-func (rk ResourceKind) ToGVR() (schema.GroupVersionResource, error) {
-	switch rk {
-	case ResourceKindApplication:
-		return kube.GVRApp, nil
-	case ResourceKindSecret:
-		return kube.GVRSecret, nil
-	case ResourceKindGitRepository:
-		return kube.GVRGitRepository, nil
-	case ResourceKindHelmRepository:
-		return kube.GVRHelmRepository, nil
-	case ResourceKindHelmRelease:
-		return kube.GVRHelmRelease, nil
-	case ResourceKindKustomization:
-		return kube.GVRKustomization, nil
-	default:
-		return schema.GroupVersionResource{}, fmt.Errorf("no matching schema.GroupVersionResource to the ResourceKind: %s", string(rk))
-	}
 }

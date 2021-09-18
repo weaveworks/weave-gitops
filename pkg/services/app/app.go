@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/services/app/internal"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -165,6 +166,16 @@ func (a *App) pauseOrUnpause(suspendAction wego.SuspendActionType, name, namespa
 	}
 
 	return fmt.Errorf("invalid suspend action")
+}
+
+type GeneratedSecretName struct {
+	internal.GeneratedSecretName
+}
+
+func CreateRepoSecretName(targetName string, repoURL string) GeneratedSecretName {
+	return GeneratedSecretName{
+		GeneratedSecretName: internal.CreateRepoSecretName(targetName, repoURL),
+	}
 }
 
 func IsClusterReady(l logger.Logger, k kube.Kube) error {

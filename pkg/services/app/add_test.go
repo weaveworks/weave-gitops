@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/md5"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/services/app/internal"
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -102,14 +103,14 @@ var _ = Describe("Add", func() {
 		})
 
 		It("Uses the default branch from the repository if no branch is specified", func() {
-			updated, err := appSrv.(*App).updateParametersIfNecessary(addParams)
+			updated, err := addParams.SetDefaultValues(appSrv.(*App).GitProvider)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(updated.Branch).To(Equal("an-unusual-branch"))
 		})
 
 		It("Allows a specified branch to override the repo's default branch", func() {
 			addParams.Branch = "an-overriding-branch"
-			updated, err := appSrv.(*App).updateParametersIfNecessary(addParams)
+			updated, err := addParams.SetDefaultValues(appSrv.(*App).GitProvider)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(updated.Branch).To(Equal("an-overriding-branch"))
 		})
@@ -179,7 +180,7 @@ var _ = Describe("Add", func() {
 
 			It("creates a helm release using a git source if source type is git", func() {
 				addParams.Path = "./charts/my-chart"
-				addParams.DeploymentType = string(wego.DeploymentTypeHelm)
+				addParams.DeploymentType = wego.DeploymentTypeHelm
 
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -212,7 +213,7 @@ var _ = Describe("Add", func() {
 
 			It("creates a helm release for git repository with target namespace if source type is git", func() {
 				addParams.Path = "./charts/my-chart"
-				addParams.DeploymentType = string(wego.DeploymentTypeHelm)
+				addParams.DeploymentType = wego.DeploymentTypeHelm
 				addParams.HelmReleaseTargetNamespace = "sock-shop"
 
 				err := appSrv.Add(addParams)
@@ -357,7 +358,7 @@ var _ = Describe("Add", func() {
 
 			It("creates a helm release using a git source if source type is git", func() {
 				addParams.Path = "./charts/my-chart"
-				addParams.DeploymentType = string(wego.DeploymentTypeHelm)
+				addParams.DeploymentType = wego.DeploymentTypeHelm
 
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -391,7 +392,7 @@ var _ = Describe("Add", func() {
 
 			It("creates a helm release for git repository with target namespace if source type is git", func() {
 				addParams.Path = "./charts/my-chart"
-				addParams.DeploymentType = string(wego.DeploymentTypeHelm)
+				addParams.DeploymentType = wego.DeploymentTypeHelm
 				addParams.HelmReleaseTargetNamespace = "sock-shop"
 
 				err := appSrv.Add(addParams)
@@ -569,7 +570,7 @@ var _ = Describe("Add", func() {
 					Branch:    "main",
 				}
 
-				info := getAppResourceInfo(makeWegoApplication(params), "")
+				info := internal.NewResourceInfo(makeWegoApplication(params), "")
 
 				desired2 := info.Application
 				hash := getHash(repoURL, info.Spec.Path, info.Spec.Branch)
@@ -633,7 +634,7 @@ var _ = Describe("Add", func() {
 
 			It("creates a helm release using a git source if source type is git", func() {
 				addParams.Path = "./charts/my-chart"
-				addParams.DeploymentType = string(wego.DeploymentTypeHelm)
+				addParams.DeploymentType = wego.DeploymentTypeHelm
 
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -666,7 +667,7 @@ var _ = Describe("Add", func() {
 
 			It("creates a helm release for git repository with target namespace if source type is git", func() {
 				addParams.Path = "./charts/my-chart"
-				addParams.DeploymentType = string(wego.DeploymentTypeHelm)
+				addParams.DeploymentType = wego.DeploymentTypeHelm
 				addParams.HelmReleaseTargetNamespace = "sock-shop"
 
 				err := appSrv.Add(addParams)
@@ -767,7 +768,7 @@ var _ = Describe("Add", func() {
 	})
 
 	Context("when creating a pull request", func() {
-		var info *AppResourceInfo
+		var info *internal.AppResourceInfo
 
 		BeforeEach(func() {
 			gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
@@ -786,7 +787,7 @@ var _ = Describe("Add", func() {
 			}
 
 			addParams.Url = "https://github.com/user/repo"
-			info = getAppResourceInfo(makeWegoApplication(addParams), "cluster")
+			info = internal.NewResourceInfo(makeWegoApplication(addParams), "cluster")
 		})
 
 		It("generates an appropriate error when the owner cannot be retrieved from the URL", func() {
@@ -876,7 +877,7 @@ var _ = Describe("Add", func() {
 			addParams := AddParams{}
 			addParams.Url = "http://something"
 
-			updated, err := appSrv.(*App).updateParametersIfNecessary(addParams)
+			updated, err := addParams.SetDefaultValues(appSrv.(*App).GitProvider)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(updated.DeploymentType).To(Equal(DefaultDeploymentType))
@@ -888,7 +889,7 @@ var _ = Describe("Add", func() {
 			addParams := AddParams{}
 			addParams.Url = "{http:/-*wrong-url-827"
 
-			_, err := appSrv.(*App).updateParametersIfNecessary(addParams)
+			_, err := addParams.SetDefaultValues(appSrv.(*App).GitProvider)
 			Expect(err).Should(HaveOccurred())
 			Expect(err.Error()).Should(ContainSubstring("error validating url"))
 			Expect(err.Error()).Should(ContainSubstring(addParams.Url))
@@ -900,51 +901,51 @@ var _ = Describe("Add", func() {
 		It("ensures that app names are <= 63 characters", func() {
 			addParams.Name = "a23456789012345678901234567890123456789012345678901234567890123"
 			Expect(appSrv.Add(addParams)).To(Succeed())
-			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
-			Expect(info.automationAppsDirKustomizationName()).To(Equal("wego-" + getHash(fmt.Sprintf("%s-apps-dir", addParams.Name))))
+			info := internal.NewResourceInfo(makeWegoApplication(addParams), "cluster")
+			Expect(info.AutomationAppsDirKustomizationName()).To(Equal("wego-" + getHash(fmt.Sprintf("%s-apps-dir", addParams.Name))))
 			addParams.Name = "a234567890123456789012345678901234567890123456789012345678901234"
 			Expect(appSrv.Add(addParams)).ShouldNot(Succeed())
 		})
 
 		It("ensures that url base names are <= 63 characters when used as names", func() {
 			addParams.Url = "https://github.com/foo/a23456789012345678901234567890123456789012345678901234567890123"
-			localParams, err := appSrv.(*App).updateParametersIfNecessary(addParams)
+			localParams, err := addParams.SetDefaultValues(appSrv.(*App).GitProvider)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(appSrv.Add(localParams)).To(Succeed())
 			addParams.Name = ""
 			addParams.Url = "https://github.com/foo/a234567890123456789012345678901234567890123456789012345678901234"
-			_, err = appSrv.(*App).updateParametersIfNecessary(addParams)
+			_, err = addParams.SetDefaultValues(appSrv.(*App).GitProvider)
 			Expect(err).Should(HaveOccurred())
 		})
 
 		It("specifies a short cluster name, base url, and app name and gets them all included in resource names", func() {
 			addParams.Url = "https://github.com/foo/url-base"
 			addParams.Name = "app-name"
-			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
+			info := internal.NewResourceInfo(makeWegoApplication(addParams), "cluster")
 
-			Expect(info.automationAppsDirKustomizationName()).To(Equal("app-name-apps-dir"))
-			Expect(info.automationTargetDirKustomizationName()).To(Equal("cluster-app-name"))
-			Expect(info.repoSecretName(addParams.Url).String()).To(Equal("wego-cluster-url-base"))
+			Expect(info.AutomationAppsDirKustomizationName()).To(Equal("app-name-apps-dir"))
+			Expect(info.AutomationTargetDirKustomizationName()).To(Equal("cluster-app-name"))
+			Expect(info.RepoSecretName(addParams.Url).String()).To(Equal("wego-cluster-url-base"))
 		})
 
 		It("specifies a cluster name, base url, and app name that generate 63 characters and gets them all included in resource names", func() {
 			addParams.Url = "https://github.com/foo/u"
 			addParams.Name = "a12345"
-			info := getAppResourceInfo(makeWegoApplication(addParams), "c2345678901234567890123456789012345678901234567890123456")
+			info := internal.NewResourceInfo(makeWegoApplication(addParams), "c2345678901234567890123456789012345678901234567890123456")
 
-			Expect(info.automationTargetDirKustomizationName()).To(Equal("c2345678901234567890123456789012345678901234567890123456-a12345"))
-			Expect(info.repoSecretName(addParams.Url).String()).To(Equal("wego-c2345678901234567890123456789012345678901234567890123456-u"))
+			Expect(info.AutomationTargetDirKustomizationName()).To(Equal("c2345678901234567890123456789012345678901234567890123456-a12345"))
+			Expect(info.RepoSecretName(addParams.Url).String()).To(Equal("wego-c2345678901234567890123456789012345678901234567890123456-u"))
 		})
 
 		It("specifies a long cluster name, base url, and app name that generate 64 characters and gets hashed resource names", func() {
 			addParams.Name = "a123456"
 			addParams.Url = "https://github.com/foo/u1"
 			clusterName := "c2345678901234567890123456789012345678901234567890123456"
-			info := getAppResourceInfo(makeWegoApplication(addParams), clusterName)
+			info := internal.NewResourceInfo(makeWegoApplication(addParams), clusterName)
 
-			kustName := info.automationTargetDirKustomizationName()
-			secretName := info.repoSecretName(addParams.Url).String()
-			repoName := generateResourceName(addParams.Url)
+			kustName := info.AutomationTargetDirKustomizationName()
+			secretName := info.RepoSecretName(addParams.Url).String()
+			repoName := internal.GenerateResourceName(addParams.Url)
 
 			Expect(kustName).To(Equal("wego-" + getHash(fmt.Sprintf("%s-%s", clusterName, addParams.Name))))
 			Expect(secretName).To(Equal("wego-" + getHash(fmt.Sprintf("wego-%s-%s", clusterName, repoName))))
@@ -965,7 +966,7 @@ var _ = Describe("Test app hash", func() {
 		}
 		app.Name = "nginx"
 
-		appHash := getAppResourceInfo(app, "my-cluster").getAppHash()
+		appHash := internal.NewResourceInfo(app, "my-cluster").GetAppHash()
 		expectedHash := getHash(app.Spec.URL, app.Name, app.Spec.Branch)
 
 		Expect(appHash).To(Equal("wego-" + expectedHash))
@@ -982,7 +983,7 @@ var _ = Describe("Test app hash", func() {
 			},
 		}
 
-		appHash := getAppResourceInfo(app, "my-cluster").getAppHash()
+		appHash := internal.NewResourceInfo(app, "my-cluster").GetAppHash()
 		expectedHash := getHash(app.Spec.URL, app.Spec.Path, app.Spec.Branch)
 
 		Expect(appHash).To(Equal("wego-" + expectedHash))
