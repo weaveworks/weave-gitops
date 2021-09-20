@@ -181,8 +181,8 @@ github.com/evanphx/json-patch v4.11.0+incompatible h1:glyUF9yIYtMHzn8xaKw5rMhdWc
 github.com/evanphx/json-patch v4.11.0+incompatible/go.mod h1:50XU6AFN0ol/bzJsmQLiYLvXMP4fmwYFNcr97nuDLSk=
 github.com/fatih/color v1.7.0 h1:DkWD4oS2D8LGGgTQ6IvwJJXSL5Vp2ffcQg58nFV38Ys=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
-github.com/fluxcd/go-git-providers v0.2.1-0.20210908163615-833963032787 h1:/Zj0v51h0Rrblhpy4opWGeB7Yhwe1lK44QBzLJciDsY=
-github.com/fluxcd/go-git-providers v0.2.1-0.20210908163615-833963032787/go.mod h1:kByvCO8EATmdOqHne60f0NsJUjsbOwcfADTj7RHGjcs=
+github.com/fluxcd/go-git-providers v0.2.1-0.20210920141513-ddc36f3d5f60 h1:OuJ+swDiof5XLWNNsSKqSQpIcdpS+QYBZJ3lr/B+5U4=
+github.com/fluxcd/go-git-providers v0.2.1-0.20210920141513-ddc36f3d5f60/go.mod h1:kByvCO8EATmdOqHne60f0NsJUjsbOwcfADTj7RHGjcs=
 github.com/fluxcd/helm-controller/api v0.11.1 h1:7oanAnhcRdqrnALDGpZcg5iuDqwCv+jNTmGvSrgDyCo=
 github.com/fluxcd/helm-controller/api v0.11.1/go.mod h1:nt5YdVS+jWXDSbP3gAX3HII6oX+8ahrHD6og2ZVsnN4=
 github.com/fluxcd/kustomize-controller/api v0.13.2 h1:Dd+gryMtV1J6TuFvbHj50VFauUNOtC3Uowa5yxgZ+l0=

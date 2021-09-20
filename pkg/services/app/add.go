@@ -233,17 +233,12 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 			return params, fmt.Errorf("--url must be specified for helm repositories")
 		}
 	default:
-		// making sure url is in the correct format
-		if strings.Contains(params.Url, "git@gitlab.com:") {
-			params.Url = strings.Replace(params.Url, ":", "/", 1)
-		}
+		params.Url = utils.SanitizeRepoUrl(params.Url)
 
 		_, err := url.Parse(params.Url)
 		if err != nil {
 			return params, fmt.Errorf("error validating url %w", err)
 		}
-
-		params.Url = utils.SanitizeRepoUrl(params.Url)
 
 		// resetting Dir param since Url has priority over it
 		params.Dir = ""

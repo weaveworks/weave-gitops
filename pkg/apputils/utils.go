@@ -130,6 +130,11 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 		return nil, nil, nil, nil
 	}
 
+	normalizedUrl, err := gitproviders.NewNormalizedRepoURL(providerUrl)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("error normalizing url: %w", err)
+	}
+
 	kube, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("error creating k8s http client: %w", err)

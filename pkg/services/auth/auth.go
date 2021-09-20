@@ -44,21 +44,16 @@ func NewAuthCLIHandler(name gitproviders.GitProviderName) (BlockingCLIAuthHandle
 
 // GetGitProvider returns a GitProvider containing either the token stored in the <git provider>_TOKEN env var
 // or a token retrieved via the CLI auth flow
-func GetGitProvider(ctx context.Context, url string) (gitproviders.GitProvider, error) {
-	providerName, err := gitproviders.DetectGitProviderFromUrl(url)
-	if err != nil {
-		return nil, fmt.Errorf("error detecting git provider: %w", err)
-	}
-
-	authHandler, err := NewAuthCLIHandler(providerName)
-	if err != nil {
-		return nil, fmt.Errorf("could not get auth handler for provider %s: %w", providerName, err)
+func GetGitProvider(ctx context.Context, normalizedUrl gitproviders.NormalizedRepoURL) (gitproviders.GitProvider, error) {
+	authHandler, authErr := NewAuthCLIHandler(normalizedUrl.Provider())
+	if authErr != nil {
+		return nil, fmt.Errorf("could not get auth handler for provider %s: %w", normalizedUrl.Provider(), authErr)
 	}
 
 	osysClient := osys.New()
 	logger := logger.NewCLILogger(osysClient.Stdout())
 
-	return getGitProviderWithClients(ctx, providerName, osysClient, authHandler, logger)
+	return getGitProviderWithClients(ctx, normalizedUrl.Provider(), osysClient, authHandler, logger)
 }
 
 func getGitProviderWithClients(
