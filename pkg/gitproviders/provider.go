@@ -254,7 +254,7 @@ func (p defaultGitProvider) GetAccountType(owner string) (ProviderAccountType, e
 	})
 
 	if err != nil {
-		if errors.Is(err, gitprovider.ErrNotFound) || errors.Is(err, gitprovider.ErrGroupNotFound) {
+		if errors.Is(err, gitprovider.ErrNotFound) || strings.Contains(err.Error(), gitprovider.ErrGroupNotFound.Error()) {
 			return AccountTypeUser, nil
 		}
 
