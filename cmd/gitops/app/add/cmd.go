@@ -53,7 +53,7 @@ func init() {
 	Cmd.Flags().StringVar(&params.Name, "name", "", "Name of application")
 	Cmd.Flags().StringVar(&params.Url, "url", "", "URL of remote repository")
 	Cmd.Flags().StringVar(&params.Path, "path", app.DefaultPath, "Path of files within git repository")
-	Cmd.Flags().StringVar(&params.Branch, "branch", app.DefaultBranch, "Branch to watch within git repository")
+	Cmd.Flags().StringVar(&params.Branch, "branch", "", "Branch to watch within git repository")
 	Cmd.Flags().StringVar(&params.DeploymentType, "deployment-type", app.DefaultDeploymentType, "deployment type [kustomize, helm]")
 	Cmd.Flags().StringVar(&params.Chart, "chart", "", "Specify chart for helm source")
 	Cmd.Flags().StringVar(&params.PrivateKey, "private-key", "", "Private key to access git repository over ssh")

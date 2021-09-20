@@ -216,14 +216,18 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 	return clusterName, nil
 }
 
-func initAndCreateEmptyRepo(appRepoName string, isPrivateRepo bool) string {
+func initAndCreateEmptyRepoWithMainDefaultBranch(appRepoName string, isPrivateRepo bool) string {
+	return initAndCreateEmptyRepo(appRepoName, DEFAULT_BRANCH_NAME, isPrivateRepo)
+}
+
+func initAndCreateEmptyRepo(appRepoName, branch string, isPrivateRepo bool) string {
 	repoAbsolutePath := "/tmp/" + appRepoName
 
 	// We need this step in case running a single test case locally
 	err := os.RemoveAll(repoAbsolutePath)
 	Expect(err).ShouldNot(HaveOccurred())
 
-	err = createRepository(appRepoName, isPrivateRepo)
+	err = createRepository(appRepoName, branch, isPrivateRepo)
 	Expect(err).ShouldNot(HaveOccurred())
 
 	err = utils.WaitUntil(os.Stdout, time.Second*3, time.Second*30, func() error {
@@ -667,14 +671,14 @@ func getWaitTimeFromErr(errOutput string) (time.Duration, error) {
 	return 0, fmt.Errorf("could not found a rate reset on string: %s", errOutput)
 }
 
-func createRepository(repoName string, private bool) error {
+func createRepository(repoName, branch string, private bool) error {
 	visibility := gitprovider.RepositoryVisibilityPublic
 	if private {
 		visibility = gitprovider.RepositoryVisibilityPrivate
 	}
 
 	description := "Weave Gitops test repo"
-	defaultBranch := DEFAULT_BRANCH_NAME
+	defaultBranch := branch
 	repoInfo := gitprovider.RepositoryInfo{
 		Description:   &description,
 		Visibility:    &visibility,

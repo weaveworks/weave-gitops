@@ -15,6 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -135,7 +136,7 @@ func (a *App) Add(params AddParams) error {
 
 	a.printAddSummary(params)
 
-	if err := IsClusterReady(a.Logger, a.Kube); err != nil {
+	if err := IsClusterReady(&loggerfakes.FakeLogger{}, a.Kube); err != nil {
 		return err
 	}
 

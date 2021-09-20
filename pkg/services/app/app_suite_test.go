@@ -36,7 +36,7 @@ var _ = BeforeEach(func() {
 			return "test-cluster", nil
 		},
 		GetClusterStatusStub: func(ctx context.Context) kube.ClusterStatus {
-			return kube.WeGOInstalled
+			return kube.GitOpsInstalled
 		},
 	}
 

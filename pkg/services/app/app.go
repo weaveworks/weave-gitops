@@ -174,9 +174,9 @@ func IsClusterReady(l logger.Logger, k kube.Kube) error {
 
 	switch clusterStatus {
 	case kube.Unmodified:
-		return fmt.Errorf("Wego not installed... exiting")
+		return fmt.Errorf("gitops not installed... exiting")
 	case kube.Unknown:
-		return fmt.Errorf("Wego can not determine cluster status... exiting")
+		return fmt.Errorf("can not determine cluster status... exiting")
 	}
 
 	l.Successf(clusterStatus.String())
