@@ -64,8 +64,6 @@ function ApplicationDetail({ className, name }: Props) {
     return <LoadingPage />;
   }
 
-  console.log(app.helmRelease)
-
   return (
     <Page
       loading={loading}
