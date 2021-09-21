@@ -23,7 +23,7 @@ func initializeUISteps() {
 	})
 }
 
-var _ = XDescribe("Weave GitOps UI Test", func() {
+var _ = Describe("Weave GitOps UI Test", func() {
 
 	deleteWegoRuntime := false
 	if os.Getenv("DELETE_WEGO_RUNTIME_ON_EACH_TEST") == "true" {

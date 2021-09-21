@@ -551,7 +551,7 @@ func verifyWegoAddCommandWithDryRun(appRepoName string, wegoNamespace string) {
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
-	Expect(waitForResource("GitRepositories", appRepoName, wegoNamespace, 30*time.Second)).ToNot(Succeed())
+	Expect(waitForResource("GitRepositories", appRepoName, wegoNamespace, THIRTY_SECOND_TIMEOUT)).ToNot(Succeed())
 }
 
 func verifyWorkloadIsDeployed(workloadName string, workloadNamespace string) {
