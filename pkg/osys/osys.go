@@ -10,7 +10,7 @@ import (
 //counterfeiter:generate . Osys
 type Osys interface {
 	UserHomeDir() (string, error)
-	GetGitProviderToken() (string, error)
+	GetGitProviderToken(tokenVarName string) (string, error)
 	Getenv(envVar string) string
 	LookupEnv(envVar string) (string, bool)
 	Setenv(envVar, value string) error
@@ -56,8 +56,8 @@ func (o *OsysClient) Unsetenv(envVar string) error {
 
 var ErrNoGitProviderTokenSet = errors.New("no git provider token env variable set")
 
-func (o *OsysClient) GetGitProviderToken() (string, error) {
-	providerToken, found := o.LookupEnv("GITHUB_TOKEN")
+func (o *OsysClient) GetGitProviderToken(tokenVarName string) (string, error) {
+	providerToken, found := o.LookupEnv(tokenVarName)
 
 	if !found || providerToken == "" {
 		return "", ErrNoGitProviderTokenSet

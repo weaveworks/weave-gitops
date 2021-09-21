@@ -14,9 +14,10 @@ type FakeOsys struct {
 	exitArgsForCall []struct {
 		arg1 int
 	}
-	GetGitProviderTokenStub        func() (string, error)
+	GetGitProviderTokenStub        func(string) (string, error)
 	getGitProviderTokenMutex       sync.RWMutex
 	getGitProviderTokenArgsForCall []struct {
+		arg1 string
 	}
 	getGitProviderTokenReturns struct {
 		result1 string
@@ -151,17 +152,18 @@ func (fake *FakeOsys) ExitArgsForCall(i int) int {
 	return argsForCall.arg1
 }
 
-func (fake *FakeOsys) GetGitProviderToken() (string, error) {
+func (fake *FakeOsys) GetGitProviderToken(arg1 string) (string, error) {
 	fake.getGitProviderTokenMutex.Lock()
 	ret, specificReturn := fake.getGitProviderTokenReturnsOnCall[len(fake.getGitProviderTokenArgsForCall)]
 	fake.getGitProviderTokenArgsForCall = append(fake.getGitProviderTokenArgsForCall, struct {
-	}{})
+		arg1 string
+	}{arg1})
 	stub := fake.GetGitProviderTokenStub
 	fakeReturns := fake.getGitProviderTokenReturns
-	fake.recordInvocation("GetGitProviderToken", []interface{}{})
+	fake.recordInvocation("GetGitProviderToken", []interface{}{arg1})
 	fake.getGitProviderTokenMutex.Unlock()
 	if stub != nil {
-		return stub()
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -175,10 +177,17 @@ func (fake *FakeOsys) GetGitProviderTokenCallCount() int {
 	return len(fake.getGitProviderTokenArgsForCall)
 }
 
-func (fake *FakeOsys) GetGitProviderTokenCalls(stub func() (string, error)) {
+func (fake *FakeOsys) GetGitProviderTokenCalls(stub func(string) (string, error)) {
 	fake.getGitProviderTokenMutex.Lock()
 	defer fake.getGitProviderTokenMutex.Unlock()
 	fake.GetGitProviderTokenStub = stub
+}
+
+func (fake *FakeOsys) GetGitProviderTokenArgsForCall(i int) string {
+	fake.getGitProviderTokenMutex.RLock()
+	defer fake.getGitProviderTokenMutex.RUnlock()
+	argsForCall := fake.getGitProviderTokenArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeOsys) GetGitProviderTokenReturns(result1 string, result2 error) {
