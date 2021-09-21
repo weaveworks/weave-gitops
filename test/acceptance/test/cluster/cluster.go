@@ -89,7 +89,7 @@ func CreateKindCluster(ctx context.Context, rootKubeConfigFilesPath string) (*Cl
 	var cluster *Cluster
 
 	if provider == "kind" {
-		clusterName := RandString(6)
+		clusterName := RandString(30)
 		kubeConfigFile := "kube-config-" + clusterName
 		kubeConfigPath := filepath.Join(string(rootKubeConfigFilesPath), kubeConfigFile)
 		log.Infof("Creating a kind cluster %s", clusterName)
