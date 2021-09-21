@@ -383,7 +383,7 @@ var _ = Describe("ApplicationsServer", func() {
 			res, err := appsClient.GetReconciledObjects(ctx, &pb.GetReconciledObjectsReq{
 				AutomationName:      name,
 				AutomationNamespace: namespace.Name,
-				AutomationKind:      pb.GetReconciledObjectsReq_Kustomize,
+				AutomationKind:      pb.AutomationKind_Kustomize,
 				Kinds:               []*pb.GroupVersionKind{{Group: "apps", Version: "v1", Kind: "Deployment"}},
 			})
 			Expect(err).NotTo(HaveOccurred())
@@ -399,7 +399,7 @@ var _ = Describe("ApplicationsServer", func() {
 			_, err := appsClient.GetReconciledObjects(ctx, &pb.GetReconciledObjectsReq{
 				AutomationName:      name,
 				AutomationNamespace: namespace.Name,
-				AutomationKind:      pb.GetReconciledObjectsReq_Helm,
+				AutomationKind:      pb.AutomationKind_Helm,
 				Kinds:               []*pb.GroupVersionKind{{Group: "apps", Version: "v1", Kind: "Deployment"}},
 			})
 
