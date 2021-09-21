@@ -101,7 +101,7 @@ func CreateKindCluster(ctx context.Context, rootKubeConfigFilesPath string) (*Cl
 		err := cmd.Run()
 		if err != nil {
 			log.Infof("Failed to create kind cluster")
-			//log.Fatal(err)
+			log.Fatal(err)
 			return nil, err
 		}
 		cluster = NewCluster(clusterName, "kind-"+clusterName, kubeConfigPath)
