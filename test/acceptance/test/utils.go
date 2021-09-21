@@ -33,7 +33,7 @@ const EVENTUALLY_DEFAULT_TIMEOUT time.Duration = 60 * time.Second
 const TIMEOUT_FIVE_MINUTES time.Duration = 5 * time.Minute
 const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
 const NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
-const INSTALL_PODS_READY_TIMEOUT time.Duration = 5 * time.Minute
+const INSTALL_PODS_READY_TIMEOUT time.Duration = 6 * time.Minute
 const WEGO_DEFAULT_NAMESPACE = wego.DefaultNamespace
 const WEGO_UI_URL = "http://localhost:9001"
 const SELENIUM_SERVICE_URL = "http://localhost:4444/wd/hub"
@@ -373,6 +373,9 @@ func installAndVerifyWego(wegoNamespace string, kubeconfigPath string) {
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, TIMEOUT_FIVE_MINUTES).Should(gexec.Exit())
+		fmt.Println("session-OUT -[", string(session.Out.Contents()), "]-")
+		fmt.Println("session-ERR -[", string(session.Err.Contents()), "]-")
+		Expect(string(session.Err.Contents())).Should(BeEmpty())
 		VerifyControllersInCluster(wegoNamespace, kubeconfigPath)
 	})
 }
@@ -569,7 +572,8 @@ func verifyWegoAddCommandWithDryRun(appRepoName string, wegoNamespace string, ku
 func verifyWorkloadIsDeployed(workloadName string, workloadNamespace string, kubeConfigPath string) {
 	Expect(waitForResource("deploy", workloadName, workloadNamespace, INSTALL_PODS_READY_TIMEOUT, kubeConfigPath)).To(Succeed())
 	Expect(waitForResource("pods", "", workloadNamespace, INSTALL_PODS_READY_TIMEOUT, kubeConfigPath)).To(Succeed())
-	command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=60s -n %s --all pods", workloadNamespace))
+	c := fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=180s -n %s --all pods", workloadNamespace)
+	command := exec.Command("sh", "-c", c)
 	command.Env = os.Environ()
 	command.Env = append(command.Env, fmt.Sprintf("KUBECONFIG=%s", kubeConfigPath))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -599,7 +603,6 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 		repoAbsolutePath,
 		appManifestFilePath, repoAbsolutePath,
 		repoAbsolutePath))
-	fmt.Println("CMD", command)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, 30, 1).Should(gexec.Exit())

@@ -1002,7 +1002,7 @@ var _ = Describe("Weave GitOps App Add Tests2", func() {
 		})
 
 		By("And I install wego to my active cluster", func() {
-			installAndVerifyWego(namespace, "")
+			installAndVerifyWego(namespace, cluster.KubeConfigPath)
 		})
 
 		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {

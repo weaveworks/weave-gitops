@@ -128,8 +128,8 @@ var _ = SynchronizedAfterSuite(func() {
 	//Expect(err).NotTo(HaveOccurred())
 	//syncCluster.CleanUp()
 }, func() {
-	//globalCancel()
 	if os.Getenv(CI) == "" {
+		globalCancel()
 		clusterPool2.End()
 		cmd := "kind delete clusters --all"
 		c := exec.Command("sh", "-c", cmd)
