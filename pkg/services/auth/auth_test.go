@@ -3,6 +3,7 @@ package auth
 import (
 	"bytes"
 	"context"
+	"io"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
@@ -11,7 +12,9 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/osys/osysfakes"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 
@@ -112,6 +115,72 @@ var _ = Describe("auth", func() {
 			newSecret := &corev1.Secret{}
 			Expect(k8sClient.Get(ctx, sn.NamespacedName(), newSecret)).To(Succeed())
 			Expect(gp.UploadDeployKeyCallCount()).To(Equal(1))
+		})
+		Context("auth token informational message", func() {
+			var osysClient *osysfakes.FakeOsys
+			var logger *loggerfakes.FakeLogger
+			var authHandler BlockingCLIAuthHandler
+
+			BeforeEach(func() {
+				authHandler = func(_ context.Context, _ io.Writer) (string, error) {
+					return "a-token", nil
+				}
+				logger = &loggerfakes.FakeLogger{
+					PrintfStub: func(fmtArg string, restArgs ...interface{}) {},
+				}
+			})
+
+			It("generates an error if an invalid provider name is passed", func() {
+				osysClient = &osysfakes.FakeOsys{}
+				_, err := getGitProviderWithClients(context.Background(), gitproviders.GitProviderName("badname"), osysClient, authHandler, logger)
+				Expect(err.Error()).To(ContainSubstring(`unknown git provider: "badname"`))
+			})
+
+			Context("informs the user that she can use a token for auth", func() {
+				BeforeEach(func() {
+					osysClient = &osysfakes.FakeOsys{
+						GetGitProviderTokenStub: func(tokenVarName string) (string, error) {
+							return "", osys.ErrNoGitProviderTokenSet
+						},
+					}
+				})
+
+				It("generates the correct token info message for GitHub", func() {
+					_, err := getGitProviderWithClients(context.Background(), gitproviders.GitProviderGitHub, osysClient, authHandler, logger)
+					Expect(err).ShouldNot(HaveOccurred())
+					fmtArg, restArgs := logger.PrintfArgsForCall(0)
+					Expect(fmtArg).Should(Equal("Setting the %q environment variable to a valid token will allow ongoing use of the CLI without requiring a browser-based auth flow...\n"))
+					Expect(restArgs[0]).Should(Equal("GITHUB_TOKEN"))
+				})
+				It("generates the correct token info message for GitLab", func() {
+					_, err := getGitProviderWithClients(context.Background(), gitproviders.GitProviderGitLab, osysClient, authHandler, logger)
+					Expect(err).ShouldNot(HaveOccurred())
+					fmtArg, restArgs := logger.PrintfArgsForCall(0)
+					Expect(fmtArg).Should(Equal("Setting the %q environment variable to a valid token will allow ongoing use of the CLI without requiring a browser-based auth flow...\n"))
+					Expect(restArgs[0]).Should(Equal("GITLAB_TOKEN"))
+				})
+			})
+
+			Context("displays no message if token is set", func() {
+				BeforeEach(func() {
+					osysClient = &osysfakes.FakeOsys{
+						GetGitProviderTokenStub: func(tokenVarName string) (string, error) {
+							return "token", nil
+						},
+					}
+				})
+
+				It("generates no message for GitHub", func() {
+					_, err := getGitProviderWithClients(context.Background(), gitproviders.GitProviderGitHub, osysClient, authHandler, logger)
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(logger.PrintfCallCount()).To(Equal(0))
+				})
+				It("generates no message for GitLab", func() {
+					_, err := getGitProviderWithClients(context.Background(), gitproviders.GitProviderGitLab, osysClient, authHandler, logger)
+					Expect(err).ShouldNot(HaveOccurred())
+					Expect(logger.PrintfCallCount()).To(Equal(0))
+				})
+			})
 		})
 	})
 })

@@ -44,13 +44,28 @@ func NewAuthCLIHandler(name gitproviders.GitProviderName) (BlockingCLIAuthHandle
 // GetGitProvider returns a GitProvider containing either the token stored in the <git provider>_TOKEN env var
 // or a token retrieved via the CLI auth flow
 func GetGitProvider(ctx context.Context, url string) (gitproviders.GitProvider, error) {
-	osysClient := osys.New()
-
 	providerName, providerNameErr := gitproviders.DetectGitProviderFromUrl(url)
 	if providerNameErr != nil {
 		return nil, fmt.Errorf("error detecting git provider: %w", providerNameErr)
 	}
 
+	authHandler, authErr := NewAuthCLIHandler(providerName)
+	if authErr != nil {
+		return nil, fmt.Errorf("could not get auth handler for provider %s: %w", providerName, authErr)
+	}
+
+	osysClient := osys.New()
+	logger := logger.NewCLILogger(osysClient.Stdout())
+
+	return getGitProviderWithClients(ctx, providerName, osysClient, authHandler, logger)
+}
+
+func getGitProviderWithClients(
+	ctx context.Context,
+	providerName gitproviders.GitProviderName,
+	osysClient osys.Osys,
+	authHandler BlockingCLIAuthHandler,
+	logger logger.Logger) (gitproviders.GitProvider, error) {
 	tokenVarName, varNameErr := getTokenVarName(providerName)
 	if varNameErr != nil {
 		return nil, fmt.Errorf("could not determine git provider token name: %w", varNameErr)
@@ -60,14 +75,7 @@ func GetGitProvider(ctx context.Context, url string) (gitproviders.GitProvider, 
 
 	if tokenErr == osys.ErrNoGitProviderTokenSet {
 		// No provider token set, we need to do the auth flow.
-
-		logger := logger.NewCLILogger(osysClient.Stdout())
 		logger.Printf("Setting the %q environment variable to a valid token will allow ongoing use of the CLI without requiring a browser-based auth flow...\n", tokenVarName)
-
-		authHandler, authErr := NewAuthCLIHandler(providerName)
-		if authErr != nil {
-			return nil, fmt.Errorf("could not get auth handler for provider %s: %w", providerName, authErr)
-		}
 
 		generatedToken, generateTokenErr := authHandler(ctx, osysClient.Stdout())
 		if generateTokenErr != nil {
