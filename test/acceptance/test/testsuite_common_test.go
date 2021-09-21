@@ -87,11 +87,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	return []byte(dbDirectory)
 }, func(dbDirectory []byte) {
 
-	fmt.Println("Running Node ", config.GinkgoConfig.ParallelNode)
-
-	fmt.Println("dbDirectory", string(dbDirectory))
-	globalDbDirectory = dbDirectory
-	fmt.Println("globalDbDirectory", globalDbDirectory)
+	contextDirectory = dbDirectory
 
 	SetDefaultEventuallyTimeout(EVENTUALLY_DEFAULT_TIMEOUT)
 	DEFAULT_SSH_KEY_PATH = os.Getenv("HOME") + "/.ssh/id_rsa"
@@ -139,7 +135,7 @@ var _ = SynchronizedAfterSuite(func() {
 		if err != nil {
 			fmt.Printf("Error deleting ramaining clusters %s\n", err)
 		}
-		err = os.RemoveAll(string(globalDbDirectory))
+		err = os.RemoveAll(string(contextDirectory))
 		if err != nil {
 			fmt.Printf("Error deleting root folder %s\n", err)
 		}

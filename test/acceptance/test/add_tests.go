@@ -6,7 +6,6 @@ package acceptance
 
 import (
 	"fmt"
-	"github.com/onsi/ginkgo/config"
 	"github.com/onsi/gomega/gbytes"
 	"os"
 	"os/exec"
@@ -20,19 +19,13 @@ import (
 	cltr "github.com/weaveworks/weave-gitops/test/acceptance/test/cluster"
 )
 
-//var syncCluster *cluster.Cluster2
-var globalDbDirectory []byte
-
-//var globalclusterID []byte
+var contextDirectory []byte
 
 var _ = Describe("Weave GitOps App Add Tests2", func() {
 	deleteWegoRuntime := false
 	if os.Getenv("DELETE_WEGO_RUNTIME_ON_EACH_TEST") == "true" {
 		deleteWegoRuntime = true
 	}
-
-	fmt.Println("ParallelTotal", config.GinkgoConfig.ParallelTotal)
-	fmt.Println("ParallelNode", config.GinkgoConfig.ParallelNode)
 
 	// Variables when running locally
 	var cluster cltr.Cluster2
@@ -47,7 +40,7 @@ var _ = Describe("Weave GitOps App Add Tests2", func() {
 
 		if os.Getenv(CI) == "" {
 			var err error
-			clusterID, cluster, err = cltr.FindCreatedClusterAndAssignItToSomeRecord(globalDbDirectory)
+			clusterID, cluster, err = cltr.FindCreatedClusterAndAssignItToSomeRecord(contextDirectory)
 			Expect(err).NotTo(HaveOccurred())
 			fmt.Println("KubeConfigPath", cluster.KubeConfigPath)
 		} else {
@@ -70,10 +63,10 @@ var _ = Describe("Weave GitOps App Add Tests2", func() {
 
 	AfterEach(func() {
 		if os.Getenv(CI) == "" {
-			err := cltr.UpdateClusterToDeleted(globalDbDirectory, clusterID, cluster)
+			err := cltr.UpdateClusterToDeleted(contextDirectory, clusterID, cluster)
 			Expect(err).NotTo(HaveOccurred())
 			cluster.CleanUp()
-			err = cltr.RequestClusterCreation(globalDbDirectory)
+			err = cltr.RequestClusterCreation(contextDirectory)
 			Expect(err).NotTo(HaveOccurred())
 		}
 	})
