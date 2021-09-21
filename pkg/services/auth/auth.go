@@ -44,21 +44,38 @@ func NewAuthCLIHandler(name gitproviders.GitProviderName) (BlockingCLIAuthHandle
 // GetGitProvider returns a GitProvider containing either the token stored in the <git provider>_TOKEN env var
 // or a token retrieved via the CLI auth flow
 func GetGitProvider(ctx context.Context, url string) (gitproviders.GitProvider, error) {
-	osysClient := osys.New()
-
 	providerName, providerNameErr := gitproviders.DetectGitProviderFromUrl(url)
 	if providerNameErr != nil {
 		return nil, fmt.Errorf("error detecting git provider: %w", providerNameErr)
 	}
 
-	token, tokenErr := osysClient.GetGitProviderToken()
+	authHandler, authErr := NewAuthCLIHandler(providerName)
+	if authErr != nil {
+		return nil, fmt.Errorf("could not get auth handler for provider %s: %w", providerName, authErr)
+	}
+
+	osysClient := osys.New()
+	logger := logger.NewCLILogger(osysClient.Stdout())
+
+	return getGitProviderWithClients(ctx, providerName, osysClient, authHandler, logger)
+}
+
+func getGitProviderWithClients(
+	ctx context.Context,
+	providerName gitproviders.GitProviderName,
+	osysClient osys.Osys,
+	authHandler BlockingCLIAuthHandler,
+	logger logger.Logger) (gitproviders.GitProvider, error) {
+	tokenVarName, varNameErr := getTokenVarName(providerName)
+	if varNameErr != nil {
+		return nil, fmt.Errorf("could not determine git provider token name: %w", varNameErr)
+	}
+
+	token, tokenErr := osysClient.GetGitProviderToken(tokenVarName)
 
 	if tokenErr == osys.ErrNoGitProviderTokenSet {
 		// No provider token set, we need to do the auth flow.
-		authHandler, authErr := NewAuthCLIHandler(providerName)
-		if authErr != nil {
-			return nil, fmt.Errorf("could not get auth handler for provider %s: %w", providerName, authErr)
-		}
+		logger.Warningf("Setting the %q environment variable to a valid token will allow ongoing use of the CLI without requiring a browser-based auth flow...\n", tokenVarName)
 
 		generatedToken, generateTokenErr := authHandler(ctx, osysClient.Stdout())
 		if generateTokenErr != nil {
@@ -77,6 +94,17 @@ func GetGitProvider(ctx context.Context, url string) (gitproviders.GitProvider, 
 	}
 
 	return provider, nil
+}
+
+func getTokenVarName(providerName gitproviders.GitProviderName) (string, error) {
+	switch providerName {
+	case gitproviders.GitProviderGitHub:
+		return "GITHUB_TOKEN", nil
+	case gitproviders.GitProviderGitLab:
+		return "GITLAB_TOKEN", nil
+	default:
+		return "", fmt.Errorf("unknown git provider: %q", providerName)
+	}
 }
 
 type SecretName struct {
