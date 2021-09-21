@@ -12,12 +12,12 @@ import (
 	"time"
 )
 
-// codeResponse represents response body from the Github API
-type codeResponse struct {
-	DeviceCode     string `json:"device_code"`
-	UserCode       string `json:"user_code"`
-	VerficationURI string `json:"verification_uri"`
-	Interval       int    `json:"interval"`
+// GithubDeviceCodeResponse represents response body from the Github API
+type GithubDeviceCodeResponse struct {
+	DeviceCode      string `json:"device_code"`
+	UserCode        string `json:"user_code"`
+	VerificationURI string `json:"verification_uri"`
+	Interval        int    `json:"interval"`
 }
 
 // Uniquely identifies us as a GitHub app.
@@ -26,6 +26,28 @@ type codeResponse struct {
 // See the auth ADR for more details:
 // https://github.com/weaveworks/weave-gitops/blob/main/doc/adr/0005-wego-core-auth-strategy.md#design
 const WeGOGithubClientID = "edcb13588d46f254052c"
+
+//counterfeiter:generate . GithubAuthClient
+type GithubAuthClient interface {
+	GetDeviceCode() (*GithubDeviceCodeResponse, error)
+	GetDeviceCodeAuthStatus(deviceCode string) (string, error)
+}
+
+type ghAuth struct {
+	http *http.Client
+}
+
+func NewGithubAuthProvider(client *http.Client) ghAuth {
+	return ghAuth{http: client}
+}
+
+func (g ghAuth) GetDeviceCode() (*GithubDeviceCodeResponse, error) {
+	return doGithubCodeRequest(g.http, GithubOAuthScope)
+}
+
+func (g ghAuth) GetDeviceCodeAuthStatus(deviceCode string) (string, error) {
+	return doGithubDeviceAuthRequest(g.http, deviceCode)
+}
 
 // Encapsulate shared logic between doCodeRequest and doAuthRequest
 func doRequest(req *http.Request, client *http.Client) ([]byte, error) {
@@ -51,8 +73,8 @@ func doRequest(req *http.Request, client *http.Client) ([]byte, error) {
 
 const codeRequestURL = "https://github.com/login/device/code?%s"
 
-// doCodeRequest does the initial request of the Device Flow
-func doCodeRequest(client *http.Client, scope string) (*codeResponse, error) {
+// doGithubCodeRequest does the initial request of the Device Flow
+func doGithubCodeRequest(client *http.Client, scope string) (*GithubDeviceCodeResponse, error) {
 	query := url.Values.Encode(map[string][]string{
 		"client_id": {WeGOGithubClientID},
 		"scope":     {scope},
@@ -68,7 +90,7 @@ func doCodeRequest(client *http.Client, scope string) (*codeResponse, error) {
 		return nil, fmt.Errorf("error doing code request: %w", err)
 	}
 
-	d := &codeResponse{}
+	d := &GithubDeviceCodeResponse{}
 
 	if err := json.Unmarshal(b, d); err != nil {
 		return nil, fmt.Errorf("could not unmarshal code response: %w", err)
@@ -85,15 +107,15 @@ const githubRequiredGrantType = "urn:ietf:params:oauth:grant-type:device_code"
 // It appears we need `repo` scope, which is VERY permissive.
 // We need to be able to push a deploy key and merge commits. No other scopes matched.
 // Available scopes: https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps
-const githubOAuthScope = "repo"
+const GithubOAuthScope = "repo"
 
 type githubAuthResponse struct {
 	AccessToken string `json:"access_token"`
 	Error       string `json:"error"`
 }
 
-// doAuthRequest is used to poll for the status of the device flow.
-func doAuthRequest(client *http.Client, deviceCode string) (string, error) {
+// doGithubDeviceAuthRequest is used to poll for the status of the device flow.
+func doGithubDeviceAuthRequest(client *http.Client, deviceCode string) (string, error) {
 	query := url.Values.Encode(map[string][]string{
 		"client_id":   {WeGOGithubClientID},
 		"device_code": {deviceCode},
@@ -133,14 +155,14 @@ func doAuthRequest(client *http.Client, deviceCode string) (string, error) {
 // NewGithubDeviceFlowHandler returns a function which will initiate the Github Device Flow for the CLI.
 func NewGithubDeviceFlowHandler(client *http.Client) BlockingCLIAuthHandler {
 	return func(ctx context.Context, w io.Writer) (string, error) {
-		codeRes, err := doCodeRequest(client, githubOAuthScope)
+		codeRes, err := doGithubCodeRequest(client, GithubOAuthScope)
 		if err != nil {
 			return "", fmt.Errorf("could not do code request: %w", err)
 		}
 
 		fmt.Fprintln(w)
 		fmt.Fprintf(w, "Visit this URL to authenticate with Github:\n\n")
-		fmt.Fprintf(w, "%s\n\n", codeRes.VerficationURI)
+		fmt.Fprintf(w, "%s\n\n", codeRes.VerificationURI)
 		fmt.Fprintf(w, "Type the following code into the page at the URL above: %s\n\n", codeRes.UserCode)
 		fmt.Fprintf(w, "Waiting for authentication flow completion...\n\n")
 
@@ -151,7 +173,7 @@ func NewGithubDeviceFlowHandler(client *http.Client) BlockingCLIAuthHandler {
 		ticker := time.NewTicker(retryInterval)
 
 		for range ticker.C {
-			authToken, err := doAuthRequest(client, codeRes.DeviceCode)
+			authToken, err := doGithubDeviceAuthRequest(client, codeRes.DeviceCode)
 			if err != nil {
 				if err == ErrAuthPending {
 					// This is expected while the user goes to the webpage.
@@ -160,13 +182,14 @@ func NewGithubDeviceFlowHandler(client *http.Client) BlockingCLIAuthHandler {
 
 				// An unexpected error happened, return it.
 				ticker.Stop()
+
 				return "", err
 			}
 
 			ticker.Stop()
 			fmt.Fprintf(w, "Authentication successful!\n\n")
-			return authToken, nil
 
+			return authToken, nil
 		}
 
 		return "", errors.New("failed to get github auth token")

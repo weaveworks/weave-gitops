@@ -10,6 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/rand"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -32,7 +33,6 @@ func TestServer(t *testing.T) {
 	RegisterFailHandler(Fail)
 
 	RunSpecs(t, "Server")
-
 }
 
 const bufSize = 1024 * 1024
@@ -51,6 +51,7 @@ var cfg *rest.Config
 var scheme *apiruntime.Scheme
 var k kube.Kube
 var k8sManager ctrl.Manager
+var ghAuthClient *authfakes.FakeGithubAuthClient
 
 func bufDialer(context.Context, string) (net.Conn, error) {
 	return lis.Dial()
@@ -114,10 +115,13 @@ var _ = BeforeEach(func() {
 		return k, nil
 	}
 
+	ghAuthClient = &authfakes.FakeGithubAuthClient{}
+
 	cfg := ApplicationsConfig{
-		AppFactory: appFactory,
-		JwtClient:  auth.NewJwtClient(secretKey),
-		KubeClient: k8sClient,
+		AppFactory:       appFactory,
+		JwtClient:        auth.NewJwtClient(secretKey),
+		KubeClient:       k8sClient,
+		GithubAuthClient: ghAuthClient,
 	}
 	apps = NewApplicationsServer(&cfg)
 	pb.RegisterApplicationsServer(s, apps)

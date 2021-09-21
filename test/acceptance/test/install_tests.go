@@ -1,5 +1,5 @@
 /**
-* All tests related to 'wego install' will go into this file
+* All tests related to 'gitops install' will go into this file
  */
 
 package acceptance
@@ -22,36 +22,36 @@ package acceptance
 //	var sessionOutput *gexec.Session
 //
 //	BeforeEach(func() {
-//		By("Given I have a wego binary installed on my local machine", func() {
+//		By("Given I have a gitops binary installed on my local machine", func() {
 //			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
 //		})
 //	})
 //
-//	It("Validate that wego displays help text for 'install' command", func() {
+//	It("Validate that gitops displays help text for 'install' command", func() {
 //
-//		By("When I run the command 'wego gitops install -h'", func() {
-//			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " gitops install -h")
+//		By("When I run the command 'gitops install -h'", func() {
+//			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " install -h")
 //		})
 //
-//		By("Then I should see wego help text displayed for 'install' command", func() {
+//		By("Then I should see gitops help text displayed for 'install' command", func() {
 //			Eventually(string(sessionOutput.Wait().Out.Contents())).Should(MatchRegexp(
-//				`The install command deploys Wego in the specified namespace.\nIf a previous version is installed, then an in-place upgrade will be performed.\n*Usage:\n\s*wego gitops install \[flags]\n*Examples:\n\s*# Install wego in the wego-system namespace\n\s*wego gitops install\n*Flags:\n\s*-h, --help\s*help for install\n*Global Flags:\n\s*--dry-run\s*outputs all the manifests that would be installed\n\s*-n, --namespace string\s*the namespace scope for this operation \(default "wego-system"\)\n\s*-v, --verbose\s*Enable verbose output`))
+//				`The install command deploys GitOps in the specified namespace.\nIf a previous version is installed, then an in-place upgrade will be performed.\n*Usage:\n\s*gitops install \[flags]\n*Examples:\n\s*# Install GitOps in the wego-system namespace\n\s*gitops install\n*Flags:\n\s*--dry-run\s*outputs all the manifests that would be installed\n\s*-h, --help\s*help for install\n*Global Flags:\n\s*--namespace string\s*gitops runtime namespace \(default "wego-system"\)\n\s*-v, --verbose\s*Enable verbose output`))
 //		})
 //	})
 //
-//	It("Validate that wego displays help text for 'uninstall' command", func() {
+//	It("Validate that gitops displays help text for 'uninstall' command", func() {
 //
-//		By("When I run the command 'wego gitops uninstall -h'", func() {
-//			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " gitops uninstall -h")
+//		By("When I run the command 'gitops uninstall -h'", func() {
+//			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " uninstall -h")
 //		})
 //
-//		By("Then I should see wego help text displayed for 'uninstall' command", func() {
+//		By("Then I should see gitops help text displayed for 'uninstall' command", func() {
 //			Eventually(string(sessionOutput.Wait().Out.Contents())).Should(MatchRegexp(
-//				`The uninstall command removes Wego components from the cluster.\n*Usage:\n\s*wego gitops uninstall \[flags]\n*Examples:\n\s*# Uninstall wego in the wego-system namespace\n\s*wego uninstall\n*Flags:\n\s*-h, --help\s*help for uninstall\n*Global Flags:\n\s*--dry-run\s*outputs all the manifests that would be installed\n\s*-n, --namespace string \s*the namespace scope for this operation \(default "wego-system"\)\n\s*-v, --verbose\s*Enable verbose output`))
+//				`The uninstall command removes GitOps components from the cluster.\n*Usage:\n\s*gitops uninstall \[flags]\n*Examples:\n\s*# Uninstall GitOps from the wego-system namespace\n\s*gitops uninstall\n*Flags:\n\s*--dry-run\s*outputs all the manifests that would be uninstalled\n\s*-h, --help\s*help for uninstall\n*Global Flags:\n\s*--namespace string\s*gitops runtime namespace \(default "wego-system"\)\n\s*-v, --verbose\s*Enable verbose output`))
 //		})
 //	})
 //
-//	It("Verify that wego quits if flux-system namespace is present", func() {
+//	It("Verify that gitops quits if flux-system namespace is present", func() {
 //		var errOutput string
 //		namespace := "flux-system"
 //
@@ -67,8 +67,8 @@ package acceptance
 //			Eventually(namespaceCreatedMsg).Should(gbytes.Say("namespace/" + namespace + " created"))
 //		})
 //
-//		By("And I run 'wego gitops install' command", func() {
-//			_, errOutput = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " gitops install")
+//		By("And I run 'gitops install' command", func() {
+//			_, errOutput = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " install")
 //		})
 //
 //		By("Then I should see a quitting message", func() {
@@ -77,7 +77,7 @@ package acceptance
 //		})
 //	})
 //
-//	It("Verify that wego can install & uninstall wego components under a user-specified namespace", func() {
+//	It("Verify that gitops can install & uninstall gitops components under a user-specified namespace", func() {
 //
 //		namespace := "test-namespace"
 //
@@ -88,19 +88,19 @@ package acceptance
 //
 //		installAndVerifyWego(namespace)
 //
-//		By("When I run 'wego gitops uninstall' command", func() {
-//			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s gitops uninstall --namespace %s", WEGO_BIN_PATH, namespace))
+//		By("When I run 'gitops uninstall' command", func() {
+//			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, namespace))
 //		})
 //
 //		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)
 //
-//		By("Then I should not see any wego components", func() {
+//		By("Then I should not see any gitops components", func() {
 //			_, errOutput := runCommandAndReturnStringOutput("kubectl get ns " + namespace)
 //			Eventually(errOutput).Should(ContainSubstring(`Error from server (NotFound): namespaces "` + namespace + `" not found`))
 //		})
 //	})
 //
-//	It("Verify that wego can uninstall flux if wego was not fully installed", func() {
+//	It("Verify that gitops can uninstall flux if gitops was not fully installed", func() {
 //
 //		namespace := "test-namespace"
 //
@@ -119,20 +119,20 @@ package acceptance
 //		crdErr := kubeClient.Delete(ctx, manifests.AppCRD)
 //		Expect(crdErr).ShouldNot(HaveOccurred())
 //
-//		By("When I run 'wego gitops uninstall' command", func() {
-//			runErr := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s gitops uninstall --namespace %s", WEGO_BIN_PATH, namespace))
+//		By("When I run 'gitops uninstall' command", func() {
+//			runErr := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, namespace))
 //			Expect(runErr).ShouldNot(HaveOccurred())
 //		})
 //
 //		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)
 //
-//		By("Then I should not see any wego components", func() {
+//		By("Then I should not see any gitops components", func() {
 //			_, errOutput := runCommandAndReturnStringOutput("kubectl get ns " + namespace)
 //			Eventually(errOutput).Should(ContainSubstring(`Error from server (NotFound): namespaces "` + namespace + `" not found`))
 //		})
 //	})
 //
-//	It("Verify that wego can: install wego components, uninstall wego components, and work in dry-run mode", func() {
+//	It("Verify that gitops can: install gitops components, uninstall gitops components, and work in dry-run mode", func() {
 //
 //		var installDryRunOutput string
 //		var uninstallDryRunOutput string
@@ -142,8 +142,8 @@ package acceptance
 //			Expect(err).ShouldNot(HaveOccurred())
 //		})
 //
-//		By("When I try to install wego in dry-run mode", func() {
-//			installDryRunOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " gitops install --dry-run")
+//		By("When I try to install gitops in dry-run mode", func() {
+//			installDryRunOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " install --dry-run")
 //		})
 //
 //		By("Then I should see install dry-run output in the console", func() {
@@ -152,15 +152,15 @@ package acceptance
 //			Eventually(installDryRunOutput).Should(ContainSubstring("name: " + WEGO_DEFAULT_NAMESPACE))
 //		})
 //
-//		By("And wego components should be absent from the cluster", func() {
+//		By("And gitops components should be absent from the cluster", func() {
 //			_, err := runCommandAndReturnStringOutput("kubectl get ns " + WEGO_DEFAULT_NAMESPACE)
 //			Eventually(err).Should(ContainSubstring(`Error from server (NotFound): namespaces "` + WEGO_DEFAULT_NAMESPACE + `" not found`))
 //		})
 //
 //		installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 //
-//		By("When I try to uninstall wego in dry-run mode", func() {
-//			uninstallDryRunOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " gitops uninstall --dry-run")
+//		By("When I try to uninstall gitops in dry-run mode", func() {
+//			uninstallDryRunOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " uninstall --dry-run")
 //		})
 //
 //		By("Then I should see uninstall dry-run output in the console", func() {
@@ -175,17 +175,17 @@ package acceptance
 //			Eventually(uninstallDryRunOutput).Should(ContainSubstring("✔ uninstall finished"))
 //		})
 //
-//		By("And wego components should be present in the cluster", func() {
+//		By("And gitops components should be present in the cluster", func() {
 //			VerifyControllersInCluster(WEGO_DEFAULT_NAMESPACE)
 //		})
 //
-//		By("When I run 'wego gitops uninstall' command", func() {
-//			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s gitops uninstall --namespace %s", WEGO_BIN_PATH, WEGO_DEFAULT_NAMESPACE))
+//		By("When I run 'gitops uninstall' command", func() {
+//			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, WEGO_DEFAULT_NAMESPACE))
 //		})
 //
 //		_ = waitForNamespaceToTerminate(WEGO_DEFAULT_NAMESPACE, NAMESPACE_TERMINATE_TIMEOUT)
 //
-//		By("Then I should not see any wego components", func() {
+//		By("Then I should not see any gitops components", func() {
 //			_, errOutput := runCommandAndReturnStringOutput("kubectl get ns " + WEGO_DEFAULT_NAMESPACE)
 //			Eventually(errOutput).Should(ContainSubstring(`Error from server (NotFound): namespaces "` + WEGO_DEFAULT_NAMESPACE + `" not found`))
 //		})

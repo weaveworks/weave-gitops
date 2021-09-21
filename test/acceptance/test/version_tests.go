@@ -13,23 +13,23 @@ package acceptance
 //
 //	BeforeEach(func() {
 //
-//		By("Given I have a wego binary installed on my local machine", func() {
+//		By("Given I have a gitops binary installed on my local machine", func() {
 //			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
 //		})
 //	})
 //
-//	It("SmokeTest - Verify that command wego version prints the version information", func() {
+//	It("SmokeTest - Verify that command gitops version prints the version information", func() {
 //
-//		By("When I run the command 'wego version'", func() {
+//		By("When I run the command 'gitops version'", func() {
 //			session = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " version")
 //		})
 //
-//		By("Then I should see the wego version printed in format vm.n.n with newline character", func() {
+//		By("Then I should see the gitops version printed in format vm.n.n with newline character", func() {
 //			Eventually(session).Should(gbytes.Say("Current Version: v[0-3].[0-9].[0-9]\n"))
 //		})
 //
 //		By("And git commit with commit id", func() {
-//			Eventually(session).Should(gbytes.Say("GitCommit: [a-f0-9]{7}\n"))
+//			Eventually(session).Should(gbytes.Say("GitCommit: ([a-f0-9]{7})|([a-f0-9]{8}\n)"))
 //		})
 //
 //		By("And build timestamp", func() {

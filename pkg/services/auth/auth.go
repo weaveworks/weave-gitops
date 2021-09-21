@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth/internal"
 	"io"
 	"net/http"
 
@@ -28,7 +29,13 @@ func NewAuthCLIHandler(name gitproviders.GitProviderName) (BlockingCLIAuthHandle
 	switch name {
 	case gitproviders.GitProviderGitHub:
 		return NewGithubDeviceFlowHandler(http.DefaultClient), nil
+	case gitproviders.GitProviderGitLab:
+		authFlow, err := NewGitlabAuthFlow(internal.GitlabRedirectUriCLI, http.DefaultClient)
+		if err != nil {
+			return nil, fmt.Errorf("could not create gitlab auth flow for CLI: %w", err)
+		}
 
+		return NewGitlabAuthFlowHandler(http.DefaultClient, authFlow), nil
 	}
 
 	return nil, fmt.Errorf("unsupported auth provider \"%s\"", name)
@@ -82,6 +89,7 @@ func (sn SecretName) String() string {
 		Namespace: sn.Namespace,
 		Name:      sn.Name.String(),
 	}
+
 	return nn.String()
 }
 
@@ -225,7 +233,6 @@ func (a *authSvc) generateDeployKey(targetName string, secretName SecretName, re
 	}
 
 	return deployKey, secret, nil
-
 }
 
 // Wrapper to abstract how the key is stored in case we want to change this later.
@@ -255,6 +262,7 @@ func (a *authSvc) createKeyPairSecret(targetName string, name SecretName, repo g
 	}
 
 	var secret corev1.Secret
+
 	err = yaml.Unmarshal(secretData, &secret)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal created secret: %w", err)
@@ -270,7 +278,9 @@ func makePublicKey(pemBytes []byte) (*ssh.PublicKeys, error) {
 // Helper to standardize how we extract data from a ssh key pair secret.
 func extractSecretPart(secret *corev1.Secret, key string) []byte {
 	var data []byte
+
 	var ok bool
+
 	data, ok = secret.Data[string(key)]
 	if !ok {
 		// StringData is a write-only field, flux generates secrets on disk with StringData

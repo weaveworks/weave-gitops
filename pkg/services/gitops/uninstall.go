@@ -8,7 +8,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
-type UinstallParams struct {
+type UninstallParams struct {
 	Namespace string
 	DryRun    bool
 }
@@ -19,9 +19,9 @@ func (e UninstallError) Error() string {
 	return "errors occurred during uninstall; the original state of the cluster may not be completely restored"
 }
 
-func (g *Gitops) Uninstall(params UinstallParams) error {
+func (g *Gitops) Uninstall(params UninstallParams) error {
 	ctx := context.Background()
-	if g.kube.GetClusterStatus(ctx) != kube.WeGOInstalled {
+	if g.kube.GetClusterStatus(ctx) != kube.GitOpsInstalled {
 		g.logger.Println("wego is not fully installed... removing any partial installation\n")
 	}
 
@@ -30,6 +30,7 @@ func (g *Gitops) Uninstall(params UinstallParams) error {
 	fluxErr := g.flux.Uninstall(params.Namespace, params.DryRun)
 	if fluxErr != nil {
 		g.logger.Printf("received error uninstalling flux: %q, continuing with uninstall", fluxErr)
+
 		errorOccurred = true
 	}
 
@@ -39,6 +40,7 @@ func (g *Gitops) Uninstall(params UinstallParams) error {
 		if crdErr := g.kube.Delete(ctx, manifests.AppCRD); crdErr != nil {
 			if !apierrors.IsNotFound(crdErr) {
 				g.logger.Printf("received error uninstalling app CRD: %q", crdErr)
+
 				errorOccurred = true
 			}
 		}

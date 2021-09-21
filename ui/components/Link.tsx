@@ -5,15 +5,26 @@ import Text from "./Text";
 
 type Props = {
   className?: string;
-  to: string;
+  to?: string;
   innerRef?: any;
   children?: any;
+  href?: any;
 };
 
-function Link({ children, ...props }: Props) {
+function Link({ children, href, className, to = "", ...props }: Props) {
+  const txt = <Text color="primary">{children}</Text>;
+
+  if (href) {
+    return (
+      <a className={className} href={href}>
+        {txt}
+      </a>
+    );
+  }
+
   return (
-    <RouterLink {...props}>
-      <Text color="primary">{children}</Text>
+    <RouterLink className={className} to={to} {...props}>
+      {txt}
     </RouterLink>
   );
 }

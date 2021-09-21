@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/weaveworks/weave-gitops/cmd/wego/version"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 )
 
 var Manifests [][]byte
@@ -27,17 +27,19 @@ var errInjectingValuesToTemplate = errors.New("error injecting values to templat
 
 // GenerateWegoAppDeploymentManifest generates wego-app deployment manifest from a template
 func GenerateWegoAppDeploymentManifest(deploymentTemplate []byte) ([]byte, error) {
-
 	deploymentValues := deploymentParameters{version.Version}
 
 	template := template.New("DeploymentTemplate")
+
 	var err error
+
 	template, err = template.Parse(string(deploymentTemplate))
 	if err != nil {
 		return nil, fmt.Errorf("error parsing template %w", err)
 	}
 
 	deploymentYaml := &bytes.Buffer{}
+
 	err = template.Execute(deploymentYaml, deploymentValues)
 	if err != nil {
 		return nil, fmt.Errorf("%s %w", errInjectingValuesToTemplate, err)

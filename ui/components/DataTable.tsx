@@ -19,6 +19,7 @@ type Props = {
   }[];
   rows: any[];
   sortFields: string[];
+  reverseSort?: boolean;
 };
 
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
@@ -29,8 +30,18 @@ const EmptyRow = styled(TableRow)<{ colSpan: number }>`
   }
 `;
 
-function DataTable({ className, fields, rows, sortFields }: Props) {
-  const sorted = _.sortBy(rows, sortFields, "asc");
+function DataTable({
+  className,
+  fields,
+  rows,
+  sortFields,
+  reverseSort,
+}: Props) {
+  const sorted = _.sortBy(rows, sortFields);
+
+  if (reverseSort) {
+    sorted.reverse();
+  }
 
   const r = _.map(sorted, (r, i) => (
     <TableRow key={i}>

@@ -107,11 +107,13 @@ func (a *App) getSuspendedStatus(ctx context.Context, name, namespace string, de
 	case *helmv2.HelmRelease:
 		suspendStatus = at.Spec.Suspend
 	}
+
 	return suspendStatus, nil
 }
 
 func (a *App) pauseOrUnpause(suspendAction wego.SuspendActionType, name, namespace string) error {
 	ctx := context.Background()
+
 	deploymentType, err := a.getDeploymentType(ctx, name, namespace)
 	if err != nil {
 		return fmt.Errorf("unable to determine deployment type for %s: %s", name, err)
@@ -137,37 +139,46 @@ func (a *App) pauseOrUnpause(suspendAction wego.SuspendActionType, name, namespa
 			a.Logger.Printf("app %s is already paused\n", name)
 			return nil
 		}
+
 		out, err := a.Flux.SuspendOrResumeApp(suspendAction, name, namespace, string(deploymentType))
 		if err != nil {
 			return fmt.Errorf("unable to pause %s err: %s", name, err)
 		}
+
 		a.Logger.Printf("%s\n gitops automation paused for %s\n", string(out), name)
+
 		return nil
 	case wego.ResumeAction:
 		if !suspendStatus {
 			a.Logger.Printf("app %s is already reconciling\n", name)
 			return nil
 		}
+
 		out, err := a.Flux.SuspendOrResumeApp(suspendAction, name, namespace, string(deploymentType))
 		if err != nil {
 			return fmt.Errorf("unable to unpause %s err: %s", name, err)
 		}
+
 		a.Logger.Printf("%s\n gitops automation unpaused for %s\n", string(out), name)
+
 		return nil
 	}
+
 	return fmt.Errorf("invalid suspend action")
 }
 
 func IsClusterReady(l logger.Logger, k kube.Kube) error {
 	l.Waitingf("Checking cluster status")
+
 	clusterStatus := k.GetClusterStatus(context.Background())
 
 	switch clusterStatus {
 	case kube.Unmodified:
-		return fmt.Errorf("Wego not installed... exiting")
+		return fmt.Errorf("gitops not installed... exiting")
 	case kube.Unknown:
-		return fmt.Errorf("Wego can not determine cluster status... exiting")
+		return fmt.Errorf("can not determine cluster status... exiting")
 	}
+
 	l.Successf(clusterStatus.String())
 
 	return nil

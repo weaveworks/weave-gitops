@@ -3,7 +3,9 @@ package testutils
 import (
 	"fmt"
 
+	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
@@ -38,6 +40,7 @@ func StartK8sTestEnvironment() (*K8sTestEnv, error) {
 
 	var err error
 	cfg, err := testEnv.Start()
+
 	if err != nil {
 		return nil, fmt.Errorf("could not start testEnv: %w", err)
 	}
@@ -67,6 +70,7 @@ func StartK8sTestEnvironment() (*K8sTestEnv, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize discovery client: %s", err)
 	}
+
 	mapper := restmapper.NewDeferredDiscoveryRESTMapper(memory.NewMemCacheClient(dc))
 
 	dyn, err := dynamic.NewForConfig(cfg)
@@ -83,4 +87,18 @@ func StartK8sTestEnvironment() (*K8sTestEnv, error) {
 			Expect(err).NotTo(HaveOccurred())
 		},
 	}, nil
+}
+
+// MakeFakeLogr returns an API compliant logr object that can be used for unit testing.
+// Without these stubs filled in, a nil pointer exception will be thrown on log.V().
+func MakeFakeLogr() *fakelogr.FakeLogger {
+	log := &fakelogr.FakeLogger{}
+	log.WithValuesStub = func(i ...interface{}) logr.Logger {
+		return log
+	}
+	log.VStub = func(i int) logr.Logger {
+		return log
+	}
+
+	return log
 }

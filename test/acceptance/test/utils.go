@@ -63,6 +63,7 @@ func contains(s []string, str string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -72,12 +73,14 @@ func FileExists(name string) bool {
 			return false
 		}
 	}
+
 	return true
 }
 
 func getClusterName() string {
 	out, err := exec.Command("kubectl", "config", "current-context").Output()
 	Expect(err).ShouldNot(HaveOccurred())
+
 	return string(bytes.TrimSuffix(out, []byte("\n")))
 }
 
@@ -86,6 +89,7 @@ func ShowItems(itemType string, kubeconfig string) error {
 	if itemType != "" {
 		return runCommandPassThrough([]string{}, kubeconfig, "kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
 	}
+
 	return runCommandPassThrough([]string{}, kubeconfig, "kubectl", "get", "all", "--all-namespaces", "-o", "wide")
 }
 
@@ -104,6 +108,7 @@ func StringWithCharset(length int, charset string) string {
 	for i := range b {
 		b[i] = charset[seededRand.Intn(len(charset))]
 	}
+
 	return string(b)
 }
 
@@ -113,48 +118,35 @@ func RandString(length int) string {
 
 func generateTestInputs() TestInputs {
 	var inputs TestInputs
+
 	uniqueSuffix := RandString(6)
 	inputs.appRepoName = "wego-test-app-" + RandString(8)
 	inputs.appManifestFilePath = getUniqueWorkload("xxyyzz", uniqueSuffix)
 	inputs.workloadName = "nginx-" + uniqueSuffix
 	inputs.workloadNamespace = "my-nginx-" + uniqueSuffix
+
 	return inputs
 }
 
 func getUniqueWorkload(placeHolderSuffix string, uniqueSuffix string) string {
-	d, _ := os.Getwd()
-	fmt.Println("PWD", d)
 	workloadTemplateFilePath := "./data/nginx-template.yaml"
 	absWorkloadManifestFilePath := "/tmp/nginx-" + uniqueSuffix + ".yaml"
 	cmd := fmt.Sprintf("sed 's/%s/%s/g' %s > %s", placeHolderSuffix, uniqueSuffix, workloadTemplateFilePath, absWorkloadManifestFilePath)
-	fmt.Println("CMDonpwd", cmd)
-	err := runCommandPassThrough([]string{}, "", "sh", "-c", cmd)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("checkpoint0")
-	c := exec.Command("sh", "-c", fmt.Sprintf("cat %s", absWorkloadManifestFilePath))
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	err = c.Run()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("checkpoint1")
+	_ = runCommandPassThrough([]string{}, "", "sh", "-c", cmd)
+
 	return absWorkloadManifestFilePath
 }
 
 func setupSSHKey(sshKeyPath string) {
-	//if _, err := os.Stat(sshKeyPath); os.IsNotExist(err) {
-	//	fmt.Println("sshkeyPath", sshKeyPath, "doesn't exists")
-	//	command := exec.Command("sh", "-c", fmt.Sprintf(`
-	//                       echo "%s" >> %s &&
-	//                       chmod 0600 %s &&
-	//                       ls -la %s`, os.Getenv("GITHUB_KEY"), sshKeyPath, sshKeyPath, sshKeyPath))
-	//	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	//	Expect(err).ShouldNot(HaveOccurred())
-	//	Eventually(session).Should(gexec.Exit())
-	//}
+	if _, err := os.Stat(sshKeyPath); os.IsNotExist(err) {
+		command := exec.Command("sh", "-c", fmt.Sprintf(`
+                           echo "%s" >> %s &&
+                           chmod 0600 %s &&
+                           ls -la %s`, os.Getenv("GITHUB_KEY"), sshKeyPath, sshKeyPath, sshKeyPath))
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Expect(err).ShouldNot(HaveOccurred())
+		Eventually(session).Should(gexec.Exit())
+	}
 }
 
 func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool, kubeConfigPath string) (string, error) {
@@ -201,16 +193,20 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 		if clusterName == "" {
 			clusterName = provider + "-" + RandString(6)
 		}
+
 		log.Infof("Creating a kind cluster %s", clusterName)
+
 		err := runCommandPassThrough([]string{}, "", "./scripts/kind-cluster.sh", clusterName, "kindest/node:v"+k8sVersion)
 		if err != nil {
 			log.Infof("Failed to create kind cluster")
 			log.Fatal(err)
+
 			return clusterName, err
 		}
 	}
 
 	log.Info("Wait for the cluster to be ready")
+
 	err := runCommandPassThrough([]string{}, "", "kubectl", "wait", "--for=condition=Ready", "--timeout=300s", "-n", "kube-system", "--all", "pods")
 	if err != nil {
 		log.Infof("Cluster system pods are not ready after waiting for 5 minutes, This can cause tests failures.")
@@ -227,7 +223,7 @@ func initAndCreateEmptyRepo(appRepoName string, isPrivateRepo bool) string {
 	err := os.RemoveAll(repoAbsolutePath)
 	Expect(err).ShouldNot(HaveOccurred())
 
-	err = createRepository(appRepoName, isPrivateRepo)
+	err = createRepository(appRepoName, DEFAULT_BRANCH_NAME, isPrivateRepo)
 	Expect(err).ShouldNot(HaveOccurred())
 
 	err = utils.WaitUntil(os.Stdout, time.Second*3, time.Second*30, func() error {
@@ -246,12 +242,6 @@ func initAndCreateEmptyRepo(appRepoName string, isPrivateRepo bool) string {
 	})
 	Expect(err).ShouldNot(HaveOccurred())
 
-	//command := exec.Command("sh", "-c", fmt.Sprintf(`cd %s`,
-	//	repoAbsolutePath))
-	//session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	//Expect(err).NotTo(HaveOccurred())
-	//Eventually(session).Should(gexec.Exit())
-
 	return repoAbsolutePath
 }
 
@@ -261,6 +251,7 @@ func createSubDir(subDirName string, repoAbsolutePath string) string {
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
+
 	return subDirAbsolutePath
 }
 
@@ -269,6 +260,7 @@ func createGitRepoBranch(repoAbsolutePath string, branchName string) string {
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
+
 	return string(session.Wait().Out.Contents())
 }
 
@@ -279,11 +271,13 @@ func getRepoVisibility(org string, repo string) string {
 	Eventually(session).Should(gexec.Exit())
 	visibilityStr := strings.TrimSpace(string(session.Wait().Out.Contents()))
 	log.Infof("Repo visibility private=%s", visibilityStr)
+
 	return visibilityStr
 }
 
 func waitForResource(resourceType string, resourceName string, namespace string, timeout time.Duration, kubeConfigPath string) error {
 	pollInterval := 5
+
 	if timeout < 5*time.Second {
 		timeout = 5 * time.Second
 	}
@@ -300,24 +294,31 @@ func waitForResource(resourceType string, resourceName string, namespace string,
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 			Eventually(session).Should(gexec.Exit())
+
 			noResourcesFoundMessage := fmt.Sprintf("No resources found in %s namespace", namespace)
+
 			if strings.Contains(string(session.Wait().Out.Contents()), noResourcesFoundMessage) {
 				log.Infof("Got message => {" + noResourcesFoundMessage + "} Continue looking for resource(s)")
 				continue
 			}
+
 			return nil
 		}
+
 		time.Sleep(time.Duration(pollInterval) * time.Second)
 	}
+
 	return fmt.Errorf("Error: Failed to find the resource %s of type %s, timeout reached", resourceName, resourceType)
 }
 
 func waitForNamespaceToTerminate(namespace string, timeout time.Duration, kubeconfigPath string) error {
 	//check if the namespace exist before cleaning up
 	pollInterval := 5
+
 	if timeout < 5*time.Second {
 		timeout = 5 * time.Second
 	}
+
 	timeoutInSeconds := int(timeout.Seconds())
 
 	err := runCommandPassThrough([]string{}, kubeconfigPath, "sh", "-c", fmt.Sprintf("kubectl get ns %s", namespace))
@@ -333,16 +334,20 @@ func waitForNamespaceToTerminate(namespace string, timeout time.Duration, kubeco
 		cmd := fmt.Sprintf("kubectl get ns %s --ignore-not-found=true | grep -i terminating", namespace)
 		out, _ := runCommandAndReturnStringOutput(cmd, kubeconfigPath)
 		out = strings.TrimSpace(out)
+
 		if out == "" {
 			return nil
 		}
+
 		if i > timeoutInSeconds/2 && i%10 == 0 {
 			//Patch the finalizer
 			log.Infof("Patch the finalizer to unstuck the terminating namespace %s", namespace)
 			_ = runCommandPassThrough([]string{}, kubeconfigPath, "sh", "-c", fmt.Sprintf("kubectl patch ns %s -p '{\"metadata\":{\"finalizers\":[]}}' --type=merge", namespace))
 		}
+
 		time.Sleep(time.Duration(pollInterval) * time.Second)
 	}
+
 	return fmt.Errorf("Error: Failed to terminate the namespace %s", namespace)
 }
 
@@ -355,7 +360,7 @@ func VerifyControllersInCluster(namespace string, kubeconfigPath string) {
 	Expect(waitForResource("deploy", "image-reflector-controller", namespace, INSTALL_PODS_READY_TIMEOUT, kubeconfigPath))
 	Expect(waitForResource("pods", "", namespace, INSTALL_PODS_READY_TIMEOUT, kubeconfigPath))
 
-	By("And I wait for the wego controllers to be ready", func() {
+	By("And I wait for the gitops controllers to be ready", func() {
 		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "120s", namespace))
 		command.Env = os.Environ()
 		command.Env = append(command.Env, fmt.Sprintf("KUBECONFIG=%s", kubeconfigPath))
@@ -366,8 +371,8 @@ func VerifyControllersInCluster(namespace string, kubeconfigPath string) {
 }
 
 func installAndVerifyWego(wegoNamespace string, kubeconfigPath string) {
-	By("And I run 'wego install' command with namespace "+wegoNamespace, func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s gitops install --namespace=%s", WEGO_BIN_PATH, wegoNamespace))
+	By("And I run 'gitops install' command with namespace "+wegoNamespace, func() {
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s", WEGO_BIN_PATH, wegoNamespace))
 		command.Env = os.Environ()
 		command.Env = append(command.Env, fmt.Sprintf("KUBECONFIG=%s", kubeconfigPath))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -380,10 +385,10 @@ func installAndVerifyWego(wegoNamespace string, kubeconfigPath string) {
 
 func uninstallWegoRuntime(namespace string, kubeConfigPath string) {
 	if os.Getenv(CI) != "" {
-		log.Infof("About to delete WeGO runtime from namespace: %s", namespace)
+		log.Infof("About to delete Gitops runtime from namespace: %s", namespace)
 		err := runCommandPassThrough([]string{}, kubeConfigPath, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
 		if err != nil {
-			log.Infof("Failed to uninstall the wego runtime %s", namespace)
+			log.Infof("Failed to uninstall the gitops runtime %s", namespace)
 		}
 
 		err = runCommandPassThrough([]string{}, kubeConfigPath, "sh", "-c", "kubectl delete crd apps.wego.weave.works")
@@ -394,12 +399,12 @@ func uninstallWegoRuntime(namespace string, kubeConfigPath string) {
 	}
 }
 
-//func deleteNamespace(namespace string) {
-//	log.Infof("Deleting namespace: " + namespace)
-//	command := exec.Command("kubectl", "delete", "ns", namespace)
-//	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-//	Eventually(session).Should(gexec.Exit())
-//}
+func deleteNamespace(namespace string) {
+	log.Infof("Deleting namespace: " + namespace)
+	command := exec.Command("kubectl", "delete", "ns", namespace)
+	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Eventually(session).Should(gexec.Exit())
+}
 
 func deleteRepo(appRepoName string) {
 	log.Infof("Delete application repo: %s", GITHUB_ORG+"/"+appRepoName)
@@ -431,14 +436,15 @@ func deletePersistingHelmApp(namespace string, workloadName string, timeout time
 
 func createAppReplicas(repoAbsolutePath string, appManifestFilePath string, replicasSetValue int, workloadName string, kubeConfigPath string) string {
 	log.Infof("Editing app-manifest file in git repo to create replicas of workload: %s", workloadName)
+
 	appManifestFile := repoAbsolutePath + "/" + appManifestFilePath
 	_ = runCommandPassThrough([]string{}, kubeConfigPath, "sh", "-c", fmt.Sprintf("sed -ie 's/replicas: 1/replicas: %d/g' %s", replicasSetValue, appManifestFile))
 	changedValue, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cat %s", appManifestFile), kubeConfigPath)
+
 	return changedValue
 }
 
 func waitForReplicaCreation(namespace string, replicasSetValue int, timeout time.Duration, kubeConfigPath string) error {
-
 	replica := strconv.Itoa(replicasSetValue)
 	pollInterval := time.Second * 5
 	timeoutInSeconds := int(timeout.Seconds())
@@ -446,19 +452,18 @@ func waitForReplicaCreation(namespace string, replicasSetValue int, timeout time
 	_ = utils.WaitUntil(os.Stdout, pollInterval, timeout, func() error {
 		log.Infof("Waiting for replicas to be created under namespace: %s || timeout: %d second(s)", namespace, timeoutInSeconds)
 
-		out, err := runCommandAndReturnStringOutput(fmt.Sprintf("kubectl get pods -n %s --field-selector=status.phase=Running --no-headers=true --selector='app!=wego-app' | wc -l", namespace), kubeConfigPath)
-		fmt.Println("ERR", err)
+		out, _ := runCommandAndReturnStringOutput(fmt.Sprintf("kubectl get pods -n %s --field-selector=status.phase=Running --no-headers=true --selector='app!=wego-app' | wc -l", namespace), kubeConfigPath)
 		out = strings.TrimSpace(out)
 		if out == replica {
 			return nil
 		}
 		return fmt.Errorf(": Replica(s) not created, waiting...")
 	})
+
 	return fmt.Errorf("Timeout reached, failed to create replicas")
 }
 
 func waitForAppRemoval(appName string, timeout time.Duration) error {
-
 	pollInterval := time.Second * 5
 
 	_ = utils.WaitUntil(os.Stdout, pollInterval, timeout, func() error {
@@ -472,6 +477,7 @@ func waitForAppRemoval(appName string, timeout time.Duration) error {
 		}
 		return nil
 	})
+
 	return fmt.Errorf("Failed to delete app")
 }
 
@@ -480,13 +486,15 @@ func runCommandPassThrough(env []string, kubeConfigPath string, name string, arg
 	cmd := exec.Command(name, arg...)
 	cmd.Env = os.Environ()
 	if len(env) > 0 {
-		cmd.Env = append(cmd.Env, env[0])
+		cmd.Env = env
 	}
 	if os.Getenv(CI) == "" {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("KUBECONFIG=%s", kubeConfigPath))
 	}
+
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
 	return cmd.Run()
 }
 
@@ -496,6 +504,7 @@ func runCommandPassThroughWithoutOutput(env []string, name string, arg ...string
 	if len(env) > 0 {
 		cmd.Env = append(cmd.Env, env[0])
 	}
+
 	return cmd.Run()
 }
 
@@ -508,6 +517,7 @@ func runCommandAndReturnStringOutput(commandToRun string, kubeConfigPath string)
 	}
 	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Eventually(session).Should(gexec.Exit())
+
 	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
 }
 
@@ -517,6 +527,7 @@ func runCommandAndReturnSessionOutput(commandToRun string, kubeConfigPath string
 	command.Env = append(command.Env, fmt.Sprintf("KUBECONFIG=%s", kubeConfigPath))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
+
 	return session
 }
 
@@ -533,6 +544,7 @@ func runWegoAddCommandWithOutput(repoAbsolutePath string, addCommand string, weg
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
+
 	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
 }
 
@@ -608,10 +620,7 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 
 func gitUpdateCommitPush(repoAbsolutePath string) {
 	log.Infof("Pushing changes made to file(s) in repo: %s", repoAbsolutePath)
-	err := runCommandPassThrough([]string{}, "", "sh", "-c", fmt.Sprintf("cd %s && git add -u && git commit -m 'edit repo file' && git pull --rebase && git push -f", repoAbsolutePath))
-	if err != nil {
-		panic(err)
-	}
+	_ = runCommandPassThrough([]string{}, "", "sh", "-c", fmt.Sprintf("cd %s && git add -u && git commit -m 'edit repo file' && git pull --rebase && git push -f", repoAbsolutePath))
 }
 
 func pullBranch(repoAbsolutePath string, branch string) {
@@ -636,7 +645,7 @@ func verifyPRCreated(repoAbsolutePath, appName string) {
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
 	output := string(session.Wait().Out.Contents())
-	Expect(output).To(ContainSubstring(fmt.Sprintf("wego add %s", appName)))
+	Expect(output).To(ContainSubstring(fmt.Sprintf("gitops add %s", appName)))
 }
 
 func mergePR(repoAbsolutePath, prLink string) {
@@ -653,9 +662,11 @@ func mergePR(repoAbsolutePath, prLink string) {
 
 func setArtifactsDir() string {
 	path := "/tmp/wego-test"
+
 	if os.Getenv("ARTIFACTS_BASE_DIR") == "" {
 		return path
 	}
+
 	return os.Getenv("ARTIFACTS_BASE_DIR")
 }
 
@@ -665,8 +676,10 @@ func takeScreenshot() string {
 		name := t.Format("Mon-02-Jan-2006-15.04.05.000000")
 		filepath := path.Join(setArtifactsDir(), SCREENSHOTS_DIR, name+".png")
 		_ = webDriver.Screenshot(filepath)
+
 		return filepath
 	}
+
 	return ""
 }
 
@@ -679,21 +692,21 @@ func getWaitTimeFromErr(errOutput string) (time.Duration, error) {
 		if err != nil {
 			return 0, fmt.Errorf("error pasing rate reset time %w", err)
 		}
+
 		return duration, nil
 	}
 
 	return 0, fmt.Errorf("could not found a rate reset on string: %s", errOutput)
 }
 
-func createRepository(repoName string, private bool) error {
-
+func createRepository(repoName, branch string, private bool) error {
 	visibility := gitprovider.RepositoryVisibilityPublic
 	if private {
 		visibility = gitprovider.RepositoryVisibilityPrivate
 	}
 
 	description := "Weave Gitops test repo"
-	defaultBranch := DEFAULT_BRANCH_NAME
+	defaultBranch := branch
 	repoInfo := gitprovider.RepositoryInfo{
 		Description:   &description,
 		Visibility:    &visibility,
@@ -721,7 +734,9 @@ func createRepository(repoName string, private bool) error {
 	}
 
 	ctx := context.Background()
+
 	fmt.Printf("creating repo %s ...\n", repoName)
+
 	if err := utils.WaitUntil(os.Stdout, time.Second, THIRTY_SECOND_TIMEOUT, func() error {
 		_, err := githubProvider.OrgRepositories().Create(ctx, orgRef, repoInfo, repoCreateOpts)
 		if err != nil && strings.Contains(err.Error(), "rate limit exceeded") {
@@ -737,9 +752,11 @@ func createRepository(repoName string, private bool) error {
 	}); err != nil {
 		return fmt.Errorf("error creating repo %s", err)
 	}
+
 	fmt.Printf("repo %s created ...\n", repoName)
 
 	fmt.Printf("validating access to the repo %s ...\n", repoName)
+
 	err = utils.WaitUntil(os.Stdout, time.Second, THIRTY_SECOND_TIMEOUT, func() error {
 		_, err := githubProvider.OrgRepositories().Get(ctx, orgRef)
 		return err
@@ -747,6 +764,7 @@ func createRepository(repoName string, private bool) error {
 	if err != nil {
 		return fmt.Errorf("error validating access to the repository %w", err)
 	}
+
 	fmt.Printf("repo %s is accessible through the api ...\n", repoName)
 
 	return nil

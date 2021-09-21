@@ -54,7 +54,7 @@ var (
 	GVRApp            schema.GroupVersionResource = wego.GroupVersion.WithResource("apps")
 	GVRKustomization  schema.GroupVersionResource = kustomizev1.GroupVersion.WithResource("kustomizations")
 	GVRGitRepository  schema.GroupVersionResource = sourcev1.GroupVersion.WithResource("gitrepositories")
-	GVRHelmRepository schema.GroupVersionResource = helmv2.GroupVersion.WithResource("helmrepositories")
+	GVRHelmRepository schema.GroupVersionResource = sourcev1.GroupVersion.WithResource("helmrepositories")
 	GVRHelmRelease    schema.GroupVersionResource = helmv2.GroupVersion.WithResource("helmreleases")
 )
 
@@ -68,7 +68,6 @@ func NewKubeHTTPClient() (Kube, client.Client, error) {
 
 	config, err := rest.InClusterConfig()
 	if err == rest.ErrNotInCluster {
-
 		configOverrides := clientcmd.ConfigOverrides{CurrentContext: kubeContext}
 
 		config, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
@@ -93,6 +92,7 @@ func NewKubeHTTPClient() (Kube, client.Client, error) {
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to initialize discovery client: %s", err)
 	}
+
 	mapper := restmapper.NewDeferredDiscoveryRESTMapper(memory.NewMemCacheClient(dc))
 
 	dyn, err := dynamic.NewForConfig(config)
@@ -125,7 +125,7 @@ func (k *KubeHTTP) GetClusterStatus(ctx context.Context) ClusterStatus {
 	crd := v1.CustomResourceDefinition{}
 
 	if k.Client.Get(ctx, tName, &crd) == nil {
-		return WeGOInstalled
+		return GitOpsInstalled
 	}
 
 	if ok, _ := k.FluxPresent(ctx); ok {
@@ -171,6 +171,7 @@ func (k *KubeHTTP) Apply(ctx context.Context, manifest []byte, namespace string)
 func (k *KubeHTTP) getResourceInterface(manifest []byte, namespace string) (dynamic.ResourceInterface, string, []byte, error) {
 	decUnstructured := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
 	obj := &unstructured.Unstructured{}
+
 	_, gvk, err := decUnstructured.Decode(manifest, nil, obj)
 	if err != nil {
 		return nil, "", nil, fmt.Errorf("failed decoding manifest: %w", err)
@@ -182,6 +183,7 @@ func (k *KubeHTTP) getResourceInterface(manifest []byte, namespace string) (dyna
 	}
 
 	var dr dynamic.ResourceInterface
+
 	if mapping.Scope.Name() == meta.RESTScopeNameNamespace {
 		if namespace == "" {
 			namespace = obj.GetNamespace()
@@ -214,6 +216,7 @@ func (k *KubeHTTP) Delete(ctx context.Context, manifest []byte) error {
 	if err != nil {
 		return fmt.Errorf("failed to dynamic resource interface: %w", err)
 	}
+
 	deletePolicy := metav1.DeletePropagationForeground
 	deleteOptions := metav1.DeleteOptions{
 		PropagationPolicy: &deletePolicy,
@@ -251,6 +254,7 @@ func (k *KubeHTTP) FluxPresent(ctx context.Context) (bool, error) {
 		if apierrors.IsNotFound(err) {
 			return false, nil
 		}
+
 		return false, fmt.Errorf("could not find flux namespace: %w", err)
 	}
 
@@ -277,6 +281,7 @@ func (k KubeHTTP) GetSecret(ctx context.Context, name types.NamespacedName) (*co
 		if apierrors.IsNotFound(err) {
 			return nil, nil
 		}
+
 		return nil, fmt.Errorf("could not get secret: %w", err)
 	}
 

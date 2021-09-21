@@ -37,13 +37,13 @@ jobs:
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: Build UI Assets
-      run: make cmd/wego/ui/run/dist/index.html
+      run: make cmd/gitops/ui/run/dist/index.html
     - name: Check Format
       run: make check-format
     - name: Run linters
       uses: golangci/golangci-lint-action@v2
       with:
-        version: v1.29
+        version: v1.42.1
         args: --timeout=600s
         skip-go-installation: true
 
@@ -59,11 +59,11 @@ jobs:
     - name: Clean
       run: make clean
     - name: build
-      run: make wego
-    - name: Store wego binaries
+      run: make gitops
+    - name: Store gitops binaries
       uses: actions/upload-artifact@v2
       with:
-          name: wego-binaries
+          name: gitops-binaries
           path: bin
           retention-days: 1
 
@@ -83,7 +83,7 @@ jobs:
     # - name: NPM Audit
     #   run: npm audit
     - name: Build UI Assets
-      run: make cmd/wego/ui/run/dist/main.js
+      run: make cmd/gitops/ui/run/dist/main.js
     - name: Set up kubebuilder
       uses: fluxcd/pkg/actions/kubebuilder@main
     - name: Set up flux dir but let dependencies install flux
@@ -106,7 +106,7 @@ jobs:
         GITHUB_ORG: weaveworks-gitops-test
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
-        ARTIFACTS_BASE_DIR: "/tmp/wego-test"
+        ARTIFACTS_BASE_DIR: "/tmp/gitops-test"
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
@@ -151,14 +151,14 @@ jobs:
     - name: Kind-check
       run: |
         kubectl get pods -A
-    - name: Download wego binaries
+    - name: Download gitops binaries
       uses: actions/download-artifact@v2
       with:
-        name: wego-binaries
+        name: gitops-binaries
         path: bin
     - name: Change bin permissions
       run: |
-        chmod +x bin/wego
+        chmod +x bin/gitops
         ls -la bin
     - name: Download dependecies
       run: |
@@ -175,8 +175,8 @@ jobs:
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     - name: Run smoke tests from acceptance suite
       run: |
-        export WEGO_BIN_PATH=$(pwd)/bin/wego
-        export CLUSTER_PROVIDER=kind
+        export WEGO_BIN_PATH=$(pwd)/bin/gitops
+        export CLUSTER_PROVIDER=kubectl
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega
@@ -188,15 +188,16 @@ jobs:
         name: smoke-test-artifacts
         path: ${{ env. ARTIFACTS_BASE_DIR }}
         retention-days: 1
+
   acceptance-tests:
     runs-on: ubuntu-latest
-    needs: [build, test]
+    needs: [lint, build, test]
     timeout-minutes: 90
     env:
         GITHUB_ORG: weaveworks-gitops-test
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
-        ARTIFACTS_BASE_DIR: "/tmp/wego-test"
+        ARTIFACTS_BASE_DIR: "/tmp/gitops-test"
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
@@ -231,14 +232,14 @@ jobs:
     - name: Kind-check
       run: |
         kubectl get pods -A
-    - name: Download wego binaries
+    - name: Download gitops binaries
       uses: actions/download-artifact@v2
       with:
-        name: wego-binaries
+        name: gitops-binaries
         path: bin
     - name: Change bin permissions
       run: |
-        chmod +x bin/wego
+        chmod +x bin/gitops
         ls -la bin
     - name: Download dependecies
       run: |
@@ -256,11 +257,11 @@ jobs:
     - name: Run Full Acceptance Suite
       run: |
         export PATH=${PATH}:`go env GOPATH`/bin
-        export WEGO_BIN_PATH=$(pwd)/bin/wego
-        export CLUSTER_PROVIDER=kind
+        export WEGO_BIN_PATH=$(pwd)/bin/gitops
+        export CLUSTER_PROVIDER=kubectl
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega/...
-        ginkgo --randomizeSuites -skip="SmokeTest" --reportFile=${{ env. ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml -v ./test/acceptance/test/...
+        ginkgo --randomizeSuites --reportFile=${{ env. ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml -v ./test/acceptance/test/...
     - name: Store acceptance test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
@@ -279,5 +280,3 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ secrets.github_token }}"
         run: make lib-test
-
-        

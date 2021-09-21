@@ -8,7 +8,7 @@ import (
 
 type GitopsService interface {
 	Install(params InstallParams) ([]byte, error)
-	Uninstall(params UinstallParams) error
+	Uninstall(params UninstallParams) error
 }
 
 type Gitops struct {

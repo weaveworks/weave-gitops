@@ -25,9 +25,11 @@ func (t *testServerTransport) RoundTrip(r *http.Request) (*http.Response, error)
 	if err != nil {
 		return nil, err
 	}
+
 	tsUrl.Path = r.URL.Path
 
 	r.URL = tsUrl
+
 	return t.roundTripper.RoundTrip(r)
 }
 
@@ -43,11 +45,11 @@ var _ = Describe("Github Device Flow", func() {
 			w.Header().Set("Content-Type", "application/json")
 			// Quick and dirty router to simulate the Github API
 			if strings.Contains(r.URL.Path, "/device/code") {
-				err := json.NewEncoder(w).Encode(&codeResponse{
-					DeviceCode:     "123456789",
-					UserCode:       userCode,
-					VerficationURI: verificationUri,
-					Interval:       1,
+				err := json.NewEncoder(w).Encode(&GithubDeviceCodeResponse{
+					DeviceCode:      "123456789",
+					UserCode:        userCode,
+					VerificationURI: verificationUri,
+					Interval:        1,
 				})
 				Expect(err).NotTo(HaveOccurred())
 

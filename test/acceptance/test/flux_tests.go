@@ -1,5 +1,5 @@
 /**
-* All tests related to 'wego flux' will go into this file
+* All tests related to 'gitops flux' will go into this file
  */
 
 package acceptance
@@ -16,25 +16,25 @@ package acceptance
 //
 //	BeforeEach(func() {
 //
-//		By("Given I have a wego binary installed on my local machine", func() {
+//		By("Given I have a gitops binary installed on my local machine", func() {
 //			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
 //		})
 //	})
 //
-//	It("Verify that wego-flux displays error message when provided with the wrong flag", func() {
+//	It("Verify that gitops-flux displays error message when provided with the wrong flag", func() {
 //
-//		By("When I run the command 'wego flux foo'", func() {
+//		By("When I run the command 'gitops flux foo'", func() {
 //			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " flux foo")
 //		})
 //
-//		By("Then I should see wego error message", func() {
+//		By("Then I should see gitops error message", func() {
 //			Eventually(sessionOutput.Wait().Err.Contents()).Should(ContainSubstring("✗ unknown command \"foo\" for \"flux\""))
 //		})
 //	})
 //
-//	It("Verify that wego-flux can print out the version of flux", func() {
+//	It("Verify that gitops-flux can print out the version of flux", func() {
 //
-//		By("When I run the command 'wego flux -v'", func() {
+//		By("When I run the command 'gitops flux -v'", func() {
 //			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " flux -v")
 //		})
 //

@@ -13,13 +13,13 @@ import (
 	"time"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
+	"github.com/weaveworks/weave-gitops/pkg/testutils"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
-	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -290,6 +290,75 @@ var _ = Describe("ApplicationsServer", func() {
 		})
 	})
 
+	Describe("GetGithubDeviceCode", func() {
+		It("returns a device code", func() {
+			ctx := context.Background()
+			code := "123-456"
+			ghAuthClient.GetDeviceCodeStub = func() (*auth.GithubDeviceCodeResponse, error) {
+				return &auth.GithubDeviceCodeResponse{DeviceCode: code}, nil
+			}
+
+			res, err := appsClient.GetGithubDeviceCode(ctx, &pb.GetGithubDeviceCodeRequest{})
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(res.DeviceCode).To(Equal(code))
+		})
+		// Possibly drop this
+		It("returns an error when github returns an error", func() {
+			ctx := context.Background()
+			someError := errors.New("some gh error")
+			ghAuthClient.GetDeviceCodeStub = func() (*auth.GithubDeviceCodeResponse, error) {
+				return nil, someError
+			}
+			_, err := appsClient.GetGithubDeviceCode(ctx, &pb.GetGithubDeviceCodeRequest{})
+			Expect(err).To(HaveOccurred())
+			st, ok := status.FromError(err)
+			Expect(ok).To(BeTrue(), "could not get grpc status from err")
+			Expect(st.Message()).To(ContainSubstring(someError.Error()))
+		})
+	})
+
+	Describe("GetGithubAuthStatus", func() {
+		It("returns an ErrAuthPending when the user is not yet authenticated", func() {
+			ctx := context.Background()
+			ghAuthClient.GetDeviceCodeAuthStatusStub = func(s string) (string, error) {
+				return "", auth.ErrAuthPending
+			}
+			res, err := appsClient.GetGithubAuthStatus(ctx, &pb.GetGithubAuthStatusRequest{DeviceCode: "somedevicecode"})
+			Expect(err).To(HaveOccurred())
+			st, ok := status.FromError(err)
+			Expect(ok).To(BeTrue(), "could not get status from err")
+			Expect(st.Message()).To(ContainSubstring(auth.ErrAuthPending.Error()))
+			Expect(res).To(BeNil())
+		})
+		It("retuns a jwt if the user has authenticated", func() {
+			ctx := context.Background()
+			token := "abc123def456"
+			ghAuthClient.GetDeviceCodeAuthStatusStub = func(s string) (string, error) {
+				return token, nil
+			}
+			res, err := appsClient.GetGithubAuthStatus(ctx, &pb.GetGithubAuthStatusRequest{DeviceCode: "somedevicecode"})
+			Expect(err).NotTo(HaveOccurred())
+
+			verified, err := auth.NewJwtClient(secretKey).VerifyJWT(res.AccessToken)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(verified.ProviderToken).To(Equal(token))
+		})
+		It("returns an error other than ErrAuthPending", func() {
+			ctx := context.Background()
+			someErr := errors.New("some other err")
+			ghAuthClient.GetDeviceCodeAuthStatusStub = func(s string) (string, error) {
+				return "", someErr
+			}
+			res, err := appsClient.GetGithubAuthStatus(ctx, &pb.GetGithubAuthStatusRequest{DeviceCode: "somedevicecode"})
+			Expect(err).To(HaveOccurred())
+			st, ok := status.FromError(err)
+			Expect(ok).To(BeTrue(), "could not get status from err")
+			Expect(st.Message()).To(ContainSubstring(someErr.Error()))
+			Expect(res).To(BeNil())
+		})
+	})
+
 	Describe("middleware", func() {
 		Describe("logging", func() {
 			var log *fakelogr.FakeLogger
@@ -300,7 +369,7 @@ var _ = Describe("ApplicationsServer", func() {
 			var err error
 
 			BeforeEach(func() {
-				log = makeFakeLogr()
+				log = testutils.MakeFakeLogr()
 				kubeClient = &kubefakes.FakeKube{}
 
 				rand.Seed(time.Now().UnixNano())
@@ -448,7 +517,7 @@ var _ = Describe("ApplicationsServer", func() {
 
 var _ = Describe("Applications handler", func() {
 	It("works as a standalone handler", func() {
-		log := makeFakeLogr()
+		log := testutils.MakeFakeLogr()
 		k := &kubefakes.FakeKube{}
 		k.GetApplicationsStub = func(c context.Context, s string) ([]wego.Application, error) {
 			return []wego.Application{{
@@ -501,7 +570,7 @@ var _ = Describe("Applications handler", func() {
 	})
 
 	It("get commits", func() {
-		log := makeFakeLogr()
+		log := testutils.MakeFakeLogr()
 		kubeClient := &kubefakes.FakeKube{}
 		kubeClient.GetApplicationStub = func(context.Context, types.NamespacedName) (*wego.Application, error) {
 			return &wego.Application{
@@ -581,17 +650,6 @@ var _ = Describe("Applications handler", func() {
 	})
 })
 
-func makeFakeLogr() *fakelogr.FakeLogger {
-	log := &fakelogr.FakeLogger{}
-	log.WithValuesStub = func(i ...interface{}) logr.Logger {
-		return log
-	}
-	log.VStub = func(i int) logr.Logger {
-		return log
-	}
-	return log
-}
-
 type fakeCommit struct {
 	commitInfo gitprovider.CommitInfo
 }
@@ -616,6 +674,7 @@ func testCommit() gitprovider.CommitInfo {
 
 func formatLogVals(vals []interface{}) []string {
 	list := []string{}
+
 	for _, v := range vals {
 		// vals is a slice of empty interfaces. convert them.
 		s, ok := v.(string)
@@ -624,7 +683,9 @@ func formatLogVals(vals []interface{}) []string {
 			n := v.(int)
 			s = strconv.Itoa(n)
 		}
+
 		list = append(list, s)
 	}
+
 	return list
 }

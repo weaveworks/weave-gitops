@@ -14,7 +14,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 )
 
-var uninstallParams gitops.UinstallParams
+var uninstallParams gitops.UninstallParams
 
 func checkFluxUninstallFailure() {
 	fluxErrMsg := "flux uninstall failed"
@@ -58,6 +58,7 @@ func checkAppCRDUninstallFailure() {
 	Expect(kubeClient.GetClusterStatusCallCount()).To(Equal(1))
 	Expect(fluxClient.UninstallCallCount()).To(Equal(1))
 	Expect(kubeClient.DeleteCallCount()).To(Equal(1))
+
 	namespace, dryRun := fluxClient.UninstallArgsForCall(0)
 	Expect(namespace).To(Equal("wego-system"))
 	Expect(dryRun).To(Equal(false))
@@ -70,7 +71,7 @@ var _ = Describe("Uninstall", func() {
 		logger = &loggerfakes.FakeLogger{}
 		gitopsSrv = gitops.New(logger, fluxClient, kubeClient)
 
-		uninstallParams = gitops.UinstallParams{
+		uninstallParams = gitops.UninstallParams{
 			Namespace: "wego-system",
 			DryRun:    false,
 		}
@@ -106,7 +107,7 @@ var _ = Describe("Uninstall", func() {
 
 	It("Does not log warning information if wego is installed", func() {
 		kubeClient.GetClusterStatusStub = func(ctx context.Context) kube.ClusterStatus {
-			return kube.WeGOInstalled
+			return kube.GitOpsInstalled
 		}
 
 		loggedMsg := ""
@@ -120,7 +121,7 @@ var _ = Describe("Uninstall", func() {
 
 	It("Generates an error if flux uninstall fails with wego installed", func() {
 		kubeClient.GetClusterStatusStub = func(ctx context.Context) kube.ClusterStatus {
-			return kube.WeGOInstalled
+			return kube.GitOpsInstalled
 		}
 
 		checkFluxUninstallFailure()
@@ -144,7 +145,7 @@ var _ = Describe("Uninstall", func() {
 
 	It("Generates an error if CRD uninstall fails with wego installed", func() {
 		kubeClient.GetClusterStatusStub = func(ctx context.Context) kube.ClusterStatus {
-			return kube.WeGOInstalled
+			return kube.GitOpsInstalled
 		}
 
 		checkAppCRDUninstallFailure()

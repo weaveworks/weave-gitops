@@ -9,11 +9,11 @@ var webDriver *agouti.Page
 
 //func initializeUISteps() {
 //
-//	//By("And I install wego to my active cluster", func() {
+//	//By("And I install gitops to my active cluster", func() {
 //	//	installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 //	//})
 //	//
-//	//By("And I run wego ui", func() {
+//	//By("And I run gitops ui", func() {
 //	//	_ = runCommandAndReturnSessionOutput(fmt.Sprintf("%s ui run &", WEGO_BIN_PATH))
 //	//})
 //}
@@ -56,7 +56,7 @@ var _ = XDescribe("Weave GitOps UI Test", func() {
 	//	Expect(webDriver.Destroy()).To(Succeed())
 	//})
 	//
-	//It("SmokeTest - Verify wego can run UI without apps installed", func() {
+	//It("SmokeTest - Verify gitops can run UI without apps installed", func() {
 	//
 	//	dashboardPage := pages.Dashboard(webDriver)
 	//	expectedTitle := "Weave GitOps"
