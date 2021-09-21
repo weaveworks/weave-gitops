@@ -105,7 +105,7 @@ jobs:
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     - name: Setup selenium server
       run: |
-        if [ "$RUNNER_OS" == "Linux" ]; then
+        if [ "$RUNNER_OS" == "linux" ]; then
           sudo apt-get update
           sudo apt-get install -y xvfb
           sudo apt-get install -y google-chrome-stable
@@ -150,13 +150,22 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest]
+        include: 
+          - os: ubuntu-latest
+            os_name: linux
+          - os: macOS-latest
+            os_name: darwin
+    env:
+        GITHUB_ORG: weaveworks-gitops-test
+        GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
+        GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
+        ARTIFACTS_BASE_DIR: "/tmp/wego-test"
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
-    - name: checkout
+    - name: Checkout
       uses: actions/checkout@v2
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@master
@@ -172,7 +181,7 @@ jobs:
       uses: Azure/setup-kubectl@v1
       with:
           version: 'v1.19.6'
-    - name: setup gke cluster
+    - name: Setup GKE cluster
       run: |
         OS_NAME=$(echo "${{matrix.os}}" | tr '[:upper:]' '[:lower:]')
         export CLUSTER_NAME=wego-nightly-cluster-$OS_NAME
@@ -189,7 +198,7 @@ jobs:
         kubectl get nodes -A
         kubectl get all --all-namespaces -o wide
       if: always()
-    - name: Fake Install flux
+    - name: Fake install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: Download gitops binaries
       uses: actions/download-artifact@v2
@@ -210,13 +219,28 @@ jobs:
         git config --global user.email "test-user@weave.works"
         git config --global user.name "Testy McTestFace"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+    - name: Setup selenium server
+      run: |
+        if [ "$RUNNER_OS" == "linux" ]; then
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+          sudo apt-get install -y google-chrome-stable
+
+          wget https://chromedriver.storage.googleapis.com/92.0.4515.107/chromedriver_linux64.zip
+          unzip chromedriver_linux64.zip
+          sudo mv -f chromedriver /usr/local/bin/chromedriver
+
+          wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
+
+          # Start selenium server in standalone mode
+          xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
+
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          selenium-server & 
+        fi
     - name: Install Ginkgo binary
       run: go get github.com/onsi/ginkgo/ginkgo
     - name: User Acceptance Tests (${{matrix.os}})
-      env:
-        GITHUB_ORG: weaveworks-gitops-test
-        GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
-        GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/gitops-${{matrix.os}}-nightly
         export CLUSTER_PROVIDER=kubectl
@@ -228,6 +252,15 @@ jobs:
         kubectl get all --all-namespaces -o wide
         ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v ./test/acceptance/test/...
       if: always()
+    - name: Store acceptance test results
+      if: ${{ always() }}
+      continue-on-error: true
+      uses: actions/upload-artifact@v2
+      with:
+        name: acceptance-test-artifacts-${{ matrix.os }}
+        path: ${{ env.ARTIFACTS_BASE_DIR }}
+        retention-days: 1
+  
   publish:
     if: success()
     needs: [test-eks, test-gke]
