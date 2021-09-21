@@ -77,7 +77,7 @@ service Applications {
         };
     };
 
-    /** 
+    /**
     * GetGithubDeviceCode retrieves a temporary device code for Github authentication.
     * This code is used to start the Github device-flow.
     */
@@ -118,7 +118,7 @@ message Application {
     repeated                  Condition source_conditions     = 4;  // A list of conditions for the Source related to this Application
     repeated                  Condition deployment_conditions = 5;  // A list of conditions for the Kustomization or HelmRelease for this application
     string                    namespace                       = 6;  // The kubernetes namespace of the application
-    GroupVersionKind          deployment_type                 = 7;  // An object representing the k8s Group, Version and Kind of a deployment
+    AutomationKind            deployment_type                 = 7;  // An object representing the k8s Group, Version and Kind of a deployment
     repeated GroupVersionKind reconciled_object_kinds         = 8;  // A list of unique object kinds for all resources that were created as a result of this application
     Kustomization             kustomization                   = 9;  // Kustomization associated to this application
     HelmRelease               helm_release = 10;
@@ -237,12 +237,13 @@ message UnstructuredObject {
 message GetReconciledObjectsReq {
     string   automationName      = 1;
     string   automationNamespace = 2;
-    enum AutomationKind {
-        Kustomize = 0;
-        Helm      = 1;
-    }
     AutomationKind automationKind = 3;
     repeated GroupVersionKind kinds = 4;
+}
+
+enum AutomationKind {
+    Kustomize = 0;
+    Helm      = 1;
 }
 
 message GetReconciledObjectsRes {

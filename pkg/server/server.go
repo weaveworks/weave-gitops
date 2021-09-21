@@ -183,8 +183,9 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 	reconciledKinds := []*pb.GroupVersionKind{}
 
 	var (
-		kust        *kustomizev1.Kustomization
-		helmRelease *helmv2.HelmRelease
+		kust           *kustomizev1.Kustomization
+		helmRelease    *helmv2.HelmRelease
+		deploymentType pb.AutomationKind
 	)
 
 	if deployment != nil {
@@ -193,8 +194,10 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 		case *kustomizev1.Kustomization:
 			kust = at
 			reconciledKinds = addReconciledKinds(reconciledKinds, at)
+			deploymentType = pb.AutomationKind_Kustomize
 		case *helmv2.HelmRelease:
 			helmRelease = at
+			deploymentType = pb.AutomationKind_Helm
 		}
 	}
 
@@ -203,6 +206,7 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 		Namespace:             app.Namespace,
 		Url:                   app.Spec.URL,
 		Path:                  app.Spec.Path,
+		DeploymentType:        deploymentType,
 		Kustomization:         mapKustomizationSpecToResponse(kust),
 		HelmRelease:           mapHelmReleaseSpecToResponse(helmRelease),
 		Source:                mapSourceSpecToReponse(src),
@@ -219,6 +223,7 @@ func mapHelmReleaseSpecToResponse(helm *helmv2.HelmRelease) *pb.HelmRelease {
 		Name:            helm.Name,
 		Namespace:       helm.Namespace,
 		TargetNamespace: helm.Spec.TargetNamespace,
+		Conditions:      mapConditions(helm.Status.Conditions),
 		Chart: &pb.HelmChart{
 			Chart:       helm.Spec.Chart.Spec.Chart,
 			Version:     helm.Spec.Chart.Spec.Version,
@@ -353,7 +358,7 @@ const KustomizeNameKey string = "kustomize.toolkit.fluxcd.io/name"
 const KustomizeNamespaceKey string = "kustomize.toolkit.fluxcd.io/namespace"
 
 func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciledObjectsReq) (*pb.GetReconciledObjectsRes, error) {
-	if msg.AutomationKind == pb.GetReconciledObjectsReq_Helm {
+	if msg.AutomationKind == pb.AutomationKind_Helm {
 		return nil, grpcStatus.Error(codes.Unimplemented, "Helm is not currently supported for this method")
 	}
 

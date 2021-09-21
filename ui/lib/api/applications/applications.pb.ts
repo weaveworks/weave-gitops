@@ -15,13 +15,13 @@ type OneOf<T> =
         : never)
     : never);
 
-export enum SourceType {
-  Git = "Git",
+export enum AutomationKind {
+  Kustomize = "Kustomize",
   Helm = "Helm",
 }
 
-export enum GetReconciledObjectsReqAutomationKind {
-  Kustomize = "Kustomize",
+export enum SourceType {
+  Git = "Git",
   Helm = "Helm",
 }
 
@@ -40,7 +40,7 @@ export type Application = {
   sourceConditions?: Condition[]
   deploymentConditions?: Condition[]
   namespace?: string
-  deploymentType?: GroupVersionKind
+  deploymentType?: AutomationKind
   reconciledObjectKinds?: GroupVersionKind[]
   kustomization?: Kustomization
   helmRelease?: HelmRelease
@@ -152,7 +152,7 @@ export type UnstructuredObject = {
 export type GetReconciledObjectsReq = {
   automationName?: string
   automationNamespace?: string
-  automationKind?: GetReconciledObjectsReqAutomationKind
+  automationKind?: AutomationKind
   kinds?: GroupVersionKind[]
 }
 

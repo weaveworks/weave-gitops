@@ -173,7 +173,7 @@
                   "type": "string"
                 },
                 "automationKind": {
-                  "$ref": "#/definitions/GetReconciledObjectsReqAutomationKind"
+                  "$ref": "#/definitions/v1AutomationKind"
                 },
                 "kinds": {
                   "type": "array",
@@ -325,14 +325,6 @@
     }
   },
   "definitions": {
-    "GetReconciledObjectsReqAutomationKind": {
-      "type": "string",
-      "enum": [
-        "Kustomize",
-        "Helm"
-      ],
-      "default": "Kustomize"
-    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -391,7 +383,7 @@
           "type": "string"
         },
         "deploymentType": {
-          "$ref": "#/definitions/v1GroupVersionKind"
+          "$ref": "#/definitions/v1AutomationKind"
         },
         "reconciledObjectKinds": {
           "type": "array",
@@ -417,6 +409,14 @@
           "type": "string"
         }
       }
+    },
+    "v1AutomationKind": {
+      "type": "string",
+      "enum": [
+        "Kustomize",
+        "Helm"
+      ],
+      "default": "Kustomize"
     },
     "v1Commit": {
       "type": "object",
