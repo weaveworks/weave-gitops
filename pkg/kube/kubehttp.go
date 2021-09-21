@@ -125,7 +125,7 @@ func (k *KubeHTTP) GetClusterStatus(ctx context.Context) ClusterStatus {
 	crd := v1.CustomResourceDefinition{}
 
 	if k.Client.Get(ctx, tName, &crd) == nil {
-		return WeGOInstalled
+		return GitOpsInstalled
 	}
 
 	if ok, _ := k.FluxPresent(ctx); ok {
