@@ -561,7 +561,7 @@ func (p defaultGitProvider) waitUntilRepoCreated(ownerType ProviderAccountType, 
 // The raw URL is assumed to be something like ssh://git@github.com/myorg/myrepo.git.
 // The common `git clone` variant of `git@github.com:myorg/myrepo.git` is not supported.
 func DetectGitProviderFromUrl(raw string) (GitProviderName, error) {
-	// Needed for gitlab url parse to work
+	// Needed for url parse to work for some urls
 	if strings.HasPrefix(raw, "git@") {
 		raw = "ssh://" + raw
 		raw = strings.Replace(raw, ".com:", ".com/", 1)
