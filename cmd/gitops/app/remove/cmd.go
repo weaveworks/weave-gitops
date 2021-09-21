@@ -39,7 +39,7 @@ var Cmd = &cobra.Command{
 
 func init() {
 	Cmd.Flags().StringVar(&params.PrivateKey, "private-key", "", "Private key to access git repository over ssh")
-	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'gitops remove' will not make any changes to the system; it will just display the actions that would have been taken")
+	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'gitops app remove' will not make any changes to the system; it will just display the actions that would have been taken")
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {

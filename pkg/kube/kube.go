@@ -25,7 +25,7 @@ const (
 	Unknown ClusterStatus = iota
 	Unmodified
 	FluxInstalled
-	WeGOInstalled
+	GitOpsInstalled
 )
 
 // Function to translate ClusterStatus to a string
@@ -34,10 +34,10 @@ func (cs ClusterStatus) String() string {
 }
 
 var toStatusString = map[ClusterStatus]string{
-	Unknown:       "Unable to talk to the cluster",
-	Unmodified:    "No flux or wego installed",
-	FluxInstalled: "Flux installed",
-	WeGOInstalled: "Wego installed",
+	Unknown:         "Unable to talk to the cluster",
+	Unmodified:      "No flux or gitops installed",
+	FluxInstalled:   "Flux installed",
+	GitOpsInstalled: "GitOps installed",
 }
 
 //counterfeiter:generate . Kube
