@@ -4,7 +4,6 @@ package authfakes
 import (
 	"sync"
 
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 )
 
@@ -33,16 +32,6 @@ type FakeGithubAuthClient struct {
 	getDeviceCodeAuthStatusReturnsOnCall map[int]struct {
 		result1 string
 		result2 error
-	}
-	NameStub        func() gitproviders.GitProviderName
-	nameMutex       sync.RWMutex
-	nameArgsForCall []struct {
-	}
-	nameReturns struct {
-		result1 gitproviders.GitProviderName
-	}
-	nameReturnsOnCall map[int]struct {
-		result1 gitproviders.GitProviderName
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -168,59 +157,6 @@ func (fake *FakeGithubAuthClient) GetDeviceCodeAuthStatusReturnsOnCall(i int, re
 	}{result1, result2}
 }
 
-func (fake *FakeGithubAuthClient) Name() gitproviders.GitProviderName {
-	fake.nameMutex.Lock()
-	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
-	fake.nameArgsForCall = append(fake.nameArgsForCall, struct {
-	}{})
-	stub := fake.NameStub
-	fakeReturns := fake.nameReturns
-	fake.recordInvocation("Name", []interface{}{})
-	fake.nameMutex.Unlock()
-	if stub != nil {
-		return stub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeGithubAuthClient) NameCallCount() int {
-	fake.nameMutex.RLock()
-	defer fake.nameMutex.RUnlock()
-	return len(fake.nameArgsForCall)
-}
-
-func (fake *FakeGithubAuthClient) NameCalls(stub func() gitproviders.GitProviderName) {
-	fake.nameMutex.Lock()
-	defer fake.nameMutex.Unlock()
-	fake.NameStub = stub
-}
-
-func (fake *FakeGithubAuthClient) NameReturns(result1 gitproviders.GitProviderName) {
-	fake.nameMutex.Lock()
-	defer fake.nameMutex.Unlock()
-	fake.NameStub = nil
-	fake.nameReturns = struct {
-		result1 gitproviders.GitProviderName
-	}{result1}
-}
-
-func (fake *FakeGithubAuthClient) NameReturnsOnCall(i int, result1 gitproviders.GitProviderName) {
-	fake.nameMutex.Lock()
-	defer fake.nameMutex.Unlock()
-	fake.NameStub = nil
-	if fake.nameReturnsOnCall == nil {
-		fake.nameReturnsOnCall = make(map[int]struct {
-			result1 gitproviders.GitProviderName
-		})
-	}
-	fake.nameReturnsOnCall[i] = struct {
-		result1 gitproviders.GitProviderName
-	}{result1}
-}
-
 func (fake *FakeGithubAuthClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -228,8 +164,6 @@ func (fake *FakeGithubAuthClient) Invocations() map[string][][]interface{} {
 	defer fake.getDeviceCodeMutex.RUnlock()
 	fake.getDeviceCodeAuthStatusMutex.RLock()
 	defer fake.getDeviceCodeAuthStatusMutex.RUnlock()
-	fake.nameMutex.RLock()
-	defer fake.nameMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
