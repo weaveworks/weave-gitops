@@ -7,6 +7,7 @@ import (
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -126,7 +127,7 @@ var _ = Describe("auth", func() {
 					return "a-token", nil
 				}
 				logger = &loggerfakes.FakeLogger{
-					PrintfStub: func(fmtArg string, restArgs ...interface{}) {},
+					WarningfStub: func(fmtArg string, restArgs ...interface{}) {},
 				}
 			})
 
@@ -145,20 +146,15 @@ var _ = Describe("auth", func() {
 					}
 				})
 
-				It("generates the correct token info message for GitHub", func() {
-					_, err := getGitProviderWithClients(context.Background(), gitproviders.GitProviderGitHub, osysClient, authHandler, logger)
+				DescribeTable("generates correct token info messages", func(providerName gitproviders.GitProviderName, msgArg string) {
+					_, err := getGitProviderWithClients(context.Background(), providerName, osysClient, authHandler, logger)
 					Expect(err).ShouldNot(HaveOccurred())
-					fmtArg, restArgs := logger.PrintfArgsForCall(0)
+					fmtArg, restArgs := logger.WarningfArgsForCall(0)
 					Expect(fmtArg).Should(Equal("Setting the %q environment variable to a valid token will allow ongoing use of the CLI without requiring a browser-based auth flow...\n"))
-					Expect(restArgs[0]).Should(Equal("GITHUB_TOKEN"))
-				})
-				It("generates the correct token info message for GitLab", func() {
-					_, err := getGitProviderWithClients(context.Background(), gitproviders.GitProviderGitLab, osysClient, authHandler, logger)
-					Expect(err).ShouldNot(HaveOccurred())
-					fmtArg, restArgs := logger.PrintfArgsForCall(0)
-					Expect(fmtArg).Should(Equal("Setting the %q environment variable to a valid token will allow ongoing use of the CLI without requiring a browser-based auth flow...\n"))
-					Expect(restArgs[0]).Should(Equal("GITLAB_TOKEN"))
-				})
+					Expect(restArgs[0]).Should(Equal(msgArg))
+				},
+					Entry("token for GitHub", gitproviders.GitProviderGitHub, "GITHUB_TOKEN"),
+					Entry("token for GitLab", gitproviders.GitProviderGitLab, "GITLAB_TOKEN"))
 			})
 
 			Context("displays no message if token is set", func() {
@@ -170,16 +166,13 @@ var _ = Describe("auth", func() {
 					}
 				})
 
-				It("generates no message for GitHub", func() {
-					_, err := getGitProviderWithClients(context.Background(), gitproviders.GitProviderGitHub, osysClient, authHandler, logger)
+				DescribeTable("generates no message if token set", func(providerName gitproviders.GitProviderName) {
+					_, err := getGitProviderWithClients(context.Background(), providerName, osysClient, authHandler, logger)
 					Expect(err).ShouldNot(HaveOccurred())
-					Expect(logger.PrintfCallCount()).To(Equal(0))
-				})
-				It("generates no message for GitLab", func() {
-					_, err := getGitProviderWithClients(context.Background(), gitproviders.GitProviderGitLab, osysClient, authHandler, logger)
-					Expect(err).ShouldNot(HaveOccurred())
-					Expect(logger.PrintfCallCount()).To(Equal(0))
-				})
+					Expect(logger.WarningfCallCount()).To(Equal(0))
+				},
+					Entry("GitHub", gitproviders.GitProviderGitHub),
+					Entry("GitLab", gitproviders.GitProviderGitHub))
 			})
 		})
 	})
