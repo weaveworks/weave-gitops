@@ -51,8 +51,8 @@ debug: ## Compile binary with optimisations and inlining disabled
 bin: ## Build gitops binary
 	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) cmd/gitops/*.go
 
-docker: ## Build gitops-app docker image
-	docker build -t ghcr.io/weaveworks/gitops-app:latest .
+docker: ## Build wego-app docker image
+	docker build -t ghcr.io/weaveworks/wego-app:latest .
 
 
 # Clean up images and binaries
