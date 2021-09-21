@@ -67,13 +67,13 @@ var _ = Describe("Add", func() {
 			return kube.Unmodified
 		}
 		err = appSrv.Add(addParams)
-		Expect(err).To(MatchError("Wego not installed... exiting"))
+		Expect(err).To(MatchError("gitops not installed... exiting"))
 
 		kubeClient.GetClusterStatusStub = func(ctx context.Context) kube.ClusterStatus {
 			return kube.Unknown
 		}
 		err = appSrv.Add(addParams)
-		Expect(err).To(MatchError("Wego can not determine cluster status... exiting"))
+		Expect(err).To(MatchError("can not determine cluster status... exiting"))
 	})
 
 	It("gets the cluster name", func() {
