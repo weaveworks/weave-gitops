@@ -373,8 +373,6 @@ func installAndVerifyWego(wegoNamespace string, kubeconfigPath string) {
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, TIMEOUT_FIVE_MINUTES).Should(gexec.Exit())
-		fmt.Println("session-OUT -[", string(session.Out.Contents()), "]-")
-		fmt.Println("session-ERR -[", string(session.Err.Contents()), "]-")
 		Expect(string(session.Err.Contents())).Should(BeEmpty())
 		VerifyControllersInCluster(wegoNamespace, kubeconfigPath)
 	})
