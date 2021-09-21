@@ -62,7 +62,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepoWithMainDefaultBranch(tip.appRepoName, private)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, private)
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
@@ -116,7 +116,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepoWithMainDefaultBranch(tip.appRepoName, private)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, private)
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
@@ -176,59 +176,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I create an empty private repo", func() {
-			repoAbsolutePath = initAndCreateEmptyRepoWithMainDefaultBranch(tip.appRepoName, private)
-		})
-
-		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
-		})
-
-		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
-		})
-
-		By("And I run gitops add command", func() {
-			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
-		})
-
-		By("Then I should see gitops add command linked the repo to the cluster", func() {
-			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
-		})
-
-		By("And I git add-commit-push app workload to repo", func() {
-			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
-		})
-
-		By("And I should see workload is deployed to the cluster", func() {
-			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
-		})
-
-		By("And repos created have private visibility", func() {
-			Expect(getRepoVisibility(GITHUB_ORG, tip.appRepoName)).Should(ContainSubstring("true"))
-		})
-	})
-
-	It("Verify that gitops can deploy an app from a repo with a different default branch", func() {
-		var repoAbsolutePath string
-		private := true
-		tip := generateTestInputs()
-		appName := tip.appRepoName
-
-		addCommand := "app add . --auto-merge=true"
-
-		defer deleteRepo(tip.appRepoName)
-		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
-
-		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName)
-		})
-
-		By("And application workload is not already deployed to cluster", func() {
-			deleteWorkload(tip.workloadName, tip.workloadNamespace)
-		})
-
-		By("When I create an empty private repo", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, "notmain", private)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, private)
 		})
 
 		By("And I install gitops to my active cluster", func() {
@@ -289,7 +237,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepoWithMainDefaultBranch(tip.appRepoName, private)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, private)
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
@@ -355,12 +303,12 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I create a private repo for gitops app config", func() {
-			appConfigRepoAbsPath := initAndCreateEmptyRepoWithMainDefaultBranch(appConfigRepoName, private)
+			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, private)
 			gitAddCommitPush(appConfigRepoAbsPath, tip.appManifestFilePath)
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepoWithMainDefaultBranch(tip.appRepoName, private)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, private)
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
@@ -403,7 +351,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepoWithMainDefaultBranch(tip.appRepoName, private)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, private)
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
@@ -445,7 +393,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepoWithMainDefaultBranch(tip.appRepoName, private)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, private)
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
@@ -495,7 +443,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I create an empty private repo for app1", func() {
-			repoAbsolutePath = initAndCreateEmptyRepoWithMainDefaultBranch(appRepoName, true)
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, true)
 		})
 
 		By("And I git add-commit-push for app with multiple workloads", func() {
@@ -567,18 +515,18 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I create a private repo for gitops app config", func() {
-			appConfigRepoAbsPath := initAndCreateEmptyRepoWithMainDefaultBranch(appConfigRepoName, private)
+			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, private)
 			gitAddCommitPush(appConfigRepoAbsPath, readmeFilePath)
 		})
 
 		By("And I create a repo with my app1 workload and run the add the command on it", func() {
-			repoAbsolutePath = initAndCreateEmptyRepoWithMainDefaultBranch(appRepoName1, private)
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName1, private)
 			gitAddCommitPush(repoAbsolutePath, tip1.appManifestFilePath)
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("And I create a repo with my app2 workload and run the add the command on it", func() {
-			repoAbsolutePath = initAndCreateEmptyRepoWithMainDefaultBranch(appRepoName2, private)
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName2, private)
 			gitAddCommitPush(repoAbsolutePath, tip2.appManifestFilePath)
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
@@ -625,7 +573,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I create a repo with my app1 and app2 workloads and run the add the command for each app", func() {
-			repoAbsolutePath = initAndCreateEmptyRepoWithMainDefaultBranch(appRepoName, private)
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
 			app1Path := createSubDir(appName1, repoAbsolutePath)
 			app2Path := createSubDir(appName2, repoAbsolutePath)
 			gitAddCommitPush(app1Path, tip1.appManifestFilePath)
@@ -687,12 +635,12 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I create a private repo for gitops app config", func() {
-			appConfigRepoAbsPath := initAndCreateEmptyRepoWithMainDefaultBranch(appConfigRepoName, private)
+			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, private)
 			gitAddCommitPush(appConfigRepoAbsPath, readmeFilePath)
 		})
 
 		By("When I create a private repo with app1 workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepoWithMainDefaultBranch(appFilesRepoName, private)
+			repoAbsolutePath = initAndCreateEmptyRepo(appFilesRepoName, private)
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath1)
 		})
 
@@ -851,11 +799,11 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I create an empty private repo for app1", func() {
-			repoAbsolutePath1 = initAndCreateEmptyRepoWithMainDefaultBranch(tip1.appRepoName, private)
+			repoAbsolutePath1 = initAndCreateEmptyRepo(tip1.appRepoName, private)
 		})
 
 		By("When I create an empty public repo for app2", func() {
-			repoAbsolutePath2 = initAndCreateEmptyRepoWithMainDefaultBranch(tip2.appRepoName, public)
+			repoAbsolutePath2 = initAndCreateEmptyRepo(tip2.appRepoName, public)
 		})
 
 		By("And I git add-commit-push for app1 with workload", func() {
@@ -1065,7 +1013,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepoWithMainDefaultBranch(appRepoName, private)
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 
@@ -1149,7 +1097,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepoWithMainDefaultBranch(appRepoName, public)
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, public)
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 
@@ -1198,12 +1146,12 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepoWithMainDefaultBranch(appRepoName, private)
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 
 		By("When I create a private repo for my config files", func() {
-			configRepoAbsolutePath = initAndCreateEmptyRepoWithMainDefaultBranch(configRepoName, private)
+			configRepoAbsolutePath = initAndCreateEmptyRepo(configRepoName, private)
 			gitAddCommitPush(configRepoAbsolutePath, configRepoFiles)
 		})
 
@@ -1279,7 +1227,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I create a private git repo", func() {
-			repoAbsolutePath = initAndCreateEmptyRepoWithMainDefaultBranch(appRepoName, private)
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, private)
 			gitAddCommitPush(repoAbsolutePath, readmeFilePath)
 		})
 
@@ -1399,7 +1347,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I create an empty private repo for app", func() {
-			repoAbsolutePath = initAndCreateEmptyRepoWithMainDefaultBranch(tip.appRepoName, true)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, true)
 		})
 
 		By("And I git add-commit-push app manifest", func() {
@@ -1457,12 +1405,12 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I create a private repo for gitops app config", func() {
-			appConfigRepoAbsPath = initAndCreateEmptyRepoWithMainDefaultBranch(appConfigRepoName, private)
+			appConfigRepoAbsPath = initAndCreateEmptyRepo(appConfigRepoName, private)
 			gitAddCommitPush(appConfigRepoAbsPath, tip.appManifestFilePath)
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepoWithMainDefaultBranch(tip.appRepoName, private)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, private)
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
@@ -1513,7 +1461,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I create an empty private repo for app", func() {
-			repoAbsolutePath = initAndCreateEmptyRepoWithMainDefaultBranch(tip.appRepoName, true)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, true)
 		})
 
 		By("And I git add-commit-push for app with workload", func() {
@@ -1609,12 +1557,12 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 
 		By("When I create a private repo for gitops app config", func() {
-			appConfigRepoAbsPath := initAndCreateEmptyRepoWithMainDefaultBranch(appConfigRepoName, private)
+			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, private)
 			gitAddCommitPush(appConfigRepoAbsPath, readmeFilePath)
 		})
 
 		By("When I create a private repo with app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepoWithMainDefaultBranch(appFilesRepoName, private)
+			repoAbsolutePath = initAndCreateEmptyRepo(appFilesRepoName, private)
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 

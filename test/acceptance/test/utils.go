@@ -216,18 +216,14 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 	return clusterName, nil
 }
 
-func initAndCreateEmptyRepoWithMainDefaultBranch(appRepoName string, isPrivateRepo bool) string {
-	return initAndCreateEmptyRepo(appRepoName, DEFAULT_BRANCH_NAME, isPrivateRepo)
-}
-
-func initAndCreateEmptyRepo(appRepoName, branch string, isPrivateRepo bool) string {
+func initAndCreateEmptyRepo(appRepoName string, isPrivateRepo bool) string {
 	repoAbsolutePath := "/tmp/" + appRepoName
 
 	// We need this step in case running a single test case locally
 	err := os.RemoveAll(repoAbsolutePath)
 	Expect(err).ShouldNot(HaveOccurred())
 
-	err = createRepository(appRepoName, branch, isPrivateRepo)
+	err = createRepository(appRepoName, DEFAULT_BRANCH_NAME, isPrivateRepo)
 	Expect(err).ShouldNot(HaveOccurred())
 
 	err = utils.WaitUntil(os.Stdout, time.Second*3, time.Second*30, func() error {
