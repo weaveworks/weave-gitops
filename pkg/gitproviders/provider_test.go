@@ -863,6 +863,7 @@ var _ = Describe("helpers", func() {
 	},
 		Entry("ssh+github", "ssh://git@github.com/weaveworks/weave-gitops.git", GitProviderGitHub),
 		Entry("ssh+gitlab", "ssh://git@gitlab.com/weaveworks/weave-gitops.git", GitProviderGitLab),
+		Entry("ssh+gitlab", "git@gitlab.com:gogittest/sub-group/nginxsub.git", GitProviderGitLab),
 	)
 
 })
@@ -902,11 +903,11 @@ var _ = DescribeTable("NormalizedRepoURL", func(input string, expected expectedR
 		protocol: RepositoryURLProtocolSSH,
 	}),
 	Entry("github https", "https://github.com/someuser/podinfo.git", expectedRepoURL{
-		s:        "https://github.com/someuser/podinfo.git",
+		s:        "ssh://git@github.com/someuser/podinfo.git",
 		owner:    "someuser",
 		name:     "podinfo",
 		provider: GitProviderGitHub,
-		protocol: RepositoryURLProtocolHTTPS,
+		protocol: RepositoryURLProtocolSSH,
 	}),
 	Entry("gitlab git clone style", "git@gitlab.com:someuser/podinfo.git", expectedRepoURL{
 		s:        "ssh://git@gitlab.com/someuser/podinfo.git",
@@ -916,11 +917,11 @@ var _ = DescribeTable("NormalizedRepoURL", func(input string, expected expectedR
 		protocol: RepositoryURLProtocolSSH,
 	}),
 	Entry("gitlab https", "https://gitlab.com/someuser/podinfo.git", expectedRepoURL{
-		s:        "https://gitlab.com/someuser/podinfo.git",
+		s:        "ssh://git@gitlab.com/someuser/podinfo.git",
 		owner:    "someuser",
 		name:     "podinfo",
 		provider: GitProviderGitLab,
-		protocol: RepositoryURLProtocolHTTPS,
+		protocol: RepositoryURLProtocolSSH,
 	}),
 )
 

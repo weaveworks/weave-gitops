@@ -103,53 +103,12 @@ func UrlToRepoName(url string) string {
 	return strings.TrimSuffix(filepath.Base(url), ".git")
 }
 
-func GetOwnerFromUrl(url string) (string, error) {
-	parts := strings.Split(url, "/")
-	if len(parts) < 2 {
-		return "", fmt.Errorf("could not get owner from url %s", url)
-	}
-
-	return parts[len(parts)-2], nil
-}
-
 func ValidateNamespace(ns string) error {
 	if errList := validation.ValidateNamespaceName(ns, false); len(errList) != 0 {
 		return fmt.Errorf("invalid namespace: %s", strings.Join(errList, ", "))
 	}
 
 	return nil
-}
-
-// SanitizeRepoUrl accepts a url like git@github.com:someuser/podinfo.git and converts it into
-// a string like ssh://git@github.com/someuser/podinfo.git. This helps standardize the different
-// user inputs that might be provided.
-func SanitizeRepoUrl(url string) string {
-	trimmed := ""
-	domain := "github"
-
-	if strings.Contains(url, "gitlab") {
-		domain = "gitlab"
-	}
-
-	if !strings.HasSuffix(url, ".git") {
-		url = url + ".git"
-	}
-
-	sshPrefix := fmt.Sprintf("git@%s.com:", domain)
-	if strings.HasPrefix(url, sshPrefix) {
-		trimmed = strings.TrimPrefix(url, sshPrefix)
-	}
-
-	httpsPrefix := fmt.Sprintf("https://%s.com/", domain)
-	if strings.HasPrefix(url, httpsPrefix) {
-		trimmed = strings.TrimPrefix(url, httpsPrefix)
-	}
-
-	if trimmed != "" {
-		return fmt.Sprintf("ssh://git@%s.com/%s", domain, trimmed)
-	}
-
-	return url
 }
 
 func PrintTable(writer io.Writer, header []string, rows [][]string) {

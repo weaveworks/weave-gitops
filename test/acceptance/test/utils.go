@@ -26,6 +26,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 	log "github.com/sirupsen/logrus"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
@@ -44,6 +45,9 @@ const DEFAULT_BRANCH_NAME = "main"
 var DEFAULT_SSH_KEY_PATH string
 var GITHUB_ORG string
 var GITLAB_ORG string
+
+// Make sure the subgroup belongs to the GITLAB_ORG
+var GITLAB_SUBGROUP string
 var WEGO_BIN_PATH string
 
 type TestInputs struct {
@@ -218,20 +222,20 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 	return clusterName, nil
 }
 
-func initAndCreateEmptyRepo(appRepoName string, providerName string, isPrivateRepo bool) string {
+func initAndCreateEmptyRepo(appRepoName string, providerName gitproviders.GitProviderName, isPrivateRepo bool, org string) string {
 	repoAbsolutePath := "/tmp/" + appRepoName
 
 	// We need this step in case running a single test case locally
 	err := os.RemoveAll(repoAbsolutePath)
 	Expect(err).ShouldNot(HaveOccurred())
 
-	err = createGitHubRepository(appRepoName, DEFAULT_BRANCH_NAME, isPrivateRepo)
+	err = createGitRepository(appRepoName, DEFAULT_BRANCH_NAME, isPrivateRepo)
 	Expect(err).ShouldNot(HaveOccurred())
 
 	err = utils.WaitUntil(os.Stdout, time.Second*3, time.Second*30, func() error {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
                             git clone git@%s.com:%s/%s.git %s`,
-			providerName, orgName, appRepoName,
+			providerName, org, appRepoName,
 			repoAbsolutePath))
 		command.Stdout = os.Stdout
 		command.Stderr = os.Stderr
@@ -266,43 +270,35 @@ func createGitRepoBranch(repoAbsolutePath string, branchName string) string {
 	return string(session.Wait().Out.Contents())
 }
 
-func getGitHubRepoVisibility(org string, repo string) string {
-	gitProvider, err := github.NewClient(
-		gitprovider.WithOAuth2Token(os.Getenv("GITHUB_TOKEN")),
-		gitprovider.WithDestructiveAPICalls(true),
-	)
-	Expect(err).ShouldNot(HaveOccurred())
-
-	orgRef := gitprovider.OrgRepositoryRef{
-		RepositoryName: repo,
-		OrganizationRef: gitprovider.OrganizationRef{
-			Domain:       github.DefaultDomain,
-			Organization: GITHUB_ORG,
-		},
+func getGitRepoVisibility(org string, repo string, providerName gitproviders.GitProviderName) string {
+	var gitProvider gitprovider.Client
+	var err error
+	var domain string
+	switch providerName {
+	case gitproviders.GitProviderGitHub:
+		gitProvider, err = github.NewClient(
+			gitprovider.WithOAuth2Token(os.Getenv("GITHUB_TOKEN")),
+			gitprovider.WithDestructiveAPICalls(true),
+		)
+		domain = github.DefaultDomain
+	case gitproviders.GitProviderGitLab:
+		gitProvider, err = gitlab.NewClient(
+			os.Getenv("GITLAB_TOKEN"),
+			"oauth2",
+			gitprovider.WithOAuth2Token(os.Getenv("GITLAB_TOKEN")),
+			gitprovider.WithDestructiveAPICalls(true),
+		)
+		domain = gitlab.DefaultDomain
+	default:
+		Fail("invalid git provider")
 	}
-
-	orgInfo, err := gitProvider.OrgRepositories().Get(context.Background(), orgRef)
-	Expect(err).ShouldNot(HaveOccurred())
-
-	visibility := string(*orgInfo.Get().Visibility)
-
-	return visibility
-}
-
-func getGitLabRepoVisibility(org string, repo string) string {
-	gitProvider, err := gitlab.NewClient(
-		os.Getenv("GITLAB_TOKEN"),
-		"oauth2",
-		gitprovider.WithOAuth2Token(os.Getenv("GITLAB_TOKEN")),
-		gitprovider.WithDestructiveAPICalls(true),
-	)
 	Expect(err).ShouldNot(HaveOccurred())
 
 	orgRef := gitprovider.OrgRepositoryRef{
 		RepositoryName: repo,
 		OrganizationRef: gitprovider.OrganizationRef{
-			Domain:       gitlab.DefaultDomain,
-			Organization: GITLAB_ORG,
+			Domain:       domain,
+			Organization: org,
 		},
 	}
 
@@ -701,7 +697,7 @@ func getWaitTimeFromErr(errOutput string) (time.Duration, error) {
 	return 0, fmt.Errorf("could not found a rate reset on string: %s", errOutput)
 }
 
-func createGitHubRepository(repoName, branch string, private bool) error {
+func createGitRepository(repoName, branch string, private bool, providerName gitproviders.GitProviderName, org string) error {
 	visibility := gitprovider.RepositoryVisibilityPublic
 	if private {
 		visibility = gitprovider.RepositoryVisibilityPrivate
@@ -719,93 +715,41 @@ func createGitHubRepository(repoName, branch string, private bool) error {
 		AutoInit: gitprovider.BoolVar(true),
 	}
 
-	orgRef := gitprovider.OrgRepositoryRef{
-		RepositoryName: repoName,
-		OrganizationRef: gitprovider.OrganizationRef{
-			Domain:       github.DefaultDomain,
-			Organization: GITHUB_ORG,
-		},
-	}
+	var gitProvider gitprovider.Client
+	var err error
+	var domain string
 
-	gitProvider, err := github.NewClient(
-		gitprovider.WithOAuth2Token(os.Getenv("GITHUB_TOKEN")),
-		gitprovider.WithDestructiveAPICalls(true),
-	)
-	if err != nil {
-		return err
-	}
-
-	ctx := context.Background()
-
-	fmt.Printf("creating repo %s ...\n", repoName)
-
-	if err := utils.WaitUntil(os.Stdout, time.Second, THIRTY_SECOND_TIMEOUT, func() error {
-		_, err := gitProvider.OrgRepositories().Create(ctx, orgRef, repoInfo, repoCreateOpts)
-		if err != nil && strings.Contains(err.Error(), "rate limit exceeded") {
-			waitForRateQuota, err := getWaitTimeFromErr(err.Error())
-			if err != nil {
-				return err
-			}
-			fmt.Printf("Waiting for rate quota %s \n", waitForRateQuota.String())
-			time.Sleep(waitForRateQuota)
-			return fmt.Errorf("retry after waiting for rate quota")
+	switch providerName {
+	case gitproviders.GitProviderGitHub:
+		gitProvider, err = github.NewClient(
+			gitprovider.WithOAuth2Token(os.Getenv("GITHUB_TOKEN")),
+			gitprovider.WithDestructiveAPICalls(true),
+		)
+		if err != nil {
+			return err
 		}
-		return err
-	}); err != nil {
-		return fmt.Errorf("error creating repo %s", err)
-	}
-
-	fmt.Printf("repo %s created ...\n", repoName)
-	fmt.Printf("validating access to the repo %s ...\n", repoName)
-
-	err = utils.WaitUntil(os.Stdout, time.Second, THIRTY_SECOND_TIMEOUT, func() error {
-		_, err := gitProvider.OrgRepositories().Get(ctx, orgRef)
-		return err
-	})
-
-	if err != nil {
-		return fmt.Errorf("error validating access to the repository %w", err)
-	}
-
-	fmt.Printf("repo %s is accessible through the api ...\n", repoName)
-
-	return nil
-}
-
-func createGitLabRepository(repoName string, private bool) error {
-	visibility := gitprovider.RepositoryVisibilityPublic
-	if private {
-		visibility = gitprovider.RepositoryVisibilityPrivate
-	}
-
-	description := "Weave Gitops test repo"
-	defaultBranch := DEFAULT_BRANCH_NAME
-	repoInfo := gitprovider.RepositoryInfo{
-		Description:   &description,
-		Visibility:    &visibility,
-		DefaultBranch: &defaultBranch,
-	}
-
-	repoCreateOpts := &gitprovider.RepositoryCreateOptions{
-		AutoInit: gitprovider.BoolVar(true),
+		domain = github.DefaultDomain
+	case gitproviders.GitProviderGitLab:
+		gitProvider, err = gitlab.NewClient(
+			os.Getenv("GITLAB_TOKEN"),
+			"oauth2",
+			gitprovider.WithOAuth2Token(os.Getenv("GITLAB_TOKEN")),
+			gitprovider.WithDestructiveAPICalls(true),
+		)
+		if err != nil {
+			return err
+		}
+		domain = gitlab.DefaultDomain
+	default:
+		Fail("invalid git provider")
 	}
 
 	orgRef := gitprovider.OrgRepositoryRef{
 		RepositoryName: repoName,
 		OrganizationRef: gitprovider.OrganizationRef{
-			Domain:       gitlab.DefaultDomain,
-			Organization: GITLAB_ORG,
+			Domain:       domain,
+			Organization: org,
 		},
-	}
-
-	gitProvider, err := gitlab.NewClient(
-		os.Getenv("GITLAB_TOKEN"),
-		"oauth2",
-		gitprovider.WithOAuth2Token(os.Getenv("GITLAB_TOKEN")),
-		gitprovider.WithDestructiveAPICalls(true),
-	)
-	if err != nil {
-		return err
 	}
 
 	ctx := context.Background()

@@ -14,7 +14,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -163,9 +162,9 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 	}
 
 	if isExternalConfig {
-		configRepoClient, err := authsvc.CreateGitClient(ctx, targetName, namespace, utils.SanitizeRepoUrl(configUrl))
-		if err != nil {
-			return nil, nil, nil, err
+		configRepoClient, configRepoErr := authsvc.CreateGitClient(ctx, targetName, namespace, configUrl)
+		if configRepoErr != nil {
+			return nil, nil, nil, configRepoErr
 		}
 
 		configClient = configRepoClient
