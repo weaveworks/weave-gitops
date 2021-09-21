@@ -229,7 +229,7 @@ func initAndCreateEmptyRepo(appRepoName string, providerName gitproviders.GitPro
 	err := os.RemoveAll(repoAbsolutePath)
 	Expect(err).ShouldNot(HaveOccurred())
 
-	err = createGitRepository(appRepoName, DEFAULT_BRANCH_NAME, isPrivateRepo)
+	err = createGitRepository(appRepoName, DEFAULT_BRANCH_NAME, isPrivateRepo, providerName, org)
 	Expect(err).ShouldNot(HaveOccurred())
 
 	err = utils.WaitUntil(os.Stdout, time.Second*3, time.Second*30, func() error {
