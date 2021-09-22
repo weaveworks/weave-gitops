@@ -180,41 +180,25 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 		return nil, fmt.Errorf("could not get deployment for app %s: %w", app.Name, err)
 	}
 
-	// A Source is just an abstract interface, we need to get the underlying implementation.
-	var srcK8sConditions []metav1.Condition
-
-	var srcConditions []*pb.Condition
-
-	if src != nil {
-		// An src might be nil if it is not reconciled yet,
-		// in which case return nil in the response for the source_conditions key.
-		switch st := src.(type) {
-		case *sourcev1.GitRepository:
-			srcK8sConditions = st.Status.Conditions
-		case *sourcev1.HelmRepository:
-			srcK8sConditions = st.Status.Conditions
-		}
-
-		srcConditions = mapConditions(srcK8sConditions)
-	}
-
-	var deploymentK8sConditions []metav1.Condition
-
-	var deploymentConditions []*pb.Condition
-
 	reconciledKinds := []*pb.GroupVersionKind{}
+
+	var (
+		kust           *kustomizev1.Kustomization
+		helmRelease    *helmv2.HelmRelease
+		deploymentType pb.AutomationKind
+	)
 
 	if deployment != nil {
 		// Same as a src. Deployment may not be created at this point.
 		switch at := deployment.(type) {
 		case *kustomizev1.Kustomization:
-			deploymentK8sConditions = at.Status.Conditions
+			kust = at
 			reconciledKinds = addReconciledKinds(reconciledKinds, at)
+			deploymentType = pb.AutomationKind_Kustomize
 		case *helmv2.HelmRelease:
-			deploymentK8sConditions = at.Status.Conditions
+			helmRelease = at
+			deploymentType = pb.AutomationKind_Helm
 		}
-
-		deploymentConditions = mapConditions(deploymentK8sConditions)
 	}
 
 	return &pb.GetApplicationResponse{Application: &pb.Application{
@@ -222,10 +206,91 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 		Namespace:             app.Namespace,
 		Url:                   app.Spec.URL,
 		Path:                  app.Spec.Path,
-		SourceConditions:      srcConditions,
-		DeploymentConditions:  deploymentConditions,
+		DeploymentType:        deploymentType,
+		Kustomization:         mapKustomizationSpecToResponse(kust),
+		HelmRelease:           mapHelmReleaseSpecToResponse(helmRelease),
+		Source:                mapSourceSpecToReponse(src),
 		ReconciledObjectKinds: reconciledKinds,
 	}}, nil
+}
+
+func mapHelmReleaseSpecToResponse(helm *helmv2.HelmRelease) *pb.HelmRelease {
+	if helm == nil {
+		return nil
+	}
+
+	return &pb.HelmRelease{
+		Name:            helm.Name,
+		Namespace:       helm.Namespace,
+		TargetNamespace: helm.Spec.TargetNamespace,
+		Conditions:      mapConditions(helm.Status.Conditions),
+		Chart: &pb.HelmChart{
+			Chart:       helm.Spec.Chart.Spec.Chart,
+			Version:     helm.Spec.Chart.Spec.Version,
+			ValuesFiles: helm.Spec.Chart.Spec.ValuesFiles,
+		},
+	}
+}
+
+func mapKustomizationSpecToResponse(kust *kustomizev1.Kustomization) *pb.Kustomization {
+	if kust == nil {
+		return nil
+	}
+
+	return &pb.Kustomization{
+		Name:                kust.Name,
+		Namespace:           kust.Namespace,
+		TargetNamespace:     kust.Spec.TargetNamespace,
+		Path:                kust.Spec.Path,
+		Conditions:          mapConditions(kust.Status.Conditions),
+		Interval:            kust.Spec.Interval.Duration.String(),
+		Prune:               kust.Spec.Prune,
+		LastAppliedRevision: kust.Status.LastAppliedRevision,
+	}
+}
+
+func mapSourceSpecToReponse(src client.Object) *pb.Source {
+	// An src might be nil if it is not reconciled yet,
+	// in which case return nil in the response for the source_conditions key.
+	source := &pb.Source{}
+	if src == nil {
+		return source
+	}
+
+	switch st := src.(type) {
+	case *sourcev1.GitRepository:
+		source.Name = st.Name
+		source.Namespace = st.Namespace
+		source.Url = st.Spec.URL
+		source.Type = pb.Source_Git
+		source.Interval = st.Spec.Interval.Duration.String()
+		source.Suspend = st.Spec.Suspend
+
+		if st.Spec.Timeout != nil {
+			source.Timeout = st.Spec.Timeout.Duration.String()
+		}
+
+		if st.Spec.Reference != nil {
+			source.Reference = st.Spec.Reference.Branch
+		}
+
+		source.Conditions = mapConditions(st.Status.Conditions)
+	case *sourcev1.HelmRepository:
+		source.Name = st.Name
+		source.Namespace = st.Namespace
+		source.Url = st.Spec.URL
+		source.Type = pb.Source_Helm
+		source.Interval = st.Spec.Interval.Duration.String()
+		source.Suspend = st.Spec.Suspend
+
+		if st.Spec.Timeout != nil {
+			source.Timeout = st.Spec.Timeout.Duration.String()
+		}
+
+		source.Conditions = mapConditions(st.Status.Conditions)
+	}
+
+	return source
 }
 
 //Until the middleware is done this function will not be able to get the token and will fail
@@ -293,7 +358,7 @@ const KustomizeNameKey string = "kustomize.toolkit.fluxcd.io/name"
 const KustomizeNamespaceKey string = "kustomize.toolkit.fluxcd.io/namespace"
 
 func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciledObjectsReq) (*pb.GetReconciledObjectsRes, error) {
-	if msg.AutomationKind == pb.GetReconciledObjectsReq_Helm {
+	if msg.AutomationKind == pb.AutomationKind_Helm {
 		return nil, grpcStatus.Error(codes.Unimplemented, "Helm is not currently supported for this method")
 	}
 
