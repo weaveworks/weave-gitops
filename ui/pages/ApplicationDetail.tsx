@@ -91,7 +91,6 @@ function ApplicationDetail({ className, name }: Props) {
       <h3>Source Conditions</h3>
       <ConditionsTable conditions={app.source?.conditions} />
       <h3>Automation Conditions</h3>
-     {}
       <ConditionsTable conditions={app.deploymentType == AutomationKind.Kustomize ? app.kustomization?.conditions : app.helmRelease?.conditions} />
 
       <h3>Commits</h3>

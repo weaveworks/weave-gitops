@@ -22,6 +22,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// AutomationKind represents the deployment method used
 type AutomationKind int32
 
 const (
@@ -208,9 +209,9 @@ type Application struct {
 	Namespace             string              `protobuf:"bytes,6,opt,name=namespace,proto3" json:"namespace,omitempty"`                                                                     // The kubernetes namespace of the application
 	DeploymentType        AutomationKind      `protobuf:"varint,7,opt,name=deployment_type,json=deploymentType,proto3,enum=wego_server.v1.AutomationKind" json:"deployment_type,omitempty"` // An object representing the k8s Group, Version and Kind of a deployment
 	ReconciledObjectKinds []*GroupVersionKind `protobuf:"bytes,8,rep,name=reconciled_object_kinds,json=reconciledObjectKinds,proto3" json:"reconciled_object_kinds,omitempty"`              // A list of unique object kinds for all resources that were created as a result of this application
-	Kustomization         *Kustomization      `protobuf:"bytes,9,opt,name=kustomization,proto3" json:"kustomization,omitempty"`                                                             // Kustomization associated to this application
-	HelmRelease           *HelmRelease        `protobuf:"bytes,10,opt,name=helm_release,json=helmRelease,proto3" json:"helm_release,omitempty"`
-	Source                *Source             `protobuf:"bytes,11,opt,name=source,proto3" json:"source,omitempty"`
+	Kustomization         *Kustomization      `protobuf:"bytes,9,opt,name=kustomization,proto3" json:"kustomization,omitempty"`                                                             // Kustomization associated to the application
+	HelmRelease           *HelmRelease        `protobuf:"bytes,10,opt,name=helm_release,json=helmRelease,proto3" json:"helm_release,omitempty"`                                             // HelmRelease associated to the application
+	Source                *Source             `protobuf:"bytes,11,opt,name=source,proto3" json:"source,omitempty"`                                                                          // Source associated to the application
 }
 
 func (x *Application) Reset() {
@@ -327,14 +328,14 @@ type Kustomization struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name                string       `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Namespace           string       `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	TargetNamespace     string       `protobuf:"bytes,3,opt,name=targetNamespace,proto3" json:"targetNamespace,omitempty"`
-	Path                string       `protobuf:"bytes,4,opt,name=path,proto3" json:"path,omitempty"`
-	Conditions          []*Condition `protobuf:"bytes,5,rep,name=conditions,proto3" json:"conditions,omitempty"`
-	Interval            string       `protobuf:"bytes,6,opt,name=interval,proto3" json:"interval,omitempty"`
-	Prune               bool         `protobuf:"varint,7,opt,name=prune,proto3" json:"prune,omitempty"`
-	LastAppliedRevision string       `protobuf:"bytes,8,opt,name=lastAppliedRevision,proto3" json:"lastAppliedRevision,omitempty"`
+	Name                string       `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`                               // The name of the Kustomization
+	Namespace           string       `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`                     // The namespace of the Kustomization
+	TargetNamespace     string       `protobuf:"bytes,3,opt,name=targetNamespace,proto3" json:"targetNamespace,omitempty"`         // Sets or overrides the namespace in the kustomization.yaml file.
+	Path                string       `protobuf:"bytes,4,opt,name=path,proto3" json:"path,omitempty"`                               // Path to the directory containing the kustomization.yaml file, or the set of plain YAMLs a kustomization.yaml should be generated for.
+	Conditions          []*Condition `protobuf:"bytes,5,rep,name=conditions,proto3" json:"conditions,omitempty"`                   // A list of conditions for this Kustomization
+	Interval            string       `protobuf:"bytes,6,opt,name=interval,proto3" json:"interval,omitempty"`                       // The interval at which to reconcile the Kustomization.
+	Prune               bool         `protobuf:"varint,7,opt,name=prune,proto3" json:"prune,omitempty"`                            // Enables garbage collection.
+	LastAppliedRevision string       `protobuf:"bytes,8,opt,name=lastAppliedRevision,proto3" json:"lastAppliedRevision,omitempty"` // The last successfully applied revision.
 }
 
 func (x *Kustomization) Reset() {
@@ -430,13 +431,13 @@ type HelmRelease struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name                string       `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Namespace           string       `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	TargetNamespace     string       `protobuf:"bytes,3,opt,name=targetNamespace,proto3" json:"targetNamespace,omitempty"`
-	Chart               *HelmChart   `protobuf:"bytes,4,opt,name=chart,proto3" json:"chart,omitempty"`
-	Interval            string       `protobuf:"bytes,5,opt,name=interval,proto3" json:"interval,omitempty"`
-	LastAppliedRevision string       `protobuf:"bytes,6,opt,name=lastAppliedRevision,proto3" json:"lastAppliedRevision,omitempty"`
-	Conditions          []*Condition `protobuf:"bytes,7,rep,name=conditions,proto3" json:"conditions,omitempty"`
+	Name                string       `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`                               // The name of the Helm Release
+	Namespace           string       `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`                     // The namespace of the Helm Release
+	TargetNamespace     string       `protobuf:"bytes,3,opt,name=targetNamespace,proto3" json:"targetNamespace,omitempty"`         // Namepsace to target when performing operations for the HelmRelease
+	Chart               *HelmChart   `protobuf:"bytes,4,opt,name=chart,proto3" json:"chart,omitempty"`                             // Chart defines the template of the Chart that should be created for this HelmRelease.
+	Interval            string       `protobuf:"bytes,5,opt,name=interval,proto3" json:"interval,omitempty"`                       // Interval at which to reconcile the Helm release.
+	LastAppliedRevision string       `protobuf:"bytes,6,opt,name=lastAppliedRevision,proto3" json:"lastAppliedRevision,omitempty"` // The last successfully applied revision.
+	Conditions          []*Condition `protobuf:"bytes,7,rep,name=conditions,proto3" json:"conditions,omitempty"`                   // A list of conditions for this Helm Release
 }
 
 func (x *HelmRelease) Reset() {
@@ -525,9 +526,9 @@ type HelmChart struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Chart       string   `protobuf:"bytes,1,opt,name=chart,proto3" json:"chart,omitempty"`
-	Version     string   `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
-	ValuesFiles []string `protobuf:"bytes,3,rep,name=valuesFiles,proto3" json:"valuesFiles,omitempty"`
+	Chart       string   `protobuf:"bytes,1,opt,name=chart,proto3" json:"chart,omitempty"`             // The name or path the Helm chart
+	Version     string   `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`         // Version semver expression
+	ValuesFiles []string `protobuf:"bytes,3,rep,name=valuesFiles,proto3" json:"valuesFiles,omitempty"` // List of values files to use as the chart values
 }
 
 func (x *HelmChart) Reset() {
@@ -588,15 +589,15 @@ type Source struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name       string       `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Url        string       `protobuf:"bytes,2,opt,name=url,proto3" json:"url,omitempty"`
-	Type       Source_Type  `protobuf:"varint,3,opt,name=type,proto3,enum=wego_server.v1.Source_Type" json:"type,omitempty"`
-	Namespace  string       `protobuf:"bytes,7,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	Interval   string       `protobuf:"bytes,8,opt,name=interval,proto3" json:"interval,omitempty"`
-	Reference  string       `protobuf:"bytes,9,opt,name=reference,proto3" json:"reference,omitempty"`
-	Suspend    bool         `protobuf:"varint,10,opt,name=suspend,proto3" json:"suspend,omitempty"`
-	Timeout    string       `protobuf:"bytes,11,opt,name=timeout,proto3" json:"timeout,omitempty"`
-	Conditions []*Condition `protobuf:"bytes,12,rep,name=conditions,proto3" json:"conditions,omitempty"`
+	Name       string       `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`                                  // The name of the Source
+	Url        string       `protobuf:"bytes,2,opt,name=url,proto3" json:"url,omitempty"`                                    // Git or Helm repository URL
+	Type       Source_Type  `protobuf:"varint,3,opt,name=type,proto3,enum=wego_server.v1.Source_Type" json:"type,omitempty"` // Source Type
+	Namespace  string       `protobuf:"bytes,4,opt,name=namespace,proto3" json:"namespace,omitempty"`                        // The namespace of the Source
+	Interval   string       `protobuf:"bytes,5,opt,name=interval,proto3" json:"interval,omitempty"`                          // The interval at which to check the upstream for updates
+	Reference  string       `protobuf:"bytes,6,opt,name=reference,proto3" json:"reference,omitempty"`                        // Git branch or tag
+	Suspend    bool         `protobuf:"varint,7,opt,name=suspend,proto3" json:"suspend,omitempty"`                           // This flag tells the controller to suspend the reconciliation of this source
+	Timeout    string       `protobuf:"bytes,8,opt,name=timeout,proto3" json:"timeout,omitempty"`                            // The timeout of index downloading.
+	Conditions []*Condition `protobuf:"bytes,9,rep,name=conditions,proto3" json:"conditions,omitempty"`                      // A list of conditions for this Source
 }
 
 func (x *Source) Reset() {
@@ -1882,16 +1883,16 @@ var file_api_applications_applications_proto_rawDesc = []byte{
 	0x74, 0x79, 0x70, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x1b, 0x2e, 0x77, 0x65, 0x67,
 	0x6f, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x6f, 0x75, 0x72,
 	0x63, 0x65, 0x2e, 0x54, 0x79, 0x70, 0x65, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x1c, 0x0a,
-	0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x18, 0x07, 0x20, 0x01, 0x28, 0x09,
+	0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09,
 	0x52, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x69,
-	0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x18, 0x08, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x69,
+	0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x69,
 	0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x12, 0x1c, 0x0a, 0x09, 0x72, 0x65, 0x66, 0x65, 0x72,
-	0x65, 0x6e, 0x63, 0x65, 0x18, 0x09, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x72, 0x65, 0x66, 0x65,
+	0x65, 0x6e, 0x63, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x72, 0x65, 0x66, 0x65,
 	0x72, 0x65, 0x6e, 0x63, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x75, 0x73, 0x70, 0x65, 0x6e, 0x64,
-	0x18, 0x0a, 0x20, 0x01, 0x28, 0x08, 0x52, 0x07, 0x73, 0x75, 0x73, 0x70, 0x65, 0x6e, 0x64, 0x12,
-	0x18, 0x0a, 0x07, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x09,
+	0x18, 0x07, 0x20, 0x01, 0x28, 0x08, 0x52, 0x07, 0x73, 0x75, 0x73, 0x70, 0x65, 0x6e, 0x64, 0x12,
+	0x18, 0x0a, 0x07, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x18, 0x08, 0x20, 0x01, 0x28, 0x09,
 	0x52, 0x07, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x12, 0x39, 0x0a, 0x0a, 0x63, 0x6f, 0x6e,
-	0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x0c, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x19, 0x2e,
+	0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x09, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x19, 0x2e,
 	0x77, 0x65, 0x67, 0x6f, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x43,
 	0x6f, 0x6e, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x0a, 0x63, 0x6f, 0x6e, 0x64, 0x69, 0x74,
 	0x69, 0x6f, 0x6e, 0x73, 0x22, 0x19, 0x0a, 0x04, 0x54, 0x79, 0x70, 0x65, 0x12, 0x07, 0x0a, 0x03,

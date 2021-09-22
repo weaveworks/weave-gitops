@@ -416,7 +416,8 @@
         "Kustomize",
         "Helm"
       ],
-      "default": "Kustomize"
+      "default": "Kustomize",
+      "title": "AutomationKind represents the deployment method used"
     },
     "v1Commit": {
       "type": "object",
