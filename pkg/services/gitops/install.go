@@ -3,8 +3,10 @@ package gitops
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/pkg/errors"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/manifests"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
@@ -40,7 +42,12 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 			}
 		}
 
-		wegoAppDeploymentManifest, err := manifests.GenerateWegoAppDeploymentManifest(manifests.WegoAppDeployment)
+		version := version.Version
+		if os.Getenv("IS_TEST_ENV") != "" {
+			version = "latest"
+		}
+
+		wegoAppDeploymentManifest, err := manifests.GenerateWegoAppDeploymentManifest(version)
 		if err != nil {
 			return nil, fmt.Errorf("error generating wego-app deployment, %w", err)
 		}
