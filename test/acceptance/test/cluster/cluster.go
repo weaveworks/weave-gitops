@@ -6,10 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/boltdb/bolt"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gexec"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -18,6 +14,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/boltdb/bolt"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -25,26 +26,26 @@ const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
 
 var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
-type Cluster struct {
+type KindCluster struct {
 	Name           string
 	Context        string
 	KubeConfigPath string
 }
 
-func NewCluster(name string, context string, kubeConfigPath string) *Cluster {
-	return &Cluster{
+func NewCluster(name string, context string, kubeConfigPath string) *KindCluster {
+	return &KindCluster{
 		Name:           name,
 		Context:        context,
 		KubeConfigPath: kubeConfigPath,
 	}
 }
 
-func (c *Cluster) CleanUp() {
+func (c *KindCluster) CleanUp() {
 	c.delete()
 	c.deleteKubeConfigFile()
 }
 
-func (c *Cluster) delete() {
+func (c *KindCluster) delete() {
 	cmd := fmt.Sprintf("kind delete cluster --name %s --kubeconfig %s", c.Name, c.KubeConfigPath)
 	command := exec.Command("sh", "-c", cmd)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -52,61 +53,42 @@ func (c *Cluster) delete() {
 	Eventually(session).Should(gexec.Exit())
 }
 
-func (c *Cluster) deleteKubeConfigFile() {
+func (c *KindCluster) deleteKubeConfigFile() {
 	err := os.RemoveAll(c.KubeConfigPath)
 	Expect(err).ShouldNot(HaveOccurred())
 }
 
-// TODO: Start generating unit tests for ClusterPool
-// TODO: Remove last kubeconfigfile and last cluster after error or on end
-// TODO: Hability to pass in the name of the cluster you want
-// TODO: Generalize paths of kubeconfig, etc.
-
-func CreateKindCluster(ctx context.Context, rootKubeConfigFilesPath string) (*Cluster, error) {
-	supportedProviders := "kind"
+func CreateKindCluster(ctx context.Context, rootKubeConfigFilesPath string) (*KindCluster, error) {
 	supportedK8SVersions := "1.19.1, 1.20.2, 1.21.1"
-
-	provider, found := os.LookupEnv("CLUSTER_PROVIDER")
-	if !found {
-		provider = "kind"
-	}
 
 	k8sVersion, found := os.LookupEnv("K8S_VERSION")
 	if !found {
 		k8sVersion = "1.20.2"
 	}
 
-	if !strings.Contains(supportedProviders, provider) {
-		log.Errorf("Cluster provider %s is not supported for testing", provider)
-		return nil, errors.New("Unsupported provider")
-	}
-
 	if !strings.Contains(supportedK8SVersions, k8sVersion) {
 		log.Errorf("Kubernetes version %s is not supported for testing", k8sVersion)
-		return nil, errors.New("Unsupported kubernetes version")
+		return nil, errors.New("unsupported kubernetes version")
 	}
 
-	var cluster *Cluster
+	var cluster *KindCluster
 
-	if provider == "kind" {
-		clusterName := RandString(30)
-		kubeConfigFile := "kube-config-" + clusterName
-		kubeConfigPath := filepath.Join(string(rootKubeConfigFilesPath), kubeConfigFile)
-		log.Infof("Creating a kind cluster %s", clusterName)
+	clusterName := RandString(30)
+	kubeConfigFile := "kube-config-" + clusterName
+	kubeConfigPath := filepath.Join(string(rootKubeConfigFilesPath), kubeConfigFile)
+	log.Infof("Creating a kind cluster %s", clusterName)
 
-		c := fmt.Sprintf("kind create cluster --name=%s --kubeconfig %s --image=%s --config=configs/kind-config.yaml --wait 5m", clusterName, kubeConfigPath, "kindest/node:v"+k8sVersion)
-		cmd := exec.CommandContext(ctx, "sh", "-c", c)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		err := cmd.Run()
-		if err != nil {
-			log.Infof("Failed to create kind cluster")
-			log.Fatal(err)
-			return nil, err
-		}
-		cluster = NewCluster(clusterName, "kind-"+clusterName, kubeConfigPath)
-
+	c := fmt.Sprintf("kind create cluster --name=%s --kubeconfig %s --image=%s --config=configs/kind-config.yaml --wait 5m", clusterName, kubeConfigPath, "kindest/node:v"+k8sVersion)
+	cmd := exec.CommandContext(ctx, "sh", "-c", c)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	if err != nil {
+		log.Infof("Failed to create kind cluster")
+		log.Fatal(err)
+		return nil, err
 	}
+	cluster = NewCluster(clusterName, "kind-"+clusterName, kubeConfigPath)
 
 	return cluster, nil
 }
@@ -155,14 +137,14 @@ func (c *Cluster2) delete() {
 	command.Stdout = os.Stdout
 	command.Stderr = os.Stderr
 	if err := command.Run(); err != nil {
-		fmt.Printf("ERROR deleting cluster %s\n", err)
+		fmt.Printf("error deleting cluster %s\n", err)
 	}
 }
 
 func (c *Cluster2) deleteKubeConfigFile() {
 	err := os.RemoveAll(c.KubeConfigPath)
 	if err != nil {
-		fmt.Printf("ERROR deleting kubeconfig %s\n", err)
+		fmt.Printf("error deleting kubeconfig %s\n", err)
 	}
 }
 
@@ -200,7 +182,7 @@ func CreateClusterDB(dbPath string) error {
 	})
 }
 
-func CreateClusterRecord2(dbPath string, cluster Cluster) error {
+func CreateClusterRecord2(dbPath string, cluster KindCluster) error {
 
 	db, err := bolt.Open(filepath.Join(dbPath, CLUSTER_DB), 0755, &bolt.Options{})
 	if err != nil {
@@ -329,51 +311,36 @@ func UpdateClusterToDeleted(dbPath []byte, clusterID []byte, cluster Cluster2) e
 	})
 }
 
-type ClusterPool2 struct {
-	errOnGenerate             []error
+type ClusterPool struct {
 	listenToRequestedClusters bool
 	sync.RWMutex
 }
 
-func (c *ClusterPool2) Errors() []error {
-	c.Lock()
-	defer c.Unlock()
-	return c.errOnGenerate
+func NewClusterPool() *ClusterPool {
+	return &ClusterPool{listenToRequestedClusters: true}
 }
 
-func NewClusterPool2() *ClusterPool2 {
-	return &ClusterPool2{listenToRequestedClusters: true, errOnGenerate: make([]error, 0)}
-}
-
-func (c *ClusterPool2) End() {
+func (c *ClusterPool) End() {
 	c.Lock()
 	c.listenToRequestedClusters = false
 	c.Unlock()
-
 }
 
-func (c *ClusterPool2) AppendError(err error) {
-	c.Lock()
-	c.errOnGenerate = append(c.errOnGenerate, err)
-	c.Unlock()
-	gexec.Kill()
-}
-
-func (c *ClusterPool2) IsListeningToRequestedClusters() bool {
+func (c *ClusterPool) IsListeningToRequestedClusters() bool {
 	c.Lock()
 	defer c.Unlock()
 	return c.listenToRequestedClusters
 }
 
 // CreateClusterOnRequest
-func (c *ClusterPool2) CreateClusterOnRequest(ctx context.Context, dbPath string) {
+func (c *ClusterPool) CreateClusterOnRequest(ctx context.Context, dbPath string) {
 	// iterate over all register until find REQUESTED
 
 	for c.IsListeningToRequestedClusters() {
 
 		db, err := bolt.Open(filepath.Join(dbPath, CLUSTER_DB), 0755, &bolt.Options{})
 		if err != nil {
-			c.AppendError(fmt.Errorf("error opening db %w", err))
+			log.Fatal(fmt.Errorf("error opening db %w", err))
 		}
 
 		var kClusterID []byte
@@ -397,24 +364,24 @@ func (c *ClusterPool2) CreateClusterOnRequest(ctx context.Context, dbPath string
 			})
 		})
 		if err != nil {
-			c.AppendError(fmt.Errorf("error on db batch %w", err))
+			log.Fatal(fmt.Errorf("error on db batch %w", err))
 		}
 		err = db.Close()
 		if err != nil {
-			c.AppendError(fmt.Errorf("error closing db connection %w", err))
+			log.Fatal(fmt.Errorf("error closing db connection %w", err))
 		}
 
 		if kClusterID != nil {
 
 			kindCluster, err := CreateKindCluster(ctx, dbPath)
 			if err != nil {
-				c.AppendError(fmt.Errorf("error creating kind cluster %w", err))
+				log.Fatal(fmt.Errorf("error creating kind cluster %w", err))
 			}
 
 			if kindCluster != nil {
 				db, err = bolt.Open(filepath.Join(dbPath, CLUSTER_DB), 0755, &bolt.Options{})
 				if err != nil {
-					c.AppendError(fmt.Errorf("error opening db %w", err))
+					log.Fatal(fmt.Errorf("error opening db %w", err))
 				}
 				err = db.Update(func(tx *bolt.Tx) error {
 					b := tx.Bucket([]byte(CLUSTER_TABLE))
@@ -430,11 +397,11 @@ func (c *ClusterPool2) CreateClusterOnRequest(ctx context.Context, dbPath string
 					return err
 				})
 				if err != nil {
-					c.AppendError(fmt.Errorf("error on db update %w", err))
+					log.Fatal(fmt.Errorf("error on db update %w", err))
 				}
 				err = db.Close()
 				if err != nil {
-					c.AppendError(fmt.Errorf("error closing db connection %w", err))
+					log.Fatal(fmt.Errorf("error closing db connection %w", err))
 				}
 			}
 		}
@@ -443,18 +410,18 @@ func (c *ClusterPool2) CreateClusterOnRequest(ctx context.Context, dbPath string
 	}
 }
 
-func (c *ClusterPool2) GenerateClusters2(dbPath string, clusterCount int) {
+func (c *ClusterPool) GenerateClusters(dbPath string, clusterCount int) {
 
 	ctx := context.Background()
 
-	clusters := make(chan *Cluster, clusterCount)
+	clusters := make(chan *KindCluster, clusterCount)
 	done := make(chan bool, 1)
 	go func() {
 		for cluster := range clusters {
 			if cluster != nil {
 				err := CreateClusterRecord2(dbPath, *cluster)
 				if err != nil {
-					c.AppendError(fmt.Errorf("error creating record %w", err))
+					log.Fatal(fmt.Errorf("error creating record %w", err))
 				}
 			}
 		}
@@ -469,7 +436,7 @@ func (c *ClusterPool2) GenerateClusters2(dbPath string, clusterCount int) {
 			defer wg.Done()
 			kindCluster, err := CreateKindCluster(ctx, dbPath)
 			if err != nil {
-				c.AppendError(fmt.Errorf("error creating kind cluster %w", err))
+				log.Fatal(fmt.Errorf("error creating kind cluster %w", err))
 			}
 			clusters <- kindCluster
 		}()
