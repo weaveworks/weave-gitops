@@ -21,7 +21,7 @@ var _ = Describe("Weave GitOps Version Tests", func() {
 	It("SmokeTest - Verify that command gitops version prints the version information", func() {
 
 		By("When I run the command 'gitops version'", func() {
-			session = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " version","")
+			session = runCommandAndReturnSessionOutput(WEGO_BIN_PATH+" version", "")
 		})
 
 		By("Then I should see the gitops version printed in format vm.n.n with newline character", func() {

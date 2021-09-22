@@ -30,7 +30,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 	It("Validate that gitops displays help text for 'install' command", func() {
 
 		By("When I run the command 'gitops install -h'", func() {
-			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " install -h","")
+			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH+" install -h", "")
 		})
 
 		By("Then I should see gitops help text displayed for 'install' command", func() {
@@ -42,7 +42,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 	It("Validate that gitops displays help text for 'uninstall' command", func() {
 
 		By("When I run the command 'gitops uninstall -h'", func() {
-			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " uninstall -h","")
+			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH+" uninstall -h", "")
 		})
 
 		By("Then I should see gitops help text displayed for 'uninstall' command", func() {
@@ -58,17 +58,17 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		defer deleteNamespace(namespace)
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true,"")
+			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true, "")
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
 		By("When I create a '"+namespace+"' namespace", func() {
-			namespaceCreatedMsg := runCommandAndReturnSessionOutput("kubectl create ns " + namespace,"")
+			namespaceCreatedMsg := runCommandAndReturnSessionOutput("kubectl create ns "+namespace, "")
 			Eventually(namespaceCreatedMsg).Should(gbytes.Say("namespace/" + namespace + " created"))
 		})
 
 		By("And I run 'gitops install' command", func() {
-			_, errOutput = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " install","")
+			_, errOutput = runCommandAndReturnStringOutput(WEGO_BIN_PATH+" install", "")
 		})
 
 		By("Then I should see a quitting message", func() {
@@ -82,20 +82,20 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		namespace := "test-namespace"
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(namespace, true,"")
+			_, err := ResetOrCreateCluster(namespace, true, "")
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
-		installAndVerifyWego(namespace,"")
+		installAndVerifyWego(namespace, "")
 
 		By("When I run 'gitops uninstall' command", func() {
 			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, namespace))
 		})
 
-		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT,"")
+		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT, "")
 
 		By("Then I should not see any gitops components", func() {
-			_, errOutput := runCommandAndReturnStringOutput("kubectl get ns " + namespace,"")
+			_, errOutput := runCommandAndReturnStringOutput("kubectl get ns "+namespace, "")
 			Eventually(errOutput).Should(ContainSubstring(`Error from server (NotFound): namespaces "` + namespace + `" not found`))
 		})
 	})
@@ -105,11 +105,11 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		namespace := "test-namespace"
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(namespace, true,"")
+			_, err := ResetOrCreateCluster(namespace, true, "")
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
-		installAndVerifyWego(namespace,"")
+		installAndVerifyWego(namespace, "")
 
 		ctx := context.Background()
 
@@ -124,10 +124,10 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 			Expect(runErr).ShouldNot(HaveOccurred())
 		})
 
-		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT,"")
+		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT, "")
 
 		By("Then I should not see any gitops components", func() {
-			_, errOutput := runCommandAndReturnStringOutput("kubectl get ns " + namespace,"")
+			_, errOutput := runCommandAndReturnStringOutput("kubectl get ns "+namespace, "")
 			Eventually(errOutput).Should(ContainSubstring(`Error from server (NotFound): namespaces "` + namespace + `" not found`))
 		})
 	})
@@ -138,12 +138,12 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		var uninstallDryRunOutput string
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true,"")
+			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true, "")
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
 		By("When I try to install gitops in dry-run mode", func() {
-			installDryRunOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " install --dry-run","")
+			installDryRunOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH+" install --dry-run", "")
 		})
 
 		By("Then I should see install dry-run output in the console", func() {
@@ -153,14 +153,14 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 
 		By("And gitops components should be absent from the cluster", func() {
-			_, err := runCommandAndReturnStringOutput("kubectl get ns " + WEGO_DEFAULT_NAMESPACE,"")
+			_, err := runCommandAndReturnStringOutput("kubectl get ns "+WEGO_DEFAULT_NAMESPACE, "")
 			Eventually(err).Should(ContainSubstring(`Error from server (NotFound): namespaces "` + WEGO_DEFAULT_NAMESPACE + `" not found`))
 		})
 
-		installAndVerifyWego(WEGO_DEFAULT_NAMESPACE,"")
+		installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, "")
 
 		By("When I try to uninstall gitops in dry-run mode", func() {
-			uninstallDryRunOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " uninstall --dry-run","")
+			uninstallDryRunOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH+" uninstall --dry-run", "")
 		})
 
 		By("Then I should see uninstall dry-run output in the console", func() {
@@ -176,17 +176,17 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 
 		By("And gitops components should be present in the cluster", func() {
-			VerifyControllersInCluster(WEGO_DEFAULT_NAMESPACE,"")
+			VerifyControllersInCluster(WEGO_DEFAULT_NAMESPACE, "")
 		})
 
 		By("When I run 'gitops uninstall' command", func() {
 			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, WEGO_DEFAULT_NAMESPACE))
 		})
 
-		_ = waitForNamespaceToTerminate(WEGO_DEFAULT_NAMESPACE, NAMESPACE_TERMINATE_TIMEOUT,"")
+		_ = waitForNamespaceToTerminate(WEGO_DEFAULT_NAMESPACE, NAMESPACE_TERMINATE_TIMEOUT, "")
 
 		By("Then I should not see any gitops components", func() {
-			_, errOutput := runCommandAndReturnStringOutput("kubectl get ns " + WEGO_DEFAULT_NAMESPACE,"")
+			_, errOutput := runCommandAndReturnStringOutput("kubectl get ns "+WEGO_DEFAULT_NAMESPACE, "")
 			Eventually(errOutput).Should(ContainSubstring(`Error from server (NotFound): namespaces "` + WEGO_DEFAULT_NAMESPACE + `" not found`))
 		})
 	})
