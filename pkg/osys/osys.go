@@ -3,8 +3,6 @@ package osys
 import (
 	"errors"
 	"os"
-
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -12,7 +10,7 @@ import (
 //counterfeiter:generate . Osys
 type Osys interface {
 	UserHomeDir() (string, error)
-	GetGitProviderToken(providerName gitproviders.GitProviderName) (string, error)
+	GetGitProviderToken(tokenVarName string) (string, error)
 	Getenv(envVar string) string
 	LookupEnv(envVar string) (string, bool)
 	Setenv(envVar, value string) error
@@ -58,19 +56,8 @@ func (o *OsysClient) Unsetenv(envVar string) error {
 
 var ErrNoGitProviderTokenSet = errors.New("no git provider token env variable set")
 
-func (o *OsysClient) GetGitProviderToken(providerName gitproviders.GitProviderName) (string, error) {
-	var providerToken string
-
-	var found bool
-
-	switch providerName {
-	case gitproviders.GitProviderGitHub:
-		providerToken, found = o.LookupEnv("GITHUB_TOKEN")
-	case gitproviders.GitProviderGitLab:
-		providerToken, found = o.LookupEnv("GITLAB_TOKEN")
-	default:
-		return "", ErrNoGitProviderTokenSet
-	}
+func (o *OsysClient) GetGitProviderToken(tokenVarName string) (string, error) {
+	providerToken, found := o.LookupEnv(tokenVarName)
 
 	if !found || providerToken == "" {
 		return "", ErrNoGitProviderTokenSet

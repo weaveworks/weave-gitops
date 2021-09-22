@@ -140,7 +140,7 @@ var _ = Describe("auth", func() {
 			Context("informs the user that she can use a token for auth", func() {
 				BeforeEach(func() {
 					osysClient = &osysfakes.FakeOsys{
-						GetGitProviderTokenStub: func(providerName gitproviders.GitProviderName) (string, error) {
+						GetGitProviderTokenStub: func(tokenVarName string) (string, error) {
 							return "", osys.ErrNoGitProviderTokenSet
 						},
 					}
@@ -160,7 +160,7 @@ var _ = Describe("auth", func() {
 			Context("displays no message if token is set", func() {
 				BeforeEach(func() {
 					osysClient = &osysfakes.FakeOsys{
-						GetGitProviderTokenStub: func(providerName gitproviders.GitProviderName) (string, error) {
+						GetGitProviderTokenStub: func(tokenVarName string) (string, error) {
 							return "token", nil
 						},
 					}
