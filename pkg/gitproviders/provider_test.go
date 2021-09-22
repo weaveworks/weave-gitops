@@ -863,7 +863,7 @@ var _ = Describe("helpers", func() {
 	},
 		Entry("ssh+github", "ssh://git@github.com/weaveworks/weave-gitops.git", GitProviderGitHub),
 		Entry("ssh+gitlab", "ssh://git@gitlab.com/weaveworks/weave-gitops.git", GitProviderGitLab),
-		Entry("ssh+gitlab", "git@gitlab.com:gogittest/sub-group/nginxsub.git", GitProviderGitLab),
+		Entry("ssh+gitlab with subgroups", "git@gitlab.com:gogittest/sub-group/nginxsub.git", GitProviderGitLab),
 	)
 
 })

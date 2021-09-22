@@ -272,7 +272,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("SmokeMy - Verify that gitops can deploy and remove a gitlab app that belongs in a subgroup", func() {
+	It("Verify that gitops can deploy and remove a gitlab app that belongs in a subgroup", func() {
 		var repoAbsolutePath string
 		private := true
 		tip := generateTestInputs()

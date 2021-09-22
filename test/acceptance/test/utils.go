@@ -739,6 +739,10 @@ func createGitRepository(repoName, branch string, private bool, providerName git
 		domain = github.DefaultDomain
 	case gitproviders.GitProviderGitLab:
 		token := os.Getenv("GITLAB_TOKEN")
+		fmt.Println("-+-----------------------------------------------")
+		fmt.Println(token)
+		fmt.Println("-+-----------------------------------------------")
+
 		gitProvider, err = gitlab.NewClient(
 			token,
 			"oauth2",
