@@ -242,12 +242,6 @@ func initAndCreateEmptyRepo(appRepoName string, isPrivateRepo bool) string {
 	})
 	Expect(err).ShouldNot(HaveOccurred())
 
-	command := exec.Command("sh", "-c", fmt.Sprintf(`cd %s`,
-		repoAbsolutePath))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).NotTo(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
-
 	return repoAbsolutePath
 }
 
@@ -365,7 +359,7 @@ func VerifyControllersInCluster(namespace string) {
 	Expect(waitForResource("pods", "", namespace, INSTALL_PODS_READY_TIMEOUT))
 
 	By("And I wait for the gitops controllers to be ready", func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod", "120s", namespace))
+		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "120s", namespace))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
@@ -378,6 +372,7 @@ func installAndVerifyWego(wegoNamespace string) {
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, TIMEOUT_TWO_MINUTES).Should(gexec.Exit())
+		Expect(string(session.Err.Contents())).Should(BeEmpty())
 		VerifyControllersInCluster(wegoNamespace)
 	})
 }
@@ -557,7 +552,7 @@ func verifyWegoAddCommandWithDryRun(appRepoName string, wegoNamespace string) {
 func verifyWorkloadIsDeployed(workloadName string, workloadNamespace string) {
 	Expect(waitForResource("deploy", workloadName, workloadNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 	Expect(waitForResource("pods", "", workloadNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
-	command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=60s -n %s --all pods", workloadNamespace))
+	command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=60s -n %s --all pods --selector='app!=wego-app'", workloadNamespace))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())

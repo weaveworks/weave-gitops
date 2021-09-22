@@ -901,7 +901,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			createAppReplicas(repoAbsolutePath1, appManifestFile1, replicaSetValue, tip1.workloadName)
 			gitUpdateCommitPush(repoAbsolutePath1)
 			_ = waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIMEOUT)
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=100s -n %s --all pods", tip1.workloadNamespace))
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=100s -n %s --all pods --selector='app!=wego-app'", tip1.workloadNamespace))
 		})
 
 		By("And number of app replicas should remain same", func() {
@@ -927,7 +927,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("And I should see app replicas created in the cluster", func() {
 			_ = waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIMEOUT)
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=100s -n %s --all pods", tip1.workloadNamespace))
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=100s -n %s --all pods --selector='app!=wego-app'", tip1.workloadNamespace))
 			replicaOutput, _ := runCommandAndReturnStringOutput("kubectl get pods -n " + tip1.workloadNamespace + " --field-selector=status.phase=Running --no-headers=true | wc -l")
 			Expect(replicaOutput).To(ContainSubstring(strconv.Itoa(replicaSetValue)))
 		})
@@ -988,7 +988,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			_, commitList2 = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits", WEGO_BIN_PATH, appName2))
 		})
 
-		By("Then I should see the list of commits for app2", func() {
+		By("Then I should not see the list of commits for app2", func() {
 			Eventually(commitList2).Should(ContainSubstring(`Error:`))
 			Eventually(commitList2).Should(MatchRegexp(`\"` + appName2 + `\" not found`))
 		})
