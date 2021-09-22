@@ -285,10 +285,11 @@ func getGitRepoVisibility(org string, repo string, providerName gitproviders.Git
 		)
 		domain = github.DefaultDomain
 	case gitproviders.GitProviderGitLab:
+		token := os.Getenv("GITLAB_TOKEN")
 		gitProvider, err = gitlab.NewClient(
-			os.Getenv("GITLAB_TOKEN"),
+			token,
 			"oauth2",
-			gitprovider.WithOAuth2Token(os.Getenv("GITLAB_TOKEN")),
+			gitprovider.WithOAuth2Token(token),
 			gitprovider.WithDestructiveAPICalls(true),
 		)
 		domain = gitlab.DefaultDomain
@@ -737,10 +738,11 @@ func createGitRepository(repoName, branch string, private bool, providerName git
 
 		domain = github.DefaultDomain
 	case gitproviders.GitProviderGitLab:
+		token := os.Getenv("GITLAB_TOKEN")
 		gitProvider, err = gitlab.NewClient(
-			os.Getenv("GITLAB_TOKEN"),
+			token,
 			"oauth2",
-			gitprovider.WithOAuth2Token(os.Getenv("GITLAB_TOKEN")),
+			gitprovider.WithOAuth2Token(token),
 			gitprovider.WithDestructiveAPICalls(true),
 		)
 		if err != nil {
