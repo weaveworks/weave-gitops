@@ -100,8 +100,8 @@ jobs:
         GITHUB_ORG: weaveworks-gitops-test
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
-        GITLAB_ORG: weaveworks
-        GITLAB_SUBGROUP: weabe-gitops
+        GITLAB_ORG: gogittest
+        GITLAB_SUBGROUP: sub-group
         GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/gitops-${{matrix.os}}-nightly
@@ -186,8 +186,8 @@ jobs:
         GITHUB_ORG: weaveworks-gitops-test
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
-        GITLAB_ORG: weaveworks
-        GITLAB_SUBGROUP: weabe-gitops
+        GITLAB_ORG: gogittest
+        GITLAB_SUBGROUP: sub-group
         GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/gitops-${{matrix.os}}-nightly
