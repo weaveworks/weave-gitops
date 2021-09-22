@@ -10,7 +10,6 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
@@ -19,13 +18,18 @@ import (
 )
 
 func TestAcceptance(t *testing.T) {
+	defer func() {
+		if webDriver != nil {
+			filepath := takeScreenshot()
+			fmt.Printf("Failure screenshot is saved in file %s\n", filepath)
+		}
+	}()
 
 	if testing.Short() {
 		t.Skip("Skip User Acceptance Tests")
 	}
 
 	RegisterFailHandler(Fail)
-	//gomega.RegisterFailHandler(GomegaFail)
 	RunSpecs(t, "Weave GitOps User Acceptance Tests")
 }
 
@@ -71,15 +75,6 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	}
 	log.Infof("GITOPS Binary Path: %s", WEGO_BIN_PATH)
 })
-
-func GomegaFail(message string, callerSkip ...int) {
-	if webDriver != nil {
-		filepath := takeScreenshot()
-		fmt.Printf("Failure screenshot is saved in file %s\n", filepath)
-	}
-
-	ginkgo.Fail(message, callerSkip...)
-}
 
 var _ = SynchronizedAfterSuite(func() {
 }, func() {

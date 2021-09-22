@@ -75,20 +75,24 @@ func CreateKindCluster(ctx context.Context, rootKubeConfigFilesPath string) (*Ki
 
 	clusterName := RandString(30)
 	kubeConfigFile := "kube-config-" + clusterName
-	kubeConfigPath := filepath.Join(string(rootKubeConfigFilesPath), kubeConfigFile)
+	kubeConfigPath := filepath.Join(rootKubeConfigFilesPath, kubeConfigFile)
+
 	log.Infof("Creating a kind cluster %s", clusterName)
 
 	c := fmt.Sprintf("kind create cluster --name=%s --kubeconfig %s --image=%s --config=configs/kind-config.yaml --wait 5m", clusterName, kubeConfigPath, "kindest/node:v"+k8sVersion)
 	cmd := exec.CommandContext(ctx, "sh", "-c", c)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+
 	err := cmd.Run()
 	if err != nil {
-		log.Infof("Failed to create kind cluster")
+		log.Info("Failed to create kind cluster")
 		log.Fatal(err)
+
 		return nil, err
 	}
-	cluster = NewCluster(clusterName, "kind-"+clusterName, kubeConfigPath)
+
+	cluster = NewCluster(clusterName, fmt.Sprintf("kind-%s", clusterName), kubeConfigPath)
 
 	return cluster, nil
 }
@@ -98,6 +102,7 @@ func StringWithCharset(length int, charset string) string {
 	for i := range b {
 		b[i] = charset[seededRand.Intn(len(charset))]
 	}
+
 	return string(b)
 }
 
@@ -136,7 +141,9 @@ func (c *Cluster2) delete() {
 	command := exec.Command("sh", "-c", cmd)
 	command.Stdout = os.Stdout
 	command.Stderr = os.Stderr
-	if err := command.Run(); err != nil {
+
+	err := command.Run()
+	if err != nil {
 		fmt.Printf("error deleting cluster %s\n", err)
 	}
 }
@@ -166,6 +173,7 @@ func convertCluster2ToBytes(cluster Cluster2) []byte {
 func itob(v int) []byte {
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, uint64(v))
+
 	return b
 }
 
@@ -183,7 +191,6 @@ func CreateClusterDB(dbPath string) error {
 }
 
 func CreateClusterRecord2(dbPath string, cluster KindCluster) error {
-
 	db, err := bolt.Open(filepath.Join(dbPath, CLUSTER_DB), 0755, &bolt.Options{})
 	if err != nil {
 		return err
@@ -211,7 +218,6 @@ func CreateClusterRecord2(dbPath string, cluster KindCluster) error {
 }
 
 func RequestClusterCreation(dbPath []byte) error {
-
 	db, err := bolt.Open(filepath.Join(string(dbPath), CLUSTER_DB), 0755, &bolt.Options{})
 	if err != nil {
 		return err
@@ -224,13 +230,13 @@ func RequestClusterCreation(dbPath []byte) error {
 		clusterID := itob(int(id))
 		return b.Put(clusterID, convertCluster2ToBytes(Cluster2{Status: ClusterRequested}))
 	})
-
 }
 
 func FindCreatedClusterAndAssignItToSomeRecord(dbPath []byte) ([]byte, Cluster2, error) {
-
 	var cc Cluster2
+
 	var kClusterID []byte
+
 	for {
 		cc = Cluster2{Name: ""}
 		kClusterID = make([]byte, 0)
@@ -329,21 +335,20 @@ func (c *ClusterPool) End() {
 func (c *ClusterPool) IsListeningToRequestedClusters() bool {
 	c.Lock()
 	defer c.Unlock()
+
 	return c.listenToRequestedClusters
 }
 
 // CreateClusterOnRequest
 func (c *ClusterPool) CreateClusterOnRequest(ctx context.Context, dbPath string) {
-	// iterate over all register until find REQUESTED
-
 	for c.IsListeningToRequestedClusters() {
-
 		db, err := bolt.Open(filepath.Join(dbPath, CLUSTER_DB), 0755, &bolt.Options{})
 		if err != nil {
 			log.Fatal(fmt.Errorf("error opening db %w", err))
 		}
 
 		var kClusterID []byte
+
 		err = db.Batch(func(tx *bolt.Tx) error {
 			b := tx.Bucket([]byte(CLUSTER_TABLE))
 			return b.ForEach(func(clusterID, v []byte) error {
@@ -363,16 +368,18 @@ func (c *ClusterPool) CreateClusterOnRequest(ctx context.Context, dbPath string)
 				return nil
 			})
 		})
+
 		if err != nil {
 			log.Fatal(fmt.Errorf("error on db batch %w", err))
 		}
+
 		err = db.Close()
+
 		if err != nil {
 			log.Fatal(fmt.Errorf("error closing db connection %w", err))
 		}
 
 		if kClusterID != nil {
-
 			kindCluster, err := CreateKindCluster(ctx, dbPath)
 			if err != nil {
 				log.Fatal(fmt.Errorf("error creating kind cluster %w", err))
@@ -383,6 +390,7 @@ func (c *ClusterPool) CreateClusterOnRequest(ctx context.Context, dbPath string)
 				if err != nil {
 					log.Fatal(fmt.Errorf("error opening db %w", err))
 				}
+
 				err = db.Update(func(tx *bolt.Tx) error {
 					b := tx.Bucket([]byte(CLUSTER_TABLE))
 					cluster := NewCluster2(kindCluster.Name, kindCluster.Context, kindCluster.KubeConfigPath, ClusterCreated)
@@ -396,10 +404,13 @@ func (c *ClusterPool) CreateClusterOnRequest(ctx context.Context, dbPath string)
 					}
 					return err
 				})
+
 				if err != nil {
 					log.Fatal(fmt.Errorf("error on db update %w", err))
 				}
+
 				err = db.Close()
+
 				if err != nil {
 					log.Fatal(fmt.Errorf("error closing db connection %w", err))
 				}
@@ -411,11 +422,11 @@ func (c *ClusterPool) CreateClusterOnRequest(ctx context.Context, dbPath string)
 }
 
 func (c *ClusterPool) GenerateClusters(dbPath string, clusterCount int) {
-
 	ctx := context.Background()
 
 	clusters := make(chan *KindCluster, clusterCount)
 	done := make(chan bool, 1)
+
 	go func() {
 		for cluster := range clusters {
 			if cluster != nil {
@@ -432,9 +443,12 @@ func (c *ClusterPool) GenerateClusters(dbPath string, clusterCount int) {
 
 	for i := 0; i < clusterCount; i++ {
 		wg.Add(1)
+
 		go func() {
 			defer wg.Done()
+
 			kindCluster, err := CreateKindCluster(ctx, dbPath)
+
 			if err != nil {
 				log.Fatal(fmt.Errorf("error creating kind cluster %w", err))
 			}
@@ -447,5 +461,4 @@ func (c *ClusterPool) GenerateClusters(dbPath string, clusterCount int) {
 	close(clusters)
 
 	<-done
-
 }

@@ -286,6 +286,7 @@ func waitForResource(resourceType string, resourceName string, namespace string,
 	for i := pollInterval; i < timeoutInSeconds; i += pollInterval {
 		log.Infof("Waiting for %s in namespace: %s... : %d second(s) passed of %d seconds timeout", resourceType+"/"+resourceName, namespace, i, timeoutInSeconds)
 		err := runCommandPassThroughWithoutOutput([]string{fmt.Sprintf("KUBECONFIG=%s", kubeConfigPath)}, "sh", "-c", fmt.Sprintf("kubectl get %s %s -n %s", resourceType, resourceName, namespace))
+
 		if err == nil {
 			log.Infof("%s is available in cluster", resourceType+"/"+resourceName)
 			command := exec.Command("sh", "-c", fmt.Sprintf("kubectl get %s %s -n %s", resourceType, resourceName, namespace))
@@ -387,6 +388,7 @@ func uninstallWegoRuntime(namespace string, kubeConfigPath string) {
 	if os.Getenv(CI) != "" {
 		log.Infof("About to delete Gitops runtime from namespace: %s", namespace)
 		err := runCommandPassThrough([]string{}, kubeConfigPath, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
+
 		if err != nil {
 			log.Infof("Failed to uninstall the gitops runtime %s", namespace)
 		}
@@ -395,6 +397,7 @@ func uninstallWegoRuntime(namespace string, kubeConfigPath string) {
 		if err != nil {
 			log.Infof("Failed to delete crd apps.wego.weave.works")
 		}
+
 		Expect(waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT, kubeConfigPath)).To(Succeed())
 	}
 }
@@ -485,9 +488,11 @@ func waitForAppRemoval(appName string, timeout time.Duration) error {
 func runCommandPassThrough(env []string, kubeConfigPath string, name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
 	cmd.Env = os.Environ()
+
 	if len(env) > 0 {
 		cmd.Env = env
 	}
+
 	if os.Getenv(CI) == "" {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("KUBECONFIG=%s", kubeConfigPath))
 	}
@@ -501,6 +506,7 @@ func runCommandPassThrough(env []string, kubeConfigPath string, name string, arg
 func runCommandPassThroughWithoutOutput(env []string, name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
 	cmd.Env = os.Environ()
+
 	if len(env) > 0 {
 		cmd.Env = append(cmd.Env, env[0])
 	}
@@ -509,13 +515,15 @@ func runCommandPassThroughWithoutOutput(env []string, name string, arg ...string
 }
 
 func runCommandAndReturnStringOutput(commandToRun string, kubeConfigPath string) (stdOut string, stdErr string) {
-	fmt.Println("COMMAND", commandToRun)
 	command := exec.Command("sh", "-c", commandToRun)
+
 	if kubeConfigPath != "" {
 		command.Env = os.Environ()
 		command.Env = append(command.Env, fmt.Sprintf("KUBECONFIG=%s", kubeConfigPath))
 	}
+
 	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+
 	Eventually(session).Should(gexec.Exit())
 
 	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
