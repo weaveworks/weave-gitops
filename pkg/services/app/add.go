@@ -241,7 +241,9 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 		if err != nil {
 			return params, fmt.Errorf("error normalizing url: %w", err)
 		}
+
 		params.Url = normalizedUrl.String()
+
 		// resetting Dir param since Url has priority over it
 		params.Dir = ""
 	}

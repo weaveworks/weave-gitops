@@ -62,13 +62,9 @@ func getGitProviderWithClients(
 	osysClient osys.Osys,
 	authHandler BlockingCLIAuthHandler,
 	logger logger.Logger) (gitproviders.GitProvider, error) {
-	tokenVarName, err := getTokenVarName(providerName)
-	if err != nil {
-		return nil, fmt.Errorf("could not determine git provider token name: %w", err)
-	}
+	token, tokenErr := osysClient.GetGitProviderToken(providerName)
 
-	token, err := osysClient.GetGitProviderToken(tokenVarName)
-	if err == osys.ErrNoGitProviderTokenSet {
+	if tokenErr == osys.ErrNoGitProviderTokenSet {
 		// No provider token set, we need to do the auth flow.
 		logger.Warningf("Setting the %q environment variable to a valid token will allow ongoing use of the CLI without requiring a browser-based auth flow...\n", tokenErr)
 

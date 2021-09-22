@@ -272,8 +272,11 @@ func createGitRepoBranch(repoAbsolutePath string, branchName string) string {
 
 func getGitRepoVisibility(org string, repo string, providerName gitproviders.GitProviderName) string {
 	var gitProvider gitprovider.Client
+
 	var err error
+
 	var domain string
+
 	switch providerName {
 	case gitproviders.GitProviderGitHub:
 		gitProvider, err = github.NewClient(
@@ -292,6 +295,7 @@ func getGitRepoVisibility(org string, repo string, providerName gitproviders.Git
 	default:
 		Fail("invalid git provider")
 	}
+
 	Expect(err).ShouldNot(HaveOccurred())
 
 	orgRef := gitprovider.OrgRepositoryRef{
@@ -716,7 +720,9 @@ func createGitRepository(repoName, branch string, private bool, providerName git
 	}
 
 	var gitProvider gitprovider.Client
+
 	var err error
+
 	var domain string
 
 	switch providerName {
@@ -728,6 +734,7 @@ func createGitRepository(repoName, branch string, private bool, providerName git
 		if err != nil {
 			return err
 		}
+
 		domain = github.DefaultDomain
 	case gitproviders.GitProviderGitLab:
 		gitProvider, err = gitlab.NewClient(
@@ -739,6 +746,7 @@ func createGitRepository(repoName, branch string, private bool, providerName git
 		if err != nil {
 			return err
 		}
+
 		domain = gitlab.DefaultDomain
 	default:
 		Fail("invalid git provider")
