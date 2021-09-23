@@ -27,23 +27,24 @@ func (g *Gitops) Uninstall(params UninstallParams) error {
 
 	errorOccurred := false
 
-	fluxErr := g.flux.Uninstall(params.Namespace, params.DryRun)
-	if fluxErr != nil {
-		g.logger.Printf("received error uninstalling flux: %q, continuing with uninstall", fluxErr)
-
-		errorOccurred = true
-	}
-
 	if params.DryRun {
-		g.logger.Actionf("Deleting App CRD")
+		g.logger.Actionf("Deleting Weave Gitops manifests")
 	} else {
-		if crdErr := g.kube.Delete(ctx, manifests.AppCRD); crdErr != nil {
-			if !apierrors.IsNotFound(crdErr) {
-				g.logger.Printf("received error uninstalling app CRD: %q", crdErr)
+		for _, manifest := range manifests.Manifests {
+			if err := g.kube.Delete(ctx, manifest); err != nil {
+				if !apierrors.IsNotFound(err) {
+					g.logger.Printf("received error deleting manifest: %q", err)
 
-				errorOccurred = true
+					errorOccurred = true
+				}
 			}
 		}
+	}
+
+	if err := g.flux.Uninstall(params.Namespace, params.DryRun); err != nil {
+		g.logger.Printf("received error uninstalling flux: %q, continuing with uninstall", err)
+
+		errorOccurred = true
 	}
 
 	if errorOccurred {
