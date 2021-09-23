@@ -7,6 +7,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/manifests"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
@@ -40,7 +41,7 @@ func checkFluxUninstallFailure() {
 }
 
 func checkAppCRDUninstallFailure() {
-	crdErrMsg := "CRD uninstall failed"
+	manifestsErrMsg := "wego manifests uninstall failed"
 
 	loggedMsg := ""
 	logger.PrintfStub = func(str string, args ...interface{}) {
@@ -48,16 +49,16 @@ func checkAppCRDUninstallFailure() {
 	}
 
 	kubeClient.DeleteStub = func(ctx context.Context, manifest []byte) error {
-		return errors.New(crdErrMsg)
+		return errors.New(manifestsErrMsg)
 	}
 
 	err := gitopsSrv.Uninstall(uninstallParams)
 
-	Expect(loggedMsg).To(Equal(fmt.Sprintf("received error uninstalling app CRD: %q", crdErrMsg)))
+	Expect(loggedMsg).To(Equal(fmt.Sprintf("received error deleting manifest: %q", manifestsErrMsg)))
 	Expect(err).To(MatchError(gitops.UninstallError{}))
 	Expect(kubeClient.GetClusterStatusCallCount()).To(Equal(1))
 	Expect(fluxClient.UninstallCallCount()).To(Equal(1))
-	Expect(kubeClient.DeleteCallCount()).To(Equal(1))
+	Expect(kubeClient.DeleteCallCount()).To(Equal(len(manifests.Manifests)))
 
 	namespace, dryRun := fluxClient.UninstallArgsForCall(0)
 	Expect(namespace).To(Equal("wego-system"))
@@ -167,14 +168,16 @@ var _ = Describe("Uninstall", func() {
 		checkAppCRDUninstallFailure()
 	})
 
-	It("deletes app crd", func() {
+	It("deletes weave gitops manifests", func() {
 		err := gitopsSrv.Uninstall(uninstallParams)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		Expect(kubeClient.DeleteCallCount()).To(Equal(1))
+		Expect(kubeClient.DeleteCallCount()).To(Equal(len(manifests.Manifests)))
 
-		_, appCRD := kubeClient.DeleteArgsForCall(0)
-		Expect(appCRD).To(ContainSubstring("kind: App"))
+		for i, m := range manifests.Manifests {
+			_, appCRD := kubeClient.DeleteArgsForCall(i)
+			Expect(appCRD).To(Equal(m))
+		}
 	})
 
 	Context("when dry-run", func() {
