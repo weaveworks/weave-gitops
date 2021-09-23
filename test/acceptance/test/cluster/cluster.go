@@ -341,84 +341,101 @@ func (c *ClusterPool) IsListeningToRequestedClusters() bool {
 
 // CreateClusterOnRequest
 func (c *ClusterPool) CreateClusterOnRequest(ctx context.Context, dbPath string) {
-	for c.IsListeningToRequestedClusters() {
-		db, err := bolt.Open(filepath.Join(dbPath, CLUSTER_DB), 0755, &bolt.Options{})
-		if err != nil {
-			log.Fatal(fmt.Errorf("error opening db %w", err))
-		}
 
-		var kClusterID []byte
+	clusterIDs := make(chan []byte, 1)
 
-		err = db.Batch(func(tx *bolt.Tx) error {
-			b := tx.Bucket([]byte(CLUSTER_TABLE))
-			return b.ForEach(func(clusterID, v []byte) error {
-				c := Cluster2{}
-				err := json.Unmarshal(v, &c)
-				if err != nil {
-					return fmt.Errorf("error on unmarshal on iteration0 %w", err)
-				}
+	go func() {
+		for c.IsListeningToRequestedClusters() {
+			db, err := bolt.Open(filepath.Join(dbPath, CLUSTER_DB), 0755, &bolt.Options{})
+			if err != nil {
+				log.Fatal(fmt.Errorf("error opening db %w", err))
+			}
 
-				if c.Status == ClusterRequested && kClusterID == nil {
-					kClusterID = clusterID
-					c.Status = ClusterCreating
-					if err = b.Put(kClusterID, convertCluster2ToBytes(c)); err != nil {
-						return fmt.Errorf("error on unmarshal on iteration3 %w", err)
+			var kClusterID []byte
+
+			err = db.Batch(func(tx *bolt.Tx) error {
+				b := tx.Bucket([]byte(CLUSTER_TABLE))
+				return b.ForEach(func(clusterID, v []byte) error {
+					c := Cluster2{}
+					err := json.Unmarshal(v, &c)
+					if err != nil {
+						return fmt.Errorf("error on unmarshal on iteration0 %w", err)
 					}
-				}
-				return nil
+
+					if c.Status == ClusterRequested && kClusterID == nil {
+						kClusterID = append(make([]byte, 0, len(clusterID)), clusterID...)
+						c.Status = ClusterCreating
+						if err = b.Put(kClusterID, convertCluster2ToBytes(c)); err != nil {
+							return fmt.Errorf("error on unmarshal on iteration3 %w", err)
+						}
+					}
+					return nil
+				})
 			})
-		})
 
-		if err != nil {
-			log.Fatal(fmt.Errorf("error on db batch %w", err))
+			if err != nil {
+				log.Fatal(fmt.Errorf("error on db batch %w", err))
+			}
+
+			err = db.Close()
+
+			if err != nil {
+				log.Fatal(fmt.Errorf("error closing db connection %w", err))
+			}
+
+			if kClusterID != nil {
+				clusterIDs <- kClusterID
+			}
+
+			time.Sleep(time.Second * 10)
 		}
 
-		err = db.Close()
+		close(clusterIDs)
+	}()
 
-		if err != nil {
-			log.Fatal(fmt.Errorf("error closing db connection %w", err))
-		}
-
-		if kClusterID != nil {
+	var wg sync.WaitGroup
+	for cID := range clusterIDs {
+		wg.Add(1)
+		go func(cID []byte) {
+			defer wg.Done()
 			kindCluster, err := CreateKindCluster(ctx, dbPath)
 			if err != nil {
 				log.Fatal(fmt.Errorf("error creating kind cluster %w", err))
 			}
 
-			if kindCluster != nil {
-				db, err = bolt.Open(filepath.Join(dbPath, CLUSTER_DB), 0755, &bolt.Options{})
-				if err != nil {
-					log.Fatal(fmt.Errorf("error opening db %w", err))
-				}
-
-				err = db.Update(func(tx *bolt.Tx) error {
-					b := tx.Bucket([]byte(CLUSTER_TABLE))
-					cluster := NewCluster2(kindCluster.Name, kindCluster.Context, kindCluster.KubeConfigPath, ClusterCreated)
-					bts, err := json.Marshal(cluster)
-					if err != nil {
-						return fmt.Errorf("error unmarshalling cluster %w", err)
-					}
-					err = b.Put(kClusterID, bts)
-					if err != nil {
-						return fmt.Errorf("error updating cluster record %w", err)
-					}
-					return err
-				})
-
-				if err != nil {
-					log.Fatal(fmt.Errorf("error on db update %w", err))
-				}
-
-				err = db.Close()
-
-				if err != nil {
-					log.Fatal(fmt.Errorf("error closing db connection %w", err))
-				}
+			db, err := bolt.Open(filepath.Join(dbPath, CLUSTER_DB), 0755, &bolt.Options{})
+			if err != nil {
+				log.Fatal(fmt.Errorf("error opening db %w", err))
 			}
-		}
 
-		time.Sleep(time.Second * 10)
+			err = db.Update(func(tx *bolt.Tx) error {
+				b := tx.Bucket([]byte(CLUSTER_TABLE))
+				cluster := NewCluster2(kindCluster.Name, kindCluster.Context, kindCluster.KubeConfigPath, ClusterCreated)
+				bts, err := json.Marshal(cluster)
+				if err != nil {
+					return fmt.Errorf("error unmarshalling cluster %w", err)
+				}
+				err = b.Put(cID, bts)
+				if err != nil {
+					return fmt.Errorf("error updating cluster record %w", err)
+				}
+				return err
+			})
+
+			if err != nil {
+				log.Fatal(fmt.Errorf("error on db update %w", err))
+			}
+
+			err = db.Close()
+
+			if err != nil {
+				log.Fatal(fmt.Errorf("error closing db connection %w", err))
+			}
+
+		}(cID)
 	}
+
+	wg.Wait()
 }
 
 func (c *ClusterPool) GenerateClusters(dbPath string, clusterCount int) {

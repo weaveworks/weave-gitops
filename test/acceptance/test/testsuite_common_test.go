@@ -5,16 +5,17 @@ package acceptance
 import (
 	"context"
 	"fmt"
+	"github.com/onsi/ginkgo/config"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/weave-gitops/test/acceptance/test/cluster"
+	cltr "github.com/weaveworks/weave-gitops/test/acceptance/test/cluster"
 )
 
 func TestAcceptance(t *testing.T) {
@@ -54,7 +55,10 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 		clusterPool = cluster.NewClusterPool()
 
 		clusterPool.GenerateClusters(dbDirectory, config.GinkgoConfig.ParallelTotal)
-		go clusterPool.GenerateClusters(dbDirectory, 1)
+		err = cltr.RequestClusterCreation([]byte(dbDirectory))
+		Expect(err).NotTo(HaveOccurred())
+		err = cltr.RequestClusterCreation([]byte(dbDirectory))
+		Expect(err).NotTo(HaveOccurred())
 
 		globalCtx, globalCancel = context.WithCancel(context.Background())
 
