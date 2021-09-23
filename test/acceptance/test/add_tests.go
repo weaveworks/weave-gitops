@@ -185,7 +185,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitHub)
 		})
 
 		By("And I run gitops add command", func() {
@@ -210,6 +210,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 	})
 
 	It("Verify that gitops can deploy and remove a gitlab app after it is setup with an empty repo initially", func() {
+		DEFAULT_SSH_KEY_PATH := "~/.ssh/id_rsa"
 		var repoAbsolutePath string
 		private := true
 		tip := generateTestInputs()
@@ -227,6 +228,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("And application workload is not already deployed to cluster", func() {
 			deleteWorkload(tip.workloadName, tip.workloadNamespace)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitLab)
 		})
 
 		By("When I create an empty private repo", func() {
@@ -273,6 +278,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 	})
 
 	It("Verify that gitops can deploy and remove a gitlab app that belongs in a subgroup", func() {
+		DEFAULT_SSH_KEY_PATH := "~/.ssh/id_rsa"
 		var repoAbsolutePath string
 		private := true
 		tip := generateTestInputs()
@@ -292,6 +298,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("And application workload is not already deployed to cluster", func() {
 			deleteWorkload(tip.workloadName, tip.workloadNamespace)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitLab)
 		})
 
 		By("When I create an empty private repo", func() {
@@ -375,7 +385,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitHub)
 		})
 
 		By("And I create a new branch", func() {
@@ -446,7 +456,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitHub)
 		})
 
 		By("And I run gitops add command with --url and --app-config-url params", func() {
@@ -483,6 +493,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("And application workload is not already deployed to cluster", func() {
 			deleteWorkload(tip.workloadName, tip.workloadNamespace)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitLab)
 		})
 
 		By("When I create a private repo for gitops app config", func() {
@@ -553,7 +567,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitHub)
 		})
 
 		By("And I run gitops add command with --url", func() {
@@ -595,7 +609,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitHub)
 		})
 
 		By("And I run gitops add command from repo parent dir", func() {
@@ -649,7 +663,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitHub)
 		})
 
 		By("And I run gitops add command for 1st app", func() {
@@ -704,7 +718,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitHub)
 		})
 
 		By("When I create a private repo for gitops app config", func() {
@@ -762,7 +776,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitHub)
 		})
 
 		By("And I create a repo with my app1 and app2 workloads and run the add the command for each app", func() {
@@ -842,7 +856,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitHub)
 		})
 
 		By("And I run gitops app add command for app1: "+appName1, func() {
@@ -1012,7 +1026,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitHub)
 		})
 
 		By("And I run gitops app add command for 1st app", func() {
@@ -1215,7 +1229,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitHub)
 		})
 
 		By("And I run gitops add command", func() {
@@ -1299,7 +1313,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitHub)
 		})
 
 		By("And I run gitops add command", func() {
@@ -1353,7 +1367,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitHub)
 		})
 
 		By("And I run gitops add command", func() {
@@ -1429,7 +1443,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitHub)
 		})
 
 		By("And I create a namespace for helm-app", func() {
@@ -1511,7 +1525,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitHub)
 		})
 
 		By("And I run gitops add command", func() {
@@ -1552,7 +1566,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitHub)
 		})
 
 		By("When I run gitops app add command for app", func() {
@@ -1612,7 +1626,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitHub)
 		})
 
 		By("And I run gitops add command with --app-config-url param", func() {
@@ -1666,7 +1680,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitHub)
 		})
 
 		By("And I run app add command for "+appName, func() {
@@ -1764,7 +1778,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 
 		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitHub)
 		})
 
 		By("And I run gitops app add command for app: "+appName, func() {
@@ -1841,6 +1855,10 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			deleteWorkload(workloadName, workloadNamespace)
 		})
 
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupSSHKey(DEFAULT_SSH_KEY_PATH, gitproviders.GitProviderGitLab)
+		})
+
 		By("When I create a private repo for gitops app config", func() {
 			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, gitproviders.GitProviderGitLab, private, GITLAB_ORG)
 			gitAddCommitPush(appConfigRepoAbsPath, readmeFilePath)
@@ -1853,10 +1871,6 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 
 		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
-		})
-
-		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("And I run gitops app add command for app: "+appName, func() {
