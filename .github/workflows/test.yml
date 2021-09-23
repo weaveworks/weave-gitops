@@ -136,7 +136,7 @@ jobs:
       with:
         name: "${{ format('katc-{0}', github.run_id) }}"
         version: "v0.11.0"
-        image: kindest/node:v1.20.7
+        image: kindest/node:v1.21.1
         config: "./test/acceptance/test/configs/kind-config.yaml"
     - name: Kind-check
       run: |
@@ -217,7 +217,7 @@ jobs:
       with:
         name: "${{ format('katc-{0}', github.run_id) }}"
         version: "v0.11.0"
-        image: kindest/node:v1.20.7
+        image: kindest/node:v1.21.1
         config: "./test/acceptance/test/configs/kind-config.yaml"
     - name: Kind-check
       run: |
