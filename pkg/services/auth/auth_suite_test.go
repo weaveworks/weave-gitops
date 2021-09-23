@@ -5,8 +5,9 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops/pkg/testutils"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var k8sClient client.Client
@@ -16,15 +17,6 @@ func TestGitProviderAuth(t *testing.T) {
 	RunSpecs(t, "Auth Suite")
 }
 
-var cleanupK8s func()
-
 var _ = BeforeSuite(func() {
-	k8sTestEnv, err := testutils.StartK8sTestEnvironment()
-	Expect(err).NotTo(HaveOccurred())
-	cleanupK8s = k8sTestEnv.Stop
-	k8sClient = k8sTestEnv.Client
-})
-
-var _ = AfterSuite(func() {
-	cleanupK8s()
+	k8sClient = fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
 })
