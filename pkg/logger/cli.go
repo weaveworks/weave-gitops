@@ -23,6 +23,10 @@ func (l CLILogger) Printf(format string, a ...interface{}) {
 	fmt.Fprintf(l.stdout, format, a...)
 }
 
+func (l CLILogger) Infow(msg string, kv ...interface{}) {
+	fmt.Fprintf(l.stdout, msg+"%v", kv...)
+}
+
 func (l CLILogger) Actionf(format string, a ...interface{}) {
 	fmt.Fprintln(l.stdout, `►`, fmt.Sprintf(format, a...))
 }

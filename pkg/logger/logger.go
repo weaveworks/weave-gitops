@@ -27,6 +27,7 @@ var LogLevelError int = 1
 type Logger interface {
 	Println(format string, a ...interface{})
 	Printf(format string, a ...interface{})
+	Infow(msg string, kv ...interface{})
 	Actionf(format string, a ...interface{})
 	Generatef(format string, a ...interface{})
 	Waitingf(format string, a ...interface{})
