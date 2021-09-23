@@ -243,10 +243,21 @@ func initAndCreateEmptyRepo(appRepoName string, providerName gitproviders.GitPro
 	err = createGitRepository(appRepoName, DEFAULT_BRANCH_NAME, isPrivateRepo, providerName, org)
 	Expect(err).ShouldNot(HaveOccurred())
 
+	var token string
+
+	switch providerName {
+	case gitproviders.GitProviderGitHub:
+		token = os.Getenv("GITHUB_TOKEN")
+	case gitproviders.GitProviderGitLab:
+		token = os.Getenv("GITLAB_TOKEN")
+	default:
+		Fail("invalid git provider")
+	}
+
 	err = utils.WaitUntil(os.Stdout, time.Second*3, time.Second*30, func() error {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
-                            git clone git@%s.com:%s/%s.git %s`,
-			providerName, org, appRepoName,
+                            git clone https://oauth2:%s@%s.com:%s/%s.git %s`,
+			token, providerName, org, appRepoName,
 			repoAbsolutePath))
 		command.Stdout = os.Stdout
 		command.Stderr = os.Stderr
