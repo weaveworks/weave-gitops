@@ -14,6 +14,7 @@ import useApplications from "../hooks/applications";
 import {
   Application,
   UnstructuredObject,
+  AutomationKind,
 } from "../lib/api/applications/applications.pb";
 import { getChildren } from "../lib/graph";
 import { PageRoute } from "../lib/types";
@@ -77,6 +78,7 @@ function ApplicationDetail({ className, name }: Props) {
         columns={4}
         pairs={[
           { key: "Name", value: app.name },
+          { key: "Deployment Type", value: app.deploymentType },
           { key: "URL", value: app.url },
           { key: "Path", value: app.path },
         ]}
@@ -87,9 +89,9 @@ function ApplicationDetail({ className, name }: Props) {
         parentObjectKind="Application"
       />
       <h3>Source Conditions</h3>
-      <ConditionsTable conditions={app.sourceConditions} />
+      <ConditionsTable conditions={app.source?.conditions} />
       <h3>Automation Conditions</h3>
-      <ConditionsTable conditions={app.deploymentConditions} />
+      <ConditionsTable conditions={app.deploymentType == AutomationKind.Kustomize ? app.kustomization?.conditions : app.helmRelease?.conditions} />
 
       <h3>Commits</h3>
       <CommitsTable

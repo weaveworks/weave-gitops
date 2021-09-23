@@ -380,6 +380,7 @@ func installAndVerifyWego(wegoNamespace string, kubeconfigPath string) {
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, TIMEOUT_FIVE_MINUTES).Should(gexec.Exit())
 		Expect(string(session.Err.Contents())).Should(BeEmpty())
+		Expect(string(session.Err.Contents())).Should(BeEmpty())
 		VerifyControllersInCluster(wegoNamespace, kubeconfigPath)
 	})
 }
@@ -590,7 +591,7 @@ func verifyWegoAddCommandWithDryRun(appRepoName string, wegoNamespace string, ku
 func verifyWorkloadIsDeployed(workloadName string, workloadNamespace string, kubeConfigPath string) {
 	Expect(waitForResource("deploy", workloadName, workloadNamespace, INSTALL_PODS_READY_TIMEOUT, kubeConfigPath)).To(Succeed())
 	Expect(waitForResource("pods", "", workloadNamespace, INSTALL_PODS_READY_TIMEOUT, kubeConfigPath)).To(Succeed())
-	c := fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=180s -n %s --all pods", workloadNamespace)
+	c := fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=180s -n %s --all pods --selector='app!=wego-app'", workloadNamespace)
 	command := exec.Command("sh", "-c", c)
 	command.Env = os.Environ()
 	command.Env = append(command.Env, fmt.Sprintf("KUBECONFIG=%s", kubeConfigPath))
