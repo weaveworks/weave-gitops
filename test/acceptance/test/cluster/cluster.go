@@ -341,7 +341,6 @@ func (c *ClusterPool) IsListeningToRequestedClusters() bool {
 
 // CreateClusterOnRequest
 func (c *ClusterPool) CreateClusterOnRequest(ctx context.Context, dbPath string) {
-
 	clusterIDs := make(chan []byte, 1)
 
 	go func() {
@@ -396,9 +395,12 @@ func (c *ClusterPool) CreateClusterOnRequest(ctx context.Context, dbPath string)
 	var wg sync.WaitGroup
 	for cID := range clusterIDs {
 		wg.Add(1)
+
 		go func(cID []byte) {
 			defer wg.Done()
+
 			kindCluster, err := CreateKindCluster(ctx, dbPath)
+
 			if err != nil {
 				log.Fatal(fmt.Errorf("error creating kind cluster %w", err))
 			}
@@ -431,7 +433,6 @@ func (c *ClusterPool) CreateClusterOnRequest(ctx context.Context, dbPath string)
 			if err != nil {
 				log.Fatal(fmt.Errorf("error closing db connection %w", err))
 			}
-
 		}(cID)
 	}
 
