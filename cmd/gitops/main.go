@@ -20,14 +20,17 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/upgrade"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
+	"k8s.io/client-go/rest"
 )
 
 var options struct {
-	verbose  bool
-	endpoint string
+	endpoint          string
+	overrideInCluster bool
+	verbose           bool
 }
 
 var rootCmd = &cobra.Command{
@@ -85,6 +88,9 @@ var rootCmd = &cobra.Command{
 			fmt.Fprintf(os.Stderr, "Error: %v\n", nserr)
 			os.Exit(1)
 		}
+		if options.overrideInCluster {
+			kube.InClusterConfig = func() (*rest.Config, error) { return nil, rest.ErrNotInCluster }
+		}
 	},
 }
 
@@ -107,6 +113,7 @@ func main() {
 	rootCmd.PersistentFlags().BoolVarP(&options.verbose, "verbose", "v", false, "Enable verbose output")
 	rootCmd.PersistentFlags().String("namespace", wego.DefaultNamespace, "gitops runtime namespace")
 	rootCmd.PersistentFlags().StringVarP(&options.endpoint, "endpoint", "e", os.Getenv("WEAVE_GITOPS_ENTERPRISE_API_URL"), "The Weave GitOps Enterprise HTTP API endpoint")
+	rootCmd.PersistentFlags().BoolVar(&options.overrideInCluster, "override-in-cluster", false, "override running in cluster check")
 
 	rootCmd.AddCommand(install.Cmd)
 	rootCmd.AddCommand(beta.Cmd)

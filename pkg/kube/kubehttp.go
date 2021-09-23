@@ -5,12 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"k8s.io/client-go/rest"
-
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
 	memory "k8s.io/client-go/discovery/cached"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -19,6 +18,7 @@ import (
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -57,16 +57,29 @@ var (
 	GVRHelmRelease    schema.GroupVersionResource = helmv2.GroupVersion.WithResource("helmreleases")
 )
 
+// InClusterConnfig defines a function for checking if this code is executing in kubernetes.
+// This can be overriden if the needed.
+var InClusterConfig func() (*rest.Config, error) = func() (*rest.Config, error) {
+	return rest.InClusterConfig()
+}
+
 func NewKubeHTTPClient() (Kube, client.Client, error) {
-	cfgLoadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	l := logger.NewApiLogger()
 
-	_, kubeContext, err := initialContexts(cfgLoadingRules)
-	if err != nil {
-		return nil, nil, fmt.Errorf("could not get initial context: %w", err)
-	}
-
-	config, err := rest.InClusterConfig()
+	kubeContext := "hub"
+	config, err := InClusterConfig()
 	if err == rest.ErrNotInCluster {
+		cfgLoadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+		l.Infow("kubeHTTPClient", "configLoadingRules", cfgLoadingRules)
+
+		_, kubeContext, err := initialContexts(cfgLoadingRules)
+		if err != nil {
+			return nil, nil, fmt.Errorf("could not get initial context: %w", err)
+		}
+		l.Infow("kubeHTTPClient", "initialContext", kubeContext)
+
+		// config, err := rest.InClusterConfig()
+		// if err == rest.ErrNotInCluster {
 		configOverrides := clientcmd.ConfigOverrides{CurrentContext: kubeContext}
 
 		config, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
