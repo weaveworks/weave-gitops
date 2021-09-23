@@ -15,7 +15,7 @@ var webDriver *agouti.Page
 
 func initializeUISteps() {
 	By("And I install gitops to my active cluster", func() {
-		runCommandPassThrough([]string{}, WEGO_BIN_PATH, "install")
+		_ = runCommandPassThrough([]string{}, WEGO_BIN_PATH, "install")
 		VerifyControllersInCluster(WEGO_DEFAULT_NAMESPACE)
 	})
 
