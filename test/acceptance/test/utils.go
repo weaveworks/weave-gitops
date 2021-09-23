@@ -143,6 +143,7 @@ func getUniqueWorkload(placeHolderSuffix string, uniqueSuffix string) string {
 
 func setupSSHKey(sshKeyPath string, providerName gitproviders.GitProviderName) {
 	var keyName string
+
 	switch providerName {
 	case gitproviders.GitProviderGitHub:
 		keyName = "GITHUB_KEY"
