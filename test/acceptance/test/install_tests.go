@@ -89,7 +89,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		installAndVerifyWego(namespace, "")
 
 		By("When I run 'gitops uninstall' command", func() {
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, namespace))
+			_ = runCommandPassThrough([]string{}, "", "sh", "-c", fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, namespace))
 		})
 
 		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT, "")
@@ -120,7 +120,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		Expect(crdErr).ShouldNot(HaveOccurred())
 
 		By("When I run 'gitops uninstall' command", func() {
-			runErr := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, namespace))
+			runErr := runCommandPassThrough([]string{}, "", "sh", "-c", fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, namespace))
 			Expect(runErr).ShouldNot(HaveOccurred())
 		})
 
@@ -180,7 +180,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 
 		By("When I run 'gitops uninstall' command", func() {
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, WEGO_DEFAULT_NAMESPACE))
+			_ = runCommandPassThrough([]string{}, "", "sh", "-c", fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, WEGO_DEFAULT_NAMESPACE))
 		})
 
 		_ = waitForNamespaceToTerminate(WEGO_DEFAULT_NAMESPACE, NAMESPACE_TERMINATE_TIMEOUT, "")
