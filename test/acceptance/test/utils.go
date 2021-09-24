@@ -245,7 +245,7 @@ func initAndCreateEmptyRepo(appRepoName string, providerName gitproviders.GitPro
 
 	err = utils.WaitUntil(os.Stdout, time.Second*3, time.Second*30, func() error {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
-		echo -e "Host *\n\tStrictHostKeyChecking no\n\n" >> ~/.ssh/config &&
+		ssh-keygen -R gitlab.com &&
 		git clone git@%s.com:%s/%s.git %s`,
 			providerName, org, appRepoName,
 			repoAbsolutePath))
