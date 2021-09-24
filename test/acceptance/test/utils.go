@@ -245,7 +245,7 @@ func initAndCreateEmptyRepo(appRepoName string, providerName gitproviders.GitPro
 
 	err = utils.WaitUntil(os.Stdout, time.Second*3, time.Second*30, func() error {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
-		git clone git@github.com:%s/%s.git %s %s`,
+		git clone git@%s.com:%s/%s.git %s`,
 			providerName, org, appRepoName,
 			repoAbsolutePath))
 		command.Stdout = os.Stdout
