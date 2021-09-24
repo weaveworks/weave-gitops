@@ -155,6 +155,7 @@ func setupSSHKey(sshKeyPath string, providerName gitproviders.GitProviderName) {
 
 	if _, err := os.Stat(sshKeyPath); os.IsNotExist(err) {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
+						   ssh keygen -R git@gitlab.com &&
                            echo "%s" >> %s &&
                            chmod 0600 %s &&
                            ls -la %s`, os.Getenv(keyName), sshKeyPath, sshKeyPath, sshKeyPath))
