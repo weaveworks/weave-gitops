@@ -155,7 +155,6 @@ func setupSSHKey(sshKeyPath string, providerName gitproviders.GitProviderName) {
 
 	if _, err := os.Stat(sshKeyPath); os.IsNotExist(err) {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
-						   ssh keygen -R git@gitlab.com &&
                            echo "%s" >> %s &&
                            chmod 0600 %s &&
                            ls -la %s`, os.Getenv(keyName), sshKeyPath, sshKeyPath, sshKeyPath))
@@ -246,6 +245,7 @@ func initAndCreateEmptyRepo(appRepoName string, providerName gitproviders.GitPro
 
 	err = utils.WaitUntil(os.Stdout, time.Second*3, time.Second*30, func() error {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
+		ssh keygen -R git@gitlab.com &&
 		git clone git@%s.com:%s/%s.git %s`,
 			providerName, org, appRepoName,
 			repoAbsolutePath))
