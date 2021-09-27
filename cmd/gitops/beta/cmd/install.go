@@ -5,12 +5,23 @@ This file is part of CLI application wego.
 package cmd
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
+)
+
+type params struct {
+	DryRun       bool
+	AppConfigURL string
+}
+
+var (
+	installParams params
 )
 
 // installCmd represents the install command
@@ -35,7 +46,8 @@ If a previous version is installed, then an in-place upgrade will be performed.`
 
 func init() {
 	Cmd.AddCommand(installCmd)
-	Cmd.Flags().BoolVar(&installParams.DryRun, "dry-run", false, "outputs all the manifests that would be installed")
+	installCmd.Flags().BoolVar(&installParams.DryRun, "dry-run", false, "outputs all the manifests that would be installed")
+	installCmd.Flags().StringVar(&installParams.AppConfigURL, "app-config-url", "", "URL of external repository (if any) which will hold automation manifests; NONE to store only in the cluster")
 
 	// Here you will define your flags and configuration settings.
 
@@ -48,14 +60,6 @@ func init() {
 	// installCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-type params struct {
-	DryRun bool
-}
-
-var (
-	installParams params
-)
-
 func installRunCmd(cmd *cobra.Command, args []string) error {
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
@@ -63,12 +67,16 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	if clientErr != nil {
 		return clientErr
 	}
+	gp, err := auth.GetGitProvider(context.Background(), installParams.AppConfigURL)
+	if err != nil {
+		return fmt.Errorf("failed to get GitProvider: %w", err)
+	}
 
-	gitopsService := gitops.New(logger, fluxClient, kubeClient)
-
+	gitopsService := gitops.New(logger, fluxClient, kubeClient, gp)
 	manifests, err := gitopsService.Install(gitops.InstallParams{
-		Namespace: namespace,
-		DryRun:    installParams.DryRun,
+		Namespace:    namespace,
+		DryRun:       installParams.DryRun,
+		AppConfigURL: installParams.AppConfigURL,
 	})
 	if err != nil {
 		return err
