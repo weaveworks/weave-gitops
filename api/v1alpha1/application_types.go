@@ -88,7 +88,7 @@ type Application struct {
 }
 
 func (a *Application) IsHelmRepository() bool {
-	return a.Spec.DeploymentType == DeploymentTypeHelm
+	return a.Spec.SourceType == SourceTypeHelm
 }
 
 //+kubebuilder:object:root=true
