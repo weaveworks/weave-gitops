@@ -50,7 +50,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	gitopsService := gitops.New(clients.Logger, clients.Flux, clients.Kube)
+	gitopsService := gitops.New(clients.Logger, clients.Flux, clients.Kube, nil)
 
 	manifests, err := gitopsService.Install(gitops.InstallParams{
 		Namespace: namespace,
