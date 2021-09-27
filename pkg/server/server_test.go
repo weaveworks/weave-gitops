@@ -793,11 +793,14 @@ var _ = Describe("Applications handler", func() {
 			return gitproviders.AccountTypeUser, nil
 		}
 
+		k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
+		Expect(k8s.Create(context.Background(), testApp))
+
 		cfg := ApplicationsConfig{
 			Logger:     log,
 			AppFactory: appFactory,
 			JwtClient:  jwtClient,
-			KubeClient: fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build(),
+			KubeClient: k8s,
 		}
 
 		handler, err := NewApplicationsHandler(context.Background(), &cfg)
@@ -814,6 +817,8 @@ var _ = Describe("Applications handler", func() {
 		req.Header.Add("Authorization", "token my-jwt-token")
 
 		res, err := ts.Client().Do(req)
+		Expect(err).NotTo(HaveOccurred())
+
 		Expect(err).NotTo(HaveOccurred())
 		Expect(res.StatusCode).To(Equal(http.StatusOK))
 
