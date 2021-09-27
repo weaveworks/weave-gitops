@@ -225,6 +225,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			deleteWorkload(tip.workloadName, tip.workloadNamespace)
 		})
 
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupGitlabSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
 		By("When I create an empty private repo", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitLab, private, GITLAB_ORG)
 		})
@@ -405,6 +409,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("And application workload is not already deployed to cluster", func() {
 			deleteWorkload(tip.workloadName, tip.workloadNamespace)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupGitlabSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("When I create a private repo for gitops app config", func() {
@@ -1697,6 +1705,10 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 
 		By("And application workload is not already deployed to cluster", func() {
 			deleteWorkload(workloadName, workloadNamespace)
+		})
+
+		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupGitlabSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("When I create a private repo for gitops app config", func() {
