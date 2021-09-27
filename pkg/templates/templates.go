@@ -27,11 +27,14 @@ func GetTemplates(r TemplatesRetriever, w io.Writer) error {
 
 	if len(ts) > 0 {
 		fmt.Fprintf(w, "NAME\tDESCRIPTION\n")
+
 		for _, t := range ts {
 			fmt.Fprintf(w, "%s", t.Name)
+
 			if t.Description != "" {
 				fmt.Fprintf(w, "\t%s", t.Description)
 			}
+
 			fmt.Fprintln(w, "")
 		}
 
@@ -42,4 +45,3 @@ func GetTemplates(r TemplatesRetriever, w io.Writer) error {
 
 	return nil
 }
-
