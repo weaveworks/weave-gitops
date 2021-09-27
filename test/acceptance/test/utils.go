@@ -146,8 +146,7 @@ func setupGitlabSSHKey(sshKeyPath string) {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
                            echo "%s" >> %s &&
                            chmod 0600 %s &&
-                           ls -la %s && 
-						   ssh-keyscan gitlab.com >> ~/.ssh/known_hosts`, os.Getenv("GITLAB_KEY"), sshKeyPath, sshKeyPath, sshKeyPath))
+                           ls -la %s`, os.Getenv("GITLAB_KEY"), sshKeyPath, sshKeyPath, sshKeyPath))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session).Should(gexec.Exit())
@@ -235,6 +234,7 @@ func initAndCreateEmptyRepo(appRepoName string, providerName gitproviders.GitPro
 
 	err = utils.WaitUntil(os.Stdout, time.Second*3, time.Second*30, func() error {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
+			ssh-keyscan gitlab.com >> ~/.ssh/known_hosts &&
 			git clone git@%s.com:%s/%s.git %s`,
 			providerName, org, appRepoName,
 			repoAbsolutePath))
