@@ -556,12 +556,9 @@ func (p defaultGitProvider) waitUntilRepoCreated(ownerType ProviderAccountType, 
 	return nil
 }
 
-// DetectGitProviderFromUrl accepts a url related to a git repo and
-// returns the name of the provider associated.
 // The raw URL is assumed to be something like ssh://git@github.com/myorg/myrepo.git.
 // The common `git clone` variant of `git@github.com:myorg/myrepo.git` is not supported.
-func DetectGitProviderFromUrl(raw string) (GitProviderName, error) {
-	// Needed for url parse to work for some urls
+func detectGitProviderFromUrl(raw string) (GitProviderName, error) {
 	if strings.HasPrefix(raw, "git@") {
 		raw = "ssh://" + raw
 		raw = strings.Replace(raw, ".com:", ".com/", 1)
@@ -599,7 +596,7 @@ type NormalizedRepoURL struct {
 // normalizeRepoURLString accepts a url like git@github.com:someuser/podinfo.git and converts it into
 // a string like ssh://git@github.com/someuser/podinfo.git. This helps standardize the different
 // user inputs that might be provided.
-func normalizeRepoURLString(url string, providerName string) string {
+func normalizeRepoURLString(url string, providerName GitProviderName) string {
 	trimmed := ""
 
 	if !strings.HasSuffix(url, ".git") {
@@ -624,12 +621,12 @@ func normalizeRepoURLString(url string, providerName string) string {
 }
 
 func NewNormalizedRepoURL(uri string) (NormalizedRepoURL, error) {
-	providerName, err := DetectGitProviderFromUrl(uri)
+	providerName, err := detectGitProviderFromUrl(uri)
 	if err != nil {
 		return NormalizedRepoURL{}, fmt.Errorf("could get provider name from URL %s: %w", uri, err)
 	}
 
-	normalized := normalizeRepoURLString(uri, string(providerName))
+	normalized := normalizeRepoURLString(uri, providerName)
 
 	u, err := url.Parse(normalized)
 	if err != nil {

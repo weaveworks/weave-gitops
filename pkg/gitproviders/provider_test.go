@@ -385,13 +385,18 @@ var _ = Describe("test org repo exists", func() {
 		}
 	})
 
-	It("succeed on validating repo existence", func() {
+	It("succeed on validating org repo existence", func() {
 		err = gitProvider.CreateRepository(repoName, accounts.GithubOrgName, true)
 		Expect(err).NotTo(HaveOccurred())
 
 		exists, err := gitProvider.RepositoryExists(repoName, accounts.GithubOrgName)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(true).To(Equal(exists))
+	})
+
+	It("fails to validate org repo existence", func() {
+		_, err := gitProvider.RepositoryExists("foo", accounts.GithubOrgName)
+		Expect(err).To(HaveOccurred())
 	})
 
 	AfterEach(func() {
@@ -423,7 +428,7 @@ var _ = Describe("test personal repo exists", func() {
 		}
 	})
 
-	It("succeed on validating repo existence", func() {
+	It("succeed on user repo existence", func() {
 		accounts := getAccounts()
 
 		err := gitProvider.CreateRepository(repoName, accounts.GithubUserName, true)
@@ -432,6 +437,11 @@ var _ = Describe("test personal repo exists", func() {
 		exists, err := gitProvider.RepositoryExists(repoName, accounts.GithubUserName)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(true).To(Equal(exists))
+	})
+
+	It("fails to validate user repo existence", func() {
+		_, err := gitProvider.RepositoryExists("foo", accounts.GithubUserName)
+		Expect(err).To(HaveOccurred())
 	})
 
 	AfterEach(func() {
@@ -856,8 +866,8 @@ var _ = Describe("Test org deploy keys creation", func() {
 })
 
 var _ = Describe("helpers", func() {
-	DescribeTable("DetectGitProviderFromUrl", func(input string, expected GitProviderName) {
-		result, err := DetectGitProviderFromUrl(input)
+	DescribeTable("detectGitProviderFromUrl", func(input string, expected GitProviderName) {
+		result, err := detectGitProviderFromUrl(input)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(result).To(Equal(expected))
 	},

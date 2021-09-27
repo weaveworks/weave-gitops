@@ -153,16 +153,16 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 
 	if !isHelmRepository {
 		// We need to do this even if we have an external config to set up the deploy key for the app repo
-		appRepoClient, err := authsvc.CreateGitClient(ctx, targetName, namespace, utils.SanitizeRepoUrl(url))
-		if err != nil {
-			return nil, nil, nil, err
+		appRepoClient, appRepoErr := authsvc.CreateGitClient(ctx, normalizedUrl, targetName, namespace)
+		if appRepoErr != nil {
+			return nil, nil, nil, appRepoErr
 		}
 
 		appClient = appRepoClient
 	}
 
 	if isExternalConfig {
-		configRepoClient, configRepoErr := authsvc.CreateGitClient(ctx, targetName, namespace, configUrl)
+		configRepoClient, configRepoErr := authsvc.CreateGitClient(ctx, normalizedUrl, targetName, namespace)
 		if configRepoErr != nil {
 			return nil, nil, nil, configRepoErr
 		}

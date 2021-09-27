@@ -125,7 +125,7 @@ func (sn SecretName) NamespacedName() types.NamespacedName {
 }
 
 type AuthService interface {
-	CreateGitClient(ctx context.Context, repoUrl, targetName, namespace string) (git.Git, error)
+	CreateGitClient(ctx context.Context, repoUrl gitproviders.NormalizedRepoURL, targetName string, namespace string) (git.Git, error)
 	GetGitProvider() gitproviders.GitProvider
 }
 
@@ -155,20 +155,15 @@ func (a *authSvc) GetGitProvider() gitproviders.GitProvider {
 
 // CreateGitClient creates a git.Git client instrumented with existing or generated deploy keys.
 // This ensures that git operations are done with stored deploy keys instead of a user's local ssh-agent or equivalent.
-func (a *authSvc) CreateGitClient(ctx context.Context, targetName, namespace, repoUrl string) (git.Git, error) {
-	normalizedUrl, err := gitproviders.NewNormalizedRepoURL(repoUrl)
-	if err != nil {
-		return nil, fmt.Errorf("error creating normalized app url: %w", err)
-	}
-
+func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.NormalizedRepoURL, targetName string, namespace string) (git.Git, error) {
 	secretName := SecretName{
-		Name:      app.CreateRepoSecretName(targetName, normalizedUrl.String()),
+		Name:      app.CreateRepoSecretName(targetName, repoUrl.String()),
 		Namespace: namespace,
 	}
 
-	pubKey, err := a.setupDeployKey(ctx, secretName, targetName, normalizedUrl)
-	if err != nil {
-		return nil, fmt.Errorf("error setting up deploy keys: %w", err)
+	pubKey, keyErr := a.setupDeployKey(ctx, secretName, targetName, repoUrl)
+	if keyErr != nil {
+		return nil, fmt.Errorf("error setting up deploy keys: %w", keyErr)
 	}
 
 	if pubKey == nil {
