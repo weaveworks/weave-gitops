@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -14,6 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -86,7 +88,21 @@ func GetAppService(ctx context.Context, url, configUrl, namespace string, isHelm
 	return app.New(ctx, logger, appClient, configClient, gitProvider, fluxClient, kubeClient, osysClient), nil
 }
 
-func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool, dryRun bool) (git.Git, git.Git, gitproviders.GitProvider, error) {
+func FetchAppByName(ctx context.Context, name types.NamespacedName) (*wego.Application, error) {
+	kube, _, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create kube client: %w", err)
+	}
+
+	appObj, err := kube.GetApplication(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("could not get application: %w", err)
+	}
+
+	return appObj, nil
+}
+
+func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool) (git.Git, git.Git, gitproviders.GitProvider, error) {
 	isExternalConfig := app.IsExternalConfigUrl(configUrl)
 
 	var providerUrl string

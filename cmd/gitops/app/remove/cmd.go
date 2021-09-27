@@ -12,7 +12,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"k8s.io/apimachinery/pkg/types"
@@ -50,14 +49,9 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	params.Name = args[0]
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 
-	kube, _, err := kube.NewKubeHTTPClient()
+	appObj, err := apputils.FetchAppByName(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
 	if err != nil {
-		return fmt.Errorf("failed to create kube client: %w", err)
-	}
-
-	appObj, err := kube.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
-	if err != nil {
-		return fmt.Errorf("could not get application: %w", err)
+		return fmt.Errorf("failed to fetch app %q: %w", params.Name, err)
 	}
 
 	appService, appError := apputils.GetAppService(ctx, appObj.Spec.URL, appObj.Spec.ConfigURL, appObj.Namespace, appObj.IsHelmRepository())

@@ -6,7 +6,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -26,12 +25,7 @@ var Cmd = &cobra.Command{
 		params.Name = args[0]
 		params.Namespace, _ = cmd.Parent().Parent().Flags().GetString("namespace")
 
-		kube, _, err := kube.NewKubeHTTPClient()
-		if err != nil {
-			return fmt.Errorf("failed to create kube client: %w", err)
-		}
-
-		appObj, err := kube.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
+		appObj, err := apputils.FetchAppByName(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
 		if err != nil {
 			return fmt.Errorf("could not get application: %w", err)
 		}

@@ -14,7 +14,6 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app/status"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app/unpause"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -71,14 +70,9 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	command := args[1]
 	object := args[2]
 
-	kube, _, kubeErr := kube.NewKubeHTTPClient()
-	if kubeErr != nil {
-		return fmt.Errorf("error creating k8s http client: %w", kubeErr)
-	}
-
-	appObj, err := kube.GetApplication(context.Background(), types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
+	appObj, err := apputils.FetchAppByName(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
 	if err != nil {
-		return fmt.Errorf("unable to get application for %s %w", params.Name, err)
+		return fmt.Errorf("could not get application: %w", err)
 	}
 
 	if appObj.IsHelmRepository() {
