@@ -15,7 +15,6 @@ import (
 type RemoveParams struct {
 	Name             string
 	Namespace        string
-	PrivateKey       string
 	DryRun           bool
 	GitProviderToken string
 }
