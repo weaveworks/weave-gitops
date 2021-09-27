@@ -103,7 +103,6 @@ jobs:
       with:
         ssh-private-key: |
               ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
-              ${{ secrets.GITLAB_KEY }}
     - name: Configure git settings
       run: |
         git config --global init.defaultBranch main
