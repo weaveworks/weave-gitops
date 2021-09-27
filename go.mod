@@ -14,6 +14,7 @@ require (
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-logr/logr v1.1.0
 	github.com/go-logr/zapr v1.1.0
+	github.com/go-resty/resty/v2 v2.6.0
 	github.com/golang-jwt/jwt/v4 v4.0.0
 	github.com/google/go-cmp v0.5.6
 	github.com/google/uuid v1.2.0 // indirect
@@ -36,7 +37,6 @@ require (
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab
 	go.uber.org/zap v1.19.0
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
-	golang.org/x/net v0.0.0-20210510120150-4163338589ed // indirect
 	golang.org/x/oauth2 v0.0.0-20210615190721-d04028783cf1
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
 	google.golang.org/genproto v0.0.0-20210617175327-b9e0b3197ced
@@ -46,9 +46,8 @@ require (
 	k8s.io/api v0.21.2
 	k8s.io/apiextensions-apiserver v0.21.2
 	k8s.io/apimachinery v0.21.2
+	k8s.io/cli-runtime v0.21.2
 	k8s.io/client-go v0.21.2
-	k8s.io/klog/v2 v2.9.0 // indirect
-	k8s.io/kube-openapi v0.0.0-20210421082810-95288971da7e // indirect
 	sigs.k8s.io/controller-runtime v0.9.1
 	sigs.k8s.io/controller-tools v0.4.1
 	sigs.k8s.io/kustomize/kstatus v0.0.2
