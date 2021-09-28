@@ -42,7 +42,7 @@ jobs:
         GITHUB_ORG: weaveworks-gitops-test
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
-        ARTIFACTS_BASE_DIR: "/tmp/wego-test"
+        ARTIFACTS_BASE_DIR: "/tmp/gitops-test"
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
@@ -64,12 +64,12 @@ jobs:
     - name: Kubectl tool installer
       uses: Azure/setup-kubectl@v1
       with:
-          version: 'v1.19.6'
+          version: 'v1.20.1'
     - name: Setup EKS cluster
       run: |
         OS_NAME=$(echo "${{matrix.os}}" | tr '[:upper:]' '[:lower:]')
-        export CLUSTER_NAME=wego-nightly-cluster-$OS_NAME
-        export CLUSTER_VERSION=1.19
+        export CLUSTER_NAME=wego-nightly-cluster2-$OS_NAME
+        export CLUSTER_VERSION=1.20
         export CLUSTER_REGION=us-east-1
         export CLUSTER_EXISTS=$(eksctl get clusters --region $CLUSTER_REGION | grep -i $CLUSTER_NAME)
         if [ -z $CLUSTER_EXISTS ]
@@ -129,7 +129,7 @@ jobs:
         export WEGO_BIN_PATH=$(pwd)/bin/gitops-${{matrix.os}}-nightly
         export CLUSTER_PROVIDER=kubectl
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
-        export K8S_VERSION=1.19.1
+        export K8S_VERSION=1.20.1
         # cleanup the cluster
         $WEGO_BIN_PATH flux uninstall --silent
         $WEGO_BIN_PATH flux uninstall --namespace test-namespace --silent
@@ -159,7 +159,7 @@ jobs:
         GITHUB_ORG: weaveworks-gitops-test
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
-        ARTIFACTS_BASE_DIR: "/tmp/wego-test"
+        ARTIFACTS_BASE_DIR: "/tmp/gitops-test"
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
@@ -180,12 +180,12 @@ jobs:
     - name: Kubectl tool installer
       uses: Azure/setup-kubectl@v1
       with:
-          version: 'v1.19.6'
+          version: 'v1.20.1'
     - name: Setup GKE cluster
       run: |
         OS_NAME=$(echo "${{matrix.os}}" | tr '[:upper:]' '[:lower:]')
-        export CLUSTER_NAME=wego-nightly-cluster-$OS_NAME
-        export CLUSTER_VERSION=1.19
+        export CLUSTER_NAME=wego-nightly-cluster2-$OS_NAME
+        export CLUSTER_VERSION=1.20
         export CLUSTER_REGION=us-central1-a
         export CLUSTER_EXISTS=$(gcloud container clusters list | grep -i $CLUSTER_NAME)
         if [ -z $CLUSTER_EXISTS ]
@@ -245,7 +245,7 @@ jobs:
         export WEGO_BIN_PATH=$(pwd)/bin/gitops-${{matrix.os}}-nightly
         export CLUSTER_PROVIDER=kubectl
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
-        export K8S_VERSION=1.19.1
+        export K8S_VERSION=1.20.1
         # cleanup the cluster
         $WEGO_BIN_PATH flux uninstall --silent
         $WEGO_BIN_PATH flux uninstall --namespace test-namespace --silent
