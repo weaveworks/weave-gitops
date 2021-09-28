@@ -143,6 +143,13 @@ func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string
 		if err := g.writeManifestsToGit(filepath.Join(clusterPath, "system"), systemManifests); err != nil {
 			return fmt.Errorf("failed to write system manifests: %w", err)
 		}
+		// store a .keep file in the user dir
+		userKeep := map[string][]byte{
+			".keep": strconv.AppendQuote(nil, "# keep"),
+		}
+		if err := g.writeManifestsToGit(filepath.Join(clusterPath, "user"), userKeep); err != nil {
+			return fmt.Errorf("failed to write user manifests: %w", err)
+		}
 		// if err := a.writeAppYaml(info, appSpec); err != nil {
 		// 	return fmt.Errorf("failed writing app.yaml to disk: %w", err)
 		// }
