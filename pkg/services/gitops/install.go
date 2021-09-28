@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/pkg/errors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
@@ -119,12 +120,12 @@ func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string
 		return fmt.Errorf("failed to create source manifest: %w", err)
 	}
 	manifests["flux-source-resource.yaml"] = gitsource
-	system, err := g.genKustomize(fmt.Sprintf("%s-system", cname), sourceName, configBranch, clusterPath+"/system", params)
+	system, err := g.genKustomize(fmt.Sprintf("%s-system", cname), sourceName, configBranch, "."+clusterPath+"/system", params)
 	if err != nil {
 		return fmt.Errorf("failed to create system kustomization manifest: %w", err)
 	}
 	manifests["flux-system-kustomization-resource.yaml"] = system
-	user, err := g.genKustomize(fmt.Sprintf("%s-user", cname), sourceName, configBranch, clusterPath+"/user", params)
+	user, err := g.genKustomize(fmt.Sprintf("%s-user", cname), sourceName, configBranch, "."+clusterPath+"/user", params)
 	if err != nil {
 		return fmt.Errorf("failed to create user kustomization manifest: %w", err)
 	}
@@ -154,14 +155,13 @@ func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string
 		// 	return fmt.Errorf("failed writing app.yaml to disk: %w", err)
 		// }
 
-		// if err := a.writeAppGoats(info, appSource, appGoat); err != nil {
-		// 	return fmt.Errorf("failed writing application gitops manifests to disk: %w", err)
-		// }
-		// }
 	}
 
 	g.logger.Actionf("Applying manifests to the cluster")
-
+	// only apply the system manfiests as the others will get picked up once flux is running
+	if err := g.applyManifestsToK8s(ctx, params.Namespace, manifests); err != nil {
+		return fmt.Errorf("failed applying system manifests to cluster %s :%v", cname, err)
+	}
 	// if err := a.applyToCluster(info, params.DryRun, extRepoMan.source, extRepoMan.target, extRepoMan.appDir); err != nil {
 	// 	return fmt.Errorf("could not apply manifests to the cluster: %w", err)
 	// }
@@ -192,9 +192,19 @@ func (g *Gitops) genKustomize(name, cname, branch, path string, params InstallPa
 func (g *Gitops) writeManifestsToGit(path string, manifests map[string][]byte) error {
 	for k, m := range manifests {
 		if err := g.gitClient.Write(filepath.Join(path, k), m); err != nil {
-			g.logger.Warningf("failed to write manfiests %s : %v", k, err)
+			g.logger.Warningf("failed to write manfiest %s : %v", k, err)
 			return err
 		}
+	}
+	return nil
+}
+func (g *Gitops) applyManifestsToK8s(ctx context.Context, namespace string, manifests map[string][]byte) error {
+	for k, manifest := range manifests {
+		g.logger.Infow("apply manifests", k, manifest)
+		if err := g.kube.Apply(ctx, manifest, namespace); err != nil {
+			return fmt.Errorf("could not apply manifest %s : %w", k, err)
+		}
+
 	}
 	return nil
 }
