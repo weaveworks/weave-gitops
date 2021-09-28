@@ -496,6 +496,7 @@ func (p defaultGitProvider) GetCommitsFromUserRepo(userRepRef gitprovider.UserRe
 		if strings.Contains(err.Error(), "409 Git Repository is empty") {
 			return []gitprovider.Commit{}, nil
 		}
+
 		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", userRepRef.String(), err)
 	}
 
@@ -517,6 +518,7 @@ func (p defaultGitProvider) GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepos
 		if strings.Contains(err.Error(), "409 Git Repository is empty") {
 			return []gitprovider.Commit{}, nil
 		}
+
 		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", orgRepRef.String(), err)
 	}
 
