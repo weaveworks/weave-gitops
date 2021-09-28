@@ -47,7 +47,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		By("Then I should see gitops help text displayed for 'uninstall' command", func() {
 			Eventually(string(sessionOutput.Wait().Out.Contents())).Should(MatchRegexp(
-				`The uninstall command removes GitOps components from the cluster.\n*Usage:\n\s*gitops uninstall \[flags]\n*Examples:\n\s*# Uninstall GitOps from the wego-system namespace\n\s*gitops uninstall\n*Flags:\n\s*--dry-run\s*outputs all the manifests that would be uninstalled\n\s*-h, --help\s*help for uninstall\n*Global Flags:\n\s*--namespace string\s*gitops runtime namespace \(default "wego-system"\)\n\s*-v, --verbose\s*Enable verbose output`))
+				`The uninstall command removes GitOps components from the cluster.\n*Usage:\n\s*gitops uninstall \[flags]\n*Examples:\n\s*# Uninstall GitOps from the wego-system namespace\n\s*gitops uninstall\n*Flags:\n\s*--dry-run\s*outputs all the manifests that would be uninstalled\n\s*-h, --help\s*help for uninstall\n*Global Flags:\n\s*-e, --endpoint string\s*The Weave GitOps Enterprise HTTP API endpoint\n\s*--namespace string\s*gitops runtime namespace \(default "wego-system"\)\n\s*-v, --verbose\s*Enable verbose output`))
 		})
 	})
 
