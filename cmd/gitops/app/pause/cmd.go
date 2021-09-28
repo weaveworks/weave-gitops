@@ -38,7 +38,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not get application: %w", err)
 	}
 
-	appService, appError := apputils.GetAppService(ctx, appObj.Spec.URL, appObj.Spec.ConfigURL, params.Namespace, appObj.IsHelmRepository())
+	appService, appError := apputils.GetAppService(ctx, appObj.Spec.URL, appObj.Spec.ConfigURL, params.Namespace, appObj.IsHelmRepository(), false)
 	if appError != nil {
 		return fmt.Errorf("failed to create app service: %w", appError)
 	}

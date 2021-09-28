@@ -29,7 +29,7 @@ type DefaultAppFactory struct {
 }
 
 func (f *DefaultAppFactory) GetAppService(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool) (app.AppService, error) {
-	return GetAppService(ctx, url, configUrl, namespace, isHelmRepository)
+	return GetAppService(ctx, url, configUrl, namespace, isHelmRepository, false)
 }
 
 func (f *DefaultAppFactory) GetKubeService() (kube.Kube, error) {
@@ -102,7 +102,7 @@ func FetchAppByName(ctx context.Context, name types.NamespacedName) (*wego.Appli
 	return appObj, nil
 }
 
-func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool) (git.Git, git.Git, gitproviders.GitProvider, error) {
+func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool, dryRun bool) (git.Git, git.Git, gitproviders.GitProvider, error) {
 	isExternalConfig := app.IsExternalConfigUrl(configUrl)
 
 	var providerUrl string
