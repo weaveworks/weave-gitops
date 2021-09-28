@@ -493,7 +493,7 @@ func (p defaultGitProvider) GetCommitsFromUserRepo(userRepRef gitprovider.UserRe
 	// currently locking the commit list at 10. May discuss pagination options later.
 	commits, err := ur.Commits().ListPage(ctx, targetBranch, pageSize, pageToken)
 	if err != nil {
-		if strings.Contains(err.Error(), "409 Git Repository is empty") {
+		if isEmptyRepoError(err) {
 			return []gitprovider.Commit{}, nil
 		}
 
@@ -515,7 +515,7 @@ func (p defaultGitProvider) GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepos
 	// currently locking the commit list at 10. May discuss pagination options later.
 	commits, err := ur.Commits().ListPage(ctx, targetBranch, pageSize, pageToken)
 	if err != nil {
-		if strings.Contains(err.Error(), "409 Git Repository is empty") {
+		if isEmptyRepoError(err) {
 			return []gitprovider.Commit{}, nil
 		}
 
@@ -523,6 +523,10 @@ func (p defaultGitProvider) GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepos
 	}
 
 	return commits, nil
+}
+
+func isEmptyRepoError(err error) bool {
+	return strings.Contains(err.Error(), "409 Git Repository is empty")
 }
 
 func (p defaultGitProvider) GetProviderDomain() string {
