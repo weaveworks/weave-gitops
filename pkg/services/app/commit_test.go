@@ -11,7 +11,7 @@ import (
 )
 
 var _ = Describe("Get Commits", func() {
-	It("gets commits for a user app", func() {
+	It("gets commits for a user repo", func() {
 		commitParams := CommitParams{
 			Name:      "test",
 			Namespace: "wego-system",
@@ -35,7 +35,7 @@ var _ = Describe("Get Commits", func() {
 		Expect(len(commit)).To(Equal(1))
 	})
 
-	It("gets commits for a user app", func() {
+	It("gets commits for an org", func() {
 		commitParams := CommitParams{
 			Name:      "test",
 			Namespace: "wego-system",
@@ -71,7 +71,6 @@ var _ = Describe("Get Commits", func() {
 
 		_, err := appSrv.GetCommits(commitParams, application)
 		Expect(err).Should(HaveOccurred())
-		Expect(err.Error()).Should(Equal("unable to get commits for a helm chart"))
 	})
 })
 

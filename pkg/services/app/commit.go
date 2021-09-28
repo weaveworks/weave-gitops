@@ -42,13 +42,13 @@ func (a *App) GetCommits(params CommitParams, application *wego.Application) ([]
 
 		commits, err = a.GitProvider.GetCommitsFromUserRepo(userRepoRef, application.Spec.Branch, params.PageSize, params.PageToken)
 		if err != nil {
-			return nil, fmt.Errorf("unable to get Commits for user repo: %w", err)
+			return nil, fmt.Errorf("unable to get commits for user repo: %w", err)
 		}
 	} else {
 		orgRepoRef := gitproviders.NewOrgRepositoryRef(github.DefaultDomain, normalizedUrl.Owner(), normalizedUrl.RepositoryName())
 		commits, err = a.GitProvider.GetCommitsFromOrgRepo(orgRepoRef, application.Spec.Branch, params.PageSize, params.PageToken)
 		if err != nil {
-			return nil, fmt.Errorf("unable to get Commits for org repo: %w", err)
+			return nil, fmt.Errorf("unable to get commits for org repo: %w", err)
 		}
 	}
 
