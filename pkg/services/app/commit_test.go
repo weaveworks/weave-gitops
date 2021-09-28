@@ -73,21 +73,6 @@ var _ = Describe("Get Commits", func() {
 		Expect(err).Should(HaveOccurred())
 		Expect(err.Error()).Should(Equal("unable to get commits for a helm chart"))
 	})
-
-	It("fails to get commits when config_url set to NONE", func() {
-		commitParams := CommitParams{
-			Name:      "test",
-			Namespace: "wego-system",
-		}
-
-		application := &wego.Application{
-			Spec: wego.ApplicationSpec{ConfigURL: "NONE"},
-		}
-
-		_, err := appSrv.GetCommits(commitParams, application)
-		Expect(err).Should(HaveOccurred())
-		Expect(err.Error()).Should(Equal("unable to get commits when config_url is empty"))
-	})
 })
 
 type fakeCommit struct {
