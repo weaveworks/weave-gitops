@@ -12,6 +12,10 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
+const (
+	RemoveCommitMessage = "Remove App manifests"
+)
+
 type RemoveParams struct {
 	Name             string
 	Namespace        string
@@ -102,7 +106,7 @@ func (a *App) Remove(params RemoveParams) error {
 			}
 		}
 
-		if err := a.commitAndPush(a.ConfigGit); err != nil {
+		if err := a.commitAndPush(a.ConfigGit, RemoveCommitMessage); err != nil {
 			return err
 		}
 	}
