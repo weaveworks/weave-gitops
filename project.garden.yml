@@ -1,0 +1,13 @@
+kind: Project
+name: wego-app
+environments:
+  - name: local
+    variables:
+      default-hostname: wego-app.local.app.garden
+
+providers:
+  - name: local-kubernetes
+    environments: [local]
+    context: kind-kind
+    buildMode: cluster-buildkit
+    setupIngressController: nginx

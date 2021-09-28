@@ -1,0 +1,35 @@
+kind: Module
+description: Node hot reload image
+name: wego-app-image
+type: container
+dockerfile: Dockerfile-dev
+exclude : [manifests/wego-app2/*,node_modules]
+hotReload:
+  sync:
+    - target: /go/src/github.com/weaveworks/weave-gitops/
+---
+kind: Module
+description: K8s Module
+name: wego-app-service # This need to match the name of the service
+include: [manifests/wego-app2/*]
+type: kubernetes
+devMode:
+  command: [ ./bin/air ]
+  args: [-d]
+  sync:
+    - target: /go/src/github.com/weaveworks/weave-gitops
+namespace: wego-system
+serviceResource:
+  kind: Deployment
+  containerModule: wego-app-image
+  name: wego-app-development # This need to match the name of the deployment
+  containerName: wego-app
+  hotReloadArgs: [./bin/air]
+files: [
+    manifests/wego-app2/service-account.yaml,
+    manifests/wego-app2/deployment.yaml,
+    manifests/wego-app2/ingress.yaml,
+    manifests/wego-app2/role.yaml,
+    manifests/wego-app2/role-binding.yaml,
+    manifests/wego-app2/service.yaml,
+]
