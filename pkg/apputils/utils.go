@@ -166,6 +166,7 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("error normalizing url: %w", err)
 		}
+
 		configRepoClient, configRepoErr := authsvc.CreateGitClient(ctx, normalizedConfigUrl, targetName, namespace)
 		if configRepoErr != nil {
 			return nil, nil, nil, configRepoErr
