@@ -12,11 +12,12 @@ import (
 
 func TemplateCommand(endpoint string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "template",
-		Short: "Display one or many CAPI templates",
+		Use:     "template",
+		Aliases: []string{"templates"},
+		Short:   "Display one or many CAPI templates",
 		Example: `
 # Get all CAPI templates that are available on the cluster
-gitops get template
+gitops get templates
 		`,
 		RunE: getTemplateCmdRunE(endpoint, client),
 	}
