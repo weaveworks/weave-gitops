@@ -1056,7 +1056,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("Then I should see an error", func() {
-			Eventually(reAddOutput).Should(ContainSubstring("Error: failed to add the app " + appName + ": unable to create resource, resource already exists in cluster"))
+			Eventually(reAddOutput).Should(ContainSubstring("resource already exists in cluster"))
 		})
 
 		By("And app status should remain same", func() {
