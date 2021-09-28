@@ -19,6 +19,13 @@ type CommitParams struct {
 
 // GetCommits gets a list of commits from the repo/branch saved in the app manifest
 func (a *App) GetCommits(params CommitParams, application *wego.Application) ([]gitprovider.Commit, error) {
+	if application.Spec.SourceType == wego.SourceTypeHelm {
+		return nil, fmt.Errorf("unable to get commits for a helm chart")
+	}
+
+	if application.Spec.ConfigURL == "NONE" {
+		return nil, fmt.Errorf("unable to get commits when config_url is empty")
+	}
 	normalizedUrl, err := gitproviders.NewNormalizedRepoURL(application.Spec.URL)
 	if err != nil {
 		return nil, fmt.Errorf("error creating normalized url: %w", err)
