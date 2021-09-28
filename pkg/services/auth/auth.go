@@ -197,7 +197,6 @@ func (a *authSvc) setupDeployKey(ctx context.Context, name SecretName, targetNam
 	}
 
 	if deployKeyExists {
-		a.logger.Successf("Existing deploy key found")
 		// The deploy key was found on the Git Provider, fetch it from the cluster.
 		secret, err := a.retrieveDeployKey(ctx, name)
 		if apierrors.IsNotFound(err) {
