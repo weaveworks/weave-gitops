@@ -26,6 +26,7 @@ func (a *App) GetCommits(params CommitParams, application *wego.Application) ([]
 	if application.Spec.ConfigURL == "NONE" {
 		return nil, fmt.Errorf("unable to get commits when config_url is empty")
 	}
+
 	normalizedUrl, err := gitproviders.NewNormalizedRepoURL(application.Spec.URL)
 	if err != nil {
 		return nil, fmt.Errorf("error creating normalized url: %w", err)
