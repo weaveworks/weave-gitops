@@ -6,7 +6,7 @@ type dryrunProvider struct {
 	provider GitProvider
 }
 
-func NewDryRun(_ Config) (GitProvider, error) {
+func NewDryRun() (GitProvider, error) {
 	provider, err := New(Config{
 		Provider: GitProviderGitHub,
 		Token:    "dummy",
@@ -32,7 +32,7 @@ func (p *dryrunProvider) DeployKeyExists(owner, repoName string) (bool, error) {
 	return true, nil
 }
 
-func (p *dryrunProvider) GetRepoInfo(accountType ProviderAccountType, owner string, repoName string) (*gitprovider.RepositoryInfo, error) {
+func (p *dryrunProvider) GetRepoInfo(_ ProviderAccountType, owner string, repoName string) (*gitprovider.RepositoryInfo, error) {
 	return &gitprovider.RepositoryInfo{
 		DefaultBranch: gitprovider.StringVar("<default-branch>"),
 		Visibility:    gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityPrivate),

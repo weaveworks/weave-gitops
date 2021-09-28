@@ -178,7 +178,7 @@ func getAuthService(ctx context.Context, providerUrl string, dryRun bool) (auth.
 	)
 
 	if dryRun {
-		if gitProvider, err = gitproviders.NewDryRun(gitproviders.Config{}); err != nil {
+		if gitProvider, err = gitproviders.NewDryRun(); err != nil {
 			return nil, fmt.Errorf("error creating git provider client: %w", err)
 		}
 	} else {
