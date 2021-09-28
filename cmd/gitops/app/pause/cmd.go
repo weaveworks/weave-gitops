@@ -33,12 +33,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 	params.Name = args[0]
 
-	appObj, err := apputils.FetchAppByName(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
+	appSvcData, err := apputils.FetchAppByName(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
 	if err != nil {
 		return fmt.Errorf("could not get application: %w", err)
 	}
 
-	appService, appError := apputils.GetAppService(ctx, appObj.Spec.URL, appObj.Spec.ConfigURL, params.Namespace, appObj.IsHelmRepository(), false)
+	appService, appError := apputils.GetAppService(ctx, appSvcData)
 	if appError != nil {
 		return fmt.Errorf("failed to create app service: %w", appError)
 	}

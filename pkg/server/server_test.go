@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -558,8 +559,8 @@ var _ = Describe("ApplicationsServer", func() {
 				secretKey := rand.String(20)
 
 				appFactory := &apputilsfakes.FakeAppFactory{}
-				appFactory.GetAppServiceStub = func(ctx context.Context, url, configUrl, namespace string, b bool) (app.AppService, error) {
-					return app.New(ctx, nil, nil, nil, nil, nil, kubeClient, nil), nil
+				appFactory.GetAppServiceStub = func(c context.Context, asd apputils.AppServiceData) (app.AppService, error) {
+					return app.New(c, nil, nil, nil, nil, nil, kubeClient, nil), nil
 				}
 				appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 					return kubeClient, nil
@@ -654,8 +655,8 @@ var _ = Describe("ApplicationsServer", func() {
 				}
 
 				appFactory := &apputilsfakes.FakeAppFactory{}
-				appFactory.GetAppServiceStub = func(ctx context.Context, url, configUrl, namespace string, b bool) (app.AppService, error) {
-					return app.New(ctx, nil, nil, nil, nil, nil, kubeClient, nil), nil
+				appFactory.GetAppServiceStub = func(c context.Context, asd apputils.AppServiceData) (app.AppService, error) {
+					return app.New(c, nil, nil, nil, nil, nil, kubeClient, nil), nil
 				}
 				appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 					return kubeClient, nil
@@ -715,8 +716,8 @@ var _ = Describe("Applications handler", func() {
 		}
 
 		appFactory := &apputilsfakes.FakeAppFactory{}
-		appFactory.GetAppServiceStub = func(ctx context.Context, url, configUrl, namespace string, b bool) (app.AppService, error) {
-			return app.New(ctx, nil, nil, nil, nil, nil, k, nil), nil
+		appFactory.GetAppServiceStub = func(c context.Context, asd apputils.AppServiceData) (app.AppService, error) {
+			return app.New(c, nil, nil, nil, nil, nil, k, nil), nil
 		}
 		appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 			return k, nil
@@ -777,8 +778,8 @@ var _ = Describe("Applications handler", func() {
 			},
 		}
 
-		appFactory.GetAppServiceStub = func(ctx context.Context, url, configUrl, namespace string, b bool) (app.AppService, error) {
-			return app.New(ctx, nil, nil, nil, gitProviders, nil, kubeClient, nil), nil
+		appFactory.GetAppServiceStub = func(c context.Context, asd apputils.AppServiceData) (app.AppService, error) {
+			return app.New(c, nil, nil, nil, gitProviders, nil, kubeClient, nil), nil
 		}
 
 		appFactory.GetKubeServiceStub = func() (kube.Kube, error) {

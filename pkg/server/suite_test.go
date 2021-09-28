@@ -9,6 +9,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/rand"
 
+	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 
@@ -108,8 +109,8 @@ var _ = BeforeEach(func() {
 	k = &kube.KubeHTTP{Client: k8sClient, ClusterName: testClustername}
 
 	appFactory := &apputilsfakes.FakeAppFactory{}
-	appFactory.GetAppServiceStub = func(ctx context.Context, url, configUrl, namespace string, b bool) (app.AppService, error) {
-		return app.New(ctx, nil, nil, nil, nil, nil, k, nil), nil
+	appFactory.GetAppServiceStub = func(c context.Context, asd apputils.AppServiceData) (app.AppService, error) {
+		return app.New(c, nil, nil, nil, nil, nil, k, nil), nil
 	}
 
 	appFactory.GetKubeServiceStub = func() (kube.Kube, error) {

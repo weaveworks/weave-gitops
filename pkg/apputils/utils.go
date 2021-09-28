@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -22,14 +21,21 @@ import (
 //counterfeiter:generate . AppFactory
 type AppFactory interface {
 	GetKubeService() (kube.Kube, error)
-	GetAppService(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool) (app.AppService, error)
+	GetAppService(ctx context.Context, data AppServiceData) (app.AppService, error)
 }
 
 type DefaultAppFactory struct {
 }
+type AppServiceData struct {
+	URL       string
+	ConfigURL string
+	Namespace string
+	IsHelm    bool
+	IsDryRun  bool
+}
 
-func (f *DefaultAppFactory) GetAppService(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool) (app.AppService, error) {
-	return GetAppService(ctx, url, configUrl, namespace, isHelmRepository, false)
+func (f *DefaultAppFactory) GetAppService(ctx context.Context, appSvcData AppServiceData) (app.AppService, error) {
+	return GetAppService(ctx, appSvcData)
 }
 
 func (f *DefaultAppFactory) GetKubeService() (kube.Kube, error) {
@@ -72,7 +78,7 @@ func IsClusterReady() error {
 	return app.IsClusterReady(logger, kube)
 }
 
-func GetAppService(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool, dryRun bool) (app.AppService, error) {
+func GetAppService(ctx context.Context, data AppServiceData) (app.AppService, error) {
 	osysClient, fluxClient, kubeClient, logger, baseClientErr := GetBaseClients()
 	if baseClientErr != nil {
 		return nil, fmt.Errorf("error initializing clients: %w", baseClientErr)
@@ -80,7 +86,7 @@ func GetAppService(ctx context.Context, url, configUrl, namespace string, isHelm
 
 	fluxClient.SetupBin()
 
-	appClient, configClient, gitProvider, err := getGitClients(ctx, url, configUrl, namespace, isHelmRepository, dryRun)
+	appClient, configClient, gitProvider, err := getGitClients(ctx, data.URL, data.ConfigURL, data.Namespace, data.IsHelm, data.IsDryRun)
 	if err != nil {
 		return nil, fmt.Errorf("error getting git clients: %w", err)
 	}
@@ -88,18 +94,23 @@ func GetAppService(ctx context.Context, url, configUrl, namespace string, isHelm
 	return app.New(ctx, logger, appClient, configClient, gitProvider, fluxClient, kubeClient, osysClient), nil
 }
 
-func FetchAppByName(ctx context.Context, name types.NamespacedName) (*wego.Application, error) {
+func FetchAppByName(ctx context.Context, name types.NamespacedName) (AppServiceData, error) {
 	kube, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create kube client: %w", err)
+		return AppServiceData{}, fmt.Errorf("failed to create kube client: %w", err)
 	}
 
 	appObj, err := kube.GetApplication(ctx, name)
 	if err != nil {
-		return nil, fmt.Errorf("could not get application: %w", err)
+		return AppServiceData{}, fmt.Errorf("could not get application: %w", err)
 	}
 
-	return appObj, nil
+	return AppServiceData{
+		Namespace: appObj.Namespace,
+		URL:       appObj.Spec.URL,
+		ConfigURL: appObj.Spec.ConfigURL,
+		IsHelm:    appObj.IsHelmRepository(),
+	}, nil
 }
 
 func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool, dryRun bool) (git.Git, git.Git, gitproviders.GitProvider, error) {

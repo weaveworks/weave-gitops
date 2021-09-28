@@ -318,7 +318,13 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 		return nil, fmt.Errorf("unable to get application for %s %w", params.Name, err)
 	}
 
-	appService, appErr := s.appFactory.GetAppService(ctx, application.Spec.URL, application.Spec.ConfigURL, params.Namespace, application.IsHelmRepository())
+	appService, appErr := s.appFactory.GetAppService(ctx, apputils.AppServiceData{
+		Namespace: application.Namespace,
+		URL:       application.Spec.URL,
+		ConfigURL: application.Spec.ConfigURL,
+		IsHelm:    application.IsHelmRepository(),
+		IsDryRun:  false,
+	})
 	if appErr != nil {
 		return nil, fmt.Errorf("failed to create app service: %w", appErr)
 	}

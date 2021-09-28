@@ -54,7 +54,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to fetch app %q: %w", params.Name, err)
 	}
 
-	appService, appError := apputils.GetAppService(ctx, appObj.Spec.URL, appObj.Spec.ConfigURL, appObj.Namespace, appObj.IsHelmRepository(), params.DryRun)
+	appService, appError := apputils.GetAppService(ctx, appObj)
 	if appError != nil {
 		return fmt.Errorf("failed to create app service: %w", appError)
 	}

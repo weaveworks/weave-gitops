@@ -70,12 +70,14 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	command := args[1]
 	object := args[2]
 
-	appObj, err := apputils.FetchAppByName(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
+	appName := types.NamespacedName{Name: params.Name, Namespace: params.Namespace}
+
+	appSvcData, err := apputils.FetchAppByName(ctx, appName)
 	if err != nil {
 		return fmt.Errorf("could not get application: %w", err)
 	}
 
-	if appObj.IsHelmRepository() {
+	if appSvcData.IsHelm {
 		return fmt.Errorf("unable to get commits for a helm chart")
 	}
 
@@ -84,8 +86,13 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid command %s", command)
 	}
 
-	appService, appError := apputils.GetAppService(ctx, appObj.Spec.URL, appObj.Spec.ConfigURL, appObj.Namespace, false, false)
+	appService, appError := apputils.GetAppService(ctx, appSvcData)
 	if appError != nil {
+		return fmt.Errorf("failed to create app service: %w", appError)
+	}
+
+	appObj, getErr := appService.Get(appName)
+	if getErr != nil {
 		return fmt.Errorf("failed to create app service: %w", appError)
 	}
 
