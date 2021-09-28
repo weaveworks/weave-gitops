@@ -102,7 +102,7 @@ func (a *App) Remove(params RemoveParams) error {
 			}
 		}
 
-		if err := a.commitAndPush(a.ConfigGit); err != nil {
+		if err := a.commitAndPush(a.ConfigGit, params.DryRun); err != nil {
 			return err
 		}
 	}

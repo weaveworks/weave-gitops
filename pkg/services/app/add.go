@@ -349,7 +349,7 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 		return fmt.Errorf("could not apply manifests to the cluster: %w", err)
 	}
 
-	return a.commitAndPush(a.ConfigGit, func(fname string) bool {
+	return a.commitAndPush(a.ConfigGit, params.DryRun, func(fname string) bool {
 		return strings.Contains(fname, ".wego")
 	})
 }
@@ -402,7 +402,7 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 		return fmt.Errorf("could not apply manifests to the cluster: %w", err)
 	}
 
-	return a.commitAndPush(a.ConfigGit)
+	return a.commitAndPush(a.ConfigGit, params.DryRun)
 }
 
 func (a *App) generateAppManifests(info *AppResourceInfo, secretRef string, appHash string) ([]byte, []byte, []byte, error) {
@@ -496,8 +496,12 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, branch string
 	return &externalRepoManifests{source: targetSource, target: targetGoat, appDir: appDirGoat}, nil
 }
 
-func (a *App) commitAndPush(client git.Git, filters ...func(string) bool) error {
+func (a *App) commitAndPush(client git.Git, dryRun bool, filters ...func(string) bool) error {
 	a.Logger.Actionf("Committing and pushing gitops updates for application")
+
+	if dryRun {
+		return nil
+	}
 
 	_, err := client.Commit(git.Commit{
 		Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
