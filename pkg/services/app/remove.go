@@ -106,9 +106,7 @@ func (a *App) Remove(params RemoveParams) error {
 			}
 		}
 
-		if err := a.commitAndPush(a.ConfigGit, RemoveCommitMessage); err != nil {
-			return err
-		}
+		return a.commitAndPush(a.ConfigGit, RemoveCommitMessage, params.DryRun)
 	}
 
 	return nil

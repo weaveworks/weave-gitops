@@ -323,10 +323,6 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 		return nil, fmt.Errorf("unable to get application for %s %w", params.Name, err)
 	}
 
-	if application.Spec.SourceType == wego.SourceTypeHelm {
-		return nil, fmt.Errorf("unable to get commits for a helm chart")
-	}
-
 	commits, err := appService.GetCommits(params, application)
 	if err != nil {
 		return nil, err
