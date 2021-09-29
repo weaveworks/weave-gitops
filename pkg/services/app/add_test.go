@@ -874,7 +874,7 @@ var _ = Describe("Add", func() {
 	Context("check for default values on AddParameters", func() {
 		It("default values for path and deploymentType and branch should be correct", func() {
 			addParams := AddParams{}
-			addParams.Url = "http://github.com/testrepo"
+			addParams.Url = "http://github.com/weaveworks/testrepo"
 
 			updated, err := appSrv.(*App).updateParametersIfNecessary(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
