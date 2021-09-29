@@ -296,14 +296,14 @@ func mapSourceSpecToReponse(src client.Object) *pb.Source {
 func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddApplicationRequest) (*pb.AddApplicationResponse, error) {
 	appUrl, err := gitproviders.NewNormalizedRepoURL(msg.Url)
 	if err != nil {
-		return nil, grpcStatus.Error(codes.InvalidArgument, fmt.Sprintf("unable to parse app url %q: %s", msg.Url, err))
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "unable to parse app url %q: %s", msg.Url, err)
 	}
 
 	var configUrl gitproviders.NormalizedRepoURL
 	if msg.ConfigUrl != "" {
 		configUrl, err = gitproviders.NewNormalizedRepoURL(msg.ConfigUrl)
 		if err != nil {
-			return nil, grpcStatus.Error(codes.InvalidArgument, fmt.Sprintf("unable to parse config url %q: %s", msg.ConfigUrl, err))
+			return nil, grpcStatus.Errorf(codes.InvalidArgument, "unable to parse config url %q: %s", msg.ConfigUrl, err)
 		}
 	}
 
@@ -351,7 +351,7 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommitsRequest) (*pb.ListCommitsResponse, error) {
 	providerToken, err := middleware.ExtractProviderToken(ctx)
 	if err != nil {
-		return nil, grpcStatus.Error(codes.Unauthenticated, fmt.Sprintf("error listing commits: %s", err.Error()))
+		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error listing commits: %s", err.Error())
 	}
 
 	pageToken := 0
