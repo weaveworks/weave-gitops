@@ -2,7 +2,7 @@ kind: Module
 description: Node hot reload image
 name: wego-app-image
 type: container
-dockerfile: Dockerfile-dev
+dockerfile: dev.dockerfile
 exclude : [manifests/garden/*,node_modules]
 hotReload:
   sync:
