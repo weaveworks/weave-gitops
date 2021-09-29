@@ -62,6 +62,10 @@ func (p *dryrunProvider) CreatePullRequest(owner string, repoName, targetBranch 
 	return nil, nil
 }
 
+func (p *dryrunProvider) GetCommits(owner string, repoName string, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
+	return []gitprovider.Commit{}, nil
+}
+
 func (p *dryrunProvider) GetCommitsFromUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
 	return []gitprovider.Commit{}, nil
 }

@@ -13,12 +13,6 @@ var _ = Describe("DryRun", func() {
 		dryRunProvider, _ = NewDryRun()
 	})
 
-	Describe("CreateRepository", func() {
-		It("returns nil", func() {
-			Expect(dryRunProvider.CreateRepository("", "", false)).To(Succeed())
-		})
-	})
-
 	Describe("RepositoryExists", func() {
 		It("returns true", func() {
 			res, err := dryRunProvider.RepositoryExists("", "")
@@ -32,22 +26,6 @@ var _ = Describe("DryRun", func() {
 			res, err := dryRunProvider.DeployKeyExists("", "")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(BeTrue())
-		})
-	})
-
-	Describe("GetRepoInfo", func() {
-		It("returns placeholder", func() {
-			res, err := dryRunProvider.GetRepoInfo(AccountTypeUser, "", "")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(*res.DefaultBranch).To(Equal("<default-branch>"))
-		})
-	})
-
-	Describe("GetRepoInfoFromUrl", func() {
-		It("returns placeholder", func() {
-			res, err := dryRunProvider.GetRepoInfoFromUrl("")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(*res.DefaultBranch).To(Equal("<default-branch>"))
 		})
 	})
 
@@ -81,27 +59,11 @@ var _ = Describe("DryRun", func() {
 		})
 	})
 
-	Describe("GetCommitsFromUserRepo", func() {
+	Describe("GetCommits", func() {
 		It("returns emtpy", func() {
-			res, err := dryRunProvider.GetCommitsFromUserRepo(gitprovider.UserRepositoryRef{}, "", 1, 1)
+			res, err := dryRunProvider.GetCommits("", "", "", 1, 1)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal([]gitprovider.Commit{}))
-		})
-	})
-
-	Describe("GetCommitsFromOrgRepo", func() {
-		It("returns empty", func() {
-			res, err := dryRunProvider.GetCommitsFromOrgRepo(gitprovider.OrgRepositoryRef{}, "", 1, 1)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(res).To(Equal([]gitprovider.Commit{}))
-		})
-	})
-
-	Describe("GetAccountType", func() {
-		It("returns user type", func() {
-			res, err := dryRunProvider.GetAccountType("")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(res).To(Equal(AccountTypeUser))
 		})
 	})
 

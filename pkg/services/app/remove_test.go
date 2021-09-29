@@ -8,12 +8,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/osys/osysfakes"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
@@ -321,11 +319,6 @@ var _ = Describe("Remove", func() {
 	It("Looks up config repo default branch", func() {
 		gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
 			return "config-branch", nil
-		}
-
-		gitProviders.GetRepoInfoStub = func(accountType gitproviders.ProviderAccountType, owner, repoName string) (*gitprovider.RepositoryInfo, error) {
-			visibility := gitprovider.RepositoryVisibility("public")
-			return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: nil, Visibility: &visibility}, nil
 		}
 
 		kubeClient.GetApplicationStub = func(_ context.Context, name types.NamespacedName) (*wego.Application, error) {

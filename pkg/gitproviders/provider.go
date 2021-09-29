@@ -30,17 +30,13 @@ const (
 // GitProvider Handler
 //counterfeiter:generate . GitProvider
 type GitProvider interface {
-	CreateRepository(name string, owner string, private bool) error
 	RepositoryExists(name string, owner string) (bool, error)
 	DeployKeyExists(owner, repoName string) (bool, error)
-	GetRepoInfo(accountType ProviderAccountType, owner string, repoName string) (*gitprovider.RepositoryInfo, error)
-	GetRepoInfoFromUrl(url string) (*gitprovider.RepositoryInfo, error)
 	GetDefaultBranch(url string) (string, error)
 	GetRepoVisibility(url string) (*gitprovider.RepositoryVisibility, error)
 	UploadDeployKey(owner, repoName string, deployKey []byte) error
 	CreatePullRequest(owner string, repoName string, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMsg string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
-	GetCommitsFromUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
-	GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
+	GetCommits(owner string, repoName, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
 	GetAccountType(owner string) (ProviderAccountType, error)
 	GetProviderDomain() string
 }
@@ -91,39 +87,6 @@ func (p defaultGitProvider) RepositoryExists(name string, owner string) (bool, e
 	}
 
 	return true, nil
-}
-
-func (p defaultGitProvider) CreateRepository(name string, owner string, private bool) error {
-	visibility := gitprovider.RepositoryVisibilityPrivate
-	if !private {
-		visibility = gitprovider.RepositoryVisibilityPublic
-	}
-
-	repoInfo := NewRepositoryInfo("Weave Gitops repo", visibility)
-
-	repoCreateOpts := &gitprovider.RepositoryCreateOptions{
-		AutoInit:        gitprovider.BoolVar(true),
-		LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
-	}
-
-	ownerType, err := p.GetAccountType(owner)
-	if err != nil {
-		return err
-	}
-
-	if ownerType == AccountTypeOrg {
-		orgRef := NewOrgRepositoryRef(p.domain, owner, name)
-		if err = p.CreateOrgRepository(orgRef, repoInfo, repoCreateOpts); err != nil {
-			return err
-		}
-	} else {
-		userRef := NewUserRepositoryRef(p.domain, owner, name)
-		if err = p.CreateUserRepository(userRef, repoInfo, repoCreateOpts); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func (p defaultGitProvider) DeployKeyExists(owner, repoName string) (bool, error) {
@@ -251,7 +214,6 @@ func (p defaultGitProvider) GetAccountType(owner string) (ProviderAccountType, e
 		Domain:       p.domain,
 		Organization: owner,
 	})
-
 	if err != nil {
 		if errors.Is(err, gitprovider.ErrNotFound) {
 			return AccountTypeUser, nil
@@ -264,44 +226,24 @@ func (p defaultGitProvider) GetAccountType(owner string) (ProviderAccountType, e
 }
 
 func (p defaultGitProvider) GetDefaultBranch(url string) (string, error) {
-	repoInfoRef, err := p.GetRepoInfoFromUrl(url)
-
+	repoInfoRef, err := p.getRepoInfoFromUrl(url)
 	if err != nil {
-		return "", err
+		return "main", err
 	}
 
-	if repoInfoRef != nil {
-		repoInfo := *repoInfoRef
-		if repoInfo.DefaultBranch != nil {
-			return *repoInfo.DefaultBranch, nil
-		}
-	}
-
-	return "main", nil
+	return *repoInfoRef.DefaultBranch, nil
 }
 
 func (p defaultGitProvider) GetRepoVisibility(url string) (*gitprovider.RepositoryVisibility, error) {
-	repoInfoRef, err := p.GetRepoInfoFromUrl(url)
-
+	repoInfoRef, err := p.getRepoInfoFromUrl(url)
 	if err != nil {
 		return nil, err
 	}
 
-	return getVisibilityFromRepoInfo(url, repoInfoRef)
+	return repoInfoRef.Visibility, nil
 }
 
-func getVisibilityFromRepoInfo(url string, repoInfoRef *gitprovider.RepositoryInfo) (*gitprovider.RepositoryVisibility, error) {
-	if repoInfoRef != nil {
-		repoInfo := *repoInfoRef
-		if repoInfo.Visibility != nil {
-			return repoInfo.Visibility, nil
-		}
-	}
-
-	return nil, fmt.Errorf("unable to obtain repository visibility for: %s", url)
-}
-
-func (p defaultGitProvider) GetRepoInfoFromUrl(repoUrl string) (*gitprovider.RepositoryInfo, error) {
+func (p defaultGitProvider) getRepoInfoFromUrl(repoUrl string) (*gitprovider.RepositoryInfo, error) {
 	owner, err := utils.GetOwnerFromUrl(repoUrl)
 	if err != nil {
 		return nil, err
@@ -314,7 +256,7 @@ func (p defaultGitProvider) GetRepoInfoFromUrl(repoUrl string) (*gitprovider.Rep
 		return nil, err
 	}
 
-	repoInfo, err := p.GetRepoInfo(accountType, owner, repoName)
+	repoInfo, err := p.getRepoInfo(accountType, owner, repoName)
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +264,7 @@ func (p defaultGitProvider) GetRepoInfoFromUrl(repoUrl string) (*gitprovider.Rep
 	return repoInfo, nil
 }
 
-func (p defaultGitProvider) GetRepoInfo(accountType ProviderAccountType, owner string, repoName string) (*gitprovider.RepositoryInfo, error) {
+func (p defaultGitProvider) getRepoInfo(accountType ProviderAccountType, owner string, repoName string) (*gitprovider.RepositoryInfo, error) {
 	ctx := context.Background()
 	defer ctx.Done()
 
@@ -390,34 +332,6 @@ func (p defaultGitProvider) CreateOrgRepository(orgRepoRef gitprovider.OrgReposi
 	return p.waitUntilRepoCreated(AccountTypeOrg, orgRepoRef.Organization, orgRepoRef.RepositoryName)
 }
 
-func (p defaultGitProvider) CreatePullRequest(owner string, repoName string, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMsg string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
-	accountType, err := p.GetAccountType(owner)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve account type: %w", err)
-	}
-
-	providerDomain := p.GetProviderDomain()
-	if accountType == AccountTypeOrg {
-		orgRepoRef := NewOrgRepositoryRef(providerDomain, owner, repoName)
-
-		pr, err := p.createPullRequestToOrgRepo(orgRepoRef, targetBranch, newBranch, files, commitMsg, prTitle, prDescription)
-		if err != nil {
-			return nil, fmt.Errorf("unable to create pull request: %w", err)
-		}
-
-		return pr, nil
-	}
-
-	userRepoRef := NewUserRepositoryRef(providerDomain, owner, repoName)
-
-	pr, err := p.CreatePullRequestToUserRepo(userRepoRef, targetBranch, newBranch, files, commitMsg, prTitle, prDescription)
-	if err != nil {
-		return nil, fmt.Errorf("unable to create pull request: %w", err)
-	}
-
-	return pr, nil
-}
-
 func (p defaultGitProvider) CreateUserRepository(userRepoRef gitprovider.UserRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
 	ctx := context.Background()
 	defer ctx.Done()
@@ -430,12 +344,36 @@ func (p defaultGitProvider) CreateUserRepository(userRepoRef gitprovider.UserRep
 	return p.waitUntilRepoCreated(AccountTypeUser, userRepoRef.UserLogin, userRepoRef.RepositoryName)
 }
 
-func (p defaultGitProvider) CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
-	ctx := context.Background()
-
-	ur, err := p.provider.UserRepositories().Get(ctx, userRepRef)
+func (p defaultGitProvider) CreatePullRequest(owner string, repoName string, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMsg string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
+	accountType, err := p.GetAccountType(owner)
 	if err != nil {
-		return nil, fmt.Errorf("error getting info for repo [%s] err [%s]", userRepRef.String(), err)
+		return nil, fmt.Errorf("failed to retrieve account type: %w", err)
+	}
+
+	if accountType == AccountTypeOrg {
+		pr, err := p.createPullRequestToOrgRepo(owner, repoName, targetBranch, newBranch, files, commitMsg, prTitle, prDescription)
+		if err != nil {
+			return nil, fmt.Errorf("unable to create pull request: %w", err)
+		}
+
+		return pr, nil
+	}
+
+	pr, err := p.createPullRequestToUserRepo(owner, repoName, targetBranch, newBranch, files, commitMsg, prTitle, prDescription)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create pull request: %w", err)
+	}
+
+	return pr, nil
+}
+
+func (p defaultGitProvider) createPullRequestToUserRepo(owner string, repoName string, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
+	ctx := context.Background()
+	userRepoRef := NewUserRepositoryRef(p.GetProviderDomain(), owner, repoName)
+
+	ur, err := p.provider.UserRepositories().Get(ctx, userRepoRef)
+	if err != nil {
+		return nil, fmt.Errorf("error getting info for repo [%s] err [%s]", userRepoRef.String(), err)
 	}
 
 	if targetBranch == "" {
@@ -444,7 +382,7 @@ func (p defaultGitProvider) CreatePullRequestToUserRepo(userRepRef gitprovider.U
 
 	commits, err := ur.Commits().ListPage(ctx, targetBranch, 1, 0)
 	if err != nil {
-		return nil, fmt.Errorf("error getting commits for repo[%s] err [%s]", userRepRef.String(), err)
+		return nil, fmt.Errorf("error getting commits for repo[%s] err [%s]", userRepoRef.String(), err)
 	}
 
 	if len(commits) == 0 {
@@ -454,23 +392,24 @@ func (p defaultGitProvider) CreatePullRequestToUserRepo(userRepRef gitprovider.U
 	latestCommit := commits[0]
 
 	if err := ur.Branches().Create(ctx, newBranch, latestCommit.Get().Sha); err != nil {
-		return nil, fmt.Errorf("error creating branch [%s] for repo [%s] err [%s]", newBranch, userRepRef.String(), err)
+		return nil, fmt.Errorf("error creating branch [%s] for repo [%s] err [%s]", newBranch, userRepoRef.String(), err)
 	}
 
 	if _, err := ur.Commits().Create(ctx, newBranch, commitMessage, files); err != nil {
-		return nil, fmt.Errorf("error creating commit for branch [%s] for repo [%s] err [%s]", newBranch, userRepRef.String(), err)
+		return nil, fmt.Errorf("error creating commit for branch [%s] for repo [%s] err [%s]", newBranch, userRepoRef.String(), err)
 	}
 
 	pr, err := ur.PullRequests().Create(ctx, prTitle, newBranch, targetBranch, prDescription)
 	if err != nil {
-		return nil, fmt.Errorf("error creating pull request [%s] for branch [%s] for repo [%s] err [%s]", prTitle, newBranch, userRepRef.String(), err)
+		return nil, fmt.Errorf("error creating pull request [%s] for branch [%s] for repo [%s] err [%s]", prTitle, newBranch, userRepoRef.String(), err)
 	}
 
 	return pr, nil
 }
 
-func (p defaultGitProvider) createPullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
+func (p defaultGitProvider) createPullRequestToOrgRepo(owner string, repoName string, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
 	ctx := context.Background()
+	orgRepRef := NewOrgRepositoryRef(p.GetProviderDomain(), owner, repoName)
 
 	ur, err := p.provider.OrgRepositories().Get(ctx, orgRepRef)
 	if err != nil {
@@ -508,13 +447,37 @@ func (p defaultGitProvider) createPullRequestToOrgRepo(orgRepRef gitprovider.Org
 	return pr, nil
 }
 
-// GetCommitsFromUserRepo gets a limit of 10 commits from a user repo
-func (p defaultGitProvider) GetCommitsFromUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
-	ctx := context.Background()
-
-	ur, err := p.provider.UserRepositories().Get(ctx, userRepRef)
+func (p defaultGitProvider) GetCommits(owner string, repoName string, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
+	accountType, err := p.GetAccountType(owner)
 	if err != nil {
-		return nil, fmt.Errorf("error getting info for repo [%s] err [%s]", userRepRef.String(), err)
+		return nil, fmt.Errorf("failed to retrieve account type: %w", err)
+	}
+
+	if accountType == AccountTypeOrg {
+		commits, err := p.GetCommitsFromOrgRepo(owner, repoName, targetBranch, pageSize, pageToken)
+		if err != nil {
+			return nil, fmt.Errorf("unable to get commits: %w", err)
+		}
+
+		return commits, nil
+	}
+
+	commits, err := p.GetCommitsFromUserRepo(owner, repoName, targetBranch, pageSize, pageToken)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get commits: %w", err)
+	}
+
+	return commits, nil
+}
+
+// GetCommitsFromUserRepo gets a limit of 10 commits from a user repo
+func (p defaultGitProvider) GetCommitsFromUserRepo(owner string, repoName string, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
+	ctx := context.Background()
+	userRepoRef := NewUserRepositoryRef(p.GetProviderDomain(), owner, repoName)
+
+	ur, err := p.provider.UserRepositories().Get(ctx, userRepoRef)
+	if err != nil {
+		return nil, fmt.Errorf("error getting info for repo [%s] err [%s]", userRepoRef.String(), err)
 	}
 
 	// currently locking the commit list at 10. May discuss pagination options later.
@@ -524,19 +487,20 @@ func (p defaultGitProvider) GetCommitsFromUserRepo(userRepRef gitprovider.UserRe
 			return []gitprovider.Commit{}, nil
 		}
 
-		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", userRepRef.String(), err)
+		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", userRepoRef.String(), err)
 	}
 
 	return commits, nil
 }
 
 // GetCommitsFromUserRepo gets a limit of 10 commits from an organization
-func (p defaultGitProvider) GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
+func (p defaultGitProvider) GetCommitsFromOrgRepo(owner string, repoName string, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
 	ctx := context.Background()
+	orgRepoRef := NewOrgRepositoryRef(p.GetProviderDomain(), owner, repoName)
 
-	ur, err := p.provider.OrgRepositories().Get(ctx, orgRepRef)
+	ur, err := p.provider.OrgRepositories().Get(ctx, orgRepoRef)
 	if err != nil {
-		return nil, fmt.Errorf("error getting info for repo [%s] err [%s]", orgRepRef.String(), err)
+		return nil, fmt.Errorf("error getting info for repo [%s] err [%s]", orgRepoRef.String(), err)
 	}
 
 	// currently locking the commit list at 10. May discuss pagination options later.
@@ -546,7 +510,7 @@ func (p defaultGitProvider) GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepos
 			return []gitprovider.Commit{}, nil
 		}
 
-		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", orgRepRef.String(), err)
+		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", orgRepoRef.String(), err)
 	}
 
 	return commits, nil
@@ -589,7 +553,7 @@ func NewUserRepositoryRef(domain, user, repoName string) gitprovider.UserReposit
 
 func (p defaultGitProvider) waitUntilRepoCreated(ownerType ProviderAccountType, owner, name string) error {
 	if err := utils.WaitUntil(os.Stdout, time.Second, defaultTimeout, func() error {
-		_, err := p.GetRepoInfo(ownerType, owner, name)
+		_, err := p.getRepoInfo(ownerType, owner, name)
 		return err
 	}); err != nil {
 		return fmt.Errorf("could not verify repo existence %s", err)

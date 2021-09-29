@@ -3,7 +3,6 @@ package app
 import (
 	"fmt"
 
-	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -28,28 +27,9 @@ func (a *App) GetCommits(params CommitParams, application *wego.Application) ([]
 		return nil, fmt.Errorf("error creating normalized url: %w", err)
 	}
 
-	accountType, err := a.GitProvider.GetAccountType(normalizedUrl.Owner())
+	commits, err := a.GitProvider.GetCommits(normalizedUrl.Owner(), normalizedUrl.RepositoryName(), application.Spec.Branch, params.PageSize, params.PageToken)
 	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve account type: %w", err)
-	}
-
-	normalizedUrl.Provider()
-
-	var commits []gitprovider.Commit
-
-	if accountType == gitproviders.AccountTypeUser {
-		userRepoRef := gitproviders.NewUserRepositoryRef(github.DefaultDomain, normalizedUrl.Owner(), normalizedUrl.RepositoryName())
-
-		commits, err = a.GitProvider.GetCommitsFromUserRepo(userRepoRef, application.Spec.Branch, params.PageSize, params.PageToken)
-		if err != nil {
-			return nil, fmt.Errorf("unable to get commits for user repo: %w", err)
-		}
-	} else {
-		orgRepoRef := gitproviders.NewOrgRepositoryRef(github.DefaultDomain, normalizedUrl.Owner(), normalizedUrl.RepositoryName())
-		commits, err = a.GitProvider.GetCommitsFromOrgRepo(orgRepoRef, application.Spec.Branch, params.PageSize, params.PageToken)
-		if err != nil {
-			return nil, fmt.Errorf("unable to get commits for org repo: %w", err)
-		}
+		return nil, fmt.Errorf("unable to get commits for repo: %w", err)
 	}
 
 	return commits, nil

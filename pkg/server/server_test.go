@@ -778,21 +778,11 @@ var _ = Describe("Applications handler", func() {
 			},
 		}
 
-		appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
-			return app.New(ctx, nil, nil, nil, gitProviders, nil, kubeClient, nil), nil
-		}
+		appFactory.GetAppServiceReturns(app.New(context.Background(), nil, nil, nil, gitProviders, nil, kubeClient, nil), nil)
+		appFactory.GetKubeServiceReturns(kubeClient, nil)
 
-		appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
-			return kubeClient, nil
-		}
-
-		gitProviders.GetCommitsFromUserRepoStub = func(gitprovider.UserRepositoryRef, string, int, int) ([]gitprovider.Commit, error) {
-			return commits, nil
-		}
-
-		gitProviders.GetAccountTypeStub = func(string) (gitproviders.ProviderAccountType, error) {
-			return gitproviders.AccountTypeUser, nil
-		}
+		gitProviders.GetCommitsReturns(commits, nil)
+		gitProviders.GetAccountTypeReturns(gitproviders.AccountTypeUser, nil)
 
 		cfg := ApplicationsConfig{
 			Logger:     log,

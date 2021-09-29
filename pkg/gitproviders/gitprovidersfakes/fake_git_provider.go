@@ -29,19 +29,6 @@ type FakeGitProvider struct {
 		result1 gitprovider.PullRequest
 		result2 error
 	}
-	CreateRepositoryStub        func(string, string, bool) error
-	createRepositoryMutex       sync.RWMutex
-	createRepositoryArgsForCall []struct {
-		arg1 string
-		arg2 string
-		arg3 bool
-	}
-	createRepositoryReturns struct {
-		result1 error
-	}
-	createRepositoryReturnsOnCall map[int]struct {
-		result1 error
-	}
 	DeployKeyExistsStub        func(string, string) (bool, error)
 	deployKeyExistsMutex       sync.RWMutex
 	deployKeyExistsArgsForCall []struct {
@@ -69,35 +56,20 @@ type FakeGitProvider struct {
 		result1 gitproviders.ProviderAccountType
 		result2 error
 	}
-	GetCommitsFromOrgRepoStub        func(gitprovider.OrgRepositoryRef, string, int, int) ([]gitprovider.Commit, error)
-	getCommitsFromOrgRepoMutex       sync.RWMutex
-	getCommitsFromOrgRepoArgsForCall []struct {
-		arg1 gitprovider.OrgRepositoryRef
+	GetCommitsStub        func(string, string, string, int, int) ([]gitprovider.Commit, error)
+	getCommitsMutex       sync.RWMutex
+	getCommitsArgsForCall []struct {
+		arg1 string
 		arg2 string
-		arg3 int
+		arg3 string
 		arg4 int
+		arg5 int
 	}
-	getCommitsFromOrgRepoReturns struct {
+	getCommitsReturns struct {
 		result1 []gitprovider.Commit
 		result2 error
 	}
-	getCommitsFromOrgRepoReturnsOnCall map[int]struct {
-		result1 []gitprovider.Commit
-		result2 error
-	}
-	GetCommitsFromUserRepoStub        func(gitprovider.UserRepositoryRef, string, int, int) ([]gitprovider.Commit, error)
-	getCommitsFromUserRepoMutex       sync.RWMutex
-	getCommitsFromUserRepoArgsForCall []struct {
-		arg1 gitprovider.UserRepositoryRef
-		arg2 string
-		arg3 int
-		arg4 int
-	}
-	getCommitsFromUserRepoReturns struct {
-		result1 []gitprovider.Commit
-		result2 error
-	}
-	getCommitsFromUserRepoReturnsOnCall map[int]struct {
+	getCommitsReturnsOnCall map[int]struct {
 		result1 []gitprovider.Commit
 		result2 error
 	}
@@ -123,34 +95,6 @@ type FakeGitProvider struct {
 	}
 	getProviderDomainReturnsOnCall map[int]struct {
 		result1 string
-	}
-	GetRepoInfoStub        func(gitproviders.ProviderAccountType, string, string) (*gitprovider.RepositoryInfo, error)
-	getRepoInfoMutex       sync.RWMutex
-	getRepoInfoArgsForCall []struct {
-		arg1 gitproviders.ProviderAccountType
-		arg2 string
-		arg3 string
-	}
-	getRepoInfoReturns struct {
-		result1 *gitprovider.RepositoryInfo
-		result2 error
-	}
-	getRepoInfoReturnsOnCall map[int]struct {
-		result1 *gitprovider.RepositoryInfo
-		result2 error
-	}
-	GetRepoInfoFromUrlStub        func(string) (*gitprovider.RepositoryInfo, error)
-	getRepoInfoFromUrlMutex       sync.RWMutex
-	getRepoInfoFromUrlArgsForCall []struct {
-		arg1 string
-	}
-	getRepoInfoFromUrlReturns struct {
-		result1 *gitprovider.RepositoryInfo
-		result2 error
-	}
-	getRepoInfoFromUrlReturnsOnCall map[int]struct {
-		result1 *gitprovider.RepositoryInfo
-		result2 error
 	}
 	GetRepoVisibilityStub        func(string) (*gitprovider.RepositoryVisibility, error)
 	getRepoVisibilityMutex       sync.RWMutex
@@ -270,69 +214,6 @@ func (fake *FakeGitProvider) CreatePullRequestReturnsOnCall(i int, result1 gitpr
 		result1 gitprovider.PullRequest
 		result2 error
 	}{result1, result2}
-}
-
-func (fake *FakeGitProvider) CreateRepository(arg1 string, arg2 string, arg3 bool) error {
-	fake.createRepositoryMutex.Lock()
-	ret, specificReturn := fake.createRepositoryReturnsOnCall[len(fake.createRepositoryArgsForCall)]
-	fake.createRepositoryArgsForCall = append(fake.createRepositoryArgsForCall, struct {
-		arg1 string
-		arg2 string
-		arg3 bool
-	}{arg1, arg2, arg3})
-	stub := fake.CreateRepositoryStub
-	fakeReturns := fake.createRepositoryReturns
-	fake.recordInvocation("CreateRepository", []interface{}{arg1, arg2, arg3})
-	fake.createRepositoryMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2, arg3)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeGitProvider) CreateRepositoryCallCount() int {
-	fake.createRepositoryMutex.RLock()
-	defer fake.createRepositoryMutex.RUnlock()
-	return len(fake.createRepositoryArgsForCall)
-}
-
-func (fake *FakeGitProvider) CreateRepositoryCalls(stub func(string, string, bool) error) {
-	fake.createRepositoryMutex.Lock()
-	defer fake.createRepositoryMutex.Unlock()
-	fake.CreateRepositoryStub = stub
-}
-
-func (fake *FakeGitProvider) CreateRepositoryArgsForCall(i int) (string, string, bool) {
-	fake.createRepositoryMutex.RLock()
-	defer fake.createRepositoryMutex.RUnlock()
-	argsForCall := fake.createRepositoryArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
-}
-
-func (fake *FakeGitProvider) CreateRepositoryReturns(result1 error) {
-	fake.createRepositoryMutex.Lock()
-	defer fake.createRepositoryMutex.Unlock()
-	fake.CreateRepositoryStub = nil
-	fake.createRepositoryReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeGitProvider) CreateRepositoryReturnsOnCall(i int, result1 error) {
-	fake.createRepositoryMutex.Lock()
-	defer fake.createRepositoryMutex.Unlock()
-	fake.CreateRepositoryStub = nil
-	if fake.createRepositoryReturnsOnCall == nil {
-		fake.createRepositoryReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.createRepositoryReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
 }
 
 func (fake *FakeGitProvider) DeployKeyExists(arg1 string, arg2 string) (bool, error) {
@@ -464,21 +345,22 @@ func (fake *FakeGitProvider) GetAccountTypeReturnsOnCall(i int, result1 gitprovi
 	}{result1, result2}
 }
 
-func (fake *FakeGitProvider) GetCommitsFromOrgRepo(arg1 gitprovider.OrgRepositoryRef, arg2 string, arg3 int, arg4 int) ([]gitprovider.Commit, error) {
-	fake.getCommitsFromOrgRepoMutex.Lock()
-	ret, specificReturn := fake.getCommitsFromOrgRepoReturnsOnCall[len(fake.getCommitsFromOrgRepoArgsForCall)]
-	fake.getCommitsFromOrgRepoArgsForCall = append(fake.getCommitsFromOrgRepoArgsForCall, struct {
-		arg1 gitprovider.OrgRepositoryRef
+func (fake *FakeGitProvider) GetCommits(arg1 string, arg2 string, arg3 string, arg4 int, arg5 int) ([]gitprovider.Commit, error) {
+	fake.getCommitsMutex.Lock()
+	ret, specificReturn := fake.getCommitsReturnsOnCall[len(fake.getCommitsArgsForCall)]
+	fake.getCommitsArgsForCall = append(fake.getCommitsArgsForCall, struct {
+		arg1 string
 		arg2 string
-		arg3 int
+		arg3 string
 		arg4 int
-	}{arg1, arg2, arg3, arg4})
-	stub := fake.GetCommitsFromOrgRepoStub
-	fakeReturns := fake.getCommitsFromOrgRepoReturns
-	fake.recordInvocation("GetCommitsFromOrgRepo", []interface{}{arg1, arg2, arg3, arg4})
-	fake.getCommitsFromOrgRepoMutex.Unlock()
+		arg5 int
+	}{arg1, arg2, arg3, arg4, arg5})
+	stub := fake.GetCommitsStub
+	fakeReturns := fake.getCommitsReturns
+	fake.recordInvocation("GetCommits", []interface{}{arg1, arg2, arg3, arg4, arg5})
+	fake.getCommitsMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4)
+		return stub(arg1, arg2, arg3, arg4, arg5)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -486,113 +368,46 @@ func (fake *FakeGitProvider) GetCommitsFromOrgRepo(arg1 gitprovider.OrgRepositor
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeGitProvider) GetCommitsFromOrgRepoCallCount() int {
-	fake.getCommitsFromOrgRepoMutex.RLock()
-	defer fake.getCommitsFromOrgRepoMutex.RUnlock()
-	return len(fake.getCommitsFromOrgRepoArgsForCall)
+func (fake *FakeGitProvider) GetCommitsCallCount() int {
+	fake.getCommitsMutex.RLock()
+	defer fake.getCommitsMutex.RUnlock()
+	return len(fake.getCommitsArgsForCall)
 }
 
-func (fake *FakeGitProvider) GetCommitsFromOrgRepoCalls(stub func(gitprovider.OrgRepositoryRef, string, int, int) ([]gitprovider.Commit, error)) {
-	fake.getCommitsFromOrgRepoMutex.Lock()
-	defer fake.getCommitsFromOrgRepoMutex.Unlock()
-	fake.GetCommitsFromOrgRepoStub = stub
+func (fake *FakeGitProvider) GetCommitsCalls(stub func(string, string, string, int, int) ([]gitprovider.Commit, error)) {
+	fake.getCommitsMutex.Lock()
+	defer fake.getCommitsMutex.Unlock()
+	fake.GetCommitsStub = stub
 }
 
-func (fake *FakeGitProvider) GetCommitsFromOrgRepoArgsForCall(i int) (gitprovider.OrgRepositoryRef, string, int, int) {
-	fake.getCommitsFromOrgRepoMutex.RLock()
-	defer fake.getCommitsFromOrgRepoMutex.RUnlock()
-	argsForCall := fake.getCommitsFromOrgRepoArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+func (fake *FakeGitProvider) GetCommitsArgsForCall(i int) (string, string, string, int, int) {
+	fake.getCommitsMutex.RLock()
+	defer fake.getCommitsMutex.RUnlock()
+	argsForCall := fake.getCommitsArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
-func (fake *FakeGitProvider) GetCommitsFromOrgRepoReturns(result1 []gitprovider.Commit, result2 error) {
-	fake.getCommitsFromOrgRepoMutex.Lock()
-	defer fake.getCommitsFromOrgRepoMutex.Unlock()
-	fake.GetCommitsFromOrgRepoStub = nil
-	fake.getCommitsFromOrgRepoReturns = struct {
+func (fake *FakeGitProvider) GetCommitsReturns(result1 []gitprovider.Commit, result2 error) {
+	fake.getCommitsMutex.Lock()
+	defer fake.getCommitsMutex.Unlock()
+	fake.GetCommitsStub = nil
+	fake.getCommitsReturns = struct {
 		result1 []gitprovider.Commit
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeGitProvider) GetCommitsFromOrgRepoReturnsOnCall(i int, result1 []gitprovider.Commit, result2 error) {
-	fake.getCommitsFromOrgRepoMutex.Lock()
-	defer fake.getCommitsFromOrgRepoMutex.Unlock()
-	fake.GetCommitsFromOrgRepoStub = nil
-	if fake.getCommitsFromOrgRepoReturnsOnCall == nil {
-		fake.getCommitsFromOrgRepoReturnsOnCall = make(map[int]struct {
+func (fake *FakeGitProvider) GetCommitsReturnsOnCall(i int, result1 []gitprovider.Commit, result2 error) {
+	fake.getCommitsMutex.Lock()
+	defer fake.getCommitsMutex.Unlock()
+	fake.GetCommitsStub = nil
+	if fake.getCommitsReturnsOnCall == nil {
+		fake.getCommitsReturnsOnCall = make(map[int]struct {
 			result1 []gitprovider.Commit
 			result2 error
 		})
 	}
-	fake.getCommitsFromOrgRepoReturnsOnCall[i] = struct {
-		result1 []gitprovider.Commit
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeGitProvider) GetCommitsFromUserRepo(arg1 gitprovider.UserRepositoryRef, arg2 string, arg3 int, arg4 int) ([]gitprovider.Commit, error) {
-	fake.getCommitsFromUserRepoMutex.Lock()
-	ret, specificReturn := fake.getCommitsFromUserRepoReturnsOnCall[len(fake.getCommitsFromUserRepoArgsForCall)]
-	fake.getCommitsFromUserRepoArgsForCall = append(fake.getCommitsFromUserRepoArgsForCall, struct {
-		arg1 gitprovider.UserRepositoryRef
-		arg2 string
-		arg3 int
-		arg4 int
-	}{arg1, arg2, arg3, arg4})
-	stub := fake.GetCommitsFromUserRepoStub
-	fakeReturns := fake.getCommitsFromUserRepoReturns
-	fake.recordInvocation("GetCommitsFromUserRepo", []interface{}{arg1, arg2, arg3, arg4})
-	fake.getCommitsFromUserRepoMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeGitProvider) GetCommitsFromUserRepoCallCount() int {
-	fake.getCommitsFromUserRepoMutex.RLock()
-	defer fake.getCommitsFromUserRepoMutex.RUnlock()
-	return len(fake.getCommitsFromUserRepoArgsForCall)
-}
-
-func (fake *FakeGitProvider) GetCommitsFromUserRepoCalls(stub func(gitprovider.UserRepositoryRef, string, int, int) ([]gitprovider.Commit, error)) {
-	fake.getCommitsFromUserRepoMutex.Lock()
-	defer fake.getCommitsFromUserRepoMutex.Unlock()
-	fake.GetCommitsFromUserRepoStub = stub
-}
-
-func (fake *FakeGitProvider) GetCommitsFromUserRepoArgsForCall(i int) (gitprovider.UserRepositoryRef, string, int, int) {
-	fake.getCommitsFromUserRepoMutex.RLock()
-	defer fake.getCommitsFromUserRepoMutex.RUnlock()
-	argsForCall := fake.getCommitsFromUserRepoArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
-}
-
-func (fake *FakeGitProvider) GetCommitsFromUserRepoReturns(result1 []gitprovider.Commit, result2 error) {
-	fake.getCommitsFromUserRepoMutex.Lock()
-	defer fake.getCommitsFromUserRepoMutex.Unlock()
-	fake.GetCommitsFromUserRepoStub = nil
-	fake.getCommitsFromUserRepoReturns = struct {
-		result1 []gitprovider.Commit
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeGitProvider) GetCommitsFromUserRepoReturnsOnCall(i int, result1 []gitprovider.Commit, result2 error) {
-	fake.getCommitsFromUserRepoMutex.Lock()
-	defer fake.getCommitsFromUserRepoMutex.Unlock()
-	fake.GetCommitsFromUserRepoStub = nil
-	if fake.getCommitsFromUserRepoReturnsOnCall == nil {
-		fake.getCommitsFromUserRepoReturnsOnCall = make(map[int]struct {
-			result1 []gitprovider.Commit
-			result2 error
-		})
-	}
-	fake.getCommitsFromUserRepoReturnsOnCall[i] = struct {
+	fake.getCommitsReturnsOnCall[i] = struct {
 		result1 []gitprovider.Commit
 		result2 error
 	}{result1, result2}
@@ -713,136 +528,6 @@ func (fake *FakeGitProvider) GetProviderDomainReturnsOnCall(i int, result1 strin
 	fake.getProviderDomainReturnsOnCall[i] = struct {
 		result1 string
 	}{result1}
-}
-
-func (fake *FakeGitProvider) GetRepoInfo(arg1 gitproviders.ProviderAccountType, arg2 string, arg3 string) (*gitprovider.RepositoryInfo, error) {
-	fake.getRepoInfoMutex.Lock()
-	ret, specificReturn := fake.getRepoInfoReturnsOnCall[len(fake.getRepoInfoArgsForCall)]
-	fake.getRepoInfoArgsForCall = append(fake.getRepoInfoArgsForCall, struct {
-		arg1 gitproviders.ProviderAccountType
-		arg2 string
-		arg3 string
-	}{arg1, arg2, arg3})
-	stub := fake.GetRepoInfoStub
-	fakeReturns := fake.getRepoInfoReturns
-	fake.recordInvocation("GetRepoInfo", []interface{}{arg1, arg2, arg3})
-	fake.getRepoInfoMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2, arg3)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeGitProvider) GetRepoInfoCallCount() int {
-	fake.getRepoInfoMutex.RLock()
-	defer fake.getRepoInfoMutex.RUnlock()
-	return len(fake.getRepoInfoArgsForCall)
-}
-
-func (fake *FakeGitProvider) GetRepoInfoCalls(stub func(gitproviders.ProviderAccountType, string, string) (*gitprovider.RepositoryInfo, error)) {
-	fake.getRepoInfoMutex.Lock()
-	defer fake.getRepoInfoMutex.Unlock()
-	fake.GetRepoInfoStub = stub
-}
-
-func (fake *FakeGitProvider) GetRepoInfoArgsForCall(i int) (gitproviders.ProviderAccountType, string, string) {
-	fake.getRepoInfoMutex.RLock()
-	defer fake.getRepoInfoMutex.RUnlock()
-	argsForCall := fake.getRepoInfoArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
-}
-
-func (fake *FakeGitProvider) GetRepoInfoReturns(result1 *gitprovider.RepositoryInfo, result2 error) {
-	fake.getRepoInfoMutex.Lock()
-	defer fake.getRepoInfoMutex.Unlock()
-	fake.GetRepoInfoStub = nil
-	fake.getRepoInfoReturns = struct {
-		result1 *gitprovider.RepositoryInfo
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeGitProvider) GetRepoInfoReturnsOnCall(i int, result1 *gitprovider.RepositoryInfo, result2 error) {
-	fake.getRepoInfoMutex.Lock()
-	defer fake.getRepoInfoMutex.Unlock()
-	fake.GetRepoInfoStub = nil
-	if fake.getRepoInfoReturnsOnCall == nil {
-		fake.getRepoInfoReturnsOnCall = make(map[int]struct {
-			result1 *gitprovider.RepositoryInfo
-			result2 error
-		})
-	}
-	fake.getRepoInfoReturnsOnCall[i] = struct {
-		result1 *gitprovider.RepositoryInfo
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeGitProvider) GetRepoInfoFromUrl(arg1 string) (*gitprovider.RepositoryInfo, error) {
-	fake.getRepoInfoFromUrlMutex.Lock()
-	ret, specificReturn := fake.getRepoInfoFromUrlReturnsOnCall[len(fake.getRepoInfoFromUrlArgsForCall)]
-	fake.getRepoInfoFromUrlArgsForCall = append(fake.getRepoInfoFromUrlArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.GetRepoInfoFromUrlStub
-	fakeReturns := fake.getRepoInfoFromUrlReturns
-	fake.recordInvocation("GetRepoInfoFromUrl", []interface{}{arg1})
-	fake.getRepoInfoFromUrlMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeGitProvider) GetRepoInfoFromUrlCallCount() int {
-	fake.getRepoInfoFromUrlMutex.RLock()
-	defer fake.getRepoInfoFromUrlMutex.RUnlock()
-	return len(fake.getRepoInfoFromUrlArgsForCall)
-}
-
-func (fake *FakeGitProvider) GetRepoInfoFromUrlCalls(stub func(string) (*gitprovider.RepositoryInfo, error)) {
-	fake.getRepoInfoFromUrlMutex.Lock()
-	defer fake.getRepoInfoFromUrlMutex.Unlock()
-	fake.GetRepoInfoFromUrlStub = stub
-}
-
-func (fake *FakeGitProvider) GetRepoInfoFromUrlArgsForCall(i int) string {
-	fake.getRepoInfoFromUrlMutex.RLock()
-	defer fake.getRepoInfoFromUrlMutex.RUnlock()
-	argsForCall := fake.getRepoInfoFromUrlArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeGitProvider) GetRepoInfoFromUrlReturns(result1 *gitprovider.RepositoryInfo, result2 error) {
-	fake.getRepoInfoFromUrlMutex.Lock()
-	defer fake.getRepoInfoFromUrlMutex.Unlock()
-	fake.GetRepoInfoFromUrlStub = nil
-	fake.getRepoInfoFromUrlReturns = struct {
-		result1 *gitprovider.RepositoryInfo
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeGitProvider) GetRepoInfoFromUrlReturnsOnCall(i int, result1 *gitprovider.RepositoryInfo, result2 error) {
-	fake.getRepoInfoFromUrlMutex.Lock()
-	defer fake.getRepoInfoFromUrlMutex.Unlock()
-	fake.GetRepoInfoFromUrlStub = nil
-	if fake.getRepoInfoFromUrlReturnsOnCall == nil {
-		fake.getRepoInfoFromUrlReturnsOnCall = make(map[int]struct {
-			result1 *gitprovider.RepositoryInfo
-			result2 error
-		})
-	}
-	fake.getRepoInfoFromUrlReturnsOnCall[i] = struct {
-		result1 *gitprovider.RepositoryInfo
-		result2 error
-	}{result1, result2}
 }
 
 func (fake *FakeGitProvider) GetRepoVisibility(arg1 string) (*gitprovider.RepositoryVisibility, error) {
@@ -1047,24 +732,16 @@ func (fake *FakeGitProvider) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.createPullRequestMutex.RLock()
 	defer fake.createPullRequestMutex.RUnlock()
-	fake.createRepositoryMutex.RLock()
-	defer fake.createRepositoryMutex.RUnlock()
 	fake.deployKeyExistsMutex.RLock()
 	defer fake.deployKeyExistsMutex.RUnlock()
 	fake.getAccountTypeMutex.RLock()
 	defer fake.getAccountTypeMutex.RUnlock()
-	fake.getCommitsFromOrgRepoMutex.RLock()
-	defer fake.getCommitsFromOrgRepoMutex.RUnlock()
-	fake.getCommitsFromUserRepoMutex.RLock()
-	defer fake.getCommitsFromUserRepoMutex.RUnlock()
+	fake.getCommitsMutex.RLock()
+	defer fake.getCommitsMutex.RUnlock()
 	fake.getDefaultBranchMutex.RLock()
 	defer fake.getDefaultBranchMutex.RUnlock()
 	fake.getProviderDomainMutex.RLock()
 	defer fake.getProviderDomainMutex.RUnlock()
-	fake.getRepoInfoMutex.RLock()
-	defer fake.getRepoInfoMutex.RUnlock()
-	fake.getRepoInfoFromUrlMutex.RLock()
-	defer fake.getRepoInfoFromUrlMutex.RUnlock()
 	fake.getRepoVisibilityMutex.RLock()
 	defer fake.getRepoVisibilityMutex.RUnlock()
 	fake.repositoryExistsMutex.RLock()

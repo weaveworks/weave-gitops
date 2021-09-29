@@ -26,9 +26,7 @@ var _ = Describe("Get Commits", func() {
 		}
 
 		commits := []gitprovider.Commit{&fakeCommit{}}
-		gitProviders.GetCommitsFromUserRepoStub = func(gitprovider.UserRepositoryRef, string, int, int) ([]gitprovider.Commit, error) {
-			return commits, nil
-		}
+		gitProviders.GetCommitsReturns(commits, nil)
 
 		commit, err := appSrv.GetCommits(commitParams, application)
 		Expect(err).ShouldNot(HaveOccurred())
@@ -50,9 +48,7 @@ var _ = Describe("Get Commits", func() {
 		}
 
 		commits := []gitprovider.Commit{&fakeCommit{}}
-		gitProviders.GetCommitsFromOrgRepoStub = func(gitprovider.OrgRepositoryRef, string, int, int) ([]gitprovider.Commit, error) {
-			return commits, nil
-		}
+		gitProviders.GetCommitsReturns(commits, nil)
 
 		commit, err := appSrv.GetCommits(commitParams, application)
 		Expect(err).ShouldNot(HaveOccurred())

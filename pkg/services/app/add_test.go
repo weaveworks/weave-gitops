@@ -93,10 +93,10 @@ var _ = Describe("Add", func() {
 				return branch, nil
 			}
 
-			gitProviders.GetRepoInfoStub = func(accountType gitproviders.ProviderAccountType, owner, repoName string) (*gitprovider.RepositoryInfo, error) {
-				visibility := gitprovider.RepositoryVisibility("public")
-				return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: nil, Visibility: &visibility}, nil
-			}
+			// gitProviders.GetRepoInfoStub = func(accountType gitproviders.ProviderAccountType, owner, repoName string) (*gitprovider.RepositoryInfo, error) {
+			// 	visibility := gitprovider.RepositoryVisibility("public")
+			// 	return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: nil, Visibility: &visibility}, nil
+			// }
 
 			addParams.Branch = ""
 		})

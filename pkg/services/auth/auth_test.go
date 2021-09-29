@@ -5,7 +5,6 @@ import (
 	"context"
 	"io"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
@@ -73,11 +72,11 @@ var _ = Describe("auth", func() {
 				return gitproviders.AccountTypeOrg, nil
 			}
 
-			gp.GetRepoInfoStub = func(pat gitproviders.ProviderAccountType, s1, s2 string) (*gitprovider.RepositoryInfo, error) {
-				return &gitprovider.RepositoryInfo{
-					Visibility: gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal),
-				}, nil
-			}
+			// gp.GetRepoInfoStub = func(pat gitproviders.ProviderAccountType, s1, s2 string) (*gitprovider.RepositoryInfo, error) {
+			// 	return &gitprovider.RepositoryInfo{
+			// 		Visibility: gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal),
+			// 	}, nil
+			// }
 		})
 		It("create and stores a deploy key if none exists", func() {
 			_, err := as.CreateGitClient(ctx, testClustername, namespace.Name, repoUrl.String())
