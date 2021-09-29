@@ -873,7 +873,22 @@ var _ = Describe("helpers", func() {
 	},
 		Entry("ssh+github", "ssh://git@github.com/weaveworks/weave-gitops.git", GitProviderGitHub),
 		Entry("ssh+gitlab", "ssh://git@gitlab.com/weaveworks/weave-gitops.git", GitProviderGitLab),
-		Entry("ssh+gitlab with subgroups", "git@gitlab.com:gogittest/sub-group/nginxsub.git", GitProviderGitLab),
+		Entry("ssh+gitlab with subgroup", "git@gitlab.com:gogittest/sub-group/nginxsub.git", GitProviderGitLab),
+	)
+
+})
+
+var _ = Describe("get owner from url", func() {
+	DescribeTable("getOwnerFromUrl", func(ur string, providerName GitProviderName, expected string) {
+		u, err := url.Parse(ur)
+		Expect(err).NotTo(HaveOccurred())
+		result, err := getOwnerFromUrl(*u, providerName)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal(expected))
+	},
+		Entry("github", "ssh://git@github.com/weaveworks/weave-gitops.git", GitProviderGitHub, "weaveworks"),
+		Entry("gitlab", "ssh://git@gitlab.com/weaveworks/weave-gitops.git", GitProviderGitLab, "weaveworks"),
+		Entry("gitlab with subgroup", "ssh://git@gitlab.com/weaveworks/sub_group/weave-gitops.git", GitProviderGitLab, "weaveworks/sub_group"),
 	)
 
 })

@@ -11,6 +11,8 @@ import (
 
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 
+	"github.com/fluxcd/go-git-providers/github"
+	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 )
 
@@ -570,9 +572,9 @@ func detectGitProviderFromUrl(raw string) (GitProviderName, error) {
 	}
 
 	switch u.Hostname() {
-	case "github.com":
+	case github.DefaultDomain:
 		return GitProviderGitHub, nil
-	case "gitlab.com":
+	case gitlab.DefaultDomain:
 		return GitProviderGitLab, nil
 	}
 
@@ -604,12 +606,11 @@ func normalizeRepoURLString(url string, providerName GitProviderName) string {
 	}
 
 	sshPrefix := fmt.Sprintf("git@%s.com:", providerName)
+	httpsPrefix := fmt.Sprintf("https://%s.com/", providerName)
+
 	if strings.HasPrefix(url, sshPrefix) {
 		trimmed = strings.TrimPrefix(url, sshPrefix)
-	}
-
-	httpsPrefix := fmt.Sprintf("https://%s.com/", providerName)
-	if strings.HasPrefix(url, httpsPrefix) {
+	} else if strings.HasPrefix(url, httpsPrefix) {
 		trimmed = strings.TrimPrefix(url, httpsPrefix)
 	}
 
@@ -633,7 +634,7 @@ func NewNormalizedRepoURL(uri string) (NormalizedRepoURL, error) {
 		return NormalizedRepoURL{}, fmt.Errorf("could not create normalized repo URL %s: %w", uri, err)
 	}
 
-	owner, err := getOwnerFromUrl(normalized, providerName)
+	owner, err := getOwnerFromUrl(*u, providerName)
 	if err != nil {
 		return NormalizedRepoURL{}, fmt.Errorf("could get owner name from URL %s: %w", uri, err)
 	}
@@ -677,18 +678,17 @@ func (n NormalizedRepoURL) Protocol() RepositoryURLProtocol {
 	return n.protocol
 }
 
-func getOwnerFromUrl(url string, providerName GitProviderName) (string, error) {
-	parts := strings.Split(url, "/")
+func getOwnerFromUrl(url url.URL, providerName GitProviderName) (string, error) {
+	parts := strings.Split(url.Path, "/")
 	if len(parts) < 2 {
-		return "", fmt.Errorf("could not get owner from url %s", url)
+		return "", fmt.Errorf("could not get owner from url %v", url)
 	}
 
-	// Used to detect if a gitlab subgroup is used
 	if providerName == GitProviderGitLab {
-		if !strings.Contains(parts[len(parts)-3], "gitlab.com") {
-			return parts[len(parts)-3] + "/" + parts[len(parts)-2], nil
+		if len(parts) > 3 {
+			return parts[1] + "/" + parts[2], nil
 		}
 	}
 
-	return parts[len(parts)-2], nil
+	return parts[1], nil
 }
