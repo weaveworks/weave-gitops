@@ -1,9 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  labels:
-    app: wego-app
-  name: wego-app-development
+  name: wego-app
 spec:
   replicas: 1
   template:
@@ -18,7 +16,7 @@ spec:
           args: ["ui","run"]
           ports:
             - containerPort: 9001
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
   selector:
     matchLabels:
       app: wego-app
