@@ -79,7 +79,7 @@ func ensureUrlIsValid() error {
 func runCmd(cmd *cobra.Command, args []string) error {
 	ctx := context.Background()
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
-
+	params.MigrateToNewDirStructure = func(s string) string { return s }
 	if params.Url != "" && len(args) > 0 {
 		return fmt.Errorf("you should choose either --url or the app directory")
 	}
