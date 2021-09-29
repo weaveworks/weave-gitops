@@ -879,8 +879,8 @@ var _ = Describe("helpers", func() {
 })
 
 var _ = Describe("get owner from url", func() {
-	DescribeTable("getOwnerFromUrl", func(ur string, providerName GitProviderName, expected string) {
-		u, err := url.Parse(ur)
+	DescribeTable("getOwnerFromUrl", func(normalizedUrl string, providerName GitProviderName, expected string) {
+		u, err := url.Parse(normalizedUrl)
 		Expect(err).NotTo(HaveOccurred())
 		result, err := getOwnerFromUrl(*u, providerName)
 		Expect(err).NotTo(HaveOccurred())
