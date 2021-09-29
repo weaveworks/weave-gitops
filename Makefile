@@ -42,8 +42,11 @@ gitops: dependencies ui bin ## Install dependencies and build gitops binary
 install: bin ## Install binaries to GOPATH
 	cp bin/$(BINARY_NAME) ${GOPATH}/bin/
 
-api-dev: ## Server and watch gitops-server, will reload automatically on change
+local-dev: ## Server and watch gitops-server, will reload automatically on change
 	reflex -r '.go' -s -- sh -c 'go run cmd/gitops-server/main.go'
+
+cluster-dev: ## Initializes garden tool
+	garden deploy --dev wego-app-service
 
 debug: ## Compile binary with optimisations and inlining disabled
 	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) -gcflags='all=-N -l' cmd/gitops/*.go

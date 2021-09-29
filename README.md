@@ -86,7 +86,7 @@ Only requirement is to run `gitops install` beforehand as need some kubernetes r
 
 Once Garden is installed you just need to run:
 ```
-garden deploy --dev wego-app-service
+make cluster-dev
 ```
 
 ### Ingress configuration to expose gitops locally
