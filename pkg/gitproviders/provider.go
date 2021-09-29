@@ -683,7 +683,7 @@ func getOwnerFromUrl(url url.URL, providerName GitProviderName) (string, error) 
 
 	parts := strings.Split(url.Path, "/")
 	if len(parts) < 2 {
-		return "", fmt.Errorf("could not get owner from url %v", url)
+		return "", fmt.Errorf("could not get owner from url %v", url.String())
 	}
 
 	if providerName == GitProviderGitLab {
