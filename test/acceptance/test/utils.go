@@ -608,7 +608,7 @@ func verifyPRCreated(repoAbsolutePath, appName string) {
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
 	output := string(session.Wait().Out.Contents())
-	Expect(output).To(ContainSubstring(fmt.Sprintf("gitops add %s", appName)))
+	Expect(output).To(ContainSubstring(fmt.Sprintf("Gitops add %s", appName)))
 }
 
 func mergePR(repoAbsolutePath, prLink string) {
