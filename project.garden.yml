@@ -7,6 +7,5 @@ environments:
 providers:
   - name: local-kubernetes
     environments: [local]
-    context: kind-kind
     buildMode: cluster-buildkit
     setupIngressController: nginx
