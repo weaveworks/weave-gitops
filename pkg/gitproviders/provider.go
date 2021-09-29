@@ -690,6 +690,7 @@ func getOwnerFromUrl(url url.URL, providerName GitProviderName) (string, error) 
 		if len(parts) > 3 {
 			return "", fmt.Errorf("a subgroup in a subgroup is not currently supported")
 		}
+
 		if len(parts) > 2 {
 			return parts[0] + "/" + parts[1], nil
 		}
