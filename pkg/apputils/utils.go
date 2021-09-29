@@ -19,6 +19,8 @@ import (
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . AppFactory
+
+// AppFactory provides helpers for generating various WeGO service objects at runtime.
 type AppFactory interface {
 	GetKubeService() (kube.Kube, error)
 	GetAppService(ctx context.Context, name, namespace string) (app.AppService, error)
