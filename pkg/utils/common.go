@@ -22,8 +22,6 @@ import (
 	validation "k8s.io/apimachinery/pkg/api/validation"
 )
 
-var commitMessage string
-
 func Exists(filePath string) bool {
 	if _, err := os.Stat(filePath); err != nil {
 		if os.IsNotExist(err) {
@@ -85,14 +83,6 @@ func CaptureStdout(c callback) string {
 	stdout, _ := ioutil.ReadAll(r)
 
 	return string(stdout)
-}
-
-func SetCommmitMessageFromArgs(cmd string, url, path, name string) {
-	commitMessage = fmt.Sprintf("%s %s %s %s", cmd, url, path, name)
-}
-
-func SetCommmitMessage(msg string) {
-	commitMessage = msg
 }
 
 func UrlToRepoName(url string) string {

@@ -312,7 +312,6 @@ var _ = Describe("commits", func() {
 	type tier struct {
 		client   gitprovider.Client
 		domain   string
-		orgName  string
 		userName string
 	}
 
@@ -327,14 +326,14 @@ var _ = Describe("commits", func() {
 		}
 
 		providers = []tier{
-			{client, gitProvider.domain, accounts.GithubOrgName, accounts.GithubUserName},
+			{client, gitProvider.domain, accounts.GithubOrgName},
 			// Remove this for now as we dont support it yet.
 			// {"gitlab", gitlabTestClient, gitlab.DefaultDomain, accounts.GitlabOrgName, accounts.GitlabUserName},
 		}
 
 	})
 
-	It("should get commits for user and org accounts in github", func() {
+	XIt("should get commits for user and org accounts in github", func() {
 		for _, p := range providers {
 			GetCommitToUserRepo(p.client, p.domain, p.userName)
 			// GetCommitToOrgRepo(p.client, p.domain, p.orgName)
@@ -427,7 +426,7 @@ var _ = Describe("test personal repo exists", func() {
 
 func CreateTestPullRequestToOrgRepo(client gitprovider.Client, domain string, orgName string) {
 	repoName := "test-org-repo"
-	// branchName := "test-org-branch"
+	branchName := "test-org-branch"
 
 	doesNotExistOrg := "doesnotexists"
 
@@ -444,34 +443,34 @@ func CreateTestPullRequestToOrgRepo(client gitprovider.Client, domain string, or
 	err = gitProvider.CreateOrgRepository(doesNotExistOrgRepoRef, repoInfo, opts)
 	Expect(err).To(HaveOccurred())
 
-	// path := "setup/config.yaml"
-	// content := "init content"
-	// files := []gitprovider.CommitFile{
-	// 	{
-	// 		Path:    &path,
-	// 		Content: &content,
-	// 	},
-	// }
+	path := "setup/config.yaml"
+	content := "init content"
+	files := []gitprovider.CommitFile{
+		{
+			Path:    &path,
+			Content: &content,
+		},
+	}
 
-	// commitMessage := "added config files"
-	// prTitle := "config files"
-	// prDescription := "test description"
+	commitMessage := "added config files"
+	prTitle := "config files"
+	prDescription := "test description"
 
-	// prLink, err := gitProvider.CreatePullRequest(orgName, repoName, "", branchName, files, commitMessage, prTitle, prDescription)
-	// Expect(err).ToNot(HaveOccurred())
-	// Expect("https://github.com/weaveworks/test-org-repo/pull/1", prLink.Get().WebURL)
+	prLink, err := gitProvider.CreatePullRequest(orgName, repoName, "", branchName, files, commitMessage, prTitle, prDescription)
+	Expect(err).ToNot(HaveOccurred())
+	Expect("https://github.com/weaveworks/test-org-repo/pull/1", prLink.Get().WebURL)
 
-	// _, err = gitProvider.CreatePullRequest(orgName, repoName, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
-	// Expect(err).To(HaveOccurred())
+	_, err = gitProvider.CreatePullRequest(orgName, repoName, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
+	Expect(err).To(HaveOccurred())
 
-	// _, err = gitProvider.CreatePullRequest(orgName, repoName, "", branchName, files, commitMessage, prTitle, prDescription)
-	// Expect(err).To(HaveOccurred())
+	_, err = gitProvider.CreatePullRequest(orgName, repoName, "", branchName, files, commitMessage, prTitle, prDescription)
+	Expect(err).To(HaveOccurred())
 
-	// ctx := context.Background()
-	// org, err := client.OrgRepositories().Get(ctx, orgRepoRef)
-	// Expect(err).ToNot(HaveOccurred())
-	// err = org.Delete(ctx)
-	// Expect(err).ToNot(HaveOccurred())
+	ctx := context.Background()
+	org, err := client.OrgRepositories().Get(ctx, orgRepoRef)
+	Expect(err).ToNot(HaveOccurred())
+	err = org.Delete(ctx)
+	Expect(err).ToNot(HaveOccurred())
 }
 
 func CreateTestPullRequestToUserRepo(client gitprovider.Client, domain string, userAccount string) {
@@ -535,16 +534,16 @@ func GetCommitToUserRepo(client gitprovider.Client, domain string, userAccount s
 	err := gitProvider.CreateUserRepository(userRepoRef, repoInfo, opts)
 	Expect(err).NotTo(HaveOccurred())
 
-	// commits, err := gitProvider.GetCommits(userAccount, repoName, "main", 10, 0)
-	// Expect(err).NotTo(HaveOccurred())
-	// Expect(commits[0].Get().Message).To(Equal("Initial commit"))
-	// Expect(commits[0].Get().Author).To(Equal("bot"))
+	commits, err := gitProvider.GetCommits(userAccount, repoName, "main", 10, 0)
+	Expect(err).NotTo(HaveOccurred())
+	Expect(commits[0].Get().Message).To(Equal("Initial commit"))
+	Expect(commits[0].Get().Author).To(Equal("bot"))
 
-	// ctx := context.Background()
-	// user, err := client.UserRepositories().Get(ctx, userRepoRef)
-	// Expect(err).NotTo(HaveOccurred())
-	// err = user.Delete(ctx)
-	// Expect(err).NotTo(HaveOccurred())
+	ctx := context.Background()
+	user, err := client.UserRepositories().Get(ctx, userRepoRef)
+	Expect(err).NotTo(HaveOccurred())
+	err = user.Delete(ctx)
+	Expect(err).NotTo(HaveOccurred())
 }
 
 func GetCommitToOrgRepo(client gitprovider.Client, domain string, orgName string) {

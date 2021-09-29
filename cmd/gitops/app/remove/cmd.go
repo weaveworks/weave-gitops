@@ -13,7 +13,6 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 var params app.RemoveParams
@@ -52,8 +51,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	if appError != nil {
 		return fmt.Errorf("failed to create app service: %w", appError)
 	}
-
-	utils.SetCommmitMessage(fmt.Sprintf("gitops app remove %s", params.Name))
 
 	if err := appService.Remove(params); err != nil {
 		return errors.Wrapf(err, "failed to remove the app %s", params.Name)
