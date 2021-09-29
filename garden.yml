@@ -26,10 +26,7 @@ serviceResource:
   containerName: wego-app
   hotReloadArgs: [./bin/air]
 files: [
-    manifests/wego-app2/service-account.yaml,
-    manifests/wego-app2/deployment.yaml,
-    manifests/wego-app2/ingress.yaml,
-    manifests/wego-app2/role.yaml,
-    manifests/wego-app2/role-binding.yaml,
-    manifests/wego-app2/service.yaml,
+    manifests/garden/deployment.yaml,
+    manifests/garden/ingress.yaml,
+    manifests/garden/service.yaml,
 ]
