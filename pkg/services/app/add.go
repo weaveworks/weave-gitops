@@ -78,6 +78,7 @@ type AddParams struct {
 	AutoMerge                  bool
 	GitProviderToken           string
 	HelmReleaseTargetNamespace string
+	MigrateToNewDirStructure   func(string) string
 }
 
 const (
@@ -354,11 +355,11 @@ func (a *App) addAppWithConfigInAppRepo(ctx context.Context, info *AppResourceIn
 		} else {
 			a.Logger.Actionf("Writing manifests to disk")
 
-			if err := a.writeAppYaml(info, appSpec); err != nil {
+			if err := a.writeAppYaml(info, appSpec, params.MigrateToNewDirStructure); err != nil {
 				return fmt.Errorf("failed writing app.yaml to disk: %w", err)
 			}
 
-			if err := a.writeAppGoats(info, source, appGoat); err != nil {
+			if err := a.writeAppGoats(info, source, appGoat, params.MigrateToNewDirStructure); err != nil {
 				return fmt.Errorf("failed writing app.yaml to disk: %w", err)
 			}
 		}
@@ -407,20 +408,22 @@ func (a *App) addAppWithConfigInExternalRepo(ctx context.Context, info *AppResou
 		} else {
 			a.Logger.Actionf("Writing manifests to disk")
 
-			if err := a.writeAppYaml(info, appSpec); err != nil {
+			if err := a.writeAppYaml(info, appSpec, params.MigrateToNewDirStructure); err != nil {
 				return fmt.Errorf("failed writing app.yaml to disk: %w", err)
 			}
-
-			if err := a.writeAppGoats(info, appSource, appGoat); err != nil {
+			if err := a.writeAppGoats(info, appSource, appGoat, params.MigrateToNewDirStructure); err != nil {
 				return fmt.Errorf("failed writing application gitops manifests to disk: %w", err)
 			}
 		}
 	}
 
 	a.Logger.Actionf("Applying manifests to the cluster")
+	// if params.MigrateToNewDirStructure is defined we skip applying to the cluster
+	if params.MigrateToNewDirStructure == nil {
 
-	if err := a.applyToCluster(info, params.DryRun, extRepoMan.source, extRepoMan.target, extRepoMan.appDir); err != nil {
-		return fmt.Errorf("could not apply manifests to the cluster: %w", err)
+		if err := a.applyToCluster(info, params.DryRun, extRepoMan.source, extRepoMan.target, extRepoMan.appDir); err != nil {
+			return fmt.Errorf("could not apply manifests to the cluster: %w", err)
+		}
 	}
 
 	return a.commitAndPush(a.ConfigGit, AddCommitMessage, params.DryRun)
@@ -621,16 +624,16 @@ func CloneRepo(client git.Git, url string, branch string, dryRun bool) (func(), 
 	}, nil
 }
 
-func (a *App) writeAppYaml(info *AppResourceInfo, manifest []byte) error {
-	return a.ConfigGit.Write(info.appYamlPath(), manifest)
+func (a *App) writeAppYaml(info *AppResourceInfo, manifest []byte, overridePath func(string) string) error {
+	return a.ConfigGit.Write(overridePath(info.appYamlPath()), manifest)
 }
 
-func (a *App) writeAppGoats(info *AppResourceInfo, sourceManifest, deployManifest []byte) error {
-	if err := a.ConfigGit.Write(info.appAutomationSourcePath(), sourceManifest); err != nil {
+func (a *App) writeAppGoats(info *AppResourceInfo, sourceManifest, deployManifest []byte, overridePath func(string) string) error {
+	if err := a.ConfigGit.Write(overridePath(info.appAutomationSourcePath()), sourceManifest); err != nil {
 		return err
 	}
 
-	return a.ConfigGit.Write(info.appAutomationDeployPath(), deployManifest)
+	return a.ConfigGit.Write(overridePath(info.appAutomationDeployPath()), deployManifest)
 }
 
 func makeWegoApplication(params AddParams) wego.Application {
