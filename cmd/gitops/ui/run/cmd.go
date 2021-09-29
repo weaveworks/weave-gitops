@@ -22,8 +22,9 @@ import (
 )
 
 var (
-	port string
-	path string
+	port            string
+	path            string
+	skipOpenBrowser bool
 )
 
 var Cmd = &cobra.Command{
@@ -93,7 +94,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 	}()
 
-	if isatty.IsTerminal(os.Stdout.Fd()) && os.Getenv("SKIP_OPEN_BROWSER") == "" {
+	if isatty.IsTerminal(os.Stdout.Fd()) && !skipOpenBrowser {
 		url := fmt.Sprintf("http://%s/%s", addr, path)
 
 		log.Printf("Openning browser at %s", url)
@@ -179,4 +180,5 @@ func createRedirector(fsys fs.FS, log logrus.FieldLogger) http.HandlerFunc {
 func init() {
 	Cmd.Flags().StringVar(&port, "port", "9001", "UI port")
 	Cmd.Flags().StringVar(&path, "path", "", "Path url")
+	Cmd.Flags().BoolVar(&skipOpenBrowser, "skip-open-browser", false, "This flag helps to avoids to open browser automatically")
 }

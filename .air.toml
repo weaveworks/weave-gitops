@@ -10,7 +10,7 @@ tmp_dir = "tmp"
   exclude_regex = []
   exclude_unchanged = false
   follow_symlink = false
-  full_bin = "env SKIP_OPEN_BROWSER=true ./tmp/main ui run"
+  full_bin = "./tmp/main ui run --skip-open-browser"
   include_dir = []
   include_ext = ["go","html","js"]
   kill_delay = "0s"
