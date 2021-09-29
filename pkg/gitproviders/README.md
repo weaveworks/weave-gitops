@@ -20,7 +20,7 @@ Note: Only GITHUB_TOKEN is a must, the other can be set as needed.
 
 To initialize the recorder, use the function `getTestClientWithCassette`:
 ```go
-client, recorder, err := getTestClientWithCassette("CASSETTE_NAME")
+client, recorder, err := getTestClientWithCassette("CASSETTE_NAME", "provider name")
 ```
 
 - `client` is the object from `fluxcd/go-git-providers` that was injected with the recorder and makes the api calls.
@@ -38,7 +38,7 @@ var _ = Describe("create github repo", func() {
 	var err error
 	BeforeEach(func() {
 	    var client gitprovider.Client
-		client, recorder, err = getTestClientWithCassette("CASSETTE_ID")
+		client, recorder, err = getTestClientWithCassette("CASSETTE_ID", "provider name")
 		Expect(err).NotTo(HaveOccurred())
 		gitProvider = defaultGitProvider{
 			provider: client,

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -78,7 +79,12 @@ func (a *App) Remove(params RemoveParams) error {
 		return fmt.Errorf("failed to obtain config URL and branch: %w", err)
 	}
 
-	remover, err := a.cloneRepo(a.ConfigGit, cloneURL, branch, params.DryRun)
+	normalizedUrl, err := gitproviders.NewNormalizedRepoURL(cloneURL)
+	if err != nil {
+		return fmt.Errorf("error normalizing url: %w", err)
+	}
+
+	remover, err := a.cloneRepo(a.ConfigGit, normalizedUrl.String(), branch, params.DryRun)
 
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)

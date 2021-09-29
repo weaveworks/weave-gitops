@@ -14,7 +14,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -130,6 +129,11 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 		return nil, nil, nil, nil
 	}
 
+	normalizedUrl, err := gitproviders.NewNormalizedRepoURL(providerUrl)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("error normalizing url: %w", err)
+	}
+
 	kube, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("error creating k8s http client: %w", err)
@@ -140,7 +144,7 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 		return nil, nil, nil, fmt.Errorf("error getting target name: %w", err)
 	}
 
-	authsvc, err := getAuthService(ctx, providerUrl, dryRun)
+	authsvc, err := getAuthService(ctx, normalizedUrl, dryRun)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("error creating auth service: %w", err)
 	}
@@ -149,18 +153,23 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 
 	if !isHelmRepository {
 		// We need to do this even if we have an external config to set up the deploy key for the app repo
-		appRepoClient, err := authsvc.CreateGitClient(ctx, targetName, namespace, utils.SanitizeRepoUrl(url))
-		if err != nil {
-			return nil, nil, nil, err
+		appRepoClient, appRepoErr := authsvc.CreateGitClient(ctx, normalizedUrl, targetName, namespace)
+		if appRepoErr != nil {
+			return nil, nil, nil, appRepoErr
 		}
 
 		appClient = appRepoClient
 	}
 
 	if isExternalConfig {
-		configRepoClient, err := authsvc.CreateGitClient(ctx, targetName, namespace, utils.SanitizeRepoUrl(configUrl))
+		normalizedConfigUrl, err := gitproviders.NewNormalizedRepoURL(configUrl)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, nil, fmt.Errorf("error normalizing url: %w", err)
+		}
+
+		configRepoClient, configRepoErr := authsvc.CreateGitClient(ctx, normalizedConfigUrl, targetName, namespace)
+		if configRepoErr != nil {
+			return nil, nil, nil, configRepoErr
 		}
 
 		configClient = configRepoClient
@@ -171,7 +180,7 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 	return appClient, configClient, authsvc.GetGitProvider(), nil
 }
 
-func getAuthService(ctx context.Context, providerUrl string, dryRun bool) (auth.AuthService, error) {
+func getAuthService(ctx context.Context, normalizedUrl gitproviders.NormalizedRepoURL, dryRun bool) (auth.AuthService, error) {
 	var (
 		gitProvider gitproviders.GitProvider
 		err         error
@@ -182,7 +191,7 @@ func getAuthService(ctx context.Context, providerUrl string, dryRun bool) (auth.
 			return nil, fmt.Errorf("error creating git provider client: %w", err)
 		}
 	} else {
-		if gitProvider, err = auth.GetGitProvider(ctx, providerUrl); err != nil {
+		if gitProvider, err = auth.GetGitProvider(ctx, normalizedUrl); err != nil {
 			return nil, fmt.Errorf("error obtaining git provider token: %w", err)
 		}
 	}
