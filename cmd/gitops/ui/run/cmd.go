@@ -12,6 +12,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/mattn/go-isatty"
+	"github.com/pkg/browser"
+
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -87,15 +90,15 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 	}()
 
-	//if isatty.IsTerminal(os.Stdout.Fd()) {
-	//	url := fmt.Sprintf("http://%s/%s", addr, path)
-	//
-	//	log.Printf("Openning browser at %s", url)
-	//
-	//	if err := browser.OpenURL(url); err != nil {
-	//		return fmt.Errorf("failed to open the browser: %w", err)
-	//	}
-	//}
+	if isatty.IsTerminal(os.Stdout.Fd()) && os.Getenv("SKIP_OPEN_BROWSER") == "" {
+		url := fmt.Sprintf("http://%s/%s", addr, path)
+
+		log.Printf("Openning browser at %s", url)
+
+		if err := browser.OpenURL(url); err != nil {
+			return fmt.Errorf("failed to open the browser: %w", err)
+		}
+	}
 
 	// graceful shutdown
 	quit := make(chan os.Signal, 1)

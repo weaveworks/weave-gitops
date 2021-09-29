@@ -10,8 +10,8 @@ tmp_dir = "tmp"
   exclude_regex = []
   exclude_unchanged = false
   follow_symlink = false
-  full_bin = "./tmp/main ui run"
-  include_dir = ["cmd","pkg","manifests","api"]
+  full_bin = "env SKIP_OPEN_BROWSER=true ./tmp/main ui run"
+  include_dir = []
   include_ext = ["go","html","js"]
   kill_delay = "0s"
   log = "build-errors.log"
