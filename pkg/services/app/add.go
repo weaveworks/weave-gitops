@@ -13,7 +13,6 @@ import (
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/git"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -327,7 +326,7 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 
 	if !params.DryRun {
 		if !params.AutoMerge {
-			if err := a.createPullRequestToRepo(info, info.Spec.URL, appHash, appSpec, appGoat, source); err != nil {
+			if err := a.createAddPullRequestToRepo(info, info.Spec.URL, appHash, appSpec, appGoat, source); err != nil {
 				return err
 			}
 		} else {
@@ -380,7 +379,7 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 
 	if !params.DryRun {
 		if !params.AutoMerge {
-			if err := a.createPullRequestToRepo(info, info.Spec.ConfigURL, appHash, appSpec, appGoat, appSource); err != nil {
+			if err := a.createAddPullRequestToRepo(info, info.Spec.ConfigURL, appHash, appSpec, appGoat, appSource); err != nil {
 				return err
 			}
 		} else {
@@ -654,7 +653,7 @@ func generateResourceName(url string) string {
 	return hashNameIfTooLong(strings.ReplaceAll(utils.UrlToRepoName(url), "_", "-"))
 }
 
-func (a *App) createPullRequestToRepo(info *AppResourceInfo, repo string, appHash string, appYaml []byte, goatSource, goatDeploy []byte) error {
+func (a *App) createAddPullRequestToRepo(info *AppResourceInfo, repo string, newBranch string, appYaml []byte, goatSource []byte, goatDeploy []byte) error {
 	repoName := generateResourceName(repo)
 
 	appPath := info.appYamlPath()
@@ -685,37 +684,17 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, repo string, appHas
 		return fmt.Errorf("failed to retrieve owner: %w", err)
 	}
 
-	configBranch, branchErr := a.GitProvider.GetDefaultBranch(repo)
-	if branchErr != nil {
-		return branchErr
-	}
-
-	accountType, err := a.GitProvider.GetAccountType(owner)
+	defaultBranch, err := a.GitProvider.GetDefaultBranch(repo)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve account type: %w", err)
+		return err
 	}
 
-	if accountType == gitproviders.AccountTypeOrg {
-		orgRepoRef := gitproviders.NewOrgRepositoryRef(a.GitProvider.GetProviderDomain(), owner, repoName)
-
-		prLink, err := a.GitProvider.CreatePullRequestToOrgRepo(orgRepoRef, configBranch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("gitops add %s", info.Name), fmt.Sprintf("Added yamls for %s", info.Name))
-		if err != nil {
-			return fmt.Errorf("unable to create pull request: %w", err)
-		}
-
-		a.Logger.Println("Pull Request created: %s\n", prLink.Get().WebURL)
-
-		return nil
-	}
-
-	userRepoRef := gitproviders.NewUserRepositoryRef(a.GitProvider.GetProviderDomain(), owner, repoName)
-
-	prLink, err := a.GitProvider.CreatePullRequestToUserRepo(userRepoRef, configBranch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("gitops add %s", info.Name), fmt.Sprintf("Added yamls for %s", info.Name))
+	pr, err := a.GitProvider.CreatePullRequest(owner, repoName, defaultBranch, newBranch, files, "Add App Manifests", fmt.Sprintf("Gitops add %s", info.Name), fmt.Sprintf("Added yamls for %s", info.Name))
 	if err != nil {
 		return fmt.Errorf("unable to create pull request: %w", err)
 	}
 
-	a.Logger.Println("Pull Request created: %s\n", prLink.Get().WebURL)
+	a.Logger.Println("Pull Request created: %s\n", pr.Get().WebURL)
 
 	return nil
 }

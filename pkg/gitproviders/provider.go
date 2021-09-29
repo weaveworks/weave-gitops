@@ -38,8 +38,7 @@ type GitProvider interface {
 	GetDefaultBranch(url string) (string, error)
 	GetRepoVisibility(url string) (*gitprovider.RepositoryVisibility, error)
 	UploadDeployKey(owner, repoName string, deployKey []byte) error
-	CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
-	CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
+	CreatePullRequest(owner string, repoName string, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMsg string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
 	GetCommitsFromUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
 	GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
 	GetAccountType(owner string) (ProviderAccountType, error)
@@ -329,7 +328,7 @@ func (p defaultGitProvider) GetRepoInfo(accountType ProviderAccountType, owner s
 
 	switch accountType {
 	case AccountTypeOrg:
-		repo, err := p.GetOrgRepo(owner, repoName)
+		repo, err := p.getOrgRepo(owner, repoName)
 		if err != nil {
 			return nil, err
 		}
@@ -338,7 +337,7 @@ func (p defaultGitProvider) GetRepoInfo(accountType ProviderAccountType, owner s
 
 		return &info, nil
 	case AccountTypeUser:
-		repo, err := p.GetUserRepo(owner, repoName)
+		repo, err := p.getUserRepo(owner, repoName)
 		if err != nil {
 			return nil, err
 		}
@@ -351,7 +350,7 @@ func (p defaultGitProvider) GetRepoInfo(accountType ProviderAccountType, owner s
 	}
 }
 
-func (p defaultGitProvider) GetOrgRepo(org string, repoName string) (gitprovider.OrgRepository, error) {
+func (p defaultGitProvider) getOrgRepo(org string, repoName string) (gitprovider.OrgRepository, error) {
 	ctx := context.Background()
 	defer ctx.Done()
 
@@ -365,7 +364,7 @@ func (p defaultGitProvider) GetOrgRepo(org string, repoName string) (gitprovider
 	return repo, nil
 }
 
-func (p defaultGitProvider) GetUserRepo(user string, repoName string) (gitprovider.UserRepository, error) {
+func (p defaultGitProvider) getUserRepo(user string, repoName string) (gitprovider.UserRepository, error) {
 	ctx := context.Background()
 	defer ctx.Done()
 
@@ -389,6 +388,34 @@ func (p defaultGitProvider) CreateOrgRepository(orgRepoRef gitprovider.OrgReposi
 	}
 
 	return p.waitUntilRepoCreated(AccountTypeOrg, orgRepoRef.Organization, orgRepoRef.RepositoryName)
+}
+
+func (p defaultGitProvider) CreatePullRequest(owner string, repoName string, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMsg string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
+	accountType, err := p.GetAccountType(owner)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve account type: %w", err)
+	}
+
+	providerDomain := p.GetProviderDomain()
+	if accountType == AccountTypeOrg {
+		orgRepoRef := NewOrgRepositoryRef(providerDomain, owner, repoName)
+
+		pr, err := p.createPullRequestToOrgRepo(orgRepoRef, targetBranch, newBranch, files, commitMsg, prTitle, prDescription)
+		if err != nil {
+			return nil, fmt.Errorf("unable to create pull request: %w", err)
+		}
+
+		return pr, nil
+	}
+
+	userRepoRef := NewUserRepositoryRef(providerDomain, owner, repoName)
+
+	pr, err := p.CreatePullRequestToUserRepo(userRepoRef, targetBranch, newBranch, files, commitMsg, prTitle, prDescription)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create pull request: %w", err)
+	}
+
+	return pr, nil
 }
 
 func (p defaultGitProvider) CreateUserRepository(userRepoRef gitprovider.UserRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
@@ -442,7 +469,7 @@ func (p defaultGitProvider) CreatePullRequestToUserRepo(userRepRef gitprovider.U
 	return pr, nil
 }
 
-func (p defaultGitProvider) CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
+func (p defaultGitProvider) createPullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
 	ctx := context.Background()
 
 	ur, err := p.provider.OrgRepositories().Get(ctx, orgRepRef)

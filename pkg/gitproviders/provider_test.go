@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/fluxcd/go-git-providers/gitlab"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -13,6 +12,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/fluxcd/go-git-providers/gitlab"
 
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 
@@ -456,14 +457,14 @@ func CreateTestPullRequestToOrgRepo(client gitprovider.Client, domain string, or
 	prTitle := "config files"
 	prDescription := "test description"
 
-	prLink, err := gitProvider.CreatePullRequestToOrgRepo(orgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	prLink, err := gitProvider.CreatePullRequest(orgName, repoName, "", branchName, files, commitMessage, prTitle, prDescription)
 	Expect(err).ToNot(HaveOccurred())
 	Expect("https://github.com/weaveworks/test-org-repo/pull/1", prLink.Get().WebURL)
 
-	_, err = gitProvider.CreatePullRequestToOrgRepo(orgRepoRef, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
+	_, err = gitProvider.CreatePullRequest(orgName, repoName, "branchdoesnotexists", branchName, files, commitMessage, prTitle, prDescription)
 	Expect(err).To(HaveOccurred())
 
-	_, err = gitProvider.CreatePullRequestToOrgRepo(doesNotExistOrgRepoRef, "", branchName, files, commitMessage, prTitle, prDescription)
+	_, err = gitProvider.CreatePullRequest(orgName, repoName, "", branchName, files, commitMessage, prTitle, prDescription)
 	Expect(err).To(HaveOccurred())
 
 	ctx := context.Background()
@@ -642,7 +643,8 @@ var _ = Describe("Test user deploy keys creation", func() {
 		err = gitProvider.CreateUserRepository(userRepoRef, repoInfo, opts)
 		Expect(err).ShouldNot(HaveOccurred())
 		err = utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
-			_, err := gitProvider.GetUserRepo(accounts.GithubUserName, repoName)
+			// _, err := gitProvider.getUserRepo(accounts.GithubUserName, repoName)
+			// return err
 			return err
 		})
 		Expect(err).ShouldNot(HaveOccurred())
@@ -711,7 +713,7 @@ var _ = Describe("Test org deploy keys creation", func() {
 		err = gitProvider.CreateOrgRepository(orgRepoRef, repoInfo, opts)
 		Expect(err).ShouldNot(HaveOccurred())
 		err = utils.WaitUntil(os.Stdout, time.Second, time.Second*30, func() error {
-			_, err := gitProvider.GetOrgRepo(accounts.GithubOrgName, repoName)
+			// _, err := gitProvider.getOrgRepo(accounts.GithubOrgName, repoName)
 			return err
 		})
 		Expect(err).ShouldNot(HaveOccurred())

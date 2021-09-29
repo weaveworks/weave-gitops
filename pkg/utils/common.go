@@ -95,10 +95,6 @@ func SetCommmitMessage(msg string) {
 	commitMessage = msg
 }
 
-func GetCommitMessage() string {
-	return commitMessage
-}
-
 func UrlToRepoName(url string) string {
 	return strings.TrimSuffix(filepath.Base(url), ".git")
 }

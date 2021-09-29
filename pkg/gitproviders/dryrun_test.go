@@ -73,17 +73,9 @@ var _ = Describe("DryRun", func() {
 		})
 	})
 
-	Describe("CreatePullRequestToUserRepo", func() {
+	Describe("CreatePullRequest", func() {
 		It("returns nil", func() {
-			res, err := dryRunProvider.CreatePullRequestToUserRepo(gitprovider.UserRepositoryRef{}, "", "", nil, "", "", "")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(res).To(BeNil())
-		})
-	})
-
-	Describe("CreatePullRequestToOrgRepo", func() {
-		It("returns nil", func() {
-			res, err := dryRunProvider.CreatePullRequestToOrgRepo(gitprovider.OrgRepositoryRef{}, "", "", nil, "", "", "")
+			res, err := dryRunProvider.CreatePullRequest("", "", "", "", nil, "", "", "")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(BeNil())
 		})

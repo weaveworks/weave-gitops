@@ -777,30 +777,15 @@ var _ = Describe("Add", func() {
 				return "default-config-branch", nil
 			}
 
-			gitProviders.CreatePullRequestToOrgRepoStub = func(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
-				return dummyPullRequest{}, nil
-			}
-
-			gitProviders.CreatePullRequestToUserRepoStub = func(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
-				return dummyPullRequest{}, nil
-			}
+			gitProviders.CreatePullRequestReturns(&dummyPullRequest{}, nil)
 
 			addParams.Url = "https://github.com/user/repo"
 			info = getAppResourceInfo(makeWegoApplication(addParams), "cluster")
 		})
 
 		It("generates an appropriate error when the owner cannot be retrieved from the URL", func() {
-			err := appSrv.(*App).createPullRequestToRepo(info, "foo", "hash", []byte{}, []byte{}, []byte{})
+			err := appSrv.(*App).createAddPullRequestToRepo(info, "foo", "hash", []byte{}, []byte{}, []byte{})
 			Expect(err.Error()).To(HavePrefix("failed to retrieve owner"))
-		})
-
-		It("generates an appropriate error when the account type cannot be retrieved for an owner", func() {
-			gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-				return gitproviders.AccountTypeOrg, fmt.Errorf("no account found")
-			}
-
-			err := appSrv.(*App).createPullRequestToRepo(info, "ssh://git@github.com/ewojfewoj3323w/abc", "hash", []byte{}, []byte{}, []byte{})
-			Expect(err.Error()).To(HavePrefix("failed to retrieve account type"))
 		})
 
 		Context("uses the default app branch for config in app repository", func() {
@@ -813,8 +798,8 @@ var _ = Describe("Add", func() {
 					return gitproviders.AccountTypeOrg, nil
 				}
 
-				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.Url, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
-				_, branch, _, _, _, _, _ := gitProviders.CreatePullRequestToOrgRepoArgsForCall(0)
+				Expect(appSrv.(*App).createAddPullRequestToRepo(info, addParams.Url, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+				_, _, branch, _, _, _, _, _ := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(branch).To(Equal("default-app-branch"))
 			})
 
@@ -823,8 +808,8 @@ var _ = Describe("Add", func() {
 					return gitproviders.AccountTypeUser, nil
 				}
 
-				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.Url, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
-				_, branch, _, _, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
+				Expect(appSrv.(*App).createAddPullRequestToRepo(info, addParams.Url, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+				_, _, branch, _, _, _, _, _ := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(branch).To(Equal("default-app-branch"))
 			})
 		})
@@ -839,8 +824,8 @@ var _ = Describe("Add", func() {
 					return gitproviders.AccountTypeOrg, nil
 				}
 
-				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
-				_, branch, _, _, _, _, _ := gitProviders.CreatePullRequestToOrgRepoArgsForCall(0)
+				Expect(appSrv.(*App).createAddPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+				_, _, branch, _, _, _, _, _ := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(branch).To(Equal("default-config-branch"))
 			})
 
@@ -849,8 +834,8 @@ var _ = Describe("Add", func() {
 					return gitproviders.AccountTypeUser, nil
 				}
 
-				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
-				_, branch, _, _, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
+				Expect(appSrv.(*App).createAddPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+				_, _, branch, _, _, _, _, _ := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(branch).To(Equal("default-config-branch"))
 			})
 		})

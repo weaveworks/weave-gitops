@@ -58,11 +58,7 @@ func (p *dryrunProvider) UploadDeployKey(owner, repoName string, deployKey []byt
 	return nil
 }
 
-func (p *dryrunProvider) CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
-	return nil, nil
-}
-
-func (p *dryrunProvider) CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
+func (p *dryrunProvider) CreatePullRequest(owner string, repoName, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
 	return nil, nil
 }
 
