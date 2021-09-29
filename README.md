@@ -77,6 +77,54 @@ For VSCode, use these editor configuration flags:
         "--fast",
     ],
 ```
+## Development on kubernetes
+
+If you need to develop while gitops is running inside a kubernetes cluster you can use garden.io (Install Garden [Install garden-io](https://docs.garden.io/getting-started/1-installation))
+
+Garden version `0.12.26` was used to generate the configuration files for this repository.
+
+Only requirement is to run `gitops install` beforehand as need some kubernetes resources to be present in the cluster first.
+
+Once Garden is installed you just need to run:
+```
+garden deploy --dev wego-app-service
+```
+
+### Ingress configuration to expose gitops locally
+
+Different configuration is needed depending on the type of cluster used:
+
+For kind clusters we need to configure nginx at creation time:
+```bash
+cat <<EOF | kind create cluster --config=-                                                                                                             ─╯
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  kubeadmConfigPatches:
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "ingress-ready=true"
+  extraPortMappings:
+  - containerPort: 80
+    hostPort: 80
+    protocol: TCP
+  - containerPort: 443
+    hostPort: 443
+    protocol: TCP
+EOF
+```
+
+If you use minikube you will need to run:
+```bash
+minikube addons enable ingress
+```
+
+Once garden finishes its execution you will be able to access the UI in this link: 
+
+http://wego-app.local.app.garden
 
 ## UI Development
 
