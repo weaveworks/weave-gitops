@@ -82,6 +82,7 @@ const (
 	DefaultPath           = "./"
 	DefaultBranch         = "main"
 	DefaultDeploymentType = "kustomize"
+	AddCommitMessage      = "Add App manifests"
 )
 
 type externalRepoManifests struct {
@@ -349,7 +350,7 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 		return fmt.Errorf("could not apply manifests to the cluster: %w", err)
 	}
 
-	return a.commitAndPush(a.ConfigGit, params.DryRun, func(fname string) bool {
+	return a.commitAndPush(a.ConfigGit, AddCommitMessage, params.DryRun, func(fname string) bool {
 		return strings.Contains(fname, ".wego")
 	})
 }
@@ -402,7 +403,7 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 		return fmt.Errorf("could not apply manifests to the cluster: %w", err)
 	}
 
-	return a.commitAndPush(a.ConfigGit, params.DryRun)
+	return a.commitAndPush(a.ConfigGit, AddCommitMessage, params.DryRun)
 }
 
 func (a *App) generateAppManifests(info *AppResourceInfo, secretRef string, appHash string) ([]byte, []byte, []byte, error) {
@@ -496,7 +497,7 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, branch string
 	return &externalRepoManifests{source: targetSource, target: targetGoat, appDir: appDirGoat}, nil
 }
 
-func (a *App) commitAndPush(client git.Git, dryRun bool, filters ...func(string) bool) error {
+func (a *App) commitAndPush(client git.Git, commitMsg string, dryRun bool, filters ...func(string) bool) error {
 	a.Logger.Actionf("Committing and pushing gitops updates for application")
 
 	if dryRun {
@@ -505,7 +506,7 @@ func (a *App) commitAndPush(client git.Git, dryRun bool, filters ...func(string)
 
 	_, err := client.Commit(git.Commit{
 		Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
-		Message: "Add App manifests",
+		Message: commitMsg,
 	}, filters...)
 	if err != nil && err != git.ErrNoStagedFiles {
 		return fmt.Errorf("failed to update the repository: %w", err)
