@@ -29,7 +29,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		deleteWegoRuntime = true
 	}
 
-	var cluster cltr.Cluster2
+	var cluster cltr.Cluster
 	var namespace string
 	var clusterID []byte
 
@@ -44,7 +44,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		} else {
 			By("Given I have a brand new cluster", func() {
 
-				cluster = cltr.Cluster2{}
+				cluster = cltr.Cluster{}
 
 				_, err = ResetOrCreateCluster(namespace, deleteWegoRuntime, cluster.KubeConfigPath)
 				Expect(err).ShouldNot(HaveOccurred())

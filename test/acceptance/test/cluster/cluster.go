@@ -15,10 +15,6 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gexec"
-
 	log "github.com/sirupsen/logrus"
 )
 
@@ -26,39 +22,7 @@ const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
 
 var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
-type KindCluster struct {
-	Name           string
-	Context        string
-	KubeConfigPath string
-}
-
-func NewCluster(name string, context string, kubeConfigPath string) *KindCluster {
-	return &KindCluster{
-		Name:           name,
-		Context:        context,
-		KubeConfigPath: kubeConfigPath,
-	}
-}
-
-func (c *KindCluster) CleanUp() {
-	c.delete()
-	c.deleteKubeConfigFile()
-}
-
-func (c *KindCluster) delete() {
-	cmd := fmt.Sprintf("kind delete cluster --name %s --kubeconfig %s", c.Name, c.KubeConfigPath)
-	command := exec.Command("sh", "-c", cmd)
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
-}
-
-func (c *KindCluster) deleteKubeConfigFile() {
-	err := os.RemoveAll(c.KubeConfigPath)
-	Expect(err).ShouldNot(HaveOccurred())
-}
-
-func CreateKindCluster(ctx context.Context, rootKubeConfigFilesPath string) (*KindCluster, error) {
+func CreateKindCluster(ctx context.Context, rootKubeConfigFilesPath string) (*Cluster, error) {
 	supportedK8SVersions := "1.19.1, 1.20.2, 1.21.1"
 
 	k8sVersion, found := os.LookupEnv("K8S_VERSION")
@@ -71,7 +35,7 @@ func CreateKindCluster(ctx context.Context, rootKubeConfigFilesPath string) (*Ki
 		return nil, errors.New("unsupported kubernetes version")
 	}
 
-	var cluster *KindCluster
+	var cluster *Cluster
 
 	clusterName := RandString(30)
 	kubeConfigFile := "kube-config-" + clusterName
@@ -92,7 +56,12 @@ func CreateKindCluster(ctx context.Context, rootKubeConfigFilesPath string) (*Ki
 		return nil, err
 	}
 
-	cluster = NewCluster(clusterName, fmt.Sprintf("kind-%s", clusterName), kubeConfigPath)
+	cluster = NewCluster(
+		clusterName,
+		fmt.Sprintf("kind-%s", clusterName),
+		kubeConfigPath,
+		ClusterCreated,
+	)
 
 	return cluster, nil
 }
@@ -123,20 +92,19 @@ const (
 const CLUSTER_DB = "db"
 const CLUSTER_TABLE = "clusters"
 
-type Cluster2 struct {
-	Name            string
-	Context         string
-	KubeConfigPath  string
-	Status          ClusterStatus
-	ErrorOnCreation error
+type Cluster struct {
+	Name           string
+	Context        string
+	KubeConfigPath string
+	Status         ClusterStatus
 }
 
-func (c *Cluster2) CleanUp() {
+func (c *Cluster) CleanUp() {
 	c.delete()
 	c.deleteKubeConfigFile()
 }
 
-func (c *Cluster2) delete() {
+func (c *Cluster) delete() {
 	cmd := fmt.Sprintf("kind delete cluster --name %s --kubeconfig %s", c.Name, c.KubeConfigPath)
 	command := exec.Command("sh", "-c", cmd)
 	command.Stdout = os.Stdout
@@ -148,15 +116,15 @@ func (c *Cluster2) delete() {
 	}
 }
 
-func (c *Cluster2) deleteKubeConfigFile() {
+func (c *Cluster) deleteKubeConfigFile() {
 	err := os.RemoveAll(c.KubeConfigPath)
 	if err != nil {
 		fmt.Printf("error deleting kubeconfig %s\n", err)
 	}
 }
 
-func NewCluster2(name string, context string, kubeConfigPath string, status ClusterStatus) *Cluster2 {
-	return &Cluster2{
+func NewCluster(name string, context string, kubeConfigPath string, status ClusterStatus) *Cluster {
+	return &Cluster{
 		Name:           name,
 		Context:        context,
 		KubeConfigPath: kubeConfigPath,
@@ -164,7 +132,7 @@ func NewCluster2(name string, context string, kubeConfigPath string, status Clus
 	}
 }
 
-func convertCluster2ToBytes(cluster Cluster2) []byte {
+func convertCluster2ToBytes(cluster Cluster) []byte {
 	bts, _ := json.Marshal(cluster)
 	return bts
 }
@@ -190,7 +158,7 @@ func CreateClusterDB(dbPath string) error {
 	})
 }
 
-func CreateClusterRecord2(dbPath string, cluster KindCluster) error {
+func CreateClusterRecord(dbPath string, cluster Cluster) error {
 	db, err := bolt.Open(filepath.Join(dbPath, CLUSTER_DB), 0755, &bolt.Options{})
 	if err != nil {
 		return err
@@ -202,14 +170,7 @@ func CreateClusterRecord2(dbPath string, cluster KindCluster) error {
 		id, _ := b.NextSequence()
 		clusterID := itob(int(id))
 
-		c2 := Cluster2{
-			Name:           cluster.Name,
-			KubeConfigPath: cluster.KubeConfigPath,
-			Context:        cluster.Context,
-			Status:         ClusterCreated,
-		}
-
-		bts := convertCluster2ToBytes(c2)
+		bts := convertCluster2ToBytes(cluster)
 
 		return b.Put(clusterID, bts)
 	})
@@ -228,17 +189,17 @@ func RequestClusterCreation(dbPath []byte) error {
 		b := tx.Bucket([]byte(CLUSTER_TABLE))
 		id, _ := b.NextSequence()
 		clusterID := itob(int(id))
-		return b.Put(clusterID, convertCluster2ToBytes(Cluster2{Status: ClusterRequested}))
+		return b.Put(clusterID, convertCluster2ToBytes(Cluster{Status: ClusterRequested}))
 	})
 }
 
-func FindCreatedClusterAndAssignItToSomeRecord(dbPath []byte) ([]byte, Cluster2, error) {
-	var cc Cluster2
+func FindCreatedClusterAndAssignItToSomeRecord(dbPath []byte) ([]byte, Cluster, error) {
+	var cc Cluster
 
 	var kClusterID []byte
 
 	for {
-		cc = Cluster2{Name: ""}
+		cc = Cluster{Name: ""}
 		kClusterID = make([]byte, 0)
 
 		db, err := bolt.Open(filepath.Join(string(dbPath), CLUSTER_DB), 0755, &bolt.Options{})
@@ -249,7 +210,7 @@ func FindCreatedClusterAndAssignItToSomeRecord(dbPath []byte) ([]byte, Cluster2,
 		err = db.Batch(func(tx *bolt.Tx) error {
 			b := tx.Bucket([]byte(CLUSTER_TABLE))
 			return b.ForEach(func(clusterID, v []byte) error {
-				c := Cluster2{}
+				c := Cluster{}
 				err := json.Unmarshal(v, &c)
 				if err != nil {
 					return fmt.Errorf("error on unmarshal on iteration0 %w", err)
@@ -299,7 +260,7 @@ func FindCreatedClusterAndAssignItToSomeRecord(dbPath []byte) ([]byte, Cluster2,
 	return kClusterID, cc, nil
 }
 
-func UpdateClusterToDeleted(dbPath []byte, clusterID []byte, cluster Cluster2) error {
+func UpdateClusterToDeleted(dbPath []byte, clusterID []byte, cluster Cluster) error {
 	db, err := bolt.Open(filepath.Join(string(dbPath), CLUSTER_DB), 0755, &bolt.Options{})
 	if err != nil {
 		return err
@@ -339,7 +300,6 @@ func (c *ClusterPool) IsListeningToRequestedClusters() bool {
 	return c.listenToRequestedClusters
 }
 
-// CreateClusterOnRequest
 func (c *ClusterPool) CreateClusterOnRequest(ctx context.Context, dbPath string) {
 	clusterIDs := make(chan []byte, 1)
 
@@ -355,7 +315,7 @@ func (c *ClusterPool) CreateClusterOnRequest(ctx context.Context, dbPath string)
 			err = db.Batch(func(tx *bolt.Tx) error {
 				b := tx.Bucket([]byte(CLUSTER_TABLE))
 				return b.ForEach(func(clusterID, v []byte) error {
-					c := Cluster2{}
+					c := Cluster{}
 					err := json.Unmarshal(v, &c)
 					if err != nil {
 						return fmt.Errorf("error on unmarshal on iteration0 %w", err)
@@ -412,7 +372,7 @@ func (c *ClusterPool) CreateClusterOnRequest(ctx context.Context, dbPath string)
 
 			err = db.Update(func(tx *bolt.Tx) error {
 				b := tx.Bucket([]byte(CLUSTER_TABLE))
-				cluster := NewCluster2(kindCluster.Name, kindCluster.Context, kindCluster.KubeConfigPath, ClusterCreated)
+				cluster := NewCluster(kindCluster.Name, kindCluster.Context, kindCluster.KubeConfigPath, ClusterCreated)
 				bts, err := json.Marshal(cluster)
 				if err != nil {
 					return fmt.Errorf("error unmarshalling cluster %w", err)
@@ -442,13 +402,13 @@ func (c *ClusterPool) CreateClusterOnRequest(ctx context.Context, dbPath string)
 func (c *ClusterPool) GenerateClusters(dbPath string, clusterCount int) {
 	ctx := context.Background()
 
-	clusters := make(chan *KindCluster, clusterCount)
+	clusters := make(chan *Cluster, clusterCount)
 	done := make(chan bool, 1)
 
 	go func() {
 		for cluster := range clusters {
 			if cluster != nil {
-				err := CreateClusterRecord2(dbPath, *cluster)
+				err := CreateClusterRecord(dbPath, *cluster)
 				if err != nil {
 					log.Fatal(fmt.Errorf("error creating record %w", err))
 				}
