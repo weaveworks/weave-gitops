@@ -4,7 +4,6 @@ environments:
   - name: local
     variables:
       default-hostname: wego-app.local.app.garden
-
 providers:
   - name: local-kubernetes
     environments: [local]

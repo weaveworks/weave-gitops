@@ -1,18 +1,6 @@
 FROM golang:1.16-buster
 
-RUN apt-get update -y && apt-get install -y build-essential && apt-get install -y vim
-
-ENV GO111MODULE=on
-#GOPATH MUST BE OUTSIDE OF GOROOT directory!!!
-#export GOPATH=/mnt/sda1/programming/gopath
-ENV PATH=$PATH:$GOPATH/bin
-
-ENV GOROOT=/usr/local/go
-ENV PATH=$PATH:$GOROOT/bin
-
-RUN echo "$GOPATH"
-
-RUN echo "$GOROOT"
+RUN apt-get update -y && apt-get install -y build-essential
 
 WORKDIR $GOPATH/src/github.com/weaveworks/weave-gitops
 
@@ -26,10 +14,6 @@ RUN go mod download
 COPY . .
 
 RUN go mod tidy
-
-RUN ls -la
-
-RUN git version
 
 CMD ["sh","-c","go run cmd/gitops/main.go ui run"]
 

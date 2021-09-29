@@ -15,7 +15,7 @@ include: [manifests/wego-app2/*]
 type: kubernetes
 devMode:
   command: [ ./bin/air ]
-  args: [-d]
+  args: [ -d ]
   sync:
     - target: /go/src/github.com/weaveworks/weave-gitops
 namespace: wego-system
