@@ -3,7 +3,7 @@ description: Node hot reload image
 name: wego-app-image
 type: container
 dockerfile: Dockerfile-dev
-exclude : [manifests/wego-app2/*,node_modules]
+exclude : [manifests/garden/*,node_modules]
 hotReload:
   sync:
     - target: /go/src/github.com/weaveworks/weave-gitops/
@@ -11,7 +11,7 @@ hotReload:
 kind: Module
 description: K8s Module
 name: wego-app-service # This need to match the name of the service
-include: [manifests/wego-app2/*]
+include: [manifests/garden/*]
 type: kubernetes
 devMode:
   command: [ ./bin/air ]

@@ -15,7 +15,6 @@ spec:
       containers:
         - name: wego-app
           image: ${modules["wego-app-image"].outputs.deployment-image-id}
-          args: ["ui","run"]
           ports:
             - containerPort: 9001
           imagePullPolicy: Always
