@@ -14,10 +14,6 @@ Weave GitOps
 Weave GitOps enables an effective GitOps workflow for continuous delivery of applications into Kubernetes clusters.
 It is based on [CNCF Flux](https://fluxcd.io), a leading GitOps engine.
 
-### Early access
-
-_Weave GitOps is in early stages and iterating. Not all capabilities are available yet, and the CLI commands and other aspects may change. Please be aware this is not production ready yet. We would appreciate feedback and contributions of all kinds at this stage._
-
 ## Getting Started
 
 ### CLI Installation
@@ -25,10 +21,10 @@ _Weave GitOps is in early stages and iterating. Not all capabilities are availab
 Mac / Linux
 
 ```console
-curl -L "https://github.com/weaveworks/weave-gitops/releases/download/v0.2.5/wego-$(uname)-$(uname -m)" -o wego
-chmod +x wego
-sudo mv ./wego /usr/local/bin/wego
-wego version
+curl -L "https://github.com/weaveworks/weave-gitops/releases/download/v0.3.0/gitops-$(uname)-$(uname -m)" -o gitops
+chmod +x gitops
+sudo mv ./gitops /usr/local/bin/gitops
+gitops version
 ```
 
 Please see the [getting started guide](https://docs.gitops.weave.works/docs/getting-started).
@@ -37,16 +33,19 @@ Please see the [getting started guide](https://docs.gitops.weave.works/docs/gett
 
 ```console
 Weave GitOps
+Command line utility for managing Kubernetes applications via GitOps.
 
 Usage:
-  wego [command]
+  gitops [command]
 
 Available Commands:
   app         Add or status application
   flux        Use flux commands
   help        Help about any command
-  install     Install or upgrade Wego
-  version     Display wego version
+  install     Install or upgrade Weave GitOps
+  ui          Manages Weave GitOps UI
+  uninstall   Uninstall Weave GitOps
+  version     Display Weave GitOps version
 
 Flags:
   -h, --help               help for wego

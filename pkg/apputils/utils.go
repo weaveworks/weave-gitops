@@ -33,9 +33,9 @@ func (f *DefaultAppFactory) GetAppService(ctx context.Context, name, namespace s
 }
 
 func (f *DefaultAppFactory) GetKubeService() (kube.Kube, error) {
-	kubeClient, _, kubeErr := kube.NewKubeHTTPClient()
-	if kubeErr != nil {
-		return nil, fmt.Errorf("error creating k8s http client: %w", kubeErr)
+	kubeClient, _, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		return nil, fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
 	return kubeClient, nil
@@ -51,9 +51,9 @@ func GetBaseClients() (osys.Osys, flux.Flux, kube.Kube, logger.Logger, error) {
 	cliRunner := &runner.CLIRunner{}
 	fluxClient := flux.New(osysClient, cliRunner)
 
-	kubeClient, _, kubeErr := kube.NewKubeHTTPClient()
-	if kubeErr != nil {
-		return nil, nil, nil, nil, fmt.Errorf("error creating k8s http client: %w", kubeErr)
+	kubeClient, _, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		return nil, nil, nil, nil, fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
 	logger := logger.NewCLILogger(osysClient.Stdout())
@@ -64,61 +64,59 @@ func GetBaseClients() (osys.Osys, flux.Flux, kube.Kube, logger.Logger, error) {
 func IsClusterReady() error {
 	logger := GetLogger()
 
-	kube, _, kubeErr := kube.NewKubeHTTPClient()
-	if kubeErr != nil {
-		return fmt.Errorf("error creating k8s http client: %w", kubeErr)
+	kube, _, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
-	if readyErr := app.IsClusterReady(logger, kube); readyErr != nil {
-		return readyErr
-	}
-
-	return nil
+	return app.IsClusterReady(logger, kube)
 }
 
-func GetAppService(ctx context.Context, appName, namespace string) (app.AppService, error) {
-	osysClient, fluxClient, kubeClient, logger, baseClientErr := GetBaseClients()
-	if baseClientErr != nil {
-		return nil, fmt.Errorf("error initializing clients: %w", baseClientErr)
+func GetAppService(ctx context.Context, appName string, namespace string) (app.AppService, error) {
+	osysClient, fluxClient, kubeClient, logger, err := GetBaseClients()
+	if err != nil {
+		return nil, fmt.Errorf("error initializing clients: %w", err)
 	}
 
-	appClient, configClient, gitProvider, clientErr := getGitClientsForApp(ctx, appName, namespace)
-	if clientErr != nil {
-		return nil, fmt.Errorf("error getting git clients: %w", clientErr)
+	appClient, configClient, gitProvider, err := getGitClientsForApp(ctx, appName, namespace, false)
+	if err != nil {
+		return nil, fmt.Errorf("error getting git clients: %w", err)
 	}
 
 	return app.New(ctx, logger, appClient, configClient, gitProvider, fluxClient, kubeClient, osysClient), nil
 }
 
-func GetAppServiceForAdd(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool) (app.AppService, error) {
-	osysClient, fluxClient, kubeClient, logger, baseClientErr := GetBaseClients()
-	if baseClientErr != nil {
-		return nil, fmt.Errorf("error initializing clients: %w", baseClientErr)
+func GetAppServiceForAdd(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool, dryRun bool) (app.AppService, error) {
+	osysClient, fluxClient, kubeClient, logger, err := GetBaseClients()
+	if err != nil {
+		return nil, fmt.Errorf("error initializing clients: %w", err)
 	}
 
-	appClient, configClient, gitProvider, clientErr := getGitClients(ctx, url, configUrl, namespace, isHelmRepository)
-	if clientErr != nil {
-		return nil, fmt.Errorf("error getting git clients: %w", clientErr)
+	appClient, configClient, gitProvider, err := getGitClients(ctx, url, configUrl, namespace, isHelmRepository, dryRun)
+	if err != nil {
+		return nil, fmt.Errorf("error getting git clients: %w", err)
 	}
 
 	return app.New(ctx, logger, appClient, configClient, gitProvider, fluxClient, kubeClient, osysClient), nil
 }
 
-func getGitClientsForApp(ctx context.Context, appName, namespace string) (git.Git, git.Git, gitproviders.GitProvider, error) {
-	kube, _, kubeErr := kube.NewKubeHTTPClient()
-	if kubeErr != nil {
-		return nil, nil, nil, fmt.Errorf("error creating k8s http client: %w", kubeErr)
+func getGitClientsForApp(ctx context.Context, appName string, namespace string, dryRun bool) (git.Git, git.Git, gitproviders.GitProvider, error) {
+	kube, _, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
-	app, appErr := kube.GetApplication(ctx, types.NamespacedName{Namespace: namespace, Name: appName})
-	if appErr != nil {
-		return nil, nil, nil, fmt.Errorf("could not retrieve application %q: %w", appName, appErr)
+	app, err := kube.GetApplication(ctx, types.NamespacedName{Namespace: namespace, Name: appName})
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("could not retrieve application %q: %w", appName, err)
 	}
 
-	return getGitClients(ctx, app.Spec.URL, app.Spec.ConfigURL, namespace, app.Spec.SourceType == wego.SourceTypeHelm)
+	isHelmRepository := app.Spec.SourceType == wego.SourceTypeHelm
+
+	return getGitClients(ctx, app.Spec.URL, app.Spec.ConfigURL, namespace, isHelmRepository, dryRun)
 }
 
-func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool) (git.Git, git.Git, gitproviders.GitProvider, error) {
+func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool, dryRun bool) (git.Git, git.Git, gitproviders.GitProvider, error) {
 	isExternalConfig := app.IsExternalConfigUrl(configUrl)
 
 	var providerUrl string
@@ -132,37 +130,37 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 		return nil, nil, nil, nil
 	}
 
-	kube, _, kubeErr := kube.NewKubeHTTPClient()
-	if kubeErr != nil {
-		return nil, nil, nil, fmt.Errorf("error creating k8s http client: %w", kubeErr)
+	kube, _, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
-	targetName, targetErr := kube.GetClusterName(ctx)
-	if targetErr != nil {
-		return nil, nil, nil, fmt.Errorf("error getting target name: %w", targetErr)
+	targetName, err := kube.GetClusterName(ctx)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("error getting target name: %w", err)
 	}
 
-	authsvc, authsvcErr := getAuthService(ctx, providerUrl)
-	if authsvcErr != nil {
-		return nil, nil, nil, fmt.Errorf("error creating auth service: %w", authsvcErr)
+	authsvc, err := getAuthService(ctx, providerUrl, dryRun)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("error creating auth service: %w", err)
 	}
 
 	var appClient, configClient git.Git
 
 	if !isHelmRepository {
 		// We need to do this even if we have an external config to set up the deploy key for the app repo
-		appRepoClient, appRepoErr := authsvc.CreateGitClient(ctx, targetName, namespace, url)
-		if appRepoErr != nil {
-			return nil, nil, nil, appRepoErr
+		appRepoClient, err := authsvc.CreateGitClient(ctx, targetName, namespace, utils.SanitizeRepoUrl(url))
+		if err != nil {
+			return nil, nil, nil, err
 		}
 
 		appClient = appRepoClient
 	}
 
 	if isExternalConfig {
-		configRepoClient, configRepoErr := authsvc.CreateGitClient(ctx, targetName, namespace, utils.SanitizeRepoUrl(configUrl))
-		if configRepoErr != nil {
-			return nil, nil, nil, configRepoErr
+		configRepoClient, err := authsvc.CreateGitClient(ctx, targetName, namespace, utils.SanitizeRepoUrl(configUrl))
+		if err != nil {
+			return nil, nil, nil, err
 		}
 
 		configClient = configRepoClient
@@ -173,10 +171,20 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 	return appClient, configClient, authsvc.GetGitProvider(), nil
 }
 
-func getAuthService(ctx context.Context, providerUrl string) (auth.AuthService, error) {
-	gitProvider, providerErr := auth.GetGitProvider(ctx, providerUrl)
-	if providerErr != nil {
-		return nil, fmt.Errorf("error obtaining git provider token: %w", providerErr)
+func getAuthService(ctx context.Context, providerUrl string, dryRun bool) (auth.AuthService, error) {
+	var (
+		gitProvider gitproviders.GitProvider
+		err         error
+	)
+
+	if dryRun {
+		if gitProvider, err = gitproviders.NewDryRun(); err != nil {
+			return nil, fmt.Errorf("error creating git provider client: %w", err)
+		}
+	} else {
+		if gitProvider, err = auth.GetGitProvider(ctx, providerUrl); err != nil {
+			return nil, fmt.Errorf("error obtaining git provider token: %w", err)
+		}
 	}
 
 	osysClient := osys.New()
@@ -184,9 +192,9 @@ func getAuthService(ctx context.Context, providerUrl string) (auth.AuthService, 
 	fluxClient := flux.New(osysClient, cliRunner)
 	logger := logger.NewCLILogger(osysClient.Stdout())
 
-	_, rawClient, kubeErr := kube.NewKubeHTTPClient()
-	if kubeErr != nil {
-		return nil, fmt.Errorf("error creating k8s http client: %w", kubeErr)
+	_, rawClient, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		return nil, fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
 	return auth.NewAuthService(fluxClient, rawClient, gitProvider, logger)

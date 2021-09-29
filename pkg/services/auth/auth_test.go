@@ -86,8 +86,8 @@ var _ = Describe("auth", func() {
 			secret := &corev1.Secret{}
 			Expect(k8sClient.Get(ctx, sn.NamespacedName(), secret)).To(Succeed())
 
-			Expect(secret.Data["identity"]).NotTo(BeNil())
-			Expect(secret.Data["identity.pub"]).NotTo(BeNil())
+			Expect(secret.StringData["identity"]).NotTo(BeNil())
+			Expect(secret.StringData["identity.pub"]).NotTo(BeNil())
 		})
 		It("uses an existing deploy key when present", func() {
 			gp.DeployKeyExistsStub = func(s1, s2 string) (bool, error) {
