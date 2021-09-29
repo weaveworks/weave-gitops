@@ -21,6 +21,7 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"sigs.k8s.io/kustomize/api/types"
 	"sigs.k8s.io/yaml"
 )
 
@@ -402,8 +403,30 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 
 	a.Logger.Actionf("Applying manifests to the cluster")
 	// if params.MigrateToNewDirStructure is defined we skip applying to the cluster
-	if params.MigrateToNewDirStructure == nil {
+	justName := func(in string) string {
+		s := strings.Split(in, string(os.PathSeparator))
+		return s[len(s)-1]
+	}
+	if params.MigrateToNewDirStructure != nil {
+		k, err := a.createAppKustomize(info, params, info.appDeployName(), []string{justName(info.appYamlPath()),
+			justName(info.appAutomationSourcePath()), justName(info.appAutomationDeployPath())})
+		if err != nil {
+			return fmt.Errorf("failed to create app kustomization: %w", err)
+		}
+		if err := a.ConfigGit.Write(filepath.Join(".weave-gitops", "apps", info.appDeployName(), "kustomization.yaml"), k); err != nil {
+			return fmt.Errorf("failed writing app kustomization.yaml to disk: %w", err)
+		}
+		// TODO move to a deploy or apply command.
+		uk, err := a.createAppKustomize(info, params, info.appDeployName(), []string{"../../../apps/" + info.appDeployName()})
+		if err != nil {
+			return fmt.Errorf("failed to create app kustomization: %w", err)
+		}
+		//TODO - need to read the existing kustomization instead of writing it here
+		if err := a.ConfigGit.Write(filepath.Join(".weave-gitops", "clusters", info.clusterName, "user", "kustomization.yaml"), uk); err != nil {
+			return fmt.Errorf("failed writing cluster kustomization.yaml to disk: %w", err)
+		}
 
+	} else {
 		if err := a.applyToCluster(info, params.DryRun, extRepoMan.source, extRepoMan.target, extRepoMan.appDir); err != nil {
 			return fmt.Errorf("could not apply manifests to the cluster: %w", err)
 		}
@@ -411,7 +434,21 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 
 	return a.commitAndPush(a.ConfigGit, AddCommitMessage, params.DryRun)
 }
-
+func (a *App) createAppKustomize(info *AppResourceInfo, params AddParams, name string, resources []string) ([]byte, error) {
+	k := types.Kustomization{}
+	k.MetaData = &types.ObjectMeta{
+		Name:      name,
+		Namespace: info.Namespace,
+	}
+	k.APIVersion = types.KustomizationVersion
+	k.Kind = types.KustomizationKind
+	k.Resources = append(k.Resources, resources...)
+	kustomize, err := yaml.Marshal(&k)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal kustomize %v : %w", err)
+	}
+	return kustomize, nil
+}
 func (a *App) generateAppManifests(info *AppResourceInfo, secretRef string, appHash string) ([]byte, []byte, []byte, error) {
 	var sourceManifest, appManifest, appGoatManifest []byte
 
