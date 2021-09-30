@@ -1,32 +1,51 @@
 kind: Module
-description: Node hot reload image
+description: Wego image
 name: wego-app-image
 type: container
 dockerfile: dev.dockerfile
-exclude : [manifests/garden/*,node_modules]
-hotReload:
-  sync:
-    - target: /go/src/github.com/weaveworks/weave-gitops/
+include: [cmd, pkg, manifests, api, dev.dockerfile, go.mod, go.sum, main.go, .air.toml]
+exclude: [node_modules]
 ---
 kind: Module
-description: K8s Module
-name: wego-app-service # This need to match the name of the service
-include: [manifests/garden/*]
+description: Wego k8s
+name: wego-app-service
 type: kubernetes
+build:
+  dependencies:
+    - name: wego-app-image
+include: [cmd, pkg, manifests, api, go.mod, go.sum, main.go, .air.toml ]
+exclude: [node_modules]
 devMode:
   command: [ ./bin/air ]
   args: [ -d ]
   sync:
-    - target: /go/src/github.com/weaveworks/weave-gitops
+    - target: /go/src/github.com/weaveworks/weave-gitops/cmd
+      source: cmd
+    - target: /go/src/github.com/weaveworks/weave-gitops/pkg
+      source: pkg
+    - target: /go/src/github.com/weaveworks/weave-gitops/api
+      source: api
+    - target: /go/src/github.com/weaveworks/weave-gitops/manifests
+      source: manifests
+    - target: /go/src/github.com/weaveworks/weave-gitops/
+      source: go.mod
+    - target: /go/src/github.com/weaveworks/weave-gitops/
+      source: go.sum
+    - target: /go/src/github.com/weaveworks/weave-gitops/
+      source: main.go
 namespace: wego-system
 serviceResource:
   kind: Deployment
   containerModule: wego-app-image
-  name: wego-app-development # This need to match the name of the deployment
+  name: wego-app # This need to match the name of the deployment
   containerName: wego-app
   hotReloadArgs: [./bin/air]
 files: [
-    manifests/garden/deployment.yaml,
-    manifests/garden/ingress.yaml,
-    manifests/garden/service.yaml,
+    manifests/wego-app/deployment.yaml,
+    manifests/wego-app/service.yaml,
+    manifests/wego-app/role.yaml,
+    manifests/wego-app/role-binding.yaml,
+    manifests/wego-app/service.yaml,
+    manifests/wego-app/service-account.yaml,
+    manifests/garden-io/ingress.yaml,
 ]

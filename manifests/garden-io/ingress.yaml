@@ -13,6 +13,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: wego-app-service
+                name: wego-app
                 port:
-                  number: 9090
+                  number: 9001

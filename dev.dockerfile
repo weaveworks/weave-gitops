@@ -9,11 +9,14 @@ RUN curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/master/install.sh 
 COPY go.mod .
 COPY go.sum .
 
+COPY pkg ./pkg
+COPY cmd ./cmd
+COPY api ./api
+COPY manifests ./manifests
+COPY main.go .
+COPY .air.toml .
+
 RUN go mod download
-
-COPY . .
-
-RUN go mod tidy
 
 CMD ["sh","-c","go run cmd/gitops/main.go ui run"]
 
