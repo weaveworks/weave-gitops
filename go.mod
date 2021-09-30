@@ -3,6 +3,7 @@ module github.com/weaveworks/weave-gitops
 go 1.16
 
 require (
+	github.com/benbjohnson/clock v1.1.0
 	github.com/deepmap/oapi-codegen v1.8.1
 	github.com/dnaeon/go-vcr v1.2.0
 	github.com/fluxcd/go-git-providers v0.2.1-0.20210920141513-ddc36f3d5f60
