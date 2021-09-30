@@ -1614,7 +1614,6 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		Skip("skip until gitlab repo deletion is supported")
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
-		var appStatus string
 		private := true
 		readmeFilePath := "./data/README.md"
 		tip := generateTestInputs()
@@ -1669,7 +1668,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I check the app status for app", func() {
-			appStatus, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH+" app status "+appName, cluster.KubeConfigPath)
+			runCommandAndReturnStringOutput(WEGO_BIN_PATH+" app status "+appName, cluster.KubeConfigPath)
 		})
 
 	})
