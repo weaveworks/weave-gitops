@@ -180,5 +180,5 @@ func createRedirector(fsys fs.FS, log logrus.FieldLogger) http.HandlerFunc {
 func init() {
 	Cmd.Flags().StringVar(&port, "port", "9001", "UI port")
 	Cmd.Flags().StringVar(&path, "path", "", "Path url")
-	Cmd.Flags().BoolVar(&skipOpenBrowser, "skip-open-browser", false, "This flag helps to avoids to open browser automatically")
+	Cmd.Flags().BoolVar(&openBrowser, "open-browser", true, "Open a browser and navigate to the UI")
 }
