@@ -7,7 +7,6 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app/add"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app/list"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app/pause"
@@ -79,10 +78,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	appContent, err := appService.Get(types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
 	if err != nil {
 		return fmt.Errorf("unable to get application for %s %w", params.Name, err)
-	}
-
-	if appContent.Spec.SourceType == wego.SourceTypeHelm {
-		return fmt.Errorf("unable to get commits for a helm chart")
 	}
 
 	if command != "get" {

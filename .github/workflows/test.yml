@@ -106,7 +106,12 @@ jobs:
         GITHUB_ORG: weaveworks-gitops-test
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
-        ARTIFACTS_BASE_DIR: "/tmp/gitops-test"
+        ARTIFACTS_BASE_DIR: "/tmp/wego-test"
+        IS_TEST_ENV: "true"
+        GITLAB_ORG: weave-gitops
+        GITLAB_SUBGROUP: weave-gitops-sub
+        GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        GITLAB_KEY: ${{ secrets.GITLAB_KEY }}
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
@@ -154,9 +159,10 @@ jobs:
       run: |
         make dependencies
     - name: Set up ssh agent
-      uses: webfactory/ssh-agent@v0.5.2
+      uses: webfactory/ssh-agent@v0.5.3
       with:
-        ssh-private-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
+        ssh-private-key: |
+              ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
     - name: Configure git settings
       run: |
         git config --global init.defaultBranch main
@@ -187,7 +193,12 @@ jobs:
         GITHUB_ORG: weaveworks-gitops-test
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
-        ARTIFACTS_BASE_DIR: "/tmp/gitops-test"
+        ARTIFACTS_BASE_DIR: "/tmp/wego-test"
+        IS_TEST_ENV: "true"
+        GITLAB_ORG: weave-gitops
+        GITLAB_SUBGROUP: weave-gitops-sub
+        GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        GITLAB_KEY: ${{ secrets.GITLAB_KEY }}
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
@@ -235,9 +246,10 @@ jobs:
       run: |
         make dependencies
     - name: Set up ssh agent
-      uses: webfactory/ssh-agent@v0.5.2
+      uses: webfactory/ssh-agent@v0.5.3
       with:
-        ssh-private-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
+        ssh-private-key: |
+              ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
     - name: Configure git settings
       run: |
         git config --global init.defaultBranch main

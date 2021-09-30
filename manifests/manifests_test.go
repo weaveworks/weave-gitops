@@ -9,31 +9,15 @@ import (
 )
 
 var _ = Describe("Testing WegoAppDeployment", func() {
-
-	var localDeploymentManifest []byte
-	BeforeEach(func() {
-		localDeploymentManifest = WegoAppDeployment
-	})
-
-	It("should return the right version", func() {
-		deploymentYaml, err := GenerateWegoAppDeploymentManifest(localDeploymentManifest)
+	It("should contain the right version", func() {
+		v := version.Version
+		deploymentYaml, err := GenerateWegoAppDeploymentManifest(v)
 		Expect(err).NotTo(HaveOccurred())
 
 		var Deployment appsv1.Deployment
 		err = yaml.Unmarshal(deploymentYaml, &Deployment)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(Deployment.Spec.Template.Spec.Containers[0].Image).To(ContainSubstring(version.Version))
+		Expect(Deployment.Spec.Template.Spec.Containers[0].Image).To(ContainSubstring(v))
 	})
-
-	It("should fail trying to parse the template", func() {
-
-		localDeploymentManifest = []byte("{{.wrongField}}")
-
-		_, err := GenerateWegoAppDeploymentManifest(localDeploymentManifest)
-		Expect(err).Should(HaveOccurred())
-		Expect(err.Error()).Should(ContainSubstring(errInjectingValuesToTemplate.Error()))
-		Expect(err.Error()).Should(ContainSubstring("wrongField"))
-	})
-
 })

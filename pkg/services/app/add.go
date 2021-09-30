@@ -6,7 +6,6 @@ import (
 	"crypto/md5"
 	"fmt"
 	"io/ioutil"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -82,6 +81,7 @@ const (
 	DefaultPath           = "./"
 	DefaultBranch         = "main"
 	DefaultDeploymentType = "kustomize"
+	AddCommitMessage      = "Add App manifests"
 )
 
 type externalRepoManifests struct {
@@ -212,7 +212,12 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 
 	// making sure the config url is in good format
 	if IsExternalConfigUrl(params.AppConfigUrl) {
-		params.AppConfigUrl = utils.SanitizeRepoUrl(params.AppConfigUrl)
+		normalizedAppConfigUrl, err := gitproviders.NewNormalizedRepoURL(params.AppConfigUrl)
+		if err != nil {
+			return params, fmt.Errorf("error normalizing url: %w", err)
+		}
+
+		params.AppConfigUrl = normalizedAppConfigUrl.String()
 	}
 
 	switch {
@@ -233,13 +238,12 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 			return params, fmt.Errorf("--url must be specified for helm repositories")
 		}
 	default:
-		// making sure url is in the correct format
-		_, err := url.Parse(params.Url)
+		normalizedUrl, err := gitproviders.NewNormalizedRepoURL(params.Url)
 		if err != nil {
-			return params, fmt.Errorf("error validating url %w", err)
+			return params, fmt.Errorf("error normalizing url: %w", err)
 		}
 
-		params.Url = utils.SanitizeRepoUrl(params.Url)
+		params.Url = normalizedUrl.String()
 
 		// resetting Dir param since Url has priority over it
 		params.Dir = ""
@@ -349,7 +353,7 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 		return fmt.Errorf("could not apply manifests to the cluster: %w", err)
 	}
 
-	return a.commitAndPush(a.ConfigGit, func(fname string) bool {
+	return a.commitAndPush(a.ConfigGit, AddCommitMessage, params.DryRun, func(fname string) bool {
 		return strings.Contains(fname, ".wego")
 	})
 }
@@ -402,7 +406,7 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 		return fmt.Errorf("could not apply manifests to the cluster: %w", err)
 	}
 
-	return a.commitAndPush(a.ConfigGit)
+	return a.commitAndPush(a.ConfigGit, AddCommitMessage, params.DryRun)
 }
 
 func (a *App) generateAppManifests(info *AppResourceInfo, secretRef string, appHash string) ([]byte, []byte, []byte, error) {
@@ -496,12 +500,16 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, branch string
 	return &externalRepoManifests{source: targetSource, target: targetGoat, appDir: appDirGoat}, nil
 }
 
-func (a *App) commitAndPush(client git.Git, filters ...func(string) bool) error {
+func (a *App) commitAndPush(client git.Git, commitMsg string, dryRun bool, filters ...func(string) bool) error {
 	a.Logger.Actionf("Committing and pushing gitops updates for application")
+
+	if dryRun {
+		return nil
+	}
 
 	_, err := client.Commit(git.Commit{
 		Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
-		Message: "Add App manifests",
+		Message: commitMsg,
 	}, filters...)
 	if err != nil && err != git.ErrNoStagedFiles {
 		return fmt.Errorf("failed to update the repository: %w", err)
@@ -577,8 +585,6 @@ func (a *App) cloneRepo(client git.Git, url string, branch string, dryRun bool) 
 		return func() {}, nil
 	}
 
-	url = utils.SanitizeRepoUrl(url)
-
 	repoDir, err := ioutil.TempDir("", "user-repo-")
 	if err != nil {
 		return nil, fmt.Errorf("failed creating temp. directory to clone repo: %w", err)
@@ -650,9 +656,7 @@ func generateResourceName(url string) string {
 	return hashNameIfTooLong(strings.ReplaceAll(utils.UrlToRepoName(url), "_", "-"))
 }
 
-func (a *App) createPullRequestToRepo(info *AppResourceInfo, repo string, appHash string, appYaml []byte, goatSource, goatDeploy []byte) error {
-	repoName := generateResourceName(repo)
-
+func (a *App) createPullRequestToRepo(info *AppResourceInfo, repoURL string, appHash string, appYaml []byte, goatSource, goatDeploy []byte) error {
 	appPath := info.appYamlPath()
 	goatSourcePath := info.appAutomationSourcePath()
 	goatDeployPath := info.appAutomationDeployPath()
@@ -676,23 +680,23 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, repo string, appHas
 		},
 	}
 
-	owner, err := utils.GetOwnerFromUrl(repo)
+	normalizedUrl, err := gitproviders.NewNormalizedRepoURL(repoURL)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve owner: %w", err)
+		return fmt.Errorf("error normalizing url: %w", err)
 	}
 
-	configBranch, branchErr := a.GitProvider.GetDefaultBranch(repo)
+	configBranch, branchErr := a.GitProvider.GetDefaultBranch(normalizedUrl.String())
 	if branchErr != nil {
 		return branchErr
 	}
 
-	accountType, err := a.GitProvider.GetAccountType(owner)
+	accountType, err := a.GitProvider.GetAccountType(normalizedUrl.Owner())
 	if err != nil {
 		return fmt.Errorf("failed to retrieve account type: %w", err)
 	}
 
 	if accountType == gitproviders.AccountTypeOrg {
-		orgRepoRef := gitproviders.NewOrgRepositoryRef(a.GitProvider.GetProviderDomain(), owner, repoName)
+		orgRepoRef := gitproviders.NewOrgRepositoryRef(a.GitProvider.GetProviderDomain(), normalizedUrl.Owner(), normalizedUrl.RepositoryName())
 
 		prLink, err := a.GitProvider.CreatePullRequestToOrgRepo(orgRepoRef, configBranch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("gitops add %s", info.Name), fmt.Sprintf("Added yamls for %s", info.Name))
 		if err != nil {
@@ -704,7 +708,7 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, repo string, appHas
 		return nil
 	}
 
-	userRepoRef := gitproviders.NewUserRepositoryRef(a.GitProvider.GetProviderDomain(), owner, repoName)
+	userRepoRef := gitproviders.NewUserRepositoryRef(a.GitProvider.GetProviderDomain(), normalizedUrl.Owner(), normalizedUrl.RepositoryName())
 
 	prLink, err := a.GitProvider.CreatePullRequestToUserRepo(userRepoRef, configBranch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("gitops add %s", info.Name), fmt.Sprintf("Added yamls for %s", info.Name))
 	if err != nil {

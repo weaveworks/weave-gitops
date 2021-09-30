@@ -15,8 +15,13 @@ type OneOf<T> =
         : never)
     : never);
 
-export enum GetReconciledObjectsReqAutomationKind {
+export enum AutomationKind {
   Kustomize = "Kustomize",
+  Helm = "Helm",
+}
+
+export enum SourceType {
+  Git = "Git",
   Helm = "Helm",
 }
 
@@ -35,8 +40,50 @@ export type Application = {
   sourceConditions?: Condition[]
   deploymentConditions?: Condition[]
   namespace?: string
-  deploymentType?: GroupVersionKind
+  deploymentType?: AutomationKind
   reconciledObjectKinds?: GroupVersionKind[]
+  kustomization?: Kustomization
+  helmRelease?: HelmRelease
+  source?: Source
+}
+
+export type Kustomization = {
+  name?: string
+  namespace?: string
+  targetNamespace?: string
+  path?: string
+  conditions?: Condition[]
+  interval?: string
+  prune?: boolean
+  lastAppliedRevision?: string
+}
+
+export type HelmRelease = {
+  name?: string
+  namespace?: string
+  targetNamespace?: string
+  chart?: HelmChart
+  interval?: string
+  lastAppliedRevision?: string
+  conditions?: Condition[]
+}
+
+export type HelmChart = {
+  chart?: string
+  version?: string
+  valuesFiles?: string[]
+}
+
+export type Source = {
+  name?: string
+  url?: string
+  type?: SourceType
+  namespace?: string
+  interval?: string
+  reference?: string
+  suspend?: boolean
+  timeout?: string
+  conditions?: Condition[]
 }
 
 export type AuthenticateRequest = {
@@ -105,7 +152,7 @@ export type UnstructuredObject = {
 export type GetReconciledObjectsReq = {
   automationName?: string
   automationNamespace?: string
-  automationKind?: GetReconciledObjectsReqAutomationKind
+  automationKind?: AutomationKind
   kinds?: GroupVersionKind[]
 }
 

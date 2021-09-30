@@ -52,6 +52,7 @@ func buildGitProvider(config Config) (gitprovider.Client, string, error) {
 		}
 	case GitProviderGitLab:
 		opts := []gitprovider.ClientOption{
+			gitprovider.WithOAuth2Token(config.Token),
 			gitprovider.WithConditionalRequests(true),
 		}
 		if config.Hostname != "" {

@@ -23,23 +23,17 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-var localAddParams AddParams
-
-var removeParams RemoveParams
-
-var application wego.Application
-
-var info *AppResourceInfo
-
-var appResources []ResourceRef
-
-var fluxDir string
-
-var createdResources map[ResourceKind]map[string]bool
-
-var goatPaths map[string]bool
-
-var manifestsByPath map[string][]byte
+var (
+	localAddParams   AddParams
+	removeParams     RemoveParams
+	application      wego.Application
+	info             *AppResourceInfo
+	appResources     []ResourceRef
+	fluxDir          string
+	createdResources map[ResourceKind]map[string]bool
+	goatPaths        map[string]bool
+	manifestsByPath  map[string][]byte = map[string][]byte{}
+)
 
 func populateAppRepo() (string, error) {
 	dir, err := ioutil.TempDir("", "an-app-dir")
@@ -571,6 +565,17 @@ var _ = Describe("Remove", func() {
 					Expect(runAddAndCollectInfo()).To(Succeed())
 					Expect(appSrv.Remove(removeParams)).To(Succeed())
 					Expect(checkRemoveResults()).To(Succeed())
+				})
+
+				It("commits the manifests with remove message", func() {
+					localAddParams.AppConfigUrl = ""
+
+					Expect(runAddAndCollectInfo()).To(Succeed())
+					Expect(appSrv.Remove(removeParams)).To(Succeed())
+					Expect(checkRemoveResults()).To(Succeed())
+
+					commit, _ := gitClient.CommitArgsForCall(1)
+					Expect(commit.Message).To(Equal(RemoveCommitMessage))
 				})
 
 				It("removes cluster resources for non-helm app with configURL = <url>", func() {

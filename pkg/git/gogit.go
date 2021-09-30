@@ -34,7 +34,6 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 type GoGit struct {
@@ -335,7 +334,7 @@ func (g *GoGit) GetRemoteUrl(dir string, remoteName string) (string, error) {
 		return "", fmt.Errorf("remote config in %s does not have an url", dir)
 	}
 
-	return utils.SanitizeRepoUrl(urls[0]), nil
+	return urls[0], nil
 }
 
 func (g *GoGit) ValidateAccess(ctx context.Context, url string, branch string) error {

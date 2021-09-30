@@ -1,0 +1,38 @@
+{
+    "templates": [
+        {
+            "name": "cluster-template-2",
+            "description": "this is test template 2",
+            "version": "",
+            "parameters": [
+                {
+                    "name": "CLUSTER_NAME",
+                    "description": "This is used for the cluster naming."
+                }
+            ]
+        },
+        {
+            "name": "cluster-template-3",
+            "description": "this is test template 3",
+            "version": "",
+            "parameters": [
+                {
+                    "name": "CLUSTER_NAME",
+                    "description": "This is used for the cluster naming."
+                }
+            ]
+        },
+        {
+            "name": "cluster-template",
+            "description": "this is test template 1",
+            "version": "",
+            "parameters": [
+                {
+                    "name": "CLUSTER_NAME",
+                    "description": "This is used for the cluster naming."
+                }
+            ]
+        }
+    ],
+    "total": 3
+}
