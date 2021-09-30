@@ -82,8 +82,6 @@ If you need to develop while gitops is running inside a kubernetes cluster you c
 
 Garden version `0.12.26` was used to generate the configuration files for this repository.
 
-Only requirement is to run `gitops install` beforehand as need some kubernetes resources to be present in the cluster first.
-
 Once Garden is installed you just need to run:
 ```
 make cluster-dev

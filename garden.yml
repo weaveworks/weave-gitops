@@ -56,5 +56,6 @@ files: [
     manifests/wego-app/role-binding.yaml,
     manifests/wego-app/service.yaml,
     manifests/wego-app/service-account.yaml,
+    manifests/crds/wego.weave.works_apps.yaml,
     manifests/garden-io/ingress.yaml,
 ]
