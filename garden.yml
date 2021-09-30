@@ -1,4 +1,12 @@
 kind: Module
+type: exec
+local: true
+name: generate-garden-development
+include: ["manifests/wego-app/deployment.yaml"]
+build:
+  command: [ ./tools/generate-garden-development.sh.sh ]
+---
+kind: Module
 description: Wego image
 name: wego-app-image
 type: container
@@ -12,8 +20,9 @@ name: wego-app-service
 type: kubernetes
 build:
   dependencies:
+    - name: generate-garden-development
     - name: wego-app-image
-include: [cmd, pkg, manifests, api, go.mod, go.sum, main.go, .air.toml ]
+include: [cmd, pkg, manifests, api, go.mod, go.sum, main.go, .air.toml, .garden-deployment.yaml ]
 exclude: [node_modules]
 devMode:
   command: [ ./bin/air ]
@@ -41,7 +50,7 @@ serviceResource:
   containerName: wego-app
   hotReloadArgs: [./bin/air]
 files: [
-    manifests/wego-app/deployment.yaml,
+    .garden-deployment.yaml,
     manifests/wego-app/service.yaml,
     manifests/wego-app/role.yaml,
     manifests/wego-app/role-binding.yaml,

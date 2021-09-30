@@ -15,3 +15,4 @@ ginkgo.report
 test/library/wego-library-test
 
 .garden
+.garden-deployment.yaml

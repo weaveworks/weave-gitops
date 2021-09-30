@@ -18,14 +18,17 @@ var AppCRD []byte
 var WegoAppDeployment []byte
 
 type deploymentParameters struct {
-	Version string
+	Image string
 }
 
 var errInjectingValuesToTemplate = errors.New("error injecting values to template")
 
 // GenerateWegoAppDeploymentManifest generates wego-app deployment manifest from a template
 func GenerateWegoAppDeploymentManifest(version string) ([]byte, error) {
-	deploymentValues := deploymentParameters{Version: version}
+
+	image := fmt.Sprintf("ghcr.io/weaveworks/wego-app:%s", version)
+
+	deploymentValues := deploymentParameters{Image: image}
 
 	template := template.New("DeploymentTemplate")
 
