@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/internal"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -58,12 +59,18 @@ func GetGitProvider(ctx context.Context, url string) (gitproviders.GitProvider, 
 	osysClient := osys.New()
 	logger := logger.NewCLILogger(osysClient.Stdout())
 
-	return getGitProviderWithClients(ctx, providerName, osysClient, authHandler, logger)
+	owner, err := utils.GetOwnerFromUrl(url)
+	if err != nil {
+		return nil, err
+	}
+
+	return getGitProviderWithClients(ctx, providerName, owner, osysClient, authHandler, logger)
 }
 
 func getGitProviderWithClients(
 	ctx context.Context,
 	providerName gitproviders.GitProviderName,
+	owner string,
 	osysClient osys.Osys,
 	authHandler BlockingCLIAuthHandler,
 	logger logger.Logger) (gitproviders.GitProvider, error) {
@@ -88,7 +95,7 @@ func getGitProviderWithClients(
 		return nil, fmt.Errorf("could not get access token: %w", err)
 	}
 
-	provider, err := gitproviders.New(gitproviders.Config{Provider: providerName, Token: token})
+	provider, err := gitproviders.New(gitproviders.Config{Provider: providerName, Token: token}, owner)
 	if err != nil {
 		return nil, fmt.Errorf("error creating git provider client: %w", err)
 	}
