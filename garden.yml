@@ -4,7 +4,7 @@ local: true
 name: generate-garden-development
 include: ["manifests/wego-app/deployment.yaml"]
 build:
-  command: [ ./tools/generate-garden-development.sh.sh ]
+  command: [ ./tools/generate-garden-development.sh ]
 ---
 kind: Module
 description: Wego image
