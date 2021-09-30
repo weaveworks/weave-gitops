@@ -24,7 +24,7 @@ import (
 var (
 	port            string
 	path            string
-	skipOpenBrowser bool
+	openBrowser bool
 )
 
 var Cmd = &cobra.Command{
