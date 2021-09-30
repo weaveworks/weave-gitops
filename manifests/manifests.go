@@ -25,7 +25,6 @@ var errInjectingValuesToTemplate = errors.New("error injecting values to templat
 
 // GenerateWegoAppDeploymentManifest generates wego-app deployment manifest from a template
 func GenerateWegoAppDeploymentManifest(version string) ([]byte, error) {
-
 	image := fmt.Sprintf("ghcr.io/weaveworks/wego-app:%s", version)
 
 	deploymentValues := deploymentParameters{Image: image}
