@@ -46,12 +46,14 @@ type UpgradeValues struct {
 
 func Upgrade(upgradeValues UpgradeValues, w io.Writer) error {
 	config := config.GetConfigOrDie()
+
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return err
 	}
 
 	fmt.Fprintf(w, "Checking if entitlement exists...\n")
+
 	entitlement, err := getEntitlement(clientset)
 	if err != nil {
 		return err
@@ -75,6 +77,7 @@ func Upgrade(upgradeValues UpgradeValues, w io.Writer) error {
 		if err != nil {
 			return err
 		}
+
 		fmt.Fprintf(w, "Deriving org/repo for PR as %v\n", githubRepoPath)
 		upgradeValues.RepoOrgAndName = githubRepoPath
 	}
@@ -86,6 +89,7 @@ func Upgrade(upgradeValues UpgradeValues, w io.Writer) error {
 	}
 
 	key := entitlement.Data["deploy-key"]
+
 	localRepo, err := cloneToTempDir("", upgradeValues.ProfileRepoURL, upgradeValues.ProfileBranch, key, w)
 	if err != nil {
 		return err
@@ -118,13 +122,16 @@ func getRepoOrgAndName(url string) (string, error) {
 
 func cloneToTempDir(parentDir, gitURL, branch string, privKey []byte, w io.Writer) (*GitRepo, error) {
 	fmt.Fprintf(w, "Creating a temp directory...")
+
 	gitDir, err := ioutil.TempDir(parentDir, "git-")
 	if err != nil {
 		return nil, errors.Wrap(err, "TempDir")
 	}
+
 	fmt.Fprintf(w, "Temp directory %q created.", gitDir)
 
 	fmt.Fprintf(w, "Cloning the Git repository %q to %q...", gitURL, gitDir)
+
 	auth, err := gitssh.NewPublicKeys("git", privKey, "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to authenticate: %v", err)
@@ -164,13 +171,16 @@ func (gr *GitRepo) WorktreeDir() string {
 func getRepoURL(remote string) (string, error) {
 	cmd := exec.Command("git", "config", "--get", "remote."+remote+".url")
 	cmd.Dir = "."
+
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
+
 	err := cmd.Run()
 	if err != nil {
 		return "", err
 	}
+
 	return strings.TrimSpace(stdout.String()), nil
 }
 
@@ -239,6 +249,7 @@ func getGitRepositoryNamespaceAndName(gitRepository string) (string, string, err
 		if len(split) != 2 {
 			return "", "", fmt.Errorf("git-repository must in format <namespace>/<name>; was: %s", gitRepository)
 		}
+
 		return split[0], split[1], nil
 	}
 
@@ -246,10 +257,12 @@ func getGitRepositoryNamespaceAndName(gitRepository string) (string, string, err
 	if err != nil {
 		return "", "", fmt.Errorf("failed to fetch current working directory: %w", err)
 	}
+
 	config := bootstrap.GetConfig(wd)
 	if err == nil && config != nil {
 		return config.GitRepository.Namespace, config.GitRepository.Name, nil
 	}
+
 	return "", "", fmt.Errorf("flux git repository not provided, please provide the --git-repository flag or use the pctl bootstrap functionality")
 }
 
@@ -262,6 +275,7 @@ func createPullRequest(values UpgradeValues, installationDirectory string) error
 		Base:      values.BaseBranch,
 		Message:   values.CommitMessage,
 	}, r)
+
 	scmClient, err := git.NewClient(git.SCMConfig{
 		Branch: values.HeadBranch,
 		Base:   values.BaseBranch,
@@ -270,5 +284,6 @@ func createPullRequest(values UpgradeValues, installationDirectory string) error
 	if err != nil {
 		return fmt.Errorf("failed to create scm client: %w", err)
 	}
+
 	return catalog.CreatePullRequest(scmClient, g, values.HeadBranch, installationDirectory)
 }

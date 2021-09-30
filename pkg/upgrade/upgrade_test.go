@@ -54,7 +54,6 @@ func TestGetGithubRepoPath(t *testing.T) {
 	repoPath, err = getRepoOrgAndName("https://github.com/ww/repo.git")
 	assert.NoError(t, err)
 	assert.Equal(t, "ww/repo", repoPath)
-
 }
 
 func createSecret() *corev1.Secret {
