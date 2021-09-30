@@ -41,7 +41,6 @@ var _ = XDescribe("Weave GitOps UI Test", func() {
 			initializeUISteps()
 
 			By("When I open up a browser", func() {
-				var err error
 				webDriver, err = agouti.NewPage(SELENIUM_SERVICE_URL, agouti.Desired(agouti.Capabilities{
 					"chromeOptions": map[string][]string{
 						"args": {

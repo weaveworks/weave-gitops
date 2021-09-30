@@ -2,11 +2,27 @@
 
 This suite contains the user acceptance tests for Weave GitOps. To run these tests you can either use gingko runner or standard go test command .
 
-By default test harness assumes that GITOPS binary is available on `$PATH` but this can be overriden by exporting the following variable
+You will need to have a binary with the changes you want to test with. After checking out the desired branch you can run:
+```
+make install
+```
+This will add the binary into `$GOPATH/go/bin/`
 
+
+Or you can build your binary into `bin/` with:
+```
+make bin
+```
+
+By default test harness assumes that GITOPS binary is available on `$PATH` but this can be overriden by exporting the following variable
 
 ```
 export WEGO_BIN_PATH=<path/to/gitops-binary>
+```
+
+If you used `make bin` you can override it with:
+```
+export WEGO_BIN_PATH=`pwd`/bin/gitops
 ```
 
 Additional env vars used to run tests locally are:
@@ -34,9 +50,8 @@ ginkgo --focus=SmokeTest --randomizeSuites  -v ./test/acceptance/test/...
 # Acceptance Tests
 To run the full **acceptance suite**, run the command
 
-
 ```
-ginkgo --randomizeSuites -v ./test/acceptance/test/...
+ginkgo --randomizeSuites -v -nodes=2 --stream ./test/acceptance/test/...
 ```
 
 # How to add new test
