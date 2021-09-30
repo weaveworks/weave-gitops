@@ -12,13 +12,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/go-logr/zapr"
 	"github.com/mattn/go-isatty"
 	"github.com/pkg/browser"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/server"
+	"go.uber.org/zap"
 )
 
 var (
@@ -49,17 +49,21 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	assetHandler := http.FileServer(http.FS(assetFS))
 	redirector := createRedirector(assetFS, log)
 
-	gMux := runtime.NewServeMux()
-	mux.Handle("/v1/", gMux)
-
 	cfg, err := server.DefaultConfig()
 	if err != nil {
 		return fmt.Errorf("could not create http client: %w", err)
 	}
 
-	if err := pb.RegisterApplicationsHandlerServer(context.Background(), gMux, server.NewApplicationsServer(cfg)); err != nil {
-		return fmt.Errorf("could not register application: %w", err)
+	logr := zapr.NewLogger(zap.NewNop())
+
+	cfg.Logger = logr
+
+	appsHandler, err := server.NewApplicationsHandler(context.Background(), cfg)
+	if err != nil {
+		return fmt.Errorf("could not create applications handler: %w", err)
 	}
+
+	mux.Handle("/v1/", appsHandler)
 
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// Assume anything with a file extension in the name is a static asset.

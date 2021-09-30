@@ -73,6 +73,8 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	SetDefaultEventuallyTimeout(EVENTUALLY_DEFAULT_TIMEOUT)
 	DEFAULT_SSH_KEY_PATH = os.Getenv("HOME") + "/.ssh/id_rsa"
 	GITHUB_ORG = os.Getenv("GITHUB_ORG")
+	GITLAB_ORG = os.Getenv("GITLAB_ORG")
+	GITLAB_SUBGROUP = os.Getenv("GITLAB_SUBGROUP")
 	WEGO_BIN_PATH = os.Getenv("WEGO_BIN_PATH")
 	if WEGO_BIN_PATH == "" {
 		WEGO_BIN_PATH = "/usr/local/bin/gitops"

@@ -72,7 +72,7 @@ func ensureUrlIsValid() error {
 			return fmt.Errorf("could not get remote url for directory %s: %w", params.Dir, repoUrlErr)
 		}
 
-		params.Url = utils.SanitizeRepoUrl(repoUrlString)
+		params.Url = repoUrlString
 	}
 
 	return nil
@@ -105,7 +105,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	isHelmRepository := params.Chart != ""
 
-	appService, appError := apputils.GetAppServiceForAdd(ctx, params.Url, params.AppConfigUrl, params.Namespace, isHelmRepository)
+	appService, appError := apputils.GetAppServiceForAdd(ctx, params.Url, params.AppConfigUrl, params.Namespace, isHelmRepository, params.DryRun)
 	if appError != nil {
 		return fmt.Errorf("failed to create app service: %w", appError)
 	}

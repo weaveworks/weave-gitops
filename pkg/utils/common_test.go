@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 )
 
@@ -118,15 +117,3 @@ error occurred some error, retrying in 1s
 
 	})
 })
-
-var _ = DescribeTable("SanitizeRepoUrl", func(input string, expected string) {
-	result := SanitizeRepoUrl(input)
-	Expect(result).To(Equal(expected))
-},
-	Entry("git clone style", "git@github.com:someuser/podinfo.git", "ssh://git@github.com/someuser/podinfo.git"),
-	Entry("url style", "ssh://git@github.com/someuser/podinfo.git", "ssh://git@github.com/someuser/podinfo.git"),
-	// TODO: there is other code relying on everything looking like an SSH url.
-	// We need to refactor the SanitizeRepoUrl function .
-	// https://github.com/weaveworks/weave-gitops/issues/577
-	Entry("https style", "https://github.com/weaveworks/weave-gitops.git", "ssh://git@github.com/weaveworks/weave-gitops.git"),
-)
