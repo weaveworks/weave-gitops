@@ -119,3 +119,13 @@ done
 
 echo "Installing golangci-lint"
 curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.44.0
+
+if ! command -v tilt
+then
+    echo "Installing Tilt for local development"
+    curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/v0.23.8/scripts/install.sh | bash
+else
+    echo "Local tilt binary found, skipping install"
+fi
+
+

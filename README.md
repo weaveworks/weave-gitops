@@ -69,9 +69,18 @@ To set up a development environment for the CLI
 
 1. Install go v1.17
 2. Install [buf](https://github.com/bufbuild/buf)
-3. make or make unit-tests to ensure everything built correctly.
+3. Run `make all` to install dependencies and build binaries and assets
+4. Start a `kind` cluster like so: `KIND_CLUSTER_NAME=<some name> ./tools/kind-with-registry.sh`
+5. Run `./bin/gitops install --config-repo=<repo url>`
+6. Start the in-cluster API replacement job (powered by [http://tilt.dev](tilt.dev)) with `make cluster-dev`
+7. make or make unit-tests to ensure everything built correctly.
 
-### unit testing
+### Cluster Dev Tips
+
+- You may need to turn off your `kustomize-controller` to prevent it from reconciling your "GitOps RunTime" and over-writing the `wego-app` deployment.
+- Setting the system kustomization to `suspend: true` in the config repo will also keep `kustomize-controller` from fighting with `tilt`. You may need to kill a failing pod after suspending the kustomization.
+
+### Unit testing
 
 We are using [Ginko](https://onsi.github.io/ginkgo/) for our unit tests. To execute the all the unit tests, run `make unit-tests`.
 
@@ -176,4 +185,3 @@ Need help or want to contribute? Please see the links below.
 ## License scan details
 
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=large)](https://app.fossa.com/reports/005da7c4-1f10-4889-9432-8b97c2084e41)
-
