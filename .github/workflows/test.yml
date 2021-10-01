@@ -135,9 +135,9 @@ jobs:
         unzip chromedriver_linux64.zip
         sudo mv -f chromedriver /usr/local/bin/chromedriver
 
-        wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
+        wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.1.jar
         
-        mv selenium-server-standalone-3.14.0.jar selenium-server-standalone.jar
+        mv selenium-server-standalone-3.14.1.jar selenium-server-standalone.jar
 
         xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone.jar &
         cd -
@@ -222,7 +222,7 @@ jobs:
         unzip chromedriver_linux64.zip
         sudo mv -f chromedriver /usr/local/bin/chromedriver
 
-        wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
+        wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.1.jar
 
         xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone.jar &
     - name: Setup Kubernetes
