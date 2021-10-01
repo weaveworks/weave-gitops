@@ -4,13 +4,28 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakegitprovider"
 )
 
-var dryRunProvider GitProvider
+var (
+	dryRunProvider GitProvider
+	err            error
+)
 
 var _ = Describe("DryRun", func() {
 	var _ = BeforeEach(func() {
-		dryRunProvider, _ = NewDryRun()
+		orgProvider := orgGitProvider{
+			domain: "github.com",
+			provider: &fakegitprovider.Client{
+				ProviderIDStub: func() gitprovider.ProviderID {
+					return gitprovider.ProviderID(GitProviderGitHub)
+				},
+			},
+		}
+
+		dryRunProvider = &dryrunProvider{
+			provider: orgProvider,
+		}
 	})
 
 	Describe("RepositoryExists", func() {
