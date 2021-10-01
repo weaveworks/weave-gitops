@@ -55,7 +55,6 @@ func (p orgGitProvider) DeployKeyExists(owner, repoName string) (bool, error) {
 	}
 
 	return true, nil
-
 }
 
 func (p orgGitProvider) UploadDeployKey(owner, repoName string, deployKey []byte) error {
@@ -79,7 +78,7 @@ func (p orgGitProvider) UploadDeployKey(owner, repoName string, deployKey []byte
 
 	_, err = orgRepo.DeployKeys().Create(ctx, deployKeyInfo)
 	if err != nil {
-		return fmt.Errorf("error uploading deploy key %s", err)
+		return fmt.Errorf("error uploading deploy key %w", err)
 	}
 
 	if err = utils.WaitUntil(os.Stdout, time.Second, defaultTimeout, func() error {
@@ -159,35 +158,35 @@ func (p orgGitProvider) createPullRequestToOrgRepo(owner string, repoName string
 	ctx := context.Background()
 	orgRepRef := NewOrgRepositoryRef(p.GetProviderDomain(), owner, repoName)
 
-	ur, err := p.provider.OrgRepositories().Get(ctx, orgRepRef)
+	repo, err := p.provider.OrgRepositories().Get(ctx, orgRepRef)
 	if err != nil {
 		return nil, fmt.Errorf("error getting info for repo [%s] err [%s]", orgRepRef.String(), err)
 	}
 
 	if targetBranch == "" {
-		targetBranch = *ur.Get().DefaultBranch
+		targetBranch = *repo.Get().DefaultBranch
 	}
 
-	commits, err := ur.Commits().ListPage(ctx, targetBranch, 1, 0)
+	commits, err := repo.Commits().ListPage(ctx, targetBranch, 1, 0)
 	if err != nil {
 		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", orgRepRef.String(), err)
 	}
 
 	if len(commits) == 0 {
-		return nil, fmt.Errorf("targetBranch [%s] does not exists", targetBranch)
+		return nil, fmt.Errorf("no commits on the target branch: %s", targetBranch)
 	}
 
 	latestCommit := commits[0]
 
-	if err := ur.Branches().Create(ctx, newBranch, latestCommit.Get().Sha); err != nil {
+	if err := repo.Branches().Create(ctx, newBranch, latestCommit.Get().Sha); err != nil {
 		return nil, fmt.Errorf("error creating branch [%s] for repo [%s] err [%s]", newBranch, orgRepRef.String(), err)
 	}
 
-	if _, err := ur.Commits().Create(ctx, newBranch, commitMessage, files); err != nil {
+	if _, err := repo.Commits().Create(ctx, newBranch, commitMessage, files); err != nil {
 		return nil, fmt.Errorf("error creating commit for branch [%s] for repo [%s] err [%s]", newBranch, orgRepRef.String(), err)
 	}
 
-	pr, err := ur.PullRequests().Create(ctx, prTitle, newBranch, targetBranch, prDescription)
+	pr, err := repo.PullRequests().Create(ctx, prTitle, newBranch, targetBranch, prDescription)
 	if err != nil {
 		return nil, fmt.Errorf("error creating pull request [%s] for branch [%s] for repo [%s] err [%s]", prTitle, newBranch, orgRepRef.String(), err)
 	}
