@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -43,19 +42,20 @@ func (p orgGitProvider) DeployKeyExists(owner, repoName string) (bool, error) {
 
 	orgRepo, err := p.provider.OrgRepositories().Get(ctx, orgRef)
 	if err != nil {
-		return false, fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s ", owner, repoName, err)
+		return false, fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s", owner, repoName, err)
 	}
 
 	_, err = orgRepo.DeployKeys().Get(ctx, deployKeyName)
-	if err != nil && !strings.Contains(err.Error(), "key is already in use") {
+	if err != nil {
 		if errors.Is(err, gitprovider.ErrNotFound) {
 			return false, nil
-		} else {
-			return false, fmt.Errorf("error getting deploy key %s for repo %s. %s", deployKeyName, repoName, err)
 		}
-	} else {
-		return true, nil
+
+		return false, fmt.Errorf("error getting deploy key %s for repo %s. %s", deployKeyName, repoName, err)
 	}
+
+	return true, nil
+
 }
 
 func (p orgGitProvider) UploadDeployKey(owner, repoName string, deployKey []byte) error {
