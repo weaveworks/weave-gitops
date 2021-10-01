@@ -58,25 +58,7 @@ docker: ## Build wego-app docker image
 	docker build -t ghcr.io/weaveworks/wego-app:latest .
 
 kind: ## Create kind cluster with nginx ingress enabled
-	cat <<EOF | kind create cluster --config=-                                                                                                             ─╯
-	kind: Cluster
-	apiVersion: kind.x-k8s.io/v1alpha4
-	nodes:
-	- role: control-plane
-	  kubeadmConfigPatches:
-	  - |
-		kind: InitConfiguration
-		nodeRegistration:
-		  kubeletExtraArgs:
-			node-labels: "ingress-ready=true"
-	  extraPortMappings:
-	  - containerPort: 80
-		hostPort: 80
-		protocol: TCP
-	  - containerPort: 443
-		hostPort: 443
-		protocol: TCP
-	EOF
+	kind create cluster --config=tools/kind-ingress-config.yaml
 
 # Clean up images and binaries
 clean: ## Clean up images and binaries
