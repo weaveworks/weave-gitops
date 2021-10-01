@@ -79,6 +79,8 @@ type AddParams struct {
 	MigrateToNewDirStructure   func(string) string
 }
 
+var DefaultMigrateToNewDirStructure func(string) string = func(s string) string { return s }
+
 const (
 	DefaultPath           = "./"
 	DefaultBranch         = "main"
@@ -445,7 +447,7 @@ func (a *App) createAppKustomize(info *AppResourceInfo, params AddParams, name s
 	k.Resources = append(k.Resources, resources...)
 	kustomize, err := yaml.Marshal(&k)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal kustomize %v : %w", err)
+		return nil, fmt.Errorf("failed to unmarshal kustomize %v : %w", k, err)
 	}
 	return kustomize, nil
 }
@@ -645,15 +647,22 @@ func CloneRepo(client git.Git, url string, branch string, dryRun bool) (func(), 
 }
 
 func (a *App) writeAppYaml(info *AppResourceInfo, manifest []byte, overridePath func(string) string) error {
-	return a.ConfigGit.Write(overridePath(info.appYamlPath()), manifest)
+	if overridePath != nil {
+		return a.ConfigGit.Write(overridePath(info.appYamlPath()), manifest)
+	}
+	return a.ConfigGit.Write(DefaultMigrateToNewDirStructure(info.appYamlPath()), manifest)
 }
 
 func (a *App) writeAppGoats(info *AppResourceInfo, sourceManifest, deployManifest []byte, overridePath func(string) string) error {
-	if err := a.ConfigGit.Write(overridePath(info.appAutomationSourcePath()), sourceManifest); err != nil {
+	op := DefaultMigrateToNewDirStructure
+	if overridePath != nil {
+		op = overridePath
+	}
+	if err := a.ConfigGit.Write(op(info.appAutomationSourcePath()), sourceManifest); err != nil {
 		return err
 	}
 
-	return a.ConfigGit.Write(overridePath(info.appAutomationDeployPath()), deployManifest)
+	return a.ConfigGit.Write(op(info.appAutomationDeployPath()), deployManifest)
 }
 
 func makeWegoApplication(params AddParams) wego.Application {

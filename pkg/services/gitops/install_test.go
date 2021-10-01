@@ -2,19 +2,28 @@ package gitops_test
 
 import (
 	"context"
+	"fmt"
+	"io/ioutil"
 	"os"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
+	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
+	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
+
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	log "github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 )
 
-var installParams gitops.InstallParams
-
+var (
+	installParams gitops.InstallParams
+	dir           string
+)
 var _ = Describe("Install", func() {
 	BeforeEach(func() {
 		fluxClient = &fluxfakes.FakeFlux{}
@@ -23,12 +32,30 @@ var _ = Describe("Install", func() {
 				return kube.Unmodified
 			},
 		}
-		gitopsSrv = gitops.New(log.NewCLILogger(os.Stderr), fluxClient, kubeClient, nil)
+		gp := &gitprovidersfakes.FakeGitProvider{}
+		fakeGit := &gitfakes.FakeGit{}
+		// fakeGitClient := git.New(nil, fakeGit)
+		fakeGit.WriteStub = func(path string, manifest []byte) error {
+			return nil
+		}
+
+		dir, err := ioutil.TempDir("", "wego-install-test-")
+		Expect(err).ShouldNot(HaveOccurred())
+
+		gitClient := git.New(nil, wrapper.NewGoGit())
+		ok, err := gitClient.Init(dir, "https://github.com/github/gitignore", "master")
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(ok).Should(BeTrue())
+
+		gitopsSrv = gitops.New(log.NewCLILogger(os.Stderr), fluxClient, kubeClient, gp, fakeGit)
 
 		installParams = gitops.InstallParams{
 			Namespace: "wego-system",
 			DryRun:    false,
 		}
+	})
+	var _ = AfterEach(func() {
+		Expect(os.RemoveAll(dir)).To(Succeed())
 	})
 
 	It("checks cluster status", func() {
@@ -120,4 +147,25 @@ var _ = Describe("Install", func() {
 			Expect(kubeClient.ApplyCallCount()).To(Equal(0))
 		})
 	})
+	Context("when app url specified", func() {
+		BeforeEach(func() {
+			installParams.AppConfigURL = "ssh://127.0.0.1"
+			fluxClient.InstallStub = func(s string, b bool) ([]byte, error) {
+				return []byte("manifests"), nil
+			}
+		})
+		It("calls flux install", func() {
+			manifests, err := gitopsSrv.Install(installParams)
+			Expect(err).ShouldNot(HaveOccurred())
+			fmt.Printf("manifests returned are :%v\n", manifests)
+			Expect(string(manifests)).To(ContainSubstring("manifests"))
+
+			Expect(fluxClient.InstallCallCount()).To(Equal(2))
+
+			namespace, dryRun := fluxClient.InstallArgsForCall(0)
+			Expect(namespace).To(Equal("wego-system"))
+			Expect(dryRun).To(Equal(true))
+		})
+	})
+
 })

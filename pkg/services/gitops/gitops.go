@@ -21,12 +21,13 @@ type Gitops struct {
 	logger      logger.Logger
 }
 
-func New(logger logger.Logger, flux flux.Flux, kube kube.Kube, gp gitproviders.GitProvider) *Gitops {
+func New(logger logger.Logger, flux flux.Flux, kube kube.Kube, gp gitproviders.GitProvider, g git.Git) *Gitops {
 	return &Gitops{
 		flux:        flux,
 		kube:        kube,
 		logger:      logger,
 		gitProvider: gp,
+		gitClient:   g,
 	}
 }
 
