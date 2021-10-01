@@ -53,7 +53,7 @@ func Upgrade(upgradeValues UpgradeValues, w io.Writer) error {
 
 	fmt.Fprintf(w, "Checking if entitlement exists...\n")
 
-	entitlement, err := getEntitlement(clientset)
+	entitlement, err := getEntitlement(clientset, upgradeValues.Namespace)
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func Upgrade(upgradeValues UpgradeValues, w io.Writer) error {
 	}
 
 	if upgradeValues.GitRepository == "" {
-		gitRepositoryNameNamespace := "wego-system/" + strings.TrimSuffix(filepath.Base(repoURL), ".git")
+		gitRepositoryNameNamespace := fmt.Sprintf("%s/%s", upgradeValues.Namespace, strings.TrimSuffix(filepath.Base(repoURL), ".git"))
 		fmt.Fprintf(w, "Deriving name of GitRepository Resource as %v\n", gitRepositoryNameNamespace)
 		upgradeValues.GitRepository = gitRepositoryNameNamespace
 	}
@@ -182,10 +182,10 @@ func getRepoURL(remote string) (string, error) {
 	return strings.TrimSpace(stdout.String()), nil
 }
 
-func getEntitlement(clientset kubernetes.Interface) (*v1.Secret, error) {
+func getEntitlement(clientset kubernetes.Interface, ns string) (*v1.Secret, error) {
 	var entitlement *v1.Secret
 
-	entitlement, err := clientset.CoreV1().Secrets("wego-system").Get(context.Background(), "weave-gitops-enterprise-credentials", metav1.GetOptions{})
+	entitlement, err := clientset.CoreV1().Secrets(ns).Get(context.Background(), "weave-gitops-enterprise-credentials", metav1.GetOptions{})
 	if err != nil {
 		return entitlement, fmt.Errorf("failed to get entitlement: %v", err)
 	}
