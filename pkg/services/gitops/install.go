@@ -34,9 +34,13 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 	}
 
 	// TODO apply these manifests instead of generating them again
-	fluxManifests, err := g.flux.Install(params.Namespace, true)
-	if err != nil {
-		return fluxManifests, fmt.Errorf("error on flux install %s", err)
+	var fluxManifests []byte
+	var err error
+	if params.AppConfigURL != "" {
+		fluxManifests, err = g.flux.Install(params.Namespace, true)
+		if err != nil {
+			return fluxManifests, fmt.Errorf("error on flux install %s", err)
+		}
 	}
 	_, err = g.flux.Install(params.Namespace, params.DryRun)
 	if err != nil {
@@ -71,7 +75,9 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 		}
 	}
 	if params.AppConfigURL != "" {
-		g.storeManifests(params, systemManifests)
+		if err := g.storeManifests(params, systemManifests); err != nil {
+			return nil, fmt.Errorf("failed to store cluster manifests: %v", err)
+		}
 	}
 
 	return fluxManifests, nil
@@ -83,11 +89,6 @@ func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string
 	if err != nil {
 		return fmt.Errorf("could not determine default branch for config repository: %v %w", params.AppConfigURL, err)
 	}
-	// TODO: pass context
-	authsvc, err := apputils.GetAuthService(ctx, params.AppConfigURL)
-	if err != nil {
-		return fmt.Errorf("failed to create auth service for repo %s : %w", params.AppConfigURL, err)
-	}
 	cname, err := g.kube.GetClusterName(ctx)
 	if err != nil {
 		g.logger.Warningf("Cluster name not found, using default : %v", err)
@@ -96,6 +97,10 @@ func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string
 	// TODO: pass context
 	// TODO: actual cluster name
 	if g.gitClient == nil {
+		authsvc, err := apputils.GetAuthService(ctx, params.AppConfigURL)
+		if err != nil {
+			return fmt.Errorf("failed to create auth service for repo %s : %w", params.AppConfigURL, err)
+		}
 		g.gitClient, err = authsvc.CreateGitClient(ctx, cname, params.Namespace, utils.SanitizeRepoUrl(params.AppConfigURL))
 		if err != nil {
 			return fmt.Errorf("failed to create git client for repo %s : %w", params.AppConfigURL, err)
@@ -103,7 +108,6 @@ func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string
 
 	}
 
-	g.logger.Infow("storemanifests", "configBranch", configBranch, "gitclient", g.gitClient)
 	remover, err := app.CloneRepo(g.gitClient, params.AppConfigURL, configBranch, params.DryRun)
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)

@@ -72,7 +72,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get GitProvider: %w", err)
 	}
 
-	gitopsService := gitops.New(logger, fluxClient, kubeClient, gp)
+	gitopsService := gitops.New(logger, fluxClient, kubeClient, gp, nil)
 	manifests, err := gitopsService.Install(gitops.InstallParams{
 		Namespace:    namespace,
 		DryRun:       installParams.DryRun,
