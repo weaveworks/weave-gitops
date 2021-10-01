@@ -41,12 +41,15 @@ func init() {
 
 func upgradeCmdRunE() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
+		namespace, _ := cmd.Parent().Flags().GetString("namespace")
+
 		return upgrade.Upgrade(upgrade.UpgradeValues{
 			RepoOrgAndName: upgradeCmdFlags.RepoOrgAndName,
 			Remote:         upgradeCmdFlags.Remote,
 			HeadBranch:     upgradeCmdFlags.HeadBranch,
 			BaseBranch:     upgradeCmdFlags.BaseBranch,
 			CommitMessage:  upgradeCmdFlags.CommitMessage,
+			Namespace:      namespace,
 			GitRepository:  upgradeCmdFlags.GitRepository,
 			Version:        upgradeCmdFlags.Version,
 		}, os.Stdout)

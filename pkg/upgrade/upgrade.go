@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/weaveworks/pctl/pkg/bootstrap"
 	"github.com/weaveworks/pctl/pkg/catalog"
 	"github.com/weaveworks/pctl/pkg/git"
@@ -125,7 +124,7 @@ func cloneToTempDir(parentDir, gitURL, branch string, privKey []byte, w io.Write
 
 	gitDir, err := ioutil.TempDir(parentDir, "git-")
 	if err != nil {
-		return nil, errors.Wrap(err, "TempDir")
+		return nil, fmt.Errorf("failed to create tem directory: %v", err)
 	}
 
 	fmt.Fprintf(w, "Temp directory %q created.", gitDir)
@@ -146,7 +145,7 @@ func cloneToTempDir(parentDir, gitURL, branch string, privKey []byte, w io.Write
 		Tags:         go_git.NoTags,
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "git clone")
+		return nil, fmt.Errorf("failed to clone git repo: %v", err)
 	}
 
 	fmt.Fprintf(w, "Cloned repo: %s", gitURL)
