@@ -59,7 +59,6 @@ func Upgrade(upgradeValues UpgradeValues, w io.Writer) error {
 	}
 
 	upgradeValues.Name = "weave-gitops-enterprise"
-	upgradeValues.Namespace = "wego-system"
 	upgradeValues.ProfileBranch = "main"
 	upgradeValues.ConfigMap = ""
 	upgradeValues.Out = "."
