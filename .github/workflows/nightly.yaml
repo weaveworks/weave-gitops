@@ -59,7 +59,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-2
+        aws-region: us-west-1
     - name: Install eksctl
       run: |
         curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
@@ -74,7 +74,7 @@ jobs:
         OS_NAME=$(echo "${{matrix.os}}" | tr '[:upper:]' '[:lower:]')
         export CLUSTER_NAME=wego-nightly-cluster2-$OS_NAME
         export CLUSTER_VERSION=1.20
-        export CLUSTER_REGION=us-east-1
+        export CLUSTER_REGION=us-west-1
         export CLUSTER_EXISTS=$(eksctl get clusters --region $CLUSTER_REGION | grep -i $CLUSTER_NAME)
         if [ -z $CLUSTER_EXISTS ]
         then
