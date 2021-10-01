@@ -17,7 +17,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("Weave GitOps Install Tests", func() {
+var _ = FDescribe("Weave GitOps Install Tests", func() {
 
 	var sessionOutput *gexec.Session
 
@@ -51,7 +51,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 	})
 
-	It("Verify that gitops quits if flux-system namespace is present", func() {
+	FIt("Verify that gitops quits if flux-system namespace is present", func() {
 		var errOutput string
 		namespace := "flux-system"
 
@@ -77,7 +77,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 	})
 
-	It("Verify that gitops can install & uninstall gitops components under a user-specified namespace", func() {
+	FIt("Verify that gitops can install & uninstall gitops components under a user-specified namespace", func() {
 
 		namespace := "test-namespace"
 

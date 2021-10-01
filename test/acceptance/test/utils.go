@@ -428,7 +428,7 @@ func uninstallWegoRuntime(namespace string) {
 
 	err = runCommandPassThrough([]string{}, "sh", "-c", "kubectl delete crd apps.wego.weave.works")
 	if err != nil {
-		log.Infof("Failed to delete crd apps.wego.weave.works")
+		log.Infof("Failed to delete crd apps.wego.weave.works %s", err)
 	}
 
 	Expect(waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)).To(Succeed())
