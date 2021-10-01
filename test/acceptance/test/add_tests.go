@@ -61,18 +61,23 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 	AfterEach(func() {
 		if os.Getenv(CI) == "" {
-			err := ShowItems("", cluster.KubeConfigPath)
-			if err != nil {
-				log.Infof("Failed to print the cluster resources")
+
+			if CurrentGinkgoTestDescription().Failed {
+
+				err := ShowItems("", cluster.KubeConfigPath)
+				if err != nil {
+					log.Infof("Failed to print the cluster resources")
+				}
+
+				err = ShowItems("GitRepositories", cluster.KubeConfigPath)
+				if err != nil {
+					log.Infof("Failed to print the GitRepositories")
+				}
+
+				ShowWegoControllerLogs(namespace, cluster.KubeConfigPath)
 			}
 
-			err = ShowItems("GitRepositories", cluster.KubeConfigPath)
-			if err != nil {
-				log.Infof("Failed to print the GitRepositories")
-			}
-
-			ShowWegoControllerLogs(namespace, cluster.KubeConfigPath)
-			err = cltr.UpdateClusterToDeleted(contextDirectory, clusterID, cluster)
+			err := cltr.UpdateClusterToDeleted(contextDirectory, clusterID, cluster)
 			Expect(err).NotTo(HaveOccurred())
 			cluster.CleanUp()
 			err = cltr.RequestClusterCreation(contextDirectory)
