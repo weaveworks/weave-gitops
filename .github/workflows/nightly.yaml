@@ -114,7 +114,7 @@ jobs:
         $WEGO_BIN_PATH flux uninstall --silent
         $WEGO_BIN_PATH flux uninstall --namespace test-namespace --silent
         kubectl get all --all-namespaces -o wide
-        ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml -v ./test/acceptance/test/...
+        ginkgo --reportFile=$(pwd)/test-results/acceptance-test-results.xml --focus="Weave GitOps Install Tests" -v ./test/acceptance/test/...
       if: always()
   test-gke:
     needs: [build]
