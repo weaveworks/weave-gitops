@@ -25,7 +25,11 @@ func (p userGitProvider) RepositoryExists(name string, owner string) (bool, erro
 		RepositoryName: name,
 	}
 	if _, err := p.provider.UserRepositories().Get(context.Background(), userRepoRef); err != nil {
-		return false, err
+		if errors.Is(err, gitprovider.ErrNotFound) {
+			return false, nil
+		}
+
+		return false, fmt.Errorf("could not get verify repository exists  %w", err)
 	}
 
 	return true, nil
@@ -164,7 +168,7 @@ func (p userGitProvider) createPullRequestToUserRepo(owner string, repoName stri
 	}
 
 	if len(commits) == 0 {
-		return nil, fmt.Errorf("targetBranch [%s] does not exists", targetBranch)
+		return nil, fmt.Errorf("no commits on the target branch: %s", targetBranch)
 	}
 
 	latestCommit := commits[0]
