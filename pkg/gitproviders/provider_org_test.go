@@ -252,4 +252,47 @@ var _ = Describe("Org Provider", func() {
 			Expect(prDescription).To(Equal("pr-desc"))
 		})
 	})
+
+	Describe("GetCommits", func() {
+		It("return error when repo doest exist", func() {
+			orgRepoClient.GetReturns(nil, gitprovider.ErrNotFound)
+
+			_, err := orgProvider.GetCommits("owner", "repo-name", "target-branch", 1, 1)
+			Expect(err.Error()).Should(ContainSubstring("error getting info for repo"))
+		})
+
+		It("returns empty array when empty error", func() {
+			commitClient.ListPageReturns(nil, errors.New("409 Git Repository is empty"))
+
+			commits, err := orgProvider.GetCommits("owner", "repo-name", "target-branch", 1, 1)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(commits).To(HaveLen(0))
+		})
+
+		It("returns error when random error", func() {
+			commitClient.ListPageReturns(nil, errors.New("error"))
+
+			_, err := orgProvider.GetCommits("owner", "repo-name", "target-branch", 1, 1)
+			Expect(err.Error()).Should(ContainSubstring("error getting commits for repo"))
+		})
+
+		It("returns a list of commits", func() {
+			commit := &fakegitprovider.Commit{}
+			commit.GetReturns(gitprovider.CommitInfo{Sha: "commit-sha"})
+
+			commitClient.ListPageReturns([]gitprovider.Commit{commit}, nil)
+
+			commits, err := orgProvider.GetCommits("owner", "repo-name", "target-branch", 1, 1)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(commits[0].Get().Sha).To(Equal("commit-sha"))
+		})
+	})
+
+	Describe("GetProviderDomain", func() {
+		It("returns provider domain", func() {
+			gitProviderClient.ProviderIDReturns("example")
+
+			Expect(orgProvider.GetProviderDomain()).To(Equal("example.com"))
+		})
+	})
 })
