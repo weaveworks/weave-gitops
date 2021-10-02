@@ -79,7 +79,7 @@ type AddParams struct {
 	MigrateToNewDirStructure   func(string) string
 }
 
-var DefaultMigrateToNewDirStructure func(string) string = func(s string) string { return s }
+var defaultMigrateToNewDirStructure func(string) string = func(s string) string { return s }
 
 const (
 	DefaultPath           = "./"
@@ -650,11 +650,11 @@ func (a *App) writeAppYaml(info *AppResourceInfo, manifest []byte, overridePath 
 	if overridePath != nil {
 		return a.ConfigGit.Write(overridePath(info.appYamlPath()), manifest)
 	}
-	return a.ConfigGit.Write(DefaultMigrateToNewDirStructure(info.appYamlPath()), manifest)
+	return a.ConfigGit.Write(defaultMigrateToNewDirStructure(info.appYamlPath()), manifest)
 }
 
 func (a *App) writeAppGoats(info *AppResourceInfo, sourceManifest, deployManifest []byte, overridePath func(string) string) error {
-	op := DefaultMigrateToNewDirStructure
+	op := defaultMigrateToNewDirStructure
 	if overridePath != nil {
 		op = overridePath
 	}
