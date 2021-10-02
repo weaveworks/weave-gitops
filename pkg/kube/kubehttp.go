@@ -72,7 +72,7 @@ func NewKubeHTTPClient() (Kube, client.Client, error) {
 		cfgLoadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
 		l.Infow("kubeHTTPClient", "configLoadingRules", cfgLoadingRules)
 
-		_, kubeContext, err := initialContexts(cfgLoadingRules)
+		kubeContext, err = initialContexts(cfgLoadingRules)
 		if err != nil {
 			return nil, nil, fmt.Errorf("could not get initial context: %w", err)
 		}
@@ -322,16 +322,11 @@ func (k *KubeHTTP) GetResource(ctx context.Context, name types.NamespacedName, r
 	return nil
 }
 
-func initialContexts(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (contexts []string, currentCtx string, err error) {
+func initialContexts(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (currentCtx string, err error) {
 	rules, err := cfgLoadingRules.Load()
 
 	if err != nil {
-		return contexts, currentCtx, err
+		return currentCtx, err
 	}
-
-	for _, c := range rules.Contexts {
-		contexts = append(contexts, c.Cluster)
-	}
-
-	return contexts, rules.CurrentContext, nil
+	return rules.CurrentContext, nil
 }
