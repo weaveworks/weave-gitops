@@ -237,7 +237,7 @@ func (k *KubeHTTP) Delete(ctx context.Context, manifest []byte) error {
 
 	err = dr.Delete(ctx, name, deleteOptions)
 	if err != nil {
-		return fmt.Errorf("failed applying %s: %w", string(data), err)
+		return fmt.Errorf("failed deleting %s: %w", string(data), err)
 	}
 
 	return nil
