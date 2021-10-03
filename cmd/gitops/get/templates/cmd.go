@@ -10,6 +10,12 @@ import (
 	"k8s.io/cli-runtime/pkg/printers"
 )
 
+type templateCommandFlags struct {
+	ListTemplateParameters bool
+}
+
+var flags templateCommandFlags
+
 func TemplateCommand(endpoint *string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "template",
@@ -18,9 +24,15 @@ func TemplateCommand(endpoint *string, client *resty.Client) *cobra.Command {
 		Example: `
 # Get all CAPI templates
 gitops get templates
+
+# Show the parameters of a CAPI template
+gitops get template <template-name> --list-parameters
 		`,
 		RunE: getTemplateCmdRunE(endpoint, client),
+		Args: cobra.MaximumNArgs(1),
 	}
+
+	cmd.Flags().BoolVar(&flags.ListTemplateParameters, "list-parameters", false, "Show parameters of CAPI template")
 
 	return cmd
 }
@@ -33,9 +45,16 @@ func getTemplateCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comm
 		}
 
 		w := printers.GetNewTabWriter(os.Stdout)
-
 		defer w.Flush()
 
-		return templates.GetTemplates(r, w)
+		if flags.ListTemplateParameters {
+			return templates.GetTemplateParameters(args[0], r, w)
+		}
+
+		if len(args) == 0 {
+			return templates.GetTemplates(r, w)
+		}
+
+		return nil
 	}
 }

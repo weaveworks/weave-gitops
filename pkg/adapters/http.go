@@ -79,3 +79,43 @@ func (c *HttpClient) RetrieveTemplates() ([]templates.Template, error) {
 
 	return ts, nil
 }
+
+// RetrieveTemplateParameters returns the list of all parameters of the
+// specified template.
+func (c *HttpClient) RetrieveTemplateParameters(name string) ([]templates.TemplateParameter, error) {
+	endpoint := "v1/templates/{name}/params"
+
+	type ListTemplateParametersResponse struct {
+		Parameters []*templates.TemplateParameter
+	}
+
+	var templateParametersList ListTemplateParametersResponse
+	res, err := c.client.R().
+		SetHeader("Accept", "application/json").
+		SetPathParams(map[string]string{
+			"name": name,
+		}).
+		SetResult(&templateParametersList).
+		Get(endpoint)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, fmt.Errorf("unable to GET template parameters from %q: %w", res.Request.URL, err)
+	}
+
+	if res.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
+	}
+
+	var tps []templates.TemplateParameter
+	for _, p := range templateParametersList.Parameters {
+		tps = append(tps, templates.TemplateParameter{
+			Name:        p.Name,
+			Description: p.Description,
+			Required:    p.Required,
+			Options:     p.Options,
+		})
+	}
+
+	return tps, nil
+}

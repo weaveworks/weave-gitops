@@ -7,6 +7,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/add"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/flux"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
@@ -92,6 +93,7 @@ func configureLogger() {
 }
 
 func main() {
+	restyClient := resty.New()
 	cliRunner := &runner.CLIRunner{}
 	osysClient := osys.New()
 	fluxClient := fluxBin.New(osysClient, cliRunner)
@@ -106,7 +108,8 @@ func main() {
 	rootCmd.AddCommand(flux.Cmd)
 	rootCmd.AddCommand(ui.Cmd)
 	rootCmd.AddCommand(app.ApplicationCmd)
-	rootCmd.AddCommand(get.GetCommand(&options.endpoint, resty.New()))
+	rootCmd.AddCommand(get.GetCommand(&options.endpoint, restyClient))
+	rootCmd.AddCommand(add.GetCommand(&options.endpoint, restyClient))
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
