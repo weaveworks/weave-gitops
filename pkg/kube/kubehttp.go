@@ -66,13 +66,14 @@ var InClusterConfig func() (*rest.Config, error) = func() (*rest.Config, error) 
 func NewKubeHTTPClient() (Kube, client.Client, error) {
 	l := logger.NewApiLogger()
 
-	kubeContext := "hub"
+	var kubeContext string
+	var clusterName string
 	config, err := InClusterConfig()
 	if err == rest.ErrNotInCluster {
 		cfgLoadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
 		l.Infow("kubeHTTPClient", "configLoadingRules", cfgLoadingRules)
 
-		kubeContext, err = initialContexts(cfgLoadingRules)
+		kubeContext, clusterName, err = initialContexts(cfgLoadingRules)
 		if err != nil {
 			return nil, nil, fmt.Errorf("could not get initial context: %w", err)
 		}
@@ -89,6 +90,9 @@ func NewKubeHTTPClient() (Kube, client.Client, error) {
 		if err != nil {
 			return nil, nil, fmt.Errorf("could not create rest config: %w", err)
 		}
+	} else {
+		// TODO when running in a cluster and not used for bootstrapping, what is the cluster name used for?
+		clusterName = config.Host
 	}
 
 	scheme := CreateScheme()
@@ -112,7 +116,7 @@ func NewKubeHTTPClient() (Kube, client.Client, error) {
 		return nil, nil, fmt.Errorf("failed to initialize dynamic client: %s", err)
 	}
 
-	return &KubeHTTP{Client: rawClient, ClusterName: kubeContext, RestMapper: mapper, DynClient: dyn}, rawClient, nil
+	return &KubeHTTP{Client: rawClient, ClusterName: clusterName, RestMapper: mapper, DynClient: dyn}, rawClient, nil
 }
 
 // This is an alternative implementation of the kube.Kube interface,
@@ -322,11 +326,13 @@ func (k *KubeHTTP) GetResource(ctx context.Context, name types.NamespacedName, r
 	return nil
 }
 
-func initialContexts(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (currentCtx string, err error) {
+func initialContexts(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (currentCtx, clusterName string, err error) {
 	rules, err := cfgLoadingRules.Load()
 
 	if err != nil {
-		return currentCtx, err
+		return currentCtx, clusterName, err
 	}
-	return rules.CurrentContext, nil
+	c := rules.Contexts[rules.CurrentContext]
+	return rules.CurrentContext, c.Cluster, nil
+
 }
