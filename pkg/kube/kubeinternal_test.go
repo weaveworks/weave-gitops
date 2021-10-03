@@ -1,7 +1,6 @@
 package kube
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -16,34 +15,41 @@ import (
 func TestInitialContexts(t *testing.T) {
 
 	InClusterConfig = func() (*rest.Config, error) { return nil, rest.ErrNotInCluster }
+	origkc := os.Getenv("KUBECONFIG")
+	defer os.Setenv("KUBECONFIG", origkc)
 	dir, err := ioutil.TempDir("", "kube-http-test-")
 	assert.NoError(t, err)
+	defer os.RemoveAll(dir)
+	tests := []struct {
+		name        string
+		clusterName string
+	}{
+		{"foo", "foo"},
+		{"weave-upa-admin@weave-upa", "weave-upa"},
+	}
+	for _, test := range tests {
+		createKubeconfig(t, test.name, test.clusterName, dir)
+		curContext, clusterName, err := initialContexts(clientcmd.NewDefaultClientConfigLoadingRules())
+		assert.NoError(t, err)
+		assert.Equal(t, test.clusterName, clusterName)
+		assert.Equal(t, test.name, curContext)
+	}
 
-	origkc := os.Getenv("KUBECONFIG")
+}
+func createKubeconfig(t *testing.T, name, clusterName, dir string) {
+
 	f, err := ioutil.TempFile(dir, "test.kubeconfig")
 	assert.NoError(t, err)
 	c := clientcmdapi.Config{}
-	c.CurrentContext = "foo"
+	c.CurrentContext = name
 	c.APIVersion = "v1"
 	c.Kind = "Config"
-	c.Contexts = append(c.Contexts, clientcmdapi.NamedContext{Name: "foo", Context: clientcmdapi.Context{Cluster: "mycluster"}})
-	c.Clusters = append(c.Clusters, clientcmdapi.NamedCluster{Name: "mycluster", Cluster: clientcmdapi.Cluster{Server: "127.0.0.1"}})
-	fmt.Printf("----- %+v\n", c)
+	c.Contexts = append(c.Contexts, clientcmdapi.NamedContext{Name: name, Context: clientcmdapi.Context{Cluster: clusterName}})
+	c.Clusters = append(c.Clusters, clientcmdapi.NamedCluster{Name: clusterName, Cluster: clientcmdapi.Cluster{Server: "127.0.0.1"}})
 	kubeconfig, err := kyaml.Marshal(&c)
 	assert.NoError(t, err)
 	_, err = f.Write(kubeconfig)
 	assert.NoError(t, err)
 	f.Close()
 	os.Setenv("KUBECONFIG", f.Name())
-	defer os.Setenv("KUBECONFIG", origkc)
-
-	assert.NoError(t, err)
-	// defer os.RemoveAll(dir)
-
-	curContext, err := initialContexts(clientcmd.NewDefaultClientConfigLoadingRules())
-	assert.NoError(t, err)
-	assert.NotNil(t, curContext)
-
-	assert.Equal(t, "foo", curContext)
-
 }
