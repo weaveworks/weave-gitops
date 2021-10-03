@@ -10,13 +10,13 @@ import (
 	"k8s.io/cli-runtime/pkg/printers"
 )
 
-func TemplateCommand(endpoint string, client *resty.Client) *cobra.Command {
+func TemplateCommand(endpoint *string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "template",
 		Aliases: []string{"templates"},
 		Short:   "Display one or many CAPI templates",
 		Example: `
-# Get all CAPI templates that are available on the cluster
+# Get all CAPI templates
 gitops get templates
 		`,
 		RunE: getTemplateCmdRunE(endpoint, client),
@@ -25,9 +25,9 @@ gitops get templates
 	return cmd
 }
 
-func getTemplateCmdRunE(endpoint string, client *resty.Client) func(*cobra.Command, []string) error {
+func getTemplateCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(endpoint, client, os.Stdout)
+		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
 		if err != nil {
 			return err
 		}

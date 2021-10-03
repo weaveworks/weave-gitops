@@ -106,7 +106,7 @@ func main() {
 	rootCmd.AddCommand(flux.Cmd)
 	rootCmd.AddCommand(ui.Cmd)
 	rootCmd.AddCommand(app.ApplicationCmd)
-	rootCmd.AddCommand(get.GetCommand(options.endpoint, resty.New()))
+	rootCmd.AddCommand(get.GetCommand(&options.endpoint, resty.New()))
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
