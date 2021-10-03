@@ -12,6 +12,7 @@ type TemplatesRetriever interface {
 	Source() string
 	RetrieveTemplates() ([]Template, error)
 	RetrieveTemplateParameters(name string) ([]TemplateParameter, error)
+	RenderTemplateWithParameters(name string, parameters map[string]string, creds Credentials) (string, error)
 }
 
 type Template struct {
@@ -24,6 +25,17 @@ type TemplateParameter struct {
 	Description string
 	Required    bool
 	Options     []string
+}
+
+type TemplateObject struct {
+}
+
+type Credentials struct {
+	Group     string
+	Version   string
+	Kind      string
+	Name      string
+	Namespace string
 }
 
 // GetTemplates uses a TemplatesRetriever adapter to show
@@ -86,6 +98,24 @@ func GetTemplateParameters(name string, r TemplatesRetriever, w io.Writer) error
 	}
 
 	fmt.Fprintf(w, "No template parameters were found.")
+
+	return nil
+}
+
+// RenderTemplate user a TemplatesRetriever adapter to show
+// a template populated with parameter values.
+func RenderTemplate(name string, parameters map[string]string, creds Credentials, r TemplatesRetriever, w io.Writer) error {
+	t, err := r.RenderTemplateWithParameters(name, parameters, creds)
+	if err != nil {
+		return fmt.Errorf("unable to retrieve template %q from %q: %w", name, r.Source(), err)
+	}
+
+	if t != "" {
+		fmt.Fprint(w, t)
+		return nil
+	}
+
+	fmt.Fprintf(w, "No template found.")
 
 	return nil
 }

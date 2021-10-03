@@ -119,3 +119,53 @@ func (c *HttpClient) RetrieveTemplateParameters(name string) ([]templates.Templa
 
 	return tps, nil
 }
+
+// RenderTemplateWithParameters returns a YAML representation of the specified
+// template populated with the supplied parameters.
+func (c *HttpClient) RenderTemplateWithParameters(name string, parameters map[string]string, creds templates.Credentials) (string, error) {
+	endpoint := "v1/templates/{name}/render"
+
+	// POST request payload
+	type TemplateParameterValuesAndCredentials struct {
+		Values      map[string]string     `json:"values"`
+		Credentials templates.Credentials `json:"credentials"`
+	}
+
+	// POST response payload
+	type RenderedTemplate struct {
+		Template string `json:"renderedTemplate"`
+	}
+
+	type ServiceError struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	}
+
+	var renderedTemplate RenderedTemplate
+
+	var serviceErr *ServiceError
+
+	res, err := c.client.R().
+		SetHeader("Accept", "application/json").
+		SetPathParams(map[string]string{
+			"name": name,
+		}).
+		SetBody(TemplateParameterValuesAndCredentials{Values: parameters, Credentials: creds}).
+		SetResult(&renderedTemplate).
+		SetError(&serviceErr).
+		Post(endpoint)
+
+	if serviceErr != nil {
+		return "", fmt.Errorf("unable to POST parameters and render template from %q: %s", res.Request.URL, serviceErr.Message)
+	}
+
+	if err != nil {
+		return "", fmt.Errorf("unable to POST parameters and render template from %q: %w", res.Request.URL, err)
+	}
+
+	if res.StatusCode() != http.StatusOK {
+		return "", fmt.Errorf("response status for POST %q was %d", res.Request.URL, res.StatusCode())
+	}
+
+	return renderedTemplate.Template, nil
+}

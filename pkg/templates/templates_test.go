@@ -70,6 +70,7 @@ func TestGetTemplates(t *testing.T) {
 type FakeClient struct {
 	ts  []templates.Template
 	ps  []templates.TemplateParameter
+	s   string
 	err error
 }
 
@@ -98,4 +99,12 @@ func (c *FakeClient) RetrieveTemplateParameters(name string) ([]templates.Templa
 	}
 
 	return c.ps, nil
+}
+
+func (c *FakeClient) RenderTemplateWithParameters(name string, parameters map[string]string, creds templates.Credentials) (string, error) {
+	if c.err != nil {
+		return "", c.err
+	}
+
+	return c.s, nil
 }
