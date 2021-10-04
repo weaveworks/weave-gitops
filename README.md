@@ -12,7 +12,7 @@ Weave GitOps
 ## Overview
 
 Weave GitOps enables an effective GitOps workflow for continuous delivery of applications into Kubernetes clusters.
-It is based on [CNCF Flux](https://fluxcd.io), a leading GitOps engine.
+It is based on [CNCF Flux](https://fluxcd.io), a leading GitOps engine. Test a thinggggg
 
 ## Getting Started
 
