@@ -104,7 +104,6 @@ func (c *HttpClient) RetrieveTemplateParameters(name string) ([]templates.Templa
 		Get(endpoint)
 
 	if err != nil {
-		fmt.Println(err)
 		return nil, fmt.Errorf("unable to GET template parameters from %q: %w", res.Request.URL, err)
 	}
 
@@ -246,7 +245,6 @@ func (c *HttpClient) RetrieveCredentials() ([]templates.Credentials, error) {
 		Get(endpoint)
 
 	if err != nil {
-		fmt.Println(err)
 		return nil, fmt.Errorf("unable to GET credentials from %q: %w", res.Request.URL, err)
 	}
 
