@@ -141,20 +141,20 @@ var _ = Describe("User Provider", func() {
 	Describe("GetDefaultBranch", func() {
 		It("returns error when cant extract owner from url", func() {
 			_, err := userProvider.GetDefaultBranch("bad-url")
-			Expect(err.Error()).Should(ContainSubstring("could not get owner from url"))
+			Expect(err.Error()).Should(ContainSubstring("could get provider name from URL"))
 		})
 
 		It("returns error when can't get branch", func() {
 			userRepoClient.GetReturns(nil, gitprovider.ErrNotFound)
 
-			_, err := userProvider.GetDefaultBranch("http://example.com/owner/repo")
+			_, err := userProvider.GetDefaultBranch("http://github.com/owner/repo")
 			Expect(err.Error()).Should(ContainSubstring("error getting user repository"))
 		})
 
 		It("returns repo default branch", func() {
 			userRepo.GetReturns(gitprovider.RepositoryInfo{DefaultBranch: gitprovider.StringVar("my-branch")})
 
-			branch, err := userProvider.GetDefaultBranch("http://example.com/owner/repo")
+			branch, err := userProvider.GetDefaultBranch("http://github.com/owner/repo")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(branch).To(Equal("my-branch"))
 		})
@@ -163,13 +163,13 @@ var _ = Describe("User Provider", func() {
 	Describe("GetRepoVisibility", func() {
 		It("returns error when cant extract owner from url", func() {
 			_, err := userProvider.GetRepoVisibility("bad-url")
-			Expect(err.Error()).Should(ContainSubstring("could not get owner from url"))
+			Expect(err.Error()).Should(ContainSubstring("could get provider name from URL"))
 		})
 
 		It("returns error when can't get branch", func() {
 			userRepoClient.GetReturns(nil, gitprovider.ErrNotFound)
 
-			_, err := userProvider.GetRepoVisibility("http://example.com/owner/repo")
+			_, err := userProvider.GetRepoVisibility("http://github.com/owner/repo")
 			Expect(err.Error()).Should(ContainSubstring("error getting user repository"))
 		})
 
@@ -177,7 +177,7 @@ var _ = Describe("User Provider", func() {
 			visibility := gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityPrivate)
 			userRepo.GetReturns(gitprovider.RepositoryInfo{Visibility: visibility})
 
-			vis, err := userProvider.GetRepoVisibility("http://example.com/owner/repo")
+			vis, err := userProvider.GetRepoVisibility("http://github.com/owner/repo")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(vis).To(Equal(visibility))
 		})
@@ -290,9 +290,9 @@ var _ = Describe("User Provider", func() {
 
 	Describe("GetProviderDomain", func() {
 		It("returns provider domain", func() {
-			gitProviderClient.ProviderIDReturns("example")
+			gitProviderClient.ProviderIDReturns("github")
 
-			Expect(userProvider.GetProviderDomain()).To(Equal("example.com"))
+			Expect(userProvider.GetProviderDomain()).To(Equal("github.com"))
 		})
 	})
 })

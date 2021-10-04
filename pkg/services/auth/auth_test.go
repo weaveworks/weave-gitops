@@ -73,7 +73,7 @@ var _ = Describe("auth", func() {
 			// }
 		})
 		It("create and stores a deploy key if none exists", func() {
-			_, err := as.CreateGitClient(ctx, testClustername, namespace.Name, repoUrl.String())
+			_, err := as.CreateGitClient(ctx, repoUrl, testClustername, namespace.Name)
 			Expect(err).NotTo(HaveOccurred())
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}
 			secret := &corev1.Secret{}
@@ -92,7 +92,7 @@ var _ = Describe("auth", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(k8sClient.Create(ctx, secret)).To(Succeed())
 
-			_, err = as.CreateGitClient(ctx, testClustername, namespace.Name, repoUrl.String())
+			_, err = as.CreateGitClient(ctx, repoUrl, testClustername, namespace.Name)
 			Expect(err).NotTo(HaveOccurred())
 			// We should NOT have uploaded anything since the key already exists
 			Expect(gp.UploadDeployKeyCallCount()).To(Equal(0))
@@ -103,7 +103,7 @@ var _ = Describe("auth", func() {
 			}
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}
 
-			_, err = as.CreateGitClient(ctx, testClustername, namespace.Name, repoUrl.String())
+			_, err = as.CreateGitClient(ctx, repoUrl, testClustername, namespace.Name)
 			Expect(err).NotTo(HaveOccurred())
 
 			newSecret := &corev1.Secret{}

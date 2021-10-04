@@ -5,12 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"regexp"
 	"strings"
 	"time"
 
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 
+	"github.com/fluxcd/go-git-providers/github"
+	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 )
 
@@ -76,7 +77,7 @@ func GetAccountType(provider gitprovider.Client, domain string, owner string) (P
 		Organization: owner,
 	})
 	if err != nil {
-		if errors.Is(err, gitprovider.ErrNotFound) {
+		if errors.Is(err, gitprovider.ErrNotFound) || strings.Contains(err.Error(), gitprovider.ErrGroupNotFound.Error()) {
 			return AccountTypeUser, nil
 		}
 
@@ -125,16 +126,21 @@ func NewUserRepositoryRef(domain, user, repoName string) gitprovider.UserReposit
 // returns the name of the provider associated.
 // The raw URL is assumed to be something like ssh://git@github.com/myorg/myrepo.git.
 // The common `git clone` variant of `git@github.com:myorg/myrepo.git` is not supported.
-func DetectGitProviderFromUrl(raw string) (GitProviderName, error) {
+func detectGitProviderFromUrl(raw string) (GitProviderName, error) {
+	if strings.HasPrefix(raw, "git@") {
+		raw = "ssh://" + raw
+		raw = strings.Replace(raw, ".com:", ".com/", 1)
+	}
+
 	u, err := url.Parse(raw)
 	if err != nil {
 		return "", fmt.Errorf("could not parse git repo url %q", raw)
 	}
 
 	switch u.Hostname() {
-	case "github.com":
+	case github.DefaultDomain:
 		return GitProviderGitHub, nil
-	case "gitlab.com":
+	case gitlab.DefaultDomain:
 		return GitProviderGitLab, nil
 	}
 
@@ -155,48 +161,48 @@ type NormalizedRepoURL struct {
 	protocol   RepositoryURLProtocol
 }
 
-var sshPrefixRe = regexp.MustCompile(`git@(.*):(.*)/(.*)`)
+// normalizeRepoURLString accepts a url like git@github.com:someuser/podinfo.git and converts it into
+// a string like ssh://git@github.com/someuser/podinfo.git. This helps standardize the different
+// user inputs that might be provided.
+func normalizeRepoURLString(url string, providerName GitProviderName) string {
+	trimmed := ""
 
-func normalizeRepoURLString(url string) string {
 	if !strings.HasSuffix(url, ".git") {
 		url = url + ".git"
 	}
 
-	captured := sshPrefixRe.FindAllStringSubmatch(url, 1)
+	sshPrefix := fmt.Sprintf("git@%s.com:", providerName)
+	httpsPrefix := fmt.Sprintf("https://%s.com/", providerName)
 
-	if len(captured) > 0 {
-		captured := sshPrefixRe.FindAllStringSubmatch(url, 1)
-		matches := captured[0]
+	if strings.HasPrefix(url, sshPrefix) {
+		trimmed = strings.TrimPrefix(url, sshPrefix)
+	} else if strings.HasPrefix(url, httpsPrefix) {
+		trimmed = strings.TrimPrefix(url, httpsPrefix)
+	}
 
-		if len(matches) >= 3 {
-			provider := matches[1]
-			org := matches[2]
-			repo := matches[3]
-			n := fmt.Sprintf("ssh://git@%s/%s/%s", provider, org, repo)
-
-			return n
-		}
+	if trimmed != "" {
+		return fmt.Sprintf("ssh://git@%s.com/%s", providerName, trimmed)
 	}
 
 	return url
 }
 
 func NewNormalizedRepoURL(uri string) (NormalizedRepoURL, error) {
-	normalized := normalizeRepoURLString(uri)
+	providerName, err := detectGitProviderFromUrl(uri)
+	if err != nil {
+		return NormalizedRepoURL{}, fmt.Errorf("could get provider name from URL %s: %w", uri, err)
+	}
+
+	normalized := normalizeRepoURLString(uri, providerName)
 
 	u, err := url.Parse(normalized)
 	if err != nil {
 		return NormalizedRepoURL{}, fmt.Errorf("could not create normalized repo URL %s: %w", uri, err)
 	}
 
-	owner, err := utils.GetOwnerFromUrl(normalized)
+	owner, err := getOwnerFromUrl(*u, providerName)
 	if err != nil {
 		return NormalizedRepoURL{}, fmt.Errorf("could get owner name from URL %s: %w", uri, err)
-	}
-
-	providerName, err := DetectGitProviderFromUrl(normalized)
-	if err != nil {
-		return NormalizedRepoURL{}, fmt.Errorf("could get provider name from URL %s: %w", uri, err)
 	}
 
 	protocol := RepositoryURLProtocolSSH
@@ -236,4 +242,25 @@ func (n NormalizedRepoURL) Provider() GitProviderName {
 
 func (n NormalizedRepoURL) Protocol() RepositoryURLProtocol {
 	return n.protocol
+}
+
+func getOwnerFromUrl(url url.URL, providerName GitProviderName) (string, error) {
+	url.Path = strings.TrimPrefix(url.Path, "/")
+
+	parts := strings.Split(url.Path, "/")
+	if len(parts) < 2 {
+		return "", fmt.Errorf("could not get owner from url %v", url.String())
+	}
+
+	if providerName == GitProviderGitLab {
+		if len(parts) > 3 {
+			return "", fmt.Errorf("a subgroup in a subgroup is not currently supported")
+		}
+
+		if len(parts) > 2 {
+			return parts[0] + "/" + parts[1], nil
+		}
+	}
+
+	return parts[0], nil
 }

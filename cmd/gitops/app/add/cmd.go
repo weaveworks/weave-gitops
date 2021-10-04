@@ -16,7 +16,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 const (
@@ -72,7 +71,7 @@ func ensureUrlIsValid() error {
 			return fmt.Errorf("could not get remote url for directory %s: %w", params.Dir, repoUrlErr)
 		}
 
-		params.Url = utils.SanitizeRepoUrl(repoUrlString)
+		params.Url = repoUrlString
 	}
 
 	return nil

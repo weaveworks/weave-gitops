@@ -110,12 +110,12 @@ func (p orgGitProvider) GetRepoVisibility(url string) (*gitprovider.RepositoryVi
 }
 
 func (p orgGitProvider) getRepoInfoFromUrl(repoUrl string) (*gitprovider.RepositoryInfo, error) {
-	owner, err := utils.GetOwnerFromUrl(repoUrl)
+	normalizedUrl, err := NewNormalizedRepoURL(repoUrl)
 	if err != nil {
 		return nil, err
 	}
 
-	repoInfo, err := p.getRepoInfo(owner, utils.UrlToRepoName(repoUrl))
+	repoInfo, err := p.getRepoInfo(normalizedUrl.Owner(), normalizedUrl.RepositoryName())
 	if err != nil {
 		return nil, err
 	}

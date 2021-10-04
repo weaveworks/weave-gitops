@@ -8,14 +8,55 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = DescribeTable("DetectGitProviderFromUrl", func(input string, expected GitProviderName) {
-	result, err := DetectGitProviderFromUrl(input)
+var _ = DescribeTable("detectGitProviderFromUrl", func(input string, expected GitProviderName) {
+	result, err := detectGitProviderFromUrl(input)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(result).To(Equal(expected))
 },
 	Entry("ssh+github", "ssh://git@github.com/weaveworks/weave-gitops.git", GitProviderGitHub),
 	Entry("ssh+gitlab", "ssh://git@gitlab.com/weaveworks/weave-gitops.git", GitProviderGitLab),
 )
+
+var _ = Describe("get owner from url", func() {
+	DescribeTable("getOwnerFromUrl", func(normalizedUrl string, providerName GitProviderName, expected string) {
+		u, err := url.Parse(normalizedUrl)
+		Expect(err).NotTo(HaveOccurred())
+		result, err := getOwnerFromUrl(*u, providerName)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal(expected))
+	},
+		Entry("github", "ssh://git@github.com/weaveworks/weave-gitops.git", GitProviderGitHub, "weaveworks"),
+		Entry("gitlab", "ssh://git@gitlab.com/weaveworks/weave-gitops.git", GitProviderGitLab, "weaveworks"),
+		Entry("gitlab with subgroup", "ssh://git@gitlab.com/weaveworks/sub_group/weave-gitops.git", GitProviderGitLab, "weaveworks/sub_group"),
+	)
+
+	It("missing owner", func() {
+		normalizedUrl := "ssh://git@gitlab.com/weave-gitops.git"
+		u, err := url.Parse(normalizedUrl)
+		Expect(err).NotTo(HaveOccurred())
+		_, err = getOwnerFromUrl(*u, GitProviderGitLab)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal("could not get owner from url ssh://git@gitlab.com/weave-gitops.git"))
+	})
+
+	It("empty url", func() {
+		normalizedUrl := ""
+		u, err := url.Parse(normalizedUrl)
+		Expect(err).NotTo(HaveOccurred())
+		_, err = getOwnerFromUrl(*u, GitProviderGitLab)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal("could not get owner from url "))
+	})
+
+	It("subgroup in a subgroup", func() {
+		normalizedUrl := "ssh://git@gitlab.com/weaveworks/sub_group/another_sub_group/weave-gitops.git"
+		u, err := url.Parse(normalizedUrl)
+		Expect(err).NotTo(HaveOccurred())
+		_, err = getOwnerFromUrl(*u, GitProviderGitLab)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal("a subgroup in a subgroup is not currently supported"))
+	})
+})
 
 type expectedRepoURL struct {
 	s        string
@@ -52,11 +93,11 @@ var _ = DescribeTable("NormalizedRepoURL", func(input string, expected expectedR
 		protocol: RepositoryURLProtocolSSH,
 	}),
 	Entry("github https", "https://github.com/someuser/podinfo.git", expectedRepoURL{
-		s:        "https://github.com/someuser/podinfo.git",
+		s:        "ssh://git@github.com/someuser/podinfo.git",
 		owner:    "someuser",
 		name:     "podinfo",
 		provider: GitProviderGitHub,
-		protocol: RepositoryURLProtocolHTTPS,
+		protocol: RepositoryURLProtocolSSH,
 	}),
 	Entry("gitlab git clone style", "git@gitlab.com:someuser/podinfo.git", expectedRepoURL{
 		s:        "ssh://git@gitlab.com/someuser/podinfo.git",
@@ -66,32 +107,10 @@ var _ = DescribeTable("NormalizedRepoURL", func(input string, expected expectedR
 		protocol: RepositoryURLProtocolSSH,
 	}),
 	Entry("gitlab https", "https://gitlab.com/someuser/podinfo.git", expectedRepoURL{
-		s:        "https://gitlab.com/someuser/podinfo.git",
+		s:        "ssh://git@gitlab.com/someuser/podinfo.git",
 		owner:    "someuser",
 		name:     "podinfo",
 		provider: GitProviderGitLab,
-		protocol: RepositoryURLProtocolHTTPS,
+		protocol: RepositoryURLProtocolSSH,
 	}),
 )
-
-var _ = Describe("Test GetRepoVisiblity", func() {
-	// url := "ssh://git@github.com/foo/bar"
-	// It("tests that a nil info generates the appropriate error", func() {
-	// 	result, underlyingError := getVisibilityFromRepoInfo(url, nil)
-	// 	Expect(result).To(BeNil())
-	// 	Expect(underlyingError.Error()).To(Equal(fmt.Sprintf("unable to obtain repository visibility for: %s", url)))
-	// })
-
-	// It("tests that a nil visibility reference generates the appropriate error", func() {
-	// 	result, underlyingError := getVisibilityFromRepoInfo(url, &gitprovider.RepositoryInfo{Visibility: nil})
-	// 	Expect(result).To(BeNil())
-	// 	Expect(underlyingError.Error()).To(Equal(fmt.Sprintf("unable to obtain repository visibility for: %s", url)))
-	// })
-
-	// It("tests that a non-nil visibility reference is successful", func() {
-	// 	public := gitprovider.RepositoryVisibilityPublic
-	// 	result, underlyingError := getVisibilityFromRepoInfo(url, &gitprovider.RepositoryInfo{Visibility: &public})
-	// 	Expect(underlyingError).To(BeNil())
-	// 	Expect(result).To(Equal(&public))
-	// })
-})

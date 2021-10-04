@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/internal"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -45,26 +44,16 @@ func NewAuthCLIHandler(name gitproviders.GitProviderName) (BlockingCLIAuthHandle
 
 // GetGitProvider returns a GitProvider containing either the token stored in the <git provider>_TOKEN env var
 // or a token retrieved via the CLI auth flow
-func GetGitProvider(ctx context.Context, url string) (gitproviders.GitProvider, error) {
-	providerName, err := gitproviders.DetectGitProviderFromUrl(url)
-	if err != nil {
-		return nil, fmt.Errorf("error detecting git provider: %w", err)
-	}
-
-	authHandler, err := NewAuthCLIHandler(providerName)
-	if err != nil {
-		return nil, fmt.Errorf("could not get auth handler for provider %s: %w", providerName, err)
+func GetGitProvider(ctx context.Context, normalizedUrl gitproviders.NormalizedRepoURL) (gitproviders.GitProvider, error) {
+	authHandler, authErr := NewAuthCLIHandler(normalizedUrl.Provider())
+	if authErr != nil {
+		return nil, fmt.Errorf("could not get auth handler for provider %s: %w", normalizedUrl.Provider(), authErr)
 	}
 
 	osysClient := osys.New()
 	logger := logger.NewCLILogger(osysClient.Stdout())
 
-	owner, err := utils.GetOwnerFromUrl(url)
-	if err != nil {
-		return nil, err
-	}
-
-	return getGitProviderWithClients(ctx, providerName, owner, osysClient, authHandler, logger)
+	return getGitProviderWithClients(ctx, normalizedUrl.Provider(), normalizedUrl.Owner(), osysClient, authHandler, logger)
 }
 
 func getGitProviderWithClients(
@@ -74,12 +63,13 @@ func getGitProviderWithClients(
 	osysClient osys.Osys,
 	authHandler BlockingCLIAuthHandler,
 	logger logger.Logger) (gitproviders.GitProvider, error) {
-	tokenVarName, err := getTokenVarName(providerName)
-	if err != nil {
-		return nil, fmt.Errorf("could not determine git provider token name: %w", err)
+	tokenVarName, varNameErr := getTokenVarName(providerName)
+	if varNameErr != nil {
+		return nil, fmt.Errorf("could not determine git provider token name: %w", varNameErr)
 	}
 
 	token, err := osysClient.GetGitProviderToken(tokenVarName)
+
 	if err == osys.ErrNoGitProviderTokenSet {
 		// No provider token set, we need to do the auth flow.
 		logger.Warningf("Setting the %q environment variable to a valid token will allow ongoing use of the CLI without requiring a browser-based auth flow...\n", tokenVarName)
@@ -103,6 +93,11 @@ func getGitProviderWithClients(
 	return provider, nil
 }
 
+type SecretName struct {
+	Name      app.GeneratedSecretName
+	Namespace string
+}
+
 func getTokenVarName(providerName gitproviders.GitProviderName) (string, error) {
 	switch providerName {
 	case gitproviders.GitProviderGitHub:
@@ -112,11 +107,6 @@ func getTokenVarName(providerName gitproviders.GitProviderName) (string, error) 
 	default:
 		return "", fmt.Errorf("unknown git provider: %q", providerName)
 	}
-}
-
-type SecretName struct {
-	Name      app.GeneratedSecretName
-	Namespace string
 }
 
 func (sn SecretName) String() string {
@@ -136,7 +126,7 @@ func (sn SecretName) NamespacedName() types.NamespacedName {
 }
 
 type AuthService interface {
-	CreateGitClient(ctx context.Context, repoUrl, targetName, namespace string) (git.Git, error)
+	CreateGitClient(ctx context.Context, repoUrl gitproviders.NormalizedRepoURL, targetName string, namespace string) (git.Git, error)
 	GetGitProvider() gitproviders.GitProvider
 }
 
@@ -166,20 +156,15 @@ func (a *authSvc) GetGitProvider() gitproviders.GitProvider {
 
 // CreateGitClient creates a git.Git client instrumented with existing or generated deploy keys.
 // This ensures that git operations are done with stored deploy keys instead of a user's local ssh-agent or equivalent.
-func (a *authSvc) CreateGitClient(ctx context.Context, targetName, namespace, repoUrl string) (git.Git, error) {
-	normalizedUrl, err := gitproviders.NewNormalizedRepoURL(repoUrl)
-	if err != nil {
-		return nil, fmt.Errorf("error creating normalized app url: %w", err)
-	}
-
+func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.NormalizedRepoURL, targetName string, namespace string) (git.Git, error) {
 	secretName := SecretName{
-		Name:      app.CreateRepoSecretName(targetName, normalizedUrl.String()),
+		Name:      app.CreateRepoSecretName(targetName, repoUrl.String()),
 		Namespace: namespace,
 	}
 
-	pubKey, err := a.setupDeployKey(ctx, secretName, targetName, normalizedUrl)
-	if err != nil {
-		return nil, fmt.Errorf("error setting up deploy keys: %w", err)
+	pubKey, keyErr := a.setupDeployKey(ctx, secretName, targetName, repoUrl)
+	if keyErr != nil {
+		return nil, fmt.Errorf("error setting up deploy keys: %w", keyErr)
 	}
 
 	if pubKey == nil {
@@ -204,7 +189,6 @@ func (a *authSvc) setupDeployKey(ctx context.Context, name SecretName, targetNam
 	}
 
 	if deployKeyExists {
-		a.logger.Successf("Existing deploy key found")
 		// The deploy key was found on the Git Provider, fetch it from the cluster.
 		secret, err := a.retrieveDeployKey(ctx, name)
 		if apierrors.IsNotFound(err) {

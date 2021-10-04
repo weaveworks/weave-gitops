@@ -778,13 +778,13 @@ var _ = Describe("Add", func() {
 
 			gitProviders.CreatePullRequestReturns(&dummyPullRequest{}, nil)
 
-			addParams.Url = "https://github.com/user/repo"
+			addParams.Url = "ssh://github.com/user/repo.git"
 			info = getAppResourceInfo(makeWegoApplication(addParams), "cluster")
 		})
 
 		It("generates an appropriate error when the owner cannot be retrieved from the URL", func() {
-			err := appSrv.(*App).createAddPullRequestToRepo(info, "foo", "hash", []byte{}, []byte{}, []byte{})
-			Expect(err.Error()).To(HavePrefix("failed to retrieve owner"))
+			err := appSrv.(*App).createPullRequestToRepo(info, "foo", "hash", []byte{}, []byte{}, []byte{})
+			Expect(err.Error()).To(HavePrefix("error normalizing url"))
 		})
 
 		Context("uses the default app branch for config in app repository", func() {
@@ -793,21 +793,13 @@ var _ = Describe("Add", func() {
 			})
 
 			It("creates the pull request against the default branch for an org app repository", func() {
-				// gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-				// 	return gitproviders.AccountTypeOrg, nil
-				// }
-
-				Expect(appSrv.(*App).createAddPullRequestToRepo(info, addParams.Url, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.Url, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
 				_, _, branch, _, _, _, _, _ := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(branch).To(Equal("default-app-branch"))
 			})
 
 			It("creates the pull request against the default branch for a user app repository", func() {
-				// gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-				// 	return gitproviders.AccountTypeUser, nil
-				// }
-
-				Expect(appSrv.(*App).createAddPullRequestToRepo(info, addParams.Url, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.Url, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
 				_, _, branch, _, _, _, _, _ := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(branch).To(Equal("default-app-branch"))
 			})
@@ -823,7 +815,7 @@ var _ = Describe("Add", func() {
 				// 	return gitproviders.AccountTypeOrg, nil
 				// }
 
-				Expect(appSrv.(*App).createAddPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
 				_, _, branch, _, _, _, _, _ := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(branch).To(Equal("default-config-branch"))
 			})
@@ -833,7 +825,7 @@ var _ = Describe("Add", func() {
 				// 	return gitproviders.AccountTypeUser, nil
 				// }
 
-				Expect(appSrv.(*App).createAddPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
 				_, _, branch, _, _, _, _, _ := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(branch).To(Equal("default-config-branch"))
 			})
@@ -858,7 +850,7 @@ var _ = Describe("Add", func() {
 	Context("check for default values on AddParameters", func() {
 		It("default values for path and deploymentType and branch should be correct", func() {
 			addParams := AddParams{}
-			addParams.Url = "http://something"
+			addParams.Url = "http://github.com/weaveworks/testrepo"
 
 			updated, err := appSrv.(*App).updateParametersIfNecessary(addParams)
 			Expect(err).ShouldNot(HaveOccurred())
@@ -874,7 +866,7 @@ var _ = Describe("Add", func() {
 
 			_, err := appSrv.(*App).updateParametersIfNecessary(addParams)
 			Expect(err).Should(HaveOccurred())
-			Expect(err.Error()).Should(ContainSubstring("error validating url"))
+			Expect(err.Error()).Should(ContainSubstring("error normalizing url"))
 			Expect(err.Error()).Should(ContainSubstring(addParams.Url))
 
 		})
@@ -971,6 +963,99 @@ var _ = Describe("Test app hash", func() {
 
 		Expect(appHash).To(Equal("wego-" + expectedHash))
 
+	})
+})
+
+var _ = Describe("Add Gitlab", func() {
+	var _ = BeforeEach(func() {
+		addParams = AddParams{
+			Url:            "https://gitlab.com/foo/bar",
+			Path:           "./kustomize",
+			Branch:         "main",
+			Dir:            ".",
+			DeploymentType: "kustomize",
+			Namespace:      "wego-system",
+			AppConfigUrl:   "NONE",
+			AutoMerge:      true,
+		}
+
+		gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
+			return "main", nil
+		}
+
+		ctx = context.Background()
+	})
+
+	Context("add app with config in app repo", func() {
+		BeforeEach(func() {
+			addParams.Url = "ssh://git@gitlab.com/foo/bar.git"
+			addParams.AppConfigUrl = ""
+
+			gitClient.OpenStub = func(s string) (*gogit.Repository, error) {
+				r, err := gogit.Init(memory.NewStorage(), memfs.New())
+				Expect(err).ShouldNot(HaveOccurred())
+
+				_, err = r.CreateRemote(&config.RemoteConfig{
+					Name: "origin",
+					URLs: []string{"git@gitlab.com:foo/bar.git"},
+				})
+				Expect(err).ShouldNot(HaveOccurred())
+				return r, nil
+			}
+		})
+
+		Describe("generates source manifest", func() {
+			It("creates GitRepository when source type is git", func() {
+				addParams.SourceType = wego.SourceTypeGit
+				err := appSrv.Add(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				Expect(fluxClient.CreateSourceGitCallCount()).To(Equal(1))
+
+				name, url, branch, secretRef, namespace := fluxClient.CreateSourceGitArgsForCall(0)
+				Expect(name).To(Equal("bar"))
+				Expect(url).To(Equal("ssh://git@gitlab.com/foo/bar.git"))
+				Expect(branch).To(Equal("main"))
+				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
+				Expect(namespace).To(Equal("wego-system"))
+			})
+		})
+	})
+
+	Context("add app from a subgroup", func() {
+		BeforeEach(func() {
+			addParams.Url = "ssh://git@gitlab.com/group/subgroup/bar.git"
+			addParams.AppConfigUrl = ""
+
+			gitClient.OpenStub = func(s string) (*gogit.Repository, error) {
+				r, err := gogit.Init(memory.NewStorage(), memfs.New())
+				Expect(err).ShouldNot(HaveOccurred())
+
+				_, err = r.CreateRemote(&config.RemoteConfig{
+					Name: "origin",
+					URLs: []string{"git@gitlab.com:group/subgroup/bar.git"},
+				})
+				Expect(err).ShouldNot(HaveOccurred())
+				return r, nil
+			}
+		})
+
+		Describe("generates source manifest", func() {
+			It("creates GitRepository when source type is git", func() {
+				addParams.SourceType = wego.SourceTypeGit
+				err := appSrv.Add(addParams)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				Expect(fluxClient.CreateSourceGitCallCount()).To(Equal(1))
+
+				name, url, branch, secretRef, namespace := fluxClient.CreateSourceGitArgsForCall(0)
+				Expect(name).To(Equal("bar"))
+				Expect(url).To(Equal("ssh://git@gitlab.com/group/subgroup/bar.git"))
+				Expect(branch).To(Equal("main"))
+				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
+				Expect(namespace).To(Equal("wego-system"))
+			})
+		})
 	})
 })
 
