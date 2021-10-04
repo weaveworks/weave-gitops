@@ -5,6 +5,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency: 
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
+
 name: run tests
 jobs:
   lint:
@@ -130,10 +134,6 @@ jobs:
         sudo mv -f chromedriver /usr/local/bin/chromedriver
         mkdir -p cmd/selenium
         cd cmd/selenium
-
-        wget https://chromedriver.storage.googleapis.com/"${CHROME_VERSION}"/chromedriver_linux64.zip
-        unzip chromedriver_linux64.zip
-        sudo mv -f chromedriver /usr/local/bin/chromedriver
 
         wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.1.jar
         
