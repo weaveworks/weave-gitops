@@ -3,6 +3,7 @@ package get
 import (
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/get/clusters"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/templates"
 )
 
@@ -16,6 +17,7 @@ gitops get templates`,
 	}
 
 	cmd.AddCommand(templates.TemplateCommand(endpoint, client))
+	cmd.AddCommand(clusters.ClusterCommand(endpoint, client))
 
 	return cmd
 }

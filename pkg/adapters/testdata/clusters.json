@@ -1,0 +1,40 @@
+{
+    "clusters": [
+     {
+      "id": 1,
+      "name": "cluster-a",
+      "type": "",
+      "token": "111",
+      "ingressUrl": "",
+      "status": "pullRequestCreated",
+      "updatedAt": "0001-01-01T00:00:00Z",
+      "pullRequest": {
+       "url": "https://github.com/org/repo/pull/1"
+      }
+     },
+     {
+        "id": 1,
+        "name": "cluster-b",
+        "type": "",
+        "token": "222",
+        "ingressUrl": "",
+        "status": "pullRequestCreated",
+        "updatedAt": "0001-01-01T00:00:00Z",
+        "pullRequest": {
+         "url": "https://github.com/org/repo/pull/2"
+        }
+       },
+       {
+        "id": 1,
+        "name": "cluster-c",
+        "type": "",
+        "token": "333",
+        "ingressUrl": "",
+        "status": "pullRequestCreated",
+        "updatedAt": "0001-01-01T00:00:00Z",
+        "pullRequest": {
+         "url": "https://github.com/org/repo/pull/3"
+        }
+       }
+    ]
+   }
