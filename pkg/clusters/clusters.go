@@ -30,6 +30,7 @@ func GetClusters(r ClustersRetriever, w io.Writer) error {
 
 	if len(cs) > 0 {
 		fmt.Fprintf(w, "NAME\tSTATUS\n")
+
 		for _, c := range cs {
 			if c.PullRequestType == "create" {
 				c.Status = "Creation PR"
@@ -56,6 +57,7 @@ func GetClusterKubeconfig(name string, r ClustersRetriever, w io.Writer) error {
 	}
 
 	fmt.Fprint(w, k)
+
 	return nil
 }
 
@@ -66,6 +68,7 @@ func DeleteClusters(params DeleteClustersParams, r ClustersRetriever, w io.Write
 	}
 
 	fmt.Fprintf(w, "Created pull request for clusters deletion: %s\n", pr)
+
 	return nil
 }
 

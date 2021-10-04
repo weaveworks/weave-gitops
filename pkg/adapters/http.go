@@ -111,6 +111,7 @@ func (c *HttpClient) RetrieveClusters() ([]clusters.Cluster, error) {
 	}
 
 	var clusterList ClustersResponse
+
 	err = json.NewDecoder(res.RawBody()).Decode(&clusterList)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse response as a cluster list: %w", err)
@@ -169,7 +170,9 @@ func (c *HttpClient) DeleteClusters(params clusters.DeleteClustersParams) (strin
 	}
 
 	var result DeleteClustersResponse
+
 	var serviceErr *ServiceError
+
 	res, err := c.client.R().
 		SetHeader("Accept", "application/json").
 		SetBody(DeleteClustersPullRequestRequest{
