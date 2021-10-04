@@ -9,7 +9,6 @@ import (
 
 var (
 	dryRunProvider GitProvider
-	err            error
 )
 
 var _ = Describe("DryRun", func() {

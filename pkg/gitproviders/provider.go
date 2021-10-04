@@ -40,11 +40,6 @@ type GitProvider interface {
 	GetProviderDomain() string
 }
 
-type defaultGitProvider struct {
-	domain   string
-	provider gitprovider.Client
-}
-
 type AccountTypeGetter func(provider gitprovider.Client, domain string, owner string) (ProviderAccountType, error)
 
 func New(config Config, owner string, getAccountType AccountTypeGetter) (GitProvider, error) {
@@ -89,10 +84,6 @@ func GetAccountType(provider gitprovider.Client, domain string, owner string) (P
 
 func isEmptyRepoError(err error) bool {
 	return strings.Contains(err.Error(), "409 Git Repository is empty")
-}
-
-func (p defaultGitProvider) GetProviderDomain() string {
-	return string(GitProviderName(p.provider.ProviderID())) + ".com"
 }
 
 func NewRepositoryInfo(description string, visibility gitprovider.RepositoryVisibility) gitprovider.RepositoryInfo {
