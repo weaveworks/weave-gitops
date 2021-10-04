@@ -20,6 +20,11 @@ type HttpClient struct {
 	client  *resty.Client
 }
 
+type ServiceError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
 // NewHttpClient creates a new HTTP client of the cluster service.
 // The endpoint is expected to be an absolute HTTP URI.
 func NewHttpClient(endpoint string, client *resty.Client, out io.Writer) (*HttpClient, error) {
@@ -136,11 +141,6 @@ func (c *HttpClient) RenderTemplateWithParameters(name string, parameters map[st
 		Template string `json:"renderedTemplate"`
 	}
 
-	type ServiceError struct {
-		Code    int    `json:"code"`
-		Message string `json:"message"`
-	}
-
 	var renderedTemplate RenderedTemplate
 
 	var serviceErr *ServiceError
@@ -168,4 +168,126 @@ func (c *HttpClient) RenderTemplateWithParameters(name string, parameters map[st
 	}
 
 	return renderedTemplate.Template, nil
+}
+
+// CreatePullRequestFromTemplate commits the YAML template to the specified
+// branch and creates a pull request of that branch.
+func (c *HttpClient) CreatePullRequestFromTemplate(params templates.CreatePullRequestFromTemplateParams) (string, error) {
+	endpoint := "v1/clusters"
+
+	// POST request payload
+	type CreatePullRequestFromTemplateRequest struct {
+		RepositoryURL   string                `json:"repositoryUrl"`
+		HeadBranch      string                `json:"headBranch"`
+		BaseBranch      string                `json:"baseBranch"`
+		Title           string                `json:"title"`
+		Description     string                `json:"description"`
+		TemplateName    string                `json:"templateName"`
+		ParameterValues map[string]string     `json:"parameter_values"`
+		CommitMessage   string                `json:"commitMessage"`
+		Credentials     templates.Credentials `json:"credentials"`
+	}
+
+	// POST response payload
+	type CreatePullRequestFromTemplateResponse struct {
+		WebURL string `json:"webUrl"`
+	}
+
+	var result CreatePullRequestFromTemplateResponse
+
+	var serviceErr *ServiceError
+
+	res, err := c.client.R().
+		SetHeader("Accept", "application/json").
+		SetBody(CreatePullRequestFromTemplateRequest{
+			RepositoryURL:   params.RepositoryURL,
+			HeadBranch:      params.HeadBranch,
+			BaseBranch:      params.BaseBranch,
+			Title:           params.Title,
+			Description:     params.Description,
+			TemplateName:    params.TemplateName,
+			ParameterValues: params.ParameterValues,
+			CommitMessage:   params.CommitMessage,
+			Credentials:     params.Credentials,
+		}).
+		SetResult(&result).
+		SetError(&serviceErr).
+		Post(endpoint)
+
+	if serviceErr != nil {
+		return "", fmt.Errorf("unable to POST template and create pull request to %q: %s", res.Request.URL, serviceErr.Message)
+	}
+
+	if err != nil {
+		return "", fmt.Errorf("unable to POST template and create pull request to %q: %w", res.Request.URL, err)
+	}
+
+	if res.StatusCode() != http.StatusOK {
+		return "", fmt.Errorf("response status for POST %q was %d", res.Request.URL, res.StatusCode())
+	}
+
+	return result.WebURL, nil
+}
+
+// RetrieveCredentials returns a list of all CAPI credentials.
+func (c *HttpClient) RetrieveCredentials() ([]templates.Credentials, error) {
+	endpoint := "v1/credentials"
+
+	type ListCredentialsResponse struct {
+		Credentials []*templates.Credentials
+		Total       int32
+	}
+
+	var credentialsList ListCredentialsResponse
+
+	res, err := c.client.R().
+		SetHeader("Accept", "application/json").
+		SetResult(&credentialsList).
+		Get(endpoint)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, fmt.Errorf("unable to GET credentials from %q: %w", res.Request.URL, err)
+	}
+
+	if res.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
+	}
+
+	var creds []templates.Credentials
+	for _, c := range credentialsList.Credentials {
+		creds = append(creds, templates.Credentials{
+			Group:     c.Group,
+			Version:   c.Version,
+			Kind:      c.Kind,
+			Name:      c.Name,
+			Namespace: c.Namespace,
+		})
+	}
+
+	return creds, nil
+}
+
+// RetrieveCredentialsByName returns a specific set of CAPI credentials.
+func (c *HttpClient) RetrieveCredentialsByName(name string) (templates.Credentials, error) {
+	var creds templates.Credentials
+
+	credsList, err := c.RetrieveCredentials()
+	if err != nil {
+		return creds, fmt.Errorf("unable to retrieve credentials from %q: %w", c.Source(), err)
+	}
+
+	for _, c := range credsList {
+		if c.Name == name {
+			creds = templates.Credentials{
+				Group:     c.Group,
+				Version:   c.Version,
+				Kind:      c.Kind,
+				Name:      c.Name,
+				Namespace: c.Namespace,
+			}
+		}
+	}
+
+	return creds, nil
 }

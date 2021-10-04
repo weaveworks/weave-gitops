@@ -14,6 +14,13 @@ type clusterCommandFlags struct {
 	DryRun          bool
 	Template        string
 	ParameterValues []string
+	RepositoryURL   string
+	BaseBranch      string
+	HeadBranch      string
+	Title           string
+	Description     string
+	CommitMessage   string
+	Credentials     string
 }
 
 var flags clusterCommandFlags
@@ -24,7 +31,7 @@ func ClusterCommand(endpoint *string, client *resty.Client) *cobra.Command {
 		Short: "Add a new cluster using a CAPI template",
 		Example: `
 # Add a new cluster using a CAPI template
-gitops add cluster --from-template <template-name>
+gitops add cluster --from-template <template-name> --set key=val
 
 # View a CAPI template populated with parameter values 
 # without creating a pull request for it
@@ -36,6 +43,13 @@ gitops add cluster --from-template <template-name> --set key=val --dry-run
 	cmd.Flags().BoolVar(&flags.DryRun, "dry-run", false, "View the populated template without creating a pull request")
 	cmd.Flags().StringVar(&flags.Template, "from-template", "", "Specify the CAPI template to create a cluster from")
 	cmd.Flags().StringSliceVar(&flags.ParameterValues, "set", []string{}, "Set parameter values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
+	cmd.Flags().StringVar(&flags.RepositoryURL, "url", "", "URL of remote repository to create the pull request")
+	cmd.Flags().StringVar(&flags.BaseBranch, "base", "", "The base branch of the remote repository")
+	cmd.Flags().StringVar(&flags.HeadBranch, "branch", "", "The branch to create the pull request from")
+	cmd.Flags().StringVar(&flags.Title, "title", "", "The title of the pull request")
+	cmd.Flags().StringVar(&flags.Description, "description", "", "The description of the pull request")
+	cmd.Flags().StringVar(&flags.CommitMessage, "commit-message", "", "The commit message to use when adding the CAPI template")
+	cmd.Flags().StringVar(&flags.Credentials, "set-credentials", "", "The CAPI credentials to use")
 
 	return cmd
 }
@@ -56,11 +70,30 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 			}
 		}
 
-		if flags.DryRun {
-			creds := templates.Credentials{}
-			return templates.RenderTemplate(flags.Template, vals, creds, r, os.Stdout)
+		creds := templates.Credentials{}
+		if flags.Credentials != "" {
+			creds, err = r.RetrieveCredentialsByName(flags.Credentials)
+			if err != nil {
+				return err
+			}
 		}
 
-		return nil
+		if flags.DryRun {
+			return templates.RenderTemplateWithParameters(flags.Template, vals, creds, r, os.Stdout)
+		}
+
+		params := templates.CreatePullRequestFromTemplateParams{
+			TemplateName:    flags.Template,
+			ParameterValues: vals,
+			RepositoryURL:   flags.RepositoryURL,
+			HeadBranch:      flags.HeadBranch,
+			BaseBranch:      flags.BaseBranch,
+			Title:           flags.Title,
+			Description:     flags.Description,
+			CommitMessage:   flags.CommitMessage,
+			Credentials:     creds,
+		}
+
+		return templates.CreatePullRequestFromTemplate(params, r, os.Stdout)
 	}
 }
