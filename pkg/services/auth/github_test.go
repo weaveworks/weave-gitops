@@ -4,11 +4,15 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"runtime"
 	"strings"
+	"time"
 
+	"github.com/benbjohnson/clock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -85,4 +89,94 @@ var _ = Describe("Github Device Flow", func() {
 		Expect(cliOutput.String()).To(ContainSubstring(userCode))
 		Expect(cliOutput.String()).To(ContainSubstring(verificationUri))
 	})
+	Describe("pollAuthStatus", func() {
+		It("retries after a slow_down response from github", func() {
+			rt := newMockRoundTripper(3, token)
+			client.Transport = &testServerTransport{testServeUrl: ts.URL, roundTripper: rt}
+			interval := 5 * time.Second
+
+			c := clock.NewMock()
+
+			go func() {
+				_, err := pollAuthStatus(c.Sleep, interval, client, "somedevicecode")
+				Expect(err).NotTo(HaveOccurred())
+			}()
+			runtime.Gosched()
+
+			// +5
+			c.Add(5 * time.Second)
+			Expect(rt.calls).To(Equal(1), "should have tried the first time")
+
+			// +10
+			c.Add(5 * time.Second)
+			Expect(rt.calls).To(Equal(1), "should NOT have retried early")
+
+			// +20
+			c.Add(10 * time.Second)
+			Expect(rt.calls).To(Equal(2), "should have backed off 10 seconds")
+		})
+		It("returns a token after a slow_down", func() {
+			rt := newMockRoundTripper(1, token)
+			client.Transport = &testServerTransport{testServeUrl: ts.URL, roundTripper: rt}
+			interval := 5 * time.Second
+			c := clock.NewMock()
+
+			var resultToken string
+			var err error
+			go func() {
+				resultToken, err = pollAuthStatus(c.Sleep, interval, client, "somedevicecode")
+				Expect(err).NotTo(HaveOccurred())
+			}()
+			runtime.Gosched()
+
+			c.Add(5 * time.Second)
+			Expect(rt.calls).To(Equal(1), "should have tried the first time")
+
+			c.Add(15 * time.Second)
+			Expect(rt.calls).To(Equal(2), "should have added 10 seconds of back off")
+
+			Expect(resultToken).To(Equal(token))
+		})
+	})
 })
+
+type mockAuthRoundTripper struct {
+	fn    func(r *http.Request) (*http.Response, error)
+	calls int
+}
+
+func (rt *mockAuthRoundTripper) MockRoundTrip(fn func(r *http.Request) (*http.Response, error)) {
+	rt.fn = fn
+}
+
+func (rt *mockAuthRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
+	return rt.fn(r)
+}
+
+func newMockRoundTripper(pollCount int, token string) *mockAuthRoundTripper {
+	rt := &mockAuthRoundTripper{calls: 0}
+
+	rt.MockRoundTrip(func(r *http.Request) (*http.Response, error) {
+		b := bytes.NewBuffer(nil)
+
+		data := githubAuthResponse{Error: "slow_down"}
+		if rt.calls == pollCount {
+			data = githubAuthResponse{Error: "", AccessToken: token}
+		}
+
+		if err := json.NewEncoder(b).Encode(data); err != nil {
+			return nil, err
+		}
+
+		res := &http.Response{
+			Body: io.NopCloser(b),
+		}
+
+		res.StatusCode = http.StatusOK
+
+		rt.calls = rt.calls + 1
+		return res, nil
+	})
+
+	return rt
+}
