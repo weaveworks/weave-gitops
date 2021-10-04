@@ -232,7 +232,7 @@ var _ = Describe("User Provider", func() {
 		})
 
 		It("creates a commit", func() {
-			_, err := userProvider.CreatePullRequest("owner", "repo-name", "target-branch", "new-branch", []gitprovider.CommitFile{gitprovider.CommitFile{}}, "commit-msg", "pr-title", "pr-desc")
+			_, err := userProvider.CreatePullRequest("owner", "repo-name", "target-branch", "new-branch", []gitprovider.CommitFile{{}}, "commit-msg", "pr-title", "pr-desc")
 			Expect(err).ToNot(HaveOccurred())
 
 			_, newBranch, commitMsg, files := commitClient.CreateArgsForCall(0)
@@ -242,7 +242,7 @@ var _ = Describe("User Provider", func() {
 		})
 
 		It("creates a pull requests", func() {
-			_, err := userProvider.CreatePullRequest("owner", "repo-name", "target-branch", "new-branch", []gitprovider.CommitFile{gitprovider.CommitFile{}}, "commit-msg", "pr-title", "pr-desc")
+			_, err := userProvider.CreatePullRequest("owner", "repo-name", "target-branch", "new-branch", []gitprovider.CommitFile{{}}, "commit-msg", "pr-title", "pr-desc")
 			Expect(err).ToNot(HaveOccurred())
 
 			_, prTitle, newBranch, targetBranch, prDescription := pullRequestsClient.CreateArgsForCall(0)

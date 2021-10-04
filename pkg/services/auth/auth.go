@@ -95,7 +95,7 @@ func getGitProviderWithClients(
 		return nil, fmt.Errorf("could not get access token: %w", err)
 	}
 
-	provider, err := gitproviders.New(gitproviders.Config{Provider: providerName, Token: token}, owner)
+	provider, err := gitproviders.New(gitproviders.Config{Provider: providerName, Token: token}, owner, gitproviders.GetAccountType)
 	if err != nil {
 		return nil, fmt.Errorf("error creating git provider client: %w", err)
 	}

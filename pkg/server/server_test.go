@@ -782,7 +782,7 @@ var _ = Describe("Applications handler", func() {
 		appFactory.GetKubeServiceReturns(kubeClient, nil)
 
 		gitProviders.GetCommitsReturns(commits, nil)
-		gitProviders.GetAccountTypeReturns(gitproviders.AccountTypeUser, nil)
+		// gitProviders.GetAccountTypeReturns(gitproviders.AccountTypeUser, nil)
 
 		cfg := ApplicationsConfig{
 			Logger:     log,

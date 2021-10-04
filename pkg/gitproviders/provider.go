@@ -44,7 +44,9 @@ type defaultGitProvider struct {
 	provider gitprovider.Client
 }
 
-func New(config Config, owner string) (GitProvider, error) {
+type AccountTypeGetter func(provider gitprovider.Client, domain string, owner string) (ProviderAccountType, error)
+
+func New(config Config, owner string, getAccountType AccountTypeGetter) (GitProvider, error) {
 	provider, domain, err := buildGitProvider(config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build git provider: %w", err)
@@ -68,7 +70,7 @@ func New(config Config, owner string) (GitProvider, error) {
 	}, nil
 }
 
-func getAccountType(provider gitprovider.Client, domain string, owner string) (ProviderAccountType, error) {
+func GetAccountType(provider gitprovider.Client, domain string, owner string) (ProviderAccountType, error) {
 	_, err := provider.Organizations().Get(context.Background(), gitprovider.OrganizationRef{
 		Domain:       domain,
 		Organization: owner,

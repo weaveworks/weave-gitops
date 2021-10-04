@@ -16,7 +16,6 @@ import (
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/git"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"sigs.k8s.io/yaml"
 )
@@ -794,9 +793,9 @@ var _ = Describe("Add", func() {
 			})
 
 			It("creates the pull request against the default branch for an org app repository", func() {
-				gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-					return gitproviders.AccountTypeOrg, nil
-				}
+				// gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
+				// 	return gitproviders.AccountTypeOrg, nil
+				// }
 
 				Expect(appSrv.(*App).createAddPullRequestToRepo(info, addParams.Url, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
 				_, _, branch, _, _, _, _, _ := gitProviders.CreatePullRequestArgsForCall(0)
@@ -804,9 +803,9 @@ var _ = Describe("Add", func() {
 			})
 
 			It("creates the pull request against the default branch for a user app repository", func() {
-				gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-					return gitproviders.AccountTypeUser, nil
-				}
+				// gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
+				// 	return gitproviders.AccountTypeUser, nil
+				// }
 
 				Expect(appSrv.(*App).createAddPullRequestToRepo(info, addParams.Url, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
 				_, _, branch, _, _, _, _, _ := gitProviders.CreatePullRequestArgsForCall(0)
@@ -820,9 +819,9 @@ var _ = Describe("Add", func() {
 			})
 
 			It("creates the pull request against the default branch for an org config repository", func() {
-				gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-					return gitproviders.AccountTypeOrg, nil
-				}
+				// gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
+				// 	return gitproviders.AccountTypeOrg, nil
+				// }
 
 				Expect(appSrv.(*App).createAddPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
 				_, _, branch, _, _, _, _, _ := gitProviders.CreatePullRequestArgsForCall(0)
@@ -830,9 +829,9 @@ var _ = Describe("Add", func() {
 			})
 
 			It("creates the pull request against the default branch for a user config repository", func() {
-				gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-					return gitproviders.AccountTypeUser, nil
-				}
+				// gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
+				// 	return gitproviders.AccountTypeUser, nil
+				// }
 
 				Expect(appSrv.(*App).createAddPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
 				_, _, branch, _, _, _, _, _ := gitProviders.CreatePullRequestArgsForCall(0)

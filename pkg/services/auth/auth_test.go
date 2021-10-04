@@ -68,14 +68,8 @@ var _ = Describe("auth", func() {
 				gitProvider: &gp,
 			}
 
-			gp.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-				return gitproviders.AccountTypeOrg, nil
-			}
-
-			// gp.GetRepoInfoStub = func(pat gitproviders.ProviderAccountType, s1, s2 string) (*gitprovider.RepositoryInfo, error) {
-			// 	return &gitprovider.RepositoryInfo{
-			// 		Visibility: gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal),
-			// 	}, nil
+			// gp.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
+			// 	return gitproviders.AccountTypeOrg, nil
 			// }
 		})
 		It("create and stores a deploy key if none exists", func() {
@@ -132,7 +126,7 @@ var _ = Describe("auth", func() {
 
 			It("generates an error if an invalid provider name is passed", func() {
 				osysClient = &osysfakes.FakeOsys{}
-				_, err := getGitProviderWithClients(context.Background(), gitproviders.GitProviderName("badname"), osysClient, authHandler, logger)
+				_, err := getGitProviderWithClients(context.Background(), gitproviders.GitProviderName("badname"), "owner", osysClient, authHandler, logger)
 				Expect(err.Error()).To(ContainSubstring(`unknown git provider: "badname"`))
 			})
 
@@ -146,7 +140,7 @@ var _ = Describe("auth", func() {
 				})
 
 				DescribeTable("generates correct token info messages", func(providerName gitproviders.GitProviderName, msgArg string) {
-					_, err := getGitProviderWithClients(context.Background(), providerName, osysClient, authHandler, logger)
+					_, err := getGitProviderWithClients(context.Background(), providerName, "owner", osysClient, authHandler, logger)
 					Expect(err).ShouldNot(HaveOccurred())
 					fmtArg, restArgs := logger.WarningfArgsForCall(0)
 					Expect(fmtArg).Should(Equal("Setting the %q environment variable to a valid token will allow ongoing use of the CLI without requiring a browser-based auth flow...\n"))
@@ -166,7 +160,7 @@ var _ = Describe("auth", func() {
 				})
 
 				DescribeTable("generates no message if token set", func(providerName gitproviders.GitProviderName) {
-					_, err := getGitProviderWithClients(context.Background(), providerName, osysClient, authHandler, logger)
+					_, err := getGitProviderWithClients(context.Background(), providerName, "owner", osysClient, authHandler, logger)
 					Expect(err).ShouldNot(HaveOccurred())
 					Expect(logger.WarningfCallCount()).To(Equal(0))
 				},

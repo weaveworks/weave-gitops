@@ -7,7 +7,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 )
 
 var _ = Describe("Get Commits", func() {
@@ -21,9 +20,9 @@ var _ = Describe("Get Commits", func() {
 			Spec: wego.ApplicationSpec{URL: "https://github.com/foo/bar"},
 		}
 
-		gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-			return gitproviders.AccountTypeUser, nil
-		}
+		// gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
+		// 	return gitproviders.AccountTypeUser, nil
+		// }
 
 		commits := []gitprovider.Commit{&fakeCommit{}}
 		gitProviders.GetCommitsReturns(commits, nil)
@@ -43,9 +42,9 @@ var _ = Describe("Get Commits", func() {
 			Spec: wego.ApplicationSpec{URL: "https://github.com/foo/bar"},
 		}
 
-		gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-			return gitproviders.AccountTypeOrg, nil
-		}
+		// gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
+		// 	return gitproviders.AccountTypeOrg, nil
+		// }
 
 		commits := []gitprovider.Commit{&fakeCommit{}}
 		gitProviders.GetCommitsReturns(commits, nil)
