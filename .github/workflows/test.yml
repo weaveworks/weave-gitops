@@ -129,18 +129,15 @@ jobs:
         sudo apt-get install -y xvfb
         sudo apt-get install -y google-chrome-stable
         
-        wget https://chromedriver.storage.googleapis.com/94.0.4606.61/chromedriver_linux64.zip
+        CHROME_VERSION=$(google-chrome --version | awk '{print $3}')
+
+        wget https://chromedriver.storage.googleapis.com/"${CHROME_VERSION}"/chromedriver_linux64.zip
         unzip chromedriver_linux64.zip
         sudo mv -f chromedriver /usr/local/bin/chromedriver
-        mkdir -p cmd/selenium
-        cd cmd/selenium
 
-        wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.1.jar
+        wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
         
-        mv selenium-server-standalone-3.14.1.jar selenium-server-standalone.jar
-
-        xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone.jar &
-        cd -
+        xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
     - name: Setup Kubernetes
       uses: engineerd/setup-kind@v0.5.0
       with:
