@@ -232,7 +232,7 @@ var _ = Describe("Org Provider", func() {
 		})
 
 		It("creates a commit", func() {
-			_, err := orgProvider.CreatePullRequest("owner", "repo-name", "target-branch", "new-branch", []gitprovider.CommitFile{}, "commit-msg", "pr-title", "pr-desc")
+			_, err := orgProvider.CreatePullRequest("owner", "repo-name", "target-branch", "new-branch", []gitprovider.CommitFile{{}}, "commit-msg", "pr-title", "pr-desc")
 			Expect(err).ToNot(HaveOccurred())
 
 			_, newBranch, commitMsg, files := commitClient.CreateArgsForCall(0)
