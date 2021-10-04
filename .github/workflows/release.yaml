@@ -36,6 +36,9 @@ jobs:
           configuration: "${{ github.workspace }}/.github/workflows/changelog_configuration.json"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: testathing
+        run: |
+          echo ${{steps.github_release.outputs.changelog}}
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v1
         with:

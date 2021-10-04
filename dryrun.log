@@ -1,0 +1,13 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/justinthompson/go/src/github.com/justin/weave-gitops'
+/Users/justinthompson/go/src/github.com/justin/weave-gitops/tools/download-deps.sh /Users/justinthompson/go/src/github.com/justin/weave-gitops/tools/dependencies.toml
+touch .deps
+npm ci
+npx npm-force-resolutions
+npm run build
+ 
+make: /Users/justinthompson/go/src/github.com/justin/weave-gitops/tools/bin/stoml: Command not found
+ 
+go build -ldflags "-X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=2021-10-04_11:07:29 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=main -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=7133d76 -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=" -o bin/gitops cmd/gitops/*.go
+make: Leaving directory `/Users/justinthompson/go/src/github.com/justin/weave-gitops'
+ 

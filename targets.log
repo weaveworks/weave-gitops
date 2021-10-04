@@ -1,0 +1,638 @@
+make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+# GNU Make 3.81
+# Copyright (C) 2006  Free Software Foundation, Inc.
+# This is free software; see the source for copying conditions.
+# There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+# This program built for i386-apple-darwin11.3.0
+ 
+
+# Make data base, printed on Mon Oct  4 11:07:29 2021
+
+# Variables
+
+ 
+# automatic
+<D = $(patsubst %/,%,$(dir $<))
+# automatic
+?F = $(notdir $?)
+# environment
+GITPROVIDER_BOT_TOKEN = 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
+# environment
+ELECTRON_NO_ATTACH_CONSOLE = 1
+# makefile (from `Makefile', line 24)
+BINARY_NAME := gitops
+# environment
+VSCODE_LOG_NATIVE = false
+# automatic
+?D = $(patsubst %/,%,$(dir $?))
+# automatic
+@D = $(patsubst %/,%,$(dir $@))
+# automatic
+@F = $(notdir $@)
+# makefile
+CURDIR := /Users/justinthompson/go/src/github.com/justin/weave-gitops
+# makefile
+SHELL = /bin/sh
+# environment
+VSCODE_NLS_CONFIG = {"locale":"en-us","availableLanguages":{},"_languagePackSupport":true}
+# environment
+_ = /usr/bin/make
+# environment
+GIT_PROVIDER_USER = J-Thompson12
+# makefile (from `Makefile', line 8)
+GIT_COMMIT = $(shell git log -n1 --pretty='%h')
+# environment
+GITHUB_TOKEN = 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
+# makefile (from `Makefile', line 1)
+MAKEFILE_LIST :=  Makefile
+# environment
+VSCODE_AMD_ENTRYPOINT = vs/workbench/services/extensions/node/extensionHostProcess
+# environment
+GITLAB_USER_NAME = J-Thompson12
+# makefile (from `Makefile', line 2)
+VERSION = $(shell git describe --always --match "v*")
+# environment
+VSCODE_VERBOSE_LOGGING = true
+# environment
+__CFBundleIdentifier = com.apple.Terminal
+# environment
+VSCODE_IPC_HOOK_EXTHOST = /var/folders/_6/9x4mj9lx1sj53thq6g0c93vw0000gn/T/vscode-ipc-58fd7a08-f033-4fa3-96d2-5d382b50f03f.sock
+# environment
+VSCODE_CWD = /Users/justinthompson/go/src/github.com/justin/weave-gitops
+# environment
+GOPROXY = https://proxy.golang.org,direct
+# environment
+PATH = /usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/bin:/Users/justinthompson/go/bin
+# environment
+CLEANUP_ALL = 1
+# environment
+GOPATH = /Users/justinthompson/go
+# environment
+LaunchInstanceID = 29B5350F-47C4-4DB5-B073-5F029285144D
+# environment
+VSCODE_LOG_STACK = false
+# environment
+ELECTRON_RUN_AS_NODE = 1
+# environment
+GITHUB_USER_NAME = J-Thompson12
+# makefile (from `Makefile', line 12)
+LDFLAGS = "-X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION)"
+# default
+.FEATURES := target-specific order-only second-expansion else-if archives jobserver check-symlink
+# environment
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.diMLhaZFVI/Listeners
+# makefile (from `Makefile', line 9)
+CURRENT_DIR = $(shell pwd)
+# automatic
+%F = $(notdir $%)
+# makefile (from `Makefile', line 18)
+GOBIN = $(shell go env GOPATH)/bin
+# environment
+VSCODE_PIPE_LOGGING = true
+# makefile (from `Makefile', line 10)
+FORMAT_LIST = $(shell gofmt -l .)
+# environment
+PWD = /Users/justinthompson/go/src/github.com/justin/weave-gitops
+# environment
+ORIGINAL_XDG_CURRENT_DESKTOP = undefined
+# environment
+GOMODCACHE = /Users/justinthompson/go/pkg/mod
+# environment
+HOME = /Users/justinthompson
+# environment
+GIT_PROVIDER_ORGANIZATION = gogittest
+# default
+MAKEFILEPATH = $(shell /usr/bin/xcode-select -print-path 2>/dev/null || echo /Developer)/Makefiles
+# environment
+VSCODE_CLI = 1
+# environment
+VSCODE_CODE_CACHE_PATH = /Users/justinthompson/Library/Application Support/Code/CachedData/83bd43bc519d15e50c4272c6cf5c1479df196a4d
+# environment
+LOGNAME = justinthompson
+# environment
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+# environment
+VSCODE_HANDLES_UNCAUGHT_ERRORS = true
+# automatic
+^D = $(patsubst %/,%,$(dir $^))
+# environment
+XPC_FLAGS = 0x0
+# makefile (from `Makefile', line 84)
+CRD_OPTIONS = "crd:trivialVersions=true,preserveUnknownFields=false"
+# default
+MAKE = $(MAKE_COMMAND)
+# default
+MAKECMDGOALS := all
+# environment
+SHLVL = 3
+# default
+MAKE_VERSION := 3.81
+# environment
+USER = justinthompson
+# makefile
+.DEFAULT_GOAL := all
+# environment
+TERM_SESSION_ID = 9DB478BE-22D3-4F0A-99E9-067FB9FE0C7E
+# automatic
+%D = $(patsubst %/,%,$(dir $%))
+# environment
+GITLAB_ORG = gogittest
+# default
+MAKE_COMMAND := /Library/Developer/CommandLineTools/usr/bin/make
+# environment
+TERM_PROGRAM = Apple_Terminal
+# default
+.VARIABLES := 
+# environment
+TMPDIR = /var/folders/_6/9x4mj9lx1sj53thq6g0c93vw0000gn/T/
+# automatic
+*F = $(notdir $*)
+# makefile (from `Makefile', line 3)
+GOOS = $(shell go env GOOS)
+# environment
+VSCODE_IPC_HOOK = /Users/justinthompson/Library/Application Support/Code/1.60.1-main.sock
+# makefile (from `Makefile', line 6)
+BUILD_TIME = $(shell date +'%Y-%m-%d_%T')
+# makefile
+MAKEFLAGS = Rrqp
+# environment
+MFLAGS = -Rrqp
+# automatic
+*D = $(patsubst %/,%,$(dir $*))
+# environment
+TERM_PROGRAM_VERSION = 440
+# environment
+XPC_SERVICE_NAME = 0
+# makefile (from `Makefile', line 11)
+FLUX_VERSION = $(shell $(CURRENT_DIR)/tools/bin/stoml $(CURRENT_DIR)/tools/dependencies.toml flux.version)
+# automatic
++D = $(patsubst %/,%,$(dir $+))
+# automatic
++F = $(notdir $+)
+# environment
+__CF_USER_TEXT_ENCODING = 0x1F5:0:0
+# environment
+COMMAND_MODE = unix2003
+# default
+MAKEFILES := 
+# environment
+GITLAB_TEST_SUBGROUP = sub-group
+# automatic
+<F = $(notdir $<)
+# makefile (from `Makefile', line 7)
+BRANCH = $(shell git rev-parse --abbrev-ref HEAD)
+# environment
+GITHUB_ORG = weaveworks-gitops-test
+# environment
+LC_ALL = C
+# environment
+GITLAB_TEST_TEAM_NAME = veryuniquegroup
+# environment
+GITLAB_SUBGROUP = sub_group
+# makefile (from `Makefile', line 4)
+GOARCH = $(shell go env GOARCH)
+# environment
+SECURITYSESSIONID = 186aa
+# automatic
+^F = $(notdir $^)
+# default
+SUFFIXES := 
+# makefile (from `Makefile', line 14)
+KUBEBUILDER_ASSETS = "$(CURRENT_DIR)/tools/bin/envtest"
+# default
+.INCLUDE_DIRS = /usr/local/include
+# environment
+MAKELEVEL := 0
+# environment
+GITLAB_TOKEN = EiCt9t-xYnELTV993bqz
+# environment
+LANG = C
+# environment
+TERM = xterm-256color
+# environment
+VSCODE_PID = 407
+# variable set hash-table stats:
+# Load=100/1024=10%, Rehash=0, Collisions=3/138=2%
+
+# Pattern-specific Variable Values
+
+# No pattern-specific variable values.
+
+# Directories
+
+# . (device 16777222, inode 12984689): 40 files, no impossibilities.
+
+# 40 files, no impossibilities in 1 directories.
+
+# Implicit Rules
+
+# No implicit rules.
+
+# Files
+
+ui-lib: node_modules dist/index.js
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 119):
+	@find dist -type f -iname \*.otf -delete
+	@find dist -type f -iname \*.woff -delete
+	
+
+proto-deps:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 93):
+	buf beta mod update
+	
+
+all: gitops
+#  Command-line target.
+#  Implicit rule search has been done.
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/8=0%
+
+bin:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 52):
+	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) cmd/gitops/*.go
+	
+
+dependencies: .deps
+#  Implicit rule search has been done.
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/8=0%
+
+.PHONY: debug bin gitops install clean fmt vet depencencies lint ui ui-lint ui-test ui-dev unit-tests proto proto-deps api-dev ui-dev fakes crd bin help
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+dist/index.js: ui/index.ts
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 141):
+	npm run build:lib && cp package.json dist
+	
+
+ui-audit:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 113):
+	npm audit
+	
+
+depencencies:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+ 
+#  File does not exist.
+#  File has not been updated.
+
+gitops: dependencies ui bin
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/8=0%
+
+# Not a target:
+.SUFFIXES:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+crd:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 86):
+	@go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1
+	controller-gen $(CRD_OPTIONS) paths="./..." output:crd:artifacts:config=manifests/crds
+	
+
+# Not a target:
+Makefile:
+#  Implicit rule search has been done.
+#  Last modified 2021-10-04 11:07:02
+#  File has been updated.
+#  Successfully updated.
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/0=0%
+
+debug:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 49):
+	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) -gcflags='all=-N -l' cmd/gitops/*.go
+	
+
+proto:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 96):
+	buf generate
+	
+
+coverage/merged.lcov: coverage/lcov.info coverage/golang.info
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 167):
+	lcov --add-tracefile coverage/golang.info -a coverage/lcov.info -o merged.lcov
+	
+
+ui-lint:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 107):
+	npm run lint
+	
+
+api-dev:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 46):
+	reflex -r '.go' -s -- sh -c 'go run cmd/gitops-server/main.go'
+	
+
+vet:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 72):
+	go vet ./...
+	
+
+coverage/golang.info: coverage.out
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 160):
+	@mkdir -p coverage
+	@go get -u github.com/jandelgado/gcov2lcov
+	gcov2lcov -infile=coverage.out -outfile=coverage/golang.info
+	
+
+cmd/gitops/ui/run/dist/main.js:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 129):
+	npm run build
+	
+
+lib-test: dependencies
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 135):
+	docker build -t gitops-library-test -f test/library/libtest.dockerfile $(CURRENT_DIR)/test/library
+	docker run -e GITHUB_TOKEN=$$GITHUB_TOKEN -i --rm \
+	-v $(CURRENT_DIR):/go/src/github.com/weaveworks/weave-gitops \
+	gitops-library-test
+	
+
+fakes:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 37):
+	go generate ./...
+	
+
+help:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 177):
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-40s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+	
+
+ui-test:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 110):
+	npm run test
+	
+
+unit-tests: dependencies cmd/gitops/ui/run/dist/index.html
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 33):
+	# To avoid downloading dependencies every time use `SKIP_FETCH_TOOLS=1 unit-tests`
+	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v -tags unittest ./...
+	
+
+coverage/lcov.info:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 150):
+	npm run test -- --coverage
+	
+
+cmd/gitops/ui/run/dist/index.html: cmd/gitops/ui/run/dist
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 126):
+	touch cmd/gitops/ui/run/dist/index.html
+	
+
+# Not a target:
+.DEFAULT:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+ui: node_modules cmd/gitops/ui/run/dist/main.js
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+
+dist/index.d.ts:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 144):
+	npm run typedefs
+	
+
+clean:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 60):
+	rm -f bin/gitops
+	rm -rf pkg/flux/bin/
+	rm -rf cmd/gitops/ui/run/dist
+	rm -rf coverage
+	rm -rf node_modules
+	rm -f .deps
+	rm -rf dist
+	
+
+docker:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 55):
+	docker build -t ghcr.io/weaveworks/wego-app:latest .
+	
+
+ui-dev:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+
+fmt:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 69):
+	go fmt ./...
+	
+
+# Not a target:
+ui/index.ts:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+lint:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 75):
+	golangci-lint run --out-format=github-actions --build-tags acceptance
+	
+
+check-format:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 90):
+	if [ ! -z "$(FORMAT_LIST)" ] ; then echo invalid format at: ${FORMAT_LIST} && exit 1; fi
+	
+
+cmd/gitops/ui/run/dist:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 123):
+	mkdir -p cmd/gitops/ui/run/dist
+	
+
+.deps:
+#  Implicit rule search has not been done.
+#  Implicit/static pattern stem: `'
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# automatic
+# @ := .deps
+# automatic
+# % := 
+# automatic
+# * := 
+# automatic
+# + := 
+# automatic
+# | := 
+# automatic
+# < := 
+# automatic
+# ^ := 
+# automatic
+# ? := 
+# variable set hash-table stats:
+# Load=8/32=25%, Rehash=0, Collisions=1/16=6%
+#  commands to execute (from `Makefile', line 78):
+	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
+	@touch .deps
+	
+
+ 
+install: bin
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 43):
+	cp bin/$(BINARY_NAME) ${GOPATH}/bin/
+	
+
+node_modules:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 103):
+	npm ci
+	npx npm-force-resolutions
+	
+
+coverage.out: dependencies
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 154):
+	go get github.com/ory/go-acc
+	go-acc --ignore fakes,acceptance,pkg/api,api -o coverage.out ./... -- -v --timeout=496s -tags test
+	@go mod tidy
+	
+
+# files hash-table stats:
+# Load=43/1024=4%, Rehash=0, Collisions=4/100=4%
+# VPATH Search Paths
+
+# No `vpath' search paths.
+
+# No general (`VPATH' variable) search path.
+
+# # of strings in strcache: 1
+# # of strcache buffers: 1
+# strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
+# strcache free: total = 4087 / max = 4087 / min = 4087 / avg = 4087
+
+# Finished Make data base on Mon Oct  4 11:07:29 2021
+
+ 
