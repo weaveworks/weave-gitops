@@ -137,7 +137,7 @@ func GetTemplateParameters(name string, r TemplatesRetriever, w io.Writer) error
 func RenderTemplateWithParameters(name string, parameters map[string]string, creds Credentials, r TemplateRenderer, w io.Writer) error {
 	t, err := r.RenderTemplateWithParameters(name, parameters, creds)
 	if err != nil {
-		return fmt.Errorf("unable to retrieve template %q: %w", name, err)
+		return fmt.Errorf("unable to render template %q: %w", name, err)
 	}
 
 	if t != "" {
