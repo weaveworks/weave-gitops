@@ -172,7 +172,7 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 		return nil, nil, nil, fmt.Errorf("error getting target name: %w", err)
 	}
 
-	authsvc, err := getAuthService(ctx, normalizedUrl, dryRun)
+	authsvc, err := GetAuthService(ctx, normalizedUrl, dryRun)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("error creating auth service: %w", err)
 	}
