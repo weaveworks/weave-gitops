@@ -91,7 +91,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	// isHelmRepository := params.Chart != ""
 
 	//TODO handl helm charts on add
-	appService, appError := apputils.GetAppServiceForAdd(ctx, params.Url, params.AppConfigUrl, params.Namespace, false)
+	appService, appError := apputils.GetAppServiceForAdd(ctx, params.Url, params.AppConfigUrl, params.Namespace, false, params.DryRun)
 	if appError != nil {
 		return fmt.Errorf("failed to create app service: %w", appError)
 	}

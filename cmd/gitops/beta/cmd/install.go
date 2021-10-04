@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 )
@@ -67,7 +68,11 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	if clientErr != nil {
 		return clientErr
 	}
-	gp, err := auth.GetGitProvider(context.Background(), installParams.AppConfigURL)
+	normalizedURL, err := gitproviders.NewNormalizedRepoURL(installParams.AppConfigURL)
+	if err != nil {
+		return fmt.Errorf("failed to normalize URL %s: %w", installParams.AppConfigURL, err)
+	}
+	gp, err := auth.GetGitProvider(context.Background(), normalizedURL)
 	if err != nil {
 		return fmt.Errorf("failed to get GitProvider: %w", err)
 	}

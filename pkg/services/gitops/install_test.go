@@ -149,7 +149,7 @@ var _ = Describe("Install", func() {
 	})
 	Context("when app url specified", func() {
 		BeforeEach(func() {
-			installParams.AppConfigURL = "ssh://127.0.0.1"
+			installParams.AppConfigURL = "ssh://git@github.com/foo/somevalidrepo.git"
 			fluxClient.InstallStub = func(s string, b bool) ([]byte, error) {
 				return []byte("manifests"), nil
 			}

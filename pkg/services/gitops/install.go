@@ -11,6 +11,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/manifests"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -94,14 +95,19 @@ func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string
 		g.logger.Warningf("Cluster name not found, using default : %v", err)
 		cname = "default"
 	}
+	normalizedURL, err := gitproviders.NewNormalizedRepoURL(params.AppConfigURL)
+	if err != nil {
+		return fmt.Errorf("failed to normalize URL %s: %w", params.AppConfigURL, err)
+	}
 	// TODO: pass context
 	// TODO: actual cluster name
+
 	if g.gitClient == nil {
-		authsvc, err := apputils.GetAuthService(ctx, params.AppConfigURL)
+		authsvc, err := apputils.GetAuthService(ctx, normalizedURL, params.DryRun)
 		if err != nil {
 			return fmt.Errorf("failed to create auth service for repo %s : %w", params.AppConfigURL, err)
 		}
-		g.gitClient, err = authsvc.CreateGitClient(ctx, cname, params.Namespace, utils.SanitizeRepoUrl(params.AppConfigURL))
+		g.gitClient, err = authsvc.CreateGitClient(ctx, normalizedURL, cname, params.Namespace)
 		if err != nil {
 			return fmt.Errorf("failed to create git client for repo %s : %w", params.AppConfigURL, err)
 		}
@@ -170,7 +176,7 @@ func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string
 	// 	return fmt.Errorf("could not apply manifests to the cluster: %w", err)
 	// }
 
-	return app.CommitAndPush(g.gitClient, g.logger)
+	return app.CommitAndPush(g.gitClient, "Add GitOps runtime manifests", params.DryRun, g.logger)
 }
 
 func (g *Gitops) genSource(cname, branch string, params InstallParams) ([]byte, string, error) {
