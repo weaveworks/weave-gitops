@@ -14,6 +14,7 @@ Additional env vars used to run tests locally are:
 export GITHUB_ORG=<github-org>
 export GITHUB_TOKEN=<api-token>
 export GITHUB_KEY=<ssh-key>
+export GITLAB_KEY=<ssh-key>
 export GITLAB_ORG=<gitlab-org/group>
 export GITLAB_TOKEN=<api-token>
 ```

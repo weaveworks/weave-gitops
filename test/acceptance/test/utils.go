@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"regexp"
 
 	"strconv"
@@ -26,6 +27,8 @@ import (
 	"github.com/onsi/gomega/gexec"
 	log "github.com/sirupsen/logrus"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
@@ -147,7 +150,7 @@ func setupGitlabSSHKey(sshKeyPath string) {
                            echo "%s" >> %s &&
                            chmod 0600 %s &&
                            ls -la %s &&
-						   ssh-keyscan gitlab.com >> ~/.ssh/known_hosts`, os.Getenv("GITLAB_KEY"), sshKeyPath, sshKeyPath, sshKeyPath))
+                           ssh-keyscan gitlab.com >> ~/.ssh/known_hosts`, os.Getenv("GITLAB_KEY"), sshKeyPath, sshKeyPath, sshKeyPath))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session).Should(gexec.Exit())
@@ -235,7 +238,7 @@ func initAndCreateEmptyRepo(appRepoName string, providerName gitproviders.GitPro
 
 	err = utils.WaitUntil(os.Stdout, time.Second*3, time.Second*30, func() error {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
-			git clone git@%s.com:%s/%s.git %s`,
+            git clone git@%s.com:%s/%s.git %s`,
 			providerName, org, appRepoName,
 			repoAbsolutePath))
 		command.Stdout = os.Stdout
@@ -272,41 +275,8 @@ func createGitRepoBranch(repoAbsolutePath string, branchName string) string {
 }
 
 func getGitRepoVisibility(org string, repo string, providerName gitproviders.GitProviderName) string {
-	var gitProvider gitprovider.Client
-
-	var err error
-
-	var domain string
-
-	switch providerName {
-	case gitproviders.GitProviderGitHub:
-		gitProvider, err = github.NewClient(
-			gitprovider.WithOAuth2Token(os.Getenv("GITHUB_TOKEN")),
-			gitprovider.WithDestructiveAPICalls(true),
-		)
-		domain = github.DefaultDomain
-	case gitproviders.GitProviderGitLab:
-		token := os.Getenv("GITLAB_TOKEN")
-		gitProvider, err = gitlab.NewClient(
-			token,
-			"oauth2",
-			gitprovider.WithOAuth2Token(token),
-			gitprovider.WithDestructiveAPICalls(true),
-		)
-		domain = gitlab.DefaultDomain
-	default:
-		Fail("invalid git provider")
-	}
-
+	gitProvider, orgRef, err := getGitProvider(org, repo, providerName)
 	Expect(err).ShouldNot(HaveOccurred())
-
-	orgRef := gitprovider.OrgRepositoryRef{
-		RepositoryName: repo,
-		OrganizationRef: gitprovider.OrganizationRef{
-			Domain:       domain,
-			Organization: org,
-		},
-	}
 
 	orgInfo, err := gitProvider.OrgRepositories().Get(context.Background(), orgRef)
 	Expect(err).ShouldNot(HaveOccurred())
@@ -441,9 +411,20 @@ func deleteNamespace(namespace string) {
 	Eventually(session).Should(gexec.Exit())
 }
 
-func deleteRepo(appRepoName string, org string) {
+func deleteRepo(appRepoName string, providerName gitproviders.GitProviderName, org string) {
 	log.Infof("Delete application repo: %s", org+"/"+appRepoName)
-	_ = runCommandPassThrough([]string{}, "hub", "delete", "-y", org+"/"+appRepoName)
+
+	gitProvider, orgRef, providerErr := getGitProvider(org, appRepoName, providerName)
+	Expect(providerErr).ShouldNot(HaveOccurred())
+
+	ctx := context.Background()
+	or, repoErr := gitProvider.OrgRepositories().Get(ctx, orgRef)
+
+	// allow repo to be absent (as tests assume this)
+	if repoErr == nil {
+		deleteErr := or.Delete(ctx)
+		Expect(deleteErr).ShouldNot(HaveOccurred())
+	}
 }
 
 func deleteWorkload(workloadName string, workloadNamespace string) {
@@ -643,25 +624,52 @@ func pullGitRepo(repoAbsolutePath string) {
 	Eventually(session).Should(gexec.Exit())
 }
 
-func verifyPRCreated(repoAbsolutePath, appName string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && hub pr list", repoAbsolutePath))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
-	output := string(session.Wait().Out.Contents())
-	Expect(output).To(ContainSubstring(fmt.Sprintf("gitops add %s", appName)))
+func verifyPRCreated(repoAbsolutePath, appName string, providerName gitproviders.GitProviderName) {
+	ctx := context.Background()
+
+	repoUrlString, repoUrlErr := git.New(nil, wrapper.NewGoGit()).GetRemoteUrl(repoAbsolutePath, "origin")
+	Expect(repoUrlErr).ShouldNot(HaveOccurred())
+
+	org, _ := extractOrgAndRepo(repoUrlString)
+	gitProvider, orgRef, providerErr := getGitProvider(org, filepath.Base(repoAbsolutePath), providerName)
+	Expect(providerErr).ShouldNot(HaveOccurred())
+
+	or, repoErr := gitProvider.OrgRepositories().Get(ctx, orgRef)
+	Expect(repoErr).ShouldNot(HaveOccurred())
+
+	prs, err := or.PullRequests().List(ctx)
+	Expect(err).To(BeNil())
+
+	Expect(len(prs)).To(Equal(1))
 }
 
-func mergePR(repoAbsolutePath, prLink string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && hub merge %s", repoAbsolutePath, prLink))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
+func mergePR(repoAbsolutePath, prLink string, providerName gitproviders.GitProviderName) {
+	ctx := context.Background()
+	prNumberStr := filepath.Base(prLink)
+	prNumber, numErr := strconv.Atoi(prNumberStr)
+	Expect(numErr).ShouldNot(HaveOccurred())
 
-	command = exec.Command("sh", "-c", fmt.Sprintf("cd %s && git push", repoAbsolutePath))
-	session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	repoUrlString, repoUrlErr := git.New(nil, wrapper.NewGoGit()).GetRemoteUrl(repoAbsolutePath, "origin")
+	Expect(repoUrlErr).ShouldNot(HaveOccurred())
+
+	org, repo := extractOrgAndRepo(repoUrlString)
+	gitProvider, orgRef, providerErr := getGitProvider(org, repo, providerName)
+	Expect(providerErr).ShouldNot(HaveOccurred())
+
+	or, repoErr := gitProvider.OrgRepositories().Get(ctx, orgRef)
+	Expect(repoErr).ShouldNot(HaveOccurred())
+
+	err := or.PullRequests().Merge(ctx, prNumber, gitprovider.MergeMethodMerge, "merge for test")
 	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
+}
+
+func extractOrgAndRepo(url string) (string, string) {
+	normalized, normErr := gitproviders.NewNormalizedRepoURL(url)
+	Expect(normErr).ShouldNot(HaveOccurred())
+
+	re := regexp.MustCompile("^[^/]+//[^/]+/([^/]+)/([^/]+).*$")
+	matches := re.FindStringSubmatch(strings.TrimSuffix(normalized.String(), ".git"))
+	return matches[1], matches[2]
 }
 
 func setArtifactsDir() string {
@@ -721,47 +729,9 @@ func createGitRepository(repoName, branch string, private bool, providerName git
 		AutoInit: gitprovider.BoolVar(true),
 	}
 
-	var gitProvider gitprovider.Client
-
-	var err error
-
-	var domain string
-
-	switch providerName {
-	case gitproviders.GitProviderGitHub:
-		gitProvider, err = github.NewClient(
-			gitprovider.WithOAuth2Token(os.Getenv("GITHUB_TOKEN")),
-			gitprovider.WithDestructiveAPICalls(true),
-		)
-		if err != nil {
-			return err
-		}
-
-		domain = github.DefaultDomain
-	case gitproviders.GitProviderGitLab:
-		token := os.Getenv("GITLAB_TOKEN")
-
-		gitProvider, err = gitlab.NewClient(
-			token,
-			"oauth2",
-			gitprovider.WithOAuth2Token(token),
-			gitprovider.WithDestructiveAPICalls(true),
-		)
-		if err != nil {
-			return err
-		}
-
-		domain = gitlab.DefaultDomain
-	default:
-		Fail("invalid git provider")
-	}
-
-	orgRef := gitprovider.OrgRepositoryRef{
-		RepositoryName: repoName,
-		OrganizationRef: gitprovider.OrganizationRef{
-			Domain:       domain,
-			Organization: org,
-		},
+	gitProvider, orgRef, err := getGitProvider(org, repoName, providerName)
+	if err != nil {
+		return err
 	}
 
 	ctx := context.Background()
@@ -799,4 +769,36 @@ func createGitRepository(repoName, branch string, private bool, providerName git
 	fmt.Printf("repo %s is accessible through the api ...\n", repoName)
 
 	return nil
+}
+
+func getGitProvider(org string, repo string, providerName gitproviders.GitProviderName) (gitprovider.Client, gitprovider.OrgRepositoryRef, error) {
+	var gitProvider gitprovider.Client
+
+	var orgRef gitprovider.OrgRepositoryRef
+
+	var err error
+
+	switch providerName {
+	case gitproviders.GitProviderGitHub:
+		orgRef = gitproviders.NewOrgRepositoryRef(github.DefaultDomain, org, repo)
+
+		gitProvider, err = github.NewClient(
+			gitprovider.WithOAuth2Token(os.Getenv("GITHUB_TOKEN")),
+			gitprovider.WithDestructiveAPICalls(true),
+		)
+	case gitproviders.GitProviderGitLab:
+		orgRef = gitproviders.NewOrgRepositoryRef(gitlab.DefaultDomain, org, repo)
+
+		token := os.Getenv("GITLAB_TOKEN")
+		gitProvider, err = gitlab.NewClient(
+			token,
+			"oauth2",
+			gitprovider.WithOAuth2Token(token),
+			gitprovider.WithDestructiveAPICalls(true),
+		)
+	default:
+		err = fmt.Errorf("invalid git provider name: %s", providerName)
+	}
+
+	return gitProvider, orgRef, err
 }
