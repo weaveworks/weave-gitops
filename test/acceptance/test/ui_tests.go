@@ -15,7 +15,8 @@ var webDriver *agouti.Page
 
 func initializeUISteps() {
 	By("And I install gitops to my active cluster", func() {
-		installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		_ = runCommandPassThrough([]string{}, WEGO_BIN_PATH, "install")
+		VerifyControllersInCluster(WEGO_DEFAULT_NAMESPACE)
 	})
 
 	By("And I run gitops ui", func() {
@@ -23,7 +24,7 @@ func initializeUISteps() {
 	})
 }
 
-var _ = XDescribe("Weave GitOps UI Test", func() {
+var _ = Describe("Weave GitOps UI Test", func() {
 
 	deleteWegoRuntime := false
 	if os.Getenv("DELETE_WEGO_RUNTIME_ON_EACH_TEST") == "true" {
