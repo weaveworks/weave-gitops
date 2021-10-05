@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -66,6 +67,96 @@ func New(config Config, owner string, getAccountType AccountTypeGetter) (GitProv
 	}, nil
 }
 
+func deployKeyExists(ctx context.Context, repo gitprovider.UserRepository) (bool, error) {
+	_, err := repo.DeployKeys().Get(ctx, deployKeyName)
+	if err != nil && !strings.Contains(err.Error(), "key is already in use") {
+		if errors.Is(err, gitprovider.ErrNotFound) {
+			return false, nil
+		} else {
+			return false, fmt.Errorf("error getting deploy key %s: %s", deployKeyName, err)
+		}
+	} else {
+		return true, nil
+	}
+}
+
+func uploadDeployKey(ctx context.Context, repo gitprovider.UserRepository, deployKeyInfo gitprovider.DeployKeyInfo) error {
+	_, err := repo.DeployKeys().Create(ctx, deployKeyInfo)
+	if err != nil {
+		return fmt.Errorf("error uploading deploy key %s", err)
+	}
+
+	if err = utils.WaitUntil(os.Stdout, time.Second, defaultTimeout, func() error {
+		_, err = repo.DeployKeys().Get(ctx, deployKeyName)
+		return err
+	}); err != nil {
+		return fmt.Errorf("error verifying deploy key %s: %s", deployKeyName, err)
+	}
+
+	return nil
+}
+
+type PullRequestInfo struct {
+	Title         string
+	Description   string
+	CommitMessage string
+	TargetBranch  string
+	NewBranch     string
+	Files         []gitprovider.CommitFile
+}
+
+func createPullRequest(ctx context.Context, repo gitprovider.UserRepository, prInfo PullRequestInfo) (gitprovider.PullRequest, error) {
+	repoInfo := repo.Get()
+
+	if prInfo.TargetBranch == "" {
+		prInfo.TargetBranch = *repoInfo.DefaultBranch
+	}
+
+	commits, err := repo.Commits().ListPage(ctx, prInfo.TargetBranch, 1, 0)
+	if err != nil {
+		return nil, fmt.Errorf("error getting commits: %w", err)
+	}
+
+	if len(commits) == 0 {
+		return nil, fmt.Errorf("no commits on the target branch: %s", prInfo.TargetBranch)
+	}
+
+	latestCommit := commits[0]
+
+	if err := repo.Branches().Create(ctx, prInfo.NewBranch, latestCommit.Get().Sha); err != nil {
+		return nil, fmt.Errorf("error creating branch %s: %w", prInfo.NewBranch, err)
+	}
+
+	if _, err := repo.Commits().Create(ctx, prInfo.NewBranch, prInfo.CommitMessage, prInfo.Files); err != nil {
+		return nil, fmt.Errorf("error creating commit %s: %w", prInfo.NewBranch, err)
+	}
+
+	pr, err := repo.PullRequests().Create(ctx, prInfo.Title, prInfo.NewBranch, prInfo.TargetBranch, prInfo.Description)
+	if err != nil {
+		return nil, fmt.Errorf("error creating pull request %s: %w", prInfo.Title, err)
+	}
+
+	return pr, nil
+}
+
+func getCommits(ctx context.Context, repo gitprovider.UserRepository, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
+	// currently locking the commit list at 10. May discuss pagination options later.
+	commits, err := repo.Commits().ListPage(ctx, targetBranch, pageSize, pageToken)
+	if err != nil {
+		if isEmptyRepoError(err) {
+			return []gitprovider.Commit{}, nil
+		}
+
+		return nil, fmt.Errorf("error getting commits: %s", err)
+	}
+
+	return commits, nil
+}
+
+func getProviderDomain(providerID gitprovider.ProviderID) string {
+	return string(GitProviderName(providerID)) + ".com"
+}
+
 func GetAccountType(provider gitprovider.Client, domain string, owner string) (ProviderAccountType, error) {
 	_, err := provider.Organizations().Get(context.Background(), gitprovider.OrganizationRef{
 		Domain:       domain,
@@ -86,14 +177,7 @@ func isEmptyRepoError(err error) bool {
 	return strings.Contains(err.Error(), "409 Git Repository is empty")
 }
 
-func NewRepositoryInfo(description string, visibility gitprovider.RepositoryVisibility) gitprovider.RepositoryInfo {
-	return gitprovider.RepositoryInfo{
-		Description: &description,
-		Visibility:  &visibility,
-	}
-}
-
-func NewOrgRepositoryRef(domain, org, repoName string) gitprovider.OrgRepositoryRef {
+func newOrgRepositoryRef(domain, org, repoName string) gitprovider.OrgRepositoryRef {
 	return gitprovider.OrgRepositoryRef{
 		RepositoryName: repoName,
 		OrganizationRef: gitprovider.OrganizationRef{
@@ -103,7 +187,7 @@ func NewOrgRepositoryRef(domain, org, repoName string) gitprovider.OrgRepository
 	}
 }
 
-func NewUserRepositoryRef(domain, user, repoName string) gitprovider.UserRepositoryRef {
+func newUserRepositoryRef(domain, user, repoName string) gitprovider.UserRepositoryRef {
 	return gitprovider.UserRepositoryRef{
 		RepositoryName: repoName,
 		UserRef: gitprovider.UserRef{

@@ -197,7 +197,7 @@ var _ = Describe("User Provider", func() {
 			userRepoClient.GetReturns(nil, errors.New("random error"))
 
 			_, err := userProvider.CreatePullRequest("owner", "repo-name", "target-branch", "new-branch", []gitprovider.CommitFile{}, "commit-msg", "pr-title", "pr-desc")
-			Expect(err.Error()).To(ContainSubstring("error getting info for repo"))
+			Expect(err.Error()).To(ContainSubstring("error getting user repo for"))
 		})
 
 		It("sets default branch", func() {
@@ -258,7 +258,7 @@ var _ = Describe("User Provider", func() {
 			userRepoClient.GetReturns(nil, gitprovider.ErrNotFound)
 
 			_, err := userProvider.GetCommits("owner", "repo-name", "target-branch", 1, 1)
-			Expect(err.Error()).Should(ContainSubstring("error getting info for repo"))
+			Expect(err.Error()).Should(ContainSubstring("error getting repo"))
 		})
 
 		It("returns empty array when empty error", func() {
@@ -273,7 +273,7 @@ var _ = Describe("User Provider", func() {
 			commitClient.ListPageReturns(nil, errors.New("error"))
 
 			_, err := userProvider.GetCommits("owner", "repo-name", "target-branch", 1, 1)
-			Expect(err.Error()).Should(ContainSubstring("error getting commits for repo"))
+			Expect(err.Error()).Should(ContainSubstring("error getting commits"))
 		})
 
 		It("returns a list of commits", func() {

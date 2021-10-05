@@ -4,11 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
-	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 type orgGitProvider struct {
@@ -36,59 +33,32 @@ func (p orgGitProvider) RepositoryExists(name string, owner string) (bool, error
 
 func (p orgGitProvider) DeployKeyExists(owner, repoName string) (bool, error) {
 	ctx := context.Background()
-	defer ctx.Done()
 
-	orgRef := NewOrgRepositoryRef(p.domain, owner, repoName)
-
-	orgRepo, err := p.provider.OrgRepositories().Get(ctx, orgRef)
+	orgRepo, err := p.getOrgRepo(owner, repoName)
 	if err != nil {
 		return false, fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s", owner, repoName, err)
 	}
 
-	_, err = orgRepo.DeployKeys().Get(ctx, deployKeyName)
-	if err != nil {
-		if errors.Is(err, gitprovider.ErrNotFound) {
-			return false, nil
-		}
-
-		return false, fmt.Errorf("error getting deploy key %s for repo %s. %s", deployKeyName, repoName, err)
-	}
-
-	return true, nil
+	return deployKeyExists(ctx, orgRepo)
 }
 
 func (p orgGitProvider) UploadDeployKey(owner, repoName string, deployKey []byte) error {
-	deployKeyInfo := gitprovider.DeployKeyInfo{
-		Name:     deployKeyName,
-		Key:      deployKey,
-		ReadOnly: gitprovider.BoolVar(false),
-	}
-
 	ctx := context.Background()
-	defer ctx.Done()
 
-	orgRef := NewOrgRepositoryRef(p.domain, owner, repoName)
-	orgRepo, err := p.provider.OrgRepositories().Get(ctx, orgRef)
-
+	orgRepo, err := p.getOrgRepo(owner, repoName)
 	if err != nil {
 		return fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s ", owner, repoName, err)
 	}
 
 	fmt.Println("uploading deploy key")
 
-	_, err = orgRepo.DeployKeys().Create(ctx, deployKeyInfo)
-	if err != nil {
-		return fmt.Errorf("error uploading deploy key %w", err)
+	deployKeyInfo := gitprovider.DeployKeyInfo{
+		Name:     deployKeyName,
+		Key:      deployKey,
+		ReadOnly: gitprovider.BoolVar(false),
 	}
 
-	if err = utils.WaitUntil(os.Stdout, time.Second, defaultTimeout, func() error {
-		_, err = orgRepo.DeployKeys().Get(ctx, deployKeyName)
-		return err
-	}); err != nil {
-		return fmt.Errorf("error verifying deploy key %s existance for repo %s. %s", deployKeyName, repoName, err)
-	}
-
-	return nil
+	return uploadDeployKey(ctx, orgRepo, deployKeyInfo)
 }
 
 func (p orgGitProvider) GetDefaultBranch(url string) (string, error) {
@@ -135,7 +105,7 @@ func (p orgGitProvider) getRepoInfo(owner string, repoName string) (*gitprovider
 }
 
 func (p orgGitProvider) getOrgRepo(org string, repoName string) (gitprovider.OrgRepository, error) {
-	orgRepoRef := NewOrgRepositoryRef(p.domain, org, repoName)
+	orgRepoRef := newOrgRepositoryRef(p.domain, org, repoName)
 
 	repo, err := p.provider.OrgRepositories().Get(context.Background(), orgRepoRef)
 	if err != nil {
@@ -146,66 +116,39 @@ func (p orgGitProvider) getOrgRepo(org string, repoName string) (gitprovider.Org
 }
 
 func (p orgGitProvider) CreatePullRequest(owner string, repoName string, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMsg string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
-	pr, err := p.createPullRequestToOrgRepo(owner, repoName, targetBranch, newBranch, files, commitMsg, prTitle, prDescription)
-	if err != nil {
-		return nil, fmt.Errorf("unable to create pull request: %w", err)
-	}
-
-	return pr, nil
-}
-
-func (p orgGitProvider) createPullRequestToOrgRepo(owner string, repoName string, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
 	ctx := context.Background()
-	orgRepRef := NewOrgRepositoryRef(p.GetProviderDomain(), owner, repoName)
 
-	repo, err := p.provider.OrgRepositories().Get(ctx, orgRepRef)
+	orgRepo, err := p.getOrgRepo(owner, repoName)
 	if err != nil {
-		return nil, fmt.Errorf("error getting info for repo [%s] err [%s]", orgRepRef.String(), err)
+		return nil, fmt.Errorf("error getting org repo for owner %s, repo %s, %s ", owner, repoName, err)
 	}
 
-	if targetBranch == "" {
-		targetBranch = *repo.Get().DefaultBranch
+	prInfo := PullRequestInfo{
+		Title:         prTitle,
+		Description:   prDescription,
+		CommitMessage: commitMsg,
+		TargetBranch:  targetBranch,
+		NewBranch:     newBranch,
+		Files:         files,
 	}
 
-	commits, err := repo.Commits().ListPage(ctx, targetBranch, 1, 0)
-	if err != nil {
-		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", orgRepRef.String(), err)
-	}
-
-	if len(commits) == 0 {
-		return nil, fmt.Errorf("no commits on the target branch: %s", targetBranch)
-	}
-
-	latestCommit := commits[0]
-
-	if err := repo.Branches().Create(ctx, newBranch, latestCommit.Get().Sha); err != nil {
-		return nil, fmt.Errorf("error creating branch [%s] for repo [%s] err [%s]", newBranch, orgRepRef.String(), err)
-	}
-
-	if _, err := repo.Commits().Create(ctx, newBranch, commitMessage, files); err != nil {
-		return nil, fmt.Errorf("error creating commit for branch [%s] for repo [%s] err [%s]", newBranch, orgRepRef.String(), err)
-	}
-
-	pr, err := repo.PullRequests().Create(ctx, prTitle, newBranch, targetBranch, prDescription)
-	if err != nil {
-		return nil, fmt.Errorf("error creating pull request [%s] for branch [%s] for repo [%s] err [%s]", prTitle, newBranch, orgRepRef.String(), err)
-	}
-
-	return pr, nil
+	return createPullRequest(ctx, orgRepo, prInfo)
 }
 
 func (p orgGitProvider) GetCommits(owner string, repoName string, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
-	commits, err := p.getCommitsFromOrgRepo(owner, repoName, targetBranch, pageSize, pageToken)
+	ctx := context.Background()
+
+	orgRepo, err := p.getOrgRepo(owner, repoName)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get commits: %w", err)
+		return nil, fmt.Errorf("error getting repo for owner %s, repo %s, %s ", owner, repoName, err)
 	}
 
-	return commits, nil
+	return getCommits(ctx, orgRepo, targetBranch, pageSize, pageToken)
 }
 
 func (p orgGitProvider) getCommitsFromOrgRepo(owner string, repoName string, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
 	ctx := context.Background()
-	orgRepoRef := NewOrgRepositoryRef(p.GetProviderDomain(), owner, repoName)
+	orgRepoRef := newOrgRepositoryRef(p.GetProviderDomain(), owner, repoName)
 
 	ur, err := p.provider.OrgRepositories().Get(ctx, orgRepoRef)
 	if err != nil {
@@ -226,5 +169,5 @@ func (p orgGitProvider) getCommitsFromOrgRepo(owner string, repoName string, tar
 }
 
 func (p orgGitProvider) GetProviderDomain() string {
-	return string(GitProviderName(p.provider.ProviderID())) + ".com"
+	return getProviderDomain(p.provider.ProviderID())
 }
