@@ -110,7 +110,7 @@ jobs:
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     - name: Setup selenium server
       run: |
-        if [ "$RUNNER_OS" == "linux" ]; then
+        if [ "$RUNNER_OS" == "Linux" ]; then
           sudo apt-get update
           sudo apt-get install -y xvfb
           sudo apt-get install -y google-chrome-stable
@@ -232,7 +232,7 @@ jobs:
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     - name: Setup selenium server
       run: |
-        if [ "$RUNNER_OS" == "linux" ]; then
+        if [ "$RUNNER_OS" == "Linux" ]; then
           sudo apt-get update
           sudo apt-get install -y xvfb
           sudo apt-get install -y google-chrome-stable
