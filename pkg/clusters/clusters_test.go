@@ -72,6 +72,45 @@ func TestGetClusters(t *testing.T) {
 	}
 }
 
+func TestGetClusterByName(t *testing.T) {
+	tests := []struct {
+		name             string
+		clusterName      string
+		cs               []clusters.Cluster
+		err              error
+		expected         string
+		expectedErrorStr string
+	}{
+		{
+			name:     "no clusters",
+			expected: "No clusters found.\n",
+		},
+		{
+			name:        "cluster exist",
+			clusterName: "cluster-a",
+			cs: []clusters.Cluster{
+				{
+					Name:   "cluster-a",
+					Status: "status-a",
+				},
+			},
+			expected: "NAME\tSTATUS\ncluster-a\tstatus-a\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := NewFakeClient(tt.cs, "", tt.err)
+			w := new(bytes.Buffer)
+			err := clusters.GetClusterByName(tt.clusterName, c, w)
+			assert.Equal(t, tt.expected, w.String())
+			if err != nil {
+				assert.EqualError(t, err, tt.expectedErrorStr)
+			}
+		})
+	}
+}
+
 func TestDeleteClusters(t *testing.T) {
 	tests := []struct {
 		name             string

@@ -50,6 +50,38 @@ func GetClusters(r ClustersRetriever, w io.Writer) error {
 	return nil
 }
 
+// GetClusterByName uses a ClustersRetriever adapter to show
+// a cluster to the console given its name.
+func GetClusterByName(name string, r ClustersRetriever, w io.Writer) error {
+	cs, err := r.RetrieveClusters()
+	if err != nil {
+		return fmt.Errorf("unable to retrieve clusters from %q: %w", r.Source(), err)
+	}
+
+	if len(cs) > 0 {
+		fmt.Fprintf(w, "NAME\tSTATUS\n")
+
+		for _, c := range cs {
+			if c.Name == name {
+				if c.PullRequestType == "create" {
+					c.Status = "Creation PR"
+				} else if c.PullRequestType == "delete" {
+					c.Status = "Deletion PR"
+				}
+
+				fmt.Fprintf(w, "%s\t%s", c.Name, c.Status)
+				fmt.Fprintln(w, "")
+			}
+		}
+
+		return nil
+	}
+
+	fmt.Fprintf(w, "No clusters found.\n")
+
+	return nil
+}
+
 func GetClusterKubeconfig(name string, r ClustersRetriever, w io.Writer) error {
 	k, err := r.GetClusterKubeconfig(name)
 	if err != nil {
