@@ -206,7 +206,6 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 	})
 
 	It("Verify that gitops can deploy and remove a gitlab app after it is setup with an empty repo initially", func() {
-		Skip("skip until gitlab repo deletion is supported")
 		var repoAbsolutePath string
 		private := true
 		tip := generateTestInputs()
@@ -387,7 +386,6 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 	})
 
 	It("Verify that gitops can deploy and remove a gitlab app with specified config-url and app-config-url set to <url>", func() {
-		Skip("skip until gitlab repo deletion is supported")
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		private := true
@@ -1730,7 +1728,6 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 	})
 
 	It("SmokeTest1 - Verify that gitops can deploy an app with app-config-url set to a gitlab <url>", func() {
-		Skip("skip until gitlab repo deletion is supported")
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var listOutput string
