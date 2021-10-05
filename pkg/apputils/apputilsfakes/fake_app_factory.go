@@ -26,6 +26,20 @@ type FakeAppFactory struct {
 		result1 app.AppService
 		result2 error
 	}
+	GetAppServiceForAddStub        func(context.Context, apputils.AddServiceParams) (app.AppService, error)
+	getAppServiceForAddMutex       sync.RWMutex
+	getAppServiceForAddArgsForCall []struct {
+		arg1 context.Context
+		arg2 apputils.AddServiceParams
+	}
+	getAppServiceForAddReturns struct {
+		result1 app.AppService
+		result2 error
+	}
+	getAppServiceForAddReturnsOnCall map[int]struct {
+		result1 app.AppService
+		result2 error
+	}
 	GetKubeServiceStub        func() (kube.Kube, error)
 	getKubeServiceMutex       sync.RWMutex
 	getKubeServiceArgsForCall []struct {
@@ -108,6 +122,71 @@ func (fake *FakeAppFactory) GetAppServiceReturnsOnCall(i int, result1 app.AppSer
 	}{result1, result2}
 }
 
+func (fake *FakeAppFactory) GetAppServiceForAdd(arg1 context.Context, arg2 apputils.AddServiceParams) (app.AppService, error) {
+	fake.getAppServiceForAddMutex.Lock()
+	ret, specificReturn := fake.getAppServiceForAddReturnsOnCall[len(fake.getAppServiceForAddArgsForCall)]
+	fake.getAppServiceForAddArgsForCall = append(fake.getAppServiceForAddArgsForCall, struct {
+		arg1 context.Context
+		arg2 apputils.AddServiceParams
+	}{arg1, arg2})
+	stub := fake.GetAppServiceForAddStub
+	fakeReturns := fake.getAppServiceForAddReturns
+	fake.recordInvocation("GetAppServiceForAdd", []interface{}{arg1, arg2})
+	fake.getAppServiceForAddMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeAppFactory) GetAppServiceForAddCallCount() int {
+	fake.getAppServiceForAddMutex.RLock()
+	defer fake.getAppServiceForAddMutex.RUnlock()
+	return len(fake.getAppServiceForAddArgsForCall)
+}
+
+func (fake *FakeAppFactory) GetAppServiceForAddCalls(stub func(context.Context, apputils.AddServiceParams) (app.AppService, error)) {
+	fake.getAppServiceForAddMutex.Lock()
+	defer fake.getAppServiceForAddMutex.Unlock()
+	fake.GetAppServiceForAddStub = stub
+}
+
+func (fake *FakeAppFactory) GetAppServiceForAddArgsForCall(i int) (context.Context, apputils.AddServiceParams) {
+	fake.getAppServiceForAddMutex.RLock()
+	defer fake.getAppServiceForAddMutex.RUnlock()
+	argsForCall := fake.getAppServiceForAddArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeAppFactory) GetAppServiceForAddReturns(result1 app.AppService, result2 error) {
+	fake.getAppServiceForAddMutex.Lock()
+	defer fake.getAppServiceForAddMutex.Unlock()
+	fake.GetAppServiceForAddStub = nil
+	fake.getAppServiceForAddReturns = struct {
+		result1 app.AppService
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeAppFactory) GetAppServiceForAddReturnsOnCall(i int, result1 app.AppService, result2 error) {
+	fake.getAppServiceForAddMutex.Lock()
+	defer fake.getAppServiceForAddMutex.Unlock()
+	fake.GetAppServiceForAddStub = nil
+	if fake.getAppServiceForAddReturnsOnCall == nil {
+		fake.getAppServiceForAddReturnsOnCall = make(map[int]struct {
+			result1 app.AppService
+			result2 error
+		})
+	}
+	fake.getAppServiceForAddReturnsOnCall[i] = struct {
+		result1 app.AppService
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeAppFactory) GetKubeService() (kube.Kube, error) {
 	fake.getKubeServiceMutex.Lock()
 	ret, specificReturn := fake.getKubeServiceReturnsOnCall[len(fake.getKubeServiceArgsForCall)]
@@ -169,6 +248,8 @@ func (fake *FakeAppFactory) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.getAppServiceMutex.RLock()
 	defer fake.getAppServiceMutex.RUnlock()
+	fake.getAppServiceForAddMutex.RLock()
+	defer fake.getAppServiceForAddMutex.RUnlock()
 	fake.getKubeServiceMutex.RLock()
 	defer fake.getKubeServiceMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

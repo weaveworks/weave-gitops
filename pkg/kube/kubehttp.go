@@ -110,7 +110,7 @@ type KubeHTTP struct {
 	Client      client.Client
 	ClusterName string
 	DynClient   dynamic.Interface
-	RestMapper  *restmapper.DeferredDiscoveryRESTMapper
+	RestMapper  meta.RESTMapper
 }
 
 func (k *KubeHTTP) GetClusterName(ctx context.Context) (string, error) {

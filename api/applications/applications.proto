@@ -99,6 +99,16 @@ service Applications {
             body: "*"
         };
     }
+
+    /*
+    * AddApplication adds an Application to a cluster via GitOps.
+    */
+    rpc AddApplication(AddApplicationRequest) returns (AddApplicationResponse) {
+        option (google.api.http) = {
+            post : "/v1/applications"
+            body: "*"
+        };
+    }
 }
 
 // This object represents a single condition for a Kubernetes object.
@@ -192,6 +202,21 @@ message GetApplicationRequest {
 
 message GetApplicationResponse {
     Application application = 1;
+}
+
+message AddApplicationRequest {
+    string name      = 1;
+    string namespace = 2;
+    string path      = 3;
+    string url       = 4;
+    string branch    = 5;
+    bool   autoMerge = 6;
+    string configUrl = 7;
+}
+
+message AddApplicationResponse {
+    bool        success        = 1;
+    Application application    = 2;
 }
 
 message Commit {

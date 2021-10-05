@@ -1,8 +1,10 @@
 import * as React from "react";
 import styled from "styled-components";
+import Button from "../components/Button";
 import DataTable from "../components/DataTable";
+import Flex from "../components/Flex";
 import Link from "../components/Link";
-import Page from "../components/Page";
+import Page, { TitleBar } from "../components/Page";
 import useApplications from "../hooks/applications";
 import { Application } from "../lib/api/applications/applications.pb";
 import { PageRoute } from "../lib/types";
@@ -21,7 +23,17 @@ function Applications({ className }: Props) {
   }, []);
 
   return (
-    <Page loading={loading} title="Applications" className={className}>
+    <Page loading={loading} className={className}>
+      <Flex align wide between>
+        <TitleBar>
+          <h2>Applications</h2>
+        </TitleBar>
+        <Link to={PageRoute.ApplicationAdd}>
+          <Button variant="contained" color="primary" type="button">
+            Add Application
+          </Button>
+        </Link>
+      </Flex>
       <DataTable
         sortFields={["name"]}
         fields={[

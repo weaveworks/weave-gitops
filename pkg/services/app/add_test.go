@@ -18,6 +18,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"sigs.k8s.io/yaml"
 )
 
@@ -25,17 +26,6 @@ var (
 	addParams AddParams
 	ctx       context.Context
 )
-
-type dummyPullRequest struct {
-}
-
-func (d dummyPullRequest) Get() gitprovider.PullRequestInfo {
-	return gitprovider.PullRequestInfo{WebURL: ""}
-}
-
-func (d dummyPullRequest) APIObject() interface{} {
-	return nil
-}
 
 var _ = Describe("Add", func() {
 	var _ = BeforeEach(func() {
@@ -778,11 +768,11 @@ var _ = Describe("Add", func() {
 			}
 
 			gitProviders.CreatePullRequestToOrgRepoStub = func(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
-				return dummyPullRequest{}, nil
+				return testutils.DummyPullRequest{}, nil
 			}
 
 			gitProviders.CreatePullRequestToUserRepoStub = func(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
-				return dummyPullRequest{}, nil
+				return testutils.DummyPullRequest{}, nil
 			}
 
 			addParams.Url = "ssh://github.com/user/repo.git"

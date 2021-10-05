@@ -22,7 +22,7 @@ export function useRequestState<T>(): [
 ] {
   const [state, setState] = useState<RequestState<T>>({
     value: null,
-    loading: true,
+    loading: false,
     error: null,
   });
 
