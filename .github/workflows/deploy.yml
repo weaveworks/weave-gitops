@@ -143,7 +143,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
           name: acceptance-tests-artefacts
-          path: test-results
+          path: ${{ env.ARTIFACTS_BASE_DIR }}
           retention-days: 1
 
   publish-test-results:
