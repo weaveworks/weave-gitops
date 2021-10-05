@@ -44,9 +44,10 @@ func getClustersCmdRunE(endpoint string, client *resty.Client) func(*cobra.Comma
 
 		defer w.Flush()
 
-		// Combine both
-		if clustersGetCmdFlags.Kubeconfig {
-			return clusters.GetClusterKubeconfig(args[0], r, os.Stdout)
+		if len(args) == 1 {
+			if clustersGetCmdFlags.Kubeconfig {
+				return clusters.GetClusterKubeconfig(args[0], r, os.Stdout)
+			}
 		}
 
 		return clusters.GetClusters(r, w)
