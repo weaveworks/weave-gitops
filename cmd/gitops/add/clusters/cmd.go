@@ -7,7 +7,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
-	"github.com/weaveworks/weave-gitops/pkg/templates"
+	"github.com/weaveworks/weave-gitops/pkg/capi"
 )
 
 type clusterCommandFlags struct {
@@ -70,7 +70,7 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 			}
 		}
 
-		creds := templates.Credentials{}
+		creds := capi.Credentials{}
 		if flags.Credentials != "" {
 			creds, err = r.RetrieveCredentialsByName(flags.Credentials)
 			if err != nil {
@@ -79,10 +79,10 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 		}
 
 		if flags.DryRun {
-			return templates.RenderTemplateWithParameters(flags.Template, vals, creds, r, os.Stdout)
+			return capi.RenderTemplateWithParameters(flags.Template, vals, creds, r, os.Stdout)
 		}
 
-		params := templates.CreatePullRequestFromTemplateParams{
+		params := capi.CreatePullRequestFromTemplateParams{
 			TemplateName:    flags.Template,
 			ParameterValues: vals,
 			RepositoryURL:   flags.RepositoryURL,
@@ -94,6 +94,6 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 			Credentials:     creds,
 		}
 
-		return templates.CreatePullRequestFromTemplate(params, r, os.Stdout)
+		return capi.CreatePullRequestFromTemplate(params, r, os.Stdout)
 	}
 }

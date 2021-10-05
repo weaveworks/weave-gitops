@@ -1,4 +1,4 @@
-package templates
+package capi
 
 import (
 	"fmt"
@@ -132,7 +132,7 @@ func GetTemplateParameters(name string, r TemplatesRetriever, w io.Writer) error
 	return nil
 }
 
-// RenderTemplate user a TemplatesRetriever adapter to show
+// RenderTemplate uses a TemplateRenderer adapter to show
 // a template populated with parameter values.
 func RenderTemplateWithParameters(name string, parameters map[string]string, creds Credentials, r TemplateRenderer, w io.Writer) error {
 	t, err := r.RenderTemplateWithParameters(name, parameters, creds)
@@ -160,3 +160,4 @@ func CreatePullRequestFromTemplate(params CreatePullRequestFromTemplateParams, r
 
 	return nil
 }
+

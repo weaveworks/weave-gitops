@@ -9,7 +9,7 @@ import (
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
-	"github.com/weaveworks/weave-gitops/pkg/templates"
+	"github.com/weaveworks/weave-gitops/pkg/capi"
 )
 
 const BaseURI = "https://weave.works/api"
@@ -18,13 +18,13 @@ func TestRetrieveTemplates(t *testing.T) {
 	tests := []struct {
 		name       string
 		responder  httpmock.Responder
-		assertFunc func(t *testing.T, templates []templates.Template, err error)
+		assertFunc func(t *testing.T, templates []capi.Template, err error)
 	}{
 		{
 			name:      "templates returned",
 			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/templates.json")),
-			assertFunc: func(t *testing.T, ts []templates.Template, err error) {
-				assert.ElementsMatch(t, ts, []templates.Template{
+			assertFunc: func(t *testing.T, ts []capi.Template, err error) {
+				assert.ElementsMatch(t, ts, []capi.Template{
 					{
 						Name:        "cluster-template",
 						Description: "this is test template 1",
@@ -43,14 +43,14 @@ func TestRetrieveTemplates(t *testing.T) {
 		{
 			name:      "error returned",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
-			assertFunc: func(t *testing.T, ts []templates.Template, err error) {
+			assertFunc: func(t *testing.T, ts []capi.Template, err error) {
 				assert.EqualError(t, err, "unable to GET templates from \"https://weave.works/api/v1/templates\": Get \"https://weave.works/api/v1/templates\": oops")
 			},
 		},
 		{
 			name:      "unexpected status code",
 			responder: httpmock.NewStringResponder(400, ""),
-			assertFunc: func(t *testing.T, ts []templates.Template, err error) {
+			assertFunc: func(t *testing.T, ts []capi.Template, err error) {
 				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/templates\" was 400")
 			},
 		},
@@ -75,13 +75,13 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 	tests := []struct {
 		name       string
 		responder  httpmock.Responder
-		assertFunc func(t *testing.T, templates []templates.TemplateParameter, err error)
+		assertFunc func(t *testing.T, templates []capi.TemplateParameter, err error)
 	}{
 		{
 			name:      "template parameters returned",
 			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/template_parameters.json")),
-			assertFunc: func(t *testing.T, ts []templates.TemplateParameter, err error) {
-				assert.ElementsMatch(t, ts, []templates.TemplateParameter{
+			assertFunc: func(t *testing.T, ts []capi.TemplateParameter, err error) {
+				assert.ElementsMatch(t, ts, []capi.TemplateParameter{
 					{
 						Name:        "CLUSTER_NAME",
 						Description: "This is used for the cluster naming.",
@@ -93,14 +93,14 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 		{
 			name:      "error returned",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
-			assertFunc: func(t *testing.T, ts []templates.TemplateParameter, err error) {
+			assertFunc: func(t *testing.T, ts []capi.TemplateParameter, err error) {
 				assert.EqualError(t, err, "unable to GET template parameters from \"https://weave.works/api/v1/templates/cluster-template/params\": Get \"https://weave.works/api/v1/templates/cluster-template/params\": oops")
 			},
 		},
 		{
 			name:      "unexpected status code",
 			responder: httpmock.NewStringResponder(400, ""),
-			assertFunc: func(t *testing.T, ts []templates.TemplateParameter, err error) {
+			assertFunc: func(t *testing.T, ts []capi.TemplateParameter, err error) {
 				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/templates/cluster-template/params\" was 400")
 			},
 		},
@@ -209,7 +209,7 @@ spec:
 
 			r, err := adapters.NewHttpClient(BaseURI, client, os.Stdout)
 			assert.NoError(t, err)
-			result, err := r.RenderTemplateWithParameters("cluster-template", nil, templates.Credentials{})
+			result, err := r.RenderTemplateWithParameters("cluster-template", nil, capi.Credentials{})
 			tt.assertFunc(t, result, err)
 		})
 	}
@@ -260,7 +260,7 @@ func TestCreatePullRequestFromTemplate(t *testing.T) {
 
 			c, err := adapters.NewHttpClient(BaseURI, client, os.Stdout)
 			assert.NoError(t, err)
-			result, err := c.CreatePullRequestFromTemplate(templates.CreatePullRequestFromTemplateParams{})
+			result, err := c.CreatePullRequestFromTemplate(capi.CreatePullRequestFromTemplateParams{})
 			tt.assertFunc(t, result, err)
 		})
 	}
@@ -270,13 +270,13 @@ func TestRetrieveCredentials(t *testing.T) {
 	tests := []struct {
 		name       string
 		responder  httpmock.Responder
-		assertFunc func(t *testing.T, credentials []templates.Credentials, err error)
+		assertFunc func(t *testing.T, credentials []capi.Credentials, err error)
 	}{
 		{
 			name:      "credentials returned",
 			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/credentials.json")),
-			assertFunc: func(t *testing.T, creds []templates.Credentials, err error) {
-				assert.ElementsMatch(t, creds, []templates.Credentials{
+			assertFunc: func(t *testing.T, creds []capi.Credentials, err error) {
+				assert.ElementsMatch(t, creds, []capi.Credentials{
 					{
 						Group:     "infrastructure.cluster.x-k8s.io",
 						Version:   "v1alpha3",
@@ -297,14 +297,14 @@ func TestRetrieveCredentials(t *testing.T) {
 		{
 			name:      "error returned",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
-			assertFunc: func(t *testing.T, creds []templates.Credentials, err error) {
+			assertFunc: func(t *testing.T, creds []capi.Credentials, err error) {
 				assert.EqualError(t, err, "unable to GET credentials from \"https://weave.works/api/v1/credentials\": Get \"https://weave.works/api/v1/credentials\": oops")
 			},
 		},
 		{
 			name:      "unexpected status code",
 			responder: httpmock.NewStringResponder(400, ""),
-			assertFunc: func(t *testing.T, creds []templates.Credentials, err error) {
+			assertFunc: func(t *testing.T, creds []capi.Credentials, err error) {
 				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/credentials\" was 400")
 			},
 		},
@@ -329,13 +329,13 @@ func TestRetrieveCredentialsByName(t *testing.T) {
 	tests := []struct {
 		name       string
 		responder  httpmock.Responder
-		assertFunc func(t *testing.T, credentials templates.Credentials, err error)
+		assertFunc func(t *testing.T, credentials capi.Credentials, err error)
 	}{
 		{
 			name:      "credentials returned",
 			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/credentials.json")),
-			assertFunc: func(t *testing.T, creds templates.Credentials, err error) {
-				assert.Equal(t, creds, templates.Credentials{
+			assertFunc: func(t *testing.T, creds capi.Credentials, err error) {
+				assert.Equal(t, creds, capi.Credentials{
 					Group:     "infrastructure.cluster.x-k8s.io",
 					Version:   "v1alpha3",
 					Kind:      "AWSClusterStaticIdentity",
