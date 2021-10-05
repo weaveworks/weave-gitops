@@ -1504,7 +1504,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	FIt("Verify that a PR can be raised against an external repo with app-config-url set to <url>", func() {
+	It("Verify that a PR can be raised against an external repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var appConfigRepoAbsPath string
