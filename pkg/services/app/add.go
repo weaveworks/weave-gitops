@@ -65,7 +65,6 @@ type AddParams struct {
 	Url                        string
 	Path                       string
 	Branch                     string
-	PrivateKey                 string
 	DeploymentType             string
 	Chart                      string
 	SourceType                 wego.SourceType
