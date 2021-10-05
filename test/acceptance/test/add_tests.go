@@ -1504,7 +1504,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Verify that a PR can be raised against an external repo with app-config-url set to <url>", func() {
+	FIt("Verify that a PR can be raised against an external repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var appConfigRepoAbsPath string
@@ -1547,7 +1547,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("Then I should see a PR created for external repo", func() {
-			verifyPRCreated(repoAbsolutePath, appName, gitproviders.GitProviderGitHub)
+			verifyPRCreated(appConfigRepoAbsPath, appName, gitproviders.GitProviderGitHub)
 		})
 
 		By("When I merge the created PR", func() {
