@@ -7,9 +7,6 @@ package add
 import (
 	"context"
 	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
@@ -97,33 +94,10 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	utils.SetCommmitMessageFromArgs("gitops app add", params.Url, params.Path, params.Name)
-	params.MigrateToNewDirStructure = migrateToNewDirStructure
+	params.MigrateToNewDirStructure = utils.MigrateToNewDirStructure
 	if err := appService.Add(params); err != nil {
 		return fmt.Errorf("failed to add the app %s: %w", params.Name, err)
 	}
 
 	return nil
-}
-func migrateToNewDirStructure(orig string) string {
-	if orig == "" {
-		return orig
-	}
-	f := strings.Split(orig, string(os.PathSeparator))
-	switch len(f) {
-	case 1:
-		return orig
-	case 2:
-		return filepath.Join(".weave-gitops", orig)
-	default:
-		return filepath.Join(".weave-gitops/apps", f[len(f)-2], f[len(f)-1])
-
-	}
-	// if len(f) < 3 {
-	// 	return filepath.Join(".weave-gitops", orig)
-	// }
-	// return filepath.Join(".weave-gitops/apps", f[len(f)-2], f[len(f)-1])
-	// if strings.Contains(orig, "targets") {
-
-	// }
-	// return strings.Replace(strings.Replace(orig, ".wego", ".weave-gitops", 1), "targets", "clusters", 1)
 }
