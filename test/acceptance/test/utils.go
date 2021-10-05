@@ -669,6 +669,7 @@ func extractOrgAndRepo(url string) (string, string) {
 
 	re := regexp.MustCompile("^[^/]+//[^/]+/([^/]+)/([^/]+).*$")
 	matches := re.FindStringSubmatch(strings.TrimSuffix(normalized.String(), ".git"))
+
 	return matches[1], matches[2]
 }
 
