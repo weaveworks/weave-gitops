@@ -183,3 +183,18 @@ func StartK8sTestEnvironment() (client.Client, func(), error) {
 		Expect(err).NotTo(HaveOccurred())
 	}, nil
 }
+func MigrateToNewDirStructure(orig string) string {
+	if orig == "" {
+		return orig
+	}
+	f := strings.Split(orig, string(os.PathSeparator))
+	switch len(f) {
+	case 1:
+		return orig
+	case 2:
+		return filepath.Join(".weave-gitops", orig)
+	default:
+		return filepath.Join(".weave-gitops/apps", f[len(f)-2], f[len(f)-1])
+
+	}
+}

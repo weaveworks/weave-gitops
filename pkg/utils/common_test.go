@@ -117,3 +117,20 @@ error occurred some error, retrying in 1s
 
 	})
 })
+
+func TestMigrateToNewDirStructure(t *testing.T) {
+	tests := []struct {
+		orig string
+		exp  string
+	}{
+		{"foo", "foo"},
+		{"apps/foo/foo.yaml", ".weave-gitops/apps/foo/foo.yaml"},
+		{".wego/apps/foo/foo.yaml", ".weave-gitops/apps/foo/foo.yaml"},
+		{"targets/mycluster/foo/deploy.yaml", ".weave-gitops/apps/foo/deploy.yaml"},
+		{".wego/targets/mycluster/foo/source.yaml", ".weave-gitops/apps/foo/source.yaml"},
+		{"", ""},
+	}
+	for _, i := range tests {
+		require.Equal(t, i.exp, MigrateToNewDirStructure(i.orig))
+	}
+}
