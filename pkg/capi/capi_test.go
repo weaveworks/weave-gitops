@@ -231,6 +231,52 @@ func TestCreatePullRequest(t *testing.T) {
 	}
 }
 
+func TestGetCredentials(t *testing.T) {
+	tests := []struct {
+		name             string
+		creds            []capi.Credentials
+		err              error
+		expected         string
+		expectedErrorStr string
+	}{
+		{
+			name:     "no credentials",
+			expected: "No credentials found.",
+		},
+		{
+			name: "credentials found",
+			creds: []capi.Credentials{
+				{
+					Name: "creds-a",
+					Kind: "AWSCluster",
+				},
+				{
+					Name: "creds-b",
+					Kind: "AzureCluster",
+				},
+			},
+			expected: "NAME\tINFRASTRUCTURE PROVIDER\ncreds-a\tAWS\ncreds-b\tAzure\n",
+		},
+		{
+			name:             "error retrieving templates",
+			err:              fmt.Errorf("oops something went wrong"),
+			expectedErrorStr: "unable to retrieve credentials from \"In-memory fake\": oops something went wrong",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := NewFakeClient(nil, nil, tt.creds, "", tt.err)
+			w := new(bytes.Buffer)
+			err := capi.GetCredentials(c, w)
+			assert.Equal(t, tt.expected, w.String())
+			if err != nil {
+				assert.EqualError(t, err, tt.expectedErrorStr)
+			}
+		})
+	}
+}
+
 type FakeClient struct {
 	ts  []capi.Template
 	ps  []capi.TemplateParameter
@@ -283,4 +329,12 @@ func (c *FakeClient) CreatePullRequestFromTemplate(params capi.CreatePullRequest
 	}
 
 	return c.s, nil
+}
+
+func (c *FakeClient) RetrieveCredentials() ([]capi.Credentials, error) {
+	if c.err != nil {
+		return nil, c.err
+	}
+
+	return c.cs, nil
 }
