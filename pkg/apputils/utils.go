@@ -24,7 +24,7 @@ import (
 type AppFactory interface {
 	GetKubeService() (kube.Kube, error)
 	GetAppService(ctx context.Context, name, namespace string) (app.AppService, error)
-	GetAppServiceForAdd(ctx context.Context, params AddServiceParams) (app.AppService, error)
+	GetAppServiceForAdd(ctx context.Context, params AppServiceParams) (app.AppService, error)
 }
 
 type DefaultAppFactory struct {
@@ -34,15 +34,16 @@ func (f *DefaultAppFactory) GetAppService(ctx context.Context, name, namespace s
 	return GetAppService(ctx, name, namespace)
 }
 
-type AddServiceParams struct {
+type AppServiceParams struct {
 	URL              string
 	ConfigURL        string
 	Namespace        string
 	IsHelmRepository bool
 	DryRun           bool
+	Token            string
 }
 
-func (f *DefaultAppFactory) GetAppServiceForAdd(ctx context.Context, params AddServiceParams) (app.AppService, error) {
+func (f *DefaultAppFactory) GetAppServiceForAdd(ctx context.Context, params AppServiceParams) (app.AppService, error) {
 	return GetAppServiceForAdd(ctx, params.URL, params.ConfigURL, params.Namespace, params.IsHelmRepository, params.DryRun)
 }
 

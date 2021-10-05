@@ -14,8 +14,10 @@ import (
 
 	"google.golang.org/grpc/codes"
 
+	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
@@ -27,7 +29,6 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
-	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -48,7 +49,7 @@ var ErrEmptyAccessToken = fmt.Errorf("access token is empty")
 type applicationServer struct {
 	pb.UnimplementedApplicationsServer
 
-	appFactory   apputils.AppFactory
+	appFactory   apputils.ServerAppFactory
 	jwtClient    auth.JWTClient
 	log          logr.Logger
 	kube         client.Client
@@ -59,7 +60,7 @@ type applicationServer struct {
 // Use the DefaultConfig() to use the default dependencies.
 type ApplicationsConfig struct {
 	Logger           logr.Logger
-	AppFactory       apputils.AppFactory
+	AppFactory       apputils.ServerAppFactory
 	JwtClient        auth.JWTClient
 	KubeClient       client.Client
 	GithubAuthClient auth.GithubAuthClient
@@ -96,7 +97,7 @@ func DefaultConfig() (*ApplicationsConfig, error) {
 
 	return &ApplicationsConfig{
 		Logger:           logr,
-		AppFactory:       &apputils.DefaultAppFactory{},
+		AppFactory:       apputils.NewServerAppFactory(rawClient, logger.NewApiLogger()),
 		JwtClient:        jwtClient,
 		KubeClient:       rawClient,
 		GithubAuthClient: auth.NewGithubAuthProvider(http.DefaultClient),
@@ -294,6 +295,11 @@ func mapSourceSpecToReponse(src client.Object) *pb.Source {
 }
 
 func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddApplicationRequest) (*pb.AddApplicationResponse, error) {
+	token, err := middleware.ExtractProviderToken(ctx)
+	if err != nil {
+		return nil, grpcStatus.Errorf(codes.Unauthenticated, "token error: %s", err.Error())
+	}
+
 	appUrl, err := gitproviders.NewNormalizedRepoURL(msg.Url)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "unable to parse app url %q: %s", msg.Url, err)
@@ -307,20 +313,14 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 		}
 	}
 
-	appSrv, err := s.appFactory.GetAppServiceForAdd(ctx, apputils.AddServiceParams{
-		URL:              appUrl.String(),
-		ConfigURL:        configUrl.String(),
-		Namespace:        msg.Namespace,
-		IsHelmRepository: false,
-		DryRun:           false,
+	appSrv, err := s.appFactory.GetAppService(ctx, apputils.AppServiceParams{
+		URL:       msg.Url,
+		ConfigURL: msg.ConfigUrl,
+		Namespace: msg.Namespace,
+		Token:     token.AccessToken,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("could not create app service: %w", err)
-	}
-
-	token, err := middleware.ExtractProviderToken(ctx)
-	if err != nil {
-		return nil, grpcStatus.Error(codes.Unauthenticated, fmt.Sprintf("token error: %s", err.Error()))
 	}
 
 	params := app.AddParams{
@@ -367,14 +367,19 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 		PageToken:        pageToken,
 	}
 
-	appService, appErr := s.appFactory.GetAppService(ctx, params.Name, params.Namespace)
-	if appErr != nil {
-		return nil, fmt.Errorf("failed to create app service: %w", appErr)
+	application := &wego.Application{}
+	if err := s.kube.Get(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace}, application); err != nil {
+		return nil, fmt.Errorf("could not get app %q in namespace %q: %w", msg.Name, msg.Namespace, err)
 	}
 
-	application, err := appService.Get(types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
-	if err != nil {
-		return nil, fmt.Errorf("unable to get application for %s %w", params.Name, err)
+	appService, appErr := s.appFactory.GetAppService(ctx, apputils.AppServiceParams{
+		URL:       application.Spec.URL,
+		ConfigURL: application.Spec.ConfigURL,
+		Namespace: msg.Namespace,
+		Token:     providerToken.AccessToken,
+	})
+	if appErr != nil {
+		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to create app service: %s", appErr.Error())
 	}
 
 	commits, err := appService.GetCommits(params, application)

@@ -630,7 +630,7 @@ var _ = Describe("ApplicationsServer", func() {
 				rand.Seed(time.Now().UnixNano())
 				secretKey := rand.String(20)
 
-				appFactory := &apputilsfakes.FakeAppFactory{}
+				appFactory := &apputilsfakes.FakeServerAppFactory{}
 
 				appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 					return kubeClient, nil
@@ -724,7 +724,8 @@ var _ = Describe("ApplicationsServer", func() {
 					return "", fmt.Errorf("some error")
 				}
 
-				appFactory := &apputilsfakes.FakeAppFactory{}
+				appFactory := &apputilsfakes.FakeServerAppFactory{}
+
 				appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 					return kubeClient, nil
 				}
@@ -782,7 +783,7 @@ var _ = Describe("Applications handler", func() {
 			}}, nil
 		}
 
-		appFactory := &apputilsfakes.FakeAppFactory{}
+		appFactory := &apputilsfakes.FakeServerAppFactory{}
 
 		appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 			return k, nil
@@ -833,7 +834,7 @@ var _ = Describe("Applications handler", func() {
 		}
 
 		gitProviders := &gitprovidersfakes.FakeGitProvider{}
-		appFactory := &apputilsfakes.FakeAppFactory{}
+		appFactory := &apputilsfakes.FakeServerAppFactory{}
 		commits := []gitprovider.Commit{&fakeCommit{}}
 		jwtClient := &authfakes.FakeJWTClient{
 			VerifyJWTStub: func(s string) (*auth.Claims, error) {
@@ -847,9 +848,7 @@ var _ = Describe("Applications handler", func() {
 			return testApp, nil
 		}
 
-		appFactory.GetAppServiceStub = func(c context.Context, s1, s2 string) (app.AppService, error) {
-			return app.New(c, nil, nil, nil, gitProviders, nil, kubeClient, nil), nil
-		}
+		appFactory.GetAppServiceReturns(app.New(context.Background(), nil, nil, nil, gitProviders, nil, kubeClient, nil), nil)
 
 		appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 			return kubeClient, nil

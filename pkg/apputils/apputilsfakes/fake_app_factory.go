@@ -26,11 +26,11 @@ type FakeAppFactory struct {
 		result1 app.AppService
 		result2 error
 	}
-	GetAppServiceForAddStub        func(context.Context, apputils.AddServiceParams) (app.AppService, error)
+	GetAppServiceForAddStub        func(context.Context, apputils.AppServiceParams) (app.AppService, error)
 	getAppServiceForAddMutex       sync.RWMutex
 	getAppServiceForAddArgsForCall []struct {
 		arg1 context.Context
-		arg2 apputils.AddServiceParams
+		arg2 apputils.AppServiceParams
 	}
 	getAppServiceForAddReturns struct {
 		result1 app.AppService
@@ -122,12 +122,12 @@ func (fake *FakeAppFactory) GetAppServiceReturnsOnCall(i int, result1 app.AppSer
 	}{result1, result2}
 }
 
-func (fake *FakeAppFactory) GetAppServiceForAdd(arg1 context.Context, arg2 apputils.AddServiceParams) (app.AppService, error) {
+func (fake *FakeAppFactory) GetAppServiceForAdd(arg1 context.Context, arg2 apputils.AppServiceParams) (app.AppService, error) {
 	fake.getAppServiceForAddMutex.Lock()
 	ret, specificReturn := fake.getAppServiceForAddReturnsOnCall[len(fake.getAppServiceForAddArgsForCall)]
 	fake.getAppServiceForAddArgsForCall = append(fake.getAppServiceForAddArgsForCall, struct {
 		arg1 context.Context
-		arg2 apputils.AddServiceParams
+		arg2 apputils.AppServiceParams
 	}{arg1, arg2})
 	stub := fake.GetAppServiceForAddStub
 	fakeReturns := fake.getAppServiceForAddReturns
@@ -148,13 +148,13 @@ func (fake *FakeAppFactory) GetAppServiceForAddCallCount() int {
 	return len(fake.getAppServiceForAddArgsForCall)
 }
 
-func (fake *FakeAppFactory) GetAppServiceForAddCalls(stub func(context.Context, apputils.AddServiceParams) (app.AppService, error)) {
+func (fake *FakeAppFactory) GetAppServiceForAddCalls(stub func(context.Context, apputils.AppServiceParams) (app.AppService, error)) {
 	fake.getAppServiceForAddMutex.Lock()
 	defer fake.getAppServiceForAddMutex.Unlock()
 	fake.GetAppServiceForAddStub = stub
 }
 
-func (fake *FakeAppFactory) GetAppServiceForAddArgsForCall(i int) (context.Context, apputils.AddServiceParams) {
+func (fake *FakeAppFactory) GetAppServiceForAddArgsForCall(i int) (context.Context, apputils.AppServiceParams) {
 	fake.getAppServiceForAddMutex.RLock()
 	defer fake.getAppServiceForAddMutex.RUnlock()
 	argsForCall := fake.getAppServiceForAddArgsForCall[i]
