@@ -820,7 +820,6 @@ var _ = Describe("Applications handler", func() {
 
 	It("get commits", func() {
 		log := testutils.MakeFakeLogr()
-		kubeClient := &kubefakes.FakeKube{}
 		testApp := &wego.Application{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "testapp",
@@ -844,26 +843,22 @@ var _ = Describe("Applications handler", func() {
 			},
 		}
 
-		kubeClient.GetApplicationStub = func(c context.Context, nn types.NamespacedName) (*wego.Application, error) {
-			return testApp, nil
-		}
+		appFactory.GetAppServiceReturns(app.New(context.Background(), nil, nil, nil, gitProviders, nil, nil, nil), nil)
 
-		appFactory.GetAppServiceReturns(app.New(context.Background(), nil, nil, nil, gitProviders, nil, kubeClient, nil), nil)
-
-		appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
-			return kubeClient, nil
-		}
-		gitProviders.GetCommitsStub = func(_ context.Context, owner string, repoName, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
+		gitProviders.GetCommitsFromUserRepoStub = func(gitprovider.UserRepositoryRef, string, int, int) ([]gitprovider.Commit, error) {
 			return commits, nil
 		}
 
 		gitProviders.GetCommitsReturns(commits, nil)
 
+		cl := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
+		Expect(cl.Create(context.Background(), testApp)).To(Succeed())
+
 		cfg := ApplicationsConfig{
 			Logger:     log,
 			AppFactory: appFactory,
 			JwtClient:  jwtClient,
-			KubeClient: fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build(),
+			KubeClient: cl,
 		}
 
 		handler, err := NewApplicationsHandler(context.Background(), &cfg)
