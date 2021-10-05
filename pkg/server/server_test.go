@@ -889,7 +889,7 @@ func formatLogVals(vals []interface{}) []string {
 }
 
 func contextWithAuth(ctx context.Context) context.Context {
-	md := metadata.New(map[string]string{"Authorization": "mytoken"})
+	md := metadata.New(map[string]string{middleware.GRPCAuthMetadataKey: "mytoken"})
 	ctx = metadata.NewOutgoingContext(ctx, md)
 
 	return ctx
