@@ -16,7 +16,7 @@ type clustersGetFlags struct {
 
 var clustersGetCmdFlags clustersGetFlags
 
-func ClusterCommand(endpoint string, client *resty.Client) *cobra.Command {
+func ClusterCommand(endpoint *string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "cluster",
 		Aliases: []string{"clusters"},
@@ -33,9 +33,9 @@ gitops get clusters
 	return cmd
 }
 
-func getClustersCmdRunE(endpoint string, client *resty.Client) func(*cobra.Command, []string) error {
+func getClustersCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(endpoint, client, os.Stdout)
+		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
 		if err != nil {
 			return err
 		}
