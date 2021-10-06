@@ -114,7 +114,7 @@ func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string
 
 	}
 
-	remover, err := app.CloneRepo(g.gitClient, params.AppConfigURL, configBranch, params.DryRun)
+	remover, _, err := app.CloneRepo(g.gitClient, params.AppConfigURL, configBranch, params.DryRun)
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)
 	}
