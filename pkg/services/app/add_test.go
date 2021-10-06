@@ -92,11 +92,6 @@ var _ = Describe("Add", func() {
 				return branch, nil
 			}
 
-			// gitProviders.GetRepoInfoStub = func(accountType gitproviders.ProviderAccountType, owner, repoName string) (*gitprovider.RepositoryInfo, error) {
-			// 	visibility := gitprovider.RepositoryVisibility("public")
-			// 	return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: nil, Visibility: &visibility}, nil
-			// }
-
 			addParams.Branch = ""
 		})
 
@@ -811,20 +806,12 @@ var _ = Describe("Add", func() {
 			})
 
 			It("creates the pull request against the default branch for an org config repository", func() {
-				// gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-				// 	return gitproviders.AccountTypeOrg, nil
-				// }
-
 				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
 				_, _, branch, _, _, _, _, _ := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(branch).To(Equal("default-config-branch"))
 			})
 
 			It("creates the pull request against the default branch for a user config repository", func() {
-				// gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-				// 	return gitproviders.AccountTypeUser, nil
-				// }
-
 				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
 				_, _, branch, _, _, _, _, _ := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(branch).To(Equal("default-config-branch"))

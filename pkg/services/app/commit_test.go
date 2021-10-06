@@ -20,10 +20,6 @@ var _ = Describe("Get Commits", func() {
 			Spec: wego.ApplicationSpec{URL: "https://github.com/foo/bar"},
 		}
 
-		// gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-		// 	return gitproviders.AccountTypeUser, nil
-		// }
-
 		commits := []gitprovider.Commit{&fakeCommit{}}
 		gitProviders.GetCommitsReturns(commits, nil)
 
@@ -41,10 +37,6 @@ var _ = Describe("Get Commits", func() {
 		application := &wego.Application{
 			Spec: wego.ApplicationSpec{URL: "https://github.com/foo/bar"},
 		}
-
-		// gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-		// 	return gitproviders.AccountTypeOrg, nil
-		// }
 
 		commits := []gitprovider.Commit{&fakeCommit{}}
 		gitProviders.GetCommitsReturns(commits, nil)

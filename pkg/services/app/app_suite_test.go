@@ -44,10 +44,6 @@ var _ = BeforeEach(func() {
 			vis := gitprovider.RepositoryVisibilityPrivate
 			return &vis, nil
 		},
-
-		// GetAccountTypeStub: func(owner string) (gitproviders.ProviderAccountType, error) {
-		// 	return gitproviders.AccountTypeUser, nil
-		// },
 	}
 
 	appSrv = New(context.Background(), &loggerfakes.FakeLogger{}, gitClient, gitClient, gitProviders, fluxClient, kubeClient, osysClient)
