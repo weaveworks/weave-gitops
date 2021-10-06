@@ -11,6 +11,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"golang.org/x/oauth2"
+	"google.golang.org/grpc/metadata"
 )
 
 type statusRecorder struct {
@@ -111,6 +112,12 @@ func WithProviderToken(jwtClient auth.JWTClient, h http.Handler, log logr.Logger
 
 // Get the token from request context.
 func ExtractProviderToken(ctx context.Context) (*oauth2.Token, error) {
+	// Tests use straight GRPC connections instead of the http gateway.
+	md, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		return &oauth2.Token{AccessToken: md.Get("authorization")[0]}, nil
+	}
+
 	c := ctx.Value(tokenKey)
 
 	vals, ok := c.(contextVals)

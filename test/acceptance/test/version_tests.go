@@ -7,7 +7,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("Weave GitOps Version Tests", func() {
+var _ = Describe("Weave GitOps Version Test", func() {
 
 	var session *gexec.Session
 

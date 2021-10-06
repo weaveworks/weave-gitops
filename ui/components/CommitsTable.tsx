@@ -49,14 +49,6 @@ function CommitsTable({ className, app, onAuthClick }: Props) {
     );
   }, [app]);
 
-  if (loading) {
-    return (
-      <Flex wide center>
-        <CircularProgress />
-      </Flex>
-    );
-  }
-
   if (error) {
     return (
       <>
@@ -83,6 +75,14 @@ function CommitsTable({ className, app, onAuthClick }: Props) {
           }
         />
       </>
+    );
+  }
+
+  if ((!commits && !error) || loading) {
+    return (
+      <Flex wide center>
+        <CircularProgress />
+      </Flex>
     );
   }
 

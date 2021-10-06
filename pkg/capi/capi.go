@@ -1,4 +1,4 @@
-package templates
+package capi
 
 import (
 	"fmt"
@@ -132,7 +132,7 @@ func GetTemplateParameters(name string, r TemplatesRetriever, w io.Writer) error
 	return nil
 }
 
-// RenderTemplate user a TemplatesRetriever adapter to show
+// RenderTemplate uses a TemplateRenderer adapter to show
 // a template populated with parameter values.
 func RenderTemplateWithParameters(name string, parameters map[string]string, creds Credentials, r TemplateRenderer, w io.Writer) error {
 	t, err := r.RenderTemplateWithParameters(name, parameters, creds)
@@ -157,6 +157,33 @@ func CreatePullRequestFromTemplate(params CreatePullRequestFromTemplateParams, r
 	}
 
 	fmt.Fprintf(w, "Created pull request: %s\n", res)
+
+	return nil
+}
+
+// GetCredentials uses a CredentialsRetriever adapter to show
+// a list of CAPI credentials.
+func GetCredentials(r CredentialsRetriever, w io.Writer) error {
+	cs, err := r.RetrieveCredentials()
+	if err != nil {
+		return fmt.Errorf("unable to retrieve credentials from %q: %w", r.Source(), err)
+	}
+
+	if len(cs) > 0 {
+		fmt.Fprintf(w, "NAME\tINFRASTRUCTURE PROVIDER\n")
+
+		for _, c := range cs {
+			fmt.Fprintf(w, "%s", c.Name)
+			// Extract the infra provider name from ClusterKind
+			provider := c.Kind[:strings.Index(c.Kind, "Cluster")]
+			fmt.Fprintf(w, "\t%s", provider)
+			fmt.Fprintln(w, "")
+		}
+
+		return nil
+	}
+
+	fmt.Fprintf(w, "No credentials found.")
 
 	return nil
 }

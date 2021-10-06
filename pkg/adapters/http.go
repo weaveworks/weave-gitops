@@ -9,8 +9,8 @@ import (
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/weaveworks/weave-gitops/pkg/capi"
 	"github.com/weaveworks/weave-gitops/pkg/clusters"
-	"github.com/weaveworks/weave-gitops/pkg/templates"
 )
 
 const (
@@ -56,11 +56,11 @@ func (c *HttpClient) Source() string {
 }
 
 // RetrieveTemplates returns the list of all templates from the cluster service.
-func (c *HttpClient) RetrieveTemplates() ([]templates.Template, error) {
+func (c *HttpClient) RetrieveTemplates() ([]capi.Template, error) {
 	endpoint := "v1/templates"
 
 	type ListTemplatesResponse struct {
-		Templates []*templates.Template
+		Templates []*capi.Template
 	}
 
 	var templateList ListTemplatesResponse
@@ -77,9 +77,9 @@ func (c *HttpClient) RetrieveTemplates() ([]templates.Template, error) {
 		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
 	}
 
-	var ts []templates.Template
+	var ts []capi.Template
 	for _, t := range templateList.Templates {
-		ts = append(ts, templates.Template{
+		ts = append(ts, capi.Template{
 			Name:        t.Name,
 			Description: t.Description,
 		})
@@ -90,11 +90,11 @@ func (c *HttpClient) RetrieveTemplates() ([]templates.Template, error) {
 
 // RetrieveTemplateParameters returns the list of all parameters of the
 // specified template.
-func (c *HttpClient) RetrieveTemplateParameters(name string) ([]templates.TemplateParameter, error) {
+func (c *HttpClient) RetrieveTemplateParameters(name string) ([]capi.TemplateParameter, error) {
 	endpoint := "v1/templates/{name}/params"
 
 	type ListTemplateParametersResponse struct {
-		Parameters []*templates.TemplateParameter
+		Parameters []*capi.TemplateParameter
 	}
 
 	var templateParametersList ListTemplateParametersResponse
@@ -114,9 +114,9 @@ func (c *HttpClient) RetrieveTemplateParameters(name string) ([]templates.Templa
 		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
 	}
 
-	var tps []templates.TemplateParameter
+	var tps []capi.TemplateParameter
 	for _, p := range templateParametersList.Parameters {
-		tps = append(tps, templates.TemplateParameter{
+		tps = append(tps, capi.TemplateParameter{
 			Name:        p.Name,
 			Description: p.Description,
 			Required:    p.Required,
@@ -129,13 +129,13 @@ func (c *HttpClient) RetrieveTemplateParameters(name string) ([]templates.Templa
 
 // RenderTemplateWithParameters returns a YAML representation of the specified
 // template populated with the supplied parameters.
-func (c *HttpClient) RenderTemplateWithParameters(name string, parameters map[string]string, creds templates.Credentials) (string, error) {
+func (c *HttpClient) RenderTemplateWithParameters(name string, parameters map[string]string, creds capi.Credentials) (string, error) {
 	endpoint := "v1/templates/{name}/render"
 
 	// POST request payload
 	type TemplateParameterValuesAndCredentials struct {
-		Values      map[string]string     `json:"values"`
-		Credentials templates.Credentials `json:"credentials"`
+		Values      map[string]string `json:"values"`
+		Credentials capi.Credentials  `json:"credentials"`
 	}
 
 	// POST response payload
@@ -174,20 +174,20 @@ func (c *HttpClient) RenderTemplateWithParameters(name string, parameters map[st
 
 // CreatePullRequestFromTemplate commits the YAML template to the specified
 // branch and creates a pull request of that branch.
-func (c *HttpClient) CreatePullRequestFromTemplate(params templates.CreatePullRequestFromTemplateParams) (string, error) {
+func (c *HttpClient) CreatePullRequestFromTemplate(params capi.CreatePullRequestFromTemplateParams) (string, error) {
 	endpoint := "v1/clusters"
 
 	// POST request payload
 	type CreatePullRequestFromTemplateRequest struct {
-		RepositoryURL   string                `json:"repositoryUrl"`
-		HeadBranch      string                `json:"headBranch"`
-		BaseBranch      string                `json:"baseBranch"`
-		Title           string                `json:"title"`
-		Description     string                `json:"description"`
-		TemplateName    string                `json:"templateName"`
-		ParameterValues map[string]string     `json:"parameter_values"`
-		CommitMessage   string                `json:"commitMessage"`
-		Credentials     templates.Credentials `json:"credentials"`
+		RepositoryURL   string            `json:"repositoryUrl"`
+		HeadBranch      string            `json:"headBranch"`
+		BaseBranch      string            `json:"baseBranch"`
+		Title           string            `json:"title"`
+		Description     string            `json:"description"`
+		TemplateName    string            `json:"templateName"`
+		ParameterValues map[string]string `json:"parameter_values"`
+		CommitMessage   string            `json:"commitMessage"`
+		Credentials     capi.Credentials  `json:"credentials"`
 	}
 
 	// POST response payload
@@ -232,11 +232,11 @@ func (c *HttpClient) CreatePullRequestFromTemplate(params templates.CreatePullRe
 }
 
 // RetrieveCredentials returns a list of all CAPI credentials.
-func (c *HttpClient) RetrieveCredentials() ([]templates.Credentials, error) {
+func (c *HttpClient) RetrieveCredentials() ([]capi.Credentials, error) {
 	endpoint := "v1/credentials"
 
 	type ListCredentialsResponse struct {
-		Credentials []*templates.Credentials
+		Credentials []*capi.Credentials
 		Total       int32
 	}
 
@@ -255,9 +255,9 @@ func (c *HttpClient) RetrieveCredentials() ([]templates.Credentials, error) {
 		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
 	}
 
-	var creds []templates.Credentials
+	var creds []capi.Credentials
 	for _, c := range credentialsList.Credentials {
-		creds = append(creds, templates.Credentials{
+		creds = append(creds, capi.Credentials{
 			Group:     c.Group,
 			Version:   c.Version,
 			Kind:      c.Kind,
@@ -270,8 +270,8 @@ func (c *HttpClient) RetrieveCredentials() ([]templates.Credentials, error) {
 }
 
 // RetrieveCredentialsByName returns a specific set of CAPI credentials.
-func (c *HttpClient) RetrieveCredentialsByName(name string) (templates.Credentials, error) {
-	var creds templates.Credentials
+func (c *HttpClient) RetrieveCredentialsByName(name string) (capi.Credentials, error) {
+	var creds capi.Credentials
 
 	credsList, err := c.RetrieveCredentials()
 	if err != nil {
@@ -280,7 +280,7 @@ func (c *HttpClient) RetrieveCredentialsByName(name string) (templates.Credentia
 
 	for _, c := range credsList {
 		if c.Name == name {
-			creds = templates.Credentials{
+			creds = capi.Credentials{
 				Group:     c.Group,
 				Version:   c.Version,
 				Kind:      c.Kind,

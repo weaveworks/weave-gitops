@@ -12,9 +12,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
@@ -33,9 +35,9 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/middleware"
-	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -55,8 +57,6 @@ var _ = Describe("ApplicationsServer", func() {
 		namespace.Name = "kube-test-" + rand.String(5)
 		err = k8sClient.Create(context.Background(), namespace)
 		Expect(err).NotTo(HaveOccurred(), "failed to create test namespace")
-
-		k = &kube.KubeHTTP{Client: k8sClient, ClusterName: testClustername}
 	})
 	It("ListApplication", func() {
 		ctx := context.Background()
@@ -484,7 +484,6 @@ var _ = Describe("ApplicationsServer", func() {
 
 			Expect(res.DeviceCode).To(Equal(code))
 		})
-		// Possibly drop this
 		It("returns an error when github returns an error", func() {
 			ctx := context.Background()
 			someError := errors.New("some gh error")
@@ -540,6 +539,81 @@ var _ = Describe("ApplicationsServer", func() {
 		})
 	})
 
+	Describe("AddApplication", func() {
+		It("adds an app with an unspecified config repo", func() {
+			ctx := context.Background()
+			name := "my-app"
+			appRequest := &pb.AddApplicationRequest{
+				Name:      name,
+				Namespace: namespace.Name,
+				Url:       "ssh://git@github.com/some-org/somerepo.git",
+				Path:      "./k8s/mydir",
+				Branch:    "main",
+			}
+			gp.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil)
+
+			gp.CreatePullRequestToUserRepoReturns(testutils.DummyPullRequest{}, nil)
+
+			res, err := appsClient.AddApplication(contextWithAuth(ctx), appRequest)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res.Success).To(BeTrue())
+
+			Expect(gp.CreatePullRequestToUserRepoCallCount()).To(Equal(1), "should have made a PR")
+		})
+		It("adds an app with a config repo url specified", func() {
+			ctx := context.Background()
+			name := "my-app"
+			appRequest := &pb.AddApplicationRequest{
+				Name:      name,
+				Namespace: namespace.Name,
+				Url:       "ssh://git@github.com/some-org/somerepo.git",
+				Path:      "./k8s/mydir",
+				Branch:    "main",
+				ConfigUrl: "ssh://git@github.com/some-org/my-config-url.git",
+			}
+			gp.GetRepoVisibilityStub = func(s string) (*gitprovider.RepositoryVisibility, error) {
+				return gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil
+			}
+
+			gp.CreatePullRequestToUserRepoStub = func(urr gitprovider.UserRepositoryRef, s1, s2 string, cf []gitprovider.CommitFile, s3, s4, s5 string) (gitprovider.PullRequest, error) {
+				return testutils.DummyPullRequest{}, nil
+			}
+
+			res, err := appsClient.AddApplication(contextWithAuth(ctx), appRequest)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res.Success).To(BeTrue())
+
+			Expect(configGit.CommitCallCount()).To(Equal(1), "should have committed to config git repo")
+			Expect(gp.CreatePullRequestToUserRepoCallCount()).To(Equal(1), "should have made a PR")
+		})
+		It("adds an app with automerge and no config repo defined", func() {
+			ctx := context.Background()
+			name := "my-app"
+			appRequest := &pb.AddApplicationRequest{
+				Name:      name,
+				Namespace: namespace.Name,
+				Url:       "ssh://git@github.com/some-org/somerepo.git",
+				Path:      "./k8s/mydir",
+				Branch:    "main",
+				AutoMerge: true,
+			}
+			gp.GetRepoVisibilityStub = func(s string) (*gitprovider.RepositoryVisibility, error) {
+				return gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil
+			}
+
+			gp.CreatePullRequestToUserRepoStub = func(urr gitprovider.UserRepositoryRef, s1, s2 string, cf []gitprovider.CommitFile, s3, s4, s5 string) (gitprovider.PullRequest, error) {
+				return testutils.DummyPullRequest{}, nil
+			}
+
+			res, err := appsClient.AddApplication(contextWithAuth(ctx), appRequest)
+			Expect(err).NotTo((HaveOccurred()))
+			Expect(res.Success).To(BeTrue())
+
+			Expect(configGit.CommitCallCount()).To(Equal(1), "should have committed to the config git repo")
+			Expect(gp.CreatePullRequestToUserRepoCallCount()).To(Equal(0), "should NOT have made a PR")
+		})
+	})
+
 	Describe("middleware", func() {
 		Describe("logging", func() {
 			var log *fakelogr.FakeLogger
@@ -557,9 +631,7 @@ var _ = Describe("ApplicationsServer", func() {
 				secretKey := rand.String(20)
 
 				appFactory := &apputilsfakes.FakeAppFactory{}
-				appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
-					return app.New(ctx, nil, nil, nil, nil, nil, kubeClient, nil), nil
-				}
+
 				appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 					return kubeClient, nil
 				}
@@ -653,9 +725,6 @@ var _ = Describe("ApplicationsServer", func() {
 				}
 
 				appFactory := &apputilsfakes.FakeAppFactory{}
-				appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
-					return app.New(ctx, nil, nil, nil, nil, nil, kubeClient, nil), nil
-				}
 				appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 					return kubeClient, nil
 				}
@@ -714,9 +783,7 @@ var _ = Describe("Applications handler", func() {
 		}
 
 		appFactory := &apputilsfakes.FakeAppFactory{}
-		appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
-			return app.New(ctx, nil, nil, nil, nil, nil, k, nil), nil
-		}
+
 		appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 			return k, nil
 		}
@@ -753,18 +820,16 @@ var _ = Describe("Applications handler", func() {
 	It("get commits", func() {
 		log := testutils.MakeFakeLogr()
 		kubeClient := &kubefakes.FakeKube{}
-		kubeClient.GetApplicationStub = func(context.Context, types.NamespacedName) (*wego.Application, error) {
-			return &wego.Application{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "my-app",
-					Namespace: "wego-system",
-				},
-				Spec: wego.ApplicationSpec{
-					Branch: "main",
-					Path:   "./k8s",
-					URL:    "https://github.com/owner/repo1",
-				},
-			}, nil
+		testApp := &wego.Application{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "testapp",
+				Namespace: "wego-system",
+			},
+			Spec: wego.ApplicationSpec{
+				Branch: "main",
+				Path:   "./k8s",
+				URL:    "https://github.com/owner/repo1",
+			},
 		}
 
 		gitProviders := &gitprovidersfakes.FakeGitProvider{}
@@ -778,8 +843,12 @@ var _ = Describe("Applications handler", func() {
 			},
 		}
 
-		appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
-			return app.New(ctx, nil, nil, nil, gitProviders, nil, kubeClient, nil), nil
+		kubeClient.GetApplicationStub = func(c context.Context, nn types.NamespacedName) (*wego.Application, error) {
+			return testApp, nil
+		}
+
+		appFactory.GetAppServiceStub = func(c context.Context, s1, s2 string) (app.AppService, error) {
+			return app.New(c, nil, nil, nil, gitProviders, nil, kubeClient, nil), nil
 		}
 
 		appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
@@ -798,6 +867,7 @@ var _ = Describe("Applications handler", func() {
 			Logger:     log,
 			AppFactory: appFactory,
 			JwtClient:  jwtClient,
+			KubeClient: fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build(),
 		}
 
 		handler, err := NewApplicationsHandler(context.Background(), &cfg)
@@ -805,8 +875,7 @@ var _ = Describe("Applications handler", func() {
 
 		ts := httptest.NewServer(handler)
 		defer ts.Close()
-
-		path := "/v1/applications/testapp/commits"
+		path := fmt.Sprintf("/v1/applications/%s/commits?namespace=%s", testApp.Name, testApp.Namespace)
 		url := ts.URL + path
 
 		req, err := http.NewRequest(http.MethodGet, url, nil)
@@ -814,6 +883,8 @@ var _ = Describe("Applications handler", func() {
 		req.Header.Add("Authorization", "token my-jwt-token")
 
 		res, err := ts.Client().Do(req)
+		Expect(err).NotTo(HaveOccurred())
+
 		Expect(err).NotTo(HaveOccurred())
 		Expect(res.StatusCode).To(Equal(http.StatusOK))
 
@@ -869,4 +940,11 @@ func formatLogVals(vals []interface{}) []string {
 	}
 
 	return list
+}
+
+func contextWithAuth(ctx context.Context) context.Context {
+	md := metadata.New(map[string]string{"Authorization": "mytoken"})
+	ctx = metadata.NewOutgoingContext(ctx, md)
+
+	return ctx
 }
