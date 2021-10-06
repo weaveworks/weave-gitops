@@ -114,7 +114,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		ctx := context.Background()
 
-		kubeClient, _, kubeErr := kube.NewKubeHTTPClient()
+		kubeClient, _, kubeErr := kube.NewKubeHTTPClient(nil, "")
 		Expect(kubeErr).ShouldNot(HaveOccurred())
 
 		crdErr := kubeClient.Delete(ctx, manifests.AppCRD)

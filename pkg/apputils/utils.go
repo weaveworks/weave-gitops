@@ -55,7 +55,7 @@ func (f *DefaultAppFactory) GetAppServiceForAdd(ctx context.Context, params AppS
 }
 
 func (f *DefaultAppFactory) GetKubeService() (kube.Kube, error) {
-	kubeClient, _, err := kube.NewKubeHTTPClient()
+	kubeClient, _, err := kube.NewKubeHTTPClient(nil, "")
 	if err != nil {
 		return nil, fmt.Errorf("error creating k8s http client: %w", err)
 	}
@@ -73,7 +73,7 @@ func GetBaseClients() (AppClients, error) {
 	cliRunner := &runner.CLIRunner{}
 	fluxClient := flux.New(osysClient, cliRunner)
 
-	kubeClient, _, err := kube.NewKubeHTTPClient()
+	kubeClient, _, err := kube.NewKubeHTTPClient(nil, "")
 	if err != nil {
 		return AppClients{}, fmt.Errorf("error creating k8s http client: %w", err)
 	}
@@ -91,7 +91,7 @@ func GetBaseClients() (AppClients, error) {
 func IsClusterReady() error {
 	logger := GetLogger()
 
-	kube, _, err := kube.NewKubeHTTPClient()
+	kube, _, err := kube.NewKubeHTTPClient(nil, "")
 	if err != nil {
 		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
@@ -128,7 +128,7 @@ func GetAppServiceForAdd(ctx context.Context, url, configUrl, namespace string, 
 }
 
 func getGitClientsForApp(ctx context.Context, appName string, namespace string, dryRun bool) (git.Git, git.Git, gitproviders.GitProvider, error) {
-	kube, _, err := kube.NewKubeHTTPClient()
+	kube, _, err := kube.NewKubeHTTPClient(nil, "")
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("error creating k8s http client: %w", err)
 	}
@@ -162,7 +162,7 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 		return nil, nil, nil, fmt.Errorf("error normalizing url: %w", err)
 	}
 
-	kube, _, err := kube.NewKubeHTTPClient()
+	kube, _, err := kube.NewKubeHTTPClient(nil, "")
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("error creating k8s http client: %w", err)
 	}
@@ -234,7 +234,7 @@ func GetAuthService(ctx context.Context, normalizedUrl gitproviders.RepoURL, dry
 		}
 	}
 
-	_, rawClient, err := kube.NewKubeHTTPClient()
+	_, rawClient, err := kube.NewKubeHTTPClient(nil, "")
 	if err != nil {
 		return nil, fmt.Errorf("error creating k8s http client: %w", err)
 	}

@@ -33,6 +33,9 @@ unit-tests: dependencies cmd/gitops/ui/run/dist/index.html ## Run unit tests
 	# To avoid downloading dependencies every time use `SKIP_FETCH_TOOLS=1 unit-tests`
 	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v -tags unittest ./...
 
+integration-tests: depencencies
+	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v ./test/integration/...
+
 fakes: ## Generate testing fakes
 	go generate ./...
 
@@ -150,21 +153,32 @@ coverage/lcov.info:
 	npm run test -- --coverage
 
 # Golang gocov data. Not compatible with coveralls at this point.
-coverage.out: dependencies
+unittest.out: dependencies
 	go get github.com/ory/go-acc
-	go-acc --ignore fakes,acceptance,pkg/api,api -o coverage.out ./... -- -v --timeout=496s -tags test
+	go-acc --ignore fakes,acceptance,pkg/api,api,integration -o unittest.out ./... -- -v --timeout=496s -tags test,unittest
 	@go mod tidy
 
-# Convert gocov to lcov for coveralls
-coverage/golang.info: coverage.out
+integrationtest.out: depencencies
+	go get github.com/ory/go-acc
+	go-acc --ignore fakes,acceptance,pkg/api,api -o integrationtest.out ./test/integration/... -- -v --timeout=496s -tags test
+	@go mod tidy	
+
+coverage:
 	@mkdir -p coverage
+
+# Convert gocov to lcov for coveralls
+coverage/unittest.info: coverage unittest.out
 	@go get -u github.com/jandelgado/gcov2lcov
-	gcov2lcov -infile=coverage.out -outfile=coverage/golang.info
+	gcov2lcov -infile=unittest.out -outfile=coverage/unittest.info
+
+coverage/integrationtest.info: coverage integrationtest.out
+	gcov2lcov -infile=integrationtest.out -outfile=coverage/integrationtest.info	
 
 # Concat the JS and Go coverage files for the coveralls report/
 # Note: you need to install `lcov` to run this locally.
-coverage/merged.lcov: coverage/lcov.info coverage/golang.info
-	lcov --add-tracefile coverage/golang.info -a coverage/lcov.info -o merged.lcov
+# There are no deps listed here to avoid re-running tests. If this fails run the other coverage/ targets first
+merged.lcov:
+	lcov --add-tracefile coverage/unittest.info --add-tracefile coverage/integrationtest.info -a coverage/lcov.info -o merged.lcov
 
 ##@ Utilities
 

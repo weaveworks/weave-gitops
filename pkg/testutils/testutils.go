@@ -2,8 +2,8 @@ package testutils
 
 import (
 	"fmt"
+	"log"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
@@ -16,12 +16,14 @@ import (
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	. "github.com/onsi/gomega"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/client-go/discovery"
 	memory "k8s.io/client-go/discovery/cached"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
 )
 
@@ -31,19 +33,24 @@ type K8sTestEnv struct {
 	Client     client.Client
 	DynClient  dynamic.Interface
 	RestMapper *restmapper.DeferredDiscoveryRESTMapper
+	Rest       *rest.Config
 	Stop       func()
 }
 
-// Starts a local k8s test environment for testing Kubernetes operations such as Create, Get, Delete, etc
-func StartK8sTestEnvironment() (*K8sTestEnv, error) {
+// Starts a local k8s test environment for testing Kubernetes operations such as Create, Get, Delete, etc.
+
+// Note that crdPaths are relative to the path of the test file,
+// NOT the current working directory or path that the tests were started from.
+func StartK8sTestEnvironment(crdPaths []string) (*K8sTestEnv, error) {
 	if k8sEnv != nil {
+		fmt.Println("new test env")
 		return k8sEnv, nil
 	}
 
 	testEnv := &envtest.Environment{
-		CRDDirectoryPaths: []string{
-			"../../manifests/crds",
-			"../../tools/testcrds",
+		CRDDirectoryPaths: crdPaths,
+		CRDInstallOptions: envtest.CRDInstallOptions{
+			CleanUpAfterUse: false,
 		},
 	}
 
@@ -64,6 +71,7 @@ func StartK8sTestEnvironment() (*K8sTestEnv, error) {
 			&appsv1.Deployment{},
 			&kustomizev1.Kustomization{},
 			&sourcev1.GitRepository{},
+			&v1.CustomResourceDefinition{},
 		},
 		Scheme: scheme,
 	})
@@ -73,7 +81,9 @@ func StartK8sTestEnvironment() (*K8sTestEnv, error) {
 
 	go func() {
 		err := k8sManager.Start(ctrl.SetupSignalHandler())
-		Expect(err).ToNot(HaveOccurred())
+		if err != nil {
+			log.Fatal(err.Error())
+		}
 	}()
 
 	dc, err := discovery.NewDiscoveryClientForConfig(cfg)
@@ -92,9 +102,12 @@ func StartK8sTestEnvironment() (*K8sTestEnv, error) {
 		Client:     k8sManager.GetClient(),
 		DynClient:  dyn,
 		RestMapper: mapper,
+		Rest:       cfg,
 		Stop: func() {
 			err := testEnv.Stop()
-			Expect(err).NotTo(HaveOccurred())
+			if err != nil {
+				log.Fatal(err.Error())
+			}
 		},
 	}
 

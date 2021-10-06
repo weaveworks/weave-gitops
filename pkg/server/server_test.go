@@ -439,8 +439,8 @@ var _ = Describe("ApplicationsServer", func() {
 			}
 			rs.SetOwnerReferences([]metav1.OwnerReference{{
 				UID:        deployment.UID,
-				APIVersion: deployment.APIVersion,
-				Kind:       deployment.Kind,
+				APIVersion: appsv1.SchemeGroupVersion.String(),
+				Kind:       "Deployment",
 				Name:       deployment.Name,
 			}})
 

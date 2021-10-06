@@ -72,6 +72,9 @@ jobs:
           retention-days: 1
 
   test:
+    env:
+        GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
+        KUBEBUILDER_ASSETS: ${{ github.workspace }}/kubebuilder/bin
     runs-on: ubuntu-latest
     steps:
     - name: Install lcov
@@ -92,10 +95,14 @@ jobs:
       uses: fluxcd/pkg/actions/kubebuilder@main
     - name: Set up flux dir but let dependencies install flux
       run: mkdir -p pkg/flux/bin && tools/download-deps.sh $PWD/tools/dependencies.toml
+    - name: Frontend Tests with Coverage
+      run: make coverage/lcov.info
     - name: Unit Tests with Coverage
-      run: make coverage/merged.lcov
-      env:
-        KUBEBUILDER_ASSETS: ${{ github.workspace }}/kubebuilder/bin
+      run: make coverage/unittest.info
+    - name: Integration Tests with Coverage
+      run: make coverage/integrationtest.info
+    - name: Merge Coverage Reports
+      run: make merged.lcov
     - name: Coveralls
       uses: coverallsapp/github-action@v1.1.2
       with:

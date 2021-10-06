@@ -1,0 +1,39 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stringly
+spec:
+  selector:
+    matchLabels:
+      app: stringly
+  template:
+    metadata:
+      labels:
+        app: stringly
+    spec:
+      imagePullSecrets:
+        - name: ghcr-image-secret
+      containers:
+        - name: stringly
+          env:
+            - name: MODE
+              value: development
+          image: ghcr.io/jpellizzari/stringly:main-34682c1-64 # {"$imagepolicy": "flux-system:stringly"}
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stringly
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30000
+  selector:
+    app: stringly
