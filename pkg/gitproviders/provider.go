@@ -31,13 +31,13 @@ const (
 // GitProvider Handler
 //counterfeiter:generate . GitProvider
 type GitProvider interface {
-	RepositoryExists(name string, owner string) (bool, error)
-	DeployKeyExists(owner, repoName string) (bool, error)
-	GetDefaultBranch(url string) (string, error)
-	GetRepoVisibility(url string) (*gitprovider.RepositoryVisibility, error)
-	UploadDeployKey(owner, repoName string, deployKey []byte) error
-	CreatePullRequest(owner string, repoName string, prInfo PullRequestInfo) (gitprovider.PullRequest, error)
-	GetCommits(owner string, repoName, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
+	RepositoryExists(ctx context.Context, name string, owner string) (bool, error)
+	DeployKeyExists(ctx context.Context, owner, repoName string) (bool, error)
+	GetDefaultBranch(ctx context.Context, url string) (string, error)
+	GetRepoVisibility(ctx context.Context, url string) (*gitprovider.RepositoryVisibility, error)
+	UploadDeployKey(ctx context.Context, owner, repoName string, deployKey []byte) error
+	CreatePullRequest(ctx context.Context, owner string, repoName string, prInfo PullRequestInfo) (gitprovider.PullRequest, error)
+	GetCommits(ctx context.Context, owner string, repoName, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
 	GetProviderDomain() string
 }
 

@@ -284,7 +284,7 @@ var _ = Describe("Remove", func() {
 
 		application = makeWegoApplication(localAddParams)
 
-		gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
+		gitProviders.GetDefaultBranchStub = func(_ context.Context, url string) (string, error) {
 			return "main", nil
 		}
 	})
@@ -311,7 +311,7 @@ var _ = Describe("Remove", func() {
 	})
 
 	It("Looks up config repo default branch", func() {
-		gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
+		gitProviders.GetDefaultBranchStub = func(_ context.Context, url string) (string, error) {
 			return "config-branch", nil
 		}
 

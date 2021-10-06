@@ -571,11 +571,11 @@ var _ = Describe("ApplicationsServer", func() {
 				Branch:    "main",
 				ConfigUrl: "ssh://git@github.com/some-org/my-config-url.git",
 			}
-			gp.GetRepoVisibilityStub = func(s string) (*gitprovider.RepositoryVisibility, error) {
+			gp.GetRepoVisibilityStub = func(_ context.Context, s string) (*gitprovider.RepositoryVisibility, error) {
 				return gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil
 			}
 
-			gp.CreatePullRequestStub = func(owner, repoName string, prInfo gitproviders.PullRequestInfo) (gitprovider.PullRequest, error) {
+			gp.CreatePullRequestStub = func(_ context.Context, owner, repoName string, prInfo gitproviders.PullRequestInfo) (gitprovider.PullRequest, error) {
 				return testutils.DummyPullRequest{}, nil
 			}
 
@@ -597,11 +597,11 @@ var _ = Describe("ApplicationsServer", func() {
 				Branch:    "main",
 				AutoMerge: true,
 			}
-			gp.GetRepoVisibilityStub = func(s string) (*gitprovider.RepositoryVisibility, error) {
+			gp.GetRepoVisibilityStub = func(_ context.Context, s string) (*gitprovider.RepositoryVisibility, error) {
 				return gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil
 			}
 
-			gp.CreatePullRequestStub = func(owner, repoName string, prInfo gitproviders.PullRequestInfo) (gitprovider.PullRequest, error) {
+			gp.CreatePullRequestStub = func(_ context.Context, owner, repoName string, prInfo gitproviders.PullRequestInfo) (gitprovider.PullRequest, error) {
 				return testutils.DummyPullRequest{}, nil
 			}
 
@@ -854,12 +854,11 @@ var _ = Describe("Applications handler", func() {
 		appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 			return kubeClient, nil
 		}
-		gitProviders.GetCommitsStub = func(owner string, repoName, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
+		gitProviders.GetCommitsStub = func(_ context.Context, owner string, repoName, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
 			return commits, nil
 		}
 
 		gitProviders.GetCommitsReturns(commits, nil)
-		// gitProviders.GetAccountTypeReturns(gitproviders.AccountTypeUser, nil)
 
 		cfg := ApplicationsConfig{
 			Logger:     log,

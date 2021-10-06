@@ -164,7 +164,7 @@ func (a *App) Add(params AddParams) error {
 	secretRef := ""
 
 	if params.SourceType != wego.SourceTypeHelm {
-		visibility, visibilityErr := a.GitProvider.GetRepoVisibility(info.Spec.URL)
+		visibility, visibilityErr := a.GitProvider.GetRepoVisibility(ctx, info.Spec.URL)
 		if visibilityErr != nil {
 			return visibilityErr
 		}
@@ -269,7 +269,7 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 		params.Branch = DefaultBranch
 
 		if params.SourceType == wego.SourceTypeGit {
-			branch, err := a.GitProvider.GetDefaultBranch(params.Url)
+			branch, err := a.GitProvider.GetDefaultBranch(context.Background(), params.Url)
 			if err != nil {
 				return params, err
 			} else {
@@ -364,7 +364,7 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 		return fmt.Errorf("could not generate application GitOps Automation manifests: %w", err)
 	}
 
-	configBranch, err := a.GitProvider.GetDefaultBranch(info.Spec.ConfigURL)
+	configBranch, err := a.GitProvider.GetDefaultBranch(context.Background(), info.Spec.ConfigURL)
 	if err != nil {
 		return fmt.Errorf("could not determine default branch for config repository: %w", err)
 	}
@@ -464,7 +464,7 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, branch string
 
 	secretRef := ""
 
-	visibility, visibilityErr := a.GitProvider.GetRepoVisibility(info.Spec.ConfigURL)
+	visibility, visibilityErr := a.GitProvider.GetRepoVisibility(context.Background(), info.Spec.ConfigURL)
 	if visibilityErr != nil {
 		return nil, visibilityErr
 	}
@@ -686,7 +686,7 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, repoURL string, new
 		return fmt.Errorf("error normalizing url: %w", err)
 	}
 
-	defaultBranch, err := a.GitProvider.GetDefaultBranch(repoURL)
+	defaultBranch, err := a.GitProvider.GetDefaultBranch(context.Background(), repoURL)
 	if err != nil {
 		return err
 	}
@@ -700,7 +700,7 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, repoURL string, new
 		Files:         files,
 	}
 
-	pr, err := a.GitProvider.CreatePullRequest(normalizedUrl.Owner(), repoName, prInfo)
+	pr, err := a.GitProvider.CreatePullRequest(context.Background(), normalizedUrl.Owner(), repoName, prInfo)
 	if err != nil {
 		return fmt.Errorf("unable to create pull request: %w", err)
 	}

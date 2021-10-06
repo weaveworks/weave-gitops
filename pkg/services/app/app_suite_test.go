@@ -40,7 +40,7 @@ var _ = BeforeEach(func() {
 	}
 
 	gitProviders = &gitprovidersfakes.FakeGitProvider{
-		GetRepoVisibilityStub: func(url string) (*gitprovider.RepositoryVisibility, error) {
+		GetRepoVisibilityStub: func(ctx context.Context, url string) (*gitprovider.RepositoryVisibility, error) {
 			vis := gitprovider.RepositoryVisibilityPrivate
 			return &vis, nil
 		},

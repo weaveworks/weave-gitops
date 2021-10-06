@@ -48,7 +48,7 @@ var _ = Describe("User Provider", func() {
 		It("returns false when repo not found", func() {
 			userRepoClient.GetReturns(nil, gitprovider.ErrNotFound)
 
-			res, err := userProvider.RepositoryExists("repo-name", "owner")
+			res, err := userProvider.RepositoryExists(ctx, "repo-name", "owner")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(BeFalse())
 		})
@@ -56,13 +56,13 @@ var _ = Describe("User Provider", func() {
 		It("returns error when can't verify", func() {
 			userRepoClient.GetReturns(nil, errors.New("random error"))
 
-			res, err := userProvider.RepositoryExists("repo-name", "owner")
+			res, err := userProvider.RepositoryExists(ctx, "repo-name", "owner")
 			Expect(err).To(HaveOccurred())
 			Expect(res).To(BeFalse())
 		})
 
 		It("returns true when repo exists", func() {
-			res, err := userProvider.RepositoryExists("repo-name", "owner")
+			res, err := userProvider.RepositoryExists(ctx, "repo-name", "owner")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(BeTrue())
 		})
@@ -79,7 +79,7 @@ var _ = Describe("User Provider", func() {
 		It("return error when repo doest exist", func() {
 			userRepoClient.GetReturns(nil, gitprovider.ErrNotFound)
 
-			res, err := userProvider.DeployKeyExists("owner", "repo-name")
+			res, err := userProvider.DeployKeyExists(ctx, "owner", "repo-name")
 			Expect(err.Error()).Should(ContainSubstring("error getting user repo reference for owner"))
 			Expect(res).To(BeFalse())
 		})
@@ -87,7 +87,7 @@ var _ = Describe("User Provider", func() {
 		It("returns false when key not found", func() {
 			deployKeyClient.GetReturns(nil, gitprovider.ErrNotFound)
 
-			res, err := userProvider.DeployKeyExists("repo-name", "owner")
+			res, err := userProvider.DeployKeyExists(ctx, "repo-name", "owner")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(BeFalse())
 		})
@@ -95,13 +95,13 @@ var _ = Describe("User Provider", func() {
 		It("returns error when can't verify", func() {
 			deployKeyClient.GetReturns(nil, errors.New("random error"))
 
-			res, err := userProvider.DeployKeyExists("repo-name", "owner")
+			res, err := userProvider.DeployKeyExists(ctx, "repo-name", "owner")
 			Expect(err.Error()).Should(ContainSubstring("error getting deploy key"))
 			Expect(res).To(BeFalse())
 		})
 
 		It("returns true when repo exists", func() {
-			res, err := userProvider.DeployKeyExists("repo-name", "owner")
+			res, err := userProvider.DeployKeyExists(ctx, "repo-name", "owner")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(BeTrue())
 		})
@@ -118,14 +118,14 @@ var _ = Describe("User Provider", func() {
 		It("return error when repo doest exist", func() {
 			userRepoClient.GetReturns(nil, gitprovider.ErrNotFound)
 
-			err := userProvider.UploadDeployKey("owner", "repo-name", []byte("my-key"))
+			err := userProvider.UploadDeployKey(ctx, "owner", "repo-name", []byte("my-key"))
 			Expect(err.Error()).Should(ContainSubstring("error getting user repo reference for owner"))
 		})
 
 		It("returns error when can't create the key", func() {
 			deployKeyClient.CreateReturns(nil, errors.New("random error"))
 
-			err := userProvider.UploadDeployKey("owner", "repo-name", []byte("my-key"))
+			err := userProvider.UploadDeployKey(ctx, "owner", "repo-name", []byte("my-key"))
 			Expect(err.Error()).Should(ContainSubstring("error uploading deploy key"))
 		})
 
@@ -133,28 +133,28 @@ var _ = Describe("User Provider", func() {
 			deployKeyClient.CreateReturns(nil, nil)
 			deployKeyClient.GetReturns(nil, nil)
 
-			err := userProvider.UploadDeployKey("owner", "repo-name", []byte("my-key"))
+			err := userProvider.UploadDeployKey(ctx, "owner", "repo-name", []byte("my-key"))
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
 
 	Describe("GetDefaultBranch", func() {
 		It("returns error when cant extract owner from url", func() {
-			_, err := userProvider.GetDefaultBranch("bad-url")
+			_, err := userProvider.GetDefaultBranch(ctx, "bad-url")
 			Expect(err.Error()).Should(ContainSubstring("could get provider name from URL"))
 		})
 
 		It("returns error when can't get branch", func() {
 			userRepoClient.GetReturns(nil, gitprovider.ErrNotFound)
 
-			_, err := userProvider.GetDefaultBranch("http://github.com/owner/repo")
+			_, err := userProvider.GetDefaultBranch(ctx, "http://github.com/owner/repo")
 			Expect(err.Error()).Should(ContainSubstring("error getting user repository"))
 		})
 
 		It("returns repo default branch", func() {
 			userRepo.GetReturns(gitprovider.RepositoryInfo{DefaultBranch: gitprovider.StringVar("my-branch")})
 
-			branch, err := userProvider.GetDefaultBranch("http://github.com/owner/repo")
+			branch, err := userProvider.GetDefaultBranch(ctx, "http://github.com/owner/repo")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(branch).To(Equal("my-branch"))
 		})
@@ -162,14 +162,14 @@ var _ = Describe("User Provider", func() {
 
 	Describe("GetRepoVisibility", func() {
 		It("returns error when cant extract owner from url", func() {
-			_, err := userProvider.GetRepoVisibility("bad-url")
+			_, err := userProvider.GetRepoVisibility(ctx, "bad-url")
 			Expect(err.Error()).Should(ContainSubstring("could get provider name from URL"))
 		})
 
 		It("returns error when can't get branch", func() {
 			userRepoClient.GetReturns(nil, gitprovider.ErrNotFound)
 
-			_, err := userProvider.GetRepoVisibility("http://github.com/owner/repo")
+			_, err := userProvider.GetRepoVisibility(ctx, "http://github.com/owner/repo")
 			Expect(err.Error()).Should(ContainSubstring("error getting user repository"))
 		})
 
@@ -177,7 +177,7 @@ var _ = Describe("User Provider", func() {
 			visibility := gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityPrivate)
 			userRepo.GetReturns(gitprovider.RepositoryInfo{Visibility: visibility})
 
-			vis, err := userProvider.GetRepoVisibility("http://github.com/owner/repo")
+			vis, err := userProvider.GetRepoVisibility(ctx, "http://github.com/owner/repo")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(vis).To(Equal(visibility))
 		})
@@ -207,13 +207,13 @@ var _ = Describe("User Provider", func() {
 		It("returns error when can't get repo", func() {
 			userRepoClient.GetReturns(nil, errors.New("random error"))
 
-			_, err := userProvider.CreatePullRequest("owner", "repo-name", prInfo)
+			_, err := userProvider.CreatePullRequest(ctx, "owner", "repo-name", prInfo)
 			Expect(err.Error()).To(ContainSubstring("error getting user repo for"))
 		})
 
 		It("sets default branch", func() {
 			prInfo.TargetBranch = ""
-			_, err := userProvider.CreatePullRequest("owner", "repo-name", prInfo)
+			_, err := userProvider.CreatePullRequest(ctx, "owner", "repo-name", prInfo)
 			Expect(err).ToNot(HaveOccurred())
 
 			_, _, _, targetBranch, _ := pullRequestsClient.CreateArgsForCall(0)
@@ -223,19 +223,19 @@ var _ = Describe("User Provider", func() {
 		It("returns error when unable to list commits", func() {
 			commitClient.ListPageReturns(nil, errors.New("error"))
 
-			_, err := userProvider.CreatePullRequest("owner", "repo-name", prInfo)
+			_, err := userProvider.CreatePullRequest(ctx, "owner", "repo-name", prInfo)
 			Expect(err.Error()).To(ContainSubstring("error getting commits"))
 		})
 
 		It("returns error if no commits listed on target repo", func() {
 			commitClient.ListPageReturns([]gitprovider.Commit{}, nil)
 
-			_, err := userProvider.CreatePullRequest("owner", "repo-name", prInfo)
+			_, err := userProvider.CreatePullRequest(ctx, "owner", "repo-name", prInfo)
 			Expect(err.Error()).To(ContainSubstring("no commits on the target branch"))
 		})
 
 		It("creates a branch", func() {
-			_, err := userProvider.CreatePullRequest("owner", "repo-name", prInfo)
+			_, err := userProvider.CreatePullRequest(ctx, "owner", "repo-name", prInfo)
 			Expect(err).ToNot(HaveOccurred())
 
 			_, newBranch, sha := branchesClient.CreateArgsForCall(0)
@@ -246,7 +246,7 @@ var _ = Describe("User Provider", func() {
 		It("creates a commit", func() {
 			prInfo.Files = []gitprovider.CommitFile{{}}
 
-			_, err := userProvider.CreatePullRequest("owner", "repo-name", prInfo)
+			_, err := userProvider.CreatePullRequest(ctx, "owner", "repo-name", prInfo)
 			Expect(err).ToNot(HaveOccurred())
 
 			_, newBranch, commitMsg, files := commitClient.CreateArgsForCall(0)
@@ -258,7 +258,7 @@ var _ = Describe("User Provider", func() {
 		It("creates a pull requests", func() {
 			prInfo.Files = []gitprovider.CommitFile{{}}
 
-			_, err := userProvider.CreatePullRequest("owner", "repo-name", prInfo)
+			_, err := userProvider.CreatePullRequest(ctx, "owner", "repo-name", prInfo)
 			Expect(err).ToNot(HaveOccurred())
 
 			_, prTitle, newBranch, targetBranch, prDescription := pullRequestsClient.CreateArgsForCall(0)
@@ -273,14 +273,14 @@ var _ = Describe("User Provider", func() {
 		It("return error when repo doest exist", func() {
 			userRepoClient.GetReturns(nil, gitprovider.ErrNotFound)
 
-			_, err := userProvider.GetCommits("owner", "repo-name", "target-branch", 1, 1)
+			_, err := userProvider.GetCommits(ctx, "owner", "repo-name", "target-branch", 1, 1)
 			Expect(err.Error()).Should(ContainSubstring("error getting repo"))
 		})
 
 		It("returns empty array when empty error", func() {
 			commitClient.ListPageReturns(nil, errors.New("409 Git Repository is empty"))
 
-			commits, err := userProvider.GetCommits("owner", "repo-name", "target-branch", 1, 1)
+			commits, err := userProvider.GetCommits(ctx, "owner", "repo-name", "target-branch", 1, 1)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(commits).To(HaveLen(0))
 		})
@@ -288,7 +288,7 @@ var _ = Describe("User Provider", func() {
 		It("returns error when random error", func() {
 			commitClient.ListPageReturns(nil, errors.New("error"))
 
-			_, err := userProvider.GetCommits("owner", "repo-name", "target-branch", 1, 1)
+			_, err := userProvider.GetCommits(ctx, "owner", "repo-name", "target-branch", 1, 1)
 			Expect(err.Error()).Should(ContainSubstring("error getting commits"))
 		})
 
@@ -298,7 +298,7 @@ var _ = Describe("User Provider", func() {
 
 			commitClient.ListPageReturns([]gitprovider.Commit{commit}, nil)
 
-			commits, err := userProvider.GetCommits("owner", "repo-name", "target-branch", 1, 1)
+			commits, err := userProvider.GetCommits(ctx, "owner", "repo-name", "target-branch", 1, 1)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(commits[0].Get().Sha).To(Equal("commit-sha"))
 		})

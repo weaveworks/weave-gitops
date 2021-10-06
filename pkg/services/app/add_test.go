@@ -38,7 +38,7 @@ var _ = Describe("Add", func() {
 			AutoMerge:      true,
 		}
 
-		gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
+		gitProviders.GetDefaultBranchStub = func(_ context.Context, url string) (string, error) {
 			return "main", nil
 		}
 
@@ -73,7 +73,7 @@ var _ = Describe("Add", func() {
 
 	Context("Looking up repo default branch", func() {
 		var _ = BeforeEach(func() {
-			gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
+			gitProviders.GetDefaultBranchStub = func(_ context.Context, url string) (string, error) {
 				branch := "an-unusual-branch" // for app repository
 				if !strings.Contains(url, "bar") {
 					branch = "config-branch" // for config repository
@@ -753,7 +753,7 @@ var _ = Describe("Add", func() {
 		var info *AppResourceInfo
 
 		BeforeEach(func() {
-			gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
+			gitProviders.GetDefaultBranchStub = func(_ context.Context, url string) (string, error) {
 				if url == addParams.Url {
 					return "default-app-branch", nil
 				}
@@ -778,13 +778,13 @@ var _ = Describe("Add", func() {
 
 			It("creates the pull request against the default branch for an org app repository", func() {
 				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.Url, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
-				_, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
+				_, _, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(prInfo.TargetBranch).To(Equal("default-app-branch"))
 			})
 
 			It("creates the pull request against the default branch for a user app repository", func() {
 				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.Url, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
-				_, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
+				_, _, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(prInfo.TargetBranch).To(Equal("default-app-branch"))
 			})
 		})
@@ -796,13 +796,13 @@ var _ = Describe("Add", func() {
 
 			It("creates the pull request against the default branch for an org config repository", func() {
 				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
-				_, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
+				_, _, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(prInfo.TargetBranch).To(Equal("default-config-branch"))
 			})
 
 			It("creates the pull request against the default branch for a user config repository", func() {
 				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
-				_, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
+				_, _, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(prInfo.TargetBranch).To(Equal("default-config-branch"))
 			})
 		})
@@ -955,7 +955,7 @@ var _ = Describe("Add Gitlab", func() {
 			AutoMerge:      true,
 		}
 
-		gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
+		gitProviders.GetDefaultBranchStub = func(_ context.Context, url string) (string, error) {
 			return "main", nil
 		}
 

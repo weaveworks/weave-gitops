@@ -166,7 +166,7 @@ func (a *authSvc) setupDeployKey(ctx context.Context, name SecretName, targetNam
 	owner := repo.Owner()
 	repoName := repo.RepositoryName()
 
-	deployKeyExists, err := a.gitProvider.DeployKeyExists(owner, repoName)
+	deployKeyExists, err := a.gitProvider.DeployKeyExists(ctx, owner, repoName)
 	if err != nil {
 		return nil, fmt.Errorf("failed check for existing deploy key: %w", err)
 	}
@@ -207,7 +207,7 @@ func (a *authSvc) provisionDeployKey(ctx context.Context, targetName string, nam
 
 	publicKeyBytes := extractPublicKey(secret)
 
-	if err := a.gitProvider.UploadDeployKey(repo.Owner(), repo.RepositoryName(), publicKeyBytes); err != nil {
+	if err := a.gitProvider.UploadDeployKey(ctx, repo.Owner(), repo.RepositoryName(), publicKeyBytes); err != nil {
 		return nil, fmt.Errorf("error uploading deploy key: %w", err)
 	}
 
