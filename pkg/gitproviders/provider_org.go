@@ -146,28 +146,6 @@ func (p orgGitProvider) GetCommits(owner string, repoName string, targetBranch s
 	return getCommits(ctx, orgRepo, targetBranch, pageSize, pageToken)
 }
 
-func (p orgGitProvider) getCommitsFromOrgRepo(owner string, repoName string, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
-	ctx := context.Background()
-	orgRepoRef := newOrgRepositoryRef(p.GetProviderDomain(), owner, repoName)
-
-	ur, err := p.provider.OrgRepositories().Get(ctx, orgRepoRef)
-	if err != nil {
-		return nil, fmt.Errorf("error getting info for repo [%s] err [%s]", orgRepoRef.String(), err)
-	}
-
-	// currently locking the commit list at 10. May discuss pagination options later.
-	commits, err := ur.Commits().ListPage(ctx, targetBranch, pageSize, pageToken)
-	if err != nil {
-		if isEmptyRepoError(err) {
-			return []gitprovider.Commit{}, nil
-		}
-
-		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", orgRepoRef.String(), err)
-	}
-
-	return commits, nil
-}
-
 func (p orgGitProvider) GetProviderDomain() string {
 	return getProviderDomain(p.provider.ProviderID())
 }
