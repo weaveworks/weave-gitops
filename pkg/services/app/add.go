@@ -692,7 +692,16 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, repoURL string, new
 		return err
 	}
 
-	pr, err := a.GitProvider.CreatePullRequest(normalizedUrl.Owner(), repoName, defaultBranch, newBranch, files, "Add App Manifests", fmt.Sprintf("Gitops add %s", info.Name), fmt.Sprintf("Added yamls for %s", info.Name))
+	prInfo := gitproviders.PullRequestInfo{
+		Title:         fmt.Sprintf("Gitops add %s", info.Name),
+		Description:   fmt.Sprintf("Added yamls for %s", info.Name),
+		CommitMessage: "Add App Manifests",
+		TargetBranch:  defaultBranch,
+		NewBranch:     newBranch,
+		Files:         files,
+	}
+
+	pr, err := a.GitProvider.CreatePullRequest(normalizedUrl.Owner(), repoName, prInfo)
 	if err != nil {
 		return fmt.Errorf("unable to create pull request: %w", err)
 	}

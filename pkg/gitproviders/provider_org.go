@@ -115,21 +115,12 @@ func (p orgGitProvider) getOrgRepo(org string, repoName string) (gitprovider.Org
 	return repo, nil
 }
 
-func (p orgGitProvider) CreatePullRequest(owner string, repoName string, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMsg string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
+func (p orgGitProvider) CreatePullRequest(owner string, repoName string, prInfo PullRequestInfo) (gitprovider.PullRequest, error) {
 	ctx := context.Background()
 
 	orgRepo, err := p.getOrgRepo(owner, repoName)
 	if err != nil {
 		return nil, fmt.Errorf("error getting org repo for owner %s, repo %s, %s ", owner, repoName, err)
-	}
-
-	prInfo := PullRequestInfo{
-		Title:         prTitle,
-		Description:   prDescription,
-		CommitMessage: commitMsg,
-		TargetBranch:  targetBranch,
-		NewBranch:     newBranch,
-		Files:         files,
 	}
 
 	return createPullRequest(ctx, orgRepo, prInfo)

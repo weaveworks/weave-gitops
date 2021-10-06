@@ -36,9 +36,18 @@ type GitProvider interface {
 	GetDefaultBranch(url string) (string, error)
 	GetRepoVisibility(url string) (*gitprovider.RepositoryVisibility, error)
 	UploadDeployKey(owner, repoName string, deployKey []byte) error
-	CreatePullRequest(owner string, repoName string, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMsg string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
+	CreatePullRequest(owner string, repoName string, prInfo PullRequestInfo) (gitprovider.PullRequest, error)
 	GetCommits(owner string, repoName, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
 	GetProviderDomain() string
+}
+
+type PullRequestInfo struct {
+	Title         string
+	Description   string
+	CommitMessage string
+	TargetBranch  string
+	NewBranch     string
+	Files         []gitprovider.CommitFile
 }
 
 type AccountTypeGetter func(provider gitprovider.Client, domain string, owner string) (ProviderAccountType, error)
@@ -94,15 +103,6 @@ func uploadDeployKey(ctx context.Context, repo gitprovider.UserRepository, deplo
 	}
 
 	return nil
-}
-
-type PullRequestInfo struct {
-	Title         string
-	Description   string
-	CommitMessage string
-	TargetBranch  string
-	NewBranch     string
-	Files         []gitprovider.CommitFile
 }
 
 func createPullRequest(ctx context.Context, repo gitprovider.UserRepository, prInfo PullRequestInfo) (gitprovider.PullRequest, error) {

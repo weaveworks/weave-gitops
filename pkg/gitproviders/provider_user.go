@@ -106,21 +106,12 @@ func (p userGitProvider) getUserRepo(user string, repoName string) (gitprovider.
 	return repo, nil
 }
 
-func (p userGitProvider) CreatePullRequest(owner string, repoName string, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMsg string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
+func (p userGitProvider) CreatePullRequest(owner string, repoName string, prInfo PullRequestInfo) (gitprovider.PullRequest, error) {
 	ctx := context.Background()
 
 	userRepo, err := p.getUserRepo(owner, repoName)
 	if err != nil {
 		return nil, fmt.Errorf("error getting user repo for owner %s, repo %s, %s ", owner, repoName, err)
-	}
-
-	prInfo := PullRequestInfo{
-		Title:         prTitle,
-		Description:   prDescription,
-		CommitMessage: commitMsg,
-		TargetBranch:  targetBranch,
-		NewBranch:     newBranch,
-		Files:         files,
 	}
 
 	return createPullRequest(ctx, userRepo, prInfo)

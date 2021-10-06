@@ -67,7 +67,7 @@ var _ = Describe("DryRun", func() {
 
 	Describe("CreatePullRequest", func() {
 		It("returns nil", func() {
-			res, err := dryRunProvider.CreatePullRequest("", "", "", "", nil, "", "", "")
+			res, err := dryRunProvider.CreatePullRequest("", "", PullRequestInfo{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(BeNil())
 		})

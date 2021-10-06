@@ -9,17 +9,12 @@ import (
 )
 
 type FakeGitProvider struct {
-	CreatePullRequestStub        func(string, string, string, string, []gitprovider.CommitFile, string, string, string) (gitprovider.PullRequest, error)
+	CreatePullRequestStub        func(string, string, gitproviders.PullRequestInfo) (gitprovider.PullRequest, error)
 	createPullRequestMutex       sync.RWMutex
 	createPullRequestArgsForCall []struct {
 		arg1 string
 		arg2 string
-		arg3 string
-		arg4 string
-		arg5 []gitprovider.CommitFile
-		arg6 string
-		arg7 string
-		arg8 string
+		arg3 gitproviders.PullRequestInfo
 	}
 	createPullRequestReturns struct {
 		result1 gitprovider.PullRequest
@@ -127,30 +122,20 @@ type FakeGitProvider struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeGitProvider) CreatePullRequest(arg1 string, arg2 string, arg3 string, arg4 string, arg5 []gitprovider.CommitFile, arg6 string, arg7 string, arg8 string) (gitprovider.PullRequest, error) {
-	var arg5Copy []gitprovider.CommitFile
-	if arg5 != nil {
-		arg5Copy = make([]gitprovider.CommitFile, len(arg5))
-		copy(arg5Copy, arg5)
-	}
+func (fake *FakeGitProvider) CreatePullRequest(arg1 string, arg2 string, arg3 gitproviders.PullRequestInfo) (gitprovider.PullRequest, error) {
 	fake.createPullRequestMutex.Lock()
 	ret, specificReturn := fake.createPullRequestReturnsOnCall[len(fake.createPullRequestArgsForCall)]
 	fake.createPullRequestArgsForCall = append(fake.createPullRequestArgsForCall, struct {
 		arg1 string
 		arg2 string
-		arg3 string
-		arg4 string
-		arg5 []gitprovider.CommitFile
-		arg6 string
-		arg7 string
-		arg8 string
-	}{arg1, arg2, arg3, arg4, arg5Copy, arg6, arg7, arg8})
+		arg3 gitproviders.PullRequestInfo
+	}{arg1, arg2, arg3})
 	stub := fake.CreatePullRequestStub
 	fakeReturns := fake.createPullRequestReturns
-	fake.recordInvocation("CreatePullRequest", []interface{}{arg1, arg2, arg3, arg4, arg5Copy, arg6, arg7, arg8})
+	fake.recordInvocation("CreatePullRequest", []interface{}{arg1, arg2, arg3})
 	fake.createPullRequestMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -164,17 +149,17 @@ func (fake *FakeGitProvider) CreatePullRequestCallCount() int {
 	return len(fake.createPullRequestArgsForCall)
 }
 
-func (fake *FakeGitProvider) CreatePullRequestCalls(stub func(string, string, string, string, []gitprovider.CommitFile, string, string, string) (gitprovider.PullRequest, error)) {
+func (fake *FakeGitProvider) CreatePullRequestCalls(stub func(string, string, gitproviders.PullRequestInfo) (gitprovider.PullRequest, error)) {
 	fake.createPullRequestMutex.Lock()
 	defer fake.createPullRequestMutex.Unlock()
 	fake.CreatePullRequestStub = stub
 }
 
-func (fake *FakeGitProvider) CreatePullRequestArgsForCall(i int) (string, string, string, string, []gitprovider.CommitFile, string, string, string) {
+func (fake *FakeGitProvider) CreatePullRequestArgsForCall(i int) (string, string, gitproviders.PullRequestInfo) {
 	fake.createPullRequestMutex.RLock()
 	defer fake.createPullRequestMutex.RUnlock()
 	argsForCall := fake.createPullRequestArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6, argsForCall.arg7, argsForCall.arg8
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeGitProvider) CreatePullRequestReturns(result1 gitprovider.PullRequest, result2 error) {

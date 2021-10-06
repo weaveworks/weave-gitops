@@ -184,6 +184,8 @@ var _ = Describe("User Provider", func() {
 	})
 
 	Describe("CreatePullRequest", func() {
+		var prInfo PullRequestInfo
+
 		BeforeEach(func() {
 			commit := &fakegitprovider.Commit{}
 			commit.GetReturns(gitprovider.CommitInfo{Sha: "commit-sha"})
@@ -191,17 +193,27 @@ var _ = Describe("User Provider", func() {
 			commitClient.ListPageReturns([]gitprovider.Commit{commit}, nil)
 
 			userRepo.GetReturns(gitprovider.RepositoryInfo{DefaultBranch: gitprovider.StringVar("my-branch")})
+
+			prInfo = PullRequestInfo{
+				Title:         "pr-title",
+				Description:   "pr-desc",
+				CommitMessage: "commit-msg",
+				TargetBranch:  "target-branch",
+				NewBranch:     "new-branch",
+				Files:         []gitprovider.CommitFile{},
+			}
 		})
 
 		It("returns error when can't get repo", func() {
 			userRepoClient.GetReturns(nil, errors.New("random error"))
 
-			_, err := userProvider.CreatePullRequest("owner", "repo-name", "target-branch", "new-branch", []gitprovider.CommitFile{}, "commit-msg", "pr-title", "pr-desc")
+			_, err := userProvider.CreatePullRequest("owner", "repo-name", prInfo)
 			Expect(err.Error()).To(ContainSubstring("error getting user repo for"))
 		})
 
 		It("sets default branch", func() {
-			_, err := userProvider.CreatePullRequest("owner", "repo-name", "", "new-branch", []gitprovider.CommitFile{}, "commit-msg", "pr-title", "pr-desc")
+			prInfo.TargetBranch = ""
+			_, err := userProvider.CreatePullRequest("owner", "repo-name", prInfo)
 			Expect(err).ToNot(HaveOccurred())
 
 			_, _, _, targetBranch, _ := pullRequestsClient.CreateArgsForCall(0)
@@ -211,19 +223,19 @@ var _ = Describe("User Provider", func() {
 		It("returns error when unable to list commits", func() {
 			commitClient.ListPageReturns(nil, errors.New("error"))
 
-			_, err := userProvider.CreatePullRequest("owner", "repo-name", "target-branch", "new-branch", []gitprovider.CommitFile{}, "commit-msg", "pr-title", "pr-desc")
+			_, err := userProvider.CreatePullRequest("owner", "repo-name", prInfo)
 			Expect(err.Error()).To(ContainSubstring("error getting commits"))
 		})
 
 		It("returns error if no commits listed on target repo", func() {
 			commitClient.ListPageReturns([]gitprovider.Commit{}, nil)
 
-			_, err := userProvider.CreatePullRequest("owner", "repo-name", "target-branch", "new-branch", []gitprovider.CommitFile{}, "commit-msg", "pr-title", "pr-desc")
+			_, err := userProvider.CreatePullRequest("owner", "repo-name", prInfo)
 			Expect(err.Error()).To(ContainSubstring("no commits on the target branch"))
 		})
 
 		It("creates a branch", func() {
-			_, err := userProvider.CreatePullRequest("owner", "repo-name", "target-branch", "new-branch", []gitprovider.CommitFile{}, "commit-msg", "pr-title", "pr-desc")
+			_, err := userProvider.CreatePullRequest("owner", "repo-name", prInfo)
 			Expect(err).ToNot(HaveOccurred())
 
 			_, newBranch, sha := branchesClient.CreateArgsForCall(0)
@@ -232,7 +244,9 @@ var _ = Describe("User Provider", func() {
 		})
 
 		It("creates a commit", func() {
-			_, err := userProvider.CreatePullRequest("owner", "repo-name", "target-branch", "new-branch", []gitprovider.CommitFile{{}}, "commit-msg", "pr-title", "pr-desc")
+			prInfo.Files = []gitprovider.CommitFile{{}}
+
+			_, err := userProvider.CreatePullRequest("owner", "repo-name", prInfo)
 			Expect(err).ToNot(HaveOccurred())
 
 			_, newBranch, commitMsg, files := commitClient.CreateArgsForCall(0)
@@ -242,7 +256,9 @@ var _ = Describe("User Provider", func() {
 		})
 
 		It("creates a pull requests", func() {
-			_, err := userProvider.CreatePullRequest("owner", "repo-name", "target-branch", "new-branch", []gitprovider.CommitFile{{}}, "commit-msg", "pr-title", "pr-desc")
+			prInfo.Files = []gitprovider.CommitFile{{}}
+
+			_, err := userProvider.CreatePullRequest("owner", "repo-name", prInfo)
 			Expect(err).ToNot(HaveOccurred())
 
 			_, prTitle, newBranch, targetBranch, prDescription := pullRequestsClient.CreateArgsForCall(0)

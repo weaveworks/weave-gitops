@@ -789,14 +789,14 @@ var _ = Describe("Add", func() {
 
 			It("creates the pull request against the default branch for an org app repository", func() {
 				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.Url, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
-				_, _, branch, _, _, _, _, _ := gitProviders.CreatePullRequestArgsForCall(0)
-				Expect(branch).To(Equal("default-app-branch"))
+				_, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
+				Expect(prInfo.TargetBranch).To(Equal("default-app-branch"))
 			})
 
 			It("creates the pull request against the default branch for a user app repository", func() {
 				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.Url, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
-				_, _, branch, _, _, _, _, _ := gitProviders.CreatePullRequestArgsForCall(0)
-				Expect(branch).To(Equal("default-app-branch"))
+				_, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
+				Expect(prInfo.TargetBranch).To(Equal("default-app-branch"))
 			})
 		})
 
@@ -807,14 +807,14 @@ var _ = Describe("Add", func() {
 
 			It("creates the pull request against the default branch for an org config repository", func() {
 				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
-				_, _, branch, _, _, _, _, _ := gitProviders.CreatePullRequestArgsForCall(0)
-				Expect(branch).To(Equal("default-config-branch"))
+				_, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
+				Expect(prInfo.TargetBranch).To(Equal("default-config-branch"))
 			})
 
 			It("creates the pull request against the default branch for a user config repository", func() {
 				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
-				_, _, branch, _, _, _, _, _ := gitProviders.CreatePullRequestArgsForCall(0)
-				Expect(branch).To(Equal("default-config-branch"))
+				_, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
+				Expect(prInfo.TargetBranch).To(Equal("default-config-branch"))
 			})
 		})
 	})
