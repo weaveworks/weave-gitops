@@ -3,12 +3,14 @@ module github.com/weaveworks/weave-gitops
 go 1.16
 
 require (
+	github.com/benbjohnson/clock v1.1.0
 	github.com/deepmap/oapi-codegen v1.8.1
 	github.com/fluxcd/go-git-providers v0.2.1-0.20210920141513-ddc36f3d5f60
 	github.com/fluxcd/helm-controller/api v0.11.1
 	github.com/fluxcd/kustomize-controller/api v0.13.2
 	github.com/fluxcd/pkg/apis/meta v0.10.0
 	github.com/fluxcd/source-controller/api v0.15.3
+	github.com/freshautomations/stoml v0.7.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-logr/logr v1.1.0

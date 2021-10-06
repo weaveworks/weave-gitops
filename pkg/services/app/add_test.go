@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/go-git/go-billy/v5/memfs"
 	gogit "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
@@ -17,6 +16,7 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"sigs.k8s.io/yaml"
 )
 
@@ -24,17 +24,6 @@ var (
 	addParams AddParams
 	ctx       context.Context
 )
-
-type dummyPullRequest struct {
-}
-
-func (d dummyPullRequest) Get() gitprovider.PullRequestInfo {
-	return gitprovider.PullRequestInfo{WebURL: ""}
-}
-
-func (d dummyPullRequest) APIObject() interface{} {
-	return nil
-}
 
 var _ = Describe("Add", func() {
 	var _ = BeforeEach(func() {
@@ -771,7 +760,7 @@ var _ = Describe("Add", func() {
 				return "default-config-branch", nil
 			}
 
-			gitProviders.CreatePullRequestReturns(&dummyPullRequest{}, nil)
+			gitProviders.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
 
 			addParams.Url = "ssh://github.com/user/repo.git"
 			info = getAppResourceInfo(makeWegoApplication(addParams), "cluster")

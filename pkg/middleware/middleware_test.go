@@ -1,6 +1,7 @@
 package middleware_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
+	"google.golang.org/grpc/metadata"
 )
 
 var (
@@ -125,5 +127,13 @@ var _ = Describe("ExtractProviderToken", func() {
 
 		_, err := middleware.ExtractProviderToken(request.Context())
 		Expect(err).To(MatchError("no token specified"))
+	})
+	It("extracts an auth token from grpc metadata", func() {
+		tokenStr := "mytoken"
+		md := metadata.New(map[string]string{"Authorization": tokenStr})
+		ctx := metadata.NewIncomingContext(context.Background(), md)
+		token, err := middleware.ExtractProviderToken(ctx)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(token.AccessToken).To(Equal(tokenStr))
 	})
 })
