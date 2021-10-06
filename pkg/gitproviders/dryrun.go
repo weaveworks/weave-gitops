@@ -10,7 +10,9 @@ func NewDryRun() (GitProvider, error) {
 	provider, err := New(Config{
 		Provider: GitProviderGitHub,
 		Token:    "dummy",
-	}, "", GetAccountType)
+	}, "", func(provider gitprovider.Client, domain, owner string) (ProviderAccountType, error) {
+		return ProviderAccountType(GitProviderGitHub), nil
+	})
 	if err != nil {
 		return nil, err
 	}
