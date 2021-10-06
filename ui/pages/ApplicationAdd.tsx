@@ -9,14 +9,16 @@ import {
 import * as React from "react";
 import styled from "styled-components";
 import Alert from "../components/Alert";
+import AuthAlert from "../components/AuthAlert";
 import Button from "../components/Button";
 import Flex from "../components/Flex";
+import GithubDeviceAuthModal from "../components/GithubDeviceAuthModal";
 import Link from "../components/Link";
 import Page from "../components/Page";
 import { AppContext } from "../contexts/AppContext";
 import { useRequestState } from "../hooks/common";
 import { AddApplicationResponse } from "../lib/api/applications/applications.pb";
-import { PageRoute } from "../lib/types";
+import { GrpcErrorCodes, PageRoute } from "../lib/types";
 
 type Props = {
   className?: string;
@@ -113,10 +115,15 @@ const SuccessMessage = styled(
 
 const FormElement = styled.div`
   padding-bottom: 16px;
+
+  .MuiFormControl-root {
+    min-width: 360px;
+  }
 `;
 
 function AddApplication({ className }: Props) {
   const { applicationsClient } = React.useContext(AppContext);
+  const formRef = React.useRef<HTMLFormElement>();
   const [formState, setFormState] = React.useState({
     name: "",
     namespace: "wego-system",
@@ -129,6 +136,8 @@ function AddApplication({ className }: Props) {
   const [addRes, loading, error, req] =
     useRequestState<AddApplicationResponse>();
   const [prLink, setPrLink] = React.useState("");
+  const [authOpen, setAuthOpen] = React.useState(false);
+  const [authSuccess, setAuthSuccess] = React.useState(false);
 
   const handleSubmit = () => {
     req(
@@ -136,6 +145,17 @@ function AddApplication({ className }: Props) {
         ...formState,
       })
     );
+  };
+
+  const handleAuthSuccess = () => {
+    setAuthSuccess(true);
+    if (formRef && formRef.current) {
+      handleSubmit();
+    }
+  };
+
+  const handleAuthClick = () => {
+    setAuthOpen(true);
   };
 
   React.useEffect(() => {
@@ -151,13 +171,26 @@ function AddApplication({ className }: Props) {
 
   return (
     <Page className={className} title="Add Application">
-      {error && (
-        <Alert severity="error" title="Error!" message={error.message} />
+      {!authSuccess &&
+        error &&
+        error.code === GrpcErrorCodes.Unauthenticated && (
+          <AuthAlert
+            title="Error adding application"
+            onClick={handleAuthClick}
+          />
+        )}
+      {error && error.code !== GrpcErrorCodes.Unauthenticated && (
+        <Alert
+          severity="error"
+          title="Error adding application"
+          message={error.message}
+        />
       )}
       {addRes && addRes.success ? (
         <SuccessMessage autoMerged={formState.autoMerge} link={prLink} />
       ) : (
         <form
+          ref={formRef}
           onSubmit={(e) => {
             e.preventDefault();
             handleSubmit();
@@ -303,6 +336,12 @@ function AddApplication({ className }: Props) {
           </Flex>
         </form>
       )}
+      <GithubDeviceAuthModal
+        onSuccess={handleAuthSuccess}
+        onClose={() => setAuthOpen(false)}
+        open={authOpen}
+        repoName={formState.url}
+      />
     </Page>
   );
 }
