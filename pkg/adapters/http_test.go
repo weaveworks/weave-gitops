@@ -149,11 +149,13 @@ spec:
     apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
     kind: AWSManagedCluster
     name: dev
+
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 kind: AWSManagedCluster
 metadata:
   name: dev
+
 ---
 apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
 kind: AWSManagedControlPlane
@@ -163,6 +165,7 @@ spec:
   region: us-east-1
   sshKeyName: ssh_key
   version: "1.19"
+
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 kind: AWSFargateProfile
