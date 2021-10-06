@@ -58,7 +58,7 @@ a=( ${version//./ } )
 
 if [ ! -z $release ] 
 then
-  if [[ $version == *"rc"* ]]; then # If the last version wasnt a release candidate exit
+  if [[ $version == *"rc"* ]]; then # If the last version was not a release candidate then exit
     patch=( ${a[2]//-/ } )
     next_version="${a[0]}.${a[1]}.${patch[0]}"
     echo $next_version
@@ -88,8 +88,6 @@ else
 
   next_version="${a[0]}.${a[1]}.${a[2]}-rc"
 fi
-
-msg="$1"
 
 branch=$(git branch | sed -n -e 's/^\* \(.*\)/\1/p')
 
