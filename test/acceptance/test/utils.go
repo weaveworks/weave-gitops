@@ -638,8 +638,8 @@ func verifyPRCreated(repoAbsolutePath, appName string, providerName gitproviders
 	Expect(repoErr).ShouldNot(HaveOccurred())
 
 	prs, err := or.PullRequests().List(ctx)
-	Expect(err).To(BeNil())
-
+	Expect(err).ShouldNot(HaveOccurred())
+	fmt.Printf("PRS: %#+v\n", prs)
 	Expect(len(prs)).To(Equal(1))
 }
 
