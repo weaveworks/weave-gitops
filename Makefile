@@ -110,7 +110,7 @@ ui-test: ## Run UI tests
 	npm run test
 
 ui-audit: ## Run audit against the UI
-	npm audit
+	npm audit --production
 
 ui: node_modules cmd/gitops/ui/run/dist/main.js ## Build the UI
 

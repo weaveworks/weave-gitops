@@ -80,8 +80,8 @@ jobs:
       uses: actions/checkout@v2
     - name: Install UI Deps
       run: npm ci
-    # - name: NPM Audit
-    #   run: npm audit
+    - name: UI Deps Audit
+      run: make ui-audit
     - name: Build UI Assets
       run: make cmd/gitops/ui/run/dist/main.js
     - name: Set up kubebuilder
