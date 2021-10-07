@@ -105,7 +105,7 @@ else
   # If it's not a dry run, let's go!
   # 3) Add git tag
   echo "Add git tag v$next_version with title: v$next_version"
-  git tag -a "v$next_version" -m "v$next_version""
+  git tag -a "v$next_version" -m "v$next_version"
 
   # 4) Push the new tag
 
