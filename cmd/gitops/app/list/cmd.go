@@ -10,8 +10,8 @@ import (
 
 var Cmd = &cobra.Command{
 	Use:     "list",
-	Short:   "List applications under wego control",
-	Example: "wego app list",
+	Short:   "List applications under gitops control",
+	Example: "gitops app list",
 	RunE:    runCmd,
 }
 

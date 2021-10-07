@@ -11,11 +11,11 @@ import (
 
 var Cmd = &cobra.Command{
 	Use:           "status <app-name>",
-	Short:         "Get status of a workload under wego control",
+	Short:         "Get status of a workload under gitops control",
 	Args:          cobra.MinimumNArgs(1),
 	SilenceUsage:  true,
 	SilenceErrors: true,
-	Example:       "wego app status podinfo",
+	Example:       "gitops app status podinfo",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := context.Background()
 

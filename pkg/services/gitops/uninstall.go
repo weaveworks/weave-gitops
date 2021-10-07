@@ -22,7 +22,7 @@ func (e UninstallError) Error() string {
 func (g *Gitops) Uninstall(params UninstallParams) error {
 	ctx := context.Background()
 	if g.kube.GetClusterStatus(ctx) != kube.GitOpsInstalled {
-		g.logger.Println("wego is not fully installed... removing any partial installation\n")
+		g.logger.Println("gitops is not fully installed... removing any partial installation\n")
 	}
 
 	errorOccurred := false

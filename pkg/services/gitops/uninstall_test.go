@@ -41,7 +41,7 @@ func checkFluxUninstallFailure() {
 }
 
 func checkAppCRDUninstallFailure() {
-	manifestsErrMsg := "wego manifests uninstall failed"
+	manifestsErrMsg := "gitops manifests uninstall failed"
 
 	loggedMsg := ""
 	logger.PrintfStub = func(str string, args ...interface{}) {
@@ -95,7 +95,7 @@ var _ = Describe("Uninstall", func() {
 		}
 
 		Expect(gitopsSrv.Uninstall(uninstallParams)).Should(Succeed())
-		Expect(loggedMsg).To(Equal("wego is not fully installed... removing any partial installation\n"))
+		Expect(loggedMsg).To(Equal("gitops is not fully installed... removing any partial installation\n"))
 
 		kubeClient.GetClusterStatusStub = func(ctx context.Context) kube.ClusterStatus {
 			return kube.Unmodified
@@ -103,7 +103,7 @@ var _ = Describe("Uninstall", func() {
 		loggedMsg = ""
 
 		Expect(gitopsSrv.Uninstall(uninstallParams)).Should(Succeed())
-		Expect(loggedMsg).To(Equal("wego is not fully installed... removing any partial installation\n"))
+		Expect(loggedMsg).To(Equal("gitops is not fully installed... removing any partial installation\n"))
 	})
 
 	It("Does not log warning information if wego is installed", func() {

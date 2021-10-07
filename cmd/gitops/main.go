@@ -58,7 +58,7 @@ var rootCmd = &cobra.Command{
   gitops help app add
 
   # Show manifests that would be installed by the gitops gitops install command
-  gitops gitops install --dry-run
+  gitops install --dry-run
 
   # Install gitops in the wego-system namespace
   gitops install

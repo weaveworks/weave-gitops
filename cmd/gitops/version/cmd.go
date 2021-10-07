@@ -20,7 +20,7 @@ var BuildTime = ""
 
 var Cmd = &cobra.Command{
 	Use:   "version",
-	Short: "Display wego version",
+	Short: "Display gitops version",
 	Run:   runCmd,
 	PostRun: func(cmd *cobra.Command, args []string) {
 		CheckVersion(CheckpointParams())
@@ -46,7 +46,7 @@ func runCmd(cmd *cobra.Command, args []string) {
 func CheckVersion(p *checkpoint.CheckParams) {
 	checkResponse, err := checkpoint.Check(p)
 	if err == nil && checkResponse.Outdated {
-		log.Infof("wego version %s is available; please update at %s",
+		log.Infof("gitops version %s is available; please update at %s",
 			checkResponse.CurrentVersion, checkResponse.CurrentDownloadURL)
 	}
 }
