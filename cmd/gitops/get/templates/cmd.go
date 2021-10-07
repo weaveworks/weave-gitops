@@ -37,7 +37,7 @@ gitops get template <template-name> --list-parameters
 	}
 
 	cmd.Flags().BoolVar(&flags.ListTemplateParameters, "list-parameters", false, "Show parameters of CAPI template")
-	cmd.Flags().StringVar(&flags.Provider, "provider", "", "Filter templates by provider")
+	cmd.Flags().StringVar(&flags.Provider, "provider", "", "Filter templates by provider. Supported providers: aws azure digitalocean docker openstack packet vsphere")
 
 	return cmd
 }

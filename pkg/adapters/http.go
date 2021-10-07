@@ -38,6 +38,11 @@ func NewHttpClient(endpoint string, client *resty.Client, out io.Writer) (*HttpC
 
 	client = client.SetHostURL(u.String()).
 		OnAfterResponse(func(c *resty.Client, r *resty.Response) error {
+			if r.StatusCode() >= http.StatusInternalServerError {
+				fmt.Fprintf(out, "Server error: %s\n", r.Body())
+				return nil
+			}
+
 			if m := r.Header().Get(expiredHeaderName); m != "" {
 				fmt.Fprintln(out, m)
 			}
