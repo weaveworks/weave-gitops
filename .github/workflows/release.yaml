@@ -29,10 +29,19 @@ jobs:
         run: make all
       - name: "Git diff"
         run: git --no-pager diff
+      - name: Build Changelog 
+        id: github_release
+        uses: mikepenz/release-changelog-builder-action@v1
+        with:
+          configuration: "${{ github.workspace }}/.github/changelog/changelog_configuration.json"
+          outputFile: "${{ runner.temp }}/changelog.md"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v1
         with:
           version: latest
+          args: release --rm-dist --release-notes=${{ runner.temp }}/changelog.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: ${{ env.BRANCH }}
