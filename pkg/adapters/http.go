@@ -81,6 +81,45 @@ func (c *HttpClient) RetrieveTemplates() ([]capi.Template, error) {
 	for _, t := range templateList.Templates {
 		ts = append(ts, capi.Template{
 			Name:        t.Name,
+			Provider:    t.Provider,
+			Description: t.Description,
+		})
+	}
+
+	return ts, nil
+}
+
+// RetrieveTemplatesByProvider returns the list of all templates for a given
+// provider from the cluster service.
+func (c *HttpClient) RetrieveTemplatesByProvider(provider string) ([]capi.Template, error) {
+	endpoint := "v1/templates"
+
+	type ListTemplatesResponse struct {
+		Templates []*capi.Template
+	}
+
+	var templateList ListTemplatesResponse
+	res, err := c.client.R().
+		SetHeader("Accept", "application/json").
+		SetQueryParams(map[string]string{
+			"provider": provider,
+		}).
+		SetResult(&templateList).
+		Get(endpoint)
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to GET templates from %q: %w", res.Request.URL, err)
+	}
+
+	if res.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
+	}
+
+	var ts []capi.Template
+	for _, t := range templateList.Templates {
+		ts = append(ts, capi.Template{
+			Name:        t.Name,
+			Provider:    t.Provider,
 			Description: t.Description,
 		})
 	}
