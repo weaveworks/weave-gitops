@@ -26,6 +26,47 @@ type PullRequestClient struct {
 		result1 gitprovider.PullRequest
 		result2 error
 	}
+	GetStub        func(context.Context, int) (gitprovider.PullRequest, error)
+	getMutex       sync.RWMutex
+	getArgsForCall []struct {
+		arg1 context.Context
+		arg2 int
+	}
+	getReturns struct {
+		result1 gitprovider.PullRequest
+		result2 error
+	}
+	getReturnsOnCall map[int]struct {
+		result1 gitprovider.PullRequest
+		result2 error
+	}
+	ListStub        func(context.Context) ([]gitprovider.PullRequest, error)
+	listMutex       sync.RWMutex
+	listArgsForCall []struct {
+		arg1 context.Context
+	}
+	listReturns struct {
+		result1 []gitprovider.PullRequest
+		result2 error
+	}
+	listReturnsOnCall map[int]struct {
+		result1 []gitprovider.PullRequest
+		result2 error
+	}
+	MergeStub        func(context.Context, int, gitprovider.MergeMethod, string) error
+	mergeMutex       sync.RWMutex
+	mergeArgsForCall []struct {
+		arg1 context.Context
+		arg2 int
+		arg3 gitprovider.MergeMethod
+		arg4 string
+	}
+	mergeReturns struct {
+		result1 error
+	}
+	mergeReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -98,11 +139,210 @@ func (fake *PullRequestClient) CreateReturnsOnCall(i int, result1 gitprovider.Pu
 	}{result1, result2}
 }
 
+func (fake *PullRequestClient) Get(arg1 context.Context, arg2 int) (gitprovider.PullRequest, error) {
+	fake.getMutex.Lock()
+	ret, specificReturn := fake.getReturnsOnCall[len(fake.getArgsForCall)]
+	fake.getArgsForCall = append(fake.getArgsForCall, struct {
+		arg1 context.Context
+		arg2 int
+	}{arg1, arg2})
+	stub := fake.GetStub
+	fakeReturns := fake.getReturns
+	fake.recordInvocation("Get", []interface{}{arg1, arg2})
+	fake.getMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *PullRequestClient) GetCallCount() int {
+	fake.getMutex.RLock()
+	defer fake.getMutex.RUnlock()
+	return len(fake.getArgsForCall)
+}
+
+func (fake *PullRequestClient) GetCalls(stub func(context.Context, int) (gitprovider.PullRequest, error)) {
+	fake.getMutex.Lock()
+	defer fake.getMutex.Unlock()
+	fake.GetStub = stub
+}
+
+func (fake *PullRequestClient) GetArgsForCall(i int) (context.Context, int) {
+	fake.getMutex.RLock()
+	defer fake.getMutex.RUnlock()
+	argsForCall := fake.getArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *PullRequestClient) GetReturns(result1 gitprovider.PullRequest, result2 error) {
+	fake.getMutex.Lock()
+	defer fake.getMutex.Unlock()
+	fake.GetStub = nil
+	fake.getReturns = struct {
+		result1 gitprovider.PullRequest
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *PullRequestClient) GetReturnsOnCall(i int, result1 gitprovider.PullRequest, result2 error) {
+	fake.getMutex.Lock()
+	defer fake.getMutex.Unlock()
+	fake.GetStub = nil
+	if fake.getReturnsOnCall == nil {
+		fake.getReturnsOnCall = make(map[int]struct {
+			result1 gitprovider.PullRequest
+			result2 error
+		})
+	}
+	fake.getReturnsOnCall[i] = struct {
+		result1 gitprovider.PullRequest
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *PullRequestClient) List(arg1 context.Context) ([]gitprovider.PullRequest, error) {
+	fake.listMutex.Lock()
+	ret, specificReturn := fake.listReturnsOnCall[len(fake.listArgsForCall)]
+	fake.listArgsForCall = append(fake.listArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.ListStub
+	fakeReturns := fake.listReturns
+	fake.recordInvocation("List", []interface{}{arg1})
+	fake.listMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *PullRequestClient) ListCallCount() int {
+	fake.listMutex.RLock()
+	defer fake.listMutex.RUnlock()
+	return len(fake.listArgsForCall)
+}
+
+func (fake *PullRequestClient) ListCalls(stub func(context.Context) ([]gitprovider.PullRequest, error)) {
+	fake.listMutex.Lock()
+	defer fake.listMutex.Unlock()
+	fake.ListStub = stub
+}
+
+func (fake *PullRequestClient) ListArgsForCall(i int) context.Context {
+	fake.listMutex.RLock()
+	defer fake.listMutex.RUnlock()
+	argsForCall := fake.listArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *PullRequestClient) ListReturns(result1 []gitprovider.PullRequest, result2 error) {
+	fake.listMutex.Lock()
+	defer fake.listMutex.Unlock()
+	fake.ListStub = nil
+	fake.listReturns = struct {
+		result1 []gitprovider.PullRequest
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *PullRequestClient) ListReturnsOnCall(i int, result1 []gitprovider.PullRequest, result2 error) {
+	fake.listMutex.Lock()
+	defer fake.listMutex.Unlock()
+	fake.ListStub = nil
+	if fake.listReturnsOnCall == nil {
+		fake.listReturnsOnCall = make(map[int]struct {
+			result1 []gitprovider.PullRequest
+			result2 error
+		})
+	}
+	fake.listReturnsOnCall[i] = struct {
+		result1 []gitprovider.PullRequest
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *PullRequestClient) Merge(arg1 context.Context, arg2 int, arg3 gitprovider.MergeMethod, arg4 string) error {
+	fake.mergeMutex.Lock()
+	ret, specificReturn := fake.mergeReturnsOnCall[len(fake.mergeArgsForCall)]
+	fake.mergeArgsForCall = append(fake.mergeArgsForCall, struct {
+		arg1 context.Context
+		arg2 int
+		arg3 gitprovider.MergeMethod
+		arg4 string
+	}{arg1, arg2, arg3, arg4})
+	stub := fake.MergeStub
+	fakeReturns := fake.mergeReturns
+	fake.recordInvocation("Merge", []interface{}{arg1, arg2, arg3, arg4})
+	fake.mergeMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *PullRequestClient) MergeCallCount() int {
+	fake.mergeMutex.RLock()
+	defer fake.mergeMutex.RUnlock()
+	return len(fake.mergeArgsForCall)
+}
+
+func (fake *PullRequestClient) MergeCalls(stub func(context.Context, int, gitprovider.MergeMethod, string) error) {
+	fake.mergeMutex.Lock()
+	defer fake.mergeMutex.Unlock()
+	fake.MergeStub = stub
+}
+
+func (fake *PullRequestClient) MergeArgsForCall(i int) (context.Context, int, gitprovider.MergeMethod, string) {
+	fake.mergeMutex.RLock()
+	defer fake.mergeMutex.RUnlock()
+	argsForCall := fake.mergeArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+}
+
+func (fake *PullRequestClient) MergeReturns(result1 error) {
+	fake.mergeMutex.Lock()
+	defer fake.mergeMutex.Unlock()
+	fake.MergeStub = nil
+	fake.mergeReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *PullRequestClient) MergeReturnsOnCall(i int, result1 error) {
+	fake.mergeMutex.Lock()
+	defer fake.mergeMutex.Unlock()
+	fake.MergeStub = nil
+	if fake.mergeReturnsOnCall == nil {
+		fake.mergeReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.mergeReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *PullRequestClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
+	fake.getMutex.RLock()
+	defer fake.getMutex.RUnlock()
+	fake.listMutex.RLock()
+	defer fake.listMutex.RUnlock()
+	fake.mergeMutex.RLock()
+	defer fake.mergeMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

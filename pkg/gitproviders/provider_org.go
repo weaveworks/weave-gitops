@@ -101,7 +101,7 @@ func (p orgGitProvider) getRepoInfo(ctx context.Context, owner string, repoName 
 }
 
 func (p orgGitProvider) getOrgRepo(ctx context.Context, org string, repoName string) (gitprovider.OrgRepository, error) {
-	orgRepoRef := newOrgRepositoryRef(p.domain, org, repoName)
+	orgRepoRef := NewOrgRepositoryRef(p.domain, org, repoName)
 
 	repo, err := p.provider.OrgRepositories().Get(context.Background(), orgRepoRef)
 	if err != nil {

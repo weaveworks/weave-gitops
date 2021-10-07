@@ -177,7 +177,7 @@ func isEmptyRepoError(err error) bool {
 	return strings.Contains(err.Error(), "409 Git Repository is empty")
 }
 
-func newOrgRepositoryRef(domain, org, repoName string) gitprovider.OrgRepositoryRef {
+func NewOrgRepositoryRef(domain, org, repoName string) gitprovider.OrgRepositoryRef {
 	return gitprovider.OrgRepositoryRef{
 		RepositoryName: repoName,
 		OrganizationRef: gitprovider.OrganizationRef{
@@ -209,7 +209,7 @@ func detectGitProviderFromUrl(raw string) (GitProviderName, error) {
 
 	u, err := url.Parse(raw)
 	if err != nil {
-		return "", fmt.Errorf("could not parse git repo url %q", raw)
+		return "", fmt.Errorf("could not parse git repo url %q: %w", raw, err)
 	}
 
 	switch u.Hostname() {
@@ -265,7 +265,7 @@ func normalizeRepoURLString(url string, providerName GitProviderName) string {
 func NewNormalizedRepoURL(uri string) (NormalizedRepoURL, error) {
 	providerName, err := detectGitProviderFromUrl(uri)
 	if err != nil {
-		return NormalizedRepoURL{}, fmt.Errorf("could get provider name from URL %s: %w", uri, err)
+		return NormalizedRepoURL{}, fmt.Errorf("could not get provider name from URL %s: %w", uri, err)
 	}
 
 	normalized := normalizeRepoURLString(uri, providerName)
@@ -277,7 +277,7 @@ func NewNormalizedRepoURL(uri string) (NormalizedRepoURL, error) {
 
 	owner, err := getOwnerFromUrl(*u, providerName)
 	if err != nil {
-		return NormalizedRepoURL{}, fmt.Errorf("could get owner name from URL %s: %w", uri, err)
+		return NormalizedRepoURL{}, fmt.Errorf("could not get owner name from URL %s: %w", uri, err)
 	}
 
 	protocol := RepositoryURLProtocolSSH

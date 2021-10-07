@@ -141,7 +141,7 @@ var _ = Describe("User Provider", func() {
 	Describe("GetDefaultBranch", func() {
 		It("returns error when cant extract owner from url", func() {
 			_, err := userProvider.GetDefaultBranch(ctx, "bad-url")
-			Expect(err.Error()).Should(ContainSubstring("could get provider name from URL"))
+			Expect(err.Error()).Should(ContainSubstring("could not get provider name from URL"))
 		})
 
 		It("returns error when can't get branch", func() {
@@ -163,7 +163,7 @@ var _ = Describe("User Provider", func() {
 	Describe("GetRepoVisibility", func() {
 		It("returns error when cant extract owner from url", func() {
 			_, err := userProvider.GetRepoVisibility(ctx, "bad-url")
-			Expect(err.Error()).Should(ContainSubstring("could get provider name from URL"))
+			Expect(err.Error()).Should(ContainSubstring("could not get provider name from URL"))
 		})
 
 		It("returns error when can't get branch", func() {
