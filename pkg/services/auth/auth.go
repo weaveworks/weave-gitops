@@ -42,38 +42,22 @@ func NewAuthCLIHandler(name gitproviders.GitProviderName) (BlockingCLIAuthHandle
 	return nil, fmt.Errorf("unsupported auth provider \"%s\"", name)
 }
 
-// GetGitProvider returns a GitProvider containing either the token stored in the <git provider>_TOKEN env var
+// InitGitProvider returns a GitProvider containing either the token stored in the <git provider>_TOKEN env var
 // or a token retrieved via the CLI auth flow
-func GetGitProvider(ctx context.Context, normalizedUrl gitproviders.NormalizedRepoURL) (gitproviders.GitProvider, error) {
-	authHandler, authErr := NewAuthCLIHandler(normalizedUrl.Provider())
-	if authErr != nil {
-		return nil, fmt.Errorf("could not get auth handler for provider %s: %w", normalizedUrl.Provider(), authErr)
-	}
+func InitGitProvider(repoUrl gitproviders.NormalizedRepoURL, osysClient osys.Osys, logger logger.Logger, cliAuthHandler BlockingCLIAuthHandler, getAccountType gitproviders.AccountTypeGetter) (gitproviders.GitProvider, error) {
+	ctx := context.Background()
 
-	osysClient := osys.New()
-	logger := logger.NewCLILogger(osysClient.Stdout())
-
-	return getGitProviderWithClients(ctx, normalizedUrl.Provider(), osysClient, authHandler, logger)
-}
-
-func getGitProviderWithClients(
-	ctx context.Context,
-	providerName gitproviders.GitProviderName,
-	osysClient osys.Osys,
-	authHandler BlockingCLIAuthHandler,
-	logger logger.Logger) (gitproviders.GitProvider, error) {
-	tokenVarName, varNameErr := getTokenVarName(providerName)
-	if varNameErr != nil {
-		return nil, fmt.Errorf("could not determine git provider token name: %w", varNameErr)
+	tokenVarName, err := getTokenVarName(repoUrl.Provider())
+	if err != nil {
+		return nil, fmt.Errorf("could not determine git provider token name: %w", err)
 	}
 
 	token, err := osysClient.GetGitProviderToken(tokenVarName)
-
 	if err == osys.ErrNoGitProviderTokenSet {
 		// No provider token set, we need to do the auth flow.
 		logger.Warningf("Setting the %q environment variable to a valid token will allow ongoing use of the CLI without requiring a browser-based auth flow...\n", tokenVarName)
 
-		generatedToken, err := authHandler(ctx, osysClient.Stdout())
+		generatedToken, err := cliAuthHandler(ctx, osysClient.Stdout())
 		if err != nil {
 			return nil, fmt.Errorf("could not complete auth flow: %w", err)
 		}
@@ -84,7 +68,7 @@ func getGitProviderWithClients(
 		return nil, fmt.Errorf("could not get access token: %w", err)
 	}
 
-	provider, err := gitproviders.New(gitproviders.Config{Provider: providerName, Token: token})
+	provider, err := gitproviders.New(gitproviders.Config{Provider: repoUrl.Provider(), Token: token}, repoUrl.Owner(), getAccountType)
 	if err != nil {
 		return nil, fmt.Errorf("error creating git provider client: %w", err)
 	}
@@ -182,7 +166,7 @@ func (a *authSvc) setupDeployKey(ctx context.Context, name SecretName, targetNam
 	owner := repo.Owner()
 	repoName := repo.RepositoryName()
 
-	deployKeyExists, err := a.gitProvider.DeployKeyExists(owner, repoName)
+	deployKeyExists, err := a.gitProvider.DeployKeyExists(ctx, owner, repoName)
 	if err != nil {
 		return nil, fmt.Errorf("failed check for existing deploy key: %w", err)
 	}
@@ -223,7 +207,7 @@ func (a *authSvc) provisionDeployKey(ctx context.Context, targetName string, nam
 
 	publicKeyBytes := extractPublicKey(secret)
 
-	if err := a.gitProvider.UploadDeployKey(repo.Owner(), repo.RepositoryName(), publicKeyBytes); err != nil {
+	if err := a.gitProvider.UploadDeployKey(ctx, repo.Owner(), repo.RepositoryName(), publicKeyBytes); err != nil {
 		return nil, fmt.Errorf("error uploading deploy key: %w", err)
 	}
 

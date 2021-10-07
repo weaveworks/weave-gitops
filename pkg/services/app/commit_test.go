@@ -7,7 +7,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 )
 
 var _ = Describe("Get Commits", func() {
@@ -21,14 +20,8 @@ var _ = Describe("Get Commits", func() {
 			Spec: wego.ApplicationSpec{URL: "https://github.com/foo/bar"},
 		}
 
-		gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-			return gitproviders.AccountTypeUser, nil
-		}
-
 		commits := []gitprovider.Commit{&fakeCommit{}}
-		gitProviders.GetCommitsFromUserRepoStub = func(gitprovider.UserRepositoryRef, string, int, int) ([]gitprovider.Commit, error) {
-			return commits, nil
-		}
+		gitProviders.GetCommitsReturns(commits, nil)
 
 		commit, err := appSrv.GetCommits(commitParams, application)
 		Expect(err).ShouldNot(HaveOccurred())
@@ -45,14 +38,8 @@ var _ = Describe("Get Commits", func() {
 			Spec: wego.ApplicationSpec{URL: "https://github.com/foo/bar"},
 		}
 
-		gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-			return gitproviders.AccountTypeOrg, nil
-		}
-
 		commits := []gitprovider.Commit{&fakeCommit{}}
-		gitProviders.GetCommitsFromOrgRepoStub = func(gitprovider.OrgRepositoryRef, string, int, int) ([]gitprovider.Commit, error) {
-			return commits, nil
-		}
+		gitProviders.GetCommitsReturns(commits, nil)
 
 		commit, err := appSrv.GetCommits(commitParams, application)
 		Expect(err).ShouldNot(HaveOccurred())

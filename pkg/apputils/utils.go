@@ -201,20 +201,25 @@ func getAuthService(ctx context.Context, normalizedUrl gitproviders.NormalizedRe
 		err         error
 	)
 
+	osysClient := osys.New()
+	cliRunner := &runner.CLIRunner{}
+	fluxClient := flux.New(osysClient, cliRunner)
+	logger := logger.NewCLILogger(osysClient.Stdout())
+
+	authHandler, err := auth.NewAuthCLIHandler(normalizedUrl.Provider())
+	if err != nil {
+		return nil, fmt.Errorf("error initializing cli auth handler: %w", err)
+	}
+
 	if dryRun {
 		if gitProvider, err = gitproviders.NewDryRun(); err != nil {
 			return nil, fmt.Errorf("error creating git provider client: %w", err)
 		}
 	} else {
-		if gitProvider, err = auth.GetGitProvider(ctx, normalizedUrl); err != nil {
+		if gitProvider, err = auth.InitGitProvider(normalizedUrl, osysClient, logger, authHandler, gitproviders.GetAccountType); err != nil {
 			return nil, fmt.Errorf("error obtaining git provider token: %w", err)
 		}
 	}
-
-	osysClient := osys.New()
-	cliRunner := &runner.CLIRunner{}
-	fluxClient := flux.New(osysClient, cliRunner)
-	logger := logger.NewCLILogger(osysClient.Stdout())
 
 	_, rawClient, err := kube.NewKubeHTTPClient()
 	if err != nil {

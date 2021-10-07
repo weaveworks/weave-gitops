@@ -552,13 +552,13 @@ var _ = Describe("ApplicationsServer", func() {
 			}
 			gp.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil)
 
-			gp.CreatePullRequestToUserRepoReturns(testutils.DummyPullRequest{}, nil)
+			gp.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
 
 			res, err := appsClient.AddApplication(contextWithAuth(ctx), appRequest)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(res.Success).To(BeTrue())
 
-			Expect(gp.CreatePullRequestToUserRepoCallCount()).To(Equal(1), "should have made a PR")
+			Expect(gp.CreatePullRequestCallCount()).To(Equal(1), "should have made a PR")
 		})
 		It("adds an app with a config repo url specified", func() {
 			ctx := context.Background()
@@ -571,11 +571,11 @@ var _ = Describe("ApplicationsServer", func() {
 				Branch:    "main",
 				ConfigUrl: "ssh://git@github.com/some-org/my-config-url.git",
 			}
-			gp.GetRepoVisibilityStub = func(s string) (*gitprovider.RepositoryVisibility, error) {
+			gp.GetRepoVisibilityStub = func(_ context.Context, s string) (*gitprovider.RepositoryVisibility, error) {
 				return gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil
 			}
 
-			gp.CreatePullRequestToUserRepoStub = func(urr gitprovider.UserRepositoryRef, s1, s2 string, cf []gitprovider.CommitFile, s3, s4, s5 string) (gitprovider.PullRequest, error) {
+			gp.CreatePullRequestStub = func(_ context.Context, owner, repoName string, prInfo gitproviders.PullRequestInfo) (gitprovider.PullRequest, error) {
 				return testutils.DummyPullRequest{}, nil
 			}
 
@@ -584,7 +584,7 @@ var _ = Describe("ApplicationsServer", func() {
 			Expect(res.Success).To(BeTrue())
 
 			Expect(configGit.CommitCallCount()).To(Equal(1), "should have committed to config git repo")
-			Expect(gp.CreatePullRequestToUserRepoCallCount()).To(Equal(1), "should have made a PR")
+			Expect(gp.CreatePullRequestCallCount()).To(Equal(1), "should have made a PR")
 		})
 		It("adds an app with automerge and no config repo defined", func() {
 			ctx := context.Background()
@@ -597,11 +597,11 @@ var _ = Describe("ApplicationsServer", func() {
 				Branch:    "main",
 				AutoMerge: true,
 			}
-			gp.GetRepoVisibilityStub = func(s string) (*gitprovider.RepositoryVisibility, error) {
+			gp.GetRepoVisibilityStub = func(_ context.Context, s string) (*gitprovider.RepositoryVisibility, error) {
 				return gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil
 			}
 
-			gp.CreatePullRequestToUserRepoStub = func(urr gitprovider.UserRepositoryRef, s1, s2 string, cf []gitprovider.CommitFile, s3, s4, s5 string) (gitprovider.PullRequest, error) {
+			gp.CreatePullRequestStub = func(_ context.Context, owner, repoName string, prInfo gitproviders.PullRequestInfo) (gitprovider.PullRequest, error) {
 				return testutils.DummyPullRequest{}, nil
 			}
 
@@ -610,7 +610,7 @@ var _ = Describe("ApplicationsServer", func() {
 			Expect(res.Success).To(BeTrue())
 
 			Expect(configGit.CommitCallCount()).To(Equal(1), "should have committed to the config git repo")
-			Expect(gp.CreatePullRequestToUserRepoCallCount()).To(Equal(0), "should NOT have made a PR")
+			Expect(gp.CreatePullRequestCallCount()).To(Equal(0), "should NOT have made a PR")
 		})
 	})
 
@@ -854,14 +854,11 @@ var _ = Describe("Applications handler", func() {
 		appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 			return kubeClient, nil
 		}
-
-		gitProviders.GetCommitsFromUserRepoStub = func(gitprovider.UserRepositoryRef, string, int, int) ([]gitprovider.Commit, error) {
+		gitProviders.GetCommitsStub = func(_ context.Context, owner string, repoName, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
 			return commits, nil
 		}
 
-		gitProviders.GetAccountTypeStub = func(string) (gitproviders.ProviderAccountType, error) {
-			return gitproviders.AccountTypeUser, nil
-		}
+		gitProviders.GetCommitsReturns(commits, nil)
 
 		cfg := ApplicationsConfig{
 			Logger:     log,

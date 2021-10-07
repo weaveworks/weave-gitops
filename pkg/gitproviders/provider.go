@@ -31,229 +31,137 @@ const (
 // GitProvider Handler
 //counterfeiter:generate . GitProvider
 type GitProvider interface {
-	CreateRepository(name string, owner string, private bool) error
-	RepositoryExists(name string, owner string) (bool, error)
-	DeployKeyExists(owner, repoName string) (bool, error)
-	GetRepoInfo(accountType ProviderAccountType, owner string, repoName string) (*gitprovider.RepositoryInfo, error)
-	GetRepoInfoFromUrl(url string) (*gitprovider.RepositoryInfo, error)
-	GetDefaultBranch(url string) (string, error)
-	GetRepoVisibility(url string) (*gitprovider.RepositoryVisibility, error)
-	UploadDeployKey(owner, repoName string, deployKey []byte) error
-	CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
-	CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error)
-	GetCommitsFromUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
-	GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
-	GetAccountType(owner string) (ProviderAccountType, error)
+	RepositoryExists(ctx context.Context, name string, owner string) (bool, error)
+	DeployKeyExists(ctx context.Context, owner, repoName string) (bool, error)
+	GetDefaultBranch(ctx context.Context, url string) (string, error)
+	GetRepoVisibility(ctx context.Context, url string) (*gitprovider.RepositoryVisibility, error)
+	UploadDeployKey(ctx context.Context, owner, repoName string, deployKey []byte) error
+	CreatePullRequest(ctx context.Context, owner string, repoName string, prInfo PullRequestInfo) (gitprovider.PullRequest, error)
+	GetCommits(ctx context.Context, owner string, repoName, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
 	GetProviderDomain() string
 }
 
-type defaultGitProvider struct {
-	domain   string
-	provider gitprovider.Client
+type PullRequestInfo struct {
+	Title         string
+	Description   string
+	CommitMessage string
+	TargetBranch  string
+	NewBranch     string
+	Files         []gitprovider.CommitFile
 }
 
-func New(config Config) (GitProvider, error) {
+type AccountTypeGetter func(provider gitprovider.Client, domain string, owner string) (ProviderAccountType, error)
+
+func New(config Config, owner string, getAccountType AccountTypeGetter) (GitProvider, error) {
 	provider, domain, err := buildGitProvider(config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build git provider: %w", err)
 	}
 
-	return defaultGitProvider{
+	accountType, err := getAccountType(provider, domain, owner)
+	if err != nil {
+		return nil, err
+	}
+
+	if accountType == AccountTypeOrg {
+		return orgGitProvider{
+			domain:   domain,
+			provider: provider,
+		}, nil
+	}
+
+	return userGitProvider{
 		domain:   domain,
 		provider: provider,
 	}, nil
 }
 
-func (p defaultGitProvider) RepositoryExists(name string, owner string) (bool, error) {
-	ownerType, err := p.GetAccountType(owner)
-	if err != nil {
-		return false, err
-	}
-
-	ctx := context.Background()
-
-	if ownerType == AccountTypeOrg {
-		orgRef := gitprovider.OrgRepositoryRef{
-			OrganizationRef: gitprovider.OrganizationRef{Domain: p.domain, Organization: owner},
-			RepositoryName:  name,
-		}
-		if _, err := p.provider.OrgRepositories().Get(ctx, orgRef); err != nil {
-			return false, err
-		}
-
-		return true, nil
-	}
-
-	userRepoRef := gitprovider.UserRepositoryRef{
-		UserRef:        gitprovider.UserRef{Domain: p.domain, UserLogin: owner},
-		RepositoryName: name,
-	}
-	if _, err := p.provider.UserRepositories().Get(ctx, userRepoRef); err != nil {
-		return false, err
-	}
-
-	return true, nil
-}
-
-func (p defaultGitProvider) CreateRepository(name string, owner string, private bool) error {
-	visibility := gitprovider.RepositoryVisibilityPrivate
-	if !private {
-		visibility = gitprovider.RepositoryVisibilityPublic
-	}
-
-	repoInfo := NewRepositoryInfo("Weave Gitops repo", visibility)
-
-	repoCreateOpts := &gitprovider.RepositoryCreateOptions{
-		AutoInit:        gitprovider.BoolVar(true),
-		LicenseTemplate: gitprovider.LicenseTemplateVar(gitprovider.LicenseTemplateApache2),
-	}
-
-	ownerType, err := p.GetAccountType(owner)
-	if err != nil {
-		return err
-	}
-
-	if ownerType == AccountTypeOrg {
-		orgRef := NewOrgRepositoryRef(p.domain, owner, name)
-		if err = p.CreateOrgRepository(orgRef, repoInfo, repoCreateOpts); err != nil {
-			return err
+func deployKeyExists(ctx context.Context, repo gitprovider.UserRepository) (bool, error) {
+	_, err := repo.DeployKeys().Get(ctx, deployKeyName)
+	if err != nil && !strings.Contains(err.Error(), "key is already in use") {
+		if errors.Is(err, gitprovider.ErrNotFound) {
+			return false, nil
+		} else {
+			return false, fmt.Errorf("error getting deploy key %s: %s", deployKeyName, err)
 		}
 	} else {
-		userRef := NewUserRepositoryRef(p.domain, owner, name)
-		if err = p.CreateUserRepository(userRef, repoInfo, repoCreateOpts); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (p defaultGitProvider) DeployKeyExists(owner, repoName string) (bool, error) {
-	ownerType, err := p.GetAccountType(owner)
-	if err != nil {
-		return false, err
-	}
-
-	ctx := context.Background()
-	defer ctx.Done()
-
-	switch ownerType {
-	case AccountTypeOrg:
-		orgRef := NewOrgRepositoryRef(p.domain, owner, repoName)
-		orgRepo, err := p.provider.OrgRepositories().Get(ctx, orgRef)
-
-		if err != nil {
-			return false, fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s ", owner, repoName, err)
-		}
-
-		_, err = orgRepo.DeployKeys().Get(ctx, deployKeyName)
-		if err != nil && !strings.Contains(err.Error(), "key is already in use") {
-			if errors.Is(err, gitprovider.ErrNotFound) {
-				return false, nil
-			} else {
-				return false, fmt.Errorf("error getting deploy key %s for repo %s. %s", deployKeyName, repoName, err)
-			}
-		} else {
-			return true, nil
-		}
-
-	case AccountTypeUser:
-		userRef := NewUserRepositoryRef(p.domain, owner, repoName)
-		userRepo, err := p.provider.UserRepositories().Get(ctx, userRef)
-
-		if err != nil {
-			return false, fmt.Errorf("error getting user repo reference for owner %s, repo %s, %s ", owner, repoName, err)
-		}
-
-		_, err = userRepo.DeployKeys().Get(ctx, deployKeyName)
-		if err != nil && !strings.Contains(err.Error(), "key is already in use") {
-			if errors.Is(err, gitprovider.ErrNotFound) {
-				return false, nil
-			} else {
-				return false, fmt.Errorf("error getting deploy key %s for repo %s. %s", deployKeyName, repoName, err)
-			}
-		} else {
-			return true, nil
-		}
-	default:
-		return false, fmt.Errorf("account type not supported %s", ownerType)
+		return true, nil
 	}
 }
 
-func (p defaultGitProvider) UploadDeployKey(owner, repoName string, deployKey []byte) error {
-	deployKeyInfo := gitprovider.DeployKeyInfo{
-		Name:     deployKeyName,
-		Key:      deployKey,
-		ReadOnly: gitprovider.BoolVar(false),
+func uploadDeployKey(ctx context.Context, repo gitprovider.UserRepository, deployKeyInfo gitprovider.DeployKeyInfo) error {
+	_, err := repo.DeployKeys().Create(ctx, deployKeyInfo)
+	if err != nil {
+		return fmt.Errorf("error uploading deploy key %s", err)
 	}
 
-	ownerType, err := p.GetAccountType(owner)
-	if err != nil {
+	if err = utils.WaitUntil(os.Stdout, time.Second, defaultTimeout, func() error {
+		_, err = repo.DeployKeys().Get(ctx, deployKeyName)
 		return err
-	}
-
-	ctx := context.Background()
-	defer ctx.Done()
-
-	switch ownerType {
-	case AccountTypeOrg:
-		orgRef := NewOrgRepositoryRef(p.domain, owner, repoName)
-		orgRepo, err := p.provider.OrgRepositories().Get(ctx, orgRef)
-
-		if err != nil {
-			return fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s ", owner, repoName, err)
-		}
-
-		fmt.Println("uploading deploy key")
-
-		_, err = orgRepo.DeployKeys().Create(ctx, deployKeyInfo)
-		if err != nil {
-			return fmt.Errorf("error uploading deploy key %s", err)
-		}
-
-		if err = utils.WaitUntil(os.Stdout, time.Second, defaultTimeout, func() error {
-			_, err = orgRepo.DeployKeys().Get(ctx, deployKeyName)
-			return err
-		}); err != nil {
-			return fmt.Errorf("error verifying deploy key %s existance for repo %s. %s", deployKeyName, repoName, err)
-		}
-	case AccountTypeUser:
-		userRef := NewUserRepositoryRef(p.domain, owner, repoName)
-		userRepo, err := p.provider.UserRepositories().Get(ctx, userRef)
-
-		if err != nil {
-			return fmt.Errorf("error getting user repo reference for owner %s, repo %s, %s ", owner, repoName, err)
-		}
-
-		fmt.Println("uploading deploy key")
-
-		_, err = userRepo.DeployKeys().Create(ctx, deployKeyInfo)
-		if err != nil {
-			return fmt.Errorf("error uploading deploy key %s", err)
-		}
-
-		if err = utils.WaitUntil(os.Stdout, time.Second, defaultTimeout, func() error {
-			_, err = userRepo.DeployKeys().Get(ctx, deployKeyName)
-			return err
-		}); err != nil {
-			return fmt.Errorf("error verifying deploy key %s existance for repo %s. %s", deployKeyName, repoName, err)
-		}
-	default:
-		return fmt.Errorf("account type not supported %s", ownerType)
+	}); err != nil {
+		return fmt.Errorf("error verifying deploy key %s: %s", deployKeyName, err)
 	}
 
 	return nil
 }
 
-func (p defaultGitProvider) GetAccountType(owner string) (ProviderAccountType, error) {
-	ctx := context.Background()
-	defer ctx.Done()
+func createPullRequest(ctx context.Context, repo gitprovider.UserRepository, prInfo PullRequestInfo) (gitprovider.PullRequest, error) {
+	repoInfo := repo.Get()
 
-	_, err := p.provider.Organizations().Get(ctx, gitprovider.OrganizationRef{
-		Domain:       p.domain,
+	if prInfo.TargetBranch == "" {
+		prInfo.TargetBranch = *repoInfo.DefaultBranch
+	}
+
+	commits, err := repo.Commits().ListPage(ctx, prInfo.TargetBranch, 1, 0)
+	if err != nil {
+		return nil, fmt.Errorf("error getting commits: %w", err)
+	}
+
+	if len(commits) == 0 {
+		return nil, fmt.Errorf("no commits on the target branch: %s", prInfo.TargetBranch)
+	}
+
+	latestCommit := commits[0]
+
+	if err := repo.Branches().Create(ctx, prInfo.NewBranch, latestCommit.Get().Sha); err != nil {
+		return nil, fmt.Errorf("error creating branch %s: %w", prInfo.NewBranch, err)
+	}
+
+	if _, err := repo.Commits().Create(ctx, prInfo.NewBranch, prInfo.CommitMessage, prInfo.Files); err != nil {
+		return nil, fmt.Errorf("error creating commit %s: %w", prInfo.NewBranch, err)
+	}
+
+	pr, err := repo.PullRequests().Create(ctx, prInfo.Title, prInfo.NewBranch, prInfo.TargetBranch, prInfo.Description)
+	if err != nil {
+		return nil, fmt.Errorf("error creating pull request %s: %w", prInfo.Title, err)
+	}
+
+	return pr, nil
+}
+
+func getCommits(ctx context.Context, repo gitprovider.UserRepository, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
+	// currently locking the commit list at 10. May discuss pagination options later.
+	commits, err := repo.Commits().ListPage(ctx, targetBranch, pageSize, pageToken)
+	if err != nil {
+		if isEmptyRepoError(err) {
+			return []gitprovider.Commit{}, nil
+		}
+
+		return nil, fmt.Errorf("error getting commits: %s", err)
+	}
+
+	return commits, nil
+}
+
+func getProviderDomain(providerID gitprovider.ProviderID) string {
+	return string(GitProviderName(providerID)) + ".com"
+}
+
+func GetAccountType(provider gitprovider.Client, domain string, owner string) (ProviderAccountType, error) {
+	_, err := provider.Organizations().Get(context.Background(), gitprovider.OrganizationRef{
+		Domain:       domain,
 		Organization: owner,
 	})
-
 	if err != nil {
 		if errors.Is(err, gitprovider.ErrNotFound) || strings.Contains(err.Error(), gitprovider.ErrGroupNotFound.Error()) {
 			return AccountTypeUser, nil
@@ -265,278 +173,8 @@ func (p defaultGitProvider) GetAccountType(owner string) (ProviderAccountType, e
 	return AccountTypeOrg, nil
 }
 
-func (p defaultGitProvider) GetDefaultBranch(url string) (string, error) {
-	repoInfoRef, err := p.GetRepoInfoFromUrl(url)
-
-	if err != nil {
-		return "", err
-	}
-
-	if repoInfoRef != nil {
-		repoInfo := *repoInfoRef
-		if repoInfo.DefaultBranch != nil {
-			return *repoInfo.DefaultBranch, nil
-		}
-	}
-
-	return "main", nil
-}
-
-func (p defaultGitProvider) GetRepoVisibility(url string) (*gitprovider.RepositoryVisibility, error) {
-	repoInfoRef, err := p.GetRepoInfoFromUrl(url)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return getVisibilityFromRepoInfo(url, repoInfoRef)
-}
-
-func getVisibilityFromRepoInfo(url string, repoInfoRef *gitprovider.RepositoryInfo) (*gitprovider.RepositoryVisibility, error) {
-	if repoInfoRef != nil {
-		repoInfo := *repoInfoRef
-		if repoInfo.Visibility != nil {
-			return repoInfo.Visibility, nil
-		}
-	}
-
-	return nil, fmt.Errorf("unable to obtain repository visibility for: %s", url)
-}
-
-func (p defaultGitProvider) GetRepoInfoFromUrl(repoUrl string) (*gitprovider.RepositoryInfo, error) {
-	normalizedUrl, err := NewNormalizedRepoURL(repoUrl)
-	if err != nil {
-		return nil, fmt.Errorf("error normalizing url: %w", err)
-	}
-
-	accountType, err := p.GetAccountType(normalizedUrl.owner)
-	if err != nil {
-		return nil, err
-	}
-
-	repoInfo, err := p.GetRepoInfo(accountType, normalizedUrl.owner, normalizedUrl.repoName)
-	if err != nil {
-		return nil, err
-	}
-
-	return repoInfo, nil
-}
-
-func (p defaultGitProvider) GetRepoInfo(accountType ProviderAccountType, owner string, repoName string) (*gitprovider.RepositoryInfo, error) {
-	ctx := context.Background()
-	defer ctx.Done()
-
-	switch accountType {
-	case AccountTypeOrg:
-		repo, err := p.GetOrgRepo(owner, repoName)
-		if err != nil {
-			return nil, err
-		}
-
-		info := repo.Get()
-
-		return &info, nil
-	case AccountTypeUser:
-		repo, err := p.GetUserRepo(owner, repoName)
-		if err != nil {
-			return nil, err
-		}
-
-		info := repo.Get()
-
-		return &info, nil
-	default:
-		return nil, fmt.Errorf("unexpected account type %s", accountType)
-	}
-}
-
-func (p defaultGitProvider) GetOrgRepo(org string, repoName string) (gitprovider.OrgRepository, error) {
-	ctx := context.Background()
-	defer ctx.Done()
-
-	orgRepoRef := NewOrgRepositoryRef(p.domain, org, repoName)
-
-	repo, err := p.provider.OrgRepositories().Get(ctx, orgRepoRef)
-	if err != nil {
-		return nil, fmt.Errorf("error getting org repository %w", err)
-	}
-
-	return repo, nil
-}
-
-func (p defaultGitProvider) GetUserRepo(user string, repoName string) (gitprovider.UserRepository, error) {
-	ctx := context.Background()
-	defer ctx.Done()
-
-	userRepoRef := NewUserRepositoryRef(p.domain, user, repoName)
-
-	repo, err := p.provider.UserRepositories().Get(ctx, userRepoRef)
-	if err != nil {
-		return nil, fmt.Errorf("error getting user repository %w", err)
-	}
-
-	return repo, nil
-}
-
-func (p defaultGitProvider) CreateOrgRepository(orgRepoRef gitprovider.OrgRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
-	ctx := context.Background()
-	defer ctx.Done()
-
-	_, err := p.provider.OrgRepositories().Create(ctx, orgRepoRef, repoInfo, opts...)
-	if err != nil {
-		return fmt.Errorf("error creating repo %w", err)
-	}
-
-	return p.waitUntilRepoCreated(AccountTypeOrg, orgRepoRef.Organization, orgRepoRef.RepositoryName)
-}
-
-func (p defaultGitProvider) CreateUserRepository(userRepoRef gitprovider.UserRepositoryRef, repoInfo gitprovider.RepositoryInfo, opts ...gitprovider.RepositoryCreateOption) error {
-	ctx := context.Background()
-	defer ctx.Done()
-
-	_, err := p.provider.UserRepositories().Create(ctx, userRepoRef, repoInfo, opts...)
-	if err != nil {
-		return fmt.Errorf("error creating repo %s", err)
-	}
-
-	return p.waitUntilRepoCreated(AccountTypeUser, userRepoRef.UserLogin, userRepoRef.RepositoryName)
-}
-
-func (p defaultGitProvider) CreatePullRequestToUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
-	ctx := context.Background()
-
-	ur, err := p.provider.UserRepositories().Get(ctx, userRepRef)
-	if err != nil {
-		return nil, fmt.Errorf("error getting info for repo [%s] err [%s]", userRepRef.String(), err)
-	}
-
-	if targetBranch == "" {
-		targetBranch = *ur.Get().DefaultBranch
-	}
-
-	commits, err := ur.Commits().ListPage(ctx, targetBranch, 1, 0)
-	if err != nil {
-		return nil, fmt.Errorf("error getting commits for repo[%s] err [%s]", userRepRef.String(), err)
-	}
-
-	if len(commits) == 0 {
-		return nil, fmt.Errorf("targetBranch [%s] does not exists", targetBranch)
-	}
-
-	latestCommit := commits[0]
-
-	if err := ur.Branches().Create(ctx, newBranch, latestCommit.Get().Sha); err != nil {
-		return nil, fmt.Errorf("error creating branch [%s] for repo [%s] err [%s]", newBranch, userRepRef.String(), err)
-	}
-
-	if _, err := ur.Commits().Create(ctx, newBranch, commitMessage, files); err != nil {
-		return nil, fmt.Errorf("error creating commit for branch [%s] for repo [%s] err [%s]", newBranch, userRepRef.String(), err)
-	}
-
-	pr, err := ur.PullRequests().Create(ctx, prTitle, newBranch, targetBranch, prDescription)
-	if err != nil {
-		return nil, fmt.Errorf("error creating pull request [%s] for branch [%s] for repo [%s] err [%s]", prTitle, newBranch, userRepRef.String(), err)
-	}
-
-	return pr, nil
-}
-
-func (p defaultGitProvider) CreatePullRequestToOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
-	ctx := context.Background()
-
-	ur, err := p.provider.OrgRepositories().Get(ctx, orgRepRef)
-	if err != nil {
-		return nil, fmt.Errorf("error getting info for repo [%s] err [%s]", orgRepRef.String(), err)
-	}
-
-	if targetBranch == "" {
-		targetBranch = *ur.Get().DefaultBranch
-	}
-
-	commits, err := ur.Commits().ListPage(ctx, targetBranch, 1, 0)
-	if err != nil {
-		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", orgRepRef.String(), err)
-	}
-
-	if len(commits) == 0 {
-		return nil, fmt.Errorf("targetBranch [%s] does not exists", targetBranch)
-	}
-
-	latestCommit := commits[0]
-
-	if err := ur.Branches().Create(ctx, newBranch, latestCommit.Get().Sha); err != nil {
-		return nil, fmt.Errorf("error creating branch [%s] for repo [%s] err [%s]", newBranch, orgRepRef.String(), err)
-	}
-
-	if _, err := ur.Commits().Create(ctx, newBranch, commitMessage, files); err != nil {
-		return nil, fmt.Errorf("error creating commit for branch [%s] for repo [%s] err [%s]", newBranch, orgRepRef.String(), err)
-	}
-
-	pr, err := ur.PullRequests().Create(ctx, prTitle, newBranch, targetBranch, prDescription)
-	if err != nil {
-		return nil, fmt.Errorf("error creating pull request [%s] for branch [%s] for repo [%s] err [%s]", prTitle, newBranch, orgRepRef.String(), err)
-	}
-
-	return pr, nil
-}
-
-// GetCommitsFromUserRepo gets a limit of 10 commits from a user repo
-func (p defaultGitProvider) GetCommitsFromUserRepo(userRepRef gitprovider.UserRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
-	ctx := context.Background()
-
-	ur, err := p.provider.UserRepositories().Get(ctx, userRepRef)
-	if err != nil {
-		return nil, fmt.Errorf("error getting info for repo [%s] err [%s]", userRepRef.String(), err)
-	}
-
-	// currently locking the commit list at 10. May discuss pagination options later.
-	commits, err := ur.Commits().ListPage(ctx, targetBranch, pageSize, pageToken)
-	if err != nil {
-		if isEmptyRepoError(err) {
-			return []gitprovider.Commit{}, nil
-		}
-
-		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", userRepRef.String(), err)
-	}
-
-	return commits, nil
-}
-
-// GetCommitsFromUserRepo gets a limit of 10 commits from an organization
-func (p defaultGitProvider) GetCommitsFromOrgRepo(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
-	ctx := context.Background()
-
-	ur, err := p.provider.OrgRepositories().Get(ctx, orgRepRef)
-	if err != nil {
-		return nil, fmt.Errorf("error getting info for repo [%s] err [%s]", orgRepRef.String(), err)
-	}
-
-	// currently locking the commit list at 10. May discuss pagination options later.
-	commits, err := ur.Commits().ListPage(ctx, targetBranch, pageSize, pageToken)
-	if err != nil {
-		if isEmptyRepoError(err) {
-			return []gitprovider.Commit{}, nil
-		}
-
-		return nil, fmt.Errorf("error getting commits for repo [%s] err [%s]", orgRepRef.String(), err)
-	}
-
-	return commits, nil
-}
-
 func isEmptyRepoError(err error) bool {
 	return strings.Contains(err.Error(), "409 Git Repository is empty")
-}
-
-func (p defaultGitProvider) GetProviderDomain() string {
-	return string(GitProviderName(p.provider.ProviderID())) + ".com"
-}
-
-func NewRepositoryInfo(description string, visibility gitprovider.RepositoryVisibility) gitprovider.RepositoryInfo {
-	return gitprovider.RepositoryInfo{
-		Description: &description,
-		Visibility:  &visibility,
-	}
 }
 
 func NewOrgRepositoryRef(domain, org, repoName string) gitprovider.OrgRepositoryRef {
@@ -549,7 +187,7 @@ func NewOrgRepositoryRef(domain, org, repoName string) gitprovider.OrgRepository
 	}
 }
 
-func NewUserRepositoryRef(domain, user, repoName string) gitprovider.UserRepositoryRef {
+func newUserRepositoryRef(domain, user, repoName string) gitprovider.UserRepositoryRef {
 	return gitprovider.UserRepositoryRef{
 		RepositoryName: repoName,
 		UserRef: gitprovider.UserRef{
@@ -559,17 +197,8 @@ func NewUserRepositoryRef(domain, user, repoName string) gitprovider.UserReposit
 	}
 }
 
-func (p defaultGitProvider) waitUntilRepoCreated(ownerType ProviderAccountType, owner, name string) error {
-	if err := utils.WaitUntil(os.Stdout, time.Second, defaultTimeout, func() error {
-		_, err := p.GetRepoInfo(ownerType, owner, name)
-		return err
-	}); err != nil {
-		return fmt.Errorf("could not verify repo existence %s", err)
-	}
-
-	return nil
-}
-
+// DetectGitProviderFromUrl accepts a url related to a git repo and
+// returns the name of the provider associated.
 // The raw URL is assumed to be something like ssh://git@github.com/myorg/myrepo.git.
 // The common `git clone` variant of `git@github.com:myorg/myrepo.git` is not supported.
 func detectGitProviderFromUrl(raw string) (GitProviderName, error) {

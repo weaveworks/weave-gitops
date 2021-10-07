@@ -164,7 +164,7 @@ func (a *App) Add(params AddParams) error {
 	secretRef := ""
 
 	if params.SourceType != wego.SourceTypeHelm {
-		visibility, visibilityErr := a.GitProvider.GetRepoVisibility(info.Spec.URL)
+		visibility, visibilityErr := a.GitProvider.GetRepoVisibility(ctx, info.Spec.URL)
 		if visibilityErr != nil {
 			return visibilityErr
 		}
@@ -269,7 +269,7 @@ func (a *App) updateParametersIfNecessary(params AddParams) (AddParams, error) {
 		params.Branch = DefaultBranch
 
 		if params.SourceType == wego.SourceTypeGit {
-			branch, err := a.GitProvider.GetDefaultBranch(params.Url)
+			branch, err := a.GitProvider.GetDefaultBranch(context.Background(), params.Url)
 			if err != nil {
 				return params, err
 			} else {
@@ -364,7 +364,7 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 		return fmt.Errorf("could not generate application GitOps Automation manifests: %w", err)
 	}
 
-	configBranch, err := a.GitProvider.GetDefaultBranch(info.Spec.ConfigURL)
+	configBranch, err := a.GitProvider.GetDefaultBranch(context.Background(), info.Spec.ConfigURL)
 	if err != nil {
 		return fmt.Errorf("could not determine default branch for config repository: %w", err)
 	}
@@ -464,7 +464,7 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, branch string
 
 	secretRef := ""
 
-	visibility, visibilityErr := a.GitProvider.GetRepoVisibility(info.Spec.ConfigURL)
+	visibility, visibilityErr := a.GitProvider.GetRepoVisibility(context.Background(), info.Spec.ConfigURL)
 	if visibilityErr != nil {
 		return nil, visibilityErr
 	}
@@ -655,7 +655,9 @@ func generateResourceName(url string) string {
 	return hashNameIfTooLong(strings.ReplaceAll(utils.UrlToRepoName(url), "_", "-"))
 }
 
-func (a *App) createPullRequestToRepo(info *AppResourceInfo, repoURL string, appHash string, appYaml []byte, goatSource, goatDeploy []byte) error {
+func (a *App) createPullRequestToRepo(info *AppResourceInfo, repoURL string, newBranch string, appYaml []byte, goatSource []byte, goatDeploy []byte) error {
+	repoName := generateResourceName(repoURL)
+
 	appPath := info.appYamlPath()
 	goatSourcePath := info.appAutomationSourcePath()
 	goatDeployPath := info.appAutomationDeployPath()
@@ -684,37 +686,26 @@ func (a *App) createPullRequestToRepo(info *AppResourceInfo, repoURL string, app
 		return fmt.Errorf("error normalizing url: %w", err)
 	}
 
-	configBranch, branchErr := a.GitProvider.GetDefaultBranch(normalizedUrl.String())
-	if branchErr != nil {
-		return branchErr
-	}
-
-	accountType, err := a.GitProvider.GetAccountType(normalizedUrl.Owner())
+	defaultBranch, err := a.GitProvider.GetDefaultBranch(context.Background(), repoURL)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve account type: %w", err)
+		return err
 	}
 
-	if accountType == gitproviders.AccountTypeOrg {
-		orgRepoRef := gitproviders.NewOrgRepositoryRef(a.GitProvider.GetProviderDomain(), normalizedUrl.Owner(), normalizedUrl.RepositoryName())
-
-		prLink, err := a.GitProvider.CreatePullRequestToOrgRepo(orgRepoRef, configBranch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("gitops add %s", info.Name), fmt.Sprintf("Added yamls for %s", info.Name))
-		if err != nil {
-			return fmt.Errorf("unable to create pull request: %w", err)
-		}
-
-		a.Logger.Println("Pull Request created: %s\n", prLink.Get().WebURL)
-
-		return nil
+	prInfo := gitproviders.PullRequestInfo{
+		Title:         fmt.Sprintf("Gitops add %s", info.Name),
+		Description:   fmt.Sprintf("Added yamls for %s", info.Name),
+		CommitMessage: "Add App Manifests",
+		TargetBranch:  defaultBranch,
+		NewBranch:     newBranch,
+		Files:         files,
 	}
 
-	userRepoRef := gitproviders.NewUserRepositoryRef(a.GitProvider.GetProviderDomain(), normalizedUrl.Owner(), normalizedUrl.RepositoryName())
-
-	prLink, err := a.GitProvider.CreatePullRequestToUserRepo(userRepoRef, configBranch, appHash, files, utils.GetCommitMessage(), fmt.Sprintf("gitops add %s", info.Name), fmt.Sprintf("Added yamls for %s", info.Name))
+	pr, err := a.GitProvider.CreatePullRequest(context.Background(), normalizedUrl.Owner(), repoName, prInfo)
 	if err != nil {
 		return fmt.Errorf("unable to create pull request: %w", err)
 	}
 
-	a.Logger.Println("Pull Request created: %s\n", prLink.Get().WebURL)
+	a.Logger.Println("Pull Request created: %s\n", pr.Get().WebURL)
 
 	return nil
 }

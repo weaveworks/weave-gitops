@@ -16,7 +16,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 const (
@@ -108,8 +107,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	if appError != nil {
 		return fmt.Errorf("failed to create app service: %w", appError)
 	}
-
-	utils.SetCommmitMessageFromArgs("gitops app add", params.Url, params.Path, params.Name)
 
 	if err := appService.Add(params); err != nil {
 		return errors.Wrapf(err, "failed to add the app %s", params.Name)
