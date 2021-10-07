@@ -632,9 +632,8 @@ var _ = Describe("ApplicationsServer", func() {
 				Sha:     "2349898",
 			})
 			commits := []gitprovider.Commit{c}
-			gp.GetCommitsFromUserRepoReturns(commits, nil)
-			gp.GetCommitsFromOrgRepoReturns(commits, nil)
-			gp.GetAccountTypeReturns(gitproviders.AccountTypeUser, nil)
+
+			gp.GetCommitsReturns(commits, nil)
 
 			res, err := appsClient.ListCommits(contextWithAuth(context.Background()), &pb.ListCommitsRequest{
 				Name:      testApp.Name,

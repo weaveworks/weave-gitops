@@ -51,7 +51,12 @@ func (f factory) GetAppService(ctx context.Context, params AppServiceParams) (ap
 		}
 	}
 
-	provider, err := gitproviders.New(gitproviders.Config{Provider: configURL.Provider(), Token: params.Token})
+	cfg := gitproviders.Config{
+		Provider: configURL.Provider(),
+		Token:    params.Token,
+	}
+
+	provider, err := gitproviders.New(cfg, configURL.Owner(), gitproviders.GetAccountType)
 	if err != nil {
 		return nil, fmt.Errorf("error creating git provider: %w", err)
 	}
