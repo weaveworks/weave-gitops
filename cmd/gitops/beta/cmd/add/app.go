@@ -93,7 +93,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create app service: %w", appError)
 	}
 
-	utils.SetCommmitMessageFromArgs("gitops app add", params.Url, params.Path, params.Name)
 	params.MigrateToNewDirStructure = utils.MigrateToNewDirStructure
 	if err := appService.Add(params); err != nil {
 		return fmt.Errorf("failed to add the app %s: %w", params.Name, err)

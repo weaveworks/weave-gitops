@@ -1080,7 +1080,7 @@ var _ = Describe("New directory structure", func() {
 		createdResources = map[ResourceKind]map[string]bool{}
 		repoPath := ""
 
-		gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
+		gitProviders.GetDefaultBranchStub = func(ctx context.Context, url string) (string, error) {
 			return "main", nil
 		}
 		gitClient.WriteStub = func(path string, manifest []byte) error {

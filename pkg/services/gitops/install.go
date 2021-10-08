@@ -85,8 +85,8 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 }
 
 func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string][]byte) error {
-	configBranch, err := g.gitProvider.GetDefaultBranch(params.AppConfigURL)
 	ctx := context.Background()
+	configBranch, err := g.gitProvider.GetDefaultBranch(ctx, params.AppConfigURL)
 	if err != nil {
 		return fmt.Errorf("could not determine default branch for config repository: %v %w", params.AppConfigURL, err)
 	}

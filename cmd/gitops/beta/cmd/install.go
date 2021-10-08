@@ -5,7 +5,6 @@ This file is part of CLI application wego.
 package cmd
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -64,7 +63,7 @@ func init() {
 func installRunCmd(cmd *cobra.Command, args []string) error {
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
-	_, fluxClient, kubeClient, logger, clientErr := apputils.GetBaseClients()
+	oc, fluxClient, kubeClient, logger, clientErr := apputils.GetBaseClients()
 	if clientErr != nil {
 		return clientErr
 	}
@@ -72,12 +71,17 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to normalize URL %s: %w", installParams.AppConfigURL, err)
 	}
-	gp, err := auth.GetGitProvider(context.Background(), normalizedURL)
+	authHandler, err := auth.NewAuthCLIHandler(normalizedURL.Provider())
 	if err != nil {
-		return fmt.Errorf("failed to get GitProvider: %w", err)
+		return fmt.Errorf("error initializing cli auth handler: %w", err)
 	}
 
-	gitopsService := gitops.New(logger, fluxClient, kubeClient, gp, nil)
+	gitProvider, err := auth.InitGitProvider(normalizedURL, oc, logger, authHandler, gitproviders.GetAccountType)
+	if err != nil {
+		return fmt.Errorf("error obtaining git provider token: %w", err)
+	}
+
+	gitopsService := gitops.New(logger, fluxClient, kubeClient, gitProvider, nil)
 	manifests, err := gitopsService.Install(gitops.InstallParams{
 		Namespace:    namespace,
 		DryRun:       installParams.DryRun,
