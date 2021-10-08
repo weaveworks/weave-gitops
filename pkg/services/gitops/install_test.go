@@ -29,6 +29,7 @@ var (
 	fakeFluxManifests = []byte("fluxManifests")
 )
 var _ = Describe("Install", func() {
+
 	BeforeEach(func() {
 		fluxClient = &fluxfakes.FakeFlux{}
 		kubeClient = &kubefakes.FakeKube{
@@ -36,7 +37,7 @@ var _ = Describe("Install", func() {
 				return kube.Unmodified
 			},
 		}
-		gp := &gitprovidersfakes.FakeGitProvider{}
+		fakeProvider = &gitprovidersfakes.FakeGitProvider{}
 		fakeGit = &gitfakes.FakeGit{}
 		fakeGit.WriteReturns(nil)
 
@@ -46,7 +47,7 @@ var _ = Describe("Install", func() {
 		gitClient := git.New(nil, wrapper.NewGoGit())
 		Expect(gitClient.Init(dir, "https://github.com/github/gitignore", "master")).To(BeTrue())
 
-		gitopsSrv = gitops.New(log.NewCLILogger(os.Stderr), fluxClient, kubeClient, gp, fakeGit)
+		gitopsSrv = gitops.New(log.NewCLILogger(os.Stderr), fluxClient, kubeClient)
 
 		installParams = gitops.InstallParams{
 			Namespace: wego.DefaultNamespace,
@@ -61,18 +62,18 @@ var _ = Describe("Install", func() {
 		kubeClient.GetClusterStatusStub = func(c context.Context) kube.ClusterStatus {
 			return kube.FluxInstalled
 		}
-		_, err := gitopsSrv.Install(installParams)
+		_, err := gitopsSrv.Install(fakeGit, fakeProvider, installParams)
 		Expect(err).Should(MatchError("Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n  $ flux uninstall"))
 
 		kubeClient.GetClusterStatusStub = func(c context.Context) kube.ClusterStatus {
 			return kube.Unknown
 		}
-		_, err = gitopsSrv.Install(installParams)
+		_, err = gitopsSrv.Install(fakeGit, fakeProvider, installParams)
 		Expect(err).Should(MatchError("Weave GitOps cannot talk to the cluster"))
 	})
 
 	It("calls flux install", func() {
-		_, err := gitopsSrv.Install(installParams)
+		_, err := gitopsSrv.Install(fakeGit, fakeProvider, installParams)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		Expect(fluxClient.InstallCallCount()).To(Equal(1))
@@ -83,7 +84,7 @@ var _ = Describe("Install", func() {
 	})
 
 	It("applies app crd and wego-app manifests", func() {
-		_, err := gitopsSrv.Install(installParams)
+		_, err := gitopsSrv.Install(fakeGit, fakeProvider, installParams)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		_, appCRD, namespace := kubeClient.ApplyArgsForCall(0)
@@ -119,7 +120,9 @@ var _ = Describe("Install", func() {
 		})
 
 		It("calls flux install", func() {
-			Expect(gitopsSrv.Install(installParams)).To(ContainSubstring(string(fakeFluxManifests)))
+			manifests, err := gitopsSrv.Install(fakeGit, fakeProvider, installParams)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(string(manifests)).To(ContainSubstring(string(fakeFluxManifests)))
 
 			Expect(fluxClient.InstallCallCount()).To(Equal(1))
 
@@ -129,7 +132,10 @@ var _ = Describe("Install", func() {
 		})
 
 		It("appends app crd to flux install output", func() {
-			Expect(gitopsSrv.Install(installParams)).To(ContainSubstring("kind: App"))
+			manifests, err := gitopsSrv.Install(fakeGit, fakeProvider, installParams)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			Expect(string(manifests)).To(ContainSubstring("kind: App"))
 		})
 
 		It("has flux manifests", func() {
@@ -149,7 +155,7 @@ var _ = Describe("Install", func() {
 				return []byte(f), nil
 			}
 
-			manifests, err := gitopsSrv.Install(installParams)
+			manifests, err := gitopsSrv.Install(fakeGit, fakeProvider, installParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			s := string(manifests)
@@ -159,7 +165,7 @@ var _ = Describe("Install", func() {
 		})
 
 		It("does not call kube apply", func() {
-			_, err := gitopsSrv.Install(installParams)
+			_, err := gitopsSrv.Install(fakeGit, fakeProvider, installParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(kubeClient.ApplyCallCount()).To(Equal(0))
@@ -177,7 +183,9 @@ var _ = Describe("Install", func() {
 			}
 		})
 		It("calls flux install", func() {
-			Expect(gitopsSrv.Install(installParams)).To(ContainSubstring(string(fakeFluxManifests)))
+			manifests, err := gitopsSrv.Install(fakeGit, fakeProvider, installParams)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(string(manifests)).To(ContainSubstring(string(fakeFluxManifests)))
 
 			Expect(fluxClient.InstallCallCount()).To(Equal(2))
 
@@ -186,7 +194,7 @@ var _ = Describe("Install", func() {
 			Expect(dryRun).To(Equal(true))
 		})
 		It("flux kustomization file for user and system have hidden directory", func() {
-			_, err := gitopsSrv.Install(installParams)
+			_, err := gitopsSrv.Install(fakeGit, fakeProvider, installParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			for i := fluxClient.CreateKustomizationCallCount() - 1; i >= 0; i-- {
 				_, _, path, _ := fluxClient.CreateKustomizationArgsForCall(i)
@@ -194,7 +202,7 @@ var _ = Describe("Install", func() {
 			}
 		})
 		It("flux gitops toolkit file is stored", func() {
-			m, err := gitopsSrv.Install(installParams)
+			m, err := gitopsSrv.Install(fakeGit, fakeProvider, installParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(fakeGit.WriteCallCount()).Should(Equal(7))
 			tested := false
@@ -216,17 +224,17 @@ var _ = Describe("Install", func() {
 			fluxClient.InstallReturns(fakeFluxManifests, nil)
 		})
 		It("skips flux install", func() {
-			_, err := gitopsSrv.Install(installParams)
+			_, err := gitopsSrv.Install(fakeGit, fakeProvider, installParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(kubeClient.ApplyCallCount()).Should(Equal(0), "With dry-run and app-config-url nothing should be sent to k8s")
 		})
 		It("writes no manifests to the repo", func() {
-			_, err := gitopsSrv.Install(installParams)
+			_, err := gitopsSrv.Install(fakeGit, fakeProvider, installParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(fakeGit.WriteCallCount()).Should(Equal(0), "With dry-run and app-config-url nothing should be written to git")
 		})
 		It("flux manifests are returned", func() {
-			Expect(gitopsSrv.Install(installParams)).To(ContainSubstring(string(fakeFluxManifests)))
+			Expect(gitopsSrv.Install(fakeGit, fakeProvider, installParams)).To(ContainSubstring(string(fakeFluxManifests)))
 			Expect(fakeGit.WriteCallCount()).Should(Equal(0), "With dry-run and app-config-url nothing should be written to git")
 		})
 	})

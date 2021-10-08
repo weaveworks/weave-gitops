@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"os"
 
 	"github.com/go-resty/resty/v2"
@@ -23,7 +24,6 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"k8s.io/client-go/rest"
@@ -109,8 +109,7 @@ func configureLogger() {
 func main() {
 	restyClient := resty.New()
 	cliRunner := &runner.CLIRunner{}
-	osysClient := osys.New()
-	fluxClient := fluxBin.New(osysClient, cliRunner)
+	fluxClient := fluxBin.New(osys.New(), cliRunner)
 	fluxClient.SetupBin()
 	rootCmd.PersistentFlags().BoolVarP(&options.verbose, "verbose", "v", false, "Enable verbose output")
 	rootCmd.PersistentFlags().String("namespace", wego.DefaultNamespace, "Weave GitOps runtime namespace")

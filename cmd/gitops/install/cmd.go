@@ -4,14 +4,18 @@ package install
 // gitops installed, the user will be prompted to install gitops and then the repository will be added.
 
 import (
-	"fmt"
-
 	_ "embed"
+	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
-	"github.com/weaveworks/weave-gitops/pkg/apputils"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 )
 
@@ -45,14 +49,17 @@ func init() {
 func installRunCmd(cmd *cobra.Command, args []string) error {
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
-	clients, err := apputils.GetBaseClients()
+	log := logger.NewCLILogger(os.Stdout)
+	flux := flux.New(osys.New(), &runner.CLIRunner{})
+
+	k, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
-	gitopsService := gitops.New(clients.Logger, clients.Flux, clients.Kube, nil, nil)
+	gitopsService := gitops.New(log, flux, k)
 
-	manifests, err := gitopsService.Install(gitops.InstallParams{
+	manifests, err := gitopsService.Install(nil, nil, gitops.InstallParams{
 		Namespace: namespace,
 		DryRun:    installParams.DryRun,
 	})

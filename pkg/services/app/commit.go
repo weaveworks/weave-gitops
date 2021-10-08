@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -18,7 +17,7 @@ type CommitParams struct {
 }
 
 // GetCommits gets a list of commits from the repo/branch saved in the app manifest
-func (a *App) GetCommits(params CommitParams, application *wego.Application) ([]gitprovider.Commit, error) {
+func (a *App) GetCommits(gitProvider gitproviders.GitProvider, params CommitParams, application *wego.Application) ([]gitprovider.Commit, error) {
 	if application.Spec.SourceType == wego.SourceTypeHelm {
 		return nil, fmt.Errorf("unable to get commits for a helm chart")
 	}
@@ -28,7 +27,7 @@ func (a *App) GetCommits(params CommitParams, application *wego.Application) ([]
 		return nil, fmt.Errorf("error creating normalized url: %w", err)
 	}
 
-	commits, err := a.GitProvider.GetCommits(context.Background(), repoUrl, application.Spec.Branch, params.PageSize, params.PageToken)
+	commits, err := gitProvider.GetCommits(context.Background(), repoUrl, application.Spec.Branch, params.PageSize, params.PageToken)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get commits for repo: %w", err)
 	}

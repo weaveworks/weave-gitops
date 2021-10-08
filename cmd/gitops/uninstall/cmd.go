@@ -5,11 +5,17 @@ package uninstall
 
 import (
 	"fmt"
+	"os"
+
+	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
 
 	"github.com/spf13/cobra"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
-	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 )
 
@@ -42,12 +48,15 @@ func init() {
 func uninstallRunCmd(cmd *cobra.Command, args []string) error {
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
-	clients, err := apputils.GetBaseClients()
+	log := logger.NewCLILogger(os.Stdout)
+	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
+
+	k, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
-	gitopsService := gitops.New(clients.Logger, clients.Flux, clients.Kube, nil, nil)
+	gitopsService := gitops.New(log, fluxClient, k)
 
 	return gitopsService.Uninstall(gitops.UninstallParams{
 		Namespace: namespace,

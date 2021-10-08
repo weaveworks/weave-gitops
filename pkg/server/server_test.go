@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/weaveworks/weave-gitops/pkg/models"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
 	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
@@ -33,16 +34,15 @@ import (
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
-	"github.com/weaveworks/weave-gitops/pkg/apputils/apputilsfakes"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/middleware"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
+	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
 	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -542,15 +542,15 @@ var _ = Describe("ApplicationsServer", func() {
 				Path:      "./k8s/mydir",
 				Branch:    "main",
 			}
-			gp.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil)
+			gitProvider.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil)
 
-			gp.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
+			gitProvider.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
 
 			res, err := appsClient.AddApplication(contextWithAuth(ctx), appRequest)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(res.Success).To(BeTrue())
 
-			Expect(gp.CreatePullRequestCallCount()).To(Equal(1), "should have made a PR")
+			Expect(gitProvider.CreatePullRequestCallCount()).To(Equal(1), "should have made a PR")
 		})
 		It("adds an app with a config repo url specified", func() {
 			ctx := context.Background()
@@ -564,15 +564,15 @@ var _ = Describe("ApplicationsServer", func() {
 				ConfigUrl: "ssh://git@github.com/some-org/my-config-url.git",
 			}
 
-			gp.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil)
-			gp.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
+			gitProvider.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil)
+			gitProvider.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
 
 			res, err := appsClient.AddApplication(contextWithAuth(ctx), appRequest)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(res.Success).To(BeTrue())
 
 			Expect(configGit.CommitCallCount()).To(Equal(1), "should have committed to config git repo")
-			Expect(gp.CreatePullRequestCallCount()).To(Equal(1), "should have made a PR")
+			Expect(gitProvider.CreatePullRequestCallCount()).To(Equal(1), "should have made a PR")
 		})
 		It("adds an app with automerge and no config repo defined", func() {
 			ctx := context.Background()
@@ -585,15 +585,15 @@ var _ = Describe("ApplicationsServer", func() {
 				Branch:    "main",
 				AutoMerge: true,
 			}
-			gp.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil)
-			gp.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
+			gitProvider.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil)
+			gitProvider.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
 
 			res, err := appsClient.AddApplication(contextWithAuth(ctx), appRequest)
 			Expect(err).NotTo((HaveOccurred()))
 			Expect(res.Success).To(BeTrue())
 
 			Expect(configGit.CommitCallCount()).To(Equal(1), "should have committed to the config git repo")
-			Expect(gp.CreatePullRequestCallCount()).To(Equal(0), "should NOT have made a PR")
+			Expect(gitProvider.CreatePullRequestCallCount()).To(Equal(0), "should NOT have made a PR")
 		})
 	})
 
@@ -607,22 +607,17 @@ var _ = Describe("ApplicationsServer", func() {
 			fakeKube = &kubefakes.FakeKube{}
 			name = "my-app"
 
-			osysClient := osys.New()
-
-			appFactory.GetAppServiceReturns(&app.App{
-				Context:     ctx,
-				AppGit:      appGit,
-				ConfigGit:   configGit,
-				Flux:        flux.New(osysClient, &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}}),
-				Kube:        fakeKube,
-				Logger:      &loggerfakes.FakeLogger{},
-				Osys:        osysClient,
-				GitProvider: gp,
+			fakeFactory.GetAppServiceReturns(&app.App{
+				Context: ctx,
+				Flux:    flux.New(osys.New(), &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}}),
+				Kube:    fakeKube,
+				Logger:  &loggerfakes.FakeLogger{},
 			}, nil)
 
-			appFactory.GetKubeServiceReturns(fakeKube, nil)
+			fakeFactory.GetGitClientsReturns(configGit, gitProvider, nil)
+			fakeFactory.GetKubeServiceReturns(fakeKube, nil)
 
-			gp.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
+			gitProvider.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
 		})
 
 		DescribeTable(
@@ -662,7 +657,7 @@ var _ = Describe("ApplicationsServer", func() {
 				Expect(res.Success).To(BeTrue())
 
 				Expect(configGit.CommitCallCount()).To(Equal(commitCount))
-				Expect(gp.CreatePullRequestCallCount()).To(Equal(prCount))
+				Expect(gitProvider.CreatePullRequestCallCount()).To(Equal(prCount))
 			},
 			Entry(
 				"kustomize, app repo config, auto merge",
@@ -715,7 +710,7 @@ var _ = Describe("ApplicationsServer", func() {
 			})
 			commits := []gitprovider.Commit{c}
 
-			gp.GetCommitsReturns(commits, nil)
+			gitProvider.GetCommitsReturns(commits, nil)
 
 			res, err := appsClient.ListCommits(contextWithAuth(context.Background()), &pb.ListCommitsRequest{
 				Name:      testApp.Name,
@@ -852,8 +847,8 @@ var _ = Describe("ApplicationsServer", func() {
 				Sha:     "2349898",
 			})
 			commits := []gitprovider.Commit{c}
-			gp.GetCommitsReturns(commits, nil)
-			gp.GetCommitsReturns(commits, nil)
+			gitProvider.GetCommitsReturns(commits, nil)
+			gitProvider.GetCommitsReturns(commits, nil)
 
 			res, err := appsClient.ListCommits(contextWithAuth(context.Background()), &pb.ListCommitsRequest{
 				Name:      testApp.Name,
@@ -883,14 +878,14 @@ var _ = Describe("ApplicationsServer", func() {
 				rand.Seed(time.Now().UnixNano())
 				secretKey := rand.String(20)
 
-				appFactory := &apputilsfakes.FakeServerAppFactory{}
+				fakeFactory := &servicesfakes.FakeFactory{}
 
 				cfg := ApplicationsConfig{
-					AppFactory: appFactory,
 					Logger:     log,
 					KubeClient: k8s,
 					JwtClient:  auth.NewJwtClient(secretKey),
 					Fetcher:    applicationv2.NewFetcher(k8s),
+					Factory:    fakeFactory,
 				}
 
 				appsSrv = NewApplicationsServer(&cfg)
@@ -990,11 +985,12 @@ var _ = Describe("ApplicationsServer", func() {
 				}
 
 				kubeClient := &kubefakes.FakeKube{}
-				appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
+				factory := &servicesfakes.FakeFactory{}
+
+				factory.GetKubeServiceStub = func() (kube.Kube, error) {
 					return kubeClient, nil
 				}
-
-				appsSrv = NewApplicationsServer(&ApplicationsConfig{AppFactory: appFactory, JwtClient: fakeJWTToken})
+				appsSrv = NewApplicationsServer(&ApplicationsConfig{Factory: factory, JwtClient: fakeJWTToken})
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
@@ -1049,17 +1045,17 @@ var _ = Describe("Applications handler", func() {
 
 		Expect(k8s.Create(ctx, app2)).To(Succeed())
 
-		appFactory := &apputilsfakes.FakeServerAppFactory{}
+		factory := &servicesfakes.FakeFactory{}
 
-		appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
+		factory.GetKubeServiceStub = func() (kube.Kube, error) {
 			return k, nil
 		}
 
 		cfg := ApplicationsConfig{
-			AppFactory: appFactory,
 			Logger:     log,
 			KubeClient: k8s,
 			Fetcher:    applicationv2.NewFetcher(k8s),
+			Factory:    factory,
 		}
 
 		handler, err := NewApplicationsHandler(context.Background(), &cfg)
