@@ -4,7 +4,7 @@ on:
 name: label
 jobs:
   labelCheck:
-     name: Check that PR has a label for use in release notes
+    name: Check that PR has a label for use in release notes
     runs-on: ubuntu-latest
     steps:
       - name: Pull request label check
