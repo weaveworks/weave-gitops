@@ -1,2 +1,0 @@
-This file is here to stop `go:embed` complaining there aren't any files at `go build` time.
-

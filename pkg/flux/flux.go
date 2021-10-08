@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+
 	"github.com/pkg/errors"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/version"
 )

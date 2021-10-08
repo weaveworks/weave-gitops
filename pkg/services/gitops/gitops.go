@@ -9,27 +9,20 @@ import (
 )
 
 type GitopsService interface {
-	Install(params InstallParams) ([]byte, error)
+	Install(gitClient git.Git, gitProvider gitproviders.GitProvider, params InstallParams) ([]byte, error)
 	Uninstall(params UninstallParams) error
 }
 
 type Gitops struct {
-	flux        flux.Flux
-	gitClient   git.Git
-	gitProvider gitproviders.GitProvider
-	kube        kube.Kube
-	logger      logger.Logger
+	flux   flux.Flux
+	kube   kube.Kube
+	logger logger.Logger
 }
 
-func New(logger logger.Logger, flux flux.Flux, kube kube.Kube, gp gitproviders.GitProvider, g git.Git) *Gitops {
+func New(logger logger.Logger, flux flux.Flux, kube kube.Kube) GitopsService {
 	return &Gitops{
-		flux:        flux,
-		kube:        kube,
-		logger:      logger,
-		gitProvider: gp,
-		gitClient:   g,
+		flux:   flux,
+		kube:   kube,
+		logger: logger,
 	}
 }
-
-// Make sure App implements all the required methods.
-var _ GitopsService = &Gitops{}

@@ -14,7 +14,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -22,13 +21,13 @@ import (
 // AppService entity that manages applications
 type AppService interface {
 	// Add adds a new application to the cluster
-	Add(params AddParams) error
+	Add(configGit git.Git, gitProvider gitproviders.GitProvider, params AddParams) error
 	// Get returns a given applicaiton
 	Get(name types.NamespacedName) (*wego.Application, error)
 	// GetCommits returns a list of commits for an application
-	GetCommits(params CommitParams, application *wego.Application) ([]gitprovider.Commit, error)
+	GetCommits(gitProvider gitproviders.GitProvider, params CommitParams, application *wego.Application) ([]gitprovider.Commit, error)
 	// Remove removes an application from the cluster
-	Remove(params RemoveParams) error
+	Remove(configGit git.Git, gitProvider gitproviders.GitProvider, params RemoveParams) error
 	// Status returns flux resources status and the last successful reconciliation time
 	Status(params StatusParams) (string, string, error)
 	// Pause pauses the gitops automation for an app
@@ -40,33 +39,22 @@ type AppService interface {
 }
 
 type App struct {
-	Context     context.Context
-	Osys        osys.Osys
-	AppGit      git.Git
-	ConfigGit   git.Git
-	Flux        flux.Flux
-	Kube        kube.Kube
-	Logger      logger.Logger
-	GitProvider gitproviders.GitProvider
-	Clock       clock.Clock
+	Context context.Context
+	Flux    flux.Flux
+	Kube    kube.Kube
+	Logger  logger.Logger
+	Clock   clock.Clock
 }
 
-func New(ctx context.Context, logger logger.Logger, appGit, configGit git.Git, gitProvider gitproviders.GitProvider, flux flux.Flux, kube kube.Kube, osys osys.Osys) AppService {
+func New(ctx context.Context, logger logger.Logger, flux flux.Flux, kube kube.Kube) AppService {
 	return &App{
-		Context:     ctx,
-		AppGit:      appGit,
-		ConfigGit:   configGit,
-		Flux:        flux,
-		Kube:        kube,
-		Logger:      logger,
-		Osys:        osys,
-		GitProvider: gitProvider,
-		Clock:       clock.New(),
+		Context: ctx,
+		Flux:    flux,
+		Kube:    kube,
+		Logger:  logger,
+		Clock:   clock.New(),
 	}
 }
-
-// Make sure App implements all the required methods.
-var _ AppService = &App{}
 
 func (a *App) getDeploymentType(ctx context.Context, name string, namespace string) (wego.DeploymentType, error) {
 	app, err := a.Kube.GetApplication(ctx, types.NamespacedName{Name: name, Namespace: namespace})
@@ -74,7 +62,7 @@ func (a *App) getDeploymentType(ctx context.Context, name string, namespace stri
 		return wego.DeploymentTypeKustomize, err
 	}
 
-	return wego.DeploymentType(app.Spec.DeploymentType), nil
+	return app.Spec.DeploymentType, nil
 }
 
 func (a *App) getSuspendedStatus(ctx context.Context, name, namespace string, deploymentType wego.DeploymentType) (bool, error) {
@@ -159,21 +147,4 @@ func (a *App) pauseOrUnpause(suspendAction wego.SuspendActionType, name, namespa
 	}
 
 	return fmt.Errorf("invalid suspend action")
-}
-
-func IsClusterReady(l logger.Logger, k kube.Kube) error {
-	l.Waitingf("Checking cluster status")
-
-	clusterStatus := k.GetClusterStatus(context.Background())
-
-	switch clusterStatus {
-	case kube.Unmodified:
-		return fmt.Errorf("gitops not installed... exiting")
-	case kube.Unknown:
-		return fmt.Errorf("can not determine cluster status... exiting")
-	}
-
-	l.Successf(clusterStatus.String())
-
-	return nil
 }

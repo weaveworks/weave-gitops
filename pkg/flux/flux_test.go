@@ -2,6 +2,7 @@ package flux_test
 
 import (
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,7 +11,6 @@ import (
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner/runnerfakes"
 )
 
