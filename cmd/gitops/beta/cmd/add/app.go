@@ -6,6 +6,7 @@ package add
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -36,13 +37,21 @@ var AppCmd = &cobra.Command{
 	and sets up syncing into a cluster. It uses the new directory
 	structure.`,
 	RunE: runCmd,
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return errors.New("add app requires a name argument")
+		}
+		params.Name = args[0]
+		return nil
+	},
 }
 
 func init() {
-	AppCmd.Flags().StringVar(&params.Name, "name", "", "Name of application")
 	AppCmd.Flags().StringVar(&params.Url, "url", "", "Url of remote repository")
 	AppCmd.Flags().StringVar(&params.AppConfigUrl, "app-config-url", "", "Url of external repository (if any) which will hold automation manifests; NONE to store only in the cluster")
 	AppCmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'gitops app add' will not make any changes to the system; it will just display the actions that would have been taken")
+	AppCmd.MarkFlagRequired("app-config-url")
+
 	// TODO expose support for PRs
 	params.AutoMerge = true
 	// Here you will define your flags and configuration settings.
@@ -57,12 +66,10 @@ func init() {
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
-	params.Name = args[0]
-
 	ctx := context.Background()
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 
-	if params.Url != "" && len(args) > 1 {
+	if params.Url == "" && len(args) < 2 {
 		return fmt.Errorf("you should choose either --url or the app directory")
 	}
 
