@@ -83,7 +83,7 @@ func (a *App) Remove(params RemoveParams) error {
 		return fmt.Errorf("error normalizing url: %w", err)
 	}
 
-	remover, _, err := CloneRepo(a.ConfigGit, normalizedUrl.String(), branch, params.DryRun)
+	remover, _, err := a.cloneRepo(a.ConfigGit, normalizedUrl.String(), branch, params.DryRun)
 
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)
