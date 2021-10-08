@@ -404,15 +404,10 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 
 	a.Logger.Actionf("Applying manifests to the cluster")
 	// if params.MigrateToNewDirStructure is defined we skip applying to the cluster
-	justName := func(in string) string {
-		s := strings.Split(in, string(os.PathSeparator))
-		return s[len(s)-1]
-	}
-
 	if params.MigrateToNewDirStructure != nil {
 		appKustomization := filepath.Join(".weave-gitops", "apps", info.appDeployName(), "kustomization.yaml")
-		k, err := a.createOrUpdateKustomize(info, params, info.appDeployName(), []string{justName(info.appYamlPath()),
-			justName(info.appAutomationSourcePath()), justName(info.appAutomationDeployPath())},
+		k, err := a.createOrUpdateKustomize(info, params, info.appDeployName(), []string{filepath.Base(info.appYamlPath()),
+			filepath.Base(info.appAutomationSourcePath()), filepath.Base(info.appAutomationDeployPath())},
 			filepath.Join(repoAbsPath, appKustomization))
 		if err != nil {
 			return fmt.Errorf("failed to create app kustomization: %w", err)
