@@ -3,13 +3,19 @@ package commits
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/pkg/apputils"
+	"github.com/weaveworks/weave-gitops/cmd/internal"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/services"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	"k8s.io/apimachinery/pkg/types"
@@ -37,9 +43,13 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	params.PageSize = 10
 	params.PageToken = 0
 
-	appService, appError := apputils.GetAppService(ctx, params.Name, params.Namespace)
-	if appError != nil {
-		return fmt.Errorf("failed to create app service: %w", appError)
+	log := logger.NewCLILogger(os.Stdout)
+	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
+	factory := services.NewFactory(fluxClient, log)
+
+	appService, err := factory.GetAppService(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create app service: %w", err)
 	}
 
 	appContent, err := appService.Get(types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
@@ -47,19 +57,24 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unable to get application for %s %w", params.Name, err)
 	}
 
-	logger := apputils.GetLogger()
+	providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 
-	commits, err := appService.GetCommits(params, appContent)
+	_, gitProvider, err := factory.GetGitClients(ctx, providerClient, services.NewGitConfigParamsFromApp(appContent, false))
+	if err != nil {
+		return fmt.Errorf("failed to get git clients: %w", err)
+	}
+
+	commits, err := appService.GetCommits(gitProvider, params, appContent)
 	if err != nil {
 		return errors.Wrapf(err, "failed to get commits for app %s", params.Name)
 	}
 
-	printCommitTable(logger, commits)
+	printCommitTable(log, commits)
 
 	return nil
 }
 
-func printCommitTable(logger logger.Logger, commits []gitprovider.Commit) {
+func printCommitTable(log logger.Logger, commits []gitprovider.Commit) {
 	header := []string{"Commit Hash", "Created At", "Author", "Message", "URL"}
 	rows := [][]string{}
 
@@ -74,5 +89,5 @@ func printCommitTable(logger logger.Logger, commits []gitprovider.Commit) {
 		})
 	}
 
-	utils.PrintTable(logger, header, rows)
+	utils.PrintTable(log, header, rows)
 }

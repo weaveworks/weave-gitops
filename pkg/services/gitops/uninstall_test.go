@@ -71,7 +71,7 @@ var _ = Describe("Uninstall", func() {
 		fluxClient = &fluxfakes.FakeFlux{}
 		kubeClient = &kubefakes.FakeKube{}
 		logger = &loggerfakes.FakeLogger{}
-		gitopsSrv = gitops.New(logger, fluxClient, kubeClient, nil, nil)
+		gitopsSrv = gitops.New(logger, fluxClient, kubeClient)
 
 		uninstallParams = gitops.UninstallParams{
 			Namespace: wego.DefaultNamespace,

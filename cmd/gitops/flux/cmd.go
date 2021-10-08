@@ -2,11 +2,12 @@ package flux
 
 import (
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"os"
 	"os/exec"
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
@@ -31,32 +32,31 @@ func init() {
 // Example flux command with flags 'wego flux -- install -h'
 func runCmd(cmd *cobra.Command, args []string) {
 	cliRunner := &runner.CLIRunner{}
-	osysClient := osys.New()
-	fluxClient := flux.New(osysClient, cliRunner)
+	fluxClient := flux.New(osys.New(), cliRunner)
 
 	exePath, err := fluxClient.GetExePath()
 	if err != nil {
-		fmt.Fprintf(osysClient.Stderr(), "Error: %v\n", err)
-		osysClient.Exit(1)
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
 	}
 
 	c := exec.Command(exePath, args...)
-	c.Stdin = osysClient.Stdin()
-	c.Stdout = osysClient.Stdout()
-	c.Stderr = osysClient.Stderr()
+	c.Stdin = os.Stdin
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+
 	// run command
 	_ = c.Run()
 }
 
 func runStatusCmd(cmd *cobra.Command, args []string) {
 	cliRunner := &runner.CLIRunner{}
-	osysClient := osys.New()
-	fluxClient := flux.New(osysClient, cliRunner)
+	fluxClient := flux.New(osys.New(), cliRunner)
 
 	status, err := fluxClient.GetLatestStatusAllNamespaces()
 	if err != nil {
-		fmt.Fprintf(osysClient.Stderr(), "Error: %v\n", err)
-		osysClient.Exit(1)
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
 	}
 
 	fmt.Printf("Status: %s\n", status)

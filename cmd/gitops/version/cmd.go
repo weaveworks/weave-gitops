@@ -2,7 +2,6 @@ package version
 
 import (
 	"fmt"
-
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/go-checkpoint"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -78,8 +77,7 @@ func CheckpointParamsWithFlags(params *checkpoint.CheckParams, c *cobra.Command)
 }
 func CheckFluxVersion() (string, error) {
 	cliRunner := &runner.CLIRunner{}
-	osysClient := osys.New()
-	fluxClient := flux.New(osysClient, cliRunner)
+	fluxClient := flux.New(osys.New(), cliRunner)
 
 	return fluxClient.GetVersion()
 }
