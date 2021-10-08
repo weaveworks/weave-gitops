@@ -49,7 +49,7 @@ func init() {
 	Cmd.AddCommand(installCmd)
 	installCmd.Flags().BoolVar(&installParams.DryRun, "dry-run", false, "outputs all the manifests that would be installed")
 	installCmd.Flags().StringVar(&installParams.AppConfigURL, "app-config-url", "", "URL of external repository (if any) which will hold automation manifests; NONE to store only in the cluster")
-
+	installCmd.MarkFlagRequired("app-config-url")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
