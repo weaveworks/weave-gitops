@@ -28,10 +28,11 @@ var (
 var installCmd = &cobra.Command{
 	Use:   "install",
 	Short: "Install or upgrade GitOps",
-	Long: `The install command deploys GitOps in the specified namespace.
-If a previous version is installed, then an in-place upgrade will be performed.`,
+	Long: `The beta install command deploys GitOps in the specified namespace, 
+adds a cluster entry to the GitOps repo, and persists the GitOps runtime int the
+repo.`,
 	Example: `  # Install GitOps in the wego-system namespace
-  gitops install`,
+  gitops beta install`,
 	RunE:          installRunCmd,
 	SilenceErrors: true,
 	SilenceUsage:  true,

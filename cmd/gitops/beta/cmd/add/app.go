@@ -30,13 +30,11 @@ var (
 // appCmd represents the app command
 var AppCmd = &cobra.Command{
 	Use:   "app",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Adds an application workload to the GitOps repository",
+	Long: `This command mirrors the original app add command in 
+	that it add the definition for the application to the repository 
+	and sets up syncing into a cluster. It uses the new directory
+	structure.`,
 	RunE: runCmd,
 }
 
