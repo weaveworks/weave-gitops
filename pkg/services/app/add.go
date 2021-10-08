@@ -342,7 +342,7 @@ func (a *App) addAppWithConfigInAppRepo(ctx context.Context, info *AppResourceIn
 	if params.Dir == "" {
 		a.Logger.Actionf("Cloning %s", info.Spec.URL)
 
-		remover, _, err := CloneRepo(a.ConfigGit, info.Spec.URL, info.Spec.Branch, params.DryRun)
+		remover, _, err := a.cloneRepo(a.ConfigGit, info.Spec.URL, info.Spec.Branch, params.DryRun)
 		if err != nil {
 			return fmt.Errorf("failed to clone application repo: %w", err)
 		}
@@ -396,7 +396,7 @@ func (a *App) addAppWithConfigInExternalRepo(ctx context.Context, info *AppResou
 		return fmt.Errorf("could not generate target GitOps Automation manifests: %w", err)
 	}
 
-	remover, repoAbsPath, err := CloneRepo(a.ConfigGit, info.Spec.ConfigURL, configBranch, params.DryRun)
+	remover, repoAbsPath, err := a.cloneRepo(a.ConfigGit, info.Spec.ConfigURL, configBranch, params.DryRun)
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)
 	}
@@ -650,6 +650,13 @@ func (a *App) applyToCluster(info *AppResourceInfo, dryRun bool, manifests ...[]
 	return nil
 }
 
+func (a *App) cloneRepo(client git.Git, url string, branch string, dryRun bool) (func(), string, error) {
+	return CloneRepo(client, url, branch, dryRun)
+}
+
+// CloneRepo uses the git client to clone the reop from the URL and branch.  It clones into a temp
+// directory and returns a function to use by the caller for cleanup.  The temp directory is
+// also returned.
 func CloneRepo(client git.Git, url string, branch string, dryRun bool) (func(), string, error) {
 	if dryRun {
 		return func() {}, "", nil
