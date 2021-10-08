@@ -5,12 +5,20 @@ This file is part of the Weave GitOps CLI.
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"os"
+
+	"github.com/weaveworks/weave-gitops/cmd/internal"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/services"
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
-	"github.com/weaveworks/weave-gitops/pkg/apputils"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 )
@@ -51,29 +59,29 @@ func init() {
 func installRunCmd(cmd *cobra.Command, args []string) error {
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
-	clients, err := apputils.GetBaseClients()
+	log := logger.NewCLILogger(os.Stdout)
+	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
+
+	k, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
-	normalizedURL, err := gitproviders.NewRepoURL(installParams.AppConfigURL)
+	factory := services.NewFactory(fluxClient, log)
+	providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
+
+	gitClient, gitProvider, err := factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
+		ConfigURL: installParams.AppConfigURL,
+		Namespace: namespace,
+		DryRun:    installParams.DryRun,
+	})
 	if err != nil {
-		return fmt.Errorf("failed to normalize URL %q: %w", installParams.AppConfigURL, err)
+		return fmt.Errorf("error creating git clients: %w", err)
 	}
 
-	authHandler, err := auth.NewAuthCLIHandler(normalizedURL.Provider())
-	if err != nil {
-		return fmt.Errorf("error initializing cli auth handler: %w", err)
-	}
+	gitopsService := gitops.New(log, fluxClient, k)
 
-	gitProvider, err := auth.InitGitProvider(normalizedURL, clients.Osys, clients.Logger, authHandler, gitproviders.GetAccountType)
-	if err != nil {
-		return fmt.Errorf("error obtaining git provider token: %w", err)
-	}
-
-	gitopsService := gitops.New(clients.Logger, clients.Flux, clients.Kube, gitProvider, nil)
-
-	manifests, err := gitopsService.Install(gitops.InstallParams{
+	manifests, err := gitopsService.Install(gitClient, gitProvider, gitops.InstallParams{
 		Namespace:    namespace,
 		DryRun:       installParams.DryRun,
 		AppConfigURL: installParams.AppConfigURL,

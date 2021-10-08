@@ -1317,7 +1317,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("Then I should get an error", func() {
-			Eventually(removeOutput.Err).Should(gbytes.Say(`Error: failed to create app service: error getting git clients: could not retrieve application "` + badAppName + `": could not get application: apps.wego.weave.works "` + badAppName + `" not found`))
+			Eventually(removeOutput.Err).Should(gbytes.Say(`Error: unable to get application for ` + badAppName + ` could not get application: apps.wego.weave.works "` + badAppName + `" not found`))
 		})
 	})
 

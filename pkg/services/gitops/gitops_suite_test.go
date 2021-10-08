@@ -1,6 +1,7 @@
 package gitops_test
 
 import (
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -13,10 +14,11 @@ import (
 )
 
 var (
-	fluxClient *fluxfakes.FakeFlux
-	kubeClient *kubefakes.FakeKube
-	fakeGit    *gitfakes.FakeGit
-	logger     *loggerfakes.FakeLogger
+	fluxClient   *fluxfakes.FakeFlux
+	kubeClient   *kubefakes.FakeKube
+	fakeGit      *gitfakes.FakeGit
+	fakeProvider *gitprovidersfakes.FakeGitProvider
+	logger       *loggerfakes.FakeLogger
 
 	gitopsSrv gitops.GitopsService
 )
