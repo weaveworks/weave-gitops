@@ -12,11 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
@@ -31,7 +29,6 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/apputils/apputilsfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/middleware"
@@ -614,6 +611,43 @@ var _ = Describe("ApplicationsServer", func() {
 		})
 	})
 
+	Describe("ListCommits", func() {
+		It("gets commits for an app", func() {
+			testApp := &wego.Application{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "testapp",
+					Namespace: namespace.Name,
+				},
+				Spec: wego.ApplicationSpec{
+					Branch: "main",
+					Path:   "./k8s",
+					URL:    "https://github.com/owner/repo1",
+				},
+			}
+			Expect(k8sClient.Create(context.Background(), testApp)).To(Succeed())
+
+			c := newTestcommit(gitprovider.CommitInfo{
+				URL:     "http://github.com/testrepo/commit/2349898",
+				Message: "my message",
+				Sha:     "2349898",
+			})
+			commits := []gitprovider.Commit{c}
+
+			gp.GetCommitsReturns(commits, nil)
+
+			res, err := appsClient.ListCommits(contextWithAuth(context.Background()), &pb.ListCommitsRequest{
+				Name:      testApp.Name,
+				Namespace: testApp.Namespace,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res.Commits).To(HaveLen(1))
+			desired := c.Get()
+			Expect(res.Commits[0].Url).To(Equal(desired.URL))
+			Expect(res.Commits[0].Message).To(Equal(desired.Message))
+			Expect(res.Commits[0].Hash).To(Equal(desired.Sha))
+		})
+	})
+
 	Describe("middleware", func() {
 		Describe("logging", func() {
 			var log *fakelogr.FakeLogger
@@ -630,7 +664,7 @@ var _ = Describe("ApplicationsServer", func() {
 				rand.Seed(time.Now().UnixNano())
 				secretKey := rand.String(20)
 
-				appFactory := &apputilsfakes.FakeAppFactory{}
+				appFactory := &apputilsfakes.FakeServerAppFactory{}
 
 				appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 					return kubeClient, nil
@@ -724,7 +758,8 @@ var _ = Describe("ApplicationsServer", func() {
 					return "", fmt.Errorf("some error")
 				}
 
-				appFactory := &apputilsfakes.FakeAppFactory{}
+				appFactory := &apputilsfakes.FakeServerAppFactory{}
+
 				appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 					return kubeClient, nil
 				}
@@ -782,7 +817,7 @@ var _ = Describe("Applications handler", func() {
 			}}, nil
 		}
 
-		appFactory := &apputilsfakes.FakeAppFactory{}
+		appFactory := &apputilsfakes.FakeServerAppFactory{}
 
 		appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 			return k, nil
@@ -816,87 +851,6 @@ var _ = Describe("Applications handler", func() {
 
 		Expect(r.Applications).To(HaveLen(1))
 	})
-
-	It("get commits", func() {
-		log := testutils.MakeFakeLogr()
-		kubeClient := &kubefakes.FakeKube{}
-		testApp := &wego.Application{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "testapp",
-				Namespace: "wego-system",
-			},
-			Spec: wego.ApplicationSpec{
-				Branch: "main",
-				Path:   "./k8s",
-				URL:    "https://github.com/owner/repo1",
-			},
-		}
-
-		gitProviders := &gitprovidersfakes.FakeGitProvider{}
-		appFactory := &apputilsfakes.FakeAppFactory{}
-		commits := []gitprovider.Commit{&fakeCommit{}}
-		jwtClient := &authfakes.FakeJWTClient{
-			VerifyJWTStub: func(s string) (*auth.Claims, error) {
-				return &auth.Claims{
-					ProviderToken: "provider-token",
-				}, nil
-			},
-		}
-
-		kubeClient.GetApplicationStub = func(c context.Context, nn types.NamespacedName) (*wego.Application, error) {
-			return testApp, nil
-		}
-
-		appFactory.GetAppServiceStub = func(c context.Context, s1, s2 string) (app.AppService, error) {
-			return app.New(c, nil, nil, nil, gitProviders, nil, kubeClient, nil), nil
-		}
-
-		appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
-			return kubeClient, nil
-		}
-		gitProviders.GetCommitsStub = func(_ context.Context, owner string, repoName, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
-			return commits, nil
-		}
-
-		gitProviders.GetCommitsReturns(commits, nil)
-
-		cfg := ApplicationsConfig{
-			Logger:     log,
-			AppFactory: appFactory,
-			JwtClient:  jwtClient,
-			KubeClient: fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build(),
-		}
-
-		handler, err := NewApplicationsHandler(context.Background(), &cfg)
-		Expect(err).NotTo(HaveOccurred())
-
-		ts := httptest.NewServer(handler)
-		defer ts.Close()
-		path := fmt.Sprintf("/v1/applications/%s/commits?namespace=%s", testApp.Name, testApp.Namespace)
-		url := ts.URL + path
-
-		req, err := http.NewRequest(http.MethodGet, url, nil)
-		Expect(err).NotTo(HaveOccurred())
-		req.Header.Add("Authorization", "token my-jwt-token")
-
-		res, err := ts.Client().Do(req)
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(err).NotTo(HaveOccurred())
-		Expect(res.StatusCode).To(Equal(http.StatusOK))
-
-		b, err := ioutil.ReadAll(res.Body)
-		Expect(err).NotTo(HaveOccurred())
-
-		r := &pb.ListCommitsResponse{}
-		err = json.Unmarshal(b, r)
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(r.Commits).To(HaveLen(1))
-		Expect(r.Commits[0].Url).To(Equal("http://github.com/testrepo/commit/2349898"))
-		Expect(r.Commits[0].Message).To(Equal("if a message is above fifty characters then it wi..."))
-		Expect(r.Commits[0].Hash).To(Equal("2349898"))
-	})
 })
 
 type fakeCommit struct {
@@ -908,17 +862,11 @@ func (fc *fakeCommit) APIObject() interface{} {
 }
 
 func (fc *fakeCommit) Get() gitprovider.CommitInfo {
-	return testCommit()
+	return fc.commitInfo
 }
 
-func testCommit() gitprovider.CommitInfo {
-	return gitprovider.CommitInfo{
-		Sha:       "23498987239879892348768",
-		Author:    "testauthor",
-		Message:   "if a message is above fifty characters then it will be truncated",
-		CreatedAt: time.Now(),
-		URL:       "http://github.com/testrepo/commit/2349898723987989234",
-	}
+func newTestcommit(c gitprovider.CommitInfo) gitprovider.Commit {
+	return &fakeCommit{commitInfo: c}
 }
 
 func formatLogVals(vals []interface{}) []string {
@@ -940,7 +888,7 @@ func formatLogVals(vals []interface{}) []string {
 }
 
 func contextWithAuth(ctx context.Context) context.Context {
-	md := metadata.New(map[string]string{"Authorization": "mytoken"})
+	md := metadata.New(map[string]string{middleware.GRPCAuthMetadataKey: "mytoken"})
 	ctx = metadata.NewOutgoingContext(ctx, md)
 
 	return ctx

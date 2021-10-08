@@ -74,6 +74,7 @@ type contextVals struct {
 type key int
 
 const tokenKey key = iota
+const GRPCAuthMetadataKey = "grpc-auth"
 
 // Injects the token into the request context to be retrieved later.
 // Use the ExtractToken func inside the server handler where appropriate.
@@ -83,6 +84,7 @@ func WithProviderToken(jwtClient auth.JWTClient, h http.Handler, log logr.Logger
 		tokenSlice := strings.Split(tokenStr, "token ")
 
 		if len(tokenSlice) < 2 {
+			log.Info("invalid token format")
 			// No token specified. Nothing to be done.
 			// We do NOT return 400 here because there may be some 'unauthenticated' routes (ie /login)
 			h.ServeHTTP(w, r)
@@ -94,7 +96,7 @@ func WithProviderToken(jwtClient auth.JWTClient, h http.Handler, log logr.Logger
 
 		claims, err := jwtClient.VerifyJWT(token)
 		if err != nil {
-			log.V(logger.LogLevelWarn).Info("could not parse claims")
+			log.Info("could not parse claims")
 			// Certain routes do not require a token, so pass the request through.
 			// If the route requires a token and it isn't present,
 			// the next handler will error and return that to the user.
@@ -115,7 +117,10 @@ func ExtractProviderToken(ctx context.Context) (*oauth2.Token, error) {
 	// Tests use straight GRPC connections instead of the http gateway.
 	md, ok := metadata.FromIncomingContext(ctx)
 	if ok {
-		return &oauth2.Token{AccessToken: md.Get("authorization")[0]}, nil
+		val := md.Get(GRPCAuthMetadataKey)
+		if val != nil {
+			return &oauth2.Token{AccessToken: val[0]}, nil
+		}
 	}
 
 	c := ctx.Value(tokenKey)

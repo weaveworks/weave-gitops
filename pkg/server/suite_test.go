@@ -9,7 +9,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/rand"
 
-	"github.com/weaveworks/weave-gitops/pkg/apputils"
+	"github.com/weaveworks/weave-gitops/pkg/apputils/apputilsfakes"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
@@ -25,7 +25,6 @@ import (
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
-	"github.com/weaveworks/weave-gitops/pkg/apputils/apputilsfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
@@ -131,23 +130,21 @@ var _ = BeforeEach(func() {
 		return "main", nil
 	}
 
-	appFactory := &apputilsfakes.FakeAppFactory{}
+	appFactory := &apputilsfakes.FakeServerAppFactory{}
 
 	appGit = &gitfakes.FakeGit{}
 	configGit = &gitfakes.FakeGit{}
 
-	appFactory.GetAppServiceForAddStub = func(c context.Context, params apputils.AddServiceParams) (app.AppService, error) {
-		return &app.App{
-			Context:     context.Background(),
-			AppGit:      appGit,
-			ConfigGit:   configGit,
-			Flux:        flux.New(osysClient, &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}}),
-			Kube:        k,
-			Logger:      &loggerfakes.FakeLogger{},
-			Osys:        osysClient,
-			GitProvider: gp,
-		}, nil
-	}
+	appFactory.GetAppServiceReturns(&app.App{
+		Context:     context.Background(),
+		AppGit:      appGit,
+		ConfigGit:   configGit,
+		Flux:        flux.New(osysClient, &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}}),
+		Kube:        k,
+		Logger:      &loggerfakes.FakeLogger{},
+		Osys:        osysClient,
+		GitProvider: gp,
+	}, nil)
 
 	appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 		return k, nil

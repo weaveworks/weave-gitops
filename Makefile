@@ -43,7 +43,7 @@ install: bin ## Install binaries to GOPATH
 	cp bin/$(BINARY_NAME) ${GOPATH}/bin/
 
 api-dev: ## Server and watch gitops-server, will reload automatically on change
-	reflex -r '.go' -s -- sh -c 'go run cmd/gitops-server/main.go'
+	reflex -r '.go' -s -- sh -c 'go run -ldflags $(LDFLAGS) cmd/gitops-server/main.go'
 
 debug: ## Compile binary with optimisations and inlining disabled
 	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) -gcflags='all=-N -l' cmd/gitops/*.go

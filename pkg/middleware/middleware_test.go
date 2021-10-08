@@ -130,7 +130,7 @@ var _ = Describe("ExtractProviderToken", func() {
 	})
 	It("extracts an auth token from grpc metadata", func() {
 		tokenStr := "mytoken"
-		md := metadata.New(map[string]string{"Authorization": tokenStr})
+		md := metadata.New(map[string]string{middleware.GRPCAuthMetadataKey: tokenStr})
 		ctx := metadata.NewIncomingContext(context.Background(), md)
 		token, err := middleware.ExtractProviderToken(ctx)
 		Expect(err).NotTo(HaveOccurred())
