@@ -307,10 +307,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # branch event
             type=ref,event=branch
-            # tag event
-            type=ref,event=tag
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
