@@ -35,7 +35,7 @@ Here are the proposed parts of the codebase:
 ### Models
 
 - The `models` package contains data structures for the different WeGO domain entities. These are generally `structs` that do not contain business logic.
-- Models objects may have helper methods for common situations, such as converting between types, accessing a computed property, etc.
+- Model objects may have helper methods for common situations, such as converting between types, accessing a computed property, etc.
 - Models are typically thought of as "immutable", meaning that methods that mutates a model should return a new copy of that model (pass by value).
 
 ### Services
@@ -199,4 +199,4 @@ Accepting this proposal would mean that regular contributors to this repository 
 
 Acceptance of this proposal also implies that code reviewers decide that a Pull Request deviates significantly from this proposed architecture and subsequently request changes to the Pull Request.
 
-This document deliberately omits opinions about testing standards, as those remain unchanged: we expect automated tests to be present wherever applicable.
+This document deliberately omits opinions about testing standards as those remain unchanged.  We expect automated tests to be present wherever applicable.
