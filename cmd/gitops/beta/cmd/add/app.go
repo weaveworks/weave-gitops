@@ -1,6 +1,6 @@
 /*
 Copyright © 2021 Weaveworks <support@weave.works>
-This file is part of CLI application wego.
+This file is part of the Weave GitOps CLI.
 */
 package add
 
