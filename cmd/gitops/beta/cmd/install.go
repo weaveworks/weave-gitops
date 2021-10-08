@@ -70,7 +70,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	}
 	normalizedURL, err := gitproviders.NewNormalizedRepoURL(installParams.AppConfigURL)
 	if err != nil {
-		return fmt.Errorf("failed to normalize URL %s: %w", installParams.AppConfigURL, err)
+		return fmt.Errorf("failed to normalize URL %q: %w", installParams.AppConfigURL, err)
 	}
 	authHandler, err := auth.NewAuthCLIHandler(normalizedURL.Provider())
 	if err != nil {

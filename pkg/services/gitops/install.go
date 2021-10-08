@@ -212,7 +212,7 @@ func (g *Gitops) applyManifestsToK8s(ctx context.Context, namespace string, mani
 	for k, manifest := range manifests {
 		g.logger.Infow("apply manifests", k, manifest)
 		if err := g.kube.Apply(ctx, manifest, namespace); err != nil {
-			return fmt.Errorf("could not apply manifest %s : %w", k, err)
+			return fmt.Errorf("could not apply manifest %q : %w", k, err)
 		}
 
 	}

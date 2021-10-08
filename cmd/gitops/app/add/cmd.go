@@ -67,7 +67,7 @@ func ensureUrlIsValid() error {
 		// params.Dir must be defined here because we already checked for it above.
 		repoUrlString, repoUrlErr := git.New(nil, wrapper.NewGoGit()).GetRemoteUrl(params.Dir, "origin")
 		if repoUrlErr != nil {
-			return fmt.Errorf("could not get remote url for directory %s: %w", params.Dir, repoUrlErr)
+			return fmt.Errorf("could not get remote url for directory %q: %w", params.Dir, repoUrlErr)
 		}
 
 		params.Url = repoUrlString
