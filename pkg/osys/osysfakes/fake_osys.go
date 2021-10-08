@@ -14,19 +14,6 @@ type FakeOsys struct {
 	exitArgsForCall []struct {
 		arg1 int
 	}
-	GetGitProviderTokenStub        func(string) (string, error)
-	getGitProviderTokenMutex       sync.RWMutex
-	getGitProviderTokenArgsForCall []struct {
-		arg1 string
-	}
-	getGitProviderTokenReturns struct {
-		result1 string
-		result2 error
-	}
-	getGitProviderTokenReturnsOnCall map[int]struct {
-		result1 string
-		result2 error
-	}
 	GetenvStub        func(string) string
 	getenvMutex       sync.RWMutex
 	getenvArgsForCall []struct {
@@ -37,19 +24,6 @@ type FakeOsys struct {
 	}
 	getenvReturnsOnCall map[int]struct {
 		result1 string
-	}
-	LookupEnvStub        func(string) (string, bool)
-	lookupEnvMutex       sync.RWMutex
-	lookupEnvArgsForCall []struct {
-		arg1 string
-	}
-	lookupEnvReturns struct {
-		result1 string
-		result2 bool
-	}
-	lookupEnvReturnsOnCall map[int]struct {
-		result1 string
-		result2 bool
 	}
 	SetenvStub        func(string, string) error
 	setenvMutex       sync.RWMutex
@@ -152,70 +126,6 @@ func (fake *FakeOsys) ExitArgsForCall(i int) int {
 	return argsForCall.arg1
 }
 
-func (fake *FakeOsys) GetGitProviderToken(arg1 string) (string, error) {
-	fake.getGitProviderTokenMutex.Lock()
-	ret, specificReturn := fake.getGitProviderTokenReturnsOnCall[len(fake.getGitProviderTokenArgsForCall)]
-	fake.getGitProviderTokenArgsForCall = append(fake.getGitProviderTokenArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.GetGitProviderTokenStub
-	fakeReturns := fake.getGitProviderTokenReturns
-	fake.recordInvocation("GetGitProviderToken", []interface{}{arg1})
-	fake.getGitProviderTokenMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeOsys) GetGitProviderTokenCallCount() int {
-	fake.getGitProviderTokenMutex.RLock()
-	defer fake.getGitProviderTokenMutex.RUnlock()
-	return len(fake.getGitProviderTokenArgsForCall)
-}
-
-func (fake *FakeOsys) GetGitProviderTokenCalls(stub func(string) (string, error)) {
-	fake.getGitProviderTokenMutex.Lock()
-	defer fake.getGitProviderTokenMutex.Unlock()
-	fake.GetGitProviderTokenStub = stub
-}
-
-func (fake *FakeOsys) GetGitProviderTokenArgsForCall(i int) string {
-	fake.getGitProviderTokenMutex.RLock()
-	defer fake.getGitProviderTokenMutex.RUnlock()
-	argsForCall := fake.getGitProviderTokenArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeOsys) GetGitProviderTokenReturns(result1 string, result2 error) {
-	fake.getGitProviderTokenMutex.Lock()
-	defer fake.getGitProviderTokenMutex.Unlock()
-	fake.GetGitProviderTokenStub = nil
-	fake.getGitProviderTokenReturns = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeOsys) GetGitProviderTokenReturnsOnCall(i int, result1 string, result2 error) {
-	fake.getGitProviderTokenMutex.Lock()
-	defer fake.getGitProviderTokenMutex.Unlock()
-	fake.GetGitProviderTokenStub = nil
-	if fake.getGitProviderTokenReturnsOnCall == nil {
-		fake.getGitProviderTokenReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 error
-		})
-	}
-	fake.getGitProviderTokenReturnsOnCall[i] = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeOsys) Getenv(arg1 string) string {
 	fake.getenvMutex.Lock()
 	ret, specificReturn := fake.getenvReturnsOnCall[len(fake.getenvArgsForCall)]
@@ -275,70 +185,6 @@ func (fake *FakeOsys) GetenvReturnsOnCall(i int, result1 string) {
 	fake.getenvReturnsOnCall[i] = struct {
 		result1 string
 	}{result1}
-}
-
-func (fake *FakeOsys) LookupEnv(arg1 string) (string, bool) {
-	fake.lookupEnvMutex.Lock()
-	ret, specificReturn := fake.lookupEnvReturnsOnCall[len(fake.lookupEnvArgsForCall)]
-	fake.lookupEnvArgsForCall = append(fake.lookupEnvArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.LookupEnvStub
-	fakeReturns := fake.lookupEnvReturns
-	fake.recordInvocation("LookupEnv", []interface{}{arg1})
-	fake.lookupEnvMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeOsys) LookupEnvCallCount() int {
-	fake.lookupEnvMutex.RLock()
-	defer fake.lookupEnvMutex.RUnlock()
-	return len(fake.lookupEnvArgsForCall)
-}
-
-func (fake *FakeOsys) LookupEnvCalls(stub func(string) (string, bool)) {
-	fake.lookupEnvMutex.Lock()
-	defer fake.lookupEnvMutex.Unlock()
-	fake.LookupEnvStub = stub
-}
-
-func (fake *FakeOsys) LookupEnvArgsForCall(i int) string {
-	fake.lookupEnvMutex.RLock()
-	defer fake.lookupEnvMutex.RUnlock()
-	argsForCall := fake.lookupEnvArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeOsys) LookupEnvReturns(result1 string, result2 bool) {
-	fake.lookupEnvMutex.Lock()
-	defer fake.lookupEnvMutex.Unlock()
-	fake.LookupEnvStub = nil
-	fake.lookupEnvReturns = struct {
-		result1 string
-		result2 bool
-	}{result1, result2}
-}
-
-func (fake *FakeOsys) LookupEnvReturnsOnCall(i int, result1 string, result2 bool) {
-	fake.lookupEnvMutex.Lock()
-	defer fake.lookupEnvMutex.Unlock()
-	fake.LookupEnvStub = nil
-	if fake.lookupEnvReturnsOnCall == nil {
-		fake.lookupEnvReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 bool
-		})
-	}
-	fake.lookupEnvReturnsOnCall[i] = struct {
-		result1 string
-		result2 bool
-	}{result1, result2}
 }
 
 func (fake *FakeOsys) Setenv(arg1 string, arg2 string) error {
@@ -684,12 +530,8 @@ func (fake *FakeOsys) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.exitMutex.RLock()
 	defer fake.exitMutex.RUnlock()
-	fake.getGitProviderTokenMutex.RLock()
-	defer fake.getGitProviderTokenMutex.RUnlock()
 	fake.getenvMutex.RLock()
 	defer fake.getenvMutex.RUnlock()
-	fake.lookupEnvMutex.RLock()
-	defer fake.lookupEnvMutex.RUnlock()
 	fake.setenvMutex.RLock()
 	defer fake.setenvMutex.RUnlock()
 	fake.stderrMutex.RLock()
