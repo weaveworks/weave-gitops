@@ -100,7 +100,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	params.MigrateToNewDirStructure = utils.MigrateToNewDirStructure
 	if err := appService.Add(params); err != nil {
-		return fmt.Errorf("failed to add the app %s: %w", params.Name, err)
+		return fmt.Errorf("failed to add the app %q: %w", params.Name, err)
 	}
 
 	return nil
