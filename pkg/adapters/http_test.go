@@ -2,6 +2,7 @@ package adapters_test
 
 import (
 	"errors"
+	"net/http"
 	"os"
 	"testing"
 
@@ -53,7 +54,7 @@ func TestRetrieveTemplates(t *testing.T) {
 		},
 		{
 			name:      "unexpected status code",
-			responder: httpmock.NewStringResponder(400, ""),
+			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
 			assertFunc: func(t *testing.T, ts []capi.Template, err error) {
 				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/templates\" was 400")
 			},
@@ -103,7 +104,7 @@ func TestRetrieveTemplatesByProvider(t *testing.T) {
 		},
 		{
 			name:      "unexpected status code",
-			responder: httpmock.NewStringResponder(400, ""),
+			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
 			assertFunc: func(t *testing.T, ts []capi.Template, err error) {
 				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/templates\" was 400")
 			},
@@ -153,7 +154,7 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 		},
 		{
 			name:      "unexpected status code",
-			responder: httpmock.NewStringResponder(400, ""),
+			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
 			assertFunc: func(t *testing.T, ts []capi.TemplateParameter, err error) {
 				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/templates/cluster-template/params\" was 400")
 			},
@@ -247,7 +248,7 @@ spec:
 		},
 		{
 			name:      "unexpected status code",
-			responder: httpmock.NewStringResponder(400, ""),
+			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
 			assertFunc: func(t *testing.T, result string, err error) {
 				assert.EqualError(t, err, "response status for POST \"https://weave.works/api/v1/templates/cluster-template/render\" was 400")
 			},
@@ -298,7 +299,7 @@ func TestCreatePullRequestFromTemplate(t *testing.T) {
 		},
 		{
 			name:      "unexpected status code",
-			responder: httpmock.NewStringResponder(400, ""),
+			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
 			assertFunc: func(t *testing.T, result string, err error) {
 				assert.EqualError(t, err, "response status for POST \"https://weave.works/api/v1/clusters\" was 400")
 			},
@@ -357,7 +358,7 @@ func TestRetrieveCredentials(t *testing.T) {
 		},
 		{
 			name:      "unexpected status code",
-			responder: httpmock.NewStringResponder(400, ""),
+			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
 			assertFunc: func(t *testing.T, creds []capi.Credentials, err error) {
 				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/credentials\" was 400")
 			},
@@ -450,7 +451,7 @@ func TestRetrieveClusters(t *testing.T) {
 		},
 		{
 			name:      "unexpected status code",
-			responder: httpmock.NewStringResponder(400, ""),
+			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
 			assertFunc: func(t *testing.T, cs []clusters.Cluster, err error) {
 				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/gitops/api/clusters\" was 400")
 			},
@@ -494,7 +495,7 @@ func TestGetClusterKubeconfig(t *testing.T) {
 		},
 		{
 			name:      "unexpected status code",
-			responder: httpmock.NewStringResponder(400, ""),
+			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
 			assertFunc: func(t *testing.T, s string, err error) {
 				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/clusters/dev/kubeconfig\" was 400")
 			},
@@ -552,7 +553,7 @@ func TestDeleteClusters(t *testing.T) {
 		},
 		{
 			name:      "unexpected status code",
-			responder: httpmock.NewStringResponder(400, ""),
+			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
 			assertFunc: func(t *testing.T, result string, err error) {
 				assert.EqualError(t, err, "response status for Delete \"https://weave.works/api/v1/clusters\" was 400")
 			},
