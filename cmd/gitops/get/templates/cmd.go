@@ -1,7 +1,9 @@
 package templates
 
 import (
+	"fmt"
 	"os"
+	"strings"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
@@ -16,6 +18,16 @@ type templateCommandFlags struct {
 }
 
 var flags templateCommandFlags
+
+var providers = []string{
+	"aws",
+	"azure",
+	"digitalocean",
+	"docker",
+	"openstack",
+	"packet",
+	"vsphere",
+}
 
 func TemplateCommand(endpoint *string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
@@ -37,7 +49,7 @@ gitops get template <template-name> --list-parameters
 	}
 
 	cmd.Flags().BoolVar(&flags.ListTemplateParameters, "list-parameters", false, "Show parameters of CAPI template")
-	cmd.Flags().StringVar(&flags.Provider, "provider", "", "Filter templates by provider. Supported providers: aws azure digitalocean docker openstack packet vsphere")
+	cmd.Flags().StringVar(&flags.Provider, "provider", "", fmt.Sprintf("Filter templates by provider. Supported providers: %s", strings.Join(providers, " ")))
 
 	return cmd
 }

@@ -183,6 +183,8 @@ func RenderTemplateWithParameters(name string, parameters map[string]string, cre
 	return nil
 }
 
+// CreatePullRequestFromTemplate uses a TemplatePullRequester
+// adapter to create a pull request from a CAPI template.
 func CreatePullRequestFromTemplate(params CreatePullRequestFromTemplateParams, r TemplatePullRequester, w io.Writer) error {
 	res, err := r.CreatePullRequestFromTemplate(params)
 	if err != nil {
