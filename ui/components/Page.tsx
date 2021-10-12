@@ -51,7 +51,7 @@ function pageLookup(p: PageRoute) {
 }
 
 function Page({ className, children, title, breadcrumbs, loading }: PageProps) {
-  const { appState } = useCommon();
+  const { appState, settings } = useCommon();
 
   if (loading) {
     return (
@@ -86,7 +86,7 @@ function Page({ className, children, title, breadcrumbs, loading }: PageProps) {
         )}
         <div>{children}</div>
       </Content>
-      <Footer />
+      {settings.renderFooter && <Footer />}
     </div>
   );
 }

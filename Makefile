@@ -131,7 +131,7 @@ cmd/gitops/ui/run/dist/main.js:
 # Runs a test to raise errors if the integration between Gitops Core and EE is
 # in danger of breaking due to package API changes.
 # See the test/library dockerfile and test.sh script for more info.
-lib-test: dependencies
+lib-test: dependencies ## Run the library integration test
 	docker build -t gitops-library-test -f test/library/libtest.dockerfile $(CURRENT_DIR)/test/library
 	docker run -e GITHUB_TOKEN=$$GITHUB_TOKEN -i --rm \
 		-v $(CURRENT_DIR):/go/src/github.com/weaveworks/weave-gitops \

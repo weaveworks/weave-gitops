@@ -5,38 +5,65 @@ import Flex from "./Flex";
 
 type Props = {
   className?: string;
-  supportComponent?: JSX.Element;
+  extraListItems?: JSX.Element;
 };
 
-function DefaultSupportComponent() {
-  return <a href="mailto:sales@weave.works">Commercial Support</a>;
+function DefaultExtraLinks() {
+  return (
+    <>
+      <li>
+        <a target="_blank" href="mailto:sales@weave.works">
+          Commercial Support
+        </a>
+      </li>
+      <li>
+        <a
+          style={{ justifySelf: "flex-end" }}
+          target="_blank"
+          href={`https://github.com/weaveworks/weave-gitops/releases/tag/v${p.version}`}
+        >
+          v{p.version}
+        </a>
+      </li>
+    </>
+  );
 }
 
-function Footer({ className, supportComponent: Support }: Props) {
-  if (!Support) {
-    Support = <DefaultSupportComponent />;
+function Footer({ className, extraListItems }: Props) {
+  if (!extraListItems) {
+    extraListItems = <DefaultExtraLinks />;
   }
 
   return (
     <footer className={className}>
-      <Flex wide center>
+      <Flex align wide center>
         <ul>
           <li>© 2021 Weaveworks</li>
           <li>
-            <span className="footer__Divider-sc-1vj27u6-5 fNWEGg">•</span>
+            <span>•</span>
           </li>
           <li>
-            <a href="https://www.weave.works/company/">About</a>
+            <a
+              target="_blank"
+              href="https://www.weave.works/product/gitops-core/"
+            >
+              About
+            </a>
           </li>
           <li>
-            <a href={`https://docs.gitops.weave.works/${p.version || ""}`}>
+            <a
+              target="_blank"
+              href={`https://docs.gitops.weave.works/${p.version || ""}`}
+            >
               Docs
             </a>
           </li>
           <li>
-            <a href="https://www.weave.works/help/">Help</a>
+            <a target="_blank" href="https://www.weave.works/help/">
+              Help
+            </a>
           </li>
-          <li>{Support}</li>
+          {extraListItems}
         </ul>
       </Flex>
     </footer>
