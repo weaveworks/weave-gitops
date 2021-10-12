@@ -36,6 +36,7 @@ jobs:
         with:
           configuration: "${{ github.workspace }}/.github/changelog/changelog_configuration.json"
           outputFile: "${{ runner.temp }}/changelog.md"
+          ignorePreReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Run GoReleaser
