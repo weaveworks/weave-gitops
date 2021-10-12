@@ -8,7 +8,6 @@ import _ApplicationAdd from "./pages/ApplicationAdd";
 import _Applications from "./pages/Applications";
 import _GithubDeviceAuthModal from "./components/GithubDeviceAuthModal";
 import { getProviderToken as _getProviderToken } from "./lib/utils";
-import { GrpcErrorCodes as _GrpcErrorCodes } from "./lib/types";
 
 export const theme = _Theme;
 export const AppContextProvider = _AppContextProvider;
