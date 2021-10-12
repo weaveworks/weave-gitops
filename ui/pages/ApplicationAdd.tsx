@@ -16,6 +16,7 @@ import GithubDeviceAuthModal from "../components/GithubDeviceAuthModal";
 import Link from "../components/Link";
 import Page from "../components/Page";
 import { AppContext } from "../contexts/AppContext";
+import { isUnauthenticated } from "../hooks/auth";
 import { useRequestState } from "../hooks/common";
 import { AddApplicationResponse } from "../lib/api/applications/applications.pb";
 import { GrpcErrorCodes, PageRoute } from "../lib/types";
@@ -171,15 +172,10 @@ function AddApplication({ className }: Props) {
 
   return (
     <Page className={className} title="Add Application">
-      {!authSuccess &&
-        error &&
-        error.code === GrpcErrorCodes.Unauthenticated && (
-          <AuthAlert
-            title="Error adding application"
-            onClick={handleAuthClick}
-          />
-        )}
-      {error && error.code !== GrpcErrorCodes.Unauthenticated && (
+      {!authSuccess && error && isUnauthenticated(error.code) && (
+        <AuthAlert title="Error adding application" onClick={handleAuthClick} />
+      )}
+      {error && !isUnauthenticated(error.code) && (
         <Alert
           severity="error"
           title="Error adding application"

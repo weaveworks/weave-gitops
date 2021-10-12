@@ -6,6 +6,10 @@ import _Theme from "./lib/theme";
 import _ApplicationDetail from "./pages/ApplicationDetail";
 import _ApplicationAdd from "./pages/ApplicationAdd";
 import _Applications from "./pages/Applications";
+import _GithubDeviceAuthModal from "./components/GithubDeviceAuthModal";
+import { getProviderToken as _getProviderToken } from "./lib/utils";
+import { GrpcErrorCodes as _GrpcErrorCodes } from "./lib/types";
+import { isUnauthenticated as _isUnauthenticated } from "./hooks/auth";
 
 export const theme = _Theme;
 export const AppContextProvider = _AppContextProvider;
@@ -15,3 +19,8 @@ export const ApplicationAdd = _ApplicationAdd;
 export const applicationsClient = appsClient;
 export const useApplications = _useApplications;
 export const LoadingPage = _LoadingPage;
+
+// Authy things
+export const GithubDeviceAuthModal = _GithubDeviceAuthModal;
+export const getProviderToken = _getProviderToken;
+export const isUnauthenticated = _isUnauthenticated;
