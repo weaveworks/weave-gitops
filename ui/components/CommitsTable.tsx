@@ -4,7 +4,6 @@ import * as React from "react";
 import { useContext } from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
-import { isUnauthenticated } from "../hooks/auth";
 import { useRequestState } from "../hooks/common";
 import {
   Application,
@@ -51,7 +50,7 @@ function CommitsTable({ className, app, onAuthClick }: Props) {
   }, [app]);
 
   if (error) {
-    return isUnauthenticated(error.code) ? (
+    return error.code === GrpcErrorCodes.Unauthenticated ? (
       <AuthAlert title="Error fetching commits" onClick={onAuthClick} />
     ) : (
       <Alert

@@ -15,10 +15,6 @@ function poller(cb, interval) {
   return setInterval(cb, interval);
 }
 
-export function isUnauthenticated(code: GrpcErrorCodes) {
-  return code === GrpcErrorCodes.Unauthenticated;
-}
-
 export default function useAuth() {
   const [loading, setLoading] = useState(true);
   const { applicationsClient, getProviderToken, storeProviderToken } =
@@ -46,7 +42,7 @@ export default function useAuth() {
             .catch(({ code, message }) => {
               // Unauthenticated means we can keep polling.
               //  On anything else, stop polling and report.
-              if (!isUnauthenticated(code)) {
+              if (code !== GrpcErrorCodes.Unauthenticated) {
                 clearInterval(poll);
                 reject({ message });
               }
