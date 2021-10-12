@@ -7,6 +7,7 @@ import { PageRoute } from "../lib/types";
 import { formatURL } from "../lib/utils";
 import Alert from "./Alert";
 import Flex from "./Flex";
+import Footer from "./Footer";
 import Link from "./Link";
 import LoadingPage from "./LoadingPage";
 
@@ -85,12 +86,13 @@ function Page({ className, children, title, breadcrumbs, loading }: PageProps) {
         )}
         <div>{children}</div>
       </Content>
+      <Footer />
     </div>
   );
 }
 
 export default styled(Page)`
-  display: flex;
+  /* display: flex; */
 
   .MuiAlert-root {
     width: 100%;

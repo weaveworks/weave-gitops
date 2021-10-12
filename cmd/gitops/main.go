@@ -65,6 +65,8 @@ var rootCmd = &cobra.Command{
 
   # Get the version of gitops along with commit, branch, and flux version
   gitops version
+
+  To learn more, you can find our documentation at https://docs.gitops.weave.works/
 `,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		configureLogger()
