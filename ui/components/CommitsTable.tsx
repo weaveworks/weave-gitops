@@ -12,7 +12,7 @@ import {
 } from "../lib/api/applications/applications.pb";
 import { GrpcErrorCodes } from "../lib/types";
 import Alert from "./Alert";
-import Button from "./Button";
+import AuthAlert from "./AuthAlert";
 import DataTable from "./DataTable";
 import Flex from "./Flex";
 import Link from "./Link";
@@ -49,40 +49,24 @@ function CommitsTable({ className, app, onAuthClick }: Props) {
     );
   }, [app]);
 
-  if (loading) {
+  if (error) {
+    return error.code === GrpcErrorCodes.Unauthenticated ? (
+      <AuthAlert title="Error fetching commits" onClick={onAuthClick} />
+    ) : (
+      <Alert
+        className={className}
+        severity="error"
+        title="Error fetching commits"
+        message={error.message}
+      />
+    );
+  }
+
+  if ((!commits && !error) || loading) {
     return (
       <Flex wide center>
         <CircularProgress />
       </Flex>
-    );
-  }
-
-  if (error) {
-    return (
-      <>
-        <Alert
-          className={className}
-          severity="error"
-          title="Error fetching commits"
-          message={
-            error.code == GrpcErrorCodes.Unauthenticated ? (
-              <Flex align wide between>
-                Could not authenticate with your Git Provider{" "}
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={onAuthClick}
-                  type="button"
-                >
-                  Authenticate with Github
-                </Button>
-              </Flex>
-            ) : (
-              error.message
-            )
-          }
-        />
-      </>
     );
   }
 
@@ -109,8 +93,4 @@ function CommitsTable({ className, app, onAuthClick }: Props) {
   );
 }
 
-export default styled(CommitsTable)`
-  ${Button} {
-    margin-left: 16px;
-  }
-`;
+export default styled(CommitsTable)``;

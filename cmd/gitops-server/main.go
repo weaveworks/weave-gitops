@@ -8,6 +8,9 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 )
 
@@ -30,6 +33,8 @@ func NewAPIServerCommand() *cobra.Command {
 
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			flux.New(osys.New(), &runner.CLIRunner{}).SetupBin()
+
 			cfg, err := server.DefaultConfig()
 			if err != nil {
 				return err

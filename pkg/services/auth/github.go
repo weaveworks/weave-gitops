@@ -57,10 +57,11 @@ func doRequest(req *http.Request, client *http.Client) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
 		// err is falsey even on 4XX or 5XX
-		return nil, err
+		return nil, fmt.Errorf("request failed with status code: %v", res.StatusCode)
 	}
 
 	rb, err := ioutil.ReadAll(res.Body)
@@ -100,6 +101,7 @@ func doGithubCodeRequest(client *http.Client, scope string) (*GithubDeviceCodeRe
 }
 
 var ErrAuthPending = errors.New("auth pending")
+var ErrSlowDown = errors.New("slow down")
 
 const accessTokenUrl = "https://github.com/login/oauth/access_token?%s"
 const githubRequiredGrantType = "urn:ietf:params:oauth:grant-type:device_code"
@@ -144,12 +146,46 @@ func doGithubDeviceAuthRequest(client *http.Client, deviceCode string) (string, 
 		return "", ErrAuthPending
 	}
 
+	if p.Error == "slow_down" {
+		return "", ErrSlowDown
+	}
+
 	if p.AccessToken != "" {
 		return p.AccessToken, nil
 	}
 
 	// Note p.Error is a string here
 	return "", fmt.Errorf("error doing auth request: %s", p.Error)
+}
+
+const ghBackOffIncrement = (5 * time.Second)
+
+func pollAuthStatus(sleep func(d time.Duration), interval time.Duration, client *http.Client, deviceCode string) (string, error) {
+	retryInterval := interval
+
+	for {
+		sleep(retryInterval)
+
+		authToken, err := doGithubDeviceAuthRequest(client, deviceCode)
+		if err != nil {
+			if err == ErrAuthPending {
+				// This is expected while the user goes to the webpage.
+				continue
+			}
+
+			if err == ErrSlowDown {
+				// Github wants us to add an additional to our interval of 5 seconds if we hit a `slow_down`
+				// https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps#error-codes-for-the-device-flow
+				retryInterval = retryInterval + ghBackOffIncrement
+
+				continue
+			}
+
+			return "", fmt.Errorf("error fetching auth status: %w", err)
+		}
+
+		return authToken, nil
+	}
 }
 
 // NewGithubDeviceFlowHandler returns a function which will initiate the Github Device Flow for the CLI.
@@ -168,30 +204,8 @@ func NewGithubDeviceFlowHandler(client *http.Client) BlockingCLIAuthHandler {
 
 		// GH complains if you retry RIGHT at the given interval.
 		// We will get a `slow_down` error from the backend without the one second padding.
-		retryInterval := time.Duration(codeRes.Interval+1) * time.Second
+		retryInterval := time.Duration(codeRes.Interval) * time.Second
 
-		ticker := time.NewTicker(retryInterval)
-
-		for range ticker.C {
-			authToken, err := doGithubDeviceAuthRequest(client, codeRes.DeviceCode)
-			if err != nil {
-				if err == ErrAuthPending {
-					// This is expected while the user goes to the webpage.
-					continue
-				}
-
-				// An unexpected error happened, return it.
-				ticker.Stop()
-
-				return "", err
-			}
-
-			ticker.Stop()
-			fmt.Fprintf(w, "Authentication successful!\n\n")
-
-			return authToken, nil
-		}
-
-		return "", errors.New("failed to get github auth token")
+		return pollAuthStatus(time.Sleep, retryInterval, client, codeRes.DeviceCode)
 	}
 }

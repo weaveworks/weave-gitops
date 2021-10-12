@@ -1,4 +1,4 @@
-.PHONY: debug bin gitops install clean fmt vet depencencies lint ui ui-lint ui-test ui-dev unit-tests proto proto-deps api-dev ui-dev fakes crd
+.PHONY: debug bin gitops install clean fmt vet depencencies lint ui ui-lint ui-test ui-dev unit-tests proto proto-deps api-dev ui-dev fakes crd ui-deps
 VERSION=$(shell git describe --always --match "v*")
 GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
@@ -13,7 +13,7 @@ LDFLAGS = "-X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(
 
 KUBEBUILDER_ASSETS ?= "$(CURRENT_DIR)/tools/bin/envtest"
 
-# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
+# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set) 
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
 else
@@ -43,7 +43,7 @@ install: bin ## Install binaries to GOPATH
 	cp bin/$(BINARY_NAME) ${GOPATH}/bin/
 
 api-dev: ## Server and watch gitops-server, will reload automatically on change
-	reflex -r '.go' -s -- sh -c 'go run cmd/gitops-server/main.go'
+	reflex -r '.go' -s -- sh -c 'go run -ldflags $(LDFLAGS) cmd/gitops-server/main.go'
 
 debug: ## Compile binary with optimisations and inlining disabled
 	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) -gcflags='all=-N -l' cmd/gitops/*.go
@@ -99,7 +99,7 @@ proto: ## Generate protobuf files
 
 ##@ UI
 
-node_modules: ## Install node modules
+ui-deps: ## Install node modules
 	npm ci
 	npx npm-force-resolutions
 
@@ -110,11 +110,11 @@ ui-test: ## Run UI tests
 	npm run test
 
 ui-audit: ## Run audit against the UI
-	npm audit
+	npm audit --production
 
-ui: node_modules cmd/gitops/ui/run/dist/main.js ## Build the UI
+ui: ui-deps cmd/gitops/ui/run/dist/main.js ## Build the UI
 
-ui-lib: node_modules dist/index.js ## Build UI libraries
+ui-lib: ui-deps dist/index.js ## Build UI libraries
 # Remove font files from the npm module.
 	@find dist -type f -iname \*.otf -delete
 	@find dist -type f -iname \*.woff -delete

@@ -52,10 +52,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		addCommand1 := "app add . --auto-merge=true"
 		addCommand2 := "app add . --url=" + appRepoRemoteURL + " --auto-merge=true"
 
-		defer deleteRepo(tip.appRepoName, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -105,11 +105,11 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		addCommand := "app add --url=" + appRepoRemoteURL + " --branch=" + branchName + " --dry-run" + " --auto-merge=true"
 
-		defer deleteRepo(tip.appRepoName, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -165,11 +165,11 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		addCommand := "app add . --auto-merge=true"
 
-		defer deleteRepo(tip.appRepoName, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -214,19 +214,19 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		addCommand := "app add . --auto-merge=true"
 
-		defer deleteRepo(tip.appRepoName, GITLAB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
+		By("I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupGitlabSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, GITLAB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
 			deleteWorkload(tip.workloadName, tip.workloadNamespace)
-		})
-
-		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupGitlabSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("When I create an empty private repo", func() {
@@ -283,12 +283,12 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		addCommand := "app add --url=" + appRepoRemoteURL + " --branch=" + branchName + " --namespace=" + wegoNamespace + " --deployment-type=kustomize --app-config-url=NONE"
 
-		defer deleteRepo(tip.appRepoName, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 		defer uninstallWegoRuntime(wegoNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -348,13 +348,13 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		addCommand := "app add --url=" + appRepoRemoteURL + " --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
 
-		defer deleteRepo(tip.appRepoName, GITHUB_ORG)
-		defer deleteRepo(appConfigRepoName, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, GITHUB_ORG)
-			deleteRepo(appConfigRepoName, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -398,21 +398,21 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		addCommand := "app add --url=" + appRepoRemoteURL + " --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
 
-		defer deleteRepo(tip.appRepoName, GITLAB_ORG)
-		defer deleteRepo(appConfigRepoName, GITLAB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
+		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITLAB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
+		By("I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupGitlabSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, GITLAB_ORG)
-			deleteRepo(appConfigRepoName, GITLAB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
+			deleteRepo(appConfigRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
 			deleteWorkload(tip.workloadName, tip.workloadNamespace)
-		})
-
-		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupGitlabSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("When I create a private repo for gitops app config", func() {
@@ -462,11 +462,11 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		addCommand := "app add --url=" + appRepoRemoteURL + " --auto-merge=true"
 
-		defer deleteRepo(tip.appRepoName, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -500,11 +500,11 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		addCommand := "app add " + tip.appRepoName + "/" + " --auto-merge=true"
 
-		defer deleteRepo(tip.appRepoName, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -544,12 +544,12 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		addCommand := "app add . --name=" + appName + " --auto-merge=true"
 
-		defer deleteRepo(appRepoName, GITHUB_ORG)
+		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip1.workloadName, tip1.workloadNamespace)
 		defer deleteWorkload(tip2.workloadName, tip2.workloadNamespace)
 
 		By("And application repos do not already exist", func() {
-			deleteRepo(appRepoName, GITHUB_ORG)
+			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -600,16 +600,16 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		addCommand := "app add . --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
 
-		defer deleteRepo(appRepoName1, GITHUB_ORG)
-		defer deleteRepo(appRepoName2, GITHUB_ORG)
-		defer deleteRepo(appConfigRepoName, GITHUB_ORG)
+		defer deleteRepo(appRepoName1, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(appRepoName2, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip1.workloadName, tip1.workloadNamespace)
 		defer deleteWorkload(tip2.workloadName, tip2.workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(appRepoName1, GITHUB_ORG)
-			deleteRepo(appRepoName2, GITHUB_ORG)
-			deleteRepo(appConfigRepoName, GITHUB_ORG)
+			deleteRepo(appRepoName1, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(appRepoName2, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -658,12 +658,12 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		addCommand1 := "app add . --path=./" + appName1 + " --name=" + appName1 + " --auto-merge=true"
 		addCommand2 := "app add . --path=./" + appName2 + " --name=" + appName2 + " --auto-merge=true"
 
-		defer deleteRepo(appRepoName, GITHUB_ORG)
+		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip1.workloadName, tip1.workloadNamespace)
 		defer deleteWorkload(tip2.workloadName, tip2.workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(appRepoName, GITHUB_ORG)
+			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -722,14 +722,14 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		addCommand2 := "app add . --deployment-type=helm --path=./hello-world --name=" + appName2 + " --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
 		addCommand3 := "app add --url=" + helmRepoURL + " --chart=" + appName3 + " --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
 
-		defer deleteRepo(appFilesRepoName, GITHUB_ORG)
-		defer deleteRepo(appConfigRepoName, GITHUB_ORG)
+		defer deleteRepo(appFilesRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(workloadName1, workloadNamespace1)
 		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName3, EVENTUALLY_DEFAULT_TIMEOUT)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(appFilesRepoName, GITHUB_ORG)
-			deleteRepo(appConfigRepoName, GITHUB_ORG)
+			deleteRepo(appFilesRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -882,14 +882,14 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		addCommand1 := "app add . --name=" + appName1 + " --auto-merge=true"
 		addCommand2 := "app add . --name=" + appName2 + " --auto-merge=true"
 
-		defer deleteRepo(tip1.appRepoName, GITHUB_ORG)
-		defer deleteRepo(tip2.appRepoName, GITHUB_ORG)
+		defer deleteRepo(tip1.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(tip2.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip1.workloadName, tip1.workloadNamespace)
 		defer deleteWorkload(tip2.workloadName, tip2.workloadNamespace)
 
 		By("And application repos do not already exist", func() {
-			deleteRepo(tip1.appRepoName, GITHUB_ORG)
-			deleteRepo(tip2.appRepoName, GITHUB_ORG)
+			deleteRepo(tip1.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(tip2.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -1101,10 +1101,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		addCommand := "app add . --deployment-type=helm --path=./hello-world --name=" + appName + " --app-config-url=NONE"
 
-		defer deleteRepo(appRepoName, GITHUB_ORG)
+		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 
 		By("Application and config repo does not already exist", func() {
-			deleteRepo(appRepoName, GITHUB_ORG)
+			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
 		By("When I create a private repo with my app workload", func() {
@@ -1181,10 +1181,10 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		addCommand := "app add . --deployment-type=helm --path=./hello-world --name=" + appName + " --auto-merge=true"
 
-		defer deleteRepo(appRepoName, GITHUB_ORG)
+		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(appRepoName, GITHUB_ORG)
+			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
 		By("When I create a private repo with my app workload", func() {
@@ -1224,12 +1224,12 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		addCommand := fmt.Sprintf("app add . --app-config-url=%s --deployment-type=helm --path=./hello-world --name=%s --auto-merge=true", configRepoUrl, appName)
 
-		defer deleteRepo(appRepoName, GITHUB_ORG)
-		defer deleteRepo(configRepoName, GITHUB_ORG)
+		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(configRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 
 		By("Application and config repo does not already exist", func() {
-			deleteRepo(appRepoName, GITHUB_ORG)
-			deleteRepo(configRepoName, GITHUB_ORG)
+			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(configRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
 		By("When I create a private repo with my app workload", func() {
@@ -1297,11 +1297,11 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, EVENTUALLY_DEFAULT_TIMEOUT)
 		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName2, EVENTUALLY_DEFAULT_TIMEOUT)
-		defer deleteRepo(appRepoName, GITHUB_ORG)
+		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteNamespace(workloadNamespace2)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(appRepoName, GITHUB_ORG)
+			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -1414,11 +1414,11 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		addCommand := "app add . --name=" + appName + " --auto-merge=false"
 
-		defer deleteRepo(tip.appRepoName, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
 		By("When I create an empty private repo for app", func() {
@@ -1440,11 +1440,62 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("Then I should see a PR created in user repo", func() {
-			verifyPRCreated(repoAbsolutePath, appName)
+			verifyPRCreated(repoAbsolutePath, appName, gitproviders.GitProviderGitHub)
 		})
 
 		By("When I merge the created PR", func() {
-			mergePR(repoAbsolutePath, prLink)
+			mergePR(repoAbsolutePath, prLink, gitproviders.GitProviderGitHub)
+		})
+
+		By("Then I should see my workload deployed to the cluster", func() {
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
+		})
+	})
+
+	It("Verify that a PR is raised against a gitlab user repo when skipping auto-merge", func() {
+		var repoAbsolutePath string
+		tip := generateTestInputs()
+		appName := tip.appRepoName
+		prLink := ""
+
+		addCommand := "app add . --name=" + appName + " --auto-merge=false"
+
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
+		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
+
+		By("I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupGitlabSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
+		})
+
+		By("When I create an empty private repo for app", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitLab, true, GITLAB_ORG)
+		})
+
+		By("And I git add-commit-push app manifest", func() {
+			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
+		})
+
+		By("And I install gitops to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("When I run gitops app add command for app", func() {
+			output, _ := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+			re := regexp.MustCompile(`(http|ftp|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?`)
+			prLink = re.FindAllString(output, -1)[0]
+		})
+
+		By("Then I should see a PR created in user repo", func() {
+			verifyPRCreated(repoAbsolutePath, appName, gitproviders.GitProviderGitLab)
+		})
+
+		By("When I merge the created PR", func() {
+			mergePR(repoAbsolutePath, prLink, gitproviders.GitProviderGitLab)
 		})
 
 		By("Then I should see my workload deployed to the cluster", func() {
@@ -1466,13 +1517,13 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		addCommand := "app add . --app-config-url=" + configRepoRemoteURL
 
-		defer deleteRepo(tip.appRepoName, GITHUB_ORG)
-		defer deleteRepo(appConfigRepoName, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, GITHUB_ORG)
-			deleteRepo(appConfigRepoName, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
 		By("When I create a private repo for gitops app config", func() {
@@ -1496,11 +1547,11 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("Then I should see a PR created for external repo", func() {
-			verifyPRCreated(appConfigRepoAbsPath, appName)
+			verifyPRCreated(appConfigRepoAbsPath, appName, gitproviders.GitProviderGitHub)
 		})
 
 		By("When I merge the created PR", func() {
-			mergePR(appConfigRepoAbsPath, prLink)
+			mergePR(appConfigRepoAbsPath, prLink, gitproviders.GitProviderGitHub)
 		})
 
 		By("Then I should see my workload deployed to the cluster", func() {
@@ -1520,11 +1571,11 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		addCommand := "app add . --name=" + appName
 		addCommand2 := "app add . --name=" + appName2
 
-		defer deleteRepo(tip.appRepoName, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
 		By("When I create an empty private repo for app", func() {
@@ -1544,7 +1595,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("Then I should see a PR created for "+appName, func() {
-			verifyPRCreated(repoAbsolutePath, appName)
+			verifyPRCreated(repoAbsolutePath, appName, gitproviders.GitProviderGitHub)
 		})
 
 		By("And I should fail to create a PR with the same app repo consecutively", func() {
@@ -1553,7 +1604,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I merge the previous PR", func() {
-			mergePR(repoAbsolutePath, prLink)
+			mergePR(repoAbsolutePath, prLink, gitproviders.GitProviderGitHub)
 		})
 
 		By("Then I should see my workload deployed to the cluster", func() {
@@ -1606,13 +1657,13 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 
 		addCommand := "app add . --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
 
-		defer deleteRepo(appFilesRepoName, GITHUB_ORG)
-		defer deleteRepo(appConfigRepoName, GITHUB_ORG)
+		defer deleteRepo(appFilesRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(workloadName, workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(appFilesRepoName, GITHUB_ORG)
-			deleteRepo(appConfigRepoName, GITHUB_ORG)
+			deleteRepo(appFilesRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -1676,7 +1727,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 	})
 
-	It("SmokeTest - Verify that gitops can deploy an app with app-config-url set to a gitlab <url>", func() {
+	It("SmokeTest1 - Verify that gitops can deploy an app with app-config-url set to a gitlab <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var listOutput string
@@ -1694,21 +1745,21 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 
 		addCommand := "app add . --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
 
-		defer deleteRepo(appFilesRepoName, GITLAB_ORG)
-		defer deleteRepo(appConfigRepoName, GITLAB_ORG)
+		defer deleteRepo(appFilesRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
+		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
 		defer deleteWorkload(workloadName, workloadNamespace)
 
+		By("I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupGitlabSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
 		By("And application repo does not already exist", func() {
-			deleteRepo(appFilesRepoName, GITLAB_ORG)
-			deleteRepo(appConfigRepoName, GITLAB_ORG)
+			deleteRepo(appFilesRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
+			deleteRepo(appConfigRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
 			deleteWorkload(workloadName, workloadNamespace)
-		})
-
-		By("And I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupGitlabSSHKey(DEFAULT_SSH_KEY_PATH)
 		})
 
 		By("When I create a private repo for gitops app config", func() {

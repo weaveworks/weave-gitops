@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
 	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
@@ -12,6 +13,7 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	ctrl "sigs.k8s.io/controller-runtime"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
@@ -22,6 +24,8 @@ import (
 	"k8s.io/client-go/restmapper"
 )
 
+var k8sEnv *K8sTestEnv
+
 type K8sTestEnv struct {
 	Client     client.Client
 	DynClient  dynamic.Interface
@@ -31,6 +35,10 @@ type K8sTestEnv struct {
 
 // Starts a local k8s test environment for testing Kubernetes operations such as Create, Get, Delete, etc
 func StartK8sTestEnvironment() (*K8sTestEnv, error) {
+	if k8sEnv != nil {
+		return k8sEnv, nil
+	}
+
 	testEnv := &envtest.Environment{
 		CRDDirectoryPaths: []string{
 			"../../manifests/crds",
@@ -78,7 +86,7 @@ func StartK8sTestEnvironment() (*K8sTestEnv, error) {
 		return nil, fmt.Errorf("failed to initialize dynamic client: %s", err)
 	}
 
-	return &K8sTestEnv{
+	k8sEnv = &K8sTestEnv{
 		Client:     k8sManager.GetClient(),
 		DynClient:  dyn,
 		RestMapper: mapper,
@@ -86,7 +94,9 @@ func StartK8sTestEnvironment() (*K8sTestEnv, error) {
 			err := testEnv.Stop()
 			Expect(err).NotTo(HaveOccurred())
 		},
-	}, nil
+	}
+
+	return k8sEnv, nil
 }
 
 // MakeFakeLogr returns an API compliant logr object that can be used for unit testing.
@@ -101,4 +111,25 @@ func MakeFakeLogr() *fakelogr.FakeLogger {
 	}
 
 	return log
+}
+
+type LocalFluxRunner struct {
+	runner.Runner
+}
+
+func (r *LocalFluxRunner) Run(command string, args ...string) ([]byte, error) {
+	cmd := "../flux/bin/flux"
+
+	return r.Runner.Run(cmd, args...)
+}
+
+type DummyPullRequest struct {
+}
+
+func (d DummyPullRequest) Get() gitprovider.PullRequestInfo {
+	return gitprovider.PullRequestInfo{WebURL: ""}
+}
+
+func (d DummyPullRequest) APIObject() interface{} {
+	return nil
 }

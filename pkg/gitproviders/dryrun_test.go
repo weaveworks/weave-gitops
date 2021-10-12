@@ -1,27 +1,40 @@
 package gitproviders
 
 import (
+	"context"
+
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakegitprovider"
 )
 
-var dryRunProvider GitProvider
+var (
+	dryRunProvider GitProvider
+	ctx            context.Context
+)
 
 var _ = Describe("DryRun", func() {
 	var _ = BeforeEach(func() {
-		dryRunProvider, _ = NewDryRun()
-	})
+		orgProvider := orgGitProvider{
+			domain: "github.com",
+			provider: &fakegitprovider.Client{
+				ProviderIDStub: func() gitprovider.ProviderID {
+					return gitprovider.ProviderID(GitProviderGitHub)
+				},
+			},
+		}
 
-	Describe("CreateRepository", func() {
-		It("returns nil", func() {
-			Expect(dryRunProvider.CreateRepository("", "", false)).To(Succeed())
-		})
+		ctx = context.Background()
+
+		dryRunProvider = &dryrunProvider{
+			provider: orgProvider,
+		}
 	})
 
 	Describe("RepositoryExists", func() {
 		It("returns true", func() {
-			res, err := dryRunProvider.RepositoryExists("", "")
+			res, err := dryRunProvider.RepositoryExists(ctx, "", "")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(BeTrue())
 		})
@@ -29,31 +42,15 @@ var _ = Describe("DryRun", func() {
 
 	Describe("DeployKeyExists", func() {
 		It("returns true", func() {
-			res, err := dryRunProvider.DeployKeyExists("", "")
+			res, err := dryRunProvider.DeployKeyExists(ctx, "", "")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(BeTrue())
 		})
 	})
 
-	Describe("GetRepoInfo", func() {
-		It("returns placeholder", func() {
-			res, err := dryRunProvider.GetRepoInfo(AccountTypeUser, "", "")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(*res.DefaultBranch).To(Equal("<default-branch>"))
-		})
-	})
-
-	Describe("GetRepoInfoFromUrl", func() {
-		It("returns placeholder", func() {
-			res, err := dryRunProvider.GetRepoInfoFromUrl("")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(*res.DefaultBranch).To(Equal("<default-branch>"))
-		})
-	})
-
 	Describe("GetDefaultBranch", func() {
 		It("returns branch placeholder", func() {
-			res, err := dryRunProvider.GetDefaultBranch("")
+			res, err := dryRunProvider.GetDefaultBranch(ctx, "")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal("<default-branch>"))
 		})
@@ -61,7 +58,7 @@ var _ = Describe("DryRun", func() {
 
 	Describe("GetRepoVisibility", func() {
 		It("returns private", func() {
-			res, err := dryRunProvider.GetRepoVisibility("")
+			res, err := dryRunProvider.GetRepoVisibility(ctx, "")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityPrivate)))
 		})
@@ -69,47 +66,23 @@ var _ = Describe("DryRun", func() {
 
 	Describe("UploadDeployKey", func() {
 		It("returns nil", func() {
-			Expect(dryRunProvider.UploadDeployKey("", "", []byte{})).To(Succeed())
+			Expect(dryRunProvider.UploadDeployKey(ctx, "", "", []byte{})).To(Succeed())
 		})
 	})
 
-	Describe("CreatePullRequestToUserRepo", func() {
+	Describe("CreatePullRequest", func() {
 		It("returns nil", func() {
-			res, err := dryRunProvider.CreatePullRequestToUserRepo(gitprovider.UserRepositoryRef{}, "", "", nil, "", "", "")
+			res, err := dryRunProvider.CreatePullRequest(ctx, "", "", PullRequestInfo{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(BeNil())
 		})
 	})
 
-	Describe("CreatePullRequestToOrgRepo", func() {
-		It("returns nil", func() {
-			res, err := dryRunProvider.CreatePullRequestToOrgRepo(gitprovider.OrgRepositoryRef{}, "", "", nil, "", "", "")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(res).To(BeNil())
-		})
-	})
-
-	Describe("GetCommitsFromUserRepo", func() {
+	Describe("GetCommits", func() {
 		It("returns emtpy", func() {
-			res, err := dryRunProvider.GetCommitsFromUserRepo(gitprovider.UserRepositoryRef{}, "", 1, 1)
+			res, err := dryRunProvider.GetCommits(ctx, "", "", "", 1, 1)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal([]gitprovider.Commit{}))
-		})
-	})
-
-	Describe("GetCommitsFromOrgRepo", func() {
-		It("returns empty", func() {
-			res, err := dryRunProvider.GetCommitsFromOrgRepo(gitprovider.OrgRepositoryRef{}, "", 1, 1)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(res).To(Equal([]gitprovider.Commit{}))
-		})
-	})
-
-	Describe("GetAccountType", func() {
-		It("returns user type", func() {
-			res, err := dryRunProvider.GetAccountType("")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(res).To(Equal(AccountTypeUser))
 		})
 	})
 

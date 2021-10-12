@@ -20,7 +20,6 @@ const (
 type RemoveParams struct {
 	Name             string
 	Namespace        string
-	PrivateKey       string
 	DryRun           bool
 	GitProviderToken string
 }
@@ -125,7 +124,7 @@ func (a *App) getConfigUrlAndBranch(info *AppResourceInfo) (string, string, erro
 	if cloneURL == string(ConfigTypeUserRepo) {
 		cloneURL = info.Spec.URL
 	} else {
-		localBranch, err := a.GitProvider.GetDefaultBranch(cloneURL)
+		localBranch, err := a.GitProvider.GetDefaultBranch(context.Background(), cloneURL)
 		if err != nil {
 			return "", "", err
 		}

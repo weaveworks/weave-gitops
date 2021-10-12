@@ -7,7 +7,7 @@ Weave GitOps
 [![LICENSE](https://img.shields.io/github/license/weaveworks/weave-gitops)](https://github.com/weaveworks/weave-gitops/blob/master/LICENSE)
 [![Contributors](https://img.shields.io/github/contributors/weaveworks/weave-gitops)](https://github.com/weaveworks/weave-gitops/graphs/contributors)
 [![Release](https://img.shields.io/github/v/release/weaveworks/weave-gitops?include_prereleases)](https://github.com/weaveworks/weave-gitops/releases/latest)
-[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=shield)](https://app.fossa.com/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops?ref=badge_shield)
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=shield)](https://app.fossa.com/reports/005da7c4-1f10-4889-9432-8b97c2084e41)
 
 ## Overview
 
@@ -21,7 +21,7 @@ It is based on [CNCF Flux](https://fluxcd.io), a leading GitOps engine.
 Mac / Linux
 
 ```console
-curl -L "https://github.com/weaveworks/weave-gitops/releases/download/v0.3.0/gitops-$(uname)-$(uname -m)" -o gitops
+curl -L "https://github.com/weaveworks/weave-gitops/releases/download/v0.3.1/gitops-$(uname)-$(uname -m)" -o gitops
 chmod +x gitops
 sudo mv ./gitops /usr/local/bin/gitops
 gitops version
@@ -63,7 +63,7 @@ To set up a development environment for the CLI
 
 1. Install go v1.16
 2. Install [buf](https://github.com/bufbuild/buf)
-3. make
+3. make or make unit-tests to ensure everything built correctly.
 
 ### Setup golangci-lint in your editor
 
@@ -142,4 +142,4 @@ Need help or want to contribute? Please see the links below.
 
 ## License scan details
 
-[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=large)](https://app.fossa.com/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops?ref=badge_large)
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=large)](https://app.fossa.com/reports/005da7c4-1f10-4889-9432-8b97c2084e41)

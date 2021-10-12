@@ -19,9 +19,12 @@ import (
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . AppFactory
+
+// AppFactory provides helpers for generating various WeGO service objects at runtime.
 type AppFactory interface {
 	GetKubeService() (kube.Kube, error)
 	GetAppService(ctx context.Context, name, namespace string) (app.AppService, error)
+	GetAppServiceForAdd(ctx context.Context, params AppServiceParams) (app.AppService, error)
 }
 
 type DefaultAppFactory struct {
@@ -29,6 +32,19 @@ type DefaultAppFactory struct {
 
 func (f *DefaultAppFactory) GetAppService(ctx context.Context, name, namespace string) (app.AppService, error) {
 	return GetAppService(ctx, name, namespace)
+}
+
+type AppServiceParams struct {
+	URL              string
+	ConfigURL        string
+	Namespace        string
+	IsHelmRepository bool
+	DryRun           bool
+	Token            string
+}
+
+func (f *DefaultAppFactory) GetAppServiceForAdd(ctx context.Context, params AppServiceParams) (app.AppService, error) {
+	return GetAppServiceForAdd(ctx, params.URL, params.ConfigURL, params.Namespace, params.IsHelmRepository, params.DryRun)
 }
 
 func (f *DefaultAppFactory) GetKubeService() (kube.Kube, error) {
@@ -186,20 +202,25 @@ func getAuthService(ctx context.Context, normalizedUrl gitproviders.NormalizedRe
 		err         error
 	)
 
+	osysClient := osys.New()
+	cliRunner := &runner.CLIRunner{}
+	fluxClient := flux.New(osysClient, cliRunner)
+	logger := logger.NewCLILogger(osysClient.Stdout())
+
+	authHandler, err := auth.NewAuthCLIHandler(normalizedUrl.Provider())
+	if err != nil {
+		return nil, fmt.Errorf("error initializing cli auth handler: %w", err)
+	}
+
 	if dryRun {
 		if gitProvider, err = gitproviders.NewDryRun(); err != nil {
 			return nil, fmt.Errorf("error creating git provider client: %w", err)
 		}
 	} else {
-		if gitProvider, err = auth.GetGitProvider(ctx, normalizedUrl); err != nil {
+		if gitProvider, err = auth.InitGitProvider(normalizedUrl, osysClient, logger, authHandler, gitproviders.GetAccountType); err != nil {
 			return nil, fmt.Errorf("error obtaining git provider token: %w", err)
 		}
 	}
-
-	osysClient := osys.New()
-	cliRunner := &runner.CLIRunner{}
-	fluxClient := flux.New(osysClient, cliRunner)
-	logger := logger.NewCLILogger(osysClient.Stdout())
 
 	_, rawClient, err := kube.NewKubeHTTPClient()
 	if err != nil {

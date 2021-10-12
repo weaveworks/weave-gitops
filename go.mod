@@ -3,9 +3,9 @@ module github.com/weaveworks/weave-gitops
 go 1.16
 
 require (
+	github.com/benbjohnson/clock v1.1.0
 	github.com/deepmap/oapi-codegen v1.8.1
-	github.com/dnaeon/go-vcr v1.2.0
-	github.com/fluxcd/go-git-providers v0.2.1-0.20210920141513-ddc36f3d5f60
+	github.com/fluxcd/go-git-providers v0.2.1-0.20211006191809-83344459c0dc
 	github.com/fluxcd/helm-controller/api v0.11.2
 	github.com/fluxcd/kustomize-controller/api v0.14.1
 	github.com/fluxcd/pkg/apis/meta v0.10.1
@@ -21,6 +21,7 @@ require (
 	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.1
 	github.com/jandelgado/gcov2lcov v1.0.5
 	github.com/jarcoal/httpmock v1.0.8
+	github.com/jenkins-x/go-scm v1.10.10
 	github.com/lithammer/dedent v1.1.0
 	github.com/mattn/go-isatty v0.0.13
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
@@ -30,13 +31,12 @@ require (
 	github.com/ory/go-acc v0.2.6
 	github.com/pkg/browser v0.0.0-20210706143420-7d21f8c997e2
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.11.0 // indirect
 	github.com/sclevine/agouti v0.0.0-20150218205057-b920a9cc7533
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab
-	github.com/weaveworks/pctl v0.10.0 // indirect
+	github.com/weaveworks/pctl v0.10.0
 	go.uber.org/zap v1.19.0
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
 	golang.org/x/oauth2 v0.0.0-20210615190721-d04028783cf1
@@ -45,7 +45,6 @@ require (
 	google.golang.org/grpc v1.39.1
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/protobuf v1.27.1
-	gopkg.in/src-d/go-git.v4 v4.13.1 // indirect
 	k8s.io/api v0.22.1
 	k8s.io/apiextensions-apiserver v0.22.1
 	k8s.io/apimachinery v0.22.1

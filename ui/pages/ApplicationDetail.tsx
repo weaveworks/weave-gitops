@@ -4,17 +4,18 @@ import styled from "styled-components";
 import Alert from "../components/Alert";
 import CommitsTable from "../components/CommitsTable";
 import ConditionsTable from "../components/ConditionsTable";
+import ErrorPage from "../components/ErrorPage";
 import GithubDeviceAuthModal from "../components/GithubDeviceAuthModal";
 import KeyValueTable from "../components/KeyValueTable";
 import LoadingPage from "../components/LoadingPage";
 import Page from "../components/Page";
 import ReconciliationGraph from "../components/ReconciliationGraph";
 import { AppContext } from "../contexts/AppContext";
-import useApplications from "../hooks/applications";
+import { useRequestState } from "../hooks/common";
 import {
-  Application,
-  UnstructuredObject,
   AutomationKind,
+  GetApplicationResponse,
+  UnstructuredObject,
 } from "../lib/api/applications/applications.pb";
 import { getChildren } from "../lib/graph";
 import { PageRoute } from "../lib/types";
@@ -25,44 +26,48 @@ type Props = {
 };
 
 function ApplicationDetail({ className, name }: Props) {
-  const [app, setApp] = React.useState<Application>({});
+  const { applicationsClient } = React.useContext(AppContext);
   const [authSuccess, setAuthSuccess] = React.useState(false);
   const [githubAuthModalOpen, setGithubAuthModalOpen] = React.useState(false);
-  const { applicationsClient, doAsyncError } = React.useContext(AppContext);
   const [reconciledObjects, setReconciledObjects] = React.useState<
     UnstructuredObject[]
   >([]);
-
-  const { getApplication, loading } = useApplications();
-
-  React.useEffect(() => {
-    getApplication(name)
-      .then((app) => {
-        setApp(app as Application);
-      })
-      .catch((err) =>
-        doAsyncError("Error fetching application detail", err.message)
-      );
-  }, []);
+  const [res, loading, error, req] = useRequestState<GetApplicationResponse>();
 
   React.useEffect(() => {
-    if (!app) {
+    req(applicationsClient.GetApplication({ name, namespace: "wego-system" }));
+  }, [name]);
+
+  React.useEffect(() => {
+    if (!res) {
       return;
     }
 
-    const uniqKinds = _.uniqBy(app.reconciledObjectKinds, "kind");
+    const uniqKinds = _.uniqBy(res.application.reconciledObjectKinds, "kind");
     if (uniqKinds.length === 0) {
       return;
     }
 
-    getChildren(applicationsClient, app, uniqKinds).then((objs) =>
+    getChildren(applicationsClient, res.application, uniqKinds).then((objs) =>
       setReconciledObjects(objs)
     );
-  }, [app]);
+  }, [res]);
 
-  if (loading) {
+  if (error) {
+    return (
+      <ErrorPage
+        breadcrumbs={[{ page: PageRoute.Applications }]}
+        title={name}
+        error={{ message: error.message, title: "Error fetching Application" }}
+      />
+    );
+  }
+
+  if ((!res && !error) || loading) {
     return <LoadingPage />;
   }
+
+  const { application = {} } = res;
 
   return (
     <Page
@@ -74,37 +79,49 @@ function ApplicationDetail({ className, name }: Props) {
       {authSuccess && (
         <Alert severity="success" message="Authentication Successful" />
       )}
+      {error && (
+        <Alert
+          severity="error"
+          title="Error fetching Application"
+          message={error.message}
+        />
+      )}
       <KeyValueTable
         columns={4}
         pairs={[
-          { key: "Name", value: app.name },
-          { key: "Deployment Type", value: app.deploymentType },
-          { key: "URL", value: app.url },
-          { key: "Path", value: app.path },
+          { key: "Name", value: application.name },
+          { key: "Deployment Type", value: application.deploymentType },
+          { key: "URL", value: application.url },
+          { key: "Path", value: application.path },
         ]}
       />
       <ReconciliationGraph
         objects={reconciledObjects}
-        parentObject={app}
+        parentObject={application}
         parentObjectKind="Application"
       />
       <h3>Source Conditions</h3>
-      <ConditionsTable conditions={app.source?.conditions} />
+      <ConditionsTable conditions={application.source?.conditions} />
       <h3>Automation Conditions</h3>
-      <ConditionsTable conditions={app.deploymentType == AutomationKind.Kustomize ? app.kustomization?.conditions : app.helmRelease?.conditions} />
+      <ConditionsTable
+        conditions={
+          application.deploymentType == AutomationKind.Kustomize
+            ? application.kustomization?.conditions
+            : application.helmRelease?.conditions
+        }
+      />
 
       <h3>Commits</h3>
       <CommitsTable
-        app={app}
+        // Get CommitsTable to retry after auth
+        app={application}
         onAuthClick={() => setGithubAuthModalOpen(true)}
       />
       <GithubDeviceAuthModal
         onSuccess={() => {
           setAuthSuccess(true);
-          // Get CommitsTable to retry after auth
-          setApp({ ...app });
         }}
-        repoName={app.url}
+        repoName={application.url}
         onClose={() => setGithubAuthModalOpen(false)}
         open={githubAuthModalOpen}
       />
