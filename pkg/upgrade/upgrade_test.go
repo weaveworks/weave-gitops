@@ -37,7 +37,6 @@ YzHeDNl9zYCo9SgXCcDrAAAAB3Rlc3RrZXkBAgMEBQY=
 `
 
 func TestBuildUpgradeConfigs(t *testing.T) {
-
 	tests := []struct {
 		name            string
 		localGitRemote  string
@@ -80,7 +79,7 @@ func TestBuildUpgradeConfigs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			kubeClient := makeClient(tt.clusterState...)
+			kubeClient := makeClient(t, tt.clusterState...)
 			gitClient := &gitfakes.FakeGit{}
 			gitClient.GetRemoteUrlStub = func(dir, remote string) (string, error) {
 				return tt.localGitRemote, nil
@@ -96,8 +95,6 @@ func TestBuildUpgradeConfigs(t *testing.T) {
 }
 
 func TestToUpgradeConfigs(t *testing.T) {
-	// Smoke test all the values come through
-
 	uv := UpgradeValues{
 		RepoOrgAndName: "org/repo",
 		Remote:         "origin",
@@ -165,7 +162,6 @@ func TestToUpgradeConfigsErrors(t *testing.T) {
 }
 
 func TestUpgrade(t *testing.T) {
-
 	tempDir := createLocalProfileRepo(t)
 	defer os.RemoveAll(tempDir)
 
@@ -178,6 +174,7 @@ func TestUpgrade(t *testing.T) {
 	assert.NoError(t, err)
 	scmClient, err := pctl_git.NewClient(pctl_git.SCMConfig{Client: fakeScm})
 	assert.NoError(t, err)
+
 	gitClient := git.New(nil, wrapper.NewGoGit())
 
 	// Run upgrade!
@@ -235,7 +232,7 @@ func TestGetGitAuthFromDeployKey(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			kubeClient := makeClient(tt.clusterState...)
+			kubeClient := makeClient(t, tt.clusterState...)
 			key, err := getGitAuthFromDeployKey(context.Background(), kubeClient, "wego-system")
 			assert.Equal(t, err, tt.expectedErr)
 			if key != nil {
@@ -267,13 +264,14 @@ func TestGetRepoOrgAndName(t *testing.T) {
 // helpers
 //
 
-func makeClient(clusterState ...runtime.Object) client.Client {
+func makeClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
 		sourcev1.AddToScheme,
 	}
-	schemeBuilder.AddToScheme(scheme)
+	err := schemeBuilder.AddToScheme(scheme)
+	assert.NoError(t, err)
 
 	return fake.NewClientBuilder().
 		WithScheme(scheme).
@@ -307,6 +305,7 @@ func createLocalClusterConfigRepo(t *testing.T) string {
 	assert.NoError(t, err)
 	_, err = configGitClient.Init(configDir, "https://github.com/github/gitignore", "main")
 	assert.NoError(t, err)
+
 	return configDir
 }
 
