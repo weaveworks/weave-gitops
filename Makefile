@@ -114,7 +114,7 @@ ui-audit: ## Run audit against the UI
 
 ui: ui-deps cmd/gitops/ui/run/dist/main.js ## Build the UI
 
-ui-lib: ui-deps dist/index.js ## Build UI libraries
+ui-lib: ui-deps dist/index.js dist/index.d.ts ## Build UI libraries
 # Remove font files from the npm module.
 	@find dist -type f -iname \*.otf -delete
 	@find dist -type f -iname \*.woff -delete
@@ -140,7 +140,7 @@ lib-test: dependencies
 dist/index.js: ui/index.ts
 	npm run build:lib && cp package.json dist
 
-dist/index.d.ts:
+dist/index.d.ts: ui/index.ts
 	npm run typedefs
 
 # Test coverage
