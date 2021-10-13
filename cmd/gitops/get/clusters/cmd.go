@@ -24,7 +24,12 @@ func ClusterCommand(endpoint *string, client *resty.Client) *cobra.Command {
 		Example: `
 # Get all CAPI clusters
 gitops get clusters
-		`,
+
+# Get a single CAPI cluster
+gitops get cluster <cluster-name>
+
+# Get the Kubeconfig of a cluster
+gitops get cluster <cluster-name> --kubeconfig`,
 		RunE: getClustersCmdRunE(endpoint, client),
 	}
 

@@ -20,7 +20,7 @@ func TestGetTemplates(t *testing.T) {
 	}{
 		{
 			name:     "no templates",
-			expected: "No templates found.\n",
+			expected: "No templates were found.\n",
 		},
 		{
 			name: "templates includes just name",
@@ -146,7 +146,7 @@ func TestGetTemplateParameters(t *testing.T) {
 	}{
 		{
 			name:     "no templates",
-			expected: "No template parameters were found.",
+			expected: "No template parameters were found.\n",
 		},
 		{
 			name: "template parameters include just name",
@@ -207,7 +207,7 @@ func TestRenderTemplate(t *testing.T) {
 	}{
 		{
 			name:     "no result returned",
-			expected: "No template found.",
+			expected: "No template was found.\n",
 		},
 		{
 			name:             "error returned",
@@ -309,7 +309,7 @@ func TestGetCredentials(t *testing.T) {
 	}{
 		{
 			name:     "no credentials",
-			expected: "No credentials found.",
+			expected: "No credentials were found.\n",
 		},
 		{
 			name: "credentials found",

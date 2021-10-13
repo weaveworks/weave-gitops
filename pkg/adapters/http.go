@@ -2,7 +2,6 @@ package adapters
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -351,9 +350,10 @@ func (c *HTTPClient) RetrieveClusters() ([]clusters.Cluster, error) {
 		Clusters []ClusterView `json:"clusters"`
 	}
 
+	var clustersResponse ClustersResponse
 	res, err := c.client.R().
 		SetHeader("Accept", "application/json").
-		SetDoNotParseResponse(true).
+		SetResult(&clustersResponse).
 		Get(endpoint)
 
 	if err != nil {
@@ -364,15 +364,8 @@ func (c *HTTPClient) RetrieveClusters() ([]clusters.Cluster, error) {
 		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
 	}
 
-	var clusterList ClustersResponse
-
-	err = json.NewDecoder(res.RawBody()).Decode(&clusterList)
-	if err != nil {
-		return nil, fmt.Errorf("unable to parse response as a cluster list: %w", err)
-	}
-
 	var cs []clusters.Cluster
-	for _, c := range clusterList.Clusters {
+	for _, c := range clustersResponse.Clusters {
 		cs = append(cs, clusters.Cluster{
 			Name:            c.Name,
 			Status:          c.Status,
@@ -383,12 +376,12 @@ func (c *HTTPClient) RetrieveClusters() ([]clusters.Cluster, error) {
 	return cs, nil
 }
 
-type GetKubeconfigResponse struct {
-	Kubeconfig string
-}
-
 func (c *HTTPClient) GetClusterKubeconfig(name string) (string, error) {
 	endpoint := "v1/clusters/{name}/kubeconfig"
+
+	type GetKubeconfigResponse struct {
+		Kubeconfig string
+	}
 
 	var result GetKubeconfigResponse
 	res, err := c.client.R().
@@ -418,6 +411,25 @@ func (c *HTTPClient) GetClusterKubeconfig(name string) (string, error) {
 // DeleteClusters deletes CAPI cluster using its name
 func (c *HTTPClient) DeleteClusters(params clusters.DeleteClustersParams) (string, error) {
 	endpoint := "v1/clusters"
+
+	type Credential struct {
+		Group     string
+		Version   string
+		Kind      string
+		Name      string
+		Namespace string
+	}
+
+	type DeleteClustersPullRequestRequest struct {
+		RepositoryUrl string
+		HeadBranch    string
+		BaseBranch    string
+		Title         string
+		Description   string
+		ClusterNames  []string
+		CommitMessage string
+		Credentials   Credential
+	}
 
 	type DeleteClustersResponse struct {
 		WebURL string `json:"webUrl"`
@@ -454,23 +466,4 @@ func (c *HTTPClient) DeleteClusters(params clusters.DeleteClustersParams) (strin
 	}
 
 	return result.WebURL, nil
-}
-
-type Credential struct {
-	Group     string
-	Version   string
-	Kind      string
-	Name      string
-	Namespace string
-}
-
-type DeleteClustersPullRequestRequest struct {
-	RepositoryUrl string
-	HeadBranch    string
-	BaseBranch    string
-	Title         string
-	Description   string
-	ClusterNames  []string
-	CommitMessage string
-	Credentials   Credential
 }

@@ -14,7 +14,13 @@ func GetCommand(endpoint *string, client *resty.Client) *cobra.Command {
 		Short: "Display one or many Weave GitOps resources",
 		Example: `
 # Get all CAPI templates
-gitops get templates`,
+gitops get templates
+
+# Get all CAPI credentials
+gitops get credentials
+
+# Get all CAPI clusters
+gitops get clusters`,
 	}
 
 	cmd.AddCommand(templates.TemplateCommand(endpoint, client))
