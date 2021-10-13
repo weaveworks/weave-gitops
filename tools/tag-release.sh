@@ -7,7 +7,7 @@
 # 1) Fetch the current release version
 # 2) Increase the version (major, minor, patch)
 # 3) Add a new git tag
-# 4) Push the new tag
+# 4) Push the tag
 
 # Parse command line options.
 while getopts ":Mmpdr" Option
@@ -61,20 +61,6 @@ then
   if [[ $version == *"rc"* ]]; then # If the last version was not a release candidate then exit
     patch=( ${a[2]//-/ } )
     next_version="${a[0]}.${a[1]}.${patch[0]}"
-
-    if [ -z $dry ]
-    then
-      echo "Updating package.json to version ${next_version}"
-
-      current_version=$(node -p "require('./package.json').version") 
-      sed -i '' "s/${current_version}/${next_version}/" package.json
-      npm ci
-
-      sed -i '' "s/${current_version}/${next_version}/" README.md
-
-      git add .
-      git commit -m "update package.json"    
-      fi
   else
     echo "previous release was not a release candidate"
     exit 1
