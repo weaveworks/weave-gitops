@@ -168,9 +168,6 @@ coverage/merged.lcov: coverage/lcov.info coverage/golang.info
 
 ##@ Utilities
 
-.PHONY: cli-docs
-cli-docs:
-
 .PHONY: help
 # Thanks to https://www.thapaliya.com/en/writings/well-documented-makefiles/
 help:  ## Display this help.
