@@ -95,7 +95,7 @@ func GetTemplates(r TemplatesRetriever, w io.Writer) error {
 		return nil
 	}
 
-	fmt.Fprintf(w, "No templates found.\n")
+	fmt.Fprintf(w, "No templates were found.\n")
 
 	return nil
 }
@@ -160,7 +160,7 @@ func GetTemplateParameters(name string, r TemplatesRetriever, w io.Writer) error
 		return nil
 	}
 
-	fmt.Fprintf(w, "No template parameters were found.")
+	fmt.Fprintf(w, "No template parameters were found.\n")
 
 	return nil
 }
@@ -178,7 +178,7 @@ func RenderTemplateWithParameters(name string, parameters map[string]string, cre
 		return nil
 	}
 
-	fmt.Fprintf(w, "No template found.")
+	fmt.Fprintf(w, "No template was found.\n")
 
 	return nil
 }
@@ -218,7 +218,7 @@ func GetCredentials(r CredentialsRetriever, w io.Writer) error {
 		return nil
 	}
 
-	fmt.Fprintf(w, "No credentials found.")
+	fmt.Fprintf(w, "No credentials were found.\n")
 
 	return nil
 }
