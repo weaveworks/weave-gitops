@@ -9,10 +9,10 @@ exports[`Page snapshots default 1`] = `
   -webkit-flex-direction: row;
   -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
-  align-items: start;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
   -webkit-box-pack: center;
   -webkit-justify-content: center;
   -ms-flex-pack: center;
@@ -111,15 +111,14 @@ exports[`Page snapshots default 1`] = `
           © 2021 Weaveworks
         </li>
         <li>
-          <span
-            className="footer__Divider-sc-1vj27u6-5 fNWEGg"
-          >
+          <span>
             •
           </span>
         </li>
         <li>
           <a
-            href="https://www.weave.works/company/"
+            href="https://www.weave.works/product/gitops-core/"
+            target="_blank"
           >
             About
           </a>
@@ -127,6 +126,7 @@ exports[`Page snapshots default 1`] = `
         <li>
           <a
             href="https://docs.gitops.weave.works/0.3.1"
+            target="_blank"
           >
             Docs
           </a>
@@ -134,6 +134,7 @@ exports[`Page snapshots default 1`] = `
         <li>
           <a
             href="https://www.weave.works/help/"
+            target="_blank"
           >
             Help
           </a>
@@ -141,8 +142,23 @@ exports[`Page snapshots default 1`] = `
         <li>
           <a
             href="mailto:sales@weave.works"
+            target="_blank"
           >
             Commercial Support
+          </a>
+        </li>
+        <li>
+          <a
+            href="https://github.com/weaveworks/weave-gitops/releases/tag/v0.3.1"
+            style={
+              Object {
+                "justifySelf": "flex-end",
+              }
+            }
+            target="_blank"
+          >
+            v
+            0.3.1
           </a>
         </li>
       </ul>
