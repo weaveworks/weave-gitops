@@ -100,6 +100,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
   update-doc-repo-files:
+    needs: goreleaser
     runs-on: ubuntu-latest
     steps:
       - name: Checkout WG
@@ -131,38 +132,9 @@ jobs:
           echo "GITOPS_VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
       - name: Update with new version
         env:
-          GITOPS_VERSION: ${{ env.GITOPS_VERSION }}
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
         run: |
-          cd doc-repo/docs
-          yarn install
-          # update version information
-          ex - installation.md << EOS
-          /download\/
-          %s,download/\(.*\)/,download/$GITOPS_VERSION/,
-          /Current Version
-          .,+4! ../../main-repo/bin/gitops version
-          +5d
-          wq!
-          EOS
-          # create CLI reference
-          ../../main-repo/bin/gitops docs
-          git add *.md
-          git rm -f --ignore-unmatch cli-reference.md
-          ex - gitops.md << EOS
-          1i
-          ---
-          sidebar_position: 3
-          ---
-
-          # CLI Reference
-
-          .
-          wq!
-          # create versioned docs
-          cd ..
-          version_number=$(cut -f2 -d'v' <<< $GITOPS_VERSION)
-          npm run docusaurus docs:version $version_number
+          bash main-repo/tools/update-docs.sh ${PWD}/main-repo/bin/gitops ${PWD}/doc-repo
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@9825ae65b1cb54b543b938503728b432a0176d29 # v3
         with:
@@ -173,4 +145,4 @@ jobs:
           path: doc-repo
           branch: ${{ env.BRANCH }}
           title: "Documentation updates for ${{ env.GITOPS_VERSION }}"
-          body: "Updated version references to ${{ env.GITOPS_VERSION }} and create new versioned documentation set."
+          body: "Update version references to ${{ env.GITOPS_VERSION }} and create new versioned documentation set."
