@@ -132,7 +132,7 @@ jobs:
       - name: Update with new version
         env:
           GITOPS_VERSION: ${{ env.GITOPS_VERSION }}
-          ALGOLIA_API_KEY ${{ secrets.ALGOLIA_API_KEY }}
+          ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
         run: |
           cd doc-repo/docs
           yarn install
