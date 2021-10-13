@@ -99,3 +99,78 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+  update-doc-repo-files:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout WG
+        uses: actions/checkout@v2
+        with:
+          path: main-repo
+      - name: Checkout Docs
+        uses: actions/checkout@v2
+        with:
+          repository: weaveworks/weave-gitops-docs
+          path: doc-repo
+          token: ${{ secrets.WEAVE_GITOPS_DOCS_WEAVEWORKS_DOCS_BOT_DEPLOY_KEY }}
+      - name: Unshallow
+        run: |
+          cd main-repo
+          git fetch --prune --unshallow
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.x
+      - name: Create GitOps binary
+        run: |
+          cd main-repo
+          make all
+      - name: Set up environment vars
+        run: |
+          echo "BRANCH=release-doc-updates-$$" >> $GITHUB_ENV
+          cd main-repo
+          echo "GITOPS_VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+      - name: Update with new version
+        env:
+          GITOPS_VERSION: ${{ env.GITOPS_VERSION }}
+          ALGOLIA_API_KEY ${{ env.ALGOLIA_API_KEY }}
+        run: |
+          cd doc-repo/docs
+          yarn install
+          # update version information
+          ex - installation.md << EOS
+          /download\/
+          %s,download/\(.*\)/,download/$GITOPS_VERSION/,
+          /Current Version
+          .,+4! ../../main-repo/bin/gitops version
+          +5d
+          wq!
+          EOS
+          # create CLI reference
+          ../../main-repo/bin/gitops docs
+          git add *.md
+          git rm -f --ignore-unmatch cli-reference.md
+          ex - gitops.md << EOS
+          1i
+          ---
+          sidebar_position: 3
+          ---
+
+          # CLI Reference
+
+          .
+          wq!
+          # create versioned docs
+          cd ..
+          version_number=$(cut -f2 -d'v' <<< $GITOPS_VERSION)
+          npm run docusaurus docs:version $version_number
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@9825ae65b1cb54b543b938503728b432a0176d29 # v3
+        with:
+          token: ${{ secrets.WEAVE_GITOPS_DOCS_WEAVEWORKS_DOCS_BOT_DEPLOY_KEY }}
+          committer: GitHub <noreply@github.com>
+          author: weave-test-user <weave-test-user@example.com>
+          signoff: true
+          path: doc-repo
+          branch: ${{ env.BRANCH }}
+          title: "Documentation updates for ${{ env.GITOPS_VERSION }}"
+          body: "Updated version references to ${{ env.GITOPS_VERSION }} and create new versioned documentation set."
