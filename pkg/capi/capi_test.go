@@ -26,13 +26,14 @@ func TestGetTemplates(t *testing.T) {
 			name: "templates includes just name",
 			ts: []capi.Template{
 				{
-					Name: "template-a",
+					Name:     "template-a",
+					Provider: "aws",
 				},
 				{
 					Name: "template-b",
 				},
 			},
-			expected: "NAME\tDESCRIPTION\ntemplate-a\ntemplate-b\n",
+			expected: "NAME\tPROVIDER\tDESCRIPTION\ntemplate-a\taws\ntemplate-b\t\n",
 		},
 		{
 			name: "templates include all fields",
@@ -40,13 +41,14 @@ func TestGetTemplates(t *testing.T) {
 				{
 					Name:        "template-a",
 					Description: "a desc",
+					Provider:    "azure",
 				},
 				{
 					Name:        "template-b",
 					Description: "b desc",
 				},
 			},
-			expected: "NAME\tDESCRIPTION\ntemplate-a\ta desc\ntemplate-b\tb desc\n",
+			expected: "NAME\tPROVIDER\tDESCRIPTION\ntemplate-a\tazure\ta desc\ntemplate-b\t\tb desc\n",
 		},
 		{
 			name:             "error retrieving templates",
@@ -57,9 +59,75 @@ func TestGetTemplates(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := NewFakeClient(tt.ts, nil, nil, "", tt.err)
+			c := newFakeClient(tt.ts, nil, nil, "", tt.err)
 			w := new(bytes.Buffer)
 			err := capi.GetTemplates(c, w)
+			assert.Equal(t, tt.expected, w.String())
+			if err != nil {
+				assert.EqualError(t, err, tt.expectedErrorStr)
+			}
+		})
+	}
+}
+
+func TestGetTemplatesByProvider(t *testing.T) {
+	tests := []struct {
+		name             string
+		provider         string
+		ts               []capi.Template
+		err              error
+		expected         string
+		expectedErrorStr string
+	}{
+		{
+			name:     "no templates",
+			provider: "aws",
+			expected: "No templates were found for provider \"aws\".\n",
+		},
+		{
+			name:     "templates includes just name",
+			provider: "aws",
+			ts: []capi.Template{
+				{
+					Name:     "template-a",
+					Provider: "aws",
+				},
+				{
+					Name:     "template-b",
+					Provider: "aws",
+				},
+			},
+			expected: "NAME\tPROVIDER\tDESCRIPTION\ntemplate-a\taws\ntemplate-b\taws\n",
+		},
+		{
+			name:     "templates include all fields",
+			provider: "azure",
+			ts: []capi.Template{
+				{
+					Name:        "template-a",
+					Provider:    "azure",
+					Description: "a desc",
+				},
+				{
+					Name:        "template-b",
+					Provider:    "azure",
+					Description: "b desc",
+				},
+			},
+			expected: "NAME\tPROVIDER\tDESCRIPTION\ntemplate-a\tazure\ta desc\ntemplate-b\tazure\tb desc\n",
+		},
+		{
+			name:             "error retrieving templates",
+			err:              fmt.Errorf("oops something went wrong"),
+			expectedErrorStr: "unable to retrieve templates from \"In-memory fake\": oops something went wrong",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := newFakeClient(tt.ts, nil, nil, "", tt.err)
+			w := new(bytes.Buffer)
+			err := capi.GetTemplatesByProvider(tt.provider, c, w)
 			assert.Equal(t, tt.expected, w.String())
 			if err != nil {
 				assert.EqualError(t, err, tt.expectedErrorStr)
@@ -118,7 +186,7 @@ func TestGetTemplateParameters(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := NewFakeClient(nil, tt.tps, nil, "", tt.err)
+			c := newFakeClient(nil, tt.tps, nil, "", tt.err)
 			w := new(bytes.Buffer)
 			err := capi.GetTemplateParameters("foo", c, w)
 			assert.Equal(t, tt.expected, w.String())
@@ -187,7 +255,7 @@ func TestRenderTemplate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := NewFakeClient(nil, nil, nil, tt.result, tt.err)
+			c := newFakeClient(nil, nil, nil, tt.result, tt.err)
 			w := new(bytes.Buffer)
 			err := capi.RenderTemplateWithParameters("foo", nil, capi.Credentials{}, c, w)
 			assert.Equal(t, tt.expected, w.String())
@@ -220,7 +288,7 @@ func TestCreatePullRequest(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := NewFakeClient(nil, nil, nil, tt.result, tt.err)
+			c := newFakeClient(nil, nil, nil, tt.result, tt.err)
 			w := new(bytes.Buffer)
 			err := capi.CreatePullRequestFromTemplate(capi.CreatePullRequestFromTemplateParams{}, c, w)
 			assert.Equal(t, tt.expected, w.String())
@@ -266,7 +334,7 @@ func TestGetCredentials(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := NewFakeClient(nil, nil, tt.creds, "", tt.err)
+			c := newFakeClient(nil, nil, tt.creds, "", tt.err)
 			w := new(bytes.Buffer)
 			err := capi.GetCredentials(c, w)
 			assert.Equal(t, tt.expected, w.String())
@@ -277,7 +345,7 @@ func TestGetCredentials(t *testing.T) {
 	}
 }
 
-type FakeClient struct {
+type fakeClient struct {
 	ts  []capi.Template
 	ps  []capi.TemplateParameter
 	cs  []capi.Credentials
@@ -285,8 +353,8 @@ type FakeClient struct {
 	err error
 }
 
-func NewFakeClient(ts []capi.Template, ps []capi.TemplateParameter, cs []capi.Credentials, s string, err error) *FakeClient {
-	return &FakeClient{
+func newFakeClient(ts []capi.Template, ps []capi.TemplateParameter, cs []capi.Credentials, s string, err error) *fakeClient {
+	return &fakeClient{
 		ts:  ts,
 		ps:  ps,
 		cs:  cs,
@@ -295,11 +363,11 @@ func NewFakeClient(ts []capi.Template, ps []capi.TemplateParameter, cs []capi.Cr
 	}
 }
 
-func (c *FakeClient) Source() string {
+func (c *fakeClient) Source() string {
 	return "In-memory fake"
 }
 
-func (c *FakeClient) RetrieveTemplates() ([]capi.Template, error) {
+func (c *fakeClient) RetrieveTemplates() ([]capi.Template, error) {
 	if c.err != nil {
 		return nil, c.err
 	}
@@ -307,7 +375,15 @@ func (c *FakeClient) RetrieveTemplates() ([]capi.Template, error) {
 	return c.ts, nil
 }
 
-func (c *FakeClient) RetrieveTemplateParameters(name string) ([]capi.TemplateParameter, error) {
+func (c *fakeClient) RetrieveTemplatesByProvider(provider string) ([]capi.Template, error) {
+	if c.err != nil {
+		return nil, c.err
+	}
+
+	return c.ts, nil
+}
+
+func (c *fakeClient) RetrieveTemplateParameters(name string) ([]capi.TemplateParameter, error) {
 	if c.err != nil {
 		return nil, c.err
 	}
@@ -315,7 +391,7 @@ func (c *FakeClient) RetrieveTemplateParameters(name string) ([]capi.TemplatePar
 	return c.ps, nil
 }
 
-func (c *FakeClient) RenderTemplateWithParameters(name string, parameters map[string]string, creds capi.Credentials) (string, error) {
+func (c *fakeClient) RenderTemplateWithParameters(name string, parameters map[string]string, creds capi.Credentials) (string, error) {
 	if c.err != nil {
 		return "", c.err
 	}
@@ -323,7 +399,7 @@ func (c *FakeClient) RenderTemplateWithParameters(name string, parameters map[st
 	return c.s, nil
 }
 
-func (c *FakeClient) CreatePullRequestFromTemplate(params capi.CreatePullRequestFromTemplateParams) (string, error) {
+func (c *fakeClient) CreatePullRequestFromTemplate(params capi.CreatePullRequestFromTemplateParams) (string, error) {
 	if c.err != nil {
 		return "", c.err
 	}
@@ -331,7 +407,7 @@ func (c *FakeClient) CreatePullRequestFromTemplate(params capi.CreatePullRequest
 	return c.s, nil
 }
 
-func (c *FakeClient) RetrieveCredentials() ([]capi.Credentials, error) {
+func (c *fakeClient) RetrieveCredentials() ([]capi.Credentials, error) {
 	if c.err != nil {
 		return nil, c.err
 	}

@@ -11,6 +11,7 @@ import (
 type TemplatesRetriever interface {
 	Source() string
 	RetrieveTemplates() ([]Template, error)
+	RetrieveTemplatesByProvider(provider string) ([]Template, error)
 	RetrieveTemplateParameters(name string) ([]TemplateParameter, error)
 }
 
@@ -39,6 +40,7 @@ type CredentialsRetriever interface {
 type Template struct {
 	Name        string
 	Description string
+	Provider    string
 }
 
 type TemplateParameter struct {
@@ -77,10 +79,11 @@ func GetTemplates(r TemplatesRetriever, w io.Writer) error {
 	}
 
 	if len(ts) > 0 {
-		fmt.Fprintf(w, "NAME\tDESCRIPTION\n")
+		fmt.Fprintf(w, "NAME\tPROVIDER\tDESCRIPTION\n")
 
 		for _, t := range ts {
 			fmt.Fprintf(w, "%s", t.Name)
+			fmt.Fprintf(w, "\t%s", t.Provider)
 
 			if t.Description != "" {
 				fmt.Fprintf(w, "\t%s", t.Description)
@@ -93,6 +96,36 @@ func GetTemplates(r TemplatesRetriever, w io.Writer) error {
 	}
 
 	fmt.Fprintf(w, "No templates found.\n")
+
+	return nil
+}
+
+// GetTemplatesByProvider uses a TemplatesRetriever adapter to show
+// a list of templates for a given provider to the console.
+func GetTemplatesByProvider(provider string, r TemplatesRetriever, w io.Writer) error {
+	ts, err := r.RetrieveTemplatesByProvider(provider)
+	if err != nil {
+		return fmt.Errorf("unable to retrieve templates from %q: %w", r.Source(), err)
+	}
+
+	if len(ts) > 0 {
+		fmt.Fprintf(w, "NAME\tPROVIDER\tDESCRIPTION\n")
+
+		for _, t := range ts {
+			fmt.Fprintf(w, "%s", t.Name)
+			fmt.Fprintf(w, "\t%s", t.Provider)
+
+			if t.Description != "" {
+				fmt.Fprintf(w, "\t%s", t.Description)
+			}
+
+			fmt.Fprintln(w, "")
+		}
+
+		return nil
+	}
+
+	fmt.Fprintf(w, "No templates were found for provider %q.\n", provider)
 
 	return nil
 }
@@ -150,6 +183,8 @@ func RenderTemplateWithParameters(name string, parameters map[string]string, cre
 	return nil
 }
 
+// CreatePullRequestFromTemplate uses a TemplatePullRequester
+// adapter to create a pull request from a CAPI template.
 func CreatePullRequestFromTemplate(params CreatePullRequestFromTemplateParams, r TemplatePullRequester, w io.Writer) error {
 	res, err := r.CreatePullRequestFromTemplate(params)
 	if err != nil {
