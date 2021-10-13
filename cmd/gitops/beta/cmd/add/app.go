@@ -15,15 +15,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
-type addParams struct {
-	DryRun       bool
-	AppConfigUrl string
-	Namespace    string
-	Url          string
-	Name         string
-	Path         string
-}
-
 var (
 	params app.AddParams
 )
@@ -50,19 +41,10 @@ func init() {
 	AppCmd.Flags().StringVar(&params.Url, "url", "", "Url of remote repository")
 	AppCmd.Flags().StringVar(&params.AppConfigUrl, "app-config-url", "", "Url of external repository (if any) which will hold automation manifests; NONE to store only in the cluster")
 	AppCmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'gitops app add' will not make any changes to the system; it will just display the actions that would have been taken")
-	AppCmd.MarkFlagRequired("app-config-url")
+	cobra.CheckErr(AppCmd.MarkFlagRequired("app-config-url"))
 
 	// TODO expose support for PRs
 	params.AutoMerge = true
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// appCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// appCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {

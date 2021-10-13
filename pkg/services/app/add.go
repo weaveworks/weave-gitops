@@ -400,6 +400,7 @@ func (a *App) addAppWithConfigInExternalRepo(ctx context.Context, info *AppResou
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)
 	}
+
 	defer remover()
 
 	if !params.DryRun {
@@ -426,14 +427,17 @@ func (a *App) addAppWithConfigInExternalRepo(ctx context.Context, info *AppResou
 		k, err := a.createOrUpdateKustomize(info, params, info.appDeployName(), []string{filepath.Base(info.appYamlPath()),
 			filepath.Base(info.appAutomationSourcePath()), filepath.Base(info.appAutomationDeployPath())},
 			filepath.Join(repoAbsPath, appKustomization))
+
 		if err != nil {
 			return fmt.Errorf("failed to create app kustomization: %w", err)
 		}
+
 		if err := a.ConfigGit.Write(appKustomization, k); err != nil {
 			return fmt.Errorf("failed writing app kustomization.yaml to disk: %w", err)
 		}
 		// TODO move to a deploy or apply command.
 		userKustomization := filepath.Join(".weave-gitops", "clusters", info.clusterName, "user", "kustomization.yaml")
+
 		uk, err := a.createOrUpdateKustomize(info, params, info.appDeployName(), []string{"../../../apps/" + info.appDeployName()},
 			filepath.Join(repoAbsPath, userKustomization))
 		if err != nil {
@@ -443,7 +447,6 @@ func (a *App) addAppWithConfigInExternalRepo(ctx context.Context, info *AppResou
 		if err := a.ConfigGit.Write(userKustomization, uk); err != nil {
 			return fmt.Errorf("failed writing cluster kustomization.yaml to disk: %w", err)
 		}
-
 	} else {
 		if err := a.applyToCluster(info, params.DryRun, extRepoMan.source, extRepoMan.target, extRepoMan.appDir); err != nil {
 			return fmt.Errorf("could not apply manifests to the cluster: %w", err)
@@ -452,8 +455,10 @@ func (a *App) addAppWithConfigInExternalRepo(ctx context.Context, info *AppResou
 
 	return a.commitAndPush(a.ConfigGit, AddCommitMessage, params.DryRun)
 }
+
 func (a *App) createOrUpdateKustomize(info *AppResourceInfo, params AddParams, name string, resources []string, kustomizeFile string) ([]byte, error) {
 	k := types.Kustomization{}
+
 	contents, err := os.ReadFile(kustomizeFile)
 	if err == nil {
 		if err := yaml.Unmarshal(contents, &k); err != nil {
@@ -469,12 +474,15 @@ func (a *App) createOrUpdateKustomize(info *AppResourceInfo, params AddParams, n
 	}
 
 	k.Resources = append(k.Resources, resources...)
+
 	kustomize, err := yaml.Marshal(&k)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal kustomize %v : %w", k, err)
 	}
+
 	return kustomize, nil
 }
+
 func (a *App) generateAppManifests(info *AppResourceInfo, secretRef string, appHash string) ([]byte, []byte, []byte, error) {
 	var sourceManifest, appManifest, appGoatManifest []byte
 
@@ -666,6 +674,7 @@ func CloneRepo(client git.Git, url string, branch string, dryRun bool) (func(), 
 	if err != nil {
 		return nil, "", fmt.Errorf("failed creating temp. directory to clone repo: %w", err)
 	}
+
 	_, err = client.Clone(context.Background(), repoDir, url, branch)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed cloning user repo: %s: %w", url, err)
@@ -680,6 +689,7 @@ func (a *App) writeAppYaml(info *AppResourceInfo, manifest []byte, overridePath 
 	if overridePath != nil {
 		return a.ConfigGit.Write(overridePath(info.appYamlPath()), manifest)
 	}
+
 	return a.ConfigGit.Write(defaultMigrateToNewDirStructure(info.appYamlPath()), manifest)
 }
 
@@ -688,6 +698,7 @@ func (a *App) writeAppGoats(info *AppResourceInfo, sourceManifest, deployManifes
 	if overridePath != nil {
 		op = overridePath
 	}
+
 	if err := a.ConfigGit.Write(op(info.appAutomationSourcePath()), sourceManifest); err != nil {
 		return err
 	}

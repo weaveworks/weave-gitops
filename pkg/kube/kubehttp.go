@@ -68,6 +68,7 @@ func NewKubeHTTPClient() (Kube, client.Client, error) {
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get a valid rest config %w", err)
 	}
+
 	scheme := CreateScheme()
 
 	rawClient, err := client.New(config, client.Options{
@@ -93,10 +94,11 @@ func NewKubeHTTPClient() (Kube, client.Client, error) {
 }
 
 func RestConfig() (*rest.Config, string, error) {
-	var kubeContext string
-	var clusterName string
+	var kubeContext, clusterName string
+
 	l := logger.NewApiLogger()
 	config, err := InClusterConfig()
+
 	if err == rest.ErrNotInCluster {
 		cfgLoadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
 		l.Infow("kubeHTTPClient", "configLoadingRules", cfgLoadingRules)
@@ -105,6 +107,7 @@ func RestConfig() (*rest.Config, string, error) {
 		if err != nil {
 			return nil, "", fmt.Errorf("could not get initial context: %w", err)
 		}
+
 		l.Infow("kubeHTTPClient", "initialContext", kubeContext)
 
 		// config, err := rest.InClusterConfig()
@@ -122,8 +125,8 @@ func RestConfig() (*rest.Config, string, error) {
 		// TODO when running in a cluster and not used for bootstrapping, what is the cluster name used for?
 		clusterName = config.Host
 	}
-	return config, clusterName, nil
 
+	return config, clusterName, nil
 }
 
 // This is an alternative implementation of the kube.Kube interface,
@@ -335,15 +338,15 @@ func (k *KubeHTTP) GetResource(ctx context.Context, name types.NamespacedName, r
 
 func initialContexts(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (currentCtx, clusterName string, err error) {
 	rules, err := cfgLoadingRules.Load()
-
 	if err != nil {
 		return currentCtx, clusterName, err
 	}
+
 	if rules.CurrentContext == "" {
 		return currentCtx, clusterName, fmt.Errorf("current context not found in kubeconfig file")
-
 	}
-	c := rules.Contexts[rules.CurrentContext]
-	return rules.CurrentContext, c.Cluster, nil
 
+	c := rules.Contexts[rules.CurrentContext]
+
+	return rules.CurrentContext, c.Cluster, nil
 }

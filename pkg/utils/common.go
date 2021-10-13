@@ -187,7 +187,9 @@ func MigrateToNewDirStructure(orig string) string {
 	if orig == "" {
 		return orig
 	}
+
 	f := strings.Split(orig, string(os.PathSeparator))
+
 	switch len(f) {
 	case 1:
 		return orig
@@ -195,6 +197,5 @@ func MigrateToNewDirStructure(orig string) string {
 		return filepath.Join(".weave-gitops", orig)
 	default:
 		return filepath.Join(".weave-gitops/apps", f[len(f)-2], f[len(f)-1])
-
 	}
 }

@@ -316,13 +316,15 @@ metadata:
 })
 
 func createKubeconfig(name, clusterName, dir string, setCurContext bool) {
-
 	f, err := ioutil.TempFile(dir, "test.kubeconfig")
 	Expect(err).ToNot(HaveOccurred())
+
 	c := clientcmdapi.Config{}
+
 	if setCurContext {
 		c.CurrentContext = name
 	}
+
 	c.APIVersion = "v1"
 	c.Kind = "Config"
 	c.Contexts = append(c.Contexts, clientcmdapi.NamedContext{Name: name, Context: clientcmdapi.Context{Cluster: clusterName}})

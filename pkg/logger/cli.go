@@ -30,9 +30,11 @@ func (l CLILogger) Infow(msg string, kv ...interface{}) {
 			k = fmt.Sprintf("%s", v)
 			continue
 		}
+
 		s += fmt.Sprintf(" %s=%v ", k, v)
 		k = ""
 	}
+
 	fmt.Fprintf(l.stdout, msg+" - %s\n", s)
 }
 
