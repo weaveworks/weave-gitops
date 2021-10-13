@@ -16,7 +16,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Unshallow
-        run: git fetch --prune --unshallow
+        run: |
+          git fetch --prune --unshallow
+          git fetch --tags -f
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
@@ -26,6 +28,8 @@ jobs:
           make -B dependencies
           echo "BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
           echo "FLUX_VERSION=$($(pwd)/tools/bin/stoml $(pwd)/tools/dependencies.toml flux.version)" >> $GITHUB_ENV
+          echo "GORELEASER_PREVIOUS_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1))" >> $GITHUB_ENV
+          echo "GORELEASER_CURRENT_TAG=$(git describe --abbrev=0 --tags)" >> $GITHUB_ENV
       - name: "Make All"
         run: make all
       - name: "Git diff"
@@ -36,6 +40,7 @@ jobs:
         with:
           configuration: "${{ github.workspace }}/.github/changelog/changelog_configuration.json"
           outputFile: "${{ runner.temp }}/changelog.md"
+          ignorePreReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Run GoReleaser
@@ -47,6 +52,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: ${{ env.BRANCH }}
           FLUX_VERSION: ${{ env.FLUX_VERSION }}
+          GORELEASER_PREVIOUS_TAG: ${{ env.GORELEASER_PREVIOUS_TAG }}
+          GORELEASER_CURRENT_TAG:  ${{ env.GORELEASER_CURRENT_TAG }}
   publish_npm_package:
     runs-on: ubuntu-latest
     steps:

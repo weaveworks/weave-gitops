@@ -61,7 +61,6 @@ then
   if [[ $version == *"rc"* ]]; then # If the last version was not a release candidate then exit
     patch=( ${a[2]//-/ } )
     next_version="${a[0]}.${a[1]}.${patch[0]}"
-    echo $next_version
   else
     echo "previous release was not a release candidate"
     exit 1
@@ -89,8 +88,6 @@ else
   next_version="${a[0]}.${a[1]}.${a[2]}-rc"
 fi
 
-branch=$(git branch | sed -n -e 's/^\* \(.*\)/\1/p')
-
 # If its a dry run, just display the new release version number
 if [ ! -z $dry ]
 then
@@ -98,9 +95,6 @@ then
 else
   # If a command fails, exit the script
   set -e
-
-  # Push main
-  git push origin $branch
 
   # If it's not a dry run, let's go!
   # 3) Add git tag
@@ -110,7 +104,7 @@ else
   # 4) Push the new tag
 
   echo "Push the tag"
-  git push --tags origin $branch
+  git push --tags origin main
 
   echo -e "\e[32mRelease done: $next_version\e[0m"
 fi
