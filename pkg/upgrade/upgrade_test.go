@@ -192,52 +192,30 @@ func TestUpgrade(t *testing.T) {
 		GitRepository: "wego-system/my-app",
 	})
 	assert.NoError(t, err)
-	err = upgrade(context.Background(), "file://"+tempDir, *uc, gitClient, fakePctlGitClient, scmClient)
-	assert.NoError(t, err)
 
+	// dry run
+	err = upgrade(context.Background(), "file://"+tempDir, *uc, gitClient, fakePctlGitClient, scmClient, true)
+	assert.NoError(t, err)
 	contents, err := ioutil.ReadFile(path.Join(configDir, "weave-gitops-enterprise", "profile-installation.yaml"))
 	assert.NoError(t, err)
 	assert.NotNil(t, contents)
-
-	// fake git would have cloned the right stuff.
+	os.RemoveAll(path.Join(configDir, "weave-gitops-enterprise"))
+	// fake git not called
 	pushCount := fakePctlGitClient.PushCallCount()
+	assert.Equal(t, 0, pushCount)
+
+	err = upgrade(context.Background(), "file://"+tempDir, *uc, gitClient, fakePctlGitClient, scmClient, false)
+	assert.NoError(t, err)
+	contents, err = ioutil.ReadFile(path.Join(configDir, "weave-gitops-enterprise", "profile-installation.yaml"))
+	assert.NoError(t, err)
+	assert.NotNil(t, contents)
+	os.RemoveAll(path.Join(configDir, "weave-gitops-enterprise"))
+	// fake git would have pushed etc
+	pushCount = fakePctlGitClient.PushCallCount()
 	assert.Equal(t, 1, pushCount)
 }
 
-func createLocalClusterConfigRepo(t *testing.T) string {
-	configGitClient := git.New(nil, wrapper.NewGoGit())
-	configDir, err := ioutil.TempDir("", "git-config-")
-	assert.NoError(t, err)
-	_, err = configGitClient.Init(configDir, "https://github.com/github/gitignore", "main")
-	assert.NoError(t, err)
-	return configDir
-}
-
-func createLocalProfileRepo(t *testing.T) string {
-	tempDir, err := ioutil.TempDir("", "local-profile-")
-	assert.NoError(t, err)
-
-	gitClient := git.New(nil, wrapper.NewGoGit())
-	_, err = gitClient.Init(tempDir, "https://github.com/github/gitignore", "main")
-	assert.NoError(t, err)
-
-	content, err := ioutil.ReadFile("testdata/profile.yaml")
-	assert.NoError(t, err)
-	err = gitClient.Write("/weave-gitops-enterprise/profile.yaml", content)
-	assert.NoError(t, err)
-	err = gitClient.Write("/weave-gitops-enterprise/nginx/deployment/deployment.yaml", []byte("test deployment"))
-	assert.NoError(t, err)
-
-	_, err = gitClient.Commit(git.Commit{
-		Author:  git.Author{Name: "test", Email: "test@example.com"},
-		Message: "test commit",
-	})
-	assert.NoError(t, err)
-
-	return tempDir
-}
-
-func TestPreflightCheck(t *testing.T) {
+func TestGetGitAuthFromDeployKey(t *testing.T) {
 	tests := []struct {
 		name         string
 		clusterState []runtime.Object
@@ -267,6 +245,14 @@ func TestPreflightCheck(t *testing.T) {
 	}
 }
 
+func TestEnsureGitRepositoryResource(t *testing.T) {
+
+}
+
+func TestGetGitRepositoryNamespaceAndName(t *testing.T) {
+
+}
+
 func TestGetRepoOrgAndName(t *testing.T) {
 	repoPath, err := getRepoOrgAndName("git@github.com:ww/repo.git")
 	assert.NoError(t, err)
@@ -276,6 +262,10 @@ func TestGetRepoOrgAndName(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "ww/repo", repoPath)
 }
+
+//
+// helpers
+//
 
 func makeClient(clusterState ...runtime.Object) client.Client {
 	scheme := runtime.NewScheme()
@@ -309,4 +299,37 @@ func createGitRepository(name string) *sourcev1.GitRepository {
 			Namespace: "wego-system",
 		},
 	}
+}
+
+func createLocalClusterConfigRepo(t *testing.T) string {
+	configGitClient := git.New(nil, wrapper.NewGoGit())
+	configDir, err := ioutil.TempDir("", "git-config-")
+	assert.NoError(t, err)
+	_, err = configGitClient.Init(configDir, "https://github.com/github/gitignore", "main")
+	assert.NoError(t, err)
+	return configDir
+}
+
+func createLocalProfileRepo(t *testing.T) string {
+	tempDir, err := ioutil.TempDir("", "local-profile-")
+	assert.NoError(t, err)
+
+	gitClient := git.New(nil, wrapper.NewGoGit())
+	_, err = gitClient.Init(tempDir, "https://github.com/github/gitignore", "main")
+	assert.NoError(t, err)
+
+	content, err := ioutil.ReadFile("testdata/profile.yaml")
+	assert.NoError(t, err)
+	err = gitClient.Write("/weave-gitops-enterprise/profile.yaml", content)
+	assert.NoError(t, err)
+	err = gitClient.Write("/weave-gitops-enterprise/nginx/deployment/deployment.yaml", []byte("test deployment"))
+	assert.NoError(t, err)
+
+	_, err = gitClient.Commit(git.Commit{
+		Author:  git.Author{Name: "test", Email: "test@example.com"},
+		Message: "test commit",
+	})
+	assert.NoError(t, err)
+
+	return tempDir
 }

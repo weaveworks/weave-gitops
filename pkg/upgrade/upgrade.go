@@ -36,6 +36,7 @@ type UpgradeValues struct {
 	ConfigMap      string
 	Out            string
 	GitRepository  string
+	DryRun         bool
 }
 
 type UpgradeConfigs struct {
@@ -46,6 +47,8 @@ type UpgradeConfigs struct {
 }
 
 const EnterpriseProfileURL string = "git@github.com:weaveworks/weave-gitops-enterprise-profiles.git"
+const DeployKeySecretKey string = "deploy-key"
+const CredentialsSecretName string = "weave-gitops-enterprise-credentials"
 
 // Upgrade installs the private weave-gitops-enterprise profile into the working directory:
 // 1. Private deploy key is read from a secret in the cluster
@@ -54,50 +57,51 @@ const EnterpriseProfileURL string = "git@github.com:weaveworks/weave-gitops-ente
 // 4. pctl is used to add, commit, push and create a PR.
 //
 func Upgrade(ctx context.Context, upgradeValues UpgradeValues, w io.Writer) error {
-
-	//
-	// Clients needed for building the config
-	//
-
-	scheme := runtime.NewScheme()
-	schemeBuilder := runtime.SchemeBuilder{sourcev1.AddToScheme}
-	err := schemeBuilder.AddToScheme(scheme)
-	if err != nil {
-		return fmt.Errorf("error adding sourcev1 to kube client scheme %v", err)
-	}
-	kubeClientConfig := config.GetConfigOrDie()
-	kubeClient, err := client.New(kubeClientConfig, client.Options{Scheme: scheme})
+	kubeClient, err := makeKubeClient()
 	if err != nil {
 		return fmt.Errorf("error creating client for cluster %v", err)
 	}
 
 	gitClient := git.New(nil, wrapper.NewGoGit())
+
 	uc, err := buildUpgradeConfigs(ctx, upgradeValues, kubeClient, gitClient, w)
 	if err != nil {
 		return fmt.Errorf("failed to build upgrade configs: %v", err)
 	}
+
 	auth, err := getGitAuthFromDeployKey(ctx, kubeClient, upgradeValues.Namespace)
 	if err != nil {
 		return fmt.Errorf("failed to load deploy key for profiles repos from cluster: %v", err)
 	}
 
-	//
-	// Clients needed for installing the profile
-	//
-
 	// New client with auth from the cluster
 	gitClientWithAuth := git.New(auth, wrapper.NewGoGit())
 	pctlGitClient := pctl_git.NewCLIGit(uc.CLIGitConfig, &runner.CLIRunner{})
+
 	pctlSCMClient, err := pctl_git.NewClient(uc.SCMConfig)
 	if err != nil {
 		return fmt.Errorf("failed to create scm client: %w", err)
 	}
 
-	return upgrade(ctx, EnterpriseProfileURL, *uc, gitClientWithAuth, pctlGitClient, pctlSCMClient)
+	return upgrade(ctx, EnterpriseProfileURL, *uc, gitClientWithAuth, pctlGitClient, pctlSCMClient, upgradeValues.DryRun)
 }
 
-func buildUpgradeConfigs(ctx context.Context, uv UpgradeValues, kubeClient client.Client, gitClient git.Git, w io.Writer) (*UpgradeConfigs, error) {
+func makeKubeClient() (client.Client, error) {
+	scheme := runtime.NewScheme()
+	schemeBuilder := runtime.SchemeBuilder{sourcev1.AddToScheme}
 
+	err := schemeBuilder.AddToScheme(scheme)
+	if err != nil {
+		return nil, fmt.Errorf("error adding sourcev1 to kube client scheme %v", err)
+	}
+
+	kubeClientConfig := config.GetConfigOrDie()
+
+	return client.New(kubeClientConfig, client.Options{Scheme: scheme})
+}
+
+// buildUpgradeConfigs sets some flags default values from the env
+func buildUpgradeConfigs(ctx context.Context, uv UpgradeValues, kubeClient client.Client, gitClient git.Git, w io.Writer) (*UpgradeConfigs, error) {
 	repoUrlString, err := gitClient.GetRemoteUrl(".", uv.Remote)
 	if err != nil {
 		return nil, err
@@ -129,7 +133,6 @@ func buildUpgradeConfigs(ctx context.Context, uv UpgradeValues, kubeClient clien
 }
 
 func toUpgradeConfigs(uv UpgradeValues) (*UpgradeConfigs, error) {
-
 	gitRepoNamespace, gitRepoName, err := getGitRepositoryNamespaceAndName(uv.GitRepository)
 	if err != nil {
 		return nil, err
@@ -169,11 +172,12 @@ func toUpgradeConfigs(uv UpgradeValues) (*UpgradeConfigs, error) {
 	}, nil
 }
 
-func upgrade(ctx context.Context, enterpriseProfileURL string, uc UpgradeConfigs, gitClient git.Git, pctlGitClient pctl_git.Git, pctlSCMClient pctl_git.SCMClient) error {
+func upgrade(ctx context.Context, enterpriseProfileURL string, uc UpgradeConfigs, gitClient git.Git, pctlGitClient pctl_git.Git, pctlSCMClient pctl_git.SCMClient, dryRun bool) error {
 	tempDir, err := ioutil.TempDir("", "git-")
 	if err != nil {
 		return fmt.Errorf("failed to create temp folder for remote git clone of profiles repo: %w", err)
 	}
+
 	defer os.RemoveAll(tempDir)
 
 	_, err = gitClient.Clone(
@@ -188,9 +192,14 @@ func upgrade(ctx context.Context, enterpriseProfileURL string, uc UpgradeConfigs
 
 	profileDefinition := uc.Profile
 	profileDefinition.URL = "file://" + tempDir
+
 	err = addProfile(uc.InstallConfig, profileDefinition, uc.CLIGitConfig)
 	if err != nil {
 		return err
+	}
+
+	if dryRun {
+		return nil
 	}
 
 	err = catalog.CreatePullRequest(pctlSCMClient, pctlGitClient, uc.SCMConfig.Branch, uc.InstallConfig.RootDir)
@@ -226,15 +235,17 @@ func getGitAuthFromDeployKey(ctx context.Context, kubeClient client.Client, ns s
 
 func getDeployKey(ctx context.Context, kubeClient client.Client, ns string) ([]byte, error) {
 	deployKeySecret := &v1.Secret{}
+
 	err := kubeClient.Get(ctx, client.ObjectKey{
 		Namespace: ns,
-		Name:      "weave-gitops-enterprise-credentials",
+		Name:      CredentialsSecretName,
 	}, deployKeySecret)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get entitlement: %v", err)
 	}
 
-	key := deployKeySecret.Data["deploy-key"]
+	key := deployKeySecret.Data[DeployKeySecretKey]
+
 	return key, nil
 }
 
@@ -245,6 +256,7 @@ func ensureGitRepositoryResource(ctx context.Context, kubeClient client.Client, 
 	}
 
 	gitRepo := &sourcev1.GitRepository{}
+
 	err = kubeClient.Get(ctx, client.ObjectKey{
 		Namespace: gitRepoNamespace,
 		Name:      gitRepoName,
@@ -252,9 +264,11 @@ func ensureGitRepositoryResource(ctx context.Context, kubeClient client.Client, 
 	if errors.IsNotFound(err) {
 		return fmt.Errorf("couldn't find GitRepository %v/%v to install into", gitRepoNamespace, gitRepoName)
 	}
+
 	if err != nil {
 		return fmt.Errorf("failed to look up GitRepository %v/%v to install into: %v", gitRepoNamespace, gitRepoName, err)
 	}
+
 	return nil
 }
 

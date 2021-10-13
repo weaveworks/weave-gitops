@@ -31,6 +31,7 @@ func init() {
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.ConfigMap, "config-map", "", "The name of the ConfigMap which contains values for this profile.")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.Out, "out", "", " Optional location to create the profile installation folder in. This should be relative to the current working directory. (default: current)")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.ProfileBranch, "profile-branch", "main", "The branch to use on the repository in which the profile is.")
+	Cmd.PersistentFlags().BoolVar(&upgradeCmdFlags.DryRun, "dry-run", false, "Output the generated profile without creating a pull request")
 }
 
 func upgradeCmdRunE() func(*cobra.Command, []string) error {
