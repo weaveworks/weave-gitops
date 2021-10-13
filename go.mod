@@ -7,7 +7,7 @@ require (
 	github.com/deepmap/oapi-codegen v1.8.1
 	github.com/fluxcd/go-git-providers v0.2.1-0.20211006191809-83344459c0dc
 	github.com/fluxcd/helm-controller/api v0.11.2
-	github.com/fluxcd/kustomize-controller/api v0.14.1
+	github.com/fluxcd/kustomize-controller/api v0.14.0
 	github.com/fluxcd/pkg/apis/meta v0.10.1
 	github.com/fluxcd/source-controller/api v0.15.4
 	github.com/go-git/go-billy/v5 v5.3.1
@@ -36,7 +36,7 @@ require (
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab
-	github.com/weaveworks/pctl v0.10.0
+	github.com/weaveworks/pctl v0.8.0
 	go.uber.org/zap v1.19.0
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
 	golang.org/x/oauth2 v0.0.0-20210615190721-d04028783cf1
@@ -46,11 +46,11 @@ require (
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/protobuf v1.27.1
 	k8s.io/api v0.22.1
-	k8s.io/apiextensions-apiserver v0.22.1
+	k8s.io/apiextensions-apiserver v0.21.3
 	k8s.io/apimachinery v0.22.1
 	k8s.io/cli-runtime v0.21.2
 	k8s.io/client-go v0.22.1
-	sigs.k8s.io/controller-runtime v0.10.0
+	sigs.k8s.io/controller-runtime v0.9.6
 	sigs.k8s.io/controller-tools v0.4.1
 	sigs.k8s.io/kustomize/kstatus v0.0.2
 	sigs.k8s.io/yaml v1.2.0

@@ -18,7 +18,7 @@ import (
 	"github.com/weaveworks/pctl/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -88,7 +88,10 @@ func Upgrade(ctx context.Context, upgradeValues UpgradeValues, w io.Writer) erro
 
 func makeKubeClient() (client.Client, error) {
 	scheme := runtime.NewScheme()
-	schemeBuilder := runtime.SchemeBuilder{sourcev1.AddToScheme}
+	schemeBuilder := runtime.SchemeBuilder{
+		sourcev1.AddToScheme,
+		corev1.AddToScheme,
+	}
 
 	err := schemeBuilder.AddToScheme(scheme)
 	if err != nil {
@@ -140,7 +143,7 @@ func toUpgradeConfigs(uv UpgradeValues) (*UpgradeConfigs, error) {
 
 	return &UpgradeConfigs{
 		CLIGitConfig: pctl_git.CLIGitConfig{
-			Directory: uv.Out,
+			Directory: ".",
 			Branch:    uv.HeadBranch,
 			Remote:    uv.Remote,
 			Base:      uv.BaseBranch,
@@ -234,7 +237,7 @@ func getGitAuthFromDeployKey(ctx context.Context, kubeClient client.Client, ns s
 }
 
 func getDeployKey(ctx context.Context, kubeClient client.Client, ns string) ([]byte, error) {
-	deployKeySecret := &v1.Secret{}
+	deployKeySecret := &corev1.Secret{}
 
 	err := kubeClient.Get(ctx, client.ObjectKey{
 		Namespace: ns,
@@ -262,7 +265,7 @@ func ensureGitRepositoryResource(ctx context.Context, kubeClient client.Client, 
 		Name:      gitRepoName,
 	}, gitRepo)
 	if errors.IsNotFound(err) {
-		return fmt.Errorf("couldn't find GitRepository %v/%v to install into", gitRepoNamespace, gitRepoName)
+		return fmt.Errorf("couldn't find GitRepository resource \"%v/%v\" in the cluster, please specify", gitRepoNamespace, gitRepoName)
 	}
 
 	if err != nil {

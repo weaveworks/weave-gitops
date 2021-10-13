@@ -59,7 +59,7 @@ func TestBuildUpgradeConfigs(t *testing.T) {
 			name:           "Good repo form but GitRepository missing",
 			localGitRemote: "git@github.com:org/repo.git",
 			upgradeValues:  UpgradeValues{Namespace: "wego-system"},
-			expectedErr:    errors.New("couldn't find GitRepository wego-system/repo to install into"),
+			expectedErr:    errors.New("couldn't find GitRepository resource \"wego-system/repo\" in the cluster, please specify"),
 		},
 		{
 			name:            "Specify an alterative gitRepo",
@@ -115,7 +115,7 @@ func TestToUpgradeConfigs(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, &UpgradeConfigs{
 		CLIGitConfig: pctl_git.CLIGitConfig{
-			Directory: "config/repo/subdir",
+			Directory: ".",
 			Branch:    "upgrade-to-wge",
 			Remote:    "origin",
 			Message:   "lets upgrade!",
