@@ -96,9 +96,6 @@ else
   # If a command fails, exit the script
   set -e
 
-  # Push to main
-  git push origin main
-
   # If it's not a dry run, let's go!
   # 3) Add git tag
   echo "Add git tag v$next_version with title: v$next_version"
