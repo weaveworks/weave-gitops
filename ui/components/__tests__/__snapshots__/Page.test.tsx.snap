@@ -125,7 +125,7 @@ exports[`Page snapshots default 1`] = `
         </li>
         <li>
           <a
-            href="https://docs.gitops.weave.works/0.3.1"
+            href="https://docs.gitops.weave.works/"
             target="_blank"
           >
             Docs
@@ -147,20 +147,7 @@ exports[`Page snapshots default 1`] = `
             Commercial Support
           </a>
         </li>
-        <li>
-          <a
-            href="https://github.com/weaveworks/weave-gitops/releases/tag/v0.3.1"
-            style={
-              Object {
-                "justifySelf": "flex-end",
-              }
-            }
-            target="_blank"
-          >
-            v
-            0.3.1
-          </a>
-        </li>
+        <li />
       </ul>
     </div>
   </footer>

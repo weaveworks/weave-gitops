@@ -17,13 +17,14 @@ function DefaultExtraLinks() {
         </a>
       </li>
       <li>
-        <a
-          style={{ justifySelf: "flex-end" }}
-          target="_blank"
-          href={`https://github.com/weaveworks/weave-gitops/releases/tag/v${p.version}`}
-        >
-          v{p.version}
-        </a>
+        {process.env.NODE_ENV !== "test" && (
+          <a
+            target="_blank"
+            href={`https://github.com/weaveworks/weave-gitops/releases/tag/v${p.version}`}
+          >
+            v{p.version}
+          </a>
+        )}
       </li>
     </>
   );
@@ -53,7 +54,9 @@ function Footer({ className, extraListItems }: Props) {
           <li>
             <a
               target="_blank"
-              href={`https://docs.gitops.weave.works/${p.version || ""}`}
+              href={`https://docs.gitops.weave.works/${
+                process.env.NODE_ENV !== "test" ? p.version : ""
+              }`}
             >
               Docs
             </a>
