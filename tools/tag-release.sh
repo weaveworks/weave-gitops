@@ -7,7 +7,7 @@
 # 1) Fetch the current release version
 # 2) Increase the version (major, minor, patch)
 # 3) Add a new git tag
-# 4) Push the tag
+# 4) Push the new tag
 
 # Parse command line options.
 while getopts ":Mmpdr" Option
