@@ -1,13 +1,14 @@
-import { Applications as applicationsClient } from "./lib/api/applications/applications.pb";
-import { getProviderToken } from "./lib/utils";
+import Footer from "./components/Footer";
+import GithubDeviceAuthModal from "./components/GithubDeviceAuthModal";
+import LoadingPage from "./components/LoadingPage";
 import AppContextProvider from "./contexts/AppContext";
+import useApplications from "./hooks/applications";
+import { Applications as applicationsClient } from "./lib/api/applications/applications.pb";
+import theme from "./lib/theme";
+import { getProviderToken } from "./lib/utils";
 import ApplicationAdd from "./pages/ApplicationAdd";
 import ApplicationDetail from "./pages/ApplicationDetail";
 import Applications from "./pages/Applications";
-import GithubDeviceAuthModal from "./components/GithubDeviceAuthModal";
-import LoadingPage from "./components/LoadingPage";
-import theme from "./lib/theme";
-import useApplications from "./hooks/applications";
 
 export {
   AppContextProvider,
@@ -20,4 +21,5 @@ export {
   LoadingPage,
   theme,
   useApplications,
+  Footer,
 };

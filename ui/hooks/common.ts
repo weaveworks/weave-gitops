@@ -3,9 +3,9 @@ import { AppContext } from "../contexts/AppContext";
 import { RequestError } from "../lib/types";
 
 export default function useCommon() {
-  const { appState } = useContext(AppContext);
+  const { appState, settings } = useContext(AppContext);
 
-  return { appState };
+  return { appState, settings };
 }
 
 type RequestState<T> = {

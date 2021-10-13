@@ -26,7 +26,7 @@ export default function App() {
       <ThemeProvider theme={theme}>
         <GlobalStyle />
         <Router>
-          <AppContextProvider applicationsClient={appsClient}>
+          <AppContextProvider renderFooter applicationsClient={appsClient}>
             <Layout>
               <ErrorBoundary>
                 <Switch>
