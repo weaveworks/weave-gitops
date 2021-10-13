@@ -242,14 +242,6 @@ func TestGetGitAuthFromDeployKey(t *testing.T) {
 	}
 }
 
-func TestEnsureGitRepositoryResource(t *testing.T) {
-
-}
-
-func TestGetGitRepositoryNamespaceAndName(t *testing.T) {
-
-}
-
 func TestGetRepoOrgAndName(t *testing.T) {
 	repoPath, err := getRepoOrgAndName("git@github.com:ww/repo.git")
 	assert.NoError(t, err)
