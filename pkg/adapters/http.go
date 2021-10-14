@@ -87,6 +87,7 @@ func (c *HTTPClient) RetrieveTemplates() ([]capi.Template, error) {
 			Name:        t.Name,
 			Provider:    t.Provider,
 			Description: t.Description,
+			Error:       t.Error,
 		})
 	}
 

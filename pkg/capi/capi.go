@@ -41,6 +41,7 @@ type Template struct {
 	Name        string
 	Description string
 	Provider    string
+	Error       string
 }
 
 type TemplateParameter struct {
@@ -79,16 +80,13 @@ func GetTemplates(r TemplatesRetriever, w io.Writer) error {
 	}
 
 	if len(ts) > 0 {
-		fmt.Fprintf(w, "NAME\tPROVIDER\tDESCRIPTION\n")
+		fmt.Fprintf(w, "NAME\tPROVIDER\tDESCRIPTION\tERROR\n")
 
 		for _, t := range ts {
 			fmt.Fprintf(w, "%s", t.Name)
 			fmt.Fprintf(w, "\t%s", t.Provider)
-
-			if t.Description != "" {
-				fmt.Fprintf(w, "\t%s", t.Description)
-			}
-
+			fmt.Fprintf(w, "\t%s", t.Description)
+			fmt.Fprintf(w, "\t%s", t.Error)
 			fmt.Fprintln(w, "")
 		}
 
@@ -109,16 +107,13 @@ func GetTemplatesByProvider(provider string, r TemplatesRetriever, w io.Writer) 
 	}
 
 	if len(ts) > 0 {
-		fmt.Fprintf(w, "NAME\tPROVIDER\tDESCRIPTION\n")
+		fmt.Fprintf(w, "NAME\tPROVIDER\tDESCRIPTION\tERROR\n")
 
 		for _, t := range ts {
 			fmt.Fprintf(w, "%s", t.Name)
 			fmt.Fprintf(w, "\t%s", t.Provider)
-
-			if t.Description != "" {
-				fmt.Fprintf(w, "\t%s", t.Description)
-			}
-
+			fmt.Fprintf(w, "\t%s", t.Description)
+			fmt.Fprintf(w, "\t%s", t.Error)
 			fmt.Fprintln(w, "")
 		}
 

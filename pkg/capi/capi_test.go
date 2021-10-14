@@ -33,7 +33,7 @@ func TestGetTemplates(t *testing.T) {
 					Name: "template-b",
 				},
 			},
-			expected: "NAME\tPROVIDER\tDESCRIPTION\ntemplate-a\taws\ntemplate-b\t\n",
+			expected: "NAME\tPROVIDER\tDESCRIPTION\tERROR\ntemplate-a\taws\t\t\ntemplate-b\t\t\t\n",
 		},
 		{
 			name: "templates include all fields",
@@ -42,13 +42,15 @@ func TestGetTemplates(t *testing.T) {
 					Name:        "template-a",
 					Description: "a desc",
 					Provider:    "azure",
+					Error:       "",
 				},
 				{
 					Name:        "template-b",
 					Description: "b desc",
+					Error:       "something went wrong",
 				},
 			},
-			expected: "NAME\tPROVIDER\tDESCRIPTION\ntemplate-a\tazure\ta desc\ntemplate-b\t\tb desc\n",
+			expected: "NAME\tPROVIDER\tDESCRIPTION\tERROR\ntemplate-a\tazure\ta desc\t\ntemplate-b\t\tb desc\tsomething went wrong\n",
 		},
 		{
 			name:             "error retrieving templates",
@@ -97,7 +99,7 @@ func TestGetTemplatesByProvider(t *testing.T) {
 					Provider: "aws",
 				},
 			},
-			expected: "NAME\tPROVIDER\tDESCRIPTION\ntemplate-a\taws\ntemplate-b\taws\n",
+			expected: "NAME\tPROVIDER\tDESCRIPTION\tERROR\ntemplate-a\taws\t\t\ntemplate-b\taws\t\t\n",
 		},
 		{
 			name:     "templates include all fields",
@@ -107,14 +109,16 @@ func TestGetTemplatesByProvider(t *testing.T) {
 					Name:        "template-a",
 					Provider:    "azure",
 					Description: "a desc",
+					Error:       "",
 				},
 				{
 					Name:        "template-b",
 					Provider:    "azure",
 					Description: "b desc",
+					Error:       "something went wrong",
 				},
 			},
-			expected: "NAME\tPROVIDER\tDESCRIPTION\ntemplate-a\tazure\ta desc\ntemplate-b\tazure\tb desc\n",
+			expected: "NAME\tPROVIDER\tDESCRIPTION\tERROR\ntemplate-a\tazure\ta desc\t\ntemplate-b\tazure\tb desc\tsomething went wrong\n",
 		},
 		{
 			name:             "error retrieving templates",
