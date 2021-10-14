@@ -44,12 +44,12 @@ func init() {
 func installRunCmd(cmd *cobra.Command, args []string) error {
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
-	_, fluxClient, kubeClient, logger, clientErr := apputils.GetBaseClients()
+	clients, clientErr := apputils.GetBaseClients()
 	if clientErr != nil {
 		return clientErr
 	}
 
-	gitopsService := gitops.New(logger, fluxClient, kubeClient)
+	gitopsService := gitops.New(clients.Logger, clients.Flux, clients.Kube)
 
 	manifests, err := gitopsService.Install(gitops.InstallParams{
 		Namespace: namespace,

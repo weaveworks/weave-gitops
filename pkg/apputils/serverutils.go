@@ -33,11 +33,6 @@ func (f factory) GetKubeService() (kube.Kube, error) {
 }
 
 func (f factory) GetAppService(ctx context.Context, params AppServiceParams) (app.AppService, error) {
-	osysClient, fluxClient, kube, _, err := GetBaseClients()
-	if err != nil {
-		return nil, fmt.Errorf("could not create base clients: %w", err)
-	}
-
 	appURL, err := gitproviders.NewNormalizedRepoURL(params.URL)
 	if err != nil {
 		return nil, fmt.Errorf("error creating normalized url for app url: %w", err)
@@ -61,14 +56,19 @@ func (f factory) GetAppService(ctx context.Context, params AppServiceParams) (ap
 		return nil, fmt.Errorf("error creating git provider: %w", err)
 	}
 
+	clients, clientErr := GetBaseClients()
+	if clientErr != nil {
+		return nil, fmt.Errorf("error initializing clients: %w", clientErr)
+	}
+
 	// Note that we assume the same git provider here.
 	// If someone has an app source in Github and a config repo in Gitlab, we will get auth errors.
-	authSvc, err := auth.NewAuthService(fluxClient, f.k, provider, f.l)
+	authSvc, err := auth.NewAuthService(clients.Flux, f.k, provider, f.l)
 	if err != nil {
 		return nil, fmt.Errorf("error creating auth service: %w", err)
 	}
 
-	clusterName, err := kube.GetClusterName(ctx)
+	clusterName, err := clients.Kube.GetClusterName(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not get cluster name: %w", err)
 	}
@@ -83,7 +83,7 @@ func (f factory) GetAppService(ctx context.Context, params AppServiceParams) (ap
 		return nil, fmt.Errorf("error creating git client for config repo: %w", err)
 	}
 
-	appSrv := app.New(ctx, logger.NewApiLogger(), appGit, configGit, provider, fluxClient, kube, osysClient)
+	appSrv := app.New(ctx, logger.NewApiLogger(), appGit, configGit, provider, clients.Flux, clients.Kube, clients.Osys)
 
 	return appSrv, nil
 }
