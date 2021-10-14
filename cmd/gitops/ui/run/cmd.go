@@ -96,7 +96,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	if isatty.IsTerminal(os.Stdout.Fd()) {
 		url := fmt.Sprintf("http://%s/%s", addr, path)
 
-		log.Printf("Openning browser at %s", url)
+		log.Printf("Opening browser at %s", url)
 
 		if err := browser.OpenURL(url); err != nil {
 			return fmt.Errorf("failed to open the browser: %w", err)
