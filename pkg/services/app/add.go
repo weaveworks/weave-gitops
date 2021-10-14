@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/md5"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -224,16 +225,6 @@ func (a *App) updateParametersIfNecessary(ctx context.Context, params AddParams)
 
 	var appRepoUrl gitproviders.RepoURL
 
-	// making sure the config url is in good format
-	if IsExternalConfigUrl(params.AppConfigUrl) {
-		configRepoUrl, err := gitproviders.NewNormalizedRepoURL(params.AppConfigUrl)
-		if err != nil {
-			return params, fmt.Errorf("error normalizing url: %w", err)
-		}
-
-		params.AppConfigUrl = configRepoUrl.String()
-	}
-
 	switch {
 	case params.Chart != "":
 		params.SourceType = wego.SourceTypeHelm
@@ -251,6 +242,10 @@ func (a *App) updateParametersIfNecessary(ctx context.Context, params AddParams)
 		if params.Url == "" {
 			return params, fmt.Errorf("--url must be specified for helm repositories")
 		}
+
+		if params.AppConfigUrl == string(ConfigTypeUserRepo) {
+			return params, errors.New("--app-config-url should be provided or set to NONE")
+		}
 	default:
 		var err error
 
@@ -263,6 +258,16 @@ func (a *App) updateParametersIfNecessary(ctx context.Context, params AddParams)
 
 		// resetting Dir param since Url has priority over it
 		params.Dir = ""
+	}
+
+	// making sure the config url is in good format
+	if IsExternalConfigUrl(params.AppConfigUrl) {
+		configRepoUrl, err := gitproviders.NewNormalizedRepoURL(params.AppConfigUrl)
+		if err != nil {
+			return params, fmt.Errorf("error normalizing url: %w", err)
+		}
+
+		params.AppConfigUrl = configRepoUrl.String()
 	}
 
 	if params.Name == "" {
@@ -721,14 +726,19 @@ func (a *App) createPullRequestToRepo(ctx context.Context, info *AppResourceInfo
 }
 
 func getAppResourceInfo(app wego.Application, clusterName string) (*AppResourceInfo, error) {
-	fmt.Println("foooo")
-	appRepoUrl, err := gitproviders.NewNormalizedRepoURL(app.Spec.URL)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println("baaaaarr")
+	var (
+		appRepoUrl    gitproviders.RepoURL
+		configRepoUrl gitproviders.RepoURL
+		err           error
+	)
 
-	configRepoUrl := gitproviders.RepoURL{}
+	if wego.DeploymentType(app.Spec.SourceType) == wego.DeploymentType(wego.SourceTypeGit) {
+		appRepoUrl, err = gitproviders.NewNormalizedRepoURL(app.Spec.URL)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if app.Spec.ConfigURL != "" && app.Spec.ConfigURL != string(ConfigTypeNone) {
 		configRepoUrl, err = gitproviders.NewNormalizedRepoURL(app.Spec.ConfigURL)
 		if err != nil {

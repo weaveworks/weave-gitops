@@ -34,6 +34,7 @@ var _ = Describe("Add", func() {
 			Branch:         "main",
 			Dir:            ".",
 			DeploymentType: "kustomize",
+			SourceType:     wego.SourceTypeGit,
 			Namespace:      "wego-system",
 			AppConfigUrl:   "NONE",
 			AutoMerge:      true,
@@ -68,6 +69,15 @@ var _ = Describe("Add", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 
 		Expect(kubeClient.GetClusterNameCallCount()).To(Equal(1))
+	})
+
+	It("validates app-config-url is set when source is helm", func() {
+		addParams.Chart = "my-chart"
+		addParams.Url = "https://my-chart.com"
+		addParams.AppConfigUrl = ""
+
+		err := appSrv.Add(addParams)
+		Expect(err.Error()).Should(HaveSuffix("--app-config-url should be provided or set to NONE"))
 	})
 
 	Context("Looking up repo default branch", func() {
@@ -282,6 +292,7 @@ var _ = Describe("Add", func() {
 			It("creates HelmRepository when source type is helm", func() {
 				addParams.Url = "https://charts.kube-ops.io"
 				addParams.Chart = "loki"
+				addParams.AppConfigUrl = "ssh://git@github.com/owner/config-repo.git"
 
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -324,6 +335,7 @@ var _ = Describe("Add", func() {
 			It("creates helm release using a helm repository if source type is helm", func() {
 				addParams.Url = "https://charts.kube-ops.io"
 				addParams.Chart = "loki"
+				addParams.AppConfigUrl = "ssh://github.com/owner/repo"
 
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -358,6 +370,7 @@ var _ = Describe("Add", func() {
 				addParams.Url = "https://charts.kube-ops.io"
 				addParams.Chart = "loki"
 				addParams.HelmReleaseTargetNamespace = "sock-shop"
+				addParams.AppConfigUrl = "ssh://git@github.com/owner/config-repo.git"
 
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -393,6 +406,7 @@ var _ = Describe("Add", func() {
 				addParams.Url = "https://charts.kube-ops.io"
 				addParams.Chart = "loki"
 				addParams.HelmReleaseTargetNamespace = "sock-shop"
+				addParams.AppConfigUrl = "ssh://git@github.com/owner/config-repo.git"
 
 				goodNamespaceErr := appSrv.Add(addParams)
 				Expect(goodNamespaceErr).ShouldNot(HaveOccurred())
@@ -757,7 +771,10 @@ var _ = Describe("Add", func() {
 
 		BeforeEach(func() {
 			gitProviders.GetDefaultBranchStub = func(_ context.Context, repoUrl gitproviders.RepoURL) (string, error) {
-				if repoUrl.String() == addParams.Url {
+				addUrl, err := gitproviders.NewNormalizedRepoURL(addParams.Url)
+				Expect(err).NotTo(HaveOccurred())
+
+				if repoUrl.String() == addUrl.String() {
 					return "default-app-branch", nil
 				}
 				return "default-config-branch", nil

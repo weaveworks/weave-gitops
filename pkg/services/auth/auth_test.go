@@ -80,9 +80,7 @@ var _ = Describe("auth", func() {
 			Expect(secret.StringData["identity.pub"]).NotTo(BeNil())
 		})
 		It("uses an existing deploy key when present", func() {
-			gp.DeployKeyExistsStub = func(_ context.Context, s1, s2 string) (bool, error) {
-				return true, nil
-			}
+			gp.DeployKeyExistsReturns(true, nil)
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}
 			// using `generateDeployKey` as a helper for the test setup.
 			_, secret, err := (&authSvc{fluxClient: fluxClient}).generateDeployKey(testClustername, sn, repoUrl)
@@ -95,9 +93,7 @@ var _ = Describe("auth", func() {
 			Expect(gp.UploadDeployKeyCallCount()).To(Equal(0))
 		})
 		It("handles the case where a deploy key exists on the provider, but not the cluster", func() {
-			gp.DeployKeyExistsStub = func(_ context.Context, s1, s2 string) (bool, error) {
-				return true, nil
-			}
+			gp.DeployKeyExistsReturns(true, nil)
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}
 
 			_, err = as.CreateGitClient(ctx, repoUrl, testClustername, namespace.Name)
