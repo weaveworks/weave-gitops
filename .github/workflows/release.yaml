@@ -112,7 +112,7 @@ jobs:
         with:
           repository: weaveworks/weave-gitops-docs
           path: doc-repo
-          token: ${{ secrets.WEAVE_GITOPS_DOCS_WEAVEWORKS_DOCS_BOT_DEPLOY_KEY }}
+          token: ${{ secrets.WEAVE_GITOPS_DOCS_WEAVEWORKS_DOCS_BOT_PAT }}
       - name: Unshallow
         run: |
           cd main-repo
@@ -138,7 +138,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@9825ae65b1cb54b543b938503728b432a0176d29 # v3
         with:
-          token: ${{ secrets.WEAVE_GITOPS_DOCS_WEAVEWORKS_DOCS_BOT_DEPLOY_KEY }}
+          token: ${{ secrets.WEAVE_GITOPS_DOCS_WEAVEWORKS_DOCS_BOT_PAT }}
           committer: GitHub <noreply@github.com>
           author: weave-test-user <weave-test-user@example.com>
           signoff: true
