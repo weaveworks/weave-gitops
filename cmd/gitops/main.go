@@ -114,6 +114,7 @@ func main() {
 	rootCmd.PersistentFlags().String("namespace", wego.DefaultNamespace, "gitops runtime namespace")
 	rootCmd.PersistentFlags().StringVarP(&options.endpoint, "endpoint", "e", os.Getenv("WEAVE_GITOPS_ENTERPRISE_API_URL"), "The Weave GitOps Enterprise HTTP API endpoint")
 	rootCmd.PersistentFlags().BoolVar(&options.overrideInCluster, "override-in-cluster", false, "override running in cluster check")
+	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("override-in-cluster"))
 
 	rootCmd.AddCommand(install.Cmd)
 	rootCmd.AddCommand(beta.Cmd)
