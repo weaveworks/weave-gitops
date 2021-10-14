@@ -39,14 +39,14 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 
 	var err error
 
-	if params.AppConfigURL != "" {
+	if params.AppConfigURL != "" && !params.DryRun {
 		fluxManifests, err = g.flux.Install(params.Namespace, true)
 		if err != nil {
 			return fluxManifests, fmt.Errorf("error on flux install %s", err)
 		}
 	}
 
-	_, err = g.flux.Install(params.Namespace, params.DryRun)
+	fluxManifests, err = g.flux.Install(params.Namespace, params.DryRun)
 	if err != nil {
 		return fluxManifests, fmt.Errorf("error on flux install %s", err)
 	}

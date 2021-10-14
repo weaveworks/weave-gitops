@@ -141,6 +141,32 @@ var _ = Describe("Install", func() {
 			Expect(string(manifests)).To(ContainSubstring("kind: App"))
 		})
 
+		It("has flux manifests", func() {
+			tests := []string{
+				"GitRepository",
+				"HelmRelease",
+				"HelmRepository",
+				"Kustomization",
+			}
+
+			fluxClient.InstallStub = func(s string, b bool) ([]byte, error) {
+				var f string
+				for _, k := range tests {
+					f += fmt.Sprintf("kind: %s\n", k)
+				}
+
+				return []byte(f), nil
+			}
+
+			manifests, err := gitopsSrv.Install(installParams)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			s := string(manifests)
+			for _, k := range tests {
+				Expect(s).To(ContainSubstring("kind: "+k), "Missing CRD for: "+k)
+			}
+		})
+
 		It("does not call kube apply", func() {
 			_, err := gitopsSrv.Install(installParams)
 			Expect(err).ShouldNot(HaveOccurred())
