@@ -275,6 +275,13 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 	It("Verify that gitops can deploy app when user specifies branch, namespace, url, deployment-type", func() {
 		var repoAbsolutePath string
+		var appList string
+		var pauseOutput string
+		var unpauseOutput string
+		var appManifestFile string
+		var commitList string
+		var appStatus *gexec.Session
+		replicaSetValue := 2
 		private := true
 		tip := generateTestInputs()
 		branchName := "test-branch-02"
@@ -335,6 +342,93 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Expect(folderOutput).ShouldNot(ContainSubstring("apps"))
 			Expect(folderOutput).ShouldNot(ContainSubstring("targets"))
 		})
+
+		By("When I check for app list under user-specified namespace", func() {
+			appList, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app list " + appName + " --namespace=" + wegoNamespace)
+		})
+
+		By("Then I should see appName listed", func() {
+			Eventually(appList).Should(ContainSubstring(appName))
+		})
+
+		By("When I check app status for app under user-defined namespace", func() {
+			appStatus = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
+		})
+
+		By("Then I should see app status", func() {
+			Eventually(appStatus).Should(gbytes.Say(`Last successful reconciliation:`))
+			Eventually(appStatus).Should(gbytes.Say(`gitrepository/` + appName + `\s*True\s*.*` + branchName + `/.*False`))
+			Eventually(appStatus).Should(gbytes.Say(`kustomization/` + appName + `\s*True\s*.*` + branchName + `/.*False`))
+		})
+
+		By("When I pause the app under user-defined namespace", func() {
+			pauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app pause " + appName + " --namespace=" + wegoNamespace)
+		})
+
+		By("Then I should see pause message", func() {
+			Expect(pauseOutput).To(ContainSubstring("gitops automation paused for " + appName))
+		})
+
+		By("When I check app status for the paused app", func() {
+			appStatus = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
+		})
+
+		By("Then I should see pause status as suspended=true", func() {
+			Eventually(appStatus).Should(gbytes.Say(`kustomization/` + appName + `\s*True\s*.*` + branchName + `/.*True`))
+		})
+
+		By("And changes to the app files should not be synchronized", func() {
+			appManifestFile, _ = runCommandAndReturnStringOutput("cd " + repoAbsolutePath + " && ls | grep yaml")
+			createAppReplicas(repoAbsolutePath, appManifestFile, replicaSetValue, tip.workloadName)
+			gitUpdateCommitPush(repoAbsolutePath)
+			_ = waitForReplicaCreation(tip.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIMEOUT)
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=100s -n %s --all pods --selector='app!=wego-app'", tip.workloadNamespace))
+		})
+
+		By("And number of app replicas should remain same", func() {
+			replicaOutput, _ := runCommandAndReturnStringOutput("kubectl get pods -n " + tip.workloadNamespace + " --field-selector=status.phase=Running --no-headers=true | wc -l")
+			Expect(replicaOutput).To(ContainSubstring("1"))
+		})
+
+		By("When I unpause the app under user-defined namespace", func() {
+			unpauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app unpause " + appName + " --namespace=" + wegoNamespace)
+		})
+
+		By("Then I should see unpause message", func() {
+			Expect(unpauseOutput).To(ContainSubstring("gitops automation unpaused for " + appName))
+		})
+
+		By("And I should see app replicas created in the cluster", func() {
+			_ = waitForReplicaCreation(tip.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIMEOUT)
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=100s -n %s --all pods --selector='app!=wego-app'", tip.workloadNamespace))
+			replicaOutput, _ := runCommandAndReturnStringOutput("kubectl get pods -n " + tip.workloadNamespace + " --field-selector=status.phase=Running --no-headers=true | wc -l")
+			Expect(replicaOutput).To(ContainSubstring(strconv.Itoa(replicaSetValue)))
+		})
+
+		By("When I check app status for unpaused app", func() {
+			appStatus = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
+		})
+
+		By("Then I should see pause status as suspended=false", func() {
+			Eventually(appStatus).Should(gbytes.Say(`kustomization/` + appName + `\s*True\s*.*` + branchName + `/.*False`))
+		})
+
+		By("When I check for list of commits for the app", func() {
+			commitList, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
+		})
+
+		By("Then I should see the list of commits for app2", func() {
+			Eventually(commitList).Should(MatchRegexp(`COMMIT HASH\s*CREATED AT\s*AUTHOR\s*MESSAGE\s*URL`))
+			Eventually(commitList).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z\s*.*Initial commit`))
+		})
+
+		By("When I remove the app under user-defined namespace", func() {
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s app remove %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
+		})
+
+		By("And app should get deleted from the cluster", func() {
+			_ = waitForAppRemoval(appName, THIRTY_SECOND_TIMEOUT)
+		})
 	})
 
 	It("Verify that gitops can deploy an app with specified config-url and app-config-url set to <url>", func() {
@@ -390,9 +484,9 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		Skip("skip until gitlab repo deletion is supported")
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
+		var appRemoveOutput *gexec.Session
 		private := true
 		tip := generateTestInputs()
-		var appRemoveOutput *gexec.Session
 		appName := tip.appRepoName
 		appConfigRepoName := "wego-config-repo-" + RandString(8)
 		appRepoRemoteURL := "ssh://git@gitlab.com/" + GITLAB_ORG + "/" + tip.appRepoName + ".git"

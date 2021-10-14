@@ -292,7 +292,7 @@ func (k *KubeHTTP) GetApplications(ctx context.Context, namespace string) ([]weg
 	result := wego.ApplicationList{}
 
 	if err := k.Client.List(ctx, &result, client.InNamespace(namespace)); err != nil {
-		return nil, fmt.Errorf("could not list wego applications: %w", err)
+		return nil, fmt.Errorf("could not list gitops applications: %w", err)
 	}
 
 	return result.Items, nil

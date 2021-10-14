@@ -508,6 +508,7 @@ func waitForAppRemoval(appName string, timeout time.Duration) error {
 		if strings.Contains(string(session.Wait().Out.Contents()), appName) {
 			return fmt.Errorf(": Waiting for app: %s to delete", appName)
 		}
+		log.Infof("App successfully deleted: %s", appName)
 		return nil
 	})
 
