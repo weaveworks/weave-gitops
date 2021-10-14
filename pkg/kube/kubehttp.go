@@ -18,7 +18,6 @@ import (
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -96,19 +95,15 @@ func NewKubeHTTPClient() (Kube, client.Client, error) {
 func RestConfig() (*rest.Config, string, error) {
 	var kubeContext, clusterName string
 
-	l := logger.NewApiLogger()
 	config, err := InClusterConfig()
 
 	if err == rest.ErrNotInCluster {
 		cfgLoadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
-		l.Infow("kubeHTTPClient", "configLoadingRules", cfgLoadingRules)
 
 		kubeContext, clusterName, err = initialContexts(cfgLoadingRules)
 		if err != nil {
 			return nil, "", fmt.Errorf("could not get initial context: %w", err)
 		}
-
-		l.Infow("kubeHTTPClient", "initialContext", kubeContext)
 
 		// config, err := rest.InClusterConfig()
 		// if err == rest.ErrNotInCluster {
