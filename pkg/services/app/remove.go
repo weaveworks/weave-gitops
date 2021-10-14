@@ -39,7 +39,11 @@ func (a *App) Remove(params RemoveParams) error {
 	}
 
 	// Find all resources created when adding this app
-	info := getAppResourceInfo(*application, clusterName)
+	info, err := getAppResourceInfo(*application, clusterName)
+	if err != nil {
+		return err
+	}
+
 	resources := info.clusterResources()
 
 	if info.configMode() == ConfigModeClusterOnly {
@@ -73,17 +77,12 @@ func (a *App) Remove(params RemoveParams) error {
 		return nil
 	}
 
-	cloneURL, branch, err := a.getConfigUrlAndBranch(info)
+	cloneURL, branch, err := a.getConfigUrlAndBranch(ctx, info)
 	if err != nil {
 		return fmt.Errorf("failed to obtain config URL and branch: %w", err)
 	}
 
-	normalizedUrl, err := gitproviders.NewNormalizedRepoURL(cloneURL)
-	if err != nil {
-		return fmt.Errorf("error normalizing url: %w", err)
-	}
-
-	remover, err := a.cloneRepo(a.ConfigGit, normalizedUrl.String(), branch, params.DryRun)
+	remover, err := a.cloneRepo(a.ConfigGit, cloneURL.String(), branch, params.DryRun)
 
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)
@@ -117,22 +116,27 @@ func (a *App) Remove(params RemoveParams) error {
 	return nil
 }
 
-func (a *App) getConfigUrlAndBranch(info *AppResourceInfo) (string, string, error) {
-	cloneURL := info.Spec.ConfigURL
-	branch := info.Spec.Branch
-
-	if cloneURL == string(ConfigTypeUserRepo) {
-		cloneURL = info.Spec.URL
-	} else {
-		localBranch, err := a.GitProvider.GetDefaultBranch(context.Background(), cloneURL)
-		if err != nil {
-			return "", "", err
-		}
-
-		branch = localBranch
+func (a *App) getConfigUrlAndBranch(ctx context.Context, info *AppResourceInfo) (gitproviders.RepoURL, string, error) {
+	configUrl := info.Spec.ConfigURL
+	if configUrl == string(ConfigTypeUserRepo) {
+		configUrl = info.Spec.URL
 	}
 
-	return cloneURL, branch, nil
+	repoUrl, err := gitproviders.NewNormalizedRepoURL(configUrl)
+	if err != nil {
+		return gitproviders.RepoURL{}, "", err
+	}
+
+	branch := info.Spec.Branch
+
+	if branch != "" {
+		branch, err = a.GitProvider.GetDefaultBranch(ctx, repoUrl)
+		if err != nil {
+			return gitproviders.RepoURL{}, "", err
+		}
+	}
+
+	return repoUrl, branch, nil
 }
 
 func clusterDeleteError(name string, err error) error {

@@ -137,7 +137,7 @@ var _ = Describe("auth", func() {
 					}
 				})
 
-				DescribeTable("generates correct token info messages", func(repoUrl gitproviders.NormalizedRepoURL, msgArg string) {
+				DescribeTable("generates correct token info messages", func(repoUrl gitproviders.RepoURL, msgArg string) {
 					_, err := InitGitProvider(repoUrl, osysClient, logger, authHandler, authTypeGetter)
 					Expect(err).ShouldNot(HaveOccurred())
 					fmtArg, restArgs := logger.WarningfArgsForCall(0)

@@ -191,14 +191,19 @@ func setupFlux() error {
 }
 
 func updateAppInfoFromParams() error {
-	params, err := appSrv.(*App).updateParametersIfNecessary(localAddParams)
+	params, err := appSrv.(*App).updateParametersIfNecessary(context.Background(), localAddParams)
 	if err != nil {
 		return err
 	}
 
 	localAddParams = params
 	application = makeWegoApplication(localAddParams)
-	info = getAppResourceInfo(application, "test-cluster")
+
+	info, err = getAppResourceInfo(application, "test-cluster")
+	if err != nil {
+		return err
+	}
+
 	appResources = info.clusterResources()
 
 	return nil
@@ -284,9 +289,7 @@ var _ = Describe("Remove", func() {
 
 		application = makeWegoApplication(localAddParams)
 
-		gitProviders.GetDefaultBranchStub = func(_ context.Context, url string) (string, error) {
-			return "main", nil
-		}
+		gitProviders.GetDefaultBranchReturns("main", nil)
 	})
 
 	It("gives a correct error message when app path not found", func() {
@@ -311,9 +314,7 @@ var _ = Describe("Remove", func() {
 	})
 
 	It("Looks up config repo default branch", func() {
-		gitProviders.GetDefaultBranchStub = func(_ context.Context, url string) (string, error) {
-			return "config-branch", nil
-		}
+		gitProviders.GetDefaultBranchReturns("config-branch", nil)
 
 		kubeClient.GetApplicationStub = func(_ context.Context, name types.NamespacedName) (*wego.Application, error) {
 			return &application, nil
@@ -322,9 +323,9 @@ var _ = Describe("Remove", func() {
 		localAddParams.AppConfigUrl = "https://github.com/foo/quux"
 		Expect(updateAppInfoFromParams()).To(Succeed())
 
-		url, branch, err := appSrv.(*App).getConfigUrlAndBranch(info)
+		repoUrl, branch, err := appSrv.(*App).getConfigUrlAndBranch(context.Background(), info)
 		Expect(err).ShouldNot(HaveOccurred())
-		Expect(url).To(Equal(localAddParams.AppConfigUrl))
+		Expect(repoUrl.String()).To(Equal(localAddParams.AppConfigUrl))
 		Expect(branch).To(Equal("config-branch"))
 	})
 

@@ -305,7 +305,7 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "unable to parse app url %q: %s", msg.Url, err)
 	}
 
-	var configUrl gitproviders.NormalizedRepoURL
+	var configUrl gitproviders.RepoURL
 	if msg.ConfigUrl != "" {
 		configUrl, err = gitproviders.NewNormalizedRepoURL(msg.ConfigUrl)
 		if err != nil {

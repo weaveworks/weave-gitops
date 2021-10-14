@@ -568,13 +568,9 @@ var _ = Describe("ApplicationsServer", func() {
 				Branch:    "main",
 				ConfigUrl: "ssh://git@github.com/some-org/my-config-url.git",
 			}
-			gp.GetRepoVisibilityStub = func(_ context.Context, s string) (*gitprovider.RepositoryVisibility, error) {
-				return gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil
-			}
 
-			gp.CreatePullRequestStub = func(_ context.Context, owner, repoName string, prInfo gitproviders.PullRequestInfo) (gitprovider.PullRequest, error) {
-				return testutils.DummyPullRequest{}, nil
-			}
+			gp.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil)
+			gp.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
 
 			res, err := appsClient.AddApplication(contextWithAuth(ctx), appRequest)
 			Expect(err).NotTo(HaveOccurred())
@@ -594,13 +590,8 @@ var _ = Describe("ApplicationsServer", func() {
 				Branch:    "main",
 				AutoMerge: true,
 			}
-			gp.GetRepoVisibilityStub = func(_ context.Context, s string) (*gitprovider.RepositoryVisibility, error) {
-				return gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil
-			}
-
-			gp.CreatePullRequestStub = func(_ context.Context, owner, repoName string, prInfo gitproviders.PullRequestInfo) (gitprovider.PullRequest, error) {
-				return testutils.DummyPullRequest{}, nil
-			}
+			gp.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil)
+			gp.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
 
 			res, err := appsClient.AddApplication(contextWithAuth(ctx), appRequest)
 			Expect(err).NotTo((HaveOccurred()))

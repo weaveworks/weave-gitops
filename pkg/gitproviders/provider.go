@@ -31,13 +31,13 @@ const (
 // GitProvider Handler
 //counterfeiter:generate . GitProvider
 type GitProvider interface {
-	RepositoryExists(ctx context.Context, name string, owner string) (bool, error)
-	DeployKeyExists(ctx context.Context, owner, repoName string) (bool, error)
-	GetDefaultBranch(ctx context.Context, url string) (string, error)
-	GetRepoVisibility(ctx context.Context, url string) (*gitprovider.RepositoryVisibility, error)
-	UploadDeployKey(ctx context.Context, owner, repoName string, deployKey []byte) error
-	CreatePullRequest(ctx context.Context, owner string, repoName string, prInfo PullRequestInfo) (gitprovider.PullRequest, error)
-	GetCommits(ctx context.Context, owner string, repoName, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
+	RepositoryExists(ctx context.Context, repoUrl RepoURL) (bool, error)
+	DeployKeyExists(ctx context.Context, repoUrl RepoURL) (bool, error)
+	GetDefaultBranch(ctx context.Context, repoUrl RepoURL) (string, error)
+	GetRepoVisibility(ctx context.Context, repoUrl RepoURL) (*gitprovider.RepositoryVisibility, error)
+	UploadDeployKey(ctx context.Context, repoUrl RepoURL, deployKey []byte) error
+	CreatePullRequest(ctx context.Context, repoUrl RepoURL, prInfo PullRequestInfo) (gitprovider.PullRequest, error)
+	GetCommits(ctx context.Context, repoUrl RepoURL, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
 	GetProviderDomain() string
 }
 
@@ -227,7 +227,7 @@ type RepositoryURLProtocol string
 const RepositoryURLProtocolHTTPS RepositoryURLProtocol = "https"
 const RepositoryURLProtocolSSH RepositoryURLProtocol = "ssh"
 
-type NormalizedRepoURL struct {
+type RepoURL struct {
 	repoName   string
 	owner      string
 	url        *url.URL
@@ -262,22 +262,22 @@ func normalizeRepoURLString(url string, providerName GitProviderName) string {
 	return url
 }
 
-func NewNormalizedRepoURL(uri string) (NormalizedRepoURL, error) {
+func NewNormalizedRepoURL(uri string) (RepoURL, error) {
 	providerName, err := detectGitProviderFromUrl(uri)
 	if err != nil {
-		return NormalizedRepoURL{}, fmt.Errorf("could not get provider name from URL %s: %w", uri, err)
+		return RepoURL{}, fmt.Errorf("could not get provider name from URL %s: %w", uri, err)
 	}
 
 	normalized := normalizeRepoURLString(uri, providerName)
 
 	u, err := url.Parse(normalized)
 	if err != nil {
-		return NormalizedRepoURL{}, fmt.Errorf("could not create normalized repo URL %s: %w", uri, err)
+		return RepoURL{}, fmt.Errorf("could not create normalized repo URL %s: %w", uri, err)
 	}
 
 	owner, err := getOwnerFromUrl(*u, providerName)
 	if err != nil {
-		return NormalizedRepoURL{}, fmt.Errorf("could not get owner name from URL %s: %w", uri, err)
+		return RepoURL{}, fmt.Errorf("could not get owner name from URL %s: %w", uri, err)
 	}
 
 	protocol := RepositoryURLProtocolSSH
@@ -285,7 +285,7 @@ func NewNormalizedRepoURL(uri string) (NormalizedRepoURL, error) {
 		protocol = RepositoryURLProtocolHTTPS
 	}
 
-	return NormalizedRepoURL{
+	return RepoURL{
 		repoName:   utils.UrlToRepoName(uri),
 		owner:      owner,
 		url:        u,
@@ -295,27 +295,27 @@ func NewNormalizedRepoURL(uri string) (NormalizedRepoURL, error) {
 	}, nil
 }
 
-func (n NormalizedRepoURL) String() string {
+func (n RepoURL) String() string {
 	return n.normalized
 }
 
-func (n NormalizedRepoURL) URL() *url.URL {
+func (n RepoURL) URL() *url.URL {
 	return n.url
 }
 
-func (n NormalizedRepoURL) Owner() string {
+func (n RepoURL) Owner() string {
 	return n.owner
 }
 
-func (n NormalizedRepoURL) RepositoryName() string {
+func (n RepoURL) RepositoryName() string {
 	return n.repoName
 }
 
-func (n NormalizedRepoURL) Provider() GitProviderName {
+func (n RepoURL) Provider() GitProviderName {
 	return n.provider
 }
 
-func (n NormalizedRepoURL) Protocol() RepositoryURLProtocol {
+func (n RepoURL) Protocol() RepositoryURLProtocol {
 	return n.protocol
 }
 
