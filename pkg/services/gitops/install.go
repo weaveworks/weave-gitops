@@ -225,7 +225,6 @@ func (g *Gitops) writeManifestsToGit(path string, manifests map[string][]byte) e
 
 func (g *Gitops) applyManifestsToK8s(ctx context.Context, namespace string, manifests map[string][]byte) error {
 	for k, manifest := range manifests {
-
 		if err := g.kube.Apply(ctx, manifest, namespace); err != nil {
 			return fmt.Errorf("could not apply manifest %q : %w", k, err)
 		}
