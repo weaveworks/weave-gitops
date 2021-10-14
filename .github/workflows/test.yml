@@ -35,7 +35,8 @@ jobs:
     - name: Install UI Deps
       run: |
         make ui-deps
-        touch file-for-bad-git-state.txt
+        export CURRENT_VERSION=$(node -p "require('./package.json').version") 
+        sed -i '' "s/$CURRENT_VERSION/0.5.3/" package.json
     - name: Check Git State
       run: git diff --no-ext-diff --exit-code
     - name: Fake Install flux
