@@ -14,6 +14,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/install"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/ui"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/uninstall"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/upgrade"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
@@ -112,6 +113,7 @@ func main() {
 	rootCmd.AddCommand(app.ApplicationCmd)
 	rootCmd.AddCommand(get.GetCommand(&options.endpoint, restyClient))
 	rootCmd.AddCommand(add.GetCommand(&options.endpoint, restyClient))
+	rootCmd.AddCommand(upgrade.Cmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
