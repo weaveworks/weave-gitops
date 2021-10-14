@@ -33,10 +33,7 @@ jobs:
       with:
         node-version: 14.x
     - name: Install UI Deps
-      run: |
-        make ui-deps
-        export CURRENT_VERSION=$(node -p "require('./package.json').version") 
-        sed -i 's/0.3.1/0.5.3/' package.json
+      run: make ui-deps
     - name: Check Git State
       run: git diff --no-ext-diff --exit-code
     - name: Fake Install flux
