@@ -100,7 +100,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
   update-doc-repo-files:
-    needs: goreleaser
     runs-on: ubuntu-latest
     steps:
       - name: Checkout WG
