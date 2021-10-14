@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/add"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/flux"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/install"
@@ -114,6 +115,7 @@ func main() {
 	rootCmd.AddCommand(get.GetCommand(&options.endpoint, restyClient))
 	rootCmd.AddCommand(add.GetCommand(&options.endpoint, restyClient))
 	rootCmd.AddCommand(upgrade.Cmd)
+	rootCmd.AddCommand(docs.Cmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
