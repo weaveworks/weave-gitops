@@ -1324,8 +1324,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I add a invalid entry without --app-config-url set", func() {
-			_, err := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand1, WEGO_DEFAULT_NAMESPACE)
-			Eventually(err).Should(ContainSubstring("--app-config-url should be provided or set to NONE"))
+			out, _ := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand1, WEGO_DEFAULT_NAMESPACE)
+			Eventually(out).Should(ContainSubstring("--app-config-url should be provided or set to NONE"))
 		})
 
 		By("And I run gitops app add command for 1st app", func() {
