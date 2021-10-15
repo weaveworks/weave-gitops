@@ -7,6 +7,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/manifests"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -36,7 +37,7 @@ func checkFluxUninstallFailure() {
 	Expect(kubeClient.GetClusterStatusCallCount()).To(Equal(1))
 	Expect(fluxClient.UninstallCallCount()).To(Equal(1))
 	namespace, dryRun := fluxClient.UninstallArgsForCall(0)
-	Expect(namespace).To(Equal("wego-system"))
+	Expect(namespace).To(Equal(wego.DefaultNamespace))
 	Expect(dryRun).To(Equal(false))
 }
 
@@ -61,7 +62,7 @@ func checkAppCRDUninstallFailure() {
 	Expect(kubeClient.DeleteCallCount()).To(Equal(len(manifests.Manifests)))
 
 	namespace, dryRun := fluxClient.UninstallArgsForCall(0)
-	Expect(namespace).To(Equal("wego-system"))
+	Expect(namespace).To(Equal(wego.DefaultNamespace))
 	Expect(dryRun).To(Equal(false))
 }
 
@@ -73,7 +74,7 @@ var _ = Describe("Uninstall", func() {
 		gitopsSrv = gitops.New(logger, fluxClient, kubeClient)
 
 		uninstallParams = gitops.UninstallParams{
-			Namespace: "wego-system",
+			Namespace: wego.DefaultNamespace,
 			DryRun:    false,
 		}
 	})
@@ -192,7 +193,7 @@ var _ = Describe("Uninstall", func() {
 			Expect(fluxClient.UninstallCallCount()).To(Equal(1))
 
 			namespace, dryRun := fluxClient.UninstallArgsForCall(0)
-			Expect(namespace).To(Equal("wego-system"))
+			Expect(namespace).To(Equal(wego.DefaultNamespace))
 			Expect(dryRun).To(Equal(true))
 		})
 

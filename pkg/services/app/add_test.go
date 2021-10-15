@@ -33,7 +33,7 @@ var _ = Describe("Add", func() {
 			Branch:         "main",
 			Dir:            ".",
 			DeploymentType: "kustomize",
-			Namespace:      "wego-system",
+			Namespace:      wego.DefaultNamespace,
 			AppConfigUrl:   "NONE",
 			AutoMerge:      true,
 		}
@@ -113,7 +113,7 @@ var _ = Describe("Add", func() {
 				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 
 			It("creates HelmRepository when source type is helm", func() {
@@ -127,7 +127,7 @@ var _ = Describe("Add", func() {
 				name, url, namespace := fluxClient.CreateSourceHelmArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(url).To(Equal("https://charts.kube-ops.io"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 		})
 
@@ -142,7 +142,7 @@ var _ = Describe("Add", func() {
 				Expect(name).To(Equal("bar"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("./kustomize"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 
 			It("creates helm release using a helm repository if source type is helm", func() {
@@ -156,7 +156,7 @@ var _ = Describe("Add", func() {
 				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(chart).To(Equal("loki"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal(""))
 			})
 
@@ -173,7 +173,7 @@ var _ = Describe("Add", func() {
 				Expect(name).To(Equal("bar"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("./charts/my-chart"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal(""))
 			})
 
@@ -189,7 +189,7 @@ var _ = Describe("Add", func() {
 				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(chart).To(Equal("loki"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal("sock-shop"))
 			})
 
@@ -207,7 +207,7 @@ var _ = Describe("Add", func() {
 				Expect(name).To(Equal("bar"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("./charts/my-chart"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal("sock-shop"))
 			})
 
@@ -234,15 +234,15 @@ var _ = Describe("Add", func() {
 
 			_, sourceManifest, namespace := kubeClient.ApplyArgsForCall(0)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
-			Expect(namespace).To(Equal("wego-system"))
+			Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 			_, kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(1)
 			Expect(kustomizationManifest).To(Equal([]byte("kustomization")))
-			Expect(namespace).To(Equal("wego-system"))
+			Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 			_, appSpecManifest, namespace := kubeClient.ApplyArgsForCall(2)
 			Expect(string(appSpecManifest)).To(ContainSubstring("kind: Application"))
-			Expect(namespace).To(Equal("wego-system"))
+			Expect(namespace).To(Equal(wego.DefaultNamespace))
 		})
 	})
 
@@ -277,7 +277,7 @@ var _ = Describe("Add", func() {
 				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 
 			It("creates HelmRepository when source type is helm", func() {
@@ -292,7 +292,7 @@ var _ = Describe("Add", func() {
 				name, url, namespace := fluxClient.CreateSourceHelmArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(url).To(Equal("https://charts.kube-ops.io"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 		})
 
@@ -307,19 +307,19 @@ var _ = Describe("Add", func() {
 				Expect(name).To(Equal("bar"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("./kustomize"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 				name, source, path, namespace = fluxClient.CreateKustomizationArgsForCall(1)
 				Expect(name).To(Equal("bar-apps-dir"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal(".wego/apps/bar"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 				name, source, path, namespace = fluxClient.CreateKustomizationArgsForCall(2)
 				Expect(name).To(Equal("test-cluster-bar"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal(".wego/targets/test-cluster/bar"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 
 			It("creates helm release using a helm repository if source type is helm", func() {
@@ -334,7 +334,7 @@ var _ = Describe("Add", func() {
 				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(chart).To(Equal("loki"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal(""))
 			})
 
@@ -351,7 +351,7 @@ var _ = Describe("Add", func() {
 				Expect(name).To(Equal("bar"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("./charts/my-chart"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal(""))
 			})
 
@@ -368,7 +368,7 @@ var _ = Describe("Add", func() {
 				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(chart).To(Equal("loki"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal("sock-shop"))
 			})
 
@@ -386,7 +386,7 @@ var _ = Describe("Add", func() {
 				Expect(name).To(Equal("bar"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("./charts/my-chart"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal("sock-shop"))
 			})
 
@@ -427,11 +427,11 @@ var _ = Describe("Add", func() {
 
 			_, sourceManifest, namespace := kubeClient.ApplyArgsForCall(0)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
-			Expect(namespace).To(Equal("wego-system"))
+			Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 			_, appWegoManifest, namespace := kubeClient.ApplyArgsForCall(1)
 			Expect(appWegoManifest).To(Equal([]byte("kustomization")))
-			Expect(namespace).To(Equal("wego-system"))
+			Expect(namespace).To(Equal(wego.DefaultNamespace))
 		})
 
 		Context("when using URL", func() {
@@ -515,14 +515,14 @@ var _ = Describe("Add", func() {
 				Expect(url).To(Equal("ssh://git@github.com/user/repo.git"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("wego-test-cluster-repo"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 				name, url, branch, secretRef, namespace = fluxClient.CreateSourceGitArgsForCall(1)
 				Expect(name).To(Equal("bar"))
 				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 
 			It("creates HelmRepository when source type is helm", func() {
@@ -537,7 +537,7 @@ var _ = Describe("Add", func() {
 				name, url, namespace := fluxClient.CreateSourceHelmArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(url).To(Equal("https://charts.kube-ops.io"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 		})
 
@@ -546,7 +546,7 @@ var _ = Describe("Add", func() {
 				repoURL := "ssh://git@github.com/example/my-source"
 				params := AddParams{
 					Name:      "my-app",
-					Namespace: "wego-system",
+					Namespace: wego.DefaultNamespace,
 					Url:       repoURL,
 					Path:      "manifests",
 					Branch:    "main",
@@ -590,13 +590,13 @@ var _ = Describe("Add", func() {
 				Expect(name).To(Equal("repo"))
 				Expect(source).To(Equal("repo"))
 				Expect(path).To(Equal("./kustomize"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 				name, source, path, namespace = fluxClient.CreateKustomizationArgsForCall(1)
 				Expect(name).To(Equal("repo-apps-dir"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("apps/repo"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 
 			It("creates helm release using a helm repository if source type is helm", func() {
@@ -610,7 +610,7 @@ var _ = Describe("Add", func() {
 				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(chart).To(Equal("loki"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal(""))
 			})
 
@@ -627,7 +627,7 @@ var _ = Describe("Add", func() {
 				Expect(name).To(Equal("repo"))
 				Expect(source).To(Equal("repo"))
 				Expect(path).To(Equal("./charts/my-chart"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal(""))
 			})
 
@@ -643,7 +643,7 @@ var _ = Describe("Add", func() {
 				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(chart).To(Equal("loki"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal("sock-shop"))
 			})
 
@@ -661,7 +661,7 @@ var _ = Describe("Add", func() {
 				Expect(name).To(Equal("repo"))
 				Expect(source).To(Equal("repo"))
 				Expect(path).To(Equal("./charts/my-chart"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal("sock-shop"))
 			})
 
@@ -688,11 +688,11 @@ var _ = Describe("Add", func() {
 
 			_, sourceManifest, namespace := kubeClient.ApplyArgsForCall(0)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
-			Expect(namespace).To(Equal("wego-system"))
+			Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 			_, kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(1)
 			Expect(kustomizationManifest).To(Equal([]byte("kustomization")))
-			Expect(namespace).To(Equal("wego-system"))
+			Expect(namespace).To(Equal(wego.DefaultNamespace))
 		})
 
 		It("clones the repo to a temp dir", func() {
@@ -950,7 +950,7 @@ var _ = Describe("Add Gitlab", func() {
 			Branch:         "main",
 			Dir:            ".",
 			DeploymentType: "kustomize",
-			Namespace:      "wego-system",
+			Namespace:      wego.DefaultNamespace,
 			AppConfigUrl:   "NONE",
 			AutoMerge:      true,
 		}
@@ -993,7 +993,7 @@ var _ = Describe("Add Gitlab", func() {
 				Expect(url).To(Equal("ssh://git@gitlab.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 		})
 	})
@@ -1029,7 +1029,7 @@ var _ = Describe("Add Gitlab", func() {
 				Expect(url).To(Equal("ssh://git@gitlab.com/group/subgroup/bar.git"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 		})
 	})

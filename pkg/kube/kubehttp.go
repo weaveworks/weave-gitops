@@ -45,7 +45,6 @@ func CreateScheme() *apiruntime.Scheme {
 	return scheme
 }
 
-const WeGONamespace = "wego-system"
 const WeGOCRDName = "apps.wego.weave.works"
 const FluxNamespace = "flux-system"
 

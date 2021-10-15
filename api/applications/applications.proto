@@ -207,7 +207,7 @@ message ListApplicationsResponse {
 
 message GetApplicationRequest {
     string name      = 1;  // The name of an application
-    string namespace = 2;  // The kubernetes namespace of the application. Default is `wego-system`
+    string namespace = 2;  // The kubernetes namespace of the application.`
 }
 
 message GetApplicationResponse {
