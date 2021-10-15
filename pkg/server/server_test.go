@@ -640,13 +640,9 @@ var _ = Describe("ApplicationsServer", func() {
 				GitProvider: gp,
 			}, nil)
 
-			appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
-				return fakeKube, nil
-			}
+			appFactory.GetKubeServiceReturns(fakeKube, nil)
 
-			gp.CreatePullRequestStub = func(_ context.Context, owner, repoName string, prInfo gitproviders.PullRequestInfo) (gitprovider.PullRequest, error) {
-				return testutils.DummyPullRequest{}, nil
-			}
+			gp.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
 		})
 
 		DescribeTable(
