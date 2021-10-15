@@ -39,12 +39,12 @@ func init() {
 func uninstallRunCmd(cmd *cobra.Command, args []string) error {
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
-	_, fluxClient, kubeClient, logger, clientErr := apputils.GetBaseClients()
-	if clientErr != nil {
-		return clientErr
+	clients, err := apputils.GetBaseClients()
+	if err != nil {
+		return err
 	}
 
-	gitopsService := gitops.New(logger, fluxClient, kubeClient)
+	gitopsService := gitops.New(clients.Logger, clients.Flux, clients.Kube)
 
 	return gitopsService.Uninstall(gitops.UninstallParams{
 		Namespace: namespace,

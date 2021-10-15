@@ -43,6 +43,13 @@ type AppServiceParams struct {
 	Token            string
 }
 
+type AppClients struct {
+	Osys   osys.Osys
+	Flux   flux.Flux
+	Kube   kube.Kube
+	Logger logger.Logger
+}
+
 func (f *DefaultAppFactory) GetAppServiceForAdd(ctx context.Context, params AppServiceParams) (app.AppService, error) {
 	return GetAppServiceForAdd(ctx, params.URL, params.ConfigURL, params.Namespace, params.IsHelmRepository, params.DryRun)
 }
@@ -61,19 +68,24 @@ func GetLogger() logger.Logger {
 	return logger.NewCLILogger(osysClient.Stdout())
 }
 
-func GetBaseClients() (osys.Osys, flux.Flux, kube.Kube, logger.Logger, error) {
+func GetBaseClients() (AppClients, error) {
 	osysClient := osys.New()
 	cliRunner := &runner.CLIRunner{}
 	fluxClient := flux.New(osysClient, cliRunner)
 
 	kubeClient, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("error creating k8s http client: %w", err)
+		return AppClients{}, fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
 	logger := logger.NewCLILogger(osysClient.Stdout())
 
-	return osysClient, fluxClient, kubeClient, logger, nil
+	return AppClients{
+		Osys:   osysClient,
+		Flux:   fluxClient,
+		Kube:   kubeClient,
+		Logger: logger,
+	}, nil
 }
 
 func IsClusterReady() error {
@@ -88,7 +100,7 @@ func IsClusterReady() error {
 }
 
 func GetAppService(ctx context.Context, appName string, namespace string) (app.AppService, error) {
-	osysClient, fluxClient, kubeClient, logger, err := GetBaseClients()
+	clients, err := GetBaseClients()
 	if err != nil {
 		return nil, fmt.Errorf("error initializing clients: %w", err)
 	}
@@ -98,11 +110,11 @@ func GetAppService(ctx context.Context, appName string, namespace string) (app.A
 		return nil, fmt.Errorf("error getting git clients: %w", err)
 	}
 
-	return app.New(ctx, logger, appClient, configClient, gitProvider, fluxClient, kubeClient, osysClient), nil
+	return app.New(ctx, clients.Logger, appClient, configClient, gitProvider, clients.Flux, clients.Kube, clients.Osys), nil
 }
 
 func GetAppServiceForAdd(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool, dryRun bool) (app.AppService, error) {
-	osysClient, fluxClient, kubeClient, logger, err := GetBaseClients()
+	clients, err := GetBaseClients()
 	if err != nil {
 		return nil, fmt.Errorf("error initializing clients: %w", err)
 	}
@@ -112,7 +124,7 @@ func GetAppServiceForAdd(ctx context.Context, url, configUrl, namespace string, 
 		return nil, fmt.Errorf("error getting git clients: %w", err)
 	}
 
-	return app.New(ctx, logger, appClient, configClient, gitProvider, fluxClient, kubeClient, osysClient), nil
+	return app.New(ctx, clients.Logger, appClient, configClient, gitProvider, clients.Flux, clients.Kube, clients.Osys), nil
 }
 
 func getGitClientsForApp(ctx context.Context, appName string, namespace string, dryRun bool) (git.Git, git.Git, gitproviders.GitProvider, error) {

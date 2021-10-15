@@ -48,13 +48,13 @@
         ]
       },
       "post": {
-        "summary": "AddApplication adds an Application to a cluster via GitOps.",
-        "operationId": "Applications_AddApplication",
+        "summary": "RemoveApplication removes an Application from a cluster via GitOps.",
+        "operationId": "Applications_RemoveApplication",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1AddApplicationResponse"
+              "$ref": "#/definitions/v1RemoveApplicationResponse"
             }
           },
           "default": {
@@ -70,7 +70,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1AddApplicationRequest"
+              "$ref": "#/definitions/v1RemoveApplicationRequest"
             }
           }
         ],
@@ -724,6 +724,28 @@
           "type": "integer",
           "format": "int32",
           "description": "A pagination token returned from a previous call\nthat indicates from where listing should continue."
+        }
+      }
+    },
+    "v1RemoveApplicationRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "autoMerge": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1RemoveApplicationResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
         }
       }
     },
