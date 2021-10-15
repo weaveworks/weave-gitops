@@ -104,8 +104,6 @@ func getOwnerFromUrl(url url.URL, providerName GitProviderName) (string, error) 
 
 // detectGitProviderFromUrl accepts a url related to a git repo and
 // returns the name of the provider associated.
-// The raw URL is assumed to be something like ssh://git@github.com/myorg/myrepo.git.
-// The common `git clone` variant of `git@github.com:myorg/myrepo.git` is not supported.
 func detectGitProviderFromUrl(raw string) (GitProviderName, error) {
 	if strings.HasPrefix(raw, "git@") {
 		raw = "ssh://" + raw
@@ -124,7 +122,7 @@ func detectGitProviderFromUrl(raw string) (GitProviderName, error) {
 		return GitProviderGitLab, nil
 	}
 
-	return "", fmt.Errorf("no git providers found for \"%s\"", raw)
+	return "", fmt.Errorf("no git providers found for %q", raw)
 }
 
 // normalizeRepoURLString accepts a url like git@github.com:someuser/podinfo.git and converts it into

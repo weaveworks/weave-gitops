@@ -34,7 +34,7 @@ func (p userGitProvider) RepositoryExists(ctx context.Context, repoUrl RepoURL) 
 func (p userGitProvider) DeployKeyExists(ctx context.Context, repoUrl RepoURL) (bool, error) {
 	userRepo, err := p.getUserRepo(ctx, repoUrl)
 	if err != nil {
-		return false, fmt.Errorf("error getting user repo reference for owner %s, repo %s, %s ", repoUrl.Owner(), repoUrl.RepositoryName(), err)
+		return false, fmt.Errorf("error getting user repo reference for owner %s, repo %s, %w", repoUrl.Owner(), repoUrl.RepositoryName(), err)
 	}
 
 	return deployKeyExists(ctx, userRepo)
@@ -43,7 +43,7 @@ func (p userGitProvider) DeployKeyExists(ctx context.Context, repoUrl RepoURL) (
 func (p userGitProvider) UploadDeployKey(ctx context.Context, repoUrl RepoURL, deployKey []byte) error {
 	userRepo, err := p.getUserRepo(ctx, repoUrl)
 	if err != nil {
-		return fmt.Errorf("error getting user repo reference for owner %s, repo %s, %s ", repoUrl.Owner(), repoUrl.RepositoryName(), err)
+		return fmt.Errorf("error getting user repo reference for owner %s, repo %s, %w", repoUrl.Owner(), repoUrl.RepositoryName(), err)
 	}
 
 	fmt.Println("uploading deploy key")
@@ -98,7 +98,7 @@ func (p userGitProvider) getUserRepo(ctx context.Context, repoUrl RepoURL) (gitp
 func (p userGitProvider) CreatePullRequest(ctx context.Context, repoUrl RepoURL, prInfo PullRequestInfo) (gitprovider.PullRequest, error) {
 	userRepo, err := p.getUserRepo(ctx, repoUrl)
 	if err != nil {
-		return nil, fmt.Errorf("error getting user repo for owner %s, repo %s, %s ", repoUrl.Owner(), repoUrl.RepositoryName(), err)
+		return nil, fmt.Errorf("error getting user repo for owner %s, repo %s, %w", repoUrl.Owner(), repoUrl.RepositoryName(), err)
 	}
 
 	return createPullRequest(ctx, userRepo, prInfo)
@@ -107,7 +107,7 @@ func (p userGitProvider) CreatePullRequest(ctx context.Context, repoUrl RepoURL,
 func (p userGitProvider) GetCommits(ctx context.Context, repoUrl RepoURL, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
 	userRepo, err := p.getUserRepo(ctx, repoUrl)
 	if err != nil {
-		return nil, fmt.Errorf("error getting repo for owner %s, repo %s, %s ", repoUrl.Owner(), repoUrl.RepositoryName(), err)
+		return nil, fmt.Errorf("error getting repo for owner %s, repo %s, %w", repoUrl.Owner(), repoUrl.RepositoryName(), err)
 	}
 
 	return getCommits(ctx, userRepo, targetBranch, pageSize, pageToken)

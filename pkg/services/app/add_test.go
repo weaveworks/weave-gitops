@@ -764,10 +764,7 @@ var _ = Describe("Add", func() {
 	})
 
 	Context("when creating a pull request", func() {
-		var (
-			info *AppResourceInfo
-			// repoUrl gitproviders.RepoURL
-		)
+		var info *AppResourceInfo
 
 		BeforeEach(func() {
 			gitProviders.GetDefaultBranchStub = func(_ context.Context, repoUrl gitproviders.RepoURL) (string, error) {

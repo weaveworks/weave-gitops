@@ -43,7 +43,7 @@ func (p orgGitProvider) DeployKeyExists(ctx context.Context, repoUrl RepoURL) (b
 func (p orgGitProvider) UploadDeployKey(ctx context.Context, repoUrl RepoURL, deployKey []byte) error {
 	orgRepo, err := p.getOrgRepo(ctx, repoUrl)
 	if err != nil {
-		return fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s ", repoUrl.Owner(), repoUrl.RepositoryName(), err)
+		return fmt.Errorf("error getting org repo reference for owner %s, repo %s, %w", repoUrl.Owner(), repoUrl.RepositoryName(), err)
 	}
 
 	fmt.Println("uploading deploy key")
@@ -109,7 +109,7 @@ func (p orgGitProvider) getOrgRepo(ctx context.Context, repoUrl RepoURL) (gitpro
 func (p orgGitProvider) CreatePullRequest(ctx context.Context, repoUrl RepoURL, prInfo PullRequestInfo) (gitprovider.PullRequest, error) {
 	orgRepo, err := p.getOrgRepo(ctx, repoUrl)
 	if err != nil {
-		return nil, fmt.Errorf("error getting org repo for owner %s, repo %s, %s ", repoUrl.Owner(), repoUrl.RepositoryName(), err)
+		return nil, fmt.Errorf("error getting org repo for owner %s, repo %s, %w", repoUrl.Owner(), repoUrl.RepositoryName(), err)
 	}
 
 	return createPullRequest(ctx, orgRepo, prInfo)
@@ -118,7 +118,7 @@ func (p orgGitProvider) CreatePullRequest(ctx context.Context, repoUrl RepoURL, 
 func (p orgGitProvider) GetCommits(ctx context.Context, repoUrl RepoURL, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
 	orgRepo, err := p.getOrgRepo(ctx, repoUrl)
 	if err != nil {
-		return nil, fmt.Errorf("error getting repo for owner %s, repo %s, %s ", repoUrl.Owner(), repoUrl.RepositoryName(), err)
+		return nil, fmt.Errorf("error getting repo for owner %s, repo %s, %w", repoUrl.Owner(), repoUrl.RepositoryName(), err)
 	}
 
 	return getCommits(ctx, orgRepo, targetBranch, pageSize, pageToken)

@@ -131,11 +131,6 @@ type externalRepoManifests struct {
 func (a *App) Add(params AddParams) error {
 	ctx := context.Background()
 
-	// repoUrl, err := gitproviders.NewNormalizedRepoURL(params.Url)
-	// if err != nil {
-	// 	return err
-	// }
-
 	params, err := a.updateParametersIfNecessary(ctx, params)
 	if err != nil {
 		return fmt.Errorf("could not update parameters: %w", err)
