@@ -1276,7 +1276,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 	})
 
-	It("Verify that gitops can deploy multiple helm apps from a helm repo with app-config-url set to <url>", func() {
+	It("FOCUS - Verify that gitops can deploy multiple helm apps from a helm repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var listOutput string
 		var appStatus1 string
@@ -1321,6 +1321,11 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		By("And I create a namespace for helm-app", func() {
 			out, _ := runCommandAndReturnStringOutput("kubectl create ns " + workloadNamespace2)
 			Eventually(out).Should(ContainSubstring("namespace/" + workloadNamespace2 + " created"))
+		})
+
+		By("And I add a invalid entry without --app-config-url set", func() {
+			_, err := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand1, WEGO_DEFAULT_NAMESPACE)
+			Eventually(err).Should(ContainSubstring("--app-config-url should be provided or set to NONE"))
 		})
 
 		By("And I run gitops app add command for 1st app", func() {
