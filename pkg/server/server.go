@@ -155,12 +155,12 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 
 	app, err := kubeClient.GetApplication(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace})
 	if err != nil {
-		return nil, fmt.Errorf("could not get application \"%s\": %w", msg.Name, err)
+		return nil, fmt.Errorf("could not get application %q: %w", msg.Name, err)
 	}
 
 	src, deployment, err := findFluxObjects(app)
 	if err != nil {
-		return nil, fmt.Errorf("could not get flux objects for application \"%s\": %w", app.Name, err)
+		return nil, fmt.Errorf("could not get flux objects for application %q: %w", app.Name, err)
 	}
 
 	name := types.NamespacedName{Name: app.Name, Namespace: app.Namespace}
@@ -345,6 +345,49 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 			Namespace: msg.Namespace,
 		},
 	}, nil
+}
+
+func (s *applicationServer) RemoveApplication(ctx context.Context, msg *pb.RemoveApplicationRequest) (*pb.RemoveApplicationResponse, error) {
+	token, err := middleware.ExtractProviderToken(ctx)
+	if err != nil {
+		return nil, grpcStatus.Errorf(codes.Unauthenticated, "token error: %s", err.Error())
+	}
+
+	kubeClient, err := s.appFactory.GetKubeService()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create kube service: %w", err)
+	}
+
+	application, err := kubeClient.GetApplication(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace})
+	if err != nil {
+		return nil, fmt.Errorf("could not get application %q: %w", msg.Name, err)
+	}
+
+	appSvcParams := apputils.AppServiceParams{
+		URL:              application.Spec.URL,
+		ConfigURL:        application.Spec.ConfigURL,
+		Namespace:        msg.Namespace,
+		IsHelmRepository: application.IsHelmRepository(),
+		Token:            token.AccessToken,
+	}
+
+	appSrv, err := s.appFactory.GetAppService(ctx, appSvcParams)
+	if err != nil {
+		return nil, fmt.Errorf("could not create app service: %w", err)
+	}
+
+	removeParams := app.RemoveParams{
+		Name:             msg.Name,
+		Namespace:        msg.Namespace,
+		DryRun:           false,
+		GitProviderToken: token.AccessToken,
+	}
+
+	if err := appSrv.Remove(removeParams); err != nil {
+		return nil, fmt.Errorf("error removing app: %w", err)
+	}
+
+	return &pb.RemoveApplicationResponse{Success: true}, nil
 }
 
 //Until the middleware is done this function will not be able to get the token and will fail
@@ -564,7 +607,7 @@ func findFluxObjects(app *wego.Application) (client.Object, client.Object, error
 	}
 
 	if src == nil {
-		return nil, nil, fmt.Errorf("invalid source type \"%s\"", st)
+		return nil, nil, fmt.Errorf("invalid source type %q", st)
 	}
 
 	at := app.Spec.DeploymentType
@@ -583,7 +626,7 @@ func findFluxObjects(app *wego.Application) (client.Object, client.Object, error
 	}
 
 	if deployment == nil {
-		return nil, nil, fmt.Errorf("invalid deployment type \"%s\"", at)
+		return nil, nil, fmt.Errorf("invalid deployment type %q", at)
 	}
 
 	return src, deployment, nil

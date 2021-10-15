@@ -109,6 +109,16 @@ service Applications {
             body: "*"
         };
     }
+
+    /*
+    * RemoveApplication removes an Application from a cluster via GitOps.
+    */
+    rpc RemoveApplication(RemoveApplicationRequest) returns (RemoveApplicationResponse) {
+        option (google.api.http) = {
+            post : "/v1/applications"
+            body: "*"
+        };
+    }
 }
 
 // This object represents a single condition for a Kubernetes object.
@@ -217,6 +227,16 @@ message AddApplicationRequest {
 message AddApplicationResponse {
     bool        success        = 1;
     Application application    = 2;
+}
+
+message RemoveApplicationRequest {
+    string name      = 1;
+    string namespace = 2;
+    bool   autoMerge = 3;
+}
+
+message RemoveApplicationResponse {
+    bool success = 1;
 }
 
 message Commit {

@@ -78,6 +78,7 @@ export function withContext(
   return (
     <Router history={history}>
       <AppContextProvider
+        renderFooter
         applicationsClient={createMockClient(appOverrides) as any}
       >
         {isElement ? TestComponent : <TestComponent />}

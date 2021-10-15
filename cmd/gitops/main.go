@@ -9,11 +9,13 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/add"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/flux"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/install"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/ui"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/uninstall"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/upgrade"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
@@ -65,6 +67,8 @@ var rootCmd = &cobra.Command{
 
   # Get the version of gitops along with commit, branch, and flux version
   gitops version
+
+  To learn more, you can find our documentation at https://docs.gitops.weave.works/
 `,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		configureLogger()
@@ -110,6 +114,8 @@ func main() {
 	rootCmd.AddCommand(app.ApplicationCmd)
 	rootCmd.AddCommand(get.GetCommand(&options.endpoint, restyClient))
 	rootCmd.AddCommand(add.GetCommand(&options.endpoint, restyClient))
+	rootCmd.AddCommand(upgrade.Cmd)
+	rootCmd.AddCommand(docs.Cmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)

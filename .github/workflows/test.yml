@@ -33,7 +33,9 @@ jobs:
       with:
         node-version: 14.x
     - name: Install UI Deps
-      run: npm ci
+      run: make ui-deps
+    - name: Check Git State
+      run: git diff --no-ext-diff --exit-code
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: Build UI Assets

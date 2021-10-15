@@ -63,6 +63,7 @@ var ghAuthClient *authfakes.FakeGithubAuthClient
 var gp *gitprovidersfakes.FakeGitProvider
 var appGit *gitfakes.FakeGit
 var configGit *gitfakes.FakeGit
+var appFactory *apputilsfakes.FakeServerAppFactory
 
 func bufDialer(context.Context, string) (net.Conn, error) {
 	return lis.Dial()
@@ -128,7 +129,7 @@ var _ = BeforeEach(func() {
 	gp = &gitprovidersfakes.FakeGitProvider{}
 	gp.GetDefaultBranchReturns("main", nil)
 
-	appFactory := &apputilsfakes.FakeServerAppFactory{}
+	appFactory = &apputilsfakes.FakeServerAppFactory{}
 
 	appGit = &gitfakes.FakeGit{}
 	configGit = &gitfakes.FakeGit{}

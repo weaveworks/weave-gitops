@@ -24,14 +24,20 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/apputils/apputilsfakes"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
+	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/middleware"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -600,6 +606,102 @@ var _ = Describe("ApplicationsServer", func() {
 			Expect(configGit.CommitCallCount()).To(Equal(1), "should have committed to the config git repo")
 			Expect(gp.CreatePullRequestCallCount()).To(Equal(0), "should NOT have made a PR")
 		})
+	})
+
+	Context("RemoveApplication Tests", func() {
+		var ctx context.Context
+		var fakeKube *kubefakes.FakeKube
+		var name string
+
+		BeforeEach(func() {
+			ctx = context.Background()
+			fakeKube = &kubefakes.FakeKube{}
+			name = "my-app"
+
+			osysClient := osys.New()
+
+			appFactory.GetAppServiceReturns(&app.App{
+				Context:     ctx,
+				AppGit:      appGit,
+				ConfigGit:   configGit,
+				Flux:        flux.New(osysClient, &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}}),
+				Kube:        fakeKube,
+				Logger:      &loggerfakes.FakeLogger{},
+				Osys:        osysClient,
+				GitProvider: gp,
+			}, nil)
+
+			appFactory.GetKubeServiceReturns(fakeKube, nil)
+
+			gp.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
+		})
+
+		DescribeTable(
+			"Remove applications",
+			func(
+				url,
+				configurl string,
+				sourceType wego.SourceType,
+				deploymentType wego.DeploymentType,
+				autoMerge bool,
+				commitCount, prCount int,
+			) {
+				application := wego.Application{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      name,
+						Namespace: "wego-system",
+					},
+					Spec: wego.ApplicationSpec{
+						Branch:         "main",
+						Path:           "./k8s",
+						URL:            url,
+						ConfigURL:      configurl,
+						SourceType:     sourceType,
+						DeploymentType: deploymentType,
+					},
+				}
+
+				fakeKube.GetApplicationReturns(&application, nil)
+
+				appRequest := &pb.RemoveApplicationRequest{
+					Name:      name,
+					Namespace: namespace.Name,
+					AutoMerge: autoMerge,
+				}
+				res, err := appsClient.RemoveApplication(contextWithAuth(ctx), appRequest)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(res.Success).To(BeTrue())
+
+				Expect(configGit.CommitCallCount()).To(Equal(commitCount))
+				Expect(gp.CreatePullRequestCallCount()).To(Equal(prCount))
+			},
+			Entry(
+				"kustomize, app repo config, auto merge",
+				"ssh://git@github.com/foo/bar",
+				"",
+				wego.SourceTypeGit,
+				wego.DeploymentTypeKustomize,
+				true,
+				1,
+				0),
+			Entry(
+				"kustomize, external repo config, auto merge",
+				"ssh://git@github.com/foo/bar",
+				"ssh://git@github.com/foo/baz",
+				wego.SourceTypeGit,
+				wego.DeploymentTypeKustomize,
+				true,
+				1,
+				0),
+			Entry(
+				"kustomize, no repo config, auto merge",
+				"ssh://git@github.com/foo/bar",
+				"NONE",
+				wego.SourceTypeGit,
+				wego.DeploymentTypeKustomize,
+				true,
+				0,
+				0))
 	})
 
 	Describe("ListCommits", func() {

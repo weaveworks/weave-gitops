@@ -13,7 +13,7 @@ LDFLAGS = "-X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(
 
 KUBEBUILDER_ASSETS ?= "$(CURRENT_DIR)/tools/bin/envtest"
 
-# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set) 
+# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
 else
@@ -114,7 +114,7 @@ ui-audit: ## Run audit against the UI
 
 ui: ui-deps cmd/gitops/ui/run/dist/main.js ## Build the UI
 
-ui-lib: ui-deps dist/index.js ## Build UI libraries
+ui-lib: ui-deps dist/index.js dist/index.d.ts ## Build UI libraries
 # Remove font files from the npm module.
 	@find dist -type f -iname \*.otf -delete
 	@find dist -type f -iname \*.woff -delete
@@ -131,7 +131,7 @@ cmd/gitops/ui/run/dist/main.js:
 # Runs a test to raise errors if the integration between Gitops Core and EE is
 # in danger of breaking due to package API changes.
 # See the test/library dockerfile and test.sh script for more info.
-lib-test: dependencies
+lib-test: dependencies ## Run the library integration test
 	docker build -t gitops-library-test -f test/library/libtest.dockerfile $(CURRENT_DIR)/test/library
 	docker run -e GITHUB_TOKEN=$$GITHUB_TOKEN -i --rm \
 		-v $(CURRENT_DIR):/go/src/github.com/weaveworks/weave-gitops \
@@ -140,7 +140,7 @@ lib-test: dependencies
 dist/index.js: ui/index.ts
 	npm run build:lib && cp package.json dist
 
-dist/index.d.ts:
+dist/index.d.ts: ui/index.ts
 	npm run typedefs
 
 # Test coverage
