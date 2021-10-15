@@ -37,7 +37,7 @@ var _ = Describe("auth", func() {
 	var namespace *corev1.Namespace
 	testClustername := "test-cluster"
 	repoUrlString := "ssh://git@github.com/my-org/my-repo.git"
-	repoUrl, err := gitproviders.NewNormalizedRepoURL(repoUrlString)
+	repoUrl, err := gitproviders.NewRepoURL(repoUrlString)
 	Expect(err).NotTo(HaveOccurred())
 	BeforeEach(func() {
 		namespace = &corev1.Namespace{}
@@ -122,8 +122,8 @@ var _ = Describe("auth", func() {
 			})
 
 			Context("informs the user that she can use a token for auth", func() {
-				repoUrlGithub, _ := gitproviders.NewNormalizedRepoURL("ssh://git@github.com/my-org/my-repo.git")
-				repoUrlGitlab, _ := gitproviders.NewNormalizedRepoURL("ssh://git@gitlab.com/my-org/my-repo.git")
+				repoUrlGithub, _ := gitproviders.NewRepoURL("ssh://git@github.com/my-org/my-repo.git")
+				repoUrlGitlab, _ := gitproviders.NewRepoURL("ssh://git@gitlab.com/my-org/my-repo.git")
 
 				BeforeEach(func() {
 					osysClient = &osysfakes.FakeOsys{

@@ -249,7 +249,7 @@ func (a *App) updateParametersIfNecessary(ctx context.Context, params AddParams)
 	default:
 		var err error
 
-		appRepoUrl, err = gitproviders.NewNormalizedRepoURL(params.Url)
+		appRepoUrl, err = gitproviders.NewRepoURL(params.Url)
 		if err != nil {
 			return params, fmt.Errorf("error normalizing url: %w", err)
 		}
@@ -262,7 +262,7 @@ func (a *App) updateParametersIfNecessary(ctx context.Context, params AddParams)
 
 	// making sure the config url is in good format
 	if IsExternalConfigUrl(params.AppConfigUrl) {
-		configRepoUrl, err := gitproviders.NewNormalizedRepoURL(params.AppConfigUrl)
+		configRepoUrl, err := gitproviders.NewRepoURL(params.AppConfigUrl)
 		if err != nil {
 			return params, fmt.Errorf("error normalizing url: %w", err)
 		}
@@ -733,14 +733,14 @@ func getAppResourceInfo(app wego.Application, clusterName string) (*AppResourceI
 	)
 
 	if wego.DeploymentType(app.Spec.SourceType) == wego.DeploymentType(wego.SourceTypeGit) {
-		appRepoUrl, err = gitproviders.NewNormalizedRepoURL(app.Spec.URL)
+		appRepoUrl, err = gitproviders.NewRepoURL(app.Spec.URL)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	if app.Spec.ConfigURL != "" && app.Spec.ConfigURL != string(ConfigTypeNone) {
-		configRepoUrl, err = gitproviders.NewNormalizedRepoURL(app.Spec.ConfigURL)
+		configRepoUrl, err = gitproviders.NewRepoURL(app.Spec.ConfigURL)
 		if err != nil {
 			return nil, err
 		}

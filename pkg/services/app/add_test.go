@@ -771,7 +771,7 @@ var _ = Describe("Add", func() {
 
 		BeforeEach(func() {
 			gitProviders.GetDefaultBranchStub = func(_ context.Context, repoUrl gitproviders.RepoURL) (string, error) {
-				addUrl, err := gitproviders.NewNormalizedRepoURL(addParams.Url)
+				addUrl, err := gitproviders.NewRepoURL(addParams.Url)
 				Expect(err).NotTo(HaveOccurred())
 
 				if repoUrl.String() == addUrl.String() {

@@ -122,7 +122,7 @@ func (a *App) getConfigUrlAndBranch(ctx context.Context, info *AppResourceInfo) 
 		configUrl = info.Spec.URL
 	}
 
-	repoUrl, err := gitproviders.NewNormalizedRepoURL(configUrl)
+	repoUrl, err := gitproviders.NewRepoURL(configUrl)
 	if err != nil {
 		return gitproviders.RepoURL{}, "", err
 	}

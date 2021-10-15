@@ -67,7 +67,7 @@ type expectedRepoURL struct {
 }
 
 var _ = DescribeTable("NormalizedRepoURL", func(input string, expected expectedRepoURL) {
-	result, err := NewNormalizedRepoURL(input)
+	result, err := NewRepoURL(input)
 	Expect(err).NotTo(HaveOccurred())
 
 	Expect(result.String()).To(Equal(expected.s))

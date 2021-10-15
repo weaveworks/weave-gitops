@@ -38,14 +38,14 @@ func (f factory) GetAppService(ctx context.Context, params AppServiceParams) (ap
 		return nil, fmt.Errorf("could not create base clients: %w", err)
 	}
 
-	appURL, err := gitproviders.NewNormalizedRepoURL(params.URL)
+	appURL, err := gitproviders.NewRepoURL(params.URL)
 	if err != nil {
 		return nil, fmt.Errorf("error creating normalized url for app url: %w", err)
 	}
 
 	configURL := appURL
 	if params.ConfigURL != "" {
-		configURL, err = gitproviders.NewNormalizedRepoURL(params.ConfigURL)
+		configURL, err = gitproviders.NewRepoURL(params.ConfigURL)
 		if err != nil {
 			return nil, fmt.Errorf("error creating normalized url for config url: %w", err)
 		}
