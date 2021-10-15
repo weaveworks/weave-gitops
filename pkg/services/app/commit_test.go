@@ -13,7 +13,7 @@ var _ = Describe("Get Commits", func() {
 	It("gets commits for a user repo", func() {
 		commitParams := CommitParams{
 			Name:      "test",
-			Namespace: "wego-system",
+			Namespace: wego.DefaultNamespace,
 		}
 
 		application := &wego.Application{
@@ -31,7 +31,7 @@ var _ = Describe("Get Commits", func() {
 	It("gets commits for an org", func() {
 		commitParams := CommitParams{
 			Name:      "test",
-			Namespace: "wego-system",
+			Namespace: wego.DefaultNamespace,
 		}
 
 		application := &wego.Application{
@@ -49,7 +49,7 @@ var _ = Describe("Get Commits", func() {
 	It("fails to get commits for helm", func() {
 		commitParams := CommitParams{
 			Name:      "test",
-			Namespace: "wego-system",
+			Namespace: wego.DefaultNamespace,
 		}
 
 		application := &wego.Application{

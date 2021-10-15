@@ -3,9 +3,11 @@ package upgrade
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"testing"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
@@ -15,6 +17,7 @@ import (
 	pctl_git "github.com/weaveworks/pctl/pkg/git"
 	pctl_git_fake "github.com/weaveworks/pctl/pkg/git/fakes"
 	"github.com/weaveworks/pctl/pkg/install"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
@@ -50,31 +53,31 @@ func TestBuildUpgradeConfigs(t *testing.T) {
 			name:            "Good repo form and GitRepository present",
 			localGitRemote:  "git@github.com:org/repo.git",
 			clusterState:    []runtime.Object{createGitRepository("repo")},
-			upgradeValues:   UpgradeValues{Namespace: "wego-system"},
+			upgradeValues:   UpgradeValues{Namespace: wego.DefaultNamespace},
 			expectedRepo:    "org/repo",
-			expectedGitRepo: "wego-system/repo",
+			expectedGitRepo: filepath.Join(wego.DefaultNamespace, "repo"),
 		},
 		{
 			name:           "Good repo form but GitRepository missing",
 			localGitRemote: "git@github.com:org/repo.git",
-			upgradeValues:  UpgradeValues{Namespace: "wego-system"},
-			expectedErr:    errors.New("couldn't find GitRepository resource \"wego-system/repo\" in the cluster, please specify"),
+			upgradeValues:  UpgradeValues{Namespace: wego.DefaultNamespace},
+			expectedErr:    fmt.Errorf("couldn't find GitRepository resource \"%s/repo\" in the cluster, please specify", wego.DefaultNamespace),
 		},
 		{
 			name:            "Specify an alterative gitRepo",
 			localGitRemote:  "git@github.com:org/repo.git",
 			clusterState:    []runtime.Object{createGitRepository("foo")},
-			upgradeValues:   UpgradeValues{Namespace: "wego-system", GitRepository: "wego-system/foo"},
+			upgradeValues:   UpgradeValues{Namespace: wego.DefaultNamespace, GitRepository: filepath.Join(wego.DefaultNamespace, "foo")},
 			expectedRepo:    "org/repo",
-			expectedGitRepo: "wego-system/foo",
+			expectedGitRepo: filepath.Join(wego.DefaultNamespace, "foo"),
 		},
 		{
 			name:            "Specify an alterative repo",
 			localGitRemote:  "git@github.com:org/repo.git",
 			clusterState:    []runtime.Object{createGitRepository("repo")},
-			upgradeValues:   UpgradeValues{Namespace: "wego-system", RepoOrgAndName: "foo/bar"},
+			upgradeValues:   UpgradeValues{Namespace: wego.DefaultNamespace, RepoOrgAndName: "foo/bar"},
 			expectedRepo:    "foo/bar",
-			expectedGitRepo: "wego-system/repo",
+			expectedGitRepo: filepath.Join(wego.DefaultNamespace, "repo"),
 		},
 	}
 	for _, tt := range tests {
@@ -101,11 +104,11 @@ func TestToUpgradeConfigs(t *testing.T) {
 		HeadBranch:     "upgrade-to-wge",
 		BaseBranch:     "main",
 		CommitMessage:  "lets upgrade!",
-		Namespace:      "wego-system",
+		Namespace:      wego.DefaultNamespace,
 		ProfileBranch:  "main",
 		ConfigMap:      "my-values",
 		Out:            "config/repo/subdir",
-		GitRepository:  "wego-system/repo",
+		GitRepository:  filepath.Join(wego.DefaultNamespace, "repo"),
 	}
 
 	uc, err := toUpgradeConfigs(uv)
@@ -125,17 +128,17 @@ func TestToUpgradeConfigs(t *testing.T) {
 		},
 		InstallConfig: install.Config{
 			RootDir:          "config/repo/subdir/weave-gitops-enterprise",
-			GitRepoNamespace: "wego-system",
+			GitRepoNamespace: wego.DefaultNamespace,
 			GitRepoName:      "repo",
 		},
 		Profile: catalog.Profile{
 			GitRepoConfig: catalog.GitRepoConfig{
 				Name:      "repo",
-				Namespace: "wego-system",
+				Namespace: wego.DefaultNamespace,
 			},
 			ProfileConfig: catalog.ProfileConfig{
 				ConfigMap:     "my-values",
-				Namespace:     "wego-system",
+				Namespace:     wego.DefaultNamespace,
 				SubName:       "weave-gitops-enterprise",
 				ProfileBranch: "main",
 				Path:          "weave-gitops-enterprise",
@@ -184,9 +187,9 @@ func TestUpgrade(t *testing.T) {
 		ProfileBranch: "main",
 		BaseBranch:    "main",
 		CommitMessage: "Upgrade to wge",
-		Namespace:     "wego-system",
+		Namespace:     wego.DefaultNamespace,
 		Out:           configDir,
-		GitRepository: "wego-system/my-app",
+		GitRepository: filepath.Join(wego.DefaultNamespace, "my-app"),
 	})
 	assert.NoError(t, err)
 
@@ -233,7 +236,7 @@ func TestGetGitAuthFromDeployKey(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			kubeClient := makeClient(t, tt.clusterState...)
-			key, err := getGitAuthFromDeployKey(context.Background(), kubeClient, "wego-system")
+			key, err := getGitAuthFromDeployKey(context.Background(), kubeClient, wego.DefaultNamespace)
 			assert.Equal(t, err, tt.expectedErr)
 			if key != nil {
 				assert.Equal(t, tt.expected, key.Name())
@@ -275,7 +278,7 @@ func createSecret() *corev1.Secret {
 	return &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "weave-gitops-enterprise-credentials",
-			Namespace: "wego-system",
+			Namespace: wego.DefaultNamespace,
 		},
 		Type: "Opaque",
 		Data: map[string][]byte{"deploy-key": []byte(testKey)},
@@ -286,7 +289,7 @@ func createGitRepository(name string) *sourcev1.GitRepository {
 	return &sourcev1.GitRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
-			Namespace: "wego-system",
+			Namespace: wego.DefaultNamespace,
 		},
 	}
 }

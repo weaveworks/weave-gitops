@@ -897,7 +897,7 @@ type GetApplicationRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	Name      string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`           // The name of an application
-	Namespace string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"` // The kubernetes namespace of the application. Default is `wego-system`
+	Namespace string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"` // The kubernetes namespace of the application.`
 }
 
 func (x *GetApplicationRequest) Reset() {

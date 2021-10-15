@@ -6,6 +6,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
@@ -26,7 +27,7 @@ var _ = Describe("Install", func() {
 		gitopsSrv = gitops.New(log.NewCLILogger(os.Stderr), fluxClient, kubeClient)
 
 		installParams = gitops.InstallParams{
-			Namespace: "wego-system",
+			Namespace: wego.DefaultNamespace,
 			DryRun:    false,
 		}
 	})
@@ -52,7 +53,7 @@ var _ = Describe("Install", func() {
 		Expect(fluxClient.InstallCallCount()).To(Equal(1))
 
 		namespace, dryRun := fluxClient.InstallArgsForCall(0)
-		Expect(namespace).To(Equal("wego-system"))
+		Expect(namespace).To(Equal(wego.DefaultNamespace))
 		Expect(dryRun).To(Equal(false))
 	})
 
@@ -62,27 +63,27 @@ var _ = Describe("Install", func() {
 
 		_, appCRD, namespace := kubeClient.ApplyArgsForCall(0)
 		Expect(appCRD).To(ContainSubstring("kind: App"))
-		Expect(namespace).To(Equal("wego-system"))
+		Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 		_, serviceAccount, namespace := kubeClient.ApplyArgsForCall(1)
 		Expect(serviceAccount).To(ContainSubstring("kind: ServiceAccount"))
-		Expect(namespace).To(Equal("wego-system"))
+		Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 		_, roleBinding, namespace := kubeClient.ApplyArgsForCall(2)
 		Expect(roleBinding).To(ContainSubstring("kind: RoleBinding"))
-		Expect(namespace).To(Equal("wego-system"))
+		Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 		_, role, namespace := kubeClient.ApplyArgsForCall(3)
 		Expect(role).To(ContainSubstring("kind: Role"))
-		Expect(namespace).To(Equal("wego-system"))
+		Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 		_, service, namespace := kubeClient.ApplyArgsForCall(4)
 		Expect(service).To(ContainSubstring("kind: Service"))
-		Expect(namespace).To(Equal("wego-system"))
+		Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 		_, deployment, namespace := kubeClient.ApplyArgsForCall(5)
 		Expect(deployment).To(ContainSubstring("kind: Deployment"))
-		Expect(namespace).To(Equal("wego-system"))
+		Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 	})
 
@@ -102,7 +103,7 @@ var _ = Describe("Install", func() {
 			Expect(fluxClient.InstallCallCount()).To(Equal(1))
 
 			namespace, dryRun := fluxClient.InstallArgsForCall(0)
-			Expect(namespace).To(Equal("wego-system"))
+			Expect(namespace).To(Equal(wego.DefaultNamespace))
 			Expect(dryRun).To(Equal(true))
 		})
 

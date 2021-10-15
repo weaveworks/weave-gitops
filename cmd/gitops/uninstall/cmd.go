@@ -4,7 +4,10 @@ package uninstall
 // wego installed, the user will be prompted to install wego and then the repository will be added.
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
@@ -22,8 +25,8 @@ var Cmd = &cobra.Command{
 	Use:   "uninstall",
 	Short: "Uninstall GitOps",
 	Long:  `The uninstall command removes GitOps components from the cluster.`,
-	Example: `  # Uninstall GitOps from the wego-system namespace
-  gitops uninstall`,
+	Example: fmt.Sprintf(`  # Uninstall GitOps from the %s namespace
+  gitops uninstall`, wego.DefaultNamespace),
 	RunE:          uninstallRunCmd,
 	SilenceErrors: true,
 	SilenceUsage:  true,
