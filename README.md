@@ -80,7 +80,8 @@ export KUBEBUILDER_ASSETS=../../tools/bin/envtest
 cd pkg/kube
 go test
 ```
-
+#### Executing a subset of tests
+Ginkgo allows you to run a subset of Describe/Context/It specs.  See [Focused Specs](https://onsi.github.io/ginkgo/#focused-specs) for more information
 ### Setup golangci-lint in your editor
 
 Link for golangci-lint editor integration: https://golangci-lint.run/usage/integrations/
