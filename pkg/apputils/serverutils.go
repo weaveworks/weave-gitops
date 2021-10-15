@@ -56,9 +56,9 @@ func (f factory) GetAppService(ctx context.Context, params AppServiceParams) (ap
 		return nil, fmt.Errorf("error creating git provider: %w", err)
 	}
 
-	clients, clientErr := GetBaseClients()
-	if clientErr != nil {
-		return nil, fmt.Errorf("error initializing clients: %w", clientErr)
+	clients, err := GetBaseClients()
+	if err != nil {
+		return nil, fmt.Errorf("error initializing clients: %w", err)
 	}
 
 	// Note that we assume the same git provider here.
