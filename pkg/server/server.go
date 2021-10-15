@@ -353,14 +353,14 @@ func (s *applicationServer) RemoveApplication(ctx context.Context, msg *pb.Remov
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "token error: %s", err.Error())
 	}
 
-	kubeClient, kubeErr := s.appFactory.GetKubeService()
-	if kubeErr != nil {
-		return nil, fmt.Errorf("failed to create kube service: %w", kubeErr)
+	kubeClient, err := s.appFactory.GetKubeService()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create kube service: %w", err)
 	}
 
-	application, appErr := kubeClient.GetApplication(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace})
-	if appErr != nil {
-		return nil, fmt.Errorf("could not get application %q: %w", msg.Name, appErr)
+	application, err := kubeClient.GetApplication(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace})
+	if err != nil {
+		return nil, fmt.Errorf("could not get application %q: %w", msg.Name, err)
 	}
 
 	appSvcParams := apputils.AppServiceParams{
@@ -371,9 +371,9 @@ func (s *applicationServer) RemoveApplication(ctx context.Context, msg *pb.Remov
 		Token:            token.AccessToken,
 	}
 
-	appSrv, srvErr := s.appFactory.GetAppService(ctx, appSvcParams)
-	if srvErr != nil {
-		return nil, fmt.Errorf("could not create app service: %w", srvErr)
+	appSrv, err := s.appFactory.GetAppService(ctx, appSvcParams)
+	if err != nil {
+		return nil, fmt.Errorf("could not create app service: %w", err)
 	}
 
 	removeParams := app.RemoveParams{
@@ -383,8 +383,8 @@ func (s *applicationServer) RemoveApplication(ctx context.Context, msg *pb.Remov
 		GitProviderToken: token.AccessToken,
 	}
 
-	if removeErr := appSrv.Remove(removeParams); removeErr != nil {
-		return nil, fmt.Errorf("error removing app: %w", removeErr)
+	if err := appSrv.Remove(removeParams); err != nil {
+		return nil, fmt.Errorf("error removing app: %w", err)
 	}
 
 	return &pb.RemoveApplicationResponse{Success: true}, nil

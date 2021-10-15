@@ -39,9 +39,9 @@ func init() {
 func uninstallRunCmd(cmd *cobra.Command, args []string) error {
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
-	clients, clientErr := apputils.GetBaseClients()
-	if clientErr != nil {
-		return clientErr
+	clients, err := apputils.GetBaseClients()
+	if err != nil {
+		return err
 	}
 
 	gitopsService := gitops.New(clients.Logger, clients.Flux, clients.Kube)

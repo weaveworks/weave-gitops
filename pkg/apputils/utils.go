@@ -100,9 +100,9 @@ func IsClusterReady() error {
 }
 
 func GetAppService(ctx context.Context, appName string, namespace string) (app.AppService, error) {
-	clients, clientErr := GetBaseClients()
-	if clientErr != nil {
-		return nil, fmt.Errorf("error initializing clients: %w", clientErr)
+	clients, err := GetBaseClients()
+	if err != nil {
+		return nil, fmt.Errorf("error initializing clients: %w", err)
 	}
 
 	appClient, configClient, gitProvider, err := getGitClientsForApp(ctx, appName, namespace, false)
@@ -114,9 +114,9 @@ func GetAppService(ctx context.Context, appName string, namespace string) (app.A
 }
 
 func GetAppServiceForAdd(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool, dryRun bool) (app.AppService, error) {
-	clients, clientErr := GetBaseClients()
-	if clientErr != nil {
-		return nil, fmt.Errorf("error initializing clients: %w", clientErr)
+	clients, err := GetBaseClients()
+	if err != nil {
+		return nil, fmt.Errorf("error initializing clients: %w", err)
 	}
 
 	appClient, configClient, gitProvider, err := getGitClients(ctx, url, configUrl, namespace, isHelmRepository, dryRun)
