@@ -114,11 +114,6 @@ ui-audit: ## Run audit against the UI
 
 ui: ui-deps cmd/gitops/ui/run/dist/main.js ## Build the UI
 
-ui-lib: ui-deps dist/index.js dist/index.d.ts ## Build UI libraries
-# Remove font files from the npm module.
-	@find dist -type f -iname \*.otf -delete
-	@find dist -type f -iname \*.woff -delete
-
 cmd/gitops/ui/run/dist:
 	mkdir -p cmd/gitops/ui/run/dist
 
@@ -136,12 +131,6 @@ lib-test: dependencies ## Run the library integration test
 	docker run -e GITHUB_TOKEN=$$GITHUB_TOKEN -i --rm \
 		-v $(CURRENT_DIR):/go/src/github.com/weaveworks/weave-gitops \
 		 gitops-library-test
-
-dist/index.js: ui/index.ts
-	npm run build:lib && cp package.json dist
-
-dist/index.d.ts: ui/index.ts
-	npm run typedefs
 
 # Test coverage
 

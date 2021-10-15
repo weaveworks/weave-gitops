@@ -65,7 +65,7 @@ jobs:
           registry-url: "https://npm.pkg.github.com"
           scope: "@weaveworks"
       - run: npm install
-      - run: make ui-lib && cd dist && npm publish
+      - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   build-and-push-image:

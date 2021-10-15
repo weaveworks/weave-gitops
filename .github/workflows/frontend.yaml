@@ -47,4 +47,3 @@ jobs:
       - run: make ui-lint
       - run: make ui-test
       - run: make ui-audit
-      - run: make ui-lib
