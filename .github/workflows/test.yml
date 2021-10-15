@@ -175,7 +175,7 @@ jobs:
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega
-        ginkgo --focus=FOCUS --randomizeSuites --reportFile=${{ env. ARTIFACTS_BASE_DIR }}/smoke-test-results.xml -v ./test/acceptance/test/...
+        ginkgo --focus=SmokeTest --randomizeSuites --reportFile=${{ env. ARTIFACTS_BASE_DIR }}/smoke-test-results.xml -v ./test/acceptance/test/...
     - name: Store smoke test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2

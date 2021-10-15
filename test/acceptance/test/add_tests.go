@@ -1276,7 +1276,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 	})
 
-	It("FOCUS - Verify that gitops can deploy multiple helm apps from a helm repo with app-config-url set to <url>", func() {
+	It("Verify that gitops can deploy multiple helm apps from a helm repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var listOutput string
 		var appStatus1 string
