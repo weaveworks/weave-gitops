@@ -1,7 +1,7 @@
 on:
   push:
-    branches:
-      - main
+    # branches:
+    # - main    
   workflow_dispatch:
 
 name: Deploy
@@ -178,3 +178,4 @@ jobs:
         aws-region: us-east-2
     - run: |
         aws s3 cp bin/gitops-${{matrix.os}}-* s3://weave-gitops/
+        aws s3 cp bin/gitops-${{matrix.os}}-* s3://weave-gitops/gitops-${{matrix.os}}-latest
