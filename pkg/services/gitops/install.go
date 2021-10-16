@@ -138,6 +138,7 @@ func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string
 	}
 
 	defer remover()
+
 	manifests := make(map[string][]byte, 3)
 	clusterPath := filepath.Join(".weave-gitops", "clusters", cname)
 
