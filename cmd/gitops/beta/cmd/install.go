@@ -29,10 +29,10 @@ var installCmd = &cobra.Command{
 	Use:   "install",
 	Short: "Install or upgrade GitOps",
 	Long: `The beta install command deploys GitOps in the specified namespace, 
-adds a cluster entry to the GitOps repo, and persists the GitOps runtime int the
+adds a cluster entry to the GitOps repo, and persists the GitOps runtime into the
 repo.`,
 	Example: `  # Install GitOps in the wego-system namespace
-  gitops beta install`,
+  gitops beta install --app-config-url ssh://git@github.com/me/mygitopsrepo.git`,
 	RunE:          installRunCmd,
 	SilenceErrors: true,
 	SilenceUsage:  true,
@@ -48,7 +48,7 @@ repo.`,
 func init() {
 	Cmd.AddCommand(installCmd)
 	installCmd.Flags().BoolVar(&installParams.DryRun, "dry-run", false, "outputs all the manifests that would be installed")
-	installCmd.Flags().StringVar(&installParams.AppConfigURL, "app-config-url", "", "URL of external repository (if any) which will hold automation manifests; NONE to store only in the cluster")
+	installCmd.Flags().StringVar(&installParams.AppConfigURL, "app-config-url", "", "URL of external repository that will hold automation manifests")
 	cobra.CheckErr(installCmd.MarkFlagRequired("app-config-url"))
 }
 
