@@ -34,8 +34,7 @@ var _ = Describe("Install", func() {
 			},
 		}
 		gp := &gitprovidersfakes.FakeGitProvider{}
-		fakeGit := &gitfakes.FakeGit{}
-		// fakeGitClient := git.New(nil, fakeGit)
+		fakeGit = &gitfakes.FakeGit{}
 		fakeGit.WriteStub = func(path string, manifest []byte) error {
 			return nil
 		}
@@ -184,7 +183,6 @@ var _ = Describe("Install", func() {
 		It("calls flux install", func() {
 			manifests, err := gitopsSrv.Install(installParams)
 			Expect(err).ShouldNot(HaveOccurred())
-			fmt.Printf("manifests returned are :%v\n", manifests)
 			Expect(string(manifests)).To(ContainSubstring("manifests"))
 
 			Expect(fluxClient.InstallCallCount()).To(Equal(2))
@@ -192,6 +190,22 @@ var _ = Describe("Install", func() {
 			namespace, dryRun := fluxClient.InstallArgsForCall(0)
 			Expect(namespace).To(Equal("wego-system"))
 			Expect(dryRun).To(Equal(true))
+		})
+	})
+	Context("when app url specified && dry-run", func() {
+		BeforeEach(func() {
+			installParams.AppConfigURL = "ssh://git@github.com/foo/somevalidrepo.git"
+			installParams.DryRun = true
+		})
+		It("skips flux install", func() {
+			_, err := gitopsSrv.Install(installParams)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(kubeClient.ApplyCallCount()).Should(Equal(0), "With dry-run and app-config-url nothing should be sent to k8s")
+		})
+		It("writes no manifests to the repo", func() {
+			_, err := gitopsSrv.Install(installParams)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(fakeGit.WriteCallCount()).Should(Equal(0), "With dry-run and app-config-url nothing should be written to git")
 		})
 	})
 

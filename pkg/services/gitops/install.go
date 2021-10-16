@@ -79,117 +79,113 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 		if err := g.kube.Apply(ctx, wegoAppDeploymentManifest, params.Namespace); err != nil {
 			return nil, fmt.Errorf("could not apply wego-app deployment manifest: %w", err)
 		}
-	}
 
-	if params.AppConfigURL != "" {
-		if err := g.storeManifests(params, systemManifests); err != nil {
-			return nil, fmt.Errorf("failed to store cluster manifests: %v", err)
+		if params.AppConfigURL != "" {
+			cname, err := g.kube.GetClusterName(ctx)
+			if err != nil {
+				g.logger.Warningf("Cluster name not found, using default : %v", err)
+
+				cname = "default"
+			}
+
+			goatManifests, err := g.storeManifests(params, systemManifests, cname)
+			if err != nil {
+				return nil, fmt.Errorf("failed to store cluster manifests: %v", err)
+			}
+
+			g.logger.Actionf("Applying manifests to the cluster")
+			// only apply the system manfiests as the others will get picked up once flux is running
+			if err := g.applyManifestsToK8s(ctx, params.Namespace, goatManifests); err != nil {
+				return nil, fmt.Errorf("failed applying system manifests to cluster %s :%v", cname, err)
+			}
+
 		}
 	}
-
+	// TODO Existing install doesn't expect the systemManifests to be included in the list of manifests returned.
+	// This will need to be changed.
 	return fluxManifests, nil
 }
 
-func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string][]byte) error {
+func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string][]byte, cname string) (map[string][]byte, error) {
 	ctx := context.Background()
 
 	configBranch, err := g.gitProvider.GetDefaultBranch(ctx, params.AppConfigURL)
 	if err != nil {
-		return fmt.Errorf("could not determine default branch for config repository: %v %w", params.AppConfigURL, err)
-	}
-
-	cname, err := g.kube.GetClusterName(ctx)
-	if err != nil {
-		g.logger.Warningf("Cluster name not found, using default : %v", err)
-
-		cname = "default"
+		return nil, fmt.Errorf("could not determine default branch for config repository: %v %w", params.AppConfigURL, err)
 	}
 
 	normalizedURL, err := gitproviders.NewNormalizedRepoURL(params.AppConfigURL)
 	if err != nil {
-		return fmt.Errorf("failed to normalize URL %s: %w", params.AppConfigURL, err)
+		return nil, fmt.Errorf("failed to normalize URL %s: %w", params.AppConfigURL, err)
 	}
 
 	// TODO: pass context
-	// TODO: actual cluster name
 	if g.gitClient == nil {
 		authsvc, err := apputils.GetAuthService(ctx, normalizedURL, params.DryRun)
 		if err != nil {
-			return fmt.Errorf("failed to create auth service for repo %s : %w", params.AppConfigURL, err)
+			return nil, fmt.Errorf("failed to create auth service for repo %s : %w", params.AppConfigURL, err)
 		}
 
 		g.gitClient, err = authsvc.CreateGitClient(ctx, normalizedURL, cname, params.Namespace)
 		if err != nil {
-			return fmt.Errorf("failed to create git client for repo %s : %w", params.AppConfigURL, err)
+			return nil, fmt.Errorf("failed to create git client for repo %s : %w", params.AppConfigURL, err)
 		}
 	}
 
 	remover, _, err := app.CloneRepo(g.gitClient, params.AppConfigURL, configBranch, params.DryRun)
 	if err != nil {
-		return fmt.Errorf("failed to clone configuration repo: %w", err)
+		return nil, fmt.Errorf("failed to clone configuration repo: %w", err)
 	}
 
 	defer remover()
-	// TODO Map (file name, manifest)
 	manifests := make(map[string][]byte, 3)
-	// TODO use path separator
-	clusterPath := ".weave-gitops/clusters/" + cname
+	clusterPath := filepath.Join(".weave-gitops", "clusters", cname)
 
 	gitsource, sourceName, err := g.genSource(cname, configBranch, params)
 	if err != nil {
-		return fmt.Errorf("failed to create source manifest: %w", err)
+		return nil, fmt.Errorf("failed to create source manifest: %w", err)
 	}
 
 	manifests["flux-source-resource.yaml"] = gitsource
 
 	system, err := g.genKustomize(fmt.Sprintf("%s-system", cname), sourceName, configBranch, "."+clusterPath+"/system", params)
 	if err != nil {
-		return fmt.Errorf("failed to create system kustomization manifest: %w", err)
+		return nil, fmt.Errorf("failed to create system kustomization manifest: %w", err)
 	}
 
 	manifests["flux-system-kustomization-resource.yaml"] = system
 
 	user, err := g.genKustomize(fmt.Sprintf("%s-user", cname), sourceName, configBranch, "."+clusterPath+"/user", params)
 	if err != nil {
-		return fmt.Errorf("failed to create user kustomization manifest: %w", err)
+		return nil, fmt.Errorf("failed to create user kustomization manifest: %w", err)
 	}
 
 	manifests["flux-user-kustomization-resource.yaml"] = user
 
-	if !params.DryRun {
-		// if !params.AutoMerge {
-		// 	if err := a.createPullRequestToRepo(info, info.Spec.ConfigURL, appHash, appSpec, appGoat, appSource); err != nil {
-		// 		return err
-		// 	}
-		// } else {
-		g.logger.Actionf("Writing manifests to disk")
+	//TODO add handling for PRs
+	// if !params.AutoMerge {
+	// 	if err := a.createPullRequestToRepo(info, info.Spec.ConfigURL, appHash, appSpec, appGoat, appSource); err != nil {
+	// 		return err
+	// 	}
+	// } else {
+	g.logger.Actionf("Writing manifests to disk")
 
-		if err := g.writeManifestsToGit(filepath.Join(clusterPath, "system"), manifests); err != nil {
-			return fmt.Errorf("failed to write manifests: %w", err)
-		}
-
-		if err := g.writeManifestsToGit(filepath.Join(clusterPath, "system"), systemManifests); err != nil {
-			return fmt.Errorf("failed to write system manifests: %w", err)
-		}
-		// store a .keep file in the user dir
-		userKeep := map[string][]byte{
-			".keep": strconv.AppendQuote(nil, "# keep"),
-		}
-		if err := g.writeManifestsToGit(filepath.Join(clusterPath, "user"), userKeep); err != nil {
-			return fmt.Errorf("failed to write user manifests: %w", err)
-		}
+	if err := g.writeManifestsToGit(filepath.Join(clusterPath, "system"), manifests); err != nil {
+		return nil, fmt.Errorf("failed to write manifests: %w", err)
 	}
 
-	g.logger.Actionf("Applying manifests to the cluster")
-	// only apply the system manfiests as the others will get picked up once flux is running
-	if err := g.applyManifestsToK8s(ctx, params.Namespace, manifests); err != nil {
-		return fmt.Errorf("failed applying system manifests to cluster %s :%v", cname, err)
+	if err := g.writeManifestsToGit(filepath.Join(clusterPath, "system"), systemManifests); err != nil {
+		return nil, fmt.Errorf("failed to write system manifests: %w", err)
 	}
-	// if err := a.applyToCluster(info, params.DryRun, extRepoMan.source, extRepoMan.target, extRepoMan.appDir); err != nil {
-	// 	return fmt.Errorf("could not apply manifests to the cluster: %w", err)
-	// }
+	// store a .keep file in the user dir
+	userKeep := map[string][]byte{
+		".keep": strconv.AppendQuote(nil, "# keep"),
+	}
+	if err := g.writeManifestsToGit(filepath.Join(clusterPath, "user"), userKeep); err != nil {
+		return nil, fmt.Errorf("failed to write user manifests: %w", err)
+	}
 
-	return app.CommitAndPush(g.gitClient, "Add GitOps runtime manifests", params.DryRun, g.logger)
+	return manifests, app.CommitAndPush(g.gitClient, "Add GitOps runtime manifests", params.DryRun, g.logger)
 }
 
 func (g *Gitops) genSource(cname, branch string, params InstallParams) ([]byte, string, error) {

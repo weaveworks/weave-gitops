@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
+	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
@@ -14,6 +15,7 @@ import (
 var (
 	fluxClient *fluxfakes.FakeFlux
 	kubeClient *kubefakes.FakeKube
+	fakeGit    *gitfakes.FakeGit
 	logger     *loggerfakes.FakeLogger
 
 	gitopsSrv gitops.GitopsService
