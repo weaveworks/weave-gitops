@@ -55,25 +55,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("you should choose either --url or the app directory")
 	}
 
-	// if len(args) > 0 {
-	// 	path, err := filepath.Abs(args[0])
-	// 	if err != nil {
-	// 		return errors.Wrap(err, "failed to get absolute path for the repo directory")
-	// 	}
-
-	// 	params.Dir = path
-	// }
-
-	// if urlErr := ensureUrlIsValid(); urlErr != nil {
-	// 	return urlErr
-	// }
-
-	// if readyErr := apputils.IsClusterReady(); readyErr != nil {
-	// 	return readyErr
-	// }
-
-	// isHelmRepository := params.Chart != ""
-
 	//TODO handl helm charts on add
 	appService, appError := apputils.GetAppServiceForAdd(ctx, params.Url, params.AppConfigUrl, params.Namespace, false, params.DryRun)
 	if appError != nil {

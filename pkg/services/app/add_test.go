@@ -1110,7 +1110,6 @@ var _ = Describe("New directory structure", func() {
 
 		err := appSrv.Add(addParams)
 		Expect(err).ShouldNot(HaveOccurred())
-		//Expect(len(manifestsByPath) > 0).To(BeTrue())
 		Expect(manifestsByPath[".weave-gitops/apps/"+addParams.Name+"/kustomization.yaml"]).ToNot(BeNil())
 		cname, err := kubeClient.GetClusterName(context.Background())
 		Expect(err).To(BeNil())

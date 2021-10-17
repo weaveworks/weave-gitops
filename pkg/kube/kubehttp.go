@@ -105,8 +105,6 @@ func RestConfig() (*rest.Config, string, error) {
 			return nil, "", fmt.Errorf("could not get initial context: %w", err)
 		}
 
-		// config, err := rest.InClusterConfig()
-		// if err == rest.ErrNotInCluster {
 		configOverrides := clientcmd.ConfigOverrides{CurrentContext: kubeContext}
 
 		config, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
