@@ -55,9 +55,9 @@ func init() {
 func installRunCmd(cmd *cobra.Command, args []string) error {
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
-	oc, fluxClient, kubeClient, logger, clientErr := apputils.GetBaseClients()
-	if clientErr != nil {
-		return clientErr
+	clients, err := apputils.GetBaseClients()
+	if err != nil {
+		return err
 	}
 
 	normalizedURL, err := gitproviders.NewNormalizedRepoURL(installParams.AppConfigURL)
@@ -70,12 +70,12 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error initializing cli auth handler: %w", err)
 	}
 
-	gitProvider, err := auth.InitGitProvider(normalizedURL, oc, logger, authHandler, gitproviders.GetAccountType)
+	gitProvider, err := auth.InitGitProvider(normalizedURL, clients.Osys, clients.Logger, authHandler, gitproviders.GetAccountType)
 	if err != nil {
 		return fmt.Errorf("error obtaining git provider token: %w", err)
 	}
 
-	gitopsService := gitops.New(logger, fluxClient, kubeClient, gitProvider, nil)
+	gitopsService := gitops.New(clients.Logger, clients.Flux, clients.Kube, gitProvider, nil)
 
 	manifests, err := gitopsService.Install(gitops.InstallParams{
 		Namespace:    namespace,
