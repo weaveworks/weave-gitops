@@ -5,35 +5,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"testing"
 	"time"
-
-	"github.com/stretchr/testify/require"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-func TestExists(t *testing.T) {
-	// Existing file
-	tempFile, err := ioutil.TempFile(t.TempDir(), "")
-	require.NoError(t, err)
-	require.True(t, Exists(tempFile.Name()))
-
-	// Not existing file
-	require.NoError(t, os.Remove(tempFile.Name()))
-	require.False(t, Exists(tempFile.Name()))
-
-	// Existing file
-	tempFolder, err := ioutil.TempDir(t.TempDir(), "")
-	require.NoError(t, err)
-	require.True(t, Exists(tempFolder))
-
-	// Not existing file
-	require.NoError(t, os.Remove(tempFolder))
-	require.False(t, Exists(tempFolder))
-}
-
+var td string
 var _ = Describe("Test common utils", func() {
 
 	It("Verify timedRepeat succeeds at first attempt without updating the current time", func() {
@@ -116,21 +94,52 @@ error occurred some error, retrying in 1s
 		Expect(stdout).To(Equal("my output"))
 
 	})
-})
+	Describe("Test file and folder common utils", func() {
+		BeforeEach(func() {
+			td, err := ioutil.TempDir("", "common_test-")
+			Expect(err).ShouldNot(HaveOccurred())
+			defer os.RemoveAll(td)
+		})
+		It("can check to see if a file exists or not", func() {
 
-func TestMigrateToNewDirStructure(t *testing.T) {
-	tests := []struct {
-		orig string
-		exp  string
-	}{
-		{"foo", "foo"},
-		{"apps/foo/foo.yaml", ".weave-gitops/apps/foo/foo.yaml"},
-		{".wego/apps/foo/foo.yaml", ".weave-gitops/apps/foo/foo.yaml"},
-		{"targets/mycluster/foo/deploy.yaml", ".weave-gitops/apps/foo/deploy.yaml"},
-		{".wego/targets/mycluster/foo/source.yaml", ".weave-gitops/apps/foo/source.yaml"},
-		{"", ""},
-	}
-	for _, i := range tests {
-		require.Equal(t, i.exp, MigrateToNewDirStructure(i.orig))
-	}
-}
+			// Existing file
+			tempFile, err := ioutil.TempFile(td, "")
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(Exists(tempFile.Name())).To(BeTrue())
+
+			// Not existing file
+			Expect(os.Remove(tempFile.Name())).ShouldNot(HaveOccurred())
+			Expect(Exists(tempFile.Name())).To(BeFalse())
+		})
+		It("can check to see if a folder exists or not", func() {
+			// Existing folder
+			tempFolder, err := ioutil.TempDir(td, "")
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(Exists(tempFolder)).To(BeTrue())
+
+			// Not existing folder
+			Expect(os.Remove(tempFolder)).ShouldNot(HaveOccurred())
+			Expect(Exists(tempFolder)).To(BeFalse())
+
+		})
+	})
+	Describe("Convert old paths to new directory structure", func() {
+
+		It("correctly translates multiple paths into new structure", func() {
+			tests := []struct {
+				orig string
+				exp  string
+			}{
+				{"foo", "foo"},
+				{"apps/foo/foo.yaml", ".weave-gitops/apps/foo/foo.yaml"},
+				{".wego/apps/foo/foo.yaml", ".weave-gitops/apps/foo/foo.yaml"},
+				{"targets/mycluster/foo/deploy.yaml", ".weave-gitops/apps/foo/deploy.yaml"},
+				{".wego/targets/mycluster/foo/source.yaml", ".weave-gitops/apps/foo/source.yaml"},
+				{"", ""},
+			}
+			for _, i := range tests {
+				Expect(MigrateToNewDirStructure(i.orig)).To(Equal(i.exp))
+			}
+		})
+	})
+})
