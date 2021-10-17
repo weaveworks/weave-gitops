@@ -290,7 +290,7 @@ metadata:
 			}
 
 		})
-		It("errors when no pointing to a missing kubeconfig file", func() {
+		It("errors when not pointing at a missing kubeconfig file", func() {
 			kube.InClusterConfig = func() (*rest.Config, error) { return nil, rest.ErrNotInCluster }
 			origkc := os.Getenv("KUBECONFIG")
 			defer os.Setenv("KUBECONFIG", origkc)
