@@ -66,7 +66,7 @@ type expectedRepoURL struct {
 	protocol RepositoryURLProtocol
 }
 
-var _ = DescribeTable("NormalizedRepoURL", func(input string, expected expectedRepoURL) {
+var _ = DescribeTable("NewRepoURL", func(input string, expected expectedRepoURL) {
 	result, err := NewRepoURL(input)
 	Expect(err).NotTo(HaveOccurred())
 
