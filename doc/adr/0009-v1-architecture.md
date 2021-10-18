@@ -179,7 +179,13 @@ Q: **When does a function belong on the model and when does it belong in a servi
 A: Models reciever methods should be focused on performing common data manipulation operations on their parent object. An example of a good use of model methods would be a method that converts the model object into another type. An example of a bad use of model methods would be a method that retrieves something from a cluster or external HTTP API server.
 
 Q: **Can two models satisfy the same interface**?
-A: Yup
+A: Yes. For example, if we wanted both `HelmReleases` and `Kustomizations` to implement an `Automation` interface, like so:
+```golang
+type Automation interface {
+  ToAutomationYaml()
+}
+```
+Then a function can specify the `Automation` interface as an argument and receive either `model` object.
 
 Q: **Should model functions be on pointers (func (f \*foo) vs (f foo)) so that they can manipulate the model?**
 A: Typically, we would want the reciever to be passed by value. If we are manipulating data of a Model instance, that may be an indication that we should use a service or return another type instead.
