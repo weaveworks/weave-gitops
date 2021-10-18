@@ -12,7 +12,7 @@ import (
 // addCmd represents the add command
 var addCmd = &cobra.Command{
 	Use:   "add",
-	Short: "This is for adding content to the GitOps repo",
+	Short: "Add content to the GitOps repo",
 }
 
 func init() {

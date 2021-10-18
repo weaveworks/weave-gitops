@@ -133,10 +133,10 @@ error occurred some error, retrying in 1s
 				exp  string
 			}{
 				{"foo", "foo"},
-				{"apps/foo/foo.yaml", filepath.Join(git.WegoRoot, git.WegoAppDir, "foo", "foo.yaml")},
-				{".wego/apps/foo/foo.yaml", filepath.Join(git.WegoRoot, git.WegoAppDir, "foo", "foo.yaml")},
-				{"targets/mycluster/foo/deploy.yaml", filepath.Join(git.WegoRoot, git.WegoAppDir, "foo", "deploy.yaml")},
-				{".wego/targets/mycluster/foo/source.yaml", filepath.Join(git.WegoRoot, git.WegoAppDir, "foo", "source.yaml")},
+				{filepath.Join("apps", "foo", "foo.yaml"), filepath.Join(git.WegoRoot, git.WegoAppDir, "foo", "foo.yaml")},
+				{filepath.Join(".wego", "apps", "foo", "foo.yaml"), filepath.Join(git.WegoRoot, git.WegoAppDir, "foo", "foo.yaml")},
+				{filepath.Join("targets", "mycluster", "foo", "deploy.yaml"), filepath.Join(git.WegoRoot, git.WegoAppDir, "foo", "deploy.yaml")},
+				{filepath.Join(".wego", "targets", "mycluster", "foo", "source.yaml"), filepath.Join(git.WegoRoot, git.WegoAppDir, "foo", "source.yaml")},
 				{"", ""},
 			}
 			for _, i := range tests {

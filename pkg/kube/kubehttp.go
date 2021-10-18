@@ -56,8 +56,8 @@ var (
 	GVRHelmRelease    schema.GroupVersionResource = helmv2.GroupVersion.WithResource("helmreleases")
 )
 
-// InClusterConnfig defines a function for checking if this code is executing in kubernetes.
-// This can be overriden if the needed.
+// InClusterConfig defines a function for checking if this code is executing in kubernetes.
+// This can be overriden if needed.
 var InClusterConfig func() (*rest.Config, error) = func() (*rest.Config, error) {
 	return rest.InClusterConfig()
 }
@@ -100,7 +100,7 @@ func RestConfig() (*rest.Config, string, error) {
 	if err == rest.ErrNotInCluster {
 		cfgLoadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
 
-		kubeContext, clusterName, err = initialContexts(cfgLoadingRules)
+		kubeContext, clusterName, err = initialContext(cfgLoadingRules)
 		if err != nil {
 			return nil, "", fmt.Errorf("could not get initial context: %w", err)
 		}
@@ -329,7 +329,7 @@ func (k *KubeHTTP) GetResource(ctx context.Context, name types.NamespacedName, r
 	return nil
 }
 
-func initialContexts(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (currentCtx, clusterName string, err error) {
+func initialContext(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (currentCtx, clusterName string, err error) {
 	rules, err := cfgLoadingRules.Load()
 	if err != nil {
 		return currentCtx, clusterName, err

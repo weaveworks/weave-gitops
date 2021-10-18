@@ -35,9 +35,7 @@ var _ = Describe("Install", func() {
 		}
 		gp := &gitprovidersfakes.FakeGitProvider{}
 		fakeGit = &gitfakes.FakeGit{}
-		fakeGit.WriteStub = func(path string, manifest []byte) error {
-			return nil
-		}
+		fakeGit.WriteReturns(nil)
 
 		dir, err := ioutil.TempDir("", "wego-install-test-")
 		Expect(err).ShouldNot(HaveOccurred())
@@ -176,9 +174,7 @@ var _ = Describe("Install", func() {
 	Context("when app url specified", func() {
 		BeforeEach(func() {
 			installParams.AppConfigURL = "ssh://git@github.com/foo/somevalidrepo.git"
-			fluxClient.InstallStub = func(s string, b bool) ([]byte, error) {
-				return []byte("manifests"), nil
-			}
+			fluxClient.InstallReturns([]byte("manifests"), nil)
 		})
 		It("calls flux install", func() {
 			manifests, err := gitopsSrv.Install(installParams)

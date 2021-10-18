@@ -13,7 +13,7 @@ import (
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "This is for initializing a GitOps repo",
+	Short: "Initialize a git repo into a GitOps repo",
 	Long: `This will add the base directory structure
 to a repository so that it can be used in the add and 
 install commands.`,

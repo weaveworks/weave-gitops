@@ -39,10 +39,6 @@ repo.`,
 	PostRun: func(cmd *cobra.Command, args []string) {
 		version.CheckVersion(version.CheckpointParamsWithFlags(version.CheckpointParams(), cmd))
 	},
-
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("install called")
-	},
 }
 
 func init() {

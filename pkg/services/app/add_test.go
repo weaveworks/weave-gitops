@@ -1086,16 +1086,16 @@ var _ = Describe("New directory structure", func() {
 		gitClient.WriteStub = func(path string, manifest []byte) error {
 			manifestsByPath[path] = manifest
 			if (repoPath) != "" {
-				Expect(os.MkdirAll(filepath.Join(repoPath, path[:strings.LastIndex(path, string(filepath.Separator))]), 0700)).To(Succeed(), "failed creating directory")
-				Expect(os.WriteFile(filepath.Join(repoPath, path), manifest, 0666)).To(Succeed(), "failed writting file", path)
+				Expect(os.MkdirAll(filepath.Join(repoPath, filepath.Dir(path)), 0700)).To(Succeed(), "failed creating directory")
+				Expect(os.WriteFile(filepath.Join(repoPath, path), manifest, 0666)).To(Succeed(), "failed writing file", path)
 			}
 			return nil //storeCreatedResource(manifest)
 		}
 		gitClient.CloneStub = func(arg1 context.Context, dir string, arg3 string, arg4 string) (bool, error) {
 			for p, m := range manifestsByPath {
 				// Put the manifests files written so far into this new clone dir
-				Expect(os.MkdirAll(filepath.Join(dir, p[:strings.LastIndex(p, string(filepath.Separator))]), 0700)).To(Succeed(), "failed creating directory")
-				Expect(os.WriteFile(filepath.Join(dir, p), m, 0666)).To(Succeed(), "failed writting file", p)
+				Expect(os.MkdirAll(filepath.Join(dir, filepath.Dir(p)), 0700)).To(Succeed(), "failed creating directory")
+				Expect(os.WriteFile(filepath.Join(dir, p), m, 0666)).To(Succeed(), "failed writing file", p)
 
 			}
 
@@ -1108,8 +1108,7 @@ var _ = Describe("New directory structure", func() {
 	It("adds app to the cluster kustomization file", func() {
 		addParams.SourceType = wego.SourceTypeGit
 
-		err := appSrv.Add(addParams)
-		Expect(err).ShouldNot(HaveOccurred())
+		Expect(appSrv.Add(addParams)).ShouldNot(HaveOccurred())
 		Expect(manifestsByPath[filepath.Join(git.WegoRoot, git.WegoAppDir, addParams.Name, "kustomization.yaml")]).ToNot(BeNil())
 		cname, err := kubeClient.GetClusterName(context.Background())
 		Expect(err).To(BeNil())
@@ -1118,8 +1117,7 @@ var _ = Describe("New directory structure", func() {
 
 		manifestMap := map[string]interface{}{}
 
-		err = yaml.Unmarshal(clusterKustomizeFile, &manifestMap)
-		Expect(err).ShouldNot(HaveOccurred())
+		Expect(yaml.Unmarshal(clusterKustomizeFile, &manifestMap)).ShouldNot(HaveOccurred())
 		r := manifestMap["resources"].([]interface{})
 		Expect(len(r)).To(Equal(1))
 		Expect(r[0].(string)).To(Equal("../../../apps/" + addParams.Name))
@@ -1127,11 +1125,9 @@ var _ = Describe("New directory structure", func() {
 	It("adds second app to the cluster kustomization file", func() {
 		addParams.SourceType = wego.SourceTypeGit
 		origName := addParams.Name
-		err := appSrv.Add(addParams)
-		Expect(err).ShouldNot(HaveOccurred())
+		Expect(appSrv.Add(addParams)).ShouldNot(HaveOccurred())
 		addParams.Name = "sally"
-		err = appSrv.Add(addParams)
-		Expect(err).ShouldNot(HaveOccurred())
+		Expect(appSrv.Add(addParams)).ShouldNot(HaveOccurred())
 		Expect(manifestsByPath[filepath.Join(git.WegoRoot, git.WegoAppDir, addParams.Name, "kustomization.yaml")]).ToNot(BeNil())
 		cname, err := kubeClient.GetClusterName(context.Background())
 		Expect(err).To(BeNil())

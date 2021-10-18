@@ -290,12 +290,15 @@ metadata:
 			}
 
 		})
-		It("errors when not pointing at a missing kubeconfig file", func() {
+		It("errors when pointing at a missing kubeconfig file", func() {
+			t, err := ioutil.TempFile("", "not_a_kubeconfig")
+			Expect(err).ToNot(HaveOccurred())
+			defer os.Remove(t.Name())
 			kube.InClusterConfig = func() (*rest.Config, error) { return nil, rest.ErrNotInCluster }
 			origkc := os.Getenv("KUBECONFIG")
 			defer os.Setenv("KUBECONFIG", origkc)
-			os.Setenv("KUBECONFIG", "")
-			_, _, err := kube.RestConfig()
+			os.Setenv("KUBECONFIG", t.Name())
+			_, _, err = kube.RestConfig()
 			Expect(err).To(HaveOccurred(), "Should receive an error about invalid kubeconfig ")
 
 		})

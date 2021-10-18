@@ -24,7 +24,7 @@ var AppCmd = &cobra.Command{
 	Use:   "app",
 	Short: "Adds an application workload to the GitOps repository",
 	Long: `This command mirrors the original app add command in 
-	that it add the definition for the application to the repository 
+	that it adds the definition for the application to the repository 
 	and sets up syncing into a cluster. It uses the new directory
 	structure.`,
 	RunE: runCmd,
@@ -40,7 +40,7 @@ var AppCmd = &cobra.Command{
 func init() {
 	AppCmd.Flags().StringVar(&params.Url, "url", "", "Url of remote repository")
 	AppCmd.Flags().StringVar(&params.AppConfigUrl, "app-config-url", "", "Url of external repository (if any) which will hold automation manifests; NONE to store only in the cluster")
-	AppCmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'gitops app add' will not make any changes to the system; it will just display the actions that would have been taken")
+	AppCmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'gitops add app' will not make any changes to the system; it will just display the actions that would have been taken")
 	cobra.CheckErr(AppCmd.MarkFlagRequired("app-config-url"))
 
 	// TODO expose support for PRs
