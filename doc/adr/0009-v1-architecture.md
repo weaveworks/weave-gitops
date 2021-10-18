@@ -52,7 +52,7 @@ Here are the proposed parts of the codebase:
 - Adapters can be incoming or outgoing
 - Models do not use Adapters directly
 - An example incoming adapter would be the HTTP API server
-- An example outgoing adapter would be a Kubernetes client or `go-git-providers` client.
+- An example outgoing adapter would be a Kubernetes client or [go-git-providers](https://github.com/fluxcd/go-git-providers) client.
 
 ### Example Implementation (psuedo-code)
 
