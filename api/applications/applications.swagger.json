@@ -48,13 +48,13 @@
         ]
       },
       "post": {
-        "summary": "RemoveApplication removes an Application from a cluster via GitOps.",
-        "operationId": "Applications_RemoveApplication",
+        "summary": "AddApplication adds an Application to a cluster via GitOps.",
+        "operationId": "Applications_AddApplication",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1RemoveApplicationResponse"
+              "$ref": "#/definitions/v1AddApplicationResponse"
             }
           },
           "default": {
@@ -70,7 +70,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1RemoveApplicationRequest"
+              "$ref": "#/definitions/v1AddApplicationRequest"
             }
           }
         ],
@@ -251,6 +251,47 @@
             "in": "query",
             "required": false,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "Applications"
+        ]
+      },
+      "delete": {
+        "summary": "RemoveApplication removes an Application from a cluster via GitOps.",
+        "operationId": "Applications_RemoveApplication",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RemoveApplicationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "autoMerge",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
           }
         ],
         "tags": [
@@ -724,20 +765,6 @@
           "type": "integer",
           "format": "int32",
           "description": "A pagination token returned from a previous call\nthat indicates from where listing should continue."
-        }
-      }
-    },
-    "v1RemoveApplicationRequest": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "autoMerge": {
-          "type": "boolean"
         }
       }
     },
