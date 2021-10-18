@@ -35,7 +35,7 @@ jobs:
       with:
         node-version: 14.x
     - name: Install UI Deps
-      run: make ui-deps
+      run: make node_modules
     - name: Check Git State
       run: git diff --no-ext-diff --exit-code
     - name: Fake Install flux
