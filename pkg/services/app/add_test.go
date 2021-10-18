@@ -1122,7 +1122,6 @@ var _ = Describe("New directory structure", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 		r := manifestMap["resources"].([]interface{})
 		Expect(len(r)).To(Equal(1))
-		//		Expect(r[0].([]string)[0]).To(Equal("foobar"))
 		Expect(r[0].(string)).To(Equal("../../../apps/" + addParams.Name))
 	})
 	It("adds second app to the cluster kustomization file", func() {
@@ -1144,7 +1143,6 @@ var _ = Describe("New directory structure", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 		r := manifestMap["resources"].([]interface{})
 		Expect(len(r)).To(Equal(2))
-		//		Expect(r[0].([]string)[0]).To(Equal("foobar"))
 		Expect(r[0].(string)).To(Equal("../../../apps/" + origName))
 		Expect(r[1].(string)).To(Equal("../../../apps/" + addParams.Name))
 	})
