@@ -426,9 +426,7 @@ var _ = Describe("Add", func() {
 				goodNamespaceErr := appSrv.Add(addParams)
 				Expect(goodNamespaceErr).ShouldNot(HaveOccurred())
 
-				kubeClient.NamespacePresentStub = func(ctx context.Context, namespace string) (bool, error) {
-					return false, nil
-				}
+				kubeClient.NamespacePresentReturns(false, nil)
 
 				badNamespaceErr := appSrv.Add(addParams)
 				Expect(badNamespaceErr.Error()).To(HavePrefix("could not update parameters: Helm Release Target Namespace sock-shop does not exist"))
