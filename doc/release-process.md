@@ -10,11 +10,15 @@ The current release process for weave gitops is fairly straightforward. You need
 - Update `package.json` and `package-lock.json` . These changes must be on `main` before creating a release.
   - Update the package.json `version` field to reflect the new version.
   - Run `npm ci` to update the file `package-lock.json`.
-- Go to the `Releases` page for the weave-gitops repository
-- Click on `Draft a New Release`
-- Fill in the `Tag Version` field with the new version (format: `vN.N.N` or `vN.N.N-rc.N` for a pre-release). We have configured go-releaser to implicitly make a version ending in `-rc.N` a pre-release and one without the `rc-N` a full release (but that can be changed after the fact by editing the release if so desired).
-- Fill in the `Release Title` with the same version from the `Tag Version`
-- Click on `Publish Release`
+- In the terminal on main branch run `./tools/tag-release.sh <arg>` 
+  - Args for tag-release.sh are:
+    - -d Dry run
+    - -M for a major release candidate"
+    - -m for a minor release candidate"
+    - -p for a patch release candidate"
+    - -r for a full release"
+- A release candidate is needed to do a full release. First create a release candidate (example patch release candidate `./tools/tag-release.sh -p`)
+- After a release candidate is created a full release can be made with `./tools/tag-release.sh -r`
 
 The go-releaser will spin for a bit, generating a changelog and artifacts.
 

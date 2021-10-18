@@ -1,13 +1,15 @@
 package adapters
 
 import (
+	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/weaveworks/weave-gitops/pkg/templates"
+	"github.com/weaveworks/weave-gitops/pkg/capi"
+	"github.com/weaveworks/weave-gitops/pkg/clusters"
 )
 
 const (
@@ -15,7 +17,7 @@ const (
 )
 
 // An HTTP client of the cluster service.
-type HttpClient struct {
+type HTTPClient struct {
 	baseURI *url.URL
 	client  *resty.Client
 }
@@ -27,7 +29,7 @@ type ServiceError struct {
 
 // NewHttpClient creates a new HTTP client of the cluster service.
 // The endpoint is expected to be an absolute HTTP URI.
-func NewHttpClient(endpoint string, client *resty.Client, out io.Writer) (*HttpClient, error) {
+func NewHttpClient(endpoint string, client *resty.Client, out io.Writer) (*HTTPClient, error) {
 	u, err := url.ParseRequestURI(endpoint)
 	if err != nil {
 		return nil, err
@@ -35,29 +37,34 @@ func NewHttpClient(endpoint string, client *resty.Client, out io.Writer) (*HttpC
 
 	client = client.SetHostURL(u.String()).
 		OnAfterResponse(func(c *resty.Client, r *resty.Response) error {
+			if r.StatusCode() >= http.StatusInternalServerError {
+				fmt.Fprintf(out, "Server error: %s\n", r.Body())
+				return nil
+			}
+
 			if m := r.Header().Get(expiredHeaderName); m != "" {
 				fmt.Fprintln(out, m)
 			}
 			return nil
 		})
 
-	return &HttpClient{
+	return &HTTPClient{
 		baseURI: u,
 		client:  client,
 	}, nil
 }
 
 // Source returns the endpoint of the cluster service.
-func (c *HttpClient) Source() string {
+func (c *HTTPClient) Source() string {
 	return c.baseURI.String()
 }
 
 // RetrieveTemplates returns the list of all templates from the cluster service.
-func (c *HttpClient) RetrieveTemplates() ([]templates.Template, error) {
+func (c *HTTPClient) RetrieveTemplates() ([]capi.Template, error) {
 	endpoint := "v1/templates"
 
 	type ListTemplatesResponse struct {
-		Templates []*templates.Template
+		Templates []*capi.Template
 	}
 
 	var templateList ListTemplatesResponse
@@ -74,10 +81,50 @@ func (c *HttpClient) RetrieveTemplates() ([]templates.Template, error) {
 		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
 	}
 
-	var ts []templates.Template
+	var ts []capi.Template
 	for _, t := range templateList.Templates {
-		ts = append(ts, templates.Template{
+		ts = append(ts, capi.Template{
 			Name:        t.Name,
+			Provider:    t.Provider,
+			Description: t.Description,
+			Error:       t.Error,
+		})
+	}
+
+	return ts, nil
+}
+
+// RetrieveTemplatesByProvider returns the list of all templates for a given
+// provider from the cluster service.
+func (c *HTTPClient) RetrieveTemplatesByProvider(provider string) ([]capi.Template, error) {
+	endpoint := "v1/templates"
+
+	type ListTemplatesResponse struct {
+		Templates []*capi.Template
+	}
+
+	var templateList ListTemplatesResponse
+	res, err := c.client.R().
+		SetHeader("Accept", "application/json").
+		SetQueryParams(map[string]string{
+			"provider": provider,
+		}).
+		SetResult(&templateList).
+		Get(endpoint)
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to GET templates from %q: %w", res.Request.URL, err)
+	}
+
+	if res.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
+	}
+
+	var ts []capi.Template
+	for _, t := range templateList.Templates {
+		ts = append(ts, capi.Template{
+			Name:        t.Name,
+			Provider:    t.Provider,
 			Description: t.Description,
 		})
 	}
@@ -87,11 +134,11 @@ func (c *HttpClient) RetrieveTemplates() ([]templates.Template, error) {
 
 // RetrieveTemplateParameters returns the list of all parameters of the
 // specified template.
-func (c *HttpClient) RetrieveTemplateParameters(name string) ([]templates.TemplateParameter, error) {
+func (c *HTTPClient) RetrieveTemplateParameters(name string) ([]capi.TemplateParameter, error) {
 	endpoint := "v1/templates/{name}/params"
 
 	type ListTemplateParametersResponse struct {
-		Parameters []*templates.TemplateParameter
+		Parameters []*capi.TemplateParameter
 	}
 
 	var templateParametersList ListTemplateParametersResponse
@@ -111,9 +158,9 @@ func (c *HttpClient) RetrieveTemplateParameters(name string) ([]templates.Templa
 		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
 	}
 
-	var tps []templates.TemplateParameter
+	var tps []capi.TemplateParameter
 	for _, p := range templateParametersList.Parameters {
-		tps = append(tps, templates.TemplateParameter{
+		tps = append(tps, capi.TemplateParameter{
 			Name:        p.Name,
 			Description: p.Description,
 			Required:    p.Required,
@@ -126,13 +173,13 @@ func (c *HttpClient) RetrieveTemplateParameters(name string) ([]templates.Templa
 
 // RenderTemplateWithParameters returns a YAML representation of the specified
 // template populated with the supplied parameters.
-func (c *HttpClient) RenderTemplateWithParameters(name string, parameters map[string]string, creds templates.Credentials) (string, error) {
+func (c *HTTPClient) RenderTemplateWithParameters(name string, parameters map[string]string, creds capi.Credentials) (string, error) {
 	endpoint := "v1/templates/{name}/render"
 
 	// POST request payload
 	type TemplateParameterValuesAndCredentials struct {
-		Values      map[string]string     `json:"values"`
-		Credentials templates.Credentials `json:"credentials"`
+		Values      map[string]string `json:"values"`
+		Credentials capi.Credentials  `json:"credentials"`
 	}
 
 	// POST response payload
@@ -171,20 +218,20 @@ func (c *HttpClient) RenderTemplateWithParameters(name string, parameters map[st
 
 // CreatePullRequestFromTemplate commits the YAML template to the specified
 // branch and creates a pull request of that branch.
-func (c *HttpClient) CreatePullRequestFromTemplate(params templates.CreatePullRequestFromTemplateParams) (string, error) {
+func (c *HTTPClient) CreatePullRequestFromTemplate(params capi.CreatePullRequestFromTemplateParams) (string, error) {
 	endpoint := "v1/clusters"
 
 	// POST request payload
 	type CreatePullRequestFromTemplateRequest struct {
-		RepositoryURL   string                `json:"repositoryUrl"`
-		HeadBranch      string                `json:"headBranch"`
-		BaseBranch      string                `json:"baseBranch"`
-		Title           string                `json:"title"`
-		Description     string                `json:"description"`
-		TemplateName    string                `json:"templateName"`
-		ParameterValues map[string]string     `json:"parameter_values"`
-		CommitMessage   string                `json:"commitMessage"`
-		Credentials     templates.Credentials `json:"credentials"`
+		RepositoryURL   string            `json:"repositoryUrl"`
+		HeadBranch      string            `json:"headBranch"`
+		BaseBranch      string            `json:"baseBranch"`
+		Title           string            `json:"title"`
+		Description     string            `json:"description"`
+		TemplateName    string            `json:"templateName"`
+		ParameterValues map[string]string `json:"parameter_values"`
+		CommitMessage   string            `json:"commitMessage"`
+		Credentials     capi.Credentials  `json:"credentials"`
 	}
 
 	// POST response payload
@@ -229,11 +276,11 @@ func (c *HttpClient) CreatePullRequestFromTemplate(params templates.CreatePullRe
 }
 
 // RetrieveCredentials returns a list of all CAPI credentials.
-func (c *HttpClient) RetrieveCredentials() ([]templates.Credentials, error) {
+func (c *HTTPClient) RetrieveCredentials() ([]capi.Credentials, error) {
 	endpoint := "v1/credentials"
 
 	type ListCredentialsResponse struct {
-		Credentials []*templates.Credentials
+		Credentials []*capi.Credentials
 		Total       int32
 	}
 
@@ -252,9 +299,9 @@ func (c *HttpClient) RetrieveCredentials() ([]templates.Credentials, error) {
 		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
 	}
 
-	var creds []templates.Credentials
+	var creds []capi.Credentials
 	for _, c := range credentialsList.Credentials {
-		creds = append(creds, templates.Credentials{
+		creds = append(creds, capi.Credentials{
 			Group:     c.Group,
 			Version:   c.Version,
 			Kind:      c.Kind,
@@ -267,8 +314,8 @@ func (c *HttpClient) RetrieveCredentials() ([]templates.Credentials, error) {
 }
 
 // RetrieveCredentialsByName returns a specific set of CAPI credentials.
-func (c *HttpClient) RetrieveCredentialsByName(name string) (templates.Credentials, error) {
-	var creds templates.Credentials
+func (c *HTTPClient) RetrieveCredentialsByName(name string) (capi.Credentials, error) {
+	var creds capi.Credentials
 
 	credsList, err := c.RetrieveCredentials()
 	if err != nil {
@@ -277,7 +324,7 @@ func (c *HttpClient) RetrieveCredentialsByName(name string) (templates.Credentia
 
 	for _, c := range credsList {
 		if c.Name == name {
-			creds = templates.Credentials{
+			creds = capi.Credentials{
 				Group:     c.Group,
 				Version:   c.Version,
 				Kind:      c.Kind,
@@ -288,4 +335,136 @@ func (c *HttpClient) RetrieveCredentialsByName(name string) (templates.Credentia
 	}
 
 	return creds, nil
+}
+
+// RetrieveClusters returns the list of all clusters from the cluster service.
+func (c *HTTPClient) RetrieveClusters() ([]clusters.Cluster, error) {
+	endpoint := "gitops/api/clusters"
+
+	type ClusterView struct {
+		Name            string `json:"name"`
+		Status          string `json:"status"`
+		PullRequestType string `json:"pr-type"`
+	}
+
+	type ClustersResponse struct {
+		Clusters []ClusterView `json:"clusters"`
+	}
+
+	var clustersResponse ClustersResponse
+	res, err := c.client.R().
+		SetHeader("Accept", "application/json").
+		SetResult(&clustersResponse).
+		Get(endpoint)
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to GET clusters from %q: %w", res.Request.URL, err)
+	}
+
+	if res.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
+	}
+
+	var cs []clusters.Cluster
+	for _, c := range clustersResponse.Clusters {
+		cs = append(cs, clusters.Cluster{
+			Name:            c.Name,
+			Status:          c.Status,
+			PullRequestType: c.PullRequestType,
+		})
+	}
+
+	return cs, nil
+}
+
+func (c *HTTPClient) GetClusterKubeconfig(name string) (string, error) {
+	endpoint := "v1/clusters/{name}/kubeconfig"
+
+	type GetKubeconfigResponse struct {
+		Kubeconfig string
+	}
+
+	var result GetKubeconfigResponse
+	res, err := c.client.R().
+		SetHeader("Accept", "application/json").
+		SetPathParams(map[string]string{
+			"name": name,
+		}).
+		SetResult(&result).
+		Get(endpoint)
+
+	if err != nil {
+		return "", fmt.Errorf("unable to GET cluster kubeconfig from %q: %w", res.Request.URL, err)
+	}
+
+	if res.StatusCode() != http.StatusOK {
+		return "", fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
+	}
+
+	b, err := base64.StdEncoding.DecodeString(result.Kubeconfig)
+	if err != nil {
+		return "", fmt.Errorf("unable to base64 decode the cluster kubeconfig: %w", err)
+	}
+
+	return string(b), nil
+}
+
+// DeleteClusters deletes CAPI cluster using its name
+func (c *HTTPClient) DeleteClusters(params clusters.DeleteClustersParams) (string, error) {
+	endpoint := "v1/clusters"
+
+	type Credential struct {
+		Group     string
+		Version   string
+		Kind      string
+		Name      string
+		Namespace string
+	}
+
+	type DeleteClustersPullRequestRequest struct {
+		RepositoryUrl string
+		HeadBranch    string
+		BaseBranch    string
+		Title         string
+		Description   string
+		ClusterNames  []string
+		CommitMessage string
+		Credentials   Credential
+	}
+
+	type DeleteClustersResponse struct {
+		WebURL string `json:"webUrl"`
+	}
+
+	var result DeleteClustersResponse
+
+	var serviceErr *ServiceError
+
+	res, err := c.client.R().
+		SetHeader("Accept", "application/json").
+		SetBody(DeleteClustersPullRequestRequest{
+			HeadBranch:    params.HeadBranch,
+			BaseBranch:    params.BaseBranch,
+			Title:         params.Title,
+			Description:   params.Description,
+			ClusterNames:  params.ClustersNames,
+			CommitMessage: params.CommitMessage,
+		}).
+		SetResult(&result).
+		SetError(&serviceErr).
+		Delete(endpoint)
+
+	if serviceErr != nil {
+		return "", fmt.Errorf("unable to Delete cluster and create pull request to %q: %s", res.Request.URL, serviceErr.Message)
+	}
+
+	if err != nil {
+		return "", fmt.Errorf("unable to Delete cluster and create pull request to %q: %w", res.Request.URL, err)
+	}
+
+	if res.StatusCode() != http.StatusOK {
+		return "", fmt.Errorf("response status for Delete %q was %d", res.Request.URL, res.StatusCode())
+	}
+
+	return result.WebURL, nil
 }

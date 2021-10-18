@@ -1,20 +1,33 @@
 package templates
 
 import (
+	"fmt"
 	"os"
+	"strings"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
-	"github.com/weaveworks/weave-gitops/pkg/templates"
+	"github.com/weaveworks/weave-gitops/pkg/capi"
 	"k8s.io/cli-runtime/pkg/printers"
 )
 
 type templateCommandFlags struct {
 	ListTemplateParameters bool
+	Provider               string
 }
 
 var flags templateCommandFlags
+
+var providers = []string{
+	"aws",
+	"azure",
+	"digitalocean",
+	"docker",
+	"openstack",
+	"packet",
+	"vsphere",
+}
 
 func TemplateCommand(endpoint *string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
@@ -25,6 +38,9 @@ func TemplateCommand(endpoint *string, client *resty.Client) *cobra.Command {
 # Get all CAPI templates
 gitops get templates
 
+# Get all AWS CAPI templates
+gitops get templates --provider aws
+
 # Show the parameters of a CAPI template
 gitops get template <template-name> --list-parameters
 		`,
@@ -33,6 +49,7 @@ gitops get template <template-name> --list-parameters
 	}
 
 	cmd.Flags().BoolVar(&flags.ListTemplateParameters, "list-parameters", false, "Show parameters of CAPI template")
+	cmd.Flags().StringVar(&flags.Provider, "provider", "", fmt.Sprintf("Filter templates by provider. Supported providers: %s", strings.Join(providers, " ")))
 
 	return cmd
 }
@@ -48,11 +65,15 @@ func getTemplateCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comm
 		defer w.Flush()
 
 		if flags.ListTemplateParameters {
-			return templates.GetTemplateParameters(args[0], r, w)
+			return capi.GetTemplateParameters(args[0], r, w)
 		}
 
 		if len(args) == 0 {
-			return templates.GetTemplates(r, w)
+			if flags.Provider != "" {
+				return capi.GetTemplatesByProvider(flags.Provider, r, w)
+			}
+
+			return capi.GetTemplates(r, w)
 		}
 
 		return nil

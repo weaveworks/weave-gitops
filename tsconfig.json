@@ -2,5 +2,6 @@
     "compilerOptions": {
         "esModuleInterop": true,
         "jsx": "react",
+        "resolveJsonModule": true
     }
 }

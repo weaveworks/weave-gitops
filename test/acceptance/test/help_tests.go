@@ -1,12 +1,15 @@
 package acceptance
 
 import (
+	"fmt"
 	"os/exec"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
+
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 )
 
 //Disabling WEGO Help Tests Suite Until Further Notice...
@@ -50,7 +53,7 @@ var _ = XDescribe("WEGO Help Tests", func() {
 			Eventually(stringOutput).Should(MatchRegexp(`flux\s*Use flux commands`))
 			Eventually(stringOutput).Should(MatchRegexp(`version\s*Display gitops version`))
 			Eventually(stringOutput).Should(MatchRegexp(`help\s*Help about any command`))
-			Eventually(stringOutput).Should(MatchRegexp(`Flags:\n\s*-h, --help\s*help for gitops\n\s*--namespace string\s*gitops runtime namespace \(default "wego-system"\)\n\s*-v, --verbose\s*Enable verbose output\n*Use "gitops \[command] --help" for more information about a command.`))
+			Eventually(stringOutput).Should(MatchRegexp(fmt.Sprintf(`Flags:\n\s*-h, --help\s*help for gitops\n\s*--namespace string\s*gitops runtime namespace \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output\n*Use "gitops \[command] --help" for more information about a command.`, wego.DefaultNamespace)))
 		})
 	})
 
@@ -65,7 +68,7 @@ var _ = XDescribe("WEGO Help Tests", func() {
 			Eventually(stringOutput).Should(MatchRegexp(`add\s*Add a workload repository to a gitops cluster`))
 			Eventually(stringOutput).Should(MatchRegexp(`list\s*List applications`))
 			Eventually(stringOutput).Should(MatchRegexp(`status\s*Get status of an app`))
-			Eventually(stringOutput).Should(MatchRegexp(`Flags:\n\s*-h, --help\s*help for app\n*Global Flags:\n\s*--namespace string\s*gitops runtime namespace \(default "wego-system"\)\n\s*-v, --verbose\s*Enable verbose output\n*Use "gitops app \[command] --help" for more information about a command.`))
+			Eventually(stringOutput).Should(MatchRegexp(fmt.Sprintf(`Flags:\n\s*-h, --help\s*help for app\n*Global Flags:\n\s*--namespace string\s*gitops runtime namespace \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output\n*Use "gitops app \[command] --help" for more information about a command.`, wego.DefaultNamespace)))
 		})
 	})
 
@@ -77,7 +80,7 @@ var _ = XDescribe("WEGO Help Tests", func() {
 
 		By("Then I should see help message printed for gitops app add", func() {
 			Eventually(stringOutput).Should(MatchRegexp(`Associates an additional application in a git repository with a gitops cluster so that its contents may be managed via GitOps\n*Usage:`))
-			Eventually(stringOutput).Should(MatchRegexp(`gitops app add \[--name <name>] \[--url <url>] \[--branch <branch>] \[--path <path within repository>] \[--private-key <keyfile>] <repository directory> \[flags]`))
+			Eventually(stringOutput).Should(MatchRegexp(`gitops app add \[--name <name>] \[--url <url>] \[--branch <branch>] \[--path <path within repository>] \ <repository directory> \[flags]`))
 			Eventually(stringOutput).Should(MatchRegexp(`Examples:\ngitops app add .\n*Flags:`))
 			Eventually(stringOutput).Should(MatchRegexp(`--app-config-url string\s*URL of external repository \(if any\) which will hold automation manifests; NONE to store only in the cluster`))
 			Eventually(stringOutput).Should(MatchRegexp(`--auto-merge\s*If set, 'gitops app add' will merge automatically into the set`))
@@ -88,9 +91,8 @@ var _ = XDescribe("WEGO Help Tests", func() {
 			Eventually(stringOutput).Should(MatchRegexp(`-h, --help\s*help for add`))
 			Eventually(stringOutput).Should(MatchRegexp(`--name string\s*Name of remote git repository`))
 			Eventually(stringOutput).Should(MatchRegexp(`--path string\s*Path of files within git repository \(default "\.\/"\)`))
-			Eventually(stringOutput).Should(MatchRegexp(`--private-key string\s*Private key to access git repository over ssh`))
 			Eventually(stringOutput).Should(MatchRegexp(`--url string\s*URL of remote repository`))
-			Eventually(stringOutput).Should(MatchRegexp(`Global Flags:\n\s*--namespace string\s*gitops runtime namespace \(default "wego-system"\)\n\s*-v, --verbose\s*Enable verbose output`))
+			Eventually(stringOutput).Should(MatchRegexp(fmt.Sprintf(`Global Flags:\n\s*--namespace string\s*gitops runtime namespace \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace)))
 		})
 	})
 
@@ -102,7 +104,7 @@ var _ = XDescribe("WEGO Help Tests", func() {
 
 		By("Then I should see help message printed for gitops app status", func() {
 			Eventually(string(sessionOutput.Wait().Out.Contents())).Should(MatchRegexp(
-				`Get status of an app\n*Usage:\n\s*gitops app status <app-name> \[flags]\n*Examples:\ngitops app status podinfo\n*Flags:\n\s*-h, --help\s*help for status\n*\s*Global Flags:\n\s*--namespace string\s*gitops runtime namespace \(default "wego-system"\)\n\s*-v, --verbose\s*Enable verbose output`))
+				fmt.Sprintf(`Get status of an app\n*Usage:\n\s*gitops app status <app-name> \[flags]\n*Examples:\ngitops app status podinfo\n*Flags:\n\s*-h, --help\s*help for status\n*\s*Global Flags:\n\s*--namespace string\s*gitops runtime namespace \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace)))
 		})
 	})
 
@@ -115,7 +117,7 @@ var _ = XDescribe("WEGO Help Tests", func() {
 		By("Then I should see help message printed for gitops app list", func() {
 			Eventually(stringOutput).Should(MatchRegexp(`List applications\n*Usage:\n\s*gitops app list \[flags]`))
 			Eventually(stringOutput).Should(MatchRegexp(`Examples:\ngitops app list`))
-			Eventually(stringOutput).Should(MatchRegexp(`Flags:\n\s*-h, --help\s*help for list\n*\s*Global Flags:\n\s*--namespace string\s*gitops runtime namespace \(default "wego-system"\)\n\s*-v, --verbose\s*Enable verbose output`))
+			Eventually(stringOutput).Should(MatchRegexp(fmt.Sprintf(`Flags:\n\s*-h, --help\s*help for list\n*\s*Global Flags:\n\s*--namespace string\s*gitops runtime namespace \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace)))
 		})
 	})
 })
