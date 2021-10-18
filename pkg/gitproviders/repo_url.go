@@ -131,6 +131,10 @@ func detectGitProviderFromUrl(raw string) (GitProviderName, error) {
 func normalizeRepoURLString(url string, providerName GitProviderName) string {
 	trimmed := ""
 
+	// https://github.com/weaveworks/weave-gitops/issues/878
+	// A trailing slash causes problems when naming secrets.
+	url = strings.TrimSuffix(url, "/")
+
 	if !strings.HasSuffix(url, ".git") {
 		url = url + ".git"
 	}
