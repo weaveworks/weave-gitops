@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/upgrade"
 )
 
@@ -14,8 +15,8 @@ var upgradeCmdFlags upgrade.UpgradeValues
 var Cmd = &cobra.Command{
 	Use:   "upgrade",
 	Short: "Upgrade to Weave GitOps Enterprise",
-	Example: `  # Install GitOps in the wego-system namespace
-  gitops upgrade`,
+	Example: fmt.Sprintf(`  # Install GitOps in the %s namespace
+  gitops upgrade`, wego.DefaultNamespace),
 	RunE:          upgradeCmdRunE(),
 	SilenceErrors: true,
 	SilenceUsage:  true,

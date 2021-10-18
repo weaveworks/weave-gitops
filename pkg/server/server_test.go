@@ -649,7 +649,7 @@ var _ = Describe("ApplicationsServer", func() {
 				application := wego.Application{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      name,
-						Namespace: "wego-system",
+						Namespace: wego.DefaultNamespace,
 					},
 					Spec: wego.ApplicationSpec{
 						Branch:         "main",
@@ -901,7 +901,7 @@ var _ = Describe("Applications handler", func() {
 			return []wego.Application{{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "my-app",
-					Namespace: "wego-system",
+					Namespace: wego.DefaultNamespace,
 				},
 				Spec: wego.ApplicationSpec{
 					Branch: "main",
