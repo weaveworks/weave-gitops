@@ -113,4 +113,11 @@ var _ = DescribeTable("NewRepoURL", func(input string, expected expectedRepoURL)
 		provider: GitProviderGitLab,
 		protocol: RepositoryURLProtocolSSH,
 	}),
+	Entry("trailing slash in url", "https://github.com/sympatheticmoose/podinfo-deploy/", expectedRepoURL{
+		s:        "ssh://git@github.com/sympatheticmoose/podinfo-deploy.git",
+		owner:    "sympatheticmoose",
+		name:     "podinfo-deploy",
+		provider: GitProviderGitHub,
+		protocol: RepositoryURLProtocolSSH,
+	}),
 )
