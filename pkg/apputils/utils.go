@@ -19,9 +19,12 @@ import (
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . AppFactory
+
+// AppFactory provides helpers for generating various WeGO service objects at runtime.
 type AppFactory interface {
 	GetKubeService() (kube.Kube, error)
 	GetAppService(ctx context.Context, name, namespace string) (app.AppService, error)
+	GetAppServiceForAdd(ctx context.Context, params AppServiceParams) (app.AppService, error)
 }
 
 type DefaultAppFactory struct {
@@ -29,6 +32,26 @@ type DefaultAppFactory struct {
 
 func (f *DefaultAppFactory) GetAppService(ctx context.Context, name, namespace string) (app.AppService, error) {
 	return GetAppService(ctx, name, namespace)
+}
+
+type AppServiceParams struct {
+	URL              string
+	ConfigURL        string
+	Namespace        string
+	IsHelmRepository bool
+	DryRun           bool
+	Token            string
+}
+
+type AppClients struct {
+	Osys   osys.Osys
+	Flux   flux.Flux
+	Kube   kube.Kube
+	Logger logger.Logger
+}
+
+func (f *DefaultAppFactory) GetAppServiceForAdd(ctx context.Context, params AppServiceParams) (app.AppService, error) {
+	return GetAppServiceForAdd(ctx, params.URL, params.ConfigURL, params.Namespace, params.IsHelmRepository, params.DryRun)
 }
 
 func (f *DefaultAppFactory) GetKubeService() (kube.Kube, error) {
@@ -45,19 +68,24 @@ func GetLogger() logger.Logger {
 	return logger.NewCLILogger(osysClient.Stdout())
 }
 
-func GetBaseClients() (osys.Osys, flux.Flux, kube.Kube, logger.Logger, error) {
+func GetBaseClients() (AppClients, error) {
 	osysClient := osys.New()
 	cliRunner := &runner.CLIRunner{}
 	fluxClient := flux.New(osysClient, cliRunner)
 
 	kubeClient, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("error creating k8s http client: %w", err)
+		return AppClients{}, fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
 	logger := logger.NewCLILogger(osysClient.Stdout())
 
-	return osysClient, fluxClient, kubeClient, logger, nil
+	return AppClients{
+		Osys:   osysClient,
+		Flux:   fluxClient,
+		Kube:   kubeClient,
+		Logger: logger,
+	}, nil
 }
 
 func IsClusterReady() error {
@@ -72,7 +100,7 @@ func IsClusterReady() error {
 }
 
 func GetAppService(ctx context.Context, appName string, namespace string) (app.AppService, error) {
-	osysClient, fluxClient, kubeClient, logger, err := GetBaseClients()
+	clients, err := GetBaseClients()
 	if err != nil {
 		return nil, fmt.Errorf("error initializing clients: %w", err)
 	}
@@ -82,11 +110,11 @@ func GetAppService(ctx context.Context, appName string, namespace string) (app.A
 		return nil, fmt.Errorf("error getting git clients: %w", err)
 	}
 
-	return app.New(ctx, logger, appClient, configClient, gitProvider, fluxClient, kubeClient, osysClient), nil
+	return app.New(ctx, clients.Logger, appClient, configClient, gitProvider, clients.Flux, clients.Kube, clients.Osys), nil
 }
 
 func GetAppServiceForAdd(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool, dryRun bool) (app.AppService, error) {
-	osysClient, fluxClient, kubeClient, logger, err := GetBaseClients()
+	clients, err := GetBaseClients()
 	if err != nil {
 		return nil, fmt.Errorf("error initializing clients: %w", err)
 	}
@@ -96,7 +124,7 @@ func GetAppServiceForAdd(ctx context.Context, url, configUrl, namespace string, 
 		return nil, fmt.Errorf("error getting git clients: %w", err)
 	}
 
-	return app.New(ctx, logger, appClient, configClient, gitProvider, fluxClient, kubeClient, osysClient), nil
+	return app.New(ctx, clients.Logger, appClient, configClient, gitProvider, clients.Flux, clients.Kube, clients.Osys), nil
 }
 
 func getGitClientsForApp(ctx context.Context, appName string, namespace string, dryRun bool) (git.Git, git.Git, gitproviders.GitProvider, error) {
@@ -186,20 +214,25 @@ func getAuthService(ctx context.Context, normalizedUrl gitproviders.NormalizedRe
 		err         error
 	)
 
+	osysClient := osys.New()
+	cliRunner := &runner.CLIRunner{}
+	fluxClient := flux.New(osysClient, cliRunner)
+	logger := logger.NewCLILogger(osysClient.Stdout())
+
+	authHandler, err := auth.NewAuthCLIHandler(normalizedUrl.Provider())
+	if err != nil {
+		return nil, fmt.Errorf("error initializing cli auth handler: %w", err)
+	}
+
 	if dryRun {
 		if gitProvider, err = gitproviders.NewDryRun(); err != nil {
 			return nil, fmt.Errorf("error creating git provider client: %w", err)
 		}
 	} else {
-		if gitProvider, err = auth.GetGitProvider(ctx, normalizedUrl); err != nil {
+		if gitProvider, err = auth.InitGitProvider(normalizedUrl, osysClient, logger, authHandler, gitproviders.GetAccountType); err != nil {
 			return nil, fmt.Errorf("error obtaining git provider token: %w", err)
 		}
 	}
-
-	osysClient := osys.New()
-	cliRunner := &runner.CLIRunner{}
-	fluxClient := flux.New(osysClient, cliRunner)
-	logger := logger.NewCLILogger(osysClient.Stdout())
 
 	_, rawClient, err := kube.NewKubeHTTPClient()
 	if err != nil {

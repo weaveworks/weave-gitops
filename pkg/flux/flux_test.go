@@ -1,12 +1,14 @@
 package flux_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner/runnerfakes"
@@ -24,14 +26,14 @@ var _ = BeforeEach(func() {
 
 var _ = Describe("Install", func() {
 	It("installs flux", func() {
-		_, err := fluxClient.Install("wego-system", false)
+		_, err := fluxClient.Install(wego.DefaultNamespace, false)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		Expect(runner.RunWithOutputStreamCallCount()).To(Equal(1))
 
 		cmd, args := runner.RunWithOutputStreamArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
-		Expect(strings.Join(args, " ")).To(Equal("install --namespace wego-system --components-extra image-reflector-controller,image-automation-controller"))
+		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("install --namespace %s --components-extra image-reflector-controller,image-automation-controller", wego.DefaultNamespace)))
 	})
 
 	It("exports the install manifests", func() {
@@ -39,7 +41,7 @@ var _ = Describe("Install", func() {
 			return []byte("out"), nil
 		}
 
-		out, err := fluxClient.Install("wego-system", true)
+		out, err := fluxClient.Install(wego.DefaultNamespace, true)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
 
@@ -47,31 +49,31 @@ var _ = Describe("Install", func() {
 
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
-		Expect(strings.Join(args, " ")).To(Equal("install --namespace wego-system --components-extra image-reflector-controller,image-automation-controller --export"))
+		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("install --namespace %s --components-extra image-reflector-controller,image-automation-controller --export", wego.DefaultNamespace)))
 	})
 })
 
 var _ = Describe("Uninstall", func() {
 	It("uninstalls flux", func() {
-		err := fluxClient.Uninstall("wego-system", false)
+		err := fluxClient.Uninstall(wego.DefaultNamespace, false)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		Expect(runner.RunWithOutputStreamCallCount()).To(Equal(1))
 
 		cmd, args := runner.RunWithOutputStreamArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
-		Expect(strings.Join(args, " ")).To(Equal("uninstall -s --namespace wego-system"))
+		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("uninstall -s --namespace %s", wego.DefaultNamespace)))
 	})
 
 	It("add dry-run to the call", func() {
-		err := fluxClient.Uninstall("wego-system", true)
+		err := fluxClient.Uninstall(wego.DefaultNamespace, true)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		Expect(runner.RunWithOutputStreamCallCount()).To(Equal(1))
 
 		cmd, args := runner.RunWithOutputStreamArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
-		Expect(strings.Join(args, " ")).To(Equal("uninstall -s --namespace wego-system --dry-run"))
+		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("uninstall -s --namespace %s --dry-run", wego.DefaultNamespace)))
 	})
 })
 
@@ -80,7 +82,7 @@ var _ = Describe("CreateSourceGit", func() {
 		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
 			return []byte("out"), nil
 		}
-		out, err := fluxClient.CreateSourceGit("my-name", "https://github.com/foo/my-name", "main", "my-secret", "wego-system")
+		out, err := fluxClient.CreateSourceGit("my-name", "https://github.com/foo/my-name", "main", "my-secret", wego.DefaultNamespace)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
 
@@ -89,13 +91,13 @@ var _ = Describe("CreateSourceGit", func() {
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
 
-		Expect(strings.Join(args, " ")).To(Equal("create source git my-name --branch main --namespace wego-system --interval 30s --export --secret-ref my-secret --url https://github.com/foo/my-name"))
+		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create source git my-name --branch main --namespace %s --interval 30s --export --secret-ref my-secret --url https://github.com/foo/my-name", wego.DefaultNamespace)))
 	})
 	It("creates a git source for a public repo", func() {
 		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
 			return []byte("out"), nil
 		}
-		out, err := fluxClient.CreateSourceGit("my-name", "ssh://git@github.com/foo/my-name", "main", "", "wego-system")
+		out, err := fluxClient.CreateSourceGit("my-name", "ssh://git@github.com/foo/my-name", "main", "", wego.DefaultNamespace)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
 
@@ -104,7 +106,7 @@ var _ = Describe("CreateSourceGit", func() {
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
 
-		Expect(strings.Join(args, " ")).To(Equal("create source git my-name --branch main --namespace wego-system --interval 30s --export --url https://github.com/foo/my-name.git"))
+		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create source git my-name --branch main --namespace %s --interval 30s --export --url https://github.com/foo/my-name.git", wego.DefaultNamespace)))
 	})
 })
 
@@ -113,7 +115,7 @@ var _ = Describe("CreateSourceHelm", func() {
 		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
 			return []byte("out"), nil
 		}
-		out, err := fluxClient.CreateSourceHelm("my-name", "https://github.com/foo/my-name", "wego-system")
+		out, err := fluxClient.CreateSourceHelm("my-name", "https://github.com/foo/my-name", wego.DefaultNamespace)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
 
@@ -122,7 +124,7 @@ var _ = Describe("CreateSourceHelm", func() {
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
 
-		Expect(strings.Join(args, " ")).To(Equal("create source helm my-name --url https://github.com/foo/my-name --namespace wego-system --interval 30s --export"))
+		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create source helm my-name --url https://github.com/foo/my-name --namespace %s --interval 30s --export", wego.DefaultNamespace)))
 	})
 })
 
@@ -131,7 +133,7 @@ var _ = Describe("CreateKustomization", func() {
 		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
 			return []byte("out"), nil
 		}
-		out, err := fluxClient.CreateKustomization("my-name", "my-source", "./path", "wego-system")
+		out, err := fluxClient.CreateKustomization("my-name", "my-source", "./path", wego.DefaultNamespace)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
 
@@ -140,7 +142,7 @@ var _ = Describe("CreateKustomization", func() {
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
 
-		Expect(strings.Join(args, " ")).To(Equal("create kustomization my-name --path ./path --source my-source --namespace wego-system --prune true --validation client --interval 1m --export"))
+		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create kustomization my-name --path ./path --source my-source --namespace %s --prune true --validation client --interval 1m --export", wego.DefaultNamespace)))
 	})
 })
 
@@ -149,7 +151,7 @@ var _ = Describe("CreateHelmReleaseGitRepository", func() {
 		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
 			return []byte("out"), nil
 		}
-		out, err := fluxClient.CreateHelmReleaseGitRepository("my-name", "my-source", "./chart-path", "wego-system", "")
+		out, err := fluxClient.CreateHelmReleaseGitRepository("my-name", "my-source", "./chart-path", wego.DefaultNamespace, "")
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
 
@@ -158,14 +160,14 @@ var _ = Describe("CreateHelmReleaseGitRepository", func() {
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
 
-		Expect(strings.Join(args, " ")).To(Equal("create helmrelease my-name --source GitRepository/my-source --chart ./chart-path --namespace wego-system --interval 5m --export"))
+		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create helmrelease my-name --source GitRepository/my-source --chart ./chart-path --namespace %s --interval 5m --export", wego.DefaultNamespace)))
 	})
 
 	It("creates a helm release with a git repository and a target namespace", func() {
 		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
 			return []byte("out"), nil
 		}
-		out, err := fluxClient.CreateHelmReleaseGitRepository("my-name", "my-source", "./chart-path", "wego-system", "sock-shop")
+		out, err := fluxClient.CreateHelmReleaseGitRepository("my-name", "my-source", "./chart-path", wego.DefaultNamespace, "sock-shop")
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
 
@@ -174,7 +176,7 @@ var _ = Describe("CreateHelmReleaseGitRepository", func() {
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
 
-		Expect(strings.Join(args, " ")).To(Equal("create helmrelease my-name --source GitRepository/my-source --chart ./chart-path --namespace wego-system --interval 5m --export --target-namespace sock-shop"))
+		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create helmrelease my-name --source GitRepository/my-source --chart ./chart-path --namespace %s --interval 5m --export --target-namespace sock-shop", wego.DefaultNamespace)))
 	})
 })
 
@@ -183,7 +185,7 @@ var _ = Describe("CreateHelmReleaseHelmRepository", func() {
 		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
 			return []byte("out"), nil
 		}
-		out, err := fluxClient.CreateHelmReleaseHelmRepository("my-name", "my-chart", "wego-system", "")
+		out, err := fluxClient.CreateHelmReleaseHelmRepository("my-name", "my-chart", wego.DefaultNamespace, "")
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
 
@@ -192,14 +194,14 @@ var _ = Describe("CreateHelmReleaseHelmRepository", func() {
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
 
-		Expect(strings.Join(args, " ")).To(Equal("create helmrelease my-name --source HelmRepository/my-name --chart my-chart --namespace wego-system --interval 5m --export"))
+		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create helmrelease my-name --source HelmRepository/my-name --chart my-chart --namespace %s --interval 5m --export", wego.DefaultNamespace)))
 	})
 
 	It("creates a helm release with a helm repository and a target namespace", func() {
 		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
 			return []byte("out"), nil
 		}
-		out, err := fluxClient.CreateHelmReleaseHelmRepository("my-name", "my-chart", "wego-system", "sock-shop")
+		out, err := fluxClient.CreateHelmReleaseHelmRepository("my-name", "my-chart", wego.DefaultNamespace, "sock-shop")
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
 
@@ -208,7 +210,7 @@ var _ = Describe("CreateHelmReleaseHelmRepository", func() {
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
 
-		Expect(strings.Join(args, " ")).To(Equal("create helmrelease my-name --source HelmRepository/my-name --chart my-chart --namespace wego-system --interval 5m --export --target-namespace sock-shop"))
+		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create helmrelease my-name --source HelmRepository/my-name --chart my-chart --namespace %s --interval 5m --export --target-namespace sock-shop", wego.DefaultNamespace)))
 	})
 })
 
@@ -217,7 +219,7 @@ var _ = Describe("CreateSecretGit", func() {
 		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
 			return []byte(`ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCh...`), nil
 		}
-		out, err := fluxClient.CreateSecretGit("my-secret", "ssh://git@github.com/foo/bar.git", "wego-system")
+		out, err := fluxClient.CreateSecretGit("my-secret", "ssh://git@github.com/foo/bar.git", wego.DefaultNamespace)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCh...")))
 
@@ -226,7 +228,7 @@ var _ = Describe("CreateSecretGit", func() {
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
 
-		Expect(strings.Join(args, " ")).To(Equal("create secret git my-secret --url ssh://git@github.com/foo/bar.git --namespace wego-system --export"))
+		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create secret git my-secret --url ssh://git@github.com/foo/bar.git --namespace %s --export", wego.DefaultNamespace)))
 	})
 })
 

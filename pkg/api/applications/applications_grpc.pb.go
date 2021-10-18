@@ -49,6 +49,12 @@ type ApplicationsClient interface {
 	// This token will expired in 15 minutes, after which the user will need to complete the flow again
 	// to do Git Provider operations.
 	GetGithubAuthStatus(ctx context.Context, in *GetGithubAuthStatusRequest, opts ...grpc.CallOption) (*GetGithubAuthStatusResponse, error)
+	//
+	// AddApplication adds an Application to a cluster via GitOps.
+	AddApplication(ctx context.Context, in *AddApplicationRequest, opts ...grpc.CallOption) (*AddApplicationResponse, error)
+	//
+	// RemoveApplication removes an Application from a cluster via GitOps.
+	RemoveApplication(ctx context.Context, in *RemoveApplicationRequest, opts ...grpc.CallOption) (*RemoveApplicationResponse, error)
 }
 
 type applicationsClient struct {
@@ -131,6 +137,24 @@ func (c *applicationsClient) GetGithubAuthStatus(ctx context.Context, in *GetGit
 	return out, nil
 }
 
+func (c *applicationsClient) AddApplication(ctx context.Context, in *AddApplicationRequest, opts ...grpc.CallOption) (*AddApplicationResponse, error) {
+	out := new(AddApplicationResponse)
+	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/AddApplication", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationsClient) RemoveApplication(ctx context.Context, in *RemoveApplicationRequest, opts ...grpc.CallOption) (*RemoveApplicationResponse, error) {
+	out := new(RemoveApplicationResponse)
+	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/RemoveApplication", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ApplicationsServer is the server API for Applications service.
 // All implementations must embed UnimplementedApplicationsServer
 // for forward compatibility
@@ -166,6 +190,12 @@ type ApplicationsServer interface {
 	// This token will expired in 15 minutes, after which the user will need to complete the flow again
 	// to do Git Provider operations.
 	GetGithubAuthStatus(context.Context, *GetGithubAuthStatusRequest) (*GetGithubAuthStatusResponse, error)
+	//
+	// AddApplication adds an Application to a cluster via GitOps.
+	AddApplication(context.Context, *AddApplicationRequest) (*AddApplicationResponse, error)
+	//
+	// RemoveApplication removes an Application from a cluster via GitOps.
+	RemoveApplication(context.Context, *RemoveApplicationRequest) (*RemoveApplicationResponse, error)
 	mustEmbedUnimplementedApplicationsServer()
 }
 
@@ -196,6 +226,12 @@ func (UnimplementedApplicationsServer) GetGithubDeviceCode(context.Context, *Get
 }
 func (UnimplementedApplicationsServer) GetGithubAuthStatus(context.Context, *GetGithubAuthStatusRequest) (*GetGithubAuthStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGithubAuthStatus not implemented")
+}
+func (UnimplementedApplicationsServer) AddApplication(context.Context, *AddApplicationRequest) (*AddApplicationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddApplication not implemented")
+}
+func (UnimplementedApplicationsServer) RemoveApplication(context.Context, *RemoveApplicationRequest) (*RemoveApplicationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveApplication not implemented")
 }
 func (UnimplementedApplicationsServer) mustEmbedUnimplementedApplicationsServer() {}
 
@@ -354,6 +390,42 @@ func _Applications_GetGithubAuthStatus_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Applications_AddApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationsServer).AddApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wego_server.v1.Applications/AddApplication",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationsServer).AddApplication(ctx, req.(*AddApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Applications_RemoveApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationsServer).RemoveApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wego_server.v1.Applications/RemoveApplication",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationsServer).RemoveApplication(ctx, req.(*RemoveApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Applications_ServiceDesc is the grpc.ServiceDesc for Applications service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -392,6 +464,14 @@ var Applications_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetGithubAuthStatus",
 			Handler:    _Applications_GetGithubAuthStatus_Handler,
+		},
+		{
+			MethodName: "AddApplication",
+			Handler:    _Applications_AddApplication_Handler,
+		},
+		{
+			MethodName: "RemoveApplication",
+			Handler:    _Applications_RemoveApplication_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

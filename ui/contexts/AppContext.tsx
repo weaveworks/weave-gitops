@@ -8,6 +8,10 @@ type AppState = {
   error: null | { fatal: boolean; message: string; detail?: string };
 };
 
+type AppSettings = {
+  renderFooter: boolean;
+};
+
 export type LinkResolver = (incoming: string) => string;
 
 export function defaultLinkResolver(incoming: string): string {
@@ -18,6 +22,7 @@ export type AppContextType = {
   applicationsClient: typeof Applications;
   doAsyncError: (message: string, detail: string) => void;
   appState: AppState;
+  settings: AppSettings;
   linkResolver: LinkResolver;
   getProviderToken: typeof getProviderToken;
   storeProviderToken: typeof storeProviderToken;
@@ -31,6 +36,7 @@ export interface Props {
   applicationsClient: typeof Applications;
   linkResolver?: LinkResolver;
   children?: any;
+  renderFooter?: boolean;
 }
 
 // Due to the way the grpc-gateway typescript client is generated,
@@ -90,6 +96,9 @@ export default function AppContextProvider({
     linkResolver: props.linkResolver || defaultLinkResolver,
     getProviderToken,
     storeProviderToken,
+    settings: {
+      renderFooter: props.renderFooter,
+    },
   };
 
   return <AppContext.Provider {...props} value={value} />;

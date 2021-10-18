@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/go-git/go-billy/v5/memfs"
 	gogit "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
@@ -16,8 +15,8 @@ import (
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/git"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"sigs.k8s.io/yaml"
 )
 
@@ -25,17 +24,6 @@ var (
 	addParams AddParams
 	ctx       context.Context
 )
-
-type dummyPullRequest struct {
-}
-
-func (d dummyPullRequest) Get() gitprovider.PullRequestInfo {
-	return gitprovider.PullRequestInfo{WebURL: ""}
-}
-
-func (d dummyPullRequest) APIObject() interface{} {
-	return nil
-}
 
 var _ = Describe("Add", func() {
 	var _ = BeforeEach(func() {
@@ -45,12 +33,12 @@ var _ = Describe("Add", func() {
 			Branch:         "main",
 			Dir:            ".",
 			DeploymentType: "kustomize",
-			Namespace:      "wego-system",
+			Namespace:      wego.DefaultNamespace,
 			AppConfigUrl:   "NONE",
 			AutoMerge:      true,
 		}
 
-		gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
+		gitProviders.GetDefaultBranchStub = func(_ context.Context, url string) (string, error) {
 			return "main", nil
 		}
 
@@ -85,17 +73,12 @@ var _ = Describe("Add", func() {
 
 	Context("Looking up repo default branch", func() {
 		var _ = BeforeEach(func() {
-			gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
+			gitProviders.GetDefaultBranchStub = func(_ context.Context, url string) (string, error) {
 				branch := "an-unusual-branch" // for app repository
 				if !strings.Contains(url, "bar") {
 					branch = "config-branch" // for config repository
 				}
 				return branch, nil
-			}
-
-			gitProviders.GetRepoInfoStub = func(accountType gitproviders.ProviderAccountType, owner, repoName string) (*gitprovider.RepositoryInfo, error) {
-				visibility := gitprovider.RepositoryVisibility("public")
-				return &gitprovider.RepositoryInfo{Description: nil, DefaultBranch: nil, Visibility: &visibility}, nil
 			}
 
 			addParams.Branch = ""
@@ -130,7 +113,7 @@ var _ = Describe("Add", func() {
 				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 
 			It("creates HelmRepository when source type is helm", func() {
@@ -144,7 +127,7 @@ var _ = Describe("Add", func() {
 				name, url, namespace := fluxClient.CreateSourceHelmArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(url).To(Equal("https://charts.kube-ops.io"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 		})
 
@@ -159,7 +142,7 @@ var _ = Describe("Add", func() {
 				Expect(name).To(Equal("bar"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("./kustomize"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 
 			It("creates helm release using a helm repository if source type is helm", func() {
@@ -173,7 +156,7 @@ var _ = Describe("Add", func() {
 				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(chart).To(Equal("loki"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal(""))
 			})
 
@@ -190,7 +173,7 @@ var _ = Describe("Add", func() {
 				Expect(name).To(Equal("bar"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("./charts/my-chart"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal(""))
 			})
 
@@ -206,7 +189,7 @@ var _ = Describe("Add", func() {
 				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(chart).To(Equal("loki"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal("sock-shop"))
 			})
 
@@ -224,7 +207,7 @@ var _ = Describe("Add", func() {
 				Expect(name).To(Equal("bar"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("./charts/my-chart"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal("sock-shop"))
 			})
 
@@ -251,15 +234,15 @@ var _ = Describe("Add", func() {
 
 			_, sourceManifest, namespace := kubeClient.ApplyArgsForCall(0)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
-			Expect(namespace).To(Equal("wego-system"))
+			Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 			_, kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(1)
 			Expect(kustomizationManifest).To(Equal([]byte("kustomization")))
-			Expect(namespace).To(Equal("wego-system"))
+			Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 			_, appSpecManifest, namespace := kubeClient.ApplyArgsForCall(2)
 			Expect(string(appSpecManifest)).To(ContainSubstring("kind: Application"))
-			Expect(namespace).To(Equal("wego-system"))
+			Expect(namespace).To(Equal(wego.DefaultNamespace))
 		})
 	})
 
@@ -294,7 +277,7 @@ var _ = Describe("Add", func() {
 				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 
 			It("creates HelmRepository when source type is helm", func() {
@@ -309,7 +292,7 @@ var _ = Describe("Add", func() {
 				name, url, namespace := fluxClient.CreateSourceHelmArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(url).To(Equal("https://charts.kube-ops.io"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 		})
 
@@ -324,19 +307,19 @@ var _ = Describe("Add", func() {
 				Expect(name).To(Equal("bar"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("./kustomize"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 				name, source, path, namespace = fluxClient.CreateKustomizationArgsForCall(1)
 				Expect(name).To(Equal("bar-apps-dir"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal(".wego/apps/bar"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 				name, source, path, namespace = fluxClient.CreateKustomizationArgsForCall(2)
 				Expect(name).To(Equal("test-cluster-bar"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal(".wego/targets/test-cluster/bar"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 
 			It("creates helm release using a helm repository if source type is helm", func() {
@@ -351,7 +334,7 @@ var _ = Describe("Add", func() {
 				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(chart).To(Equal("loki"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal(""))
 			})
 
@@ -368,7 +351,7 @@ var _ = Describe("Add", func() {
 				Expect(name).To(Equal("bar"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("./charts/my-chart"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal(""))
 			})
 
@@ -385,7 +368,7 @@ var _ = Describe("Add", func() {
 				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(chart).To(Equal("loki"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal("sock-shop"))
 			})
 
@@ -403,7 +386,7 @@ var _ = Describe("Add", func() {
 				Expect(name).To(Equal("bar"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("./charts/my-chart"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal("sock-shop"))
 			})
 
@@ -444,11 +427,11 @@ var _ = Describe("Add", func() {
 
 			_, sourceManifest, namespace := kubeClient.ApplyArgsForCall(0)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
-			Expect(namespace).To(Equal("wego-system"))
+			Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 			_, appWegoManifest, namespace := kubeClient.ApplyArgsForCall(1)
 			Expect(appWegoManifest).To(Equal([]byte("kustomization")))
-			Expect(namespace).To(Equal("wego-system"))
+			Expect(namespace).To(Equal(wego.DefaultNamespace))
 		})
 
 		Context("when using URL", func() {
@@ -532,14 +515,14 @@ var _ = Describe("Add", func() {
 				Expect(url).To(Equal("ssh://git@github.com/user/repo.git"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("wego-test-cluster-repo"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 				name, url, branch, secretRef, namespace = fluxClient.CreateSourceGitArgsForCall(1)
 				Expect(name).To(Equal("bar"))
 				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 
 			It("creates HelmRepository when source type is helm", func() {
@@ -554,7 +537,7 @@ var _ = Describe("Add", func() {
 				name, url, namespace := fluxClient.CreateSourceHelmArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(url).To(Equal("https://charts.kube-ops.io"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 		})
 
@@ -563,7 +546,7 @@ var _ = Describe("Add", func() {
 				repoURL := "ssh://git@github.com/example/my-source"
 				params := AddParams{
 					Name:      "my-app",
-					Namespace: "wego-system",
+					Namespace: wego.DefaultNamespace,
 					Url:       repoURL,
 					Path:      "manifests",
 					Branch:    "main",
@@ -607,13 +590,13 @@ var _ = Describe("Add", func() {
 				Expect(name).To(Equal("repo"))
 				Expect(source).To(Equal("repo"))
 				Expect(path).To(Equal("./kustomize"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 				name, source, path, namespace = fluxClient.CreateKustomizationArgsForCall(1)
 				Expect(name).To(Equal("repo-apps-dir"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("apps/repo"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 
 			It("creates helm release using a helm repository if source type is helm", func() {
@@ -627,7 +610,7 @@ var _ = Describe("Add", func() {
 				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(chart).To(Equal("loki"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal(""))
 			})
 
@@ -644,7 +627,7 @@ var _ = Describe("Add", func() {
 				Expect(name).To(Equal("repo"))
 				Expect(source).To(Equal("repo"))
 				Expect(path).To(Equal("./charts/my-chart"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal(""))
 			})
 
@@ -660,7 +643,7 @@ var _ = Describe("Add", func() {
 				name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
 				Expect(name).To(Equal("loki"))
 				Expect(chart).To(Equal("loki"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal("sock-shop"))
 			})
 
@@ -678,7 +661,7 @@ var _ = Describe("Add", func() {
 				Expect(name).To(Equal("repo"))
 				Expect(source).To(Equal("repo"))
 				Expect(path).To(Equal("./charts/my-chart"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 				Expect(targetNamespace).To(Equal("sock-shop"))
 			})
 
@@ -705,11 +688,11 @@ var _ = Describe("Add", func() {
 
 			_, sourceManifest, namespace := kubeClient.ApplyArgsForCall(0)
 			Expect(sourceManifest).To(Equal([]byte("git source")))
-			Expect(namespace).To(Equal("wego-system"))
+			Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 			_, kustomizationManifest, namespace := kubeClient.ApplyArgsForCall(1)
 			Expect(kustomizationManifest).To(Equal([]byte("kustomization")))
-			Expect(namespace).To(Equal("wego-system"))
+			Expect(namespace).To(Equal(wego.DefaultNamespace))
 		})
 
 		It("clones the repo to a temp dir", func() {
@@ -770,20 +753,14 @@ var _ = Describe("Add", func() {
 		var info *AppResourceInfo
 
 		BeforeEach(func() {
-			gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
+			gitProviders.GetDefaultBranchStub = func(_ context.Context, url string) (string, error) {
 				if url == addParams.Url {
 					return "default-app-branch", nil
 				}
 				return "default-config-branch", nil
 			}
 
-			gitProviders.CreatePullRequestToOrgRepoStub = func(orgRepRef gitprovider.OrgRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
-				return dummyPullRequest{}, nil
-			}
-
-			gitProviders.CreatePullRequestToUserRepoStub = func(userRepRef gitprovider.UserRepositoryRef, targetBranch string, newBranch string, files []gitprovider.CommitFile, commitMessage string, prTitle string, prDescription string) (gitprovider.PullRequest, error) {
-				return dummyPullRequest{}, nil
-			}
+			gitProviders.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
 
 			addParams.Url = "ssh://github.com/user/repo.git"
 			info = getAppResourceInfo(makeWegoApplication(addParams), "cluster")
@@ -794,38 +771,21 @@ var _ = Describe("Add", func() {
 			Expect(err.Error()).To(HavePrefix("error normalizing url"))
 		})
 
-		It("generates an appropriate error when the account type cannot be retrieved for an owner", func() {
-			gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-				return gitproviders.AccountTypeOrg, fmt.Errorf("no account found")
-			}
-
-			err := appSrv.(*App).createPullRequestToRepo(info, "ssh://git@github.com/ewojfewoj3323w/abc", "hash", []byte{}, []byte{}, []byte{})
-			Expect(err.Error()).To(HavePrefix("failed to retrieve account type"))
-		})
-
 		Context("uses the default app branch for config in app repository", func() {
 			BeforeEach(func() {
 				addParams.AppConfigUrl = ""
 			})
 
 			It("creates the pull request against the default branch for an org app repository", func() {
-				gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-					return gitproviders.AccountTypeOrg, nil
-				}
-
 				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.Url, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
-				_, branch, _, _, _, _, _ := gitProviders.CreatePullRequestToOrgRepoArgsForCall(0)
-				Expect(branch).To(Equal("default-app-branch"))
+				_, _, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
+				Expect(prInfo.TargetBranch).To(Equal("default-app-branch"))
 			})
 
 			It("creates the pull request against the default branch for a user app repository", func() {
-				gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-					return gitproviders.AccountTypeUser, nil
-				}
-
 				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.Url, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
-				_, branch, _, _, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
-				Expect(branch).To(Equal("default-app-branch"))
+				_, _, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
+				Expect(prInfo.TargetBranch).To(Equal("default-app-branch"))
 			})
 		})
 
@@ -835,23 +795,15 @@ var _ = Describe("Add", func() {
 			})
 
 			It("creates the pull request against the default branch for an org config repository", func() {
-				gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-					return gitproviders.AccountTypeOrg, nil
-				}
-
 				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
-				_, branch, _, _, _, _, _ := gitProviders.CreatePullRequestToOrgRepoArgsForCall(0)
-				Expect(branch).To(Equal("default-config-branch"))
+				_, _, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
+				Expect(prInfo.TargetBranch).To(Equal("default-config-branch"))
 			})
 
 			It("creates the pull request against the default branch for a user config repository", func() {
-				gitProviders.GetAccountTypeStub = func(s string) (gitproviders.ProviderAccountType, error) {
-					return gitproviders.AccountTypeUser, nil
-				}
-
 				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
-				_, branch, _, _, _, _, _ := gitProviders.CreatePullRequestToUserRepoArgsForCall(0)
-				Expect(branch).To(Equal("default-config-branch"))
+				_, _, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
+				Expect(prInfo.TargetBranch).To(Equal("default-config-branch"))
 			})
 		})
 	})
@@ -998,12 +950,12 @@ var _ = Describe("Add Gitlab", func() {
 			Branch:         "main",
 			Dir:            ".",
 			DeploymentType: "kustomize",
-			Namespace:      "wego-system",
+			Namespace:      wego.DefaultNamespace,
 			AppConfigUrl:   "NONE",
 			AutoMerge:      true,
 		}
 
-		gitProviders.GetDefaultBranchStub = func(url string) (string, error) {
+		gitProviders.GetDefaultBranchStub = func(_ context.Context, url string) (string, error) {
 			return "main", nil
 		}
 
@@ -1041,7 +993,7 @@ var _ = Describe("Add Gitlab", func() {
 				Expect(url).To(Equal("ssh://git@gitlab.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 		})
 	})
@@ -1077,7 +1029,7 @@ var _ = Describe("Add Gitlab", func() {
 				Expect(url).To(Equal("ssh://git@gitlab.com/group/subgroup/bar.git"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
-				Expect(namespace).To(Equal("wego-system"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 		})
 	})

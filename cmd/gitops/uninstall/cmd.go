@@ -4,7 +4,10 @@ package uninstall
 // wego installed, the user will be prompted to install wego and then the repository will be added.
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
@@ -22,8 +25,8 @@ var Cmd = &cobra.Command{
 	Use:   "uninstall",
 	Short: "Uninstall GitOps",
 	Long:  `The uninstall command removes GitOps components from the cluster.`,
-	Example: `  # Uninstall GitOps from the wego-system namespace
-  gitops uninstall`,
+	Example: fmt.Sprintf(`  # Uninstall GitOps from the %s namespace
+  gitops uninstall`, wego.DefaultNamespace),
 	RunE:          uninstallRunCmd,
 	SilenceErrors: true,
 	SilenceUsage:  true,
@@ -39,12 +42,12 @@ func init() {
 func uninstallRunCmd(cmd *cobra.Command, args []string) error {
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
-	_, fluxClient, kubeClient, logger, clientErr := apputils.GetBaseClients()
-	if clientErr != nil {
-		return clientErr
+	clients, err := apputils.GetBaseClients()
+	if err != nil {
+		return err
 	}
 
-	gitopsService := gitops.New(logger, fluxClient, kubeClient)
+	gitopsService := gitops.New(clients.Logger, clients.Flux, clients.Kube)
 
 	return gitopsService.Uninstall(gitops.UninstallParams{
 		Namespace: namespace,

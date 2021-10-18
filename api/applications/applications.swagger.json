@@ -46,6 +46,37 @@
         "tags": [
           "Applications"
         ]
+      },
+      "post": {
+        "summary": "RemoveApplication removes an Application from a cluster via GitOps.",
+        "operationId": "Applications_RemoveApplication",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RemoveApplicationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1RemoveApplicationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Applications"
+        ]
       }
     },
     "/v1/applications/auth_providers/github": {
@@ -355,6 +386,43 @@
         }
       }
     },
+    "v1AddApplicationRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        },
+        "autoMerge": {
+          "type": "boolean"
+        },
+        "configUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "v1AddApplicationResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "application": {
+          "$ref": "#/definitions/v1Application"
+        }
+      }
+    },
     "v1Application": {
       "type": "object",
       "properties": {
@@ -656,6 +724,28 @@
           "type": "integer",
           "format": "int32",
           "description": "A pagination token returned from a previous call\nthat indicates from where listing should continue."
+        }
+      }
+    },
+    "v1RemoveApplicationRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "autoMerge": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1RemoveApplicationResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
         }
       }
     },

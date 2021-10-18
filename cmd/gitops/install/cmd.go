@@ -9,6 +9,7 @@ import (
 	_ "embed"
 
 	"github.com/spf13/cobra"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
@@ -27,8 +28,8 @@ var Cmd = &cobra.Command{
 	Short: "Install or upgrade GitOps",
 	Long: `The install command deploys GitOps in the specified namespace.
 If a previous version is installed, then an in-place upgrade will be performed.`,
-	Example: `  # Install GitOps in the wego-system namespace
-  gitops install`,
+	Example: fmt.Sprintf(`  # Install GitOps in the %s namespace
+  gitops install`, wego.DefaultNamespace),
 	RunE:          installRunCmd,
 	SilenceErrors: true,
 	SilenceUsage:  true,
@@ -44,12 +45,12 @@ func init() {
 func installRunCmd(cmd *cobra.Command, args []string) error {
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
-	_, fluxClient, kubeClient, logger, clientErr := apputils.GetBaseClients()
-	if clientErr != nil {
-		return clientErr
+	clients, err := apputils.GetBaseClients()
+	if err != nil {
+		return err
 	}
 
-	gitopsService := gitops.New(logger, fluxClient, kubeClient)
+	gitopsService := gitops.New(clients.Logger, clients.Flux, clients.Kube)
 
 	manifests, err := gitopsService.Install(gitops.InstallParams{
 		Namespace: namespace,

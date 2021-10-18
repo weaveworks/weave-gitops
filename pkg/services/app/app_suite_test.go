@@ -9,7 +9,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
@@ -41,13 +40,9 @@ var _ = BeforeEach(func() {
 	}
 
 	gitProviders = &gitprovidersfakes.FakeGitProvider{
-		GetRepoVisibilityStub: func(url string) (*gitprovider.RepositoryVisibility, error) {
+		GetRepoVisibilityStub: func(ctx context.Context, url string) (*gitprovider.RepositoryVisibility, error) {
 			vis := gitprovider.RepositoryVisibilityPrivate
 			return &vis, nil
-		},
-
-		GetAccountTypeStub: func(owner string) (gitproviders.ProviderAccountType, error) {
-			return gitproviders.AccountTypeUser, nil
 		},
 	}
 

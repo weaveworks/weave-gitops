@@ -33,7 +33,9 @@ jobs:
       with:
         node-version: 14.x
     - name: Install UI Deps
-      run: npm ci
+      run: make ui-deps
+    - name: Check Git State
+      run: git diff --no-ext-diff --exit-code
     - name: Fake Install flux
       run: mkdir -p pkg/flux/bin && touch pkg/flux/bin/flux
     - name: Build UI Assets
@@ -80,8 +82,8 @@ jobs:
       uses: actions/checkout@v2
     - name: Install UI Deps
       run: npm ci
-    # - name: NPM Audit
-    #   run: npm audit
+    - name: UI Deps Audit
+      run: make ui-audit
     - name: Build UI Assets
       run: make cmd/gitops/ui/run/dist/main.js
     - name: Set up kubebuilder
@@ -125,23 +127,22 @@ jobs:
         sudo apt-get install -y xvfb
         sudo apt-get install -y google-chrome-stable
 
-        wget https://chromedriver.storage.googleapis.com/92.0.4515.107/chromedriver_linux64.zip
+        # https://chromedriver.storage.googleapis.com/
+        CHROMEDRIVER_VERSION=94.0.4606.61
+
+        wget https://chromedriver.storage.googleapis.com/"${CHROMEDRIVER_VERSION}"/chromedriver_linux64.zip
         unzip chromedriver_linux64.zip
         sudo mv -f chromedriver /usr/local/bin/chromedriver
 
-        mkdir -p cmd/selenium
-        cd cmd/selenium
         wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
-        mv selenium-server-standalone-3.14.0.jar selenium-server-standalone.jar
 
-        xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone.jar &
-        cd -
+        xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
     - name: Setup Kubernetes
       uses: engineerd/setup-kind@v0.5.0
       with:
         name: "${{ format('katc-{0}', github.run_id) }}"
         version: "v0.11.0"
-        image: kindest/node:v1.20.7
+        image: kindest/node:v1.21.1
         config: "./test/acceptance/test/configs/kind-config.yaml"
     - name: Kind-check
       run: |
@@ -212,23 +213,22 @@ jobs:
         sudo apt-get install -y xvfb
         sudo apt-get install -y google-chrome-stable
 
-        wget https://chromedriver.storage.googleapis.com/92.0.4515.107/chromedriver_linux64.zip
+          # https://chromedriver.storage.googleapis.com/
+        CHROMEDRIVER_VERSION=94.0.4606.61
+
+        wget https://chromedriver.storage.googleapis.com/"${CHROMEDRIVER_VERSION}"/chromedriver_linux64.zip
         unzip chromedriver_linux64.zip
         sudo mv -f chromedriver /usr/local/bin/chromedriver
 
-        mkdir -p cmd/selenium
-        cd cmd/selenium
         wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
-        mv selenium-server-standalone-3.14.0.jar selenium-server-standalone.jar
 
-        xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone.jar &
-        cd -
+        xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
     - name: Setup Kubernetes
       uses: engineerd/setup-kind@v0.5.0
       with:
         name: "${{ format('katc-{0}', github.run_id) }}"
         version: "v0.11.0"
-        image: kindest/node:v1.20.7
+        image: kindest/node:v1.21.1
         config: "./test/acceptance/test/configs/kind-config.yaml"
     - name: Kind-check
       run: |
@@ -271,6 +271,7 @@ jobs:
         name: acceptance-test-artifacts
         path: ${{ env.ARTIFACTS_BASE_DIR }}
         retention-days: 1
+
   library-integration-test:
     runs-on: ubuntu-latest
     steps:

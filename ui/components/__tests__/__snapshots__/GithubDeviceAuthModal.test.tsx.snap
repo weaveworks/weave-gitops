@@ -1,6 +1,25 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`GithubDeviceAuthModal snapshots renders 1`] = `
+.c1 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  width: 100%;
+}
+
 .c9 {
   display: -webkit-box;
   display: -webkit-flex;
@@ -18,25 +37,6 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   -webkit-justify-content: flex-end;
   -ms-flex-pack: end;
   justify-content: flex-end;
-}
-
-.c2 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
-  align-items: start;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-  width: 100%;
 }
 
 .c6 {
@@ -85,7 +85,7 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   padding: 8px 0;
 }
 
-.c1 .c7 {
+.c2 .c7 {
   margin-left: 8px;
 }
 
@@ -121,19 +121,21 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
       <p>
         Paste this code into the Github Device Activation field to grant Weave GitOps temporary access:
       </p>
-      <div>
+      <div
+        class="c1"
+      >
         <div
-          class="c1"
+          class="c2"
         >
           <div
-            class="c2 c3"
+            class="c1 c3"
           >
             <span
               class="c4 c5"
             />
           </div>
           <div
-            class="c2 c3"
+            class="c1 c3"
           >
             <a
               target="_blank"
@@ -174,7 +176,7 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
             </a>
           </div>
           <div
-            class="c2 c3"
+            class="c1 c3"
           />
         </div>
       </div>

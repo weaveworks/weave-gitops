@@ -7,13 +7,16 @@ import (
 	"github.com/go-resty/resty/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/add"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/flux"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/install"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/ui"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/uninstall"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/upgrade"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
@@ -32,7 +35,7 @@ var rootCmd = &cobra.Command{
 	SilenceErrors: true,
 	Short:         "Weave GitOps",
 	Long:          "Command line utility for managing Kubernetes applications via GitOps.",
-	Example: `
+	Example: fmt.Sprintf(`
   # Get verbose output for any gitops command
   gitops [command] -v, --verbose
 
@@ -60,12 +63,14 @@ var rootCmd = &cobra.Command{
   # Show manifests that would be installed by the gitops gitops install command
   gitops install --dry-run
 
-  # Install gitops in the wego-system namespace
+  # Install gitops in the %s namespace
   gitops install
 
   # Get the version of gitops along with commit, branch, and flux version
   gitops version
-`,
+
+  To learn more, you can find our documentation at https://docs.gitops.weave.works/
+`, wego.DefaultNamespace),
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		configureLogger()
 
@@ -99,7 +104,7 @@ func main() {
 	fluxClient := fluxBin.New(osysClient, cliRunner)
 	fluxClient.SetupBin()
 	rootCmd.PersistentFlags().BoolVarP(&options.verbose, "verbose", "v", false, "Enable verbose output")
-	rootCmd.PersistentFlags().String("namespace", "wego-system", "gitops runtime namespace")
+	rootCmd.PersistentFlags().String("namespace", wego.DefaultNamespace, "gitops runtime namespace")
 	rootCmd.PersistentFlags().StringVarP(&options.endpoint, "endpoint", "e", os.Getenv("WEAVE_GITOPS_ENTERPRISE_API_URL"), "The Weave GitOps Enterprise HTTP API endpoint")
 
 	rootCmd.AddCommand(install.Cmd)
@@ -110,6 +115,8 @@ func main() {
 	rootCmd.AddCommand(app.ApplicationCmd)
 	rootCmd.AddCommand(get.GetCommand(&options.endpoint, restyClient))
 	rootCmd.AddCommand(add.GetCommand(&options.endpoint, restyClient))
+	rootCmd.AddCommand(upgrade.Cmd)
+	rootCmd.AddCommand(docs.Cmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)

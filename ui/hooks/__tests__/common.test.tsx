@@ -80,7 +80,7 @@ describe("useRequestState", () => {
         return <div>loading...</div>;
       }
 
-      return <div data-testid={id}>{value.foo}</div>;
+      return <div data-testid={id}>{value?.foo}</div>;
     };
 
     await act(async () => {

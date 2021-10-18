@@ -3,9 +3,9 @@ import { AppContext } from "../contexts/AppContext";
 import { RequestError } from "../lib/types";
 
 export default function useCommon() {
-  const { appState } = useContext(AppContext);
+  const { appState, settings } = useContext(AppContext);
 
-  return { appState };
+  return { appState, settings };
 }
 
 type RequestState<T> = {
@@ -22,7 +22,7 @@ export function useRequestState<T>(): [
 ] {
   const [state, setState] = useState<RequestState<T>>({
     value: null,
-    loading: true,
+    loading: false,
     error: null,
   });
 

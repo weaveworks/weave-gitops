@@ -115,7 +115,7 @@ function GithubDeviceAuthModal({
         <Alert severity="error" title="Error" message={error.message} />
       )}
 
-      <div>
+      <Flex wide center>
         {codeLoading || !codeRes ? (
           <CircularProgress />
         ) : (
@@ -129,7 +129,7 @@ function GithubDeviceAuthModal({
             codeRes={codeRes}
           />
         )}
-      </div>
+      </Flex>
     </Modal>
   );
 }
