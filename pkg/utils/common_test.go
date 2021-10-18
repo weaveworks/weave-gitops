@@ -28,8 +28,8 @@ var _ = Describe("Test common utils", func() {
 			func(currentTime time.Time) time.Time {
 				return currentTime.Add(time.Millisecond)
 			},
-			func() error {
-				return nil
+			func() (bool, error) {
+				return true, nil
 			})
 		Expect(resultTime.Sub(start)).Should(BeNumerically("==", 0))
 		Expect(err).ShouldNot(HaveOccurred())
@@ -51,12 +51,12 @@ var _ = Describe("Test common utils", func() {
 			func(currentTime time.Time) time.Time {
 				return currentTime.Add(time.Millisecond)
 			},
-			func() error {
+			func() (bool, error) {
 				if counter == 0 {
 					counter++
-					return fmt.Errorf("some error")
+					return false, fmt.Errorf("some error")
 				}
-				return nil
+				return true, nil
 			})
 		Expect(resultTime.Sub(start)).Should(BeNumerically("==", time.Millisecond))
 		Expect(err).ShouldNot(HaveOccurred())
@@ -76,8 +76,8 @@ var _ = Describe("Test common utils", func() {
 			func(currentTime time.Time) time.Time {
 				return currentTime.Add(time.Second)
 			},
-			func() error {
-				return fmt.Errorf("some error")
+			func() (bool, error) {
+				return false, fmt.Errorf("some error")
 			})
 		Expect(resultTime.Sub(start)).Should(BeNumerically("==", time.Second*2))
 		Expect(err).Should(MatchError("timeout reached 2s"))

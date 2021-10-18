@@ -92,9 +92,9 @@ func uploadDeployKey(ctx context.Context, repo gitprovider.UserRepository, deplo
 		return fmt.Errorf("error uploading deploy key %s", err)
 	}
 
-	if err = utils.WaitUntil(os.Stdout, time.Second, defaultTimeout, func() error {
+	if err = utils.WaitUntil(os.Stdout, time.Second, defaultTimeout, func() (bool, error) {
 		_, err = repo.DeployKeys().Get(ctx, deployKeyName)
-		return err
+		return false, err
 	}); err != nil {
 		return fmt.Errorf("error verifying deploy key %s: %s", deployKeyName, err)
 	}

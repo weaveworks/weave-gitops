@@ -34,7 +34,7 @@ func Exists(filePath string) bool {
 }
 
 // WaitUntil runs checkDone until a timeout is reached
-func WaitUntil(out io.Writer, poll, timeout time.Duration, checkDone func() error) error {
+func WaitUntil(out io.Writer, poll, timeout time.Duration, checkDone func() (bool, error)) error {
 	_, err := timedRepeat(
 		out,
 		time.Now(),
@@ -50,12 +50,15 @@ func WaitUntil(out io.Writer, poll, timeout time.Duration, checkDone func() erro
 }
 
 // timedRepeat runs checkDone until a timeout is reached by updating the current time via a specified operation
-func timedRepeat(out io.Writer, start time.Time, poll, timeout time.Duration, updater func(currentTime time.Time) time.Time, checkDone func() error) (time.Time, error) {
+func timedRepeat(out io.Writer, start time.Time, poll, timeout time.Duration, updater func(currentTime time.Time) time.Time, checkDone func() (bool, error)) (time.Time, error) {
 	currentTime := start
 	endTime := currentTime.Add(timeout)
 
 	for ; currentTime.Before(endTime); currentTime = updater(currentTime) {
-		err := checkDone()
+		exit, err := checkDone()
+		if exit {
+			return currentTime, err
+		}
 		if err == nil {
 			return currentTime, nil
 		}
