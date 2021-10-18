@@ -421,6 +421,7 @@ var _ = Describe("Add", func() {
 				addParams.Url = "https://charts.kube-ops.io"
 				addParams.Chart = "loki"
 				addParams.HelmReleaseTargetNamespace = "sock-shop"
+				addParams.AppConfigUrl = "NONE"
 
 				goodNamespaceErr := appSrv.Add(addParams)
 				Expect(goodNamespaceErr).ShouldNot(HaveOccurred())
