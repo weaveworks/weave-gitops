@@ -11,6 +11,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/manifests"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
+	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
@@ -140,7 +141,7 @@ func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string
 	defer remover()
 
 	manifests := make(map[string][]byte, 3)
-	clusterPath := filepath.Join(".weave-gitops", "clusters", cname)
+	clusterPath := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname)
 
 	gitsource, sourceName, err := g.genSource(cname, configBranch, params)
 	if err != nil {

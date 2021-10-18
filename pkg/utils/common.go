@@ -13,6 +13,7 @@ import (
 
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	corev1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -194,8 +195,8 @@ func MigrateToNewDirStructure(orig string) string {
 	case 1:
 		return orig
 	case 2:
-		return filepath.Join(".weave-gitops", orig)
+		return filepath.Join(git.WegoRoot, orig)
 	default:
-		return filepath.Join(".weave-gitops/apps", f[len(f)-2], f[len(f)-1])
+		return filepath.Join(git.WegoRoot, git.WegoAppDir, f[len(f)-2], f[len(f)-1])
 	}
 }

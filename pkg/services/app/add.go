@@ -423,7 +423,7 @@ func (a *App) addAppWithConfigInExternalRepo(ctx context.Context, info *AppResou
 	a.Logger.Actionf("Applying manifests to the cluster")
 	// if params.MigrateToNewDirStructure is defined we skip applying to the cluster
 	if params.MigrateToNewDirStructure != nil {
-		appKustomization := filepath.Join(".weave-gitops", "apps", info.appDeployName(), "kustomization.yaml")
+		appKustomization := filepath.Join(git.WegoRoot, git.WegoAppDir, info.appDeployName(), "kustomization.yaml")
 		k, err := a.createOrUpdateKustomize(info, params, info.appDeployName(), []string{filepath.Base(info.appYamlPath()),
 			filepath.Base(info.appAutomationSourcePath()), filepath.Base(info.appAutomationDeployPath())},
 			filepath.Join(repoAbsPath, appKustomization))
@@ -436,7 +436,7 @@ func (a *App) addAppWithConfigInExternalRepo(ctx context.Context, info *AppResou
 			return fmt.Errorf("failed writing app kustomization.yaml to disk: %w", err)
 		}
 		// TODO move to a deploy or apply command.
-		userKustomization := filepath.Join(".weave-gitops", "clusters", info.clusterName, "user", "kustomization.yaml")
+		userKustomization := filepath.Join(git.WegoRoot, git.WegoClusterDir, info.clusterName, "user", "kustomization.yaml")
 
 		uk, err := a.createOrUpdateKustomize(info, params, info.appDeployName(), []string{"../../../apps/" + info.appDeployName()},
 			filepath.Join(repoAbsPath, userKustomization))

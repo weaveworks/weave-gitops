@@ -1110,10 +1110,10 @@ var _ = Describe("New directory structure", func() {
 
 		err := appSrv.Add(addParams)
 		Expect(err).ShouldNot(HaveOccurred())
-		Expect(manifestsByPath[".weave-gitops/apps/"+addParams.Name+"/kustomization.yaml"]).ToNot(BeNil())
+		Expect(manifestsByPath[filepath.Join(git.WegoRoot, git.WegoAppDir, addParams.Name, "kustomization.yaml")]).ToNot(BeNil())
 		cname, err := kubeClient.GetClusterName(context.Background())
 		Expect(err).To(BeNil())
-		clusterKustomizeFile := manifestsByPath[".weave-gitops/clusters/"+cname+"/user/kustomization.yaml"]
+		clusterKustomizeFile := manifestsByPath[filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, "/user/kustomization.yaml")]
 		Expect(clusterKustomizeFile).ToNot(BeNil())
 
 		manifestMap := map[string]interface{}{}
@@ -1133,10 +1133,10 @@ var _ = Describe("New directory structure", func() {
 		addParams.Name = "sally"
 		err = appSrv.Add(addParams)
 		Expect(err).ShouldNot(HaveOccurred())
-		Expect(manifestsByPath[".weave-gitops/apps/"+addParams.Name+"/kustomization.yaml"]).ToNot(BeNil())
+		Expect(manifestsByPath[filepath.Join(git.WegoRoot, git.WegoAppDir, addParams.Name, "kustomization.yaml")]).ToNot(BeNil())
 		cname, err := kubeClient.GetClusterName(context.Background())
 		Expect(err).To(BeNil())
-		clusterKustomizeFile := manifestsByPath[".weave-gitops/clusters/"+cname+"/user/kustomization.yaml"]
+		clusterKustomizeFile := manifestsByPath[filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, "user", "kustomization.yaml")]
 		Expect(clusterKustomizeFile).ToNot(BeNil())
 		manifestMap := map[string]interface{}{}
 

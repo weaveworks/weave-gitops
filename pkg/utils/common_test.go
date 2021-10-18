@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/pkg/git"
 )
 
 var td string
@@ -131,10 +133,10 @@ error occurred some error, retrying in 1s
 				exp  string
 			}{
 				{"foo", "foo"},
-				{"apps/foo/foo.yaml", ".weave-gitops/apps/foo/foo.yaml"},
-				{".wego/apps/foo/foo.yaml", ".weave-gitops/apps/foo/foo.yaml"},
-				{"targets/mycluster/foo/deploy.yaml", ".weave-gitops/apps/foo/deploy.yaml"},
-				{".wego/targets/mycluster/foo/source.yaml", ".weave-gitops/apps/foo/source.yaml"},
+				{"apps/foo/foo.yaml", filepath.Join(git.WegoRoot, git.WegoAppDir, "foo", "foo.yaml")},
+				{".wego/apps/foo/foo.yaml", filepath.Join(git.WegoRoot, git.WegoAppDir, "foo", "foo.yaml")},
+				{"targets/mycluster/foo/deploy.yaml", filepath.Join(git.WegoRoot, git.WegoAppDir, "foo", "deploy.yaml")},
+				{".wego/targets/mycluster/foo/source.yaml", filepath.Join(git.WegoRoot, git.WegoAppDir, "foo", "source.yaml")},
 				{"", ""},
 			}
 			for _, i := range tests {
