@@ -49,10 +49,10 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 
 		wegoAppDeploymentManifest, err := manifests.GenerateWegoAppDeploymentManifest(version)
 		if err != nil {
-			return nil, fmt.Errorf("error generating gitops-app deployment, %w", err)
+			return nil, fmt.Errorf("error generating wego-app deployment, %w", err)
 		}
 		if err := g.kube.Apply(ctx, wegoAppDeploymentManifest, params.Namespace); err != nil {
-			return nil, fmt.Errorf("could not apply gitops-app deployment manifest: %w", err)
+			return nil, fmt.Errorf("could not apply wego-app deployment manifest: %w", err)
 		}
 	}
 
