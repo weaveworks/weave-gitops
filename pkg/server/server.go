@@ -300,14 +300,14 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "token error: %s", err.Error())
 	}
 
-	appUrl, err := gitproviders.NewNormalizedRepoURL(msg.Url)
+	appUrl, err := gitproviders.NewRepoURL(msg.Url)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "unable to parse app url %q: %s", msg.Url, err)
 	}
 
-	var configUrl gitproviders.NormalizedRepoURL
+	var configUrl gitproviders.RepoURL
 	if msg.ConfigUrl != "" {
-		configUrl, err = gitproviders.NewNormalizedRepoURL(msg.ConfigUrl)
+		configUrl, err = gitproviders.NewRepoURL(msg.ConfigUrl)
 		if err != nil {
 			return nil, grpcStatus.Errorf(codes.InvalidArgument, "unable to parse config url %q: %s", msg.ConfigUrl, err)
 		}

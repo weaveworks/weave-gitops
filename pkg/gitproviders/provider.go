@@ -4,15 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 
-	"github.com/fluxcd/go-git-providers/github"
-	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 )
 
@@ -31,13 +28,13 @@ const (
 // GitProvider Handler
 //counterfeiter:generate . GitProvider
 type GitProvider interface {
-	RepositoryExists(ctx context.Context, name string, owner string) (bool, error)
-	DeployKeyExists(ctx context.Context, owner, repoName string) (bool, error)
-	GetDefaultBranch(ctx context.Context, url string) (string, error)
-	GetRepoVisibility(ctx context.Context, url string) (*gitprovider.RepositoryVisibility, error)
-	UploadDeployKey(ctx context.Context, owner, repoName string, deployKey []byte) error
-	CreatePullRequest(ctx context.Context, owner string, repoName string, prInfo PullRequestInfo) (gitprovider.PullRequest, error)
-	GetCommits(ctx context.Context, owner string, repoName, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
+	RepositoryExists(ctx context.Context, repoUrl RepoURL) (bool, error)
+	DeployKeyExists(ctx context.Context, repoUrl RepoURL) (bool, error)
+	GetDefaultBranch(ctx context.Context, repoUrl RepoURL) (string, error)
+	GetRepoVisibility(ctx context.Context, repoUrl RepoURL) (*gitprovider.RepositoryVisibility, error)
+	UploadDeployKey(ctx context.Context, repoUrl RepoURL, deployKey []byte) error
+	CreatePullRequest(ctx context.Context, repoUrl RepoURL, prInfo PullRequestInfo) (gitprovider.PullRequest, error)
+	GetCommits(ctx context.Context, repoUrl RepoURL, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
 	GetProviderDomain() string
 }
 
@@ -195,147 +192,4 @@ func newUserRepositoryRef(domain, user, repoName string) gitprovider.UserReposit
 			UserLogin: user,
 		},
 	}
-}
-
-// DetectGitProviderFromUrl accepts a url related to a git repo and
-// returns the name of the provider associated.
-// The raw URL is assumed to be something like ssh://git@github.com/myorg/myrepo.git.
-// The common `git clone` variant of `git@github.com:myorg/myrepo.git` is not supported.
-func detectGitProviderFromUrl(raw string) (GitProviderName, error) {
-	if strings.HasPrefix(raw, "git@") {
-		raw = "ssh://" + raw
-		raw = strings.Replace(raw, ".com:", ".com/", 1)
-	}
-
-	u, err := url.Parse(raw)
-	if err != nil {
-		return "", fmt.Errorf("could not parse git repo url %q: %w", raw, err)
-	}
-
-	switch u.Hostname() {
-	case github.DefaultDomain:
-		return GitProviderGitHub, nil
-	case gitlab.DefaultDomain:
-		return GitProviderGitLab, nil
-	}
-
-	return "", fmt.Errorf("no git providers found for \"%s\"", raw)
-}
-
-type RepositoryURLProtocol string
-
-const RepositoryURLProtocolHTTPS RepositoryURLProtocol = "https"
-const RepositoryURLProtocolSSH RepositoryURLProtocol = "ssh"
-
-type NormalizedRepoURL struct {
-	repoName   string
-	owner      string
-	url        *url.URL
-	normalized string
-	provider   GitProviderName
-	protocol   RepositoryURLProtocol
-}
-
-// normalizeRepoURLString accepts a url like git@github.com:someuser/podinfo.git and converts it into
-// a string like ssh://git@github.com/someuser/podinfo.git. This helps standardize the different
-// user inputs that might be provided.
-func normalizeRepoURLString(url string, providerName GitProviderName) string {
-	trimmed := ""
-
-	if !strings.HasSuffix(url, ".git") {
-		url = url + ".git"
-	}
-
-	sshPrefix := fmt.Sprintf("git@%s.com:", providerName)
-	httpsPrefix := fmt.Sprintf("https://%s.com/", providerName)
-
-	if strings.HasPrefix(url, sshPrefix) {
-		trimmed = strings.TrimPrefix(url, sshPrefix)
-	} else if strings.HasPrefix(url, httpsPrefix) {
-		trimmed = strings.TrimPrefix(url, httpsPrefix)
-	}
-
-	if trimmed != "" {
-		return fmt.Sprintf("ssh://git@%s.com/%s", providerName, trimmed)
-	}
-
-	return url
-}
-
-func NewNormalizedRepoURL(uri string) (NormalizedRepoURL, error) {
-	providerName, err := detectGitProviderFromUrl(uri)
-	if err != nil {
-		return NormalizedRepoURL{}, fmt.Errorf("could not get provider name from URL %s: %w", uri, err)
-	}
-
-	normalized := normalizeRepoURLString(uri, providerName)
-
-	u, err := url.Parse(normalized)
-	if err != nil {
-		return NormalizedRepoURL{}, fmt.Errorf("could not create normalized repo URL %s: %w", uri, err)
-	}
-
-	owner, err := getOwnerFromUrl(*u, providerName)
-	if err != nil {
-		return NormalizedRepoURL{}, fmt.Errorf("could not get owner name from URL %s: %w", uri, err)
-	}
-
-	protocol := RepositoryURLProtocolSSH
-	if u.Scheme == "https" {
-		protocol = RepositoryURLProtocolHTTPS
-	}
-
-	return NormalizedRepoURL{
-		repoName:   utils.UrlToRepoName(uri),
-		owner:      owner,
-		url:        u,
-		normalized: normalized,
-		provider:   providerName,
-		protocol:   protocol,
-	}, nil
-}
-
-func (n NormalizedRepoURL) String() string {
-	return n.normalized
-}
-
-func (n NormalizedRepoURL) URL() *url.URL {
-	return n.url
-}
-
-func (n NormalizedRepoURL) Owner() string {
-	return n.owner
-}
-
-func (n NormalizedRepoURL) RepositoryName() string {
-	return n.repoName
-}
-
-func (n NormalizedRepoURL) Provider() GitProviderName {
-	return n.provider
-}
-
-func (n NormalizedRepoURL) Protocol() RepositoryURLProtocol {
-	return n.protocol
-}
-
-func getOwnerFromUrl(url url.URL, providerName GitProviderName) (string, error) {
-	url.Path = strings.TrimPrefix(url.Path, "/")
-
-	parts := strings.Split(url.Path, "/")
-	if len(parts) < 2 {
-		return "", fmt.Errorf("could not get owner from url %v", url.String())
-	}
-
-	if providerName == GitProviderGitLab {
-		if len(parts) > 3 {
-			return "", fmt.Errorf("a subgroup in a subgroup is not currently supported")
-		}
-
-		if len(parts) > 2 {
-			return parts[0] + "/" + parts[1], nil
-		}
-	}
-
-	return parts[0], nil
 }

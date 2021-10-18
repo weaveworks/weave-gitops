@@ -15,6 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"sigs.k8s.io/yaml"
@@ -33,14 +34,13 @@ var _ = Describe("Add", func() {
 			Branch:         "main",
 			Dir:            ".",
 			DeploymentType: "kustomize",
+			SourceType:     wego.SourceTypeGit,
 			Namespace:      wego.DefaultNamespace,
 			AppConfigUrl:   "NONE",
 			AutoMerge:      true,
 		}
 
-		gitProviders.GetDefaultBranchStub = func(_ context.Context, url string) (string, error) {
-			return "main", nil
-		}
+		gitProviders.GetDefaultBranchReturns("main", nil)
 
 		ctx = context.Background()
 	})
@@ -71,11 +71,20 @@ var _ = Describe("Add", func() {
 		Expect(kubeClient.GetClusterNameCallCount()).To(Equal(1))
 	})
 
+	It("validates app-config-url is set when source is helm", func() {
+		addParams.Chart = "my-chart"
+		addParams.Url = "https://my-chart.com"
+		addParams.AppConfigUrl = ""
+
+		err := appSrv.Add(addParams)
+		Expect(err.Error()).Should(HaveSuffix("--app-config-url should be provided or set to NONE"))
+	})
+
 	Context("Looking up repo default branch", func() {
 		var _ = BeforeEach(func() {
-			gitProviders.GetDefaultBranchStub = func(_ context.Context, url string) (string, error) {
+			gitProviders.GetDefaultBranchStub = func(_ context.Context, repoUrl gitproviders.RepoURL) (string, error) {
 				branch := "an-unusual-branch" // for app repository
-				if !strings.Contains(url, "bar") {
+				if !strings.Contains(repoUrl.String(), "bar") {
 					branch = "config-branch" // for config repository
 				}
 				return branch, nil
@@ -85,14 +94,14 @@ var _ = Describe("Add", func() {
 		})
 
 		It("Uses the default branch from the repository if no branch is specified", func() {
-			updated, err := appSrv.(*App).updateParametersIfNecessary(addParams)
+			updated, err := appSrv.(*App).updateParametersIfNecessary(ctx, addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(updated.Branch).To(Equal("an-unusual-branch"))
 		})
 
 		It("Allows a specified branch to override the repo's default branch", func() {
 			addParams.Branch = "an-overriding-branch"
-			updated, err := appSrv.(*App).updateParametersIfNecessary(addParams)
+			updated, err := appSrv.(*App).updateParametersIfNecessary(ctx, addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(updated.Branch).To(Equal("an-overriding-branch"))
 		})
@@ -283,6 +292,7 @@ var _ = Describe("Add", func() {
 			It("creates HelmRepository when source type is helm", func() {
 				addParams.Url = "https://charts.kube-ops.io"
 				addParams.Chart = "loki"
+				addParams.AppConfigUrl = "ssh://git@github.com/owner/config-repo.git"
 
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -325,6 +335,7 @@ var _ = Describe("Add", func() {
 			It("creates helm release using a helm repository if source type is helm", func() {
 				addParams.Url = "https://charts.kube-ops.io"
 				addParams.Chart = "loki"
+				addParams.AppConfigUrl = "ssh://github.com/owner/repo"
 
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -359,6 +370,7 @@ var _ = Describe("Add", func() {
 				addParams.Url = "https://charts.kube-ops.io"
 				addParams.Chart = "loki"
 				addParams.HelmReleaseTargetNamespace = "sock-shop"
+				addParams.AppConfigUrl = "ssh://git@github.com/owner/config-repo.git"
 
 				err := appSrv.Add(addParams)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -394,6 +406,7 @@ var _ = Describe("Add", func() {
 				addParams.Url = "https://charts.kube-ops.io"
 				addParams.Chart = "loki"
 				addParams.HelmReleaseTargetNamespace = "sock-shop"
+				addParams.AppConfigUrl = "ssh://git@github.com/owner/config-repo.git"
 
 				goodNamespaceErr := appSrv.Add(addParams)
 				Expect(goodNamespaceErr).ShouldNot(HaveOccurred())
@@ -552,7 +565,8 @@ var _ = Describe("Add", func() {
 					Branch:    "main",
 				}
 
-				info := getAppResourceInfo(makeWegoApplication(params), "")
+				info, err := getAppResourceInfo(makeWegoApplication(params), "")
+				Expect(err).ToNot(HaveOccurred())
 
 				desired2 := info.Application
 				hash := getHash(repoURL, info.Spec.Path, info.Spec.Branch)
@@ -753,8 +767,11 @@ var _ = Describe("Add", func() {
 		var info *AppResourceInfo
 
 		BeforeEach(func() {
-			gitProviders.GetDefaultBranchStub = func(_ context.Context, url string) (string, error) {
-				if url == addParams.Url {
+			gitProviders.GetDefaultBranchStub = func(_ context.Context, repoUrl gitproviders.RepoURL) (string, error) {
+				addUrl, err := gitproviders.NewRepoURL(addParams.Url)
+				Expect(err).NotTo(HaveOccurred())
+
+				if repoUrl.String() == addUrl.String() {
 					return "default-app-branch", nil
 				}
 				return "default-config-branch", nil
@@ -763,12 +780,12 @@ var _ = Describe("Add", func() {
 			gitProviders.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
 
 			addParams.Url = "ssh://github.com/user/repo.git"
-			info = getAppResourceInfo(makeWegoApplication(addParams), "cluster")
 		})
 
-		It("generates an appropriate error when the owner cannot be retrieved from the URL", func() {
-			err := appSrv.(*App).createPullRequestToRepo(info, "foo", "hash", []byte{}, []byte{}, []byte{})
-			Expect(err.Error()).To(HavePrefix("error normalizing url"))
+		JustBeforeEach(func() {
+			var err error
+			info, err = getAppResourceInfo(makeWegoApplication(addParams), "cluster")
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		Context("uses the default app branch for config in app repository", func() {
@@ -777,14 +794,14 @@ var _ = Describe("Add", func() {
 			})
 
 			It("creates the pull request against the default branch for an org app repository", func() {
-				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.Url, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
-				_, _, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
+				Expect(appSrv.(*App).createPullRequestToRepo(ctx, info, info.appRepoUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+				_, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(prInfo.TargetBranch).To(Equal("default-app-branch"))
 			})
 
 			It("creates the pull request against the default branch for a user app repository", func() {
-				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.Url, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
-				_, _, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
+				Expect(appSrv.(*App).createPullRequestToRepo(ctx, info, info.appRepoUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+				_, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(prInfo.TargetBranch).To(Equal("default-app-branch"))
 			})
 		})
@@ -795,14 +812,14 @@ var _ = Describe("Add", func() {
 			})
 
 			It("creates the pull request against the default branch for an org config repository", func() {
-				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
-				_, _, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
+				Expect(appSrv.(*App).createPullRequestToRepo(ctx, info, info.configRepoUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+				_, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(prInfo.TargetBranch).To(Equal("default-config-branch"))
 			})
 
 			It("creates the pull request against the default branch for a user config repository", func() {
-				Expect(appSrv.(*App).createPullRequestToRepo(info, addParams.AppConfigUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
-				_, _, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
+				Expect(appSrv.(*App).createPullRequestToRepo(ctx, info, info.configRepoUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+				_, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(prInfo.TargetBranch).To(Equal("default-config-branch"))
 			})
 		})
@@ -828,7 +845,7 @@ var _ = Describe("Add", func() {
 			addParams := AddParams{}
 			addParams.Url = "http://github.com/weaveworks/testrepo"
 
-			updated, err := appSrv.(*App).updateParametersIfNecessary(addParams)
+			updated, err := appSrv.(*App).updateParametersIfNecessary(ctx, addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(updated.DeploymentType).To(Equal(DefaultDeploymentType))
@@ -840,7 +857,7 @@ var _ = Describe("Add", func() {
 			addParams := AddParams{}
 			addParams.Url = "{http:/-*wrong-url-827"
 
-			_, err := appSrv.(*App).updateParametersIfNecessary(addParams)
+			_, err := appSrv.(*App).updateParametersIfNecessary(ctx, addParams)
 			Expect(err).Should(HaveOccurred())
 			Expect(err.Error()).Should(ContainSubstring("error normalizing url"))
 			Expect(err.Error()).Should(ContainSubstring(addParams.Url))
@@ -852,7 +869,8 @@ var _ = Describe("Add", func() {
 		It("ensures that app names are <= 63 characters", func() {
 			addParams.Name = "a23456789012345678901234567890123456789012345678901234567890123"
 			Expect(appSrv.Add(addParams)).To(Succeed())
-			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
+			info, err := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
+			Expect(err).ToNot(HaveOccurred())
 			Expect(info.automationAppsDirKustomizationName()).To(Equal("wego-" + getHash(fmt.Sprintf("%s-apps-dir", addParams.Name))))
 			addParams.Name = "a234567890123456789012345678901234567890123456789012345678901234"
 			Expect(appSrv.Add(addParams)).ShouldNot(Succeed())
@@ -860,20 +878,20 @@ var _ = Describe("Add", func() {
 
 		It("ensures that url base names are <= 63 characters when used as names", func() {
 			addParams.Url = "https://github.com/foo/a23456789012345678901234567890123456789012345678901234567890123"
-			localParams, err := appSrv.(*App).updateParametersIfNecessary(addParams)
+			localParams, err := appSrv.(*App).updateParametersIfNecessary(ctx, addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(appSrv.Add(localParams)).To(Succeed())
 			addParams.Name = ""
 			addParams.Url = "https://github.com/foo/a234567890123456789012345678901234567890123456789012345678901234"
-			_, err = appSrv.(*App).updateParametersIfNecessary(addParams)
+			_, err = appSrv.(*App).updateParametersIfNecessary(ctx, addParams)
 			Expect(err).Should(HaveOccurred())
 		})
 
 		It("specifies a short cluster name, base url, and app name and gets them all included in resource names", func() {
 			addParams.Url = "https://github.com/foo/url-base"
 			addParams.Name = "app-name"
-			info := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
-
+			info, err := getAppResourceInfo(makeWegoApplication(addParams), "cluster")
+			Expect(err).ToNot(HaveOccurred())
 			Expect(info.automationAppsDirKustomizationName()).To(Equal("app-name-apps-dir"))
 			Expect(info.automationTargetDirKustomizationName()).To(Equal("cluster-app-name"))
 			Expect(info.repoSecretName(addParams.Url).String()).To(Equal("wego-cluster-url-base"))
@@ -882,7 +900,8 @@ var _ = Describe("Add", func() {
 		It("specifies a cluster name, base url, and app name that generate 63 characters and gets them all included in resource names", func() {
 			addParams.Url = "https://github.com/foo/u"
 			addParams.Name = "a12345"
-			info := getAppResourceInfo(makeWegoApplication(addParams), "c2345678901234567890123456789012345678901234567890123456")
+			info, err := getAppResourceInfo(makeWegoApplication(addParams), "c2345678901234567890123456789012345678901234567890123456")
+			Expect(err).ToNot(HaveOccurred())
 
 			Expect(info.automationTargetDirKustomizationName()).To(Equal("c2345678901234567890123456789012345678901234567890123456-a12345"))
 			Expect(info.repoSecretName(addParams.Url).String()).To(Equal("wego-c2345678901234567890123456789012345678901234567890123456-u"))
@@ -892,7 +911,8 @@ var _ = Describe("Add", func() {
 			addParams.Name = "a123456"
 			addParams.Url = "https://github.com/foo/u1"
 			clusterName := "c2345678901234567890123456789012345678901234567890123456"
-			info := getAppResourceInfo(makeWegoApplication(addParams), clusterName)
+			info, err := getAppResourceInfo(makeWegoApplication(addParams), clusterName)
+			Expect(err).ToNot(HaveOccurred())
 
 			kustName := info.automationTargetDirKustomizationName()
 			secretName := info.repoSecretName(addParams.Url).String()
@@ -917,7 +937,10 @@ var _ = Describe("Test app hash", func() {
 		}
 		app.Name = "nginx"
 
-		appHash := getAppResourceInfo(app, "my-cluster").getAppHash()
+		info, err := getAppResourceInfo(app, "my-cluster")
+		Expect(err).ToNot(HaveOccurred())
+
+		appHash := info.getAppHash()
 		expectedHash := getHash(app.Spec.URL, app.Name, app.Spec.Branch)
 
 		Expect(appHash).To(Equal("wego-" + expectedHash))
@@ -934,7 +957,10 @@ var _ = Describe("Test app hash", func() {
 			},
 		}
 
-		appHash := getAppResourceInfo(app, "my-cluster").getAppHash()
+		info, err := getAppResourceInfo(app, "my-cluster")
+		Expect(err).ToNot(HaveOccurred())
+
+		appHash := info.getAppHash()
 		expectedHash := getHash(app.Spec.URL, app.Spec.Path, app.Spec.Branch)
 
 		Expect(appHash).To(Equal("wego-" + expectedHash))
@@ -955,9 +981,7 @@ var _ = Describe("Add Gitlab", func() {
 			AutoMerge:      true,
 		}
 
-		gitProviders.GetDefaultBranchStub = func(_ context.Context, url string) (string, error) {
-			return "main", nil
-		}
+		gitProviders.GetDefaultBranchReturns("main", nil)
 
 		ctx = context.Background()
 	})

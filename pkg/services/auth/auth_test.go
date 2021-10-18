@@ -37,7 +37,7 @@ var _ = Describe("auth", func() {
 	var namespace *corev1.Namespace
 	testClustername := "test-cluster"
 	repoUrlString := "ssh://git@github.com/my-org/my-repo.git"
-	repoUrl, err := gitproviders.NewNormalizedRepoURL(repoUrlString)
+	repoUrl, err := gitproviders.NewRepoURL(repoUrlString)
 	Expect(err).NotTo(HaveOccurred())
 	BeforeEach(func() {
 		namespace = &corev1.Namespace{}
@@ -80,9 +80,7 @@ var _ = Describe("auth", func() {
 			Expect(secret.StringData["identity.pub"]).NotTo(BeNil())
 		})
 		It("uses an existing deploy key when present", func() {
-			gp.DeployKeyExistsStub = func(_ context.Context, s1, s2 string) (bool, error) {
-				return true, nil
-			}
+			gp.DeployKeyExistsReturns(true, nil)
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}
 			// using `generateDeployKey` as a helper for the test setup.
 			_, secret, err := (&authSvc{fluxClient: fluxClient}).generateDeployKey(testClustername, sn, repoUrl)
@@ -95,9 +93,7 @@ var _ = Describe("auth", func() {
 			Expect(gp.UploadDeployKeyCallCount()).To(Equal(0))
 		})
 		It("handles the case where a deploy key exists on the provider, but not the cluster", func() {
-			gp.DeployKeyExistsStub = func(_ context.Context, s1, s2 string) (bool, error) {
-				return true, nil
-			}
+			gp.DeployKeyExistsReturns(true, nil)
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}
 
 			_, err = as.CreateGitClient(ctx, repoUrl, testClustername, namespace.Name)
@@ -126,8 +122,8 @@ var _ = Describe("auth", func() {
 			})
 
 			Context("informs the user that she can use a token for auth", func() {
-				repoUrlGithub, _ := gitproviders.NewNormalizedRepoURL("ssh://git@github.com/my-org/my-repo.git")
-				repoUrlGitlab, _ := gitproviders.NewNormalizedRepoURL("ssh://git@gitlab.com/my-org/my-repo.git")
+				repoUrlGithub, _ := gitproviders.NewRepoURL("ssh://git@github.com/my-org/my-repo.git")
+				repoUrlGitlab, _ := gitproviders.NewRepoURL("ssh://git@gitlab.com/my-org/my-repo.git")
 
 				BeforeEach(func() {
 					osysClient = &osysfakes.FakeOsys{
@@ -137,7 +133,7 @@ var _ = Describe("auth", func() {
 					}
 				})
 
-				DescribeTable("generates correct token info messages", func(repoUrl gitproviders.NormalizedRepoURL, msgArg string) {
+				DescribeTable("generates correct token info messages", func(repoUrl gitproviders.RepoURL, msgArg string) {
 					_, err := InitGitProvider(repoUrl, osysClient, logger, authHandler, authTypeGetter)
 					Expect(err).ShouldNot(HaveOccurred())
 					fmtArg, restArgs := logger.WarningfArgsForCall(0)

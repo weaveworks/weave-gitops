@@ -127,9 +127,7 @@ var _ = BeforeEach(func() {
 	osysClient := osys.New()
 
 	gp = &gitprovidersfakes.FakeGitProvider{}
-	gp.GetDefaultBranchStub = func(_ context.Context, s string) (string, error) {
-		return "main", nil
-	}
+	gp.GetDefaultBranchReturns("main", nil)
 
 	appFactory = &apputilsfakes.FakeServerAppFactory{}
 

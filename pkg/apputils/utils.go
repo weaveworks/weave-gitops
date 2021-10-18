@@ -157,7 +157,7 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 		return nil, nil, nil, nil
 	}
 
-	normalizedUrl, err := gitproviders.NewNormalizedRepoURL(providerUrl)
+	normalizedUrl, err := gitproviders.NewRepoURL(providerUrl)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("error normalizing url: %w", err)
 	}
@@ -190,7 +190,7 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 	}
 
 	if isExternalConfig {
-		normalizedConfigUrl, err := gitproviders.NewNormalizedRepoURL(configUrl)
+		normalizedConfigUrl, err := gitproviders.NewRepoURL(configUrl)
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("error normalizing url: %w", err)
 		}
@@ -208,7 +208,7 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 	return appClient, configClient, authsvc.GetGitProvider(), nil
 }
 
-func getAuthService(ctx context.Context, normalizedUrl gitproviders.NormalizedRepoURL, dryRun bool) (auth.AuthService, error) {
+func getAuthService(ctx context.Context, normalizedUrl gitproviders.RepoURL, dryRun bool) (auth.AuthService, error) {
 	var (
 		gitProvider gitproviders.GitProvider
 		err         error

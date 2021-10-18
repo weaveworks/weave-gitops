@@ -23,12 +23,12 @@ func (a *App) GetCommits(params CommitParams, application *wego.Application) ([]
 		return nil, fmt.Errorf("unable to get commits for a helm chart")
 	}
 
-	normalizedUrl, err := gitproviders.NewNormalizedRepoURL(application.Spec.URL)
+	repoUrl, err := gitproviders.NewRepoURL(application.Spec.URL)
 	if err != nil {
 		return nil, fmt.Errorf("error creating normalized url: %w", err)
 	}
 
-	commits, err := a.GitProvider.GetCommits(context.Background(), normalizedUrl.Owner(), normalizedUrl.RepositoryName(), application.Spec.Branch, params.PageSize, params.PageToken)
+	commits, err := a.GitProvider.GetCommits(context.Background(), repoUrl, application.Spec.Branch, params.PageSize, params.PageToken)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get commits for repo: %w", err)
 	}

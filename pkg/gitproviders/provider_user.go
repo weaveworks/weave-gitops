@@ -15,10 +15,10 @@ type userGitProvider struct {
 
 var _ GitProvider = userGitProvider{}
 
-func (p userGitProvider) RepositoryExists(ctx context.Context, name string, owner string) (bool, error) {
+func (p userGitProvider) RepositoryExists(ctx context.Context, repoUrl RepoURL) (bool, error) {
 	userRepoRef := gitprovider.UserRepositoryRef{
-		UserRef:        gitprovider.UserRef{Domain: p.domain, UserLogin: owner},
-		RepositoryName: name,
+		UserRef:        gitprovider.UserRef{Domain: p.domain, UserLogin: repoUrl.Owner()},
+		RepositoryName: repoUrl.RepositoryName(),
 	}
 	if _, err := p.provider.UserRepositories().Get(ctx, userRepoRef); err != nil {
 		if errors.Is(err, gitprovider.ErrNotFound) {
@@ -31,19 +31,19 @@ func (p userGitProvider) RepositoryExists(ctx context.Context, name string, owne
 	return true, nil
 }
 
-func (p userGitProvider) DeployKeyExists(ctx context.Context, owner, repoName string) (bool, error) {
-	userRepo, err := p.getUserRepo(ctx, owner, repoName)
+func (p userGitProvider) DeployKeyExists(ctx context.Context, repoUrl RepoURL) (bool, error) {
+	userRepo, err := p.getUserRepo(ctx, repoUrl)
 	if err != nil {
-		return false, fmt.Errorf("error getting user repo reference for owner %s, repo %s, %s ", owner, repoName, err)
+		return false, fmt.Errorf("error getting user repo reference for owner %s, repo %s, %w", repoUrl.Owner(), repoUrl.RepositoryName(), err)
 	}
 
 	return deployKeyExists(ctx, userRepo)
 }
 
-func (p userGitProvider) UploadDeployKey(ctx context.Context, owner, repoName string, deployKey []byte) error {
-	userRepo, err := p.getUserRepo(ctx, owner, repoName)
+func (p userGitProvider) UploadDeployKey(ctx context.Context, repoUrl RepoURL, deployKey []byte) error {
+	userRepo, err := p.getUserRepo(ctx, repoUrl)
 	if err != nil {
-		return fmt.Errorf("error getting user repo reference for owner %s, repo %s, %s ", owner, repoName, err)
+		return fmt.Errorf("error getting user repo reference for owner %s, repo %s, %w", repoUrl.Owner(), repoUrl.RepositoryName(), err)
 	}
 
 	fmt.Println("uploading deploy key")
@@ -57,8 +57,8 @@ func (p userGitProvider) UploadDeployKey(ctx context.Context, owner, repoName st
 	return uploadDeployKey(ctx, userRepo, deployKeyInfo)
 }
 
-func (p userGitProvider) GetDefaultBranch(ctx context.Context, url string) (string, error) {
-	repoInfoRef, err := p.getRepoInfoFromUrl(ctx, url)
+func (p userGitProvider) GetDefaultBranch(ctx context.Context, repoUrl RepoURL) (string, error) {
+	repoInfoRef, err := p.getRepoInfoFromUrl(ctx, repoUrl)
 	if err != nil {
 		return "main", err
 	}
@@ -66,8 +66,8 @@ func (p userGitProvider) GetDefaultBranch(ctx context.Context, url string) (stri
 	return *repoInfoRef.DefaultBranch, nil
 }
 
-func (p userGitProvider) GetRepoVisibility(ctx context.Context, url string) (*gitprovider.RepositoryVisibility, error) {
-	repoInfoRef, err := p.getRepoInfoFromUrl(ctx, url)
+func (p userGitProvider) GetRepoVisibility(ctx context.Context, repoUrl RepoURL) (*gitprovider.RepositoryVisibility, error) {
+	repoInfoRef, err := p.getRepoInfoFromUrl(ctx, repoUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -75,13 +75,8 @@ func (p userGitProvider) GetRepoVisibility(ctx context.Context, url string) (*gi
 	return repoInfoRef.Visibility, nil
 }
 
-func (p userGitProvider) getRepoInfoFromUrl(ctx context.Context, repoUrl string) (*gitprovider.RepositoryInfo, error) {
-	normalizedUrl, err := NewNormalizedRepoURL(repoUrl)
-	if err != nil {
-		return nil, err
-	}
-
-	repo, err := p.getUserRepo(ctx, normalizedUrl.Owner(), normalizedUrl.RepositoryName())
+func (p userGitProvider) getRepoInfoFromUrl(ctx context.Context, repoUrl RepoURL) (*gitprovider.RepositoryInfo, error) {
+	repo, err := p.getUserRepo(ctx, repoUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -91,8 +86,8 @@ func (p userGitProvider) getRepoInfoFromUrl(ctx context.Context, repoUrl string)
 	return &repoInfo, nil
 }
 
-func (p userGitProvider) getUserRepo(ctx context.Context, user string, repoName string) (gitprovider.UserRepository, error) {
-	repo, err := p.provider.UserRepositories().Get(ctx, newUserRepositoryRef(p.domain, user, repoName))
+func (p userGitProvider) getUserRepo(ctx context.Context, repoUrl RepoURL) (gitprovider.UserRepository, error) {
+	repo, err := p.provider.UserRepositories().Get(ctx, newUserRepositoryRef(p.domain, repoUrl.Owner(), repoUrl.RepositoryName()))
 	if err != nil {
 		return nil, fmt.Errorf("error getting user repository %w", err)
 	}
@@ -100,19 +95,19 @@ func (p userGitProvider) getUserRepo(ctx context.Context, user string, repoName 
 	return repo, nil
 }
 
-func (p userGitProvider) CreatePullRequest(ctx context.Context, owner string, repoName string, prInfo PullRequestInfo) (gitprovider.PullRequest, error) {
-	userRepo, err := p.getUserRepo(ctx, owner, repoName)
+func (p userGitProvider) CreatePullRequest(ctx context.Context, repoUrl RepoURL, prInfo PullRequestInfo) (gitprovider.PullRequest, error) {
+	userRepo, err := p.getUserRepo(ctx, repoUrl)
 	if err != nil {
-		return nil, fmt.Errorf("error getting user repo for owner %s, repo %s, %s ", owner, repoName, err)
+		return nil, fmt.Errorf("error getting user repo for owner %s, repo %s, %w", repoUrl.Owner(), repoUrl.RepositoryName(), err)
 	}
 
 	return createPullRequest(ctx, userRepo, prInfo)
 }
 
-func (p userGitProvider) GetCommits(ctx context.Context, owner string, repoName string, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
-	userRepo, err := p.getUserRepo(ctx, owner, repoName)
+func (p userGitProvider) GetCommits(ctx context.Context, repoUrl RepoURL, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
+	userRepo, err := p.getUserRepo(ctx, repoUrl)
 	if err != nil {
-		return nil, fmt.Errorf("error getting repo for owner %s, repo %s, %s ", owner, repoName, err)
+		return nil, fmt.Errorf("error getting repo for owner %s, repo %s, %w", repoUrl.Owner(), repoUrl.RepositoryName(), err)
 	}
 
 	return getCommits(ctx, userRepo, targetBranch, pageSize, pageToken)

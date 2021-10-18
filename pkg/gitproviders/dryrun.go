@@ -26,31 +26,31 @@ func NewDryRun() (GitProvider, error) {
 	}, nil
 }
 
-func (p *dryrunProvider) RepositoryExists(_ context.Context, name string, owner string) (bool, error) {
+func (p *dryrunProvider) RepositoryExists(_ context.Context, repoUrl RepoURL) (bool, error) {
 	return true, nil
 }
 
-func (p *dryrunProvider) DeployKeyExists(_ context.Context, owner, repoName string) (bool, error) {
+func (p *dryrunProvider) DeployKeyExists(_ context.Context, repoUrl RepoURL) (bool, error) {
 	return true, nil
 }
 
-func (p *dryrunProvider) GetDefaultBranch(_ context.Context, url string) (string, error) {
+func (p *dryrunProvider) GetDefaultBranch(_ context.Context, repoUrl RepoURL) (string, error) {
 	return "<default-branch>", nil
 }
 
-func (p *dryrunProvider) GetRepoVisibility(_ context.Context, url string) (*gitprovider.RepositoryVisibility, error) {
+func (p *dryrunProvider) GetRepoVisibility(_ context.Context, repoUrl RepoURL) (*gitprovider.RepositoryVisibility, error) {
 	return gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityPrivate), nil
 }
 
-func (p *dryrunProvider) UploadDeployKey(_ context.Context, owner, repoName string, deployKey []byte) error {
+func (p *dryrunProvider) UploadDeployKey(_ context.Context, repoUrl RepoURL, deployKey []byte) error {
 	return nil
 }
 
-func (p *dryrunProvider) CreatePullRequest(_ context.Context, owner string, repoName string, prInfo PullRequestInfo) (gitprovider.PullRequest, error) {
+func (p *dryrunProvider) CreatePullRequest(_ context.Context, repoUrl RepoURL, prInfo PullRequestInfo) (gitprovider.PullRequest, error) {
 	return nil, nil
 }
 
-func (p *dryrunProvider) GetCommits(_ context.Context, owner string, repoName string, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
+func (p *dryrunProvider) GetCommits(_ context.Context, repoUrl RepoURL, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
 	return []gitprovider.Commit{}, nil
 }
 
