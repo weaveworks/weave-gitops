@@ -301,6 +301,10 @@ func (a *App) updateParametersIfNecessary(ctx context.Context, params AddParams)
 
 	// Validate namespace argument for helm
 	if params.HelmReleaseTargetNamespace != "" {
+		if ok, _ := a.Kube.NamespacePresent(context.Background(), params.HelmReleaseTargetNamespace); !ok {
+			return params, fmt.Errorf("Helm Release Target Namespace %s does not exist", params.HelmReleaseTargetNamespace)
+		}
+
 		if nserr := utils.ValidateNamespace(params.HelmReleaseTargetNamespace); nserr != nil {
 			return params, nserr
 		}

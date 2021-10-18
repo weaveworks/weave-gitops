@@ -38,6 +38,9 @@ var _ = BeforeEach(func() {
 		GetClusterStatusStub: func(ctx context.Context) kube.ClusterStatus {
 			return kube.GitOpsInstalled
 		},
+		NamespacePresentStub: func(ctx context.Context, namespace string) (bool, error) {
+			return true, nil
+		},
 	}
 
 	gitProviders = &gitprovidersfakes.FakeGitProvider{

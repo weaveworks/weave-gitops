@@ -48,6 +48,7 @@ type Kube interface {
 	SecretPresent(ctx context.Context, string, namespace string) (bool, error)
 	GetApplications(ctx context.Context, namespace string) ([]wego.Application, error)
 	FluxPresent(ctx context.Context) (bool, error)
+	NamespacePresent(ctx context.Context, namespace string) (bool, error)
 	GetClusterName(ctx context.Context) (string, error)
 	GetClusterStatus(ctx context.Context) ClusterStatus
 	GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error)

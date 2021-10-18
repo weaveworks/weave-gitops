@@ -144,6 +144,20 @@ type FakeKube struct {
 		result1 *v1.Secret
 		result2 error
 	}
+	NamespacePresentStub        func(context.Context, string) (bool, error)
+	namespacePresentMutex       sync.RWMutex
+	namespacePresentArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+	}
+	namespacePresentReturns struct {
+		result1 bool
+		result2 error
+	}
+	namespacePresentReturnsOnCall map[int]struct {
+		result1 bool
+		result2 error
+	}
 	SecretPresentStub        func(context.Context, string, string) (bool, error)
 	secretPresentMutex       sync.RWMutex
 	secretPresentArgsForCall []struct {
@@ -809,6 +823,71 @@ func (fake *FakeKube) GetSecretReturnsOnCall(i int, result1 *v1.Secret, result2 
 	}{result1, result2}
 }
 
+func (fake *FakeKube) NamespacePresent(arg1 context.Context, arg2 string) (bool, error) {
+	fake.namespacePresentMutex.Lock()
+	ret, specificReturn := fake.namespacePresentReturnsOnCall[len(fake.namespacePresentArgsForCall)]
+	fake.namespacePresentArgsForCall = append(fake.namespacePresentArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.NamespacePresentStub
+	fakeReturns := fake.namespacePresentReturns
+	fake.recordInvocation("NamespacePresent", []interface{}{arg1, arg2})
+	fake.namespacePresentMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeKube) NamespacePresentCallCount() int {
+	fake.namespacePresentMutex.RLock()
+	defer fake.namespacePresentMutex.RUnlock()
+	return len(fake.namespacePresentArgsForCall)
+}
+
+func (fake *FakeKube) NamespacePresentCalls(stub func(context.Context, string) (bool, error)) {
+	fake.namespacePresentMutex.Lock()
+	defer fake.namespacePresentMutex.Unlock()
+	fake.NamespacePresentStub = stub
+}
+
+func (fake *FakeKube) NamespacePresentArgsForCall(i int) (context.Context, string) {
+	fake.namespacePresentMutex.RLock()
+	defer fake.namespacePresentMutex.RUnlock()
+	argsForCall := fake.namespacePresentArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeKube) NamespacePresentReturns(result1 bool, result2 error) {
+	fake.namespacePresentMutex.Lock()
+	defer fake.namespacePresentMutex.Unlock()
+	fake.NamespacePresentStub = nil
+	fake.namespacePresentReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeKube) NamespacePresentReturnsOnCall(i int, result1 bool, result2 error) {
+	fake.namespacePresentMutex.Lock()
+	defer fake.namespacePresentMutex.Unlock()
+	fake.NamespacePresentStub = nil
+	if fake.namespacePresentReturnsOnCall == nil {
+		fake.namespacePresentReturnsOnCall = make(map[int]struct {
+			result1 bool
+			result2 error
+		})
+	}
+	fake.namespacePresentReturnsOnCall[i] = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeKube) SecretPresent(arg1 context.Context, arg2 string, arg3 string) (bool, error) {
 	fake.secretPresentMutex.Lock()
 	ret, specificReturn := fake.secretPresentReturnsOnCall[len(fake.secretPresentArgsForCall)]
@@ -898,6 +977,8 @@ func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	defer fake.getResourceMutex.RUnlock()
 	fake.getSecretMutex.RLock()
 	defer fake.getSecretMutex.RUnlock()
+	fake.namespacePresentMutex.RLock()
+	defer fake.namespacePresentMutex.RUnlock()
 	fake.secretPresentMutex.RLock()
 	defer fake.secretPresentMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

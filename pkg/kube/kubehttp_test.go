@@ -83,6 +83,32 @@ var _ = Describe("KubeHTTP", func() {
 		Expect(exists2).To(BeTrue())
 	})
 
+	It("NamespacePresent", func() {
+		ctx := context.Background()
+		namespace := "wego-system"
+
+		exists1, err := k.NamespacePresent(ctx, namespace)
+		Expect(err).NotTo(HaveOccurred())
+
+		// Namespace doesn't exist yet
+		Expect(exists1).To(BeFalse())
+
+		ns := corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: namespace,
+			},
+		}
+
+		// Create the namespace
+		err = k8sClient.Create(ctx, &ns)
+		Expect(err).NotTo(HaveOccurred())
+
+		exists2, err := k.NamespacePresent(ctx, namespace)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(exists2).To(BeTrue())
+	})
+
 	It("GetApplication", func() {
 		ctx := context.Background()
 		name := "my-app"
