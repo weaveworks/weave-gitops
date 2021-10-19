@@ -260,6 +260,24 @@ func (k *KubeHTTP) FluxPresent(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
+func (k *KubeHTTP) NamespacePresent(ctx context.Context, namespace string) (bool, error) {
+	key := types.NamespacedName{
+		Name: namespace,
+	}
+
+	ns := corev1.Namespace{}
+
+	if err := k.Client.Get(ctx, key, &ns); err != nil {
+		if apierrors.IsNotFound(err) {
+			return false, nil
+		}
+
+		return false, fmt.Errorf("could not find namespace: %w", err)
+	}
+
+	return true, nil
+}
+
 func (k *KubeHTTP) SecretPresent(ctx context.Context, secretName string, namespace string) (bool, error) {
 	name := types.NamespacedName{
 		Name:      secretName,

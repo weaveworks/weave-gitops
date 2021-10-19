@@ -40,6 +40,8 @@ var _ = BeforeEach(func() {
 		},
 	}
 
+	kubeClient.NamespacePresentReturns(true, nil)
+
 	gitProviders = &gitprovidersfakes.FakeGitProvider{
 		GetRepoVisibilityStub: func(ctx context.Context, _ gitproviders.RepoURL) (*gitprovider.RepositoryVisibility, error) {
 			vis := gitprovider.RepositoryVisibilityPrivate

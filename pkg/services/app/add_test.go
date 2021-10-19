@@ -417,6 +417,21 @@ var _ = Describe("Add", func() {
 				Expect(badNamespaceErr.Error()).To(HavePrefix("could not update parameters: invalid namespace"))
 			})
 
+			It("validates target namespace exists", func() {
+				addParams.Url = "https://charts.kube-ops.io"
+				addParams.Chart = "loki"
+				addParams.HelmReleaseTargetNamespace = "sock-shop"
+				addParams.AppConfigUrl = "NONE"
+
+				goodNamespaceErr := appSrv.Add(addParams)
+				Expect(goodNamespaceErr).ShouldNot(HaveOccurred())
+
+				kubeClient.NamespacePresentReturns(false, nil)
+
+				badNamespaceErr := appSrv.Add(addParams)
+				Expect(badNamespaceErr.Error()).To(HavePrefix("could not update parameters: Helm Release Target Namespace sock-shop does not exist"))
+			})
+
 			It("fails if deployment type is invalid", func() {
 				addParams.DeploymentType = "foo"
 
