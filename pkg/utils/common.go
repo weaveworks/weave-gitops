@@ -59,6 +59,7 @@ func timedRepeat(out io.Writer, start time.Time, poll, timeout time.Duration, up
 		if exit {
 			return currentTime, err
 		}
+
 		if err == nil {
 			return currentTime, nil
 		}
