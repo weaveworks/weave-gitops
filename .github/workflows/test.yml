@@ -2,13 +2,12 @@ on:
   push:
     paths-ignore:
       - 'doc/**'
-    branches:
-      - main
-  pull_request:
-  workflow_dispatch:
+    pull_request_target:
+      types: [labeled]
 
 name: run tests
 jobs:
+  if: contains(github.event.pull_request.labels.*.name, 'safe to test')
   lint:
     runs-on: ubuntu-latest
     steps:
