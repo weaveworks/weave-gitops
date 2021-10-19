@@ -208,7 +208,7 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 	return appClient, configClient, authsvc.GetGitProvider(), nil
 }
 
-func getAuthService(ctx context.Context, normalizedUrl gitproviders.RepoURL, dryRun bool) (auth.AuthService, error) {
+func GetAuthService(ctx context.Context, normalizedUrl gitproviders.RepoURL, dryRun bool) (auth.AuthService, error) {
 	var (
 		gitProvider gitproviders.GitProvider
 		err         error

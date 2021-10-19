@@ -110,14 +110,14 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string][]byte, cname string) (map[string][]byte, error) {
 	ctx := context.Background()
 
-	configBranch, err := g.gitProvider.GetDefaultBranch(ctx, params.AppConfigURL)
+	normalizedURL, err := gitproviders.NewRepoURL(params.AppConfigURL)
 	if err != nil {
-		return nil, fmt.Errorf("could not determine default branch for config repository: %v %w", params.AppConfigURL, err)
+		return nil, fmt.Errorf("failed to convert app config repo %q : %w", params.AppConfigURL, err)
 	}
 
-	normalizedURL, err := gitproviders.NewNormalizedRepoURL(params.AppConfigURL)
+	configBranch, err := g.gitProvider.GetDefaultBranch(ctx, normalizedURL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to normalize URL %s: %w", params.AppConfigURL, err)
+		return nil, fmt.Errorf("could not determine default branch for config repository: %v %w", params.AppConfigURL, err)
 	}
 
 	// TODO: pass context
