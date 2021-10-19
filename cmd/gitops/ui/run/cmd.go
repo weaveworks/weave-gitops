@@ -28,7 +28,7 @@ var (
 
 var Cmd = &cobra.Command{
 	Use:   "run",
-	Short: "Runs wego ui",
+	Short: "Runs gitops ui",
 	RunE:  runCmd,
 }
 

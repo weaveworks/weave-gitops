@@ -48,11 +48,11 @@ Available Commands:
   version     Display Weave GitOps version
 
 Flags:
-  -h, --help               help for wego
-      --namespace string   gitops runtime namespace (default "wego-system")
+  -h, --help               Help for gitops
+      --namespace string   Weave GitOps runtime namespace (default "wego-system")
   -v, --verbose            Enable verbose output
 
-Use "wego [command] --help" for more information about a command.
+Use "gitops [command] --help" for more information about a command.
 ```
 
 For more information please see the [docs](https://docs.gitops.weave.works/docs/cli-reference)
