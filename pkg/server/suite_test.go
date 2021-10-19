@@ -9,6 +9,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/rand"
 
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/weaveworks/weave-gitops/pkg/apputils/apputilsfakes"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
@@ -90,6 +91,7 @@ var _ = BeforeSuite(func() {
 			&wego.Application{},
 			&corev1.Namespace{},
 			&corev1.Secret{},
+			&sourcev1.GitRepository{},
 		},
 		Scheme: scheme,
 	})
