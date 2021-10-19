@@ -44,7 +44,15 @@ import (
 	"sigs.k8s.io/kustomize/kstatus/status"
 )
 
-var ErrEmptyAccessToken = fmt.Errorf("access token is empty")
+const (
+	KustomizeNameKey      string = "kustomize.toolkit.fluxcd.io/name"
+	KustomizeNamespaceKey string = "kustomize.toolkit.fluxcd.io/namespace"
+)
+
+var (
+	ErrEmptyAccessToken = fmt.Errorf("access token is empty")
+	ErrBadProvider      = errors.New("wrong provider name")
+)
 
 type applicationServer struct {
 	pb.UnimplementedApplicationsServer
@@ -215,85 +223,6 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 	}}, nil
 }
 
-func mapHelmReleaseSpecToResponse(helm *helmv2.HelmRelease) *pb.HelmRelease {
-	if helm == nil {
-		return nil
-	}
-
-	return &pb.HelmRelease{
-		Name:            helm.Name,
-		Namespace:       helm.Namespace,
-		TargetNamespace: helm.Spec.TargetNamespace,
-		Conditions:      mapConditions(helm.Status.Conditions),
-		Chart: &pb.HelmChart{
-			Chart:       helm.Spec.Chart.Spec.Chart,
-			Version:     helm.Spec.Chart.Spec.Version,
-			ValuesFiles: helm.Spec.Chart.Spec.ValuesFiles,
-		},
-	}
-}
-
-func mapKustomizationSpecToResponse(kust *kustomizev1.Kustomization) *pb.Kustomization {
-	if kust == nil {
-		return nil
-	}
-
-	return &pb.Kustomization{
-		Name:                kust.Name,
-		Namespace:           kust.Namespace,
-		TargetNamespace:     kust.Spec.TargetNamespace,
-		Path:                kust.Spec.Path,
-		Conditions:          mapConditions(kust.Status.Conditions),
-		Interval:            kust.Spec.Interval.Duration.String(),
-		Prune:               kust.Spec.Prune,
-		LastAppliedRevision: kust.Status.LastAppliedRevision,
-	}
-}
-
-func mapSourceSpecToReponse(src client.Object) *pb.Source {
-	// An src might be nil if it is not reconciled yet,
-	// in which case return nil in the response for the source_conditions key.
-	source := &pb.Source{}
-	if src == nil {
-		return source
-	}
-
-	switch st := src.(type) {
-	case *sourcev1.GitRepository:
-		source.Name = st.Name
-		source.Namespace = st.Namespace
-		source.Url = st.Spec.URL
-		source.Type = pb.Source_Git
-		source.Interval = st.Spec.Interval.Duration.String()
-		source.Suspend = st.Spec.Suspend
-
-		if st.Spec.Timeout != nil {
-			source.Timeout = st.Spec.Timeout.Duration.String()
-		}
-
-		if st.Spec.Reference != nil {
-			source.Reference = st.Spec.Reference.Branch
-		}
-
-		source.Conditions = mapConditions(st.Status.Conditions)
-	case *sourcev1.HelmRepository:
-		source.Name = st.Name
-		source.Namespace = st.Namespace
-		source.Url = st.Spec.URL
-		source.Type = pb.Source_Helm
-		source.Interval = st.Spec.Interval.Duration.String()
-		source.Suspend = st.Spec.Suspend
-
-		if st.Spec.Timeout != nil {
-			source.Timeout = st.Spec.Timeout.Duration.String()
-		}
-
-		source.Conditions = mapConditions(st.Status.Conditions)
-	}
-
-	return source
-}
-
 func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddApplicationRequest) (*pb.AddApplicationResponse, error) {
 	token, err := middleware.ExtractProviderToken(ctx)
 	if err != nil {
@@ -390,6 +319,10 @@ func (s *applicationServer) RemoveApplication(ctx context.Context, msg *pb.Remov
 	return &pb.RemoveApplicationResponse{Success: true}, nil
 }
 
+func (s *applicationServer) SyncApplication(ctx context.Context, msg *pb.SyncApplicationRequest) (*pb.SyncApplicationResponse, error) {
+	return nil, nil
+}
+
 //Until the middleware is done this function will not be able to get the token and will fail
 func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommitsRequest) (*pb.ListCommitsResponse, error) {
 	providerToken, err := middleware.ExtractProviderToken(ctx)
@@ -451,9 +384,6 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 		NextPageToken: nextPageToken,
 	}, nil
 }
-
-const KustomizeNameKey string = "kustomize.toolkit.fluxcd.io/name"
-const KustomizeNamespaceKey string = "kustomize.toolkit.fluxcd.io/namespace"
 
 func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciledObjectsReq) (*pb.GetReconciledObjectsRes, error) {
 	if msg.AutomationKind == pb.AutomationKind_Helm {
@@ -587,6 +517,25 @@ func (s *applicationServer) GetGithubAuthStatus(ctx context.Context, msg *pb.Get
 	return &pb.GetGithubAuthStatusResponse{AccessToken: t}, nil
 }
 
+// Authenticate generates and returns a jwt token using git provider name and git provider token
+func (s *applicationServer) Authenticate(_ context.Context, msg *pb.AuthenticateRequest) (*pb.AuthenticateResponse, error) {
+	if !strings.HasPrefix(github.DefaultDomain, msg.ProviderName) &&
+		!strings.HasPrefix(gitlab.DefaultDomain, msg.ProviderName) {
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "%s expected github or gitlab, got %s", ErrBadProvider, msg.ProviderName)
+	}
+
+	if msg.AccessToken == "" {
+		return nil, grpcStatus.Error(codes.InvalidArgument, ErrEmptyAccessToken.Error())
+	}
+
+	token, err := s.jwtClient.GenerateJWT(auth.ExpirationTime, gitproviders.GitProviderName(msg.GetProviderName()), msg.GetAccessToken())
+	if err != nil {
+		return nil, grpcStatus.Errorf(codes.Internal, "error generating jwt token. %s", err)
+	}
+
+	return &pb.AuthenticateResponse{Token: token}, nil
+}
+
 // Returns k8s objects that can be used to find the cluster objects.
 // The first return argument is the source, the second is the deployment
 func findFluxObjects(app *wego.Application) (client.Object, client.Object, error) {
@@ -649,27 +598,6 @@ func mapConditions(conditions []metav1.Condition) []*pb.Condition {
 	return out
 }
 
-var ErrBadProvider = errors.New("wrong provider name")
-
-// Authenticate generates and returns a jwt token using git provider name and git provider token
-func (s *applicationServer) Authenticate(_ context.Context, msg *pb.AuthenticateRequest) (*pb.AuthenticateResponse, error) {
-	if !strings.HasPrefix(github.DefaultDomain, msg.ProviderName) &&
-		!strings.HasPrefix(gitlab.DefaultDomain, msg.ProviderName) {
-		return nil, grpcStatus.Errorf(codes.InvalidArgument, "%s expected github or gitlab, got %s", ErrBadProvider, msg.ProviderName)
-	}
-
-	if msg.AccessToken == "" {
-		return nil, grpcStatus.Error(codes.InvalidArgument, ErrEmptyAccessToken.Error())
-	}
-
-	token, err := s.jwtClient.GenerateJWT(auth.ExpirationTime, gitproviders.GitProviderName(msg.GetProviderName()), msg.GetAccessToken())
-	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Internal, "error generating jwt token. %s", err)
-	}
-
-	return &pb.AuthenticateResponse{Token: token}, nil
-}
-
 func addReconciledKinds(arr []*pb.GroupVersionKind, kustomization *kustomizev1.Kustomization) []*pb.GroupVersionKind {
 	if kustomization.Status.Snapshot == nil {
 		return arr
@@ -707,4 +635,83 @@ func addReconciledKinds(arr []*pb.GroupVersionKind, kustomization *kustomizev1.K
 	}
 
 	return arr
+}
+
+func mapHelmReleaseSpecToResponse(helm *helmv2.HelmRelease) *pb.HelmRelease {
+	if helm == nil {
+		return nil
+	}
+
+	return &pb.HelmRelease{
+		Name:            helm.Name,
+		Namespace:       helm.Namespace,
+		TargetNamespace: helm.Spec.TargetNamespace,
+		Conditions:      mapConditions(helm.Status.Conditions),
+		Chart: &pb.HelmChart{
+			Chart:       helm.Spec.Chart.Spec.Chart,
+			Version:     helm.Spec.Chart.Spec.Version,
+			ValuesFiles: helm.Spec.Chart.Spec.ValuesFiles,
+		},
+	}
+}
+
+func mapKustomizationSpecToResponse(kust *kustomizev1.Kustomization) *pb.Kustomization {
+	if kust == nil {
+		return nil
+	}
+
+	return &pb.Kustomization{
+		Name:                kust.Name,
+		Namespace:           kust.Namespace,
+		TargetNamespace:     kust.Spec.TargetNamespace,
+		Path:                kust.Spec.Path,
+		Conditions:          mapConditions(kust.Status.Conditions),
+		Interval:            kust.Spec.Interval.Duration.String(),
+		Prune:               kust.Spec.Prune,
+		LastAppliedRevision: kust.Status.LastAppliedRevision,
+	}
+}
+
+func mapSourceSpecToReponse(src client.Object) *pb.Source {
+	// An src might be nil if it is not reconciled yet,
+	// in which case return nil in the response for the source_conditions key.
+	source := &pb.Source{}
+	if src == nil {
+		return source
+	}
+
+	switch st := src.(type) {
+	case *sourcev1.GitRepository:
+		source.Name = st.Name
+		source.Namespace = st.Namespace
+		source.Url = st.Spec.URL
+		source.Type = pb.Source_Git
+		source.Interval = st.Spec.Interval.Duration.String()
+		source.Suspend = st.Spec.Suspend
+
+		if st.Spec.Timeout != nil {
+			source.Timeout = st.Spec.Timeout.Duration.String()
+		}
+
+		if st.Spec.Reference != nil {
+			source.Reference = st.Spec.Reference.Branch
+		}
+
+		source.Conditions = mapConditions(st.Status.Conditions)
+	case *sourcev1.HelmRepository:
+		source.Name = st.Name
+		source.Namespace = st.Namespace
+		source.Url = st.Spec.URL
+		source.Type = pb.Source_Helm
+		source.Interval = st.Spec.Interval.Duration.String()
+		source.Suspend = st.Spec.Suspend
+
+		if st.Spec.Timeout != nil {
+			source.Timeout = st.Spec.Timeout.Duration.String()
+		}
+
+		source.Conditions = mapConditions(st.Status.Conditions)
+	}
+
+	return source
 }
