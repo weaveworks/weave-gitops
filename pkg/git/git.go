@@ -50,6 +50,12 @@ const WegoAppDir = "apps"
 // WegoClusterDir is where cluster information and manifests will live in the GitOps repo
 const WegoClusterDir = "clusters"
 
+// WegoClusterOSWorkloadDir is where OS workload manifests will live in the GitOps repo
+const WegoClusterOSWorkloadDir = "system"
+
+// WegoClusterUserWorloadDir is where user workload manifests will live in the GitOps repo
+const WegoClusterUserWorloadDir = "user"
+
 // Git is an interface for basic Git operations on a single branch of a
 // remote repository.
 //counterfeiter:generate . Git
