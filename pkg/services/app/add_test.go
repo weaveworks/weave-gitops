@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/md5"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/go-git/go-billy/v5/memfs"
@@ -18,6 +20,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"sigs.k8s.io/yaml"
 )
 
@@ -1072,6 +1075,89 @@ var _ = Describe("Add Gitlab", func() {
 			})
 		})
 	})
+})
+var _ = Describe("New directory structure", func() {
+	var _ = BeforeEach(func() {
+		addParams = AddParams{
+			Url:                      "https://github.com/user/repo",
+			Path:                     "./kustomize",
+			Branch:                   "main",
+			Name:                     "foo",
+			Dir:                      ".",
+			DeploymentType:           "kustomize",
+			Namespace:                "wego-system",
+			AppConfigUrl:             "https://github.com/foo/bar",
+			SourceType:               wego.SourceTypeGit,
+			AutoMerge:                true,
+			MigrateToNewDirStructure: utils.MigrateToNewDirStructure,
+		}
+		manifestsByPath = map[string][]byte{}
+		createdResources = map[ResourceKind]map[string]bool{}
+		repoPath := ""
+
+		gitProviders.GetDefaultBranchStub = func(ctx context.Context, url gitproviders.RepoURL) (string, error) {
+			return "main", nil
+		}
+		gitClient.WriteStub = func(path string, manifest []byte) error {
+			manifestsByPath[path] = manifest
+			if (repoPath) != "" {
+				Expect(os.MkdirAll(filepath.Join(repoPath, filepath.Dir(path)), 0700)).To(Succeed(), "failed creating directory")
+				Expect(os.WriteFile(filepath.Join(repoPath, path), manifest, 0666)).To(Succeed(), "failed writing file", path)
+			}
+			return nil //storeCreatedResource(manifest)
+		}
+		gitClient.CloneStub = func(arg1 context.Context, dir string, arg3 string, arg4 string) (bool, error) {
+			for p, m := range manifestsByPath {
+				// Put the manifests files written so far into this new clone dir
+				Expect(os.MkdirAll(filepath.Join(dir, filepath.Dir(p)), 0700)).To(Succeed(), "failed creating directory")
+				Expect(os.WriteFile(filepath.Join(dir, p), m, 0666)).To(Succeed(), "failed writing file", p)
+
+			}
+
+			return false, nil
+		}
+
+		ctx = context.Background()
+	})
+
+	It("adds app to the cluster kustomization file", func() {
+		addParams.SourceType = wego.SourceTypeGit
+
+		Expect(appSrv.Add(addParams)).ShouldNot(HaveOccurred())
+		Expect(manifestsByPath[filepath.Join(git.WegoRoot, git.WegoAppDir, addParams.Name, "kustomization.yaml")]).ToNot(BeNil())
+		cname, err := kubeClient.GetClusterName(context.Background())
+		Expect(err).To(BeNil())
+		clusterKustomizeFile := manifestsByPath[filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, "/user/kustomization.yaml")]
+		Expect(clusterKustomizeFile).ToNot(BeNil())
+
+		manifestMap := map[string]interface{}{}
+
+		Expect(yaml.Unmarshal(clusterKustomizeFile, &manifestMap)).ShouldNot(HaveOccurred())
+		r := manifestMap["resources"].([]interface{})
+		Expect(len(r)).To(Equal(1))
+		Expect(r[0].(string)).To(Equal("../../../apps/" + addParams.Name))
+	})
+	It("adds second app to the cluster kustomization file", func() {
+		addParams.SourceType = wego.SourceTypeGit
+		origName := addParams.Name
+		Expect(appSrv.Add(addParams)).ShouldNot(HaveOccurred())
+		addParams.Name = "sally"
+		Expect(appSrv.Add(addParams)).ShouldNot(HaveOccurred())
+		Expect(manifestsByPath[filepath.Join(git.WegoRoot, git.WegoAppDir, addParams.Name, "kustomization.yaml")]).ToNot(BeNil())
+		cname, err := kubeClient.GetClusterName(context.Background())
+		Expect(err).To(BeNil())
+		clusterKustomizeFile := manifestsByPath[filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, "user", "kustomization.yaml")]
+		Expect(clusterKustomizeFile).ToNot(BeNil())
+		manifestMap := map[string]interface{}{}
+
+		err = yaml.Unmarshal(clusterKustomizeFile, &manifestMap)
+		Expect(err).ShouldNot(HaveOccurred())
+		r := manifestMap["resources"].([]interface{})
+		Expect(len(r)).To(Equal(2))
+		Expect(r[0].(string)).To(Equal("../../../apps/" + origName))
+		Expect(r[1].(string)).To(Equal("../../../apps/" + addParams.Name))
+	})
+
 })
 
 func getHash(inputs ...string) string {

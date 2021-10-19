@@ -15,12 +15,14 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"sigs.k8s.io/kustomize/api/types"
 	"sigs.k8s.io/yaml"
 )
 
@@ -77,7 +79,10 @@ type AddParams struct {
 	AutoMerge                  bool
 	GitProviderToken           string
 	HelmReleaseTargetNamespace string
+	MigrateToNewDirStructure   func(string) string
 }
+
+var defaultMigrateToNewDirStructure func(string) string = func(s string) string { return s }
 
 const (
 	DefaultPath           = "./"
@@ -341,7 +346,7 @@ func (a *App) addAppWithConfigInAppRepo(ctx context.Context, info *AppResourceIn
 	if params.Dir == "" {
 		a.Logger.Actionf("Cloning %s", info.Spec.URL)
 
-		remover, err := a.cloneRepo(a.ConfigGit, info.Spec.URL, info.Spec.Branch, params.DryRun)
+		remover, _, err := a.cloneRepo(a.ConfigGit, info.Spec.URL, info.Spec.Branch, params.DryRun)
 		if err != nil {
 			return fmt.Errorf("failed to clone application repo: %w", err)
 		}
@@ -357,11 +362,11 @@ func (a *App) addAppWithConfigInAppRepo(ctx context.Context, info *AppResourceIn
 		} else {
 			a.Logger.Actionf("Writing manifests to disk")
 
-			if err := a.writeAppYaml(info, appSpec); err != nil {
+			if err := a.writeAppYaml(info, appSpec, params.MigrateToNewDirStructure); err != nil {
 				return fmt.Errorf("failed writing app.yaml to disk: %w", err)
 			}
 
-			if err := a.writeAppGoats(info, source, appGoat); err != nil {
+			if err := a.writeAppGoats(info, source, appGoat, params.MigrateToNewDirStructure); err != nil {
 				return fmt.Errorf("failed writing app.yaml to disk: %w", err)
 			}
 		}
@@ -395,7 +400,7 @@ func (a *App) addAppWithConfigInExternalRepo(ctx context.Context, info *AppResou
 		return fmt.Errorf("could not generate target GitOps Automation manifests: %w", err)
 	}
 
-	remover, err := a.cloneRepo(a.ConfigGit, info.Spec.ConfigURL, configBranch, params.DryRun)
+	remover, repoAbsPath, err := a.cloneRepo(a.ConfigGit, info.Spec.ConfigURL, configBranch, params.DryRun)
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)
 	}
@@ -410,23 +415,76 @@ func (a *App) addAppWithConfigInExternalRepo(ctx context.Context, info *AppResou
 		} else {
 			a.Logger.Actionf("Writing manifests to disk")
 
-			if err := a.writeAppYaml(info, appSpec); err != nil {
+			if err := a.writeAppYaml(info, appSpec, params.MigrateToNewDirStructure); err != nil {
 				return fmt.Errorf("failed writing app.yaml to disk: %w", err)
 			}
-
-			if err := a.writeAppGoats(info, appSource, appGoat); err != nil {
+			if err := a.writeAppGoats(info, appSource, appGoat, params.MigrateToNewDirStructure); err != nil {
 				return fmt.Errorf("failed writing application gitops manifests to disk: %w", err)
 			}
 		}
 	}
 
 	a.Logger.Actionf("Applying manifests to the cluster")
+	// if params.MigrateToNewDirStructure is defined we skip applying to the cluster
+	if params.MigrateToNewDirStructure != nil {
+		appKustomization := filepath.Join(git.WegoRoot, git.WegoAppDir, info.appDeployName(), "kustomization.yaml")
+		k, err := a.createOrUpdateKustomize(info, params, info.appDeployName(), []string{filepath.Base(info.appYamlPath()),
+			filepath.Base(info.appAutomationSourcePath()), filepath.Base(info.appAutomationDeployPath())},
+			filepath.Join(repoAbsPath, appKustomization))
 
-	if err := a.applyToCluster(info, params.DryRun, extRepoMan.source, extRepoMan.target, extRepoMan.appDir); err != nil {
-		return fmt.Errorf("could not apply manifests to the cluster: %w", err)
+		if err != nil {
+			return fmt.Errorf("failed to create app kustomization: %w", err)
+		}
+
+		if err := a.ConfigGit.Write(appKustomization, k); err != nil {
+			return fmt.Errorf("failed writing app kustomization.yaml to disk: %w", err)
+		}
+		// TODO move to a deploy or apply command.
+		userKustomization := filepath.Join(git.WegoRoot, git.WegoClusterDir, info.clusterName, "user", "kustomization.yaml")
+
+		uk, err := a.createOrUpdateKustomize(info, params, info.appDeployName(), []string{"../../../apps/" + info.appDeployName()},
+			filepath.Join(repoAbsPath, userKustomization))
+		if err != nil {
+			return fmt.Errorf("failed to create app kustomization: %w", err)
+		}
+		//TODO - need to read the existing kustomization instead of writing it here
+		if err := a.ConfigGit.Write(userKustomization, uk); err != nil {
+			return fmt.Errorf("failed writing cluster kustomization.yaml to disk: %w", err)
+		}
+	} else {
+		if err := a.applyToCluster(info, params.DryRun, extRepoMan.source, extRepoMan.target, extRepoMan.appDir); err != nil {
+			return fmt.Errorf("could not apply manifests to the cluster: %w", err)
+		}
 	}
 
 	return a.commitAndPush(a.ConfigGit, AddCommitMessage, params.DryRun)
+}
+
+func (a *App) createOrUpdateKustomize(info *AppResourceInfo, params AddParams, name string, resources []string, kustomizeFile string) ([]byte, error) {
+	k := types.Kustomization{}
+
+	contents, err := os.ReadFile(kustomizeFile)
+	if err == nil {
+		if err := yaml.Unmarshal(contents, &k); err != nil {
+			return nil, fmt.Errorf("failed to read existing kustomize file %s %w", kustomizeFile, err)
+		}
+	} else {
+		k.MetaData = &types.ObjectMeta{
+			Name:      name,
+			Namespace: info.Namespace,
+		}
+		k.APIVersion = types.KustomizationVersion
+		k.Kind = types.KustomizationKind
+	}
+
+	k.Resources = append(k.Resources, resources...)
+
+	kustomize, err := yaml.Marshal(&k)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal kustomize %v : %w", k, err)
+	}
+
+	return kustomize, nil
 }
 
 func (a *App) generateAppManifests(info *AppResourceInfo, secretRef string, appHash string) ([]byte, []byte, []byte, error) {
@@ -522,6 +580,10 @@ func (a *App) generateExternalRepoManifests(ctx context.Context, info *AppResour
 
 func (a *App) commitAndPush(client git.Git, commitMsg string, dryRun bool, filters ...func(string) bool) error {
 	a.Logger.Actionf("Committing and pushing gitops updates for application")
+	return CommitAndPush(client, commitMsg, dryRun, a.Logger, filters...)
+}
+func CommitAndPush(client git.Git, commitMsg string, dryRun bool, logger logger.Logger, filters ...func(string) bool) error {
+	logger.Actionf("Committing and pushing gitops updates for application")
 
 	if dryRun {
 		return nil
@@ -536,13 +598,13 @@ func (a *App) commitAndPush(client git.Git, commitMsg string, dryRun bool, filte
 	}
 
 	if err == nil {
-		a.Logger.Actionf("Pushing app changes to repository")
+		logger.Actionf("Pushing app changes to repository")
 
 		if err = client.Push(context.Background()); err != nil {
 			return fmt.Errorf("failed to push changes: %w", err)
 		}
 	} else {
-		a.Logger.Successf("App is up to date")
+		logger.Successf("App is up to date")
 	}
 
 	return nil
@@ -600,36 +662,52 @@ func (a *App) applyToCluster(info *AppResourceInfo, dryRun bool, manifests ...[]
 	return nil
 }
 
-func (a *App) cloneRepo(client git.Git, url string, branch string, dryRun bool) (func(), error) {
+func (a *App) cloneRepo(client git.Git, url string, branch string, dryRun bool) (func(), string, error) {
+	return CloneRepo(client, url, branch, dryRun)
+}
+
+// CloneRepo uses the git client to clone the reop from the URL and branch.  It clones into a temp
+// directory and returns a function to use by the caller for cleanup.  The temp directory is
+// also returned.
+func CloneRepo(client git.Git, url string, branch string, dryRun bool) (func(), string, error) {
 	if dryRun {
-		return func() {}, nil
+		return func() {}, "", nil
 	}
 
 	repoDir, err := ioutil.TempDir("", "user-repo-")
 	if err != nil {
-		return nil, fmt.Errorf("failed creating temp. directory to clone repo: %w", err)
+		return nil, "", fmt.Errorf("failed creating temp. directory to clone repo: %w", err)
 	}
 
 	_, err = client.Clone(context.Background(), repoDir, url, branch)
 	if err != nil {
-		return nil, fmt.Errorf("failed cloning user repo: %s: %w", url, err)
+		return nil, "", fmt.Errorf("failed cloning user repo: %s: %w", url, err)
 	}
 
 	return func() {
 		os.RemoveAll(repoDir)
-	}, nil
+	}, repoDir, nil
 }
 
-func (a *App) writeAppYaml(info *AppResourceInfo, manifest []byte) error {
-	return a.ConfigGit.Write(info.appYamlPath(), manifest)
+func (a *App) writeAppYaml(info *AppResourceInfo, manifest []byte, overridePath func(string) string) error {
+	if overridePath != nil {
+		return a.ConfigGit.Write(overridePath(info.appYamlPath()), manifest)
+	}
+
+	return a.ConfigGit.Write(defaultMigrateToNewDirStructure(info.appYamlPath()), manifest)
 }
 
-func (a *App) writeAppGoats(info *AppResourceInfo, sourceManifest, deployManifest []byte) error {
-	if err := a.ConfigGit.Write(info.appAutomationSourcePath(), sourceManifest); err != nil {
+func (a *App) writeAppGoats(info *AppResourceInfo, sourceManifest, deployManifest []byte, overridePath func(string) string) error {
+	op := defaultMigrateToNewDirStructure
+	if overridePath != nil {
+		op = overridePath
+	}
+
+	if err := a.ConfigGit.Write(op(info.appAutomationSourcePath()), sourceManifest); err != nil {
 		return err
 	}
 
-	return a.ConfigGit.Write(info.appAutomationDeployPath(), deployManifest)
+	return a.ConfigGit.Write(op(info.appAutomationDeployPath()), deployManifest)
 }
 
 func makeWegoApplication(params AddParams) wego.Application {

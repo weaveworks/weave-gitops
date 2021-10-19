@@ -5,12 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"k8s.io/client-go/rest"
-
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
 	memory "k8s.io/client-go/discovery/cached"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -57,25 +56,16 @@ var (
 	GVRHelmRelease    schema.GroupVersionResource = helmv2.GroupVersion.WithResource("helmreleases")
 )
 
+// InClusterConfig defines a function for checking if this code is executing in kubernetes.
+// This can be overriden if needed.
+var InClusterConfig func() (*rest.Config, error) = func() (*rest.Config, error) {
+	return rest.InClusterConfig()
+}
+
 func NewKubeHTTPClient() (Kube, client.Client, error) {
-	cfgLoadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
-
-	_, kubeContext, err := initialContexts(cfgLoadingRules)
+	config, clusterName, err := RestConfig()
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not get initial context: %w", err)
-	}
-
-	config, err := rest.InClusterConfig()
-	if err == rest.ErrNotInCluster {
-		configOverrides := clientcmd.ConfigOverrides{CurrentContext: kubeContext}
-
-		config, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-			cfgLoadingRules,
-			&configOverrides,
-		).ClientConfig()
-		if err != nil {
-			return nil, nil, fmt.Errorf("could not create rest config: %w", err)
-		}
+		return nil, nil, fmt.Errorf("failed to get a valid rest config %w", err)
 	}
 
 	scheme := CreateScheme()
@@ -99,7 +89,37 @@ func NewKubeHTTPClient() (Kube, client.Client, error) {
 		return nil, nil, fmt.Errorf("failed to initialize dynamic client: %s", err)
 	}
 
-	return &KubeHTTP{Client: rawClient, ClusterName: kubeContext, RestMapper: mapper, DynClient: dyn}, rawClient, nil
+	return &KubeHTTP{Client: rawClient, ClusterName: clusterName, RestMapper: mapper, DynClient: dyn}, rawClient, nil
+}
+
+func RestConfig() (*rest.Config, string, error) {
+	var kubeContext, clusterName string
+
+	config, err := InClusterConfig()
+
+	if err == rest.ErrNotInCluster {
+		cfgLoadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+
+		kubeContext, clusterName, err = initialContext(cfgLoadingRules)
+		if err != nil {
+			return nil, "", fmt.Errorf("could not get initial context: %w", err)
+		}
+
+		configOverrides := clientcmd.ConfigOverrides{CurrentContext: kubeContext}
+
+		config, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+			cfgLoadingRules,
+			&configOverrides,
+		).ClientConfig()
+		if err != nil {
+			return nil, "", fmt.Errorf("could not create rest config: %w", err)
+		}
+	} else {
+		// TODO when running in a cluster and not used for bootstrapping, what is the cluster name used for?
+		clusterName = config.Host
+	}
+
+	return config, clusterName, nil
 }
 
 // This is an alternative implementation of the kube.Kube interface,
@@ -223,7 +243,7 @@ func (k *KubeHTTP) Delete(ctx context.Context, manifest []byte) error {
 
 	err = dr.Delete(ctx, name, deleteOptions)
 	if err != nil {
-		return fmt.Errorf("failed applying %s: %w", string(data), err)
+		return fmt.Errorf("failed deleting %s: %w", string(data), err)
 	}
 
 	return nil
@@ -327,16 +347,17 @@ func (k *KubeHTTP) GetResource(ctx context.Context, name types.NamespacedName, r
 	return nil
 }
 
-func initialContexts(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (contexts []string, currentCtx string, err error) {
+func initialContext(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (currentCtx, clusterName string, err error) {
 	rules, err := cfgLoadingRules.Load()
-
 	if err != nil {
-		return contexts, currentCtx, err
+		return currentCtx, clusterName, err
 	}
 
-	for _, c := range rules.Contexts {
-		contexts = append(contexts, c.Cluster)
+	if rules.CurrentContext == "" {
+		return currentCtx, clusterName, fmt.Errorf("current context not found in kubeconfig file")
 	}
 
-	return contexts, rules.CurrentContext, nil
+	c := rules.Contexts[rules.CurrentContext]
+
+	return rules.CurrentContext, c.Cluster, nil
 }

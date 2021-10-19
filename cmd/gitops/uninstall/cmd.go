@@ -47,7 +47,7 @@ func uninstallRunCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	gitopsService := gitops.New(clients.Logger, clients.Flux, clients.Kube)
+	gitopsService := gitops.New(clients.Logger, clients.Flux, clients.Kube, nil, nil)
 
 	return gitopsService.Uninstall(gitops.UninstallParams{
 		Namespace: namespace,

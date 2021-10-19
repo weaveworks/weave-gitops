@@ -65,6 +65,23 @@ To set up a development environment for the CLI
 2. Install [buf](https://github.com/bufbuild/buf)
 3. make or make unit-tests to ensure everything built correctly.
 
+### unit testing
+
+We are using [Ginko](https://onsi.github.io/ginkgo/) for our unit tests.  To exeucte the all the unit tests, run `make unit-tests`.
+
+To run a single test, you will need to set the KUBEBUILDER_ASSESTS environment variable to point to the directory containing our mock K8s objects.  
+```bash
+export KUBEBUILDER_ASSETS=$(git rev-parse --show-toplevel)/tools/bin/envtest
+go test github.com/weaveworks/weave-gitops/pkg/kube
+```
+or
+```bash
+export KUBEBUILDER_ASSETS=$(git rev-parse --show-toplevel)/tools/bin/envtest
+cd pkg/kube
+go test
+```
+#### Executing a subset of tests
+Ginkgo allows you to run a subset of Describe/Context/It specs.  See [Focused Specs](https://onsi.github.io/ginkgo/#focused-specs) for more information
 ### Setup golangci-lint in your editor
 
 Link for golangci-lint editor integration: https://golangci-lint.run/usage/integrations/

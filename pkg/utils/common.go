@@ -13,6 +13,7 @@ import (
 
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	corev1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -182,4 +183,23 @@ func StartK8sTestEnvironment() (client.Client, func(), error) {
 		err := testEnv.Stop()
 		Expect(err).NotTo(HaveOccurred())
 	}, nil
+}
+func MigrateToNewDirStructure(orig string) string {
+	if orig == "" {
+		return orig
+	}
+
+	f := strings.Split(orig, string(os.PathSeparator))
+
+	switch len(f) {
+	case 1:
+		// single file
+		return orig
+	case 2:
+		// handles the case apps/ and clusters/
+		return filepath.Join(git.WegoRoot, orig)
+	default:
+		// used for paths with apps under clusters
+		return filepath.Join(git.WegoRoot, git.WegoAppDir, f[len(f)-2], f[len(f)-1])
+	}
 }

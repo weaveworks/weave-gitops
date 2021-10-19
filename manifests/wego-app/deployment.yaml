@@ -16,6 +16,7 @@ spec:
           args: ["ui","run"]
           ports:
             - containerPort: 9001
+              protocol: TCP
           imagePullPolicy: IfNotPresent
   selector:
     matchLabels:

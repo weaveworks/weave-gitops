@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
 	. "github.com/onsi/ginkgo"
@@ -14,6 +16,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
+	"k8s.io/client-go/rest"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api/v1"
+	kyaml "sigs.k8s.io/yaml"
 )
 
 var _ = Describe("KubeHTTP", func() {
@@ -287,4 +292,76 @@ metadata:
 		Expect(err).ToNot(HaveOccurred())
 		Expect(a.DeletionTimestamp).ToNot(BeNil())
 	})
+	Describe("Getting client with override kubeconfig", func() {
+		It("valid kubeconfig", func() {
+			kube.InClusterConfig = func() (*rest.Config, error) { return nil, rest.ErrNotInCluster }
+			origkc := os.Getenv("KUBECONFIG")
+			defer os.Setenv("KUBECONFIG", origkc)
+			dir, err := ioutil.TempDir("", "kube-http-test-")
+			Expect(err).ToNot(HaveOccurred())
+			defer os.RemoveAll(dir)
+			tests := []struct {
+				name        string
+				clusterName string
+			}{
+				{"foo", "foo"},
+				{"weave-upa-admin@weave-upa", "weave-upa"},
+			}
+			for _, test := range tests {
+				createKubeconfig(test.name, test.clusterName, dir, true)
+				_, cname, err := kube.RestConfig()
+				Expect(err).ToNot(HaveOccurred(), "Failed to get a kube config for ", test.name)
+
+				Expect(cname).To(Equal(test.clusterName))
+			}
+
+		})
+		It("errors when pointing at a missing kubeconfig file", func() {
+			t, err := ioutil.TempFile("", "not_a_kubeconfig")
+			Expect(err).ToNot(HaveOccurred())
+			defer os.Remove(t.Name())
+			kube.InClusterConfig = func() (*rest.Config, error) { return nil, rest.ErrNotInCluster }
+			origkc := os.Getenv("KUBECONFIG")
+			defer os.Setenv("KUBECONFIG", origkc)
+			os.Setenv("KUBECONFIG", t.Name())
+			_, _, err = kube.RestConfig()
+			Expect(err).To(HaveOccurred(), "Should receive an error about invalid kubeconfig ")
+
+		})
+		It("errors when no current_context set in kubeconfig file", func() {
+			kube.InClusterConfig = func() (*rest.Config, error) { return nil, rest.ErrNotInCluster }
+			origkc := os.Getenv("KUBECONFIG")
+			defer os.Setenv("KUBECONFIG", origkc)
+			dir, err := ioutil.TempDir("", "kube-http-test-")
+			Expect(err).ToNot(HaveOccurred())
+			defer os.RemoveAll(dir)
+			createKubeconfig("foo", "bar", dir, false)
+			_, _, err = kube.RestConfig()
+			Expect(err).To(HaveOccurred(), "Should receive an error about no current context ")
+
+		})
+	})
+
 })
+
+func createKubeconfig(name, clusterName, dir string, setCurContext bool) {
+	f, err := ioutil.TempFile(dir, "test.kubeconfig")
+	Expect(err).ToNot(HaveOccurred())
+
+	c := clientcmdapi.Config{}
+
+	if setCurContext {
+		c.CurrentContext = name
+	}
+
+	c.APIVersion = "v1"
+	c.Kind = "Config"
+	c.Contexts = append(c.Contexts, clientcmdapi.NamedContext{Name: name, Context: clientcmdapi.Context{Cluster: clusterName}})
+	c.Clusters = append(c.Clusters, clientcmdapi.NamedCluster{Name: clusterName, Cluster: clientcmdapi.Cluster{Server: "127.0.0.1"}})
+	kubeconfig, err := kyaml.Marshal(&c)
+	Expect(err).ToNot(HaveOccurred())
+	_, err = f.Write(kubeconfig)
+	Expect(err).ToNot(HaveOccurred())
+	f.Close()
+	os.Setenv("KUBECONFIG", f.Name())
+}

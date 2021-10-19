@@ -33,6 +33,10 @@ func (l ApiLogger) Printf(format string, a ...interface{}) {
 	l.logger.Info(fmt.Sprintf(format, a...))
 }
 
+func (l ApiLogger) Infow(msg string, kv ...interface{}) {
+	l.logger.Info(msg, kv...)
+}
+
 func (l ApiLogger) Actionf(format string, a ...interface{}) {
 	l.logger.Info(fmt.Sprintf(format, a...))
 }
