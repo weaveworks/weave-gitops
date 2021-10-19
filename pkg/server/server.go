@@ -327,11 +327,11 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 		Name:             msg.Name,
 		Namespace:        msg.Namespace,
 		Url:              appUrl.String(),
-		Path:             configUrl.String(),
+		Path:             msg.Path,
 		GitProviderToken: token.AccessToken,
 		Branch:           msg.Branch,
 		AutoMerge:        msg.AutoMerge,
-		AppConfigUrl:     msg.ConfigUrl,
+		AppConfigUrl:     configUrl.String(),
 	}
 
 	if err := appSrv.Add(params); err != nil {
