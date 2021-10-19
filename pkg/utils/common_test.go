@@ -64,6 +64,31 @@ var _ = Describe("Test common utils", func() {
 
 	})
 
+	It("Verify timedRepeat exits when exit is passed", func() {
+
+		counter := 0
+
+		var output bytes.Buffer
+		start := time.Now()
+		resultTime, err := timedRepeat(
+			&output,
+			start,
+			time.Millisecond,
+			time.Millisecond*10,
+			func(currentTime time.Time) time.Time {
+				return currentTime.Add(time.Millisecond)
+			},
+			func() (bool, error) {
+				if counter == 0 {
+					counter++
+					return true, fmt.Errorf("some error")
+				}
+				return true, nil
+			})
+		Expect(resultTime.Sub(start)).Should(BeNumerically("==", 0))
+		Expect(err).Should(HaveOccurred())
+	})
+
 	It("Verify timedRepeat prints out proper messages after reaching limit", func() {
 
 		var output bytes.Buffer
