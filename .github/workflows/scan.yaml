@@ -10,6 +10,7 @@ on:
 
 
 jobs:
+  if: contains(github.event.pull_request.labels.*.name, 'safe to test')
   fossa:
     name: FOSSA
     runs-on: ubuntu-latest
