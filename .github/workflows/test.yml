@@ -258,7 +258,7 @@ jobs:
         git config --global user.email "weave-test-user@example.com"
         git config --global user.name "Testy McTestFace"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-    - name: Run Full Acceptance Suite
+    - name: Run Full Acceptance Suite Except Kustomize Add Tests
       run: |
         export PATH=${PATH}:`go env GOPATH`/bin
         export WEGO_BIN_PATH=$(pwd)/bin/gitops
@@ -344,7 +344,7 @@ jobs:
         git config --global user.email "weave-test-user@example.com"
         git config --global user.name "Testy McTestFace"
         git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-    - name: Run Full Acceptance Suite
+    - name: Run Kustomize Add Acceptance Suite
       run: |
         export PATH=${PATH}:`go env GOPATH`/bin
         export WEGO_BIN_PATH=$(pwd)/bin/gitops
@@ -352,11 +352,11 @@ jobs:
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega/...
         ginkgo --focus=KustomizeTest --randomizeSuites --reportFile=${{ env. ARTIFACTS_BASE_DIR }}/acceptance-test-kustomize-results.xml -v ./test/acceptance/test/...
-    - name: Store acceptance test results
+    - name: Store kustomize add acceptance test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
       with:
-        name: acceptance-test-artifacts
+        name: acceptance-test-kustomize-artifacts
         path: ${{ env.ARTIFACTS_BASE_DIR }}
         retention-days: 1
 
