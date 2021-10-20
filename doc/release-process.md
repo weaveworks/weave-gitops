@@ -16,7 +16,7 @@ The current release process for weave gitops is fairly straightforward. You need
     - -M for a major release candidate
     - -m for a minor release candidate
     - -p for a patch release candidate
-    - -c for incrementing the release candidate number
+    - -c for creating a new release candidate build
     - -r for a full release
 - A release candidate is needed to do a full release. First create a release candidate (example patch release candidate `./tools/tag-release.sh -p`)
 - After a release candidate is created a full release can be made with `./tools/tag-release.sh -r`
