@@ -314,7 +314,7 @@ metadata:
 			for _, test := range tests {
 				createKubeconfig(test.name, test.clusterName, dir, true)
 				_, cname, err := kube.RestConfig()
-				Expect(err).ToNot(HaveOccurred(), "Failed to get a kube config for ")
+				Expect(err).ToNot(HaveOccurred(), "Failed to get a kube config")
 
 				Expect(cname).To(Equal(test.expName))
 			}
