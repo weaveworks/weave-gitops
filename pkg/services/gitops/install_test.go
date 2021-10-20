@@ -187,6 +187,15 @@ var _ = Describe("Install", func() {
 			Expect(namespace).To(Equal("wego-system"))
 			Expect(dryRun).To(Equal(true))
 		})
+		It("flux kustomization file for user and system have hidden directory", func() {
+			_, err := gitopsSrv.Install(installParams)
+			Expect(err).ShouldNot(HaveOccurred())
+			for i := fluxClient.CreateKustomizationCallCount() - 1; i >= 0; i-- {
+				_, _, path, _ := fluxClient.CreateKustomizationArgsForCall(i)
+				Expect(path).To(HavePrefix("..weave-gitops"))
+			}
+		})
+
 	})
 	Context("when app url specified && dry-run", func() {
 		BeforeEach(func() {
