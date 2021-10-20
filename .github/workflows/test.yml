@@ -179,7 +179,7 @@ jobs:
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega
-        ginkgo --focus=SmokeTest --randomizeSuites --reportFile=${{ env. ARTIFACTS_BASE_DIR }}/smoke-test-results.xml -v ./test/acceptance/test/...
+        ginkgo -p --focus=SmokeTest --randomizeSuites --reportFile=${{ env. ARTIFACTS_BASE_DIR }}/smoke-test-results.xml -v ./test/acceptance/test/...
     - name: Store smoke test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
@@ -265,7 +265,7 @@ jobs:
         export CLUSTER_PROVIDER=kubectl
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega/...
-        ginkgo --randomizeSuites --reportFile=${{ env. ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml -v ./test/acceptance/test/...
+        ginkgo -p --randomizeSuites --reportFile=${{ env. ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml -v ./test/acceptance/test/...
     - name: Store acceptance test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
