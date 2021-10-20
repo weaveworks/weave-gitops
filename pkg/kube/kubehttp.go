@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -359,5 +360,13 @@ func initialContext(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (curren
 
 	c := rules.Contexts[rules.CurrentContext]
 
-	return rules.CurrentContext, c.Cluster, nil
+	return rules.CurrentContext, sanitizeClusterName(c.Cluster), nil
+}
+func sanitizeClusterName(s string) string {
+	// remove leading email address or username prefix from context
+	if strings.Contains(s, "@") {
+		return s[strings.LastIndex(s, "@")+1:]
+	}
+
+	return s
 }
