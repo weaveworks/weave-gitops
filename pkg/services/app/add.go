@@ -327,7 +327,7 @@ func (a *App) addAppWithNoConfigRepo(info *AppResourceInfo, dryRun bool, secretR
 
 	a.Logger.Actionf("Applying manifests to the cluster")
 
-	return a.applyToCluster(info, dryRun, source, appGoat, appSpec)
+	return a.applyToCluster(info, dryRun, source.ToSourceYAML(), appGoat.ToAutomationYAML(), appSpec.ToAppYAML())
 }
 
 func (a *App) addAppWithConfigInAppRepo(ctx context.Context, info *AppResourceInfo, params AddParams, secretRef string, appHash string) error {
@@ -356,7 +356,7 @@ func (a *App) addAppWithConfigInAppRepo(ctx context.Context, info *AppResourceIn
 
 	if !params.DryRun {
 		if !params.AutoMerge {
-			if err := a.createPullRequestToRepo(ctx, info, info.appRepoUrl, appHash, appSpec, appGoat, source); err != nil {
+			if err := a.createPullRequestToRepo(ctx, info, info.appRepoUrl, appHash, appSpec, source, appGoat); err != nil {
 				return err
 			}
 		} else {
@@ -374,7 +374,7 @@ func (a *App) addAppWithConfigInAppRepo(ctx context.Context, info *AppResourceIn
 
 	a.Logger.Actionf("Applying manifests to the cluster")
 
-	if err := a.applyToCluster(info, params.DryRun, source, appDirGoat, targetDirGoat); err != nil {
+	if err := a.applyToCluster(info, params.DryRun, source.ToSourceYAML(), appDirGoat, targetDirGoat); err != nil {
 		return fmt.Errorf("could not apply manifests to the cluster: %w", err)
 	}
 
@@ -409,7 +409,7 @@ func (a *App) addAppWithConfigInExternalRepo(ctx context.Context, info *AppResou
 
 	if !params.DryRun {
 		if !params.AutoMerge {
-			if err := a.createPullRequestToRepo(ctx, info, info.configRepoUrl, appHash, appSpec, appGoat, appSource); err != nil {
+			if err := a.createPullRequestToRepo(ctx, info, info.configRepoUrl, appHash, appSpec, appSource, appGoat); err != nil {
 				return err
 			}
 		} else {
@@ -487,20 +487,18 @@ func (a *App) createOrUpdateKustomize(info *AppResourceInfo, params AddParams, n
 	return kustomize, nil
 }
 
-func (a *App) generateAppManifests(info *AppResourceInfo, secretRef string, appHash string) ([]byte, []byte, []byte, error) {
-	var sourceManifest, appManifest, appGoatManifest []byte
-
+func (a *App) generateAppManifests(info *AppResourceInfo, secretRef string, appHash string) (Source, Automation, AppManifest, error) {
 	var err error
 
 	a.Logger.Generatef("Generating Source manifest")
 
-	sourceManifest, err = a.generateSource(info, secretRef)
+	sourceManifest, err := a.generateSource(info, secretRef)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("could not set up GitOps for user repository: %w", err)
 	}
 
 	a.Logger.Generatef("Generating GitOps automation manifests")
-	appGoatManifest, err = a.generateApplicationGoat(info)
+	appGoatManifest, err := a.generateApplicationGoat(info)
 
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("could not create GitOps automation for '%s': %w", info.Name, err)
@@ -508,7 +506,7 @@ func (a *App) generateAppManifests(info *AppResourceInfo, secretRef string, appH
 
 	a.Logger.Generatef("Generating Application spec manifest")
 
-	appManifest, err = generateAppYaml(info, appHash)
+	appManifest, err := generateAppYaml(info, appHash)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("could not create app.yaml for '%s': %w", info.Name, err)
 	}
@@ -610,38 +608,48 @@ func CommitAndPush(client git.Git, commitMsg string, dryRun bool, logger logger.
 	return nil
 }
 
-func (a *App) generateSource(info *AppResourceInfo, secretRef string) ([]byte, error) {
+func (a *App) generateSource(info *AppResourceInfo, secretRef string) (Source, error) {
+	var (
+		b   []byte
+		err error
+	)
+
 	switch info.Spec.SourceType {
 	case wego.SourceTypeGit:
-		sourceManifest, err := a.Flux.CreateSourceGit(info.Name, info.Spec.URL, info.Spec.Branch, secretRef, info.Namespace)
-		if err != nil {
-			return nil, fmt.Errorf("could not create git source: %w", err)
-		}
-
-		return sourceManifest, nil
+		b, err = a.Flux.CreateSourceGit(info.Name, info.Spec.URL, info.Spec.Branch, secretRef, info.Namespace)
 	case wego.SourceTypeHelm:
-		return a.Flux.CreateSourceHelm(info.Name, info.Spec.URL, info.Namespace)
+		b, err = a.Flux.CreateSourceHelm(info.Name, info.Spec.URL, info.Namespace)
+
 	default:
 		return nil, fmt.Errorf("unknown source type: %v", info.Spec.SourceType)
 	}
+
+	return source{yaml: b}, err
 }
 
-func (a *App) generateApplicationGoat(info *AppResourceInfo) ([]byte, error) {
+func (a *App) generateApplicationGoat(info *AppResourceInfo) (Automation, error) {
+	var (
+		b   []byte
+		err error
+	)
+
 	switch info.Spec.DeploymentType {
 	case wego.DeploymentTypeKustomize:
-		return a.Flux.CreateKustomization(info.Name, info.Name, info.Spec.Path, info.Namespace)
+		b, err = a.Flux.CreateKustomization(info.Name, info.Name, info.Spec.Path, info.Namespace)
 	case wego.DeploymentTypeHelm:
 		switch info.Spec.SourceType {
 		case wego.SourceTypeHelm:
-			return a.Flux.CreateHelmReleaseHelmRepository(info.Name, info.Spec.Path, info.Namespace, info.Spec.HelmTargetNamespace)
+			b, err = a.Flux.CreateHelmReleaseHelmRepository(info.Name, info.Spec.Path, info.Namespace, info.Spec.HelmTargetNamespace)
 		case wego.SourceTypeGit:
-			return a.Flux.CreateHelmReleaseGitRepository(info.Name, info.Name, info.Spec.Path, info.Namespace, info.Spec.HelmTargetNamespace)
+			b, err = a.Flux.CreateHelmReleaseGitRepository(info.Name, info.Name, info.Spec.Path, info.Namespace, info.Spec.HelmTargetNamespace)
 		default:
 			return nil, fmt.Errorf("invalid source type: %v", info.Spec.SourceType)
 		}
 	default:
 		return nil, fmt.Errorf("invalid deployment type: %v", info.Spec.DeploymentType)
 	}
+
+	return automation{yaml: b}, err
 }
 
 func (a *App) applyToCluster(info *AppResourceInfo, dryRun bool, manifests ...[]byte) error {
@@ -689,25 +697,25 @@ func CloneRepo(client git.Git, url string, branch string, dryRun bool) (func(), 
 	}, repoDir, nil
 }
 
-func (a *App) writeAppYaml(info *AppResourceInfo, manifest []byte, overridePath func(string) string) error {
+func (a *App) writeAppYaml(info *AppResourceInfo, manifest AppManifest, overridePath func(string) string) error {
 	if overridePath != nil {
-		return a.ConfigGit.Write(overridePath(info.appYamlPath()), manifest)
+		return a.ConfigGit.Write(overridePath(info.appYamlPath()), manifest.ToAppYAML())
 	}
 
-	return a.ConfigGit.Write(defaultMigrateToNewDirStructure(info.appYamlPath()), manifest)
+	return a.ConfigGit.Write(defaultMigrateToNewDirStructure(info.appYamlPath()), manifest.ToAppYAML())
 }
 
-func (a *App) writeAppGoats(info *AppResourceInfo, sourceManifest, deployManifest []byte, overridePath func(string) string) error {
+func (a *App) writeAppGoats(info *AppResourceInfo, sourceManifest Source, deployManifest Automation, overridePath func(string) string) error {
 	op := defaultMigrateToNewDirStructure
 	if overridePath != nil {
 		op = overridePath
 	}
 
-	if err := a.ConfigGit.Write(op(info.appAutomationSourcePath()), sourceManifest); err != nil {
+	if err := a.ConfigGit.Write(op(info.appAutomationSourcePath()), sourceManifest.ToSourceYAML()); err != nil {
 		return err
 	}
 
-	return a.ConfigGit.Write(op(info.appAutomationDeployPath()), deployManifest)
+	return a.ConfigGit.Write(op(info.appAutomationDeployPath()), deployManifest.ToAutomationYAML())
 }
 
 func makeWegoApplication(params AddParams) wego.Application {
@@ -735,7 +743,7 @@ func makeWegoApplication(params AddParams) wego.Application {
 	return app
 }
 
-func generateAppYaml(info *AppResourceInfo, appHash string) ([]byte, error) {
+func generateAppYaml(info *AppResourceInfo, appHash string) (AppManifest, error) {
 	app := info.Application
 
 	app.ObjectMeta.Labels = map[string]string{
@@ -747,21 +755,21 @@ func generateAppYaml(info *AppResourceInfo, appHash string) ([]byte, error) {
 		return nil, fmt.Errorf("could not marshal yaml: %w", err)
 	}
 
-	return sanitizeK8sYaml(b), nil
+	return appManifest{yaml: sanitizeK8sYaml(b)}, nil
 }
 
 func generateResourceName(url string) string {
 	return hashNameIfTooLong(strings.ReplaceAll(utils.UrlToRepoName(url), "_", "-"))
 }
 
-func (a *App) createPullRequestToRepo(ctx context.Context, info *AppResourceInfo, repoUrl gitproviders.RepoURL, newBranch string, appYaml []byte, goatSource []byte, goatDeploy []byte) error {
+func (a *App) createPullRequestToRepo(ctx context.Context, info *AppResourceInfo, repoUrl gitproviders.RepoURL, newBranch string, appYaml AppManifest, goatSource Source, goatDeploy Automation) error {
 	appPath := info.appYamlPath()
 	goatSourcePath := info.appAutomationSourcePath()
 	goatDeployPath := info.appAutomationDeployPath()
 
-	appContent := string(appYaml)
-	goatSourceContent := string(goatSource)
-	goatDeployContent := string(goatDeploy)
+	appContent := string(appYaml.ToAppYAML())
+	goatSourceContent := string(goatSource.ToSourceYAML())
+	goatDeployContent := string(goatDeploy.ToAutomationYAML())
 
 	files := []gitprovider.CommitFile{
 		{
