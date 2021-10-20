@@ -576,11 +576,12 @@ var _ = Describe("Add", func() {
 			It("generates the app yaml", func() {
 				repoURL := "ssh://git@github.com/example/my-source"
 				params := AddParams{
-					Name:      "my-app",
-					Namespace: wego.DefaultNamespace,
-					Url:       repoURL,
-					Path:      "manifests",
-					Branch:    "main",
+					Name:         "my-app",
+					Namespace:    wego.DefaultNamespace,
+					Url:          repoURL,
+					AppConfigUrl: "none",
+					Path:         "manifests",
+					Branch:       "main",
 				}
 
 				info, err := getAppResourceInfo(makeWegoApplication(params), "")

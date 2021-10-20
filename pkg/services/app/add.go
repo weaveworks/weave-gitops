@@ -816,7 +816,7 @@ func getAppResourceInfo(app wego.Application, clusterName string) (*AppResourceI
 		}
 	}
 
-	if app.Spec.ConfigURL != "" && app.Spec.ConfigURL != string(ConfigTypeNone) {
+	if IsExternalConfigUrl(app.Spec.ConfigURL) {
 		configRepoUrl, err = gitproviders.NewRepoURL(app.Spec.ConfigURL)
 		if err != nil {
 			return nil, err
