@@ -179,7 +179,7 @@ jobs:
         export DELETE_WEGO_RUNTIME_ON_EACH_TEST=true
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega
-        ginkgo -p --focus=SmokeTest --randomizeSuites --reportFile=${{ env. ARTIFACTS_BASE_DIR }}/smoke-test-results.xml -v ./test/acceptance/test/...
+        ginkgo --focus=SmokeTest --randomizeSuites --reportFile=${{ env. ARTIFACTS_BASE_DIR }}/smoke-test-results.xml -v ./test/acceptance/test/...
     - name: Store smoke test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
@@ -265,7 +265,93 @@ jobs:
         export CLUSTER_PROVIDER=kubectl
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega/...
-        ginkgo -p --randomizeSuites --reportFile=${{ env. ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml -v ./test/acceptance/test/...
+        ginkgo --skip=KustomizeTest --randomizeSuites --reportFile=${{ env. ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml -v ./test/acceptance/test/...
+    - name: Store acceptance test results
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: acceptance-test-artifacts
+        path: ${{ env.ARTIFACTS_BASE_DIR }}
+        retention-days: 1
+
+  acceptance-tests-kustomize:
+    runs-on: ubuntu-latest
+    needs: [lint, build, test]
+    timeout-minutes: 90
+    env:
+        GITHUB_ORG: weaveworks-gitops-test
+        GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
+        GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
+        ARTIFACTS_BASE_DIR: "/tmp/wego-test"
+        IS_TEST_ENV: "true"
+        GITLAB_ORG: weave-gitops
+        GITLAB_SUBGROUP: weave-gitops-sub
+        GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        GITLAB_KEY: ${{ secrets.GITLAB_KEY }}
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16.x
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Setup selenium standalone server
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb
+        sudo apt-get install -y google-chrome-stable
+
+          # https://chromedriver.storage.googleapis.com/
+        CHROMEDRIVER_VERSION=94.0.4606.61
+
+        wget https://chromedriver.storage.googleapis.com/"${CHROMEDRIVER_VERSION}"/chromedriver_linux64.zip
+        unzip chromedriver_linux64.zip
+        sudo mv -f chromedriver /usr/local/bin/chromedriver
+
+        wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
+
+        xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
+    - name: Setup Kubernetes
+      uses: engineerd/setup-kind@v0.5.0
+      with:
+        name: "${{ format('katc-{0}', github.run_id) }}"
+        version: "v0.11.0"
+        image: kindest/node:v1.21.1
+        config: "./test/acceptance/test/configs/kind-config.yaml"
+    - name: Kind-check
+      run: |
+        kubectl get pods -A
+    - name: Download gitops binaries
+      uses: actions/download-artifact@v2
+      with:
+        name: gitops-binaries
+        path: bin
+    - name: Change bin permissions
+      run: |
+        chmod +x bin/gitops
+        ls -la bin
+    - name: Download dependecies
+      run: |
+        make dependencies
+    - name: Set up ssh agent
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: |
+              ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
+    - name: Configure git settings
+      run: |
+        git config --global init.defaultBranch main
+        git config --global user.email "weave-test-user@example.com"
+        git config --global user.name "Testy McTestFace"
+        git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+    - name: Run Full Acceptance Suite
+      run: |
+        export PATH=${PATH}:`go env GOPATH`/bin
+        export WEGO_BIN_PATH=$(pwd)/bin/gitops
+        export CLUSTER_PROVIDER=kubectl
+        go get github.com/onsi/ginkgo/ginkgo
+        go get github.com/onsi/gomega/...
+        ginkgo --focus=KustomizeTest --randomizeSuites --reportFile=${{ env. ARTIFACTS_BASE_DIR }}/acceptance-test-kustomize-results.xml -v ./test/acceptance/test/...
     - name: Store acceptance test results
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
