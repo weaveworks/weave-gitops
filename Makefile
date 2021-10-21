@@ -1,4 +1,4 @@
-.PHONY: debug bin gitops install clean fmt vet depencencies lint ui ui-lint ui-test ui-dev unit-tests proto proto-deps api-dev ui-dev fakes crd ui-deps
+.PHONY: debug bin gitops install clean fmt vet depencencies lint ui ui-lint ui-test ui-dev unit-tests proto proto-deps api-dev ui-dev fakes crd
 VERSION=$(shell git describe --always --match "v*")
 GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
@@ -99,7 +99,7 @@ proto: ## Generate protobuf files
 
 ##@ UI
 
-ui-deps: ## Install node modules
+node_modules: ## Install node modules
 	npm ci
 	npx npm-force-resolutions
 
@@ -112,9 +112,9 @@ ui-test: ## Run UI tests
 ui-audit: ## Run audit against the UI
 	npm audit --production
 
-ui: ui-deps cmd/gitops/ui/run/dist/main.js ## Build the UI
+ui: node_modules cmd/gitops/ui/run/dist/main.js ## Build the UI
 
-ui-lib: ui-deps dist/index.js dist/index.d.ts ## Build UI libraries
+ui-lib: node_modules dist/index.js dist/index.d.ts ## Build UI libraries
 # Remove font files from the npm module.
 	@find dist -type f -iname \*.otf -delete
 	@find dist -type f -iname \*.woff -delete
