@@ -71,8 +71,7 @@ runs:
   - name: Set up ssh agent
     uses: webfactory/ssh-agent@v0.5.3
     with:
-      ssh-private-key: |
-            ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
+      ssh-private-key: ${{ inputs.github-key }}
   - name: Configure git settings
     shell: bash
     run: |
