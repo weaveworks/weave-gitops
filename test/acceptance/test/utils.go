@@ -236,7 +236,7 @@ func initAndCreateEmptyRepo(appRepoName string, providerName gitproviders.GitPro
 	err = createGitRepository(appRepoName, DEFAULT_BRANCH_NAME, isPrivateRepo, providerName, org)
 	Expect(err).ShouldNot(HaveOccurred())
 
-	err = utils.WaitUntil(os.Stdout, time.Second*3, time.Second*30, func() error {
+	err = utils.WaitUntil(bytes.NewBuffer([]byte{}), time.Second*3, time.Second*30, func() error {
 		command := exec.Command("sh", "-c", fmt.Sprintf(`
             git clone git@%s.com:%s/%s.git %s`,
 			providerName, org, appRepoName,
