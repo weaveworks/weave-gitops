@@ -85,7 +85,6 @@ runs:
         GITHUB_ORG: weaveworks-gitops-test
         GITHUB_TOKEN: ${{ inputs.github-token }}
         GITHUB_KEY: ${{ inputs.github-key }}
-        ARTIFACTS_BASE_DIR: "/tmp/wego-test"
         IS_TEST_ENV: "true"
         GITLAB_ORG: weave-gitops
         GITLAB_SUBGROUP: weave-gitops-sub
@@ -99,6 +98,8 @@ runs:
       go get github.com/onsi/gomega/...
       ginkgo ${{ inputs.focus-or-skip }} --randomizeSuites --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/${{ inputs.result-prefix }}acceptance-test-results.xml -v ./test/acceptance/test/...
   - name: Store acceptance test results
+    env:
+        ARTIFACTS_BASE_DIR: "/tmp/wego-test"
     uses: actions/upload-artifact@v2
     with:
       name: ${{ inputs.result-prefix }}acceptance-test-artifacts
