@@ -112,6 +112,10 @@ jobs:
       with:
         result-prefix: 'smoke-'
         focus-or-skip: "--focus='SmokeTest'"
+        github-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
+        github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
+        gitlab-key: ${{ secrets.GITLAB_KEY }}
+        gitlab-token: ${{ secrets.GITLAB_TOKEN }}
 
   acceptance-tests:
     runs-on: ubuntu-latest
@@ -122,6 +126,10 @@ jobs:
     - uses: ./.github/actions/run-acceptance-test
       with:
         focus-or-skip: "--skip='KustomizeTest|SmokeTest'"
+        github-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
+        github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
+        gitlab-key: ${{ secrets.GITLAB_KEY }}
+        gitlab-token: ${{ secrets.GITLAB_TOKEN }}
 
   acceptance-tests-kustomize:
     runs-on: ubuntu-latest
@@ -133,6 +141,10 @@ jobs:
       with:
         result-prefix: 'kustomize-'
         focus-or-skip: "--focus='KustomizeTest'"
+        github-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
+        github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
+        gitlab-key: ${{ secrets.GITLAB_KEY }}
+        gitlab-token: ${{ secrets.GITLAB_TOKEN }}
 
   library-integration-test:
     runs-on: ubuntu-latest

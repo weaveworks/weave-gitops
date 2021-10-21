@@ -8,6 +8,19 @@ inputs:
   focus-or-skip:
     description: "Which regexps to select and filter -- eg: --focus=KustomizeTest or --skip='KustomizeTest|SmokeTest'"
     required: true
+  github-key:
+    description: "Key for accessing GitHub"
+    required: true
+  github-token:
+    description: "Token for accessing GitHub"
+    required: true
+  gitlab-key:
+    description: "Key for accessing GitLab"
+    required: true
+  gitlab-token:
+    description: "Token for accessing GitLab"
+    required: true
+
 runs:
   using: "composite"
   steps:
@@ -18,6 +31,7 @@ runs:
   - name: Checkout code
     uses: actions/checkout@v2
   - name: Setup selenium standalone server
+    shell: bash
     run: |
       sudo apt-get update
       sudo apt-get install -y xvfb
@@ -37,6 +51,7 @@ runs:
       image: kindest/node:v1.21.1
       config: "./test/acceptance/test/configs/kind-config.yaml"
   - name: Kind-check
+    shell: bash
     run: |
       kubectl get pods -A
   - name: Download gitops binaries
@@ -45,10 +60,12 @@ runs:
       name: gitops-binaries
       path: bin
   - name: Change bin permissions
+    shell: bash
     run: |
       chmod +x bin/gitops
       ls -la bin
   - name: Download dependecies
+    shell: bash
     run: |
       make dependencies
   - name: Set up ssh agent
@@ -57,22 +74,24 @@ runs:
       ssh-private-key: |
             ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
   - name: Configure git settings
+    shell: bash
     run: |
       git config --global init.defaultBranch main
       git config --global user.email "weave-test-user@example.com"
       git config --global user.name "Testy McTestFace"
       git config --global url.ssh://git@github.com/.insteadOf https://github.com/
   - name: Run Full Acceptance Suite Except Kustomize Add Tests
+    shell: bash
     env:
         GITHUB_ORG: weaveworks-gitops-test
-        GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
-        GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_KEY: ${{ inputs.github-key }}
         ARTIFACTS_BASE_DIR: "/tmp/wego-test"
         IS_TEST_ENV: "true"
         GITLAB_ORG: weave-gitops
         GITLAB_SUBGROUP: weave-gitops-sub
-        GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-        GITLAB_KEY: ${{ secrets.GITLAB_KEY }}
+        GITLAB_TOKEN: ${{ inputs.gitlab-token }}
+        GITLAB_KEY: ${{ inputs.gitlab-key }}
     run: |
       export PATH=${PATH}:`go env GOPATH`/bin
       export WEGO_BIN_PATH=$(pwd)/bin/gitops
@@ -81,7 +100,6 @@ runs:
       go get github.com/onsi/gomega/...
       ginkgo ${{ inputs.focus-or-skip }} --randomizeSuites --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/${{ inputs.result-prefix }}acceptance-test-results.xml -v ./test/acceptance/test/...
   - name: Store acceptance test results
-    if: ${{ always() }}
     uses: actions/upload-artifact@v2
     with:
       name: ${{ inputs.result-prefix }}acceptance-test-artifacts
