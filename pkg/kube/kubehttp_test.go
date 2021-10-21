@@ -302,17 +302,21 @@ metadata:
 			defer os.RemoveAll(dir)
 			tests := []struct {
 				name        string
+				expName     string
 				clusterName string
 			}{
-				{"foo", "foo"},
-				{"weave-upa-admin@weave-upa", "weave-upa"},
+				{"foo", "foo", "foo"},
+				{"weave-upa-admin@weave-upa", "weave-upa", "weave-upa"},
+				{"user@weave.works@market.eu-west-2.eksctl.io-podinfo", "market.eu-west-2.eksctl.io-podinfo", "user@weave.works@market.eu-west-2.eksctl.io-podinfo"},
+				{"user@market.eu-west-2.eksctl.io-podinfo", "market.eu-west-2.eksctl.io-podinfo", "user@market.eu-west-2.eksctl.io-podinfo"},
+				{"user@market.eu-west-2.eksctl.io-podinfo", "market.eu-west-2.eksctl.io-podinfo", "market.eu-west-2.eksctl.io-podinfo"},
 			}
 			for _, test := range tests {
 				createKubeconfig(test.name, test.clusterName, dir, true)
 				_, cname, err := kube.RestConfig()
-				Expect(err).ToNot(HaveOccurred(), "Failed to get a kube config for ", test.name)
+				Expect(err).ToNot(HaveOccurred(), "Failed to get a kube config")
 
-				Expect(cname).To(Equal(test.clusterName))
+				Expect(cname).To(Equal(test.expName))
 			}
 
 		})
