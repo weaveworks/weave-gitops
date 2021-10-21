@@ -21,7 +21,7 @@ type clustersDeleteFlags struct {
 
 var clustersDeleteCmdFlags clustersDeleteFlags
 
-func ClusterCommand(endpoint string, client *resty.Client) *cobra.Command {
+func ClusterCommand(endpoint *string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "cluster",
 		Aliases: []string{"clusters"},
@@ -44,9 +44,9 @@ gitops delete cluster <cluster-name>
 	return cmd
 }
 
-func deleteClusterCmdRunE(endpoint string, client *resty.Client) func(*cobra.Command, []string) error {
+func deleteClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		r, err := adapters.NewHttpClient(endpoint, client, os.Stdout)
+		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
 		if err != nil {
 			return err
 		}
