@@ -1,7 +1,7 @@
 on:
   push:
-    #branches:
-    #  - main
+    branches:
+      - main
   workflow_dispatch:
 
 name: Deploy
@@ -183,7 +183,7 @@ jobs:
 
   publish-binaries:
     runs-on: ${{matrix.os}}
-    needs: [build]
+    needs: [acceptance-tests]
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]
