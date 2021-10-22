@@ -21,6 +21,7 @@ import (
 var clusterName string
 
 var _ = Describe("Weave GitOps App Add Tests", func() {
+
 	deleteWegoRuntime := false
 	if os.Getenv("DELETE_WEGO_RUNTIME_ON_EACH_TEST") == "true" {
 		deleteWegoRuntime = true
@@ -205,7 +206,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Test1 - Verify that gitops can deploy and remove a gitlab app after it is setup with an empty repo initially", func() {
+	It("Verify that gitops can deploy and remove a gitlab app after it is setup with an empty repo initially", func() {
 		var repoAbsolutePath string
 		private := true
 		tip := generateTestInputs()
@@ -479,7 +480,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Test3 - Verify that gitops can deploy and remove a gitlab app with specified config-url and app-config-url set to <url>", func() {
+	It("Test2 - Verify that gitops can deploy and remove a gitlab app with specified config-url and app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var appRemoveOutput *gexec.Session
