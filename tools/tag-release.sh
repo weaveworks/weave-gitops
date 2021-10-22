@@ -53,9 +53,7 @@ version=${version:1} # Remove the v in the tag v0.37.10 for example
 
 # Build array from version string.
 a=( ${version//./ } )
-
-# Get rc number from version string
-rc=${version#*rc}
+rc=0
 
 # 2) Increase version number if release candidate and if not create release
 
@@ -70,7 +68,6 @@ then
   fi
 else
 # Increment version/rc numbers as requested.
-  a[2]=${a[2]/-rc*} # Clean up -rc on patch number
   if [ ! -z $major ]
   then
     ((a[0]++))
@@ -91,7 +88,10 @@ else
 
   if [ ! -z $candidate ]
   then
-    ((rc++))
+    # Get rc number from version string
+    rc=${version#*rc}
+    a[2]=${a[2]/-rc*} # Clean up -rc on patch number
+    ((rc++)) 
   fi
 
   next_version="${a[0]}.${a[1]}.${a[2]}-rc${rc}"
