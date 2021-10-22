@@ -6,7 +6,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/delete/clusters"
 )
 
-func DeleteCommand(endpoint string, client *resty.Client) *cobra.Command {
+func DeleteCommand(endpoint *string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete",
 		Short: "Delete one or many Weave GitOps resources",
