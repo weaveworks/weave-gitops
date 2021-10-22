@@ -132,7 +132,7 @@ jobs:
         gitlab-key: ${{ secrets.GITLAB_KEY }}
         gitlab-token: ${{ secrets.GITLAB_TOKEN }}
 
-  acceptance-tests:
+  acceptance-tests-0:
     runs-on: ubuntu-latest
     needs: [lint, build, test]
     timeout-minutes: 90
@@ -140,28 +140,13 @@ jobs:
     - uses: actions/checkout@v2
     - uses: ./.github/actions/run-acceptance-test
       with:
-        focus-or-skip: "--skip='KustomizeTest|KustomizeTestMultiple|SmokeTest|SmokeTestLong|TestExternal'"
+        focus-or-skip: "--skip='Test1|Test2|Test3|SmokeTest|SmokeTestLong'"
         github-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
         github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
         gitlab-key: ${{ secrets.GITLAB_KEY }}
         gitlab-token: ${{ secrets.GITLAB_TOKEN }}
 
-  acceptance-tests-external:
-    runs-on: ubuntu-latest
-    needs: [lint, build, test]
-    timeout-minutes: 90
-    steps:
-    - uses: actions/checkout@v2
-    - uses: ./.github/actions/run-acceptance-test
-      with:
-        result-prefix: 'external-'
-        focus-or-skip: "--focus='TestExternal'"
-        github-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
-        github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
-        gitlab-key: ${{ secrets.GITLAB_KEY }}
-        gitlab-token: ${{ secrets.GITLAB_TOKEN }}
-
-  acceptance-tests-kustomize:
+  acceptance-tests-1:
     runs-on: ubuntu-latest
     needs: [lint, build, test]
     timeout-minutes: 90
@@ -170,13 +155,13 @@ jobs:
     - uses: ./.github/actions/run-acceptance-test
       with:
         result-prefix: 'kustomize-'
-        focus-or-skip: "--focus='KustomizeTest'"
+        focus-or-skip: "--focus='Test1'"
         github-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
         github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
         gitlab-key: ${{ secrets.GITLAB_KEY }}
         gitlab-token: ${{ secrets.GITLAB_TOKEN }}
 
-  acceptance-tests-kustomize-multiple:
+  acceptance-tests-2:
     runs-on: ubuntu-latest
     needs: [lint, build, test]
     timeout-minutes: 90
@@ -185,7 +170,22 @@ jobs:
     - uses: ./.github/actions/run-acceptance-test
       with:
         result-prefix: 'kustomize-multiple-'
-        focus-or-skip: "--focus='KustomizeTestMultiple'"
+        focus-or-skip: "--focus='Test2'"
+        github-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
+        github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
+        gitlab-key: ${{ secrets.GITLAB_KEY }}
+        gitlab-token: ${{ secrets.GITLAB_TOKEN }}
+
+  acceptance-tests-3:
+    runs-on: ubuntu-latest
+    needs: [lint, build, test]
+    timeout-minutes: 90
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ./.github/actions/run-acceptance-test
+      with:
+        result-prefix: 'test3-'
+        focus-or-skip: "--focus='Test3'"
         github-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
         github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
         gitlab-key: ${{ secrets.GITLAB_KEY }}

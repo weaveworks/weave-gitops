@@ -41,7 +41,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTest: Verify that gitops cannot work without gitops components installed OR with both url and directory provided", func() {
+	It("Verify that gitops cannot work without gitops components installed OR with both url and directory provided", func() {
 		var repoAbsolutePath string
 		var errOutput string
 		var exitCode int
@@ -93,7 +93,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTest: Verify that gitops does not modify the cluster when run with --dry-run flag", func() {
+	It("Verify that gitops does not modify the cluster when run with --dry-run flag", func() {
 		var repoAbsolutePath string
 		var addCommandOutput string
 		private := true
@@ -157,7 +157,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTest: Verify that gitops can deploy an app after it is setup with an empty repo initially", func() {
+	It("Test1 - Verify that gitops can deploy an app after it is setup with an empty repo initially", func() {
 		var repoAbsolutePath string
 		private := true
 		tip := generateTestInputs()
@@ -205,7 +205,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTest: Verify that gitops can deploy and remove a gitlab app after it is setup with an empty repo initially", func() {
+	It("Test1 - Verify that gitops can deploy and remove a gitlab app after it is setup with an empty repo initially", func() {
 		var repoAbsolutePath string
 		private := true
 		tip := generateTestInputs()
@@ -272,7 +272,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTest: Verify that gitops can deploy app when user specifies branch, namespace, url, deployment-type", func() {
+	It("Test1 - Verify that gitops can deploy app when user specifies branch, namespace, url, deployment-type", func() {
 		var repoAbsolutePath string
 		var appList string
 		var pauseOutput string
@@ -430,7 +430,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTest: Verify that gitops can deploy an app with specified config-url and app-config-url set to <url>", func() {
+	It("Test1 - Verify that gitops can deploy an app with specified config-url and app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		private := true
@@ -479,7 +479,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTestExternal: Verify that gitops can deploy and remove a gitlab app with specified config-url and app-config-url set to <url>", func() {
+	It("Test3 - Verify that gitops can deploy and remove a gitlab app with specified config-url and app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var appRemoveOutput *gexec.Session
@@ -547,7 +547,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTest: Verify that gitops can deploy an app with specified config-url and app-config-url set to default", func() {
+	It("Test1 - Verify that gitops can deploy an app with specified config-url and app-config-url set to default", func() {
 		var repoAbsolutePath string
 		private := false
 		tip := generateTestInputs()
@@ -586,7 +586,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTest: Verify that gitops can deploy an app when provided with relative path: 'path/to/repo/dir'", func() {
+	It("Test1 - Verify that gitops can deploy an app when provided with relative path: 'path/to/repo/dir'", func() {
 		var repoAbsolutePath string
 		private := true
 		tip := generateTestInputs()
@@ -629,7 +629,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTestMultiple: Verify that gitops can deploy multiple workloads from a single app repo", func() {
+	It("Test2 - Verify that gitops can deploy multiple workloads from a single app repo", func() {
 		var repoAbsolutePath string
 		tip1 := generateTestInputs()
 		tip2 := generateTestInputs()
@@ -678,7 +678,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTestMultiple: Verify that gitops can add multiple apps dir to the cluster using single repo for gitops config", func() {
+	It("Test2 - Verify that gitops can add multiple apps dir to the cluster using single repo for gitops config", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		private := true
@@ -740,7 +740,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTestMultiple: Verify that gitops can add multiple apps dir to the cluster using single app and gitops config repo", func() {
+	It("Test2 - Verify that gitops can add multiple apps dir to the cluster using single app and gitops config repo", func() {
 		var repoAbsolutePath string
 		private := true
 		tip1 := generateTestInputs()
@@ -787,7 +787,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("TestExternal - Verify that gitops can deploy an app with app-config-url set to <url>", func() {
+	It("Test3 - Verify that gitops can deploy an app with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var listOutput string
@@ -1305,7 +1305,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("TestExternal - Verify that gitops can deploy a helm app from a git repo with app-config-url set to <url>", func() {
+	It("Test3 - Verify that gitops can deploy a helm app from a git repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoAbsolutePath string
 		private := true
@@ -1370,7 +1370,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 	})
 
-	It("TestExternal - Verify that gitops can deploy multiple helm apps from a helm repo with app-config-url set to <url>", func() {
+	It("Test3 - Verify that gitops can deploy multiple helm apps from a helm repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var listOutput string
 		var appStatus1 string
@@ -1506,7 +1506,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTest: Verify that a PR is raised against a user repo when skipping auto-merge", func() {
+	It("Test2 - Verify that a PR is raised against a user repo when skipping auto-merge", func() {
 		var repoAbsolutePath string
 		tip := generateTestInputs()
 		appName := tip.appRepoName
@@ -1553,7 +1553,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTest: Verify that a PR is raised against a gitlab user repo when skipping auto-merge", func() {
+	It("Test2 - Verify that a PR is raised against a gitlab user repo when skipping auto-merge", func() {
 		var repoAbsolutePath string
 		tip := generateTestInputs()
 		appName := tip.appRepoName
@@ -1604,7 +1604,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTest: Verify that a PR can be raised against an external repo with app-config-url set to <url>", func() {
+	It("Test2 - Verify that a PR can be raised against an external repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var appConfigRepoAbsPath string
@@ -1660,7 +1660,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTest: Verify that a PR fails when raised against the same app-repo with different branch and app", func() {
+	It("Verify that a PR fails when raised against the same app-repo with different branch and app", func() {
 		var repoAbsolutePath string
 		tip := generateTestInputs()
 		tip2 := generateTestInputs()
