@@ -15,6 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
+	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 )
 
@@ -34,6 +35,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			clusterName = getClusterName()
+			log.Infof("Using cluster: %s", clusterName)
 		})
 
 		By("And I have a gitops binary installed on my local machine", func() {
@@ -1350,6 +1352,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("The manifests are present in the config repo", func() {
+			clusterName = getClusterName()
 			pullBranch(configRepoAbsolutePath, "main")
 
 			_, err := os.Stat(fmt.Sprintf("%s/apps/%s/app.yaml", configRepoAbsolutePath, appName))
@@ -1370,7 +1373,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 	})
 
-	FIt("Verify that gitops can deploy multiple helm apps from a helm repo with app-config-url set to <url>", func() {
+	It("Verify that gitops can deploy multiple helm apps from a helm repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var listOutput string
 		var appStatus1 string
