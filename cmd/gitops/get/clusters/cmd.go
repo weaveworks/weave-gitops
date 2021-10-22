@@ -52,7 +52,7 @@ func getClustersCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comm
 
 		if clustersGetCmdFlags.Kubeconfig {
 			if len(args) == 0 {
-				return fmt.Errorf("you should provide a cluster name")
+				return fmt.Errorf("please provider a cluster name")
 			}
 
 			return clusters.GetClusterKubeconfig(args[0], r, os.Stdout)
