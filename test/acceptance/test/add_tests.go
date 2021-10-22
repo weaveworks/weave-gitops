@@ -430,7 +430,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTestExternal: Verify that gitops can deploy an app with specified config-url and app-config-url set to <url>", func() {
+	It("KustomizeTest: Verify that gitops can deploy an app with specified config-url and app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		private := true
@@ -629,7 +629,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTest: Verify that gitops can deploy multiple workloads from a single app repo", func() {
+	It("KustomizeTestMultiple: Verify that gitops can deploy multiple workloads from a single app repo", func() {
 		var repoAbsolutePath string
 		tip1 := generateTestInputs()
 		tip2 := generateTestInputs()
@@ -678,7 +678,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTest: Verify that gitops can add multiple apps dir to the cluster using single repo for gitops config", func() {
+	It("KustomizeTestMultiple: Verify that gitops can add multiple apps dir to the cluster using single repo for gitops config", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		private := true
@@ -740,7 +740,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTest: Verify that gitops can add multiple apps dir to the cluster using single app and gitops config repo", func() {
+	It("KustomizeTestMultiple: Verify that gitops can add multiple apps dir to the cluster using single app and gitops config repo", func() {
 		var repoAbsolutePath string
 		private := true
 		tip1 := generateTestInputs()
@@ -1604,7 +1604,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTestExternal: Verify that a PR can be raised against an external repo with app-config-url set to <url>", func() {
+	It("KustomizeTest: Verify that a PR can be raised against an external repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var appConfigRepoAbsPath string
