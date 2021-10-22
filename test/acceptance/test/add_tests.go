@@ -1370,7 +1370,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 	})
 
-	It("Verify that gitops can deploy multiple helm apps from a helm repo with app-config-url set to <url>", func() {
+	FIt("Verify that gitops can deploy multiple helm apps from a helm repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var listOutput string
 		var appStatus1 string
@@ -1389,8 +1389,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		addCommand1 := "app add --url=" + helmRepoURL + " --chart=" + appName1 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true"
 		addCommand2 := "app add --url=" + helmRepoURL + " --chart=" + appName2 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true --helm-release-target-namespace=" + workloadNamespace2
 
-		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, EVENTUALLY_DEFAULT_TIMEOUT)
-		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName2, EVENTUALLY_DEFAULT_TIMEOUT)
+		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, TIMEOUT_TWO_MINUTES)
+		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName2, TIMEOUT_TWO_MINUTES)
 		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteNamespace(workloadNamespace2)
 
@@ -1399,8 +1399,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
-			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, EVENTUALLY_DEFAULT_TIMEOUT)
-			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName2, EVENTUALLY_DEFAULT_TIMEOUT)
+			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, TIMEOUT_TWO_MINUTES)
+			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName2, TIMEOUT_TWO_MINUTES)
 		})
 
 		By("When I create a private git repo", func() {
