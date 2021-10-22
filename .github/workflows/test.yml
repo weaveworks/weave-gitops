@@ -155,7 +155,7 @@ jobs:
     - uses: ./.github/actions/run-acceptance-test
       with:
         result-prefix: 'external-'
-        focus-or-skip: "--focus=TestExternal'"
+        focus-or-skip: "--focus='TestExternal'"
         github-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
         github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
         gitlab-key: ${{ secrets.GITLAB_KEY }}
