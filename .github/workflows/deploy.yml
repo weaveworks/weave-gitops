@@ -183,7 +183,7 @@ jobs:
 
   publish-binaries:
     runs-on: ${{matrix.os}}
-    needs: [acceptance-tests]
+    needs: [build, acceptance-tests]
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]
