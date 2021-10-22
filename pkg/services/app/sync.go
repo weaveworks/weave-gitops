@@ -12,8 +12,8 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 const (
@@ -82,13 +82,14 @@ func (a *App) syncResource(ctx context.Context, app *wego.Application, resource 
 		return err
 	}
 
-	setReconcileAnnotations(resource)
+	a.setReconcileAnnotations(resource)
 
 	if err := a.Kube.SetResource(ctx, resource); err != nil {
 		return err
 	}
 
-	if err := wait.PollImmediate(
+	if err := utils.Poll(
+		a.Clock,
 		k8sPollInterval,
 		k8sTimeout,
 		a.checkResourceSync(ctx, name, resource),
@@ -99,15 +100,15 @@ func (a *App) syncResource(ctx context.Context, app *wego.Application, resource 
 	return nil
 }
 
-func setReconcileAnnotations(resource kube.Resource) {
+func (a *App) setReconcileAnnotations(resource kube.Resource) {
 	annotations := resource.GetAnnotations()
 
 	if annotations == nil {
 		annotations = map[string]string{
-			meta.ReconcileRequestAnnotation: time.Now().Format(time.RFC3339Nano),
+			meta.ReconcileRequestAnnotation: a.Clock.Now().Format(time.RFC3339Nano),
 		}
 	} else {
-		annotations[meta.ReconcileRequestAnnotation] = time.Now().Format(time.RFC3339Nano)
+		annotations[meta.ReconcileRequestAnnotation] = a.Clock.Now().Format(time.RFC3339Nano)
 	}
 
 	resource.SetAnnotations(annotations)

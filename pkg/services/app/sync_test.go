@@ -2,16 +2,25 @@ package app
 
 import (
 	"errors"
+	"runtime"
+	"time"
 
+	"github.com/benbjohnson/clock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 )
 
-var syncParams SyncParams
+var (
+	syncParams SyncParams
+	appClock   *clock.Mock
+)
 
 var _ = Describe("Sync", func() {
 	var _ = BeforeEach(func() {
+		appClock = clock.NewMock()
+		appSrv.(*App).Clock = appClock
+
 		syncParams = SyncParams{
 			Name:      "my-app",
 			Namespace: "my-namespace",
@@ -31,10 +40,19 @@ var _ = Describe("Sync", func() {
 	})
 
 	It("sets proper annotation tag to the resource", func() {
-		err := appSrv.Sync(syncParams)
-		Expect(err).ToNot(HaveOccurred())
+		ready := make(chan bool)
+
+		go func() {
+			close(ready)
+			err := appSrv.Sync(syncParams)
+			Expect(err).ToNot(HaveOccurred())
+		}()
+		runtime.Gosched()
+		<-ready
+
+		appClock.Add(10 * time.Second)
 
 		_, resource := kubeClient.SetResourceArgsForCall(0)
-		Expect(resource.GetAnnotations()).To(Equal(map[string]string{"reconcile.fluxcd.io/requestedAt": "foo"}))
+		Expect(resource.GetAnnotations()).To(Equal(map[string]string{"reconcile.fluxcd.io/requestedAt": "1969-12-31T21:00:10-03:00"}))
 	})
 })
