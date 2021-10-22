@@ -68,6 +68,7 @@ func getTemplateCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comm
 			if len(args) == 0 {
 				return fmt.Errorf("you should provide a template name")
 			}
+
 			return capi.GetTemplateParameters(args[0], r, w)
 		}
 
