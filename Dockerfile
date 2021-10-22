@@ -6,7 +6,7 @@ WORKDIR /home/app
 USER node
 COPY --chown=node:node package*.json /home/app/
 COPY --chown=node:node Makefile /home/app/
-RUN make node-modules
+RUN make node_modules
 COPY --chown=node:node . /home/app/
 RUN make ui
 
