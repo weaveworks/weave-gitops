@@ -430,7 +430,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTest: Verify that gitops can deploy an app with specified config-url and app-config-url set to <url>", func() {
+	It("KustomizeTestExternal: Verify that gitops can deploy an app with specified config-url and app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		private := true
@@ -479,7 +479,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTest: Verify that gitops can deploy and remove a gitlab app with specified config-url and app-config-url set to <url>", func() {
+	It("KustomizeTestExternal: Verify that gitops can deploy and remove a gitlab app with specified config-url and app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var appRemoveOutput *gexec.Session
@@ -787,7 +787,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Verify that gitops can deploy an app with app-config-url set to <url>", func() {
+	It("TestExternal - Verify that gitops can deploy an app with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var listOutput string
@@ -953,7 +953,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("SmokeTest - Verify that gitops can deploy multiple apps one with private and other with public repo (e2e flow)", func() {
+	It("SmokeTestLong - Verify that gitops can deploy multiple apps one with private and other with public repo (e2e flow)", func() {
 		var listOutput string
 		var pauseOutput string
 		var unpauseOutput string
@@ -1305,7 +1305,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("Verify that gitops can deploy a helm app from a git repo with app-config-url set to <url>", func() {
+	It("TestExternal - Verify that gitops can deploy a helm app from a git repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoAbsolutePath string
 		private := true
@@ -1370,7 +1370,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 	})
 
-	It("Verify that gitops can deploy multiple helm apps from a helm repo with app-config-url set to <url>", func() {
+	It("TestExternal - Verify that gitops can deploy multiple helm apps from a helm repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var listOutput string
 		var appStatus1 string
@@ -1604,7 +1604,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 	})
 
-	It("KustomizeTest: Verify that a PR can be raised against an external repo with app-config-url set to <url>", func() {
+	It("KustomizeTestExternal: Verify that a PR can be raised against an external repo with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var appConfigRepoAbsPath string
@@ -1739,7 +1739,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 	})
 
-	It("SmokeTest - Verify that gitops can deploy an app with app-config-url set to <url>", func() {
+	It("SmokeTestLong - Verify that gitops can deploy an app with app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var listOutput string
