@@ -5,16 +5,16 @@ import (
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type Resource interface {
-	metav1.Object
-	runtime.Object
+	client.Object
+	// metav1.Object
+	// runtime.Object
 }
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -53,5 +53,6 @@ type Kube interface {
 	GetClusterStatus(ctx context.Context) ClusterStatus
 	GetApplication(ctx context.Context, name types.NamespacedName) (*wego.Application, error)
 	GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error
+	SetResource(ctx context.Context, resource Resource) error
 	GetSecret(ctx context.Context, name types.NamespacedName) (*corev1.Secret, error)
 }

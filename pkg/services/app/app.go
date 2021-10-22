@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/benbjohnson/clock"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
@@ -17,17 +18,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
-
-// type DeploymentType string
-// type SourceType string
-
-// const (
-//  DeployTypeKustomize DeploymentType = "kustomize"
-//  DeployTypeHelm      DeploymentType = "helm"
-
-//  SourceTypeGit  SourceType = "git"
-//  SourceTypeHelm SourceType = "helm"
-// )
 
 // AppService entity that manages applications
 type AppService interface {
@@ -45,6 +35,8 @@ type AppService interface {
 	Pause(params PauseParams) error
 	// Unpause resumes the gitops automation for an app
 	Unpause(params UnpauseParams) error
+	// Sync trigger reconciliation loop for an application
+	Sync(params SyncParams) error
 }
 
 type App struct {
@@ -56,6 +48,7 @@ type App struct {
 	Kube        kube.Kube
 	Logger      logger.Logger
 	GitProvider gitproviders.GitProvider
+	Clock       clock.Clock
 }
 
 func New(ctx context.Context, logger logger.Logger, appGit, configGit git.Git, gitProvider gitproviders.GitProvider, flux flux.Flux, kube kube.Kube, osys osys.Osys) AppService {
@@ -68,6 +61,7 @@ func New(ctx context.Context, logger logger.Logger, appGit, configGit git.Git, g
 		Logger:      logger,
 		Osys:        osys,
 		GitProvider: gitProvider,
+		Clock:       clock.New(),
 	}
 }
 
