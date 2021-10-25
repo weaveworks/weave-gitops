@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/benbjohnson/clock"
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
 
@@ -320,7 +321,26 @@ func (s *applicationServer) RemoveApplication(ctx context.Context, msg *pb.Remov
 }
 
 func (s *applicationServer) SyncApplication(ctx context.Context, msg *pb.SyncApplicationRequest) (*pb.SyncApplicationResponse, error) {
-	return nil, nil
+	kube, err := s.appFactory.GetKubeService()
+	if err != nil {
+		return &pb.SyncApplicationResponse{
+			Success: false,
+		}, fmt.Errorf("failed to create kube service: %w", err)
+	}
+
+	appSrv := &app.App{
+		Kube:  kube,
+		Clock: clock.New(),
+	}
+	if err := appSrv.Sync(app.SyncParams{Name: msg.Name, Namespace: msg.Namespace}); err != nil {
+		return &pb.SyncApplicationResponse{
+			Success: false,
+		}, fmt.Errorf("error syncing app: %w", err)
+	}
+
+	return &pb.SyncApplicationResponse{
+		Success: true,
+	}, nil
 }
 
 //Until the middleware is done this function will not be able to get the token and will fail

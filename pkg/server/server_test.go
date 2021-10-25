@@ -21,6 +21,7 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
+	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	. "github.com/onsi/ginkgo"
@@ -741,6 +742,95 @@ var _ = Describe("ApplicationsServer", func() {
 		})
 	})
 
+	Describe("SyncApplication", func() {
+		var (
+			ctx    context.Context
+			name   string
+			app    *wego.Application
+			kust   *kustomizev1.Kustomization
+			source *sourcev1.GitRepository
+		)
+
+		BeforeEach(func() {
+			ctx = context.Background()
+			name = "my-app"
+			app = &wego.Application{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: namespace.Name,
+				},
+				Spec: wego.ApplicationSpec{
+					SourceType:     wego.SourceTypeGit,
+					DeploymentType: wego.DeploymentTypeKustomize,
+				},
+			}
+
+			kust = &kustomizev1.Kustomization{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: namespace.Name,
+				},
+				Spec: kustomizev1.KustomizationSpec{
+					SourceRef: kustomizev1.CrossNamespaceSourceReference{
+						Kind: "GitRepository",
+					},
+				},
+				Status: kustomizev1.KustomizationStatus{
+					ReconcileRequestStatus: meta.ReconcileRequestStatus{
+						LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
+					},
+				},
+			}
+
+			source = &sourcev1.GitRepository{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: namespace.Name,
+				},
+				Spec: sourcev1.GitRepositorySpec{
+					URL: "https://github.com/owner/repo",
+				},
+				Status: sourcev1.GitRepositoryStatus{
+					ReconcileRequestStatus: meta.ReconcileRequestStatus{
+						LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
+					},
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, app)).Should(Succeed())
+			Expect(k8sClient.Create(ctx, source)).Should(Succeed())
+			Expect(k8sClient.Create(ctx, kust)).Should(Succeed())
+		})
+
+		It("trigger the reconcile loop for an application", func() {
+			appRequest := &pb.SyncApplicationRequest{
+				Name:      name,
+				Namespace: namespace.Name,
+			}
+
+			done := make(chan bool)
+
+			go func() {
+				defer GinkgoRecover()
+
+				res, err := appsClient.SyncApplication(contextWithAuth(ctx), appRequest)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(res.Success).To(BeTrue())
+				close(done)
+			}()
+
+			time.Sleep(1 * time.Second)
+			Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, source)).Should(Succeed())
+			source.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
+			Expect(k8sClient.Status().Update(ctx, source)).Should(Succeed())
+
+			Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, kust)).Should(Succeed())
+			kust.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
+			Expect(k8sClient.Status().Update(ctx, kust)).Should(Succeed())
+
+			<-done
+		})
+	})
 	Describe("middleware", func() {
 		Describe("logging", func() {
 			var log *fakelogr.FakeLogger

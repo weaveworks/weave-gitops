@@ -3,6 +3,7 @@ package testutils
 import (
 	"fmt"
 
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
@@ -62,6 +63,7 @@ func StartK8sTestEnvironment() (*K8sTestEnv, error) {
 			&corev1.Secret{},
 			&appsv1.Deployment{},
 			&kustomizev1.Kustomization{},
+			&sourcev1.GitRepository{},
 		},
 		Scheme: scheme,
 	})

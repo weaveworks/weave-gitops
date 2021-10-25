@@ -136,6 +136,8 @@ func (a *App) checkResourceSync(ctx context.Context, name types.NamespacedName, 
 			return false, fmt.Errorf("error getting reconcile at after update: %w", err)
 		}
 
+		fmt.Println("reconcile", lastReconcile, reconcileAtBeforeUpdate)
+
 		return lastReconcile != reconcileAtBeforeUpdate, nil
 	}
 }
