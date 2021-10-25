@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -691,19 +692,6 @@ func addReconciledKinds(arr []*pb.GroupVersionKind, kustomization *kustomizev2.K
 				Group:   group,
 				Version: entry.Version,
 				Kind:    kind,
-			})
-		}
-	}
-
-	for _, gvk := range kustomization.Status.Snapshot.NonNamespacedKinds() {
-		s := gvk.String()
-		if _, exists := found[s]; !exists {
-			found[s] = true
-
-			arr = append(arr, &pb.GroupVersionKind{
-				Group:   gvk.Group,
-				Version: gvk.Version,
-				Kind:    gvk.Kind,
 			})
 		}
 	}
