@@ -609,15 +609,6 @@ func gitUpdateCommitPush(repoAbsolutePath string) {
 	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cd %s && git add -u && git commit -m 'edit repo file' && git pull --rebase && git push -f", repoAbsolutePath))
 }
 
-func pullBranch(repoAbsolutePath string, branch string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf(`
-                            cd %s &&
-                            git pull origin %s`, repoAbsolutePath, branch))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
-}
-
 func pullGitRepo(repoAbsolutePath string) {
 	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && git pull", repoAbsolutePath))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
