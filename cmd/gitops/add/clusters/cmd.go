@@ -1,12 +1,14 @@
 package clusters
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
+	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/capi"
 )
 
@@ -82,16 +84,22 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 			return capi.RenderTemplateWithParameters(flags.Template, vals, creds, r, os.Stdout)
 		}
 
+		token, err := apputils.GetTokenForRepositoryURL(flags.RepositoryURL)
+		if err != nil {
+			return fmt.Errorf("failed to get token for git repository %q: %w", flags.RepositoryURL, err)
+		}
+
 		params := capi.CreatePullRequestFromTemplateParams{
-			TemplateName:    flags.Template,
-			ParameterValues: vals,
-			RepositoryURL:   flags.RepositoryURL,
-			HeadBranch:      flags.HeadBranch,
-			BaseBranch:      flags.BaseBranch,
-			Title:           flags.Title,
-			Description:     flags.Description,
-			CommitMessage:   flags.CommitMessage,
-			Credentials:     creds,
+			GitProviderToken: token,
+			TemplateName:     flags.Template,
+			ParameterValues:  vals,
+			RepositoryURL:    flags.RepositoryURL,
+			HeadBranch:       flags.HeadBranch,
+			BaseBranch:       flags.BaseBranch,
+			Title:            flags.Title,
+			Description:      flags.Description,
+			CommitMessage:    flags.CommitMessage,
+			Credentials:      creds,
 		}
 
 		return capi.CreatePullRequestFromTemplate(params, r, os.Stdout)

@@ -1,11 +1,13 @@
 package clusters
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
+	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/clusters"
 )
 
@@ -51,14 +53,20 @@ func deleteClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Co
 			return err
 		}
 
+		token, err := apputils.GetTokenForRepositoryURL(clustersDeleteCmdFlags.RepositoryURL)
+		if err != nil {
+			return fmt.Errorf("failed to get token for git repository %q: %w", clustersDeleteCmdFlags.RepositoryURL, err)
+		}
+
 		return clusters.DeleteClusters(clusters.DeleteClustersParams{
-			RepositoryURL: clustersDeleteCmdFlags.RepositoryURL,
-			HeadBranch:    clustersDeleteCmdFlags.HeadBranch,
-			BaseBranch:    clustersDeleteCmdFlags.BaseBranch,
-			Title:         clustersDeleteCmdFlags.Title,
-			Description:   clustersDeleteCmdFlags.Description,
-			ClustersNames: args,
-			CommitMessage: clustersDeleteCmdFlags.CommitMessage,
+			GitProviderToken: token,
+			RepositoryURL:    clustersDeleteCmdFlags.RepositoryURL,
+			HeadBranch:       clustersDeleteCmdFlags.HeadBranch,
+			BaseBranch:       clustersDeleteCmdFlags.BaseBranch,
+			Title:            clustersDeleteCmdFlags.Title,
+			Description:      clustersDeleteCmdFlags.Description,
+			ClustersNames:    args,
+			CommitMessage:    clustersDeleteCmdFlags.CommitMessage,
 		}, r, os.Stdout)
 	}
 }

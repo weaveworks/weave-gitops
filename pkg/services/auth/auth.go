@@ -45,11 +45,26 @@ func NewAuthCLIHandler(name gitproviders.GitProviderName) (BlockingCLIAuthHandle
 // InitGitProvider returns a GitProvider containing either the token stored in the <git provider>_TOKEN env var
 // or a token retrieved via the CLI auth flow
 func InitGitProvider(repoUrl gitproviders.RepoURL, osysClient osys.Osys, logger logger.Logger, cliAuthHandler BlockingCLIAuthHandler, getAccountType gitproviders.AccountTypeGetter) (gitproviders.GitProvider, error) {
+	token, err := GetToken(repoUrl, osysClient, logger, cliAuthHandler)
+	if err != nil {
+		return nil, fmt.Errorf("error getting git provider token: %w", err)
+	}
+
+	provider, err := gitproviders.New(gitproviders.Config{Provider: repoUrl.Provider(), Token: token}, repoUrl.Owner(), getAccountType)
+	if err != nil {
+		return nil, fmt.Errorf("error creating git provider client: %w", err)
+	}
+
+	return provider, nil
+}
+
+// GetToken returns a token that is used to authenticate with a git provider.
+func GetToken(repoUrl gitproviders.RepoURL, osysClient osys.Osys, logger logger.Logger, cliAuthHandler BlockingCLIAuthHandler) (string, error) {
 	ctx := context.Background()
 
 	tokenVarName, err := getTokenVarName(repoUrl.Provider())
 	if err != nil {
-		return nil, fmt.Errorf("could not determine git provider token name: %w", err)
+		return "", fmt.Errorf("could not determine git provider token name: %w", err)
 	}
 
 	token, err := osysClient.GetGitProviderToken(tokenVarName)
@@ -59,21 +74,16 @@ func InitGitProvider(repoUrl gitproviders.RepoURL, osysClient osys.Osys, logger 
 
 		generatedToken, err := cliAuthHandler(ctx, osysClient.Stdout())
 		if err != nil {
-			return nil, fmt.Errorf("could not complete auth flow: %w", err)
+			return "", fmt.Errorf("could not complete auth flow: %w", err)
 		}
 
 		token = generatedToken
 	} else if err != nil {
 		// We didn't detect a NoGitProviderSet error, something else went wrong.
-		return nil, fmt.Errorf("could not get access token: %w", err)
+		return "", fmt.Errorf("could not get access token: %w", err)
 	}
 
-	provider, err := gitproviders.New(gitproviders.Config{Provider: repoUrl.Provider(), Token: token}, repoUrl.Owner(), getAccountType)
-	if err != nil {
-		return nil, fmt.Errorf("error creating git provider client: %w", err)
-	}
-
-	return provider, nil
+	return token, nil
 }
 
 type SecretName struct {

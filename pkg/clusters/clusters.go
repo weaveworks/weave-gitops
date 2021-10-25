@@ -105,11 +105,12 @@ func DeleteClusters(params DeleteClustersParams, r ClustersRetriever, w io.Write
 }
 
 type DeleteClustersParams struct {
-	RepositoryURL string
-	HeadBranch    string
-	BaseBranch    string
-	Title         string
-	Description   string
-	ClustersNames []string
-	CommitMessage string
+	GitProviderToken string
+	RepositoryURL    string
+	HeadBranch       string
+	BaseBranch       string
+	Title            string
+	Description      string
+	ClustersNames    []string
+	CommitMessage    string
 }

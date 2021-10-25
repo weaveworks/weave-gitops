@@ -241,3 +241,29 @@ func GetAuthService(ctx context.Context, normalizedUrl gitproviders.RepoURL, dry
 
 	return auth.NewAuthService(fluxClient, rawClient, gitProvider, logger)
 }
+
+// GetTokenForRepositoryURL returns a token that is used to authenticate with
+// a git provider.
+func GetTokenForRepositoryURL(repoURL string) (string, error) {
+	clients, err := GetBaseClients()
+	if err != nil {
+		return "", err
+	}
+
+	normalizedURL, err := gitproviders.NewRepoURL(repoURL)
+	if err != nil {
+		return "", fmt.Errorf("failed to normalize URL %q: %w", repoURL, err)
+	}
+
+	authHandler, err := auth.NewAuthCLIHandler(normalizedURL.Provider())
+	if err != nil {
+		return "", fmt.Errorf("error initializing cli auth handler: %w", err)
+	}
+
+	token, err := auth.GetToken(normalizedURL, clients.Osys, clients.Logger, authHandler)
+	if err != nil {
+		return "", fmt.Errorf("failed to get git provider token: %w", err)
+	}
+
+	return token, nil
+}
