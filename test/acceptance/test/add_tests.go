@@ -1353,17 +1353,12 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("The manifests are present in the config repo", func() {
-			clusterName = getClusterName()
-			pullBranch(configRepoAbsolutePath, "main")
 
-			_, err := os.Stat(fmt.Sprintf("%s/apps/%s/app.yaml", configRepoAbsolutePath, appName))
-			Expect(err).ShouldNot(HaveOccurred())
+			out, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && git pull origin main", configRepoAbsolutePath))
 
-			_, err = os.Stat(fmt.Sprintf("%s/targets/%s/%s/%s-gitops-source.yaml", configRepoAbsolutePath, clusterName, appName, appName))
-			Expect(err).ShouldNot(HaveOccurred())
-
-			_, err = os.Stat(fmt.Sprintf("%s/targets/%s/%s/%s-gitops-deploy.yaml", configRepoAbsolutePath, clusterName, appName, appName))
-			Expect(err).ShouldNot(HaveOccurred())
+			Eventually(out).Should(ContainSubstring(`apps/` + appName + `/app.yaml`))
+			Eventually(out).Should(MatchRegexp(`targets/.*/` + appName + `/` + appName + `-gitops-source.yaml`))
+			Eventually(out).Should(MatchRegexp(`targets/.*/` + appName + `/` + appName + `-gitops-deploy.yaml`))
 		})
 
 		By("Then I should see my workload deployed to the cluster", func() {
