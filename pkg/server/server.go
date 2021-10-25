@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -22,7 +23,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
+	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
@@ -45,6 +46,8 @@ import (
 )
 
 var ErrEmptyAccessToken = fmt.Errorf("access token is empty")
+
+var idRegexp = regexp.MustCompile(`[^_]+[_][^_]+[_]([^_]+)[_]([^_]+)`)
 
 type applicationServer struct {
 	pb.UnimplementedApplicationsServer
@@ -184,7 +187,7 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 	reconciledKinds := []*pb.GroupVersionKind{}
 
 	var (
-		kust           *kustomizev1.Kustomization
+		kust           *kustomizev2.Kustomization
 		helmRelease    *helmv2.HelmRelease
 		deploymentType pb.AutomationKind
 	)
@@ -192,7 +195,7 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 	if deployment != nil {
 		// Same as a src. Deployment may not be created at this point.
 		switch at := deployment.(type) {
-		case *kustomizev1.Kustomization:
+		case *kustomizev2.Kustomization:
 			kust = at
 			reconciledKinds = addReconciledKinds(reconciledKinds, at)
 			deploymentType = pb.AutomationKind_Kustomize
@@ -233,7 +236,7 @@ func mapHelmReleaseSpecToResponse(helm *helmv2.HelmRelease) *pb.HelmRelease {
 	}
 }
 
-func mapKustomizationSpecToResponse(kust *kustomizev1.Kustomization) *pb.Kustomization {
+func mapKustomizationSpecToResponse(kust *kustomizev2.Kustomization) *pb.Kustomization {
 	if kust == nil {
 		return nil
 	}
@@ -622,7 +625,7 @@ func findFluxObjects(app *wego.Application) (client.Object, client.Object, error
 	case wego.DeploymentTypeHelm:
 		deployment = &helmv2.HelmRelease{}
 	case wego.DeploymentTypeKustomize:
-		deployment = &kustomizev1.Kustomization{}
+		deployment = &kustomizev2.Kustomization{}
 	}
 
 	if deployment == nil {
@@ -670,38 +673,25 @@ func (s *applicationServer) Authenticate(_ context.Context, msg *pb.Authenticate
 	return &pb.AuthenticateResponse{Token: token}, nil
 }
 
-func addReconciledKinds(arr []*pb.GroupVersionKind, kustomization *kustomizev1.Kustomization) []*pb.GroupVersionKind {
-	if kustomization.Status.Snapshot == nil {
+func addReconciledKinds(arr []*pb.GroupVersionKind, kustomization *kustomizev2.Kustomization) []*pb.GroupVersionKind {
+	if kustomization.Status.Inventory == nil {
 		return arr
 	}
 
 	found := map[string]bool{}
 
-	for _, gvks := range kustomization.Status.Snapshot.NamespacedKinds() {
-		for _, gvk := range gvks {
-			s := gvk.String()
+	for _, entry := range kustomization.Status.Inventory.Entries {
+		match := idRegexp.FindStringSubmatch(entry.ID)
+		group, kind := match[1], match[2]
+		idstr := strings.Join([]string{group, entry.Version, kind}, "_")
 
-			if !found[s] {
-				found[s] = true
-
-				arr = append(arr, &pb.GroupVersionKind{
-					Group:   gvk.Group,
-					Version: gvk.Version,
-					Kind:    gvk.Kind,
-				})
-			}
-		}
-	}
-
-	for _, gvk := range kustomization.Status.Snapshot.NonNamespacedKinds() {
-		s := gvk.String()
-		if _, exists := found[s]; !exists {
-			found[s] = true
+		if !found[idstr] {
+			found[idstr] = true
 
 			arr = append(arr, &pb.GroupVersionKind{
-				Group:   gvk.Group,
-				Version: gvk.Version,
-				Kind:    gvk.Kind,
+				Group:   group,
+				Version: entry.Version,
+				Kind:    kind,
 			})
 		}
 	}

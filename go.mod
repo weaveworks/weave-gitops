@@ -7,7 +7,7 @@ require (
 	github.com/deepmap/oapi-codegen v1.8.1
 	github.com/fluxcd/go-git-providers v0.2.1-0.20211006191809-83344459c0dc
 	github.com/fluxcd/helm-controller/api v0.11.2
-	github.com/fluxcd/kustomize-controller/api v0.14.0
+	github.com/fluxcd/kustomize-controller/api v0.16.0
 	github.com/fluxcd/pkg/apis/meta v0.10.1
 	github.com/fluxcd/source-controller/api v0.15.4
 	github.com/go-git/go-billy/v5 v5.3.1
@@ -45,12 +45,12 @@ require (
 	google.golang.org/grpc v1.40.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/protobuf v1.27.1
-	k8s.io/api v0.22.1
-	k8s.io/apiextensions-apiserver v0.21.3
-	k8s.io/apimachinery v0.22.1
+	k8s.io/api v0.22.2
+	k8s.io/apiextensions-apiserver v0.22.2
+	k8s.io/apimachinery v0.22.2
 	k8s.io/cli-runtime v0.21.2
-	k8s.io/client-go v0.22.1
-	sigs.k8s.io/controller-runtime v0.9.6
+	k8s.io/client-go v0.22.2
+	sigs.k8s.io/controller-runtime v0.10.1
 	sigs.k8s.io/controller-tools v0.4.1
 	sigs.k8s.io/kustomize/api v0.10.0
 	sigs.k8s.io/kustomize/kstatus v0.0.2

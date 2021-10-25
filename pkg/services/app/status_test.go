@@ -5,7 +5,7 @@ import (
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
+	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -55,7 +55,7 @@ var _ = Describe("Status", func() {
 
 		It("returns when using kustomize", func() {
 			kubeClient.GetResourceStub = func(c context.Context, nn types.NamespacedName, r kube.Resource) error {
-				kust, ok := r.(*kustomizev1.Kustomization)
+				kust, ok := r.(*kustomizev2.Kustomization)
 				Expect(ok).To(BeTrue())
 				kust.Status.Conditions = conditions
 				return nil
@@ -66,7 +66,7 @@ var _ = Describe("Status", func() {
 
 			_, name, deploymentType := kubeClient.GetResourceArgsForCall(0)
 			Expect(name).To(Equal(types.NamespacedName{Name: statusParams.Name, Namespace: statusParams.Namespace}))
-			Expect(deploymentType).To(BeAssignableToTypeOf(&kustomizev1.Kustomization{}))
+			Expect(deploymentType).To(BeAssignableToTypeOf(&kustomizev2.Kustomization{}))
 
 			Expect(lastRecon).To(Equal("2009-11-10 23:00:00 +0000 UTC"))
 		})
@@ -97,7 +97,7 @@ var _ = Describe("Status", func() {
 
 		It("returns safe message when no succesfull reconciliation", func() {
 			kubeClient.GetResourceStub = func(c context.Context, nn types.NamespacedName, r kube.Resource) error {
-				kust, ok := r.(*kustomizev1.Kustomization)
+				kust, ok := r.(*kustomizev2.Kustomization)
 				Expect(ok).To(BeTrue())
 				kust.Status.Conditions = []metav1.Condition{}
 				return nil
