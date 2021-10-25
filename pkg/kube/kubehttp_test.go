@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
+	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -194,7 +194,7 @@ spec:
 `, name, namespace.Name)
 			Expect(k.Apply(ctx, []byte(kust), namespace.Name)).Should(Succeed())
 
-			kustObj := &kustomizev1.Kustomization{}
+			kustObj := &kustomizev2.Kustomization{}
 			err := k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, kustObj)
 			Expect(err).NotTo(HaveOccurred())
 

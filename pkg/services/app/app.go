@@ -6,7 +6,7 @@ import (
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
+	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -88,7 +88,7 @@ func (a *App) getSuspendedStatus(ctx context.Context, name, namespace string, de
 
 	switch deploymentType {
 	case wego.DeploymentTypeKustomize:
-		automation = &kustomizev1.Kustomization{}
+		automation = &kustomizev2.Kustomization{}
 	case wego.DeploymentTypeHelm:
 		automation = &helmv2.HelmRelease{}
 	default:
@@ -102,7 +102,7 @@ func (a *App) getSuspendedStatus(ctx context.Context, name, namespace string, de
 	suspendStatus := false
 
 	switch at := automation.(type) {
-	case *kustomizev1.Kustomization:
+	case *kustomizev2.Kustomization:
 		suspendStatus = at.Spec.Suspend
 	case *helmv2.HelmRelease:
 		suspendStatus = at.Spec.Suspend

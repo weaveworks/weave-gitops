@@ -16,7 +16,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
+	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -35,7 +35,7 @@ import (
 func CreateScheme() *apiruntime.Scheme {
 	scheme := apiruntime.NewScheme()
 	_ = sourcev1.AddToScheme(scheme)
-	_ = kustomizev1.AddToScheme(scheme)
+	_ = kustomizev2.AddToScheme(scheme)
 	_ = helmv2.AddToScheme(scheme)
 	_ = wego.AddToScheme(scheme)
 	_ = corev1.AddToScheme(scheme)
@@ -51,7 +51,7 @@ const FluxNamespace = "flux-system"
 var (
 	GVRSecret         schema.GroupVersionResource = corev1.SchemeGroupVersion.WithResource("secrets")
 	GVRApp            schema.GroupVersionResource = wego.GroupVersion.WithResource("apps")
-	GVRKustomization  schema.GroupVersionResource = kustomizev1.GroupVersion.WithResource("kustomizations")
+	GVRKustomization  schema.GroupVersionResource = kustomizev2.GroupVersion.WithResource("kustomizations")
 	GVRGitRepository  schema.GroupVersionResource = sourcev1.GroupVersion.WithResource("gitrepositories")
 	GVRHelmRepository schema.GroupVersionResource = sourcev1.GroupVersion.WithResource("helmrepositories")
 	GVRHelmRelease    schema.GroupVersionResource = helmv2.GroupVersion.WithResource("helmreleases")
