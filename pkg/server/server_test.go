@@ -334,8 +334,8 @@ var _ = Describe("ApplicationsServer", func() {
 					Inventory: &kustomizev2.ResourceInventory{
 						Entries: []kustomizev2.ResourceRef{
 							{
-								Version: "v1beta2",
-								ID:      namespace.Name + "_dep_group_Deployment",
+								Version: "v1",
+								ID:      namespace.Name + "_my-deployment_apps_Deployment",
 							},
 						},
 					},
@@ -393,20 +393,6 @@ var _ = Describe("ApplicationsServer", func() {
 			first := res.Objects[0]
 			Expect(first.GroupVersionKind.Kind).To(Equal("Deployment"))
 			Expect(first.Name).To(Equal(reconciledObj.Name))
-		})
-		It("returns an error when helm is specified as an automation type", func() {
-			ctx := context.Background()
-			name := "my-app"
-			_, err := appsClient.GetReconciledObjects(ctx, &pb.GetReconciledObjectsReq{
-				AutomationName:      name,
-				AutomationNamespace: namespace.Name,
-				AutomationKind:      pb.AutomationKind_Helm,
-				Kinds:               []*pb.GroupVersionKind{{Group: "apps", Version: "v1", Kind: "Deployment"}},
-			})
-
-			s, ok := status.FromError(err)
-			Expect(ok).To(BeTrue())
-			Expect(s.Code()).To(Equal(codes.Unimplemented))
 		})
 	})
 	Describe("GetChildObjects", func() {

@@ -9,6 +9,7 @@ require (
 	github.com/fluxcd/helm-controller/api v0.11.2
 	github.com/fluxcd/kustomize-controller/api v0.16.0
 	github.com/fluxcd/pkg/apis/meta v0.10.1
+	github.com/fluxcd/pkg/ssa v0.2.0
 	github.com/fluxcd/source-controller/api v0.15.4
 	github.com/go-git/go-billy/v5 v5.3.1
 	github.com/go-git/go-git/v5 v5.4.2
@@ -50,13 +51,19 @@ require (
 	k8s.io/apimachinery v0.22.2
 	k8s.io/cli-runtime v0.21.2
 	k8s.io/client-go v0.22.2
+	sigs.k8s.io/cli-utils v0.26.0
 	sigs.k8s.io/controller-runtime v0.10.1
 	sigs.k8s.io/controller-tools v0.4.1
 	sigs.k8s.io/kustomize/api v0.10.0
-	sigs.k8s.io/kustomize/kstatus v0.0.2
-	sigs.k8s.io/yaml v1.2.0
+	sigs.k8s.io/yaml v1.3.0
 
 )
+
+// fix CVE-2021-41103
+replace github.com/containerd/containerd => github.com/containerd/containerd v1.4.11
+
+// fix CVE-2021-30465
+replace github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.0-rc95
 
 // https://github.com/gorilla/websocket/security/advisories/GHSA-jf24-p9p9-4rjh
 replace github.com/gorilla/websocket v0.0.0 => github.com/gorilla/websocket v1.4.1
