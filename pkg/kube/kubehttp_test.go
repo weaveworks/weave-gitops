@@ -359,15 +359,12 @@ metadata:
 
 			Expect(k8sClient.Create(ctx, app)).Should(Succeed())
 
-			var resource kube.Resource
-			resource = &wego.Application{}
+			resource := &wego.Application{}
 
 			err := k.GetResource(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, resource)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resource.GetName()).To(Equal(name))
-
-			app = resource.(*wego.Application)
-			Expect(app.Spec.SourceType).To(Equal(wego.SourceTypeGit))
+			Expect(resource.Spec.SourceType).To(Equal(wego.SourceTypeGit))
 		})
 	})
 
@@ -387,8 +384,7 @@ metadata:
 			}
 			Expect(k8sClient.Create(ctx, app)).Should(Succeed())
 
-			var resource kube.Resource
-			resource = &wego.Application{}
+			resource := &wego.Application{}
 
 			err := k.GetResource(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, resource)
 			Expect(err).NotTo(HaveOccurred())
@@ -400,8 +396,7 @@ metadata:
 			err = k.SetResource(ctx, resource)
 			Expect(err).NotTo(HaveOccurred())
 
-			var newResource kube.Resource
-			newResource = &wego.Application{}
+			newResource := &wego.Application{}
 
 			err = k.GetResource(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, newResource)
 			Expect(err).NotTo(HaveOccurred())
