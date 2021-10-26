@@ -1,6 +1,7 @@
 package clusters
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -51,6 +52,10 @@ func deleteClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Co
 		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
 		if err != nil {
 			return err
+		}
+
+		if clustersDeleteCmdFlags.RepositoryURL == "" {
+			return errors.New("repository url is required")
 		}
 
 		token, err := apputils.GetTokenForRepositoryURL(clustersDeleteCmdFlags.RepositoryURL)

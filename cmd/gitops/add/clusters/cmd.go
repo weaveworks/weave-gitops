@@ -1,6 +1,7 @@
 package clusters
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -82,6 +83,10 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 
 		if flags.DryRun {
 			return capi.RenderTemplateWithParameters(flags.Template, vals, creds, r, os.Stdout)
+		}
+
+		if flags.RepositoryURL == "" {
+			return errors.New("repository url is required")
 		}
 
 		token, err := apputils.GetTokenForRepositoryURL(flags.RepositoryURL)
