@@ -337,6 +337,8 @@ github.com/fluxcd/pkg/lockedfile v0.1.0/go.mod h1:EJLan8t9MiOcgTs8+puDjbE6I/KAfH
 github.com/fluxcd/pkg/runtime v0.12.0/go.mod h1:EyaTR2TOYcjL5U//C4yH3bt2tvTgIOSXpVRbWxUn/C4=
 github.com/fluxcd/pkg/runtime v0.12.1 h1:r0KQG80gKY1NMp62FggSEdFBV60ZfbnA2RHL9y06DOY=
 github.com/fluxcd/pkg/runtime v0.12.1/go.mod h1:9czAjokV0w22eYGR9/SQKUHXhvh7ISNVgc/6a6YMBE8=
+github.com/fluxcd/pkg/ssa v0.2.0 h1:5GTBnnWJhiSIKI1TZQ20ioWjTPNkEof2V2uN0ZHUxDs=
+github.com/fluxcd/pkg/ssa v0.2.0/go.mod h1:rFhWBX9/TfNwSFR+5NHOGnpl9OsWdaQrG5CggN+74EQ=
 github.com/fluxcd/pkg/ssh v0.1.0/go.mod h1:KUuVhaB6AX3IHTGCd3Ti/nesn5t1Nz4zCThFkkjHctM=
 github.com/fluxcd/pkg/testserver v0.1.0/go.mod h1:fvt8BHhXw6c1+CLw1QFZxcQprlcXzsrL4rzXaiGM+Iw=
 github.com/fluxcd/pkg/untar v0.1.0/go.mod h1:aGswNyzB1mlz/T/kpOS58mITBMxMKc9tlJBH037A2HY=
@@ -2039,6 +2041,7 @@ sigs.k8s.io/structured-merge-diff/v4 v4.1.2 h1:Hr/htKFmJEbtMgS/UD0N+gtgctAqz81t3
 sigs.k8s.io/structured-merge-diff/v4 v4.1.2/go.mod h1:j/nl6xW8vLS49O8YvXW1ocPhZawJtm+Yrr7PPRQ0Vg4=
 sigs.k8s.io/testing_frameworks v0.1.2/go.mod h1:ToQrwSC3s8Xf/lADdZp3Mktcql9CG0UAmdJG9th5i0w=
 sigs.k8s.io/yaml v1.1.0/go.mod h1:UJmg0vDUVViEyp3mgSv9WPwZCDxu4rQW1olrI1uml+o=
-sigs.k8s.io/yaml v1.2.0 h1:kr/MCeFWJWTwyaHoR9c8EjH9OumOmoF9YGiZd7lFm/Q=
 sigs.k8s.io/yaml v1.2.0/go.mod h1:yfXDCHCao9+ENCvLSE62v9VSji2MKu5jeNfTrofGhJc=
+sigs.k8s.io/yaml v1.3.0 h1:a2VclLzOGrwOHDiV8EfBGhvjHvP46CtW5j6POvhYGGo=
+sigs.k8s.io/yaml v1.3.0/go.mod h1:GeOyir5tyXNByN85N/dRIT9es5UQNerPYEKK56eTBm8=
 sourcegraph.com/sourcegraph/appdash v0.0.0-20190731080439-ebfcffb1b5c0/go.mod h1:hI742Nqp5OhwiqlzhgfbWU4mW4yO10fP+LoT9WOswdU=

@@ -9,6 +9,7 @@ require (
 	github.com/fluxcd/helm-controller/api v0.11.2
 	github.com/fluxcd/kustomize-controller/api v0.16.0
 	github.com/fluxcd/pkg/apis/meta v0.10.1
+	github.com/fluxcd/pkg/ssa v0.2.0
 	github.com/fluxcd/source-controller/api v0.15.4
 	github.com/go-git/go-billy/v5 v5.3.1
 	github.com/go-git/go-git/v5 v5.4.2
@@ -55,7 +56,7 @@ require (
 	sigs.k8s.io/controller-tools v0.4.1
 	sigs.k8s.io/kustomize/api v0.10.0
 	sigs.k8s.io/kustomize/kstatus v0.0.2
-	sigs.k8s.io/yaml v1.2.0
+	sigs.k8s.io/yaml v1.3.0
 
 )
 

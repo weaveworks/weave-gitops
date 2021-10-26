@@ -11,28 +11,26 @@ import (
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 
-	"google.golang.org/grpc/codes"
-
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"go.uber.org/zap"
+	"google.golang.org/grpc/codes"
 	grpcStatus "google.golang.org/grpc/status"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,7 +38,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
-	"sigs.k8s.io/cli-utils/pkg/object"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/kustomize/kstatus/status"
 )
@@ -190,12 +187,11 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 		return nil, fmt.Errorf("could not get deployment for app %s: %w", app.Name, err)
 	}
 
-	reconciledKinds := []*pb.GroupVersionKind{}
-
 	var (
-		kust           *kustomizev2.Kustomization
-		helmRelease    *helmv2.HelmRelease
-		deploymentType pb.AutomationKind
+		kust            *kustomizev2.Kustomization
+		helmRelease     *helmv2.HelmRelease
+		deploymentType  pb.AutomationKind
+		reconciledKinds []*pb.GroupVersionKind
 	)
 
 	if deployment != nil {
@@ -203,23 +199,18 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 		switch at := deployment.(type) {
 		case *kustomizev2.Kustomization:
 			kust = at
-
-			reconciledKinds, err = addReconciledKinds(reconciledKinds, at)
+			deploymentType = pb.AutomationKind_Kustomize
+			reconciledKinds, err = getKustomizeInventory(at)
 			if err != nil {
 				return nil, err
 			}
-
-			deploymentType = pb.AutomationKind_Kustomize
 		case *helmv2.HelmRelease:
 			helmRelease = at
 			deploymentType = pb.AutomationKind_Helm
-			// TODO (stefan): instead of assuming a Deployment kind is part of the HelmRelease
-			// we should fetch the Helm storage and extract the kinds from there
-			reconciledKinds = append(reconciledKinds, &pb.GroupVersionKind{
-				Group:   "apps",
-				Version: "v1",
-				Kind:    "Deployment",
-			})
+			reconciledKinds, err = getHelmInventory(at, kubeClient)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -695,33 +686,4 @@ func (s *applicationServer) Authenticate(_ context.Context, msg *pb.Authenticate
 	}
 
 	return &pb.AuthenticateResponse{Token: token}, nil
-}
-
-func addReconciledKinds(arr []*pb.GroupVersionKind, kustomization *kustomizev2.Kustomization) ([]*pb.GroupVersionKind, error) {
-	if kustomization.Status.Inventory == nil {
-		return arr, nil
-	}
-
-	found := map[string]bool{}
-
-	for _, entry := range kustomization.Status.Inventory.Entries {
-		objMeta, err := object.ParseObjMetadata(entry.ID)
-		if err != nil {
-			return arr, fmt.Errorf("invalid inventory item '%s', error: %w", entry.ID, err)
-		}
-
-		idstr := strings.Join([]string{objMeta.GroupKind.Group, entry.Version, objMeta.GroupKind.Kind}, "_")
-
-		if !found[idstr] {
-			found[idstr] = true
-
-			arr = append(arr, &pb.GroupVersionKind{
-				Group:   objMeta.GroupKind.Group,
-				Version: entry.Version,
-				Kind:    objMeta.GroupKind.Kind,
-			})
-		}
-	}
-
-	return arr, nil
 }
