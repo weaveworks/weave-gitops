@@ -13,7 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/google/go-github/v32/github"
@@ -97,8 +97,7 @@ var _ = Describe("AddApplication", func() {
 					Name: req.Name,
 					Kind: sourcev1.GitRepositoryKind,
 				},
-				Validation: "client",
-				Force:      false,
+				Force: false,
 			}
 
 			expectedSource := sourcev1.GitRepositorySpec{
@@ -189,8 +188,7 @@ var _ = Describe("AddApplication", func() {
 					Name: req.Name,
 					Kind: sourcev1.GitRepositoryKind,
 				},
-				Validation: "client",
-				Force:      false,
+				Force: false,
 			}
 
 			expectedSource := sourcev1.GitRepositorySpec{
@@ -279,8 +277,7 @@ var _ = Describe("AddApplication", func() {
 					Name: req.Name,
 					Kind: sourcev1.GitRepositoryKind,
 				},
-				Validation: "client",
-				Force:      false,
+				Force: false,
 			}
 
 			expectedSrc := sourcev1.GitRepositorySpec{
@@ -373,8 +370,7 @@ var _ = Describe("AddApplication", func() {
 					Name: req.Name,
 					Kind: sourcev1.GitRepositoryKind,
 				},
-				Validation: "client",
-				Force:      false,
+				Force: false,
 			}
 
 			expectedSrc := sourcev1.GitRepositorySpec{
