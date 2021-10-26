@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
 	"strings"
 	"time"
 
@@ -41,13 +40,20 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
+	"sigs.k8s.io/cli-utils/pkg/object"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/kustomize/kstatus/status"
 )
 
 var ErrEmptyAccessToken = fmt.Errorf("access token is empty")
 
-var idRegexp = regexp.MustCompile(`[^_]+[_][^_]+[_]([^_]+)[_]([^_]+)`)
+// Flux owner labels
+var (
+	KustomizeNameKey      = fmt.Sprintf("%s/name", kustomizev2.GroupVersion.Group)
+	KustomizeNamespaceKey = fmt.Sprintf("%s/namespace", kustomizev2.GroupVersion.Group)
+	HelmNameKey           = fmt.Sprintf("%s/name", helmv2.GroupVersion.Group)
+	HelmNamespaceKey      = fmt.Sprintf("%s/namespace", helmv2.GroupVersion.Group)
+)
 
 type applicationServer struct {
 	pb.UnimplementedApplicationsServer
@@ -197,11 +203,23 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 		switch at := deployment.(type) {
 		case *kustomizev2.Kustomization:
 			kust = at
-			reconciledKinds = addReconciledKinds(reconciledKinds, at)
+
+			reconciledKinds, err = addReconciledKinds(reconciledKinds, at)
+			if err != nil {
+				return nil, err
+			}
+
 			deploymentType = pb.AutomationKind_Kustomize
 		case *helmv2.HelmRelease:
 			helmRelease = at
 			deploymentType = pb.AutomationKind_Helm
+			// TODO (stefan): instead of assuming a Deployment kind is part of the HelmRelease
+			// we should fetch the Helm storage and extract the kinds from there
+			reconciledKinds = append(reconciledKinds, &pb.GroupVersionKind{
+				Group:   "apps",
+				Version: "v1",
+				Kind:    "Deployment",
+			})
 		}
 	}
 
@@ -455,12 +473,21 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 	}, nil
 }
 
-const KustomizeNameKey string = "kustomize.toolkit.fluxcd.io/name"
-const KustomizeNamespaceKey string = "kustomize.toolkit.fluxcd.io/namespace"
-
 func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciledObjectsReq) (*pb.GetReconciledObjectsRes, error) {
-	if msg.AutomationKind == pb.AutomationKind_Helm {
-		return nil, grpcStatus.Error(codes.Unimplemented, "Helm is not currently supported for this method")
+	var opts client.MatchingLabels
+	switch msg.AutomationKind {
+	case pb.AutomationKind_Kustomize:
+		opts = client.MatchingLabels{
+			KustomizeNameKey:      msg.AutomationName,
+			KustomizeNamespaceKey: msg.AutomationNamespace,
+		}
+	case pb.AutomationKind_Helm:
+		opts = client.MatchingLabels{
+			HelmNameKey:      msg.AutomationName,
+			HelmNamespaceKey: msg.AutomationNamespace,
+		}
+	default:
+		return nil, fmt.Errorf("unsupported application kind: %s", msg.AutomationKind.String())
 	}
 
 	result := []unstructured.Unstructured{}
@@ -474,11 +501,6 @@ func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.Ge
 			Version: gvk.Version,
 		})
 
-		opts := client.MatchingLabels{
-			KustomizeNameKey:      msg.AutomationName,
-			KustomizeNamespaceKey: msg.AutomationNamespace,
-		}
-
 		if err := s.kube.List(ctx, &list, opts); err != nil {
 			return nil, fmt.Errorf("could not get unstructured list: %s\n", err)
 		}
@@ -489,6 +511,8 @@ func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.Ge
 	objects := []*pb.UnstructuredObject{}
 
 	for _, obj := range result {
+		// TODO (stefan): 'sigs.k8s.io/kustomize/kstatus' has moved to 'sigs.k8s.io/cli-utils/pkg/kstatus'
+		// new usage example: https://github.com/fluxcd/pkg/blob/main/ssa/manager_wait.go
 		res, err := status.Compute(&obj)
 
 		if err != nil {
@@ -673,28 +697,31 @@ func (s *applicationServer) Authenticate(_ context.Context, msg *pb.Authenticate
 	return &pb.AuthenticateResponse{Token: token}, nil
 }
 
-func addReconciledKinds(arr []*pb.GroupVersionKind, kustomization *kustomizev2.Kustomization) []*pb.GroupVersionKind {
+func addReconciledKinds(arr []*pb.GroupVersionKind, kustomization *kustomizev2.Kustomization) ([]*pb.GroupVersionKind, error) {
 	if kustomization.Status.Inventory == nil {
-		return arr
+		return arr, nil
 	}
 
 	found := map[string]bool{}
 
 	for _, entry := range kustomization.Status.Inventory.Entries {
-		match := idRegexp.FindStringSubmatch(entry.ID)
-		group, kind := match[1], match[2]
-		idstr := strings.Join([]string{group, entry.Version, kind}, "_")
+		objMeta, err := object.ParseObjMetadata(entry.ID)
+		if err != nil {
+			return arr, fmt.Errorf("invalid inventory item '%s', error: %w", entry.ID, err)
+		}
+
+		idstr := strings.Join([]string{objMeta.GroupKind.Group, entry.Version, objMeta.GroupKind.Kind}, "_")
 
 		if !found[idstr] {
 			found[idstr] = true
 
 			arr = append(arr, &pb.GroupVersionKind{
-				Group:   group,
+				Group:   objMeta.GroupKind.Group,
 				Version: entry.Version,
-				Kind:    kind,
+				Kind:    objMeta.GroupKind.Kind,
 			})
 		}
 	}
 
-	return arr
+	return arr, nil
 }
