@@ -1391,10 +1391,11 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		addCommand1 := "app add --url=" + helmRepoURL + " --chart=" + appName1 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true --helm-release-target-namespace=" + workloadNamespace
 		addCommand2 := "app add --url=" + helmRepoURL + " --chart=" + appName2 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true --helm-release-target-namespace=" + workloadNamespace
 
+		defer deleteNamespace(workloadNamespace)
+		defer waitForNamespaceToTerminate(workloadNamespace, NAMESPACE_TERMINATE_TIMEOUT)
 		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, TIMEOUT_TWO_MINUTES)
 		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName2, TIMEOUT_TWO_MINUTES)
 		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
-		defer deleteNamespace(workloadNamespace)
 
 		By("And application repo does not already exist", func() {
 			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
