@@ -25,7 +25,9 @@ func getKustomizeInventory(kustomization *kustomizev2.Kustomization) ([]*pb.Grou
 	}
 
 	var gvk []*pb.GroupVersionKind
+
 	found := map[string]bool{}
+
 	for _, entry := range kustomization.Status.Inventory.Entries {
 		objMeta, err := object.ParseObjMetadata(entry.ID)
 		if err != nil {
@@ -88,10 +90,12 @@ func getHelmInventory(hr *helmv2.HelmRelease, kubeClient kube.Kube) ([]*pb.Group
 
 	// adapted from https://github.com/helm/helm/blob/02685e94bd3862afcb44f6cd7716dbeb69743567/pkg/storage/driver/util.go
 	var b64 = base64.StdEncoding
+
 	b, err := b64.DecodeString(string(releaseData))
 	if err != nil {
 		return nil, err
 	}
+
 	var magicGzip = []byte{0x1f, 0x8b, 0x08}
 	if bytes.Equal(b[0:3], magicGzip) {
 		r, err := gzip.NewReader(bytes.NewReader(b))
@@ -99,10 +103,12 @@ func getHelmInventory(hr *helmv2.HelmRelease, kubeClient kube.Kube) ([]*pb.Group
 			return nil, err
 		}
 		defer r.Close()
+
 		b2, err := ioutil.ReadAll(r)
 		if err != nil {
 			return nil, err
 		}
+
 		b = b2
 	}
 
@@ -117,7 +123,9 @@ func getHelmInventory(hr *helmv2.HelmRelease, kubeClient kube.Kube) ([]*pb.Group
 	}
 
 	var gvk []*pb.GroupVersionKind
+
 	found := map[string]bool{}
+
 	for _, entry := range objects {
 		entry.GetAPIVersion()
 		idstr := strings.Join([]string{entry.GetAPIVersion(), entry.GetKind()}, "_")
@@ -134,5 +142,4 @@ func getHelmInventory(hr *helmv2.HelmRelease, kubeClient kube.Kube) ([]*pb.Group
 	}
 
 	return gvk, nil
-
 }

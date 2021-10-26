@@ -201,6 +201,7 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 			kust = at
 			deploymentType = pb.AutomationKind_Kustomize
 			reconciledKinds, err = getKustomizeInventory(at)
+
 			if err != nil {
 				return nil, err
 			}
@@ -208,6 +209,7 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 			helmRelease = at
 			deploymentType = pb.AutomationKind_Helm
 			reconciledKinds, err = getHelmInventory(at, kubeClient)
+
 			if err != nil {
 				return nil, err
 			}
@@ -466,6 +468,7 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 
 func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciledObjectsReq) (*pb.GetReconciledObjectsRes, error) {
 	var opts client.MatchingLabels
+
 	switch msg.AutomationKind {
 	case pb.AutomationKind_Kustomize:
 		opts = client.MatchingLabels{
