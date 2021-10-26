@@ -1392,7 +1392,6 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		addCommand2 := "app add --url=" + helmRepoURL + " --chart=" + appName2 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true --helm-release-target-namespace=" + workloadNamespace
 
 		defer deleteNamespace(workloadNamespace)
-		defer waitForNamespaceToTerminate(workloadNamespace, NAMESPACE_TERMINATE_TIMEOUT)
 		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, TIMEOUT_TWO_MINUTES)
 		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName2, TIMEOUT_TWO_MINUTES)
 		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
@@ -1482,6 +1481,11 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Eventually(appStatus2).Should(ContainSubstring(`Last successful reconciliation:`))
 			Eventually(appStatus2).Should(ContainSubstring(`helmrepository/` + appName2))
 			Eventually(appStatus2).Should(ContainSubstring(`helmrelease/` + appName2))
+		})
+
+		By("And I should be able to delete workspace namespace", func() {
+			deleteNamespace(workloadNamespace)
+			_ = waitForNamespaceToTerminate(workloadNamespace, NAMESPACE_TERMINATE_TIMEOUT)
 		})
 	})
 
