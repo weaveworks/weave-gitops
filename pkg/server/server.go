@@ -38,8 +38,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
+	"sigs.k8s.io/cli-utils/pkg/kstatus/status"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/kustomize/kstatus/status"
 )
 
 var ErrEmptyAccessToken = fmt.Errorf("access token is empty")
@@ -505,8 +505,6 @@ func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.Ge
 	objects := []*pb.UnstructuredObject{}
 
 	for _, obj := range result {
-		// TODO (stefan): 'sigs.k8s.io/kustomize/kstatus' has moved to 'sigs.k8s.io/cli-utils/pkg/kstatus'
-		// new usage example: https://github.com/fluxcd/pkg/blob/main/ssa/manager_wait.go
 		res, err := status.Compute(&obj)
 
 		if err != nil {
