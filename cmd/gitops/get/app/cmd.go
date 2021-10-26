@@ -61,22 +61,24 @@ func getApplicationStatus(cmd *cobra.Command, args []string) error {
 }
 
 func getApplications(cmd *cobra.Command) error {
-	kubeClient, _, err := kube.NewKubeHTTPClient()
+	_, k8s, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return fmt.Errorf("error initializing kubernetes client: %w", err)
 	}
 
-	ns, err := cmd.Parent().Flags().GetString("namespace")
-	if err != nil {
-		return err
-	}
+	fetcher := applicationv2.NewFetcher(k8s)
 
-	apps, err := kubeClient.GetApplications(context.Background(), ns)
+	ns, err := cmd.Parent().Parent().Flags().GetString("namespace")
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("NAME")
+
+	apps, err := fetcher.List(cmd.Context(), ns)
+	if err != nil {
+		return err
+	}
 
 	for _, app := range apps {
 		fmt.Println(app.Name)

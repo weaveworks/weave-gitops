@@ -21,6 +21,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
 	"github.com/go-logr/logr"
@@ -64,6 +65,7 @@ type applicationServer struct {
 	log          logr.Logger
 	kube         client.Client
 	ghAuthClient auth.GithubAuthClient
+	fetcher      applicationv2.Fetcher
 }
 
 // An ApplicationsConfig allows for the customization of an ApplicationsServer.
@@ -84,6 +86,7 @@ func NewApplicationsServer(cfg *ApplicationsConfig) pb.ApplicationsServer {
 		appFactory:   cfg.AppFactory,
 		kube:         cfg.KubeClient,
 		ghAuthClient: cfg.GithubAuthClient,
+		fetcher:      applicationv2.NewFetcher(cfg.KubeClient),
 	}
 }
 
@@ -146,12 +149,7 @@ func NewApplicationsHandler(ctx context.Context, cfg *ApplicationsConfig, opts .
 }
 
 func (s *applicationServer) ListApplications(ctx context.Context, msg *pb.ListApplicationsRequest) (*pb.ListApplicationsResponse, error) {
-	kubeService, kubeErr := s.appFactory.GetKubeService()
-	if kubeErr != nil {
-		return nil, fmt.Errorf("failed to create kube service: %w", kubeErr)
-	}
-
-	apps, err := kubeService.GetApplications(ctx, msg.Namespace)
+	apps, err := s.fetcher.List(ctx, msg.Namespace)
 	if err != nil {
 		return nil, err
 	}
