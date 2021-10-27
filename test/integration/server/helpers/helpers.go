@@ -36,7 +36,7 @@ type WeGODirectoryFS map[string]interface{}
 var deploymentYaml []byte
 
 //go:embed yaml/kustomization.yaml
-var kustomziationYaml []byte
+var kustomizationYaml []byte
 
 func CreateRepo(ctx context.Context, gp gitprovider.Client, url string) (gitprovider.OrgRepository, *gitprovider.OrgRepositoryRef, error) {
 	ref, err := gitprovider.ParseOrgRepositoryURL(url)
@@ -74,7 +74,7 @@ func addFiles(ctx context.Context, message string, repo gitprovider.OrgRepositor
 		},
 		{
 			Path:    gitprovider.StringVar("k8s/kustomization.yaml"),
-			Content: gitprovider.StringVar(string(kustomziationYaml)),
+			Content: gitprovider.StringVar(string(kustomizationYaml)),
 		},
 	})
 
@@ -230,7 +230,7 @@ func CreatePopulatedSourceRepo(ctx context.Context, gp gitprovider.Client, url s
 		},
 		{
 			Path:    gitprovider.StringVar("k8s/kustomization.yaml"),
-			Content: gitprovider.StringVar(string(kustomziationYaml)),
+			Content: gitprovider.StringVar(string(kustomizationYaml)),
 		},
 	}); err != nil {
 		return nil, nil, fmt.Errorf("could not add files to source repo: %w", err)

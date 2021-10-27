@@ -30,7 +30,7 @@ type factory struct {
 }
 
 func NewServerAppFactory(rest *rest.Config, l logger.Logger, clusterName string) (ServerAppFactory, error) {
-	_, k, err := kube.NewKubeHTTPClient(rest, "")
+	_, k, err := kube.NewKubeHTTPClient(rest, clusterName)
 	if err != nil {
 		return nil, err
 	}
