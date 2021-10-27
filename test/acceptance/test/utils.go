@@ -405,9 +405,9 @@ func uninstallWegoRuntime(namespace string) {
 }
 
 func deleteNamespace(namespace string) {
-	log.Infof("Deleting namespace and all its pods: " + namespace)
+	log.Infof("Deleting namespace and all its resources: " + namespace)
 
-	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete pods --all -n %s --grace-period 0 --force", namespace))
+	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete all --all -n %s", namespace))
 
 	command := exec.Command("kubectl", "delete", "ns", namespace)
 	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
