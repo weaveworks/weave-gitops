@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/benbjohnson/clock v1.1.0
+	github.com/cespare/reflex v0.3.1 // indirect
 	github.com/deepmap/oapi-codegen v1.8.1
 	github.com/fluxcd/go-git-providers v0.2.1-0.20211006191809-83344459c0dc
 	github.com/fluxcd/helm-controller/api v0.11.2
