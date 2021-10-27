@@ -11,6 +11,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/add"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app"
 	beta "github.com/weaveworks/weave-gitops/cmd/gitops/beta/cmd"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/delete"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/flux"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
@@ -125,6 +126,7 @@ func main() {
 	rootCmd.AddCommand(app.ApplicationCmd)
 	rootCmd.AddCommand(get.GetCommand(&options.endpoint, restyClient))
 	rootCmd.AddCommand(add.GetCommand(&options.endpoint, restyClient))
+	rootCmd.AddCommand(delete.DeleteCommand(&options.endpoint, restyClient))
 	rootCmd.AddCommand(upgrade.Cmd)
 	rootCmd.AddCommand(docs.Cmd)
 

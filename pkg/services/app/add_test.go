@@ -576,11 +576,12 @@ var _ = Describe("Add", func() {
 			It("generates the app yaml", func() {
 				repoURL := "ssh://git@github.com/example/my-source"
 				params := AddParams{
-					Name:      "my-app",
-					Namespace: wego.DefaultNamespace,
-					Url:       repoURL,
-					Path:      "manifests",
-					Branch:    "main",
+					Name:         "my-app",
+					Namespace:    wego.DefaultNamespace,
+					Url:          repoURL,
+					AppConfigUrl: "none",
+					Path:         "manifests",
+					Branch:       "main",
 				}
 
 				info, err := getAppResourceInfo(makeWegoApplication(params), "")
@@ -597,7 +598,7 @@ var _ = Describe("Add", func() {
 				result := wego.Application{}
 				// Convert back to a struct to make the comparison more forgiving.
 				// A straight string/byte comparison doesn't account for un-ordered keys in yaml.
-				Expect(yaml.Unmarshal(out, &result))
+				Expect(yaml.Unmarshal(out.ToAppYAML(), &result))
 
 				diff := cmp.Diff(result, desired2)
 				Expect(diff).To(Equal(""))
@@ -812,13 +813,13 @@ var _ = Describe("Add", func() {
 			})
 
 			It("creates the pull request against the default branch for an org app repository", func() {
-				Expect(appSrv.(*App).createPullRequestToRepo(ctx, info, info.appRepoUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+				Expect(appSrv.(*App).createPullRequestToRepo(ctx, info, info.appRepoUrl, "hash", emptyAppManifest(), emptySource(), emptyAutomation())).To(Succeed())
 				_, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(prInfo.TargetBranch).To(Equal("default-app-branch"))
 			})
 
 			It("creates the pull request against the default branch for a user app repository", func() {
-				Expect(appSrv.(*App).createPullRequestToRepo(ctx, info, info.appRepoUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+				Expect(appSrv.(*App).createPullRequestToRepo(ctx, info, info.appRepoUrl, "hash", emptyAppManifest(), emptySource(), emptyAutomation())).To(Succeed())
 				_, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(prInfo.TargetBranch).To(Equal("default-app-branch"))
 			})
@@ -830,13 +831,13 @@ var _ = Describe("Add", func() {
 			})
 
 			It("creates the pull request against the default branch for an org config repository", func() {
-				Expect(appSrv.(*App).createPullRequestToRepo(ctx, info, info.configRepoUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+				Expect(appSrv.(*App).createPullRequestToRepo(ctx, info, info.configRepoUrl, "hash", emptyAppManifest(), emptySource(), emptyAutomation())).To(Succeed())
 				_, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(prInfo.TargetBranch).To(Equal("default-config-branch"))
 			})
 
 			It("creates the pull request against the default branch for a user config repository", func() {
-				Expect(appSrv.(*App).createPullRequestToRepo(ctx, info, info.configRepoUrl, "hash", []byte{}, []byte{}, []byte{})).To(Succeed())
+				Expect(appSrv.(*App).createPullRequestToRepo(ctx, info, info.configRepoUrl, "hash", emptyAppManifest(), emptySource(), emptyAutomation())).To(Succeed())
 				_, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
 				Expect(prInfo.TargetBranch).To(Equal("default-config-branch"))
 			})
@@ -1163,4 +1164,16 @@ var _ = Describe("New directory structure", func() {
 func getHash(inputs ...string) string {
 	final := []byte(strings.Join(inputs, ""))
 	return fmt.Sprintf("%x", md5.Sum(final))
+}
+
+func emptySource() Source {
+	return source{yaml: []byte{}}
+}
+
+func emptyAutomation() Automation {
+	return automation{yaml: []byte{}}
+}
+
+func emptyAppManifest() AppManifest {
+	return appManifest{yaml: []byte{}}
 }

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
+	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -43,7 +43,7 @@ func (a *App) getLastSuccessfulReconciliation(ctx context.Context, deploymentTyp
 
 	switch deploymentType {
 	case wego.DeploymentTypeKustomize:
-		kust := &kustomizev1.Kustomization{}
+		kust := &kustomizev2.Kustomization{}
 		if err := a.Kube.GetResource(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace}, kust); err != nil {
 			return "", fmt.Errorf("failed getting resource: %w", err)
 		}

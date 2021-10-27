@@ -11,6 +11,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]
+    outputs:
+        gitsha: ${{steps.gitsha.outputs.sha}}
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
@@ -20,10 +22,14 @@ jobs:
       uses: actions/checkout@v2
     - name: Clean
       run: make clean
+    - id: gitsha
+      run: | 
+        gitsha=$(git rev-parse --short "$GITHUB_SHA")
+        echo "::set-output name=sha::$gitsha"
     - name: build
       run: |
         git_hash=$(git rev-parse --short "$GITHUB_SHA")
-        make all BINARY_NAME=gitops-${{matrix.os}}-$git_hash
+        make all BINARY_NAME=gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}}
     - name: Store gitops binaries
       uses: actions/upload-artifact@v2
       with:
@@ -177,7 +183,7 @@ jobs:
 
   publish-binaries:
     runs-on: ${{matrix.os}}
-    needs: [acceptance-tests]
+    needs: [build, acceptance-tests]
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]
@@ -194,4 +200,6 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-2
     - run: |
-        aws s3 cp bin/gitops-${{matrix.os}}-* s3://weave-gitops/
+        aws s3 cp bin/gitops-${{matrix.os}}-${{needs.build.outputs.gitsha}} s3://weave-gitops/
+        aws s3 cp s3://weave-gitops/gitops-${{matrix.os}}-${{needs.build.outputs.gitsha}} s3://weave-gitops/gitops-${{matrix.os}}
+

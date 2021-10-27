@@ -65,6 +65,10 @@ func getTemplateCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comm
 		defer w.Flush()
 
 		if flags.ListTemplateParameters {
+			if len(args) == 0 {
+				return fmt.Errorf("template name is required")
+			}
+
 			return capi.GetTemplateParameters(args[0], r, w)
 		}
 

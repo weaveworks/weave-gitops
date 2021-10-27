@@ -10,21 +10,22 @@
 # 4) Push the new tag
 
 # Parse command line options.
-while getopts ":Mmpdr" Option
+while getopts ":Mmpcdr" Option
 do
   case $Option in
-    M ) major=true;;
-    m ) minor=true;;
-    p ) patch=true;;
-    d ) dry=true;;
-    r ) release=true;;
+    M  ) major=true;;
+    m  ) minor=true;;
+    p  ) patch=true;;
+    c  ) candidate=true;;
+    d  ) dry=true;;
+    r  ) release=true;;
   esac
 done
 
 shift $(($OPTIND - 1))
 
 # Display usage
-if [ -z $major ] && [ -z $minor ] && [ -z $patch ] && [ -z $dry ] && [ -z $release ];
+if [ -z $major ] && [ -z $minor ] && [ -z $patch ] && [ -z $dry ] && [ -z $release ] [ -z $candidate];
 then
   echo "usage: $(basename $0) [Mmp]"
   echo ""
@@ -32,6 +33,7 @@ then
   echo "  -M for a major release candidate"
   echo "  -m for a minor release candidate"
   echo "  -p for a patch release candidate"
+  echo "  -c for incrementing the release candidate number"
   echo "  -r for a full release"
   echo ""
   echo " Example: release -p"
@@ -45,14 +47,13 @@ echo "Fetch tags"
 git fetch --prune origin +refs/tags/*:refs/tags/*
 
 version=$(git describe --abbrev=0 --tags)
-version=${version:1} # Remove the v in the tag v0.37.10 for example
-
 echo "Current version: $version"
 
+version=${version:1} # Remove the v in the tag v0.37.10 for example
+
 # Build array from version string.
-
 a=( ${version//./ } )
-
+rc=0
 
 # 2) Increase version number if release candidate and if not create release
 
@@ -66,7 +67,7 @@ then
     exit 1
   fi
 else
-# Increment version numbers as requested.
+# Increment version/rc numbers as requested.
   if [ ! -z $major ]
   then
     ((a[0]++))
@@ -85,7 +86,15 @@ else
     ((a[2]++))
   fi
 
-  next_version="${a[0]}.${a[1]}.${a[2]}-rc"
+  if [ ! -z $candidate ]
+  then
+    # Get rc number from version string
+    rc=${version#*rc}
+    a[2]=${a[2]/-rc*} # Clean up -rc on patch number
+    ((rc++)) 
+  fi
+
+  next_version="${a[0]}.${a[1]}.${a[2]}-rc${rc}"
 fi
 
 # If its a dry run, just display the new release version number

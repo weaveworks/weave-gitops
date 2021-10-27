@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
+	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -179,7 +179,7 @@ var _ = Describe("KubeHTTP", func() {
 			name := "my-app"
 
 			kust := fmt.Sprintf(`
-apiVersion: kustomize.toolkit.fluxcd.io/v1beta1
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
   name: %s
@@ -194,7 +194,7 @@ spec:
 `, name, namespace.Name)
 			Expect(k.Apply(ctx, []byte(kust), namespace.Name)).Should(Succeed())
 
-			kustObj := &kustomizev1.Kustomization{}
+			kustObj := &kustomizev2.Kustomization{}
 			err := k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, kustObj)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -302,17 +302,21 @@ metadata:
 			defer os.RemoveAll(dir)
 			tests := []struct {
 				name        string
+				expName     string
 				clusterName string
 			}{
-				{"foo", "foo"},
-				{"weave-upa-admin@weave-upa", "weave-upa"},
+				{"foo", "foo", "foo"},
+				{"weave-upa-admin@weave-upa", "weave-upa", "weave-upa"},
+				{"user@weave.works@market.eu-west-2.eksctl.io-podinfo", "market.eu-west-2.eksctl.io-podinfo", "user@weave.works@market.eu-west-2.eksctl.io-podinfo"},
+				{"user@market.eu-west-2.eksctl.io-podinfo", "market.eu-west-2.eksctl.io-podinfo", "user@market.eu-west-2.eksctl.io-podinfo"},
+				{"user@market.eu-west-2.eksctl.io-podinfo", "market.eu-west-2.eksctl.io-podinfo", "market.eu-west-2.eksctl.io-podinfo"},
 			}
 			for _, test := range tests {
 				createKubeconfig(test.name, test.clusterName, dir, true)
 				_, cname, err := kube.RestConfig()
-				Expect(err).ToNot(HaveOccurred(), "Failed to get a kube config for ", test.name)
+				Expect(err).ToNot(HaveOccurred(), "Failed to get a kube config")
 
-				Expect(cname).To(Equal(test.clusterName))
+				Expect(cname).To(Equal(test.expName))
 			}
 
 		})

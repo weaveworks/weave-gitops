@@ -43,7 +43,7 @@ var _ = Describe("Sync", func() {
 		ready := make(chan bool)
 
 		go func() {
-			close(ready)
+			ready <- true
 			err := appSrv.Sync(syncParams)
 			Expect(err).ToNot(HaveOccurred())
 		}()
