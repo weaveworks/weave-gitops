@@ -47,7 +47,7 @@ const NodeHtml = ({ object }: NodeHtmlProps) => {
         {object.name}
       </Flex>
       <Flex center wide align className="kind">
-        <div className='kind-text'>{object.groupVersionKind.kind}</div>
+        <div className="kind-text">{object.groupVersionKind.kind}</div>
       </Flex>
       <Flex center wide align>
         <div className={`status ${object.status}`}>
