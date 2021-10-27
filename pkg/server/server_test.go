@@ -808,6 +808,10 @@ var _ = Describe("ApplicationsServer", func() {
 				Namespace: namespace.Name,
 			}
 
+			Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, source)).Should(Succeed())
+			source.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
+			Expect(k8sClient.Status().Update(ctx, source)).Should(Succeed())
+
 			done := make(chan bool)
 
 			go func() {
@@ -816,19 +820,24 @@ var _ = Describe("ApplicationsServer", func() {
 				res, err := appsClient.SyncApplication(contextWithAuth(ctx), appRequest)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(res.Success).To(BeTrue())
+				done <- true
 				close(done)
 			}()
 
-			time.Sleep(1 * time.Second)
-			Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, source)).Should(Succeed())
-			source.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
-			Expect(k8sClient.Status().Update(ctx, source)).Should(Succeed())
-
-			Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, kust)).Should(Succeed())
-			kust.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
-			Expect(k8sClient.Status().Update(ctx, kust)).Should(Succeed())
-
-			<-done
+			ticker := time.NewTicker(500 * time.Millisecond)
+			for {
+				select {
+				case <-ticker.C:
+					Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, source)).Should(Succeed())
+					source.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
+					Expect(k8sClient.Status().Update(ctx, source)).Should(Succeed())
+					Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, kust)).Should(Succeed())
+					kust.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
+					Expect(k8sClient.Status().Update(ctx, kust)).Should(Succeed())
+				case <-done:
+					return
+				}
+			}
 		})
 	})
 	Describe("middleware", func() {
