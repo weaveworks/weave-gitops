@@ -12,7 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
-var _ = Describe("Getter", func() {
+var _ = Describe("Fetcher", func() {
 	Describe(".Get()", func() {
 		It("gets an application that exists", func() {
 			ctx := context.Background()
@@ -46,9 +46,59 @@ var _ = Describe("Getter", func() {
 
 			gs := NewFetcher(k8s)
 
-			result, err := gs.Get(ctx, "foo", "ns")
+			_, err := gs.Get(ctx, "foo", "ns")
 			Expect(err).To(Equal(ErrNotFound))
-			Expect(result).To(BeNil())
+		})
+	})
+
+	Describe(".List()", func() {
+		It("lists multiple applications", func() {
+			ctx := context.Background()
+			k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
+
+			app := &wego.Application{}
+			app.Name = "my-app"
+			app.Namespace = "some-ns"
+
+			Expect(k8s.Create(ctx, app)).To(Succeed())
+
+			app2 := &wego.Application{}
+			app2.Name = "my-app2"
+			app2.Namespace = "some-ns"
+
+			Expect(k8s.Create(ctx, app2)).To(Succeed())
+
+			gs := NewFetcher(k8s)
+
+			result, err := gs.List(ctx, app.Namespace)
+			Expect(err).NotTo(HaveOccurred())
+
+			expected := []models.Application{
+				{
+					Name:      app.Name,
+					Namespace: app.Namespace,
+				},
+				{
+					Name:      app2.Name,
+					Namespace: app2.Namespace,
+				},
+			}
+
+			diff := cmp.Diff(expected, result)
+
+			if diff != "" {
+				GinkgoT().Errorf("mismatch (-actual, +expected):\n%s", diff)
+			}
+		})
+		It("lists an empty application list", func() {
+			ctx := context.Background()
+			k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
+
+			gs := NewFetcher(k8s)
+
+			result, err := gs.List(ctx, "ns")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(len(result)).To(Equal(0))
 		})
 	})
 })

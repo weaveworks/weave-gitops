@@ -15,6 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
@@ -867,7 +868,6 @@ var _ = Describe("ApplicationsServer", func() {
 	Describe("middleware", func() {
 		Describe("logging", func() {
 			var log *fakelogr.FakeLogger
-			var kubeClient *kubefakes.FakeKube
 			var appsSrv pb.ApplicationsServer
 			var mux *runtime.ServeMux
 			var httpHandler http.Handler
@@ -875,17 +875,21 @@ var _ = Describe("ApplicationsServer", func() {
 
 			BeforeEach(func() {
 				log = testutils.MakeFakeLogr()
-				kubeClient = &kubefakes.FakeKube{}
+				k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
 
 				rand.Seed(time.Now().UnixNano())
 				secretKey := rand.String(20)
 
 				appFactory := &apputilsfakes.FakeServerAppFactory{}
 
-				appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
-					return kubeClient, nil
+				cfg := ApplicationsConfig{
+					AppFactory: appFactory,
+					Logger:     log,
+					KubeClient: k8s,
+					JwtClient:  auth.NewJwtClient(secretKey),
 				}
-				appsSrv = NewApplicationsServer(&ApplicationsConfig{AppFactory: appFactory, JwtClient: auth.NewJwtClient(secretKey)})
+
+				appsSrv = NewApplicationsServer(&cfg)
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
@@ -913,15 +917,22 @@ var _ = Describe("ApplicationsServer", func() {
 
 			})
 			It("logs server errors", func() {
+				k8s := fake.NewClientBuilder().Build()
+				cfg := ApplicationsConfig{
+					AppFactory: appFactory,
+					Logger:     log,
+					KubeClient: k8s,
+					JwtClient:  auth.NewJwtClient(secretKey),
+				}
+
+				appsSrv = NewApplicationsServer(&cfg)
+				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
+				httpHandler = middleware.WithLogging(log, mux)
+				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
+				Expect(err).NotTo(HaveOccurred())
+
 				ts := httptest.NewServer(httpHandler)
 				defer ts.Close()
-
-				errMsg := "there was a big problem"
-
-				// Pretend something went horribly wrong
-				kubeClient.GetApplicationsStub = func(c context.Context, s string) ([]wego.Application, error) {
-					return nil, errors.New(errMsg)
-				}
 
 				path := "/v1/applications"
 				url := ts.URL + path
@@ -939,9 +950,9 @@ var _ = Describe("ApplicationsServer", func() {
 				Expect(list).To(ConsistOf("uri", path, "status", expectedStatus))
 
 				err, msg, _ := log.ErrorArgsForCall(0)
+				Expect(err).To(HaveOccurred())
 				// This is the meat of this test case.
 				// Check that the same error passed by kubeClient is logged.
-				Expect(err.Error()).To(Equal(errMsg))
 				Expect(msg).To(Equal(middleware.ServerErrorText))
 
 			})
@@ -976,9 +987,11 @@ var _ = Describe("ApplicationsServer", func() {
 
 				appFactory := &apputilsfakes.FakeServerAppFactory{}
 
+				kubeClient := &kubefakes.FakeKube{}
 				appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 					return kubeClient, nil
 				}
+
 				appsSrv = NewApplicationsServer(&ApplicationsConfig{AppFactory: appFactory, JwtClient: fakeJWTToken})
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
@@ -1019,19 +1032,14 @@ var _ = Describe("ApplicationsServer", func() {
 var _ = Describe("Applications handler", func() {
 	It("works as a standalone handler", func() {
 		log := testutils.MakeFakeLogr()
-		k := &kubefakes.FakeKube{}
-		k.GetApplicationsStub = func(c context.Context, s string) ([]wego.Application, error) {
-			return []wego.Application{{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "my-app",
-					Namespace: wego.DefaultNamespace,
-				},
-				Spec: wego.ApplicationSpec{
-					Branch: "main",
-					Path:   "./k8s",
-				},
-			}}, nil
-		}
+		ctx := context.Background()
+		k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
+
+		app := &wego.Application{}
+		app.Name = "my-app"
+		app.Namespace = "some-ns"
+
+		Expect(k8s.Create(ctx, app)).To(Succeed())
 
 		appFactory := &apputilsfakes.FakeServerAppFactory{}
 
@@ -1042,6 +1050,7 @@ var _ = Describe("Applications handler", func() {
 		cfg := ApplicationsConfig{
 			AppFactory: appFactory,
 			Logger:     log,
+			KubeClient: k8s,
 		}
 
 		handler, err := NewApplicationsHandler(context.Background(), &cfg)
