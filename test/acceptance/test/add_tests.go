@@ -1482,11 +1482,6 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Eventually(appStatus2).Should(ContainSubstring(`helmrepository/` + appName2))
 			Eventually(appStatus2).Should(ContainSubstring(`helmrelease/` + appName2))
 		})
-
-		By("And I should be able to delete workspace namespace", func() {
-			deleteNamespace(workloadNamespace)
-			_ = waitForNamespaceToTerminate(workloadNamespace, NAMESPACE_TERMINATE_TIMEOUT)
-		})
 	})
 
 	It("Verify that gitops can deploy a helm app from a helm repo with app-config-url set to NONE", func() {

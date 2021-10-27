@@ -405,10 +405,13 @@ func uninstallWegoRuntime(namespace string) {
 }
 
 func deleteNamespace(namespace string) {
-	log.Infof("Deleting namespace: " + namespace)
+	log.Infof("Deleting namespace and all its pods: " + namespace)
+
+	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete pods --all -n %s --grace-period 0 --force", namespace))
+
 	command := exec.Command("kubectl", "delete", "ns", namespace)
 	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Eventually(session).Should(gexec.Exit())
+	Eventually(session, TIMEOUT_TWO_MINUTES).Should(gexec.Exit())
 }
 
 func deleteRepo(appRepoName string, providerName gitproviders.GitProviderName, org string) {
