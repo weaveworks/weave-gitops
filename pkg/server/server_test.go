@@ -20,7 +20,7 @@ import (
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -192,17 +192,17 @@ var _ = Describe("ApplicationsServer", func() {
 
 		Describe("fetches the application deployment", func() {
 			It("fetches a kustomization", func() {
-				kust := &kustomizev1.Kustomization{
+				kust := &kustomizev2.Kustomization{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      name,
 						Namespace: namespace.Name,
 					},
-					Spec: kustomizev1.KustomizationSpec{
+					Spec: kustomizev2.KustomizationSpec{
 						TargetNamespace: "target-namespace",
 						Path:            "/path",
 						Interval:        metav1.Duration{Duration: 1 * time.Second},
 						Prune:           true,
-						SourceRef: kustomizev1.CrossNamespaceSourceReference{
+						SourceRef: kustomizev2.CrossNamespaceSourceReference{
 							Kind: "GitRepository",
 							Name: name,
 						},
@@ -321,19 +321,19 @@ var _ = Describe("ApplicationsServer", func() {
 		It("gets object with a kustomization + git repo configuration", func() {
 			ctx := context.Background()
 			name := "my-app"
-			kustomization := kustomizev1.Kustomization{
+			kustomization := kustomizev2.Kustomization{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      name,
 					Namespace: namespace.Name,
 				},
-				Spec: kustomizev1.KustomizationSpec{
-					SourceRef: kustomizev1.CrossNamespaceSourceReference{
+				Spec: kustomizev2.KustomizationSpec{
+					SourceRef: kustomizev2.CrossNamespaceSourceReference{
 						Kind: sourcev1.GitRepositoryKind,
 					},
 				},
-				Status: kustomizev1.KustomizationStatus{
-					Inventory: &kustomizev1.ResourceInventory{
-						Entries: []kustomizev1.ResourceRef{
+				Status: kustomizev2.KustomizationStatus{
+					Inventory: &kustomizev2.ResourceInventory{
+						Entries: []kustomizev2.ResourceRef{
 							{
 								Version: "v1",
 								ID:      namespace.Name + "_my-deployment_apps_Deployment",
@@ -731,7 +731,7 @@ var _ = Describe("ApplicationsServer", func() {
 			ctx    context.Context
 			name   string
 			app    *wego.Application
-			kust   *kustomizev1.Kustomization
+			kust   *kustomizev2.Kustomization
 			source *sourcev1.GitRepository
 		)
 
@@ -749,17 +749,17 @@ var _ = Describe("ApplicationsServer", func() {
 				},
 			}
 
-			kust = &kustomizev1.Kustomization{
+			kust = &kustomizev2.Kustomization{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      name,
 					Namespace: namespace.Name,
 				},
-				Spec: kustomizev1.KustomizationSpec{
-					SourceRef: kustomizev1.CrossNamespaceSourceReference{
+				Spec: kustomizev2.KustomizationSpec{
+					SourceRef: kustomizev2.CrossNamespaceSourceReference{
 						Kind: "GitRepository",
 					},
 				},
-				Status: kustomizev1.KustomizationStatus{
+				Status: kustomizev2.KustomizationStatus{
 					ReconcileRequestStatus: meta.ReconcileRequestStatus{
 						LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
 					},

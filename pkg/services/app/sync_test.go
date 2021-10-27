@@ -53,6 +53,6 @@ var _ = Describe("Sync", func() {
 		appClock.Add(10 * time.Second)
 
 		_, resource := kubeClient.SetResourceArgsForCall(0)
-		Expect(resource.GetAnnotations()).To(Equal(map[string]string{"reconcile.fluxcd.io/requestedAt": "1969-12-31T21:00:10-03:00"}))
+		Expect(resource.GetAnnotations()).To(Equal(map[string]string{"reconcile.fluxcd.io/requestedAt": appClock.Now().Format(time.RFC3339Nano)}))
 	})
 })
