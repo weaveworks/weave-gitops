@@ -106,7 +106,7 @@ To set up a development environment for the UI
 
 1. Install go v1.16
 2. Install Node.js version 14.15.1
-3. Make sure your go $PATH is set in your bashrc or zshrc file, then install reflex for automated server builds: go get github.com/cespare/reflex
+3. Make sure your `$GOPATH` is added to your `$PATH` in your bashrc or zshrc file, then install reflex for automated server builds: go get github.com/cespare/reflex
 4. Go through the Weave GitOps getting started docs here: https://docs.gitops.weave.works/docs/getting-started/
 5. Run `npm install` on this repo.
 6. Make sure GitOps is installed on a fresh kind cluster for this repo by running `kind delete cluster`, `kind create cluster`, and finally `gitops install`.
