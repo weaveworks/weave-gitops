@@ -33,7 +33,7 @@ unit-tests: dependencies cmd/gitops/ui/run/dist/index.html ## Run unit tests
 	# To avoid downloading dependencies every time use `SKIP_FETCH_TOOLS=1 unit-tests`
 	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v -tags unittest ./...
 
-integration-tests: depencencies
+integration-tests: dependencies
 	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v ./test/integration/...
 
 fakes: ## Generate testing fakes
