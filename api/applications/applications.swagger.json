@@ -282,16 +282,20 @@
             "type": "string"
           },
           {
-            "name": "namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "autoMerge",
-            "in": "query",
-            "required": false,
-            "type": "boolean"
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "namespace": {
+                  "type": "string"
+                },
+                "autoMerge": {
+                  "type": "boolean"
+                }
+              }
+            }
           }
         ],
         "tags": [

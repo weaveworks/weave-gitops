@@ -116,6 +116,7 @@ service Applications {
     rpc RemoveApplication(RemoveApplicationRequest) returns (RemoveApplicationResponse) {
         option (google.api.http) = {
             delete : "/v1/applications/{name}"
+            body: "*"
         };
     }
 }

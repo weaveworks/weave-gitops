@@ -242,6 +242,6 @@ export class Applications {
     return fm.fetchReq<AddApplicationRequest, AddApplicationResponse>(`/v1/applications`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static RemoveApplication(req: RemoveApplicationRequest, initReq?: fm.InitReq): Promise<RemoveApplicationResponse> {
-    return fm.fetchReq<RemoveApplicationRequest, RemoveApplicationResponse>(`/v1/applications/${req["name"]}`, {...initReq, method: "DELETE"})
+    return fm.fetchReq<RemoveApplicationRequest, RemoveApplicationResponse>(`/v1/applications/${req["name"]}`, {...initReq, method: "DELETE", body: JSON.stringify(req)})
   }
 }
