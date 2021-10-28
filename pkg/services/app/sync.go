@@ -136,8 +136,6 @@ func (a *App) checkResourceSync(ctx context.Context, name types.NamespacedName, 
 			return false, fmt.Errorf("error getting reconcile at after update: %w", err)
 		}
 
-		fmt.Println("reconcile", lastReconcile, reconcileAtBeforeUpdate)
-
 		return lastReconcile != reconcileAtBeforeUpdate, nil
 	}
 }
@@ -154,7 +152,7 @@ func initResourceType(resource kube.Resource) (kube.Resource, error) {
 		return &helmv2.HelmRelease{}, nil
 	}
 
-	return resource, errors.New("invalid resource")
+	return nil, errors.New("invalid resource")
 }
 
 func getLastHandledReconcileRequest(resource kube.Resource) (string, error) {
