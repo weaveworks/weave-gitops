@@ -63,15 +63,7 @@ var InClusterConfig func() (*rest.Config, error) = func() (*rest.Config, error) 
 	return rest.InClusterConfig()
 }
 
-func NewKubeHTTPClient(config *rest.Config, contextName string) (Kube, client.Client, error) {
-	var err error
-	if config == nil {
-		config, contextName, err = RestConfig()
-		if err != nil {
-			return nil, nil, fmt.Errorf("could not create default config: %w", err)
-		}
-	}
-
+func NewKubeHTTPClientWithConfig(config *rest.Config, contextName string) (Kube, client.Client, error) {
 	scheme := CreateScheme()
 
 	rawClient, err := client.New(config, client.Options{
@@ -94,6 +86,15 @@ func NewKubeHTTPClient(config *rest.Config, contextName string) (Kube, client.Cl
 	}
 
 	return &KubeHTTP{Client: rawClient, ClusterName: contextName, RestMapper: mapper, DynClient: dyn}, rawClient, nil
+}
+
+func NewKubeHTTPClient() (Kube, client.Client, error) {
+	config, contextName, err := RestConfig()
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not create default config: %w", err)
+	}
+
+	return NewKubeHTTPClientWithConfig(config, contextName)
 }
 
 func RestConfig() (*rest.Config, string, error) {

@@ -30,7 +30,7 @@ type factory struct {
 }
 
 func NewServerAppFactory(rest *rest.Config, l logger.Logger, clusterName string) (ServerAppFactory, error) {
-	_, k, err := kube.NewKubeHTTPClient(rest, clusterName)
+	_, k, err := kube.NewKubeHTTPClientWithConfig(rest, clusterName)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func NewServerAppFactory(rest *rest.Config, l logger.Logger, clusterName string)
 }
 
 func (f factory) GetKubeService() (kube.Kube, error) {
-	k, _, err := kube.NewKubeHTTPClient(f.rest, "")
+	k, _, err := kube.NewKubeHTTPClientWithConfig(f.rest, f.clusterName)
 	return k, err
 }
 
@@ -52,7 +52,7 @@ func (f factory) GetAppService(ctx context.Context, params AppServiceParams) (ap
 	osysClient := osys.New()
 	fluxClient := flux.New(osysClient, &runner.CLIRunner{})
 
-	kube, _, err := kube.NewKubeHTTPClient(f.rest, f.clusterName)
+	kube, _, err := kube.NewKubeHTTPClientWithConfig(f.rest, f.clusterName)
 	if err != nil {
 		return nil, err
 	}

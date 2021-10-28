@@ -105,7 +105,7 @@ func DefaultConfig() (*ApplicationsConfig, error) {
 		return nil, fmt.Errorf("could not create client config: %w", err)
 	}
 
-	_, rawClient, err := kube.NewKubeHTTPClient(rest, clusterName)
+	_, rawClient, err := kube.NewKubeHTTPClientWithConfig(rest, clusterName)
 	if err != nil {
 		return nil, fmt.Errorf("could not create kube http client: %w", err)
 	}
