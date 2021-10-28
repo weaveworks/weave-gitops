@@ -36,7 +36,7 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.Flags().BoolVar(&uninstallParams.DryRun, "dry-run", false, "outputs all the manifests that would be uninstalled")
+	Cmd.Flags().BoolVar(&uninstallParams.DryRun, "dry-run", false, "Outputs all the manifests that would be uninstalled")
 }
 
 func uninstallRunCmd(cmd *cobra.Command, args []string) error {

@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strconv"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -1345,22 +1346,16 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("There is no .wego folder in the app repo", func() {
+		By("And there is no .wego folder in the app repo", func() {
 			_, err := os.Stat(repoAbsolutePath + "/.wego")
 			Expect(os.IsNotExist(err)).To(Equal(true))
 		})
 
-		By("The manifests are present in the config repo", func() {
-			pullBranch(configRepoAbsolutePath, "main")
-
-			_, err := os.Stat(fmt.Sprintf("%s/apps/%s/app.yaml", configRepoAbsolutePath, appName))
-			Expect(err).ShouldNot(HaveOccurred())
-
-			_, err = os.Stat(fmt.Sprintf("%s/targets/%s/%s/%s-gitops-source.yaml", configRepoAbsolutePath, clusterName, appName, appName))
-			Expect(err).ShouldNot(HaveOccurred())
-
-			_, err = os.Stat(fmt.Sprintf("%s/targets/%s/%s/%s-gitops-deploy.yaml", configRepoAbsolutePath, clusterName, appName, appName))
-			Expect(err).ShouldNot(HaveOccurred())
+		By("And the manifests are present in the config repo", func() {
+			out, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && git pull origin main", configRepoAbsolutePath))
+			Eventually(out).Should(ContainSubstring(`apps/` + appName + `/app.yaml`))
+			Eventually(out).Should(MatchRegexp(`targets/.*/` + appName + `/` + appName + `-gitops-source.yaml`))
+			Eventually(out).Should(MatchRegexp(`targets/.*/` + appName + `/` + appName + `-gitops-deploy.yaml`))
 		})
 
 		By("Then I should see my workload deployed to the cluster", func() {
@@ -1376,24 +1371,28 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		var listOutput string
 		var appStatus1 string
 		var appStatus2 string
+		var workloadName2 string
+		var workloadName3 string
 		private := true
-		appName1 := "rabbitmq"
-		appName2 := "zookeeper"
-		workloadName1 := "rabbitmq-0"
-		workloadName2 := "test-space-zookeeper-0"
-		workloadNamespace2 := "test-space"
+		appName1 := "loki"
+		appName2 := "promtail"
+		workloadNamespace := "test-space"
+		workloadName1 := workloadNamespace + "-loki-0"
 		readmeFilePath := "./data/README.md"
 		appRepoName := "wego-test-app-" + RandString(8)
 		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
-		helmRepoURL := "https://charts.bitnami.com/bitnami"
+		helmRepoURL := "https://charts.kube-ops.io"
 
-		addCommand1 := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true"
-		addCommand2 := "add app --url=" + helmRepoURL + " --chart=" + appName2 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true --helm-release-target-namespace=" + workloadNamespace2
+		invalidAddCommand := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --auto-merge=true"
 
+		addCommand1 := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true --helm-release-target-namespace=" + workloadNamespace
+		addCommand2 := "add app --url=" + helmRepoURL + " --chart=" + appName2 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true --helm-release-target-namespace=" + workloadNamespace
+
+		defer deleteNamespace(workloadNamespace)
 		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, EVENTUALLY_DEFAULT_TIMEOUT)
 		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName2, EVENTUALLY_DEFAULT_TIMEOUT)
+		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName3, EVENTUALLY_DEFAULT_TIMEOUT)
 		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
-		defer deleteNamespace(workloadNamespace2)
 
 		By("And application repo does not already exist", func() {
 			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
@@ -1401,7 +1400,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("And application workload is not already deployed to cluster", func() {
 			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, EVENTUALLY_DEFAULT_TIMEOUT)
-			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName2, EVENTUALLY_DEFAULT_TIMEOUT)
 		})
 
 		By("When I create a private git repo", func() {
@@ -1414,13 +1412,12 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I create a namespace for helm-app", func() {
-			out, _ := runCommandAndReturnStringOutput("kubectl create ns " + workloadNamespace2)
-			Eventually(out).Should(ContainSubstring("namespace/" + workloadNamespace2 + " created"))
+			out, _ := runCommandAndReturnStringOutput("kubectl create ns " + workloadNamespace)
+			Eventually(out).Should(ContainSubstring("namespace/" + workloadNamespace + " created"))
 		})
 
-		By("And I add a invalid entry without --app-config-url set", func() {
-			addCommand := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --auto-merge=true"
-			_, err := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		By("And I add an invalid entry without --app-config-url set", func() {
+			_, err := runWegoAddCommandWithOutput(repoAbsolutePath, invalidAddCommand, WEGO_DEFAULT_NAMESPACE)
 			Eventually(err).Should(ContainSubstring("--app-config-url should be provided or set to NONE"))
 		})
 
@@ -1434,12 +1431,20 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("Then I should see workload1 deployed to the cluster", func() {
 			verifyWegoHelmAddCommand(appName1, WEGO_DEFAULT_NAMESPACE)
-			verifyHelmPodWorkloadIsDeployed(workloadName1, WEGO_DEFAULT_NAMESPACE)
+			verifyHelmPodWorkloadIsDeployed(workloadName1, workloadNamespace)
 		})
 
 		By("And I should see workload2 deployed to the cluster", func() {
 			verifyWegoHelmAddCommand(appName2, WEGO_DEFAULT_NAMESPACE)
-			verifyHelmPodWorkloadIsDeployed(workloadName2, workloadNamespace2)
+
+			out, _ := runCommandAndReturnStringOutput("kubectl get pods -A --no-headers -o custom-columns=':metadata.name' | grep " + appName2)
+			temp := strings.Split(out, "\n")
+
+			workloadName2 = strings.TrimSpace(temp[0])
+			workloadName3 = strings.TrimSpace(temp[1])
+
+			verifyHelmPodWorkloadIsDeployed(workloadName2, workloadNamespace)
+			verifyHelmPodWorkloadIsDeployed(workloadName3, workloadNamespace)
 		})
 
 		By("And I should see gitops components in the remote git repo", func() {
