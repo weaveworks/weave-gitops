@@ -49,7 +49,7 @@ func (o *OsysClient) Unsetenv(envVar string) error {
 	return os.Unsetenv(envVar)
 }
 
-// The following three functions are used by both "add app" and "app remove".
+// The following three functions are used by both "add app" and "delete app".
 // They are here rather than in "utils" so they can use the (potentially mocked)
 // local versions of UserHomeDir, LookupEnv, and Stdin and so that they can also
 // be mocked (e.g. we might want to mock the private key password handing).
