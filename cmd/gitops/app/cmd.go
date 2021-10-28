@@ -7,7 +7,6 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/app/add"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app/list"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app/pause"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app/remove"
@@ -26,9 +25,6 @@ var ApplicationCmd = &cobra.Command{
 	Example: `
   # Get last 10 commits for an application
   gitops app <app-name> get commits
-
-  # Add an application to gitops from local git repository
-  gitops app add . --name <app-name>
 
   # Remove an application from gitops
   gitops app remove <app-name>
@@ -49,7 +45,6 @@ var ApplicationCmd = &cobra.Command{
 }
 
 func init() {
-	ApplicationCmd.AddCommand(add.Cmd)
 	ApplicationCmd.AddCommand(remove.Cmd)
 	ApplicationCmd.AddCommand(list.Cmd)
 	ApplicationCmd.AddCommand(status.Cmd)

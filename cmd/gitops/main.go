@@ -48,12 +48,12 @@ var rootCmd = &cobra.Command{
   gitops help app
 
   # Add application to gitops control from a local git repository
-  gitops app add . --name <myapp>
+  gitops add app . --name <myapp>
   OR
-  gitops app add <myapp-directory>
+  gitops add app <myapp-directory>
 
   # Add application to gitops control from a github repository
-  gitops app add \
+  gitops add app \
     --name <myapp> \
     --url git@github.com:myorg/<myapp> \
     --branch prod-<myapp>
@@ -61,9 +61,9 @@ var rootCmd = &cobra.Command{
   # Get status of application under gitops control
   gitops app status podinfo
 
-  # Get help for gitops app add command
-  gitops app add -h
-  gitops help app add
+  # Get help for gitops add app command
+  gitops add app -h
+  gitops help add app
 
   # Show manifests that would be installed by the gitops gitops install command
   gitops install --dry-run

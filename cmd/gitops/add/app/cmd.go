@@ -1,4 +1,4 @@
-package add
+package app
 
 // Provides support for adding an application to gitops managment.
 
@@ -25,20 +25,17 @@ const (
 var params app.AddParams
 
 var Cmd = &cobra.Command{
-	Use:   "add [--name <name>] [--url <url>] [--branch <branch>] [--path <path within repository>] <repository directory>",
+	Use:   "app [--name <name>] [--url <url>] [--branch <branch>] [--path <path within repository>] <repository directory>",
 	Short: "Add a workload repository to a gitops cluster",
 	Long: strings.TrimSpace(dedent.Dedent(`
         Associates an additional application in a git repository with a gitops cluster so that its contents may be managed via GitOps
     `)),
 	Example: `
   # Add application to gitops control from local git repository
-  gitops app add .
+  gitops add app .
 
   # Add podinfo application to gitops control from github repository
-  gitops app add --url git@github.com:myorg/podinfo
-
-  # Get status of podinfo application
-  gitops app status podinfo
+  gitops add app --url git@github.com:myorg/podinfo
 `,
 	RunE:          runCmd,
 	SilenceUsage:  true,
@@ -57,8 +54,8 @@ func init() {
 	Cmd.Flags().StringVar(&params.Chart, "chart", "", "Specify chart for helm source")
 	Cmd.Flags().StringVar(&params.AppConfigUrl, "app-config-url", "", "URL of external repository (if any) which will hold automation manifests; NONE to store only in the cluster")
 	Cmd.Flags().StringVar(&params.HelmReleaseTargetNamespace, "helm-release-target-namespace", "", "Namespace in which to deploy a helm chart; defaults to the gitops installation namespace")
-	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'gitops app add' will not make any changes to the system; it will just display the actions that would have been taken")
-	Cmd.Flags().BoolVar(&params.AutoMerge, "auto-merge", false, "If set, 'gitops app add' will merge automatically into the set --branch")
+	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'gitops add app' will not make any changes to the system; it will just display the actions that would have been taken")
+	Cmd.Flags().BoolVar(&params.AutoMerge, "auto-merge", false, "If set, 'gitops add app' will merge automatically into the set --branch")
 }
 
 func ensureUrlIsValid() error {
