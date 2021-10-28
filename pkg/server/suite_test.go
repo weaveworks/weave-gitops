@@ -106,6 +106,7 @@ var _ = BeforeEach(func() {
 		Flux:    flux.New(osysClient, &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}}),
 		Kube:    k,
 		Logger:  &loggerfakes.FakeLogger{},
+		Osys:    osysClient,
 	}, nil)
 
 	fakeFactory.GetGitClientsReturns(configGit, gitProvider, nil)

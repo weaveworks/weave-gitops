@@ -11,6 +11,7 @@ import (
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/models"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -26,7 +27,7 @@ type RemoveParams struct {
 }
 
 // Remove removes the Weave GitOps automation for an application
-func (a *App) Remove(configGit git.Git, gitProvider gitproviders.GitProvider, params RemoveParams) error {
+func (a *AppSvc) Remove(configGit git.Git, gitProvider gitproviders.GitProvider, params RemoveParams) error {
 	ctx := context.Background()
 
 	clusterName, err := a.Kube.GetClusterName(ctx)
@@ -40,39 +41,39 @@ func (a *App) Remove(configGit git.Git, gitProvider gitproviders.GitProvider, pa
 	}
 
 	// Find all resources created when adding this app
-	info, err := getAppResourceInfo(*application, clusterName)
+	app, err := models.NewApplication(*application)
 	if err != nil {
 		return err
 	}
 
-	resources := info.clusterResources()
+	resources := app.ClusterResources(clusterName)
 
-	if info.configMode() == ConfigModeClusterOnly {
-		gvrApp, err := ResourceKindApplication.ToGVR()
+	if app.ConfigMode() == models.ConfigModeClusterOnly {
+		gvrApp, err := models.ResourceKindApplication.ToGVR()
 		if err != nil {
 			return err
 		}
 
-		if err := a.Kube.DeleteByName(ctx, info.appResourceName(), gvrApp, info.Namespace); err != nil {
-			return clusterDeleteError(info.appResourceName(), err)
+		if err := a.Kube.DeleteByName(ctx, app.AppResourceName(), gvrApp, app.Namespace); err != nil {
+			return clusterDeleteError(app.AppResourceName(), err)
 		}
 
-		gvrSource, err := info.sourceKind().ToGVR()
+		gvrSource, err := app.SourceKind().ToGVR()
 		if err != nil {
 			return err
 		}
 
-		if err := a.Kube.DeleteByName(ctx, info.appSourceName(), gvrSource, info.Namespace); err != nil {
-			return clusterDeleteError(info.appResourceName(), err)
+		if err := a.Kube.DeleteByName(ctx, app.AppSourceName(), gvrSource, app.Namespace); err != nil {
+			return clusterDeleteError(app.AppResourceName(), err)
 		}
 
-		gvrDeployKind, err := info.deployKind().ToGVR()
+		gvrDeployKind, err := app.DeployKind().ToGVR()
 		if err != nil {
 			return err
 		}
 
-		if err := a.Kube.DeleteByName(ctx, info.appDeployName(), gvrDeployKind, info.Namespace); err != nil {
-			return clusterDeleteError(info.appResourceName(), err)
+		if err := a.Kube.DeleteByName(ctx, app.AppDeployName(), gvrDeployKind, app.Namespace); err != nil {
+			return clusterDeleteError(app.AppResourceName(), err)
 		}
 
 		return nil
@@ -98,14 +99,14 @@ func (a *App) Remove(configGit git.Git, gitProvider gitproviders.GitProvider, pa
 				if err := configGit.Remove(resourceRef.repositoryPath); err != nil {
 					return err
 				}
-			} else if resourceRef.kind == ResourceKindKustomization ||
-				resourceRef.kind == ResourceKindHelmRelease {
-				gvrDeployKind, err := resourceRef.kind.ToGVR()
+			} else if resourceRef.Kind == models.ResourceKindKustomization ||
+				resourceRef.Kind == models.ResourceKindHelmRelease {
+				gvrDeployKind, err := resourceRef.Kind.ToGVR()
 				if err != nil {
 					return err
 				}
-				if err := a.Kube.DeleteByName(ctx, resourceRef.name, gvrDeployKind, info.Namespace); err != nil {
-					return clusterDeleteError(info.appResourceName(), err)
+				if err := a.Kube.DeleteByName(ctx, resourceRef.Name, gvrDeployKind, app.Namespace); err != nil {
+					return clusterDeleteError(app.AppResourceName(), err)
 				}
 			}
 		}
@@ -118,7 +119,7 @@ func (a *App) Remove(configGit git.Git, gitProvider gitproviders.GitProvider, pa
 
 func (a *App) getConfigUrlAndBranch(ctx context.Context, gitProvider gitproviders.GitProvider, info *AppResourceInfo) (gitproviders.RepoURL, string, error) {
 	configUrl := info.Spec.ConfigURL
-	if configUrl == string(ConfigTypeUserRepo) {
+	if configUrl == string(models.ConfigTypeUserRepo) {
 		configUrl = info.Spec.URL
 	}
 
@@ -127,7 +128,7 @@ func (a *App) getConfigUrlAndBranch(ctx context.Context, gitProvider gitprovider
 		return gitproviders.RepoURL{}, "", err
 	}
 
-	branch := info.Spec.Branch
+	branch := app.Spec.Branch
 
 	if branch != "" {
 		branch, err = gitProvider.GetDefaultBranch(ctx, repoUrl)

@@ -612,6 +612,7 @@ var _ = Describe("ApplicationsServer", func() {
 				Flux:    flux.New(osys.New(), &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}}),
 				Kube:    fakeKube,
 				Logger:  &loggerfakes.FakeLogger{},
+				Osys:    osysClient,
 			}, nil)
 
 			fakeFactory.GetGitClientsReturns(configGit, gitProvider, nil)
@@ -676,15 +677,6 @@ var _ = Describe("ApplicationsServer", func() {
 				wego.DeploymentTypeKustomize,
 				true,
 				1,
-				0),
-			Entry(
-				"kustomize, no repo config, auto merge",
-				"ssh://git@github.com/foo/bar",
-				"NONE",
-				wego.SourceTypeGit,
-				wego.DeploymentTypeKustomize,
-				true,
-				0,
 				0))
 	})
 

@@ -13,6 +13,7 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/osys/osysfakes"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 
@@ -25,10 +26,10 @@ var (
 	localAddParams   AddParams
 	removeParams     RemoveParams
 	application      wego.Application
-	info             *AppResourceInfo
-	appResources     []ResourceRef
+	app              models.Application
+	appResources     []models.ResourceRef
 	fluxDir          string
-	createdResources map[ResourceKind]map[string]bool
+	createdResources map[models.ResourceKind]map[string]bool
 	goatPaths        map[string]bool
 	manifestsByPath  = map[string][]byte{}
 )
@@ -72,7 +73,7 @@ func storeCreatedResource(manifestData []byte) error {
 		}
 
 		metamap := manifestMap["metadata"].(map[string]interface{})
-		kind := ResourceKind(manifestMap["kind"].(string))
+		kind := models.ResourceKind(manifestMap["kind"].(string))
 		name := metamap["name"].(string)
 
 		if createdResources[kind] == nil {
@@ -104,7 +105,7 @@ func removeCreatedResource(manifestData []byte) error {
 		}
 
 		metamap := manifestMap["metadata"].(map[string]interface{})
-		kind := ResourceKind(manifestMap["kind"].(string))
+		kind := models.ResourceKind(manifestMap["kind"].(string))
 
 		if createdResources[kind] == nil {
 			return fmt.Errorf("expected %s resources to be present", kind)
@@ -117,7 +118,7 @@ func removeCreatedResource(manifestData []byte) error {
 }
 
 // Remove tracking for a resource given itsq name and kind
-func removeCreatedResourceByName(name string, kind ResourceKind) error {
+func removeCreatedResourceByName(name string, kind models.ResourceKind) error {
 	if createdResources[kind] == nil {
 		return fmt.Errorf("expected %s resources to be present", kind)
 	}
@@ -160,7 +161,7 @@ func setupFlux() error {
 	osysClient.UserHomeDirStub = func() (string, error) {
 		return dir, nil
 	}
-	appSrv.(*App).Flux = fluxClient
+	appSrv.(*AppSvc).Flux = fluxClient
 
 	fluxBin, err := ioutil.ReadFile(filepath.Join("..", "..", "flux", "bin", "flux"))
 	if err != nil {
@@ -190,8 +191,8 @@ func setupFlux() error {
 	return nil
 }
 
-func updateAppInfoFromParams() error {
-	params, err := appSrv.(*App).updateParametersIfNecessary(context.Background(), gitProviders, localAddParams)
+func updateAppFromParams() error {
+	params, err := appSrv.(*AppSvc).updateParametersIfNecessary(context.Background(), gitProviders, localAddParams)
 	if err != nil {
 		return err
 	}
@@ -199,19 +200,19 @@ func updateAppInfoFromParams() error {
 	localAddParams = params
 	application = makeWegoApplication(localAddParams)
 
-	info, err = getAppResourceInfo(application, "test-cluster")
+	app, err = models.NewApplication(application, "test-cluster")
 	if err != nil {
 		return err
 	}
 
-	appResources = info.clusterResources()
+	appResources = app.ClusterResources()
 
 	return nil
 }
 
 // Run 'gitops add app' and gather the resources we expect to be generated
 func runAddAndCollectInfo() error {
-	if err := updateAppInfoFromParams(); err != nil {
+	if err := updateAppFromParams(); err != nil {
 		return err
 	}
 
@@ -226,13 +227,13 @@ func runAddAndCollectInfo() error {
 // written to the repo
 func checkAddResults() error {
 	for _, res := range appResources {
-		if res.kind != ResourceKindSecret {
-			resources := createdResources[res.kind]
+		if res.Kind != models.ResourceKindSecret {
+			resources := createdResources[res.Kind]
 			if len(resources) == 0 {
-				return fmt.Errorf("expected %s resources to be created", res.kind)
+				return fmt.Errorf("expected %s resources to be created", res.Kind)
 			}
 
-			delete(resources, res.name)
+			delete(resources, res.Name)
 		}
 	}
 
@@ -242,11 +243,11 @@ func checkAddResults() error {
 		}
 	}
 
-	if len(goatPaths) != len(info.clusterResourcePaths()) {
-		return fmt.Errorf("expected %d goat paths, found: %d", len(info.clusterResourcePaths()), len(goatPaths))
+	if len(goatPaths) != len(app.ClusterResourcePaths()) {
+		return fmt.Errorf("expected %d goat paths, found: %d", len(app.ClusterResourcePaths()), len(goatPaths))
 	}
 
-	for _, path := range info.clusterResourcePaths() {
+	for _, path := range app.ClusterResourcePaths() {
 		delete(goatPaths, path)
 	}
 
@@ -264,10 +265,10 @@ func checkRemoveResults() error {
 	}
 
 	for _, res := range appResources {
-		if res.repositoryPath != "" || res.kind == ResourceKindKustomization || res.kind == ResourceKindHelmRelease {
-			resources := createdResources[res.kind]
-			if resources[res.name] {
-				return fmt.Errorf("expected %s named %s to be removed from the repository", res.kind, res.name)
+		if res.RepositoryPath != "" || res.Kind == models.ResourceKindKustomization || res.Kind == models.ResourceKindHelmRelease {
+			resources := createdResources[res.Kind]
+			if resources[res.Name] {
+				return fmt.Errorf("expected %s named %s to be removed from the repository", res.Kind, res.Name)
 			}
 		}
 	}
@@ -321,9 +322,9 @@ var _ = Describe("Remove", func() {
 		}
 
 		localAddParams.AppConfigUrl = "https://github.com/foo/quux"
-		Expect(updateAppInfoFromParams()).To(Succeed())
+		Expect(updateAppFromParams()).To(Succeed())
 
-		repoUrl, branch, err := appSrv.(*App).getConfigUrlAndBranch(context.Background(), gitProviders, info)
+		repoUrl, branch, err := appSrv.(*AppSvc).getConfigUrlAndBranch(context.Background(), gitProviders, app)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(repoUrl.String()).To(Equal(localAddParams.AppConfigUrl))
 		Expect(branch).To(Equal("config-branch"))
@@ -336,12 +337,14 @@ var _ = Describe("Remove", func() {
 			// Track the resources added to the cluster via files added to the repository
 			gitClient.WriteStub = func(path string, manifest []byte) error {
 				storeGOATPath(path, manifest)
-				return storeCreatedResource(manifest)
+				err := storeCreatedResource(manifest)
+				return err
 			}
 
 			// Track the resources added directly to the cluster
 			kubeClient.ApplyStub = func(ctx context.Context, manifest []byte, namespace string) error {
-				return storeCreatedResource(manifest)
+				err := storeCreatedResource(manifest)
+				return err
 			}
 		})
 
@@ -361,7 +364,7 @@ var _ = Describe("Remove", func() {
 				}
 
 				goatPaths = map[string]bool{}
-				createdResources = map[ResourceKind]map[string]bool{}
+				createdResources = map[models.ResourceKind]map[string]bool{}
 				manifestsByPath = map[string][]byte{}
 			})
 
@@ -411,7 +414,7 @@ var _ = Describe("Remove", func() {
 				}
 
 				goatPaths = map[string]bool{}
-				createdResources = map[ResourceKind]map[string]bool{}
+				createdResources = map[models.ResourceKind]map[string]bool{}
 				manifestsByPath = map[string][]byte{}
 			})
 
@@ -490,7 +493,7 @@ var _ = Describe("Remove", func() {
 				}
 
 				goatPaths = map[string]bool{}
-				createdResources = map[ResourceKind]map[string]bool{}
+				createdResources = map[models.ResourceKind]map[string]bool{}
 			})
 
 			It("removes cluster resources for helm chart from helm repo with configURL = NONE", func() {
@@ -546,7 +549,7 @@ var _ = Describe("Remove", func() {
 					}
 
 					goatPaths = map[string]bool{}
-					createdResources = map[ResourceKind]map[string]bool{}
+					createdResources = map[models.ResourceKind]map[string]bool{}
 				})
 
 				It("removes cluster resources for non-helm app with configURL = NONE", func() {
@@ -585,19 +588,19 @@ var _ = Describe("Remove", func() {
 	})
 })
 
-func GVRToResourceKind(gvr schema.GroupVersionResource) ResourceKind {
+func GVRToResourceKind(gvr schema.GroupVersionResource) models.ResourceKind {
 	switch gvr {
 	case kube.GVRApp:
-		return ResourceKindApplication
+		return models.ResourceKindApplication
 	case kube.GVRSecret:
-		return ResourceKindSecret
+		return models.ResourceKindSecret
 	case kube.GVRGitRepository:
-		return ResourceKindGitRepository
+		return models.ResourceKindGitRepository
 	case kube.GVRHelmRepository:
-		return ResourceKindHelmRepository
+		return models.ResourceKindHelmRepository
 	case kube.GVRHelmRelease:
-		return ResourceKindHelmRelease
+		return models.ResourceKindHelmRelease
 	default:
-		return ResourceKindKustomization
+		return models.ResourceKindKustomization
 	}
 }
