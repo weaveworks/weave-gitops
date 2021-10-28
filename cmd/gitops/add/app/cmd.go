@@ -50,7 +50,7 @@ func init() {
 	Cmd.Flags().StringVar(&params.Url, "url", "", "URL of remote repository")
 	Cmd.Flags().StringVar(&params.Path, "path", app.DefaultPath, "Path of files within git repository")
 	Cmd.Flags().StringVar(&params.Branch, "branch", "", "Branch to watch within git repository")
-	Cmd.Flags().StringVar(&params.DeploymentType, "deployment-type", app.DefaultDeploymentType, "deployment type [kustomize, helm]")
+	Cmd.Flags().StringVar(&params.DeploymentType, "deployment-type", app.DefaultDeploymentType, "Deployment type [kustomize, helm]")
 	Cmd.Flags().StringVar(&params.Chart, "chart", "", "Specify chart for helm source")
 	Cmd.Flags().StringVar(&params.AppConfigUrl, "app-config-url", "", "URL of external repository (if any) which will hold automation manifests; NONE to store only in the cluster")
 	Cmd.Flags().StringVar(&params.HelmReleaseTargetNamespace, "helm-release-target-namespace", "", "Namespace in which to deploy a helm chart; defaults to the gitops installation namespace")

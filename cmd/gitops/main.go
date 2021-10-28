@@ -65,7 +65,7 @@ var rootCmd = &cobra.Command{
   gitops add app -h
   gitops help add app
 
-  # Show manifests that would be installed by the gitops gitops install command
+  # Show manifests that would be installed by the gitops install command
   gitops install --dry-run
 
   # Install gitops in the %s namespace
@@ -112,7 +112,7 @@ func main() {
 	fluxClient := fluxBin.New(osysClient, cliRunner)
 	fluxClient.SetupBin()
 	rootCmd.PersistentFlags().BoolVarP(&options.verbose, "verbose", "v", false, "Enable verbose output")
-	rootCmd.PersistentFlags().String("namespace", wego.DefaultNamespace, "gitops runtime namespace")
+	rootCmd.PersistentFlags().String("namespace", wego.DefaultNamespace, "Weave GitOps runtime namespace")
 	rootCmd.PersistentFlags().StringVarP(&options.endpoint, "endpoint", "e", os.Getenv("WEAVE_GITOPS_ENTERPRISE_API_URL"), "The Weave GitOps Enterprise HTTP API endpoint")
 	rootCmd.PersistentFlags().BoolVar(&options.overrideInCluster, "override-in-cluster", false, "override running in cluster check")
 	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("override-in-cluster"))

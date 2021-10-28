@@ -43,7 +43,7 @@ repo.`,
 
 func init() {
 	Cmd.AddCommand(installCmd)
-	installCmd.Flags().BoolVar(&installParams.DryRun, "dry-run", false, "outputs all the manifests that would be installed")
+	installCmd.Flags().BoolVar(&installParams.DryRun, "dry-run", false, "Outputs all the manifests that would be installed")
 	installCmd.Flags().StringVar(&installParams.AppConfigURL, "app-config-url", "", "URL of external repository that will hold automation manifests")
 	cobra.CheckErr(installCmd.MarkFlagRequired("app-config-url"))
 }
