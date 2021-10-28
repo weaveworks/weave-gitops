@@ -44,7 +44,7 @@ import (
 )
 
 var (
-	ErrEmptyAccessToken = fmt.Errorf("access token is empty")
+	ErrEmptyAccessToken = errors.New("access token is empty")
 	ErrBadProvider      = errors.New("wrong provider name")
 )
 
