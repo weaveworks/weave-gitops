@@ -26,7 +26,7 @@ type SyncParams struct {
 	Namespace string
 }
 
-// Sync trigger reconcile loop for an application
+// Sync triggers the reconcile loop for an application
 func (a *App) Sync(params SyncParams) error {
 	ctx := context.Background()
 
