@@ -1383,7 +1383,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
 		helmRepoURL := "https://charts.kube-ops.io"
 
-		invalidAddCommand := "app add --url=" + helmRepoURL + " --chart=" + appName1 + " --auto-merge=true"
+		invalidAddCommand := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --auto-merge=true"
 
 		addCommand1 := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true --helm-release-target-namespace=" + workloadNamespace
 		addCommand2 := "add app --url=" + helmRepoURL + " --chart=" + appName2 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true --helm-release-target-namespace=" + workloadNamespace
