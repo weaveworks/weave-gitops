@@ -786,7 +786,8 @@ var _ = Describe("ApplicationsServer", func() {
 			Expect(k8sClient.Create(ctx, kust)).Should(Succeed())
 		})
 
-		It("trigger the reconcile loop for an application", func() {
+		// TODO: Issue 981 fix flaky test
+		XIt("trigger the reconcile loop for an application", func() {
 			appRequest := &pb.SyncApplicationRequest{
 				Name:      name,
 				Namespace: namespace.Name,
