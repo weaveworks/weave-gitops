@@ -797,6 +797,7 @@ var _ = Describe("ApplicationsServer", func() {
 			Expect(k8sClient.Status().Update(ctx, source)).Should(Succeed())
 
 			done := make(chan bool)
+			defer close(done)
 
 			go func() {
 				defer GinkgoRecover()
@@ -805,7 +806,6 @@ var _ = Describe("ApplicationsServer", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(res.Success).To(BeTrue())
 				done <- true
-				close(done)
 			}()
 
 			ticker := time.NewTicker(500 * time.Millisecond)
