@@ -259,7 +259,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I remove an app", func() {
-			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app remove " + appName)
+			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " delete app " + appName)
 		})
 
 		By("Then I should see app removing message", func() {
@@ -422,8 +422,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			Eventually(commitList).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z\s*.*Initial commit`))
 		})
 
-		By("When I remove the app under user-defined namespace", func() {
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s app remove %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
+		By("When I delete the app under user-defined namespace", func() {
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s delete app %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
 		})
 
 		By("And app should get deleted from the cluster", func() {
@@ -533,8 +533,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
 		})
 
-		By("When I remove an app", func() {
-			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app remove " + appName)
+		By("When I delete an app", func() {
+			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " delete app " + appName)
 		})
 
 		By("Then I should see app removing message", func() {
@@ -1149,11 +1149,11 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
 		})
 
-		By("When I remove an app", func() {
-			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app remove " + appName2)
+		By("When I delete an app", func() {
+			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " delete app " + appName2)
 		})
 
-		By("Then I should see app removing message", func() {
+		By("Then I should see app deleting message", func() {
 			Eventually(appRemoveOutput).Should(gbytes.Say("► Removing application from cluster and repository"))
 			Eventually(appRemoveOutput).Should(gbytes.Say("► Committing and pushing gitops updates for application"))
 			Eventually(appRemoveOutput).Should(gbytes.Say("► Pushing app changes to repository"))
@@ -1250,16 +1250,16 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			Eventually(out).Should(gbytes.Say(`helmrelease/` + appName + `\s*True\s*.*False`))
 		})
 
-		By("When I run gitops app remove", func() {
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s app remove %s", WEGO_BIN_PATH, appName))
+		By("When I run gitops delete app", func() {
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s delete app %s", WEGO_BIN_PATH, appName))
 		})
 
-		By("Then I should see app removed from the cluster", func() {
+		By("Then I should see app deleted from the cluster", func() {
 			_ = waitForAppRemoval(appName, THIRTY_SECOND_TIMEOUT)
 		})
 
-		By("When I run gitops app remove for a non-existent app", func() {
-			removeOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app remove " + badAppName)
+		By("When I run gitops delete app for a non-existent app", func() {
+			removeOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " delete app " + badAppName)
 		})
 
 		By("Then I should get an error", func() {

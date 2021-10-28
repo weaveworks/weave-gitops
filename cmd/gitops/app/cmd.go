@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app/list"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app/pause"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/app/remove"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app/status"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app/unpause"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
@@ -25,9 +24,6 @@ var ApplicationCmd = &cobra.Command{
 	Example: `
   # Get last 10 commits for an application
   gitops app <app-name> get commits
-
-  # Remove an application from gitops
-  gitops app remove <app-name>
 
   # Status an application under gitops control
   gitops app status <app-name>
@@ -45,7 +41,6 @@ var ApplicationCmd = &cobra.Command{
 }
 
 func init() {
-	ApplicationCmd.AddCommand(remove.Cmd)
 	ApplicationCmd.AddCommand(list.Cmd)
 	ApplicationCmd.AddCommand(status.Cmd)
 	ApplicationCmd.AddCommand(pause.Cmd)
@@ -92,7 +87,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		printCommitTable(logger, commits)
 	default:
 		_ = cmd.Help()
-		return fmt.Errorf("unkown resource type \"%s\"", object)
+		return fmt.Errorf("unknown resource type \"%s\"", object)
 	}
 
 	return nil
