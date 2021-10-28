@@ -361,8 +361,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			Eventually(appStatus).Should(gbytes.Say(`kustomization/` + appName + `\s*True\s*.*` + branchName + `/.*False`))
 		})
 
-		By("When I pause the app under user-defined namespace", func() {
-			pauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app pause " + appName + " --namespace=" + wegoNamespace)
+		By("When I suspend the app under user-defined namespace", func() {
+			pauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " suspend app " + appName + " --namespace=" + wegoNamespace)
 		})
 
 		By("Then I should see pause message", func() {
@@ -391,7 +391,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I unpause the app under user-defined namespace", func() {
-			unpauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app unpause " + appName + " --namespace=" + wegoNamespace)
+			unpauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " resume app " + appName + " --namespace=" + wegoNamespace)
 		})
 
 		By("Then I should see unpause message", func() {
@@ -1070,8 +1070,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			Eventually(listOutput).Should(ContainSubstring(appName2))
 		})
 
-		By("When I pause an app: "+appName1, func() {
-			pauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app pause " + appName1)
+		By("When I suspend an app: "+appName1, func() {
+			pauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " suspend app " + appName1)
 		})
 
 		By("Then I should see pause message", func() {
@@ -1099,8 +1099,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			Expect(replicaOutput).To(ContainSubstring("1"))
 		})
 
-		By("When I re-run app pause command", func() {
-			pauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app pause " + appName1)
+		By("When I re-run suspend app command", func() {
+			pauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " suspend app " + appName1)
 		})
 
 		By("Then I should see a console message without any errors", func() {
@@ -1108,7 +1108,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I unpause an app: "+appName1, func() {
-			unpauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app unpause " + appName1)
+			unpauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " resume app " + appName1)
 		})
 
 		By("Then I should see unpause message", func() {
@@ -1122,8 +1122,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			Expect(replicaOutput).To(ContainSubstring(strconv.Itoa(replicaSetValue)))
 		})
 
-		By("When I re-run app unpause command", func() {
-			unpauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app unpause " + appName1)
+		By("When I re-run resume app command", func() {
+			unpauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " resume app " + appName1)
 		})
 
 		By("Then I should see unpause message without any errors", func() {

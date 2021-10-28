@@ -16,6 +16,8 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/flux"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/install"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/resume"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/suspend"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/ui"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/uninstall"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/upgrade"
@@ -127,6 +129,8 @@ func main() {
 	rootCmd.AddCommand(get.GetCommand(&options.endpoint, restyClient))
 	rootCmd.AddCommand(add.GetCommand(&options.endpoint, restyClient))
 	rootCmd.AddCommand(delete.DeleteCommand(&options.endpoint, restyClient))
+	rootCmd.AddCommand(resume.GetCommand())
+	rootCmd.AddCommand(suspend.GetCommand())
 	rootCmd.AddCommand(upgrade.Cmd)
 	rootCmd.AddCommand(docs.Cmd)
 

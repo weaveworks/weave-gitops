@@ -8,9 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app/list"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/app/pause"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app/status"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/app/unpause"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
@@ -29,13 +27,7 @@ var ApplicationCmd = &cobra.Command{
   gitops app status <app-name>
 
   # List applications under gitops control
-  gitops app list
-
-  # Pause gitops automation
-  gitops app pause <app-name>
-
-  # Unpause gitops automation
-  gitops app unpause <app-name>`,
+  gitops app list`,
 	Args: cobra.MinimumNArgs(3),
 	RunE: runCmd,
 }
@@ -43,8 +35,6 @@ var ApplicationCmd = &cobra.Command{
 func init() {
 	ApplicationCmd.AddCommand(list.Cmd)
 	ApplicationCmd.AddCommand(status.Cmd)
-	ApplicationCmd.AddCommand(pause.Cmd)
-	ApplicationCmd.AddCommand(unpause.Cmd)
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
