@@ -142,7 +142,7 @@ var _ = Describe("CreateKustomization", func() {
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
 
-		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create kustomization my-name --path ./path --source my-source --namespace %s --prune true --validation client --interval 1m --export", wego.DefaultNamespace)))
+		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create kustomization my-name --path ./path --source my-source --namespace %s --prune true --interval 1m --export", wego.DefaultNamespace)))
 	})
 })
 

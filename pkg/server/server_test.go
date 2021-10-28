@@ -20,7 +20,7 @@ import (
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
+	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	. "github.com/onsi/ginkgo"
@@ -191,17 +191,17 @@ var _ = Describe("ApplicationsServer", func() {
 
 		Describe("fetches the application deployment", func() {
 			It("fetches a kustomization", func() {
-				kust := &kustomizev1.Kustomization{
+				kust := &kustomizev2.Kustomization{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      name,
 						Namespace: namespace.Name,
 					},
-					Spec: kustomizev1.KustomizationSpec{
+					Spec: kustomizev2.KustomizationSpec{
 						TargetNamespace: "target-namespace",
 						Path:            "/path",
 						Interval:        metav1.Duration{Duration: 1 * time.Second},
 						Prune:           true,
-						SourceRef: kustomizev1.CrossNamespaceSourceReference{
+						SourceRef: kustomizev2.CrossNamespaceSourceReference{
 							Kind: "GitRepository",
 							Name: name,
 						},
@@ -320,24 +320,22 @@ var _ = Describe("ApplicationsServer", func() {
 		It("gets object with a kustomization + git repo configuration", func() {
 			ctx := context.Background()
 			name := "my-app"
-			kustomization := kustomizev1.Kustomization{
+			kustomization := kustomizev2.Kustomization{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      name,
 					Namespace: namespace.Name,
 				},
-				Spec: kustomizev1.KustomizationSpec{
-					SourceRef: kustomizev1.CrossNamespaceSourceReference{
+				Spec: kustomizev2.KustomizationSpec{
+					SourceRef: kustomizev2.CrossNamespaceSourceReference{
 						Kind: sourcev1.GitRepositoryKind,
 					},
 				},
-				Status: kustomizev1.KustomizationStatus{
-					Snapshot: &kustomizev1.Snapshot{
-						Entries: []kustomizev1.SnapshotEntry{
+				Status: kustomizev2.KustomizationStatus{
+					Inventory: &kustomizev2.ResourceInventory{
+						Entries: []kustomizev2.ResourceRef{
 							{
-								Namespace: namespace.Name,
-								Kinds: map[string]string{
-									namespace.Name: "Deployment",
-								},
+								Version: "v1",
+								ID:      namespace.Name + "_my-deployment_apps_Deployment",
 							},
 						},
 					},
@@ -395,20 +393,6 @@ var _ = Describe("ApplicationsServer", func() {
 			first := res.Objects[0]
 			Expect(first.GroupVersionKind.Kind).To(Equal("Deployment"))
 			Expect(first.Name).To(Equal(reconciledObj.Name))
-		})
-		It("returns an error when helm is specified as an automation type", func() {
-			ctx := context.Background()
-			name := "my-app"
-			_, err := appsClient.GetReconciledObjects(ctx, &pb.GetReconciledObjectsReq{
-				AutomationName:      name,
-				AutomationNamespace: namespace.Name,
-				AutomationKind:      pb.AutomationKind_Helm,
-				Kinds:               []*pb.GroupVersionKind{{Group: "apps", Version: "v1", Kind: "Deployment"}},
-			})
-
-			s, ok := status.FromError(err)
-			Expect(ok).To(BeTrue())
-			Expect(s.Code()).To(Equal(codes.Unimplemented))
 		})
 	})
 	Describe("GetChildObjects", func() {

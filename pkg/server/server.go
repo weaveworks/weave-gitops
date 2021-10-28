@@ -11,28 +11,26 @@ import (
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 
-	"google.golang.org/grpc/codes"
-
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"go.uber.org/zap"
+	"google.golang.org/grpc/codes"
 	grpcStatus "google.golang.org/grpc/status"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,11 +38,19 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
+	"sigs.k8s.io/cli-utils/pkg/kstatus/status"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/kustomize/kstatus/status"
 )
 
 var ErrEmptyAccessToken = fmt.Errorf("access token is empty")
+
+// Flux owner labels
+var (
+	KustomizeNameKey      = fmt.Sprintf("%s/name", kustomizev2.GroupVersion.Group)
+	KustomizeNamespaceKey = fmt.Sprintf("%s/namespace", kustomizev2.GroupVersion.Group)
+	HelmNameKey           = fmt.Sprintf("%s/name", helmv2.GroupVersion.Group)
+	HelmNamespaceKey      = fmt.Sprintf("%s/namespace", helmv2.GroupVersion.Group)
+)
 
 type applicationServer struct {
 	pb.UnimplementedApplicationsServer
@@ -181,24 +187,32 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 		return nil, fmt.Errorf("could not get deployment for app %s: %w", app.Name, err)
 	}
 
-	reconciledKinds := []*pb.GroupVersionKind{}
-
 	var (
-		kust           *kustomizev1.Kustomization
-		helmRelease    *helmv2.HelmRelease
-		deploymentType pb.AutomationKind
+		kust            *kustomizev2.Kustomization
+		helmRelease     *helmv2.HelmRelease
+		deploymentType  pb.AutomationKind
+		reconciledKinds []*pb.GroupVersionKind
 	)
 
 	if deployment != nil {
 		// Same as a src. Deployment may not be created at this point.
 		switch at := deployment.(type) {
-		case *kustomizev1.Kustomization:
+		case *kustomizev2.Kustomization:
 			kust = at
-			reconciledKinds = addReconciledKinds(reconciledKinds, at)
 			deploymentType = pb.AutomationKind_Kustomize
+			reconciledKinds, err = getKustomizeInventory(at)
+
+			if err != nil {
+				return nil, err
+			}
 		case *helmv2.HelmRelease:
 			helmRelease = at
 			deploymentType = pb.AutomationKind_Helm
+			reconciledKinds, err = getHelmInventory(at, kubeClient)
+
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -233,7 +247,7 @@ func mapHelmReleaseSpecToResponse(helm *helmv2.HelmRelease) *pb.HelmRelease {
 	}
 }
 
-func mapKustomizationSpecToResponse(kust *kustomizev1.Kustomization) *pb.Kustomization {
+func mapKustomizationSpecToResponse(kust *kustomizev2.Kustomization) *pb.Kustomization {
 	if kust == nil {
 		return nil
 	}
@@ -452,12 +466,22 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 	}, nil
 }
 
-const KustomizeNameKey string = "kustomize.toolkit.fluxcd.io/name"
-const KustomizeNamespaceKey string = "kustomize.toolkit.fluxcd.io/namespace"
-
 func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciledObjectsReq) (*pb.GetReconciledObjectsRes, error) {
-	if msg.AutomationKind == pb.AutomationKind_Helm {
-		return nil, grpcStatus.Error(codes.Unimplemented, "Helm is not currently supported for this method")
+	var opts client.MatchingLabels
+
+	switch msg.AutomationKind {
+	case pb.AutomationKind_Kustomize:
+		opts = client.MatchingLabels{
+			KustomizeNameKey:      msg.AutomationName,
+			KustomizeNamespaceKey: msg.AutomationNamespace,
+		}
+	case pb.AutomationKind_Helm:
+		opts = client.MatchingLabels{
+			HelmNameKey:      msg.AutomationName,
+			HelmNamespaceKey: msg.AutomationNamespace,
+		}
+	default:
+		return nil, fmt.Errorf("unsupported application kind: %s", msg.AutomationKind.String())
 	}
 
 	result := []unstructured.Unstructured{}
@@ -470,11 +494,6 @@ func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.Ge
 			Kind:    gvk.Kind,
 			Version: gvk.Version,
 		})
-
-		opts := client.MatchingLabels{
-			KustomizeNameKey:      msg.AutomationName,
-			KustomizeNamespaceKey: msg.AutomationNamespace,
-		}
 
 		if err := s.kube.List(ctx, &list, opts); err != nil {
 			return nil, fmt.Errorf("could not get unstructured list: %s\n", err)
@@ -622,7 +641,7 @@ func findFluxObjects(app *wego.Application) (client.Object, client.Object, error
 	case wego.DeploymentTypeHelm:
 		deployment = &helmv2.HelmRelease{}
 	case wego.DeploymentTypeKustomize:
-		deployment = &kustomizev1.Kustomization{}
+		deployment = &kustomizev2.Kustomization{}
 	}
 
 	if deployment == nil {
@@ -668,43 +687,4 @@ func (s *applicationServer) Authenticate(_ context.Context, msg *pb.Authenticate
 	}
 
 	return &pb.AuthenticateResponse{Token: token}, nil
-}
-
-func addReconciledKinds(arr []*pb.GroupVersionKind, kustomization *kustomizev1.Kustomization) []*pb.GroupVersionKind {
-	if kustomization.Status.Snapshot == nil {
-		return arr
-	}
-
-	found := map[string]bool{}
-
-	for _, gvks := range kustomization.Status.Snapshot.NamespacedKinds() {
-		for _, gvk := range gvks {
-			s := gvk.String()
-
-			if !found[s] {
-				found[s] = true
-
-				arr = append(arr, &pb.GroupVersionKind{
-					Group:   gvk.Group,
-					Version: gvk.Version,
-					Kind:    gvk.Kind,
-				})
-			}
-		}
-	}
-
-	for _, gvk := range kustomization.Status.Snapshot.NonNamespacedKinds() {
-		s := gvk.String()
-		if _, exists := found[s]; !exists {
-			found[s] = true
-
-			arr = append(arr, &pb.GroupVersionKind{
-				Group:   gvk.Group,
-				Version: gvk.Version,
-				Kind:    gvk.Kind,
-			})
-		}
-	}
-
-	return arr
 }

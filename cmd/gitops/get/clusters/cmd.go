@@ -1,6 +1,7 @@
 package clusters
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/go-resty/resty/v2"
@@ -49,11 +50,15 @@ func getClustersCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comm
 
 		defer w.Flush()
 
-		if len(args) == 1 {
-			if clustersGetCmdFlags.Kubeconfig {
-				return clusters.GetClusterKubeconfig(args[0], r, os.Stdout)
+		if clustersGetCmdFlags.Kubeconfig {
+			if len(args) == 0 {
+				return fmt.Errorf("cluster name is required")
 			}
 
+			return clusters.GetClusterKubeconfig(args[0], r, os.Stdout)
+		}
+
+		if len(args) == 1 {
 			return clusters.GetClusterByName(args[0], r, w)
 		}
 
