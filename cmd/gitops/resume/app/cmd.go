@@ -1,4 +1,4 @@
-package pause
+package app
 
 import (
 	"context"
@@ -11,13 +11,13 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 )
 
-var params app.PauseParams
+var params app.UnpauseParams
 
 var Cmd = &cobra.Command{
-	Use:           "pause <app-name>",
-	Short:         "Pause an application",
+	Use:           "app <app-name>",
+	Short:         "Resume an application",
 	Args:          cobra.MinimumNArgs(1),
-	Example:       "gitops app pause podinfo",
+	Example:       "gitops resume app podinfo",
 	RunE:          runCmd,
 	SilenceUsage:  true,
 	SilenceErrors: true,
@@ -37,8 +37,8 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create app service: %w", appError)
 	}
 
-	if err := appService.Pause(params); err != nil {
-		return errors.Wrapf(err, "failed to pause the app %s", params.Name)
+	if err := appService.Unpause(params); err != nil {
+		return errors.Wrapf(err, "failed to unpause the app %s", params.Name)
 	}
 
 	return nil
