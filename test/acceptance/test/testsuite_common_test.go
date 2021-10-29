@@ -1,3 +1,4 @@
+//go:build !unittest
 // +build !unittest
 
 package acceptance
@@ -43,6 +44,8 @@ var _ = BeforeSuite(func() {
 	DEFAULT_SSH_KEY_PATH = os.Getenv("HOME") + "/.ssh/id_rsa"
 	GITHUB_ORG = os.Getenv("GITHUB_ORG")
 	GITLAB_ORG = os.Getenv("GITLAB_ORG")
+	GITHUB_USER_NAME = os.Getenv("GITHUB_USER_NAME")
+	GITLAB_USER_NAME = os.Getenv("GITLAB_USER_NAME")
 	GITLAB_SUBGROUP = os.Getenv("GITLAB_SUBGROUP")
 	WEGO_BIN_PATH = os.Getenv("WEGO_BIN_PATH")
 	if WEGO_BIN_PATH == "" {
