@@ -169,10 +169,10 @@ coverage/merged.lcov: coverage/lcov.info coverage/golang.info
 ##@ Utilities
 
 .PHONY: help
-# Thanks to https://www.thapaliya.com/en/writings/well-documented-s/
+# Thanks to https://www.thapaliya.com/en/writings/well-documented-makefiles/
 help:  ## Display this help.
 ifeq ($(OS),Windows_NT)
-				@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n   <target>\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  %-40s %s\n", $$1, $$2 } /^##@/ { printf "\n%s\n", substr($$0, 5) } ' $(_LIST)
+				@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n   <target>\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  %-40s %s\n", $$1, $$2 } /^##@/ { printf "\n%s\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 else
-				@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n   \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-40s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(_LIST)
+				@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n   \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-40s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 endif

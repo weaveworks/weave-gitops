@@ -100,43 +100,30 @@ function ApplicationDetail({ className, name }: Props) {
 
   //error options for remove modal
   const RemoveAppAuthError = (
-    <div>
-      {removeError?.code === 16 ? (
-        !authSuccess && (
-          <>
-            <Flex center>
-              <Spacer padding="small">
-                <Alert
-                  severity="error"
-                  title="You are not Authenticated!"
-                  message={"We need GitHub authentication to remove this app"}
-                />
-              </Spacer>
-            </Flex>
-            <Flex center>
-              <Spacer padding="small">
-                <Button
-                  color="primary"
-                  variant="contained"
-                  onClick={() => {
-                    setRemoveAppModalOpen(false);
-                    setGithubAuthModalOpen(true);
-                  }}
-                >
-                  Authenticate with GitHub
-                </Button>
-              </Spacer>
-            </Flex>
-          </>
-        )
-      ) : (
-        <Alert
-          severity="error"
-          title="Error removing Application"
-          message={removeError?.message}
-        />
-      )}
-    </div>
+    <>
+      <Flex center>
+        <Spacer padding="small">
+          <Alert
+            severity="error"
+            title="You are not Authenticated!"
+            message={"We need GitHub authentication to remove this app"}
+          />
+        </Spacer>
+      </Flex>
+      <Flex center>
+        <Spacer padding="small">
+          <Button
+            color="primary"
+            variant="contained"
+            onClick={() => {
+              setGithubAuthModalOpen(true);
+            }}
+          >
+            Authenticate with GitHub
+          </Button>
+        </Spacer>
+      </Flex>
+    </>
   );
 
   return (
@@ -193,31 +180,54 @@ function ApplicationDetail({ className, name }: Props) {
         open={removeAppModalOpen}
         onClose={() => setRemoveAppModalOpen(false)}
         title="Are You Sure?"
-        description="You are about to remove this app from Weave GitOps!"
+        description={`You are about to remove ${application.name} from Weave GitOps!`}
       >
-        <Flex center>
-          <Button
-            style={{ width: "40%" }}
-            color="secondary"
-            variant="contained"
-            onClick={() =>
-              removeRequest(
-                applicationsClient.RemoveApplication({
-                  name: application.name,
-                  namespace: application.namespace,
-                  autoMerge: true,
-                })
-              )
-            }
-          >
-            {removeLoading ? (
-              <CircularProgress />
-            ) : (
-              `Delete ${application.name} `
-            )}
-          </Button>
+        <Flex align column center wide>
+          {authSuccess ? (
+            <Flex align>
+              <Alert severity="success" message="Authentication Successful" />
+            </Flex>
+          ) : (
+            RemoveAppAuthError
+          )}
+          {removeError && authSuccess && (
+            <Flex align center wide>
+              <Spacer padding="small">
+                <Alert
+                  severity="error"
+                  title="Error removing Application"
+                  message={removeError?.message}
+                />
+              </Spacer>
+            </Flex>
+          )}
+          {authSuccess && (
+            <Flex align center wide>
+              <Spacer padding="medium">
+                <Button
+                  color="secondary"
+                  variant="contained"
+                  onClick={() =>
+                    removeRequest(
+                      applicationsClient.RemoveApplication({
+                        name: application.name,
+                        namespace: application.namespace,
+                        //CAN'T FIND AUTOMERGE IN APPLICATION OBJECT
+                        autoMerge: true,
+                      })
+                    )
+                  }
+                >
+                  {removeLoading ? (
+                    <CircularProgress color="inherit" size="75%" />
+                  ) : (
+                    `Delete ${application.name}`
+                  )}
+                </Button>
+              </Spacer>
+            </Flex>
+          )}
         </Flex>
-        <Spacer padding="small">{removeError && RemoveAppAuthError}</Spacer>
       </Modal>
       <GithubDeviceAuthModal
         onSuccess={() => {
