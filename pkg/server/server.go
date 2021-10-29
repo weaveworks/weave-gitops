@@ -76,6 +76,7 @@ type ApplicationsConfig struct {
 	JwtClient        auth.JWTClient
 	KubeClient       client.Client
 	GithubAuthClient auth.GithubAuthClient
+	Fetcher          applicationv2.Fetcher
 }
 
 // NewApplicationsServer creates a grpc Applications server
@@ -86,7 +87,7 @@ func NewApplicationsServer(cfg *ApplicationsConfig) pb.ApplicationsServer {
 		appFactory:   cfg.AppFactory,
 		kube:         cfg.KubeClient,
 		ghAuthClient: cfg.GithubAuthClient,
-		fetcher:      applicationv2.NewFetcher(cfg.KubeClient),
+		fetcher:      cfg.Fetcher,
 	}
 }
 
@@ -129,6 +130,7 @@ func DefaultConfig() (*ApplicationsConfig, error) {
 		JwtClient:        jwtClient,
 		KubeClient:       rawClient,
 		GithubAuthClient: auth.NewGithubAuthProvider(http.DefaultClient),
+		Fetcher:          applicationv2.NewFetcher(rawClient),
 	}, nil
 }
 

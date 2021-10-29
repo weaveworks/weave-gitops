@@ -12,6 +12,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/weaveworks/weave-gitops/pkg/models"
+	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
+	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -887,6 +890,7 @@ var _ = Describe("ApplicationsServer", func() {
 					Logger:     log,
 					KubeClient: k8s,
 					JwtClient:  auth.NewJwtClient(secretKey),
+					Fetcher:    applicationv2.NewFetcher(k8s),
 				}
 
 				appsSrv = NewApplicationsServer(&cfg)
@@ -917,18 +921,20 @@ var _ = Describe("ApplicationsServer", func() {
 
 			})
 			It("logs server errors", func() {
-				k8s := fake.NewClientBuilder().Build()
-				cfg := ApplicationsConfig{
-					AppFactory: appFactory,
-					Logger:     log,
-					KubeClient: k8s,
-					JwtClient:  auth.NewJwtClient(secretKey),
+				errMsg := "there was a big problem"
+				fakeFetcher := &applicationv2fakes.FakeFetcher{}
+				// Pretend something went horribly wrong
+				fakeFetcher.ListStub = func(c context.Context, s string) ([]models.Application, error) {
+					return []models.Application{}, errors.New(errMsg)
 				}
 
-				appsSrv = NewApplicationsServer(&cfg)
-				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
-				httpHandler = middleware.WithLogging(log, mux)
-				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
+				cfg := ApplicationsConfig{
+					Logger:  log,
+					Fetcher: fakeFetcher,
+				}
+
+				appSrv := NewApplicationsServer(&cfg)
+				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appSrv)
 				Expect(err).NotTo(HaveOccurred())
 
 				ts := httptest.NewServer(httpHandler)
@@ -950,9 +956,9 @@ var _ = Describe("ApplicationsServer", func() {
 				Expect(list).To(ConsistOf("uri", path, "status", expectedStatus))
 
 				err, msg, _ := log.ErrorArgsForCall(0)
-				Expect(err).To(HaveOccurred())
 				// This is the meat of this test case.
 				// Check that the same error passed by kubeClient is logged.
+				Expect(err.Error()).To(Equal(errMsg))
 				Expect(msg).To(Equal(middleware.ServerErrorText))
 
 			})
@@ -984,8 +990,6 @@ var _ = Describe("ApplicationsServer", func() {
 				fakeJWTToken.GenerateJWTStub = func(duration time.Duration, name gitproviders.GitProviderName, s22 string) (string, error) {
 					return "", fmt.Errorf("some error")
 				}
-
-				appFactory := &apputilsfakes.FakeServerAppFactory{}
 
 				kubeClient := &kubefakes.FakeKube{}
 				appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
@@ -1051,6 +1055,7 @@ var _ = Describe("Applications handler", func() {
 			AppFactory: appFactory,
 			Logger:     log,
 			KubeClient: k8s,
+			Fetcher:    applicationv2.NewFetcher(k8s),
 		}
 
 		handler, err := NewApplicationsHandler(context.Background(), &cfg)
