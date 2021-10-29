@@ -59,11 +59,13 @@ func (f fetcher) List(ctx context.Context, namespace string) ([]models.Applicati
 	}
 
 	result := []models.Application{}
+
 	for _, a := range list.Items {
 		app, err := translateApp(a)
 		if err != nil {
 			return nil, err
 		}
+
 		result = append(result, app)
 	}
 
