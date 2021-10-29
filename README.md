@@ -115,7 +115,7 @@ To set up a development environment for the UI
 
 Lint frontend code with `make ui-lint` - using Prettier (https://prettier.io/) will get you on the right track!
 
-Run frontend tests with `make ui-test`
+Run frontend tests with `make ui-test` - update CSS snapshots with `npm run test -- -u`
 
 Check dependency vulnerabilities with `make ui-audit`
 
