@@ -40,16 +40,20 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 
 	var err error
 
-	if params.AppConfigURL != "" && !params.DryRun {
+	if params.AppConfigURL != "" || params.DryRun {
+		// We need to get the manfiests to persist in the repo and
+		// non-dry run install doesn't return them
 		fluxManifests, err = g.flux.Install(params.Namespace, true)
 		if err != nil {
 			return fluxManifests, fmt.Errorf("error on flux install %s", err)
 		}
 	}
 
-	fluxManifests, err = g.flux.Install(params.Namespace, params.DryRun)
-	if err != nil {
-		return fluxManifests, fmt.Errorf("error on flux install %s", err)
+	if !params.DryRun {
+		_, err = g.flux.Install(params.Namespace, params.DryRun)
+		if err != nil {
+			return fluxManifests, fmt.Errorf("error on flux install %s", err)
+		}
 	}
 
 	systemManifests := make(map[string][]byte, 3)
