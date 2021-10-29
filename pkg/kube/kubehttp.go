@@ -348,6 +348,14 @@ func (k *KubeHTTP) GetResource(ctx context.Context, name types.NamespacedName, r
 	return nil
 }
 
+func (k *KubeHTTP) SetResource(ctx context.Context, resource Resource) error {
+	if err := k.Client.Update(ctx, resource); err != nil {
+		return fmt.Errorf("error setting resource: %w", err)
+	}
+
+	return nil
+}
+
 func initialContext(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (currentCtx, clusterName string, err error) {
 	rules, err := cfgLoadingRules.Load()
 	if err != nil {

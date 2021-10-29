@@ -173,6 +173,18 @@ type FakeKube struct {
 		result1 bool
 		result2 error
 	}
+	SetResourceStub        func(context.Context, kube.Resource) error
+	setResourceMutex       sync.RWMutex
+	setResourceArgsForCall []struct {
+		arg1 context.Context
+		arg2 kube.Resource
+	}
+	setResourceReturns struct {
+		result1 error
+	}
+	setResourceReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -954,6 +966,68 @@ func (fake *FakeKube) SecretPresentReturnsOnCall(i int, result1 bool, result2 er
 	}{result1, result2}
 }
 
+func (fake *FakeKube) SetResource(arg1 context.Context, arg2 kube.Resource) error {
+	fake.setResourceMutex.Lock()
+	ret, specificReturn := fake.setResourceReturnsOnCall[len(fake.setResourceArgsForCall)]
+	fake.setResourceArgsForCall = append(fake.setResourceArgsForCall, struct {
+		arg1 context.Context
+		arg2 kube.Resource
+	}{arg1, arg2})
+	stub := fake.SetResourceStub
+	fakeReturns := fake.setResourceReturns
+	fake.recordInvocation("SetResource", []interface{}{arg1, arg2})
+	fake.setResourceMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeKube) SetResourceCallCount() int {
+	fake.setResourceMutex.RLock()
+	defer fake.setResourceMutex.RUnlock()
+	return len(fake.setResourceArgsForCall)
+}
+
+func (fake *FakeKube) SetResourceCalls(stub func(context.Context, kube.Resource) error) {
+	fake.setResourceMutex.Lock()
+	defer fake.setResourceMutex.Unlock()
+	fake.SetResourceStub = stub
+}
+
+func (fake *FakeKube) SetResourceArgsForCall(i int) (context.Context, kube.Resource) {
+	fake.setResourceMutex.RLock()
+	defer fake.setResourceMutex.RUnlock()
+	argsForCall := fake.setResourceArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeKube) SetResourceReturns(result1 error) {
+	fake.setResourceMutex.Lock()
+	defer fake.setResourceMutex.Unlock()
+	fake.SetResourceStub = nil
+	fake.setResourceReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeKube) SetResourceReturnsOnCall(i int, result1 error) {
+	fake.setResourceMutex.Lock()
+	defer fake.setResourceMutex.Unlock()
+	fake.SetResourceStub = nil
+	if fake.setResourceReturnsOnCall == nil {
+		fake.setResourceReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.setResourceReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -981,6 +1055,8 @@ func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	defer fake.namespacePresentMutex.RUnlock()
 	fake.secretPresentMutex.RLock()
 	defer fake.secretPresentMutex.RUnlock()
+	fake.setResourceMutex.RLock()
+	defer fake.setResourceMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

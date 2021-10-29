@@ -3,6 +3,7 @@ package testutils
 import (
 	"fmt"
 
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
@@ -14,7 +15,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -61,7 +62,8 @@ func StartK8sTestEnvironment() (*K8sTestEnv, error) {
 			&corev1.Namespace{},
 			&corev1.Secret{},
 			&appsv1.Deployment{},
-			&kustomizev2.Kustomization{},
+			&kustomizev1.Kustomization{},
+			&sourcev1.GitRepository{},
 		},
 		Scheme: scheme,
 	})
