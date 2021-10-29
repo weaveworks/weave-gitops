@@ -24,8 +24,8 @@ function Applications({ className }: Props) {
 
   return (
     <Page loading={loading} className={className}>
-      <Flex align wide between>
-        <TitleBar>
+      <Flex align between>
+        <TitleBar style={{ width: "25%" }}>
           <h2>Applications</h2>
         </TitleBar>
         <Link to={PageRoute.ApplicationAdd}>

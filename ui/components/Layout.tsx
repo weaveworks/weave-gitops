@@ -37,6 +37,7 @@ const negativeSpaceColor = "#E6E6E6";
 
 const AppContainer = styled.div`
   width: 100%;
+  overflow-x: hidden;
   height: 100%;
   margin: 0 auto;
   padding: 0;
@@ -44,10 +45,10 @@ const AppContainer = styled.div`
 `;
 
 const NavContainer = styled.div`
-  width: 240px;
+  min-width: 200px;
   background-color: ${(props) => props.theme.colors.white};
   padding-top: ${(props) => props.theme.spacing.medium};
-  padding-right: ${(props) => props.theme.spacing.medium};
+  padding-right: ${(props) => props.theme.spacing.small};
   background-color: ${negativeSpaceColor};
 `;
 

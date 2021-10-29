@@ -1,20 +1,27 @@
+import { CircularProgress } from "@material-ui/core";
 import _ from "lodash";
 import * as React from "react";
+import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import Alert from "../components/Alert";
+import Button from "../components/Button";
 import CommitsTable from "../components/CommitsTable";
 import ConditionsTable from "../components/ConditionsTable";
 import ErrorPage from "../components/ErrorPage";
+import Flex from "../components/Flex";
 import GithubDeviceAuthModal from "../components/GithubDeviceAuthModal";
 import KeyValueTable from "../components/KeyValueTable";
 import LoadingPage from "../components/LoadingPage";
+import Modal from "../components/Modal";
 import Page from "../components/Page";
 import ReconciliationGraph from "../components/ReconciliationGraph";
-import { AppContext } from "../contexts/AppContext";
+import Spacer from "../components/Spacer";
+import { AppContext, defaultLinkResolver } from "../contexts/AppContext";
 import { useRequestState } from "../hooks/common";
 import {
   AutomationKind,
   GetApplicationResponse,
+  RemoveApplicationResponse,
   UnstructuredObject,
 } from "../lib/api/applications/applications.pb";
 import { getChildren } from "../lib/graph";
@@ -29,10 +36,15 @@ function ApplicationDetail({ className, name }: Props) {
   const { applicationsClient } = React.useContext(AppContext);
   const [authSuccess, setAuthSuccess] = React.useState(false);
   const [githubAuthModalOpen, setGithubAuthModalOpen] = React.useState(false);
+  const [removeAppModalOpen, setRemoveAppModalOpen] = React.useState(false);
   const [reconciledObjects, setReconciledObjects] = React.useState<
     UnstructuredObject[]
   >([]);
   const [res, loading, error, req] = useRequestState<GetApplicationResponse>();
+  const [removeRes, removeLoading, removeError, removeRequest] =
+    useRequestState<RemoveApplicationResponse>();
+  //for redirects
+  const history = useHistory();
 
   React.useEffect(() => {
     req(applicationsClient.GetApplication({ name, namespace: "wego-system" }));
@@ -53,6 +65,12 @@ function ApplicationDetail({ className, name }: Props) {
     );
   }, [res]);
 
+  React.useEffect(() => {
+    if (!removeRes) return;
+    //if app is succesfully removed, redirect to applications page
+    history.push(defaultLinkResolver(PageRoute.Applications));
+  }, [removeRes]);
+
   if (error) {
     return (
       <ErrorPage
@@ -69,12 +87,65 @@ function ApplicationDetail({ className, name }: Props) {
 
   const { application = {} } = res;
 
+  //passed into Page as topRight to appear next to breadcrumbs
+  const AppDetailRemoveButton = (
+    <Button
+      color="secondary"
+      variant="contained"
+      onClick={() => setRemoveAppModalOpen(true)}
+    >
+      Remove App
+    </Button>
+  );
+
+  //error options for remove modal
+  const RemoveAppAuthError = (
+    <div>
+      {removeError?.code === 16 ? (
+        !authSuccess && (
+          <>
+            <Flex center>
+              <Spacer padding="small">
+                <Alert
+                  severity="error"
+                  title="You are not Authenticated!"
+                  message={"We need GitHub authentication to remove this app"}
+                />
+              </Spacer>
+            </Flex>
+            <Flex center>
+              <Spacer padding="small">
+                <Button
+                  color="primary"
+                  variant="contained"
+                  onClick={() => {
+                    setRemoveAppModalOpen(false);
+                    setGithubAuthModalOpen(true);
+                  }}
+                >
+                  Authenticate with GitHub
+                </Button>
+              </Spacer>
+            </Flex>
+          </>
+        )
+      ) : (
+        <Alert
+          severity="error"
+          title="Error removing Application"
+          message={removeError?.message}
+        />
+      )}
+    </div>
+  );
+
   return (
     <Page
       loading={loading}
       breadcrumbs={[{ page: PageRoute.Applications }]}
       title={name}
       className={className}
+      topRight={AppDetailRemoveButton}
     >
       {authSuccess && (
         <Alert severity="success" message="Authentication Successful" />
@@ -117,6 +188,37 @@ function ApplicationDetail({ className, name }: Props) {
         app={application}
         onAuthClick={() => setGithubAuthModalOpen(true)}
       />
+      <Modal
+        //confirm modal for app removal
+        open={removeAppModalOpen}
+        onClose={() => setRemoveAppModalOpen(false)}
+        title="Are You Sure?"
+        description="You are about to remove this app from Weave GitOps!"
+      >
+        <Flex center>
+          <Button
+            style={{ width: "40%" }}
+            color="secondary"
+            variant="contained"
+            onClick={() =>
+              removeRequest(
+                applicationsClient.RemoveApplication({
+                  name: application.name,
+                  namespace: application.namespace,
+                  autoMerge: true,
+                })
+              )
+            }
+          >
+            {removeLoading ? (
+              <CircularProgress />
+            ) : (
+              "I'm Sure - Delete This App!"
+            )}
+          </Button>
+        </Flex>
+        <Spacer padding="small">{removeError && RemoveAppAuthError}</Spacer>
+      </Modal>
       <GithubDeviceAuthModal
         onSuccess={() => {
           setAuthSuccess(true);
