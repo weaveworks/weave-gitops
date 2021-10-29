@@ -483,7 +483,7 @@ func waitForAppRemoval(appName string, timeout time.Duration) error {
 	pollInterval := time.Second * 5
 
 	_ = utils.WaitUntil(os.Stdout, pollInterval, timeout, func() error {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s app list", WEGO_BIN_PATH))
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s get apps", WEGO_BIN_PATH))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session).Should(gexec.Exit())

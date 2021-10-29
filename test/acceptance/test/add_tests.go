@@ -344,8 +344,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			Expect(folderOutput).ShouldNot(ContainSubstring("targets"))
 		})
 
-		By("When I check for app list under user-specified namespace", func() {
-			appList, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app list " + appName + " --namespace=" + wegoNamespace)
+		By("When I check for apps under user-specified namespace", func() {
+			appList, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get apps " + appName + " --namespace=" + wegoNamespace)
 		})
 
 		By("Then I should see appName listed", func() {
@@ -909,8 +909,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			Eventually(appStatus3).Should(ContainSubstring(`helmrelease/` + appName3))
 		})
 
-		By("When I check for apps list", func() {
-			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app list")
+		By("When I check for apps", func() {
+			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get apps")
 		})
 
 		By("Then I should see appNames for all apps listed", func() {
@@ -1062,8 +1062,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			Eventually(appStatus2).Should(gbytes.Say(`kustomization/` + appName2))
 		})
 
-		By("When I check for apps list", func() {
-			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app list")
+		By("When I check for apps", func() {
+			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get apps")
 		})
 
 		By("Then I should see appNames for both apps listed", func() {
@@ -1455,8 +1455,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			Expect(folderOutput).Should(ContainSubstring("targets"))
 		})
 
-		By("When I check for apps list", func() {
-			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app list")
+		By("When I check for apps", func() {
+			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get apps")
 		})
 
 		By("Then I should see appNames for both apps listed", func() {
@@ -1809,8 +1809,8 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			Eventually(appStatus).Should(ContainSubstring(`kustomization/` + appName))
 		})
 
-		By("When I check for apps list", func() {
-			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app list")
+		By("When I check for apps", func() {
+			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get apps")
 		})
 
 		By("Then I should see appNames for all apps listed", func() {
@@ -1901,8 +1901,8 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			Eventually(appStatus).Should(ContainSubstring(`kustomization/` + appName))
 		})
 
-		By("When I check for apps list", func() {
-			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app list")
+		By("When I check for apps", func() {
+			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get apps")
 		})
 
 		By("Then I should see appNames for all apps listed", func() {

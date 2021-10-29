@@ -7,7 +7,6 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/app/list"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app/status"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
@@ -24,16 +23,12 @@ var ApplicationCmd = &cobra.Command{
   gitops app <app-name> get commits
 
   # Status an application under gitops control
-  gitops app status <app-name>
-
-  # List applications under gitops control
-  gitops app list`,
+  gitops app status <app-name>`,
 	Args: cobra.MinimumNArgs(3),
 	RunE: runCmd,
 }
 
 func init() {
-	ApplicationCmd.AddCommand(list.Cmd)
 	ApplicationCmd.AddCommand(status.Cmd)
 }
 
