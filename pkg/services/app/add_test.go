@@ -122,7 +122,7 @@ var _ = Describe("Add", func() {
 
 				name, url, branch, secretRef, namespace := fluxClient.CreateSourceGitArgsForCall(0)
 				Expect(name).To(Equal("bar"))
-				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
+				Expect(url.String()).To(Equal("ssh://git@github.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
 				Expect(namespace).To(Equal(wego.DefaultNamespace))
@@ -232,7 +232,7 @@ var _ = Describe("Add", func() {
 		})
 
 		It("applies the manifests to the cluster", func() {
-			fluxClient.CreateSourceGitStub = func(s1, s2, s3, s4, s5 string) ([]byte, error) {
+			fluxClient.CreateSourceGitStub = func(s1 string, s2 gitproviders.RepoURL, s3 string, s4 string, s5 string) ([]byte, error) {
 				return []byte("git source"), nil
 			}
 			fluxClient.CreateKustomizationStub = func(s1, s2, s3, s4 string) ([]byte, error) {
@@ -286,7 +286,7 @@ var _ = Describe("Add", func() {
 
 				name, url, branch, secretRef, namespace := fluxClient.CreateSourceGitArgsForCall(0)
 				Expect(name).To(Equal("bar"))
-				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
+				Expect(url.String()).To(Equal("ssh://git@github.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
 				Expect(namespace).To(Equal(wego.DefaultNamespace))
@@ -444,7 +444,7 @@ var _ = Describe("Add", func() {
 		})
 
 		It("applies the manifests to the cluster", func() {
-			fluxClient.CreateSourceGitStub = func(s1, s2, s3, s4, s5 string) ([]byte, error) {
+			fluxClient.CreateSourceGitStub = func(s1 string, s2 gitproviders.RepoURL, s3 string, s4 string, s5 string) ([]byte, error) {
 				return []byte("git source"), nil
 			}
 			fluxClient.CreateKustomizationStub = func(s1, s2, s3, s4 string) ([]byte, error) {
@@ -484,7 +484,7 @@ var _ = Describe("Add", func() {
 
 			It("writes the files to the disk", func() {
 				addParams.AppConfigUrl = addParams.Url // so we know the root is ".wego"
-				fluxClient.CreateSourceGitStub = func(s1, s2, s3, s4, s5 string) ([]byte, error) {
+				fluxClient.CreateSourceGitStub = func(s1 string, s2 gitproviders.RepoURL, s3 string, s4 string, s5 string) ([]byte, error) {
 					return []byte("git"), nil
 				}
 				fluxClient.CreateKustomizationStub = func(s1, s2, s3, s4 string) ([]byte, error) {
@@ -543,14 +543,14 @@ var _ = Describe("Add", func() {
 
 				name, url, branch, secretRef, namespace := fluxClient.CreateSourceGitArgsForCall(0)
 				Expect(name).To(Equal("repo"))
-				Expect(url).To(Equal("ssh://git@github.com/user/repo.git"))
+				Expect(url.String()).To(Equal("ssh://git@github.com/user/repo.git"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("wego-test-cluster-repo"))
 				Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 				name, url, branch, secretRef, namespace = fluxClient.CreateSourceGitArgsForCall(1)
 				Expect(name).To(Equal("bar"))
-				Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
+				Expect(url.String()).To(Equal("ssh://git@github.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
 				Expect(namespace).To(Equal(wego.DefaultNamespace))
@@ -707,7 +707,7 @@ var _ = Describe("Add", func() {
 		})
 
 		It("applies the manifests to the cluster", func() {
-			fluxClient.CreateSourceGitStub = func(s1, s2, s3, s4, s5 string) ([]byte, error) {
+			fluxClient.CreateSourceGitStub = func(s1 string, s2 gitproviders.RepoURL, s3 string, s4 string, s5 string) ([]byte, error) {
 				return []byte("git source"), nil
 			}
 			fluxClient.CreateKustomizationStub = func(s1, s2, s3, s4 string) ([]byte, error) {
@@ -741,7 +741,7 @@ var _ = Describe("Add", func() {
 		})
 
 		It("writes the files to the disk", func() {
-			fluxClient.CreateSourceGitStub = func(s1, s2, s3, s4, s5 string) ([]byte, error) {
+			fluxClient.CreateSourceGitStub = func(s1 string, s2 gitproviders.RepoURL, s3 string, s4 string, s5 string) ([]byte, error) {
 				return []byte("git"), nil
 			}
 			fluxClient.CreateKustomizationStub = func(s1, s2, s3, s4 string) ([]byte, error) {
@@ -1033,7 +1033,7 @@ var _ = Describe("Add Gitlab", func() {
 
 				name, url, branch, secretRef, namespace := fluxClient.CreateSourceGitArgsForCall(0)
 				Expect(name).To(Equal("bar"))
-				Expect(url).To(Equal("ssh://git@gitlab.com/foo/bar.git"))
+				Expect(url.String()).To(Equal("ssh://git@gitlab.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
 				Expect(namespace).To(Equal(wego.DefaultNamespace))
@@ -1069,7 +1069,7 @@ var _ = Describe("Add Gitlab", func() {
 
 				name, url, branch, secretRef, namespace := fluxClient.CreateSourceGitArgsForCall(0)
 				Expect(name).To(Equal("bar"))
-				Expect(url).To(Equal("ssh://git@gitlab.com/group/subgroup/bar.git"))
+				Expect(url.String()).To(Equal("ssh://git@gitlab.com/group/subgroup/bar.git"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
 				Expect(namespace).To(Equal(wego.DefaultNamespace))

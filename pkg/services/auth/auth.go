@@ -255,7 +255,7 @@ func (a *authSvc) retrieveDeployKey(ctx context.Context, name SecretName) (*core
 
 // Uses flux to create a ssh key pair secret.
 func (a *authSvc) createKeyPairSecret(targetName string, name SecretName, repo gitproviders.RepoURL) (*corev1.Secret, error) {
-	secretData, err := a.fluxClient.CreateSecretGit(name.Name.String(), repo.String(), name.Namespace)
+	secretData, err := a.fluxClient.CreateSecretGit(name.Name.String(), repo, name.Namespace)
 	if err != nil {
 		return nil, fmt.Errorf("could not create git secret: %w", err)
 	}
