@@ -16,7 +16,7 @@ import Modal from "../components/Modal";
 import Page from "../components/Page";
 import ReconciliationGraph from "../components/ReconciliationGraph";
 import Spacer from "../components/Spacer";
-import { AppContext, defaultLinkResolver } from "../contexts/AppContext";
+import { AppContext } from "../contexts/AppContext";
 import { useRequestState } from "../hooks/common";
 import {
   AutomationKind,
@@ -33,7 +33,7 @@ type Props = {
 };
 
 function ApplicationDetail({ className, name }: Props) {
-  const { applicationsClient } = React.useContext(AppContext);
+  const { applicationsClient, linkResolver } = React.useContext(AppContext);
   const [authSuccess, setAuthSuccess] = React.useState(false);
   const [githubAuthModalOpen, setGithubAuthModalOpen] = React.useState(false);
   const [removeAppModalOpen, setRemoveAppModalOpen] = React.useState(false);
@@ -68,7 +68,7 @@ function ApplicationDetail({ className, name }: Props) {
   React.useEffect(() => {
     if (!removeRes) return;
     //if app is succesfully removed, redirect to applications page
-    history.push(defaultLinkResolver(PageRoute.Applications));
+    history.push(linkResolver(PageRoute.Applications));
   }, [removeRes]);
 
   if (error) {
@@ -213,7 +213,7 @@ function ApplicationDetail({ className, name }: Props) {
             {removeLoading ? (
               <CircularProgress />
             ) : (
-              "I'm Sure - Delete This App!"
+              `Delete ${application.name} `
             )}
           </Button>
         </Flex>

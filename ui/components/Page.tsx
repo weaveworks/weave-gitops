@@ -83,7 +83,7 @@ function Page({
               ))}
             <h2>{title}</h2>
           </Breadcrumbs>
-          {topRight && topRight}
+          {topRight}
         </TitleBar>
         {appState.error && (
           <Flex center wide>
