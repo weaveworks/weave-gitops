@@ -2,7 +2,7 @@
 name: Bug report
 about: Create a report to help us improve
 title: ''
-labels: 'type/bug'
+labels: 'bug'
 assignees: ''
 
 ---
@@ -39,6 +39,7 @@ If applicable, add logs to help explain your problem. _please compress the outpu
 - [ ] Events from wego-* namespaces
 - [ ] `kubectl cluster-info dump`
 - [ ] Prometheus alerts
+- [ ] Flux logs
 
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
