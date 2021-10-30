@@ -41,7 +41,7 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 	var err error
 
 	if params.AppConfigURL != "" || params.DryRun {
-		// We need to get the manfiests to persist in the repo and
+		// We need to get the manifests to persist in the repo and
 		// non-dry run install doesn't return them
 		fluxManifests, err = g.flux.Install(params.Namespace, true)
 		if err != nil {
@@ -99,7 +99,7 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 			}
 
 			g.logger.Actionf("Applying manifests to the cluster")
-			// only apply the system manfiests as the others will get picked up once flux is running
+			// only apply the system manifests as the others will get picked up once flux is running
 			if err := g.applyManifestsToK8s(ctx, params.Namespace, goatManifests); err != nil {
 				return nil, fmt.Errorf("failed applying system manifests to cluster %s :%v", cname, err)
 			}
@@ -222,7 +222,7 @@ func (g *Gitops) genKustomize(name, cname, branch, path string, params InstallPa
 func (g *Gitops) writeManifestsToGit(path string, manifests map[string][]byte) error {
 	for k, m := range manifests {
 		if err := g.gitClient.Write(filepath.Join(path, k), m); err != nil {
-			g.logger.Warningf("failed to write manfiest %s : %v", k, err)
+			g.logger.Warningf("failed to write manifest %s : %v", k, err)
 			return err
 		}
 	}
