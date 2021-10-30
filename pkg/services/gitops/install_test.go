@@ -115,9 +115,7 @@ var _ = Describe("Install", func() {
 	Context("when dry-run", func() {
 		BeforeEach(func() {
 			installParams.DryRun = true
-			fluxClient.InstallStub = func(s string, b bool) ([]byte, error) {
-				return fakeFluxManifests, nil
-			}
+			fluxClient.InstallReturns(fakeFluxManifests, nil)
 		})
 
 		It("calls flux install", func() {
