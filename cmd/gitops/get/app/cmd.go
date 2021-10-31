@@ -1,4 +1,4 @@
-package list
+package app
 
 import (
 	"context"
@@ -9,9 +9,10 @@ import (
 )
 
 var Cmd = &cobra.Command{
-	Use:     "list",
+	Use:     "app",
+	Aliases: []string{"apps"},
 	Short:   "List applications under gitops control",
-	Example: "gitops app list",
+	Example: "gitops get apps",
 	RunE:    runCmd,
 }
 

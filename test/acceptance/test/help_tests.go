@@ -108,16 +108,16 @@ var _ = XDescribe("WEGO Help Tests", func() {
 		})
 	})
 
-	It("Verify that gitops app list help flag prints the help text", func() {
+	It("Verify that gitops get apps help flag prints the help text", func() {
 
-		By("When I run the command 'gitops app list -h' ", func() {
-			stringOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app list -h")
+		By("When I run the command 'gitops get apps -h' ", func() {
+			stringOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get apps -h")
 		})
 
-		By("Then I should see help message printed for gitops app list", func() {
-			Eventually(stringOutput).Should(MatchRegexp(`List applications\n*Usage:\n\s*gitops app list \[flags]`))
-			Eventually(stringOutput).Should(MatchRegexp(`Examples:\ngitops app list`))
-			Eventually(stringOutput).Should(MatchRegexp(fmt.Sprintf(`Flags:\n\s*-h, --help\s*help for list\n*\s*Global Flags:\n\s*--namespace string\s*gitops runtime namespace \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace)))
+		By("Then I should see help message printed for gitops get apps", func() {
+			Eventually(stringOutput).Should(MatchRegexp(`List applications\n*Usage:\n\s*gitops get app \[flags]`))
+			Eventually(stringOutput).Should(MatchRegexp(`Examples:\ngitops get apps`))
+			Eventually(stringOutput).Should(MatchRegexp(fmt.Sprintf(`Flags:\n\s*-h, --help\s*help for app\n*\s*Global Flags:\n\s*--namespace string\s*gitops runtime namespace \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace)))
 		})
 	})
 })
