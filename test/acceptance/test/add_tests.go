@@ -353,7 +353,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check app status for app under user-defined namespace", func() {
-			appStatus = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
+			appStatus = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
 		})
 
 		By("Then I should see app status", func() {
@@ -371,7 +371,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check app status for the paused app", func() {
-			appStatus = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
+			appStatus = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
 		})
 
 		By("Then I should see pause status as suspended=true", func() {
@@ -407,7 +407,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check app status for unpaused app", func() {
-			appStatus = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
+			appStatus = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
 		})
 
 		By("Then I should see pause status as suspended=false", func() {
@@ -880,7 +880,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check the app status for app1", func() {
-			appStatus1, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName1)
+			appStatus1, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName1)
 		})
 
 		By("Then I should see the status for "+appName1, func() {
@@ -890,7 +890,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check the app status for app2", func() {
-			appStatus2, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName2)
+			appStatus2, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName2)
 		})
 
 		By("Then I should see the status for "+appName2, func() {
@@ -900,7 +900,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check the app status for app3", func() {
-			appStatus3, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName3)
+			appStatus3, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName3)
 		})
 
 		By("Then I should see the status for "+appName3, func() {
@@ -1043,7 +1043,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check the app status for "+appName1, func() {
-			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName1))
+			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", WEGO_BIN_PATH, appName1))
 		})
 
 		By("Then I should see the status for "+appName1, func() {
@@ -1053,7 +1053,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check the app status for "+appName2, func() {
-			appStatus2 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName2))
+			appStatus2 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", WEGO_BIN_PATH, appName2))
 		})
 
 		By("Then I should see the status for "+appName2, func() {
@@ -1080,7 +1080,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check app status for paused app", func() {
-			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName1))
+			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", WEGO_BIN_PATH, appName1))
 		})
 
 		By("Then I should see pause status as suspended=true", func() {
@@ -1132,7 +1132,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check app status for unpaused app", func() {
-			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName1))
+			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", WEGO_BIN_PATH, appName1))
 		})
 
 		By("Then I should see pause status as suspended=false", func() {
@@ -1247,7 +1247,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And app status should remain same", func() {
-			out := runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app status " + appName)
+			out := runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " get app " + appName)
 			Eventually(out).Should(gbytes.Say(`helmrelease/` + appName + `\s*True\s*.*False`))
 		})
 
@@ -1465,7 +1465,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check the app status for "+appName1, func() {
-			appStatus1, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName1)
+			appStatus1, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName1)
 		})
 
 		By("Then I should see the status for app1", func() {
@@ -1475,7 +1475,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check the app status for "+appName2, func() {
-			appStatus2, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName2)
+			appStatus2, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName2)
 		})
 
 		By("Then I should see the status for app2", func() {
@@ -1800,7 +1800,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 
 		By("When I check the app status for app", func() {
-			appStatus, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName)
+			appStatus, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName)
 		})
 
 		By("Then I should see the status for "+appName, func() {
@@ -1892,7 +1892,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 
 		By("When I check the app status for app", func() {
-			appStatus, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName)
+			appStatus, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName)
 		})
 
 		By("Then I should see the status for "+appName, func() {

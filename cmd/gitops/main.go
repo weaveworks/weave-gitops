@@ -61,7 +61,7 @@ var rootCmd = &cobra.Command{
     --branch prod-<myapp>
 
   # Get status of application under gitops control
-  gitops app status podinfo
+  gitops get app podinfo
 
   # Get help for gitops add app command
   gitops add app -h
