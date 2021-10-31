@@ -415,7 +415,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check for list of commits for the app", func() {
-			commitList, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
+			commitList, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
 		})
 
 		By("Then I should see the list of commits for app2", func() {
@@ -935,7 +935,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check for list of commits for app1", func() {
-			commitList1, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits", WEGO_BIN_PATH, appName1))
+			commitList1, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", WEGO_BIN_PATH, appName1))
 		})
 
 		By("Then I should see the list of commits for app1", func() {
@@ -945,7 +945,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check for list of commits for app2", func() {
-			commitList2, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits", WEGO_BIN_PATH, appName2))
+			commitList2, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", WEGO_BIN_PATH, appName2))
 		})
 
 		By("Then I should see the list of commits for app2", func() {
@@ -1140,7 +1140,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check for list of commits for app2", func() {
-			commitList2, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits", WEGO_BIN_PATH, appName2))
+			commitList2, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", WEGO_BIN_PATH, appName2))
 		})
 
 		By("Then I should see the list of commits for app2", func() {
@@ -1165,7 +1165,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check for list of commits for app1", func() {
-			commitList1, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits", WEGO_BIN_PATH, appName1))
+			commitList1, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", WEGO_BIN_PATH, appName1))
 		})
 
 		By("Then I should see the list of commits for app1", func() {
@@ -1176,7 +1176,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check for list of commits for a deleted app", func() {
-			_, commitList2 = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits", WEGO_BIN_PATH, appName2))
+			_, commitList2 = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", WEGO_BIN_PATH, appName2))
 		})
 
 		By("Then I should not see the list of commits for app2", func() {
