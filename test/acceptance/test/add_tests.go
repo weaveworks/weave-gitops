@@ -207,7 +207,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	It("Verify that gitops can deploy and remove a gitlab app after it is setup with an empty repo initially", func() {
+	It("Test1 - Verify that gitops can deploy and remove a gitlab app after it is setup with an empty repo initially", func() {
 		var repoAbsolutePath string
 		private := true
 		tip := generateTestInputs()
@@ -274,7 +274,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	It("Verify that gitops can deploy a public gitlab app", func() {
+	It("Test2 - Verify that gitops can deploy a public gitlab app", func() {
 		var repoAbsolutePath string
 		private := false
 		tip := generateTestInputs()
@@ -282,7 +282,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		addCommand := "add app . --auto-merge=true"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_PUBLIC_GROUP)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
 		By("I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
@@ -290,7 +290,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_PUBLIC_GROUP)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -298,7 +298,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create an empty public repo", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitLab, private, GITLAB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitLab, private, GITLAB_PUBLIC_GROUP)
 		})
 
 		By("And I install gitops to my active cluster", func() {
@@ -322,7 +322,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have public visibility", func() {
-			Expect(getGitRepoVisibility(GITLAB_ORG, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("public"))
+			Expect(getGitRepoVisibility(GITLAB_PUBLIC_GROUP, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("public"))
 		})
 
 	})
