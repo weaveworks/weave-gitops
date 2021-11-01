@@ -925,8 +925,6 @@ var _ = Describe("ApplicationsServer", func() {
 				fakeFetcher := &applicationv2fakes.FakeFetcher{}
 				// Pretend something went horribly wrong
 				fakeFetcher.ListReturns([]models.Application{}, errors.New(errMsg))
-					return []models.Application{}, errors.New(errMsg)
-				}
 
 				cfg := ApplicationsConfig{
 					Logger:  log,
