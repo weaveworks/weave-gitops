@@ -924,7 +924,7 @@ var _ = Describe("ApplicationsServer", func() {
 				errMsg := "there was a big problem"
 				fakeFetcher := &applicationv2fakes.FakeFetcher{}
 				// Pretend something went horribly wrong
-				fakeFetcher.ListStub = func(c context.Context, s string) ([]models.Application, error) {
+				fakeFetcher.ListReturns([]models.Application{}, errors.New(errMsg))
 					return []models.Application{}, errors.New(errMsg)
 				}
 
