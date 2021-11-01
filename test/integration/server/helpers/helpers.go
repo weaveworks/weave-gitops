@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -120,12 +120,12 @@ func sourcePath(root, appName, clusterName string) string {
 func MakeWeGOFS(root, appName, clusterName string) WeGODirectoryFS {
 	return map[string]interface{}{
 		appPath(root, appName):                     &wego.Application{},
-		automationPath(root, appName, clusterName): &kustomizev1.Kustomization{},
+		automationPath(root, appName, clusterName): &kustomizev2.Kustomization{},
 		sourcePath(root, appName, clusterName):     &sourcev1.GitRepository{},
 	}
 }
 
-func GenerateExpectedFS(req *pb.AddApplicationRequest, root, clusterName string, app wego.ApplicationSpec, k kustomizev1.KustomizationSpec, s sourcev1.GitRepositorySpec) WeGODirectoryFS {
+func GenerateExpectedFS(req *pb.AddApplicationRequest, root, clusterName string, app wego.ApplicationSpec, k kustomizev2.KustomizationSpec, s sourcev1.GitRepositorySpec) WeGODirectoryFS {
 	expected := map[string]interface{}{
 		appPath(root, req.Name): &wego.Application{
 			TypeMeta: metav1.TypeMeta{
@@ -138,10 +138,10 @@ func GenerateExpectedFS(req *pb.AddApplicationRequest, root, clusterName string,
 			},
 			Spec: app,
 		},
-		automationPath(root, req.Name, clusterName): &kustomizev1.Kustomization{
+		automationPath(root, req.Name, clusterName): &kustomizev2.Kustomization{
 			TypeMeta: metav1.TypeMeta{
-				Kind:       kustomizev1.KustomizationKind,
-				APIVersion: kustomizev1.GroupVersion.String(),
+				Kind:       kustomizev2.KustomizationKind,
+				APIVersion: kustomizev2.GroupVersion.String(),
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      req.Name,

@@ -15,7 +15,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -69,7 +69,7 @@ func StartK8sTestEnvironment(crdPaths []string) (*K8sTestEnv, error) {
 			&corev1.Namespace{},
 			&corev1.Secret{},
 			&appsv1.Deployment{},
-			&kustomizev1.Kustomization{},
+			&kustomizev2.Kustomization{},
 			&sourcev1.GitRepository{},
 			&v1.CustomResourceDefinition{},
 		},
