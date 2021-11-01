@@ -1,8 +1,24 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../contexts/AppContext";
-import { Application } from "../lib/api/applications/applications.pb";
+import {
+  Application,
+  ParseRepoURLResponse,
+} from "../lib/api/applications/applications.pb";
+import { useRequestState } from "./common";
 
 const WeGONamespace = "wego-system";
+
+export function useParseRepoURL(url: string) {
+  const { applicationsClient } = useContext(AppContext);
+  const [res, loading, error, req] = useRequestState<ParseRepoURLResponse>();
+
+  useEffect(() => {
+    console.log("running");
+    req(applicationsClient.ParseRepoURL({ url }));
+  }, [url]);
+
+  return [res, loading, error];
+}
 
 export default function useApplications() {
   const { applicationsClient, doAsyncError } = useContext(AppContext);

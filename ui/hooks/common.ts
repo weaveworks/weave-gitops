@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../contexts/AppContext";
 import { RequestError } from "../lib/types";
 
@@ -34,4 +34,18 @@ export function useRequestState<T>(): [
   }
 
   return [state.value, state.loading, state.error, req];
+}
+
+// Copied and TS-ified from https://usehooks.com/useDebounce/
+export function useDebounce<T>(value: T, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+  return debouncedValue;
 }

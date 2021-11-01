@@ -15,6 +15,7 @@ import Flex from "../components/Flex";
 import GithubDeviceAuthModal from "../components/GithubDeviceAuthModal";
 import Link from "../components/Link";
 import Page from "../components/Page";
+import RepoInputWithAuth from "../components/RepoInputWithAuth";
 import { AppContext } from "../contexts/AppContext";
 import { useRequestState } from "../hooks/common";
 import { AddApplicationResponse } from "../lib/api/applications/applications.pb";
@@ -231,7 +232,20 @@ function AddApplication({ className }: Props) {
             </FormHelperText>
           </FormElement>
           <FormElement>
-            <TextField
+            {/* <TextField
+              onChange={(e) => {
+                setFormState({
+                  ...formState,
+                  url: e.currentTarget.value,
+                });
+              }}
+              required
+              id="url"
+              label="Source Repo URL"
+              variant="standard"
+              value={formState.url}
+            /> */}
+            <RepoInputWithAuth
               onChange={(e) => {
                 setFormState({
                   ...formState,
