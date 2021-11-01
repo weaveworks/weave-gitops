@@ -27,7 +27,7 @@ type SyncParams struct {
 }
 
 // Sync triggers the reconcile loop for an application
-func (a *App) Sync(params SyncParams) error {
+func (a *AppSvc) Sync(params SyncParams) error {
 	ctx := context.Background()
 
 	app, err := a.Kube.GetApplication(ctx, types.NamespacedName{Namespace: params.Namespace, Name: params.Name})
@@ -46,7 +46,7 @@ func (a *App) Sync(params SyncParams) error {
 	return nil
 }
 
-func (a *App) syncSource(ctx context.Context, app *wego.Application) error {
+func (a *AppSvc) syncSource(ctx context.Context, app *wego.Application) error {
 	var source kube.Resource
 
 	switch app.Spec.SourceType {
@@ -59,7 +59,7 @@ func (a *App) syncSource(ctx context.Context, app *wego.Application) error {
 	return a.syncResource(ctx, app, source)
 }
 
-func (a *App) syncDeployment(ctx context.Context, app *wego.Application) error {
+func (a *AppSvc) syncDeployment(ctx context.Context, app *wego.Application) error {
 	var deploy kube.Resource
 
 	switch app.Spec.DeploymentType {
@@ -72,7 +72,7 @@ func (a *App) syncDeployment(ctx context.Context, app *wego.Application) error {
 	return a.syncResource(ctx, app, deploy)
 }
 
-func (a *App) syncResource(ctx context.Context, app *wego.Application, resource kube.Resource) error {
+func (a *AppSvc) syncResource(ctx context.Context, app *wego.Application, resource kube.Resource) error {
 	name := types.NamespacedName{
 		Name:      app.Name,
 		Namespace: app.Namespace,
@@ -100,7 +100,7 @@ func (a *App) syncResource(ctx context.Context, app *wego.Application, resource 
 	return nil
 }
 
-func (a *App) setReconcileAnnotations(resource kube.Resource) {
+func (a *AppSvc) setReconcileAnnotations(resource kube.Resource) {
 	annotations := resource.GetAnnotations()
 
 	if annotations == nil {
@@ -114,7 +114,7 @@ func (a *App) setReconcileAnnotations(resource kube.Resource) {
 	resource.SetAnnotations(annotations)
 }
 
-func (a *App) checkResourceSync(ctx context.Context, name types.NamespacedName, resource kube.Resource) func() (bool, error) {
+func (a *AppSvc) checkResourceSync(ctx context.Context, name types.NamespacedName, resource kube.Resource) func() (bool, error) {
 	reconcileAtBeforeUpdate, err := getLastHandledReconcileRequest(resource)
 	if err != nil {
 		return func() (bool, error) { return false, fmt.Errorf("error getting reconcile at before update: %w", err) }

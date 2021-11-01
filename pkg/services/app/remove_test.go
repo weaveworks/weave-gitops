@@ -16,20 +16,23 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/osys/osysfakes"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/services/automation"
+	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/yaml"
 )
+
+const clusterName = "test-cluster"
 
 var (
 	localAddParams   AddParams
 	removeParams     RemoveParams
 	application      wego.Application
 	app              models.Application
-	appResources     []models.ResourceRef
+	appResources     []automation.ResourceRef
 	fluxDir          string
-	createdResources map[models.ResourceKind]map[string]bool
+	createdResources map[automation.ResourceKind]map[string]bool
 	goatPaths        map[string]bool
 	manifestsByPath  = map[string][]byte{}
 )
@@ -73,7 +76,7 @@ func storeCreatedResource(manifestData []byte) error {
 		}
 
 		metamap := manifestMap["metadata"].(map[string]interface{})
-		kind := models.ResourceKind(manifestMap["kind"].(string))
+		kind := automation.ResourceKind(manifestMap["kind"].(string))
 		name := metamap["name"].(string)
 
 		if createdResources[kind] == nil {
@@ -105,7 +108,7 @@ func removeCreatedResource(manifestData []byte) error {
 		}
 
 		metamap := manifestMap["metadata"].(map[string]interface{})
-		kind := models.ResourceKind(manifestMap["kind"].(string))
+		kind := automation.ResourceKind(manifestMap["kind"].(string))
 
 		if createdResources[kind] == nil {
 			return fmt.Errorf("expected %s resources to be present", kind)
@@ -118,7 +121,7 @@ func removeCreatedResource(manifestData []byte) error {
 }
 
 // Remove tracking for a resource given itsq name and kind
-func removeCreatedResourceByName(name string, kind models.ResourceKind) error {
+func removeCreatedResourceByName(name string, kind automation.ResourceKind) error {
 	if createdResources[kind] == nil {
 		return fmt.Errorf("expected %s resources to be present", kind)
 	}
@@ -162,6 +165,7 @@ func setupFlux() error {
 		return dir, nil
 	}
 	appSrv.(*AppSvc).Flux = fluxClient
+	appSrv.(*AppSvc).Automation = automation.NewAutomationService(gitProviders, fluxClient, log)
 
 	fluxBin, err := ioutil.ReadFile(filepath.Join("..", "..", "flux", "bin", "flux"))
 	if err != nil {
@@ -198,14 +202,14 @@ func updateAppFromParams() error {
 	}
 
 	localAddParams = params
-	application = makeWegoApplication(localAddParams)
 
-	app, err = models.NewApplication(application, "test-cluster")
+	app, err = makeApplication(localAddParams)
 	if err != nil {
 		return err
 	}
 
-	appResources = app.ClusterResources()
+	application = automation.AppToWegoApp(app)
+	appResources = automation.ClusterResources(app, clusterName)
 
 	return nil
 }
@@ -227,7 +231,7 @@ func runAddAndCollectInfo() error {
 // written to the repo
 func checkAddResults() error {
 	for _, res := range appResources {
-		if res.Kind != models.ResourceKindSecret {
+		if res.Kind != automation.ResourceKindSecret {
 			resources := createdResources[res.Kind]
 			if len(resources) == 0 {
 				return fmt.Errorf("expected %s resources to be created", res.Kind)
@@ -243,11 +247,11 @@ func checkAddResults() error {
 		}
 	}
 
-	if len(goatPaths) != len(app.ClusterResourcePaths()) {
-		return fmt.Errorf("expected %d goat paths, found: %d", len(app.ClusterResourcePaths()), len(goatPaths))
+	if len(goatPaths) != len(automation.ClusterResourcePaths(app, clusterName)) {
+		return fmt.Errorf("expected %d goat paths, found: %d", len(automation.ClusterResourcePaths(app, clusterName)), len(goatPaths))
 	}
 
-	for _, path := range app.ClusterResourcePaths() {
+	for _, path := range automation.ClusterResourcePaths(app, clusterName) {
 		delete(goatPaths, path)
 	}
 
@@ -265,7 +269,7 @@ func checkRemoveResults() error {
 	}
 
 	for _, res := range appResources {
-		if res.RepositoryPath != "" || res.Kind == models.ResourceKindKustomization || res.Kind == models.ResourceKindHelmRelease {
+		if res.RepositoryPath != "" || res.Kind == automation.ResourceKindKustomization || res.Kind == automation.ResourceKindHelmRelease {
 			resources := createdResources[res.Kind]
 			if resources[res.Name] {
 				return fmt.Errorf("expected %s named %s to be removed from the repository", res.Kind, res.Name)
@@ -288,46 +292,14 @@ var _ = Describe("Remove", func() {
 			AutoMerge:      true,
 		}
 
-		application = makeWegoApplication(localAddParams)
+		var err error
+
+		a, err := makeApplication(localAddParams)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		application = automation.AppToWegoApp(a)
 
 		gitProviders.GetDefaultBranchReturns("main", nil)
-	})
-
-	It("gives a correct error message when app path not found", func() {
-		application.Spec.Path = "./badpath"
-		appRepoDir, err := populateAppRepo()
-		Expect(err).ShouldNot(HaveOccurred())
-		defer os.RemoveAll(appRepoDir)
-		_, err = findAppManifests(application, appRepoDir)
-		Expect(err).Should(MatchError("application path './badpath' not found"))
-	})
-
-	It("locates application manifests", func() {
-		appRepoDir, err := populateAppRepo()
-		Expect(err).ShouldNot(HaveOccurred())
-		defer os.RemoveAll(appRepoDir)
-		manifests, err := findAppManifests(application, appRepoDir)
-		Expect(err).ShouldNot(HaveOccurred())
-		Expect(len(manifests)).To(Equal(2))
-		for _, manifest := range manifests {
-			Expect(manifest).To(Or(Equal([]byte("file1")), Equal([]byte("file2"))))
-		}
-	})
-
-	It("Looks up config repo default branch", func() {
-		gitProviders.GetDefaultBranchReturns("config-branch", nil)
-
-		kubeClient.GetApplicationStub = func(_ context.Context, name types.NamespacedName) (*wego.Application, error) {
-			return &application, nil
-		}
-
-		localAddParams.AppConfigUrl = "https://github.com/foo/quux"
-		Expect(updateAppFromParams()).To(Succeed())
-
-		repoUrl, branch, err := appSrv.(*AppSvc).getConfigUrlAndBranch(context.Background(), gitProviders, app)
-		Expect(err).ShouldNot(HaveOccurred())
-		Expect(repoUrl.String()).To(Equal(localAddParams.AppConfigUrl))
-		Expect(branch).To(Equal("config-branch"))
 	})
 
 	Context("Collecting resources deployed to cluster", func() {
@@ -364,7 +336,7 @@ var _ = Describe("Remove", func() {
 				}
 
 				goatPaths = map[string]bool{}
-				createdResources = map[models.ResourceKind]map[string]bool{}
+				createdResources = map[automation.ResourceKind]map[string]bool{}
 				manifestsByPath = map[string][]byte{}
 			})
 
@@ -414,7 +386,7 @@ var _ = Describe("Remove", func() {
 				}
 
 				goatPaths = map[string]bool{}
-				createdResources = map[models.ResourceKind]map[string]bool{}
+				createdResources = map[automation.ResourceKind]map[string]bool{}
 				manifestsByPath = map[string][]byte{}
 			})
 
@@ -468,9 +440,7 @@ var _ = Describe("Remove", func() {
 				return nil
 			}
 
-			kubeClient.GetApplicationStub = func(_ context.Context, name types.NamespacedName) (*wego.Application, error) {
-				return &application, nil
-			}
+			kubeClient.GetApplicationReturns(&application, nil)
 		})
 
 		var _ = AfterEach(func() {
@@ -493,7 +463,7 @@ var _ = Describe("Remove", func() {
 				}
 
 				goatPaths = map[string]bool{}
-				createdResources = map[models.ResourceKind]map[string]bool{}
+				createdResources = map[automation.ResourceKind]map[string]bool{}
 			})
 
 			It("removes cluster resources for helm chart from helm repo with configURL = NONE", func() {
@@ -549,7 +519,7 @@ var _ = Describe("Remove", func() {
 					}
 
 					goatPaths = map[string]bool{}
-					createdResources = map[models.ResourceKind]map[string]bool{}
+					createdResources = map[automation.ResourceKind]map[string]bool{}
 				})
 
 				It("removes cluster resources for non-helm app with configURL = NONE", func() {
@@ -572,7 +542,7 @@ var _ = Describe("Remove", func() {
 					Expect(checkRemoveResults()).To(Succeed())
 
 					commit, _ := gitClient.CommitArgsForCall(1)
-					Expect(commit.Message).To(Equal(RemoveCommitMessage))
+					Expect(commit.Message).To(Equal(gitopswriter.RemoveCommitMessage))
 				})
 
 				It("removes cluster resources for non-helm app with configURL = <url>", func() {
@@ -588,19 +558,19 @@ var _ = Describe("Remove", func() {
 	})
 })
 
-func GVRToResourceKind(gvr schema.GroupVersionResource) models.ResourceKind {
+func GVRToResourceKind(gvr schema.GroupVersionResource) automation.ResourceKind {
 	switch gvr {
 	case kube.GVRApp:
-		return models.ResourceKindApplication
+		return automation.ResourceKindApplication
 	case kube.GVRSecret:
-		return models.ResourceKindSecret
+		return automation.ResourceKindSecret
 	case kube.GVRGitRepository:
-		return models.ResourceKindGitRepository
+		return automation.ResourceKindGitRepository
 	case kube.GVRHelmRepository:
-		return models.ResourceKindHelmRepository
+		return automation.ResourceKindHelmRepository
 	case kube.GVRHelmRelease:
-		return models.ResourceKindHelmRelease
+		return automation.ResourceKindHelmRelease
 	default:
-		return models.ResourceKindKustomization
+		return automation.ResourceKindKustomization
 	}
 }

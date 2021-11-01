@@ -42,6 +42,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
 	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
+	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
 	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
 	"google.golang.org/grpc/codes"
@@ -607,12 +608,17 @@ var _ = Describe("ApplicationsServer", func() {
 			fakeKube = &kubefakes.FakeKube{}
 			name = "my-app"
 
+			osysClient := osys.New()
+			fluxClient := flux.New(osysClient, &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}})
+			log := &loggerfakes.FakeLogger{}
+
 			fakeFactory.GetAppServiceReturns(&app.App{
-				Context: ctx,
-				Flux:    flux.New(osys.New(), &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}}),
-				Kube:    fakeKube,
-				Logger:  &loggerfakes.FakeLogger{},
-				Osys:    osysClient,
+				Context:    ctx,
+				Flux:       flux.New(osys.New(), &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}}),
+				Kube:       fakeKube,
+				Logger:     log,
+				Osys:       osysClient,
+				Automation: automation.NewAutomationService(gp, fluxClient, log),
 			}, nil)
 
 			fakeFactory.GetGitClientsReturns(configGit, gitProvider, nil)
@@ -663,7 +669,7 @@ var _ = Describe("ApplicationsServer", func() {
 			Entry(
 				"kustomize, app repo config, auto merge",
 				"ssh://git@github.com/foo/bar",
-				"",
+				"ssh://git@github.com/foo/bar",
 				wego.SourceTypeGit,
 				wego.DeploymentTypeKustomize,
 				true,

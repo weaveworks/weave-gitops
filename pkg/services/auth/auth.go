@@ -14,8 +14,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -43,7 +43,7 @@ func NewAuthCLIHandler(name gitproviders.GitProviderName) (BlockingCLIAuthHandle
 }
 
 type SecretName struct {
-	Name      models.GeneratedSecretName
+	Name      automation.GeneratedSecretName
 	Namespace string
 }
 
@@ -96,7 +96,7 @@ func (a *authSvc) GetGitProvider() gitproviders.GitProvider {
 // This ensures that git operations are done with stored deploy keys instead of a user's local ssh-agent or equivalent.
 func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.RepoURL, targetName string, namespace string) (git.Git, error) {
 	secretName := SecretName{
-		Name:      models.CreateRepoSecretName(targetName, repoUrl),
+		Name:      automation.CreateRepoSecretName(targetName, repoUrl),
 		Namespace: namespace,
 	}
 

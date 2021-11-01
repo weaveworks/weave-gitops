@@ -98,8 +98,8 @@ func (f factory) GetAppService(ctx context.Context, params AppServiceParams) (ap
 		return nil, fmt.Errorf("error creating git client for config repo: %w", err)
 	}
 
-	appSrv := app.New(ctx, f.l, appGit, configGit, provider, clients.Flux, clients.Kube, clients.Osys,
-		automation.NewAutomationService(provider, clients.Flux, f.l))
+	appSrv := app.New(ctx, f.l, appGit, configGit, provider, fluxClient, kube, osysClient,
+		automation.NewAutomationService(provider, fluxClient, f.l))
 
 	return appSrv, nil
 }

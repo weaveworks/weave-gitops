@@ -30,10 +30,11 @@ var (
 var Cmd = &cobra.Command{
 	Use:   "install",
 	Short: "Install or upgrade GitOps",
-	Long: `The install command deploys GitOps in the specified namespace.
-If a previous version is installed, then an in-place upgrade will be performed.`,
+	Long: `The install command deploys GitOps in the specified namespace,
+adds a cluster entry to the GitOps repo, and persists the GitOps runtime into the
+repo.`,
 	Example: fmt.Sprintf(`  # Install GitOps in the %s namespace
-  gitops install`, wego.DefaultNamespace),
+  gitops install --app-config-url ssh://git@github.com/me/mygitopsrepo.git`, wego.DefaultNamespace),
 	RunE:          installRunCmd,
 	SilenceErrors: true,
 	SilenceUsage:  true,
@@ -44,6 +45,8 @@ If a previous version is installed, then an in-place upgrade will be performed.`
 
 func init() {
 	Cmd.Flags().BoolVar(&installParams.DryRun, "dry-run", false, "Outputs all the manifests that would be installed")
+	installCmd.Flags().StringVar(&installParams.AppConfigURL, "app-config-url", "", "URL of external repository that will hold automation manifests")
+	cobra.CheckErr(installCmd.MarkFlagRequired("app-config-url"))
 }
 
 func installRunCmd(cmd *cobra.Command, args []string) error {
@@ -60,8 +63,9 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	gitopsService := gitops.New(log, flux, k)
 
 	gitopsParams := gitops.InstallParams{
-		Namespace: namespace,
-		DryRun:    installParams.DryRun,
+		Namespace:    namespace,
+		DryRun:       installParams.DryRun,
+		AppConfigURL: installParams.AppConfigURL,
 	}
 
 	manifests, err := gitopsService.Install(gitopsParams)
