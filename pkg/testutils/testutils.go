@@ -43,7 +43,6 @@ type K8sTestEnv struct {
 // NOT the current working directory or path that the tests were started from.
 func StartK8sTestEnvironment(crdPaths []string) (*K8sTestEnv, error) {
 	if k8sEnv != nil {
-		fmt.Println("new test env")
 		return k8sEnv, nil
 	}
 
