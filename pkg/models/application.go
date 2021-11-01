@@ -28,7 +28,8 @@ const (
 type Application struct {
 	Name                string
 	Namespace           string
-	SourceURL           gitproviders.RepoURL
+	HelmSourceURL       string
+	GitSourceURL        gitproviders.RepoURL
 	ConfigURL           gitproviders.RepoURL
 	Branch              string
 	Path                string

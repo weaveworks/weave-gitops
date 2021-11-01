@@ -54,7 +54,7 @@ func (f fetcher) Get(ctx context.Context, name string, namespace string) (models
 func (f fetcher) List(ctx context.Context, namespace string) ([]models.Application, error) {
 	list := &wego.ApplicationList{}
 
-	if err := f.k8s.List(ctx, list); err != nil {
+	if err := f.k8s.List(ctx, list, client.InNamespace(namespace)); err != nil {
 		return nil, err
 	}
 
@@ -77,6 +77,7 @@ func translateApp(app wego.Application) (models.Application, error) {
 		appRepoUrl    gitproviders.RepoURL
 		configRepoUrl gitproviders.RepoURL
 		err           error
+		helmSourceURL string
 	)
 
 	if wego.DeploymentType(app.Spec.SourceType) == wego.DeploymentType(wego.SourceTypeGit) {
@@ -84,6 +85,10 @@ func translateApp(app wego.Application) (models.Application, error) {
 		if err != nil {
 			return models.Application{}, err
 		}
+	}
+
+	if wego.DeploymentType(app.Spec.SourceType) == wego.DeploymentType(wego.SourceTypeHelm) {
+		helmSourceURL = app.Spec.URL
 	}
 
 	if models.IsExternalConfigUrl(app.Spec.ConfigURL) {
@@ -96,7 +101,8 @@ func translateApp(app wego.Application) (models.Application, error) {
 	return models.Application{
 		Name:                app.Name,
 		Namespace:           app.Namespace,
-		SourceURL:           appRepoUrl,
+		HelmSourceURL:       helmSourceURL,
+		GitSourceURL:        appRepoUrl,
 		ConfigURL:           configRepoUrl,
 		Branch:              app.Spec.Branch,
 		Path:                app.Spec.Path,

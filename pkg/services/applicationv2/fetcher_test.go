@@ -64,6 +64,29 @@ var _ = Describe("Fetcher", func() {
 
 			Expect(len(result)).To(Equal(2))
 		})
+		It("lists does not list an application in a different namespace", func() {
+			ctx := context.Background()
+			k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
+
+			app := &wego.Application{}
+			app.Name = "my-app"
+			app.Namespace = "some-ns"
+
+			Expect(k8s.Create(ctx, app)).To(Succeed())
+
+			app2 := &wego.Application{}
+			app2.Name = "my-app2"
+			app2.Namespace = "a-diff-ns"
+
+			Expect(k8s.Create(ctx, app2)).To(Succeed())
+
+			gs := NewFetcher(k8s)
+
+			result, err := gs.List(ctx, app.Namespace)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(len(result)).To(Equal(1))
+		})
 		It("lists an empty application list", func() {
 			ctx := context.Background()
 			k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()

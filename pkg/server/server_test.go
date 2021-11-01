@@ -1045,6 +1045,12 @@ var _ = Describe("Applications handler", func() {
 
 		Expect(k8s.Create(ctx, app)).To(Succeed())
 
+		app2 := &wego.Application{}
+		app2.Name = "my-app2"
+		app2.Namespace = "some-ns"
+
+		Expect(k8s.Create(ctx, app2)).To(Succeed())
+
 		appFactory := &apputilsfakes.FakeServerAppFactory{}
 
 		appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
@@ -1079,7 +1085,7 @@ var _ = Describe("Applications handler", func() {
 		err = json.Unmarshal(b, r)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(r.Applications).To(HaveLen(1))
+		Expect(r.Applications).To(HaveLen(2))
 	})
 })
 
