@@ -279,9 +279,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := false
 		tip := generateTestInputs()
 		appName := tip.appRepoName
-		var appRemoveOutput *gexec.Session
 
-		addCommand := "app add . --auto-merge=true"
+		addCommand := "add app . --auto-merge=true"
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
@@ -326,19 +325,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			Expect(getGitRepoVisibility(GITLAB_ORG, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("public"))
 		})
 
-		By("When I remove an app", func() {
-			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app remove " + appName)
-		})
-
-		By("Then I should see app removing message", func() {
-			Eventually(appRemoveOutput).Should(gbytes.Say("► Removing application from cluster and repository"))
-			Eventually(appRemoveOutput).Should(gbytes.Say("► Committing and pushing gitops updates for application"))
-			Eventually(appRemoveOutput).Should(gbytes.Say("► Pushing app changes to repository"))
-		})
-
-		By("And app should get deleted from the cluster", func() {
-			_ = waitForAppRemoval(appName, THIRTY_SECOND_TIMEOUT)
-		})
 	})
 
 	It("Test1 - Verify that gitops can deploy app when user specifies branch, namespace, url, deployment-type", func() {
