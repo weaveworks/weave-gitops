@@ -4,11 +4,15 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -19,20 +23,40 @@ type ServerAppFactory interface {
 }
 
 type factory struct {
-	k client.Client
-	l logger.Logger
+	k           client.Client
+	l           logger.Logger
+	rest        *rest.Config
+	clusterName string
 }
 
-func NewServerAppFactory(k client.Client, l logger.Logger) ServerAppFactory {
-	return factory{k: k, l: l}
+func NewServerAppFactory(rest *rest.Config, l logger.Logger, clusterName string) (ServerAppFactory, error) {
+	_, k, err := kube.NewKubeHTTPClientWithConfig(rest, clusterName)
+	if err != nil {
+		return nil, err
+	}
+
+	return factory{
+		k:           k,
+		l:           l,
+		clusterName: clusterName,
+		rest:        rest,
+	}, nil
 }
 
 func (f factory) GetKubeService() (kube.Kube, error) {
-	k, _, err := kube.NewKubeHTTPClient()
+	k, _, err := kube.NewKubeHTTPClientWithConfig(f.rest, f.clusterName)
 	return k, err
 }
 
 func (f factory) GetAppService(ctx context.Context, params AppServiceParams) (app.AppService, error) {
+	osysClient := osys.New()
+	fluxClient := flux.New(osysClient, &runner.CLIRunner{})
+
+	kube, _, err := kube.NewKubeHTTPClientWithConfig(f.rest, f.clusterName)
+	if err != nil {
+		return nil, err
+	}
+
 	appURL, err := gitproviders.NewRepoURL(params.URL)
 	if err != nil {
 		return nil, fmt.Errorf("error creating normalized url for app url: %w", err)
@@ -56,34 +80,24 @@ func (f factory) GetAppService(ctx context.Context, params AppServiceParams) (ap
 		return nil, fmt.Errorf("error creating git provider: %w", err)
 	}
 
-	clients, err := GetBaseClients()
-	if err != nil {
-		return nil, fmt.Errorf("error initializing clients: %w", err)
-	}
-
 	// Note that we assume the same git provider here.
 	// If someone has an app source in Github and a config repo in Gitlab, we will get auth errors.
-	authSvc, err := auth.NewAuthService(clients.Flux, f.k, provider, f.l)
+	authSvc, err := auth.NewAuthService(fluxClient, f.k, provider, f.l)
 	if err != nil {
 		return nil, fmt.Errorf("error creating auth service: %w", err)
 	}
 
-	clusterName, err := clients.Kube.GetClusterName(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("could not get cluster name: %w", err)
-	}
-
-	appGit, err := authSvc.CreateGitClient(ctx, appURL, clusterName, params.Namespace)
+	appGit, err := authSvc.CreateGitClient(ctx, appURL, f.clusterName, params.Namespace)
 	if err != nil {
 		return nil, fmt.Errorf("error creating git client for app repo: %w", err)
 	}
 
-	configGit, err := authSvc.CreateGitClient(ctx, configURL, clusterName, params.Namespace)
+	configGit, err := authSvc.CreateGitClient(ctx, configURL, f.clusterName, params.Namespace)
 	if err != nil {
 		return nil, fmt.Errorf("error creating git client for config repo: %w", err)
 	}
 
-	appSrv := app.New(ctx, logger.NewApiLogger(), appGit, configGit, provider, clients.Flux, clients.Kube, clients.Osys)
+	appSrv := app.New(ctx, f.l, appGit, configGit, provider, fluxClient, kube, osysClient)
 
 	return appSrv, nil
 }

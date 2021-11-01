@@ -35,7 +35,9 @@ func Exists(filePath string) bool {
 	return true
 }
 
-// WaitUntil runs checkDone until a timeout is reached
+// WaitUntil runs checkDone until an error is NOT returned, or a timeout is reached.
+
+// To continue polling, return an error.
 func WaitUntil(out io.Writer, poll, timeout time.Duration, checkDone func() error) error {
 	_, err := timedRepeat(
 		out,

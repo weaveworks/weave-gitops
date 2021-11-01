@@ -439,8 +439,8 @@ var _ = Describe("ApplicationsServer", func() {
 			}
 			rs.SetOwnerReferences([]metav1.OwnerReference{{
 				UID:        deployment.UID,
-				APIVersion: deployment.APIVersion,
-				Kind:       deployment.Kind,
+				APIVersion: appsv1.SchemeGroupVersion.String(),
+				Kind:       "Deployment",
 				Name:       deployment.Name,
 			}})
 
@@ -827,6 +827,43 @@ var _ = Describe("ApplicationsServer", func() {
 			}
 		})
 	})
+	Describe("ListCommits", func() {
+		It("gets commits for an app", func() {
+			testApp := &wego.Application{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "testapp",
+					Namespace: namespace.Name,
+				},
+				Spec: wego.ApplicationSpec{
+					Branch: "main",
+					Path:   "./k8s",
+					URL:    "https://github.com/owner/repo1",
+				},
+			}
+			Expect(k8sClient.Create(context.Background(), testApp)).To(Succeed())
+
+			c := newTestcommit(gitprovider.CommitInfo{
+				URL:     "http://github.com/testrepo/commit/2349898",
+				Message: "my message",
+				Sha:     "2349898",
+			})
+			commits := []gitprovider.Commit{c}
+			gp.GetCommitsReturns(commits, nil)
+			gp.GetCommitsReturns(commits, nil)
+
+			res, err := appsClient.ListCommits(contextWithAuth(context.Background()), &pb.ListCommitsRequest{
+				Name:      testApp.Name,
+				Namespace: testApp.Namespace,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res.Commits).To(HaveLen(1))
+			desired := c.Get()
+			Expect(res.Commits[0].Url).To(Equal(desired.URL))
+			Expect(res.Commits[0].Message).To(Equal(desired.Message))
+			Expect(res.Commits[0].Hash).To(Equal(desired.Sha))
+		})
+	})
+
 	Describe("middleware", func() {
 		Describe("logging", func() {
 			var log *fakelogr.FakeLogger

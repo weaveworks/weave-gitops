@@ -20,7 +20,7 @@ type ProviderAccountType string
 const (
 	AccountTypeUser ProviderAccountType = "user"
 	AccountTypeOrg  ProviderAccountType = "organization"
-	deployKeyName                       = "wego-deploy-key"
+	DeployKeyName                       = "wego-deploy-key"
 
 	defaultTimeout = time.Second * 30
 )
@@ -74,12 +74,12 @@ func New(config Config, owner string, getAccountType AccountTypeGetter) (GitProv
 }
 
 func deployKeyExists(ctx context.Context, repo gitprovider.UserRepository) (bool, error) {
-	_, err := repo.DeployKeys().Get(ctx, deployKeyName)
+	_, err := repo.DeployKeys().Get(ctx, DeployKeyName)
 	if err != nil && !strings.Contains(err.Error(), "key is already in use") {
 		if errors.Is(err, gitprovider.ErrNotFound) {
 			return false, nil
 		} else {
-			return false, fmt.Errorf("error getting deploy key %s: %s", deployKeyName, err)
+			return false, fmt.Errorf("error getting deploy key %s: %s", DeployKeyName, err)
 		}
 	} else {
 		return true, nil
@@ -93,10 +93,10 @@ func uploadDeployKey(ctx context.Context, repo gitprovider.UserRepository, deplo
 	}
 
 	if err = utils.WaitUntil(os.Stdout, time.Second, defaultTimeout, func() error {
-		_, err = repo.DeployKeys().Get(ctx, deployKeyName)
+		_, err = repo.DeployKeys().Get(ctx, DeployKeyName)
 		return err
 	}); err != nil {
-		return fmt.Errorf("error verifying deploy key %s: %s", deployKeyName, err)
+		return fmt.Errorf("error verifying deploy key %s: %s", DeployKeyName, err)
 	}
 
 	return nil

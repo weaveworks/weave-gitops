@@ -100,14 +100,29 @@ func DefaultConfig() (*ApplicationsConfig, error) {
 	secretKey := rand.String(20)
 	jwtClient := auth.NewJwtClient(secretKey)
 
-	_, rawClient, err := kube.NewKubeHTTPClient()
+	rest, clusterName, err := kube.RestConfig()
+	if err != nil {
+		return nil, fmt.Errorf("could not create client config: %w", err)
+	}
+
+	_, rawClient, err := kube.NewKubeHTTPClientWithConfig(rest, clusterName)
 	if err != nil {
 		return nil, fmt.Errorf("could not create kube http client: %w", err)
 	}
 
+	l, err := zap.NewProduction()
+	if err != nil {
+		return nil, fmt.Errorf("error creating logger: %w", err)
+	}
+
+	f, err := apputils.NewServerAppFactory(rest, logger.NewApiLogger(l), clusterName)
+	if err != nil {
+		return nil, fmt.Errorf("could not create factory: %w", err)
+	}
+
 	return &ApplicationsConfig{
 		Logger:           logr,
-		AppFactory:       apputils.NewServerAppFactory(rawClient, logger.NewApiLogger()),
+		AppFactory:       f,
 		JwtClient:        jwtClient,
 		KubeClient:       rawClient,
 		GithubAuthClient: auth.NewGithubAuthProvider(http.DefaultClient),
@@ -253,8 +268,8 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 	}
 
 	appSrv, err := s.appFactory.GetAppService(ctx, apputils.AppServiceParams{
-		URL:       msg.Url,
-		ConfigURL: msg.ConfigUrl,
+		URL:       appUrl.String(),
+		ConfigURL: configUrl.String(),
 		Namespace: msg.Namespace,
 		Token:     token.AccessToken,
 	})
