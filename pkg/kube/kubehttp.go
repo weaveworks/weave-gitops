@@ -380,5 +380,7 @@ func sanitizeClusterName(s string) string {
 		return s[strings.LastIndex(s, "@")+1:]
 	}
 
+	s = strings.ReplaceAll(s, "_", "-")
+
 	return s
 }
