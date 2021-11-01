@@ -48,8 +48,6 @@ const DEFAULT_BRANCH_NAME = "main"
 var DEFAULT_SSH_KEY_PATH string
 var GITHUB_ORG string
 var GITLAB_ORG string
-var GITHUB_USER_NAME string
-var GITLAB_USER_NAME string
 
 // Make sure the subgroup belongs to the GITLAB_ORG
 var GITLAB_SUBGROUP string
