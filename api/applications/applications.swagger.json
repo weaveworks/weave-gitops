@@ -168,6 +168,37 @@
         ]
       }
     },
+    "/v1/applications/parse_repo_url": {
+      "get": {
+        "summary": "ParseRepoURL returns structured data about a git repository URL",
+        "operationId": "Applications_ParseRepoURL",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ParseRepoURLResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Applications"
+        ]
+      }
+    },
     "/v1/applications/{automationName}/reconciled_objects": {
       "post": {
         "summary": "GetReconciledObjects returns a list of objects that were created as a result of the Application.\nThis list is derived by looking at the Kustomization that is associated with an Application.\nHelm Releases are not currently supported.",
@@ -696,6 +727,15 @@
         }
       }
     },
+    "v1GitProvider": {
+      "type": "string",
+      "enum": [
+        "Unknown",
+        "GitHub",
+        "GitLab"
+      ],
+      "default": "Unknown"
+    },
     "v1GroupVersionKind": {
       "type": "object",
       "properties": {
@@ -813,6 +853,20 @@
           "type": "integer",
           "format": "int32",
           "description": "A pagination token returned from a previous call\nthat indicates from where listing should continue."
+        }
+      }
+    },
+    "v1ParseRepoURLResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "provider": {
+          "$ref": "#/definitions/v1GitProvider"
+        },
+        "owner": {
+          "type": "string"
         }
       }
     },

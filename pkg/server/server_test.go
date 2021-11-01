@@ -899,6 +899,44 @@ var _ = Describe("ApplicationsServer", func() {
 		})
 	})
 
+	Describe("ParseRepoURL", func() {
+		type expected struct {
+			provider pb.GitProvider
+			owner    string
+			name     string
+		}
+		DescribeTable("parses a repo url", func(uri string, e expected) {
+			res, err := appsClient.ParseRepoURL(context.Background(), &pb.ParseRepoURLRequest{
+				Url: uri,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res.Provider).To(Equal(e.provider))
+			Expect(res.Owner).To(Equal(e.owner))
+			Expect(res.Name).To(Equal(e.name))
+		},
+			Entry("github+ssh", "git@github.com:some-org/my-repo.git", expected{
+				provider: pb.GitProvider_GitHub,
+				owner:    "some-org",
+				name:     "my-repo",
+			}),
+			Entry("gitlab+ssh", "git@gitlab.com:other-org/cool-repo.git", expected{
+				provider: pb.GitProvider_GitLab,
+				owner:    "other-org",
+				name:     "cool-repo",
+			}),
+		)
+
+		It("returns an error on an invalid URL", func() {
+			_, err := appsClient.ParseRepoURL(context.Background(), &pb.ParseRepoURLRequest{
+				Url: "not-a  -valid-url",
+			})
+			Expect(err).To(HaveOccurred(), "should have gotten an invalid arg error")
+			s, ok := status.FromError(err)
+			Expect(ok).To(BeTrue(), "could not get status from error")
+			Expect(s.Code()).To(Equal(codes.InvalidArgument))
+		})
+	})
+
 	Describe("middleware", func() {
 		Describe("logging", func() {
 			var log *fakelogr.FakeLogger

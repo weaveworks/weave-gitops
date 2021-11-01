@@ -601,6 +601,19 @@ func (s *applicationServer) Authenticate(_ context.Context, msg *pb.Authenticate
 	return &pb.AuthenticateResponse{Token: token}, nil
 }
 
+func (s *applicationServer) ParseRepoURL(ctx context.Context, msg *pb.ParseRepoURLRequest) (*pb.ParseRepoURLResponse, error) {
+	u, err := gitproviders.NewRepoURL(msg.Url)
+	if err != nil {
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "could not parse url: %s", err.Error())
+	}
+
+	return &pb.ParseRepoURLResponse{
+		Name:     u.RepositoryName(),
+		Owner:    u.Owner(),
+		Provider: toProtoProvider(u.Provider()),
+	}, nil
+}
+
 func mapHelmReleaseSpecToResponse(helm *helmv2.HelmRelease) *pb.HelmRelease {
 	if helm == nil {
 		return nil
@@ -740,4 +753,15 @@ func mapConditions(conditions []metav1.Condition) []*pb.Condition {
 	}
 
 	return out
+}
+
+func toProtoProvider(p gitproviders.GitProviderName) pb.GitProvider {
+	switch p {
+	case gitproviders.GitProviderGitHub:
+		return pb.GitProvider_GitHub
+	case gitproviders.GitProviderGitLab:
+		return pb.GitProvider_GitLab
+	}
+
+	return pb.GitProvider_Unknown
 }

@@ -129,6 +129,15 @@ service Applications {
             body: "*"
         };
     }
+    
+    /**
+    * ParseRepoURL returns structured data about a git repository URL
+    */
+    rpc ParseRepoURL(ParseRepoURLRequest) returns(ParseRepoURLResponse) {
+        option (google.api.http) = {
+            get : "/v1/applications/parse_repo_url"
+        };
+    }
 
 }
 
@@ -344,4 +353,20 @@ message GetGithubAuthStatusRequest {
 message GetGithubAuthStatusResponse {
     string accessToken = 1; // An access token that can be used to interact with the Weave GitOps API.
     string error       = 2; // An error message.
+}
+
+enum GitProvider {
+    Unknown = 0;
+    GitHub  = 1;
+    GitLab  = 2;
+}
+
+message ParseRepoURLRequest {
+    string url = 1; // The URL to be parsed
+}
+
+message ParseRepoURLResponse {
+    string      name     = 1; // The name of the git repository
+    GitProvider provider = 2; // The GitProvider for the repository
+    string      owner    = 3; // The person or organization to which this repo belongs
 }

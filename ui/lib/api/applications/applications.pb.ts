@@ -20,6 +20,12 @@ export enum AutomationKind {
   Helm = "Helm",
 }
 
+export enum GitProvider {
+  Unknown = "Unknown",
+  GitHub = "GitHub",
+  GitLab = "GitLab",
+}
+
 export enum SourceType {
   Git = "Git",
   Helm = "Helm",
@@ -222,6 +228,16 @@ export type GetGithubAuthStatusResponse = {
   error?: string
 }
 
+export type ParseRepoURLRequest = {
+  url?: string
+}
+
+export type ParseRepoURLResponse = {
+  name?: string
+  provider?: GitProvider
+  owner?: string
+}
+
 export class Applications {
   static Authenticate(req: AuthenticateRequest, initReq?: fm.InitReq): Promise<AuthenticateResponse> {
     return fm.fetchReq<AuthenticateRequest, AuthenticateResponse>(`/v1/authenticate/${req["providerName"]}`, {...initReq, method: "POST", body: JSON.stringify(req)})
@@ -255,5 +271,8 @@ export class Applications {
   }
   static SyncApplication(req: SyncApplicationRequest, initReq?: fm.InitReq): Promise<SyncApplicationResponse> {
     return fm.fetchReq<SyncApplicationRequest, SyncApplicationResponse>(`/v1/applications/${req["name"]}/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static ParseRepoURL(req: ParseRepoURLRequest, initReq?: fm.InitReq): Promise<ParseRepoURLResponse> {
+    return fm.fetchReq<ParseRepoURLRequest, ParseRepoURLResponse>(`/v1/applications/parse_repo_url?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

@@ -58,6 +58,9 @@ type ApplicationsClient interface {
 	//
 	// SyncApplication triggers the Application reconciliation loop.
 	SyncApplication(ctx context.Context, in *SyncApplicationRequest, opts ...grpc.CallOption) (*SyncApplicationResponse, error)
+	//
+	// ParseRepoURL returns structured data about a git repository URL
+	ParseRepoURL(ctx context.Context, in *ParseRepoURLRequest, opts ...grpc.CallOption) (*ParseRepoURLResponse, error)
 }
 
 type applicationsClient struct {
@@ -167,6 +170,15 @@ func (c *applicationsClient) SyncApplication(ctx context.Context, in *SyncApplic
 	return out, nil
 }
 
+func (c *applicationsClient) ParseRepoURL(ctx context.Context, in *ParseRepoURLRequest, opts ...grpc.CallOption) (*ParseRepoURLResponse, error) {
+	out := new(ParseRepoURLResponse)
+	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/ParseRepoURL", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ApplicationsServer is the server API for Applications service.
 // All implementations must embed UnimplementedApplicationsServer
 // for forward compatibility
@@ -211,6 +223,9 @@ type ApplicationsServer interface {
 	//
 	// SyncApplication triggers the Application reconciliation loop.
 	SyncApplication(context.Context, *SyncApplicationRequest) (*SyncApplicationResponse, error)
+	//
+	// ParseRepoURL returns structured data about a git repository URL
+	ParseRepoURL(context.Context, *ParseRepoURLRequest) (*ParseRepoURLResponse, error)
 	mustEmbedUnimplementedApplicationsServer()
 }
 
@@ -250,6 +265,9 @@ func (UnimplementedApplicationsServer) RemoveApplication(context.Context, *Remov
 }
 func (UnimplementedApplicationsServer) SyncApplication(context.Context, *SyncApplicationRequest) (*SyncApplicationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SyncApplication not implemented")
+}
+func (UnimplementedApplicationsServer) ParseRepoURL(context.Context, *ParseRepoURLRequest) (*ParseRepoURLResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ParseRepoURL not implemented")
 }
 func (UnimplementedApplicationsServer) mustEmbedUnimplementedApplicationsServer() {}
 
@@ -462,6 +480,24 @@ func _Applications_SyncApplication_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Applications_ParseRepoURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ParseRepoURLRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationsServer).ParseRepoURL(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wego_server.v1.Applications/ParseRepoURL",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationsServer).ParseRepoURL(ctx, req.(*ParseRepoURLRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Applications_ServiceDesc is the grpc.ServiceDesc for Applications service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -512,6 +548,10 @@ var Applications_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SyncApplication",
 			Handler:    _Applications_SyncApplication_Handler,
+		},
+		{
+			MethodName: "ParseRepoURL",
+			Handler:    _Applications_ParseRepoURL_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
