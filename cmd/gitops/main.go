@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/add"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/app"
 	beta "github.com/weaveworks/weave-gitops/cmd/gitops/beta/cmd"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/delete"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
@@ -125,7 +124,6 @@ func main() {
 	rootCmd.AddCommand(version.Cmd)
 	rootCmd.AddCommand(flux.Cmd)
 	rootCmd.AddCommand(ui.Cmd)
-	rootCmd.AddCommand(app.ApplicationCmd)
 	rootCmd.AddCommand(get.GetCommand(&options.endpoint, restyClient))
 	rootCmd.AddCommand(add.GetCommand(&options.endpoint, restyClient))
 	rootCmd.AddCommand(delete.DeleteCommand(&options.endpoint, restyClient))
