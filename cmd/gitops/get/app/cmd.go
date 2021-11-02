@@ -6,9 +6,9 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services"
@@ -48,7 +48,7 @@ func getApplicationStatus(cmd *cobra.Command, args []string) error {
 	params.Name = args[0]
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 
-	log := logger.NewCLILogger(os.Stdout)
+	log := internal.NewCLILogger(os.Stdout)
 	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 	factory := services.NewFactory(fluxClient, log)
 

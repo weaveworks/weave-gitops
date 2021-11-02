@@ -1,10 +1,11 @@
-package logger_test
+package internal_test
 
 import (
 	"bytes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
@@ -16,7 +17,7 @@ var (
 var _ = Describe("Logger", func() {
 	BeforeEach(func() {
 		output = &bytes.Buffer{}
-		log = logger.NewCLILogger(output)
+		log = internal.NewCLILogger(output)
 	})
 
 	It("prints adding newline", func() {

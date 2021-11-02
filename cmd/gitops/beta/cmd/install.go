@@ -12,7 +12,6 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services"
@@ -36,7 +35,7 @@ var (
 var installCmd = &cobra.Command{
 	Use:   "install",
 	Short: "Install or upgrade GitOps",
-	Long: `The beta install command deploys GitOps in the specified namespace, 
+	Long: `The beta install command deploys GitOps in the specified namespace,
 adds a cluster entry to the GitOps repo, and persists the GitOps runtime into the
 repo.`,
 	Example: `  # Install GitOps in the wego-system namespace
@@ -59,7 +58,7 @@ func init() {
 func installRunCmd(cmd *cobra.Command, args []string) error {
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
-	log := logger.NewCLILogger(os.Stdout)
+	log := internal.NewCLILogger(os.Stdout)
 	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 
 	k, _, err := kube.NewKubeHTTPClient()

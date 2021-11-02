@@ -41,7 +41,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	params.PageSize = 10
 	params.PageToken = 0
 
-	log := logger.NewCLILogger(os.Stdout)
+	log := internal.NewCLILogger(os.Stdout)
 	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 	factory := services.NewFactory(fluxClient, log)
 
