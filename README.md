@@ -21,7 +21,7 @@ It is based on [CNCF Flux](https://fluxcd.io), a leading GitOps engine.
 Mac / Linux
 
 ```console
-curl -L "https://github.com/weaveworks/weave-gitops/releases/download/v0.3.3/gitops-$(uname)-$(uname -m)" -o gitops
+curl -L "https://github.com/weaveworks/weave-gitops/releases/download/v0.4.0/gitops-$(uname)-$(uname -m)" -o gitops
 chmod +x gitops
 sudo mv ./gitops /usr/local/bin/gitops
 gitops version
@@ -67,21 +67,27 @@ To set up a development environment for the CLI
 
 ### unit testing
 
-We are using [Ginko](https://onsi.github.io/ginkgo/) for our unit tests.  To exeucte the all the unit tests, run `make unit-tests`.
+We are using [Ginko](https://onsi.github.io/ginkgo/) for our unit tests. To exeucte the all the unit tests, run `make unit-tests`.
 
-To run a single test, you will need to set the KUBEBUILDER_ASSESTS environment variable to point to the directory containing our mock K8s objects.  
+To run a single test, you will need to set the KUBEBUILDER_ASSESTS environment variable to point to the directory containing our mock K8s objects.
+
 ```bash
 export KUBEBUILDER_ASSETS=$(git rev-parse --show-toplevel)/tools/bin/envtest
 go test github.com/weaveworks/weave-gitops/pkg/kube
 ```
+
 or
+
 ```bash
 export KUBEBUILDER_ASSETS=$(git rev-parse --show-toplevel)/tools/bin/envtest
 cd pkg/kube
 go test
 ```
+
 #### Executing a subset of tests
-Ginkgo allows you to run a subset of Describe/Context/It specs.  See [Focused Specs](https://onsi.github.io/ginkgo/#focused-specs) for more information
+
+Ginkgo allows you to run a subset of Describe/Context/It specs. See [Focused Specs](https://onsi.github.io/ginkgo/#focused-specs) for more information
+
 ### Setup golangci-lint in your editor
 
 Link for golangci-lint editor integration: https://golangci-lint.run/usage/integrations/
@@ -100,12 +106,14 @@ To set up a development environment for the UI
 
 1. Install go v1.16
 2. Install Node.js version 14.15.1
-3. Install reflex for automated server builds: go get github.com/cespare/reflex
-4. Run `npm install`
-5. To start up the HTTP server with automated re-compliation, run `make ui-dev`
-6. Run `npm start` to start the frontend dev server (with hot-reloading)
+3. Make sure your `$GOPATH` is added to your `$PATH` in your bashrc or zshrc file, then install reflex for automated server builds: go get github.com/cespare/reflex
+4. Go through the Weave GitOps getting started docs here: https://docs.gitops.weave.works/docs/getting-started/
+5. Run `npm install` on this repo.
+6. Make sure GitOps is installed on a fresh kind cluster for this repo by running `kind delete cluster`, `kind create cluster`, and finally `gitops install`.
+7. To start up the HTTP server with automated re-compliation, run `make api-dev`
+8. Run `npm start` to start the frontend dev server (with hot-reloading)
 
-Lint frontend code with `make ui-lint`
+Lint frontend code with `make ui-lint` - using Prettier (https://prettier.io/) will get you on the right track!
 
 Run frontend tests with `make ui-test`
 
@@ -135,7 +143,7 @@ To create a new styled React component (with typescript):
       "  );",
       "}",
       "",
-      "export default styled(${1:})``"
+      "export default styled(${1:}).attrs({ className: ${1:}.name })``"
     ],
     "description": "Create a default-exported, styled React Component."
   }

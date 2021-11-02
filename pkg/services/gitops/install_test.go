@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -22,8 +23,10 @@ import (
 )
 
 var (
-	installParams gitops.InstallParams
-	dir           string
+	installParams     gitops.InstallParams
+	dir               string
+	manifestsByPath   map[string][]byte
+	fakeFluxManifests = []byte("fluxManifests")
 )
 var _ = Describe("Install", func() {
 	BeforeEach(func() {
@@ -41,9 +44,7 @@ var _ = Describe("Install", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 
 		gitClient := git.New(nil, wrapper.NewGoGit())
-		ok, err := gitClient.Init(dir, "https://github.com/github/gitignore", "master")
-		Expect(err).ShouldNot(HaveOccurred())
-		Expect(ok).Should(BeTrue())
+		Expect(gitClient.Init(dir, "https://github.com/github/gitignore", "master")).To(BeTrue())
 
 		gitopsSrv = gitops.New(log.NewCLILogger(os.Stderr), fluxClient, kubeClient, gp, fakeGit)
 
@@ -114,15 +115,11 @@ var _ = Describe("Install", func() {
 	Context("when dry-run", func() {
 		BeforeEach(func() {
 			installParams.DryRun = true
-			fluxClient.InstallStub = func(s string, b bool) ([]byte, error) {
-				return []byte("manifests"), nil
-			}
+			fluxClient.InstallReturns(fakeFluxManifests, nil)
 		})
 
 		It("calls flux install", func() {
-			manifests, err := gitopsSrv.Install(installParams)
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(string(manifests)).To(ContainSubstring("manifests"))
+			Expect(gitopsSrv.Install(installParams)).To(ContainSubstring(string(fakeFluxManifests)))
 
 			Expect(fluxClient.InstallCallCount()).To(Equal(1))
 
@@ -132,10 +129,7 @@ var _ = Describe("Install", func() {
 		})
 
 		It("appends app crd to flux install output", func() {
-			manifests, err := gitopsSrv.Install(installParams)
-			Expect(err).ShouldNot(HaveOccurred())
-
-			Expect(string(manifests)).To(ContainSubstring("kind: App"))
+			Expect(gitopsSrv.Install(installParams)).To(ContainSubstring("kind: App"))
 		})
 
 		It("has flux manifests", func() {
@@ -174,12 +168,16 @@ var _ = Describe("Install", func() {
 	Context("when app url specified", func() {
 		BeforeEach(func() {
 			installParams.AppConfigURL = "ssh://git@github.com/foo/somevalidrepo.git"
-			fluxClient.InstallReturns([]byte("manifests"), nil)
+			fluxClient.InstallReturns(fakeFluxManifests, nil)
+			manifestsByPath = map[string][]byte{}
+
+			fakeGit.WriteStub = func(path string, manifest []byte) error {
+				manifestsByPath[path] = manifest
+				return nil
+			}
 		})
 		It("calls flux install", func() {
-			manifests, err := gitopsSrv.Install(installParams)
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(string(manifests)).To(ContainSubstring("manifests"))
+			Expect(gitopsSrv.Install(installParams)).To(ContainSubstring(string(fakeFluxManifests)))
 
 			Expect(fluxClient.InstallCallCount()).To(Equal(2))
 
@@ -195,12 +193,27 @@ var _ = Describe("Install", func() {
 				Expect(path).To(HavePrefix("..weave-gitops"))
 			}
 		})
+		It("flux gitops toolkit file is stored", func() {
+			m, err := gitopsSrv.Install(installParams)
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(fakeGit.WriteCallCount()).Should(Equal(7))
+			tested := false
+			for k, v := range manifestsByPath {
+				if strings.Contains(k, "gitops-runtime.yaml") {
+					Expect(len(v)).ToNot(BeZero())
+					Expect(string(m)).To(ContainSubstring(string(v)))
+					tested = true
+				}
+			}
+			Expect(tested).To(BeTrue())
+		})
 
 	})
 	Context("when app url specified && dry-run", func() {
 		BeforeEach(func() {
 			installParams.AppConfigURL = "ssh://git@github.com/foo/somevalidrepo.git"
 			installParams.DryRun = true
+			fluxClient.InstallReturns(fakeFluxManifests, nil)
 		})
 		It("skips flux install", func() {
 			_, err := gitopsSrv.Install(installParams)
@@ -210,6 +223,10 @@ var _ = Describe("Install", func() {
 		It("writes no manifests to the repo", func() {
 			_, err := gitopsSrv.Install(installParams)
 			Expect(err).ShouldNot(HaveOccurred())
+			Expect(fakeGit.WriteCallCount()).Should(Equal(0), "With dry-run and app-config-url nothing should be written to git")
+		})
+		It("flux manifests are returned", func() {
+			Expect(gitopsSrv.Install(installParams)).To(ContainSubstring(string(fakeFluxManifests)))
 			Expect(fakeGit.WriteCallCount()).Should(Equal(0), "With dry-run and app-config-url nothing should be written to git")
 		})
 	})

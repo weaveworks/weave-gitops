@@ -137,6 +137,15 @@ export type RemoveApplicationResponse = {
   success?: boolean
 }
 
+export type SyncApplicationRequest = {
+  name?: string
+  namespace?: string
+}
+
+export type SyncApplicationResponse = {
+  success?: boolean
+}
+
 export type Commit = {
   hash?: string
   date?: string
@@ -243,5 +252,8 @@ export class Applications {
   }
   static RemoveApplication(req: RemoveApplicationRequest, initReq?: fm.InitReq): Promise<RemoveApplicationResponse> {
     return fm.fetchReq<RemoveApplicationRequest, RemoveApplicationResponse>(`/v1/applications/${req["name"]}`, {...initReq, method: "DELETE"})
+  }
+  static SyncApplication(req: SyncApplicationRequest, initReq?: fm.InitReq): Promise<SyncApplicationResponse> {
+    return fm.fetchReq<SyncApplicationRequest, SyncApplicationResponse>(`/v1/applications/${req["name"]}/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }

@@ -40,16 +40,20 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 
 	var err error
 
-	if params.AppConfigURL != "" && !params.DryRun {
+	if params.AppConfigURL != "" || params.DryRun {
+		// We need to get the manifests to persist in the repo and
+		// non-dry run install doesn't return them
 		fluxManifests, err = g.flux.Install(params.Namespace, true)
 		if err != nil {
-			return fluxManifests, fmt.Errorf("error on flux install %s", err)
+			return fluxManifests, fmt.Errorf("error on flux install %w", err)
 		}
 	}
 
-	fluxManifests, err = g.flux.Install(params.Namespace, params.DryRun)
-	if err != nil {
-		return fluxManifests, fmt.Errorf("error on flux install %s", err)
+	if !params.DryRun {
+		_, err = g.flux.Install(params.Namespace, false)
+		if err != nil {
+			return fluxManifests, fmt.Errorf("error on flux install %w", err)
+		}
 	}
 
 	systemManifests := make(map[string][]byte, 3)
@@ -91,13 +95,13 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 
 			goatManifests, err := g.storeManifests(params, systemManifests, cname)
 			if err != nil {
-				return nil, fmt.Errorf("failed to store cluster manifests: %v", err)
+				return nil, fmt.Errorf("failed to store cluster manifests: %w", err)
 			}
 
 			g.logger.Actionf("Applying manifests to the cluster")
-			// only apply the system manfiests as the others will get picked up once flux is running
+			// only apply the system manifests as the others will get picked up once flux is running
 			if err := g.applyManifestsToK8s(ctx, params.Namespace, goatManifests); err != nil {
-				return nil, fmt.Errorf("failed applying system manifests to cluster %s :%v", cname, err)
+				return nil, fmt.Errorf("failed applying system manifests to cluster %s :%w", cname, err)
 			}
 
 		}
@@ -117,19 +121,18 @@ func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string
 
 	configBranch, err := g.gitProvider.GetDefaultBranch(ctx, normalizedURL)
 	if err != nil {
-		return nil, fmt.Errorf("could not determine default branch for config repository: %v %w", params.AppConfigURL, err)
+		return nil, fmt.Errorf("could not determine default branch for config repository: %q %w", params.AppConfigURL, err)
 	}
 
-	// TODO: pass context
 	if g.gitClient == nil {
 		authsvc, err := apputils.GetAuthService(ctx, normalizedURL, params.DryRun)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create auth service for repo %s : %w", params.AppConfigURL, err)
+			return nil, fmt.Errorf("failed to create auth service for repo %q : %w", params.AppConfigURL, err)
 		}
 
 		g.gitClient, err = authsvc.CreateGitClient(ctx, normalizedURL, cname, params.Namespace)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create git client for repo %s : %w", params.AppConfigURL, err)
+			return nil, fmt.Errorf("failed to create git client for repo %q : %w", params.AppConfigURL, err)
 		}
 	}
 
@@ -200,7 +203,7 @@ func (g *Gitops) genSource(cname, branch string, params InstallParams) ([]byte, 
 
 	sourceManifest, err := g.flux.CreateSourceGit(secretRef, params.AppConfigURL, branch, secretRef, params.Namespace)
 	if err != nil {
-		return nil, secretRef, fmt.Errorf("could not create git source for repo %s : %w", params.AppConfigURL, err)
+		return nil, secretRef, fmt.Errorf("could not create git source for repo %q : %w", params.AppConfigURL, err)
 	}
 
 	return sourceManifest, secretRef, nil
@@ -209,7 +212,7 @@ func (g *Gitops) genSource(cname, branch string, params InstallParams) ([]byte, 
 func (g *Gitops) genKustomize(name, cname, branch, path string, params InstallParams) ([]byte, error) {
 	sourceManifest, err := g.flux.CreateKustomization(name, cname, path, params.Namespace)
 	if err != nil {
-		return nil, fmt.Errorf("could not create flux kustomization for path %s : %v", path, err)
+		return nil, fmt.Errorf("could not create flux kustomization for path %q : %w", path, err)
 	}
 
 	return sourceManifest, nil
@@ -218,7 +221,7 @@ func (g *Gitops) genKustomize(name, cname, branch, path string, params InstallPa
 func (g *Gitops) writeManifestsToGit(path string, manifests map[string][]byte) error {
 	for k, m := range manifests {
 		if err := g.gitClient.Write(filepath.Join(path, k), m); err != nil {
-			g.logger.Warningf("failed to write manfiest %s : %v", k, err)
+			g.logger.Warningf("failed to write manifest %s : %v", k, err)
 			return err
 		}
 	}

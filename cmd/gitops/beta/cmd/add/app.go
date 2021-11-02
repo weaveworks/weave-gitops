@@ -23,7 +23,7 @@ var (
 var AppCmd = &cobra.Command{
 	Use:   "app",
 	Short: "Adds an application workload to the GitOps repository",
-	Long: `This command mirrors the original app add command in 
+	Long: `This command mirrors the original add app command in 
 	that it adds the definition for the application to the repository 
 	and sets up syncing into a cluster. It uses the new directory
 	structure.`,

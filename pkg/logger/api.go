@@ -12,13 +12,8 @@ type ApiLogger struct {
 	logger logr.Logger
 }
 
-func NewApiLogger() Logger {
-	zap, err := zap.NewProduction()
-	if err != nil {
-		panic(err)
-	}
-
-	logger := zapr.NewLogger(zap)
+func NewApiLogger(z *zap.Logger) Logger {
+	logger := zapr.NewLogger(z)
 
 	return ApiLogger{
 		logger: logger,

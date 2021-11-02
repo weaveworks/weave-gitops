@@ -9,7 +9,6 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/rand"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/weaveworks/weave-gitops/pkg/apputils/apputilsfakes"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
@@ -24,18 +23,12 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
-	corev1 "k8s.io/api/core/v1"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/rest"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/envtest"
 )
 
 func TestServer(t *testing.T) {
@@ -54,16 +47,14 @@ var appsClient pb.ApplicationsClient
 var conn *grpc.ClientConn
 var err error
 var k8sClient client.Client
-var testEnv *envtest.Environment
 var testClustername = "test-cluster"
-var cfg *rest.Config
 var scheme *apiruntime.Scheme
 var k kube.Kube
-var k8sManager ctrl.Manager
 var ghAuthClient *authfakes.FakeGithubAuthClient
 var gp *gitprovidersfakes.FakeGitProvider
 var appGit *gitfakes.FakeGit
 var configGit *gitfakes.FakeGit
+var env *testutils.K8sTestEnv
 var appFactory *apputilsfakes.FakeServerAppFactory
 
 func bufDialer(context.Context, string) (net.Conn, error) {
@@ -71,44 +62,20 @@ func bufDialer(context.Context, string) (net.Conn, error) {
 }
 
 var _ = BeforeSuite(func() {
-	done := make(chan interface{})
-	testEnv = &envtest.Environment{
-		CRDDirectoryPaths: []string{
-			"../../manifests/crds",
-			"../../tools/testcrds",
-		},
-	}
-
-	var err error
-	cfg, err = testEnv.Start()
-	Expect(err).ToNot(HaveOccurred())
-	Expect(cfg).ToNot(BeNil())
-
 	scheme = kube.CreateScheme()
 
-	k8sManager, err = ctrl.NewManager(cfg, ctrl.Options{
-		ClientDisableCacheFor: []client.Object{
-			&wego.Application{},
-			&corev1.Namespace{},
-			&corev1.Secret{},
-			&sourcev1.GitRepository{},
-		},
-		Scheme: scheme,
+	env, err = testutils.StartK8sTestEnvironment([]string{
+		"../../manifests/crds",
+		"../../tools/testcrds",
 	})
-	Expect(err).ToNot(HaveOccurred())
-	go func() {
-		err = k8sManager.Start(ctrl.SetupSignalHandler())
-		Expect(err).ToNot(HaveOccurred())
-	}()
+	Expect(err).NotTo(HaveOccurred())
 
-	go func() {
-		Eventually(done, 60).Should(BeClosed())
-	}()
-
-	k8sClient = k8sManager.GetClient()
-	Expect(k8sClient).ToNot(BeNil())
-	close(done)
+	k8sClient = env.Client
 })
+
+var _ = AfterSuite(func() {
+	env.Stop()
+}, 60)
 
 var secretKey string
 
@@ -122,7 +89,7 @@ var _ = BeforeEach(func() {
 	k = &kube.KubeHTTP{
 		Client:      k8sClient,
 		ClusterName: testClustername,
-		DynClient:   dynamic.NewForConfigOrDie(k8sManager.GetConfig()),
+		DynClient:   env.DynClient,
 		RestMapper:  k8sClient.RESTMapper(),
 	}
 

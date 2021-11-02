@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strconv"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -20,7 +21,7 @@ import (
 
 var clusterName string
 
-var _ = Describe("Weave GitOps App Add Tests", func() {
+var _ = Describe("Weave GitOps Add App Tests", func() {
 
 	deleteWegoRuntime := false
 	if os.Getenv("DELETE_WEGO_RUNTIME_ON_EACH_TEST") == "true" {
@@ -50,8 +51,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		tip := generateTestInputs()
 		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 
-		addCommand1 := "app add . --auto-merge=true"
-		addCommand2 := "app add . --url=" + appRepoRemoteURL + " --auto-merge=true"
+		addCommand1 := "add app . --auto-merge=true"
+		addCommand2 := "add app . --url=" + appRepoRemoteURL + " --auto-merge=true"
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 
@@ -104,7 +105,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		appName := tip.appRepoName
 		appType := "Kustomization"
 
-		addCommand := "app add --url=" + appRepoRemoteURL + " --branch=" + branchName + " --dry-run" + " --auto-merge=true"
+		addCommand := "add app --url=" + appRepoRemoteURL + " --branch=" + branchName + " --dry-run" + " --auto-merge=true"
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
@@ -130,7 +131,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			createGitRepoBranch(repoAbsolutePath, branchName)
 		})
 
-		By("And I run 'gitops app add dry-run' command", func() {
+		By("And I run 'gitops add app dry-run' command", func() {
 			addCommandOutput, _ = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -164,7 +165,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		tip := generateTestInputs()
 		appName := tip.appRepoName
 
-		addCommand := "app add . --auto-merge=true"
+		addCommand := "add app . --auto-merge=true"
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
@@ -213,7 +214,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		appName := tip.appRepoName
 		var appRemoveOutput *gexec.Session
 
-		addCommand := "app add . --auto-merge=true"
+		addCommand := "add app . --auto-merge=true"
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
@@ -259,7 +260,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I remove an app", func() {
-			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app remove " + appName)
+			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " delete app " + appName)
 		})
 
 		By("Then I should see app removing message", func() {
@@ -289,7 +290,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		appName := tip.appRepoName
 		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appName + ".git"
 
-		addCommand := "app add --url=" + appRepoRemoteURL + " --branch=" + branchName + " --namespace=" + wegoNamespace + " --deployment-type=kustomize --app-config-url=NONE"
+		addCommand := "add app --url=" + appRepoRemoteURL + " --branch=" + branchName + " --namespace=" + wegoNamespace + " --deployment-type=kustomize --app-config-url=NONE"
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
@@ -343,8 +344,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Expect(folderOutput).ShouldNot(ContainSubstring("targets"))
 		})
 
-		By("When I check for app list under user-specified namespace", func() {
-			appList, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app list " + appName + " --namespace=" + wegoNamespace)
+		By("When I check for apps under user-specified namespace", func() {
+			appList, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get apps " + appName + " --namespace=" + wegoNamespace)
 		})
 
 		By("Then I should see appName listed", func() {
@@ -352,7 +353,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I check app status for app under user-defined namespace", func() {
-			appStatus = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
+			appStatus = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
 		})
 
 		By("Then I should see app status", func() {
@@ -361,8 +362,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Eventually(appStatus).Should(gbytes.Say(`kustomization/` + appName + `\s*True\s*.*` + branchName + `/.*False`))
 		})
 
-		By("When I pause the app under user-defined namespace", func() {
-			pauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app pause " + appName + " --namespace=" + wegoNamespace)
+		By("When I suspend the app under user-defined namespace", func() {
+			pauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " suspend app " + appName + " --namespace=" + wegoNamespace)
 		})
 
 		By("Then I should see pause message", func() {
@@ -370,7 +371,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I check app status for the paused app", func() {
-			appStatus = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
+			appStatus = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
 		})
 
 		By("Then I should see pause status as suspended=true", func() {
@@ -391,7 +392,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I unpause the app under user-defined namespace", func() {
-			unpauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app unpause " + appName + " --namespace=" + wegoNamespace)
+			unpauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " resume app " + appName + " --namespace=" + wegoNamespace)
 		})
 
 		By("Then I should see unpause message", func() {
@@ -406,7 +407,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I check app status for unpaused app", func() {
-			appStatus = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
+			appStatus = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
 		})
 
 		By("Then I should see pause status as suspended=false", func() {
@@ -414,7 +415,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I check for list of commits for the app", func() {
-			commitList, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
+			commitList, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
 		})
 
 		By("Then I should see the list of commits for app2", func() {
@@ -422,8 +423,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Eventually(commitList).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z\s*.*Initial commit`))
 		})
 
-		By("When I remove the app under user-defined namespace", func() {
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s app remove %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
+		By("When I delete the app under user-defined namespace", func() {
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s delete app %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
 		})
 
 		By("And app should get deleted from the cluster", func() {
@@ -441,7 +442,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 		configRepoRemoteURL = "ssh://git@github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
 
-		addCommand := "app add --url=" + appRepoRemoteURL + " --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
+		addCommand := "add app --url=" + appRepoRemoteURL + " --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
@@ -491,7 +492,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		appRepoRemoteURL := "ssh://git@gitlab.com/" + GITLAB_ORG + "/" + tip.appRepoName + ".git"
 		configRepoRemoteURL = "ssh://git@gitlab.com/" + GITLAB_ORG + "/" + appConfigRepoName + ".git"
 
-		addCommand := "app add --url=" + appRepoRemoteURL + " --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
+		addCommand := "add app --url=" + appRepoRemoteURL + " --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
 		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITLAB_ORG)
@@ -533,8 +534,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
 		})
 
-		By("When I remove an app", func() {
-			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app remove " + appName)
+		By("When I delete an app", func() {
+			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " delete app " + appName)
 		})
 
 		By("Then I should see app removing message", func() {
@@ -555,7 +556,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		appName := tip.appRepoName
 		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 
-		addCommand := "app add --url=" + appRepoRemoteURL + " --auto-merge=true"
+		addCommand := "add app --url=" + appRepoRemoteURL + " --auto-merge=true"
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
@@ -593,7 +594,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		tip := generateTestInputs()
 		appName := tip.appRepoName
 
-		addCommand := "app add " + tip.appRepoName + "/" + " --auto-merge=true"
+		addCommand := "add app " + tip.appRepoName + "/" + " --auto-merge=true"
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
@@ -637,7 +638,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		appRepoName := "wego-test-app-" + RandString(8)
 		appName := appRepoName
 
-		addCommand := "app add . --name=" + appName + " --auto-merge=true"
+		addCommand := "add app . --name=" + appName + " --auto-merge=true"
 
 		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip1.workloadName, tip1.workloadNamespace)
@@ -693,7 +694,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		appName1 := appRepoName1
 		appName2 := appRepoName2
 
-		addCommand := "app add . --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
+		addCommand := "add app . --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
 
 		defer deleteRepo(appRepoName1, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteRepo(appRepoName2, gitproviders.GitProviderGitHub, GITHUB_ORG)
@@ -721,13 +722,13 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			gitAddCommitPush(appConfigRepoAbsPath, readmeFilePath)
 		})
 
-		By("And I create a repo with my app1 workload and run the add the command on it", func() {
+		By("And I create a repo with my app1 workload and run the add app command on it", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName1, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
 			gitAddCommitPush(repoAbsolutePath, tip1.appManifestFilePath)
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("And I create a repo with my app2 workload and run the add the command on it", func() {
+		By("And I create a repo with my app2 workload and run the add app command on it", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName2, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
 			gitAddCommitPush(repoAbsolutePath, tip2.appManifestFilePath)
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
@@ -750,8 +751,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		appName1 := "app1"
 		appName2 := "app2"
 
-		addCommand1 := "app add . --path=./" + appName1 + " --name=" + appName1 + " --auto-merge=true"
-		addCommand2 := "app add . --path=./" + appName2 + " --name=" + appName2 + " --auto-merge=true"
+		addCommand1 := "add app . --path=./" + appName1 + " --name=" + appName1 + " --auto-merge=true"
+		addCommand2 := "add app . --path=./" + appName2 + " --name=" + appName2 + " --auto-merge=true"
 
 		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip1.workloadName, tip1.workloadNamespace)
@@ -770,7 +771,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("And I create a repo with my app1 and app2 workloads and run the add the command for each app", func() {
+		By("And I create a repo with my app1 and app2 workloads and run the add app command for each app", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
 			app1Path := createSubDir(appName1, repoAbsolutePath)
 			app2Path := createSubDir(appName2, repoAbsolutePath)
@@ -813,9 +814,9 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		appName3 := "loki"
 		workloadName3 := "loki-0"
 
-		addCommand1 := "app add . --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
-		addCommand2 := "app add . --deployment-type=helm --path=./hello-world --name=" + appName2 + " --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
-		addCommand3 := "app add --url=" + helmRepoURL + " --chart=" + appName3 + " --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
+		addCommand1 := "add app . --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
+		addCommand2 := "add app . --deployment-type=helm --path=./hello-world --name=" + appName2 + " --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
+		addCommand3 := "add app --url=" + helmRepoURL + " --chart=" + appName3 + " --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
 
 		defer deleteRepo(appFilesRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
@@ -846,7 +847,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("And I run gitops app add command for app1: "+appName1, func() {
+		By("And I run gitops add app command for app1: "+appName1, func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand1, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -859,7 +860,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath2)
 		})
 
-		By("And I run gitops app add command for app2: "+appName2, func() {
+		By("And I run gitops add app command for app2: "+appName2, func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand2, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -869,7 +870,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Expect(waitForResource("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 		})
 
-		By("When I run gitops app add command for app3: "+appName3, func() {
+		By("When I run gitops add app command for app3: "+appName3, func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand3, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -879,7 +880,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I check the app status for app1", func() {
-			appStatus1, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName1)
+			appStatus1, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName1)
 		})
 
 		By("Then I should see the status for "+appName1, func() {
@@ -889,7 +890,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I check the app status for app2", func() {
-			appStatus2, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName2)
+			appStatus2, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName2)
 		})
 
 		By("Then I should see the status for "+appName2, func() {
@@ -899,7 +900,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I check the app status for app3", func() {
-			appStatus3, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName3)
+			appStatus3, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName3)
 		})
 
 		By("Then I should see the status for "+appName3, func() {
@@ -908,8 +909,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Eventually(appStatus3).Should(ContainSubstring(`helmrelease/` + appName3))
 		})
 
-		By("When I check for apps list", func() {
-			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app list")
+		By("When I check for apps", func() {
+			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get apps")
 		})
 
 		By("Then I should see appNames for all apps listed", func() {
@@ -934,7 +935,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I check for list of commits for app1", func() {
-			commitList1, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits", WEGO_BIN_PATH, appName1))
+			commitList1, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", WEGO_BIN_PATH, appName1))
 		})
 
 		By("Then I should see the list of commits for app1", func() {
@@ -944,7 +945,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I check for list of commits for app2", func() {
-			commitList2, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits", WEGO_BIN_PATH, appName2))
+			commitList2, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", WEGO_BIN_PATH, appName2))
 		})
 
 		By("Then I should see the list of commits for app2", func() {
@@ -974,8 +975,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		public := false
 		replicaSetValue := 3
 
-		addCommand1 := "app add . --name=" + appName1 + " --auto-merge=true"
-		addCommand2 := "app add . --name=" + appName2 + " --auto-merge=true"
+		addCommand1 := "add app . --name=" + appName1 + " --auto-merge=true"
+		addCommand2 := "add app . --name=" + appName2 + " --auto-merge=true"
 
 		defer deleteRepo(tip1.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteRepo(tip2.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
@@ -1012,19 +1013,19 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("And I run gitops app add command for 1st app", func() {
+		By("And I run gitops add app command for 1st app", func() {
 			runWegoAddCommand(repoAbsolutePath1, addCommand1, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("And I run gitops app add command for 2nd app", func() {
+		By("And I run gitops add app command for 2nd app", func() {
 			runWegoAddCommand(repoAbsolutePath2, addCommand2, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("Then I should see gitops app add command linked the repo1 to the cluster", func() {
+		By("Then I should see gitops add app command linked the repo1 to the cluster", func() {
 			verifyWegoAddCommand(appName1, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("And I should see gitops app add command linked the repo2 to the cluster", func() {
+		By("And I should see gitops add app command linked the repo2 to the cluster", func() {
 			verifyWegoAddCommand(appName2, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -1042,7 +1043,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I check the app status for "+appName1, func() {
-			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName1))
+			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", WEGO_BIN_PATH, appName1))
 		})
 
 		By("Then I should see the status for "+appName1, func() {
@@ -1052,7 +1053,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I check the app status for "+appName2, func() {
-			appStatus2 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName2))
+			appStatus2 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", WEGO_BIN_PATH, appName2))
 		})
 
 		By("Then I should see the status for "+appName2, func() {
@@ -1061,8 +1062,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Eventually(appStatus2).Should(gbytes.Say(`kustomization/` + appName2))
 		})
 
-		By("When I check for apps list", func() {
-			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app list")
+		By("When I check for apps", func() {
+			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get apps")
 		})
 
 		By("Then I should see appNames for both apps listed", func() {
@@ -1070,8 +1071,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Eventually(listOutput).Should(ContainSubstring(appName2))
 		})
 
-		By("When I pause an app: "+appName1, func() {
-			pauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app pause " + appName1)
+		By("When I suspend an app: "+appName1, func() {
+			pauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " suspend app " + appName1)
 		})
 
 		By("Then I should see pause message", func() {
@@ -1079,7 +1080,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I check app status for paused app", func() {
-			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName1))
+			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", WEGO_BIN_PATH, appName1))
 		})
 
 		By("Then I should see pause status as suspended=true", func() {
@@ -1099,8 +1100,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Expect(replicaOutput).To(ContainSubstring("1"))
 		})
 
-		By("When I re-run app pause command", func() {
-			pauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app pause " + appName1)
+		By("When I re-run suspend app command", func() {
+			pauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " suspend app " + appName1)
 		})
 
 		By("Then I should see a console message without any errors", func() {
@@ -1108,7 +1109,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I unpause an app: "+appName1, func() {
-			unpauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app unpause " + appName1)
+			unpauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " resume app " + appName1)
 		})
 
 		By("Then I should see unpause message", func() {
@@ -1122,8 +1123,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Expect(replicaOutput).To(ContainSubstring(strconv.Itoa(replicaSetValue)))
 		})
 
-		By("When I re-run app unpause command", func() {
-			unpauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app unpause " + appName1)
+		By("When I re-run resume app command", func() {
+			unpauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " resume app " + appName1)
 		})
 
 		By("Then I should see unpause message without any errors", func() {
@@ -1131,7 +1132,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I check app status for unpaused app", func() {
-			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName1))
+			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", WEGO_BIN_PATH, appName1))
 		})
 
 		By("Then I should see pause status as suspended=false", func() {
@@ -1139,7 +1140,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I check for list of commits for app2", func() {
-			commitList2, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits", WEGO_BIN_PATH, appName2))
+			commitList2, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", WEGO_BIN_PATH, appName2))
 		})
 
 		By("Then I should see the list of commits for app2", func() {
@@ -1149,11 +1150,11 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
 		})
 
-		By("When I remove an app", func() {
-			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app remove " + appName2)
+		By("When I delete an app", func() {
+			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " delete app " + appName2)
 		})
 
-		By("Then I should see app removing message", func() {
+		By("Then I should see app deleting message", func() {
 			Eventually(appRemoveOutput).Should(gbytes.Say("► Removing application from cluster and repository"))
 			Eventually(appRemoveOutput).Should(gbytes.Say("► Committing and pushing gitops updates for application"))
 			Eventually(appRemoveOutput).Should(gbytes.Say("► Pushing app changes to repository"))
@@ -1164,7 +1165,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I check for list of commits for app1", func() {
-			commitList1, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits", WEGO_BIN_PATH, appName1))
+			commitList1, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", WEGO_BIN_PATH, appName1))
 		})
 
 		By("Then I should see the list of commits for app1", func() {
@@ -1175,7 +1176,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I check for list of commits for a deleted app", func() {
-			_, commitList2 = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits", WEGO_BIN_PATH, appName2))
+			_, commitList2 = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", WEGO_BIN_PATH, appName2))
 		})
 
 		By("Then I should not see the list of commits for app2", func() {
@@ -1194,7 +1195,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		appRepoName := "wego-test-app-" + RandString(8)
 		badAppName := "foo"
 
-		addCommand := "app add . --deployment-type=helm --path=./hello-world --name=" + appName + " --app-config-url=NONE"
+		addCommand := "add app . --deployment-type=helm --path=./hello-world --name=" + appName + " --app-config-url=NONE"
 
 		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 
@@ -1237,7 +1238,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			VerifyControllersInCluster(WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("When I rerun gitops app add command", func() {
+		By("When I rerun gitops add app command", func() {
 			_, reAddOutput = runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand))
 		})
 
@@ -1246,20 +1247,20 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And app status should remain same", func() {
-			out := runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app status " + appName)
+			out := runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " get app " + appName)
 			Eventually(out).Should(gbytes.Say(`helmrelease/` + appName + `\s*True\s*.*False`))
 		})
 
-		By("When I run gitops app remove", func() {
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s app remove %s", WEGO_BIN_PATH, appName))
+		By("When I run gitops delete app", func() {
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s delete app %s", WEGO_BIN_PATH, appName))
 		})
 
-		By("Then I should see app removed from the cluster", func() {
+		By("Then I should see app deleted from the cluster", func() {
 			_ = waitForAppRemoval(appName, THIRTY_SECOND_TIMEOUT)
 		})
 
-		By("When I run gitops app remove for a non-existent app", func() {
-			removeOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app remove " + badAppName)
+		By("When I run gitops delete app for a non-existent app", func() {
+			removeOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " delete app " + badAppName)
 		})
 
 		By("Then I should get an error", func() {
@@ -1274,7 +1275,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		appManifestFilePath := "./data/helm-repo/hello-world"
 		appRepoName := "wego-test-app-" + RandString(8)
 
-		addCommand := "app add . --deployment-type=helm --path=./hello-world --name=" + appName + " --auto-merge=true"
+		addCommand := "add app . --deployment-type=helm --path=./hello-world --name=" + appName + " --auto-merge=true"
 
 		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 
@@ -1317,7 +1318,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		configRepoName := "wego-test-config-repo-" + RandString(8)
 		configRepoUrl := fmt.Sprintf("ssh://git@github.com/%s/%s.git", os.Getenv("GITHUB_ORG"), configRepoName)
 
-		addCommand := fmt.Sprintf("app add . --app-config-url=%s --deployment-type=helm --path=./hello-world --name=%s --auto-merge=true", configRepoUrl, appName)
+		addCommand := fmt.Sprintf("add app . --app-config-url=%s --deployment-type=helm --path=./hello-world --name=%s --auto-merge=true", configRepoUrl, appName)
 
 		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteRepo(configRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
@@ -1345,22 +1346,16 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("There is no .wego folder in the app repo", func() {
+		By("And there is no .wego folder in the app repo", func() {
 			_, err := os.Stat(repoAbsolutePath + "/.wego")
 			Expect(os.IsNotExist(err)).To(Equal(true))
 		})
 
-		By("The manifests are present in the config repo", func() {
-			pullBranch(configRepoAbsolutePath, "main")
-
-			_, err := os.Stat(fmt.Sprintf("%s/apps/%s/app.yaml", configRepoAbsolutePath, appName))
-			Expect(err).ShouldNot(HaveOccurred())
-
-			_, err = os.Stat(fmt.Sprintf("%s/targets/%s/%s/%s-gitops-source.yaml", configRepoAbsolutePath, clusterName, appName, appName))
-			Expect(err).ShouldNot(HaveOccurred())
-
-			_, err = os.Stat(fmt.Sprintf("%s/targets/%s/%s/%s-gitops-deploy.yaml", configRepoAbsolutePath, clusterName, appName, appName))
-			Expect(err).ShouldNot(HaveOccurred())
+		By("And the manifests are present in the config repo", func() {
+			out, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && git pull origin main", configRepoAbsolutePath))
+			Eventually(out).Should(ContainSubstring(`apps/` + appName + `/app.yaml`))
+			Eventually(out).Should(MatchRegexp(`targets/.*/` + appName + `/` + appName + `-gitops-source.yaml`))
+			Eventually(out).Should(MatchRegexp(`targets/.*/` + appName + `/` + appName + `-gitops-deploy.yaml`))
 		})
 
 		By("Then I should see my workload deployed to the cluster", func() {
@@ -1376,24 +1371,28 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		var listOutput string
 		var appStatus1 string
 		var appStatus2 string
+		var workloadName2 string
+		var workloadName3 string
 		private := true
-		appName1 := "rabbitmq"
-		appName2 := "zookeeper"
-		workloadName1 := "rabbitmq-0"
-		workloadName2 := "test-space-zookeeper-0"
-		workloadNamespace2 := "test-space"
+		appName1 := "loki"
+		appName2 := "promtail"
+		workloadNamespace := "test-space"
+		workloadName1 := workloadNamespace + "-loki-0"
 		readmeFilePath := "./data/README.md"
 		appRepoName := "wego-test-app-" + RandString(8)
 		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
-		helmRepoURL := "https://charts.bitnami.com/bitnami"
+		helmRepoURL := "https://charts.kube-ops.io"
 
-		addCommand1 := "app add --url=" + helmRepoURL + " --chart=" + appName1 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true"
-		addCommand2 := "app add --url=" + helmRepoURL + " --chart=" + appName2 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true --helm-release-target-namespace=" + workloadNamespace2
+		invalidAddCommand := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --auto-merge=true"
 
+		addCommand1 := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true --helm-release-target-namespace=" + workloadNamespace
+		addCommand2 := "add app --url=" + helmRepoURL + " --chart=" + appName2 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true --helm-release-target-namespace=" + workloadNamespace
+
+		defer deleteNamespace(workloadNamespace)
 		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, EVENTUALLY_DEFAULT_TIMEOUT)
 		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName2, EVENTUALLY_DEFAULT_TIMEOUT)
+		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName3, EVENTUALLY_DEFAULT_TIMEOUT)
 		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
-		defer deleteNamespace(workloadNamespace2)
 
 		By("And application repo does not already exist", func() {
 			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
@@ -1401,7 +1400,6 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 
 		By("And application workload is not already deployed to cluster", func() {
 			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, EVENTUALLY_DEFAULT_TIMEOUT)
-			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName2, EVENTUALLY_DEFAULT_TIMEOUT)
 		})
 
 		By("When I create a private git repo", func() {
@@ -1414,32 +1412,39 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("And I create a namespace for helm-app", func() {
-			out, _ := runCommandAndReturnStringOutput("kubectl create ns " + workloadNamespace2)
-			Eventually(out).Should(ContainSubstring("namespace/" + workloadNamespace2 + " created"))
+			out, _ := runCommandAndReturnStringOutput("kubectl create ns " + workloadNamespace)
+			Eventually(out).Should(ContainSubstring("namespace/" + workloadNamespace + " created"))
 		})
 
-		By("And I add a invalid entry without --app-config-url set", func() {
-			addCommand := "app add --url=" + helmRepoURL + " --chart=" + appName1 + " --auto-merge=true"
-			_, err := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		By("And I add an invalid entry without --app-config-url set", func() {
+			_, err := runWegoAddCommandWithOutput(repoAbsolutePath, invalidAddCommand, WEGO_DEFAULT_NAMESPACE)
 			Eventually(err).Should(ContainSubstring("--app-config-url should be provided or set to NONE"))
 		})
 
-		By("And I run gitops app add command for 1st app", func() {
+		By("And I run gitops add app command for 1st app", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand1, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("And I run gitops app add command for 2nd app", func() {
+		By("And I run gitops add app command for 2nd app", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand2, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("Then I should see workload1 deployed to the cluster", func() {
 			verifyWegoHelmAddCommand(appName1, WEGO_DEFAULT_NAMESPACE)
-			verifyHelmPodWorkloadIsDeployed(workloadName1, WEGO_DEFAULT_NAMESPACE)
+			verifyHelmPodWorkloadIsDeployed(workloadName1, workloadNamespace)
 		})
 
 		By("And I should see workload2 deployed to the cluster", func() {
 			verifyWegoHelmAddCommand(appName2, WEGO_DEFAULT_NAMESPACE)
-			verifyHelmPodWorkloadIsDeployed(workloadName2, workloadNamespace2)
+
+			out, _ := runCommandAndReturnStringOutput("kubectl get pods -A --no-headers -o custom-columns=':metadata.name' | grep " + appName2)
+			temp := strings.Split(out, "\n")
+
+			workloadName2 = strings.TrimSpace(temp[0])
+			workloadName3 = strings.TrimSpace(temp[1])
+
+			verifyHelmPodWorkloadIsDeployed(workloadName2, workloadNamespace)
+			verifyHelmPodWorkloadIsDeployed(workloadName3, workloadNamespace)
 		})
 
 		By("And I should see gitops components in the remote git repo", func() {
@@ -1450,8 +1455,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			Expect(folderOutput).Should(ContainSubstring("targets"))
 		})
 
-		By("When I check for apps list", func() {
-			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app list")
+		By("When I check for apps", func() {
+			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get apps")
 		})
 
 		By("Then I should see appNames for both apps listed", func() {
@@ -1460,7 +1465,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I check the app status for "+appName1, func() {
-			appStatus1, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName1)
+			appStatus1, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName1)
 		})
 
 		By("Then I should see the status for app1", func() {
@@ -1470,7 +1475,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		})
 
 		By("When I check the app status for "+appName2, func() {
-			appStatus2, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName2)
+			appStatus2, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName2)
 		})
 
 		By("Then I should see the status for app2", func() {
@@ -1485,7 +1490,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		workloadName := "loki-0"
 		helmRepoURL := "https://charts.kube-ops.io"
 
-		addCommand := "app add --url=" + helmRepoURL + " --chart=" + appName + " --app-config-url=NONE"
+		addCommand := "add app --url=" + helmRepoURL + " --chart=" + appName + " --app-config-url=NONE"
 
 		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName, EVENTUALLY_DEFAULT_TIMEOUT)
 
@@ -1513,7 +1518,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		appName := tip.appRepoName
 		prLink := ""
 
-		addCommand := "app add . --name=" + appName + " --auto-merge=false"
+		addCommand := "add app . --name=" + appName + " --auto-merge=false"
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
@@ -1534,7 +1539,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("When I run gitops app add command for app", func() {
+		By("When I run gitops add app command for app", func() {
 			output, _ := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 			re := regexp.MustCompile(`(http|ftp|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?`)
 			prLink = re.FindAllString(output, -1)[0]
@@ -1560,7 +1565,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		appName := tip.appRepoName
 		prLink := ""
 
-		addCommand := "app add . --name=" + appName + " --auto-merge=false"
+		addCommand := "add app . --name=" + appName + " --auto-merge=false"
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
@@ -1585,7 +1590,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("When I run gitops app add command for app", func() {
+		By("When I run gitops add app command for app", func() {
 			output, _ := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 			re := regexp.MustCompile(`(http|ftp|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?`)
 			prLink = re.FindAllString(output, -1)[0]
@@ -1616,7 +1621,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		appConfigRepoName := "wego-config-repo-" + RandString(8)
 		configRepoRemoteURL = "ssh://git@github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
 
-		addCommand := "app add . --app-config-url=" + configRepoRemoteURL
+		addCommand := "add app . --app-config-url=" + configRepoRemoteURL
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
@@ -1669,8 +1674,8 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 		appName2 := tip2.appRepoName
 		prLink := "https://github.com/" + GITHUB_ORG + "/" + tip.appRepoName + "/pull/1"
 
-		addCommand := "app add . --name=" + appName
-		addCommand2 := "app add . --name=" + appName2
+		addCommand := "add app . --name=" + appName
+		addCommand2 := "add app . --name=" + appName2
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
@@ -1691,7 +1696,7 @@ var _ = Describe("Weave GitOps App Add Tests", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("And I run app add command for "+appName, func() {
+		By("And I run add app command for "+appName, func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -1756,7 +1761,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		workloadNamespace := tip.workloadNamespace
 		appManifestFilePath := tip.appManifestFilePath
 
-		addCommand := "app add . --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
+		addCommand := "add app . --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
 
 		defer deleteRepo(appFilesRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
@@ -1785,7 +1790,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("And I run gitops app add command for app: "+appName, func() {
+		By("And I run gitops add app command for app: "+appName, func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -1795,7 +1800,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 
 		By("When I check the app status for app", func() {
-			appStatus, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName)
+			appStatus, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName)
 		})
 
 		By("Then I should see the status for "+appName, func() {
@@ -1804,8 +1809,8 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			Eventually(appStatus).Should(ContainSubstring(`kustomization/` + appName))
 		})
 
-		By("When I check for apps list", func() {
-			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app list")
+		By("When I check for apps", func() {
+			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get apps")
 		})
 
 		By("Then I should see appNames for all apps listed", func() {
@@ -1844,7 +1849,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		workloadNamespace := tip.workloadNamespace
 		appManifestFilePath := tip.appManifestFilePath
 
-		addCommand := "app add . --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
+		addCommand := "add app . --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
 
 		defer deleteRepo(appFilesRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
 		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
@@ -1877,7 +1882,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("And I run gitops app add command for app: "+appName, func() {
+		By("And I run gitops add app command for app: "+appName, func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -1887,7 +1892,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 
 		By("When I check the app status for app", func() {
-			appStatus, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName)
+			appStatus, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName)
 		})
 
 		By("Then I should see the status for "+appName, func() {
@@ -1896,8 +1901,8 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			Eventually(appStatus).Should(ContainSubstring(`kustomization/` + appName))
 		})
 
-		By("When I check for apps list", func() {
-			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app list")
+		By("When I check for apps", func() {
+			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get apps")
 		})
 
 		By("Then I should see appNames for all apps listed", func() {

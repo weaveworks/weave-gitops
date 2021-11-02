@@ -1,4 +1,4 @@
-package remove
+package app
 
 // Provides support for removing an application from gitops management.
 
@@ -18,14 +18,14 @@ import (
 var params app.RemoveParams
 
 var Cmd = &cobra.Command{
-	Use:   "remove <app name>",
-	Short: "Remove an app from a gitops cluster",
+	Use:   "app <app name>",
+	Short: "Delete an app from a gitops cluster",
 	Long: strings.TrimSpace(dedent.Dedent(`
-        Removes an application from a gitops cluster so it will no longer be managed via GitOps
+        Deletes an application from a gitops cluster so it will no longer be managed via GitOps
     `)),
 	Example: `
-  # Remove application from gitops control via immediate commit
-  gitops app remove podinfo
+  # Delete application from gitops control via immediate commit
+  gitops delete app podinfo
 `,
 	Args:          cobra.MinimumNArgs(1),
 	RunE:          runCmd,
@@ -37,7 +37,7 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'gitops app remove' will not make any changes to the system; it will just display the actions that would have been taken")
+	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'gitops delete app' will not make any changes to the system; it will just display the actions that would have been taken")
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
@@ -52,7 +52,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	if err := appService.Remove(params); err != nil {
-		return errors.Wrapf(err, "failed to remove the app %s", params.Name)
+		return errors.Wrapf(err, "failed to delete the app %s", params.Name)
 	}
 
 	return nil
