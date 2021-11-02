@@ -26,7 +26,6 @@ import (
 
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
 	"github.com/go-logr/logr"
@@ -120,7 +119,7 @@ func DefaultConfig() (*ApplicationsConfig, error) {
 
 	return &ApplicationsConfig{
 		Logger:           logr,
-		Factory:          services.NewFactory(fluxClient, logger.NewApiLogger(zapLog)),
+		Factory:          services.NewFactory(fluxClient, internal.NewApiLogger(zapLog)),
 		JwtClient:        jwtClient,
 		KubeClient:       rawClient,
 		GithubAuthClient: auth.NewGithubAuthProvider(http.DefaultClient),

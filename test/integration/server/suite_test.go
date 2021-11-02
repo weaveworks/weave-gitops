@@ -1,4 +1,4 @@
-// +build !unittest
+//go:build !unittest
 
 package server_test
 
@@ -17,7 +17,7 @@ import (
 	. "github.com/onsi/gomega"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/server"
@@ -76,7 +76,7 @@ var _ = BeforeSuite(func() {
 	)
 	Expect(err).NotTo(HaveOccurred())
 
-	factory := services.NewFactory(fluxClient, logger.NewApiLogger(zap.NewNop()))
+	factory := services.NewFactory(fluxClient, &loggerfakes.FakeLogger{})
 	Expect(err).NotTo(HaveOccurred())
 
 	cfg := &server.ApplicationsConfig{
