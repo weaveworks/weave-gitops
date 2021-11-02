@@ -19,13 +19,15 @@ func CredentialCommand(endpoint *string, client *resty.Client) *cobra.Command {
 # Get all CAPI credentials
 gitops get credentials
 		`,
-		RunE: getTemplateCmdRunE(endpoint, client),
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE:          getCredentialCmdRunE(endpoint, client),
 	}
 
 	return cmd
 }
 
-func getTemplateCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getCredentialCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
 		if err != nil {

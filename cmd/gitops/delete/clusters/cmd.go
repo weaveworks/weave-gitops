@@ -30,8 +30,10 @@ func ClusterCommand(endpoint *string, client *resty.Client) *cobra.Command {
 # Delete a CAPI cluster by its name
 gitops delete cluster <cluster-name>
 		`,
-		RunE: deleteClusterCmdRunE(endpoint, client),
-		Args: cobra.MinimumNArgs(1),
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE:          getClusterCmdRunE(endpoint, client),
+		Args:          cobra.MinimumNArgs(1),
 	}
 
 	cmd.PersistentFlags().StringVar(&clustersDeleteCmdFlags.RepositoryURL, "url", "", "The repository to open a pull request against")
@@ -44,7 +46,7 @@ gitops delete cluster <cluster-name>
 	return cmd
 }
 
-func deleteClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
 		if err != nil {

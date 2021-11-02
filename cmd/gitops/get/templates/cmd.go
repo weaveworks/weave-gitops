@@ -44,8 +44,10 @@ gitops get templates --provider aws
 # Show the parameters of a CAPI template
 gitops get template <template-name> --list-parameters
 		`,
-		RunE: getTemplateCmdRunE(endpoint, client),
-		Args: cobra.MaximumNArgs(1),
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE:          getTemplateCmdRunE(endpoint, client),
+		Args:          cobra.MaximumNArgs(1),
 	}
 
 	cmd.Flags().BoolVar(&flags.ListTemplateParameters, "list-parameters", false, "Show parameters of CAPI template")

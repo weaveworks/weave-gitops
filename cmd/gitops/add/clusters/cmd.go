@@ -37,7 +37,9 @@ gitops add cluster --from-template <template-name> --set key=val
 # without creating a pull request for it
 gitops add cluster --from-template <template-name> --set key=val --dry-run
 		`,
-		RunE: getClusterCmdRunE(endpoint, client),
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE:          getClusterCmdRunE(endpoint, client),
 	}
 
 	cmd.Flags().BoolVar(&flags.DryRun, "dry-run", false, "View the populated template without creating a pull request")

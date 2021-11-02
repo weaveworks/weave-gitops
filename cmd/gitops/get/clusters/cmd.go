@@ -31,7 +31,9 @@ gitops get cluster <cluster-name>
 
 # Get the Kubeconfig of a cluster
 gitops get cluster <cluster-name> --kubeconfig`,
-		RunE: getClustersCmdRunE(endpoint, client),
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE:          getClusterCmdRunE(endpoint, client),
 	}
 
 	cmd.PersistentFlags().BoolVar(&clustersGetCmdFlags.Kubeconfig, "kubeconfig", false, "Returns the Kubeconfig of the workload cluster")
@@ -39,7 +41,7 @@ gitops get cluster <cluster-name> --kubeconfig`,
 	return cmd
 }
 
-func getClustersCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
 		if err != nil {

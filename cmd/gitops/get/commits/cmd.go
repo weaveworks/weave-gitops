@@ -21,8 +21,10 @@ var Cmd = &cobra.Command{
 	Example: `
 # Get last 10 commits for an application
 gitops get commits <app-name>`,
-	Args: cobra.ExactArgs(1),
-	RunE: runCmd,
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	Args:          cobra.ExactArgs(1),
+	RunE:          runCmd,
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
