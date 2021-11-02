@@ -56,7 +56,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 
-		By(" And application repo does not already exist", func() {
+		By("And application repo does not already exist", func() {
 			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
