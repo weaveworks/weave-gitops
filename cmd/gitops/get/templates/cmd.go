@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/capi"
+	"github.com/weaveworks/weave-gitops/pkg/wegoerrors"
 	"k8s.io/cli-runtime/pkg/printers"
 )
 
@@ -46,6 +48,7 @@ gitops get template <template-name> --list-parameters
 		`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
+		PreRunE:       getTemplateCmdPreRunE(endpoint, client),
 		RunE:          getTemplateCmdRunE(endpoint, client),
 		Args:          cobra.MaximumNArgs(1),
 	}
@@ -54,6 +57,16 @@ gitops get template <template-name> --list-parameters
 	cmd.Flags().StringVar(&flags.Provider, "provider", "", fmt.Sprintf("Filter templates by provider. Supported providers: %s", strings.Join(providers, " ")))
 
 	return cmd
+}
+
+func getTemplateCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+	return func(c *cobra.Command, args []string) error {
+		if *endpoint == "" {
+			return wegoerrors.ErrWGEHTTPApiEndpointNotSet
+		}
+
+		return nil
+	}
 }
 
 func getTemplateCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
@@ -68,7 +81,7 @@ func getTemplateCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comm
 
 		if flags.ListTemplateParameters {
 			if len(args) == 0 {
-				return fmt.Errorf("template name is required")
+				return errors.New("template name is required")
 			}
 
 			return capi.GetTemplateParameters(args[0], r, w)

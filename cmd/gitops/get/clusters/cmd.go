@@ -1,13 +1,14 @@
 package clusters
 
 import (
-	"fmt"
+	"errors"
 	"os"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/clusters"
+	"github.com/weaveworks/weave-gitops/pkg/wegoerrors"
 	"k8s.io/cli-runtime/pkg/printers"
 )
 
@@ -33,12 +34,23 @@ gitops get cluster <cluster-name>
 gitops get cluster <cluster-name> --kubeconfig`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
+		PreRunE:       getClusterCmdPreRunE(endpoint, client),
 		RunE:          getClusterCmdRunE(endpoint, client),
 	}
 
 	cmd.PersistentFlags().BoolVar(&clustersGetCmdFlags.Kubeconfig, "kubeconfig", false, "Returns the Kubeconfig of the workload cluster")
 
 	return cmd
+}
+
+func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+	return func(c *cobra.Command, s []string) error {
+		if *endpoint == "" {
+			return wegoerrors.ErrWGEHTTPApiEndpointNotSet
+		}
+
+		return nil
+	}
 }
 
 func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
@@ -54,7 +66,7 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 
 		if clustersGetCmdFlags.Kubeconfig {
 			if len(args) == 0 {
-				return fmt.Errorf("cluster name is required")
+				return errors.New("cluster name is required")
 			}
 
 			return clusters.GetClusterKubeconfig(args[0], r, os.Stdout)

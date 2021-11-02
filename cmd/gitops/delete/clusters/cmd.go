@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/clusters"
+	"github.com/weaveworks/weave-gitops/pkg/wegoerrors"
 )
 
 type clustersDeleteFlags struct {
@@ -32,6 +33,7 @@ gitops delete cluster <cluster-name>
 		`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
+		PreRunE:       getClusterCmdPreRunE(endpoint, client),
 		RunE:          getClusterCmdRunE(endpoint, client),
 		Args:          cobra.MinimumNArgs(1),
 	}
@@ -44,6 +46,16 @@ gitops delete cluster <cluster-name>
 	cmd.PersistentFlags().StringVar(&clustersDeleteCmdFlags.CommitMessage, "commit-message", "", "The commit message to use when deleting the clusters")
 
 	return cmd
+}
+
+func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+	return func(cmd *cobra.Command, args []string) error {
+		if *endpoint == "" {
+			return wegoerrors.ErrWGEHTTPApiEndpointNotSet
+		}
+
+		return nil
+	}
 }
 
 func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {

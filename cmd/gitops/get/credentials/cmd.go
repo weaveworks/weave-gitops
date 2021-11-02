@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/capi"
+	"github.com/weaveworks/weave-gitops/pkg/wegoerrors"
 	"k8s.io/cli-runtime/pkg/printers"
 )
 
@@ -21,10 +22,21 @@ gitops get credentials
 		`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
+		PreRunE:       getCredentialCmdPreRunE(endpoint, client),
 		RunE:          getCredentialCmdRunE(endpoint, client),
 	}
 
 	return cmd
+}
+
+func getCredentialCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+	return func(c *cobra.Command, s []string) error {
+		if *endpoint == "" {
+			return wegoerrors.ErrWGEHTTPApiEndpointNotSet
+		}
+
+		return nil
+	}
 }
 
 func getCredentialCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {

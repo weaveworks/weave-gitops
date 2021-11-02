@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/capi"
+	"github.com/weaveworks/weave-gitops/pkg/wegoerrors"
 )
 
 type clusterCommandFlags struct {
@@ -39,6 +40,7 @@ gitops add cluster --from-template <template-name> --set key=val --dry-run
 		`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
+		PreRunE:       getClusterCmdPreRunE(endpoint, client),
 		RunE:          getClusterCmdRunE(endpoint, client),
 	}
 
@@ -54,6 +56,16 @@ gitops add cluster --from-template <template-name> --set key=val --dry-run
 	cmd.Flags().StringVar(&flags.Credentials, "set-credentials", "", "The CAPI credentials to use")
 
 	return cmd
+}
+
+func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+	return func(c *cobra.Command, s []string) error {
+		if *endpoint == "" {
+			return wegoerrors.ErrWGEHTTPApiEndpointNotSet
+		}
+
+		return nil
+	}
 }
 
 func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
