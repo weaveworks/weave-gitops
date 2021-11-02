@@ -55,6 +55,9 @@ type ApplicationsClient interface {
 	//
 	// RemoveApplication removes an Application from a cluster via GitOps.
 	RemoveApplication(ctx context.Context, in *RemoveApplicationRequest, opts ...grpc.CallOption) (*RemoveApplicationResponse, error)
+	//
+	// SyncApplication triggers the Application reconciliation loop.
+	SyncApplication(ctx context.Context, in *SyncApplicationRequest, opts ...grpc.CallOption) (*SyncApplicationResponse, error)
 }
 
 type applicationsClient struct {
@@ -155,6 +158,15 @@ func (c *applicationsClient) RemoveApplication(ctx context.Context, in *RemoveAp
 	return out, nil
 }
 
+func (c *applicationsClient) SyncApplication(ctx context.Context, in *SyncApplicationRequest, opts ...grpc.CallOption) (*SyncApplicationResponse, error) {
+	out := new(SyncApplicationResponse)
+	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/SyncApplication", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ApplicationsServer is the server API for Applications service.
 // All implementations must embed UnimplementedApplicationsServer
 // for forward compatibility
@@ -196,6 +208,9 @@ type ApplicationsServer interface {
 	//
 	// RemoveApplication removes an Application from a cluster via GitOps.
 	RemoveApplication(context.Context, *RemoveApplicationRequest) (*RemoveApplicationResponse, error)
+	//
+	// SyncApplication triggers the Application reconciliation loop.
+	SyncApplication(context.Context, *SyncApplicationRequest) (*SyncApplicationResponse, error)
 	mustEmbedUnimplementedApplicationsServer()
 }
 
@@ -232,6 +247,9 @@ func (UnimplementedApplicationsServer) AddApplication(context.Context, *AddAppli
 }
 func (UnimplementedApplicationsServer) RemoveApplication(context.Context, *RemoveApplicationRequest) (*RemoveApplicationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveApplication not implemented")
+}
+func (UnimplementedApplicationsServer) SyncApplication(context.Context, *SyncApplicationRequest) (*SyncApplicationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SyncApplication not implemented")
 }
 func (UnimplementedApplicationsServer) mustEmbedUnimplementedApplicationsServer() {}
 
@@ -426,6 +444,24 @@ func _Applications_RemoveApplication_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Applications_SyncApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SyncApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationsServer).SyncApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wego_server.v1.Applications/SyncApplication",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationsServer).SyncApplication(ctx, req.(*SyncApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Applications_ServiceDesc is the grpc.ServiceDesc for Applications service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -472,6 +508,10 @@ var Applications_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveApplication",
 			Handler:    _Applications_RemoveApplication_Handler,
+		},
+		{
+			MethodName: "SyncApplication",
+			Handler:    _Applications_SyncApplication_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

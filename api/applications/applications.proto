@@ -119,6 +119,17 @@ service Applications {
             body: "*"
         };
     }
+
+    /*
+    * SyncApplication triggers the Application reconciliation loop.
+    */
+    rpc SyncApplication(SyncApplicationRequest) returns (SyncApplicationResponse) {
+        option (google.api.http) = {
+            post : "/v1/applications/{name}/sync"
+            body: "*"
+        };
+    }
+
 }
 
 // This object represents a single condition for a Kubernetes object.
@@ -236,6 +247,15 @@ message RemoveApplicationRequest {
 }
 
 message RemoveApplicationResponse {
+    bool success = 1;
+}
+
+message SyncApplicationRequest {
+    string name      = 1;
+    string namespace = 2;
+}
+
+message SyncApplicationResponse {
     bool success = 1;
 }
 

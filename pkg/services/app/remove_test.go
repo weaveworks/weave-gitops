@@ -61,7 +61,7 @@ func populateAppRepo() (string, error) {
 	return dir, nil
 }
 
-// Track all resources created during a "wego app add" so that they can be looked up by "kind" and "name"
+// Track all resources created during a "gitops add app" so that they can be looked up by "kind" and "name"
 func storeCreatedResource(manifestData []byte) error {
 	manifests := bytes.Split(manifestData, []byte("\n---\n"))
 	for _, manifest := range manifests {
@@ -209,7 +209,7 @@ func updateAppInfoFromParams() error {
 	return nil
 }
 
-// Run 'wego app add' and gather the resources we expect to be generated
+// Run 'gitops add app' and gather the resources we expect to be generated
 func runAddAndCollectInfo() error {
 	if err := updateAppInfoFromParams(); err != nil {
 		return err

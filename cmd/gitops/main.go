@@ -9,13 +9,14 @@ import (
 	"github.com/spf13/cobra"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/add"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/app"
 	beta "github.com/weaveworks/weave-gitops/cmd/gitops/beta/cmd"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/delete"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/flux"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/install"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/resume"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/suspend"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/ui"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/uninstall"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/upgrade"
@@ -48,24 +49,24 @@ var rootCmd = &cobra.Command{
   gitops help app
 
   # Add application to gitops control from a local git repository
-  gitops app add . --name <myapp>
+  gitops add app . --name <myapp>
   OR
-  gitops app add <myapp-directory>
+  gitops add app <myapp-directory>
 
   # Add application to gitops control from a github repository
-  gitops app add \
+  gitops add app \
     --name <myapp> \
     --url git@github.com:myorg/<myapp> \
     --branch prod-<myapp>
 
   # Get status of application under gitops control
-  gitops app status podinfo
+  gitops get app podinfo
 
-  # Get help for gitops app add command
-  gitops app add -h
-  gitops help app add
+  # Get help for gitops add app command
+  gitops add app -h
+  gitops help add app
 
-  # Show manifests that would be installed by the gitops gitops install command
+  # Show manifests that would be installed by the gitops install command
   gitops install --dry-run
 
   # Install gitops in the %s namespace
@@ -112,7 +113,7 @@ func main() {
 	fluxClient := fluxBin.New(osysClient, cliRunner)
 	fluxClient.SetupBin()
 	rootCmd.PersistentFlags().BoolVarP(&options.verbose, "verbose", "v", false, "Enable verbose output")
-	rootCmd.PersistentFlags().String("namespace", wego.DefaultNamespace, "gitops runtime namespace")
+	rootCmd.PersistentFlags().String("namespace", wego.DefaultNamespace, "Weave GitOps runtime namespace")
 	rootCmd.PersistentFlags().StringVarP(&options.endpoint, "endpoint", "e", os.Getenv("WEAVE_GITOPS_ENTERPRISE_API_URL"), "The Weave GitOps Enterprise HTTP API endpoint")
 	rootCmd.PersistentFlags().BoolVar(&options.overrideInCluster, "override-in-cluster", false, "override running in cluster check")
 	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("override-in-cluster"))
@@ -123,10 +124,11 @@ func main() {
 	rootCmd.AddCommand(version.Cmd)
 	rootCmd.AddCommand(flux.Cmd)
 	rootCmd.AddCommand(ui.Cmd)
-	rootCmd.AddCommand(app.ApplicationCmd)
 	rootCmd.AddCommand(get.GetCommand(&options.endpoint, restyClient))
 	rootCmd.AddCommand(add.GetCommand(&options.endpoint, restyClient))
 	rootCmd.AddCommand(delete.DeleteCommand(&options.endpoint, restyClient))
+	rootCmd.AddCommand(resume.GetCommand())
+	rootCmd.AddCommand(suspend.GetCommand())
 	rootCmd.AddCommand(upgrade.Cmd)
 	rootCmd.AddCommand(docs.Cmd)
 

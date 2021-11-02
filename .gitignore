@@ -3,7 +3,7 @@ bin
 /.idea
 
 tools/bin/*
-coverage.out
+*.out
 dist/
 .cache
 .parcel-cache

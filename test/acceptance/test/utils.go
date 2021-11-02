@@ -405,10 +405,12 @@ func uninstallWegoRuntime(namespace string) {
 }
 
 func deleteNamespace(namespace string) {
-	log.Infof("Deleting namespace: " + namespace)
+	log.Infof("Deleting namespace and all its resources: " + namespace)
+	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl delete all --all -n %s", namespace))
+
 	command := exec.Command("kubectl", "delete", "ns", namespace)
 	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Eventually(session).Should(gexec.Exit())
+	Eventually(session, TIMEOUT_TWO_MINUTES).Should(gexec.Exit())
 }
 
 func deleteRepo(appRepoName string, providerName gitproviders.GitProviderName, org string) {
@@ -481,7 +483,7 @@ func waitForAppRemoval(appName string, timeout time.Duration) error {
 	pollInterval := time.Second * 5
 
 	_ = utils.WaitUntil(os.Stdout, pollInterval, timeout, func() error {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s app list", WEGO_BIN_PATH))
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s get apps", WEGO_BIN_PATH))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session).Should(gexec.Exit())
@@ -607,15 +609,6 @@ func gitAddCommitPush(repoAbsolutePath string, appManifestFilePath string) {
 func gitUpdateCommitPush(repoAbsolutePath string) {
 	log.Infof("Pushing changes made to file(s) in repo: %s", repoAbsolutePath)
 	_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("cd %s && git add -u && git commit -m 'edit repo file' && git pull --rebase && git push -f", repoAbsolutePath))
-}
-
-func pullBranch(repoAbsolutePath string, branch string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf(`
-                            cd %s &&
-                            git pull origin %s`, repoAbsolutePath, branch))
-	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
 }
 
 func pullGitRepo(repoAbsolutePath string) {

@@ -46,10 +46,8 @@ func (p orgGitProvider) UploadDeployKey(ctx context.Context, repoUrl RepoURL, de
 		return fmt.Errorf("error getting org repo reference for owner %s, repo %s, %w", repoUrl.Owner(), repoUrl.RepositoryName(), err)
 	}
 
-	fmt.Println("uploading deploy key")
-
 	deployKeyInfo := gitprovider.DeployKeyInfo{
-		Name:     deployKeyName,
+		Name:     DeployKeyName,
 		Key:      deployKey,
 		ReadOnly: gitprovider.BoolVar(false),
 	}

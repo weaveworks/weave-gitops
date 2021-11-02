@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/benbjohnson/clock"
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -42,7 +43,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var ErrEmptyAccessToken = fmt.Errorf("access token is empty")
+var (
+	ErrEmptyAccessToken = errors.New("access token is empty")
+	ErrBadProvider      = errors.New("wrong provider name")
+)
 
 // Flux owner labels
 var (
@@ -96,14 +100,29 @@ func DefaultConfig() (*ApplicationsConfig, error) {
 	secretKey := rand.String(20)
 	jwtClient := auth.NewJwtClient(secretKey)
 
-	_, rawClient, err := kube.NewKubeHTTPClient()
+	rest, clusterName, err := kube.RestConfig()
+	if err != nil {
+		return nil, fmt.Errorf("could not create client config: %w", err)
+	}
+
+	_, rawClient, err := kube.NewKubeHTTPClientWithConfig(rest, clusterName)
 	if err != nil {
 		return nil, fmt.Errorf("could not create kube http client: %w", err)
 	}
 
+	l, err := zap.NewProduction()
+	if err != nil {
+		return nil, fmt.Errorf("error creating logger: %w", err)
+	}
+
+	f, err := apputils.NewServerAppFactory(rest, logger.NewApiLogger(l), clusterName)
+	if err != nil {
+		return nil, fmt.Errorf("could not create factory: %w", err)
+	}
+
 	return &ApplicationsConfig{
 		Logger:           logr,
-		AppFactory:       apputils.NewServerAppFactory(rawClient, logger.NewApiLogger()),
+		AppFactory:       f,
 		JwtClient:        jwtClient,
 		KubeClient:       rawClient,
 		GithubAuthClient: auth.NewGithubAuthProvider(http.DefaultClient),
@@ -229,85 +248,6 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 	}}, nil
 }
 
-func mapHelmReleaseSpecToResponse(helm *helmv2.HelmRelease) *pb.HelmRelease {
-	if helm == nil {
-		return nil
-	}
-
-	return &pb.HelmRelease{
-		Name:            helm.Name,
-		Namespace:       helm.Namespace,
-		TargetNamespace: helm.Spec.TargetNamespace,
-		Conditions:      mapConditions(helm.Status.Conditions),
-		Chart: &pb.HelmChart{
-			Chart:       helm.Spec.Chart.Spec.Chart,
-			Version:     helm.Spec.Chart.Spec.Version,
-			ValuesFiles: helm.Spec.Chart.Spec.ValuesFiles,
-		},
-	}
-}
-
-func mapKustomizationSpecToResponse(kust *kustomizev2.Kustomization) *pb.Kustomization {
-	if kust == nil {
-		return nil
-	}
-
-	return &pb.Kustomization{
-		Name:                kust.Name,
-		Namespace:           kust.Namespace,
-		TargetNamespace:     kust.Spec.TargetNamespace,
-		Path:                kust.Spec.Path,
-		Conditions:          mapConditions(kust.Status.Conditions),
-		Interval:            kust.Spec.Interval.Duration.String(),
-		Prune:               kust.Spec.Prune,
-		LastAppliedRevision: kust.Status.LastAppliedRevision,
-	}
-}
-
-func mapSourceSpecToReponse(src client.Object) *pb.Source {
-	// An src might be nil if it is not reconciled yet,
-	// in which case return nil in the response for the source_conditions key.
-	source := &pb.Source{}
-	if src == nil {
-		return source
-	}
-
-	switch st := src.(type) {
-	case *sourcev1.GitRepository:
-		source.Name = st.Name
-		source.Namespace = st.Namespace
-		source.Url = st.Spec.URL
-		source.Type = pb.Source_Git
-		source.Interval = st.Spec.Interval.Duration.String()
-		source.Suspend = st.Spec.Suspend
-
-		if st.Spec.Timeout != nil {
-			source.Timeout = st.Spec.Timeout.Duration.String()
-		}
-
-		if st.Spec.Reference != nil {
-			source.Reference = st.Spec.Reference.Branch
-		}
-
-		source.Conditions = mapConditions(st.Status.Conditions)
-	case *sourcev1.HelmRepository:
-		source.Name = st.Name
-		source.Namespace = st.Namespace
-		source.Url = st.Spec.URL
-		source.Type = pb.Source_Helm
-		source.Interval = st.Spec.Interval.Duration.String()
-		source.Suspend = st.Spec.Suspend
-
-		if st.Spec.Timeout != nil {
-			source.Timeout = st.Spec.Timeout.Duration.String()
-		}
-
-		source.Conditions = mapConditions(st.Status.Conditions)
-	}
-
-	return source
-}
-
 func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddApplicationRequest) (*pb.AddApplicationResponse, error) {
 	token, err := middleware.ExtractProviderToken(ctx)
 	if err != nil {
@@ -328,8 +268,8 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 	}
 
 	appSrv, err := s.appFactory.GetAppService(ctx, apputils.AppServiceParams{
-		URL:       msg.Url,
-		ConfigURL: msg.ConfigUrl,
+		URL:       appUrl.String(),
+		ConfigURL: configUrl.String(),
 		Namespace: msg.Namespace,
 		Token:     token.AccessToken,
 	})
@@ -402,6 +342,29 @@ func (s *applicationServer) RemoveApplication(ctx context.Context, msg *pb.Remov
 	}
 
 	return &pb.RemoveApplicationResponse{Success: true}, nil
+}
+
+func (s *applicationServer) SyncApplication(ctx context.Context, msg *pb.SyncApplicationRequest) (*pb.SyncApplicationResponse, error) {
+	kube, err := s.appFactory.GetKubeService()
+	if err != nil {
+		return &pb.SyncApplicationResponse{
+			Success: false,
+		}, fmt.Errorf("failed to create kube service: %w", err)
+	}
+
+	appSrv := &app.App{
+		Kube:  kube,
+		Clock: clock.New(),
+	}
+	if err := appSrv.Sync(app.SyncParams{Name: msg.Name, Namespace: msg.Namespace}); err != nil {
+		return &pb.SyncApplicationResponse{
+			Success: false,
+		}, fmt.Errorf("error syncing app: %w", err)
+	}
+
+	return &pb.SyncApplicationResponse{
+		Success: true,
+	}, nil
 }
 
 //Until the middleware is done this function will not be able to get the token and will fail
@@ -606,6 +569,104 @@ func (s *applicationServer) GetGithubAuthStatus(ctx context.Context, msg *pb.Get
 	return &pb.GetGithubAuthStatusResponse{AccessToken: t}, nil
 }
 
+// Authenticate generates and returns a jwt token using git provider name and git provider token
+func (s *applicationServer) Authenticate(_ context.Context, msg *pb.AuthenticateRequest) (*pb.AuthenticateResponse, error) {
+	if !strings.HasPrefix(github.DefaultDomain, msg.ProviderName) &&
+		!strings.HasPrefix(gitlab.DefaultDomain, msg.ProviderName) {
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "%s expected github or gitlab, got %s", ErrBadProvider, msg.ProviderName)
+	}
+
+	if msg.AccessToken == "" {
+		return nil, grpcStatus.Error(codes.InvalidArgument, ErrEmptyAccessToken.Error())
+	}
+
+	token, err := s.jwtClient.GenerateJWT(auth.ExpirationTime, gitproviders.GitProviderName(msg.GetProviderName()), msg.GetAccessToken())
+	if err != nil {
+		return nil, grpcStatus.Errorf(codes.Internal, "error generating jwt token. %s", err)
+	}
+
+	return &pb.AuthenticateResponse{Token: token}, nil
+}
+
+func mapHelmReleaseSpecToResponse(helm *helmv2.HelmRelease) *pb.HelmRelease {
+	if helm == nil {
+		return nil
+	}
+
+	return &pb.HelmRelease{
+		Name:            helm.Name,
+		Namespace:       helm.Namespace,
+		TargetNamespace: helm.Spec.TargetNamespace,
+		Conditions:      mapConditions(helm.Status.Conditions),
+		Chart: &pb.HelmChart{
+			Chart:       helm.Spec.Chart.Spec.Chart,
+			Version:     helm.Spec.Chart.Spec.Version,
+			ValuesFiles: helm.Spec.Chart.Spec.ValuesFiles,
+		},
+	}
+}
+
+func mapKustomizationSpecToResponse(kust *kustomizev2.Kustomization) *pb.Kustomization {
+	if kust == nil {
+		return nil
+	}
+
+	return &pb.Kustomization{
+		Name:                kust.Name,
+		Namespace:           kust.Namespace,
+		TargetNamespace:     kust.Spec.TargetNamespace,
+		Path:                kust.Spec.Path,
+		Conditions:          mapConditions(kust.Status.Conditions),
+		Interval:            kust.Spec.Interval.Duration.String(),
+		Prune:               kust.Spec.Prune,
+		LastAppliedRevision: kust.Status.LastAppliedRevision,
+	}
+}
+
+func mapSourceSpecToReponse(src client.Object) *pb.Source {
+	// An src might be nil if it is not reconciled yet,
+	// in which case return nil in the response for the source_conditions key.
+	source := &pb.Source{}
+	if src == nil {
+		return source
+	}
+
+	switch st := src.(type) {
+	case *sourcev1.GitRepository:
+		source.Name = st.Name
+		source.Namespace = st.Namespace
+		source.Url = st.Spec.URL
+		source.Type = pb.Source_Git
+		source.Interval = st.Spec.Interval.Duration.String()
+		source.Suspend = st.Spec.Suspend
+
+		if st.Spec.Timeout != nil {
+			source.Timeout = st.Spec.Timeout.Duration.String()
+		}
+
+		if st.Spec.Reference != nil {
+			source.Reference = st.Spec.Reference.Branch
+		}
+
+		source.Conditions = mapConditions(st.Status.Conditions)
+	case *sourcev1.HelmRepository:
+		source.Name = st.Name
+		source.Namespace = st.Namespace
+		source.Url = st.Spec.URL
+		source.Type = pb.Source_Helm
+		source.Interval = st.Spec.Interval.Duration.String()
+		source.Suspend = st.Spec.Suspend
+
+		if st.Spec.Timeout != nil {
+			source.Timeout = st.Spec.Timeout.Duration.String()
+		}
+
+		source.Conditions = mapConditions(st.Status.Conditions)
+	}
+
+	return source
+}
+
 // Returns k8s objects that can be used to find the cluster objects.
 // The first return argument is the source, the second is the deployment
 func findFluxObjects(app *wego.Application) (client.Object, client.Object, error) {
@@ -666,25 +727,4 @@ func mapConditions(conditions []metav1.Condition) []*pb.Condition {
 	}
 
 	return out
-}
-
-var ErrBadProvider = errors.New("wrong provider name")
-
-// Authenticate generates and returns a jwt token using git provider name and git provider token
-func (s *applicationServer) Authenticate(_ context.Context, msg *pb.AuthenticateRequest) (*pb.AuthenticateResponse, error) {
-	if !strings.HasPrefix(github.DefaultDomain, msg.ProviderName) &&
-		!strings.HasPrefix(gitlab.DefaultDomain, msg.ProviderName) {
-		return nil, grpcStatus.Errorf(codes.InvalidArgument, "%s expected github or gitlab, got %s", ErrBadProvider, msg.ProviderName)
-	}
-
-	if msg.AccessToken == "" {
-		return nil, grpcStatus.Error(codes.InvalidArgument, ErrEmptyAccessToken.Error())
-	}
-
-	token, err := s.jwtClient.GenerateJWT(auth.ExpirationTime, gitproviders.GitProviderName(msg.GetProviderName()), msg.GetAccessToken())
-	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Internal, "error generating jwt token. %s", err)
-	}
-
-	return &pb.AuthenticateResponse{Token: token}, nil
 }

@@ -39,7 +39,7 @@ If a previous version is installed, then an in-place upgrade will be performed.`
 }
 
 func init() {
-	Cmd.Flags().BoolVar(&installParams.DryRun, "dry-run", false, "outputs all the manifests that would be installed")
+	Cmd.Flags().BoolVar(&installParams.DryRun, "dry-run", false, "Outputs all the manifests that would be installed")
 }
 
 func installRunCmd(cmd *cobra.Command, args []string) error {

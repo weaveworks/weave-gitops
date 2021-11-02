@@ -21,6 +21,7 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	. "github.com/onsi/ginkgo"
@@ -438,8 +439,8 @@ var _ = Describe("ApplicationsServer", func() {
 			}
 			rs.SetOwnerReferences([]metav1.OwnerReference{{
 				UID:        deployment.UID,
-				APIVersion: deployment.APIVersion,
-				Kind:       deployment.Kind,
+				APIVersion: appsv1.SchemeGroupVersion.String(),
+				Kind:       "Deployment",
 				Name:       deployment.Name,
 			}})
 
@@ -710,6 +711,144 @@ var _ = Describe("ApplicationsServer", func() {
 			})
 			commits := []gitprovider.Commit{c}
 
+			gp.GetCommitsReturns(commits, nil)
+
+			res, err := appsClient.ListCommits(contextWithAuth(context.Background()), &pb.ListCommitsRequest{
+				Name:      testApp.Name,
+				Namespace: testApp.Namespace,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res.Commits).To(HaveLen(1))
+			desired := c.Get()
+			Expect(res.Commits[0].Url).To(Equal(desired.URL))
+			Expect(res.Commits[0].Message).To(Equal(desired.Message))
+			Expect(res.Commits[0].Hash).To(Equal(desired.Sha))
+		})
+	})
+
+	Describe("SyncApplication", func() {
+		var (
+			ctx    context.Context
+			name   string
+			app    *wego.Application
+			kust   *kustomizev2.Kustomization
+			source *sourcev1.GitRepository
+		)
+
+		BeforeEach(func() {
+			ctx = context.Background()
+			name = "my-app"
+			app = &wego.Application{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: namespace.Name,
+				},
+				Spec: wego.ApplicationSpec{
+					SourceType:     wego.SourceTypeGit,
+					DeploymentType: wego.DeploymentTypeKustomize,
+				},
+			}
+
+			kust = &kustomizev2.Kustomization{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: namespace.Name,
+				},
+				Spec: kustomizev2.KustomizationSpec{
+					SourceRef: kustomizev2.CrossNamespaceSourceReference{
+						Kind: "GitRepository",
+					},
+				},
+				Status: kustomizev2.KustomizationStatus{
+					ReconcileRequestStatus: meta.ReconcileRequestStatus{
+						LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
+					},
+				},
+			}
+
+			source = &sourcev1.GitRepository{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: namespace.Name,
+				},
+				Spec: sourcev1.GitRepositorySpec{
+					URL: "https://github.com/owner/repo",
+				},
+				Status: sourcev1.GitRepositoryStatus{
+					ReconcileRequestStatus: meta.ReconcileRequestStatus{
+						LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
+					},
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, app)).Should(Succeed())
+			Expect(k8sClient.Create(ctx, source)).Should(Succeed())
+			Expect(k8sClient.Create(ctx, kust)).Should(Succeed())
+		})
+
+		// TODO: Issue 981 fix flaky test
+		XIt("trigger the reconcile loop for an application", func() {
+			appRequest := &pb.SyncApplicationRequest{
+				Name:      name,
+				Namespace: namespace.Name,
+			}
+
+			Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, source)).Should(Succeed())
+			source.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
+			Expect(k8sClient.Status().Update(ctx, source)).Should(Succeed())
+
+			done := make(chan bool)
+			defer close(done)
+
+			go func() {
+				defer GinkgoRecover()
+
+				res, err := appsClient.SyncApplication(contextWithAuth(ctx), appRequest)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(res.Success).To(BeTrue())
+				done <- true
+			}()
+
+			ticker := time.NewTicker(500 * time.Millisecond)
+			for {
+				select {
+				case <-ticker.C:
+					Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, source)).Should(Succeed())
+					source.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
+					Expect(k8sClient.Status().Update(ctx, source)).Should(Succeed())
+					Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, kust)).Should(Succeed())
+					kust.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
+					Expect(k8sClient.Status().Update(ctx, kust)).Should(Succeed())
+				case <-done:
+					return
+				case <-time.After(3 * time.Second):
+					Fail("SyncApplication test timed out")
+				}
+			}
+		})
+	})
+	Describe("ListCommits", func() {
+		It("gets commits for an app", func() {
+			testApp := &wego.Application{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "testapp",
+					Namespace: namespace.Name,
+				},
+				Spec: wego.ApplicationSpec{
+					Branch: "main",
+					Path:   "./k8s",
+					URL:    "https://github.com/owner/repo1",
+				},
+			}
+			Expect(k8sClient.Create(context.Background(), testApp)).To(Succeed())
+
+			c := newTestcommit(gitprovider.CommitInfo{
+				URL:     "http://github.com/testrepo/commit/2349898",
+				Message: "my message",
+				Sha:     "2349898",
+			})
+			commits := []gitprovider.Commit{c}
+			gp.GetCommitsReturns(commits, nil)
 			gp.GetCommitsReturns(commits, nil)
 
 			res, err := appsClient.ListCommits(contextWithAuth(context.Background()), &pb.ListCommitsRequest{

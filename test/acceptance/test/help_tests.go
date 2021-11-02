@@ -72,22 +72,22 @@ var _ = XDescribe("WEGO Help Tests", func() {
 		})
 	})
 
-	It("Verify that gitops app add help flag prints the help text", func() {
+	It("Verify that gitops add app help flag prints the help text", func() {
 
-		By("When I run the command 'gitops app add -h' ", func() {
-			stringOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app add -h")
+		By("When I run the command 'gitops add app -h' ", func() {
+			stringOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " add app -h")
 		})
 
-		By("Then I should see help message printed for gitops app add", func() {
+		By("Then I should see help message printed for gitops add app", func() {
 			Eventually(stringOutput).Should(MatchRegexp(`Associates an additional application in a git repository with a gitops cluster so that its contents may be managed via GitOps\n*Usage:`))
-			Eventually(stringOutput).Should(MatchRegexp(`gitops app add \[--name <name>] \[--url <url>] \[--branch <branch>] \[--path <path within repository>] \ <repository directory> \[flags]`))
-			Eventually(stringOutput).Should(MatchRegexp(`Examples:\ngitops app add .\n*Flags:`))
+			Eventually(stringOutput).Should(MatchRegexp(`gitops add app \[--name <name>] \[--url <url>] \[--branch <branch>] \[--path <path within repository>] \ <repository directory> \[flags]`))
+			Eventually(stringOutput).Should(MatchRegexp(`Examples:\ngitops add app .\n*Flags:`))
 			Eventually(stringOutput).Should(MatchRegexp(`--app-config-url string\s*URL of external repository \(if any\) which will hold automation manifests; NONE to store only in the cluster`))
-			Eventually(stringOutput).Should(MatchRegexp(`--auto-merge\s*If set, 'gitops app add' will merge automatically into the set`))
+			Eventually(stringOutput).Should(MatchRegexp(`--auto-merge\s*If set, 'gitops add app' will merge automatically into the set`))
 			Eventually(stringOutput).Should(MatchRegexp(`--branch\n\s*--branch string\s*Branch to watch within git repository \(default "main"\)`))
 			Eventually(stringOutput).Should(MatchRegexp(`--chart string\s*Specify chart for helm source`))
 			Eventually(stringOutput).Should(MatchRegexp(`--deployment-type string\s*deployment type \[kustomize, helm] \(default "kustomize"\)`))
-			Eventually(stringOutput).Should(MatchRegexp(`--dry-run\s*If set, 'gitops app add' will not make any changes to the system; it will just display the actions that would have been taken`))
+			Eventually(stringOutput).Should(MatchRegexp(`--dry-run\s*If set, 'gitops add app' will not make any changes to the system; it will just display the actions that would have been taken`))
 			Eventually(stringOutput).Should(MatchRegexp(`-h, --help\s*help for add`))
 			Eventually(stringOutput).Should(MatchRegexp(`--name string\s*Name of remote git repository`))
 			Eventually(stringOutput).Should(MatchRegexp(`--path string\s*Path of files within git repository \(default "\.\/"\)`))
@@ -96,28 +96,30 @@ var _ = XDescribe("WEGO Help Tests", func() {
 		})
 	})
 
-	It("Verify that gitops app status help flag prints the help text", func() {
+	It("Verify that gitops get app help flag prints the help text", func() {
 
-		By("When I run the command 'gitops app status -h' ", func() {
-			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app status -h")
+		By("When I run the command 'gitops get app -h' ", func() {
+			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " get app -h")
 		})
 
-		By("Then I should see help message printed for gitops app status", func() {
+		By("Then I should see help message printed for gitops get app", func() {
 			Eventually(string(sessionOutput.Wait().Out.Contents())).Should(MatchRegexp(
-				fmt.Sprintf(`Get status of an app\n*Usage:\n\s*gitops app status <app-name> \[flags]\n*Examples:\ngitops app status podinfo\n*Flags:\n\s*-h, --help\s*help for status\n*\s*Global Flags:\n\s*--namespace string\s*gitops runtime namespace \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace)))
+				`Show information about one or all of the applications under gitops control\n*Usage:\n\s*gitops get app [flags]`))
+			Eventually(stringOutput).Should(MatchRegexp(`Examples:\ngitops get app <app-name>`))
+			Eventually(stringOutput).Should(MatchRegexp(fmt.Sprintf(`Flags:\n\s*-h, --help\s*help for app\n*\s*Global Flags:\n\s*--namespace string\s*gitops runtime namespace \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace)))
 		})
 	})
 
-	It("Verify that gitops app list help flag prints the help text", func() {
+	It("Verify that gitops get apps help flag prints the help text", func() {
 
-		By("When I run the command 'gitops app list -h' ", func() {
-			stringOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app list -h")
+		By("When I run the command 'gitops get apps -h' ", func() {
+			stringOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get apps -h")
 		})
 
-		By("Then I should see help message printed for gitops app list", func() {
-			Eventually(stringOutput).Should(MatchRegexp(`List applications\n*Usage:\n\s*gitops app list \[flags]`))
-			Eventually(stringOutput).Should(MatchRegexp(`Examples:\ngitops app list`))
-			Eventually(stringOutput).Should(MatchRegexp(fmt.Sprintf(`Flags:\n\s*-h, --help\s*help for list\n*\s*Global Flags:\n\s*--namespace string\s*gitops runtime namespace \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace)))
+		By("Then I should see help message printed for gitops get apps", func() {
+			Eventually(stringOutput).Should(MatchRegexp(`Show information about one or all of the applications under gitops control\n*Usage:\n\s*gitops get app [flags]`))
+			Eventually(stringOutput).Should(MatchRegexp(`Examples:\ngitops get apps`))
+			Eventually(stringOutput).Should(MatchRegexp(fmt.Sprintf(`Flags:\n\s*-h, --help\s*help for app\n*\s*Global Flags:\n\s*--namespace string\s*gitops runtime namespace \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace)))
 		})
 	})
 })
