@@ -1,7 +1,7 @@
 on:
   push:
-    branches:
-      - main
+  #  branches:
+  #    - main
   workflow_dispatch:
 
 name: Deploy
@@ -38,6 +38,9 @@ jobs:
           retention-days: 1
 
   coverage:
+    env:
+        GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
+        KUBEBUILDER_ASSETS: ${{ github.workspace }}/kubebuilder/bin
     runs-on: ubuntu-latest
     steps:
     - name: Install Go
@@ -50,6 +53,10 @@ jobs:
       run: npm ci
     - name: Build UI Assets
       run: make cmd/gitops/ui/run/dist/main.js
+    - name: Set up kubebuilder
+      uses: fluxcd/pkg/actions/kubebuilder@main
+    - name: Set up flux dir but let dependencies install flux
+      run: mkdir -p pkg/flux/bin && tools/download-deps.sh $PWD/tools/dependencies.toml
     - name: Setup Kubernetes
       uses: engineerd/setup-kind@v0.5.0
       with:
