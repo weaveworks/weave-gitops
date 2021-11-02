@@ -17,6 +17,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
+	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -215,11 +216,6 @@ func (a *App) printAddSummary(params AddParams) {
 
 const maxKubernetesResourceNameLength = 63
 
-func IsExternalConfigUrl(url string) bool {
-	return strings.ToUpper(url) != string(ConfigTypeNone) &&
-		strings.ToUpper(url) != string(ConfigTypeUserRepo)
-}
-
 func (a *App) updateParametersIfNecessary(ctx context.Context, params AddParams) (AddParams, error) {
 	params.SourceType = wego.SourceTypeGit
 
@@ -261,7 +257,7 @@ func (a *App) updateParametersIfNecessary(ctx context.Context, params AddParams)
 	}
 
 	// making sure the config url is in good format
-	if IsExternalConfigUrl(params.AppConfigUrl) {
+	if models.IsExternalConfigUrl(params.AppConfigUrl) {
 		configRepoUrl, err := gitproviders.NewRepoURL(params.AppConfigUrl)
 		if err != nil {
 			return params, fmt.Errorf("error normalizing url: %w", err)
@@ -824,7 +820,7 @@ func getAppResourceInfo(app wego.Application, clusterName string) (*AppResourceI
 		}
 	}
 
-	if IsExternalConfigUrl(app.Spec.ConfigURL) {
+	if models.IsExternalConfigUrl(app.Spec.ConfigURL) {
 		configRepoUrl, err = gitproviders.NewRepoURL(app.Spec.ConfigURL)
 		if err != nil {
 			return nil, err

@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
@@ -144,7 +145,7 @@ func getGitClientsForApp(ctx context.Context, appName string, namespace string, 
 }
 
 func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelmRepository bool, dryRun bool) (git.Git, git.Git, gitproviders.GitProvider, error) {
-	isExternalConfig := app.IsExternalConfigUrl(configUrl)
+	isExternalConfig := models.IsExternalConfigUrl(configUrl)
 
 	var providerUrl string
 
