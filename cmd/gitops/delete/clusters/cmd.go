@@ -34,12 +34,12 @@ gitops delete cluster <cluster-name>
 		Args: cobra.MinimumNArgs(1),
 	}
 
-	cmd.PersistentFlags().StringVar(&clustersDeleteCmdFlags.RepositoryURL, "pr-repo", "", "The repository to open a pull request against")
-	cmd.PersistentFlags().StringVar(&clustersDeleteCmdFlags.BaseBranch, "pr-base", "", "The base branch to open the pull request against")
-	cmd.PersistentFlags().StringVar(&clustersDeleteCmdFlags.HeadBranch, "pr-branch", "", "The branch to create the pull request from")
-	cmd.PersistentFlags().StringVar(&clustersDeleteCmdFlags.Title, "pr-title", "", "The title of the pull request")
-	cmd.PersistentFlags().StringVar(&clustersDeleteCmdFlags.Description, "pr-description", "", "The description of the pull request")
-	cmd.PersistentFlags().StringVar(&clustersDeleteCmdFlags.CommitMessage, "pr-commit-message", "", "The commit message to use when deleting the clusters")
+	cmd.PersistentFlags().StringVar(&clustersDeleteCmdFlags.RepositoryURL, "url", "", "The repository to open a pull request against")
+	cmd.PersistentFlags().StringVar(&clustersDeleteCmdFlags.BaseBranch, "base", "", "The base branch to open the pull request against")
+	cmd.PersistentFlags().StringVar(&clustersDeleteCmdFlags.HeadBranch, "branch", "", "The branch to create the pull request from")
+	cmd.PersistentFlags().StringVar(&clustersDeleteCmdFlags.Title, "title", "", "The title of the pull request")
+	cmd.PersistentFlags().StringVar(&clustersDeleteCmdFlags.Description, "description", "", "The description of the pull request")
+	cmd.PersistentFlags().StringVar(&clustersDeleteCmdFlags.CommitMessage, "commit-message", "", "The commit message to use when deleting the clusters")
 
 	return cmd
 }
