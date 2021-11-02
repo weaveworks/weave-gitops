@@ -310,6 +310,7 @@ metadata:
 				{"user@weave.works@market.eu-west-2.eksctl.io-podinfo", "market.eu-west-2.eksctl.io-podinfo", "user@weave.works@market.eu-west-2.eksctl.io-podinfo"},
 				{"user@market.eu-west-2.eksctl.io-podinfo", "market.eu-west-2.eksctl.io-podinfo", "user@market.eu-west-2.eksctl.io-podinfo"},
 				{"user@market.eu-west-2.eksctl.io-podinfo", "market.eu-west-2.eksctl.io-podinfo", "market.eu-west-2.eksctl.io-podinfo"},
+				{"cluster_name", "cluster-name", "cluster_name"},
 			}
 			for _, test := range tests {
 				createKubeconfig(test.name, test.clusterName, dir, true)
