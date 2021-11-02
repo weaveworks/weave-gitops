@@ -298,6 +298,9 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create an empty public repo", func() {
+			fmt.Println("----------------------")
+			fmt.Println(GITLAB_PUBLIC_GROUP)
+			fmt.Println("----------------------")
 			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitLab, private, GITLAB_PUBLIC_GROUP)
 		})
 
