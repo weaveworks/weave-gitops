@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/server/internal/middleware"
+	middleware2 "github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -35,7 +37,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
-	"github.com/weaveworks/weave-gitops/pkg/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
@@ -886,8 +887,8 @@ var _ = Describe("ApplicationsServer", func() {
 					return kubeClient, nil
 				}
 				appsSrv = NewApplicationsServer(&ApplicationsConfig{AppFactory: appFactory, JwtClient: auth.NewJwtClient(secretKey)})
-				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
-				httpHandler = middleware.WithLogging(log, mux)
+				mux = runtime.NewServeMux(middleware2.WithGrpcErrorLogging(log))
+				httpHandler = middleware2.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
 				Expect(err).NotTo(HaveOccurred())
 			})
@@ -942,7 +943,7 @@ var _ = Describe("ApplicationsServer", func() {
 				// This is the meat of this test case.
 				// Check that the same error passed by kubeClient is logged.
 				Expect(err.Error()).To(Equal(errMsg))
-				Expect(msg).To(Equal(middleware.ServerErrorText))
+				Expect(msg).To(Equal(middleware2.ServerErrorText))
 
 			})
 			It("logs ok requests", func() {
@@ -959,7 +960,7 @@ var _ = Describe("ApplicationsServer", func() {
 
 				Expect(log.InfoCallCount()).To(BeNumerically(">", 0))
 				msg, _ := log.InfoArgsForCall(0)
-				Expect(msg).To(ContainSubstring(middleware.RequestOkText))
+				Expect(msg).To(ContainSubstring(middleware2.RequestOkText))
 
 				vals := log.WithValuesArgsForCall(0)
 				list := formatLogVals(vals)
@@ -980,8 +981,8 @@ var _ = Describe("ApplicationsServer", func() {
 					return kubeClient, nil
 				}
 				appsSrv = NewApplicationsServer(&ApplicationsConfig{AppFactory: appFactory, JwtClient: fakeJWTToken})
-				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
-				httpHandler = middleware.WithLogging(log, mux)
+				mux = runtime.NewServeMux(middleware2.WithGrpcErrorLogging(log))
+				httpHandler = middleware2.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -1003,7 +1004,7 @@ var _ = Describe("ApplicationsServer", func() {
 
 				Expect(log.InfoCallCount()).To(BeNumerically(">", 0))
 				msg, _ := log.InfoArgsForCall(0)
-				Expect(msg).To(ContainSubstring(middleware.ServerErrorText))
+				Expect(msg).To(ContainSubstring(middleware2.ServerErrorText))
 
 				vals := log.WithValuesArgsForCall(0)
 				list := formatLogVals(vals)
