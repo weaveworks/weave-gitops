@@ -128,7 +128,7 @@ function AddApplication({ className }: Props) {
   const [formState, setFormState] = React.useState({
     name: "",
     namespace: "wego-system",
-    path: "",
+    path: "./",
     branch: "main",
     url: "",
     configUrl: "",
@@ -232,19 +232,6 @@ function AddApplication({ className }: Props) {
             </FormHelperText>
           </FormElement>
           <FormElement>
-            {/* <TextField
-              onChange={(e) => {
-                setFormState({
-                  ...formState,
-                  url: e.currentTarget.value,
-                });
-              }}
-              required
-              id="url"
-              label="Source Repo URL"
-              variant="standard"
-              value={formState.url}
-            /> */}
             <RepoInputWithAuth
               onChange={(e) => {
                 setFormState({
@@ -252,15 +239,14 @@ function AddApplication({ className }: Props) {
                   url: e.currentTarget.value,
                 });
               }}
+              onAuthClick={(provider) => console.log(provider)}
               required
               id="url"
               label="Source Repo URL"
               variant="standard"
               value={formState.url}
+              helperText="The git repository URL where the application YAML files are stored"
             />
-            <FormHelperText>
-              The git repository URL where the application YAML files are stored
-            </FormHelperText>
           </FormElement>
           <FormElement>
             <TextField
@@ -369,5 +355,9 @@ export default styled(AddApplication).attrs({
 
   .MuiFormHelperText-root {
     color: ${(props) => props.theme.colors.black};
+  }
+
+  .MuiFormControl-root {
+    width: 420px;
   }
 `;
