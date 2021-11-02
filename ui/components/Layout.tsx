@@ -45,7 +45,7 @@ const AppContainer = styled.div`
 `;
 
 const NavContainer = styled.div`
-  min-width: 200px;
+  width: 240px;
   background-color: ${(props) => props.theme.colors.white};
   padding-top: ${(props) => props.theme.spacing.medium};
   padding-right: ${(props) => props.theme.spacing.small};

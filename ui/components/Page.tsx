@@ -16,7 +16,7 @@ export type PageProps = {
   children?: any;
   title?: string;
   breadcrumbs?: { page: PageRoute; query?: any }[];
-  topRight?: any;
+  topRight?: JSX.Element;
   loading?: boolean;
 };
 

@@ -87,17 +87,6 @@ function ApplicationDetail({ className, name }: Props) {
 
   const { application = {} } = res;
 
-  //passed into Page as topRight to appear next to breadcrumbs
-  const AppDetailRemoveButton = (
-    <Button
-      color="secondary"
-      variant="contained"
-      onClick={() => setRemoveAppModalOpen(true)}
-    >
-      Remove App
-    </Button>
-  );
-
   //error options for remove modal
   const RemoveAppAuthError = (
     <>
@@ -106,7 +95,7 @@ function ApplicationDetail({ className, name }: Props) {
           <Alert
             severity="error"
             title="You are not Authenticated!"
-            message={"We need GitHub authentication to remove this app"}
+            message="To remove this app, please authenticate with GitHub"
           />
         </Spacer>
       </Flex>
@@ -132,7 +121,15 @@ function ApplicationDetail({ className, name }: Props) {
       breadcrumbs={[{ page: PageRoute.Applications }]}
       title={name}
       className={className}
-      topRight={AppDetailRemoveButton}
+      topRight={
+        <Button
+          color="secondary"
+          variant="contained"
+          onClick={() => setRemoveAppModalOpen(true)}
+        >
+          Remove App
+        </Button>
+      }
     >
       {authSuccess && (
         <Alert severity="success" message="Authentication Successful" />
