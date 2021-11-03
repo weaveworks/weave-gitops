@@ -546,7 +546,7 @@ func (a *App) generateExternalRepoManifests(ctx context.Context, info *AppResour
 		secretRef = info.repoSecretName(info.Spec.ConfigURL).String()
 	}
 
-	targetSource, err := a.Flux.CreateSourceGit(repoName, info.Spec.ConfigURL, branch, secretRef, info.Namespace)
+	targetSource, err := a.Flux.CreateSourceGit(repoName, info.configRepoUrl, branch, secretRef, info.Namespace)
 	if err != nil {
 		return nil, fmt.Errorf("could not generate target source manifests: %w", err)
 	}
@@ -612,7 +612,7 @@ func (a *App) generateSource(info *AppResourceInfo, secretRef string) (Source, e
 
 	switch info.Spec.SourceType {
 	case wego.SourceTypeGit:
-		b, err = a.Flux.CreateSourceGit(info.Name, info.Spec.URL, info.Spec.Branch, secretRef, info.Namespace)
+		b, err = a.Flux.CreateSourceGit(info.Name, info.appRepoUrl, info.Spec.Branch, secretRef, info.Namespace)
 	case wego.SourceTypeHelm:
 		b, err = a.Flux.CreateSourceHelm(info.Name, info.Spec.URL, info.Namespace)
 

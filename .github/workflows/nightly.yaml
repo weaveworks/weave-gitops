@@ -39,6 +39,7 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
         GITLAB_ORG: weave-gitops
+        GITLAB_PUBLIC_GROUP: public-weave-gitops
         GITLAB_SUBGROUP: weave-gitops-sub
         GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         GITLAB_KEY: ${{ secrets.GITLAB_KEY }}
@@ -159,6 +160,7 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         GITHUB_KEY: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}"
         GITLAB_ORG: weave-gitops
+        GITLAB_PUBLIC_GROUP: public-weave-gitops
         GITLAB_SUBGROUP: weave-gitops-sub
         GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         GITLAB_KEY: ${{ secrets.GITLAB_KEY }}
