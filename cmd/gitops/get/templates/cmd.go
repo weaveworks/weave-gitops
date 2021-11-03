@@ -1,12 +1,14 @@
 package templates
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/capi"
 	"k8s.io/cli-runtime/pkg/printers"
@@ -44,14 +46,31 @@ gitops get templates --provider aws
 # Show the parameters of a CAPI template
 gitops get template <template-name> --list-parameters
 		`,
-		RunE: getTemplateCmdRunE(endpoint, client),
-		Args: cobra.MaximumNArgs(1),
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		PreRunE:       getTemplateCmdPreRunE(endpoint, client),
+		RunE:          getTemplateCmdRunE(endpoint, client),
+		Args:          cobra.MaximumNArgs(1),
 	}
 
 	cmd.Flags().BoolVar(&flags.ListTemplateParameters, "list-parameters", false, "Show parameters of CAPI template")
 	cmd.Flags().StringVar(&flags.Provider, "provider", "", fmt.Sprintf("Filter templates by provider. Supported providers: %s", strings.Join(providers, " ")))
 
 	return cmd
+}
+
+func getTemplateCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+	return func(c *cobra.Command, args []string) error {
+		if c.Flag("provider").Changed && !contains(providers, c.Flag("provider").Value.String()) {
+			return fmt.Errorf("provider %q is not valid", c.Flag("provider").Value.String())
+		}
+
+		if *endpoint == "" {
+			return cmderrors.ErrNoWGEEndpoint
+		}
+
+		return nil
+	}
 }
 
 func getTemplateCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
@@ -66,7 +85,7 @@ func getTemplateCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comm
 
 		if flags.ListTemplateParameters {
 			if len(args) == 0 {
-				return fmt.Errorf("template name is required")
+				return errors.New("template name is required")
 			}
 
 			return capi.GetTemplateParameters(args[0], r, w)
@@ -82,4 +101,14 @@ func getTemplateCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comm
 
 		return nil
 	}
+}
+
+func contains(ss []string, str string) bool {
+	for _, s := range ss {
+		if s == str {
+			return true
+		}
+	}
+
+	return false
 }
