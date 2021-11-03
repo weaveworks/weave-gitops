@@ -8,9 +8,9 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/capi"
-	"github.com/weaveworks/weave-gitops/pkg/wegoerrors"
 	"k8s.io/cli-runtime/pkg/printers"
 )
 
@@ -66,7 +66,7 @@ func getTemplateCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.C
 		}
 
 		if *endpoint == "" {
-			return wegoerrors.ErrWGEHTTPApiEndpointNotSet
+			return cmderrors.ErrNoWGEEndpoint
 		}
 
 		return nil

@@ -6,9 +6,9 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/clusters"
-	"github.com/weaveworks/weave-gitops/pkg/wegoerrors"
 	"k8s.io/cli-runtime/pkg/printers"
 )
 
@@ -46,7 +46,7 @@ gitops get cluster <cluster-name> --kubeconfig`,
 func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(c *cobra.Command, s []string) error {
 		if *endpoint == "" {
-			return wegoerrors.ErrWGEHTTPApiEndpointNotSet
+			return cmderrors.ErrNoWGEEndpoint
 		}
 
 		return nil
