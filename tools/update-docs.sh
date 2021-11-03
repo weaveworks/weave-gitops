@@ -16,18 +16,21 @@ ex - installation.md << EOS
 wq!
 EOS
 # create CLI reference
-${WEAVE_GITOPS_BINARY} docs
-git add *.md
 git rm -f --ignore-unmatch cli-reference.md
-ex - gitops.md << EOS
+git rm -f --ignore-unmatch cli-reference
+mkdir -p cli-reference
+cd cli-reference
+ex - _category_.json << EOS
 1i
----
-sidebar_position: 3
----
- # CLI Reference
- .
+{
+  "label": "CLI Reference",
+  "position": 3
+}
+.
 wq!
 EOS
+${WEAVE_GITOPS_BINARY} docs
+git add *.md
 # create versioned docs
 cd $WEAVE_GITOPS_DOC_REPO
 version_number=$(cut -f2 -d'v' <<< $GITOPS_VERSION)
