@@ -42,6 +42,15 @@ func TestGetCluster(t *testing.T) {
 			},
 			errString: "parse \"not_a_valid_url\": invalid URI for request",
 		},
+		{
+			name: "no endpoint",
+			args: []string{
+				"get", "cluster",
+				"dev-cluster",
+				"--kubeconfig",
+			},
+			errString: "the Weave GitOps Enterprise HTTP API endpoint flag (--endpoint) has not been set",
+		},
 	}
 
 	for _, tt := range tests {

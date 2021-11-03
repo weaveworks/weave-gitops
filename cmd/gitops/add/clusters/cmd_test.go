@@ -124,3 +124,20 @@ func TestSetMultipleAndSeparateValues(t *testing.T) {
 	err := cmd.Execute()
 	assert.NoError(t, err)
 }
+
+func TestEndpointNotSet(t *testing.T) {
+	client := resty.New()
+	cmd := root.RootCmd(client)
+	cmd.SetArgs([]string{
+		"add", "cluster",
+		"--from-template=cluster-template-eks-fargate",
+		"--set=CLUSTER_NAME=dev",
+		"--set=AWS_REGION=us-east-1",
+		"--set=AWS_SSH_KEY_NAME=ssh_key",
+		"--set=KUBERNETES_VERSION=1.19",
+		"--dry-run",
+	})
+
+	err := cmd.Execute()
+	assert.EqualError(t, err, "the Weave GitOps Enterprise HTTP API endpoint flag (--endpoint) has not been set")
+}
