@@ -17,19 +17,25 @@ import (
 	"github.com/pkg/browser"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"go.uber.org/zap"
 )
 
 var (
-	port string
-	path string
+	port           string
+	path           string
+	loggingEnabled bool
 )
 
 var Cmd = &cobra.Command{
-	Use:   "run",
+	Use:   "run [--log]",
 	Short: "Runs gitops ui",
 	RunE:  runCmd,
+}
+
+func init() {
+	Cmd.Flags().BoolVarP(&loggingEnabled, "log", "l", false, "enable logging for the ui")
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
@@ -54,9 +60,9 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create http client: %w", err)
 	}
 
-	logr := zapr.NewLogger(zap.NewNop())
-
-	cfg.Logger = logr
+	if !loggingEnabled {
+		cfg.Logger = zapr.NewLogger(zap.NewNop())
+	}
 
 	appsHandler, err := server.NewApplicationsHandler(context.Background(), cfg)
 	if err != nil {
