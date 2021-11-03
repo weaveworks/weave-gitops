@@ -117,7 +117,7 @@ function GithubDeviceAuthModal({
 
       <Flex wide center>
         {codeLoading || !codeRes ? (
-          <CircularProgress />
+          <CircularProgress size={143} />
         ) : (
           <ModalContent
             onSuccess={(token) => {

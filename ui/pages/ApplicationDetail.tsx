@@ -87,34 +87,6 @@ function ApplicationDetail({ className, name }: Props) {
 
   const { application = {} } = res;
 
-  //error options for remove modal
-  const RemoveAppAuthError = (
-    <>
-      <Flex center>
-        <Spacer padding="small">
-          <Alert
-            severity="error"
-            title="You are not Authenticated!"
-            message="To remove this app, please authenticate with GitHub"
-          />
-        </Spacer>
-      </Flex>
-      <Flex center>
-        <Spacer padding="small">
-          <Button
-            color="primary"
-            variant="contained"
-            onClick={() => {
-              setGithubAuthModalOpen(true);
-            }}
-          >
-            Authenticate with GitHub
-          </Button>
-        </Spacer>
-      </Flex>
-    </>
-  );
-
   return (
     <Page
       loading={loading}
@@ -177,7 +149,7 @@ function ApplicationDetail({ className, name }: Props) {
         open={removeAppModalOpen}
         onClose={() => setRemoveAppModalOpen(false)}
         title="Are You Sure?"
-        description={`You are about to remove ${application.name} from Weave GitOps!`}
+        description={`You are about to remove ${application.name} from Weave GitOps`}
       >
         <Flex align column center wide>
           {authSuccess ? (
@@ -185,7 +157,30 @@ function ApplicationDetail({ className, name }: Props) {
               <Alert severity="success" message="Authentication Successful" />
             </Flex>
           ) : (
-            RemoveAppAuthError
+            <>
+              <Flex center>
+                <Spacer padding="small">
+                  <Alert
+                    severity="error"
+                    title="You are not Authenticated!"
+                    message="To remove this app, please authenticate with GitHub"
+                  />
+                </Spacer>
+              </Flex>
+              <Flex center>
+                <Spacer padding="small">
+                  <Button
+                    color="secondary"
+                    variant="contained"
+                    onClick={() => {
+                      setGithubAuthModalOpen(true);
+                    }}
+                  >
+                    Authenticate with GitHub
+                  </Button>
+                </Spacer>
+              </Flex>
+            </>
           )}
           {removeError && authSuccess && (
             <Flex align center wide>

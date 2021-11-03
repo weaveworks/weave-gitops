@@ -92,4 +92,9 @@ export const GlobalStyle = createGlobalStyle`
 
 export const muiTheme = createTheme({
   typography: { fontFamily: "proxima-nova" },
+  palette: {
+    secondary: {
+      main: "#CC2C00",
+    },
+  },
 });

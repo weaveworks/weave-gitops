@@ -14,8 +14,12 @@ type Props = {
 };
 
 const Body = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
   background-color: ${(props) => props.theme.colors.white};
   margin: 0 auto;
+  height: 400px;
   max-width: 540px;
   padding: 16px 32px;
   transform: translate(0, 50%);
@@ -38,8 +42,10 @@ function Modal({
         aria-describedby="simple-modal-description"
       >
         <Body>
-          <h2 id="simple-modal-title">{title}</h2>
-          <p id="simple-modal-description">{description}</p>
+          <Flex column>
+            <h2 id="simple-modal-title">{title}</h2>
+            <p id="simple-modal-description">{description}</p>
+          </Flex>
           <div>{children}</div>
           <Flex wide end>
             <Button variant="contained" onClick={onClose}>
