@@ -1,7 +1,9 @@
 package adapters_test
 
 import (
+	"bytes"
 	"errors"
+	"io"
 	"net/http"
 	"os"
 	"testing"
@@ -572,5 +574,28 @@ func TestDeleteClusters(t *testing.T) {
 			result, err := c.DeleteClusters(clusters.DeleteClustersParams{})
 			tt.assertFunc(t, result, err)
 		})
+	}
+}
+
+func TestEntitlementExpiredHeader(t *testing.T) {
+	client := resty.New()
+	response := httpmock.NewStringResponse(http.StatusOK, "")
+	response.Header.Add("Entitlement-Expired-Message", "This is a test message")
+
+	httpmock.ActivateNonDefault(client.GetClient())
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterResponder("GET", BaseURI+"/v1/templates", httpmock.ResponderFromResponse(response))
+
+	var buf bytes.Buffer
+	c, err := adapters.NewHttpClient(BaseURI, client, &buf)
+	assert.NoError(t, err)
+	_, err = c.RetrieveTemplates()
+	assert.NoError(t, err)
+	b, err := io.ReadAll(&buf)
+	assert.NoError(t, err)
+
+	if string(b) != "This is a test message\n" {
+		t.Errorf("Expected but got %s", string(b))
 	}
 }

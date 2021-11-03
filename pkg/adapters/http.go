@@ -171,16 +171,16 @@ func (c *HTTPClient) RetrieveTemplateParameters(name string) ([]capi.TemplatePar
 	return tps, nil
 }
 
+// POST request payload
+type TemplateParameterValuesAndCredentials struct {
+	Values      map[string]string `json:"values"`
+	Credentials capi.Credentials  `json:"credentials"`
+}
+
 // RenderTemplateWithParameters returns a YAML representation of the specified
 // template populated with the supplied parameters.
 func (c *HTTPClient) RenderTemplateWithParameters(name string, parameters map[string]string, creds capi.Credentials) (string, error) {
 	endpoint := "v1/templates/{name}/render"
-
-	// POST request payload
-	type TemplateParameterValuesAndCredentials struct {
-		Values      map[string]string `json:"values"`
-		Credentials capi.Credentials  `json:"credentials"`
-	}
 
 	// POST response payload
 	type RenderedTemplate struct {
