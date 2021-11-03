@@ -413,23 +413,15 @@ func (c *HTTPClient) GetClusterKubeconfig(name string) (string, error) {
 func (c *HTTPClient) DeleteClusters(params clusters.DeleteClustersParams) (string, error) {
 	endpoint := "v1/clusters"
 
-	type Credential struct {
-		Group     string
-		Version   string
-		Kind      string
-		Name      string
-		Namespace string
-	}
-
 	type DeleteClustersPullRequestRequest struct {
-		RepositoryUrl string
-		HeadBranch    string
-		BaseBranch    string
-		Title         string
-		Description   string
-		ClusterNames  []string
-		CommitMessage string
-		Credentials   Credential
+		RepositoryUrl string           `json:"repositoryUrl"`
+		HeadBranch    string           `json:"headBranch"`
+		BaseBranch    string           `json:"baseBranch"`
+		Title         string           `json:"title"`
+		Description   string           `json:"description"`
+		ClusterNames  []string         `json:"clusterNames"`
+		CommitMessage string           `json:"commitMessage"`
+		Credentials   capi.Credentials `json:"credentials"`
 	}
 
 	type DeleteClustersResponse struct {
