@@ -53,6 +53,9 @@ var scheme *apiruntime.Scheme
 var k kube.Kube
 var ghAuthClient *authfakes.FakeGithubAuthClient
 var gitProvider *gitprovidersfakes.FakeGitProvider
+var glAuthClient *authfakes.FakeGitlabAuthClient
+var gp *gitprovidersfakes.FakeGitProvider
+var appGit *gitfakes.FakeGit
 var configGit *gitfakes.FakeGit
 var env *testutils.K8sTestEnv
 var fakeFactory *servicesfakes.FakeFactory
@@ -119,6 +122,7 @@ var _ = BeforeEach(func() {
 	}
 
 	ghAuthClient = &authfakes.FakeGithubAuthClient{}
+	glAuthClient = &authfakes.FakeGitlabAuthClient{}
 
 	cfg := ApplicationsConfig{
 		Factory:          fakeFactory,
@@ -126,6 +130,7 @@ var _ = BeforeEach(func() {
 		KubeClient:       k8sClient,
 		GithubAuthClient: ghAuthClient,
 		Fetcher:          applicationv2.NewFetcher(k8sClient),
+		GitlabAuthClient: glAuthClient,
 	}
 	apps = NewApplicationsServer(&cfg)
 	pb.RegisterApplicationsServer(s, apps)

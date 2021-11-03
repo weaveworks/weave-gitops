@@ -49,6 +49,8 @@ type ApplicationsClient interface {
 	// This token will expired in 15 minutes, after which the user will need to complete the flow again
 	// to do Git Provider operations.
 	GetGithubAuthStatus(ctx context.Context, in *GetGithubAuthStatusRequest, opts ...grpc.CallOption) (*GetGithubAuthStatusResponse, error)
+	GetGitlabAuthURL(ctx context.Context, in *GetGitlabAuthURLRequest, opts ...grpc.CallOption) (*GetGitlabAuthURLResponse, error)
+	AuthorizeGitlab(ctx context.Context, in *AuthorizeGitlabRequest, opts ...grpc.CallOption) (*AuthorizeGitlabResponse, error)
 	//
 	// AddApplication adds an Application to a cluster via GitOps.
 	AddApplication(ctx context.Context, in *AddApplicationRequest, opts ...grpc.CallOption) (*AddApplicationResponse, error)
@@ -143,6 +145,24 @@ func (c *applicationsClient) GetGithubAuthStatus(ctx context.Context, in *GetGit
 	return out, nil
 }
 
+func (c *applicationsClient) GetGitlabAuthURL(ctx context.Context, in *GetGitlabAuthURLRequest, opts ...grpc.CallOption) (*GetGitlabAuthURLResponse, error) {
+	out := new(GetGitlabAuthURLResponse)
+	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/GetGitlabAuthURL", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationsClient) AuthorizeGitlab(ctx context.Context, in *AuthorizeGitlabRequest, opts ...grpc.CallOption) (*AuthorizeGitlabResponse, error) {
+	out := new(AuthorizeGitlabResponse)
+	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/AuthorizeGitlab", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *applicationsClient) AddApplication(ctx context.Context, in *AddApplicationRequest, opts ...grpc.CallOption) (*AddApplicationResponse, error) {
 	out := new(AddApplicationResponse)
 	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/AddApplication", in, out, opts...)
@@ -214,6 +234,8 @@ type ApplicationsServer interface {
 	// This token will expired in 15 minutes, after which the user will need to complete the flow again
 	// to do Git Provider operations.
 	GetGithubAuthStatus(context.Context, *GetGithubAuthStatusRequest) (*GetGithubAuthStatusResponse, error)
+	GetGitlabAuthURL(context.Context, *GetGitlabAuthURLRequest) (*GetGitlabAuthURLResponse, error)
+	AuthorizeGitlab(context.Context, *AuthorizeGitlabRequest) (*AuthorizeGitlabResponse, error)
 	//
 	// AddApplication adds an Application to a cluster via GitOps.
 	AddApplication(context.Context, *AddApplicationRequest) (*AddApplicationResponse, error)
@@ -256,6 +278,12 @@ func (UnimplementedApplicationsServer) GetGithubDeviceCode(context.Context, *Get
 }
 func (UnimplementedApplicationsServer) GetGithubAuthStatus(context.Context, *GetGithubAuthStatusRequest) (*GetGithubAuthStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGithubAuthStatus not implemented")
+}
+func (UnimplementedApplicationsServer) GetGitlabAuthURL(context.Context, *GetGitlabAuthURLRequest) (*GetGitlabAuthURLResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGitlabAuthURL not implemented")
+}
+func (UnimplementedApplicationsServer) AuthorizeGitlab(context.Context, *AuthorizeGitlabRequest) (*AuthorizeGitlabResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthorizeGitlab not implemented")
 }
 func (UnimplementedApplicationsServer) AddApplication(context.Context, *AddApplicationRequest) (*AddApplicationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddApplication not implemented")
@@ -426,6 +454,42 @@ func _Applications_GetGithubAuthStatus_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Applications_GetGitlabAuthURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGitlabAuthURLRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationsServer).GetGitlabAuthURL(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wego_server.v1.Applications/GetGitlabAuthURL",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationsServer).GetGitlabAuthURL(ctx, req.(*GetGitlabAuthURLRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Applications_AuthorizeGitlab_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthorizeGitlabRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationsServer).AuthorizeGitlab(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wego_server.v1.Applications/AuthorizeGitlab",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationsServer).AuthorizeGitlab(ctx, req.(*AuthorizeGitlabRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Applications_AddApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddApplicationRequest)
 	if err := dec(in); err != nil {
@@ -536,6 +600,14 @@ var Applications_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetGithubAuthStatus",
 			Handler:    _Applications_GetGithubAuthStatus_Handler,
+		},
+		{
+			MethodName: "GetGitlabAuthURL",
+			Handler:    _Applications_GetGitlabAuthURL_Handler,
+		},
+		{
+			MethodName: "AuthorizeGitlab",
+			Handler:    _Applications_AuthorizeGitlab_Handler,
 		},
 		{
 			MethodName: "AddApplication",

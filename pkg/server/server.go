@@ -72,6 +72,7 @@ type applicationServer struct {
 	kube         client.Client
 	ghAuthClient auth.GithubAuthClient
 	fetcher      applicationv2.Fetcher
+	glAuthClient auth.GitlabAuthClient
 }
 
 // An ApplicationsConfig allows for the customization of an ApplicationsServer.
@@ -83,6 +84,7 @@ type ApplicationsConfig struct {
 	KubeClient       client.Client
 	GithubAuthClient auth.GithubAuthClient
 	Fetcher          applicationv2.Fetcher
+	GitlabAuthClient auth.GitlabAuthClient
 }
 
 // NewApplicationsServer creates a grpc Applications server
@@ -94,6 +96,7 @@ func NewApplicationsServer(cfg *ApplicationsConfig) pb.ApplicationsServer {
 		kube:         cfg.KubeClient,
 		ghAuthClient: cfg.GithubAuthClient,
 		fetcher:      cfg.Fetcher,
+		glAuthClient: cfg.GitlabAuthClient,
 	}
 }
 
@@ -127,8 +130,9 @@ func DefaultConfig() (*ApplicationsConfig, error) {
 		Factory:          services.NewServerFactory(fluxClient, internal.NewApiLogger(zapLog), nil, ""),
 		JwtClient:        jwtClient,
 		KubeClient:       rawClient,
-		GithubAuthClient: auth.NewGithubAuthProvider(http.DefaultClient),
 		Fetcher:          applicationv2.NewFetcher(rawClient),
+		GithubAuthClient: auth.NewGithubAuthClient(http.DefaultClient),
+		GitlabAuthClient: auth.NewGitlabAuthClient(http.DefaultClient),
 	}, nil
 }
 
@@ -612,6 +616,29 @@ func (s *applicationServer) ParseRepoURL(ctx context.Context, msg *pb.ParseRepoU
 		Owner:    u.Owner(),
 		Provider: toProtoProvider(u.Provider()),
 	}, nil
+}
+
+func (s *applicationServer) GetGitlabAuthURL(ctx context.Context, msg *pb.GetGitlabAuthURLRequest) (*pb.GetGitlabAuthURLResponse, error) {
+	u, err := s.glAuthClient.AuthURL(ctx, msg.RedirectUri)
+	if err != nil {
+		return nil, fmt.Errorf("could not get gitlab auth url: %w", err)
+	}
+
+	return &pb.GetGitlabAuthURLResponse{Url: u.String()}, nil
+}
+
+func (s *applicationServer) AuthorizeGitlab(ctx context.Context, msg *pb.AuthorizeGitlabRequest) (*pb.AuthorizeGitlabResponse, error) {
+	tokenState, err := s.glAuthClient.ExchangeCode(ctx, msg.RedirectUri, msg.Code)
+	if err != nil {
+		return nil, fmt.Errorf("could not exchange code: %w", err)
+	}
+
+	token, err := s.jwtClient.GenerateJWT(time.Duration(tokenState.ExpiresIn), gitproviders.GitProviderGitLab, tokenState.AccessToken)
+	if err != nil {
+		return nil, fmt.Errorf("could not generate token: %w", err)
+	}
+
+	return &pb.AuthorizeGitlabResponse{Token: token}, nil
 }
 
 func mapHelmReleaseSpecToResponse(helm *helmv2.HelmRelease) *pb.HelmRelease {

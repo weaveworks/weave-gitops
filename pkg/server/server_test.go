@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -934,6 +935,16 @@ var _ = Describe("ApplicationsServer", func() {
 			s, ok := status.FromError(err)
 			Expect(ok).To(BeTrue(), "could not get status from error")
 			Expect(s.Code()).To(Equal(codes.InvalidArgument))
+		})
+	})
+	Describe("GetGitlabAuthURL", func() {
+		It("returns the gitlab url", func() {
+			res, err := appsClient.GetGitlabAuthURL(context.Background(), &pb.GetGitlabAuthURLRequest{})
+			Expect(err).NotTo(HaveOccurred())
+
+			u, err := url.Parse(res.Url)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(u.Hostname()).To(Equal("gitlab.com"))
 		})
 	})
 
