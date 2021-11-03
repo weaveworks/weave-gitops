@@ -6,6 +6,20 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+}
+
+.c2 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
   -webkit-flex-direction: row;
   -ms-flex-direction: row;
   flex-direction: row;
@@ -20,7 +34,7 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   width: 100%;
 }
 
-.c9 {
+.c10 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -39,7 +53,7 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   justify-content: flex-end;
 }
 
-.c6 {
+.c7 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -53,7 +67,7 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   align-items: center;
 }
 
-.c5 {
+.c6 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 32px;
   font-weight: 400;
@@ -61,19 +75,31 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   font-style: normal;
 }
 
-.c8 svg {
+.c9 svg {
   fill: !important;
   height: 16px;
   width: 16px;
 }
 
-.c8 .c4 {
+.c9 .c5 {
   margin-left: 4px;
 }
 
 .c0 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-box-pack: space-evenly;
+  -webkit-justify-content: space-evenly;
+  -ms-flex-pack: space-evenly;
+  justify-content: space-evenly;
   background-color: #fff;
   margin: 0 auto;
+  height: 400px;
   max-width: 540px;
   padding: 16px 32px;
   -webkit-transform: translate(0,50%);
@@ -81,11 +107,11 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   transform: translate(0,50%);
 }
 
-.c3 {
+.c4 {
   padding: 8px 0;
 }
 
-.c2 .c7 {
+.c3 .c8 {
   margin-left: 8px;
 }
 
@@ -107,35 +133,39 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
     class="c0"
     tabindex="-1"
   >
-    <h2
-      id="simple-modal-title"
+    <div
+      class="c1"
     >
-      Authenticate with Github
-    </h2>
-    <p
-      id="simple-modal-description"
-    >
-      Weave GitOps needs to authenitcate with the Git Provider for the ssh://example.com/user/repo.git repo
-    </p>
+      <h2
+        id="simple-modal-title"
+      >
+        Authenticate with Github
+      </h2>
+      <p
+        id="simple-modal-description"
+      >
+        Weave GitOps needs to authenitcate with the Git Provider for the ssh://example.com/user/repo.git repo
+      </p>
+    </div>
     <div>
       <p>
         Paste this code into the Github Device Activation field to grant Weave GitOps temporary access:
       </p>
       <div
-        class="c1"
+        class="c2"
       >
         <div
-          class="c2"
+          class="c3"
         >
           <div
-            class="c1 c3"
+            class="c2 c4"
           >
             <span
-              class="c4 c5"
+              class="c5 c6"
             />
           </div>
           <div
-            class="c1 c3"
+            class="c2 c4"
           >
             <a
               target="_blank"
@@ -149,12 +179,12 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
                   class="MuiButton-label"
                 >
                   <div
-                    class="c6"
+                    class="c7"
                   >
                     Authorize Github Access
                      
                     <div
-                      class="c6 c7 c8"
+                      class="c7 c8 c9"
                     >
                       <svg
                         aria-hidden="true"
@@ -176,13 +206,13 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
             </a>
           </div>
           <div
-            class="c1 c3"
+            class="c2 c4"
           />
         </div>
       </div>
     </div>
     <div
-      class="c9"
+      class="c10"
     >
       <button
         class="MuiButtonBase-root MuiButton-root MuiButton-contained"
