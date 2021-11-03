@@ -61,6 +61,10 @@ gitops get template <template-name> --list-parameters
 
 func getTemplateCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(c *cobra.Command, args []string) error {
+		if c.Flag("provider").Changed && !contains(providers, c.Flag("provider").Value.String()) {
+			return fmt.Errorf("provider %q is not valid", c.Flag("provider").Value.String())
+		}
+
 		if *endpoint == "" {
 			return wegoerrors.ErrWGEHTTPApiEndpointNotSet
 		}
@@ -97,4 +101,14 @@ func getTemplateCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comm
 
 		return nil
 	}
+}
+
+func contains(ss []string, str string) bool {
+	for _, s := range ss {
+		if s == str {
+			return true
+		}
+	}
+
+	return false
 }
