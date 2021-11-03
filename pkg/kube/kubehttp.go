@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -98,30 +99,44 @@ func NewKubeHTTPClient() (Kube, client.Client, error) {
 }
 
 func RestConfig() (*rest.Config, string, error) {
-	var kubeContext, clusterName string
-
 	config, err := InClusterConfig()
-
-	if err == rest.ErrNotInCluster {
-		cfgLoadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
-
-		kubeContext, clusterName, err = initialContext(cfgLoadingRules)
-		if err != nil {
-			return nil, "", fmt.Errorf("could not get initial context: %w", err)
+	if err != nil {
+		if err == rest.ErrNotInCluster {
+			return outOfClusterConfig()
 		}
+		// Handle other errors
+		return nil, "", fmt.Errorf("could not create in-cluster config: %w", err)
+	}
 
-		configOverrides := clientcmd.ConfigOverrides{CurrentContext: kubeContext}
+	return config, inClusterConfigClusterName(), nil
+}
 
-		config, err = clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-			cfgLoadingRules,
-			&configOverrides,
-		).ClientConfig()
-		if err != nil {
-			return nil, "", fmt.Errorf("could not create rest config: %w", err)
-		}
-	} else {
-		// TODO when running in a cluster and not used for bootstrapping, what is the cluster name used for?
-		clusterName = config.Host
+func inClusterConfigClusterName() string {
+	// kube clusters don't really know their own names
+	// try and read a unique name from the env, fall back to "default"
+	clusterName := os.Getenv("CLUSTER_NAME")
+	if clusterName == "" {
+		clusterName = "default"
+	}
+	return clusterName
+}
+
+func outOfClusterConfig() (*rest.Config, string, error) {
+	cfgLoadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+
+	kubeContext, clusterName, err := initialContext(cfgLoadingRules)
+	if err != nil {
+		return nil, "", fmt.Errorf("could not get initial context: %w", err)
+	}
+
+	configOverrides := clientcmd.ConfigOverrides{CurrentContext: kubeContext}
+
+	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		cfgLoadingRules,
+		&configOverrides,
+	).ClientConfig()
+	if err != nil {
+		return nil, "", fmt.Errorf("could not create rest config: %w", err)
 	}
 
 	return config, clusterName, nil
@@ -374,6 +389,7 @@ func initialContext(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (curren
 
 	return rules.CurrentContext, sanitizeClusterName(c.Cluster), nil
 }
+
 func sanitizeClusterName(s string) string {
 	// remove leading email address or username prefix from context
 	if strings.Contains(s, "@") {
