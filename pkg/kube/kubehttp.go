@@ -118,6 +118,7 @@ func inClusterConfigClusterName() string {
 	if clusterName == "" {
 		clusterName = "default"
 	}
+
 	return clusterName
 }
 
