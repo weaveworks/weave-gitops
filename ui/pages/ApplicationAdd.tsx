@@ -17,8 +17,8 @@ import Link from "../components/Link";
 import Page from "../components/Page";
 import RepoInputWithAuth from "../components/RepoInputWithAuth";
 import { AppContext } from "../contexts/AppContext";
-import { useRequestState } from "../hooks/common";
-import { AddApplicationResponse } from "../lib/api/applications/applications.pb";
+import { useAddApplication } from "../hooks/applications";
+import { GitProvider } from "../lib/api/applications/applications.pb";
 import { GrpcErrorCodes, PageRoute } from "../lib/types";
 
 type Props = {
@@ -123,9 +123,11 @@ const FormElement = styled.div`
 `;
 
 function AddApplication({ className }: Props) {
-  const { applicationsClient } = React.useContext(AppContext);
+  const { getCallbackState, clearCallbackState, getProviderToken } =
+    React.useContext(AppContext);
   const formRef = React.useRef<HTMLFormElement>();
-  const [formState, setFormState] = React.useState({
+
+  let initialFormState = {
     name: "",
     namespace: "wego-system",
     path: "./",
@@ -133,26 +135,32 @@ function AddApplication({ className }: Props) {
     url: "",
     configUrl: "",
     autoMerge: false,
-  });
-  const [addRes, loading, error, req] =
-    useRequestState<AddApplicationResponse>();
+    provider: null,
+  };
+
+  const callbackState = getCallbackState();
+
+  if (callbackState) {
+    initialFormState = {
+      ...initialFormState,
+      ...callbackState.state,
+    };
+    // Once we read it into the form, clear the state to avoid it auto-populating all the time
+    clearCallbackState();
+  }
+
+  const [formState, setFormState] = React.useState(initialFormState);
+  const [addRes, loading, error, req] = useAddApplication();
   const [prLink, setPrLink] = React.useState("");
   const [authOpen, setAuthOpen] = React.useState(false);
   const [authSuccess, setAuthSuccess] = React.useState(false);
 
   const handleSubmit = () => {
-    req(
-      applicationsClient.AddApplication({
-        ...formState,
-      })
-    );
+    req(formState.provider, formState);
   };
 
   const handleAuthSuccess = () => {
     setAuthSuccess(true);
-    if (formRef && formRef.current) {
-      handleSubmit();
-    }
   };
 
   const handleAuthClick = () => {
@@ -170,12 +178,16 @@ function AddApplication({ className }: Props) {
     setPrLink(`${repoURL.replace(".git", "")}/pulls`);
   }, [addRes]);
 
+  const credentialsDetected =
+    authSuccess || !!getProviderToken(formState.provider) || !!callbackState;
+
   return (
     <Page className={className} title="Add Application">
       {!authSuccess &&
         error &&
         error.code === GrpcErrorCodes.Unauthenticated && (
           <AuthAlert
+            provider={formState.provider}
             title="Error adding application"
             onClick={handleAuthClick}
           />
@@ -223,7 +235,7 @@ function AddApplication({ className }: Props) {
               }}
               required
               id="namespace"
-              label="Kubernetes Namespace"
+              label="Weave GitOps Kubernetes Namespace"
               variant="standard"
               value={formState.namespace}
             />
@@ -233,13 +245,25 @@ function AddApplication({ className }: Props) {
           </FormElement>
           <FormElement>
             <RepoInputWithAuth
+              isAuthenticated={!!formState.url && credentialsDetected}
+              callbackState={{
+                page: PageRoute.ApplicationAdd,
+                state: formState,
+              }}
               onChange={(e) => {
                 setFormState({
                   ...formState,
                   url: e.currentTarget.value,
                 });
               }}
-              onAuthClick={(provider) => console.log(provider)}
+              onProviderChange={(provider: GitProvider) => {
+                setFormState({ ...formState, provider });
+              }}
+              onAuthClick={(provider) => {
+                if (provider === GitProvider.GitHub) {
+                  setAuthOpen(true);
+                }
+              }}
               required
               id="url"
               label="Source Repo URL"
@@ -263,7 +287,7 @@ function AddApplication({ className }: Props) {
             />
             <FormHelperText>
               The git repository URL to which Weave GitOps will write the GitOps
-              Automation files
+              Automation files. Defaults to the Source Repo URL.
             </FormHelperText>
           </FormElement>
           <FormElement>

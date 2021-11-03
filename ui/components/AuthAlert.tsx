@@ -1,33 +1,39 @@
 import * as React from "react";
 import styled from "styled-components";
+import { GitProvider } from "../lib/api/applications/applications.pb";
 import { RequestError } from "../lib/types";
 import Alert from "./Alert";
 import Button from "./Button";
 import Flex from "./Flex";
+import GithubAuthButton from "./GithubAuthButton";
+import GitlabAuthButton from "./GitlabAuthButton";
 
 type Props = {
   className?: string;
   error?: RequestError;
   onClick: () => void;
   title: string;
+  provider: GitProvider;
 };
 
-const Message = ({ onClick }) => (
+const Message = ({ onClick, provider }) => (
   <Flex align wide between>
     Could not authenticate with your Git Provider{" "}
-    <Button variant="contained" color="primary" onClick={onClick} type="button">
-      Authenticate with Github
-    </Button>
+    {provider === GitProvider.GitHub ? (
+      <GithubAuthButton onClick={onClick} />
+    ) : (
+      <GitlabAuthButton />
+    )}
   </Flex>
 );
 
-function AuthAlert({ className, onClick, title }: Props) {
+function AuthAlert({ className, onClick, title, provider }: Props) {
   return (
     <Alert
       className={className}
       severity="error"
       title={title}
-      message={<Message onClick={onClick} />}
+      message={<Message provider={provider} onClick={onClick} />}
     />
   );
 }

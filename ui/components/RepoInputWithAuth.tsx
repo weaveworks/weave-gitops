@@ -1,3 +1,4 @@
+// eslint-disable-next-line
 import * as React from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
@@ -6,18 +7,30 @@ import {
   GitProvider,
   ParseRepoURLResponse,
 } from "../lib/api/applications/applications.pb";
+import { CallbackSessionState } from "../lib/storage";
 import Button from "./Button";
 import Flex from "./Flex";
+import GithubAuthButton from "./GithubAuthButton";
+import GitlabAuthButton from "./GitlabAuthButton";
+import Icon, { IconType } from "./Icon";
 import Input, { InputProps } from "./Input";
 
 type Props = InputProps & {
-  onAuthClick: (provider: GitProvider) => void;
+  onAuthClick?: (provider: GitProvider) => void;
+  callbackState: CallbackSessionState;
+  onProviderChange?: (provider: GitProvider) => void;
+  isAuthenticated?: boolean;
 };
 
-function RepoInputWithAuth(props: Props) {
+function RepoInputWithAuth({
+  onAuthClick,
+  onProviderChange,
+  callbackState,
+  isAuthenticated,
+  ...props
+}: Props) {
   const { applicationsClient } = React.useContext(AppContext);
   const [res, , err, req] = useRequestState<ParseRepoURLResponse>();
-
   const debouncedURL = useDebounce<string>(props.value as string, 500);
 
   React.useEffect(() => {
@@ -27,25 +40,52 @@ function RepoInputWithAuth(props: Props) {
     req(applicationsClient.ParseRepoURL({ url: debouncedURL }));
   }, [debouncedURL]);
 
+  React.useEffect(() => {
+    if (!res) {
+      return;
+    }
+
+    if (res.provider && onProviderChange) {
+      onProviderChange(res.provider);
+    }
+  }, [res]);
+
+  const AuthButton =
+    res?.provider === GitProvider.GitHub ? (
+      <GithubAuthButton
+        onClick={() => {
+          onAuthClick(GitProvider.GitHub);
+        }}
+      />
+    ) : (
+      <GitlabAuthButton callbackState={callbackState} />
+    );
+
+  const renderProviderAuthButton =
+    props.value && !!res?.provider && !isAuthenticated;
+
   return (
     <Flex className={props.className} align>
       <Input
         {...props}
-        error={props.value && !!err?.message}
+        error={props.value && !!err?.message ? true : false}
         helperText={!props.value || !err ? props.helperText : err?.message}
       />
+      <div className="auth-message">
+        {isAuthenticated && (
+          <Flex align>
+            <Icon size="medium" color="success" type={IconType.CheckMark} />{" "}
+            {res?.provider} credentials detected
+          </Flex>
+        )}
+        {!isAuthenticated && !res && (
+          <Button disabled variant="contained">
+            Authenticate with your Git Provider
+          </Button>
+        )}
 
-      <Button
-        id="auth-button"
-        variant="contained"
-        className={res?.provider}
-        disabled={!res?.provider}
-        onClick={() => props.onAuthClick(res.provider)}
-      >
-        {res?.provider
-          ? `Authenticate with ${res.provider}`
-          : "Authenticate with your Git Provider"}
-      </Button>
+        {renderProviderAuthButton ? AuthButton : null}
+      </div>
     </Flex>
   );
 }
@@ -53,17 +93,11 @@ function RepoInputWithAuth(props: Props) {
 export default styled(RepoInputWithAuth).attrs({
   className: RepoInputWithAuth.name,
 })`
-  #auth-button {
+  .auth-message {
     margin-left: 8px;
-  }
 
-  .GitHub {
-    background-color: black;
-    color: white;
-  }
-
-  .GitLab {
-    background-color: #fc6d26;
-    color: white;
+    ${Icon} {
+      margin-right: 4px;
+    }
   }
 `;
