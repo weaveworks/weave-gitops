@@ -24,7 +24,6 @@ require (
 	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.1
 	github.com/jandelgado/gcov2lcov v1.0.5
 	github.com/jarcoal/httpmock v1.0.8
-	github.com/jenkins-x/go-scm v1.10.10
 	github.com/lithammer/dedent v1.1.0
 	github.com/mattn/go-isatty v0.0.13
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
