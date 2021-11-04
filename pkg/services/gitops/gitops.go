@@ -9,7 +9,8 @@ import (
 )
 
 type GitopsService interface {
-	Install(gitClient git.Git, gitProvider gitproviders.GitProvider, params InstallParams) ([]byte, error)
+	Install(params InstallParams) (map[string][]byte, error)
+	StoreManifests(gitClient git.Git, gitProvider gitproviders.GitProvider, params InstallParams, systemManifests map[string][]byte) (map[string][]byte, error)
 	Uninstall(params UninstallParams) error
 }
 

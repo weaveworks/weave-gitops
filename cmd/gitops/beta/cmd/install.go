@@ -70,8 +70,20 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	factory := services.NewFactory(fluxClient, log)
 	providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 
+	gitopsService := gitops.New(log, fluxClient, k)
+
+	gitOpsParams := gitops.InstallParams{
+		Namespace:    namespace,
+		DryRun:       installParams.DryRun,
+		AppConfigURL: installParams.AppConfigURL,
+	}
+	manifests, err := gitopsService.Install(gitOpsParams)
+	if err != nil {
+		return err
+	}
+
 	gitClient, gitProvider, err := factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
-		ConfigURL: installParams.AppConfigURL,
+		URL:       installParams.AppConfigURL,
 		Namespace: namespace,
 		DryRun:    installParams.DryRun,
 	})
@@ -79,19 +91,15 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error creating git clients: %w", err)
 	}
 
-	gitopsService := gitops.New(log, fluxClient, k)
-
-	manifests, err := gitopsService.Install(gitClient, gitProvider, gitops.InstallParams{
-		Namespace:    namespace,
-		DryRun:       installParams.DryRun,
-		AppConfigURL: installParams.AppConfigURL,
-	})
+	manifests, err = gitopsService.StoreManifests(gitClient, gitProvider, gitOpsParams, manifests)
 	if err != nil {
-		return err
+		return fmt.Errorf("error storing manifests: %w", err)
 	}
 
 	if installParams.DryRun {
-		fmt.Println(string(manifests))
+		for _, manifest := range manifests {
+			fmt.Println(string(manifest))
+		}
 	}
 
 	return nil

@@ -23,7 +23,7 @@ type InstallParams struct {
 	AppConfigURL string
 }
 
-func (g *Gitops) Install(gitClient git.Git, gitProvider gitproviders.GitProvider, params InstallParams) ([]byte, error) {
+func (g *Gitops) Install(params InstallParams) (map[string][]byte, error) {
 	ctx := context.Background()
 	status := g.kube.GetClusterStatus(ctx)
 
@@ -44,23 +44,23 @@ func (g *Gitops) Install(gitClient git.Git, gitProvider gitproviders.GitProvider
 		// non-dry run install doesn't return them
 		fluxManifests, err = g.flux.Install(params.Namespace, true)
 		if err != nil {
-			return fluxManifests, fmt.Errorf("error on flux install %w", err)
+			return nil, fmt.Errorf("error on flux install %w", err)
 		}
 	}
 
 	if !params.DryRun {
 		_, err = g.flux.Install(params.Namespace, false)
 		if err != nil {
-			return fluxManifests, fmt.Errorf("error on flux install %w", err)
+			return nil, fmt.Errorf("error on flux install %w", err)
 		}
 	}
 
-	systemManifests := make(map[string][]byte, 3)
+	systemManifests := make(map[string][]byte)
 	systemManifests["gitops-runtime.yaml"] = fluxManifests
 	systemManifests["wego-system.yaml"] = manifests.AppCRD
 
 	if params.DryRun {
-		fluxManifests = append(fluxManifests, manifests.AppCRD...)
+		return systemManifests, nil
 	} else {
 
 		for _, manifest := range manifests.Manifests {
@@ -83,31 +83,36 @@ func (g *Gitops) Install(gitClient git.Git, gitProvider gitproviders.GitProvider
 		if err := g.kube.Apply(ctx, wegoAppDeploymentManifest, params.Namespace); err != nil {
 			return nil, fmt.Errorf("could not apply wego-app deployment manifest: %w", err)
 		}
-
-		if params.AppConfigURL != "" {
-			cname, err := g.kube.GetClusterName(ctx)
-			if err != nil {
-				g.logger.Warningf("Cluster name not found, using default : %v", err)
-
-				cname = "default"
-			}
-
-			goatManifests, err := g.storeManifests(gitClient, gitProvider, params, systemManifests, cname)
-			if err != nil {
-				return nil, fmt.Errorf("failed to store cluster manifests: %w", err)
-			}
-
-			g.logger.Actionf("Applying manifests to the cluster")
-			// only apply the system manifests as the others will get picked up once flux is running
-			if err := g.applyManifestsToK8s(ctx, params.Namespace, goatManifests); err != nil {
-				return nil, fmt.Errorf("failed applying system manifests to cluster %s :%w", cname, err)
-			}
-
-		}
 	}
-	// TODO Existing install doesn't expect the systemManifests to be included in the list of manifests returned.
-	// This will need to be changed.
-	return fluxManifests, nil
+
+	return systemManifests, nil
+}
+
+func (g *Gitops) StoreManifests(gitClient git.Git, gitProvider gitproviders.GitProvider, params InstallParams, systemManifests map[string][]byte) (map[string][]byte, error) {
+	ctx := context.Background()
+
+	if !params.DryRun && params.AppConfigURL != "" {
+		cname, err := g.kube.GetClusterName(ctx)
+		if err != nil {
+			g.logger.Warningf("Cluster name not found, using default : %v", err)
+
+			cname = "default"
+		}
+
+		goatManifests, err := g.storeManifests(gitClient, gitProvider, params, systemManifests, cname)
+		if err != nil {
+			return nil, fmt.Errorf("failed to store cluster manifests: %w", err)
+		}
+
+		g.logger.Actionf("Applying manifests to the cluster")
+		// only apply the system manifests as the others will get picked up once flux is running
+		if err := g.applyManifestsToK8s(ctx, params.Namespace, goatManifests); err != nil {
+			return nil, fmt.Errorf("failed applying system manifests to cluster %s :%w", cname, err)
+		}
+
+	}
+
+	return systemManifests, nil
 }
 
 func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitProvider, params InstallParams, systemManifests map[string][]byte, cname string) (map[string][]byte, error) {
