@@ -29,5 +29,6 @@ func GetAddAppPageElements(webDriver *agouti.Page) *AddAppPageElements {
 		AutoMergeCheck:       webDriver.FindByXPath(`//input[@type="checkbox"]`),
 		SubmitButton:         webDriver.FindByXPath(`//button[@type="submit"]`),
 		AuthenticationButton: webDriver.FindByXPath(`//button[@type="submit"]`)}
+
 	return &addApplicationPage
 }

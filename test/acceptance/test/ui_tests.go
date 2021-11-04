@@ -106,9 +106,9 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		})
 
 		By("And I add application details in Application form", func() {
-			addAppPage.AppName.Fill(appName)
-			addAppPage.AppRepoURL.Fill(appRepoRemoteURL)
-			addAppPage.PathToManifests.Fill("/")
+			_ = addAppPage.AppName.Fill(appName)
+			_ = addAppPage.AppRepoURL.Fill(appRepoRemoteURL)
+			_ = addAppPage.PathToManifests.Fill("/")
 		})
 
 		By("And auto-merge is turned on", func() {
@@ -174,7 +174,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		})
 
 		By("And I should see app names listed on the UI", func() {
-			webDriver.Refresh()
+			_ = webDriver.Refresh()
 		})
 	})
 })
