@@ -109,7 +109,6 @@ func (g *Gitops) StoreManifests(gitClient git.Git, gitProvider gitproviders.GitP
 		if err := g.applyManifestsToK8s(ctx, params.Namespace, goatManifests); err != nil {
 			return nil, fmt.Errorf("failed applying system manifests to cluster %s :%w", cname, err)
 		}
-
 	}
 
 	return systemManifests, nil
