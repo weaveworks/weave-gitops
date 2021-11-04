@@ -439,8 +439,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		tip := generateTestInputs()
 		appName := tip.appRepoName
 		appConfigRepoName := "wego-config-repo-" + RandString(8)
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
-		configRepoRemoteURL = "ssh://git@github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
+		appRepoRemoteURL := "https://github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		configRepoRemoteURL = "https://github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
 
 		addCommand := "add app --url=" + appRepoRemoteURL + " --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
 
