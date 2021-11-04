@@ -79,7 +79,7 @@ func (i *internalJWTClient) VerifyJWT(accessToken string) (*Claims, error) {
 	)
 
 	if err != nil {
-		return nil, ErrUnauthorizedToken
+		return nil, errors.WithMessage(ErrUnauthorizedToken, err.Error())
 	}
 
 	claims, ok := token.Claims.(*Claims)

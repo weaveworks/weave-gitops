@@ -100,7 +100,7 @@ func WithProviderToken(jwtClient auth.JWTClient, h http.Handler, log logr.Logger
 
 		claims, err := jwtClient.VerifyJWT(token)
 		if err != nil {
-			log.Info("could not parse claims")
+			log.Info("could not parse claims: " + err.Error())
 			// Certain routes do not require a token, so pass the request through.
 			// If the route requires a token and it isn't present,
 			// the next handler will error and return that to the user.
