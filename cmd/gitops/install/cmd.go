@@ -33,9 +33,9 @@ var Cmd = &cobra.Command{
 	Short: "Install or upgrade GitOps",
 	Long: `The install command deploys GitOps in the specified namespace,
 adds a cluster entry to the GitOps repo, and persists the GitOps runtime into the
-repo.`,
+repo. If a previous version is installed, then an in-place upgrade will be performed.`,
 	Example: fmt.Sprintf(`  # Install GitOps in the %s namespace
-  gitops install --app-config-url ssh://git@github.com/me/mygitopsrepo.git`, wego.DefaultNamespace),
+  gitops install --app-config-url=ssh://git@github.com/me/mygitopsrepo.git`, wego.DefaultNamespace),
 	RunE:          installRunCmd,
 	SilenceErrors: true,
 	SilenceUsage:  true,

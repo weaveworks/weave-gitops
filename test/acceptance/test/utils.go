@@ -389,6 +389,17 @@ func installAndVerifyWego(wegoNamespace string) {
 	})
 }
 
+func installAndVerifyWegoWithConfigRepo(wegoNamespace, repoURL string) {
+	By("And I run 'gitops install' command with namespace "+wegoNamespace, func() {
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --app-config-url=%s", WEGO_BIN_PATH, wegoNamespace, repoURL))
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Expect(err).ShouldNot(HaveOccurred())
+		Eventually(session, TIMEOUT_TWO_MINUTES).Should(gexec.Exit())
+		Expect(string(session.Err.Contents())).Should(BeEmpty())
+		VerifyControllersInCluster(wegoNamespace)
+	})
+}
+
 func uninstallWegoRuntime(namespace string) {
 	log.Infof("About to delete Gitops runtime from namespace: %s", namespace)
 	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
