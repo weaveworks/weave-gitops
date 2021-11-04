@@ -9,16 +9,15 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
-	"github.com/weaveworks/weave-gitops/pkg/services"
-
-	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 )
@@ -62,21 +61,44 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	log := logger.NewCLILogger(os.Stdout)
 	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 
-	k, _, err := kube.NewKubeHTTPClient()
+	k, rawClient, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
-	factory := services.NewFactory(fluxClient, log)
+	normalizedURL, err := gitproviders.NewRepoURL(installParams.AppConfigURL)
+	if err != nil {
+		return fmt.Errorf("failed to normalize URL %q: %w", installParams.AppConfigURL, err)
+	}
+
 	providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 
-	gitClient, gitProvider, err := factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
-		ConfigURL: installParams.AppConfigURL,
-		Namespace: namespace,
-		DryRun:    installParams.DryRun,
-	})
+	var gitProvider gitproviders.GitProvider
+	if installParams.DryRun {
+		if gitProvider, err = gitproviders.NewDryRun(); err != nil {
+			return fmt.Errorf("error creating git provider client: %w", err)
+		}
+	} else {
+		if gitProvider, err = providerClient.GetProvider(normalizedURL, gitproviders.GetAccountType); err != nil {
+			return fmt.Errorf("error obtaining git provider token: %w", err)
+		}
+	}
+
+	authService, err := auth.NewAuthService(fluxClient, rawClient, gitProvider, log)
 	if err != nil {
-		return fmt.Errorf("error creating git clients: %w", err)
+		return fmt.Errorf("error creating auth service: %w", err)
+	}
+
+	clusterName, err := k.GetClusterName(context.Background())
+	if err != nil {
+		log.Warningf("Cluster name not found, using default : %v", err)
+
+		clusterName = "default"
+	}
+
+	gitClient, err := authService.CreateGitClient(context.Background(), normalizedURL, clusterName, namespace)
+	if err != nil {
+		return fmt.Errorf("failed to create git client for repo %q : %w", installParams.AppConfigURL, err)
 	}
 
 	gitopsService := gitops.New(log, fluxClient, k)
