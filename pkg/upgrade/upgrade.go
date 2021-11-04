@@ -141,6 +141,8 @@ func toUpgradeConfigs(uv UpgradeValues) (*UpgradeConfigs, error) {
 		return nil, err
 	}
 
+	managementPath := filepath.Join(".weave-gitops", "clusters", "management", "user")
+
 	return &UpgradeConfigs{
 		CLIGitConfig: pctl_git.CLIGitConfig{
 			Directory: ".",
@@ -155,7 +157,7 @@ func toUpgradeConfigs(uv UpgradeValues) (*UpgradeConfigs, error) {
 			Repo:   uv.RepoOrgAndName,
 		},
 		InstallConfig: install.Config{
-			RootDir:          filepath.Join(uv.Out, "weave-gitops-enterprise"),
+			RootDir:          filepath.Join(uv.Out, managementPath),
 			GitRepoNamespace: gitRepoNamespace,
 			GitRepoName:      gitRepoName,
 		},
@@ -163,7 +165,7 @@ func toUpgradeConfigs(uv UpgradeValues) (*UpgradeConfigs, error) {
 			ProfileConfig: catalog.ProfileConfig{
 				ConfigMap:     uv.ConfigMap,
 				Namespace:     uv.Namespace,
-				Path:          "weave-gitops-enterprise",
+				Path:          managementPath,
 				ProfileBranch: uv.ProfileBranch,
 				SubName:       "weave-gitops-enterprise",
 			},
