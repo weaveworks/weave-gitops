@@ -122,7 +122,7 @@ var _ = Describe("Install", func() {
 		It("calls flux install", func() {
 			manifests, err := gitopsSrv.Install(installParams)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(manifests).To(ContainSubstring(string(fakeFluxManifests)))
+			Expect(manifests["gitops-runtime.yaml"]).To(ContainSubstring(string(fakeFluxManifests)))
 
 			Expect(fluxClient.InstallCallCount()).To(Equal(1))
 
@@ -135,7 +135,7 @@ var _ = Describe("Install", func() {
 			manifests, err := gitopsSrv.Install(installParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(manifests).To(ContainSubstring("kind: App"))
+			Expect(manifests["wego-system.yaml"]).To(ContainSubstring("kind: App"))
 		})
 
 		It("has flux manifests", func() {
@@ -185,7 +185,7 @@ var _ = Describe("Install", func() {
 		It("calls flux install", func() {
 			manifests, err := gitopsSrv.Install(installParams)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(manifests).To(ContainSubstring(string(fakeFluxManifests)))
+			Expect(manifests["gitops-runtime.yaml"]).To(ContainSubstring(string(fakeFluxManifests)))
 
 			Expect(fluxClient.InstallCallCount()).To(Equal(2))
 
