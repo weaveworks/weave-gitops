@@ -16,13 +16,13 @@ export type PageProps = {
   children?: any;
   title?: string;
   breadcrumbs?: { page: PageRoute; query?: any }[];
+  topRight?: JSX.Element;
   loading?: boolean;
 };
 
 const Content = styled.div`
   max-width: 1400px;
   margin: 0 auto;
-  width: 100%;
   background-color: ${(props) => props.theme.colors.white};
   padding-left: ${(props) => props.theme.spacing.large};
   padding-right: ${(props) => props.theme.spacing.large};
@@ -32,6 +32,8 @@ const Content = styled.div`
 
 export const TitleBar = styled.div`
   display: flex;
+  width: 100%;
+  justify-content: space-between;
   align-items: center;
   margin-bottom: ${(props) => props.theme.spacing.small};
 
@@ -50,7 +52,14 @@ function pageLookup(p: PageRoute) {
   }
 }
 
-function Page({ className, children, title, breadcrumbs, loading }: PageProps) {
+function Page({
+  className,
+  children,
+  title,
+  breadcrumbs,
+  topRight,
+  loading,
+}: PageProps) {
   const { appState, settings } = useCommon();
 
   if (loading) {
@@ -74,6 +83,7 @@ function Page({ className, children, title, breadcrumbs, loading }: PageProps) {
               ))}
             <h2>{title}</h2>
           </Breadcrumbs>
+          {topRight}
         </TitleBar>
         {appState.error && (
           <Flex center wide>

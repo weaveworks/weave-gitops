@@ -6,6 +6,7 @@ import Flex from "./Flex";
 
 type Props = {
   className?: string;
+  bodyClassName?: string;
   open: boolean;
   onClose: () => void;
   title: string;
@@ -13,7 +14,10 @@ type Props = {
   children: any;
 };
 
-const Body = styled.div`
+export const Body = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
   background-color: ${(props) => props.theme.colors.white};
   margin: 0 auto;
   max-width: 540px;
@@ -23,6 +27,7 @@ const Body = styled.div`
 
 function Modal({
   className,
+  bodyClassName,
   open,
   onClose,
   title,
@@ -37,9 +42,11 @@ function Modal({
         aria-labelledby="simple-modal-title"
         aria-describedby="simple-modal-description"
       >
-        <Body>
-          <h2 id="simple-modal-title">{title}</h2>
-          <p id="simple-modal-description">{description}</p>
+        <Body className={bodyClassName}>
+          <Flex column>
+            <h2 id="simple-modal-title">{title}</h2>
+            <p id="simple-modal-description">{description}</p>
+          </Flex>
           <div>{children}</div>
           <Flex wide end>
             <Button variant="contained" onClick={onClose}>
