@@ -27,7 +27,6 @@ var (
 	dir               string
 	manifestsByPath   map[string][]byte
 	fakeFluxManifests = []byte("fluxManifests")
-	fakeFluxManifestsMap = map[string][]byte{"key":fakeFluxManifests}
 )
 var _ = Describe("Install", func() {
 
