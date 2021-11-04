@@ -123,6 +123,7 @@ jobs:
         github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
         gitlab-key: ${{ secrets.GITLAB_KEY }}
         gitlab-token: ${{ secrets.GITLAB_TOKEN }}
+        artifacts-base-dir: "/tmp/gitops-test"
 
   smoke-tests-long:
     runs-on: ubuntu-latest
@@ -138,6 +139,7 @@ jobs:
         github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
         gitlab-key: ${{ secrets.GITLAB_KEY }}
         gitlab-token: ${{ secrets.GITLAB_TOKEN }}
+        artifacts-base-dir: "/tmp/gitops-test"
 
   acceptance-tests-0:
     runs-on: ubuntu-latest
@@ -152,6 +154,7 @@ jobs:
         github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
         gitlab-key: ${{ secrets.GITLAB_KEY }}
         gitlab-token: ${{ secrets.GITLAB_TOKEN }}
+        artifacts-base-dir: "/tmp/gitops-test"
 
   acceptance-tests-1:
     runs-on: ubuntu-latest
@@ -167,6 +170,7 @@ jobs:
         github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
         gitlab-key: ${{ secrets.GITLAB_KEY }}
         gitlab-token: ${{ secrets.GITLAB_TOKEN }}
+        artifacts-base-dir: "/tmp/gitops-test"
 
   acceptance-tests-2:
     runs-on: ubuntu-latest
@@ -182,6 +186,7 @@ jobs:
         github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
         gitlab-key: ${{ secrets.GITLAB_KEY }}
         gitlab-token: ${{ secrets.GITLAB_TOKEN }}
+        artifacts-base-dir: "/tmp/gitops-test"
 
   acceptance-tests-3:
     runs-on: ubuntu-latest
@@ -197,6 +202,7 @@ jobs:
         github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
         gitlab-key: ${{ secrets.GITLAB_KEY }}
         gitlab-token: ${{ secrets.GITLAB_TOKEN }}
+        artifacts-base-dir: "/tmp/gitops-test"
 
   library-integration-test:
     runs-on: ubuntu-latest
