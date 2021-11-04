@@ -56,8 +56,6 @@ const (
 	ResourceKindHelmRelease    ResourceKind = "HelmRelease"
 )
 
-var defaultMigrateToNewDirStructure func(string) string = func(s string) string { return s }
-
 type AutomationService interface {
 	GenerateAutomation(ctx context.Context, app models.Application, clusterName string) ([]AutomationManifest, error)
 }
@@ -89,10 +87,6 @@ func (a *AutomationSvc) getAppSecretRef(ctx context.Context, app models.Applicat
 	}
 
 	return "", nil
-}
-
-func (a *AutomationSvc) getConfigSecretRef(ctx context.Context, app models.Application, clusterName string) (GeneratedSecretName, error) {
-	return a.getSecretRef(ctx, app, app.ConfigURL, clusterName)
 }
 
 func (a *AutomationSvc) getSecretRef(ctx context.Context, app models.Application, url gitproviders.RepoURL, clusterName string) (GeneratedSecretName, error) {
@@ -129,8 +123,10 @@ func (a *AutomationSvc) generateAppAutomation(ctx context.Context, app models.Ap
 }
 
 func (a *AutomationSvc) generateAppSource(ctx context.Context, app models.Application, clusterName string) (AutomationManifest, error) {
-	var source []byte
-	var err error
+	var (
+		source []byte
+		err    error
+	)
 
 	appSecretRef, err := a.getAppSecretRef(ctx, app, clusterName)
 	if err != nil {

@@ -23,8 +23,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-const clusterName = "test-cluster"
-
 var (
 	localAddParams AddParams
 	removeParams   RemoveParams
@@ -146,6 +144,7 @@ func updateAppFromParams() error {
 	}
 
 	application = automation.AppToWegoApp(app)
+
 	return nil
 }
 

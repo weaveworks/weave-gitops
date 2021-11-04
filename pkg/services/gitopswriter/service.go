@@ -66,6 +66,7 @@ func (dw *GitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app mode
 
 		for _, manifest := range manifests {
 			content := string(manifest.Content)
+
 			files = append(files, gitprovider.CommitFile{Path: &manifest.Path, Content: &content})
 		}
 
@@ -176,6 +177,7 @@ func removeKustomizeResources(app models.Application, repoDir, clusterName strin
 
 	for _, oldResource := range oldResources {
 		keep := true
+
 		for _, resource := range resources {
 			if resource == oldResource {
 				keep = false

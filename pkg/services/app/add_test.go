@@ -2,8 +2,6 @@ package app
 
 import (
 	"context"
-	"crypto/md5"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -646,8 +644,3 @@ var _ = Describe("New directory structure", func() {
 	})
 
 })
-
-func getHash(inputs ...string) string {
-	final := []byte(strings.Join(inputs, ""))
-	return fmt.Sprintf("%x", md5.Sum(final))
-}
