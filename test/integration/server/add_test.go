@@ -20,7 +20,7 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/middleware"
+	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/test/integration/server/helpers"
 	corev1 "k8s.io/api/core/v1"
