@@ -1,4 +1,4 @@
-package app
+package gitopswriter
 
 import (
 	"context"
@@ -15,21 +15,18 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/models"
-	"github.com/weaveworks/weave-gitops/pkg/osys/osysfakes"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/automation"
-	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
+	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 var (
-	localAddParams AddParams
-	removeParams   RemoveParams
-	application    wego.Application
-	app            models.Application
-	fluxDir        string
-	goatPaths      map[string]bool
+	application wego.Application
+	realFlux    flux.Flux
+	fluxDir     string
+	goatPaths   map[string]bool
 )
 
 type dummyDirEntry struct {
@@ -94,20 +91,17 @@ func setupFlux() error {
 
 	fluxDir = dir
 	cliRunner := &runner.CLIRunner{}
-	osysClient := &osysfakes.FakeOsys{}
-	fluxClient := flux.New(osysClient, cliRunner)
+	realFlux = flux.New(osysClient, cliRunner)
 	osysClient.UserHomeDirStub = func() (string, error) {
 		return dir, nil
 	}
-	appSrv.(*AppSvc).Flux = fluxClient
-	appSrv.(*AppSvc).Automation = automation.NewAutomationService(gitProviders, fluxClient, log)
 
 	fluxBin, err := ioutil.ReadFile(filepath.Join("..", "..", "flux", "bin", "flux"))
 	if err != nil {
 		return err
 	}
 
-	binPath, err := fluxClient.GetBinPath()
+	binPath, err := realFlux.GetBinPath()
 	if err != nil {
 		return err
 	}
@@ -117,7 +111,7 @@ func setupFlux() error {
 		return err
 	}
 
-	exePath, err := fluxClient.GetExePath()
+	exePath, err := realFlux.GetExePath()
 	if err != nil {
 		return err
 	}
@@ -130,31 +124,18 @@ func setupFlux() error {
 	return nil
 }
 
-func updateAppFromParams() error {
-	params, err := appSrv.(*AppSvc).updateParametersIfNecessary(context.Background(), gitProviders, localAddParams)
-	if err != nil {
-		return err
-	}
+func createRemoveDirWriter() GitOpsDirectoryWriter {
+	repoWriter := gitrepo.NewRepoWriter(app.ConfigURL, gitProviders, gitClient, log)
+	automationSvc := automation.NewAutomationService(gitProviders, realFlux, log)
 
-	localAddParams = params
-
-	app, err = makeApplication(localAddParams)
-	if err != nil {
-		return err
-	}
-
-	application = automation.AppToWegoApp(app)
-
-	return nil
+	return NewGitOpsDirectoryWriter(automationSvc, repoWriter, osysClient, log)
 }
 
 // Run 'gitops add app' and gather the resources we expect to be generated
 func runAddAndCollectInfo() error {
-	if err := updateAppFromParams(); err != nil {
-		return err
-	}
+	application = automation.AppToWegoApp(app)
 
-	if err := appSrv.Add(gitClient, gitProviders, localAddParams); err != nil {
+	if err := gitOpsDirWriter.AddApplication(context.Background(), app, "test-cluster", true); err != nil {
 		return err
 	}
 
@@ -171,30 +152,35 @@ func checkRemoveResults() error {
 }
 
 var _ = Describe("Remove", func() {
-	var _ = BeforeEach(func() {
-		localAddParams = AddParams{
-			Url:            "https://github.com/foo/bar",
-			Path:           "./kustomize",
-			Branch:         "main",
-			DeploymentType: "kustomize",
-			Namespace:      wego.DefaultNamespace,
-			AppConfigUrl:   "NONE",
-			AutoMerge:      true,
+	BeforeEach(func() {
+		app = models.Application{
+			Name:                "bar",
+			Namespace:           wego.DefaultNamespace,
+			HelmSourceURL:       "",
+			GitSourceURL:        createRepoURL("ssh://git@github.com/foo/bar.git"),
+			Branch:              "main",
+			Path:                "./kustomize",
+			AutomationType:      models.AutomationTypeKustomize,
+			SourceType:          models.SourceTypeGit,
+			HelmTargetNamespace: "",
 		}
 
-		var err error
-
-		a, err := makeApplication(localAddParams)
-		Expect(err).ShouldNot(HaveOccurred())
-
-		application = automation.AppToWegoApp(a)
+		application = automation.AppToWegoApp(app)
 
 		gitProviders.GetDefaultBranchReturns("main", nil)
+
+		Expect(setupFlux()).To(Succeed())
+
+		gitOpsDirWriter = createRemoveDirWriter()
+
+	})
+
+	AfterEach(func() {
+		os.RemoveAll(fluxDir)
 	})
 
 	Context("Removing resources from cluster", func() {
 		var _ = BeforeEach(func() {
-			Expect(setupFlux()).To(Succeed())
 
 			gitClient.WriteStub = func(path string, manifest []byte) error {
 				storeGOATPath(path)
@@ -212,61 +198,54 @@ var _ = Describe("Remove", func() {
 			kubeClient.GetApplicationReturns(&application, nil)
 		})
 
-		var _ = AfterEach(func() {
-			os.RemoveAll(fluxDir)
-		})
-
 		Context("Removing resources for helm charts", func() {
 			var _ = BeforeEach(func() {
-				localAddParams = AddParams{
-					Url:            "https://charts.kube-ops.io",
-					Branch:         "main",
-					DeploymentType: "helm",
-					Namespace:      wego.DefaultNamespace,
-					AppConfigUrl:   "ssh://git@github.com/user/external.git",
-					AutoMerge:      true,
-				}
-
-				removeParams = RemoveParams{
-					Name: "loki",
+				app = models.Application{
+					Name:                "loki",
+					Namespace:           wego.DefaultNamespace,
+					HelmSourceURL:       "https://charts.kube-ops.io",
+					Branch:              "main",
+					Path:                "./kustomize",
+					AutomationType:      models.AutomationTypeHelm,
+					SourceType:          models.SourceTypeHelm,
+					HelmTargetNamespace: "",
 				}
 
 				goatPaths = map[string]bool{}
 			})
 
 			It("removes cluster resources for helm chart from helm repo with configURL = <url>", func() {
-				localAddParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
-				localAddParams.Chart = "loki"
+				app.ConfigURL = createRepoURL("ssh://git@github.com/user/external.git")
+				app.Path = "loki"
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
-				Expect(appSrv.Remove(gitClient, gitProviders, removeParams)).To(Succeed())
+				Expect(gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", true)).To(Succeed())
 				Expect(checkRemoveResults()).To(Succeed())
 			})
 
 			It("removes cluster resources for helm chart from git repo with configURL = <url>", func() {
-				localAddParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
-				localAddParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
-				localAddParams.Path = "./"
+				app.GitSourceURL = createRepoURL("ssh://git@github.com/user/wego-fork-test.git")
+				app.ConfigURL = createRepoURL("ssh://git@github.com/user/external.git")
+				app.Path = "./"
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
-				Expect(appSrv.Remove(gitClient, gitProviders, removeParams)).To(Succeed())
+				Expect(gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", true)).To(Succeed())
 				Expect(checkRemoveResults()).To(Succeed())
 			})
 
 			Context("Removing resources for non-helm apps", func() {
 				var _ = BeforeEach(func() {
-					localAddParams = AddParams{
-						Url:            "ssh://git@github.com/user/wego-fork-test.git",
-						Branch:         "main",
-						DeploymentType: "kustomize",
-						Namespace:      wego.DefaultNamespace,
-						Path:           "./",
-						AppConfigUrl:   "",
-						AutoMerge:      true,
-					}
+					sourceURL := createRepoURL("ssh://git@github.com/user/wego-fork-test.git")
 
-					removeParams = RemoveParams{
-						Name: "thor",
+					app = models.Application{
+						Name:           "wego-fork-test",
+						Namespace:      wego.DefaultNamespace,
+						GitSourceURL:   sourceURL,
+						ConfigURL:      sourceURL,
+						Branch:         "main",
+						Path:           "./",
+						AutomationType: models.AutomationTypeKustomize,
+						SourceType:     models.SourceTypeGit,
 					}
 
 					goatPaths = map[string]bool{}
@@ -274,27 +253,25 @@ var _ = Describe("Remove", func() {
 
 				It("removes cluster resources for non-helm app configURL = ''", func() {
 					Expect(runAddAndCollectInfo()).To(Succeed())
-					Expect(appSrv.Remove(gitClient, gitProviders, removeParams)).To(Succeed())
+					Expect(gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", true)).To(Succeed())
 					Expect(checkRemoveResults()).To(Succeed())
 				})
 
 				It("commits the manifests with remove message", func() {
-					localAddParams.AppConfigUrl = ""
-
 					Expect(runAddAndCollectInfo()).To(Succeed())
-					Expect(appSrv.Remove(gitClient, gitProviders, removeParams)).To(Succeed())
+					Expect(gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", true)).To(Succeed())
 					Expect(checkRemoveResults()).To(Succeed())
 
 					commit, _ := gitClient.CommitArgsForCall(1)
-					Expect(commit.Message).To(Equal(gitopswriter.RemoveCommitMessage))
+					Expect(commit.Message).To(Equal(RemoveCommitMessage))
 				})
 
 				It("removes cluster resources for non-helm app with configURL = <url>", func() {
-					localAddParams.Url = "ssh://git@github.com/user/wego-fork-test.git"
-					localAddParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
+					app.GitSourceURL = createRepoURL("ssh://git@github.com/user/wego-fork-test.git")
+					app.ConfigURL = createRepoURL("ssh://git@github.com/user/external.git")
 
 					Expect(runAddAndCollectInfo()).To(Succeed())
-					Expect(appSrv.Remove(gitClient, gitProviders, removeParams)).To(Succeed())
+					Expect(gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", true)).To(Succeed())
 					Expect(checkRemoveResults()).To(Succeed())
 				})
 			})

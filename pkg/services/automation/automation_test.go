@@ -185,7 +185,7 @@ var _ = Describe("Generate manifests", func() {
 			})
 
 			Describe("generateAppYaml", func() {
-				FIt("generates the app yaml", func() {
+				It("generates the app yaml", func() {
 					myAppModel := models.Application{
 						Name:                "my-app",
 						Namespace:           wego.DefaultNamespace,
