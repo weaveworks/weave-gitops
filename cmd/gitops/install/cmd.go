@@ -59,10 +59,17 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 
 	gitopsService := gitops.New(log, flux, k)
 
-	manifests, err := gitopsService.Install(gitops.InstallParams{
+	gitopsParams := gitops.InstallParams{
 		Namespace: namespace,
 		DryRun:    installParams.DryRun,
-	})
+	}
+
+	manifests, err := gitopsService.Install(gitopsParams)
+	if err != nil {
+		return err
+	}
+
+	_, err = gitopsService.StoreManifests(nil, nil, gitopsParams, manifests)
 	if err != nil {
 		return err
 	}

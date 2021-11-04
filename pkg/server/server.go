@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"log"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 
 	"github.com/benbjohnson/clock"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -124,7 +125,7 @@ func DefaultConfig() (*ApplicationsConfig, error) {
 
 	return &ApplicationsConfig{
 		Logger:           logr,
-		Factory:          services.NewFactory(fluxClient, logger.NewApiLogger(zapLog)),
+		Factory:          services.NewServerFactory(fluxClient, logger.NewApiLogger(zapLog), nil, ""),
 		JwtClient:        jwtClient,
 		KubeClient:       rawClient,
 		GithubAuthClient: auth.NewGithubAuthProvider(http.DefaultClient),

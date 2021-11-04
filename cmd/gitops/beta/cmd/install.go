@@ -77,6 +77,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		DryRun:       installParams.DryRun,
 		AppConfigURL: installParams.AppConfigURL,
 	}
+
 	manifests, err := gitopsService.Install(gitOpsParams)
 	if err != nil {
 		return err

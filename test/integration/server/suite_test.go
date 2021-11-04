@@ -1,3 +1,4 @@
+//go:build !unittest
 // +build !unittest
 
 package server_test
@@ -76,7 +77,7 @@ var _ = BeforeSuite(func() {
 	)
 	Expect(err).NotTo(HaveOccurred())
 
-	factory := services.NewFactory(fluxClient, logger.NewApiLogger(zap.NewNop()))
+	factory := services.NewServerFactory(fluxClient, logger.NewApiLogger(zap.NewNop()), env.Rest, clusterName)
 	Expect(err).NotTo(HaveOccurred())
 
 	cfg := &server.ApplicationsConfig{
