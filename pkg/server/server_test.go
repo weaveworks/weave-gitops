@@ -939,12 +939,51 @@ var _ = Describe("ApplicationsServer", func() {
 	})
 	Describe("GetGitlabAuthURL", func() {
 		It("returns the gitlab url", func() {
-			res, err := appsClient.GetGitlabAuthURL(context.Background(), &pb.GetGitlabAuthURLRequest{})
+			urlString := "http://gitlab.com/oauth/authorize"
+			authUrl, err := url.Parse(urlString)
+			Expect(err).NotTo(HaveOccurred())
+
+			glAuthClient.AuthURLReturns(*authUrl, nil)
+
+			res, err := appsClient.GetGitlabAuthURL(context.Background(), &pb.GetGitlabAuthURLRequest{
+				RedirectUri: "http://example.com/oauth/fake",
+			})
 			Expect(err).NotTo(HaveOccurred())
 
 			u, err := url.Parse(res.Url)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(u.Hostname()).To(Equal("gitlab.com"))
+			Expect(u.String()).To(Equal(urlString))
+		})
+	})
+
+	Describe("AuthorizeGitlab", func() {
+		It("exchanges a token", func() {
+			token := "some-token"
+			glAuthClient.ExchangeCodeReturns(&authtypes.TokenResponseState{AccessToken: token}, nil)
+
+			res, err := appsClient.AuthorizeGitlab(context.Background(), &pb.AuthorizeGitlabRequest{
+				RedirectUri: "http://example.com/oauth/callback",
+				Code:        "some-challenge-code",
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			claims, err := jwtClient.VerifyJWT(res.Token)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(claims.ProviderToken).To(Equal(token))
+		})
+		It("returns an error if the exchange fails", func() {
+			e := errors.New("some code exchange error")
+			glAuthClient.ExchangeCodeReturns(nil, e)
+
+			_, err := appsClient.AuthorizeGitlab(context.Background(), &pb.AuthorizeGitlabRequest{
+				RedirectUri: "http://example.com/oauth/callback",
+				Code:        "some-challenge-code",
+			})
+			status, ok := status.FromError(err)
+			Expect(ok).To(BeTrue(), "could not get status from error response")
+			Expect(status.Code()).To(Equal(codes.Unknown))
+			Expect(err.Error()).To(ContainSubstring(e.Error()))
 		})
 	})
 
