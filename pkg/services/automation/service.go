@@ -31,24 +31,6 @@ const (
 	WeGOAppIdentifierLabelKey = "wego.weave.works/app-identifier"
 )
 
-// type AddParams struct {
-//  Dir                        string
-//  Name                       string
-//  Url                        string
-//  Path                       string
-//  Branch                     string
-//  DeploymentType             string
-//  Chart                      string
-//  SourceType                 wego.SourceType
-//  AppConfigUrl               string
-//  Namespace                  string
-//  DryRun                     bool
-//  AutoMerge                  bool
-//  GitProviderToken           string
-//  HelmReleaseTargetNamespace string
-//  MigrateToNewDirStructure   func(string) string
-// }
-
 type ConfigMode string
 
 type SourceType string
@@ -72,7 +54,6 @@ const (
 	ResourceKindHelmRepository ResourceKind = "HelmRepository"
 	ResourceKindKustomization  ResourceKind = "Kustomization"
 	ResourceKindHelmRelease    ResourceKind = "HelmRelease"
-	ResourceKindKustomize      ResourceKind = "Kustomize"
 )
 
 var defaultMigrateToNewDirStructure func(string) string = func(s string) string { return s }
@@ -158,7 +139,7 @@ func (a *AutomationSvc) generateAppSource(ctx context.Context, app models.Applic
 
 	switch app.SourceType {
 	case models.SourceTypeGit:
-		source, err = a.Flux.CreateSourceGit(app.Name, app.GitSourceURL.String(), app.Branch, appSecretRef.String(), app.Namespace)
+		source, err = a.Flux.CreateSourceGit(app.Name, app.GitSourceURL, app.Branch, appSecretRef.String(), app.Namespace)
 		if err == nil {
 			source, err = addWegoIgnore(source)
 		}
@@ -244,36 +225,6 @@ func addWegoIgnore(sourceManifest []byte) ([]byte, error) {
 
 	return updatedManifest, nil
 }
-
-// func (a *AutomationSvc) generateAutomationAutomation(ctx context.Context, app models.Application, clusterName string) ([]AutomationManifest, error) {
-//  secretName, err := a.getConfigSecretRef(ctx, app, clusterName)
-//  if err != nil {
-//      return nil, err
-//  }
-
-//  appsDirAutomationManifest, err := a.Flux.CreateKustomization(
-//      AutomationAppsDirKustomizationName(app),
-//      secretName.String(),
-//      AppYamlDir(app),
-//      app.Namespace)
-//  if err != nil {
-//      return nil, fmt.Errorf("could not generate app dir kustomization for '%s': %w", app.Name, err)
-//  }
-
-//  targetDirAutomationManifest, err := a.Flux.CreateKustomization(
-//      AutomationTargetDirKustomizationName(app, clusterName),
-//      secretName.String(),
-//      AppAutomationDir(app, clusterName),
-//      app.Namespace)
-//  if err != nil {
-//      return nil, fmt.Errorf("could not generate target dir kustomization for '%s': %w", app.Name, err)
-//  }
-
-//  return []AutomationManifest{
-//      AutomationManifest{Path: "", Content: appsDirAutomationManifest},
-//      AutomationManifest{Path: "", Content: targetDirAutomationManifest},
-//  }, nil
-// }
 
 func (a *AutomationSvc) GenerateAutomation(ctx context.Context, app models.Application, clusterName string) ([]AutomationManifest, error) {
 	appDeployManifests, err := a.generateAppAutomation(ctx, app, clusterName)
@@ -407,24 +358,14 @@ func AppToWegoApp(app models.Application) wego.Application {
 
 // Operations to extract useful information from an Application
 
-func GetConfigMode(a models.Application) ConfigMode {
-	if a.GitSourceURL.String() == a.ConfigURL.String() {
-		return ConfigModeUserRepo
-	}
+const automationRoot = ".weave-gitops"
 
-	return ConfigModeExternalRepo
-}
-
-func automationRoot(a models.Application) string {
-	return ".weave-gitops"
+func AppYamlDir(a models.Application) string {
+	return filepath.Join(automationRoot, "apps", a.Name)
 }
 
 func AppYamlPath(a models.Application) string {
 	return filepath.Join(AppYamlDir(a), "app.yaml")
-}
-
-func AppYamlDir(a models.Application) string {
-	return filepath.Join(automationRoot(a), "apps", a.Name)
 }
 
 func AppAutomationSourcePath(a models.Application) string {
@@ -437,6 +378,10 @@ func AppAutomationDeployPath(a models.Application) string {
 
 func AppAutomationKustomizePath(a models.Application) string {
 	return filepath.Join(AppYamlDir(a), "kustomization.yaml")
+}
+
+func AutomationUserKustomizePath(clusterName string) string {
+	return filepath.Join(automationRoot, "clusters", clusterName, "user", "kustomization.yaml")
 }
 
 func AppSourceName(a models.Application) string {
@@ -465,14 +410,6 @@ func CreateRepoSecretName(targetName string, gitSourceURL gitproviders.RepoURL) 
 	return GeneratedSecretName(hashNameIfTooLong(fmt.Sprintf("wego-%s-%s", targetName, GenerateResourceName(gitSourceURL))))
 }
 
-func AutomationAppsDirKustomizationName(a models.Application) string {
-	return hashNameIfTooLong(fmt.Sprintf("%s-apps-dir", a.Name))
-}
-
-// func AutomationTargetDirKustomizationName(a models.Application, clusterName string) string {
-//  return hashNameIfTooLong(fmt.Sprintf("%s-%s", clusterName, a.Name))
-// }
-
 func SourceKind(a models.Application) ResourceKind {
 	result := ResourceKindGitRepository
 
@@ -491,46 +428,6 @@ func DeployKind(a models.Application) ResourceKind {
 	}
 
 	return result
-}
-
-func ClusterResources(a models.Application, clusterName string) []ResourceRef {
-	resources := []ResourceRef{}
-
-	// Application GOAT, common to all three modes
-	appPath := AppYamlPath(a)
-	automationSourcePath := AppAutomationSourcePath(a)
-	automationDeployPath := AppAutomationDeployPath(a)
-	automationKustomizePath := AppAutomationKustomizePath(a)
-
-	resources = append(
-		resources,
-		ResourceRef{
-			Kind:           SourceKind(a),
-			Name:           AppSourceName(a),
-			RepositoryPath: automationSourcePath},
-		ResourceRef{
-			Kind:           DeployKind(a),
-			Name:           AppDeployName(a),
-			RepositoryPath: automationDeployPath},
-		ResourceRef{
-			Kind:           ResourceKindKustomize,
-			Name:           "kustomization.yaml",
-			RepositoryPath: automationKustomizePath},
-		ResourceRef{
-			Kind:           ResourceKindApplication,
-			Name:           AppResourceName(a),
-			RepositoryPath: appPath})
-
-	if a.ConfigURL.URL() == nil {
-		// Only app resources present in cluster; no resources to manage config
-		return resources
-	}
-
-	return resources
-}
-
-func ClusterResourcePaths(a models.Application, clusterName string) []string {
-	return []string{AppYamlPath(a), AppAutomationSourcePath(a), AppAutomationDeployPath(a)}
 }
 
 func GetAppHash(a models.Application) string {
@@ -564,8 +461,6 @@ func (rk ResourceKind) ToGVR() (schema.GroupVersionResource, error) {
 		return kube.GVRHelmRelease, nil
 	case ResourceKindKustomization:
 		return kube.GVRKustomization, nil
-	case ResourceKindKustomize:
-		return schema.GroupVersionResource{}, nil
 	default:
 		return schema.GroupVersionResource{}, fmt.Errorf("no matching schema.GroupVersionResource to the ResourceKind: %s", string(rk))
 	}

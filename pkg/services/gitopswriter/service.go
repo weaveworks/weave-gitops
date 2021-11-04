@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/models"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -32,11 +33,12 @@ type GitOpsDirectoryWriter interface {
 type GitOpsDirectoryWriterSvc struct {
 	Automation automation.AutomationService
 	RepoWriter gitrepo.RepoWriter
+	Osys       osys.Osys
 	Logger     logger.Logger
 }
 
-func NewGitOpsDirectoryWriter(automationSvc automation.AutomationService, repoWriter gitrepo.RepoWriter, logger logger.Logger) GitOpsDirectoryWriter {
-	return &GitOpsDirectoryWriterSvc{Automation: automationSvc, RepoWriter: repoWriter, Logger: logger}
+func NewGitOpsDirectoryWriter(automationSvc automation.AutomationService, repoWriter gitrepo.RepoWriter, osys osys.Osys, logger logger.Logger) GitOpsDirectoryWriter {
+	return &GitOpsDirectoryWriterSvc{Automation: automationSvc, RepoWriter: repoWriter, Osys: osys, Logger: logger}
 }
 
 func (dw *GitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error {
@@ -94,8 +96,6 @@ func (dw *GitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app mode
 }
 
 func (dw *GitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error {
-	resources := automation.ClusterResources(app, clusterName)
-
 	branch, err := dw.RepoWriter.GetDefaultBranch(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to obtain config branch: %w", err)
@@ -110,13 +110,19 @@ func (dw *GitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app m
 
 	dw.Logger.Actionf("Removing application from cluster and repository")
 
-	// Remove automation files
-	for _, resourceRef := range resources {
-		if !utils.Exists(filepath.Join(repoDir, resourceRef.RepositoryPath)) {
+	appDir := filepath.Join(repoDir, automation.AppYamlDir(app))
+
+	resourcePaths, err := dw.Osys.ReadDir(appDir)
+	if err != nil {
+		return fmt.Errorf("failed to read resource files: %w", err)
+	}
+
+	for _, resourcePath := range resourcePaths {
+		if !utils.Exists(filepath.Join(repoDir)) {
 			continue
 		}
 
-		if err := dw.RepoWriter.Remove(ctx, resourceRef.RepositoryPath); err != nil {
+		if err := dw.RepoWriter.Remove(ctx, resourcePath.Name()); err != nil {
 			return fmt.Errorf("failed to remove app resource from repository: %w", err)
 		}
 	}

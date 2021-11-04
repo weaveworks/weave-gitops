@@ -47,7 +47,7 @@ func (a *AppSvc) Remove(configGit git.Git, gitProvider gitproviders.GitProvider,
 func (a *AppSvc) removeApp(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error {
 	repoWriter := gitrepo.NewRepoWriter(app.ConfigURL, a.GitProvider, a.ConfigGit, a.Logger)
 	automationSvc := automation.NewAutomationService(a.GitProvider, a.Flux, a.Logger)
-	gitOpsDirWriter := gitopswriter.NewGitOpsDirectoryWriter(automationSvc, repoWriter, a.Logger)
+	gitOpsDirWriter := gitopswriter.NewGitOpsDirectoryWriter(automationSvc, repoWriter, a.Osys, a.Logger)
 
 	return gitOpsDirWriter.RemoveApplication(ctx, app, clusterName, autoMerge)
 }

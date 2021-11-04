@@ -18,16 +18,16 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	//	"github.com/weaveworks/weave-gitops/pkg/models"
-	"github.com/weaveworks/weave-gitops/pkg/services/automation"
+	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"sigs.k8s.io/yaml"
 )
 
 var (
-	addParams AddParams
-	ctx       context.Context
+	addParams       AddParams
+	ctx             context.Context
+	manifestsByPath map[string][]byte = map[string][]byte{}
 )
 
 var dummyGitSource = []byte(`---
@@ -173,25 +173,13 @@ var _ = Describe("Add", func() {
 		Describe("generates application goat", func() {
 			It("creates a kustomization if deployment type kustomize", func() {
 				Expect(appSrv.Add(gitClient, gitProviders, addParams)).Should(Succeed())
-				Expect(fluxClient.CreateKustomizationCallCount()).To(Equal(3))
+				Expect(fluxClient.CreateKustomizationCallCount()).To(Equal(1))
 
-				// name, source, path, namespace := fluxClient.CreateKustomizationArgsForCall(0)
-				// Expect(name).To(Equal("bar"))
-				// Expect(source).To(Equal("bar"))
-				// Expect(path).To(Equal("./kustomize"))
-				// Expect(namespace).To(Equal(wego.DefaultNamespace))
-
-				// name, source, path, namespace = fluxClient.CreateKustomizationArgsForCall(1)
-				// Expect(name).To(Equal("bar-apps-dir"))
-				// Expect(source).To(Equal("bar"))
-				// Expect(path).To(Equal(".wego/apps/bar"))
-				// Expect(namespace).To(Equal(wego.DefaultNamespace))
-
-				// name, source, path, namespace = fluxClient.CreateKustomizationArgsForCall(2)
-				// Expect(name).To(Equal("test-cluster-bar"))
-				// Expect(source).To(Equal("bar"))
-				// Expect(path).To(Equal(".wego/targets/test-cluster/bar"))
-				// Expect(namespace).To(Equal(wego.DefaultNamespace))
+				name, source, path, namespace := fluxClient.CreateKustomizationArgsForCall(0)
+				Expect(name).To(Equal("bar"))
+				Expect(source).To(Equal("bar"))
+				Expect(path).To(Equal("./kustomize"))
+				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 
 			It("creates helm release using a helm repository if source type is helm", func() {
@@ -315,19 +303,7 @@ var _ = Describe("Add", func() {
 				fluxClient.CreateKustomizationReturns([]byte("kustomization"), nil)
 
 				Expect(appSrv.Add(gitClient, gitProviders, addParams)).Should(Succeed())
-				Expect(gitClient.WriteCallCount()).To(Equal(8))
-
-				// path, content := gitClient.WriteArgsForCall(0)
-				// Expect(path).To(Equal(".wego/apps/bar/app.yaml"))
-				// Expect(string(content)).To(ContainSubstring("kind: Application"))
-
-				// path, content = gitClient.WriteArgsForCall(1)
-				// Expect(path).To(Equal(".wego/targets/test-cluster/bar/bar-gitops-source.yaml"))
-				// Expect(content).To(Equal([]byte("git")))
-
-				// path, content = gitClient.WriteArgsForCall(2)
-				// Expect(path).To(Equal(".wego/targets/test-cluster/bar/bar-gitops-deploy.yaml"))
-				// Expect(content).To(Equal([]byte("kustomization")))
+				Expect(gitClient.WriteCallCount()).To(Equal(5))
 			})
 		})
 
@@ -338,10 +314,10 @@ var _ = Describe("Add", func() {
 			msg, filters := gitClient.CommitArgsForCall(0)
 			Expect(msg).To(Equal(git.Commit{
 				Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
-				Message: "Add App Manifests",
+				Message: gitopswriter.AddCommitMessage,
 			}))
 
-			Expect(filters[0](".weave-gitops/file.txt")).To(BeTrue())
+			Expect(filters[0](".weave-gitops/apps/bar/app.yaml")).To(BeTrue())
 		})
 	})
 
@@ -356,20 +332,13 @@ var _ = Describe("Add", func() {
 				addParams.SourceType = wego.SourceTypeGit
 
 				Expect(appSrv.Add(gitClient, gitProviders, addParams)).Should(Succeed())
-				Expect(fluxClient.CreateSourceGitCallCount()).To(Equal(2))
+				Expect(fluxClient.CreateSourceGitCallCount()).To(Equal(1))
 
 				name, url, branch, secretRef, namespace := fluxClient.CreateSourceGitArgsForCall(0)
 				Expect(name).To(Equal("repo"))
 				Expect(url.String()).To(Equal("ssh://git@github.com/user/repo.git"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("wego-test-cluster-repo"))
-				Expect(namespace).To(Equal(wego.DefaultNamespace))
-
-				name, url, branch, secretRef, namespace = fluxClient.CreateSourceGitArgsForCall(1)
-				Expect(name).To(Equal("bar"))
-				Expect(url.String()).To(Equal("ssh://git@github.com/foo/bar.git"))
-				Expect(branch).To(Equal("main"))
-				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
 				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 
@@ -402,12 +371,12 @@ var _ = Describe("Add", func() {
 			fluxClient.CreateKustomizationReturns([]byte("kustomization"), nil)
 
 			Expect(appSrv.Add(gitClient, gitProviders, addParams)).Should(Succeed())
-			Expect(gitClient.WriteCallCount()).To(Equal(3))
+			Expect(gitClient.WriteCallCount()).To(Equal(5))
 
 			found := 0
 			for idx := 0; idx < 3; idx++ {
 				path, _ := gitClient.WriteArgsForCall(idx)
-				if path == "apps/repo/app.yaml" || path == "targets/test-cluster/repo/repo-gitops-source.yaml" || path == "targets/test-cluster/repo/repo-gitops-deploy.yaml" {
+				if path == ".weave-gitops/apps/repo/app.yaml" || path == ".weave-gitops/apps/repo/repo-gitops-source.yaml" || path == ".weave-gitops/apps/repo/repo-gitops-deploy.yaml" {
 					found++
 				}
 			}
@@ -422,10 +391,10 @@ var _ = Describe("Add", func() {
 			msg, filters := gitClient.CommitArgsForCall(0)
 			Expect(msg).To(Equal(git.Commit{
 				Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
-				Message: "Add App manifests",
+				Message: gitopswriter.AddCommitMessage,
 			}))
 
-			Expect(len(filters)).To(Equal(0))
+			Expect(len(filters)).To(Equal(1))
 		})
 	})
 
@@ -615,7 +584,6 @@ var _ = Describe("New directory structure", func() {
 			MigrateToNewDirStructure: utils.MigrateToNewDirStructure,
 		}
 		manifestsByPath = map[string][]byte{}
-		createdResources = map[automation.ResourceKind]map[string]bool{}
 
 		gitProviders.GetDefaultBranchStub = func(ctx context.Context, url gitproviders.RepoURL) (string, error) {
 			return "main", nil
