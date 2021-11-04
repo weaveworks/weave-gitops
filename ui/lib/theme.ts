@@ -88,6 +88,10 @@ export const GlobalStyle = createGlobalStyle`
     margin: 0;
     min-width: fit-content;
   }
+
+  .auth-modal-size {
+    min-height: 475px
+  }
 `;
 
 export const muiTheme = createTheme({

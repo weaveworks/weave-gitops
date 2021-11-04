@@ -27,6 +27,7 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   -webkit-box-align: start;
   -ms-flex-align: start;
   align-items: start;
+  height: 150px;
   -webkit-box-pack: center;
   -webkit-justify-content: center;
   -ms-flex-pack: center;
@@ -34,7 +35,7 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   width: 100%;
 }
 
-.c10 {
+.c11 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -53,7 +54,26 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   justify-content: flex-end;
 }
 
-.c7 {
+.c4 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.c8 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -67,7 +87,7 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   align-items: center;
 }
 
-.c6 {
+.c7 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 32px;
   font-weight: 400;
@@ -75,13 +95,13 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   font-style: normal;
 }
 
-.c9 svg {
+.c10 svg {
   fill: !important;
   height: 16px;
   width: 16px;
 }
 
-.c9 .c5 {
+.c10 .c6 {
   margin-left: 4px;
 }
 
@@ -99,7 +119,6 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   justify-content: space-evenly;
   background-color: #fff;
   margin: 0 auto;
-  height: 400px;
   max-width: 540px;
   padding: 16px 32px;
   -webkit-transform: translate(0,50%);
@@ -107,11 +126,11 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   transform: translate(0,50%);
 }
 
-.c4 {
+.c5 {
   padding: 8px 0;
 }
 
-.c3 .c8 {
+.c3 .c9 {
   margin-left: 8px;
 }
 
@@ -158,14 +177,14 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
           class="c3"
         >
           <div
-            class="c2 c4"
+            class="c4 c5"
           >
             <span
-              class="c5 c6"
+              class="c6 c7"
             />
           </div>
           <div
-            class="c2 c4"
+            class="c4 c5"
           >
             <a
               target="_blank"
@@ -179,12 +198,12 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
                   class="MuiButton-label"
                 >
                   <div
-                    class="c7"
+                    class="c8"
                   >
                     Authorize Github Access
                      
                     <div
-                      class="c7 c8 c9"
+                      class="c8 c9 c10"
                     >
                       <svg
                         aria-hidden="true"
@@ -206,13 +225,13 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
             </a>
           </div>
           <div
-            class="c2 c4"
+            class="c4 c5"
           />
         </div>
       </div>
     </div>
     <div
-      class="c10"
+      class="c11"
     >
       <button
         class="MuiButtonBase-root MuiButton-root MuiButton-contained"

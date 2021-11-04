@@ -146,6 +146,7 @@ function ApplicationDetail({ className, name }: Props) {
       />
       <Modal
         //confirm modal for app removal
+        bodyClassName="auth-modal-size"
         open={removeAppModalOpen}
         onClose={() => setRemoveAppModalOpen(false)}
         title="Are You Sure?"
@@ -204,7 +205,7 @@ function ApplicationDetail({ className, name }: Props) {
                       applicationsClient.RemoveApplication({
                         name: application.name,
                         namespace: application.namespace,
-                        //CAN'T FIND AUTOMERGE IN APPLICATION OBJECT
+                        //autoMerge is true as there is currently no way to remove an app with pull request
                         autoMerge: true,
                       })
                     )
@@ -222,11 +223,14 @@ function ApplicationDetail({ className, name }: Props) {
         </Flex>
       </Modal>
       <GithubDeviceAuthModal
+        bodyClassName="auth-modal-size"
         onSuccess={() => {
           setAuthSuccess(true);
         }}
         repoName={application.url}
-        onClose={() => setGithubAuthModalOpen(false)}
+        onClose={() => {
+          setGithubAuthModalOpen(false);
+        }}
         open={githubAuthModalOpen}
       />
     </Page>
