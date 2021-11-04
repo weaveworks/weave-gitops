@@ -107,19 +107,19 @@ func (a *AutomationSvc) getSecretRef(ctx context.Context, app models.Application
 func (a *AutomationSvc) generateAppAutomation(ctx context.Context, app models.Application, clusterName string) ([]AutomationManifest, error) {
 	a.Logger.Generatef("Generating GitOps automation manifests")
 
-	appGoatManifests, err := a.generateApplicationGoat(app, clusterName)
+	appManifest, err := generateAppYaml(app)
+	if err != nil {
+		return nil, fmt.Errorf("could not create app.yaml for '%s': %w", app.Name, err)
+	}
+
+	appGoatManifest, err := a.generateApplicationGoat(app, clusterName)
 	if err != nil {
 		return nil, fmt.Errorf("could not create GitOps automation for '%s': %w", app.Name, err)
 	}
 
 	a.Logger.Generatef("Generating application spec manifest")
 
-	appManifests, err := generateAppYaml(app)
-	if err != nil {
-		return nil, fmt.Errorf("could not create app.yaml for '%s': %w", app.Name, err)
-	}
-
-	return append(appGoatManifests, appManifests...), nil
+	return []AutomationManifest{appManifest, appGoatManifest}, nil
 }
 
 func (a *AutomationSvc) generateAppSource(ctx context.Context, app models.Application, clusterName string) (AutomationManifest, error) {
@@ -137,7 +137,7 @@ func (a *AutomationSvc) generateAppSource(ctx context.Context, app models.Applic
 	case models.SourceTypeGit:
 		source, err = a.Flux.CreateSourceGit(app.Name, app.GitSourceURL, app.Branch, appSecretRef.String(), app.Namespace)
 		if err == nil {
-			source, err = addWegoIgnore(source)
+			source, err = AddWegoIgnore(source)
 		}
 	case models.SourceTypeHelm:
 		source, err = a.Flux.CreateSourceHelm(app.Name, app.HelmSourceURL, app.Namespace)
@@ -198,7 +198,7 @@ func createAppKustomize(app models.Application, automation []AutomationManifest)
 	return AutomationManifest{Path: AppAutomationKustomizePath(app), Content: bytes}, nil
 }
 
-func addWegoIgnore(sourceManifest []byte) ([]byte, error) {
+func AddWegoIgnore(sourceManifest []byte) ([]byte, error) {
 	var gitRepository sourcev1.GitRepository
 
 	if err := yaml.Unmarshal(sourceManifest, &gitRepository); err != nil {
@@ -243,7 +243,7 @@ func (a *AutomationSvc) GenerateAutomation(ctx context.Context, app models.Appli
 	return append(automationManifests, appKustomize), nil
 }
 
-func (a *AutomationSvc) generateApplicationGoat(app models.Application, clusterName string) ([]AutomationManifest, error) {
+func (a *AutomationSvc) generateApplicationGoat(app models.Application, clusterName string) (AutomationManifest, error) {
 	var (
 		b   []byte
 		err error
@@ -259,16 +259,16 @@ func (a *AutomationSvc) generateApplicationGoat(app models.Application, clusterN
 		case models.SourceTypeGit:
 			b, err = a.Flux.CreateHelmReleaseGitRepository(app.Name, app.Name, app.Path, app.Namespace, app.HelmTargetNamespace)
 		default:
-			return nil, fmt.Errorf("invalid source type: %v", app.SourceType)
+			return AutomationManifest{}, fmt.Errorf("invalid source type: %v", app.SourceType)
 		}
 	default:
-		return nil, fmt.Errorf("invalid automation type: %v", app.AutomationType)
+		return AutomationManifest{}, fmt.Errorf("invalid automation type: %v", app.AutomationType)
 	}
 
-	return []AutomationManifest{AutomationManifest{Path: AppAutomationDeployPath(app), Content: sanitizeWegoDirectory(b)}}, err
+	return AutomationManifest{Path: AppAutomationDeployPath(app), Content: sanitizeWegoDirectory(b)}, err
 }
 
-func generateAppYaml(app models.Application) ([]AutomationManifest, error) {
+func generateAppYaml(app models.Application) (AutomationManifest, error) {
 	wegoapp := AppToWegoApp(app)
 
 	wegoapp.ObjectMeta.Labels = map[string]string{
@@ -277,10 +277,10 @@ func generateAppYaml(app models.Application) ([]AutomationManifest, error) {
 
 	b, err := yaml.Marshal(&wegoapp)
 	if err != nil {
-		return nil, fmt.Errorf("could not marshal yaml: %w", err)
+		return AutomationManifest{}, fmt.Errorf("could not marshal yaml: %w", err)
 	}
 
-	return []AutomationManifest{AutomationManifest{Path: AppYamlPath(app), Content: sanitizeK8sYaml(b)}}, nil
+	return AutomationManifest{Path: AppYamlPath(app), Content: sanitizeK8sYaml(b)}, nil
 }
 
 func WegoAppToApp(app wego.Application) (models.Application, error) {
