@@ -74,6 +74,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 
 	var gitProvider gitproviders.GitProvider
+
 	if installParams.DryRun {
 		if gitProvider, err = gitproviders.NewDryRun(); err != nil {
 			return fmt.Errorf("error creating git provider client: %w", err)
