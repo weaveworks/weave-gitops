@@ -100,7 +100,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
 
-		installAndVerifyWegoWithConfigRepo(namespace, appRepoRemoteURL)
+		installAndVerifyWego(namespace, appRepoRemoteURL)
 
 		By("When I run 'gitops uninstall' command", func() {
 			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, namespace))
@@ -135,7 +135,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
 
-		installAndVerifyWegoWithConfigRepo(namespace, appRepoRemoteURL)
+		installAndVerifyWego(namespace, appRepoRemoteURL)
 
 		ctx := context.Background()
 
@@ -195,7 +195,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 			Eventually(err).Should(ContainSubstring(`Error from server (NotFound): namespaces "` + WEGO_DEFAULT_NAMESPACE + `" not found`))
 		})
 
-		installAndVerifyWegoWithConfigRepo(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
+		installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 
 		By("When I try to uninstall gitops in dry-run mode", func() {
 			uninstallDryRunOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " uninstall --dry-run")

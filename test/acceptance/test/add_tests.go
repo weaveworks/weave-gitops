@@ -124,7 +124,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 		})
 
 		By("And I create a new branch", func() {
@@ -164,6 +164,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := true
 		tip := generateTestInputs()
 		appName := tip.appRepoName
+		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 
 		addCommand := "add app . --auto-merge=true"
 
@@ -183,7 +184,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 		})
 
 		By("And I run gitops add command", func() {
@@ -212,6 +213,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := true
 		tip := generateTestInputs()
 		appName := tip.appRepoName
+		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 		var appRemoveOutput *gexec.Session
 
 		addCommand := "add app . --auto-merge=true"
@@ -236,7 +238,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 		})
 
 		By("And I run gitops add command", func() {
@@ -279,6 +281,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := false
 		tip := generateTestInputs()
 		appName := tip.appRepoName
+		appRepoRemoteURL := "ssh://git@gitlab.com/" + GITLAB_PUBLIC_GROUP + "/" + tip.appRepoName + ".git"
 
 		addCommand := "add app . --auto-merge=true"
 
@@ -302,7 +305,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 		})
 
 		By("And I run gitops add command", func() {
@@ -363,7 +366,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, configRepoRemoteURL)
 		})
 
 		By("And I run gitops add command with --url and --app-config-url params", func() {
@@ -417,7 +420,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, configRepoRemoteURL)
 		})
 
 		By("And I run gitops add command with --url and --app-config-url params", func() {
@@ -470,7 +473,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 		})
 
 		By("And I run gitops add command with --url", func() {
@@ -488,6 +491,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := true
 		tip := generateTestInputs()
 		appName := tip.appRepoName
+		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 
 		addCommand := "add app " + tip.appRepoName + "/" + " --auto-merge=true"
 
@@ -508,7 +512,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 		})
 
 		By("And I run gitops add command from repo parent dir", func() {
@@ -532,6 +536,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		tip2 := generateTestInputs()
 		appRepoName := "wego-test-app-" + RandString(8)
 		appName := appRepoName
+		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
 
 		addCommand := "add app . --name=" + appName + " --auto-merge=true"
 
@@ -558,7 +563,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 		})
 
 		By("And I run gitops add command for 1st app", func() {
@@ -609,7 +614,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, configRepoRemoteURL)
 		})
 
 		By("When I create a private repo for gitops app config", func() {
@@ -645,6 +650,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		appRepoName := "wego-test-app-" + RandString(8)
 		appName1 := "app1"
 		appName2 := "app2"
+		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
 
 		addCommand1 := "add app . --path=./" + appName1 + " --name=" + appName1 + " --auto-merge=true"
 		addCommand2 := "add app . --path=./" + appName2 + " --name=" + appName2 + " --auto-merge=true"
@@ -663,7 +669,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 		})
 
 		By("And I create a repo with my app1 and app2 workloads and run the add app command for each app", func() {
@@ -739,7 +745,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, configRepoRemoteURL)
 		})
 
 		By("And I run gitops add app command for app1: "+appName1, func() {
@@ -869,9 +875,10 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := true
 		public := false
 		replicaSetValue := 3
+		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip1.appRepoName + ".git"
 
 		addCommand1 := "add app . --name=" + appName1 + " --auto-merge=true"
-		addCommand2 := "add app . --name=" + appName2 + " --auto-merge=true"
+		addCommand2 := "add app . --name=" + appName2 + " --auto-merge=true --app-config-url=" + appRepoRemoteURL
 
 		defer deleteRepo(tip1.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteRepo(tip2.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
@@ -905,7 +912,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 		})
 
 		By("And I run gitops add app command for 1st app", func() {
@@ -1086,6 +1093,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		appName := "my-helm-app"
 		appManifestFilePath := "./data/helm-repo/hello-world"
 		appRepoName := "wego-test-app-" + RandString(8)
+		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
 
 		addCommand := "add app . --deployment-type=helm --path=./hello-world --name=" + appName + " --auto-merge=true"
 
@@ -1101,7 +1109,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 		})
 
 		By("And I run gitops add command", func() {
@@ -1151,7 +1159,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, configRepoUrl)
 		})
 
 		By("And I run gitops add command", func() {
@@ -1220,7 +1228,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I install gitops under my namespace: "+WEGO_DEFAULT_NAMESPACE, func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 		})
 
 		By("And I create a namespace for helm-app", func() {
@@ -1374,6 +1382,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		tip := generateTestInputs()
 		appName := tip.appRepoName
 		prLink := ""
+		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 
 		addCommand := "add app . --name=" + appName + " --auto-merge=false"
 
@@ -1393,7 +1402,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 		})
 
 		By("When I run gitops add app command for app", func() {
@@ -1421,6 +1430,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		tip := generateTestInputs()
 		appName := tip.appRepoName
 		prLink := ""
+		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 
 		addCommand := "add app . --name=" + appName + " --auto-merge=false"
 
@@ -1444,7 +1454,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 		})
 
 		By("When I run gitops add app command for app", func() {
@@ -1500,7 +1510,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, configRepoRemoteURL)
 		})
 
 		By("And I run gitops add command with --app-config-url param", func() {
@@ -1529,6 +1539,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		tip2 := generateTestInputs()
 		appName := tip.appRepoName
 		appName2 := tip2.appRepoName
+		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 		prLink := "https://github.com/" + GITHUB_ORG + "/" + tip.appRepoName + "/pull/1"
 
 		addCommand := "add app . --name=" + appName
@@ -1550,7 +1561,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 		})
 
 		By("And I run add app command for "+appName, func() {
@@ -1644,7 +1655,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 
 		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, configRepoRemoteURL)
 		})
 
 		By("And I run gitops add app command for app: "+appName, func() {
@@ -1736,7 +1747,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 
 		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, configRepoRemoteURL)
 		})
 
 		By("And I run gitops add app command for app: "+appName, func() {
