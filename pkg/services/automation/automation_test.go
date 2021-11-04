@@ -6,18 +6,12 @@ import (
 	"fmt"
 	"strings"
 
-	//	"github.com/go-git/go-billy/v5/memfs"
-	//	gogit "github.com/go-git/go-git/v5"
-	//	"github.com/go-git/go-git/v5/config"
-	//	"github.com/go-git/go-git/v5/storage/memory"
 	"github.com/google/go-cmp/cmp"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	//	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/models"
-	//	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"sigs.k8s.io/yaml"
 )
 
@@ -30,6 +24,7 @@ var (
 func createRepoURL(url string) gitproviders.RepoURL {
 	repoURL, err := gitproviders.NewRepoURL(url)
 	Expect(err).NotTo(HaveOccurred())
+
 	return repoURL
 }
 
