@@ -6,6 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/version"
@@ -20,12 +21,12 @@ type Flux interface {
 	GetExePath() (string, error)
 	Install(namespace string, export bool) ([]byte, error)
 	Uninstall(namespace string, export bool) error
-	CreateSourceGit(name string, url string, branch string, secretRef string, namespace string) ([]byte, error)
+	CreateSourceGit(name string, repoUrl gitproviders.RepoURL, branch string, secretRef string, namespace string) ([]byte, error)
 	CreateSourceHelm(name string, url string, namespace string) ([]byte, error)
 	CreateKustomization(name string, source string, path string, namespace string) ([]byte, error)
 	CreateHelmReleaseGitRepository(name, source, path, namespace, targetNamespace string) ([]byte, error)
 	CreateHelmReleaseHelmRepository(name, chart, namespace, targetNamespace string) ([]byte, error)
-	CreateSecretGit(name string, url string, namespace string) ([]byte, error)
+	CreateSecretGit(name string, repoUrl gitproviders.RepoURL, namespace string) ([]byte, error)
 	GetVersion() (string, error)
 	GetAllResourcesStatus(name string, namespace string) ([]byte, error)
 	SuspendOrResumeApp(pause wego.SuspendActionType, name, namespace, deploymentType string) ([]byte, error)
@@ -90,7 +91,7 @@ func (f *FluxClient) Uninstall(namespace string, dryRun bool) error {
 	return nil
 }
 
-func (f *FluxClient) CreateSourceGit(name string, url string, branch string, secretRef string, namespace string) ([]byte, error) {
+func (f *FluxClient) CreateSourceGit(name string, repoUrl gitproviders.RepoURL, branch string, secretRef string, namespace string) ([]byte, error) {
 	args := []string{
 		"create", "source", "git", name,
 		"--branch", branch,
@@ -100,9 +101,9 @@ func (f *FluxClient) CreateSourceGit(name string, url string, branch string, sec
 	}
 
 	if secretRef != "" {
-		args = append(args, "--secret-ref", secretRef, "--url", url)
+		args = append(args, "--secret-ref", secretRef, "--url", repoUrl.String())
 	} else {
-		args = append(args, "--url", makePublicUrl(url))
+		args = append(args, "--url", makePublicUrl(repoUrl))
 	}
 
 	out, err := f.runFluxCmd(args...)
@@ -113,15 +114,18 @@ func (f *FluxClient) CreateSourceGit(name string, url string, branch string, sec
 	return out, nil
 }
 
-func makePublicUrl(url string) string {
+func makePublicUrl(repoUrl gitproviders.RepoURL) string {
 	trimmed := ""
+
+	url := repoUrl.String()
+	provider := repoUrl.Provider()
 
 	if !strings.HasSuffix(url, ".git") {
 		url = url + ".git"
 	}
 
-	gitSshPrefix := "git@github.com:"
-	sshPrefix := "ssh://git@github.com/"
+	gitSshPrefix := fmt.Sprintf("git@%scom:", provider)
+	sshPrefix := fmt.Sprintf("ssh://git@%s.com/", provider)
 
 	if strings.HasPrefix(url, gitSshPrefix) {
 		trimmed = strings.TrimPrefix(url, gitSshPrefix)
@@ -130,7 +134,7 @@ func makePublicUrl(url string) string {
 	}
 
 	if trimmed != "" {
-		return "https://github.com/" + trimmed
+		return fmt.Sprintf("https://%s.com/%s", provider, trimmed)
 	}
 
 	return url
@@ -217,10 +221,10 @@ func (f *FluxClient) CreateHelmReleaseHelmRepository(name, chart, namespace, tar
 }
 
 // CreatSecretGit Creates a Git secret returns the deploy key
-func (f *FluxClient) CreateSecretGit(name string, url string, namespace string) ([]byte, error) {
+func (f *FluxClient) CreateSecretGit(name string, repoUrl gitproviders.RepoURL, namespace string) ([]byte, error) {
 	args := []string{
 		"create", "secret", "git", name,
-		"--url", url,
+		"--url", repoUrl.String(),
 		"--namespace", namespace,
 		"--export",
 	}

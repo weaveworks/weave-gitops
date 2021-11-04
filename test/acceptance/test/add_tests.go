@@ -207,7 +207,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	It("Verify that gitops can deploy and remove a gitlab app after it is setup with an empty repo initially", func() {
+	It("Test1 - Verify that gitops can deploy and remove a gitlab app after it is setup with an empty repo initially", func() {
 		var repoAbsolutePath string
 		private := true
 		tip := generateTestInputs()
@@ -272,6 +272,59 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		By("And app should get deleted from the cluster", func() {
 			_ = waitForAppRemoval(appName, THIRTY_SECOND_TIMEOUT)
 		})
+	})
+
+	It("Test2 - Verify that gitops can deploy a public gitlab app", func() {
+		var repoAbsolutePath string
+		private := false
+		tip := generateTestInputs()
+		appName := tip.appRepoName
+
+		addCommand := "add app . --auto-merge=true"
+
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_PUBLIC_GROUP)
+		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
+
+		By("I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
+			setupGitlabSSHKey(DEFAULT_SSH_KEY_PATH)
+		})
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_PUBLIC_GROUP)
+		})
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(tip.workloadName, tip.workloadNamespace)
+		})
+
+		By("When I create an empty public repo", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitLab, private, GITLAB_PUBLIC_GROUP)
+		})
+
+		By("And I install gitops to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I run gitops add command", func() {
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see gitops add command linked the repo to the cluster", func() {
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I git add-commit-push app workload to repo", func() {
+			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
+		})
+
+		By("And I should see workload is deployed to the cluster", func() {
+			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
+		})
+
+		By("And repos created have public visibility", func() {
+			Expect(getGitRepoVisibility(GITLAB_PUBLIC_GROUP, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("public"))
+		})
+
 	})
 
 	It("Test1 - Verify that gitops can deploy app when user specifies branch, namespace, url, deployment-type", func() {
@@ -353,7 +406,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check app status for app under user-defined namespace", func() {
-			appStatus = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
+			appStatus = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
 		})
 
 		By("Then I should see app status", func() {
@@ -371,7 +424,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check app status for the paused app", func() {
-			appStatus = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
+			appStatus = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
 		})
 
 		By("Then I should see pause status as suspended=true", func() {
@@ -407,7 +460,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check app status for unpaused app", func() {
-			appStatus = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
+			appStatus = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
 		})
 
 		By("Then I should see pause status as suspended=false", func() {
@@ -415,7 +468,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check for list of commits for the app", func() {
-			commitList, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
+			commitList, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s --namespace=%s", WEGO_BIN_PATH, appName, wegoNamespace))
 		})
 
 		By("Then I should see the list of commits for app2", func() {
@@ -880,7 +933,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check the app status for app1", func() {
-			appStatus1, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName1)
+			appStatus1, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName1)
 		})
 
 		By("Then I should see the status for "+appName1, func() {
@@ -890,7 +943,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check the app status for app2", func() {
-			appStatus2, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName2)
+			appStatus2, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName2)
 		})
 
 		By("Then I should see the status for "+appName2, func() {
@@ -900,7 +953,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check the app status for app3", func() {
-			appStatus3, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName3)
+			appStatus3, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName3)
 		})
 
 		By("Then I should see the status for "+appName3, func() {
@@ -935,7 +988,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check for list of commits for app1", func() {
-			commitList1, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits", WEGO_BIN_PATH, appName1))
+			commitList1, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", WEGO_BIN_PATH, appName1))
 		})
 
 		By("Then I should see the list of commits for app1", func() {
@@ -945,7 +998,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check for list of commits for app2", func() {
-			commitList2, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits", WEGO_BIN_PATH, appName2))
+			commitList2, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", WEGO_BIN_PATH, appName2))
 		})
 
 		By("Then I should see the list of commits for app2", func() {
@@ -1043,7 +1096,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check the app status for "+appName1, func() {
-			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName1))
+			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", WEGO_BIN_PATH, appName1))
 		})
 
 		By("Then I should see the status for "+appName1, func() {
@@ -1053,7 +1106,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check the app status for "+appName2, func() {
-			appStatus2 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName2))
+			appStatus2 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", WEGO_BIN_PATH, appName2))
 		})
 
 		By("Then I should see the status for "+appName2, func() {
@@ -1080,7 +1133,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check app status for paused app", func() {
-			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName1))
+			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", WEGO_BIN_PATH, appName1))
 		})
 
 		By("Then I should see pause status as suspended=true", func() {
@@ -1132,7 +1185,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check app status for unpaused app", func() {
-			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s app status %s", WEGO_BIN_PATH, appName1))
+			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", WEGO_BIN_PATH, appName1))
 		})
 
 		By("Then I should see pause status as suspended=false", func() {
@@ -1140,7 +1193,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check for list of commits for app2", func() {
-			commitList2, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits", WEGO_BIN_PATH, appName2))
+			commitList2, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", WEGO_BIN_PATH, appName2))
 		})
 
 		By("Then I should see the list of commits for app2", func() {
@@ -1165,7 +1218,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check for list of commits for app1", func() {
-			commitList1, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits", WEGO_BIN_PATH, appName1))
+			commitList1, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", WEGO_BIN_PATH, appName1))
 		})
 
 		By("Then I should see the list of commits for app1", func() {
@@ -1176,7 +1229,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check for list of commits for a deleted app", func() {
-			_, commitList2 = runCommandAndReturnStringOutput(fmt.Sprintf("%s app %s get commits", WEGO_BIN_PATH, appName2))
+			_, commitList2 = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", WEGO_BIN_PATH, appName2))
 		})
 
 		By("Then I should not see the list of commits for app2", func() {
@@ -1247,7 +1300,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And app status should remain same", func() {
-			out := runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " app status " + appName)
+			out := runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " get app " + appName)
 			Eventually(out).Should(gbytes.Say(`helmrelease/` + appName + `\s*True\s*.*False`))
 		})
 
@@ -1465,7 +1518,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check the app status for "+appName1, func() {
-			appStatus1, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName1)
+			appStatus1, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName1)
 		})
 
 		By("Then I should see the status for app1", func() {
@@ -1475,7 +1528,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check the app status for "+appName2, func() {
-			appStatus2, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName2)
+			appStatus2, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName2)
 		})
 
 		By("Then I should see the status for app2", func() {
@@ -1800,7 +1853,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 
 		By("When I check the app status for app", func() {
-			appStatus, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName)
+			appStatus, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName)
 		})
 
 		By("Then I should see the status for "+appName, func() {
@@ -1833,7 +1886,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 	})
 
-	It("SmokeTest1 - Verify that gitops can deploy an app with app-config-url set to a gitlab <url>", func() {
+	It("SmokeTest - Verify that gitops can deploy an app with app-config-url set to a gitlab <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var listOutput string
@@ -1892,7 +1945,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 
 		By("When I check the app status for app", func() {
-			appStatus, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app status " + appName)
+			appStatus, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName)
 		})
 
 		By("Then I should see the status for "+appName, func() {

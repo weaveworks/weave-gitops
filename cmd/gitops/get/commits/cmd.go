@@ -1,4 +1,4 @@
-package app
+package commits
 
 import (
 	"context"
@@ -7,29 +7,24 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/app/status"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
+
 	"k8s.io/apimachinery/pkg/types"
 )
 
-var ApplicationCmd = &cobra.Command{
-	Use:   "app",
-	Short: "Manages your applications",
+var Cmd = &cobra.Command{
+	Use:   "commits",
+	Short: "Get most recent commits for an application",
 	Example: `
-  # Get last 10 commits for an application
-  gitops app <app-name> get commits
-
-  # Status an application under gitops control
-  gitops app status <app-name>`,
-	Args: cobra.MinimumNArgs(3),
-	RunE: runCmd,
-}
-
-func init() {
-	ApplicationCmd.AddCommand(status.Cmd)
+# Get last 10 commits for an application
+gitops get commits <app-name>`,
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	Args:          cobra.ExactArgs(1),
+	RunE:          runCmd,
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
@@ -42,9 +37,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	params.PageSize = 10
 	params.PageToken = 0
 
-	command := args[1]
-	object := args[2]
-
 	appService, appError := apputils.GetAppService(ctx, params.Name, params.Namespace)
 	if appError != nil {
 		return fmt.Errorf("failed to create app service: %w", appError)
@@ -55,25 +47,14 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unable to get application for %s %w", params.Name, err)
 	}
 
-	if command != "get" {
-		_ = cmd.Help()
-		return fmt.Errorf("invalid command %s", command)
-	}
-
 	logger := apputils.GetLogger()
 
-	switch object {
-	case "commits":
-		commits, err := appService.GetCommits(params, appContent)
-		if err != nil {
-			return errors.Wrapf(err, "failed to get commits for app %s", params.Name)
-		}
-
-		printCommitTable(logger, commits)
-	default:
-		_ = cmd.Help()
-		return fmt.Errorf("unknown resource type \"%s\"", object)
+	commits, err := appService.GetCommits(params, appContent)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get commits for app %s", params.Name)
 	}
+
+	printCommitTable(logger, commits)
 
 	return nil
 }
