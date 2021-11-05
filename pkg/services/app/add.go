@@ -77,12 +77,12 @@ func (a *AppSvc) Add(configGit git.Git, gitProvider gitproviders.GitProvider, pa
 	}
 
 	for _, wegoapp := range wegoapps {
-		app, err := automation.WegoAppToApp(wegoapp)
+		clusterApp, err := automation.WegoAppToApp(wegoapp)
 		if err != nil {
 			return err
 		}
 
-		if appHash == automation.GetAppHash(app) {
+		if appHash == automation.GetAppHash(clusterApp) {
 			return fmt.Errorf("unable to create resource, resource already exists in cluster")
 		}
 	}

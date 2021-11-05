@@ -429,7 +429,11 @@ func GetAppHash(a models.Application) string {
 	}
 
 	if a.AutomationType == models.AutomationTypeHelm {
-		return "wego-" + getHash(a.GitSourceURL.String(), a.Name, a.Branch)
+		if a.SourceType == models.SourceTypeHelm {
+			return "wego-" + getHash(a.HelmSourceURL, a.Name, a.Branch)
+		} else {
+			return "wego-" + getHash(a.GitSourceURL.String(), a.Name, a.Branch)
+		}
 	} else {
 		return "wego-" + getHash(a.GitSourceURL.String(), a.Path, a.Branch)
 	}

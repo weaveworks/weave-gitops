@@ -103,7 +103,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		branchName := "test-branch-01"
 		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 		appName := tip.appRepoName
-		appType := "Kustomization"
 
 		addCommand := "add app --url=" + appRepoRemoteURL + " --branch=" + branchName + " --dry-run" + " --auto-merge=true"
 
@@ -141,17 +140,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			Eventually(addCommandOutput).Should(MatchRegexp(`Path: ./`))
 			Eventually(addCommandOutput).Should(MatchRegexp(`Branch: ` + branchName))
 			Eventually(addCommandOutput).Should(MatchRegexp(`Type: kustomize`))
-
-			Eventually(addCommandOutput).Should(MatchRegexp(`✚ Generating Source manifest`))
-			Eventually(addCommandOutput).Should(MatchRegexp(`✚ Generating GitOps automation manifests`))
-			Eventually(addCommandOutput).Should(MatchRegexp(`✚ Generating Application spec manifest`))
-			Eventually(addCommandOutput).Should(MatchRegexp(`► Applying manifests to the cluster`))
-
-			Eventually(addCommandOutput).Should(MatchRegexp(
-				`apiVersion:.*\nkind: GitRepository\nmetadata:\n\s*name: ` + appName + `\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE + `[a-z0-9:\n\s*]+branch: ` + branchName + `[a-zA-Z0-9:\n\s*-]+url: ` + appRepoRemoteURL))
-
-			Eventually(addCommandOutput).Should(MatchRegexp(
-				`apiVersion:.*\nkind: ` + appType + `\nmetadata:\n\s*name: ` + appName + `-apps-dir\n\s*namespace: ` + WEGO_DEFAULT_NAMESPACE))
 		})
 
 		By("And I should not see any workload deployed to the cluster", func() {
@@ -613,13 +601,13 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			deleteWorkload(tip2.workloadName, tip2.workloadNamespace)
 		})
 
-		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, configRepoRemoteURL)
-		})
-
 		By("When I create a private repo for gitops app config", func() {
 			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
 			gitAddCommitPush(appConfigRepoAbsPath, readmeFilePath)
+		})
+
+		By("And I install gitops to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, configRepoRemoteURL)
 		})
 
 		By("And I create a repo with my app1 workload and run the add app command on it", func() {
@@ -668,12 +656,15 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			deleteWorkload(tip2.workloadName, tip2.workloadNamespace)
 		})
 
+		By("And I create a repo", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+		})
+
 		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 		})
 
-		By("And I create a repo with my app1 and app2 workloads and run the add app command for each app", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+		By("And I add my app1 and app2 workloads and run the add app command for each app", func() {
 			app1Path := createSubDir(appName1, repoAbsolutePath)
 			app2Path := createSubDir(appName2, repoAbsolutePath)
 			gitAddCommitPush(app1Path, tip1.appManifestFilePath)
