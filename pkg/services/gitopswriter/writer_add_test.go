@@ -50,6 +50,26 @@ spec:
     name: wego-test-cluster-wego-fork-test
   url: ssh://git@github.com/user/wego-fork-test.git`)
 
+var dummyAppKustomization = []byte(`apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: bar
+  namespace: wego-system
+resources:
+- app.yaml
+- bar-gitops-deploy.yaml
+- bar-gitops-source.yaml
+`)
+
+var dummyUserKustomization = []byte(`apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: bar
+  namespace: wego-system
+resources:
+- ../../../apps/bar
+`)
+
 var _ = Describe("Add", func() {
 	var _ = BeforeEach(func() {
 		app = models.Application{
@@ -122,9 +142,16 @@ var _ = Describe("Add", func() {
 				Expect(path).To(Equal(".weave-gitops/apps/bar/bar-gitops-source.yaml"))
 
 				augmented, err := automation.AddWegoIgnore(dummyGitSource)
-				Expect(err).ShouldNot(HaveOccurred())
-
+				Expect(err).To(BeNil())
 				Expect(content).To(Equal(augmented))
+
+				path, content = gitClient.WriteArgsForCall(3)
+				Expect(path).To(Equal(".weave-gitops/apps/bar/kustomization.yaml"))
+				Expect(content).To(Equal(dummyAppKustomization))
+
+				path, content = gitClient.WriteArgsForCall(4)
+				Expect(path).To(Equal(".weave-gitops/clusters/test-cluster/user/kustomization.yaml"))
+				Expect(content).To(Equal(dummyUserKustomization))
 			})
 
 			It("commits and pushes the files", func() {
@@ -173,15 +200,28 @@ var _ = Describe("Add", func() {
 
 			Expect(gitClient.WriteCallCount()).To(Equal(5))
 
-			found := 0
-			for idx := 0; idx < 3; idx++ {
-				path, _ := gitClient.WriteArgsForCall(idx)
-				if path == ".weave-gitops/apps/bar/app.yaml" || path == ".weave-gitops/apps/bar/bar-gitops-source.yaml" || path == ".weave-gitops/apps/bar/bar-gitops-deploy.yaml" {
-					found++
-				}
-			}
+			path, content := gitClient.WriteArgsForCall(0)
+			Expect(path).To(Equal(".weave-gitops/apps/bar/app.yaml"))
+			Expect(string(content)).To(ContainSubstring("kind: Application"))
 
-			Expect(found).To(Equal(3))
+			path, content = gitClient.WriteArgsForCall(1)
+			Expect(path).To(Equal(".weave-gitops/apps/bar/bar-gitops-deploy.yaml"))
+			Expect(content).To(Equal([]byte("kustomization")))
+
+			path, content = gitClient.WriteArgsForCall(2)
+			Expect(path).To(Equal(".weave-gitops/apps/bar/bar-gitops-source.yaml"))
+
+			augmented, err := automation.AddWegoIgnore(dummyGitSource)
+			Expect(err).To(BeNil())
+			Expect(content).To(Equal(augmented))
+
+			path, content = gitClient.WriteArgsForCall(3)
+			Expect(path).To(Equal(".weave-gitops/apps/bar/kustomization.yaml"))
+			Expect(content).To(Equal(dummyAppKustomization))
+
+			path, content = gitClient.WriteArgsForCall(4)
+			Expect(path).To(Equal(".weave-gitops/clusters/test-cluster/user/kustomization.yaml"))
+			Expect(content).To(Equal(dummyUserKustomization))
 		})
 
 		It("commits and pushes the files", func() {
