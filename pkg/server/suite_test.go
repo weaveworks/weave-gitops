@@ -110,8 +110,8 @@ var _ = BeforeEach(func() {
 
 	fakeFactory.GetGitClientsReturns(configGit, gitProvider, nil)
 
-	fakeFactory.GetKubeServiceStub = func() (kube.Kube, error) {
-		return k, nil
+	fakeFactory.GetKubeServiceStub = func() (kube.Kube, client.Client, error) {
+		return k, nil, nil
 	}
 
 	ghAuthClient = &authfakes.FakeGithubAuthClient{}

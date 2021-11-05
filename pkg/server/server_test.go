@@ -615,7 +615,7 @@ var _ = Describe("ApplicationsServer", func() {
 			}, nil)
 
 			fakeFactory.GetGitClientsReturns(configGit, gitProvider, nil)
-			fakeFactory.GetKubeServiceReturns(fakeKube, nil)
+			fakeFactory.GetKubeServiceReturns(fakeKube, nil, nil)
 
 			gitProvider.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
 		})
@@ -987,8 +987,8 @@ var _ = Describe("ApplicationsServer", func() {
 				kubeClient := &kubefakes.FakeKube{}
 				factory := &servicesfakes.FakeFactory{}
 
-				factory.GetKubeServiceStub = func() (kube.Kube, error) {
-					return kubeClient, nil
+				factory.GetKubeServiceStub = func() (kube.Kube, client.Client, error) {
+					return kubeClient, nil, nil
 				}
 				appsSrv = NewApplicationsServer(&ApplicationsConfig{Factory: factory, JwtClient: fakeJWTToken})
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
@@ -1047,8 +1047,8 @@ var _ = Describe("Applications handler", func() {
 
 		factory := &servicesfakes.FakeFactory{}
 
-		factory.GetKubeServiceStub = func() (kube.Kube, error) {
-			return k, nil
+		factory.GetKubeServiceStub = func() (kube.Kube, client.Client, error) {
+			return k, nil, nil
 		}
 
 		cfg := ApplicationsConfig{

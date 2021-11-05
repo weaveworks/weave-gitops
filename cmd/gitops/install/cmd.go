@@ -52,12 +52,12 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	log := logger.NewCLILogger(os.Stdout)
 	flux := flux.New(osys.New(), &runner.CLIRunner{})
 
-	k, _, err := kube.NewKubeHTTPClient()
+	kubeClient, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
-	gitopsService := gitops.New(log, flux, k)
+	gitopsService := gitops.New(log, flux, kubeClient)
 
 	manifests, err := gitopsService.Install(gitops.InstallParams{
 		Namespace: namespace,

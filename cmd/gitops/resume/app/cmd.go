@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"os"
 
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -40,7 +41,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	appFactory := services.NewFactory(flux.New(osys.New(), &runner.CLIRunner{}), logger.NewCLILogger(os.Stdout))
 
-	appService, err := appFactory.GetAppService(ctx)
+	kubeClient, _, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		return fmt.Errorf("error creating k8s http client: %w", err)
+	}
+
+	appService, err := appFactory.GetAppService(ctx, kubeClient)
 	if err != nil {
 		return fmt.Errorf("failed to create app service: %w", err)
 	}

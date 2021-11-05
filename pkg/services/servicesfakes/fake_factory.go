@@ -10,13 +10,16 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/services"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
+	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type FakeFactory struct {
-	GetAppServiceStub        func(context.Context) (app.AppService, error)
+	GetAppServiceStub        func(context.Context, kube.Kube) (app.AppService, error)
 	getAppServiceMutex       sync.RWMutex
 	getAppServiceArgsForCall []struct {
 		arg1 context.Context
+		arg2 kube.Kube
 	}
 	getAppServiceReturns struct {
 		result1 app.AppService
@@ -26,12 +29,14 @@ type FakeFactory struct {
 		result1 app.AppService
 		result2 error
 	}
-	GetGitClientsStub        func(context.Context, gitproviders.Client, services.GitConfigParams) (git.Git, gitproviders.GitProvider, error)
+	GetGitClientsStub        func(context.Context, gitproviders.Client, kube.Kube, client.Client, services.GitConfigParams) (git.Git, gitproviders.GitProvider, error)
 	getGitClientsMutex       sync.RWMutex
 	getGitClientsArgsForCall []struct {
 		arg1 context.Context
 		arg2 gitproviders.Client
-		arg3 services.GitConfigParams
+		arg3 kube.Kube
+		arg4 client.Client
+		arg5 services.GitConfigParams
 	}
 	getGitClientsReturns struct {
 		result1 git.Git
@@ -43,34 +48,53 @@ type FakeFactory struct {
 		result2 gitproviders.GitProvider
 		result3 error
 	}
-	GetKubeServiceStub        func() (kube.Kube, error)
+	GetKubeServiceStub        func() (kube.Kube, client.Client, error)
 	getKubeServiceMutex       sync.RWMutex
 	getKubeServiceArgsForCall []struct {
 	}
 	getKubeServiceReturns struct {
 		result1 kube.Kube
-		result2 error
+		result2 client.Client
+		result3 error
 	}
 	getKubeServiceReturnsOnCall map[int]struct {
 		result1 kube.Kube
-		result2 error
+		result2 client.Client
+		result3 error
+	}
+	GetKubeServiceWithConfigStub        func(*rest.Config, string) (kube.Kube, client.Client, error)
+	getKubeServiceWithConfigMutex       sync.RWMutex
+	getKubeServiceWithConfigArgsForCall []struct {
+		arg1 *rest.Config
+		arg2 string
+	}
+	getKubeServiceWithConfigReturns struct {
+		result1 kube.Kube
+		result2 client.Client
+		result3 error
+	}
+	getKubeServiceWithConfigReturnsOnCall map[int]struct {
+		result1 kube.Kube
+		result2 client.Client
+		result3 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeFactory) GetAppService(arg1 context.Context) (app.AppService, error) {
+func (fake *FakeFactory) GetAppService(arg1 context.Context, arg2 kube.Kube) (app.AppService, error) {
 	fake.getAppServiceMutex.Lock()
 	ret, specificReturn := fake.getAppServiceReturnsOnCall[len(fake.getAppServiceArgsForCall)]
 	fake.getAppServiceArgsForCall = append(fake.getAppServiceArgsForCall, struct {
 		arg1 context.Context
-	}{arg1})
+		arg2 kube.Kube
+	}{arg1, arg2})
 	stub := fake.GetAppServiceStub
 	fakeReturns := fake.getAppServiceReturns
-	fake.recordInvocation("GetAppService", []interface{}{arg1})
+	fake.recordInvocation("GetAppService", []interface{}{arg1, arg2})
 	fake.getAppServiceMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -84,17 +108,17 @@ func (fake *FakeFactory) GetAppServiceCallCount() int {
 	return len(fake.getAppServiceArgsForCall)
 }
 
-func (fake *FakeFactory) GetAppServiceCalls(stub func(context.Context) (app.AppService, error)) {
+func (fake *FakeFactory) GetAppServiceCalls(stub func(context.Context, kube.Kube) (app.AppService, error)) {
 	fake.getAppServiceMutex.Lock()
 	defer fake.getAppServiceMutex.Unlock()
 	fake.GetAppServiceStub = stub
 }
 
-func (fake *FakeFactory) GetAppServiceArgsForCall(i int) context.Context {
+func (fake *FakeFactory) GetAppServiceArgsForCall(i int) (context.Context, kube.Kube) {
 	fake.getAppServiceMutex.RLock()
 	defer fake.getAppServiceMutex.RUnlock()
 	argsForCall := fake.getAppServiceArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeFactory) GetAppServiceReturns(result1 app.AppService, result2 error) {
@@ -123,20 +147,22 @@ func (fake *FakeFactory) GetAppServiceReturnsOnCall(i int, result1 app.AppServic
 	}{result1, result2}
 }
 
-func (fake *FakeFactory) GetGitClients(arg1 context.Context, arg2 gitproviders.Client, arg3 services.GitConfigParams) (git.Git, gitproviders.GitProvider, error) {
+func (fake *FakeFactory) GetGitClients(arg1 context.Context, arg2 gitproviders.Client, arg3 kube.Kube, arg4 client.Client, arg5 services.GitConfigParams) (git.Git, gitproviders.GitProvider, error) {
 	fake.getGitClientsMutex.Lock()
 	ret, specificReturn := fake.getGitClientsReturnsOnCall[len(fake.getGitClientsArgsForCall)]
 	fake.getGitClientsArgsForCall = append(fake.getGitClientsArgsForCall, struct {
 		arg1 context.Context
 		arg2 gitproviders.Client
-		arg3 services.GitConfigParams
-	}{arg1, arg2, arg3})
+		arg3 kube.Kube
+		arg4 client.Client
+		arg5 services.GitConfigParams
+	}{arg1, arg2, arg3, arg4, arg5})
 	stub := fake.GetGitClientsStub
 	fakeReturns := fake.getGitClientsReturns
-	fake.recordInvocation("GetGitClients", []interface{}{arg1, arg2, arg3})
+	fake.recordInvocation("GetGitClients", []interface{}{arg1, arg2, arg3, arg4, arg5})
 	fake.getGitClientsMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2, arg3, arg4, arg5)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
@@ -150,17 +176,17 @@ func (fake *FakeFactory) GetGitClientsCallCount() int {
 	return len(fake.getGitClientsArgsForCall)
 }
 
-func (fake *FakeFactory) GetGitClientsCalls(stub func(context.Context, gitproviders.Client, services.GitConfigParams) (git.Git, gitproviders.GitProvider, error)) {
+func (fake *FakeFactory) GetGitClientsCalls(stub func(context.Context, gitproviders.Client, kube.Kube, client.Client, services.GitConfigParams) (git.Git, gitproviders.GitProvider, error)) {
 	fake.getGitClientsMutex.Lock()
 	defer fake.getGitClientsMutex.Unlock()
 	fake.GetGitClientsStub = stub
 }
 
-func (fake *FakeFactory) GetGitClientsArgsForCall(i int) (context.Context, gitproviders.Client, services.GitConfigParams) {
+func (fake *FakeFactory) GetGitClientsArgsForCall(i int) (context.Context, gitproviders.Client, kube.Kube, client.Client, services.GitConfigParams) {
 	fake.getGitClientsMutex.RLock()
 	defer fake.getGitClientsMutex.RUnlock()
 	argsForCall := fake.getGitClientsArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
 func (fake *FakeFactory) GetGitClientsReturns(result1 git.Git, result2 gitproviders.GitProvider, result3 error) {
@@ -192,7 +218,7 @@ func (fake *FakeFactory) GetGitClientsReturnsOnCall(i int, result1 git.Git, resu
 	}{result1, result2, result3}
 }
 
-func (fake *FakeFactory) GetKubeService() (kube.Kube, error) {
+func (fake *FakeFactory) GetKubeService() (kube.Kube, client.Client, error) {
 	fake.getKubeServiceMutex.Lock()
 	ret, specificReturn := fake.getKubeServiceReturnsOnCall[len(fake.getKubeServiceArgsForCall)]
 	fake.getKubeServiceArgsForCall = append(fake.getKubeServiceArgsForCall, struct {
@@ -205,9 +231,9 @@ func (fake *FakeFactory) GetKubeService() (kube.Kube, error) {
 		return stub()
 	}
 	if specificReturn {
-		return ret.result1, ret.result2
+		return ret.result1, ret.result2, ret.result3
 	}
-	return fakeReturns.result1, fakeReturns.result2
+	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
 func (fake *FakeFactory) GetKubeServiceCallCount() int {
@@ -216,36 +242,107 @@ func (fake *FakeFactory) GetKubeServiceCallCount() int {
 	return len(fake.getKubeServiceArgsForCall)
 }
 
-func (fake *FakeFactory) GetKubeServiceCalls(stub func() (kube.Kube, error)) {
+func (fake *FakeFactory) GetKubeServiceCalls(stub func() (kube.Kube, client.Client, error)) {
 	fake.getKubeServiceMutex.Lock()
 	defer fake.getKubeServiceMutex.Unlock()
 	fake.GetKubeServiceStub = stub
 }
 
-func (fake *FakeFactory) GetKubeServiceReturns(result1 kube.Kube, result2 error) {
+func (fake *FakeFactory) GetKubeServiceReturns(result1 kube.Kube, result2 client.Client, result3 error) {
 	fake.getKubeServiceMutex.Lock()
 	defer fake.getKubeServiceMutex.Unlock()
 	fake.GetKubeServiceStub = nil
 	fake.getKubeServiceReturns = struct {
 		result1 kube.Kube
-		result2 error
-	}{result1, result2}
+		result2 client.Client
+		result3 error
+	}{result1, result2, result3}
 }
 
-func (fake *FakeFactory) GetKubeServiceReturnsOnCall(i int, result1 kube.Kube, result2 error) {
+func (fake *FakeFactory) GetKubeServiceReturnsOnCall(i int, result1 kube.Kube, result2 client.Client, result3 error) {
 	fake.getKubeServiceMutex.Lock()
 	defer fake.getKubeServiceMutex.Unlock()
 	fake.GetKubeServiceStub = nil
 	if fake.getKubeServiceReturnsOnCall == nil {
 		fake.getKubeServiceReturnsOnCall = make(map[int]struct {
 			result1 kube.Kube
-			result2 error
+			result2 client.Client
+			result3 error
 		})
 	}
 	fake.getKubeServiceReturnsOnCall[i] = struct {
 		result1 kube.Kube
-		result2 error
-	}{result1, result2}
+		result2 client.Client
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeFactory) GetKubeServiceWithConfig(arg1 *rest.Config, arg2 string) (kube.Kube, client.Client, error) {
+	fake.getKubeServiceWithConfigMutex.Lock()
+	ret, specificReturn := fake.getKubeServiceWithConfigReturnsOnCall[len(fake.getKubeServiceWithConfigArgsForCall)]
+	fake.getKubeServiceWithConfigArgsForCall = append(fake.getKubeServiceWithConfigArgsForCall, struct {
+		arg1 *rest.Config
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.GetKubeServiceWithConfigStub
+	fakeReturns := fake.getKubeServiceWithConfigReturns
+	fake.recordInvocation("GetKubeServiceWithConfig", []interface{}{arg1, arg2})
+	fake.getKubeServiceWithConfigMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3
+	}
+	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
+}
+
+func (fake *FakeFactory) GetKubeServiceWithConfigCallCount() int {
+	fake.getKubeServiceWithConfigMutex.RLock()
+	defer fake.getKubeServiceWithConfigMutex.RUnlock()
+	return len(fake.getKubeServiceWithConfigArgsForCall)
+}
+
+func (fake *FakeFactory) GetKubeServiceWithConfigCalls(stub func(*rest.Config, string) (kube.Kube, client.Client, error)) {
+	fake.getKubeServiceWithConfigMutex.Lock()
+	defer fake.getKubeServiceWithConfigMutex.Unlock()
+	fake.GetKubeServiceWithConfigStub = stub
+}
+
+func (fake *FakeFactory) GetKubeServiceWithConfigArgsForCall(i int) (*rest.Config, string) {
+	fake.getKubeServiceWithConfigMutex.RLock()
+	defer fake.getKubeServiceWithConfigMutex.RUnlock()
+	argsForCall := fake.getKubeServiceWithConfigArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeFactory) GetKubeServiceWithConfigReturns(result1 kube.Kube, result2 client.Client, result3 error) {
+	fake.getKubeServiceWithConfigMutex.Lock()
+	defer fake.getKubeServiceWithConfigMutex.Unlock()
+	fake.GetKubeServiceWithConfigStub = nil
+	fake.getKubeServiceWithConfigReturns = struct {
+		result1 kube.Kube
+		result2 client.Client
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeFactory) GetKubeServiceWithConfigReturnsOnCall(i int, result1 kube.Kube, result2 client.Client, result3 error) {
+	fake.getKubeServiceWithConfigMutex.Lock()
+	defer fake.getKubeServiceWithConfigMutex.Unlock()
+	fake.GetKubeServiceWithConfigStub = nil
+	if fake.getKubeServiceWithConfigReturnsOnCall == nil {
+		fake.getKubeServiceWithConfigReturnsOnCall = make(map[int]struct {
+			result1 kube.Kube
+			result2 client.Client
+			result3 error
+		})
+	}
+	fake.getKubeServiceWithConfigReturnsOnCall[i] = struct {
+		result1 kube.Kube
+		result2 client.Client
+		result3 error
+	}{result1, result2, result3}
 }
 
 func (fake *FakeFactory) Invocations() map[string][][]interface{} {
@@ -257,6 +354,8 @@ func (fake *FakeFactory) Invocations() map[string][][]interface{} {
 	defer fake.getGitClientsMutex.RUnlock()
 	fake.getKubeServiceMutex.RLock()
 	defer fake.getKubeServiceMutex.RUnlock()
+	fake.getKubeServiceWithConfigMutex.RLock()
+	defer fake.getKubeServiceWithConfigMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

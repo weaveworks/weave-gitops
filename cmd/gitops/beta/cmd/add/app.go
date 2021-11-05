@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"os"
 
 	"github.com/weaveworks/weave-gitops/cmd/internal"
@@ -69,12 +70,17 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 
-	appService, err := factory.GetAppService(ctx)
+	kubeClient, r, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		return fmt.Errorf("error creating k8s http client: %w", err)
+	}
+
+	appService, err := factory.GetAppService(ctx, kubeClient)
 	if err != nil {
 		return fmt.Errorf("failed to create app service: %w", err)
 	}
 
-	gitClient, gitProvider, err := factory.GetGitClients(ctx, providerClient, services.GitConfigParams{
+	gitClient, gitProvider, err := factory.GetGitClients(ctx, providerClient, kubeClient, r, services.GitConfigParams{
 		URL:              params.Url,
 		ConfigURL:        params.AppConfigUrl,
 		Namespace:        params.Namespace,
