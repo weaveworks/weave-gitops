@@ -127,7 +127,7 @@ func TestToUpgradeConfigs(t *testing.T) {
 			Repo:   "org/repo",
 		},
 		InstallConfig: install.Config{
-			RootDir:          "config/repo/subdir/weave-gitops-enterprise",
+			RootDir:          "config/repo/subdir/.weave-gitops/clusters/management/user",
 			GitRepoNamespace: wego.DefaultNamespace,
 			GitRepoName:      "repo",
 		},
@@ -141,7 +141,7 @@ func TestToUpgradeConfigs(t *testing.T) {
 				Namespace:     wego.DefaultNamespace,
 				SubName:       "weave-gitops-enterprise",
 				ProfileBranch: "main",
-				Path:          "weave-gitops-enterprise",
+				Path:          ".weave-gitops/clusters/management/user",
 			},
 		},
 	}, uc)
@@ -196,20 +196,20 @@ func TestUpgrade(t *testing.T) {
 	// dry run
 	err = upgrade(context.Background(), "file://"+tempDir, *uc, gitClient, fakePctlGitClient, scmClient, true)
 	assert.NoError(t, err)
-	contents, err := ioutil.ReadFile(path.Join(configDir, "weave-gitops-enterprise", "profile-installation.yaml"))
+	contents, err := ioutil.ReadFile(path.Join(configDir, ".weave-gitops/clusters/management/user", "profile-installation.yaml"))
 	assert.NoError(t, err)
 	assert.NotNil(t, contents)
-	os.RemoveAll(path.Join(configDir, "weave-gitops-enterprise"))
+	os.RemoveAll(path.Join(configDir, ".weave-gitops/clusters/management/user"))
 	// fake git not called
 	pushCount := fakePctlGitClient.PushCallCount()
 	assert.Equal(t, 0, pushCount)
 
 	err = upgrade(context.Background(), "file://"+tempDir, *uc, gitClient, fakePctlGitClient, scmClient, false)
 	assert.NoError(t, err)
-	contents, err = ioutil.ReadFile(path.Join(configDir, "weave-gitops-enterprise", "profile-installation.yaml"))
+	contents, err = ioutil.ReadFile(path.Join(configDir, ".weave-gitops/clusters/management/user", "profile-installation.yaml"))
 	assert.NoError(t, err)
 	assert.NotNil(t, contents)
-	os.RemoveAll(path.Join(configDir, "weave-gitops-enterprise"))
+	os.RemoveAll(path.Join(configDir, ".weave-gitops/clusters/management/user"))
 	// fake git would have pushed etc
 	pushCount = fakePctlGitClient.PushCallCount()
 	assert.Equal(t, 1, pushCount)
@@ -314,9 +314,9 @@ func createLocalProfileRepo(t *testing.T) string {
 
 	content, err := ioutil.ReadFile("testdata/profile.yaml")
 	assert.NoError(t, err)
-	err = gitClient.Write("/weave-gitops-enterprise/profile.yaml", content)
+	err = gitClient.Write("/.weave-gitops/clusters/management/user/profile.yaml", content)
 	assert.NoError(t, err)
-	err = gitClient.Write("/weave-gitops-enterprise/nginx/deployment/deployment.yaml", []byte("test deployment"))
+	err = gitClient.Write("/.weave-gitops/clusters/management/user/nginx/deployment/deployment.yaml", []byte("test deployment"))
 	assert.NoError(t, err)
 
 	_, err = gitClient.Commit(git.Commit{
