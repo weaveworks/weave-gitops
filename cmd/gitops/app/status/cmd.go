@@ -3,6 +3,7 @@ package status
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"os"
 
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -33,7 +34,13 @@ var Cmd = &cobra.Command{
 		log := logger.NewCLILogger(os.Stdout)
 		fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 		appFactory := services.NewFactory(fluxClient, log)
-		appService, err := appFactory.GetAppService(ctx)
+
+		kubeClient, _, err := kube.NewKubeHTTPClient()
+		if err != nil {
+			return fmt.Errorf("error creating k8s http client: %w", err)
+		}
+
+		appService, err := appFactory.GetAppService(ctx, kubeClient)
 		if err != nil {
 			return fmt.Errorf("failed to create app service: %w", err)
 		}
