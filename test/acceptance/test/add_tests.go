@@ -823,16 +823,12 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		By("And I should not see gitops components in app repo: "+appFilesRepoName, func() {
 			pullGitRepo(repoAbsolutePath)
 			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && ls -al", repoAbsolutePath))
-			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
-			Expect(folderOutput).ShouldNot(ContainSubstring("apps"))
-			Expect(folderOutput).ShouldNot(ContainSubstring("targets"))
+			Expect(folderOutput).ShouldNot(ContainSubstring(".weave-gitops"))
 		})
 
 		By("And I should see gitops components in config repo: "+appConfigRepoName, func() {
 			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && git clone %s && cd %s && ls -al", repoAbsolutePath, configRepoRemoteURL, appConfigRepoName))
-			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
-			Expect(folderOutput).Should(ContainSubstring("apps"))
-			Expect(folderOutput).Should(ContainSubstring("targets"))
+			Expect(folderOutput).Should(ContainSubstring(".weave-gitops"))
 		})
 
 		By("When I check for list of commits for app1", func() {
@@ -1166,16 +1162,17 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("And there is no .wego folder in the app repo", func() {
-			_, err := os.Stat(repoAbsolutePath + "/.wego")
+		By("And there is no .weave-gitops folder in the app repo", func() {
+			_, err := os.Stat(repoAbsolutePath + "/.weave-gitops")
 			Expect(os.IsNotExist(err)).To(Equal(true))
 		})
 
 		By("And the manifests are present in the config repo", func() {
 			out, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && git pull origin main", configRepoAbsolutePath))
 			Eventually(out).Should(ContainSubstring(`apps/` + appName + `/app.yaml`))
-			Eventually(out).Should(MatchRegexp(`targets/.*/` + appName + `/` + appName + `-gitops-source.yaml`))
-			Eventually(out).Should(MatchRegexp(`targets/.*/` + appName + `/` + appName + `-gitops-deploy.yaml`))
+			Eventually(out).Should(MatchRegexp(`apps/` + appName + `/kustomization.yaml`))
+			Eventually(out).Should(MatchRegexp(`apps/` + appName + `/` + appName + `-gitops-source.yaml`))
+			Eventually(out).Should(MatchRegexp(`apps/` + appName + `/` + appName + `-gitops-deploy.yaml`))
 		})
 
 		By("Then I should see my workload deployed to the cluster", func() {
@@ -1270,9 +1267,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		By("And I should see gitops components in the remote git repo", func() {
 			pullGitRepo(repoAbsolutePath)
 			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && ls -al", repoAbsolutePath))
-			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
-			Expect(folderOutput).Should(ContainSubstring("apps"))
-			Expect(folderOutput).Should(ContainSubstring("targets"))
+			Expect(folderOutput).Should(ContainSubstring(".weave-gitops"))
 		})
 
 		By("When I check for apps", func() {
@@ -1688,16 +1683,12 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		By("And I should not see gitops components in app repo: "+appFilesRepoName, func() {
 			pullGitRepo(repoAbsolutePath)
 			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && ls -al", repoAbsolutePath))
-			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
-			Expect(folderOutput).ShouldNot(ContainSubstring("apps"))
-			Expect(folderOutput).ShouldNot(ContainSubstring("targets"))
+			Expect(folderOutput).ShouldNot(ContainSubstring(".weave-gitops"))
 		})
 
 		By("And I should see gitops components in config repo: "+appConfigRepoName, func() {
 			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && git clone %s && cd %s && ls -al", repoAbsolutePath, configRepoRemoteURL, appConfigRepoName))
-			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
-			Expect(folderOutput).Should(ContainSubstring("apps"))
-			Expect(folderOutput).Should(ContainSubstring("targets"))
+			Expect(folderOutput).Should(ContainSubstring(".weave-gitops"))
 		})
 	})
 
@@ -1780,16 +1771,12 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		By("And I should not see gitops components in app repo: "+appFilesRepoName, func() {
 			pullGitRepo(repoAbsolutePath)
 			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && ls -al", repoAbsolutePath))
-			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
-			Expect(folderOutput).ShouldNot(ContainSubstring("apps"))
-			Expect(folderOutput).ShouldNot(ContainSubstring("targets"))
+			Expect(folderOutput).ShouldNot(ContainSubstring(".weave-gitops"))
 		})
 
 		By("And I should see gitops components in config repo: "+appConfigRepoName, func() {
 			folderOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && git clone %s && cd %s && ls -al", repoAbsolutePath, configRepoRemoteURL, appConfigRepoName))
-			Expect(folderOutput).ShouldNot(ContainSubstring(".wego"))
-			Expect(folderOutput).Should(ContainSubstring("apps"))
-			Expect(folderOutput).Should(ContainSubstring("targets"))
+			Expect(folderOutput).Should(ContainSubstring(".weave-gitops"))
 		})
 	})
 })

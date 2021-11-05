@@ -98,7 +98,7 @@ func (a *AutomationSvc) getSecretRef(ctx context.Context, app models.Application
 	}
 
 	if *visibility != gitprovider.RepositoryVisibilityPublic {
-		secretRef = RepoSecretName(app, url, clusterName)
+		secretRef = CreateRepoSecretName(clusterName, url)
 	}
 
 	return secretRef, nil
@@ -398,10 +398,6 @@ func (s GeneratedSecretName) String() string {
 	return string(s)
 }
 
-func RepoSecretName(a models.Application, gitSourceURL gitproviders.RepoURL, clusterName string) GeneratedSecretName {
-	return CreateRepoSecretName(clusterName, gitSourceURL)
-}
-
 func CreateRepoSecretName(targetName string, gitSourceURL gitproviders.RepoURL) GeneratedSecretName {
 	return GeneratedSecretName(hashNameIfTooLong(fmt.Sprintf("wego-%s-%s", targetName, GenerateResourceName(gitSourceURL))))
 }
@@ -440,7 +436,11 @@ func GetAppHash(a models.Application) string {
 }
 
 func GenerateResourceName(url gitproviders.RepoURL) string {
-	return hashNameIfTooLong(strings.ReplaceAll(url.RepositoryName(), "_", "-"))
+	return ConstrainResourceName(url.RepositoryName())
+}
+
+func ConstrainResourceName(str string) string {
+	return hashNameIfTooLong(strings.ReplaceAll(str, "_", "-"))
 }
 
 func (rk ResourceKind) ToGVR() (schema.GroupVersionResource, error) {
