@@ -114,7 +114,7 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, gpClient gitprovider
 
 	kube, err := f.GetKubeService()
 	if err != nil {
-		return nil, nil, fmt.Errorf("some descriptive error")
+		return nil, nil, fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
 	targetName, err := kube.GetClusterName(ctx)
