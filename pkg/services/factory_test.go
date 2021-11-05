@@ -24,7 +24,7 @@ var _ = Describe("Services factory", func() {
 		fakeClient = &gitprovidersfakes.FakeClient{}
 		fakeLog = &loggerfakes.FakeLogger{}
 
-		factory = NewFactory(fakeFlux, fakeLog)
+		factory = NewFactory(fakeFlux, fakeLog, nil, "")
 	})
 
 	Describe("get git clients", func() {

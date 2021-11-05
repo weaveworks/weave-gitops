@@ -32,7 +32,7 @@ var Cmd = &cobra.Command{
 
 		log := logger.NewCLILogger(os.Stdout)
 		fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
-		appFactory := services.NewFactory(fluxClient, log)
+		appFactory := services.NewFactory(fluxClient, log, nil, "")
 		appService, err := appFactory.GetAppService(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to create app service: %w", err)
