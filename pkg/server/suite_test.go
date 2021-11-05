@@ -122,6 +122,8 @@ var _ = BeforeEach(func() {
 		KubeClient:       k8sClient,
 		GithubAuthClient: ghAuthClient,
 		Fetcher:          applicationv2.NewFetcher(k8sClient),
+		RestConfig:       env.Rest,
+		ClusterName:      testClustername,
 	}
 	apps = NewApplicationsServer(&cfg)
 	pb.RegisterApplicationsServer(s, apps)
