@@ -14,7 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/google/go-github/v32/github"
@@ -87,14 +87,14 @@ var _ = Describe("AddApplication", func() {
 			actual, err := helpers.GetFilesForPullRequest(ctx, gh, org, sourceRepoName, fs)
 			Expect(err).NotTo(HaveOccurred())
 
-			expectedKustomization := kustomizev2.KustomizationSpec{
+			expectedKustomization := kustomizev1.KustomizationSpec{
 				// Flux adds a prepending `./` to path arguments that doen't already have it.
 				// https://github.com/fluxcd/flux2/blob/ca496d393d993ac5119ed84f83e010b8fe918c53/cmd/flux/create_kustomization.go#L115
 				Path: "./" + req.Path,
 				// Flux kustomization default; I couldn't find an export default from the package.
 				Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
 				Prune:    true,
-				SourceRef: kustomizev2.CrossNamespaceSourceReference{
+				SourceRef: kustomizev1.CrossNamespaceSourceReference{
 					Name: req.Name,
 					Kind: sourcev1.GitRepositoryKind,
 				},
@@ -113,13 +113,14 @@ var _ = Describe("AddApplication", func() {
 				Reference: &sourcev1.GitRepositoryRef{
 					Branch: req.Branch,
 				},
+				Ignore: helpers.GetIgnoreSpec(),
 			}
 
 			expectedApp := wego.ApplicationSpec{
 				URL:            req.Url,
 				Branch:         req.Branch,
 				Path:           req.Path,
-				ConfigURL:      "",
+				ConfigURL:      req.Url,
 				DeploymentType: wego.DeploymentTypeKustomize,
 				SourceType:     wego.SourceTypeGit,
 			}
@@ -184,11 +185,11 @@ var _ = Describe("AddApplication", func() {
 				SourceType:     wego.SourceTypeGit,
 			}
 
-			expectedKustomization := kustomizev2.KustomizationSpec{
+			expectedKustomization := kustomizev1.KustomizationSpec{
 				Path:     "./" + req.Path,
 				Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
 				Prune:    true,
-				SourceRef: kustomizev2.CrossNamespaceSourceReference{
+				SourceRef: kustomizev1.CrossNamespaceSourceReference{
 					Name: req.Name,
 					Kind: sourcev1.GitRepositoryKind,
 				},
@@ -208,6 +209,7 @@ var _ = Describe("AddApplication", func() {
 				Reference: &sourcev1.GitRepositoryRef{
 					Branch: req.Branch,
 				},
+				Ignore: helpers.GetIgnoreSpec(),
 			}
 
 			expected := helpers.GenerateExpectedFS(req, root, clusterName, expectedApp, expectedKustomization, expectedSource)
@@ -268,19 +270,19 @@ var _ = Describe("AddApplication", func() {
 				URL:            req.Url,
 				Branch:         req.Branch,
 				Path:           req.Path,
-				ConfigURL:      "",
+				ConfigURL:      ref.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
 				DeploymentType: wego.DeploymentTypeKustomize,
 				SourceType:     wego.SourceTypeGit,
 			}
 
-			expectedKustomization := kustomizev2.KustomizationSpec{
+			expectedKustomization := kustomizev1.KustomizationSpec{
 				// Flux adds a prepending `./` to path arguments that doen't already have it.
 				// https://github.com/fluxcd/flux2/blob/ca496d393d993ac5119ed84f83e010b8fe918c53/cmd/flux/create_kustomization.go#L115
 				Path: "./" + req.Path,
 				// Flux kustomization default; I couldn't find an export default from the package.
 				Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
 				Prune:    true,
-				SourceRef: kustomizev2.CrossNamespaceSourceReference{
+				SourceRef: kustomizev1.CrossNamespaceSourceReference{
 					Name: req.Name,
 					Kind: sourcev1.GitRepositoryKind,
 				},
@@ -299,6 +301,7 @@ var _ = Describe("AddApplication", func() {
 				Reference: &sourcev1.GitRepositoryRef{
 					Branch: req.Branch,
 				},
+				Ignore: helpers.GetIgnoreSpec(),
 			}
 
 			expected := helpers.GenerateExpectedFS(req, root, clusterName, expectedApp, expectedKustomization, expectedSrc)
@@ -369,14 +372,14 @@ var _ = Describe("AddApplication", func() {
 				SourceType:     wego.SourceTypeGit,
 			}
 
-			expectedKustomization := kustomizev2.KustomizationSpec{
+			expectedKustomization := kustomizev1.KustomizationSpec{
 				// Flux adds a prepending `./` to path arguments that doen't already have it.
 				// https://github.com/fluxcd/flux2/blob/ca496d393d993ac5119ed84f83e010b8fe918c53/cmd/flux/create_kustomization.go#L115
 				Path: "./" + req.Path,
 				// Flux kustomization default; I couldn't find an export default from the package.
 				Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
 				Prune:    true,
-				SourceRef: kustomizev2.CrossNamespaceSourceReference{
+				SourceRef: kustomizev1.CrossNamespaceSourceReference{
 					Name: req.Name,
 					Kind: sourcev1.GitRepositoryKind,
 				},
@@ -395,6 +398,7 @@ var _ = Describe("AddApplication", func() {
 				Reference: &sourcev1.GitRepositoryRef{
 					Branch: req.Branch,
 				},
+				Ignore: helpers.GetIgnoreSpec(),
 			}
 
 			expected := helpers.GenerateExpectedFS(req, root, clusterName, expectedApp, expectedKustomization, expectedSrc)

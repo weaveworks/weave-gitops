@@ -641,12 +641,11 @@ var _ = Describe("ApplicationsServer", func() {
 			log := &loggerfakes.FakeLogger{}
 
 			appFactory.GetAppServiceReturns(&app.AppSvc{
-				Context:    ctx,
-				Flux:       fluxClient,
-				Kube:       fakeKube,
-				Logger:     log,
-				Osys:       fakeOsys,
-				Automation: automation.NewAutomationService(gp, fluxClient, log),
+				Context: ctx,
+				Flux:    fluxClient,
+				Kube:    fakeKube,
+				Logger:  log,
+				Osys:    fakeOsys,
 			}, nil)
 
 			fakeFactory.GetGitClientsReturns(configGit, gitProvider, nil)

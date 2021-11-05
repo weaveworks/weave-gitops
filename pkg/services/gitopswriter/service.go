@@ -65,9 +65,10 @@ func (dw *GitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app mode
 		files := []gitprovider.CommitFile{}
 
 		for _, manifest := range manifests {
+			manifestPath := manifest.Path
 			content := string(manifest.Content)
 
-			files = append(files, gitprovider.CommitFile{Path: &manifest.Path, Content: &content})
+			files = append(files, gitprovider.CommitFile{Path: &manifestPath, Content: &content})
 		}
 
 		defaultBranch, err := dw.RepoWriter.GetDefaultBranch(ctx)
@@ -75,7 +76,7 @@ func (dw *GitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app mode
 			return fmt.Errorf("failed to retrieve default branch for repository: %w", err)
 		}
 
-		prApp := gitproviders.PullRequestInfo{
+		prInfo := gitproviders.PullRequestInfo{
 			Title:         fmt.Sprintf("Gitops add %s", app.Name),
 			Description:   fmt.Sprintf("Added yamls for %s", app.Name),
 			CommitMessage: AddCommitMessage,
@@ -84,7 +85,7 @@ func (dw *GitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app mode
 			Files:         files,
 		}
 
-		if err := dw.RepoWriter.CreatePullRequest(ctx, prApp); err != nil {
+		if err := dw.RepoWriter.CreatePullRequest(ctx, prInfo); err != nil {
 			return fmt.Errorf("failed creating pull request: %w", err)
 		}
 	} else {

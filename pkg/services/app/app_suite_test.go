@@ -15,7 +15,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/osys/osysfakes"
-	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 )
 
 var (
@@ -51,8 +50,7 @@ var _ = BeforeEach(func() {
 	appSrv = New(context.Background(), &loggerfakes.FakeLogger{}, fluxClient, kubeClient)
 	log = &loggerfakes.FakeLogger{}
 
-	appSrv = New(context.Background(), log, gitClient, gitClient, gitProviders, fluxClient, kubeClient, osysClient,
-		automation.NewAutomationService(gitProviders, fluxClient, log))
+	appSrv = New(context.Background(), log, gitClient, gitClient, gitProviders, fluxClient, kubeClient, osysClient)
 })
 
 func TestApp(t *testing.T) {

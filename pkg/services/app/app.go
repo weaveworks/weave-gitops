@@ -15,7 +15,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -40,25 +39,23 @@ type AppService interface {
 	Sync(params SyncParams) error
 }
 
-type App struct {
-	Context    context.Context
-	Flux       flux.Flux
-	Kube       kube.Kube
-	Logger     logger.Logger
-	Clock      clock.Clock
-	Osys       osys.Osys
-	Automation automation.AutomationService
+type AppSvc struct {
+	Context context.Context
+	Osys    osys.Osys
+	Flux    flux.Flux
+	Kube    kube.Kube
+	Logger  logger.Logger
+	Clock   clock.Clock
 }
 
-func New(ctx context.Context, logger logger.Logger, appGit, flux flux.Flux, kube kube.Kube, osys osys.Osys, auto automation.AutomationService) AppService {
-	return &App{
-		Context:    ctx,
-		Flux:       flux,
-		Kube:       kube,
-		Logger:     logger,
-		Clock:      clock.New(),
-		Osys:       osys,
-		Automation: auto,
+func New(ctx context.Context, logger logger.Logger, appGit, configGit git.Git, gitProvider gitproviders.GitProvider, flux flux.Flux, kube kube.Kube, osys osys.Osys) AppService {
+	return &AppSvc{
+		Context: ctx,
+		Flux:    flux,
+		Kube:    kube,
+		Logger:  logger,
+		Osys:    osys,
+		Clock:   clock.New(),
 	}
 }
 

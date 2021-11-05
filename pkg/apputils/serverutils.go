@@ -12,7 +12,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
-	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -98,8 +97,7 @@ func (f factory) GetAppService(ctx context.Context, params AppServiceParams) (ap
 		return nil, fmt.Errorf("error creating git client for config repo: %w", err)
 	}
 
-	appSrv := app.New(ctx, f.l, appGit, configGit, provider, fluxClient, kube, osysClient,
-		automation.NewAutomationService(provider, fluxClient, f.l))
+	appSrv := app.New(ctx, f.l, appGit, configGit, provider, fluxClient, kube, osysClient)
 
 	return appSrv, nil
 }
