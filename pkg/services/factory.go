@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -111,9 +112,9 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, gpClient gitprovider
 		return nil, nil, fmt.Errorf("error normalizing url: %w", err)
 	}
 
-	kube, _, err := kube.NewKubeHTTPClient()
+	kube, err := f.GetKubeService()
 	if err != nil {
-		return nil, nil, fmt.Errorf("error creating k8s http client: %w", err)
+		return nil, nil, fmt.Errorf("some descriptive error")
 	}
 
 	targetName, err := kube.GetClusterName(ctx)
@@ -173,9 +174,17 @@ func (f *defaultFactory) getAuthService(normalizedUrl gitproviders.RepoURL, gpCl
 		}
 	}
 
-	_, rawClient, err := kube.NewKubeHTTPClient()
-	if err != nil {
-		return nil, fmt.Errorf("error creating k8s http client: %w", err)
+	var rawClient client.Client
+	if f.rest == nil {
+		_, rawClient, err = kube.NewKubeHTTPClient()
+		if err != nil {
+			return nil, fmt.Errorf("error creating k8s http client: %w", err)
+		}
+	} else {
+		_, rawClient, err = kube.NewKubeHTTPClientWithConfig(f.rest, f.clusterName)
+		if err != nil {
+			return nil, fmt.Errorf("error creating k8s http client: %w", err)
+		}
 	}
 
 	return auth.NewAuthService(f.fluxClient, rawClient, gitProvider, f.log)

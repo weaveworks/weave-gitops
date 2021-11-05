@@ -51,7 +51,7 @@ var _ = Describe("AddApplication", func() {
 
 	})
 	Context("via pull request", func() {
-		It("adds with no config repo specified", func() {
+		FIt("adds with no config repo specified", func() {
 			sourceRepoURL := fmt.Sprintf("https://github.com/%s/%s", org, sourceRepoName)
 
 			repo, ref, err := helpers.CreatePopulatedSourceRepo(ctx, gp, sourceRepoURL)
