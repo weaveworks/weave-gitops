@@ -95,6 +95,20 @@ function ReconciliationGraph({
     },
   ];
 
+  // if (objects[0]) {
+  //   console.log(objects);
+  //   console.log(
+  //     d3
+  //       .stratify()
+  //       .id(function (d) {
+  //         return d.name;
+  //       })
+  //       .parentId(function (d) {
+  //         return d.parentId;
+  //       })(objects)
+  //   );
+  // }
+
   return (
     <div className={className}>
       <DirectedGraph

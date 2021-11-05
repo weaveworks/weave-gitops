@@ -87,6 +87,8 @@ function ApplicationDetail({ className, name }: Props) {
 
   const { application = {} } = res;
 
+  console.log(reconciledObjects);
+
   return (
     <Page
       loading={loading}
