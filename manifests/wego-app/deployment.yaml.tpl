@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: wego-app
+  namespace: {{.Namespace}}
 spec:
   replicas: 1
   template:

@@ -13,7 +13,7 @@ import (
 )
 
 // The current wego version
-var Version = "v0.0.0"
+var Version = "0.0.0"
 var GitCommit = ""
 var Branch = ""
 var BuildTime = ""

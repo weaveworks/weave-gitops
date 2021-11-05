@@ -2,68 +2,73 @@ package manifests
 
 import (
 	"bytes"
+	"embed"
 	_ "embed"
 	"fmt"
+	"io/fs"
+	"path/filepath"
 	"text/template"
-
-	"github.com/pkg/errors"
 )
 
-var Manifests [][]byte
+const (
+	wegoManifestsDir = "wego-app"
+)
 
-//go:embed crds/wego.weave.works_apps.yaml
-var AppCRD []byte
+var (
+	Manifests [][]byte
+	//go:embed crds/wego.weave.works_apps.yaml
+	AppCRD []byte
+	//go:embed wego-app/*
+	wegoAppTemplates embed.FS
+)
 
-//go:embed wego-app/deployment.yaml
-var WegoAppDeployment []byte
-
-type deploymentParameters struct {
-	Version string
+type WegoAppParams struct {
+	Version   string
+	Namespace string
 }
 
-var errInjectingValuesToTemplate = errors.New("error injecting values to template")
+// GenerateWegoManifests generates wego-app manifest from a template
+func GenerateWegoAppManifests(params WegoAppParams) ([][]byte, error) {
+	manifests := [][]byte{}
 
-// GenerateWegoAppDeploymentManifest generates wego-app deployment manifest from a template
-func GenerateWegoAppDeploymentManifest(version string) ([]byte, error) {
-	deploymentValues := deploymentParameters{Version: version}
+	templates, _ := fs.ReadDir(wegoAppTemplates, wegoManifestsDir)
+	for _, template := range templates {
+		tplName := template.Name()
 
-	template := template.New("DeploymentTemplate")
+		data, err := fs.ReadFile(wegoAppTemplates, filepath.Join(wegoManifestsDir, tplName))
+		if err != nil {
+			return nil, fmt.Errorf("failed reading template %s: %w", tplName, err)
+		}
 
-	var err error
+		manifest, err := executeTemplate(tplName, string(data), params)
+		if err != nil {
+			return nil, fmt.Errorf("failed executing template: %s: %w", tplName, err)
+		}
 
-	template, err = template.Parse(string(WegoAppDeployment))
-	if err != nil {
-		return nil, fmt.Errorf("error parsing template %w", err)
+		manifests = append(manifests, manifest)
 	}
 
-	deploymentYaml := &bytes.Buffer{}
-
-	err = template.Execute(deploymentYaml, deploymentValues)
-	if err != nil {
-		return nil, fmt.Errorf("%s %w", errInjectingValuesToTemplate, err)
-	}
-
-	return deploymentYaml.Bytes(), nil
+	return manifests, nil
 }
 
-//go:embed wego-app/service-account.yaml
-var WegoAppServiceAccount []byte
+func executeTemplate(name string, tplData string, params WegoAppParams) ([]byte, error) {
+	template, err := template.New(name).Parse(tplData)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing template %s: %w", name, err)
+	}
 
-//go:embed wego-app/service.yaml
-var WegoAppService []byte
+	yaml := &bytes.Buffer{}
 
-//go:embed wego-app/role.yaml
-var WegoAppRole []byte
+	err = template.Execute(yaml, params)
+	if err != nil {
+		return nil, fmt.Errorf("error injecting values to template: %w", err)
+	}
 
-//go:embed wego-app/role-binding.yaml
-var WegoAppRoleBinding []byte
+	return yaml.Bytes(), nil
+}
 
 func init() {
 	Manifests = [][]byte{
 		AppCRD,
-		WegoAppServiceAccount,
-		WegoAppRoleBinding,
-		WegoAppRole,
-		WegoAppService,
 	}
 }
