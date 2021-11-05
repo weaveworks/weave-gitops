@@ -213,7 +213,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := true
 		tip := generateTestInputs()
 		appName := tip.appRepoName
-		appRepoRemoteURL := "ssh://git@github.com/" + GITLAB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@gitlab.com/" + GITLAB_ORG + "/" + tip.appRepoName + ".git"
 		var appRemoveOutput *gexec.Session
 
 		addCommand := "add app . --auto-merge=true"
@@ -1291,7 +1291,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		subGroup := GITLAB_ORG + "/" + GITLAB_SUBGROUP
 
-		appRepoRemoteURL := "ssh://git@github.com/" + subGroup + "/" + appName + ".git"
+		appRepoRemoteURL := "ssh://git@gitlab.com/" + subGroup + "/" + appName + ".git"
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, subGroup)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
@@ -1404,7 +1404,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		tip := generateTestInputs()
 		appName := tip.appRepoName
 		prLink := ""
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@gitlab.com/" + GITLAB_ORG + "/" + tip.appRepoName + ".git"
 
 		addCommand := "add app . --name=" + appName + " --auto-merge=false"
 
