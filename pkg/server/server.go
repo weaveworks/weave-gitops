@@ -124,7 +124,7 @@ func DefaultConfig() (*ApplicationsConfig, error) {
 
 	return &ApplicationsConfig{
 		Logger:           logr,
-		Factory:          services.NewFactory(fluxClient, logger.NewApiLogger(zapLog)),
+		Factory:          services.NewFactory(fluxClient, logger.NewApiLogger(zapLog), nil, ""),
 		JwtClient:        jwtClient,
 		KubeClient:       rawClient,
 		GithubAuthClient: auth.NewGithubAuthProvider(http.DefaultClient),
