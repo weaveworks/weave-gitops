@@ -56,32 +56,32 @@ const (
 	ResourceKindHelmRelease    ResourceKind = "HelmRelease"
 )
 
-type AutomationService interface {
+type AutomationGenerator interface {
 	GenerateAutomation(ctx context.Context, app models.Application, clusterName string) ([]AutomationManifest, error)
 }
 
-type AutomationSvc struct {
+type AutomationGen struct {
 	GitProvider gitproviders.GitProvider
 	Flux        flux.Flux
 	Logger      logger.Logger
 }
 
-var _ AutomationService = &AutomationSvc{}
+var _ AutomationGenerator = &AutomationGen{}
 
 type AutomationManifest struct {
 	Path    string
 	Content []byte
 }
 
-func NewAutomationService(gp gitproviders.GitProvider, flux flux.Flux, logger logger.Logger) AutomationService {
-	return &AutomationSvc{
+func NewAutomationGenerator(gp gitproviders.GitProvider, flux flux.Flux, logger logger.Logger) AutomationGenerator {
+	return &AutomationGen{
 		GitProvider: gp,
 		Flux:        flux,
 		Logger:      logger,
 	}
 }
 
-func (a *AutomationSvc) getAppSecretRef(ctx context.Context, app models.Application, clusterName string) (GeneratedSecretName, error) {
+func (a *AutomationGen) getAppSecretRef(ctx context.Context, app models.Application, clusterName string) (GeneratedSecretName, error) {
 	if app.SourceType != models.SourceTypeHelm {
 		return a.getSecretRef(ctx, app, app.GitSourceURL, clusterName)
 	}
@@ -89,7 +89,7 @@ func (a *AutomationSvc) getAppSecretRef(ctx context.Context, app models.Applicat
 	return "", nil
 }
 
-func (a *AutomationSvc) getSecretRef(ctx context.Context, app models.Application, url gitproviders.RepoURL, clusterName string) (GeneratedSecretName, error) {
+func (a *AutomationGen) getSecretRef(ctx context.Context, app models.Application, url gitproviders.RepoURL, clusterName string) (GeneratedSecretName, error) {
 	var secretRef GeneratedSecretName
 
 	visibility, visibilityErr := a.GitProvider.GetRepoVisibility(ctx, url)
@@ -104,7 +104,7 @@ func (a *AutomationSvc) getSecretRef(ctx context.Context, app models.Application
 	return secretRef, nil
 }
 
-func (a *AutomationSvc) generateAppAutomation(ctx context.Context, app models.Application, clusterName string) ([]AutomationManifest, error) {
+func (a *AutomationGen) generateAppAutomation(ctx context.Context, app models.Application, clusterName string) ([]AutomationManifest, error) {
 	a.Logger.Generatef("Generating GitOps automation manifests")
 
 	appManifest, err := generateAppYaml(app)
@@ -122,7 +122,7 @@ func (a *AutomationSvc) generateAppAutomation(ctx context.Context, app models.Ap
 	return []AutomationManifest{appManifest, appGoatManifest}, nil
 }
 
-func (a *AutomationSvc) generateAppSource(ctx context.Context, app models.Application, clusterName string) (AutomationManifest, error) {
+func (a *AutomationGen) generateAppSource(ctx context.Context, app models.Application, clusterName string) (AutomationManifest, error) {
 	var (
 		source []byte
 		err    error
@@ -205,7 +205,7 @@ func AddWegoIgnore(sourceManifest []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	ignores := []string{".weave-gitops/"}
+	ignores := []string{automationRoot + "/"}
 
 	for _, ignore := range []string{sourceignore.ExcludeVCS, sourceignore.ExcludeExt, sourceignore.ExcludeCI, sourceignore.ExcludeExtra} {
 		ignores = append(ignores, strings.Split(ignore, ",")...)
@@ -222,7 +222,7 @@ func AddWegoIgnore(sourceManifest []byte) ([]byte, error) {
 	return updatedManifest, nil
 }
 
-func (a *AutomationSvc) GenerateAutomation(ctx context.Context, app models.Application, clusterName string) ([]AutomationManifest, error) {
+func (a *AutomationGen) GenerateAutomation(ctx context.Context, app models.Application, clusterName string) ([]AutomationManifest, error) {
 	appDeployManifests, err := a.generateAppAutomation(ctx, app, clusterName)
 	if err != nil {
 		return nil, err
@@ -243,7 +243,7 @@ func (a *AutomationSvc) GenerateAutomation(ctx context.Context, app models.Appli
 	return append(automationManifests, appKustomize), nil
 }
 
-func (a *AutomationSvc) generateApplicationGoat(app models.Application, clusterName string) (AutomationManifest, error) {
+func (a *AutomationGen) generateApplicationGoat(app models.Application, clusterName string) (AutomationManifest, error) {
 	var (
 		b   []byte
 		err error

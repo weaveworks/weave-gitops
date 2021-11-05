@@ -209,8 +209,8 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 
 func (a *AppSvc) addApp(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error {
 	repoWriter := gitrepo.NewRepoWriter(app.ConfigURL, a.GitProvider, a.ConfigGit, a.Logger)
-	automationSvc := automation.NewAutomationService(a.GitProvider, a.Flux, a.Logger)
-	gitOpsDirWriter := gitopswriter.NewGitOpsDirectoryWriter(automationSvc, repoWriter, a.Osys, a.Logger)
+	automationGen := automation.NewAutomationGenerator(a.GitProvider, a.Flux, a.Logger)
+	gitOpsDirWriter := gitopswriter.NewGitOpsDirectoryWriter(automationGen, repoWriter, a.Osys, a.Logger)
 
 	return gitOpsDirWriter.AddApplication(ctx, app, clusterName, autoMerge)
 }

@@ -31,9 +31,9 @@ func createRepoURL(url string) gitproviders.RepoURL {
 
 func createDirWriter() GitOpsDirectoryWriter {
 	repoWriter := gitrepo.NewRepoWriter(app.ConfigURL, gitProviders, gitClient, log)
-	automationSvc := automation.NewAutomationService(gitProviders, fluxClient, log)
+	automationGen := automation.NewAutomationGenerator(gitProviders, fluxClient, log)
 
-	return NewGitOpsDirectoryWriter(automationSvc, repoWriter, osysClient, log)
+	return NewGitOpsDirectoryWriter(automationGen, repoWriter, osysClient, log)
 }
 
 var dummyGitSource = []byte(`---

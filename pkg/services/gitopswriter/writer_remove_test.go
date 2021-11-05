@@ -124,7 +124,7 @@ func setupFlux() error {
 
 func createRemoveDirWriter() GitOpsDirectoryWriter {
 	repoWriter := gitrepo.NewRepoWriter(app.ConfigURL, gitProviders, gitClient, log)
-	automationSvc := automation.NewAutomationService(gitProviders, realFlux, log)
+	automationSvc := automation.NewAutomationGenerator(gitProviders, realFlux, log)
 
 	return NewGitOpsDirectoryWriter(automationSvc, repoWriter, osysClient, log)
 }

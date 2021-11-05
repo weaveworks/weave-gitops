@@ -30,13 +30,13 @@ type GitOpsDirectoryWriter interface {
 }
 
 type GitOpsDirectoryWriterSvc struct {
-	Automation automation.AutomationService
+	Automation automation.AutomationGenerator
 	RepoWriter gitrepo.RepoWriter
 	Osys       osys.Osys
 	Logger     logger.Logger
 }
 
-func NewGitOpsDirectoryWriter(automationSvc automation.AutomationService, repoWriter gitrepo.RepoWriter, osys osys.Osys, logger logger.Logger) GitOpsDirectoryWriter {
+func NewGitOpsDirectoryWriter(automationSvc automation.AutomationGenerator, repoWriter gitrepo.RepoWriter, osys osys.Osys, logger logger.Logger) GitOpsDirectoryWriter {
 	return &GitOpsDirectoryWriterSvc{Automation: automationSvc, RepoWriter: repoWriter, Osys: osys, Logger: logger}
 }
 
@@ -141,7 +141,7 @@ func (dw *GitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app m
 }
 
 func addKustomizeResources(app models.Application, repoDir, clusterName string, resources ...string) (automation.AutomationManifest, error) {
-	userKustomizationRepoPath := filepath.Join(git.WegoRoot, git.WegoClusterDir, clusterName, "user", "kustomization.yaml")
+	userKustomizationRepoPath := getUserKustomizationRepoPath(clusterName)
 	userKustomization := filepath.Join(repoDir, userKustomizationRepoPath)
 
 	k, err := automation.GetOrCreateKustomize(userKustomization, app.Name, app.Namespace)
@@ -163,7 +163,7 @@ func addKustomizeResources(app models.Application, repoDir, clusterName string, 
 }
 
 func removeKustomizeResources(app models.Application, repoDir, clusterName string, resources ...string) (automation.AutomationManifest, error) {
-	userKustomizationRepoPath := filepath.Join(git.WegoRoot, git.WegoClusterDir, clusterName, "user", "kustomization.yaml")
+	userKustomizationRepoPath := getUserKustomizationRepoPath(clusterName)
 	userKustomization := filepath.Join(repoDir, userKustomizationRepoPath)
 
 	k, err := automation.GetOrCreateKustomize(userKustomization, app.Name, app.Namespace)
@@ -200,6 +200,10 @@ func removeKustomizeResources(app models.Application, repoDir, clusterName strin
 		Path:    userKustomizationRepoPath,
 		Content: userKustomizationManifest,
 	}, nil
+}
+
+func getUserKustomizationRepoPath(clusterName string) string {
+	return filepath.Join(git.WegoRoot, git.WegoClusterDir, clusterName, "user", "kustomization.yaml")
 }
 
 func appKustomizeReference(app models.Application) string {

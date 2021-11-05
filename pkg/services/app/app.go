@@ -72,24 +72,24 @@ func (a *AppSvc) getDeploymentType(ctx context.Context, name string, namespace s
 }
 
 func (a *AppSvc) getSuspendedStatus(ctx context.Context, name, namespace string, deploymentType wego.DeploymentType) (bool, error) {
-	var automationClient client.Object
+	var automationObject client.Object
 
 	switch deploymentType {
 	case wego.DeploymentTypeKustomize:
-		automationClient = &kustomizev2.Kustomization{}
+		automationObject = &kustomizev2.Kustomization{}
 	case wego.DeploymentTypeHelm:
-		automationClient = &helmv2.HelmRelease{}
+		automationObject = &helmv2.HelmRelease{}
 	default:
 		return false, fmt.Errorf("invalid deployment type: %v", deploymentType)
 	}
 
-	if err := a.Kube.GetResource(ctx, types.NamespacedName{Namespace: namespace, Name: name}, automationClient); err != nil {
+	if err := a.Kube.GetResource(ctx, types.NamespacedName{Namespace: namespace, Name: name}, automationObject); err != nil {
 		return false, err
 	}
 
 	suspendStatus := false
 
-	switch at := automationClient.(type) {
+	switch at := automationObject.(type) {
 	case *kustomizev2.Kustomization:
 		suspendStatus = at.Spec.Suspend
 	case *helmv2.HelmRelease:

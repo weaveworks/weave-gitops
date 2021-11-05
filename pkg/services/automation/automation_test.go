@@ -58,7 +58,7 @@ var _ = Describe("Generate manifests", func() {
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
 				app.SourceType = models.SourceTypeGit
-				_, err := automationSvc.GenerateAutomation(ctx, app, "test-cluster")
+				_, err := automationGen.GenerateAutomation(ctx, app, "test-cluster")
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(fluxClient.CreateSourceGitCallCount()).To(Equal(1))
@@ -78,7 +78,7 @@ var _ = Describe("Generate manifests", func() {
 				app.SourceType = models.SourceTypeHelm
 				app.ConfigURL = createRepoURL("ssh://git@github.com/owner/config-repo.git")
 
-				_, err := automationSvc.GenerateAutomation(ctx, app, "test-cluster")
+				_, err := automationGen.GenerateAutomation(ctx, app, "test-cluster")
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(fluxClient.CreateSourceHelmCallCount()).To(Equal(1))
@@ -92,7 +92,7 @@ var _ = Describe("Generate manifests", func() {
 
 		Describe("generates application goat", func() {
 			It("creates a kustomization if deployment type kustomize", func() {
-				_, err := automationSvc.GenerateAutomation(ctx, app, "test-cluster")
+				_, err := automationGen.GenerateAutomation(ctx, app, "test-cluster")
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(fluxClient.CreateKustomizationCallCount()).To(Equal(1))
@@ -113,7 +113,7 @@ var _ = Describe("Generate manifests", func() {
 				app.Path = "./charts/my-chart"
 				app.AutomationType = models.AutomationTypeHelm
 
-				_, err := automationSvc.GenerateAutomation(ctx, app, "test-cluster")
+				_, err := automationGen.GenerateAutomation(ctx, app, "test-cluster")
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(fluxClient.CreateHelmReleaseGitRepositoryCallCount()).To(Equal(1))
@@ -131,7 +131,7 @@ var _ = Describe("Generate manifests", func() {
 				app.AutomationType = models.AutomationTypeHelm
 				app.HelmTargetNamespace = "sock-shop"
 
-				_, err := automationSvc.GenerateAutomation(ctx, app, "test-cluster")
+				_, err := automationGen.GenerateAutomation(ctx, app, "test-cluster")
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(fluxClient.CreateHelmReleaseGitRepositoryCallCount()).To(Equal(1))
@@ -153,7 +153,7 @@ var _ = Describe("Generate manifests", func() {
 
 			Describe("generates source manifest", func() {
 				It("creates GitRepository when source type is git", func() {
-					_, err := automationSvc.GenerateAutomation(ctx, app, "test-cluster")
+					_, err := automationGen.GenerateAutomation(ctx, app, "test-cluster")
 					Expect(err).ShouldNot(HaveOccurred())
 
 					Expect(fluxClient.CreateSourceGitCallCount()).To(Equal(1))
@@ -172,7 +172,7 @@ var _ = Describe("Generate manifests", func() {
 					app.Name = "loki"
 					app.SourceType = models.SourceTypeHelm
 
-					_, err := automationSvc.GenerateAutomation(ctx, app, "test-cluster")
+					_, err := automationGen.GenerateAutomation(ctx, app, "test-cluster")
 					Expect(err).ShouldNot(HaveOccurred())
 
 					Expect(fluxClient.CreateSourceHelmCallCount()).To(Equal(1))
@@ -212,20 +212,19 @@ var _ = Describe("Generate manifests", func() {
 					Expect(yaml.Unmarshal(out.Content, &result))
 
 					diff := cmp.Diff(result, myApp)
-					Expect(diff).To(Equal(""))
 
 					// Not entirely sure how to get gomega to pretty-print the output of `diff`,
 					// so we assert it should be empty above, and conditionally print the diff to make a nice assertion message.
 					// `diff` is a formatted string
 					if diff != "" {
-						automationSvc.(*AutomationSvc).Logger.Println(diff)
+						GinkgoT().Errorf("comparison failed: (-actual +expected): %s\n", diff)
 					}
 				})
 			})
 
 			Describe("generates application goat", func() {
 				It("creates a kustomization if deployment type kustomize", func() {
-					_, err := automationSvc.GenerateAutomation(ctx, app, "test-cluster")
+					_, err := automationGen.GenerateAutomation(ctx, app, "test-cluster")
 					Expect(err).ShouldNot(HaveOccurred())
 
 					Expect(fluxClient.CreateKustomizationCallCount()).To(Equal(1))
@@ -245,7 +244,7 @@ var _ = Describe("Generate manifests", func() {
 					app.Name = "loki"
 					app.ConfigURL = createRepoURL("ssh://github.com/owner/repo")
 
-					_, err := automationSvc.GenerateAutomation(ctx, app, "test-cluster")
+					_, err := automationGen.GenerateAutomation(ctx, app, "test-cluster")
 					Expect(err).ShouldNot(HaveOccurred())
 
 					Expect(fluxClient.CreateHelmReleaseHelmRepositoryCallCount()).To(Equal(1))
@@ -266,7 +265,7 @@ var _ = Describe("Generate manifests", func() {
 					app.Path = "./charts/my-chart"
 					app.AutomationType = models.AutomationTypeHelm
 
-					_, err := automationSvc.GenerateAutomation(ctx, app, "test-cluster")
+					_, err := automationGen.GenerateAutomation(ctx, app, "test-cluster")
 					Expect(err).ShouldNot(HaveOccurred())
 
 					Expect(fluxClient.CreateHelmReleaseGitRepositoryCallCount()).To(Equal(1))
@@ -288,7 +287,7 @@ var _ = Describe("Generate manifests", func() {
 					app.AutomationType = models.AutomationTypeHelm
 					app.ConfigURL = createRepoURL("ssh://git@github.com/owner/config-repo.git")
 
-					_, err := automationSvc.GenerateAutomation(ctx, app, "test-cluster")
+					_, err := automationGen.GenerateAutomation(ctx, app, "test-cluster")
 					Expect(err).ShouldNot(HaveOccurred())
 
 					Expect(fluxClient.CreateHelmReleaseHelmRepositoryCallCount()).To(Equal(1))

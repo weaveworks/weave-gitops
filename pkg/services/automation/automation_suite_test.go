@@ -18,7 +18,7 @@ var (
 	gitProviders *gitprovidersfakes.FakeGitProvider
 	log          *loggerfakes.FakeLogger
 
-	automationSvc AutomationService
+	automationGen AutomationGenerator
 )
 
 var _ = BeforeEach(func() {
@@ -31,7 +31,7 @@ var _ = BeforeEach(func() {
 	}
 
 	log = &loggerfakes.FakeLogger{}
-	automationSvc = NewAutomationService(gitProviders, fluxClient, log)
+	automationGen = NewAutomationGenerator(gitProviders, fluxClient, log)
 })
 
 func TestAutomation(t *testing.T) {
