@@ -51,7 +51,7 @@ func getApplicationStatus(cmd *cobra.Command, args []string) error {
 
 	log := logger.NewCLILogger(os.Stdout)
 	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
-	factory := services.NewFactory(fluxClient, log)
+	factory := services.NewFactory(fluxClient, log, nil, "")
 
 	appService, err := factory.GetAppService(ctx)
 	if err != nil {

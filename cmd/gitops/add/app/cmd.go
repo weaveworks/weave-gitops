@@ -104,7 +104,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	log := logger.NewCLILogger(os.Stdout)
 	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
-	factory := services.NewFactory(fluxClient, log)
+	factory := services.NewFactory(fluxClient, log, nil, "")
 
 	providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 

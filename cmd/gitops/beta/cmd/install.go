@@ -67,7 +67,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
-	factory := services.NewFactory(fluxClient, log)
+	factory := services.NewFactory(fluxClient, log, nil, "")
 	providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 
 	gitopsService := gitops.New(log, fluxClient, k)

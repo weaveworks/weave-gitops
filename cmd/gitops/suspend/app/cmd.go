@@ -39,7 +39,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	params.Name = args[0]
 
 	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
-	factory := services.NewFactory(fluxClient, logger.NewCLILogger(os.Stdout))
+	factory := services.NewFactory(fluxClient, logger.NewCLILogger(os.Stdout), nil, "")
 
 	appService, err := factory.GetAppService(ctx)
 	if err != nil {

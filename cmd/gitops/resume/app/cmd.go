@@ -38,7 +38,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 	params.Name = args[0]
 
-	appFactory := services.NewFactory(flux.New(osys.New(), &runner.CLIRunner{}), logger.NewCLILogger(os.Stdout))
+	appFactory := services.NewFactory(flux.New(osys.New(), &runner.CLIRunner{}), logger.NewCLILogger(os.Stdout), nil, "")
 
 	appService, err := appFactory.GetAppService(ctx)
 	if err != nil {
