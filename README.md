@@ -49,7 +49,7 @@ Available Commands:
 
 Flags:
   -h, --help               Help for gitops
-      --namespace string   The namespace scope for this operation (default wego-system).
+      --namespace string   The namespace scope for this operation (default "wego-system").
   -v, --verbose            Enable verbose output
 
 Use "gitops [command] --help" for more information about a command.
