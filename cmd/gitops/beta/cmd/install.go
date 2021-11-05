@@ -62,7 +62,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	log := logger.NewCLILogger(os.Stdout)
 	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 
-	k, _, err := kube.NewKubeHTTPClient()
+	k, r, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
@@ -77,12 +77,13 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		DryRun:       installParams.DryRun,
 		AppConfigURL: installParams.AppConfigURL,
 	}
+
 	manifests, err := gitopsService.Install(gitOpsParams)
 	if err != nil {
 		return err
 	}
 
-	gitClient, gitProvider, err := factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
+	gitClient, gitProvider, err := factory.GetGitClients(context.Background(), providerClient, k, r, services.GitConfigParams{
 		URL:       installParams.AppConfigURL,
 		Namespace: namespace,
 		DryRun:    installParams.DryRun,

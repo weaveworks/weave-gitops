@@ -1,3 +1,4 @@
+//go:build !unittest
 // +build !unittest
 
 package server_test
@@ -85,6 +86,8 @@ var _ = BeforeSuite(func() {
 		JwtClient:        auth.NewJwtClient("somekey"),
 		GithubAuthClient: auth.NewGithubAuthProvider(http.DefaultClient),
 		KubeClient:       env.Client,
+		RestConfig:       env.Rest,
+		ClusterName:      clusterName,
 	}
 
 	s = grpc.NewServer()
