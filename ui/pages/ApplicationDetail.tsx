@@ -142,6 +142,7 @@ function ApplicationDetail({ className, name }: Props) {
       <CommitsTable
         // Get CommitsTable to retry after auth
         app={application}
+        authSuccess={authSuccess}
         onAuthClick={() => setGithubAuthModalOpen(true)}
       />
       <Modal
