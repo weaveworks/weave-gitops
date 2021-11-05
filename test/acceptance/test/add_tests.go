@@ -213,7 +213,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := true
 		tip := generateTestInputs()
 		appName := tip.appRepoName
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@github.com/" + GITLAB_ORG + "/" + tip.appRepoName + ".git"
 		var appRemoveOutput *gexec.Session
 
 		addCommand := "add app . --auto-merge=true"
