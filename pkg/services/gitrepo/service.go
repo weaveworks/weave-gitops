@@ -73,7 +73,7 @@ func (rw *RepoWriterSvc) CommitAndPush(ctx context.Context, commitMsg string, fi
 }
 
 func CommitAndPush(ctx context.Context, client git.Git, commitMsg string, logger logger.Logger, filters ...func(string) bool) error {
-	logger.Actionf("Committing and pushing updates")
+	logger.Actionf("Committing and pushing gitops updates for application")
 
 	_, err := client.Commit(git.Commit{
 		Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},

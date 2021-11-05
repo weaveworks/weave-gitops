@@ -13,7 +13,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 
 	"sigs.k8s.io/yaml"
 )
@@ -112,7 +111,8 @@ func (dw *GitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app m
 
 	dw.Logger.Actionf("Removing application from cluster and repository")
 
-	appDir := filepath.Join(repoDir, automation.AppYamlDir(app))
+	appSubDir := automation.AppYamlDir(app)
+	appDir := filepath.Join(repoDir, appSubDir)
 
 	resourcePaths, err := dw.Osys.ReadDir(appDir)
 	if err != nil {
@@ -120,11 +120,9 @@ func (dw *GitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app m
 	}
 
 	for _, resourcePath := range resourcePaths {
-		if !utils.Exists(filepath.Join(repoDir)) {
-			continue
-		}
+		pathStr := filepath.Join(appSubDir, resourcePath.Name())
 
-		if err := dw.RepoWriter.Remove(ctx, resourcePath.Name()); err != nil {
+		if err := dw.RepoWriter.Remove(ctx, pathStr); err != nil {
 			return fmt.Errorf("failed to remove app resource from repository: %w", err)
 		}
 	}

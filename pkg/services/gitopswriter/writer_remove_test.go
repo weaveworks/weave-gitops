@@ -70,9 +70,7 @@ func storeGOATPath(path string) {
 
 // Stop tracking a stored path; used to ensure after calling remove
 // that all paths have been handled
-func removeGOATPath(basepath string) error {
-	path := filepath.Join(automation.AppYamlDir(app), basepath)
-
+func removeGOATPath(path string) error {
 	if !goatPaths[path] {
 		return fmt.Errorf("goat path: %s not found in repository", path)
 	}

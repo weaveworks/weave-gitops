@@ -863,7 +863,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		var repoAbsolutePath2 string
 		var appManifestFile1 string
 		var commitList1 string
-		var commitList2 string
 		tip1 := generateTestInputs()
 		tip2 := generateTestInputs()
 		appName1 := tip1.appRepoName
@@ -1037,17 +1036,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			Eventually(appStatus1).Should(gbytes.Say(`kustomization/` + appName1 + `\s*True\s*.*False`))
 		})
 
-		By("When I check for list of commits for app2", func() {
-			commitList2, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", WEGO_BIN_PATH, appName2))
-		})
-
-		By("Then I should see the list of commits for app2", func() {
-			Eventually(commitList2).Should(MatchRegexp(`COMMIT HASH\s*CREATED AT\s*AUTHOR\s*MESSAGE\s*URL`))
-			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z\s*Weave Gitops\s*Add App manifests`))
-			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
-			Eventually(commitList2).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
-		})
-
 		By("When I delete an app", func() {
 			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " delete app " + appName2)
 		})
@@ -1068,18 +1056,9 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("Then I should see the list of commits for app1", func() {
 			Eventually(commitList1).Should(MatchRegexp(`COMMIT HASH\s*CREATED AT\s*AUTHOR\s*MESSAGE\s*URL`))
-			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z\s*Weave Gitops\s*Add App manifests`))
+			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z\s*Weave Gitops\s*Add application manifests`))
 			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
 			Eventually(commitList1).Should(MatchRegexp(`[\w]{7}\s*202\d-[0,1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]Z`))
-		})
-
-		By("When I check for list of commits for a deleted app", func() {
-			_, commitList2 = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", WEGO_BIN_PATH, appName2))
-		})
-
-		By("Then I should not see the list of commits for app2", func() {
-			Eventually(commitList2).Should(ContainSubstring(`Error:`))
-			Eventually(commitList2).Should(MatchRegexp(`\"` + appName2 + `\" not found`))
 		})
 	})
 
