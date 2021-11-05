@@ -38,7 +38,9 @@ describe("CommitsTable", () => {
       let c;
       await act(async () => {
         const { container: div } = render(
-          withTheme(withContext(<CommitsTable app={app} />, "/", ovr)),
+          withTheme(
+            withContext(<CommitsTable app={app} authSuccess={true} />, "/", ovr)
+          ),
           container
         );
         c = div;
@@ -60,7 +62,9 @@ describe("CommitsTable", () => {
 
     await act(async () => {
       render(
-        withTheme(withContext(<CommitsTable app={app} />, "/", ovr)),
+        withTheme(
+          withContext(<CommitsTable app={app} authSuccess={true} />, "/", ovr)
+        ),
         container
       );
     });
