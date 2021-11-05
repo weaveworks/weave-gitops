@@ -1,14 +1,9 @@
 package models
 
 import (
-	// "crypto/md5"
-	// "fmt"
-	// "path/filepath"
 	"strings"
 
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	// "github.com/weaveworks/weave-gitops/pkg/kube"
-	// "k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 type AutomationType string

@@ -127,6 +127,21 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 		return nil, fmt.Errorf("could not determine default branch for config repository: %q %w", params.AppConfigURL, err)
 	}
 
+<<<<<<< HEAD
+=======
+	if g.gitClient == nil {
+		authsvc, err := apputils.GetAuthService(ctx, normalizedURL, params.DryRun)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create auth service for repo %q : %w", params.AppConfigURL, err)
+		}
+
+		g.gitClient, err = authsvc.CreateGitClient(ctx, normalizedURL, cname, params.Namespace)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create git client for repo %q : %w", params.AppConfigURL, err)
+		}
+	}
+
+>>>>>>> 2943da19 (remove extraneous comments)
 	remover, _, err := gitrepo.CloneRepo(ctx, g.gitClient, normalizedURL, configBranch)
 	if err != nil {
 		return nil, fmt.Errorf("failed to clone configuration repo: %w", err)
@@ -186,7 +201,6 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 		return nil, fmt.Errorf("failed to write user manifests: %w", err)
 	}
 
-	//	return manifests, app.CommitAndPush(g.gitClient, "Add GitOps runtime manifests", params.DryRun, g.logger)
 	return manifests, gitrepo.CommitAndPush(ctx, g.gitClient, "Add GitOps runtime manifests", g.logger)
 }
 
