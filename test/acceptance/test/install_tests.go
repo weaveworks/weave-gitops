@@ -36,7 +36,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		By("Then I should see gitops help text displayed for 'install' command", func() {
 			Eventually(string(sessionOutput.Wait().Out.Contents())).Should(MatchRegexp(
-				fmt.Sprintf(`The install command deploys GitOps in the specified namespace.\nIf a previous version is installed, then an in-place upgrade will be performed.\n*Usage:\n\s*gitops install \[flags]\n*Examples:\n\s*# Install GitOps in the %s namespace\n\s*gitops install\n*Flags:\n\s*--dry-run\s*Outputs all the manifests that would be installed\n\s*-h, --help\s*help for install\n*Global Flags:\n\s*-e, --endpoint string\s*The Weave GitOps Enterprise HTTP API endpoint\n\s*--namespace string\s*The namespace scope for this operation \(default "%s"\).\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace, wego.DefaultNamespace)))
+				fmt.Sprintf(`The install command deploys GitOps in the specified namespace.\nIf a previous version is installed, then an in-place upgrade will be performed.\n*Usage:\n\s*gitops install \[flags]\n*Examples:\n\s*# Install GitOps in the %s namespace\n\s*gitops install\n*Flags:\n\s*--dry-run\s*Outputs all the manifests that would be installed\n\s*-h, --help\s*help for install\n*Global Flags:\n\s*-e, --endpoint string\s*The Weave GitOps Enterprise HTTP API endpoint\n\s*--namespace string\s*The namespace scope for this operation \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace, wego.DefaultNamespace)))
 		})
 	})
 
@@ -48,7 +48,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		By("Then I should see gitops help text displayed for 'uninstall' command", func() {
 			Eventually(string(sessionOutput.Wait().Out.Contents())).Should(MatchRegexp(
-				fmt.Sprintf(`The uninstall command removes GitOps components from the cluster.\n*Usage:\n\s*gitops uninstall \[flags]\n*Examples:\n\s*# Uninstall GitOps from the %s namespace\n\s*gitops uninstall\n*Flags:\n\s*--dry-run\s*Outputs all the manifests that would be uninstalled\n\s*-h, --help\s*help for uninstall\n*Global Flags:\n\s*-e, --endpoint string\s*The Weave GitOps Enterprise HTTP API endpoint\n\s*--namespace string\s*The namespace scope for this operation \(default "%s"\).\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace, wego.DefaultNamespace)))
+				fmt.Sprintf(`The uninstall command removes GitOps components from the cluster.\n*Usage:\n\s*gitops uninstall \[flags]\n*Examples:\n\s*# Uninstall GitOps from the %s namespace\n\s*gitops uninstall\n*Flags:\n\s*--dry-run\s*Outputs all the manifests that would be uninstalled\n\s*-h, --help\s*help for uninstall\n*Global Flags:\n\s*-e, --endpoint string\s*The Weave GitOps Enterprise HTTP API endpoint\n\s*--namespace string\s*The namespace scope for this operation \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace, wego.DefaultNamespace)))
 		})
 	})
 
