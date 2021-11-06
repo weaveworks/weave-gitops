@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"k8s.io/client-go/rest"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -112,6 +113,11 @@ var _ = Describe("ApplicationsServer", func() {
 		})
 
 		It("fetches an application", func() {
+
+			fakeFactory.GetKubeServiceWithConfigCalls(func(arg1 *rest.Config, arg2 string) (kube.Kube, client.Client, error) {
+				return kube.NewKubeHTTPClientWithConfig(arg1, arg2)
+			})
+
 			resp, err := appsClient.GetApplication(context.Background(), &pb.GetApplicationRequest{
 				Name:      name,
 				Namespace: namespace.Name,
