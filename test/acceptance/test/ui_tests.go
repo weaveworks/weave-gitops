@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"runtime"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
+	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/test/acceptance/test/pages"
 )
@@ -26,6 +28,8 @@ var _ = Describe("Weave GitOps UI Test", func() {
 	}
 
 	BeforeEach(func() {
+		os := runtime.GOOS
+		log.Infof("Running tests on OS: " + os)
 
 		By("Given I have a brand new cluster", func() {
 			_, err = ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime)
@@ -44,13 +48,27 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		})
 
 		By("And I open up a browser", func() {
-			webDriver, err = agouti.NewPage(SELENIUM_SERVICE_URL, agouti.Desired(agouti.Capabilities{
-				"chromeOptions": map[string][]string{
-					"args": {
-						"--disable-gpu",
-						"--no-sandbox",
-					}}}))
-			Expect(err).NotTo(HaveOccurred(), "Error creating new page")
+			if os == "linux" {
+				webDriver, err = agouti.NewPage(SELENIUM_SERVICE_URL, agouti.Desired(agouti.Capabilities{
+					"chromeOptions": map[string][]string{
+						"args": {
+							"--disable-gpu",
+							"--no-sandbox",
+						}}}))
+				Expect(err).NotTo(HaveOccurred(), "Error creating new page")
+			}
+			if os == "darwin" {
+				cmd := []string{"selenium-server", "standalone"}
+				driver := agouti.NewWebDriver(SELENIUM_SERVICE_URL, cmd)
+				Expect(driver.Start()).To(Succeed())
+				webDriver, err = driver.NewPage(agouti.Debug, agouti.Desired(agouti.Capabilities{
+					"chromeOptions": map[string][]string{
+						"args": {
+							"--disable-gpu",
+							"--no-sandbox",
+						}}}))
+				Expect(err).NotTo(HaveOccurred(), "Error creating new page")
+			}
 		})
 
 		By("When I navigate to the dashboard", func() {
@@ -111,6 +129,11 @@ var _ = Describe("Weave GitOps UI Test", func() {
 			_ = addAppPage.PathToManifests.Fill("/")
 		})
 
+		By("And default form values are present", func() {
+			Expect(addAppPage.AppNamespace.Attribute("value")).Should(ContainSubstring(WEGO_DEFAULT_NAMESPACE))
+			Expect(addAppPage.Branch.Attribute("value")).Should(ContainSubstring("main"))
+		})
+
 		By("And auto-merge is turned on", func() {
 			_ = addAppPage.AutoMergeCheck.Check()
 		})
@@ -128,26 +151,28 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		var repoAbsolutePath string
 		tip := generateTestInputs()
 		public := false
-		appName1 := tip.appRepoName
-		appName2 := "loki"
-		workloadName1 := tip.workloadName
-		workloadName2 := "loki-0"
+		appName1 := "loki"
+		appName2 := tip.appRepoName
+		workloadName1 := "loki-0"
+		workloadName2 := tip.workloadName
 		appRepoRemoteURL := "https://github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 		helmRepoURL := "https://charts.kube-ops.io"
 
-		addCommand1 := "add app . --auto-merge=true"
-		addCommand2 := "add app --url=" + helmRepoURL + " --chart=" + appName2 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true"
+		addCommand1 := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true"
+		addCommand2 := "add app . --auto-merge=true"
+
+		// dashboardPage := pages.GetAppListElements(webDriver)
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
-		defer deleteWorkload(workloadName1, tip.workloadNamespace)
-		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName2, EVENTUALLY_DEFAULT_TIMEOUT)
+		defer deleteWorkload(workloadName2, tip.workloadNamespace)
+		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, EVENTUALLY_DEFAULT_TIMEOUT)
 
 		By("And application repo does not already exist", func() {
 			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
-			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName2, EVENTUALLY_DEFAULT_TIMEOUT)
+			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, EVENTUALLY_DEFAULT_TIMEOUT)
 		})
 
 		By("When I create a public repo with my app workload", func() {
@@ -157,24 +182,27 @@ var _ = Describe("Weave GitOps UI Test", func() {
 
 		By("And I run gitops add command for app1", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand1, WEGO_DEFAULT_NAMESPACE)
-			verifyWegoAddCommand(appName1, WEGO_DEFAULT_NAMESPACE)
+			verifyWegoHelmAddCommand(appName1, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("And I run gitops add command for app2", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand2, WEGO_DEFAULT_NAMESPACE)
-			verifyWegoHelmAddCommand(appName2, WEGO_DEFAULT_NAMESPACE)
+			verifyWegoAddCommand(appName2, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("Then I should see workload1 deployed to the cluster", func() {
-			verifyWorkloadIsDeployed(workloadName1, tip.workloadNamespace)
+			verifyHelmPodWorkloadIsDeployed(workloadName1, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("And I should see workload2 deployed to the cluster", func() {
-			verifyHelmPodWorkloadIsDeployed(workloadName2, WEGO_DEFAULT_NAMESPACE)
+			verifyWorkloadIsDeployed(workloadName2, tip.workloadNamespace)
 		})
 
 		By("And I should see app names listed on the UI", func() {
 			_ = webDriver.Refresh()
+
 		})
+
+		By("When I click on appName1: " + appName2)
 	})
 })

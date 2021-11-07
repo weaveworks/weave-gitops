@@ -673,7 +673,7 @@ func extractOrgAndRepo(url string) (string, string) {
 }
 
 func setArtifactsDir() string {
-	path := "/tmp/wego-test"
+	path := "/tmp/gitops-test"
 
 	if os.Getenv("ARTIFACTS_BASE_DIR") == "" {
 		return path
@@ -683,6 +683,7 @@ func setArtifactsDir() string {
 }
 
 func takeScreenshot() string {
+	log.Infof("Screenshot function initiated")
 	if webDriver != nil {
 		t := time.Now()
 		name := t.Format("Mon-02-Jan-2006-15.04.05.000000")
