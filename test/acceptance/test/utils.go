@@ -684,6 +684,7 @@ func setArtifactsDir() string {
 
 func takeScreenshot() string {
 	log.Infof("Screenshot function initiated")
+
 	if webDriver != nil {
 		t := time.Now()
 		name := t.Format("Mon-02-Jan-2006-15.04.05.000000")

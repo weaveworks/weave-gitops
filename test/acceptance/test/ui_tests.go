@@ -48,6 +48,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		})
 
 		By("And I open up a browser", func() {
+
 			if os == "linux" {
 				webDriver, err = agouti.NewPage(SELENIUM_SERVICE_URL, agouti.Desired(agouti.Capabilities{
 					"chromeOptions": map[string][]string{
@@ -57,6 +58,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 						}}}))
 				Expect(err).NotTo(HaveOccurred(), "Error creating new page")
 			}
+
 			if os == "darwin" {
 				cmd := []string{"selenium-server", "standalone"}
 				driver := agouti.NewWebDriver(SELENIUM_SERVICE_URL, cmd)
