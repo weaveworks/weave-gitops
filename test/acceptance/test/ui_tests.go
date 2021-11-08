@@ -81,9 +81,9 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		expectedTitle := "Weave GitOps"
 
 		By("Then I should be able to navigate to WeGO dashboard", func() {
-			Expect(webDriver.Navigate(WEGO_UI_URL)).To(Succeed())
+			Expect(webDriver.Navigate(WEGO_UI_URL), THIRTY_SECOND_TIMEOUT).To(Succeed())
 			str, _ := webDriver.Title()
-			Expect(str).To(ContainSubstring(expectedTitle))
+			Eventually(str).Should(ContainSubstring(expectedTitle))
 			Expect(dashboardPage.ApplicationTab).Should(BeFound())
 		})
 	})
