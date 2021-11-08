@@ -46,24 +46,24 @@ var _ = Describe("Add", func() {
 	})
 
 	It("checks for cluster status", func() {
-		Expect(appSrv.Add(addParams)).Should(Succeed())
+		Expect(appSrv.Add(gitClient, gitProviders, addParams)).Should(Succeed())
 		Expect(kubeClient.GetClusterStatusCallCount()).To(Equal(1))
 
 		kubeClient.GetClusterStatusStub = func(ctx context.Context) kube.ClusterStatus {
 			return kube.Unmodified
 		}
-		err := appSrv.Add(addParams)
+		err := appSrv.Add(gitClient, gitProviders, addParams)
 		Expect(err).To(MatchError("gitops not installed... exiting"))
 
 		kubeClient.GetClusterStatusStub = func(ctx context.Context) kube.ClusterStatus {
 			return kube.Unknown
 		}
-		err = appSrv.Add(addParams)
+		err = appSrv.Add(gitClient, gitProviders, addParams)
 		Expect(err).To(MatchError("can not determine cluster status... exiting"))
 	})
 
 	It("gets the cluster name", func() {
-		Expect(appSrv.Add(addParams)).Should(Succeed())
+		Expect(appSrv.Add(gitClient, gitProviders, addParams)).Should(Succeed())
 		Expect(kubeClient.GetClusterNameCallCount()).To(Equal(1))
 	})
 
@@ -72,7 +72,7 @@ var _ = Describe("Add", func() {
 		addParams.Url = "https://my-chart.com"
 		addParams.AppConfigUrl = ""
 
-		err := appSrv.Add(addParams)
+		err := appSrv.Add(gitClient, gitProviders, addParams)
 		Expect(err.Error()).Should(HaveSuffix("--app-config-url should be provided"))
 	})
 
@@ -90,14 +90,14 @@ var _ = Describe("Add", func() {
 		})
 
 		It("Uses the default branch from the repository if no branch is specified", func() {
-			updated, err := appSrv.(*AppSvc).updateParametersIfNecessary(ctx, addParams)
+			updated, err := appSrv.(*AppSvc).updateParametersIfNecessary(ctx, gitProviders, addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(updated.Branch).To(Equal("an-unusual-branch"))
 		})
 
 		It("Allows a specified branch to override the repo's default branch", func() {
 			addParams.Branch = "an-overriding-branch"
-			updated, err := appSrv.(*AppSvc).updateParametersIfNecessary(ctx, addParams)
+			updated, err := appSrv.(*AppSvc).updateParametersIfNecessary(ctx, gitProviders, addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(updated.Branch).To(Equal("an-overriding-branch"))
 		})
@@ -128,12 +128,12 @@ var _ = Describe("Add", func() {
 				addParams.HelmReleaseTargetNamespace = "sock-shop"
 				addParams.AppConfigUrl = "ssh://git@github.com/owner/config-repo.git"
 
-				goodNamespaceErr := appSrv.Add(addParams)
+				goodNamespaceErr := appSrv.Add(gitClient, gitProviders, addParams)
 				Expect(goodNamespaceErr).ShouldNot(HaveOccurred())
 
 				addParams.HelmReleaseTargetNamespace = "sock-shop&*&*&*&"
 
-				badNamespaceErr := appSrv.Add(addParams)
+				badNamespaceErr := appSrv.Add(gitClient, gitProviders, addParams)
 				Expect(badNamespaceErr.Error()).To(HavePrefix("could not update parameters: invalid namespace"))
 			})
 
@@ -143,19 +143,19 @@ var _ = Describe("Add", func() {
 				addParams.HelmReleaseTargetNamespace = "sock-shop"
 				addParams.AppConfigUrl = "NONE"
 
-				goodNamespaceErr := appSrv.Add(addParams)
+				goodNamespaceErr := appSrv.Add(gitClient, gitProviders, addParams)
 				Expect(goodNamespaceErr).ShouldNot(HaveOccurred())
 
 				kubeClient.NamespacePresentReturns(false, nil)
 
-				badNamespaceErr := appSrv.Add(addParams)
+				badNamespaceErr := appSrv.Add(gitClient, gitProviders, addParams)
 				Expect(badNamespaceErr.Error()).To(HavePrefix("could not update parameters: Helm Release Target Namespace sock-shop does not exist"))
 			})
 
 			It("fails if deployment type is invalid", func() {
 				addParams.DeploymentType = "foo"
 
-				Expect(appSrv.Add(addParams)).ShouldNot(Succeed())
+				Expect(appSrv.Add(gitClient, gitProviders, addParams)).ShouldNot(Succeed())
 			})
 		})
 	})
@@ -165,7 +165,7 @@ var _ = Describe("Add", func() {
 			addParams.DryRun = true
 			addParams.AutoMerge = true
 
-			Expect(appSrv.Add(addParams)).Should(Succeed())
+			Expect(appSrv.Add(gitClient, gitProviders, addParams)).Should(Succeed())
 			Expect(fluxClient.CreateSecretGitCallCount()).To(Equal(0))
 			Expect(gitClient.CloneCallCount()).To(Equal(0))
 			Expect(gitClient.WriteCallCount()).To(Equal(0))
@@ -176,20 +176,20 @@ var _ = Describe("Add", func() {
 	Context("ensure that app names are <= 63 characters in length", func() {
 		It("ensures that app names are <= 63 characters", func() {
 			addParams.Name = "a23456789012345678901234567890123456789012345678901234567890123"
-			Expect(appSrv.Add(addParams)).To(Succeed())
+			Expect(appSrv.Add(gitClient, gitProviders, addParams)).To(Succeed())
 
 			addParams.Name = "a234567890123456789012345678901234567890123456789012345678901234"
-			Expect(appSrv.Add(addParams)).ShouldNot(Succeed())
+			Expect(appSrv.Add(gitClient, gitProviders, addParams)).ShouldNot(Succeed())
 		})
 
 		It("ensures that url base names are <= 63 characters when used as names", func() {
 			addParams.Url = "https://github.com/foo/a23456789012345678901234567890123456789012345678901234567890123"
-			localParams, err := appSrv.(*AppSvc).updateParametersIfNecessary(ctx, addParams)
+			localParams, err := appSrv.(*AppSvc).updateParametersIfNecessary(ctx, gitProviders, addParams)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(appSrv.Add(localParams)).To(Succeed())
+			Expect(appSrv.Add(gitClient, gitProviders, localParams)).To(Succeed())
 			addParams.Name = ""
 			addParams.Url = "https://github.com/foo/a234567890123456789012345678901234567890123456789012345678901234"
-			_, err = appSrv.(*AppSvc).updateParametersIfNecessary(ctx, addParams)
+			_, err = appSrv.(*AppSvc).updateParametersIfNecessary(ctx, gitProviders, addParams)
 			Expect(err).Should(HaveOccurred())
 		})
 	})
@@ -199,7 +199,7 @@ var _ = Describe("Add", func() {
 			addParams := AddParams{}
 			addParams.Url = "http://github.com/weaveworks/testrepo"
 
-			updated, err := appSrv.(*AppSvc).updateParametersIfNecessary(ctx, addParams)
+			updated, err := appSrv.(*AppSvc).updateParametersIfNecessary(ctx, gitProviders, addParams)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(updated.DeploymentType).To(Equal(DefaultDeploymentType))
@@ -211,7 +211,7 @@ var _ = Describe("Add", func() {
 			addParams := AddParams{}
 			addParams.Url = "{http:/-*wrong-url-827"
 
-			_, err := appSrv.(*AppSvc).updateParametersIfNecessary(ctx, addParams)
+			_, err := appSrv.(*AppSvc).updateParametersIfNecessary(ctx, gitProviders, addParams)
 			Expect(err).Should(HaveOccurred())
 			Expect(err.Error()).Should(ContainSubstring("error normalizing url"))
 			Expect(err.Error()).Should(ContainSubstring(addParams.Url))

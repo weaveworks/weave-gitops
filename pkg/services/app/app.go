@@ -48,7 +48,7 @@ type AppSvc struct {
 	Clock   clock.Clock
 }
 
-func New(ctx context.Context, logger logger.Logger, appGit, configGit git.Git, gitProvider gitproviders.GitProvider, flux flux.Flux, kube kube.Kube, osys osys.Osys) AppService {
+func New(ctx context.Context, logger logger.Logger, flux flux.Flux, kube kube.Kube, osys osys.Osys) AppService {
 	return &AppSvc{
 		Context: ctx,
 		Flux:    flux,

@@ -4,6 +4,7 @@ package install
 // gitops installed, the user will be prompted to install gitops and then the repository will be added.
 
 import (
+	"context"
 	_ "embed"
 	"fmt"
 	"os"
@@ -11,11 +12,14 @@ import (
 	"github.com/spf13/cobra"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
+	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/services"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 )
 
@@ -53,13 +57,16 @@ func init() {
 func installRunCmd(cmd *cobra.Command, args []string) error {
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
+	osysClient := osys.New()
 	log := logger.NewCLILogger(os.Stdout)
-	flux := flux.New(osys.New(), &runner.CLIRunner{})
+	flux := flux.New(osysClient, &runner.CLIRunner{})
 
 	k, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
+
+	providerClient := internal.NewGitProviderClient(osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
 
 	gitopsService := gitops.New(log, flux, k)
 
@@ -74,7 +81,17 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	_, err = gitopsService.StoreManifests(nil, nil, gitopsParams, manifests)
+	factory := services.NewFactory(flux, log)
+	gitClient, gitProvider, err := factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
+		URL:       installParams.AppConfigURL,
+		Namespace: namespace,
+		DryRun:    installParams.DryRun,
+	})
+	if err != nil {
+		return fmt.Errorf("error creating git clients: %w", err)
+	}
+
+	_, err = gitopsService.StoreManifests(gitClient, gitProvider, gitopsParams, manifests)
 	if err != nil {
 		return err
 	}

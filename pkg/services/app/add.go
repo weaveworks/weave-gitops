@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
@@ -44,6 +45,10 @@ const (
 	DefaultBranch         = "main"
 	DefaultDeploymentType = "kustomize"
 )
+
+func (a AddParams) IsHelmRepository() bool {
+	return a.Chart != ""
+}
 
 func (a *AppSvc) Add(configGit git.Git, gitProvider gitproviders.GitProvider, params AddParams) error {
 	ctx := context.Background()
@@ -207,9 +212,9 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 	return params, nil
 }
 
-func (a *AppSvc) addApp(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error {
-	repoWriter := gitrepo.NewRepoWriter(app.ConfigURL, a.GitProvider, a.ConfigGit, a.Logger)
-	automationGen := automation.NewAutomationGenerator(a.GitProvider, a.Flux, a.Logger)
+func (a *AppSvc) addApp(ctx context.Context, configGit git.Git, gitProvider gitproviders.GitProvider, app models.Application, clusterName string, autoMerge bool) error {
+	repoWriter := gitrepo.NewRepoWriter(app.ConfigURL, gitProvider, configGit, a.Logger)
+	automationGen := automation.NewAutomationGenerator(gitProvider, a.Flux, a.Logger)
 	gitOpsDirWriter := gitopswriter.NewGitOpsDirectoryWriter(automationGen, repoWriter, a.Osys, a.Logger)
 
 	return gitOpsDirWriter.AddApplication(ctx, app, clusterName, autoMerge)

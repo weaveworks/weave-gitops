@@ -21,6 +21,7 @@ var (
 	gitClient    *gitfakes.FakeGit
 	fluxClient   *fluxfakes.FakeFlux
 	kubeClient   *kubefakes.FakeKube
+	osysClient   *osysfakes.FakeOsys
 	gitProviders *gitprovidersfakes.FakeGitProvider
 	log          *loggerfakes.FakeLogger
 	appSrv       AppService
@@ -29,6 +30,7 @@ var (
 var _ = BeforeEach(func() {
 	gitClient = &gitfakes.FakeGit{}
 	fluxClient = &fluxfakes.FakeFlux{}
+	osysClient = &osysfakes.FakeOsys{}
 	kubeClient = &kubefakes.FakeKube{
 		GetClusterNameStub: func(ctx context.Context) (string, error) {
 			return "test-cluster", nil
@@ -47,10 +49,10 @@ var _ = BeforeEach(func() {
 		},
 	}
 
-	appSrv = New(context.Background(), &loggerfakes.FakeLogger{}, fluxClient, kubeClient)
+	appSrv = New(context.Background(), &loggerfakes.FakeLogger{}, fluxClient, kubeClient, osysClient)
 	log = &loggerfakes.FakeLogger{}
 
-	appSrv = New(context.Background(), log, gitClient, gitClient, gitProviders, fluxClient, kubeClient, osysClient)
+	appSrv = New(context.Background(), log, fluxClient, kubeClient, osysClient)
 })
 
 func TestApp(t *testing.T) {

@@ -46,7 +46,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
 	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
-	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
 	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
 	"google.golang.org/grpc/codes"
@@ -636,11 +635,11 @@ var _ = Describe("ApplicationsServer", func() {
 			name = "my-app"
 			manifestPaths = map[string]bool{}
 
-			osysClient := osys.New()
-			fluxClient := flux.New(osysClient, &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}})
+			fakeOsys := &osysfakes.FakeOsys{}
+			fluxClient := flux.New(osys.New(), &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}})
 			log := &loggerfakes.FakeLogger{}
 
-			appFactory.GetAppServiceReturns(&app.AppSvc{
+			fakeFactory.GetAppServiceReturns(&app.AppSvc{
 				Context: ctx,
 				Flux:    fluxClient,
 				Kube:    fakeKube,
@@ -651,6 +650,19 @@ var _ = Describe("ApplicationsServer", func() {
 			fakeFactory.GetGitClientsReturns(configGit, gitProvider, nil)
 			fakeFactory.GetKubeServiceReturns(fakeKube, nil)
 			gitProvider.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
+
+			configGit.WriteStub = func(path string, manifest []byte) error {
+				storeManifestPath(path)
+				return nil
+			}
+
+			configGit.RemoveStub = func(path string) error {
+				return removeManifestPath(path)
+			}
+
+			fakeOsys.ReadDirStub = func(dirName string) ([]os.DirEntry, error) {
+				return makeDirEntries(manifestPaths), nil
+			}
 		})
 
 		DescribeTable(

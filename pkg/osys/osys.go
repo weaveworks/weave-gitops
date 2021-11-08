@@ -1,6 +1,7 @@
 package osys
 
 import (
+	"errors"
 	"os"
 )
 
@@ -10,6 +11,7 @@ import (
 type Osys interface {
 	UserHomeDir() (string, error)
 	Getenv(envVar string) string
+	LookupEnv(envVar string) (string, bool)
 	Setenv(envVar, value string) error
 	Unsetenv(envVar string) error
 	ReadDir(dirName string) ([]os.DirEntry, error)
@@ -29,6 +31,10 @@ func New() Osys {
 
 func (o *OsysClient) UserHomeDir() (string, error) {
 	return os.UserHomeDir()
+}
+
+func (o *OsysClient) LookupEnv(envVar string) (string, bool) {
+	return os.LookupEnv(envVar)
 }
 
 func (o *OsysClient) Getenv(envVar string) string {

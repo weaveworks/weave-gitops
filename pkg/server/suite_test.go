@@ -104,7 +104,7 @@ var _ = BeforeEach(func() {
 	fluxClient := flux.New(osysClient, &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}})
 	logger := &loggerfakes.FakeLogger{}
 
-	appFactory.GetAppServiceReturns(&app.AppSvc{
+	fakeFactory.GetAppServiceReturns(&app.AppSvc{
 		Context: context.Background(),
 		Flux:    fluxClient,
 		Kube:    k,

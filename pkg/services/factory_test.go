@@ -8,6 +8,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
+	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 )
 
@@ -57,20 +58,9 @@ var _ = Describe("Services factory", func() {
 			Expect(err).To(BeNil())
 		})
 
-		It("config type none and empty url return error", func() {
-			gitClient, gitProvider, err := factory.GetGitClients(ctx, fakeClient, GitConfigParams{
-				ConfigURL:        string(app.ConfigTypeNone),
-				IsHelmRepository: false,
-			})
-
-			Expect(gitClient).To(BeNil())
-			Expect(gitProvider).To(BeNil())
-			Expect(err.Error()).To(MatchRegexp("error normalizing url*."))
-		})
-
 		It("config type user repo and empty url return error", func() {
 			gitClient, gitProvider, err := factory.GetGitClients(ctx, fakeClient, GitConfigParams{
-				ConfigURL:        string(app.ConfigTypeUserRepo),
+				ConfigURL:        string(models.ConfigTypeUserRepo),
 				IsHelmRepository: false,
 			})
 
