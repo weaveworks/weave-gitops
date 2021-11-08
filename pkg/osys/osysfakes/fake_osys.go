@@ -26,6 +26,19 @@ type FakeOsys struct {
 	getenvReturnsOnCall map[int]struct {
 		result1 string
 	}
+	LookupEnvStub        func(string) (string, bool)
+	lookupEnvMutex       sync.RWMutex
+	lookupEnvArgsForCall []struct {
+		arg1 string
+	}
+	lookupEnvReturns struct {
+		result1 string
+		result2 bool
+	}
+	lookupEnvReturnsOnCall map[int]struct {
+		result1 string
+		result2 bool
+	}
 	ReadDirStub        func(string) ([]fs.DirEntry, error)
 	readDirMutex       sync.RWMutex
 	readDirArgsForCall []struct {
@@ -199,6 +212,70 @@ func (fake *FakeOsys) GetenvReturnsOnCall(i int, result1 string) {
 	fake.getenvReturnsOnCall[i] = struct {
 		result1 string
 	}{result1}
+}
+
+func (fake *FakeOsys) LookupEnv(arg1 string) (string, bool) {
+	fake.lookupEnvMutex.Lock()
+	ret, specificReturn := fake.lookupEnvReturnsOnCall[len(fake.lookupEnvArgsForCall)]
+	fake.lookupEnvArgsForCall = append(fake.lookupEnvArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.LookupEnvStub
+	fakeReturns := fake.lookupEnvReturns
+	fake.recordInvocation("LookupEnv", []interface{}{arg1})
+	fake.lookupEnvMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeOsys) LookupEnvCallCount() int {
+	fake.lookupEnvMutex.RLock()
+	defer fake.lookupEnvMutex.RUnlock()
+	return len(fake.lookupEnvArgsForCall)
+}
+
+func (fake *FakeOsys) LookupEnvCalls(stub func(string) (string, bool)) {
+	fake.lookupEnvMutex.Lock()
+	defer fake.lookupEnvMutex.Unlock()
+	fake.LookupEnvStub = stub
+}
+
+func (fake *FakeOsys) LookupEnvArgsForCall(i int) string {
+	fake.lookupEnvMutex.RLock()
+	defer fake.lookupEnvMutex.RUnlock()
+	argsForCall := fake.lookupEnvArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeOsys) LookupEnvReturns(result1 string, result2 bool) {
+	fake.lookupEnvMutex.Lock()
+	defer fake.lookupEnvMutex.Unlock()
+	fake.LookupEnvStub = nil
+	fake.lookupEnvReturns = struct {
+		result1 string
+		result2 bool
+	}{result1, result2}
+}
+
+func (fake *FakeOsys) LookupEnvReturnsOnCall(i int, result1 string, result2 bool) {
+	fake.lookupEnvMutex.Lock()
+	defer fake.lookupEnvMutex.Unlock()
+	fake.LookupEnvStub = nil
+	if fake.lookupEnvReturnsOnCall == nil {
+		fake.lookupEnvReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 bool
+		})
+	}
+	fake.lookupEnvReturnsOnCall[i] = struct {
+		result1 string
+		result2 bool
+	}{result1, result2}
 }
 
 func (fake *FakeOsys) ReadDir(arg1 string) ([]fs.DirEntry, error) {
@@ -610,6 +687,8 @@ func (fake *FakeOsys) Invocations() map[string][][]interface{} {
 	defer fake.exitMutex.RUnlock()
 	fake.getenvMutex.RLock()
 	defer fake.getenvMutex.RUnlock()
+	fake.lookupEnvMutex.RLock()
+	defer fake.lookupEnvMutex.RUnlock()
 	fake.readDirMutex.RLock()
 	defer fake.readDirMutex.RUnlock()
 	fake.setenvMutex.RLock()
