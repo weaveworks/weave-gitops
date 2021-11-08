@@ -227,7 +227,7 @@ function AddApplication({ className }: Props) {
               value={formState.namespace}
             />
             <FormHelperText>
-              The the target namespace for the application
+              The namespace where GitOps automation objects will be stored.
             </FormHelperText>
           </FormElement>
           <FormElement>
