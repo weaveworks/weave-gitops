@@ -9,5 +9,6 @@ type AppDetailsPageElements struct {
 func GetAppDetailsPageElements(webDriver *agouti.Page) *AppDetailsPageElements {
 	appDetailsPage := AppDetailsPageElements{
 		LogoImage: webDriver.FindByXPath(`//*[@id="app"]/div//img`)}
+		
 	return &appDetailsPage
 }

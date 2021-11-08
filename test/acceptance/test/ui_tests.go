@@ -60,15 +60,11 @@ var _ = Describe("Weave GitOps UI Test", func() {
 			}
 
 			if os == "darwin" {
-				cmd := []string{"selenium-server", "standalone"}
-				driver := agouti.NewWebDriver(SELENIUM_SERVICE_URL, cmd)
-				Expect(driver.Start()).To(Succeed())
-				webDriver, err = driver.NewPage(agouti.Debug, agouti.Desired(agouti.Capabilities{
-					"chromeOptions": map[string][]string{
-						"args": {
-							"--disable-gpu",
-							"--no-sandbox",
-						}}}))
+
+				chromeDriver := agouti.ChromeDriver(agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox"}))
+				err = chromeDriver.Start()
+				Expect(err).NotTo(HaveOccurred())
+				webDriver, err = chromeDriver.NewPage()
 				Expect(err).NotTo(HaveOccurred(), "Error creating new page")
 			}
 		})
@@ -79,6 +75,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 
 		By("Then I should see Application page", func() {
 			dashboardPage := pages.GetDashboardPageElements(webDriver)
+			pageHeader, _ := dashboardPage.ApplicationsHeader.Text()
 
 			title, _ := webDriver.Title()
 			Expect(title).To(ContainSubstring(WEGO_DASHBOARD_TITLE))
@@ -89,7 +86,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 			Expect(err).ShouldNot(HaveOccurred(), "Logo image is broken")
 			Expect(response.StatusCode).Should(Equal(200))
 
-			Expect(dashboardPage.ApplicationsHeader.Text()).Should(ContainSubstring(applicationPageHeader))
+			Eventually(pageHeader, THIRTY_SECOND_TIMEOUT).Should(ContainSubstring(applicationPageHeader))
 		})
 	})
 
@@ -202,7 +199,6 @@ var _ = Describe("Weave GitOps UI Test", func() {
 
 		By("And I should see app names listed on the UI", func() {
 			_ = webDriver.Refresh()
-
 		})
 
 		By("When I click on appName1: " + appName2)
