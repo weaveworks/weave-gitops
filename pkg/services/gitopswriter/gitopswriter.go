@@ -22,14 +22,14 @@ const (
 	RemoveCommitMessage = "Remove application manifests"
 )
 
-var _ GitOpsDirectoryWriter = &GitOpsDirectoryWriterSvc{}
+var _ GitOpsDirectoryWriter = &gitOpsDirectoryWriterSvc{}
 
 type GitOpsDirectoryWriter interface {
 	AddApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error
 	RemoveApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error
 }
 
-type GitOpsDirectoryWriterSvc struct {
+type gitOpsDirectoryWriterSvc struct {
 	Automation automation.AutomationGenerator
 	RepoWriter gitrepo.RepoWriter
 	Osys       osys.Osys
@@ -37,10 +37,10 @@ type GitOpsDirectoryWriterSvc struct {
 }
 
 func NewGitOpsDirectoryWriter(automationSvc automation.AutomationGenerator, repoWriter gitrepo.RepoWriter, osys osys.Osys, logger logger.Logger) GitOpsDirectoryWriter {
-	return &GitOpsDirectoryWriterSvc{Automation: automationSvc, RepoWriter: repoWriter, Osys: osys, Logger: logger}
+	return &gitOpsDirectoryWriterSvc{Automation: automationSvc, RepoWriter: repoWriter, Osys: osys, Logger: logger}
 }
 
-func (dw *GitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error {
+func (dw *gitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error {
 	manifests, err := dw.Automation.GenerateAutomation(ctx, app, clusterName)
 	if err != nil {
 		return fmt.Errorf("could not generate application GitOps Automation manifests: %w", err)
@@ -98,7 +98,7 @@ func (dw *GitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app mode
 	return nil
 }
 
-func (dw *GitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error {
+func (dw *gitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error {
 	branch, err := dw.RepoWriter.GetDefaultBranch(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to obtain config branch: %w", err)
