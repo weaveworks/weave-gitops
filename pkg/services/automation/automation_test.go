@@ -21,6 +21,30 @@ var (
 	emptyRepoURL = gitproviders.RepoURL{}
 )
 
+func extractApp(app models.Application, automation []AutomationManifest) (AutomationManifest, []AutomationManifest) {
+	return extractManifest(AppYamlPath(app), automation)
+}
+
+func extractAppKustomize(app models.Application, automation []AutomationManifest) (AutomationManifest, []AutomationManifest) {
+	return extractManifest(AppAutomationKustomizePath(app), automation)
+}
+
+func extractManifest(path string, automation []AutomationManifest) (AutomationManifest, []AutomationManifest) {
+	var m AutomationManifest
+
+	others := []AutomationManifest{}
+
+	for _, am := range automation {
+		if am.Path == path {
+			m = am
+		} else {
+			others = append(others, am)
+		}
+	}
+
+	return m, others
+}
+
 func createRepoURL(url string) gitproviders.RepoURL {
 	repoURL, err := gitproviders.NewRepoURL(url)
 	Expect(err).NotTo(HaveOccurred())
@@ -58,7 +82,7 @@ var _ = Describe("Generate manifests", func() {
 		Describe("generates source manifest", func() {
 			It("creates GitRepository when source type is git", func() {
 				app.SourceType = models.SourceTypeGit
-				_, err := automationGen.GenerateAutomation(ctx, app, "test-cluster")
+				results, err := automationGen.GenerateAutomation(ctx, app, "test-cluster")
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(fluxClient.CreateSourceGitCallCount()).To(Equal(1))
@@ -69,6 +93,25 @@ var _ = Describe("Generate manifests", func() {
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
 				Expect(namespace).To(Equal(wego.DefaultNamespace))
+
+				appManifest, nonApps := extractApp(app, results)
+				Expect(len(nonApps)).To(Equal(len(results) - 1))
+
+				wegoApp := AppToWegoApp(app)
+				wegoApp.ObjectMeta.Labels = map[string]string{
+					WeGOAppIdentifierLabelKey: GetAppHash(app),
+				}
+
+				bytes, err := yaml.Marshal(&wegoApp)
+				Expect(err).To(BeNil())
+				Expect(string(sanitizeK8sYaml(bytes))).To(Equal(string(appManifest.Content)))
+
+				appKustomizeManifest, otherManifests := extractAppKustomize(app, results)
+				Expect(len(nonApps)).To(Equal(len(results) - 1))
+
+				km, err := createAppKustomize(app, otherManifests)
+				Expect(err).To(BeNil())
+				Expect(km.Content).To(Equal(appKustomizeManifest.Content))
 			})
 
 			It("creates HelmRepository when source type is helm", func() {
@@ -78,7 +121,7 @@ var _ = Describe("Generate manifests", func() {
 				app.SourceType = models.SourceTypeHelm
 				app.ConfigURL = createRepoURL("ssh://git@github.com/owner/config-repo.git")
 
-				_, err := automationGen.GenerateAutomation(ctx, app, "test-cluster")
+				results, err := automationGen.GenerateAutomation(ctx, app, "test-cluster")
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(fluxClient.CreateSourceHelmCallCount()).To(Equal(1))
@@ -87,6 +130,25 @@ var _ = Describe("Generate manifests", func() {
 				Expect(name).To(Equal("loki"))
 				Expect(url).To(Equal("https://charts.kube-ops.io"))
 				Expect(namespace).To(Equal(wego.DefaultNamespace))
+
+				appManifest, nonApps := extractApp(app, results)
+				Expect(len(nonApps)).To(Equal(len(results) - 1))
+
+				wegoApp := AppToWegoApp(app)
+				wegoApp.ObjectMeta.Labels = map[string]string{
+					WeGOAppIdentifierLabelKey: GetAppHash(app),
+				}
+
+				bytes, err := yaml.Marshal(&wegoApp)
+				Expect(err).To(BeNil())
+				Expect(string(sanitizeK8sYaml(bytes))).To(Equal(string(appManifest.Content)))
+
+				appKustomizeManifest, otherManifests := extractAppKustomize(app, results)
+				Expect(len(nonApps)).To(Equal(len(results) - 1))
+
+				km, err := createAppKustomize(app, otherManifests)
+				Expect(err).To(BeNil())
+				Expect(km.Content).To(Equal(appKustomizeManifest.Content))
 			})
 		})
 
@@ -153,7 +215,7 @@ var _ = Describe("Generate manifests", func() {
 
 			Describe("generates source manifest", func() {
 				It("creates GitRepository when source type is git", func() {
-					_, err := automationGen.GenerateAutomation(ctx, app, "test-cluster")
+					results, err := automationGen.GenerateAutomation(ctx, app, "test-cluster")
 					Expect(err).ShouldNot(HaveOccurred())
 
 					Expect(fluxClient.CreateSourceGitCallCount()).To(Equal(1))
@@ -164,6 +226,25 @@ var _ = Describe("Generate manifests", func() {
 					Expect(branch).To(Equal("main"))
 					Expect(secretRef).To(Equal("wego-test-cluster-repo"))
 					Expect(namespace).To(Equal(wego.DefaultNamespace))
+
+					appManifest, nonApps := extractApp(app, results)
+					Expect(len(nonApps)).To(Equal(len(results) - 1))
+
+					wegoApp := AppToWegoApp(app)
+					wegoApp.ObjectMeta.Labels = map[string]string{
+						WeGOAppIdentifierLabelKey: GetAppHash(app),
+					}
+
+					bytes, err := yaml.Marshal(&wegoApp)
+					Expect(err).To(BeNil())
+					Expect(string(sanitizeK8sYaml(bytes))).To(Equal(string(appManifest.Content)))
+
+					appKustomizeManifest, otherManifests := extractAppKustomize(app, results)
+					Expect(len(nonApps)).To(Equal(len(results) - 1))
+
+					km, err := createAppKustomize(app, otherManifests)
+					Expect(err).To(BeNil())
+					Expect(km.Content).To(Equal(appKustomizeManifest.Content))
 				})
 
 				It("creates HelmRepository when source type is helm", func() {
@@ -172,7 +253,7 @@ var _ = Describe("Generate manifests", func() {
 					app.Name = "loki"
 					app.SourceType = models.SourceTypeHelm
 
-					_, err := automationGen.GenerateAutomation(ctx, app, "test-cluster")
+					results, err := automationGen.GenerateAutomation(ctx, app, "test-cluster")
 					Expect(err).ShouldNot(HaveOccurred())
 
 					Expect(fluxClient.CreateSourceHelmCallCount()).To(Equal(1))
@@ -181,6 +262,25 @@ var _ = Describe("Generate manifests", func() {
 					Expect(name).To(Equal("loki"))
 					Expect(url).To(Equal("https://charts.kube-ops.io"))
 					Expect(namespace).To(Equal(wego.DefaultNamespace))
+
+					appManifest, nonApps := extractApp(app, results)
+					Expect(len(nonApps)).To(Equal(len(results) - 1))
+
+					wegoApp := AppToWegoApp(app)
+					wegoApp.ObjectMeta.Labels = map[string]string{
+						WeGOAppIdentifierLabelKey: GetAppHash(app),
+					}
+
+					bytes, err := yaml.Marshal(&wegoApp)
+					Expect(err).To(BeNil())
+					Expect(string(sanitizeK8sYaml(bytes))).To(Equal(string(appManifest.Content)))
+
+					appKustomizeManifest, otherManifests := extractAppKustomize(app, results)
+					Expect(len(nonApps)).To(Equal(len(results) - 1))
+
+					km, err := createAppKustomize(app, otherManifests)
+					Expect(err).To(BeNil())
+					Expect(km.Content).To(Equal(appKustomizeManifest.Content))
 				})
 			})
 

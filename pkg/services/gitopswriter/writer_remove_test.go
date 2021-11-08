@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,9 +14,9 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/models"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
+	"github.com/weaveworks/weave-gitops/pkg/testutils"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -80,48 +79,6 @@ func removeGOATPath(path string) error {
 	return nil
 }
 
-// Set up a flux binary in a temp dir that will be used to generate flux manifests
-func setupFlux() error {
-	dir, err := ioutil.TempDir("", "a-home-dir")
-	if err != nil {
-		return err
-	}
-
-	fluxDir = dir
-	cliRunner := &runner.CLIRunner{}
-	realFlux = flux.New(osysClient, cliRunner)
-	osysClient.UserHomeDirStub = func() (string, error) {
-		return dir, nil
-	}
-
-	fluxBin, err := ioutil.ReadFile(filepath.Join("..", "..", "flux", "bin", "flux"))
-	if err != nil {
-		return err
-	}
-
-	binPath, err := realFlux.GetBinPath()
-	if err != nil {
-		return err
-	}
-
-	err = os.MkdirAll(binPath, 0777)
-	if err != nil {
-		return err
-	}
-
-	exePath, err := realFlux.GetExePath()
-	if err != nil {
-		return err
-	}
-
-	err = ioutil.WriteFile(exePath, fluxBin, 0777)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func createRemoveDirWriter() GitOpsDirectoryWriter {
 	repoWriter := gitrepo.NewRepoWriter(app.ConfigURL, gitProviders, gitClient, log)
 	automationSvc := automation.NewAutomationGenerator(gitProviders, realFlux, log)
@@ -167,14 +124,17 @@ var _ = Describe("Remove", func() {
 
 		gitProviders.GetDefaultBranchReturns("main", nil)
 
-		Expect(setupFlux()).To(Succeed())
+		var err error
+
+		realFlux, fluxDir, err = testutils.SetupFlux()
+		Expect(err).To(BeNil())
 
 		gitOpsDirWriter = createRemoveDirWriter()
 
 	})
 
 	AfterEach(func() {
-		os.RemoveAll(fluxDir)
+		Expect(os.RemoveAll(fluxDir)).To(Succeed())
 	})
 
 	Context("Removing resources from cluster", func() {
