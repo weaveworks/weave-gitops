@@ -60,37 +60,39 @@ func (dw *GitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app mode
 
 	manifests = append(manifests, kManifest)
 
-	if !autoMerge {
-		files := []gitprovider.CommitFile{}
-
-		for _, manifest := range manifests {
-			manifestPath := manifest.Path
-			content := string(manifest.Content)
-
-			files = append(files, gitprovider.CommitFile{Path: &manifestPath, Content: &content})
-		}
-
-		defaultBranch, err := dw.RepoWriter.GetDefaultBranch(ctx)
-		if err != nil {
-			return fmt.Errorf("failed to retrieve default branch for repository: %w", err)
-		}
-
-		prInfo := gitproviders.PullRequestInfo{
-			Title:         fmt.Sprintf("Gitops add %s", app.Name),
-			Description:   fmt.Sprintf("Added yamls for %s", app.Name),
-			CommitMessage: AddCommitMessage,
-			TargetBranch:  defaultBranch,
-			NewBranch:     automation.GetAppHash(app),
-			Files:         files,
-		}
-
-		if err := dw.RepoWriter.CreatePullRequest(ctx, prInfo); err != nil {
-			return fmt.Errorf("failed creating pull request: %w", err)
-		}
-	} else {
+	if autoMerge {
 		if err := dw.RepoWriter.WriteAndMerge(ctx, repoDir, AddCommitMessage, manifests); err != nil {
 			return fmt.Errorf("failed writing automation to disk: %w", err)
 		}
+
+		return nil
+	}
+
+	files := []gitprovider.CommitFile{}
+
+	for _, manifest := range manifests {
+		manifestPath := manifest.Path
+		content := string(manifest.Content)
+
+		files = append(files, gitprovider.CommitFile{Path: &manifestPath, Content: &content})
+	}
+
+	defaultBranch, err := dw.RepoWriter.GetDefaultBranch(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve default branch for repository: %w", err)
+	}
+
+	prInfo := gitproviders.PullRequestInfo{
+		Title:         fmt.Sprintf("Gitops add %s", app.Name),
+		Description:   fmt.Sprintf("Added yamls for %s", app.Name),
+		CommitMessage: AddCommitMessage,
+		TargetBranch:  defaultBranch,
+		NewBranch:     automation.GetAppHash(app),
+		Files:         files,
+	}
+
+	if err := dw.RepoWriter.CreatePullRequest(ctx, prInfo); err != nil {
+		return fmt.Errorf("failed creating pull request: %w", err)
 	}
 
 	return nil

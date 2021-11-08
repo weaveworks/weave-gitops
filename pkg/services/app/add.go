@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -236,13 +235,9 @@ func makeApplication(params AddParams) (models.Application, error) {
 		}
 	}
 
-	var configURL gitproviders.RepoURL
+	configURL := gitSourceURL
 
-	switch strings.ToUpper(params.AppConfigUrl) {
-	case string(models.ConfigTypeNone):
-	case string(models.ConfigTypeUserRepo):
-		configURL = gitSourceURL
-	default:
+	if models.ConfigType(params.AppConfigUrl) != models.ConfigTypeUserRepo {
 		curl, err := gitproviders.NewRepoURL(params.AppConfigUrl)
 		if err != nil {
 			return models.Application{}, err

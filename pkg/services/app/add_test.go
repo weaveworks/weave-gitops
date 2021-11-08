@@ -36,7 +36,7 @@ var _ = Describe("Add", func() {
 			DeploymentType: "kustomize",
 			SourceType:     wego.SourceTypeGit,
 			Namespace:      wego.DefaultNamespace,
-			AppConfigUrl:   "NONE",
+			AppConfigUrl:   "",
 			AutoMerge:      true,
 		}
 
@@ -141,7 +141,7 @@ var _ = Describe("Add", func() {
 				addParams.Url = "https://charts.kube-ops.io"
 				addParams.Chart = "loki"
 				addParams.HelmReleaseTargetNamespace = "sock-shop"
-				addParams.AppConfigUrl = "NONE"
+				addParams.AppConfigUrl = "ssh://git@github.com/owner/config-repo.git"
 
 				goodNamespaceErr := appSrv.Add(gitClient, gitProviders, addParams)
 				Expect(goodNamespaceErr).ShouldNot(HaveOccurred())
@@ -229,7 +229,7 @@ var _ = Describe("Add Gitlab", func() {
 			Dir:            ".",
 			DeploymentType: "kustomize",
 			Namespace:      wego.DefaultNamespace,
-			AppConfigUrl:   "NONE",
+			AppConfigUrl:   "",
 			AutoMerge:      true,
 		}
 
