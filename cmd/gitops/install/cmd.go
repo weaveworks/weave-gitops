@@ -87,6 +87,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		Namespace: namespace,
 		DryRun:    installParams.DryRun,
 	})
+
 	if err != nil {
 		return fmt.Errorf("error creating git clients: %w", err)
 	}
