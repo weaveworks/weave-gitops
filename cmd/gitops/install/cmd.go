@@ -14,6 +14,8 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
@@ -66,6 +68,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
+	factory := services.NewFactory(flux, log)
 	providerClient := internal.NewGitProviderClient(osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
 
 	gitopsService := gitops.New(log, flux, k)
@@ -81,15 +84,20 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	factory := services.NewFactory(flux, log)
-	gitClient, gitProvider, err := factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
-		URL:       installParams.AppConfigURL,
-		Namespace: namespace,
-		DryRun:    installParams.DryRun,
-	})
+	var gitClient git.Git
 
-	if err != nil {
-		return fmt.Errorf("error creating git clients: %w", err)
+	var gitProvider gitproviders.GitProvider
+
+	if !installParams.DryRun {
+		gitClient, gitProvider, err = factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
+			URL:       installParams.AppConfigURL,
+			Namespace: namespace,
+			DryRun:    installParams.DryRun,
+		})
+
+		if err != nil {
+			return fmt.Errorf("error creating git clients: %w", err)
+		}
 	}
 
 	_, err = gitopsService.StoreManifests(gitClient, gitProvider, gitopsParams, manifests)
