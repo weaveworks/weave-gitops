@@ -23,7 +23,7 @@ var _ = Describe("Get Commits", func() {
 		commits := []gitprovider.Commit{&fakeCommit{}}
 		gitProviders.GetCommitsReturns(commits, nil)
 
-		commit, err := appSrv.GetCommits(commitParams, application)
+		commit, err := appSrv.GetCommits(gitProviders, commitParams, application)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(len(commit)).To(Equal(1))
 	})
@@ -41,7 +41,7 @@ var _ = Describe("Get Commits", func() {
 		commits := []gitprovider.Commit{&fakeCommit{}}
 		gitProviders.GetCommitsReturns(commits, nil)
 
-		commit, err := appSrv.GetCommits(commitParams, application)
+		commit, err := appSrv.GetCommits(gitProviders, commitParams, application)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(len(commit)).To(Equal(1))
 	})
@@ -56,7 +56,7 @@ var _ = Describe("Get Commits", func() {
 			Spec: wego.ApplicationSpec{SourceType: wego.SourceTypeHelm},
 		}
 
-		_, err := appSrv.GetCommits(commitParams, application)
+		_, err := appSrv.GetCommits(gitProviders, commitParams, application)
 		Expect(err).Should(HaveOccurred())
 	})
 })

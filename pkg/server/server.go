@@ -4,13 +4,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"log"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
+
 	"github.com/benbjohnson/clock"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/server/internal"
+	"github.com/weaveworks/weave-gitops/pkg/services"
+
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -18,7 +25,7 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops/pkg/apputils"
+
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
@@ -60,7 +67,7 @@ var (
 type applicationServer struct {
 	pb.UnimplementedApplicationsServer
 
-	appFactory   apputils.ServerAppFactory
+	factory      services.Factory
 	jwtClient    auth.JWTClient
 	log          logr.Logger
 	kube         client.Client
@@ -72,7 +79,7 @@ type applicationServer struct {
 // Use the DefaultConfig() to use the default dependencies.
 type ApplicationsConfig struct {
 	Logger           logr.Logger
-	AppFactory       apputils.ServerAppFactory
+	Factory          services.Factory
 	JwtClient        auth.JWTClient
 	KubeClient       client.Client
 	GithubAuthClient auth.GithubAuthClient
@@ -84,7 +91,7 @@ func NewApplicationsServer(cfg *ApplicationsConfig) pb.ApplicationsServer {
 	return &applicationServer{
 		jwtClient:    cfg.JwtClient,
 		log:          cfg.Logger,
-		appFactory:   cfg.AppFactory,
+		factory:      cfg.Factory,
 		kube:         cfg.KubeClient,
 		ghAuthClient: cfg.GithubAuthClient,
 		fetcher:      cfg.Fetcher,
@@ -114,19 +121,11 @@ func DefaultConfig() (*ApplicationsConfig, error) {
 		return nil, fmt.Errorf("could not create kube http client: %w", err)
 	}
 
-	l, err := zap.NewProduction()
-	if err != nil {
-		return nil, fmt.Errorf("error creating logger: %w", err)
-	}
-
-	f, err := apputils.NewServerAppFactory(rest, logger.NewApiLogger(l), clusterName)
-	if err != nil {
-		return nil, fmt.Errorf("could not create factory: %w", err)
-	}
+	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 
 	return &ApplicationsConfig{
 		Logger:           logr,
-		AppFactory:       f,
+		Factory:          services.NewServerFactory(fluxClient, logger.NewApiLogger(zapLog), nil, ""),
 		JwtClient:        jwtClient,
 		KubeClient:       rawClient,
 		GithubAuthClient: auth.NewGithubAuthProvider(http.DefaultClient),
@@ -173,7 +172,7 @@ func (s *applicationServer) ListApplications(ctx context.Context, msg *pb.ListAp
 }
 
 func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetApplicationRequest) (*pb.GetApplicationResponse, error) {
-	kubeClient, kubeErr := s.appFactory.GetKubeService()
+	kubeClient, kubeErr := s.factory.GetKubeService()
 	if kubeErr != nil {
 		return nil, fmt.Errorf("failed to create kube service: %w", kubeErr)
 	}
@@ -267,12 +266,7 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 		}
 	}
 
-	appSrv, err := s.appFactory.GetAppService(ctx, apputils.AppServiceParams{
-		URL:       appUrl.String(),
-		ConfigURL: configUrl.String(),
-		Namespace: msg.Namespace,
-		Token:     token.AccessToken,
-	})
+	appSrv, err := s.factory.GetAppService(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not create app service: %w", err)
 	}
@@ -288,7 +282,18 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 		AppConfigUrl:     configUrl.String(),
 	}
 
-	if err := appSrv.Add(params); err != nil {
+	client := internal.NewGitProviderClient(token.AccessToken)
+
+	gitClient, gitProvider, err := s.factory.GetGitClients(ctx, client, services.GitConfigParams{
+		URL:       msg.Url,
+		ConfigURL: msg.ConfigUrl,
+		Namespace: msg.Namespace,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get git clients: %w", err)
+	}
+
+	if err := appSrv.Add(gitClient, gitProvider, params); err != nil {
 		return nil, fmt.Errorf("error adding app: %w", err)
 	}
 
@@ -307,7 +312,7 @@ func (s *applicationServer) RemoveApplication(ctx context.Context, msg *pb.Remov
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "token error: %s", err.Error())
 	}
 
-	kubeClient, err := s.appFactory.GetKubeService()
+	kubeClient, err := s.factory.GetKubeService()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kube service: %w", err)
 	}
@@ -317,17 +322,20 @@ func (s *applicationServer) RemoveApplication(ctx context.Context, msg *pb.Remov
 		return nil, fmt.Errorf("could not get application %q: %w", msg.Name, err)
 	}
 
-	appSvcParams := apputils.AppServiceParams{
-		URL:              application.Spec.URL,
-		ConfigURL:        application.Spec.ConfigURL,
-		Namespace:        msg.Namespace,
-		IsHelmRepository: application.IsHelmRepository(),
-		Token:            token.AccessToken,
-	}
-
-	appSrv, err := s.appFactory.GetAppService(ctx, appSvcParams)
+	appSrv, err := s.factory.GetAppService(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not create app service: %w", err)
+	}
+
+	client := internal.NewGitProviderClient(token.AccessToken)
+
+	gitClient, gitProvider, err := s.factory.GetGitClients(ctx, client, services.GitConfigParams{
+		URL:       application.Spec.URL,
+		ConfigURL: application.Spec.ConfigURL,
+		Namespace: msg.Namespace,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get git clients: %w", err)
 	}
 
 	removeParams := app.RemoveParams{
@@ -337,7 +345,7 @@ func (s *applicationServer) RemoveApplication(ctx context.Context, msg *pb.Remov
 		GitProviderToken: token.AccessToken,
 	}
 
-	if err := appSrv.Remove(removeParams); err != nil {
+	if err := appSrv.Remove(gitClient, gitProvider, removeParams); err != nil {
 		return nil, fmt.Errorf("error removing app: %w", err)
 	}
 
@@ -345,7 +353,7 @@ func (s *applicationServer) RemoveApplication(ctx context.Context, msg *pb.Remov
 }
 
 func (s *applicationServer) SyncApplication(ctx context.Context, msg *pb.SyncApplicationRequest) (*pb.SyncApplicationResponse, error) {
-	kube, err := s.appFactory.GetKubeService()
+	kube, err := s.factory.GetKubeService()
 	if err != nil {
 		return &pb.SyncApplicationResponse{
 			Success: false,
@@ -392,17 +400,23 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 		return nil, fmt.Errorf("could not get app %q in namespace %q: %w", msg.Name, msg.Namespace, err)
 	}
 
-	appService, appErr := s.appFactory.GetAppService(ctx, apputils.AppServiceParams{
+	appService, err := s.factory.GetAppService(ctx)
+	if err != nil {
+		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to create app service: %s", err.Error())
+	}
+
+	client := internal.NewGitProviderClient(providerToken.AccessToken)
+
+	_, gitProvider, err := s.factory.GetGitClients(ctx, client, services.GitConfigParams{
 		URL:       application.Spec.URL,
 		ConfigURL: application.Spec.ConfigURL,
 		Namespace: msg.Namespace,
-		Token:     providerToken.AccessToken,
 	})
-	if appErr != nil {
-		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to create app service: %s", appErr.Error())
+	if err != nil {
+		return nil, fmt.Errorf("failed to get git clients: %w", err)
 	}
 
-	commits, err := appService.GetCommits(params, application)
+	commits, err := appService.GetCommits(gitProvider, params, application)
 	if err != nil {
 		return nil, err
 	}

@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/git"
 	"io/fs"
 	"io/ioutil"
 	"os"
@@ -25,7 +26,7 @@ type RemoveParams struct {
 }
 
 // Remove removes the Weave GitOps automation for an application
-func (a *App) Remove(params RemoveParams) error {
+func (a *App) Remove(configGit git.Git, gitProvider gitproviders.GitProvider, params RemoveParams) error {
 	ctx := context.Background()
 
 	clusterName, err := a.Kube.GetClusterName(ctx)
@@ -77,13 +78,12 @@ func (a *App) Remove(params RemoveParams) error {
 		return nil
 	}
 
-	cloneURL, branch, err := a.getConfigUrlAndBranch(ctx, info)
+	cloneURL, branch, err := a.getConfigUrlAndBranch(ctx, gitProvider, info)
 	if err != nil {
 		return fmt.Errorf("failed to obtain config URL and branch: %w", err)
 	}
 
-	remover, _, err := a.cloneRepo(a.ConfigGit, cloneURL.String(), branch, params.DryRun)
-
+	remover, _, err := a.cloneRepo(configGit, cloneURL.String(), branch, params.DryRun)
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)
 	}
@@ -95,7 +95,7 @@ func (a *App) Remove(params RemoveParams) error {
 	if !params.DryRun {
 		for _, resourceRef := range resources {
 			if resourceRef.repositoryPath != "" { // Some of the automation doesn't get stored
-				if err := a.ConfigGit.Remove(resourceRef.repositoryPath); err != nil {
+				if err := configGit.Remove(resourceRef.repositoryPath); err != nil {
 					return err
 				}
 			} else if resourceRef.kind == ResourceKindKustomization ||
@@ -110,13 +110,13 @@ func (a *App) Remove(params RemoveParams) error {
 			}
 		}
 
-		return a.commitAndPush(a.ConfigGit, RemoveCommitMessage, params.DryRun)
+		return a.commitAndPush(configGit, RemoveCommitMessage, params.DryRun)
 	}
 
 	return nil
 }
 
-func (a *App) getConfigUrlAndBranch(ctx context.Context, info *AppResourceInfo) (gitproviders.RepoURL, string, error) {
+func (a *App) getConfigUrlAndBranch(ctx context.Context, gitProvider gitproviders.GitProvider, info *AppResourceInfo) (gitproviders.RepoURL, string, error) {
 	configUrl := info.Spec.ConfigURL
 	if configUrl == string(ConfigTypeUserRepo) {
 		configUrl = info.Spec.URL
@@ -130,7 +130,7 @@ func (a *App) getConfigUrlAndBranch(ctx context.Context, info *AppResourceInfo) 
 	branch := info.Spec.Branch
 
 	if branch != "" {
-		branch, err = a.GitProvider.GetDefaultBranch(ctx, repoUrl)
+		branch, err = gitProvider.GetDefaultBranch(ctx, repoUrl)
 		if err != nil {
 			return gitproviders.RepoURL{}, "", err
 		}

@@ -30,7 +30,7 @@ var (
 	fluxDir          string
 	createdResources map[ResourceKind]map[string]bool
 	goatPaths        map[string]bool
-	manifestsByPath  map[string][]byte = map[string][]byte{}
+	manifestsByPath  = map[string][]byte{}
 )
 
 func populateAppRepo() (string, error) {
@@ -191,7 +191,7 @@ func setupFlux() error {
 }
 
 func updateAppInfoFromParams() error {
-	params, err := appSrv.(*App).updateParametersIfNecessary(context.Background(), localAddParams)
+	params, err := appSrv.(*App).updateParametersIfNecessary(context.Background(), gitProviders, localAddParams)
 	if err != nil {
 		return err
 	}
@@ -215,7 +215,7 @@ func runAddAndCollectInfo() error {
 		return err
 	}
 
-	if err := appSrv.Add(localAddParams); err != nil {
+	if err := appSrv.Add(gitClient, gitProviders, localAddParams); err != nil {
 		return err
 	}
 
@@ -323,7 +323,7 @@ var _ = Describe("Remove", func() {
 		localAddParams.AppConfigUrl = "https://github.com/foo/quux"
 		Expect(updateAppInfoFromParams()).To(Succeed())
 
-		repoUrl, branch, err := appSrv.(*App).getConfigUrlAndBranch(context.Background(), info)
+		repoUrl, branch, err := appSrv.(*App).getConfigUrlAndBranch(context.Background(), gitProviders, info)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(repoUrl.String()).To(Equal(localAddParams.AppConfigUrl))
 		Expect(branch).To(Equal("config-branch"))
@@ -497,7 +497,7 @@ var _ = Describe("Remove", func() {
 				localAddParams.Chart = "loki"
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
-				Expect(appSrv.Remove(removeParams)).To(Succeed())
+				Expect(appSrv.Remove(gitClient, gitProviders, removeParams)).To(Succeed())
 				Expect(checkRemoveResults()).To(Succeed())
 			})
 
@@ -506,7 +506,7 @@ var _ = Describe("Remove", func() {
 				localAddParams.Path = "./"
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
-				Expect(appSrv.Remove(removeParams)).To(Succeed())
+				Expect(appSrv.Remove(gitClient, gitProviders, removeParams)).To(Succeed())
 				Expect(checkRemoveResults()).To(Succeed())
 			})
 
@@ -515,7 +515,7 @@ var _ = Describe("Remove", func() {
 				localAddParams.Chart = "loki"
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
-				Expect(appSrv.Remove(removeParams)).To(Succeed())
+				Expect(appSrv.Remove(gitClient, gitProviders, removeParams)).To(Succeed())
 				Expect(checkRemoveResults()).To(Succeed())
 			})
 
@@ -525,7 +525,7 @@ var _ = Describe("Remove", func() {
 				localAddParams.Path = "./"
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
-				Expect(appSrv.Remove(removeParams)).To(Succeed())
+				Expect(appSrv.Remove(gitClient, gitProviders, removeParams)).To(Succeed())
 				Expect(checkRemoveResults()).To(Succeed())
 			})
 
@@ -551,13 +551,13 @@ var _ = Describe("Remove", func() {
 
 				It("removes cluster resources for non-helm app with configURL = NONE", func() {
 					Expect(runAddAndCollectInfo()).To(Succeed())
-					Expect(appSrv.Remove(removeParams)).To(Succeed())
+					Expect(appSrv.Remove(gitClient, gitProviders, removeParams)).To(Succeed())
 					Expect(checkRemoveResults()).To(Succeed())
 				})
 
 				It("removes cluster resources for non-helm app configURL = ''", func() {
 					Expect(runAddAndCollectInfo()).To(Succeed())
-					Expect(appSrv.Remove(removeParams)).To(Succeed())
+					Expect(appSrv.Remove(gitClient, gitProviders, removeParams)).To(Succeed())
 					Expect(checkRemoveResults()).To(Succeed())
 				})
 
@@ -565,7 +565,7 @@ var _ = Describe("Remove", func() {
 					localAddParams.AppConfigUrl = ""
 
 					Expect(runAddAndCollectInfo()).To(Succeed())
-					Expect(appSrv.Remove(removeParams)).To(Succeed())
+					Expect(appSrv.Remove(gitClient, gitProviders, removeParams)).To(Succeed())
 					Expect(checkRemoveResults()).To(Succeed())
 
 					commit, _ := gitClient.CommitArgsForCall(1)
@@ -577,7 +577,7 @@ var _ = Describe("Remove", func() {
 					localAddParams.AppConfigUrl = "ssh://git@github.com/user/external.git"
 
 					Expect(runAddAndCollectInfo()).To(Succeed())
-					Expect(appSrv.Remove(removeParams)).To(Succeed())
+					Expect(appSrv.Remove(gitClient, gitProviders, removeParams)).To(Succeed())
 					Expect(checkRemoveResults()).To(Succeed())
 				})
 			})
