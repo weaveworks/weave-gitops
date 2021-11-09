@@ -71,7 +71,7 @@ builds:
 brews:
   - name: gitops
     tap:
-      owner: weave-works
+      owner: weaveworks
       name: homebrew-tap
       token: "{{ .Env.GITHUB_TOKEN }}"
       branch: main
