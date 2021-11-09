@@ -76,16 +76,7 @@ func New(config Config, owner string, getAccountType AccountTypeGetter) (GitProv
 }
 
 func deployKeyExists(ctx context.Context, repo gitprovider.UserRepository) (bool, error) {
-	_, err := repo.DeployKeys().List(ctx)
-	if err != nil {
-		if errors.Is(err, gitprovider.ErrNotFound) {
-			return false, RepositoryNoPermissionsOrDoesNotExistError
-		} else {
-			return false, fmt.Errorf("error getting deploy key : %s", err)
-		}
-	}
-
-	_, err = repo.DeployKeys().Get(ctx, DeployKeyName)
+	_, err := repo.DeployKeys().Get(ctx, DeployKeyName)
 	if err != nil && !strings.Contains(err.Error(), "key is already in use") {
 		if errors.Is(err, gitprovider.ErrNotFound) {
 			return false, nil
@@ -100,7 +91,11 @@ func deployKeyExists(ctx context.Context, repo gitprovider.UserRepository) (bool
 func uploadDeployKey(ctx context.Context, repo gitprovider.UserRepository, deployKeyInfo gitprovider.DeployKeyInfo) error {
 	_, err := repo.DeployKeys().Create(ctx, deployKeyInfo)
 	if err != nil {
-		return fmt.Errorf("error uploading deploy key %s", err)
+		if errors.Is(err, gitprovider.ErrNotFound) {
+			return RepositoryNoPermissionsOrDoesNotExistError
+		} else {
+			return fmt.Errorf("error uploading deploy key %s", err)
+		}
 	}
 
 	if err = utils.WaitUntil(os.Stdout, time.Second, defaultTimeout, func() error {

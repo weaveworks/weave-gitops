@@ -93,20 +93,10 @@ var _ = Describe("Org Provider", func() {
 		})
 
 		It("returns false when key not found", func() {
-			deployKeyClient.ListReturns(nil, gitprovider.ErrNotFound)
-			deployKeyClient.GetReturns(nil, nil)
+			deployKeyClient.GetReturns(nil, gitprovider.ErrNotFound)
 
 			res, err := orgProvider.DeployKeyExists(ctx, repoUrl)
-			Expect(err).Should(Equal(RepositoryNoPermissionsOrDoesNotExistError))
-			Expect(res).To(BeFalse())
-		})
-
-		It("returns error when can't verify on list", func() {
-			deployKeyClient.ListReturns(nil, errors.New("random error"))
-			deployKeyClient.GetReturns(nil, nil)
-
-			res, err := orgProvider.DeployKeyExists(ctx, repoUrl)
-			Expect(err.Error()).Should(ContainSubstring("error getting deploy key"))
+			Expect(err).ShouldNot(HaveOccurred())
 			Expect(res).To(BeFalse())
 		})
 
@@ -133,7 +123,7 @@ var _ = Describe("Org Provider", func() {
 			orgRepo.DeployKeysReturns(deployKeyClient)
 		})
 
-		It("return error when repo doest exist", func() {
+		It("return error when repo doesn't exist", func() {
 			orgRepoClient.GetReturns(nil, gitprovider.ErrNotFound)
 
 			err := orgProvider.UploadDeployKey(ctx, repoUrl, []byte("my-key"))
@@ -145,6 +135,13 @@ var _ = Describe("Org Provider", func() {
 
 			err := orgProvider.UploadDeployKey(ctx, repoUrl, []byte("my-key"))
 			Expect(err.Error()).Should(ContainSubstring("error uploading deploy key"))
+		})
+
+		It("return error when it fails to upload a deploy key", func() {
+			deployKeyClient.CreateReturns(nil, gitprovider.ErrNotFound)
+
+			err := orgProvider.UploadDeployKey(ctx, repoUrl, []byte("my-key"))
+			Expect(err).Should(Equal(RepositoryNoPermissionsOrDoesNotExistError))
 		})
 
 		It("creates the deploy key", func() {
