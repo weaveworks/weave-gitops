@@ -25,6 +25,8 @@ const (
 	defaultTimeout = time.Second * 30
 )
 
+var RepositoryNoPermissionsOrDoesNotExistError = errors.New("no permissions to access this repository or repository doesn't exists")
+
 // GitProvider Handler
 //counterfeiter:generate . GitProvider
 type GitProvider interface {
@@ -77,7 +79,7 @@ func deployKeyExists(ctx context.Context, repo gitprovider.UserRepository) (bool
 	_, err := repo.DeployKeys().Get(ctx, DeployKeyName)
 	if err != nil && !strings.Contains(err.Error(), "key is already in use") {
 		if errors.Is(err, gitprovider.ErrNotFound) {
-			return false, fmt.Errorf("no permission to access this repository or repository doesn't exists")
+			return false, RepositoryNoPermissionsOrDoesNotExistError
 		} else {
 			return false, fmt.Errorf("error getting deploy key %s: %s", DeployKeyName, err)
 		}

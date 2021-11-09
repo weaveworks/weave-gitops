@@ -96,7 +96,7 @@ var _ = Describe("Org Provider", func() {
 			deployKeyClient.GetReturns(nil, gitprovider.ErrNotFound)
 
 			res, err := orgProvider.DeployKeyExists(ctx, repoUrl)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).Should(Equal(RepositoryNoPermissionsOrDoesNotExistError))
 			Expect(res).To(BeFalse())
 		})
 
