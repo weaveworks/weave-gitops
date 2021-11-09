@@ -27,6 +27,10 @@ exports[`CommitsTable snapshots renders 1`] = `
   text-decoration: none;
 }
 
+.c2.title-bar-button {
+  width: 250px;
+}
+
 <div
   class=""
 >

@@ -10,7 +10,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/manifests"
-	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -24,7 +23,7 @@ type InstallParams struct {
 	AppConfigURL string
 }
 
-func (g *Gitops) Install(params InstallParams) ([]byte, error) {
+func (g *Gitops) Install(params InstallParams) (map[string][]byte, error) {
 	ctx := context.Background()
 	status := g.kube.GetClusterStatus(ctx)
 
@@ -45,23 +44,23 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 		// non-dry run install doesn't return them
 		fluxManifests, err = g.flux.Install(params.Namespace, true)
 		if err != nil {
-			return fluxManifests, fmt.Errorf("error on flux install %w", err)
+			return nil, fmt.Errorf("error on flux install %w", err)
 		}
 	}
 
 	if !params.DryRun {
 		_, err = g.flux.Install(params.Namespace, false)
 		if err != nil {
-			return fluxManifests, fmt.Errorf("error on flux install %w", err)
+			return nil, fmt.Errorf("error on flux install %w", err)
 		}
 	}
 
-	systemManifests := make(map[string][]byte, 3)
+	systemManifests := make(map[string][]byte)
 	systemManifests["gitops-runtime.yaml"] = fluxManifests
 	systemManifests["wego-system.yaml"] = manifests.AppCRD
 
 	if params.DryRun {
-		fluxManifests = append(fluxManifests, manifests.AppCRD...)
+		return systemManifests, nil
 	} else {
 
 		for _, manifest := range manifests.Manifests {
@@ -84,34 +83,38 @@ func (g *Gitops) Install(params InstallParams) ([]byte, error) {
 		if err := g.kube.Apply(ctx, wegoAppDeploymentManifest, params.Namespace); err != nil {
 			return nil, fmt.Errorf("could not apply wego-app deployment manifest: %w", err)
 		}
-
-		if params.AppConfigURL != "" {
-			cname, err := g.kube.GetClusterName(ctx)
-			if err != nil {
-				g.logger.Warningf("Cluster name not found, using default : %v", err)
-
-				cname = "default"
-			}
-
-			goatManifests, err := g.storeManifests(params, systemManifests, cname)
-			if err != nil {
-				return nil, fmt.Errorf("failed to store cluster manifests: %w", err)
-			}
-
-			g.logger.Actionf("Applying manifests to the cluster")
-			// only apply the system manifests as the others will get picked up once flux is running
-			if err := g.applyManifestsToK8s(ctx, params.Namespace, goatManifests); err != nil {
-				return nil, fmt.Errorf("failed applying system manifests to cluster %s :%w", cname, err)
-			}
-
-		}
 	}
-	// TODO Existing install doesn't expect the systemManifests to be included in the list of manifests returned.
-	// This will need to be changed.
-	return fluxManifests, nil
+
+	return systemManifests, nil
 }
 
-func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string][]byte, cname string) (map[string][]byte, error) {
+func (g *Gitops) StoreManifests(gitClient git.Git, gitProvider gitproviders.GitProvider, params InstallParams, systemManifests map[string][]byte) (map[string][]byte, error) {
+	ctx := context.Background()
+
+	if !params.DryRun && params.AppConfigURL != "" {
+		cname, err := g.kube.GetClusterName(ctx)
+		if err != nil {
+			g.logger.Warningf("Cluster name not found, using default : %v", err)
+
+			cname = "default"
+		}
+
+		goatManifests, err := g.storeManifests(gitClient, gitProvider, params, systemManifests, cname)
+		if err != nil {
+			return nil, fmt.Errorf("failed to store cluster manifests: %w", err)
+		}
+
+		g.logger.Actionf("Applying manifests to the cluster")
+		// only apply the system manifests as the others will get picked up once flux is running
+		if err := g.applyManifestsToK8s(ctx, params.Namespace, goatManifests); err != nil {
+			return nil, fmt.Errorf("failed applying system manifests to cluster %s :%w", cname, err)
+		}
+	}
+
+	return systemManifests, nil
+}
+
+func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitProvider, params InstallParams, systemManifests map[string][]byte, cname string) (map[string][]byte, error) {
 	ctx := context.Background()
 
 	normalizedURL, err := gitproviders.NewRepoURL(params.AppConfigURL)
@@ -119,24 +122,12 @@ func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string
 		return nil, fmt.Errorf("failed to convert app config repo %q : %w", params.AppConfigURL, err)
 	}
 
-	configBranch, err := g.gitProvider.GetDefaultBranch(ctx, normalizedURL)
+	configBranch, err := gitProvider.GetDefaultBranch(ctx, normalizedURL)
 	if err != nil {
 		return nil, fmt.Errorf("could not determine default branch for config repository: %q %w", params.AppConfigURL, err)
 	}
 
-	if g.gitClient == nil {
-		authsvc, err := apputils.GetAuthService(ctx, normalizedURL, params.DryRun)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create auth service for repo %q : %w", params.AppConfigURL, err)
-		}
-
-		g.gitClient, err = authsvc.CreateGitClient(ctx, normalizedURL, cname, params.Namespace)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create git client for repo %q : %w", params.AppConfigURL, err)
-		}
-	}
-
-	remover, _, err := app.CloneRepo(g.gitClient, params.AppConfigURL, configBranch, params.DryRun)
+	remover, _, err := app.CloneRepo(gitClient, params.AppConfigURL, configBranch, params.DryRun)
 	if err != nil {
 		return nil, fmt.Errorf("failed to clone configuration repo: %w", err)
 	}
@@ -146,7 +137,7 @@ func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string
 	manifests := make(map[string][]byte, 3)
 	clusterPath := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname)
 
-	gitsource, sourceName, err := g.genSource(cname, configBranch, params)
+	gitsource, sourceName, err := g.genSource(cname, configBranch, params.Namespace, normalizedURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create source manifest: %w", err)
 	}
@@ -156,7 +147,7 @@ func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string
 	}
 	manifests["flux-source-resource.yaml"] = gitsource
 
-	system, err := g.genKustomize(fmt.Sprintf("%s-system", cname), sourceName, configBranch,
+	system, err := g.genKustomize(fmt.Sprintf("%s-system", cname), sourceName,
 		prefixForFlux(filepath.Join(".", clusterPath, git.WegoClusterOSWorkloadDir)), params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create system kustomization manifest: %w", err)
@@ -164,7 +155,7 @@ func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string
 
 	manifests["flux-system-kustomization-resource.yaml"] = system
 
-	user, err := g.genKustomize(fmt.Sprintf("%s-user", cname), sourceName, configBranch,
+	user, err := g.genKustomize(fmt.Sprintf("%s-user", cname), sourceName,
 		prefixForFlux(filepath.Join(".", clusterPath, git.WegoClusterUserWorloadDir)), params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user kustomization manifest: %w", err)
@@ -180,36 +171,36 @@ func (g *Gitops) storeManifests(params InstallParams, systemManifests map[string
 	// } else {
 	g.logger.Actionf("Writing manifests to disk")
 
-	if err := g.writeManifestsToGit(filepath.Join(clusterPath, "system"), manifests); err != nil {
+	if err := g.writeManifestsToGit(gitClient, filepath.Join(clusterPath, "system"), manifests); err != nil {
 		return nil, fmt.Errorf("failed to write manifests: %w", err)
 	}
 
-	if err := g.writeManifestsToGit(filepath.Join(clusterPath, "system"), systemManifests); err != nil {
+	if err := g.writeManifestsToGit(gitClient, filepath.Join(clusterPath, "system"), systemManifests); err != nil {
 		return nil, fmt.Errorf("failed to write system manifests: %w", err)
 	}
 	// store a .keep file in the user dir
 	userKeep := map[string][]byte{
 		".keep": strconv.AppendQuote(nil, "# keep"),
 	}
-	if err := g.writeManifestsToGit(filepath.Join(clusterPath, "user"), userKeep); err != nil {
+	if err := g.writeManifestsToGit(gitClient, filepath.Join(clusterPath, "user"), userKeep); err != nil {
 		return nil, fmt.Errorf("failed to write user manifests: %w", err)
 	}
 
-	return manifests, app.CommitAndPush(g.gitClient, "Add GitOps runtime manifests", params.DryRun, g.logger)
+	return manifests, app.CommitAndPush(gitClient, "Add GitOps runtime manifests", params.DryRun, g.logger)
 }
 
-func (g *Gitops) genSource(cname, branch string, params InstallParams) ([]byte, string, error) {
-	secretRef := utils.CreateRepoSecretName(cname, params.AppConfigURL)
+func (g *Gitops) genSource(cname, branch string, namespace string, normalizedUrl gitproviders.RepoURL) ([]byte, string, error) {
+	secretRef := utils.CreateRepoSecretName(cname, normalizedUrl.String())
 
-	sourceManifest, err := g.flux.CreateSourceGit(secretRef, params.AppConfigURL, branch, secretRef, params.Namespace)
+	sourceManifest, err := g.flux.CreateSourceGit(secretRef, normalizedUrl, branch, secretRef, namespace)
 	if err != nil {
-		return nil, secretRef, fmt.Errorf("could not create git source for repo %q : %w", params.AppConfigURL, err)
+		return nil, secretRef, fmt.Errorf("could not create git source for repo %s : %w", normalizedUrl.String(), err)
 	}
 
 	return sourceManifest, secretRef, nil
 }
 
-func (g *Gitops) genKustomize(name, cname, branch, path string, params InstallParams) ([]byte, error) {
+func (g *Gitops) genKustomize(name, cname, path string, params InstallParams) ([]byte, error) {
 	sourceManifest, err := g.flux.CreateKustomization(name, cname, path, params.Namespace)
 	if err != nil {
 		return nil, fmt.Errorf("could not create flux kustomization for path %q : %w", path, err)
@@ -218,9 +209,9 @@ func (g *Gitops) genKustomize(name, cname, branch, path string, params InstallPa
 	return sourceManifest, nil
 }
 
-func (g *Gitops) writeManifestsToGit(path string, manifests map[string][]byte) error {
+func (g *Gitops) writeManifestsToGit(gitClient git.Git, path string, manifests map[string][]byte) error {
 	for k, m := range manifests {
-		if err := g.gitClient.Write(filepath.Join(path, k), m); err != nil {
+		if err := gitClient.Write(filepath.Join(path, k), m); err != nil {
 			g.logger.Warningf("failed to write manifest %s : %v", k, err)
 			return err
 		}

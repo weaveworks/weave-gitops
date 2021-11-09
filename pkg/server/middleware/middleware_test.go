@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops/pkg/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"

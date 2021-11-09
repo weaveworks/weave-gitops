@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/capi"
 )
@@ -37,7 +38,10 @@ gitops add cluster --from-template <template-name> --set key=val
 # without creating a pull request for it
 gitops add cluster --from-template <template-name> --set key=val --dry-run
 		`,
-		RunE: getClusterCmdRunE(endpoint, client),
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		PreRunE:       getClusterCmdPreRunE(endpoint, client),
+		RunE:          getClusterCmdRunE(endpoint, client),
 	}
 
 	cmd.Flags().BoolVar(&flags.DryRun, "dry-run", false, "View the populated template without creating a pull request")
@@ -52,6 +56,16 @@ gitops add cluster --from-template <template-name> --set key=val --dry-run
 	cmd.Flags().StringVar(&flags.Credentials, "set-credentials", "", "The CAPI credentials to use")
 
 	return cmd
+}
+
+func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+	return func(c *cobra.Command, s []string) error {
+		if *endpoint == "" {
+			return cmderrors.ErrNoWGEEndpoint
+		}
+
+		return nil
+	}
 }
 
 func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {

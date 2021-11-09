@@ -13,6 +13,7 @@ import Text from "./Text";
 
 type Props = {
   className?: string;
+  bodyClassName?: string;
   open: boolean;
   onSuccess: (token: string) => void;
   onClose: () => void;
@@ -75,6 +76,7 @@ const ModalContent = styled(({ codeRes, onSuccess, onError, className }) => {
 
 function GithubDeviceAuthModal({
   className,
+  bodyClassName,
   open,
   onClose,
   repoName,
@@ -102,6 +104,7 @@ function GithubDeviceAuthModal({
   return (
     <Modal
       className={className}
+      bodyClassName={bodyClassName}
       title="Authenticate with Github"
       open={open}
       onClose={onClose}
@@ -112,10 +115,9 @@ function GithubDeviceAuthModal({
         GitOps temporary access:
       </p>
       {error && (
-        <Alert severity="error" title="Error" message={error.message} />
+        <Alert severity="error" title="Error" message={error.message} center />
       )}
-
-      <Flex wide center>
+      <Flex wide center height="150px">
         {codeLoading || !codeRes ? (
           <CircularProgress />
         ) : (

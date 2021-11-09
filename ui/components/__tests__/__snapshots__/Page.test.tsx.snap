@@ -47,7 +47,6 @@ exports[`Page snapshots default 1`] = `
 .c1 {
   max-width: 1400px;
   margin: 0 auto;
-  width: 100%;
   background-color: #fff;
   padding-left: 32px;
   padding-right: 32px;
@@ -60,6 +59,11 @@ exports[`Page snapshots default 1`] = `
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
+  width: 100%;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;

@@ -20,6 +20,7 @@ import Link from "./Link";
 type Props = {
   className?: string;
   app: Application;
+  authSuccess: boolean;
   onAuthClick?: () => void;
 };
 
@@ -31,7 +32,7 @@ const timestamp = (isoStr: string) => {
   return DateTime.fromISO(isoStr).toRelative();
 };
 
-function CommitsTable({ className, app, onAuthClick }: Props) {
+function CommitsTable({ className, app, authSuccess, onAuthClick }: Props) {
   const { applicationsClient } = useContext(AppContext);
   const [commits, loading, error, req] = useRequestState<ListCommitsResponse>();
 
@@ -39,7 +40,6 @@ function CommitsTable({ className, app, onAuthClick }: Props) {
     if (!app || !app.name) {
       return;
     }
-
     req(
       applicationsClient.ListCommits({
         name: app.name,
@@ -47,7 +47,7 @@ function CommitsTable({ className, app, onAuthClick }: Props) {
         pageSize: 10,
       })
     );
-  }, [app]);
+  }, [app, authSuccess]);
 
   if (error) {
     return error.code === GrpcErrorCodes.Unauthenticated ? (

@@ -1,3 +1,4 @@
+//go:build !unittest
 // +build !unittest
 
 package server_test
@@ -16,12 +17,12 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
-	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/server"
+	"github.com/weaveworks/weave-gitops/pkg/services"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"go.uber.org/zap"
@@ -67,7 +68,8 @@ var _ = BeforeSuite(func() {
 	Expect(env.Client.Create(ctx, fluxNs)).To(Succeed())
 
 	stop = env.Stop
-	flux.New(osys.New(), &runner.CLIRunner{}).SetupBin()
+	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
+	fluxClient.SetupBin()
 
 	gp, err = github.NewClient(
 		gitprovider.WithDestructiveAPICalls(true),
@@ -75,11 +77,11 @@ var _ = BeforeSuite(func() {
 	)
 	Expect(err).NotTo(HaveOccurred())
 
-	f, err := apputils.NewServerAppFactory(env.Rest, logger.NewApiLogger(zap.NewNop()), clusterName)
+	factory := services.NewServerFactory(fluxClient, logger.NewApiLogger(zap.NewNop()), env.Rest, clusterName)
 	Expect(err).NotTo(HaveOccurred())
 
 	cfg := &server.ApplicationsConfig{
-		AppFactory:       f,
+		Factory:          factory,
 		Logger:           zapr.NewLogger(zap.NewNop()),
 		JwtClient:        auth.NewJwtClient("somekey"),
 		GithubAuthClient: auth.NewGithubAuthProvider(http.DefaultClient),
