@@ -140,10 +140,7 @@ var _ = Describe("Add", func() {
 
 				path, content = gitClient.WriteArgsForCall(2)
 				Expect(path).To(Equal(".weave-gitops/apps/bar/bar-gitops-source.yaml"))
-
-				augmented, err := automation.AddWegoIgnore(dummyGitSource)
-				Expect(err).To(BeNil())
-				Expect(content).To(Equal(augmented))
+				Expect(automation.AddWegoIgnore(dummyGitSource)).To(Equal(content))
 
 				path, content = gitClient.WriteArgsForCall(3)
 				Expect(path).To(Equal(".weave-gitops/apps/bar/kustomization.yaml"))

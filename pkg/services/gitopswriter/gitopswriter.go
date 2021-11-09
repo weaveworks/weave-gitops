@@ -60,6 +60,8 @@ func (dw *gitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app mode
 
 	manifests = append(manifests, kManifest)
 
+	dw.Logger.Actionf("Adding application %q to cluster %q and repository", app.Name, clusterName)
+
 	if autoMerge {
 		if err := dw.RepoWriter.WriteAndMerge(ctx, repoDir, AddCommitMessage, manifests); err != nil {
 			return fmt.Errorf("failed writing automation to disk: %w", err)
@@ -101,7 +103,7 @@ func (dw *gitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app mode
 func (dw *gitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error {
 	branch, err := dw.RepoWriter.GetDefaultBranch(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to obtain config branch: %w", err)
+		return fmt.Errorf("failed to retrieve default branch for repository: %w", err)
 	}
 
 	remover, repoDir, err := dw.RepoWriter.CloneRepo(ctx, branch)
@@ -111,7 +113,7 @@ func (dw *gitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app m
 
 	defer remover()
 
-	dw.Logger.Actionf("Removing application from cluster and repository")
+	dw.Logger.Actionf("Removing application %q from cluster %q and repository", app.Name, clusterName)
 
 	appSubDir := automation.AppYamlDir(app)
 	appDir := filepath.Join(repoDir, appSubDir)

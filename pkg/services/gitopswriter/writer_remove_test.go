@@ -12,13 +12,10 @@ import (
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
-
-	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 var (
@@ -236,20 +233,3 @@ var _ = Describe("Remove", func() {
 		})
 	})
 })
-
-func GVRToResourceKind(gvr schema.GroupVersionResource) automation.ResourceKind {
-	switch gvr {
-	case kube.GVRApp:
-		return automation.ResourceKindApplication
-	case kube.GVRSecret:
-		return automation.ResourceKindSecret
-	case kube.GVRGitRepository:
-		return automation.ResourceKindGitRepository
-	case kube.GVRHelmRepository:
-		return automation.ResourceKindHelmRepository
-	case kube.GVRHelmRelease:
-		return automation.ResourceKindHelmRelease
-	default:
-		return automation.ResourceKindKustomization
-	}
-}
