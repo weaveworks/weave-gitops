@@ -93,10 +93,20 @@ var _ = Describe("Org Provider", func() {
 		})
 
 		It("returns false when key not found", func() {
-			deployKeyClient.GetReturns(nil, gitprovider.ErrNotFound)
+			deployKeyClient.ListReturns(nil, gitprovider.ErrNotFound)
+			deployKeyClient.GetReturns(nil, nil)
 
 			res, err := orgProvider.DeployKeyExists(ctx, repoUrl)
 			Expect(err).Should(Equal(RepositoryNoPermissionsOrDoesNotExistError))
+			Expect(res).To(BeFalse())
+		})
+
+		It("returns error when can't verify on list", func() {
+			deployKeyClient.ListReturns(nil, errors.New("random error"))
+			deployKeyClient.GetReturns(nil, nil)
+
+			res, err := orgProvider.DeployKeyExists(ctx, repoUrl)
+			Expect(err.Error()).Should(ContainSubstring("error getting deploy key"))
 			Expect(res).To(BeFalse())
 		})
 

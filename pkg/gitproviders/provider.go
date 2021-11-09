@@ -76,10 +76,19 @@ func New(config Config, owner string, getAccountType AccountTypeGetter) (GitProv
 }
 
 func deployKeyExists(ctx context.Context, repo gitprovider.UserRepository) (bool, error) {
-	_, err := repo.DeployKeys().Get(ctx, DeployKeyName)
-	if err != nil && !strings.Contains(err.Error(), "key is already in use") {
+	_, err := repo.DeployKeys().List(ctx)
+	if err != nil {
 		if errors.Is(err, gitprovider.ErrNotFound) {
 			return false, RepositoryNoPermissionsOrDoesNotExistError
+		} else {
+			return false, fmt.Errorf("error getting deploy key : %s", err)
+		}
+	}
+
+	_, err = repo.DeployKeys().Get(ctx, DeployKeyName)
+	if err != nil && !strings.Contains(err.Error(), "key is already in use") {
+		if errors.Is(err, gitprovider.ErrNotFound) {
+			return false, nil
 		} else {
 			return false, fmt.Errorf("error getting deploy key %s: %s", DeployKeyName, err)
 		}
