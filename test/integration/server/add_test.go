@@ -88,7 +88,7 @@ var _ = Describe("AddApplication", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			expectedKustomization := kustomizev1.KustomizationSpec{
-				// Flux adds a prepending `./` to path arguments that doen't already have it.
+				// Flux adds a prepending `./` to path arguments that doesn't already have it.
 				// https://github.com/fluxcd/flux2/blob/ca496d393d993ac5119ed84f83e010b8fe918c53/cmd/flux/create_kustomization.go#L115
 				Path: "./" + req.Path,
 				// Flux kustomization default; I couldn't find an export default from the package.
@@ -276,7 +276,7 @@ var _ = Describe("AddApplication", func() {
 			}
 
 			expectedKustomization := kustomizev1.KustomizationSpec{
-				// Flux adds a prepending `./` to path arguments that doen't already have it.
+				// Flux adds a prepending `./` to path arguments that doesn't already have it.
 				// https://github.com/fluxcd/flux2/blob/ca496d393d993ac5119ed84f83e010b8fe918c53/cmd/flux/create_kustomization.go#L115
 				Path: "./" + req.Path,
 				// Flux kustomization default; I couldn't find an export default from the package.
@@ -373,7 +373,7 @@ var _ = Describe("AddApplication", func() {
 			}
 
 			expectedKustomization := kustomizev1.KustomizationSpec{
-				// Flux adds a prepending `./` to path arguments that doen't already have it.
+				// Flux adds a prepending `./` to path arguments that doesn't already have it.
 				// https://github.com/fluxcd/flux2/blob/ca496d393d993ac5119ed84f83e010b8fe918c53/cmd/flux/create_kustomization.go#L115
 				Path: "./" + req.Path,
 				// Flux kustomization default; I couldn't find an export default from the package.

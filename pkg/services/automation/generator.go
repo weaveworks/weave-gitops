@@ -73,6 +73,12 @@ type AutomationManifest struct {
 	Content []byte
 }
 
+type GeneratedSecretName string
+
+func (s GeneratedSecretName) String() string {
+	return string(s)
+}
+
 func NewAutomationGenerator(gp gitproviders.GitProvider, flux flux.Flux, logger logger.Logger) AutomationGenerator {
 	return &AutomationGen{
 		GitProvider: gp,
@@ -92,9 +98,9 @@ func (a *AutomationGen) getAppSecretRef(ctx context.Context, app models.Applicat
 func (a *AutomationGen) getSecretRef(ctx context.Context, app models.Application, url gitproviders.RepoURL, clusterName string) (GeneratedSecretName, error) {
 	var secretRef GeneratedSecretName
 
-	visibility, visibilityErr := a.GitProvider.GetRepoVisibility(ctx, url)
-	if visibilityErr != nil {
-		return "", visibilityErr
+	visibility, err := a.GitProvider.GetRepoVisibility(ctx, url)
+	if err != nil {
+		return "", err
 	}
 
 	if *visibility != gitprovider.RepositoryVisibilityPublic {
@@ -105,19 +111,19 @@ func (a *AutomationGen) getSecretRef(ctx context.Context, app models.Application
 }
 
 func (a *AutomationGen) generateAppAutomation(ctx context.Context, app models.Application, clusterName string) ([]AutomationManifest, error) {
-	a.Logger.Generatef("Generating GitOps automation manifests")
+	a.Logger.Generatef("Generating application spec manifest")
 
 	appManifest, err := generateAppYaml(app)
 	if err != nil {
 		return nil, fmt.Errorf("could not create app.yaml for '%s': %w", app.Name, err)
 	}
 
+	a.Logger.Generatef("Generating GitOps automation manifests")
+
 	appGoatManifest, err := a.generateApplicationGoat(app, clusterName)
 	if err != nil {
 		return nil, fmt.Errorf("could not create GitOps automation for '%s': %w", app.Name, err)
 	}
-
-	a.Logger.Generatef("Generating application spec manifest")
 
 	return []AutomationManifest{appManifest, appGoatManifest}, nil
 }
@@ -380,22 +386,8 @@ func AutomationUserKustomizePath(clusterName string) string {
 	return filepath.Join(automationRoot, "clusters", clusterName, "user", "kustomization.yaml")
 }
 
-func AppSourceName(a models.Application) string {
-	return a.Name
-}
-
 func AppDeployName(a models.Application) string {
 	return a.Name
-}
-
-func AppResourceName(a models.Application) string {
-	return a.Name
-}
-
-type GeneratedSecretName string
-
-func (s GeneratedSecretName) String() string {
-	return string(s)
 }
 
 func CreateRepoSecretName(targetName string, gitSourceURL gitproviders.RepoURL) GeneratedSecretName {
