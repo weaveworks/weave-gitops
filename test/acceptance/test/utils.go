@@ -44,7 +44,7 @@ const WEGO_UI_URL = "http://localhost:9001"
 const SELENIUM_SERVICE_URL = "http://localhost:4444/wd/hub"
 const SCREENSHOTS_DIR string = "screenshots/"
 const DEFAULT_BRANCH_NAME = "main"
-const WEGO_DASHBOARD_TITLE = "Weave GitOps"
+const WEGO_DASHBOARD_TITLE string = "Weave GitOps"
 
 var DEFAULT_SSH_KEY_PATH string
 var GITHUB_ORG string

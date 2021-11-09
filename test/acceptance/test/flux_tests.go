@@ -10,7 +10,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("Weave GitOps Flux Tests", func() {
+var _ = XDescribe("Weave GitOps Flux Tests", func() {
 
 	var sessionOutput *gexec.Session
 
