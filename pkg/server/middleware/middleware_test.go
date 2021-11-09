@@ -51,7 +51,7 @@ var _ = Describe("WithProviderToken", func() {
 		midware := middleware.WithProviderToken(jwtClient, defaultHandler, log)
 
 		req := httptest.NewRequest(http.MethodGet, "http://www.foo.com", nil)
-		req.Header.Add("Authorization", "token my-jwt-token")
+		req.Header.Add(middleware.ProviderTokenHeader, "token my-jwt-token")
 
 		res := httptest.NewRecorder()
 
@@ -67,7 +67,7 @@ var _ = Describe("WithProviderToken", func() {
 
 		midware := middleware.WithProviderToken(jwtClient, defaultHandler, log)
 		req := httptest.NewRequest(http.MethodGet, "http://www.foo.com", nil)
-		req.Header.Add("Authorization", "token my-jwt-token")
+		req.Header.Add(middleware.ProviderTokenHeader, "token my-jwt-token")
 
 		res := httptest.NewRecorder()
 		// Ensure a 401 is not returned, since we pass invalid tokens through.
@@ -88,7 +88,7 @@ var _ = Describe("WithProviderToken", func() {
 
 		midware := middleware.WithProviderToken(jwtClient, next, log)
 		req := httptest.NewRequest(http.MethodGet, "http://www.foo.com", nil)
-		req.Header.Add("Authorization", "token my-jwt-token")
+		req.Header.Add(middleware.ProviderTokenHeader, "token my-jwt-token")
 
 		res := httptest.NewRecorder()
 
@@ -120,7 +120,7 @@ var _ = Describe("ExtractProviderToken", func() {
 
 		midware := middleware.WithProviderToken(jwtClient, next, log)
 		req := httptest.NewRequest(http.MethodGet, "http://www.foo.com", nil)
-		req.Header.Add("Authorization", "token my-jwt-token")
+		req.Header.Add(middleware.ProviderTokenHeader, "token my-jwt-token")
 
 		res := httptest.NewRecorder()
 

@@ -52,7 +52,7 @@ function wrapClient<T>(client: any, tokenGetter: () => string): T {
         ...options,
         headers: new Headers({
           ...(options.headers || {}),
-          Authorization: `token ${tokenGetter()}`,
+          "X-Git-Provider-Token": `token ${tokenGetter()}`,
         }),
       };
 
