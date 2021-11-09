@@ -11,7 +11,6 @@ import (
 
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services"
@@ -102,7 +101,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return urlErr
 	}
 
-	log := logger.NewCLILogger(os.Stdout)
+	log := internal.NewCLILogger(os.Stdout)
 	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 	factory := services.NewFactory(fluxClient, log)
 
