@@ -78,7 +78,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 			pageHeader, _ := dashboardPage.ApplicationsHeader.Text()
 
 			title, _ := webDriver.Title()
-			Expect(title).To(ContainSubstring(WEGO_DASHBOARD_TITLE))
+			Eventually(title, THIRTY_SECOND_TIMEOUT).Should(ContainSubstring(WEGO_DASHBOARD_TITLE))
 
 			src, _ := dashboardPage.LogoImage.Attribute("src")
 
@@ -160,8 +160,6 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		addCommand1 := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true"
 		addCommand2 := "add app . --auto-merge=true"
 
-		// dashboardPage := pages.GetAppListElements(webDriver)
-
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(workloadName2, tip.workloadNamespace)
 		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, EVENTUALLY_DEFAULT_TIMEOUT)
@@ -198,7 +196,9 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		})
 
 		By("And I should see app names listed on the UI", func() {
+
 			_ = webDriver.Refresh()
+
 		})
 
 		By("When I click on appName1: " + appName2)
