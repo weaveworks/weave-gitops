@@ -21,7 +21,7 @@ import (
 
 var clusterName string
 
-var _ = XDescribe("Weave GitOps Add App Tests", func() {
+var _ = Describe("Weave GitOps Add App Tests", func() {
 
 	deleteWegoRuntime := false
 	if os.Getenv("DELETE_WEGO_RUNTIME_ON_EACH_TEST") == "true" {
