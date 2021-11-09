@@ -48,7 +48,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		})
 
 		By("And I open up a browser", func() {
-      
+
 			if os == "linux" {
 				webDriver, err = agouti.NewPage(SELENIUM_SERVICE_URL, agouti.Desired(agouti.Capabilities{
 					"chromeOptions": map[string][]string{
@@ -103,7 +103,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 
 		dashboardPage := pages.GetDashboardPageElements(webDriver)
 		addAppPage := pages.GetAddAppPageElements(webDriver)
-    
+
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
