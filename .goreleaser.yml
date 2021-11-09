@@ -75,6 +75,9 @@ brews:
       name: homebrew-tap
       token: "{{ .Env.GITHUB_TOKEN }}"
       branch: main
+    commit_author:
+      name: weaveworksbot
+      email: team+gitbot@weave.works
     folder: Formula
     homepage: "https://docs.gitops.weave.works/docs/getting-started"
     description: "GitOps support for Kubernetes"
