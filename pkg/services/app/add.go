@@ -126,7 +126,8 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 
 		if params.Name == "" {
 			if automation.ApplicationNameTooLong(params.Chart) {
-				return params, fmt.Errorf("chart name %q is too long to use as application name; please specify name with '--name'", params.Chart)
+				return params, fmt.Errorf("chart name %q is too long to use as application name (must be <= %d characters); please specify name with '--name'",
+					params.Chart, automation.MaxKubernetesResourceNameLength)
 			}
 
 			params.Name = params.Chart
@@ -136,7 +137,7 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 			return params, fmt.Errorf("--url must be specified for helm repositories")
 		}
 
-		if params.AppConfigUrl == string(models.ConfigTypeUserRepo) {
+		if params.AppConfigUrl == "" {
 			return params, errors.New("--app-config-url should be provided")
 		}
 	default:
@@ -166,7 +167,8 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 	if params.Name == "" {
 		repoName := utils.UrlToRepoName(params.Url)
 		if automation.ApplicationNameTooLong(repoName) {
-			return params, fmt.Errorf("url base name %q is too long to use as application name; please specify name with '--name'", repoName)
+			return params, fmt.Errorf("url base name %q is too long to use as application name (must be <= %d characters); please specify name with '--name'",
+				repoName, automation.MaxKubernetesResourceNameLength)
 		}
 
 		params.Name = automation.GenerateResourceName(appRepoUrl)
@@ -194,7 +196,7 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 	}
 
 	if automation.ApplicationNameTooLong(params.Name) {
-		return params, fmt.Errorf("application name too long: %s; must be <= 63 characters", params.Name)
+		return params, fmt.Errorf("application name too long: %s; must be <= %d characters", params.Name, automation.MaxKubernetesResourceNameLength)
 	}
 
 	// Validate namespace argument for helm
@@ -237,7 +239,7 @@ func makeApplication(params AddParams) (models.Application, error) {
 
 	configURL := gitSourceURL
 
-	if models.ConfigType(params.AppConfigUrl) != models.ConfigTypeUserRepo {
+	if params.AppConfigUrl != "" {
 		curl, err := gitproviders.NewRepoURL(params.AppConfigUrl)
 		if err != nil {
 			return models.Application{}, err

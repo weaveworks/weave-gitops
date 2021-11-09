@@ -49,9 +49,7 @@ var _ = BeforeEach(func() {
 		},
 	}
 
-	appSrv = New(context.Background(), &loggerfakes.FakeLogger{}, fluxClient, kubeClient, osysClient)
 	log = &loggerfakes.FakeLogger{}
-
 	appSrv = New(context.Background(), log, fluxClient, kubeClient, osysClient)
 })
 

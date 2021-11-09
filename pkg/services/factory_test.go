@@ -8,7 +8,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
-	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 )
 
@@ -60,7 +59,7 @@ var _ = Describe("Services factory", func() {
 
 		It("config type user repo and empty url return error", func() {
 			gitClient, gitProvider, err := factory.GetGitClients(ctx, fakeClient, GitConfigParams{
-				ConfigURL:        string(models.ConfigTypeUserRepo),
+				ConfigURL:        "",
 				IsHelmRepository: false,
 			})
 

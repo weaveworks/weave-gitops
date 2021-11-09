@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	maxKubernetesResourceNameLength = 63
+	MaxKubernetesResourceNameLength = 63
 
 	WeGOAppIdentifierLabelKey = "wego.weave.works/app-identifier"
 )
@@ -467,7 +467,7 @@ func (rk ResourceKind) ToGVR() (schema.GroupVersionResource, error) {
 }
 
 func ApplicationNameTooLong(name string) bool {
-	return len(name) > maxKubernetesResourceNameLength
+	return len(name) > MaxKubernetesResourceNameLength
 }
 
 func hashNameIfTooLong(name string) string {

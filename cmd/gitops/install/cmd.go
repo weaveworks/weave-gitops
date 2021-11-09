@@ -68,9 +68,6 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
-	factory := services.NewFactory(flux, log)
-	providerClient := internal.NewGitProviderClient(osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
-
 	gitopsService := gitops.New(log, flux, k)
 
 	gitopsParams := gitops.InstallParams{
@@ -89,6 +86,9 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	var gitProvider gitproviders.GitProvider
 
 	if !installParams.DryRun {
+		factory := services.NewFactory(flux, log)
+		providerClient := internal.NewGitProviderClient(osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
+
 		gitClient, gitProvider, err = factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
 			URL:       installParams.AppConfigURL,
 			Namespace: namespace,
