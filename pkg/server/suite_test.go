@@ -54,8 +54,6 @@ var k kube.Kube
 var ghAuthClient *authfakes.FakeGithubAuthClient
 var gitProvider *gitprovidersfakes.FakeGitProvider
 var glAuthClient *authfakes.FakeGitlabAuthClient
-var gp *gitprovidersfakes.FakeGitProvider
-var appGit *gitfakes.FakeGit
 var configGit *gitfakes.FakeGit
 var env *testutils.K8sTestEnv
 var fakeFactory *servicesfakes.FakeFactory
