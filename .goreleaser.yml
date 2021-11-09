@@ -84,7 +84,5 @@ brews:
       (bash_completion/"gitops").write bash_output
       zsh_output = Utils.safe_popen_read(bin/"gitops", "completion", "zsh")
       (zsh_completion/"gitops").write zsh_output
-      fish_output = Utils.safe_popen_read(bin/"gitops", "completion", "fish")
-      (fish_completion/"gitops.fish").write fish_output
     test: |
       system "#{bin}/gitops --version"
