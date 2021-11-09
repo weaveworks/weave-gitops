@@ -44,7 +44,7 @@ function DirectedGraph<T>({
       .setGraph({
         nodesep: 50,
         ranksep: 50,
-        rankdir: "TB",
+        rankdir: "LR",
       })
       .setDefaultEdgeLabel(() => {
         return {};
