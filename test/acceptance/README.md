@@ -17,6 +17,8 @@ export GITHUB_KEY=<ssh-key>
 export GITLAB_KEY=<ssh-key>
 export GITLAB_ORG=<gitlab-org/group>
 export GITLAB_TOKEN=<api-token>
+export GITLAB_SUBGROUP=<subgroup belonging to GITLAB_ORG>
+export GITLAB_PUBLIC_GROUP=<gitlab-public-group>
 ```
 Please make sure that `GITHUB_TOKEN` has repo create and delete permissions on `GITHUB_ORG`
 

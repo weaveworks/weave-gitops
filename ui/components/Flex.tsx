@@ -5,6 +5,7 @@ type Props = {
   className?: string;
   column?: boolean;
   align?: boolean;
+  height?: string;
   between?: boolean;
   center?: boolean;
   wide?: boolean;
@@ -15,6 +16,7 @@ const Styled = (component) => styled(component)`
   display: flex;
   flex-direction: ${(props) => (props.column ? "column" : "row")};
   align-items: ${(props) => (props.align ? "center" : "start")};
+  ${(props) => props.height && `height: ${props.height};`}
   ${({ between }) => between && "justify-content: space-between"};
   ${({ center }) => center && "justify-content: center"};
   ${({ wide }) => wide && "width: 100%"};

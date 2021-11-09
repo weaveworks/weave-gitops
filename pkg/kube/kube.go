@@ -2,6 +2,8 @@ package kube
 
 import (
 	"context"
+	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
@@ -53,4 +55,21 @@ type Kube interface {
 	GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error
 	SetResource(ctx context.Context, resource Resource) error
 	GetSecret(ctx context.Context, name types.NamespacedName) (*corev1.Secret, error)
+}
+
+func IsClusterReady(l logger.Logger, k Kube) error {
+	l.Waitingf("Checking cluster status")
+
+	clusterStatus := k.GetClusterStatus(context.Background())
+
+	switch clusterStatus {
+	case Unmodified:
+		return fmt.Errorf("gitops not installed... exiting")
+	case Unknown:
+		return fmt.Errorf("can not determine cluster status... exiting")
+	}
+
+	l.Successf(clusterStatus.String())
+
+	return nil
 }

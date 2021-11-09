@@ -8,9 +8,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+
+	"github.com/weaveworks/weave-gitops/cmd/internal"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/services"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
@@ -55,14 +63,30 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("you should choose either --url or the app directory")
 	}
 
-	//TODO handl helm charts on add
-	appService, appError := apputils.GetAppServiceForAdd(ctx, params.Url, params.AppConfigUrl, params.Namespace, false, params.DryRun)
-	if appError != nil {
-		return fmt.Errorf("failed to create app service: %w", appError)
+	log := logger.NewCLILogger(os.Stdout)
+	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
+	factory := services.NewFactory(fluxClient, log)
+
+	providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
+
+	appService, err := factory.GetAppService(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create app service: %w", err)
+	}
+
+	gitClient, gitProvider, err := factory.GetGitClients(ctx, providerClient, services.GitConfigParams{
+		URL:              params.Url,
+		ConfigURL:        params.AppConfigUrl,
+		Namespace:        params.Namespace,
+		IsHelmRepository: params.IsHelmRepository(),
+		DryRun:           params.DryRun,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to get git clients: %w", err)
 	}
 
 	params.MigrateToNewDirStructure = utils.MigrateToNewDirStructure
-	if err := appService.Add(params); err != nil {
+	if err := appService.Add(gitClient, gitProvider, params); err != nil {
 		return fmt.Errorf("failed to add the app %q: %w", params.Name, err)
 	}
 

@@ -49,7 +49,7 @@ Available Commands:
 
 Flags:
   -h, --help               Help for gitops
-      --namespace string   Weave GitOps runtime namespace (default "wego-system")
+      --namespace string   The namespace scope for this operation (default "wego-system").
   -v, --verbose            Enable verbose output
 
 Use "gitops [command] --help" for more information about a command.
@@ -115,7 +115,7 @@ To set up a development environment for the UI
 
 Lint frontend code with `make ui-lint` - using Prettier (https://prettier.io/) will get you on the right track!
 
-Run frontend tests with `make ui-test`
+Run frontend tests with `make ui-test` - update CSS snapshots with `npm run test -- -u`
 
 Check dependency vulnerabilities with `make ui-audit`
 

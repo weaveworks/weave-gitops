@@ -51,6 +51,7 @@ var GITLAB_ORG string
 
 // Make sure the subgroup belongs to the GITLAB_ORG
 var GITLAB_SUBGROUP string
+var GITLAB_PUBLIC_GROUP string
 var WEGO_BIN_PATH string
 
 type TestInputs struct {
