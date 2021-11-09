@@ -22,7 +22,7 @@ const Message = ({ onClick, provider }) => (
     {provider === GitProvider.GitHub ? (
       <GithubAuthButton onClick={onClick} />
     ) : (
-      <GitlabAuthButton />
+      <GitlabAuthButton onClick={onClick} />
     )}
   </Flex>
 );

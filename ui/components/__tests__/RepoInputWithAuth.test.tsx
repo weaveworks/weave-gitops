@@ -30,14 +30,7 @@ describe("RepoInputWithAuth", () => {
       await act(async () => {
         render(
           withTheme(
-            withContext(
-              <RepoInputWithAuth
-                onAuthClick={() => null}
-                callbackState={null}
-              />,
-              "/",
-              {}
-            )
+            withContext(<RepoInputWithAuth onAuthClick={() => null} />, "/", {})
           )
         );
       });
@@ -57,7 +50,6 @@ describe("RepoInputWithAuth", () => {
               <RepoInputWithAuth
                 value={url}
                 onAuthClick={() => null}
-                callbackState={null}
                 onProviderChange={onProviderChange}
               />,
               "/",
@@ -91,7 +83,6 @@ describe("RepoInputWithAuth", () => {
                 value={url}
                 onAuthClick={onAuthClick}
                 onProviderChange={onProviderChange}
-                callbackState={null}
               />,
               "/",
               c
@@ -132,7 +123,7 @@ describe("RepoInputWithAuth", () => {
               <RepoInputWithAuth
                 value={repoUrl}
                 onProviderChange={onProviderChange}
-                callbackState={null}
+                onAuthClick={() => null}
               />,
               "/",
               c

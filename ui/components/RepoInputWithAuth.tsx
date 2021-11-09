@@ -7,7 +7,6 @@ import {
   GitProvider,
   ParseRepoURLResponse,
 } from "../lib/api/applications/applications.pb";
-import { CallbackSessionState } from "../lib/storage";
 import Button from "./Button";
 import Flex from "./Flex";
 import GithubAuthButton from "./GithubAuthButton";
@@ -16,8 +15,7 @@ import Icon, { IconType } from "./Icon";
 import Input, { InputProps } from "./Input";
 
 type Props = InputProps & {
-  onAuthClick?: (provider: GitProvider) => void;
-  callbackState: CallbackSessionState;
+  onAuthClick: (provider: GitProvider) => void;
   onProviderChange?: (provider: GitProvider) => void;
   isAuthenticated?: boolean;
 };
@@ -25,7 +23,6 @@ type Props = InputProps & {
 function RepoInputWithAuth({
   onAuthClick,
   onProviderChange,
-  callbackState,
   isAuthenticated,
   ...props
 }: Props) {
@@ -58,7 +55,7 @@ function RepoInputWithAuth({
         }}
       />
     ) : (
-      <GitlabAuthButton callbackState={callbackState} />
+      <GitlabAuthButton onClick={() => onAuthClick(GitProvider.GitLab)} />
     );
 
   const renderProviderAuthButton =

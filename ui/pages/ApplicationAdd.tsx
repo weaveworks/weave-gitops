@@ -19,6 +19,7 @@ import RepoInputWithAuth from "../components/RepoInputWithAuth";
 import { AppContext } from "../contexts/AppContext";
 import { useAddApplication } from "../hooks/applications";
 import { GitProvider } from "../lib/api/applications/applications.pb";
+import { storeCallbackState } from "../lib/storage";
 import { GrpcErrorCodes, PageRoute } from "../lib/types";
 
 type Props = {
@@ -164,6 +165,7 @@ function AddApplication({ className }: Props) {
   };
 
   const handleAuthClick = () => {
+    storeCallbackState({ page: PageRoute.ApplicationAdd, state: formState });
     setAuthOpen(true);
   };
 
@@ -246,10 +248,6 @@ function AddApplication({ className }: Props) {
           <FormElement>
             <RepoInputWithAuth
               isAuthenticated={!!formState.url && credentialsDetected}
-              callbackState={{
-                page: PageRoute.ApplicationAdd,
-                state: formState,
-              }}
               onChange={(e) => {
                 setFormState({
                   ...formState,
@@ -262,6 +260,13 @@ function AddApplication({ className }: Props) {
               onAuthClick={(provider) => {
                 if (provider === GitProvider.GitHub) {
                   setAuthOpen(true);
+                }
+
+                if (provider === GitProvider.GitLab) {
+                  storeCallbackState({
+                    page: PageRoute.ApplicationAdd,
+                    state: formState,
+                  });
                 }
               }}
               required
