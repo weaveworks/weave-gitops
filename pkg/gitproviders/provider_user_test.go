@@ -94,7 +94,7 @@ var _ = Describe("User Provider", func() {
 			deployKeyClient.GetReturns(nil, gitprovider.ErrNotFound)
 
 			res, err := userProvider.DeployKeyExists(ctx, repoUrl)
-			Expect(err).ShouldNot(HaveOccurred())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(res).To(BeFalse())
 		})
 
