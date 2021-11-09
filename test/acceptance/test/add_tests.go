@@ -254,7 +254,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("Then I should see app removing message", func() {
-			Eventually(appRemoveOutput).Should(gbytes.Say("► Removing application from cluster and repository"))
+			Eventually(appRemoveOutput).Should(gbytes.Say(fmt.Sprintf("► Removing application %q from cluster %q and repository", appName, clusterName)))
 			Eventually(appRemoveOutput).Should(gbytes.Say("► Committing and pushing gitops updates for application"))
 			Eventually(appRemoveOutput).Should(gbytes.Say("► Pushing app changes to repository"))
 		})
@@ -425,7 +425,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("Then I should see app removing message", func() {
-			Eventually(appRemoveOutput).Should(gbytes.Say("► Removing application from cluster and repository"))
+			Eventually(appRemoveOutput).Should(gbytes.Say(fmt.Sprintf("► Removing application %q from cluster %q and repository", appName, clusterName)))
 			Eventually(appRemoveOutput).Should(gbytes.Say("► Committing and pushing gitops updates for application"))
 			Eventually(appRemoveOutput).Should(gbytes.Say("► Pushing app changes to repository"))
 		})
@@ -1032,7 +1032,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("Then I should see app deleting message", func() {
-			Eventually(appRemoveOutput).Should(gbytes.Say("► Removing application from cluster and repository"))
+			Eventually(appRemoveOutput).Should(gbytes.Say(fmt.Sprintf("► Removing application %q from cluster %q and repository", appName2, clusterName)))
 			Eventually(appRemoveOutput).Should(gbytes.Say("► Committing and pushing gitops updates for application"))
 			Eventually(appRemoveOutput).Should(gbytes.Say("► Pushing app changes to repository"))
 		})
@@ -1332,7 +1332,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("Then I should see app removing message", func() {
-			Eventually(appRemoveOutput).Should(gbytes.Say("► Removing application from cluster and repository"))
+			Eventually(appRemoveOutput).Should(gbytes.Say(fmt.Sprintf("► Removing application %q from cluster %q and repository", appName, clusterName)))
 			Eventually(appRemoveOutput).Should(gbytes.Say("► Committing and pushing gitops updates for application"))
 			Eventually(appRemoveOutput).Should(gbytes.Say("► Pushing app changes to repository"))
 		})
