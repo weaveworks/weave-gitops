@@ -67,3 +67,24 @@ builds:
       - darwin
     goarch:
       - arm64
+
+brews:
+  - name: gitops
+    tap:
+      owner: weave-works
+      name: homebrew-tap
+      token: "{{ .Env.GITHUB_TOKEN }}"
+      branch: main
+    folder: Formula
+    homepage: "https://docs.gitops.weave.works/docs/getting-started"
+    description: "GitOps support for Kubernetes"
+    install: |
+      bin.install "gitops"
+      bash_output = Utils.safe_popen_read(bin/"gitops", "completion", "bash")
+      (bash_completion/"gitops").write bash_output
+      zsh_output = Utils.safe_popen_read(bin/"gitops", "completion", "zsh")
+      (zsh_completion/"gitops").write zsh_output
+      fish_output = Utils.safe_popen_read(bin/"gitops", "completion", "fish")
+      (fish_completion/"gitops.fish").write fish_output
+    test: |
+      system "#{bin}/gitops --version"
