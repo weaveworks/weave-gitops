@@ -45,11 +45,6 @@ var _ = Describe("Weave GitOps UI Test", func() {
 			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
 		})
 
-		By("And I install gitops to my active cluster", func() {
-			_ = runCommandPassThrough([]string{}, WEGO_BIN_PATH, "install")
-			VerifyControllersInCluster(WEGO_DEFAULT_NAMESPACE)
-		})
-
 		By("And I run gitops ui", func() {
 			_ = runCommandAndReturnSessionOutput(fmt.Sprintf("%s ui run &", WEGO_BIN_PATH))
 		})
@@ -99,6 +94,10 @@ var _ = Describe("Weave GitOps UI Test", func() {
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
+
+		By("And I install gitops to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
+		})
 
 		By("When I navigate to Add Application page", func() {
 			Expect(dashboardPage.AddAppButton.Click()).To(Succeed())
@@ -167,6 +166,10 @@ var _ = Describe("Weave GitOps UI Test", func() {
 			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, EVENTUALLY_DEFAULT_TIMEOUT)
 		})
 
+		By("And I install gitops to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
+		})
+		
 		By("When I create a public repo with my app workload", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, public, GITHUB_ORG)
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
