@@ -45,14 +45,18 @@ func TestGetClusters(t *testing.T) {
 			name: "different status for creation and deletion PR",
 			cs: []clusters.Cluster{
 				{
-					Name:            "cluster-a",
-					Status:          "pullRequestCreated",
-					PullRequestType: "create",
+					Name:   "cluster-a",
+					Status: "pullRequestCreated",
+					PullRequest: clusters.PullRequest{
+						Type: "create",
+					},
 				},
 				{
-					Name:            "cluster-b",
-					Status:          "pullRequestCreated",
-					PullRequestType: "delete",
+					Name:   "cluster-b",
+					Status: "pullRequestCreated",
+					PullRequest: clusters.PullRequest{
+						Type: "delete",
+					},
 				},
 			},
 			expected: "NAME\tSTATUS\ncluster-a\tCreation PR\ncluster-b\tDeletion PR\n",

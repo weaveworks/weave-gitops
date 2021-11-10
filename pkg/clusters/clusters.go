@@ -15,9 +15,13 @@ type ClustersRetriever interface {
 }
 
 type Cluster struct {
-	Name            string
-	Status          string
-	PullRequestType string
+	Name        string      `json:"name"`
+	Status      string      `json:"status"`
+	PullRequest PullRequest `json:"pullRequest"`
+}
+
+type PullRequest struct {
+	Type string `json:"type"`
 }
 
 // GetClusters uses a ClustersRetriever adapter to show
@@ -32,9 +36,10 @@ func GetClusters(r ClustersRetriever, w io.Writer) error {
 		fmt.Fprintf(w, "NAME\tSTATUS\n")
 
 		for _, c := range cs {
-			if c.PullRequestType == "create" {
+			fmt.Println(c.PullRequest.Type)
+			if c.PullRequest.Type == "create" {
 				c.Status = "Creation PR"
-			} else if c.PullRequestType == "delete" {
+			} else if c.PullRequest.Type == "delete" {
 				c.Status = "Deletion PR"
 			}
 
@@ -63,9 +68,9 @@ func GetClusterByName(name string, r ClustersRetriever, w io.Writer) error {
 
 		for _, c := range cs {
 			if c.Name == name {
-				if c.PullRequestType == "create" {
+				if c.PullRequest.Type == "create" {
 					c.Status = "Creation PR"
-				} else if c.PullRequestType == "delete" {
+				} else if c.PullRequest.Type == "delete" {
 					c.Status = "Deletion PR"
 				}
 
