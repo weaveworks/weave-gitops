@@ -74,7 +74,7 @@ var _ = Describe("auth", func() {
 			Expect(secret.StringData["identity"]).NotTo(BeNil())
 			Expect(secret.StringData["identity.pub"]).NotTo(BeNil())
 		})
-		FIt("doesn't create a deploy key when dry-run is true", func() {
+		It("doesn't create a deploy key when dry-run is true", func() {
 			_, err := as.CreateGitClient(ctx, repoUrl, testClustername, namespace.Name, true)
 			Expect(err).NotTo(HaveOccurred())
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}
