@@ -90,7 +90,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "git@github.com:" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 
