@@ -238,7 +238,19 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
-		installAndVerifyWego(namespace)
+		private := true
+		tip := generateTestInputs()
+		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		})
+
+		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+
+		installAndVerifyWego(namespace, appRepoRemoteURL)
 
 		By("And the wego-app is up and running", func() {
 			command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=60s -n %s --all pods --selector='app=wego-app'", namespace))
