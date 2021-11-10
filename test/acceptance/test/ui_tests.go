@@ -19,7 +19,6 @@ var err error
 var imgSrc string
 var pageTitle string
 var pageHeader string
-var deleteWegoRuntime bool
 var webDriver *agouti.Page
 var httpResponse *http.Response
 var dashboardPage *pages.DashboardPageElements
@@ -28,7 +27,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 
 	addApplicationPageHeader := "Add Application"
 
-	deleteWegoRuntime = false
+	deleteWegoRuntime := false
 	if os.Getenv("DELETE_WEGO_RUNTIME_ON_EACH_TEST") == "true" {
 		deleteWegoRuntime = true
 	}
@@ -95,10 +94,6 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
-		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
-		})
-
 		By("When I navigate to Add Application page", func() {
 			Expect(dashboardPage.AddAppButton.Click()).To(Succeed())
 		})
@@ -111,6 +106,10 @@ var _ = Describe("Weave GitOps UI Test", func() {
 			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
+		})
+
+		By("And I install gitops to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 		})
 
 		By("And I add application details in Application form", func() {
@@ -166,13 +165,13 @@ var _ = Describe("Weave GitOps UI Test", func() {
 			deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, EVENTUALLY_DEFAULT_TIMEOUT)
 		})
 
-		By("And I install gitops to my active cluster", func() {
-			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
-		})
-
 		By("When I create a public repo with my app workload", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, public, GITHUB_ORG)
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
+		})
+
+		By("And I install gitops to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 		})
 
 		By("And I run gitops add command for app1", func() {
