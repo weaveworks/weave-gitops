@@ -73,7 +73,7 @@ brews:
     tap:
       owner: weaveworks
       name: homebrew-tap
-      token: "{{ .Env.GITHUB_TOKEN }}"
+      token: "{{ .Env.BOT_TOKEN }}"
       branch: main
     commit_author:
       name: weaveworksbot
