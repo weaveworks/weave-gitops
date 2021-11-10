@@ -77,7 +77,7 @@ type key int
 const (
 	tokenKey               key = iota
 	GRPCAuthMetadataKey        = "grpc-auth"
-	GitProviderTokenHeader     = "X-Git-Provider-Token"
+	GitProviderTokenHeader     = "Git-Provider-Token"
 )
 
 // Injects the token into the request context to be retrieved later.

@@ -45,6 +45,7 @@ export interface Props {
 // This saves us from having to rememeber to pass it as an arg in every request.
 function wrapClient<T>(client: any, tokenGetter: () => string): T {
   const wrapped = {};
+  const gitProviderTokenHeader = "Git-Provider-Token";
 
   _.each(client, (func, name) => {
     wrapped[name] = (payload, options: RequestInit = {}) => {
@@ -52,7 +53,7 @@ function wrapClient<T>(client: any, tokenGetter: () => string): T {
         ...options,
         headers: new Headers({
           ...(options.headers || {}),
-          "X-Git-Provider-Token": `token ${tokenGetter()}`,
+          [gitProviderTokenHeader]: `token ${tokenGetter()}`,
         }),
       };
 
