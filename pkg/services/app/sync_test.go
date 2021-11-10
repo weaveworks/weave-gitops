@@ -19,7 +19,7 @@ var (
 var _ = Describe("Sync", func() {
 	var _ = BeforeEach(func() {
 		appClock = clock.NewMock()
-		appSrv.(*App).Clock = appClock
+		appSrv.(*AppSvc).Clock = appClock
 
 		syncParams = SyncParams{
 			Name:      "my-app",

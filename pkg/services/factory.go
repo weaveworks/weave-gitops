@@ -13,6 +13,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/models"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 )
@@ -76,7 +78,7 @@ func (f *defaultFactory) GetAppService(ctx context.Context) (app.AppService, err
 		return nil, fmt.Errorf("error initializing clients: %w", err)
 	}
 
-	return app.New(ctx, f.log, f.fluxClient, kubeClient), nil
+	return app.New(ctx, f.log, f.fluxClient, kubeClient, osys.New()), nil
 }
 
 func (f *defaultFactory) GetKubeService() (kube.Kube, error) {
@@ -102,7 +104,7 @@ func (f *defaultFactory) GetKubeService() (kube.Kube, error) {
 }
 
 func (f *defaultFactory) GetGitClients(ctx context.Context, gpClient gitproviders.Client, params GitConfigParams) (git.Git, gitproviders.GitProvider, error) {
-	isExternalConfig := app.IsExternalConfigUrl(params.ConfigURL)
+	isExternalConfig := models.IsExternalConfigUrl(params.ConfigURL)
 
 	var providerUrl string
 
