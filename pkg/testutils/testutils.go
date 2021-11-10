@@ -2,10 +2,15 @@ package testutils
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/osys/osysfakes"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -146,4 +151,51 @@ func (d DummyPullRequest) Get() gitprovider.PullRequestInfo {
 
 func (d DummyPullRequest) APIObject() interface{} {
 	return nil
+}
+
+// Set up a flux binary in a temp dir that will be used to generate flux manifests
+func SetupFlux() (flux.Flux, string, error) {
+	dir, err := ioutil.TempDir("", "a-home-dir")
+	if err != nil {
+		return nil, "", err
+	}
+
+	cliRunner := &runner.CLIRunner{}
+	osysClient := &osysfakes.FakeOsys{}
+	realFlux := flux.New(osysClient, cliRunner)
+	osysClient.UserHomeDirStub = func() (string, error) {
+		return dir, nil
+	}
+
+	fluxBin, err := ioutil.ReadFile(filepath.Join("..", "..", "flux", "bin", "flux"))
+	if err != nil {
+		os.RemoveAll(dir)
+		return nil, "", err
+	}
+
+	binPath, err := realFlux.GetBinPath()
+	if err != nil {
+		os.RemoveAll(dir)
+		return nil, "", err
+	}
+
+	err = os.MkdirAll(binPath, 0777)
+	if err != nil {
+		os.RemoveAll(dir)
+		return nil, "", err
+	}
+
+	exePath, err := realFlux.GetExePath()
+	if err != nil {
+		os.RemoveAll(dir)
+		return nil, "", err
+	}
+
+	err = ioutil.WriteFile(exePath, fluxBin, 0777)
+	if err != nil {
+		os.RemoveAll(dir)
+		return nil, "", err
+	}
+
+	return realFlux, dir, nil
 }

@@ -17,7 +17,7 @@ type StatusParams struct {
 	Name      string
 }
 
-func (a *App) Status(params StatusParams) (string, string, error) {
+func (a *AppSvc) Status(params StatusParams) (string, string, error) {
 	fluxOutput, err := a.Flux.GetAllResourcesStatus(params.Name, params.Namespace)
 	if err != nil {
 		return "", "", fmt.Errorf("failed getting app status: %w", err)
@@ -38,7 +38,7 @@ func (a *App) Status(params StatusParams) (string, string, error) {
 	return string(fluxOutput), lastRecon, nil
 }
 
-func (a *App) getLastSuccessfulReconciliation(ctx context.Context, deploymentType wego.DeploymentType, params StatusParams) (string, error) {
+func (a *AppSvc) getLastSuccessfulReconciliation(ctx context.Context, deploymentType wego.DeploymentType, params StatusParams) (string, error) {
 	conditions := []metav1.Condition{}
 
 	switch deploymentType {
