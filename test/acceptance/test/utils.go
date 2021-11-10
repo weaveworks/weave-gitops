@@ -86,6 +86,11 @@ func FileExists(name string) bool {
 	return true
 }
 
+func selectCluster(context string) {
+	_, err := exec.Command("kubectl", "config", "use-context", context).Output()
+	Expect(err).ShouldNot(HaveOccurred())
+}
+
 func getClusterName() string {
 	out, err := exec.Command("kubectl", "config", "current-context").Output()
 	Expect(err).ShouldNot(HaveOccurred())
@@ -159,10 +164,10 @@ func setupGitlabSSHKey(sshKeyPath string) {
 }
 
 func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool) (string, error) {
-	return ResetOrCreateClusterWithName(namespace, deleteWegoRuntime, "")
+	return ResetOrCreateClusterWithName(namespace, deleteWegoRuntime, "", false)
 }
 
-func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clusterName string) (string, error) {
+func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clusterName string, keepExistingClusters bool) (string, error) {
 	supportedProviders := []string{"kind", "kubectl"}
 	supportedK8SVersions := []string{"1.19.1", "1.20.2", "1.21.1"}
 
@@ -205,7 +210,13 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 
 		log.Infof("Creating a kind cluster %s", clusterName)
 
-		err := runCommandPassThrough([]string{}, "./scripts/kind-cluster.sh", clusterName, "kindest/node:v"+k8sVersion)
+		var err error
+
+		if keepExistingClusters {
+			err = runCommandPassThrough([]string{}, "./scripts/kind-multi-cluster.sh", clusterName, "kindest/node:v"+k8sVersion)
+		} else {
+			err = runCommandPassThrough([]string{}, "./scripts/kind-cluster.sh", clusterName, "kindest/node:v"+k8sVersion)
+		}
 
 		if err != nil {
 			log.Infof("Failed to create kind cluster")

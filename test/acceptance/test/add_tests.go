@@ -568,6 +568,76 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
+	It("Verify that gitops can deploy a single workload to multiple clusters with app manifests in config repo (Bug #810)", func() {
+		var repoAbsolutePath string
+		tip := generateTestInputs()
+		appRepoName := "wego-test-app-" + RandString(8)
+		appName := appRepoName
+		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
+
+		addCommand := "add app . --name=" + appName + " --auto-merge=true"
+
+		cluster1 := clusterName
+		_, err := ResetOrCreateClusterWithName(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, "", true)
+		Expect(err).ShouldNot(HaveOccurred())
+		cluster2 := getClusterName()
+
+		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer func() {
+			selectCluster(cluster1)
+			deleteWorkload(tip.workloadName, tip.workloadNamespace)
+			selectCluster(cluster2)
+			deleteWorkload(tip.workloadName, tip.workloadNamespace)
+		}()
+
+		By("And application repos do not already exist", func() {
+			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		})
+
+		By("And application workload is not already deployed to clusters", func() {
+			selectCluster(cluster1)
+			deleteWorkload(tip.workloadName, tip.workloadNamespace)
+			selectCluster(cluster2)
+			deleteWorkload(tip.workloadName, tip.workloadNamespace)
+		})
+
+		By("When I create an empty private repo for app", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitproviders.GitProviderGitHub, true, GITHUB_ORG)
+		})
+
+		By("And I git add-commit-push for app", func() {
+			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
+		})
+
+		By("And I install gitops to my active clusters", func() {
+			selectCluster(cluster1)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
+			selectCluster(cluster2)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
+		})
+
+		By("And I run gitops add command for app", func() {
+			selectCluster(cluster1)
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+			selectCluster(cluster2)
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see gitops add command linked the repo to the cluster", func() {
+			selectCluster(cluster1)
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+			selectCluster(cluster2)
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I should see workload for app is deployed to the cluster", func() {
+			selectCluster(cluster1)
+			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
+			selectCluster(cluster2)
+			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
+		})
+	})
+
 	It("Test2 - Verify that gitops can add multiple apps dir to the cluster using single repo for gitops config", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
@@ -1569,7 +1639,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			var err error
 
 			clusterName = "kind-123456789012345678901234567890"
-			_, err = ResetOrCreateClusterWithName(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, clusterName)
+			_, err = ResetOrCreateClusterWithName(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, clusterName, false)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 

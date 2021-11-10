@@ -91,7 +91,7 @@ var _ = Describe("Generate manifests", func() {
 				Expect(name).To(Equal("bar"))
 				Expect(url.String()).To(Equal("ssh://git@github.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
-				Expect(secretRef).To(Equal("wego-test-cluster-bar"))
+				Expect(secretRef).To(Equal("wego-bar"))
 				Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 				appManifest, nonApps := extractApp(app, results)
@@ -224,7 +224,7 @@ var _ = Describe("Generate manifests", func() {
 					Expect(name).To(Equal("bar"))
 					Expect(url.String()).To(Equal("ssh://git@github.com/user/repo.git"))
 					Expect(branch).To(Equal("main"))
-					Expect(secretRef).To(Equal("wego-test-cluster-repo"))
+					Expect(secretRef).To(Equal("wego-repo"))
 					Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 					appManifest, nonApps := extractApp(app, results)
