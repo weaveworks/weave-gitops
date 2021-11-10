@@ -1,6 +1,7 @@
 package osys
 
 import (
+	"errors"
 	"os"
 )
 
@@ -10,8 +11,10 @@ import (
 type Osys interface {
 	UserHomeDir() (string, error)
 	Getenv(envVar string) string
+	LookupEnv(envVar string) (string, bool)
 	Setenv(envVar, value string) error
 	Unsetenv(envVar string) error
+	ReadDir(dirName string) ([]os.DirEntry, error)
 	Exit(code int)
 	Stdin() *os.File
 	Stdout() *os.File
@@ -20,12 +23,18 @@ type Osys interface {
 
 type OsysClient struct{}
 
+var _ Osys = &OsysClient{}
+
 func New() Osys {
 	return &OsysClient{}
 }
 
 func (o *OsysClient) UserHomeDir() (string, error) {
 	return os.UserHomeDir()
+}
+
+func (o *OsysClient) LookupEnv(envVar string) (string, bool) {
+	return os.LookupEnv(envVar)
 }
 
 func (o *OsysClient) Getenv(envVar string) string {
@@ -38,6 +47,22 @@ func (o *OsysClient) Setenv(envVar, value string) error {
 
 func (o *OsysClient) Unsetenv(envVar string) error {
 	return os.Unsetenv(envVar)
+}
+
+func (o *OsysClient) ReadDir(dirName string) ([]os.DirEntry, error) {
+	return os.ReadDir(dirName)
+}
+
+var ErrNoGitProviderTokenSet = errors.New("no git provider token env variable set")
+
+func (o *OsysClient) GetGitProviderToken(tokenVarName string) (string, error) {
+	providerToken, found := o.LookupEnv(tokenVarName)
+
+	if !found || providerToken == "" {
+		return "", ErrNoGitProviderTokenSet
+	}
+
+	return providerToken, nil
 }
 
 func (o *OsysClient) Exit(code int) {
