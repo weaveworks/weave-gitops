@@ -15,7 +15,6 @@ const (
 )
 
 var (
-	Manifests [][]byte
 	//go:embed crds/wego.weave.works_apps.yaml
 	AppCRD []byte
 	//go:embed wego-app/*
@@ -31,7 +30,11 @@ type WegoAppParams struct {
 func GenerateWegoAppManifests(params WegoAppParams) ([][]byte, error) {
 	manifests := [][]byte{}
 
-	templates, _ := fs.ReadDir(wegoAppTemplates, wegoManifestsDir)
+	templates, err := fs.ReadDir(wegoAppTemplates, wegoManifestsDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed reading templates directory: %w", err)
+	}
+
 	for _, template := range templates {
 		tplName := template.Name()
 
@@ -65,10 +68,4 @@ func executeTemplate(name string, tplData string, params WegoAppParams) ([]byte,
 	}
 
 	return yaml.Bytes(), nil
-}
-
-func init() {
-	Manifests = [][]byte{
-		AppCRD,
-	}
 }

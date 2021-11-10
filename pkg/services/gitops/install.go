@@ -63,10 +63,8 @@ func (g *Gitops) Install(params InstallParams) (map[string][]byte, error) {
 	if params.DryRun {
 		return systemManifests, nil
 	} else {
-		for _, manifest := range manifests.Manifests {
-			if err := g.kube.Apply(ctx, manifest, params.Namespace); err != nil {
-				return nil, fmt.Errorf("could not apply manifest: %w", err)
-			}
+		if err := g.kube.Apply(ctx, manifests.AppCRD, params.Namespace); err != nil {
+			return nil, fmt.Errorf("could not apply App CRD: %w", err)
 		}
 
 		version := version.Version
@@ -76,11 +74,11 @@ func (g *Gitops) Install(params InstallParams) (map[string][]byte, error) {
 
 		wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.WegoAppParams{Version: version, Namespace: params.Namespace})
 		if err != nil {
-			return nil, fmt.Errorf("error generating wego-app deployment, %w", err)
+			return nil, fmt.Errorf("error generating wego-app manifests, %w", err)
 		}
 		for _, m := range wegoAppManifests {
 			if err := g.kube.Apply(ctx, m, params.Namespace); err != nil {
-				return nil, fmt.Errorf("error applying wego-app manifest %s: %w", string(m), err)
+				return nil, fmt.Errorf("error applying wego-app manifest %s: %w", m, err)
 			}
 		}
 

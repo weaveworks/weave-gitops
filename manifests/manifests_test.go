@@ -15,8 +15,8 @@ var _ = Describe("Testing WegoAppDeployment", func() {
 
 		for _, m := range manifests {
 			if strings.Contains(string(m), "kind: Deployment") {
-				Expect(string(manifests[0])).To(ContainSubstring("namespace: my-namespace"))
-				Expect(string(manifests[0])).To(ContainSubstring(version.Version))
+				Expect(string(m)).To(ContainSubstring("namespace: my-namespace"))
+				Expect(string(m)).To(ContainSubstring(version.Version))
 			}
 		}
 	})
