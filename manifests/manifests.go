@@ -26,7 +26,7 @@ type WegoAppParams struct {
 	Namespace string
 }
 
-// GenerateWegoManifests generates wego-app manifest from a template
+// GenerateWegoManifests generates wego-app manifests from a template
 func GenerateWegoAppManifests(params WegoAppParams) ([][]byte, error) {
 	manifests := [][]byte{}
 
