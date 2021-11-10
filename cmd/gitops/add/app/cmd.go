@@ -5,14 +5,22 @@ package app
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/weaveworks/weave-gitops/cmd/internal"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/services"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
 	"github.com/lithammer/dedent"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
-	"github.com/weaveworks/weave-gitops/pkg/apputils"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
@@ -52,7 +60,7 @@ func init() {
 	Cmd.Flags().StringVar(&params.Branch, "branch", "", "Branch to watch within git repository")
 	Cmd.Flags().StringVar(&params.DeploymentType, "deployment-type", app.DefaultDeploymentType, "Deployment type [kustomize, helm]")
 	Cmd.Flags().StringVar(&params.Chart, "chart", "", "Specify chart for helm source")
-	Cmd.Flags().StringVar(&params.AppConfigUrl, "app-config-url", "", "URL of external repository (if any) which will hold automation manifests; NONE to store only in the cluster")
+	Cmd.Flags().StringVar(&params.AppConfigUrl, "app-config-url", "", "URL of external repository (if any) which will hold automation manifests")
 	Cmd.Flags().StringVar(&params.HelmReleaseTargetNamespace, "helm-release-target-namespace", "", "Namespace in which to deploy a helm chart; defaults to the gitops installation namespace")
 	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'gitops add app' will not make any changes to the system; it will just display the actions that would have been taken")
 	Cmd.Flags().BoolVar(&params.AutoMerge, "auto-merge", false, "If set, 'gitops add app' will merge automatically into the set --branch")
@@ -94,18 +102,29 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return urlErr
 	}
 
-	if readyErr := apputils.IsClusterReady(); readyErr != nil {
-		return readyErr
+	log := logger.NewCLILogger(os.Stdout)
+	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
+	factory := services.NewFactory(fluxClient, log)
+
+	providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
+
+	appService, err := factory.GetAppService(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create app service: %w", err)
 	}
 
-	isHelmRepository := params.Chart != ""
-
-	appService, appError := apputils.GetAppServiceForAdd(ctx, params.Url, params.AppConfigUrl, params.Namespace, isHelmRepository, params.DryRun)
-	if appError != nil {
-		return fmt.Errorf("failed to create app service: %w", appError)
+	gitClient, gitProvider, err := factory.GetGitClients(ctx, providerClient, services.GitConfigParams{
+		URL:              params.Url,
+		ConfigURL:        params.AppConfigUrl,
+		Namespace:        params.Namespace,
+		IsHelmRepository: params.IsHelmRepository(),
+		DryRun:           params.DryRun,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to get git clients: %w", err)
 	}
 
-	if err := appService.Add(params); err != nil {
+	if err := appService.Add(gitClient, gitProvider, params); err != nil {
 		return errors.Wrapf(err, "failed to add the app %s", params.Name)
 	}
 

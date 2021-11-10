@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/clusters"
 )
@@ -30,8 +31,11 @@ func ClusterCommand(endpoint *string, client *resty.Client) *cobra.Command {
 # Delete a CAPI cluster by its name
 gitops delete cluster <cluster-name>
 		`,
-		RunE: deleteClusterCmdRunE(endpoint, client),
-		Args: cobra.MinimumNArgs(1),
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		PreRunE:       getClusterCmdPreRunE(endpoint, client),
+		RunE:          getClusterCmdRunE(endpoint, client),
+		Args:          cobra.MinimumNArgs(1),
 	}
 
 	cmd.PersistentFlags().StringVar(&clustersDeleteCmdFlags.RepositoryURL, "url", "", "The repository to open a pull request against")
@@ -44,7 +48,17 @@ gitops delete cluster <cluster-name>
 	return cmd
 }
 
-func deleteClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+func getClusterCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
+	return func(cmd *cobra.Command, args []string) error {
+		if *endpoint == "" {
+			return cmderrors.ErrNoWGEEndpoint
+		}
+
+		return nil
+	}
+}
+
+func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		r, err := adapters.NewHttpClient(*endpoint, client, os.Stdout)
 		if err != nil {

@@ -5,12 +5,20 @@ This file is part of the Weave GitOps CLI.
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"os"
+
+	"github.com/weaveworks/weave-gitops/cmd/internal"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/services"
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
-	"github.com/weaveworks/weave-gitops/pkg/apputils"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 )
@@ -28,7 +36,7 @@ var (
 var installCmd = &cobra.Command{
 	Use:   "install",
 	Short: "Install or upgrade GitOps",
-	Long: `The beta install command deploys GitOps in the specified namespace, 
+	Long: `The beta install command deploys GitOps in the specified namespace,
 adds a cluster entry to the GitOps repo, and persists the GitOps runtime into the
 repo.`,
 	Example: `  # Install GitOps in the wego-system namespace
@@ -42,7 +50,6 @@ repo.`,
 }
 
 func init() {
-	Cmd.AddCommand(installCmd)
 	installCmd.Flags().BoolVar(&installParams.DryRun, "dry-run", false, "Outputs all the manifests that would be installed")
 	installCmd.Flags().StringVar(&installParams.AppConfigURL, "app-config-url", "", "URL of external repository that will hold automation manifests")
 	cobra.CheckErr(installCmd.MarkFlagRequired("app-config-url"))
@@ -51,39 +58,48 @@ func init() {
 func installRunCmd(cmd *cobra.Command, args []string) error {
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
-	clients, err := apputils.GetBaseClients()
+	log := logger.NewCLILogger(os.Stdout)
+	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
+
+	k, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
-	normalizedURL, err := gitproviders.NewRepoURL(installParams.AppConfigURL)
-	if err != nil {
-		return fmt.Errorf("failed to normalize URL %q: %w", installParams.AppConfigURL, err)
-	}
+	factory := services.NewFactory(fluxClient, log)
+	providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 
-	authHandler, err := auth.NewAuthCLIHandler(normalizedURL.Provider())
-	if err != nil {
-		return fmt.Errorf("error initializing cli auth handler: %w", err)
-	}
+	gitopsService := gitops.New(log, fluxClient, k)
 
-	gitProvider, err := auth.InitGitProvider(normalizedURL, clients.Osys, clients.Logger, authHandler, gitproviders.GetAccountType)
-	if err != nil {
-		return fmt.Errorf("error obtaining git provider token: %w", err)
-	}
-
-	gitopsService := gitops.New(clients.Logger, clients.Flux, clients.Kube, gitProvider, nil)
-
-	manifests, err := gitopsService.Install(gitops.InstallParams{
+	gitOpsParams := gitops.InstallParams{
 		Namespace:    namespace,
 		DryRun:       installParams.DryRun,
 		AppConfigURL: installParams.AppConfigURL,
-	})
+	}
+
+	manifests, err := gitopsService.Install(gitOpsParams)
 	if err != nil {
 		return err
 	}
 
+	gitClient, gitProvider, err := factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
+		URL:       installParams.AppConfigURL,
+		Namespace: namespace,
+		DryRun:    installParams.DryRun,
+	})
+	if err != nil {
+		return fmt.Errorf("error creating git clients: %w", err)
+	}
+
+	manifests, err = gitopsService.StoreManifests(gitClient, gitProvider, gitOpsParams, manifests)
+	if err != nil {
+		return fmt.Errorf("error storing manifests: %w", err)
+	}
+
 	if installParams.DryRun {
-		fmt.Println(string(manifests))
+		for _, manifest := range manifests {
+			fmt.Println(string(manifest))
+		}
 	}
 
 	return nil

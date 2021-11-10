@@ -23,8 +23,8 @@ var (
 	kubeClient   *kubefakes.FakeKube
 	osysClient   *osysfakes.FakeOsys
 	gitProviders *gitprovidersfakes.FakeGitProvider
-
-	appSrv AppService
+	log          *loggerfakes.FakeLogger
+	appSrv       AppService
 )
 
 var _ = BeforeEach(func() {
@@ -49,7 +49,8 @@ var _ = BeforeEach(func() {
 		},
 	}
 
-	appSrv = New(context.Background(), &loggerfakes.FakeLogger{}, gitClient, gitClient, gitProviders, fluxClient, kubeClient, osysClient)
+	log = &loggerfakes.FakeLogger{}
+	appSrv = New(context.Background(), log, fluxClient, kubeClient, osysClient)
 })
 
 func TestApp(t *testing.T) {

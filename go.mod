@@ -10,7 +10,9 @@ require (
 	github.com/fluxcd/kustomize-controller/api v0.16.0
 	github.com/fluxcd/pkg/apis/meta v0.10.1
 	github.com/fluxcd/pkg/ssa v0.2.0
+	github.com/fluxcd/source-controller v0.15.4 // indirect
 	github.com/fluxcd/source-controller/api v0.15.4
+	github.com/freshautomations/stoml v0.7.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-logr/logr v1.1.0
@@ -33,7 +35,7 @@ require (
 	github.com/ory/go-acc v0.2.6
 	github.com/pkg/browser v0.0.0-20210706143420-7d21f8c997e2
 	github.com/pkg/errors v0.9.1
-	github.com/sclevine/agouti v0.0.0-20150218205057-b920a9cc7533
+	github.com/sclevine/agouti v0.0.0-20190613051229-00c1187c74ad
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.9.0

@@ -2,6 +2,7 @@
 package osysfakes
 
 import (
+	"io/fs"
 	"os"
 	"sync"
 
@@ -13,19 +14,6 @@ type FakeOsys struct {
 	exitMutex       sync.RWMutex
 	exitArgsForCall []struct {
 		arg1 int
-	}
-	GetGitProviderTokenStub        func(string) (string, error)
-	getGitProviderTokenMutex       sync.RWMutex
-	getGitProviderTokenArgsForCall []struct {
-		arg1 string
-	}
-	getGitProviderTokenReturns struct {
-		result1 string
-		result2 error
-	}
-	getGitProviderTokenReturnsOnCall map[int]struct {
-		result1 string
-		result2 error
 	}
 	GetenvStub        func(string) string
 	getenvMutex       sync.RWMutex
@@ -50,6 +38,19 @@ type FakeOsys struct {
 	lookupEnvReturnsOnCall map[int]struct {
 		result1 string
 		result2 bool
+	}
+	ReadDirStub        func(string) ([]fs.DirEntry, error)
+	readDirMutex       sync.RWMutex
+	readDirArgsForCall []struct {
+		arg1 string
+	}
+	readDirReturns struct {
+		result1 []fs.DirEntry
+		result2 error
+	}
+	readDirReturnsOnCall map[int]struct {
+		result1 []fs.DirEntry
+		result2 error
 	}
 	SetenvStub        func(string, string) error
 	setenvMutex       sync.RWMutex
@@ -150,70 +151,6 @@ func (fake *FakeOsys) ExitArgsForCall(i int) int {
 	defer fake.exitMutex.RUnlock()
 	argsForCall := fake.exitArgsForCall[i]
 	return argsForCall.arg1
-}
-
-func (fake *FakeOsys) GetGitProviderToken(arg1 string) (string, error) {
-	fake.getGitProviderTokenMutex.Lock()
-	ret, specificReturn := fake.getGitProviderTokenReturnsOnCall[len(fake.getGitProviderTokenArgsForCall)]
-	fake.getGitProviderTokenArgsForCall = append(fake.getGitProviderTokenArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	stub := fake.GetGitProviderTokenStub
-	fakeReturns := fake.getGitProviderTokenReturns
-	fake.recordInvocation("GetGitProviderToken", []interface{}{arg1})
-	fake.getGitProviderTokenMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeOsys) GetGitProviderTokenCallCount() int {
-	fake.getGitProviderTokenMutex.RLock()
-	defer fake.getGitProviderTokenMutex.RUnlock()
-	return len(fake.getGitProviderTokenArgsForCall)
-}
-
-func (fake *FakeOsys) GetGitProviderTokenCalls(stub func(string) (string, error)) {
-	fake.getGitProviderTokenMutex.Lock()
-	defer fake.getGitProviderTokenMutex.Unlock()
-	fake.GetGitProviderTokenStub = stub
-}
-
-func (fake *FakeOsys) GetGitProviderTokenArgsForCall(i int) string {
-	fake.getGitProviderTokenMutex.RLock()
-	defer fake.getGitProviderTokenMutex.RUnlock()
-	argsForCall := fake.getGitProviderTokenArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeOsys) GetGitProviderTokenReturns(result1 string, result2 error) {
-	fake.getGitProviderTokenMutex.Lock()
-	defer fake.getGitProviderTokenMutex.Unlock()
-	fake.GetGitProviderTokenStub = nil
-	fake.getGitProviderTokenReturns = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeOsys) GetGitProviderTokenReturnsOnCall(i int, result1 string, result2 error) {
-	fake.getGitProviderTokenMutex.Lock()
-	defer fake.getGitProviderTokenMutex.Unlock()
-	fake.GetGitProviderTokenStub = nil
-	if fake.getGitProviderTokenReturnsOnCall == nil {
-		fake.getGitProviderTokenReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 error
-		})
-	}
-	fake.getGitProviderTokenReturnsOnCall[i] = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
 }
 
 func (fake *FakeOsys) Getenv(arg1 string) string {
@@ -338,6 +275,70 @@ func (fake *FakeOsys) LookupEnvReturnsOnCall(i int, result1 string, result2 bool
 	fake.lookupEnvReturnsOnCall[i] = struct {
 		result1 string
 		result2 bool
+	}{result1, result2}
+}
+
+func (fake *FakeOsys) ReadDir(arg1 string) ([]fs.DirEntry, error) {
+	fake.readDirMutex.Lock()
+	ret, specificReturn := fake.readDirReturnsOnCall[len(fake.readDirArgsForCall)]
+	fake.readDirArgsForCall = append(fake.readDirArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.ReadDirStub
+	fakeReturns := fake.readDirReturns
+	fake.recordInvocation("ReadDir", []interface{}{arg1})
+	fake.readDirMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeOsys) ReadDirCallCount() int {
+	fake.readDirMutex.RLock()
+	defer fake.readDirMutex.RUnlock()
+	return len(fake.readDirArgsForCall)
+}
+
+func (fake *FakeOsys) ReadDirCalls(stub func(string) ([]fs.DirEntry, error)) {
+	fake.readDirMutex.Lock()
+	defer fake.readDirMutex.Unlock()
+	fake.ReadDirStub = stub
+}
+
+func (fake *FakeOsys) ReadDirArgsForCall(i int) string {
+	fake.readDirMutex.RLock()
+	defer fake.readDirMutex.RUnlock()
+	argsForCall := fake.readDirArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeOsys) ReadDirReturns(result1 []fs.DirEntry, result2 error) {
+	fake.readDirMutex.Lock()
+	defer fake.readDirMutex.Unlock()
+	fake.ReadDirStub = nil
+	fake.readDirReturns = struct {
+		result1 []fs.DirEntry
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeOsys) ReadDirReturnsOnCall(i int, result1 []fs.DirEntry, result2 error) {
+	fake.readDirMutex.Lock()
+	defer fake.readDirMutex.Unlock()
+	fake.ReadDirStub = nil
+	if fake.readDirReturnsOnCall == nil {
+		fake.readDirReturnsOnCall = make(map[int]struct {
+			result1 []fs.DirEntry
+			result2 error
+		})
+	}
+	fake.readDirReturnsOnCall[i] = struct {
+		result1 []fs.DirEntry
+		result2 error
 	}{result1, result2}
 }
 
@@ -684,12 +685,12 @@ func (fake *FakeOsys) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.exitMutex.RLock()
 	defer fake.exitMutex.RUnlock()
-	fake.getGitProviderTokenMutex.RLock()
-	defer fake.getGitProviderTokenMutex.RUnlock()
 	fake.getenvMutex.RLock()
 	defer fake.getenvMutex.RUnlock()
 	fake.lookupEnvMutex.RLock()
 	defer fake.lookupEnvMutex.RUnlock()
+	fake.readDirMutex.RLock()
+	defer fake.readDirMutex.RUnlock()
 	fake.setenvMutex.RLock()
 	defer fake.setenvMutex.RUnlock()
 	fake.stderrMutex.RLock()

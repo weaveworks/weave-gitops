@@ -51,6 +51,7 @@ var GITLAB_ORG string
 
 // Make sure the subgroup belongs to the GITLAB_ORG
 var GITLAB_SUBGROUP string
+var GITLAB_PUBLIC_GROUP string
 var WEGO_BIN_PATH string
 
 type TestInputs struct {
@@ -377,9 +378,9 @@ func VerifyControllersInCluster(namespace string) {
 	})
 }
 
-func installAndVerifyWego(wegoNamespace string) {
+func installAndVerifyWego(wegoNamespace, repoURL string) {
 	By("And I run 'gitops install' command with namespace "+wegoNamespace, func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s", WEGO_BIN_PATH, wegoNamespace))
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --app-config-url=%s", WEGO_BIN_PATH, wegoNamespace, repoURL))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, TIMEOUT_TWO_MINUTES).Should(gexec.Exit())
@@ -633,10 +634,6 @@ func verifyPRCreated(repoAbsolutePath, appName string, providerName gitproviders
 
 	prs, err := or.PullRequests().List(ctx)
 	Expect(err).ShouldNot(HaveOccurred())
-
-	for _, pr := range prs {
-		fmt.Printf("PR: %#+v\n", pr.Get())
-	}
 
 	Expect(len(prs)).To(Equal(1))
 }

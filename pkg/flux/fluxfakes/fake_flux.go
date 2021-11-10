@@ -6,6 +6,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 )
 
 type FakeFlux struct {
@@ -58,11 +59,11 @@ type FakeFlux struct {
 		result1 []byte
 		result2 error
 	}
-	CreateSecretGitStub        func(string, string, string) ([]byte, error)
+	CreateSecretGitStub        func(string, gitproviders.RepoURL, string) ([]byte, error)
 	createSecretGitMutex       sync.RWMutex
 	createSecretGitArgsForCall []struct {
 		arg1 string
-		arg2 string
+		arg2 gitproviders.RepoURL
 		arg3 string
 	}
 	createSecretGitReturns struct {
@@ -73,11 +74,11 @@ type FakeFlux struct {
 		result1 []byte
 		result2 error
 	}
-	CreateSourceGitStub        func(string, string, string, string, string) ([]byte, error)
+	CreateSourceGitStub        func(string, gitproviders.RepoURL, string, string, string) ([]byte, error)
 	createSourceGitMutex       sync.RWMutex
 	createSourceGitArgsForCall []struct {
 		arg1 string
-		arg2 string
+		arg2 gitproviders.RepoURL
 		arg3 string
 		arg4 string
 		arg5 string
@@ -419,12 +420,12 @@ func (fake *FakeFlux) CreateKustomizationReturnsOnCall(i int, result1 []byte, re
 	}{result1, result2}
 }
 
-func (fake *FakeFlux) CreateSecretGit(arg1 string, arg2 string, arg3 string) ([]byte, error) {
+func (fake *FakeFlux) CreateSecretGit(arg1 string, arg2 gitproviders.RepoURL, arg3 string) ([]byte, error) {
 	fake.createSecretGitMutex.Lock()
 	ret, specificReturn := fake.createSecretGitReturnsOnCall[len(fake.createSecretGitArgsForCall)]
 	fake.createSecretGitArgsForCall = append(fake.createSecretGitArgsForCall, struct {
 		arg1 string
-		arg2 string
+		arg2 gitproviders.RepoURL
 		arg3 string
 	}{arg1, arg2, arg3})
 	stub := fake.CreateSecretGitStub
@@ -446,13 +447,13 @@ func (fake *FakeFlux) CreateSecretGitCallCount() int {
 	return len(fake.createSecretGitArgsForCall)
 }
 
-func (fake *FakeFlux) CreateSecretGitCalls(stub func(string, string, string) ([]byte, error)) {
+func (fake *FakeFlux) CreateSecretGitCalls(stub func(string, gitproviders.RepoURL, string) ([]byte, error)) {
 	fake.createSecretGitMutex.Lock()
 	defer fake.createSecretGitMutex.Unlock()
 	fake.CreateSecretGitStub = stub
 }
 
-func (fake *FakeFlux) CreateSecretGitArgsForCall(i int) (string, string, string) {
+func (fake *FakeFlux) CreateSecretGitArgsForCall(i int) (string, gitproviders.RepoURL, string) {
 	fake.createSecretGitMutex.RLock()
 	defer fake.createSecretGitMutex.RUnlock()
 	argsForCall := fake.createSecretGitArgsForCall[i]
@@ -485,12 +486,12 @@ func (fake *FakeFlux) CreateSecretGitReturnsOnCall(i int, result1 []byte, result
 	}{result1, result2}
 }
 
-func (fake *FakeFlux) CreateSourceGit(arg1 string, arg2 string, arg3 string, arg4 string, arg5 string) ([]byte, error) {
+func (fake *FakeFlux) CreateSourceGit(arg1 string, arg2 gitproviders.RepoURL, arg3 string, arg4 string, arg5 string) ([]byte, error) {
 	fake.createSourceGitMutex.Lock()
 	ret, specificReturn := fake.createSourceGitReturnsOnCall[len(fake.createSourceGitArgsForCall)]
 	fake.createSourceGitArgsForCall = append(fake.createSourceGitArgsForCall, struct {
 		arg1 string
-		arg2 string
+		arg2 gitproviders.RepoURL
 		arg3 string
 		arg4 string
 		arg5 string
@@ -514,13 +515,13 @@ func (fake *FakeFlux) CreateSourceGitCallCount() int {
 	return len(fake.createSourceGitArgsForCall)
 }
 
-func (fake *FakeFlux) CreateSourceGitCalls(stub func(string, string, string, string, string) ([]byte, error)) {
+func (fake *FakeFlux) CreateSourceGitCalls(stub func(string, gitproviders.RepoURL, string, string, string) ([]byte, error)) {
 	fake.createSourceGitMutex.Lock()
 	defer fake.createSourceGitMutex.Unlock()
 	fake.CreateSourceGitStub = stub
 }
 
-func (fake *FakeFlux) CreateSourceGitArgsForCall(i int) (string, string, string, string, string) {
+func (fake *FakeFlux) CreateSourceGitArgsForCall(i int) (string, gitproviders.RepoURL, string, string, string) {
 	fake.createSourceGitMutex.RLock()
 	defer fake.createSourceGitMutex.RUnlock()
 	argsForCall := fake.createSourceGitArgsForCall[i]

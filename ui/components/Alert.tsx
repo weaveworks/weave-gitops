@@ -10,14 +10,15 @@ import Flex from "./Flex";
 
 type Props = {
   className?: string;
+  center?: boolean;
   title?: string;
   message?: string | JSX.Element;
   severity?: AlertProps["severity"];
 };
 
-function Alert({ className, title, message, severity }: Props) {
+function Alert({ className, center, title, message, severity }: Props) {
   return (
-    <Flex wide className={className}>
+    <Flex wide center={center} className={className}>
       <MaterialAlert severity={severity}>
         <AlertTitle>{title}</AlertTitle>
         {message}

@@ -3,11 +3,17 @@ package app
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/pkg/apputils"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/services"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
+	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
 )
 
 var Cmd = &cobra.Command{
@@ -43,9 +49,13 @@ func getApplicationStatus(cmd *cobra.Command, args []string) error {
 	params.Name = args[0]
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 
-	appService, appError := apputils.GetAppService(ctx, params.Name, params.Namespace)
-	if appError != nil {
-		return fmt.Errorf("failed to create app service: %w", appError)
+	log := logger.NewCLILogger(os.Stdout)
+	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
+	factory := services.NewFactory(fluxClient, log)
+
+	appService, err := factory.GetAppService(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create app service: %w", err)
 	}
 
 	fluxOutput, lastSuccessReconciliation, err := appService.Status(params)
@@ -53,30 +63,31 @@ func getApplicationStatus(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed getting application status: %w", err)
 	}
 
-	logger := apputils.GetLogger()
-	logger.Printf("Last successful reconciliation: %s\n\n", lastSuccessReconciliation)
-	logger.Println(fluxOutput)
+	log.Printf("Last successful reconciliation: %s\n\n", lastSuccessReconciliation)
+	log.Println(fluxOutput)
 
 	return nil
 }
 
 func getApplications(cmd *cobra.Command) error {
-	kubeClient, _, err := kube.NewKubeHTTPClient()
+	_, k8s, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return fmt.Errorf("error initializing kubernetes client: %w", err)
 	}
 
-	ns, err := cmd.Parent().Flags().GetString("namespace")
-	if err != nil {
-		return err
-	}
+	fetcher := applicationv2.NewFetcher(k8s)
 
-	apps, err := kubeClient.GetApplications(context.Background(), ns)
+	ns, err := cmd.Parent().Parent().Flags().GetString("namespace")
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("NAME")
+
+	apps, err := fetcher.List(cmd.Context(), ns)
+	if err != nil {
+		return err
+	}
 
 	for _, app := range apps {
 		fmt.Println(app.Name)

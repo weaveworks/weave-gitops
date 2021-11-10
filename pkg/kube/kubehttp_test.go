@@ -343,7 +343,21 @@ metadata:
 			createKubeconfig("foo", "bar", dir, false)
 			_, _, err = kube.RestConfig()
 			Expect(err).To(HaveOccurred(), "Should receive an error about no current context ")
-
+		})
+		It("returns a sensisble clusterName inCluster", func() {
+			kube.InClusterConfig = func() (*rest.Config, error) { return nil, nil }
+			_, clusterName, err := kube.RestConfig()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(clusterName).To(Equal("default"))
+		})
+		It("derives the clusterName from the env inCluster", func() {
+			kube.InClusterConfig = func() (*rest.Config, error) { return nil, nil }
+			origcn := os.Getenv("CLUSTER_NAME")
+			defer os.Setenv("CLUSTER_NAME", origcn)
+			os.Setenv("CLUSTER_NAME", "foo")
+			_, clusterName, err := kube.RestConfig()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(clusterName).To(Equal("foo"))
 		})
 	})
 

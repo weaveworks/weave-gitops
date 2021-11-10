@@ -22,13 +22,13 @@ import (
 // AppService entity that manages applications
 type AppService interface {
 	// Add adds a new application to the cluster
-	Add(params AddParams) error
+	Add(configGit git.Git, gitProvider gitproviders.GitProvider, params AddParams) error
 	// Get returns a given applicaiton
 	Get(name types.NamespacedName) (*wego.Application, error)
 	// GetCommits returns a list of commits for an application
-	GetCommits(params CommitParams, application *wego.Application) ([]gitprovider.Commit, error)
+	GetCommits(gitProvider gitproviders.GitProvider, params CommitParams, application *wego.Application) ([]gitprovider.Commit, error)
 	// Remove removes an application from the cluster
-	Remove(params RemoveParams) error
+	Remove(configGit git.Git, gitProvider gitproviders.GitProvider, params RemoveParams) error
 	// Status returns flux resources status and the last successful reconciliation time
 	Status(params StatusParams) (string, string, error)
 	// Pause pauses the gitops automation for an app
@@ -39,63 +39,57 @@ type AppService interface {
 	Sync(params SyncParams) error
 }
 
-type App struct {
-	Context     context.Context
-	Osys        osys.Osys
-	AppGit      git.Git
-	ConfigGit   git.Git
-	Flux        flux.Flux
-	Kube        kube.Kube
-	Logger      logger.Logger
-	GitProvider gitproviders.GitProvider
-	Clock       clock.Clock
+type AppSvc struct {
+	Context context.Context
+	Osys    osys.Osys
+	Flux    flux.Flux
+	Kube    kube.Kube
+	Logger  logger.Logger
+	Clock   clock.Clock
 }
 
-func New(ctx context.Context, logger logger.Logger, appGit, configGit git.Git, gitProvider gitproviders.GitProvider, flux flux.Flux, kube kube.Kube, osys osys.Osys) AppService {
-	return &App{
-		Context:     ctx,
-		AppGit:      appGit,
-		ConfigGit:   configGit,
-		Flux:        flux,
-		Kube:        kube,
-		Logger:      logger,
-		Osys:        osys,
-		GitProvider: gitProvider,
-		Clock:       clock.New(),
+func New(ctx context.Context, logger logger.Logger, flux flux.Flux, kube kube.Kube, osys osys.Osys) AppService {
+	return &AppSvc{
+		Context: ctx,
+		Flux:    flux,
+		Kube:    kube,
+		Logger:  logger,
+		Osys:    osys,
+		Clock:   clock.New(),
 	}
 }
 
 // Make sure App implements all the required methods.
-var _ AppService = &App{}
+var _ AppService = &AppSvc{}
 
-func (a *App) getDeploymentType(ctx context.Context, name string, namespace string) (wego.DeploymentType, error) {
+func (a *AppSvc) getDeploymentType(ctx context.Context, name string, namespace string) (wego.DeploymentType, error) {
 	app, err := a.Kube.GetApplication(ctx, types.NamespacedName{Name: name, Namespace: namespace})
 	if err != nil {
 		return wego.DeploymentTypeKustomize, err
 	}
 
-	return wego.DeploymentType(app.Spec.DeploymentType), nil
+	return app.Spec.DeploymentType, nil
 }
 
-func (a *App) getSuspendedStatus(ctx context.Context, name, namespace string, deploymentType wego.DeploymentType) (bool, error) {
-	var automation client.Object
+func (a *AppSvc) getSuspendedStatus(ctx context.Context, name, namespace string, deploymentType wego.DeploymentType) (bool, error) {
+	var automationObject client.Object
 
 	switch deploymentType {
 	case wego.DeploymentTypeKustomize:
-		automation = &kustomizev2.Kustomization{}
+		automationObject = &kustomizev2.Kustomization{}
 	case wego.DeploymentTypeHelm:
-		automation = &helmv2.HelmRelease{}
+		automationObject = &helmv2.HelmRelease{}
 	default:
 		return false, fmt.Errorf("invalid deployment type: %v", deploymentType)
 	}
 
-	if err := a.Kube.GetResource(ctx, types.NamespacedName{Namespace: namespace, Name: name}, automation); err != nil {
+	if err := a.Kube.GetResource(ctx, types.NamespacedName{Namespace: namespace, Name: name}, automationObject); err != nil {
 		return false, err
 	}
 
 	suspendStatus := false
 
-	switch at := automation.(type) {
+	switch at := automationObject.(type) {
 	case *kustomizev2.Kustomization:
 		suspendStatus = at.Spec.Suspend
 	case *helmv2.HelmRelease:
@@ -105,7 +99,7 @@ func (a *App) getSuspendedStatus(ctx context.Context, name, namespace string, de
 	return suspendStatus, nil
 }
 
-func (a *App) pauseOrUnpause(suspendAction wego.SuspendActionType, name, namespace string) error {
+func (a *AppSvc) pauseOrUnpause(suspendAction wego.SuspendActionType, name, namespace string) error {
 	ctx := context.Background()
 
 	deploymentType, err := a.getDeploymentType(ctx, name, namespace)
@@ -159,21 +153,4 @@ func (a *App) pauseOrUnpause(suspendAction wego.SuspendActionType, name, namespa
 	}
 
 	return fmt.Errorf("invalid suspend action")
-}
-
-func IsClusterReady(l logger.Logger, k kube.Kube) error {
-	l.Waitingf("Checking cluster status")
-
-	clusterStatus := k.GetClusterStatus(context.Background())
-
-	switch clusterStatus {
-	case kube.Unmodified:
-		return fmt.Errorf("gitops not installed... exiting")
-	case kube.Unknown:
-		return fmt.Errorf("can not determine cluster status... exiting")
-	}
-
-	l.Successf(clusterStatus.String())
-
-	return nil
 }

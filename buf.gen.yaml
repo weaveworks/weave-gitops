@@ -8,9 +8,13 @@ plugins:
     opt: paths=source_relative
   - name: grpc-gateway
     out: pkg
-    opt: paths=source_relative
+    opt:
+      - paths=source_relative
+      - allow_delete_body=true
   - name: openapiv2
     out: ./
+    opt:
+      - allow_delete_body=true
   - name: grpc-gateway-ts
     out: ./ui/lib
     opt: fetch_module_directory=./api/applications

@@ -2,19 +2,14 @@ package app
 
 import (
 	"context"
-	"fmt"
-	"io/fs"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/models"
+	"github.com/weaveworks/weave-gitops/pkg/services/automation"
+	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
+	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
 	"k8s.io/apimachinery/pkg/types"
-)
-
-const (
-	RemoveCommitMessage = "Remove App manifests"
 )
 
 type RemoveParams struct {
@@ -25,7 +20,11 @@ type RemoveParams struct {
 }
 
 // Remove removes the Weave GitOps automation for an application
-func (a *App) Remove(params RemoveParams) error {
+func (a *AppSvc) Remove(configGit git.Git, gitProvider gitproviders.GitProvider, params RemoveParams) error {
+	if params.DryRun {
+		return nil
+	}
+
 	ctx := context.Background()
 
 	clusterName, err := a.Kube.GetClusterName(ctx)
@@ -39,148 +38,18 @@ func (a *App) Remove(params RemoveParams) error {
 	}
 
 	// Find all resources created when adding this app
-	info, err := getAppResourceInfo(*application, clusterName)
+	app, err := automation.WegoAppToApp(*application)
 	if err != nil {
 		return err
 	}
 
-	resources := info.clusterResources()
-
-	if info.configMode() == ConfigModeClusterOnly {
-		gvrApp, err := ResourceKindApplication.ToGVR()
-		if err != nil {
-			return err
-		}
-
-		if err := a.Kube.DeleteByName(ctx, info.appResourceName(), gvrApp, info.Namespace); err != nil {
-			return clusterDeleteError(info.appResourceName(), err)
-		}
-
-		gvrSource, err := info.sourceKind().ToGVR()
-		if err != nil {
-			return err
-		}
-
-		if err := a.Kube.DeleteByName(ctx, info.appSourceName(), gvrSource, info.Namespace); err != nil {
-			return clusterDeleteError(info.appResourceName(), err)
-		}
-
-		gvrDeployKind, err := info.deployKind().ToGVR()
-		if err != nil {
-			return err
-		}
-
-		if err := a.Kube.DeleteByName(ctx, info.appDeployName(), gvrDeployKind, info.Namespace); err != nil {
-			return clusterDeleteError(info.appResourceName(), err)
-		}
-
-		return nil
-	}
-
-	cloneURL, branch, err := a.getConfigUrlAndBranch(ctx, info)
-	if err != nil {
-		return fmt.Errorf("failed to obtain config URL and branch: %w", err)
-	}
-
-	remover, _, err := a.cloneRepo(a.ConfigGit, cloneURL.String(), branch, params.DryRun)
-
-	if err != nil {
-		return fmt.Errorf("failed to clone configuration repo: %w", err)
-	}
-
-	defer remover()
-
-	a.Logger.Actionf("Removing application from cluster and repository")
-
-	if !params.DryRun {
-		for _, resourceRef := range resources {
-			if resourceRef.repositoryPath != "" { // Some of the automation doesn't get stored
-				if err := a.ConfigGit.Remove(resourceRef.repositoryPath); err != nil {
-					return err
-				}
-			} else if resourceRef.kind == ResourceKindKustomization ||
-				resourceRef.kind == ResourceKindHelmRelease {
-				gvrDeployKind, err := resourceRef.kind.ToGVR()
-				if err != nil {
-					return err
-				}
-				if err := a.Kube.DeleteByName(ctx, resourceRef.name, gvrDeployKind, info.Namespace); err != nil {
-					return clusterDeleteError(info.appResourceName(), err)
-				}
-			}
-		}
-
-		return a.commitAndPush(a.ConfigGit, RemoveCommitMessage, params.DryRun)
-	}
-
-	return nil
+	return a.removeApp(ctx, configGit, gitProvider, app, clusterName, true) // We're using "true" here until we add removal via PR
 }
 
-func (a *App) getConfigUrlAndBranch(ctx context.Context, info *AppResourceInfo) (gitproviders.RepoURL, string, error) {
-	configUrl := info.Spec.ConfigURL
-	if configUrl == string(ConfigTypeUserRepo) {
-		configUrl = info.Spec.URL
-	}
+func (a *AppSvc) removeApp(ctx context.Context, configGit git.Git, gitProvider gitproviders.GitProvider, app models.Application, clusterName string, autoMerge bool) error {
+	repoWriter := gitrepo.NewRepoWriter(app.ConfigURL, gitProvider, configGit, a.Logger)
+	automationGen := automation.NewAutomationGenerator(gitProvider, a.Flux, a.Logger)
+	gitOpsDirWriter := gitopswriter.NewGitOpsDirectoryWriter(automationGen, repoWriter, a.Osys, a.Logger)
 
-	repoUrl, err := gitproviders.NewRepoURL(configUrl)
-	if err != nil {
-		return gitproviders.RepoURL{}, "", err
-	}
-
-	branch := info.Spec.Branch
-
-	if branch != "" {
-		branch, err = a.GitProvider.GetDefaultBranch(ctx, repoUrl)
-		if err != nil {
-			return gitproviders.RepoURL{}, "", err
-		}
-	}
-
-	return repoUrl, branch, nil
-}
-
-func clusterDeleteError(name string, err error) error {
-	return fmt.Errorf("failed to delete resource: %s with error: %w", name, err)
-}
-
-func dirExists(d string) bool {
-	info, err := os.Stat(d)
-	if os.IsNotExist(err) {
-		return false
-	}
-
-	return info.IsDir()
-}
-
-// findAppManifests locates all manifests associated with a specific application within a repository;
-// only used when "RemoveWorkload" is specified
-func findAppManifests(application wego.Application, repoDir string) ([][]byte, error) {
-	root := filepath.Join(repoDir, application.Spec.Path)
-	if !dirExists(root) {
-		return nil, fmt.Errorf("application path '%s' not found", application.Spec.Path)
-	}
-
-	manifests := [][]byte{}
-
-	err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if !entry.IsDir() && filepath.Ext(path) == ".yaml" {
-			manifest, err := ioutil.ReadFile(path)
-			if err != nil {
-				return err
-			}
-			manifests = append(manifests, manifest)
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return manifests, nil
+	return gitOpsDirWriter.RemoveApplication(ctx, app, clusterName, autoMerge)
 }
