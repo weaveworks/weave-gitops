@@ -10,6 +10,10 @@ type DashboardPageElements struct {
 	AddAppButton       *agouti.Selection
 }
 
+type AppListElements struct {
+	AppList *agouti.Selection
+}
+
 func GetDashboardPageElements(webDriver *agouti.Page) *DashboardPageElements {
 	dashboard := DashboardPageElements{
 		LogoImage:          webDriver.FindByXPath(`//*[@id="app"]/div//img`),
@@ -17,4 +21,10 @@ func GetDashboardPageElements(webDriver *agouti.Page) *DashboardPageElements {
 		AddAppButton:       webDriver.FindByXPath(`//*[@id="app"]//button`)}
 
 	return &dashboard
+}
+
+func GetAppListElements(webDriver *agouti.Page, appName string) *AppListElements {
+	appList := AppListElements{
+		AppList: webDriver.FindByXPath(`//*[@id="app"]//tbody/tr/td/span/a[contains(@href,'` + appName + `')]`)}
+	return &appList
 }

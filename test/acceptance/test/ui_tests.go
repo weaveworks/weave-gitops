@@ -9,25 +9,32 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
+	. "github.com/sclevine/agouti/matchers"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/test/acceptance/test/pages"
 )
 
 var err error
+var imgSrc string
+var pageTitle string
+var pageHeader string
+var deleteWegoRuntime bool
 var webDriver *agouti.Page
+var httpResponse *http.Response
+var dashboardPage *pages.DashboardPageElements
 
 var _ = Describe("Weave GitOps UI Test", func() {
 
-	applicationPageHeader := "Applications"
 	addApplicationPageHeader := "Add Application"
 
-	deleteWegoRuntime := false
+	deleteWegoRuntime = false
 	if os.Getenv("DELETE_WEGO_RUNTIME_ON_EACH_TEST") == "true" {
 		deleteWegoRuntime = true
 	}
 
 	BeforeEach(func() {
+
 		os := runtime.GOOS
 		log.Infof("Running tests on OS: " + os)
 
@@ -48,44 +55,29 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		})
 
 		By("And I open up a browser", func() {
-
-			if os == "linux" {
-				webDriver, err = agouti.NewPage(SELENIUM_SERVICE_URL, agouti.Desired(agouti.Capabilities{
-					"chromeOptions": map[string][]string{
-						"args": {
-							"--disable-gpu",
-							"--no-sandbox",
-						}}}))
-				Expect(err).NotTo(HaveOccurred(), "Error creating new page")
-			}
-
-			if os == "darwin" {
-				chromeDriver := agouti.ChromeDriver(agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox"}))
-				err = chromeDriver.Start()
-				Expect(err).NotTo(HaveOccurred())
-				webDriver, err = chromeDriver.NewPage()
-				Expect(err).NotTo(HaveOccurred(), "Error creating new page")
-			}
+			initializeWebDriver(os)
 		})
 
 		By("When I navigate to the dashboard", func() {
 			Expect(webDriver.Navigate(WEGO_UI_URL)).To(Succeed())
 		})
 
-		By("Then I should see Application page", func() {
-			dashboardPage := pages.GetDashboardPageElements(webDriver)
-			pageHeader, _ := dashboardPage.ApplicationsHeader.Text()
+		By("Then I should see application page", func() {
+			dashboardPage = pages.GetDashboardPageElements(webDriver)
 
-			title, _ := webDriver.Title()
-			Eventually(title, THIRTY_SECOND_TIMEOUT).Should(ContainSubstring(WEGO_DASHBOARD_TITLE))
+			pageTitle, _ = webDriver.Title()
+			Eventually(pageTitle, THIRTY_SECOND_TIMEOUT).Should(ContainSubstring(WEGO_DASHBOARD_TITLE))
 
-			src, _ := dashboardPage.LogoImage.Attribute("src")
+			imgSrc, _ = dashboardPage.LogoImage.Attribute("src")
 
-			response, err := http.Get(src)
+			httpResponse, err = http.Get(imgSrc)
 			Expect(err).ShouldNot(HaveOccurred(), "Logo image is broken")
-			Expect(response.StatusCode).Should(Equal(200))
+			Expect(httpResponse.StatusCode).Should(Equal(200))
 
-			Eventually(pageHeader, THIRTY_SECOND_TIMEOUT).Should(ContainSubstring(applicationPageHeader))
+			Eventually(dashboardPage.ApplicationsHeader).Should(BeFound())
+
+			pageHeader, _ = dashboardPage.ApplicationsHeader.Text()
+			Eventually(pageHeader).Should(ContainSubstring(APP_PAGE_HEADER))
 		})
 	})
 
@@ -95,14 +87,15 @@ var _ = Describe("Weave GitOps UI Test", func() {
 	})
 
 	It("SmokeTest - Verify gitops can add apps from the UI to an empty cluster", func() {
+		var addAppPage *pages.AddAppPageElements
 		var repoAbsolutePath string
 		tip := generateTestInputs()
 		appName := tip.appRepoName
 		private := true
 		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 
-		dashboardPage := pages.GetDashboardPageElements(webDriver)
-		addAppPage := pages.GetAddAppPageElements(webDriver)
+		dashboardPage = pages.GetDashboardPageElements(webDriver)
+		addAppPage = pages.GetAddAppPageElements(webDriver)
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
@@ -146,6 +139,9 @@ var _ = Describe("Weave GitOps UI Test", func() {
 	})
 
 	It("SmokeTest - Verify gitops UI can list details of apps running in the cluster", func() {
+		var linkToApp1 *pages.AppListElements
+		var linkToApp2 *pages.AppListElements
+		var appPageURL string
 		var repoAbsolutePath string
 		tip := generateTestInputs()
 		public := false
@@ -195,11 +191,29 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		})
 
 		By("And I should see app names listed on the UI", func() {
-
 			_ = webDriver.Refresh()
 
+			linkToApp1 = pages.GetAppListElements(webDriver, appName1)
+			linkToApp2 = pages.GetAppListElements(webDriver, appName2)
+
+			Eventually(linkToApp1.AppList).Should(BeFound())
+			Eventually(linkToApp2.AppList).Should(BeFound())
+
+			link1, _ := linkToApp1.AppList.Attribute("href")
+			Expect(link1).To(ContainSubstring(appName1))
+
+			link2, _ := linkToApp2.AppList.Attribute("href")
+			Expect(link2).To(ContainSubstring(appName2))
 		})
 
-		By("When I click on appName1: " + appName2)
+		By("When I click on appName1: "+appName1, func() {
+			Expect(linkToApp1.AppList.Click()).To(Succeed())
+		})
+
+		By("Then I should be able to navigate to app details page for app1", func() {
+			appPageURL, _ = webDriver.URL()
+			Eventually(appPageURL).Should(MatchRegexp(WEGO_UI_URL + `/application_detail.*` + appName1))
+		})
+
 	})
 })

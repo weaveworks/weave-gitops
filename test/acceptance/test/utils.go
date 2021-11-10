@@ -25,6 +25,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	"github.com/sclevine/agouti"
 	log "github.com/sirupsen/logrus"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -45,6 +46,7 @@ const SELENIUM_SERVICE_URL = "http://localhost:4444/wd/hub"
 const SCREENSHOTS_DIR string = "screenshots/"
 const DEFAULT_BRANCH_NAME = "main"
 const WEGO_DASHBOARD_TITLE string = "Weave GitOps"
+const APP_PAGE_HEADER string = "Applications"
 
 var DEFAULT_SSH_KEY_PATH string
 var GITHUB_ORG string
@@ -681,6 +683,26 @@ func setArtifactsDir() string {
 	}
 
 	return os.Getenv("ARTIFACTS_BASE_DIR")
+}
+
+func initializeWebDriver(os string) {
+	if os == "linux" {
+		webDriver, err = agouti.NewPage(SELENIUM_SERVICE_URL, agouti.Desired(agouti.Capabilities{
+			"chromeOptions": map[string][]string{
+				"args": {
+					"--disable-gpu",
+					"--no-sandbox",
+				}}}))
+	}
+
+	if os == "darwin" {
+		chromeDriver := agouti.ChromeDriver(agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox"}))
+		err = chromeDriver.Start()
+		Expect(err).NotTo(HaveOccurred())
+		webDriver, err = chromeDriver.NewPage()
+	}
+
+	Expect(err).NotTo(HaveOccurred(), "Error creating new page")
 }
 
 func takeScreenshot() string {
