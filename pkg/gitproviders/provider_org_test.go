@@ -141,7 +141,7 @@ var _ = Describe("Org Provider", func() {
 			deployKeyClient.CreateReturns(nil, gitprovider.ErrNotFound)
 
 			err := orgProvider.UploadDeployKey(ctx, repoUrl, []byte("my-key"))
-			Expect(err).Should(Equal(RepositoryNoPermissionsOrDoesNotExistError))
+			Expect(err).Should(Equal(ErrRepositoryNoPermissionsOrDoesNotExist))
 		})
 
 		It("creates the deploy key", func() {
