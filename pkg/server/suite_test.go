@@ -101,11 +101,15 @@ var _ = BeforeEach(func() {
 	fakeFactory = &servicesfakes.FakeFactory{}
 	configGit = &gitfakes.FakeGit{}
 
-	fakeFactory.GetAppServiceReturns(&app.App{
+	fluxClient := flux.New(osysClient, &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}})
+	logger := &loggerfakes.FakeLogger{}
+
+	fakeFactory.GetAppServiceReturns(&app.AppSvc{
 		Context: context.Background(),
-		Flux:    flux.New(osysClient, &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}}),
+		Flux:    fluxClient,
 		Kube:    k,
-		Logger:  &loggerfakes.FakeLogger{},
+		Logger:  logger,
+		Osys:    osysClient,
 	}, nil)
 
 	fakeFactory.GetGitClientsReturns(configGit, gitProvider, nil)

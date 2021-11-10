@@ -1,4 +1,4 @@
-package app
+package gitopswriter
 
 import (
 	"context"
@@ -14,17 +14,19 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
+	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/osys/osysfakes"
 )
 
 var (
-	gitClient    *gitfakes.FakeGit
-	fluxClient   *fluxfakes.FakeFlux
-	kubeClient   *kubefakes.FakeKube
-	osysClient   *osysfakes.FakeOsys
-	gitProviders *gitprovidersfakes.FakeGitProvider
-	log          *loggerfakes.FakeLogger
-	appSrv       AppService
+	gitClient       *gitfakes.FakeGit
+	fluxClient      *fluxfakes.FakeFlux
+	kubeClient      *kubefakes.FakeKube
+	osysClient      *osysfakes.FakeOsys
+	gitProviders    *gitprovidersfakes.FakeGitProvider
+	log             *loggerfakes.FakeLogger
+	app             models.Application
+	gitOpsDirWriter GitOpsDirectoryWriter
 )
 
 var _ = BeforeEach(func() {
@@ -50,10 +52,9 @@ var _ = BeforeEach(func() {
 	}
 
 	log = &loggerfakes.FakeLogger{}
-	appSrv = New(context.Background(), log, fluxClient, kubeClient, osysClient)
 })
 
-func TestApp(t *testing.T) {
+func TestWriter(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "App Suite")
+	RunSpecs(t, "GitOpsDirectoryWriter Suite")
 }

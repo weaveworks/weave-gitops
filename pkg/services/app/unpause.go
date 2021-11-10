@@ -7,6 +7,6 @@ type UnpauseParams struct {
 	Namespace string
 }
 
-func (a *App) Unpause(params UnpauseParams) error {
+func (a *AppSvc) Unpause(params UnpauseParams) error {
 	return a.pauseOrUnpause(wego.ResumeAction, params.Name, params.Namespace)
 }

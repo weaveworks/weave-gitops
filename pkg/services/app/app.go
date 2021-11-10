@@ -14,6 +14,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -38,25 +39,30 @@ type AppService interface {
 	Sync(params SyncParams) error
 }
 
-type App struct {
+type AppSvc struct {
 	Context context.Context
+	Osys    osys.Osys
 	Flux    flux.Flux
 	Kube    kube.Kube
 	Logger  logger.Logger
 	Clock   clock.Clock
 }
 
-func New(ctx context.Context, logger logger.Logger, flux flux.Flux, kube kube.Kube) AppService {
-	return &App{
+func New(ctx context.Context, logger logger.Logger, flux flux.Flux, kube kube.Kube, osys osys.Osys) AppService {
+	return &AppSvc{
 		Context: ctx,
 		Flux:    flux,
 		Kube:    kube,
 		Logger:  logger,
+		Osys:    osys,
 		Clock:   clock.New(),
 	}
 }
 
-func (a *App) getDeploymentType(ctx context.Context, name string, namespace string) (wego.DeploymentType, error) {
+// Make sure App implements all the required methods.
+var _ AppService = &AppSvc{}
+
+func (a *AppSvc) getDeploymentType(ctx context.Context, name string, namespace string) (wego.DeploymentType, error) {
 	app, err := a.Kube.GetApplication(ctx, types.NamespacedName{Name: name, Namespace: namespace})
 	if err != nil {
 		return wego.DeploymentTypeKustomize, err
@@ -65,25 +71,25 @@ func (a *App) getDeploymentType(ctx context.Context, name string, namespace stri
 	return app.Spec.DeploymentType, nil
 }
 
-func (a *App) getSuspendedStatus(ctx context.Context, name, namespace string, deploymentType wego.DeploymentType) (bool, error) {
-	var automation client.Object
+func (a *AppSvc) getSuspendedStatus(ctx context.Context, name, namespace string, deploymentType wego.DeploymentType) (bool, error) {
+	var automationObject client.Object
 
 	switch deploymentType {
 	case wego.DeploymentTypeKustomize:
-		automation = &kustomizev2.Kustomization{}
+		automationObject = &kustomizev2.Kustomization{}
 	case wego.DeploymentTypeHelm:
-		automation = &helmv2.HelmRelease{}
+		automationObject = &helmv2.HelmRelease{}
 	default:
 		return false, fmt.Errorf("invalid deployment type: %v", deploymentType)
 	}
 
-	if err := a.Kube.GetResource(ctx, types.NamespacedName{Namespace: namespace, Name: name}, automation); err != nil {
+	if err := a.Kube.GetResource(ctx, types.NamespacedName{Namespace: namespace, Name: name}, automationObject); err != nil {
 		return false, err
 	}
 
 	suspendStatus := false
 
-	switch at := automation.(type) {
+	switch at := automationObject.(type) {
 	case *kustomizev2.Kustomization:
 		suspendStatus = at.Spec.Suspend
 	case *helmv2.HelmRelease:
@@ -93,7 +99,7 @@ func (a *App) getSuspendedStatus(ctx context.Context, name, namespace string, de
 	return suspendStatus, nil
 }
 
-func (a *App) pauseOrUnpause(suspendAction wego.SuspendActionType, name, namespace string) error {
+func (a *AppSvc) pauseOrUnpause(suspendAction wego.SuspendActionType, name, namespace string) error {
 	ctx := context.Background()
 
 	deploymentType, err := a.getDeploymentType(ctx, name, namespace)

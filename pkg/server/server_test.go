@@ -5,9 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -37,6 +40,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/osys/osysfakes"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
@@ -571,7 +575,7 @@ var _ = Describe("ApplicationsServer", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(res.Success).To(BeTrue())
 
-			Expect(configGit.CommitCallCount()).To(Equal(1), "should have committed to config git repo")
+			Expect(configGit.CommitCallCount()).To(Equal(0), "should have committed to config git repo")
 			Expect(gitProvider.CreatePullRequestCallCount()).To(Equal(1), "should have made a PR")
 		})
 		It("adds an app with automerge and no config repo defined", func() {
@@ -601,23 +605,64 @@ var _ = Describe("ApplicationsServer", func() {
 		var ctx context.Context
 		var fakeKube *kubefakes.FakeKube
 		var name string
+		var manifestPaths map[string]bool
+		var appDir string
+
+		storeManifestPath := func(path string) {
+			if strings.HasSuffix(path, "user/kustomization.yaml") {
+				return
+			}
+
+			appDir = filepath.Dir(path)
+			manifestPaths[path] = true
+		}
+
+		removeManifestPath := func(basepath string) error {
+			path := filepath.Join(appDir, basepath)
+
+			if !manifestPaths[path] {
+				return fmt.Errorf("manifest path: %s not found in repository", path)
+			}
+
+			delete(manifestPaths, path)
+
+			return nil
+		}
 
 		BeforeEach(func() {
 			ctx = context.Background()
 			fakeKube = &kubefakes.FakeKube{}
 			name = "my-app"
+			manifestPaths = map[string]bool{}
 
-			fakeFactory.GetAppServiceReturns(&app.App{
+			fakeOsys := &osysfakes.FakeOsys{}
+			fluxClient := flux.New(osys.New(), &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}})
+			log := &loggerfakes.FakeLogger{}
+
+			fakeFactory.GetAppServiceReturns(&app.AppSvc{
 				Context: ctx,
-				Flux:    flux.New(osys.New(), &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}}),
+				Flux:    fluxClient,
 				Kube:    fakeKube,
-				Logger:  &loggerfakes.FakeLogger{},
+				Logger:  log,
+				Osys:    fakeOsys,
 			}, nil)
 
 			fakeFactory.GetGitClientsReturns(configGit, gitProvider, nil)
 			fakeFactory.GetKubeServiceReturns(fakeKube, nil)
-
 			gitProvider.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
+
+			configGit.WriteStub = func(path string, manifest []byte) error {
+				storeManifestPath(path)
+				return nil
+			}
+
+			configGit.RemoveStub = func(path string) error {
+				return removeManifestPath(path)
+			}
+
+			fakeOsys.ReadDirStub = func(dirName string) ([]os.DirEntry, error) {
+				return makeDirEntries(manifestPaths), nil
+			}
 		})
 
 		DescribeTable(
@@ -662,7 +707,7 @@ var _ = Describe("ApplicationsServer", func() {
 			Entry(
 				"kustomize, app repo config, auto merge",
 				"ssh://git@github.com/foo/bar",
-				"",
+				"ssh://git@github.com/foo/bar",
 				wego.SourceTypeGit,
 				wego.DeploymentTypeKustomize,
 				true,
@@ -676,15 +721,6 @@ var _ = Describe("ApplicationsServer", func() {
 				wego.DeploymentTypeKustomize,
 				true,
 				1,
-				0),
-			Entry(
-				"kustomize, no repo config, auto merge",
-				"ssh://git@github.com/foo/bar",
-				"NONE",
-				wego.SourceTypeGit,
-				wego.DeploymentTypeKustomize,
-				true,
-				0,
 				0))
 	})
 
@@ -1122,4 +1158,36 @@ func contextWithAuth(ctx context.Context) context.Context {
 	ctx = metadata.NewOutgoingContext(ctx, md)
 
 	return ctx
+}
+
+// Support for remove tests
+
+type dummyDirEntry struct {
+	name string
+}
+
+func (d dummyDirEntry) Name() string {
+	return d.name
+}
+
+func (d dummyDirEntry) IsDir() bool {
+	return false
+}
+
+func (d dummyDirEntry) Type() fs.FileMode {
+	return fs.ModeDir
+}
+
+func (d dummyDirEntry) Info() (fs.FileInfo, error) {
+	return nil, nil
+}
+
+func makeDirEntries(paths map[string]bool) []os.DirEntry {
+	results := []os.DirEntry{}
+
+	for path := range paths {
+		results = append(results, dummyDirEntry{name: filepath.Base(path)})
+	}
+
+	return results
 }

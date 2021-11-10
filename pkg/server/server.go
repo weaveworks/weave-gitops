@@ -359,7 +359,7 @@ func (s *applicationServer) SyncApplication(ctx context.Context, msg *pb.SyncApp
 		}, fmt.Errorf("failed to create kube service: %w", err)
 	}
 
-	appSrv := &app.App{
+	appSrv := &app.AppSvc{
 		Kube:  kube,
 		Clock: clock.New(),
 	}
