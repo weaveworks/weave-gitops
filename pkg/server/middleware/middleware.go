@@ -75,16 +75,16 @@ type contextVals struct {
 type key int
 
 const (
-	tokenKey            key = iota
-	GRPCAuthMetadataKey     = "grpc-auth"
-	ProviderTokenHeader     = "X-Git-Provider-Token"
+	tokenKey               key = iota
+	GRPCAuthMetadataKey        = "grpc-auth"
+	GitProviderTokenHeader     = "X-Git-Provider-Token"
 )
 
 // Injects the token into the request context to be retrieved later.
 // Use the ExtractToken func inside the server handler where appropriate.
 func WithProviderToken(jwtClient auth.JWTClient, h http.Handler, log logr.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tokenStr := r.Header.Get(ProviderTokenHeader)
+		tokenStr := r.Header.Get(GitProviderTokenHeader)
 		tokenSlice := strings.Split(tokenStr, "token ")
 
 		if len(tokenSlice) < 2 {
