@@ -88,26 +88,25 @@ var _ = Describe("Install", func() {
 		Expect(appCRD).To(ContainSubstring("kind: App"))
 		Expect(namespace).To(Equal(wego.DefaultNamespace))
 
-		_, serviceAccount, namespace := kubeClient.ApplyArgsForCall(1)
-		Expect(serviceAccount).To(ContainSubstring("kind: ServiceAccount"))
+		_, deployment, namespace := kubeClient.ApplyArgsForCall(1)
+		Expect(string(deployment)).To(ContainSubstring("kind: Deployment"))
 		Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 		_, roleBinding, namespace := kubeClient.ApplyArgsForCall(2)
-		Expect(roleBinding).To(ContainSubstring("kind: RoleBinding"))
+		Expect(string(roleBinding)).To(ContainSubstring("kind: RoleBinding"))
 		Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 		_, role, namespace := kubeClient.ApplyArgsForCall(3)
-		Expect(role).To(ContainSubstring("kind: Role"))
+		Expect(string(role)).To(ContainSubstring("kind: Role"))
 		Expect(namespace).To(Equal(wego.DefaultNamespace))
 
-		_, service, namespace := kubeClient.ApplyArgsForCall(4)
-		Expect(service).To(ContainSubstring("kind: Service"))
+		_, serviceAccount, namespace := kubeClient.ApplyArgsForCall(4)
+		Expect(string(serviceAccount)).To(ContainSubstring("kind: ServiceAccount"))
 		Expect(namespace).To(Equal(wego.DefaultNamespace))
 
-		_, deployment, namespace := kubeClient.ApplyArgsForCall(5)
-		Expect(deployment).To(ContainSubstring("kind: Deployment"))
+		_, service, namespace := kubeClient.ApplyArgsForCall(5)
+		Expect(string(service)).To(ContainSubstring("kind: Service"))
 		Expect(namespace).To(Equal(wego.DefaultNamespace))
-
 	})
 
 	Context("when dry-run", func() {
