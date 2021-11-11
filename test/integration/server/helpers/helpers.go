@@ -3,11 +3,11 @@
 package helpers
 
 import (
-	"bytes"
 	"context"
 	_ "embed"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -57,7 +57,7 @@ func CreateRepo(ctx context.Context, gp gitprovider.Client, url string) (gitprov
 		return nil, nil, fmt.Errorf("could not reconcile org repo: %w", err)
 	}
 
-	err = utils.WaitUntil(bytes.NewBuffer([]byte{}), 3*time.Second, 5*time.Second, func() error {
+	err = utils.WaitUntil(os.Stdout, 3*time.Second, 9*time.Second, func() error {
 		_, err := gp.OrgRepositories().Get(ctx, *ref)
 		if err != nil {
 			return err
