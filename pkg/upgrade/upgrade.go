@@ -71,6 +71,7 @@ func Upgrade(ctx context.Context, upgradeValues UpgradeValues, w io.Writer) erro
 	if err != nil {
 		return fmt.Errorf("error creating client for cluster %v", err)
 	}
+
 	gitClient := git.New(nil, wrapper.NewGoGit())
 
 	return upgrade(ctx, upgradeValues, gitClient, kubeClient, auth.InitGitProvider, w)
@@ -94,7 +95,9 @@ func upgrade(ctx context.Context, upgradeValues UpgradeValues, gitClient git.Git
 	if err != nil {
 		return fmt.Errorf("error marshalling helm resources: %w", err)
 	}
+
 	stringOut := string(out)
+
 	if uv.DryRun {
 		w.Write([]byte(stringOut + "\n"))
 		return nil
@@ -117,6 +120,7 @@ func upgrade(ctx context.Context, upgradeValues UpgradeValues, gitClient git.Git
 
 	osysClient := osys.New()
 	logger := logger.NewCLILogger(osysClient.Stdout())
+
 	gitProvider, err := initGitProvider(normalizedURL, osysClient, logger, authHandler, gitproviders.GetAccountType)
 	if err != nil {
 		return fmt.Errorf("error obtaining git provider token: %w", err)
@@ -139,6 +143,7 @@ func upgrade(ctx context.Context, upgradeValues UpgradeValues, gitClient git.Git
 	}
 
 	_, err = gitProvider.CreatePullRequest(ctx, normalizedURL, pri)
+
 	return err
 }
 
@@ -150,6 +155,7 @@ func marshalToYamlStream(objects []runtime.Object) ([]byte, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal HelmRepository object to YAML: %w", err)
 		}
+
 		out = append(out, b)
 	}
 
@@ -227,6 +233,7 @@ func buildUpgradeConfigs(ctx context.Context, uv UpgradeValues, kubeClient clien
 	if err != nil {
 		return nil, err
 	}
+
 	uv.RepoURL = repoUrlString
 
 	// Calculate defaults from current working directory
@@ -267,8 +274,9 @@ func getBasicAuth(ctx context.Context, kubeClient client.Client, ns string) erro
 
 	username := string(deployKeySecret.Data["username"])
 	password := string(deployKeySecret.Data["password"])
+
 	if username == "" || password == "" {
-		return errors.New("username or password missing in secret")
+		return errors.New("username or password missing in entitlement secret, may be an old entitlement file")
 	}
 
 	return nil
