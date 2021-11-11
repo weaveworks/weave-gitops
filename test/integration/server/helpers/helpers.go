@@ -47,10 +47,11 @@ func CreateRepo(ctx context.Context, gp gitprovider.Client, url string) (gitprov
 		return nil, ref, fmt.Errorf("error parsing url: %w", err)
 	}
 
+	defaultBranch := "main"
 	repo, _, err := gp.OrgRepositories().Reconcile(ctx, *ref, gitprovider.RepositoryInfo{
 		Description:   gitprovider.StringVar("Integration test repo"),
 		Visibility:    gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityPrivate),
-		DefaultBranch: gitprovider.StringVar("main"),
+		DefaultBranch: gitprovider.StringVar(defaultBranch),
 	}, &gitprovider.RepositoryCreateOptions{AutoInit: gitprovider.BoolVar(true)})
 
 	if err != nil {
@@ -58,9 +59,18 @@ func CreateRepo(ctx context.Context, gp gitprovider.Client, url string) (gitprov
 	}
 
 	err = utils.WaitUntil(os.Stdout, 3*time.Second, 9*time.Second, func() error {
-		_, err := gp.OrgRepositories().Get(ctx, *ref)
+		r, err := gp.OrgRepositories().Get(ctx, *ref)
 		if err != nil {
 			return err
+		}
+
+		commits, err := r.Commits().ListPage(ctx, defaultBranch, 1, 0)
+		if err != nil {
+			return err
+		}
+
+		if len(commits) == 0 {
+			return fmt.Errorf("there are no commits yet")
 		}
 
 		return nil
