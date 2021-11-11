@@ -3,6 +3,9 @@ package gitops_test
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -13,10 +16,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	log "github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
-	"io/ioutil"
-	"os"
 )
 
 var (
@@ -44,7 +45,7 @@ var _ = Describe("Install", func() {
 		gitClient := git.New(nil, wrapper.NewGoGit())
 		Expect(gitClient.Init(dir, "https://github.com/github/gitignore", "master")).To(BeTrue())
 
-		gitopsSrv = gitops.New(log.NewCLILogger(os.Stderr), fluxClient, kubeClient)
+		gitopsSrv = gitops.New(&loggerfakes.FakeLogger{}, fluxClient, kubeClient)
 
 		installParams = gitops.InstallParams{
 			Namespace: wego.DefaultNamespace,
