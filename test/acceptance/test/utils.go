@@ -184,7 +184,7 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 
 	k8sVersion, found := os.LookupEnv("K8S_VERSION")
 	if !found {
-		k8sVersion = "1.20.2"
+		k8sVersion = "1.21.1"
 	}
 
 	if !contains(supportedProviders, provider) {
