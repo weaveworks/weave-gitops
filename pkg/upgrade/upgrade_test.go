@@ -13,11 +13,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth"
+	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -89,6 +86,8 @@ func TestUpgradeDryRun(t *testing.T) {
 		return "git@github.com:org/repo.git", nil
 	}
 	kubeClient := makeClient(t, createSecret(), createGitRepository("my-app"))
+	gitProvider := &gitprovidersfakes.FakeGitProvider{}
+	logger := &loggerfakes.FakeLogger{}
 
 	var output bytes.Buffer
 
@@ -102,7 +101,7 @@ func TestUpgradeDryRun(t *testing.T) {
 		Namespace:     wego.DefaultNamespace,
 		DryRun:        true,
 		GitRepository: filepath.Join(wego.DefaultNamespace, "my-app"),
-	}, gitClient, kubeClient, makeInitGitProvider(&gitprovidersfakes.FakeGitProvider{}), &output)
+	}, gitClient, kubeClient, gitProvider, logger, &output)
 
 	assert.Contains(t, output.String(), "kind: HelmRelease")
 	assert.Contains(t, output.String(), "kind: HelmRepository")
@@ -115,10 +114,10 @@ func TestUpgrade(t *testing.T) {
 		return "git@github.com:org/repo.git", nil
 	}
 	kubeClient := makeClient(t, createSecret(), createGitRepository("my-app"))
+	gitProvider := &gitprovidersfakes.FakeGitProvider{}
+	logger := &loggerfakes.FakeLogger{}
 
 	var output bytes.Buffer
-
-	initGitProvider := makeInitGitProvider(&gitprovidersfakes.FakeGitProvider{})
 
 	// Run upgrade!
 	err := upgrade(context.TODO(), UpgradeValues{
@@ -129,21 +128,9 @@ func TestUpgrade(t *testing.T) {
 		CommitMessage: "Upgrade to wge",
 		Namespace:     wego.DefaultNamespace,
 		GitRepository: filepath.Join(wego.DefaultNamespace, "my-app"),
-	}, gitClient, kubeClient, initGitProvider, &output)
+	}, gitClient, kubeClient, gitProvider, logger, &output)
 
 	assert.NoError(t, err)
-}
-
-func makeInitGitProvider(gp *gitprovidersfakes.FakeGitProvider) InitGitProvider {
-	return func(
-		repoUrl gitproviders.RepoURL,
-		osysClient osys.Osys,
-		logger logger.Logger,
-		cliAuthHandler auth.BlockingCLIAuthHandler,
-		getAccountType gitproviders.AccountTypeGetter,
-	) (gitproviders.GitProvider, error) {
-		return gp, nil
-	}
 }
 
 func TestGetGitAuthFromDeployKey(t *testing.T) {

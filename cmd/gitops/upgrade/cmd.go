@@ -7,6 +7,12 @@ import (
 
 	"github.com/spf13/cobra"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/cmd/internal"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/services"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/upgrade"
 )
 
@@ -45,9 +51,27 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 		// FIXME: maybe a better way to do this?
 		upgradeCmdFlags.Namespace = namespace
 
+		log := internal.NewCLILogger(os.Stdout)
+		fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
+		factory := services.NewFactory(fluxClient, log)
+
+		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
+
+		gitClient, gitProvider, err := factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
+			URL:       upgradeCmdFlags.RepoURL,
+			Namespace: upgradeCmdFlags.Namespace,
+			DryRun:    upgradeCmdFlags.DryRun,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to get git clients: %w", err)
+		}
+
 		return upgrade.Upgrade(
 			context.Background(),
+			gitClient,
+			gitProvider,
 			upgradeCmdFlags,
+			log,
 			os.Stdout,
 		)
 	}

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -19,16 +18,9 @@ import (
 	"github.com/weaveworks/pctl/pkg/catalog"
 	pctl_git "github.com/weaveworks/pctl/pkg/git"
 	"github.com/weaveworks/pctl/pkg/install"
-	"github.com/weaveworks/weave-gitops/cmd/internal"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
-	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
-	"github.com/weaveworks/weave-gitops/pkg/services"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
@@ -71,26 +63,18 @@ const CredentialsSecretName string = "weave-gitops-enterprise-credentials"
 // 3. pctl is used to install the profile from the local clone into the current working directory
 // 4. pctl is used to add, commit, push and create a PR.
 //
-func Upgrade(ctx context.Context, upgradeValues UpgradeValues, w io.Writer) error {
+func Upgrade(ctx context.Context, gitClient git.Git, gitProvider gitproviders.GitProvider, upgradeValues UpgradeValues, logger logger.Logger, w io.Writer) error {
 	kubeClient, err := makeKubeClient()
 	if err != nil {
 		return fmt.Errorf("error creating client for cluster %v", err)
 	}
 
-	gitClient := git.New(nil, wrapper.NewGoGit())
+	// gitClient := git.New(nil, wrapper.NewGoGit())
 
-	return upgrade(ctx, upgradeValues, gitClient, kubeClient, w)
+	return upgrade(ctx, upgradeValues, gitClient, kubeClient, gitProvider, logger, w)
 }
 
-type InitGitProvider func(
-	repoUrl gitproviders.RepoURL,
-	osysClient osys.Osys,
-	logger logger.Logger,
-	cliAuthHandler auth.BlockingCLIAuthHandler,
-	getAccountType gitproviders.AccountTypeGetter,
-) (gitproviders.GitProvider, error)
-
-func upgrade(ctx context.Context, upgradeValues UpgradeValues, gitClient git.Git, kubeClient client.Client, w io.Writer) error {
+func upgrade(ctx context.Context, upgradeValues UpgradeValues, gitClient git.Git, kubeClient client.Client, gitProvider gitproviders.GitProvider, logger logger.Logger, w io.Writer) error {
 	uv, err := buildUpgradeConfigs(ctx, upgradeValues, kubeClient, gitClient, w)
 	if err != nil {
 		return fmt.Errorf("failed to build upgrade configs: %v", err)
@@ -118,42 +102,15 @@ func upgrade(ctx context.Context, upgradeValues UpgradeValues, gitClient git.Git
 		return fmt.Errorf("failed to normalize URL %q: %w", uv.RepoURL, err)
 	}
 
-	// authHandler, err := auth.NewAuthCLIHandler(normalizedURL.Provider())
-	// if err != nil {
-	// 	return fmt.Errorf("error initializing cli auth handler: %w", err)
-	// }
-
-	osysClient := osys.New()
-	logger := internal.NewCLILogger(osysClient.Stdout())
-
-	// gitProvider, err := initGitProvider(normalizedURL, osysClient, logger, authHandler, gitproviders.GetAccountType)
-	// if err != nil {
-	// 	return fmt.Errorf("error obtaining git provider token: %w", err)
-	// }
-
 	// WIP
-	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
-	factory := services.NewFactory(fluxClient, logger)
-
-	providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, logger)
-
-	_, gitProvider, err := factory.GetGitClients(ctx, providerClient, services.GitConfigParams{
-		URL:       uv.RepoURL,
-		Namespace: uv.Namespace,
-		DryRun:    uv.DryRun,
-	})
-	if err != nil {
-		return fmt.Errorf("error obtaining git provider token: %w", err)
-	}
-
-	path := "helmrelease.yaml"
+	path := fmt.Sprintf(".weave-gitops/clusters/%s/system/enterprise/", "clustername")
 
 	pri := gitproviders.PullRequestInfo{
 		Title:         "upgrade",
 		Description:   "upgrade",
-		CommitMessage: "upgrade",
-		TargetBranch:  "main",
-		NewBranch:     "upgrade",
+		CommitMessage: uv.CommitMessage,
+		TargetBranch:  uv.BaseBranch,
+		NewBranch:     uv.HeadBranch,
 		Files: []gitprovider.CommitFile{
 			{
 				Path:    &path,
