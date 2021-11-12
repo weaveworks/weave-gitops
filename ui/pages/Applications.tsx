@@ -17,7 +17,6 @@ type Props = {
 
 function Applications({ className }: Props) {
   const [applications, setApplications] = React.useState<Application[]>([]);
-  const [checked, setChecked] = React.useState({});
   const [sort, setSort] = React.useState("Name");
   const [reverseSort, setReverseSort] = React.useState(false);
   const { listApplications, loading } = useApplications();
@@ -93,13 +92,14 @@ function Applications({ className }: Props) {
           <Icon type={IconType.DeleteForever} size="base" />
         </Button>
       </Flex>
+
       <DataTable
         sortFields={[sort]}
         reverseSort={reverseSort}
         fields={[
           {
             label: <Checkbox />,
-            value: (app) => <Checkbox />,
+            value: () => <Checkbox />,
           },
           {
             label: <SortableLabel label="Name" />,
