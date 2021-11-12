@@ -237,6 +237,51 @@ var _ = Describe("Add", func() {
 		})
 	})
 
+	Context("when using auto-merge", func() {
+		BeforeEach(func() {
+			gitProviders.GetDefaultBranchStub = func(_ context.Context, repoUrl gitproviders.RepoURL) (string, error) {
+				addUrl := app.GitSourceURL
+
+				if repoUrl.String() == addUrl.String() {
+					return "default-app-branch", nil
+				}
+				return "default-config-branch", nil
+			}
+
+			app.GitSourceURL = createRepoURL("ssh://github.com/user/repo.git")
+		})
+
+		Context("uses the default app branch for config in app repository", func() {
+			BeforeEach(func() {
+				app.ConfigURL = app.GitSourceURL
+				gitOpsDirWriter = createDirWriter()
+			})
+
+			It("merges into the app default branch", func() {
+				err := gitOpsDirWriter.AddApplication(ctx, app, "test-cluster", true)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				_, _, _, branch := gitClient.CloneArgsForCall(0)
+				Expect(branch).To(Equal("default-app-branch"))
+			})
+		})
+
+		Context("uses the default config branch for external config", func() {
+			BeforeEach(func() {
+				app.ConfigURL = createRepoURL("https://github.com/foo/bar")
+				gitOpsDirWriter = createDirWriter()
+			})
+
+			It("merges into the config default branch", func() {
+				err := gitOpsDirWriter.AddApplication(ctx, app, "test-cluster", true)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				_, _, _, branch := gitClient.CloneArgsForCall(0)
+				Expect(branch).To(Equal("default-config-branch"))
+			})
+		})
+	})
+
 	Context("when creating a pull request", func() {
 		BeforeEach(func() {
 			gitProviders.GetDefaultBranchStub = func(_ context.Context, repoUrl gitproviders.RepoURL) (string, error) {
@@ -259,15 +304,7 @@ var _ = Describe("Add", func() {
 				gitOpsDirWriter = createDirWriter()
 			})
 
-			It("creates the pull request against the default branch for an org app repository", func() {
-				err := gitOpsDirWriter.AddApplication(ctx, app, "test-cluster", false)
-				Expect(err).ShouldNot(HaveOccurred())
-
-				_, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
-				Expect(prInfo.TargetBranch).To(Equal("default-app-branch"))
-			})
-
-			It("creates the pull request against the default branch for a user app repository", func() {
+			It("creates the pull request against the app default branch", func() {
 				err := gitOpsDirWriter.AddApplication(ctx, app, "test-cluster", false)
 				Expect(err).ShouldNot(HaveOccurred())
 
@@ -282,15 +319,7 @@ var _ = Describe("Add", func() {
 				gitOpsDirWriter = createDirWriter()
 			})
 
-			It("creates the pull request against the default branch for an org config repository", func() {
-				err := gitOpsDirWriter.AddApplication(ctx, app, "test-cluster", false)
-				Expect(err).ShouldNot(HaveOccurred())
-
-				_, _, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
-				Expect(prInfo.TargetBranch).To(Equal("default-config-branch"))
-			})
-
-			It("creates the pull request against the default branch for a user config repository", func() {
+			It("creates the pull request against the config default branch", func() {
 				err := gitOpsDirWriter.AddApplication(ctx, app, "test-cluster", false)
 				Expect(err).ShouldNot(HaveOccurred())
 

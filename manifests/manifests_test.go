@@ -1,23 +1,23 @@
 package manifests
 
 import (
+	"strings"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
-	appsv1 "k8s.io/api/apps/v1"
-	"sigs.k8s.io/yaml"
 )
 
 var _ = Describe("Testing WegoAppDeployment", func() {
 	It("should contain the right version", func() {
-		v := version.Version
-		deploymentYaml, err := GenerateWegoAppDeploymentManifest(v)
+		manifests, err := GenerateWegoAppManifests(WegoAppParams{Version: version.Version, Namespace: "my-namespace"})
 		Expect(err).NotTo(HaveOccurred())
 
-		var Deployment appsv1.Deployment
-		err = yaml.Unmarshal(deploymentYaml, &Deployment)
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(Deployment.Spec.Template.Spec.Containers[0].Image).To(ContainSubstring(v))
+		for _, m := range manifests {
+			if strings.Contains(string(m), "kind: Deployment") {
+				Expect(string(m)).To(ContainSubstring("namespace: my-namespace"))
+				Expect(string(m)).To(ContainSubstring(version.Version))
+			}
+		}
 	})
 })

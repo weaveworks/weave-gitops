@@ -30,13 +30,11 @@ func (g *Gitops) Uninstall(params UninstallParams) error {
 	if params.DryRun {
 		g.logger.Actionf("Deleting Weave Gitops manifests")
 	} else {
-		for _, manifest := range manifests.Manifests {
-			if err := g.kube.Delete(ctx, manifest); err != nil {
-				if !apierrors.IsNotFound(err) {
-					g.logger.Printf("received error deleting manifest: %q", err)
+		if err := g.kube.Delete(ctx, manifests.AppCRD); err != nil {
+			if !apierrors.IsNotFound(err) {
+				g.logger.Printf("received error deleting App CRD: %q", err)
 
-					errorOccurred = true
-				}
+				errorOccurred = true
 			}
 		}
 	}

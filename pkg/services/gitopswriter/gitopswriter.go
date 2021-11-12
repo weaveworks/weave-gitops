@@ -46,7 +46,12 @@ func (dw *gitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app mode
 		return fmt.Errorf("could not generate application GitOps Automation manifests: %w", err)
 	}
 
-	remover, repoDir, err := dw.RepoWriter.CloneRepo(ctx, app.Branch)
+	defaultBranch, err := dw.RepoWriter.GetDefaultBranch(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve default branch for repository: %w", err)
+	}
+
+	remover, repoDir, err := dw.RepoWriter.CloneRepo(ctx, defaultBranch)
 	if err != nil {
 		return fmt.Errorf("failed to clone repo: %w", err)
 	}
@@ -77,11 +82,6 @@ func (dw *gitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app mode
 		content := string(manifest.Content)
 
 		files = append(files, gitprovider.CommitFile{Path: &manifestPath, Content: &content})
-	}
-
-	defaultBranch, err := dw.RepoWriter.GetDefaultBranch(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to retrieve default branch for repository: %w", err)
 	}
 
 	prInfo := gitproviders.PullRequestInfo{
