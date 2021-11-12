@@ -38,6 +38,7 @@ const EVENTUALLY_DEFAULT_TIMEOUT time.Duration = 60 * time.Second
 const TIMEOUT_TWO_MINUTES time.Duration = 120 * time.Second
 const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
 const NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
+const INSTALL_SUCCESSFUL_TIMEOUT time.Duration = 3 * time.Minute
 const INSTALL_PODS_READY_TIMEOUT time.Duration = 3 * time.Minute
 const WEGO_DEFAULT_NAMESPACE = wego.DefaultNamespace
 const WEGO_UI_URL = "http://localhost:9001"
@@ -237,7 +238,7 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 		return clusterName, err
 	}
 
-	return clusterName, nil
+	return getClusterName(), nil
 }
 
 func initAndCreateEmptyRepo(appRepoName string, providerName gitproviders.GitProviderName, isPrivateRepo bool, org string) string {
@@ -396,7 +397,7 @@ func installAndVerifyWego(wegoNamespace, repoURL string) {
 		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --app-config-url=%s", WEGO_BIN_PATH, wegoNamespace, repoURL))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, TIMEOUT_TWO_MINUTES).Should(gexec.Exit())
+		Eventually(session, INSTALL_SUCCESSFUL_TIMEOUT).Should(gexec.Exit())
 		Expect(string(session.Err.Contents())).Should(BeEmpty())
 		VerifyControllersInCluster(wegoNamespace)
 	})

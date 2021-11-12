@@ -32,10 +32,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		By("Given I have a brand new cluster", func() {
 			var err error
 
-			_, err = ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime)
+			clusterName, err = ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime)
 			Expect(err).ShouldNot(HaveOccurred())
-
-			clusterName = getClusterName()
 		})
 
 		By("And I have a gitops binary installed on my local machine", func() {
@@ -578,9 +576,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		addCommand := "add app . --name=" + appName + " --auto-merge=true"
 
 		cluster1 := clusterName
-		_, err := ResetOrCreateClusterWithName(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, "", true)
+		cluster2, err := ResetOrCreateClusterWithName(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, "", true)
 		Expect(err).ShouldNot(HaveOccurred())
-		cluster2 := getClusterName()
 
 		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer func() {
