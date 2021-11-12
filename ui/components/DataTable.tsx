@@ -82,8 +82,4 @@ function DataTable({
   );
 }
 
-export default styled(DataTable)`
-  th {
-    font-weight: bold;
-  }
-`;
+export default styled(DataTable)``;

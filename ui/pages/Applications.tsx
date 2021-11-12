@@ -35,9 +35,9 @@ function Applications({ className }: Props) {
             setSort(label);
             setReverseSort(false);
           }}
-          className="lowercase table"
+          className={`lowercase table ${sort === label && "bold"}`}
         >
-          <h4>{label}</h4>
+          <p>{label}</p>
         </Button>
         {sort === label && (
           <Button
@@ -70,7 +70,7 @@ function Applications({ className }: Props) {
             variant="outlined"
             color="primary"
             type="button"
-            className="applications"
+            className="applications bold"
           >
             Add a new app <Icon type={IconType.Add} size="base" />
           </Button>
@@ -79,7 +79,7 @@ function Applications({ className }: Props) {
           variant="outlined"
           color="primary"
           type="button"
-          className="applications"
+          className="applications bold"
         >
           Install a new Profile <Icon type={IconType.Add} size="base" />
         </Button>
@@ -87,7 +87,7 @@ function Applications({ className }: Props) {
           variant="outlined"
           color="secondary"
           type="button"
-          className="applications"
+          className="applications bold"
         >
           Create a PR to Delete App{" "}
           <Icon type={IconType.DeleteForever} size="base" />
