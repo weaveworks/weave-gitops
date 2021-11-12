@@ -88,12 +88,14 @@ func FileExists(name string) bool {
 
 func selectCluster(context string) {
 	_, err := exec.Command("kubectl", "config", "use-context", context).Output()
+	fmt.Printf("CONTEXT: %s, ERR: %v\n", context, err)
 	Expect(err).ShouldNot(HaveOccurred())
 }
 
 func getClusterName() string {
 	out, err := exec.Command("kubectl", "config", "current-context").Output()
 	Expect(err).ShouldNot(HaveOccurred())
+	fmt.Printf("GOT CONTEXT: %s, ERR: %v\n", out, err)
 
 	return string(bytes.TrimSuffix(out, []byte("\n")))
 }
