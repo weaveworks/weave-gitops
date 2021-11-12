@@ -1,15 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CommitsTable snapshots renders 1`] = `
-.c1 {
-  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  font-weight: 400;
-  text-transform: none;
-  font-style: normal;
+.c0 th {
+  font-weight: bold;
 }
 
-.c3 {
+.c2 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -18,16 +14,12 @@ exports[`CommitsTable snapshots renders 1`] = `
   color: #00b3ec;
 }
 
-.c0 th {
-  font-weight: bold;
-}
-
-.c2 {
+.c1 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.c2.title-bar-button {
+.c1.title-bar-button {
   width: 250px;
 }
 
@@ -85,46 +77,30 @@ exports[`CommitsTable snapshots renders 1`] = `
             <td
               class="MuiTableCell-root MuiTableCell-body"
             >
-              <span
+              <a
                 class="c1"
+                href="/"
               >
-                <a
+                <span
                   class="c2"
-                  href="/"
+                  color="primary"
                 >
-                  <span
-                    class="c3"
-                    color="primary"
-                  >
-                    123abc
-                  </span>
-                </a>
-              </span>
+                  123abc
+                </span>
+              </a>
             </td>
             <td
               class="MuiTableCell-root MuiTableCell-body"
             >
-              <span
-                class="c1"
-              >
-                test timestamp
-              </span>
+              test timestamp
             </td>
             <td
               class="MuiTableCell-root MuiTableCell-body"
-            >
-              <span
-                class="c1"
-              />
-            </td>
+            />
             <td
               class="MuiTableCell-root MuiTableCell-body"
             >
-              <span
-                class="c1"
-              >
-                Example User
-              </span>
+              Example User
             </td>
           </tr>
         </tbody>

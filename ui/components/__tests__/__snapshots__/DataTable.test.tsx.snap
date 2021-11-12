@@ -1,14 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`DataTable snapshots renders 1`] = `
-.c1 {
-  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  font-weight: 400;
-  text-transform: none;
-  font-style: normal;
-}
-
 .c0 th {
   font-weight: bold;
 }
@@ -67,38 +59,23 @@ exports[`DataTable snapshots renders 1`] = `
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-body"
           >
-            <span
-              className="c1"
-              size="normal"
+            <a
+              href="/some_url"
             >
-              <a
-                href="/some_url"
-              >
-                my-cool-app
-              </a>
-            </span>
+              my-cool-app
+            </a>
           </td>
           <td
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-body"
           >
-            <span
-              className="c1"
-              size="normal"
-            >
-              Ready
-            </span>
+            Ready
           </td>
           <td
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-body"
           >
-            <span
-              className="c1"
-              size="normal"
-            >
-              2006-01-02T15:04:05-0700
-            </span>
+            2006-01-02T15:04:05-0700
           </td>
         </tr>
         <tr
@@ -109,38 +86,23 @@ exports[`DataTable snapshots renders 1`] = `
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-body"
           >
-            <span
-              className="c1"
-              size="normal"
+            <a
+              href="/some_url"
             >
-              <a
-                href="/some_url"
-              >
-                nginx
-              </a>
-            </span>
+              nginx
+            </a>
           </td>
           <td
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-body"
           >
-            <span
-              className="c1"
-              size="normal"
-            >
-              Ready
-            </span>
+            Ready
           </td>
           <td
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-body"
           >
-            <span
-              className="c1"
-              size="normal"
-            >
-              2006-01-02T15:04:05-0700
-            </span>
+            2006-01-02T15:04:05-0700
           </td>
         </tr>
         <tr
@@ -151,38 +113,23 @@ exports[`DataTable snapshots renders 1`] = `
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-body"
           >
-            <span
-              className="c1"
-              size="normal"
+            <a
+              href="/some_url"
             >
-              <a
-                href="/some_url"
-              >
-                podinfo
-              </a>
-            </span>
+              podinfo
+            </a>
           </td>
           <td
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-body"
           >
-            <span
-              className="c1"
-              size="normal"
-            >
-              Ready
-            </span>
+            Ready
           </td>
           <td
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-body"
           >
-            <span
-              className="c1"
-              size="normal"
-            >
-              2006-01-02T15:04:05-0700
-            </span>
+            2006-01-02T15:04:05-0700
           </td>
         </tr>
       </tbody>

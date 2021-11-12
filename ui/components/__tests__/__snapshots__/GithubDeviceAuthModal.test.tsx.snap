@@ -15,6 +15,14 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   align-items: start;
 }
 
+.c1.application-actions {
+  width: 650px;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
 .c2 {
   display: -webkit-box;
   display: -webkit-flex;
@@ -35,7 +43,15 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   width: 100%;
 }
 
-.c11 {
+.c2.application-actions {
+  width: 650px;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+.c12 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -52,6 +68,14 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   -webkit-justify-content: flex-end;
   -ms-flex-pack: end;
   justify-content: flex-end;
+}
+
+.c12.application-actions {
+  width: 650px;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
 }
 
 .c4 {
@@ -73,7 +97,15 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   width: 100%;
 }
 
-.c8 {
+.c4.application-actions {
+  width: 650px;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+.c9 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -87,6 +119,32 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   align-items: center;
 }
 
+.c9.application-actions {
+  width: 650px;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+.c8.applications {
+  border-radius: 0;
+  border-color: #1a1a1a;
+  font-weight: 600;
+}
+
+.c8 h4 {
+  margin: 0;
+}
+
+.c8.table.MuiButton-text {
+  min-width: 0px;
+}
+
+.c8.lowercase {
+  text-transform: none;
+}
+
 .c7 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 32px;
@@ -95,13 +153,25 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   font-style: normal;
 }
 
-.c10 svg {
+.c11 svg {
   fill: !important;
   height: 16px;
   width: 16px;
 }
 
-.c10 .c6 {
+.c11.upward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c11.downward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c11 .c6 {
   margin-left: 4px;
 }
 
@@ -130,7 +200,7 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   padding: 8px 0;
 }
 
-.c3 .c9 {
+.c3 .c10 {
   margin-left: 8px;
 }
 
@@ -190,7 +260,7 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
               target="_blank"
             >
               <button
-                class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary"
+                class="MuiButtonBase-root MuiButton-root MuiButton-contained c8 MuiButton-containedPrimary"
                 tabindex="0"
                 type="button"
               >
@@ -198,12 +268,12 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
                   class="MuiButton-label"
                 >
                   <div
-                    class="c8"
+                    class="c9"
                   >
                     Authorize Github Access
                      
                     <div
-                      class="c8 c9 c10"
+                      class="c9 c10 c11"
                     >
                       <svg
                         aria-hidden="true"
@@ -231,7 +301,7 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
       </div>
     </div>
     <div
-      class="c11"
+      class="c12"
     >
       <button
         class="MuiButtonBase-root MuiButton-root MuiButton-contained"

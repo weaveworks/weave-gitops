@@ -22,6 +22,10 @@ const Styled = (component) => styled(component)`
   ${({ wide }) => wide && "width: 100%"};
   ${({ wrap }) => wrap && "flex-wrap: wrap"};
   ${({ end }) => end && "justify-content: flex-end"};
+  &.application-actions {
+    width: 650px;
+    justify-content: space-between;
+  }
 `;
 
 class Flex extends React.PureComponent<Props> {

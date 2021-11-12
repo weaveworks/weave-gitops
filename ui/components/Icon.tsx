@@ -1,5 +1,8 @@
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
+import AddIcon from "@material-ui/icons/Add";
+import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
+import DeleteForeverIcon from "@material-ui/icons/DeleteForever";
 import LaunchIcon from "@material-ui/icons/Launch";
 import * as React from "react";
 import styled from "styled-components";
@@ -11,6 +14,9 @@ export enum IconType {
   CheckMark,
   Account,
   ExternalTab,
+  Add,
+  ArrowDownward,
+  DeleteForever,
 }
 type Props = {
   className?: string;
@@ -30,6 +36,15 @@ function getIcon(i: IconType) {
 
     case IconType.ExternalTab:
       return LaunchIcon;
+
+    case IconType.Add:
+      return AddIcon;
+
+    case IconType.ArrowDownward:
+      return ArrowDownwardIcon;
+
+    case IconType.DeleteForever:
+      return DeleteForeverIcon;
 
     default:
       break;
@@ -54,6 +69,12 @@ export default styled(Icon)`
     fill: ${(props) => props.theme.colors[props.color as any]} !important;
     height: ${(props) => props.theme.spacing[props.size as any]};
     width: ${(props) => props.theme.spacing[props.size as any]};
+  }
+  &.upward {
+    transform: rotate(180deg);
+  }
+  &.downward {
+    transform: initial;
   }
 
   ${Text} {

@@ -9,12 +9,11 @@ import {
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
-import Text from "./Text";
 
 type Props = {
   className?: string;
   fields: {
-    label: string;
+    label: string | JSX.Element;
     value: string | ((k: any) => string | JSX.Element);
   }[];
   rows: any[];
@@ -43,11 +42,13 @@ function DataTable({
     sorted.reverse();
   }
 
+  console.log(sorted);
+
   const r = _.map(sorted, (r, i) => (
     <TableRow key={i}>
-      {_.map(fields, (f) => (
-        <TableCell key={f.label}>
-          <Text>{typeof f.value === "function" ? f.value(r) : r[f.value]}</Text>
+      {_.map(fields, (f, i) => (
+        <TableCell key={i}>
+          {typeof f.value === "function" ? f.value(r) : r[f.value]}
         </TableCell>
       ))}
     </TableRow>
@@ -59,8 +60,8 @@ function DataTable({
         <Table aria-label="simple table">
           <TableHead>
             <TableRow>
-              {_.map(fields, (f) => (
-                <TableCell key={f.label}>{f.label}</TableCell>
+              {_.map(fields, (f, i) => (
+                <TableCell key={i}>{f.label}</TableCell>
               ))}
             </TableRow>
           </TableHead>

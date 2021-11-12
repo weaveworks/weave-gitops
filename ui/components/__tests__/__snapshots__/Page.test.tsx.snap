@@ -20,6 +20,14 @@ exports[`Page snapshots default 1`] = `
   width: 100%;
 }
 
+.c4.application-actions {
+  width: 650px;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
 .c3 {
   width: 100%;
   max-width: 1400px;
