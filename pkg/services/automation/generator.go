@@ -391,7 +391,12 @@ func AppDeployName(a models.Application) string {
 }
 
 func CreateRepoSecretName(gitSourceURL gitproviders.RepoURL) GeneratedSecretName {
-	return GeneratedSecretName(hashNameIfTooLong(fmt.Sprintf("wego-%s-%s", string(gitSourceURL.Provider()), replaceUnderscores(gitSourceURL.RepositoryName()))))
+	provider := string(gitSourceURL.Provider())
+	cleanRepoName := replaceUnderscores(gitSourceURL.RepositoryName())
+	qualifiedName := fmt.Sprintf("wego-%s-%s", provider, cleanRepoName)
+	lengthConstrainedName := hashNameIfTooLong(qualifiedName)
+
+	return GeneratedSecretName(lengthConstrainedName)
 }
 
 func SourceKind(a models.Application) ResourceKind {
