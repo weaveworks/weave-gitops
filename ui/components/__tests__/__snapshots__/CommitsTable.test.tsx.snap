@@ -1,11 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CommitsTable snapshots renders 1`] = `
-.c0 th {
-  font-weight: bold;
-}
-
-.c2 {
+.c1 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -14,12 +10,12 @@ exports[`CommitsTable snapshots renders 1`] = `
   color: #00b3ec;
 }
 
-.c1 {
+.c0 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.c1.title-bar-button {
+.c0.title-bar-button {
   width: 250px;
 }
 
@@ -27,7 +23,7 @@ exports[`CommitsTable snapshots renders 1`] = `
   class=""
 >
   <div
-    class="c0"
+    class=""
   >
     <div
       class="MuiTableContainer-root"
@@ -78,11 +74,11 @@ exports[`CommitsTable snapshots renders 1`] = `
               class="MuiTableCell-root MuiTableCell-body"
             >
               <a
-                class="c1"
+                class="c0"
                 href="/"
               >
                 <span
-                  class="c2"
+                  class="c1"
                   color="primary"
                 >
                   123abc

@@ -130,15 +130,22 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
 .c8.applications {
   border-radius: 0;
   border-color: #1a1a1a;
-  font-weight: 600;
 }
 
-.c8 h4 {
-  margin: 0;
+.c8 p {
+  margin: 0px;
+}
+
+.c8.table {
+  padding: 0px 4px 0px 0px;
 }
 
 .c8.table.MuiButton-text {
   min-width: 0px;
+}
+
+.c8.bold {
+  font-weight: 600;
 }
 
 .c8.lowercase {

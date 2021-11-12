@@ -1,12 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`DataTable snapshots renders 1`] = `
-.c0 th {
-  font-weight: bold;
-}
-
 <div
-  className="c0"
+  className=""
 >
   <div
     className="MuiTableContainer-root"
