@@ -149,7 +149,7 @@ func TestGetGitAuthFromDeployKey(t *testing.T) {
 			clusterState: []runtime.Object{createSecret(func(s *corev1.Secret) {
 				s.Data["username"] = []byte("")
 			})},
-			expectedErr: errors.New("username or password missing in secret"),
+			expectedErr: errors.New("username or password missing in entitlement secret, may be an old entitlement file"),
 		},
 		{
 			name:         "preflight check pass",
