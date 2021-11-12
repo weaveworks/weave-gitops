@@ -143,7 +143,7 @@ func upgrade(ctx context.Context, upgradeValues UpgradeValues, gitClient git.Git
 		DryRun:    uv.DryRun,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to get git clients: %w", err)
+		return fmt.Errorf("error obtaining git provider token: %w", err)
 	}
 
 	path := "helmrelease.yaml"
