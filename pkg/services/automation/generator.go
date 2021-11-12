@@ -391,7 +391,7 @@ func AppDeployName(a models.Application) string {
 }
 
 func CreateRepoSecretName(gitSourceURL gitproviders.RepoURL) GeneratedSecretName {
-	return GeneratedSecretName(hashNameIfTooLong(fmt.Sprintf("wego-%s", GenerateResourceName(gitSourceURL))))
+	return GeneratedSecretName(hashNameIfTooLong(fmt.Sprintf("wego-%s-%s", string(gitSourceURL.Provider()), replaceUnderscores(gitSourceURL.RepositoryName()))))
 }
 
 func SourceKind(a models.Application) ResourceKind {
@@ -436,7 +436,11 @@ func GenerateResourceName(url gitproviders.RepoURL) string {
 }
 
 func ConstrainResourceName(str string) string {
-	return hashNameIfTooLong(strings.ReplaceAll(str, "_", "-"))
+	return hashNameIfTooLong(replaceUnderscores(str))
+}
+
+func replaceUnderscores(str string) string {
+	return strings.ReplaceAll(str, "_", "-")
 }
 
 func (rk ResourceKind) ToGVR() (schema.GroupVersionResource, error) {

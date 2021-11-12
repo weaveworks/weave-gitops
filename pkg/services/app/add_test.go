@@ -268,7 +268,7 @@ var _ = Describe("Add Gitlab", func() {
 				Expect(name).To(Equal("bar"))
 				Expect(url.String()).To(Equal("ssh://git@gitlab.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
-				Expect(secretRef).To(Equal("wego-bar"))
+				Expect(secretRef).To(Equal("wego-gitlab-bar"))
 				Expect(namespace).To(Equal(wego.DefaultNamespace))
 			})
 		})

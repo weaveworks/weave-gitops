@@ -97,7 +97,7 @@ func deleteCluster(clusterName string) {
 	Expect(err).ShouldNot(HaveOccurred())
 }
 
-func getClusterName() string {
+func getClusterContext() string {
 	out, err := exec.Command("kubectl", "config", "current-context").Output()
 	Expect(err).ShouldNot(HaveOccurred())
 
@@ -241,7 +241,7 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 		return clusterName, "", err
 	}
 
-	return clusterName, getClusterName(), nil
+	return clusterName, getClusterContext(), nil
 }
 
 func initAndCreateEmptyRepo(appRepoName string, providerName gitproviders.GitProviderName, isPrivateRepo bool, org string) string {
