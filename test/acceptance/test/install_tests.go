@@ -234,7 +234,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		namespace := "wego-system"
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(namespace, true)
+			_, _, err := ResetOrCreateCluster(namespace, true)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
