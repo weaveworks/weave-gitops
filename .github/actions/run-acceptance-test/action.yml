@@ -43,6 +43,13 @@ runs:
       sudo mv -f chromedriver /usr/local/bin/chromedriver
        wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
        xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
+  - name: Setup Kubernetes
+    uses: engineerd/setup-kind@v0.5.0
+    with:
+      name: "${{ format('katc-{0}', github.run_id) }}"
+      version: "v0.11.0"
+      image: kindest/node:v1.21.1
+      skipClusterCreation: true
   - name: Download gitops binaries
     uses: actions/download-artifact@v2
     with:
