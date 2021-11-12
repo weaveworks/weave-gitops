@@ -89,14 +89,17 @@ func FileExists(name string) bool {
 
 func selectCluster(context string) {
 	_, err := exec.Command("kubectl", "config", "use-context", context).Output()
-	fmt.Printf("CONTEXT: %s, ERR: %v\n", context, err)
+	Expect(err).ShouldNot(HaveOccurred())
+}
+
+func deleteCluster(clusterName string) {
+	_, err := exec.Command("kind", "delete", "cluster", "--name", clusterName).Output()
 	Expect(err).ShouldNot(HaveOccurred())
 }
 
 func getClusterName() string {
 	out, err := exec.Command("kubectl", "config", "current-context").Output()
 	Expect(err).ShouldNot(HaveOccurred())
-	fmt.Printf("GOT CONTEXT: %s, ERR: %v\n", out, err)
 
 	return string(bytes.TrimSuffix(out, []byte("\n")))
 }
@@ -166,11 +169,11 @@ func setupGitlabSSHKey(sshKeyPath string) {
 	}
 }
 
-func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool) (string, error) {
+func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool) (string, string, error) {
 	return ResetOrCreateClusterWithName(namespace, deleteWegoRuntime, "", false)
 }
 
-func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clusterName string, keepExistingClusters bool) (string, error) {
+func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clusterName string, keepExistingClusters bool) (string, string, error) {
 	supportedProviders := []string{"kind", "kubectl"}
 	supportedK8SVersions := []string{"1.19.1", "1.20.2", "1.21.1"}
 
@@ -186,12 +189,12 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 
 	if !contains(supportedProviders, provider) {
 		log.Errorf("Cluster provider %s is not supported for testing", provider)
-		return clusterName, errors.New("Unsupported provider")
+		return clusterName, "", errors.New("Unsupported provider")
 	}
 
 	if !contains(supportedK8SVersions, k8sVersion) {
 		log.Errorf("Kubernetes version %s is not supported for testing", k8sVersion)
-		return clusterName, errors.New("Unsupported kubernetes version")
+		return clusterName, "", errors.New("Unsupported kubernetes version")
 	}
 
 	//For kubectl, point to a valid cluster, we will try to reset the namespace only
@@ -225,7 +228,7 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 			log.Infof("Failed to create kind cluster")
 			log.Fatal(err)
 
-			return clusterName, err
+			return clusterName, "", err
 		}
 	}
 
@@ -235,10 +238,10 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 
 	if err != nil {
 		log.Infof("Cluster system pods are not ready after waiting for 5 minutes, This can cause tests failures.")
-		return clusterName, err
+		return clusterName, "", err
 	}
 
-	return getClusterName(), nil
+	return clusterName, getClusterName(), nil
 }
 
 func initAndCreateEmptyRepo(appRepoName string, providerName gitproviders.GitProviderName, isPrivateRepo bool, org string) string {

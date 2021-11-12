@@ -21,6 +21,8 @@ import (
 
 var clusterName string
 
+var clusterContext string
+
 var _ = Describe("Weave GitOps Add App Tests", func() {
 
 	deleteWegoRuntime := false
@@ -32,7 +34,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		By("Given I have a brand new cluster", func() {
 			var err error
 
-			clusterName, err = ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime)
+			clusterName, clusterContext, err = ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -566,7 +568,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	FIt("Verify that gitops can deploy a single workload to multiple clusters with app manifests in config repo (Bug #810)", func() {
+	It("Verify that gitops can deploy a single workload to multiple clusters with app manifests in config repo (Bug #810)", func() {
 		var repoAbsolutePath string
 		tip := generateTestInputs()
 		appRepoName := "wego-test-app-" + RandString(8)
@@ -575,16 +577,15 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		addCommand := "add app . --name=" + appName + " --auto-merge=true"
 
-		cluster1 := clusterName
-		cluster2, err := ResetOrCreateClusterWithName(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, "", true)
+		cluster1Context := clusterContext
+		cluster2Name, cluster2Context, err := ResetOrCreateClusterWithName(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, "", true)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer func() {
-			selectCluster(cluster1)
+			selectCluster(cluster1Context)
 			deleteWorkload(tip.workloadName, tip.workloadNamespace)
-			selectCluster(cluster2)
-			deleteWorkload(tip.workloadName, tip.workloadNamespace)
+			deleteCluster(cluster2Name)
 		}()
 
 		By("And application repos do not already exist", func() {
@@ -592,9 +593,9 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And application workload is not already deployed to clusters", func() {
-			selectCluster(cluster1)
+			selectCluster(cluster1Context)
 			deleteWorkload(tip.workloadName, tip.workloadNamespace)
-			selectCluster(cluster2)
+			selectCluster(cluster2Context)
 			deleteWorkload(tip.workloadName, tip.workloadNamespace)
 		})
 
@@ -607,30 +608,30 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I install gitops to my active clusters", func() {
-			selectCluster(cluster1)
+			selectCluster(cluster1Context)
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
-			selectCluster(cluster2)
+			selectCluster(cluster2Context)
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 		})
 
 		By("And I run gitops add command for app", func() {
-			selectCluster(cluster1)
+			selectCluster(cluster1Context)
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
-			selectCluster(cluster2)
+			selectCluster(cluster2Context)
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("Then I should see gitops add command linked the repo to the cluster", func() {
-			selectCluster(cluster1)
+			selectCluster(cluster1Context)
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
-			selectCluster(cluster2)
+			selectCluster(cluster2Context)
 			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("And I should see workload for app is deployed to the cluster", func() {
-			selectCluster(cluster1)
+			selectCluster(cluster1Context)
 			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
-			selectCluster(cluster2)
+			selectCluster(cluster2Context)
 			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
 		})
 	})
@@ -1636,7 +1637,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			var err error
 
 			clusterName = "kind-123456789012345678901234567890"
-			_, err = ResetOrCreateClusterWithName(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, clusterName, false)
+			_, _, err = ResetOrCreateClusterWithName(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, clusterName, false)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 

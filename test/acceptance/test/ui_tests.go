@@ -40,7 +40,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 
 		By("Given I have a brand new cluster", func() {
 
-			_, err = ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime)
+			_, _, err = ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
