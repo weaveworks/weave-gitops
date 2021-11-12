@@ -178,7 +178,7 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 	supportedK8SVersions := []string{"1.19.1", "1.20.2", "1.21.1"}
 
 	provider, found := os.LookupEnv("CLUSTER_PROVIDER")
-	if !found {
+	if keepExistingClusters || !found {
 		provider = "kind"
 	}
 
