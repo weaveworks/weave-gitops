@@ -55,11 +55,11 @@ func checkAppCRDUninstallFailure() {
 
 	err := gitopsSrv.Uninstall(uninstallParams)
 
-	Expect(loggedMsg).To(Equal(fmt.Sprintf("received error deleting manifest: %q", manifestsErrMsg)))
+	Expect(loggedMsg).To(Equal(fmt.Sprintf("received error deleting App CRD: %q", manifestsErrMsg)))
 	Expect(err).To(MatchError(gitops.UninstallError{}))
 	Expect(kubeClient.GetClusterStatusCallCount()).To(Equal(1))
 	Expect(fluxClient.UninstallCallCount()).To(Equal(1))
-	Expect(kubeClient.DeleteCallCount()).To(Equal(len(manifests.Manifests)))
+	Expect(kubeClient.DeleteCallCount()).To(Equal(1))
 
 	namespace, dryRun := fluxClient.UninstallArgsForCall(0)
 	Expect(namespace).To(Equal(wego.DefaultNamespace))
@@ -173,12 +173,10 @@ var _ = Describe("Uninstall", func() {
 		err := gitopsSrv.Uninstall(uninstallParams)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		Expect(kubeClient.DeleteCallCount()).To(Equal(len(manifests.Manifests)))
+		Expect(kubeClient.DeleteCallCount()).To(Equal(1))
 
-		for i, m := range manifests.Manifests {
-			_, appCRD := kubeClient.DeleteArgsForCall(i)
-			Expect(appCRD).To(Equal(m))
-		}
+		_, appCRD := kubeClient.DeleteArgsForCall(0)
+		Expect(appCRD).To(Equal(manifests.AppCRD))
 	})
 
 	Context("when dry-run", func() {

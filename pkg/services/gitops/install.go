@@ -1,6 +1,7 @@
 package gitops
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -13,8 +14,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/services/app"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
+	"github.com/weaveworks/weave-gitops/pkg/services/automation"
+	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
 )
 
 type InstallParams struct {
@@ -62,11 +63,8 @@ func (g *Gitops) Install(params InstallParams) (map[string][]byte, error) {
 	if params.DryRun {
 		return systemManifests, nil
 	} else {
-
-		for _, manifest := range manifests.Manifests {
-			if err := g.kube.Apply(ctx, manifest, params.Namespace); err != nil {
-				return nil, fmt.Errorf("could not apply manifest: %w", err)
-			}
+		if err := g.kube.Apply(ctx, manifests.AppCRD, params.Namespace); err != nil {
+			return nil, fmt.Errorf("could not apply App CRD: %w", err)
 		}
 
 		version := version.Version
@@ -74,15 +72,17 @@ func (g *Gitops) Install(params InstallParams) (map[string][]byte, error) {
 			version = "latest"
 		}
 
-		wegoAppDeploymentManifest, err := manifests.GenerateWegoAppDeploymentManifest(version)
+		wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.WegoAppParams{Version: version, Namespace: params.Namespace})
 		if err != nil {
-			return nil, fmt.Errorf("error generating wego-app deployment, %w", err)
+			return nil, fmt.Errorf("error generating wego-app manifests, %w", err)
+		}
+		for _, m := range wegoAppManifests {
+			if err := g.kube.Apply(ctx, m, params.Namespace); err != nil {
+				return nil, fmt.Errorf("error applying wego-app manifest %s: %w", m, err)
+			}
 		}
 
-		systemManifests["wego-app.yaml"] = wegoAppDeploymentManifest
-		if err := g.kube.Apply(ctx, wegoAppDeploymentManifest, params.Namespace); err != nil {
-			return nil, fmt.Errorf("could not apply wego-app deployment manifest: %w", err)
-		}
+		systemManifests["wego-app.yaml"] = bytes.Join(wegoAppManifests, []byte("---\n"))
 	}
 
 	return systemManifests, nil
@@ -127,7 +127,7 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 		return nil, fmt.Errorf("could not determine default branch for config repository: %q %w", params.AppConfigURL, err)
 	}
 
-	remover, _, err := app.CloneRepo(gitClient, params.AppConfigURL, configBranch, params.DryRun)
+	remover, _, err := gitrepo.CloneRepo(ctx, gitClient, normalizedURL, configBranch)
 	if err != nil {
 		return nil, fmt.Errorf("failed to clone configuration repo: %w", err)
 	}
@@ -147,7 +147,7 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 	}
 	manifests["flux-source-resource.yaml"] = gitsource
 
-	system, err := g.genKustomize(fmt.Sprintf("%s-system", cname), sourceName,
+	system, err := g.genKustomize(automation.ConstrainResourceName(fmt.Sprintf("%s-system", cname)), sourceName,
 		prefixForFlux(filepath.Join(".", clusterPath, git.WegoClusterOSWorkloadDir)), params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create system kustomization manifest: %w", err)
@@ -155,7 +155,7 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 
 	manifests["flux-system-kustomization-resource.yaml"] = system
 
-	user, err := g.genKustomize(fmt.Sprintf("%s-user", cname), sourceName,
+	user, err := g.genKustomize(automation.ConstrainResourceName(fmt.Sprintf("%s-user", cname)), sourceName,
 		prefixForFlux(filepath.Join(".", clusterPath, git.WegoClusterUserWorloadDir)), params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user kustomization manifest: %w", err)
@@ -165,9 +165,9 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 
 	//TODO add handling for PRs
 	// if !params.AutoMerge {
-	// 	if err := a.createPullRequestToRepo(info, info.Spec.ConfigURL, appHash, appSpec, appGoat, appSource); err != nil {
-	// 		return err
-	// 	}
+	//  if err := a.createPullRequestToRepo(info, info.Spec.ConfigURL, appHash, appSpec, appGoat, appSource); err != nil {
+	//      return err
+	//  }
 	// } else {
 	g.logger.Actionf("Writing manifests to disk")
 
@@ -186,11 +186,11 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 		return nil, fmt.Errorf("failed to write user manifests: %w", err)
 	}
 
-	return manifests, app.CommitAndPush(gitClient, "Add GitOps runtime manifests", params.DryRun, g.logger)
+	return manifests, gitrepo.CommitAndPush(ctx, gitClient, "Add GitOps runtime manifests", g.logger)
 }
 
 func (g *Gitops) genSource(cname, branch string, namespace string, normalizedUrl gitproviders.RepoURL) ([]byte, string, error) {
-	secretRef := utils.CreateRepoSecretName(cname, normalizedUrl.String())
+	secretRef := automation.CreateRepoSecretName(cname, normalizedUrl).String()
 
 	sourceManifest, err := g.flux.CreateSourceGit(secretRef, normalizedUrl, branch, secretRef, namespace)
 	if err != nil {

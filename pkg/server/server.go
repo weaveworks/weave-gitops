@@ -28,7 +28,6 @@ import (
 
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 
@@ -125,7 +124,7 @@ func DefaultConfig() (*ApplicationsConfig, error) {
 
 	return &ApplicationsConfig{
 		Logger:           logr,
-		Factory:          services.NewServerFactory(fluxClient, logger.NewApiLogger(zapLog), nil, ""),
+		Factory:          services.NewServerFactory(fluxClient, internal.NewApiLogger(zapLog), nil, ""),
 		JwtClient:        jwtClient,
 		KubeClient:       rawClient,
 		GithubAuthClient: auth.NewGithubAuthProvider(http.DefaultClient),
@@ -360,7 +359,7 @@ func (s *applicationServer) SyncApplication(ctx context.Context, msg *pb.SyncApp
 		}, fmt.Errorf("failed to create kube service: %w", err)
 	}
 
-	appSrv := &app.App{
+	appSrv := &app.AppSvc{
 		Kube:  kube,
 		Clock: clock.New(),
 	}

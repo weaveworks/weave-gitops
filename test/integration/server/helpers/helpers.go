@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -19,11 +20,13 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	ghAPI "github.com/google/go-github/v32/github"
 
+	"github.com/fluxcd/source-controller/pkg/sourceignore"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"golang.org/x/oauth2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/kustomize/api/types"
 	"sigs.k8s.io/yaml"
 )
 
@@ -94,40 +97,50 @@ func NewGithubClient(ctx context.Context, token string) *ghAPI.Client {
 	return ghAPI.NewClient(tc)
 }
 
-const InAppRoot = ".wego"
-const ExternalConfigRoot = ""
+const InAppRoot = ".weave-gitops"
+const ExternalConfigRoot = ".weave-gitops"
 
 func wegoPath(root, p string) string {
 	return filepath.Join(root, p)
 }
 
-func appPath(root, name string) string {
-	return wegoPath(root, filepath.Join("apps", name, "app.yaml"))
+func appYamlPath(root, name string) string {
+	return appPath(root, name, "app.yaml")
 }
 
-func clusterPath(root, appName, clusterName, filename string) string {
-	return wegoPath(root, filepath.Join("targets", clusterName, appName, filename))
+func automationPath(root, appName string) string {
+	return appPath(root, appName, fmt.Sprintf("%s-gitops-deploy.yaml", appName))
 }
 
-func automationPath(root, appName, clusterName string) string {
-	return clusterPath(root, appName, clusterName, fmt.Sprintf("%s-gitops-deploy.yaml", appName))
+func sourcePath(root, appName string) string {
+	return appPath(root, appName, fmt.Sprintf("%s-gitops-source.yaml", appName))
 }
 
-func sourcePath(root, appName, clusterName string) string {
-	return clusterPath(root, appName, clusterName, fmt.Sprintf("%s-gitops-source.yaml", appName))
+func appKustPath(root, appName string) string {
+	return appPath(root, appName, "kustomization.yaml")
+}
+
+func userKustPath(root, clusterName string) string {
+	return filepath.Join(root, "clusters", clusterName, "user", "kustomization.yaml")
+}
+
+func appPath(root, appName, filename string) string {
+	return wegoPath(root, filepath.Join("apps", appName, filename))
 }
 
 func MakeWeGOFS(root, appName, clusterName string) WeGODirectoryFS {
 	return map[string]interface{}{
-		appPath(root, appName):                     &wego.Application{},
-		automationPath(root, appName, clusterName): &kustomizev2.Kustomization{},
-		sourcePath(root, appName, clusterName):     &sourcev1.GitRepository{},
+		appYamlPath(root, appName):      &wego.Application{},
+		appKustPath(root, appName):      &types.Kustomization{},
+		automationPath(root, appName):   &kustomizev2.Kustomization{},
+		sourcePath(root, appName):       &sourcev1.GitRepository{},
+		userKustPath(root, clusterName): &types.Kustomization{},
 	}
 }
 
 func GenerateExpectedFS(req *pb.AddApplicationRequest, root, clusterName string, app wego.ApplicationSpec, k kustomizev2.KustomizationSpec, s sourcev1.GitRepositorySpec) WeGODirectoryFS {
 	expected := map[string]interface{}{
-		appPath(root, req.Name): &wego.Application{
+		appYamlPath(root, req.Name): &wego.Application{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       wego.ApplicationKind,
 				APIVersion: wego.GroupVersion.String(),
@@ -138,7 +151,7 @@ func GenerateExpectedFS(req *pb.AddApplicationRequest, root, clusterName string,
 			},
 			Spec: app,
 		},
-		automationPath(root, req.Name, clusterName): &kustomizev2.Kustomization{
+		automationPath(root, req.Name): &kustomizev2.Kustomization{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       kustomizev2.KustomizationKind,
 				APIVersion: kustomizev2.GroupVersion.String(),
@@ -149,7 +162,7 @@ func GenerateExpectedFS(req *pb.AddApplicationRequest, root, clusterName string,
 			},
 			Spec: k,
 		},
-		sourcePath(root, req.Name, clusterName): &sourcev1.GitRepository{
+		sourcePath(root, req.Name): &sourcev1.GitRepository{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       sourcev1.GitRepositoryKind,
 				APIVersion: sourcev1.GroupVersion.String(),
@@ -159,6 +172,32 @@ func GenerateExpectedFS(req *pb.AddApplicationRequest, root, clusterName string,
 				Namespace: req.Namespace,
 			},
 			Spec: s,
+		},
+		appKustPath(root, req.Name): &types.Kustomization{
+			TypeMeta: types.TypeMeta{
+				Kind:       types.KustomizationKind,
+				APIVersion: types.KustomizationVersion,
+			},
+			MetaData: &types.ObjectMeta{
+				Name:      req.Name,
+				Namespace: req.Namespace,
+			},
+			Resources: []string{
+				"app.yaml",
+				fmt.Sprintf("%s-gitops-deploy.yaml", req.Name),
+				fmt.Sprintf("%s-gitops-source.yaml", req.Name),
+			},
+		},
+		userKustPath(root, clusterName): &types.Kustomization{
+			TypeMeta: types.TypeMeta{
+				Kind:       types.KustomizationKind,
+				APIVersion: types.KustomizationVersion,
+			},
+			MetaData: &types.ObjectMeta{
+				Name:      req.Name,
+				Namespace: req.Namespace,
+			},
+			Resources: []string{"../../../apps/" + req.Name},
 		},
 	}
 
@@ -261,4 +300,16 @@ func DiffFS(actual WeGODirectoryFS, expected WeGODirectoryFS) (string, error) {
 	}
 
 	return "", nil
+}
+
+func GetIgnoreSpec() *string {
+	ignores := []string{".weave-gitops/"}
+
+	for _, ignore := range []string{sourceignore.ExcludeVCS, sourceignore.ExcludeExt, sourceignore.ExcludeCI, sourceignore.ExcludeExtra} {
+		ignores = append(ignores, strings.Split(ignore, ",")...)
+	}
+
+	ignoreSpec := strings.Join(ignores, "\n")
+
+	return &ignoreSpec
 }

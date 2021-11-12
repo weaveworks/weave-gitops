@@ -5,6 +5,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func (a *App) Get(name types.NamespacedName) (*wego.Application, error) {
+func (a *AppSvc) Get(name types.NamespacedName) (*wego.Application, error) {
 	return a.Kube.GetApplication(a.Context, name)
 }

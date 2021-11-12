@@ -10,6 +10,7 @@ require (
 	github.com/fluxcd/kustomize-controller/api v0.16.0
 	github.com/fluxcd/pkg/apis/meta v0.10.1
 	github.com/fluxcd/pkg/ssa v0.2.0
+	github.com/fluxcd/source-controller v0.15.4 // indirect
 	github.com/fluxcd/source-controller/api v0.15.4
 	github.com/freshautomations/stoml v0.7.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1
