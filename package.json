@@ -55,7 +55,7 @@
     "history": "^5.0.0",
     "lodash": "^4.17.21",
     "luxon": "^1.27.0",
-    "postcss": "^8.3.6",
+    "postcss": "^8.3.11",
     "query-string": "^7.0.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
@@ -76,7 +76,7 @@
     "testEnvironment": "jsdom"
   },
   "resolutions": {
-    "postcss": "8.3.6",
+    "postcss": "8.3.11",
     "ejs": "^3.1.6",
     "ws": "^7.4.6",
     "css-what": "^5.0.1",
