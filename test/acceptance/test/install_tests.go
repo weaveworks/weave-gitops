@@ -20,7 +20,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("Weave GitOps Install Tests", func() {
+var _ = FDescribe("Weave GitOps Install Tests", func() {
 
 	var sessionOutput *gexec.Session
 
@@ -50,7 +50,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		By("Then I should see gitops help text displayed for 'uninstall' command", func() {
 			Eventually(string(sessionOutput.Wait().Out.Contents())).Should(MatchRegexp(
-				fmt.Sprintf(`The uninstall command removes GitOps components from the cluster.\n*Usage:\n\s*gitops uninstall \[flags]\n*Examples:\n\s*# Uninstall GitOps from the %s namespace\n\s*gitops uninstall\n*Flags:\n\s*--dry-run\s*Outputs all the manifests that would be uninstalled\n\s*-h, --help\s*help for uninstall\n*Global Flags:\n\s*-e, --endpoint string\s*The Weave GitOps Enterprise HTTP API endpoint\n\s*--namespace string\s*The namespace scope for this operation \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace, wego.DefaultNamespace)))
+				fmt.Sprintf(`The uninstall command removes GitOps components from the cluster.\n*Usage:\n\s*gitops uninstall \[flags]\n*Examples:\n\s*# Uninstall GitOps from the %s namespace\n\s*gitops uninstall\n*Flags:\n\s*--dry-run\s*Outputs all the manifests that would be uninstalled\n\s*--force\s*If set, 'gitops uninstall' will not ask for confirmation\n\s*-h, --help\s*help for uninstall\n*Global Flags:\n\s*-e, --endpoint string\s*The Weave GitOps Enterprise HTTP API endpoint\n\s*--namespace string\s*The namespace scope for this operation \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace, wego.DefaultNamespace)))
 		})
 	})
 
@@ -80,7 +80,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 	})
 
-	It("Verify that gitops can install & uninstall gitops components under a user-specified namespace", func() {
+	FIt("Verify that gitops can install & uninstall gitops components under a user-specified namespace", func() {
 
 		namespace := "test-namespace"
 
@@ -103,8 +103,22 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		installAndVerifyWego(namespace, appRepoRemoteURL)
 
-		By("When I run 'gitops uninstall' command", func() {
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, namespace))
+		By("When I run 'gitops uninstall' command without force flag it asks for confirmation", func() {
+			cmd := fmt.Sprintf("uninstall --namespace %s", namespace)
+			userInput := gbytes.NewBuffer()
+			outputStream := gbytes.NewBuffer()
+
+			c := exec.Command("sh", "-c", cmd)
+			c.Stdout = outputStream
+			c.Stdin = userInput
+			err = c.Start()
+			Expect(err).ShouldNot(HaveOccurred())
+			Eventually(outputStream).Should(gbytes.Say("Uninstall will remove all your Applications and any related cluster resources\\. Are you sure you want to uninstall\\? \\(y\\/n\\)"))
+			_, err := userInput.Write([]byte("y\n"))
+			Expect(err).ShouldNot(HaveOccurred())
+
+			err = c.Wait()
+			Expect(err).ShouldNot(HaveOccurred())
 		})
 
 		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)
@@ -147,7 +161,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		Expect(crdErr).ShouldNot(HaveOccurred())
 
 		By("When I run 'gitops uninstall' command", func() {
-			runErr := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, namespace))
+			runErr := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --force --namespace %s", WEGO_BIN_PATH, namespace))
 			Expect(runErr).ShouldNot(HaveOccurred())
 		})
 
@@ -219,7 +233,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 
 		By("When I run 'gitops uninstall' command", func() {
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, WEGO_DEFAULT_NAMESPACE))
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --force --namespace %s", WEGO_BIN_PATH, WEGO_DEFAULT_NAMESPACE))
 		})
 
 		_ = waitForNamespaceToTerminate(WEGO_DEFAULT_NAMESPACE, NAMESPACE_TERMINATE_TIMEOUT)
