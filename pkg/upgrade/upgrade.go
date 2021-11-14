@@ -88,7 +88,7 @@ func upgrade(ctx context.Context, upgradeValues UpgradeValues, gitClient git.Git
 	stringOut := string(out)
 
 	if uv.DryRun {
-		w.Write([]byte(stringOut + "\n"))
+		_, _ = w.Write([]byte(stringOut + "\n"))
 		return nil
 	}
 
