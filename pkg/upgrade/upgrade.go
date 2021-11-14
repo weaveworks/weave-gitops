@@ -102,12 +102,12 @@ func upgrade(ctx context.Context, upgradeValues UpgradeValues, gitClient git.Git
 		return fmt.Errorf("failed to normalize URL %q: %w", uv.RepoURL, err)
 	}
 
-	// WIP
+	// Create pull request
 	path := fmt.Sprintf(".weave-gitops/clusters/%s/system/enterprise/", "clustername")
 
 	pri := gitproviders.PullRequestInfo{
-		Title:         "upgrade",
-		Description:   "upgrade",
+		Title:         "Gitops upgrade",
+		Description:   "Pull request to upgrade to Weave GitOps Enterprise",
 		CommitMessage: uv.CommitMessage,
 		TargetBranch:  uv.BaseBranch,
 		NewBranch:     uv.HeadBranch,
