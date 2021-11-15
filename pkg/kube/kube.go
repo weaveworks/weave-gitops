@@ -3,6 +3,7 @@ package kube
 import (
 	"context"
 	"fmt"
+
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"

@@ -69,8 +69,6 @@ func Upgrade(ctx context.Context, gitClient git.Git, gitProvider gitproviders.Gi
 		return fmt.Errorf("error creating client for cluster %v", err)
 	}
 
-	// gitClient := git.New(nil, wrapper.NewGoGit())
-
 	return upgrade(ctx, upgradeValues, gitClient, kubeClient, gitProvider, logger, w)
 }
 
@@ -103,7 +101,8 @@ func upgrade(ctx context.Context, upgradeValues UpgradeValues, gitClient git.Git
 	}
 
 	// Create pull request
-	path := fmt.Sprintf(".weave-gitops/clusters/%s/system/enterprise/", "clustername")
+	clusterName := ""
+	path := filepath.Join(git.WegoRoot, git.WegoClusterDir, clusterName, git.WegoClusterOSWorkloadDir, "enterprise")
 
 	pri := gitproviders.PullRequestInfo{
 		Title:         "Gitops upgrade",
