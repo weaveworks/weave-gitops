@@ -137,7 +137,7 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 	manifests := make(map[string][]byte, 3)
 	clusterPath := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname)
 
-	gitsource, sourceName, err := g.genSource(cname, configBranch, params.Namespace, normalizedURL)
+	gitsource, sourceName, err := g.genSource(configBranch, params.Namespace, normalizedURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create source manifest: %w", err)
 	}
@@ -189,8 +189,8 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 	return manifests, gitrepo.CommitAndPush(ctx, gitClient, "Add GitOps runtime manifests", g.logger)
 }
 
-func (g *Gitops) genSource(cname, branch string, namespace string, normalizedUrl gitproviders.RepoURL) ([]byte, string, error) {
-	secretRef := automation.CreateRepoSecretName(cname, normalizedUrl).String()
+func (g *Gitops) genSource(branch string, namespace string, normalizedUrl gitproviders.RepoURL) ([]byte, string, error) {
+	secretRef := automation.CreateRepoSecretName(normalizedUrl).String()
 
 	sourceManifest, err := g.flux.CreateSourceGit(secretRef, normalizedUrl, branch, secretRef, namespace)
 	if err != nil {

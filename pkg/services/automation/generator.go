@@ -87,15 +87,15 @@ func NewAutomationGenerator(gp gitproviders.GitProvider, flux flux.Flux, logger 
 	}
 }
 
-func (a *AutomationGen) getAppSecretRef(ctx context.Context, app models.Application, clusterName string) (GeneratedSecretName, error) {
+func (a *AutomationGen) getAppSecretRef(ctx context.Context, app models.Application) (GeneratedSecretName, error) {
 	if app.SourceType != models.SourceTypeHelm {
-		return a.getSecretRef(ctx, app, app.GitSourceURL, clusterName)
+		return a.getSecretRef(ctx, app, app.GitSourceURL)
 	}
 
 	return "", nil
 }
 
-func (a *AutomationGen) getSecretRef(ctx context.Context, app models.Application, url gitproviders.RepoURL, clusterName string) (GeneratedSecretName, error) {
+func (a *AutomationGen) getSecretRef(ctx context.Context, app models.Application, url gitproviders.RepoURL) (GeneratedSecretName, error) {
 	var secretRef GeneratedSecretName
 
 	visibility, err := a.GitProvider.GetRepoVisibility(ctx, url)
@@ -104,7 +104,7 @@ func (a *AutomationGen) getSecretRef(ctx context.Context, app models.Application
 	}
 
 	if *visibility != gitprovider.RepositoryVisibilityPublic {
-		secretRef = CreateRepoSecretName(clusterName, url)
+		secretRef = CreateRepoSecretName(url)
 	}
 
 	return secretRef, nil
@@ -128,13 +128,13 @@ func (a *AutomationGen) generateAppAutomation(ctx context.Context, app models.Ap
 	return []AutomationManifest{appManifest, appGoatManifest}, nil
 }
 
-func (a *AutomationGen) generateAppSource(ctx context.Context, app models.Application, clusterName string) (AutomationManifest, error) {
+func (a *AutomationGen) generateAppSource(ctx context.Context, app models.Application) (AutomationManifest, error) {
 	var (
 		source []byte
 		err    error
 	)
 
-	appSecretRef, err := a.getAppSecretRef(ctx, app, clusterName)
+	appSecretRef, err := a.getAppSecretRef(ctx, app)
 	if err != nil {
 		return AutomationManifest{}, err
 	}
@@ -234,7 +234,7 @@ func (a *AutomationGen) GenerateAutomation(ctx context.Context, app models.Appli
 		return nil, err
 	}
 
-	source, err := a.generateAppSource(ctx, app, clusterName)
+	source, err := a.generateAppSource(ctx, app)
 	if err != nil {
 		return nil, err
 	}
@@ -390,8 +390,13 @@ func AppDeployName(a models.Application) string {
 	return a.Name
 }
 
-func CreateRepoSecretName(targetName string, gitSourceURL gitproviders.RepoURL) GeneratedSecretName {
-	return GeneratedSecretName(hashNameIfTooLong(fmt.Sprintf("wego-%s-%s", targetName, GenerateResourceName(gitSourceURL))))
+func CreateRepoSecretName(gitSourceURL gitproviders.RepoURL) GeneratedSecretName {
+	provider := string(gitSourceURL.Provider())
+	cleanRepoName := replaceUnderscores(gitSourceURL.RepositoryName())
+	qualifiedName := fmt.Sprintf("wego-%s-%s", provider, cleanRepoName)
+	lengthConstrainedName := hashNameIfTooLong(qualifiedName)
+
+	return GeneratedSecretName(lengthConstrainedName)
 }
 
 func SourceKind(a models.Application) ResourceKind {
@@ -436,7 +441,11 @@ func GenerateResourceName(url gitproviders.RepoURL) string {
 }
 
 func ConstrainResourceName(str string) string {
-	return hashNameIfTooLong(strings.ReplaceAll(str, "_", "-"))
+	return hashNameIfTooLong(replaceUnderscores(str))
+}
+
+func replaceUnderscores(str string) string {
+	return strings.ReplaceAll(str, "_", "-")
 }
 
 func (rk ResourceKind) ToGVR() (schema.GroupVersionResource, error) {
