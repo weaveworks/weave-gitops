@@ -20,14 +20,6 @@ exports[`Flex snapshots renders 1`] = `
   width: 100%;
 }
 
-.c0.application-actions {
-  width: 650px;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
-  justify-content: space-between;
-}
-
 <div
   className="c0"
 >
