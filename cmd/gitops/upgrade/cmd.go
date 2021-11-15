@@ -45,6 +45,7 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		ctx := context.Background()
 		namespace, err := cmd.Parent().Flags().GetString("namespace")
+
 		if err != nil {
 			return fmt.Errorf("couldn't read namespace flag: %v", err)
 		}
