@@ -213,7 +213,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 
 		By("When I try to uninstall gitops in dry-run mode", func() {
-			uninstallDryRunOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " uninstall --dry-run")
+			uninstallDryRunOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " uninstall --force --dry-run")
 		})
 
 		By("Then I should see uninstall dry-run output in the console", func() {
