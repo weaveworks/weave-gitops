@@ -20,7 +20,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = FDescribe("Weave GitOps Install Tests", func() {
+var _ = Describe("Weave GitOps Install Tests", func() {
 
 	var sessionOutput *gexec.Session
 
@@ -80,7 +80,7 @@ var _ = FDescribe("Weave GitOps Install Tests", func() {
 		})
 	})
 
-	FIt("Verify that gitops can install & uninstall gitops components under a user-specified namespace", func() {
+	It("Verify that gitops can install & uninstall gitops components under a user-specified namespace", func() {
 
 		namespace := "test-namespace"
 
@@ -104,7 +104,7 @@ var _ = FDescribe("Weave GitOps Install Tests", func() {
 		installAndVerifyWego(namespace, appRepoRemoteURL)
 
 		By("When I run 'gitops uninstall' command without force flag it asks for confirmation", func() {
-			cmd := fmt.Sprintf("uninstall --namespace %s", namespace)
+			cmd := fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, namespace)
 			userInput := gbytes.NewBuffer()
 			outputStream := gbytes.NewBuffer()
 
@@ -113,7 +113,7 @@ var _ = FDescribe("Weave GitOps Install Tests", func() {
 			c.Stdin = userInput
 			err = c.Start()
 			Expect(err).ShouldNot(HaveOccurred())
-			Eventually(outputStream).Should(gbytes.Say("Uninstall will remove all your Applications and any related cluster resources\\. Are you sure you want to uninstall\\? \\(y\\/n\\)"))
+			Eventually(outputStream).Should(gbytes.Say(`Uninstall will remove all your Applications and any related cluster resources\. Are you sure you want to uninstall\? \(y\/n\)`))
 			_, err := userInput.Write([]byte("y\n"))
 			Expect(err).ShouldNot(HaveOccurred())
 
