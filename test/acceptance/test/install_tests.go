@@ -5,8 +5,10 @@
 package acceptance
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -105,17 +107,17 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		By("When I run 'gitops uninstall' command without force flag it asks for confirmation", func() {
 			cmd := fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, namespace)
-			userInput := gbytes.NewBuffer()
 			outputStream := gbytes.NewBuffer()
+			inputUser := bytes.NewBuffer([]byte("y\n"))
 
 			c := exec.Command("sh", "-c", cmd)
 			c.Stdout = outputStream
-			c.Stdin = userInput
-			err = c.Start()
+			c.Stdin = inputUser
+			c.Stderr = os.Stderr
+			err := c.Start()
 			Expect(err).ShouldNot(HaveOccurred())
+
 			Eventually(outputStream).Should(gbytes.Say(`Uninstall will remove all your Applications and any related cluster resources\. Are you sure you want to uninstall\? \(y\/n\)`))
-			_, err := userInput.Write([]byte("y\n"))
-			Expect(err).ShouldNot(HaveOccurred())
 
 			err = c.Wait()
 			Expect(err).ShouldNot(HaveOccurred())
