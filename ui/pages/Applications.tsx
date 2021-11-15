@@ -1,6 +1,6 @@
-import { Checkbox } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
+import ActionBar from "../components/ActionBar";
 import Button from "../components/Button";
 import DataTable from "../components/DataTable";
 import Flex from "../components/Flex";
@@ -17,44 +17,19 @@ type Props = {
 
 function Applications({ className }: Props) {
   const [applications, setApplications] = React.useState<Application[]>([]);
-  const [sort, setSort] = React.useState("Name");
-  const [reverseSort, setReverseSort] = React.useState(false);
   const { listApplications, loading } = useApplications();
 
   React.useEffect(() => {
     listApplications().then((res) => setApplications(res as Application[]));
   }, []);
 
-  type labelProps = { label: string };
-  function SortableLabel({ label }: labelProps) {
-    return (
-      <Flex align>
-        <Button
-          onClick={() => {
-            setSort(label);
-            setReverseSort(false);
-          }}
-          className={`lowercase table ${sort === label && "bold"}`}
-        >
-          <p>{label}</p>
-        </Button>
-        {sort === label && (
-          <Button
-            onClick={() =>
-              reverseSort ? setReverseSort(false) : setReverseSort(true)
-            }
-            className="table"
-          >
-            <Icon
-              type={IconType.ArrowDownward}
-              size="small"
-              className={reverseSort ? "upward" : "downward"}
-            />
-          </Button>
-        )}
-      </Flex>
-    );
-  }
+  const AppButton = styled(Button)`
+    &.MuiButton-root {
+      border-radius: 0;
+      border-color: #bdbdbd;
+      font-weight: 600;
+    }
+  `;
 
   return (
     <Page loading={loading} className={className}>
@@ -63,46 +38,26 @@ function Applications({ className }: Props) {
           <h2>Installed GitOps Applications</h2>
         </TitleBar>
       </Flex>
-      <Flex className="application-actions">
+      <ActionBar>
         <Link to={PageRoute.ApplicationAdd}>
-          <Button
-            variant="outlined"
-            color="primary"
-            type="button"
-            className="applications bold"
-          >
+          <AppButton variant="outlined" color="primary" type="button">
             Add a new app <Icon type={IconType.Add} size="base" />
-          </Button>
+          </AppButton>
         </Link>
-        <Button
-          variant="outlined"
-          color="primary"
-          type="button"
-          className="applications bold"
-        >
+        <AppButton variant="outlined" color="primary" type="button">
           Install a new Profile <Icon type={IconType.Add} size="base" />
-        </Button>
-        <Button
-          variant="outlined"
-          color="secondary"
-          type="button"
-          className="applications bold"
-        >
+        </AppButton>
+        <AppButton variant="outlined" color="secondary" type="button">
           Create a PR to Delete App{" "}
           <Icon type={IconType.DeleteForever} size="base" />
-        </Button>
-      </Flex>
-
+        </AppButton>
+      </ActionBar>
       <DataTable
-        sortFields={[sort]}
-        reverseSort={reverseSort}
+        checks
+        sortFields={["Name", "Type", "Namespace"]}
         fields={[
           {
-            label: <Checkbox />,
-            value: () => <Checkbox />,
-          },
-          {
-            label: <SortableLabel label="Name" />,
+            label: "Name",
             value: ({ name }: Application) => (
               <Link to={formatURL(PageRoute.ApplicationDetail, { name })}>
                 {name}
@@ -114,7 +69,7 @@ function Applications({ className }: Props) {
             value: "status",
           },
           {
-            label: <SortableLabel label="Type" />,
+            label: "Type",
             value: "type",
           },
           {
@@ -122,7 +77,7 @@ function Applications({ className }: Props) {
             value: "version",
           },
           {
-            label: <SortableLabel label="Namespace" />,
+            label: "Namespace",
             value: ({ namespace }: Application) => (
               <p>{namespace ? namespace : "default"}</p>
             ),

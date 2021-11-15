@@ -76,7 +76,6 @@ export default styled(Icon)`
   &.downward {
     transform: initial;
   }
-
   ${Text} {
     margin-left: 4px;
     color: ${(props) => props.theme.colors[props.color as any]};
