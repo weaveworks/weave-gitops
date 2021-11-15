@@ -86,6 +86,6 @@ brews:
       bash_output = Utils.safe_popen_read(bin/"gitops", "completion", "bash")
       (bash_completion/"gitops").write bash_output
       zsh_output = Utils.safe_popen_read(bin/"gitops", "completion", "zsh")
-      (zsh_completion/"gitops").write zsh_output
+      (zsh_completion/"_gitops").write zsh_output
     test: |
-      system "#{bin}/gitops --version"
+      system "#{bin}/gitops version"
