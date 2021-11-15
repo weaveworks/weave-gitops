@@ -20,6 +20,7 @@ import (
 	"github.com/weaveworks/pctl/pkg/install"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -63,16 +64,16 @@ const CredentialsSecretName string = "weave-gitops-enterprise-credentials"
 // 3. pctl is used to install the profile from the local clone into the current working directory
 // 4. pctl is used to add, commit, push and create a PR.
 //
-func Upgrade(ctx context.Context, gitClient git.Git, gitProvider gitproviders.GitProvider, upgradeValues UpgradeValues, logger logger.Logger, w io.Writer) error {
+func Upgrade(ctx context.Context, k kube.Kube, gitClient git.Git, gitProvider gitproviders.GitProvider, upgradeValues UpgradeValues, logger logger.Logger, w io.Writer) error {
 	kubeClient, err := makeKubeClient()
 	if err != nil {
 		return fmt.Errorf("error creating client for cluster %v", err)
 	}
 
-	return upgrade(ctx, upgradeValues, gitClient, kubeClient, gitProvider, logger, w)
+	return upgrade(ctx, upgradeValues, k, gitClient, kubeClient, gitProvider, logger, w)
 }
 
-func upgrade(ctx context.Context, upgradeValues UpgradeValues, gitClient git.Git, kubeClient client.Client, gitProvider gitproviders.GitProvider, logger logger.Logger, w io.Writer) error {
+func upgrade(ctx context.Context, upgradeValues UpgradeValues, k kube.Kube, gitClient git.Git, kubeClient client.Client, gitProvider gitproviders.GitProvider, logger logger.Logger, w io.Writer) error {
 	uv, err := buildUpgradeConfigs(ctx, upgradeValues, kubeClient, gitClient, w)
 	if err != nil {
 		return fmt.Errorf("failed to build upgrade configs: %v", err)
@@ -101,8 +102,11 @@ func upgrade(ctx context.Context, upgradeValues UpgradeValues, gitClient git.Git
 	}
 
 	// Create pull request
-	clusterName := ""
-	path := filepath.Join(git.WegoRoot, git.WegoClusterDir, clusterName, git.WegoClusterOSWorkloadDir, "enterprise")
+	cname, err := k.GetClusterName(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get cluster name: %w", err)
+	}
+	path := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, git.WegoEnterpriseDir)
 
 	pri := gitproviders.PullRequestInfo{
 		Title:         "Gitops upgrade",

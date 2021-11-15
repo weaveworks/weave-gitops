@@ -14,6 +14,7 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
+	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -88,6 +89,7 @@ func TestUpgradeDryRun(t *testing.T) {
 	kubeClient := makeClient(t, createSecret(), createGitRepository("my-app"))
 	gitProvider := &gitprovidersfakes.FakeGitProvider{}
 	logger := &loggerfakes.FakeLogger{}
+	k := &kubefakes.FakeKube{}
 
 	var output bytes.Buffer
 
@@ -101,7 +103,7 @@ func TestUpgradeDryRun(t *testing.T) {
 		Namespace:     wego.DefaultNamespace,
 		DryRun:        true,
 		GitRepository: filepath.Join(wego.DefaultNamespace, "my-app"),
-	}, gitClient, kubeClient, gitProvider, logger, &output)
+	}, k, gitClient, kubeClient, gitProvider, logger, &output)
 
 	assert.Contains(t, output.String(), "kind: HelmRelease")
 	assert.Contains(t, output.String(), "kind: HelmRepository")
@@ -116,6 +118,7 @@ func TestUpgrade(t *testing.T) {
 	kubeClient := makeClient(t, createSecret(), createGitRepository("my-app"))
 	gitProvider := &gitprovidersfakes.FakeGitProvider{}
 	logger := &loggerfakes.FakeLogger{}
+	k := &kubefakes.FakeKube{}
 
 	var output bytes.Buffer
 
@@ -128,7 +131,7 @@ func TestUpgrade(t *testing.T) {
 		CommitMessage: "Upgrade to wge",
 		Namespace:     wego.DefaultNamespace,
 		GitRepository: filepath.Join(wego.DefaultNamespace, "my-app"),
-	}, gitClient, kubeClient, gitProvider, logger, &output)
+	}, k, gitClient, kubeClient, gitProvider, logger, &output)
 
 	assert.NoError(t, err)
 }

@@ -43,6 +43,7 @@ func init() {
 
 func upgradeCmdRunE() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
+		ctx := context.Background()
 		namespace, err := cmd.Parent().Flags().GetString("namespace")
 		if err != nil {
 			return fmt.Errorf("couldn't read namespace flag: %v", err)
@@ -57,7 +58,12 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 
-		gitClient, gitProvider, err := factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
+		kubeClient, err := factory.GetKubeService()
+		if err != nil {
+			return fmt.Errorf("error initializing kube client: %w", err)
+		}
+
+		gitClient, gitProvider, err := factory.GetGitClients(ctx, providerClient, services.GitConfigParams{
 			URL:       upgradeCmdFlags.RepoURL,
 			Namespace: upgradeCmdFlags.Namespace,
 			DryRun:    upgradeCmdFlags.DryRun,
@@ -67,7 +73,8 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 		}
 
 		return upgrade.Upgrade(
-			context.Background(),
+			ctx,
+			kubeClient,
 			gitClient,
 			gitProvider,
 			upgradeCmdFlags,
