@@ -30,7 +30,6 @@ import (
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 type UpgradeValues struct {
@@ -64,16 +63,16 @@ const CredentialsSecretName string = "weave-gitops-enterprise-credentials"
 // 3. pctl is used to install the profile from the local clone into the current working directory
 // 4. pctl is used to add, commit, push and create a PR.
 //
-func Upgrade(ctx context.Context, k kube.Kube, gitClient git.Git, gitProvider gitproviders.GitProvider, upgradeValues UpgradeValues, logger logger.Logger, w io.Writer) error {
-	kubeClient, err := makeKubeClient()
+func Upgrade(ctx context.Context, gitClient git.Git, gitProvider gitproviders.GitProvider, upgradeValues UpgradeValues, logger logger.Logger, w io.Writer) error {
+	kube, kubeClient, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return fmt.Errorf("error creating client for cluster %v", err)
 	}
 
-	return upgrade(ctx, upgradeValues, k, gitClient, kubeClient, gitProvider, logger, w)
+	return upgrade(ctx, upgradeValues, kube, gitClient, kubeClient, gitProvider, logger, w)
 }
 
-func upgrade(ctx context.Context, upgradeValues UpgradeValues, k kube.Kube, gitClient git.Git, kubeClient client.Client, gitProvider gitproviders.GitProvider, logger logger.Logger, w io.Writer) error {
+func upgrade(ctx context.Context, upgradeValues UpgradeValues, kube kube.Kube, gitClient git.Git, kubeClient client.Client, gitProvider gitproviders.GitProvider, logger logger.Logger, w io.Writer) error {
 	uv, err := buildUpgradeConfigs(ctx, upgradeValues, kubeClient, gitClient, w)
 	if err != nil {
 		return fmt.Errorf("failed to build upgrade configs: %v", err)
@@ -102,10 +101,11 @@ func upgrade(ctx context.Context, upgradeValues UpgradeValues, k kube.Kube, gitC
 	}
 
 	// Create pull request
-	cname, err := k.GetClusterName(ctx)
+	cname, err := kube.GetClusterName(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get cluster name: %w", err)
 	}
+
 	path := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, git.WegoEnterpriseDir)
 
 	pri := gitproviders.PullRequestInfo{
@@ -190,22 +190,22 @@ func makeHelmResources(namespace string) []runtime.Object {
 	return []runtime.Object{helmRepository, helmRelease}
 }
 
-func makeKubeClient() (client.Client, error) {
-	scheme := runtime.NewScheme()
-	schemeBuilder := runtime.SchemeBuilder{
-		sourcev1.AddToScheme,
-		corev1.AddToScheme,
-	}
+// func makeKubeClient() (client.Client, error) {
+// 	scheme := runtime.NewScheme()
+// 	schemeBuilder := runtime.SchemeBuilder{
+// 		sourcev1.AddToScheme,
+// 		corev1.AddToScheme,
+// 	}
 
-	err := schemeBuilder.AddToScheme(scheme)
-	if err != nil {
-		return nil, fmt.Errorf("error adding sourcev1 to kube client scheme %v", err)
-	}
+// 	err := schemeBuilder.AddToScheme(scheme)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error adding sourcev1 to kube client scheme %v", err)
+// 	}
 
-	kubeClientConfig := config.GetConfigOrDie()
+// 	kubeClientConfig := config.GetConfigOrDie()
 
-	return client.New(kubeClientConfig, client.Options{Scheme: scheme})
-}
+// 	return client.New(kubeClientConfig, client.Options{Scheme: scheme})
+// }
 
 // buildUpgradeConfigs sets some flags default values from the env
 func buildUpgradeConfigs(ctx context.Context, uv UpgradeValues, kubeClient client.Client, gitClient git.Git, w io.Writer) (*UpgradeValues, error) {

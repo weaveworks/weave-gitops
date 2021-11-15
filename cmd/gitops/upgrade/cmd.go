@@ -58,11 +58,6 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 
-		kubeClient, err := factory.GetKubeService()
-		if err != nil {
-			return fmt.Errorf("error initializing kube client: %w", err)
-		}
-
 		gitClient, gitProvider, err := factory.GetGitClients(ctx, providerClient, services.GitConfigParams{
 			URL:       upgradeCmdFlags.RepoURL,
 			Namespace: upgradeCmdFlags.Namespace,
@@ -74,7 +69,6 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 
 		return upgrade.Upgrade(
 			ctx,
-			kubeClient,
 			gitClient,
 			gitProvider,
 			upgradeCmdFlags,
