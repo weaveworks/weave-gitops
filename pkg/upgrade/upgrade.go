@@ -3,6 +3,7 @@ package upgrade
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -13,6 +14,7 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	"github.com/helm/helm///pkg/strvals"
 	"github.com/weaveworks/pctl/pkg/catalog"
 	pctl_git "github.com/weaveworks/pctl/pkg/git"
 	"github.com/weaveworks/pctl/pkg/install"
@@ -41,6 +43,7 @@ type UpgradeValues struct {
 	ConfigMap      string
 	Out            string
 	GitRepository  string
+	Values         []string
 	DryRun         bool
 }
 
@@ -75,7 +78,12 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 		return fmt.Errorf("failed to get cluster name: %w", err)
 	}
 
-	out, err := marshalToYamlStream(makeHelmResources(uv.Namespace, uv.ProfileVersion, cname, uv.AppConfigURL))
+	resources, err := makeHelmResources(uv.Namespace, uv.ProfileVersion, cname, uv.AppConfigURL, uv.Values)
+	if err != nil {
+		return fmt.Errorf("error creating helm resources: %w", err)
+	}
+
+	out, err := marshalToYamlStream(resources)
 	if err != nil {
 		return fmt.Errorf("error marshalling helm resources: %w", err)
 	}
@@ -134,7 +142,7 @@ func marshalToYamlStream(objects []runtime.Object) ([]byte, error) {
 	return bytes.Join(out, []byte("---\n")), nil
 }
 
-func makeHelmResources(namespace, version, cname, repoURL string) []runtime.Object {
+func makeHelmResources(namespace, version, cname, repoURL string, values []string) ([]runtime.Object, error) {
 	helmRepository := &sourcev1.HelmRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "weave-gitops-enterprise-charts",
@@ -157,7 +165,7 @@ func makeHelmResources(namespace, version, cname, repoURL string) []runtime.Obje
 		version = "latest"
 	}
 
-	valuesTemp := `{
+	valuesTemplate := `{
 		"config": {
 			"cluster": {
 				"name": %s
@@ -168,7 +176,20 @@ func makeHelmResources(namespace, version, cname, repoURL string) []runtime.Obje
 		}
 	}`
 
-	values := fmt.Sprintf(valuesTemp, cname, repoURL)
+	base := map[string]interface{}{}
+	err := json.Unmarshal([]byte(valuesTemplate), &base)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling json: %w", err)
+	}
+
+	// User specified a value via --set
+	for _, value := range values {
+		if err := strvals.ParseInto(value, base); err != nil {
+			return nil, fmt.Errorf("failed parsing --set data: %w", err)
+		}
+	}
+
+	valuesString := fmt.Sprintf(valuesTemplate, cname, repoURL)
 
 	helmRelease := &helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
@@ -192,11 +213,11 @@ func makeHelmResources(namespace, version, cname, repoURL string) []runtime.Obje
 					Version: version,
 				},
 			},
-			Values: &v1.JSON{Raw: []byte(values)},
+			Values: &v1.JSON{Raw: []byte(valuesString)},
 		},
 	}
 
-	return []runtime.Object{helmRepository, helmRelease}
+	return []runtime.Object{helmRepository, helmRelease}, nil
 }
 
 func getBasicAuth(ctx context.Context, kubeClient client.Client, ns string) error {

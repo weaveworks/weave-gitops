@@ -40,6 +40,8 @@ func init() {
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.Out, "out", "", "Optional location to create the profile installation folder in. This should be relative to the current working directory. (default: current)")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.ProfileBranch, "profile-branch", "main", "The branch to use on the repository in which the profile is.")
 	Cmd.PersistentFlags().BoolVar(&upgradeCmdFlags.DryRun, "dry-run", false, "Output the generated profile without creating a pull request")
+	Cmd.PersistentFlags().StringArrayVar(&upgradeCmdFlags.Values, "set", []string{}, "set values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
+
 	cobra.CheckErr(Cmd.MarkFlagRequired("app-config-url"))
 }
 
