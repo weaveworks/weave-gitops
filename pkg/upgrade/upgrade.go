@@ -70,7 +70,12 @@ func Upgrade(ctx context.Context, gitClient git.Git, gitProvider gitproviders.Gi
 }
 
 func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient git.Git, kubeClient client.Client, gitProvider gitproviders.GitProvider, logger logger.Logger, w io.Writer) error {
-	out, err := marshalToYamlStream(makeHelmResources(uv.Namespace, uv.ProfileVersion))
+	cname, err := kube.GetClusterName(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get cluster name: %w", err)
+	}
+
+	out, err := marshalToYamlStream(makeHelmResources(uv.Namespace, uv.ProfileVersion, cname, uv.AppConfigURL))
 	if err != nil {
 		return fmt.Errorf("error marshalling helm resources: %w", err)
 	}
@@ -93,11 +98,6 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 	}
 
 	// Create pull request
-	cname, err := kube.GetClusterName(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get cluster name: %w", err)
-	}
-
 	path := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, git.WegoEnterpriseDir)
 
 	pri := gitproviders.PullRequestInfo{
@@ -134,7 +134,7 @@ func marshalToYamlStream(objects []runtime.Object) ([]byte, error) {
 	return bytes.Join(out, []byte("---\n")), nil
 }
 
-func makeHelmResources(namespace string, version string) []runtime.Object {
+func makeHelmResources(namespace, version, cname, repoURL string) []runtime.Object {
 	helmRepository := &sourcev1.HelmRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "weave-gitops-enterprise-charts",
@@ -156,6 +156,19 @@ func makeHelmResources(namespace string, version string) []runtime.Object {
 	if version == "" {
 		version = "latest"
 	}
+
+	valuesTemp := `{
+		"config": {
+			"cluster": {
+				"name": %s
+			},
+			"capi": {
+				"repositoryURL": %s
+			}
+		}
+	}`
+
+	values := fmt.Sprintf(valuesTemp, cname, repoURL)
 
 	helmRelease := &helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
@@ -179,29 +192,12 @@ func makeHelmResources(namespace string, version string) []runtime.Object {
 					Version: version,
 				},
 			},
-			Values: &v1.JSON{Raw: []byte(`"hi"`)},
+			Values: &v1.JSON{Raw: []byte(values)},
 		},
 	}
 
 	return []runtime.Object{helmRepository, helmRelease}
 }
-
-// func makeKubeClient() (client.Client, error) {
-// 	scheme := runtime.NewScheme()
-// 	schemeBuilder := runtime.SchemeBuilder{
-// 		sourcev1.AddToScheme,
-// 		corev1.AddToScheme,
-// 	}
-
-// 	err := schemeBuilder.AddToScheme(scheme)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("error adding sourcev1 to kube client scheme %v", err)
-// 	}
-
-// 	kubeClientConfig := config.GetConfigOrDie()
-
-// 	return client.New(kubeClientConfig, client.Options{Scheme: scheme})
-// }
 
 func getBasicAuth(ctx context.Context, kubeClient client.Client, ns string) error {
 	deployKeySecret := &corev1.Secret{}
