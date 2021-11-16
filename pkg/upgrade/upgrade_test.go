@@ -110,6 +110,40 @@ func TestGetGitAuthFromDeployKey(t *testing.T) {
 	}
 }
 
+func TestMakeHelmResources(t *testing.T) {
+	tests := []struct {
+		name        string
+		values      []string
+		expected    string
+		expectedErr error
+	}{
+		{
+			name:        "error returned",
+			values:      []string{"key1"},
+			expectedErr: errors.New("failed parsing --set data: key \"key1\" has no value"),
+		},
+		{
+			name:     "resources created",
+			values:   []string{"key1=val2"},
+			expected: "key1: val2",
+		},
+		{
+			name:     "override default values",
+			values:   []string{"key1=val2", "config.cluster.name=bar"},
+			expected: "name: bar",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			objs, err := makeHelmResources("wego-system", "v0.0.14", "foo", "example.com", tt.values)
+			out, _ := marshalToYamlStream(objs)
+			assert.Equal(t, tt.expectedErr, err)
+			assert.Contains(t, string(out), tt.expected)
+		})
+	}
+}
+
 //
 // helpers
 //

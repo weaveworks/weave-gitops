@@ -168,16 +168,19 @@ func makeHelmResources(namespace, version, cname, repoURL string, values []strin
 	valuesTemplate := `{
 		"config": {
 			"cluster": {
-				"name": %s
+				"name": "%s"
 			},
 			"capi": {
-				"repositoryURL": %s
+				"repositoryURL": "%s"
 			}
 		}
 	}`
 
+	defaultValues := fmt.Sprintf(valuesTemplate, cname, repoURL)
+
 	base := map[string]interface{}{}
-	err := json.Unmarshal([]byte(valuesTemplate), &base)
+
+	err := json.Unmarshal([]byte(defaultValues), &base)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling json: %w", err)
 	}
