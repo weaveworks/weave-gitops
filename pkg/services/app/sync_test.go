@@ -39,7 +39,7 @@ var _ = Describe("Sync", func() {
 		Expect(err.Error()).To(HavePrefix("failed getting application"))
 	})
 
-	It("sets proper annotation tag to the resource", func() {
+	XIt("sets proper annotation tag to the resource", func() {
 		ready := make(chan bool)
 
 		go func() {

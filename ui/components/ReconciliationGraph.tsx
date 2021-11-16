@@ -117,17 +117,21 @@ export default styled(ReconciliationGraph)`
 
   .node {
     position: relative;
-    font-size: 14px;
+    font-size: 16px;
     /* background-color: white; */
-    width: 100px;
+    width: 125px;
+    height: 125px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
   }
 
   ellipse {
     fill: white;
     stroke: #13a000;
     stroke-width: 3;
-    stroke-dasharray: 188.5;
-    filter: drop-shadow(4px 4px 8px #7c7c7c);
+    stroke-dasharray: 266px;
+    filter: drop-shadow(rgb(189, 189, 189) 0px 0px 1px);
   }
 
   .success ellipse {
@@ -147,6 +151,7 @@ export default styled(ReconciliationGraph)`
   .kind-text {
     overflow: hidden;
     text-overflow: ellipsis;
+    font-size: 14px;
   }
 
   .Current {
@@ -166,8 +171,7 @@ export default styled(ReconciliationGraph)`
   }
 
   .MuiSvgIcon-root {
-    height: 16px;
-    width: 16px;
-    float: right;
+    height: 24px;
+    width: 24px;
   }
 `;

@@ -39,6 +39,7 @@ const EVENTUALLY_DEFAULT_TIMEOUT time.Duration = 60 * time.Second
 const TIMEOUT_TWO_MINUTES time.Duration = 120 * time.Second
 const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
 const NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
+const INSTALL_SUCCESSFUL_TIMEOUT time.Duration = 3 * time.Minute
 const INSTALL_PODS_READY_TIMEOUT time.Duration = 3 * time.Minute
 const WEGO_DEFAULT_NAMESPACE = wego.DefaultNamespace
 const WEGO_UI_URL = "http://localhost:9001"
@@ -89,7 +90,17 @@ func FileExists(name string) bool {
 	return true
 }
 
-func getClusterName() string {
+func selectCluster(context string) {
+	_, err := exec.Command("kubectl", "config", "use-context", context).Output()
+	Expect(err).ShouldNot(HaveOccurred())
+}
+
+func deleteCluster(clusterName string) {
+	_, err := exec.Command("kind", "delete", "cluster", "--name", clusterName).Output()
+	Expect(err).ShouldNot(HaveOccurred())
+}
+
+func getClusterContext() string {
 	out, err := exec.Command("kubectl", "config", "current-context").Output()
 	Expect(err).ShouldNot(HaveOccurred())
 
@@ -161,32 +172,32 @@ func setupGitlabSSHKey(sshKeyPath string) {
 	}
 }
 
-func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool) (string, error) {
-	return ResetOrCreateClusterWithName(namespace, deleteWegoRuntime, "")
+func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool) (string, string, error) {
+	return ResetOrCreateClusterWithName(namespace, deleteWegoRuntime, "", false)
 }
 
-func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clusterName string) (string, error) {
+func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clusterName string, keepExistingClusters bool) (string, string, error) {
 	supportedProviders := []string{"kind", "kubectl"}
 	supportedK8SVersions := []string{"1.19.1", "1.20.2", "1.21.1"}
 
 	provider, found := os.LookupEnv("CLUSTER_PROVIDER")
-	if !found {
+	if keepExistingClusters || !found {
 		provider = "kind"
 	}
 
 	k8sVersion, found := os.LookupEnv("K8S_VERSION")
 	if !found {
-		k8sVersion = "1.20.2"
+		k8sVersion = "1.21.1"
 	}
 
 	if !contains(supportedProviders, provider) {
 		log.Errorf("Cluster provider %s is not supported for testing", provider)
-		return clusterName, errors.New("Unsupported provider")
+		return clusterName, "", errors.New("Unsupported provider")
 	}
 
 	if !contains(supportedK8SVersions, k8sVersion) {
 		log.Errorf("Kubernetes version %s is not supported for testing", k8sVersion)
-		return clusterName, errors.New("Unsupported kubernetes version")
+		return clusterName, "", errors.New("Unsupported kubernetes version")
 	}
 
 	//For kubectl, point to a valid cluster, we will try to reset the namespace only
@@ -208,13 +219,19 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 
 		log.Infof("Creating a kind cluster %s", clusterName)
 
-		err := runCommandPassThrough([]string{}, "./scripts/kind-cluster.sh", clusterName, "kindest/node:v"+k8sVersion)
+		var err error
+
+		if keepExistingClusters {
+			err = runCommandPassThrough([]string{}, "./scripts/kind-multi-cluster.sh", clusterName, "kindest/node:v"+k8sVersion)
+		} else {
+			err = runCommandPassThrough([]string{}, "./scripts/kind-cluster.sh", clusterName, "kindest/node:v"+k8sVersion)
+		}
 
 		if err != nil {
 			log.Infof("Failed to create kind cluster")
 			log.Fatal(err)
 
-			return clusterName, err
+			return clusterName, "", err
 		}
 	}
 
@@ -224,10 +241,10 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 
 	if err != nil {
 		log.Infof("Cluster system pods are not ready after waiting for 5 minutes, This can cause tests failures.")
-		return clusterName, err
+		return clusterName, "", err
 	}
 
-	return clusterName, nil
+	return clusterName, getClusterContext(), nil
 }
 
 func initAndCreateEmptyRepo(appRepoName string, providerName gitproviders.GitProviderName, isPrivateRepo bool, org string) string {
@@ -386,7 +403,7 @@ func installAndVerifyWego(wegoNamespace, repoURL string) {
 		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --app-config-url=%s", WEGO_BIN_PATH, wegoNamespace, repoURL))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, TIMEOUT_TWO_MINUTES).Should(gexec.Exit())
+		Eventually(session, INSTALL_SUCCESSFUL_TIMEOUT).Should(gexec.Exit())
 		Expect(string(session.Err.Contents())).Should(BeEmpty())
 		VerifyControllersInCluster(wegoNamespace)
 	})

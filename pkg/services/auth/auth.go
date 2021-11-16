@@ -95,7 +95,7 @@ func (a *authSvc) GetGitProvider() gitproviders.GitProvider {
 // This ensures that git operations are done with stored deploy keys instead of a user's local ssh-agent or equivalent.
 func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.RepoURL, targetName string, namespace string) (git.Git, error) {
 	secretName := SecretName{
-		Name:      automation.CreateRepoSecretName(targetName, repoUrl),
+		Name:      automation.CreateRepoSecretName(repoUrl),
 		Namespace: namespace,
 	}
 
@@ -173,7 +173,7 @@ func (a *authSvc) provisionDeployKey(ctx context.Context, targetName string, nam
 
 // Generates an ssh keypair for upload to the Git Provider and for use in a git.Git client.
 func (a *authSvc) generateDeployKey(targetName string, secretName SecretName, repo gitproviders.RepoURL) (*ssh.PublicKeys, *corev1.Secret, error) {
-	secret, err := a.createKeyPairSecret(targetName, secretName, repo)
+	secret, err := a.createKeyPairSecret(secretName, repo)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not create key-pair secret: %w", err)
 	}
@@ -208,7 +208,7 @@ func (a *authSvc) retrieveDeployKey(ctx context.Context, name SecretName) (*core
 }
 
 // Uses flux to create a ssh key pair secret.
-func (a *authSvc) createKeyPairSecret(targetName string, name SecretName, repo gitproviders.RepoURL) (*corev1.Secret, error) {
+func (a *authSvc) createKeyPairSecret(name SecretName, repo gitproviders.RepoURL) (*corev1.Secret, error) {
 	secretData, err := a.fluxClient.CreateSecretGit(name.Name.String(), repo, name.Namespace)
 	if err != nil {
 		return nil, fmt.Errorf("could not create git secret: %w", err)
