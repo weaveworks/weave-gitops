@@ -80,7 +80,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		Expect(webDriver.Destroy()).To(Succeed())
 	})
 
-	It("UITest - Verify gitops can add apps from the UI to an empty cluster", func() {
+	It("SmokeTest - Verify gitops can add apps from the UI to an empty cluster", func() {
 		var addAppPage *pages.AddAppPageElements
 		var repoAbsolutePath string
 		tip := generateTestInputs()
@@ -136,7 +136,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		})
 	})
 
-	It("UITest - Verify gitops UI can list details of apps running in the cluster", func() {
+	It("SmokeTest - Verify gitops UI can list details of apps running in the cluster", func() {
 		var linkToApp1 *pages.AppListElements
 		var linkToApp2 *pages.AppListElements
 		var appPageURL string
@@ -216,5 +216,6 @@ var _ = Describe("Weave GitOps UI Test", func() {
 			appPageURL, _ = webDriver.URL()
 			Eventually(appPageURL).Should(MatchRegexp(WEGO_UI_URL + `/application_detail.*` + appName1))
 		})
+
 	})
 })

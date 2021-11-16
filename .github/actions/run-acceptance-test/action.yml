@@ -33,6 +33,19 @@ runs:
       go-version: 1.16.x
   - name: Checkout code
     uses: actions/checkout@v2
+  - name: Setup selenium standalone server
+    shell: bash
+    run: |
+      sudo apt-get update
+      sudo apt-get install -y xvfb
+      sudo apt-get install -y google-chrome-stable
+       # https://chromedriver.storage.googleapis.com/
+      CHROMEDRIVER_VERSION=94.0.4606.61
+       wget https://chromedriver.storage.googleapis.com/"${CHROMEDRIVER_VERSION}"/chromedriver_linux64.zip
+      unzip chromedriver_linux64.zip
+      sudo mv -f chromedriver /usr/local/bin/chromedriver
+       wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
+       xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
   - name: Setup Kubernetes
     uses: engineerd/setup-kind@v0.5.0
     with:
@@ -91,7 +104,7 @@ runs:
       ginkgo ${{ inputs.focus-or-skip }} --randomizeSuites --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/${{ inputs.result-prefix }}acceptance-test-results.xml -v ./test/acceptance/test/...
   - name: Store acceptance test results
     env:
-      ARTIFACTS_BASE_DIR: "/tmp/gitops-test"
+        ARTIFACTS_BASE_DIR: "/tmp/gitops-test"
     uses: actions/upload-artifact@v2
     with:
       name: ${{ inputs.result-prefix }}acceptance-test-artifacts
