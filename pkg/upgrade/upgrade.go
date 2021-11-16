@@ -152,12 +152,12 @@ func makeHelmResources(namespace, version, clusterName, repoURL string, values [
 	}
 
 	// default helmrelease values
-	base := JSONMap{
-		"config": JSONMap{
-			"cluster": JSONMap{
+	base := map[string]interface{}{
+		"config": map[string]interface{}{
+			"cluster": map[string]interface{}{
 				"name": clusterName,
 			},
-			"capi": JSONMap{
+			"capi": map[string]interface{}{
 				"repositoryURL": repoURL,
 			},
 		},
