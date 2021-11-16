@@ -107,7 +107,7 @@ var _ = Describe("AddApplication", func() {
 			expectedSource := sourcev1.GitRepositorySpec{
 				URL: req.Url,
 				SecretRef: &meta.LocalObjectReference{
-					Name: automation.CreateRepoSecretName(clusterName, repoURL).String(),
+					Name: automation.CreateRepoSecretName(repoURL).String(),
 				},
 				Interval: metav1.Duration{Duration: time.Duration(30 * time.Second)},
 				Reference: &sourcev1.GitRepositoryRef{
@@ -203,7 +203,7 @@ var _ = Describe("AddApplication", func() {
 				URL: req.Url,
 				SecretRef: &meta.LocalObjectReference{
 					// Might be a bug? Should be configRepoURL?
-					Name: automation.CreateRepoSecretName(clusterName, repoURL).String(),
+					Name: automation.CreateRepoSecretName(repoURL).String(),
 				},
 				Interval: metav1.Duration{Duration: time.Duration(30 * time.Second)},
 				Reference: &sourcev1.GitRepositoryRef{
@@ -295,7 +295,7 @@ var _ = Describe("AddApplication", func() {
 			expectedSrc := sourcev1.GitRepositorySpec{
 				URL: req.Url,
 				SecretRef: &meta.LocalObjectReference{
-					Name: automation.CreateRepoSecretName(clusterName, repoURL).String(),
+					Name: automation.CreateRepoSecretName(repoURL).String(),
 				},
 				Interval: metav1.Duration{Duration: time.Duration(30 * time.Second)},
 				Reference: &sourcev1.GitRepositoryRef{
@@ -392,7 +392,7 @@ var _ = Describe("AddApplication", func() {
 			expectedSrc := sourcev1.GitRepositorySpec{
 				URL: req.Url,
 				SecretRef: &meta.LocalObjectReference{
-					Name: automation.CreateRepoSecretName(clusterName, repoURL).String(),
+					Name: automation.CreateRepoSecretName(repoURL).String(),
 				},
 				Interval: metav1.Duration{Duration: time.Duration(30 * time.Second)},
 				Reference: &sourcev1.GitRepositoryRef{

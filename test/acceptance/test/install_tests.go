@@ -61,7 +61,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		defer deleteNamespace(namespace)
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true)
+			_, _, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -85,13 +85,13 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		namespace := "test-namespace"
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(namespace, true)
+			_, _, err := ResetOrCreateCluster(namespace, true)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "git@github.com:" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 
@@ -120,7 +120,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		namespace := "test-namespace"
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(namespace, true)
+			_, _, err := ResetOrCreateCluster(namespace, true)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -165,7 +165,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		var uninstallDryRunOutput string
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true)
+			_, _, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -234,7 +234,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		namespace := "wego-system"
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(namespace, true)
+			_, _, err := ResetOrCreateCluster(namespace, true)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 

@@ -50,7 +50,7 @@ var _ = Describe("auth", func() {
 		)
 		BeforeEach(func() {
 			ctx = context.Background()
-			secretName = automation.CreateRepoSecretName(testClustername, repoUrl)
+			secretName = automation.CreateRepoSecretName(repoUrl)
 			Expect(err).NotTo(HaveOccurred())
 			osysClient = osys.New()
 			gp = gitprovidersfakes.FakeGitProvider{}
