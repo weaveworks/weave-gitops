@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -22,64 +20,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
-
-func TestBuildUpgradeConfigs(t *testing.T) {
-	tests := []struct {
-		name            string
-		localGitRemote  string
-		clusterState    []runtime.Object
-		upgradeValues   UpgradeValues
-		expectedRepo    string
-		expectedGitRepo string
-		expectedErr     error
-	}{
-		{
-			name:            "Good repo form and GitRepository present",
-			localGitRemote:  "git@github.com:org/repo.git",
-			clusterState:    []runtime.Object{createGitRepository("repo")},
-			upgradeValues:   UpgradeValues{Namespace: wego.DefaultNamespace},
-			expectedRepo:    "org/repo",
-			expectedGitRepo: filepath.Join(wego.DefaultNamespace, "repo"),
-		},
-		{
-			name:           "Good repo form but GitRepository missing",
-			localGitRemote: "git@github.com:org/repo.git",
-			upgradeValues:  UpgradeValues{Namespace: wego.DefaultNamespace},
-			expectedErr:    fmt.Errorf("couldn't find GitRepository resource \"%s/repo\" in the cluster, please specify", wego.DefaultNamespace),
-		},
-		{
-			name:            "Specify an alterative gitRepo",
-			localGitRemote:  "git@github.com:org/repo.git",
-			clusterState:    []runtime.Object{createGitRepository("foo")},
-			upgradeValues:   UpgradeValues{Namespace: wego.DefaultNamespace, GitRepository: filepath.Join(wego.DefaultNamespace, "foo")},
-			expectedRepo:    "org/repo",
-			expectedGitRepo: filepath.Join(wego.DefaultNamespace, "foo"),
-		},
-		{
-			name:            "Specify an alterative repo",
-			localGitRemote:  "git@github.com:org/repo.git",
-			clusterState:    []runtime.Object{createGitRepository("repo")},
-			upgradeValues:   UpgradeValues{Namespace: wego.DefaultNamespace, RepoOrgAndName: "foo/bar"},
-			expectedRepo:    "foo/bar",
-			expectedGitRepo: filepath.Join(wego.DefaultNamespace, "repo"),
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			kubeClient := makeClient(t, tt.clusterState...)
-			gitClient := &gitfakes.FakeGit{}
-			gitClient.GetRemoteUrlStub = func(dir, remote string) (string, error) {
-				return tt.localGitRemote, nil
-			}
-			uv, err := buildUpgradeConfigs(context.TODO(), tt.upgradeValues, kubeClient, gitClient, os.Stdout)
-			assert.Equal(t, tt.expectedErr, err)
-			if uv != nil {
-				assert.Equal(t, tt.expectedRepo, uv.RepoOrgAndName, "RepoOrgAndName")
-				assert.Equal(t, tt.expectedGitRepo, uv.GitRepository, "GitRepository")
-			}
-		})
-	}
-}
 
 func TestUpgradeDryRun(t *testing.T) {
 	gitClient := &gitfakes.FakeGit{}
@@ -167,16 +107,6 @@ func TestGetGitAuthFromDeployKey(t *testing.T) {
 			assert.Equal(t, tt.expectedErr, err)
 		})
 	}
-}
-
-func TestGetRepoOrgAndName(t *testing.T) {
-	repoPath, err := getRepoOrgAndName("git@github.com:ww/repo.git")
-	assert.NoError(t, err)
-	assert.Equal(t, "ww/repo", repoPath)
-
-	repoPath, err = getRepoOrgAndName("https://github.com/ww/repo.git")
-	assert.NoError(t, err)
-	assert.Equal(t, "ww/repo", repoPath)
 }
 
 //

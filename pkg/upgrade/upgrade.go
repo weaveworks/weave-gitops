@@ -7,14 +7,12 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
-	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/weaveworks/pctl/pkg/catalog"
 	pctl_git "github.com/weaveworks/pctl/pkg/git"
 	"github.com/weaveworks/pctl/pkg/install"
@@ -24,7 +22,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
 
@@ -33,18 +30,17 @@ import (
 )
 
 type UpgradeValues struct {
-	Remote         string
-	RepoURL        string
-	RepoOrgAndName string
-	HeadBranch     string
-	BaseBranch     string
-	CommitMessage  string
-	Namespace      string
-	ProfileBranch  string
-	ConfigMap      string
-	Out            string
-	GitRepository  string
-	DryRun         bool
+	Remote        string
+	AppConfigURL  string
+	HeadBranch    string
+	BaseBranch    string
+	CommitMessage string
+	Namespace     string
+	ProfileBranch string
+	ConfigMap     string
+	Out           string
+	GitRepository string
+	DryRun        bool
 }
 
 type UpgradeConfigs struct {
@@ -72,12 +68,7 @@ func Upgrade(ctx context.Context, gitClient git.Git, gitProvider gitproviders.Gi
 	return upgrade(ctx, upgradeValues, kube, gitClient, kubeClient, gitProvider, logger, w)
 }
 
-func upgrade(ctx context.Context, upgradeValues UpgradeValues, kube kube.Kube, gitClient git.Git, kubeClient client.Client, gitProvider gitproviders.GitProvider, logger logger.Logger, w io.Writer) error {
-	uv, err := buildUpgradeConfigs(ctx, upgradeValues, kubeClient, gitClient, w)
-	if err != nil {
-		return fmt.Errorf("failed to build upgrade configs: %v", err)
-	}
-
+func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient git.Git, kubeClient client.Client, gitProvider gitproviders.GitProvider, logger logger.Logger, w io.Writer) error {
 	out, err := marshalToYamlStream(makeHelmResources(uv.Namespace))
 	if err != nil {
 		return fmt.Errorf("error marshalling helm resources: %w", err)
@@ -95,9 +86,9 @@ func upgrade(ctx context.Context, upgradeValues UpgradeValues, kube kube.Kube, g
 		return fmt.Errorf("failed to load deploy key for profiles repos from cluster: %v", err)
 	}
 
-	normalizedURL, err := gitproviders.NewRepoURL(uv.RepoURL)
+	normalizedURL, err := gitproviders.NewRepoURL(uv.AppConfigURL)
 	if err != nil {
-		return fmt.Errorf("failed to normalize URL %q: %w", uv.RepoURL, err)
+		return fmt.Errorf("failed to normalize URL %q: %w", uv.AppConfigURL, err)
 	}
 
 	// Create pull request
@@ -207,40 +198,6 @@ func makeHelmResources(namespace string) []runtime.Object {
 // 	return client.New(kubeClientConfig, client.Options{Scheme: scheme})
 // }
 
-// buildUpgradeConfigs sets some flags default values from the env
-func buildUpgradeConfigs(ctx context.Context, uv UpgradeValues, kubeClient client.Client, gitClient git.Git, w io.Writer) (*UpgradeValues, error) {
-	repoUrlString, err := gitClient.GetRemoteUrl(".", uv.Remote)
-	if err != nil {
-		return nil, err
-	}
-
-	uv.RepoURL = repoUrlString
-
-	// Calculate defaults from current working directory
-	if uv.RepoOrgAndName == "" {
-		githubRepoPath, err := getRepoOrgAndName(repoUrlString)
-		if err != nil {
-			return nil, err
-		}
-
-		fmt.Fprintf(w, "Deriving org/repo for PR as %v\n", githubRepoPath)
-		uv.RepoOrgAndName = githubRepoPath
-	}
-
-	if uv.GitRepository == "" {
-		gitRepositoryNameNamespace := fmt.Sprintf("%s/%s", uv.Namespace, strings.TrimSuffix(filepath.Base(repoUrlString), ".git"))
-		fmt.Fprintf(w, "Deriving name of GitRepository Resource as %v\n", gitRepositoryNameNamespace)
-		uv.GitRepository = gitRepositoryNameNamespace
-	}
-
-	err = ensureGitRepositoryResource(context.Background(), kubeClient, uv.GitRepository)
-	if err != nil {
-		return nil, err
-	}
-
-	return &uv, nil
-}
-
 func getBasicAuth(ctx context.Context, kubeClient client.Client, ns string) error {
 	deployKeySecret := &corev1.Secret{}
 
@@ -260,49 +217,4 @@ func getBasicAuth(ctx context.Context, kubeClient client.Client, ns string) erro
 	}
 
 	return nil
-}
-
-func ensureGitRepositoryResource(ctx context.Context, kubeClient client.Client, gitRepository string) error {
-	gitRepoNamespace, gitRepoName, err := getGitRepositoryNamespaceAndName(gitRepository)
-	if err != nil {
-		return err
-	}
-
-	gitRepo := &sourcev1.GitRepository{}
-
-	err = kubeClient.Get(ctx, client.ObjectKey{
-		Namespace: gitRepoNamespace,
-		Name:      gitRepoName,
-	}, gitRepo)
-	if apiErrors.IsNotFound(err) {
-		return fmt.Errorf("couldn't find GitRepository resource \"%v/%v\" in the cluster, please specify", gitRepoNamespace, gitRepoName)
-	}
-
-	if err != nil {
-		return fmt.Errorf("failed to look up GitRepository %v/%v to install into: %v", gitRepoNamespace, gitRepoName, err)
-	}
-
-	return nil
-}
-
-func getGitRepositoryNamespaceAndName(gitRepository string) (string, string, error) {
-	split := strings.Split(gitRepository, "/")
-	if len(split) != 2 {
-		return "", "", fmt.Errorf("git-repository must in format <namespace>/<name>; was: %s", gitRepository)
-	}
-
-	return split[0], split[1], nil
-}
-
-// getRepoOrgAndName transforms git remotes to github "paths"
-// - git@github.com:org/repo.git -> org/repo
-// - https://github.com/org/repo.git -> org/repo
-//
-func getRepoOrgAndName(url string) (string, error) {
-	repoEndpoint, err := transport.NewEndpoint(url)
-	if err != nil {
-		return "", err
-	}
-
-	return strings.TrimPrefix(strings.TrimSuffix(repoEndpoint.Path, ".git"), "/"), nil
 }
