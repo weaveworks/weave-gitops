@@ -1,0 +1,53 @@
+name: 'Setup Selenium Server'
+description: 'Invoke selenium for only ui tests'
+inputs:
+  result-prefix:
+    description: "prefix for result file name -- eg: 'ui-'"
+    required: false
+    default: ''
+  focus-or-skip:
+    description: "Which regexps to select and filter -- eg: --focus=UITest or --skip='KustomizeTest|SmokeTest'"
+    required: true
+  github-key:
+    description: "Key for accessing GitHub"
+    required: true
+  github-token:
+    description: "Token for accessing GitHub"
+    required: true
+  gitlab-key:
+    description: "Key for accessing GitLab"
+    required: true
+  gitlab-token:
+    description: "Token for accessing GitLab"
+    required: true
+  artifacts-base-dir:
+    description: "Directory for test artifacts"
+    required: true
+
+  runs:
+    using: "composite"
+    steps:
+    - name: Setup selenium standalone server
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb
+        sudo apt-get install -y google-chrome-stable
+        # https://chromedriver.storage.googleapis.com/
+        CHROMEDRIVER_VERSION=94.0.4606.61
+        wget https://chromedriver.storage.googleapis.com/"${CHROMEDRIVER_VERSION}"/chromedriver_linux64.zip
+        unzip chromedriver_linux64.zip
+        sudo mv -f chromedriver /usr/local/bin/chromedriver
+        wget  https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
+        xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
+      if: always()
+    - name: Store acceptance test results
+      if: ${{ always() }}
+      continue-on-error: true
+      uses: actions/upload-artifact@v2
+      env:
+        ARTIFACTS_BASE_DIR: "/tmp/gitops-test"
+      with:
+        name: ${{ inputs.result-prefix }}acceptance-test-artifacts
+        path: ${{ env.ARTIFACTS_BASE_DIR }}
+        retention-days: 1
