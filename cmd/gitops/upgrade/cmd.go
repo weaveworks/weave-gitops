@@ -42,7 +42,7 @@ func init() {
 	Cmd.PersistentFlags().BoolVar(&upgradeCmdFlags.DryRun, "dry-run", false, "Output the generated profile without creating a pull request")
 	Cmd.PersistentFlags().StringArrayVar(&upgradeCmdFlags.Values, "set", []string{}, "set values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
 
-	cobra.CheckErr(Cmd.MarkFlagRequired("app-config-url"))
+	cobra.CheckErr(Cmd.MarkPersistentFlagRequired("app-config-url"))
 }
 
 func upgradeCmdRunE() func(*cobra.Command, []string) error {
