@@ -212,7 +212,7 @@ jobs:
     - uses: actions/checkout@v2
     - uses: ./.github/actions/run-acceptance-test
       with:
-        result-prefix: 'test3-'
+        result-prefix: 'ui-test-'
         focus-or-skip: "--focus='UITest'"
         github-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
         github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
