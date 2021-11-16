@@ -1,4 +1,4 @@
-package logger_test
+package internal
 
 import (
 	"bytes"
@@ -16,7 +16,7 @@ var (
 var _ = Describe("Logger", func() {
 	BeforeEach(func() {
 		output = &bytes.Buffer{}
-		log = logger.NewCLILogger(output)
+		log = NewCLILogger(output)
 	})
 
 	It("prints adding newline", func() {

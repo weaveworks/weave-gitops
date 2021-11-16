@@ -7,6 +7,7 @@ package acceptance
 import (
 	"context"
 	"fmt"
+	"os/exec"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/manifests"
@@ -60,7 +61,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		defer deleteNamespace(namespace)
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true)
+			_, _, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -84,13 +85,13 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		namespace := "test-namespace"
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(namespace, true)
+			_, _, err := ResetOrCreateCluster(namespace, true)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "git@github.com:" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 
@@ -119,7 +120,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		namespace := "test-namespace"
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(namespace, true)
+			_, _, err := ResetOrCreateCluster(namespace, true)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -164,7 +165,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		var uninstallDryRunOutput string
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true)
+			_, _, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -227,5 +228,37 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 			_, errOutput := runCommandAndReturnStringOutput("kubectl get ns " + WEGO_DEFAULT_NAMESPACE)
 			Eventually(errOutput).Should(ContainSubstring(`Error from server (NotFound): namespaces "` + WEGO_DEFAULT_NAMESPACE + `" not found`))
 		})
+	})
+
+	It("Verify wego app is deployed", func() {
+		namespace := "wego-system"
+
+		By("And I have a brand new cluster", func() {
+			_, _, err := ResetOrCreateCluster(namespace, true)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		private := true
+		tip := generateTestInputs()
+		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		})
+
+		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+
+		installAndVerifyWego(namespace, appRepoRemoteURL)
+
+		By("And the wego-app is up and running", func() {
+			command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=60s -n %s --all pods --selector='app=wego-app'", namespace))
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).ShouldNot(HaveOccurred())
+			Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
+		})
+
+		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)
 	})
 })

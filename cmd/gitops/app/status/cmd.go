@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services"
@@ -30,7 +30,7 @@ var Cmd = &cobra.Command{
 		params.Name = args[0]
 		params.Namespace, _ = cmd.Parent().Parent().Flags().GetString("namespace")
 
-		log := logger.NewCLILogger(os.Stdout)
+		log := internal.NewCLILogger(os.Stdout)
 		fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 		appFactory := services.NewFactory(fluxClient, log)
 		appService, err := appFactory.GetAppService(ctx)

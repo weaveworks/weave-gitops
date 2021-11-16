@@ -1,14 +1,14 @@
 package auth
 
 import (
-	"bytes"
 	"context"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/automation"
@@ -50,14 +50,14 @@ var _ = Describe("auth", func() {
 		)
 		BeforeEach(func() {
 			ctx = context.Background()
-			secretName = automation.CreateRepoSecretName(testClustername, repoUrl)
+			secretName = automation.CreateRepoSecretName(repoUrl)
 			Expect(err).NotTo(HaveOccurred())
 			osysClient = osys.New()
 			gp = gitprovidersfakes.FakeGitProvider{}
 			fluxClient = flux.New(osysClient, &actualFluxRunner{Runner: &runner.CLIRunner{}})
 
 			as = &authSvc{
-				logger:      logger.NewCLILogger(bytes.NewBuffer([]byte{})), //Stay silent in tests.
+				logger:      &loggerfakes.FakeLogger{}, //Stay silent in tests.
 				fluxClient:  fluxClient,
 				k8sClient:   k8sClient,
 				gitProvider: &gp,

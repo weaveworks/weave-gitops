@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services"
@@ -14,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
+	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 )
 
@@ -38,7 +38,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 	params.Name = args[0]
 
-	appFactory := services.NewFactory(flux.New(osys.New(), &runner.CLIRunner{}), logger.NewCLILogger(os.Stdout))
+	appFactory := services.NewFactory(flux.New(osys.New(), &runner.CLIRunner{}), internal.NewCLILogger(os.Stdout))
 
 	appService, err := appFactory.GetAppService(ctx)
 	if err != nil {

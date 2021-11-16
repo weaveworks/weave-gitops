@@ -1,15 +1,17 @@
-package logger
+package internal
 
 import (
 	"fmt"
 	"io"
+
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
 type CLILogger struct {
 	stdout io.Writer
 }
 
-func NewCLILogger(writer io.Writer) Logger {
+func NewCLILogger(writer io.Writer) logger.Logger {
 	return CLILogger{
 		stdout: writer,
 	}
