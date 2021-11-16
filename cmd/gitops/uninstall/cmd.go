@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -52,7 +51,7 @@ func init() {
 
 func uninstallRunCmd(cmd *cobra.Command, args []string) error {
 	if !forceUninstall {
-		fmt.Print("Uninstall will remove all your Applications and any related cluster resources. Are you sure you want to uninstall? (y/n) ")
+		fmt.Print("Uninstall will remove all your Applications and any related cluster resources. Are you sure you want to uninstall? [y/N] ")
 
 		reader := bufio.NewReader(os.Stdin)
 
@@ -61,7 +60,7 @@ func uninstallRunCmd(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("error reading from stdin %w", err)
 		}
 
-		if !strings.Contains(userInput, "y") {
+		if userInput != "y\n" {
 			return nil
 		}
 	}

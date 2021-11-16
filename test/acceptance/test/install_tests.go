@@ -117,7 +117,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 			err := c.Start()
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Eventually(outputStream).Should(gbytes.Say(`Uninstall will remove all your Applications and any related cluster resources\. Are you sure you want to uninstall\? \(y\/n\)`))
+			Eventually(outputStream).Should(gbytes.Say(`Uninstall will remove all your Applications and any related cluster resources\. Are you sure you want to uninstall\? \[y\/N\]`))
 
 			err = c.Wait()
 			Expect(err).ShouldNot(HaveOccurred())
