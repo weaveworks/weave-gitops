@@ -115,7 +115,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		By("And I add application details in Application form", func() {
 			_ = addAppPage.AppName.Fill(appName)
 			_ = addAppPage.AppRepoURL.Fill(appRepoRemoteURL)
-			_ = addAppPage.PathToManifests.Fill("/")
+			_ = addAppPage.PathToManifests.Fill("./")
 		})
 
 		By("And default form values are present", func() {
