@@ -219,7 +219,6 @@ jobs:
         gitlab-key: ${{ secrets.GITLAB_KEY }}
         gitlab-token: ${{ secrets.GITLAB_TOKEN }}
         artifacts-base-dir: "/tmp/gitops-test"
-    - uses: ./.github/actions/run-acceptance-test/selenium.yml
 
   library-integration-test:
     runs-on: ubuntu-latest
