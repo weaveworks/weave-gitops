@@ -14,7 +14,7 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
-	"github.com/helm/helm///pkg/strvals"
+	"github.com/helm/helm/pkg/strvals"
 	"github.com/weaveworks/pctl/pkg/catalog"
 	pctl_git "github.com/weaveworks/pctl/pkg/git"
 	"github.com/weaveworks/pctl/pkg/install"
