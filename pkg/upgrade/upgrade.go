@@ -151,6 +151,7 @@ func makeHelmResources(namespace, version, clusterName, repoURL string, values [
 		version = "latest"
 	}
 
+	// default helmrelease values
 	base := JSONMap{
 		"config": JSONMap{
 			"cluster": JSONMap{
