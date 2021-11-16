@@ -65,6 +65,7 @@ func TestUpgrade(t *testing.T) {
 	// Run upgrade!
 	err := upgrade(context.TODO(), UpgradeValues{
 		Remote:        "origin",
+		AppConfigURL:  "https://github.com/test/example.git",
 		HeadBranch:    "upgrade-to-wge",
 		ProfileBranch: "main",
 		BaseBranch:    "main",
