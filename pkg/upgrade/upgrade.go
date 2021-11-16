@@ -15,9 +15,6 @@ import (
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/helm/helm/pkg/strvals"
-	"github.com/weaveworks/pctl/pkg/catalog"
-	pctl_git "github.com/weaveworks/pctl/pkg/git"
-	"github.com/weaveworks/pctl/pkg/install"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -47,24 +44,11 @@ type UpgradeValues struct {
 	DryRun         bool
 }
 
-type UpgradeConfigs struct {
-	CLIGitConfig  pctl_git.CLIGitConfig
-	SCMConfig     pctl_git.SCMConfig
-	InstallConfig install.Config
-	Profile       catalog.Profile
-}
-
 type JSONMap map[string]interface{}
 
 const EnterpriseChartURL string = "https://charts.dev.wkp.weave.works/charts-v3"
 const CredentialsSecretName string = "weave-gitops-enterprise-credentials"
 
-// Upgrade installs the private weave-gitops-enterprise profile into the working directory:
-// 1. Private deploy key is read from a secret in the cluster
-// 2. Private profiles repo is cloned locally using the deploy key
-// 3. pctl is used to install the profile from the local clone into the current working directory
-// 4. pctl is used to add, commit, push and create a PR.
-//
 func Upgrade(ctx context.Context, gitClient git.Git, gitProvider gitproviders.GitProvider, upgradeValues UpgradeValues, logger logger.Logger, w io.Writer) error {
 	kube, kubeClient, err := kube.NewKubeHTTPClient()
 	if err != nil {
