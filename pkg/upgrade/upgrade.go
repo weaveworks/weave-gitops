@@ -54,6 +54,8 @@ type UpgradeConfigs struct {
 	Profile       catalog.Profile
 }
 
+type JSONMap map[string]interface{}
+
 const EnterpriseChartURL string = "https://charts.dev.wkp.weave.works/charts-v3"
 const CredentialsSecretName string = "weave-gitops-enterprise-credentials"
 
@@ -142,7 +144,7 @@ func marshalToYamlStream(objects []runtime.Object) ([]byte, error) {
 	return bytes.Join(out, []byte("---\n")), nil
 }
 
-func makeHelmResources(namespace, version, cname, repoURL string, values []string) ([]runtime.Object, error) {
+func makeHelmResources(namespace, version, clusterName, repoURL string, values []string) ([]runtime.Object, error) {
 	helmRepository := &sourcev1.HelmRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "weave-gitops-enterprise-charts",
@@ -165,12 +167,12 @@ func makeHelmResources(namespace, version, cname, repoURL string, values []strin
 		version = "latest"
 	}
 
-	base := map[string]interface{}{
-		"config": map[string]interface{}{
-			"cluster": map[string]interface{}{
-				"name": cname,
+	base := JSONMap{
+		"config": JSONMap{
+			"cluster": JSONMap{
+				"name": clusterName,
 			},
-			"capi": map[string]interface{}{
+			"capi": JSONMap{
 				"repositoryURL": repoURL,
 			},
 		},
