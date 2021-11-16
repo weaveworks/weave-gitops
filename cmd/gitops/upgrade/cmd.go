@@ -30,6 +30,7 @@ var Cmd = &cobra.Command{
 
 func init() {
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.AppConfigURL, "app-config-url", "", "URL of external repository that will hold automation manifests")
+	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.ProfileVersion, "profile-version", "", "Profile version to set the helm release version to")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.Remote, "remote", "origin", "The remote to push the branch to")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.BaseBranch, "base", "main", "The base branch to open the pull request against")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.HeadBranch, "branch", "tier-upgrade-enterprise", "The branch to create the pull request from")

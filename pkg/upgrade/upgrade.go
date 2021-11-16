@@ -30,17 +30,18 @@ import (
 )
 
 type UpgradeValues struct {
-	Remote        string
-	AppConfigURL  string
-	HeadBranch    string
-	BaseBranch    string
-	CommitMessage string
-	Namespace     string
-	ProfileBranch string
-	ConfigMap     string
-	Out           string
-	GitRepository string
-	DryRun        bool
+	Remote         string
+	AppConfigURL   string
+	HeadBranch     string
+	BaseBranch     string
+	CommitMessage  string
+	Namespace      string
+	ProfileBranch  string
+	ProfileVersion string
+	ConfigMap      string
+	Out            string
+	GitRepository  string
+	DryRun         bool
 }
 
 type UpgradeConfigs struct {
@@ -69,7 +70,7 @@ func Upgrade(ctx context.Context, gitClient git.Git, gitProvider gitproviders.Gi
 }
 
 func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient git.Git, kubeClient client.Client, gitProvider gitproviders.GitProvider, logger logger.Logger, w io.Writer) error {
-	out, err := marshalToYamlStream(makeHelmResources(uv.Namespace))
+	out, err := marshalToYamlStream(makeHelmResources(uv.Namespace, uv.ProfileVersion))
 	if err != nil {
 		return fmt.Errorf("error marshalling helm resources: %w", err)
 	}
@@ -133,7 +134,7 @@ func marshalToYamlStream(objects []runtime.Object) ([]byte, error) {
 	return bytes.Join(out, []byte("---\n")), nil
 }
 
-func makeHelmResources(namespace string) []runtime.Object {
+func makeHelmResources(namespace string, version string) []runtime.Object {
 	helmRepository := &sourcev1.HelmRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "weave-gitops-enterprise-charts",
@@ -150,6 +151,10 @@ func makeHelmResources(namespace string) []runtime.Object {
 				Name: CredentialsSecretName,
 			},
 		},
+	}
+
+	if version == "" {
+		version = "latest"
 	}
 
 	helmRelease := &helmv2.HelmRelease{
@@ -171,7 +176,7 @@ func makeHelmResources(namespace string) []runtime.Object {
 						Name:      helmRepository.GetName(),
 						Namespace: helmRepository.GetNamespace(),
 					},
-					// Version: latest,
+					Version: version,
 				},
 			},
 			Values: &v1.JSON{Raw: []byte(`"hi"`)},
