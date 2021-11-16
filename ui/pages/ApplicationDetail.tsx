@@ -22,6 +22,7 @@ import {
   AutomationKind,
   GetApplicationResponse,
   RemoveApplicationResponse,
+  SyncApplicationResponse,
   UnstructuredObject,
 } from "../lib/api/applications/applications.pb";
 import { getChildren } from "../lib/graph";
@@ -43,6 +44,8 @@ function ApplicationDetail({ className, name }: Props) {
   const [res, loading, error, req] = useRequestState<GetApplicationResponse>();
   const [removeRes, removeLoading, removeError, removeRequest] =
     useRequestState<RemoveApplicationResponse>();
+  const [syncRes, syncLoading, syncError, syncRequest] =
+    useRequestState<SyncApplicationResponse>();
   //for redirects
   const history = useHistory();
 
@@ -87,6 +90,8 @@ function ApplicationDetail({ className, name }: Props) {
 
   const { application = {} } = res;
 
+  console.log(syncError);
+
   return (
     <Page
       loading={loading}
@@ -94,24 +99,48 @@ function ApplicationDetail({ className, name }: Props) {
       title={name}
       className={className}
       topRight={
-        <Button
-          color="secondary"
-          variant="contained"
-          onClick={() => setRemoveAppModalOpen(true)}
-        >
-          Remove App
-        </Button>
+        <Flex>
+          <Button
+            color="primary"
+            variant="contained"
+            disabled={syncLoading}
+            onClick={() => {
+              if (!authSuccess) return setGithubAuthModalOpen(true);
+              syncRequest(
+                applicationsClient.SyncApplication({
+                  name: application.name,
+                  namespace: application.namespace,
+                })
+              );
+            }}
+          >
+            {syncLoading ? (
+              <CircularProgress color="inherit" size="75%" />
+            ) : (
+              "Sync App"
+            )}
+          </Button>
+          <Spacer margin="small" />
+          <Button
+            color="secondary"
+            variant="contained"
+            onClick={() => setRemoveAppModalOpen(true)}
+          >
+            Remove App
+          </Button>
+        </Flex>
       }
     >
-      {authSuccess && (
-        <Alert severity="success" message="Authentication Successful" />
-      )}
-      {error && (
+      {syncError || error ? (
         <Alert
           severity="error"
           title="Error fetching Application"
           message={error.message}
         />
+      ) : (
+        authSuccess && (
+          <Alert severity="success" message="Authentication Successful" />
+        )
       )}
       <KeyValueTable
         columns={4}
