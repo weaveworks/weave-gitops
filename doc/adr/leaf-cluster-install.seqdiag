@@ -1,0 +1,14 @@
+Title:Leaf Cluster Onboarding Sequence
+Participant User
+Participant gitops
+Participant GitOps Repo
+Participant Leaf Cluster
+Participant Management Cluster
+User->gitops:gitops install --gitops-repo-url=github.com/my-org/my-repo
+gitops->GitOps Repo:<does all of the things that gitops install already does>
+gitops->Leaf Cluster:Creates a ServiceAccount with cluster admin privs
+gitops->Leaf Cluster:Create a RoleBinding for that ServiceAccount to the ClusterAdmin role
+gitops->Management Cluster:Adds the ServiceAccount kubeconfig to the Management Cluster as a Secret
+gitops->Management Cluster:Adds a Cluster CR to the Management Cluster
+gitops->GitOps Repo: Writes the Cluster CR to the GitOps Repo .weave-gitops directory
+gitops->User:

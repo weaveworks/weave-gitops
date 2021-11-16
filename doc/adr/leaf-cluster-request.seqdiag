@@ -1,0 +1,11 @@
+Title:Leaf Cluster "GetApplication" Sequence
+Participant User
+Participant gitops
+Participant Management Cluster
+Participant Leaf Cluster
+User->gitops: GetApplication({appName: "my-app", clusterName: "my-cluster" })
+gitops->Management Cluster:cluster := kubeclient.Get(req.clusterName, &Cluster{})
+gitops->Management Cluster:kubeconfig := kubeclient.Get(cluster.secretName, &corev1.Secret{})
+gitops->gitops: leafClient := kube.New(kubeconfig):
+gitops->Leaf Cluster:status := leafClient.Get(req.appName).Status()
+gitops->User:App{ Status: status }
