@@ -165,24 +165,15 @@ func makeHelmResources(namespace, version, cname, repoURL string, values []strin
 		version = "latest"
 	}
 
-	valuesTemplate := `{
-		"config": {
-			"cluster": {
-				"name": "%s"
+	base := map[string]interface{}{
+		"config": map[string]interface{}{
+			"cluster": map[string]interface{}{
+				"name": cname,
 			},
-			"capi": {
-				"repositoryURL": "%s"
-			}
-		}
-	}`
-
-	defaultValues := fmt.Sprintf(valuesTemplate, cname, repoURL)
-
-	base := map[string]interface{}{}
-
-	err := json.Unmarshal([]byte(defaultValues), &base)
-	if err != nil {
-		return nil, fmt.Errorf("error unmarshalling json: %w", err)
+			"capi": map[string]interface{}{
+				"repositoryURL": repoURL,
+			},
+		},
 	}
 
 	// User specified a value via --set
@@ -192,7 +183,10 @@ func makeHelmResources(namespace, version, cname, repoURL string, values []strin
 		}
 	}
 
-	valuesString := fmt.Sprintf(valuesTemplate, cname, repoURL)
+	valuesJson, err := json.Marshal(base)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling values object: %w", err)
+	}
 
 	helmRelease := &helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
@@ -216,7 +210,7 @@ func makeHelmResources(namespace, version, cname, repoURL string, values []strin
 					Version: version,
 				},
 			},
-			Values: &v1.JSON{Raw: []byte(valuesString)},
+			Values: &v1.JSON{Raw: []byte(string(valuesJson))},
 		},
 	}
 

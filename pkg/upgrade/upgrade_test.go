@@ -112,20 +112,24 @@ func TestGetGitAuthFromDeployKey(t *testing.T) {
 
 func TestMakeHelmResources(t *testing.T) {
 	tests := []struct {
-		name        string
-		values      []string
-		expected    string
-		expectedErr error
+		name             string
+		values           []string
+		expected         string
+		expectedErrorStr string
 	}{
 		{
-			name:        "error returned",
-			values:      []string{"key1"},
-			expectedErr: errors.New("failed parsing --set data: key \"key1\" has no value"),
+			name:             "error returned",
+			values:           []string{"key"},
+			expectedErrorStr: "failed parsing --set data: key \"key\" has no value",
 		},
 		{
 			name:     "resources created",
-			values:   []string{"key1=val2"},
-			expected: "key1: val2",
+			expected: "name: foo",
+		},
+		{
+			name:     "resources created with given values",
+			values:   []string{"key=val"},
+			expected: "key: val",
 		},
 		{
 			name:     "override default values",
@@ -138,7 +142,9 @@ func TestMakeHelmResources(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			objs, err := makeHelmResources("wego-system", "v0.0.14", "foo", "example.com", tt.values)
 			out, _ := marshalToYamlStream(objs)
-			assert.Equal(t, tt.expectedErr, err)
+			if err != nil {
+				assert.Equal(t, tt.expectedErrorStr, err.Error())
+			}
 			assert.Contains(t, string(out), tt.expected)
 		})
 	}
