@@ -34,7 +34,7 @@ runs:
   - name: Checkout code
     uses: actions/checkout@v2
   - name: Setup selenium standalone server
-    if: jobs.ui-tests == true
+    jobs.ui-tests.if: true
     shell: bash
     run: |
       sudo apt-get update
