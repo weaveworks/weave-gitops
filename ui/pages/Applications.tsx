@@ -25,7 +25,6 @@ function Applications({ className }: Props) {
 
   const AppButton = styled(Button)`
     &.MuiButton-root {
-      border-radius: 0;
       border-color: #bdbdbd;
       font-weight: 600;
     }
