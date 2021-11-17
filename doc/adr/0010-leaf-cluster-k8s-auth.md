@@ -34,6 +34,10 @@ Then, when a user makes a request to the UI(+API) running on the Management Clus
 
 ![Leaf Cluster Request Diagram](leaf-cluster-request.svg)
 
+#### RBAC
+
+Access to the Leaf Clusters and Applications will be controlled by setting permissions on the individual `Cluster` and `Application` resources themselves. Users will use the existing Kubernetes RBAC machinery to manage these permissions.
+
 ## Consequences
 
 ### Change from the current SQLite DB to Cluster CR
