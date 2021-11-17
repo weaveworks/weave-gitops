@@ -36,19 +36,20 @@ func GetClusters(r ClustersRetriever, w io.Writer) error {
 	if len(cs) > 0 {
 		fmt.Fprintf(w, "NAME\tSTATUS\tSTATUS_MESSAGE\n")
 
-		prURL := ""
-
 		for _, c := range cs {
 			if c.PullRequest.Type == "create" {
 				c.Status = "Creation PR"
-				prURL = c.PullRequest.Url
 			} else if c.PullRequest.Type == "delete" {
 				c.Status = "Deletion PR"
-				prURL = c.PullRequest.Url
 			}
 
-			fmt.Fprintf(w, "%s\t%s\t%s", c.Name, c.Status, prURL)
-			fmt.Fprintln(w, "")
+			if c.Status == "Creation PR" || c.Status == "Deletion PR" {
+				fmt.Fprintf(w, "%s\t%s\t%s", c.Name, c.Status, c.PullRequest.Url)
+				fmt.Fprintln(w, "")
+			} else {
+				fmt.Fprintf(w, "%s\t%s", c.Name, c.Status)
+				fmt.Fprintln(w, "")
+			}
 		}
 
 		return nil

@@ -34,7 +34,7 @@ func TestGetClusters(t *testing.T) {
 					Status: "status-b",
 				},
 			},
-			expected: "NAME\tSTATUS\ncluster-a\tstatus-a\ncluster-b\tstatus-b\n",
+			expected: "NAME\tSTATUS\tSTATUS_MESSAGE\ncluster-a\tstatus-a\ncluster-b\tstatus-b\n",
 		},
 		{
 			name:             "error retrieving clusters",
@@ -59,7 +59,29 @@ func TestGetClusters(t *testing.T) {
 					},
 				},
 			},
-			expected: "NAME\tSTATUS\ncluster-a\tCreation PR\ncluster-b\tDeletion PR\n",
+			expected: "NAME\tSTATUS\tSTATUS_MESSAGE\ncluster-a\tCreation PR\t\ncluster-b\tDeletion PR\t\n",
+		},
+		{
+			name: "PR URL column",
+			cs: []clusters.Cluster{
+				{
+					Name:   "cluster-a",
+					Status: "pullRequestCreated",
+					PullRequest: clusters.PullRequest{
+						Type: "create",
+						Url:  "https://github.com/org/repo/pull/1",
+					},
+				},
+				{
+					Name:   "cluster-b",
+					Status: "foo",
+					PullRequest: clusters.PullRequest{
+						Type: "foo",
+						Url:  "https://github.com/org/repo/pull/1",
+					},
+				},
+			},
+			expected: "NAME\tSTATUS\tSTATUS_MESSAGE\ncluster-a\tCreation PR\thttps://github.com/org/repo/pull/1\ncluster-b\tfoo\n",
 		},
 	}
 
