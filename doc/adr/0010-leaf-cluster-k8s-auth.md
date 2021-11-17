@@ -38,6 +38,22 @@ Then, when a user makes a request to the UI(+API) running on the Management Clus
 
 Access to the Leaf Clusters and Applications will be controlled by setting permissions on the individual `Cluster` and `Application` resources themselves. Users will use the existing Kubernetes RBAC machinery to manage these permissions.
 
+#### Cluster Custom Resource Definition
+
+A `Cluster` resource might look something like this (note that this is the resource itself, not the CRD):
+
+```yaml
+apiVersion: wego.weave.works/v1alpha1
+kind: Cluster
+metadata:
+  name: my-cluster
+  namespace: wego-system
+spec:
+  kubeconfig_secret_name: my-cluster-kubeconfig
+  kubeconfig_secret_namespace: wego-system
+  config_repo_url: ssh://git@gitlab.com/jpellizzari1/my-repo.git
+```
+
 ## Consequences
 
 ### Change from the current SQLite DB to Cluster CR
