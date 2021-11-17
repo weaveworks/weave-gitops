@@ -8,6 +8,7 @@ import {
   Switch,
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { ThemeProvider } from "styled-components";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Layout from "./components/Layout";
@@ -73,7 +74,7 @@ export default function App() {
               </ErrorBoundary>
               <ToastContainer
                 position="top-center"
-                autoClose={10000}
+                autoClose={5000}
                 newestOnTop={false}
               />
             </Layout>

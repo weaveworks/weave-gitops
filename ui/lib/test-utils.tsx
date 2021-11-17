@@ -23,6 +23,8 @@ import {
   ListCommitsResponse,
   ParseRepoURLRequest,
   ParseRepoURLResponse,
+  SyncApplicationRequest,
+  SyncApplicationResponse,
 } from "./api/applications/applications.pb";
 import theme, { muiTheme } from "./theme";
 
@@ -41,6 +43,7 @@ export type ApplicationOverrides = {
     req: GetGithubAuthStatusRequest
   ) => GetGithubAuthStatusResponse;
   ParseRepoURL?: (req: ParseRepoURLRequest) => ParseRepoURLResponse;
+  SyncApplication?: (req: SyncApplicationRequest) => SyncApplicationResponse;
 };
 
 // Don't make the user wire up all the promise stuff to be interface-compliant

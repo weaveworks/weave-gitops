@@ -27,6 +27,7 @@ import {
 } from "../lib/api/applications/applications.pb";
 import { getChildren } from "../lib/graph";
 import { PageRoute } from "../lib/types";
+import { notifySuccess } from "../lib/utils";
 
 type Props = {
   className?: string;
@@ -74,6 +75,10 @@ function ApplicationDetail({ className, name }: Props) {
     history.push(linkResolver(PageRoute.Applications));
   }, [removeRes]);
 
+  React.useEffect(() => {
+    if (syncRes) notifySuccess("App Sync Successful");
+  }, [syncRes]);
+
   if (error) {
     return (
       <ErrorPage
@@ -90,8 +95,6 @@ function ApplicationDetail({ className, name }: Props) {
 
   const { application = {} } = res;
 
-  console.log(syncError);
-
   return (
     <Page
       loading={loading}
@@ -99,13 +102,12 @@ function ApplicationDetail({ className, name }: Props) {
       title={name}
       className={className}
       topRight={
-        <Flex>
+        <Flex align>
           <Button
             color="primary"
             variant="contained"
             disabled={syncLoading}
             onClick={() => {
-              if (!authSuccess) return setGithubAuthModalOpen(true);
               syncRequest(
                 applicationsClient.SyncApplication({
                   name: application.name,
@@ -115,12 +117,12 @@ function ApplicationDetail({ className, name }: Props) {
             }}
           >
             {syncLoading ? (
-              <CircularProgress color="inherit" size="75%" />
+              <CircularProgress color="primary" size={"75%"} />
             ) : (
               "Sync App"
             )}
           </Button>
-          <Spacer margin="small" />
+          <Spacer padding="small" />
           <Button
             color="secondary"
             variant="contained"
