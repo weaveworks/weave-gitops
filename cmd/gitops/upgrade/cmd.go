@@ -31,16 +31,11 @@ var Cmd = &cobra.Command{
 func init() {
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.AppConfigURL, "app-config-url", "", "URL of external repository that will hold automation manifests")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.ProfileVersion, "profile-version", "", "Profile version to set the helm release version to")
-	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.Remote, "remote", "origin", "The remote to push the branch to")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.BaseBranch, "base", "main", "The base branch to open the pull request against")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.HeadBranch, "branch", "tier-upgrade-enterprise", "The branch to create the pull request from")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.CommitMessage, "commit-message", "Upgrade to WGE", "The commit message")
-	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.GitRepository, "git-repository", "", "The namespace and name of the GitRepository object governing the flux repo (default: git current working directory)")
-	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.ConfigMap, "config-map", "", "The name of the ConfigMap which contains values for this profile.")
-	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.Out, "out", "", "Optional location to create the profile installation folder in. This should be relative to the current working directory. (default: current)")
-	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.ProfileBranch, "profile-branch", "main", "The branch to use on the repository in which the profile is.")
-	Cmd.PersistentFlags().BoolVar(&upgradeCmdFlags.DryRun, "dry-run", false, "Output the generated profile without creating a pull request")
 	Cmd.PersistentFlags().StringArrayVar(&upgradeCmdFlags.Values, "set", []string{}, "set values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
+	Cmd.PersistentFlags().BoolVar(&upgradeCmdFlags.DryRun, "dry-run", false, "Output the generated profile without creating a pull request")
 
 	cobra.CheckErr(Cmd.MarkPersistentFlagRequired("app-config-url"))
 }

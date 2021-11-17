@@ -29,17 +29,12 @@ import (
 )
 
 type UpgradeValues struct {
-	Remote         string
 	AppConfigURL   string
-	HeadBranch     string
+	ProfileVersion string
 	BaseBranch     string
+	HeadBranch     string
 	CommitMessage  string
 	Namespace      string
-	ProfileBranch  string
-	ProfileVersion string
-	ConfigMap      string
-	Out            string
-	GitRepository  string
 	Values         []string
 	DryRun         bool
 }

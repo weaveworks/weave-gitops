@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"path/filepath"
 	"testing"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
@@ -35,14 +34,11 @@ func TestUpgradeDryRun(t *testing.T) {
 
 	// Run upgrade!
 	err := upgrade(context.TODO(), UpgradeValues{
-		Remote:        "origin",
 		HeadBranch:    "upgrade-to-wge",
-		ProfileBranch: "main",
 		BaseBranch:    "main",
 		CommitMessage: "Upgrade to wge",
 		Namespace:     wego.DefaultNamespace,
 		DryRun:        true,
-		GitRepository: filepath.Join(wego.DefaultNamespace, "my-app"),
 	}, k, gitClient, kubeClient, gitProvider, logger, &output)
 
 	assert.Contains(t, output.String(), "kind: HelmRelease")
@@ -64,14 +60,11 @@ func TestUpgrade(t *testing.T) {
 
 	// Run upgrade!
 	err := upgrade(context.TODO(), UpgradeValues{
-		Remote:        "origin",
 		AppConfigURL:  "https://github.com/test/example.git",
 		HeadBranch:    "upgrade-to-wge",
-		ProfileBranch: "main",
 		BaseBranch:    "main",
 		CommitMessage: "Upgrade to wge",
 		Namespace:     wego.DefaultNamespace,
-		GitRepository: filepath.Join(wego.DefaultNamespace, "my-app"),
 	}, k, gitClient, kubeClient, gitProvider, logger, &output)
 
 	assert.NoError(t, err)
