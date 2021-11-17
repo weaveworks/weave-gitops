@@ -27,7 +27,6 @@ import {
 } from "../lib/api/applications/applications.pb";
 import { getChildren } from "../lib/graph";
 import { PageRoute } from "../lib/types";
-import { notifySuccess } from "../lib/utils";
 
 type Props = {
   className?: string;
@@ -35,7 +34,8 @@ type Props = {
 };
 
 function ApplicationDetail({ className, name }: Props) {
-  const { applicationsClient, linkResolver } = React.useContext(AppContext);
+  const { applicationsClient, linkResolver, notifySuccess } =
+    React.useContext(AppContext);
   const [authSuccess, setAuthSuccess] = React.useState(false);
   const [githubAuthModalOpen, setGithubAuthModalOpen] = React.useState(false);
   const [removeAppModalOpen, setRemoveAppModalOpen] = React.useState(false);
@@ -76,7 +76,9 @@ function ApplicationDetail({ className, name }: Props) {
   }, [removeRes]);
 
   React.useEffect(() => {
-    if (syncRes) notifySuccess("App Sync Successful");
+    if (syncRes) {
+      notifySuccess("App Sync Successful");
+    }
   }, [syncRes]);
 
   if (error) {
@@ -133,11 +135,11 @@ function ApplicationDetail({ className, name }: Props) {
         </Flex>
       }
     >
-      {syncError || error ? (
+      {syncError ? (
         <Alert
           severity="error"
-          title="Error fetching Application"
-          message={error.message}
+          title="Error syncing Application"
+          message={syncError.message}
         />
       ) : (
         authSuccess && (
