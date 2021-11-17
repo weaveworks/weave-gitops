@@ -11,29 +11,36 @@ import ApplicationDetail from "../ApplicationDetail";
 
 describe("ApplicationDetail", () => {
   describe("Sync App Button", () => {
+    const apiMock = {
+      GetApplication: () => ({
+        application: {
+          name: "pod-info",
+          namespace: "wego-systems",
+        },
+      }),
+      ListCommits: (): ListCommitsResponse => ({
+        commits: [
+          {
+            hash: "123abc",
+            author: "Example User",
+            date: "2021-09-10T23:45:09Z",
+          },
+        ],
+      }),
+      SyncApplication: (): SyncApplicationResponse => {
+        return {
+          success: true,
+        };
+      },
+    };
+
     it("should exist on page", async () => {
       render(
         withTheme(
           withContext(
             <ApplicationDetail name="pod-info" />,
             "/application_detail",
-            {
-              GetApplication: () => ({
-                application: {
-                  name: "pod-info",
-                  namespace: "wego-systems",
-                },
-              }),
-              ListCommits: (): ListCommitsResponse => ({
-                commits: [
-                  {
-                    hash: "123abc",
-                    author: "Example User",
-                    date: "2021-09-10T23:45:09Z",
-                  },
-                ],
-              }),
-            }
+            apiMock
           )
         )
       );
@@ -41,31 +48,8 @@ describe("ApplicationDetail", () => {
     });
     it("should call a sync request", async () => {
       const promise = Promise.resolve();
-      const capture = jest.fn();
 
-      const apiMock = {
-        GetApplication: () => ({
-          application: {
-            name: "pod-info",
-            namespace: "wego-systems",
-          },
-        }),
-        ListCommits: (): ListCommitsResponse => ({
-          commits: [
-            {
-              hash: "123abc",
-              author: "Example User",
-              date: "2021-09-10T23:45:09Z",
-            },
-          ],
-        }),
-        SyncApplication: (req): SyncApplicationResponse => {
-          capture(req);
-          return {
-            success: true,
-          };
-        },
-      };
+      apiMock.SyncApplication = jest.fn();
 
       await act(async () => {
         render(
@@ -85,7 +69,7 @@ describe("ApplicationDetail", () => {
 
       fireEvent(button, new MouseEvent("click", { bubbles: true }));
 
-      expect(capture).toHaveBeenCalledWith({
+      expect(apiMock.SyncApplication).toHaveBeenCalledWith({
         name: "pod-info",
         namespace: "wego-systems",
       });
