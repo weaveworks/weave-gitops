@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -21,6 +22,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
+	authtypes "github.com/weaveworks/weave-gitops/pkg/services/auth/types"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -896,6 +898,93 @@ var _ = Describe("ApplicationsServer", func() {
 			Expect(res.Commits[0].Url).To(Equal(desired.URL))
 			Expect(res.Commits[0].Message).To(Equal(desired.Message))
 			Expect(res.Commits[0].Hash).To(Equal(desired.Sha))
+		})
+	})
+
+	Describe("ParseRepoURL", func() {
+		type expected struct {
+			provider pb.GitProvider
+			owner    string
+			name     string
+		}
+		DescribeTable("parses a repo url", func(uri string, e expected) {
+			res, err := appsClient.ParseRepoURL(context.Background(), &pb.ParseRepoURLRequest{
+				Url: uri,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res.Provider).To(Equal(e.provider))
+			Expect(res.Owner).To(Equal(e.owner))
+			Expect(res.Name).To(Equal(e.name))
+		},
+			Entry("github+ssh", "git@github.com:some-org/my-repo.git", expected{
+				provider: pb.GitProvider_GitHub,
+				owner:    "some-org",
+				name:     "my-repo",
+			}),
+			Entry("gitlab+ssh", "git@gitlab.com:other-org/cool-repo.git", expected{
+				provider: pb.GitProvider_GitLab,
+				owner:    "other-org",
+				name:     "cool-repo",
+			}),
+		)
+
+		It("returns an error on an invalid URL", func() {
+			_, err := appsClient.ParseRepoURL(context.Background(), &pb.ParseRepoURLRequest{
+				Url: "not-a  -valid-url",
+			})
+			Expect(err).To(HaveOccurred(), "should have gotten an invalid arg error")
+			s, ok := status.FromError(err)
+			Expect(ok).To(BeTrue(), "could not get status from error")
+			Expect(s.Code()).To(Equal(codes.InvalidArgument))
+		})
+	})
+	Describe("GetGitlabAuthURL", func() {
+		It("returns the gitlab url", func() {
+			urlString := "http://gitlab.com/oauth/authorize"
+			authUrl, err := url.Parse(urlString)
+			Expect(err).NotTo(HaveOccurred())
+
+			glAuthClient.AuthURLReturns(*authUrl, nil)
+
+			res, err := appsClient.GetGitlabAuthURL(context.Background(), &pb.GetGitlabAuthURLRequest{
+				RedirectUri: "http://example.com/oauth/fake",
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			u, err := url.Parse(res.Url)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(u.String()).To(Equal(urlString))
+		})
+	})
+
+	Describe("AuthorizeGitlab", func() {
+		It("exchanges a token", func() {
+			token := "some-token"
+			glAuthClient.ExchangeCodeReturns(&authtypes.TokenResponseState{AccessToken: token}, nil)
+
+			res, err := appsClient.AuthorizeGitlab(context.Background(), &pb.AuthorizeGitlabRequest{
+				RedirectUri: "http://example.com/oauth/callback",
+				Code:        "some-challenge-code",
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			claims, err := jwtClient.VerifyJWT(res.Token)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(claims.ProviderToken).To(Equal(token))
+		})
+		It("returns an error if the exchange fails", func() {
+			e := errors.New("some code exchange error")
+			glAuthClient.ExchangeCodeReturns(nil, e)
+
+			_, err := appsClient.AuthorizeGitlab(context.Background(), &pb.AuthorizeGitlabRequest{
+				RedirectUri: "http://example.com/oauth/callback",
+				Code:        "some-challenge-code",
+			})
+			status, ok := status.FromError(err)
+			Expect(ok).To(BeTrue(), "could not get status from error response")
+			Expect(status.Code()).To(Equal(codes.Unknown))
+			Expect(err.Error()).To(ContainSubstring(e.Error()))
 		})
 	})
 

@@ -84,7 +84,7 @@ var _ = BeforeSuite(func() {
 		Factory:          factory,
 		Logger:           zapr.NewLogger(zap.NewNop()),
 		JwtClient:        auth.NewJwtClient("somekey"),
-		GithubAuthClient: auth.NewGithubAuthProvider(http.DefaultClient),
+		GithubAuthClient: auth.NewGithubAuthClient(http.DefaultClient),
 		KubeClient:       env.Client,
 	}
 

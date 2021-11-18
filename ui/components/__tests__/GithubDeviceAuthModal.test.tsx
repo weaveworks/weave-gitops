@@ -3,13 +3,13 @@ import "jest-styled-components";
 import * as React from "react";
 import { unmountComponentAtNode } from "react-dom";
 import { act } from "react-dom/test-utils";
+import { GitProvider } from "../../lib/api/applications/applications.pb";
+import { getProviderToken } from "../../lib/storage";
 import {
   ApplicationOverrides,
   withContext,
   withTheme,
 } from "../../lib/test-utils";
-import { GitProviderName } from "../../lib/types";
-import { getProviderToken } from "../../lib/utils";
 import GithubDeviceAuthModal from "../GithubDeviceAuthModal";
 
 describe("GithubDeviceAuthModal", () => {
@@ -107,7 +107,7 @@ describe("GithubDeviceAuthModal", () => {
       );
     });
 
-    const token = getProviderToken(GitProviderName.GitHub);
+    const token = getProviderToken(GitProvider.GitHub);
     expect(token).toEqual(accessToken);
   });
 });

@@ -1,8 +1,9 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../contexts/AppContext";
 import {
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeResponse,
+  GitProvider,
 } from "../lib/api/applications/applications.pb";
 import { GrpcErrorCodes } from "../lib/types";
 
@@ -13,6 +14,21 @@ function poller(cb, interval) {
   }
 
   return setInterval(cb, interval);
+}
+
+export function useIsAuthenticated(provider: GitProvider): boolean {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { getProviderToken } = useContext(AppContext);
+
+  useEffect(() => {
+    const token = getProviderToken(provider);
+
+    if (token) {
+      setIsAuthenticated(true);
+    }
+  }, [provider]);
+
+  return isAuthenticated;
 }
 
 export default function useAuth() {
