@@ -152,7 +152,7 @@ func (gaf *gitlabAuthFlow) CallbackHandler(tokenState *types.TokenResponseState,
 func doCodeExchangeRequest(ctx context.Context, tUrl url.URL, c *http.Client) (*types.TokenResponseState, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, tUrl.String(), strings.NewReader(""))
 	if err != nil {
-		return nil, fmt.Errorf("could create gitlab code request: %w", err)
+		return nil, fmt.Errorf("could not create gitlab code request: %w", err)
 	}
 
 	res, err := c.Do(req)
