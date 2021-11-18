@@ -38,6 +38,7 @@ func init() {
 	Cmd.PersistentFlags().BoolVar(&upgradeCmdFlags.DryRun, "dry-run", false, "Output the generated profile without creating a pull request")
 
 	cobra.CheckErr(Cmd.MarkPersistentFlagRequired("app-config-url"))
+	cobra.CheckErr(Cmd.MarkPersistentFlagRequired("profile-version"))
 }
 
 func upgradeCmdRunE() func(*cobra.Command, []string) error {

@@ -41,8 +41,9 @@ type UpgradeValues struct {
 
 type JSONMap map[string]interface{}
 
-const EnterpriseChartURL string = "https://charts.dev.wkp.weave.works/charts-v3"
+const EnterpriseChartURL string = "https://charts.dev.wkp.weave.works/releases/charts-v3"
 const CredentialsSecretName string = "weave-gitops-enterprise-credentials"
+const WegoEnterpriseName = "wego-enterprise.yaml"
 
 func Upgrade(ctx context.Context, gitClient git.Git, gitProvider gitproviders.GitProvider, upgradeValues UpgradeValues, logger logger.Logger, w io.Writer) error {
 	kube, kubeClient, err := kube.NewKubeHTTPClient()
@@ -78,7 +79,7 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 
 	err = getBasicAuth(ctx, kubeClient, uv.Namespace)
 	if err != nil {
-		return fmt.Errorf("failed to load deploy key for profiles repos from cluster: %v", err)
+		return fmt.Errorf("failed to load credentials for profiles repo from cluster: %v", err)
 	}
 
 	normalizedURL, err := gitproviders.NewRepoURL(uv.AppConfigURL)
@@ -87,7 +88,7 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 	}
 
 	// Create pull request
-	path := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, git.WegoEnterpriseDir)
+	path := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, WegoEnterpriseName)
 
 	pri := gitproviders.PullRequestInfo{
 		Title:         "Gitops upgrade",
@@ -140,10 +141,6 @@ func makeHelmResources(namespace, version, clusterName, repoURL string, values [
 				Name: CredentialsSecretName,
 			},
 		},
-	}
-
-	if version == "" {
-		version = "latest"
 	}
 
 	// default helmrelease values
