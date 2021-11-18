@@ -3,12 +3,11 @@
 import { createTheme } from "@material-ui/core";
 import { createGlobalStyle, DefaultTheme } from "styled-components";
 // @ts-ignore
-import ProximaNovaBold from "url:../fonts/ProximaNovaBold.otf";
+import ProximaNovaBold from "url:../assets/fonts/ProximaNovaBold.otf";
 // @ts-ignore
-import ProximaNovaRegular from "url:../fonts/ProximaNovaRegular.otf";
+import ProximaNovaRegular from "url:../assets/fonts/ProximaNovaRegular.otf";
 // @ts-ignore
-import robotomono from "url:../fonts/roboto-mono-regular.woff";
-
+import robotomono from "url:../assets/fonts/roboto-mono-regular.woff";
 const baseSpacingNumber = 16;
 
 export const theme: DefaultTheme = {
@@ -65,7 +64,7 @@ export const GlobalStyle = createGlobalStyle`
   }
   @font-face {
     font-family: 'Roboto Mono';
-    src: url(${robotomono})
+    src: url(${robotomono});
   }
 
   html,
