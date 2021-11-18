@@ -3,11 +3,13 @@ import "jest-styled-components";
 import * as React from "react";
 import { unmountComponentAtNode } from "react-dom";
 import { act } from "react-dom/test-utils";
+import CallbackStateContextProvider from "../../contexts/CallbackStateContext";
 import {
   GitProvider,
   ParseRepoURLResponse,
 } from "../../lib/api/applications/applications.pb";
 import { withContext, withTheme } from "../../lib/test-utils";
+import { PageRoute } from "../../lib/types";
 import { gitlabOAuthRedirectURI } from "../../lib/utils";
 import RepoInputWithAuth from "../RepoInputWithAuth";
 
@@ -30,7 +32,18 @@ describe("RepoInputWithAuth", () => {
       await act(async () => {
         render(
           withTheme(
-            withContext(<RepoInputWithAuth onAuthClick={() => null} />, "/", {})
+            withContext(
+              <CallbackStateContextProvider
+                callbackState={{
+                  page: PageRoute.ApplicationAdd,
+                  state: { foo: "bar" },
+                }}
+              >
+                <RepoInputWithAuth onAuthClick={() => null} />
+              </CallbackStateContextProvider>,
+              "/",
+              {}
+            )
           )
         );
       });
@@ -47,11 +60,18 @@ describe("RepoInputWithAuth", () => {
         render(
           withTheme(
             withContext(
-              <RepoInputWithAuth
-                value={url}
-                onAuthClick={() => null}
-                onProviderChange={onProviderChange}
-              />,
+              <CallbackStateContextProvider
+                callbackState={{
+                  page: PageRoute.ApplicationAdd,
+                  state: { foo: "bar" },
+                }}
+              >
+                <RepoInputWithAuth
+                  value={url}
+                  onAuthClick={() => null}
+                  onProviderChange={onProviderChange}
+                />
+              </CallbackStateContextProvider>,
               "/",
               c
             )
@@ -79,11 +99,19 @@ describe("RepoInputWithAuth", () => {
         render(
           withTheme(
             withContext(
-              <RepoInputWithAuth
-                value={url}
-                onAuthClick={onAuthClick}
-                onProviderChange={onProviderChange}
-              />,
+              <CallbackStateContextProvider
+                callbackState={{
+                  page: PageRoute.ApplicationAdd,
+                  state: { foo: "bar" },
+                }}
+              >
+                <RepoInputWithAuth
+                  value={url}
+                  onAuthClick={onAuthClick}
+                  onProviderChange={onProviderChange}
+                />
+              </CallbackStateContextProvider>,
+
               "/",
               c
             )
@@ -120,11 +148,18 @@ describe("RepoInputWithAuth", () => {
         render(
           withTheme(
             withContext(
-              <RepoInputWithAuth
-                value={repoUrl}
-                onProviderChange={onProviderChange}
-                onAuthClick={() => null}
-              />,
+              <CallbackStateContextProvider
+                callbackState={{
+                  page: PageRoute.ApplicationAdd,
+                  state: { foo: "bar" },
+                }}
+              >
+                <RepoInputWithAuth
+                  value={repoUrl}
+                  onProviderChange={onProviderChange}
+                  onAuthClick={() => null}
+                />
+              </CallbackStateContextProvider>,
               "/",
               c
             )
