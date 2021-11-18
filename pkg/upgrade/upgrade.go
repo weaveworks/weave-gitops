@@ -102,9 +102,15 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 		},
 	}
 
-	_, err = gitProvider.CreatePullRequest(ctx, normalizedURL, pri)
+	pr, err := gitProvider.CreatePullRequest(ctx, normalizedURL, pri)
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	w.Write([]byte(fmt.Sprintf("Pull Request created: %s\n", pr.Get().WebURL)))
+
+	return nil
 }
 
 func marshalToYamlStream(objects []runtime.Object) ([]byte, error) {
