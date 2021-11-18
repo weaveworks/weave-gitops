@@ -72,8 +72,8 @@ runs:
     shell: bash
     run: |
       make dependencies
-  - name: Set up ssh agent
-    uses: webfactory/ssh-agent@v0.5.3
+  - name: Set up ssh
+    uses: ./.github/actions/setup-ssh
     with:
       ssh-private-key: ${{ inputs.github-key }}
   - name: Configure git settings
