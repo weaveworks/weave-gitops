@@ -18,11 +18,14 @@ import (
 
 var upgradeCmdFlags upgrade.UpgradeValues
 
+var example = fmt.Sprintf(`  # Install GitOps in the %s namespace
+  gitops upgrade --profile-version 0.0.15 --app-config-url https://github.com/my-org/my-management-cluster.git`,
+	wego.DefaultNamespace)
+
 var Cmd = &cobra.Command{
-	Use:   "upgrade",
-	Short: "Upgrade to Weave GitOps Enterprise",
-	Example: fmt.Sprintf(`  # Install GitOps in the %s namespace
-  gitops upgrade`, wego.DefaultNamespace),
+	Use:           "upgrade",
+	Short:         "Upgrade to Weave GitOps Enterprise",
+	Example:       example,
 	RunE:          upgradeCmdRunE(),
 	SilenceErrors: true,
 	SilenceUsage:  true,
