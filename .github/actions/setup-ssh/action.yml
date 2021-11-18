@@ -8,8 +8,8 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Set up ssh
-      uses: ./.github/actions/setup-ssh
+    - name: Set up ssh agent
+      uses: webfactory/ssh-agent@v0.5.3
       with:
         ssh-private-key: ${{ inputs.ssh-private-key }}
     - name: Add known_hosts
