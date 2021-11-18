@@ -17,8 +17,8 @@ type AppListElements struct {
 func GetDashboardPageElements(webDriver *agouti.Page) *DashboardPageElements {
 	dashboard := DashboardPageElements{
 		LogoImage:          webDriver.FindByXPath(`//*[@id="app"]/div//img`),
-		ApplicationsHeader: webDriver.FindByXPath(`//*[@id="app"]//div/h2`),
-		AddAppButton:       webDriver.FindByXPath(`//*[@id="app"]//button`)}
+		ApplicationsHeader: webDriver.FindByXPath(`//*[@id="app"]//div/h2[text()="Applications"]`),
+		AddAppButton:       webDriver.FindByXPath(`//*[@id="app"]//button[@span=(text()="Add Application")]`)}
 
 	return &dashboard
 }
