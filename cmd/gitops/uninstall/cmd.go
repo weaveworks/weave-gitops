@@ -4,7 +4,9 @@ package uninstall
 // wego installed, the user will be prompted to install wego and then the repository will be added.
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -25,6 +27,7 @@ type params struct {
 
 var (
 	uninstallParams params
+	forceUninstall  bool
 )
 
 var Cmd = &cobra.Command{
@@ -42,10 +45,26 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
+	Cmd.Flags().BoolVar(&forceUninstall, "force", false, "If set, 'gitops uninstall' will not ask for confirmation")
 	Cmd.Flags().BoolVar(&uninstallParams.DryRun, "dry-run", false, "Outputs all the manifests that would be uninstalled")
 }
 
 func uninstallRunCmd(cmd *cobra.Command, args []string) error {
+	if !forceUninstall {
+		fmt.Print("Uninstall will remove all your Applications and any related cluster resources. Are you sure you want to uninstall? [y/N] ")
+
+		reader := bufio.NewReader(os.Stdin)
+
+		userInput, err := reader.ReadString('\n')
+		if err != nil && err != io.EOF {
+			return fmt.Errorf("error reading from stdin %w", err)
+		}
+
+		if userInput != "y\n" {
+			return nil
+		}
+	}
+
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
 	log := internal.NewCLILogger(os.Stdout)

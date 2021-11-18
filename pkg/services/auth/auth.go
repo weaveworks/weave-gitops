@@ -63,7 +63,7 @@ func (sn SecretName) NamespacedName() types.NamespacedName {
 }
 
 type AuthService interface {
-	CreateGitClient(ctx context.Context, repoUrl gitproviders.RepoURL, targetName string, namespace string) (git.Git, error)
+	CreateGitClient(ctx context.Context, repoUrl gitproviders.RepoURL, targetName string, namespace string, dryRun bool) (git.Git, error)
 	GetGitProvider() gitproviders.GitProvider
 }
 
@@ -93,7 +93,12 @@ func (a *authSvc) GetGitProvider() gitproviders.GitProvider {
 
 // CreateGitClient creates a git.Git client instrumented with existing or generated deploy keys.
 // This ensures that git operations are done with stored deploy keys instead of a user's local ssh-agent or equivalent.
-func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.RepoURL, targetName string, namespace string) (git.Git, error) {
+func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.RepoURL, targetName string, namespace string, dryRun bool) (git.Git, error) {
+	if dryRun {
+		d, _ := makePublicKey([]byte(""))
+		return git.New(d, wrapper.NewGoGit()), nil
+	}
+
 	secretName := SecretName{
 		Name:      automation.CreateRepoSecretName(repoUrl),
 		Namespace: namespace,
