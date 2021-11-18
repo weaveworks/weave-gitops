@@ -73,6 +73,7 @@ jobs:
 
   test:
     env:
+        GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         KUBEBUILDER_ASSETS: ${{ github.workspace }}/kubebuilder/bin
     runs-on: ubuntu-latest

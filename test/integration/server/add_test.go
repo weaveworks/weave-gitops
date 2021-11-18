@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
@@ -24,6 +25,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	"github.com/weaveworks/weave-gitops/test/integration/server/helpers"
+	glAPI "github.com/xanzy/go-gitlab"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -50,7 +52,7 @@ var _ = Describe("AddApplication", func() {
 		client = pb.NewApplicationsClient(conn)
 
 	})
-	Context("via pull request", func() {
+	Context("[github] via pull request", func() {
 		It("adds with no config repo specified", func() {
 			sourceRepoURL := fmt.Sprintf("https://github.com/%s/%s", org, sourceRepoName)
 
@@ -220,7 +222,7 @@ var _ = Describe("AddApplication", func() {
 			}
 		})
 	})
-	Context("via auto merge", func() {
+	Context("[github] via auto merge", func() {
 		It("adds with no config repo specified", func() {
 			sourceRepoURL := fmt.Sprintf("https://github.com/%s/%s", org, sourceRepoName)
 
@@ -402,6 +404,106 @@ var _ = Describe("AddApplication", func() {
 			}
 
 			expected := helpers.GenerateExpectedFS(req, root, clusterName, expectedApp, expectedKustomization, expectedSrc)
+
+			diff, err := helpers.DiffFS(actual, expected)
+			if err != nil {
+				GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
+			}
+		})
+	})
+	Context("[gitlab] via merge request", func() {
+		It("adds with no config repo specified", func() {
+			org = os.Getenv("GITLAB_ORG")
+			token := os.Getenv("GITLAB_TOKEN")
+			ctx = middleware.ContextWithGRPCAuth(context.Background(), token)
+			// group := "weave-gitops"
+			// project := "weave-gitops-test"
+			gp, err = gitlab.NewClient(
+				token,
+				"oauth2",
+				gitprovider.WithDestructiveAPICalls(true),
+			)
+			Expect(err).NotTo(HaveOccurred())
+
+			sourceRepoURL := fmt.Sprintf("https://gitlab.com/%s/%s", org, sourceRepoName)
+
+			repo, ref, err := helpers.CreatePopulatedSourceRepo(ctx, gp, sourceRepoURL)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(err).NotTo(HaveOccurred())
+
+			defer func() { Expect(repo.Delete(ctx)).To(Succeed()) }()
+
+			req := &pb.AddApplicationRequest{
+				Name:      "my-app",
+				Namespace: namespace.Name,
+				Url:       ref.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+				Branch:    "main",
+				Path:      "k8s/overlays/development",
+			}
+
+			res, err := client.AddApplication(ctx, req)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(res.Success).To(BeTrue())
+
+			_, err = repo.DeployKeys().Get(ctx, gitproviders.DeployKeyName)
+			Expect(err).NotTo(HaveOccurred(), "deploy key should have been found")
+
+			prs, err := repo.PullRequests().List(ctx)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(prs).To(HaveLen(1))
+
+			root := helpers.InAppRoot
+
+			fs := helpers.MakeWeGOFS(root, req.Name, clusterName)
+
+			gl, err := glAPI.NewClient(token)
+			Expect(err).NotTo(HaveOccurred())
+
+			actual, err := helpers.GetFilesForPullRequest_Gitlab(ctx, gl, org, sourceRepoName, fs)
+			Expect(err).NotTo(HaveOccurred())
+
+			expectedKustomization := kustomizev1.KustomizationSpec{
+				// Flux adds a prepending `./` to path arguments that doesn't already have it.
+				// https://github.com/fluxcd/flux2/blob/ca496d393d993ac5119ed84f83e010b8fe918c53/cmd/flux/create_kustomization.go#L115
+				Path: "./" + req.Path,
+				// Flux kustomization default; I couldn't find an export default from the package.
+				Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
+				Prune:    true,
+				SourceRef: kustomizev1.CrossNamespaceSourceReference{
+					Name: req.Name,
+					Kind: sourcev1.GitRepositoryKind,
+				},
+				Force: false,
+			}
+
+			repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+			Expect(err).NotTo(HaveOccurred())
+
+			expectedSource := sourcev1.GitRepositorySpec{
+				URL: req.Url,
+				SecretRef: &meta.LocalObjectReference{
+					Name: automation.CreateRepoSecretName(repoURL).String(),
+				},
+				Interval: metav1.Duration{Duration: time.Duration(30 * time.Second)},
+				Reference: &sourcev1.GitRepositoryRef{
+					Branch: req.Branch,
+				},
+				Ignore: helpers.GetIgnoreSpec(),
+			}
+
+			expectedApp := wego.ApplicationSpec{
+				URL:            req.Url,
+				Branch:         req.Branch,
+				Path:           req.Path,
+				ConfigURL:      req.Url,
+				DeploymentType: wego.DeploymentTypeKustomize,
+				SourceType:     wego.SourceTypeGit,
+			}
+
+			expected := helpers.GenerateExpectedFS(req, root, clusterName, expectedApp, expectedKustomization, expectedSource)
 
 			diff, err := helpers.DiffFS(actual, expected)
 			if err != nil {
