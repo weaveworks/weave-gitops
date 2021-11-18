@@ -6,6 +6,7 @@ package install
 import (
 	"context"
 	_ "embed"
+	"errors"
 	"fmt"
 	"os"
 
@@ -17,15 +18,20 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services"
+	"github.com/weaveworks/weave-gitops/pkg/services/applier"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
-	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
+	"github.com/weaveworks/weave-gitops/pkg/services/automation"
+	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
+	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
 )
 
 type params struct {
 	DryRun       bool
+	AutoMerge    bool
 	AppConfigURL string
 }
 
@@ -51,34 +57,39 @@ repo. If a previous version is installed, then an in-place upgrade will be perfo
 
 func init() {
 	Cmd.Flags().BoolVar(&installParams.DryRun, "dry-run", false, "Outputs all the manifests that would be installed")
+	Cmd.Flags().BoolVar(&installParams.AutoMerge, "auto-merge", false, "If set, 'gitops install' will automatically update the default branch for the configuration repository")
 	Cmd.Flags().StringVar(&installParams.AppConfigURL, "app-config-url", "", "URL of external repository that will hold automation manifests")
 	cobra.CheckErr(Cmd.MarkFlagRequired("app-config-url"))
 }
 
 func installRunCmd(cmd *cobra.Command, args []string) error {
+	ctx := context.Background()
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
 	osysClient := osys.New()
 	log := internal.NewCLILogger(os.Stdout)
 	flux := flux.New(osysClient, &runner.CLIRunner{})
 
-	k, _, err := kube.NewKubeHTTPClient()
+	k, c, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
-	gitopsService := gitops.New(log, flux, k)
+	status := k.GetClusterStatus(ctx)
 
-	gitopsParams := gitops.InstallParams{
-		Namespace:    namespace,
-		DryRun:       installParams.DryRun,
-		AppConfigURL: installParams.AppConfigURL,
+	switch status {
+	case kube.FluxInstalled:
+		return errors.New("Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n  $ flux uninstall")
+	case kube.Unknown:
+		return errors.New("Weave GitOps cannot talk to the cluster")
 	}
 
-	manifests, err := gitopsService.Install(gitopsParams)
+	_, err = flux.Install(namespace, false)
 	if err != nil {
 		return err
 	}
+
+	clusterApplier := applier.NewClusterApplier(k, c, log)
 
 	var gitClient git.Git
 
@@ -99,14 +110,39 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	_, err = gitopsService.StoreManifests(gitClient, gitProvider, gitopsParams, manifests)
+	clusterName, err := k.GetClusterName(ctx)
+	if err != nil {
+		return err
+	}
+
+	configURL, err := gitproviders.NewRepoURL(installParams.AppConfigURL)
+	if err != nil {
+		return err
+	}
+
+	cluster := models.Cluster{clusterName}
+	repoWriter := gitrepo.NewRepoWriter(configURL, gitProvider, gitClient, log)
+	automationGen := automation.NewAutomationGenerator(gitProvider, flux, log)
+	gitOpsDirWriter := gitopswriter.NewGitOpsDirectoryWriter(automationGen, repoWriter, osysClient, log)
+
+	clusterAutomation, err := automationGen.GenerateClusterAutomation(ctx, cluster, configURL, namespace)
+	if err != nil {
+		return err
+	}
+
+	err = clusterApplier.ApplyManifests(ctx, cluster, namespace, clusterAutomation.BootstrapManifests())
+	if err != nil {
+		return err
+	}
+
+	err = gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, clusterAutomation, installParams.AutoMerge)
 	if err != nil {
 		return err
 	}
 
 	if installParams.DryRun {
-		for _, manifest := range manifests {
-			fmt.Println(string(manifest))
+		for _, manifest := range clusterAutomation.Manifests() {
+			fmt.Println(string(manifest.Content))
 		}
 	}
 

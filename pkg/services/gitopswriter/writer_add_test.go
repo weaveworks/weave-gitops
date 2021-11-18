@@ -64,7 +64,7 @@ resources:
 var dummyUserKustomization = []byte(`apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 metadata:
-  name: bar
+  name: test-cluster
   namespace: wego-system
 resources:
 - ../../../apps/bar
