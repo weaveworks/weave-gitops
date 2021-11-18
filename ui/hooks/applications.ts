@@ -12,6 +12,7 @@ import {
 import { RequestStateWithToken, useRequestState } from "./common";
 
 const WeGONamespace = "wego-system";
+const providerTokenHeaderName = "Git-Provider-Token";
 
 export function useParseRepoURL(url: string) {
   const { applicationsClient } = useContext(AppContext);
@@ -40,7 +41,7 @@ export function useAddApplication(): AddApplicationReturnType {
     (provider: GitProvider, body: AddApplicationRequest) => {
       const token = getProviderToken(provider);
       const headers = new Headers({
-        Authorization: `token ${token}`,
+        [providerTokenHeaderName]: `token ${token}`,
       });
 
       req(applicationsClient.AddApplication(body, { headers }));
@@ -64,7 +65,7 @@ export function useListCommits(): ListCommitsReturnType {
     (provider: GitProvider, body: ListCommitsRequest) => {
       const token = getProviderToken(provider);
       const headers = new Headers({
-        Authorization: `token ${token}`,
+        [providerTokenHeaderName]: `token ${token}`,
       });
 
       req(applicationsClient.ListCommits(body, { headers }));

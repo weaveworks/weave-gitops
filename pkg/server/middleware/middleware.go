@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -88,6 +89,7 @@ func WithProviderToken(jwtClient auth.JWTClient, h http.Handler, log logr.Logger
 		tokenSlice := strings.Split(tokenStr, "token ")
 
 		if len(tokenSlice) < 2 {
+			fmt.Println(tokenSlice)
 			log.Info("invalid token format")
 			// No token specified. Nothing to be done.
 			// We do NOT return 400 here because there may be some 'unauthenticated' routes (ie /login)
