@@ -55,7 +55,7 @@
     "history": "^5.0.0",
     "lodash": "^4.17.21",
     "luxon": "^1.27.0",
-    "postcss": "^8.3.6",
+    "postcss": "^8.3.11",
     "query-string": "^7.0.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
@@ -72,10 +72,11 @@
     },
     "modulePathIgnorePatterns": [
       "<rootDir>/dist/"
-    ]
+    ],
+    "testEnvironment": "jsdom"
   },
   "resolutions": {
-    "postcss": "8.3.6",
+    "postcss": "8.3.11",
     "ejs": "^3.1.6",
     "ws": "^7.4.6",
     "css-what": "^5.0.1",
@@ -85,12 +86,12 @@
     "@babel/preset-env": "^7.13.8",
     "@babel/preset-react": "^7.13.13",
     "@babel/preset-typescript": "^7.13.0",
-    "@parcel/config-default": "^2.0.0-beta.3.1",
-    "@parcel/transformer-typescript-tsc": "^2.0.0-beta.3.1",
+    "@parcel/config-default": "^2.0.1",
+    "@parcel/transformer-typescript-tsc": "^2.0.1",
     "@testing-library/jest-dom": "^5.12.0",
     "@testing-library/react": "^11.2.7",
     "@testing-library/react-hooks": "^6.0.0",
-    "@types/jest": "^26.0.23",
+    "@types/jest": "^27.0.2",
     "@types/lodash": "^4.14.165",
     "@types/luxon": "^1.26.5",
     "@types/react": "^17.0.6",
@@ -100,14 +101,14 @@
     "@types/styled-components": "^5.1.9",
     "@typescript-eslint/eslint-plugin": "^4.16.1",
     "@typescript-eslint/parser": "^4.16.1",
-    "babel-jest": "^26.6.3",
+    "babel-jest": "^27.3.1",
     "eslint": "^7.28.0",
     "eslint-plugin-import": "^2.22.1",
-    "jest": "^26.6.3",
+    "jest": "^27.3.1",
     "jest-styled-components": "^7.0.4",
-    "parcel": "^2.0.0-beta.3.1",
+    "parcel": "^2.0.1",
     "react-test-renderer": "^17.0.2",
-    "ts-jest": "^26.5.6",
+    "ts-jest": "^27.0.7",
     "typescript": "~4.3.5"
   }
 }
