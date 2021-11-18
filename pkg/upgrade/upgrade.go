@@ -39,11 +39,9 @@ type UpgradeValues struct {
 	DryRun         bool
 }
 
-type JSONMap map[string]interface{}
-
 const EnterpriseChartURL string = "https://charts.dev.wkp.weave.works/releases/charts-v3"
 const CredentialsSecretName string = "weave-gitops-enterprise-credentials"
-const WegoEnterpriseName = "wego-enterprise.yaml"
+const WegoEnterpriseName string = "weave-gitops-enterprise.yaml"
 
 func Upgrade(ctx context.Context, gitClient git.Git, gitProvider gitproviders.GitProvider, upgradeValues UpgradeValues, logger logger.Logger, w io.Writer) error {
 	kube, kubeClient, err := kube.NewKubeHTTPClient()
@@ -189,7 +187,7 @@ func makeHelmResources(namespace, version, clusterName, repoURL string, values [
 					Version: version,
 				},
 			},
-			Values: &v1.JSON{Raw: []byte(string(valuesJson))},
+			Values: &v1.JSON{Raw: valuesJson},
 		},
 	}
 
