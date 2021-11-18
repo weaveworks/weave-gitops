@@ -1,4 +1,3 @@
-
 name: 'Setup SSH'
 description: 'Setup SSH keys and known hosts'
 inputs:
@@ -9,7 +8,7 @@ runs:
   using: "composite"
   steps:
     - name: Set up ssh agent
-      uses: webfactory/ssh-agent@v0.5.3
+      uses: webfactory/ssh-agent@v0.5.2
       with:
         ssh-private-key: ${{ inputs.ssh-private-key }}
     - name: Add known_hosts
@@ -25,4 +24,4 @@ runs:
         github.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
         # github.com:22 SSH-2.0-babeld-a73e1397
         github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
-        EOM 
+        EOM
