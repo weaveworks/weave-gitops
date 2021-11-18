@@ -2,12 +2,6 @@
 /* eslint-disable */
 import { createTheme } from "@material-ui/core";
 import { createGlobalStyle, DefaultTheme } from "styled-components";
-// @ts-ignore
-import ProximaNovaBold from "url:../assets/fonts/ProximaNovaBold.otf";
-// @ts-ignore
-import ProximaNovaRegular from "url:../assets/fonts/ProximaNovaRegular.otf";
-// @ts-ignore
-import robotomono from "url:../assets/fonts/roboto-mono-regular.woff";
 const baseSpacingNumber = 16;
 
 export const theme: DefaultTheme = {
@@ -55,16 +49,16 @@ export default theme;
 export const GlobalStyle = createGlobalStyle`
   @font-face {
     font-family: 'proxima-nova';
-    src: url(${ProximaNovaRegular})
+    src: url(${""})
   }
   @font-face {
     font-family: 'proxima-nova';
-    src: url(${ProximaNovaBold});
+    src: url(${""});
     font-weight: bold;
   }
   @font-face {
     font-family: 'Roboto Mono';
-    src: url(${robotomono});
+    src: url(${""});
   }
 
   html,
