@@ -1,14 +1,12 @@
 import { CircularProgress } from "@material-ui/core";
 import { DateTime } from "luxon";
 import * as React from "react";
-import { useContext } from "react";
 import styled from "styled-components";
-import { AppContext } from "../contexts/AppContext";
-import { useRequestState } from "../hooks/common";
+import { useListCommits } from "../hooks/applications";
 import {
   Application,
   Commit,
-  ListCommitsResponse,
+  GitProvider,
 } from "../lib/api/applications/applications.pb";
 import { GrpcErrorCodes } from "../lib/types";
 import Alert from "./Alert";
@@ -33,25 +31,27 @@ const timestamp = (isoStr: string) => {
 };
 
 function CommitsTable({ className, app, authSuccess, onAuthClick }: Props) {
-  const { applicationsClient } = useContext(AppContext);
-  const [commits, loading, error, req] = useRequestState<ListCommitsResponse>();
+  const [commits, loading, error, req] = useListCommits();
 
   React.useEffect(() => {
     if (!app || !app.name) {
       return;
     }
-    req(
-      applicationsClient.ListCommits({
-        name: app.name,
-        namespace: app.namespace,
-        pageSize: 10,
-      })
-    );
+
+    req(GitProvider.GitHub, {
+      name: app.name,
+      namespace: app.namespace,
+      pageSize: 10,
+    });
   }, [app, authSuccess]);
 
   if (error) {
     return error.code === GrpcErrorCodes.Unauthenticated ? (
-      <AuthAlert title="Error fetching commits" onClick={onAuthClick} />
+      <AuthAlert
+        provider={GitProvider.GitHub}
+        title="Error fetching commits"
+        onClick={onAuthClick}
+      />
     ) : (
       <Alert
         className={className}

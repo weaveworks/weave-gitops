@@ -15,9 +15,11 @@ import Flex from "../components/Flex";
 import GithubDeviceAuthModal from "../components/GithubDeviceAuthModal";
 import Link from "../components/Link";
 import Page from "../components/Page";
+import RepoInputWithAuth from "../components/RepoInputWithAuth";
 import { AppContext } from "../contexts/AppContext";
-import { useRequestState } from "../hooks/common";
-import { AddApplicationResponse } from "../lib/api/applications/applications.pb";
+import CallbackStateContextProvider from "../contexts/CallbackStateContext";
+import { useAddApplication } from "../hooks/applications";
+import { GitProvider } from "../lib/api/applications/applications.pb";
 import { GrpcErrorCodes, PageRoute } from "../lib/types";
 
 type Props = {
@@ -122,36 +124,44 @@ const FormElement = styled.div`
 `;
 
 function AddApplication({ className }: Props) {
-  const { applicationsClient } = React.useContext(AppContext);
+  const { getCallbackState, clearCallbackState, getProviderToken } =
+    React.useContext(AppContext);
   const formRef = React.useRef<HTMLFormElement>();
-  const [formState, setFormState] = React.useState({
+
+  let initialFormState = {
     name: "",
     namespace: "wego-system",
-    path: "",
+    path: "./",
     branch: "main",
     url: "",
     configUrl: "",
     autoMerge: false,
-  });
-  const [addRes, loading, error, req] =
-    useRequestState<AddApplicationResponse>();
+    provider: null,
+  };
+
+  const callbackState = getCallbackState();
+
+  if (callbackState) {
+    initialFormState = {
+      ...initialFormState,
+      ...callbackState.state,
+    };
+    // Once we read it into the form, clear the state to avoid it auto-populating all the time
+    clearCallbackState();
+  }
+
+  const [formState, setFormState] = React.useState(initialFormState);
+  const [addRes, loading, error, req] = useAddApplication();
   const [prLink, setPrLink] = React.useState("");
   const [authOpen, setAuthOpen] = React.useState(false);
   const [authSuccess, setAuthSuccess] = React.useState(false);
 
   const handleSubmit = () => {
-    req(
-      applicationsClient.AddApplication({
-        ...formState,
-      })
-    );
+    req(formState.provider, formState);
   };
 
   const handleAuthSuccess = () => {
     setAuthSuccess(true);
-    if (formRef && formRef.current) {
-      handleSubmit();
-    }
   };
 
   const handleAuthClick = () => {
@@ -169,179 +179,195 @@ function AddApplication({ className }: Props) {
     setPrLink(`${repoURL.replace(".git", "")}/pulls`);
   }, [addRes]);
 
+  const credentialsDetected =
+    authSuccess || !!getProviderToken(formState.provider) || !!callbackState;
+
   return (
     <Page className={className} title="Add Application">
-      {!authSuccess &&
-        error &&
-        error.code === GrpcErrorCodes.Unauthenticated && (
-          <AuthAlert
+      <CallbackStateContextProvider
+        callbackState={{ page: PageRoute.ApplicationAdd, state: formState }}
+      >
+        {!authSuccess &&
+          error &&
+          error.code === GrpcErrorCodes.Unauthenticated && (
+            <AuthAlert
+              provider={formState.provider}
+              title="Error adding application"
+              onClick={handleAuthClick}
+            />
+          )}
+        {error && error.code !== GrpcErrorCodes.Unauthenticated && (
+          <Alert
+            severity="error"
             title="Error adding application"
-            onClick={handleAuthClick}
+            message={error.message}
           />
         )}
-      {error && error.code !== GrpcErrorCodes.Unauthenticated && (
-        <Alert
-          severity="error"
-          title="Error adding application"
-          message={error.message}
-        />
-      )}
-      {addRes && addRes.success ? (
-        <SuccessMessage autoMerged={formState.autoMerge} link={prLink} />
-      ) : (
-        <form
-          ref={formRef}
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSubmit();
-          }}
-        >
-          <FormElement>
-            <TextField
-              onChange={(e) => {
-                setFormState({
-                  ...formState,
-                  name: e.currentTarget.value,
-                });
-              }}
-              required
-              id="name"
-              label="Name"
-              variant="standard"
-              value={formState.name}
-            />
-            <FormHelperText>The name of the application</FormHelperText>
-          </FormElement>
-          <FormElement>
-            <TextField
-              onChange={(e) => {
-                setFormState({
-                  ...formState,
-                  namespace: e.currentTarget.value,
-                });
-              }}
-              required
-              id="namespace"
-              label="Kubernetes Namespace"
-              variant="standard"
-              value={formState.namespace}
-            />
-            <FormHelperText>
-              The namespace where GitOps automation objects will be stored.
-            </FormHelperText>
-          </FormElement>
-          <FormElement>
-            <TextField
-              onChange={(e) => {
-                setFormState({
-                  ...formState,
-                  url: e.currentTarget.value,
-                });
-              }}
-              required
-              id="url"
-              label="Source Repo URL"
-              variant="standard"
-              value={formState.url}
-            />
-            <FormHelperText>
-              The git repository URL where the application YAML files are stored
-            </FormHelperText>
-          </FormElement>
-          <FormElement>
-            <TextField
-              onChange={(e) => {
-                setFormState({
-                  ...formState,
-                  configUrl: e.currentTarget.value,
-                });
-              }}
-              id="configUrl"
-              label="Config Repo URL"
-              variant="standard"
-              value={formState.configUrl}
-            />
-            <FormHelperText>
-              The git repository URL to which Weave GitOps will write the GitOps
-              Automation files
-            </FormHelperText>
-          </FormElement>
-          <FormElement>
-            <TextField
-              onChange={(e) => {
-                setFormState({
-                  ...formState,
-                  path: e.currentTarget.value,
-                });
-              }}
-              required
-              id="path"
-              label="Path"
-              variant="standard"
-              value={formState.path}
-            />
-            <FormHelperText>
-              The path within the git repository where your application YAMLs
-              are stored
-            </FormHelperText>
-          </FormElement>
-          <FormElement>
-            <TextField
-              onChange={(e) => {
-                setFormState({
-                  ...formState,
-                  branch: e.currentTarget.value,
-                });
-              }}
-              required
-              id="branch"
-              label="Branch"
-              variant="standard"
-              value={formState.branch}
-            />
-            <FormHelperText>
-              The git branch to use when reading the application YAMLs
-            </FormHelperText>
-          </FormElement>
-          <FormElement>
-            <FormGroup>
-              <FormControlLabel
-                control={
-                  <Switch
-                    onChange={(e) =>
-                      setFormState({
-                        ...formState,
-                        autoMerge: e.currentTarget.checked,
-                      })
-                    }
-                    checked={formState.autoMerge}
-                  />
-                }
-                label="Auto Merge"
+        {addRes && addRes.success ? (
+          <SuccessMessage autoMerged={formState.autoMerge} link={prLink} />
+        ) : (
+          <form
+            ref={formRef}
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmit();
+            }}
+          >
+            <FormElement>
+              <TextField
+                onChange={(e) => {
+                  setFormState({
+                    ...formState,
+                    name: e.currentTarget.value,
+                  });
+                }}
+                required
+                id="name"
+                label="Name"
+                variant="standard"
+                value={formState.name}
               />
-            </FormGroup>
-            <FormHelperText>
-              If checked, Weave GitOps will automatically merge the application
-              into the default branch instead of doing a pull request
-            </FormHelperText>
-          </FormElement>
-          <Flex wide end>
-            {loading ? (
-              <CircularProgress />
-            ) : (
-              <Button variant="contained" color="primary" type="submit">
-                Submit
-              </Button>
-            )}
-          </Flex>
-        </form>
-      )}
-      <GithubDeviceAuthModal
-        onSuccess={handleAuthSuccess}
-        onClose={() => setAuthOpen(false)}
-        open={authOpen}
-        repoName={formState.url}
-      />
+              <FormHelperText>The name of the application</FormHelperText>
+            </FormElement>
+            <FormElement>
+              <TextField
+                onChange={(e) => {
+                  setFormState({
+                    ...formState,
+                    namespace: e.currentTarget.value,
+                  });
+                }}
+                required
+                id="namespace"
+                label="Weave GitOps Kubernetes Namespace"
+                variant="standard"
+                value={formState.namespace}
+              />
+              <FormHelperText>
+                The namespace where GitOps automation objects will be stored.
+              </FormHelperText>
+            </FormElement>
+            <FormElement>
+              <RepoInputWithAuth
+                isAuthenticated={!!formState.url && credentialsDetected}
+                onChange={(e) => {
+                  setFormState({
+                    ...formState,
+                    url: e.currentTarget.value,
+                  });
+                }}
+                onProviderChange={(provider: GitProvider) => {
+                  setFormState({ ...formState, provider });
+                }}
+                onAuthClick={(provider) => {
+                  if (provider === GitProvider.GitHub) {
+                    setAuthOpen(true);
+                  }
+                }}
+                required
+                id="url"
+                label="Source Repo URL"
+                variant="standard"
+                value={formState.url}
+                helperText="The git repository URL where the application YAML files are stored"
+              />
+            </FormElement>
+            <FormElement>
+              <TextField
+                onChange={(e) => {
+                  setFormState({
+                    ...formState,
+                    configUrl: e.currentTarget.value,
+                  });
+                }}
+                id="configUrl"
+                label="Config Repo URL"
+                variant="standard"
+                value={formState.configUrl}
+              />
+              <FormHelperText>
+                The git repository URL to which Weave GitOps will write the
+                GitOps Automation files. Defaults to the Source Repo URL.
+              </FormHelperText>
+            </FormElement>
+            <FormElement>
+              <TextField
+                onChange={(e) => {
+                  setFormState({
+                    ...formState,
+                    path: e.currentTarget.value,
+                  });
+                }}
+                required
+                id="path"
+                label="Path"
+                variant="standard"
+                value={formState.path}
+              />
+              <FormHelperText>
+                The path within the git repository where your application YAMLs
+                are stored
+              </FormHelperText>
+            </FormElement>
+            <FormElement>
+              <TextField
+                onChange={(e) => {
+                  setFormState({
+                    ...formState,
+                    branch: e.currentTarget.value,
+                  });
+                }}
+                required
+                id="branch"
+                label="Branch"
+                variant="standard"
+                value={formState.branch}
+              />
+              <FormHelperText>
+                The git branch to use when reading the application YAMLs
+              </FormHelperText>
+            </FormElement>
+            <FormElement>
+              <FormGroup>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      onChange={(e) =>
+                        setFormState({
+                          ...formState,
+                          autoMerge: e.currentTarget.checked,
+                        })
+                      }
+                      checked={formState.autoMerge}
+                    />
+                  }
+                  label="Auto Merge"
+                />
+              </FormGroup>
+              <FormHelperText>
+                If checked, Weave GitOps will automatically merge the
+                application into the default branch instead of doing a pull
+                request
+              </FormHelperText>
+            </FormElement>
+            <Flex wide end>
+              {loading ? (
+                <CircularProgress />
+              ) : (
+                <Button variant="contained" color="primary" type="submit">
+                  Submit
+                </Button>
+              )}
+            </Flex>
+          </form>
+        )}
+        <GithubDeviceAuthModal
+          onSuccess={handleAuthSuccess}
+          onClose={() => setAuthOpen(false)}
+          open={authOpen}
+          repoName={formState.url}
+        />
+      </CallbackStateContextProvider>
     </Page>
   );
 }
@@ -355,5 +381,9 @@ export default styled(AddApplication).attrs({
 
   .MuiFormHelperText-root {
     color: ${(props) => props.theme.colors.black};
+  }
+
+  .MuiFormControl-root {
+    width: 420px;
   }
 `;
