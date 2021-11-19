@@ -103,9 +103,12 @@ runs:
       go get github.com/onsi/ginkgo/ginkgo
       go get github.com/onsi/gomega/...
       ginkgo ${{ inputs.focus-or-skip }} --randomizeSuites --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/${{ inputs.result-prefix }}acceptance-test-results.xml -v ./test/acceptance/test/...
+    if: always()
   - name: Store acceptance test results
+    if: ${{ always() }}
+    continue-on-error: true
     env:
-        ARTIFACTS_BASE_DIR: "/tmp/gitops-test"
+        ARTIFACTS_BASE_DIR: ${{ inputs.artifacts-base-dir }}
     uses: actions/upload-artifact@v2
     with:
       name: ${{ inputs.result-prefix }}acceptance-test-artifacts
