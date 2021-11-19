@@ -58,7 +58,7 @@ func CreateRepo(ctx context.Context, gp gitprovider.Client, url string) (gitprov
 		return nil, nil, fmt.Errorf("could not reconcile org repo: %w", err)
 	}
 
-	err = utils.WaitUntil(os.Stdout, 3*time.Second, 9*time.Second, func() error {
+	err = utils.WaitUntil(bytes.NewBuffer([]byte{}), 3*time.Second, 9*time.Second, func() error {
 		r, err := gp.OrgRepositories().Get(ctx, *ref)
 		if err != nil {
 			return err
