@@ -254,7 +254,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("Then I should see app removing message", func() {
-			Eventually(appRemoveOutput).Should(MatchRegexp(`► Removing application ` + appName + ` from cluster .* and repository`))
+			Eventually(appRemoveOutput).Should(MatchRegexp(`► Removing application "` + appName + `" from cluster .* and repository`))
 			Eventually(appRemoveOutput).Should(ContainSubstring("► Committing and pushing gitops updates for application"))
 			Eventually(appRemoveOutput).Should(ContainSubstring("► Pushing app changes to repository"))
 		})
@@ -425,7 +425,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("Then I should see app removing message", func() {
-			Eventually(appRemoveOutput).Should(MatchRegexp(`► Removing application ` + appName + ` from cluster .* and repository`))
+			Eventually(appRemoveOutput).Should(MatchRegexp(`► Removing application "` + appName + `" from cluster .* and repository`))
 			Eventually(appRemoveOutput).Should(ContainSubstring("► Committing and pushing gitops updates for application"))
 			Eventually(appRemoveOutput).Should(ContainSubstring("► Pushing app changes to repository"))
 		})
@@ -1100,7 +1100,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("Then I should see app deleting message", func() {
-			Eventually(appRemoveOutput).Should(MatchRegexp(`► Removing application ` + appName2 + ` from cluster .* and repository`))
+			Eventually(appRemoveOutput).Should(MatchRegexp(`► Removing application "` + appName2 + `" from cluster .* and repository`))
 			Eventually(appRemoveOutput).Should(ContainSubstring("► Committing and pushing gitops updates for application"))
 			Eventually(appRemoveOutput).Should(ContainSubstring("► Pushing app changes to repository"))
 		})
@@ -1399,7 +1399,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("Then I should see app removing message", func() {
-			Eventually(appRemoveOutput).Should(MatchRegexp(`► Removing application ` + appName + ` from cluster .* and repository`))
+			Eventually(appRemoveOutput).Should(MatchRegexp(`► Removing application "` + appName + `" from cluster .* and repository`))
 			Eventually(appRemoveOutput).Should(ContainSubstring("► Committing and pushing gitops updates for application"))
 			Eventually(appRemoveOutput).Should(ContainSubstring("► Pushing app changes to repository"))
 		})
