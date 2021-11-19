@@ -2,7 +2,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: read-resources
-  namespace: {{.Namespace}}
+  namespace: default
 subjects:
   - kind: ServiceAccount
     name: wego-app-service-account
