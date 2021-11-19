@@ -432,14 +432,26 @@ func TestRetrieveClusters(t *testing.T) {
 					{
 						Name:   "cluster-a",
 						Status: "pullRequestCreated",
+						PullRequest: clusters.PullRequest{
+							Type: "",
+							Url:  "https://github.com/org/repo/pull/1",
+						},
 					},
 					{
 						Name:   "cluster-b",
 						Status: "pullRequestCreated",
+						PullRequest: clusters.PullRequest{
+							Type: "",
+							Url:  "https://github.com/org/repo/pull/2",
+						},
 					},
 					{
 						Name:   "cluster-c",
 						Status: "pullRequestCreated",
+						PullRequest: clusters.PullRequest{
+							Type: "",
+							Url:  "https://github.com/org/repo/pull/3",
+						},
 					},
 				})
 			},
