@@ -265,7 +265,7 @@ var _ = Describe("Add Gitlab", func() {
 				Expect(fluxClient.CreateSourceGitCallCount()).To(Equal(1))
 
 				name, url, branch, secretRef, namespace := fluxClient.CreateSourceGitArgsForCall(0)
-				Expect(name).To(Equal("bar"))
+				Expect(name).To(Equal("wego-app-bar"))
 				Expect(url.String()).To(Equal("ssh://git@gitlab.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
 				Expect(secretRef).To(Equal("wego-gitlab-bar"))

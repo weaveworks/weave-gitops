@@ -139,9 +139,11 @@ func (a *AutomationGen) generateAppSource(ctx context.Context, app models.Applic
 		return AutomationManifest{}, err
 	}
 
+	sourceName := createAppSourceName(app.Name)
+
 	switch app.SourceType {
 	case models.SourceTypeGit:
-		source, err = a.Flux.CreateSourceGit(app.Name, app.GitSourceURL, app.Branch, appSecretRef.String(), app.Namespace)
+		source, err = a.Flux.CreateSourceGit(sourceName, app.GitSourceURL, app.Branch, appSecretRef.String(), app.Namespace)
 		if err == nil {
 			source, err = AddWegoIgnore(source)
 		}
@@ -255,9 +257,11 @@ func (a *AutomationGen) generateApplicationGoat(app models.Application, clusterN
 		err error
 	)
 
+	sourceName := createAppSourceName(app.Name)
+
 	switch app.AutomationType {
 	case models.AutomationTypeKustomize:
-		b, err = a.Flux.CreateKustomization(app.Name, app.Name, app.Path, app.Namespace)
+		b, err = a.Flux.CreateKustomization(app.Name, sourceName, app.Path, app.Namespace)
 	case models.AutomationTypeHelm:
 		switch app.SourceType {
 		case models.SourceTypeHelm:
@@ -397,6 +401,19 @@ func CreateRepoSecretName(gitSourceURL gitproviders.RepoURL) GeneratedSecretName
 	lengthConstrainedName := hashNameIfTooLong(qualifiedName)
 
 	return GeneratedSecretName(lengthConstrainedName)
+}
+
+func CreateClusterSourceName(gitSourceURL gitproviders.RepoURL) string {
+	provider := string(gitSourceURL.Provider())
+	cleanRepoName := replaceUnderscores(gitSourceURL.RepositoryName())
+	qualifiedName := fmt.Sprintf("wego-auto-%s-%s", provider, cleanRepoName)
+	lengthConstrainedName := hashNameIfTooLong(qualifiedName)
+
+	return lengthConstrainedName
+}
+
+func createAppSourceName(name string) string {
+	return fmt.Sprintf("wego-app-%s", name)
 }
 
 func SourceKind(a models.Application) ResourceKind {

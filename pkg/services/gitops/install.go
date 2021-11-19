@@ -191,13 +191,14 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 
 func (g *Gitops) genSource(branch string, namespace string, normalizedUrl gitproviders.RepoURL) ([]byte, string, error) {
 	secretRef := automation.CreateRepoSecretName(normalizedUrl).String()
+	sourceName := automation.CreateClusterSourceName(normalizedUrl)
 
-	sourceManifest, err := g.flux.CreateSourceGit(secretRef, normalizedUrl, branch, secretRef, namespace)
+	sourceManifest, err := g.flux.CreateSourceGit(sourceName, normalizedUrl, branch, secretRef, namespace)
 	if err != nil {
 		return nil, secretRef, fmt.Errorf("could not create git source for repo %s : %w", normalizedUrl.String(), err)
 	}
 
-	return sourceManifest, secretRef, nil
+	return sourceManifest, sourceName, nil
 }
 
 func (g *Gitops) genKustomize(name, cname, path string, params InstallParams) ([]byte, error) {

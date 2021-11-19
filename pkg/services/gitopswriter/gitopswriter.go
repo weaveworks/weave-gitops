@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/models"
@@ -145,7 +144,7 @@ func (dw *gitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app m
 }
 
 func addKustomizeResources(app models.Application, repoDir, clusterName string, resources ...string) (automation.AutomationManifest, error) {
-	userKustomizationRepoPath := getUserKustomizationRepoPath(clusterName)
+	userKustomizationRepoPath := automation.AutomationUserKustomizePath(clusterName)
 	userKustomization := filepath.Join(repoDir, userKustomizationRepoPath)
 
 	k, err := automation.GetOrCreateKustomize(userKustomization, app.Name, app.Namespace)
@@ -167,7 +166,7 @@ func addKustomizeResources(app models.Application, repoDir, clusterName string, 
 }
 
 func removeKustomizeResources(app models.Application, repoDir, clusterName string, resources ...string) (automation.AutomationManifest, error) {
-	userKustomizationRepoPath := getUserKustomizationRepoPath(clusterName)
+	userKustomizationRepoPath := automation.AutomationUserKustomizePath(clusterName)
 	userKustomization := filepath.Join(repoDir, userKustomizationRepoPath)
 
 	k, err := automation.GetOrCreateKustomize(userKustomization, app.Name, app.Namespace)
@@ -204,10 +203,6 @@ func removeKustomizeResources(app models.Application, repoDir, clusterName strin
 		Path:    userKustomizationRepoPath,
 		Content: userKustomizationManifest,
 	}, nil
-}
-
-func getUserKustomizationRepoPath(clusterName string) string {
-	return filepath.Join(git.WegoRoot, git.WegoClusterDir, clusterName, "user", "kustomization.yaml")
 }
 
 func appKustomizeReference(app models.Application) string {
