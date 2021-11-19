@@ -80,7 +80,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		Expect(webDriver.Destroy()).To(Succeed())
 	})
 
-	FIt("UITest - Verify gitops can add apps from the UI to an empty cluster", func() {
+	It("UITest - Verify gitops can add apps from the UI to an empty cluster", func() {
 		var addAppPage *pages.AddAppPageElements
 		var repoAbsolutePath string
 		tip := generateTestInputs()
