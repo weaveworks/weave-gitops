@@ -108,7 +108,6 @@ runs:
     env:
       ARTIFACTS_BASE_DIR: ${{ inputs.artifacts-base-dir }}
     if: ${{ always() }}
-    continue-on-error: true
     uses: actions/upload-artifact@v2
     with:
       name: ${{ inputs.result-prefix }}acceptance-test-artifacts
