@@ -12,13 +12,17 @@ import { ThemeProvider } from "styled-components";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Layout from "./components/Layout";
 import AppContextProvider from "./contexts/AppContext";
-import { Applications as appsClient } from "./lib/api/applications/applications.pb";
+import {
+  Applications as appsClient,
+  GitProvider,
+} from "./lib/api/applications/applications.pb";
 import theme, { GlobalStyle, muiTheme } from "./lib/theme";
 import { PageRoute } from "./lib/types";
 import ApplicationAdd from "./pages/ApplicationAdd";
 import ApplicationDetail from "./pages/ApplicationDetail";
 import Applications from "./pages/Applications";
 import Error from "./pages/Error";
+import OAuthCallback from "./pages/OAuthCallback";
 
 export default function App() {
   return (
@@ -48,6 +52,20 @@ export default function App() {
                     exact
                     path={PageRoute.ApplicationAdd}
                     component={ApplicationAdd}
+                  />
+                  <Route
+                    exact
+                    path={PageRoute.GitlabOAuthCallback}
+                    component={({ location }) => {
+                      const params = qs.parse(location.search);
+
+                      return (
+                        <OAuthCallback
+                          provider={GitProvider.GitLab}
+                          code={params.code as string}
+                        />
+                      );
+                    }}
                   />
                   <Redirect exact from="/" to={PageRoute.Applications} />
                   <Route exact path="*" component={Error} />

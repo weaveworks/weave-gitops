@@ -100,6 +100,31 @@ service Applications {
         };
     }
 
+    /**
+    * GetGitlabAuthURL returns the URL to initiate a GitLab OAuth PKCE flow.
+    * The user must browse to the returned URL to authorize the OAuth callback to the GitOps UI.
+    * See the GitLab OAuth docs for more more information:
+    * https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
+    */
+    rpc GetGitlabAuthURL(GetGitlabAuthURLRequest) returns (GetGitlabAuthURLResponse) {
+        option (google.api.http) = {
+            get : "/v1/applications/auth_providers/gitlab"
+        };
+    }
+
+    /**
+    * AuthorizeGitlab exchanges a GitLab code obtained via OAuth callback.
+    * The returned token is useable for authentication with the GitOps server only.
+    * See the GitLab OAuth docs for more more information:
+    * https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
+    */
+    rpc AuthorizeGitlab(AuthorizeGitlabRequest) returns (AuthorizeGitlabResponse) {
+        option (google.api.http) = {
+            post : "/v1/applications/auth_providers/gitlab/authorize"
+            body: "*"
+        };
+    }
+
     /*
     * AddApplication adds an Application to a cluster via GitOps.
     */
@@ -127,6 +152,15 @@ service Applications {
         option (google.api.http) = {
             post : "/v1/applications/{name}/sync"
             body: "*"
+        };
+    }
+    
+    /**
+    * ParseRepoURL returns structured data about a git repository URL
+    */
+    rpc ParseRepoURL(ParseRepoURLRequest) returns(ParseRepoURLResponse) {
+        option (google.api.http) = {
+            get : "/v1/applications/parse_repo_url"
         };
     }
 
@@ -344,4 +378,37 @@ message GetGithubAuthStatusRequest {
 message GetGithubAuthStatusResponse {
     string accessToken = 1; // An access token that can be used to interact with the Weave GitOps API.
     string error       = 2; // An error message.
+}
+
+enum GitProvider {
+    Unknown = 0;
+    GitHub  = 1;
+    GitLab  = 2;
+}
+
+message ParseRepoURLRequest {
+    string url = 1; // The URL to be parsed
+}
+
+message ParseRepoURLResponse {
+    string      name     = 1; // The name of the git repository
+    GitProvider provider = 2; // The GitProvider for the repository
+    string      owner    = 3; // The person or organization to which this repo belongs
+}
+
+message GetGitlabAuthURLRequest {
+    string redirectUri = 1; // The URI that GitLab will use to send users back to GitOps.
+}
+
+message GetGitlabAuthURLResponse {
+    string url = 1; // The URL that users must visit to authorize GitLab authentication.
+}
+
+message AuthorizeGitlabRequest {
+    string code        = 1; // The challenge code obtained from the OAuth callback
+    string redirectUri = 2; // The redirect URI that originated the OAuth flow
+}
+
+message AuthorizeGitlabResponse {
+    string token = 1; // A token that can be used to authenticate the GitOps API server.
 }
