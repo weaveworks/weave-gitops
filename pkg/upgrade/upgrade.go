@@ -1,242 +1,205 @@
 package upgrade
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"os"
 	"path/filepath"
-	"strings"
+	"time"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
-	"github.com/go-git/go-git/v5/plumbing/transport"
-	gitssh "github.com/go-git/go-git/v5/plumbing/transport/ssh"
-	"github.com/weaveworks/pctl/pkg/catalog"
-	pctl_git "github.com/weaveworks/pctl/pkg/git"
-	"github.com/weaveworks/pctl/pkg/install"
-	"github.com/weaveworks/pctl/pkg/runner"
+	"github.com/helm/helm/pkg/strvals"
 	"github.com/weaveworks/weave-gitops/pkg/git"
-	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/yaml"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 type UpgradeValues struct {
-	RepoOrgAndName string
-	Remote         string
-	HeadBranch     string
+	AppConfigURL   string
+	ProfileVersion string
 	BaseBranch     string
+	HeadBranch     string
 	CommitMessage  string
 	Namespace      string
-	ProfileBranch  string
-	ConfigMap      string
-	Out            string
-	GitRepository  string
+	Values         []string
 	DryRun         bool
 }
 
-type UpgradeConfigs struct {
-	CLIGitConfig  pctl_git.CLIGitConfig
-	SCMConfig     pctl_git.SCMConfig
-	InstallConfig install.Config
-	Profile       catalog.Profile
-}
-
-const EnterpriseProfileURL string = "git@github.com:weaveworks/weave-gitops-enterprise-profiles.git"
-const DeployKeySecretKey string = "deploy-key"
+const EnterpriseChartURL string = "https://charts.dev.wkp.weave.works/releases/charts-v3"
 const CredentialsSecretName string = "weave-gitops-enterprise-credentials"
+const WegoEnterpriseName string = "weave-gitops-enterprise.yaml"
 
-// Upgrade installs the private weave-gitops-enterprise profile into the working directory:
-// 1. Private deploy key is read from a secret in the cluster
-// 2. Private profiles repo is cloned locally using the deploy key
-// 3. pctl is used to install the profile from the local clone into the current working directory
-// 4. pctl is used to add, commit, push and create a PR.
-//
-func Upgrade(ctx context.Context, upgradeValues UpgradeValues, w io.Writer) error {
-	kubeClient, err := makeKubeClient()
+func Upgrade(ctx context.Context, gitClient git.Git, gitProvider gitproviders.GitProvider, upgradeValues UpgradeValues, logger logger.Logger, w io.Writer) error {
+	kube, kubeClient, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return fmt.Errorf("error creating client for cluster %v", err)
 	}
 
-	gitClient := git.New(nil, wrapper.NewGoGit())
-
-	uc, err := buildUpgradeConfigs(ctx, upgradeValues, kubeClient, gitClient, w)
-	if err != nil {
-		return fmt.Errorf("failed to build upgrade configs: %v", err)
-	}
-
-	auth, err := getGitAuthFromDeployKey(ctx, kubeClient, upgradeValues.Namespace)
-	if err != nil {
-		return fmt.Errorf("failed to load deploy key for profiles repos from cluster: %v", err)
-	}
-
-	// New client with auth from the cluster
-	gitClientWithAuth := git.New(auth, wrapper.NewGoGit())
-	pctlGitClient := pctl_git.NewCLIGit(uc.CLIGitConfig, &runner.CLIRunner{})
-
-	pctlSCMClient, err := pctl_git.NewClient(uc.SCMConfig)
-	if err != nil {
-		return fmt.Errorf("failed to create scm client: %w", err)
-	}
-
-	return upgrade(ctx, EnterpriseProfileURL, *uc, gitClientWithAuth, pctlGitClient, pctlSCMClient, upgradeValues.DryRun)
+	return upgrade(ctx, upgradeValues, kube, gitClient, kubeClient, gitProvider, logger, w)
 }
 
-func makeKubeClient() (client.Client, error) {
-	scheme := runtime.NewScheme()
-	schemeBuilder := runtime.SchemeBuilder{
-		sourcev1.AddToScheme,
-		corev1.AddToScheme,
-	}
-
-	err := schemeBuilder.AddToScheme(scheme)
+func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient git.Git, kubeClient client.Client, gitProvider gitproviders.GitProvider, logger logger.Logger, w io.Writer) error {
+	cname, err := kube.GetClusterName(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error adding sourcev1 to kube client scheme %v", err)
+		return fmt.Errorf("failed to get cluster name: %w", err)
 	}
 
-	kubeClientConfig := config.GetConfigOrDie()
-
-	return client.New(kubeClientConfig, client.Options{Scheme: scheme})
-}
-
-// buildUpgradeConfigs sets some flags default values from the env
-func buildUpgradeConfigs(ctx context.Context, uv UpgradeValues, kubeClient client.Client, gitClient git.Git, w io.Writer) (*UpgradeConfigs, error) {
-	repoUrlString, err := gitClient.GetRemoteUrl(".", uv.Remote)
+	resources, err := makeHelmResources(uv.Namespace, uv.ProfileVersion, cname, uv.AppConfigURL, uv.Values)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("error creating helm resources: %w", err)
 	}
 
-	// Calculate defaults from current working directory
-	if uv.RepoOrgAndName == "" {
-		githubRepoPath, err := getRepoOrgAndName(repoUrlString)
-		if err != nil {
-			return nil, err
-		}
-
-		fmt.Fprintf(w, "Deriving org/repo for PR as %v\n", githubRepoPath)
-		uv.RepoOrgAndName = githubRepoPath
-	}
-
-	if uv.GitRepository == "" {
-		gitRepositoryNameNamespace := fmt.Sprintf("%s/%s", uv.Namespace, strings.TrimSuffix(filepath.Base(repoUrlString), ".git"))
-		fmt.Fprintf(w, "Deriving name of GitRepository Resource as %v\n", gitRepositoryNameNamespace)
-		uv.GitRepository = gitRepositoryNameNamespace
-	}
-
-	err = ensureGitRepositoryResource(context.Background(), kubeClient, uv.GitRepository)
+	out, err := marshalToYamlStream(resources)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("error marshalling helm resources: %w", err)
 	}
 
-	return toUpgradeConfigs(uv)
-}
+	stringOut := string(out)
 
-func toUpgradeConfigs(uv UpgradeValues) (*UpgradeConfigs, error) {
-	gitRepoNamespace, gitRepoName, err := getGitRepositoryNamespaceAndName(uv.GitRepository)
-	if err != nil {
-		return nil, err
-	}
-
-	return &UpgradeConfigs{
-		CLIGitConfig: pctl_git.CLIGitConfig{
-			Directory: ".",
-			Branch:    uv.HeadBranch,
-			Remote:    uv.Remote,
-			Base:      uv.BaseBranch,
-			Message:   uv.CommitMessage,
-		},
-		SCMConfig: pctl_git.SCMConfig{
-			Branch: uv.HeadBranch,
-			Base:   uv.BaseBranch,
-			Repo:   uv.RepoOrgAndName,
-		},
-		InstallConfig: install.Config{
-			RootDir:          filepath.Join(uv.Out, "weave-gitops-enterprise"),
-			GitRepoNamespace: gitRepoNamespace,
-			GitRepoName:      gitRepoName,
-		},
-		Profile: catalog.Profile{
-			ProfileConfig: catalog.ProfileConfig{
-				ConfigMap:     uv.ConfigMap,
-				Namespace:     uv.Namespace,
-				Path:          "weave-gitops-enterprise",
-				ProfileBranch: uv.ProfileBranch,
-				SubName:       "weave-gitops-enterprise",
-			},
-			GitRepoConfig: catalog.GitRepoConfig{
-				Namespace: gitRepoNamespace,
-				Name:      gitRepoName,
-			},
-		},
-	}, nil
-}
-
-func upgrade(ctx context.Context, enterpriseProfileURL string, uc UpgradeConfigs, gitClient git.Git, pctlGitClient pctl_git.Git, pctlSCMClient pctl_git.SCMClient, dryRun bool) error {
-	tempDir, err := ioutil.TempDir("", "git-")
-	if err != nil {
-		return fmt.Errorf("failed to create temp folder for remote git clone of profiles repo: %w", err)
-	}
-
-	defer os.RemoveAll(tempDir)
-
-	_, err = gitClient.Clone(
-		ctx,
-		tempDir,
-		enterpriseProfileURL,
-		uc.Profile.ProfileConfig.ProfileBranch,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to clone git repo: %v", err)
-	}
-
-	profileDefinition := uc.Profile
-	profileDefinition.URL = "file://" + tempDir
-
-	err = addProfile(uc.InstallConfig, profileDefinition, uc.CLIGitConfig)
-	if err != nil {
-		return err
-	}
-
-	if dryRun {
+	if uv.DryRun {
+		_, _ = w.Write([]byte(stringOut + "\n"))
 		return nil
 	}
 
-	err = catalog.CreatePullRequest(pctlSCMClient, pctlGitClient, uc.SCMConfig.Branch, uc.InstallConfig.RootDir)
+	err = getBasicAuth(ctx, kubeClient, uv.Namespace)
+	if err != nil {
+		return fmt.Errorf("failed to load credentials for profiles repo from cluster: %v", err)
+	}
+
+	normalizedURL, err := gitproviders.NewRepoURL(uv.AppConfigURL)
+	if err != nil {
+		return fmt.Errorf("failed to normalize URL %q: %w", uv.AppConfigURL, err)
+	}
+
+	// Create pull request
+	path := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, WegoEnterpriseName)
+
+	pri := gitproviders.PullRequestInfo{
+		Title:         "Gitops upgrade",
+		Description:   "Pull request to upgrade to Weave GitOps Enterprise",
+		CommitMessage: uv.CommitMessage,
+		TargetBranch:  uv.BaseBranch,
+		NewBranch:     uv.HeadBranch,
+		Files: []gitprovider.CommitFile{
+			{
+				Path:    &path,
+				Content: &stringOut,
+			},
+		},
+	}
+
+	pr, err := gitProvider.CreatePullRequest(ctx, normalizedURL, pri)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	_, err = w.Write([]byte(fmt.Sprintf("Pull Request created: %s\n", pr.Get().WebURL)))
+
+	return err
 }
 
-// addProfile installs the profile into a local git repo.
-func addProfile(installConfig install.Config, profile catalog.Profile, cliGitConfig pctl_git.CLIGitConfig) error {
-	manager := &catalog.Manager{}
+func marshalToYamlStream(objects []runtime.Object) ([]byte, error) {
+	out := [][]byte{}
 
-	// We're not interested in mocking this out for now (it just runs git commands on the local fs) so we make an inline client.
-	gitClient := pctl_git.NewCLIGit(cliGitConfig, &runner.CLIRunner{})
-	installConfig.GitClient = gitClient
+	for _, obj := range objects {
+		b, err := yaml.Marshal(obj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal HelmRepository object to YAML: %w", err)
+		}
 
-	return manager.Install(catalog.InstallConfig{
-		Clients: catalog.Clients{Installer: install.NewInstaller(installConfig)},
-		Profile: profile,
-	})
-}
-
-func getGitAuthFromDeployKey(ctx context.Context, kubeClient client.Client, ns string) (transport.AuthMethod, error) {
-	key, err := getDeployKey(ctx, kubeClient, ns)
-	if err != nil {
-		return nil, err
+		out = append(out, b)
 	}
 
-	return gitssh.NewPublicKeys("git", key, "")
+	return bytes.Join(out, []byte("---\n")), nil
 }
 
-func getDeployKey(ctx context.Context, kubeClient client.Client, ns string) ([]byte, error) {
+func makeHelmResources(namespace, version, clusterName, repoURL string, values []string) ([]runtime.Object, error) {
+	helmRepository := &sourcev1.HelmRepository{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "weave-gitops-enterprise-charts",
+			Namespace: namespace,
+		},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       sourcev1.HelmRepositoryKind,
+			APIVersion: sourcev1.GroupVersion.String(),
+		},
+		Spec: sourcev1.HelmRepositorySpec{
+			Interval: metav1.Duration{Duration: time.Minute},
+			URL:      EnterpriseChartURL,
+			SecretRef: &meta.LocalObjectReference{
+				Name: CredentialsSecretName,
+			},
+		},
+	}
+
+	// default helmrelease values
+	base := map[string]interface{}{
+		"config": map[string]interface{}{
+			"cluster": map[string]interface{}{
+				"name": clusterName,
+			},
+			"capi": map[string]interface{}{
+				"repositoryURL": repoURL,
+			},
+		},
+	}
+
+	// User specified a value via --set
+	for _, value := range values {
+		if err := strvals.ParseInto(value, base); err != nil {
+			return nil, fmt.Errorf("failed parsing --set data: %w", err)
+		}
+	}
+
+	valuesJson, err := json.Marshal(base)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling values object: %w", err)
+	}
+
+	helmRelease := &helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "weave-gitops-enterprise",
+			Namespace: namespace,
+		},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       helmv2.HelmReleaseKind,
+			APIVersion: helmv2.GroupVersion.String(),
+		},
+		Spec: helmv2.HelmReleaseSpec{
+			Interval: metav1.Duration{Duration: time.Minute},
+			Chart: helmv2.HelmChartTemplate{
+				Spec: helmv2.HelmChartTemplateSpec{
+					Chart: "mccp",
+					SourceRef: helmv2.CrossNamespaceObjectReference{
+						Kind:      sourcev1.HelmRepositoryKind,
+						Name:      helmRepository.GetName(),
+						Namespace: helmRepository.GetNamespace(),
+					},
+					Version: version,
+				},
+			},
+			Values: &v1.JSON{Raw: valuesJson},
+		},
+	}
+
+	return []runtime.Object{helmRepository, helmRelease}, nil
+}
+
+func getBasicAuth(ctx context.Context, kubeClient client.Client, ns string) error {
 	deployKeySecret := &corev1.Secret{}
 
 	err := kubeClient.Get(ctx, client.ObjectKey{
@@ -244,55 +207,15 @@ func getDeployKey(ctx context.Context, kubeClient client.Client, ns string) ([]b
 		Name:      CredentialsSecretName,
 	}, deployKeySecret)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get entitlement: %v", err)
+		return fmt.Errorf("failed to get entitlement: %v", err)
 	}
 
-	key := deployKeySecret.Data[DeployKeySecretKey]
+	username := string(deployKeySecret.Data["username"])
+	password := string(deployKeySecret.Data["password"])
 
-	return key, nil
-}
-
-func ensureGitRepositoryResource(ctx context.Context, kubeClient client.Client, gitRepository string) error {
-	gitRepoNamespace, gitRepoName, err := getGitRepositoryNamespaceAndName(gitRepository)
-	if err != nil {
-		return err
-	}
-
-	gitRepo := &sourcev1.GitRepository{}
-
-	err = kubeClient.Get(ctx, client.ObjectKey{
-		Namespace: gitRepoNamespace,
-		Name:      gitRepoName,
-	}, gitRepo)
-	if errors.IsNotFound(err) {
-		return fmt.Errorf("couldn't find GitRepository resource \"%v/%v\" in the cluster, please specify", gitRepoNamespace, gitRepoName)
-	}
-
-	if err != nil {
-		return fmt.Errorf("failed to look up GitRepository %v/%v to install into: %v", gitRepoNamespace, gitRepoName, err)
+	if username == "" || password == "" {
+		return errors.New("username or password missing in entitlement secret, may be an old entitlement file")
 	}
 
 	return nil
-}
-
-func getGitRepositoryNamespaceAndName(gitRepository string) (string, string, error) {
-	split := strings.Split(gitRepository, "/")
-	if len(split) != 2 {
-		return "", "", fmt.Errorf("git-repository must in format <namespace>/<name>; was: %s", gitRepository)
-	}
-
-	return split[0], split[1], nil
-}
-
-// getRepoOrgAndName transforms git remotes to github "paths"
-// - git@github.com:org/repo.git -> org/repo
-// - https://github.com/org/repo.git -> org/repo
-//
-func getRepoOrgAndName(url string) (string, error) {
-	repoEndpoint, err := transport.NewEndpoint(url)
-	if err != nil {
-		return "", err
-	}
-
-	return strings.TrimPrefix(strings.TrimSuffix(repoEndpoint.Path, ".git"), "/"), nil
 }
