@@ -62,5 +62,6 @@ func GetMessageElements(webDriver *agouti.Page, msg string) *NamedElements {
 	successMsgElement := NamedElements{
 		HelmSuccessMessage:      webDriver.FindByXPath(`//table//tbody/tr/td[text()="` + msg + ` install succeeded"]`),
 		KustomizeSuccessMessage: webDriver.FindByXPath(`//table/tbody/tr/td[text()="` + msg + `"]`)}
+
 	return &successMsgElement
 }
