@@ -86,7 +86,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		tip := generateTestInputs()
 		appName := tip.appRepoName
 		private := true
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "https://github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 
 		dashboardPage = pages.GetDashboardPageElements(webDriver)
 		addAppPage = pages.GetAddAppPageElements(webDriver)
@@ -137,21 +137,25 @@ var _ = Describe("Weave GitOps UI Test", func() {
 	})
 
 	It("UITest - Verify gitops UI can list details of apps running in the cluster", func() {
-		var linkToApp1 *pages.AppListElements
-		var linkToApp2 *pages.AppListElements
 		var appPageURL string
 		var repoAbsolutePath string
-		tip := generateTestInputs()
+		var linkToApp1 *pages.AppListElements
+		var linkToApp2 *pages.AppListElements
 		public := false
+		tip := generateTestInputs()
 		appName1 := "loki"
 		appName2 := tip.appRepoName
 		workloadName1 := "loki-0"
 		workloadName2 := tip.workloadName
-		appRepoRemoteURL := "https://github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		deploymentType1 := "Helm"
+		deploymentType2 := "Kustomize"
+		appManifestFilePath := tip.appManifestFilePath
+		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 		helmRepoURL := "https://charts.kube-ops.io"
+		appDetailsPage := pages.GetAppDetailsPageElements(webDriver)
 
 		addCommand1 := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true"
-		addCommand2 := "add app . --auto-merge=true"
+		addCommand2 := "add app . --deployment-type=kustomize --auto-merge=true"
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		defer deleteWorkload(workloadName2, tip.workloadNamespace)
@@ -167,7 +171,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 
 		By("When I create a public repo with my app workload", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, public, GITHUB_ORG)
-			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
+			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 
 		By("And I install gitops to my active cluster", func() {
@@ -201,21 +205,74 @@ var _ = Describe("Weave GitOps UI Test", func() {
 			Eventually(linkToApp1.AppList).Should(BeFound())
 			Eventually(linkToApp2.AppList).Should(BeFound())
 
-			link1, _ := linkToApp1.AppList.Attribute("href")
-			Expect(link1).To(ContainSubstring(appName1))
+			Expect(linkToApp1.AppList.Attribute("href")).To(ContainSubstring(appName1))
+			Expect(linkToApp2.AppList.Attribute("href")).To(ContainSubstring(appName2))
+		})
 
-			link2, _ := linkToApp2.AppList.Attribute("href")
-			Expect(link2).To(ContainSubstring(appName2))
+		By("When I click on appName2: "+appName2, func() {
+			Expect(linkToApp2.AppList.Click()).To(Succeed())
+		})
+
+		verifyAppDetailsPage := func(appName string) {
+			appPageURL, _ = webDriver.URL()
+			Eventually(appPageURL).Should(MatchRegexp(WEGO_UI_URL + `/application_detail.*` + appName))
+			Eventually(appDetailsPage.ApplicationsHeader).Should(BeFound())
+			Eventually(appDetailsPage.NameSubheader).Should(BeFound())
+			Eventually(appDetailsPage.DeploymentTypeSubheader).Should(BeFound())
+			Eventually(appDetailsPage.URLSubheader).Should(BeFound())
+			Eventually(appDetailsPage.PathSubheader).Should(BeFound())
+		}
+
+		By("Then I should be able to navigate to app details page for app2", func() {
+			verifyAppDetailsPage(appName2)
+
+			app2 := pages.GetAppNameElements(webDriver, appName2)
+			Expect(app2.AppNameHeader.Text()).To(ContainSubstring(appName2))
+			Expect(app2.AppName.Text()).To(ContainSubstring(appName2))
+
+			appDeployment := pages.GetAppTypeElement(webDriver, deploymentType2)
+			Expect(appDeployment.AppType.Text()).Should(ContainSubstring(deploymentType2))
+
+			appURL := pages.GetURLElement(webDriver, appRepoRemoteURL)
+			Expect(appURL.AppURL.Text()).Should(ContainSubstring(appRepoRemoteURL))
+
+			appPath := pages.GetPathElement(webDriver, "./")
+			Expect(appPath.AppPathToManifests.Text()).Should(ContainSubstring("./"))
+		})
+
+		By("And I should be able to see status for app2: "+appName2, func() {
+			successMsg := pages.GetMessageElements(webDriver, "ReconciliationSucceeded")
+			Eventually(successMsg.KustomizeSuccessMessage).Should(BeFound())
+		})
+
+		By("And I should be able to navigate back to Applications page", func() {
+			Expect(appDetailsPage.ApplicationsHeader.Click()).To(Succeed())
+			appPageURL, _ = webDriver.URL()
+			Expect(appPageURL).To(ContainSubstring(WEGO_UI_URL + "/applications"))
 		})
 
 		By("When I click on appName1: "+appName1, func() {
+			_ = webDriver.Refresh()
+			linkToApp1 = pages.GetAppListElements(webDriver, appName1)
+			Eventually(linkToApp1.AppList).Should(BeFound())
 			Expect(linkToApp1.AppList.Click()).To(Succeed())
 		})
 
 		By("Then I should be able to navigate to app details page for app1", func() {
-			appPageURL, _ = webDriver.URL()
-			Eventually(appPageURL).Should(MatchRegexp(WEGO_UI_URL + `/application_detail.*` + appName1))
-		})
+			verifyAppDetailsPage(appName1)
 
+			app1 := pages.GetAppNameElements(webDriver, appName1)
+			Expect(app1.AppNameHeader.Text()).To(ContainSubstring(appName1))
+			Expect(app1.AppName.Text()).To(ContainSubstring(appName1))
+
+			appDeployment := pages.GetAppTypeElement(webDriver, deploymentType1)
+			Expect(appDeployment.AppType.Text()).Should(ContainSubstring(deploymentType1))
+
+			appURL := pages.GetURLElement(webDriver, helmRepoURL)
+			Expect(appURL.AppURL.Text()).Should(ContainSubstring(helmRepoURL))
+
+			appPath := pages.GetPathElement(webDriver, appName1)
+			Expect(appPath.AppPathToManifests.Text()).Should(ContainSubstring(appName1))
+		})
 	})
 })
