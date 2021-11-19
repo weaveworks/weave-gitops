@@ -49,9 +49,7 @@ function Modal({
           </Flex>
           <div>{children}</div>
           <Flex wide end>
-            <Button variant="contained" onClick={onClose}>
-              Close
-            </Button>
+            <Button onClick={onClose}>Close</Button>
           </Flex>
         </Body>
       </MaterialModal>

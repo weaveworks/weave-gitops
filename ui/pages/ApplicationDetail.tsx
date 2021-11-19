@@ -1,4 +1,3 @@
-import { CircularProgress } from "@material-ui/core";
 import _ from "lodash";
 import * as React from "react";
 import { useHistory } from "react-router-dom";
@@ -41,8 +40,12 @@ function ApplicationDetail({ className, name }: Props) {
     UnstructuredObject[]
   >([]);
   const [res, loading, error, req] = useRequestState<GetApplicationResponse>();
-  const [removeRes, removeLoading, removeError, removeRequest] =
-    useRequestState<RemoveApplicationResponse>();
+  const [
+    removeRes,
+    removeLoading,
+    removeError,
+    removeRequest,
+  ] = useRequestState<RemoveApplicationResponse>();
   //for redirects
   const history = useHistory();
 
@@ -201,6 +204,7 @@ function ApplicationDetail({ className, name }: Props) {
                 <Button
                   color="secondary"
                   variant="contained"
+                  loading={removeLoading}
                   onClick={() =>
                     removeRequest(
                       applicationsClient.RemoveApplication({
@@ -212,11 +216,7 @@ function ApplicationDetail({ className, name }: Props) {
                     )
                   }
                 >
-                  {removeLoading ? (
-                    <CircularProgress color="inherit" size="75%" />
-                  ) : (
-                    `Delete ${application.name}`
-                  )}
+                  Delete {application.name}
                 </Button>
               </Spacer>
             </Flex>

@@ -55,11 +55,11 @@ const ModalContent = styled(({ codeRes, onSuccess, onError, className }) => {
       </Pad>
       <Pad wide center>
         <a target="_blank" href={codeRes.validationURI}>
-          <Button type="button" variant="contained" color="primary">
-            <Flex align>
-              Authorize Github Access{" "}
-              <Icon size="base" type={IconType.ExternalTab} />
-            </Flex>
+          <Button
+            type="button"
+            endIcon={<Icon size="base" type={IconType.ExternalTab} />}
+          >
+            Authorize Github Access
           </Button>
         </a>
       </Pad>
@@ -82,8 +82,9 @@ function GithubDeviceAuthModal({
   repoName,
   onSuccess,
 }: Props) {
-  const [codeRes, setCodeRes] =
-    React.useState<GetGithubDeviceCodeResponse>(null);
+  const [codeRes, setCodeRes] = React.useState<GetGithubDeviceCodeResponse>(
+    null
+  );
   const { getGithubDeviceCode, storeProviderToken } = useAuth();
   const [codeLoading, setCodeLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
