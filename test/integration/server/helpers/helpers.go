@@ -3,11 +3,11 @@
 package helpers
 
 import (
+	"bytes"
 	"context"
 	_ "embed"
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -19,6 +19,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	ghAPI "github.com/google/go-github/v32/github"
+	glAPI "github.com/xanzy/go-gitlab"
 
 	"github.com/fluxcd/source-controller/pkg/sourceignore"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -255,6 +256,49 @@ func GetFileContents(ctx context.Context, gh *ghAPI.Client, org, repoName string
 	}
 
 	return fs, nil
+}
+
+func toK8sObjects(changes map[string][]byte, fs WeGODirectoryFS) (WeGODirectoryFS, error) {
+	for path, change := range changes {
+		obj, ok := fs[path]
+
+		if !ok {
+			fs[path] = nil
+			continue
+		}
+
+		if err := yaml.Unmarshal(change, obj); err != nil {
+			return nil, fmt.Errorf("error unmarshalling change yaml: %w", err)
+		}
+
+		fs[path] = obj
+	}
+
+	return fs, nil
+}
+
+func GetFilesForPullRequest_Gitlab(ctx context.Context, gl *glAPI.Client, org, repoName string, fs WeGODirectoryFS) (WeGODirectoryFS, error) {
+	pid := fmt.Sprintf("%s/%s", org, repoName)
+	mr, _, err := gl.MergeRequests.GetMergeRequestChanges(pid, 1, nil)
+
+	if err != nil {
+		return nil, fmt.Errorf("could not get merge request: %w", err)
+	}
+
+	files := map[string][]byte{}
+
+	for _, c := range mr.Changes {
+		path := c.OldPath
+
+		file, _, err := gl.RepositoryFiles.GetRawFile(pid, path, &glAPI.GetRawFileOptions{Ref: &mr.DiffRefs.HeadSha})
+		if err != nil {
+			return nil, fmt.Errorf("could not get merge request: %w", err)
+		}
+
+		files[path] = file
+	}
+
+	return toK8sObjects(files, fs)
 }
 
 func GetFilesForPullRequest(ctx context.Context, gh *ghAPI.Client, org, repoName string, fs WeGODirectoryFS) (WeGODirectoryFS, error) {
