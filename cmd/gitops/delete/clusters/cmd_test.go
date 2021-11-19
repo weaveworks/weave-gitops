@@ -3,11 +3,13 @@ package clusters_test
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/root"
 )
 
@@ -24,6 +26,9 @@ func TestEndpointNotSet(t *testing.T) {
 }
 
 func TestPayload(t *testing.T) {
+	os.Setenv("GITHUB_TOKEN", "test-token")
+	defer os.Unsetenv("GITHUB_TOKEN")
+
 	client := resty.New()
 
 	httpmock.ActivateNonDefault(client.GetClient())
@@ -54,9 +59,72 @@ func TestPayload(t *testing.T) {
 	cmd.SetArgs([]string{
 		"delete", "cluster",
 		"dev-cluster",
+		"--url=https://github.com/weaveworks/test-repo",
 		"--endpoint", "http://localhost:8000",
 	})
 
 	err := cmd.Execute()
 	assert.NoError(t, err)
+}
+
+func TestGitProviderToken(t *testing.T) {
+	os.Setenv("GITHUB_TOKEN", "test-token")
+	defer os.Unsetenv("GITHUB_TOKEN")
+
+	client := resty.New()
+
+	httpmock.ActivateNonDefault(client.GetClient())
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterResponder(
+		http.MethodDelete,
+		"http://localhost:8000/v1/clusters",
+		func(r *http.Request) (*http.Response, error) {
+			h, ok := r.Header["Git-Provider-Token"]
+			assert.True(t, ok)
+			assert.Contains(t, h, "test-token")
+
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/pull_request_created.json"))
+		},
+	)
+
+	cmd := root.RootCmd(client)
+	cmd.SetArgs([]string{
+		"delete", "cluster",
+		"dev-cluster",
+		"--url=https://github.com/weaveworks/test-repo",
+		"--endpoint", "http://localhost:8000",
+	})
+
+	err := cmd.Execute()
+	assert.NoError(t, err)
+}
+
+func TestGitProviderToken_NoURL(t *testing.T) {
+	client := resty.New()
+
+	cmd := root.RootCmd(client)
+	cmd.SetArgs([]string{
+		"delete", "cluster",
+		"dev-cluster",
+		"--endpoint", "http://localhost:8000",
+	})
+
+	err := cmd.Execute()
+	assert.ErrorIs(t, err, cmderrors.ErrNoURL)
+}
+
+func TestGitProviderToken_InvalidURL(t *testing.T) {
+	client := resty.New()
+
+	cmd := root.RootCmd(client)
+	cmd.SetArgs([]string{
+		"delete", "cluster",
+		"dev-cluster",
+		"--url=invalid_url",
+		"--endpoint", "http://localhost:8000",
+	})
+
+	err := cmd.Execute()
+	assert.EqualError(t, err, "cannot parse url: could not get provider name from URL invalid_url: no git providers found for \"invalid_url\"")
 }

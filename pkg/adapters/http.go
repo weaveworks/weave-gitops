@@ -245,6 +245,7 @@ func (c *HTTPClient) CreatePullRequestFromTemplate(params capi.CreatePullRequest
 
 	res, err := c.client.R().
 		SetHeader("Accept", "application/json").
+		SetHeader("Git-Provider-Token", params.GitProviderToken).
 		SetBody(CreatePullRequestFromTemplateRequest{
 			RepositoryURL:   params.RepositoryURL,
 			HeadBranch:      params.HeadBranch,
@@ -434,6 +435,7 @@ func (c *HTTPClient) DeleteClusters(params clusters.DeleteClustersParams) (strin
 
 	res, err := c.client.R().
 		SetHeader("Accept", "application/json").
+		SetHeader("Git-Provider-Token", params.GitProviderToken).
 		SetBody(DeleteClustersPullRequestRequest{
 			HeadBranch:    params.HeadBranch,
 			BaseBranch:    params.BaseBranch,
