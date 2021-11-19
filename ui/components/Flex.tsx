@@ -14,6 +14,7 @@ type Props = {
 
 const Styled = (component) => styled(component)`
   display: flex;
+  justify-content: space-evenly;
   flex-direction: ${(props) => (props.column ? "column" : "row")};
   align-items: ${(props) => (props.align ? "center" : "start")};
   ${(props) => props.height && `height: ${props.height};`}

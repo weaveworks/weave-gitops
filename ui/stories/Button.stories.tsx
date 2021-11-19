@@ -1,17 +1,38 @@
+import { CircularProgress } from "@material-ui/core";
 import React from "react";
+import { theme } from "..";
 import Button from "../components/Button";
+import Flex from "../components/Flex";
 
-//👇 This default export determines where your story goes in the story list
 export default {
   title: "Button",
   component: Button,
 };
 
-//👇 We create a “template” of how args map to rendering
-const Template = (args) => <Button {...args} />;
+const Template = (args) => <Button {...args}>{args.content}</Button>;
 
-export const FirstStory = Template.bind({});
+export const Primary = Template.bind({});
+export const Loading = Template.bind({});
+export const Secondary = Template.bind({});
 
-FirstStory.args = {
-  /*👇 The args you need here will depend on your component */
+Primary.args = {
+  variant: "outlined",
+  color: "primary",
+};
+
+Secondary.args = {
+  content: "Storybook",
+  variant: "outlined",
+  color: "secondary",
+};
+
+Loading.args = {
+  content: (
+    <Flex wide align>
+      <CircularProgress size={theme.fontSizes.normal} />
+    </Flex>
+  ),
+  disabled: true,
+  variant: "outlined",
+  color: "primary",
 };
