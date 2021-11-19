@@ -6,6 +6,10 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
+  -webkit-box-pack: space-evenly;
+  -webkit-justify-content: space-evenly;
+  -ms-flex-pack: space-evenly;
+  justify-content: space-evenly;
   -webkit-flex-direction: column;
   -ms-flex-direction: column;
   flex-direction: column;
@@ -20,6 +24,10 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
+  -webkit-box-pack: space-evenly;
+  -webkit-justify-content: space-evenly;
+  -ms-flex-pack: space-evenly;
+  justify-content: space-evenly;
   -webkit-flex-direction: row;
   -ms-flex-direction: row;
   flex-direction: row;
@@ -35,11 +43,15 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   width: 100%;
 }
 
-.c11 {
+.c12 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
+  -webkit-box-pack: space-evenly;
+  -webkit-justify-content: space-evenly;
+  -ms-flex-pack: space-evenly;
+  justify-content: space-evenly;
   -webkit-flex-direction: row;
   -ms-flex-direction: row;
   flex-direction: row;
@@ -59,6 +71,10 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
+  -webkit-box-pack: space-evenly;
+  -webkit-justify-content: space-evenly;
+  -ms-flex-pack: space-evenly;
+  justify-content: space-evenly;
   -webkit-flex-direction: row;
   -ms-flex-direction: row;
   flex-direction: row;
@@ -73,11 +89,15 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   width: 100%;
 }
 
-.c8 {
+.c9 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
+  -webkit-box-pack: space-evenly;
+  -webkit-justify-content: space-evenly;
+  -ms-flex-pack: space-evenly;
+  justify-content: space-evenly;
   -webkit-flex-direction: row;
   -ms-flex-direction: row;
   flex-direction: row;
@@ -85,6 +105,22 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
+}
+
+.c8 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: space-evenly;
+  -webkit-justify-content: space-evenly;
+  -ms-flex-pack: space-evenly;
+  justify-content: space-evenly;
+}
+
+.c8.auth-button.MuiButton-contained {
+  background-color: black;
+  color: white;
 }
 
 .c7 {
@@ -95,13 +131,13 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   font-style: normal;
 }
 
-.c10 svg {
+.c11 svg {
   fill: !important;
   height: 16px;
   width: 16px;
 }
 
-.c10 .c6 {
+.c11 .c6 {
   margin-left: 4px;
 }
 
@@ -130,7 +166,7 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   padding: 8px 0;
 }
 
-.c3 .c9 {
+.c3 .c10 {
   margin-left: 8px;
 }
 
@@ -190,20 +226,19 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
               target="_blank"
             >
               <button
-                class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary"
+                class="MuiButtonBase-root MuiButton-root MuiButton-outlined c8 MuiButton-outlinedPrimary"
                 tabindex="0"
                 type="button"
               >
                 <span
                   class="MuiButton-label"
                 >
-                  <div
-                    class="c8"
+                  Authorize Github Access
+                  <span
+                    class="MuiButton-endIcon MuiButton-iconSizeMedium"
                   >
-                    Authorize Github Access
-                     
                     <div
-                      class="c8 c9 c10"
+                      class="c9 c10 c11"
                     >
                       <svg
                         aria-hidden="true"
@@ -216,7 +251,7 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
                         />
                       </svg>
                     </div>
-                  </div>
+                  </span>
                 </span>
                 <span
                   class="MuiTouchRipple-root"
@@ -231,10 +266,10 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
       </div>
     </div>
     <div
-      class="c11"
+      class="c12"
     >
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained"
+        class="MuiButtonBase-root MuiButton-root MuiButton-text"
         tabindex="0"
         type="button"
       >

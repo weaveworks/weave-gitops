@@ -6,6 +6,10 @@ exports[`Page snapshots default 1`] = `
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
+  -webkit-box-pack: space-evenly;
+  -webkit-justify-content: space-evenly;
+  -ms-flex-pack: space-evenly;
+  justify-content: space-evenly;
   -webkit-flex-direction: row;
   -ms-flex-direction: row;
   flex-direction: row;
