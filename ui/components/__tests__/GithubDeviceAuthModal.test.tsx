@@ -7,6 +7,7 @@ import { GitProvider } from "../../lib/api/applications/applications.pb";
 import { getProviderToken } from "../../lib/storage";
 import {
   ApplicationOverrides,
+  createMockClient,
   withContext,
   withTheme,
 } from "../../lib/test-utils";
@@ -45,7 +46,7 @@ describe("GithubDeviceAuthModal", () => {
                 onSuccess={() => null}
               />,
               "/",
-              ovr
+              { applicationsClient: createMockClient(ovr) }
             )
           ),
           container
@@ -73,7 +74,7 @@ describe("GithubDeviceAuthModal", () => {
               onSuccess={() => null}
             />,
             "/",
-            ovr
+            { applicationsClient: createMockClient(ovr) }
           )
         ),
         container
@@ -100,7 +101,7 @@ describe("GithubDeviceAuthModal", () => {
               onSuccess={() => null}
             />,
             "/",
-            ovr
+            { applicationsClient: createMockClient(ovr) }
           )
         ),
         container

@@ -8,6 +8,7 @@ import {
   storeCallbackState,
   storeProviderToken,
 } from "../lib/storage";
+import { notifySuccess } from "../lib/utils";
 
 type AppState = {
   error: null | { fatal: boolean; message: string; detail?: string };
@@ -35,17 +36,19 @@ export type AppContextType = {
   storeCallbackState: typeof storeCallbackState;
   clearCallbackState: typeof clearCallbackState;
   navigate: (url: string) => void;
+  notifySuccess: typeof notifySuccess;
 };
 
 export const AppContext = React.createContext<AppContextType>(
   null as AppContextType
 );
 
-export interface Props {
-  applicationsClient: typeof Applications;
+export interface AppProps {
+  applicationsClient?: typeof Applications;
   linkResolver?: LinkResolver;
   children?: any;
   renderFooter?: boolean;
+  notifySuccess?: typeof notifySuccess;
 }
 
 // Due to the way the grpc-gateway typescript client is generated,
@@ -76,7 +79,7 @@ function wrapClient<T>(client: any, tokenGetter: () => string): T {
 export default function AppContextProvider({
   applicationsClient,
   ...props
-}: Props) {
+}: AppProps) {
   const [appState, setAppState] = React.useState({
     error: null,
   });
@@ -107,6 +110,7 @@ export default function AppContextProvider({
     storeCallbackState,
     getCallbackState,
     clearCallbackState,
+    notifySuccess: props.notifySuccess || notifySuccess,
     settings: {
       renderFooter: props.renderFooter,
     },

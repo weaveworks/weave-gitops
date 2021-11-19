@@ -8,7 +8,7 @@ import {
   GitProvider,
   ParseRepoURLResponse,
 } from "../../lib/api/applications/applications.pb";
-import { withContext, withTheme } from "../../lib/test-utils";
+import { createMockClient, withContext, withTheme } from "../../lib/test-utils";
 import { PageRoute } from "../../lib/types";
 import { gitlabOAuthRedirectURI } from "../../lib/utils";
 import RepoInputWithAuth from "../RepoInputWithAuth";
@@ -73,7 +73,7 @@ describe("RepoInputWithAuth", () => {
                 />
               </CallbackStateContextProvider>,
               "/",
-              c
+              { applicationsClient: createMockClient(c) }
             )
           )
         );
@@ -113,7 +113,7 @@ describe("RepoInputWithAuth", () => {
               </CallbackStateContextProvider>,
 
               "/",
-              c
+              { applicationsClient: createMockClient(c) }
             )
           )
         );
@@ -161,7 +161,7 @@ describe("RepoInputWithAuth", () => {
                 />
               </CallbackStateContextProvider>,
               "/",
-              c
+              { applicationsClient: createMockClient(c) }
             )
           )
         );
