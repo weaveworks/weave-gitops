@@ -80,7 +80,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		Expect(webDriver.Destroy()).To(Succeed())
 	})
 
-	It("UITest - Verify gitops can add apps from the UI to an empty cluster", func() {
+	FIt("UITest - Verify gitops can add apps from the UI to an empty cluster", func() {
 		var addAppPage *pages.AddAppPageElements
 		var repoAbsolutePath string
 		tip := generateTestInputs()
@@ -132,7 +132,8 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		})
 
 		By("Then I should see Authentication Button pop up", func() {
-			Expect(addAppPage.AuthenticationButton.Visible()).To(BeTrue())
+			Expect(addAppPage.AuthenticationButton).To(BeFound())
+			Expect(addAppPage.AuthenticationButton.Click()).To(Succeed())
 		})
 	})
 
