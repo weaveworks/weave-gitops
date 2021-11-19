@@ -132,7 +132,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		})
 
 		By("Then I should see Authentication Button pop up", func() {
-			_ = Expect(addAppPage.AuthenticationButton.Visible()).To(BeTrue())
+			Expect(addAppPage.AuthenticationButton.Visible()).To(BeTrue())
 		})
 	})
 
