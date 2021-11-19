@@ -1,0 +1,13 @@
+
+Title: Storing leaf cluster access credentials during install
+participant User
+participant gitops
+User->User:User sets their kubectl context to `my_cluster`
+User->gitops: gitops install --managment-cluster-context=mgmt-cluster --gitops-repo-url=github.com/my-org/gitops-repo
+gitops->Leaf Cluster: <Does the things that currently happen on gitops install>
+gitops->Leaf Cluster: Creates a service account
+gitops->Leaf Cluster: Creates a role binding between the service account and the Cluster Admin role
+gitops->Management Cluster:Adds the service account kubeconfig to the Management Cluster as a ConfigMap
+gitops->Management Cluster:Adds a Cluster custom resource to the Management Cluster with a pointer to the kubeconfig ConfigMap
+gitops->User:
+

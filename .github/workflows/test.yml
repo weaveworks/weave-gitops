@@ -85,6 +85,10 @@ jobs:
         go-version: 1.16.x
     - name: Checkout code
       uses: actions/checkout@v2
+    - name: Set up ssh
+      uses: ./.github/actions/setup-ssh
+      with:
+        ssh-private-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
     - name: Install UI Deps
       run: npm ci
     - name: UI Deps Audit

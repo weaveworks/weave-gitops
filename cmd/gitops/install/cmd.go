@@ -17,7 +17,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services"
@@ -60,7 +59,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
 	osysClient := osys.New()
-	log := logger.NewCLILogger(os.Stdout)
+	log := internal.NewCLILogger(os.Stdout)
 	flux := flux.New(osysClient, &runner.CLIRunner{})
 
 	k, _, err := kube.NewKubeHTTPClient()

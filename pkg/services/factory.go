@@ -141,7 +141,7 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, gpClient gitprovider
 
 	if !params.IsHelmRepository {
 		// We need to do this even if we have an external config to set up the deploy key for the app repo
-		appRepoClient, appRepoErr := authSvc.CreateGitClient(ctx, normalizedUrl, targetName, params.Namespace)
+		appRepoClient, appRepoErr := authSvc.CreateGitClient(ctx, normalizedUrl, targetName, params.Namespace, params.DryRun)
 		if appRepoErr != nil {
 			return nil, nil, appRepoErr
 		}
@@ -155,7 +155,7 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, gpClient gitprovider
 			return nil, nil, fmt.Errorf("error normalizing url: %w", err)
 		}
 
-		configRepoClient, configRepoErr := authSvc.CreateGitClient(ctx, normalizedConfigUrl, targetName, params.Namespace)
+		configRepoClient, configRepoErr := authSvc.CreateGitClient(ctx, normalizedConfigUrl, targetName, params.Namespace, params.DryRun)
 		if configRepoErr != nil {
 			return nil, nil, configRepoErr
 		}

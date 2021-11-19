@@ -5,13 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth/internal"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth/types"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/weaveworks/weave-gitops/pkg/services/auth/internal"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth/types"
 )
 
 const (
@@ -19,11 +21,46 @@ const (
 	serverShutdownErrorMessage   = "\nThere was an issue with the authorization flow, you may close your browser and go back to the CLI for more information.\n"
 )
 
+var gitlabScopes = []string{"api", "read_user", "profile"}
+
 type gitlabAuthFlow struct {
 	client       *http.Client
 	codeVerifier internal.CodeVerifier
 	redirectUri  string
 	scopes       []string
+}
+
+//counterfeiter:generate . GitlabAuthClient
+type GitlabAuthClient interface {
+	AuthURL(ctx context.Context, redirectUri string) (url.URL, error)
+	ExchangeCode(ctx context.Context, redirectUri, code string) (*types.TokenResponseState, error)
+}
+
+type glAuth struct {
+	http     *http.Client
+	verifier internal.CodeVerifier
+}
+
+func NewGitlabAuthClient(client *http.Client) GitlabAuthClient {
+	cv, err := internal.NewCodeVerifier(internal.GitlabVerifierMin, internal.GitlabVerifierMax)
+	if err != nil {
+		panic(err)
+	}
+
+	return glAuth{
+		http:     client,
+		verifier: cv,
+	}
+}
+
+func (g glAuth) AuthURL(ctx context.Context, redirectUri string) (url.URL, error) {
+	return internal.GitlabAuthorizeUrl(redirectUri, gitlabScopes, g.verifier)
+}
+
+func (g glAuth) ExchangeCode(ctx context.Context, redirectUri, code string) (*types.TokenResponseState, error) {
+	tUrl := internal.GitlabTokenUrl(redirectUri, code, g.verifier)
+
+	return doCodeExchangeRequest(ctx, tUrl, g.http)
 }
 
 func NewGitlabAuthFlow(redirectUri string, client *http.Client) (types.AuthFlow, error) {
@@ -36,7 +73,7 @@ func NewGitlabAuthFlow(redirectUri string, client *http.Client) (types.AuthFlow,
 		client:       client,
 		codeVerifier: cv,
 		redirectUri:  redirectUri,
-		scopes:       []string{"api", "read_user", "profile"},
+		scopes:       gitlabScopes,
 	}, nil
 }
 
@@ -110,6 +147,42 @@ func (gaf *gitlabAuthFlow) CallbackHandler(tokenState *types.TokenResponseState,
 	}
 
 	return http.HandlerFunc(fn)
+}
+
+func doCodeExchangeRequest(ctx context.Context, tUrl url.URL, c *http.Client) (*types.TokenResponseState, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, tUrl.String(), strings.NewReader(""))
+	if err != nil {
+		return nil, fmt.Errorf("could not create gitlab code request: %w", err)
+	}
+
+	res, err := c.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("error exchanging gitlab code: %w", err)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		errRes := struct {
+			Error       string `json:"error"`
+			Description string `json:"error_description"`
+		}{}
+
+		if err := json.NewDecoder(res.Body).Decode(&errRes); err != nil {
+			return nil, fmt.Errorf("could not parse error response: %w", err)
+		}
+
+		return nil, fmt.Errorf("code=%v, error=%s, description=%s", res.StatusCode, errRes.Error, errRes.Description)
+	}
+
+	r, err := parseTokenResponseBody(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	token := &types.TokenResponseState{}
+
+	token.SetGitlabTokenResponse(r)
+
+	return token, nil
 }
 
 func parseTokenResponseBody(body io.ReadCloser) (internal.GitlabTokenResponse, error) {

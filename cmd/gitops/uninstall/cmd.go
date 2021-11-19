@@ -4,18 +4,20 @@ package uninstall
 // wego installed, the user will be prompted to install wego and then the repository will be added.
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 
 	"github.com/spf13/cobra"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
+	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 )
 
@@ -25,6 +27,7 @@ type params struct {
 
 var (
 	uninstallParams params
+	forceUninstall  bool
 )
 
 var Cmd = &cobra.Command{
@@ -42,13 +45,29 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
+	Cmd.Flags().BoolVar(&forceUninstall, "force", false, "If set, 'gitops uninstall' will not ask for confirmation")
 	Cmd.Flags().BoolVar(&uninstallParams.DryRun, "dry-run", false, "Outputs all the manifests that would be uninstalled")
 }
 
 func uninstallRunCmd(cmd *cobra.Command, args []string) error {
+	if !forceUninstall {
+		fmt.Print("Uninstall will remove all your Applications and any related cluster resources. Are you sure you want to uninstall? [y/N] ")
+
+		reader := bufio.NewReader(os.Stdin)
+
+		userInput, err := reader.ReadString('\n')
+		if err != nil && err != io.EOF {
+			return fmt.Errorf("error reading from stdin %w", err)
+		}
+
+		if userInput != "y\n" {
+			return nil
+		}
+	}
+
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
-	log := logger.NewCLILogger(os.Stdout)
+	log := internal.NewCLILogger(os.Stdout)
 	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 
 	k, _, err := kube.NewKubeHTTPClient()

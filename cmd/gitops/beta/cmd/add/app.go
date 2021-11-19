@@ -12,7 +12,6 @@ import (
 
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services"
@@ -31,8 +30,8 @@ var (
 var AppCmd = &cobra.Command{
 	Use:   "app",
 	Short: "Adds an application workload to the GitOps repository",
-	Long: `This command mirrors the original add app command in 
-	that it adds the definition for the application to the repository 
+	Long: `This command mirrors the original add app command in
+	that it adds the definition for the application to the repository
 	and sets up syncing into a cluster. It uses the new directory
 	structure.`,
 	RunE: runCmd,
@@ -63,7 +62,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("you should choose either --url or the app directory")
 	}
 
-	log := logger.NewCLILogger(os.Stdout)
+	log := internal.NewCLILogger(os.Stdout)
 	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 	factory := services.NewFactory(fluxClient, log)
 

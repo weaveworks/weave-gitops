@@ -1,6 +1,8 @@
 package types
 
-import "github.com/weaveworks/weave-gitops/pkg/services/auth/internal"
+import (
+	"github.com/weaveworks/weave-gitops/pkg/services/auth/internal"
+)
 
 // TokenResponseState is used for passing state through HTTP middleware
 type TokenResponseState struct {

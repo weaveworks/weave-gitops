@@ -1,14 +1,14 @@
 package auth
 
 import (
-	"bytes"
 	"context"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/automation"
@@ -50,21 +50,21 @@ var _ = Describe("auth", func() {
 		)
 		BeforeEach(func() {
 			ctx = context.Background()
-			secretName = automation.CreateRepoSecretName(testClustername, repoUrl)
+			secretName = automation.CreateRepoSecretName(repoUrl)
 			Expect(err).NotTo(HaveOccurred())
 			osysClient = osys.New()
 			gp = gitprovidersfakes.FakeGitProvider{}
 			fluxClient = flux.New(osysClient, &actualFluxRunner{Runner: &runner.CLIRunner{}})
 
 			as = &authSvc{
-				logger:      logger.NewCLILogger(bytes.NewBuffer([]byte{})), //Stay silent in tests.
+				logger:      &loggerfakes.FakeLogger{}, //Stay silent in tests.
 				fluxClient:  fluxClient,
 				k8sClient:   k8sClient,
 				gitProvider: &gp,
 			}
 		})
 		It("create and stores a deploy key if none exists", func() {
-			_, err := as.CreateGitClient(ctx, repoUrl, testClustername, namespace.Name)
+			_, err := as.CreateGitClient(ctx, repoUrl, testClustername, namespace.Name, false)
 			Expect(err).NotTo(HaveOccurred())
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}
 			secret := &corev1.Secret{}
@@ -72,6 +72,13 @@ var _ = Describe("auth", func() {
 
 			Expect(secret.StringData["identity"]).NotTo(BeNil())
 			Expect(secret.StringData["identity.pub"]).NotTo(BeNil())
+		})
+		It("doesn't create a deploy key when dry-run is true", func() {
+			_, err := as.CreateGitClient(ctx, repoUrl, testClustername, namespace.Name, true)
+			Expect(err).NotTo(HaveOccurred())
+			sn := SecretName{Name: secretName, Namespace: namespace.Name}
+			secret := &corev1.Secret{}
+			Expect(k8sClient.Get(ctx, sn.NamespacedName(), secret)).To(HaveOccurred())
 		})
 		It("uses an existing deploy key when present", func() {
 			gp.DeployKeyExistsReturns(true, nil)
@@ -81,7 +88,7 @@ var _ = Describe("auth", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(k8sClient.Create(ctx, secret)).To(Succeed())
 
-			_, err = as.CreateGitClient(ctx, repoUrl, testClustername, namespace.Name)
+			_, err = as.CreateGitClient(ctx, repoUrl, testClustername, namespace.Name, false)
 			Expect(err).NotTo(HaveOccurred())
 			// We should NOT have uploaded anything since the key already exists
 			Expect(gp.UploadDeployKeyCallCount()).To(Equal(0))
@@ -90,7 +97,7 @@ var _ = Describe("auth", func() {
 			gp.DeployKeyExistsReturns(true, nil)
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}
 
-			_, err = as.CreateGitClient(ctx, repoUrl, testClustername, namespace.Name)
+			_, err = as.CreateGitClient(ctx, repoUrl, testClustername, namespace.Name, false)
 			Expect(err).NotTo(HaveOccurred())
 
 			newSecret := &corev1.Secret{}

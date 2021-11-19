@@ -1,8 +1,13 @@
 import _ from "lodash";
 import * as React from "react";
 import { Applications } from "../lib/api/applications/applications.pb";
-import { GitProviderName } from "../lib/types";
-import { getProviderToken, storeProviderToken } from "../lib/utils";
+import {
+  clearCallbackState,
+  getCallbackState,
+  getProviderToken,
+  storeCallbackState,
+  storeProviderToken,
+} from "../lib/storage";
 
 type AppState = {
   error: null | { fatal: boolean; message: string; detail?: string };
@@ -26,6 +31,10 @@ export type AppContextType = {
   linkResolver: LinkResolver;
   getProviderToken: typeof getProviderToken;
   storeProviderToken: typeof storeProviderToken;
+  getCallbackState: typeof getCallbackState;
+  storeCallbackState: typeof storeCallbackState;
+  clearCallbackState: typeof clearCallbackState;
+  navigate: (url: string) => void;
 };
 
 export const AppContext = React.createContext<AppContextType>(
@@ -45,6 +54,7 @@ export interface Props {
 // This saves us from having to rememeber to pass it as an arg in every request.
 function wrapClient<T>(client: any, tokenGetter: () => string): T {
   const wrapped = {};
+  const gitProviderTokenHeader = "Git-Provider-Token";
 
   _.each(client, (func, name) => {
     wrapped[name] = (payload, options: RequestInit = {}) => {
@@ -52,7 +62,7 @@ function wrapClient<T>(client: any, tokenGetter: () => string): T {
         ...options,
         headers: new Headers({
           ...(options.headers || {}),
-          Authorization: `token ${tokenGetter()}`,
+          [gitProviderTokenHeader]: `token ${tokenGetter()}`,
         }),
       };
 
@@ -88,16 +98,23 @@ export default function AppContextProvider({
   };
 
   const value: AppContextType = {
-    applicationsClient: wrapClient(applicationsClient, () =>
-      getProviderToken(GitProviderName.GitHub)
-    ),
+    applicationsClient,
     doAsyncError,
     appState,
     linkResolver: props.linkResolver || defaultLinkResolver,
     getProviderToken,
     storeProviderToken,
+    storeCallbackState,
+    getCallbackState,
+    clearCallbackState,
     settings: {
       renderFooter: props.renderFooter,
+    },
+    navigate: (url) => {
+      if (process.env.NODE_ENV === "test") {
+        return;
+      }
+      window.location.href = url;
     },
   };
 
