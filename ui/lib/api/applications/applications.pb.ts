@@ -20,6 +20,12 @@ export enum AutomationKind {
   Helm = "Helm",
 }
 
+export enum GitProvider {
+  Unknown = "Unknown",
+  GitHub = "GitHub",
+  GitLab = "GitLab",
+}
+
 export enum SourceType {
   Git = "Git",
   Helm = "Helm",
@@ -222,6 +228,33 @@ export type GetGithubAuthStatusResponse = {
   error?: string
 }
 
+export type ParseRepoURLRequest = {
+  url?: string
+}
+
+export type ParseRepoURLResponse = {
+  name?: string
+  provider?: GitProvider
+  owner?: string
+}
+
+export type GetGitlabAuthURLRequest = {
+  redirectUri?: string
+}
+
+export type GetGitlabAuthURLResponse = {
+  url?: string
+}
+
+export type AuthorizeGitlabRequest = {
+  code?: string
+  redirectUri?: string
+}
+
+export type AuthorizeGitlabResponse = {
+  token?: string
+}
+
 export class Applications {
   static Authenticate(req: AuthenticateRequest, initReq?: fm.InitReq): Promise<AuthenticateResponse> {
     return fm.fetchReq<AuthenticateRequest, AuthenticateResponse>(`/v1/authenticate/${req["providerName"]}`, {...initReq, method: "POST", body: JSON.stringify(req)})
@@ -247,6 +280,12 @@ export class Applications {
   static GetGithubAuthStatus(req: GetGithubAuthStatusRequest, initReq?: fm.InitReq): Promise<GetGithubAuthStatusResponse> {
     return fm.fetchReq<GetGithubAuthStatusRequest, GetGithubAuthStatusResponse>(`/v1/applications/auth_providers/github/status`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
+  static GetGitlabAuthURL(req: GetGitlabAuthURLRequest, initReq?: fm.InitReq): Promise<GetGitlabAuthURLResponse> {
+    return fm.fetchReq<GetGitlabAuthURLRequest, GetGitlabAuthURLResponse>(`/v1/applications/auth_providers/gitlab?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static AuthorizeGitlab(req: AuthorizeGitlabRequest, initReq?: fm.InitReq): Promise<AuthorizeGitlabResponse> {
+    return fm.fetchReq<AuthorizeGitlabRequest, AuthorizeGitlabResponse>(`/v1/applications/auth_providers/gitlab/authorize`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
   static AddApplication(req: AddApplicationRequest, initReq?: fm.InitReq): Promise<AddApplicationResponse> {
     return fm.fetchReq<AddApplicationRequest, AddApplicationResponse>(`/v1/applications`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
@@ -255,5 +294,8 @@ export class Applications {
   }
   static SyncApplication(req: SyncApplicationRequest, initReq?: fm.InitReq): Promise<SyncApplicationResponse> {
     return fm.fetchReq<SyncApplicationRequest, SyncApplicationResponse>(`/v1/applications/${req["name"]}/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static ParseRepoURL(req: ParseRepoURLRequest, initReq?: fm.InitReq): Promise<ParseRepoURLResponse> {
+    return fm.fetchReq<ParseRepoURLRequest, ParseRepoURLResponse>(`/v1/applications/parse_repo_url?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }
