@@ -163,7 +163,7 @@ func (f *FluxClient) CreateKustomization(name string, source string, path string
 		"--path", path,
 		"--source", source,
 		"--namespace", namespace,
-		"--prune", "true",
+		"--prune", "false",
 		"--interval", "1m",
 		"--export",
 	}
