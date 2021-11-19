@@ -1,6 +1,7 @@
 import { CircularProgress } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
+import { GithubAuthContext } from "../contexts/GithubAuthContext";
 import useAuth from "../hooks/auth";
 import {
   GetGithubDeviceCodeResponse,
@@ -139,4 +140,20 @@ function GithubDeviceAuthModal({
   );
 }
 
-export default styled(GithubDeviceAuthModal)``;
+const StyledModal = styled(GithubDeviceAuthModal)``;
+
+export default StyledModal;
+
+export function GlobalGithubAuthDialog() {
+  const { dialogState, setDialogState, setSuccess } =
+    React.useContext(GithubAuthContext);
+
+  return (
+    <StyledModal
+      repoName={dialogState.repoName}
+      open={dialogState.open}
+      onClose={() => setDialogState(false, dialogState.repoName)}
+      onSuccess={setSuccess}
+    />
+  );
+}

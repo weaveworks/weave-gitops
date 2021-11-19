@@ -24,7 +24,7 @@ function GitlabAuthButton({ ...props }: Props) {
         redirectUri: gitlabOAuthRedirectURI(),
       })
       .then((res) => {
-        navigate(res.url);
+        navigate.external(res.url);
       });
   };
 
