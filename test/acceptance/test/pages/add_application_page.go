@@ -28,7 +28,7 @@ func GetAddAppPageElements(webDriver *agouti.Page) *AddAppPageElements {
 		Branch:               webDriver.FindByID("branch"),
 		AutoMergeCheck:       webDriver.FindByXPath(`//input[@type="checkbox" and @class="jss12 MuiSwitch-input"]`),
 		SubmitButton:         webDriver.FindByXPath(`//button[@type="submit" and //@span=(text()="Submit")]`),
-		AuthenticationButton: webDriver.FindByXPath(`//button[@type="button"]//span[(text()="Authenticate with Github")]`)}
+		AuthenticationButton: webDriver.FindByXPath(`//button[@type="button"]//span[text()="Authenticate with Github"]`)}
 
 	return &addApplicationPage
 }
