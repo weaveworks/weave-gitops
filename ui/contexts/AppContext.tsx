@@ -7,8 +7,8 @@ import {
   getProviderToken,
   storeCallbackState,
   storeProviderToken,
-  notifySuccess,
-} from "../lib/utils";
+} from "../lib/storage";
+import { notifySuccess } from "../lib/utils";
 
 type AppState = {
   error: null | { fatal: boolean; message: string; detail?: string };
