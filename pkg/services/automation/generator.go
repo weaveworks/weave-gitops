@@ -403,6 +403,7 @@ func CreateRepoSecretName(gitSourceURL gitproviders.RepoURL) GeneratedSecretName
 	return GeneratedSecretName(lengthConstrainedName)
 }
 
+// The cluster source name and the app source name need to remain distinct to prevent https://github.com/weaveworks/weave-gitops/issues/1075 from coming back.
 func CreateClusterSourceName(gitSourceURL gitproviders.RepoURL) string {
 	provider := string(gitSourceURL.Provider())
 	cleanRepoName := replaceUnderscores(gitSourceURL.RepositoryName())
