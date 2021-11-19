@@ -130,11 +130,6 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		By("And I submit the Add App form", func() {
 			Expect(addAppPage.SubmitButton.Click()).To(Succeed())
 		})
-
-		By("Then I should see Authentication Button pop up", func() {
-			Expect(addAppPage.AuthenticationButton).To(BeFound())
-			Expect(addAppPage.AuthenticationButton.Click()).To(Succeed())
-		})
 	})
 
 	It("UITest - Verify gitops UI can list details of apps running in the cluster", func() {
