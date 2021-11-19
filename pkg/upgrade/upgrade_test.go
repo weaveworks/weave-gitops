@@ -6,10 +6,12 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/stretchr/testify/assert"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
@@ -22,11 +24,11 @@ import (
 
 func TestUpgradeDryRun(t *testing.T) {
 	gitClient := &gitfakes.FakeGit{}
-	gitClient.GetRemoteUrlStub = func(dir, remote string) (string, error) {
-		return "git@github.com:org/repo.git", nil
-	}
 	kubeClient := makeClient(t, createSecret(), createGitRepository("my-app"))
 	gitProvider := &gitprovidersfakes.FakeGitProvider{}
+	gitProvider.CreatePullRequestStub = func(context.Context, gitproviders.RepoURL, gitproviders.PullRequestInfo) (gitprovider.PullRequest, error) {
+		return &mockPullRequest{}, nil
+	}
 	logger := &loggerfakes.FakeLogger{}
 	k := &kubefakes.FakeKube{}
 
@@ -46,13 +48,26 @@ func TestUpgradeDryRun(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+type mockPullRequest struct{}
+
+func (m *mockPullRequest) APIObject() interface{} {
+	return nil
+}
+func (m *mockPullRequest) Get() gitprovider.PullRequestInfo {
+	return gitprovider.PullRequestInfo{
+		Merged: false,
+		Number: 1,
+		WebURL: "https://github.com/org/repo/pull/1",
+	}
+}
+
 func TestUpgrade(t *testing.T) {
 	gitClient := &gitfakes.FakeGit{}
-	gitClient.GetRemoteUrlStub = func(dir, remote string) (string, error) {
-		return "git@github.com:org/repo.git", nil
-	}
 	kubeClient := makeClient(t, createSecret(), createGitRepository("my-app"))
 	gitProvider := &gitprovidersfakes.FakeGitProvider{}
+	gitProvider.CreatePullRequestStub = func(context.Context, gitproviders.RepoURL, gitproviders.PullRequestInfo) (gitprovider.PullRequest, error) {
+		return &mockPullRequest{}, nil
+	}
 	logger := &loggerfakes.FakeLogger{}
 	k := &kubefakes.FakeKube{}
 
