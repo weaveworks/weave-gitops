@@ -20,6 +20,9 @@ inputs:
   gitlab-token:
     description: "Token for accessing GitLab"
     required: true
+  artifacts-base-dir:
+    description: "Directory for test artifacts"
+    required: true
 
 runs:
   using: "composite"
@@ -31,6 +34,7 @@ runs:
   - name: Checkout code
     uses: actions/checkout@v2
   - name: Setup selenium standalone server
+    if: ${{ github.job == 'ui-tests' }}
     shell: bash
     run: |
       sudo apt-get update
@@ -91,6 +95,7 @@ runs:
         GITLAB_SUBGROUP: weave-gitops-sub
         GITLAB_TOKEN: ${{ inputs.gitlab-token }}
         GITLAB_KEY: ${{ inputs.gitlab-key }}
+        ARTIFACTS_BASE_DIR: ${{ inputs.artifacts-base-dir }}
     run: |
       export PATH=${PATH}:`go env GOPATH`/bin
       export WEGO_BIN_PATH=$(pwd)/bin/gitops
@@ -98,9 +103,11 @@ runs:
       go get github.com/onsi/ginkgo/ginkgo
       go get github.com/onsi/gomega/...
       ginkgo ${{ inputs.focus-or-skip }} --randomizeSuites --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/${{ inputs.result-prefix }}acceptance-test-results.xml -v ./test/acceptance/test/...
+    if: always()
   - name: Store acceptance test results
     env:
-        ARTIFACTS_BASE_DIR: "/tmp/wego-test"
+      ARTIFACTS_BASE_DIR: ${{ inputs.artifacts-base-dir }}
+    if: ${{ always() }}
     uses: actions/upload-artifact@v2
     with:
       name: ${{ inputs.result-prefix }}acceptance-test-artifacts
