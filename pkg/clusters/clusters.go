@@ -37,7 +37,7 @@ func GetClusters(r ClustersRetriever, w io.Writer) error {
 		fmt.Fprintf(w, "NAME\tSTATUS\tSTATUS_MESSAGE\n")
 
 		for _, c := range cs {
-			if c.PullRequest.Type == "create" {
+			if c.Status == "pullRequestCreated" && c.PullRequest.Type == "create" {
 				c.Status = "Creation PR"
 			} else if c.PullRequest.Type == "delete" {
 				c.Status = "Deletion PR"
