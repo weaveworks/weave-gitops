@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -97,6 +98,8 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 	// Create pull request
 	path := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, WegoEnterpriseName)
 	wegoAppPath := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, "wego-app.yaml")
+	capiKeepPath := filepath.Join(git.WegoRoot, git.WegoAppDir, "capi", "templates", ".keep")
+	capiKeepContents := string(strconv.AppendQuote(nil, "# keep"))
 
 	pri := gitproviders.PullRequestInfo{
 		Title:         "Gitops upgrade",
@@ -108,6 +111,10 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 			{
 				Path:    &path,
 				Content: &stringOut,
+			},
+			{
+				Path:    &capiKeepPath,
+				Content: &capiKeepContents,
 			},
 			{
 				Path:    &wegoAppPath,
