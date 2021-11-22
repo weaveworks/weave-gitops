@@ -14,7 +14,6 @@ type Props = {
 
 const Styled = (component) => styled(component)`
   display: flex;
-  justify-content: space-evenly;
   flex-direction: ${(props) => (props.column ? "column" : "row")};
   align-items: ${(props) => (props.align ? "center" : "start")};
   ${(props) => props.height && `height: ${props.height};`}
@@ -22,6 +21,7 @@ const Styled = (component) => styled(component)`
   ${({ center }) => center && "justify-content: center"};
   ${({ wide }) => wide && "width: 100%"};
   ${({ wrap }) => wrap && "flex-wrap: wrap"};
+  justify-content: ${(props) => (props.start ? "flex-start" : "space-evenly")};
   ${({ end }) => end && "justify-content: flex-end"};
 `;
 

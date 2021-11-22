@@ -18,7 +18,7 @@ type Props = {
 
 function Alert({ className, center, title, message, severity }: Props) {
   return (
-    <Flex wide center={center} className={className}>
+    <Flex wide start={!center} className={className}>
       <MaterialAlert severity={severity}>
         <AlertTitle>{title}</AlertTitle>
         {message}

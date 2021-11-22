@@ -8,7 +8,7 @@ export default {
   argTypes: {
     color: {
       description:
-        "Color comes from our MuiTheme - see /ui/lib/theme.ts and https://mui.com/customization/theming/",
+        "The three options come from our `MuiTheme` - see /ui/lib/theme.ts and https://mui.com/customization/theming/",
       type: { summary: "string", required: false },
       defaultValue: "primary",
       options: ["primary", "secondary", "inherit"],
