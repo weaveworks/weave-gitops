@@ -76,7 +76,7 @@ func TestGetClusters(t *testing.T) {
 					Name:   "cluster-b",
 					Status: "foo",
 					PullRequest: clusters.PullRequest{
-						Type: "foo",
+						Type: "create",
 						Url:  "https://github.com/org/repo/pull/1",
 					},
 				},
@@ -120,7 +120,22 @@ func TestGetClusterByName(t *testing.T) {
 					Status: "status-a",
 				},
 			},
-			expected: "NAME\tSTATUS\ncluster-a\tstatus-a\n",
+			expected: "NAME\tSTATUS\tSTATUS_MESSAGE\ncluster-a\tstatus-a\n",
+		},
+		{
+			name:        "Print cluster PR url",
+			clusterName: "cluster-a",
+			cs: []clusters.Cluster{
+				{
+					Name:   "cluster-a",
+					Status: "pullRequestCreated",
+					PullRequest: clusters.PullRequest{
+						Type: "create",
+						Url:  "https://github.com/org/repo/pull/1",
+					},
+				},
+			},
+			expected: "NAME\tSTATUS\tSTATUS_MESSAGE\ncluster-a\tCreation PR\thttps://github.com/org/repo/pull/1\n",
 		},
 	}
 
