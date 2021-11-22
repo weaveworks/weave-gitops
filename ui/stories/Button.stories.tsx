@@ -11,7 +11,7 @@ export default {
         "Color comes from our MuiTheme - see /ui/lib/theme.ts and https://mui.com/customization/theming/",
       type: { summary: "string", required: false },
       defaultValue: "primary",
-      options: ["primary", "secondary"],
+      options: ["primary", "secondary", "inherit"],
       table: {
         defaultValue: { summary: "primary" },
       },
@@ -56,6 +56,11 @@ const Template: Story = (args) => <Button {...args}>Weaveworks</Button>;
 
 export const Default = Template.bind({});
 // export const AuthButton = Template.bind({});
+export const ModalButton = Template.bind({});
+ModalButton.args = {
+  color: "inherit",
+  className: "borderless",
+};
 
 Default.args = {};
 // AuthButton.args = { className: "auth-button", variant: "contained" };

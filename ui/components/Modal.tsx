@@ -1,7 +1,7 @@
-import { Button } from "@material-ui/core";
 import MaterialModal from "@material-ui/core/Modal";
 import * as React from "react";
 import styled from "styled-components";
+import Button from "./Button";
 import Flex from "./Flex";
 
 type Props = {
@@ -49,7 +49,9 @@ function Modal({
           </Flex>
           <div>{children}</div>
           <Flex wide end>
-            <Button onClick={onClose}>Close</Button>
+            <Button onClick={onClose} color="inherit" className="borderless">
+              Close
+            </Button>
           </Flex>
         </Body>
       </MaterialModal>

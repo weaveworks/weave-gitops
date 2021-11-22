@@ -31,4 +31,9 @@ export default styled(Button)`
       color: white;
     }
   }
+  &.borderless {
+    &.MuiButton-outlined {
+      border: none;
+    }
+  }
 `;
