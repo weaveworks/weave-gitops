@@ -65,6 +65,13 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 		return fmt.Errorf("error creating helm resources: %w", err)
 	}
 
+	appResources, err := makeAppsCapiKustomization(uv.Namespace, uv.AppConfigURL)
+	if err != nil {
+		return fmt.Errorf("error creating app resources: %w", err)
+	}
+
+	resources = append(resources, appResources...)
+
 	out, err := marshalToYamlStream(resources)
 	if err != nil {
 		return fmt.Errorf("error marshalling helm resources: %w", err)
@@ -132,6 +139,37 @@ func marshalToYamlStream(objects []runtime.Object) ([]byte, error) {
 	}
 
 	return bytes.Join(out, []byte("---\n")), nil
+}
+
+func makeAppsCapiKustomization(namespace, repoURL string) ([]runtime.Object, error) {
+	normalizedURL, err := gitproviders.NewRepoURL(repoURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to normalize URL %q: %w", repoURL, err)
+	}
+
+	gitRepositoryName := automation.CreateRepoSecretName(normalizedURL).String()
+
+	appsCapiKustomization := &kustomizev2.Kustomization{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "apps-capi",
+			Namespace: namespace,
+		},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       kustomizev2.KustomizationKind,
+			APIVersion: kustomizev2.GroupVersion.String(),
+		},
+		Spec: kustomizev2.KustomizationSpec{
+			Interval: metav1.Duration{Duration: time.Minute},
+			Path:     "./.weave-gitops/apps/capi",
+			Prune:    true,
+			SourceRef: kustomizev2.CrossNamespaceSourceReference{
+				Kind: "GitRepository",
+				Name: gitRepositoryName,
+			},
+		},
+	}
+
+	return []runtime.Object{appsCapiKustomization}, nil
 }
 
 func makeHelmResources(namespace, version, clusterName, repoURL string, values []string) ([]runtime.Object, error) {
@@ -203,34 +241,7 @@ func makeHelmResources(namespace, version, clusterName, repoURL string, values [
 		},
 	}
 
-	normalizedURL, err := gitproviders.NewRepoURL(repoURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to normalize URL %q: %w", repoURL, err)
-	}
-
-	gitRepositoryName := automation.CreateRepoSecretName(normalizedURL).String()
-
-	appsCapiKustomization := &kustomizev2.Kustomization{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "apps-capi",
-			Namespace: namespace,
-		},
-		TypeMeta: metav1.TypeMeta{
-			Kind:       kustomizev2.KustomizationKind,
-			APIVersion: kustomizev2.GroupVersion.String(),
-		},
-		Spec: kustomizev2.KustomizationSpec{
-			Interval: metav1.Duration{Duration: time.Minute},
-			Path:     "./.weave-gitops/apps/capi",
-			Prune:    true,
-			SourceRef: kustomizev2.CrossNamespaceSourceReference{
-				Kind: "GitRepository",
-				Name: gitRepositoryName,
-			},
-		},
-	}
-
-	return []runtime.Object{helmRepository, helmRelease, appsCapiKustomization}, nil
+	return []runtime.Object{helmRepository, helmRelease}, nil
 }
 
 func getBasicAuth(ctx context.Context, kubeClient client.Client, ns string) error {
