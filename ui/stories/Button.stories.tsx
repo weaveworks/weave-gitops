@@ -1,4 +1,4 @@
-import { Meta } from "@storybook/react";
+import { Meta, Story } from "@storybook/react";
 import React from "react";
 import Button from "../components/Button";
 
@@ -9,7 +9,7 @@ export default {
     color: {
       description:
         "Color comes from our MuiTheme - see /ui/lib/theme.ts and https://mui.com/customization/theming/",
-      type: { name: "string", required: false },
+      type: { summary: "string", required: false },
       defaultValue: "primary",
       options: ["primary", "secondary"],
       table: {
@@ -19,7 +19,7 @@ export default {
     },
     variant: {
       description: "Pick one of the two MuiButton options",
-      type: { name: "string", required: false },
+      type: { summary: "string", required: false },
       defaultValue: "outlined",
       options: ["outlined", "contained"],
       table: { defaultValue: { summary: "outlined" } },
@@ -28,7 +28,7 @@ export default {
     loading: {
       description:
         "Changes the Buttons `endIcon` prop to Mui's `<CircularProgress />` and sets `disabled` to `true`",
-      type: { name: "boolean", required: false },
+      type: { summary: "boolean", required: false },
       defaultValue: false,
       options: [true, false],
       table: { defaultValue: { summary: "false" } },
@@ -42,16 +42,17 @@ export default {
     },
     onClick: {
       description: "Event Handler",
+      type: { summary: "function(e) {}", name: "function" },
       action: "click",
     },
     className: {
       description: "CSS MUI Overrides or other styling",
-      type: { name: "string", required: false },
+      type: { summary: "string", name: "string", required: false },
     },
   },
 } as Meta;
 
-const Template = (args) => <Button {...args}>Weaveworks</Button>;
+const Template: Story = (args) => <Button {...args}>Weaveworks</Button>;
 
 export const Default = Template.bind({});
 // export const AuthButton = Template.bind({});
