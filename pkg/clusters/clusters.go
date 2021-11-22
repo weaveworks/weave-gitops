@@ -69,18 +69,23 @@ func GetClusterByName(name string, r ClustersRetriever, w io.Writer) error {
 	}
 
 	if len(cs) > 0 {
-		fmt.Fprintf(w, "NAME\tSTATUS\n")
+		fmt.Fprintf(w, "NAME\tSTATUS\tSTATUS_MESSAGE\n")
 
 		for _, c := range cs {
 			if c.Name == name {
-				if c.PullRequest.Type == "create" {
+				if c.Status == "pullRequestCreated" && c.PullRequest.Type == "create" {
 					c.Status = "Creation PR"
 				} else if c.PullRequest.Type == "delete" {
 					c.Status = "Deletion PR"
 				}
 
-				fmt.Fprintf(w, "%s\t%s", c.Name, c.Status)
-				fmt.Fprintln(w, "")
+				if c.Status == "Creation PR" || c.Status == "Deletion PR" {
+					fmt.Fprintf(w, "%s\t%s\t%s", c.Name, c.Status, c.PullRequest.Url)
+					fmt.Fprintln(w, "")
+				} else {
+					fmt.Fprintf(w, "%s\t%s", c.Name, c.Status)
+					fmt.Fprintln(w, "")
+				}
 			}
 		}
 
