@@ -37,19 +37,7 @@ func GetClusters(r ClustersRetriever, w io.Writer) error {
 		fmt.Fprintf(w, "NAME\tSTATUS\tSTATUS_MESSAGE\n")
 
 		for _, c := range cs {
-			if c.Status == "pullRequestCreated" && c.PullRequest.Type == "create" {
-				c.Status = "Creation PR"
-			} else if c.PullRequest.Type == "delete" {
-				c.Status = "Deletion PR"
-			}
-
-			if c.Status == "Creation PR" || c.Status == "Deletion PR" {
-				fmt.Fprintf(w, "%s\t%s\t%s", c.Name, c.Status, c.PullRequest.Url)
-				fmt.Fprintln(w, "")
-			} else {
-				fmt.Fprintf(w, "%s\t%s", c.Name, c.Status)
-				fmt.Fprintln(w, "")
-			}
+			printCluster(c, w)
 		}
 
 		return nil
@@ -73,19 +61,7 @@ func GetClusterByName(name string, r ClustersRetriever, w io.Writer) error {
 
 		for _, c := range cs {
 			if c.Name == name {
-				if c.Status == "pullRequestCreated" && c.PullRequest.Type == "create" {
-					c.Status = "Creation PR"
-				} else if c.PullRequest.Type == "delete" {
-					c.Status = "Deletion PR"
-				}
-
-				if c.Status == "Creation PR" || c.Status == "Deletion PR" {
-					fmt.Fprintf(w, "%s\t%s\t%s", c.Name, c.Status, c.PullRequest.Url)
-					fmt.Fprintln(w, "")
-				} else {
-					fmt.Fprintf(w, "%s\t%s", c.Name, c.Status)
-					fmt.Fprintln(w, "")
-				}
+				printCluster(c, w)
 			}
 		}
 
@@ -127,4 +103,20 @@ type DeleteClustersParams struct {
 	Description   string
 	ClustersNames []string
 	CommitMessage string
+}
+
+func printCluster(c Cluster, w io.Writer) {
+	if c.Status == "pullRequestCreated" && c.PullRequest.Type == "create" {
+		c.Status = "Creation PR"
+	} else if c.PullRequest.Type == "delete" {
+		c.Status = "Deletion PR"
+	}
+
+	if c.Status == "Creation PR" || c.Status == "Deletion PR" {
+		fmt.Fprintf(w, "%s\t%s\t%s", c.Name, c.Status, c.PullRequest.Url)
+		fmt.Fprintln(w, "")
+	} else {
+		fmt.Fprintf(w, "%s\t%s", c.Name, c.Status)
+		fmt.Fprintln(w, "")
+	}
 }
