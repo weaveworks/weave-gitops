@@ -8,10 +8,12 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/helm/helm/pkg/strvals"
@@ -19,6 +21,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -63,6 +66,13 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 		return fmt.Errorf("error creating helm resources: %w", err)
 	}
 
+	appResources, err := makeAppsCapiKustomization(uv.Namespace, uv.AppConfigURL)
+	if err != nil {
+		return fmt.Errorf("error creating app resources: %w", err)
+	}
+
+	resources = append(resources, appResources...)
+
 	out, err := marshalToYamlStream(resources)
 	if err != nil {
 		return fmt.Errorf("error marshalling helm resources: %w", err)
@@ -87,6 +97,9 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 
 	// Create pull request
 	path := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, WegoEnterpriseName)
+	wegoAppPath := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, "wego-app.yaml")
+	capiKeepPath := filepath.Join(git.WegoRoot, git.WegoAppDir, "capi", "templates", ".keep")
+	capiKeepContents := string(strconv.AppendQuote(nil, "# keep"))
 
 	pri := gitproviders.PullRequestInfo{
 		Title:         "Gitops upgrade",
@@ -98,6 +111,14 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 			{
 				Path:    &path,
 				Content: &stringOut,
+			},
+			{
+				Path:    &capiKeepPath,
+				Content: &capiKeepContents,
+			},
+			{
+				Path:    &wegoAppPath,
+				Content: nil,
 			},
 		},
 	}
@@ -125,6 +146,37 @@ func marshalToYamlStream(objects []runtime.Object) ([]byte, error) {
 	}
 
 	return bytes.Join(out, []byte("---\n")), nil
+}
+
+func makeAppsCapiKustomization(namespace, repoURL string) ([]runtime.Object, error) {
+	normalizedURL, err := gitproviders.NewRepoURL(repoURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to normalize URL %q: %w", repoURL, err)
+	}
+
+	gitRepositoryName := automation.CreateRepoSecretName(normalizedURL).String()
+
+	appsCapiKustomization := &kustomizev2.Kustomization{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "apps-capi",
+			Namespace: namespace,
+		},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       kustomizev2.KustomizationKind,
+			APIVersion: kustomizev2.GroupVersion.String(),
+		},
+		Spec: kustomizev2.KustomizationSpec{
+			Interval: metav1.Duration{Duration: time.Minute},
+			Path:     "./.weave-gitops/apps/capi",
+			Prune:    true,
+			SourceRef: kustomizev2.CrossNamespaceSourceReference{
+				Kind: "GitRepository",
+				Name: gitRepositoryName,
+			},
+		},
+	}
+
+	return []runtime.Object{appsCapiKustomization}, nil
 }
 
 func makeHelmResources(namespace, version, clusterName, repoURL string, values []string) ([]runtime.Object, error) {
