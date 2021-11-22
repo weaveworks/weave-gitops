@@ -4,7 +4,7 @@ import * as React from "react";
 import { unmountComponentAtNode } from "react-dom";
 import { act } from "react-dom/test-utils";
 import { ListCommitsResponse } from "../../lib/api/applications/applications.pb";
-import { withContext, withTheme } from "../../lib/test-utils";
+import { createMockClient, withContext, withTheme } from "../../lib/test-utils";
 import CommitsTable from "../CommitsTable";
 
 describe("CommitsTable", () => {
@@ -39,7 +39,9 @@ describe("CommitsTable", () => {
       await act(async () => {
         const { container: div } = render(
           withTheme(
-            withContext(<CommitsTable app={app} authSuccess={true} />, "/", ovr)
+            withContext(<CommitsTable app={app} authSuccess={true} />, "/", {
+              applicationsClient: createMockClient(ovr),
+            })
           ),
           container
         );
@@ -63,7 +65,9 @@ describe("CommitsTable", () => {
     await act(async () => {
       render(
         withTheme(
-          withContext(<CommitsTable app={app} authSuccess={true} />, "/", ovr)
+          withContext(<CommitsTable app={app} authSuccess={true} />, "/", {
+            applicationsClient: createMockClient(ovr),
+          })
         ),
         container
       );
