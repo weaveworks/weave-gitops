@@ -10,12 +10,22 @@ import (
 	"github.com/sclevine/agouti"
 	. "github.com/sclevine/agouti/matchers"
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/test/acceptance/test/pages"
 )
 
 var err error
 var webDriver *agouti.Page
+
+func initializeUISteps() {
+	By("And I install gitops to my active cluster", func() {
+		_ = runCommandPassThrough([]string{}, WEGO_BIN_PATH, "install")
+		VerifyControllersInCluster(WEGO_DEFAULT_NAMESPACE)
+	})
+
+	By("And I run gitops ui", func() {
+		_ = runCommandAndReturnSessionOutput(fmt.Sprintf("%s ui run &", WEGO_BIN_PATH))
+	})
+}
 
 var _ = Describe("Weave GitOps UI Test", func() {
 
@@ -24,13 +34,9 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		deleteWegoRuntime = true
 	}
 
-	var appName string
-
 	BeforeEach(func() {
 		os := runtime.GOOS
 		log.Infof("Running tests on OS: " + os)
-		tip := generateTestInputs()
-		appName = tip.appRepoName
 
 		By("Given I have a brand new cluster", func() {
 
@@ -38,24 +44,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
-
-			By("And application repo does not already exist", func() {
-				deleteRepo(appName, gitproviders.GitProviderGitHub, GITHUB_ORG)
-			})
-
-			By("When I create an empty private repo", func() {
-				private := true
-				initAndCreateEmptyRepo(appName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
-			})
-
-			By("And I install gitops to my active cluster", func() {
-				appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appName + ".git"
-				installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
-			})
-
-			By("And I run gitops ui", func() {
-				_ = runCommandAndReturnSessionOutput(fmt.Sprintf("%s ui run &", WEGO_BIN_PATH))
-			})
+			initializeUISteps()
 
 			By("And I open up a browser", func() {
 
@@ -84,7 +73,6 @@ var _ = Describe("Weave GitOps UI Test", func() {
 	AfterEach(func() {
 		takeScreenshot()
 		Expect(webDriver.Destroy()).To(Succeed())
-		deleteRepo(appName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 	})
 
 	It("SmokeTest - Verify gitops can run UI without apps installed", func() {
