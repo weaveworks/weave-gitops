@@ -1,9 +1,9 @@
+//go:build !unittest
 // +build !unittest
 
 package acceptance
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -53,10 +53,10 @@ var _ = BeforeSuite(func() {
 })
 
 func GomegaFail(message string, callerSkip ...int) {
-	if webDriver != nil {
-		filepath := takeScreenshot()
-		fmt.Printf("Failure screenshot is saved in file %s\n", filepath)
-	}
+	// if webDriver != nil {
+	// 	filepath := takeScreenshot()
+	// 	fmt.Printf("Failure screenshot is saved in file %s\n", filepath)
+	// }
 
 	ginkgo.Fail(message, callerSkip...)
 }

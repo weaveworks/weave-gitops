@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -198,8 +199,8 @@ var _ = Describe("Weave GitOps UI Test", func() {
 			linkToApp1 = pages.GetAppListElements(webDriver, appName1)
 			linkToApp2 = pages.GetAppListElements(webDriver, appName2)
 
-			Eventually(linkToApp1.AppList).Should(BeFound())
-			Eventually(linkToApp2.AppList).Should(BeFound())
+			Eventually(linkToApp1.AppList, 5*time.Second).Should(BeFound())
+			Eventually(linkToApp2.AppList, 5*time.Second).Should(BeFound())
 
 			Expect(linkToApp1.AppList.Attribute("href")).To(ContainSubstring(appName1))
 			Expect(linkToApp2.AppList.Attribute("href")).To(ContainSubstring(appName2))
