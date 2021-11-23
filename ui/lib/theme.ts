@@ -1,6 +1,6 @@
 // Typescript will handle type-checking/linting for this file
-/* eslint-disable */
 import { createTheme } from "@material-ui/core";
+// eslint-disable-next-line
 import { createGlobalStyle, DefaultTheme } from "styled-components";
 const baseSpacingNumber = 16;
 
@@ -47,20 +47,6 @@ export const theme: DefaultTheme = {
 export default theme;
 
 export const GlobalStyle = createGlobalStyle`
-  @font-face {
-    font-family: 'proxima-nova';
-    src: url(${""})
-  }
-  @font-face {
-    font-family: 'proxima-nova';
-    src: url(${""});
-    font-weight: bold;
-  }
-  @font-face {
-    font-family: 'Roboto Mono';
-    src: url(${""});
-  }
-
   html,
   body {
     height: 100%;

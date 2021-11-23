@@ -27,7 +27,7 @@
     "test": "jest",
     "watch": "jest --runInBand --watch",
     "coverage": "jest --coverage",
-    "storybook": "start-storybook -s ui/assets -p 6006",
+    "storybook": "start-storybook -s ui/ -p 6006",
     "build-storybook": "build-storybook ui/assets"
   },
   "repository": {

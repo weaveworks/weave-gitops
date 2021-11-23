@@ -13,6 +13,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import Layout from "./components/Layout";
 import AppContextProvider from "./contexts/AppContext";
 import { Applications as appsClient } from "./lib/api/applications/applications.pb";
+import Fonts from "./lib/fonts";
 import theme, { GlobalStyle, muiTheme } from "./lib/theme";
 import { PageRoute } from "./lib/types";
 import ApplicationAdd from "./pages/ApplicationAdd";
@@ -24,6 +25,7 @@ export default function App() {
   return (
     <MuiThemeProvider theme={muiTheme}>
       <ThemeProvider theme={theme}>
+        <Fonts />
         <GlobalStyle />
         <Router>
           <AppContextProvider renderFooter applicationsClient={appsClient}>
