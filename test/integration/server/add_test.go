@@ -25,7 +25,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	"github.com/weaveworks/weave-gitops/test/integration/server/helpers"
-	glAPI "github.com/xanzy/go-gitlab"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -86,7 +85,10 @@ var _ = Describe("AddApplication", func() {
 
 			fs := helpers.MakeWeGOFS(root, req.Name, clusterName)
 
-			actual, err := helpers.GetFilesForPullRequest(ctx, gh, org, sourceRepoName, fs)
+			fetcher, err := helpers.NewFileFetcher(gitproviders.GitProviderGitHub, token)
+			Expect(err).NotTo(HaveOccurred())
+
+			actual, err := fetcher.GetFilesForPullRequest(ctx, 1, org, sourceRepoName, fs)
 			Expect(err).NotTo(HaveOccurred())
 
 			expectedKustomization := kustomizev1.KustomizationSpec{
@@ -172,7 +174,10 @@ var _ = Describe("AddApplication", func() {
 			root := helpers.ExternalConfigRoot
 			fs := helpers.MakeWeGOFS(root, req.Name, clusterName)
 
-			actual, err := helpers.GetFilesForPullRequest(ctx, gh, org, configRepoName, fs)
+			fetcher, err := helpers.NewFileFetcher(gitproviders.GitProviderGitHub, token)
+			Expect(err).NotTo(HaveOccurred())
+
+			actual, err := fetcher.GetFilesForPullRequest(ctx, 1, org, configRepoName, fs)
 			Expect(err).NotTo(HaveOccurred())
 
 			normalizedUrl, err := gitproviders.NewRepoURL(req.Url)
@@ -459,10 +464,10 @@ var _ = Describe("AddApplication", func() {
 
 			fs := helpers.MakeWeGOFS(root, req.Name, clusterName)
 
-			gl, err := glAPI.NewClient(token)
+			gl, err := helpers.NewFileFetcher(gitproviders.GitProviderGitLab, token)
 			Expect(err).NotTo(HaveOccurred())
 
-			actual, err := helpers.GetFilesForPullRequest_Gitlab(ctx, gl, org, sourceRepoName, fs)
+			actual, err := gl.GetFilesForPullRequest(ctx, 1, org, sourceRepoName, fs)
 			Expect(err).NotTo(HaveOccurred())
 
 			expectedKustomization := kustomizev1.KustomizationSpec{

@@ -19,7 +19,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	ghAPI "github.com/google/go-github/v32/github"
-	glAPI "github.com/xanzy/go-gitlab"
 
 	"github.com/fluxcd/source-controller/pkg/sourceignore"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -275,39 +274,6 @@ func toK8sObjects(changes map[string][]byte, fs WeGODirectoryFS) (WeGODirectoryF
 	}
 
 	return fs, nil
-}
-
-func GetFilesForPullRequest_Gitlab(ctx context.Context, gl *glAPI.Client, org, repoName string, fs WeGODirectoryFS) (WeGODirectoryFS, error) {
-	pid := fmt.Sprintf("%s/%s", org, repoName)
-	mr, _, err := gl.MergeRequests.GetMergeRequestChanges(pid, 1, nil)
-
-	if err != nil {
-		return nil, fmt.Errorf("could not get merge request: %w", err)
-	}
-
-	files := map[string][]byte{}
-
-	for _, c := range mr.Changes {
-		path := c.OldPath
-
-		file, _, err := gl.RepositoryFiles.GetRawFile(pid, path, &glAPI.GetRawFileOptions{Ref: &mr.DiffRefs.HeadSha})
-		if err != nil {
-			return nil, fmt.Errorf("could not get merge request: %w", err)
-		}
-
-		files[path] = file
-	}
-
-	return toK8sObjects(files, fs)
-}
-
-func GetFilesForPullRequest(ctx context.Context, gh *ghAPI.Client, org, repoName string, fs WeGODirectoryFS) (WeGODirectoryFS, error) {
-	files, _, err := gh.PullRequests.ListFiles(ctx, org, repoName, 1, &ghAPI.ListOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("error listing files for %q: %w", repoName, err)
-	}
-
-	return GetFileContents(ctx, gh, org, repoName, fs, files)
 }
 
 func CreatePopulatedSourceRepo(ctx context.Context, gp gitprovider.Client, url string) (gitprovider.OrgRepository, *gitprovider.OrgRepositoryRef, error) {
