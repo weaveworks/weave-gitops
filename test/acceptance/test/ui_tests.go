@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 	"runtime"
-	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
