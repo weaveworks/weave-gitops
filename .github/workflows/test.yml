@@ -119,8 +119,6 @@ jobs:
     timeout-minutes: 60
     steps:
     - uses: actions/checkout@v2
-    - name: Setup upterm session
-      uses: lhotari/action-upterm@v1
     - uses: ./.github/actions/run-acceptance-test
       with:
         result-prefix: 'smoke-'

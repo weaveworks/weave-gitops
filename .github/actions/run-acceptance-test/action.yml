@@ -83,6 +83,8 @@ runs:
       git config --global user.email "weave-test-user@example.com"
       git config --global user.name "Testy McTestFace"
       git config --global url.ssh://git@github.com/.insteadOf https://github.com/
+  - name: Setup upterm session
+    uses: lhotari/action-upterm@v1
   - name: Run Full Acceptance Suite Except Kustomize Add Tests
     shell: bash
     env:
