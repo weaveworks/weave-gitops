@@ -421,8 +421,7 @@ var _ = Describe("AddApplication", func() {
 			org = os.Getenv("GITLAB_ORG")
 			token := os.Getenv("GITLAB_TOKEN")
 			ctx = middleware.ContextWithGRPCAuth(context.Background(), token)
-			// group := "weave-gitops"
-			// project := "weave-gitops-test"
+
 			gp, err = gitlab.NewClient(
 				token,
 				"oauth2",
@@ -506,6 +505,106 @@ var _ = Describe("AddApplication", func() {
 				ConfigURL:      req.Url,
 				DeploymentType: wego.DeploymentTypeKustomize,
 				SourceType:     wego.SourceTypeGit,
+			}
+
+			expected := helpers.GenerateExpectedFS(req, root, clusterName, expectedApp, expectedKustomization, expectedSource)
+
+			diff, err := helpers.DiffFS(actual, expected)
+			if err != nil {
+				GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
+			}
+		})
+		It("adds an app with an external config repo", func() {
+			org = os.Getenv("GITLAB_ORG")
+			token := os.Getenv("GITLAB_TOKEN")
+			ctx = middleware.ContextWithGRPCAuth(context.Background(), token)
+
+			gp, err = gitlab.NewClient(
+				token,
+				"oauth2",
+				gitprovider.WithDestructiveAPICalls(true),
+			)
+			Expect(err).NotTo(HaveOccurred())
+
+			sourceRepoURL := fmt.Sprintf("https://gitlab.com/%s/%s", org, sourceRepoName)
+			configRepoURL := fmt.Sprintf("https://gitlab.com/%s/%s", org, configRepoName)
+
+			configRepo, configRef, err := helpers.CreateRepo(ctx, gp, configRepoURL)
+			Expect(err).NotTo(HaveOccurred())
+
+			defer func() { Expect(configRepo.Delete(ctx)).To(Succeed()) }()
+
+			sourceRepo, sourceRef, err := helpers.CreatePopulatedSourceRepo(ctx, gp, sourceRepoURL)
+			Expect(err).NotTo(HaveOccurred())
+
+			defer func() { Expect(sourceRepo.Delete(ctx)).To(Succeed()) }()
+
+			req := &pb.AddApplicationRequest{
+				Name:      "my-app",
+				Namespace: namespace.Name,
+				Url:       sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+				Branch:    "main",
+				Path:      "k8s/overlays/development",
+				ConfigUrl: configRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+			}
+
+			res, err := client.AddApplication(ctx, req)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res.Success).To(BeTrue(), "request should have been successful")
+
+			_, err = configRepo.DeployKeys().Get(ctx, gitproviders.DeployKeyName)
+			Expect(err).NotTo(HaveOccurred(), "deploy key should have been found")
+
+			prs, err := configRepo.PullRequests().List(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(prs).To(HaveLen(1))
+
+			root := helpers.ExternalConfigRoot
+			fs := helpers.MakeWeGOFS(root, req.Name, clusterName)
+
+			fetcher, err := helpers.NewFileFetcher(gitproviders.GitProviderGitLab, token)
+			Expect(err).NotTo(HaveOccurred())
+
+			actual, err := fetcher.GetFilesForPullRequest(ctx, 1, org, configRepoName, fs)
+			Expect(err).NotTo(HaveOccurred())
+
+			normalizedUrl, err := gitproviders.NewRepoURL(req.Url)
+			Expect(err).NotTo(HaveOccurred())
+
+			expectedApp := wego.ApplicationSpec{
+				URL:            normalizedUrl.String(),
+				Branch:         req.Branch,
+				Path:           req.Path,
+				ConfigURL:      req.ConfigUrl,
+				DeploymentType: wego.DeploymentTypeKustomize,
+				SourceType:     wego.SourceTypeGit,
+			}
+
+			expectedKustomization := kustomizev1.KustomizationSpec{
+				Path:     "./" + req.Path,
+				Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
+				Prune:    true,
+				SourceRef: kustomizev1.CrossNamespaceSourceReference{
+					Name: req.Name,
+					Kind: sourcev1.GitRepositoryKind,
+				},
+				Force: false,
+			}
+
+			repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+			Expect(err).NotTo(HaveOccurred())
+
+			expectedSource := sourcev1.GitRepositorySpec{
+				URL: req.Url,
+				SecretRef: &meta.LocalObjectReference{
+					// Might be a bug? Should be configRepoURL?
+					Name: automation.CreateRepoSecretName(repoURL).String(),
+				},
+				Interval: metav1.Duration{Duration: time.Duration(30 * time.Second)},
+				Reference: &sourcev1.GitRepositoryRef{
+					Branch: req.Branch,
+				},
+				Ignore: helpers.GetIgnoreSpec(),
 			}
 
 			expected := helpers.GenerateExpectedFS(req, root, clusterName, expectedApp, expectedKustomization, expectedSource)
