@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package wego_profiles.v1;
+
+option go_package = "github.com/weaveworks/weave-gitops/pkg/api/profiles";
+
+import "google/api/annotations.proto";
+import "google/api/httpbody.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+    info: {
+      title: "WeGo Profiles API",
+      version: "0.1";
+      description: "The WeGo Profiles API handles operations for Weave GitOps Profiles";
+    };
+    consumes: "profiles/json";
+    produces: "profiles/json";
+};
+
+service Profiles {
+    // GetProfiles returns a list of profiles
+    // from the cluster.
+    rpc GetProfiles(GetProfilesRequest)
+        returns (GetProfilesResponse){
+        option (google.api.http) = {
+            get: "/v1/profiles"
+        };
+    }
+
+    // GetProfileValues returns a list of values for 
+    // a given version of a profile from the cluster.
+    rpc GetProfileValues(GetProfileValuesRequest)
+    returns (google.api.HttpBody){
+        option (google.api.http) = {
+            get: "/v1/profiles/{profile_name}/{profile_version}/values"
+        };
+    }
+}
+
+message Maintainer {
+  string name = 1;
+  string email = 2;
+  string url = 3;
+}
+
+message HelmRepository {
+  string name = 1;
+  string namespace = 2;
+}
+
+message Profile {
+  string name = 1;
+  string home = 2;
+  repeated string sources = 3;
+  string description = 4;
+  repeated string keywords = 5;
+  repeated Maintainer maintainers = 6;
+  string icon = 7;
+  map<string, string> annotations = 8;
+  string kube_version = 9;
+  HelmRepository helm_repository = 10;
+  repeated string available_versions = 11;
+}
+
+message GetProfilesRequest {
+}
+
+message GetProfilesResponse {
+  repeated Profile profiles = 1;
+}
+
+message GetProfileValuesRequest {
+  string profile_name = 1;
+  string profile_version = 2;
+}
+
+message GetProfileValuesResponse{
+  // The base64 encoded values file of the profile.
+  string values = 1;
+}
+
+message ProfileValues {
+  string name = 1;
+  string version = 2;
+  string values = 3;
+}

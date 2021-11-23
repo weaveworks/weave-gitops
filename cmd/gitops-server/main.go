@@ -45,7 +45,7 @@ func NewAPIServerCommand() *cobra.Command {
 				return err
 			}
 
-			cfg.Logger.Info("server staring", "address", addr)
+			cfg.Logger.Info("server starting", "address", addr)
 			return http.ListenAndServe(addr, s)
 		},
 	}
