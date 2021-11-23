@@ -49,7 +49,7 @@ var _ = Describe("Remover", func() {
 
 			_, err = os.Stat(appPath)
 			Expect(err).NotTo(BeNil(), "error should not be nil")
-			Expect(os.IsNotExist(err)).To(BeTrue(), "should have had an IsNotExist error")
+			Expect(os.IsNotExist(err)).To(BeTrue(), "the app yaml should not exist in the repo")
 		})
 		It("removes application auto-merge false", func() {
 			ctx := context.Background()
