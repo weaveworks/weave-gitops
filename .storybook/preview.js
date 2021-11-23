@@ -5,6 +5,14 @@ export const parameters = {
       color: /(background|color)$/i,
       date: /Date$/,
     },
+    exclude: [
+      "as",
+      "theme",
+      "forwardedAs",
+      //from MUI ButtonProps
+      "ref",
+      "children",
+    ],
   },
   previewTabs: { "storybook/docs/panel": { index: -1 } },
 };
