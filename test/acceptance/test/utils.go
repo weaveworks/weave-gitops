@@ -719,15 +719,14 @@ func initializeWebDriver(os string) {
 }
 
 func takeScreenshot() string {
-	log.Infof("Screenshot function initiated")
-
 	if webDriver != nil {
 		t := time.Now()
 		name := t.Format("Mon-02-Jan-2006-15.04.05.000000")
 		filepath := path.Join(setArtifactsDir(), SCREENSHOTS_DIR, name+".png")
 		_ = webDriver.Screenshot(filepath)
 
-		return filepath
+		logMsg := ("Screenshot function has been initiated; screenshot is saved in file: " + filepath + "\n")
+		return logMsg
 	}
 
 	return ""
