@@ -17,16 +17,18 @@ type Remover interface {
 
 type RepoPusher func(client git.Git) error
 
-func NewRemover(gitClient git.Git, gitProvider gitproviders.GitProvider) Remover {
+func NewRemover(gitClient git.Git, gitProvider gitproviders.GitProvider, pusher RepoPusher) Remover {
 	return remover{
 		gitClient:   gitClient,
 		gitProvider: gitProvider,
+		pusher:      pusher,
 	}
 }
 
 type remover struct {
 	gitClient   git.Git
 	gitProvider gitproviders.GitProvider
+	pusher      RepoPusher
 }
 
 func (r remover) Remove(ctx context.Context, appName string, namespace string, autoMerge bool) error {

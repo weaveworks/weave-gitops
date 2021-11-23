@@ -25,6 +25,8 @@ func (lg *localGitRepo) PlainOpen(_ string) (*gogit.Repository, error) {
 	return gogit.PlainOpen(lg.path)
 }
 
+func pusher(gc git.Git) error
+
 var _ = Describe("Remover", func() {
 	Describe(".Remove()", func() {
 		It("removes application auto-merge true", func() {
@@ -40,7 +42,7 @@ var _ = Describe("Remover", func() {
 
 			orgProvider := &gitprovidersfakes.FakeGitProvider{}
 
-			remover := NewRemover(gc, orgProvider)
+			remover := NewRemover(gc, orgProvider, pusher)
 
 			err := remover.Remove(ctx, "my-app", "wego-system", true)
 			Expect(err).NotTo(HaveOccurred())
