@@ -728,7 +728,6 @@ func takeScreenshot() string {
 		logMsg := ("Screenshot function has been initiated; screenshot is saved in file: " + filepath + "\n")
 
 		return logMsg
-
 	}
 
 	return ""
