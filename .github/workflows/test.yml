@@ -127,6 +127,7 @@ jobs:
         github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
         gitlab-key: ${{ secrets.GITLAB_KEY }}
         gitlab-token: ${{ secrets.GITLAB_TOKEN }}
+        gitlab-org: ${{ secrets.GITLAB_ORG }}
         artifacts-base-dir: "/tmp/gitops-test"
 
   smoke-tests-long:

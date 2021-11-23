@@ -14,6 +14,9 @@ inputs:
   github-token:
     description: "Token for accessing GitHub"
     required: true
+  gitlab-org:
+    description: "Gitlab organization"
+    required: true
   gitlab-key:
     description: "Key for accessing GitLab"
     required: true
@@ -79,7 +82,7 @@ runs:
       GITHUB_TOKEN: ${{ inputs.github-token }}
       GITHUB_KEY: ${{ inputs.github-key }}
       IS_TEST_ENV: "true"
-      GITLAB_ORG: weave-gitops
+      GITLAB_ORG: ${{ inputs.gitlab-org }}
       GITLAB_PUBLIC_GROUP: public-weave-gitops
       GITLAB_SUBGROUP: weave-gitops-sub
       GITLAB_TOKEN: ${{ inputs.gitlab-token }}
@@ -96,17 +99,6 @@ runs:
       git config --global user.email "weave-test-user@example.com"
       git config --global user.name "Testy McTestFace"
       git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-    env:
-      GITHUB_ORG: weaveworks-gitops-test
-      GITHUB_TOKEN: ${{ inputs.github-token }}
-      GITHUB_KEY: ${{ inputs.github-key }}
-      IS_TEST_ENV: "true"
-      GITLAB_ORG: weave-gitops
-      GITLAB_PUBLIC_GROUP: public-weave-gitops
-      GITLAB_SUBGROUP: weave-gitops-sub
-      GITLAB_TOKEN: ${{ inputs.gitlab-token }}
-      GITLAB_KEY: ${{ inputs.gitlab-key }}
-      ARTIFACTS_BASE_DIR: ${{ inputs.artifacts-base-dir }}
   - name: Run Full Acceptance Suite Except Kustomize Add Tests
     shell: bash
     env:
@@ -114,7 +106,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         GITHUB_KEY: ${{ inputs.github-key }}
         IS_TEST_ENV: "true"
-        GITLAB_ORG: ${{ secrets.GITLAB_ORG }}
+        GITLAB_ORG: ${{ inputs.gitlab-org }}
         GITLAB_PUBLIC_GROUP: public-weave-gitops
         GITLAB_SUBGROUP: weave-gitops-sub
         GITLAB_TOKEN: ${{ inputs.gitlab-token }}
