@@ -72,6 +72,8 @@ runs:
     shell: bash
     run: |
       make dependencies
+  - name: Setup upterm session
+    uses: lhotari/action-upterm@v1
   - name: Set up ssh
     uses: ./.github/actions/setup-ssh
     with:
@@ -83,8 +85,6 @@ runs:
       git config --global user.email "weave-test-user@example.com"
       git config --global user.name "Testy McTestFace"
       git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-  - name: Setup upterm session
-    uses: lhotari/action-upterm@v1
     env:
       GITHUB_ORG: weaveworks-gitops-test
       GITHUB_TOKEN: ${{ inputs.github-token }}
