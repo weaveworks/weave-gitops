@@ -726,6 +726,7 @@ func takeScreenshot() string {
 		_ = webDriver.Screenshot(filepath)
 
 		logMsg := ("Screenshot function has been initiated; screenshot is saved in file: " + filepath + "\n")
+
 		return logMsg
 	}
 
