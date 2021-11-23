@@ -4,6 +4,13 @@ import Alert from "../components/Alert";
 
 export default {
   title: "Alert",
+  parameters: {
+    docs: {
+      description: {
+        component: "MUI Material Alert - see https://mui.com/components/alert/",
+      },
+    },
+  },
   component: Alert,
   argTypes: {
     center: {
@@ -13,7 +20,7 @@ export default {
       type: { summary: "boolean", name: "boolean", required: false },
     },
     title: {
-      description: "text for Mui's `<AlertTitle />` component - see",
+      description: "text for Mui's `<AlertTitle />` component",
       defaultValue: "Title",
       type: { summary: "string", name: "string", required: false },
     },
@@ -26,7 +33,7 @@ export default {
       control: "radio",
     },
     message: {
-      description: "Modal Content",
+      description: "Appears under `title`",
       defaultValue: "Message / JSX goes here!",
       type: {
         summary: "string | JSX.Element",
@@ -43,4 +50,10 @@ export default {
 
 const Template: Story = (args) => <Alert {...args} />;
 
-export const Default = Template.bind({});
+export const Success = Template.bind({});
+export const Error = Template.bind({});
+Error.args = { severity: "error" };
+export const Warning = Template.bind({});
+Warning.args = { severity: "warning" };
+export const Info = Template.bind({});
+Info.args = { severity: "info" };

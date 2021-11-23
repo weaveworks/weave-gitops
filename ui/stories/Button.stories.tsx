@@ -5,6 +5,14 @@ import Button from "../components/Button";
 export default {
   title: "Button",
   component: Button,
+  parameters: {
+    docs: {
+      description: {
+        component:
+          "MUI Material Button - see https://mui.com/components/buttons/",
+      },
+    },
+  },
   argTypes: {
     color: {
       description:

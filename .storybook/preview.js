@@ -6,6 +6,7 @@ export const parameters = {
       date: /Date$/,
     },
   },
+  previewTabs: { "storybook/docs/panel": { index: -1 } },
 };
 
 import { MuiThemeProvider } from "@material-ui/core";
