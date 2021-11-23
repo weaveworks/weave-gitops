@@ -15,6 +15,8 @@ type Remover interface {
 	Remove(ctx context.Context, appName string, namespace string, autoMerge bool) error
 }
 
+type RepoPusher func(client git.Git) error
+
 func NewRemover(gitClient git.Git, gitProvider gitproviders.GitProvider) Remover {
 	return remover{
 		gitClient:   gitClient,
