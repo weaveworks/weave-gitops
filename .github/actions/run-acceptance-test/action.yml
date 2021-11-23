@@ -114,7 +114,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         GITHUB_KEY: ${{ inputs.github-key }}
         IS_TEST_ENV: "true"
-        GITLAB_ORG: weave-gitops
+        GITLAB_ORG: ${{ secrets.GITLAB_ORG }}
         GITLAB_PUBLIC_GROUP: public-weave-gitops
         GITLAB_SUBGROUP: weave-gitops-sub
         GITLAB_TOKEN: ${{ inputs.gitlab-token }}
