@@ -37,6 +37,13 @@ type CredentialsRetriever interface {
 	RetrieveCredentials() ([]Credentials, error)
 }
 
+// ProfilesRetriever defines the interface that adapters
+// need to implement in order to return an array of profiles.
+type ProfilesRetriever interface {
+	Source() string
+	RetrieveProfiles() ([]Profile, error)
+}
+
 type Template struct {
 	Name        string
 	Description string
@@ -70,6 +77,31 @@ type CreatePullRequestFromTemplateParams struct {
 	Description      string
 	CommitMessage    string
 	Credentials      Credentials
+}
+
+type Profile struct {
+	Name              string
+	Home              string
+	Sources           []string
+	Description       string
+	Keywords          []string
+	Maintainers       []Maintainer
+	Icon              string
+	Annotations       map[string]string
+	KubeVersion       string
+	HelmRepository    HelmRepository
+	AvailableVersions []string
+}
+
+type HelmRepository struct {
+	Name      string
+	Namespace string
+}
+
+type Maintainer struct {
+	Name  string
+	Email string
+	Url   string
 }
 
 // GetTemplates uses a TemplatesRetriever adapter to show
@@ -215,6 +247,32 @@ func GetCredentials(r CredentialsRetriever, w io.Writer) error {
 	}
 
 	fmt.Fprintf(w, "No credentials were found.\n")
+
+	return nil
+}
+
+// GetProfiles uses a ProfilesRetriever adapter to show
+// a list of profiles to the console.
+func GetProfiles(r ProfilesRetriever, w io.Writer) error {
+	ps, err := r.RetrieveProfiles()
+	if err != nil {
+		return fmt.Errorf("unable to retrieve profiles from %q: %w", r.Source(), err)
+	}
+
+	if len(ps) > 0 {
+		fmt.Fprintf(w, "NAME\tHOME\tDESCRIPTION\t\n")
+
+		for _, p := range ps {
+			fmt.Fprintf(w, "%s", p.Name)
+			fmt.Fprintf(w, "\t%s", p.Home)
+			fmt.Fprintf(w, "\t%s", p.Description)
+			fmt.Fprintln(w, "")
+		}
+
+		return nil
+	}
+
+	fmt.Fprintf(w, "No profiles were found.\n")
 
 	return nil
 }
