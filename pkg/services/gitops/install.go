@@ -72,7 +72,11 @@ func (g *Gitops) Install(params InstallParams) (map[string][]byte, error) {
 			version = "latest"
 		}
 
-		wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.WegoAppParams{Version: version, Namespace: params.Namespace})
+		wegoAppManifests, err := manifests.GenerateManifests(manifests.Params{
+			AppVersion:      version,
+			ProfilesVersion: version,
+			Namespace:       params.Namespace,
+		})
 		if err != nil {
 			return nil, fmt.Errorf("error generating wego-app manifests, %w", err)
 		}

@@ -24,6 +24,10 @@ ifeq ($(BINARY_NAME),)
 BINARY_NAME := gitops
 endif
 
+ifeq ($(PROFILES_BINARY_NAME),)
+PROFILES_BINARY_NAME := profiles-server
+endif
+
 .PHONY: bin
 
 all: gitops ## Install dependencies and build Gitops binary
@@ -53,6 +57,7 @@ debug: ## Compile binary with optimisations and inlining disabled
 
 bin: ## Build gitops binary
 	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) cmd/gitops/*.go
+	go build -ldflags $(LDFLAGS) -o bin/$(PROFILES_BINARY_NAME) cmd/profiles-server/*.go
 
 docker: ## Build wego-app docker image
 	docker build -t ghcr.io/weaveworks/wego-app:latest .

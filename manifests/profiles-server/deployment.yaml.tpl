@@ -1,24 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: wego-app
+  name: profiles-server
   namespace: {{.Namespace}}
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: wego-app
+        app: profiles-server
     spec:
-      serviceAccountName: wego-app-service-account
+      serviceAccountName: profiles-server-service-account
       containers:
-        - name: wego-app
-          image: ghcr.io/weaveworks/wego-app:{{.AppVersion}}
-          args: ["ui", "run", "-l"]
+        - name: profiles-server
+          image: niki2401/profiles-server:{{.ProfilesVersion}}
           ports:
-            - containerPort: 9001
+            - containerPort: 8000
               protocol: TCP
           imagePullPolicy: IfNotPresent
   selector:
     matchLabels:
-      app: wego-app
+      app: profiles-server
