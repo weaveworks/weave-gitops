@@ -1,12 +1,10 @@
 package acceptance
 
 import (
-	"fmt"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	"time"
 )
 
 var _ = Describe("Weave GitOps Version Test", func() {
@@ -18,11 +16,6 @@ var _ = Describe("Weave GitOps Version Test", func() {
 		By("Given I have a gitops binary installed on my local machine", func() {
 			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
 		})
-	})
-
-	It("JustHang", func() {
-		fmt.Println("sleep for one hour")
-		time.Sleep(time.Hour * 3)
 	})
 
 	It("SmokeTestShort - Verify that command gitops version prints the version information", func() {
