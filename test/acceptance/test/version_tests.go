@@ -25,7 +25,7 @@ var _ = Describe("Weave GitOps Version Test", func() {
 		time.Sleep(time.Hour * 3)
 	})
 
-	It("SmokeTest - Verify that command gitops version prints the version information", func() {
+	It("SmokeTestShort - Verify that command gitops version prints the version information", func() {
 
 		By("When I run the command 'gitops version'", func() {
 			session = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " version")
