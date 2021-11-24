@@ -2,7 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 /*eslint import/no-unresolved: [0]*/
 // @ts-ignore
-import logoSrc from "url:../assets/images/logo.svg";
+import logoSrc from "url:../images/logo.svg";
 import Spacer from "./Spacer";
 
 type Props = {
