@@ -1,8 +1,11 @@
 name: "Setup SSH"
 description: "Setup SSH keys and known hosts"
 inputs:
-  ssh-private-key:
-    description: "ssh keys to load"
+  github-ssh-private-key:
+    description: "github ssh keys to load"
+    required: true
+  gitlab-ssh-private-key:
+    description: "gitlab ssh keys to load"
     required: true
 runs:
   using: "composite"
@@ -11,8 +14,8 @@ runs:
       uses: webfactory/ssh-agent@v0.5.2
       with:
         ssh-private-key: |
-          ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
-          ${{ secrets.GITLAB_KEY }}
+          ${{ inputs.github-ssh-private-key }}
+          ${{ inputs.gitlab-ssh-private-key }}
     - name: Add known_hosts
       shell: bash
       run: |

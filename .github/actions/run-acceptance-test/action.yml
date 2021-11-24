@@ -91,7 +91,8 @@ runs:
   - name: Set up ssh
     uses: ./.github/actions/setup-ssh
     with:
-      ssh-private-key: ${{ inputs.github-key }}
+      github-ssh-private-key: ${{ inputs.github-key }}
+      gitlab-ssh-private-key: ${{ inputs.gitlab-key }}
   - name: Configure git settings
     shell: bash
     run: |
