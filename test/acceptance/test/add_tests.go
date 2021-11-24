@@ -518,7 +518,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	It("Test2 - Verify that gitops can deploy multiple workloads from a single app repo", func() {
+	XIt("Test2 - Verify that gitops can deploy multiple workloads from a single app repo", func() {
 		var repoAbsolutePath string
 		tip1 := generateTestInputs()
 		tip2 := generateTestInputs()
