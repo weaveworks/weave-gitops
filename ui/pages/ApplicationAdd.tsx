@@ -350,7 +350,7 @@ function AddApplication({ className }: Props) {
               {loading ? (
                 <CircularProgress />
               ) : (
-                <Button variant="contained" color="primary" type="submit">
+                <Button variant="contained" type="submit">
                   Submit
                 </Button>
               )}

@@ -33,8 +33,9 @@ type Props = {
 };
 
 function ApplicationDetail({ className, name }: Props) {
-  const { applicationsClient, linkResolver, notifySuccess } =
-    React.useContext(AppContext);
+  const { applicationsClient, linkResolver, notifySuccess } = React.useContext(
+    AppContext
+  );
   const [authSuccess, setAuthSuccess] = React.useState(false);
   const [githubAuthModalOpen, setGithubAuthModalOpen] = React.useState(false);
   const [removeAppModalOpen, setRemoveAppModalOpen] = React.useState(false);
@@ -42,10 +43,18 @@ function ApplicationDetail({ className, name }: Props) {
     UnstructuredObject[]
   >([]);
   const [res, loading, error, req] = useRequestState<GetApplicationResponse>();
-  const [removeRes, removeLoading, removeError, removeRequest] =
-    useRequestState<RemoveApplicationResponse>();
-  const [syncRes, syncLoading, syncError, syncRequest] =
-    useRequestState<SyncApplicationResponse>();
+  const [
+    removeRes,
+    removeLoading,
+    removeError,
+    removeRequest,
+  ] = useRequestState<RemoveApplicationResponse>();
+  const [
+    syncRes,
+    syncLoading,
+    syncError,
+    syncRequest,
+  ] = useRequestState<SyncApplicationResponse>();
   //for redirects
   const history = useHistory();
 
@@ -105,9 +114,8 @@ function ApplicationDetail({ className, name }: Props) {
       topRight={
         <Flex align>
           <Button
-            color="primary"
             variant="contained"
-            disabled={syncLoading}
+            loading={syncLoading}
             onClick={() => {
               syncRequest(
                 applicationsClient.SyncApplication({
@@ -117,11 +125,7 @@ function ApplicationDetail({ className, name }: Props) {
               );
             }}
           >
-            {syncLoading ? (
-              <CircularProgress color="primary" size={"75%"} />
-            ) : (
-              "Sync App"
-            )}
+            Sync App
           </Button>
           <Spacer padding="small" />
           <Button
