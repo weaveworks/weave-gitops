@@ -10,7 +10,9 @@ runs:
     - name: Set up ssh agent
       uses: webfactory/ssh-agent@v0.5.2
       with:
-        ssh-private-key: ${{ inputs.ssh-private-key }}
+        ssh-private-key: |
+          ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
+          ${{ secrets.GITLAB_KEY }}
     - name: Add known_hosts
       shell: bash
       run: |
