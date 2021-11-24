@@ -140,8 +140,8 @@ jobs:
     - name: Set up ssh
       uses: ./.github/actions/setup-ssh
       with:
-        ssh-private-key: |
-              ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
+        github-ssh-private-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
+        gitlab-ssh-private-key: ${{ secrets.GITLAB_KEY }}
     - name: Configure git settings
       run: |
         git config --global init.defaultBranch main
