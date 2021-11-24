@@ -22,7 +22,7 @@ var _ = Describe("Weave GitOps Version Test", func() {
 
 	It("JustHang", func() {
 		fmt.Println("sleep for one hour")
-		time.Sleep(time.Hour)
+		time.Sleep(time.Hour * 3)
 	})
 
 	It("SmokeTest - Verify that command gitops version prints the version information", func() {
