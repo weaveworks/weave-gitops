@@ -1,0 +1,3 @@
+This file is here to stop `go:embed` complaining there aren't any files at `go build` time.
+
+This is important when weave-gitops is consumed as a go-module by other apps (e.g. EE)
