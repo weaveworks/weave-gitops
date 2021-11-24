@@ -1,7 +1,9 @@
 #!/bin/bash
 
 echo "Delete all kustomizations"
-kubectl delete -n $1 kustomizations.kustomize.toolkit.fluxcd.io --all
+kubectl delete -n $1 kustomizations.kustomize.toolkit.fluxcd.io --all --timeout=20s
+cc="$(kubectl config current-context)"
+kubectl patch "kustomization/$cc-system" -n $1 -p '{"metadata":{"finalizers":[]}}' --type=merge
 echo "Delete all gitrepositories"
 kubectl delete -n $1 gitrepositories.source.toolkit.fluxcd.io --all
 echo "Delete all helmrepositories"
