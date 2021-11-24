@@ -51,6 +51,8 @@ exports[`Page snapshots default 1`] = `
 .c1 {
   max-width: 1400px;
   margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
   background-color: #fff;
   padding-left: 32px;
   padding-right: 32px;

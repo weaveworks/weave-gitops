@@ -15,9 +15,14 @@ type ClustersRetriever interface {
 }
 
 type Cluster struct {
-	Name            string
-	Status          string
-	PullRequestType string
+	Name        string      `json:"name"`
+	Status      string      `json:"status"`
+	PullRequest PullRequest `json:"pullRequest"`
+}
+
+type PullRequest struct {
+	Type string `json:"type"`
+	Url  string `json:"url"`
 }
 
 // GetClusters uses a ClustersRetriever adapter to show
@@ -29,17 +34,10 @@ func GetClusters(r ClustersRetriever, w io.Writer) error {
 	}
 
 	if len(cs) > 0 {
-		fmt.Fprintf(w, "NAME\tSTATUS\n")
+		fmt.Fprintf(w, "NAME\tSTATUS\tSTATUS_MESSAGE\n")
 
 		for _, c := range cs {
-			if c.PullRequestType == "create" {
-				c.Status = "Creation PR"
-			} else if c.PullRequestType == "delete" {
-				c.Status = "Deletion PR"
-			}
-
-			fmt.Fprintf(w, "%s\t%s", c.Name, c.Status)
-			fmt.Fprintln(w, "")
+			printCluster(c, w)
 		}
 
 		return nil
@@ -59,18 +57,11 @@ func GetClusterByName(name string, r ClustersRetriever, w io.Writer) error {
 	}
 
 	if len(cs) > 0 {
-		fmt.Fprintf(w, "NAME\tSTATUS\n")
+		fmt.Fprintf(w, "NAME\tSTATUS\tSTATUS_MESSAGE\n")
 
 		for _, c := range cs {
 			if c.Name == name {
-				if c.PullRequestType == "create" {
-					c.Status = "Creation PR"
-				} else if c.PullRequestType == "delete" {
-					c.Status = "Deletion PR"
-				}
-
-				fmt.Fprintf(w, "%s\t%s", c.Name, c.Status)
-				fmt.Fprintln(w, "")
+				printCluster(c, w)
 			}
 		}
 
@@ -105,11 +96,28 @@ func DeleteClusters(params DeleteClustersParams, r ClustersRetriever, w io.Write
 }
 
 type DeleteClustersParams struct {
-	RepositoryURL string
-	HeadBranch    string
-	BaseBranch    string
-	Title         string
-	Description   string
-	ClustersNames []string
-	CommitMessage string
+	GitProviderToken string
+	RepositoryURL    string
+	HeadBranch       string
+	BaseBranch       string
+	Title            string
+	Description      string
+	ClustersNames    []string
+	CommitMessage    string
+}
+
+func printCluster(c Cluster, w io.Writer) {
+	if c.Status == "pullRequestCreated" && c.PullRequest.Type == "create" {
+		c.Status = "Creation PR"
+	} else if c.PullRequest.Type == "delete" {
+		c.Status = "Deletion PR"
+	}
+
+	if c.Status == "Creation PR" || c.Status == "Deletion PR" {
+		fmt.Fprintf(w, "%s\t%s\t%s", c.Name, c.Status, c.PullRequest.Url)
+		fmt.Fprintln(w, "")
+	} else {
+		fmt.Fprintf(w, "%s\t%s", c.Name, c.Status)
+		fmt.Fprintln(w, "")
+	}
 }

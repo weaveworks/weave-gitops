@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -198,4 +199,18 @@ func SetupFlux() (flux.Flux, string, error) {
 	}
 
 	return realFlux, dir, nil
+}
+
+func Setenv(k, v string) func() {
+	prev := os.Environ()
+	os.Setenv(k, v)
+
+	return func() {
+		os.Unsetenv(k)
+
+		for _, kv := range prev {
+			parts := strings.SplitN(kv, "=", 2)
+			os.Setenv(parts[0], parts[1])
+		}
+	}
 }

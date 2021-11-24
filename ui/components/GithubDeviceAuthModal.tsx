@@ -2,8 +2,10 @@ import { CircularProgress } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
 import useAuth from "../hooks/auth";
-import { GetGithubDeviceCodeResponse } from "../lib/api/applications/applications.pb";
-import { GitProviderName } from "../lib/types";
+import {
+  GetGithubDeviceCodeResponse,
+  GitProvider,
+} from "../lib/api/applications/applications.pb";
 import Alert from "./Alert";
 import Button from "./Button";
 import Flex from "./Flex";
@@ -124,7 +126,7 @@ function GithubDeviceAuthModal({
         ) : (
           <ModalContent
             onSuccess={(token) => {
-              storeProviderToken(GitProviderName.GitHub, token);
+              storeProviderToken(GitProvider.GitHub, token);
               onSuccess(token);
               onClose();
             }}

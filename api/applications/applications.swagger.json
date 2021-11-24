@@ -135,6 +135,68 @@
         ]
       }
     },
+    "/v1/applications/auth_providers/gitlab": {
+      "get": {
+        "operationId": "Applications_GetGitlabAuthURL",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetGitlabAuthURLResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "redirectUri",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Applications"
+        ]
+      }
+    },
+    "/v1/applications/auth_providers/gitlab/authorize": {
+      "post": {
+        "operationId": "Applications_AuthorizeGitlab",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AuthorizeGitlabResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1AuthorizeGitlabRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Applications"
+        ]
+      }
+    },
     "/v1/applications/child_objects": {
       "post": {
         "summary": "GetChildObjects returns the children of a given object, specified by a GroupVersionKind.\nNot all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.",
@@ -161,6 +223,37 @@
             "schema": {
               "$ref": "#/definitions/v1GetChildObjectsReq"
             }
+          }
+        ],
+        "tags": [
+          "Applications"
+        ]
+      }
+    },
+    "/v1/applications/parse_repo_url": {
+      "get": {
+        "summary": "ParseRepoURL returns structured data about a git repository URL",
+        "operationId": "Applications_ParseRepoURL",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ParseRepoURLResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -567,6 +660,25 @@
         }
       }
     },
+    "v1AuthorizeGitlabRequest": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "redirectUri": {
+          "type": "string"
+        }
+      }
+    },
+    "v1AuthorizeGitlabResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        }
+      }
+    },
     "v1AutomationKind": {
       "type": "string",
       "enum": [
@@ -685,6 +797,14 @@
         }
       }
     },
+    "v1GetGitlabAuthURLResponse": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string"
+        }
+      }
+    },
     "v1GetReconciledObjectsRes": {
       "type": "object",
       "properties": {
@@ -695,6 +815,15 @@
           }
         }
       }
+    },
+    "v1GitProvider": {
+      "type": "string",
+      "enum": [
+        "Unknown",
+        "GitHub",
+        "GitLab"
+      ],
+      "default": "Unknown"
     },
     "v1GroupVersionKind": {
       "type": "object",
@@ -813,6 +942,20 @@
           "type": "integer",
           "format": "int32",
           "description": "A pagination token returned from a previous call\nthat indicates from where listing should continue."
+        }
+      }
+    },
+    "v1ParseRepoURLResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "provider": {
+          "$ref": "#/definitions/v1GitProvider"
+        },
+        "owner": {
+          "type": "string"
         }
       }
     },

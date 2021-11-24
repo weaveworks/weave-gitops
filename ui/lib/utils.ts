@@ -26,22 +26,8 @@ export function notifyError(message: string) {
   toast["error"](`Error: ${message}`);
 }
 
-const tokenKey = (providerName: string) => `gitProviderToken_${providerName}`;
-
-export function storeProviderToken(providerName: string, token: string) {
-  if (!window.localStorage) {
-    console.warn("no local storage found");
-    return;
-  }
-
-  localStorage.setItem(tokenKey(providerName), token);
-}
-
-export function getProviderToken(providerName: string): string {
-  if (!window.localStorage) {
-    console.warn("no local storage found");
-    return;
-  }
-
-  return localStorage.getItem(tokenKey(providerName));
+// Must be one of the valid URLs that we have already
+// configured on the Gitlab backend for our Oauth app.
+export function gitlabOAuthRedirectURI() {
+  return `${window.location.origin}${PageRoute.GitlabOAuthCallback}`;
 }

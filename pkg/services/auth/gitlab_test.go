@@ -6,12 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth/internal"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth/types"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth/types/typesfakes"
-	fakehttp "github.com/weaveworks/weave-gitops/pkg/vendorfakes/http"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -19,6 +13,13 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth/internal"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth/types"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth/types/typesfakes"
+	fakehttp "github.com/weaveworks/weave-gitops/pkg/vendorfakes/http"
 )
 
 func roundTripperErrorStub(*http.Request) (*http.Response, error) {
@@ -359,5 +360,41 @@ var _ = Describe("Gitlab auth flow end-to-end", func() {
 		Expect(returnedErr).To(BeNil())
 		Expect(returnedValue).To(Equal("keep-it-secret-keep-it-safe"))
 		Expect(writer.String()).To(Equal(cliOutputSuccess()))
+	})
+})
+
+var _ = Describe("GitlabAuthClient", func() {
+	It("AuthURL", func() {
+		rt := fakehttp.FakeRoundTripper{}
+		rt.RoundTripReturns(&http.Response{}, nil)
+		c := NewGitlabAuthClient(&http.Client{Transport: &rt})
+
+		u, err := c.AuthURL(context.Background(), "http://example.com:9999/oauth/callback")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(u.Hostname()).To(Equal("gitlab.com"))
+		Expect(u.Scheme).To(Equal("https"))
+	})
+	It("ExchangeCode", func() {
+		rt := fakehttp.FakeRoundTripper{}
+		res := &http.Response{StatusCode: http.StatusOK}
+
+		rs := &internal.GitlabTokenResponse{
+			AccessToken: "this-is-a-secret",
+			ExpiresIn:   1600,
+		}
+		b, err := json.Marshal(rs)
+		Expect(err).NotTo(HaveOccurred())
+
+		res.Body = ioutil.NopCloser(bytes.NewReader(b))
+
+		rt.RoundTripReturns(res, nil)
+
+		c := NewGitlabAuthClient(&http.Client{Transport: &rt})
+
+		tokenState, err := c.ExchangeCode(context.Background(), "http://example.com/oauth/callback", "abc123def456")
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(tokenState.AccessToken).To(Equal(rs.AccessToken))
+		Expect(tokenState.ExpiresIn).To(Equal(rs.ExpiresIn))
 	})
 })

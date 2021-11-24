@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import _ from "lodash";
 import * as React from "react";
 import { Application } from "../../lib/api/applications/applications.pb";
-import { withContext } from "../../lib/test-utils";
+import { createMockClient, withContext } from "../../lib/test-utils";
 import useApplications from "../applications";
 
 describe("useApplications", () => {
@@ -42,7 +42,11 @@ describe("useApplications", () => {
       );
     };
 
-    render(withContext(TestComponent, `/`, mockResponses));
+    render(
+      withContext(TestComponent, `/`, {
+        applicationsClient: createMockClient(mockResponses),
+      })
+    );
 
     expect((await screen.findByTestId(name)).textContent).toEqual(name);
   });
@@ -63,7 +67,11 @@ describe("useApplications", () => {
       return <p data-testid="url">{app.url}</p>;
     };
 
-    render(withContext(TestComponent, `/`, mockResponses));
+    render(
+      withContext(TestComponent, `/`, {
+        applicationsClient: createMockClient(mockResponses),
+      })
+    );
 
     expect((await screen.findByTestId("url")).textContent).toEqual(url);
   });

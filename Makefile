@@ -61,12 +61,14 @@ docker: ## Build wego-app docker image
 # Clean up images and binaries
 clean: ## Clean up images and binaries
 	rm -f bin/gitops
-	rm -rf pkg/flux/bin/
 	rm -rf cmd/gitops/ui/run/dist
 	rm -rf coverage
 	rm -rf node_modules
 	rm -f .deps
 	rm -rf dist
+	# There is an important (tracked) file in pkg/flux/bin so don't just nuke the whole folder
+	# -x: remove gitignored files too, -d: remove directories too
+	git clean -x -d --force pkg/flux/bin/
 
 fmt: ## Run go fmt against code
 	go fmt ./...

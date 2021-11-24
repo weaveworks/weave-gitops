@@ -23,6 +23,8 @@ export type PageProps = {
 const Content = styled.div`
   max-width: 1400px;
   margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
   background-color: ${(props) => props.theme.colors.white};
   padding-left: ${(props) => props.theme.spacing.large};
   padding-right: ${(props) => props.theme.spacing.large};
