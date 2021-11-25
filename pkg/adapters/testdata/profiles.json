@@ -2,8 +2,8 @@
     "profiles": [
         {
             "name": "profile-c",
-            "home": "test-c",
-            "sources": ["source-a", "source-b"],
+            "home": "https://github.com/org/repo",
+            "sources": ["https://github.com/org/repo1", "https://github.com/org/repo2"],
             "description": "this is test profile c",
             "keywords": ["keyword-a", "keyword-b"],
             "maintainers": [
@@ -23,8 +23,8 @@
         },
         {
             "name": "profile-b",
-            "home": "test-b",
-            "sources": ["source-a", "source-b"],
+            "home": "https://github.com/org/repo",
+            "sources": ["https://github.com/org/repo1", "https://github.com/org/repo2"],
             "description": "this is test profile b",
             "keywords": ["keyword-a", "keyword-b"],
             "maintainers": [
@@ -44,8 +44,8 @@
         },
         {
             "name": "profile-a",
-            "home": "test-a",
-            "sources": ["source-a", "source-b"],
+            "home": "https://github.com/org/repo",
+            "sources": ["https://github.com/org/repo1", "https://github.com/org/repo2"],
             "description": "this is test profile a",
             "maintainers": [
                 {

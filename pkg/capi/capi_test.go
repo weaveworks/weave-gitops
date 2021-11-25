@@ -487,3 +487,11 @@ func (c *fakeClient) RetrieveProfiles() ([]capi.Profile, error) {
 
 	return c.fs, nil
 }
+
+func (c *fakeClient) RetrieveTemplateProfiles(name string) ([]capi.Profile, error) {
+	if c.err != nil {
+		return nil, c.err
+	}
+
+	return c.fs, nil
+}

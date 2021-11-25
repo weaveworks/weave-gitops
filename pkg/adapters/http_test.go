@@ -625,8 +625,8 @@ func TestRetrieveProfiles(t *testing.T) {
 				assert.ElementsMatch(t, ts, []capi.Profile{
 					{
 						Name:        "profile-a",
-						Home:        "test-a",
-						Sources:     []string{"source-a", "source-b"},
+						Home:        "https://github.com/org/repo",
+						Sources:     []string{"https://github.com/org/repo1", "https://github.com/org/repo2"},
 						Description: "this is test profile a",
 						Maintainers: []capi.Maintainer{
 							{
@@ -645,8 +645,8 @@ func TestRetrieveProfiles(t *testing.T) {
 					},
 					{
 						Name:        "profile-b",
-						Home:        "test-b",
-						Sources:     []string{"source-a", "source-b"},
+						Home:        "https://github.com/org/repo",
+						Sources:     []string{"https://github.com/org/repo1", "https://github.com/org/repo2"},
 						Description: "this is test profile b",
 						Keywords:    []string{"keyword-a", "keyword-b"},
 						Maintainers: []capi.Maintainer{
@@ -666,8 +666,8 @@ func TestRetrieveProfiles(t *testing.T) {
 					},
 					{
 						Name:        "profile-c",
-						Home:        "test-c",
-						Sources:     []string{"source-a", "source-b"},
+						Home:        "https://github.com/org/repo",
+						Sources:     []string{"https://github.com/org/repo1", "https://github.com/org/repo2"},
 						Description: "this is test profile c",
 						Keywords:    []string{"keyword-a", "keyword-b"},
 						Maintainers: []capi.Maintainer{

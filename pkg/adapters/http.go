@@ -507,3 +507,40 @@ func (c *HTTPClient) RetrieveProfiles() ([]capi.Profile, error) {
 
 	return ps, nil
 }
+
+// RetrieveTemplateProfiles returns the list of all profiles of the
+// specified template.
+func (c *HTTPClient) RetrieveTemplateProfiles(name string) ([]capi.Profile, error) {
+	endpoint := "v1/templates/{name}/profiles"
+
+	type ListTemplatePResponse struct {
+		Profiles []*capi.Profile
+	}
+
+	var templateProfilesList ListTemplatePResponse
+	res, err := c.client.R().
+		SetHeader("Accept", "application/json").
+		SetPathParams(map[string]string{
+			"name": name,
+		}).
+		SetResult(&templateProfilesList).
+		Get(endpoint)
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to GET template parameters from %q: %w", res.Request.URL, err)
+	}
+
+	if res.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
+	}
+
+	var tps []capi.Profile
+	for _, p := range templateProfilesList.Profiles {
+		tps = append(tps, capi.Profile{
+			Name:        p.Name,
+			Description: p.Description,
+		})
+	}
+
+	return tps, nil
+}

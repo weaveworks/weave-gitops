@@ -13,6 +13,7 @@ type TemplatesRetriever interface {
 	RetrieveTemplates() ([]Template, error)
 	RetrieveTemplatesByProvider(provider string) ([]Template, error)
 	RetrieveTemplateParameters(name string) ([]TemplateParameter, error)
+	RetrieveTemplateProfiles(name string) ([]Profile, error)
 }
 
 // TemplateRenderer defines the interface that adapters
@@ -279,6 +280,41 @@ func GetProfiles(r ProfilesRetriever, w io.Writer) error {
 	}
 
 	fmt.Fprintf(w, "No profiles were found.\n")
+
+	return nil
+}
+
+// GetTemplateProfiles uses a TemplatesRetriever adapter
+// to show a list of profiles for a given template.
+func GetTemplateProfiles(name string, r TemplatesRetriever, w io.Writer) error {
+	ps, err := r.RetrieveTemplateParameters(name)
+	if err != nil {
+		return fmt.Errorf("unable to retrieve parameters for template %q from %q: %w", name, r.Source(), err)
+	}
+
+	if len(ps) > 0 {
+		fmt.Fprintf(w, "NAME\tREQUIRED\tDESCRIPTION\tOPTIONS\n")
+
+		for _, t := range ps {
+			fmt.Fprintf(w, "%s", t.Name)
+			fmt.Fprintf(w, "\t%t", t.Required)
+
+			if t.Description != "" {
+				fmt.Fprintf(w, "\t%s", t.Description)
+			}
+
+			if t.Options != nil {
+				optionsStr := strings.Join(t.Options, ", ")
+				fmt.Fprintf(w, "\t%s", optionsStr)
+			}
+
+			fmt.Fprintln(w, "")
+		}
+
+		return nil
+	}
+
+	fmt.Fprintf(w, "No template parameters were found.\n")
 
 	return nil
 }
