@@ -365,30 +365,28 @@ func TestGetProfiles(t *testing.T) {
 			name: "profiles includes just name",
 			fs: []capi.Profile{
 				{
-					Name: "profile-a",
-					Home: "test",
+					Name:              "profile-a",
+					AvailableVersions: []string{"v0.0.15"},
 				},
 				{
 					Name: "profile-b",
 				},
 			},
-			expected: "NAME\tHOME\tDESCRIPTION\nprofile-a\ttest\t\nprofile-b\t\t\n",
+			expected: "NAME\tLATEST_VERSIONS\nprofile-a\tv0.0.15\nprofile-b\t\n",
 		},
 		{
-			name: "profiles include all fields",
+			name: "profiles include more than 5 versions",
 			fs: []capi.Profile{
 				{
-					Name:        "profile-a",
-					Home:        "test-a",
-					Description: "a desc",
+					Name:              "profile-a",
+					AvailableVersions: []string{"v0.0.9", "v0.0.10", "v0.0.11", "v0.0.12", "v0.0.13", "v0.0.14", "v0.0.15"},
 				},
 				{
-					Name:        "profile-b",
-					Home:        "test-b",
-					Description: "b desc",
+					Name:              "profile-b",
+					AvailableVersions: []string{"v0.0.13", "v0.0.14", "v0.0.15"},
 				},
 			},
-			expected: "NAME\tHOME\tDESCRIPTION\nprofile-a\ttest-a\ta desc\nprofile-b\ttest-b\tb desc\n",
+			expected: "NAME\tLATEST_VERSIONS\nprofile-a\tv0.0.11, v0.0.12, v0.0.13, v0.0.14, v0.0.15\nprofile-b\tv0.0.13, v0.0.14, v0.0.15\n",
 		},
 		{
 			name:             "error retrieving profiles",

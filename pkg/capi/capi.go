@@ -260,12 +260,17 @@ func GetProfiles(r ProfilesRetriever, w io.Writer) error {
 	}
 
 	if len(ps) > 0 {
-		fmt.Fprintf(w, "NAME\tHOME\tDESCRIPTION\n")
+		fmt.Fprintf(w, "NAME\tLATEST_VERSIONS\n")
 
 		for _, p := range ps {
+			if len(p.AvailableVersions) > 5 {
+				p.AvailableVersions = p.AvailableVersions[len(p.AvailableVersions)-5:]
+			}
+
+			latestVersions := strings.Join(p.AvailableVersions, ", ")
+
 			fmt.Fprintf(w, "%s", p.Name)
-			fmt.Fprintf(w, "\t%s", p.Home)
-			fmt.Fprintf(w, "\t%s", p.Description)
+			fmt.Fprintf(w, "\t%s", latestVersions)
 			fmt.Fprintln(w, "")
 		}
 
