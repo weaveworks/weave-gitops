@@ -1,16 +1,33 @@
 #!/bin/bash
 
-echo "Delete all kustomizations"
-kubectl delete -n $1 kustomizations.kustomize.toolkit.fluxcd.io --all --timeout=20s
-cc="$(kubectl config current-context)"
-kubectl patch "kustomization/$cc-system" -n $1 -p '{"metadata":{"finalizers":[]}}' --type=merge
-echo "Delete all gitrepositories"
-kubectl delete -n $1 gitrepositories.source.toolkit.fluxcd.io --all
-echo "Delete all helmrepositories"
-kubectl delete -n $1 helmreleases.helm.toolkit.fluxcd.io --all
-kubectl delete -n $1 helmcharts.source.toolkit.fluxcd.io --all
-kubectl delete -n $1 helmrepositories.source.toolkit.fluxcd.io --all
+ns=$1
+
+function testIteration {
+
+  local ns=$1
+  local singleResourceName=$2
+  local pluralResourceName=$3
+
+  echo "Deleting ${pluralResourceName}";
+  local resources=$(kubectl get $pluralResourceName -o jsonpath='{range .items[*]}{@.metadata.name}{"\n"}' -n $ns)
+  echo "$resources" | while IFS= read -r resource ;
+  do
+    echo " Deleting resource ${resource}";
+    local output=$(kubectl delete -n $ns helmchart/${resource} --timeout=20s 2>&1)
+    if [[ $output == *"timed out waiting for the condition"* ]]; then
+      kubectl patch $singleResourceName/${resource} -n $ns -p '{"metadata":{"finalizers":[]}}' --type=merge
+    fi
+  done
+}
+
+testIteration $ns helmchart helmcharts
+testIteration $ns kustomization kustomizations
+testIteration $ns gitrepository gitrepositories
+testIteration $ns helmrelease helmreleases
+testIteration $ns helmchart helmcharts
+testIteration $ns helmrepository helmrepositories
+
 echo "Delete any running applications"
-kubectl delete apps -n $1 --all
+kubectl delete apps -n $ns --all
 echo "Delete all secrets"
-for s in $(kubectl get secrets -n $1| grep weave-gitops-|cut -d' ' -f1); do kubectl delete secrets $s -n $1; done
+for s in $(kubectl get secrets -n $ns| grep weave-gitops-|cut -d' ' -f1); do kubectl delete secrets $s -n $ns; done
