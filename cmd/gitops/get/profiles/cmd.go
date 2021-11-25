@@ -24,7 +24,6 @@ gitops get profiles
 		SilenceErrors: true,
 		PreRunE:       getProfileCmdPreRunE(endpoint, client),
 		RunE:          getProfileCmdRunE(endpoint, client),
-		Args:          cobra.MaximumNArgs(1),
 	}
 
 	return cmd

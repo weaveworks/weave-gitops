@@ -260,7 +260,7 @@ func GetProfiles(r ProfilesRetriever, w io.Writer) error {
 	}
 
 	if len(ps) > 0 {
-		fmt.Fprintf(w, "NAME\tHOME\tDESCRIPTION\t\n")
+		fmt.Fprintf(w, "NAME\tHOME\tDESCRIPTION\n")
 
 		for _, p := range ps {
 			fmt.Fprintf(w, "%s", p.Name)

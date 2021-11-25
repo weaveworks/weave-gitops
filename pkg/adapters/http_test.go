@@ -611,3 +611,110 @@ func TestEntitlementExpiredHeader(t *testing.T) {
 		t.Errorf("Expected but got %s", string(b))
 	}
 }
+
+func TestRetrieveProfiles(t *testing.T) {
+	tests := []struct {
+		name       string
+		responder  httpmock.Responder
+		assertFunc func(t *testing.T, profile []capi.Profile, err error)
+	}{
+		{
+			name:      "profiles returned",
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/profiles.json")),
+			assertFunc: func(t *testing.T, ts []capi.Profile, err error) {
+				assert.ElementsMatch(t, ts, []capi.Profile{
+					{
+						Name:        "profile-a",
+						Home:        "test-a",
+						Sources:     []string{"source-a", "source-b"},
+						Description: "this is test profile a",
+						Maintainers: []capi.Maintainer{
+							{
+								Name:  "foo",
+								Email: "foo@example.com",
+								Url:   "example.com",
+							},
+						},
+						Icon:        "test",
+						KubeVersion: "1.19",
+						HelmRepository: capi.HelmRepository{
+							Name:      "test-repo",
+							Namespace: "test-ns",
+						},
+						AvailableVersions: []string{"v0.0.14", "v0.0.15"},
+					},
+					{
+						Name:        "profile-b",
+						Home:        "test-b",
+						Sources:     []string{"source-a", "source-b"},
+						Description: "this is test profile b",
+						Keywords:    []string{"keyword-a", "keyword-b"},
+						Maintainers: []capi.Maintainer{
+							{
+								Name:  "bar",
+								Email: "bar@example.com",
+								Url:   "example.com",
+							},
+						},
+						Icon:        "test",
+						KubeVersion: "1.20",
+						HelmRepository: capi.HelmRepository{
+							Name:      "test-repo",
+							Namespace: "test-ns",
+						},
+						AvailableVersions: []string{"v0.0.14", "v0.0.15"},
+					},
+					{
+						Name:        "profile-c",
+						Home:        "test-c",
+						Sources:     []string{"source-a", "source-b"},
+						Description: "this is test profile c",
+						Keywords:    []string{"keyword-a", "keyword-b"},
+						Maintainers: []capi.Maintainer{
+							{
+								Name:  "bar",
+								Email: "bar@example.com",
+								Url:   "example.com",
+							},
+						},
+						Icon:        "test",
+						KubeVersion: "1.22",
+						HelmRepository: capi.HelmRepository{
+							Name:      "test-repo",
+							Namespace: "test-ns",
+						},
+						AvailableVersions: []string{"v0.0.14", "v0.0.15"},
+					},
+				})
+			},
+		},
+		{
+			name:      "error returned",
+			responder: httpmock.NewErrorResponder(errors.New("oops")),
+			assertFunc: func(t *testing.T, fs []capi.Profile, err error) {
+				assert.EqualError(t, err, "unable to GET profiles from \"https://weave.works/api/v1/profiles\": Get \"https://weave.works/api/v1/profiles\": oops")
+			},
+		},
+		{
+			name:      "unexpected status code",
+			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
+			assertFunc: func(t *testing.T, fs []capi.Profile, err error) {
+				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/profiles\" was 400")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := resty.New()
+			httpmock.ActivateNonDefault(client.GetClient())
+			defer httpmock.DeactivateAndReset()
+			httpmock.RegisterResponder("GET", BaseURI+"/v1/profiles", tt.responder)
+
+			r, err := adapters.NewHttpClient(BaseURI, client, os.Stdout)
+			assert.NoError(t, err)
+			fs, err := r.RetrieveProfiles()
+			tt.assertFunc(t, fs, err)
+		})
+	}
+}

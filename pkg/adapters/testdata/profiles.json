@@ -1,0 +1,67 @@
+{
+    "profiles": [
+        {
+            "name": "profile-c",
+            "home": "test-c",
+            "sources": ["source-a", "source-b"],
+            "description": "this is test profile c",
+            "keywords": ["keyword-a", "keyword-b"],
+            "maintainers": [
+                {
+                    "name": "bar",
+                    "email": "bar@example.com",
+                    "url": "example.com"
+                }
+            ],
+            "icon": "test",
+            "kubeVersion": "1.22",
+            "helmRepository": {
+                "name": "test-repo",
+                "namespace": "test-ns"
+            },
+            "availableVersions": ["v0.0.14", "v0.0.15"]
+        },
+        {
+            "name": "profile-b",
+            "home": "test-b",
+            "sources": ["source-a", "source-b"],
+            "description": "this is test profile b",
+            "keywords": ["keyword-a", "keyword-b"],
+            "maintainers": [
+                {
+                    "name": "bar",
+                    "email": "bar@example.com",
+                    "url": "example.com"
+                }
+            ],
+            "icon": "test",
+            "kubeVersion": "1.20",
+            "helmRepository": {
+                "name": "test-repo",
+                "namespace": "test-ns"
+            },
+            "availableVersions": ["v0.0.14", "v0.0.15"]
+        },
+        {
+            "name": "profile-a",
+            "home": "test-a",
+            "sources": ["source-a", "source-b"],
+            "description": "this is test profile a",
+            "maintainers": [
+                {
+                    "name": "foo",
+                    "email": "foo@example.com",
+                    "url": "example.com"
+                }
+            ],
+            "icon": "test",
+            "kubeVersion": "1.19",
+            "helmRepository": {
+                "name": "test-repo",
+                "namespace": "test-ns"
+            },
+            "availableVersions": ["v0.0.14", "v0.0.15"]
+        }
+    ],
+    "total": 3
+}
