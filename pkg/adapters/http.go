@@ -233,6 +233,7 @@ func (c *HTTPClient) CreatePullRequestFromTemplate(params capi.CreatePullRequest
 		ParameterValues map[string]string `json:"parameter_values"`
 		CommitMessage   string            `json:"commitMessage"`
 		Credentials     capi.Credentials  `json:"credentials"`
+		ProfileValues   map[string]string `json:"profile_values"`
 	}
 
 	// POST response payload
@@ -257,6 +258,7 @@ func (c *HTTPClient) CreatePullRequestFromTemplate(params capi.CreatePullRequest
 			ParameterValues: params.ParameterValues,
 			CommitMessage:   params.CommitMessage,
 			Credentials:     params.Credentials,
+			ProfileValues:   params.ProfileValues,
 		}).
 		SetResult(&result).
 		SetError(&serviceErr).

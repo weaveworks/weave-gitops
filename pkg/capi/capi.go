@@ -77,6 +77,7 @@ type CreatePullRequestFromTemplateParams struct {
 	Description      string
 	CommitMessage    string
 	Credentials      Credentials
+	ProfileValues    map[string]string
 }
 
 type Profile struct {
