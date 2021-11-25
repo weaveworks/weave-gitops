@@ -13,7 +13,7 @@ function removeResources {
   echo "$resources" | while IFS= read -r resource ;
   do
     echo " Deleting resource ${resource}";
-    local output=$(kubectl delete -n $ns helmchart/${resource} --timeout=20s 2>&1)
+    local output=$(kubectl delete -n $ns $singleResourceName/${resource} --timeout=20s 2>&1)
     if [[ $output == *"timed out waiting for the condition"* ]]; then
       kubectl patch $singleResourceName/${resource} -n $ns -p '{"metadata":{"finalizers":[]}}' --type=merge
     fi
