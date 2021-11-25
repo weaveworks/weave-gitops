@@ -2,7 +2,7 @@
 
 ns=$1
 
-function testIteration {
+function removeResources {
 
   local ns=$1
   local singleResourceName=$2
@@ -20,12 +20,12 @@ function testIteration {
   done
 }
 
-testIteration $ns helmchart helmcharts
-testIteration $ns kustomization kustomizations
-testIteration $ns gitrepository gitrepositories
-testIteration $ns helmrelease helmreleases
-testIteration $ns helmchart helmcharts
-testIteration $ns helmrepository helmrepositories
+removeResources $ns helmchart helmcharts
+removeResources $ns kustomization kustomizations
+removeResources $ns gitrepository gitrepositories
+removeResources $ns helmrelease helmreleases
+removeResources $ns helmchart helmcharts
+removeResources $ns helmrepository helmrepositories
 
 echo "Delete any running applications"
 kubectl delete apps -n $ns --all
