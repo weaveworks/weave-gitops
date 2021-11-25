@@ -13,11 +13,17 @@ spec:
       serviceAccountName: profiles-server-service-account
       containers:
         - name: profiles-server
-          image: niki2401/profiles-server:{{.ProfilesVersion}}
+          # TODO: change
+          image: aclevernameww/profiles-server:{{.ProfilesVersion}}
           ports:
             - containerPort: 8000
               protocol: TCP
           imagePullPolicy: IfNotPresent
+          env:
+            - name: RUNTIME_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
   selector:
     matchLabels:
       app: profiles-server
