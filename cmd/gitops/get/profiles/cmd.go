@@ -11,7 +11,7 @@ import (
 	"k8s.io/cli-runtime/pkg/printers"
 )
 
-func TemplateCommand(endpoint *string, client *resty.Client) *cobra.Command {
+func ProfileCommand(endpoint *string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "profile",
 		Aliases: []string{"profiles"},
@@ -30,7 +30,7 @@ gitops get profiles
 }
 
 func getProfileCmdPreRunE(endpoint *string, client *resty.Client) func(*cobra.Command, []string) error {
-	return func(c *cobra.Command, args []string) error {
+	return func(c *cobra.Command, s []string) error {
 		if *endpoint == "" {
 			return cmderrors.ErrNoWGEEndpoint
 		}
