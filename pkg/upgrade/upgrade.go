@@ -32,14 +32,14 @@ import (
 )
 
 type UpgradeValues struct {
-	AppConfigURL   string
-	ProfileVersion string
-	BaseBranch     string
-	HeadBranch     string
-	CommitMessage  string
-	Namespace      string
-	Values         []string
-	DryRun         bool
+	AppConfigURL  string
+	Version       string
+	BaseBranch    string
+	HeadBranch    string
+	CommitMessage string
+	Namespace     string
+	Values        []string
+	DryRun        bool
 }
 
 const EnterpriseChartURL string = "https://charts.dev.wkp.weave.works/releases/charts-v3"
@@ -61,7 +61,7 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 		return fmt.Errorf("failed to get cluster name: %w", err)
 	}
 
-	resources, err := makeHelmResources(uv.Namespace, uv.ProfileVersion, cname, uv.AppConfigURL, uv.Values)
+	resources, err := makeHelmResources(uv.Namespace, uv.Version, cname, uv.AppConfigURL, uv.Values)
 	if err != nil {
 		return fmt.Errorf("error creating helm resources: %w", err)
 	}
