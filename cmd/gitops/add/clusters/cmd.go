@@ -59,7 +59,7 @@ gitops add cluster --from-template <template-name> --set key=val --dry-run
 	cmd.Flags().StringVar(&flags.Description, "description", "", "The description of the pull request")
 	cmd.Flags().StringVar(&flags.CommitMessage, "commit-message", "", "The commit message to use when adding the CAPI template")
 	cmd.Flags().StringVar(&flags.Credentials, "set-credentials", "", "The CAPI credentials to use")
-	cmd.Flags().StringSliceVar(&flags.Profiles, "profiles", []string{}, "Set profiles values files on the command line (profile1:values1.yaml,profile2:values2.yaml)")
+	cmd.Flags().StringSliceVar(&flags.Profiles, "profiles", []string{}, "Set profiles values files on the command line (profile1:values1.yaml,profile2)")
 
 	return cmd
 }
@@ -101,9 +101,11 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 		profilesVals := make(map[string]string)
 
 		for _, p := range flags.Profiles {
-			pv := strings.SplitN(p, "=", 2)
+			pv := strings.SplitN(p, ":", 2)
 			if len(pv) == 2 {
 				profilesVals[pv[0]] = pv[1]
+			} else if len(pv) == 1 {
+				profilesVals[pv[0]] = ""
 			}
 		}
 
