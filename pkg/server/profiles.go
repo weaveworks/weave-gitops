@@ -13,6 +13,7 @@ import (
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"helm.sh/helm/v3/pkg/chartutil"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/go-logr/logr"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
@@ -94,15 +95,19 @@ func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesReq
 	}, helmRepo)
 
 	if err != nil {
-		errMsg := fmt.Sprintf("cannot find HelmRepository %q/%q", s.HelmRepoNamespace, s.HelmRepoName)
-		s.Log.Error(err, errMsg)
+		if apierrors.IsNotFound(err) {
+			errMsg := fmt.Sprintf("HelmRepository %q/%q does not exist", s.HelmRepoNamespace, s.HelmRepoName)
+			s.Log.Error(err, errMsg)
 
-		return &pb.GetProfilesResponse{
-				Profiles: []*pb.Profile{},
-			}, &grpcruntime.HTTPStatusError{
-				Err:        errors.New(errMsg),
-				HTTPStatus: http.StatusOK,
-			}
+			return &pb.GetProfilesResponse{
+					Profiles: []*pb.Profile{},
+				}, &grpcruntime.HTTPStatusError{
+					Err:        errors.New(errMsg),
+					HTTPStatus: http.StatusOK,
+				}
+		}
+
+		return nil, fmt.Errorf("failed to get HelmRepository %q/%q", s.HelmRepoNamespace, s.HelmRepoName)
 	}
 
 	ps, err := s.HelmChartManager.GetCharts(ctx, helmRepo, helm.Profiles)
@@ -123,16 +128,20 @@ func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfil
 	}, helmRepo)
 
 	if err != nil {
-		errMsg := fmt.Sprintf("cannot find HelmRepository %q/%q", s.HelmRepoNamespace, s.HelmRepoName)
-		s.Log.Error(err, errMsg)
+		if apierrors.IsNotFound(err) {
+			errMsg := fmt.Sprintf("HelmRepository %q/%q does not exist", s.HelmRepoNamespace, s.HelmRepoName)
+			s.Log.Error(err, errMsg)
 
-		return &httpbody.HttpBody{
-				ContentType: "application/json",
-				Data:        []byte{},
-			}, &grpcruntime.HTTPStatusError{
-				Err:        errors.New(errMsg),
-				HTTPStatus: http.StatusOK,
-			}
+			return &httpbody.HttpBody{
+					ContentType: "application/json",
+					Data:        []byte{},
+				}, &grpcruntime.HTTPStatusError{
+					Err:        errors.New(errMsg),
+					HTTPStatus: http.StatusOK,
+				}
+		}
+
+		return nil, fmt.Errorf("failed to get HelmRepository %q/%q", s.HelmRepoNamespace, s.HelmRepoName)
 	}
 
 	sourceRef := helmv2beta1.CrossNamespaceObjectReference{
