@@ -81,7 +81,7 @@ function DataTable({
 }
 
 export default styled(DataTable)`
-  &.MuiTableCell-head {
+  .MuiTableCell-head {
     font-weight: 800;
   }
 `;
