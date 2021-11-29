@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strings"
 
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -41,7 +40,7 @@ type HelmRepoManager interface {
 	GetValuesFile(ctx context.Context, helmRepo *sourcev1beta1.HelmRepository, c *helm.ChartReference, filename string) ([]byte, error)
 }
 
-func NewProfilesHandler(ctx context.Context, logr logr.Logger) (http.Handler, error) {
+func NewProfilesHandler(ctx context.Context, logr logr.Logger, helmRepoNamespace, helmRepoName string) (http.Handler, error) {
 	rest, clusterName, err := kube.RestConfig()
 	if err != nil {
 		return nil, fmt.Errorf("could not create client config: %w", err)
@@ -57,15 +56,13 @@ func NewProfilesHandler(ctx context.Context, logr logr.Logger) (http.Handler, er
 		return nil, err
 	}
 
-	helmRepoNs := os.Getenv("RUNTIME_NAMESPACE")
 	profilesSrv := &ProfilesServer{
 		KubeClient:        rawClient,
 		Log:               logr,
-		HelmChartManager:  helm.NewRepoManager(rawClient, helmRepoNs, tempDir),
-		HelmRepoNamespace: helmRepoNs,
-		//TODO make this configurable
-		HelmRepoName: "weaveworks-charts",
-		cacheDir:     tempDir,
+		HelmChartManager:  helm.NewRepoManager(rawClient, helmRepoNamespace, tempDir),
+		HelmRepoNamespace: helmRepoNamespace,
+		HelmRepoName:      helmRepoName,
+		cacheDir:          tempDir,
 	}
 
 	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(logr))
@@ -90,7 +87,6 @@ type ProfilesServer struct {
 }
 
 func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesRequest) (*pb.GetProfilesResponse, error) {
-	// Look for helm repository object in the current namespace
 	helmRepo := &sourcev1beta1.HelmRepository{}
 	err := s.KubeClient.Get(ctx, client.ObjectKey{
 		Name:      s.HelmRepoName,
@@ -104,8 +100,7 @@ func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesReq
 		return &pb.GetProfilesResponse{
 				Profiles: []*pb.Profile{},
 			}, &grpcruntime.HTTPStatusError{
-				Err: errors.New(errMsg),
-				//TODO: why do we return 200?
+				Err:        errors.New(errMsg),
 				HTTPStatus: http.StatusOK,
 			}
 	}
@@ -135,8 +130,7 @@ func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfil
 				ContentType: "application/json",
 				Data:        []byte{},
 			}, &grpcruntime.HTTPStatusError{
-				Err: errors.New(errMsg),
-				//TODO: why do we return 200?
+				Err:        errors.New(errMsg),
 				HTTPStatus: http.StatusOK,
 			}
 	}

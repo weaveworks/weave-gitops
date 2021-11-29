@@ -15,6 +15,7 @@ spec:
         - name: profiles-server
           # TODO: change
           image: aclevernameww/profiles-server:{{.ProfilesVersion}}
+          args: ["--helm-repo-namespace", "$(RUNTIME_NAMESPACE)"]
           ports:
             - containerPort: 8000
               protocol: TCP

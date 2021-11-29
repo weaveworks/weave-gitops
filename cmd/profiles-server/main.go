@@ -14,6 +14,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type params struct {
+	helmRepoNamespace string
+	helmRepoName      string
+}
+
+var runtimeParams params
+
 func main() {
 	if err := NewAPIServerCommand().Execute(); err != nil {
 		os.Exit(1)
@@ -35,7 +42,7 @@ func NewAPIServerCommand() *cobra.Command {
 			}
 			logr := zapr.NewLogger(zapLog)
 
-			s, err := server.NewProfilesHandler(context.Background(), logr)
+			s, err := server.NewProfilesHandler(context.Background(), logr, runtimeParams.helmRepoNamespace, runtimeParams.helmRepoName)
 			if err != nil {
 				return err
 			}
@@ -44,6 +51,9 @@ func NewAPIServerCommand() *cobra.Command {
 			return http.ListenAndServe(addr, s)
 		},
 	}
+
+	cmd.Flags().StringVar(&runtimeParams.helmRepoNamespace, "helm-repo-namespace", "default", "the namespace of the Helm Repository resource to scan for profiles")
+	cmd.Flags().StringVar(&runtimeParams.helmRepoName, "helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
 
 	return cmd
 }
