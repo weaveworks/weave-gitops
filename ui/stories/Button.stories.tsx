@@ -53,10 +53,8 @@ const Template: Story<Props> = (args) => <Button {...args}>Weaveworks</Button>;
 
 export const Default = Template.bind({});
 Default.args = { color: "primary", variant: "outlined" };
-// export const AuthButton = Template.bind({});
 export const ModalButton = Template.bind({});
 ModalButton.args = {
   color: "inherit",
   className: "borderless",
 };
-// AuthButton.args = { className: "auth-button", variant: "contained" };
