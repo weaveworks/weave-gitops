@@ -399,14 +399,25 @@ func VerifyControllersInCluster(namespace string) {
 }
 
 func installAndVerifyWego(wegoNamespace, repoURL string) {
-	By("And I run 'gitops install' command with namespace "+wegoNamespace, func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --app-config-url=%s", WEGO_BIN_PATH, wegoNamespace, repoURL))
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, INSTALL_SUCCESSFUL_TIMEOUT).Should(gexec.Exit())
-		Expect(string(session.Err.Contents())).Should(BeEmpty())
-		VerifyControllersInCluster(wegoNamespace)
-	})
+	command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --app-config-url=%s --auto-merge", WEGO_BIN_PATH, wegoNamespace, repoURL))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session, INSTALL_SUCCESSFUL_TIMEOUT).Should(gexec.Exit())
+	Expect(string(session.Err.Contents())).Should(BeEmpty())
+	VerifyControllersInCluster(wegoNamespace)
+}
+
+func installAndVerifyWegoViaPullRequest(wegoNamespace, repoURL, repoPath string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --app-config-url=%s", WEGO_BIN_PATH, wegoNamespace, repoURL))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session, INSTALL_SUCCESSFUL_TIMEOUT).Should(gexec.Exit())
+	Expect(string(session.Err.Contents())).Should(BeEmpty())
+	out := string(session.Wait().Out.Contents())
+	re := regexp.MustCompile(`(http|ftp|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?`)
+	prLink := re.FindAllString(out, -1)[0]
+	mergePR(repoPath, prLink, gitproviders.GitProviderGitHub)
+	VerifyControllersInCluster(wegoNamespace)
 }
 
 func uninstallWegoRuntime(namespace string) {

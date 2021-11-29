@@ -40,7 +40,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		By("Then I should see gitops help text displayed for 'install' command", func() {
 			Eventually(string(sessionOutput.Wait().Out.Contents())).Should(MatchRegexp(
-				fmt.Sprintf(`The install command deploys GitOps in the specified namespace,\nadds a cluster entry to the GitOps repo, and persists the GitOps runtime into the\nrepo. If a previous version is installed, then an in-place upgrade will be performed.\n*Usage:\n\s*gitops install \[flags]\n*Examples:\n\s*# Install GitOps in the %s namespace\n\s*gitops install --app-config-url=ssh://git@github.com/me/mygitopsrepo.git\n*Flags:\n\s*--app-config-url string\s*URL of external repository that will hold automation manifests\n\s*--dry-run\s*Outputs all the manifests that would be installed\n\s*-h, --help\s*help for install\n*Global Flags:\n\s*-e, --endpoint string\s*The Weave GitOps Enterprise HTTP API endpoint\n\s*--namespace string\s*The namespace scope for this operation \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace, wego.DefaultNamespace)))
+				fmt.Sprintf(`The install command deploys GitOps in the specified namespace,\nadds a cluster entry to the GitOps repo, and persists the GitOps runtime into the\nrepo. If a previous version is installed, then an in-place upgrade will be performed.\n*Usage:\n\s*gitops install \[flags]\n*Examples:\n\s*# Install GitOps in the %s namespace\n\s*gitops install --app-config-url=ssh://git@github.com/me/mygitopsrepo.git\n*Flags:\n\s*--app-config-url string\s*URL of external repository that will hold automation manifests\n\s*--auto-merge\s*If set, 'gitops install' will automatically update the default branch for the configuration repository\n\s*--dry-run\s*Outputs all the manifests that would be installed\n\s*-h, --help\s*help for install\n*Global Flags:\n\s*-e, --endpoint string\s*The Weave GitOps Enterprise HTTP API endpoint\n\s*--namespace string\s*The namespace scope for this operation \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace, wego.DefaultNamespace)))
 		})
 	})
 
@@ -104,6 +104,55 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
 
 		installAndVerifyWego(namespace, appRepoRemoteURL)
+
+		By("When I run 'gitops uninstall' command without force flag it asks for confirmation", func() {
+			cmd := fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, namespace)
+			outputStream := gbytes.NewBuffer()
+			inputUser := bytes.NewBuffer([]byte("y\n"))
+
+			c := exec.Command("sh", "-c", cmd)
+			c.Stdout = outputStream
+			c.Stdin = inputUser
+			c.Stderr = os.Stderr
+			err := c.Start()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			Eventually(outputStream).Should(gbytes.Say(`Uninstall will remove all your Applications and any related cluster resources\. Are you sure you want to uninstall\? \[y\/N\]`))
+
+			err = c.Wait()
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)
+
+		By("Then I should not see any gitops components", func() {
+			_, errOutput := runCommandAndReturnStringOutput("kubectl get ns " + namespace)
+			Eventually(errOutput).Should(ContainSubstring(`Error from server (NotFound): namespaces "` + namespace + `" not found`))
+		})
+	})
+
+	It("Verify that gitops can install & uninstall gitops components under a user-specified namespace via pull request", func() {
+
+		namespace := "test-namespace"
+
+		By("And I have a brand new cluster", func() {
+			_, _, err := ResetOrCreateCluster(namespace, true)
+			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		private := true
+		tip := generateTestInputs()
+		appRepoRemoteURL := "git@github.com:" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		})
+
+		repoAbsolutePath := initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+
+		installAndVerifyWegoViaPullRequest(namespace, appRepoRemoteURL, repoAbsolutePath)
 
 		By("When I run 'gitops uninstall' command without force flag it asks for confirmation", func() {
 			cmd := fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, namespace)
