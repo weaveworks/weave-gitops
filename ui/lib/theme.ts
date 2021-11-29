@@ -84,6 +84,7 @@ export const GlobalStyle = createGlobalStyle`
   body {
     font-family: ${(props) => props.theme.fontFamilies.regular};
     font-size: ${theme.fontSizes.normal};
+    color: ${theme.colors.black};
     padding: 0;
     margin: 0;
     min-width: fit-content;
@@ -99,6 +100,11 @@ export const muiTheme = createTheme({
   palette: {
     secondary: {
       main: "#CC2C00",
+    },
+    text: {
+      primary: "#1a1a1a",
+      secondary: "#737373",
+      disabled: "#737373",
     },
   },
 });

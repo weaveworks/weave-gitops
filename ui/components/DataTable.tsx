@@ -24,7 +24,6 @@ type Props = {
 
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
   font-style: italic;
-
   td {
     text-align: center;
   }
@@ -82,7 +81,7 @@ function DataTable({
 }
 
 export default styled(DataTable)`
-  th {
-    font-weight: bold;
+  &.MuiTableCell-head {
+    font-weight: 800;
   }
 `;
