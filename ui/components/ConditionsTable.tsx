@@ -20,6 +20,7 @@ function ConditionsTable({ className, conditions }: Props) {
       rows={conditions}
       sortFields={[""]}
       className={className}
+      widths={["10%", "10%", "25%", "55%"]}
     />
   );
 }

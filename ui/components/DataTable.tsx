@@ -20,6 +20,8 @@ type Props = {
   rows: any[];
   sortFields: string[];
   reverseSort?: boolean;
+  /** an optional list of string widths for each field/column. */
+  widths?: string[];
 };
 
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
@@ -35,6 +37,7 @@ function DataTable({
   rows,
   sortFields,
   reverseSort,
+  widths,
 }: Props) {
   const sorted = _.sortBy(rows, sortFields);
 
@@ -44,8 +47,8 @@ function DataTable({
 
   const r = _.map(sorted, (r, i) => (
     <TableRow key={i}>
-      {_.map(fields, (f) => (
-        <TableCell key={f.label}>
+      {_.map(fields, (f, i) => (
+        <TableCell style={widths && { width: widths[i] }} key={f.label}>
           <Text>{typeof f.value === "function" ? f.value(r) : r[f.value]}</Text>
         </TableCell>
       ))}
@@ -58,8 +61,10 @@ function DataTable({
         <Table aria-label="simple table">
           <TableHead>
             <TableRow>
-              {_.map(fields, (f) => (
-                <TableCell key={f.label}>{f.label}</TableCell>
+              {_.map(fields, (f, i) => (
+                <TableCell style={widths && { width: widths[i] }} key={f.label}>
+                  {f.label}
+                </TableCell>
               ))}
             </TableRow>
           </TableHead>
