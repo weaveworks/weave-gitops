@@ -88,7 +88,8 @@ jobs:
     - name: Set up ssh
       uses: ./.github/actions/setup-ssh
       with:
-        ssh-private-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
+        github-ssh-private-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
+        gitlab-ssh-private-key: ${{ secrets.GITLAB_KEY }}
     - name: Install UI Deps
       run: npm ci
     - name: UI Deps Audit
@@ -122,11 +123,12 @@ jobs:
     - uses: ./.github/actions/run-acceptance-test
       with:
         result-prefix: 'smoke-'
-        focus-or-skip: "--focus='SmokeTest'"
+        focus-or-skip: "--focus='SmokeTestShort'"
         github-key: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_SSH_KEY }}
         github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
         gitlab-key: ${{ secrets.GITLAB_KEY }}
         gitlab-token: ${{ secrets.GITLAB_TOKEN }}
+        gitlab-org: ${{ secrets.GITLAB_ORG }}
         artifacts-base-dir: "/tmp/gitops-test"
 
   smoke-tests-long:
@@ -143,6 +145,7 @@ jobs:
         github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
         gitlab-key: ${{ secrets.GITLAB_KEY }}
         gitlab-token: ${{ secrets.GITLAB_TOKEN }}
+        gitlab-org: ${{ secrets.GITLAB_ORG }}
         artifacts-base-dir: "/tmp/gitops-test"
 
   acceptance-tests-0:
@@ -158,6 +161,7 @@ jobs:
         github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
         gitlab-key: ${{ secrets.GITLAB_KEY }}
         gitlab-token: ${{ secrets.GITLAB_TOKEN }}
+        gitlab-org: ${{ secrets.GITLAB_ORG }}
         artifacts-base-dir: "/tmp/gitops-test"
 
   acceptance-tests-1:
@@ -174,6 +178,7 @@ jobs:
         github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
         gitlab-key: ${{ secrets.GITLAB_KEY }}
         gitlab-token: ${{ secrets.GITLAB_TOKEN }}
+        gitlab-org: ${{ secrets.GITLAB_ORG }}
         artifacts-base-dir: "/tmp/gitops-test"
 
   acceptance-tests-2:
@@ -190,6 +195,7 @@ jobs:
         github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
         gitlab-key: ${{ secrets.GITLAB_KEY }}
         gitlab-token: ${{ secrets.GITLAB_TOKEN }}
+        gitlab-org: ${{ secrets.GITLAB_ORG }}
         artifacts-base-dir: "/tmp/gitops-test"
 
   acceptance-tests-3:
@@ -206,6 +212,7 @@ jobs:
         github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
         gitlab-key: ${{ secrets.GITLAB_KEY }}
         gitlab-token: ${{ secrets.GITLAB_TOKEN }}
+        gitlab-org: ${{ secrets.GITLAB_ORG }}
         artifacts-base-dir: "/tmp/gitops-test"
 
   ui-tests:
@@ -222,6 +229,7 @@ jobs:
         github-token: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
         gitlab-key: ${{ secrets.GITLAB_KEY }}
         gitlab-token: ${{ secrets.GITLAB_TOKEN }}
+        gitlab-org: ${{ secrets.GITLAB_ORG }}
         artifacts-base-dir: "/tmp/gitops-test"
 
   library-integration-test:
