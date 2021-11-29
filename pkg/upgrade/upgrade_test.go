@@ -36,6 +36,7 @@ func TestUpgradeDryRun(t *testing.T) {
 
 	// Run upgrade!
 	err := upgrade(context.TODO(), UpgradeValues{
+		AppConfigURL:  "ssh://git@github.com/my-org/my-management-cluster.git",
 		HeadBranch:    "upgrade-to-wge",
 		BaseBranch:    "main",
 		CommitMessage: "Upgrade to wge",
@@ -43,9 +44,10 @@ func TestUpgradeDryRun(t *testing.T) {
 		DryRun:        true,
 	}, k, gitClient, kubeClient, gitProvider, logger, &output)
 
+	assert.NoError(t, err)
 	assert.Contains(t, output.String(), "kind: HelmRelease")
 	assert.Contains(t, output.String(), "kind: HelmRepository")
-	assert.NoError(t, err)
+	assert.Contains(t, output.String(), "kind: Kustomization")
 }
 
 type mockPullRequest struct{}

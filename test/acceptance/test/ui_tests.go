@@ -132,7 +132,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		})
 	})
 
-	It("UITest - Verify gitops UI can list details of apps running in the cluster", func() {
+	XIt("UITest - Verify gitops UI can list details of apps running in the cluster", func() {
 		var appPageURL string
 		var repoAbsolutePath string
 		var linkToApp1 *pages.AppListElements
