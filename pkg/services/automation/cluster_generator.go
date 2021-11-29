@@ -142,11 +142,11 @@ func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster m
 }
 
 func (ca ClusterAutomation) BootstrapManifests() []AutomationManifest {
-	return append([]AutomationManifest{ca.GitOpsRuntime}, ca.AppCRD, ca.WegoAPPManifest, ca.SourceManifest, ca.SystemKustResourceManifest, ca.UserKustResourceManifest)
+	return append([]AutomationManifest{ca.AppCRD}, ca.WegoAPPManifest, ca.SourceManifest, ca.SystemKustResourceManifest, ca.UserKustResourceManifest)
 }
 
 func (ca ClusterAutomation) Manifests() []AutomationManifest {
-	return append(ca.BootstrapManifests(), ca.SystemKustomizationManifest)
+	return append(ca.BootstrapManifests(), ca.GitOpsRuntime, ca.SystemKustomizationManifest)
 }
 
 func GetClusterHash(c models.Cluster) string {

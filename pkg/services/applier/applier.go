@@ -1,7 +1,7 @@
 package applier
 
 import (
-	// "bytes"
+	"bytes"
 	"context"
 	// "crypto/md5"
 	"fmt"
@@ -57,10 +57,16 @@ func (a *ClusterApplySvc) CreateNamespace(ctx context.Context, namespace string)
 
 func (a *ClusterApplySvc) ApplyManifests(ctx context.Context, cluster models.Cluster, namespace string, manifests []automation.AutomationManifest) error {
 	for _, manifest := range manifests {
-		fmt.Printf("NS: %s\nCONTENT: %s\n", namespace, manifest.Content)
+		ms := bytes.Split(manifest.Content, []byte("---\n"))
 
-		if err := a.Kube.Apply(ctx, manifest.Content, namespace); err != nil {
-			return fmt.Errorf("could not apply manifest: %w", err)
+		for _, m := range ms {
+			if len(bytes.Trim(m, " \t\n")) == 0 {
+				continue
+			}
+
+			if err := a.Kube.Apply(ctx, m, namespace); err != nil {
+				return fmt.Errorf("could not apply manifest: %w", err)
+			}
 		}
 	}
 
