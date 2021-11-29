@@ -17,7 +17,7 @@ import (
 
 	"github.com/go-logr/logr"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
-	"github.com/weaveworks/weave-gitops/pkg/charts"
+	"github.com/weaveworks/weave-gitops/pkg/helm"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -30,9 +30,16 @@ import (
 )
 
 const (
-	octetStreamType = "application/octet-stream"
-	jsonType        = "application/octet-stream"
+	OctetStreamType = "application/octet-stream"
+	JsonType        = "application/json"
 )
+
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate . HelmRepoManager
+type HelmRepoManager interface {
+	GetCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred helm.ChartPredicate) ([]*pb.Profile, error)
+	GetValuesFile(ctx context.Context, helmRepo *sourcev1beta1.HelmRepository, c *helm.ChartReference, filename string) ([]byte, error)
+}
 
 func NewProfilesHandler(ctx context.Context, logr logr.Logger) (http.Handler, error) {
 	rest, clusterName, err := kube.RestConfig()
@@ -51,17 +58,14 @@ func NewProfilesHandler(ctx context.Context, logr logr.Logger) (http.Handler, er
 	}
 
 	helmRepoNs := os.Getenv("RUNTIME_NAMESPACE")
-	chartClient := charts.NewHelmChartClient(rawClient, helmRepoNs, &sourcev1beta1.HelmRepository{}, charts.WithCacheDir(tempDir))
-
 	profilesSrv := &ProfilesServer{
-		kubeClient:        rawClient,
-		log:               logr,
-		chartScanner:      &charts.Scanner{},
-		chartClient:       chartClient,
-		helmRepoNamespace: helmRepoNs,
+		KubeClient:        rawClient,
+		Log:               logr,
+		HelmChartManager:  helm.NewRepoManager(rawClient, helmRepoNs, tempDir),
+		HelmRepoNamespace: helmRepoNs,
 		//TODO make this configurable
-		helmRepoName:           "weaveworks-charts",
-		helmRepositoryCacheDir: tempDir,
+		HelmRepoName: "weaveworks-charts",
+		cacheDir:     tempDir,
 	}
 
 	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(logr))
@@ -77,26 +81,25 @@ func NewProfilesHandler(ctx context.Context, logr logr.Logger) (http.Handler, er
 type ProfilesServer struct {
 	pb.UnimplementedProfilesServer
 
-	kubeClient             client.Client
-	log                    logr.Logger
-	chartScanner           charts.ChartScanner
-	chartClient            charts.ChartClient
-	helmRepoName           string
-	helmRepoNamespace      string
-	helmRepositoryCacheDir string
+	KubeClient        client.Client
+	Log               logr.Logger
+	HelmChartManager  HelmRepoManager
+	HelmRepoName      string
+	HelmRepoNamespace string
+	cacheDir          string
 }
 
 func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesRequest) (*pb.GetProfilesResponse, error) {
 	// Look for helm repository object in the current namespace
 	helmRepo := &sourcev1beta1.HelmRepository{}
-	err := s.kubeClient.Get(ctx, client.ObjectKey{
-		Name:      s.helmRepoName,
-		Namespace: s.helmRepoNamespace,
+	err := s.KubeClient.Get(ctx, client.ObjectKey{
+		Name:      s.HelmRepoName,
+		Namespace: s.HelmRepoNamespace,
 	}, helmRepo)
 
 	if err != nil {
-		errMsg := fmt.Sprintf("cannot find HelmRepository %q/%q", s.helmRepoNamespace, s.helmRepoName)
-		s.log.Error(err, errMsg)
+		errMsg := fmt.Sprintf("cannot find HelmRepository %q/%q", s.HelmRepoNamespace, s.HelmRepoName)
+		s.Log.Error(err, errMsg)
 
 		return &pb.GetProfilesResponse{
 				Profiles: []*pb.Profile{},
@@ -107,9 +110,9 @@ func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesReq
 			}
 	}
 
-	ps, err := s.chartScanner.ScanCharts(ctx, helmRepo, charts.Profiles)
+	ps, err := s.HelmChartManager.GetCharts(ctx, helmRepo, helm.Profiles)
 	if err != nil {
-		return nil, fmt.Errorf("failed to scan HelmRepository %q/%q for charts: %w", s.helmRepoNamespace, s.helmRepoName, err)
+		return nil, fmt.Errorf("failed to scan HelmRepository %q/%q for charts: %w", s.HelmRepoNamespace, s.HelmRepoName, err)
 	}
 
 	return &pb.GetProfilesResponse{
@@ -119,14 +122,14 @@ func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesReq
 
 func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfileValuesRequest) (*httpbody.HttpBody, error) {
 	helmRepo := &sourcev1beta1.HelmRepository{}
-	err := s.kubeClient.Get(ctx, client.ObjectKey{
-		Name:      s.helmRepoName,
-		Namespace: s.helmRepoNamespace,
+	err := s.KubeClient.Get(ctx, client.ObjectKey{
+		Name:      s.HelmRepoName,
+		Namespace: s.HelmRepoNamespace,
 	}, helmRepo)
 
 	if err != nil {
-		errMsg := fmt.Sprintf("cannot find HelmRepository %q/%q", s.helmRepoNamespace, s.helmRepoName)
-		s.log.Error(err, errMsg)
+		errMsg := fmt.Sprintf("cannot find HelmRepository %q/%q", s.HelmRepoNamespace, s.HelmRepoName)
+		s.Log.Error(err, errMsg)
 
 		return &httpbody.HttpBody{
 				ContentType: "application/json",
@@ -138,33 +141,31 @@ func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfil
 			}
 	}
 
-	s.chartClient.SetRepository(helmRepo)
-	if err := s.chartClient.UpdateCache(ctx); err != nil {
-		return nil, fmt.Errorf("failed to update Helm cache: %w", err)
-	}
-
 	sourceRef := helmv2beta1.CrossNamespaceObjectReference{
 		APIVersion: helmRepo.TypeMeta.APIVersion,
 		Kind:       helmRepo.TypeMeta.Kind,
 		Name:       helmRepo.ObjectMeta.Name,
 		Namespace:  helmRepo.ObjectMeta.Namespace,
 	}
-	ref := &charts.ChartReference{Chart: msg.ProfileName, Version: msg.ProfileVersion, SourceRef: sourceRef}
-	valuesBytes, err := s.chartClient.FileFromChart(ctx, ref, chartutil.ValuesfileName)
+
+	ref := &helm.ChartReference{Chart: msg.ProfileName, Version: msg.ProfileVersion, SourceRef: sourceRef}
+	valuesBytes, err := s.HelmChartManager.GetValuesFile(ctx, helmRepo, ref, chartutil.ValuesfileName)
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve values file from Helm chart '%s' (%s): %w", msg.ProfileName, msg.ProfileVersion, err)
 	}
 
 	var acceptHeader string
+
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
 		if accept, ok := md["accept"]; ok {
 			acceptHeader = strings.Join(accept, ",")
 		}
 	}
 
-	if strings.Contains(acceptHeader, octetStreamType) {
+	if strings.Contains(acceptHeader, OctetStreamType) {
 		return &httpbody.HttpBody{
-			ContentType: octetStreamType,
+			ContentType: OctetStreamType,
 			Data:        valuesBytes,
 		}, nil
 	}
@@ -177,7 +178,7 @@ func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfil
 	}
 
 	return &httpbody.HttpBody{
-		ContentType: jsonType,
+		ContentType: JsonType,
 		Data:        res,
 	}, nil
 }

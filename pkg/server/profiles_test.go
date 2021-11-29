@@ -1,4 +1,4 @@
-package server
+package server_test
 
 import (
 	"context"
@@ -9,7 +9,8 @@ import (
 	"time"
 
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
-	fakes "github.com/weaveworks/weave-gitops/pkg/charts/chartsfakes"
+	"github.com/weaveworks/weave-gitops/pkg/server"
+	fakes "github.com/weaveworks/weave-gitops/pkg/server/serverfakes"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
@@ -25,11 +26,10 @@ import (
 
 var _ = Describe("ProfilesServer", func() {
 	var (
-		fakeChartScanner *fakes.FakeChartScanner
-		fakeChartClient  *fakes.FakeChartClient
-		s                *ProfilesServer
-		helmRepo         *sourcev1beta1.HelmRepository
-		kubeClient       client.Client
+		fakeHelmRepoManager *fakes.FakeHelmRepoManager
+		s                   *server.ProfilesServer
+		helmRepo            *sourcev1beta1.HelmRepository
+		kubeClient          client.Client
 	)
 	var profileName = "observability"
 	var profileVersion = "latest"
@@ -43,15 +43,13 @@ var _ = Describe("ProfilesServer", func() {
 
 		kubeClient = fake.NewClientBuilder().WithScheme(scheme).Build()
 
-		fakeChartScanner = &fakes.FakeChartScanner{}
-		fakeChartClient = &fakes.FakeChartClient{}
-		s = &ProfilesServer{
-			kubeClient:        kubeClient,
-			log:               testutils.MakeFakeLogr(),
-			helmRepoName:      "helmrepo",
-			helmRepoNamespace: "default",
-			chartScanner:      fakeChartScanner,
-			chartClient:       fakeChartClient,
+		fakeHelmRepoManager = &fakes.FakeHelmRepoManager{}
+		s = &server.ProfilesServer{
+			KubeClient:        kubeClient,
+			Log:               testutils.MakeFakeLogr(),
+			HelmRepoName:      "helmrepo",
+			HelmRepoNamespace: "default",
+			HelmChartManager:  fakeHelmRepoManager,
 		}
 
 		helmRepo = &sourcev1beta1.HelmRepository{
@@ -85,21 +83,21 @@ var _ = Describe("ProfilesServer", func() {
 						Name: profileName,
 					},
 				}
-				fakeChartScanner.ScanChartsReturns(profiles, nil)
+				fakeHelmRepoManager.GetChartsReturns(profiles, nil)
 
 				profilesResp, err := s.GetProfiles(context.TODO(), &pb.GetProfilesRequest{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(profilesResp).NotTo(BeNil())
 				Expect(profilesResp.Profiles).To(Equal(profiles))
-				Expect(fakeChartScanner.ScanChartsCallCount()).To(Equal(1))
-				_, helmRepoArg, _ := fakeChartScanner.ScanChartsArgsForCall(0)
+				Expect(fakeHelmRepoManager.GetChartsCallCount()).To(Equal(1))
+				_, helmRepoArg, _ := fakeHelmRepoManager.GetChartsArgsForCall(0)
 				Expect(helmRepoArg.Name).To(Equal(helmRepo.Name))
 				Expect(helmRepoArg.Namespace).To(Equal(helmRepo.Namespace))
 			})
 
 			When("scanning for helmcharts errors", func() {
 				It("errors", func() {
-					fakeChartScanner.ScanChartsReturns(nil, fmt.Errorf("foo"))
+					fakeHelmRepoManager.GetChartsReturns(nil, fmt.Errorf("foo"))
 					_, err := s.GetProfiles(context.TODO(), &pb.GetProfilesRequest{})
 					Expect(err).To(MatchError("failed to scan HelmRepository \"default\"/\"helmrepo\" for charts: foo"))
 				})
@@ -123,63 +121,50 @@ var _ = Describe("ProfilesServer", func() {
 				Expect(kubeClient.Create(context.TODO(), helmRepo)).To(Succeed())
 			})
 
-			When("the Helm cache updates", func() {
-				When("it retrieves the values file from Helm chart", func() {
-					When("header does not contain 'application/octet-stream'", func() {
-						It("returns a values file in base64-encoded json", func() {
-							fakeChartClient.UpdateCacheReturns(nil)
-							fakeChartClient.FileFromChartReturns([]byte("values"), nil)
+			When("it retrieves the values file from Helm chart", func() {
+				When("header does not contain 'application/octet-stream'", func() {
+					It("returns a values file in base64-encoded json", func() {
+						fakeHelmRepoManager.GetValuesFileReturns([]byte("values"), nil)
 
-							resp, err := s.GetProfileValues(context.TODO(), &pb.GetProfileValuesRequest{
-								ProfileName:    profileName,
-								ProfileVersion: profileVersion,
-							})
-							Expect(err).NotTo(HaveOccurred())
-							Expect(resp.ContentType).To(Equal(jsonType))
-							valuesResp := &pb.GetProfileValuesResponse{}
-							err = json.Unmarshal(resp.Data, valuesResp)
-							Expect(err).NotTo(HaveOccurred())
-							profileValues, err := base64.StdEncoding.DecodeString(valuesResp.Values)
-							Expect(err).NotTo(HaveOccurred())
-							Expect(string(profileValues)).To(Equal("values"))
+						resp, err := s.GetProfileValues(context.TODO(), &pb.GetProfileValuesRequest{
+							ProfileName:    profileName,
+							ProfileVersion: profileVersion,
 						})
+						Expect(err).NotTo(HaveOccurred())
+						Expect(resp.ContentType).To(Equal(server.JsonType))
+						valuesResp := &pb.GetProfileValuesResponse{}
+						err = json.Unmarshal(resp.Data, valuesResp)
+						Expect(err).NotTo(HaveOccurred())
+						profileValues, err := base64.StdEncoding.DecodeString(valuesResp.Values)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(string(profileValues)).To(Equal("values"))
 					})
+				})
 
-					When("header contains 'application/octet-stream'", func() {
-						It("returns a values file in binary", func() {
-							fakeChartClient.UpdateCacheReturns(nil)
-							fakeChartClient.FileFromChartReturns([]byte("values"), nil)
-							ctx := metadata.NewIncomingContext(context.Background(), metadata.Pairs("accept", octetStreamType))
+				When("header contains 'application/octet-stream'", func() {
+					It("returns a values file in binary", func() {
+						fakeHelmRepoManager.GetValuesFileReturns([]byte("values"), nil)
+						ctx := metadata.NewIncomingContext(context.Background(), metadata.Pairs("accept", server.OctetStreamType))
 
-							resp, err := s.GetProfileValues(ctx, &pb.GetProfileValuesRequest{
-								ProfileName:    profileName,
-								ProfileVersion: profileVersion,
-							})
-							Expect(err).NotTo(HaveOccurred())
-							Expect(resp.ContentType).To(Equal(octetStreamType))
-							Expect(string(resp.Data)).To(Equal("values"))
+						resp, err := s.GetProfileValues(ctx, &pb.GetProfileValuesRequest{
+							ProfileName:    profileName,
+							ProfileVersion: profileVersion,
 						})
+						Expect(err).NotTo(HaveOccurred())
+						Expect(resp.ContentType).To(Equal(server.OctetStreamType))
+						Expect(string(resp.Data)).To(Equal("values"))
 					})
 				})
 
 				When("it cannot retrieve the values file from Helm chart", func() {
 					It("errors", func() {
-						fakeChartClient.UpdateCacheReturns(nil)
-						fakeChartClient.FileFromChartReturns([]byte{}, fmt.Errorf("err"))
+						fakeHelmRepoManager.GetValuesFileReturns([]byte{}, fmt.Errorf("err"))
 						_, err := s.GetProfileValues(context.TODO(), &pb.GetProfileValuesRequest{
 							ProfileName:    profileName,
 							ProfileVersion: profileVersion,
 						})
 						Expect(err).To(MatchError("failed to retrieve values file from Helm chart 'observability' (latest): err"))
 					})
-				})
-			})
-
-			When("the Helm cache fails to update", func() {
-				It("errors", func() {
-					fakeChartClient.UpdateCacheReturns(fmt.Errorf("err"))
-					_, err := s.GetProfileValues(context.TODO(), &pb.GetProfileValuesRequest{})
-					Expect(err).To(MatchError("failed to update Helm cache: err"))
 				})
 			})
 		})
