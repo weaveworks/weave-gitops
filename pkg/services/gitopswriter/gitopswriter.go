@@ -156,7 +156,6 @@ func (dw *gitOpsDirectoryWriterSvc) AssociateCluster(
 	namespace string,
 	auto automation.ClusterAutomation,
 	autoMerge bool) error {
-
 	manifests := auto.Manifests()
 
 	defaultBranch, err := dw.RepoWriter.GetDefaultBranch(ctx)

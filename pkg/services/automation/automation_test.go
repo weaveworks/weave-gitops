@@ -26,30 +26,6 @@ var (
 	emptyRepoURL = gitproviders.RepoURL{}
 )
 
-func extractApp(app models.Application, automation []AutomationManifest) (AutomationManifest, []AutomationManifest) {
-	return extractManifest(AppYamlPath(app), automation)
-}
-
-func extractAppKustomize(app models.Application, automation []AutomationManifest) (AutomationManifest, []AutomationManifest) {
-	return extractManifest(AppAutomationKustomizePath(app), automation)
-}
-
-func extractManifest(path string, automation []AutomationManifest) (AutomationManifest, []AutomationManifest) {
-	var m AutomationManifest
-
-	others := []AutomationManifest{}
-
-	for _, am := range automation {
-		if am.Path == path {
-			m = am
-		} else {
-			others = append(others, am)
-		}
-	}
-
-	return m, others
-}
-
 func createRepoURL(url string) gitproviders.RepoURL {
 	repoURL, err := gitproviders.NewRepoURL(url)
 	Expect(err).NotTo(HaveOccurred())

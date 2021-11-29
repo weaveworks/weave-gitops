@@ -131,14 +131,11 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 	})
 
-	It("Verify that gitops can install & uninstall gitops components under a user-specified namespace via pull request", func() {
-
+	FIt("Verify that gitops can install & uninstall gitops components to multiple clusters under a user-specified namespace via pull requests", func() {
 		namespace := "test-namespace"
 
-		By("And I have a brand new cluster", func() {
-			_, _, err := ResetOrCreateCluster(namespace, true)
-			Expect(err).ShouldNot(HaveOccurred())
-		})
+		_, cluster1Context, err := ResetOrCreateCluster(namespace, true)
+		Expect(err).ShouldNot(HaveOccurred())
 
 		private := true
 		tip := generateTestInputs()
@@ -154,23 +151,49 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		installAndVerifyWegoViaPullRequest(namespace, appRepoRemoteURL, repoAbsolutePath)
 
-		By("When I run 'gitops uninstall' command without force flag it asks for confirmation", func() {
-			cmd := fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, namespace)
-			outputStream := gbytes.NewBuffer()
-			inputUser := bytes.NewBuffer([]byte("y\n"))
+		cluster2Name, cluster2Context, err := ResetOrCreateClusterWithName(namespace, false, "", true)
+		Expect(err).ShouldNot(HaveOccurred())
 
-			c := exec.Command("sh", "-c", cmd)
-			c.Stdout = outputStream
-			c.Stdin = inputUser
-			c.Stderr = os.Stderr
-			err := c.Start()
-			Expect(err).ShouldNot(HaveOccurred())
+		defer func() {
+			selectCluster(cluster2Context)
+			deleteCluster(cluster2Name)
+		}()
 
-			Eventually(outputStream).Should(gbytes.Say(`Uninstall will remove all your Applications and any related cluster resources\. Are you sure you want to uninstall\? \[y\/N\]`))
+		selectCluster(cluster2Context)
+		installAndVerifyWegoViaPullRequest(namespace, appRepoRemoteURL, repoAbsolutePath)
 
-			err = c.Wait()
-			Expect(err).ShouldNot(HaveOccurred())
+		selectCluster(cluster1Context)
+		cmd := fmt.Sprintf("%s uninstall --namespace %s --force", WEGO_BIN_PATH, namespace)
+		c := exec.Command("sh", "-c", cmd)
+		c.Stdout = os.Stdout
+		c.Stderr = os.Stderr
+		err = c.Start()
+
+		Expect(err).ShouldNot(HaveOccurred())
+
+		err = c.Wait()
+
+		Expect(err).ShouldNot(HaveOccurred())
+
+		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)
+
+		By("Then I should not see any gitops components", func() {
+			_, errOutput := runCommandAndReturnStringOutput("kubectl get ns " + namespace)
+			Eventually(errOutput).Should(ContainSubstring(`Error from server (NotFound): namespaces "` + namespace + `" not found`))
 		})
+
+		selectCluster(cluster2Context)
+
+		cmd = fmt.Sprintf("%s uninstall --namespace %s --force", WEGO_BIN_PATH, namespace)
+		c = exec.Command("sh", "-c", cmd)
+		c.Stdout = os.Stdout
+		c.Stderr = os.Stderr
+		err = c.Start()
+
+		Expect(err).ShouldNot(HaveOccurred())
+
+		err = c.Wait()
+		Expect(err).ShouldNot(HaveOccurred())
 
 		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)
 

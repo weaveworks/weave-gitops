@@ -120,7 +120,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	cluster := models.Cluster{clusterName}
+	cluster := models.Cluster{Name: clusterName}
 	repoWriter := gitrepo.NewRepoWriter(configURL, gitProvider, gitClient, log)
 	automationGen := automation.NewAutomationGenerator(gitProvider, flux, log)
 	gitOpsDirWriter := gitopswriter.NewGitOpsDirectoryWriter(automationGen, repoWriter, osysClient, log)

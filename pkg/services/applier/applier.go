@@ -52,6 +52,7 @@ func (a *ClusterApplySvc) CreateNamespace(ctx context.Context, namespace string)
 	var ns corev1.Namespace
 
 	ns.Name = namespace
+
 	return a.Client.Create(ctx, &ns)
 }
 
