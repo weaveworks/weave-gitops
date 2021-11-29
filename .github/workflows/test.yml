@@ -117,7 +117,7 @@ jobs:
   smoke-tests:
     runs-on: ubuntu-latest
     needs: build
-    timeout-minutes: 180
+    timeout-minutes: 60
     steps:
     - uses: actions/checkout@v2
     - uses: ./.github/actions/run-acceptance-test
