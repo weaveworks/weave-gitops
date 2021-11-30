@@ -157,6 +157,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		defer func() {
 			selectCluster(cluster2Context)
 			deleteCluster(cluster2Name)
+			selectCluster(cluster1Context)
 		}()
 
 		selectCluster(cluster2Context)
@@ -201,8 +202,6 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 			_, errOutput := runCommandAndReturnStringOutput("kubectl get ns " + namespace)
 			Eventually(errOutput).Should(ContainSubstring(`Error from server (NotFound): namespaces "` + namespace + `" not found`))
 		})
-
-		selectCluster(cluster1Context)
 	})
 
 	It("Verify that gitops can uninstall flux if gitops was not fully installed", func() {
