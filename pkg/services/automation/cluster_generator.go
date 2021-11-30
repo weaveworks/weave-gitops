@@ -29,7 +29,7 @@ import (
 type ClusterAutomation struct {
 	GitOpsRuntime               AutomationManifest
 	AppCRD                      AutomationManifest
-	WegoAPPManifest             AutomationManifest
+	WegoAppManifest             AutomationManifest
 	SourceManifest              AutomationManifest
 	SystemKustResourceManifest  AutomationManifest
 	UserKustResourceManifest    AutomationManifest
@@ -37,13 +37,13 @@ type ClusterAutomation struct {
 }
 
 const (
-	runtimePath             = "gitops-runtime.yaml"
-	appCRDPath              = "wego-system.yaml"
-	wegoAppPath             = "wego-app.yaml"
-	sourcePath              = "flux-source-resource.yaml"
-	systemKustResourcePath  = "flux-system-kustomization-resource.yaml"
-	userKustResourcePath    = "flux-user-kustomization-resource.yaml"
-	systemKustomizationPath = "kustomization.yaml"
+	RuntimePath             = "gitops-runtime.yaml"
+	AppCRDPath              = "wego-system.yaml"
+	WegoAppPath             = "wego-app.yaml"
+	SourcePath              = "flux-source-resource.yaml"
+	SystemKustResourcePath  = "flux-system-kustomization-resource.yaml"
+	UserKustResourcePath    = "flux-user-kustomization-resource.yaml"
+	SystemKustomizationPath = "kustomization.yaml"
 )
 
 func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster models.Cluster, configURL gitproviders.RepoURL, namespace string) (ClusterAutomation, error) {
@@ -102,7 +102,7 @@ func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster m
 		return ClusterAutomation{}, err
 	}
 
-	systemKustomization := CreateKustomize(cluster.Name, namespace, runtimePath, sourcePath, systemKustResourcePath, userKustResourcePath)
+	systemKustomization := CreateKustomize(cluster.Name, namespace, RuntimePath, SourcePath, SystemKustResourcePath, UserKustResourcePath)
 
 	systemKustomizationManifest, err := yaml.Marshal(systemKustomization)
 	if err != nil {
@@ -111,38 +111,38 @@ func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster m
 
 	return ClusterAutomation{
 		GitOpsRuntime: AutomationManifest{
-			Path:    systemQualifiedPath(runtimePath),
+			Path:    systemQualifiedPath(RuntimePath),
 			Content: runtimeManifests,
 		},
 		AppCRD: AutomationManifest{
-			Path:    systemQualifiedPath(appCRDPath),
+			Path:    systemQualifiedPath(AppCRDPath),
 			Content: appCRDManifest,
 		},
-		WegoAPPManifest: AutomationManifest{
-			Path:    systemQualifiedPath(wegoAppPath),
+		WegoAppManifest: AutomationManifest{
+			Path:    systemQualifiedPath(WegoAppPath),
 			Content: wegoAppManifest,
 		},
 		SourceManifest: AutomationManifest{
-			Path:    systemQualifiedPath(sourcePath),
+			Path:    systemQualifiedPath(SourcePath),
 			Content: sourceManifest,
 		},
 		SystemKustResourceManifest: AutomationManifest{
-			Path:    systemQualifiedPath(systemKustResourcePath),
+			Path:    systemQualifiedPath(SystemKustResourcePath),
 			Content: systemKustResourceManifest,
 		},
 		UserKustResourceManifest: AutomationManifest{
-			Path:    systemQualifiedPath(userKustResourcePath),
+			Path:    systemQualifiedPath(UserKustResourcePath),
 			Content: userKustResourceManifest,
 		},
 		SystemKustomizationManifest: AutomationManifest{
-			Path:    systemQualifiedPath(systemKustomizationPath),
+			Path:    systemQualifiedPath(SystemKustomizationPath),
 			Content: systemKustomizationManifest,
 		},
 	}, nil
 }
 
 func (ca ClusterAutomation) BootstrapManifests() []AutomationManifest {
-	return append([]AutomationManifest{ca.AppCRD}, ca.WegoAPPManifest, ca.SourceManifest, ca.SystemKustResourceManifest, ca.UserKustResourceManifest)
+	return append([]AutomationManifest{ca.AppCRD}, ca.WegoAppManifest, ca.SourceManifest, ca.SystemKustResourceManifest, ca.UserKustResourceManifest)
 }
 
 func (ca ClusterAutomation) Manifests() []AutomationManifest {

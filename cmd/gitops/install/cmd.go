@@ -135,7 +135,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	err = gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, clusterAutomation, installParams.AutoMerge)
+	err = gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, installParams.AutoMerge)
 	if err != nil {
 		return err
 	}
