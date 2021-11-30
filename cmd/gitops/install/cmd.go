@@ -84,18 +84,24 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return errors.New("Weave GitOps cannot talk to the cluster")
 	}
 
-	_, err = flux.Install(namespace, false)
-	if err != nil {
-		return err
-	}
-
 	clusterApplier := applier.NewClusterApplier(k, c, log)
 
 	var gitClient git.Git
 
 	var gitProvider gitproviders.GitProvider
 
-	if !installParams.DryRun {
+	if installParams.DryRun {
+		gitProvider, err = gitproviders.NewDryRun()
+
+		if err != nil {
+			return fmt.Errorf("error creating git provider for dry run: %w", err)
+		}
+	} else {
+		_, err = flux.Install(namespace, false)
+		if err != nil {
+			return err
+		}
+
 		factory := services.NewFactory(flux, log)
 		providerClient := internal.NewGitProviderClient(osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
 
@@ -130,6 +136,14 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	if installParams.DryRun {
+		for _, manifest := range clusterAutomation.Manifests() {
+			fmt.Println(string(manifest.Content))
+		}
+
+		return nil
+	}
+
 	err = clusterApplier.ApplyManifests(ctx, cluster, namespace, clusterAutomation.BootstrapManifests())
 	if err != nil {
 		return err
@@ -138,12 +152,6 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	err = gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, installParams.AutoMerge)
 	if err != nil {
 		return err
-	}
-
-	if installParams.DryRun {
-		for _, manifest := range clusterAutomation.Manifests() {
-			fmt.Println(string(manifest.Content))
-		}
 	}
 
 	return nil
