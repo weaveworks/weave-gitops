@@ -59,8 +59,9 @@ bin: ## Build gitops binary
 	go build -ldflags $(LDFLAGS) -o bin/$(BINARY_NAME) cmd/gitops/*.go
 	go build -ldflags $(LDFLAGS) -o bin/$(PROFILES_BINARY_NAME) cmd/profiles-server/*.go
 
-docker: ## Build wego-app docker image
-	docker build -t ghcr.io/weaveworks/wego-app:latest .
+docker: ## Build wego docker images
+	docker build -t ghcr.io/weaveworks/wego-app:latest -f cmd/gitops/Dockerfile .
+	docker build -t ghcr.io/weaveworks/profiles-server:latest -f cmd/profiles-server/Dockerfile .
 
 
 # Clean up images and binaries

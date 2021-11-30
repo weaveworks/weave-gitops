@@ -14,7 +14,7 @@ spec:
       containers:
         - name: profiles-server
           # TODO: change
-          image: aclevernameww/profiles-server:{{.ProfilesVersion}}
+          image: ghcr.io/weaveworks/profiles-server:{{.ProfilesVersion}}
           args: ["--helm-repo-namespace", "$(RUNTIME_NAMESPACE)"]
           ports:
             - containerPort: 8000
