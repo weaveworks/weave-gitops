@@ -60,15 +60,16 @@ type Credentials struct {
 }
 
 type CreatePullRequestFromTemplateParams struct {
-	TemplateName    string
-	ParameterValues map[string]string
-	RepositoryURL   string
-	HeadBranch      string
-	BaseBranch      string
-	Title           string
-	Description     string
-	CommitMessage   string
-	Credentials     Credentials
+	GitProviderToken string
+	TemplateName     string
+	ParameterValues  map[string]string
+	RepositoryURL    string
+	HeadBranch       string
+	BaseBranch       string
+	Title            string
+	Description      string
+	CommitMessage    string
+	Credentials      Credentials
 }
 
 // GetTemplates uses a TemplatesRetriever adapter to show

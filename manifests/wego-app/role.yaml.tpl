@@ -2,6 +2,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: resources-reader
+  namespace: {{.Namespace}}
 rules:
   - apiGroups: [""]
     resources: ["secrets"]
