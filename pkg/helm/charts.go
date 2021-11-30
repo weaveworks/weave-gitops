@@ -29,19 +29,17 @@ import (
 const ProfileAnnotation = "weave.works/profile"
 
 // NewRepoManager creates and returns a new RepoManager.
-func NewRepoManager(kc client.Client, ns, cacheDir string) *RepoManager {
+func NewRepoManager(kc client.Client, cacheDir string) *RepoManager {
 	return &RepoManager{
-		Client:    kc,
-		Namespace: ns,
-		CacheDir:  cacheDir,
+		Client:   kc,
+		CacheDir: cacheDir,
 	}
 }
 
 // RepoManager implements HelmRepoManager interface using the Helm library packages.
 type RepoManager struct {
 	client.Client
-	Namespace string
-	CacheDir  string
+	CacheDir string
 }
 
 // ChartReference is a Helm chart reference, the SourceRef is a Flux
@@ -70,7 +68,7 @@ var Profiles = func(v *repo.ChartVersion) bool {
 
 // ScanCharts filters charts using the provided predicate.
 // TODO: Add caching based on the Status Artifact Revision.
-func (s *RepoManager) GetCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred ChartPredicate) ([]*pb.Profile, error) {
+func (h *RepoManager) GetCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred ChartPredicate) ([]*pb.Profile, error) {
 	chartRepo, err := fetchIndexFile(hr.Status.URL)
 	if err != nil {
 		return nil, fmt.Errorf("fetching profiles from HelmRepository %s/%s %q: %w",
@@ -175,15 +173,6 @@ func (h *RepoManager) loadChart(ctx context.Context, helmRepo *sourcev1beta1.Hel
 	return chart, nil
 }
 
-func credsForRepository(ctx context.Context, kc client.Client, ns string, hr *sourcev1beta1.HelmRepository) (string, string, error) {
-	var secret corev1.Secret
-	if err := kc.Get(ctx, types.NamespacedName{Name: hr.Spec.SecretRef.Name, Namespace: ns}, &secret); err != nil {
-		return "", "", fmt.Errorf("repository authentication: %w", err)
-	}
-
-	return string(secret.Data["username"]), string(secret.Data["password"]), nil
-}
-
 func (h *RepoManager) chartPathOptionsFromRepository(ctx context.Context, helmRepo *sourcev1beta1.HelmRepository, c *ChartReference) (*action.ChartPathOptions, error) {
 	// TODO: This should probably use Verify: true
 	co := &action.ChartPathOptions{
@@ -192,7 +181,7 @@ func (h *RepoManager) chartPathOptionsFromRepository(ctx context.Context, helmRe
 	}
 
 	if helmRepo.Spec.SecretRef != nil {
-		username, password, err := credsForRepository(ctx, h.Client, h.Namespace, helmRepo)
+		username, password, err := credsForRepository(ctx, h.Client, helmRepo)
 		if err != nil {
 			return nil, err
 		}
@@ -211,7 +200,7 @@ func (h *RepoManager) entryForRepository(ctx context.Context, helmRepo *sourcev1
 	}
 
 	if helmRepo.Spec.SecretRef != nil {
-		username, password, err := credsForRepository(ctx, h.Client, h.Namespace, helmRepo)
+		username, password, err := credsForRepository(ctx, h.Client, helmRepo)
 		if err != nil {
 			return nil, err
 		}
@@ -221,6 +210,15 @@ func (h *RepoManager) entryForRepository(ctx context.Context, helmRepo *sourcev1
 	}
 
 	return entry, nil
+}
+
+func credsForRepository(ctx context.Context, kc client.Client, hr *sourcev1beta1.HelmRepository) (string, string, error) {
+	var secret corev1.Secret
+	if err := kc.Get(ctx, types.NamespacedName{Name: hr.Spec.SecretRef.Name, Namespace: hr.Namespace}, &secret); err != nil {
+		return "", "", fmt.Errorf("repository authentication: %w", err)
+	}
+
+	return string(secret.Data["username"]), string(secret.Data["password"]), nil
 }
 
 func (h *RepoManager) envSettings() *cli.EnvSettings {

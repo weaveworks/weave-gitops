@@ -33,16 +33,15 @@ const (
 
 var _ = Describe("RepoManager", func() {
 	Context("GetCharts", func() {
-
-		var scanner *helm.RepoManager
+		var repoManager *helm.RepoManager
 
 		BeforeEach(func() {
-			scanner = &helm.RepoManager{}
+			repoManager = &helm.RepoManager{}
 		})
 
 		It("returns all profiles in the repository", func() {
 			testServer := httptest.NewServer(http.FileServer(http.Dir("testdata/with_profiles")))
-			profiles, err := scanner.GetCharts(context.TODO(), makeTestHelmRepository(testServer.URL), helm.Profiles)
+			profiles, err := repoManager.GetCharts(context.TODO(), makeTestHelmRepository(testServer.URL), helm.Profiles)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(profiles).To(ConsistOf(&pb.Profile{
@@ -74,7 +73,7 @@ var _ = Describe("RepoManager", func() {
 		When("no charts exist with the profiles tag", func() {
 			It("returns an empty list", func() {
 				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata/no_profiles")))
-				profiles, err := scanner.GetCharts(context.TODO(), makeTestHelmRepository(testServer.URL), helm.Profiles)
+				profiles, err := repoManager.GetCharts(context.TODO(), makeTestHelmRepository(testServer.URL), helm.Profiles)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(profiles).To(BeEmpty())
 			})
@@ -83,7 +82,7 @@ var _ = Describe("RepoManager", func() {
 		When("server isn't a valid helm repository", func() {
 			It("errors", func() {
 				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata")))
-				_, err := scanner.GetCharts(context.TODO(), makeTestHelmRepository(testServer.URL), helm.Profiles)
+				_, err := repoManager.GetCharts(context.TODO(), makeTestHelmRepository(testServer.URL), helm.Profiles)
 				Expect(err).To(MatchError(ContainSubstring("fetching profiles from HelmRepository testing/test-ns")))
 				Expect(err).To(MatchError(ContainSubstring("404")))
 			})
@@ -91,14 +90,14 @@ var _ = Describe("RepoManager", func() {
 
 		When("the URL is invalid", func() {
 			It("errors", func() {
-				_, err := scanner.GetCharts(context.TODO(), makeTestHelmRepository("http://[::1]:namedport/index.yaml"), helm.Profiles)
+				_, err := repoManager.GetCharts(context.TODO(), makeTestHelmRepository("http://[::1]:namedport/index.yaml"), helm.Profiles)
 				Expect(err).To(MatchError(ContainSubstring("invalid port")))
 			})
 		})
 
 		When("the scheme is unsupported", func() {
 			It("errors", func() {
-				_, err := scanner.GetCharts(context.TODO(), makeTestHelmRepository("sftp://localhost:4222/index.yaml"), helm.Profiles)
+				_, err := repoManager.GetCharts(context.TODO(), makeTestHelmRepository("sftp://localhost:4222/index.yaml"), helm.Profiles)
 				Expect(err).To(MatchError(ContainSubstring("no provider for scheme: sftp")))
 			})
 		})
@@ -106,7 +105,7 @@ var _ = Describe("RepoManager", func() {
 		When("the index file doesn't contain an API version", func() {
 			It("errors", func() {
 				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata")))
-				_, err := scanner.GetCharts(context.TODO(), makeTestHelmRepository(testServer.URL+"/invalid"), helm.Profiles)
+				_, err := repoManager.GetCharts(context.TODO(), makeTestHelmRepository(testServer.URL+"/invalid"), helm.Profiles)
 				Expect(err).To(MatchError(ContainSubstring("no API version specified")))
 			})
 		})
@@ -114,7 +113,7 @@ var _ = Describe("RepoManager", func() {
 		When("the index file isn't valid yaml", func() {
 			It("errors", func() {
 				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata")))
-				_, err := scanner.GetCharts(context.TODO(), makeTestHelmRepository(testServer.URL+"/brokenyaml"), helm.Profiles)
+				_, err := repoManager.GetCharts(context.TODO(), makeTestHelmRepository(testServer.URL+"/brokenyaml"), helm.Profiles)
 				Expect(err).To(MatchError(ContainSubstring("cannot decode")))
 			})
 		})
@@ -137,9 +136,9 @@ var _ = Describe("RepoManager", func() {
 			testServer := httptest.NewServer(makeServeMux())
 			helmRepo := makeTestHelmRepository(testServer.URL)
 			chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.1", SourceRef: referenceForRepository(helmRepo)}
-			chartClient := helm.NewRepoManager(makeTestClient(), testNamespace, tempDir)
+			repoManager := helm.NewRepoManager(makeTestClient(), tempDir)
 
-			values, err := chartClient.GetValuesFile(context.TODO(), helmRepo, chartReference, "values.yaml")
+			values, err := repoManager.GetValuesFile(context.TODO(), helmRepo, chartReference, "values.yaml")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(values)).To(Equal("favoriteDrink: coffee\n"))
 		})
@@ -149,9 +148,9 @@ var _ = Describe("RepoManager", func() {
 				testServer := httptest.NewServer(makeServeMux())
 				helmRepo := makeTestHelmRepository(testServer.URL)
 				chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.2", SourceRef: referenceForRepository(helmRepo)}
-				chartClient := helm.NewRepoManager(makeTestClient(), testNamespace, tempDir)
+				repoManager := helm.NewRepoManager(makeTestClient(), tempDir)
 
-				_, err := chartClient.GetValuesFile(context.TODO(), helmRepo, chartReference, "values.yaml")
+				_, err := repoManager.GetValuesFile(context.TODO(), helmRepo, chartReference, "values.yaml")
 				Expect(err).To(MatchError(ContainSubstring(`chart "demo-profile" version "0.0.2" not found`)))
 			})
 		})
@@ -165,9 +164,9 @@ var _ = Describe("RepoManager", func() {
 
 				helmRepo := makeTestHelmRepository(testServer.URL)
 				chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.2", SourceRef: referenceForRepository(helmRepo)}
-				chartClient := helm.NewRepoManager(makeTestClient(), testNamespace, tempDir)
+				repoManager := helm.NewRepoManager(makeTestClient(), tempDir)
 
-				_, err := chartClient.GetValuesFile(context.TODO(), helmRepo, chartReference, "values.yaml")
+				_, err := repoManager.GetValuesFile(context.TODO(), helmRepo, chartReference, "values.yaml")
 				Expect(err).To(MatchError(ContainSubstring(`chart "demo-profile" version "0.0.2" has no downloadable URLs`)))
 			})
 		})
@@ -176,9 +175,9 @@ var _ = Describe("RepoManager", func() {
 			It("errors", func() {
 				helmRepo := makeTestHelmRepository("http://[::1]:namedport/index.yaml")
 				chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.1", SourceRef: referenceForRepository(helmRepo)}
-				chartClient := helm.NewRepoManager(makeTestClient(), testNamespace, tempDir)
+				repoManager := helm.NewRepoManager(makeTestClient(), tempDir)
 
-				_, err := chartClient.GetValuesFile(context.TODO(), helmRepo, chartReference, "values.yaml")
+				_, err := repoManager.GetValuesFile(context.TODO(), helmRepo, chartReference, "values.yaml")
 				Expect(err).To(MatchError(ContainSubstring("invalid chart URL format")))
 			})
 		})
@@ -192,9 +191,9 @@ var _ = Describe("RepoManager", func() {
 					}
 				})
 				chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.1", SourceRef: referenceForRepository(helmRepo)}
-				chartClient := helm.NewRepoManager(makeTestClient(), testNamespace, tempDir)
+				repoManager := helm.NewRepoManager(makeTestClient(), tempDir)
 
-				_, err := chartClient.GetValuesFile(context.TODO(), helmRepo, chartReference, "values.yaml")
+				_, err := repoManager.GetValuesFile(context.TODO(), helmRepo, chartReference, "values.yaml")
 				Expect(err).To(MatchError(ContainSubstring(`repository authentication: secrets "https-credentials" not found`)))
 			})
 		})

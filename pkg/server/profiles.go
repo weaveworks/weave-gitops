@@ -60,7 +60,7 @@ func NewProfilesHandler(ctx context.Context, logr logr.Logger, helmRepoNamespace
 	profilesSrv := &ProfilesServer{
 		KubeClient:        rawClient,
 		Log:               logr,
-		HelmChartManager:  helm.NewRepoManager(rawClient, helmRepoNamespace, tempDir),
+		HelmChartManager:  helm.NewRepoManager(rawClient, tempDir),
 		HelmRepoNamespace: helmRepoNamespace,
 		HelmRepoName:      helmRepoName,
 		cacheDir:          tempDir,
