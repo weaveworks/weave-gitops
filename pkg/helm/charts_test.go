@@ -31,7 +31,7 @@ const (
 	testSecretName = "https-credentials"
 )
 
-var _ = Describe("ScanCharts", func() {
+var _ = Describe("RepoManager", func() {
 	Context("GetCharts", func() {
 
 		var scanner *helm.RepoManager

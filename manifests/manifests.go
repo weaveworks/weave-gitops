@@ -30,7 +30,7 @@ type Params struct {
 	Namespace       string
 }
 
-// GenerateManifests generates wego-app manifests from a template
+// GenerateManifests generates weave-gitops manifests from a template
 func GenerateManifests(params Params) ([][]byte, error) {
 	manifests := [][]byte{}
 

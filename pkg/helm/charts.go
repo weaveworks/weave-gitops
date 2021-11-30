@@ -28,7 +28,7 @@ import (
 // that they provide a Profile.
 const ProfileAnnotation = "weave.works/profile"
 
-// NewRepoManager creates and returns a new HelmChartClient.
+// NewRepoManager creates and returns a new RepoManager.
 func NewRepoManager(kc client.Client, ns, cacheDir string) *RepoManager {
 	return &RepoManager{
 		Client:    kc,

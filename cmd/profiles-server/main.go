@@ -14,22 +14,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type params struct {
-	helmRepoNamespace string
-	helmRepoName      string
-}
-
-var runtimeParams params
-
-func main() {
-	if err := NewAPIServerCommand().Execute(); err != nil {
-		os.Exit(1)
-	}
-}
-
 const addr = "0.0.0.0:8000"
 
-func NewAPIServerCommand() *cobra.Command {
+func main() {
+	var helmRepoNamespace, helmRepoName string
+
 	cmd := &cobra.Command{
 		Use:  "profiles-server",
 		Long: `The profiles-server handles HTTP requests for the Profiles API`,
@@ -42,7 +31,7 @@ func NewAPIServerCommand() *cobra.Command {
 			}
 			logr := zapr.NewLogger(zapLog)
 
-			s, err := server.NewProfilesHandler(context.Background(), logr, runtimeParams.helmRepoNamespace, runtimeParams.helmRepoName)
+			s, err := server.NewProfilesHandler(context.Background(), logr, helmRepoNamespace, helmRepoName)
 			if err != nil {
 				return err
 			}
@@ -52,8 +41,10 @@ func NewAPIServerCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&runtimeParams.helmRepoNamespace, "helm-repo-namespace", "default", "the namespace of the Helm Repository resource to scan for profiles")
-	cmd.Flags().StringVar(&runtimeParams.helmRepoName, "helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
+	cmd.Flags().StringVar(&helmRepoNamespace, "helm-repo-namespace", "default", "the namespace of the Helm Repository resource to scan for profiles")
+	cmd.Flags().StringVar(&helmRepoName, "helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
 
-	return cmd
+	if err := cmd.Execute(); err != nil {
+		os.Exit(1)
+	}
 }

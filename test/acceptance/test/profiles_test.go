@@ -55,7 +55,7 @@ var _ = Describe("Weave GitOps Profiles API", func() {
 		deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 	})
 
-	FIt("Works", func() {
+	It("Works", func() {
 		By("Installing the Profiles API and setting up the profile helm repository")
 		appRepoRemoteURL = "git@github.com:" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 		installAndVerifyWego(namespace, appRepoRemoteURL)
