@@ -426,19 +426,20 @@ var _ = Describe("Generate cluster manifests", func() {
 		configBranch, err := gitProviders.GetDefaultBranch(ctx, url)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		sourceManifest, err := realFlux.CreateSourceGit(secretStr, url, configBranch, secretStr, namespace)
+		sourceName := CreateClusterSourceName(url)
+		sourceManifest, err := realFlux.CreateSourceGit(sourceName, url, configBranch, secretStr, namespace)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(clusterAutomation.SourceManifest.Content).To(Equal(sourceManifest))
 		Expect(clusterAutomation.SourceManifest.Path).To(Equal(systemQualifiedPath(sourcePath)))
 
 		systemKustResourceManifest, err := realFlux.CreateKustomization(ConstrainResourceName(fmt.Sprintf("%s-system", cluster.Name)),
-			secretStr, workAroundFluxDroppingDot(systemPath), namespace)
+			sourceName, workAroundFluxDroppingDot(systemPath), namespace)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(clusterAutomation.SystemKustResourceManifest.Content).To(Equal(systemKustResourceManifest))
 		Expect(clusterAutomation.SystemKustResourceManifest.Path).To(Equal(systemQualifiedPath(systemKustResourcePath)))
 
 		userKustResourceManifest, err := realFlux.CreateKustomization(ConstrainResourceName(fmt.Sprintf("%s-user", cluster.Name)),
-			secretStr, workAroundFluxDroppingDot(userPath), namespace)
+			sourceName, workAroundFluxDroppingDot(userPath), namespace)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(clusterAutomation.UserKustResourceManifest.Content).To(Equal(userKustResourceManifest))
 		Expect(clusterAutomation.UserKustResourceManifest.Path).To(Equal(systemQualifiedPath(userKustResourcePath)))
