@@ -23,6 +23,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -31,6 +32,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
+	kyaml "sigs.k8s.io/yaml"
 )
 
 func CreateScheme() *apiruntime.Scheme {
@@ -151,6 +153,10 @@ type KubeHTTP struct {
 	ClusterName string
 	DynClient   dynamic.Interface
 	RestMapper  meta.RESTMapper
+}
+
+func (k *KubeHTTP) Raw() client.Client {
+	return k.Client
 }
 
 func (k *KubeHTTP) GetClusterName(ctx context.Context) (string, error) {
@@ -374,6 +380,63 @@ func (k *KubeHTTP) SetResource(ctx context.Context, resource Resource) error {
 	}
 
 	return nil
+}
+
+func (k *KubeHTTP) SetWegoConfig(ctx context.Context, config WegoConfig, namespace string) error {
+	configBytes, err := kyaml.Marshal(config)
+	if err != nil {
+		return fmt.Errorf("failed marshalling wego config: %w", err)
+	}
+
+	name := types.NamespacedName{Name: "weave-gitops-config", Namespace: namespace}
+
+	cm := &corev1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ConfigMap",
+			APIVersion: corev1.SchemeGroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name.Name,
+			Namespace: name.Namespace,
+		},
+	}
+
+	if err := k.Client.Get(ctx, name, cm); err != nil {
+		if errors.IsNotFound(err) {
+			cm.Data = map[string]string{
+				"config": string(configBytes),
+			}
+
+			if err = k.Client.Create(ctx, cm); err != nil {
+				return fmt.Errorf("failed creating weave-gitops configmap: %w", err)
+			}
+
+			return nil
+		}
+
+		return fmt.Errorf("failed getting weave-gitops configmap: %w", err)
+	}
+
+	cm.Data["config"] = string(configBytes)
+
+	return k.Client.Update(ctx, cm)
+}
+
+func (k *KubeHTTP) GetWegoConfig(ctx context.Context, namespace string) (*WegoConfig, error) {
+	name := types.NamespacedName{Name: "weave-gitops-config", Namespace: namespace}
+
+	cm := &corev1.ConfigMap{}
+	if err := k.Client.Get(ctx, name, cm); err != nil {
+		return nil, fmt.Errorf("failed getting weave-gitops configmap: %w", err)
+	}
+
+	wegoConfig := &WegoConfig{}
+
+	if err := kyaml.Unmarshal([]byte(cm.Data["config"]), wegoConfig); err != nil {
+		return nil, nil
+	}
+
+	return wegoConfig, nil
 }
 
 func initialContext(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (currentCtx, clusterName string, err error) {

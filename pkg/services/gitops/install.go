@@ -16,6 +16,10 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/selection"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type InstallParams struct {
@@ -78,11 +82,15 @@ func (g *Gitops) Install(params InstallParams) (map[string][]byte, error) {
 		}
 		for _, m := range wegoAppManifests {
 			if err := g.kube.Apply(ctx, m, params.Namespace); err != nil {
-				return nil, fmt.Errorf("error applying wego-app manifest %s: %w", m, err)
+				return nil, fmt.Errorf("error applying wego-app manifest \n%s: %w", m, err)
 			}
 		}
 
 		systemManifests["wego-app.yaml"] = bytes.Join(wegoAppManifests, []byte("---\n"))
+	}
+
+	if err := g.saveWegoConfig(ctx, params); err != nil {
+		return nil, err
 	}
 
 	return systemManifests, nil
@@ -228,4 +236,47 @@ func (g *Gitops) applyManifestsToK8s(ctx context.Context, namespace string, mani
 	}
 
 	return nil
+}
+
+const LabelPartOf = "app.kubernetes.io/part-of"
+
+var ErrNamespaceNotFound = errors.New("namespace not found")
+
+func (g *Gitops) fetchNamespaceWithLabel(ctx context.Context, key string, value string) (string, error) {
+	selector := labels.NewSelector()
+
+	partOf, err := labels.NewRequirement(key, selection.Equals, []string{value})
+	if err != nil {
+		return "", fmt.Errorf("bad requirement: %w", err)
+	}
+
+	selector = selector.Add(*partOf)
+
+	options := client.ListOptions{
+		LabelSelector: selector,
+	}
+
+	nsl := &corev1.NamespaceList{}
+	if err := g.kube.Raw().List(ctx, nsl, &options); err != nil {
+		return "", fmt.Errorf("error setting resource: %w", err)
+	}
+
+	if len(nsl.Items) == 0 {
+		return "", ErrNamespaceNotFound
+	}
+
+	return nsl.Items[0].Name, nil
+}
+
+func (g *Gitops) saveWegoConfig(ctx context.Context, params InstallParams) error {
+	fluxNamespace, err := g.fetchNamespaceWithLabel(ctx, LabelPartOf, "flux")
+	if err != nil {
+		if !errors.Is(err, ErrNamespaceNotFound) {
+			return fmt.Errorf("failed fetching flux namespace: %w", err)
+		}
+	}
+
+	return g.kube.SetWegoConfig(ctx, kube.WegoConfig{
+		FluxNamespace: fluxNamespace,
+	}, params.Namespace)
 }
