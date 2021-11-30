@@ -46,6 +46,15 @@ const (
 	SystemKustomizationPath = "kustomization.yaml"
 )
 
+func CreateClusterSourceName(gitSourceURL gitproviders.RepoURL) string {
+	provider := string(gitSourceURL.Provider())
+	cleanRepoName := replaceUnderscores(gitSourceURL.RepositoryName())
+	qualifiedName := fmt.Sprintf("wego-auto-%s-%s", provider, cleanRepoName)
+	lengthConstrainedName := hashNameIfTooLong(qualifiedName)
+
+	return lengthConstrainedName
+}
+
 func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster models.Cluster, configURL gitproviders.RepoURL, namespace string) (ClusterAutomation, error) {
 	systemPath := filepath.Join(git.WegoRoot, git.WegoClusterDir, cluster.Name, git.WegoClusterOSWorkloadDir)
 	userPath := filepath.Join(git.WegoRoot, git.WegoClusterDir, cluster.Name, git.WegoClusterUserWorkloadDir)
@@ -85,18 +94,20 @@ func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster m
 
 	wegoAppManifest := bytes.Join(m, []byte("---\n"))
 
-	sourceManifest, err := a.Flux.CreateSourceGit(secretStr, configURL, configBranch, secretStr, namespace)
+	sourceName := CreateClusterSourceName(configURL)
+
+	sourceManifest, err := a.Flux.CreateSourceGit(sourceName, configURL, configBranch, secretStr, namespace)
 	if err != nil {
 		return ClusterAutomation{}, err
 	}
 
-	systemKustResourceManifest, err := a.Flux.CreateKustomization(ConstrainResourceName(fmt.Sprintf("%s-system", cluster.Name)), secretStr,
+	systemKustResourceManifest, err := a.Flux.CreateKustomization(ConstrainResourceName(fmt.Sprintf("%s-system", cluster.Name)), sourceName,
 		workAroundFluxDroppingDot(systemPath), namespace)
 	if err != nil {
 		return ClusterAutomation{}, err
 	}
 
-	userKustResourceManifest, err := a.Flux.CreateKustomization(ConstrainResourceName(fmt.Sprintf("%s-user", cluster.Name)), secretStr,
+	userKustResourceManifest, err := a.Flux.CreateKustomization(ConstrainResourceName(fmt.Sprintf("%s-user", cluster.Name)), sourceName,
 		workAroundFluxDroppingDot(userPath), namespace)
 	if err != nil {
 		return ClusterAutomation{}, err
