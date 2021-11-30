@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -14,10 +15,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const addr = "0.0.0.0:8000"
-
 func main() {
-	var helmRepoNamespace, helmRepoName string
+	var helmRepoNamespace, helmRepoName, port string
 
 	cmd := &cobra.Command{
 		Use:  "profiles-server",
@@ -36,6 +35,7 @@ func main() {
 				return err
 			}
 
+			addr := fmt.Sprintf("0.0.0.0:%s", port)
 			logr.Info("server starting", "address", addr)
 			return http.ListenAndServe(addr, s)
 		},
@@ -43,6 +43,7 @@ func main() {
 
 	cmd.Flags().StringVar(&helmRepoNamespace, "helm-repo-namespace", "default", "the namespace of the Helm Repository resource to scan for profiles")
 	cmd.Flags().StringVar(&helmRepoName, "helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
+	cmd.Flags().StringVar(&port, "port", "8000", "the port of the Profiles API")
 
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
