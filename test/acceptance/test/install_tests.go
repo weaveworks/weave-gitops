@@ -131,7 +131,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 	})
 
-	FIt("Verify that gitops can install & uninstall gitops components to multiple clusters under a user-specified namespace via pull requests", func() {
+	It("Verify that gitops can install & uninstall gitops components to multiple clusters under a user-specified namespace via pull requests", func() {
 		namespace := "test-namespace"
 
 		_, cluster1Context, err := ResetOrCreateCluster(namespace, true)
