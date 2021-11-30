@@ -39,7 +39,7 @@ var _ = Describe("ProfilesServer", func() {
 		schemeBuilder := runtime.SchemeBuilder{
 			sourcev1beta1.AddToScheme,
 		}
-		schemeBuilder.AddToScheme(scheme)
+		Expect(schemeBuilder.AddToScheme(scheme)).To(Succeed())
 
 		kubeClient = fake.NewClientBuilder().WithScheme(scheme).Build()
 

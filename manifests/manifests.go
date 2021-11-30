@@ -38,12 +38,14 @@ func GenerateManifests(params Params) ([][]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	manifests = append(manifests, appManifests...)
 
 	profilesManifests, err := readTemplateDirectory(params, profilesServerTemplates, profilesManifestsDir)
 	if err != nil {
 		return nil, err
 	}
+
 	manifests = append(manifests, profilesManifests...)
 
 	return manifests, nil
@@ -72,6 +74,7 @@ func readTemplateDirectory(params Params, templateFiles embed.FS, templatestDir 
 	}
 
 	var manifests [][]byte
+
 	for _, template := range templates {
 		tplName := template.Name()
 
@@ -87,5 +90,6 @@ func readTemplateDirectory(params Params, templateFiles embed.FS, templatestDir 
 
 		manifests = append(manifests, manifest)
 	}
+
 	return manifests, nil
 }

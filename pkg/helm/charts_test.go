@@ -2,7 +2,6 @@ package helm_test
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -27,7 +26,6 @@ import (
 )
 
 const (
-	testNamespace  = "testing"
 	testSecretName = "https-credentials"
 )
 
@@ -231,7 +229,7 @@ func makeServeMux(opts ...func(*repo.IndexFile)) *http.ServeMux {
 	mux.HandleFunc("/charts/index.yaml", func(w http.ResponseWriter, req *http.Request) {
 		b, err := yaml.Marshal(makeTestChartIndex(opts...))
 		Expect(err).NotTo(HaveOccurred())
-		w.Write(b)
+		Expect(w.Write(b)).To(Succeed())
 	})
 	mux.Handle("/", http.FileServer(http.Dir("testdata")))
 
@@ -289,9 +287,9 @@ func basicAuthHandler(next http.Handler, user, pass string) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-		w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Basic realm="test"`))
+		w.Header().Set("WWW-Authenticate", `Basic realm="test"`)
 		w.WriteHeader(401)
-		w.Write([]byte("401 Unauthorized\n"))
+		Expect(w.Write([]byte("401 Unauthorized\n"))).To(Succeed())
 	})
 }
 
@@ -300,23 +298,4 @@ func makeTestClient(objs ...runtime.Object) client.Client {
 	Expect(corev1.AddToScheme(s)).To(Succeed())
 
 	return fake.NewClientBuilder().WithScheme(s).WithRuntimeObjects(objs...).Build()
-}
-
-// Based on https://fluxcd.io/docs/components/source/helmrepositories/
-func makeTestSecret(user, pass string) *corev1.Secret {
-	return &corev1.Secret{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "Secret",
-		},
-		Type: corev1.SecretTypeOpaque,
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      testSecretName,
-			Namespace: testNamespace,
-		},
-		Data: map[string][]byte{
-			"username": []byte(user),
-			"password": []byte(pass),
-		},
-	}
 }

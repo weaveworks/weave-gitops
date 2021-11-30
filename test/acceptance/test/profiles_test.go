@@ -108,7 +108,7 @@ func buildKubernetesClients() (*kubernetes.Clientset, client.Client) {
 	schemeBuilder := runtime.SchemeBuilder{
 		sourcev1beta1.AddToScheme,
 	}
-	schemeBuilder.AddToScheme(scheme)
+	Expect(schemeBuilder.AddToScheme(scheme)).To(Succeed())
 
 	kClient, err := client.New(config, client.Options{
 		Scheme: scheme,
