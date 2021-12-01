@@ -26,13 +26,7 @@ function Applications({ className }: Props) {
     applicationsClient
       .ListApplications({ namespace: "wego-system" })
       .then((res) => setApplications(res.applications))
-      //how deep are we going with these error messages? Should I have one for 500 and one for 400?
-      .catch((err) =>
-        doAsyncError(
-          "Unable to retrieve applications",
-          "Something went wrong - please try again later"
-        )
-      )
+      .catch((err) => doAsyncError(err.message, err.detail))
       .finally(() => setLoading(false));
   };
 
