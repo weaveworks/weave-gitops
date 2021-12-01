@@ -261,7 +261,7 @@ func (a *AutomationGen) generateApplicationGoat(app models.Application, clusterN
 
 	switch app.AutomationType {
 	case models.AutomationTypeKustomize:
-		b, err = a.Flux.CreateKustomization(app.Name, sourceName, app.Path, app.Namespace)
+		b, err = a.Flux.CreateKustomization(sourceName, sourceName, app.Path, app.Namespace)
 	case models.AutomationTypeHelm:
 		switch app.SourceType {
 		case models.SourceTypeHelm:

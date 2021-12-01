@@ -845,8 +845,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("Then I should see the status for "+appName1, func() {
 			Eventually(appStatus1).Should(ContainSubstring(`Last successful reconciliation:`))
-			Eventually(appStatus1).Should(ContainSubstring(`gitrepository/` + appName1))
-			Eventually(appStatus1).Should(ContainSubstring(`kustomization/` + appName1))
+			Eventually(appStatus1).Should(ContainSubstring(`gitrepository/wego-app-` + appName1))
+			Eventually(appStatus1).Should(ContainSubstring(`kustomization/wego-app-` + appName1))
 		})
 
 		By("When I check the app status for app2", func() {
@@ -855,7 +855,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("Then I should see the status for "+appName2, func() {
 			Eventually(appStatus2).Should(ContainSubstring(`Last successful reconciliation:`))
-			Eventually(appStatus2).Should(ContainSubstring(`gitrepository/` + appName2))
+			Eventually(appStatus2).Should(ContainSubstring(`gitrepository/wego-app-` + appName2))
 			Eventually(appStatus2).Should(ContainSubstring(`helmrelease/` + appName2))
 		})
 
@@ -1004,8 +1004,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("Then I should see the status for "+appName1, func() {
 			Eventually(appStatus1).Should(gbytes.Say(`Last successful reconciliation:`))
-			Eventually(appStatus1).Should(gbytes.Say(`gitrepository/` + appName1))
-			Eventually(appStatus1).Should(gbytes.Say(`kustomization/` + appName1))
+			Eventually(appStatus1).Should(gbytes.Say(`gitrepository/wego-app-` + appName1))
+			Eventually(appStatus1).Should(gbytes.Say(`kustomization/wego-app-` + appName1))
 		})
 
 		By("When I check the app status for "+appName2, func() {
@@ -1014,8 +1014,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("Then I should see the status for "+appName2, func() {
 			Eventually(appStatus2).Should(gbytes.Say(`Last successful reconciliation:`))
-			Eventually(appStatus2).Should(gbytes.Say(`gitrepository/` + appName2))
-			Eventually(appStatus2).Should(gbytes.Say(`kustomization/` + appName2))
+			Eventually(appStatus2).Should(gbytes.Say(`gitrepository/wego-app-` + appName2))
+			Eventually(appStatus2).Should(gbytes.Say(`kustomization/wego-app-` + appName2))
 		})
 
 		By("When I check for apps", func() {
@@ -1040,7 +1040,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("Then I should see pause status as suspended=true", func() {
-			Eventually(appStatus1).Should(gbytes.Say(`kustomization/` + appName1 + `\s*True\s*.*True`))
+			Eventually(appStatus1).Should(gbytes.Say(`kustomization/wego-app-` + appName1 + `\s*True\s*.*True`))
 		})
 
 		By("And changes to the app files should not be synchronized", func() {
@@ -1092,7 +1092,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("Then I should see pause status as suspended=false", func() {
-			Eventually(appStatus1).Should(gbytes.Say(`kustomization/` + appName1 + `\s*True\s*.*False`))
+			Eventually(appStatus1).Should(gbytes.Say(`kustomization/wego-app-` + appName1 + `\s*True\s*.*False`))
 		})
 
 		By("When I delete an app", func() {
@@ -1705,8 +1705,8 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 
 		By("Then I should see the status for "+appName, func() {
 			Eventually(appStatus).Should(ContainSubstring(`Last successful reconciliation:`))
-			Eventually(appStatus).Should(ContainSubstring(`gitrepository/` + appName))
-			Eventually(appStatus).Should(ContainSubstring(`kustomization/` + appName))
+			Eventually(appStatus).Should(ContainSubstring(`gitrepository/wego-app-` + appName))
+			Eventually(appStatus).Should(ContainSubstring(`kustomization/wego-app-` + appName))
 		})
 
 		By("When I check for apps", func() {
@@ -1793,8 +1793,8 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 
 		By("Then I should see the status for "+appName, func() {
 			Eventually(appStatus).Should(ContainSubstring(`Last successful reconciliation:`))
-			Eventually(appStatus).Should(ContainSubstring(`gitrepository/` + appName))
-			Eventually(appStatus).Should(ContainSubstring(`kustomization/` + appName))
+			Eventually(appStatus).Should(ContainSubstring(`gitrepository/wego-app-` + appName))
+			Eventually(appStatus).Should(ContainSubstring(`kustomization/wego-app-` + appName))
 		})
 
 		By("When I check for apps", func() {

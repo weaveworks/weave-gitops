@@ -576,7 +576,7 @@ func verifyWegoAddCommand(appName string, wegoNamespace string) {
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, INSTALL_PODS_READY_TIMEOUT).Should(gexec.Exit())
-	Expect(waitForResource("GitRepositories", appName, wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("GitRepositories", "wego-app-"+appName, wegoNamespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 }
 
 func verifyWegoHelmAddCommand(appName string, wegoNamespace string) {

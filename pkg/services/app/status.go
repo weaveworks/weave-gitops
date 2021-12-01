@@ -18,6 +18,9 @@ type StatusParams struct {
 }
 
 func (a *AppSvc) Status(params StatusParams) (string, string, error) {
+	appName := params.Name
+	// Need to add this hardcoded text to name for flux to be able to find the correct source.
+	params.Name = "wego-app-" + params.Name
 	fluxOutput, err := a.Flux.GetAllResourcesStatus(params.Name, params.Namespace)
 	if err != nil {
 		return "", "", fmt.Errorf("failed getting app status: %w", err)
@@ -25,7 +28,7 @@ func (a *AppSvc) Status(params StatusParams) (string, string, error) {
 
 	ctx := context.Background()
 
-	deploymentType, err := a.getDeploymentType(ctx, params.Name, params.Namespace)
+	deploymentType, err := a.getDeploymentType(ctx, appName, params.Namespace)
 	if err != nil {
 		return "", "", fmt.Errorf("failed getting app deployment type: %w", err)
 	}
