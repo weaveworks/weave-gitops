@@ -30,13 +30,11 @@ type InstallParams struct {
 
 func (g *Gitops) Install(params InstallParams) (map[string][]byte, error) {
 	ctx := context.Background()
-	status := g.kube.GetClusterStatus(ctx)
 
-	switch status {
-	case kube.FluxInstalled:
-		return nil, errors.New("Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n  $ flux uninstall")
-	case kube.Unknown:
-		return nil, errors.New("Weave GitOps cannot talk to the cluster")
+	g.logger.Actionf("Validating Weave Gitops installation")
+
+	if err := g.validateWegoInstall(ctx, params); err != nil {
+		return nil, err
 	}
 
 	// TODO apply these manifests instead of generating them again
@@ -120,6 +118,30 @@ func (g *Gitops) StoreManifests(gitClient git.Git, gitProvider gitproviders.GitP
 	}
 
 	return systemManifests, nil
+}
+
+func (g *Gitops) validateWegoInstall(ctx context.Context, params InstallParams) error {
+	status := g.kube.GetClusterStatus(ctx)
+
+	switch status {
+	case kube.FluxInstalled:
+		return errors.New("Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n  $ flux uninstall")
+	case kube.Unknown:
+		return errors.New("Weave GitOps cannot talk to the cluster")
+	}
+
+	wegoConfig, err := g.kube.GetWegoConfig(ctx, "")
+	if err != nil {
+		if !errors.Is(err, kube.ErrWegoConfigNotFound) {
+			return fmt.Errorf("failed getting wego config: %w", err)
+		}
+	}
+
+	if wegoConfig.WegoNamespace != "" && wegoConfig.WegoNamespace != params.Namespace {
+		return errors.New("You cannot install Weave GitOps into a different namespace")
+	}
+
+	return nil
 }
 
 func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitProvider, params InstallParams, systemManifests map[string][]byte, cname string) (map[string][]byte, error) {
@@ -278,5 +300,6 @@ func (g *Gitops) saveWegoConfig(ctx context.Context, params InstallParams) error
 
 	return g.kube.SetWegoConfig(ctx, kube.WegoConfig{
 		FluxNamespace: fluxNamespace,
+		WegoNamespace: params.Namespace,
 	}, params.Namespace)
 }

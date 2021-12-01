@@ -43,6 +43,7 @@ var toStatusString = map[ClusterStatus]string{
 
 type WegoConfig struct {
 	FluxNamespace string
+	WegoNamespace string
 }
 
 //counterfeiter:generate . Kube
