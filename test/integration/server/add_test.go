@@ -101,7 +101,7 @@ var _ = Describe("AddApplication", func() {
 					Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
 					Prune:    true,
 					SourceRef: kustomizev1.CrossNamespaceSourceReference{
-						Name: req.Name,
+						Name: fmt.Sprintf("wego-app-%s", req.Name),
 						Kind: sourcev1.GitRepositoryKind,
 					},
 					Force: false,
@@ -199,7 +199,7 @@ var _ = Describe("AddApplication", func() {
 					Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
 					Prune:    true,
 					SourceRef: kustomizev1.CrossNamespaceSourceReference{
-						Name: req.Name,
+						Name: fmt.Sprintf("wego-app-%s", req.Name),
 						Kind: sourcev1.GitRepositoryKind,
 					},
 					Force: false,
@@ -292,7 +292,7 @@ var _ = Describe("AddApplication", func() {
 					Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
 					Prune:    true,
 					SourceRef: kustomizev1.CrossNamespaceSourceReference{
-						Name: req.Name,
+						Name: fmt.Sprintf("wego-app-%s", req.Name),
 						Kind: sourcev1.GitRepositoryKind,
 					},
 					Force: false,
@@ -389,7 +389,7 @@ var _ = Describe("AddApplication", func() {
 					Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
 					Prune:    true,
 					SourceRef: kustomizev1.CrossNamespaceSourceReference{
-						Name: req.Name,
+						Name: fmt.Sprintf("wego-app-%s", req.Name),
 						Kind: sourcev1.GitRepositoryKind,
 					},
 					Force: false,
@@ -482,7 +482,7 @@ var _ = Describe("AddApplication", func() {
 					Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
 					Prune:    true,
 					SourceRef: kustomizev1.CrossNamespaceSourceReference{
-						Name: req.Name,
+						Name: fmt.Sprintf("wego-app-%s", req.Name),
 						Kind: sourcev1.GitRepositoryKind,
 					},
 					Force: false,
@@ -590,7 +590,7 @@ var _ = Describe("AddApplication", func() {
 					Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
 					Prune:    true,
 					SourceRef: kustomizev1.CrossNamespaceSourceReference{
-						Name: req.Name,
+						Name: fmt.Sprintf("wego-app-%s", req.Name),
 						Kind: sourcev1.GitRepositoryKind,
 					},
 					Force: false,

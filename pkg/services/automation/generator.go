@@ -139,7 +139,7 @@ func (a *AutomationGen) generateAppSource(ctx context.Context, app models.Applic
 		return AutomationManifest{}, err
 	}
 
-	sourceName := createAppSourceName(app.Name)
+	sourceName := CreateAppSourceName(app.Name)
 
 	switch app.SourceType {
 	case models.SourceTypeGit:
@@ -257,7 +257,7 @@ func (a *AutomationGen) generateApplicationGoat(app models.Application, clusterN
 		err error
 	)
 
-	sourceName := createAppSourceName(app.Name)
+	sourceName := CreateAppSourceName(app.Name)
 
 	switch app.AutomationType {
 	case models.AutomationTypeKustomize:
@@ -413,7 +413,7 @@ func CreateClusterSourceName(gitSourceURL gitproviders.RepoURL) string {
 	return lengthConstrainedName
 }
 
-func createAppSourceName(name string) string {
+func CreateAppSourceName(name string) string {
 	return fmt.Sprintf("wego-app-%s", name)
 }
 

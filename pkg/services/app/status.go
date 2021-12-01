@@ -8,6 +8,7 @@ import (
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -20,7 +21,7 @@ type StatusParams struct {
 func (a *AppSvc) Status(params StatusParams) (string, string, error) {
 	appName := params.Name
 	// Need to add this hardcoded text to name for flux to be able to find the correct source.
-	params.Name = "wego-app-" + params.Name
+	params.Name = automation.CreateAppSourceName(params.Name)
 
 	fluxOutput, err := a.Flux.GetAllResourcesStatus(params.Name, params.Namespace)
 	if err != nil {

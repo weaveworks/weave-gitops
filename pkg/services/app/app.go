@@ -15,6 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -127,8 +128,8 @@ func (a *AppSvc) pauseOrUnpause(suspendAction wego.SuspendActionType, name, name
 			a.Logger.Printf("app %s is already paused\n", name)
 			return nil
 		}
-
-		out, err := a.Flux.SuspendOrResumeApp(suspendAction, name, namespace, string(deploymentType))
+		sourceName := automation.CreateAppSourceName(name)
+		out, err := a.Flux.SuspendOrResumeApp(suspendAction, sourceName, namespace, string(deploymentType))
 		if err != nil {
 			return fmt.Errorf("unable to pause %s err: %s", name, err)
 		}
