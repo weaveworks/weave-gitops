@@ -95,7 +95,7 @@ check-format: ## Check go format
 	if [ ! -z "$(FORMAT_LIST)" ] ; then echo invalid format at: ${FORMAT_LIST} && exit 1; fi
 
 proto-deps: ## Update protobuf dependencies
-	buf beta mod update
+	buf mod update
 
 proto: ## Generate protobuf files
 	buf generate
