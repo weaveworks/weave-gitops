@@ -76,7 +76,7 @@ func (rw *RepoWriterSvc) CommitAndPush(ctx context.Context, commitMsg string, fi
 func (rw *RepoWriterSvc) CheckoutBranch(newBranch string) error {
 	err := rw.GitClient.Checkout(newBranch)
 	if err != nil {
-		return fmt.Errorf("error checking out branch %w", err)
+		return fmt.Errorf("error checking out branch %s, %w", newBranch, err)
 	}
 
 	return nil

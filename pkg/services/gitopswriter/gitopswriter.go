@@ -146,7 +146,7 @@ func (dw *gitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app m
 	if !autoMerge {
 		err = dw.RepoWriter.CheckoutBranch(newBranchName)
 		if err != nil {
-			return fmt.Errorf("failed to clone configuration repo: %w", err)
+			return fmt.Errorf("failed to checkout branch in configuration repo: %w", err)
 		}
 	}
 
@@ -156,16 +156,17 @@ func (dw *gitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app m
 
 	err = dw.RepoWriter.CommitAndPush(ctx, RemoveCommitMessage)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to commit and push changes %w", err)
 	}
 
 	if !autoMerge {
 		prInfo := gitproviders.PullRequestInfo{
-			Title:         fmt.Sprintf("Gitops remove %s", app.Name),
-			Description:   fmt.Sprintf("Removed yamls for %s", app.Name),
-			CommitMessage: RemoveCommitMessage,
-			TargetBranch:  defaultBranch,
-			NewBranch:     newBranchName,
+			Title:                     fmt.Sprintf("Gitops remove %s", app.Name),
+			Description:               fmt.Sprintf("Removed yamls for %s", app.Name),
+			CommitMessage:             RemoveCommitMessage,
+			TargetBranch:              defaultBranch,
+			NewBranch:                 newBranchName,
+			SkipAddingFilesOnCreation: true,
 		}
 
 		if err := dw.RepoWriter.CreatePullRequest(ctx, prInfo); err != nil {

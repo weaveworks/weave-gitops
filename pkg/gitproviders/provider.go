@@ -41,12 +41,13 @@ type GitProvider interface {
 }
 
 type PullRequestInfo struct {
-	Title         string
-	Description   string
-	CommitMessage string
-	TargetBranch  string
-	NewBranch     string
-	Files         []gitprovider.CommitFile
+	Title                     string
+	Description               string
+	CommitMessage             string
+	TargetBranch              string
+	NewBranch                 string
+	SkipAddingFilesOnCreation bool
+	Files                     []gitprovider.CommitFile
 }
 
 type AccountTypeGetter func(provider gitprovider.Client, domain string, owner string) (ProviderAccountType, error)
@@ -115,7 +116,7 @@ func createPullRequest(ctx context.Context, repo gitprovider.UserRepository, prI
 		prInfo.TargetBranch = *repoInfo.DefaultBranch
 	}
 
-	if len(prInfo.Files) == 0 {
+	if prInfo.SkipAddingFilesOnCreation {
 		pr, err := repo.PullRequests().Create(ctx, prInfo.Title, prInfo.NewBranch, prInfo.TargetBranch, prInfo.Description)
 		if err != nil {
 			return nil, fmt.Errorf("error creating pull request %s: %w", prInfo.Title, err)

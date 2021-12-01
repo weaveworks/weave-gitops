@@ -311,7 +311,7 @@ func (g *GoGit) Head() (string, error) {
 
 	head, err := g.repository.Head()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed getting repository HEAD %w", err)
 	}
 
 	return head.Hash().String(), nil
@@ -356,7 +356,7 @@ func (g *GoGit) ValidateAccess(ctx context.Context, url string, branch string) e
 func (g *GoGit) Checkout(newBranch string) error {
 	headRef, err := g.Head()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed getting HEAD on checkout %w", err)
 	}
 
 	refPath := fmt.Sprintf("refs/heads/%s", newBranch)
@@ -365,19 +365,19 @@ func (g *GoGit) Checkout(newBranch string) error {
 
 	err = g.repository.Storer.SetReference(ref)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed setting reference to repository storer %w", err)
 	}
 
 	wt, err := g.repository.Worktree()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed getting repository work-tree %w", err)
 	}
 
 	err = wt.Checkout(&gogit.CheckoutOptions{
 		Branch: plumbing.NewBranchReferenceName(newBranch),
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("failed checking out branch %w", err)
 	}
 
 	return nil
