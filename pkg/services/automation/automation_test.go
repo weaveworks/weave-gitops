@@ -160,7 +160,7 @@ var _ = Describe("Generate manifests", func() {
 				Expect(fluxClient.CreateKustomizationCallCount()).To(Equal(1))
 
 				name, source, path, namespace := fluxClient.CreateKustomizationArgsForCall(0)
-				Expect(name).To(Equal("bar"))
+				Expect(name).To(Equal("wego-app-bar"))
 				Expect(source).To(Equal("wego-app-bar"))
 				Expect(path).To(Equal("./kustomize"))
 				Expect(namespace).To(Equal(wego.DefaultNamespace))
@@ -330,7 +330,7 @@ var _ = Describe("Generate manifests", func() {
 					Expect(fluxClient.CreateKustomizationCallCount()).To(Equal(1))
 
 					name, source, path, namespace := fluxClient.CreateKustomizationArgsForCall(0)
-					Expect(name).To(Equal("bar"))
+					Expect(name).To(Equal("wego-app-bar"))
 					Expect(source).To(Equal("wego-app-bar"))
 					Expect(path).To(Equal("./kustomize"))
 					Expect(namespace).To(Equal(wego.DefaultNamespace))
