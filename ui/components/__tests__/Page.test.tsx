@@ -8,7 +8,7 @@ describe("Page", () => {
   describe("snapshots", () => {
     it("default", () => {
       const tree = renderer
-        .create(withTheme(withContext(<Page />, "")))
+        .create(withTheme(withContext(<Page />, "", {})))
         .toJSON();
       expect(tree).toMatchSnapshot();
     });

@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import * as React from "react";
-import { withContext } from "../../lib/test-utils";
+import { createMockClient, withContext } from "../../lib/test-utils";
 import useAuth from "../auth";
 
 describe("useAuth", () => {
@@ -33,7 +33,11 @@ describe("useAuth", () => {
 
       return <div data-testid={id}>{userCode}</div>;
     };
-    render(withContext(TestComponent, `/`, ovr));
+    render(
+      withContext(TestComponent, `/`, {
+        applicationsClient: createMockClient(ovr),
+      })
+    );
     expect((await screen.findByTestId(id)).textContent).toEqual(userCode);
   });
   it("returns the github device auth status", async () => {
@@ -60,7 +64,11 @@ describe("useAuth", () => {
 
       return <div data-testid={id}>{accessToken}</div>;
     };
-    render(withContext(TestComponent, `/`, ovr));
+    render(
+      withContext(TestComponent, `/`, {
+        applicationsClient: createMockClient(ovr),
+      })
+    );
     expect((await screen.findByTestId(id)).textContent).toEqual(accessToken);
   });
 });

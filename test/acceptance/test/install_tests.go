@@ -5,8 +5,10 @@
 package acceptance
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -50,7 +52,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		By("Then I should see gitops help text displayed for 'uninstall' command", func() {
 			Eventually(string(sessionOutput.Wait().Out.Contents())).Should(MatchRegexp(
-				fmt.Sprintf(`The uninstall command removes GitOps components from the cluster.\n*Usage:\n\s*gitops uninstall \[flags]\n*Examples:\n\s*# Uninstall GitOps from the %s namespace\n\s*gitops uninstall\n*Flags:\n\s*--dry-run\s*Outputs all the manifests that would be uninstalled\n\s*-h, --help\s*help for uninstall\n*Global Flags:\n\s*-e, --endpoint string\s*The Weave GitOps Enterprise HTTP API endpoint\n\s*--namespace string\s*The namespace scope for this operation \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace, wego.DefaultNamespace)))
+				fmt.Sprintf(`The uninstall command removes GitOps components from the cluster.\n*Usage:\n\s*gitops uninstall \[flags]\n*Examples:\n\s*# Uninstall GitOps from the %s namespace\n\s*gitops uninstall\n*Flags:\n\s*--dry-run\s*Outputs all the manifests that would be uninstalled\n\s*--force\s*If set, 'gitops uninstall' will not ask for confirmation\n\s*-h, --help\s*help for uninstall\n*Global Flags:\n\s*-e, --endpoint string\s*The Weave GitOps Enterprise HTTP API endpoint\n\s*--namespace string\s*The namespace scope for this operation \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace, wego.DefaultNamespace)))
 		})
 	})
 
@@ -61,7 +63,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		defer deleteNamespace(namespace)
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true)
+			_, _, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -85,13 +87,13 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		namespace := "test-namespace"
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(namespace, true)
+			_, _, err := ResetOrCreateCluster(namespace, true)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "git@github.com:" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 
@@ -103,8 +105,22 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		installAndVerifyWego(namespace, appRepoRemoteURL)
 
-		By("When I run 'gitops uninstall' command", func() {
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, namespace))
+		By("When I run 'gitops uninstall' command without force flag it asks for confirmation", func() {
+			cmd := fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, namespace)
+			outputStream := gbytes.NewBuffer()
+			inputUser := bytes.NewBuffer([]byte("y\n"))
+
+			c := exec.Command("sh", "-c", cmd)
+			c.Stdout = outputStream
+			c.Stdin = inputUser
+			c.Stderr = os.Stderr
+			err := c.Start()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			Eventually(outputStream).Should(gbytes.Say(`Uninstall will remove all your Applications and any related cluster resources\. Are you sure you want to uninstall\? \[y\/N\]`))
+
+			err = c.Wait()
+			Expect(err).ShouldNot(HaveOccurred())
 		})
 
 		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)
@@ -120,7 +136,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		namespace := "test-namespace"
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(namespace, true)
+			_, _, err := ResetOrCreateCluster(namespace, true)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -147,7 +163,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		Expect(crdErr).ShouldNot(HaveOccurred())
 
 		By("When I run 'gitops uninstall' command", func() {
-			runErr := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, namespace))
+			runErr := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --force --namespace %s", WEGO_BIN_PATH, namespace))
 			Expect(runErr).ShouldNot(HaveOccurred())
 		})
 
@@ -165,7 +181,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		var uninstallDryRunOutput string
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true)
+			_, _, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -199,7 +215,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 
 		By("When I try to uninstall gitops in dry-run mode", func() {
-			uninstallDryRunOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " uninstall --dry-run")
+			uninstallDryRunOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " uninstall --force --dry-run")
 		})
 
 		By("Then I should see uninstall dry-run output in the console", func() {
@@ -219,7 +235,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 
 		By("When I run 'gitops uninstall' command", func() {
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, WEGO_DEFAULT_NAMESPACE))
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --force --namespace %s", WEGO_BIN_PATH, WEGO_DEFAULT_NAMESPACE))
 		})
 
 		_ = waitForNamespaceToTerminate(WEGO_DEFAULT_NAMESPACE, NAMESPACE_TERMINATE_TIMEOUT)
@@ -234,7 +250,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		namespace := "wego-system"
 
 		By("And I have a brand new cluster", func() {
-			_, err := ResetOrCreateCluster(namespace, true)
+			_, _, err := ResetOrCreateCluster(namespace, true)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 

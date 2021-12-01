@@ -21,6 +21,8 @@ import (
 
 var clusterName string
 
+var clusterContext string
+
 var _ = Describe("Weave GitOps Add App Tests", func() {
 
 	deleteWegoRuntime := false
@@ -32,10 +34,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		By("Given I have a brand new cluster", func() {
 			var err error
 
-			_, err = ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime)
+			clusterName, clusterContext, err = ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime)
 			Expect(err).ShouldNot(HaveOccurred())
-
-			clusterName = getClusterName()
 		})
 
 		By("And I have a gitops binary installed on my local machine", func() {
@@ -198,11 +198,11 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 	It("Test1 - Verify that gitops can deploy and remove a gitlab app after it is setup with an empty repo initially", func() {
 		var repoAbsolutePath string
+		var appRemoveOutput string
 		private := true
 		tip := generateTestInputs()
 		appName := tip.appRepoName
 		appRepoRemoteURL := "ssh://git@gitlab.com/" + GITLAB_ORG + "/" + tip.appRepoName + ".git"
-		var appRemoveOutput *gexec.Session
 
 		addCommand := "add app . --auto-merge=true"
 
@@ -250,13 +250,13 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I remove an app", func() {
-			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " delete app " + appName)
+			appRemoveOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " delete app " + appName)
 		})
 
 		By("Then I should see app removing message", func() {
-			Eventually(appRemoveOutput).Should(gbytes.Say(fmt.Sprintf("► Removing application %q from cluster %q and repository", appName, clusterName)))
-			Eventually(appRemoveOutput).Should(gbytes.Say("► Committing and pushing gitops updates for application"))
-			Eventually(appRemoveOutput).Should(gbytes.Say("► Pushing app changes to repository"))
+			Eventually(appRemoveOutput).Should(MatchRegexp(`► Removing application "` + appName + `" from cluster .* and repository`))
+			Eventually(appRemoveOutput).Should(ContainSubstring("► Committing and pushing gitops updates for application"))
+			Eventually(appRemoveOutput).Should(ContainSubstring("► Pushing app changes to repository"))
 		})
 
 		By("And app should get deleted from the cluster", func() {
@@ -325,8 +325,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		tip := generateTestInputs()
 		appName := tip.appRepoName
 		appConfigRepoName := "wego-config-repo-" + RandString(8)
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
-		configRepoRemoteURL = "ssh://git@github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
+		appRepoRemoteURL := "https://github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		configRepoRemoteURL = "https://github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
 
 		addCommand := "add app --url=" + appRepoRemoteURL + " --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
 
@@ -370,7 +370,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	It("Test2 - Verify that gitops can deploy and remove a gitlab app with specified config-url and app-config-url set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
-		var appRemoveOutput *gexec.Session
+		var appRemoveOutput string
 		private := true
 		tip := generateTestInputs()
 		appName := tip.appRepoName
@@ -421,13 +421,13 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I delete an app", func() {
-			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " delete app " + appName)
+			appRemoveOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " delete app " + appName)
 		})
 
 		By("Then I should see app removing message", func() {
-			Eventually(appRemoveOutput).Should(gbytes.Say(fmt.Sprintf("► Removing application %q from cluster %q and repository", appName, clusterName)))
-			Eventually(appRemoveOutput).Should(gbytes.Say("► Committing and pushing gitops updates for application"))
-			Eventually(appRemoveOutput).Should(gbytes.Say("► Pushing app changes to repository"))
+			Eventually(appRemoveOutput).Should(MatchRegexp(`► Removing application "` + appName + `" from cluster .* and repository`))
+			Eventually(appRemoveOutput).Should(ContainSubstring("► Committing and pushing gitops updates for application"))
+			Eventually(appRemoveOutput).Should(ContainSubstring("► Pushing app changes to repository"))
 		})
 
 		By("And app should get deleted from the cluster", func() {
@@ -565,6 +565,74 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		By("And I should see workload for app1 is deployed to the cluster", func() {
 			verifyWorkloadIsDeployed(tip1.workloadName, tip1.workloadNamespace)
 			verifyWorkloadIsDeployed(tip2.workloadName, tip2.workloadNamespace)
+		})
+	})
+
+	It("Verify that gitops can deploy a single workload to multiple clusters with app manifests in config repo (Bug #810)", func() {
+		var repoAbsolutePath string
+		tip := generateTestInputs()
+		appRepoName := "wego-test-app-" + RandString(8)
+		appName := appRepoName
+		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
+
+		addCommand := "add app . --name=" + appName + " --auto-merge=true"
+
+		cluster1Context := clusterContext
+		cluster2Name, cluster2Context, err := ResetOrCreateClusterWithName(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, "", true)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer func() {
+			selectCluster(cluster1Context)
+			deleteWorkload(tip.workloadName, tip.workloadNamespace)
+			deleteCluster(cluster2Name)
+		}()
+
+		By("And application repos do not already exist", func() {
+			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		})
+
+		By("And application workload is not already deployed to clusters", func() {
+			selectCluster(cluster1Context)
+			deleteWorkload(tip.workloadName, tip.workloadNamespace)
+			selectCluster(cluster2Context)
+			deleteWorkload(tip.workloadName, tip.workloadNamespace)
+		})
+
+		By("When I create an empty private repo for app", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitproviders.GitProviderGitHub, true, GITHUB_ORG)
+		})
+
+		By("And I git add-commit-push for app", func() {
+			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
+		})
+
+		By("And I install gitops to my active clusters", func() {
+			selectCluster(cluster1Context)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
+			selectCluster(cluster2Context)
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
+		})
+
+		By("And I run gitops add command for app", func() {
+			selectCluster(cluster1Context)
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+			selectCluster(cluster2Context)
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see gitops add command linked the repo to the cluster", func() {
+			selectCluster(cluster1Context)
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+			selectCluster(cluster2Context)
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I should see workload for app is deployed to the cluster", func() {
+			selectCluster(cluster1Context)
+			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
+			selectCluster(cluster2Context)
+			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
 		})
 	})
 
@@ -849,7 +917,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		var unpauseOutput string
 		var appStatus1 *gexec.Session
 		var appStatus2 *gexec.Session
-		var appRemoveOutput *gexec.Session
+		var appRemoveOutput string
 		var repoAbsolutePath1 string
 		var repoAbsolutePath2 string
 		var appManifestFile1 string
@@ -1028,13 +1096,13 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I delete an app", func() {
-			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " delete app " + appName2)
+			appRemoveOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " delete app " + appName2)
 		})
 
 		By("Then I should see app deleting message", func() {
-			Eventually(appRemoveOutput).Should(gbytes.Say(fmt.Sprintf("► Removing application %q from cluster %q and repository", appName2, clusterName)))
-			Eventually(appRemoveOutput).Should(gbytes.Say("► Committing and pushing gitops updates for application"))
-			Eventually(appRemoveOutput).Should(gbytes.Say("► Pushing app changes to repository"))
+			Eventually(appRemoveOutput).Should(MatchRegexp(`► Removing application "` + appName2 + `" from cluster .* and repository`))
+			Eventually(appRemoveOutput).Should(ContainSubstring("► Committing and pushing gitops updates for application"))
+			Eventually(appRemoveOutput).Should(ContainSubstring("► Pushing app changes to repository"))
 		})
 
 		By("And app should get deleted from the cluster", func() {
@@ -1059,7 +1127,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		appName := "my-helm-app"
 		appManifestFilePath := "./data/helm-repo/hello-world"
 		appRepoName := "wego-test-app-" + RandString(8)
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
+		appRepoRemoteURL := "https://github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
 
 		addCommand := "add app . --deployment-type=helm --path=./hello-world --name=" + appName + " --auto-merge=true"
 
@@ -1272,11 +1340,10 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 	It("Test3 - Verify that gitops can deploy and remove a gitlab app in a subgroup", func() {
 		var repoAbsolutePath string
+		var appRemoveOutput string
 		private := true
 		tip := generateTestInputs()
 		appName := tip.appRepoName
-
-		var appRemoveOutput *gexec.Session
 
 		addCommand := "add app . --auto-merge=true"
 
@@ -1328,13 +1395,13 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I remove an app", func() {
-			appRemoveOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " delete app " + appName)
+			appRemoveOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " delete app " + appName)
 		})
 
 		By("Then I should see app removing message", func() {
-			Eventually(appRemoveOutput).Should(gbytes.Say(fmt.Sprintf("► Removing application %q from cluster %q and repository", appName, clusterName)))
-			Eventually(appRemoveOutput).Should(gbytes.Say("► Committing and pushing gitops updates for application"))
-			Eventually(appRemoveOutput).Should(gbytes.Say("► Pushing app changes to repository"))
+			Eventually(appRemoveOutput).Should(MatchRegexp(`► Removing application "` + appName + `" from cluster .* and repository`))
+			Eventually(appRemoveOutput).Should(ContainSubstring("► Committing and pushing gitops updates for application"))
+			Eventually(appRemoveOutput).Should(ContainSubstring("► Pushing app changes to repository"))
 		})
 
 		By("And app should get deleted from the cluster", func() {
@@ -1569,7 +1636,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 			var err error
 
 			clusterName = "kind-123456789012345678901234567890"
-			_, err = ResetOrCreateClusterWithName(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, clusterName)
+			_, _, err = ResetOrCreateClusterWithName(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, clusterName, false)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 
@@ -1662,7 +1729,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 	})
 
-	It("SmokeTest - Verify that gitops can deploy an app with app-config-url set to a gitlab <url>", func() {
+	It("SmokeTestShort - Verify that gitops can deploy an app with app-config-url set to a gitlab <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var listOutput string
