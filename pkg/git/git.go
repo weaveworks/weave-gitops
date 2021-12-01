@@ -63,6 +63,7 @@ type Git interface {
 	Open(path string) (*gogit.Repository, error)
 	Init(path, url, branch string) (bool, error)
 	Clone(ctx context.Context, path, url, branch string) (bool, error)
+	Checkout(newBranch string) error
 	Write(path string, content []byte) error
 	Remove(path string) error
 	Commit(message Commit, filters ...func(string) bool) (string, error)

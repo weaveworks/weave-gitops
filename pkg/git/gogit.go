@@ -353,6 +353,36 @@ func (g *GoGit) ValidateAccess(ctx context.Context, url string, branch string) e
 	return nil
 }
 
+func (g *GoGit) Checkout(newBranch string) error {
+	headRef, err := g.Head()
+	if err != nil {
+		return err
+	}
+
+	refPath := fmt.Sprintf("refs/heads/%s", newBranch)
+
+	ref := plumbing.NewReferenceFromStrings(refPath, headRef)
+
+	err = g.repository.Storer.SetReference(ref)
+	if err != nil {
+		return err
+	}
+
+	wt, err := g.repository.Worktree()
+	if err != nil {
+		return err
+	}
+
+	err = wt.Checkout(&gogit.CheckoutOptions{
+		Branch: plumbing.NewBranchReferenceName(newBranch),
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func isSymLink(fname string) (bool, error) {
 	info, err := os.Lstat(fname)
 	if err != nil {

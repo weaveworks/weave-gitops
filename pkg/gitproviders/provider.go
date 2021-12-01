@@ -115,6 +115,15 @@ func createPullRequest(ctx context.Context, repo gitprovider.UserRepository, prI
 		prInfo.TargetBranch = *repoInfo.DefaultBranch
 	}
 
+	if len(prInfo.Files) == 0 {
+		pr, err := repo.PullRequests().Create(ctx, prInfo.Title, prInfo.NewBranch, prInfo.TargetBranch, prInfo.Description)
+		if err != nil {
+			return nil, fmt.Errorf("error creating pull request %s: %w", prInfo.Title, err)
+		}
+
+		return pr, nil
+	}
+
 	commits, err := repo.Commits().ListPage(ctx, prInfo.TargetBranch, 1, 0)
 	if err != nil {
 		return nil, fmt.Errorf("error getting commits: %w", err)

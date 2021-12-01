@@ -101,12 +101,18 @@ func (dw *gitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app mode
 }
 
 func (dw *gitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error {
-	branch, err := dw.RepoWriter.GetDefaultBranch(ctx)
+	defaultBranch, err := dw.RepoWriter.GetDefaultBranch(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve default branch for repository: %w", err)
 	}
 
-	remover, repoDir, err := dw.RepoWriter.CloneRepo(ctx, branch)
+	var repoDir string
+
+	var remover func()
+
+	newBranchName := automation.GetAppHash(app)
+
+	remover, repoDir, err = dw.RepoWriter.CloneRepo(ctx, defaultBranch)
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)
 	}
@@ -137,11 +143,37 @@ func (dw *gitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app m
 		return fmt.Errorf("failed to remove app reference from user kustomize file: %w", err)
 	}
 
+	if !autoMerge {
+		err = dw.RepoWriter.CheckoutBranch(newBranchName)
+		if err != nil {
+			return fmt.Errorf("failed to clone configuration repo: %w", err)
+		}
+	}
+
 	if err = dw.RepoWriter.Write(ctx, kManifest.Path, kManifest.Content); err != nil {
 		return fmt.Errorf("failed to write updated kustomize file: %w", err)
 	}
 
-	return dw.RepoWriter.CommitAndPush(ctx, RemoveCommitMessage)
+	err = dw.RepoWriter.CommitAndPush(ctx, RemoveCommitMessage)
+	if err != nil {
+		return err
+	}
+
+	if !autoMerge {
+		prInfo := gitproviders.PullRequestInfo{
+			Title:         fmt.Sprintf("Gitops remove %s", app.Name),
+			Description:   fmt.Sprintf("Removed yamls for %s", app.Name),
+			CommitMessage: RemoveCommitMessage,
+			TargetBranch:  defaultBranch,
+			NewBranch:     newBranchName,
+		}
+
+		if err := dw.RepoWriter.CreatePullRequest(ctx, prInfo); err != nil {
+			return fmt.Errorf("failed creating pull request: %w", err)
+		}
+	}
+
+	return nil
 }
 
 func addKustomizeResources(app models.Application, repoDir, clusterName string, resources ...string) (automation.AutomationManifest, error) {
