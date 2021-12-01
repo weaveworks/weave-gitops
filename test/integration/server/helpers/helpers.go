@@ -178,7 +178,7 @@ func GenerateExpectedFS(req *pb.AddApplicationRequest, root, clusterName string,
 				APIVersion: sourcev1.GroupVersion.String(),
 			},
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "wego-app-" + req.Name,
+				Name:      fmt.Sprintf("wego-app-%s", req.Name),
 				Namespace: req.Namespace,
 			},
 			Spec: s,
