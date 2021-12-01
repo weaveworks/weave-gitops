@@ -7,8 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  APP_IMAGE_NAME: weaveworks/wego-app
-  PROFILES_IMAGE_NAME: weaveworks/profiles-server
+  IMAGE_NAME: weaveworks/wego-app
 
 jobs:
   goreleaser:
@@ -75,6 +74,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -84,38 +84,22 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Extract App metadata (tags, labels) for Docker
-        id: app-meta
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ env.REGISTRY }}/${{ env.APP_IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=tag
           flavor: |
             latest=true
-      - name: Build and push App Docker image
+      - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
           context: .
           push: true
-          tags: ${{ steps.app-meta.outputs.tags }}
-          labels: ${{ steps.app-meta.outputs.labels }}
-      - name: Extract Profiles metadata (tags, labels) for Docker
-        id: profiles-meta
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.PROFILES_IMAGE_NAME }}
-          tags: |
-            type=ref,event=tag
-          flavor: |
-            latest=true
-      - name: Build and push Profiles Docker image
-        uses: docker/build-push-action@v2
-        with:
-          context: ./cmd/profiles-server/
-          push: true
-          tags: ${{ steps.profiles-meta.outputs.tags }}
-          labels: ${{ steps.profiles-meta.outputs.labels }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
   update-doc-repo-files:
     runs-on: ubuntu-latest
     steps:
