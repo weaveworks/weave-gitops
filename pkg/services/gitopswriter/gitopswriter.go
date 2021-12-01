@@ -129,6 +129,13 @@ func (dw *gitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app m
 		return fmt.Errorf("failed to read resource files: %w", err)
 	}
 
+	if !autoMerge {
+		err = dw.RepoWriter.CheckoutBranch(newBranchName)
+		if err != nil {
+			return fmt.Errorf("failed to checkout branch in configuration repo: %w", err)
+		}
+	}
+
 	for _, resourcePath := range resourcePaths {
 		pathStr := filepath.Join(appSubDir, resourcePath.Name())
 
@@ -141,13 +148,6 @@ func (dw *gitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app m
 	kManifest, err := removeKustomizeResources(app, repoDir, clusterName, appKustomizeReference(app))
 	if err != nil {
 		return fmt.Errorf("failed to remove app reference from user kustomize file: %w", err)
-	}
-
-	if !autoMerge {
-		err = dw.RepoWriter.CheckoutBranch(newBranchName)
-		if err != nil {
-			return fmt.Errorf("failed to checkout branch in configuration repo: %w", err)
-		}
 	}
 
 	if err = dw.RepoWriter.Write(ctx, kManifest.Path, kManifest.Content); err != nil {
