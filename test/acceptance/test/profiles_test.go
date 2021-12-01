@@ -19,6 +19,7 @@ import (
 	"path/filepath"
 
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
@@ -134,7 +135,8 @@ func deployProfilesHelmRepository(rawClient client.Client, namespace string) {
 			return err
 		}
 
-		if len(helmRepo.Status.Conditions) == 1 && helmRepo.Status.Conditions[0].Type == "Ready" && helmRepo.Status.Conditions[0].Status == "True" {
+		readyCondition := meta.FindStatusCondition(helmRepo.Status.Conditions, "Ready")
+		if readyCondition != nil && readyCondition.Status == "True" {
 			return nil
 		}
 		return fmt.Errorf("HelmRepository not ready %v", helmRepo.Status)
