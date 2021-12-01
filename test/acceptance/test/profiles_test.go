@@ -12,13 +12,13 @@ import (
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"path/filepath"
 
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
@@ -55,7 +55,7 @@ var _ = Describe("Weave GitOps Profiles API", func() {
 		deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 	})
 
-	It("Works", func() {
+	It("gets deployed and is accessible via the service", func() {
 		By("Installing the Profiles API and setting up the profile helm repository")
 		appRepoRemoteURL = "git@github.com:" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 		installAndVerifyWego(namespace, appRepoRemoteURL)
@@ -104,16 +104,7 @@ func buildKubernetesClients() (*kubernetes.Clientset, client.Client) {
 	clientSet, err := kubernetes.NewForConfig(config)
 	Expect(err).NotTo(HaveOccurred())
 
-	scheme := runtime.NewScheme()
-	schemeBuilder := runtime.SchemeBuilder{
-		sourcev1beta1.AddToScheme,
-	}
-	Expect(schemeBuilder.AddToScheme(scheme)).To(Succeed())
-
-	kClient, err := client.New(config, client.Options{
-		Scheme: scheme,
-	})
-
+	_, kClient, err := kube.NewKubeHTTPClientWithConfig(config, "profiles-test")
 	Expect(err).NotTo(HaveOccurred())
 
 	return clientSet, kClient

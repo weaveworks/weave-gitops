@@ -71,8 +71,8 @@ var Profiles = func(v *repo.ChartVersion) bool {
 func (h *RepoManager) GetCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred ChartPredicate) ([]*pb.Profile, error) {
 	chartRepo, err := fetchIndexFile(hr.Status.URL)
 	if err != nil {
-		return nil, fmt.Errorf("fetching profiles from HelmRepository %s/%s %q: %w",
-			hr.GetName(), hr.GetNamespace(), hr.Spec.URL, err)
+		return nil, fmt.Errorf("fetching profiles from HelmRepository %s/%s: %w",
+			hr.GetName(), hr.GetNamespace(), err)
 	}
 
 	ps := make(map[string]*pb.Profile)
@@ -120,7 +120,7 @@ func (h *RepoManager) GetCharts(ctx context.Context, hr *sourcev1beta1.HelmRepos
 // GetValuesFile fetches the value file from a chart.
 func (h *RepoManager) GetValuesFile(ctx context.Context, helmRepo *sourcev1beta1.HelmRepository, c *ChartReference, filename string) ([]byte, error) {
 	if err := h.updateCache(ctx, helmRepo); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("updating cache: %w", err)
 	}
 
 	chart, err := h.loadChart(ctx, helmRepo, c)
@@ -145,7 +145,7 @@ func (h *RepoManager) updateCache(ctx context.Context, helmRepo *sourcev1beta1.H
 
 	r, err := repo.NewChartRepository(entry, DefaultChartGetters)
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating chart repository: %w", err)
 	}
 
 	r.CachePath = h.CacheDir
@@ -246,27 +246,27 @@ func fetchIndexFile(chartURL string) (*repo.IndexFile, error) {
 
 	u, err := url.Parse(chartURL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error parsing URL %q: %w", chartURL, err)
 	}
 
 	c, err := DefaultChartGetters.ByScheme(u.Scheme)
 	if err != nil {
-		return nil, fmt.Errorf("no provider for scheme: %s", u.Scheme)
+		return nil, fmt.Errorf("no provider for scheme %q: %w", u.Scheme, err)
 	}
 
 	res, err := c.Get(u.String())
 	if err != nil {
-		return nil, fmt.Errorf("get chart URL: %w", err)
+		return nil, fmt.Errorf("error fetching index file: %w", err)
 	}
 
 	b, err := ioutil.ReadAll(res)
 	if err != nil {
-		return nil, fmt.Errorf("read chart response: %w", err)
+		return nil, fmt.Errorf("error reading response: %w", err)
 	}
 
 	i := &repo.IndexFile{}
 	if err := yaml.Unmarshal(b, i); err != nil {
-		return nil, fmt.Errorf("unmarshaling chart response: %w", err)
+		return nil, fmt.Errorf("error unmarshaling chart response: %w", err)
 	}
 
 	if i.APIVersion == "" {

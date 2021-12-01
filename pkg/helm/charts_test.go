@@ -68,7 +68,7 @@ var _ = Describe("RepoManager", func() {
 			}))
 		})
 
-		When("no charts exist with the profiles tag", func() {
+		When("no charts exist with the profile version", func() {
 			It("returns an empty list", func() {
 				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata/no_profiles")))
 				profiles, err := repoManager.GetCharts(context.TODO(), makeTestHelmRepository(testServer.URL), helm.Profiles)
@@ -81,22 +81,22 @@ var _ = Describe("RepoManager", func() {
 			It("errors", func() {
 				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata")))
 				_, err := repoManager.GetCharts(context.TODO(), makeTestHelmRepository(testServer.URL), helm.Profiles)
-				Expect(err).To(MatchError(ContainSubstring("fetching profiles from HelmRepository testing/test-ns")))
-				Expect(err).To(MatchError(ContainSubstring("404")))
+				Expect(err).To(MatchError(ContainSubstring("fetching profiles from HelmRepository testing/test-ns: error fetching index file")))
 			})
 		})
 
 		When("the URL is invalid", func() {
 			It("errors", func() {
-				_, err := repoManager.GetCharts(context.TODO(), makeTestHelmRepository("http://[::1]:namedport/index.yaml"), helm.Profiles)
-				Expect(err).To(MatchError(ContainSubstring("invalid port")))
+				url := "http://[::1]:namedport"
+				_, err := repoManager.GetCharts(context.TODO(), makeTestHelmRepository(url), helm.Profiles)
+				Expect(err).To(MatchError(ContainSubstring("fetching profiles from HelmRepository testing/test-ns: error parsing URL %q", url+"/index.yaml")))
 			})
 		})
 
 		When("the scheme is unsupported", func() {
 			It("errors", func() {
 				_, err := repoManager.GetCharts(context.TODO(), makeTestHelmRepository("sftp://localhost:4222/index.yaml"), helm.Profiles)
-				Expect(err).To(MatchError(ContainSubstring("no provider for scheme: sftp")))
+				Expect(err).To(MatchError(ContainSubstring(`fetching profiles from HelmRepository testing/test-ns: no provider for scheme "sftp"`)))
 			})
 		})
 
@@ -104,7 +104,7 @@ var _ = Describe("RepoManager", func() {
 			It("errors", func() {
 				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata")))
 				_, err := repoManager.GetCharts(context.TODO(), makeTestHelmRepository(testServer.URL+"/invalid"), helm.Profiles)
-				Expect(err).To(MatchError(ContainSubstring("no API version specified")))
+				Expect(err).To(MatchError(ContainSubstring("fetching profiles from HelmRepository testing/test-ns: no API version specified")))
 			})
 		})
 
@@ -112,7 +112,7 @@ var _ = Describe("RepoManager", func() {
 			It("errors", func() {
 				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata")))
 				_, err := repoManager.GetCharts(context.TODO(), makeTestHelmRepository(testServer.URL+"/brokenyaml"), helm.Profiles)
-				Expect(err).To(MatchError(ContainSubstring("cannot decode")))
+				Expect(err).To(MatchError(ContainSubstring("fetching profiles from HelmRepository testing/test-ns: error unmarshaling chart response")))
 			})
 		})
 	})
@@ -176,7 +176,7 @@ var _ = Describe("RepoManager", func() {
 				repoManager := helm.NewRepoManager(makeTestClient(), tempDir)
 
 				_, err := repoManager.GetValuesFile(context.TODO(), helmRepo, chartReference, "values.yaml")
-				Expect(err).To(MatchError(ContainSubstring("invalid chart URL format")))
+				Expect(err).To(MatchError(ContainSubstring("updating cache: error creating chart repository")))
 			})
 		})
 
@@ -229,7 +229,8 @@ func makeServeMux(opts ...func(*repo.IndexFile)) *http.ServeMux {
 	mux.HandleFunc("/charts/index.yaml", func(w http.ResponseWriter, req *http.Request) {
 		b, err := yaml.Marshal(makeTestChartIndex(opts...))
 		Expect(err).NotTo(HaveOccurred())
-		Expect(w.Write(b)).To(Succeed())
+		_, err = w.Write(b)
+		Expect(err).NotTo(HaveOccurred())
 	})
 	mux.Handle("/", http.FileServer(http.Dir("testdata")))
 

@@ -174,7 +174,6 @@ var _ = Describe("ProfilesServer", func() {
 				_, err := s.GetProfileValues(context.TODO(), &pb.GetProfileValuesRequest{})
 				Expect(err).To(MatchError("HelmRepository \"default\"/\"helmrepo\" does not exist"))
 				Expect(err).To(BeAssignableToTypeOf(&grpcruntime.HTTPStatusError{}))
-				//TODO why do we return 200 when the HelmRepository doesn't exist
 				Expect(err.(*grpcruntime.HTTPStatusError).HTTPStatus).To(Equal(http.StatusOK))
 			})
 		})
