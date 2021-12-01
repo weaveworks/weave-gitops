@@ -1,3 +1,4 @@
+//go:build !unittest
 // +build !unittest
 
 package helpers
@@ -167,7 +168,7 @@ func GenerateExpectedFS(req *pb.AddApplicationRequest, root, clusterName string,
 				APIVersion: kustomizev2.GroupVersion.String(),
 			},
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      req.Name,
+				Name:      fmt.Sprintf("wego-app-%s", req.Name),
 				Namespace: req.Namespace,
 			},
 			Spec: k,
