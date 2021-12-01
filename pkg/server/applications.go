@@ -33,7 +33,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -100,8 +99,8 @@ func NewApplicationsServer(cfg *ApplicationsConfig) pb.ApplicationsServer {
 	}
 }
 
-// DefaultConfig creates a populated config with the dependencies for a Server
-func DefaultConfig() (*ApplicationsConfig, error) {
+// DefaultApplicationsConfig creates a populated config with the dependencies for a Server
+func DefaultApplicationsConfig() (*ApplicationsConfig, error) {
 	zapLog, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatalf("could not create zap logger: %v", err)
@@ -134,22 +133,6 @@ func DefaultConfig() (*ApplicationsConfig, error) {
 		GithubAuthClient: auth.NewGithubAuthClient(http.DefaultClient),
 		GitlabAuthClient: auth.NewGitlabAuthClient(http.DefaultClient),
 	}, nil
-}
-
-// NewApplicationsHandler allow for other applications to embed the Weave GitOps HTTP API.
-// This handler can be muxed with other services or used as a standalone service.
-func NewApplicationsHandler(ctx context.Context, cfg *ApplicationsConfig, opts ...runtime.ServeMuxOption) (http.Handler, error) {
-	appsSrv := NewApplicationsServer(cfg)
-
-	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(cfg.Logger))
-	httpHandler := middleware.WithLogging(cfg.Logger, mux)
-	httpHandler = middleware.WithProviderToken(cfg.JwtClient, httpHandler, cfg.Logger)
-
-	if err := pb.RegisterApplicationsHandlerServer(ctx, mux, appsSrv); err != nil {
-		return nil, fmt.Errorf("could not register application: %w", err)
-	}
-
-	return httpHandler, nil
 }
 
 func (s *applicationServer) ListApplications(ctx context.Context, msg *pb.ListApplicationsRequest) (*pb.ListApplicationsResponse, error) {

@@ -11,8 +11,7 @@ import (
 )
 
 const (
-	wegoManifestsDir     = "wego-app"
-	profilesManifestsDir = "profiles-server"
+	wegoManifestsDir = "wego-app"
 )
 
 var (
@@ -20,8 +19,6 @@ var (
 	AppCRD []byte
 	//go:embed wego-app/*
 	wegoAppTemplates embed.FS
-	//go:embed profiles-server/*
-	profilesServerTemplates embed.FS
 )
 
 type Params struct {
@@ -32,23 +29,12 @@ type Params struct {
 
 // GenerateManifests generates weave-gitops manifests from a template
 func GenerateManifests(params Params) ([][]byte, error) {
-	manifests := [][]byte{}
-
 	appManifests, err := readTemplateDirectory(params, wegoAppTemplates, wegoManifestsDir)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("rendering app manifests: %w", err)
 	}
 
-	manifests = append(manifests, appManifests...)
-
-	profilesManifests, err := readTemplateDirectory(params, profilesServerTemplates, profilesManifestsDir)
-	if err != nil {
-		return nil, err
-	}
-
-	manifests = append(manifests, profilesManifests...)
-
-	return manifests, nil
+	return appManifests, nil
 }
 
 func executeTemplate(name string, tplData string, params Params) ([]byte, error) {

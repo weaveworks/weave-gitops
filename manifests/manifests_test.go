@@ -56,42 +56,5 @@ kind: RoleBinding
 metadata:
   name: read-resources`))
 		})
-
-		By("containing the Profiles API manifests", func() {
-			By("containing a Deployment manifest")
-			Expect(manifests).To(ContainSubstring(`
-kind: Deployment
-metadata:
-  name: profiles-server
-  namespace: my-namespace`))
-			Expect(manifests).To(ContainSubstring("0.1.0"))
-
-			By("containing a Service manifest")
-			Expect(manifests).To(ContainSubstring(`
-kind: Service
-metadata:
-  name: profiles-server
-  namespace: my-namespace`))
-
-			By("containing a Service Account manifest")
-			Expect(manifests).To(ContainSubstring(`
-kind: ServiceAccount
-metadata:
-  name: profiles-server-service-account
-  namespace: my-namespace`))
-
-			By("containing a Role manifest")
-			Expect(manifests).To(ContainSubstring(`
-kind: Role
-metadata:
-  name: profiles-reader`))
-
-			By("containing a Role Binding manifest")
-			Expect(manifests).To(ContainSubstring(`
-kind: RoleBinding
-metadata:
-  name: read-profiles`))
-		})
-
 	})
 })

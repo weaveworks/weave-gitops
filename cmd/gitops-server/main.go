@@ -35,17 +35,20 @@ func NewAPIServerCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			flux.New(osys.New(), &runner.CLIRunner{}).SetupBin()
 
-			cfg, err := server.DefaultConfig()
+			appConfig, err := server.DefaultApplicationsConfig()
 			if err != nil {
 				return err
 			}
 
-			s, err := server.NewApplicationsHandler(context.Background(), cfg)
+			//TODO how is this file used?
+			profilesConfig := server.NewProfilesConfig("default", "weaveworks-charts")
+
+			s, err := server.NewApplicationsAndProfilesHandler(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig})
 			if err != nil {
 				return err
 			}
 
-			cfg.Logger.Info("server starting", "address", addr)
+			appConfig.Logger.Info("server starting", "address", addr)
 			return http.ListenAndServe(addr, s)
 		},
 	}

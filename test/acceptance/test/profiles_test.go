@@ -33,7 +33,8 @@ var _ = Describe("Weave GitOps Profiles API", func() {
 		namespace        = "test-namespace"
 		appRepoRemoteURL string
 		tip              TestInputs
-		profilesSvc      = "profiles-server"
+		wegoService      = "wego-app"
+		wegoPort         = "9001"
 		clientSet        *kubernetes.Clientset
 		kClient          client.Client
 	)
@@ -61,9 +62,10 @@ var _ = Describe("Weave GitOps Profiles API", func() {
 		appRepoRemoteURL = "git@github.com:" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
 		installAndVerifyWego(namespace, appRepoRemoteURL)
 		deployProfilesHelmRepository(kClient, namespace)
+		time.Sleep(time.Second * 20)
 
 		By("Getting a list of profiles")
-		resp, statusCode, err := kubernetesDoRequest(namespace, profilesSvc, "8000", "/v1/profiles", clientSet)
+		resp, statusCode, err := kubernetesDoRequest(namespace, wegoService, wegoPort, "/v1/profiles", clientSet)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(statusCode).To(Equal(http.StatusOK))
 
@@ -87,7 +89,7 @@ var _ = Describe("Weave GitOps Profiles API", func() {
 		}))
 
 		By("Getting the values for a profile")
-		resp, statusCode, err = kubernetesDoRequest(namespace, profilesSvc, "8000", "/v1/profiles/podinfo/6.0.1/values", clientSet)
+		resp, statusCode, err = kubernetesDoRequest(namespace, wegoService, wegoPort, "/v1/profiles/podinfo/6.0.1/values", clientSet)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(statusCode).To(Equal(http.StatusOK))
 

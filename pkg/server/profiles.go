@@ -7,15 +7,18 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strings"
 
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
+	"go.uber.org/zap"
 	"helm.sh/helm/v3/pkg/chartutil"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/go-logr/logr"
+	"github.com/go-logr/zapr"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/helm"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -23,8 +26,6 @@ import (
 
 	grpcruntime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/metadata"
 )
@@ -41,7 +42,37 @@ type HelmRepoManager interface {
 	GetValuesFile(ctx context.Context, helmRepo *sourcev1beta1.HelmRepository, c *helm.ChartReference, filename string) ([]byte, error)
 }
 
-func NewProfilesHandler(ctx context.Context, logr logr.Logger, helmRepoNamespace, helmRepoName string) (http.Handler, error) {
+type ProfilesConfig struct {
+	logr              logr.Logger
+	helmRepoNamespace string
+	helmRepoName      string
+}
+
+func NewProfilesConfig(helmRepoNamespace, helmRepoName string) ProfilesConfig {
+	zapLog, err := zap.NewDevelopment()
+	if err != nil {
+		log.Fatalf("could not create zap logger: %v", err)
+	}
+
+	return ProfilesConfig{
+		logr:              zapr.NewLogger(zapLog),
+		helmRepoNamespace: helmRepoNamespace,
+		helmRepoName:      helmRepoName,
+	}
+}
+
+type ProfilesServer struct {
+	pb.UnimplementedProfilesServer
+
+	KubeClient        client.Client
+	Log               logr.Logger
+	HelmChartManager  HelmRepoManager
+	HelmRepoName      string
+	HelmRepoNamespace string
+	cacheDir          string
+}
+
+func NewProfilesServer(config ProfilesConfig) (pb.ProfilesServer, error) {
 	rest, clusterName, err := kube.RestConfig()
 	if err != nil {
 		return nil, fmt.Errorf("could not create client config: %w", err)
@@ -57,34 +88,14 @@ func NewProfilesHandler(ctx context.Context, logr logr.Logger, helmRepoNamespace
 		return nil, err
 	}
 
-	profilesSrv := &ProfilesServer{
+	return &ProfilesServer{
 		KubeClient:        rawClient,
-		Log:               logr,
+		Log:               config.logr,
 		HelmChartManager:  helm.NewRepoManager(rawClient, tempDir),
-		HelmRepoNamespace: helmRepoNamespace,
-		HelmRepoName:      helmRepoName,
+		HelmRepoNamespace: config.helmRepoNamespace,
+		HelmRepoName:      config.helmRepoName,
 		cacheDir:          tempDir,
-	}
-
-	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(logr))
-	httpHandler := middleware.WithLogging(logr, mux)
-
-	if err := pb.RegisterProfilesHandlerServer(ctx, mux, profilesSrv); err != nil {
-		return nil, fmt.Errorf("could not register Profiles server: %w", err)
-	}
-
-	return httpHandler, nil
-}
-
-type ProfilesServer struct {
-	pb.UnimplementedProfilesServer
-
-	KubeClient        client.Client
-	Log               logr.Logger
-	HelmChartManager  HelmRepoManager
-	HelmRepoName      string
-	HelmRepoNamespace string
-	cacheDir          string
+	}, nil
 }
 
 func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesRequest) (*pb.GetProfilesResponse, error) {
