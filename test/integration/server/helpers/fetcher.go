@@ -39,8 +39,8 @@ type githubPrClient struct {
 	client *ghAPI.Client
 }
 
-func (gh githubPrClient) GetFilesForPullRequest(ctx context.Context, id int, org, repoName string, fs WeGODirectoryFS) (WeGODirectoryFS, error) {
-	files, _, err := gh.client.PullRequests.ListFiles(ctx, org, repoName, 1, &ghAPI.ListOptions{})
+func (gh githubPrClient) GetFilesForPullRequest(ctx context.Context, prID int, org, repoName string, fs WeGODirectoryFS) (WeGODirectoryFS, error) {
+	files, _, err := gh.client.PullRequests.ListFiles(ctx, org, repoName, prID, &ghAPI.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("error listing files for %q: %w", repoName, err)
 	}
@@ -52,9 +52,9 @@ type gitlabPrClient struct {
 	client *glAPI.Client
 }
 
-func (gl gitlabPrClient) GetFilesForPullRequest(ctx context.Context, id int, org, repoName string, fs WeGODirectoryFS) (WeGODirectoryFS, error) {
+func (gl gitlabPrClient) GetFilesForPullRequest(ctx context.Context, prID int, org, repoName string, fs WeGODirectoryFS) (WeGODirectoryFS, error) {
 	pid := fmt.Sprintf("%s/%s", org, repoName)
-	mr, _, err := gl.client.MergeRequests.GetMergeRequestChanges(pid, id, nil)
+	mr, _, err := gl.client.MergeRequests.GetMergeRequestChanges(pid, prID, nil)
 
 	if err != nil {
 		return nil, fmt.Errorf("could not get merge request: %w", err)
