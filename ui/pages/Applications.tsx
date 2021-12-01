@@ -4,8 +4,10 @@ import Button from "../components/Button";
 import DataTable from "../components/DataTable";
 import Flex from "../components/Flex";
 import Link from "../components/Link";
-import Page, { TitleBar } from "../components/Page";
-import useApplications from "../hooks/applications";
+import Page from "../components/Page";
+import PollingIndicator from "../components/PollingIndicator";
+import Spacer from "../components/Spacer";
+import { AppContext } from "../contexts/AppContext";
 import { Application } from "../lib/api/applications/applications.pb";
 import { PageRoute } from "../lib/types";
 import { formatURL } from "../lib/utils";
@@ -16,24 +18,47 @@ type Props = {
 
 function Applications({ className }: Props) {
   const [applications, setApplications] = React.useState<Application[]>([]);
-  const { listApplications, loading } = useApplications();
+  const { applicationsClient, doAsyncError } = React.useContext(AppContext);
+  const [loading, setLoading] = React.useState(false);
+
+  const getApps = () => {
+    setLoading(true);
+    applicationsClient
+      .ListApplications({ namespace: "wego-system" })
+      .then((res) => setApplications(res.applications))
+      //how deep are we going with these error messages? Should I have one for 500 and one for 400?
+      .catch((err) =>
+        doAsyncError(
+          "Unable to retrieve applications",
+          "Something went wrong - please try again later"
+        )
+      )
+      .finally(() => setLoading(false));
+  };
 
   React.useEffect(() => {
-    listApplications().then((res) => setApplications(res as Application[]));
+    getApps();
+    const interval = setInterval(() => {
+      getApps();
+    }, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
-    <Page loading={loading} className={className}>
-      <Flex align between>
-        <TitleBar>
-          <h2>Applications</h2>
-        </TitleBar>
+    <Page className={className}>
+      <Flex between align>
+        <Flex align>
+          <h2>Applications </h2>
+          <Spacer padding="small" />
+          <PollingIndicator loading={loading} />
+        </Flex>
         <Link to={PageRoute.ApplicationAdd} className="title-bar-button">
           <Button variant="contained" type="button">
             Add Application
           </Button>
         </Link>
       </Flex>
+
       <DataTable
         sortFields={["name"]}
         fields={[
