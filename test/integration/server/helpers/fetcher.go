@@ -67,7 +67,7 @@ func (gl gitlabPrClient) GetFilesForPullRequest(ctx context.Context, prID int, o
 
 		file, _, err := gl.client.RepositoryFiles.GetRawFile(pid, path, &glAPI.GetRawFileOptions{Ref: &mr.DiffRefs.HeadSha})
 		if err != nil {
-			return nil, fmt.Errorf("could not get merge request: %w", err)
+			return nil, fmt.Errorf("could not raw file for merge request: %w", err)
 		}
 
 		files[path] = file
