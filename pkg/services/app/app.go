@@ -128,7 +128,9 @@ func (a *AppSvc) pauseOrUnpause(suspendAction wego.SuspendActionType, name, name
 			a.Logger.Printf("app %s is already paused\n", name)
 			return nil
 		}
+
 		sourceName := automation.CreateAppSourceName(name)
+
 		out, err := a.Flux.SuspendOrResumeApp(suspendAction, sourceName, namespace, string(deploymentType))
 		if err != nil {
 			return fmt.Errorf("unable to pause %s err: %s", name, err)
