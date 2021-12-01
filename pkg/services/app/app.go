@@ -122,14 +122,14 @@ func (a *AppSvc) pauseOrUnpause(suspendAction wego.SuspendActionType, name, name
 		return fmt.Errorf("invalid deployment type: %v", deploymentType)
 	}
 
+	sourceName := automation.CreateAppSourceName(name)
+
 	switch suspendAction {
 	case wego.SuspendAction:
 		if suspendStatus {
 			a.Logger.Printf("app %s is already paused\n", name)
 			return nil
 		}
-
-		sourceName := automation.CreateAppSourceName(name)
 
 		out, err := a.Flux.SuspendOrResumeApp(suspendAction, sourceName, namespace, string(deploymentType))
 		if err != nil {
@@ -145,7 +145,7 @@ func (a *AppSvc) pauseOrUnpause(suspendAction wego.SuspendActionType, name, name
 			return nil
 		}
 
-		out, err := a.Flux.SuspendOrResumeApp(suspendAction, name, namespace, string(deploymentType))
+		out, err := a.Flux.SuspendOrResumeApp(suspendAction, sourceName, namespace, string(deploymentType))
 		if err != nil {
 			return fmt.Errorf("unable to unpause %s err: %s", name, err)
 		}
