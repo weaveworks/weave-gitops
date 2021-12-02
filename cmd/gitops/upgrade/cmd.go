@@ -18,8 +18,8 @@ import (
 
 var upgradeCmdFlags upgrade.UpgradeValues
 
-var example = fmt.Sprintf(`  # Install GitOps in the %s namespace
-  gitops upgrade --profile-version 0.0.15 --app-config-url https://github.com/my-org/my-management-cluster.git`,
+var example = fmt.Sprintf(`  # Upgrade Weave GitOps in the %s namespace
+  gitops upgrade --version 0.0.15 --app-config-url https://github.com/my-org/my-management-cluster.git`,
 	wego.DefaultNamespace)
 
 var Cmd = &cobra.Command{
@@ -33,7 +33,7 @@ var Cmd = &cobra.Command{
 
 func init() {
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.AppConfigURL, "app-config-url", "", "URL of external repository that will hold automation manifests")
-	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.ProfileVersion, "profile-version", "", "Profile version to set the helm release version to")
+	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.Version, "version", "", "Version of Weave GitOps Enterprise to be installed")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.BaseBranch, "base", "main", "The base branch to open the pull request against")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.HeadBranch, "branch", "tier-upgrade-enterprise", "The branch to create the pull request from")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.CommitMessage, "commit-message", "Upgrade to WGE", "The commit message")
@@ -41,7 +41,7 @@ func init() {
 	Cmd.PersistentFlags().BoolVar(&upgradeCmdFlags.DryRun, "dry-run", false, "Output the generated profile without creating a pull request")
 
 	cobra.CheckErr(Cmd.MarkPersistentFlagRequired("app-config-url"))
-	cobra.CheckErr(Cmd.MarkPersistentFlagRequired("profile-version"))
+	cobra.CheckErr(Cmd.MarkPersistentFlagRequired("version"))
 }
 
 func upgradeCmdRunE() func(*cobra.Command, []string) error {

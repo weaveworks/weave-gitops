@@ -16,17 +16,20 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"github.com/fluxcd/go-git-providers/github"
+	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
-	"github.com/google/go-github/v32/github"
+	ghAPI "github.com/google/go-github/v32/github"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	"github.com/weaveworks/weave-gitops/test/integration/server/helpers"
+	glAPI "github.com/xanzy/go-gitlab"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -36,10 +39,8 @@ var _ = Describe("AddApplication", func() {
 	var (
 		namespace      *corev1.Namespace
 		ctx            context.Context
-		token          = os.Getenv("GITHUB_TOKEN")
 		sourceRepoName string
 		configRepoName string
-		gh             = helpers.NewGithubClient(ctx, token)
 		client         pb.ApplicationsClient
 	)
 
@@ -47,567 +48,1100 @@ var _ = Describe("AddApplication", func() {
 		namespace = &corev1.Namespace{}
 		namespace.Name = "kube-test-" + rand.String(5)
 		Expect(env.Client.Create(context.Background(), namespace)).To(Succeed())
-		ctx = middleware.ContextWithGRPCAuth(context.Background(), token)
 		sourceRepoName = "test-source-repo-" + rand.String(5)
 		configRepoName = "test-config-repo-" + rand.String(5)
 		client = pb.NewApplicationsClient(conn)
-
 	})
-	Context("via pull request", func() {
-		It("adds with no config repo specified", func() {
-			sourceRepoURL := fmt.Sprintf("https://github.com/%s/%s", org, sourceRepoName)
 
-			repo, ref, err := helpers.CreatePopulatedSourceRepo(ctx, gp, sourceRepoURL)
+	Context("GitHub", func() {
+		var gh *ghAPI.Client
+		var gp gitprovider.Client
+		var githubOrg = "weaveworks-gitops-test"
+		var githubToken = os.Getenv("GITHUB_TOKEN")
+		BeforeEach(func() {
+			gh = helpers.NewGithubClient(ctx, githubToken)
+			ctx = middleware.ContextWithGRPCAuth(context.Background(), githubToken)
 			Expect(err).NotTo(HaveOccurred())
-
-			defer func() { Expect(repo.Delete(ctx)).To(Succeed()) }()
-
-			req := &pb.AddApplicationRequest{
-				Name:      "my-app",
-				Namespace: namespace.Name,
-				Url:       ref.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
-				Branch:    "main",
-				Path:      "k8s/overlays/development",
-			}
-
-			res, err := client.AddApplication(ctx, req)
+			gp, err = github.NewClient(
+				gitprovider.WithDestructiveAPICalls(true),
+				gitprovider.WithOAuth2Token(os.Getenv("GITHUB_TOKEN")),
+			)
 			Expect(err).NotTo(HaveOccurred())
-
-			Expect(res.Success).To(BeTrue(), "request should have been successful")
-
-			_, err = repo.DeployKeys().Get(ctx, gitproviders.DeployKeyName)
-			Expect(err).NotTo(HaveOccurred(), "deploy key should have been found")
-
-			prs, err := repo.PullRequests().List(ctx)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(prs).To(HaveLen(1))
-
-			root := helpers.InAppRoot
-
-			fs := helpers.MakeWeGOFS(root, req.Name, clusterName)
-
-			actual, err := helpers.GetFilesForPullRequest(ctx, gh, org, sourceRepoName, fs)
-			Expect(err).NotTo(HaveOccurred())
-
-			expectedKustomization := kustomizev1.KustomizationSpec{
-				// Flux adds a prepending `./` to path arguments that doesn't already have it.
-				// https://github.com/fluxcd/flux2/blob/ca496d393d993ac5119ed84f83e010b8fe918c53/cmd/flux/create_kustomization.go#L115
-				Path: "./" + req.Path,
-				// Flux kustomization default; I couldn't find an export default from the package.
-				Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
-				Prune:    true,
-				SourceRef: kustomizev1.CrossNamespaceSourceReference{
-					Name: req.Name,
-					Kind: sourcev1.GitRepositoryKind,
-				},
-				Force: false,
-			}
-
-			repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
-			Expect(err).NotTo(HaveOccurred())
-
-			expectedSource := sourcev1.GitRepositorySpec{
-				URL: req.Url,
-				SecretRef: &meta.LocalObjectReference{
-					Name: automation.CreateRepoSecretName(repoURL).String(),
-				},
-				Interval: metav1.Duration{Duration: time.Duration(30 * time.Second)},
-				Reference: &sourcev1.GitRepositoryRef{
-					Branch: req.Branch,
-				},
-				Ignore: helpers.GetIgnoreSpec(),
-			}
-
-			expectedApp := wego.ApplicationSpec{
-				URL:            req.Url,
-				Branch:         req.Branch,
-				Path:           req.Path,
-				ConfigURL:      req.Url,
-				DeploymentType: wego.DeploymentTypeKustomize,
-				SourceType:     wego.SourceTypeGit,
-			}
-
-			expected := helpers.GenerateExpectedFS(req, root, clusterName, expectedApp, expectedKustomization, expectedSource)
-
-			diff, err := helpers.DiffFS(actual, expected)
-			if err != nil {
-				GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
-			}
 		})
+		Context("via pull request", func() {
+			It("adds with no config repo specified", func() {
+				sourceRepoURL := fmt.Sprintf("https://github.com/%s/%s", githubOrg, sourceRepoName)
 
-		It("adds an app with an external config repo", func() {
-			sourceRepoURL := fmt.Sprintf("https://github.com/%s/%s", org, sourceRepoName)
-			configRepoURL := fmt.Sprintf("https://github.com/%s/%s", org, configRepoName)
+				repo, ref, err := helpers.CreatePopulatedSourceRepo(ctx, gp, sourceRepoURL)
+				Expect(err).NotTo(HaveOccurred())
 
-			configRepo, configRef, err := helpers.CreateRepo(ctx, gp, configRepoURL)
-			Expect(err).NotTo(HaveOccurred())
+				defer func() { Expect(repo.Delete(ctx)).To(Succeed()) }()
 
-			defer func() { Expect(configRepo.Delete(ctx)).To(Succeed()) }()
+				req := &pb.AddApplicationRequest{
+					Name:      "my-app",
+					Namespace: namespace.Name,
+					Url:       ref.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					Branch:    "main",
+					Path:      "k8s/overlays/development",
+				}
 
-			sourceRepo, sourceRef, err := helpers.CreatePopulatedSourceRepo(ctx, gp, sourceRepoURL)
-			Expect(err).NotTo(HaveOccurred())
+				res, err := client.AddApplication(ctx, req)
+				Expect(err).NotTo(HaveOccurred())
 
-			defer func() { Expect(sourceRepo.Delete(ctx)).To(Succeed()) }()
+				Expect(res.Success).To(BeTrue(), "request should have been successful")
 
-			req := &pb.AddApplicationRequest{
-				Name:      "my-app",
-				Namespace: namespace.Name,
-				Url:       sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
-				Branch:    "main",
-				Path:      "k8s/overlays/development",
-				ConfigUrl: configRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
-			}
+				_, err = repo.DeployKeys().Get(ctx, gitproviders.DeployKeyName)
+				Expect(err).NotTo(HaveOccurred(), "deploy key should have been found")
 
-			res, err := client.AddApplication(ctx, req)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(res.Success).To(BeTrue(), "request should have been successful")
+				prs, err := repo.PullRequests().List(ctx)
+				Expect(err).NotTo(HaveOccurred())
 
-			_, err = configRepo.DeployKeys().Get(ctx, gitproviders.DeployKeyName)
-			Expect(err).NotTo(HaveOccurred(), "deploy key should have been found")
+				Expect(prs).To(HaveLen(1))
 
-			prs, err := configRepo.PullRequests().List(ctx)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(prs).To(HaveLen(1))
+				root := helpers.InAppRoot
 
-			root := helpers.ExternalConfigRoot
-			fs := helpers.MakeWeGOFS(root, req.Name, clusterName)
+				fs := helpers.MakeWeGOFS(root, req.Name, clusterName)
 
-			actual, err := helpers.GetFilesForPullRequest(ctx, gh, org, configRepoName, fs)
-			Expect(err).NotTo(HaveOccurred())
+				fetcher, err := helpers.NewFileFetcher(gitproviders.GitProviderGitHub, githubToken)
+				Expect(err).NotTo(HaveOccurred())
 
-			normalizedUrl, err := gitproviders.NewRepoURL(req.Url)
-			Expect(err).NotTo(HaveOccurred())
+				actual, err := fetcher.GetFilesForPullRequest(ctx, 1, githubOrg, sourceRepoName, fs)
+				Expect(err).NotTo(HaveOccurred())
 
-			expectedApp := wego.ApplicationSpec{
-				URL:            normalizedUrl.String(),
-				Branch:         req.Branch,
-				Path:           req.Path,
-				ConfigURL:      req.ConfigUrl,
-				DeploymentType: wego.DeploymentTypeKustomize,
-				SourceType:     wego.SourceTypeGit,
-			}
+				expectedKustomization := kustomizev1.KustomizationSpec{
+					// Flux adds a prepending `./` to path arguments that doesn't already have it.
+					// https://github.com/fluxcd/flux2/blob/ca496d393d993ac5119ed84f83e010b8fe918c53/cmd/flux/create_kustomization.go#L115
+					Path: "./" + req.Path,
+					// Flux kustomization default; I couldn't find an export default from the package.
+					Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
+					Prune:    true,
+					SourceRef: kustomizev1.CrossNamespaceSourceReference{
+						Name: req.Name,
+						Kind: sourcev1.GitRepositoryKind,
+					},
+					Force: false,
+				}
 
-			expectedKustomization := kustomizev1.KustomizationSpec{
-				Path:     "./" + req.Path,
-				Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
-				Prune:    true,
-				SourceRef: kustomizev1.CrossNamespaceSourceReference{
-					Name: req.Name,
-					Kind: sourcev1.GitRepositoryKind,
-				},
-				Force: false,
-			}
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				Expect(err).NotTo(HaveOccurred())
 
-			repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
-			Expect(err).NotTo(HaveOccurred())
+				expectedSource := sourcev1.GitRepositorySpec{
+					URL: req.Url,
+					SecretRef: &meta.LocalObjectReference{
+						Name: automation.CreateRepoSecretName(repoURL).String(),
+					},
+					Interval: metav1.Duration{Duration: time.Duration(30 * time.Second)},
+					Reference: &sourcev1.GitRepositoryRef{
+						Branch: req.Branch,
+					},
+					Ignore: helpers.GetIgnoreSpec(),
+				}
 
-			expectedSource := sourcev1.GitRepositorySpec{
-				URL: req.Url,
-				SecretRef: &meta.LocalObjectReference{
-					// Might be a bug? Should be configRepoURL?
-					Name: automation.CreateRepoSecretName(repoURL).String(),
-				},
-				Interval: metav1.Duration{Duration: time.Duration(30 * time.Second)},
-				Reference: &sourcev1.GitRepositoryRef{
-					Branch: req.Branch,
-				},
-				Ignore: helpers.GetIgnoreSpec(),
-			}
+				expectedApp := wego.ApplicationSpec{
+					URL:            req.Url,
+					Branch:         req.Branch,
+					Path:           req.Path,
+					ConfigURL:      req.Url,
+					DeploymentType: wego.DeploymentTypeKustomize,
+					SourceType:     wego.SourceTypeGit,
+				}
 
-			expected := helpers.GenerateExpectedFS(req, root, clusterName, expectedApp, expectedKustomization, expectedSource)
+				expected := helpers.GenerateExpectedFS(req, root, clusterName, expectedApp, expectedKustomization, expectedSource)
 
-			diff, err := helpers.DiffFS(actual, expected)
-			if err != nil {
-				GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
-			}
-		})
+				diff, err := helpers.DiffFS(actual, expected)
+				if err != nil {
+					GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
+				}
+			})
+			It("adds an app with an external config repo", func() {
+				sourceRepoURL := fmt.Sprintf("https://github.com/%s/%s", githubOrg, sourceRepoName)
+				configRepoURL := fmt.Sprintf("https://github.com/%s/%s", githubOrg, configRepoName)
 
-		It("remove app with config repo specified", func() {
-			sourceRepoURL := fmt.Sprintf("https://github.com/%s/%s", org, sourceRepoName)
+				configRepo, configRef, err := helpers.CreateRepo(ctx, gp, configRepoURL)
+				Expect(err).NotTo(HaveOccurred())
 
-			repo, ref, err := helpers.CreatePopulatedSourceRepo(ctx, gp, sourceRepoURL)
-			Expect(err).NotTo(HaveOccurred())
+				defer func() { Expect(configRepo.Delete(ctx)).To(Succeed()) }()
 
-			defer func() { Expect(repo.Delete(ctx)).To(Succeed()) }()
+				sourceRepo, sourceRef, err := helpers.CreatePopulatedSourceRepo(ctx, gp, sourceRepoURL)
+				Expect(err).NotTo(HaveOccurred())
 
-			appName := "my-app"
+				defer func() { Expect(sourceRepo.Delete(ctx)).To(Succeed()) }()
 
-			req := &pb.AddApplicationRequest{
-				Name:      appName,
-				Namespace: namespace.Name,
-				Url:       ref.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
-				Branch:    "main",
-				Path:      "k8s/overlays/development",
-				AutoMerge: true,
-			}
+				req := &pb.AddApplicationRequest{
+					Name:      "my-app",
+					Namespace: namespace.Name,
+					Url:       sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					Branch:    "main",
+					Path:      "k8s/overlays/development",
+					ConfigUrl: configRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+				}
 
-			res, err := client.AddApplication(ctx, req)
-			Expect(err).NotTo(HaveOccurred())
+				res, err := client.AddApplication(ctx, req)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(res.Success).To(BeTrue(), "request should have been successful")
 
-			Expect(res.Success).To(BeTrue(), "request should have been successful")
+				_, err = configRepo.DeployKeys().Get(ctx, gitproviders.DeployKeyName)
+				Expect(err).NotTo(HaveOccurred(), "deploy key should have been found")
 
-			_, err = repo.DeployKeys().Get(ctx, gitproviders.DeployKeyName)
-			Expect(err).NotTo(HaveOccurred(), "deploy key should have been found")
+				prs, err := configRepo.PullRequests().List(ctx)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(prs).To(HaveLen(1))
 
-			prs, err := repo.PullRequests().List(ctx)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(prs).To(HaveLen(0))
+				root := helpers.ExternalConfigRoot
+				fs := helpers.MakeWeGOFS(root, req.Name, clusterName)
 
-			root := helpers.InAppRoot
+				fetcher, err := helpers.NewFileFetcher(gitproviders.GitProviderGitHub, githubToken)
+				Expect(err).NotTo(HaveOccurred())
 
-			fs := helpers.MakeWeGOFS(root, req.Name, clusterName)
+				actual, err := fetcher.GetFilesForPullRequest(ctx, 1, githubOrg, configRepoName, fs)
+				Expect(err).NotTo(HaveOccurred())
 
-			commits, _, err := gh.Repositories.ListCommits(ctx, org, sourceRepoName, &github.CommitsListOptions{SHA: "main"})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(commits).To(HaveLen(3))
+				normalizedUrl, err := gitproviders.NewRepoURL(req.Url)
+				Expect(err).NotTo(HaveOccurred())
 
-			appAddCommit := commits[0]
+				expectedApp := wego.ApplicationSpec{
+					URL:            normalizedUrl.String(),
+					Branch:         req.Branch,
+					Path:           req.Path,
+					ConfigURL:      req.ConfigUrl,
+					DeploymentType: wego.DeploymentTypeKustomize,
+					SourceType:     wego.SourceTypeGit,
+				}
 
-			c, _, err := gh.Repositories.GetCommit(ctx, org, sourceRepoName, *appAddCommit.SHA)
-			Expect(err).NotTo(HaveOccurred())
+				expectedKustomization := kustomizev1.KustomizationSpec{
+					Path:     "./" + req.Path,
+					Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
+					Prune:    true,
+					SourceRef: kustomizev1.CrossNamespaceSourceReference{
+						Name: req.Name,
+						Kind: sourcev1.GitRepositoryKind,
+					},
+					Force: false,
+				}
 
-			actual, err := helpers.GetFileContents(ctx, gh, org, sourceRepoName, fs, c.Files)
-			Expect(err).NotTo(HaveOccurred())
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				Expect(err).NotTo(HaveOccurred())
 
-			expectedApp := wego.ApplicationSpec{
-				URL:            req.Url,
-				Branch:         req.Branch,
-				Path:           req.Path,
-				ConfigURL:      ref.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
-				DeploymentType: wego.DeploymentTypeKustomize,
-				SourceType:     wego.SourceTypeGit,
-			}
-			app := &wego.Application{
-				ObjectMeta: metav1.ObjectMeta{
+				expectedSource := sourcev1.GitRepositorySpec{
+					URL: req.Url,
+					SecretRef: &meta.LocalObjectReference{
+						// Might be a bug? Should be configRepoURL?
+						Name: automation.CreateRepoSecretName(repoURL).String(),
+					},
+					Interval: metav1.Duration{Duration: time.Duration(30 * time.Second)},
+					Reference: &sourcev1.GitRepositoryRef{
+						Branch: req.Branch,
+					},
+					Ignore: helpers.GetIgnoreSpec(),
+				}
+
+				expected := helpers.GenerateExpectedFS(req, root, clusterName, expectedApp, expectedKustomization, expectedSource)
+
+				diff, err := helpers.DiffFS(actual, expected)
+				if err != nil {
+					GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
+				}
+			})
+			It("remove app with config repo specified", func() {
+				sourceRepoURL := fmt.Sprintf("https://github.com/%s/%s", githubOrg, sourceRepoName)
+
+				repo, ref, err := helpers.CreatePopulatedSourceRepo(ctx, gp, sourceRepoURL)
+				Expect(err).NotTo(HaveOccurred())
+
+				defer func() { Expect(repo.Delete(ctx)).To(Succeed()) }()
+
+				appName := "my-app"
+
+				req := &pb.AddApplicationRequest{
 					Name:      appName,
 					Namespace: namespace.Name,
-				},
-				Spec: expectedApp,
-			}
+					Url:       ref.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					Branch:    "main",
+					Path:      "k8s/overlays/development",
+					AutoMerge: true,
+				}
 
-			Expect(env.Client.Create(ctx, app)).Should(Succeed())
+				res, err := client.AddApplication(ctx, req)
+				Expect(err).NotTo(HaveOccurred())
 
-			expectedKustomization := kustomizev1.KustomizationSpec{
-				// Flux adds a prepending `./` to path arguments that doesn't already have it.
-				// https://github.com/fluxcd/flux2/blob/ca496d393d993ac5119ed84f83e010b8fe918c53/cmd/flux/create_kustomization.go#L115
-				Path: "./" + req.Path,
-				// Flux kustomization default; I couldn't find an export default from the package.
-				Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
-				Prune:    true,
-				SourceRef: kustomizev1.CrossNamespaceSourceReference{
-					Name: req.Name,
-					Kind: sourcev1.GitRepositoryKind,
-				},
-				Force: false,
-			}
+				Expect(res.Success).To(BeTrue(), "request should have been successful")
 
-			repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
-			Expect(err).NotTo(HaveOccurred())
+				_, err = repo.DeployKeys().Get(ctx, gitproviders.DeployKeyName)
+				Expect(err).NotTo(HaveOccurred(), "deploy key should have been found")
 
-			expectedSrc := sourcev1.GitRepositorySpec{
-				URL: req.Url,
-				SecretRef: &meta.LocalObjectReference{
-					Name: automation.CreateRepoSecretName(repoURL).String(),
-				},
-				Interval: metav1.Duration{Duration: 30 * time.Second},
-				Reference: &sourcev1.GitRepositoryRef{
-					Branch: req.Branch,
-				},
-				Ignore: helpers.GetIgnoreSpec(),
-			}
+				prs, err := repo.PullRequests().List(ctx)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(prs).To(HaveLen(0))
 
-			expected := helpers.GenerateExpectedFS(req, root, clusterName, expectedApp, expectedKustomization, expectedSrc)
+				root := helpers.InAppRoot
 
-			diff, err := helpers.DiffFS(actual, expected)
-			if err != nil {
-				GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
-			}
+				fs := helpers.MakeWeGOFS(root, req.Name, clusterName)
 
-			removeRequest := &pb.RemoveApplicationRequest{
-				Name:      appName,
-				Namespace: namespace.Name,
-				AutoMerge: false,
-			}
+				commits, _, err := gh.Repositories.ListCommits(ctx, githubOrg, sourceRepoName, &ghAPI.CommitsListOptions{SHA: "main"})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(commits).To(HaveLen(3))
 
-			removeResponse, err := client.RemoveApplication(ctx, removeRequest)
-			Expect(err).NotTo(HaveOccurred())
+				appAddCommit := commits[0]
 
-			Expect(removeResponse.Success).To(BeTrue())
+				c, _, err := gh.Repositories.GetCommit(ctx, githubOrg, sourceRepoName, *appAddCommit.SHA)
+				Expect(err).NotTo(HaveOccurred())
 
-			prs, err = repo.PullRequests().List(ctx)
-			Expect(err).NotTo(HaveOccurred())
+				actual, err := helpers.GetFileContents(ctx, gh, githubOrg, sourceRepoName, fs, c.Files)
+				Expect(err).NotTo(HaveOccurred())
 
-			Expect(prs).To(HaveLen(1))
-
-			fs = helpers.MakeWeGOFS(root, req.Name, clusterName)
-
-			actual, err = helpers.GetFilesForPullRequest(ctx, gh, org, sourceRepoName, fs)
-			Expect(err).NotTo(HaveOccurred())
-
-			expected = map[string]interface{}{
-				filepath.Join(root, "clusters", clusterName, "user", "kustomization.yaml"): &types.Kustomization{
-					TypeMeta: types.TypeMeta{
-						Kind:       types.KustomizationKind,
-						APIVersion: types.KustomizationVersion,
-					},
-					MetaData: &types.ObjectMeta{
+				expectedApp := wego.ApplicationSpec{
+					URL:            req.Url,
+					Branch:         req.Branch,
+					Path:           req.Path,
+					ConfigURL:      ref.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					DeploymentType: wego.DeploymentTypeKustomize,
+					SourceType:     wego.SourceTypeGit,
+				}
+				app := &wego.Application{
+					ObjectMeta: metav1.ObjectMeta{
 						Name:      appName,
 						Namespace: namespace.Name,
 					},
-				},
-			}
+					Spec: expectedApp,
+				}
 
-			diff, err = helpers.DiffFS(actual, expected)
-			if err != nil {
-				GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
-			}
+				Expect(env.Client.Create(ctx, app)).Should(Succeed())
 
-		})
-	})
-	Context("via auto merge", func() {
-		It("add/remove with no config repo specified", func() {
-			sourceRepoURL := fmt.Sprintf("https://github.com/%s/%s", org, sourceRepoName)
+				expectedKustomization := kustomizev1.KustomizationSpec{
+					// Flux adds a prepending `./` to path arguments that doesn't already have it.
+					// https://github.com/fluxcd/flux2/blob/ca496d393d993ac5119ed84f83e010b8fe918c53/cmd/flux/create_kustomization.go#L115
+					Path: "./" + req.Path,
+					// Flux kustomization default; I couldn't find an export default from the package.
+					Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
+					Prune:    true,
+					SourceRef: kustomizev1.CrossNamespaceSourceReference{
+						Name: req.Name,
+						Kind: sourcev1.GitRepositoryKind,
+					},
+					Force: false,
+				}
 
-			repo, ref, err := helpers.CreatePopulatedSourceRepo(ctx, gp, sourceRepoURL)
-			Expect(err).NotTo(HaveOccurred())
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				Expect(err).NotTo(HaveOccurred())
 
-			defer func() { Expect(repo.Delete(ctx)).To(Succeed()) }()
+				expectedSrc := sourcev1.GitRepositorySpec{
+					URL: req.Url,
+					SecretRef: &meta.LocalObjectReference{
+						Name: automation.CreateRepoSecretName(repoURL).String(),
+					},
+					Interval: metav1.Duration{Duration: 30 * time.Second},
+					Reference: &sourcev1.GitRepositoryRef{
+						Branch: req.Branch,
+					},
+					Ignore: helpers.GetIgnoreSpec(),
+				}
 
-			appName := "my-app"
+				expected := helpers.GenerateExpectedFS(req, root, clusterName, expectedApp, expectedKustomization, expectedSrc)
 
-			req := &pb.AddApplicationRequest{
-				Name:      appName,
-				Namespace: namespace.Name,
-				Url:       ref.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
-				Branch:    "main",
-				Path:      "k8s/overlays/development",
-				AutoMerge: true,
-			}
+				diff, err := helpers.DiffFS(actual, expected)
+				if err != nil {
+					GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
+				}
 
-			res, err := client.AddApplication(ctx, req)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(res.Success).To(BeTrue(), "request should have been successful")
-
-			_, err = repo.DeployKeys().Get(ctx, gitproviders.DeployKeyName)
-			Expect(err).NotTo(HaveOccurred(), "deploy key should have been found")
-
-			prs, err := repo.PullRequests().List(ctx)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(prs).To(HaveLen(0))
-
-			root := helpers.InAppRoot
-
-			fs := helpers.MakeWeGOFS(root, req.Name, clusterName)
-
-			commits, _, err := gh.Repositories.ListCommits(ctx, org, sourceRepoName, &github.CommitsListOptions{SHA: "main"})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(commits).To(HaveLen(3))
-
-			appAddCommit := commits[0]
-
-			c, _, err := gh.Repositories.GetCommit(ctx, org, sourceRepoName, *appAddCommit.SHA)
-			Expect(err).NotTo(HaveOccurred())
-
-			actual, err := helpers.GetFileContents(ctx, gh, org, sourceRepoName, fs, c.Files)
-			Expect(err).NotTo(HaveOccurred())
-
-			expectedApp := wego.ApplicationSpec{
-				URL:            req.Url,
-				Branch:         req.Branch,
-				Path:           req.Path,
-				ConfigURL:      ref.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
-				DeploymentType: wego.DeploymentTypeKustomize,
-				SourceType:     wego.SourceTypeGit,
-			}
-			app := &wego.Application{
-				ObjectMeta: metav1.ObjectMeta{
+				removeRequest := &pb.RemoveApplicationRequest{
 					Name:      appName,
 					Namespace: namespace.Name,
-				},
-				Spec: expectedApp,
-			}
+					AutoMerge: false,
+				}
 
-			Expect(env.Client.Create(ctx, app)).Should(Succeed())
+				removeResponse, err := client.RemoveApplication(ctx, removeRequest)
+				Expect(err).NotTo(HaveOccurred())
 
-			expectedKustomization := kustomizev1.KustomizationSpec{
-				// Flux adds a prepending `./` to path arguments that doesn't already have it.
-				// https://github.com/fluxcd/flux2/blob/ca496d393d993ac5119ed84f83e010b8fe918c53/cmd/flux/create_kustomization.go#L115
-				Path: "./" + req.Path,
-				// Flux kustomization default; I couldn't find an export default from the package.
-				Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
-				Prune:    true,
-				SourceRef: kustomizev1.CrossNamespaceSourceReference{
-					Name: req.Name,
-					Kind: sourcev1.GitRepositoryKind,
-				},
-				Force: false,
-			}
+				Expect(removeResponse.Success).To(BeTrue())
 
-			repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
-			Expect(err).NotTo(HaveOccurred())
+				prs, err = repo.PullRequests().List(ctx)
+				Expect(err).NotTo(HaveOccurred())
 
-			expectedSrc := sourcev1.GitRepositorySpec{
-				URL: req.Url,
-				SecretRef: &meta.LocalObjectReference{
-					Name: automation.CreateRepoSecretName(repoURL).String(),
-				},
-				Interval: metav1.Duration{Duration: 30 * time.Second},
-				Reference: &sourcev1.GitRepositoryRef{
-					Branch: req.Branch,
-				},
-				Ignore: helpers.GetIgnoreSpec(),
-			}
+				Expect(prs).To(HaveLen(1))
 
-			expected := helpers.GenerateExpectedFS(req, root, clusterName, expectedApp, expectedKustomization, expectedSrc)
+				fs = helpers.MakeWeGOFS(root, req.Name, clusterName)
 
-			diff, err := helpers.DiffFS(actual, expected)
-			if err != nil {
-				GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
-			}
+				fetcher, err := helpers.NewFileFetcher(gitproviders.GitProviderGitHub, githubToken)
+				Expect(err).NotTo(HaveOccurred())
 
-			removeRequest := &pb.RemoveApplicationRequest{
-				Name:      appName,
-				Namespace: namespace.Name,
-				AutoMerge: true,
-			}
+				actual, err = fetcher.GetFilesForPullRequest(ctx, 1, githubOrg, sourceRepoName, fs)
+				Expect(err).NotTo(HaveOccurred())
 
-			removeResponse, err := client.RemoveApplication(ctx, removeRequest)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(removeResponse.Success).To(BeTrue())
-
-			commits, _, err = gh.Repositories.ListCommits(ctx, org, sourceRepoName, &github.CommitsListOptions{SHA: "main"})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(commits).To(HaveLen(4))
-
-			appAddCommit = commits[0]
-
-			c, _, err = gh.Repositories.GetCommit(ctx, org, sourceRepoName, *appAddCommit.SHA)
-			Expect(err).NotTo(HaveOccurred())
-
-			fs = helpers.MakeWeGOFS(root, req.Name, clusterName)
-
-			actual, err = helpers.GetFileContents(ctx, gh, org, sourceRepoName, fs, c.Files)
-			Expect(err).NotTo(HaveOccurred())
-
-			expected = map[string]interface{}{
-				filepath.Join(root, "clusters", clusterName, "user", "kustomization.yaml"): &types.Kustomization{
-					TypeMeta: types.TypeMeta{
-						Kind:       types.KustomizationKind,
-						APIVersion: types.KustomizationVersion,
+				expected = map[string]interface{}{
+					filepath.Join(root, "clusters", clusterName, "user", "kustomization.yaml"): &types.Kustomization{
+						TypeMeta: types.TypeMeta{
+							Kind:       types.KustomizationKind,
+							APIVersion: types.KustomizationVersion,
+						},
+						MetaData: &types.ObjectMeta{
+							Name:      appName,
+							Namespace: namespace.Name,
+						},
 					},
-					MetaData: &types.ObjectMeta{
+				}
+
+				diff, err = helpers.DiffFS(actual, expected)
+				if err != nil {
+					GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
+				}
+
+			})
+		})
+		Context("via auto merge", func() {
+			It("add/remove with no config repo specified", func() {
+				sourceRepoURL := fmt.Sprintf("https://github.com/%s/%s", githubOrg, sourceRepoName)
+
+				repo, ref, err := helpers.CreatePopulatedSourceRepo(ctx, gp, sourceRepoURL)
+				Expect(err).NotTo(HaveOccurred())
+
+				defer func() { Expect(repo.Delete(ctx)).To(Succeed()) }()
+
+				appName := "my-app"
+
+				req := &pb.AddApplicationRequest{
+					Name:      appName,
+					Namespace: namespace.Name,
+					Url:       ref.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					Branch:    "main",
+					Path:      "k8s/overlays/development",
+					AutoMerge: true,
+				}
+
+				res, err := client.AddApplication(ctx, req)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(res.Success).To(BeTrue(), "request should have been successful")
+
+				_, err = repo.DeployKeys().Get(ctx, gitproviders.DeployKeyName)
+				Expect(err).NotTo(HaveOccurred(), "deploy key should have been found")
+
+				prs, err := repo.PullRequests().List(ctx)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(prs).To(HaveLen(0))
+
+				root := helpers.InAppRoot
+
+				fs := helpers.MakeWeGOFS(root, req.Name, clusterName)
+
+				commits, _, err := gh.Repositories.ListCommits(ctx, githubOrg, sourceRepoName, &ghAPI.CommitsListOptions{SHA: "main"})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(commits).To(HaveLen(3))
+
+				appAddCommit := commits[0]
+
+				c, _, err := gh.Repositories.GetCommit(ctx, githubOrg, sourceRepoName, *appAddCommit.SHA)
+				Expect(err).NotTo(HaveOccurred())
+
+				actual, err := helpers.GetFileContents(ctx, gh, githubOrg, sourceRepoName, fs, c.Files)
+				Expect(err).NotTo(HaveOccurred())
+
+				expectedApp := wego.ApplicationSpec{
+					URL:            req.Url,
+					Branch:         req.Branch,
+					Path:           req.Path,
+					ConfigURL:      ref.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					DeploymentType: wego.DeploymentTypeKustomize,
+					SourceType:     wego.SourceTypeGit,
+				}
+				app := &wego.Application{
+					ObjectMeta: metav1.ObjectMeta{
 						Name:      appName,
 						Namespace: namespace.Name,
 					},
-				},
-			}
+					Spec: expectedApp,
+				}
 
-			diff, err = helpers.DiffFS(actual, expected)
-			if err != nil {
-				GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
-			}
+				Expect(env.Client.Create(ctx, app)).Should(Succeed())
 
-		})
+				expectedKustomization := kustomizev1.KustomizationSpec{
+					// Flux adds a prepending `./` to path arguments that doesn't already have it.
+					// https://github.com/fluxcd/flux2/blob/ca496d393d993ac5119ed84f83e010b8fe918c53/cmd/flux/create_kustomization.go#L115
+					Path: "./" + req.Path,
+					// Flux kustomization default; I couldn't find an export default from the package.
+					Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
+					Prune:    true,
+					SourceRef: kustomizev1.CrossNamespaceSourceReference{
+						Name: req.Name,
+						Kind: sourcev1.GitRepositoryKind,
+					},
+					Force: false,
+				}
 
-		It("with an external config repo", func() {
-			sourceRepoURL := fmt.Sprintf("https://github.com/%s/%s", org, sourceRepoName)
-			configRepoURL := fmt.Sprintf("https://github.com/%s/%s", org, configRepoName)
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				Expect(err).NotTo(HaveOccurred())
 
-			configRepo, configRef, err := helpers.CreateRepo(ctx, gp, configRepoURL)
-			Expect(err).NotTo(HaveOccurred())
+				expectedSrc := sourcev1.GitRepositorySpec{
+					URL: req.Url,
+					SecretRef: &meta.LocalObjectReference{
+						Name: automation.CreateRepoSecretName(repoURL).String(),
+					},
+					Interval: metav1.Duration{Duration: 30 * time.Second},
+					Reference: &sourcev1.GitRepositoryRef{
+						Branch: req.Branch,
+					},
+					Ignore: helpers.GetIgnoreSpec(),
+				}
 
-			defer func() { Expect(configRepo.Delete(ctx)).To(Succeed()) }()
+				expected := helpers.GenerateExpectedFS(req, root, clusterName, expectedApp, expectedKustomization, expectedSrc)
 
-			sourceRepo, sourceRef, err := helpers.CreatePopulatedSourceRepo(ctx, gp, sourceRepoURL)
-			Expect(err).NotTo(HaveOccurred())
+				diff, err := helpers.DiffFS(actual, expected)
+				if err != nil {
+					GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
+				}
 
-			defer func() { Expect(sourceRepo.Delete(ctx)).To(Succeed()) }()
+				removeRequest := &pb.RemoveApplicationRequest{
+					Name:      appName,
+					Namespace: namespace.Name,
+					AutoMerge: true,
+				}
 
-			req := &pb.AddApplicationRequest{
-				Name:      "my-app",
-				Namespace: namespace.Name,
-				Url:       sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
-				Branch:    "main",
-				Path:      "k8s/overlays/development",
-				ConfigUrl: configRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
-				AutoMerge: true,
-			}
+				removeResponse, err := client.RemoveApplication(ctx, removeRequest)
+				Expect(err).NotTo(HaveOccurred())
 
-			res, err := client.AddApplication(ctx, req)
-			Expect(err).NotTo(HaveOccurred())
+				Expect(removeResponse.Success).To(BeTrue())
 
-			Expect(res.Success).To(BeTrue(), "request should have been successful")
+				commits, _, err = gh.Repositories.ListCommits(ctx, githubOrg, sourceRepoName, &ghAPI.CommitsListOptions{SHA: "main"})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(commits).To(HaveLen(4))
 
-			_, err = sourceRepo.DeployKeys().Get(ctx, gitproviders.DeployKeyName)
-			Expect(err).NotTo(HaveOccurred(), "deploy key should have been found")
+				appAddCommit = commits[0]
 
-			prs, err := configRepo.PullRequests().List(ctx)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(prs).To(HaveLen(0))
+				c, _, err = gh.Repositories.GetCommit(ctx, githubOrg, sourceRepoName, *appAddCommit.SHA)
+				Expect(err).NotTo(HaveOccurred())
 
-			root := helpers.ExternalConfigRoot
+				fs = helpers.MakeWeGOFS(root, req.Name, clusterName)
 
-			fs := helpers.MakeWeGOFS(root, req.Name, clusterName)
+				actual, err = helpers.GetFileContents(ctx, gh, githubOrg, sourceRepoName, fs, c.Files)
+				Expect(err).NotTo(HaveOccurred())
 
-			commits, _, err := gh.Repositories.ListCommits(ctx, org, configRepoName, &github.CommitsListOptions{SHA: "main"})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(commits).To(HaveLen(2))
+				expected = map[string]interface{}{
+					filepath.Join(root, "clusters", clusterName, "user", "kustomization.yaml"): &types.Kustomization{
+						TypeMeta: types.TypeMeta{
+							Kind:       types.KustomizationKind,
+							APIVersion: types.KustomizationVersion,
+						},
+						MetaData: &types.ObjectMeta{
+							Name:      appName,
+							Namespace: namespace.Name,
+						},
+					},
+				}
 
-			appAddCommit := commits[0]
+				diff, err = helpers.DiffFS(actual, expected)
+				if err != nil {
+					GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
+				}
 
-			c, _, err := gh.Repositories.GetCommit(ctx, org, configRepoName, *appAddCommit.SHA)
-			Expect(err).NotTo(HaveOccurred())
+			})
 
-			actual, err := helpers.GetFileContents(ctx, gh, org, configRepoName, fs, c.Files)
-			Expect(err).NotTo(HaveOccurred())
+			It("with an external config repo", func() {
+				sourceRepoURL := fmt.Sprintf("https://github.com/%s/%s", githubOrg, sourceRepoName)
+				configRepoURL := fmt.Sprintf("https://github.com/%s/%s", githubOrg, configRepoName)
 
-			expectedApp := wego.ApplicationSpec{
-				URL:            req.Url,
-				Branch:         req.Branch,
-				Path:           req.Path,
-				ConfigURL:      req.ConfigUrl,
-				DeploymentType: wego.DeploymentTypeKustomize,
-				SourceType:     wego.SourceTypeGit,
-			}
+				configRepo, configRef, err := helpers.CreateRepo(ctx, gp, configRepoURL)
+				Expect(err).NotTo(HaveOccurred())
 
-			expectedKustomization := kustomizev1.KustomizationSpec{
-				// Flux adds a prepending `./` to path arguments that doesn't already have it.
-				// https://github.com/fluxcd/flux2/blob/ca496d393d993ac5119ed84f83e010b8fe918c53/cmd/flux/create_kustomization.go#L115
-				Path: "./" + req.Path,
-				// Flux kustomization default; I couldn't find an export default from the package.
-				Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
-				Prune:    true,
-				SourceRef: kustomizev1.CrossNamespaceSourceReference{
-					Name: req.Name,
-					Kind: sourcev1.GitRepositoryKind,
-				},
-				Force: false,
-			}
+				defer func() { Expect(configRepo.Delete(ctx)).To(Succeed()) }()
 
-			repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
-			Expect(err).NotTo(HaveOccurred())
+				sourceRepo, sourceRef, err := helpers.CreatePopulatedSourceRepo(ctx, gp, sourceRepoURL)
+				Expect(err).NotTo(HaveOccurred())
 
-			expectedSrc := sourcev1.GitRepositorySpec{
-				URL: req.Url,
-				SecretRef: &meta.LocalObjectReference{
-					Name: automation.CreateRepoSecretName(repoURL).String(),
-				},
-				Interval: metav1.Duration{Duration: 30 * time.Second},
-				Reference: &sourcev1.GitRepositoryRef{
-					Branch: req.Branch,
-				},
-				Ignore: helpers.GetIgnoreSpec(),
-			}
+				defer func() { Expect(sourceRepo.Delete(ctx)).To(Succeed()) }()
 
-			expected := helpers.GenerateExpectedFS(req, root, clusterName, expectedApp, expectedKustomization, expectedSrc)
+				req := &pb.AddApplicationRequest{
+					Name:      "my-app",
+					Namespace: namespace.Name,
+					Url:       sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					Branch:    "main",
+					Path:      "k8s/overlays/development",
+					ConfigUrl: configRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					AutoMerge: true,
+				}
 
-			diff, err := helpers.DiffFS(actual, expected)
-			if err != nil {
-				GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
-			}
+				res, err := client.AddApplication(ctx, req)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(res.Success).To(BeTrue(), "request should have been successful")
+
+				_, err = sourceRepo.DeployKeys().Get(ctx, gitproviders.DeployKeyName)
+				Expect(err).NotTo(HaveOccurred(), "deploy key should have been found")
+
+				prs, err := configRepo.PullRequests().List(ctx)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(prs).To(HaveLen(0))
+
+				root := helpers.ExternalConfigRoot
+
+				fs := helpers.MakeWeGOFS(root, req.Name, clusterName)
+
+				commits, _, err := gh.Repositories.ListCommits(ctx, githubOrg, configRepoName, &ghAPI.CommitsListOptions{SHA: "main"})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(commits).To(HaveLen(2))
+
+				appAddCommit := commits[0]
+
+				c, _, err := gh.Repositories.GetCommit(ctx, githubOrg, configRepoName, *appAddCommit.SHA)
+				Expect(err).NotTo(HaveOccurred())
+
+				actual, err := helpers.GetFileContents(ctx, gh, githubOrg, configRepoName, fs, c.Files)
+				Expect(err).NotTo(HaveOccurred())
+
+				expectedApp := wego.ApplicationSpec{
+					URL:            req.Url,
+					Branch:         req.Branch,
+					Path:           req.Path,
+					ConfigURL:      req.ConfigUrl,
+					DeploymentType: wego.DeploymentTypeKustomize,
+					SourceType:     wego.SourceTypeGit,
+				}
+
+				expectedKustomization := kustomizev1.KustomizationSpec{
+					// Flux adds a prepending `./` to path arguments that doesn't already have it.
+					// https://github.com/fluxcd/flux2/blob/ca496d393d993ac5119ed84f83e010b8fe918c53/cmd/flux/create_kustomization.go#L115
+					Path: "./" + req.Path,
+					// Flux kustomization default; I couldn't find an export default from the package.
+					Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
+					Prune:    true,
+					SourceRef: kustomizev1.CrossNamespaceSourceReference{
+						Name: req.Name,
+						Kind: sourcev1.GitRepositoryKind,
+					},
+					Force: false,
+				}
+
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				Expect(err).NotTo(HaveOccurred())
+
+				expectedSrc := sourcev1.GitRepositorySpec{
+					URL: req.Url,
+					SecretRef: &meta.LocalObjectReference{
+						Name: automation.CreateRepoSecretName(repoURL).String(),
+					},
+					Interval: metav1.Duration{Duration: 30 * time.Second},
+					Reference: &sourcev1.GitRepositoryRef{
+						Branch: req.Branch,
+					},
+					Ignore: helpers.GetIgnoreSpec(),
+				}
+
+				expected := helpers.GenerateExpectedFS(req, root, clusterName, expectedApp, expectedKustomization, expectedSrc)
+
+				diff, err := helpers.DiffFS(actual, expected)
+				if err != nil {
+					GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
+				}
+			})
 		})
 	})
+
+	Context("GitLab", func() {
+		var gitlabGroup string
+		var gitlabToken string
+		var gitlabProviderClient gitprovider.Client
+		var gl *glAPI.Client
+		BeforeEach(func() {
+			gitlabGroup = os.Getenv("GITLAB_ORG")
+			gitlabToken = os.Getenv("GITLAB_TOKEN")
+			ctx = middleware.ContextWithGRPCAuth(context.Background(), gitlabToken)
+			gitlabProviderClient, err = gitlab.NewClient(
+				gitlabToken,
+				"oauth2",
+				gitprovider.WithDestructiveAPICalls(true),
+			)
+
+			gl, err = glAPI.NewClient(gitlabToken)
+			Expect(err).NotTo(HaveOccurred())
+		})
+		Context("via merge request", func() {
+			It("adds with no config repo specified", func() {
+				sourceRepoURL := fmt.Sprintf("https://gitlab.com/%s/%s", gitlabGroup, sourceRepoName)
+
+				repo, ref, err := helpers.CreatePopulatedSourceRepo(ctx, gitlabProviderClient, sourceRepoURL)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(err).NotTo(HaveOccurred())
+
+				defer func() { Expect(repo.Delete(ctx)).To(Succeed()) }()
+
+				req := &pb.AddApplicationRequest{
+					Name:      "my-app",
+					Namespace: namespace.Name,
+					Url:       ref.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					Branch:    "main",
+					Path:      "k8s/overlays/development",
+				}
+
+				res, err := client.AddApplication(ctx, req)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(res.Success).To(BeTrue())
+
+				_, err = repo.DeployKeys().Get(ctx, gitproviders.DeployKeyName)
+				Expect(err).NotTo(HaveOccurred(), "deploy key should have been found")
+
+				prs, err := repo.PullRequests().List(ctx)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(prs).To(HaveLen(1))
+
+				root := helpers.InAppRoot
+
+				fs := helpers.MakeWeGOFS(root, req.Name, clusterName)
+
+				gl, err := helpers.NewFileFetcher(gitproviders.GitProviderGitLab, gitlabToken)
+				Expect(err).NotTo(HaveOccurred())
+
+				actual, err := gl.GetFilesForPullRequest(ctx, 1, gitlabGroup, sourceRepoName, fs)
+				Expect(err).NotTo(HaveOccurred())
+
+				expectedKustomization := kustomizev1.KustomizationSpec{
+					// Flux adds a prepending `./` to path arguments that doesn't already have it.
+					// https://github.com/fluxcd/flux2/blob/ca496d393d993ac5119ed84f83e010b8fe918c53/cmd/flux/create_kustomization.go#L115
+					Path: "./" + req.Path,
+					// Flux kustomization default; I couldn't find an export default from the package.
+					Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
+					Prune:    true,
+					SourceRef: kustomizev1.CrossNamespaceSourceReference{
+						Name: req.Name,
+						Kind: sourcev1.GitRepositoryKind,
+					},
+					Force: false,
+				}
+
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				Expect(err).NotTo(HaveOccurred())
+
+				expectedSource := sourcev1.GitRepositorySpec{
+					URL: req.Url,
+					SecretRef: &meta.LocalObjectReference{
+						Name: automation.CreateRepoSecretName(repoURL).String(),
+					},
+					Interval: metav1.Duration{Duration: time.Duration(30 * time.Second)},
+					Reference: &sourcev1.GitRepositoryRef{
+						Branch: req.Branch,
+					},
+					Ignore: helpers.GetIgnoreSpec(),
+				}
+
+				expectedApp := wego.ApplicationSpec{
+					URL:            req.Url,
+					Branch:         req.Branch,
+					Path:           req.Path,
+					ConfigURL:      req.Url,
+					DeploymentType: wego.DeploymentTypeKustomize,
+					SourceType:     wego.SourceTypeGit,
+				}
+
+				expected := helpers.GenerateExpectedFS(req, root, clusterName, expectedApp, expectedKustomization, expectedSource)
+
+				diff, err := helpers.DiffFS(actual, expected)
+				if err != nil {
+					GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
+				}
+			})
+			It("adds an app with an external config repo", func() {
+
+				gp, err := gitlab.NewClient(
+					gitlabToken,
+					"oauth2",
+					gitprovider.WithDestructiveAPICalls(true),
+				)
+				Expect(err).NotTo(HaveOccurred())
+
+				sourceRepoURL := fmt.Sprintf("https://gitlab.com/%s/%s", gitlabGroup, sourceRepoName)
+				configRepoURL := fmt.Sprintf("https://gitlab.com/%s/%s", gitlabGroup, configRepoName)
+
+				configRepo, configRef, err := helpers.CreateRepo(ctx, gp, configRepoURL)
+				Expect(err).NotTo(HaveOccurred())
+
+				defer func() { Expect(configRepo.Delete(ctx)).To(Succeed()) }()
+
+				sourceRepo, sourceRef, err := helpers.CreatePopulatedSourceRepo(ctx, gp, sourceRepoURL)
+				Expect(err).NotTo(HaveOccurred())
+
+				defer func() { Expect(sourceRepo.Delete(ctx)).To(Succeed()) }()
+
+				req := &pb.AddApplicationRequest{
+					Name:      "my-app",
+					Namespace: namespace.Name,
+					Url:       sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					Branch:    "main",
+					Path:      "k8s/overlays/development",
+					ConfigUrl: configRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+				}
+
+				res, err := client.AddApplication(ctx, req)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(res.Success).To(BeTrue(), "request should have been successful")
+
+				_, err = configRepo.DeployKeys().Get(ctx, gitproviders.DeployKeyName)
+				Expect(err).NotTo(HaveOccurred(), "deploy key should have been found")
+
+				prs, err := configRepo.PullRequests().List(ctx)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(prs).To(HaveLen(1))
+
+				root := helpers.ExternalConfigRoot
+				fs := helpers.MakeWeGOFS(root, req.Name, clusterName)
+
+				fetcher, err := helpers.NewFileFetcher(gitproviders.GitProviderGitLab, gitlabToken)
+				Expect(err).NotTo(HaveOccurred())
+
+				actual, err := fetcher.GetFilesForPullRequest(ctx, 1, gitlabGroup, configRepoName, fs)
+				Expect(err).NotTo(HaveOccurred())
+
+				normalizedUrl, err := gitproviders.NewRepoURL(req.Url)
+				Expect(err).NotTo(HaveOccurred())
+
+				expectedApp := wego.ApplicationSpec{
+					URL:            normalizedUrl.String(),
+					Branch:         req.Branch,
+					Path:           req.Path,
+					ConfigURL:      req.ConfigUrl,
+					DeploymentType: wego.DeploymentTypeKustomize,
+					SourceType:     wego.SourceTypeGit,
+				}
+
+				expectedKustomization := kustomizev1.KustomizationSpec{
+					Path:     "./" + req.Path,
+					Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
+					Prune:    true,
+					SourceRef: kustomizev1.CrossNamespaceSourceReference{
+						Name: req.Name,
+						Kind: sourcev1.GitRepositoryKind,
+					},
+					Force: false,
+				}
+
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				Expect(err).NotTo(HaveOccurred())
+
+				expectedSource := sourcev1.GitRepositorySpec{
+					URL: req.Url,
+					SecretRef: &meta.LocalObjectReference{
+						// Might be a bug? Should be configRepoURL?
+						Name: automation.CreateRepoSecretName(repoURL).String(),
+					},
+					Interval: metav1.Duration{Duration: time.Duration(30 * time.Second)},
+					Reference: &sourcev1.GitRepositoryRef{
+						Branch: req.Branch,
+					},
+					Ignore: helpers.GetIgnoreSpec(),
+				}
+
+				expected := helpers.GenerateExpectedFS(req, root, clusterName, expectedApp, expectedKustomization, expectedSource)
+
+				diff, err := helpers.DiffFS(actual, expected)
+				if err != nil {
+					GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
+				}
+			})
+			It("remove app with config repo specified", func() {
+				sourceRepoURL := fmt.Sprintf("https://gitlab.com/%s/%s", gitlabGroup, sourceRepoName)
+
+				repo, ref, err := helpers.CreatePopulatedSourceRepo(ctx, gitlabProviderClient, sourceRepoURL)
+				Expect(err).NotTo(HaveOccurred())
+
+				defer func() { Expect(repo.Delete(ctx)).To(Succeed()) }()
+
+				appName := "my-app"
+
+				req := &pb.AddApplicationRequest{
+					Name:      appName,
+					Namespace: namespace.Name,
+					Url:       ref.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					Branch:    "main",
+					Path:      "k8s/overlays/development",
+					AutoMerge: true,
+				}
+
+				res, err := client.AddApplication(ctx, req)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(res.Success).To(BeTrue(), "request should have been successful")
+
+				_, err = repo.DeployKeys().Get(ctx, gitproviders.DeployKeyName)
+				Expect(err).NotTo(HaveOccurred(), "deploy key should have been found")
+
+				prs, err := repo.PullRequests().List(ctx)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(prs).To(HaveLen(0))
+
+				root := helpers.InAppRoot
+
+				fs := helpers.MakeWeGOFS(root, req.Name, clusterName)
+
+				fullRepoPath := fmt.Sprintf("%s/%s", ref.OrganizationRef.Organization, sourceRepoName)
+
+				branch := "main"
+				commits, _, err := gl.Commits.ListCommits(fullRepoPath, &glAPI.ListCommitsOptions{
+					RefName: &branch,
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(commits).To(HaveLen(3))
+
+				appAddCommit := commits[0]
+
+				diffs, _, err := gl.Commits.GetCommitDiff(fullRepoPath, appAddCommit.ID, &glAPI.GetCommitDiffOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
+
+				actual, err := helpers.GetGitlabFilesContents(gl, fullRepoPath, fs, appAddCommit.ID, diffs)
+				Expect(err).NotTo(HaveOccurred())
+
+				expectedApp := wego.ApplicationSpec{
+					URL:            req.Url,
+					Branch:         req.Branch,
+					Path:           req.Path,
+					ConfigURL:      ref.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					DeploymentType: wego.DeploymentTypeKustomize,
+					SourceType:     wego.SourceTypeGit,
+				}
+				app := &wego.Application{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      appName,
+						Namespace: namespace.Name,
+					},
+					Spec: expectedApp,
+				}
+
+				Expect(env.Client.Create(ctx, app)).Should(Succeed())
+				//
+				expectedKustomization := kustomizev1.KustomizationSpec{
+					// Flux adds a prepending `./` to path arguments that doesn't already have it.
+					// https://github.com/fluxcd/flux2/blob/ca496d393d993ac5119ed84f83e010b8fe918c53/cmd/flux/create_kustomization.go#L115
+					Path: "./" + req.Path,
+					// Flux kustomization default; I couldn't find an export default from the package.
+					Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
+					Prune:    true,
+					SourceRef: kustomizev1.CrossNamespaceSourceReference{
+						Name: req.Name,
+						Kind: sourcev1.GitRepositoryKind,
+					},
+					Force: false,
+				}
+
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				Expect(err).NotTo(HaveOccurred())
+
+				expectedSrc := sourcev1.GitRepositorySpec{
+					URL: req.Url,
+					SecretRef: &meta.LocalObjectReference{
+						Name: automation.CreateRepoSecretName(repoURL).String(),
+					},
+					Interval: metav1.Duration{Duration: 30 * time.Second},
+					Reference: &sourcev1.GitRepositoryRef{
+						Branch: req.Branch,
+					},
+					Ignore: helpers.GetIgnoreSpec(),
+				}
+
+				expected := helpers.GenerateExpectedFS(req, root, clusterName, expectedApp, expectedKustomization, expectedSrc)
+
+				diff, err := helpers.DiffFS(actual, expected)
+				if err != nil {
+					GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
+				}
+
+				removeRequest := &pb.RemoveApplicationRequest{
+					Name:      appName,
+					Namespace: namespace.Name,
+					AutoMerge: false,
+				}
+
+				removeResponse, err := client.RemoveApplication(ctx, removeRequest)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(removeResponse.Success).To(BeTrue())
+
+				prs, err = repo.PullRequests().List(ctx)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(prs).To(HaveLen(1))
+
+				fs = helpers.MakeWeGOFS(root, req.Name, clusterName)
+
+				fetcher, err := helpers.NewFileFetcher(gitproviders.GitProviderGitLab, gitlabToken)
+				Expect(err).NotTo(HaveOccurred())
+
+				actual, err = fetcher.GetFilesForPullRequest(ctx, 1, gitlabGroup, sourceRepoName, fs)
+				Expect(err).NotTo(HaveOccurred())
+
+				expected = map[string]interface{}{
+					filepath.Join(root, "clusters", clusterName, "user", "kustomization.yaml"): &types.Kustomization{
+						TypeMeta: types.TypeMeta{
+							Kind:       types.KustomizationKind,
+							APIVersion: types.KustomizationVersion,
+						},
+						MetaData: &types.ObjectMeta{
+							Name:      appName,
+							Namespace: namespace.Name,
+						},
+					},
+				}
+
+				diff, err = helpers.DiffFS(actual, expected)
+				if err != nil {
+					GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
+				}
+
+			})
+		})
+		Context("via auto merge", func() {
+			It("add/remove with config repo specified", func() {
+				sourceRepoURL := fmt.Sprintf("https://gitlab.com/%s/%s", gitlabGroup, sourceRepoName)
+
+				repo, ref, err := helpers.CreatePopulatedSourceRepo(ctx, gitlabProviderClient, sourceRepoURL)
+				Expect(err).NotTo(HaveOccurred())
+
+				defer func() { Expect(repo.Delete(ctx)).To(Succeed()) }()
+
+				appName := "my-app"
+
+				req := &pb.AddApplicationRequest{
+					Name:      appName,
+					Namespace: namespace.Name,
+					Url:       ref.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					Branch:    "main",
+					Path:      "k8s/overlays/development",
+					AutoMerge: true,
+				}
+
+				res, err := client.AddApplication(ctx, req)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(res.Success).To(BeTrue(), "request should have been successful")
+
+				_, err = repo.DeployKeys().Get(ctx, gitproviders.DeployKeyName)
+				Expect(err).NotTo(HaveOccurred(), "deploy key should have been found")
+
+				prs, err := repo.PullRequests().List(ctx)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(prs).To(HaveLen(0))
+
+				root := helpers.InAppRoot
+
+				fs := helpers.MakeWeGOFS(root, req.Name, clusterName)
+
+				fullRepoPath := fmt.Sprintf("%s/%s", ref.OrganizationRef.Organization, sourceRepoName)
+
+				branch := "main"
+				commits, _, err := gl.Commits.ListCommits(fullRepoPath, &glAPI.ListCommitsOptions{
+					RefName: &branch,
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(commits).To(HaveLen(3))
+
+				appAddCommit := commits[0]
+
+				diffs, _, err := gl.Commits.GetCommitDiff(fullRepoPath, appAddCommit.ID, &glAPI.GetCommitDiffOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
+
+				actual, err := helpers.GetGitlabFilesContents(gl, fullRepoPath, fs, appAddCommit.ID, diffs)
+				Expect(err).NotTo(HaveOccurred())
+
+				expectedApp := wego.ApplicationSpec{
+					URL:            req.Url,
+					Branch:         req.Branch,
+					Path:           req.Path,
+					ConfigURL:      ref.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					DeploymentType: wego.DeploymentTypeKustomize,
+					SourceType:     wego.SourceTypeGit,
+				}
+				app := &wego.Application{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      appName,
+						Namespace: namespace.Name,
+					},
+					Spec: expectedApp,
+				}
+
+				Expect(env.Client.Create(ctx, app)).Should(Succeed())
+				//
+				expectedKustomization := kustomizev1.KustomizationSpec{
+					// Flux adds a prepending `./` to path arguments that doesn't already have it.
+					// https://github.com/fluxcd/flux2/blob/ca496d393d993ac5119ed84f83e010b8fe918c53/cmd/flux/create_kustomization.go#L115
+					Path: "./" + req.Path,
+					// Flux kustomization default; I couldn't find an export default from the package.
+					Interval: metav1.Duration{Duration: time.Duration(1 * time.Minute)},
+					Prune:    true,
+					SourceRef: kustomizev1.CrossNamespaceSourceReference{
+						Name: req.Name,
+						Kind: sourcev1.GitRepositoryKind,
+					},
+					Force: false,
+				}
+
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				Expect(err).NotTo(HaveOccurred())
+
+				expectedSrc := sourcev1.GitRepositorySpec{
+					URL: req.Url,
+					SecretRef: &meta.LocalObjectReference{
+						Name: automation.CreateRepoSecretName(repoURL).String(),
+					},
+					Interval: metav1.Duration{Duration: 30 * time.Second},
+					Reference: &sourcev1.GitRepositoryRef{
+						Branch: req.Branch,
+					},
+					Ignore: helpers.GetIgnoreSpec(),
+				}
+
+				expected := helpers.GenerateExpectedFS(req, root, clusterName, expectedApp, expectedKustomization, expectedSrc)
+
+				diff, err := helpers.DiffFS(actual, expected)
+				if err != nil {
+					GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
+				}
+
+				removeRequest := &pb.RemoveApplicationRequest{
+					Name:      appName,
+					Namespace: namespace.Name,
+					AutoMerge: true,
+				}
+
+				removeResponse, err := client.RemoveApplication(ctx, removeRequest)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(removeResponse.Success).To(BeTrue())
+
+				commits, _, err = gl.Commits.ListCommits(fullRepoPath, &glAPI.ListCommitsOptions{
+					RefName: &branch,
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(commits).To(HaveLen(4))
+
+				appAddCommit = commits[0]
+
+				diffs, _, err = gl.Commits.GetCommitDiff(fullRepoPath, appAddCommit.ID, &glAPI.GetCommitDiffOptions{})
+				Expect(err).NotTo(HaveOccurred())
+
+				fs = helpers.MakeWeGOFS(root, req.Name, clusterName)
+
+				actual, err = helpers.GetGitlabFilesContents(gl, fullRepoPath, fs, appAddCommit.ID, diffs)
+				Expect(err).NotTo(HaveOccurred())
+
+				expected = map[string]interface{}{
+					filepath.Join(root, "clusters", clusterName, "user", "kustomization.yaml"): &types.Kustomization{
+						TypeMeta: types.TypeMeta{
+							Kind:       types.KustomizationKind,
+							APIVersion: types.KustomizationVersion,
+						},
+						MetaData: &types.ObjectMeta{
+							Name:      appName,
+							Namespace: namespace.Name,
+						},
+					},
+				}
+
+				diff, err = helpers.DiffFS(actual, expected)
+				if err != nil {
+					GinkgoT().Errorf("%s: (-actual +expected): %s\n", err.Error(), diff)
+				}
+
+			})
+		})
+	})
+
 })

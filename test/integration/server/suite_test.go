@@ -8,15 +8,12 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"os"
 	"testing"
 
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
 
-	"github.com/fluxcd/go-git-providers/github"
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/go-logr/zapr"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -39,8 +36,6 @@ const bufSize = 1024 * 1024
 
 var lis *bufconn.Listener
 var env *testutils.K8sTestEnv
-var gp gitprovider.Client
-var org = "weaveworks-gitops-test"
 var conn *grpc.ClientConn
 var s *grpc.Server
 var err error
@@ -74,12 +69,6 @@ var _ = BeforeSuite(func() {
 	stop = env.Stop
 	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 	fluxClient.SetupBin()
-
-	gp, err = github.NewClient(
-		gitprovider.WithDestructiveAPICalls(true),
-		gitprovider.WithOAuth2Token(os.Getenv("GITHUB_TOKEN")),
-	)
-	Expect(err).NotTo(HaveOccurred())
 
 	factory := services.NewServerFactory(fluxClient, &loggerfakes.FakeLogger{}, env.Rest, clusterName)
 	Expect(err).NotTo(HaveOccurred())
