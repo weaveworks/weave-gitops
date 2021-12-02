@@ -140,7 +140,12 @@ func appPath(root, appName, filename string) string {
 
 func MakeWeGOFS(root, appName, clusterName string) WeGODirectoryFS {
 	return map[string]interface{}{
-		appYamlPath(root, appName):      &wego.Application{},
+		appYamlPath(root, appName): &wego.Application{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       wego.ApplicationKind,
+				APIVersion: wego.GroupVersion.String(),
+			},
+		},
 		appKustPath(root, appName):      &types.Kustomization{},
 		automationPath(root, appName):   &kustomizev2.Kustomization{},
 		sourcePath(root, appName):       &sourcev1.GitRepository{},
@@ -213,6 +218,22 @@ func GenerateExpectedFS(req *pb.AddApplicationRequest, root, clusterName string,
 
 	return expected
 }
+func GenerateExpectedFSRemoved(req *pb.AddApplicationRequest, root, clusterName string, app wego.ApplicationSpec, k kustomizev2.KustomizationSpec, s sourcev1.GitRepositorySpec) WeGODirectoryFS {
+	expected := map[string]interface{}{
+		userKustPath(root, clusterName): &types.Kustomization{
+			TypeMeta: types.TypeMeta{
+				Kind:       types.KustomizationKind,
+				APIVersion: types.KustomizationVersion,
+			},
+			MetaData: &types.ObjectMeta{
+				Name:      req.Name,
+				Namespace: req.Namespace,
+			},
+		},
+	}
+
+	return expected
+}
 
 func Filenames(fs WeGODirectoryFS) []string {
 	keys := []string{}
@@ -229,6 +250,11 @@ func GetFileContents(ctx context.Context, gh *ghAPI.Client, org, repoName string
 	changes := map[string][]byte{}
 
 	for _, file := range files {
+		if *file.Status == "removed" {
+			delete(fs, *file.Filename)
+			continue
+		}
+
 		path := *file.Filename
 
 		b, _, err := gh.Git.GetBlobRaw(ctx, org, repoName, *file.SHA)
