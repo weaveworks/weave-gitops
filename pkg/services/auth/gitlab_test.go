@@ -158,13 +158,13 @@ var _ = Describe("Gitlab auth flow", func() {
 		Expect(w.Body.String()).To(Equal(""))
 
 		expectedToken := types.TokenResponseState{
-			AccessToken:    "abc-123",
-			TokenType:      "shiny",
-			ExpiresIn:      5,
-			RefreshToken:   "xyz-456",
-			CreatedAt:      4,
-			HttpStatusCode: http.StatusOK,
-			Err:            nil,
+			AccessToken:      "abc-123",
+			TokenType:        "shiny",
+			ExpiresInSeconds: time.Second * 5,
+			RefreshToken:     "xyz-456",
+			CreatedAt:        4,
+			HttpStatusCode:   http.StatusOK,
+			Err:              nil,
 		}
 		Expect(tokenState).To(Equal(expectedToken))
 	})
@@ -395,6 +395,6 @@ var _ = Describe("GitlabAuthClient", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(tokenState.AccessToken).To(Equal(rs.AccessToken))
-		Expect(tokenState.ExpiresIn).To(Equal(rs.ExpiresIn))
+		Expect(tokenState.ExpiresInSeconds).To(Equal(time.Duration(rs.ExpiresIn) * time.Second))
 	})
 })
