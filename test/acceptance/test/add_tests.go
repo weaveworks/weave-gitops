@@ -518,7 +518,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	XIt("Test2 - Verify that gitops can deploy multiple workloads from a single app repo", func() {
+	It("Test2 - Verify that gitops can deploy multiple workloads from a single app repo", func() {
 		var repoAbsolutePath string
 		tip1 := generateTestInputs()
 		tip2 := generateTestInputs()
@@ -568,7 +568,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	It("Verify that gitops can deploy a single workload to multiple clusters with app manifests in config repo (Bug #810)", func() {
+	XIt("Verify that gitops can deploy a single workload to multiple clusters with app manifests in config repo (Bug #810)", func() {
 		var repoAbsolutePath string
 		tip := generateTestInputs()
 		appRepoName := "wego-test-app-" + RandString(8)
