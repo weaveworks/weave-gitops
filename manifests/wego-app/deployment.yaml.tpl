@@ -14,16 +14,11 @@ spec:
       containers:
         - name: wego-app
           image: ghcr.io/weaveworks/wego-app:{{.AppVersion}}
-          args: ["ui", "run", "-l", "--helm-repo-namespace", "$(RUNTIME_NAMESPACE)"]
+          args: ["ui", "run", "-l", "--helm-repo-namespace", "{{.Namespace}}"]
           ports:
             - containerPort: 9001
               protocol: TCP
           imagePullPolicy: IfNotPresent
-          env:
-            - name: RUNTIME_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
   selector:
     matchLabels:
       app: wego-app
