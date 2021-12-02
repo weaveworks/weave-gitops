@@ -77,15 +77,11 @@ const SuccessMessage = styled(
                 <Flex wide center>
                   {autoMerged ? (
                     <Link to={PageRoute.Applications}>
-                      <Button color="primary" variant="outlined">
-                        View Applications
-                      </Button>
+                      <Button>View Applications</Button>
                     </Link>
                   ) : (
                     <a target="_blank" href={link}>
-                      <Button color="primary" variant="outlined">
-                        View Open Pull requests
-                      </Button>
+                      <Button>View Open Pull requests</Button>
                     </a>
                   )}
                 </Flex>
@@ -354,7 +350,7 @@ function AddApplication({ className }: Props) {
               {loading ? (
                 <CircularProgress />
               ) : (
-                <Button variant="contained" color="primary" type="submit">
+                <Button variant="contained" type="submit">
                   Submit
                 </Button>
               )}
