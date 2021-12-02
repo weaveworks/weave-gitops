@@ -34,6 +34,9 @@ var _ = Describe("Install", func() {
 			GetClusterStatusStub: func(c context.Context) kube.ClusterStatus {
 				return kube.Unmodified
 			},
+			GetWegoConfigStub: func(c context.Context, s string) (*kube.WegoConfig, error) {
+				return &kube.WegoConfig{FluxNamespace: "flux-system", WegoNamespace: "wego-system"}, nil
+			},
 		}
 		fakeProvider = &gitprovidersfakes.FakeGitProvider{}
 		fakeGit = &gitfakes.FakeGit{}

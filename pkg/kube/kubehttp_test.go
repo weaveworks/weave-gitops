@@ -422,6 +422,71 @@ metadata:
 			Expect(newResource.GetAnnotations()["my-annotation"]).To(Equal("note"))
 		})
 	})
+
+	Describe("GetWegoConfig", func() {
+		It("get a wego config in a namespace", func() {
+			ctx := context.Background()
+			name := types.NamespacedName{Name: "weave-gitops-config", Namespace: namespace.Name}
+			cm := &corev1.ConfigMap{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "ConfigMap",
+					APIVersion: corev1.SchemeGroupVersion.String(),
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name.Name,
+					Namespace: name.Namespace,
+				},
+				Data: map[string]string{
+					"config": "FluxNamespace: flux-system",
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, cm)).Should(Succeed())
+
+			wegoConfig, err := k.GetWegoConfig(ctx, name.Namespace)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(wegoConfig.FluxNamespace).To(Equal("flux-system"))
+		})
+
+		It("get the first wego config in all namespacee", func() {
+			ctx := context.Background()
+
+			name := types.NamespacedName{Name: "weave-gitops-config", Namespace: namespace.Name}
+			cm := &corev1.ConfigMap{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "ConfigMap",
+					APIVersion: corev1.SchemeGroupVersion.String(),
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name.Name,
+					Namespace: name.Namespace,
+				},
+				Data: map[string]string{
+					"config": "FluxNamespace: flux-system",
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, cm)).Should(Succeed())
+
+			wegoConfig, err := k.GetWegoConfig(ctx, "")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(wegoConfig.FluxNamespace).To(Equal("flux-system"))
+		})
+	})
+
+	Describe("SetWegoConfig", func() {
+		It("set a wego config in a namespace", func() {
+			ctx := context.Background()
+
+			err := k.SetWegoConfig(ctx, kube.WegoConfig{FluxNamespace: "foo"}, namespace.Name)
+			Expect(err).NotTo(HaveOccurred())
+
+			wegoConfig, err := k.GetWegoConfig(ctx, namespace.Name)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(wegoConfig.FluxNamespace).To(Equal("foo"))
+		})
+	})
+
 })
 
 func createKubeconfig(name, clusterName, dir string, setCurContext bool) {
