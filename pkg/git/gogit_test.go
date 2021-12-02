@@ -333,7 +333,7 @@ var _ = Describe("Head", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 
 		_, err = gitClient.Head()
-		Expect(err).Should(MatchError("reference not found"))
+		Expect(err.Error()).Should(ContainSubstring("reference not found"))
 	})
 })
 
@@ -384,6 +384,24 @@ var _ = Describe("Remove", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(gitClient.Write("foo", []byte("bar"))).To(Succeed())
 		Expect(gitClient.Remove("foo")).To(Succeed())
+	})
+})
+
+var _ = Describe("Checkout", func() {
+	It("fails if no file present at path in the git repository", func() {
+		_, err = gitClient.Init(dir, "https://github.com/github/gitignore", "master")
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(gitClient.Remove("foo")).ShouldNot(Succeed())
+	})
+
+	It("succeeds if file present at path in the git repository", func() {
+		_, err = gitClient.Clone(context.Background(), dir, "https://github.com/github/gitignore", "master")
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(gitClient.Write("foo", []byte("bar"))).To(Succeed())
+		Expect(gitClient.Remove("foo")).To(Succeed())
+
+		err = gitClient.Checkout("new-branch")
+		Expect(err).ShouldNot(HaveOccurred())
 	})
 })
 
