@@ -29,12 +29,30 @@ type Params struct {
 
 // GenerateManifests generates weave-gitops manifests from a template
 func GenerateManifests(params Params) ([][]byte, error) {
-	appManifests, err := readTemplateDirectory(params, wegoAppTemplates, wegoManifestsDir)
+	templates, err := fs.ReadDir(wegoAppTemplates, wegoManifestsDir)
 	if err != nil {
-		return nil, fmt.Errorf("rendering app manifests: %w", err)
+		return nil, fmt.Errorf("failed reading templates directory: %w", err)
 	}
 
-	return appManifests, nil
+	var manifests [][]byte
+
+	for _, template := range templates {
+		tplName := template.Name()
+
+		data, err := fs.ReadFile(wegoAppTemplates, filepath.Join(wegoManifestsDir, tplName))
+		if err != nil {
+			return nil, fmt.Errorf("failed reading template %s: %w", tplName, err)
+		}
+
+		manifest, err := executeTemplate(tplName, string(data), params)
+		if err != nil {
+			return nil, fmt.Errorf("failed executing template: %s: %w", tplName, err)
+		}
+
+		manifests = append(manifests, manifest)
+	}
+
+	return manifests, nil
 }
 
 func executeTemplate(name string, tplData string, params Params) ([]byte, error) {
@@ -51,31 +69,4 @@ func executeTemplate(name string, tplData string, params Params) ([]byte, error)
 	}
 
 	return yaml.Bytes(), nil
-}
-
-func readTemplateDirectory(params Params, templateFiles embed.FS, templatestDir string) ([][]byte, error) {
-	templates, err := fs.ReadDir(templateFiles, templatestDir)
-	if err != nil {
-		return nil, fmt.Errorf("failed reading templates directory: %w", err)
-	}
-
-	var manifests [][]byte
-
-	for _, template := range templates {
-		tplName := template.Name()
-
-		data, err := fs.ReadFile(templateFiles, filepath.Join(templatestDir, tplName))
-		if err != nil {
-			return nil, fmt.Errorf("failed reading template %s: %w", tplName, err)
-		}
-
-		manifest, err := executeTemplate(tplName, string(data), params)
-		if err != nil {
-			return nil, fmt.Errorf("failed executing template: %s: %w", tplName, err)
-		}
-
-		manifests = append(manifests, manifest)
-	}
-
-	return manifests, nil
 }

@@ -58,7 +58,7 @@ type ChartReference struct {
 
 // DefaultChartGetter provides default ways to get a chart index.yaml based on
 // the URL scheme.
-var DefaultChartGetters = getter.Providers{
+var defaultChartGetters = getter.Providers{
 	getter.Provider{
 		Schemes: []string{"http", "https"},
 		New:     getter.NewHTTPGetter,
@@ -149,7 +149,7 @@ func (h *RepoManager) updateCache(ctx context.Context, helmRepo *sourcev1beta1.H
 		return err
 	}
 
-	r, err := repo.NewChartRepository(entry, DefaultChartGetters)
+	r, err := repo.NewChartRepository(entry, defaultChartGetters)
 	if err != nil {
 		return fmt.Errorf("error creating chart repository: %w", err)
 	}
@@ -243,7 +243,7 @@ func fetchIndexFile(chartURL string) (*repo.IndexFile, error) {
 		return nil, fmt.Errorf("error parsing URL %q: %w", chartURL, err)
 	}
 
-	c, err := DefaultChartGetters.ByScheme(u.Scheme)
+	c, err := defaultChartGetters.ByScheme(u.Scheme)
 	if err != nil {
 		return nil, fmt.Errorf("no provider for scheme %q: %w", u.Scheme, err)
 	}
