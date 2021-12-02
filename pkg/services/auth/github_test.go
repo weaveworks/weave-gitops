@@ -90,7 +90,7 @@ var _ = Describe("Github Device Flow", func() {
 		Expect(cliOutput.String()).To(ContainSubstring(verificationUri))
 	})
 	Describe("pollAuthStatus", func() {
-		It("retries after a slow_down response from github", func() {
+		XIt("retries after a slow_down response from github", func() {
 			rt := newMockRoundTripper(3, token)
 			client.Transport = &testServerTransport{testServeUrl: ts.URL, roundTripper: rt}
 			interval := 5 * time.Second
