@@ -21,7 +21,6 @@ import (
 	"github.com/go-logr/zapr"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/helm"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	grpcruntime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -46,9 +45,10 @@ type ProfilesConfig struct {
 	logr              logr.Logger
 	helmRepoNamespace string
 	helmRepoName      string
+	kubeClient        client.Client
 }
 
-func NewProfilesConfig(helmRepoNamespace, helmRepoName string) ProfilesConfig {
+func NewProfilesConfig(kubeClient client.Client, helmRepoNamespace, helmRepoName string) ProfilesConfig {
 	zapLog, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatalf("could not create zap logger: %v", err)
@@ -58,6 +58,7 @@ func NewProfilesConfig(helmRepoNamespace, helmRepoName string) ProfilesConfig {
 		logr:              zapr.NewLogger(zapLog),
 		helmRepoNamespace: helmRepoNamespace,
 		helmRepoName:      helmRepoName,
+		kubeClient:        kubeClient,
 	}
 }
 
@@ -73,25 +74,15 @@ type ProfilesServer struct {
 }
 
 func NewProfilesServer(config ProfilesConfig) (pb.ProfilesServer, error) {
-	rest, clusterName, err := kube.RestConfig()
-	if err != nil {
-		return nil, fmt.Errorf("could not create client config: %w", err)
-	}
-
-	_, rawClient, err := kube.NewKubeHTTPClientWithConfig(rest, clusterName)
-	if err != nil {
-		return nil, fmt.Errorf("could not create kube http client: %w", err)
-	}
-
 	tempDir, err := ioutil.TempDir("", "helmrepocache")
 	if err != nil {
 		return nil, err
 	}
 
 	return &ProfilesServer{
-		KubeClient:        rawClient,
+		KubeClient:        config.kubeClient,
 		Log:               config.logr,
-		HelmChartManager:  helm.NewRepoManager(rawClient, tempDir),
+		HelmChartManager:  helm.NewRepoManager(config.kubeClient, tempDir),
 		HelmRepoNamespace: config.helmRepoNamespace,
 		HelmRepoName:      config.helmRepoName,
 		cacheDir:          tempDir,

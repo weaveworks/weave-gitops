@@ -17,6 +17,7 @@ import (
 	"github.com/pkg/browser"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"go.uber.org/zap"
 )
@@ -69,7 +70,17 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		appConfig.Logger = zapr.NewLogger(zap.NewNop())
 	}
 
-	profilesConfig := server.NewProfilesConfig(helmRepoNamespace, helmRepoName)
+	rest, clusterName, err := kube.RestConfig()
+	if err != nil {
+		return fmt.Errorf("could not create client config: %w", err)
+	}
+
+	_, rawClient, err := kube.NewKubeHTTPClientWithConfig(rest, clusterName)
+	if err != nil {
+		return fmt.Errorf("could not create kube http client: %w", err)
+	}
+
+	profilesConfig := server.NewProfilesConfig(rawClient, helmRepoNamespace, helmRepoName)
 
 	appAndProfilesHandlers, err := server.NewApplicationsAndProfilesHandler(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig})
 	if err != nil {
