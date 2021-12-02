@@ -99,17 +99,17 @@ export const muiTheme = createTheme({
   typography: { fontFamily: "proxima-nova" },
   palette: {
     primary: {
-      //dark blue
+      //Main - Primary Color Dark - 10
       main: "#006B8E",
     },
     secondary: {
-      //orange
-      main: "#CC2C00",
+      //Feedback - Alert - Original
+      main: "#BC381D",
     },
     text: {
-      //black
+      //Neutral - Neutral - 40
       primary: "#1a1a1a",
-      //gray
+      //Neutral - Neutral - 30
       secondary: "#737373",
       disabled: "#737373",
     },
