@@ -9,33 +9,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
-
 	"github.com/benbjohnson/clock"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
-	"github.com/weaveworks/weave-gitops/pkg/server/internal"
-	"github.com/weaveworks/weave-gitops/pkg/services"
-
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
-
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth"
-
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
-	"github.com/weaveworks/weave-gitops/pkg/services/app"
-	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	grpcStatus "google.golang.org/grpc/status"
@@ -47,6 +28,21 @@ import (
 	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/status"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/server/internal"
+	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
+	"github.com/weaveworks/weave-gitops/pkg/services"
+	"github.com/weaveworks/weave-gitops/pkg/services/app"
+	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
+	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
 var (
