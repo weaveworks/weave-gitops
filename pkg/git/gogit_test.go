@@ -388,13 +388,7 @@ var _ = Describe("Remove", func() {
 })
 
 var _ = Describe("Checkout", func() {
-	It("fails if no file present at path in the git repository", func() {
-		_, err = gitClient.Init(dir, "https://github.com/github/gitignore", "master")
-		Expect(err).ShouldNot(HaveOccurred())
-		Expect(gitClient.Remove("foo")).ShouldNot(Succeed())
-	})
-
-	It("succeeds if file present at path in the git repository", func() {
+	It("succeeds", func() {
 		_, err = gitClient.Clone(context.Background(), dir, "https://github.com/github/gitignore", "master")
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(gitClient.Write("foo", []byte("bar"))).To(Succeed())
