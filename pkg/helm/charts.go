@@ -33,13 +33,19 @@ func NewRepoManager(kc client.Client, cacheDir string) *RepoManager {
 	return &RepoManager{
 		Client:   kc,
 		CacheDir: cacheDir,
+		envSettings: &cli.EnvSettings{
+			Debug:            true,
+			RepositoryCache:  cacheDir,
+			RepositoryConfig: path.Join(cacheDir, "/repository.yaml"),
+		},
 	}
 }
 
 // RepoManager implements HelmRepoManager interface using the Helm library packages.
 type RepoManager struct {
 	client.Client
-	CacheDir string
+	CacheDir    string
+	envSettings *cli.EnvSettings
 }
 
 // ChartReference is a Helm chart reference, the SourceRef is a Flux
@@ -160,7 +166,7 @@ func (h *RepoManager) loadChart(ctx context.Context, helmRepo *sourcev1beta1.Hel
 		return nil, fmt.Errorf("failed to configure client: %w", err)
 	}
 
-	chartLocation, err := o.LocateChart(c.Chart, h.envSettings())
+	chartLocation, err := o.LocateChart(c.Chart, h.envSettings)
 	if err != nil {
 		return nil, fmt.Errorf("locating chart %q: %w", c.Chart, err)
 	}
@@ -219,18 +225,6 @@ func credsForRepository(ctx context.Context, kc client.Client, hr *sourcev1beta1
 	}
 
 	return string(secret.Data["username"]), string(secret.Data["password"]), nil
-}
-
-func (h *RepoManager) envSettings() *cli.EnvSettings {
-	conf := cli.New()
-	conf.Debug = true
-
-	if h.CacheDir != "" {
-		conf.RepositoryCache = h.CacheDir
-		conf.RepositoryConfig = path.Join(h.CacheDir, "/repository.yaml")
-	}
-
-	return conf
 }
 
 func fetchIndexFile(chartURL string) (*repo.IndexFile, error) {
