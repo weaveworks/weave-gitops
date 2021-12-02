@@ -102,13 +102,14 @@ func (a *AppSvc) getSuspendedStatus(ctx context.Context, name, namespace string,
 
 func (a *AppSvc) pauseOrUnpause(suspendAction wego.SuspendActionType, name, namespace string) error {
 	ctx := context.Background()
+	sourceName := automation.CreateAppSourceName(name)
 
 	deploymentType, err := a.getDeploymentType(ctx, name, namespace)
 	if err != nil {
 		return fmt.Errorf("unable to determine deployment type for %s: %s", name, err)
 	}
 
-	suspendStatus, err := a.getSuspendedStatus(ctx, name, namespace, deploymentType)
+	suspendStatus, err := a.getSuspendedStatus(ctx, sourceName, namespace, deploymentType)
 	if err != nil {
 		return fmt.Errorf("failed to get suspended status: %s", err)
 	}
@@ -121,8 +122,6 @@ func (a *AppSvc) pauseOrUnpause(suspendAction wego.SuspendActionType, name, name
 	default:
 		return fmt.Errorf("invalid deployment type: %v", deploymentType)
 	}
-
-	sourceName := automation.CreateAppSourceName(name)
 
 	switch suspendAction {
 	case wego.SuspendAction:

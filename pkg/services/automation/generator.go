@@ -148,7 +148,7 @@ func (a *AutomationGen) generateAppSource(ctx context.Context, app models.Applic
 			source, err = AddWegoIgnore(source)
 		}
 	case models.SourceTypeHelm:
-		source, err = a.Flux.CreateSourceHelm(app.Name, app.HelmSourceURL, app.Namespace)
+		source, err = a.Flux.CreateSourceHelm(sourceName, app.HelmSourceURL, app.Namespace)
 	default:
 		return AutomationManifest{}, fmt.Errorf("unknown source type: %v", app.SourceType)
 	}
@@ -265,9 +265,9 @@ func (a *AutomationGen) generateApplicationGoat(app models.Application, clusterN
 	case models.AutomationTypeHelm:
 		switch app.SourceType {
 		case models.SourceTypeHelm:
-			b, err = a.Flux.CreateHelmReleaseHelmRepository(app.Name, app.Path, app.Namespace, app.HelmTargetNamespace)
+			b, err = a.Flux.CreateHelmReleaseHelmRepository(sourceName, app.Path, app.Namespace, app.HelmTargetNamespace)
 		case models.SourceTypeGit:
-			b, err = a.Flux.CreateHelmReleaseGitRepository(app.Name, app.Name, app.Path, app.Namespace, app.HelmTargetNamespace)
+			b, err = a.Flux.CreateHelmReleaseGitRepository(sourceName, sourceName, app.Path, app.Namespace, app.HelmTargetNamespace)
 		default:
 			return AutomationManifest{}, fmt.Errorf("invalid source type: %v", app.SourceType)
 		}
