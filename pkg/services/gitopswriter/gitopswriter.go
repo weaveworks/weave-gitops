@@ -106,13 +106,9 @@ func (dw *gitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app m
 		return fmt.Errorf("failed to retrieve default branch for repository: %w", err)
 	}
 
-	var repoDir string
-
-	var remover func()
-
 	newBranchName := automation.GetAppHash(app)
 
-	remover, repoDir, err = dw.RepoWriter.CloneRepo(ctx, defaultBranch)
+	remover, repoDir, err := dw.RepoWriter.CloneRepo(ctx, defaultBranch)
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)
 	}
