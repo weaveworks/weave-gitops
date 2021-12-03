@@ -93,7 +93,7 @@ function DataTable({
 }
 
 export default styled(DataTable)`
-  th {
-    font-weight: bold;
+  .MuiTableCell-head {
+    font-weight: 800;
   }
 `;
