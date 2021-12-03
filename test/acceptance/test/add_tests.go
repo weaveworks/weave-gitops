@@ -43,7 +43,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	It("Verify that gitops cannot work without gitops components installed OR with both url and directory provided", func() {
+	FIt("Verify that gitops cannot work without gitops components installed OR with both url and directory provided", func() {
 		var repoAbsolutePath string
 		var errOutput string
 		var exitCode int
@@ -76,7 +76,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		By("And I run gitops add command", func() {
 			command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand1))
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).ShouldNot(HaveOccurred())
+			Expect(err).Should(HaveOccurred())
 			Eventually(session).Should(gexec.Exit())
 			exitCode = session.Wait().ExitCode()
 		})
