@@ -15,7 +15,7 @@ export interface Props extends ButtonProps {
 }
 
 /** Form Button */
-function UnstyledButton(props: Props) {
+function Button(props: Props) {
   return (
     <MaterialButton
       variant="outlined"
@@ -28,7 +28,7 @@ function UnstyledButton(props: Props) {
   );
 }
 
-export const Button = styled(UnstyledButton)`
+export default styled(Button)`
   display: flex;
   justify-content: space-evenly;
   &.auth-button {
@@ -43,5 +43,3 @@ export const Button = styled(UnstyledButton)`
     }
   }
 `;
-
-export default Button;

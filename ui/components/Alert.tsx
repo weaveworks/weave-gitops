@@ -23,7 +23,7 @@ export interface Props {
 }
 
 /** Form Alert */
-function UnstyledAlert({ center, title, message, severity, className }: Props) {
+function Alert({ center, title, message, severity, className }: Props) {
   return (
     <Flex wide start={!center} className={className}>
       <MaterialAlert severity={severity}>
@@ -34,5 +34,4 @@ function UnstyledAlert({ center, title, message, severity, className }: Props) {
   );
 }
 
-export const Alert = styled(UnstyledAlert)``;
-export default Alert;
+export default styled(Alert)``;

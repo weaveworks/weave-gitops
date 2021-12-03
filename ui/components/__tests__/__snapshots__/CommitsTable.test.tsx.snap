@@ -18,8 +18,8 @@ exports[`CommitsTable snapshots renders 1`] = `
   color: #00b3ec;
 }
 
-.c0 th {
-  font-weight: bold;
+.c0 .MuiTableCell-head {
+  font-weight: 800;
 }
 
 .c2 {

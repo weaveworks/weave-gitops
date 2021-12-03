@@ -1,6 +1,6 @@
 import { Meta, Story } from "@storybook/react";
 import * as React from "react";
-import { DataTable, Props } from "../components/DataTable";
+import DataTable, { Props } from "../components/DataTable";
 
 export default {
   title: "DataTable",

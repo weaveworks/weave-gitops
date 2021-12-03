@@ -120,8 +120,11 @@ const FormElement = styled.div`
 `;
 
 function AddApplication({ className }: Props) {
-  const { getCallbackState, clearCallbackState, getProviderToken } =
-    React.useContext(AppContext);
+  const {
+    getCallbackState,
+    clearCallbackState,
+    getProviderToken,
+  } = React.useContext(AppContext);
   const formRef = React.useRef<HTMLFormElement>();
 
   let initialFormState = {
@@ -328,6 +331,7 @@ function AddApplication({ className }: Props) {
                 <FormControlLabel
                   control={
                     <Switch
+                      color="primary"
                       onChange={(e) =>
                         setFormState({
                           ...formState,
