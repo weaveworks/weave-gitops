@@ -69,7 +69,9 @@ func (gl gitlabPrClient) GetFilesForPullRequest(ctx context.Context, prID int, o
 			continue
 		}
 
-		file, _, err := gl.client.RepositoryFiles.GetRawFile(pid, path, &glAPI.GetRawFileOptions{Ref: &mr.DiffRefs.HeadSha})
+		file, _, err := gl.client.RepositoryFiles.GetRawFile(pid, path, &glAPI.GetRawFileOptions{
+			Ref: &mr.DiffRefs.HeadSha,
+		})
 		if err != nil {
 			return nil, fmt.Errorf("could not raw file for merge request: %w", err)
 		}
@@ -78,4 +80,8 @@ func (gl gitlabPrClient) GetFilesForPullRequest(ctx context.Context, prID int, o
 	}
 
 	return toK8sObjects(files, fs)
+}
+
+func standardizeDiffArray() {
+
 }
