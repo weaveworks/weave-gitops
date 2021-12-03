@@ -232,7 +232,7 @@ func Filenames(fs WeGODirectoryFS) []string {
 	return keys
 }
 
-func GetFileContents(ctx context.Context, gh *ghAPI.Client, org, repoName string, fs WeGODirectoryFS, files []*ghAPI.CommitFile) (WeGODirectoryFS, error) {
+func GetGithubFilesContents(ctx context.Context, gh *ghAPI.Client, org, repoName string, fs WeGODirectoryFS, files []*ghAPI.CommitFile) (WeGODirectoryFS, error) {
 	changes := map[string][]byte{}
 
 	for _, file := range files {
@@ -251,22 +251,7 @@ func GetFileContents(ctx context.Context, gh *ghAPI.Client, org, repoName string
 		changes[path] = b
 	}
 
-	for path, change := range changes {
-		obj, ok := fs[path]
-
-		if !ok {
-			fs[path] = nil
-			continue
-		}
-
-		if err := yaml.Unmarshal(change, obj); err != nil {
-			return nil, fmt.Errorf("error unmarshalling change yaml: %w", err)
-		}
-
-		fs[path] = obj
-	}
-
-	return fs, nil
+	return toK8sObjects(changes, fs)
 }
 
 func GetGitlabFilesContents(gl *glAPI.Client, fullRepoPath string, fs WeGODirectoryFS, commitSHA string, files []*glAPI.Diff) (WeGODirectoryFS, error) {
@@ -289,22 +274,7 @@ func GetGitlabFilesContents(gl *glAPI.Client, fullRepoPath string, fs WeGODirect
 		changes[path] = b
 	}
 
-	for path, change := range changes {
-		obj, ok := fs[path]
-
-		if !ok {
-			fs[path] = nil
-			continue
-		}
-
-		if err := yaml.Unmarshal(change, obj); err != nil {
-			return nil, fmt.Errorf("error unmarshalling change yaml: %w", err)
-		}
-
-		fs[path] = obj
-	}
-
-	return fs, nil
+	return toK8sObjects(changes, fs)
 }
 
 func toK8sObjects(changes map[string][]byte, fs WeGODirectoryFS) (WeGODirectoryFS, error) {

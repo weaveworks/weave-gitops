@@ -273,7 +273,7 @@ var _ = Describe("AddApplication", func() {
 				c, _, err := gh.Repositories.GetCommit(ctx, githubOrg, sourceRepoName, *appAddCommit.SHA)
 				Expect(err).NotTo(HaveOccurred())
 
-				actual, err := helpers.GetFileContents(ctx, gh, githubOrg, sourceRepoName, fs, c.Files)
+				actual, err := helpers.GetGithubFilesContents(ctx, gh, githubOrg, sourceRepoName, fs, c.Files)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedApp := wego.ApplicationSpec{
@@ -406,7 +406,7 @@ var _ = Describe("AddApplication", func() {
 				c, _, err := gh.Repositories.GetCommit(ctx, githubOrg, sourceRepoName, *appAddCommit.SHA)
 				Expect(err).NotTo(HaveOccurred())
 
-				actual, err := helpers.GetFileContents(ctx, gh, githubOrg, sourceRepoName, fs, c.Files)
+				actual, err := helpers.GetGithubFilesContents(ctx, gh, githubOrg, sourceRepoName, fs, c.Files)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedApp := wego.ApplicationSpec{
@@ -485,7 +485,7 @@ var _ = Describe("AddApplication", func() {
 
 				fs = helpers.MakeWeGOFS(root, addAppRequest.Name, clusterName)
 
-				actual, err = helpers.GetFileContents(ctx, gh, githubOrg, sourceRepoName, fs, c.Files)
+				actual, err = helpers.GetGithubFilesContents(ctx, gh, githubOrg, sourceRepoName, fs, c.Files)
 				Expect(err).NotTo(HaveOccurred())
 
 				expected = map[string]interface{}{
@@ -546,7 +546,7 @@ var _ = Describe("AddApplication", func() {
 				c, _, err := gh.Repositories.GetCommit(ctx, githubOrg, configRepoName, *appAddCommit.SHA)
 				Expect(err).NotTo(HaveOccurred())
 
-				actual, err := helpers.GetFileContents(ctx, gh, githubOrg, configRepoName, fs, c.Files)
+				actual, err := helpers.GetGithubFilesContents(ctx, gh, githubOrg, configRepoName, fs, c.Files)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedApp := wego.ApplicationSpec{
