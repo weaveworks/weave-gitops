@@ -15,13 +15,13 @@ export interface Props extends ButtonProps {
 }
 
 /** Form Button */
-function Button(props: Props) {
+function Button({ loading, ...props }: Props) {
   return (
     <MaterialButton
       variant="outlined"
       color="primary"
-      disabled={props.loading}
-      endIcon={props.loading ? <CircularProgress size={16} /> : props.endIcon}
+      disabled={loading}
+      endIcon={loading ? <CircularProgress size={16} /> : props.endIcon}
       disableElevation={true}
       {...props}
     />
