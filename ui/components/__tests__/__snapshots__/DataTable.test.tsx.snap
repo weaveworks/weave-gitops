@@ -1,6 +1,21 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`DataTable snapshots renders 1`] = `
+<<<<<<< HEAD
+=======
+.c1 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+}
+
+.c0 .MuiTableCell-head {
+  font-weight: 800;
+}
+
+>>>>>>> main
 <div
   className=""
 >

@@ -34,7 +34,7 @@ export const Body = styled.div`
 `;
 
 /** Form Modal */
-function UnstyledModal({
+function Modal({
   className,
   bodyClassName,
   open,
@@ -68,5 +68,4 @@ function UnstyledModal({
   );
 }
 
-export const Modal = styled(UnstyledModal)``;
-export default Modal;
+export default styled(Modal)``;
