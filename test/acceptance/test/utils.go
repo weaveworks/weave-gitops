@@ -143,7 +143,7 @@ func generateTestInputs() TestInputs {
 	var inputs TestInputs
 
 	uniqueSuffix := RandString(6)
-	inputs.appRepoName = "wego-test-app-" + RandString(8)
+	inputs.appRepoName = "test-app-" + RandString(8)
 	inputs.appManifestFilePath = getUniqueWorkload("xxyyzz", uniqueSuffix)
 	inputs.workloadName = "nginx-" + uniqueSuffix
 	inputs.workloadNamespace = "my-nginx-" + uniqueSuffix
