@@ -7,14 +7,13 @@
 package profiles
 
 import (
-	reflect "reflect"
-	sync "sync"
-
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	reflect "reflect"
+	sync "sync"
 )
 
 const (
@@ -29,9 +28,12 @@ type Maintainer struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name  string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The name of the Maintainer
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The email of the Maintainer
 	Email string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
-	Url   string `protobuf:"bytes,3,opt,name=url,proto3" json:"url,omitempty"`
+	// The URL to a Maintainer's website
+	Url string `protobuf:"bytes,3,opt,name=url,proto3" json:"url,omitempty"`
 }
 
 func (x *Maintainer) Reset() {
@@ -92,7 +94,9 @@ type HelmRepository struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name      string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The name of the HelmRepository
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The namespace of the HelmRepository
 	Namespace string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
 }
 
@@ -147,17 +151,28 @@ type Profile struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name              string            `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Home              string            `protobuf:"bytes,2,opt,name=home,proto3" json:"home,omitempty"`
-	Sources           []string          `protobuf:"bytes,3,rep,name=sources,proto3" json:"sources,omitempty"`
-	Description       string            `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
-	Keywords          []string          `protobuf:"bytes,5,rep,name=keywords,proto3" json:"keywords,omitempty"`
-	Maintainers       []*Maintainer     `protobuf:"bytes,6,rep,name=maintainers,proto3" json:"maintainers,omitempty"`
-	Icon              string            `protobuf:"bytes,7,opt,name=icon,proto3" json:"icon,omitempty"`
-	Annotations       map[string]string `protobuf:"bytes,8,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	KubeVersion       string            `protobuf:"bytes,9,opt,name=kube_version,json=kubeVersion,proto3" json:"kube_version,omitempty"`
-	HelmRepository    *HelmRepository   `protobuf:"bytes,10,opt,name=helm_repository,json=helmRepository,proto3" json:"helm_repository,omitempty"`
-	AvailableVersions []string          `protobuf:"bytes,11,rep,name=available_versions,json=availableVersions,proto3" json:"available_versions,omitempty"`
+	// The name of the Profile
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The URL to a relevant project page, git repo, or contact person
+	Home string `protobuf:"bytes,2,opt,name=home,proto3" json:"home,omitempty"`
+	// A list of URLs to the source code of this chart
+	Sources []string `protobuf:"bytes,3,rep,name=sources,proto3" json:"sources,omitempty"`
+	// A one-sentence description of the Profile
+	Description string `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	// A list of string keywords
+	Keywords []string `protobuf:"bytes,5,rep,name=keywords,proto3" json:"keywords,omitempty"`
+	// A list of Maintainers
+	Maintainers []*Maintainer `protobuf:"bytes,6,rep,name=maintainers,proto3" json:"maintainers,omitempty"`
+	// The URL to an icon file
+	Icon string `protobuf:"bytes,7,opt,name=icon,proto3" json:"icon,omitempty"`
+	// A map of annotations
+	Annotations map[string]string `protobuf:"bytes,8,rep,name=annotations,proto3" json:"annotations,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// The Kubernetes version
+	KubeVersion string `protobuf:"bytes,9,opt,name=kube_version,json=kubeVersion,proto3" json:"kube_version,omitempty"`
+	// The Flux HelmRepository
+	HelmRepository *HelmRepository `protobuf:"bytes,10,opt,name=helm_repository,json=helmRepository,proto3" json:"helm_repository,omitempty"`
+	// A list of available versions
+	AvailableVersions []string `protobuf:"bytes,11,rep,name=available_versions,json=availableVersions,proto3" json:"available_versions,omitempty"`
 }
 
 func (x *Profile) Reset() {
@@ -312,6 +327,7 @@ type GetProfilesResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// A list of Profiles
 	Profiles []*Profile `protobuf:"bytes,1,rep,name=profiles,proto3" json:"profiles,omitempty"`
 }
 
@@ -359,7 +375,9 @@ type GetProfileValuesRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	ProfileName    string `protobuf:"bytes,1,opt,name=profile_name,json=profileName,proto3" json:"profile_name,omitempty"`
+	// The name of the Profile
+	ProfileName string `protobuf:"bytes,1,opt,name=profile_name,json=profileName,proto3" json:"profile_name,omitempty"`
+	// The version of the Profile
 	ProfileVersion string `protobuf:"bytes,2,opt,name=profile_version,json=profileVersion,proto3" json:"profile_version,omitempty"`
 }
 
@@ -462,9 +480,12 @@ type ProfileValues struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name    string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The name of the Profile
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The version of the Profile
 	Version string `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
-	Values  string `protobuf:"bytes,3,opt,name=values,proto3" json:"values,omitempty"`
+	// The base64 encoded values file of the profile
+	Values string `protobuf:"bytes,3,opt,name=values,proto3" json:"values,omitempty"`
 }
 
 func (x *ProfileValues) Reset() {

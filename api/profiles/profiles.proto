@@ -19,8 +19,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 };
 
 service Profiles {
-    // GetProfiles returns a list of profiles
-    // from the cluster.
+    // GetProfiles returns a list of profiles from the cluster.
     rpc GetProfiles(GetProfilesRequest)
         returns (GetProfilesResponse){
         option (google.api.http) = {
@@ -28,8 +27,7 @@ service Profiles {
         };
     }
 
-    // GetProfileValues returns a list of values for 
-    // a given version of a profile from the cluster.
+    // GetProfileValues returns a list of values for a given version of a profile from the cluster.
     rpc GetProfileValues(GetProfileValuesRequest)
     returns (google.api.HttpBody){
         option (google.api.http) = {
@@ -39,27 +37,43 @@ service Profiles {
 }
 
 message Maintainer {
+  // The name of the Maintainer
   string name = 1;
-  string email = 2;
+  // The email of the Maintainer
+  string email = 2; 
+  // The URL to a Maintainer's website
   string url = 3;
 }
 
 message HelmRepository {
+  // The name of the HelmRepository
   string name = 1;
+  // The namespace of the HelmRepository
   string namespace = 2;
 }
 
 message Profile {
+  // The name of the Profile
   string name = 1;
+  // The URL to a relevant project page, git repo, or contact person
   string home = 2;
+  // A list of URLs to the source code of this chart
   repeated string sources = 3;
+  // A one-sentence description of the Profile
   string description = 4;
+  // A list of string keywords
   repeated string keywords = 5;
+  // A list of Maintainers
   repeated Maintainer maintainers = 6;
+  // The URL to an icon file
   string icon = 7;
+  // A map of annotations
   map<string, string> annotations = 8;
+  // The Kubernetes version
   string kube_version = 9;
+  // The Flux HelmRepository
   HelmRepository helm_repository = 10;
+  // A list of available versions
   repeated string available_versions = 11;
 }
 
@@ -67,11 +81,14 @@ message GetProfilesRequest {
 }
 
 message GetProfilesResponse {
+  // A list of Profiles
   repeated Profile profiles = 1;
 }
 
 message GetProfileValuesRequest {
+  // The name of the Profile
   string profile_name = 1;
+  // The version of the Profile
   string profile_version = 2;
 }
 
@@ -81,7 +98,10 @@ message GetProfileValuesResponse{
 }
 
 message ProfileValues {
+  // The name of the Profile
   string name = 1;
+  // The version of the Profile
   string version = 2;
+  // The base64 encoded values file of the profile
   string values = 3;
 }

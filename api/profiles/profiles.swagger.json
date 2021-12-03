@@ -19,7 +19,7 @@
   "paths": {
     "/v1/profiles": {
       "get": {
-        "summary": "GetProfiles returns a list of profiles\nfrom the cluster.",
+        "summary": "GetProfiles returns a list of profiles from the cluster.",
         "operationId": "Profiles_GetProfiles",
         "responses": {
           "200": {
@@ -42,7 +42,7 @@
     },
     "/v1/profiles/{profileName}/{profileVersion}/values": {
       "get": {
-        "summary": "GetProfileValues returns a list of values for \na given version of a profile from the cluster.",
+        "summary": "GetProfileValues returns a list of values for a given version of a profile from the cluster.",
         "operationId": "Profiles_GetProfileValues",
         "responses": {
           "200": {
@@ -61,12 +61,14 @@
         "parameters": [
           {
             "name": "profileName",
+            "description": "The name of the Profile",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
             "name": "profileVersion",
+            "description": "The version of the Profile",
             "in": "path",
             "required": true,
             "type": "string"
@@ -141,7 +143,8 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Profile"
-          }
+          },
+          "title": "A list of Profiles"
         }
       }
     },
@@ -149,10 +152,12 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "title": "The name of the HelmRepository"
         },
         "namespace": {
-          "type": "string"
+          "type": "string",
+          "title": "The namespace of the HelmRepository"
         }
       }
     },
@@ -160,13 +165,16 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "title": "The name of the Maintainer"
         },
         "email": {
-          "type": "string"
+          "type": "string",
+          "title": "The email of the Maintainer"
         },
         "url": {
-          "type": "string"
+          "type": "string",
+          "title": "The URL to a Maintainer's website"
         }
       }
     },
@@ -174,52 +182,63 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "title": "The name of the Profile"
         },
         "home": {
-          "type": "string"
+          "type": "string",
+          "title": "The URL to a relevant project page, git repo, or contact person"
         },
         "sources": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "title": "A list of URLs to the source code of this chart"
         },
         "description": {
-          "type": "string"
+          "type": "string",
+          "title": "A one-sentence description of the Profile"
         },
         "keywords": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "title": "A list of string keywords"
         },
         "maintainers": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Maintainer"
-          }
+          },
+          "title": "A list of Maintainers"
         },
         "icon": {
-          "type": "string"
+          "type": "string",
+          "title": "The URL to an icon file"
         },
         "annotations": {
           "type": "object",
           "additionalProperties": {
             "type": "string"
-          }
+          },
+          "title": "A map of annotations"
         },
         "kubeVersion": {
-          "type": "string"
+          "type": "string",
+          "title": "The Kubernetes version"
         },
         "helmRepository": {
-          "$ref": "#/definitions/v1HelmRepository"
+          "$ref": "#/definitions/v1HelmRepository",
+          "title": "The Flux HelmRepository"
         },
         "availableVersions": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "title": "A list of available versions"
         }
       }
     }

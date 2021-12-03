@@ -9,6 +9,7 @@ import (
 	"time"
 
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
+	"github.com/fluxcd/pkg/apis/meta"
 	fluxmeta "github.com/fluxcd/pkg/apis/meta"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	. "github.com/onsi/ginkgo"
@@ -169,6 +170,20 @@ var _ = Describe("RepoManager", func() {
 			})
 		})
 
+		When("the entry fails to be built", func() {
+			It("errors", func() {
+				helmRepo := makeTestHelmRepository("http://[::1]:namedport/index.yaml")
+				helmRepo.Spec.SecretRef = &meta.LocalObjectReference{
+					Name: "name",
+				}
+				chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.1", SourceRef: referenceForRepository(helmRepo)}
+				repoManager := helm.NewRepoManager(makeTestClient(), tempDir)
+
+				_, err := repoManager.GetValuesFile(context.TODO(), helmRepo, chartReference, "values.yaml")
+				Expect(err).To(MatchError(ContainSubstring("updating cache: failed to build repository entry")))
+			})
+		})
+
 		When("the chart URL is invalid", func() {
 			It("errors", func() {
 				helmRepo := makeTestHelmRepository("http://[::1]:namedport/index.yaml")
@@ -177,6 +192,18 @@ var _ = Describe("RepoManager", func() {
 
 				_, err := repoManager.GetValuesFile(context.TODO(), helmRepo, chartReference, "values.yaml")
 				Expect(err).To(MatchError(ContainSubstring("updating cache: error creating chart repository")))
+			})
+		})
+
+		When("the index file fails to download", func() {
+			It("errors", func() {
+				testServer := httptest.NewServer(makeFailingServeMux(500))
+				helmRepo := makeTestHelmRepository(testServer.URL)
+				chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.1", SourceRef: referenceForRepository(helmRepo)}
+				repoManager := helm.NewRepoManager(makeTestClient(), tempDir)
+
+				_, err := repoManager.GetValuesFile(context.TODO(), helmRepo, chartReference, "values.yaml")
+				Expect(err).To(MatchError(ContainSubstring("updating cache: error downloading index file")))
 			})
 		})
 
@@ -231,6 +258,16 @@ func makeServeMux(opts ...func(*repo.IndexFile)) *http.ServeMux {
 		Expect(err).NotTo(HaveOccurred())
 		_, err = w.Write(b)
 		Expect(err).NotTo(HaveOccurred())
+	})
+	mux.Handle("/", http.FileServer(http.Dir("testdata")))
+
+	return mux
+}
+
+func makeFailingServeMux(code int) *http.ServeMux {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/charts/index.yaml", func(w http.ResponseWriter, req *http.Request) {
+		w.WriteHeader(code)
 	})
 	mux.Handle("/", http.FileServer(http.Dir("testdata")))
 

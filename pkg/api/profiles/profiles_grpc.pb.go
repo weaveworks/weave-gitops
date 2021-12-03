@@ -19,11 +19,9 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProfilesClient interface {
-	// GetProfiles returns a list of profiles
-	// from the cluster.
+	// GetProfiles returns a list of profiles from the cluster.
 	GetProfiles(ctx context.Context, in *GetProfilesRequest, opts ...grpc.CallOption) (*GetProfilesResponse, error)
-	// GetProfileValues returns a list of values for
-	// a given version of a profile from the cluster.
+	// GetProfileValues returns a list of values for a given version of a profile from the cluster.
 	GetProfileValues(ctx context.Context, in *GetProfileValuesRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
 }
 
@@ -57,11 +55,9 @@ func (c *profilesClient) GetProfileValues(ctx context.Context, in *GetProfileVal
 // All implementations must embed UnimplementedProfilesServer
 // for forward compatibility
 type ProfilesServer interface {
-	// GetProfiles returns a list of profiles
-	// from the cluster.
+	// GetProfiles returns a list of profiles from the cluster.
 	GetProfiles(context.Context, *GetProfilesRequest) (*GetProfilesResponse, error)
-	// GetProfileValues returns a list of values for
-	// a given version of a profile from the cluster.
+	// GetProfileValues returns a list of values for a given version of a profile from the cluster.
 	GetProfileValues(context.Context, *GetProfileValuesRequest) (*httpbody.HttpBody, error)
 	mustEmbedUnimplementedProfilesServer()
 }

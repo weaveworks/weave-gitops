@@ -146,7 +146,7 @@ func (h *RepoManager) GetValuesFile(ctx context.Context, helmRepo *sourcev1beta1
 func (h *RepoManager) updateCache(ctx context.Context, helmRepo *sourcev1beta1.HelmRepository) error {
 	entry, err := h.entryForRepository(ctx, helmRepo)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to build repository entry: %w", err)
 	}
 
 	r, err := repo.NewChartRepository(entry, defaultChartGetters)
@@ -155,9 +155,11 @@ func (h *RepoManager) updateCache(ctx context.Context, helmRepo *sourcev1beta1.H
 	}
 
 	r.CachePath = h.CacheDir
-	_, err = r.DownloadIndexFile()
+	if _, err := r.DownloadIndexFile(); err != nil {
+		return fmt.Errorf("error downloading index file: %w", err)
+	}
 
-	return err
+	return nil
 }
 
 func (h *RepoManager) loadChart(ctx context.Context, helmRepo *sourcev1beta1.HelmRepository, c *ChartReference) (*chart.Chart, error) {

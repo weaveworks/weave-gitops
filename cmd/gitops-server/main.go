@@ -54,7 +54,7 @@ func NewAPIServerCommand() *cobra.Command {
 
 			profilesConfig := server.NewProfilesConfig(rawClient, "default", "weaveworks-charts")
 
-			s, err := server.NewApplicationsAndProfilesHandler(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig})
+			s, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig})
 			if err != nil {
 				return err
 			}

@@ -82,7 +82,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	profilesConfig := server.NewProfilesConfig(rawClient, helmRepoNamespace, helmRepoName)
 
-	appAndProfilesHandlers, err := server.NewApplicationsAndProfilesHandler(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig})
+	appAndProfilesHandlers, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig})
 	if err != nil {
 		return fmt.Errorf("could not create handler: %w", err)
 	}
