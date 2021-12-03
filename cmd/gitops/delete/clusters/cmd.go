@@ -1,13 +1,17 @@
 package clusters
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
+	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/clusters"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 )
 
 type clustersDeleteFlags struct {
@@ -20,7 +24,7 @@ type clustersDeleteFlags struct {
 	CommitMessage string
 }
 
-var clustersDeleteCmdFlags clustersDeleteFlags
+var flags clustersDeleteFlags
 
 func ClusterCommand(endpoint *string, client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
@@ -38,12 +42,12 @@ gitops delete cluster <cluster-name>
 		Args:          cobra.MinimumNArgs(1),
 	}
 
-	cmd.PersistentFlags().StringVar(&clustersDeleteCmdFlags.RepositoryURL, "url", "", "The repository to open a pull request against")
-	cmd.PersistentFlags().StringVar(&clustersDeleteCmdFlags.BaseBranch, "base", "", "The base branch to open the pull request against")
-	cmd.PersistentFlags().StringVar(&clustersDeleteCmdFlags.HeadBranch, "branch", "", "The branch to create the pull request from")
-	cmd.PersistentFlags().StringVar(&clustersDeleteCmdFlags.Title, "title", "", "The title of the pull request")
-	cmd.PersistentFlags().StringVar(&clustersDeleteCmdFlags.Description, "description", "", "The description of the pull request")
-	cmd.PersistentFlags().StringVar(&clustersDeleteCmdFlags.CommitMessage, "commit-message", "", "The commit message to use when deleting the clusters")
+	cmd.Flags().StringVar(&flags.RepositoryURL, "url", "", "The repository to open a pull request against")
+	cmd.Flags().StringVar(&flags.BaseBranch, "base", "", "The base branch to open the pull request against")
+	cmd.Flags().StringVar(&flags.HeadBranch, "branch", "", "The branch to create the pull request from")
+	cmd.Flags().StringVar(&flags.Title, "title", "", "The title of the pull request")
+	cmd.Flags().StringVar(&flags.Description, "description", "", "The description of the pull request")
+	cmd.Flags().StringVar(&flags.CommitMessage, "commit-message", "", "The commit message to use when deleting the clusters")
 
 	return cmd
 }
@@ -65,14 +69,29 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 			return err
 		}
 
+		if flags.RepositoryURL == "" {
+			return cmderrors.ErrNoURL
+		}
+
+		url, err := gitproviders.NewRepoURL(flags.RepositoryURL)
+		if err != nil {
+			return fmt.Errorf("cannot parse url: %w", err)
+		}
+
+		token, err := internal.GetToken(url, os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, internal.NewCLILogger(os.Stdout))
+		if err != nil {
+			return err
+		}
+
 		return clusters.DeleteClusters(clusters.DeleteClustersParams{
-			RepositoryURL: clustersDeleteCmdFlags.RepositoryURL,
-			HeadBranch:    clustersDeleteCmdFlags.HeadBranch,
-			BaseBranch:    clustersDeleteCmdFlags.BaseBranch,
-			Title:         clustersDeleteCmdFlags.Title,
-			Description:   clustersDeleteCmdFlags.Description,
-			ClustersNames: args,
-			CommitMessage: clustersDeleteCmdFlags.CommitMessage,
+			GitProviderToken: token,
+			RepositoryURL:    flags.RepositoryURL,
+			HeadBranch:       flags.HeadBranch,
+			BaseBranch:       flags.BaseBranch,
+			Title:            flags.Title,
+			Description:      flags.Description,
+			ClustersNames:    args,
+			CommitMessage:    flags.CommitMessage,
 		}, r, os.Stdout)
 	}
 }

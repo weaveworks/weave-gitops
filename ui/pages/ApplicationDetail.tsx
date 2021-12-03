@@ -1,4 +1,3 @@
-import { CircularProgress } from "@material-ui/core";
 import _ from "lodash";
 import * as React from "react";
 import { useHistory } from "react-router-dom";
@@ -22,6 +21,7 @@ import {
   AutomationKind,
   GetApplicationResponse,
   RemoveApplicationResponse,
+  SyncApplicationResponse,
   UnstructuredObject,
 } from "../lib/api/applications/applications.pb";
 import { getChildren } from "../lib/graph";
@@ -33,7 +33,9 @@ type Props = {
 };
 
 function ApplicationDetail({ className, name }: Props) {
-  const { applicationsClient, linkResolver } = React.useContext(AppContext);
+  const { applicationsClient, linkResolver, notifySuccess } = React.useContext(
+    AppContext
+  );
   const [authSuccess, setAuthSuccess] = React.useState(false);
   const [githubAuthModalOpen, setGithubAuthModalOpen] = React.useState(false);
   const [removeAppModalOpen, setRemoveAppModalOpen] = React.useState(false);
@@ -41,8 +43,18 @@ function ApplicationDetail({ className, name }: Props) {
     UnstructuredObject[]
   >([]);
   const [res, loading, error, req] = useRequestState<GetApplicationResponse>();
-  const [removeRes, removeLoading, removeError, removeRequest] =
-    useRequestState<RemoveApplicationResponse>();
+  const [
+    removeRes,
+    removeLoading,
+    removeError,
+    removeRequest,
+  ] = useRequestState<RemoveApplicationResponse>();
+  const [
+    syncRes,
+    syncLoading,
+    syncError,
+    syncRequest,
+  ] = useRequestState<SyncApplicationResponse>();
   //for redirects
   const history = useHistory();
 
@@ -71,6 +83,12 @@ function ApplicationDetail({ className, name }: Props) {
     history.push(linkResolver(PageRoute.Applications));
   }, [removeRes]);
 
+  React.useEffect(() => {
+    if (syncRes) {
+      notifySuccess("App Sync Successful");
+    }
+  }, [syncRes]);
+
   if (error) {
     return (
       <ErrorPage
@@ -94,24 +112,42 @@ function ApplicationDetail({ className, name }: Props) {
       title={name}
       className={className}
       topRight={
-        <Button
-          color="secondary"
-          variant="contained"
-          onClick={() => setRemoveAppModalOpen(true)}
-        >
-          Remove App
-        </Button>
+        <Flex align>
+          <Button
+            variant="contained"
+            loading={syncLoading}
+            onClick={() => {
+              syncRequest(
+                applicationsClient.SyncApplication({
+                  name: application.name,
+                  namespace: application.namespace,
+                })
+              );
+            }}
+          >
+            Sync App
+          </Button>
+          <Spacer padding="small" />
+          <Button
+            color="secondary"
+            variant="contained"
+            onClick={() => setRemoveAppModalOpen(true)}
+          >
+            Remove App
+          </Button>
+        </Flex>
       }
     >
-      {authSuccess && (
-        <Alert severity="success" message="Authentication Successful" />
-      )}
-      {error && (
+      {syncError ? (
         <Alert
           severity="error"
-          title="Error fetching Application"
-          message={error.message}
+          title="Error syncing Application"
+          message={syncError.message}
         />
+      ) : (
+        authSuccess && (
+          <Alert severity="success" message="Authentication Successful" />
+        )
       )}
       <KeyValueTable
         columns={4}
@@ -201,6 +237,7 @@ function ApplicationDetail({ className, name }: Props) {
                 <Button
                   color="secondary"
                   variant="contained"
+                  loading={removeLoading}
                   onClick={() =>
                     removeRequest(
                       applicationsClient.RemoveApplication({
@@ -212,11 +249,7 @@ function ApplicationDetail({ className, name }: Props) {
                     )
                   }
                 >
-                  {removeLoading ? (
-                    <CircularProgress color="inherit" size="75%" />
-                  ) : (
-                    `Delete ${application.name}`
-                  )}
+                  Delete {application.name}
                 </Button>
               </Spacer>
             </Flex>

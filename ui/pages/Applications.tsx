@@ -36,23 +36,13 @@ function Applications({ className }: Props) {
         <TitleBar>
           <h2>Installed GitOps Applications</h2>
         </TitleBar>
-      </Flex>
-      <ActionBar>
-        <Link to={PageRoute.ApplicationAdd}>
-          <AppButton variant="outlined" color="primary" type="button">
-            Add a new app <Icon type={IconType.Add} size="base" />
-          </AppButton>
+        <Link to={PageRoute.ApplicationAdd} className="title-bar-button">
+          <Button variant="contained" type="button">
+            Add Application
+          </Button>
         </Link>
-        <AppButton variant="outlined" color="primary" type="button">
-          Install a new Profile <Icon type={IconType.Add} size="base" />
-        </AppButton>
-        <AppButton variant="outlined" color="secondary" type="button">
-          Create a PR to Delete App{" "}
-          <Icon type={IconType.DeleteForever} size="base" />
-        </AppButton>
-      </ActionBar>
+      </Flex>
       <DataTable
-        checks
         sortFields={["Name", "Type", "Namespace"]}
         fields={[
           {

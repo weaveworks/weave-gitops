@@ -4,15 +4,27 @@ import (
 	"github.com/sclevine/agouti"
 )
 
-type DashboardWebDriver struct {
-	LogoImage      *agouti.Selection
-	ApplicationTab *agouti.Selection
+type DashboardPageElements struct {
+	LogoImage          *agouti.Selection
+	ApplicationsHeader *agouti.Selection
+	AddAppButton       *agouti.Selection
 }
 
-func Dashboard(webDriver *agouti.Page) DashboardWebDriver {
-	dashboard := DashboardWebDriver{
-		LogoImage:      webDriver.FindByXPath(`//*[@id="app"]/div//img`),
-		ApplicationTab: webDriver.FindByXPath(`//*[@id="app"]//div/a/span/span[1]`)}
+type AppListElements struct {
+	AppList *agouti.Selection
+}
 
-	return dashboard
+func GetDashboardPageElements(webDriver *agouti.Page) *DashboardPageElements {
+	dashboard := DashboardPageElements{
+		LogoImage:          webDriver.FindByXPath(`//*[@id="app"]/div//img`),
+		ApplicationsHeader: webDriver.FindByXPath(`//*[@id="app"]//div/h2[text()="Applications"]`),
+		AddAppButton:       webDriver.FindByXPath(`//*[@id="app"]//button[@span=(text()="Add Application")]`)}
+
+	return &dashboard
+}
+
+func GetAppListElements(webDriver *agouti.Page, appName string) *AppListElements {
+	appList := AppListElements{
+		AppList: webDriver.FindByXPath(`//*[@id="app"]//tbody/tr/td/span/a[contains(@href,'` + appName + `')]`)}
+	return &appList
 }

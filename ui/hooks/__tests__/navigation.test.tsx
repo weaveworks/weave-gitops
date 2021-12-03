@@ -22,7 +22,7 @@ describe("useNavigation", () => {
       return <p data-testid={id}>{currentPage}</p>;
     };
 
-    render(withContext(TestComponent, `/${myPage}`));
+    render(withContext(TestComponent, `/${myPage}`, {}));
 
     expect(screen.getByTestId(id).textContent).toEqual(myPage);
   });

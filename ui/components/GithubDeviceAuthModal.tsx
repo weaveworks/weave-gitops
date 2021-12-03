@@ -2,8 +2,10 @@ import { CircularProgress } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
 import useAuth from "../hooks/auth";
-import { GetGithubDeviceCodeResponse } from "../lib/api/applications/applications.pb";
-import { GitProviderName } from "../lib/types";
+import {
+  GetGithubDeviceCodeResponse,
+  GitProvider,
+} from "../lib/api/applications/applications.pb";
 import Alert from "./Alert";
 import Button from "./Button";
 import Flex from "./Flex";
@@ -55,11 +57,11 @@ const ModalContent = styled(({ codeRes, onSuccess, onError, className }) => {
       </Pad>
       <Pad wide center>
         <a target="_blank" href={codeRes.validationURI}>
-          <Button type="button" variant="contained" color="primary">
-            <Flex align>
-              Authorize Github Access{" "}
-              <Icon size="base" type={IconType.ExternalTab} />
-            </Flex>
+          <Button
+            type="button"
+            endIcon={<Icon size="base" type={IconType.ExternalTab} />}
+          >
+            Authorize Github Access
           </Button>
         </a>
       </Pad>
@@ -82,8 +84,9 @@ function GithubDeviceAuthModal({
   repoName,
   onSuccess,
 }: Props) {
-  const [codeRes, setCodeRes] =
-    React.useState<GetGithubDeviceCodeResponse>(null);
+  const [codeRes, setCodeRes] = React.useState<GetGithubDeviceCodeResponse>(
+    null
+  );
   const { getGithubDeviceCode, storeProviderToken } = useAuth();
   const [codeLoading, setCodeLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
@@ -123,7 +126,7 @@ function GithubDeviceAuthModal({
         ) : (
           <ModalContent
             onSuccess={(token) => {
-              storeProviderToken(GitProviderName.GitHub, token);
+              storeProviderToken(GitProvider.GitHub, token);
               onSuccess(token);
               onClose();
             }}

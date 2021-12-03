@@ -42,11 +42,9 @@ function DirectedGraph<T>({
 
     graph
       .setGraph({
-        nodesep: 70,
+        nodesep: 50,
         ranksep: 50,
         rankdir: "LR",
-        marginx: 20,
-        marginy: 20,
       })
       .setDefaultEdgeLabel(() => {
         return {};
@@ -57,8 +55,8 @@ function DirectedGraph<T>({
         label: n.label(n.data),
         labelType,
         shape: labelShape,
-        width: 100,
-        height: 100,
+        width: 150,
+        height: 150,
         labelClass: "foo",
       });
     });

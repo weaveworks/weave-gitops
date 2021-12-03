@@ -1,14 +1,18 @@
 package clusters
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
+	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/capi"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 )
 
 type clusterCommandFlags struct {
@@ -96,16 +100,31 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 			return capi.RenderTemplateWithParameters(flags.Template, vals, creds, r, os.Stdout)
 		}
 
+		if flags.RepositoryURL == "" {
+			return cmderrors.ErrNoURL
+		}
+
+		url, err := gitproviders.NewRepoURL(flags.RepositoryURL)
+		if err != nil {
+			return fmt.Errorf("cannot parse url: %w", err)
+		}
+
+		token, err := internal.GetToken(url, os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, internal.NewCLILogger(os.Stdout))
+		if err != nil {
+			return err
+		}
+
 		params := capi.CreatePullRequestFromTemplateParams{
-			TemplateName:    flags.Template,
-			ParameterValues: vals,
-			RepositoryURL:   flags.RepositoryURL,
-			HeadBranch:      flags.HeadBranch,
-			BaseBranch:      flags.BaseBranch,
-			Title:           flags.Title,
-			Description:     flags.Description,
-			CommitMessage:   flags.CommitMessage,
-			Credentials:     creds,
+			GitProviderToken: token,
+			TemplateName:     flags.Template,
+			ParameterValues:  vals,
+			RepositoryURL:    flags.RepositoryURL,
+			HeadBranch:       flags.HeadBranch,
+			BaseBranch:       flags.BaseBranch,
+			Title:            flags.Title,
+			Description:      flags.Description,
+			CommitMessage:    flags.CommitMessage,
+			Credentials:      creds,
 		}
 
 		return capi.CreatePullRequestFromTemplate(params, r, os.Stdout)

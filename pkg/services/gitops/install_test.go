@@ -3,6 +3,9 @@ package gitops_test
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -13,10 +16,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	log "github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
-	"io/ioutil"
-	"os"
 )
 
 var (
@@ -44,7 +45,7 @@ var _ = Describe("Install", func() {
 		gitClient := git.New(nil, wrapper.NewGoGit())
 		Expect(gitClient.Init(dir, "https://github.com/github/gitignore", "master")).To(BeTrue())
 
-		gitopsSrv = gitops.New(log.NewCLILogger(os.Stderr), fluxClient, kubeClient)
+		gitopsSrv = gitops.New(&loggerfakes.FakeLogger{}, fluxClient, kubeClient)
 
 		installParams = gitops.InstallParams{
 			Namespace: wego.DefaultNamespace,
@@ -88,26 +89,25 @@ var _ = Describe("Install", func() {
 		Expect(appCRD).To(ContainSubstring("kind: App"))
 		Expect(namespace).To(Equal(wego.DefaultNamespace))
 
-		_, serviceAccount, namespace := kubeClient.ApplyArgsForCall(1)
-		Expect(serviceAccount).To(ContainSubstring("kind: ServiceAccount"))
+		_, deployment, namespace := kubeClient.ApplyArgsForCall(1)
+		Expect(string(deployment)).To(ContainSubstring("kind: Deployment"))
 		Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 		_, roleBinding, namespace := kubeClient.ApplyArgsForCall(2)
-		Expect(roleBinding).To(ContainSubstring("kind: RoleBinding"))
+		Expect(string(roleBinding)).To(ContainSubstring("kind: RoleBinding"))
 		Expect(namespace).To(Equal(wego.DefaultNamespace))
 
 		_, role, namespace := kubeClient.ApplyArgsForCall(3)
-		Expect(role).To(ContainSubstring("kind: Role"))
+		Expect(string(role)).To(ContainSubstring("kind: Role"))
 		Expect(namespace).To(Equal(wego.DefaultNamespace))
 
-		_, service, namespace := kubeClient.ApplyArgsForCall(4)
-		Expect(service).To(ContainSubstring("kind: Service"))
+		_, serviceAccount, namespace := kubeClient.ApplyArgsForCall(4)
+		Expect(string(serviceAccount)).To(ContainSubstring("kind: ServiceAccount"))
 		Expect(namespace).To(Equal(wego.DefaultNamespace))
 
-		_, deployment, namespace := kubeClient.ApplyArgsForCall(5)
-		Expect(deployment).To(ContainSubstring("kind: Deployment"))
+		_, service, namespace := kubeClient.ApplyArgsForCall(5)
+		Expect(string(service)).To(ContainSubstring("kind: Service"))
 		Expect(namespace).To(Equal(wego.DefaultNamespace))
-
 	})
 
 	Context("when dry-run", func() {

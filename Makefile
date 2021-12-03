@@ -9,7 +9,7 @@ GIT_COMMIT=$(shell git log -n1 --pretty='%h')
 CURRENT_DIR=$(shell pwd)
 FORMAT_LIST=$(shell gofmt -l .)
 FLUX_VERSION=$(shell $(CURRENT_DIR)/tools/bin/stoml $(CURRENT_DIR)/tools/dependencies.toml flux.version)
-LDFLAGS = "-X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION)"
+LDFLAGS = "-X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(BUILD_TIME) -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANCH) -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_COMMIT) -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION) -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION)"
 
 KUBEBUILDER_ASSETS ?= "$(CURRENT_DIR)/tools/bin/envtest"
 
@@ -61,12 +61,14 @@ docker: ## Build wego-app docker image
 # Clean up images and binaries
 clean: ## Clean up images and binaries
 	rm -f bin/gitops
-	rm -rf pkg/flux/bin/
 	rm -rf cmd/gitops/ui/run/dist
 	rm -rf coverage
 	rm -rf node_modules
 	rm -f .deps
 	rm -rf dist
+	# There is an important (tracked) file in pkg/flux/bin so don't just nuke the whole folder
+	# -x: remove gitignored files too, -d: remove directories too
+	git clean -x -d --force pkg/flux/bin/
 
 fmt: ## Run go fmt against code
 	go fmt ./...
@@ -93,7 +95,7 @@ check-format: ## Check go format
 	if [ ! -z "$(FORMAT_LIST)" ] ; then echo invalid format at: ${FORMAT_LIST} && exit 1; fi
 
 proto-deps: ## Update protobuf dependencies
-	buf beta mod update
+	buf mod update
 
 proto: ## Generate protobuf files
 	buf generate

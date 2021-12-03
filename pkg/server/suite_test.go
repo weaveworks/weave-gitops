@@ -53,9 +53,11 @@ var scheme *apiruntime.Scheme
 var k kube.Kube
 var ghAuthClient *authfakes.FakeGithubAuthClient
 var gitProvider *gitprovidersfakes.FakeGitProvider
+var glAuthClient *authfakes.FakeGitlabAuthClient
 var configGit *gitfakes.FakeGit
 var env *testutils.K8sTestEnv
 var fakeFactory *servicesfakes.FakeFactory
+var jwtClient auth.JWTClient
 
 func bufDialer(context.Context, string) (net.Conn, error) {
 	return lis.Dial()
@@ -101,11 +103,15 @@ var _ = BeforeEach(func() {
 	fakeFactory = &servicesfakes.FakeFactory{}
 	configGit = &gitfakes.FakeGit{}
 
-	fakeFactory.GetAppServiceReturns(&app.App{
+	fluxClient := flux.New(osysClient, &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}})
+	logger := &loggerfakes.FakeLogger{}
+
+	fakeFactory.GetAppServiceReturns(&app.AppSvc{
 		Context: context.Background(),
-		Flux:    flux.New(osysClient, &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}}),
+		Flux:    fluxClient,
 		Kube:    k,
-		Logger:  &loggerfakes.FakeLogger{},
+		Logger:  logger,
+		Osys:    osysClient,
 	}, nil)
 
 	fakeFactory.GetGitClientsReturns(configGit, gitProvider, nil)
@@ -115,13 +121,16 @@ var _ = BeforeEach(func() {
 	}
 
 	ghAuthClient = &authfakes.FakeGithubAuthClient{}
+	glAuthClient = &authfakes.FakeGitlabAuthClient{}
+	jwtClient = auth.NewJwtClient(secretKey)
 
 	cfg := ApplicationsConfig{
 		Factory:          fakeFactory,
-		JwtClient:        auth.NewJwtClient(secretKey),
+		JwtClient:        jwtClient,
 		KubeClient:       k8sClient,
 		GithubAuthClient: ghAuthClient,
 		Fetcher:          applicationv2.NewFetcher(k8sClient),
+		GitlabAuthClient: glAuthClient,
 	}
 	apps = NewApplicationsServer(&cfg)
 	pb.RegisterApplicationsServer(s, apps)

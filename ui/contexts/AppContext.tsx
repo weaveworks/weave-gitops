@@ -1,8 +1,14 @@
 import _ from "lodash";
 import * as React from "react";
 import { Applications } from "../lib/api/applications/applications.pb";
-import { GitProviderName } from "../lib/types";
-import { getProviderToken, storeProviderToken } from "../lib/utils";
+import {
+  clearCallbackState,
+  getCallbackState,
+  getProviderToken,
+  storeCallbackState,
+  storeProviderToken,
+} from "../lib/storage";
+import { notifySuccess } from "../lib/utils";
 
 type AppState = {
   error: null | { fatal: boolean; message: string; detail?: string };
@@ -26,17 +32,23 @@ export type AppContextType = {
   linkResolver: LinkResolver;
   getProviderToken: typeof getProviderToken;
   storeProviderToken: typeof storeProviderToken;
+  getCallbackState: typeof getCallbackState;
+  storeCallbackState: typeof storeCallbackState;
+  clearCallbackState: typeof clearCallbackState;
+  navigate: (url: string) => void;
+  notifySuccess: typeof notifySuccess;
 };
 
 export const AppContext = React.createContext<AppContextType>(
   null as AppContextType
 );
 
-export interface Props {
-  applicationsClient: typeof Applications;
+export interface AppProps {
+  applicationsClient?: typeof Applications;
   linkResolver?: LinkResolver;
   children?: any;
   renderFooter?: boolean;
+  notifySuccess?: typeof notifySuccess;
 }
 
 // Due to the way the grpc-gateway typescript client is generated,
@@ -45,6 +57,7 @@ export interface Props {
 // This saves us from having to rememeber to pass it as an arg in every request.
 function wrapClient<T>(client: any, tokenGetter: () => string): T {
   const wrapped = {};
+  const gitProviderTokenHeader = "Git-Provider-Token";
 
   _.each(client, (func, name) => {
     wrapped[name] = (payload, options: RequestInit = {}) => {
@@ -52,7 +65,7 @@ function wrapClient<T>(client: any, tokenGetter: () => string): T {
         ...options,
         headers: new Headers({
           ...(options.headers || {}),
-          Authorization: `token ${tokenGetter()}`,
+          [gitProviderTokenHeader]: `token ${tokenGetter()}`,
         }),
       };
 
@@ -66,7 +79,7 @@ function wrapClient<T>(client: any, tokenGetter: () => string): T {
 export default function AppContextProvider({
   applicationsClient,
   ...props
-}: Props) {
+}: AppProps) {
   const [appState, setAppState] = React.useState({
     error: null,
   });
@@ -88,16 +101,24 @@ export default function AppContextProvider({
   };
 
   const value: AppContextType = {
-    applicationsClient: wrapClient(applicationsClient, () =>
-      getProviderToken(GitProviderName.GitHub)
-    ),
+    applicationsClient,
     doAsyncError,
     appState,
     linkResolver: props.linkResolver || defaultLinkResolver,
     getProviderToken,
     storeProviderToken,
+    storeCallbackState,
+    getCallbackState,
+    clearCallbackState,
+    notifySuccess: props.notifySuccess || notifySuccess,
     settings: {
       renderFooter: props.renderFooter,
+    },
+    navigate: (url) => {
+      if (process.env.NODE_ENV === "test") {
+        return;
+      }
+      window.location.href = url;
     },
   };
 

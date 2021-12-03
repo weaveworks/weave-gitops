@@ -50,6 +50,18 @@ type ApplicationsClient interface {
 	// to do Git Provider operations.
 	GetGithubAuthStatus(ctx context.Context, in *GetGithubAuthStatusRequest, opts ...grpc.CallOption) (*GetGithubAuthStatusResponse, error)
 	//
+	// GetGitlabAuthURL returns the URL to initiate a GitLab OAuth PKCE flow.
+	// The user must browse to the returned URL to authorize the OAuth callback to the GitOps UI.
+	// See the GitLab OAuth docs for more more information:
+	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
+	GetGitlabAuthURL(ctx context.Context, in *GetGitlabAuthURLRequest, opts ...grpc.CallOption) (*GetGitlabAuthURLResponse, error)
+	//
+	// AuthorizeGitlab exchanges a GitLab code obtained via OAuth callback.
+	// The returned token is useable for authentication with the GitOps server only.
+	// See the GitLab OAuth docs for more more information:
+	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
+	AuthorizeGitlab(ctx context.Context, in *AuthorizeGitlabRequest, opts ...grpc.CallOption) (*AuthorizeGitlabResponse, error)
+	//
 	// AddApplication adds an Application to a cluster via GitOps.
 	AddApplication(ctx context.Context, in *AddApplicationRequest, opts ...grpc.CallOption) (*AddApplicationResponse, error)
 	//
@@ -58,6 +70,9 @@ type ApplicationsClient interface {
 	//
 	// SyncApplication triggers the Application reconciliation loop.
 	SyncApplication(ctx context.Context, in *SyncApplicationRequest, opts ...grpc.CallOption) (*SyncApplicationResponse, error)
+	//
+	// ParseRepoURL returns structured data about a git repository URL
+	ParseRepoURL(ctx context.Context, in *ParseRepoURLRequest, opts ...grpc.CallOption) (*ParseRepoURLResponse, error)
 }
 
 type applicationsClient struct {
@@ -140,6 +155,24 @@ func (c *applicationsClient) GetGithubAuthStatus(ctx context.Context, in *GetGit
 	return out, nil
 }
 
+func (c *applicationsClient) GetGitlabAuthURL(ctx context.Context, in *GetGitlabAuthURLRequest, opts ...grpc.CallOption) (*GetGitlabAuthURLResponse, error) {
+	out := new(GetGitlabAuthURLResponse)
+	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/GetGitlabAuthURL", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationsClient) AuthorizeGitlab(ctx context.Context, in *AuthorizeGitlabRequest, opts ...grpc.CallOption) (*AuthorizeGitlabResponse, error) {
+	out := new(AuthorizeGitlabResponse)
+	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/AuthorizeGitlab", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *applicationsClient) AddApplication(ctx context.Context, in *AddApplicationRequest, opts ...grpc.CallOption) (*AddApplicationResponse, error) {
 	out := new(AddApplicationResponse)
 	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/AddApplication", in, out, opts...)
@@ -161,6 +194,15 @@ func (c *applicationsClient) RemoveApplication(ctx context.Context, in *RemoveAp
 func (c *applicationsClient) SyncApplication(ctx context.Context, in *SyncApplicationRequest, opts ...grpc.CallOption) (*SyncApplicationResponse, error) {
 	out := new(SyncApplicationResponse)
 	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/SyncApplication", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *applicationsClient) ParseRepoURL(ctx context.Context, in *ParseRepoURLRequest, opts ...grpc.CallOption) (*ParseRepoURLResponse, error) {
+	out := new(ParseRepoURLResponse)
+	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/ParseRepoURL", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -203,6 +245,18 @@ type ApplicationsServer interface {
 	// to do Git Provider operations.
 	GetGithubAuthStatus(context.Context, *GetGithubAuthStatusRequest) (*GetGithubAuthStatusResponse, error)
 	//
+	// GetGitlabAuthURL returns the URL to initiate a GitLab OAuth PKCE flow.
+	// The user must browse to the returned URL to authorize the OAuth callback to the GitOps UI.
+	// See the GitLab OAuth docs for more more information:
+	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
+	GetGitlabAuthURL(context.Context, *GetGitlabAuthURLRequest) (*GetGitlabAuthURLResponse, error)
+	//
+	// AuthorizeGitlab exchanges a GitLab code obtained via OAuth callback.
+	// The returned token is useable for authentication with the GitOps server only.
+	// See the GitLab OAuth docs for more more information:
+	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
+	AuthorizeGitlab(context.Context, *AuthorizeGitlabRequest) (*AuthorizeGitlabResponse, error)
+	//
 	// AddApplication adds an Application to a cluster via GitOps.
 	AddApplication(context.Context, *AddApplicationRequest) (*AddApplicationResponse, error)
 	//
@@ -211,6 +265,9 @@ type ApplicationsServer interface {
 	//
 	// SyncApplication triggers the Application reconciliation loop.
 	SyncApplication(context.Context, *SyncApplicationRequest) (*SyncApplicationResponse, error)
+	//
+	// ParseRepoURL returns structured data about a git repository URL
+	ParseRepoURL(context.Context, *ParseRepoURLRequest) (*ParseRepoURLResponse, error)
 	mustEmbedUnimplementedApplicationsServer()
 }
 
@@ -242,6 +299,12 @@ func (UnimplementedApplicationsServer) GetGithubDeviceCode(context.Context, *Get
 func (UnimplementedApplicationsServer) GetGithubAuthStatus(context.Context, *GetGithubAuthStatusRequest) (*GetGithubAuthStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGithubAuthStatus not implemented")
 }
+func (UnimplementedApplicationsServer) GetGitlabAuthURL(context.Context, *GetGitlabAuthURLRequest) (*GetGitlabAuthURLResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGitlabAuthURL not implemented")
+}
+func (UnimplementedApplicationsServer) AuthorizeGitlab(context.Context, *AuthorizeGitlabRequest) (*AuthorizeGitlabResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthorizeGitlab not implemented")
+}
 func (UnimplementedApplicationsServer) AddApplication(context.Context, *AddApplicationRequest) (*AddApplicationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddApplication not implemented")
 }
@@ -250,6 +313,9 @@ func (UnimplementedApplicationsServer) RemoveApplication(context.Context, *Remov
 }
 func (UnimplementedApplicationsServer) SyncApplication(context.Context, *SyncApplicationRequest) (*SyncApplicationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SyncApplication not implemented")
+}
+func (UnimplementedApplicationsServer) ParseRepoURL(context.Context, *ParseRepoURLRequest) (*ParseRepoURLResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ParseRepoURL not implemented")
 }
 func (UnimplementedApplicationsServer) mustEmbedUnimplementedApplicationsServer() {}
 
@@ -408,6 +474,42 @@ func _Applications_GetGithubAuthStatus_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Applications_GetGitlabAuthURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGitlabAuthURLRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationsServer).GetGitlabAuthURL(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wego_server.v1.Applications/GetGitlabAuthURL",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationsServer).GetGitlabAuthURL(ctx, req.(*GetGitlabAuthURLRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Applications_AuthorizeGitlab_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthorizeGitlabRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationsServer).AuthorizeGitlab(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wego_server.v1.Applications/AuthorizeGitlab",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationsServer).AuthorizeGitlab(ctx, req.(*AuthorizeGitlabRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Applications_AddApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddApplicationRequest)
 	if err := dec(in); err != nil {
@@ -462,6 +564,24 @@ func _Applications_SyncApplication_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Applications_ParseRepoURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ParseRepoURLRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationsServer).ParseRepoURL(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wego_server.v1.Applications/ParseRepoURL",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationsServer).ParseRepoURL(ctx, req.(*ParseRepoURLRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Applications_ServiceDesc is the grpc.ServiceDesc for Applications service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -502,6 +622,14 @@ var Applications_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Applications_GetGithubAuthStatus_Handler,
 		},
 		{
+			MethodName: "GetGitlabAuthURL",
+			Handler:    _Applications_GetGitlabAuthURL_Handler,
+		},
+		{
+			MethodName: "AuthorizeGitlab",
+			Handler:    _Applications_AuthorizeGitlab_Handler,
+		},
+		{
 			MethodName: "AddApplication",
 			Handler:    _Applications_AddApplication_Handler,
 		},
@@ -512,6 +640,10 @@ var Applications_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SyncApplication",
 			Handler:    _Applications_SyncApplication_Handler,
+		},
+		{
+			MethodName: "ParseRepoURL",
+			Handler:    _Applications_ParseRepoURL_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

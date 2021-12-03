@@ -37,7 +37,7 @@ type ghAuth struct {
 	http *http.Client
 }
 
-func NewGithubAuthProvider(client *http.Client) ghAuth {
+func NewGithubAuthClient(client *http.Client) GithubAuthClient {
 	return ghAuth{http: client}
 }
 

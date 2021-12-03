@@ -6,25 +6,26 @@ import {
   TableHead,
   TableRow,
 } from "@material-ui/core";
-import Checkbox from "@material-ui/core/Checkbox";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
-import Button from "./Button";
-import Flex from "./Flex";
-import Icon, { IconType } from "./Icon";
 
-type Props = {
+/** DataTable Properties  */
+export interface Props {
+  /** CSS MUI Overrides or other styling. */
   className?: string;
+  /** A list of objects with two fields: `label`, which is a string representing the column header, and `value`, which can be a string, or a function that extracts the data needed to fill the table cell. */
   fields: {
     label: string;
     value: string | ((k: any) => string | JSX.Element);
   }[];
+  /** A list of data that will be iterated through to create the columns described in `fields`. */
   rows: any[];
-  checks?: boolean;
+  /** A list of strings representing the sortable columns of the table, passed into lodash's `_.sortBy`. */
   sortFields: string[];
+  /** Indicates whether to reverse the sorted array. */
   reverseSort?: boolean;
-};
+}
 
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
   font-style: italic;
@@ -33,55 +34,14 @@ const EmptyRow = styled(TableRow)<{ colSpan: number }>`
   }
 `;
 
-const TableButton = styled(Button)`
-  &.MuiButton-root {
-    padding: 0px 4px 0px 0px;
-    text-transform: none;
-  }
-  p {
-    margin: 0px;
-  }
-  &.MuiButton-text {
-    min-width: 0px;
-  }
-  &.bold {
-    font-weight: 600;
-  }
-`;
-
-function DataTable({ className, checks, fields, rows, sortFields }: Props) {
-  const [sort, setSort] = React.useState(sortFields[0]);
-  const [reverseSort, setReverseSort] = React.useState(false);
-
-  type labelProps = { label: string };
-  function SortableLabel({ label }: labelProps) {
-    return (
-      <Flex align>
-        <TableButton
-          onClick={() => {
-            setSort(label);
-            setReverseSort(false);
-          }}
-          className={`${sort === label && "bold"}`}
-        >
-          <p>{label}</p>
-        </TableButton>
-        {sort === label && (
-          <TableButton
-            onClick={() =>
-              reverseSort ? setReverseSort(false) : setReverseSort(true)
-            }
-          >
-            <Icon
-              type={IconType.ArrowDownward}
-              size="small"
-              className={reverseSort ? "upward" : "downward"}
-            />
-          </TableButton>
-        )}
-      </Flex>
-    );
-  }
+/** Form DataTable */
+function UnstyledDataTable({
+  className,
+  fields,
+  rows,
+  sortFields,
+  reverseSort,
+}: Props) {
   const sorted = _.sortBy(rows, sortFields);
 
   if (reverseSort) {
@@ -90,11 +50,6 @@ function DataTable({ className, checks, fields, rows, sortFields }: Props) {
 
   const r = _.map(sorted, (r, i) => (
     <TableRow key={i}>
-      {checks && (
-        <TableCell key={-1}>
-          <Checkbox />
-        </TableCell>
-      )}
       {_.map(fields, (f, i) => (
         <TableCell key={i}>
           {typeof f.value === "function" ? f.value(r) : r[f.value]}
@@ -109,19 +64,8 @@ function DataTable({ className, checks, fields, rows, sortFields }: Props) {
         <Table aria-label="simple table">
           <TableHead>
             <TableRow>
-              {checks && (
-                <TableCell key={-1}>
-                  <Checkbox />
-                </TableCell>
-              )}
               {_.map(fields, (f, i) => (
-                <TableCell key={i}>
-                  {sortFields.includes(f.label) ? (
-                    <SortableLabel label={f.label} />
-                  ) : (
-                    f.label
-                  )}
-                </TableCell>
+                <TableCell key={i}>{f.label}</TableCell>
               ))}
             </TableRow>
           </TableHead>
@@ -142,4 +86,10 @@ function DataTable({ className, checks, fields, rows, sortFields }: Props) {
   );
 }
 
-export default styled(DataTable)``;
+export const DataTable = styled(UnstyledDataTable)`
+  th {
+    font-weight: bold;
+  }
+`;
+
+export default DataTable;

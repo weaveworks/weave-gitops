@@ -13,6 +13,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/models"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 )
@@ -76,7 +78,7 @@ func (f *defaultFactory) GetAppService(ctx context.Context) (app.AppService, err
 		return nil, fmt.Errorf("error initializing clients: %w", err)
 	}
 
-	return app.New(ctx, f.log, f.fluxClient, kubeClient), nil
+	return app.New(ctx, f.log, f.fluxClient, kubeClient, osys.New()), nil
 }
 
 func (f *defaultFactory) GetKubeService() (kube.Kube, error) {
@@ -102,7 +104,7 @@ func (f *defaultFactory) GetKubeService() (kube.Kube, error) {
 }
 
 func (f *defaultFactory) GetGitClients(ctx context.Context, gpClient gitproviders.Client, params GitConfigParams) (git.Git, gitproviders.GitProvider, error) {
-	isExternalConfig := app.IsExternalConfigUrl(params.ConfigURL)
+	isExternalConfig := models.IsExternalConfigUrl(params.ConfigURL)
 
 	var providerUrl string
 
@@ -139,7 +141,7 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, gpClient gitprovider
 
 	if !params.IsHelmRepository {
 		// We need to do this even if we have an external config to set up the deploy key for the app repo
-		appRepoClient, appRepoErr := authSvc.CreateGitClient(ctx, normalizedUrl, targetName, params.Namespace)
+		appRepoClient, appRepoErr := authSvc.CreateGitClient(ctx, normalizedUrl, targetName, params.Namespace, params.DryRun)
 		if appRepoErr != nil {
 			return nil, nil, appRepoErr
 		}
@@ -153,7 +155,7 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, gpClient gitprovider
 			return nil, nil, fmt.Errorf("error normalizing url: %w", err)
 		}
 
-		configRepoClient, configRepoErr := authSvc.CreateGitClient(ctx, normalizedConfigUrl, targetName, params.Namespace)
+		configRepoClient, configRepoErr := authSvc.CreateGitClient(ctx, normalizedConfigUrl, targetName, params.Namespace, params.DryRun)
 		if configRepoErr != nil {
 			return nil, nil, configRepoErr
 		}

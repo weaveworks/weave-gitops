@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -74,17 +75,21 @@ type contextVals struct {
 
 type key int
 
-const tokenKey key = iota
-const GRPCAuthMetadataKey = "grpc-auth"
+const (
+	tokenKey               key = iota
+	GRPCAuthMetadataKey        = "grpc-auth"
+	GitProviderTokenHeader     = "Git-Provider-Token"
+)
 
 // Injects the token into the request context to be retrieved later.
 // Use the ExtractToken func inside the server handler where appropriate.
 func WithProviderToken(jwtClient auth.JWTClient, h http.Handler, log logr.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tokenStr := r.Header.Get("Authorization")
+		tokenStr := r.Header.Get(GitProviderTokenHeader)
 		tokenSlice := strings.Split(tokenStr, "token ")
 
 		if len(tokenSlice) < 2 {
+			fmt.Println(tokenSlice)
 			log.Info("invalid token format")
 			// No token specified. Nothing to be done.
 			// We do NOT return 400 here because there may be some 'unauthenticated' routes (ie /login)
@@ -97,7 +102,7 @@ func WithProviderToken(jwtClient auth.JWTClient, h http.Handler, log logr.Logger
 
 		claims, err := jwtClient.VerifyJWT(token)
 		if err != nil {
-			log.Info("could not parse claims")
+			log.Info("could not parse claims: " + err.Error())
 			// Certain routes do not require a token, so pass the request through.
 			// If the route requires a token and it isn't present,
 			// the next handler will error and return that to the user.

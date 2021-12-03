@@ -18,14 +18,14 @@ var _ = Describe("Weave GitOps Version Test", func() {
 		})
 	})
 
-	It("SmokeTest - Verify that command gitops version prints the version information", func() {
+	It("SmokeTestShort - Verify that command gitops version prints the version information", func() {
 
 		By("When I run the command 'gitops version'", func() {
 			session = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " version")
 		})
 
-		By("Then I should see the gitops version printed in format vm.n.n with newline character", func() {
-			Eventually(session).Should(gbytes.Say("Current Version: v[0-3].[0-9].[0-9]\n"))
+		By("Then I should see the gitops version printed with newline character", func() {
+			Eventually(session).Should(gbytes.Say("Current Version: \\S+\n"))
 		})
 
 		By("And git commit with commit id", func() {

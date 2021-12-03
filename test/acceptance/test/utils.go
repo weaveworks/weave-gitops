@@ -25,6 +25,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	"github.com/sclevine/agouti"
 	log "github.com/sirupsen/logrus"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -38,12 +39,15 @@ const EVENTUALLY_DEFAULT_TIMEOUT time.Duration = 60 * time.Second
 const TIMEOUT_TWO_MINUTES time.Duration = 120 * time.Second
 const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
 const NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
+const INSTALL_SUCCESSFUL_TIMEOUT time.Duration = 3 * time.Minute
 const INSTALL_PODS_READY_TIMEOUT time.Duration = 3 * time.Minute
 const WEGO_DEFAULT_NAMESPACE = wego.DefaultNamespace
 const WEGO_UI_URL = "http://localhost:9001"
 const SELENIUM_SERVICE_URL = "http://localhost:4444/wd/hub"
 const SCREENSHOTS_DIR string = "screenshots/"
 const DEFAULT_BRANCH_NAME = "main"
+const WEGO_DASHBOARD_TITLE string = "Weave GitOps"
+const APP_PAGE_HEADER string = "Applications"
 
 var DEFAULT_SSH_KEY_PATH string
 var GITHUB_ORG string
@@ -86,7 +90,17 @@ func FileExists(name string) bool {
 	return true
 }
 
-func getClusterName() string {
+func selectCluster(context string) {
+	_, err := exec.Command("kubectl", "config", "use-context", context).Output()
+	Expect(err).ShouldNot(HaveOccurred())
+}
+
+func deleteCluster(clusterName string) {
+	_, err := exec.Command("kind", "delete", "cluster", "--name", clusterName).Output()
+	Expect(err).ShouldNot(HaveOccurred())
+}
+
+func getClusterContext() string {
 	out, err := exec.Command("kubectl", "config", "current-context").Output()
 	Expect(err).ShouldNot(HaveOccurred())
 
@@ -158,32 +172,32 @@ func setupGitlabSSHKey(sshKeyPath string) {
 	}
 }
 
-func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool) (string, error) {
-	return ResetOrCreateClusterWithName(namespace, deleteWegoRuntime, "")
+func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool) (string, string, error) {
+	return ResetOrCreateClusterWithName(namespace, deleteWegoRuntime, "", false)
 }
 
-func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clusterName string) (string, error) {
+func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clusterName string, keepExistingClusters bool) (string, string, error) {
 	supportedProviders := []string{"kind", "kubectl"}
 	supportedK8SVersions := []string{"1.19.1", "1.20.2", "1.21.1"}
 
 	provider, found := os.LookupEnv("CLUSTER_PROVIDER")
-	if !found {
+	if keepExistingClusters || !found {
 		provider = "kind"
 	}
 
 	k8sVersion, found := os.LookupEnv("K8S_VERSION")
 	if !found {
-		k8sVersion = "1.20.2"
+		k8sVersion = "1.21.1"
 	}
 
 	if !contains(supportedProviders, provider) {
 		log.Errorf("Cluster provider %s is not supported for testing", provider)
-		return clusterName, errors.New("Unsupported provider")
+		return clusterName, "", errors.New("Unsupported provider")
 	}
 
 	if !contains(supportedK8SVersions, k8sVersion) {
 		log.Errorf("Kubernetes version %s is not supported for testing", k8sVersion)
-		return clusterName, errors.New("Unsupported kubernetes version")
+		return clusterName, "", errors.New("Unsupported kubernetes version")
 	}
 
 	//For kubectl, point to a valid cluster, we will try to reset the namespace only
@@ -205,13 +219,19 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 
 		log.Infof("Creating a kind cluster %s", clusterName)
 
-		err := runCommandPassThrough([]string{}, "./scripts/kind-cluster.sh", clusterName, "kindest/node:v"+k8sVersion)
+		var err error
+
+		if keepExistingClusters {
+			err = runCommandPassThrough([]string{}, "./scripts/kind-multi-cluster.sh", clusterName, "kindest/node:v"+k8sVersion)
+		} else {
+			err = runCommandPassThrough([]string{}, "./scripts/kind-cluster.sh", clusterName, "kindest/node:v"+k8sVersion)
+		}
 
 		if err != nil {
 			log.Infof("Failed to create kind cluster")
 			log.Fatal(err)
 
-			return clusterName, err
+			return clusterName, "", err
 		}
 	}
 
@@ -221,10 +241,10 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 
 	if err != nil {
 		log.Infof("Cluster system pods are not ready after waiting for 5 minutes, This can cause tests failures.")
-		return clusterName, err
+		return clusterName, "", err
 	}
 
-	return clusterName, nil
+	return clusterName, getClusterContext(), nil
 }
 
 func initAndCreateEmptyRepo(appRepoName string, providerName gitproviders.GitProviderName, isPrivateRepo bool, org string) string {
@@ -378,12 +398,12 @@ func VerifyControllersInCluster(namespace string) {
 	})
 }
 
-func installAndVerifyWego(wegoNamespace string) {
+func installAndVerifyWego(wegoNamespace, repoURL string) {
 	By("And I run 'gitops install' command with namespace "+wegoNamespace, func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s", WEGO_BIN_PATH, wegoNamespace))
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --app-config-url=%s", WEGO_BIN_PATH, wegoNamespace, repoURL))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, TIMEOUT_TWO_MINUTES).Should(gexec.Exit())
+		Eventually(session, INSTALL_SUCCESSFUL_TIMEOUT).Should(gexec.Exit())
 		Expect(string(session.Err.Contents())).Should(BeEmpty())
 		VerifyControllersInCluster(wegoNamespace)
 	})
@@ -635,10 +655,6 @@ func verifyPRCreated(repoAbsolutePath, appName string, providerName gitproviders
 	prs, err := or.PullRequests().List(ctx)
 	Expect(err).ShouldNot(HaveOccurred())
 
-	for _, pr := range prs {
-		fmt.Printf("PR: %#+v\n", pr.Get())
-	}
-
 	Expect(len(prs)).To(Equal(1))
 }
 
@@ -673,13 +689,33 @@ func extractOrgAndRepo(url string) (string, string) {
 }
 
 func setArtifactsDir() string {
-	path := "/tmp/wego-test"
+	path := "/tmp/gitops-test"
 
 	if os.Getenv("ARTIFACTS_BASE_DIR") == "" {
 		return path
 	}
 
 	return os.Getenv("ARTIFACTS_BASE_DIR")
+}
+
+func initializeWebDriver(os string) {
+	if os == "linux" {
+		webDriver, err = agouti.NewPage(SELENIUM_SERVICE_URL, agouti.Desired(agouti.Capabilities{
+			"chromeOptions": map[string][]string{
+				"args": {
+					"--disable-gpu",
+					"--no-sandbox",
+				}}}))
+	}
+
+	if os == "darwin" {
+		chromeDriver := agouti.ChromeDriver(agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox"}))
+		err = chromeDriver.Start()
+		Expect(err).NotTo(HaveOccurred())
+		webDriver, err = chromeDriver.NewPage()
+	}
+
+	Expect(err).NotTo(HaveOccurred(), "Error creating new page")
 }
 
 func takeScreenshot() string {
@@ -689,7 +725,9 @@ func takeScreenshot() string {
 		filepath := path.Join(setArtifactsDir(), SCREENSHOTS_DIR, name+".png")
 		_ = webDriver.Screenshot(filepath)
 
-		return filepath
+		logMsg := ("Screenshot function has been initiated; screenshot is saved in file: " + filepath + "\n")
+
+		return logMsg
 	}
 
 	return ""
