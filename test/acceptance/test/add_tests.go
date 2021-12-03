@@ -1073,7 +1073,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I should see app replicas created in the cluster", func() {
-			_ = waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIMEOUT)
+			_ = waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, TIMEOUT_TWO_MINUTES)
 			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=100s -n %s --all pods --selector='app!=wego-app'", tip1.workloadNamespace))
 			replicaOutput, _ := runCommandAndReturnStringOutput("kubectl get pods -n " + tip1.workloadNamespace + " --field-selector=status.phase=Running --no-headers=true | wc -l")
 			Expect(replicaOutput).To(ContainSubstring(strconv.Itoa(replicaSetValue)))
