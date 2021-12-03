@@ -184,6 +184,22 @@ var _ = Describe("Uninstall", func() {
 		Expect(kubeClient.DeleteCallCount()).To(Equal(len(wegoAppManifests)+1), "deletes all wego app manifests plus the app crd")
 	})
 
+	It("fails if cant fetch wego config", func() {
+		kubeClient.GetWegoConfigReturns(nil, errors.New("error"))
+
+		err := gitopsSrv.Uninstall(uninstallParams)
+		Expect(err.Error()).Should(ContainSubstring("failed getting wego config"))
+	})
+
+	It("avoid uninstalling flux when its namespace is different", func() {
+		kubeClient.GetWegoConfigReturns(&kube.WegoConfig{FluxNamespace: "flux-namespace"}, nil)
+
+		err := gitopsSrv.Uninstall(uninstallParams)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		Expect(fluxClient.UninstallCallCount()).To(Equal(0))
+	})
+
 	Context("when dry-run", func() {
 		BeforeEach(func() {
 			uninstallParams.DryRun = true

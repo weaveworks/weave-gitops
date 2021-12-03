@@ -51,7 +51,7 @@ func (g *Gitops) Uninstall(params UninstallParams) error {
 
 	wegoConfig, err := g.kube.GetWegoConfig(ctx, params.Namespace)
 	if err != nil {
-		return fmt.Errorf("failed getting wego config: %w", err)
+		return fmt.Errorf("failed getting wego config in namespace=%s: %w", params.Namespace, err)
 	}
 
 	uninstallFlux := true
