@@ -209,7 +209,7 @@ var _ = Describe("CreateHelmReleaseHelmRepository", func() {
 		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
 			return []byte("out"), nil
 		}
-		out, err := fluxClient.CreateHelmReleaseHelmRepository("my-name", "my-chart", wego.DefaultNamespace, "")
+		out, err := fluxClient.CreateHelmReleaseHelmRepository("my-name", "wego-app-my-name", "my-chart", wego.DefaultNamespace, "")
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
 
@@ -218,14 +218,14 @@ var _ = Describe("CreateHelmReleaseHelmRepository", func() {
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
 
-		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create helmrelease my-name --source HelmRepository/my-name --chart my-chart --namespace %s --interval 5m --export", wego.DefaultNamespace)))
+		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create helmrelease my-name --source HelmRepository/wego-app-my-name --chart my-chart --namespace %s --interval 5m --export", wego.DefaultNamespace)))
 	})
 
 	It("creates a helm release with a helm repository and a target namespace", func() {
 		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
 			return []byte("out"), nil
 		}
-		out, err := fluxClient.CreateHelmReleaseHelmRepository("my-name", "my-chart", wego.DefaultNamespace, "sock-shop")
+		out, err := fluxClient.CreateHelmReleaseHelmRepository("my-name", "wego-app-my-name", "my-chart", wego.DefaultNamespace, "sock-shop")
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
 
@@ -234,7 +234,7 @@ var _ = Describe("CreateHelmReleaseHelmRepository", func() {
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
 
-		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create helmrelease my-name --source HelmRepository/my-name --chart my-chart --namespace %s --interval 5m --export --target-namespace sock-shop", wego.DefaultNamespace)))
+		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create helmrelease my-name --source HelmRepository/wego-app-my-name --chart my-chart --namespace %s --interval 5m --export --target-namespace sock-shop", wego.DefaultNamespace)))
 	})
 })
 

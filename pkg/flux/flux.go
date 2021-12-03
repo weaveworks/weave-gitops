@@ -25,10 +25,10 @@ type Flux interface {
 	CreateSourceHelm(name string, url string, namespace string) ([]byte, error)
 	CreateKustomization(name string, source string, path string, namespace string) ([]byte, error)
 	CreateHelmReleaseGitRepository(name, source, path, namespace, targetNamespace string) ([]byte, error)
-	CreateHelmReleaseHelmRepository(name, chart, namespace, targetNamespace string) ([]byte, error)
+	CreateHelmReleaseHelmRepository(name, source, chart, namespace, targetNamespace string) ([]byte, error)
 	CreateSecretGit(name string, repoUrl gitproviders.RepoURL, namespace string) ([]byte, error)
 	GetVersion() (string, error)
-	GetAllResourcesStatus(name string, namespace string) ([]byte, error)
+	GetAllResourcesStatus(name string, source string, namespace string) ([]byte, error)
 	SuspendOrResumeApp(pause wego.SuspendActionType, name, namespace, deploymentType string) ([]byte, error)
 	GetLatestStatusAllNamespaces() ([]string, error)
 }
@@ -198,10 +198,10 @@ func (f *FluxClient) CreateHelmReleaseGitRepository(name, source, chartPath, nam
 	return out, nil
 }
 
-func (f *FluxClient) CreateHelmReleaseHelmRepository(name, chart, namespace, targetNamespace string) ([]byte, error) {
+func (f *FluxClient) CreateHelmReleaseHelmRepository(name, source, chart, namespace, targetNamespace string) ([]byte, error) {
 	args := []string{
 		"create", "helmrelease", name,
-		"--source", "HelmRepository/" + name,
+		"--source", "HelmRepository/" + source,
 		"--chart", chart,
 		"--namespace", namespace,
 		"--interval", "5m",
@@ -237,17 +237,28 @@ func (f *FluxClient) CreateSecretGit(name string, repoUrl gitproviders.RepoURL, 
 	return out, nil
 }
 
-func (f *FluxClient) GetAllResourcesStatus(name string, namespace string) ([]byte, error) {
+func (f *FluxClient) GetAllResourcesStatus(name string, source string, namespace string) ([]byte, error) {
 	args := []string{
+		"get", "all", "--namespace", namespace, source,
+	}
+
+	sourceResource, err := f.runFluxCmd(args...)
+	if err != nil {
+		return sourceResource, fmt.Errorf("failed to get flux resources status: %w", err)
+	}
+
+	args = []string{
 		"get", "all", "--namespace", namespace, name,
 	}
 
-	out, err := f.runFluxCmd(args...)
+	appResource, err := f.runFluxCmd(args...)
 	if err != nil {
-		return out, fmt.Errorf("failed to get flux resources status: %w", err)
+		return appResource, fmt.Errorf("failed to get flux resources status: %w", err)
 	}
 
-	return out, nil
+	allResource := append(sourceResource, appResource...)
+
+	return allResource, nil
 }
 
 func (f *FluxClient) GetVersion() (string, error) {

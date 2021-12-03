@@ -89,7 +89,7 @@ var _ = Describe("Status", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 
 			_, name, deploymentType := kubeClient.GetResourceArgsForCall(0)
-			Expect(name).To(Equal(types.NamespacedName{Name: "wego-app-" + statusParams.Name, Namespace: statusParams.Namespace}))
+			Expect(name).To(Equal(types.NamespacedName{Name: statusParams.Name, Namespace: statusParams.Namespace}))
 			Expect(deploymentType).To(BeAssignableToTypeOf(&helmv2.HelmRelease{}))
 
 			Expect(lastRecon).To(Equal("2009-11-10 23:00:00 +0000 UTC"))

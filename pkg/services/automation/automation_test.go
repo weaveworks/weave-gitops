@@ -127,7 +127,7 @@ var _ = Describe("Generate manifests", func() {
 				Expect(fluxClient.CreateSourceHelmCallCount()).To(Equal(1))
 
 				name, url, namespace := fluxClient.CreateSourceHelmArgsForCall(0)
-				Expect(name).To(Equal("loki"))
+				Expect(name).To(Equal("wego-app-loki"))
 				Expect(url).To(Equal("https://charts.kube-ops.io"))
 				Expect(namespace).To(Equal(wego.DefaultNamespace))
 
@@ -181,7 +181,7 @@ var _ = Describe("Generate manifests", func() {
 				Expect(fluxClient.CreateHelmReleaseGitRepositoryCallCount()).To(Equal(1))
 
 				name, source, path, namespace, targetNamespace := fluxClient.CreateHelmReleaseGitRepositoryArgsForCall(0)
-				Expect(name).To(Equal("bar"))
+				Expect(name).To(Equal("wego-app-bar"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("./charts/my-chart"))
 				Expect(namespace).To(Equal(wego.DefaultNamespace))
@@ -199,7 +199,7 @@ var _ = Describe("Generate manifests", func() {
 				Expect(fluxClient.CreateHelmReleaseGitRepositoryCallCount()).To(Equal(1))
 
 				name, source, path, namespace, targetNamespace := fluxClient.CreateHelmReleaseGitRepositoryArgsForCall(0)
-				Expect(name).To(Equal("bar"))
+				Expect(name).To(Equal("wego-app-bar"))
 				Expect(source).To(Equal("bar"))
 				Expect(path).To(Equal("./charts/my-chart"))
 				Expect(namespace).To(Equal(wego.DefaultNamespace))
@@ -259,7 +259,7 @@ var _ = Describe("Generate manifests", func() {
 					Expect(fluxClient.CreateSourceHelmCallCount()).To(Equal(1))
 
 					name, url, namespace := fluxClient.CreateSourceHelmArgsForCall(0)
-					Expect(name).To(Equal("loki"))
+					Expect(name).To(Equal("wego-app-loki"))
 					Expect(url).To(Equal("https://charts.kube-ops.io"))
 					Expect(namespace).To(Equal(wego.DefaultNamespace))
 
@@ -349,8 +349,9 @@ var _ = Describe("Generate manifests", func() {
 
 					Expect(fluxClient.CreateHelmReleaseHelmRepositoryCallCount()).To(Equal(1))
 
-					name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
+					name, source, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
 					Expect(name).To(Equal("loki"))
+					Expect(source).To(Equal("wego-app-loki"))
 					Expect(chart).To(Equal("loki"))
 					Expect(namespace).To(Equal(wego.DefaultNamespace))
 					Expect(targetNamespace).To(Equal(""))
@@ -371,7 +372,7 @@ var _ = Describe("Generate manifests", func() {
 					Expect(fluxClient.CreateHelmReleaseGitRepositoryCallCount()).To(Equal(1))
 
 					name, source, path, namespace, targetNamespace := fluxClient.CreateHelmReleaseGitRepositoryArgsForCall(0)
-					Expect(name).To(Equal("bar"))
+					Expect(name).To(Equal("wego-app-bar"))
 					Expect(source).To(Equal("bar"))
 					Expect(path).To(Equal("./charts/my-chart"))
 					Expect(namespace).To(Equal(wego.DefaultNamespace))
@@ -392,8 +393,9 @@ var _ = Describe("Generate manifests", func() {
 
 					Expect(fluxClient.CreateHelmReleaseHelmRepositoryCallCount()).To(Equal(1))
 
-					name, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
+					name, source, chart, namespace, targetNamespace := fluxClient.CreateHelmReleaseHelmRepositoryArgsForCall(0)
 					Expect(name).To(Equal("loki"))
+					Expect(source).To(Equal("wego-app-loki"))
 					Expect(chart).To(Equal("loki"))
 					Expect(namespace).To(Equal(wego.DefaultNamespace))
 					Expect(targetNamespace).To(Equal("sock-shop"))
