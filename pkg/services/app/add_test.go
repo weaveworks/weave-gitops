@@ -173,6 +173,14 @@ var _ = Describe("Add", func() {
 		})
 	})
 
+	Context("Fails to add app that has the prefix wego as an app name", func() {
+		It("Adds an app with ", func() {
+			addParams.Name = "wego-appname"
+			err := appSrv.Add(gitClient, gitProviders, addParams)
+			Expect(err.Error()).Should(ContainSubstring("the prefix 'wego' is used by weave gitops and is not allowed for an app name"))
+		})
+	})
+
 	Context("ensure that app names are <= 63 characters in length", func() {
 		It("ensures that app names are <= 63 characters", func() {
 			addParams.Name = "a23456789012345678901234567890123456789012345678901234567890123"
