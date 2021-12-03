@@ -11,18 +11,25 @@ import * as React from "react";
 import styled from "styled-components";
 import Text from "./Text";
 
-type Props = {
+/** DataTable Properties  */
+export interface Props {
+  /** CSS MUI Overrides or other styling. */
   className?: string;
+  /** A list of objects with two fields: `label`, which is a string representing the column header, and `value`, which can be a string, or a function that extracts the data needed to fill the table cell. */
   fields: {
     label: string;
     value: string | ((k: any) => string | JSX.Element);
   }[];
+  /** A list of data that will be iterated through to create the columns described in `fields`. */
   rows: any[];
+  /** A list of strings representing the sortable columns of the table, passed into lodash's `_.sortBy`. */
   sortFields: string[];
+  /** Indicates whether to reverse the sorted array. */
   reverseSort?: boolean;
   /** an optional list of string widths for each field/column. */
   widths?: string[];
 };
+
 
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
   font-style: italic;
@@ -31,7 +38,8 @@ const EmptyRow = styled(TableRow)<{ colSpan: number }>`
   }
 `;
 
-function DataTable({
+/** Form DataTable */
+function UnstyledDataTable({
   className,
   fields,
   rows,
@@ -85,8 +93,10 @@ function DataTable({
   );
 }
 
-export default styled(DataTable)`
-  .MuiTableCell-head {
-    font-weight: 800;
+export const DataTable = styled(UnstyledDataTable)`
+  th {
+    font-weight: bold;
   }
 `;
+
+export default DataTable;

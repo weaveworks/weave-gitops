@@ -108,7 +108,7 @@ To set up a development environment for the UI
 2. Install Node.js version 14.15.1
 3. Make sure your `$GOPATH` is added to your `$PATH` in your bashrc or zshrc file, then install reflex for automated server builds: go get github.com/cespare/reflex
 4. Go through the Weave GitOps getting started docs here: https://docs.gitops.weave.works/docs/getting-started/
-5. Run `npm install` on this repo.
+5. Run `make node_modules`. NOTE: Running `npm install` could leave you unable to pass our ui-tests. If you're getting an error about a git diff in your package.lock, run `rm -rf node_modules && make node_modules`.
 6. Make sure GitOps is installed on a fresh kind cluster for this repo by running `kind delete cluster`, `kind create cluster`, and finally `gitops install`.
 7. To start up the HTTP server with automated re-compliation, run `make api-dev`
 8. Run `npm start` to start the frontend dev server (with hot-reloading)
