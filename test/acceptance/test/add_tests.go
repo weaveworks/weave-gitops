@@ -522,7 +522,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		var repoAbsolutePath string
 		tip1 := generateTestInputs()
 		tip2 := generateTestInputs()
-		appRepoName := "wego-test-app-" + RandString(8)
+		appRepoName := "test-app-" + RandString(8)
 		appName := appRepoName
 		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
 
@@ -571,7 +571,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	It("Verify that gitops can deploy a single workload to multiple clusters with app manifests in config repo (Bug #810)", func() {
 		var repoAbsolutePath string
 		tip := generateTestInputs()
-		appRepoName := "wego-test-app-" + RandString(8)
+		appRepoName := "test-app-" + RandString(8)
 		appName := appRepoName
 		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
 
@@ -643,8 +643,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		tip1 := generateTestInputs()
 		tip2 := generateTestInputs()
 		readmeFilePath := "./data/README.md"
-		appRepoName1 := "wego-test-app-" + RandString(8)
-		appRepoName2 := "wego-test-app-" + RandString(8)
+		appRepoName1 := "test-app-" + RandString(8)
+		appRepoName2 := "test-app-" + RandString(8)
 		appConfigRepoName := "wego-config-repo-" + RandString(8)
 		configRepoRemoteURL = "ssh://git@github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
 		appName1 := appRepoName1
@@ -703,7 +703,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := true
 		tip1 := generateTestInputs()
 		tip2 := generateTestInputs()
-		appRepoName := "wego-test-app-" + RandString(8)
+		appRepoName := "test-app-" + RandString(8)
 		appName1 := "app1"
 		appName2 := "app2"
 		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
@@ -1126,7 +1126,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		public := false
 		appName := "my-helm-app"
 		appManifestFilePath := "./data/helm-repo/hello-world"
-		appRepoName := "wego-test-app-" + RandString(8)
+		appRepoName := "test-app-" + RandString(8)
 		appRepoRemoteURL := "https://github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
 
 		addCommand := "add app . --deployment-type=helm --path=./hello-world --name=" + appName + " --auto-merge=true"
@@ -1168,7 +1168,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		appManifestFilePath := "./data/helm-repo/hello-world"
 		configRepoFiles := "./data/config-repo"
 		appName := "my-helm-app"
-		appRepoName := "wego-test-app-" + RandString(8)
+		appRepoName := "test-app-" + RandString(8)
 		configRepoName := "wego-test-config-repo-" + RandString(8)
 		configRepoUrl := fmt.Sprintf("ssh://git@github.com/%s/%s.git", os.Getenv("GITHUB_ORG"), configRepoName)
 
@@ -1234,7 +1234,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		workloadNamespace := "test-space"
 		workloadName1 := workloadNamespace + "-loki-0"
 		readmeFilePath := "./data/README.md"
-		appRepoName := "wego-test-app-" + RandString(8)
+		appRepoName := "test-app-" + RandString(8)
 		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
 		helmRepoURL := "https://charts.kube-ops.io"
 
