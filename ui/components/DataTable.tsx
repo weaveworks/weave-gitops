@@ -28,8 +28,7 @@ export interface Props {
   reverseSort?: boolean;
   /** an optional list of string widths for each field/column. */
   widths?: string[];
-};
-
+}
 
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
   font-style: italic;
@@ -39,7 +38,7 @@ const EmptyRow = styled(TableRow)<{ colSpan: number }>`
 `;
 
 /** Form DataTable */
-function UnstyledDataTable({
+function DataTable({
   className,
   fields,
   rows,
@@ -93,10 +92,8 @@ function UnstyledDataTable({
   );
 }
 
-export const DataTable = styled(UnstyledDataTable)`
+export default styled(DataTable)`
   th {
     font-weight: bold;
   }
 `;
-
-export default DataTable;
