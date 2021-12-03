@@ -18,6 +18,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var (
@@ -36,6 +38,9 @@ var _ = Describe("Install", func() {
 			},
 			GetWegoConfigStub: func(c context.Context, s string) (*kube.WegoConfig, error) {
 				return &kube.WegoConfig{FluxNamespace: "flux-system", WegoNamespace: "wego-system"}, nil
+			},
+			RawStub: func() client.Client {
+				return fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
 			},
 		}
 		fakeProvider = &gitprovidersfakes.FakeGitProvider{}
