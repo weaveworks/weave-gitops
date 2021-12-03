@@ -12,11 +12,11 @@ const Fonts = createGlobalStyle`
     @font-face {
         font-family: 'proxima-nova';
         src: url(${ProximaNovaBold})
+        font-weight: bold;
     }
     @font-face {
         font-family: 'proxima-nova';
         src: url(${ProximaNovaRegular});
-        font-weight: bold;
     }
     @font-face {
         font-family: 'Roboto Mono';
