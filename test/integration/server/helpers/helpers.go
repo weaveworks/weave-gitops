@@ -109,15 +109,6 @@ func NewGithubClient(ctx context.Context, token string) *ghAPI.Client {
 	return ghAPI.NewClient(tc)
 }
 
-func NewGitlabClient(ctx context.Context, token string) *ghAPI.Client {
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-
-	return ghAPI.NewClient(tc)
-}
-
 const InAppRoot = ".weave-gitops"
 const ExternalConfigRoot = ".weave-gitops"
 
@@ -224,22 +215,6 @@ func GenerateExpectedFS(req *pb.AddApplicationRequest, root, clusterName string,
 				Namespace: req.Namespace,
 			},
 			Resources: []string{"../../../apps/" + req.Name},
-		},
-	}
-
-	return expected
-}
-func GenerateExpectedFSRemoved(req *pb.AddApplicationRequest, root, clusterName string, app wego.ApplicationSpec, k kustomizev2.KustomizationSpec, s sourcev1.GitRepositorySpec) WeGODirectoryFS {
-	expected := map[string]interface{}{
-		userKustPath(root, clusterName): &types.Kustomization{
-			TypeMeta: types.TypeMeta{
-				Kind:       types.KustomizationKind,
-				APIVersion: types.KustomizationVersion,
-			},
-			MetaData: &types.ObjectMeta{
-				Name:      req.Name,
-				Namespace: req.Namespace,
-			},
 		},
 	}
 
