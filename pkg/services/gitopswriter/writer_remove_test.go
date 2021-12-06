@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 
 	. "github.com/onsi/ginkgo"
@@ -183,45 +182,35 @@ var _ = Describe("Remove", func() {
 				})
 
 				It("fails getting default branch", func() {
-					gitProviders.GetDefaultBranchCalls(func(ctx2 context.Context, url gitproviders.RepoURL) (string, error) {
-						return "", customError
-					})
+					gitProviders.GetDefaultBranchReturns("", customError)
 
 					err := gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", false)
 					Expect(err.Error()).To(ContainSubstring(customError.Error()))
 				})
 
 				It("fails cloning config repo", func() {
-					gitClient.CloneCalls(func(ctx2 context.Context, s string, s2 string, s3 string) (bool, error) {
-						return false, customError
-					})
+					gitClient.CloneReturns(false, customError)
 
 					err := gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", false)
 					Expect(err.Error()).To(ContainSubstring(customError.Error()))
 				})
 
 				It("fails reading directory", func() {
-					osysClient.ReadDirCalls(func(s string) ([]fs.DirEntry, error) {
-						return nil, customError
-					})
+					osysClient.ReadDirReturns(nil, customError)
 
 					err := gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", false)
 					Expect(err.Error()).To(ContainSubstring(customError.Error()))
 				})
 
 				It("fails checking out branch", func() {
-					gitClient.CheckoutCalls(func(s string) error {
-						return customError
-					})
+					gitClient.CheckoutReturns(customError)
 
 					err := gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", false)
 					Expect(err.Error()).To(ContainSubstring(customError.Error()))
 				})
 
 				It("fails removing files using git", func() {
-					gitClient.RemoveCalls(func(s string) error {
-						return customError
-					})
+					gitClient.RemoveReturns(customError)
 
 					Expect(runAddAndCollectInfo()).To(Succeed())
 					err := gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", false)
@@ -231,9 +220,7 @@ var _ = Describe("Remove", func() {
 				It("fails writing updates using git", func() {
 					Expect(runAddAndCollectInfo()).To(Succeed())
 
-					gitClient.WriteCalls(func(s string, bytes []byte) error {
-						return customError
-					})
+					gitClient.WriteReturns(customError)
 
 					err := gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", false)
 					Expect(err.Error()).To(ContainSubstring(customError.Error()))
@@ -242,9 +229,7 @@ var _ = Describe("Remove", func() {
 				It("fails committing files using git", func() {
 					Expect(runAddAndCollectInfo()).To(Succeed())
 
-					gitClient.CommitCalls(func(commit git.Commit, f ...func(string) bool) (string, error) {
-						return "", customError
-					})
+					gitClient.CommitReturns("", customError)
 
 					err := gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", false)
 					Expect(err.Error()).To(ContainSubstring(customError.Error()))
@@ -253,9 +238,7 @@ var _ = Describe("Remove", func() {
 				It("fails creating pull request", func() {
 					Expect(runAddAndCollectInfo()).To(Succeed())
 
-					gitProviders.CreatePullRequestCalls(func(ctx2 context.Context, url gitproviders.RepoURL, info gitproviders.PullRequestInfo) (gitprovider.PullRequest, error) {
-						return nil, customError
-					})
+					gitProviders.CreatePullRequestReturns(nil, customError)
 
 					err := gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", false)
 					Expect(err.Error()).To(ContainSubstring(customError.Error()))
