@@ -354,7 +354,6 @@ func (g *GoGit) ValidateAccess(ctx context.Context, url string, branch string) e
 }
 
 func (g *GoGit) Checkout(newBranch string) error {
-
 	wt, err := g.repository.Worktree()
 	if err != nil {
 		return fmt.Errorf("failed getting repository work-tree %w", err)
