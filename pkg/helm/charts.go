@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/url"
-	"os"
 	"path"
 	"sort"
 
@@ -72,7 +71,7 @@ var Profiles = func(v *repo.ChartVersion) bool {
 	return hasAnnotation(v.Metadata, ProfileAnnotation)
 }
 
-// ScanCharts filters charts using the provided predicate.
+// GetCharts filters charts using the provided predicate.
 // TODO: Add caching based on the Status Artifact Revision.
 func (h *RepoManager) GetCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred ChartPredicate) ([]*pb.Profile, error) {
 	chartRepo, err := fetchIndexFile(hr.Status.URL)
@@ -230,16 +229,6 @@ func credsForRepository(ctx context.Context, kc client.Client, hr *sourcev1beta1
 }
 
 func fetchIndexFile(chartURL string) (*repo.IndexFile, error) {
-	if hostname := os.Getenv("SOURCE_CONTROLLER_LOCALHOST"); hostname != "" {
-		u, err := url.Parse(chartURL)
-		if err != nil {
-			return nil, err
-		}
-
-		u.Host = hostname
-		chartURL = u.String()
-	}
-
 	u, err := url.Parse(chartURL)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing URL %q: %w", chartURL, err)
