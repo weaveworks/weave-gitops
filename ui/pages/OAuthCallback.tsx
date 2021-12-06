@@ -1,6 +1,6 @@
 import { CircularProgress } from "@material-ui/core";
 import * as React from "react";
-import { useHistory } from "react-router";
+import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import Alert from "../components/Alert";
 import Flex from "../components/Flex";
