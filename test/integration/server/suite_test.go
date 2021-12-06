@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -32,14 +33,27 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-const bufSize = 1024 * 1024
+const (
+	bufSize           = 1024 * 1024
+	gitlabTokenEnvVar = "GITLAB_TOKEN"
+	gitlabOrgEnvVar   = "GITLAB_ORG"
 
-var lis *bufconn.Listener
-var env *testutils.K8sTestEnv
-var conn *grpc.ClientConn
-var s *grpc.Server
-var err error
-var clusterName = "test-cluster"
+	githubTokenEnvVar = "GITHUB_TOKEN"
+	githubOrgEnvVar   = "GITHUB_ORG"
+)
+
+var (
+	lis         *bufconn.Listener
+	env         *testutils.K8sTestEnv
+	conn        *grpc.ClientConn
+	s           *grpc.Server
+	err         error
+	clusterName = "test-cluster"
+	gitlabToken string
+	gitlabOrg   string
+	githubToken string
+	githubOrg   string
+)
 
 func bufDialer(context.Context, string) (net.Conn, error) {
 	return lis.Dial()
@@ -54,6 +68,12 @@ func TestServerIntegration(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
+	gitlabToken = getEnvVar(gitlabTokenEnvVar)
+	gitlabOrg = getEnvVar(gitlabOrgEnvVar)
+
+	githubToken = getEnvVar(githubTokenEnvVar)
+	githubOrg = getEnvVar(githubOrgEnvVar)
+
 	ctx := context.Background()
 	env, err = testutils.StartK8sTestEnvironment([]string{
 		"../../../manifests/crds",
@@ -106,3 +126,10 @@ var _ = AfterSuite(func() {
 	conn.Close()
 	s.Stop()
 })
+
+func getEnvVar(envVar string) string {
+	value := os.Getenv(envVar)
+	ExpectWithOffset(1, value).NotTo(BeEmpty(), fmt.Sprintf("Please ensure %s environment variable is set", envVar))
+
+	return value
+}
