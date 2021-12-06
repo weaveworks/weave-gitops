@@ -60,10 +60,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
-		By("And application workload is not already deployed to cluster", func() {
-			deleteWorkload(tip.workloadName, tip.workloadNamespace)
-		})
-
 		By("When I create a private repo with my app workload", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
@@ -98,6 +94,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	It("Verify that gitops does not modify the cluster when run with --dry-run flag", func() {
 		var repoAbsolutePath string
 		var addCommandOutput string
+		var errOutput string
 		private := true
 		tip := generateTestInputs()
 		branchName := "test-branch-01"
@@ -144,6 +141,23 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("And I should not see any workload deployed to the cluster", func() {
 			verifyWegoAddCommandWithDryRun(tip.appRepoName, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		// Test for WGE
+		By("When I try to upgrade gitops core to enterprise", func() {
+			_, errOutput = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " upgrade")
+		})
+
+		By("Then I should see error message", func() {
+			Eventually(errOutput).Should(ContainSubstring("required flag(s) \"app-config-url\", \"version\" not set"))
+		})
+
+		By("When I try to upgrade gitops core to enterprise with config-repo & version provided", func() {
+			_, errOutput = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " upgrade --app-config-url=" + appRepoRemoteURL + " --version=0.0.1")
+		})
+
+		By("Then I should see error message", func() {
+			Eventually(errOutput).Should(ContainSubstring("failed to load credentials for profiles repo from cluster: failed to get entitlement: secrets \"weave-gitops-enterprise-credentials\" not found"))
 		})
 	})
 
@@ -1073,7 +1087,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I should see app replicas created in the cluster", func() {
-			_ = waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, TIMEOUT_TWO_MINUTES)
+			_ = waitForReplicaCreation(tip1.workloadNamespace, replicaSetValue, EVENTUALLY_DEFAULT_TIMEOUT)
 			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=100s -n %s --all pods --selector='app!=wego-app'", tip1.workloadNamespace))
 			replicaOutput, _ := runCommandAndReturnStringOutput("kubectl get pods -n " + tip1.workloadNamespace + " --field-selector=status.phase=Running --no-headers=true | wc -l")
 			Expect(replicaOutput).To(ContainSubstring(strconv.Itoa(replicaSetValue)))
