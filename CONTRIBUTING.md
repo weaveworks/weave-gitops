@@ -46,7 +46,7 @@ However if you only want to test it against one of the providers, you can focus 
 the test suite manually
 
 ### Running acceptance tests
-The acceptance tests can be run using `make acceptance`. They require the same
+The acceptance tests can be run using `make acceptance-tests`. They require the same
 environment variables as the integration tests, with the following in addition:
 
 - `WEGO_BIN_PATH`- The path to the `gitops` binary the tests should use. If you
