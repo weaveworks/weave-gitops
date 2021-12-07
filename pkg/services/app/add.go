@@ -30,7 +30,7 @@ type AddParams struct {
 	DeploymentType             string
 	Chart                      string
 	SourceType                 wego.SourceType
-	AppConfigUrl               string
+	ConfigRepo                 string
 	Namespace                  string
 	DryRun                     bool
 	AutoMerge                  bool
@@ -137,8 +137,8 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 			return params, fmt.Errorf("--url must be specified for helm repositories")
 		}
 
-		if params.AppConfigUrl == "" {
-			return params, errors.New("--app-config-url should be provided")
+		if params.ConfigRepo == "" {
+			return params, errors.New("--config-repo should be provided")
 		}
 	default:
 		var err error
@@ -155,13 +155,13 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 	}
 
 	// making sure the config url is in good format
-	if models.IsExternalConfigUrl(params.AppConfigUrl) {
-		configRepoUrl, err := gitproviders.NewRepoURL(params.AppConfigUrl)
+	if models.IsExternalConfigRepo(params.ConfigRepo) {
+		configRepoUrl, err := gitproviders.NewRepoURL(params.ConfigRepo)
 		if err != nil {
 			return params, fmt.Errorf("error normalizing url: %w", err)
 		}
 
-		params.AppConfigUrl = configRepoUrl.String()
+		params.ConfigRepo = configRepoUrl.String()
 	}
 
 	if params.Name == "" {
@@ -214,7 +214,7 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 }
 
 func (a *AppSvc) addApp(ctx context.Context, configGit git.Git, gitProvider gitproviders.GitProvider, app models.Application, clusterName string, autoMerge bool) error {
-	repoWriter := gitrepo.NewRepoWriter(app.ConfigURL, gitProvider, configGit, a.Logger)
+	repoWriter := gitrepo.NewRepoWriter(app.ConfigRepo, gitProvider, configGit, a.Logger)
 	automationGen := automation.NewAutomationGenerator(gitProvider, a.Flux, a.Logger)
 	gitOpsDirWriter := gitopswriter.NewGitOpsDirectoryWriter(automationGen, repoWriter, a.Osys, a.Logger)
 
@@ -237,15 +237,15 @@ func makeApplication(params AddParams) (models.Application, error) {
 		}
 	}
 
-	configURL := gitSourceURL
+	configRepo := gitSourceURL
 
-	if params.AppConfigUrl != "" {
-		curl, err := gitproviders.NewRepoURL(params.AppConfigUrl)
+	if params.ConfigRepo != "" {
+		curl, err := gitproviders.NewRepoURL(params.ConfigRepo)
 		if err != nil {
 			return models.Application{}, err
 		}
 
-		configURL = curl
+		configRepo = curl
 	}
 
 	app := models.Application{
@@ -253,7 +253,7 @@ func makeApplication(params AddParams) (models.Application, error) {
 		Namespace:           params.Namespace,
 		GitSourceURL:        gitSourceURL,
 		HelmSourceURL:       helmSourceURL,
-		ConfigURL:           configURL,
+		ConfigRepo:          configRepo,
 		Branch:              params.Branch,
 		Path:                params.Path,
 		SourceType:          models.SourceType(params.SourceType),
