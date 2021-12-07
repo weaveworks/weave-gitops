@@ -19,8 +19,8 @@ import (
 )
 
 type InstallParams struct {
-	Namespace    string
-	DryRun       bool
+	Namespace  string
+	DryRun     bool
 	ConfigRepo string
 }
 

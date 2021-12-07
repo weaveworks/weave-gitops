@@ -70,8 +70,8 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	gitopsService := gitops.New(log, flux, k)
 
 	gitopsParams := gitops.InstallParams{
-		Namespace:    namespace,
-		DryRun:       installParams.DryRun,
+		Namespace:  namespace,
+		DryRun:     installParams.DryRun,
 		ConfigRepo: installParams.ConfigRepo,
 	}
 

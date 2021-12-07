@@ -77,7 +77,7 @@ func TestUpgrade(t *testing.T) {
 
 	// Run upgrade!
 	err := upgrade(context.TODO(), UpgradeValues{
-		ConfigRepo:  "https://github.com/test/example.git",
+		ConfigRepo:    "https://github.com/test/example.git",
 		HeadBranch:    "upgrade-to-wge",
 		BaseBranch:    "main",
 		CommitMessage: "Upgrade to wge",
