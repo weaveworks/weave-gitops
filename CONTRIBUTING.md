@@ -1,9 +1,8 @@
-# Weave Gitops :heart:s your contributions
+# WIP: Internal contributing guide
+
+## Weave Gitops :heart:s your contributions
 
 Thank you for taking the time to contribute to weave gitops!
-
-We gratefully welcome improvements to all areas; from code, to documentation;
-from bug reports to feature design.
 
 This guide **is a work in progress** but aims to cover all aspects of how to
 interact with the project and how to get involved in development as smoothly as possible.
