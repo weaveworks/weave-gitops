@@ -472,6 +472,11 @@ metadata:
 			Expect(err).NotTo(HaveOccurred())
 			Expect(wegoConfig.FluxNamespace).To(Equal("flux-system"))
 		})
+
+		It("fails getting config map", func() {
+			_, err := k.GetWegoConfig(context.Background(), "foo")
+			Expect(err.Error()).To(ContainSubstring("Wego Config not found"))
+		})
 	})
 
 	Describe("SetWegoConfig", func() {

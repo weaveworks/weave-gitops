@@ -60,7 +60,7 @@ var (
 	GVRHelmRelease    schema.GroupVersionResource = helmv2.GroupVersion.WithResource("helmreleases")
 )
 
-var (
+const (
 	WegoConfigMapName = "weave-gitops-config"
 )
 
@@ -396,7 +396,7 @@ func (k *KubeHTTP) SetWegoConfig(ctx context.Context, config WegoConfig, namespa
 		return fmt.Errorf("failed marshalling wego config: %w", err)
 	}
 
-	name := types.NamespacedName{Name: "weave-gitops-config", Namespace: namespace}
+	name := types.NamespacedName{Name: WegoConfigMapName, Namespace: namespace}
 
 	cm := &corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
@@ -431,7 +431,7 @@ func (k *KubeHTTP) SetWegoConfig(ctx context.Context, config WegoConfig, namespa
 }
 
 func (k *KubeHTTP) GetWegoConfig(ctx context.Context, namespace string) (*WegoConfig, error) {
-	name := types.NamespacedName{Name: "weave-gitops-config", Namespace: namespace}
+	name := types.NamespacedName{Name: WegoConfigMapName, Namespace: namespace}
 
 	cm := &corev1.ConfigMap{}
 
