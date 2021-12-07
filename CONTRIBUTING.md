@@ -2,7 +2,7 @@
 
 ## Weave Gitops :heart:s your contributions
 
-Thank you for taking the time to contribute to weave gitops!
+Thank you for taking the time to contribute to Weave Gitops!
 
 This guide **is a work in progress** but aims to cover all aspects of how to
 interact with the project and how to get involved in development as smoothly as possible.
