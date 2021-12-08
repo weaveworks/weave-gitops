@@ -700,7 +700,7 @@ var _ = Describe("AddApplication", func() {
 					URL:            addAppRequest.Url,
 					Branch:         addAppRequest.Branch,
 					Path:           addAppRequest.Path,
-					ConfigURL:      sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					ConfigRepo:     sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
 					DeploymentType: wego.DeploymentTypeKustomize,
 					SourceType:     wego.SourceTypeGit,
 				}
