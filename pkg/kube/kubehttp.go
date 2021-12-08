@@ -65,6 +65,7 @@ const (
 )
 
 var (
+	//ErrWegoConfigNotFound indicates weave gitops config could not be found
 	ErrWegoConfigNotFound = errors.New("Wego Config not found")
 )
 
@@ -390,10 +391,10 @@ func (k *KubeHTTP) SetResource(ctx context.Context, resource Resource) error {
 	return nil
 }
 
-func (k *KubeHTTP) SetWegoConfig(ctx context.Context, config WegoConfig, namespace string) error {
+func (k *KubeHTTP) SetWegoConfig(ctx context.Context, config WegoConfig, namespace string) (*corev1.ConfigMap, error) {
 	configBytes, err := kyaml.Marshal(config)
 	if err != nil {
-		return fmt.Errorf("failed marshalling wego config: %w", err)
+		return nil, fmt.Errorf("failed marshalling wego config: %w", err)
 	}
 
 	name := types.NamespacedName{Name: WegoConfigMapName, Namespace: namespace}
@@ -407,27 +408,32 @@ func (k *KubeHTTP) SetWegoConfig(ctx context.Context, config WegoConfig, namespa
 			Name:      name.Name,
 			Namespace: name.Namespace,
 		},
+		Data: map[string]string{
+			"config": string(configBytes),
+		},
 	}
+
+	orginalCm := cm.DeepCopy()
 
 	if err := k.Client.Get(ctx, name, cm); err != nil {
 		if apierrors.IsNotFound(err) {
-			cm.Data = map[string]string{
-				"config": string(configBytes),
-			}
-
 			if err = k.Client.Create(ctx, cm); err != nil {
-				return fmt.Errorf("failed creating weave-gitops configmap: %w", err)
+				return nil, fmt.Errorf("failed creating weave-gitops configmap: %w", err)
 			}
 
-			return nil
+			return nil, nil
 		}
 
-		return fmt.Errorf("failed getting weave-gitops configmap: %w", err)
+		return nil, fmt.Errorf("failed getting weave-gitops configmap: %w", err)
 	}
 
 	cm.Data["config"] = string(configBytes)
 
-	return k.Client.Update(ctx, cm)
+	if err = k.Client.Update(ctx, cm); err != nil {
+		return nil, fmt.Errorf("failed updating weave-gitops configmap: %w", err)
+	}
+
+	return orginalCm, nil
 }
 
 func (k *KubeHTTP) GetWegoConfig(ctx context.Context, namespace string) (*WegoConfig, error) {
@@ -454,7 +460,7 @@ func (k *KubeHTTP) GetWegoConfig(ctx context.Context, namespace string) (*WegoCo
 
 	wegoConfig := &WegoConfig{}
 	if err := kyaml.Unmarshal([]byte(cm.Data["config"]), wegoConfig); err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	return wegoConfig, nil

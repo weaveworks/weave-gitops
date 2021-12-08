@@ -19,7 +19,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	kyaml "sigs.k8s.io/yaml"
 )
 
 type InstallParams struct {
@@ -87,9 +89,17 @@ func (g *Gitops) Install(params InstallParams) (map[string][]byte, error) {
 		systemManifests["wego-app.yaml"] = bytes.Join(wegoAppManifests, []byte("---\n"))
 	}
 
-	if err := g.saveWegoConfig(ctx, params); err != nil {
+	wegoConfigCM, err := g.saveWegoConfig(ctx, params)
+	if err != nil {
 		return nil, err
 	}
+
+	configBytes, err := kyaml.Marshal(wegoConfigCM)
+	if err != nil {
+		return nil, fmt.Errorf("failed marshalling wego config: %w", err)
+	}
+
+	systemManifests["wego-config.yaml"] = configBytes
 
 	return systemManifests, nil
 }
@@ -290,16 +300,37 @@ func (g *Gitops) fetchNamespaceWithLabel(ctx context.Context, key string, value 
 	return nsl.Items[0].Name, nil
 }
 
-func (g *Gitops) saveWegoConfig(ctx context.Context, params InstallParams) error {
+func (g *Gitops) saveWegoConfig(ctx context.Context, params InstallParams) (*corev1.ConfigMap, error) {
 	fluxNamespace, err := g.fetchNamespaceWithLabel(ctx, LabelPartOf, "flux")
 	if err != nil {
 		if !errors.Is(err, ErrNamespaceNotFound) {
-			return fmt.Errorf("failed fetching flux namespace: %w", err)
+			return nil, fmt.Errorf("failed fetching flux namespace: %w", err)
 		}
 	}
 
-	return g.kube.SetWegoConfig(ctx, kube.WegoConfig{
+	cm, err := g.kube.SetWegoConfig(ctx, kube.WegoConfig{
 		FluxNamespace: fluxNamespace,
 		WegoNamespace: params.Namespace,
 	}, params.Namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	return cm, nil
+}
+
+func (g *Gitops) getWegoConfigManifest(ctx context.Context, namespace string) ([]byte, error) {
+	name := types.NamespacedName{Name: kube.WegoConfigMapName, Namespace: namespace}
+	wegoConfigMap := &corev1.ConfigMap{}
+
+	if err := g.kube.GetResource(ctx, name, wegoConfigMap); err != nil {
+		return nil, fmt.Errorf("failed getting weave-gitops configmap: %w", err)
+	}
+
+	configBytes, err := kyaml.Marshal(wegoConfigMap)
+	if err != nil {
+		return nil, fmt.Errorf("failed marshalling wego config: %w", err)
+	}
+
+	return configBytes, nil
 }
