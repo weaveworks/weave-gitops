@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useHistory } from "react-router";
+import { useHistory } from "react-router-dom";
 import { Applications } from "../lib/api/applications/applications.pb";
 import {
   clearCallbackState,
