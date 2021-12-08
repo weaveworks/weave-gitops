@@ -1,3 +1,4 @@
+import { Slider } from "@material-ui/core";
 import * as d3 from "d3";
 import dagreD3 from "dagre-d3";
 import _ from "lodash";
@@ -15,6 +16,17 @@ type Props<N> = {
   labelShape: "rect" | "ellipse";
 };
 
+const GraphSlider = styled(Slider)`
+  &.MuiSlider-root {
+    &.MuiSlider-vertical {
+      position: relative;
+      height: 150px;
+      left: 95%;
+      top: 5vh;
+    }
+  }
+`;
+
 function DirectedGraph<T>({
   className,
   nodes,
@@ -26,6 +38,8 @@ function DirectedGraph<T>({
   labelShape,
 }: Props<T>) {
   const svgRef = React.useRef();
+
+  const [zoomPercent, setZoomPercent] = React.useState(0);
 
   React.useEffect(() => {
     if (!svgRef.current) {
@@ -74,16 +88,26 @@ function DirectedGraph<T>({
 
     // Set up zoom support
     const zoom = d3.zoom().on("zoom", (e) => {
+      e.transform.k = zoomPercent / 100;
       svg.select("g").attr("transform", e.transform);
     });
 
-    svg.call(zoom).call(zoom.transform, d3.zoomIdentity.scale(scale));
+    svg
+      .call(zoom)
+      .call(zoom.transform, d3.zoomIdentity.scale(scale))
+      .on("wheel.zoom", null);
 
     // Run the renderer. This is what draws the final graph.
     render(d3.select("svg g"), graph);
-  }, [svgRef.current, nodes, edges]);
+  }, [svgRef.current, nodes, edges, zoomPercent]);
   return (
     <div className={className}>
+      <GraphSlider
+        onChange={(e, value: number) => setZoomPercent(value)}
+        defaultValue={0}
+        orientation="vertical"
+        aria-label="zoom"
+      />
       <svg width={width} height={height} ref={svgRef} />
     </div>
   );
