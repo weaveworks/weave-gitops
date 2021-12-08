@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/weaveworks/weave-gitops/cmd/gitops/check"
+
 	"github.com/go-resty/resty/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -121,6 +123,7 @@ func RootCmd(client *resty.Client) *cobra.Command {
 	rootCmd.AddCommand(suspend.GetCommand())
 	rootCmd.AddCommand(upgrade.Cmd)
 	rootCmd.AddCommand(docs.Cmd)
+	rootCmd.AddCommand(check.Cmd)
 
 	return rootCmd
 }

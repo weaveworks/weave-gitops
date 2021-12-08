@@ -376,6 +376,16 @@ func (k *KubeHTTP) SetResource(ctx context.Context, resource Resource) error {
 	return nil
 }
 
+func (k *KubeHTTP) GetNamespaces(ctx context.Context) (*corev1.NamespaceList, error) {
+	var namespacesList corev1.NamespaceList
+
+	if err := k.Client.List(ctx, &namespacesList); err != nil {
+		return nil,fmt.Errorf("failed getting namespace list %w", err)
+	}
+
+	return &namespacesList, nil
+}
+
 func initialContext(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (currentCtx, clusterName string, err error) {
 	rules, err := cfgLoadingRules.Load()
 	if err != nil {

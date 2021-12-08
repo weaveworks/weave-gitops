@@ -3,6 +3,7 @@ package kube
 import (
 	"context"
 	"fmt"
+
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -55,6 +56,7 @@ type Kube interface {
 	GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error
 	SetResource(ctx context.Context, resource Resource) error
 	GetSecret(ctx context.Context, name types.NamespacedName) (*corev1.Secret, error)
+	GetNamespaces(ctx context.Context) (*corev1.NamespaceList, error)
 }
 
 func IsClusterReady(l logger.Logger, k Kube) error {
