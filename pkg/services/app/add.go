@@ -74,7 +74,7 @@ func (a *AppSvc) Add(configGit git.Git, gitProvider gitproviders.GitProvider, pa
 		return err
 	}
 
-	if strings.HasPrefix(params.Name, "wego-") {
+	if strings.HasPrefix(params.Name, "wego") {
 		return fmt.Errorf("the prefix 'wego' is used by weave gitops and is not allowed for an app name")
 	}
 
