@@ -82,7 +82,7 @@ var _ = Describe("RemoveApplication", func() {
 				defer func() { Expect(sourceRepo.Delete(ctx)).To(Succeed()) }()
 
 				addAppRequest.AutoMerge = true
-				addAppRequest.ConfigUrl = sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git"
+				addAppRequest.ConfigRepo = sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git"
 
 				res, err := client.AddApplication(ctx, addAppRequest)
 				Expect(err).NotTo(HaveOccurred())
@@ -92,7 +92,7 @@ var _ = Describe("RemoveApplication", func() {
 					URL:            addAppRequest.Url,
 					Branch:         addAppRequest.Branch,
 					Path:           addAppRequest.Path,
-					ConfigURL:      sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					ConfigRepo:     sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
 					DeploymentType: wego.DeploymentTypeKustomize,
 					SourceType:     wego.SourceTypeGit,
 				}
@@ -249,7 +249,7 @@ var _ = Describe("RemoveApplication", func() {
 				defer func() { Expect(sourceRepo.Delete(ctx)).To(Succeed()) }()
 
 				addAppRequest.AutoMerge = true
-				addAppRequest.ConfigUrl = sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git"
+				addAppRequest.ConfigRepo = sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git"
 
 				res, err := client.AddApplication(ctx, addAppRequest)
 				Expect(err).NotTo(HaveOccurred())
@@ -259,7 +259,7 @@ var _ = Describe("RemoveApplication", func() {
 					URL:            addAppRequest.Url,
 					Branch:         addAppRequest.Branch,
 					Path:           addAppRequest.Path,
-					ConfigURL:      sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					ConfigRepo:     sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
 					DeploymentType: wego.DeploymentTypeKustomize,
 					SourceType:     wego.SourceTypeGit,
 				}
