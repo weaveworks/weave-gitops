@@ -128,6 +128,10 @@ export default styled(DirectedGraph)`
   }
 
   foreignObject {
+    display: flex;
+    flex-direction: column;
+    width: 125px;
+    height: 125px;
     overflow: visible;
   }
 `;

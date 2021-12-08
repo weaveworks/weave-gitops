@@ -116,7 +116,6 @@ export default styled(ReconciliationGraph)`
   }
 
   .node {
-    position: relative;
     font-size: 16px;
     /* background-color: white; */
     width: 125px;
