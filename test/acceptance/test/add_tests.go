@@ -60,10 +60,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
 		})
 
-		By("And application workload is not already deployed to cluster", func() {
-			deleteWorkload(tip.workloadName, tip.workloadNamespace)
-		})
-
 		By("When I create a private repo with my app workload", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
@@ -98,6 +94,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	It("Verify that gitops does not modify the cluster when run with --dry-run flag", func() {
 		var repoAbsolutePath string
 		var addCommandOutput string
+		var errOutput string
 		private := true
 		tip := generateTestInputs()
 		branchName := "test-branch-01"
@@ -144,6 +141,23 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("And I should not see any workload deployed to the cluster", func() {
 			verifyWegoAddCommandWithDryRun(tip.appRepoName, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		// Test for WGE
+		By("When I try to upgrade gitops core to enterprise", func() {
+			_, errOutput = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " upgrade")
+		})
+
+		By("Then I should see error message", func() {
+			Eventually(errOutput).Should(ContainSubstring("required flag(s) \"app-config-url\", \"version\" not set"))
+		})
+
+		By("When I try to upgrade gitops core to enterprise with config-repo & version provided", func() {
+			_, errOutput = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " upgrade --app-config-url=" + appRepoRemoteURL + " --version=0.0.1")
+		})
+
+		By("Then I should see error message", func() {
+			Eventually(errOutput).Should(ContainSubstring("failed to load credentials for profiles repo from cluster: failed to get entitlement: secrets \"weave-gitops-enterprise-credentials\" not found"))
 		})
 	})
 
@@ -568,7 +582,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	It("Verify that gitops can deploy a single workload to multiple clusters with app manifests in config repo (Bug #810)", func() {
+	It("@skipOnNightly Verify that gitops can deploy a single workload to multiple clusters with app manifests in config repo (Bug #810)", func() {
 		var repoAbsolutePath string
 		tip := generateTestInputs()
 		appRepoName := "wego-test-app-" + RandString(8)
@@ -1729,7 +1743,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 	})
 
-	It("SmokeTest - Verify that gitops can deploy an app with app-config-url set to a gitlab <url>", func() {
+	It("SmokeTestShort - Verify that gitops can deploy an app with app-config-url set to a gitlab <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var listOutput string

@@ -49,7 +49,17 @@ type ApplicationsClient interface {
 	// This token will expired in 15 minutes, after which the user will need to complete the flow again
 	// to do Git Provider operations.
 	GetGithubAuthStatus(ctx context.Context, in *GetGithubAuthStatusRequest, opts ...grpc.CallOption) (*GetGithubAuthStatusResponse, error)
+	//
+	// GetGitlabAuthURL returns the URL to initiate a GitLab OAuth PKCE flow.
+	// The user must browse to the returned URL to authorize the OAuth callback to the GitOps UI.
+	// See the GitLab OAuth docs for more more information:
+	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
 	GetGitlabAuthURL(ctx context.Context, in *GetGitlabAuthURLRequest, opts ...grpc.CallOption) (*GetGitlabAuthURLResponse, error)
+	//
+	// AuthorizeGitlab exchanges a GitLab code obtained via OAuth callback.
+	// The returned token is useable for authentication with the GitOps server only.
+	// See the GitLab OAuth docs for more more information:
+	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
 	AuthorizeGitlab(ctx context.Context, in *AuthorizeGitlabRequest, opts ...grpc.CallOption) (*AuthorizeGitlabResponse, error)
 	//
 	// AddApplication adds an Application to a cluster via GitOps.
@@ -234,7 +244,17 @@ type ApplicationsServer interface {
 	// This token will expired in 15 minutes, after which the user will need to complete the flow again
 	// to do Git Provider operations.
 	GetGithubAuthStatus(context.Context, *GetGithubAuthStatusRequest) (*GetGithubAuthStatusResponse, error)
+	//
+	// GetGitlabAuthURL returns the URL to initiate a GitLab OAuth PKCE flow.
+	// The user must browse to the returned URL to authorize the OAuth callback to the GitOps UI.
+	// See the GitLab OAuth docs for more more information:
+	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
 	GetGitlabAuthURL(context.Context, *GetGitlabAuthURLRequest) (*GetGitlabAuthURLResponse, error)
+	//
+	// AuthorizeGitlab exchanges a GitLab code obtained via OAuth callback.
+	// The returned token is useable for authentication with the GitOps server only.
+	// See the GitLab OAuth docs for more more information:
+	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
 	AuthorizeGitlab(context.Context, *AuthorizeGitlabRequest) (*AuthorizeGitlabResponse, error)
 	//
 	// AddApplication adds an Application to a cluster via GitOps.

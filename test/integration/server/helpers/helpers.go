@@ -3,11 +3,11 @@
 package helpers
 
 import (
+	"bytes"
 	"context"
 	_ "embed"
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -58,7 +58,7 @@ func CreateRepo(ctx context.Context, gp gitprovider.Client, url string) (gitprov
 		return nil, nil, fmt.Errorf("could not reconcile org repo: %w", err)
 	}
 
-	err = utils.WaitUntil(os.Stdout, 3*time.Second, 9*time.Second, func() error {
+	err = utils.WaitUntil(bytes.NewBuffer([]byte{}), 3*time.Second, 9*time.Second, func() error {
 		r, err := gp.OrgRepositories().Get(ctx, *ref)
 		if err != nil {
 			return err
@@ -257,13 +257,23 @@ func GetFileContents(ctx context.Context, gh *ghAPI.Client, org, repoName string
 	return fs, nil
 }
 
-func GetFilesForPullRequest(ctx context.Context, gh *ghAPI.Client, org, repoName string, fs WeGODirectoryFS) (WeGODirectoryFS, error) {
-	files, _, err := gh.PullRequests.ListFiles(ctx, org, repoName, 1, &ghAPI.ListOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("error listing files for %q: %w", repoName, err)
+func toK8sObjects(changes map[string][]byte, fs WeGODirectoryFS) (WeGODirectoryFS, error) {
+	for path, change := range changes {
+		obj, ok := fs[path]
+
+		if !ok {
+			fs[path] = nil
+			continue
+		}
+
+		if err := yaml.Unmarshal(change, obj); err != nil {
+			return nil, fmt.Errorf("error unmarshalling change yaml: %w", err)
+		}
+
+		fs[path] = obj
 	}
 
-	return GetFileContents(ctx, gh, org, repoName, fs, files)
+	return fs, nil
 }
 
 func CreatePopulatedSourceRepo(ctx context.Context, gp gitprovider.Client, url string) (gitprovider.OrgRepository, *gitprovider.OrgRepositoryRef, error) {
