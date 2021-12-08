@@ -423,7 +423,7 @@ metadata:
 		})
 	})
 
-	FDescribe("GetNamespaces", func() {
+	Describe("GetNamespaces", func() {
 		It("should return a list of namespaces", func() {
 			ctx := context.Background()
 
