@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -19,29 +20,57 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"go.uber.org/zap"
 )
 
-var (
-	port              string
-	helmRepoNamespace string
-	helmRepoName      string
-	path              string
-	loggingEnabled    bool
-)
-
-var Cmd = &cobra.Command{
-	Use:   "run [--log]",
-	Short: "Runs gitops ui",
-	RunE:  runCmd,
+// Options contains all the options for the `ui run` command.
+type Options struct {
+	Port              string
+	HelmRepoNamespace string
+	HelmRepoName      string
+	Path              string
+	LoggingEnabled    bool
+	OIDC              OIDCAuthenticationOptions
 }
 
-func init() {
-	Cmd.Flags().BoolVarP(&loggingEnabled, "log", "l", false, "enable logging for the ui")
-	Cmd.Flags().StringVar(&port, "port", "9001", "UI port")
-	Cmd.Flags().StringVar(&path, "path", "", "Path url")
-	Cmd.Flags().StringVar(&helmRepoNamespace, "helm-repo-namespace", "default", "the namespace of the Helm Repository resource to scan for profiles")
-	Cmd.Flags().StringVar(&helmRepoName, "helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
+// OIDCAuthenticationOptions contains the OIDC authentication options for the
+// `ui run` command.
+type OIDCAuthenticationOptions struct {
+	IssuerURL      string
+	ClientID       string
+	ClientSecret   string
+	RedirectURL    string
+	CookieDuration string
+}
+
+var options Options
+
+// Command returns the `ui run` command
+func Command() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "run [--log]",
+		Short: "Runs gitops ui",
+		RunE:  runCmd,
+	}
+
+	options = Options{}
+
+	cmd.Flags().BoolVarP(&options.LoggingEnabled, "log", "l", false, "enable logging for the ui")
+	cmd.Flags().StringVar(&options.Port, "port", "9001", "UI port")
+	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
+	cmd.Flags().StringVar(&options.HelmRepoNamespace, "helm-repo-namespace", "default", "the namespace of the Helm Repository resource to scan for profiles")
+	cmd.Flags().StringVar(&options.HelmRepoName, "helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
+
+	if server.AuthEnabled() {
+		cmd.Flags().StringVar(&options.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
+		cmd.Flags().StringVar(&options.OIDC.ClientID, "oidc-client-id", "", "The client ID for the OpenID Connect client")
+		cmd.Flags().StringVar(&options.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
+		cmd.Flags().StringVar(&options.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
+		cmd.Flags().StringVar(&options.OIDC.CookieDuration, "oidc-cookie-duration", "1h", "The duration of the ID token cookie. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
+	}
+
+	return cmd
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
@@ -66,7 +95,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create http client: %w", err)
 	}
 
-	if !loggingEnabled {
+	if !options.LoggingEnabled {
 		appConfig.Logger = zapr.NewLogger(zap.NewNop())
 	}
 
@@ -80,9 +109,47 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create kube http client: %w", err)
 	}
 
-	profilesConfig := server.NewProfilesConfig(rawClient, helmRepoNamespace, helmRepoName)
+	profilesConfig := server.NewProfilesConfig(rawClient, options.HelmRepoNamespace, options.HelmRepoName)
 
-	appAndProfilesHandlers, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig})
+	var authConfig *auth.AuthConfig
+
+	if server.AuthEnabled() {
+		_, err := url.Parse(options.OIDC.IssuerURL)
+		if err != nil {
+			return fmt.Errorf("invalid issuer URL: %w", err)
+		}
+
+		redirectURL, err := url.Parse(options.OIDC.RedirectURL)
+		if err != nil {
+			return fmt.Errorf("invalid redirect URL: %w", err)
+		}
+
+		var oidcIssueSecureCookies bool
+		if redirectURL.Scheme == "https" {
+			oidcIssueSecureCookies = true
+		}
+
+		oidcCookieDuration, err := time.ParseDuration(options.OIDC.CookieDuration)
+		if err != nil {
+			return fmt.Errorf("invalid cookie duration: %w", err)
+		}
+
+		cfg, err := auth.NewAuthConfig(cmd.Context(), options.OIDC.IssuerURL,
+			options.OIDC.ClientID, options.OIDC.ClientSecret, options.OIDC.RedirectURL,
+			oidcIssueSecureCookies, oidcCookieDuration, http.DefaultClient,
+			appConfig.Logger)
+		if err != nil {
+			return fmt.Errorf("could not create auth config: %w", err)
+		}
+
+		cfg.Logger().Info("Registering callback route")
+		// Register /callback handler with mux
+		auth.RegisterAuthHandler(mux, "/oauth2", cfg)
+
+		authConfig = cfg
+	}
+
+	appAndProfilesHandlers, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig, AuthConfig: authConfig})
 	if err != nil {
 		return fmt.Errorf("could not create handler: %w", err)
 	}
@@ -96,20 +163,24 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		// This will return a 404 on normal page requests, ie /some-page.
 		// Redirect all non-file requests to index.html, where the JS routing will take over.
 		if extension == "" {
-			redirector(w, req)
+			if server.AuthEnabled() {
+				auth.WithWebAuth(redirector, authConfig).ServeHTTP(w, req)
+			} else {
+				redirector(w, req)
+			}
 			return
 		}
 		assetHandler.ServeHTTP(w, req)
 	}))
 
-	addr := "0.0.0.0:" + port
+	addr := "0.0.0.0:" + options.Port
 	srv := &http.Server{
 		Addr:    addr,
 		Handler: mux,
 	}
 
 	go func() {
-		log.Infof("Serving on port %s", port)
+		log.Infof("Serving on port %s", options.Port)
 
 		if err := srv.ListenAndServe(); err != nil {
 			log.Error(err, "server exited")
@@ -118,7 +189,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}()
 
 	if isatty.IsTerminal(os.Stdout.Fd()) {
-		url := fmt.Sprintf("http://%s/%s", addr, path)
+		url := fmt.Sprintf("http://%s/%s", addr, options.Path)
 
 		log.Printf("Opening browser at %s", url)
 
