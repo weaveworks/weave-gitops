@@ -1,9 +1,12 @@
-import { Slider } from "@material-ui/core";
+import Slider from "@material-ui/core/Slider";
 import * as d3 from "d3";
 import dagreD3 from "dagre-d3";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
+import { muiTheme } from "../lib/theme";
+import Flex from "./Flex";
+import Spacer from "./Spacer";
 
 type Props<N> = {
   className?: string;
@@ -16,15 +19,20 @@ type Props<N> = {
   labelShape: "rect" | "ellipse";
 };
 
-const GraphSlider = styled(Slider)`
-  &.MuiSlider-root {
-    &.MuiSlider-vertical {
-      position: relative;
-      height: 150px;
-      left: 95%;
-      top: 5vh;
-    }
-  }
+const SliderFlex = styled(Flex)`
+  position: absolute;
+  min-height: 200px;
+  height: 15vh;
+  width: 5%;
+  left: 90%;
+  top: 25vh;
+`;
+
+const PercentFlex = styled(Flex)`
+  color: ${muiTheme.palette.primary.main};
+  padding: 10px;
+  background: rgba(0, 179, 236, 0.1);
+  border-radius: 2px;
 `;
 
 function DirectedGraph<T>({
@@ -39,7 +47,7 @@ function DirectedGraph<T>({
 }: Props<T>) {
   const svgRef = React.useRef();
 
-  const [zoomPercent, setZoomPercent] = React.useState(0);
+  const [zoomPercent, setZoomPercent] = React.useState(30);
 
   React.useEffect(() => {
     if (!svgRef.current) {
@@ -88,7 +96,7 @@ function DirectedGraph<T>({
 
     // Set up zoom support
     const zoom = d3.zoom().on("zoom", (e) => {
-      e.transform.k = zoomPercent / 100;
+      e.transform.k = (zoomPercent + 30) / 100;
       svg.select("g").attr("transform", e.transform);
     });
 
@@ -102,12 +110,16 @@ function DirectedGraph<T>({
   }, [svgRef.current, nodes, edges, zoomPercent]);
   return (
     <div className={className}>
-      <GraphSlider
-        onChange={(e, value: number) => setZoomPercent(value)}
-        defaultValue={0}
-        orientation="vertical"
-        aria-label="zoom"
-      />
+      <SliderFlex column align>
+        <Slider
+          onChange={(e, value: number) => setZoomPercent(value)}
+          defaultValue={30}
+          orientation="vertical"
+          aria-label="zoom"
+        />
+        <Spacer padding="base" />
+        <PercentFlex>{zoomPercent}%</PercentFlex>
+      </SliderFlex>
       <svg width={width} height={height} ref={svgRef} />
     </div>
   );
@@ -115,18 +127,15 @@ function DirectedGraph<T>({
 
 export default styled(DirectedGraph)`
   overflow: hidden;
-
   text {
     font-weight: 300;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-size: 12px;
   }
-
   .edgePath path {
     stroke: #333;
     stroke-width: 1.5px;
   }
-
   foreignObject {
     display: flex;
     flex-direction: column;
