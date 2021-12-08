@@ -421,7 +421,7 @@ func (k *KubeHTTP) SetWegoConfig(ctx context.Context, config WegoConfig, namespa
 				return nil, fmt.Errorf("failed creating weave-gitops configmap: %w", err)
 			}
 
-			return nil, nil
+			return orginalCm, nil
 		}
 
 		return nil, fmt.Errorf("failed getting weave-gitops configmap: %w", err)

@@ -483,12 +483,21 @@ metadata:
 		It("set a wego config in a namespace", func() {
 			ctx := context.Background()
 
-			err := k.SetWegoConfig(ctx, kube.WegoConfig{FluxNamespace: "foo"}, namespace.Name)
+			cm, err := k.SetWegoConfig(ctx, kube.WegoConfig{FluxNamespace: "foo"}, namespace.Name)
 			Expect(err).NotTo(HaveOccurred())
+			Expect(cm).ToNot(BeNil())
 
 			wegoConfig, err := k.GetWegoConfig(ctx, namespace.Name)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(wegoConfig.FluxNamespace).To(Equal("foo"))
+		})
+
+		It("fails setting a wego config", func() {
+			ctx := context.Background()
+
+			cm, err := k.SetWegoConfig(ctx, kube.WegoConfig{FluxNamespace: "foo"}, "")
+			Expect(err.Error()).To(ContainSubstring("failed getting weave-gitops configmap"))
+			Expect(cm).To(BeNil())
 		})
 	})
 
