@@ -64,7 +64,7 @@ function RepoInputWithAuth({
     props.value && !!res?.provider && !isAuthenticated;
 
   return (
-    <Flex className={props.className} align>
+    <Flex className={props.className} align start>
       <Input
         {...props}
         error={props.value && !!err?.message ? true : false}
