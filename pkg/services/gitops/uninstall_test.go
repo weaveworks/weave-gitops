@@ -184,7 +184,7 @@ var _ = Describe("Uninstall", func() {
 		Expect(kubeClient.DeleteCallCount()).To(Equal(len(wegoAppManifests)+1), "deletes all wego app manifests plus the app crd")
 	})
 
-	It("fails if cant fetch wego config", func() {
+	It("fails if we can't fetch the wego config", func() {
 		kubeClient.GetWegoConfigReturns(nil, errors.New("error"))
 
 		err := gitopsSrv.Uninstall(uninstallParams)

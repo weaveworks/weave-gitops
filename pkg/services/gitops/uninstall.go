@@ -49,6 +49,20 @@ func (g *Gitops) Uninstall(params UninstallParams) error {
 		}
 	}
 
+	if err := g.removeFluxIfMatchingWegoConfig(ctx, params); err != nil {
+		g.logger.Println(err.Error())
+
+		errorOccurred = true
+	}
+
+	if errorOccurred {
+		return UninstallError{}
+	}
+
+	return nil
+}
+
+func (g *Gitops) removeFluxIfMatchingWegoConfig(ctx context.Context, params UninstallParams) error {
 	wegoConfig, err := g.kube.GetWegoConfig(ctx, params.Namespace)
 	if err != nil {
 		return fmt.Errorf("failed getting wego config in namespace=%s: %w", params.Namespace, err)
@@ -61,14 +75,8 @@ func (g *Gitops) Uninstall(params UninstallParams) error {
 
 	if uninstallFlux {
 		if err := g.flux.Uninstall(params.Namespace, params.DryRun); err != nil {
-			g.logger.Printf("received error uninstalling flux: %q, continuing with uninstall", err)
-
-			errorOccurred = true
+			return fmt.Errorf("received error uninstalling flux: %q, continuing with uninstall", err)
 		}
-	}
-
-	if errorOccurred {
-		return UninstallError{}
 	}
 
 	return nil
