@@ -25,8 +25,8 @@ import (
 )
 
 type params struct {
-	DryRun       bool
-	AppConfigURL string
+	DryRun     bool
+	ConfigRepo string
 }
 
 var (
@@ -40,7 +40,7 @@ var Cmd = &cobra.Command{
 adds a cluster entry to the GitOps repo, and persists the GitOps runtime into the
 repo. If a previous version is installed, then an in-place upgrade will be performed.`,
 	Example: fmt.Sprintf(`  # Install GitOps in the %s namespace
-  gitops install --app-config-url=ssh://git@github.com/me/mygitopsrepo.git`, wego.DefaultNamespace),
+  gitops install --config-repo=ssh://git@github.com/me/mygitopsrepo.git`, wego.DefaultNamespace),
 	RunE:          installRunCmd,
 	SilenceErrors: true,
 	SilenceUsage:  true,
@@ -51,8 +51,8 @@ repo. If a previous version is installed, then an in-place upgrade will be perfo
 
 func init() {
 	Cmd.Flags().BoolVar(&installParams.DryRun, "dry-run", false, "Outputs all the manifests that would be installed")
-	Cmd.Flags().StringVar(&installParams.AppConfigURL, "app-config-url", "", "URL of external repository that will hold automation manifests")
-	cobra.CheckErr(Cmd.MarkFlagRequired("app-config-url"))
+	Cmd.Flags().StringVar(&installParams.ConfigRepo, "config-repo", "", "URL of external repository that will hold automation manifests")
+	cobra.CheckErr(Cmd.MarkFlagRequired("config-repo"))
 }
 
 func installRunCmd(cmd *cobra.Command, args []string) error {
@@ -70,9 +70,9 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	gitopsService := gitops.New(log, flux, k)
 
 	gitopsParams := gitops.InstallParams{
-		Namespace:    namespace,
-		DryRun:       installParams.DryRun,
-		AppConfigURL: installParams.AppConfigURL,
+		Namespace:  namespace,
+		DryRun:     installParams.DryRun,
+		ConfigRepo: installParams.ConfigRepo,
 	}
 
 	manifests, err := gitopsService.Install(gitopsParams)
@@ -89,7 +89,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		providerClient := internal.NewGitProviderClient(osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
 
 		gitClient, gitProvider, err = factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
-			URL:       installParams.AppConfigURL,
+			URL:       installParams.ConfigRepo,
 			Namespace: namespace,
 			DryRun:    installParams.DryRun,
 		})

@@ -170,7 +170,7 @@ var _ = Describe("Install", func() {
 	})
 	Context("when app url specified", func() {
 		BeforeEach(func() {
-			installParams.AppConfigURL = "ssh://git@github.com/foo/somevalidrepo.git"
+			installParams.ConfigRepo = "ssh://git@github.com/foo/somevalidrepo.git"
 			fluxClient.InstallReturns(fakeFluxManifests, nil)
 			manifestsByPath = map[string][]byte{}
 
@@ -208,25 +208,25 @@ var _ = Describe("Install", func() {
 	})
 	Context("when app url specified && dry-run", func() {
 		BeforeEach(func() {
-			installParams.AppConfigURL = "ssh://git@github.com/foo/somevalidrepo.git"
+			installParams.ConfigRepo = "ssh://git@github.com/foo/somevalidrepo.git"
 			installParams.DryRun = true
 			fluxClient.InstallReturns(fakeFluxManifests, nil)
 		})
 		It("skips flux install", func() {
 			_, err := gitopsSrv.Install(installParams)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(kubeClient.ApplyCallCount()).Should(Equal(0), "With dry-run and app-config-url nothing should be sent to k8s")
+			Expect(kubeClient.ApplyCallCount()).Should(Equal(0), "With dry-run and config-repo nothing should be sent to k8s")
 		})
 		It("writes no manifests to the repo", func() {
 			_, err := gitopsSrv.Install(installParams)
 			Expect(err).ShouldNot(HaveOccurred())
-			Expect(fakeGit.WriteCallCount()).Should(Equal(0), "With dry-run and app-config-url nothing should be written to git")
+			Expect(fakeGit.WriteCallCount()).Should(Equal(0), "With dry-run and config-repo nothing should be written to git")
 		})
 		It("flux manifests are returned", func() {
 			manifests, err := gitopsSrv.Install(installParams)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(manifests["gitops-runtime.yaml"]).To(ContainSubstring(string(fakeFluxManifests)))
-			Expect(fakeGit.WriteCallCount()).Should(Equal(0), "With dry-run and app-config-url nothing should be written to git")
+			Expect(fakeGit.WriteCallCount()).Should(Equal(0), "With dry-run and config-repo nothing should be written to git")
 		})
 	})
 

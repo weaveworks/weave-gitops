@@ -126,7 +126,7 @@ var _ = Describe("AddApplication", func() {
 					URL:            req.Url,
 					Branch:         req.Branch,
 					Path:           req.Path,
-					ConfigURL:      req.Url,
+					ConfigRepo:     req.Url,
 					DeploymentType: wego.DeploymentTypeKustomize,
 					SourceType:     wego.SourceTypeGit,
 				}
@@ -154,12 +154,12 @@ var _ = Describe("AddApplication", func() {
 				defer func() { Expect(sourceRepo.Delete(ctx)).To(Succeed()) }()
 
 				req := &pb.AddApplicationRequest{
-					Name:      "my-app",
-					Namespace: namespace.Name,
-					Url:       sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
-					Branch:    "main",
-					Path:      "k8s/overlays/development",
-					ConfigUrl: configRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					Name:       "my-app",
+					Namespace:  namespace.Name,
+					Url:        sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					Branch:     "main",
+					Path:       "k8s/overlays/development",
+					ConfigRepo: configRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
 				}
 
 				res, err := client.AddApplication(ctx, req)
@@ -189,7 +189,7 @@ var _ = Describe("AddApplication", func() {
 					URL:            normalizedUrl.String(),
 					Branch:         req.Branch,
 					Path:           req.Path,
-					ConfigURL:      req.ConfigUrl,
+					ConfigRepo:     req.ConfigRepo,
 					DeploymentType: wego.DeploymentTypeKustomize,
 					SourceType:     wego.SourceTypeGit,
 				}
@@ -279,7 +279,7 @@ var _ = Describe("AddApplication", func() {
 					URL:            req.Url,
 					Branch:         req.Branch,
 					Path:           req.Path,
-					ConfigURL:      ref.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					ConfigRepo:     ref.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
 					DeploymentType: wego.DeploymentTypeKustomize,
 					SourceType:     wego.SourceTypeGit,
 				}
@@ -335,13 +335,13 @@ var _ = Describe("AddApplication", func() {
 				defer func() { Expect(sourceRepo.Delete(ctx)).To(Succeed()) }()
 
 				req := &pb.AddApplicationRequest{
-					Name:      "my-app",
-					Namespace: namespace.Name,
-					Url:       sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
-					Branch:    "main",
-					Path:      "k8s/overlays/development",
-					ConfigUrl: configRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
-					AutoMerge: true,
+					Name:       "my-app",
+					Namespace:  namespace.Name,
+					Url:        sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					Branch:     "main",
+					Path:       "k8s/overlays/development",
+					ConfigRepo: configRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					AutoMerge:  true,
 				}
 
 				res, err := client.AddApplication(ctx, req)
@@ -376,7 +376,7 @@ var _ = Describe("AddApplication", func() {
 					URL:            req.Url,
 					Branch:         req.Branch,
 					Path:           req.Path,
-					ConfigURL:      req.ConfigUrl,
+					ConfigRepo:     req.ConfigRepo,
 					DeploymentType: wego.DeploymentTypeKustomize,
 					SourceType:     wego.SourceTypeGit,
 				}
@@ -507,7 +507,7 @@ var _ = Describe("AddApplication", func() {
 					URL:            req.Url,
 					Branch:         req.Branch,
 					Path:           req.Path,
-					ConfigURL:      req.Url,
+					ConfigRepo:     req.Url,
 					DeploymentType: wego.DeploymentTypeKustomize,
 					SourceType:     wego.SourceTypeGit,
 				}
@@ -545,12 +545,12 @@ var _ = Describe("AddApplication", func() {
 				defer func() { Expect(sourceRepo.Delete(ctx)).To(Succeed()) }()
 
 				req := &pb.AddApplicationRequest{
-					Name:      "my-app",
-					Namespace: namespace.Name,
-					Url:       sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
-					Branch:    "main",
-					Path:      "k8s/overlays/development",
-					ConfigUrl: configRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					Name:       "my-app",
+					Namespace:  namespace.Name,
+					Url:        sourceRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
+					Branch:     "main",
+					Path:       "k8s/overlays/development",
+					ConfigRepo: configRef.GetCloneURL(gitprovider.TransportTypeSSH) + ".git",
 				}
 
 				res, err := client.AddApplication(ctx, req)
@@ -580,7 +580,7 @@ var _ = Describe("AddApplication", func() {
 					URL:            normalizedUrl.String(),
 					Branch:         req.Branch,
 					Path:           req.Path,
-					ConfigURL:      req.ConfigUrl,
+					ConfigRepo:     req.ConfigRepo,
 					DeploymentType: wego.DeploymentTypeKustomize,
 					SourceType:     wego.SourceTypeGit,
 				}

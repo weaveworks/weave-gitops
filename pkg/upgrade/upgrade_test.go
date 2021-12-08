@@ -36,7 +36,7 @@ func TestUpgradeDryRun(t *testing.T) {
 
 	// Run upgrade!
 	err := upgrade(context.TODO(), UpgradeValues{
-		AppConfigURL:  "ssh://git@github.com/my-org/my-management-cluster.git",
+		ConfigRepo:    "ssh://git@github.com/my-org/my-management-cluster.git",
 		HeadBranch:    "upgrade-to-wge",
 		BaseBranch:    "main",
 		CommitMessage: "Upgrade to wge",
@@ -77,7 +77,7 @@ func TestUpgrade(t *testing.T) {
 
 	// Run upgrade!
 	err := upgrade(context.TODO(), UpgradeValues{
-		AppConfigURL:  "https://github.com/test/example.git",
+		ConfigRepo:    "https://github.com/test/example.git",
 		HeadBranch:    "upgrade-to-wge",
 		BaseBranch:    "main",
 		CommitMessage: "Upgrade to wge",
