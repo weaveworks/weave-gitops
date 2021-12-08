@@ -51,7 +51,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v1
         with:
           version: latest
-          args: release --rm-dist --debug --release-notes=${{ runner.temp }}/changelog.md
+          args: release --rm-dist --release-notes=${{ runner.temp }}/changelog.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BOT_TOKEN: ${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}
