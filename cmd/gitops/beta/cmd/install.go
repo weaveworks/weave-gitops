@@ -23,8 +23,8 @@ import (
 )
 
 type params struct {
-	DryRun       bool
-	AppConfigURL string
+	DryRun     bool
+	ConfigRepo string
 }
 
 var (
@@ -39,7 +39,7 @@ var installCmd = &cobra.Command{
 adds a cluster entry to the GitOps repo, and persists the GitOps runtime into the
 repo.`,
 	Example: `  # Install GitOps in the wego-system namespace
-  gitops beta install --app-config-url ssh://git@github.com/me/mygitopsrepo.git`,
+  gitops beta install --config-repo ssh://git@github.com/me/mygitopsrepo.git`,
 	RunE:          installRunCmd,
 	SilenceErrors: true,
 	SilenceUsage:  true,
@@ -51,8 +51,8 @@ repo.`,
 func init() {
 	Cmd.AddCommand(installCmd)
 	installCmd.Flags().BoolVar(&installParams.DryRun, "dry-run", false, "Outputs all the manifests that would be installed")
-	installCmd.Flags().StringVar(&installParams.AppConfigURL, "app-config-url", "", "URL of external repository that will hold automation manifests")
-	cobra.CheckErr(installCmd.MarkFlagRequired("app-config-url"))
+	installCmd.Flags().StringVar(&installParams.ConfigRepo, "config-repo", "", "URL of external repository that will hold automation manifests")
+	cobra.CheckErr(installCmd.MarkFlagRequired("config-repo"))
 }
 
 func installRunCmd(cmd *cobra.Command, args []string) error {
@@ -72,9 +72,9 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	gitopsService := gitops.New(log, fluxClient, k)
 
 	gitOpsParams := gitops.InstallParams{
-		Namespace:    namespace,
-		DryRun:       installParams.DryRun,
-		AppConfigURL: installParams.AppConfigURL,
+		Namespace:  namespace,
+		DryRun:     installParams.DryRun,
+		ConfigRepo: installParams.ConfigRepo,
 	}
 
 	manifests, err := gitopsService.Install(gitOpsParams)
@@ -83,7 +83,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	gitClient, gitProvider, err := factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
-		URL:       installParams.AppConfigURL,
+		URL:       installParams.ConfigRepo,
 		Namespace: namespace,
 		DryRun:    installParams.DryRun,
 	})

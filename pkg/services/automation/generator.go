@@ -306,8 +306,8 @@ func WegoAppToApp(app wego.Application) (models.Application, error) {
 		helmRepoUrl = app.Spec.URL
 	}
 
-	if models.IsExternalConfigUrl(app.Spec.ConfigURL) {
-		configRepoUrl, err = gitproviders.NewRepoURL(app.Spec.ConfigURL)
+	if models.IsExternalConfigRepo(app.Spec.ConfigRepo) {
+		configRepoUrl, err = gitproviders.NewRepoURL(app.Spec.ConfigRepo)
 		if err != nil {
 			return models.Application{}, err
 		}
@@ -318,7 +318,7 @@ func WegoAppToApp(app wego.Application) (models.Application, error) {
 		Namespace:           app.Namespace,
 		GitSourceURL:        appRepoUrl,
 		HelmSourceURL:       helmRepoUrl,
-		ConfigURL:           configRepoUrl,
+		ConfigRepo:          configRepoUrl,
 		Branch:              app.Spec.Branch,
 		Path:                app.Spec.Path,
 		HelmTargetNamespace: app.Spec.HelmTargetNamespace,
@@ -345,7 +345,7 @@ func AppToWegoApp(app models.Application) wego.Application {
 			Namespace: app.Namespace,
 		},
 		Spec: wego.ApplicationSpec{
-			ConfigURL:           app.ConfigURL.String(),
+			ConfigRepo:          app.ConfigRepo.String(),
 			Branch:              app.Branch,
 			URL:                 sourceUrl,
 			Path:                app.Path,

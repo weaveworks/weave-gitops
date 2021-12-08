@@ -17,11 +17,12 @@ const Styled = (component) => styled(component)`
   flex-direction: ${(props) => (props.column ? "column" : "row")};
   align-items: ${(props) => (props.align ? "center" : "start")};
   ${(props) => props.height && `height: ${props.height};`}
-  ${({ between }) => between && "justify-content: space-between"};
-  ${({ center }) => center && "justify-content: center"};
   ${({ wide }) => wide && "width: 100%"};
   ${({ wrap }) => wrap && "flex-wrap: wrap"};
+  justify-content: ${(props) => (props.start ? "flex-start" : "space-evenly")};
   ${({ end }) => end && "justify-content: flex-end"};
+  ${({ between }) => between && "justify-content: space-between"};
+  ${({ center }) => center && "justify-content: center"};
 `;
 
 class Flex extends React.PureComponent<Props> {

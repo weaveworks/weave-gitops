@@ -138,7 +138,7 @@ jobs:
         $WEGO_BIN_PATH flux uninstall --silent
         $WEGO_BIN_PATH flux uninstall --namespace test-namespace --silent
         kubectl get all --all-namespaces -o wide
-        ginkgo --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/test-results/acceptance-test-results.xml -v ./test/acceptance/test/...
+        ginkgo --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/test-results/acceptance-test-results.xml --skip=@skipOnNightly -v ./test/acceptance/test/...
       if: always()
     - name: Store acceptance test results
       if: ${{ always() }}
@@ -258,7 +258,7 @@ jobs:
         $WEGO_BIN_PATH flux uninstall --silent
         $WEGO_BIN_PATH flux uninstall --namespace test-namespace --silent
         kubectl get all --all-namespaces -o wide
-        ginkgo --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/test-results/acceptance-test-results.xml -v ./test/acceptance/test/...
+        ginkgo --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/test-results/acceptance-test-results.xml --skip=@skipOnNightly -v ./test/acceptance/test/...
       if: always()
     - name: Store acceptance test results
       if: ${{ always() }}
