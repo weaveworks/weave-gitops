@@ -72,6 +72,7 @@ brews:
   - tap:
       owner: weaveworks
       name: homebrew-tap
+      token: "{{ .Env.BOT_TOKEN }}"
     commit_author:
       name: weaveworks-gitops-test-weave-gitops-bot
       email: corporate-it+weaveworks-gitops-test.weave-gitops-bot@weave.works
