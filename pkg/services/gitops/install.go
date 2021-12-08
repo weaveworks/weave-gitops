@@ -19,7 +19,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	kyaml "sigs.k8s.io/yaml"
 )
@@ -317,20 +316,4 @@ func (g *Gitops) saveWegoConfig(ctx context.Context, params InstallParams) (*cor
 	}
 
 	return cm, nil
-}
-
-func (g *Gitops) getWegoConfigManifest(ctx context.Context, namespace string) ([]byte, error) {
-	name := types.NamespacedName{Name: kube.WegoConfigMapName, Namespace: namespace}
-	wegoConfigMap := &corev1.ConfigMap{}
-
-	if err := g.kube.GetResource(ctx, name, wegoConfigMap); err != nil {
-		return nil, fmt.Errorf("failed getting weave-gitops configmap: %w", err)
-	}
-
-	configBytes, err := kyaml.Marshal(wegoConfigMap)
-	if err != nil {
-		return nil, fmt.Errorf("failed marshalling wego config: %w", err)
-	}
-
-	return configBytes, nil
 }

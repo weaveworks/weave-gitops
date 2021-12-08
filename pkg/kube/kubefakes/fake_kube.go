@@ -210,7 +210,7 @@ type FakeKube struct {
 	setResourceReturnsOnCall map[int]struct {
 		result1 error
 	}
-	SetWegoConfigStub        func(context.Context, kube.WegoConfig, string) error
+	SetWegoConfigStub        func(context.Context, kube.WegoConfig, string) (*v1.ConfigMap, error)
 	setWegoConfigMutex       sync.RWMutex
 	setWegoConfigArgsForCall []struct {
 		arg1 context.Context
@@ -218,10 +218,12 @@ type FakeKube struct {
 		arg3 string
 	}
 	setWegoConfigReturns struct {
-		result1 error
+		result1 *v1.ConfigMap
+		result2 error
 	}
 	setWegoConfigReturnsOnCall map[int]struct {
-		result1 error
+		result1 *v1.ConfigMap
+		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -1184,7 +1186,7 @@ func (fake *FakeKube) SetResourceReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeKube) SetWegoConfig(arg1 context.Context, arg2 kube.WegoConfig, arg3 string) error {
+func (fake *FakeKube) SetWegoConfig(arg1 context.Context, arg2 kube.WegoConfig, arg3 string) (*v1.ConfigMap, error) {
 	fake.setWegoConfigMutex.Lock()
 	ret, specificReturn := fake.setWegoConfigReturnsOnCall[len(fake.setWegoConfigArgsForCall)]
 	fake.setWegoConfigArgsForCall = append(fake.setWegoConfigArgsForCall, struct {
@@ -1200,9 +1202,9 @@ func (fake *FakeKube) SetWegoConfig(arg1 context.Context, arg2 kube.WegoConfig, 
 		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
-		return ret.result1
+		return ret.result1, ret.result2
 	}
-	return fakeReturns.result1
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeKube) SetWegoConfigCallCount() int {
@@ -1211,7 +1213,7 @@ func (fake *FakeKube) SetWegoConfigCallCount() int {
 	return len(fake.setWegoConfigArgsForCall)
 }
 
-func (fake *FakeKube) SetWegoConfigCalls(stub func(context.Context, kube.WegoConfig, string) error) {
+func (fake *FakeKube) SetWegoConfigCalls(stub func(context.Context, kube.WegoConfig, string) (*v1.ConfigMap, error)) {
 	fake.setWegoConfigMutex.Lock()
 	defer fake.setWegoConfigMutex.Unlock()
 	fake.SetWegoConfigStub = stub
@@ -1224,27 +1226,30 @@ func (fake *FakeKube) SetWegoConfigArgsForCall(i int) (context.Context, kube.Weg
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeKube) SetWegoConfigReturns(result1 error) {
+func (fake *FakeKube) SetWegoConfigReturns(result1 *v1.ConfigMap, result2 error) {
 	fake.setWegoConfigMutex.Lock()
 	defer fake.setWegoConfigMutex.Unlock()
 	fake.SetWegoConfigStub = nil
 	fake.setWegoConfigReturns = struct {
-		result1 error
-	}{result1}
+		result1 *v1.ConfigMap
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *FakeKube) SetWegoConfigReturnsOnCall(i int, result1 error) {
+func (fake *FakeKube) SetWegoConfigReturnsOnCall(i int, result1 *v1.ConfigMap, result2 error) {
 	fake.setWegoConfigMutex.Lock()
 	defer fake.setWegoConfigMutex.Unlock()
 	fake.SetWegoConfigStub = nil
 	if fake.setWegoConfigReturnsOnCall == nil {
 		fake.setWegoConfigReturnsOnCall = make(map[int]struct {
-			result1 error
+			result1 *v1.ConfigMap
+			result2 error
 		})
 	}
 	fake.setWegoConfigReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
+		result1 *v1.ConfigMap
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeKube) Invocations() map[string][][]interface{} {
