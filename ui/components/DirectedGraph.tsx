@@ -20,12 +20,11 @@ type Props<N> = {
 };
 
 const SliderFlex = styled(Flex)`
-  position: absolute;
+  position: relative;
   min-height: 200px;
   height: 15vh;
   width: 5%;
-  left: 90%;
-  top: 25vh;
+  top: 150px;
 `;
 
 const PercentFlex = styled(Flex)`
@@ -109,7 +108,8 @@ function DirectedGraph<T>({
     render(d3.select("svg g"), graph);
   }, [svgRef.current, nodes, edges, zoomPercent]);
   return (
-    <div className={className}>
+    <Flex className={className}>
+      <svg width={width} height={height} ref={svgRef} />
       <SliderFlex column align>
         <Slider
           onChange={(e, value: number) => setZoomPercent(value)}
@@ -120,8 +120,7 @@ function DirectedGraph<T>({
         <Spacer padding="base" />
         <PercentFlex>{zoomPercent}%</PercentFlex>
       </SliderFlex>
-      <svg width={width} height={height} ref={svgRef} />
-    </div>
+    </Flex>
   );
 }
 
