@@ -58,7 +58,7 @@ built binary which is created from `make bin`, you want to set it to `WEGO_BIN_P
 that it should deploy images using the `latest` tag, instead of the latest version.
 
 #### Testing local changes with acceptance tests
-As of right now it's not easy to test your local code changes pass the acceptance test.
+As of right now, it's not easy to test your local code changes with acceptance tests.
 Until [#1158](https://github.com/weaveworks/weave-gitops/issues/1158) is resolved you must:
 
 1. Manually build and push the `wego-app` docker image to your own registry. Example:
