@@ -2,6 +2,7 @@ import { CircularProgress, Tooltip } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
 import { theme } from "..";
+import { muiTheme } from "../lib/theme";
 import Flex from "./Flex";
 import Spacer from "./Spacer";
 
@@ -30,7 +31,7 @@ function PollingIndicator({ className, loading, interval }: Props) {
   return (
     <Flex align className={className}>
       <Tooltip title={updated} arrow placement="top">
-        <p>last updated {interval} seconds ago</p>
+        <p className="timestamp-p">last updated {interval} seconds ago</p>
       </Tooltip>
       <Spacer padding="base">
         <CircularProgress
@@ -43,6 +44,10 @@ function PollingIndicator({ className, loading, interval }: Props) {
 }
 
 export default styled(PollingIndicator)`
+  .timestamp-p {
+    color: ${muiTheme.palette.text.secondary};
+    margin-bottom: 12px;
+  }
   .MuiCircularProgress-root {
     transition: opacity 2s;
     &.in {
