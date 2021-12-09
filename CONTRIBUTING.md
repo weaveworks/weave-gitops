@@ -64,7 +64,7 @@ Until [#1158](https://github.com/weaveworks/weave-gitops/issues/1158) is resolve
 1. Manually build and push the `wego-app` docker image to your own registry. Example:
 `docker build -f Dockerfile -t aclevernameww/wego-app:latest . && docker push aclevernameww/wego-app:latest`
 2. Update the `manifests/wego-app/deployment.yaml.tpl` to use your registry. Example:
-`image: aclevernameww/wego-app:{{.Version}})
+`image: aclevernameww/wego-app:{{.Version}})`
 3. Rebuild the local gitops binary via `make bin`
 4. Ensure `WEGO_BIN_PATH` is set to the local binary and `IS_TEST_ENV=true`
 
