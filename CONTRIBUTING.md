@@ -61,7 +61,7 @@ environment variables as the integration tests, with the following in addition:
 
 - `WEGO_BIN_PATH`- The path to the `gitops` binary the tests should use. To test a locally
 built binary which is created from `make bin`, you want to set it to `WEGO_BIN_PATH=$PWD/bin/gitops`.
-- `IS_TEST_ENV`- If this value is set to anything, it indicates to the `gitops` binary
+- `IS_TEST_ENV`- If this environment variable is set to anything, it indicates to the `gitops` binary
 that it should deploy images using the `latest` tag, instead of the latest version.
 
 #### Testing local changes with acceptance tests
