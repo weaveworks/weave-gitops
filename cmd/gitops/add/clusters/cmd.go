@@ -101,25 +101,21 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 
 		var profilesValues []capi.ProfileValues
 
-		var profileMap map[string]string
-		var valuesPair []string
-
 		for _, p := range flags.Profiles {
+			valuesPairs := strings.Split(p, ",")
+			profileMap := make(map[string]string)
 
-			var profileValues capi.ProfileValues
-
-			valuesPair = strings.Split(p, ",")
-			profileMap = make(map[string]string)
-
-			for _, pair := range valuesPair {
-				z := strings.Split(pair, "=")
-				profileMap[z[0]] = z[1]
+			for _, pair := range valuesPairs {
+				kv := strings.Split(pair, "=")
+				profileMap[kv[0]] = kv[1]
 			}
 
 			profileJson, err := json.Marshal(profileMap)
 			if err != nil {
 				return err
 			}
+
+			var profileValues capi.ProfileValues
 
 			err = json.Unmarshal(profileJson, &profileValues)
 			if err != nil {
