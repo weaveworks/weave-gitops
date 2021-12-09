@@ -48,6 +48,13 @@ If you wish to run the full suite, you will also need the equivalent for gitlab:
 
 However if you only want to test it against one of the providers, use [ginkgos focus](
 https://onsi.github.io/ginkgo/#focused-specs) feature to run the tests for one provider.
+Example:
+```
+cat test/integration/server/add_test.go
+...
+ FContext("GitHub", func() {
+```
+
 ### Running acceptance tests
 The acceptance tests can be run using `make acceptance-tests`. They require the same
 environment variables as the integration tests, with the following in addition:
