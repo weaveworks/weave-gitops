@@ -9,11 +9,7 @@ import Button from "./Button";
 type Props = ButtonProps;
 
 function GithubAuthButton(props: Props) {
-  return (
-    <Button {...props} variant="contained">
-      Authenticate with {GitProvider.GitHub}
-    </Button>
-  );
+  return <Button {...props}>Authenticate with {GitProvider.GitHub}</Button>;
 }
 
 export default styled(GithubAuthButton).attrs({

@@ -106,7 +106,6 @@ function ApplicationDetail({ className, name }: Props) {
       topRight={
         <Flex align>
           <Button
-            variant="contained"
             loading={syncLoading}
             onClick={() => {
               syncRequest(
@@ -122,7 +121,6 @@ function ApplicationDetail({ className, name }: Props) {
           <Spacer padding="small" />
           <Button
             color="secondary"
-            variant="contained"
             onClick={() =>
               navigate.internal(PageRoute.ApplicationRemove, { name })
             }

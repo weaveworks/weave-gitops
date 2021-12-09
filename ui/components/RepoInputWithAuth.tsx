@@ -79,9 +79,7 @@ function RepoInputWithAuth({
           </Flex>
         )}
         {!isAuthenticated && !res && (
-          <Button disabled variant="contained">
-            Authenticate with your Git Provider
-          </Button>
+          <Button disabled>Authenticate with your Git Provider</Button>
         )}
 
         {renderProviderAuthButton ? AuthButton : null}
