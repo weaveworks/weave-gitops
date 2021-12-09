@@ -436,6 +436,8 @@ func (k *KubeHTTP) SetWegoConfig(ctx context.Context, config WegoConfig, namespa
 	return orginalCm, nil
 }
 
+// GetWegoConfig fetches the wego config saved in the cluster in a given namespace.
+// If an empty namespace is passed it will search in all namespaces and return the first one it finds.
 func (k *KubeHTTP) GetWegoConfig(ctx context.Context, namespace string) (*WegoConfig, error) {
 	name := types.NamespacedName{Name: WegoConfigMapName, Namespace: namespace}
 
