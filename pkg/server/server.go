@@ -574,8 +574,6 @@ func (s *applicationServer) GetGithubAuthStatus(ctx context.Context, msg *pb.Get
 	token, err := s.ghAuthClient.GetDeviceCodeAuthStatus(msg.DeviceCode)
 	if err == auth.ErrAuthPending {
 		return nil, grpcStatus.Error(codes.Unauthenticated, err.Error())
-	} else if err == auth.ErrSlowDown {
-		return nil, grpcStatus.Error(codes.Unavailable, err.Error())
 	} else if err != nil {
 		return nil, fmt.Errorf("error getting github device code status: %w", err)
 	}

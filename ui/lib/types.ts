@@ -6,8 +6,6 @@ export enum PageRoute {
 }
 
 export enum GrpcErrorCodes {
-  Unknown = 2,
-  Unavailable = 14,
   Unauthenticated = 16,
 }
 
