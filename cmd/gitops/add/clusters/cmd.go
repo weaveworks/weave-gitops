@@ -105,6 +105,7 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 		var valuesPair []string
 
 		for _, p := range flags.Profiles {
+
 			var profileValues capi.ProfileValues
 
 			valuesPair = strings.Split(p, ",")
