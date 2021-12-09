@@ -1,4 +1,4 @@
-import { CircularProgress } from "@material-ui/core";
+import { CircularProgress, Tooltip } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
 import { theme } from "..";
@@ -28,7 +28,9 @@ function PollingIndicator({ className, loading }: Props) {
 
   return (
     <Flex align className={className}>
-      last updated at {updated}
+      <Tooltip title={updated} arrow placement="top">
+        <p>last updated 30 seconds ago</p>
+      </Tooltip>
       <Spacer padding="base">
         <CircularProgress
           size={theme.spacing.base}

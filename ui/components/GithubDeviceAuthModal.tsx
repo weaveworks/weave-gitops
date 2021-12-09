@@ -37,17 +37,22 @@ const ModalContent = styled(({ codeRes, onSuccess, onError, className }) => {
     }
     setLoading(true);
     const { cancel, promise } = getGithubAuthStatus(codeRes);
-
     promise
-      .then((authRes) => {
-        onSuccess(authRes.accessToken);
-      })
-      .catch((err) => {
-        onError(err);
-      })
-      .finally(() => setLoading(false));
+      .then((res) => onSuccess(res.accessToken))
+      .catch((err) => console.log(err));
 
-    return cancel;
+    // promise
+    //   .then((authRes) => {
+    //     onSuccess(authRes.accessToken);
+    //   })
+    //   .catch((err) => {
+    //     onError(err);
+    //   })
+    //   .finally(() => setLoading(false));
+    return () => {
+      console.log("uNmOuNtInG");
+      cancel();
+    };
   }, [codeRes]);
 
   return (
