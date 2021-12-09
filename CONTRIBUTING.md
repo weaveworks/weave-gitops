@@ -29,7 +29,7 @@ with the focus on a large number of units tests, fewer integration tests and eve
 ### Running unit tests
 You can run `make unit-tests` from the top of the repository to run all of the unit tests.
 As part of running the unit tests we will install any required dependencies for building
-the code. See [dependencies](tools/dependencies.toml) for more information on whats installed.
+the code. See [dependencies](tools/dependencies.toml) for more information on what's installed.
 
 
 ### Running integration tests
@@ -75,6 +75,5 @@ Until [#1158](https://github.com/weaveworks/weave-gitops/issues/1158) is resolve
 3. Rebuild the local gitops binary via `make bin`
 4. Ensure `WEGO_BIN_PATH` is set to the local binary and `IS_TEST_ENV=true`
 
-This should result in the `gitops install` run during the acceptance tests deploying your custom built docker images with
-the desired code changes.
+As a result, when the acceptance tests run `gitops install`, they should deploy your custom-built docker image with the desired code changes.
 
