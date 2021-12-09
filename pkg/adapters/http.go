@@ -224,16 +224,16 @@ func (c *HTTPClient) CreatePullRequestFromTemplate(params capi.CreatePullRequest
 
 	// POST request payload
 	type CreatePullRequestFromTemplateRequest struct {
-		RepositoryURL   string            `json:"repositoryUrl"`
-		HeadBranch      string            `json:"headBranch"`
-		BaseBranch      string            `json:"baseBranch"`
-		Title           string            `json:"title"`
-		Description     string            `json:"description"`
-		TemplateName    string            `json:"templateName"`
-		ParameterValues map[string]string `json:"parameter_values"`
-		CommitMessage   string            `json:"commitMessage"`
-		Credentials     capi.Credentials  `json:"credentials"`
-		ProfileValues   map[string]string `json:"profile_values"`
+		RepositoryURL   string               `json:"repositoryUrl"`
+		HeadBranch      string               `json:"headBranch"`
+		BaseBranch      string               `json:"baseBranch"`
+		Title           string               `json:"title"`
+		Description     string               `json:"description"`
+		TemplateName    string               `json:"templateName"`
+		ParameterValues map[string]string    `json:"parameter_values"`
+		CommitMessage   string               `json:"commitMessage"`
+		Credentials     capi.Credentials     `json:"credentials"`
+		ProfileValues   []capi.ProfileValues `json:"profile_values"`
 	}
 
 	// POST response payload

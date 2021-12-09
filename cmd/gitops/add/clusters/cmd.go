@@ -1,12 +1,12 @@
 package clusters
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
@@ -101,19 +101,24 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 
 		var profilesValues []capi.ProfileValues
 
-		var m map[string]string
-		var ss []string
+		var profileMap map[string]string
+		var valuesPair []string
 
 		for _, p := range flags.Profiles {
 			var profileValues capi.ProfileValues
-			ss = strings.Split(p, ",")
-			m = make(map[string]string)
-			for _, pair := range ss {
+			valuesPair = strings.Split(p, ",")
+			profileMap = make(map[string]string)
+			for _, pair := range valuesPair {
 				z := strings.Split(pair, "=")
-				m[z[0]] = z[1]
+				profileMap[z[0]] = z[1]
 			}
 
-			mapstructure.Decode(m, &profileValues)
+			profileJson, err := json.Marshal(profileMap)
+			if err != nil {
+				return err
+			}
+
+			json.Unmarshal(profileJson, &profileValues)
 			profilesValues = append(profilesValues, profileValues)
 		}
 
