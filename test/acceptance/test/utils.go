@@ -401,7 +401,7 @@ func VerifyControllersInCluster(namespace string) {
 
 func installAndVerifyWego(wegoNamespace, repoURL string) {
 	By("And I run 'gitops install' command with namespace "+wegoNamespace, func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --app-config-url=%s", WEGO_BIN_PATH, wegoNamespace, repoURL))
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --config-repo=%s", WEGO_BIN_PATH, wegoNamespace, repoURL))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, INSTALL_SUCCESSFUL_TIMEOUT).Should(gexec.Exit())
@@ -432,7 +432,7 @@ func deleteNamespace(namespace string) {
 
 	command := exec.Command("kubectl", "delete", "ns", namespace)
 	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Eventually(session, TIMEOUT_TWO_MINUTES).Should(gexec.Exit())
+	Eventually(session, NAMESPACE_TERMINATE_TIMEOUT).Should(gexec.Exit())
 }
 
 func deleteRepo(appRepoName string, providerName gitproviders.GitProviderName, org string) {

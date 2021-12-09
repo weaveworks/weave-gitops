@@ -543,14 +543,11 @@
     "protobufAny": {
       "type": "object",
       "properties": {
-        "typeUrl": {
+        "@type": {
           "type": "string"
-        },
-        "value": {
-          "type": "string",
-          "format": "byte"
         }
-      }
+      },
+      "additionalProperties": {}
     },
     "rpcStatus": {
       "type": "object",
@@ -591,7 +588,7 @@
         "autoMerge": {
           "type": "boolean"
         },
-        "configUrl": {
+        "configRepo": {
           "type": "string"
         }
       }

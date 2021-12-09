@@ -17,10 +17,12 @@ import {
   Applications as appsClient,
   GitProvider,
 } from "./lib/api/applications/applications.pb";
+import Fonts from "./lib/fonts";
 import theme, { GlobalStyle, muiTheme } from "./lib/theme";
 import { PageRoute } from "./lib/types";
 import ApplicationAdd from "./pages/ApplicationAdd";
 import ApplicationDetail from "./pages/ApplicationDetail";
+import ApplicationRemove from "./pages/ApplicationRemove";
 import Applications from "./pages/Applications";
 import Error from "./pages/Error";
 import OAuthCallback from "./pages/OAuthCallback";
@@ -29,6 +31,7 @@ export default function App() {
   return (
     <MuiThemeProvider theme={muiTheme}>
       <ThemeProvider theme={theme}>
+        <Fonts />
         <GlobalStyle />
         <Router>
           <AppContextProvider renderFooter applicationsClient={appsClient}>
@@ -66,6 +69,15 @@ export default function App() {
                           code={params.code as string}
                         />
                       );
+                    }}
+                  />
+                  <Route
+                    exact
+                    path={PageRoute.ApplicationRemove}
+                    component={({ location }) => {
+                      const params = qs.parse(location.search);
+
+                      return <ApplicationRemove name={params.name as string} />;
                     }}
                   />
                   <Redirect exact from="/" to={PageRoute.Applications} />

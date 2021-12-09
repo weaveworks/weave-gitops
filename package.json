@@ -1,6 +1,6 @@
 {
   "name": "@weaveworks/weave-gitops",
-  "version": "0.5.0-rc2",
+  "version": "0.5.1",
   "description": "Weave GitOps core",
   "targets": {
     "default": {
@@ -26,7 +26,9 @@
     "lint": "eslint ui",
     "test": "jest",
     "watch": "jest --runInBand --watch",
-    "coverage": "jest --coverage"
+    "coverage": "jest --coverage",
+    "storybook": "start-storybook -s ui/ -p 6006",
+    "build-storybook": "build-storybook ui/assets"
   },
   "repository": {
     "type": "git",
@@ -59,7 +61,6 @@
     "query-string": "^7.0.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0",
     "react-toastify": "^7.0.4",
     "styled-components": "^5.3.0"
@@ -76,18 +77,21 @@
     "testEnvironment": "jsdom"
   },
   "resolutions": {
-    "postcss": "8.3.11",
     "ejs": "^3.1.6",
-    "ws": "^7.4.6",
     "css-what": "^5.0.1",
     "normalize-url": "^5.3.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.16.0",
     "@babel/preset-env": "^7.13.8",
     "@babel/preset-react": "^7.13.13",
     "@babel/preset-typescript": "^7.13.0",
     "@parcel/config-default": "^2.0.1",
     "@parcel/transformer-typescript-tsc": "^2.0.1",
+    "@storybook/addon-actions": "^6.3.12",
+    "@storybook/addon-essentials": "^6.3.12",
+    "@storybook/addon-links": "^6.3.12",
+    "@storybook/react": "^6.3.12",
     "@testing-library/jest-dom": "^5.12.0",
     "@testing-library/react": "^11.2.7",
     "@testing-library/react-hooks": "^6.0.0",
@@ -96,12 +100,12 @@
     "@types/luxon": "^1.26.5",
     "@types/react": "^17.0.6",
     "@types/react-dom": "^17.0.5",
-    "@types/react-router": "^5.1.8",
     "@types/react-router-dom": "^5.1.6",
     "@types/styled-components": "^5.1.9",
     "@typescript-eslint/eslint-plugin": "^4.16.1",
     "@typescript-eslint/parser": "^4.16.1",
     "babel-jest": "^27.3.1",
+    "babel-loader": "^8.2.3",
     "eslint": "^7.28.0",
     "eslint-plugin-import": "^2.22.1",
     "jest": "^27.3.1",

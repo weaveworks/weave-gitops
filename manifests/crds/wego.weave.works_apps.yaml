@@ -41,7 +41,7 @@ spec:
                   yaml files for this application are stored.
                 type: string
               config_url:
-                description: ConfigURL is the address of the git repository containing
+                description: ConfigRepo is the address of the git repository containing
                   the automation for this application
                 type: string
               deployment_type:

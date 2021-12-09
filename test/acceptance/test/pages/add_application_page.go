@@ -23,7 +23,7 @@ func GetAddAppPageElements(webDriver *agouti.Page) *AddAppPageElements {
 		AppName:              webDriver.FindByID("name"),
 		AppNamespace:         webDriver.FindByID("namespace"),
 		AppRepoURL:           webDriver.FindByID("url"),
-		ConfigRepoURL:        webDriver.FindByID("configUrl"),
+		ConfigRepoURL:        webDriver.FindByID("configRepo"),
 		PathToManifests:      webDriver.FindByID("path"),
 		Branch:               webDriver.FindByID("branch"),
 		AutoMergeCheck:       webDriver.FindByXPath(`//input[@type="checkbox" and contains(@class, 'MuiSwitch-input')]`),

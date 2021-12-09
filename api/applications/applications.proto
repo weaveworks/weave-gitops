@@ -260,13 +260,13 @@ message GetApplicationResponse {
 }
 
 message AddApplicationRequest {
-    string name      = 1;
-    string namespace = 2;
-    string path      = 3;
-    string url       = 4;
-    string branch    = 5;
-    bool   autoMerge = 6;
-    string configUrl = 7;
+    string name       = 1;
+    string namespace  = 2;
+    string path       = 3;
+    string url        = 4;
+    string branch     = 5;
+    bool   autoMerge  = 6;
+    string configRepo = 7;
 }
 
 message AddApplicationResponse {

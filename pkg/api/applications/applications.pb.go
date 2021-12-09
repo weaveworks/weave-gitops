@@ -1047,13 +1047,13 @@ type AddApplicationRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name      string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Namespace string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	Path      string `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"`
-	Url       string `protobuf:"bytes,4,opt,name=url,proto3" json:"url,omitempty"`
-	Branch    string `protobuf:"bytes,5,opt,name=branch,proto3" json:"branch,omitempty"`
-	AutoMerge bool   `protobuf:"varint,6,opt,name=autoMerge,proto3" json:"autoMerge,omitempty"`
-	ConfigUrl string `protobuf:"bytes,7,opt,name=configUrl,proto3" json:"configUrl,omitempty"`
+	Name       string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Namespace  string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Path       string `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"`
+	Url        string `protobuf:"bytes,4,opt,name=url,proto3" json:"url,omitempty"`
+	Branch     string `protobuf:"bytes,5,opt,name=branch,proto3" json:"branch,omitempty"`
+	AutoMerge  bool   `protobuf:"varint,6,opt,name=autoMerge,proto3" json:"autoMerge,omitempty"`
+	ConfigRepo string `protobuf:"bytes,7,opt,name=configRepo,proto3" json:"configRepo,omitempty"`
 }
 
 func (x *AddApplicationRequest) Reset() {
@@ -1130,9 +1130,9 @@ func (x *AddApplicationRequest) GetAutoMerge() bool {
 	return false
 }
 
-func (x *AddApplicationRequest) GetConfigUrl() string {
+func (x *AddApplicationRequest) GetConfigRepo() string {
 	if x != nil {
-		return x.ConfigUrl
+		return x.ConfigRepo
 	}
 	return ""
 }

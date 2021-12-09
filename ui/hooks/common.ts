@@ -9,7 +9,7 @@ export default function useCommon() {
   return { appState, settings };
 }
 
-type RequestState<T> = {
+export type RequestState<T> = {
   value: T;
   error: RequestError;
   loading: boolean;
