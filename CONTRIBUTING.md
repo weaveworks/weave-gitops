@@ -37,7 +37,7 @@ The integration tests can be run using `make integration-tests`. They require so
 extra environment variables to run:
 
 - `GITHUB_ORG`- The name of the org that test repositories can be created in.
-if you're a weaveworks employee you can use `weaveworks-gitops-test`
+If you're a Weaveworks employee you can use `weaveworks-gitops-test`
 - `GITHUB_TOKEN`- Used to create, push and delete repositories. Please ensure
 the token has sufficient permissions, as deleting repositories is not part
 of the standard set of permissions a token is given.
