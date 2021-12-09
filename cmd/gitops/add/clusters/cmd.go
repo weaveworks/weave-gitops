@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
@@ -59,7 +60,7 @@ gitops add cluster --from-template <template-name> --set key=val --dry-run
 	cmd.Flags().StringVar(&flags.Description, "description", "", "The description of the pull request")
 	cmd.Flags().StringVar(&flags.CommitMessage, "commit-message", "", "The commit message to use when adding the CAPI template")
 	cmd.Flags().StringVar(&flags.Credentials, "set-credentials", "", "The CAPI credentials to use")
-	cmd.Flags().StringSliceVar(&flags.Profiles, "profiles", []string{}, "Set profiles values files on the command line (profile1:values1.yaml,profile2)")
+	cmd.Flags().StringArrayVar(&flags.Profiles, "profile", []string{}, "Set profiles values files on the command line (--profiles 'name=foo-profile,version=0.0.1' --profiles 'name=bar-profile,values=bar-values.yaml')")
 
 	return cmd
 }
@@ -98,15 +99,22 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 			}
 		}
 
-		profilesVals := make(map[string]string)
+		var profilesValues []capi.ProfileValues
+
+		var m map[string]string
+		var ss []string
 
 		for _, p := range flags.Profiles {
-			pv := strings.SplitN(p, ":", 2)
-			if len(pv) == 2 {
-				profilesVals[pv[0]] = pv[1]
-			} else if len(pv) == 1 {
-				profilesVals[pv[0]] = ""
+			var profileValues capi.ProfileValues
+			ss = strings.Split(p, ",")
+			m = make(map[string]string)
+			for _, pair := range ss {
+				z := strings.Split(pair, "=")
+				m[z[0]] = z[1]
 			}
+
+			mapstructure.Decode(m, &profileValues)
+			profilesValues = append(profilesValues, profileValues)
 		}
 
 		if flags.DryRun {
@@ -138,7 +146,7 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 			Description:      flags.Description,
 			CommitMessage:    flags.CommitMessage,
 			Credentials:      creds,
-			ProfileValues:    profilesVals,
+			ProfileValues:    profilesValues,
 		}
 
 		return capi.CreatePullRequestFromTemplate(params, r, os.Stdout)

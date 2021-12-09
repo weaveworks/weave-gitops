@@ -67,6 +67,12 @@ type Credentials struct {
 	Namespace string `json:"namespace"`
 }
 
+type ProfileValues struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+	Values  string `json:"values"`
+}
+
 type CreatePullRequestFromTemplateParams struct {
 	GitProviderToken string
 	TemplateName     string
@@ -78,7 +84,7 @@ type CreatePullRequestFromTemplateParams struct {
 	Description      string
 	CommitMessage    string
 	Credentials      Credentials
-	ProfileValues    map[string]string
+	ProfileValues    []ProfileValues
 }
 
 type Profile struct {
