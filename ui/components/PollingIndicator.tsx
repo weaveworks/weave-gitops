@@ -8,10 +8,11 @@ import Spacer from "./Spacer";
 type Props = {
   /** whether `<CircularProgress />` should be shown */
   loading: boolean;
+  interval: string;
   className?: string;
 };
 
-function PollingIndicator({ className, loading }: Props) {
+function PollingIndicator({ className, loading, interval }: Props) {
   const date = new Date();
   const [updated, setUpdated] = React.useState(date.toTimeString().slice(0, 8));
   const [indicator, setIndicator] = React.useState(false);
@@ -29,7 +30,7 @@ function PollingIndicator({ className, loading }: Props) {
   return (
     <Flex align className={className}>
       <Tooltip title={updated} arrow placement="top">
-        <p>last updated 30 seconds ago</p>
+        <p>last updated {interval} seconds ago</p>
       </Tooltip>
       <Spacer padding="base">
         <CircularProgress
