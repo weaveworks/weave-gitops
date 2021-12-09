@@ -28,7 +28,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Weave GitOps Profiles API", func() {
+var _ = PDescribe("Weave GitOps Profiles API", func() {
 	var (
 		namespace        = "test-namespace"
 		appRepoRemoteURL string
