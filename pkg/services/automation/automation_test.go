@@ -57,7 +57,7 @@ var _ = Describe("Generate manifests", func() {
 	Context("add app with config in app repo", func() {
 		BeforeEach(func() {
 			app.GitSourceURL = createRepoURL("ssh://git@github.com/foo/bar.git")
-			app.ConfigURL = emptyRepoURL
+			app.ConfigRepo = emptyRepoURL
 		})
 
 		Describe("generates source manifest", func() {
@@ -97,7 +97,7 @@ var _ = Describe("Generate manifests", func() {
 				app.Path = "loki"
 				app.Name = "loki"
 				app.SourceType = models.SourceTypeHelm
-				app.ConfigURL = createRepoURL("ssh://git@github.com/owner/config-repo.git")
+				app.ConfigRepo = createRepoURL("ssh://git@github.com/owner/config-repo.git")
 
 				results, err := automationGen.GenerateApplicationAutomation(ctx, app, "test-cluster")
 				Expect(err).ShouldNot(HaveOccurred())
@@ -144,7 +144,7 @@ var _ = Describe("Generate manifests", func() {
 				app.AutomationType = models.AutomationTypeHelm
 				app.Path = "loki"
 				app.Name = "bar"
-				app.ConfigURL = createRepoURL("ssh://github.com/owner/repo")
+				app.ConfigRepo = createRepoURL("ssh://github.com/owner/repo")
 
 				app.Path = "./charts/my-chart"
 				app.AutomationType = models.AutomationTypeHelm
@@ -184,7 +184,7 @@ var _ = Describe("Generate manifests", func() {
 		Context("add app with external config repo", func() {
 			BeforeEach(func() {
 				app.GitSourceURL = createRepoURL("https://github.com/user/repo")
-				app.ConfigURL = createRepoURL("https://github.com/foo/bar")
+				app.ConfigRepo = createRepoURL("https://github.com/foo/bar")
 			})
 
 			Describe("generates source manifest", func() {
@@ -309,7 +309,7 @@ var _ = Describe("Generate manifests", func() {
 					app.AutomationType = models.AutomationTypeHelm
 					app.Path = "loki"
 					app.Name = "loki"
-					app.ConfigURL = createRepoURL("ssh://github.com/owner/repo")
+					app.ConfigRepo = createRepoURL("ssh://github.com/owner/repo")
 
 					_, err := automationGen.GenerateApplicationAutomation(ctx, app, "test-cluster")
 					Expect(err).ShouldNot(HaveOccurred())
@@ -327,7 +327,7 @@ var _ = Describe("Generate manifests", func() {
 					app.AutomationType = models.AutomationTypeHelm
 					app.Path = "loki"
 					app.Name = "bar"
-					app.ConfigURL = createRepoURL("ssh://github.com/owner/repo")
+					app.ConfigRepo = createRepoURL("ssh://github.com/owner/repo")
 
 					app.Path = "./charts/my-chart"
 					app.AutomationType = models.AutomationTypeHelm
@@ -352,7 +352,7 @@ var _ = Describe("Generate manifests", func() {
 					app.Name = "loki"
 					app.HelmTargetNamespace = "sock-shop"
 					app.AutomationType = models.AutomationTypeHelm
-					app.ConfigURL = createRepoURL("ssh://git@github.com/owner/config-repo.git")
+					app.ConfigRepo = createRepoURL("ssh://git@github.com/owner/config-repo.git")
 
 					_, err := automationGen.GenerateApplicationAutomation(ctx, app, "test-cluster")
 					Expect(err).ShouldNot(HaveOccurred())

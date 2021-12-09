@@ -77,7 +77,7 @@ func removeGOATPath(path string) error {
 }
 
 func createRemoveDirWriter() GitOpsDirectoryWriter {
-	repoWriter := gitrepo.NewRepoWriter(app.ConfigURL, gitProviders, gitClient, log)
+	repoWriter := gitrepo.NewRepoWriter(app.ConfigRepo, gitProviders, gitClient, log)
 	automationSvc := automation.NewAutomationGenerator(gitProviders, realFlux, log)
 
 	return NewGitOpsDirectoryWriter(automationSvc, repoWriter, osysClient, log)
@@ -169,8 +169,8 @@ var _ = Describe("Remove", func() {
 				goatPaths = map[string]bool{}
 			})
 
-			It("removes cluster resources for helm chart from helm repo with configURL = <url>", func() {
-				app.ConfigURL = createRepoURL("ssh://git@github.com/user/external.git")
+			It("removes cluster resources for helm chart from helm repo with configRepo = <url>", func() {
+				app.ConfigRepo = createRepoURL("ssh://git@github.com/user/external.git")
 				app.Path = "loki"
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
@@ -178,9 +178,9 @@ var _ = Describe("Remove", func() {
 				Expect(checkRemoveResults()).To(Succeed())
 			})
 
-			It("removes cluster resources for helm chart from git repo with configURL = <url>", func() {
+			It("removes cluster resources for helm chart from git repo with configRepo = <url>", func() {
 				app.GitSourceURL = createRepoURL("ssh://git@github.com/user/wego-fork-test.git")
-				app.ConfigURL = createRepoURL("ssh://git@github.com/user/external.git")
+				app.ConfigRepo = createRepoURL("ssh://git@github.com/user/external.git")
 				app.Path = "./"
 
 				Expect(runAddAndCollectInfo()).To(Succeed())
@@ -196,7 +196,7 @@ var _ = Describe("Remove", func() {
 						Name:           "wego-fork-test",
 						Namespace:      wego.DefaultNamespace,
 						GitSourceURL:   sourceURL,
-						ConfigURL:      sourceURL,
+						ConfigRepo:     sourceURL,
 						Branch:         "main",
 						Path:           "./",
 						AutomationType: models.AutomationTypeKustomize,
@@ -206,7 +206,7 @@ var _ = Describe("Remove", func() {
 					goatPaths = map[string]bool{}
 				})
 
-				It("removes cluster resources for non-helm app configURL = ''", func() {
+				It("removes cluster resources for non-helm app configRepo = ''", func() {
 					Expect(runAddAndCollectInfo()).To(Succeed())
 					Expect(gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", true)).To(Succeed())
 					Expect(checkRemoveResults()).To(Succeed())
@@ -221,9 +221,9 @@ var _ = Describe("Remove", func() {
 					Expect(commit.Message).To(Equal(RemoveCommitMessage))
 				})
 
-				It("removes cluster resources for non-helm app with configURL = <url>", func() {
+				It("removes cluster resources for non-helm app with configRepo = <url>", func() {
 					app.GitSourceURL = createRepoURL("ssh://git@github.com/user/wego-fork-test.git")
-					app.ConfigURL = createRepoURL("ssh://git@github.com/user/external.git")
+					app.ConfigRepo = createRepoURL("ssh://git@github.com/user/external.git")
 
 					Expect(runAddAndCollectInfo()).To(Succeed())
 					Expect(gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", true)).To(Succeed())

@@ -31,3 +31,12 @@ export function notifyError(message: string) {
 export function gitlabOAuthRedirectURI() {
   return `${window.location.origin}${PageRoute.GitlabOAuthCallback}`;
 }
+
+export function poller(cb, interval) {
+  if (process.env.NODE_ENV === "test") {
+    // Stay synchronous in tests
+    return cb();
+  }
+
+  return setInterval(cb, interval);
+}

@@ -143,7 +143,7 @@ func generateTestInputs() TestInputs {
 	var inputs TestInputs
 
 	uniqueSuffix := RandString(6)
-	inputs.appRepoName = "wego-test-app-" + RandString(8)
+	inputs.appRepoName = "test-app-" + RandString(8)
 	inputs.appManifestFilePath = getUniqueWorkload("xxyyzz", uniqueSuffix)
 	inputs.workloadName = "nginx-" + uniqueSuffix
 	inputs.workloadNamespace = "my-nginx-" + uniqueSuffix
@@ -408,7 +408,7 @@ func installAndVerifyWego(wegoNamespace, repoURL string) {
 }
 
 func installAndVerifyWegoViaPullRequest(wegoNamespace, repoURL, repoPath string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --app-config-url=%s", WEGO_BIN_PATH, wegoNamespace, repoURL))
+	command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --config-repo=%s", WEGO_BIN_PATH, wegoNamespace, repoURL))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, INSTALL_SUCCESSFUL_TIMEOUT).Should(gexec.Exit())
@@ -442,7 +442,7 @@ func deleteNamespace(namespace string) {
 
 	command := exec.Command("kubectl", "delete", "ns", namespace)
 	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-	Eventually(session, TIMEOUT_TWO_MINUTES).Should(gexec.Exit())
+	Eventually(session, NAMESPACE_TERMINATE_TIMEOUT).Should(gexec.Exit())
 }
 
 func deleteRepo(appRepoName string, providerName gitproviders.GitProviderName, org string) {

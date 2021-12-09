@@ -1,6 +1,7 @@
 import { CircularProgress } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
+import { GithubAuthContext } from "../contexts/GithubAuthContext";
 import useAuth from "../hooks/auth";
 import {
   GetGithubDeviceCodeResponse,
@@ -57,11 +58,11 @@ const ModalContent = styled(({ codeRes, onSuccess, onError, className }) => {
       </Pad>
       <Pad wide center>
         <a target="_blank" href={codeRes.validationURI}>
-          <Button type="button" variant="contained" color="primary">
-            <Flex align>
-              Authorize Github Access{" "}
-              <Icon size="base" type={IconType.ExternalTab} />
-            </Flex>
+          <Button
+            type="button"
+            endIcon={<Icon size="base" type={IconType.ExternalTab} />}
+          >
+            Authorize Github Access
           </Button>
         </a>
       </Pad>
@@ -84,8 +85,9 @@ function GithubDeviceAuthModal({
   repoName,
   onSuccess,
 }: Props) {
-  const [codeRes, setCodeRes] =
-    React.useState<GetGithubDeviceCodeResponse>(null);
+  const [codeRes, setCodeRes] = React.useState<GetGithubDeviceCodeResponse>(
+    null
+  );
   const { getGithubDeviceCode, storeProviderToken } = useAuth();
   const [codeLoading, setCodeLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
@@ -138,4 +140,20 @@ function GithubDeviceAuthModal({
   );
 }
 
-export default styled(GithubDeviceAuthModal)``;
+const StyledModal = styled(GithubDeviceAuthModal)``;
+
+export default StyledModal;
+
+export function GlobalGithubAuthDialog() {
+  const { dialogState, setDialogState, setSuccess } =
+    React.useContext(GithubAuthContext);
+
+  return (
+    <StyledModal
+      repoName={dialogState.repoName}
+      open={dialogState.open}
+      onClose={() => setDialogState(false, dialogState.repoName)}
+      onSuccess={setSuccess}
+    />
+  );
+}

@@ -21,7 +21,7 @@ type Application struct {
 	Namespace           string
 	HelmSourceURL       string
 	GitSourceURL        gitproviders.RepoURL
-	ConfigURL           gitproviders.RepoURL
+	ConfigRepo          gitproviders.RepoURL
 	Branch              string
 	Path                string
 	AutomationType      AutomationType
@@ -29,6 +29,6 @@ type Application struct {
 	HelmTargetNamespace string
 }
 
-func IsExternalConfigUrl(url string) bool {
+func IsExternalConfigRepo(url string) bool {
 	return url != ""
 }

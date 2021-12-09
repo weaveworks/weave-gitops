@@ -23,7 +23,7 @@ var webDriver *agouti.Page
 var httpResponse *http.Response
 var dashboardPage *pages.DashboardPageElements
 
-var _ = Describe("Weave GitOps UI Test", func() {
+var _ = XDescribe("Weave GitOps UI Test", func() {
 
 	addApplicationPageHeader := "Add Application"
 
@@ -132,7 +132,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		})
 	})
 
-	XIt("UITest - Verify gitops UI can list details of apps running in the cluster", func() {
+	It("UITest - Verify gitops UI can list details of apps running in the cluster", func() {
 		var appPageURL string
 		var repoAbsolutePath string
 		var linkToApp1 *pages.AppListElements
@@ -150,7 +150,7 @@ var _ = Describe("Weave GitOps UI Test", func() {
 		helmRepoURL := "https://charts.kube-ops.io"
 		appDetailsPage := pages.GetAppDetailsPageElements(webDriver)
 
-		addCommand1 := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true"
+		addCommand1 := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --config-repo=" + appRepoRemoteURL + " --auto-merge=true"
 		addCommand2 := "add app . --deployment-type=kustomize --auto-merge=true"
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)

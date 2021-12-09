@@ -29,7 +29,7 @@ function Applications({ className }: Props) {
           <h2>Applications</h2>
         </TitleBar>
         <Link to={PageRoute.ApplicationAdd} className="title-bar-button">
-          <Button variant="contained" color="primary" type="button">
+          <Button variant="contained" type="button">
             Add Application
           </Button>
         </Link>

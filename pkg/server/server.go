@@ -261,11 +261,11 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "unable to parse app url %q: %s", msg.Url, err)
 	}
 
-	var configUrl gitproviders.RepoURL
-	if msg.ConfigUrl != "" {
-		configUrl, err = gitproviders.NewRepoURL(msg.ConfigUrl)
+	var configRepo gitproviders.RepoURL
+	if msg.ConfigRepo != "" {
+		configRepo, err = gitproviders.NewRepoURL(msg.ConfigRepo)
 		if err != nil {
-			return nil, grpcStatus.Errorf(codes.InvalidArgument, "unable to parse config url %q: %s", msg.ConfigUrl, err)
+			return nil, grpcStatus.Errorf(codes.InvalidArgument, "unable to parse config url %q: %s", msg.ConfigRepo, err)
 		}
 	}
 
@@ -282,15 +282,15 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 		GitProviderToken: token.AccessToken,
 		Branch:           msg.Branch,
 		AutoMerge:        msg.AutoMerge,
-		AppConfigUrl:     configUrl.String(),
+		ConfigRepo:       configRepo.String(),
 	}
 
 	client := internal.NewGitProviderClient(token.AccessToken)
 
 	gitClient, gitProvider, err := s.factory.GetGitClients(ctx, client, services.GitConfigParams{
-		URL:       msg.Url,
-		ConfigURL: msg.ConfigUrl,
-		Namespace: msg.Namespace,
+		URL:        msg.Url,
+		ConfigRepo: msg.ConfigRepo,
+		Namespace:  msg.Namespace,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get git clients: %w", err)
@@ -333,9 +333,9 @@ func (s *applicationServer) RemoveApplication(ctx context.Context, msg *pb.Remov
 	client := internal.NewGitProviderClient(token.AccessToken)
 
 	gitClient, gitProvider, err := s.factory.GetGitClients(ctx, client, services.GitConfigParams{
-		URL:       application.Spec.URL,
-		ConfigURL: application.Spec.ConfigURL,
-		Namespace: msg.Namespace,
+		URL:        application.Spec.URL,
+		ConfigRepo: application.Spec.ConfigRepo,
+		Namespace:  msg.Namespace,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get git clients: %w", err)
@@ -411,9 +411,9 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 	client := internal.NewGitProviderClient(providerToken.AccessToken)
 
 	_, gitProvider, err := s.factory.GetGitClients(ctx, client, services.GitConfigParams{
-		URL:       application.Spec.URL,
-		ConfigURL: application.Spec.ConfigURL,
-		Namespace: msg.Namespace,
+		URL:        application.Spec.URL,
+		ConfigRepo: application.Spec.ConfigRepo,
+		Namespace:  msg.Namespace,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get git clients: %w", err)
@@ -633,7 +633,7 @@ func (s *applicationServer) AuthorizeGitlab(ctx context.Context, msg *pb.Authori
 		return nil, fmt.Errorf("could not exchange code: %w", err)
 	}
 
-	token, err := s.jwtClient.GenerateJWT(time.Duration(tokenState.ExpiresIn)*time.Second, gitproviders.GitProviderGitLab, tokenState.AccessToken)
+	token, err := s.jwtClient.GenerateJWT(tokenState.ExpiresInSeconds, gitproviders.GitProviderGitLab, tokenState.AccessToken)
 	if err != nil {
 		return nil, fmt.Errorf("could not generate token: %w", err)
 	}

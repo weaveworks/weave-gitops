@@ -1,14 +1,7 @@
 // Typescript will handle type-checking/linting for this file
-/* eslint-disable */
 import { createTheme } from "@material-ui/core";
+// eslint-disable-next-line
 import { createGlobalStyle, DefaultTheme } from "styled-components";
-// @ts-ignore
-import ProximaNovaBold from "url:../fonts/ProximaNovaBold.otf";
-// @ts-ignore
-import ProximaNovaRegular from "url:../fonts/ProximaNovaRegular.otf";
-// @ts-ignore
-import robotomono from "url:../fonts/roboto-mono-regular.woff";
-
 const baseSpacingNumber = 16;
 
 export const theme: DefaultTheme = {
@@ -54,20 +47,6 @@ export const theme: DefaultTheme = {
 export default theme;
 
 export const GlobalStyle = createGlobalStyle`
-  @font-face {
-    font-family: 'proxima-nova';
-    src: url(${ProximaNovaRegular})
-  }
-  @font-face {
-    font-family: 'proxima-nova';
-    src: url(${ProximaNovaBold});
-    font-weight: bold;
-  }
-  @font-face {
-    font-family: 'Roboto Mono';
-    src: url(${robotomono})
-  }
-
   html,
   body {
     height: 100%;
@@ -84,6 +63,7 @@ export const GlobalStyle = createGlobalStyle`
   body {
     font-family: ${(props) => props.theme.fontFamilies.regular};
     font-size: ${theme.fontSizes.normal};
+    color: ${theme.colors.black};
     padding: 0;
     margin: 0;
     min-width: fit-content;
@@ -97,8 +77,20 @@ export const GlobalStyle = createGlobalStyle`
 export const muiTheme = createTheme({
   typography: { fontFamily: "proxima-nova" },
   palette: {
+    primary: {
+      //Main - Primary Color Dark - 10
+      main: "#006B8E",
+    },
     secondary: {
-      main: "#CC2C00",
+      //Feedback - Alert - Original
+      main: "#BC381D",
+    },
+    text: {
+      //Neutral - Neutral - 40
+      primary: "#1a1a1a",
+      //Neutral - Neutral - 30
+      secondary: "#737373",
+      disabled: "#737373",
     },
   },
 });

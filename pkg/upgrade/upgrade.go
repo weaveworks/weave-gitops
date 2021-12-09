@@ -32,14 +32,14 @@ import (
 )
 
 type UpgradeValues struct {
-	AppConfigURL   string
-	ProfileVersion string
-	BaseBranch     string
-	HeadBranch     string
-	CommitMessage  string
-	Namespace      string
-	Values         []string
-	DryRun         bool
+	ConfigRepo    string
+	Version       string
+	BaseBranch    string
+	HeadBranch    string
+	CommitMessage string
+	Namespace     string
+	Values        []string
+	DryRun        bool
 }
 
 const EnterpriseChartURL string = "https://charts.dev.wkp.weave.works/releases/charts-v3"
@@ -61,12 +61,12 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 		return fmt.Errorf("failed to get cluster name: %w", err)
 	}
 
-	resources, err := makeHelmResources(uv.Namespace, uv.ProfileVersion, cname, uv.AppConfigURL, uv.Values)
+	resources, err := makeHelmResources(uv.Namespace, uv.Version, cname, uv.ConfigRepo, uv.Values)
 	if err != nil {
 		return fmt.Errorf("error creating helm resources: %w", err)
 	}
 
-	appResources, err := makeAppsCapiKustomization(uv.Namespace, uv.AppConfigURL)
+	appResources, err := makeAppsCapiKustomization(uv.Namespace, uv.ConfigRepo)
 	if err != nil {
 		return fmt.Errorf("error creating app resources: %w", err)
 	}
@@ -90,14 +90,13 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 		return fmt.Errorf("failed to load credentials for profiles repo from cluster: %v", err)
 	}
 
-	normalizedURL, err := gitproviders.NewRepoURL(uv.AppConfigURL)
+	normalizedURL, err := gitproviders.NewRepoURL(uv.ConfigRepo)
 	if err != nil {
-		return fmt.Errorf("failed to normalize URL %q: %w", uv.AppConfigURL, err)
+		return fmt.Errorf("failed to normalize URL %q: %w", uv.ConfigRepo, err)
 	}
 
 	// Create pull request
 	path := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, WegoEnterpriseName)
-	wegoAppPath := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, "wego-app.yaml")
 	capiKeepPath := filepath.Join(git.WegoRoot, git.WegoAppDir, "capi", "templates", ".keep")
 	capiKeepContents := string(strconv.AppendQuote(nil, "# keep"))
 
@@ -115,10 +114,6 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 			{
 				Path:    &capiKeepPath,
 				Content: &capiKeepContents,
-			},
-			{
-				Path:    &wegoAppPath,
-				Content: nil,
 			},
 		},
 	}
