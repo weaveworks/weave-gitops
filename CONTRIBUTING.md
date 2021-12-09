@@ -57,7 +57,7 @@ built binary which is created from `make bin`, you want to set it to `WEGO_BIN_P
 - `IS_TEST_ENV`- If this value is set to anything, it indicates to the `gitops` binary
 that it should deploy images using the `latest` tag, instead of the latest version.
 
-#### Testing locally changes in acceptance tests
+#### Testing local changes with acceptance tests
 As of right now it's not easy to test your local code changes pass the acceptance test.
 Until [#1158](https://github.com/weaveworks/weave-gitops/issues/1158) is resolved you must:
 
