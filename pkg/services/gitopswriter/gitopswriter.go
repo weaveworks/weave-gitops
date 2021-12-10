@@ -46,7 +46,7 @@ func NewGitOpsDirectoryWriter(automationSvc automation.AutomationGenerator, repo
 func (dw *gitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error {
 	auto, err := dw.Automation.GenerateApplicationAutomation(ctx, app, clusterName)
 	if err != nil {
-		return fmt.Errorf("could not generate GitOps Automation manifests for application: %w", err)
+		return fmt.Errorf("could not generate GitOps Automation manifests for application %s: %w", app.Name, err)
 	}
 
 	manifests := auto.Manifests()
