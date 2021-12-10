@@ -292,11 +292,20 @@ func (g *Gitops) fetchNamespaceWithLabel(ctx context.Context, key string, value 
 		return "", fmt.Errorf("error setting resource: %w", err)
 	}
 
-	if len(nsl.Items) == 0 {
+	namespaces := []string{}
+	for _, n := range nsl.Items {
+		namespaces = append(namespaces, n.Name)
+	}
+
+	if len(namespaces) == 0 {
 		return "", ErrNamespaceNotFound
 	}
 
-	return nsl.Items[0].Name, nil
+	if len(namespaces) > 1 {
+		g.logger.Warningf("Selecting %s namespace out of [%s]", namespaces[0], namespaces)
+	}
+
+	return namespaces[0], nil
 }
 
 func (g *Gitops) saveWegoConfig(ctx context.Context, params InstallParams) (*corev1.ConfigMap, error) {
