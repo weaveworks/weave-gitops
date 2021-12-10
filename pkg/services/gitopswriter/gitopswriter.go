@@ -200,7 +200,7 @@ func (dw *gitOpsDirectoryWriterSvc) AssociateCluster(
 
 		prInfo := gitproviders.PullRequestInfo{
 			Title:         fmt.Sprintf("GitOps associate %s", cluster.Name),
-			Description:   fmt.Sprintf("Added yamls for %s", cluster.Name),
+			Description:   fmt.Sprintf("Add gitops automation manifests for cluster %s", cluster.Name),
 			CommitMessage: ClusterCommitMessage,
 			TargetBranch:  defaultBranch,
 			NewBranch:     automation.GetClusterHash(cluster),
@@ -281,7 +281,7 @@ func getUserDirRepoPath(clusterName string) string {
 	return filepath.Join(git.WegoRoot, git.WegoClusterDir, clusterName, "user")
 }
 func getUserKustomizationRepoPath(clusterName string) string {
-	return filepath.Join(git.WegoRoot, git.WegoClusterDir, clusterName, "user", "kustomization.yaml")
+	return filepath.Join(getUserDirRepoPath(clusterName), "kustomization.yaml")
 }
 
 func appKustomizeReference(app models.Application) string {
