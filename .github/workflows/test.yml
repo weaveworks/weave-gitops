@@ -87,13 +87,6 @@ jobs:
         go-version: 1.16.x
     - name: Checkout code
       uses: actions/checkout@v2
-      with:
-        ref: ${{ env.GITHUB_SHA }}
-        fetch-depth: 2
-    - run: git checkout HEAD^
-#        //GITHUB_HEAD_REF
-    - name: Setup upterm session
-      uses: lhotari/action-upterm@v1
     - name: Set up ssh
       uses: ./.github/actions/setup-ssh
       with:
