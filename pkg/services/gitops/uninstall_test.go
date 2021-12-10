@@ -23,7 +23,7 @@ func checkFluxUninstallFailure() {
 	fluxErrMsg := "flux uninstall failed"
 
 	loggedMsg := ""
-	logger.PrintfStub = func(str string, args ...interface{}) {
+	logger.PrintlnStub = func(str string, args ...interface{}) {
 		loggedMsg = fmt.Sprintf(str, args...)
 	}
 
@@ -188,7 +188,7 @@ var _ = Describe("Uninstall", func() {
 		kubeClient.GetWegoConfigReturns(nil, errors.New("error"))
 
 		err := gitopsSrv.Uninstall(uninstallParams)
-		Expect(err.Error()).Should(ContainSubstring("failed getting wego config"))
+		Expect(err.Error()).Should(ContainSubstring("errors occurred during uninstall"))
 	})
 
 	It("avoid uninstalling flux when its namespace is different", func() {
