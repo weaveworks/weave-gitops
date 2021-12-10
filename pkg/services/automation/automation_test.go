@@ -38,15 +38,15 @@ var _ = Describe("Generate manifests", func() {
 
 	var _ = BeforeEach(func() {
 		app = models.Application{
+			AutomationType:      models.AutomationTypeKustomize,
+			Branch:              "main",
+			GitSourceURL:        createRepoURL("ssh://git@github.com/foo/bar.git"),
+			HelmSourceURL:       "",
+			HelmTargetNamespace: "",
 			Name:                "bar",
 			Namespace:           wego.DefaultNamespace,
-			HelmSourceURL:       "",
-			GitSourceURL:        createRepoURL("ssh://git@github.com/foo/bar.git"),
-			Branch:              "main",
 			Path:                "./kustomize",
-			AutomationType:      models.AutomationTypeKustomize,
 			SourceType:          models.SourceTypeGit,
-			HelmTargetNamespace: "",
 		}
 
 		gitProviders.GetDefaultBranchReturns("main", nil)
@@ -56,8 +56,8 @@ var _ = Describe("Generate manifests", func() {
 
 	Context("add app with config in app repo", func() {
 		BeforeEach(func() {
-			app.GitSourceURL = createRepoURL("ssh://git@github.com/foo/bar.git")
 			app.ConfigRepo = emptyRepoURL
+			app.GitSourceURL = createRepoURL("ssh://git@github.com/foo/bar.git")
 		})
 
 		Describe("generates source manifest", func() {
@@ -93,11 +93,11 @@ var _ = Describe("Generate manifests", func() {
 			})
 
 			It("creates HelmRepository when source type is helm", func() {
-				app.HelmSourceURL = "https://charts.kube-ops.io"
-				app.Path = "loki"
-				app.Name = "loki"
-				app.SourceType = models.SourceTypeHelm
 				app.ConfigRepo = createRepoURL("ssh://git@github.com/owner/config-repo.git")
+				app.HelmSourceURL = "https://charts.kube-ops.io"
+				app.Name = "loki"
+				app.Path = "loki"
+				app.SourceType = models.SourceTypeHelm
 
 				results, err := automationGen.GenerateApplicationAutomation(ctx, app, "test-cluster")
 				Expect(err).ShouldNot(HaveOccurred())
@@ -142,12 +142,11 @@ var _ = Describe("Generate manifests", func() {
 
 			It("creates a helm release using a git source if source type is git", func() {
 				app.AutomationType = models.AutomationTypeHelm
-				app.Path = "loki"
-				app.Name = "bar"
-				app.ConfigRepo = createRepoURL("ssh://github.com/owner/repo")
-
-				app.Path = "./charts/my-chart"
 				app.AutomationType = models.AutomationTypeHelm
+				app.ConfigRepo = createRepoURL("ssh://github.com/owner/repo")
+				app.Name = "bar"
+				app.Path = "./charts/my-chart"
+				app.Path = "loki"
 
 				_, err := automationGen.GenerateApplicationAutomation(ctx, app, "test-cluster")
 				Expect(err).ShouldNot(HaveOccurred())
@@ -183,8 +182,8 @@ var _ = Describe("Generate manifests", func() {
 
 		Context("add app with external config repo", func() {
 			BeforeEach(func() {
-				app.GitSourceURL = createRepoURL("https://github.com/user/repo")
 				app.ConfigRepo = createRepoURL("https://github.com/foo/bar")
+				app.GitSourceURL = createRepoURL("https://github.com/user/repo")
 			})
 
 			Describe("generates source manifest", func() {
@@ -220,8 +219,8 @@ var _ = Describe("Generate manifests", func() {
 
 				It("creates HelmRepository when source type is helm", func() {
 					app.HelmSourceURL = "https://charts.kube-ops.io"
-					app.Path = "loki"
 					app.Name = "loki"
+					app.Path = "loki"
 					app.SourceType = models.SourceTypeHelm
 
 					results, err := automationGen.GenerateApplicationAutomation(ctx, app, "test-cluster")
@@ -254,15 +253,15 @@ var _ = Describe("Generate manifests", func() {
 			Describe("generateAppYaml", func() {
 				It("generates the app yaml", func() {
 					myAppModel := models.Application{
+						AutomationType:      models.AutomationTypeKustomize,
+						Branch:              "main",
+						GitSourceURL:        createRepoURL("ssh://git@github.com/example/my-source"),
+						HelmSourceURL:       "",
+						HelmTargetNamespace: "",
 						Name:                "my-app",
 						Namespace:           wego.DefaultNamespace,
-						HelmSourceURL:       "",
-						GitSourceURL:        createRepoURL("ssh://git@github.com/example/my-source"),
-						Branch:              "main",
 						Path:                "manifests",
-						AutomationType:      models.AutomationTypeKustomize,
 						SourceType:          models.SourceTypeGit,
-						HelmTargetNamespace: "",
 					}
 
 					hash := "wego-" + getHash(myAppModel.GitSourceURL.String(), myAppModel.Path, myAppModel.Branch)
@@ -373,21 +372,22 @@ var _ = Describe("Generate manifests", func() {
 var _ = Describe("Generate cluster manifests", func() {
 	var (
 		err       error
-		realFlux  flux.Flux
 		fluxDir   string
 		generator AutomationGenerator
+		realFlux  flux.Flux
 
 		cluster                = models.Cluster{Name: "my-cluster"}
-		namespace              = "my-namespace"
 		ctx                    = context.Background()
-		systemPath             = filepath.Join(git.WegoRoot, git.WegoClusterDir, cluster.Name, git.WegoClusterOSWorkloadDir)
-		userPath               = filepath.Join(git.WegoRoot, git.WegoClusterDir, cluster.Name, git.WegoClusterUserWorkloadDir)
+		namespace              = "my-namespace"
 		runtimePath            = "gitops-runtime.yaml"
 		sourcePath             = "flux-source-resource.yaml"
-		systemKustResourcePath = "flux-system-kustomization-resource.yaml"
-		userKustResourcePath   = "flux-user-kustomization-resource.yaml"
 		systemKustPath         = "kustomization.yaml"
-		systemQualifiedPath    = func(relativePath string) string {
+		systemKustResourcePath = "flux-system-kustomization-resource.yaml"
+		systemPath             = filepath.Join(git.WegoRoot, git.WegoClusterDir, cluster.Name, git.WegoClusterOSWorkloadDir)
+		userKustResourcePath   = "flux-user-kustomization-resource.yaml"
+		userPath               = filepath.Join(git.WegoRoot, git.WegoClusterDir, cluster.Name, git.WegoClusterUserWorkloadDir)
+
+		systemQualifiedPath = func(relativePath string) string {
 			return filepath.Join(systemPath, relativePath)
 		}
 	)
@@ -426,7 +426,7 @@ var _ = Describe("Generate cluster manifests", func() {
 		configBranch, err := gitProviders.GetDefaultBranch(ctx, url)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		sourceName := CreateClusterSourceName(url)
+		sourceName := createClusterSourceName(url)
 		sourceManifest, err := realFlux.CreateSourceGit(sourceName, url, configBranch, secretStr, namespace)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(clusterAutomation.SourceManifest.Content).To(Equal(sourceManifest))

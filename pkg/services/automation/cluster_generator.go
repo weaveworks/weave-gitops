@@ -29,23 +29,23 @@ import (
 )
 
 type ClusterAutomation struct {
-	GitOpsRuntime               AutomationManifest
 	AppCRD                      AutomationManifest
-	WegoAppManifest             AutomationManifest
+	GitOpsRuntime               AutomationManifest
 	SourceManifest              AutomationManifest
+	SystemKustomizationManifest AutomationManifest
 	SystemKustResourceManifest  AutomationManifest
 	UserKustResourceManifest    AutomationManifest
-	SystemKustomizationManifest AutomationManifest
+	WegoAppManifest             AutomationManifest
 }
 
 const (
-	RuntimePath             = "gitops-runtime.yaml"
 	AppCRDPath              = "wego-system.yaml"
-	WegoAppPath             = "wego-app.yaml"
+	RuntimePath             = "gitops-runtime.yaml"
 	SourcePath              = "flux-source-resource.yaml"
+	SystemKustomizationPath = "kustomization.yaml"
 	SystemKustResourcePath  = "flux-system-kustomization-resource.yaml"
 	UserKustResourcePath    = "flux-user-kustomization-resource.yaml"
-	SystemKustomizationPath = "kustomization.yaml"
+	WegoAppPath             = "wego-app.yaml"
 )
 
 func createClusterSourceName(gitSourceURL gitproviders.RepoURL) string {

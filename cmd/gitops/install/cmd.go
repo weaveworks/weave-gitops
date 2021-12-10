@@ -66,6 +66,11 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	ctx := context.Background()
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
+	configURL, err := gitproviders.NewRepoURL(installParams.ConfigRepo)
+	if err != nil {
+		return err
+	}
+
 	osysClient := osys.New()
 	log := internal.NewCLILogger(os.Stdout)
 	flux := flux.New(osysClient, &runner.CLIRunner{})
@@ -77,11 +82,16 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 
 	status := k.GetClusterStatus(ctx)
 
+	clusterName, err := k.GetClusterName(ctx)
+	if err != nil {
+		return err
+	}
+
 	switch status {
 	case kube.FluxInstalled:
 		return errors.New("Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n  $ flux uninstall")
 	case kube.Unknown:
-		return errors.New("Weave GitOps cannot talk to the cluster")
+		return fmt.Errorf("Weave GitOps cannot talk to the cluster %s", clusterName)
 	}
 
 	clusterApplier := applier.NewClusterApplier(k, c, log)
@@ -114,16 +124,6 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("error creating git clients: %w", err)
 		}
-	}
-
-	clusterName, err := k.GetClusterName(ctx)
-	if err != nil {
-		return err
-	}
-
-	configURL, err := gitproviders.NewRepoURL(installParams.ConfigRepo)
-	if err != nil {
-		return err
 	}
 
 	cluster := models.Cluster{Name: clusterName}

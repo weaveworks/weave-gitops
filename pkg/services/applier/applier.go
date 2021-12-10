@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/models"
@@ -16,8 +17,8 @@ type ClusterApplier interface {
 }
 
 type ClusterApplySvc struct {
-	Kube   kube.Kube
 	Client client.Client
+	Kube   kube.Kube
 	Logger logger.Logger
 }
 
