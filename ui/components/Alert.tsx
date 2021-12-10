@@ -8,17 +8,24 @@ import * as React from "react";
 import styled from "styled-components";
 import Flex from "./Flex";
 
-type Props = {
-  className?: string;
-  center?: boolean;
-  title?: string;
-  message?: string | JSX.Element;
+/** Alert Properties */
+export interface Props {
+  /** string of one of the colors from our `MuiTheme` - also sets the corresponding material icon - see /ui/lib/theme.ts and https://mui.com/customization/theming/ */
   severity?: AlertProps["severity"];
-};
+  /** Overrides `justify-content: flex-start` (left) to render the Alert in the center of it's 100% width `<Flex />` component */
+  center?: boolean;
+  /** text for Mui's `<AlertTitle />` component */
+  title?: string;
+  /** Appears under `title` */
+  message?: string | JSX.Element;
+  /** CSS MUI Overrides or other styling */
+  className?: string;
+}
 
-function Alert({ className, center, title, message, severity }: Props) {
+/** Form Alert */
+function UnstyledAlert({ center, title, message, severity, className }: Props) {
   return (
-    <Flex wide center={center} className={className}>
+    <Flex wide start={!center} className={className}>
       <MaterialAlert severity={severity}>
         <AlertTitle>{title}</AlertTitle>
         {message}
@@ -27,4 +34,6 @@ function Alert({ className, center, title, message, severity }: Props) {
   );
 }
 
-export default styled(Alert)``;
+const Alert = styled(UnstyledAlert)``;
+
+export default Alert;

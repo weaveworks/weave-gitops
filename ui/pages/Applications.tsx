@@ -3,6 +3,7 @@ import styled from "styled-components";
 import Button from "../components/Button";
 import DataTable from "../components/DataTable";
 import Flex from "../components/Flex";
+import Icon, { IconType } from "../components/Icon";
 import Link from "../components/Link";
 import Page, { TitleBar } from "../components/Page";
 import useApplications from "../hooks/applications";
@@ -29,7 +30,10 @@ function Applications({ className }: Props) {
           <h2>Applications</h2>
         </TitleBar>
         <Link to={PageRoute.ApplicationAdd} className="title-bar-button">
-          <Button variant="contained" color="primary" type="button">
+          <Button
+            endIcon={<Icon type={IconType.AddIcon} size="base" />}
+            type="button"
+          >
             Add Application
           </Button>
         </Link>

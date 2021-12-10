@@ -11,8 +11,9 @@ type Props = ButtonProps;
 
 function GitlabAuthButton({ ...props }: Props) {
   const { callbackState } = React.useContext(CallbackStateContext);
-  const { applicationsClient, navigate, storeCallbackState } =
-    React.useContext(AppContext);
+  const { applicationsClient, navigate, storeCallbackState } = React.useContext(
+    AppContext
+  );
 
   const handleClick = (e) => {
     e.preventDefault();
@@ -24,12 +25,12 @@ function GitlabAuthButton({ ...props }: Props) {
         redirectUri: gitlabOAuthRedirectURI(),
       })
       .then((res) => {
-        navigate(res.url);
+        navigate.external(res.url);
       });
   };
 
   return (
-    <Button {...props} variant="contained" onClick={handleClick}>
+    <Button {...props} onClick={handleClick}>
       Authenticate with GitLab
     </Button>
   );
@@ -37,9 +38,4 @@ function GitlabAuthButton({ ...props }: Props) {
 
 export default styled(GitlabAuthButton).attrs({
   className: GitlabAuthButton.name,
-})`
-  &.MuiButton-contained {
-    background-color: #fc6d26;
-    color: white;
-  }
-`;
+})``;

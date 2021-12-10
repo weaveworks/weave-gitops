@@ -77,15 +77,11 @@ const SuccessMessage = styled(
                 <Flex wide center>
                   {autoMerged ? (
                     <Link to={PageRoute.Applications}>
-                      <Button color="primary" variant="outlined">
-                        View Applications
-                      </Button>
+                      <Button>View Applications</Button>
                     </Link>
                   ) : (
                     <a target="_blank" href={link}>
-                      <Button color="primary" variant="outlined">
-                        View Open Pull requests
-                      </Button>
+                      <Button>View Open Pull requests</Button>
                     </a>
                   )}
                 </Flex>
@@ -124,8 +120,11 @@ const FormElement = styled.div`
 `;
 
 function AddApplication({ className }: Props) {
-  const { getCallbackState, clearCallbackState, getProviderToken } =
-    React.useContext(AppContext);
+  const {
+    getCallbackState,
+    clearCallbackState,
+    getProviderToken,
+  } = React.useContext(AppContext);
   const formRef = React.useRef<HTMLFormElement>();
 
   let initialFormState = {
@@ -134,7 +133,7 @@ function AddApplication({ className }: Props) {
     path: "./",
     branch: "main",
     url: "",
-    configUrl: "",
+    configRepo: "",
     autoMerge: false,
     provider: null,
   };
@@ -173,7 +172,7 @@ function AddApplication({ className }: Props) {
       return;
     }
     const repoURL = convertGitURLToGitProvider(
-      formState.configUrl || formState.url
+      formState.configRepo || formState.url
     );
 
     setPrLink(`${repoURL.replace(".git", "")}/pulls`);
@@ -277,13 +276,13 @@ function AddApplication({ className }: Props) {
                 onChange={(e) => {
                   setFormState({
                     ...formState,
-                    configUrl: e.currentTarget.value,
+                    configRepo: e.currentTarget.value,
                   });
                 }}
-                id="configUrl"
+                id="configRepo"
                 label="Config Repo URL"
                 variant="standard"
-                value={formState.configUrl}
+                value={formState.configRepo}
               />
               <FormHelperText>
                 The git repository URL to which Weave GitOps will write the
@@ -332,6 +331,7 @@ function AddApplication({ className }: Props) {
                 <FormControlLabel
                   control={
                     <Switch
+                      color="primary"
                       onChange={(e) =>
                         setFormState({
                           ...formState,
@@ -354,9 +354,7 @@ function AddApplication({ className }: Props) {
               {loading ? (
                 <CircularProgress />
               ) : (
-                <Button variant="contained" color="primary" type="submit">
-                  Submit
-                </Button>
+                <Button type="submit">Submit</Button>
               )}
             </Flex>
           </form>

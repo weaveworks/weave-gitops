@@ -46,9 +46,9 @@ var AppCmd = &cobra.Command{
 
 func init() {
 	AppCmd.Flags().StringVar(&params.Url, "url", "", "Url of remote repository")
-	AppCmd.Flags().StringVar(&params.AppConfigUrl, "app-config-url", "", "Url of external repository (if any) which will hold automation manifests; NONE to store only in the cluster")
+	AppCmd.Flags().StringVar(&params.ConfigRepo, "config-repo", "", "Url of external repository (if any) which will hold automation manifests; NONE to store only in the cluster")
 	AppCmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'gitops add app' will not make any changes to the system; it will just display the actions that would have been taken")
-	cobra.CheckErr(AppCmd.MarkFlagRequired("app-config-url"))
+	cobra.CheckErr(AppCmd.MarkFlagRequired("config-repo"))
 
 	// TODO expose support for PRs
 	params.AutoMerge = true
@@ -75,7 +75,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	gitClient, gitProvider, err := factory.GetGitClients(ctx, providerClient, services.GitConfigParams{
 		URL:              params.Url,
-		ConfigURL:        params.AppConfigUrl,
+		ConfigRepo:       params.ConfigRepo,
 		Namespace:        params.Namespace,
 		IsHelmRepository: params.IsHelmRepository(),
 		DryRun:           params.DryRun,

@@ -18,12 +18,14 @@ type Props = InputProps & {
   onAuthClick: (provider: GitProvider) => void;
   onProviderChange?: (provider: GitProvider) => void;
   isAuthenticated?: boolean;
+  disabled?: boolean;
 };
 
 function RepoInputWithAuth({
   onAuthClick,
   onProviderChange,
   isAuthenticated,
+  disabled,
   ...props
 }: Props) {
   const { applicationsClient } = React.useContext(AppContext);
@@ -62,11 +64,12 @@ function RepoInputWithAuth({
     props.value && !!res?.provider && !isAuthenticated;
 
   return (
-    <Flex className={props.className} align>
+    <Flex className={props.className} align start>
       <Input
         {...props}
         error={props.value && !!err?.message ? true : false}
         helperText={!props.value || !err ? props.helperText : err?.message}
+        disabled={disabled}
       />
       <div className="auth-message">
         {isAuthenticated && (
@@ -76,9 +79,7 @@ function RepoInputWithAuth({
           </Flex>
         )}
         {!isAuthenticated && !res && (
-          <Button disabled variant="contained">
-            Authenticate with your Git Provider
-          </Button>
+          <Button disabled>Authenticate with your Git Provider</Button>
         )}
 
         {renderProviderAuthButton ? AuthButton : null}

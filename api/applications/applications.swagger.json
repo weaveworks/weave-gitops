@@ -137,6 +137,7 @@
     },
     "/v1/applications/auth_providers/gitlab": {
       "get": {
+        "summary": "GetGitlabAuthURL returns the URL to initiate a GitLab OAuth PKCE flow.\nThe user must browse to the returned URL to authorize the OAuth callback to the GitOps UI.\nSee the GitLab OAuth docs for more more information:\nhttps://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows",
         "operationId": "Applications_GetGitlabAuthURL",
         "responses": {
           "200": {
@@ -167,6 +168,7 @@
     },
     "/v1/applications/auth_providers/gitlab/authorize": {
       "post": {
+        "summary": "AuthorizeGitlab exchanges a GitLab code obtained via OAuth callback.\nThe returned token is useable for authentication with the GitOps server only.\nSee the GitLab OAuth docs for more more information:\nhttps://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows",
         "operationId": "Applications_AuthorizeGitlab",
         "responses": {
           "200": {
@@ -541,14 +543,11 @@
     "protobufAny": {
       "type": "object",
       "properties": {
-        "typeUrl": {
+        "@type": {
           "type": "string"
-        },
-        "value": {
-          "type": "string",
-          "format": "byte"
         }
-      }
+      },
+      "additionalProperties": {}
     },
     "rpcStatus": {
       "type": "object",
@@ -589,7 +588,7 @@
         "autoMerge": {
           "type": "boolean"
         },
-        "configUrl": {
+        "configRepo": {
           "type": "string"
         }
       }

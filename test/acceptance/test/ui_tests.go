@@ -150,7 +150,7 @@ var _ = XDescribe("Weave GitOps UI Test", func() {
 		helmRepoURL := "https://charts.kube-ops.io"
 		appDetailsPage := pages.GetAppDetailsPageElements(webDriver)
 
-		addCommand1 := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true"
+		addCommand1 := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --config-repo=" + appRepoRemoteURL + " --auto-merge=true"
 		addCommand2 := "add app . --deployment-type=kustomize --auto-merge=true"
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)

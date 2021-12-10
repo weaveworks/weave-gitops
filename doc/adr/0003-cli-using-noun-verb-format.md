@@ -6,7 +6,7 @@ Decision made before this date
 
 ## Status
 
-Accepted
+Superceded by [11. CLI verb noun](0011-cli-verb-noun.md)
 
 ## Context
 

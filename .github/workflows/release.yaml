@@ -23,6 +23,10 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.16.x
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
       - name: Set env var
         run: |
           make -B dependencies
@@ -32,8 +36,8 @@ jobs:
           echo "GORELEASER_CURRENT_TAG=$(git describe --abbrev=0 --tags)" >> $GITHUB_ENV
       - name: "Make All"
         run: make all
-      - name: "Git diff"
-        run: git --no-pager diff
+      - name: Check Git State
+        run: git diff --no-ext-diff --exit-code
       - name: Build Changelog
         id: github_release
         uses: mikepenz/release-changelog-builder-action@v1
@@ -54,8 +58,9 @@ jobs:
           BRANCH: ${{ env.BRANCH }}
           FLUX_VERSION: ${{ env.FLUX_VERSION }}
           GORELEASER_PREVIOUS_TAG: ${{ env.GORELEASER_PREVIOUS_TAG }}
-          GORELEASER_CURRENT_TAG:  ${{ env.GORELEASER_CURRENT_TAG }}
+          GORELEASER_CURRENT_TAG: ${{ env.GORELEASER_CURRENT_TAG }}
   publish_npm_package:
+    needs: goreleaser
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -70,6 +75,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   build-and-push-image:
+    needs: goreleaser
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -91,6 +97,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=tag
+            type=semver,pattern={{version}}
           flavor: |
             latest=true
       - name: Build and push Docker image
@@ -101,6 +108,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
   update-doc-repo-files:
+    needs: goreleaser
     runs-on: ubuntu-latest
     steps:
       - name: Checkout WG
