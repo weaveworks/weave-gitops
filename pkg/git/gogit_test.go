@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/go-git/go-git/v5/plumbing/transport"
@@ -333,7 +334,7 @@ var _ = Describe("Head", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 
 		_, err = gitClient.Head()
-		Expect(err).Should(MatchError("reference not found"))
+		Expect(err.Error()).Should(ContainSubstring("reference not found"))
 	})
 })
 
@@ -384,6 +385,39 @@ var _ = Describe("Remove", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(gitClient.Write("foo", []byte("bar"))).To(Succeed())
 		Expect(gitClient.Remove("foo")).To(Succeed())
+	})
+})
+
+var _ = Describe("Checkout", func() {
+	It("succeeds", func() {
+
+		_, err = gitClient.Clone(context.Background(), dir, "https://github.com/github/gitignore", "main")
+		Expect(err).ShouldNot(HaveOccurred())
+
+		err = gitClient.Checkout("new-branch")
+		Expect(err).ShouldNot(HaveOccurred())
+
+		Expect(gitClient.Write("foo", []byte("bar"))).To(Succeed())
+
+		_, err = os.Stat(filepath.Join(dir, "foo"))
+		Expect(err).ShouldNot(HaveOccurred())
+
+		_, err = gitClient.Commit(git.Commit{
+			Message: "test",
+			Author: git.Author{
+				Name:  "test",
+				Email: "test@test.com",
+			}},
+			func(s string) bool {
+				return true
+			})
+		Expect(err).ShouldNot(HaveOccurred())
+
+		err = gitClient.Checkout("main")
+		Expect(err).ShouldNot(HaveOccurred())
+
+		_, err := os.Stat(filepath.Join(dir, "foo"))
+		Expect(errors.Is(err, os.ErrNotExist)).To(Equal(true))
 	})
 })
 

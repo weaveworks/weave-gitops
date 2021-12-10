@@ -2,11 +2,15 @@ package gitopswriter
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -169,7 +173,79 @@ var _ = Describe("Remove", func() {
 				goatPaths = map[string]bool{}
 			})
 
-			It("removes cluster resources for helm chart from helm repo with configRepo = <url>", func() {
+			Context("Errors removing an app", func() {
+
+				customError := errors.New("some error")
+				BeforeEach(func() {
+					app.ConfigRepo = createRepoURL("ssh://git@github.com/user/external.git")
+					app.Path = "loki"
+				})
+
+				It("fails getting default branch", func() {
+					gitProviders.GetDefaultBranchReturns("", customError)
+
+					err := gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", false)
+					Expect(err.Error()).To(ContainSubstring(customError.Error()))
+				})
+
+				It("fails cloning config repo", func() {
+					gitClient.CloneReturns(false, customError)
+
+					err := gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", false)
+					Expect(err.Error()).To(ContainSubstring(customError.Error()))
+				})
+
+				It("fails reading directory", func() {
+					osysClient.ReadDirReturns(nil, customError)
+
+					err := gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", false)
+					Expect(err.Error()).To(ContainSubstring(customError.Error()))
+				})
+
+				It("fails checking out branch", func() {
+					gitClient.CheckoutReturns(customError)
+
+					err := gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", false)
+					Expect(err.Error()).To(ContainSubstring(customError.Error()))
+				})
+
+				It("fails removing files using git", func() {
+					gitClient.RemoveReturns(customError)
+
+					Expect(runAddAndCollectInfo()).To(Succeed())
+					err := gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", false)
+					Expect(err.Error()).To(ContainSubstring(customError.Error()))
+				})
+
+				It("fails writing updates using git", func() {
+					Expect(runAddAndCollectInfo()).To(Succeed())
+
+					gitClient.WriteReturns(customError)
+
+					err := gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", false)
+					Expect(err.Error()).To(ContainSubstring(customError.Error()))
+				})
+
+				It("fails committing files using git", func() {
+					Expect(runAddAndCollectInfo()).To(Succeed())
+
+					gitClient.CommitReturns("", customError)
+
+					err := gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", false)
+					Expect(err.Error()).To(ContainSubstring(customError.Error()))
+				})
+
+				It("fails creating pull request", func() {
+					Expect(runAddAndCollectInfo()).To(Succeed())
+
+					gitProviders.CreatePullRequestReturns(nil, customError)
+
+					err := gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", false)
+					Expect(err.Error()).To(ContainSubstring(customError.Error()))
+				})
+			})
+
+			It("removes cluster resources for helm chart from helm repo with configRepo = <url> when auto-merge is true", func() {
 				app.ConfigRepo = createRepoURL("ssh://git@github.com/user/external.git")
 				app.Path = "loki"
 
@@ -178,7 +254,7 @@ var _ = Describe("Remove", func() {
 				Expect(checkRemoveResults()).To(Succeed())
 			})
 
-			It("removes cluster resources for helm chart from git repo with configRepo = <url>", func() {
+			It("removes cluster resources for helm chart from git repo with configRepo = <url>  when auto-merge is true", func() {
 				app.GitSourceURL = createRepoURL("ssh://git@github.com/user/wego-fork-test.git")
 				app.ConfigRepo = createRepoURL("ssh://git@github.com/user/external.git")
 				app.Path = "./"
@@ -188,48 +264,86 @@ var _ = Describe("Remove", func() {
 				Expect(checkRemoveResults()).To(Succeed())
 			})
 
-			Context("Removing resources for non-helm apps", func() {
-				var _ = BeforeEach(func() {
-					sourceURL := createRepoURL("ssh://git@github.com/user/wego-fork-test.git")
+			It("removes cluster resources for helm chart from helm repo with configURL = <url>  when auto-merge is false", func() {
+				app.ConfigRepo = createRepoURL("ssh://git@github.com/user/external.git")
+				app.Path = "loki"
 
-					app = models.Application{
-						Name:           "wego-fork-test",
-						Namespace:      wego.DefaultNamespace,
-						GitSourceURL:   sourceURL,
-						ConfigRepo:     sourceURL,
-						Branch:         "main",
-						Path:           "./",
-						AutomationType: models.AutomationTypeKustomize,
-						SourceType:     models.SourceTypeGit,
-					}
-
-					goatPaths = map[string]bool{}
+				gitProviders.CreatePullRequestCalls(func(ctx2 context.Context, url gitproviders.RepoURL, info gitproviders.PullRequestInfo) (gitprovider.PullRequest, error) {
+					Expect(info.SkipAddingFilesOnCreation).To(Equal(true))
+					Expect(len(info.Files)).To(Equal(0))
+					return NewFakePullRequest(app.ConfigRepo.Owner(), app.ConfigRepo.RepositoryName(), 1), nil
 				})
 
-				It("removes cluster resources for non-helm app configRepo = ''", func() {
-					Expect(runAddAndCollectInfo()).To(Succeed())
-					Expect(gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", true)).To(Succeed())
-					Expect(checkRemoveResults()).To(Succeed())
-				})
+				Expect(runAddAndCollectInfo()).To(Succeed())
+				Expect(gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", false)).To(Succeed())
+				Expect(checkRemoveResults()).To(Succeed())
+			})
 
-				It("commits the manifests with remove message", func() {
-					Expect(runAddAndCollectInfo()).To(Succeed())
-					Expect(gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", true)).To(Succeed())
-					Expect(checkRemoveResults()).To(Succeed())
+		})
 
-					commit, _ := gitClient.CommitArgsForCall(1)
-					Expect(commit.Message).To(Equal(RemoveCommitMessage))
-				})
+		Context("Removing resources for non-helm apps when", func() {
+			var _ = BeforeEach(func() {
+				sourceURL := createRepoURL("ssh://git@github.com/user/wego-fork-test.git")
 
-				It("removes cluster resources for non-helm app with configRepo = <url>", func() {
-					app.GitSourceURL = createRepoURL("ssh://git@github.com/user/wego-fork-test.git")
-					app.ConfigRepo = createRepoURL("ssh://git@github.com/user/external.git")
+				app = models.Application{
+					Name:           "wego-fork-test",
+					Namespace:      wego.DefaultNamespace,
+					GitSourceURL:   sourceURL,
+					ConfigRepo:     sourceURL,
+					Branch:         "main",
+					Path:           "./",
+					AutomationType: models.AutomationTypeKustomize,
+					SourceType:     models.SourceTypeGit,
+				}
 
-					Expect(runAddAndCollectInfo()).To(Succeed())
-					Expect(gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", true)).To(Succeed())
-					Expect(checkRemoveResults()).To(Succeed())
-				})
+				goatPaths = map[string]bool{}
+			})
+
+			It("removes cluster resources for non-helm app configRepo = ''", func() {
+				Expect(runAddAndCollectInfo()).To(Succeed())
+				Expect(gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", true)).To(Succeed())
+				Expect(checkRemoveResults()).To(Succeed())
+			})
+
+			It("commits the manifests with remove message", func() {
+				Expect(runAddAndCollectInfo()).To(Succeed())
+				Expect(gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", true)).To(Succeed())
+				Expect(checkRemoveResults()).To(Succeed())
+
+				commit, _ := gitClient.CommitArgsForCall(1)
+				Expect(commit.Message).To(Equal(RemoveCommitMessage))
+			})
+
+			It("removes cluster resources for non-helm app with configRepo = <url>", func() {
+				app.GitSourceURL = createRepoURL("ssh://git@github.com/user/wego-fork-test.git")
+				app.ConfigRepo = createRepoURL("ssh://git@github.com/user/external.git")
+
+				Expect(runAddAndCollectInfo()).To(Succeed())
+				Expect(gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", true)).To(Succeed())
+				Expect(checkRemoveResults()).To(Succeed())
 			})
 		})
 	})
 })
+
+type fakePullRequest struct {
+	pullRequestInfo gitprovider.PullRequestInfo
+}
+
+func (fc *fakePullRequest) APIObject() interface{} {
+	return &fc.pullRequestInfo
+}
+
+func (fc *fakePullRequest) Get() gitprovider.PullRequestInfo {
+	return fc.pullRequestInfo
+}
+
+func NewFakePullRequest(owner string, repoName string, prNumber int) gitprovider.PullRequest {
+	return &fakePullRequest{
+		pullRequestInfo: gitprovider.PullRequestInfo{
+			WebURL: fmt.Sprintf("https://github.com/%s/%s/pull/%d", owner, repoName, prNumber),
+			Merged: false,
+			Number: 1,
+		},
+	}
+}

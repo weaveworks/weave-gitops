@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	glAPI "github.com/xanzy/go-gitlab"
+
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
@@ -140,7 +142,12 @@ func appPath(root, appName, filename string) string {
 
 func MakeWeGOFS(root, appName, clusterName string) WeGODirectoryFS {
 	return map[string]interface{}{
-		appYamlPath(root, appName):      &wego.Application{},
+		appYamlPath(root, appName): &wego.Application{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       wego.ApplicationKind,
+				APIVersion: wego.GroupVersion.String(),
+			},
+		},
 		appKustPath(root, appName):      &types.Kustomization{},
 		automationPath(root, appName):   &kustomizev2.Kustomization{},
 		sourcePath(root, appName):       &sourcev1.GitRepository{},
@@ -225,10 +232,15 @@ func Filenames(fs WeGODirectoryFS) []string {
 	return keys
 }
 
-func GetFileContents(ctx context.Context, gh *ghAPI.Client, org, repoName string, fs WeGODirectoryFS, files []*ghAPI.CommitFile) (WeGODirectoryFS, error) {
+func GetGithubFilesContents(ctx context.Context, gh *ghAPI.Client, org, repoName string, fs WeGODirectoryFS, files []*ghAPI.CommitFile) (WeGODirectoryFS, error) {
 	changes := map[string][]byte{}
 
 	for _, file := range files {
+		if *file.Status == "removed" {
+			delete(fs, *file.Filename)
+			continue
+		}
+
 		path := *file.Filename
 
 		b, _, err := gh.Git.GetBlobRaw(ctx, org, repoName, *file.SHA)
@@ -239,22 +251,30 @@ func GetFileContents(ctx context.Context, gh *ghAPI.Client, org, repoName string
 		changes[path] = b
 	}
 
-	for path, change := range changes {
-		obj, ok := fs[path]
+	return toK8sObjects(changes, fs)
+}
 
-		if !ok {
-			fs[path] = nil
+func GetGitlabFilesContents(gl *glAPI.Client, fullRepoPath string, fs WeGODirectoryFS, commitSHA string, files []*glAPI.Diff) (WeGODirectoryFS, error) {
+	changes := map[string][]byte{}
+
+	for _, file := range files {
+		path := file.OldPath
+		if file.DeletedFile {
+			delete(fs, path)
 			continue
 		}
 
-		if err := yaml.Unmarshal(change, obj); err != nil {
-			return nil, fmt.Errorf("error unmarshalling change yaml: %w", err)
+		b, _, err := gl.RepositoryFiles.GetRawFile(fullRepoPath, path, &glAPI.GetRawFileOptions{
+			Ref: &commitSHA,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("error getting blob for %q: %w", path, err)
 		}
 
-		fs[path] = obj
+		changes[path] = b
 	}
 
-	return fs, nil
+	return toK8sObjects(changes, fs)
 }
 
 func toK8sObjects(changes map[string][]byte, fs WeGODirectoryFS) (WeGODirectoryFS, error) {
