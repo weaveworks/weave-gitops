@@ -243,7 +243,7 @@ var _ = Describe("AddApplication", func() {
 			})
 		})
 		Context("via auto merge", func() {
-			It("add/remove with no config repo specified", func() {
+			FIt("add/remove with no config repo specified", func() {
 
 				defer func() { Expect(sourceRepo.Delete(ctx)).To(Succeed()) }()
 
@@ -363,7 +363,7 @@ var _ = Describe("AddApplication", func() {
 							APIVersion: types.KustomizationVersion,
 						},
 						MetaData: &types.ObjectMeta{
-							Name:      appName,
+							Name:      clusterName,
 							Namespace: namespace.Name,
 						},
 					},
@@ -784,7 +784,7 @@ var _ = Describe("AddApplication", func() {
 							APIVersion: types.KustomizationVersion,
 						},
 						MetaData: &types.ObjectMeta{
-							Name:      appName,
+							Name:      clusterName,
 							Namespace: namespace.Name,
 						},
 					},
