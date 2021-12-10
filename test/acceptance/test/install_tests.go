@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/manifests"
@@ -22,7 +23,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("Weave GitOps Install Tests", func() {
+var _ = FDescribe("Weave GitOps Install Tests", func() {
 
 	var sessionOutput *gexec.Session
 
@@ -39,8 +40,29 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 
 		By("Then I should see gitops help text displayed for 'install' command", func() {
-			Eventually(string(sessionOutput.Wait().Out.Contents())).Should(MatchRegexp(
-				fmt.Sprintf(`The install command deploys GitOps in the specified namespace,\nadds a cluster entry to the GitOps repo, and persists the GitOps runtime into the\nrepo. If a previous version is installed, then an in-place upgrade will be performed.\n*Usage:\n\s*gitops install \[flags]\n*Examples:\n\s*# Install GitOps in the %s namespace\n\s*gitops install --config-repo=ssh://git@github.com/me/mygitopsrepo.git\n*Flags:\n\s*--config-repo string\s*URL of external repository that will hold automation manifests\n\s*--auto-merge\s*If set, 'gitops install' will automatically update the default branch for the configuration repository\n\s*--dry-run\s*Outputs all the manifests that would be installed\n\s*-h, --help\s*help for install\n*Global Flags:\n\s*-e, --endpoint string\s*The Weave GitOps Enterprise HTTP API endpoint\n\s*--namespace string\s*The namespace scope for this operation \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace, wego.DefaultNamespace)))
+			helpTest := fmt.Sprintf(`The install command deploys GitOps in the specified namespace,
+adds a cluster entry to the GitOps repo, and persists the GitOps runtime into the
+repo. If a previous version is installed, then an in-place upgrade will be performed.
+
+Usage:
+  gitops install [flags]
+
+Examples:
+  # Install GitOps in the %s namespace
+  gitops install --config-repo=ssh://git@github.com/me/mygitopsrepo.git
+
+Flags:
+      --auto-merge           If set, 'gitops install' will automatically update the default branch for the configuration repository
+      --config-repo string   URL of external repository that will hold automation manifests
+      --dry-run              Outputs all the manifests that would be installed
+  -h, --help                 help for install
+
+Global Flags:
+  -e, --endpoint string    The Weave GitOps Enterprise HTTP API endpoint
+      --namespace string   The namespace scope for this operation (default "%s")
+  -v, --verbose            Enable verbose output`, wego.DefaultNamespace, wego.DefaultNamespace)
+			helpTest = regexp.QuoteMeta(helpTest)
+			Eventually(sessionOutput).Should(gbytes.Say(helpTest))
 		})
 	})
 
@@ -199,8 +221,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)
 
 		By("Then I should not see any gitops components", func() {
-			_, errOutput := runCommandAndReturnStringOutput("kubectl get ns " + namespace)
-			Eventually(errOutput).Should(ContainSubstring(`Error from server (NotFound): namespaces "` + namespace + `" not found`))
+			Expect(waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)).ShouldNot(HaveOccurred())
 		})
 	})
 

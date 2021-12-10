@@ -399,7 +399,7 @@ func VerifyControllersInCluster(namespace string) {
 }
 
 func installAndVerifyWego(wegoNamespace, repoURL string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --app-config-url=%s --auto-merge", WEGO_BIN_PATH, wegoNamespace, repoURL))
+	command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --config-repo=%s --auto-merge", WEGO_BIN_PATH, wegoNamespace, repoURL))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session, INSTALL_SUCCESSFUL_TIMEOUT).Should(gexec.Exit())
