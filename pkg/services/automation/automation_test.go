@@ -142,11 +142,9 @@ var _ = Describe("Generate manifests", func() {
 
 			It("creates a helm release using a git source if source type is git", func() {
 				app.AutomationType = models.AutomationTypeHelm
-				app.AutomationType = models.AutomationTypeHelm
 				app.ConfigRepo = createRepoURL("ssh://github.com/owner/repo")
 				app.Name = "bar"
 				app.Path = "./charts/my-chart"
-				app.Path = "loki"
 
 				_, err := automationGen.GenerateApplicationAutomation(ctx, app, "test-cluster")
 				Expect(err).ShouldNot(HaveOccurred())
