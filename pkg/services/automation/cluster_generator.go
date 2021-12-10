@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
 	// "strings"
 	// "github.com/fluxcd/go-git-providers/gitprovider"
 	// sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
@@ -16,6 +17,7 @@ import (
 	"github.com/weaveworks/weave-gitops/manifests"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+
 	// "github.com/weaveworks/weave-gitops/pkg/kube"
 	// "github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/models"
@@ -46,7 +48,7 @@ const (
 	SystemKustomizationPath = "kustomization.yaml"
 )
 
-func CreateClusterSourceName(gitSourceURL gitproviders.RepoURL) string {
+func createClusterSourceName(gitSourceURL gitproviders.RepoURL) string {
 	provider := string(gitSourceURL.Provider())
 	cleanRepoName := replaceUnderscores(gitSourceURL.RepositoryName())
 	qualifiedName := fmt.Sprintf("wego-auto-%s-%s", provider, cleanRepoName)
@@ -94,7 +96,7 @@ func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster m
 
 	wegoAppManifest := bytes.Join(m, []byte("---\n"))
 
-	sourceName := CreateClusterSourceName(configURL)
+	sourceName := createClusterSourceName(configURL)
 
 	sourceManifest, err := a.Flux.CreateSourceGit(sourceName, configURL, configBranch, secretStr, namespace)
 	if err != nil {
