@@ -3,6 +3,7 @@ import { CircularProgress } from "@material-ui/core";
 import MaterialButton, { ButtonProps } from "@material-ui/core/Button/Button";
 import * as React from "react";
 import styled from "styled-components";
+import { muiTheme } from "../lib/theme";
 
 /** Button Properties */
 export interface Props extends ButtonProps {
@@ -15,31 +16,22 @@ export interface Props extends ButtonProps {
 }
 
 /** Form Button */
-function Button({ loading, ...props }: Props) {
+function UnstyledButton(props: Props) {
   return (
     <MaterialButton
       variant="outlined"
       color="primary"
-      disabled={loading}
-      endIcon={loading ? <CircularProgress size={16} /> : props.endIcon}
+      disabled={props.loading}
+      endIcon={props.loading ? <CircularProgress size={16} /> : props.endIcon}
       disableElevation={true}
       {...props}
     />
   );
 }
-
-export default styled(Button)`
-  display: flex;
-  justify-content: space-evenly;
-  &.auth-button {
-    &.MuiButton-contained {
-      background-color: black;
-      color: white;
-    }
-  }
-  &.borderless {
-    &.MuiButton-outlined {
-      border: none;
-    }
+const Button = styled(UnstyledButton)`
+  &.MuiButton-outlined {
+    border-color: ${muiTheme.palette.text.secondary};
   }
 `;
+
+export default Button;

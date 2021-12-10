@@ -18,6 +18,7 @@ type RepoWriter interface {
 	CloneRepo(ctx context.Context, branch string) (func(), string, error)
 	GetDefaultBranch(ctx context.Context) (string, error)
 	CommitAndPush(ctx context.Context, commitMsg string, filters ...func(string) bool) error
+	CheckoutBranch(newBranch string) error
 	Write(ctx context.Context, path string, content []byte) error
 	Remove(ctx context.Context, path string) error
 }
@@ -70,6 +71,15 @@ func (rw *RepoWriterSvc) CloneRepo(ctx context.Context, branch string) (func(), 
 
 func (rw *RepoWriterSvc) CommitAndPush(ctx context.Context, commitMsg string, filters ...func(string) bool) error {
 	return CommitAndPush(ctx, rw.GitClient, commitMsg, rw.Logger, filters...)
+}
+
+func (rw *RepoWriterSvc) CheckoutBranch(newBranch string) error {
+	err := rw.GitClient.Checkout(newBranch)
+	if err != nil {
+		return fmt.Errorf("error checking out branch %s, %w", newBranch, err)
+	}
+
+	return nil
 }
 
 func CommitAndPush(ctx context.Context, client git.Git, commitMsg string, logger logger.Logger, filters ...func(string) bool) error {

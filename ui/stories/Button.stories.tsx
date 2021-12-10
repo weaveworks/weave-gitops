@@ -36,9 +36,10 @@ export default {
       defaultValue: true,
       table: { defaultValue: { summary: "true" } },
     },
-    disabled: {},
-    className: {},
-    "The following props are not currently in use but are part of ButtonProps:": {},
+    disabled: {
+      defaultValue: false,
+      table: { defaultValue: { summary: "false" } },
+    },
     startIcon: {
       description: "`<Icon />` Element to come before `<Button />` content",
       table: {
@@ -46,6 +47,7 @@ export default {
       },
       control: null,
     },
+    className: {},
   },
 } as Meta;
 
@@ -56,5 +58,5 @@ Default.args = { color: "primary", variant: "outlined" };
 export const ModalButton = Template.bind({});
 ModalButton.args = {
   color: "inherit",
-  className: "borderless",
+  variant: "text",
 };

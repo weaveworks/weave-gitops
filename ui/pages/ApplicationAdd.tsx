@@ -354,9 +354,7 @@ function AddApplication({ className }: Props) {
               {loading ? (
                 <CircularProgress />
               ) : (
-                <Button variant="contained" type="submit">
-                  Submit
-                </Button>
+                <Button type="submit">Submit</Button>
               )}
             </Flex>
           </form>

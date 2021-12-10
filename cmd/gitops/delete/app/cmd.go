@@ -46,6 +46,7 @@ var Cmd = &cobra.Command{
 
 func init() {
 	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'gitops delete app' will not make any changes to the system; it will just display the actions that would have been taken")
+	Cmd.Flags().BoolVar(&params.AutoMerge, "auto-merge", false, "If set, 'gitops delete app' will merge changes automatically to the config repository")
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {

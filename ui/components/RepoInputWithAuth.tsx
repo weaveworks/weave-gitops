@@ -64,7 +64,7 @@ function RepoInputWithAuth({
     props.value && !!res?.provider && !isAuthenticated;
 
   return (
-    <Flex className={props.className} align>
+    <Flex className={props.className} align start>
       <Input
         {...props}
         error={props.value && !!err?.message ? true : false}
@@ -79,9 +79,7 @@ function RepoInputWithAuth({
           </Flex>
         )}
         {!isAuthenticated && !res && (
-          <Button disabled variant="contained">
-            Authenticate with your Git Provider
-          </Button>
+          <Button disabled>Authenticate with your Git Provider</Button>
         )}
 
         {renderProviderAuthButton ? AuthButton : null}

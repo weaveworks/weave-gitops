@@ -346,6 +346,7 @@ func (s *applicationServer) RemoveApplication(ctx context.Context, msg *pb.Remov
 		Namespace:        msg.Namespace,
 		DryRun:           false,
 		GitProviderToken: token.AccessToken,
+		AutoMerge:        msg.AutoMerge,
 	}
 
 	if err := appSrv.Remove(gitClient, gitProvider, removeParams); err != nil {
