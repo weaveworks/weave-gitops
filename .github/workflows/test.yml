@@ -88,7 +88,8 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
       with:
-        ref: ${{ github.event.pull_request.head.sha }}
+        ref: ${{ env.GITHUB_SHA }}
+#        //GITHUB_HEAD_REF
     - name: Setup upterm session
       uses: lhotari/action-upterm@v1
     - name: Set up ssh
