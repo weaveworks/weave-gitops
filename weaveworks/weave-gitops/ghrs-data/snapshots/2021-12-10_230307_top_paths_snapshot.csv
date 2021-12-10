@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/weaveworks/weave-gitops,697,176
+/weaveworks/weave-gitops/pulls,513,25
+/weaveworks/weave-gitops/issues,233,29
+/weaveworks/weave-gitops/pull/1148,182,18
+/weaveworks/weave-gitops/actions,149,12
+/weaveworks/weave-gitops/actions/workflows/nightly.yaml,109,4
+/weaveworks/weave-gitops/releases,84,29
+/weaveworks/weave-gitops/pull/1151,57,9
+/weaveworks/weave-gitops/pull/1182,40,9
+/weaveworks/weave-gitops/pull/1167,38,6
