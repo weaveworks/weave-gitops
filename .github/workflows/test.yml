@@ -106,6 +106,8 @@ jobs:
       run: make coverage/lcov.info
     - name: Unit Tests with Coverage
       run: make coverage/unittest.info
+    - name: Setup upterm session
+      uses: lhotari/action-upterm@v1
     - name: Integration Tests with Coverage
       run: make coverage/integrationtest.info
     - name: Merge Coverage Reports
