@@ -74,6 +74,7 @@ func StartK8sTestEnvironment(crdPaths []string) (*K8sTestEnv, error) {
 			&corev1.Namespace{},
 			&corev1.Secret{},
 			&appsv1.Deployment{},
+			&corev1.ConfigMap{},
 			&kustomizev2.Kustomization{},
 			&sourcev1.GitRepository{},
 			&v1.CustomResourceDefinition{},

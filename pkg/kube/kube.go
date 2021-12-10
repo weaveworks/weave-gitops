@@ -3,6 +3,7 @@ package kube
 import (
 	"context"
 	"fmt"
+
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -40,6 +41,11 @@ var toStatusString = map[ClusterStatus]string{
 	GitOpsInstalled: "GitOps installed",
 }
 
+type WegoConfig struct {
+	FluxNamespace string
+	WegoNamespace string
+}
+
 //counterfeiter:generate . Kube
 type Kube interface {
 	Apply(ctx context.Context, manifest []byte, namespace string) error
@@ -55,6 +61,9 @@ type Kube interface {
 	GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error
 	SetResource(ctx context.Context, resource Resource) error
 	GetSecret(ctx context.Context, name types.NamespacedName) (*corev1.Secret, error)
+	SetWegoConfig(ctx context.Context, config WegoConfig, namespace string) (*corev1.ConfigMap, error)
+	GetWegoConfig(ctx context.Context, namespace string) (*WegoConfig, error)
+	Raw() client.Client
 }
 
 func IsClusterReady(l logger.Logger, k Kube) error {

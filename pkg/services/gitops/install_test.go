@@ -18,6 +18,11 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/rand"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var (
@@ -29,10 +34,25 @@ var (
 var _ = Describe("Install", func() {
 
 	BeforeEach(func() {
+		namespace := &corev1.Namespace{}
+		namespace.Name = "flux-namespace"
+		namespace.Labels = map[string]string{
+			gitops.LabelPartOf: "flux",
+		}
+
 		fluxClient = &fluxfakes.FakeFlux{}
 		kubeClient = &kubefakes.FakeKube{
 			GetClusterStatusStub: func(c context.Context) kube.ClusterStatus {
 				return kube.Unmodified
+			},
+			GetWegoConfigStub: func(c context.Context, s string) (*kube.WegoConfig, error) {
+				return &kube.WegoConfig{FluxNamespace: "flux-system", WegoNamespace: "wego-system"}, nil
+			},
+			RawStub: func() client.Client {
+				return fake.NewClientBuilder().
+					WithScheme(kube.CreateScheme()).
+					WithRuntimeObjects([]runtime.Object{namespace}...).
+					Build()
 			},
 		}
 		fakeProvider = &gitprovidersfakes.FakeGitProvider{}
@@ -56,18 +76,46 @@ var _ = Describe("Install", func() {
 		Expect(os.RemoveAll(dir)).To(Succeed())
 	})
 
-	It("checks cluster status", func() {
-		kubeClient.GetClusterStatusStub = func(c context.Context) kube.ClusterStatus {
-			return kube.FluxInstalled
-		}
-		_, err := gitopsSrv.Install(installParams)
-		Expect(err).Should(MatchError("Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n  $ flux uninstall"))
+	Context("validate install", func() {
+		It("checks cluster status", func() {
+			kubeClient.GetClusterStatusStub = func(c context.Context) kube.ClusterStatus {
+				return kube.FluxInstalled
+			}
+			_, err := gitopsSrv.Install(installParams)
+			Expect(err).Should(MatchError("Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n  $ flux uninstall"))
 
-		kubeClient.GetClusterStatusStub = func(c context.Context) kube.ClusterStatus {
-			return kube.Unknown
-		}
-		_, err = gitopsSrv.Install(installParams)
-		Expect(err).Should(MatchError("Weave GitOps cannot talk to the cluster"))
+			kubeClient.GetClusterStatusStub = func(c context.Context) kube.ClusterStatus {
+				return kube.Unknown
+			}
+			_, err = gitopsSrv.Install(installParams)
+			Expect(err).Should(MatchError("Weave GitOps cannot talk to the cluster"))
+		})
+
+		Context("validate namespace", func() {
+			It("passes if saved namespace is empty", func() {
+				kubeClient.GetWegoConfigReturns(&kube.WegoConfig{WegoNamespace: ""}, nil)
+
+				_, err := gitopsSrv.Install(installParams)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("passes if saved namespace is equal to passed", func() {
+				kubeClient.GetWegoConfigReturns(&kube.WegoConfig{WegoNamespace: wego.DefaultNamespace}, nil)
+
+				_, err := gitopsSrv.Install(installParams)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("fails if saved namespace is different from passed", func() {
+				kubeClient.GetWegoConfigReturns(&kube.WegoConfig{WegoNamespace: wego.DefaultNamespace}, nil)
+
+				installParams.Namespace = "new-namespace"
+
+				_, err := gitopsSrv.Install(installParams)
+				Expect(err).Should(MatchError("You cannot install Weave GitOps into a different namespace"))
+			})
+		})
+
 	})
 
 	It("calls flux install", func() {
@@ -108,6 +156,32 @@ var _ = Describe("Install", func() {
 		_, service, namespace := kubeClient.ApplyArgsForCall(5)
 		Expect(string(service)).To(ContainSubstring("kind: Service"))
 		Expect(namespace).To(Equal(wego.DefaultNamespace))
+	})
+
+	It("saves the wego config", func() {
+		namespace := &corev1.Namespace{}
+		namespace.Name = "kube-test-" + rand.String(5)
+		namespace.Labels = map[string]string{
+			gitops.LabelPartOf: "flux",
+		}
+		err := kubeClient.Raw().Create(context.Background(), namespace)
+		Expect(err).ToNot(HaveOccurred())
+
+		namespace = &corev1.Namespace{}
+		namespace.Name = "kube-test-" + rand.String(5)
+		namespace.Labels = map[string]string{
+			gitops.LabelPartOf: "flux",
+		}
+		namespace.Name = "kube-test-" + rand.String(5)
+		err = kubeClient.Raw().Create(context.Background(), namespace)
+		Expect(err).ToNot(HaveOccurred())
+
+		_, err = gitopsSrv.Install(installParams)
+		Expect(err).ToNot(HaveOccurred())
+
+		_, config, ns := kubeClient.SetWegoConfigArgsForCall(0)
+		Expect(config.FluxNamespace).To(Equal("flux-namespace"))
+		Expect(ns).To(Equal("wego-system"))
 	})
 
 	Context("when dry-run", func() {
