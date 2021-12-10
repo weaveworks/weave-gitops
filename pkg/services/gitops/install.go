@@ -302,7 +302,7 @@ func (g *Gitops) fetchNamespaceWithLabel(ctx context.Context, key string, value 
 	}
 
 	if len(namespaces) > 1 {
-		g.logger.Warningf("Selecting %s namespace out of [%s]", namespaces[0], namespaces)
+		return "", fmt.Errorf("found multiple namespaces %s with %s=%s, we are unable to define the correct one", namespaces, key, value)
 	}
 
 	return namespaces[0], nil

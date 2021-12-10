@@ -167,6 +167,15 @@ var _ = Describe("Install", func() {
 		err := kubeClient.Raw().Create(context.Background(), namespace)
 		Expect(err).ToNot(HaveOccurred())
 
+		namespace = &corev1.Namespace{}
+		namespace.Name = "kube-test-" + rand.String(5)
+		namespace.Labels = map[string]string{
+			gitops.LabelPartOf: "flux",
+		}
+		namespace.Name = "kube-test-" + rand.String(5)
+		err = kubeClient.Raw().Create(context.Background(), namespace)
+		Expect(err).ToNot(HaveOccurred())
+
 		_, err = gitopsSrv.Install(installParams)
 		Expect(err).ToNot(HaveOccurred())
 
