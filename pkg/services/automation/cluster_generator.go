@@ -8,23 +8,12 @@ import (
 	"os"
 	"path/filepath"
 
-	// "strings"
-	// "github.com/fluxcd/go-git-providers/gitprovider"
-	// sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
-	// "github.com/fluxcd/source-controller/pkg/sourceignore"
-	// "github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/manifests"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 
-	// "github.com/weaveworks/weave-gitops/pkg/kube"
-	// "github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/models"
-	// wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	// metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	// "k8s.io/apimachinery/pkg/runtime/schema"
-	// "sigs.k8s.io/kustomize/api/types"
 	"sigs.k8s.io/yaml"
 )
 
