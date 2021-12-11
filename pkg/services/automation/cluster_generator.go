@@ -8,6 +8,12 @@ import (
 	"os"
 	"path/filepath"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	corev1 "k8s.io/api/core/v1"
+
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/manifests"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -25,6 +31,7 @@ type ClusterAutomation struct {
 	SystemKustResourceManifest  AutomationManifest
 	UserKustResourceManifest    AutomationManifest
 	WegoAppManifest             AutomationManifest
+	WegoConfigManifest          AutomationManifest
 }
 
 const (
@@ -35,6 +42,9 @@ const (
 	SystemKustResourcePath  = "flux-system-kustomization-resource.yaml"
 	UserKustResourcePath    = "flux-user-kustomization-resource.yaml"
 	WegoAppPath             = "wego-app.yaml"
+	WegoConfigPath          = "wego-config.yaml"
+
+	WegoConfigMapName = "weave-gitops-config"
 )
 
 func createClusterSourceName(gitSourceURL gitproviders.RepoURL) string {
@@ -46,7 +56,7 @@ func createClusterSourceName(gitSourceURL gitproviders.RepoURL) string {
 	return lengthConstrainedName
 }
 
-func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster models.Cluster, configURL gitproviders.RepoURL, namespace string) (ClusterAutomation, error) {
+func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster models.Cluster, configURL gitproviders.RepoURL, namespace string, fluxNamespace string) (ClusterAutomation, error) {
 	systemPath := filepath.Join(git.WegoRoot, git.WegoClusterDir, cluster.Name, git.WegoClusterOSWorkloadDir)
 	userPath := filepath.Join(git.WegoRoot, git.WegoClusterDir, cluster.Name, git.WegoClusterUserWorkloadDir)
 
@@ -111,22 +121,53 @@ func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster m
 		return ClusterAutomation{}, err
 	}
 
-	return ClusterAutomation{
-		GitOpsRuntime: AutomationManifest{
-			Path:    systemQualifiedPath(RuntimePath),
-			Content: runtimeManifests,
+	config := kube.WegoConfig{
+		FluxNamespace: fluxNamespace,
+		WegoNamespace: namespace,
+	}
+
+	configBytes, err := yaml.Marshal(config)
+	if err != nil {
+		return ClusterAutomation{}, fmt.Errorf("failed marshalling wego config: %w", err)
+	}
+
+	name := types.NamespacedName{Name: WegoConfigMapName, Namespace: namespace}
+
+	cm := &corev1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ConfigMap",
+			APIVersion: corev1.SchemeGroupVersion.String(),
 		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name.Name,
+			Namespace: name.Namespace,
+		},
+		Data: map[string]string{
+			"config": string(configBytes),
+		},
+	}
+
+	wegoConfigManifest, err := yaml.Marshal(cm)
+	if err != nil {
+		return ClusterAutomation{}, fmt.Errorf("failed marshalling wego config: %w", err)
+	}
+
+	return ClusterAutomation{
 		AppCRD: AutomationManifest{
 			Path:    systemQualifiedPath(AppCRDPath),
 			Content: appCRDManifest,
 		},
-		WegoAppManifest: AutomationManifest{
-			Path:    systemQualifiedPath(WegoAppPath),
-			Content: wegoAppManifest,
+		GitOpsRuntime: AutomationManifest{
+			Path:    systemQualifiedPath(RuntimePath),
+			Content: runtimeManifests,
 		},
 		SourceManifest: AutomationManifest{
 			Path:    systemQualifiedPath(SourcePath),
 			Content: sourceManifest,
+		},
+		SystemKustomizationManifest: AutomationManifest{
+			Path:    systemQualifiedPath(SystemKustomizationPath),
+			Content: systemKustomizationManifest,
 		},
 		SystemKustResourceManifest: AutomationManifest{
 			Path:    systemQualifiedPath(SystemKustResourcePath),
@@ -136,15 +177,19 @@ func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster m
 			Path:    systemQualifiedPath(UserKustResourcePath),
 			Content: userKustResourceManifest,
 		},
-		SystemKustomizationManifest: AutomationManifest{
-			Path:    systemQualifiedPath(SystemKustomizationPath),
-			Content: systemKustomizationManifest,
+		WegoAppManifest: AutomationManifest{
+			Path:    systemQualifiedPath(WegoAppPath),
+			Content: wegoAppManifest,
+		},
+		WegoConfigManifest: AutomationManifest{
+			Path:    systemQualifiedPath(WegoConfigPath),
+			Content: wegoConfigManifest,
 		},
 	}, nil
 }
 
 func (ca ClusterAutomation) BootstrapManifests() []AutomationManifest {
-	return append([]AutomationManifest{ca.AppCRD}, ca.WegoAppManifest, ca.SourceManifest, ca.SystemKustResourceManifest, ca.UserKustResourceManifest)
+	return append([]AutomationManifest{ca.AppCRD}, ca.WegoAppManifest, ca.SourceManifest, ca.SystemKustResourceManifest, ca.UserKustResourceManifest, ca.WegoConfigManifest)
 }
 
 func (ca ClusterAutomation) Manifests() []AutomationManifest {

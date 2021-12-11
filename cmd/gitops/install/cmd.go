@@ -55,6 +55,8 @@ repo. If a previous version is installed, then an in-place upgrade will be perfo
 	},
 }
 
+const LabelPartOf = "app.kubernetes.io/part-of"
+
 func init() {
 	Cmd.Flags().BoolVar(&installParams.DryRun, "dry-run", false, "Outputs all the manifests that would be installed")
 	Cmd.Flags().BoolVar(&installParams.AutoMerge, "auto-merge", false, "If set, 'gitops install' will automatically update the default branch for the configuration repository")
@@ -100,6 +102,13 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 
 	var gitProvider gitproviders.GitProvider
 
+	factory := services.NewFactory(flux, log)
+	kubeClient, err := factory.GetKubeService()
+
+	if err != nil {
+		return fmt.Errorf("failed getting kube service %w", err)
+	}
+
 	if installParams.DryRun {
 		gitProvider, err = gitproviders.NewDryRun()
 
@@ -112,7 +121,6 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		factory := services.NewFactory(flux, log)
 		providerClient := internal.NewGitProviderClient(osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
 
 		gitClient, gitProvider, err = factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
@@ -131,7 +139,12 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	automationGen := automation.NewAutomationGenerator(gitProvider, flux, log)
 	gitOpsDirWriter := gitopswriter.NewGitOpsDirectoryWriter(automationGen, repoWriter, osysClient, log)
 
-	clusterAutomation, err := automationGen.GenerateClusterAutomation(ctx, cluster, configURL, namespace)
+	fluxNamespace, err := kubeClient.FetchNamespaceWithLabel(ctx, LabelPartOf, "flux")
+	if err != nil {
+		return fmt.Errorf("failed getting flux namespace %w", err)
+	}
+
+	clusterAutomation, err := automationGen.GenerateClusterAutomation(ctx, cluster, configURL, namespace, fluxNamespace)
 	if err != nil {
 		return err
 	}
@@ -149,7 +162,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	err = gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, installParams.AutoMerge)
+	err = gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, fluxNamespace, installParams.AutoMerge)
 	if err != nil {
 		return err
 	}
