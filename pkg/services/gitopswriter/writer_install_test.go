@@ -95,7 +95,7 @@ var _ = Describe("Associate Cluster", func() {
 
 	Describe("Passes in correct files for auto-merge", func() {
 		It("associates a cluster", func() {
-			err := gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace,namespace, true)
+			err := gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, namespace, true)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(gitClient.CloneCallCount()).To(Equal(1))
