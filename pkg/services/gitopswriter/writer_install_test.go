@@ -48,7 +48,7 @@ var _ = Describe("Associate Cluster", func() {
 
 		gitProviders.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
 
-		ca, err := gitOpsDirWriter.(*gitOpsDirectoryWriterSvc).Automation.GenerateClusterAutomation(ctx, cluster, configURL, namespace)
+		ca, err := gitOpsDirWriter.(*gitOpsDirectoryWriterSvc).Automation.GenerateClusterAutomation(ctx, cluster, configURL, namespace, namespace)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		expectedFiles = map[string][]byte{
@@ -77,7 +77,7 @@ var _ = Describe("Associate Cluster", func() {
 
 	Describe("Passes in correct files for pull request", func() {
 		It("associates a cluster", func() {
-			err := gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, false)
+			err := gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, namespace, false)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(gitClient.CloneCallCount()).To(Equal(0)) // PR case
@@ -95,7 +95,7 @@ var _ = Describe("Associate Cluster", func() {
 
 	Describe("Passes in correct files for auto-merge", func() {
 		It("associates a cluster", func() {
-			err := gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, true)
+			err := gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace,namespace, true)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(gitClient.CloneCallCount()).To(Equal(1))
