@@ -52,13 +52,14 @@ var _ = Describe("Associate Cluster", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 
 		expectedFiles = map[string][]byte{
-			systemQualifiedPath(automation.RuntimePath):             ca.GitOpsRuntime.Content,
 			systemQualifiedPath(automation.AppCRDPath):              ca.AppCRD.Content,
-			systemQualifiedPath(automation.WegoAppPath):             ca.WegoAppManifest.Content,
+			systemQualifiedPath(automation.RuntimePath):             ca.GitOpsRuntime.Content,
 			systemQualifiedPath(automation.SourcePath):              ca.SourceManifest.Content,
+			systemQualifiedPath(automation.SystemKustomizationPath): ca.SystemKustomizationManifest.Content,
 			systemQualifiedPath(automation.SystemKustResourcePath):  ca.SystemKustResourceManifest.Content,
 			systemQualifiedPath(automation.UserKustResourcePath):    ca.UserKustResourceManifest.Content,
-			systemQualifiedPath(automation.SystemKustomizationPath): ca.SystemKustomizationManifest.Content,
+			systemQualifiedPath(automation.WegoAppPath):             ca.WegoAppManifest.Content,
+			systemQualifiedPath(automation.WegoConfigPath):          ca.WegoConfigManifest.Content,
 			userQualifiedPath(".keep"):                              []byte(strconv.AppendQuote(nil, "# keep")),
 		}
 
