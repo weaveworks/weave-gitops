@@ -243,7 +243,7 @@ var _ = Describe("AddApplication", func() {
 			})
 		})
 		Context("via auto merge", func() {
-			FIt("add/remove with no config repo specified", func() {
+			It("add/remove with no config repo specified", func() {
 
 				defer func() { Expect(sourceRepo.Delete(ctx)).To(Succeed()) }()
 
