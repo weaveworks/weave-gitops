@@ -1183,7 +1183,7 @@ var _ = Describe("Applications handler", func() {
 			Factory:    factory,
 		}
 
-		handler, err := NewApplicationsHandler(context.Background(), &cfg)
+		handler, err := NewHandlers(context.Background(), &Config{AppConfig: &cfg})
 		Expect(err).NotTo(HaveOccurred())
 
 		ts := httptest.NewServer(handler)

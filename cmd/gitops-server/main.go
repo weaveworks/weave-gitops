@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"os"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/server"
@@ -35,17 +37,29 @@ func NewAPIServerCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			flux.New(osys.New(), &runner.CLIRunner{}).SetupBin()
 
-			cfg, err := server.DefaultConfig()
+			appConfig, err := server.DefaultApplicationsConfig()
 			if err != nil {
 				return err
 			}
 
-			s, err := server.NewApplicationsHandler(context.Background(), cfg)
+			rest, clusterName, err := kube.RestConfig()
+			if err != nil {
+				return fmt.Errorf("could not create client config: %w", err)
+			}
+
+			_, rawClient, err := kube.NewKubeHTTPClientWithConfig(rest, clusterName)
+			if err != nil {
+				return fmt.Errorf("could not create kube http client: %w", err)
+			}
+
+			profilesConfig := server.NewProfilesConfig(rawClient, "default", "weaveworks-charts")
+
+			s, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig})
 			if err != nil {
 				return err
 			}
 
-			cfg.Logger.Info("server staring", "address", addr)
+			appConfig.Logger.Info("server starting", "address", addr)
 			return http.ListenAndServe(addr, s)
 		},
 	}

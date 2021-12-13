@@ -17,14 +17,17 @@ import (
 	"github.com/pkg/browser"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"go.uber.org/zap"
 )
 
 var (
-	port           string
-	path           string
-	loggingEnabled bool
+	port              string
+	helmRepoNamespace string
+	helmRepoName      string
+	path              string
+	loggingEnabled    bool
 )
 
 var Cmd = &cobra.Command{
@@ -35,6 +38,10 @@ var Cmd = &cobra.Command{
 
 func init() {
 	Cmd.Flags().BoolVarP(&loggingEnabled, "log", "l", false, "enable logging for the ui")
+	Cmd.Flags().StringVar(&port, "port", "9001", "UI port")
+	Cmd.Flags().StringVar(&path, "path", "", "Path url")
+	Cmd.Flags().StringVar(&helmRepoNamespace, "helm-repo-namespace", "default", "the namespace of the Helm Repository resource to scan for profiles")
+	Cmd.Flags().StringVar(&helmRepoName, "helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
@@ -54,21 +61,33 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	assetHandler := http.FileServer(http.FS(assetFS))
 	redirector := createRedirector(assetFS, log)
 
-	cfg, err := server.DefaultConfig()
+	appConfig, err := server.DefaultApplicationsConfig()
 	if err != nil {
 		return fmt.Errorf("could not create http client: %w", err)
 	}
 
 	if !loggingEnabled {
-		cfg.Logger = zapr.NewLogger(zap.NewNop())
+		appConfig.Logger = zapr.NewLogger(zap.NewNop())
 	}
 
-	appsHandler, err := server.NewApplicationsHandler(context.Background(), cfg)
+	rest, clusterName, err := kube.RestConfig()
 	if err != nil {
-		return fmt.Errorf("could not create applications handler: %w", err)
+		return fmt.Errorf("could not create client config: %w", err)
 	}
 
-	mux.Handle("/v1/", appsHandler)
+	_, rawClient, err := kube.NewKubeHTTPClientWithConfig(rest, clusterName)
+	if err != nil {
+		return fmt.Errorf("could not create kube http client: %w", err)
+	}
+
+	profilesConfig := server.NewProfilesConfig(rawClient, helmRepoNamespace, helmRepoName)
+
+	appAndProfilesHandlers, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig})
+	if err != nil {
+		return fmt.Errorf("could not create handler: %w", err)
+	}
+
+	mux.Handle("/v1/", appAndProfilesHandlers)
 
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// Assume anything with a file extension in the name is a static asset.
@@ -179,9 +198,4 @@ func createRedirector(fsys fs.FS, log logrus.FieldLogger) http.HandlerFunc {
 			return
 		}
 	}
-}
-
-func init() {
-	Cmd.Flags().StringVar(&port, "port", "9001", "UI port")
-	Cmd.Flags().StringVar(&path, "path", "", "Path url")
 }

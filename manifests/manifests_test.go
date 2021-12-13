@@ -1,23 +1,59 @@
 package manifests
 
 import (
-	"strings"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 )
 
-var _ = Describe("Testing WegoAppDeployment", func() {
-	It("should contain the right version", func() {
-		manifests, err := GenerateWegoAppManifests(WegoAppParams{Version: version.Version, Namespace: "my-namespace"})
+var _ = Describe("Testing GenerateManifests", func() {
+	It("should contain all the manifests for Wego", func() {
+		params := Params{
+			AppVersion: "latest",
+			Namespace:  "my-namespace",
+		}
+
+		manifestsBytes, err := GenerateManifests(params)
 		Expect(err).NotTo(HaveOccurred())
 
-		for _, m := range manifests {
-			if strings.Contains(string(m), "kind: Deployment") {
-				Expect(string(m)).To(ContainSubstring("namespace: my-namespace"))
-				Expect(string(m)).To(ContainSubstring(version.Version))
-			}
+		var manifests string
+		for _, m := range manifestsBytes {
+			manifests = manifests + string(m)
 		}
+
+		By("containing the App API manifests", func() {
+			By("containing a Deployment manifest")
+			Expect(manifests).To(ContainSubstring(`
+kind: Deployment
+metadata:
+  name: wego-app
+  namespace: my-namespace`))
+			Expect(manifests).To(ContainSubstring("latest"))
+
+			By("containing a Service manifest")
+			Expect(manifests).To(ContainSubstring(`
+kind: Service
+metadata:
+  name: wego-app
+  namespace: my-namespace`))
+
+			By("containing a Service Account manifest")
+			Expect(manifests).To(ContainSubstring(`
+kind: ServiceAccount
+metadata:
+  name: wego-app-service-account
+  namespace: my-namespace`))
+
+			By("containing a Role manifest")
+			Expect(manifests).To(ContainSubstring(`
+kind: Role
+metadata:
+  name: resources-reader`))
+
+			By("containing a Role Binding manifest")
+			Expect(manifests).To(ContainSubstring(`
+kind: RoleBinding
+metadata:
+  name: read-resources`))
+		})
 	})
 })
