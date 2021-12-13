@@ -89,7 +89,9 @@ jobs:
         go-version: 1.16.x
     - name: Checkout code
       uses: actions/checkout@v2
-#      with:
+      with:
+        ref: 1002-cluster-association
+      #      with:
 #        ref: ${{ github.event.pull_request.head.sha }}
     - name: Setup upterm session
       uses: lhotari/action-upterm@v1
