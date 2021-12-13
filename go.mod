@@ -18,7 +18,6 @@ require (
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-logr/logr v1.1.0
 	github.com/go-logr/zapr v1.1.0
-	github.com/go-openapi/spec v0.19.6 // indirect
 	github.com/go-resty/resty/v2 v2.6.0
 	github.com/gobuffalo/flect v0.2.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.0.0
@@ -45,7 +44,7 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sclevine/agouti v0.0.0-20190613051229-00c1187c74ad
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/cobra v1.1.3
+	github.com/spf13/cobra v1.2.1
 	github.com/spf13/viper v1.9.0
 	github.com/stretchr/testify v1.7.0
 	github.com/weaveworks/go-checkpoint v0.0.0-20170503165305-ebbb8b0518ab
@@ -57,24 +56,24 @@ require (
 	google.golang.org/grpc v1.42.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/protobuf v1.27.1
+	helm.sh/helm/v3 v3.7.1
 	k8s.io/api v0.22.2
 	k8s.io/apiextensions-apiserver v0.22.2
 	k8s.io/apimachinery v0.22.2
-	k8s.io/cli-runtime v0.21.2
+	k8s.io/cli-runtime v0.22.1
 	k8s.io/client-go v0.22.2
 	sigs.k8s.io/cli-utils v0.26.0
 	sigs.k8s.io/controller-runtime v0.10.1
 	sigs.k8s.io/controller-tools v0.4.1
 	sigs.k8s.io/kustomize/api v0.10.0
 	sigs.k8s.io/yaml v1.3.0
-
 )
 
 // fix CVE-2021-41103
-replace github.com/containerd/containerd => github.com/containerd/containerd v1.4.11
+replace github.com/containerd/containerd => github.com/containerd/containerd v1.5.8
 
 // fix CVE-2021-30465
-replace github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.0-rc95
+replace github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.2
 
 // https://github.com/gorilla/websocket/security/advisories/GHSA-jf24-p9p9-4rjh
 replace github.com/gorilla/websocket v0.0.0 => github.com/gorilla/websocket v1.4.1
