@@ -20,6 +20,7 @@ type Props = {
   app: Application;
   authSuccess: boolean;
   onAuthClick?: () => void;
+  provider: string;
 };
 
 const timestamp = (isoStr: string) => {
@@ -30,7 +31,13 @@ const timestamp = (isoStr: string) => {
   return DateTime.fromISO(isoStr).toRelative();
 };
 
-function CommitsTable({ className, app, authSuccess, onAuthClick }: Props) {
+function CommitsTable({
+  className,
+  app,
+  authSuccess,
+  onAuthClick,
+  provider,
+}: Props) {
   const [commits, loading, error, req] = useListCommits();
 
   React.useEffect(() => {
@@ -38,7 +45,7 @@ function CommitsTable({ className, app, authSuccess, onAuthClick }: Props) {
       return;
     }
 
-    req(GitProvider.GitHub, {
+    req(GitProvider[provider], {
       name: app.name,
       namespace: app.namespace,
       pageSize: 10,
@@ -48,7 +55,7 @@ function CommitsTable({ className, app, authSuccess, onAuthClick }: Props) {
   if (error) {
     return error.code === GrpcErrorCodes.Unauthenticated ? (
       <AuthAlert
-        provider={GitProvider.GitHub}
+        provider={GitProvider[provider]}
         title="Error fetching commits"
         onClick={onAuthClick}
       />
