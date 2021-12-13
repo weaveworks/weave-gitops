@@ -43,8 +43,7 @@ function ApplicationDetail({ className, name }: Props) {
   const [res, loading, error, req] = useRequestState<GetApplicationResponse>();
   const [syncRes, syncLoading, syncError, syncRequest] =
     useRequestState<SyncApplicationResponse>();
-  const { getCallbackState, clearCallbackState, getProviderToken } =
-    React.useContext(AppContext);
+  const { getCallbackState, clearCallbackState } = React.useContext(AppContext);
 
   const callbackState = getCallbackState();
 
@@ -110,14 +109,14 @@ function ApplicationDetail({ className, name }: Props) {
 
   return (
     <Page
-      loading={loading}
+      loading={loading ? true : false}
       breadcrumbs={[{ page: PageRoute.Applications }]}
       title={name}
       className={className}
       topRight={
         <Flex align>
           <Button
-            loading={syncLoading}
+            loading={syncLoading ? true : false}
             onClick={() => {
               syncRequest(
                 applicationsClient.SyncApplication({

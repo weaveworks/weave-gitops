@@ -79,8 +79,7 @@ function ApplicationRemove({ className, name }: Props) {
   const [authOpen, setAuthOpen] = React.useState(false);
   const [authSuccess, setAuthSuccess] = React.useState(false);
   const [appError, setAppError] = React.useState(null);
-  const { getCallbackState, clearCallbackState, getProviderToken } =
-    React.useContext(AppContext);
+  const { getCallbackState, clearCallbackState } = React.useContext(AppContext);
 
   const callbackState = getCallbackState();
 
