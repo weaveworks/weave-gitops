@@ -8,9 +8,8 @@ import (
 var _ = Describe("Testing GenerateManifests", func() {
 	It("should contain all the manifests for Wego", func() {
 		params := Params{
-			AppVersion:      "latest",
-			ProfilesVersion: "0.1.0",
-			Namespace:       "my-namespace",
+			AppVersion: "latest",
+			Namespace:  "my-namespace",
 		}
 
 		manifestsBytes, err := GenerateManifests(params)

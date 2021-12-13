@@ -22,9 +22,8 @@ var (
 )
 
 type Params struct {
-	AppVersion      string
-	ProfilesVersion string
-	Namespace       string
+	AppVersion string
+	Namespace  string
 }
 
 // GenerateManifests generates weave-gitops manifests from a template
