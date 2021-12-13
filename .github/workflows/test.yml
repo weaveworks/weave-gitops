@@ -18,8 +18,6 @@ jobs:
         go-version: 1.16.x
     - name: Checkout code
       uses: actions/checkout@v2
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
     - name: Cache node modules
       uses: actions/cache@v2
       env:
@@ -89,10 +87,6 @@ jobs:
         go-version: 1.16.x
     - name: Checkout code
       uses: actions/checkout@v2
-      with:
-        ref: 1002-cluster-association
-      #      with:
-#        ref: ${{ github.event.pull_request.head.sha }}
     - name: Setup upterm session
       uses: lhotari/action-upterm@v1
     - name: Set up ssh
