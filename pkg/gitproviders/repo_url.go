@@ -157,5 +157,6 @@ func normalizeRepoURLString(url string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("could not parse git repo url while normalizing %q: %w", url, err)
 	}
+
 	return fmt.Sprintf("ssh://git@%s%s", u.Host, u.Path), nil
 }
