@@ -44,6 +44,10 @@ var _ = AfterEach(func() {
 	Expect(os.RemoveAll(dir)).To(Succeed())
 })
 
+var _ = Describe("make test fail", func() {
+	Expect(true).NotTo(BeFalse())
+})
+
 var _ = Describe("Init", func() {
 	It("creates an empty repository", func() {
 		_, err := gitClient.Init(dir, "https://github.com/github/gitignore", "master")
