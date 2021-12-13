@@ -88,7 +88,7 @@ func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster m
 		version = "latest"
 	}
 
-	m, err := manifests.GenerateWegoAppManifests(manifests.WegoAppParams{Version: version, Namespace: namespace})
+	m, err := manifests.GenerateManifests(manifests.Params{AppVersion: version, Namespace: namespace})
 	if err != nil {
 		return ClusterAutomation{}, fmt.Errorf("error generating wego-app manifest: %w", err)
 	}
