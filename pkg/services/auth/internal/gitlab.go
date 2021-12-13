@@ -38,6 +38,10 @@ func getEnvDefault(key, defaultValue string) string {
 	return val
 }
 
+func getGitlabHost() string {
+	return getEnvDefault("GITLAB_HOSTNAME", gitlabHost)
+}
+
 func getGitlabClientId() string {
 	return getEnvDefault("GITLAB_CLIENT_ID", gitlabClientId)
 }
@@ -50,7 +54,7 @@ func getGitlabClientSecret() string {
 func GitlabAuthorizeUrl(redirectUri string, scopes []string, verifier CodeVerifier) (url.URL, error) {
 	u := url.URL{}
 	u.Scheme = gitlabScheme
-	u.Host = gitlabHost
+	u.Host = getGitlabHost()
 	u.Path = "/oauth/authorize"
 
 	params := u.Query()
@@ -75,7 +79,7 @@ func GitlabAuthorizeUrl(redirectUri string, scopes []string, verifier CodeVerifi
 func GitlabTokenUrl(redirectUri, authorizationCode string, verifier CodeVerifier) url.URL {
 	u := url.URL{}
 	u.Scheme = gitlabScheme
-	u.Host = gitlabHost
+	u.Host = getGitlabHost()
 	u.Path = "/oauth/token"
 
 	params := u.Query()
