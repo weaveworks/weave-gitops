@@ -45,7 +45,7 @@ var _ = AfterEach(func() {
 })
 
 var _ = Describe("make test fail", func() {
-	Expect(true).NotTo(BeFalse())
+	Expect(true).To(BeFalse())
 })
 
 var _ = Describe("Init", func() {
