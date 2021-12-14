@@ -38,31 +38,39 @@ func buildGitProvider(config Config) (gitprovider.Client, string, error) {
 
 	switch config.Provider {
 	case GitProviderGitHub:
+		hostname := github.DefaultDomain
 		opts := []gitprovider.ClientOption{
 			gitprovider.WithOAuth2Token(config.Token),
 		}
+
 		if config.Hostname != "" {
-			opts = append(opts, gitprovider.WithDomain(config.Hostname))
+			// quirk of ggp
+			hostname = "https://" + config.Hostname
+			opts = append(opts, gitprovider.WithDomain(hostname))
 		}
 
 		if client, err := github.NewClient(opts...); err != nil {
 			return nil, "", err
 		} else {
-			return client, github.DefaultDomain, nil
+			return client, hostname, nil
 		}
 	case GitProviderGitLab:
+		hostname := gitlab.DefaultDomain
 		opts := []gitprovider.ClientOption{
 			gitprovider.WithOAuth2Token(config.Token),
 			gitprovider.WithConditionalRequests(true),
 		}
+
 		if config.Hostname != "" {
-			opts = append(opts, gitprovider.WithDomain(config.Hostname))
+			// quirk of ggp
+			hostname = "https://" + config.Hostname
+			opts = append(opts, gitprovider.WithDomain(hostname))
 		}
 
 		if client, err := gitlab.NewClient(config.Token, tokenTypeOauth, opts...); err != nil {
 			return nil, "", err
 		} else {
-			return client, gitlab.DefaultDomain, nil
+			return client, hostname, nil
 		}
 	default:
 		return nil, "", fmt.Errorf("unsupported Git provider '%s'", config.Provider)

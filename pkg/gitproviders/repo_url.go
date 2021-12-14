@@ -34,6 +34,10 @@ func NewRepoURL(uri string) (RepoURL, error) {
 		if err != nil {
 			return RepoURL{}, fmt.Errorf("could not get provider name from URL %s: %w", uri, err)
 		}
+
+		if providerName == "" {
+			return RepoURL{}, fmt.Errorf("no git providers found for %q", uri)
+		}
 	}
 
 	normalized, err := normalizeRepoURLString(uri)
@@ -126,7 +130,7 @@ func detectGitProviderFromUrl(raw string) (GitProviderName, error) {
 		return GitProviderGitLab, nil
 	}
 
-	return "", fmt.Errorf("no git providers found for %q", raw)
+	return "", nil
 }
 
 // Hacks around "scp" formatted urls ($user@$host:$path)
