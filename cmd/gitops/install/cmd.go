@@ -25,18 +25,13 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/applier"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/automation"
+	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
 )
 
-type params struct {
-	DryRun     bool
-	AutoMerge  bool
-	ConfigRepo string
-}
-
 var (
-	installParams params
+	gitopsParams gitops.InstallParams
 )
 
 var Cmd = &cobra.Command{
@@ -58,9 +53,10 @@ repo. If a previous version is installed, then an in-place upgrade will be perfo
 const LabelPartOf = "app.kubernetes.io/part-of"
 
 func init() {
-	Cmd.Flags().BoolVar(&installParams.DryRun, "dry-run", false, "Outputs all the manifests that would be installed")
-	Cmd.Flags().BoolVar(&installParams.AutoMerge, "auto-merge", false, "If set, 'gitops install' will automatically update the default branch for the configuration repository")
-	Cmd.Flags().StringVar(&installParams.ConfigRepo, "config-repo", "", "URL of external repository that will hold automation manifests")
+	Cmd.Flags().BoolVar(&gitopsParams.DryRun, "dry-run", false, "Outputs all the manifests that would be installed")
+	Cmd.Flags().StringVar(&gitopsParams.ConfigRepo, "config-repo", "", "URL of external repository that will hold automation manifests")
+	Cmd.Flags().StringVar(&gitopsParams.FluxHTTPSUsername, "flux-https-username", "git", "Optional: only needed if using an https:// repo URL for flux")
+	Cmd.Flags().StringVar(&gitopsParams.FluxHTTPSPassword, "flux-https-password", "", "Optional: only needed if using an https:// repo URL for flux")
 	cobra.CheckErr(Cmd.MarkFlagRequired("config-repo"))
 }
 
@@ -75,7 +71,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 
 	osysClient := osys.New()
 	log := internal.NewCLILogger(os.Stdout)
-	flux := flux.New(osysClient, &runner.CLIRunner{})
+	runner := flux.New(osysClient, &runner.CLIRunner{})
 
 	k, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
@@ -99,7 +95,6 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	clusterApplier := applier.NewClusterApplier(k)
 
 	var gitClient git.Git
-
 	var gitProvider gitproviders.GitProvider
 
 	factory := services.NewFactory(flux, log)
@@ -123,10 +118,12 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 
 		gitClient, gitProvider, err = factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
 			// We need to set URL and ConfigRepo to the same value so a deploy key is created for public config repos
-			URL:        installParams.ConfigRepo,
-			ConfigRepo: installParams.ConfigRepo,
-			Namespace:  namespace,
-			DryRun:     installParams.DryRun,
+			URL:               installParams.ConfigRepo,
+			ConfigRepo:        installParams.ConfigRepo,
+			Namespace:         namespace,
+			DryRun:            installParams.DryRun,
+			FluxHTTPSUsername: gitopsParams.FluxHTTPSUsername,
+			FluxHTTPSPassword: gitopsParams.FluxHTTPSPassword,
 		})
 
 		if err != nil {
@@ -151,7 +148,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 
 	manifests := append(clusterAutomation.Manifests(), wegoConfigManifest)
 
-	if installParams.DryRun {
+	if gitopsParams.DryRun {
 		for _, manifest := range manifests {
 			log.Println(string(manifest.Content))
 		}
@@ -168,6 +165,5 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed associating cluster: %w", err)
 	}
-
 	return nil
 }

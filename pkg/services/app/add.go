@@ -170,7 +170,7 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 	}
 
 	if params.Name == "" {
-		repoName := utils.UrlToRepoName(params.Url)
+		repoName := utils.URLToRepoName(params.Url)
 		if automation.ApplicationNameTooLong(repoName) {
 			return params, fmt.Errorf("url base name %q is too long to use as application name (must be <= %d characters); please specify name with '--name'",
 				repoName, automation.MaxKubernetesResourceNameLength)

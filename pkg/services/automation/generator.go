@@ -132,7 +132,8 @@ func (a *AutomationGen) generateAppSource(ctx context.Context, app models.Applic
 
 	switch app.SourceType {
 	case models.SourceTypeGit:
-		source, err = a.Flux.CreateSourceGit(app.Name, app.GitSourceURL, app.Branch, appSecretRef.String(), app.Namespace)
+		// Passes nil in as the credentials as we don't have anything.
+		source, err = a.Flux.CreateSourceGit(app.Name, app.GitSourceURL, app.Branch, appSecretRef.String(), app.Namespace, nil)
 		if err == nil {
 			source, err = AddWegoIgnore(source)
 		}

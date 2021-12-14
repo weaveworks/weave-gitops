@@ -111,7 +111,7 @@ func CaptureStdout(c callback) string {
 	return string(stdout)
 }
 
-func UrlToRepoName(url string) string {
+func URLToRepoName(url string) string {
 	return strings.TrimSuffix(filepath.Base(url), ".git")
 }
 
@@ -167,7 +167,7 @@ func ConvertCommitURLToShort(url string) string {
 }
 
 func CreateRepoSecretName(targetName string, repoURL string) string {
-	return fmt.Sprintf("wego-%s-%s", targetName, UrlToRepoName(repoURL))
+	return fmt.Sprintf("wego-%s-%s", targetName, URLToRepoName(repoURL))
 }
 
 func StartK8sTestEnvironment() (client.Client, func(), error) {

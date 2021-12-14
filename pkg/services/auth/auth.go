@@ -9,6 +9,7 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/internal"
 
+	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -68,7 +69,7 @@ func (sn SecretName) NamespacedName() types.NamespacedName {
 }
 
 type AuthService interface {
-	CreateGitClient(ctx context.Context, repoUrl gitproviders.RepoURL, targetName string, namespace string, dryRun bool) (git.Git, error)
+	CreateGitClient(ctx context.Context, repoUrl gitproviders.RepoURL, targetName, namespace string, dryRun bool, creds *flux.HTTPSCreds) (git.Git, error)
 	GetGitProvider() gitproviders.GitProvider
 }
 
@@ -98,7 +99,7 @@ func (a *authSvc) GetGitProvider() gitproviders.GitProvider {
 
 // CreateGitClient creates a git.Git client instrumented with existing or generated deploy keys.
 // This ensures that git operations are done with stored deploy keys instead of a user's local ssh-agent or equivalent.
-func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.RepoURL, targetName string, namespace string, dryRun bool) (git.Git, error) {
+func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.RepoURL, targetName, namespace string, dryRun bool, creds *flux.HTTPSCreds) (git.Git, error) {
 	if dryRun {
 		d, _ := makePublicKey([]byte(""))
 		return git.New(d, wrapper.NewGoGit()), nil
@@ -109,7 +110,7 @@ func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.Repo
 		Namespace: namespace,
 	}
 
-	pubKey, keyErr := a.setupDeployKey(ctx, secretName, targetName, repoUrl)
+	pubKey, keyErr := a.setupDeployKey(ctx, secretName, targetName, repoUrl, creds)
 	if keyErr != nil {
 		return nil, fmt.Errorf("error setting up deploy keys: %w", keyErr)
 	}
@@ -117,6 +118,12 @@ func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.Repo
 	if pubKey == nil {
 		// Don't return git.New(pubkey, wrapper.NewGoGit()), nil here. It will fail
 		// "nil" of type *ssh.PublicKeys does not behave correctly
+		if creds != nil {
+			return git.New(&githttp.BasicAuth{
+				Username: creds.Username,
+				Password: creds.Password,
+			}, wrapper.NewGoGit()), nil
+		}
 		return git.New(nil, wrapper.NewGoGit()), nil
 	}
 
@@ -126,7 +133,7 @@ func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.Repo
 
 // setupDeployKey creates a git.Git client instrumented with existing or generated deploy keys.
 // This ensures that git operations are done with stored deploy keys instead of a user's local ssh-agent or equivalent.
-func (a *authSvc) setupDeployKey(ctx context.Context, name SecretName, targetName string, repo gitproviders.RepoURL) (*ssh.PublicKeys, error) {
+func (a *authSvc) setupDeployKey(ctx context.Context, name SecretName, targetName string, repo gitproviders.RepoURL, creds *flux.HTTPSCreds) (*ssh.PublicKeys, error) {
 	deployKeyExists, err := a.gitProvider.DeployKeyExists(ctx, repo)
 	if err != nil {
 		return nil, fmt.Errorf("failed check for existing deploy key: %w", err)
@@ -141,8 +148,9 @@ func (a *authSvc) setupDeployKey(ctx context.Context, name SecretName, targetNam
 			// or if a cluster was destroyed during development work.
 			// Create and upload a new deploy key.
 			a.logger.Warningf("A deploy key named %s was found on the git provider, but not in the cluster.", name.Name)
-			return a.provisionDeployKey(ctx, targetName, name, repo)
-		} else if err != nil {
+			return a.provisionDeployKey(ctx, targetName, name, repo, creds)
+		}
+		if err != nil {
 			return nil, fmt.Errorf("error retrieving deploy key: %w", err)
 		}
 
@@ -157,10 +165,10 @@ func (a *authSvc) setupDeployKey(ctx context.Context, name SecretName, targetNam
 		return pubKey, nil
 	}
 
-	return a.provisionDeployKey(ctx, targetName, name, repo)
+	return a.provisionDeployKey(ctx, targetName, name, repo, creds)
 }
 
-func (a *authSvc) provisionDeployKey(ctx context.Context, targetName string, name SecretName, repo gitproviders.RepoURL) (*ssh.PublicKeys, error) {
+func (a *authSvc) provisionDeployKey(ctx context.Context, targetName string, name SecretName, repo gitproviders.RepoURL, creds *flux.HTTPSCreds) (*ssh.PublicKeys, error) {
 	visibility, err := a.gitProvider.GetRepoVisibility(ctx, repo)
 	if err != nil {
 		return nil, fmt.Errorf("error getting repo visibility: %w", err)
@@ -170,45 +178,48 @@ func (a *authSvc) provisionDeployKey(ctx context.Context, targetName string, nam
 		return nil, nil
 	}
 
-	deployKey, secret, err := a.generateDeployKey(targetName, name, repo)
+	deployKey, secret, err := a.generateRepoAuthSecret(targetName, name, repo, creds)
 	if err != nil {
-		return nil, fmt.Errorf("error generating deploy key: %w", err)
+		return nil, fmt.Errorf("error generating repo auth secret: %w", err)
+	}
+	// KEVIN!!!! this needs to be tested.
+	if deployKey != nil {
+		publicKeyBytes := extractPublicKey(secret)
+		if err := a.gitProvider.UploadDeployKey(ctx, repo, publicKeyBytes); err != nil {
+			return nil, fmt.Errorf("error uploading deploy key: %w", err)
+		}
 	}
 
-	publicKeyBytes := extractPublicKey(secret)
-
-	if err := a.gitProvider.UploadDeployKey(ctx, repo, publicKeyBytes); err != nil {
-		return nil, fmt.Errorf("error uploading deploy key: %w", err)
+	if err := a.storeRepoAuthSecret(ctx, secret); err != nil {
+		return nil, fmt.Errorf("error storing repo authentication secret: %w", err)
 	}
 
-	if err := a.storeDeployKey(ctx, secret); err != nil {
-		return nil, fmt.Errorf("error storing deploy key: %w", err)
+	if creds == nil {
+		a.logger.Println("Deploy key generated and uploaded to git provider")
 	}
-
-	a.logger.Println("Deploy key generated and uploaded to git provider")
-
 	return deployKey, nil
 }
 
 // Generates an ssh keypair for upload to the Git Provider and for use in a git.Git client.
-func (a *authSvc) generateDeployKey(targetName string, secretName SecretName, repo gitproviders.RepoURL) (*ssh.PublicKeys, *corev1.Secret, error) {
-	secret, err := a.createKeyPairSecret(secretName, repo)
+func (a *authSvc) generateRepoAuthSecret(targetName string, secretName SecretName, repo gitproviders.RepoURL, creds *flux.HTTPSCreds) (*ssh.PublicKeys, *corev1.Secret, error) {
+	secret, err := a.createRepoAuthSecret(secretName, repo, creds)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not create key-pair secret: %w", err)
 	}
+	if creds != nil {
+		return nil, secret, nil
+	}
 
 	privKeyBytes := extractPrivateKey(secret)
-
 	deployKey, err := makePublicKey(privKeyBytes)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error creating new public keys: %w", err)
 	}
-
 	return deployKey, secret, nil
 }
 
 // Wrapper to abstract how the key is stored in case we want to change this later.
-func (a *authSvc) storeDeployKey(ctx context.Context, secret *corev1.Secret) error {
+func (a *authSvc) storeRepoAuthSecret(ctx context.Context, secret *corev1.Secret) error {
 	if err := a.k8sClient.Create(ctx, secret); err != nil {
 		return fmt.Errorf("could not store secret: %w", err)
 	}
@@ -227,14 +238,13 @@ func (a *authSvc) retrieveDeployKey(ctx context.Context, name SecretName) (*core
 }
 
 // Uses flux to create a ssh key pair secret.
-func (a *authSvc) createKeyPairSecret(name SecretName, repo gitproviders.RepoURL) (*corev1.Secret, error) {
-	secretData, err := a.fluxClient.CreateSecretGit(name.Name.String(), repo, name.Namespace)
+func (a *authSvc) createRepoAuthSecret(name SecretName, repo gitproviders.RepoURL, creds *flux.HTTPSCreds) (*corev1.Secret, error) {
+	secretData, err := a.fluxClient.CreateSecretGit(name.Name.String(), repo, name.Namespace, creds)
 	if err != nil {
-		return nil, fmt.Errorf("could not create git secret: %w", err)
+		return nil, fmt.Errorf("could not create git authentication secret: %w", err)
 	}
 
 	var secret corev1.Secret
-
 	err = yaml.Unmarshal(secretData, &secret)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal created secret: %w", err)
@@ -249,18 +259,13 @@ func makePublicKey(pemBytes []byte) (*ssh.PublicKeys, error) {
 
 // Helper to standardize how we extract data from a ssh key pair secret.
 func extractSecretPart(secret *corev1.Secret, key string) []byte {
-	var data []byte
-
-	var ok bool
-
-	data, ok = secret.Data[string(key)]
+	data, ok := secret.Data[string(key)]
 	if !ok {
 		// StringData is a write-only field, flux generates secrets on disk with StringData
 		// Once they get applied on the cluster, Kubernetes populates Data and removes StringData.
 		// Handle this case here to be able to extract data no matter the "state" of the object.
 		data = []byte(secret.StringData[string(key)])
 	}
-
 	return data
 }
 

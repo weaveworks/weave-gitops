@@ -425,7 +425,7 @@ var _ = Describe("Generate cluster manifests", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 
 		sourceName := CreateClusterSourceName(url)
-		sourceManifest, err := realFlux.CreateSourceGit(sourceName, url, configBranch, secretStr, namespace)
+		sourceManifest, err := realFlux.CreateSourceGit(sourceName, url, configBranch, secretStr, namespace, nil)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(clusterAutomation.SourceManifest.Content).To(Equal(sourceManifest))
 		Expect(clusterAutomation.SourceManifest.Path).To(Equal(systemQualifiedPath(sourcePath)))

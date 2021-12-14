@@ -91,7 +91,7 @@ func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster m
 
 	sourceName := CreateClusterSourceName(configURL)
 
-	sourceManifest, err := a.Flux.CreateSourceGit(sourceName, configURL, configBranch, secretStr, namespace)
+	sourceManifest, err := a.Flux.CreateSourceGit(sourceName, configURL, configBranch, secretStr, namespace, nil)
 	if err != nil {
 		return ClusterAutomation{}, err
 	}
