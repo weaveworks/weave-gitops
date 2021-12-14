@@ -2,11 +2,11 @@ package gitproviders
 
 import (
 	"net/url"
-	"os"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	"github.com/spf13/viper"
 )
 
 var _ = DescribeTable("detectGitProviderFromUrl", func(input string, expected GitProviderName) {
@@ -69,9 +69,7 @@ type expectedRepoURL struct {
 
 var _ = DescribeTable("NewRepoURL", func(input, gitProviderEnv string, expected expectedRepoURL) {
 	if gitProviderEnv != "" {
-		prevGitProvider := os.Getenv("GIT_PROVIDER")
-		os.Setenv("GIT_PROVIDER", gitProviderEnv)
-		defer os.Setenv("GIT_PROVIDER", prevGitProvider)
+		viper.Set("git-host-types", gitProviderEnv)
 	}
 	result, err := NewRepoURL(input)
 	Expect(err).NotTo(HaveOccurred())
@@ -126,11 +124,15 @@ var _ = DescribeTable("NewRepoURL", func(input, gitProviderEnv string, expected 
 		provider: GitProviderGitHub,
 		protocol: RepositoryURLProtocolSSH,
 	}),
-	Entry("custom domain", "git@gitlab.acme.org/sympatheticmoose/podinfo-deploy/", "gitlab", expectedRepoURL{
-		s:        "ssh://git@gitlab.acme.org/sympatheticmoose/podinfo-deploy.git",
-		owner:    "sympatheticmoose",
-		name:     "podinfo-deploy",
-		provider: "gitlab",
-		protocol: RepositoryURLProtocolSSH,
-	}),
+	Entry(
+		"custom domain",
+		"git@gitlab.acme.org/sympatheticmoose/podinfo-deploy/",
+		"gitlab.acme.org=gitlab",
+		expectedRepoURL{
+			s:        "ssh://git@gitlab.acme.org/sympatheticmoose/podinfo-deploy.git",
+			owner:    "sympatheticmoose",
+			name:     "podinfo-deploy",
+			provider: "gitlab",
+			protocol: RepositoryURLProtocolSSH,
+		}),
 )
