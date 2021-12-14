@@ -10,7 +10,7 @@ import (
 )
 
 var _ = DescribeTable("detectGitProviderFromUrl", func(input string, expected GitProviderName) {
-	result, err := detectGitProviderFromUrl(input)
+	result, err := detectGitProviderFromUrl(input, map[string]string{})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(result).To(Equal(expected))
 },

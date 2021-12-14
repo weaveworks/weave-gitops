@@ -3,11 +3,11 @@ package gitproviders
 import (
 	"fmt"
 	"net/url"
-	"os"
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
+	"github.com/spf13/viper"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
@@ -26,14 +26,9 @@ type RepoURL struct {
 }
 
 func NewRepoURL(uri string) (RepoURL, error) {
-	providerName := GitProviderName(os.Getenv("GIT_PROVIDER"))
-	if providerName == "" {
-		var err error
-		providerName, err = detectGitProviderFromUrl(uri)
-
-		if err != nil {
-			return RepoURL{}, fmt.Errorf("could not get provider name from URL %s: %w", uri, err)
-		}
+	providerName, err := detectGitProviderFromUrl(uri, ViperGetStringMapString("git-host-types"))
+	if err != nil {
+		return RepoURL{}, fmt.Errorf("could not get provider name from URL %s: %w", uri, err)
 	}
 
 	normalized, err := normalizeRepoURLString(uri)
@@ -113,20 +108,22 @@ func getOwnerFromUrl(url url.URL, providerName GitProviderName) (string, error) 
 
 // detectGitProviderFromUrl accepts a url related to a git repo and
 // returns the name of the provider associated.
-func detectGitProviderFromUrl(raw string) (GitProviderName, error) {
+func detectGitProviderFromUrl(raw string, gitHostTypes map[string]string) (GitProviderName, error) {
 	u, err := parseGitURL(raw)
 	if err != nil {
 		return "", fmt.Errorf("could not parse git repo url %q: %w", raw, err)
 	}
 
-	switch u.Hostname() {
-	case github.DefaultDomain:
-		return GitProviderGitHub, nil
-	case gitlab.DefaultDomain:
-		return GitProviderGitLab, nil
+	// defaults for github and gitlab
+	gitHostTypes[github.DefaultDomain] = string(GitProviderGitHub)
+	gitHostTypes[gitlab.DefaultDomain] = string(GitProviderGitLab)
+
+	provider := gitHostTypes[u.Host]
+	if provider == "" {
+		return "", fmt.Errorf("no git providers found for %q", raw)
 	}
 
-	return "", fmt.Errorf("no git providers found for %q", raw)
+	return GitProviderName(provider), nil
 }
 
 // Hacks around "scp" formatted urls ($user@$host:$path)
@@ -159,4 +156,27 @@ func normalizeRepoURLString(url string) (string, error) {
 	}
 
 	return fmt.Sprintf("ssh://git@%s%s", u.Host, u.Path), nil
+}
+
+// ViperGetStringMapString looks up a command line flag or env var in the format "foo=1,bar=2"
+// GetStringMapString tries to JSON decode the env var
+// If that fails (silently), try and decode the classic "foo=1,bar=2" form.
+// https://github.com/spf13/viper/issues/911
+func ViperGetStringMapString(key string) map[string]string {
+	sms := viper.GetStringMapString(key)
+	if len(sms) > 1 {
+		return sms
+	}
+
+	ss := viper.GetStringSlice(key)
+	out := make(map[string]string, len(ss))
+
+	for _, pair := range ss {
+		kv := strings.SplitN(pair, "=", 2)
+		if len(kv) == 2 {
+			out[kv[0]] = kv[1]
+		}
+	}
+
+	return out
 }
