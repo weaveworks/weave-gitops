@@ -329,7 +329,7 @@ var _ = Describe("New directory structure", func() {
 		Expect(manifestsByPath[filepath.Join(git.WegoRoot, git.WegoAppDir, addParams.Name, "kustomization.yaml")]).ToNot(BeNil())
 		cname, err := kubeClient.GetClusterName(context.Background())
 		Expect(err).To(BeNil())
-		clusterKustomizeFile := manifestsByPath[filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterUserWorloadDir, "kustomization.yaml")]
+		clusterKustomizeFile := manifestsByPath[filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterUserWorkloadDir, "kustomization.yaml")]
 		Expect(clusterKustomizeFile).ToNot(BeNil())
 
 		manifestMap := map[string]interface{}{}
@@ -348,7 +348,7 @@ var _ = Describe("New directory structure", func() {
 		Expect(manifestsByPath[filepath.Join(git.WegoRoot, git.WegoAppDir, addParams.Name, "kustomization.yaml")]).ToNot(BeNil())
 		cname, err := kubeClient.GetClusterName(context.Background())
 		Expect(err).To(BeNil())
-		clusterKustomizeFile := manifestsByPath[filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterUserWorloadDir, "kustomization.yaml")]
+		clusterKustomizeFile := manifestsByPath[filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterUserWorkloadDir, "kustomization.yaml")]
 		Expect(clusterKustomizeFile).ToNot(BeNil())
 		manifestMap := map[string]interface{}{}
 
@@ -373,7 +373,7 @@ var _ = Describe("New directory structure", func() {
 		Expect(manifestsByPath[filepath.Join(git.WegoRoot, git.WegoAppDir, addParams.Name, "kustomization.yaml")]).ToNot(BeNil())
 		cname, err := kubeClient.GetClusterName(context.Background())
 		Expect(err).To(BeNil())
-		clusterKustomizeFile := manifestsByPath[filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterUserWorloadDir, "kustomization.yaml")]
+		clusterKustomizeFile := manifestsByPath[filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterUserWorkloadDir, "kustomization.yaml")]
 		Expect(clusterKustomizeFile).ToNot(BeNil())
 		manifestMap := map[string]interface{}{}
 

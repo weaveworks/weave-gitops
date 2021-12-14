@@ -198,7 +198,7 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 	manifests["flux-system-kustomization-resource.yaml"] = system
 
 	user, err := g.genKustomize(automation.ConstrainResourceName(fmt.Sprintf("%s-user", cname)), sourceName,
-		prefixForFlux(filepath.Join(".", clusterPath, git.WegoClusterUserWorloadDir)), params)
+		prefixForFlux(filepath.Join(".", clusterPath, git.WegoClusterUserWorkloadDir)), params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user kustomization manifest: %w", err)
 	}
