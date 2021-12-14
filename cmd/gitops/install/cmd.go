@@ -139,12 +139,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	automationGen := automation.NewAutomationGenerator(gitProvider, flux, log)
 	gitOpsDirWriter := gitopswriter.NewGitOpsDirectoryWriter(automationGen, repoWriter, osysClient, log)
 
-	fluxNamespace, err := kubeClient.FetchNamespaceWithLabel(ctx, LabelPartOf, "flux")
-	if err != nil {
-		return fmt.Errorf("failed getting flux namespace %w", err)
-	}
-
-	clusterAutomation, err := automationGen.GenerateClusterAutomation(ctx, cluster, configURL, namespace, fluxNamespace)
+	clusterAutomation, err := automationGen.GenerateClusterAutomation(ctx, cluster, configURL, namespace)
 	if err != nil {
 		return err
 	}
@@ -162,7 +157,22 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	err = gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, fluxNamespace, installParams.AutoMerge)
+	fluxNamespace, err := kubeClient.FetchNamespaceWithLabel(ctx, LabelPartOf, "flux")
+	if err != nil {
+		return fmt.Errorf("failed getting flux namespace %w", err)
+	}
+
+	wegoConfigManifest, err := clusterAutomation.GenerateWegoConfigManifest(clusterName, fluxNamespace, namespace)
+	if err != nil {
+		return fmt.Errorf("failed generating wego config manifest %w", err)
+	}
+
+	err = clusterApplier.ApplyManifests(ctx, cluster, namespace, []automation.AutomationManifest{wegoConfigManifest})
+	if err != nil {
+		return fmt.Errorf("failed applying wego config manifest %w", err)
+	}
+
+	err = gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, installParams.AutoMerge)
 	if err != nil {
 		return err
 	}

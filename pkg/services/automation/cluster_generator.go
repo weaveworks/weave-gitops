@@ -6,7 +6,8 @@ import (
 	"crypto/md5"
 	"fmt"
 	"os"
-	"path/filepath"
+
+	"github.com/weaveworks/weave-gitops/pkg/git"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -16,7 +17,6 @@ import (
 
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/manifests"
-	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 
 	"github.com/weaveworks/weave-gitops/pkg/models"
@@ -56,13 +56,7 @@ func createClusterSourceName(gitSourceURL gitproviders.RepoURL) string {
 	return lengthConstrainedName
 }
 
-func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster models.Cluster, configURL gitproviders.RepoURL, namespace string, fluxNamespace string) (ClusterAutomation, error) {
-	systemPath := filepath.Join(git.WegoRoot, git.WegoClusterDir, cluster.Name, git.WegoClusterOSWorkloadDir)
-	userPath := filepath.Join(git.WegoRoot, git.WegoClusterDir, cluster.Name, git.WegoClusterUserWorkloadDir)
-
-	systemQualifiedPath := func(relativePath string) string {
-		return filepath.Join(systemPath, relativePath)
-	}
+func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster models.Cluster, configURL gitproviders.RepoURL, namespace string) (ClusterAutomation, error) {
 
 	secretRef, err := a.GetSecretRef(ctx, configURL)
 	if err != nil {
@@ -103,13 +97,13 @@ func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster m
 	}
 
 	systemKustResourceManifest, err := a.Flux.CreateKustomization(ConstrainResourceName(fmt.Sprintf("%s-system", cluster.Name)), sourceName,
-		workAroundFluxDroppingDot(systemPath), namespace)
+		workAroundFluxDroppingDot(git.GetSystemPath(cluster.Name)), namespace)
 	if err != nil {
 		return ClusterAutomation{}, err
 	}
 
 	userKustResourceManifest, err := a.Flux.CreateKustomization(ConstrainResourceName(fmt.Sprintf("%s-user", cluster.Name)), sourceName,
-		workAroundFluxDroppingDot(userPath), namespace)
+		workAroundFluxDroppingDot(git.GetUserPath(cluster.Name)), namespace)
 	if err != nil {
 		return ClusterAutomation{}, err
 	}
@@ -121,17 +115,55 @@ func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster m
 		return ClusterAutomation{}, err
 	}
 
+	return ClusterAutomation{
+		AppCRD: AutomationManifest{
+			Path:    git.GetSystemQualifiedPath(cluster.Name, AppCRDPath),
+			Content: appCRDManifest,
+		},
+		GitOpsRuntime: AutomationManifest{
+			Path:    git.GetSystemQualifiedPath(cluster.Name, RuntimePath),
+			Content: runtimeManifests,
+		},
+		SourceManifest: AutomationManifest{
+			Path:    git.GetSystemQualifiedPath(cluster.Name, SourcePath),
+			Content: sourceManifest,
+		},
+		SystemKustomizationManifest: AutomationManifest{
+			Path:    git.GetSystemQualifiedPath(cluster.Name, SystemKustomizationPath),
+			Content: systemKustomizationManifest,
+		},
+		SystemKustResourceManifest: AutomationManifest{
+			Path:    git.GetSystemQualifiedPath(cluster.Name, SystemKustResourcePath),
+			Content: systemKustResourceManifest,
+		},
+		UserKustResourceManifest: AutomationManifest{
+			Path:    git.GetSystemQualifiedPath(cluster.Name, UserKustResourcePath),
+			Content: userKustResourceManifest,
+		},
+		WegoAppManifest: AutomationManifest{
+			Path:    git.GetSystemQualifiedPath(cluster.Name, WegoAppPath),
+			Content: wegoAppManifest,
+		},
+	}, nil
+}
+
+func (ca ClusterAutomation) BootstrapManifests() []AutomationManifest {
+	return append([]AutomationManifest{ca.AppCRD}, ca.WegoAppManifest, ca.SourceManifest, ca.SystemKustResourceManifest, ca.UserKustResourceManifest)
+}
+
+func (ca ClusterAutomation) GenerateWegoConfigManifest(clusterName string, fluxNamespace string, wegoNamespace string) (AutomationManifest, error) {
+
 	config := kube.WegoConfig{
 		FluxNamespace: fluxNamespace,
-		WegoNamespace: namespace,
+		WegoNamespace: wegoNamespace,
 	}
 
 	configBytes, err := yaml.Marshal(config)
 	if err != nil {
-		return ClusterAutomation{}, fmt.Errorf("failed marshalling wego config: %w", err)
+		return AutomationManifest{}, fmt.Errorf("failed marshalling wego config: %w", err)
 	}
 
-	name := types.NamespacedName{Name: WegoConfigMapName, Namespace: namespace}
+	name := types.NamespacedName{Name: WegoConfigMapName, Namespace: wegoNamespace}
 
 	cm := &corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
@@ -149,51 +181,19 @@ func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster m
 
 	wegoConfigManifest, err := yaml.Marshal(cm)
 	if err != nil {
-		return ClusterAutomation{}, fmt.Errorf("failed marshalling wego config: %w", err)
+		return AutomationManifest{}, fmt.Errorf("failed marshalling wego config: %w", err)
 	}
 
-	return ClusterAutomation{
-		AppCRD: AutomationManifest{
-			Path:    systemQualifiedPath(AppCRDPath),
-			Content: appCRDManifest,
-		},
-		GitOpsRuntime: AutomationManifest{
-			Path:    systemQualifiedPath(RuntimePath),
-			Content: runtimeManifests,
-		},
-		SourceManifest: AutomationManifest{
-			Path:    systemQualifiedPath(SourcePath),
-			Content: sourceManifest,
-		},
-		SystemKustomizationManifest: AutomationManifest{
-			Path:    systemQualifiedPath(SystemKustomizationPath),
-			Content: systemKustomizationManifest,
-		},
-		SystemKustResourceManifest: AutomationManifest{
-			Path:    systemQualifiedPath(SystemKustResourcePath),
-			Content: systemKustResourceManifest,
-		},
-		UserKustResourceManifest: AutomationManifest{
-			Path:    systemQualifiedPath(UserKustResourcePath),
-			Content: userKustResourceManifest,
-		},
-		WegoAppManifest: AutomationManifest{
-			Path:    systemQualifiedPath(WegoAppPath),
-			Content: wegoAppManifest,
-		},
-		WegoConfigManifest: AutomationManifest{
-			Path:    systemQualifiedPath(WegoConfigPath),
-			Content: wegoConfigManifest,
-		},
-	}, nil
-}
+	ca.WegoConfigManifest = AutomationManifest{
+		Path:    git.GetSystemQualifiedPath(clusterName, WegoConfigPath),
+		Content: wegoConfigManifest,
+	}
 
-func (ca ClusterAutomation) BootstrapManifests() []AutomationManifest {
-	return append([]AutomationManifest{ca.AppCRD}, ca.WegoAppManifest, ca.SourceManifest, ca.SystemKustResourceManifest, ca.UserKustResourceManifest, ca.WegoConfigManifest)
+	return ca.WegoConfigManifest, nil
 }
 
 func (ca ClusterAutomation) Manifests() []AutomationManifest {
-	return append(ca.BootstrapManifests(), ca.GitOpsRuntime, ca.SystemKustomizationManifest)
+	return append(ca.BootstrapManifests(), ca.GitOpsRuntime, ca.SystemKustomizationManifest, ca.WegoConfigManifest)
 }
 
 func GetClusterHash(c models.Cluster) string {
