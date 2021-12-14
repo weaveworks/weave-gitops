@@ -98,4 +98,11 @@ export const muiTheme = createTheme({
       disabled: theme.colors.neutral30,
     },
   },
+  overrides: {
+    MuiSlider: {
+      root: {
+        color: "#00B3EC",
+      },
+    },
+  },
 });
