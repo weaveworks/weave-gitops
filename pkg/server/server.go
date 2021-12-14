@@ -45,6 +45,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
+const DefaultPort = "9001"
+
 var (
 	ErrEmptyAccessToken = errors.New("access token is empty")
 	ErrBadProvider      = errors.New("wrong provider name")

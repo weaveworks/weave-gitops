@@ -38,7 +38,7 @@ var Cmd = &cobra.Command{
 
 func init() {
 	Cmd.Flags().BoolVarP(&loggingEnabled, "log", "l", false, "enable logging for the ui")
-	Cmd.Flags().StringVar(&port, "port", "9001", "UI port")
+	Cmd.Flags().StringVar(&port, "port", server.DefaultPort, "UI port")
 	Cmd.Flags().StringVar(&path, "path", "", "Path url")
 	Cmd.Flags().StringVar(&helmRepoNamespace, "helm-repo-namespace", "default", "the namespace of the Helm Repository resource to scan for profiles")
 	Cmd.Flags().StringVar(&helmRepoName, "helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
