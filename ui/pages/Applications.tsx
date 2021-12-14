@@ -49,7 +49,7 @@ function Applications({ className }: Props) {
         </Flex>
         <Link to={PageRoute.ApplicationAdd} className="title-bar-button">
           <Button
-            endIcon={<Icon type={IconType.AddIcon} size="base" />}
+            startIcon={<Icon type={IconType.AddIcon} size="base" />}
             type="button"
           >
             Add Application

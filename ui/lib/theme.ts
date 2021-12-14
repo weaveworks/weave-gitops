@@ -22,6 +22,7 @@ export const theme: DefaultTheme = {
     white: "#fff",
     primary: "#00b3ec",
     success: "#27AE60",
+    neutral20: "#d8d8d8",
   },
   spacing: {
     // 16px

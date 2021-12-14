@@ -5,6 +5,7 @@ export namespace colors {
   const white: string;
   const primary: string;
   const success: string;
+  const neutral20: string;
 }
 export namespace spacing {
   const base: string;
