@@ -88,7 +88,11 @@ func RootCmd(client *resty.Client) *cobra.Command {
 `, wego.DefaultNamespace),
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			configureLogger()
-			initViper(cmd)
+			err := initViper(cmd)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error initing viper: %v\n", err)
+				os.Exit(1)
+			}
 
 			ns, _ := cmd.Flags().GetString("namespace")
 
@@ -140,11 +144,11 @@ func configureLogger() {
 	}
 }
 
-func initViper(cmd *cobra.Command) {
+func initViper(cmd *cobra.Command) error {
 	replacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(replacer)
 	viper.SetEnvPrefix("GITOPS")
 	viper.AutomaticEnv()
-	viper.BindPFlags(cmd.PersistentFlags())
-	viper.BindPFlags(cmd.Flags())
+
+	return viper.BindPFlags(cmd.Flags())
 }
