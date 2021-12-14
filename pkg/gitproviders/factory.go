@@ -38,13 +38,16 @@ func buildGitProvider(config Config) (gitprovider.Client, string, error) {
 
 	switch config.Provider {
 	case GitProviderGitHub:
-		hostname := github.DefaultDomain
 		opts := []gitprovider.ClientOption{
 			gitprovider.WithOAuth2Token(config.Token),
 		}
 
-		if config.Hostname != "" {
-			// quirk of ggp
+		// Quirk of ggp, if using github.com or gitlab.com and you prepend
+		// that with https:// you end up with https://https//github.com !!!
+		// What is that...
+		hostname := github.DefaultDomain
+		if config.Hostname != "" && config.Hostname != github.DefaultDomain {
+			// Quirk of ggp, have to specify scheme with custom domain
 			hostname = "https://" + config.Hostname
 			opts = append(opts, gitprovider.WithDomain(hostname))
 		}
@@ -55,14 +58,15 @@ func buildGitProvider(config Config) (gitprovider.Client, string, error) {
 			return client, hostname, nil
 		}
 	case GitProviderGitLab:
-		hostname := gitlab.DefaultDomain
 		opts := []gitprovider.ClientOption{
 			gitprovider.WithOAuth2Token(config.Token),
 			gitprovider.WithConditionalRequests(true),
 		}
 
-		if config.Hostname != "" {
-			// quirk of ggp
+		// Quirk, see above
+		hostname := gitlab.DefaultDomain
+		if config.Hostname != "" && config.Hostname != gitlab.DefaultDomain {
+			// Quirk, see above
 			hostname = "https://" + config.Hostname
 			opts = append(opts, gitprovider.WithDomain(hostname))
 		}
