@@ -381,10 +381,10 @@ var _ = Describe("New directory structure", func() {
 
 		Expect(yaml.Unmarshal(clusterKustomizeFile, &manifestMap)).Should(Succeed())
 
-		r := manifestMap["resources"].([]interface{})
-		Expect(len(r)).To(Equal(len(appNames)))
-		for i, a := range appNames {
-			Expect(r[i].(string)).To(Equal("../../../../apps/" + a))
+		resources := manifestMap["resources"].([]interface{})
+		Expect(len(resources)).To(Equal(len(appNames)))
+		for i, name := range appNames {
+			Expect(resources[i].(string)).To(Equal("../../../../apps/" + name))
 		}
 
 	})
