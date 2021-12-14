@@ -24,13 +24,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
 )
 
-type params struct {
-	DryRun     bool
-	ConfigRepo string
-}
-
 var (
-	installParams params
+	gitopsParams gitops.InstallParams
 )
 
 var Cmd = &cobra.Command{
@@ -50,48 +45,44 @@ repo. If a previous version is installed, then an in-place upgrade will be perfo
 }
 
 func init() {
-	Cmd.Flags().BoolVar(&installParams.DryRun, "dry-run", false, "Outputs all the manifests that would be installed")
-	Cmd.Flags().StringVar(&installParams.ConfigRepo, "config-repo", "", "URL of external repository that will hold automation manifests")
+	Cmd.Flags().BoolVar(&gitopsParams.DryRun, "dry-run", false, "Outputs all the manifests that would be installed")
+	Cmd.Flags().StringVar(&gitopsParams.ConfigRepo, "config-repo", "", "URL of external repository that will hold automation manifests")
+	Cmd.Flags().StringVar(&gitopsParams.FluxHTTPSUsername, "flux-https-username", "git", "Optional: only needed if using an https:// repo URL for flux")
+	Cmd.Flags().StringVar(&gitopsParams.FluxHTTPSPassword, "flux-https-password", "", "Optional: only needed if using an https:// repo URL for flux")
 	cobra.CheckErr(Cmd.MarkFlagRequired("config-repo"))
 }
 
 func installRunCmd(cmd *cobra.Command, args []string) error {
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
-
 	osysClient := osys.New()
 	log := internal.NewCLILogger(os.Stdout)
-	flux := flux.New(osysClient, &runner.CLIRunner{})
+	runner := flux.New(osysClient, &runner.CLIRunner{})
 
 	k, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
-	gitopsService := gitops.New(log, flux, k)
-
-	gitopsParams := gitops.InstallParams{
-		Namespace:  namespace,
-		DryRun:     installParams.DryRun,
-		ConfigRepo: installParams.ConfigRepo,
-	}
-
+	gitopsService := gitops.New(log, runner, k)
+	gitopsParams.Namespace = namespace
 	manifests, err := gitopsService.Install(gitopsParams)
 	if err != nil {
 		return err
 	}
 
 	var gitClient git.Git
-
 	var gitProvider gitproviders.GitProvider
 
-	if !installParams.DryRun {
-		factory := services.NewFactory(flux, log)
+	if !gitopsParams.DryRun {
+		factory := services.NewFactory(runner, log)
 		providerClient := internal.NewGitProviderClient(osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
 
 		gitClient, gitProvider, err = factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
-			URL:       installParams.ConfigRepo,
-			Namespace: namespace,
-			DryRun:    installParams.DryRun,
+			URL:               gitopsParams.ConfigRepo,
+			Namespace:         namespace,
+			DryRun:            gitopsParams.DryRun,
+			FluxHTTPSUsername: gitopsParams.FluxHTTPSUsername,
+			FluxHTTPSPassword: gitopsParams.FluxHTTPSPassword,
 		})
 
 		if err != nil {
@@ -104,11 +95,10 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if installParams.DryRun {
+	if gitopsParams.DryRun {
 		for _, manifest := range manifests {
-			fmt.Println(string(manifest))
+			fmt.Println(manifest)
 		}
 	}
-
 	return nil
 }

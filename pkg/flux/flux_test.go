@@ -86,7 +86,7 @@ var _ = Describe("CreateSourceGit", func() {
 
 		repoUrl, err := gitproviders.NewRepoURL("https://github.com/foo/my-name")
 		Expect(err).ShouldNot(HaveOccurred())
-		out, err := fluxClient.CreateSourceGit("my-name", repoUrl, "main", "my-secret", wego.DefaultNamespace)
+		out, err := fluxClient.CreateSourceGit("my-name", repoUrl, "main", "my-secret", wego.DefaultNamespace, nil)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
 
@@ -94,15 +94,16 @@ var _ = Describe("CreateSourceGit", func() {
 
 		cmd, args := runner.RunArgsForCall(0)
 		Expect(cmd).To(Equal(fluxPath()))
-		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create source git my-name --branch main --namespace %s --interval 30s --export --secret-ref my-secret --url ssh://git@github.com/foo/my-name.git", wego.DefaultNamespace)))
+		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create source git my-name --branch main --namespace %s --interval 30s --export --secret-ref my-secret --url https://github.com/foo/my-name.git", wego.DefaultNamespace)))
 	})
+
 	It("creates a git source for a public repo", func() {
 		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
 			return []byte("out"), nil
 		}
 		repoUrl, err := gitproviders.NewRepoURL("ssh://git@github.com/foo/my-name")
 		Expect(err).ShouldNot(HaveOccurred())
-		out, err := fluxClient.CreateSourceGit("my-name", repoUrl, "main", "", wego.DefaultNamespace)
+		out, err := fluxClient.CreateSourceGit("my-name", repoUrl, "main", "", wego.DefaultNamespace, nil)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
 
@@ -121,7 +122,7 @@ var _ = Describe("CreateSourceGit", func() {
 
 		repoUrl, err := gitproviders.NewRepoURL("ssh://git@gitlab.com/foo/my-name")
 		Expect(err).ShouldNot(HaveOccurred())
-		out, err := fluxClient.CreateSourceGit("my-name", repoUrl, "main", "", wego.DefaultNamespace)
+		out, err := fluxClient.CreateSourceGit("my-name", repoUrl, "main", "", wego.DefaultNamespace, nil)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("out")))
 
@@ -131,6 +132,25 @@ var _ = Describe("CreateSourceGit", func() {
 		Expect(cmd).To(Equal(fluxPath()))
 
 		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create source git my-name --branch main --namespace %s --interval 30s --export --url https://gitlab.com/foo/my-name.git", wego.DefaultNamespace)))
+	})
+
+	It("passes http credentials to flux", func() {
+		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
+			return []byte("out"), nil
+		}
+
+		repoUrl, err := gitproviders.NewRepoURL("https://gitlab.com/foo/my-name")
+		Expect(err).ShouldNot(HaveOccurred())
+		out, err := fluxClient.CreateSourceGit("my-name", repoUrl, "main", "", wego.DefaultNamespace, &flux.HTTPSCreds{Username: "test", Password: "password"})
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(out).To(Equal([]byte("out")))
+
+		Expect(runner.RunCallCount()).To(Equal(1))
+
+		cmd, args := runner.RunArgsForCall(0)
+		Expect(cmd).To(Equal(fluxPath()))
+
+		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create source git my-name --branch main --namespace %s --interval 30s --export --url https://gitlab.com/foo/my-name.git --username test --password password", wego.DefaultNamespace)))
 	})
 })
 
@@ -246,7 +266,7 @@ var _ = Describe("CreateSecretGit", func() {
 
 		repoUrl, err := gitproviders.NewRepoURL("ssh://git@github.com/foo/bar.git")
 		Expect(err).ShouldNot(HaveOccurred())
-		out, err := fluxClient.CreateSecretGit("my-secret", repoUrl, wego.DefaultNamespace)
+		out, err := fluxClient.CreateSecretGit("my-secret", repoUrl, wego.DefaultNamespace, nil)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).To(Equal([]byte("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCh...")))
 
@@ -257,6 +277,26 @@ var _ = Describe("CreateSecretGit", func() {
 
 		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create secret git my-secret --url ssh://git@github.com/foo/bar.git --namespace %s --export", wego.DefaultNamespace)))
 	})
+
+	It("passes http credentials through to flux", func() {
+		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
+			return []byte(`ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCh...`), nil
+		}
+
+		repoUrl, err := gitproviders.NewRepoURL("ssh://git@github.com/foo/bar.git")
+		Expect(err).ShouldNot(HaveOccurred())
+		out, err := fluxClient.CreateSecretGit("my-secret", repoUrl, wego.DefaultNamespace, &flux.HTTPSCreds{Username: "test", Password: "password"})
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(out).To(Equal([]byte("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCh...")))
+
+		Expect(runner.RunCallCount()).To(Equal(1))
+
+		cmd, args := runner.RunArgsForCall(0)
+		Expect(cmd).To(Equal(fluxPath()))
+
+		Expect(strings.Join(args, " ")).To(Equal(fmt.Sprintf("create secret git my-secret --url ssh://git@github.com/foo/bar.git --namespace %s --export --username test --password password", wego.DefaultNamespace)))
+	})
+
 })
 
 func fluxPath() string {

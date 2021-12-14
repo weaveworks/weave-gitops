@@ -30,8 +30,8 @@ func (r *actualFluxRunner) Run(command string, args ...string) ([]byte, error) {
 var _ = Describe("auth", func() {
 	var namespace *corev1.Namespace
 	testClustername := "test-cluster"
-	repoUrlString := "ssh://git@github.com/my-org/my-repo.git"
-	repoUrl, err := gitproviders.NewRepoURL(repoUrlString)
+	repoURLString := "ssh://git@github.com/my-org/my-repo.git"
+	repoURL, err := gitproviders.NewRepoURL(repoURLString)
 	Expect(err).NotTo(HaveOccurred())
 	BeforeEach(func() {
 		namespace = &corev1.Namespace{}
@@ -50,7 +50,7 @@ var _ = Describe("auth", func() {
 		)
 		BeforeEach(func() {
 			ctx = context.Background()
-			secretName = automation.CreateRepoSecretName(repoUrl)
+			secretName = automation.CreateRepoSecretName(repoURL)
 			Expect(err).NotTo(HaveOccurred())
 			osysClient = osys.New()
 			gp = gitprovidersfakes.FakeGitProvider{}
@@ -64,8 +64,9 @@ var _ = Describe("auth", func() {
 			}
 		})
 		It("create and stores a deploy key if none exists", func() {
-			_, err := as.CreateGitClient(ctx, repoUrl, testClustername, namespace.Name, false)
+			_, err := as.CreateGitClient(ctx, repoURL, testClustername, namespace.Name, false, nil)
 			Expect(err).NotTo(HaveOccurred())
+
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}
 			secret := &corev1.Secret{}
 			Expect(k8sClient.Get(ctx, sn.NamespacedName(), secret)).To(Succeed())
@@ -74,8 +75,9 @@ var _ = Describe("auth", func() {
 			Expect(secret.StringData["identity.pub"]).NotTo(BeNil())
 		})
 		It("doesn't create a deploy key when dry-run is true", func() {
-			_, err := as.CreateGitClient(ctx, repoUrl, testClustername, namespace.Name, true)
+			_, err := as.CreateGitClient(ctx, repoURL, testClustername, namespace.Name, true, nil)
 			Expect(err).NotTo(HaveOccurred())
+
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}
 			secret := &corev1.Secret{}
 			Expect(k8sClient.Get(ctx, sn.NamespacedName(), secret)).To(HaveOccurred())
@@ -84,12 +86,13 @@ var _ = Describe("auth", func() {
 			gp.DeployKeyExistsReturns(true, nil)
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}
 			// using `generateDeployKey` as a helper for the test setup.
-			_, secret, err := (&authSvc{fluxClient: fluxClient}).generateDeployKey(testClustername, sn, repoUrl)
+			_, secret, err := (&authSvc{fluxClient: fluxClient}).generateDeployKey(testClustername, sn, repoURL, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(k8sClient.Create(ctx, secret)).To(Succeed())
 
-			_, err = as.CreateGitClient(ctx, repoUrl, testClustername, namespace.Name, false)
+			_, err = as.CreateGitClient(ctx, repoURL, testClustername, namespace.Name, false, nil)
 			Expect(err).NotTo(HaveOccurred())
+
 			// We should NOT have uploaded anything since the key already exists
 			Expect(gp.UploadDeployKeyCallCount()).To(Equal(0))
 		})
@@ -97,12 +100,24 @@ var _ = Describe("auth", func() {
 			gp.DeployKeyExistsReturns(true, nil)
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}
 
-			_, err = as.CreateGitClient(ctx, repoUrl, testClustername, namespace.Name, false)
+			_, err = as.CreateGitClient(ctx, repoURL, testClustername, namespace.Name, false, nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			newSecret := &corev1.Secret{}
 			Expect(k8sClient.Get(ctx, sn.NamespacedName(), newSecret)).To(Succeed())
 			Expect(gp.UploadDeployKeyCallCount()).To(Equal(1))
+		})
+		It("does not create a deploy key when using https", func() {
+			repoURL, err = gitproviders.NewRepoURL("https://github.com/my-org/my-repo.git")
+			Expect(err).NotTo(HaveOccurred())
+			_, err := as.CreateGitClient(ctx, repoURL, testClustername, namespace.Name, false, &flux.HTTPSCreds{Username: "test", Password: "topsecret"})
+			Expect(err).NotTo(HaveOccurred())
+
+			sn := SecretName{Name: secretName, Namespace: namespace.Name}
+			secret := &corev1.Secret{}
+			Expect(k8sClient.Get(ctx, sn.NamespacedName(), secret)).To(Succeed())
+			Expect(secret.StringData["password"]).To(Equal("topsecret"))
+			Expect(secret.StringData["username"]).To(Equal("test"))
 		})
 	})
 })

@@ -29,17 +29,22 @@ type Factory interface {
 	GetGitClients(ctx context.Context, gpClient gitproviders.Client, params GitConfigParams) (git.Git, gitproviders.GitProvider, error)
 }
 
+// GitConfigParams represents the client configuration for accessing a Git
+// repository.
 type GitConfigParams struct {
-	URL              string
-	ConfigRepo       string
-	Namespace        string
-	IsHelmRepository bool
-	DryRun           bool
+	URL               string
+	ConfigRepo        string
+	Namespace         string
+	IsHelmRepository  bool
+	DryRun            bool
+	FluxHTTPSUsername string
+	FluxHTTPSPassword string
 }
 
+// NewGitConfigParamsFromApp allocates and returns a set of parameters using
+// fields from the Application.
 func NewGitConfigParamsFromApp(app *wego.Application, dryRun bool) GitConfigParams {
 	isHelmRepository := app.Spec.SourceType == wego.SourceTypeHelm
-
 	return GitConfigParams{
 		URL:              app.Spec.URL,
 		ConfigRepo:       app.Spec.ConfigRepo,
@@ -105,7 +110,6 @@ func (f *defaultFactory) GetKubeService() (kube.Kube, error) {
 
 func (f *defaultFactory) GetGitClients(ctx context.Context, gpClient gitproviders.Client, params GitConfigParams) (git.Git, gitproviders.GitProvider, error) {
 	isExternalConfig := models.IsExternalConfigRepo(params.ConfigRepo)
-
 	var providerUrl string
 
 	switch {
@@ -137,11 +141,16 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, gpClient gitprovider
 		return nil, nil, fmt.Errorf("error creating auth service: %w", err)
 	}
 
-	var appClient, configClient git.Git
+	var httpsCreds *flux.HTTPSCreds
+	if params.FluxHTTPSUsername != "" && params.FluxHTTPSPassword != "" {
+		httpsCreds = &flux.HTTPSCreds{Username: params.FluxHTTPSUsername, Password: params.FluxHTTPSPassword}
+	}
 
+	var appClient, configClient git.Git
+	// TODO: KEVIN!!!! Do we need to make these flux.HTTPSCreds?
 	if !params.IsHelmRepository {
 		// We need to do this even if we have an external config to set up the deploy key for the app repo
-		appRepoClient, appRepoErr := authSvc.CreateGitClient(ctx, normalizedUrl, targetName, params.Namespace, params.DryRun)
+		appRepoClient, appRepoErr := authSvc.CreateGitClient(ctx, normalizedUrl, targetName, params.Namespace, params.DryRun, httpsCreds)
 		if appRepoErr != nil {
 			return nil, nil, appRepoErr
 		}
@@ -155,7 +164,7 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, gpClient gitprovider
 			return nil, nil, fmt.Errorf("error normalizing url: %w", err)
 		}
 
-		configRepoClient, configRepoErr := authSvc.CreateGitClient(ctx, normalizedConfigRepo, targetName, params.Namespace, params.DryRun)
+		configRepoClient, configRepoErr := authSvc.CreateGitClient(ctx, normalizedConfigRepo, targetName, params.Namespace, params.DryRun, httpsCreds)
 		if configRepoErr != nil {
 			return nil, nil, configRepoErr
 		}

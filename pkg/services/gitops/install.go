@@ -17,6 +17,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/manifests"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -24,10 +25,13 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
 )
 
+// InstallParams are used to configure the installation the GitOps runtime.
 type InstallParams struct {
-	Namespace  string
-	DryRun     bool
-	ConfigRepo string
+	Namespace         string
+	DryRun            bool
+	ConfigRepo        string
+	FluxHTTPSUsername string
+	FluxHTTPSPassword string
 }
 
 func (g *Gitops) Install(params InstallParams) (map[string][]byte, error) {
@@ -173,7 +177,7 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 
 	remover, _, err := gitrepo.CloneRepo(ctx, gitClient, normalizedURL, configBranch)
 	if err != nil {
-		return nil, fmt.Errorf("failed to clone configuration repo: %w", err)
+		return nil, fmt.Errorf("failed to clone configuration repo to store manifests: %w", err)
 	}
 
 	defer remover()
@@ -181,7 +185,7 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 	manifests := make(map[string][]byte, 3)
 	clusterPath := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname)
 
-	gitsource, sourceName, err := g.genSource(configBranch, params.Namespace, normalizedURL)
+	gitsource, sourceName, err := g.genSource(configBranch, params.Namespace, normalizedURL, params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create source manifest: %w", err)
 	}
@@ -204,17 +208,9 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user kustomization manifest: %w", err)
 	}
-
 	manifests["flux-user-kustomization-resource.yaml"] = user
 
-	//TODO add handling for PRs
-	// if !params.AutoMerge {
-	//  if err := a.createPullRequestToRepo(info, info.Spec.ConfigRepo, appHash, appSpec, appGoat, appSource); err != nil {
-	//      return err
-	//  }
-	// } else {
 	g.logger.Actionf("Writing manifests to disk")
-
 	if err := g.writeManifestsToGit(gitClient, filepath.Join(clusterPath, "system"), manifests); err != nil {
 		return nil, fmt.Errorf("failed to write manifests: %w", err)
 	}
@@ -233,10 +229,10 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 	return manifests, gitrepo.CommitAndPush(ctx, gitClient, "Add GitOps runtime manifests", g.logger)
 }
 
-func (g *Gitops) genSource(branch string, namespace string, normalizedUrl gitproviders.RepoURL) ([]byte, string, error) {
+func (g *Gitops) genSource(branch string, namespace string, normalizedUrl gitproviders.RepoURL, params InstallParams) ([]byte, string, error) {
 	secretRef := automation.CreateRepoSecretName(normalizedUrl).String()
 
-	sourceManifest, err := g.flux.CreateSourceGit(secretRef, normalizedUrl, branch, secretRef, namespace)
+	sourceManifest, err := g.flux.CreateSourceGit(secretRef, normalizedUrl, branch, secretRef, namespace, credsFromParams(params))
 	if err != nil {
 		return nil, secretRef, fmt.Errorf("could not create git source for repo %s : %w", normalizedUrl.String(), err)
 	}
@@ -330,4 +326,15 @@ func (g *Gitops) saveWegoConfig(ctx context.Context, params InstallParams) (*cor
 	}
 
 	return cm, nil
+}
+
+func credsFromParams(p InstallParams) *flux.HTTPSCreds {
+	var creds *flux.HTTPSCreds
+	if p.FluxHTTPSUsername != "" || p.FluxHTTPSPassword != "" {
+		creds = &flux.HTTPSCreds{
+			Username: p.FluxHTTPSUsername,
+			Password: p.FluxHTTPSPassword,
+		}
+	}
+	return creds
 }

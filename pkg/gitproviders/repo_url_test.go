@@ -97,11 +97,11 @@ var _ = DescribeTable("NewRepoURL", func(input, gitProviderEnv string, expected 
 		protocol: RepositoryURLProtocolSSH,
 	}),
 	Entry("github https", "https://github.com/someuser/podinfo.git", "", expectedRepoURL{
-		s:        "ssh://git@github.com/someuser/podinfo.git",
+		s:        "https://github.com/someuser/podinfo.git",
 		owner:    "someuser",
 		name:     "podinfo",
 		provider: GitProviderGitHub,
-		protocol: RepositoryURLProtocolSSH,
+		protocol: RepositoryURLProtocolHTTPS,
 	}),
 	Entry("gitlab git clone style", "git@gitlab.com:someuser/podinfo.git", "", expectedRepoURL{
 		s:        "ssh://git@gitlab.com/someuser/podinfo.git",
@@ -111,18 +111,18 @@ var _ = DescribeTable("NewRepoURL", func(input, gitProviderEnv string, expected 
 		protocol: RepositoryURLProtocolSSH,
 	}),
 	Entry("gitlab https", "https://gitlab.com/someuser/podinfo.git", "", expectedRepoURL{
-		s:        "ssh://git@gitlab.com/someuser/podinfo.git",
+		s:        "https://gitlab.com/someuser/podinfo.git",
 		owner:    "someuser",
 		name:     "podinfo",
 		provider: GitProviderGitLab,
-		protocol: RepositoryURLProtocolSSH,
+		protocol: RepositoryURLProtocolHTTPS,
 	}),
 	Entry("trailing slash in url", "https://github.com/sympatheticmoose/podinfo-deploy/", "", expectedRepoURL{
-		s:        "ssh://git@github.com/sympatheticmoose/podinfo-deploy.git",
+		s:        "https://github.com/sympatheticmoose/podinfo-deploy.git",
 		owner:    "sympatheticmoose",
 		name:     "podinfo-deploy",
 		provider: GitProviderGitHub,
-		protocol: RepositoryURLProtocolSSH,
+		protocol: RepositoryURLProtocolHTTPS,
 	}),
 	Entry(
 		"custom domain",

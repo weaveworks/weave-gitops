@@ -21,12 +21,12 @@ type Flux interface {
 	GetExePath() (string, error)
 	Install(namespace string, export bool) ([]byte, error)
 	Uninstall(namespace string, export bool) error
-	CreateSourceGit(name string, repoUrl gitproviders.RepoURL, branch string, secretRef string, namespace string) ([]byte, error)
-	CreateSourceHelm(name string, url string, namespace string) ([]byte, error)
+	CreateSourceGit(name string, repoUrl gitproviders.RepoURL, branch, secretRef, namespace string, creds *HTTPSCreds) ([]byte, error)
+	CreateSourceHelm(name, url, namespace string) ([]byte, error)
 	CreateKustomization(name string, source string, path string, namespace string) ([]byte, error)
 	CreateHelmReleaseGitRepository(name, source, path, namespace, targetNamespace string) ([]byte, error)
 	CreateHelmReleaseHelmRepository(name, chart, namespace, targetNamespace string) ([]byte, error)
-	CreateSecretGit(name string, repoUrl gitproviders.RepoURL, namespace string) ([]byte, error)
+	CreateSecretGit(name string, repoUrl gitproviders.RepoURL, namespace string, creds *HTTPSCreds) ([]byte, error)
 	GetVersion() (string, error)
 	GetAllResourcesStatus(name string, namespace string) ([]byte, error)
 	SuspendOrResumeApp(pause wego.SuspendActionType, name, namespace, deploymentType string) ([]byte, error)
@@ -34,6 +34,13 @@ type Flux interface {
 }
 
 const fluxBinaryPathEnvVar = "WEAVE_GITOPS_FLUX_BIN_PATH"
+
+// HTTPSCreds is an optional username/password use to authenticate flux
+// source operations for https based git servers.
+type HTTPSCreds struct {
+	Username string
+	Password string
+}
 
 type FluxClient struct {
 	osys   osys.Osys
@@ -91,7 +98,7 @@ func (f *FluxClient) Uninstall(namespace string, dryRun bool) error {
 	return nil
 }
 
-func (f *FluxClient) CreateSourceGit(name string, repoUrl gitproviders.RepoURL, branch string, secretRef string, namespace string) ([]byte, error) {
+func (f *FluxClient) CreateSourceGit(name string, repoUrl gitproviders.RepoURL, branch, secretRef, namespace string, creds *HTTPSCreds) ([]byte, error) {
 	args := []string{
 		"create", "source", "git", name,
 		"--branch", branch,
@@ -106,12 +113,26 @@ func (f *FluxClient) CreateSourceGit(name string, repoUrl gitproviders.RepoURL, 
 		args = append(args, "--url", makePublicUrl(repoUrl))
 	}
 
+	args = append(args, argsFromCreds(creds)...)
 	out, err := f.runFluxCmd(args...)
 	if err != nil {
 		return out, fmt.Errorf("failed to create source git: %w", err)
 	}
 
 	return out, nil
+}
+
+func argsFromCreds(creds *HTTPSCreds) []string {
+	args := []string{}
+	if creds != nil {
+		if creds.Username != "" {
+			args = append(args, "--username", creds.Username)
+		}
+		if creds.Password != "" {
+			args = append(args, "--password", creds.Password)
+		}
+	}
+	return args
 }
 
 func makePublicUrl(repoUrl gitproviders.RepoURL) string {
@@ -220,14 +241,15 @@ func (f *FluxClient) CreateHelmReleaseHelmRepository(name, chart, namespace, tar
 	return out, nil
 }
 
-// CreatSecretGit Creates a Git secret returns the deploy key
-func (f *FluxClient) CreateSecretGit(name string, repoUrl gitproviders.RepoURL, namespace string) ([]byte, error) {
+// CreateSecretGit Creates a Git secret returns the deploy key.
+func (f *FluxClient) CreateSecretGit(name string, repoUrl gitproviders.RepoURL, namespace string, creds *HTTPSCreds) ([]byte, error) {
 	args := []string{
 		"create", "secret", "git", name,
 		"--url", repoUrl.String(),
 		"--namespace", namespace,
 		"--export",
 	}
+	args = append(args, argsFromCreds(creds)...)
 
 	out, err := f.runFluxCmd(args...)
 	if err != nil {
@@ -269,7 +291,7 @@ func (f *FluxClient) runFluxCmd(args ...string) ([]byte, error) {
 
 	out, err := f.runner.Run(fluxPath, args...)
 	if err != nil {
-		return []byte{}, fmt.Errorf("failed to run flux with output: %s and error: %w", string(out), err)
+		return []byte{}, fmt.Errorf("failed to run flux %v with output: %s and error: %w", args, out, err)
 	}
 
 	return out, nil

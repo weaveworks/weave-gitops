@@ -52,7 +52,7 @@ func NewRepoURL(uri string) (RepoURL, error) {
 	}
 
 	return RepoURL{
-		repoName:   utils.UrlToRepoName(uri),
+		repoName:   utils.URLToRepoName(uri),
 		owner:      owner,
 		url:        u,
 		normalized: normalized,
@@ -145,7 +145,6 @@ func normalizeRepoURLString(url string) (string, error) {
 	// https://github.com/weaveworks/weave-gitops/issues/878
 	// A trailing slash causes problems when naming secrets.
 	url = strings.TrimSuffix(url, "/")
-
 	if !strings.HasSuffix(url, ".git") {
 		url = url + ".git"
 	}
@@ -153,6 +152,9 @@ func normalizeRepoURLString(url string) (string, error) {
 	u, err := parseGitURL(url)
 	if err != nil {
 		return "", fmt.Errorf("could not parse git repo url while normalizing %q: %w", url, err)
+	}
+	if u.Scheme == "https" {
+		return u.String(), nil
 	}
 
 	return fmt.Sprintf("ssh://git@%s%s", u.Host, u.Path), nil
