@@ -256,7 +256,8 @@ func appPath(appName string) string {
 func appKustomizeReference(userKustomizationPath, appPath string) (string, error) {
 	r, err := filepath.Rel(filepath.Dir(userKustomizationPath), appPath)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to calculate the relative path between the cluster %q and app %q: %w",
+			userKustomizationPath, appPath, err)
 	}
 
 	return r, nil
