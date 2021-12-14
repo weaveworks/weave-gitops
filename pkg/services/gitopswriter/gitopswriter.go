@@ -58,7 +58,12 @@ func (dw *gitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app mode
 
 	defer remover()
 
-	kManifest, err := addKustomizeResources(app, repoDir, clusterName, appKustomizeReference(app))
+	resourceEntry, err := appKustomizeReference(getUserKustomizationRepoPath(clusterName), appPath(app.Name))
+	if err != nil {
+		return err
+	}
+
+	kManifest, err := addKustomizeResources(app, repoDir, clusterName, resourceEntry)
 	if err != nil {
 		return err
 	}
@@ -134,14 +139,19 @@ func (dw *gitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app m
 
 	for _, resourcePath := range resourcePaths {
 		pathStr := filepath.Join(appSubDir, resourcePath.Name())
-
 		if err := dw.RepoWriter.Remove(ctx, pathStr); err != nil {
 			return fmt.Errorf("failed to remove app resource from repository: %w", err)
 		}
 	}
 
 	// Remove reference in kustomization file
-	kManifest, err := removeKustomizeResources(app, repoDir, clusterName, appKustomizeReference(app))
+	resourceEntry, err := appKustomizeReference(getUserKustomizationRepoPath(clusterName), appPath(app.Name))
+	if err != nil {
+		return err
+	}
+
+	kManifest, err := removeKustomizeResources(app, repoDir, clusterName, resourceEntry)
+
 	if err != nil {
 		return fmt.Errorf("failed to remove app reference from user kustomize file: %w", err)
 	}
@@ -239,6 +249,16 @@ func getUserKustomizationRepoPath(clusterName string) string {
 	return filepath.Join(git.WegoRoot, git.WegoClusterDir, clusterName, "user", "kustomization.yaml")
 }
 
-func appKustomizeReference(app models.Application) string {
-	return "../../../apps/" + automation.AppDeployName(app)
+func appPath(appName string) string {
+	return filepath.Join(git.WegoRoot, git.WegoAppDir, appName)
+}
+
+func appKustomizeReference(userKustomizationPath, appPath string) (string, error) {
+	r, err := filepath.Rel(filepath.Dir(userKustomizationPath), appPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to calculate the relative path between the cluster %q and app %q: %w",
+			userKustomizationPath, appPath, err)
+	}
+
+	return r, nil
 }
