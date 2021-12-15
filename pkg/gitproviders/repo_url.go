@@ -7,6 +7,7 @@ import (
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
+	"github.com/spf13/viper"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
@@ -25,12 +26,15 @@ type RepoURL struct {
 }
 
 func NewRepoURL(uri string) (RepoURL, error) {
-	providerName, err := detectGitProviderFromUrl(uri)
+	providerName, err := detectGitProviderFromUrl(uri, ViperGetStringMapString("git-host-types"))
 	if err != nil {
 		return RepoURL{}, fmt.Errorf("could not get provider name from URL %s: %w", uri, err)
 	}
 
-	normalized := normalizeRepoURLString(uri, providerName)
+	normalized, err := normalizeRepoURLString(uri)
+	if err != nil {
+		return RepoURL{}, fmt.Errorf("could not normalize repo URL %s: %w", uri, err)
+	}
 
 	u, err := url.Parse(normalized)
 	if err != nil {
@@ -104,33 +108,40 @@ func getOwnerFromUrl(url url.URL, providerName GitProviderName) (string, error) 
 
 // detectGitProviderFromUrl accepts a url related to a git repo and
 // returns the name of the provider associated.
-func detectGitProviderFromUrl(raw string) (GitProviderName, error) {
-	if strings.HasPrefix(raw, "git@") {
-		raw = "ssh://" + raw
-		raw = strings.Replace(raw, ".com:", ".com/", 1)
-	}
-
-	u, err := url.Parse(raw)
+func detectGitProviderFromUrl(raw string, gitHostTypes map[string]string) (GitProviderName, error) {
+	u, err := parseGitURL(raw)
 	if err != nil {
 		return "", fmt.Errorf("could not parse git repo url %q: %w", raw, err)
 	}
 
-	switch u.Hostname() {
-	case github.DefaultDomain:
-		return GitProviderGitHub, nil
-	case gitlab.DefaultDomain:
-		return GitProviderGitLab, nil
+	// defaults for github and gitlab
+	gitHostTypes[github.DefaultDomain] = string(GitProviderGitHub)
+	gitHostTypes[gitlab.DefaultDomain] = string(GitProviderGitLab)
+
+	provider := gitHostTypes[u.Host]
+	if provider == "" {
+		return "", fmt.Errorf("no git providers found for %q", raw)
 	}
 
-	return "", fmt.Errorf("no git providers found for %q", raw)
+	return GitProviderName(provider), nil
+}
+
+// Hacks around "scp" formatted urls ($user@$host:$path)
+// the `:` delimiter between host and path throws off the std. url parser
+func parseGitURL(raw string) (*url.URL, error) {
+	if strings.HasPrefix(raw, "git@") {
+		// The first occurance of `:` should be the host:path delimiter.
+		raw = strings.Replace(raw, ":", "/", 1)
+		raw = "ssh://" + raw
+	}
+
+	return url.Parse(raw)
 }
 
 // normalizeRepoURLString accepts a url like git@github.com:someuser/podinfo.git and converts it into
 // a string like ssh://git@github.com/someuser/podinfo.git. This helps standardize the different
 // user inputs that might be provided.
-func normalizeRepoURLString(url string, providerName GitProviderName) string {
-	trimmed := ""
-
+func normalizeRepoURLString(url string) (string, error) {
 	// https://github.com/weaveworks/weave-gitops/issues/878
 	// A trailing slash causes problems when naming secrets.
 	url = strings.TrimSuffix(url, "/")
@@ -139,18 +150,33 @@ func normalizeRepoURLString(url string, providerName GitProviderName) string {
 		url = url + ".git"
 	}
 
-	sshPrefix := fmt.Sprintf("git@%s.com:", providerName)
-	httpsPrefix := fmt.Sprintf("https://%s.com/", providerName)
-
-	if strings.HasPrefix(url, sshPrefix) {
-		trimmed = strings.TrimPrefix(url, sshPrefix)
-	} else if strings.HasPrefix(url, httpsPrefix) {
-		trimmed = strings.TrimPrefix(url, httpsPrefix)
+	u, err := parseGitURL(url)
+	if err != nil {
+		return "", fmt.Errorf("could not parse git repo url while normalizing %q: %w", url, err)
 	}
 
-	if trimmed != "" {
-		return fmt.Sprintf("ssh://git@%s.com/%s", providerName, trimmed)
+	return fmt.Sprintf("ssh://git@%s%s", u.Host, u.Path), nil
+}
+
+// ViperGetStringMapString looks up a command line flag or env var in the format "foo=1,bar=2"
+// GetStringMapString tries to JSON decode the env var
+// If that fails (silently), try and decode the classic "foo=1,bar=2" form.
+// https://github.com/spf13/viper/issues/911
+func ViperGetStringMapString(key string) map[string]string {
+	sms := viper.GetStringMapString(key)
+	if len(sms) > 0 {
+		return sms
 	}
 
-	return url
+	ss := viper.GetStringSlice(key)
+	out := map[string]string{}
+
+	for _, pair := range ss {
+		kv := strings.SplitN(pair, "=", 2)
+		if len(kv) == 2 {
+			out[kv[0]] = kv[1]
+		}
+	}
+
+	return out
 }
