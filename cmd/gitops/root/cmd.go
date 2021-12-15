@@ -116,6 +116,7 @@ func RootCmd(client *resty.Client) *cobra.Command {
 	rootCmd.PersistentFlags().BoolVar(&options.overrideInCluster, "override-in-cluster", false, "override running in cluster check")
 	rootCmd.PersistentFlags().StringToStringVar(&options.gitHostTypes, "git-host-types", map[string]string{}, "Specify which custom domains are running what (github or gitlab)")
 	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("override-in-cluster"))
+	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("git-host-types"))
 
 	rootCmd.AddCommand(install.Cmd)
 	rootCmd.AddCommand(beta.Cmd)

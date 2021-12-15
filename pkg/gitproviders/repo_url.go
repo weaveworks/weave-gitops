@@ -164,7 +164,7 @@ func normalizeRepoURLString(url string) (string, error) {
 // https://github.com/spf13/viper/issues/911
 func ViperGetStringMapString(key string) map[string]string {
 	sms := viper.GetStringMapString(key)
-	if len(sms) > 1 {
+	if len(sms) > 0 {
 		return sms
 	}
 
