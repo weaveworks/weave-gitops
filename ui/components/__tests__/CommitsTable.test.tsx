@@ -39,9 +39,13 @@ describe("CommitsTable", () => {
       await act(async () => {
         const { container: div } = render(
           withTheme(
-            withContext(<CommitsTable app={app} authSuccess={true} />, "/", {
-              applicationsClient: createMockClient(ovr),
-            })
+            withContext(
+              <CommitsTable app={app} authSuccess={true} provider={"GitHub"} />,
+              "/",
+              {
+                applicationsClient: createMockClient(ovr),
+              }
+            )
           ),
           container
         );
@@ -65,9 +69,13 @@ describe("CommitsTable", () => {
     await act(async () => {
       render(
         withTheme(
-          withContext(<CommitsTable app={app} authSuccess={true} />, "/", {
-            applicationsClient: createMockClient(ovr),
-          })
+          withContext(
+            <CommitsTable app={app} authSuccess={true} provider={"GitHub"} />,
+            "/",
+            {
+              applicationsClient: createMockClient(ovr),
+            }
+          )
         ),
         container
       );

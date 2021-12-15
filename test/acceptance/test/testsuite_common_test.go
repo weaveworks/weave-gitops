@@ -4,6 +4,7 @@
 package acceptance
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -11,6 +12,19 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
+)
+
+const (
+	gitlabTokenEnvVar       = "GITLAB_TOKEN"
+	gitlabOrgEnvVar         = "GITLAB_ORG"
+	gitlabPublicGroupEnvVar = "GITLAB_PUBLIC_GROUP"
+	gitlabSubgroupEnvVar    = "GITLAB_SUBGROUP"
+	gitlabKeyEnvVar         = "GITLAB_KEY"
+
+	githubTokenEnvVar = "GITHUB_TOKEN"
+	githubOrgEnvVar   = "GITHUB_ORG"
+
+	gitopsBinaryPathEnvVar = "WEGO_BIN_PATH"
 )
 
 func TestAcceptance(t *testing.T) {
@@ -39,18 +53,31 @@ func TestAcceptance(t *testing.T) {
 
 var _ = BeforeSuite(func() {
 	SetDefaultEventuallyTimeout(EVENTUALLY_DEFAULT_TIMEOUT)
-	DEFAULT_SSH_KEY_PATH = os.Getenv("HOME") + "/.ssh/id_rsa"
-	GITHUB_ORG = os.Getenv("GITHUB_ORG")
-	GITLAB_ORG = os.Getenv("GITLAB_ORG")
-	GITLAB_PUBLIC_GROUP = os.Getenv("GITLAB_PUBLIC_GROUP")
-	GITLAB_SUBGROUP = os.Getenv("GITLAB_SUBGROUP")
-	WEGO_BIN_PATH = os.Getenv("WEGO_BIN_PATH")
-	if WEGO_BIN_PATH == "" {
-		WEGO_BIN_PATH = "/usr/local/bin/gitops"
+	sshKeyPath = getEnvVar("HOME") + "/.ssh/id_rsa"
+	gitopsBinaryPath = getEnvVar(gitopsBinaryPathEnvVar)
+
+	githubOrg = getEnvVar(githubOrgEnvVar)
+	githubToken = getEnvVar(githubTokenEnvVar)
+
+	gitlabOrg = getEnvVar(gitlabOrgEnvVar)
+	gitlabToken = getEnvVar(gitlabTokenEnvVar)
+	gitlabKey = getEnvVar(gitlabKeyEnvVar)
+	gitlabPublicGroup = getEnvVar(gitlabPublicGroupEnvVar)
+	gitlabSubgroup = getEnvVar(gitlabSubgroupEnvVar)
+
+	if gitopsBinaryPath == "" {
+		gitopsBinaryPath = "/usr/local/bin/gitops"
 	}
-	log.Infof("GITOPS Binary Path: %s", WEGO_BIN_PATH)
+	log.Infof("GITOPS Binary Path: %s", gitopsBinaryPath)
 })
 
 func GomegaFail(message string, callerSkip ...int) {
 	ginkgo.Fail(message, callerSkip...)
+}
+
+func getEnvVar(envVar string) string {
+	value := os.Getenv(envVar)
+	ExpectWithOffset(1, value).NotTo(BeEmpty(), fmt.Sprintf("Please ensure %s environment variable is set", envVar))
+
+	return value
 }

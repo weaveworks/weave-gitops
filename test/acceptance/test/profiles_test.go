@@ -40,26 +40,26 @@ var _ = PDescribe("Weave GitOps Profiles API", func() {
 	)
 
 	BeforeEach(func() {
-		Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
-		Expect(GITHUB_ORG).NotTo(BeEmpty())
+		Expect(FileExists(gitopsBinaryPath)).To(BeTrue())
+		Expect(githubOrg).NotTo(BeEmpty())
 
 		_, _, err := ResetOrCreateCluster(namespace, true)
 		Expect(err).NotTo(HaveOccurred())
 
 		private := true
 		tip = generateTestInputs()
-		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 
 		clientSet, kClient = buildKubernetesClients()
 	})
 
 	AfterEach(func() {
-		deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 	})
 
 	It("gets deployed and is accessible via the service", func() {
 		By("Installing the Profiles API and setting up the profile helm repository")
-		appRepoRemoteURL = "git@github.com:" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL = "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"
 		installAndVerifyWego(namespace, appRepoRemoteURL)
 		deployProfilesHelmRepository(kClient, namespace)
 		time.Sleep(time.Second * 20)

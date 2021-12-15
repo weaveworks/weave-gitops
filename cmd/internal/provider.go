@@ -36,7 +36,11 @@ func (c *gitProviderClient) GetProvider(repoUrl gitproviders.RepoURL, getAccount
 		return nil, err
 	}
 
-	provider, err := gitproviders.New(gitproviders.Config{Provider: repoUrl.Provider(), Token: token}, repoUrl.Owner(), getAccountType)
+	provider, err := gitproviders.New(gitproviders.Config{
+		Provider: repoUrl.Provider(),
+		Token:    token,
+		Hostname: repoUrl.URL().Host,
+	}, repoUrl.Owner(), getAccountType)
 	if err != nil {
 		return nil, fmt.Errorf("error creating git provider client: %w", err)
 	}

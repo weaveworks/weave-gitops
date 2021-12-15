@@ -10,9 +10,10 @@ import Page from "../components/Page";
 import Spacer from "../components/Spacer";
 import Text from "../components/Text";
 import { AppContext } from "../contexts/AppContext";
+import CallbackStateContextProvider from "../contexts/CallbackStateContext";
 import { useAppRemove } from "../hooks/applications";
-import { GrpcErrorCodes } from "../lib/types";
-import { poller } from "../lib/utils";
+import { GrpcErrorCodes, PageRoute } from "../lib/types";
+import { formatURL, poller } from "../lib/utils";
 
 type Props = {
   className?: string;
@@ -78,6 +79,14 @@ function ApplicationRemove({ className, name }: Props) {
   const [authOpen, setAuthOpen] = React.useState(false);
   const [authSuccess, setAuthSuccess] = React.useState(false);
   const [appError, setAppError] = React.useState(null);
+  const { getCallbackState, clearCallbackState } = React.useContext(AppContext);
+
+  const callbackState = getCallbackState();
+
+  if (callbackState) {
+    setAuthSuccess(true);
+    clearCallbackState();
+  }
 
   React.useEffect(() => {
     (async () => {
@@ -138,40 +147,48 @@ function ApplicationRemove({ className, name }: Props) {
       </Page>
     );
   }
+
   return (
     <Page className={className}>
-      {!authSuccess &&
-        error &&
-        (error.code === GrpcErrorCodes.Unauthenticated ? (
-          <AuthAlert
-            title="Error"
-            provider={repoInfo.provider}
-            onClick={() => setAuthOpen(true)}
-          />
-        ) : (
-          <Alert title="Error" message={error?.message} />
-        ))}
-      {repoRemoving && (
-        <Flex wide center align>
-          <CircularProgress />
-          <Spacer margin="small" />
-          <div>Remove operation in progress...</div>
-        </Flex>
-      )}
-      {!repoRemoveRes && !repoRemoving && !removedFromCluster && (
-        <Prompt name={name} onRemove={handleRemoveClick} />
-      )}
-      {(repoRemoving || repoRemoveRes) && (
-        <RepoRemoveStatus done={!repoRemoving} />
-      )}
-      <Spacer margin="small" />
-      {repoRemoveRes && <ClusterRemoveStatus done={removedFromCluster} />}
-      <GithubDeviceAuthModal
-        onSuccess={handleAuthSuccess}
-        onClose={() => setAuthOpen(false)}
-        open={authOpen}
-        repoName={name}
-      />
+      <CallbackStateContextProvider
+        callbackState={{
+          page: formatURL(PageRoute.ApplicationRemove, { name }),
+          state: { authSuccess: false },
+        }}
+      >
+        {!authSuccess &&
+          error &&
+          (error.code === GrpcErrorCodes.Unauthenticated ? (
+            <AuthAlert
+              title="Error"
+              provider={repoInfo.provider}
+              onClick={() => setAuthOpen(true)}
+            />
+          ) : (
+            <Alert title="Error" message={error?.message} />
+          ))}
+        {repoRemoving && (
+          <Flex wide center align>
+            <CircularProgress />
+            <Spacer margin="small" />
+            <div>Remove operation in progress...</div>
+          </Flex>
+        )}
+        {!repoRemoveRes && !repoRemoving && !removedFromCluster && (
+          <Prompt name={name} onRemove={handleRemoveClick} />
+        )}
+        {(repoRemoving || repoRemoveRes) && (
+          <RepoRemoveStatus done={!repoRemoving} />
+        )}
+        <Spacer margin="small" />
+        {repoRemoveRes && <ClusterRemoveStatus done={removedFromCluster} />}
+        <GithubDeviceAuthModal
+          onSuccess={handleAuthSuccess}
+          onClose={() => setAuthOpen(false)}
+          open={authOpen}
+          repoName={name}
+        />
+      </CallbackStateContextProvider>
     </Page>
   );
 }

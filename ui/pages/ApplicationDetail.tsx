@@ -14,6 +14,7 @@ import Page from "../components/Page";
 import ReconciliationGraph from "../components/ReconciliationGraph";
 import Spacer from "../components/Spacer";
 import { AppContext } from "../contexts/AppContext";
+import CallbackStateContextProvider from "../contexts/CallbackStateContext";
 import { useRequestState } from "../hooks/common";
 import {
   AutomationKind,
@@ -23,6 +24,7 @@ import {
 } from "../lib/api/applications/applications.pb";
 import { getChildren } from "../lib/graph";
 import { PageRoute } from "../lib/types";
+import { formatURL } from "../lib/utils";
 
 type Props = {
   className?: string;
@@ -34,14 +36,21 @@ function ApplicationDetail({ className, name }: Props) {
     React.useContext(AppContext);
   const [authSuccess, setAuthSuccess] = React.useState(false);
   const [githubAuthModalOpen, setGithubAuthModalOpen] = React.useState(false);
-
   const [reconciledObjects, setReconciledObjects] = React.useState<
     UnstructuredObject[]
   >([]);
+  const [provider, setProvider] = React.useState("");
   const [res, loading, error, req] = useRequestState<GetApplicationResponse>();
-
   const [syncRes, syncLoading, syncError, syncRequest] =
     useRequestState<SyncApplicationResponse>();
+  const { getCallbackState, clearCallbackState } = React.useContext(AppContext);
+
+  const callbackState = getCallbackState();
+
+  if (callbackState) {
+    setAuthSuccess(true);
+    clearCallbackState();
+  }
 
   React.useEffect(() => {
     const p = async () => {
@@ -53,6 +62,7 @@ function ApplicationDetail({ className, name }: Props) {
       const { provider } = await applicationsClient.ParseRepoURL({
         url: res.application.url,
       });
+      setProvider(provider);
 
       return { ...res, provider };
     };
@@ -99,14 +109,14 @@ function ApplicationDetail({ className, name }: Props) {
 
   return (
     <Page
-      loading={loading}
+      loading={loading ? true : false}
       breadcrumbs={[{ page: PageRoute.Applications }]}
       title={name}
       className={className}
       topRight={
         <Flex align>
           <Button
-            loading={syncLoading}
+            loading={syncLoading ? true : false}
             onClick={() => {
               syncRequest(
                 applicationsClient.SyncApplication({
@@ -130,60 +140,70 @@ function ApplicationDetail({ className, name }: Props) {
         </Flex>
       }
     >
-      {syncError ? (
-        <Alert
-          severity="error"
-          title="Error syncing Application"
-          message={syncError.message}
+      <CallbackStateContextProvider
+        callbackState={{
+          page: formatURL(PageRoute.ApplicationDetail, { name }),
+          state: { authSuccess: false },
+        }}
+      >
+        {syncError ? (
+          <Alert
+            severity="error"
+            title="Error syncing Application"
+            message={syncError.message}
+          />
+        ) : (
+          authSuccess && (
+            <Alert severity="success" message="Authentication Successful" />
+          )
+        )}
+        <KeyValueTable
+          columns={4}
+          pairs={[
+            { key: "Name", value: application.name },
+            { key: "Deployment Type", value: application.deploymentType },
+            { key: "URL", value: application.url },
+            { key: "Path", value: application.path },
+          ]}
         />
-      ) : (
-        authSuccess && (
-          <Alert severity="success" message="Authentication Successful" />
-        )
-      )}
-      <KeyValueTable
-        columns={4}
-        pairs={[
-          { key: "Name", value: application.name },
-          { key: "Deployment Type", value: application.deploymentType },
-          { key: "URL", value: application.url },
-          { key: "Path", value: application.path },
-        ]}
-      />
-      <ReconciliationGraph
-        objects={reconciledObjects}
-        parentObject={application}
-        parentObjectKind="Application"
-      />
-      <h3>Source Conditions</h3>
-      <ConditionsTable conditions={application.source?.conditions} />
-      <h3>Automation Conditions</h3>
-      <ConditionsTable
-        conditions={
-          application.deploymentType == AutomationKind.Kustomize
-            ? application.kustomization?.conditions
-            : application.helmRelease?.conditions
-        }
-      />
+        <ReconciliationGraph
+          objects={reconciledObjects}
+          parentObject={application}
+          parentObjectKind="Application"
+        />
+        <h3>Source Conditions</h3>
+        <ConditionsTable conditions={application.source?.conditions} />
+        <h3>Automation Conditions</h3>
+        <ConditionsTable
+          conditions={
+            application.deploymentType == AutomationKind.Kustomize
+              ? application.kustomization?.conditions
+              : application.helmRelease?.conditions
+          }
+        />
 
-      <h3>Commits</h3>
-      <CommitsTable
-        // Get CommitsTable to retry after auth
-        app={application}
-        authSuccess={authSuccess}
-        onAuthClick={() => setGithubAuthModalOpen(true)}
-      />
-      <GithubDeviceAuthModal
-        bodyClassName="auth-modal-size"
-        onSuccess={() => {
-          setAuthSuccess(true);
-        }}
-        repoName={application.url}
-        onClose={() => {
-          setGithubAuthModalOpen(false);
-        }}
-        open={githubAuthModalOpen}
-      />
+        <h3>Commits</h3>
+        <CommitsTable
+          // Get CommitsTable to retry after auth
+          app={application}
+          authSuccess={authSuccess}
+          onAuthClick={() => {
+            if (provider === "Github") setGithubAuthModalOpen(true);
+          }}
+          provider={provider}
+        />
+        <GithubDeviceAuthModal
+          bodyClassName="auth-modal-size"
+          onSuccess={() => {
+            setAuthSuccess(true);
+          }}
+          repoName={application.url}
+          onClose={() => {
+            setGithubAuthModalOpen(false);
+          }}
+          open={githubAuthModalOpen}
+        />
+      </CallbackStateContextProvider>
     </Page>
   );
 }

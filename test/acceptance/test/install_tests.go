@@ -29,14 +29,14 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 	BeforeEach(func() {
 		By("Given I have a gitops binary installed on my local machine", func() {
-			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
+			Expect(FileExists(gitopsBinaryPath)).To(BeTrue())
 		})
 	})
 
 	It("Validate that gitops displays help text for 'install' command", func() {
 
 		By("When I run the command 'gitops install -h'", func() {
-			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " install -h")
+			sessionOutput = runCommandAndReturnSessionOutput(gitopsBinaryPath + " install -h")
 		})
 
 		By("Then I should see gitops help text displayed for 'install' command", func() {
@@ -69,7 +69,7 @@ Global Flags:
 	It("Validate that gitops displays help text for 'uninstall' command", func() {
 
 		By("When I run the command 'gitops uninstall -h'", func() {
-			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " uninstall -h")
+			sessionOutput = runCommandAndReturnSessionOutput(gitopsBinaryPath + " uninstall -h")
 		})
 
 		By("Then I should see gitops help text displayed for 'uninstall' command", func() {
@@ -95,7 +95,7 @@ Global Flags:
 		})
 
 		By("And I run 'gitops install' command", func() {
-			_, errOutput = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " install --config-repo=ssh://git@github.com/user/repo.git")
+			_, errOutput = runCommandAndReturnStringOutput(gitopsBinaryPath + " install --config-repo=ssh://git@github.com/user/repo.git")
 		})
 
 		By("Then I should see a quitting message", func() {
@@ -115,20 +115,20 @@ Global Flags:
 
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "git@github.com:" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
-		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 
 		installAndVerifyWego(namespace, appRepoRemoteURL)
 
 		By("When I run 'gitops uninstall' command without force flag it asks for confirmation", func() {
-			cmd := fmt.Sprintf("%s uninstall --namespace %s", WEGO_BIN_PATH, namespace)
+			cmd := fmt.Sprintf("%s uninstall --namespace %s", gitopsBinaryPath, namespace)
 			outputStream := gbytes.NewBuffer()
 			inputUser := bytes.NewBuffer([]byte("y\n"))
 
@@ -236,15 +236,15 @@ Global Flags:
 
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
-		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 
 		installAndVerifyWego(namespace, appRepoRemoteURL)
 
@@ -257,7 +257,7 @@ Global Flags:
 		Expect(crdErr).ShouldNot(HaveOccurred())
 
 		By("When I run 'gitops uninstall' command", func() {
-			runErr := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --force --namespace %s", WEGO_BIN_PATH, namespace))
+			runErr := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --force --namespace %s", gitopsBinaryPath, namespace))
 			Expect(runErr).ShouldNot(HaveOccurred())
 		})
 
@@ -281,18 +281,18 @@ Global Flags:
 
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
-		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 
 		By("When I try to install gitops in dry-run mode", func() {
-			installDryRunOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + fmt.Sprintf(" install --dry-run --config-repo=%s", appRepoRemoteURL))
+			installDryRunOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + fmt.Sprintf(" install --dry-run --config-repo=%s", appRepoRemoteURL))
 		})
 
 		By("Then I should see install dry-run output in the console", func() {
@@ -309,7 +309,7 @@ Global Flags:
 		installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 
 		By("When I try to uninstall gitops in dry-run mode", func() {
-			uninstallDryRunOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " uninstall --force --dry-run")
+			uninstallDryRunOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " uninstall --force --dry-run")
 		})
 
 		By("Then I should see uninstall dry-run output in the console", func() {
@@ -329,7 +329,7 @@ Global Flags:
 		})
 
 		By("When I run 'gitops uninstall' command", func() {
-			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --force --namespace %s", WEGO_BIN_PATH, WEGO_DEFAULT_NAMESPACE))
+			_ = runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s uninstall --force --namespace %s", gitopsBinaryPath, WEGO_DEFAULT_NAMESPACE))
 		})
 
 		_ = waitForNamespaceToTerminate(WEGO_DEFAULT_NAMESPACE, NAMESPACE_TERMINATE_TIMEOUT)
@@ -350,15 +350,15 @@ Global Flags:
 
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
-		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 
 		installAndVerifyWego(namespace, appRepoRemoteURL)
 

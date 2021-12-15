@@ -22,14 +22,14 @@ var _ = XDescribe("WEGO Help Tests", func() {
 	BeforeEach(func() {
 
 		By("Given I have a gitops binary installed on my local machine", func() {
-			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
+			Expect(FileExists(gitopsBinaryPath)).To(BeTrue())
 		})
 	})
 
 	It("Verify that gitops displays error message when provided with the wrong flag", func() {
 
 		By("When I run 'gitops foo'", func() {
-			command := exec.Command(WEGO_BIN_PATH, "foo")
+			command := exec.Command(gitopsBinaryPath, "foo")
 			sessionOutput, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
@@ -43,7 +43,7 @@ var _ = XDescribe("WEGO Help Tests", func() {
 	It("Verify that gitops help flag prints the help text", func() {
 
 		By("When I run the command 'gitops --help' ", func() {
-			stringOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " --help")
+			stringOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " --help")
 		})
 
 		By("Then I should see help message printed for gitops", func() {
@@ -60,7 +60,7 @@ var _ = XDescribe("WEGO Help Tests", func() {
 	It("Verify that gitops app help flag prints the help text", func() {
 
 		By("When I run the command 'gitops app -h' ", func() {
-			stringOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app -h")
+			stringOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " app -h")
 		})
 
 		By("Then I should see help message printed for gitops app", func() {
@@ -75,7 +75,7 @@ var _ = XDescribe("WEGO Help Tests", func() {
 	It("Verify that gitops add app help flag prints the help text", func() {
 
 		By("When I run the command 'gitops add app -h' ", func() {
-			stringOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " add app -h")
+			stringOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " add app -h")
 		})
 
 		By("Then I should see help message printed for gitops add app", func() {
@@ -99,7 +99,7 @@ var _ = XDescribe("WEGO Help Tests", func() {
 	It("Verify that gitops get app help flag prints the help text", func() {
 
 		By("When I run the command 'gitops get app -h' ", func() {
-			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " get app -h")
+			sessionOutput = runCommandAndReturnSessionOutput(gitopsBinaryPath + " get app -h")
 		})
 
 		By("Then I should see help message printed for gitops get app", func() {
@@ -113,7 +113,7 @@ var _ = XDescribe("WEGO Help Tests", func() {
 	It("Verify that gitops get apps help flag prints the help text", func() {
 
 		By("When I run the command 'gitops get apps -h' ", func() {
-			stringOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get apps -h")
+			stringOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " get apps -h")
 		})
 
 		By("Then I should see help message printed for gitops get apps", func() {

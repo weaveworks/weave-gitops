@@ -7,7 +7,6 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"os"
 	"path/filepath"
 	"time"
 
@@ -55,15 +54,15 @@ var _ = Describe("AddApplication", func() {
 
 	Context("GitHub", func() {
 
-		var gh *ghAPI.Client
-		var gp gitprovider.Client
-		var githubOrg = "weaveworks-gitops-test"
-		var githubToken = os.Getenv("GITHUB_TOKEN")
-		var sourceRepoURL string
-		var sourceRepo gitprovider.OrgRepository
-		var sourceRef *gitprovider.OrgRepositoryRef
-		var addAppRequest *pb.AddApplicationRequest
-		var appName string
+		var (
+			gh            *ghAPI.Client
+			gp            gitprovider.Client
+			sourceRepoURL string
+			sourceRepo    gitprovider.OrgRepository
+			sourceRef     *gitprovider.OrgRepositoryRef
+			addAppRequest *pb.AddApplicationRequest
+			appName       string
+		)
 
 		BeforeEach(func() {
 			gh = helpers.NewGithubClient(ctx, githubToken)
@@ -71,7 +70,7 @@ var _ = Describe("AddApplication", func() {
 			Expect(err).NotTo(HaveOccurred())
 			gp, err = github.NewClient(
 				gitprovider.WithDestructiveAPICalls(true),
-				gitprovider.WithOAuth2Token(os.Getenv("GITHUB_TOKEN")),
+				gitprovider.WithOAuth2Token(githubToken),
 			)
 			Expect(err).NotTo(HaveOccurred())
 			sourceRepoURL = fmt.Sprintf("https://github.com/%s/%s", githubOrg, sourceRepoName)
@@ -466,18 +465,17 @@ var _ = Describe("AddApplication", func() {
 	})
 
 	Context("GitLab", func() {
-		var gitlabGroup string
-		var gitlabToken string
-		var gitlabProviderClient gitprovider.Client
-		var gitlabAPIClient *glAPI.Client
-		var sourceRepoURL string
-		var sourceRepo gitprovider.OrgRepository
-		var sourceRef *gitprovider.OrgRepositoryRef
-		var addAppRequest *pb.AddApplicationRequest
-		var appName string
+		var (
+			gitlabProviderClient gitprovider.Client
+			gitlabAPIClient      *glAPI.Client
+			sourceRepoURL        string
+			sourceRepo           gitprovider.OrgRepository
+			sourceRef            *gitprovider.OrgRepositoryRef
+			addAppRequest        *pb.AddApplicationRequest
+			appName              string
+		)
+
 		BeforeEach(func() {
-			gitlabGroup = os.Getenv("GITLAB_ORG")
-			gitlabToken = os.Getenv("GITLAB_TOKEN")
 			ctx = middleware.ContextWithGRPCAuth(context.Background(), gitlabToken)
 			gitlabProviderClient, err = gitlab.NewClient(
 				gitlabToken,
@@ -487,7 +485,7 @@ var _ = Describe("AddApplication", func() {
 
 			gitlabAPIClient, err = glAPI.NewClient(gitlabToken)
 			Expect(err).NotTo(HaveOccurred())
-			sourceRepoURL = fmt.Sprintf("https://gitlab.com/%s/%s", gitlabGroup, sourceRepoName)
+			sourceRepoURL = fmt.Sprintf("https://gitlab.com/%s/%s", gitlabOrg, sourceRepoName)
 
 			sourceRepo, sourceRef, err = helpers.CreatePopulatedSourceRepo(ctx, gitlabProviderClient, sourceRepoURL)
 			Expect(err).NotTo(HaveOccurred())
@@ -527,7 +525,7 @@ var _ = Describe("AddApplication", func() {
 				gl, err := helpers.NewFileFetcher(gitproviders.GitProviderGitLab, gitlabToken)
 				Expect(err).NotTo(HaveOccurred())
 
-				actual, err := gl.GetFilesForPullRequest(ctx, 1, gitlabGroup, sourceRepoName, fs)
+				actual, err := gl.GetFilesForPullRequest(ctx, 1, gitlabOrg, sourceRepoName, fs)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedKustomization := kustomizev1.KustomizationSpec{
@@ -579,7 +577,7 @@ var _ = Describe("AddApplication", func() {
 
 				defer func() { Expect(sourceRepo.Delete(ctx)).To(Succeed()) }()
 
-				configRepoURL := fmt.Sprintf("https://gitlab.com/%s/%s", gitlabGroup, configRepoName)
+				configRepoURL := fmt.Sprintf("https://gitlab.com/%s/%s", gitlabOrg, configRepoName)
 
 				configRepo, configRef, err := helpers.CreateRepo(ctx, gitlabProviderClient, configRepoURL)
 				Expect(err).NotTo(HaveOccurred())
@@ -605,7 +603,7 @@ var _ = Describe("AddApplication", func() {
 				fetcher, err := helpers.NewFileFetcher(gitproviders.GitProviderGitLab, gitlabToken)
 				Expect(err).NotTo(HaveOccurred())
 
-				actual, err := fetcher.GetFilesForPullRequest(ctx, 1, gitlabGroup, configRepoName, fs)
+				actual, err := fetcher.GetFilesForPullRequest(ctx, 1, gitlabOrg, configRepoName, fs)
 				Expect(err).NotTo(HaveOccurred())
 
 				normalizedUrl, err := gitproviders.NewRepoURL(addAppRequest.Url)
@@ -798,5 +796,4 @@ var _ = Describe("AddApplication", func() {
 			})
 		})
 	})
-
 })
