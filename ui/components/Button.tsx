@@ -3,7 +3,6 @@ import { CircularProgress } from "@material-ui/core";
 import MaterialButton, { ButtonProps } from "@material-ui/core/Button/Button";
 import * as React from "react";
 import styled from "styled-components";
-import { theme } from "..";
 
 /** Button Properties */
 export interface Props extends ButtonProps {
@@ -39,7 +38,7 @@ const Button = styled(UnstyledButton)`
   }
   &.MuiButton-outlined {
     padding: 8px 12px;
-    border-color: ${theme.colors.neutral20};
+    border-color: ${(props) => props.theme.colors.neutral20};
   }
 `;
 
