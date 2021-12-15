@@ -169,7 +169,7 @@ func ViperGetStringMapString(key string) map[string]string {
 	}
 
 	ss := viper.GetStringSlice(key)
-	out := make(map[string]string, len(ss))
+	out := map[string]string{}
 
 	for _, pair := range ss {
 		kv := strings.SplitN(pair, "=", 2)

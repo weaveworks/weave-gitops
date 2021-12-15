@@ -38,6 +38,17 @@ var options struct {
 	gitHostTypes      map[string]string
 }
 
+// Only want AutomaticEnv to be called once!
+func init() {
+	// Setup flag to env mapping:
+	//   config-repo => GITOPS_CONFIG_REPO
+	replacer := strings.NewReplacer("-", "_")
+	viper.SetEnvKeyReplacer(replacer)
+	viper.SetEnvPrefix("GITOPS")
+
+	viper.AutomaticEnv()
+}
+
 func RootCmd(client *resty.Client) *cobra.Command {
 	cliRunner := &runner.CLIRunner{}
 	osysClient := osys.New()
@@ -88,10 +99,11 @@ func RootCmd(client *resty.Client) *cobra.Command {
 `, wego.DefaultNamespace),
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			configureLogger()
-			err := initViper(cmd)
+
+			// Sync flag values and env vars.
+			err := viper.BindPFlags(cmd.Flags())
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error initing viper: %v\n", err)
-				os.Exit(1)
+				log.Fatalf("Error binding viper to flags: %v", err)
 			}
 
 			ns, _ := cmd.Flags().GetString("namespace")
@@ -143,13 +155,4 @@ func configureLogger() {
 	if options.verbose {
 		log.SetLevel(log.DebugLevel)
 	}
-}
-
-func initViper(cmd *cobra.Command) error {
-	replacer := strings.NewReplacer("-", "_")
-	viper.SetEnvKeyReplacer(replacer)
-	viper.SetEnvPrefix("GITOPS")
-	viper.AutomaticEnv()
-
-	return viper.BindPFlags(cmd.Flags())
 }

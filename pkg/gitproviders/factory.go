@@ -44,7 +44,6 @@ func buildGitProvider(config Config) (gitprovider.Client, string, error) {
 
 		// Quirk of ggp, if using github.com or gitlab.com and you prepend
 		// that with https:// you end up with https://https//github.com !!!
-		// What is that...
 		hostname := github.DefaultDomain
 		if config.Hostname != "" && config.Hostname != github.DefaultDomain {
 			// Quirk of ggp, have to specify scheme with custom domain
