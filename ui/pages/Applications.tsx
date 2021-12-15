@@ -42,7 +42,7 @@ function Applications({ className }: Props) {
 
   return (
     <Page className={className}>
-      <Flex align>
+      <Flex align start>
         <h2>Applications</h2>
         <Spacer padding="small" />
         <PollingIndicator loading={loading} interval="30" />

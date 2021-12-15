@@ -17,7 +17,7 @@ function ActionBar({ className, children }: Props) {
 }
 
 export default styled(ActionBar)`
-  margin: 24px 0px;
+  margin: 12px 0px;
   ${Button} {
     margin-right: 12px;
   }
