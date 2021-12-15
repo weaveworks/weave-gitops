@@ -152,7 +152,6 @@ func (ca ClusterAutomation) BootstrapManifests() []AutomationManifest {
 }
 
 func (ca ClusterAutomation) GenerateWegoConfigManifest(clusterName string, fluxNamespace string, wegoNamespace string) (AutomationManifest, error) {
-
 	config := kube.WegoConfig{
 		FluxNamespace: fluxNamespace,
 		WegoNamespace: wegoNamespace,
