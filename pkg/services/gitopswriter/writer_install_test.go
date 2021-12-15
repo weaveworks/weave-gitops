@@ -59,7 +59,6 @@ var _ = Describe("Associate Cluster", func() {
 			systemQualifiedPath(automation.SystemKustResourcePath):  ca.SystemKustResourceManifest.Content,
 			systemQualifiedPath(automation.UserKustResourcePath):    ca.UserKustResourceManifest.Content,
 			systemQualifiedPath(automation.WegoAppPath):             ca.WegoAppManifest.Content,
-			systemQualifiedPath(automation.WegoConfigPath):          ca.WegoConfigManifest.Content,
 			userQualifiedPath(".keep"):                              []byte(strconv.AppendQuote(nil, "# keep")),
 		}
 
@@ -78,7 +77,7 @@ var _ = Describe("Associate Cluster", func() {
 
 	Describe("Passes in correct files for pull request", func() {
 		It("associates a cluster", func() {
-			err := gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, false)
+			err := gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, "flux-system", false)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(gitClient.CloneCallCount()).To(Equal(0)) // PR case
@@ -96,7 +95,7 @@ var _ = Describe("Associate Cluster", func() {
 
 	Describe("Passes in correct files for auto-merge", func() {
 		It("associates a cluster", func() {
-			err := gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, true)
+			err := gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace,"flux-system", true)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			Expect(gitClient.CloneCallCount()).To(Equal(1))
