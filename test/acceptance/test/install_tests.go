@@ -161,15 +161,15 @@ Global Flags:
 
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "git@github.com:" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
-		repoAbsolutePath := initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+		repoAbsolutePath := initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 
 		installAndVerifyWegoViaPullRequest(namespace, appRepoRemoteURL, repoAbsolutePath)
 
@@ -186,7 +186,7 @@ Global Flags:
 		installAndVerifyWegoViaPullRequest(namespace, appRepoRemoteURL, repoAbsolutePath)
 
 		selectCluster(cluster1Context)
-		cmd := fmt.Sprintf("%s uninstall --namespace %s --force", WEGO_BIN_PATH, namespace)
+		cmd := fmt.Sprintf("%s uninstall --namespace %s --force", gitopsBinaryPath, namespace)
 		c := exec.Command("sh", "-c", cmd)
 		c.Stdout = os.Stdout
 		c.Stderr = os.Stderr
@@ -207,7 +207,7 @@ Global Flags:
 
 		selectCluster(cluster2Context)
 
-		cmd = fmt.Sprintf("%s uninstall --namespace %s --force", WEGO_BIN_PATH, namespace)
+		cmd = fmt.Sprintf("%s uninstall --namespace %s --force", gitopsBinaryPath, namespace)
 		c = exec.Command("sh", "-c", cmd)
 		c.Stdout = os.Stdout
 		c.Stderr = os.Stderr
