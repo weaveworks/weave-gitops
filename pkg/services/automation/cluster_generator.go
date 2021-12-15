@@ -31,7 +31,6 @@ type ClusterAutomation struct {
 	SystemKustResourceManifest  AutomationManifest
 	UserKustResourceManifest    AutomationManifest
 	WegoAppManifest             AutomationManifest
-	WegoConfigManifest          AutomationManifest
 }
 
 const (
@@ -182,16 +181,14 @@ func (ca ClusterAutomation) GenerateWegoConfigManifest(clusterName string, fluxN
 		return AutomationManifest{}, fmt.Errorf("failed marshalling wego config: %w", err)
 	}
 
-	ca.WegoConfigManifest = AutomationManifest{
+	return AutomationManifest{
 		Path:    git.GetSystemQualifiedPath(clusterName, WegoConfigPath),
 		Content: wegoConfigManifest,
-	}
-
-	return ca.WegoConfigManifest, nil
+	}, nil
 }
 
 func (ca ClusterAutomation) Manifests() []AutomationManifest {
-	return append(ca.BootstrapManifests(), ca.GitOpsRuntime, ca.SystemKustomizationManifest, ca.WegoConfigManifest)
+	return append(ca.BootstrapManifests(), ca.GitOpsRuntime, ca.SystemKustomizationManifest)
 }
 
 func GetClusterHash(c models.Cluster) string {

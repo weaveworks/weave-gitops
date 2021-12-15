@@ -29,7 +29,7 @@ var _ GitOpsDirectoryWriter = &gitOpsDirectoryWriterSvc{}
 type GitOpsDirectoryWriter interface {
 	AddApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error
 	RemoveApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error
-	AssociateCluster(ctx context.Context, cluster models.Cluster, configURL gitproviders.RepoURL, namespace string, autoMerge bool) error
+	AssociateCluster(ctx context.Context, cluster models.Cluster, configURL gitproviders.RepoURL, namespace string, fluxNamespace string, autoMerge bool) error
 }
 
 type gitOpsDirectoryWriterSvc struct {
@@ -193,13 +193,20 @@ func (dw *gitOpsDirectoryWriterSvc) AssociateCluster(
 	cluster models.Cluster,
 	configURL gitproviders.RepoURL,
 	namespace string,
+	fluxNamespace string,
 	autoMerge bool) error {
 	auto, err := dw.Automation.GenerateClusterAutomation(ctx, cluster, configURL, namespace)
 	if err != nil {
 		return fmt.Errorf("failed to generate cluster automation: %w", err)
 	}
 
+	wegoConfigManifest, err := auto.GenerateWegoConfigManifest(cluster.Name, fluxNamespace, namespace)
+	if err != nil {
+		return fmt.Errorf("failed generating wego config manifest %w", err)
+	}
+
 	manifests := auto.Manifests()
+	manifests = append(manifests, wegoConfigManifest)
 
 	defaultBranch, err := dw.RepoWriter.GetDefaultBranch(ctx)
 	if err != nil {

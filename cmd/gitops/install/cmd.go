@@ -172,7 +172,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed applying wego config manifest %w", err)
 	}
 
-	err = gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, installParams.AutoMerge)
+	err = gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, fluxNamespace, installParams.AutoMerge)
 	if err != nil {
 		return err
 	}
