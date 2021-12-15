@@ -41,11 +41,11 @@ var _ = XDescribe("Weave GitOps UI Test", func() {
 			_, _, err = ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
+			Expect(FileExists(gitopsBinaryPath)).To(BeTrue())
 		})
 
 		By("And I run gitops ui", func() {
-			_ = runCommandAndReturnSessionOutput(fmt.Sprintf("%s ui run &", WEGO_BIN_PATH))
+			_ = runCommandAndReturnSessionOutput(fmt.Sprintf("%s ui run &", gitopsBinaryPath))
 		})
 
 		By("And I open up a browser", func() {
@@ -86,12 +86,12 @@ var _ = XDescribe("Weave GitOps UI Test", func() {
 		tip := generateTestInputs()
 		appName := tip.appRepoName
 		private := true
-		appRepoRemoteURL := "https://github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "https://github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
 
 		dashboardPage = pages.GetDashboardPageElements(webDriver)
 		addAppPage = pages.GetAddAppPageElements(webDriver)
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
 		By("When I navigate to Add Application page", func() {
@@ -103,8 +103,8 @@ var _ = XDescribe("Weave GitOps UI Test", func() {
 		})
 
 		By("When I create an app repo with workload that does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
@@ -146,19 +146,19 @@ var _ = XDescribe("Weave GitOps UI Test", func() {
 		deploymentType1 := "Helm"
 		deploymentType2 := "Kustomize"
 		appManifestFilePath := tip.appManifestFilePath
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
 		helmRepoURL := "https://charts.kube-ops.io"
 		appDetailsPage := pages.GetAppDetailsPageElements(webDriver)
 
 		addCommand1 := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --config-repo=" + appRepoRemoteURL + " --auto-merge=true"
 		addCommand2 := "add app . --deployment-type=kustomize --auto-merge=true"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		defer deleteWorkload(workloadName2, tip.workloadNamespace)
 		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, EVENTUALLY_DEFAULT_TIMEOUT)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -166,7 +166,7 @@ var _ = XDescribe("Weave GitOps UI Test", func() {
 		})
 
 		By("When I create a public repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, public, GITHUB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, public, githubOrg)
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 

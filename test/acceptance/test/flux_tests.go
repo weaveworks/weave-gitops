@@ -17,14 +17,14 @@ var _ = Describe("Weave GitOps Flux Tests", func() {
 	BeforeEach(func() {
 
 		By("Given I have a gitops binary installed on my local machine", func() {
-			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
+			Expect(FileExists(gitopsBinaryPath)).To(BeTrue())
 		})
 	})
 
 	It("Verify that gitops-flux displays error message when provided with the wrong flag", func() {
 
 		By("When I run the command 'gitops flux foo'", func() {
-			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " flux foo")
+			sessionOutput = runCommandAndReturnSessionOutput(gitopsBinaryPath + " flux foo")
 		})
 
 		By("Then I should see gitops error message", func() {
@@ -35,7 +35,7 @@ var _ = Describe("Weave GitOps Flux Tests", func() {
 	It("Verify that gitops-flux can print out the version of flux", func() {
 
 		By("When I run the command 'gitops flux -v'", func() {
-			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " flux -v")
+			sessionOutput = runCommandAndReturnSessionOutput(gitopsBinaryPath + " flux -v")
 		})
 
 		By("Then I should see flux version", func() {

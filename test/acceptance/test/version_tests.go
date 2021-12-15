@@ -14,14 +14,14 @@ var _ = Describe("Weave GitOps Version Test", func() {
 	BeforeEach(func() {
 
 		By("Given I have a gitops binary installed on my local machine", func() {
-			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
+			Expect(FileExists(gitopsBinaryPath)).To(BeTrue())
 		})
 	})
 
 	It("SmokeTestShort - Verify that command gitops version prints the version information", func() {
 
 		By("When I run the command 'gitops version'", func() {
-			session = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " version")
+			session = runCommandAndReturnSessionOutput(gitopsBinaryPath + " version")
 		})
 
 		By("Then I should see the gitops version printed with newline character", func() {
