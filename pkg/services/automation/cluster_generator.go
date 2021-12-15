@@ -57,7 +57,6 @@ func createClusterSourceName(gitSourceURL gitproviders.RepoURL) string {
 }
 
 func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster models.Cluster, configURL gitproviders.RepoURL, namespace string) (ClusterAutomation, error) {
-
 	secretRef, err := a.GetSecretRef(ctx, configURL)
 	if err != nil {
 		return ClusterAutomation{}, err
