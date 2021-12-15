@@ -11,6 +11,7 @@ import (
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"sigs.k8s.io/yaml"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -23,10 +24,12 @@ import (
 )
 
 var (
-	application wego.Application
-	realFlux    flux.Flux
-	fluxDir     string
-	goatPaths   map[string]bool
+	application                  wego.Application
+	clusterUserKustomization     []byte
+	clusterUserKustomizationPath string
+	fluxDir                      string
+	goatPaths                    map[string]bool
+	realFlux                     flux.Flux
 )
 
 type dummyDirEntry struct {
@@ -87,11 +90,14 @@ func createRemoveDirWriter() GitOpsDirectoryWriter {
 	return NewGitOpsDirectoryWriter(automationSvc, repoWriter, osysClient, log)
 }
 
-// Run 'gitops add app' and gather the resources we expect to be generated
+// Run 'gitops add app' using cluster name of test-cluster and gathers the resources
+// we expect to be generated
 func runAddAndCollectInfo() error {
-	application = automation.AppToWegoApp(app)
+	return runAddAndCollectInfoWithClusterName("test-cluster")
+}
 
-	if err := gitOpsDirWriter.AddApplication(context.Background(), app, "test-cluster", true); err != nil {
+func runAddAndCollectInfoWithClusterName(clusterName string) error {
+	if err := gitOpsDirWriter.AddApplication(context.Background(), app, clusterName, true); err != nil {
 		return err
 	}
 
@@ -105,6 +111,29 @@ func checkRemoveResults() error {
 	}
 
 	return nil
+}
+
+// See if the cluster kustomization has a reference to the app
+func checkClusterKustomizationForApp(name string) error {
+	if clusterUserKustomization == nil {
+		return errors.New("No cluster user kustomization")
+	}
+
+	manifestMap := map[string]interface{}{}
+
+	Expect(yaml.Unmarshal(clusterUserKustomization, &manifestMap)).Should(Succeed())
+	r := manifestMap["resources"]
+
+	if r != nil {
+		l := manifestMap["resources"].([]interface{})
+		for _, a := range l {
+			if strings.Contains(a.(string), name) {
+				return nil
+			}
+		}
+	}
+
+	return errors.New("Not Found")
 }
 
 var _ = Describe("Remove", func() {
@@ -143,6 +172,10 @@ var _ = Describe("Remove", func() {
 
 			gitClient.WriteStub = func(path string, manifest []byte) error {
 				storeGOATPath(path)
+				if strings.HasSuffix(path, "user/kustomization.yaml") {
+					clusterUserKustomization = manifest
+					clusterUserKustomizationPath = path
+				}
 				return nil
 			}
 
@@ -321,6 +354,27 @@ var _ = Describe("Remove", func() {
 				Expect(runAddAndCollectInfo()).To(Succeed())
 				Expect(gitOpsDirWriter.RemoveApplication(context.Background(), app, "test-cluster", true)).To(Succeed())
 				Expect(checkRemoveResults()).To(Succeed())
+			})
+			It("removes cluster resources for non-helm app with configRepo = <url> and eksctl cluster name", func() {
+
+				app.GitSourceURL = createRepoURL("ssh://git@github.com/user/wego-fork-test.git")
+				app.ConfigRepo = createRepoURL("ssh://git@github.com/user/external.git")
+
+				cname := "arn:aws:eks:us-west-2:01234567890:cluster/default-my-wego-control-plan"
+				Expect(runAddAndCollectInfoWithClusterName(cname)).To(Succeed())
+				// Check that a resource was added
+				Expect(checkClusterKustomizationForApp(app.Name)).To(Succeed())
+				gitClient.CloneStub = func(arg1 context.Context, dir string, arg3 string, arg4 string) (bool, error) {
+					if clusterUserKustomization != nil {
+						p := filepath.Join(dir, filepath.Dir(clusterUserKustomizationPath))
+						Expect(os.MkdirAll(p, 0700)).To(Succeed(), "failed to create git dir")
+						Expect(os.WriteFile(filepath.Join(p, "kustomization.yaml"), clusterUserKustomization, 0666)).To(Succeed())
+					}
+
+					return false, nil
+				}
+				Expect(gitOpsDirWriter.RemoveApplication(context.Background(), app, cname, true)).To(Succeed())
+				Expect(checkClusterKustomizationForApp(app.Name)).ToNot(Succeed())
 			})
 		})
 	})

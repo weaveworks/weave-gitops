@@ -9,6 +9,12 @@ import (
 	"strconv"
 
 	"github.com/pkg/errors"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/selection"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	kyaml "sigs.k8s.io/yaml"
+
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/manifests"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -16,11 +22,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/selection"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	kyaml "sigs.k8s.io/yaml"
 )
 
 type InstallParams struct {
@@ -32,8 +33,9 @@ type InstallParams struct {
 func (g *Gitops) Install(params InstallParams) (map[string][]byte, error) {
 	ctx := context.Background()
 
-	g.logger.Actionf("Validating Weave Gitops installation")
-
+	// Avoid outputting anything before this line as it will mess up the
+	// output from validate in case of a dry-run.
+	// If you must, output something to Debug which can be disabled.
 	if err := g.validateWegoInstall(ctx, params); err != nil {
 		return nil, err
 	}
@@ -198,7 +200,7 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 	manifests["flux-system-kustomization-resource.yaml"] = system
 
 	user, err := g.genKustomize(automation.ConstrainResourceName(fmt.Sprintf("%s-user", cname)), sourceName,
-		prefixForFlux(filepath.Join(".", clusterPath, git.WegoClusterUserWorloadDir)), params)
+		prefixForFlux(filepath.Join(".", clusterPath, git.WegoClusterUserWorkloadDir)), params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user kustomization manifest: %w", err)
 	}

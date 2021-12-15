@@ -1063,7 +1063,7 @@ func RegisterApplicationsHandlerFromEndpoint(ctx context.Context, mux *runtime.S
 
 // RegisterApplicationsHandler registers the http handlers for service Applications to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
-func RegisterApplicationsHandler(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
+func RegisterApplicationsHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
 	return RegisterApplicationsHandlerClient(ctx, mux, NewApplicationsClient(conn))
 }
 

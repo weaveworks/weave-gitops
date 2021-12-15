@@ -5,9 +5,9 @@ deps:
     owner: googleapis
     repository: googleapis
     branch: main
-    commit: 40f07f5b563941f2b20b991a7aedd53d
-    digest: b1-Iv8fTR4AKXwNW80Ey6K5tY8cP053y_95sB5fro9IWZo=
-    create_time: 2021-12-02T15:07:41.896892Z
+    commit: 41d89560d654407a9081d90f9b2eab51
+    digest: b1-CgJ_rPGRYIxB7-LVIIL2ZHGZVQ8RTpnMJNIeNhame18=
+    create_time: 2021-12-10T15:03:36.448687Z
   - remote: buf.build
     owner: grpc-ecosystem
     repository: grpc-gateway

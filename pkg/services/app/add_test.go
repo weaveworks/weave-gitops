@@ -329,7 +329,7 @@ var _ = Describe("New directory structure", func() {
 		Expect(manifestsByPath[filepath.Join(git.WegoRoot, git.WegoAppDir, addParams.Name, "kustomization.yaml")]).ToNot(BeNil())
 		cname, err := kubeClient.GetClusterName(context.Background())
 		Expect(err).To(BeNil())
-		clusterKustomizeFile := manifestsByPath[filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, "/user/kustomization.yaml")]
+		clusterKustomizeFile := manifestsByPath[filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterUserWorkloadDir, "kustomization.yaml")]
 		Expect(clusterKustomizeFile).ToNot(BeNil())
 
 		manifestMap := map[string]interface{}{}
@@ -339,6 +339,7 @@ var _ = Describe("New directory structure", func() {
 		Expect(len(r)).To(Equal(1))
 		Expect(r[0].(string)).To(Equal("../../../apps/" + addParams.Name))
 	})
+
 	It("adds second app to the cluster kustomization file", func() {
 		addParams.SourceType = wego.SourceTypeGit
 		origName := addParams.Name
@@ -348,7 +349,7 @@ var _ = Describe("New directory structure", func() {
 		Expect(manifestsByPath[filepath.Join(git.WegoRoot, git.WegoAppDir, addParams.Name, "kustomization.yaml")]).ToNot(BeNil())
 		cname, err := kubeClient.GetClusterName(context.Background())
 		Expect(err).To(BeNil())
-		clusterKustomizeFile := manifestsByPath[filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, "user", "kustomization.yaml")]
+		clusterKustomizeFile := manifestsByPath[filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterUserWorkloadDir, "kustomization.yaml")]
 		Expect(clusterKustomizeFile).ToNot(BeNil())
 		manifestMap := map[string]interface{}{}
 
@@ -358,6 +359,34 @@ var _ = Describe("New directory structure", func() {
 		Expect(len(r)).To(Equal(2))
 		Expect(r[0].(string)).To(Equal("../../../apps/" + origName))
 		Expect(r[1].(string)).To(Equal("../../../apps/" + addParams.Name))
+	})
+
+	It("deals with a cluster dir with additional subdirectories", func() {
+		kubeClient.GetClusterNameReturns("arn:aws:eks:us-west-2:01234567890:cluster/default-my-wego-control-plan", nil)
+		appNames := []string{
+			"oracle",
+			"sqlserver",
+		}
+		for _, a := range appNames {
+			addParams.Name = a
+			Expect(appSrv.Add(gitClient, gitProviders, addParams)).Should(Succeed())
+		}
+
+		Expect(manifestsByPath[filepath.Join(git.WegoRoot, git.WegoAppDir, addParams.Name, "kustomization.yaml")]).ToNot(BeNil())
+		cname, err := kubeClient.GetClusterName(context.Background())
+		Expect(err).To(BeNil())
+		clusterKustomizeFile := manifestsByPath[filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterUserWorkloadDir, "kustomization.yaml")]
+		Expect(clusterKustomizeFile).ToNot(BeNil())
+		manifestMap := map[string]interface{}{}
+
+		Expect(yaml.Unmarshal(clusterKustomizeFile, &manifestMap)).Should(Succeed())
+
+		resources := manifestMap["resources"].([]interface{})
+		Expect(len(resources)).To(Equal(len(appNames)))
+		for i, name := range appNames {
+			Expect(resources[i].(string)).To(Equal("../../../../apps/" + name))
+		}
+
 	})
 
 })
