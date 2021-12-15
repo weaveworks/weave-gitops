@@ -35,6 +35,7 @@ const Button = styled(UnstyledButton)`
   &.MuiButton-root {
     line-height: 1;
     border-radius: 2px;
+    font-weight: 600;
   }
   &.MuiButton-outlined {
     padding: 8px 12px;
