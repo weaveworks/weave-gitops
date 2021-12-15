@@ -408,7 +408,7 @@ var _ = Describe("Generate cluster manifests", func() {
 
 		// Private repo (default visibility in suite is "private")
 
-		clusterAutomation, err := generator.GenerateClusterAutomation(context.Background(), cluster, url, namespace, namespace)
+		clusterAutomation, err := generator.GenerateClusterAutomation(context.Background(), cluster, url, namespace)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		// Ensure correct flux manifests get created
