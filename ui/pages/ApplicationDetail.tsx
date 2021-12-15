@@ -1,12 +1,12 @@
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
+import ActionBar from "../components/ActionBar";
 import Alert from "../components/Alert";
 import Button from "../components/Button";
 import CommitsTable from "../components/CommitsTable";
 import ConditionsTable from "../components/ConditionsTable";
 import ErrorPage from "../components/ErrorPage";
-import Flex from "../components/Flex";
 import GithubDeviceAuthModal from "../components/GithubDeviceAuthModal";
 import KeyValueTable from "../components/KeyValueTable";
 import LoadingPage from "../components/LoadingPage";
@@ -113,10 +113,51 @@ function ApplicationDetail({ className, name }: Props) {
       breadcrumbs={[{ page: PageRoute.Applications }]}
       title={name}
       className={className}
-      topRight={
-        <Flex align>
+    >
+      <CallbackStateContextProvider
+        callbackState={{
+          page: formatURL(PageRoute.ApplicationDetail, { name }),
+          state: { authSuccess: false },
+        }}
+      >
+        {syncError ? (
+          <Alert
+            severity="error"
+            title="Error syncing Application"
+            message={syncError.message}
+          />
+        ) : (
+          authSuccess && (
+            <Alert severity="success" message="Authentication Successful" />
+          )
+        )}
+        <KeyValueTable
+          columns={4}
+          pairs={[
+            { key: "Name", value: application.name },
+            { key: "Deployment Type", value: application.deploymentType },
+            { key: "URL", value: application.url },
+            { key: "Path", value: application.path },
+          ]}
+        />
+        <ReconciliationGraph
+          objects={reconciledObjects}
+          parentObject={application}
+          parentObjectKind="Application"
+        />
+        <h3>Source Conditions</h3>
+        <ConditionsTable conditions={application.source?.conditions} />
+        <h3>Automation Conditions</h3>
+        <ConditionsTable
+          conditions={
+            application.deploymentType == AutomationKind.Kustomize
+              ? application.kustomization?.conditions
+              : application.helmRelease?.conditions
+          }
+        />
+        <ActionBar>
           <Button
-            loading={syncLoading ? true : false}
+            loading={syncLoading}
             onClick={() => {
               syncRequest(
                 applicationsClient.SyncApplication({
@@ -137,26 +178,7 @@ function ApplicationDetail({ className, name }: Props) {
           >
             Remove App
           </Button>
-        </Flex>
-      }
-    >
-      <CallbackStateContextProvider
-        callbackState={{
-          page: formatURL(PageRoute.ApplicationDetail, { name }),
-          state: { authSuccess: false },
-        }}
-      >
-        {syncError ? (
-          <Alert
-            severity="error"
-            title="Error syncing Application"
-            message={syncError.message}
-          />
-        ) : (
-          authSuccess && (
-            <Alert severity="success" message="Authentication Successful" />
-          )
-        )}
+        </ActionBar>
         <KeyValueTable
           columns={4}
           pairs={[
