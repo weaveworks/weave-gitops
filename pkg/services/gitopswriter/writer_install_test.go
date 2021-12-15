@@ -51,6 +51,9 @@ var _ = Describe("Associate Cluster", func() {
 		ca, err := gitOpsDirWriter.(*gitOpsDirectoryWriterSvc).Automation.GenerateClusterAutomation(ctx, cluster, configURL, namespace)
 		Expect(err).ShouldNot(HaveOccurred())
 
+		configManifest, err := ca.GenerateWegoConfigManifest(cluster.Name, "flux-system", namespace)
+		Expect(err).ShouldNot(HaveOccurred())
+
 		expectedFiles = map[string][]byte{
 			systemQualifiedPath(automation.AppCRDPath):              ca.AppCRD.Content,
 			systemQualifiedPath(automation.RuntimePath):             ca.GitOpsRuntime.Content,
@@ -59,6 +62,7 @@ var _ = Describe("Associate Cluster", func() {
 			systemQualifiedPath(automation.SystemKustResourcePath):  ca.SystemKustResourceManifest.Content,
 			systemQualifiedPath(automation.UserKustResourcePath):    ca.UserKustResourceManifest.Content,
 			systemQualifiedPath(automation.WegoAppPath):             ca.WegoAppManifest.Content,
+			systemQualifiedPath(automation.WegoConfigPath):          configManifest.Content,
 			userQualifiedPath(".keep"):                              []byte(strconv.AppendQuote(nil, "# keep")),
 		}
 
