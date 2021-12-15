@@ -16,15 +16,15 @@ type Props = {
 function PollingIndicator({ className, loading, interval }: Props) {
   const date = new Date();
   const [updated, setUpdated] = React.useState(date.toTimeString().slice(0, 8));
-  const [indicator, setIndicator] = React.useState(false);
+  const [visible, setVisible] = React.useState(false);
 
   React.useEffect(() => {
     loading
-      ? setIndicator(true)
+      ? setVisible(true)
       : setTimeout(() => {
           const date = new Date();
           setUpdated(date.toTimeString().slice(0, 8));
-          setIndicator(false);
+          setVisible(false);
         }, 1000);
   }, [loading]);
 
@@ -34,10 +34,12 @@ function PollingIndicator({ className, loading, interval }: Props) {
         <p className="timestamp-p">last updated {interval} seconds ago</p>
       </Tooltip>
       <Spacer padding="base">
-        <CircularProgress
-          size={theme.spacing.base}
-          className={indicator ? "in" : "out"}
-        />
+        <Flex>
+          <CircularProgress
+            size={theme.spacing.base}
+            className={visible ? "in" : "out"}
+          />
+        </Flex>
       </Spacer>
     </Flex>
   );
@@ -50,6 +52,7 @@ export default styled(PollingIndicator)`
   }
   .MuiCircularProgress-root {
     transition: opacity 2s;
+    margin-bottom: 0;
     &.in {
       opacity: 1;
     }
