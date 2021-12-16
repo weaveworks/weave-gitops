@@ -35,6 +35,7 @@ import (
 )
 
 const (
+	TEN_SECONDS_TIMEOUT         time.Duration = 10 * time.Second
 	THIRTY_SECOND_TIMEOUT       time.Duration = 30 * time.Second
 	EVENTUALLY_DEFAULT_TIMEOUT  time.Duration = 60 * time.Second
 	TIMEOUT_TWO_MINUTES         time.Duration = 120 * time.Second
