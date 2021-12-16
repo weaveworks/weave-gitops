@@ -36,35 +36,35 @@ import (
 
 var _ = Describe("AddApplication", func() {
 	var (
-		namespace      *corev1.Namespace
-		ctx            context.Context
-		sourceRepoName string
-		configRepoName string
-		client         pb.ApplicationsClient
+		namespace *corev1.Namespace
+		ctx       context.Context
+		client    pb.ApplicationsClient
 	)
 
 	BeforeEach(func() {
 		namespace = &corev1.Namespace{}
 		namespace.Name = "kube-test-" + rand.String(5)
 		Expect(env.Client.Create(context.Background(), namespace)).To(Succeed())
-		sourceRepoName = "test-source-repo-" + rand.String(5)
-		configRepoName = "test-config-repo-" + rand.String(5)
 		client = pb.NewApplicationsClient(conn)
 	})
 
 	Context("GitHub", func() {
 
 		var (
-			gh            *ghAPI.Client
-			gp            gitprovider.Client
-			sourceRepoURL string
-			sourceRepo    gitprovider.OrgRepository
-			sourceRef     *gitprovider.OrgRepositoryRef
-			addAppRequest *pb.AddApplicationRequest
-			appName       string
+			gh             *ghAPI.Client
+			gp             gitprovider.Client
+			sourceRepoURL  string
+			sourceRepo     gitprovider.OrgRepository
+			sourceRef      *gitprovider.OrgRepositoryRef
+			addAppRequest  *pb.AddApplicationRequest
+			appName        string
+			sourceRepoName string
+			configRepoName string
 		)
 
 		BeforeEach(func() {
+			sourceRepoName = "test-source-repo-" + rand.String(5)
+			configRepoName = "test-config-repo-" + rand.String(5)
 			gh = helpers.NewGithubClient(ctx, githubToken)
 			ctx = middleware.ContextWithGRPCAuth(context.Background(), githubToken)
 			Expect(err).NotTo(HaveOccurred())
@@ -473,9 +473,13 @@ var _ = Describe("AddApplication", func() {
 			sourceRef            *gitprovider.OrgRepositoryRef
 			addAppRequest        *pb.AddApplicationRequest
 			appName              string
+			sourceRepoName       string
+			configRepoName       string
 		)
 
 		BeforeEach(func() {
+			sourceRepoName = "test-source-repo-" + rand.String(5)
+			configRepoName = "test-config-repo-" + rand.String(5)
 			ctx = middleware.ContextWithGRPCAuth(context.Background(), gitlabToken)
 			gitlabProviderClient, err = gitlab.NewClient(
 				gitlabToken,
