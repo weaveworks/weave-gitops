@@ -188,7 +188,7 @@ function ApplicationDetail({ className, name }: Props) {
           app={application}
           authSuccess={authSuccess}
           onAuthClick={() => {
-            if (provider === "Github") setGithubAuthModalOpen(true);
+            if (provider === "GitHub") setGithubAuthModalOpen(true);
           }}
           provider={provider}
         />

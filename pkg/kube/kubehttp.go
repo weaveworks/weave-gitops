@@ -218,9 +218,12 @@ func (k *KubeHTTP) Apply(ctx context.Context, manifest []byte, namespace string)
 		return fmt.Errorf("failed to dynamic resource interface: %w", err)
 	}
 
+	force := true
 	_, err = dr.Patch(ctx, name, types.ApplyPatchType, data, metav1.PatchOptions{
 		FieldManager: "wego",
+		Force:        &force,
 	})
+
 	if err != nil {
 		return fmt.Errorf("failed applying %s: %w", string(data), err)
 	}
