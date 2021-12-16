@@ -31,6 +31,7 @@ type Flux interface {
 	GetAllResourcesStatus(name string, namespace string) ([]byte, error)
 	SuspendOrResumeApp(pause wego.SuspendActionType, name, namespace, deploymentType string) ([]byte, error)
 	GetLatestStatusAllNamespaces() ([]string, error)
+	PreCheck() (string, error)
 }
 
 const fluxBinaryPathEnvVar = "WEAVE_GITOPS_FLUX_BIN_PATH"
@@ -306,4 +307,18 @@ func (f *FluxClient) SuspendOrResumeApp(suspend wego.SuspendActionType, name, na
 	}
 
 	return f.runFluxCmd(args...)
+}
+
+func (f *FluxClient) PreCheck() (string, error) {
+	args := []string{
+		"check",
+		"--pre",
+	}
+
+	output, err := f.runFluxCmd(args...)
+	if err != nil {
+		return "", fmt.Errorf("failed running flux pre check %w", err)
+	}
+
+	return string(output), nil
 }
