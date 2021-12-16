@@ -106,7 +106,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	kubeClient, err := factory.GetKubeService()
 
 	if err != nil {
-		return fmt.Errorf("failed getting kube service %w", err)
+		return fmt.Errorf("failed getting kube service: %w", err)
 	}
 
 	if installParams.DryRun {
@@ -144,37 +144,35 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	fluxNamespace, err := kubeClient.FetchNamespaceWithLabel(ctx, LabelPartOf, "flux")
+	if err != nil {
+		return fmt.Errorf("failed getting flux namespace: %w", err)
+	}
+
+	wegoConfigManifest, err := clusterAutomation.GenerateWegoConfigManifest(clusterName, fluxNamespace, namespace)
+	if err != nil {
+		return fmt.Errorf("failed generating wego config manifest: %w", err)
+	}
+
+	manifests := clusterAutomation.Manifests()
+	manifests = append(manifests, wegoConfigManifest)
+
 	if installParams.DryRun {
-		for _, manifest := range clusterAutomation.Manifests() {
-			fmt.Println(string(manifest.Content))
+		for _, manifest := range manifests {
+			log.Println(string(manifest.Content))
 		}
 
 		return nil
 	}
 
-	err = clusterApplier.ApplyManifests(ctx, cluster, namespace, clusterAutomation.BootstrapManifests())
+	err = clusterApplier.ApplyManifests(ctx, cluster, namespace, manifests)
 	if err != nil {
-		return err
-	}
-
-	fluxNamespace, err := kubeClient.FetchNamespaceWithLabel(ctx, LabelPartOf, "flux")
-	if err != nil {
-		return fmt.Errorf("failed getting flux namespace %w", err)
-	}
-
-	wegoConfigManifest, err := clusterAutomation.GenerateWegoConfigManifest(clusterName, fluxNamespace, namespace)
-	if err != nil {
-		return fmt.Errorf("failed generating wego config manifest %w", err)
-	}
-
-	err = clusterApplier.ApplyManifests(ctx, cluster, namespace, []automation.AutomationManifest{wegoConfigManifest})
-	if err != nil {
-		return fmt.Errorf("failed applying wego config manifest %w", err)
+		return fmt.Errorf("failed applying manifest: %w", err)
 	}
 
 	err = gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, fluxNamespace, installParams.AutoMerge)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed associating cluster: %w", err)
 	}
 
 	return nil
