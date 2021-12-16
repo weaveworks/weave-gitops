@@ -165,7 +165,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	err = clusterApplier.ApplyManifests(ctx, cluster, namespace, manifests)
+	err = clusterApplier.ApplyManifests(ctx, cluster, namespace, append(clusterAutomation.BootstrapManifests(), wegoConfigManifest))
 	if err != nil {
 		return fmt.Errorf("failed applying manifest: %w", err)
 	}
