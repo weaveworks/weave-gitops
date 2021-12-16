@@ -131,30 +131,6 @@ function ApplicationDetail({ className, name }: Props) {
             <Alert severity="success" message="Authentication Successful" />
           )
         )}
-        <KeyValueTable
-          columns={4}
-          pairs={[
-            { key: "Name", value: application.name },
-            { key: "Deployment Type", value: application.deploymentType },
-            { key: "URL", value: application.url },
-            { key: "Path", value: application.path },
-          ]}
-        />
-        <ReconciliationGraph
-          objects={reconciledObjects}
-          parentObject={application}
-          parentObjectKind="Application"
-        />
-        <h3>Source Conditions</h3>
-        <ConditionsTable conditions={application.source?.conditions} />
-        <h3>Automation Conditions</h3>
-        <ConditionsTable
-          conditions={
-            application.deploymentType == AutomationKind.Kustomize
-              ? application.kustomization?.conditions
-              : application.helmRelease?.conditions
-          }
-        />
         <ActionBar>
           <Button
             loading={syncLoading}
@@ -203,10 +179,8 @@ function ApplicationDetail({ className, name }: Props) {
               : application.helmRelease?.conditions
           }
         />
-
         <h3>Commits</h3>
         <CommitsTable
-          // Get CommitsTable to retry after auth
           app={application}
           authSuccess={authSuccess}
           onAuthClick={() => {
