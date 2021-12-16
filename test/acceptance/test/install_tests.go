@@ -292,13 +292,15 @@ Global Flags:
 		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 
 		By("When I try to install gitops in dry-run mode", func() {
-			installDryRunOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + fmt.Sprintf(" install --dry-run --config-repo=%s", appRepoRemoteURL))
+			var errOnInstall string
+			installDryRunOutput, errOnInstall = runCommandAndReturnStringOutput(gitopsBinaryPath + fmt.Sprintf(" install --dry-run --config-repo=%s", appRepoRemoteURL))
+			Expect(errOnInstall).To(BeEmpty())
 		})
 
 		By("Then I should see install dry-run output in the console", func() {
-			Eventually(installDryRunOutput, TEN_SECONDS_TIMEOUT).Should(ContainSubstring("# Flux version: "))
-			Eventually(installDryRunOutput, TEN_SECONDS_TIMEOUT).Should(ContainSubstring("# Components: source-controller,kustomize-controller,helm-controller,notification-controller,image-reflector-controller,image-automation-controller"))
-			Eventually(installDryRunOutput, TEN_SECONDS_TIMEOUT).Should(ContainSubstring("name: " + WEGO_DEFAULT_NAMESPACE))
+			Expect(installDryRunOutput).Should(ContainSubstring("# Flux version: "))
+			Expect(installDryRunOutput).Should(ContainSubstring("# Components: source-controller,kustomize-controller,helm-controller,notification-controller,image-reflector-controller,image-automation-controller"))
+			Expect(installDryRunOutput).Should(ContainSubstring("name: " + WEGO_DEFAULT_NAMESPACE))
 		})
 
 		By("And gitops components should be absent from the cluster", func() {

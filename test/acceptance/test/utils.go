@@ -564,7 +564,10 @@ func runCommandAndReturnStringOutput(commandToRun string) (stdOut string, stdErr
 	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Eventually(session).Should(gexec.Exit())
 
-	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
+	outContent := session.Wait().Out.Contents()
+	errContent := session.Wait().Err.Contents()
+
+	return string(outContent), string(errContent)
 }
 
 func runCommandAndReturnSessionOutput(commandToRun string) *gexec.Session {

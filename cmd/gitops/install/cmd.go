@@ -144,6 +144,14 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	if installParams.DryRun {
+		for _, manifest := range clusterAutomation.Manifests() {
+			log.Println(string(manifest.Content))
+		}
+
+		return nil
+	}
+
 	fluxNamespace, err := kubeClient.FetchNamespaceWithLabel(ctx, LabelPartOf, "flux")
 	if err != nil {
 		return fmt.Errorf("failed getting flux namespace: %w", err)
@@ -152,17 +160,6 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	wegoConfigManifest, err := clusterAutomation.GenerateWegoConfigManifest(clusterName, fluxNamespace, namespace)
 	if err != nil {
 		return fmt.Errorf("failed generating wego config manifest: %w", err)
-	}
-
-	manifests := clusterAutomation.Manifests()
-	manifests = append(manifests, wegoConfigManifest)
-
-	if installParams.DryRun {
-		for _, manifest := range manifests {
-			log.Println(string(manifest.Content))
-		}
-
-		return nil
 	}
 
 	err = clusterApplier.ApplyManifests(ctx, cluster, namespace, append(clusterAutomation.BootstrapManifests(), wegoConfigManifest))
