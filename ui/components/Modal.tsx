@@ -34,7 +34,7 @@ export const Body = styled.div`
 `;
 
 /** Form Modal */
-function Modal({
+function UnstyledModal({
   className,
   bodyClassName,
   open,
@@ -58,7 +58,7 @@ function Modal({
           </Flex>
           <div>{children}</div>
           <Flex wide end>
-            <Button onClick={onClose} color="inherit" className="borderless">
+            <Button onClick={onClose} color="inherit" variant="text">
               Close
             </Button>
           </Flex>
@@ -68,4 +68,5 @@ function Modal({
   );
 }
 
-export default styled(Modal)``;
+export const Modal = styled(UnstyledModal)``;
+export default Modal;

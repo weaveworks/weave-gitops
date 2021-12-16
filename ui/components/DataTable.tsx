@@ -38,7 +38,7 @@ const EmptyRow = styled(TableRow)<{ colSpan: number }>`
 `;
 
 /** Form DataTable */
-function DataTable({
+function UnstyledDataTable({
   className,
   fields,
   rows,
@@ -92,8 +92,10 @@ function DataTable({
   );
 }
 
-export default styled(DataTable)`
+export const DataTable = styled(UnstyledDataTable)`
   .MuiTableCell-head {
     font-weight: 800;
   }
 `;
+
+export default DataTable;

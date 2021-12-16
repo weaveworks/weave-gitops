@@ -10,6 +10,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type FakeKube struct {
@@ -157,6 +158,20 @@ type FakeKube struct {
 		result1 *v1.Secret
 		result2 error
 	}
+	GetWegoConfigStub        func(context.Context, string) (*kube.WegoConfig, error)
+	getWegoConfigMutex       sync.RWMutex
+	getWegoConfigArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+	}
+	getWegoConfigReturns struct {
+		result1 *kube.WegoConfig
+		result2 error
+	}
+	getWegoConfigReturnsOnCall map[int]struct {
+		result1 *kube.WegoConfig
+		result2 error
+	}
 	NamespacePresentStub        func(context.Context, string) (bool, error)
 	namespacePresentMutex       sync.RWMutex
 	namespacePresentArgsForCall []struct {
@@ -170,6 +185,16 @@ type FakeKube struct {
 	namespacePresentReturnsOnCall map[int]struct {
 		result1 bool
 		result2 error
+	}
+	RawStub        func() client.Client
+	rawMutex       sync.RWMutex
+	rawArgsForCall []struct {
+	}
+	rawReturns struct {
+		result1 client.Client
+	}
+	rawReturnsOnCall map[int]struct {
+		result1 client.Client
 	}
 	SecretPresentStub        func(context.Context, string, string) (bool, error)
 	secretPresentMutex       sync.RWMutex
@@ -197,6 +222,21 @@ type FakeKube struct {
 	}
 	setResourceReturnsOnCall map[int]struct {
 		result1 error
+	}
+	SetWegoConfigStub        func(context.Context, kube.WegoConfig, string) (*v1.ConfigMap, error)
+	setWegoConfigMutex       sync.RWMutex
+	setWegoConfigArgsForCall []struct {
+		arg1 context.Context
+		arg2 kube.WegoConfig
+		arg3 string
+	}
+	setWegoConfigReturns struct {
+		result1 *v1.ConfigMap
+		result2 error
+	}
+	setWegoConfigReturnsOnCall map[int]struct {
+		result1 *v1.ConfigMap
+		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -912,6 +952,71 @@ func (fake *FakeKube) GetSecretReturnsOnCall(i int, result1 *v1.Secret, result2 
 	}{result1, result2}
 }
 
+func (fake *FakeKube) GetWegoConfig(arg1 context.Context, arg2 string) (*kube.WegoConfig, error) {
+	fake.getWegoConfigMutex.Lock()
+	ret, specificReturn := fake.getWegoConfigReturnsOnCall[len(fake.getWegoConfigArgsForCall)]
+	fake.getWegoConfigArgsForCall = append(fake.getWegoConfigArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.GetWegoConfigStub
+	fakeReturns := fake.getWegoConfigReturns
+	fake.recordInvocation("GetWegoConfig", []interface{}{arg1, arg2})
+	fake.getWegoConfigMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeKube) GetWegoConfigCallCount() int {
+	fake.getWegoConfigMutex.RLock()
+	defer fake.getWegoConfigMutex.RUnlock()
+	return len(fake.getWegoConfigArgsForCall)
+}
+
+func (fake *FakeKube) GetWegoConfigCalls(stub func(context.Context, string) (*kube.WegoConfig, error)) {
+	fake.getWegoConfigMutex.Lock()
+	defer fake.getWegoConfigMutex.Unlock()
+	fake.GetWegoConfigStub = stub
+}
+
+func (fake *FakeKube) GetWegoConfigArgsForCall(i int) (context.Context, string) {
+	fake.getWegoConfigMutex.RLock()
+	defer fake.getWegoConfigMutex.RUnlock()
+	argsForCall := fake.getWegoConfigArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeKube) GetWegoConfigReturns(result1 *kube.WegoConfig, result2 error) {
+	fake.getWegoConfigMutex.Lock()
+	defer fake.getWegoConfigMutex.Unlock()
+	fake.GetWegoConfigStub = nil
+	fake.getWegoConfigReturns = struct {
+		result1 *kube.WegoConfig
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeKube) GetWegoConfigReturnsOnCall(i int, result1 *kube.WegoConfig, result2 error) {
+	fake.getWegoConfigMutex.Lock()
+	defer fake.getWegoConfigMutex.Unlock()
+	fake.GetWegoConfigStub = nil
+	if fake.getWegoConfigReturnsOnCall == nil {
+		fake.getWegoConfigReturnsOnCall = make(map[int]struct {
+			result1 *kube.WegoConfig
+			result2 error
+		})
+	}
+	fake.getWegoConfigReturnsOnCall[i] = struct {
+		result1 *kube.WegoConfig
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeKube) NamespacePresent(arg1 context.Context, arg2 string) (bool, error) {
 	fake.namespacePresentMutex.Lock()
 	ret, specificReturn := fake.namespacePresentReturnsOnCall[len(fake.namespacePresentArgsForCall)]
@@ -975,6 +1080,59 @@ func (fake *FakeKube) NamespacePresentReturnsOnCall(i int, result1 bool, result2
 		result1 bool
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeKube) Raw() client.Client {
+	fake.rawMutex.Lock()
+	ret, specificReturn := fake.rawReturnsOnCall[len(fake.rawArgsForCall)]
+	fake.rawArgsForCall = append(fake.rawArgsForCall, struct {
+	}{})
+	stub := fake.RawStub
+	fakeReturns := fake.rawReturns
+	fake.recordInvocation("Raw", []interface{}{})
+	fake.rawMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeKube) RawCallCount() int {
+	fake.rawMutex.RLock()
+	defer fake.rawMutex.RUnlock()
+	return len(fake.rawArgsForCall)
+}
+
+func (fake *FakeKube) RawCalls(stub func() client.Client) {
+	fake.rawMutex.Lock()
+	defer fake.rawMutex.Unlock()
+	fake.RawStub = stub
+}
+
+func (fake *FakeKube) RawReturns(result1 client.Client) {
+	fake.rawMutex.Lock()
+	defer fake.rawMutex.Unlock()
+	fake.RawStub = nil
+	fake.rawReturns = struct {
+		result1 client.Client
+	}{result1}
+}
+
+func (fake *FakeKube) RawReturnsOnCall(i int, result1 client.Client) {
+	fake.rawMutex.Lock()
+	defer fake.rawMutex.Unlock()
+	fake.RawStub = nil
+	if fake.rawReturnsOnCall == nil {
+		fake.rawReturnsOnCall = make(map[int]struct {
+			result1 client.Client
+		})
+	}
+	fake.rawReturnsOnCall[i] = struct {
+		result1 client.Client
+	}{result1}
 }
 
 func (fake *FakeKube) SecretPresent(arg1 context.Context, arg2 string, arg3 string) (bool, error) {
@@ -1105,6 +1263,72 @@ func (fake *FakeKube) SetResourceReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeKube) SetWegoConfig(arg1 context.Context, arg2 kube.WegoConfig, arg3 string) (*v1.ConfigMap, error) {
+	fake.setWegoConfigMutex.Lock()
+	ret, specificReturn := fake.setWegoConfigReturnsOnCall[len(fake.setWegoConfigArgsForCall)]
+	fake.setWegoConfigArgsForCall = append(fake.setWegoConfigArgsForCall, struct {
+		arg1 context.Context
+		arg2 kube.WegoConfig
+		arg3 string
+	}{arg1, arg2, arg3})
+	stub := fake.SetWegoConfigStub
+	fakeReturns := fake.setWegoConfigReturns
+	fake.recordInvocation("SetWegoConfig", []interface{}{arg1, arg2, arg3})
+	fake.setWegoConfigMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeKube) SetWegoConfigCallCount() int {
+	fake.setWegoConfigMutex.RLock()
+	defer fake.setWegoConfigMutex.RUnlock()
+	return len(fake.setWegoConfigArgsForCall)
+}
+
+func (fake *FakeKube) SetWegoConfigCalls(stub func(context.Context, kube.WegoConfig, string) (*v1.ConfigMap, error)) {
+	fake.setWegoConfigMutex.Lock()
+	defer fake.setWegoConfigMutex.Unlock()
+	fake.SetWegoConfigStub = stub
+}
+
+func (fake *FakeKube) SetWegoConfigArgsForCall(i int) (context.Context, kube.WegoConfig, string) {
+	fake.setWegoConfigMutex.RLock()
+	defer fake.setWegoConfigMutex.RUnlock()
+	argsForCall := fake.setWegoConfigArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeKube) SetWegoConfigReturns(result1 *v1.ConfigMap, result2 error) {
+	fake.setWegoConfigMutex.Lock()
+	defer fake.setWegoConfigMutex.Unlock()
+	fake.SetWegoConfigStub = nil
+	fake.setWegoConfigReturns = struct {
+		result1 *v1.ConfigMap
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeKube) SetWegoConfigReturnsOnCall(i int, result1 *v1.ConfigMap, result2 error) {
+	fake.setWegoConfigMutex.Lock()
+	defer fake.setWegoConfigMutex.Unlock()
+	fake.SetWegoConfigStub = nil
+	if fake.setWegoConfigReturnsOnCall == nil {
+		fake.setWegoConfigReturnsOnCall = make(map[int]struct {
+			result1 *v1.ConfigMap
+			result2 error
+		})
+	}
+	fake.setWegoConfigReturnsOnCall[i] = struct {
+		result1 *v1.ConfigMap
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -1130,12 +1354,18 @@ func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	defer fake.getResourceMutex.RUnlock()
 	fake.getSecretMutex.RLock()
 	defer fake.getSecretMutex.RUnlock()
+	fake.getWegoConfigMutex.RLock()
+	defer fake.getWegoConfigMutex.RUnlock()
 	fake.namespacePresentMutex.RLock()
 	defer fake.namespacePresentMutex.RUnlock()
+	fake.rawMutex.RLock()
+	defer fake.rawMutex.RUnlock()
 	fake.secretPresentMutex.RLock()
 	defer fake.secretPresentMutex.RUnlock()
 	fake.setResourceMutex.RLock()
 	defer fake.setResourceMutex.RUnlock()
+	fake.setWegoConfigMutex.RLock()
+	defer fake.setWegoConfigMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

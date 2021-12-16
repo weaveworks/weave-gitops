@@ -26,8 +26,8 @@ const ApplicationKind = "Application"
 
 // ApplicationSpec defines the desired state of Application
 type ApplicationSpec struct {
-	// ConfigURL is the address of the git repository containing the automation for this application
-	ConfigURL string `json:"config_url,omitempty"`
+	// ConfigRepo is the address of the git repository containing the automation for this application
+	ConfigRepo string `json:"config_url,omitempty"`
 	// URL is the address of the git repository for this application
 	URL string `json:"url,omitempty"`
 	// Path is the path in the repository where the k8s yaml files for this application are stored.

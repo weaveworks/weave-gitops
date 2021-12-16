@@ -1,0 +1,28 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: dev-podinfo
+  namespace: wego-system
+spec:
+  chart:
+    spec:
+      chart: podinfo
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta1
+        kind: HelmRepository
+        name: testing
+        namespace: test-ns
+      version: 0.0.2
+  interval: 1m0s
+  values:
+    backend: null
+    backends: []
+    host: null
+    image:
+      pullPolicy: IfNotPresent
+      repository: ghcr.io/stefanprodan/podinfo
+      tag: 6.0.1
+    logLevel: info
+    replicaCount: 1
+status: {}

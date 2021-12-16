@@ -36,7 +36,7 @@ var _ = Describe("Add", func() {
 			DeploymentType: "kustomize",
 			SourceType:     wego.SourceTypeGit,
 			Namespace:      wego.DefaultNamespace,
-			AppConfigUrl:   "",
+			ConfigRepo:     "",
 			AutoMerge:      true,
 		}
 
@@ -67,13 +67,13 @@ var _ = Describe("Add", func() {
 		Expect(kubeClient.GetClusterNameCallCount()).To(Equal(1))
 	})
 
-	It("validates app-config-url is set when source is helm", func() {
+	It("validates config-repo is set when source is helm", func() {
 		addParams.Chart = "my-chart"
 		addParams.Url = "https://my-chart.com"
-		addParams.AppConfigUrl = ""
+		addParams.ConfigRepo = ""
 
 		err := appSrv.Add(gitClient, gitProviders, addParams)
-		Expect(err.Error()).Should(HaveSuffix("--app-config-url should be provided"))
+		Expect(err.Error()).Should(HaveSuffix("--config-repo should be provided"))
 	})
 
 	Context("Looking up repo default branch", func() {
@@ -106,7 +106,7 @@ var _ = Describe("Add", func() {
 	Context("add app with config in app repo", func() {
 		BeforeEach(func() {
 			addParams.Url = "ssh://git@github.com/foo/bar.git"
-			addParams.AppConfigUrl = ""
+			addParams.ConfigRepo = ""
 
 			gitClient.OpenStub = func(s string) (*gogit.Repository, error) {
 				r, err := gogit.Init(memory.NewStorage(), memfs.New())
@@ -126,7 +126,7 @@ var _ = Describe("Add", func() {
 				addParams.Url = "https://charts.kube-ops.io"
 				addParams.Chart = "loki"
 				addParams.HelmReleaseTargetNamespace = "sock-shop"
-				addParams.AppConfigUrl = "ssh://git@github.com/owner/config-repo.git"
+				addParams.ConfigRepo = "ssh://git@github.com/owner/config-repo.git"
 
 				goodNamespaceErr := appSrv.Add(gitClient, gitProviders, addParams)
 				Expect(goodNamespaceErr).ShouldNot(HaveOccurred())
@@ -141,7 +141,7 @@ var _ = Describe("Add", func() {
 				addParams.Url = "https://charts.kube-ops.io"
 				addParams.Chart = "loki"
 				addParams.HelmReleaseTargetNamespace = "sock-shop"
-				addParams.AppConfigUrl = "ssh://git@github.com/owner/config-repo.git"
+				addParams.ConfigRepo = "ssh://git@github.com/owner/config-repo.git"
 
 				goodNamespaceErr := appSrv.Add(gitClient, gitProviders, addParams)
 				Expect(goodNamespaceErr).ShouldNot(HaveOccurred())
@@ -170,6 +170,14 @@ var _ = Describe("Add", func() {
 			Expect(gitClient.CloneCallCount()).To(Equal(0))
 			Expect(gitClient.WriteCallCount()).To(Equal(0))
 			Expect(kubeClient.ApplyCallCount()).To(Equal(0))
+		})
+	})
+
+	Context("Fails to add app that has the prefix wego as an app name", func() {
+		It("Adds an app with ", func() {
+			addParams.Name = "wego-appname"
+			err := appSrv.Add(gitClient, gitProviders, addParams)
+			Expect(err.Error()).Should(ContainSubstring("the prefix 'wego' is used by weave gitops and is not allowed for an app name"))
 		})
 	})
 
@@ -229,7 +237,7 @@ var _ = Describe("Add Gitlab", func() {
 			Dir:            ".",
 			DeploymentType: "kustomize",
 			Namespace:      wego.DefaultNamespace,
-			AppConfigUrl:   "",
+			ConfigRepo:     "",
 			AutoMerge:      true,
 		}
 
@@ -241,7 +249,7 @@ var _ = Describe("Add Gitlab", func() {
 	Context("add app with config in app repo", func() {
 		BeforeEach(func() {
 			addParams.Url = "ssh://git@gitlab.com/foo/bar.git"
-			addParams.AppConfigUrl = ""
+			addParams.ConfigRepo = ""
 
 			gitClient.OpenStub = func(s string) (*gogit.Repository, error) {
 				r, err := gogit.Init(memory.NewStorage(), memfs.New())
@@ -285,7 +293,7 @@ var _ = Describe("New directory structure", func() {
 			Dir:                      ".",
 			DeploymentType:           "kustomize",
 			Namespace:                "wego-system",
-			AppConfigUrl:             "https://github.com/foo/bar",
+			ConfigRepo:               "https://github.com/foo/bar",
 			SourceType:               wego.SourceTypeGit,
 			AutoMerge:                true,
 			MigrateToNewDirStructure: utils.MigrateToNewDirStructure,
@@ -321,7 +329,7 @@ var _ = Describe("New directory structure", func() {
 		Expect(manifestsByPath[filepath.Join(git.WegoRoot, git.WegoAppDir, addParams.Name, "kustomization.yaml")]).ToNot(BeNil())
 		cname, err := kubeClient.GetClusterName(context.Background())
 		Expect(err).To(BeNil())
-		clusterKustomizeFile := manifestsByPath[filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, "/user/kustomization.yaml")]
+		clusterKustomizeFile := manifestsByPath[filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterUserWorkloadDir, "kustomization.yaml")]
 		Expect(clusterKustomizeFile).ToNot(BeNil())
 
 		manifestMap := map[string]interface{}{}
@@ -331,6 +339,7 @@ var _ = Describe("New directory structure", func() {
 		Expect(len(r)).To(Equal(1))
 		Expect(r[0].(string)).To(Equal("../../../apps/" + addParams.Name))
 	})
+
 	It("adds second app to the cluster kustomization file", func() {
 		addParams.SourceType = wego.SourceTypeGit
 		origName := addParams.Name
@@ -340,7 +349,7 @@ var _ = Describe("New directory structure", func() {
 		Expect(manifestsByPath[filepath.Join(git.WegoRoot, git.WegoAppDir, addParams.Name, "kustomization.yaml")]).ToNot(BeNil())
 		cname, err := kubeClient.GetClusterName(context.Background())
 		Expect(err).To(BeNil())
-		clusterKustomizeFile := manifestsByPath[filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, "user", "kustomization.yaml")]
+		clusterKustomizeFile := manifestsByPath[filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterUserWorkloadDir, "kustomization.yaml")]
 		Expect(clusterKustomizeFile).ToNot(BeNil())
 		manifestMap := map[string]interface{}{}
 
@@ -350,6 +359,34 @@ var _ = Describe("New directory structure", func() {
 		Expect(len(r)).To(Equal(2))
 		Expect(r[0].(string)).To(Equal("../../../apps/" + origName))
 		Expect(r[1].(string)).To(Equal("../../../apps/" + addParams.Name))
+	})
+
+	It("deals with a cluster dir with additional subdirectories", func() {
+		kubeClient.GetClusterNameReturns("arn:aws:eks:us-west-2:01234567890:cluster/default-my-wego-control-plan", nil)
+		appNames := []string{
+			"oracle",
+			"sqlserver",
+		}
+		for _, a := range appNames {
+			addParams.Name = a
+			Expect(appSrv.Add(gitClient, gitProviders, addParams)).Should(Succeed())
+		}
+
+		Expect(manifestsByPath[filepath.Join(git.WegoRoot, git.WegoAppDir, addParams.Name, "kustomization.yaml")]).ToNot(BeNil())
+		cname, err := kubeClient.GetClusterName(context.Background())
+		Expect(err).To(BeNil())
+		clusterKustomizeFile := manifestsByPath[filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterUserWorkloadDir, "kustomization.yaml")]
+		Expect(clusterKustomizeFile).ToNot(BeNil())
+		manifestMap := map[string]interface{}{}
+
+		Expect(yaml.Unmarshal(clusterKustomizeFile, &manifestMap)).Should(Succeed())
+
+		resources := manifestMap["resources"].([]interface{})
+		Expect(len(resources)).To(Equal(len(appNames)))
+		for i, name := range appNames {
+			Expect(resources[i].(string)).To(Equal("../../../../apps/" + name))
+		}
+
 	})
 
 })

@@ -6,7 +6,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: wego-app-service-account
-    namespace: wego-system
+    namespace: {{.Namespace}}
 roleRef:
   kind: Role
   name: resources-reader

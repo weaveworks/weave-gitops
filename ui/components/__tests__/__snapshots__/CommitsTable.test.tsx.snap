@@ -18,10 +18,6 @@ exports[`CommitsTable snapshots renders 1`] = `
   color: #00b3ec;
 }
 
-.c0 .MuiTableCell-head {
-  font-weight: 800;
-}
-
 .c2 {
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -29,6 +25,10 @@ exports[`CommitsTable snapshots renders 1`] = `
 
 .c2.title-bar-button {
   width: 250px;
+}
+
+.c0 .MuiTableCell-head {
+  font-weight: 800;
 }
 
 <div

@@ -21,7 +21,7 @@ It is based on [CNCF Flux](https://fluxcd.io), a leading GitOps engine.
 Mac / Linux
 
 ```console
-curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.5.0/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
+curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.6.0/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
 sudo mv /tmp/gitops /usr/local/bin
 gitops version
 ```

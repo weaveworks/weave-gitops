@@ -6,15 +6,7 @@ import {
   GitProvider,
 } from "../lib/api/applications/applications.pb";
 import { GrpcErrorCodes } from "../lib/types";
-
-function poller(cb, interval) {
-  if (process.env.NODE_ENV === "test") {
-    // Stay synchronous in tests
-    return cb();
-  }
-
-  return setInterval(cb, interval);
-}
+import { poller } from "../lib/utils";
 
 export function useIsAuthenticated(provider: GitProvider): boolean {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

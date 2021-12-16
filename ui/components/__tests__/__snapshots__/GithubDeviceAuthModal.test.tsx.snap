@@ -107,24 +107,8 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   justify-content: space-evenly;
 }
 
-.c8 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: space-evenly;
-  -webkit-justify-content: space-evenly;
-  -ms-flex-pack: space-evenly;
-  justify-content: space-evenly;
-}
-
-.c8.auth-button.MuiButton-contained {
-  background-color: black;
-  color: white;
-}
-
-.c8.borderless.MuiButton-outlined {
-  border: none;
+.c8.MuiButton-outlined {
+  border-color: #737373;
 }
 
 .c7 {
@@ -273,7 +257,7 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
       class="c12"
     >
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-outlined c8 borderless MuiButton-colorInherit MuiButton-disableElevation"
+        class="MuiButtonBase-root MuiButton-root MuiButton-text c8 MuiButton-colorInherit MuiButton-disableElevation"
         tabindex="0"
         type="button"
       >

@@ -34,29 +34,36 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
-const THIRTY_SECOND_TIMEOUT time.Duration = 30 * time.Second
-const EVENTUALLY_DEFAULT_TIMEOUT time.Duration = 60 * time.Second
-const TIMEOUT_TWO_MINUTES time.Duration = 120 * time.Second
-const INSTALL_RESET_TIMEOUT time.Duration = 300 * time.Second
-const NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
-const INSTALL_SUCCESSFUL_TIMEOUT time.Duration = 3 * time.Minute
-const INSTALL_PODS_READY_TIMEOUT time.Duration = 3 * time.Minute
-const WEGO_DEFAULT_NAMESPACE = wego.DefaultNamespace
-const WEGO_UI_URL = "http://localhost:9001"
-const SELENIUM_SERVICE_URL = "http://localhost:4444/wd/hub"
-const SCREENSHOTS_DIR string = "screenshots/"
-const DEFAULT_BRANCH_NAME = "main"
-const WEGO_DASHBOARD_TITLE string = "Weave GitOps"
-const APP_PAGE_HEADER string = "Applications"
+const (
+	THIRTY_SECOND_TIMEOUT       time.Duration = 30 * time.Second
+	EVENTUALLY_DEFAULT_TIMEOUT  time.Duration = 60 * time.Second
+	TIMEOUT_TWO_MINUTES         time.Duration = 120 * time.Second
+	INSTALL_RESET_TIMEOUT       time.Duration = 300 * time.Second
+	NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
+	INSTALL_SUCCESSFUL_TIMEOUT  time.Duration = 3 * time.Minute
+	INSTALL_PODS_READY_TIMEOUT  time.Duration = 3 * time.Minute
+	WEGO_DEFAULT_NAMESPACE                    = wego.DefaultNamespace
+	WEGO_UI_URL                               = "http://localhost:9001"
+	SELENIUM_SERVICE_URL                      = "http://localhost:4444/wd/hub"
+	SCREENSHOTS_DIR             string        = "screenshots/"
+	DEFAULT_BRANCH_NAME                       = "main"
+	WEGO_DASHBOARD_TITLE        string        = "Weave GitOps"
+	APP_PAGE_HEADER             string        = "Applications"
+	charset                                   = "abcdefghijklmnopqrstuvwxyz0123456789"
+)
 
-var DEFAULT_SSH_KEY_PATH string
-var GITHUB_ORG string
-var GITLAB_ORG string
-
-// Make sure the subgroup belongs to the GITLAB_ORG
-var GITLAB_SUBGROUP string
-var GITLAB_PUBLIC_GROUP string
-var WEGO_BIN_PATH string
+var (
+	sshKeyPath  string
+	githubOrg   string
+	githubToken string
+	gitlabOrg   string
+	gitlabToken string
+	gitlabKey   string
+	// Make sure the subgroup belongs to the GITLAB_ORG
+	gitlabSubgroup    string
+	gitlabPublicGroup string
+	gitopsBinaryPath  string
+)
 
 type TestInputs struct {
 	appRepoName         string
@@ -64,8 +71,6 @@ type TestInputs struct {
 	workloadName        string
 	workloadNamespace   string
 }
-
-const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
 
 var seededRand *rand.Rand = rand.New(
 	rand.NewSource(time.Now().UnixNano()))
@@ -143,7 +148,7 @@ func generateTestInputs() TestInputs {
 	var inputs TestInputs
 
 	uniqueSuffix := RandString(6)
-	inputs.appRepoName = "wego-test-app-" + RandString(8)
+	inputs.appRepoName = "test-app-" + RandString(8)
 	inputs.appManifestFilePath = getUniqueWorkload("xxyyzz", uniqueSuffix)
 	inputs.workloadName = "nginx-" + uniqueSuffix
 	inputs.workloadNamespace = "my-nginx-" + uniqueSuffix
@@ -165,7 +170,7 @@ func setupGitlabSSHKey(sshKeyPath string) {
                            echo "%s" >> %s &&
                            chmod 0600 %s &&
                            ls -la %s &&
-                           ssh-keyscan gitlab.com >> ~/.ssh/known_hosts`, os.Getenv("GITLAB_KEY"), sshKeyPath, sshKeyPath, sshKeyPath))
+                           ssh-keyscan gitlab.com >> ~/.ssh/known_hosts`, gitlabKey, sshKeyPath, sshKeyPath, sshKeyPath))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session).Should(gexec.Exit())
@@ -382,13 +387,14 @@ func waitForNamespaceToTerminate(namespace string, timeout time.Duration) error 
 }
 
 func VerifyControllersInCluster(namespace string) {
-	Expect(waitForResource("deploy", "helm-controller", namespace, INSTALL_PODS_READY_TIMEOUT))
-	Expect(waitForResource("deploy", "kustomize-controller", namespace, INSTALL_PODS_READY_TIMEOUT))
-	Expect(waitForResource("deploy", "notification-controller", namespace, INSTALL_PODS_READY_TIMEOUT))
-	Expect(waitForResource("deploy", "source-controller", namespace, INSTALL_PODS_READY_TIMEOUT))
-	Expect(waitForResource("deploy", "image-automation-controller", namespace, INSTALL_PODS_READY_TIMEOUT))
-	Expect(waitForResource("deploy", "image-reflector-controller", namespace, INSTALL_PODS_READY_TIMEOUT))
-	Expect(waitForResource("pods", "", namespace, INSTALL_PODS_READY_TIMEOUT))
+	Expect(waitForResource("deploy", "helm-controller", namespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("deploy", "kustomize-controller", namespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("deploy", "notification-controller", namespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("deploy", "source-controller", namespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("deploy", "image-automation-controller", namespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("deploy", "image-reflector-controller", namespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("deploy", "wego-app", namespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
+	Expect(waitForResource("pods", "", namespace, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 
 	By("And I wait for the gitops controllers to be ready", func() {
 		command := exec.Command("sh", "-c", fmt.Sprintf("kubectl wait --for=condition=Ready --timeout=%s -n %s --all pod --selector='app!=wego-app'", "120s", namespace))
@@ -400,7 +406,7 @@ func VerifyControllersInCluster(namespace string) {
 
 func installAndVerifyWego(wegoNamespace, repoURL string) {
 	By("And I run 'gitops install' command with namespace "+wegoNamespace, func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --app-config-url=%s", WEGO_BIN_PATH, wegoNamespace, repoURL))
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --config-repo=%s", gitopsBinaryPath, wegoNamespace, repoURL))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session, INSTALL_SUCCESSFUL_TIMEOUT).Should(gexec.Exit())
@@ -411,7 +417,7 @@ func installAndVerifyWego(wegoNamespace, repoURL string) {
 
 func uninstallWegoRuntime(namespace string) {
 	log.Infof("About to delete Gitops runtime from namespace: %s", namespace)
-	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", WEGO_BIN_PATH, namespace))
+	err := runCommandPassThrough([]string{}, "sh", "-c", fmt.Sprintf("%s flux uninstall --namespace %s --silent", gitopsBinaryPath, namespace))
 
 	if err != nil {
 		log.Infof("Failed to uninstall the gitops runtime %s", namespace)
@@ -504,7 +510,7 @@ func waitForAppRemoval(appName string, timeout time.Duration) error {
 	pollInterval := time.Second * 5
 
 	_ = utils.WaitUntil(os.Stdout, pollInterval, timeout, func() error {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s get apps", WEGO_BIN_PATH))
+		command := exec.Command("sh", "-c", fmt.Sprintf("%s get apps", gitopsBinaryPath))
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		Eventually(session).Should(gexec.Exit())
@@ -563,7 +569,7 @@ func runWegoAddCommand(repoAbsolutePath string, addCommand string, wegoNamespace
 }
 
 func runWegoAddCommandWithOutput(repoAbsolutePath string, addCommand string, wegoNamespace string) (string, string) {
-	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand))
+	command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, gitopsBinaryPath, addCommand))
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ShouldNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
@@ -821,17 +827,16 @@ func getGitProvider(org string, repo string, providerName gitproviders.GitProvid
 		orgRef = gitproviders.NewOrgRepositoryRef(github.DefaultDomain, org, repo)
 
 		gitProvider, err = github.NewClient(
-			gitprovider.WithOAuth2Token(os.Getenv("GITHUB_TOKEN")),
+			gitprovider.WithOAuth2Token(githubToken),
 			gitprovider.WithDestructiveAPICalls(true),
 		)
 	case gitproviders.GitProviderGitLab:
 		orgRef = gitproviders.NewOrgRepositoryRef(gitlab.DefaultDomain, org, repo)
 
-		token := os.Getenv("GITLAB_TOKEN")
 		gitProvider, err = gitlab.NewClient(
-			token,
+			gitlabToken,
 			"oauth2",
-			gitprovider.WithOAuth2Token(token),
+			gitprovider.WithOAuth2Token(gitlabToken),
 			gitprovider.WithDestructiveAPICalls(true),
 		)
 	default:

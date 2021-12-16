@@ -45,7 +45,7 @@ func (gh githubPrClient) GetFilesForPullRequest(ctx context.Context, prID int, o
 		return nil, fmt.Errorf("error listing files for %q: %w", repoName, err)
 	}
 
-	return GetFileContents(ctx, gh.client, org, repoName, fs, files)
+	return GetGithubFilesContents(ctx, gh.client, org, repoName, fs, files)
 }
 
 type gitlabPrClient struct {
@@ -60,18 +60,26 @@ func (gl gitlabPrClient) GetFilesForPullRequest(ctx context.Context, prID int, o
 		return nil, fmt.Errorf("could not get merge request: %w", err)
 	}
 
-	files := map[string][]byte{}
+	fullRepoPath := fmt.Sprintf("%s/%s", org, repoName)
 
-	for _, c := range mr.Changes {
-		path := c.OldPath
+	return GetGitlabFilesContents(gl.client, fullRepoPath, fs, mr.DiffRefs.HeadSha, standardizeChangesFromMergeRequest(mr))
+}
 
-		file, _, err := gl.client.RepositoryFiles.GetRawFile(pid, path, &glAPI.GetRawFileOptions{Ref: &mr.DiffRefs.HeadSha})
-		if err != nil {
-			return nil, fmt.Errorf("could not raw file for merge request: %w", err)
-		}
+func standardizeChangesFromMergeRequest(mr *glAPI.MergeRequest) []*glAPI.Diff {
+	res := make([]*glAPI.Diff, 0)
 
-		files[path] = file
+	for _, change := range mr.Changes {
+		res = append(res, &glAPI.Diff{
+			Diff:        change.Diff,
+			NewPath:     change.NewPath,
+			OldPath:     change.OldPath,
+			AMode:       change.AMode,
+			BMode:       change.BMode,
+			NewFile:     change.NewFile,
+			RenamedFile: change.RenamedFile,
+			DeletedFile: change.DeletedFile,
+		})
 	}
 
-	return toK8sObjects(files, fs)
+	return res
 }

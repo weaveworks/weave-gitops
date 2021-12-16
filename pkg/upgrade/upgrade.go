@@ -32,7 +32,7 @@ import (
 )
 
 type UpgradeValues struct {
-	AppConfigURL  string
+	ConfigRepo    string
 	Version       string
 	BaseBranch    string
 	HeadBranch    string
@@ -61,12 +61,12 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 		return fmt.Errorf("failed to get cluster name: %w", err)
 	}
 
-	resources, err := makeHelmResources(uv.Namespace, uv.Version, cname, uv.AppConfigURL, uv.Values)
+	resources, err := makeHelmResources(uv.Namespace, uv.Version, cname, uv.ConfigRepo, uv.Values)
 	if err != nil {
 		return fmt.Errorf("error creating helm resources: %w", err)
 	}
 
-	appResources, err := makeAppsCapiKustomization(uv.Namespace, uv.AppConfigURL)
+	appResources, err := makeAppsCapiKustomization(uv.Namespace, uv.ConfigRepo)
 	if err != nil {
 		return fmt.Errorf("error creating app resources: %w", err)
 	}
@@ -90,9 +90,9 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 		return fmt.Errorf("failed to load credentials for profiles repo from cluster: %v", err)
 	}
 
-	normalizedURL, err := gitproviders.NewRepoURL(uv.AppConfigURL)
+	normalizedURL, err := gitproviders.NewRepoURL(uv.ConfigRepo)
 	if err != nil {
-		return fmt.Errorf("failed to normalize URL %q: %w", uv.AppConfigURL, err)
+		return fmt.Errorf("failed to normalize URL %q: %w", uv.ConfigRepo, err)
 	}
 
 	// Create pull request

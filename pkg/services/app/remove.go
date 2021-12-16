@@ -16,6 +16,7 @@ type RemoveParams struct {
 	Name             string
 	Namespace        string
 	DryRun           bool
+	AutoMerge        bool
 	GitProviderToken string
 }
 
@@ -43,11 +44,11 @@ func (a *AppSvc) Remove(configGit git.Git, gitProvider gitproviders.GitProvider,
 		return err
 	}
 
-	return a.removeApp(ctx, configGit, gitProvider, app, clusterName, true) // We're using "true" here until we add removal via PR
+	return a.removeApp(ctx, configGit, gitProvider, app, clusterName, params.AutoMerge)
 }
 
 func (a *AppSvc) removeApp(ctx context.Context, configGit git.Git, gitProvider gitproviders.GitProvider, app models.Application, clusterName string, autoMerge bool) error {
-	repoWriter := gitrepo.NewRepoWriter(app.ConfigURL, gitProvider, configGit, a.Logger)
+	repoWriter := gitrepo.NewRepoWriter(app.ConfigRepo, gitProvider, configGit, a.Logger)
 	automationGen := automation.NewAutomationGenerator(gitProvider, a.Flux, a.Logger)
 	gitOpsDirWriter := gitopswriter.NewGitOpsDirectoryWriter(automationGen, repoWriter, a.Osys, a.Logger)
 

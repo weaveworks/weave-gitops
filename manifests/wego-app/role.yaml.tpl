@@ -16,7 +16,7 @@ rules:
   - apiGroups: ["helm.toolkit.fluxcd.io"]
     resources: [ "helmreleases" ]
     verbs: [ "get","create","delete","list" ]
-  - apiGroups: [".source.toolkit.fluxcd.io"]
+  - apiGroups: ["source.toolkit.fluxcd.io"]
     resources: [ "helmrepositories" ]
     verbs: [ "get","create","delete","list" ]
   - apiGroups: ["source.toolkit.fluxcd.io"]

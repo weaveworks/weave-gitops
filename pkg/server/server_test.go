@@ -562,12 +562,12 @@ var _ = Describe("ApplicationsServer", func() {
 			ctx := context.Background()
 			name := "my-app"
 			appRequest := &pb.AddApplicationRequest{
-				Name:      name,
-				Namespace: namespace.Name,
-				Url:       "ssh://git@github.com/some-org/somerepo.git",
-				Path:      "./k8s/mydir",
-				Branch:    "main",
-				ConfigUrl: "ssh://git@github.com/some-org/my-config-url.git",
+				Name:       name,
+				Namespace:  namespace.Name,
+				Url:        "ssh://git@github.com/some-org/somerepo.git",
+				Path:       "./k8s/mydir",
+				Branch:     "main",
+				ConfigRepo: "ssh://git@github.com/some-org/my-config-url.git",
 			}
 
 			gitProvider.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil)
@@ -671,7 +671,7 @@ var _ = Describe("ApplicationsServer", func() {
 			"Remove applications",
 			func(
 				url,
-				configurl string,
+				configRepo string,
 				sourceType wego.SourceType,
 				deploymentType wego.DeploymentType,
 				autoMerge bool,
@@ -686,7 +686,7 @@ var _ = Describe("ApplicationsServer", func() {
 						Branch:         "main",
 						Path:           "./k8s",
 						URL:            url,
-						ConfigURL:      configurl,
+						ConfigRepo:     configRepo,
 						SourceType:     sourceType,
 						DeploymentType: deploymentType,
 					},
@@ -1183,7 +1183,7 @@ var _ = Describe("Applications handler", func() {
 			Factory:    factory,
 		}
 
-		handler, err := NewApplicationsHandler(context.Background(), &cfg)
+		handler, err := NewHandlers(context.Background(), &Config{AppConfig: &cfg})
 		Expect(err).NotTo(HaveOccurred())
 
 		ts := httptest.NewServer(handler)

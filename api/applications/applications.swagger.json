@@ -588,7 +588,7 @@
         "autoMerge": {
           "type": "boolean"
         },
-        "configUrl": {
+        "configRepo": {
           "type": "string"
         }
       }

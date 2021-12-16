@@ -21,19 +21,19 @@ var (
 	wegoAppTemplates embed.FS
 )
 
-type WegoAppParams struct {
-	Version   string
-	Namespace string
+type Params struct {
+	AppVersion string
+	Namespace  string
 }
 
-// GenerateWegoManifests generates wego-app manifests from a template
-func GenerateWegoAppManifests(params WegoAppParams) ([][]byte, error) {
-	manifests := [][]byte{}
-
+// GenerateManifests generates weave-gitops manifests from a template
+func GenerateManifests(params Params) ([][]byte, error) {
 	templates, err := fs.ReadDir(wegoAppTemplates, wegoManifestsDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed reading templates directory: %w", err)
 	}
+
+	var manifests [][]byte
 
 	for _, template := range templates {
 		tplName := template.Name()
@@ -54,7 +54,7 @@ func GenerateWegoAppManifests(params WegoAppParams) ([][]byte, error) {
 	return manifests, nil
 }
 
-func executeTemplate(name string, tplData string, params WegoAppParams) ([]byte, error) {
+func executeTemplate(name string, tplData string, params Params) ([]byte, error) {
 	template, err := template.New(name).Parse(tplData)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing template %s: %w", name, err)

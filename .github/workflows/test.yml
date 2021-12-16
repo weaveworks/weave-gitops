@@ -76,6 +76,7 @@ jobs:
         GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         GITLAB_ORG: ${{ secrets.GITLAB_ORG }}
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
+        GITHUB_ORG: weaveworks-gitops-test
         KUBEBUILDER_ASSETS: ${{ github.workspace }}/kubebuilder/bin
     runs-on: ubuntu-latest
     steps:
@@ -234,14 +235,15 @@ jobs:
         gitlab-org: ${{ secrets.GITLAB_ORG }}
         artifacts-base-dir: "/tmp/gitops-test"
 
-  library-integration-test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@94ab11c41e45d028884a99163086648e898eed25
-      - name: Run Library Integration Test
-        env:
-          GITHUB_TOKEN: "${{ secrets.github_token }}"
-        run: make lib-test
+  # Commenting while the library code is unused
+  # library-integration-test:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v2
+  #     - name: Setup Docker Buildx
+  #       uses: docker/setup-buildx-action@94ab11c41e45d028884a99163086648e898eed25
+  #     - name: Run Library Integration Test
+  #       env:
+  #         GITHUB_TOKEN: "${{ secrets.github_token }}"
+  #       run: make lib-test

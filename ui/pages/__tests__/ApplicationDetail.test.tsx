@@ -4,7 +4,9 @@ import * as React from "react";
 import { act } from "react-dom/test-utils";
 import { AppProps } from "../../contexts/AppContext";
 import {
+  GitProvider,
   ListCommitsResponse,
+  ParseRepoURLResponse,
   SyncApplicationResponse,
 } from "../../lib/api/applications/applications.pb";
 import { createMockClient, withContext, withTheme } from "../../lib/test-utils";
@@ -27,6 +29,10 @@ describe("ApplicationDetail", () => {
             date: "2021-09-10T23:45:09Z",
           },
         ],
+      }),
+      ParseRepoURL: (): ParseRepoURLResponse => ({
+        provider: GitProvider.GitHub,
+        owner: "someone",
       }),
       SyncApplication: (): SyncApplicationResponse => {
         return {

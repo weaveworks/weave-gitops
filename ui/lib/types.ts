@@ -2,6 +2,7 @@ export enum PageRoute {
   Applications = "/applications",
   ApplicationDetail = "/application_detail",
   ApplicationAdd = "/application_add",
+  ApplicationRemove = "/application_remove",
   GitlabOAuthCallback = "/oauth/gitlab",
 }
 

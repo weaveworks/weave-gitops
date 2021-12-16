@@ -1,6 +1,5 @@
 import _ from "lodash";
 import * as React from "react";
-import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import Alert from "../components/Alert";
 import Button from "../components/Button";
@@ -11,21 +10,21 @@ import Flex from "../components/Flex";
 import GithubDeviceAuthModal from "../components/GithubDeviceAuthModal";
 import KeyValueTable from "../components/KeyValueTable";
 import LoadingPage from "../components/LoadingPage";
-import Modal from "../components/Modal";
 import Page from "../components/Page";
 import ReconciliationGraph from "../components/ReconciliationGraph";
 import Spacer from "../components/Spacer";
 import { AppContext } from "../contexts/AppContext";
+import CallbackStateContextProvider from "../contexts/CallbackStateContext";
 import { useRequestState } from "../hooks/common";
 import {
   AutomationKind,
   GetApplicationResponse,
-  RemoveApplicationResponse,
   SyncApplicationResponse,
   UnstructuredObject,
 } from "../lib/api/applications/applications.pb";
 import { getChildren } from "../lib/graph";
 import { PageRoute } from "../lib/types";
+import { formatURL } from "../lib/utils";
 
 type Props = {
   className?: string;
@@ -33,33 +32,42 @@ type Props = {
 };
 
 function ApplicationDetail({ className, name }: Props) {
-  const { applicationsClient, linkResolver, notifySuccess } = React.useContext(
-    AppContext
-  );
+  const { applicationsClient, notifySuccess, navigate } =
+    React.useContext(AppContext);
   const [authSuccess, setAuthSuccess] = React.useState(false);
   const [githubAuthModalOpen, setGithubAuthModalOpen] = React.useState(false);
-  const [removeAppModalOpen, setRemoveAppModalOpen] = React.useState(false);
   const [reconciledObjects, setReconciledObjects] = React.useState<
     UnstructuredObject[]
   >([]);
+  const [provider, setProvider] = React.useState("");
   const [res, loading, error, req] = useRequestState<GetApplicationResponse>();
-  const [
-    removeRes,
-    removeLoading,
-    removeError,
-    removeRequest,
-  ] = useRequestState<RemoveApplicationResponse>();
-  const [
-    syncRes,
-    syncLoading,
-    syncError,
-    syncRequest,
-  ] = useRequestState<SyncApplicationResponse>();
-  //for redirects
-  const history = useHistory();
+  const [syncRes, syncLoading, syncError, syncRequest] =
+    useRequestState<SyncApplicationResponse>();
+  const { getCallbackState, clearCallbackState } = React.useContext(AppContext);
+
+  const callbackState = getCallbackState();
+
+  if (callbackState) {
+    setAuthSuccess(true);
+    clearCallbackState();
+  }
 
   React.useEffect(() => {
-    req(applicationsClient.GetApplication({ name, namespace: "wego-system" }));
+    const p = async () => {
+      const res = await applicationsClient.GetApplication({
+        name,
+        namespace: "wego-system",
+      });
+
+      const { provider } = await applicationsClient.ParseRepoURL({
+        url: res.application.url,
+      });
+      setProvider(provider);
+
+      return { ...res, provider };
+    };
+
+    req(p());
   }, [name]);
 
   React.useEffect(() => {
@@ -76,12 +84,6 @@ function ApplicationDetail({ className, name }: Props) {
       setReconciledObjects(objs)
     );
   }, [res]);
-
-  React.useEffect(() => {
-    if (!removeRes) return;
-    //if app is succesfully removed, redirect to applications page
-    history.push(linkResolver(PageRoute.Applications));
-  }, [removeRes]);
 
   React.useEffect(() => {
     if (syncRes) {
@@ -107,15 +109,14 @@ function ApplicationDetail({ className, name }: Props) {
 
   return (
     <Page
-      loading={loading}
+      loading={loading ? true : false}
       breadcrumbs={[{ page: PageRoute.Applications }]}
       title={name}
       className={className}
       topRight={
         <Flex align>
           <Button
-            variant="contained"
-            loading={syncLoading}
+            loading={syncLoading ? true : false}
             onClick={() => {
               syncRequest(
                 applicationsClient.SyncApplication({
@@ -130,143 +131,79 @@ function ApplicationDetail({ className, name }: Props) {
           <Spacer padding="small" />
           <Button
             color="secondary"
-            variant="contained"
-            onClick={() => setRemoveAppModalOpen(true)}
+            onClick={() =>
+              navigate.internal(PageRoute.ApplicationRemove, { name })
+            }
           >
             Remove App
           </Button>
         </Flex>
       }
     >
-      {syncError ? (
-        <Alert
-          severity="error"
-          title="Error syncing Application"
-          message={syncError.message}
-        />
-      ) : (
-        authSuccess && (
-          <Alert severity="success" message="Authentication Successful" />
-        )
-      )}
-      <KeyValueTable
-        columns={4}
-        pairs={[
-          { key: "Name", value: application.name },
-          { key: "Deployment Type", value: application.deploymentType },
-          { key: "URL", value: application.url },
-          { key: "Path", value: application.path },
-        ]}
-      />
-      <ReconciliationGraph
-        objects={reconciledObjects}
-        parentObject={application}
-        parentObjectKind="Application"
-      />
-      <h3>Source Conditions</h3>
-      <ConditionsTable conditions={application.source?.conditions} />
-      <h3>Automation Conditions</h3>
-      <ConditionsTable
-        conditions={
-          application.deploymentType == AutomationKind.Kustomize
-            ? application.kustomization?.conditions
-            : application.helmRelease?.conditions
-        }
-      />
-
-      <h3>Commits</h3>
-      <CommitsTable
-        // Get CommitsTable to retry after auth
-        app={application}
-        authSuccess={authSuccess}
-        onAuthClick={() => setGithubAuthModalOpen(true)}
-      />
-      <Modal
-        //confirm modal for app removal
-        bodyClassName="auth-modal-size"
-        open={removeAppModalOpen}
-        onClose={() => setRemoveAppModalOpen(false)}
-        title="Are You Sure?"
-        description={`You are about to remove ${application.name} from Weave GitOps`}
+      <CallbackStateContextProvider
+        callbackState={{
+          page: formatURL(PageRoute.ApplicationDetail, { name }),
+          state: { authSuccess: false },
+        }}
       >
-        <Flex align column center wide>
-          {authSuccess ? (
-            <Flex align>
-              <Alert severity="success" message="Authentication Successful" />
-            </Flex>
-          ) : (
-            <>
-              <Flex center>
-                <Spacer padding="small">
-                  <Alert
-                    severity="error"
-                    title="You are not Authenticated!"
-                    message="To remove this app, please authenticate with GitHub"
-                  />
-                </Spacer>
-              </Flex>
-              <Flex center>
-                <Spacer padding="small">
-                  <Button
-                    color="secondary"
-                    variant="contained"
-                    onClick={() => {
-                      setGithubAuthModalOpen(true);
-                    }}
-                  >
-                    Authenticate with GitHub
-                  </Button>
-                </Spacer>
-              </Flex>
-            </>
-          )}
-          {removeError && authSuccess && (
-            <Flex align center wide>
-              <Spacer padding="small">
-                <Alert
-                  severity="error"
-                  title="Error removing Application"
-                  message={removeError?.message}
-                />
-              </Spacer>
-            </Flex>
-          )}
-          {authSuccess && (
-            <Flex align center wide>
-              <Spacer padding="medium">
-                <Button
-                  color="secondary"
-                  variant="contained"
-                  loading={removeLoading}
-                  onClick={() =>
-                    removeRequest(
-                      applicationsClient.RemoveApplication({
-                        name: application.name,
-                        namespace: application.namespace,
-                        //autoMerge is true as there is currently no way to remove an app with pull request
-                        autoMerge: true,
-                      })
-                    )
-                  }
-                >
-                  Delete {application.name}
-                </Button>
-              </Spacer>
-            </Flex>
-          )}
-        </Flex>
-      </Modal>
-      <GithubDeviceAuthModal
-        bodyClassName="auth-modal-size"
-        onSuccess={() => {
-          setAuthSuccess(true);
-        }}
-        repoName={application.url}
-        onClose={() => {
-          setGithubAuthModalOpen(false);
-        }}
-        open={githubAuthModalOpen}
-      />
+        {syncError ? (
+          <Alert
+            severity="error"
+            title="Error syncing Application"
+            message={syncError.message}
+          />
+        ) : (
+          authSuccess && (
+            <Alert severity="success" message="Authentication Successful" />
+          )
+        )}
+        <KeyValueTable
+          columns={4}
+          pairs={[
+            { key: "Name", value: application.name },
+            { key: "Deployment Type", value: application.deploymentType },
+            { key: "URL", value: application.url },
+            { key: "Path", value: application.path },
+          ]}
+        />
+        <ReconciliationGraph
+          objects={reconciledObjects}
+          parentObject={application}
+          parentObjectKind="Application"
+        />
+        <h3>Source Conditions</h3>
+        <ConditionsTable conditions={application.source?.conditions} />
+        <h3>Automation Conditions</h3>
+        <ConditionsTable
+          conditions={
+            application.deploymentType == AutomationKind.Kustomize
+              ? application.kustomization?.conditions
+              : application.helmRelease?.conditions
+          }
+        />
+
+        <h3>Commits</h3>
+        <CommitsTable
+          // Get CommitsTable to retry after auth
+          app={application}
+          authSuccess={authSuccess}
+          onAuthClick={() => {
+            if (provider === "GitHub") setGithubAuthModalOpen(true);
+          }}
+          provider={provider}
+        />
+        <GithubDeviceAuthModal
+          bodyClassName="auth-modal-size"
+          onSuccess={() => {
+            setAuthSuccess(true);
+          }}
+          repoName={application.url}
+          onClose={() => {
+            setGithubAuthModalOpen(false);
+          }}
+          open={githubAuthModalOpen}
+        />
+      </CallbackStateContextProvider>
     </Page>
   );
 }

@@ -22,14 +22,14 @@ var _ = XDescribe("WEGO Help Tests", func() {
 	BeforeEach(func() {
 
 		By("Given I have a gitops binary installed on my local machine", func() {
-			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
+			Expect(FileExists(gitopsBinaryPath)).To(BeTrue())
 		})
 	})
 
 	It("Verify that gitops displays error message when provided with the wrong flag", func() {
 
 		By("When I run 'gitops foo'", func() {
-			command := exec.Command(WEGO_BIN_PATH, "foo")
+			command := exec.Command(gitopsBinaryPath, "foo")
 			sessionOutput, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
@@ -43,7 +43,7 @@ var _ = XDescribe("WEGO Help Tests", func() {
 	It("Verify that gitops help flag prints the help text", func() {
 
 		By("When I run the command 'gitops --help' ", func() {
-			stringOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " --help")
+			stringOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " --help")
 		})
 
 		By("Then I should see help message printed for gitops", func() {
@@ -60,7 +60,7 @@ var _ = XDescribe("WEGO Help Tests", func() {
 	It("Verify that gitops app help flag prints the help text", func() {
 
 		By("When I run the command 'gitops app -h' ", func() {
-			stringOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " app -h")
+			stringOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " app -h")
 		})
 
 		By("Then I should see help message printed for gitops app", func() {
@@ -75,14 +75,14 @@ var _ = XDescribe("WEGO Help Tests", func() {
 	It("Verify that gitops add app help flag prints the help text", func() {
 
 		By("When I run the command 'gitops add app -h' ", func() {
-			stringOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " add app -h")
+			stringOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " add app -h")
 		})
 
 		By("Then I should see help message printed for gitops add app", func() {
 			Eventually(stringOutput).Should(MatchRegexp(`Associates an additional application in a git repository with a gitops cluster so that its contents may be managed via GitOps\n*Usage:`))
 			Eventually(stringOutput).Should(MatchRegexp(`gitops add app \[--name <name>] \[--url <url>] \[--branch <branch>] \[--path <path within repository>] \ <repository directory> \[flags]`))
 			Eventually(stringOutput).Should(MatchRegexp(`Examples:\ngitops add app .\n*Flags:`))
-			Eventually(stringOutput).Should(MatchRegexp(`--app-config-url string\s*URL of external repository \(if any\) which will hold automation manifests`))
+			Eventually(stringOutput).Should(MatchRegexp(`--config-repo string\s*URL of external repository \(if any\) which will hold automation manifests`))
 			Eventually(stringOutput).Should(MatchRegexp(`--auto-merge\s*If set, 'gitops add app' will merge automatically into the set`))
 			Eventually(stringOutput).Should(MatchRegexp(`--branch\n\s*--branch string\s*Branch to watch within git repository \(default "main"\)`))
 			Eventually(stringOutput).Should(MatchRegexp(`--chart string\s*Specify chart for helm source`))
@@ -99,7 +99,7 @@ var _ = XDescribe("WEGO Help Tests", func() {
 	It("Verify that gitops get app help flag prints the help text", func() {
 
 		By("When I run the command 'gitops get app -h' ", func() {
-			sessionOutput = runCommandAndReturnSessionOutput(WEGO_BIN_PATH + " get app -h")
+			sessionOutput = runCommandAndReturnSessionOutput(gitopsBinaryPath + " get app -h")
 		})
 
 		By("Then I should see help message printed for gitops get app", func() {
@@ -113,7 +113,7 @@ var _ = XDescribe("WEGO Help Tests", func() {
 	It("Verify that gitops get apps help flag prints the help text", func() {
 
 		By("When I run the command 'gitops get apps -h' ", func() {
-			stringOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get apps -h")
+			stringOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " get apps -h")
 		})
 
 		By("Then I should see help message printed for gitops get apps", func() {

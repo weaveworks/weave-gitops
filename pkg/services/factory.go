@@ -31,7 +31,7 @@ type Factory interface {
 
 type GitConfigParams struct {
 	URL              string
-	ConfigURL        string
+	ConfigRepo       string
 	Namespace        string
 	IsHelmRepository bool
 	DryRun           bool
@@ -42,7 +42,7 @@ func NewGitConfigParamsFromApp(app *wego.Application, dryRun bool) GitConfigPara
 
 	return GitConfigParams{
 		URL:              app.Spec.URL,
-		ConfigURL:        app.Spec.ConfigURL,
+		ConfigRepo:       app.Spec.ConfigRepo,
 		Namespace:        app.Namespace,
 		IsHelmRepository: isHelmRepository,
 		DryRun:           dryRun,
@@ -104,7 +104,7 @@ func (f *defaultFactory) GetKubeService() (kube.Kube, error) {
 }
 
 func (f *defaultFactory) GetGitClients(ctx context.Context, gpClient gitproviders.Client, params GitConfigParams) (git.Git, gitproviders.GitProvider, error) {
-	isExternalConfig := models.IsExternalConfigUrl(params.ConfigURL)
+	isExternalConfig := models.IsExternalConfigRepo(params.ConfigRepo)
 
 	var providerUrl string
 
@@ -112,7 +112,7 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, gpClient gitprovider
 	case !params.IsHelmRepository:
 		providerUrl = params.URL
 	case isExternalConfig:
-		providerUrl = params.ConfigURL
+		providerUrl = params.ConfigRepo
 	default:
 		return nil, nil, nil
 	}
@@ -150,12 +150,12 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, gpClient gitprovider
 	}
 
 	if isExternalConfig {
-		normalizedConfigUrl, err := gitproviders.NewRepoURL(params.ConfigURL)
+		normalizedConfigRepo, err := gitproviders.NewRepoURL(params.ConfigRepo)
 		if err != nil {
 			return nil, nil, fmt.Errorf("error normalizing url: %w", err)
 		}
 
-		configRepoClient, configRepoErr := authSvc.CreateGitClient(ctx, normalizedConfigUrl, targetName, params.Namespace, params.DryRun)
+		configRepoClient, configRepoErr := authSvc.CreateGitClient(ctx, normalizedConfigRepo, targetName, params.Namespace, params.DryRun)
 		if configRepoErr != nil {
 			return nil, nil, configRepoErr
 		}

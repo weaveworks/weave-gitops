@@ -9,6 +9,12 @@ import (
 	"strconv"
 
 	"github.com/pkg/errors"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/selection"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	kyaml "sigs.k8s.io/yaml"
+
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/manifests"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -19,20 +25,19 @@ import (
 )
 
 type InstallParams struct {
-	Namespace    string
-	DryRun       bool
-	AppConfigURL string
+	Namespace  string
+	DryRun     bool
+	ConfigRepo string
 }
 
 func (g *Gitops) Install(params InstallParams) (map[string][]byte, error) {
 	ctx := context.Background()
-	status := g.kube.GetClusterStatus(ctx)
 
-	switch status {
-	case kube.FluxInstalled:
-		return nil, errors.New("Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n  $ flux uninstall")
-	case kube.Unknown:
-		return nil, errors.New("Weave GitOps cannot talk to the cluster")
+	// Avoid outputting anything before this line as it will mess up the
+	// output from validate in case of a dry-run.
+	// If you must, output something to Debug which can be disabled.
+	if err := g.validateWegoInstall(ctx, params); err != nil {
+		return nil, err
 	}
 
 	// TODO apply these manifests instead of generating them again
@@ -40,7 +45,7 @@ func (g *Gitops) Install(params InstallParams) (map[string][]byte, error) {
 
 	var err error
 
-	if params.AppConfigURL != "" || params.DryRun {
+	if params.ConfigRepo != "" || params.DryRun {
 		// We need to get the manifests to persist in the repo and
 		// non-dry run install doesn't return them
 		fluxManifests, err = g.flux.Install(params.Namespace, true)
@@ -72,18 +77,33 @@ func (g *Gitops) Install(params InstallParams) (map[string][]byte, error) {
 			version = "latest"
 		}
 
-		wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.WegoAppParams{Version: version, Namespace: params.Namespace})
+		wegoAppManifests, err := manifests.GenerateManifests(manifests.Params{
+			AppVersion: version,
+			Namespace:  params.Namespace,
+		})
 		if err != nil {
 			return nil, fmt.Errorf("error generating wego-app manifests, %w", err)
 		}
 		for _, m := range wegoAppManifests {
 			if err := g.kube.Apply(ctx, m, params.Namespace); err != nil {
-				return nil, fmt.Errorf("error applying wego-app manifest %s: %w", m, err)
+				return nil, fmt.Errorf("error applying wego-app manifest \n%s: %w", m, err)
 			}
 		}
 
 		systemManifests["wego-app.yaml"] = bytes.Join(wegoAppManifests, []byte("---\n"))
 	}
+
+	wegoConfigCM, err := g.saveWegoConfig(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	configBytes, err := kyaml.Marshal(wegoConfigCM)
+	if err != nil {
+		return nil, fmt.Errorf("failed marshalling wego config: %w", err)
+	}
+
+	systemManifests["wego-config.yaml"] = configBytes
 
 	return systemManifests, nil
 }
@@ -91,7 +111,7 @@ func (g *Gitops) Install(params InstallParams) (map[string][]byte, error) {
 func (g *Gitops) StoreManifests(gitClient git.Git, gitProvider gitproviders.GitProvider, params InstallParams, systemManifests map[string][]byte) (map[string][]byte, error) {
 	ctx := context.Background()
 
-	if !params.DryRun && params.AppConfigURL != "" {
+	if !params.DryRun && params.ConfigRepo != "" {
 		cname, err := g.kube.GetClusterName(ctx)
 		if err != nil {
 			g.logger.Warningf("Cluster name not found, using default : %v", err)
@@ -114,17 +134,41 @@ func (g *Gitops) StoreManifests(gitClient git.Git, gitProvider gitproviders.GitP
 	return systemManifests, nil
 }
 
+func (g *Gitops) validateWegoInstall(ctx context.Context, params InstallParams) error {
+	status := g.kube.GetClusterStatus(ctx)
+
+	switch status {
+	case kube.FluxInstalled:
+		return errors.New("Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n  $ flux uninstall")
+	case kube.Unknown:
+		return errors.New("Weave GitOps cannot talk to the cluster")
+	}
+
+	wegoConfig, err := g.kube.GetWegoConfig(ctx, "")
+	if err != nil {
+		if !errors.Is(err, kube.ErrWegoConfigNotFound) {
+			return fmt.Errorf("failed getting wego config: %w", err)
+		}
+	}
+
+	if wegoConfig.WegoNamespace != "" && wegoConfig.WegoNamespace != params.Namespace {
+		return errors.New("You cannot install Weave GitOps into a different namespace")
+	}
+
+	return nil
+}
+
 func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitProvider, params InstallParams, systemManifests map[string][]byte, cname string) (map[string][]byte, error) {
 	ctx := context.Background()
 
-	normalizedURL, err := gitproviders.NewRepoURL(params.AppConfigURL)
+	normalizedURL, err := gitproviders.NewRepoURL(params.ConfigRepo)
 	if err != nil {
-		return nil, fmt.Errorf("failed to convert app config repo %q : %w", params.AppConfigURL, err)
+		return nil, fmt.Errorf("failed to convert app config repo %q : %w", params.ConfigRepo, err)
 	}
 
 	configBranch, err := gitProvider.GetDefaultBranch(ctx, normalizedURL)
 	if err != nil {
-		return nil, fmt.Errorf("could not determine default branch for config repository: %q %w", params.AppConfigURL, err)
+		return nil, fmt.Errorf("could not determine default branch for config repository: %q %w", params.ConfigRepo, err)
 	}
 
 	remover, _, err := gitrepo.CloneRepo(ctx, gitClient, normalizedURL, configBranch)
@@ -156,7 +200,7 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 	manifests["flux-system-kustomization-resource.yaml"] = system
 
 	user, err := g.genKustomize(automation.ConstrainResourceName(fmt.Sprintf("%s-user", cname)), sourceName,
-		prefixForFlux(filepath.Join(".", clusterPath, git.WegoClusterUserWorloadDir)), params)
+		prefixForFlux(filepath.Join(".", clusterPath, git.WegoClusterUserWorkloadDir)), params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user kustomization manifest: %w", err)
 	}
@@ -165,7 +209,7 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 
 	//TODO add handling for PRs
 	// if !params.AutoMerge {
-	//  if err := a.createPullRequestToRepo(info, info.Spec.ConfigURL, appHash, appSpec, appGoat, appSource); err != nil {
+	//  if err := a.createPullRequestToRepo(info, info.Spec.ConfigRepo, appHash, appSpec, appGoat, appSource); err != nil {
 	//      return err
 	//  }
 	// } else {
@@ -228,4 +272,62 @@ func (g *Gitops) applyManifestsToK8s(ctx context.Context, namespace string, mani
 	}
 
 	return nil
+}
+
+const LabelPartOf = "app.kubernetes.io/part-of"
+
+var ErrNamespaceNotFound = errors.New("namespace not found")
+
+func (g *Gitops) fetchNamespaceWithLabel(ctx context.Context, key string, value string) (string, error) {
+	selector := labels.NewSelector()
+
+	partOf, err := labels.NewRequirement(key, selection.Equals, []string{value})
+	if err != nil {
+		return "", fmt.Errorf("bad requirement: %w", err)
+	}
+
+	selector = selector.Add(*partOf)
+
+	options := client.ListOptions{
+		LabelSelector: selector,
+	}
+
+	nsl := &corev1.NamespaceList{}
+	if err := g.kube.Raw().List(ctx, nsl, &options); err != nil {
+		return "", fmt.Errorf("error setting resource: %w", err)
+	}
+
+	namespaces := []string{}
+	for _, n := range nsl.Items {
+		namespaces = append(namespaces, n.Name)
+	}
+
+	if len(namespaces) == 0 {
+		return "", ErrNamespaceNotFound
+	}
+
+	if len(namespaces) > 1 {
+		return "", fmt.Errorf("found multiple namespaces %s with %s=%s, we are unable to define the correct one", namespaces, key, value)
+	}
+
+	return namespaces[0], nil
+}
+
+func (g *Gitops) saveWegoConfig(ctx context.Context, params InstallParams) (*corev1.ConfigMap, error) {
+	fluxNamespace, err := g.fetchNamespaceWithLabel(ctx, LabelPartOf, "flux")
+	if err != nil {
+		if !errors.Is(err, ErrNamespaceNotFound) {
+			return nil, fmt.Errorf("failed fetching flux namespace: %w", err)
+		}
+	}
+
+	cm, err := g.kube.SetWegoConfig(ctx, kube.WegoConfig{
+		FluxNamespace: fluxNamespace,
+		WegoNamespace: params.Namespace,
+	}, params.Namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	return cm, nil
 }

@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/manifests"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -22,7 +23,7 @@ func checkFluxUninstallFailure() {
 	fluxErrMsg := "flux uninstall failed"
 
 	loggedMsg := ""
-	logger.PrintfStub = func(str string, args ...interface{}) {
+	logger.PrintlnStub = func(str string, args ...interface{}) {
 		loggedMsg = fmt.Sprintf(str, args...)
 	}
 
@@ -55,11 +56,11 @@ func checkAppCRDUninstallFailure() {
 
 	err := gitopsSrv.Uninstall(uninstallParams)
 
-	Expect(loggedMsg).To(Equal(fmt.Sprintf("received error deleting App CRD: %q", manifestsErrMsg)))
+	Expect(loggedMsg).To(ContainSubstring("error applying wego-app manifest"))
 	Expect(err).To(MatchError(gitops.UninstallError{}))
 	Expect(kubeClient.GetClusterStatusCallCount()).To(Equal(1))
 	Expect(fluxClient.UninstallCallCount()).To(Equal(1))
-	Expect(kubeClient.DeleteCallCount()).To(Equal(1))
+	Expect(kubeClient.DeleteCallCount()).To(Equal(6))
 
 	namespace, dryRun := fluxClient.UninstallArgsForCall(0)
 	Expect(namespace).To(Equal(wego.DefaultNamespace))
@@ -69,7 +70,11 @@ func checkAppCRDUninstallFailure() {
 var _ = Describe("Uninstall", func() {
 	BeforeEach(func() {
 		fluxClient = &fluxfakes.FakeFlux{}
-		kubeClient = &kubefakes.FakeKube{}
+		kubeClient = &kubefakes.FakeKube{
+			GetWegoConfigStub: func(c context.Context, s string) (*kube.WegoConfig, error) {
+				return &kube.WegoConfig{FluxNamespace: wego.DefaultNamespace, WegoNamespace: wego.DefaultNamespace}, nil
+			},
+		}
 		logger = &loggerfakes.FakeLogger{}
 		gitopsSrv = gitops.New(logger, fluxClient, kubeClient)
 
@@ -173,10 +178,26 @@ var _ = Describe("Uninstall", func() {
 		err := gitopsSrv.Uninstall(uninstallParams)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		Expect(kubeClient.DeleteCallCount()).To(Equal(1))
+		wegoAppManifests, err := manifests.GenerateManifests(manifests.Params{AppVersion: version.Version, Namespace: "default"})
+		Expect(err).ShouldNot(HaveOccurred())
 
-		_, appCRD := kubeClient.DeleteArgsForCall(0)
-		Expect(appCRD).To(Equal(manifests.AppCRD))
+		Expect(kubeClient.DeleteCallCount()).To(Equal(len(wegoAppManifests)+1), "deletes all wego app manifests plus the app crd")
+	})
+
+	It("fails if we can't fetch the wego config", func() {
+		kubeClient.GetWegoConfigReturns(nil, errors.New("error"))
+
+		err := gitopsSrv.Uninstall(uninstallParams)
+		Expect(err.Error()).Should(ContainSubstring("errors occurred during uninstall"))
+	})
+
+	It("avoid uninstalling flux when its namespace is different", func() {
+		kubeClient.GetWegoConfigReturns(&kube.WegoConfig{FluxNamespace: "flux-namespace"}, nil)
+
+		err := gitopsSrv.Uninstall(uninstallParams)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		Expect(fluxClient.UninstallCallCount()).To(Equal(0))
 	})
 
 	Context("when dry-run", func() {

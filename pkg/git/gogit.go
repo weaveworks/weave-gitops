@@ -311,7 +311,7 @@ func (g *GoGit) Head() (string, error) {
 
 	head, err := g.repository.Head()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed getting repository HEAD %w", err)
 	}
 
 	return head.Hash().String(), nil
@@ -348,6 +348,29 @@ func (g *GoGit) ValidateAccess(ctx context.Context, url string, branch string) e
 	_, err = g.clone(ctx, path, url, branch, 1)
 	if err != nil && !errors.Is(err, transport.ErrEmptyRemoteRepository) {
 		return fmt.Errorf("error validating git repo access %w", err)
+	}
+
+	return nil
+}
+
+func (g *GoGit) Checkout(newBranch string) error {
+	wt, err := g.repository.Worktree()
+	if err != nil {
+		return fmt.Errorf("failed getting repository work-tree %w", err)
+	}
+
+	err = wt.Checkout(&gogit.CheckoutOptions{
+		Create: true,
+		Branch: plumbing.NewBranchReferenceName(newBranch),
+	})
+	if err != nil {
+		err = wt.Checkout(&gogit.CheckoutOptions{
+			Force:  true,
+			Branch: plumbing.NewBranchReferenceName(newBranch),
+		})
+		if err != nil {
+			return fmt.Errorf("failed checking out branch %w", err)
+		}
 	}
 
 	return nil

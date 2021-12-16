@@ -41,28 +41,39 @@ func buildGitProvider(config Config) (gitprovider.Client, string, error) {
 		opts := []gitprovider.ClientOption{
 			gitprovider.WithOAuth2Token(config.Token),
 		}
-		if config.Hostname != "" {
-			opts = append(opts, gitprovider.WithDomain(config.Hostname))
+
+		// Quirk of ggp, if using github.com or gitlab.com and you prepend
+		// that with https:// you end up with https://https//github.com !!!
+		hostname := github.DefaultDomain
+		if config.Hostname != "" && config.Hostname != github.DefaultDomain {
+			// Quirk of ggp, have to specify scheme with custom domain
+			hostname = "https://" + config.Hostname
+			opts = append(opts, gitprovider.WithDomain(hostname))
 		}
 
 		if client, err := github.NewClient(opts...); err != nil {
 			return nil, "", err
 		} else {
-			return client, github.DefaultDomain, nil
+			return client, hostname, nil
 		}
 	case GitProviderGitLab:
 		opts := []gitprovider.ClientOption{
 			gitprovider.WithOAuth2Token(config.Token),
 			gitprovider.WithConditionalRequests(true),
 		}
-		if config.Hostname != "" {
-			opts = append(opts, gitprovider.WithDomain(config.Hostname))
+
+		// Quirk, see above
+		hostname := gitlab.DefaultDomain
+		if config.Hostname != "" && config.Hostname != gitlab.DefaultDomain {
+			// Quirk, see above
+			hostname = "https://" + config.Hostname
+			opts = append(opts, gitprovider.WithDomain(hostname))
 		}
 
 		if client, err := gitlab.NewClient(config.Token, tokenTypeOauth, opts...); err != nil {
 			return nil, "", err
 		} else {
-			return client, gitlab.DefaultDomain, nil
+			return client, hostname, nil
 		}
 	default:
 		return nil, "", fmt.Errorf("unsupported Git provider '%s'", config.Provider)

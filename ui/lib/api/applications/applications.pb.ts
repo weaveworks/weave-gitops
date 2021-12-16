@@ -125,7 +125,7 @@ export type AddApplicationRequest = {
   url?: string
   branch?: string
   autoMerge?: boolean
-  configUrl?: string
+  configRepo?: string
 }
 
 export type AddApplicationResponse = {

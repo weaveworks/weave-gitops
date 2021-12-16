@@ -53,8 +53,8 @@ const WegoClusterDir = "clusters"
 // WegoClusterOSWorkloadDir is where OS workload manifests will live in the GitOps repo
 const WegoClusterOSWorkloadDir = "system"
 
-// WegoClusterUserWorloadDir is where user workload manifests will live in the GitOps repo
-const WegoClusterUserWorloadDir = "user"
+// WegoClusterUserWorkloadDir is where user workload manifests will live in the GitOps repo
+const WegoClusterUserWorkloadDir = "user"
 
 // Git is an interface for basic Git operations on a single branch of a
 // remote repository.
@@ -63,6 +63,7 @@ type Git interface {
 	Open(path string) (*gogit.Repository, error)
 	Init(path, url, branch string) (bool, error)
 	Clone(ctx context.Context, path, url, branch string) (bool, error)
+	Checkout(newBranch string) error
 	Write(path string, content []byte) error
 	Remove(path string) error
 	Commit(message Commit, filters ...func(string) bool) (string, error)

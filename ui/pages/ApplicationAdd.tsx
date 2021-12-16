@@ -133,7 +133,7 @@ function AddApplication({ className }: Props) {
     path: "./",
     branch: "main",
     url: "",
-    configUrl: "",
+    configRepo: "",
     autoMerge: false,
     provider: null,
   };
@@ -172,7 +172,7 @@ function AddApplication({ className }: Props) {
       return;
     }
     const repoURL = convertGitURLToGitProvider(
-      formState.configUrl || formState.url
+      formState.configRepo || formState.url
     );
 
     setPrLink(`${repoURL.replace(".git", "")}/pulls`);
@@ -276,13 +276,13 @@ function AddApplication({ className }: Props) {
                 onChange={(e) => {
                   setFormState({
                     ...formState,
-                    configUrl: e.currentTarget.value,
+                    configRepo: e.currentTarget.value,
                   });
                 }}
-                id="configUrl"
+                id="configRepo"
                 label="Config Repo URL"
                 variant="standard"
-                value={formState.configUrl}
+                value={formState.configRepo}
               />
               <FormHelperText>
                 The git repository URL to which Weave GitOps will write the
@@ -354,9 +354,7 @@ function AddApplication({ className }: Props) {
               {loading ? (
                 <CircularProgress />
               ) : (
-                <Button variant="contained" type="submit">
-                  Submit
-                </Button>
+                <Button type="submit">Submit</Button>
               )}
             </Flex>
           </form>

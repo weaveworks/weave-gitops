@@ -3,15 +3,16 @@ package internal
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"strings"
 )
 
 const (
-	gitlabScheme       = "https"
-	gitlabHost         = "gitlab.com"
-	gitlabClientId     = "451df5d954a3ebb371bba5e6b7d1468ead1a0ee6d88b0791b001566b7bbc10cd"
-	gitlabClientSecret = "b402c7601b71904fffec85d3cc8aa7e953405680aa9b1fc4fb8603e9bb7e208a"
-
+	gitlabScheme = "https"
+	gitlabHost   = "gitlab.com"
+	// Default values that can be used for OAuth with the `wego-dev` GitLab Application
+	gitlabClientId       = "451df5d954a3ebb371bba5e6b7d1468ead1a0ee6d88b0791b001566b7bbc10cd"
+	gitlabClientSecret   = "b402c7601b71904fffec85d3cc8aa7e953405680aa9b1fc4fb8603e9bb7e208a"
 	GitlabVerifierMin    = 43
 	GitlabVerifierMax    = 128
 	GitlabRedirectUriCLI = "http://127.0.0.1:9999/oauth/gitlab/callback"
@@ -28,15 +29,36 @@ type GitlabTokenResponse struct {
 	CreatedAt    int64  `json:"created_at"`
 }
 
+func getEnvDefault(key, defaultValue string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		val = defaultValue
+	}
+
+	return val
+}
+
+func getGitlabHost() string {
+	return getEnvDefault("GITLAB_HOSTNAME", gitlabHost)
+}
+
+func getGitlabClientId() string {
+	return getEnvDefault("GITLAB_CLIENT_ID", gitlabClientId)
+}
+
+func getGitlabClientSecret() string {
+	return getEnvDefault("GITLAB_CLIENT_SECRET", gitlabClientSecret)
+}
+
 // GitlabAuthorizeUrl returns a URL that can be used for a Gitlab OAuth authorize request
 func GitlabAuthorizeUrl(redirectUri string, scopes []string, verifier CodeVerifier) (url.URL, error) {
 	u := url.URL{}
 	u.Scheme = gitlabScheme
-	u.Host = gitlabHost
+	u.Host = getGitlabHost()
 	u.Path = "/oauth/authorize"
 
 	params := u.Query()
-	params.Set("client_id", gitlabClientId)
+	params.Set("client_id", getGitlabClientId())
 	params.Set("redirect_uri", redirectUri)
 	params.Set("response_type", "code")
 
@@ -57,16 +79,16 @@ func GitlabAuthorizeUrl(redirectUri string, scopes []string, verifier CodeVerifi
 func GitlabTokenUrl(redirectUri, authorizationCode string, verifier CodeVerifier) url.URL {
 	u := url.URL{}
 	u.Scheme = gitlabScheme
-	u.Host = gitlabHost
+	u.Host = getGitlabHost()
 	u.Path = "/oauth/token"
 
 	params := u.Query()
-	params.Set("client_id", gitlabClientId)
+	params.Set("client_id", getGitlabClientId())
 	params.Set("redirect_uri", redirectUri)
 	params.Set("code", authorizationCode)
 	params.Set("grant_type", "authorization_code")
 	params.Set("code_verifier", verifier.RawValue())
-	params.Set("client_secret", gitlabClientSecret)
+	params.Set("client_secret", getGitlabClientSecret())
 	u.RawQuery = params.Encode()
 
 	return u

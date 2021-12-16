@@ -39,7 +39,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I have a gitops binary installed on my local machine", func() {
-			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
+			Expect(FileExists(gitopsBinaryPath)).To(BeTrue())
 		})
 	})
 
@@ -49,19 +49,19 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		var exitCode int
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
 
 		addCommand1 := "add app . --auto-merge=true"
 		addCommand2 := "add app . --url=" + appRepoRemoteURL + " --auto-merge=true"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
@@ -70,7 +70,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I run gitops add command", func() {
-			command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, WEGO_BIN_PATH, addCommand1))
+			command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, gitopsBinaryPath, addCommand1))
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).ShouldNot(HaveOccurred())
 			Eventually(session).Should(gexec.Exit())
@@ -98,16 +98,16 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := true
 		tip := generateTestInputs()
 		branchName := "test-branch-01"
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
 		appName := tip.appRepoName
 
 		addCommand := "add app --url=" + appRepoRemoteURL + " --branch=" + branchName + " --dry-run" + " --auto-merge=true"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -115,7 +115,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
@@ -145,15 +145,15 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		// Test for WGE
 		By("When I try to upgrade gitops core to enterprise", func() {
-			_, errOutput = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " upgrade")
+			_, errOutput = runCommandAndReturnStringOutput(gitopsBinaryPath + " upgrade")
 		})
 
 		By("Then I should see error message", func() {
-			Eventually(errOutput).Should(ContainSubstring("required flag(s) \"app-config-url\", \"version\" not set"))
+			Eventually(errOutput).Should(ContainSubstring("required flag(s) \"config-repo\", \"version\" not set"))
 		})
 
 		By("When I try to upgrade gitops core to enterprise with config-repo & version provided", func() {
-			_, errOutput = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " upgrade --app-config-url=" + appRepoRemoteURL + " --version=0.0.1")
+			_, errOutput = runCommandAndReturnStringOutput(gitopsBinaryPath + " upgrade --config-repo=" + appRepoRemoteURL + " --version=0.0.1")
 		})
 
 		By("Then I should see error message", func() {
@@ -166,15 +166,15 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := true
 		tip := generateTestInputs()
 		appName := tip.appRepoName
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
 
 		addCommand := "add app . --auto-merge=true"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -182,7 +182,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create an empty private repo", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 		})
 
 		By("And I install gitops to my active cluster", func() {
@@ -206,7 +206,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have private visibility", func() {
-			Expect(getGitRepoVisibility(GITHUB_ORG, tip.appRepoName, gitproviders.GitProviderGitHub)).Should(ContainSubstring("private"))
+			Expect(getGitRepoVisibility(githubOrg, tip.appRepoName, gitproviders.GitProviderGitHub)).Should(ContainSubstring("private"))
 		})
 	})
 
@@ -216,19 +216,19 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := true
 		tip := generateTestInputs()
 		appName := tip.appRepoName
-		appRepoRemoteURL := "ssh://git@gitlab.com/" + GITLAB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@gitlab.com/" + gitlabOrg + "/" + tip.appRepoName + ".git"
 
 		addCommand := "add app . --auto-merge=true"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, gitlabOrg)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
-		By("I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupGitlabSSHKey(DEFAULT_SSH_KEY_PATH)
+		By("I have my default ssh key on path "+sshKeyPath, func() {
+			setupGitlabSSHKey(sshKeyPath)
 		})
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, gitlabOrg)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -236,7 +236,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create an empty private repo", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitLab, private, GITLAB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitLab, private, gitlabOrg)
 		})
 
 		By("And I install gitops to my active cluster", func() {
@@ -260,11 +260,11 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have private visibility", func() {
-			Expect(getGitRepoVisibility(GITLAB_ORG, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("private"))
+			Expect(getGitRepoVisibility(gitlabOrg, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("private"))
 		})
 
 		By("When I remove an app", func() {
-			appRemoveOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " delete app " + appName)
+			appRemoveOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " delete app " + appName)
 		})
 
 		By("Then I should see app removing message", func() {
@@ -283,19 +283,19 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := false
 		tip := generateTestInputs()
 		appName := tip.appRepoName
-		appRepoRemoteURL := "ssh://git@gitlab.com/" + GITLAB_PUBLIC_GROUP + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@gitlab.com/" + gitlabPublicGroup + "/" + tip.appRepoName + ".git"
 
 		addCommand := "add app . --auto-merge=true"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_PUBLIC_GROUP)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, gitlabPublicGroup)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
-		By("I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupGitlabSSHKey(DEFAULT_SSH_KEY_PATH)
+		By("I have my default ssh key on path "+sshKeyPath, func() {
+			setupGitlabSSHKey(sshKeyPath)
 		})
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_PUBLIC_GROUP)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, gitlabPublicGroup)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -303,7 +303,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create an empty public repo", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitLab, private, GITLAB_PUBLIC_GROUP)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitLab, private, gitlabPublicGroup)
 		})
 
 		By("And I install gitops to my active cluster", func() {
@@ -327,30 +327,30 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have public visibility", func() {
-			Expect(getGitRepoVisibility(GITLAB_PUBLIC_GROUP, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("public"))
+			Expect(getGitRepoVisibility(gitlabPublicGroup, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("public"))
 		})
 
 	})
 
-	It("Test1 - Verify that gitops can deploy an app with specified config-url and app-config-url set to <url>", func() {
+	It("Test1 - Verify that gitops can deploy an app with specified config-url and config-repo set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		private := true
 		tip := generateTestInputs()
 		appName := tip.appRepoName
-		appConfigRepoName := "wego-config-repo-" + RandString(8)
-		appRepoRemoteURL := "https://github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
-		configRepoRemoteURL = "https://github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
+		appConfigRepoName := "config-repo-" + RandString(8)
+		appRepoRemoteURL := "https://github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
+		configRepoRemoteURL = "https://github.com/" + githubOrg + "/" + appConfigRepoName + ".git"
 
-		addCommand := "add app --url=" + appRepoRemoteURL + " --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
+		addCommand := "add app --url=" + appRepoRemoteURL + " --config-repo=" + configRepoRemoteURL + " --auto-merge=true"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
-		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
-			deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+			deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -358,12 +358,12 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create a private repo for gitops app config", func() {
-			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 			gitAddCommitPush(appConfigRepoAbsPath, tip.appManifestFilePath)
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
@@ -371,7 +371,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, configRepoRemoteURL)
 		})
 
-		By("And I run gitops add command with --url and --app-config-url params", func() {
+		By("And I run gitops add command with --url and --config-repo params", func() {
 			runWegoAddCommand(repoAbsolutePath+"/../", addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -381,30 +381,30 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	It("Test2 - Verify that gitops can deploy and remove a gitlab app with specified config-url and app-config-url set to <url>", func() {
+	It("Test2 - Verify that gitops can deploy and remove a gitlab app with specified config-url and config-repo set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var appRemoveOutput string
 		private := true
 		tip := generateTestInputs()
 		appName := tip.appRepoName
-		appConfigRepoName := "wego-config-repo-" + RandString(8)
-		appRepoRemoteURL := "ssh://git@gitlab.com/" + GITLAB_ORG + "/" + tip.appRepoName + ".git"
-		configRepoRemoteURL = "ssh://git@gitlab.com/" + GITLAB_ORG + "/" + appConfigRepoName + ".git"
+		appConfigRepoName := "config-repo-" + RandString(8)
+		appRepoRemoteURL := "ssh://git@gitlab.com/" + gitlabOrg + "/" + tip.appRepoName + ".git"
+		configRepoRemoteURL = "ssh://git@gitlab.com/" + gitlabOrg + "/" + appConfigRepoName + ".git"
 
-		addCommand := "add app --url=" + appRepoRemoteURL + " --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
+		addCommand := "add app --url=" + appRepoRemoteURL + " --config-repo=" + configRepoRemoteURL + " --auto-merge=true"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
-		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITLAB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, gitlabOrg)
+		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, gitlabOrg)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
-		By("I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupGitlabSSHKey(DEFAULT_SSH_KEY_PATH)
+		By("I have my default ssh key on path "+sshKeyPath, func() {
+			setupGitlabSSHKey(sshKeyPath)
 		})
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
-			deleteRepo(appConfigRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, gitlabOrg)
+			deleteRepo(appConfigRepoName, gitproviders.GitProviderGitLab, gitlabOrg)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -412,12 +412,12 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create a private repo for gitops app config", func() {
-			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, gitproviders.GitProviderGitLab, private, GITLAB_ORG)
+			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, gitproviders.GitProviderGitLab, private, gitlabOrg)
 			gitAddCommitPush(appConfigRepoAbsPath, tip.appManifestFilePath)
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitLab, private, GITLAB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitLab, private, gitlabOrg)
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
@@ -425,7 +425,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, configRepoRemoteURL)
 		})
 
-		By("And I run gitops add command with --url and --app-config-url params", func() {
+		By("And I run gitops add command with --url and --config-repo params", func() {
 			runWegoAddCommand(repoAbsolutePath+"/../", addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
@@ -435,7 +435,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I delete an app", func() {
-			appRemoveOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " delete app " + appName)
+			appRemoveOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " delete app " + appName)
 		})
 
 		By("Then I should see app removing message", func() {
@@ -449,20 +449,20 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	It("Test1 - Verify that gitops can deploy an app with specified config-url and app-config-url set to default", func() {
+	It("Test1 - Verify that gitops can deploy an app with specified config-url and config-repo set to default", func() {
 		var repoAbsolutePath string
 		private := false
 		tip := generateTestInputs()
 		appName := tip.appRepoName
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
 
 		addCommand := "add app --url=" + appRepoRemoteURL + " --auto-merge=true"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -470,7 +470,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
@@ -493,15 +493,15 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := true
 		tip := generateTestInputs()
 		appName := tip.appRepoName
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
 
 		addCommand := "add app " + tip.appRepoName + "/" + " --auto-merge=true"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -509,7 +509,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
@@ -528,7 +528,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have private visibility", func() {
-			Expect(getGitRepoVisibility(GITHUB_ORG, tip.appRepoName, gitproviders.GitProviderGitHub)).Should(ContainSubstring("private"))
+			Expect(getGitRepoVisibility(githubOrg, tip.appRepoName, gitproviders.GitProviderGitHub)).Should(ContainSubstring("private"))
 		})
 	})
 
@@ -536,18 +536,18 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		var repoAbsolutePath string
 		tip1 := generateTestInputs()
 		tip2 := generateTestInputs()
-		appRepoName := "wego-test-app-" + RandString(8)
+		appRepoName := "test-app-" + RandString(8)
 		appName := appRepoName
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + appRepoName + ".git"
 
 		addCommand := "add app . --name=" + appName + " --auto-merge=true"
 
-		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		defer deleteWorkload(tip1.workloadName, tip1.workloadNamespace)
 		defer deleteWorkload(tip2.workloadName, tip2.workloadNamespace)
 
 		By("And application repos do not already exist", func() {
-			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -556,7 +556,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create an empty private repo for app1", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitproviders.GitProviderGitHub, true, GITHUB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitproviders.GitProviderGitHub, true, githubOrg)
 		})
 
 		By("And I git add-commit-push for app with multiple workloads", func() {
@@ -585,9 +585,9 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	It("@skipOnNightly Verify that gitops can deploy a single workload to multiple clusters with app manifests in config repo (Bug #810)", func() {
 		var repoAbsolutePath string
 		tip := generateTestInputs()
-		appRepoName := "wego-test-app-" + RandString(8)
+		appRepoName := "test-app-" + RandString(8)
 		appName := appRepoName
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + appRepoName + ".git"
 
 		addCommand := "add app . --name=" + appName + " --auto-merge=true"
 
@@ -595,7 +595,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		cluster2Name, cluster2Context, err := ResetOrCreateClusterWithName(WEGO_DEFAULT_NAMESPACE, deleteWegoRuntime, "", true)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		defer func() {
 			selectCluster(cluster1Context)
 			deleteWorkload(tip.workloadName, tip.workloadNamespace)
@@ -603,7 +603,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		}()
 
 		By("And application repos do not already exist", func() {
-			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
 		By("And application workload is not already deployed to clusters", func() {
@@ -614,7 +614,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create an empty private repo for app", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitproviders.GitProviderGitHub, true, GITHUB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitproviders.GitProviderGitHub, true, githubOrg)
 		})
 
 		By("And I git add-commit-push for app", func() {
@@ -657,25 +657,25 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		tip1 := generateTestInputs()
 		tip2 := generateTestInputs()
 		readmeFilePath := "./data/README.md"
-		appRepoName1 := "wego-test-app-" + RandString(8)
-		appRepoName2 := "wego-test-app-" + RandString(8)
-		appConfigRepoName := "wego-config-repo-" + RandString(8)
-		configRepoRemoteURL = "ssh://git@github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
+		appRepoName1 := "test-app-" + RandString(8)
+		appRepoName2 := "test-app-" + RandString(8)
+		appConfigRepoName := "config-repo-" + RandString(8)
+		configRepoRemoteURL = "ssh://git@github.com/" + githubOrg + "/" + appConfigRepoName + ".git"
 		appName1 := appRepoName1
 		appName2 := appRepoName2
 
-		addCommand := "add app . --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
+		addCommand := "add app . --config-repo=" + configRepoRemoteURL + " --auto-merge=true"
 
-		defer deleteRepo(appRepoName1, gitproviders.GitProviderGitHub, GITHUB_ORG)
-		defer deleteRepo(appRepoName2, gitproviders.GitProviderGitHub, GITHUB_ORG)
-		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(appRepoName1, gitproviders.GitProviderGitHub, githubOrg)
+		defer deleteRepo(appRepoName2, gitproviders.GitProviderGitHub, githubOrg)
+		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		defer deleteWorkload(tip1.workloadName, tip1.workloadNamespace)
 		defer deleteWorkload(tip2.workloadName, tip2.workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(appRepoName1, gitproviders.GitProviderGitHub, GITHUB_ORG)
-			deleteRepo(appRepoName2, gitproviders.GitProviderGitHub, GITHUB_ORG)
-			deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(appRepoName1, gitproviders.GitProviderGitHub, githubOrg)
+			deleteRepo(appRepoName2, gitproviders.GitProviderGitHub, githubOrg)
+			deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -684,7 +684,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create a private repo for gitops app config", func() {
-			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 			gitAddCommitPush(appConfigRepoAbsPath, readmeFilePath)
 		})
 
@@ -693,13 +693,13 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I create a repo with my app1 workload and run the add app command on it", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName1, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName1, gitproviders.GitProviderGitHub, private, githubOrg)
 			gitAddCommitPush(repoAbsolutePath, tip1.appManifestFilePath)
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
 
 		By("And I create a repo with my app2 workload and run the add app command on it", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName2, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName2, gitproviders.GitProviderGitHub, private, githubOrg)
 			gitAddCommitPush(repoAbsolutePath, tip2.appManifestFilePath)
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
@@ -717,20 +717,20 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := true
 		tip1 := generateTestInputs()
 		tip2 := generateTestInputs()
-		appRepoName := "wego-test-app-" + RandString(8)
+		appRepoName := "test-app-" + RandString(8)
 		appName1 := "app1"
 		appName2 := "app2"
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + appRepoName + ".git"
 
 		addCommand1 := "add app . --path=./" + appName1 + " --name=" + appName1 + " --auto-merge=true"
 		addCommand2 := "add app . --path=./" + appName2 + " --name=" + appName2 + " --auto-merge=true"
 
-		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		defer deleteWorkload(tip1.workloadName, tip1.workloadNamespace)
 		defer deleteWorkload(tip2.workloadName, tip2.workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -739,7 +739,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And I create a repo", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 		})
 
 		By("And I install gitops to my active cluster", func() {
@@ -763,7 +763,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	It("Test3 - Verify that gitops can deploy an app with app-config-url set to <url>", func() {
+	It("Test3 - Verify that gitops can deploy an app with config-repo set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var listOutput string
@@ -776,8 +776,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		readmeFilePath := "./data/README.md"
 		tip := generateTestInputs()
 		appFilesRepoName := tip.appRepoName
-		appConfigRepoName := "wego-config-repo-" + RandString(8)
-		configRepoRemoteURL = "ssh://git@github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
+		appConfigRepoName := "config-repo-" + RandString(8)
+		configRepoRemoteURL = "ssh://git@github.com/" + githubOrg + "/" + appConfigRepoName + ".git"
 		helmRepoURL := "https://charts.kube-ops.io"
 		appName1 := appFilesRepoName
 		workloadName1 := tip.workloadName
@@ -788,18 +788,18 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		appName3 := "loki"
 		workloadName3 := "loki-0"
 
-		addCommand1 := "add app . --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
-		addCommand2 := "add app . --deployment-type=helm --path=./hello-world --name=" + appName2 + " --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
-		addCommand3 := "add app --url=" + helmRepoURL + " --chart=" + appName3 + " --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
+		addCommand1 := "add app . --config-repo=" + configRepoRemoteURL + " --auto-merge=true"
+		addCommand2 := "add app . --deployment-type=helm --path=./hello-world --name=" + appName2 + " --config-repo=" + configRepoRemoteURL + " --auto-merge=true"
+		addCommand3 := "add app --url=" + helmRepoURL + " --chart=" + appName3 + " --config-repo=" + configRepoRemoteURL + " --auto-merge=true"
 
-		defer deleteRepo(appFilesRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
-		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(appFilesRepoName, gitproviders.GitProviderGitHub, githubOrg)
+		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		defer deleteWorkload(workloadName1, workloadNamespace1)
 		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName3, EVENTUALLY_DEFAULT_TIMEOUT)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(appFilesRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
-			deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(appFilesRepoName, gitproviders.GitProviderGitHub, githubOrg)
+			deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -808,12 +808,12 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create a private repo for gitops app config", func() {
-			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 			gitAddCommitPush(appConfigRepoAbsPath, readmeFilePath)
 		})
 
 		By("When I create a private repo with app1 workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(appFilesRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(appFilesRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath1)
 		})
 
@@ -854,7 +854,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check the app status for app1", func() {
-			appStatus1, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName1)
+			appStatus1, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " get app " + appName1)
 		})
 
 		By("Then I should see the status for "+appName1, func() {
@@ -864,7 +864,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check the app status for app2", func() {
-			appStatus2, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName2)
+			appStatus2, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " get app " + appName2)
 		})
 
 		By("Then I should see the status for "+appName2, func() {
@@ -874,7 +874,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check the app status for app3", func() {
-			appStatus3, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName3)
+			appStatus3, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " get app " + appName3)
 		})
 
 		By("Then I should see the status for "+appName3, func() {
@@ -884,7 +884,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check for apps", func() {
-			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get apps")
+			listOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " get apps")
 		})
 
 		By("Then I should see appNames for all apps listed", func() {
@@ -905,7 +905,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check for list of commits for app1", func() {
-			commitList1, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", WEGO_BIN_PATH, appName1))
+			commitList1, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", gitopsBinaryPath, appName1))
 		})
 
 		By("Then I should see the list of commits for app1", func() {
@@ -915,7 +915,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check for list of commits for app2", func() {
-			commitList2, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", WEGO_BIN_PATH, appName2))
+			commitList2, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", gitopsBinaryPath, appName2))
 		})
 
 		By("Then I should see the list of commits for app2", func() {
@@ -943,19 +943,19 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := true
 		public := false
 		replicaSetValue := 3
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip1.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + tip1.appRepoName + ".git"
 
 		addCommand1 := "add app . --name=" + appName1 + " --auto-merge=true"
-		addCommand2 := "add app . --name=" + appName2 + " --auto-merge=true --app-config-url=" + appRepoRemoteURL
+		addCommand2 := "add app . --name=" + appName2 + " --auto-merge=true --config-repo=" + appRepoRemoteURL
 
-		defer deleteRepo(tip1.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
-		defer deleteRepo(tip2.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(tip1.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+		defer deleteRepo(tip2.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		defer deleteWorkload(tip1.workloadName, tip1.workloadNamespace)
 		defer deleteWorkload(tip2.workloadName, tip2.workloadNamespace)
 
 		By("And application repos do not already exist", func() {
-			deleteRepo(tip1.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
-			deleteRepo(tip2.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(tip1.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+			deleteRepo(tip2.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -964,11 +964,11 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create an empty private repo for app1", func() {
-			repoAbsolutePath1 = initAndCreateEmptyRepo(tip1.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			repoAbsolutePath1 = initAndCreateEmptyRepo(tip1.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 		})
 
 		By("When I create an empty public repo for app2", func() {
-			repoAbsolutePath2 = initAndCreateEmptyRepo(tip2.appRepoName, gitproviders.GitProviderGitHub, public, GITHUB_ORG)
+			repoAbsolutePath2 = initAndCreateEmptyRepo(tip2.appRepoName, gitproviders.GitProviderGitHub, public, githubOrg)
 		})
 
 		By("And I git add-commit-push for app1 with workload", func() {
@@ -1008,12 +1008,12 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have proper visibility", func() {
-			Eventually(getGitRepoVisibility(GITHUB_ORG, tip1.appRepoName, gitproviders.GitProviderGitHub)).Should(ContainSubstring("private"))
-			Eventually(getGitRepoVisibility(GITHUB_ORG, tip2.appRepoName, gitproviders.GitProviderGitHub)).Should(ContainSubstring("public"))
+			Eventually(getGitRepoVisibility(githubOrg, tip1.appRepoName, gitproviders.GitProviderGitHub)).Should(ContainSubstring("private"))
+			Eventually(getGitRepoVisibility(githubOrg, tip2.appRepoName, gitproviders.GitProviderGitHub)).Should(ContainSubstring("public"))
 		})
 
 		By("When I check the app status for "+appName1, func() {
-			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", WEGO_BIN_PATH, appName1))
+			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", gitopsBinaryPath, appName1))
 		})
 
 		By("Then I should see the status for "+appName1, func() {
@@ -1023,7 +1023,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check the app status for "+appName2, func() {
-			appStatus2 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", WEGO_BIN_PATH, appName2))
+			appStatus2 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", gitopsBinaryPath, appName2))
 		})
 
 		By("Then I should see the status for "+appName2, func() {
@@ -1033,7 +1033,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check for apps", func() {
-			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get apps")
+			listOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " get apps")
 		})
 
 		By("Then I should see appNames for both apps listed", func() {
@@ -1042,7 +1042,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I suspend an app: "+appName1, func() {
-			pauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " suspend app " + appName1)
+			pauseOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " suspend app " + appName1)
 		})
 
 		By("Then I should see pause message", func() {
@@ -1050,7 +1050,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check app status for paused app", func() {
-			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", WEGO_BIN_PATH, appName1))
+			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", gitopsBinaryPath, appName1))
 		})
 
 		By("Then I should see pause status as suspended=true", func() {
@@ -1071,7 +1071,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I re-run suspend app command", func() {
-			pauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " suspend app " + appName1)
+			pauseOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " suspend app " + appName1)
 		})
 
 		By("Then I should see a console message without any errors", func() {
@@ -1079,7 +1079,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I unpause an app: "+appName1, func() {
-			unpauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " resume app " + appName1)
+			unpauseOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " resume app " + appName1)
 		})
 
 		By("Then I should see unpause message", func() {
@@ -1094,7 +1094,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I re-run resume app command", func() {
-			unpauseOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " resume app " + appName1)
+			unpauseOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " resume app " + appName1)
 		})
 
 		By("Then I should see unpause message without any errors", func() {
@@ -1102,7 +1102,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check app status for unpaused app", func() {
-			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", WEGO_BIN_PATH, appName1))
+			appStatus1 = runCommandAndReturnSessionOutput(fmt.Sprintf("%s get app %s", gitopsBinaryPath, appName1))
 		})
 
 		By("Then I should see pause status as suspended=false", func() {
@@ -1110,7 +1110,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I delete an app", func() {
-			appRemoveOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " delete app " + appName2)
+			appRemoveOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " delete app " + appName2)
 		})
 
 		By("Then I should see app deleting message", func() {
@@ -1124,7 +1124,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check for list of commits for app1", func() {
-			commitList1, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", WEGO_BIN_PATH, appName1))
+			commitList1, _ = runCommandAndReturnStringOutput(fmt.Sprintf("%s get commits %s", gitopsBinaryPath, appName1))
 		})
 
 		By("Then I should see the list of commits for app1", func() {
@@ -1135,24 +1135,24 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	It("Verify that gitops can deploy a helm app from a git repo with app-config-url set to default", func() {
+	It("Verify that gitops can deploy a helm app from a git repo with config-repo set to default", func() {
 		var repoAbsolutePath string
 		public := false
 		appName := "my-helm-app"
 		appManifestFilePath := "./data/helm-repo/hello-world"
-		appRepoName := "wego-test-app-" + RandString(8)
-		appRepoRemoteURL := "https://github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
+		appRepoName := "test-app-" + RandString(8)
+		appRepoRemoteURL := "https://github.com/" + githubOrg + "/" + appRepoName + ".git"
 
 		addCommand := "add app . --deployment-type=helm --path=./hello-world --name=" + appName + " --auto-merge=true"
 
-		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitproviders.GitProviderGitHub, public, GITHUB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitproviders.GitProviderGitHub, public, githubOrg)
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 
@@ -1171,38 +1171,38 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repo created has public visibility", func() {
-			Eventually(getGitRepoVisibility(GITHUB_ORG, appRepoName, gitproviders.GitProviderGitHub)).Should(ContainSubstring("public"))
+			Eventually(getGitRepoVisibility(githubOrg, appRepoName, gitproviders.GitProviderGitHub)).Should(ContainSubstring("public"))
 		})
 	})
 
-	It("Test3 - Verify that gitops can deploy a helm app from a git repo with app-config-url set to <url>", func() {
+	It("Test3 - Verify that gitops can deploy a helm app from a git repo with config-repo set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoAbsolutePath string
 		private := true
 		appManifestFilePath := "./data/helm-repo/hello-world"
 		configRepoFiles := "./data/config-repo"
 		appName := "my-helm-app"
-		appRepoName := "wego-test-app-" + RandString(8)
-		configRepoName := "wego-test-config-repo-" + RandString(8)
-		configRepoUrl := fmt.Sprintf("ssh://git@github.com/%s/%s.git", os.Getenv("GITHUB_ORG"), configRepoName)
+		appRepoName := "test-app-" + RandString(8)
+		configRepoName := "test-config-repo-" + RandString(8)
+		configRepoUrl := fmt.Sprintf("ssh://git@github.com/%s/%s.git", githubOrg, configRepoName)
 
-		addCommand := fmt.Sprintf("add app . --app-config-url=%s --deployment-type=helm --path=./hello-world --name=%s --auto-merge=true", configRepoUrl, appName)
+		addCommand := fmt.Sprintf("add app . --config-repo=%s --deployment-type=helm --path=./hello-world --name=%s --auto-merge=true", configRepoUrl, appName)
 
-		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
-		defer deleteRepo(configRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+		defer deleteRepo(configRepoName, gitproviders.GitProviderGitHub, githubOrg)
 
 		By("Application and config repo does not already exist", func() {
-			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
-			deleteRepo(configRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+			deleteRepo(configRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 
 		By("When I create a private repo for my config files", func() {
-			configRepoAbsolutePath = initAndCreateEmptyRepo(configRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			configRepoAbsolutePath = initAndCreateEmptyRepo(configRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 			gitAddCommitPush(configRepoAbsolutePath, configRepoFiles)
 		})
 
@@ -1235,7 +1235,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 	})
 
-	It("Test3 - Verify that gitops can deploy multiple helm apps from a helm repo with app-config-url set to <url>", func() {
+	It("Test3 - Verify that gitops can deploy multiple helm apps from a helm repo with config-repo set to <url>", func() {
 		var repoAbsolutePath string
 		var listOutput string
 		var appStatus1 string
@@ -1248,23 +1248,23 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		workloadNamespace := "test-space"
 		workloadName1 := workloadNamespace + "-loki-0"
 		readmeFilePath := "./data/README.md"
-		appRepoName := "wego-test-app-" + RandString(8)
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + appRepoName + ".git"
+		appRepoName := "test-app-" + RandString(8)
+		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + appRepoName + ".git"
 		helmRepoURL := "https://charts.kube-ops.io"
 
 		invalidAddCommand := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --auto-merge=true"
 
-		addCommand1 := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true --helm-release-target-namespace=" + workloadNamespace
-		addCommand2 := "add app --url=" + helmRepoURL + " --chart=" + appName2 + " --app-config-url=" + appRepoRemoteURL + " --auto-merge=true --helm-release-target-namespace=" + workloadNamespace
+		addCommand1 := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --config-repo=" + appRepoRemoteURL + " --auto-merge=true --helm-release-target-namespace=" + workloadNamespace
+		addCommand2 := "add app --url=" + helmRepoURL + " --chart=" + appName2 + " --config-repo=" + appRepoRemoteURL + " --auto-merge=true --helm-release-target-namespace=" + workloadNamespace
 
 		defer deleteNamespace(workloadNamespace)
 		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName1, EVENTUALLY_DEFAULT_TIMEOUT)
 		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName2, EVENTUALLY_DEFAULT_TIMEOUT)
 		defer deletePersistingHelmApp(WEGO_DEFAULT_NAMESPACE, workloadName3, EVENTUALLY_DEFAULT_TIMEOUT)
-		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -1272,7 +1272,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create a private git repo", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 			gitAddCommitPush(repoAbsolutePath, readmeFilePath)
 		})
 
@@ -1285,9 +1285,9 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			Eventually(out).Should(ContainSubstring("namespace/" + workloadNamespace + " created"))
 		})
 
-		By("And I add an invalid entry without --app-config-url set", func() {
+		By("And I add an invalid entry without --config-repo set", func() {
 			_, err := runWegoAddCommandWithOutput(repoAbsolutePath, invalidAddCommand, WEGO_DEFAULT_NAMESPACE)
-			Eventually(err).Should(ContainSubstring("--app-config-url should be provided"))
+			Eventually(err).Should(ContainSubstring("--config-repo should be provided"))
 		})
 
 		By("And I run gitops add app command for 1st app", func() {
@@ -1323,7 +1323,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check for apps", func() {
-			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get apps")
+			listOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " get apps")
 		})
 
 		By("Then I should see appNames for both apps listed", func() {
@@ -1332,7 +1332,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check the app status for "+appName1, func() {
-			appStatus1, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName1)
+			appStatus1, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " get app " + appName1)
 		})
 
 		By("Then I should see the status for app1", func() {
@@ -1342,7 +1342,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I check the app status for "+appName2, func() {
-			appStatus2, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName2)
+			appStatus2, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " get app " + appName2)
 		})
 
 		By("Then I should see the status for app2", func() {
@@ -1361,15 +1361,15 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		addCommand := "add app . --auto-merge=true"
 
-		subGroup := GITLAB_ORG + "/" + GITLAB_SUBGROUP
+		subGroup := gitlabOrg + "/" + gitlabSubgroup
 
 		appRepoRemoteURL := "ssh://git@gitlab.com/" + subGroup + "/" + appName + ".git"
 
 		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, subGroup)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
-		By("I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupGitlabSSHKey(DEFAULT_SSH_KEY_PATH)
+		By("I have my default ssh key on path "+sshKeyPath, func() {
+			setupGitlabSSHKey(sshKeyPath)
 		})
 
 		By("And application repo does not already exist", func() {
@@ -1409,7 +1409,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I remove an app", func() {
-			appRemoveOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " delete app " + appName)
+			appRemoveOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " delete app " + appName)
 		})
 
 		By("Then I should see app removing message", func() {
@@ -1428,19 +1428,19 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		tip := generateTestInputs()
 		appName := tip.appRepoName
 		prLink := ""
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
 
 		addCommand := "add app . --name=" + appName + " --auto-merge=false"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
 		By("When I create an empty private repo for app", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, true, GITHUB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, true, githubOrg)
 		})
 
 		By("And I git add-commit-push app manifest", func() {
@@ -1476,23 +1476,23 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		tip := generateTestInputs()
 		appName := tip.appRepoName
 		prLink := ""
-		appRepoRemoteURL := "ssh://git@gitlab.com/" + GITLAB_ORG + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@gitlab.com/" + gitlabOrg + "/" + tip.appRepoName + ".git"
 
 		addCommand := "add app . --name=" + appName + " --auto-merge=false"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, gitlabOrg)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
-		By("I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupGitlabSSHKey(DEFAULT_SSH_KEY_PATH)
+		By("I have my default ssh key on path "+sshKeyPath, func() {
+			setupGitlabSSHKey(sshKeyPath)
 		})
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, gitlabOrg)
 		})
 
 		By("When I create an empty private repo for app", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitLab, true, GITLAB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitLab, true, gitlabOrg)
 		})
 
 		By("And I git add-commit-push app manifest", func() {
@@ -1523,7 +1523,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	It("Test2 - Verify that a PR can be raised against an external repo with app-config-url set to <url>", func() {
+	It("Test2 - Verify that a PR can be raised against an external repo with config-repo set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var appConfigRepoAbsPath string
@@ -1531,27 +1531,27 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := true
 		tip := generateTestInputs()
 		appName := tip.appRepoName
-		appConfigRepoName := "wego-config-repo-" + RandString(8)
-		configRepoRemoteURL = "ssh://git@github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
+		appConfigRepoName := "config-repo-" + RandString(8)
+		configRepoRemoteURL = "ssh://git@github.com/" + githubOrg + "/" + appConfigRepoName + ".git"
 
-		addCommand := "add app . --app-config-url=" + configRepoRemoteURL
+		addCommand := "add app . --config-repo=" + configRepoRemoteURL
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
-		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
-			deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+			deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
 		By("When I create a private repo for gitops app config", func() {
-			appConfigRepoAbsPath = initAndCreateEmptyRepo(appConfigRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			appConfigRepoAbsPath = initAndCreateEmptyRepo(appConfigRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 			gitAddCommitPush(appConfigRepoAbsPath, tip.appManifestFilePath)
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
@@ -1559,7 +1559,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, configRepoRemoteURL)
 		})
 
-		By("And I run gitops add command with --app-config-url param", func() {
+		By("And I run gitops add command with --config-repo param", func() {
 			output, _ := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 			re := regexp.MustCompile(`(http|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?`)
 			prLink = re.FindAllString(output, 1)[0]
@@ -1585,21 +1585,21 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		tip2 := generateTestInputs()
 		appName := tip.appRepoName
 		appName2 := tip2.appRepoName
-		appRepoRemoteURL := "ssh://git@github.com/" + GITHUB_ORG + "/" + tip.appRepoName + ".git"
-		prLink := "https://github.com/" + GITHUB_ORG + "/" + tip.appRepoName + "/pull/1"
+		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
+		prLink := "https://github.com/" + githubOrg + "/" + tip.appRepoName + "/pull/1"
 
 		addCommand := "add app . --name=" + appName
 		addCommand2 := "add app . --name=" + appName2
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
 		By("When I create an empty private repo for app", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, true, GITHUB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, true, githubOrg)
 		})
 
 		By("And I git add-commit-push for app with workload", func() {
@@ -1655,11 +1655,11 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 
 		By("And I have a gitops binary installed on my local machine", func() {
-			Expect(FileExists(WEGO_BIN_PATH)).To(BeTrue())
+			Expect(FileExists(gitopsBinaryPath)).To(BeTrue())
 		})
 	})
 
-	It("SmokeTestLong - Verify that gitops can deploy an app with app-config-url set to <url>", func() {
+	It("SmokeTestLong - Verify that gitops can deploy an app with config-repo set to <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var listOutput string
@@ -1668,22 +1668,22 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		readmeFilePath := "./data/README.md"
 		tip := generateTestInputs()
 		appFilesRepoName := tip.appRepoName + "123456789012345678901234567890"
-		appConfigRepoName := "wego-config-repo-" + RandString(8)
-		configRepoRemoteURL = "ssh://git@github.com/" + GITHUB_ORG + "/" + appConfigRepoName + ".git"
+		appConfigRepoName := "config-repo-" + RandString(8)
+		configRepoRemoteURL = "ssh://git@github.com/" + githubOrg + "/" + appConfigRepoName + ".git"
 		appName := appFilesRepoName
 		workloadName := tip.workloadName
 		workloadNamespace := tip.workloadNamespace
 		appManifestFilePath := tip.appManifestFilePath
 
-		addCommand := "add app . --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
+		addCommand := "add app . --config-repo=" + configRepoRemoteURL + " --auto-merge=true"
 
-		defer deleteRepo(appFilesRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
-		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+		defer deleteRepo(appFilesRepoName, gitproviders.GitProviderGitHub, githubOrg)
+		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		defer deleteWorkload(workloadName, workloadNamespace)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(appFilesRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
-			deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, GITHUB_ORG)
+			deleteRepo(appFilesRepoName, gitproviders.GitProviderGitHub, githubOrg)
+			deleteRepo(appConfigRepoName, gitproviders.GitProviderGitHub, githubOrg)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -1691,12 +1691,12 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 
 		By("When I create a private repo for gitops app config", func() {
-			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 			gitAddCommitPush(appConfigRepoAbsPath, readmeFilePath)
 		})
 
 		By("When I create a private repo with app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(appFilesRepoName, gitproviders.GitProviderGitHub, private, GITHUB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(appFilesRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 
@@ -1714,7 +1714,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 
 		By("When I check the app status for app", func() {
-			appStatus, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName)
+			appStatus, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " get app " + appName)
 		})
 
 		By("Then I should see the status for "+appName, func() {
@@ -1724,7 +1724,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 
 		By("When I check for apps", func() {
-			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get apps")
+			listOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " get apps")
 		})
 
 		By("Then I should see appNames for all apps listed", func() {
@@ -1743,7 +1743,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 	})
 
-	It("SmokeTestShort - Verify that gitops can deploy an app with app-config-url set to a gitlab <url>", func() {
+	It("SmokeTestShort - Verify that gitops can deploy an app with config-repo set to a gitlab <url>", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		var listOutput string
@@ -1752,26 +1752,26 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		readmeFilePath := "./data/README.md"
 		tip := generateTestInputs()
 		appFilesRepoName := tip.appRepoName + "123456789012345678901234567890"
-		appConfigRepoName := "wego-config-repo-" + RandString(8)
-		configRepoRemoteURL = "ssh://git@gitlab.com/" + GITLAB_ORG + "/" + appConfigRepoName + ".git"
+		appConfigRepoName := "config-repo-" + RandString(8)
+		configRepoRemoteURL = "ssh://git@gitlab.com/" + gitlabOrg + "/" + appConfigRepoName + ".git"
 		appName := appFilesRepoName
 		workloadName := tip.workloadName
 		workloadNamespace := tip.workloadNamespace
 		appManifestFilePath := tip.appManifestFilePath
 
-		addCommand := "add app . --app-config-url=" + configRepoRemoteURL + " --auto-merge=true"
+		addCommand := "add app . --config-repo=" + configRepoRemoteURL + " --auto-merge=true"
 
-		defer deleteRepo(appFilesRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
-		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
+		defer deleteRepo(appFilesRepoName, gitproviders.GitProviderGitLab, gitlabOrg)
+		defer deleteRepo(appConfigRepoName, gitproviders.GitProviderGitLab, gitlabOrg)
 		defer deleteWorkload(workloadName, workloadNamespace)
 
-		By("I have my default ssh key on path "+DEFAULT_SSH_KEY_PATH, func() {
-			setupGitlabSSHKey(DEFAULT_SSH_KEY_PATH)
+		By("I have my default ssh key on path "+sshKeyPath, func() {
+			setupGitlabSSHKey(sshKeyPath)
 		})
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(appFilesRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
-			deleteRepo(appConfigRepoName, gitproviders.GitProviderGitLab, GITLAB_ORG)
+			deleteRepo(appFilesRepoName, gitproviders.GitProviderGitLab, gitlabOrg)
+			deleteRepo(appConfigRepoName, gitproviders.GitProviderGitLab, gitlabOrg)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -1779,12 +1779,12 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 
 		By("When I create a private repo for gitops app config", func() {
-			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, gitproviders.GitProviderGitLab, private, GITLAB_ORG)
+			appConfigRepoAbsPath := initAndCreateEmptyRepo(appConfigRepoName, gitproviders.GitProviderGitLab, private, gitlabOrg)
 			gitAddCommitPush(appConfigRepoAbsPath, readmeFilePath)
 		})
 
 		By("When I create a private repo with app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(appFilesRepoName, gitproviders.GitProviderGitLab, private, GITLAB_ORG)
+			repoAbsolutePath = initAndCreateEmptyRepo(appFilesRepoName, gitproviders.GitProviderGitLab, private, gitlabOrg)
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 
@@ -1802,7 +1802,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 
 		By("When I check the app status for app", func() {
-			appStatus, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get app " + appName)
+			appStatus, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " get app " + appName)
 		})
 
 		By("Then I should see the status for "+appName, func() {
@@ -1812,7 +1812,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		})
 
 		By("When I check for apps", func() {
-			listOutput, _ = runCommandAndReturnStringOutput(WEGO_BIN_PATH + " get apps")
+			listOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + " get apps")
 		})
 
 		By("Then I should see appNames for all apps listed", func() {

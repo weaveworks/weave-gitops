@@ -3,9 +3,12 @@ import styled from "styled-components";
 import Button from "../components/Button";
 import DataTable from "../components/DataTable";
 import Flex from "../components/Flex";
+import Icon, { IconType } from "../components/Icon";
 import Link from "../components/Link";
-import Page, { TitleBar } from "../components/Page";
-import useApplications from "../hooks/applications";
+import Page from "../components/Page";
+import PollingIndicator from "../components/PollingIndicator";
+import Spacer from "../components/Spacer";
+import { AppContext } from "../contexts/AppContext";
 import { Application } from "../lib/api/applications/applications.pb";
 import { PageRoute } from "../lib/types";
 import { formatURL } from "../lib/utils";
@@ -16,24 +19,44 @@ type Props = {
 
 function Applications({ className }: Props) {
   const [applications, setApplications] = React.useState<Application[]>([]);
-  const { listApplications, loading } = useApplications();
+  const { applicationsClient, doAsyncError } = React.useContext(AppContext);
+  const [loading, setLoading] = React.useState(false);
+
+  const getApps = () => {
+    setLoading(true);
+    applicationsClient
+      .ListApplications({ namespace: "wego-system" })
+      .then((res) => setApplications(res.applications))
+      .catch((err) => doAsyncError(err.message, err.detail))
+      .finally(() => setLoading(false));
+  };
 
   React.useEffect(() => {
-    listApplications().then((res) => setApplications(res as Application[]));
+    getApps();
+    const interval = setInterval(() => {
+      getApps();
+    }, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
-    <Page loading={loading} className={className}>
-      <Flex align between>
-        <TitleBar>
+    <Page className={className}>
+      <Flex between align>
+        <Flex align>
           <h2>Applications</h2>
-        </TitleBar>
+          <Spacer padding="small" />
+          <PollingIndicator loading={loading} interval="30" />
+        </Flex>
         <Link to={PageRoute.ApplicationAdd} className="title-bar-button">
-          <Button variant="contained" type="button">
+          <Button
+            endIcon={<Icon type={IconType.AddIcon} size="base" />}
+            type="button"
+          >
             Add Application
           </Button>
         </Link>
       </Flex>
+
       <DataTable
         sortFields={["name"]}
         fields={[

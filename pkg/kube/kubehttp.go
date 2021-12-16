@@ -19,6 +19,7 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	"github.com/pkg/errors"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -31,6 +32,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
+	kyaml "sigs.k8s.io/yaml"
 )
 
 func CreateScheme() *apiruntime.Scheme {
@@ -56,6 +58,15 @@ var (
 	GVRGitRepository  schema.GroupVersionResource = sourcev1.GroupVersion.WithResource("gitrepositories")
 	GVRHelmRepository schema.GroupVersionResource = sourcev1.GroupVersion.WithResource("helmrepositories")
 	GVRHelmRelease    schema.GroupVersionResource = helmv2.GroupVersion.WithResource("helmreleases")
+)
+
+const (
+	WegoConfigMapName = "weave-gitops-config"
+)
+
+var (
+	//ErrWegoConfigNotFound indicates weave gitops config could not be found
+	ErrWegoConfigNotFound = errors.New("Wego Config not found")
 )
 
 // InClusterConfig defines a function for checking if this code is executing in kubernetes.
@@ -153,6 +164,10 @@ type KubeHTTP struct {
 	RestMapper  meta.RESTMapper
 }
 
+func (k *KubeHTTP) Raw() client.Client {
+	return k.Client
+}
+
 func (k *KubeHTTP) GetClusterName(ctx context.Context) (string, error) {
 	return k.ClusterName, nil
 }
@@ -198,9 +213,12 @@ func (k *KubeHTTP) Apply(ctx context.Context, manifest []byte, namespace string)
 		return fmt.Errorf("failed to dynamic resource interface: %w", err)
 	}
 
+	force := true
 	_, err = dr.Patch(ctx, name, types.ApplyPatchType, data, metav1.PatchOptions{
 		FieldManager: "wego",
+		Force:        &force,
 	})
+
 	if err != nil {
 		return fmt.Errorf("failed applying %s: %w", string(data), err)
 	}
@@ -380,10 +398,102 @@ func (k *KubeHTTP) GetNamespaces(ctx context.Context) (*corev1.NamespaceList, er
 	var namespacesList corev1.NamespaceList
 
 	if err := k.Client.List(ctx, &namespacesList); err != nil {
-		return nil,fmt.Errorf("failed getting namespace list %w", err)
+		return nil, fmt.Errorf("failed getting namespace list %w", err)
 	}
 
 	return &namespacesList, nil
+}
+
+func (k *KubeHTTP) SetWegoConfig(ctx context.Context, config WegoConfig, namespace string) (*corev1.ConfigMap, error) {
+	configBytes, err := kyaml.Marshal(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed marshalling wego config: %w", err)
+	}
+
+	name := types.NamespacedName{Name: WegoConfigMapName, Namespace: namespace}
+
+	cm := &corev1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ConfigMap",
+			APIVersion: corev1.SchemeGroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name.Name,
+			Namespace: name.Namespace,
+		},
+		Data: map[string]string{
+			"config": string(configBytes),
+		},
+	}
+
+	orginalCm := cm.DeepCopy()
+
+	if err := k.Client.Get(ctx, name, cm); err != nil {
+		if apierrors.IsNotFound(err) {
+			if err = k.Client.Create(ctx, cm); err != nil {
+				return nil, fmt.Errorf("failed creating weave-gitops configmap: %w", err)
+			}
+
+			return orginalCm, nil
+		}
+
+		return nil, fmt.Errorf("failed getting weave-gitops configmap: %w", err)
+	}
+
+	cm.Data["config"] = string(configBytes)
+
+	if err = k.Client.Update(ctx, cm); err != nil {
+		return nil, fmt.Errorf("failed updating weave-gitops configmap: %w", err)
+	}
+
+	return orginalCm, nil
+}
+
+// GetWegoConfig fetches the wego config saved in the cluster in a given namespace.
+// If an empty namespace is passed it will search in all namespaces and return the first one it finds.
+func (k *KubeHTTP) GetWegoConfig(ctx context.Context, namespace string) (*WegoConfig, error) {
+	name := types.NamespacedName{Name: WegoConfigMapName, Namespace: namespace}
+
+	cm := &corev1.ConfigMap{}
+
+	if namespace != "" {
+		if err := k.Client.Get(ctx, name, cm); err != nil {
+			if apierrors.IsNotFound(err) {
+				return &WegoConfig{}, ErrWegoConfigNotFound
+			}
+
+			return nil, fmt.Errorf("failed getting weave-gitops configmap: %w", err)
+		}
+	} else {
+		configMap, err := k.getWegoConfigMapFromAllNamespaces(ctx)
+		if err != nil {
+			return &WegoConfig{}, err
+		}
+
+		cm = configMap
+	}
+
+	wegoConfig := &WegoConfig{}
+	if err := kyaml.Unmarshal([]byte(cm.Data["config"]), wegoConfig); err != nil {
+		return nil, err
+	}
+
+	return wegoConfig, nil
+}
+
+func (k *KubeHTTP) getWegoConfigMapFromAllNamespaces(ctx context.Context) (*corev1.ConfigMap, error) {
+	cml := &corev1.ConfigMapList{}
+	if err := k.Client.List(ctx, cml); err != nil {
+		return nil, fmt.Errorf("could not list weave-gitops config: %w", err)
+	}
+
+	for _, cm := range cml.Items {
+		if cm.Name == WegoConfigMapName {
+			return &cm, nil
+		}
+	}
+
+	return nil, ErrWegoConfigNotFound
 }
 
 func initialContext(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (currentCtx, clusterName string, err error) {

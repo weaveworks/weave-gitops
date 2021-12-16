@@ -30,7 +30,7 @@ func createRepoURL(url string) gitproviders.RepoURL {
 }
 
 func createDirWriter() GitOpsDirectoryWriter {
-	repoWriter := gitrepo.NewRepoWriter(app.ConfigURL, gitProviders, gitClient, log)
+	repoWriter := gitrepo.NewRepoWriter(app.ConfigRepo, gitProviders, gitClient, log)
 	automationGen := automation.NewAutomationGenerator(gitProviders, fluxClient, log)
 
 	return NewGitOpsDirectoryWriter(automationGen, repoWriter, osysClient, log)
@@ -92,7 +92,7 @@ var _ = Describe("Add", func() {
 	Context("add app with config in app repo", func() {
 		BeforeEach(func() {
 			app.GitSourceURL = createRepoURL("ssh://git@github.com/foo/bar.git")
-			app.ConfigURL = app.GitSourceURL
+			app.ConfigRepo = app.GitSourceURL
 			gitOpsDirWriter = createDirWriter()
 
 			gitClient.OpenStub = func(s string) (*gogit.Repository, error) {
@@ -172,7 +172,7 @@ var _ = Describe("Add", func() {
 	Context("add app with external config repo", func() {
 		BeforeEach(func() {
 			app.GitSourceURL = createRepoURL("https://github.com/user/repo")
-			app.ConfigURL = createRepoURL("https://github.com/foo/bar")
+			app.ConfigRepo = createRepoURL("https://github.com/foo/bar")
 			gitOpsDirWriter = createDirWriter()
 		})
 
@@ -253,7 +253,7 @@ var _ = Describe("Add", func() {
 
 		Context("uses the default app branch for config in app repository", func() {
 			BeforeEach(func() {
-				app.ConfigURL = app.GitSourceURL
+				app.ConfigRepo = app.GitSourceURL
 				gitOpsDirWriter = createDirWriter()
 			})
 
@@ -268,7 +268,7 @@ var _ = Describe("Add", func() {
 
 		Context("uses the default config branch for external config", func() {
 			BeforeEach(func() {
-				app.ConfigURL = createRepoURL("https://github.com/foo/bar")
+				app.ConfigRepo = createRepoURL("https://github.com/foo/bar")
 				gitOpsDirWriter = createDirWriter()
 			})
 
@@ -300,7 +300,7 @@ var _ = Describe("Add", func() {
 
 		Context("uses the default app branch for config in app repository", func() {
 			BeforeEach(func() {
-				app.ConfigURL = app.GitSourceURL
+				app.ConfigRepo = app.GitSourceURL
 				gitOpsDirWriter = createDirWriter()
 			})
 
@@ -315,7 +315,7 @@ var _ = Describe("Add", func() {
 
 		Context("uses the default config branch for external config", func() {
 			BeforeEach(func() {
-				app.ConfigURL = createRepoURL("https://github.com/foo/bar")
+				app.ConfigRepo = createRepoURL("https://github.com/foo/bar")
 				gitOpsDirWriter = createDirWriter()
 			})
 

@@ -10,6 +10,7 @@ import {
   Applications,
   theme,
 } from "../index";
+import { GitProvider } from "../lib/api/applications/applications.pb";
 import { createMockClient } from "../lib/test-utils";
 
 describe("Example Library App", () => {
@@ -20,6 +21,7 @@ describe("Example Library App", () => {
     GetReconciledObjects: () => ({ objects: [] }),
     GetChildObjects: () => ({ objects: [] }),
     ListCommits: () => ({ commits: [] }),
+    ParseRepoURL: () => ({ provider: GitProvider.GitHub }),
   };
 
   const wrap = (Component) => (
