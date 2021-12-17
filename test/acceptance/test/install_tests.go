@@ -24,9 +24,14 @@ import (
 
 var _ = Describe("Weave GitOps Install Tests", func() {
 
+	var gitProvider gitproviders.GitProviderName
+	var gitOrg string
+	var gitURLName string
 	var sessionOutput *gexec.Session
 
 	BeforeEach(func() {
+		gitProvider, gitOrg, gitURLName = setGitProvider()
+
 		By("Given I have a gitops binary installed on my local machine", func() {
 			Expect(FileExists(gitopsBinaryPath)).To(BeTrue())
 		})
@@ -73,7 +78,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 
 		By("And I run 'gitops install' command", func() {
-			_, errOutput = runCommandAndReturnStringOutput(gitopsBinaryPath + " install --config-repo=ssh://git@github.com/user/repo.git")
+			_, errOutput = runCommandAndReturnStringOutput(gitopsBinaryPath + " install --config-repo=ssh://git@" + gitURLName + ".com/user/repo.git")
 		})
 
 		By("Then I should see a quitting message", func() {
@@ -93,15 +98,15 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "git@" + gitURLName + ".com:" + gitOrg + "/" + tip.appRepoName + ".git"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+		defer deleteRepo(tip.appRepoName, gitProvider, gitOrg)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+			deleteRepo(tip.appRepoName, gitProvider, gitOrg)
 		})
 
-		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
+		_ = initAndCreateEmptyRepo(tip.appRepoName, gitProvider, private, gitOrg)
 
 		installAndVerifyWego(namespace, appRepoRemoteURL)
 
@@ -142,15 +147,15 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+		defer deleteRepo(tip.appRepoName, gitProvider, gitOrg)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+			deleteRepo(tip.appRepoName, gitProvider, gitOrg)
 		})
 
-		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
+		_ = initAndCreateEmptyRepo(tip.appRepoName, gitProvider, private, gitOrg)
 
 		installAndVerifyWego(namespace, appRepoRemoteURL)
 
@@ -187,15 +192,15 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+		defer deleteRepo(tip.appRepoName, gitProvider, gitOrg)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+			deleteRepo(tip.appRepoName, gitProvider, gitOrg)
 		})
 
-		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
+		_ = initAndCreateEmptyRepo(tip.appRepoName, gitProvider, private, gitOrg)
 
 		By("When I try to install gitops in dry-run mode", func() {
 			installDryRunOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + fmt.Sprintf(" install --dry-run --config-repo=%s", appRepoRemoteURL))
@@ -256,15 +261,15 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+		defer deleteRepo(tip.appRepoName, gitProvider, gitOrg)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+			deleteRepo(tip.appRepoName, gitProvider, gitOrg)
 		})
 
-		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
+		_ = initAndCreateEmptyRepo(tip.appRepoName, gitProvider, private, gitOrg)
 
 		installAndVerifyWego(namespace, appRepoRemoteURL)
 

@@ -23,7 +23,7 @@ var clusterName string
 
 var clusterContext string
 
-var _ = Describe("Weave GitOps Add App Tests", func() {
+var _ = XDescribe("Weave GitOps Add App Tests", func() {
 
 	deleteWegoRuntime := false
 	if os.Getenv("DELETE_WEGO_RUNTIME_ON_EACH_TEST") == "true" {
@@ -1639,7 +1639,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 })
 
-var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
+var _ = XDescribe("Weave GitOps Add Tests With Long Cluster Name", func() {
 	deleteWegoRuntime := false
 	if os.Getenv("DELETE_WEGO_RUNTIME_ON_EACH_TEST") == "true" {
 		deleteWegoRuntime = true
