@@ -67,8 +67,8 @@ export const GlobalStyle = createGlobalStyle`
   
   body {
     font-family: ${(props) => props.theme.fontFamilies.regular};
-    font-size: ${theme.fontSizes.normal};
-    color: ${theme.colors.black};
+    font-size: ${(props) => props.theme.fontSizes.normal};
+    color: ${(props) => props.theme.colors.black};
     padding: 0;
     margin: 0;
     min-width: fit-content;
@@ -101,7 +101,7 @@ export const muiTheme = createTheme({
   overrides: {
     MuiSlider: {
       root: {
-        color: "#00B3EC",
+        color: theme.colors.primary,
       },
     },
   },
