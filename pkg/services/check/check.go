@@ -91,10 +91,10 @@ func validateFluxVersion(actualFluxVersion string, expectedFluxVersion string) (
 
 	if actualParsedFluxVersion.String() == expectedParsedFluxVersion.String() {
 		fluxOutput += fmt.Sprintf("✗ Flux %s =%s\n", actualParsedFluxVersion, expectedParsedFluxVersion)
-		fluxOutput += fmt.Sprintf("Current flux version is compatible")
+		fluxOutput += "Current flux version is compatible"
 	} else {
 		fluxOutput += fmt.Sprintf("✗ Flux %s !=%s\n", actualParsedFluxVersion, expectedParsedFluxVersion)
-		fluxOutput += fmt.Sprintf("Current flux version is not compatible")
+		fluxOutput += "Current flux version is not compatible"
 	}
 
 	return fluxOutput, nil
