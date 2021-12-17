@@ -93,8 +93,8 @@ runs:
   - name: Set Git Provider Env
     if: ${{ matrix.git-provider == 'gitlab'}}
     shell: bash
-    env:
-        GIT_PROVIDER: gitlab
+    run: |
+      export GIT_PROVIDER=gitlab
   - name: Run Full Acceptance Suite Except Kustomize Add Tests
     shell: bash
     env:
