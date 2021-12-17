@@ -23,15 +23,15 @@ inputs:
   gitlab-token:
     description: "Token for accessing GitLab"
     required: true
+  git-provider:
+    description: "Value for running tests either on GitHub or GitLab"
+    required: true
   artifacts-base-dir:
     description: "Directory for test artifacts"
     required: true
 
 runs:
   using: "composite"
-  strategy:
-    matrix:
-      git-provider: [github, gitlab]
   steps:
   - name: Install Go
     uses: actions/setup-go@v2
@@ -102,7 +102,7 @@ runs:
         GITLAB_SUBGROUP: weave-gitops-sub
         GITLAB_TOKEN: ${{ inputs.gitlab-token }}
         GITLAB_KEY: ${{ inputs.gitlab-key }}
-        GIT_PROVIDER: ${{ matrix.git-provider }}
+        GIT_PROVIDER: ${{ inputs.git-provider }}
         ARTIFACTS_BASE_DIR: ${{ inputs.artifacts-base-dir }}
     run: |
       export PATH=${PATH}:`go env GOPATH`/bin
