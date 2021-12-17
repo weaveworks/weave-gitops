@@ -185,7 +185,7 @@ jobs:
     timeout-minutes: 90
     strategy:
       matrix:
-        git-provider: [github, gitlab]
+        git-provider: ["github", "gitlab"]
     steps:
     - uses: actions/checkout@v2
     - uses: ./.github/actions/run-acceptance-test
