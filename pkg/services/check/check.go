@@ -12,7 +12,7 @@ import (
 )
 
 var ErrFluxNotFound = errors.New("flux is not installed")
-var ErrKubernetesNotFound = errors.New("no kuber+netes version found")
+var ErrKubernetesNotFound = errors.New("no kubernetes version found")
 
 func Pre(ctx context.Context, kubeClient kube.Kube, fluxClient flux.Flux, expectedFluxVersion string) (string, error) {
 	output := ""

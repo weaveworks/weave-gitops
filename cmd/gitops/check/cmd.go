@@ -61,5 +61,5 @@ func runCmd(_ *cobra.Command, _ []string) error {
 }
 
 func init() {
-	Cmd.Flags().BoolVarP(&pre, "pre", "d", false, "TODO")
+	Cmd.Flags().BoolVarP(&pre, "pre", "p", true, "It validates if current flux version running in the cluster is valid")
 }

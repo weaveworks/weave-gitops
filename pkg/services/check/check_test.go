@@ -85,7 +85,7 @@ var _ = Describe("Check", func() {
 		fakeFluxClient.PreCheckReturns("", nil)
 
 		output, err := Pre(context, fakeKubeClient, fakeFluxClient, expectedFluxVersion)
-		Expect(err).Should(HaveOccurred())
+		Expect(err).Should(Equal(ErrKubernetesNotFound))
 		Expect(output).To(BeEmpty())
 
 	})
