@@ -857,5 +857,6 @@ func setGitProvider() (gitproviders.GitProviderName, string, string) {
 	}
 
 	log.Infof("Using git provider: %s", github)
+
 	return gitproviders.GitProviderGitHub, githubOrg, github
 }
