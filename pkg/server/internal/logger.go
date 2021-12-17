@@ -14,7 +14,7 @@ type ApiLogger struct {
 }
 
 func NewApiLogger(z *zap.Logger) logger.Logger {
-	logger := zapr.NewLogger(z)
+	logger := zapr.NewLogger(z.WithOptions(zap.AddCallerSkip(1)))
 
 	return ApiLogger{
 		logger: logger,
