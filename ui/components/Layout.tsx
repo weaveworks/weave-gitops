@@ -86,12 +86,12 @@ const TopToolBar = styled(Flex)`
   padding: 8px 0;
   background-color: ${(props) => props.theme.colors.primary};
   width: 100%;
-  height: 112px;
+  height: 80px;
   flex: 0 1 auto;
 
   ${Logo} img {
-    width: 136px;
-    height: 42px;
+    width: 70px;
+    height: 72.85px;
   }
 `;
 
