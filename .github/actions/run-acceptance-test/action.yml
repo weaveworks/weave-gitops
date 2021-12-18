@@ -91,40 +91,39 @@ runs:
       git config --global user.name "Testy McTestFace"
       git config --global url.ssh://git@github.com/.insteadOf https://github.com/
   - name: Run Full Acceptance Suite Except Kustomize Add Tests
+    shell: bash
     if: ${{ matrix.git-provider == 'gitlab'}}
-    shell: bash
-    env:
-        IS_TEST_ENV: "true"
-        GITLAB_ORG: ${{ inputs.gitlab-org }}
-        GITLAB_PUBLIC_GROUP: public-weave-gitops
-        GITLAB_SUBGROUP: weave-gitops-sub
-        GITLAB_TOKEN: ${{ inputs.gitlab-token }}
-        GITLAB_KEY: ${{ inputs.gitlab-key }}
-        ARTIFACTS_BASE_DIR: ${{ inputs.artifacts-base-dir }}
-    run: |
-      export PATH=${PATH}:`go env GOPATH`/bin
-      export WEGO_BIN_PATH=$(pwd)/bin/gitops
-      export CLUSTER_PROVIDER=kubectl
-      go get github.com/onsi/ginkgo/ginkgo
-      go get github.com/onsi/gomega/...
-      export GIT_PROVIDER=gitlab
-      ginkgo ${{ inputs.focus-or-skip }} --randomizeSuites --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/${{ inputs.result-prefix }}acceptance-test-results.xml -v ./test/acceptance/test/...
+      env:
+          IS_TEST_ENV: "true"
+          GITLAB_ORG: ${{ inputs.gitlab-org }}
+          GITLAB_PUBLIC_GROUP: public-weave-gitops
+          GITLAB_SUBGROUP: weave-gitops-sub
+          GITLAB_TOKEN: ${{ inputs.gitlab-token }}
+          GITLAB_KEY: ${{ inputs.gitlab-key }}
+          ARTIFACTS_BASE_DIR: ${{ inputs.artifacts-base-dir }}
+      run: |
+        export PATH=${PATH}:`go env GOPATH`/bin
+        export WEGO_BIN_PATH=$(pwd)/bin/gitops
+        export CLUSTER_PROVIDER=kubectl
+        go get github.com/onsi/ginkgo/ginkgo
+        go get github.com/onsi/gomega/...
+        export GIT_PROVIDER=gitlab
+        ginkgo ${{ inputs.focus-or-skip }} --randomizeSuites --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/${{ inputs.result-prefix }}acceptance-test-results.xml -v ./test/acceptance/test/...
     if: ${{ matrix.git-provider == 'github'}}
-    shell: bash
-    env:
-        GITHUB_ORG: weaveworks-gitops-test
-        GITHUB_TOKEN: ${{ inputs.github-token }}
-        GITHUB_KEY: ${{ inputs.github-key }}
-        IS_TEST_ENV: "true"
-        ARTIFACTS_BASE_DIR: ${{ inputs.artifacts-base-dir }}
-    run: |
-      export PATH=${PATH}:`go env GOPATH`/bin
-      export WEGO_BIN_PATH=$(pwd)/bin/gitops
-      export CLUSTER_PROVIDER=kubectl
-      go get github.com/onsi/ginkgo/ginkgo
-      go get github.com/onsi/gomega/...
-      export GIT_PROVIDER=github
-      ginkgo ${{ inputs.focus-or-skip }} --randomizeSuites --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/${{ inputs.result-prefix }}acceptance-test-results.xml -v ./test/acceptance/test/...
+      env:
+          GITHUB_ORG: weaveworks-gitops-test
+          GITHUB_TOKEN: ${{ inputs.github-token }}
+          GITHUB_KEY: ${{ inputs.github-key }}
+          IS_TEST_ENV: "true"
+          ARTIFACTS_BASE_DIR: ${{ inputs.artifacts-base-dir }}
+      run: |
+        export PATH=${PATH}:`go env GOPATH`/bin
+        export WEGO_BIN_PATH=$(pwd)/bin/gitops
+        export CLUSTER_PROVIDER=kubectl
+        go get github.com/onsi/ginkgo/ginkgo
+        go get github.com/onsi/gomega/...
+        export GIT_PROVIDER=github
+        ginkgo ${{ inputs.focus-or-skip }} --randomizeSuites --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/${{ inputs.result-prefix }}acceptance-test-results.xml -v ./test/acceptance/test/...
     if: always()
   - name: Store acceptance test results
     env:
