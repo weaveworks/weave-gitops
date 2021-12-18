@@ -4,6 +4,7 @@
 package acceptance
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -77,7 +78,7 @@ func GomegaFail(message string, callerSkip ...int) {
 
 func getEnvVar(envVar string) string {
 	value := os.Getenv(envVar)
-	// ExpectWithOffset(1, value).NotTo(BeEmpty(), fmt.Sprintf("Please ensure %s environment variable is set", envVar))
+	ExpectWithOffset(1, value).NotTo(BeEmpty(), fmt.Sprintf("Please ensure %s environment variable is set", envVar))
 
 	return value
 }
