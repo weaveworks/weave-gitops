@@ -17,7 +17,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.16.x
+        go-version: 1.17.x
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Clean
@@ -46,7 +46,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.16.x
+        go-version: 1.17.x
     - name: checkout
       uses: actions/checkout@v2
     - name: Install UI Deps
@@ -95,7 +95,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.16.x
+        go-version: 1.17.x
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Setup selenium standalone server
@@ -168,7 +168,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.16.x
+        go-version: 1.17.x
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Install testspace client
