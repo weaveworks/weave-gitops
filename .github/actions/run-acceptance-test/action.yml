@@ -90,11 +90,6 @@ runs:
       git config --global user.email "weave-test-user@example.com"
       git config --global user.name "Testy McTestFace"
       git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-  - name: Set Git Provider Env
-    if: ${{ matrix.git-provider == 'gitlab'}}
-    shell: bash
-    run: |
-      export GIT_PROVIDER=gitlab
   - name: Run Full Acceptance Suite Except Kustomize Add Tests
     shell: bash
     env:
@@ -108,6 +103,9 @@ runs:
         GITLAB_TOKEN: ${{ inputs.gitlab-token }}
         GITLAB_KEY: ${{ inputs.gitlab-key }}
         ARTIFACTS_BASE_DIR: ${{ inputs.artifacts-base-dir }}
+    if: ${{ matrix.git-provider == 'gitlab'}}
+      run: |
+        export GIT_PROVIDER=gitlab
     run: |
       export PATH=${PATH}:`go env GOPATH`/bin
       export WEGO_BIN_PATH=$(pwd)/bin/gitops
