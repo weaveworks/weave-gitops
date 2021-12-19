@@ -111,9 +111,9 @@ runs:
       go get github.com/onsi/ginkgo/ginkgo
       go get github.com/onsi/gomega/...
 
-      if [ ${{ env.GIT_PROVIDER }} == "gitlab" ]; then
+      if [ ${{ env.GIT_PROVIDER }} == gitlab ]; then
         export GIT_PROVIDER=gitlab
-      elif [ ${{ env.GIT_PROVIDER }} == "github" ]; then
+      elif [ ${{ env.GIT_PROVIDER }} == github ]; then
         export GIT_PROVIDER=github
       fi
 
