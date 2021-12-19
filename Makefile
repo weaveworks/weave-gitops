@@ -91,7 +91,7 @@ dependencies: .deps ## Install build dependencies
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 crd: ## Generate CRDs
-	@go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1
+	@go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.5.0
 	controller-gen $(CRD_OPTIONS) paths="./..." output:crd:artifacts:config=manifests/crds
 
 check-format: ## Check go format
