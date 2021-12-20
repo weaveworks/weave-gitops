@@ -111,7 +111,8 @@ runs:
       export CLUSTER_PROVIDER=kubectl
       go get github.com/onsi/ginkgo/ginkgo
       go get github.com/onsi/gomega/...
-
+      export GIT_PROVIDER=${{ matrix.GIT_PROVIDER }}
+      
       # if [ "${{ env.GIT_PROVIDER }}" == gitlab ]; then
       #   export GIT_PROVIDER=gitlab
       # elif [ ${{ env.GIT_PROVIDER }} == github ]; then
