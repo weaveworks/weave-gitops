@@ -31,6 +31,11 @@ gitops check --pre
 	RunE: runCmd,
 }
 
+func init() {
+	Cmd.Flags().BoolVarP(&pre, "pre", "p", true, "It validates if current flux version running in the cluster is valid")
+	Cmd.MarkFlagRequired("pre")
+}
+
 func runCmd(_ *cobra.Command, _ []string) error {
 	ctx := context.Background()
 
@@ -58,8 +63,4 @@ func runCmd(_ *cobra.Command, _ []string) error {
 	fmt.Println(output)
 
 	return nil
-}
-
-func init() {
-	Cmd.Flags().BoolVarP(&pre, "pre", "p", true, "It validates if current flux version running in the cluster is valid")
 }
