@@ -511,20 +511,18 @@ func (k *KubeHTTP) FetchNamespaceWithLabel(ctx context.Context, key string, valu
 		return "", fmt.Errorf("failed getting namespaces list: %w", err)
 	}
 
-	namespaces := make([]string, 0)
-	for _, n := range nsl.Items {
-		namespaces = append(namespaces, n.Name)
-	}
-
-	if len(namespaces) == 0 {
+	switch totalNamespaces := len(nsl.Items); {
+	case totalNamespaces == 0:
 		return "", ErrNamespaceNotFound
-	}
-
-	if len(namespaces) > 1 {
+	case totalNamespaces > 1:
+		namespaces := make([]string, 0)
+		for _, n := range nsl.Items {
+			namespaces = append(namespaces, n.Name)
+		}
 		return "", fmt.Errorf("found multiple namespaces %s with %s=%s, we are unable to define the correct one", namespaces, key, value)
+	default:
+		return nsl.Items[0].Namespace, nil
 	}
-
-	return namespaces[0], nil
 }
 
 func initialContext(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (currentCtx, clusterName string, err error) {
