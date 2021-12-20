@@ -519,6 +519,7 @@ func (k *KubeHTTP) FetchNamespaceWithLabel(ctx context.Context, key string, valu
 		for _, n := range nsl.Items {
 			namespaces = append(namespaces, n.Name)
 		}
+
 		return "", fmt.Errorf("found multiple namespaces %s with %s=%s, we are unable to define the correct one", namespaces, key, value)
 	default:
 		return nsl.Items[0].Namespace, nil
