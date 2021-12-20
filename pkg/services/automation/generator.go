@@ -60,7 +60,6 @@ type AutomationGenerator interface {
 	GenerateApplicationAutomation(ctx context.Context, app models.Application, clusterName string) (ApplicationAutomation, error)
 	GenerateClusterAutomation(ctx context.Context, cluster models.Cluster, configURL gitproviders.RepoURL, namespace string) (ClusterAutomation, error)
 	GetSecretRef(ctx context.Context, url gitproviders.RepoURL) (GeneratedSecretName, error)
-	//GenerateWegoConfigManifest(clusterName string, fluxNamespace string, wegoNamespace string) ([]AutomationManifest, error)
 }
 
 type AutomationGen struct {
