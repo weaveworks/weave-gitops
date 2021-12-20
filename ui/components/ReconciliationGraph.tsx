@@ -99,7 +99,7 @@ function ReconciliationGraph({
     <div className={className}>
       <DirectedGraph
         width="100%"
-        height={540}
+        height={640}
         scale={1}
         nodes={nodes}
         edges={edges}
@@ -116,7 +116,6 @@ export default styled(ReconciliationGraph)`
   }
 
   .node {
-    position: relative;
     font-size: 16px;
     /* background-color: white; */
     width: 125px;

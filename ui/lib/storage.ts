@@ -24,7 +24,7 @@ export function getProviderToken(providerName: GitProvider): string {
 
 const CALLBACK_STATE_KEY = "oauth_callback_state";
 
-export type CallbackSessionState = { page: PageRoute; state: any };
+export type CallbackSessionState = { page: PageRoute | string; state: any };
 
 export function storeCallbackState(value: CallbackSessionState) {
   if (!window.sessionStorage) {

@@ -3,10 +3,12 @@ package root
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/go-resty/resty/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/add"
 	beta "github.com/weaveworks/weave-gitops/cmd/gitops/beta/cmd"
@@ -33,6 +35,18 @@ var options struct {
 	endpoint          string
 	overrideInCluster bool
 	verbose           bool
+	gitHostTypes      map[string]string
+}
+
+// Only want AutomaticEnv to be called once!
+func init() {
+	// Setup flag to env mapping:
+	//   config-repo => GITOPS_CONFIG_REPO
+	replacer := strings.NewReplacer("-", "_")
+	viper.SetEnvKeyReplacer(replacer)
+	viper.SetEnvPrefix("GITOPS")
+
+	viper.AutomaticEnv()
 }
 
 func RootCmd(client *resty.Client) *cobra.Command {
@@ -86,6 +100,12 @@ func RootCmd(client *resty.Client) *cobra.Command {
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			configureLogger()
 
+			// Sync flag values and env vars.
+			err := viper.BindPFlags(cmd.Flags())
+			if err != nil {
+				log.Fatalf("Error binding viper to flags: %v", err)
+			}
+
 			ns, _ := cmd.Flags().GetString("namespace")
 
 			if ns == "" {
@@ -106,7 +126,9 @@ func RootCmd(client *resty.Client) *cobra.Command {
 	rootCmd.PersistentFlags().String("namespace", wego.DefaultNamespace, "The namespace scope for this operation")
 	rootCmd.PersistentFlags().StringVarP(&options.endpoint, "endpoint", "e", os.Getenv("WEAVE_GITOPS_ENTERPRISE_API_URL"), "The Weave GitOps Enterprise HTTP API endpoint")
 	rootCmd.PersistentFlags().BoolVar(&options.overrideInCluster, "override-in-cluster", false, "override running in cluster check")
+	rootCmd.PersistentFlags().StringToStringVar(&options.gitHostTypes, "git-host-types", map[string]string{}, "Specify which custom domains are running what (github or gitlab)")
 	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("override-in-cluster"))
+	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("git-host-types"))
 
 	rootCmd.AddCommand(install.Cmd)
 	rootCmd.AddCommand(beta.Cmd)

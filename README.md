@@ -21,7 +21,7 @@ It is based on [CNCF Flux](https://fluxcd.io), a leading GitOps engine.
 Mac / Linux
 
 ```console
-curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.5.0/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
+curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.6.0/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
 sudo mv /tmp/gitops /usr/local/bin
 gitops version
 ```
@@ -68,7 +68,7 @@ For more information please see the [docs](https://docs.gitops.weave.works/docs/
 
 To set up a development environment for the CLI
 
-1. Install go v1.16
+1. Install go v1.17
 2. Install [buf](https://github.com/bufbuild/buf)
 3. make or make unit-tests to ensure everything built correctly.
 
@@ -111,7 +111,7 @@ For VSCode, use these editor configuration flags:
 
 To set up a development environment for the UI
 
-1. Install go v1.16
+1. Install go v1.17
 2. Install Node.js version 14.15.1
 3. Make sure your `$GOPATH` is added to your `$PATH` in your bashrc or zshrc file, then install reflex for automated server builds: go get github.com/cespare/reflex
 4. Go through the Weave GitOps getting started docs here: https://docs.gitops.weave.works/docs/getting-started/
