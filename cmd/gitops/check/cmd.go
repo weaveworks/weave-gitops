@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
-
 	"github.com/weaveworks/weave-gitops/pkg/services/check"
+	"github.com/weaveworks/weave-gitops/pkg/version"
 
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
@@ -55,7 +54,7 @@ func runCmd(_ *cobra.Command, _ []string) error {
 		Client: k8sClient,
 	}
 
-	output, err := check.Pre(ctx, kubeClient, fluxClient, version.Version)
+	output, err := check.Pre(ctx, kubeClient, fluxClient, version.FluxVersion)
 	if err != nil {
 		return err
 	}

@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops/pkg/services/check"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -67,6 +69,14 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("And Gitops runtime is not installed", func() {
 			uninstallWegoRuntime(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And gitops check pre kubernetes version is compatible and flux is not installed", func() {
+			c := exec.Command(gitopsBinaryPath, "check", "--pre")
+			output, err := c.CombinedOutput()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(output).To(Equal(`✔ Kubernetes 1.21.1 >=1.19.0-0
+✔ Flux is not installed`))
 		})
 
 		By("And I run gitops add command", func() {
@@ -161,7 +171,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	It("Test1 - Verify that gitops can deploy an app after it is setup with an empty repo initially", func() {
+	FIt("Test1 - Verify that gitops can deploy an app after it is setup with an empty repo initially", func() {
 		var repoAbsolutePath string
 		private := true
 		tip := generateTestInputs()
@@ -187,6 +197,15 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
+		})
+
+		By("And gitops check pre validates kubernetes and flux are compatible", func() {
+			c := exec.Command(gitopsBinaryPath, "check", "--pre")
+			output, err := c.CombinedOutput()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(output).To(Equal(`✔ Kubernetes 1.21.1 >=1.19.0-0
+✔ Flux 0.21.0 =0.21.0
+` + check.FluxCompatibleMessage))
 		})
 
 		By("And I run gitops add command", func() {
