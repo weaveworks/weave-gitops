@@ -104,6 +104,7 @@ runs:
         GITLAB_KEY: ${{ inputs.gitlab-key }}
         GIT_PROVIDER: ${{ inputs.git-provider }}
         ARTIFACTS_BASE_DIR: ${{ inputs.artifacts-base-dir }}
+
     run: |
       export PATH=${PATH}:`go env GOPATH`/bin
       export WEGO_BIN_PATH=$(pwd)/bin/gitops
@@ -111,11 +112,11 @@ runs:
       go get github.com/onsi/ginkgo/ginkgo
       go get github.com/onsi/gomega/...
 
-      if [ ${{ env.GIT_PROVIDER }} == gitlab ]; then
-        export GIT_PROVIDER=gitlab
-      elif [ ${{ env.GIT_PROVIDER }} == github ]; then
-        export GIT_PROVIDER=github
-      fi
+      # if [ "${{ env.GIT_PROVIDER }}" == gitlab ]; then
+      #   export GIT_PROVIDER=gitlab
+      # elif [ ${{ env.GIT_PROVIDER }} == github ]; then
+      #   export GIT_PROVIDER=github
+      # fi
 
       ginkgo ${{ inputs.focus-or-skip }} --randomizeSuites --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/${{ inputs.result-prefix }}acceptance-test-results.xml -v ./test/acceptance/test/...
     if: always()
