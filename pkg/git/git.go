@@ -65,6 +65,7 @@ func GetUserPath(clusterName string) string {
 	return filepath.Join(WegoRoot, WegoClusterDir, clusterName, WegoClusterUserWorkloadDir)
 }
 
+// GetSystemQualifiedPath returns the join of the system path and a path within the system path
 func GetSystemQualifiedPath(clusterName string, relativePath string) string {
 	return filepath.Join(GetSystemPath(clusterName), relativePath)
 }
