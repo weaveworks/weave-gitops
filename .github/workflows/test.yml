@@ -124,6 +124,11 @@ jobs:
     strategy:
       matrix:
         git-provider: [github, gitlab]
+        include:
+        - git-provider: github
+          GIT_PROVIDER: github
+        - git-provider: gitlab
+          GIT_PROVIDER: gitlab
     steps:
     - uses: actions/checkout@v2
     - uses: ./.github/actions/run-acceptance-test
@@ -145,6 +150,11 @@ jobs:
     strategy:
       matrix:
         git-provider: [github, gitlab]
+        include:
+        - git-provider: github
+          GIT_PROVIDER: github
+        - git-provider: gitlab
+          GIT_PROVIDER: gitlab
     steps:
     - uses: actions/checkout@v2
     - uses: ./.github/actions/run-acceptance-test
@@ -191,6 +201,11 @@ jobs:
     strategy:
       matrix:
         git-provider: [github, gitlab]
+        include:
+        - git-provider: github
+          GIT_PROVIDER: github
+        - git-provider: gitlab
+          GIT_PROVIDER: gitlab
     steps:
     - uses: actions/checkout@v2
     - uses: ./.github/actions/run-acceptance-test
@@ -212,6 +227,11 @@ jobs:
     strategy:
       matrix:
         git-provider: [github, gitlab]
+        include:
+        - git-provider: github
+          GIT_PROVIDER: github
+        - git-provider: gitlab
+          GIT_PROVIDER: gitlab
     steps:
     - uses: actions/checkout@v2
     - uses: ./.github/actions/run-acceptance-test
@@ -233,6 +253,11 @@ jobs:
     strategy:
       matrix:
         git-provider: [github, gitlab]
+        include:
+        - git-provider: github
+          GIT_PROVIDER: github
+        - git-provider: gitlab
+          GIT_PROVIDER: gitlab
     steps:
     - uses: actions/checkout@v2
     - uses: ./.github/actions/run-acceptance-test
