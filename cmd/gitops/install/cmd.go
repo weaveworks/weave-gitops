@@ -111,7 +111,6 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 
 	if installParams.DryRun {
 		gitProvider, err = gitproviders.NewDryRun()
-
 		if err != nil {
 			return fmt.Errorf("error creating git provider for dry run: %w", err)
 		}
