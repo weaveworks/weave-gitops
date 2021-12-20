@@ -491,6 +491,7 @@ func (k *KubeHTTP) getWegoConfigMapFromAllNamespaces(ctx context.Context) (*core
 	return nil, ErrWegoConfigNotFound
 }
 
+// FetchNamespaceWithLabel fetches a namespace where a label follows key=value
 func (k *KubeHTTP) FetchNamespaceWithLabel(ctx context.Context, key string, value string) (string, error) {
 	selector := labels.NewSelector()
 
@@ -510,7 +511,7 @@ func (k *KubeHTTP) FetchNamespaceWithLabel(ctx context.Context, key string, valu
 		return "", fmt.Errorf("error setting resource: %w", err)
 	}
 
-	namespaces := []string{}
+	namespaces := make([]string,0)
 	for _, n := range nsl.Items {
 		namespaces = append(namespaces, n.Name)
 	}
