@@ -73,8 +73,8 @@ func getCurrentFluxVersion(ctx context.Context, kubeClient kube.Kube) (string, e
 
 	for _, namespace := range namespacesList.Items {
 		labels := namespace.GetLabels()
-		if labels[flux.PartOfLabelKey] == flux.PartOfLabelKey {
-			return labels["app.kubernetes.io/version"], nil
+		if labels[flux.PartOfLabelKey] == flux.PartOfLabelValue {
+			return labels[flux.VersionLabelKey], nil
 		}
 	}
 

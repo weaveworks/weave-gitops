@@ -124,8 +124,8 @@ var _ = Describe("Check", func() {
 				{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"app.kubernetes.io/part-of": "flux",
-							"app.kubernetes.io/version": expectedFluxVersion,
+							flux.PartOfLabelKey:  flux.PartOfLabelValue,
+							flux.VersionLabelKey: expectedFluxVersion,
 						},
 					},
 				},
