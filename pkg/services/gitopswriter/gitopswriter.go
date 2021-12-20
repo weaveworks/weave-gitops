@@ -188,6 +188,7 @@ func (dw *gitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app m
 	return nil
 }
 
+// AssociateCluster writes the GitOps manifests for the cluster into the repo
 func (dw *gitOpsDirectoryWriterSvc) AssociateCluster(
 	ctx context.Context,
 	cluster models.Cluster,
