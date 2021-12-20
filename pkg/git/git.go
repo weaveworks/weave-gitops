@@ -57,12 +57,16 @@ const WegoClusterOSWorkloadDir = "system"
 // WegoClusterUserWorkloadDir is where user workload manifests will live in the GitOps repo
 const WegoClusterUserWorkloadDir = "user"
 
+func getClusterPath(clusterName string) string {
+	return filepath.Join(WegoRoot, WegoClusterDir, clusterName)
+}
+
 func GetSystemPath(clusterName string) string {
-	return filepath.Join(WegoRoot, WegoClusterDir, clusterName, WegoClusterOSWorkloadDir)
+	return filepath.Join(getClusterPath(clusterName), WegoClusterOSWorkloadDir)
 }
 
 func GetUserPath(clusterName string) string {
-	return filepath.Join(WegoRoot, WegoClusterDir, clusterName, WegoClusterUserWorkloadDir)
+	return filepath.Join(getClusterPath(clusterName), WegoClusterUserWorkloadDir)
 }
 
 // GetSystemQualifiedPath returns the join of the system path and a path within the system path
