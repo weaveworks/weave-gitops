@@ -77,7 +77,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	log := internal.NewCLILogger(os.Stdout)
 	flux := flux.New(osysClient, &runner.CLIRunner{})
 
-	k, c, err := kube.NewKubeHTTPClient()
+	k, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
@@ -96,7 +96,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("Weave GitOps cannot talk to the cluster %s", clusterName)
 	}
 
-	clusterApplier := applier.NewClusterApplier(k, c, log)
+	clusterApplier := applier.NewClusterApplier(k)
 
 	var gitClient git.Git
 

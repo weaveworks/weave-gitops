@@ -24,11 +24,9 @@ type ClusterApplySvc struct {
 
 var _ ClusterApplier = &ClusterApplySvc{}
 
-func NewClusterApplier(kubeClient kube.Kube, rawClient client.Client, logger logger.Logger) ClusterApplier {
+func NewClusterApplier(kubeClient kube.Kube) ClusterApplier {
 	return &ClusterApplySvc{
-		Kube:   kubeClient,
-		Client: rawClient,
-		Logger: logger,
+		Kube: kubeClient,
 	}
 }
 
