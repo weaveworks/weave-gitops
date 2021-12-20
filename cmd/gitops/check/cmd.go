@@ -25,7 +25,7 @@ var Cmd = &cobra.Command{
 	Use:   "check",
 	Short: "Validates flux compatibility",
 	Example: `
-# Validate flux compatibility
+# Validate flux and kubernetes compatibility
 gitops check --pre
 `,
 	RunE: runCmd,
