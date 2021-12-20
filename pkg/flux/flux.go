@@ -34,6 +34,12 @@ type Flux interface {
 	PreCheck() (string, error)
 }
 
+const (
+	PartOfLabelKey   = "app.kubernetes.io/part-of"
+	PartOfLabelValue = "flux"
+	VersionLabelKey  = "app.kubernetes.io/version"
+)
+
 const fluxBinaryPathEnvVar = "WEAVE_GITOPS_FLUX_BIN_PATH"
 
 type FluxClient struct {

@@ -14,6 +14,11 @@ import (
 var ErrFluxNotFound = errors.New("flux is not installed")
 var ErrKubernetesNotFound = errors.New("no kubernetes version found")
 
+const (
+	FluxCompatibleMessage    = "Current flux version is compatible"
+	FluxNotCompatibleMessage = "Current flux version is not compatible"
+)
+
 func Pre(ctx context.Context, kubeClient kube.Kube, fluxClient flux.Flux, expectedFluxVersion string) (string, error) {
 	output := ""
 
@@ -68,7 +73,7 @@ func getCurrentFluxVersion(ctx context.Context, kubeClient kube.Kube) (string, e
 
 	for _, namespace := range namespacesList.Items {
 		labels := namespace.GetLabels()
-		if labels["app.kubernetes.io/part-of"] == "flux" {
+		if labels[flux.PartOfLabelKey] == flux.PartOfLabelKey {
 			return labels["app.kubernetes.io/version"], nil
 		}
 	}
@@ -90,11 +95,11 @@ func validateFluxVersion(actualFluxVersion string, expectedFluxVersion string) (
 	fluxOutput := ""
 
 	if actualParsedFluxVersion.String() == expectedParsedFluxVersion.String() {
-		fluxOutput += fmt.Sprintf("✗ Flux %s =%s\n", actualParsedFluxVersion, expectedParsedFluxVersion)
-		fluxOutput += "Current flux version is compatible"
+		fluxOutput += fmt.Sprintf("✔ Flux %s =%s\n", actualParsedFluxVersion, expectedParsedFluxVersion)
+		fluxOutput += FluxCompatibleMessage
 	} else {
 		fluxOutput += fmt.Sprintf("✗ Flux %s !=%s\n", actualParsedFluxVersion, expectedParsedFluxVersion)
-		fluxOutput += "Current flux version is not compatible"
+		fluxOutput += FluxNotCompatibleMessage
 	}
 
 	return fluxOutput, nil

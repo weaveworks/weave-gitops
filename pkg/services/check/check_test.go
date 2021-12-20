@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/weaveworks/weave-gitops/pkg/flux"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	corev1 "k8s.io/api/core/v1"
@@ -99,8 +101,8 @@ var _ = Describe("Check", func() {
 				{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"app.kubernetes.io/part-of": "flux",
-							"app.kubernetes.io/version": expectedFluxVersion,
+							flux.PartOfLabelKey:  flux.PartOfLabelValue,
+							flux.VersionLabelKey: expectedFluxVersion,
 						},
 					},
 				},
@@ -133,8 +135,8 @@ var _ = Describe("Check", func() {
 		output, err := Pre(context, fakeKubeClient, fakeFluxClient, expectedFluxVersion)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(output).To(Equal(`✔ Kubernetes 1.21.1 >=1.19.0-0
-✗ Flux 1.21.1 =1.21.1
-Current flux version is compatible`))
+✔ Flux 1.21.1 =1.21.1
+` + FluxCompatibleMessage))
 	})
 
 	It("should show that the current flux version is not compatible", func() {
@@ -160,7 +162,7 @@ Current flux version is compatible`))
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(output).To(Equal(`✔ Kubernetes 1.21.1 >=1.19.0-0
 ✗ Flux 0.0.0 !=1.21.1
-Current flux version is not compatible`))
+` + FluxNotCompatibleMessage))
 	})
 
 })
