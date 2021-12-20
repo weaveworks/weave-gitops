@@ -508,10 +508,10 @@ func (k *KubeHTTP) FetchNamespaceWithLabel(ctx context.Context, key string, valu
 
 	nsl := &corev1.NamespaceList{}
 	if err := k.Client.List(ctx, nsl, &options); err != nil {
-		return "", fmt.Errorf("error setting resource: %w", err)
+		return "", fmt.Errorf("failed getting namespaces list: %w", err)
 	}
 
-	namespaces := make([]string,0)
+	namespaces := make([]string, 0)
 	for _, n := range nsl.Items {
 		namespaces = append(namespaces, n.Name)
 	}
