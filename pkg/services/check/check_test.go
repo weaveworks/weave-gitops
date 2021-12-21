@@ -48,11 +48,12 @@ var _ = Describe("Check", func() {
 			Items: []corev1.Namespace{},
 		}, nil)
 
-		output, err := Pre(context, fakeKubeClient, fakeFluxClient, expectedFluxVersion)
+		actualOutput, err := Pre(context, fakeKubeClient, fakeFluxClient, expectedFluxVersion)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		Expect(output).To(Equal(`✔ Kubernetes 1.21.1 >=1.19.0-0
-✔ Flux is not installed`))
+		expectedOutput := `✔ Kubernetes 1.21.1 >=1.19.0-0
+✔ Flux is not installed`
+		Expect(actualOutput).To(Equal(expectedOutput))
 	})
 
 	It("should fail while getting namespaces", func() {
@@ -132,11 +133,13 @@ var _ = Describe("Check", func() {
 			},
 		}, nil)
 
-		output, err := Pre(context, fakeKubeClient, fakeFluxClient, expectedFluxVersion)
+		actualOutput, err := Pre(context, fakeKubeClient, fakeFluxClient, expectedFluxVersion)
 		Expect(err).ShouldNot(HaveOccurred())
-		Expect(output).To(Equal(`✔ Kubernetes 1.21.1 >=1.19.0-0
+
+		expectedOutput := `✔ Kubernetes 1.21.1 >=1.19.0-0
 ✔ Flux 1.21.1 =1.21.1
-` + FluxCompatibleMessage))
+` + FluxCompatibleMessage
+		Expect(actualOutput).To(Equal(expectedOutput))
 	})
 
 	It("should show that the current flux version is not compatible", func() {
@@ -158,11 +161,13 @@ var _ = Describe("Check", func() {
 			},
 		}, nil)
 
-		output, err := Pre(context, fakeKubeClient, fakeFluxClient, expectedFluxVersion)
+		actualOutput, err := Pre(context, fakeKubeClient, fakeFluxClient, expectedFluxVersion)
 		Expect(err).ShouldNot(HaveOccurred())
-		Expect(output).To(Equal(`✔ Kubernetes 1.21.1 >=1.19.0-0
+
+		expectedOutput := `✔ Kubernetes 1.21.1 >=1.19.0-0
 ✗ Flux 0.0.0 !=1.21.1
-` + FluxNotCompatibleMessage))
+` + FluxNotCompatibleMessage
+		Expect(actualOutput).To(Equal(expectedOutput))
 	})
 
 })
