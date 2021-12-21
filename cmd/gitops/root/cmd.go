@@ -21,6 +21,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/suspend"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/ui"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/uninstall"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/update"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/upgrade"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
@@ -138,6 +139,7 @@ func RootCmd(client *resty.Client) *cobra.Command {
 	rootCmd.AddCommand(ui.Cmd)
 	rootCmd.AddCommand(get.GetCommand(&options.endpoint, client))
 	rootCmd.AddCommand(add.GetCommand(&options.endpoint, client))
+	rootCmd.AddCommand(update.UpdateCommand())
 	rootCmd.AddCommand(delete.DeleteCommand(&options.endpoint, client))
 	rootCmd.AddCommand(resume.GetCommand())
 	rootCmd.AddCommand(suspend.GetCommand())

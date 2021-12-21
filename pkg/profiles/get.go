@@ -27,21 +27,30 @@ type GetOptions struct {
 }
 
 func GetProfiles(ctx context.Context, opts GetOptions) error {
-	resp, err := kubernetesDoRequest(ctx, opts.Namespace, wegoServiceName, opts.Port, getProfilesPath, opts.ClientSet)
+	profiles, err := getProfiles(ctx, opts)
 	if err != nil {
 		return err
+	}
+
+	printProfiles(profiles, opts.Writer)
+
+	return nil
+}
+
+func getProfiles(ctx context.Context, opts GetOptions) (*pb.GetProfilesResponse, error) {
+	resp, err := kubernetesDoRequest(ctx, opts.Namespace, wegoServiceName, opts.Port, getProfilesPath, opts.ClientSet)
+	if err != nil {
+		return nil, err
 	}
 
 	profiles := &pb.GetProfilesResponse{}
 	err = jsonpb.UnmarshalString(string(resp), profiles)
 
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal response: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
-	printProfiles(profiles, opts.Writer)
-
-	return nil
+	return profiles, nil
 }
 
 func printProfiles(profiles *pb.GetProfilesResponse, w io.Writer) {
