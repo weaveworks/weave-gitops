@@ -111,14 +111,7 @@ runs:
       go get github.com/onsi/ginkgo/ginkgo
       go get github.com/onsi/gomega/...
       export GIT_PROVIDER=${{ matrix.GIT_PROVIDER }}
-
-      if [ "${{ matrix.GIT_PROVIDER }}" == "github" ]; then
-        ginkgo ${{ inputs.focus-or-skip }} --randomizeSuites --skip=@gitlabTests --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/${{ inputs.result-prefix }}acceptance-test-results.xml -v ./test/acceptance/test/...
-      
-      elif [ "${{ matrix.GIT_PROVIDER }}" == "gitlab" ]; then
-        ginkgo ${{ inputs.focus-or-skip }} --randomizeSuites --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/${{ inputs.result-prefix }}acceptance-test-results.xml -v ./test/acceptance/test/...
-      fi
-
+      ginkgo ${{ inputs.focus-or-skip }} --randomizeSuites --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/${{ inputs.result-prefix }}acceptance-test-results.xml -v ./test/acceptance/test/...
     if: always()
   - name: Store acceptance test results
     env:
