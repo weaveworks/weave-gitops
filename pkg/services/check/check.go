@@ -23,7 +23,7 @@ const (
 func Pre(ctx context.Context, kubeClient kube.Kube, fluxClient flux.Flux, expectedFluxVersion string) (string, error) {
 	output := ""
 
-	k8sOutput, err := validateKubernetes(fluxClient)
+	k8sOutput, err := runKubernetesCheck(fluxClient)
 	if err != nil {
 		return "", err
 	}
@@ -50,7 +50,7 @@ func Pre(ctx context.Context, kubeClient kube.Kube, fluxClient flux.Flux, expect
 	return output, nil
 }
 
-func validateKubernetes(fluxClient flux.Flux) (string, error) {
+func runKubernetesCheck(fluxClient flux.Flux) (string, error) {
 	output, err := fluxClient.PreCheck()
 	if err != nil {
 		return "", fmt.Errorf("failed running flux pre check %w", err)
