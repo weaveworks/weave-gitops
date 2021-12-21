@@ -19,6 +19,7 @@ const (
 	FluxNotCompatibleMessage = "Current flux version is not compatible"
 )
 
+// Pre runs pre-install checks
 func Pre(ctx context.Context, kubeClient kube.Kube, fluxClient flux.Flux, expectedFluxVersion string) (string, error) {
 	output := ""
 
