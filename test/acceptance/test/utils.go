@@ -193,7 +193,7 @@ func getK8sVersion() string {
 }
 
 func getCurrentFluxSupportedVersion() (string, error) {
-	config, err := toml.LoadFile("../../tools/dependencies.toml")
+	config, err := toml.LoadFile("../../../tools/dependencies.toml")
 	if err != nil {
 		return "", fmt.Errorf("failed reading toml file: %w", err)
 	}
