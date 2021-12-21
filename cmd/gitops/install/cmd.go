@@ -103,7 +103,6 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	var gitProvider gitproviders.GitProvider
 
 	factory := services.NewFactory(flux, log)
-	kubeClient, err := factory.GetKubeService()
 
 	if err != nil {
 		return fmt.Errorf("failed getting kube service: %w", err)
@@ -143,22 +142,19 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	wegoConfigManifest, err := clusterAutomation.GenerateWegoConfigManifest(clusterName, namespace, namespace)
+	if err != nil {
+		return fmt.Errorf("failed generating wego config manifest: %w", err)
+	}
+
+	manifests := append(clusterAutomation.Manifests(), wegoConfigManifest)
+
 	if installParams.DryRun {
-		for _, manifest := range clusterAutomation.Manifests() {
+		for _, manifest := range manifests {
 			log.Println(string(manifest.Content))
 		}
 
 		return nil
-	}
-
-	fluxNamespace, err := kubeClient.FetchNamespaceWithLabel(ctx, LabelPartOf, "flux")
-	if err != nil {
-		return fmt.Errorf("failed getting flux namespace: %w", err)
-	}
-
-	wegoConfigManifest, err := clusterAutomation.GenerateWegoConfigManifest(clusterName, fluxNamespace, namespace)
-	if err != nil {
-		return fmt.Errorf("failed generating wego config manifest: %w", err)
 	}
 
 	err = clusterApplier.ApplyManifests(ctx, cluster, namespace, append(clusterAutomation.BootstrapManifests(), wegoConfigManifest))
@@ -166,7 +162,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed applying manifest: %w", err)
 	}
 
-	err = gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, fluxNamespace, installParams.AutoMerge)
+	err = gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, namespace, installParams.AutoMerge)
 	if err != nil {
 		return fmt.Errorf("failed associating cluster: %w", err)
 	}
