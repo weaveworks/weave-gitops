@@ -31,7 +31,6 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 	BeforeEach(func() {
 		gitProvider, gitOrg, gitURLName = setGitProvider()
-
 		By("Given I have a gitops binary installed on my local machine", func() {
 			Expect(FileExists(gitopsBinaryPath)).To(BeTrue())
 		})
