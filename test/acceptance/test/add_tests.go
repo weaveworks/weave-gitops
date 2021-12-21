@@ -171,7 +171,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	FIt("Test1 - Verify that gitops can deploy an app after it is setup with an empty repo initially", func() {
+	It("Test1 - Verify that gitops can deploy an app after it is setup with an empty repo initially", func() {
 		var repoAbsolutePath string
 		private := true
 		tip := generateTestInputs()
