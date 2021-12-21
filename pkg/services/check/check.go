@@ -37,7 +37,7 @@ func Pre(ctx context.Context, kubeClient kube.Kube, fluxClient flux.Flux, expect
 			return output, nil
 		}
 
-		return "", fmt.Errorf("failed getting current flux version: %w", err)
+		return "", fmt.Errorf("failed getting installed flux version: %w", err)
 	}
 
 	fluxOutput, err := validateFluxVersion(currentFluxVersion, expectedFluxVersion)
