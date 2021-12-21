@@ -189,6 +189,7 @@ func getK8sVersion() string {
 	if found {
 		return k8sVersion
 	}
+
 	return DEFAULT_K8S_VERSION
 }
 
