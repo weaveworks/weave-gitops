@@ -40,7 +40,7 @@ func (a *ClusterApplySvc) ApplyManifests(ctx context.Context, cluster models.Clu
 			}
 
 			if err := a.Kube.Apply(ctx, m, namespace); err != nil {
-				return fmt.Errorf("could not apply manifest: %w", err)
+				return fmt.Errorf("error applying manifest %s: %w", manifest.Path, err)
 			}
 		}
 	}
