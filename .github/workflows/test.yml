@@ -15,7 +15,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.16.x
+        go-version: 1.17.X
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Cache node modules
@@ -57,7 +57,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.16.x
+        go-version: 1.17.X
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Clean
@@ -85,7 +85,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.16.x
+        go-version: 1.17.X
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Set up ssh

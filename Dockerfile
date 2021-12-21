@@ -11,7 +11,7 @@ COPY --chown=node:node . /home/app/
 RUN make ui
 
 # Go build
-FROM golang:1.16 AS go-build
+FROM golang:1.17 AS go-build
 COPY . /app
 WORKDIR /app
 # Remove flux to ensure the correct version is installed
