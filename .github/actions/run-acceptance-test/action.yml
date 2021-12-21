@@ -110,7 +110,9 @@ runs:
       export CLUSTER_PROVIDER=kubectl
       go get github.com/onsi/ginkgo/ginkgo
       go get github.com/onsi/gomega/...
-      export GIT_PROVIDER=${{ matrix.GIT_PROVIDER }}
+      if [ "${{ github.job == 'smoke-tests-long' }}" ] ; then
+        export GIT_PROVIDER=${{ matrix.GIT_PROVIDER }}
+      fi
       ginkgo ${{ inputs.focus-or-skip }} --randomizeSuites --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/${{ inputs.result-prefix }}acceptance-test-results.xml -v ./test/acceptance/test/...
     if: always()
   - name: Store acceptance test results
