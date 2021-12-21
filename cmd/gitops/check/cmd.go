@@ -31,7 +31,7 @@ gitops check --pre
 }
 
 func init() {
-	Cmd.Flags().BoolVarP(&pre, "pre", "p", true, "It validates if current flux version running in the cluster is valid")
+	Cmd.Flags().BoolVarP(&pre, "pre", "p", true, "perform only the pre-installation checks")
 	_ = Cmd.MarkFlagRequired("pre")
 }
 
