@@ -28,7 +28,7 @@ func Pre(ctx context.Context, kubeClient kube.Kube, fluxClient flux.Flux, expect
 		return "", err
 	}
 
-	output += k8sOutput
+	output += k8sOutput + "\n"
 
 	currentFluxVersion, err := getCurrentFluxVersion(ctx, kubeClient)
 	if err != nil {
@@ -59,7 +59,7 @@ func validateKubernetes(fluxClient flux.Flux) (string, error) {
 	lines := strings.Split(output, "\n")
 	for _, line := range lines {
 		if strings.Contains(line, "Kubernetes") {
-			return line + "\n", nil
+			return line, nil
 		}
 	}
 
