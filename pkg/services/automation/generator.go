@@ -59,6 +59,7 @@ const (
 type AutomationGenerator interface {
 	GenerateApplicationAutomation(ctx context.Context, app models.Application, clusterName string) (ApplicationAutomation, error)
 	GenerateClusterAutomation(ctx context.Context, cluster models.Cluster, configURL gitproviders.RepoURL, namespace string) (ClusterAutomation, error)
+	GetSecretRefForPrivateGitSources(ctx context.Context, url gitproviders.RepoURL) (GeneratedSecretName, error)
 }
 
 type AutomationGen struct {
@@ -97,13 +98,13 @@ func NewAutomationGenerator(gp gitproviders.GitProvider, flux flux.Flux, logger 
 
 func (a *AutomationGen) getAppSecretRef(ctx context.Context, app models.Application) (GeneratedSecretName, error) {
 	if app.SourceType != models.SourceTypeHelm {
-		return a.getSecretRefForPrivateGitSources(ctx, app.GitSourceURL)
+		return a.GetSecretRefForPrivateGitSources(ctx, app.GitSourceURL)
 	}
 
 	return "", nil
 }
 
-func (a *AutomationGen) getSecretRefForPrivateGitSources(ctx context.Context, url gitproviders.RepoURL) (GeneratedSecretName, error) {
+func (a *AutomationGen) GetSecretRefForPrivateGitSources(ctx context.Context, url gitproviders.RepoURL) (GeneratedSecretName, error) {
 	var secretRef GeneratedSecretName
 
 	visibility, err := a.GitProvider.GetRepoVisibility(ctx, url)

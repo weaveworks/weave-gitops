@@ -416,7 +416,7 @@ var _ = Describe("Generate cluster manifests", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(clusterAutomation.GitOpsRuntime.Content).To(Equal(GitOpsRuntimeBytes))
 		Expect(clusterAutomation.GitOpsRuntime.Path).To(Equal(systemQualifiedPath(runtimePath)))
-		secretRef, err := automationGen.GetSecretRef(ctx, url)
+		secretRef, err := automationGen.GetSecretRefForPrivateGitSources(ctx, url)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		secretStr := secretRef.String()
