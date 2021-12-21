@@ -93,7 +93,7 @@ var _ = Describe("Check", func() {
 
 	})
 
-	It("should fail when expected flux version is no valid", func() {
+	It("should fail when expected flux version is not valid", func() {
 
 		fakeFluxClient.PreCheckReturns(successfulFluxPreCheckOutput, nil)
 
