@@ -25,7 +25,7 @@ inputs:
     required: true
   git-provider:
     description: "Value for running tests either on GitHub or GitLab"
-    required: true
+    required: false
   artifacts-base-dir:
     description: "Directory for test artifacts"
     required: true
