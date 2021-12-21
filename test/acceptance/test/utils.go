@@ -35,10 +35,8 @@ import (
 )
 
 const (
-	TEN_SECONDS_TIMEOUT         time.Duration = 10 * time.Second
 	THIRTY_SECOND_TIMEOUT       time.Duration = 30 * time.Second
 	EVENTUALLY_DEFAULT_TIMEOUT  time.Duration = 60 * time.Second
-	TIMEOUT_TWO_MINUTES         time.Duration = 120 * time.Second
 	INSTALL_RESET_TIMEOUT       time.Duration = 300 * time.Second
 	NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
 	INSTALL_SUCCESSFUL_TIMEOUT  time.Duration = 3 * time.Minute
