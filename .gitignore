@@ -14,3 +14,4 @@ ginkgo.report
 .deps
 test/library/wego-library-test
 tilt_modules
+.envrc
