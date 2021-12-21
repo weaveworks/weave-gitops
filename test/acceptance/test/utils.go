@@ -508,6 +508,7 @@ func waitForReplicaCreation(namespace string, replicasSetValue int, timeout time
 
 func waitForAppRemoval(appName string, timeout time.Duration) error {
 	pollInterval := time.Second * 5
+	timeoutInSeconds := int(timeout.Seconds())
 
 	_ = utils.WaitUntil(os.Stdout, pollInterval, timeout, func() error {
 		command := exec.Command("sh", "-c", fmt.Sprintf("%s get apps", gitopsBinaryPath))
@@ -516,13 +517,13 @@ func waitForAppRemoval(appName string, timeout time.Duration) error {
 		Eventually(session).Should(gexec.Exit())
 
 		if strings.Contains(string(session.Wait().Out.Contents()), appName) {
-			return fmt.Errorf(": Waiting for app: %s to delete", appName)
+			return fmt.Errorf(": Waiting to delete app: %s || timeout: %d second(s)", appName, timeoutInSeconds)
 		}
-		log.Infof("App successfully deleted: %s", appName)
+		log.Infof("App %s successfully deleted", appName)
 		return nil
 	})
 
-	return fmt.Errorf("Failed to delete app")
+	return fmt.Errorf("Failed to delete app %s", appName)
 }
 
 // Run a command, passing through stdout/stderr to the OS standard streams
