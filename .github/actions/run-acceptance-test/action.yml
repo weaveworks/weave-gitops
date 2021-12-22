@@ -90,11 +90,6 @@ runs:
       git config --global user.email "weave-test-user@example.com"
       git config --global user.name "Testy McTestFace"
       git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-  - name: Set Git Provider
-    if: ${{ github.job == 'smoke-tests-long' }}
-    shell: bash
-    run: |
-      export GIT_PROVIDER=${{ matrix.GIT_PROVIDER }}
   - name: Run Full Acceptance Suite Except Kustomize Add Tests
     shell: bash
     env:
@@ -107,6 +102,7 @@ runs:
         GITLAB_SUBGROUP: weave-gitops-sub
         GITLAB_TOKEN: ${{ inputs.gitlab-token }}
         GITLAB_KEY: ${{ inputs.gitlab-key }}
+        GIT_PROVIDER: ${{ inputs.git-provider }}
         ARTIFACTS_BASE_DIR: ${{ inputs.artifacts-base-dir }}
     run: |
       export PATH=${PATH}:`go env GOPATH`/bin
@@ -114,6 +110,9 @@ runs:
       export CLUSTER_PROVIDER=kubectl
       go get github.com/onsi/ginkgo/ginkgo
       go get github.com/onsi/gomega/...
+      if [ "${{ github.job }}" == "smoke-tests-long" ]; then
+        export GIT_PROVIDER=${{ matrix.GIT_PROVIDER }}
+      fi
       ginkgo ${{ inputs.focus-or-skip }} --randomizeSuites --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/${{ inputs.result-prefix }}acceptance-test-results.xml -v ./test/acceptance/test/...
     if: always()
   - name: Store acceptance test results
