@@ -152,7 +152,7 @@ jobs:
         gitlab-key: ${{ secrets.GITLAB_KEY }}
         gitlab-token: ${{ secrets.GITLAB_TOKEN }}
         gitlab-org: ${{ secrets.GITLAB_ORG }}
-        git-provider: $${{ matrix.git-provider }}
+        git-provider: ${{ matrix.git-provider }}
         artifacts-base-dir: "/tmp/gitops-test"
 
   acceptance-tests-0:
