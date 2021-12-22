@@ -1215,11 +1215,11 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		public := false
 		tip := generateTestInputs()
 		appName := tip.appRepoName
-		appRepoRemoteURL := "ssh://git@" + gitURLName + ".com/" + gitlabPublicGroup + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@gitlab.com/" + gitlabPublicGroup + "/" + tip.appRepoName + ".git"
 
 		addCommand := "add app . --auto-merge=true"
 
-		defer deleteRepo(tip.appRepoName, gitProvider, gitlabPublicGroup)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, gitlabPublicGroup)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
 		By("I have my default ssh key on path "+sshKeyPath, func() {
@@ -1227,7 +1227,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitProvider, gitlabPublicGroup)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, gitlabPublicGroup)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
@@ -1235,7 +1235,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create an empty public repo", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitProvider, public, gitlabPublicGroup)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitLab, public, gitlabPublicGroup)
 		})
 
 		By("And I install gitops to my active cluster", func() {
@@ -1259,7 +1259,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have public visibility", func() {
-			Expect(getGitRepoVisibility(gitlabPublicGroup, tip.appRepoName, gitProvider)).Should(ContainSubstring("public"))
+			Expect(getGitRepoVisibility(gitlabPublicGroup, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("public"))
 		})
 
 	})
@@ -1275,9 +1275,9 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		subGroup := gitOrg + "/" + gitlabSubgroup
 
-		appRepoRemoteURL := "ssh://git@" + gitURLName + ".com/" + subGroup + "/" + appName + ".git"
+		appRepoRemoteURL := "ssh://git@gitlab.com/" + subGroup + "/" + appName + ".git"
 
-		defer deleteRepo(tip.appRepoName, gitProvider, subGroup)
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, subGroup)
 		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
 
 		By("I have my default ssh key on path "+sshKeyPath, func() {
@@ -1293,7 +1293,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create an empty private repo", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitProvider, private, subGroup)
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitLab, private, subGroup)
 		})
 
 		By("And I install gitops to my active cluster", func() {
@@ -1317,7 +1317,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have private visibility", func() {
-			Expect(getGitRepoVisibility(subGroup, tip.appRepoName, gitProvider)).Should(ContainSubstring("private"))
+			Expect(getGitRepoVisibility(subGroup, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("private"))
 		})
 
 		By("When I remove an app", func() {
