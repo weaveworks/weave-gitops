@@ -110,15 +110,15 @@ runs:
       go get github.com/onsi/ginkgo/ginkgo
       go get github.com/onsi/gomega/...
       export GIT_PROVIDER2="${{ inputs.git-provider }}"
-      echo $GIT_PROVIDER2
+      echo "$GIT_PROVIDER2"
       echo git-provider
-      echo "${{ inputs.git-provider }}"
+      echo "{{ inputs.git-provider }}"
       echo github.job
       echo ${{ github.job }}
       if [ "${{ github.job }}" == "smoke-tests-long" ]; then
         export GIT_PROVIDER="${{ inputs.git-provider }}"
       fi
-      echo $GIT_PROVIDER
+      echo "$GIT_PROVIDER"
       ginkgo ${{ inputs.focus-or-skip }} --randomizeSuites --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/${{ inputs.result-prefix }}acceptance-test-results.xml -v ./test/acceptance/test/...
     if: always()
   - name: Store acceptance test results
