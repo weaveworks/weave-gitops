@@ -109,6 +109,10 @@ runs:
       export CLUSTER_PROVIDER=kubectl
       go get github.com/onsi/ginkgo/ginkgo
       go get github.com/onsi/gomega/...
+      echo git-provider
+      echo ${{ inputs.git-provider }}
+      echo github.job
+      echo ${{ github.job }}
       if [ "${{ github.job }}" == "smoke-tests-long" ]; then
         export GIT_PROVIDER=${{ inputs.git-provider }}
       fi
