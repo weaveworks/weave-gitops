@@ -852,7 +852,7 @@ func setGitProvider() (gitproviders.GitProviderName, string, string) {
 	github := "github"
 	gitProvider := os.Getenv("GIT_PROVIDER")
 
-	if gitProvider == "gitlab" {
+	if gitProvider == gitlab {
 		log.Infof("Using git provider: %s", gitlab)
 		return gitproviders.GitProviderGitLab, gitlabOrg, gitlab
 	}

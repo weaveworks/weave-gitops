@@ -20,11 +20,11 @@ import (
 )
 
 var (
-	gitProvider    gitproviders.GitProviderName
-	gitURLName     string
-	gitOrg         string
-	clusterName    string
-	clusterContext string
+	gitProvider     gitproviders.GitProviderName
+	gitProviderName string
+	gitOrg          string
+	clusterName     string
+	clusterContext  string
 )
 
 var _ = Describe("Weave GitOps Add App Tests", func() {
@@ -35,7 +35,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	}
 
 	var _ = BeforeEach(func() {
-		gitProvider, gitOrg, gitURLName = setGitProvider()
+		gitProvider, gitOrg, gitProviderName = setGitProvider()
 
 		By("Given I have a brand new cluster", func() {
 			var err error
@@ -56,7 +56,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		var exitCode int
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
 
 		addCommand1 := "add app . --auto-merge=true"
 		addCommand2 := "add app . --url=" + appRepoRemoteURL + " --auto-merge=true"
@@ -105,7 +105,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := true
 		tip := generateTestInputs()
 		branchName := "test-branch-01"
-		appRepoRemoteURL := "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
 		appName := tip.appRepoName
 
 		addCommand := "add app --url=" + appRepoRemoteURL + " --branch=" + branchName + " --dry-run" + " --auto-merge=true"
@@ -174,7 +174,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := true
 		tip := generateTestInputs()
 		appName := tip.appRepoName
-		appRepoRemoteURL := "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
 
 		addCommand := "add app . --auto-merge=true"
 
@@ -241,8 +241,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		tip := generateTestInputs()
 		appName := tip.appRepoName
 		appConfigRepoName := "config-repo-" + RandString(8)
-		appRepoRemoteURL := "https://" + gitURLName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
-		configRepoRemoteURL := "https://" + gitURLName + ".com/" + gitOrg + "/" + appConfigRepoName + ".git"
+		appRepoRemoteURL := "https://" + gitProviderName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
+		configRepoRemoteURL := "https://" + gitProviderName + ".com/" + gitOrg + "/" + appConfigRepoName + ".git"
 
 		addCommand := "add app --url=" + appRepoRemoteURL + " --config-repo=" + configRepoRemoteURL + " --auto-merge=true"
 
@@ -293,7 +293,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			Eventually(appRemoveOutput).Should(MatchRegexp(`► Removing application "` + appName + `" from cluster .* and repository`))
 			Eventually(appRemoveOutput).Should(ContainSubstring("► Committing and pushing gitops updates for application"))
 			Eventually(appRemoveOutput).Should(ContainSubstring("► Pushing app changes to repository"))
-			Eventually(appRemoveOutput).Should(ContainSubstring("Pull Request created: https://" + gitURLName + ".com/" + gitOrg + "/" + appConfigRepoName))
+			Eventually(appRemoveOutput).Should(ContainSubstring("Pull Request created: https://" + gitProviderName + ".com/" + gitOrg + "/" + appConfigRepoName))
 		})
 
 		By("And app should remain in the cluster until PR is approved", func() {
@@ -317,7 +317,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := false
 		tip := generateTestInputs()
 		appName := tip.appRepoName
-		appRepoRemoteURL := "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
 
 		addCommand := "add app --url=" + appRepoRemoteURL + " --auto-merge=true"
 
@@ -356,7 +356,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := true
 		tip := generateTestInputs()
 		appName := tip.appRepoName
-		appRepoRemoteURL := "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
 
 		addCommand := "add app " + tip.appRepoName + "/" + " --auto-merge=true"
 
@@ -402,7 +402,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		appRepoName := "test-app-" + RandString(8)
 		public := false
 		appName := appRepoName
-		appRepoRemoteURL := "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + appRepoName + ".git"
 
 		addCommand := "add app . --name=" + appName + " --auto-merge=true"
 
@@ -451,7 +451,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		tip := generateTestInputs()
 		appRepoName := "test-app-" + RandString(8)
 		appName := appRepoName
-		appRepoRemoteURL := "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + appRepoName + ".git"
 
 		addCommand := "add app . --name=" + appName + " --auto-merge=true"
 
@@ -524,7 +524,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		appRepoName1 := "test-app-" + RandString(8)
 		appRepoName2 := "test-app-" + RandString(8)
 		appConfigRepoName := "config-repo-" + RandString(8)
-		configRepoRemoteURL = "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + appConfigRepoName + ".git"
+		configRepoRemoteURL = "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + appConfigRepoName + ".git"
 		appName1 := appRepoName1
 		appName2 := appRepoName2
 
@@ -584,7 +584,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		appRepoName := "test-app-" + RandString(8)
 		appName1 := "app1"
 		appName2 := "app2"
-		appRepoRemoteURL := "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + appRepoName + ".git"
 
 		addCommand1 := "add app . --path=./" + appName1 + " --name=" + appName1 + " --auto-merge=true"
 		addCommand2 := "add app . --path=./" + appName2 + " --name=" + appName2 + " --auto-merge=true"
@@ -641,7 +641,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		tip := generateTestInputs()
 		appFilesRepoName := tip.appRepoName
 		appConfigRepoName := "config-repo-" + RandString(8)
-		configRepoRemoteURL = "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + appConfigRepoName + ".git"
+		configRepoRemoteURL = "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + appConfigRepoName + ".git"
 		helmRepoURL := "https://charts.kube-ops.io"
 		appName1 := appFilesRepoName
 		workloadName1 := tip.workloadName
@@ -807,7 +807,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		private := true
 		public := false
 		replicaSetValue := 3
-		appRepoRemoteURL := "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + tip1.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + tip1.appRepoName + ".git"
 
 		addCommand1 := "add app . --name=" + appName1 + " --auto-merge=true"
 		addCommand2 := "add app . --name=" + appName2 + " --auto-merge=true --config-repo=" + appRepoRemoteURL
@@ -1000,7 +1000,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		appName := "my-helm-app"
 		appManifestFilePath := "./data/helm-repo/hello-world"
 		appRepoName := "test-app-" + RandString(8)
-		appRepoRemoteURL := "https://" + gitURLName + ".com/" + gitOrg + "/" + appRepoName + ".git"
+		appRepoRemoteURL := "https://" + gitProviderName + ".com/" + gitOrg + "/" + appRepoName + ".git"
 
 		addCommand := "add app . --deployment-type=helm --path=./hello-world --name=" + appName + " --auto-merge=true"
 
@@ -1043,7 +1043,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		appName := "my-helm-app"
 		appRepoName := "test-app-" + RandString(8)
 		configRepoName := "test-config-repo-" + RandString(8)
-		configRepoUrl := fmt.Sprintf("ssh://git@"+gitURLName+".com/%s/%s.git", gitOrg, configRepoName)
+		configRepoUrl := fmt.Sprintf("ssh://git@"+gitProviderName+".com/%s/%s.git", gitOrg, configRepoName)
 
 		addCommand := fmt.Sprintf("add app . --config-repo=%s --deployment-type=helm --path=./hello-world --name=%s --auto-merge=true", configRepoUrl, appName)
 
@@ -1108,7 +1108,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		workloadName1 := workloadNamespace + "-loki-0"
 		readmeFilePath := "./data/README.md"
 		appRepoName := "test-app-" + RandString(8)
-		appRepoRemoteURL := "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + appRepoName + ".git"
 		helmRepoURL := "https://charts.kube-ops.io"
 
 		invalidAddCommand := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --auto-merge=true"
@@ -1341,7 +1341,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		tip := generateTestInputs()
 		appName := tip.appRepoName
 		prLink := ""
-		appRepoRemoteURL := "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
 
 		addCommand := "add app . --name=" + appName + " --auto-merge=false"
 
@@ -1389,7 +1389,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		tip := generateTestInputs()
 		appName := tip.appRepoName
 		prLink := ""
-		appRepoRemoteURL := "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
 
 		addCommand := "add app . --name=" + appName + " --auto-merge=false"
 
@@ -1445,7 +1445,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		tip := generateTestInputs()
 		appName := tip.appRepoName
 		appConfigRepoName := "config-repo-" + RandString(8)
-		configRepoRemoteURL = "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + appConfigRepoName + ".git"
+		configRepoRemoteURL = "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + appConfigRepoName + ".git"
 
 		addCommand := "add app . --config-repo=" + configRepoRemoteURL
 
@@ -1498,8 +1498,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		tip2 := generateTestInputs()
 		appName := tip.appRepoName
 		appName2 := tip2.appRepoName
-		appRepoRemoteURL := "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
-		prLink := "https://" + gitURLName + ".com/" + gitOrg + "/" + tip.appRepoName + "/pull/1"
+		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
+		prLink := "https://" + gitProviderName + ".com/" + gitOrg + "/" + tip.appRepoName + "/pull/1"
 
 		addCommand := "add app . --name=" + appName
 		addCommand2 := "add app . --name=" + appName2
@@ -1559,7 +1559,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 	}
 
 	var _ = BeforeEach(func() {
-		gitProvider, gitOrg, gitURLName = setGitProvider()
+		gitProvider, gitOrg, gitProviderName = setGitProvider()
 
 		By("Given I have a brand new cluster with a long cluster name", func() {
 			var err error
@@ -1584,7 +1584,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		tip := generateTestInputs()
 		appFilesRepoName := tip.appRepoName + "123456789012345678901234567890"
 		appConfigRepoName := "config-repo-" + RandString(8)
-		configRepoRemoteURL = "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + appConfigRepoName + ".git"
+		configRepoRemoteURL = "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + appConfigRepoName + ".git"
 		appName := appFilesRepoName
 		workloadName := tip.workloadName
 		workloadNamespace := tip.workloadNamespace
@@ -1668,7 +1668,7 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 		tip := generateTestInputs()
 		appFilesRepoName := tip.appRepoName + "123456789012345678901234567890"
 		appConfigRepoName := "config-repo-" + RandString(8)
-		configRepoRemoteURL = "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + appConfigRepoName + ".git"
+		configRepoRemoteURL = "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + appConfigRepoName + ".git"
 		appName := appFilesRepoName
 		workloadName := tip.workloadName
 		workloadNamespace := tip.workloadNamespace
