@@ -50,6 +50,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 
 	It("Verify that gitops cannot work without gitops components installed OR with both url and directory provided", func() {
+
 		var repoAbsolutePath string
 		var errOutput string
 		var exitCode int
