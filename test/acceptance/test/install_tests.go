@@ -202,7 +202,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 
 		By("Then I should see install dry-run output in the console", func() {
-			Eventually(installDryRunOutput).Should(ContainSubstring("# Flux version: "))
+			Eventually(installDryRunOutput).Should(ContainSubstring("# Flux Version: "))
 			Eventually(installDryRunOutput).Should(ContainSubstring("# Components: source-controller,kustomize-controller,helm-controller,notification-controller,image-reflector-controller,image-automation-controller"))
 			Eventually(installDryRunOutput).Should(ContainSubstring("name: " + WEGO_DEFAULT_NAMESPACE))
 		})
