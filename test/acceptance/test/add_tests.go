@@ -1273,7 +1273,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		addCommand := "add app . --auto-merge=true"
 
-		subGroup := gitOrg + "/" + gitlabSubgroup
+		subGroup := gitlabOrg + "/" + gitlabSubgroup
 
 		appRepoRemoteURL := "ssh://git@gitlab.com/" + subGroup + "/" + appName + ".git"
 
@@ -1285,7 +1285,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitProvider, subGroup)
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitLab, subGroup)
 		})
 
 		By("And application workload is not already deployed to cluster", func() {
