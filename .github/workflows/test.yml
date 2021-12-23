@@ -141,11 +141,6 @@ jobs:
     strategy:
       matrix:
         git-provider: [github, gitlab]
-        include:
-        - git-provider: github
-          GIT_PROVIDER: github
-        - git-provider: gitlab
-          GIT_PROVIDER: gitlab
     steps:
     - uses: actions/checkout@v2
     - uses: ./.github/actions/run-acceptance-test
@@ -157,7 +152,7 @@ jobs:
         gitlab-key: ${{ secrets.GITLAB_KEY }}
         gitlab-token: ${{ secrets.GITLAB_TOKEN }}
         gitlab-org: ${{ secrets.GITLAB_ORG }}
-        git-provider: $${{ matrix.git-provider }}
+        git-provider: ${{ matrix.git-provider }}
         artifacts-base-dir: "/tmp/gitops-test"
 
   acceptance-tests-0:
