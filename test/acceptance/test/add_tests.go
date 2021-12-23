@@ -20,11 +20,8 @@ import (
 )
 
 var (
-	gitProvider     gitproviders.GitProviderName
-	gitProviderName string
-	gitOrg          string
-	clusterName     string
-	clusterContext  string
+	clusterName    string
+	clusterContext string
 )
 
 var _ = Describe("Weave GitOps Add App Tests", func() {
@@ -35,8 +32,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	}
 
 	var _ = BeforeEach(func() {
-		gitProvider, gitOrg, gitProviderName = setGitProvider()
-
 		By("Given I have a brand new cluster", func() {
 			var err error
 
@@ -1559,7 +1554,6 @@ var _ = Describe("Weave GitOps Add Tests With Long Cluster Name", func() {
 	}
 
 	var _ = BeforeEach(func() {
-		gitProvider, gitOrg, gitProviderName = setGitProvider()
 
 		By("Given I have a brand new cluster with a long cluster name", func() {
 			var err error

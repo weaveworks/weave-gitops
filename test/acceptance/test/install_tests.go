@@ -13,7 +13,6 @@ import (
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/manifests"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 
 	. "github.com/onsi/ginkgo"
@@ -24,13 +23,9 @@ import (
 
 var _ = Describe("Weave GitOps Install Tests", func() {
 
-	var gitProvider gitproviders.GitProviderName
-	var gitOrg string
-	var gitURLName string
 	var sessionOutput *gexec.Session
 
 	BeforeEach(func() {
-		gitProvider, gitOrg, gitURLName = setGitProvider()
 
 		By("Given I have a gitops binary installed on my local machine", func() {
 			Expect(FileExists(gitopsBinaryPath)).To(BeTrue())
@@ -78,7 +73,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 
 		By("And I run 'gitops install' command", func() {
-			_, errOutput = runCommandAndReturnStringOutput(gitopsBinaryPath + " install --config-repo=ssh://git@" + gitURLName + ".com/user/repo.git")
+			_, errOutput = runCommandAndReturnStringOutput(gitopsBinaryPath + " install --config-repo=ssh://git@" + gitProviderName + ".com/user/repo.git")
 		})
 
 		By("Then I should see a quitting message", func() {
@@ -98,7 +93,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "git@" + gitURLName + ".com:" + gitOrg + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "git@" + gitProviderName + ".com:" + gitOrg + "/" + tip.appRepoName + ".git"
 
 		defer deleteRepo(tip.appRepoName, gitProvider, gitOrg)
 
@@ -147,7 +142,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
 
 		defer deleteRepo(tip.appRepoName, gitProvider, gitOrg)
 
@@ -192,7 +187,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
 
 		defer deleteRepo(tip.appRepoName, gitProvider, gitOrg)
 
@@ -261,7 +256,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "ssh://git@" + gitURLName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
 
 		defer deleteRepo(tip.appRepoName, gitProvider, gitOrg)
 

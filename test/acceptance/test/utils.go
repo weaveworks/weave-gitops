@@ -63,6 +63,9 @@ var (
 	gitlabSubgroup    string
 	gitlabPublicGroup string
 	gitopsBinaryPath  string
+	gitProviderName   string
+	gitOrg            string
+	gitProvider       gitproviders.GitProviderName
 )
 
 type TestInputs struct {
@@ -847,7 +850,7 @@ func getGitProvider(org string, repo string, providerName gitproviders.GitProvid
 	return gitProvider, orgRef, err
 }
 
-func setGitProvider() (gitproviders.GitProviderName, string, string) {
+func getGitProviderInfo() (gitproviders.GitProviderName, string, string) {
 	gitlab := "gitlab"
 	github := "github"
 	gitProvider := os.Getenv("GIT_PROVIDER")
