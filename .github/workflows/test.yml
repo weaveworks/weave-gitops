@@ -135,7 +135,7 @@ jobs:
         artifacts-base-dir: "/tmp/gitops-test"
 
   smoke-tests-long:
-    runs-on: ubuntu-latest, ${{ matrix.git-provider }}
+    runs-on: ubuntu-latest
     needs: build
     timeout-minutes: 60
     strategy:
