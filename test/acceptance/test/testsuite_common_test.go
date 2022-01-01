@@ -8,9 +8,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo"
-	"github.com/onsi/gomega"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
 )
@@ -48,7 +46,6 @@ func TestAcceptance(t *testing.T) {
 	}
 
 	RegisterFailHandler(Fail)
-	gomega.RegisterFailHandler(GomegaFail)
 	RunSpecs(t, "Weave GitOps User Acceptance Tests")
 }
 
@@ -71,10 +68,6 @@ var _ = BeforeSuite(func() {
 	}
 	log.Infof("GITOPS Binary Path: %s", gitopsBinaryPath)
 })
-
-func GomegaFail(message string, callerSkip ...int) {
-	ginkgo.Fail(message, callerSkip...)
-}
 
 func getEnvVar(envVar string) string {
 	value := os.Getenv(envVar)

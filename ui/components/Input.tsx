@@ -8,7 +8,7 @@ import styled from "styled-components";
 
 export type InputProps = TextFieldProps;
 
-function Input(props: InputProps) {
+function Input({ ...props }: InputProps) {
   return <TextField {...props} />;
 }
 

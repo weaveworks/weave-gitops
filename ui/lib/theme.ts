@@ -21,7 +21,12 @@ export const theme: DefaultTheme = {
     black: "#1a1a1a",
     white: "#fff",
     primary: "#00b3ec",
+    primaryDark: "#009CCC",
     success: "#27AE60",
+    alert: "#BC381D",
+    neutral20: "#d8d8d8",
+    neutral30: "#737373",
+    neutral40: "#1a1a1a",
   },
   spacing: {
     // 16px
@@ -62,8 +67,8 @@ export const GlobalStyle = createGlobalStyle`
   
   body {
     font-family: ${(props) => props.theme.fontFamilies.regular};
-    font-size: ${theme.fontSizes.normal};
-    color: ${theme.colors.black};
+    font-size: ${(props) => props.theme.fontSizes.normal};
+    color: ${(props) => props.theme.colors.black};
     padding: 0;
     margin: 0;
     min-width: fit-content;
@@ -79,18 +84,25 @@ export const muiTheme = createTheme({
   palette: {
     primary: {
       //Main - Primary Color Dark - 10
-      main: "#006B8E",
+      main: theme.colors.primaryDark,
     },
     secondary: {
       //Feedback - Alert - Original
-      main: "#BC381D",
+      main: theme.colors.alert,
     },
     text: {
       //Neutral - Neutral - 40
-      primary: "#1a1a1a",
+      primary: theme.colors.neutral40,
       //Neutral - Neutral - 30
-      secondary: "#737373",
-      disabled: "#737373",
+      secondary: theme.colors.neutral30,
+      disabled: theme.colors.neutral30,
+    },
+  },
+  overrides: {
+    MuiSlider: {
+      root: {
+        color: theme.colors.primary,
+      },
     },
   },
 });

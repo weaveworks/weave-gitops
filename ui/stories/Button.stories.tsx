@@ -20,8 +20,8 @@ export default {
       defaultValue: false,
       table: { defaultValue: { summary: "false" } },
     },
-    endIcon: {
-      description: "`<Icon />` Element to come after `<Button />` content",
+    startIcon: {
+      description: "`<Icon />` Element to come before `<Button />` content",
       table: {
         type: { summary: "<Icon type={IconType.YOUR_TYPE} size='base' />" },
       },
@@ -39,13 +39,6 @@ export default {
     disabled: {
       defaultValue: false,
       table: { defaultValue: { summary: "false" } },
-    },
-    startIcon: {
-      description: "`<Icon />` Element to come before `<Button />` content",
-      table: {
-        type: { summary: "<Icon type={IconType.YOUR_TYPE} size='base' />" },
-      },
-      control: null,
     },
     className: {},
   },
