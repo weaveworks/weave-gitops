@@ -95,11 +95,21 @@ func validateFluxVersion(actualFluxVersion string, expectedFluxVersion string) (
 
 	fluxOutput := ""
 
-	if actualParsedFluxVersion.String() == expectedParsedFluxVersion.String() {
-		fluxOutput += fmt.Sprintf("✔ Flux %s =%s\n", actualParsedFluxVersion, expectedParsedFluxVersion)
+	expectedMajor := expectedParsedFluxVersion.Major()
+	expectedMinor := expectedParsedFluxVersion.Minor()
+	constraintFormat := fmt.Sprintf("~%d.%d.x", expectedMajor, expectedMinor)
+
+	constraint, err := semver.NewConstraint(constraintFormat)
+	if err != nil {
+		return "", fmt.Errorf("failed creating semver constraint: %w", err)
+	}
+
+	check := constraint.Check(actualParsedFluxVersion)
+	if check {
+		fluxOutput += fmt.Sprintf("✔ Flux %s ~=%s\n", actualParsedFluxVersion, expectedParsedFluxVersion)
 		fluxOutput += FluxCompatibleMessage
 	} else {
-		fluxOutput += fmt.Sprintf("✗ Flux %s !=%s\n", actualParsedFluxVersion, expectedParsedFluxVersion)
+		fluxOutput += fmt.Sprintf("✗ Flux %s !=%s\n", actualParsedFluxVersion, constraintFormat)
 		fluxOutput += FluxNotCompatibleMessage
 	}
 

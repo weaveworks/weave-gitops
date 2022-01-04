@@ -208,7 +208,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			fluxVersion, err := getCurrentFluxSupportedVersion()
 			Expect(err).ShouldNot(HaveOccurred())
 			expectedOutput := fmt.Sprintf(`✔ Kubernetes %s >=[0-9]+.[0-9]+\.[0-9]+-[0-9]+
-✔ Flux %s =%s
+✔ Flux %s ~=%s
 %s`,
 				getK8sVersion(),
 				fluxVersion, fluxVersion,
