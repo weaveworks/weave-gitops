@@ -109,17 +109,15 @@ function ApplicationRemove({ className, name }: Props) {
   }, [name]);
 
   React.useEffect(() => {
-    if (repoRemoving || error) {
-      return;
-    }
-
+    if (!repoRemoveRes) return;
     const poll = poller(() => {
       applicationsClient
         .GetApplication({ name, namespace: "wego-system" })
-        .catch(() => {
-          // Once we get a 404, the app is gone for good
+        .catch((e) => {
           clearInterval(poll);
-          setRemovedFromCluster(true);
+          // Once we get a 404, the app is gone for good
+          if (e.code === GrpcErrorCodes.NotFound)
+            return setRemovedFromCluster(true);
         });
     }, 5000);
 
@@ -156,8 +154,7 @@ function ApplicationRemove({ className, name }: Props) {
           state: { authSuccess: false },
         }}
       >
-        {!authSuccess &&
-          error &&
+        {error &&
           (error.code === GrpcErrorCodes.Unauthenticated ? (
             <AuthAlert
               title="Error"
@@ -165,7 +162,7 @@ function ApplicationRemove({ className, name }: Props) {
               onClick={() => setAuthOpen(true)}
             />
           ) : (
-            <Alert title="Error" message={error?.message} />
+            <Alert title="Error" severity="error" message={error?.message} />
           ))}
         {repoRemoving && (
           <Flex wide center align>
