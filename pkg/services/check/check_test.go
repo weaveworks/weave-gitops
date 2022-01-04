@@ -171,35 +171,3 @@ var _ = Describe("Check", func() {
 	})
 
 })
-
-//var _ = Describe("validateFluxVersion", func() {
-//	It("should XYZ", func() {
-//
-//		constrain, err := semver.NewConstraint("~0.21.x")
-//		Expect(err).ShouldNot(HaveOccurred())
-//
-//		v0, err := semver.NewVersion("0.19.987")
-//		Expect(err).ShouldNot(HaveOccurred())
-//
-//		b := constrain.Check(v0)
-//		fmt.Println("B", b)
-//
-//		// ~0.21.x 0.21.3   true
-//		// ~0.21.x 0.22.0   false
-//		// ~0.21.x 0.19.987 false
-//
-//		//v1, err := semver.NewVersion("v0.21.3")
-//		//Expect(err).ShouldNot(HaveOccurred())
-//
-//		// v0.21.0 v0.22.3 -1 => v0.21.0 is smaller than v0.22.3
-//		// v0.21.3 v0.21      => v0.21.3 is larger than v0.21
-//		// v0.21 v0.21.3      => v0.21   is smaller than v0.21.3
-//
-//		//r := v0.Compare(v1)
-//		//Expect(r).To(Equal("2"))
-//
-//		//str, err := validateFluxVersion("v0.21.1", "v0.21.2")
-//		//Expect(err).ShouldNot(HaveOccurred())
-//		//fmt.Println("str", str)
-//	})
-//})
