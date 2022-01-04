@@ -153,7 +153,7 @@ Global Flags:
 		})
 	})
 
-	It("Verify that gitops can install(via pull requests) & uninstall(via auto-merge) gitops components to multiple clusters under a user-specified namespace", func() {
+	It("@skipOnNightly Verify that gitops can install(via pull requests) & uninstall(via auto-merge) gitops components to multiple clusters under a user-specified namespace", func() {
 		namespace := "test-namespace"
 
 		_, cluster1Context, err := ResetOrCreateCluster(namespace, true)
