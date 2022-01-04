@@ -32,7 +32,6 @@ gitops check --pre
 
 func init() {
 	Cmd.Flags().BoolVarP(&pre, "pre", "p", true, "perform only the pre-installation checks")
-	_ = Cmd.MarkFlagRequired("pre")
 }
 
 func runCmd(_ *cobra.Command, _ []string) error {
