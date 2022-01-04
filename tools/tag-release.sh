@@ -53,48 +53,50 @@ version=${version:1} # Remove the v in the tag v0.37.10 for example
 
 # Build array from version string.
 a=( ${version//./ } )
-rc=0
+# Get rc number from version string
+rc=${version#*rc} 
+a[2]=${a[2]/-rc*} # Clean up -rc on patch number
 
-# 2) Increase version number if release candidate and if not create release
+# 2) Set version number
 
-if [ ! -z $release ] 
-then
-  if [[ $version == *"rc"* ]]; then # If the last version was not a release candidate then exit
-    patch=( ${a[2]//-/ } )
-    next_version="${a[0]}.${a[1]}.${patch[0]}"
-  else
-    echo "previous release was not a release candidate"
-    exit 1
-  fi
-else
 # Increment version/rc numbers as requested.
-  if [ ! -z $major ]
-  then
-    ((a[0]++))
-    a[1]=0
-    a[2]=0
-  fi
+if [ ! -z $major ]
+then
+  ((a[0]++))
+  a[1]=0
+  a[2]=0
+  rc=0
+fi
 
-  if [ ! -z $minor ]
-  then
-    ((a[1]++))
-    a[2]=0
-  fi
+if [ ! -z $minor ]
+then
+  ((a[1]++))
+  a[2]=0
+  rc=0
+fi
 
-  if [ ! -z $patch ]
-  then
-    ((a[2]++))
-  fi
+if [ ! -z $patch ]
+then
+  ((a[2]++))
+  rc=0
+fi
 
-  if [ ! -z $candidate ]
-  then
-    # Get rc number from version string
-    rc=${version#*rc}
-    a[2]=${a[2]/-rc*} # Clean up -rc on patch number
-    ((rc++)) 
-  fi
+if [ ! -z $candidate ]
+then
+  ((rc++)) 
+fi
 
+if [ ! -z $release ]
+then 
+  next_version="${a[0]}.${a[1]}.${a[2]}"
+else 
   next_version="${a[0]}.${a[1]}.${a[2]}-rc${rc}"
+fi
+
+if [ "$version" == "$next_version" ]
+then
+    echo "version did not change from current version: v$version to next version: v$next_version"
+    exit 1
 fi
 
 # If its a dry run, just display the new release version number
@@ -115,5 +117,5 @@ else
   echo "Push the tag"
   git push --tags origin main
 
-  echo -e "\e[32mRelease done: $next_version\e[0m"
+  echo -e "Release done: $next_version"
 fi

@@ -21,6 +21,8 @@ The current release process for weave gitops is fairly straightforward. You need
   - Run `npm ci` to update the file `package-lock.json`.
 - After a release candidate is created and the package files are updated, a full release can be made with `./tools/tag-release.sh -r`
 
+- _note: a dry run can be run to show what tag will be created by adding `-d` example: `./tools/tag-release.sh -p -d`_
+
 The go-releaser will spin for a bit, generating a changelog and artifacts.
 
 # Updating weave-gitops-docs
