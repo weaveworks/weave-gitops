@@ -67,6 +67,9 @@ var _ = BeforeSuite(func() {
 		gitopsBinaryPath = "/usr/local/bin/gitops"
 	}
 	log.Infof("GITOPS Binary Path: %s", gitopsBinaryPath)
+
+	gitProvider, gitOrg, gitProviderName = getGitProviderInfo()
+
 })
 
 func getEnvVar(envVar string) string {

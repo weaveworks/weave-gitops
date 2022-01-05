@@ -62,6 +62,9 @@ var (
 	gitlabSubgroup    string
 	gitlabPublicGroup string
 	gitopsBinaryPath  string
+	gitProviderName   string
+	gitOrg            string
+	gitProvider       gitproviders.GitProviderName
 )
 
 type TestInputs struct {
@@ -518,6 +521,7 @@ func waitForReplicaCreation(namespace string, replicasSetValue int, timeout time
 
 func waitForAppRemoval(appName string, timeout time.Duration) error {
 	pollInterval := time.Second * 5
+	timeoutInSeconds := int(timeout.Seconds())
 
 	_ = utils.WaitUntil(os.Stdout, pollInterval, timeout, func() error {
 		command := exec.Command("sh", "-c", fmt.Sprintf("%s get apps", gitopsBinaryPath))
@@ -526,13 +530,13 @@ func waitForAppRemoval(appName string, timeout time.Duration) error {
 		Eventually(session).Should(gexec.Exit())
 
 		if strings.Contains(string(session.Wait().Out.Contents()), appName) {
-			return fmt.Errorf(": Waiting for app: %s to delete", appName)
+			return fmt.Errorf(": Waiting to delete app: %s || timeout: %d second(s)", appName, timeoutInSeconds)
 		}
-		log.Infof("App successfully deleted: %s", appName)
+		log.Infof("App %s successfully deleted", appName)
 		return nil
 	})
 
-	return fmt.Errorf("Failed to delete app")
+	return fmt.Errorf("Failed to delete app %s", appName)
 }
 
 // Run a command, passing through stdout/stderr to the OS standard streams
@@ -857,4 +861,19 @@ func getGitProvider(org string, repo string, providerName gitproviders.GitProvid
 	}
 
 	return gitProvider, orgRef, err
+}
+
+func getGitProviderInfo() (gitproviders.GitProviderName, string, string) {
+	gitlab := "gitlab"
+	github := "github"
+	gitProvider := os.Getenv("GIT_PROVIDER")
+
+	if gitProvider == gitlab {
+		log.Infof("Using git provider: %s", gitlab)
+		return gitproviders.GitProviderGitLab, gitlabOrg, gitlab
+	}
+
+	log.Infof("Using git provider: %s", github)
+
+	return gitproviders.GitProviderGitHub, githubOrg, github
 }
