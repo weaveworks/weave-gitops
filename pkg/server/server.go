@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -106,6 +107,12 @@ func DefaultApplicationsConfig() (*ApplicationsConfig, error) {
 
 	rand.Seed(time.Now().UnixNano())
 	secretKey := rand.String(20)
+	envSecretKey := os.Getenv("GITOPS_JWT_ENCRYPTION_SECRET")
+
+	if envSecretKey != "" {
+		secretKey = envSecretKey
+	}
+
 	jwtClient := auth.NewJwtClient(secretKey)
 
 	rest, clusterName, err := kube.RestConfig()

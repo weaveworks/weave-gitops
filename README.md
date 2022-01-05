@@ -28,7 +28,6 @@ gitops version
 
 Alternatively, users can use Homebrew:
 
-
 ```console
 brew tap weaveworks/tap
 brew install weaveworks/tap/gitops
@@ -125,6 +124,8 @@ Lint frontend code with `make ui-lint` - using Prettier (https://prettier.io/) w
 Run frontend tests with `make ui-test` - update CSS snapshots with `npm run test -- -u`
 
 Check dependency vulnerabilities with `make ui-audit`
+
+To avoid invalidating JWT tokens on every server restart set the `GITOPS_JWT_ENCRYPTION_SECRET` env variable in your shell to use a static encryption secret. Else, a random encryption secret will be used that will change on every server (or pod) restart, thus invalidating any JWTs that were created with the old secret.
 
 ### Recommended Snippets
 
