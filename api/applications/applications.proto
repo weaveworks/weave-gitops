@@ -164,6 +164,16 @@ service Applications {
         };
     }
 
+    /**
+    * ValidateProviderToken check to see if the git provider token is still valid
+    */
+    rpc ValidateProviderToken(ValidateProviderTokenRequest) returns (ValidateProviderTokenResponse) {
+        option (google.api.http) = {
+            post : "/v1/applications/validate_token"
+            body: "*"
+        };
+    }
+
 }
 
 // This object represents a single condition for a Kubernetes object.
@@ -411,4 +421,12 @@ message AuthorizeGitlabRequest {
 
 message AuthorizeGitlabResponse {
     string token = 1; // A token that can be used to authenticate the GitOps API server.
+}
+
+message ValidateProviderTokenRequest {
+    GitProvider provider = 1;
+}
+
+message ValidateProviderTokenResponse {
+    bool valid = 1;
 }

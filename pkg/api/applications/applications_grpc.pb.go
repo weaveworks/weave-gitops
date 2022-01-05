@@ -73,6 +73,7 @@ type ApplicationsClient interface {
 	//
 	// ParseRepoURL returns structured data about a git repository URL
 	ParseRepoURL(ctx context.Context, in *ParseRepoURLRequest, opts ...grpc.CallOption) (*ParseRepoURLResponse, error)
+	ValidateProviderToken(ctx context.Context, in *ValidateProviderTokenRequest, opts ...grpc.CallOption) (*ValidateProviderTokenResponse, error)
 }
 
 type applicationsClient struct {
@@ -209,6 +210,15 @@ func (c *applicationsClient) ParseRepoURL(ctx context.Context, in *ParseRepoURLR
 	return out, nil
 }
 
+func (c *applicationsClient) ValidateProviderToken(ctx context.Context, in *ValidateProviderTokenRequest, opts ...grpc.CallOption) (*ValidateProviderTokenResponse, error) {
+	out := new(ValidateProviderTokenResponse)
+	err := c.cc.Invoke(ctx, "/wego_server.v1.Applications/ValidateProviderToken", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ApplicationsServer is the server API for Applications service.
 // All implementations must embed UnimplementedApplicationsServer
 // for forward compatibility
@@ -268,6 +278,7 @@ type ApplicationsServer interface {
 	//
 	// ParseRepoURL returns structured data about a git repository URL
 	ParseRepoURL(context.Context, *ParseRepoURLRequest) (*ParseRepoURLResponse, error)
+	ValidateProviderToken(context.Context, *ValidateProviderTokenRequest) (*ValidateProviderTokenResponse, error)
 	mustEmbedUnimplementedApplicationsServer()
 }
 
@@ -316,6 +327,9 @@ func (UnimplementedApplicationsServer) SyncApplication(context.Context, *SyncApp
 }
 func (UnimplementedApplicationsServer) ParseRepoURL(context.Context, *ParseRepoURLRequest) (*ParseRepoURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ParseRepoURL not implemented")
+}
+func (UnimplementedApplicationsServer) ValidateProviderToken(context.Context, *ValidateProviderTokenRequest) (*ValidateProviderTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ValidateProviderToken not implemented")
 }
 func (UnimplementedApplicationsServer) mustEmbedUnimplementedApplicationsServer() {}
 
@@ -582,6 +596,24 @@ func _Applications_ParseRepoURL_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Applications_ValidateProviderToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ValidateProviderTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApplicationsServer).ValidateProviderToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/wego_server.v1.Applications/ValidateProviderToken",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApplicationsServer).ValidateProviderToken(ctx, req.(*ValidateProviderTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Applications_ServiceDesc is the grpc.ServiceDesc for Applications service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -644,6 +676,10 @@ var Applications_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ParseRepoURL",
 			Handler:    _Applications_ParseRepoURL_Handler,
+		},
+		{
+			MethodName: "ValidateProviderToken",
+			Handler:    _Applications_ValidateProviderToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

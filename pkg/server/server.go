@@ -621,6 +621,26 @@ func (s *applicationServer) AuthorizeGitlab(ctx context.Context, msg *pb.Authori
 	return &pb.AuthorizeGitlabResponse{Token: token}, nil
 }
 
+func (s *applicationServer) ValidateProviderToken(ctx context.Context, msg *pb.ValidateProviderTokenRequest) (*pb.ValidateProviderTokenResponse, error) {
+	token, err := middleware.ExtractProviderToken(ctx)
+	if err != nil {
+		return nil, grpcStatus.Error(codes.Unauthenticated, err.Error())
+	}
+
+	v, err := findValidator(msg.Provider, s)
+	if err != nil {
+		return nil, grpcStatus.Error(codes.InvalidArgument, err.Error())
+	}
+
+	if err := v.ValidateToken(ctx, token.AccessToken); err != nil {
+		return nil, grpcStatus.Error(codes.InvalidArgument, err.Error())
+	}
+
+	return &pb.ValidateProviderTokenResponse{
+		Valid: true,
+	}, nil
+}
+
 func mapHelmReleaseSpecToResponse(helm *helmv2.HelmRelease) *pb.HelmRelease {
 	if helm == nil {
 		return nil
@@ -771,4 +791,15 @@ func toProtoProvider(p gitproviders.GitProviderName) pb.GitProvider {
 	}
 
 	return pb.GitProvider_Unknown
+}
+
+func findValidator(provider pb.GitProvider, s *applicationServer) (auth.ProviderTokenValidator, error) {
+	switch provider {
+	case pb.GitProvider_GitHub:
+		return s.ghAuthClient, nil
+	case pb.GitProvider_GitLab:
+		return s.glAuthClient, nil
+	}
+
+	return nil, fmt.Errorf("unknown git provider %s", provider)
 }
