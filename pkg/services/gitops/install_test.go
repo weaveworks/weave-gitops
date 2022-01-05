@@ -3,6 +3,7 @@ package gitops_test
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"io/ioutil"
 	"os"
 
@@ -37,7 +38,7 @@ var _ = Describe("Install", func() {
 		namespace := &corev1.Namespace{}
 		namespace.Name = "flux-namespace"
 		namespace.Labels = map[string]string{
-			gitops.LabelPartOf: "flux",
+			flux.PartOfLabelKey: flux.PartOfLabelValue,
 		}
 
 		fluxClient = &fluxfakes.FakeFlux{}
@@ -162,7 +163,7 @@ var _ = Describe("Install", func() {
 		namespace := &corev1.Namespace{}
 		namespace.Name = "kube-test-" + rand.String(5)
 		namespace.Labels = map[string]string{
-			gitops.LabelPartOf: "flux",
+			flux.PartOfLabelKey: flux.PartOfLabelValue,
 		}
 		err := kubeClient.Raw().Create(context.Background(), namespace)
 		Expect(err).ToNot(HaveOccurred())
@@ -170,7 +171,7 @@ var _ = Describe("Install", func() {
 		namespace = &corev1.Namespace{}
 		namespace.Name = "kube-test-" + rand.String(5)
 		namespace.Labels = map[string]string{
-			gitops.LabelPartOf: "flux",
+			flux.PartOfLabelKey: flux.PartOfLabelValue,
 		}
 		namespace.Name = "kube-test-" + rand.String(5)
 		err = kubeClient.Raw().Create(context.Background(), namespace)
