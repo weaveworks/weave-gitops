@@ -163,13 +163,13 @@ Global Flags:
 		tip := generateTestInputs()
 		appRepoRemoteURL := "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+		defer deleteRepo(tip.appRepoName, gitProvider, githubOrg)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+			deleteRepo(tip.appRepoName, gitProvider, githubOrg)
 		})
 
-		repoAbsolutePath := initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
+		repoAbsolutePath := initAndCreateEmptyRepo(tip.appRepoName, gitProvider, private, githubOrg)
 
 		installAndVerifyWegoViaPullRequest(namespace, appRepoRemoteURL, repoAbsolutePath)
 
