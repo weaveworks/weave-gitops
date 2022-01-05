@@ -154,16 +154,19 @@ function ApplicationRemove({ className, name }: Props) {
           state: { authSuccess: false },
         }}
       >
-        {error &&
-          (error.code === GrpcErrorCodes.Unauthenticated ? (
+        {!authSuccess &&
+          error &&
+          error.code === GrpcErrorCodes.Unauthenticated && (
             <AuthAlert
               title="Error"
               provider={repoInfo.provider}
               onClick={() => setAuthOpen(true)}
             />
-          ) : (
-            <Alert title="Error" severity="error" message={error?.message} />
-          ))}
+          )}
+        {error && error.code !== GrpcErrorCodes.Unauthenticated && (
+          <Alert title="Error" severity="error" message={error?.message} />
+        )}
+
         {repoRemoving && (
           <Flex wide center align>
             <CircularProgress />
