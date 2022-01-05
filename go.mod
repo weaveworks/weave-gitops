@@ -244,3 +244,6 @@ replace github.com/gorilla/websocket v0.0.0 => github.com/gorilla/websocket v1.4
 replace github.com/go-logr/logr v1.1.0 => github.com/go-logr/logr v0.4.0
 
 replace github.com/go-logr/zapr v1.1.0 => github.com/go-logr/zapr v0.4.0
+
+// https://security.snyk.io/vuln/SNYK-GOLANG-GITHUBCOMOPENCONTAINERSIMAGESPECSPECSGOV1-1922832
+replace github.com/opencontainers/image-spec v1.0.1 => github.com/opencontainers/image-spec v1.0.2
