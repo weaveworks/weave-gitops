@@ -44,9 +44,7 @@ var _ = Describe("Check", func() {
 
 		fakeFluxClient.PreCheckReturns(successfulFluxPreCheckOutput, nil)
 
-		fakeKubeClient.GetNamespacesReturns(&corev1.NamespaceList{
-			Items: []corev1.Namespace{},
-		}, nil)
+		fakeKubeClient.FetchNamespaceWithLabelReturns(&corev1.Namespace{}, nil)
 
 		actualOutput, err := Pre(context, fakeKubeClient, fakeFluxClient, expectedFluxVersion)
 		Expect(err).ShouldNot(HaveOccurred())
@@ -60,7 +58,7 @@ var _ = Describe("Check", func() {
 
 		fakeFluxClient.PreCheckReturns(successfulFluxPreCheckOutput, nil)
 
-		fakeKubeClient.GetNamespacesReturns(nil, someError)
+		fakeKubeClient.FetchNamespaceWithLabelReturns(nil, someError)
 
 		out, err := Pre(context, fakeKubeClient, fakeFluxClient, expectedFluxVersion)
 		Expect(err.Error()).To(ContainSubstring(someError.Error()))
@@ -97,15 +95,11 @@ var _ = Describe("Check", func() {
 
 		fakeFluxClient.PreCheckReturns(successfulFluxPreCheckOutput, nil)
 
-		fakeKubeClient.GetNamespacesReturns(&corev1.NamespaceList{
-			Items: []corev1.Namespace{
-				{
-					ObjectMeta: metav1.ObjectMeta{
-						Labels: map[string]string{
-							flux.PartOfLabelKey:  flux.PartOfLabelValue,
-							flux.VersionLabelKey: expectedFluxVersion,
-						},
-					},
+		fakeKubeClient.FetchNamespaceWithLabelReturns(&corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Labels: map[string]string{
+					flux.PartOfLabelKey:  flux.PartOfLabelValue,
+					flux.VersionLabelKey: expectedFluxVersion,
 				},
 			},
 		}, nil)
@@ -120,15 +114,11 @@ var _ = Describe("Check", func() {
 
 		fakeFluxClient.PreCheckReturns(successfulFluxPreCheckOutput, nil)
 
-		fakeKubeClient.GetNamespacesReturns(&corev1.NamespaceList{
-			Items: []corev1.Namespace{
-				{
-					ObjectMeta: metav1.ObjectMeta{
-						Labels: map[string]string{
-							flux.PartOfLabelKey:  flux.PartOfLabelValue,
-							flux.VersionLabelKey: expectedFluxVersion,
-						},
-					},
+		fakeKubeClient.FetchNamespaceWithLabelReturns(&corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Labels: map[string]string{
+					flux.PartOfLabelKey:  flux.PartOfLabelValue,
+					flux.VersionLabelKey: expectedFluxVersion,
 				},
 			},
 		}, nil)
@@ -148,15 +138,11 @@ var _ = Describe("Check", func() {
 
 		differentFluxVersion := "v0.0.0"
 
-		fakeKubeClient.GetNamespacesReturns(&corev1.NamespaceList{
-			Items: []corev1.Namespace{
-				{
-					ObjectMeta: metav1.ObjectMeta{
-						Labels: map[string]string{
-							"app.kubernetes.io/part-of": "flux",
-							"app.kubernetes.io/version": differentFluxVersion,
-						},
-					},
+		fakeKubeClient.FetchNamespaceWithLabelReturns(&corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Labels: map[string]string{
+					"app.kubernetes.io/part-of": "flux",
+					"app.kubernetes.io/version": differentFluxVersion,
 				},
 			},
 		}, nil)

@@ -39,7 +39,6 @@ import (
 const (
 	THIRTY_SECOND_TIMEOUT       time.Duration = 30 * time.Second
 	EVENTUALLY_DEFAULT_TIMEOUT  time.Duration = 60 * time.Second
-	TIMEOUT_TWO_MINUTES         time.Duration = 120 * time.Second
 	INSTALL_RESET_TIMEOUT       time.Duration = 300 * time.Second
 	NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
 	INSTALL_SUCCESSFUL_TIMEOUT  time.Duration = 3 * time.Minute
@@ -66,6 +65,9 @@ var (
 	gitlabSubgroup    string
 	gitlabPublicGroup string
 	gitopsBinaryPath  string
+	gitProviderName   string
+	gitOrg            string
+	gitProvider       gitproviders.GitProviderName
 )
 
 type TestInputs struct {
@@ -423,14 +425,25 @@ func VerifyControllersInCluster(namespace string) {
 }
 
 func installAndVerifyWego(wegoNamespace, repoURL string) {
-	By("And I run 'gitops install' command with namespace "+wegoNamespace, func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --config-repo=%s", gitopsBinaryPath, wegoNamespace, repoURL))
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, INSTALL_SUCCESSFUL_TIMEOUT).Should(gexec.Exit())
-		Expect(string(session.Err.Contents())).Should(BeEmpty())
-		VerifyControllersInCluster(wegoNamespace)
-	})
+	command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --config-repo=%s --auto-merge", gitopsBinaryPath, wegoNamespace, repoURL))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session, INSTALL_SUCCESSFUL_TIMEOUT).Should(gexec.Exit())
+	Expect(string(session.Err.Contents())).Should(BeEmpty())
+	VerifyControllersInCluster(wegoNamespace)
+}
+
+func installAndVerifyWegoViaPullRequest(wegoNamespace, repoURL, repoPath string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --config-repo=%s", gitopsBinaryPath, wegoNamespace, repoURL))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session, INSTALL_SUCCESSFUL_TIMEOUT).Should(gexec.Exit())
+	Expect(string(session.Err.Contents())).Should(BeEmpty())
+	out := string(session.Wait().Out.Contents())
+	re := regexp.MustCompile(`(http|ftp|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?`)
+	prLink := re.FindAllString(out, -1)[0]
+	mergePR(repoPath, prLink, gitproviders.GitProviderGitHub)
+	VerifyControllersInCluster(wegoNamespace)
 }
 
 func uninstallWegoRuntime(namespace string) {
@@ -526,6 +539,7 @@ func waitForReplicaCreation(namespace string, replicasSetValue int, timeout time
 
 func waitForAppRemoval(appName string, timeout time.Duration) error {
 	pollInterval := time.Second * 5
+	timeoutInSeconds := int(timeout.Seconds())
 
 	_ = utils.WaitUntil(os.Stdout, pollInterval, timeout, func() error {
 		command := exec.Command("sh", "-c", fmt.Sprintf("%s get apps", gitopsBinaryPath))
@@ -534,13 +548,13 @@ func waitForAppRemoval(appName string, timeout time.Duration) error {
 		Eventually(session).Should(gexec.Exit())
 
 		if strings.Contains(string(session.Wait().Out.Contents()), appName) {
-			return fmt.Errorf(": Waiting for app: %s to delete", appName)
+			return fmt.Errorf(": Waiting to delete app: %s || timeout: %d second(s)", appName, timeoutInSeconds)
 		}
-		log.Infof("App successfully deleted: %s", appName)
+		log.Infof("App %s successfully deleted", appName)
 		return nil
 	})
 
-	return fmt.Errorf("Failed to delete app")
+	return fmt.Errorf("Failed to delete app %s", appName)
 }
 
 // Run a command, passing through stdout/stderr to the OS standard streams
@@ -570,7 +584,10 @@ func runCommandAndReturnStringOutput(commandToRun string) (stdOut string, stdErr
 	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Eventually(session).Should(gexec.Exit())
 
-	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
+	outContent := session.Wait().Out.Contents()
+	errContent := session.Wait().Err.Contents()
+
+	return string(outContent), string(errContent)
 }
 
 func runCommandAndReturnSessionOutput(commandToRun string) *gexec.Session {
@@ -862,4 +879,19 @@ func getGitProvider(org string, repo string, providerName gitproviders.GitProvid
 	}
 
 	return gitProvider, orgRef, err
+}
+
+func getGitProviderInfo() (gitproviders.GitProviderName, string, string) {
+	gitlab := "gitlab"
+	github := "github"
+	gitProvider := os.Getenv("GIT_PROVIDER")
+
+	if gitProvider == gitlab {
+		log.Infof("Using git provider: %s", gitlab)
+		return gitproviders.GitProviderGitLab, gitlabOrg, gitlab
+	}
+
+	log.Infof("Using git provider: %s", github)
+
+	return gitproviders.GitProviderGitHub, githubOrg, github
 }

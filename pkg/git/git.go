@@ -19,6 +19,7 @@ package git
 import (
 	"context"
 	"errors"
+	"path/filepath"
 
 	gogit "github.com/go-git/go-git/v5"
 )
@@ -55,6 +56,23 @@ const WegoClusterOSWorkloadDir = "system"
 
 // WegoClusterUserWorkloadDir is where user workload manifests will live in the GitOps repo
 const WegoClusterUserWorkloadDir = "user"
+
+func getClusterPath(clusterName string) string {
+	return filepath.Join(WegoRoot, WegoClusterDir, clusterName)
+}
+
+func GetSystemPath(clusterName string) string {
+	return filepath.Join(getClusterPath(clusterName), WegoClusterOSWorkloadDir)
+}
+
+func GetUserPath(clusterName string) string {
+	return filepath.Join(getClusterPath(clusterName), WegoClusterUserWorkloadDir)
+}
+
+// GetSystemQualifiedPath returns the path of the relativePath joined with the cluster's system directory
+func GetSystemQualifiedPath(clusterName string, relativePath string) string {
+	return filepath.Join(GetSystemPath(clusterName), relativePath)
+}
 
 // Git is an interface for basic Git operations on a single branch of a
 // remote repository.

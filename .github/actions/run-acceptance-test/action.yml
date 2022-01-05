@@ -23,6 +23,9 @@ inputs:
   gitlab-token:
     description: "Token for accessing GitLab"
     required: true
+  git-provider:
+    description: "Value for running tests either on GitHub or GitLab"
+    required: false
   artifacts-base-dir:
     description: "Directory for test artifacts"
     required: true
@@ -71,7 +74,7 @@ runs:
     run: |
       chmod +x bin/gitops
       ls -la bin
-  - name: Download dependecies
+  - name: Download dependencies
     shell: bash
     run: |
       make dependencies
@@ -106,6 +109,9 @@ runs:
       export CLUSTER_PROVIDER=kubectl
       go get github.com/onsi/ginkgo/ginkgo
       go get github.com/onsi/gomega/...
+      if [ "${{ github.job }}" == "smoke-tests-long" ]; then
+        export GIT_PROVIDER="${{ inputs.git-provider }}"
+      fi
       ginkgo ${{ inputs.focus-or-skip }} --randomizeSuites --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/${{ inputs.result-prefix }}acceptance-test-results.xml -v ./test/acceptance/test/...
     if: always()
   - name: Store acceptance test results

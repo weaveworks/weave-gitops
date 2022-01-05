@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strconv"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -18,8 +19,9 @@ import (
 )
 
 const (
-	AddCommitMessage    = "Add application manifests"
-	RemoveCommitMessage = "Remove application manifests"
+	AddCommitMessage     = "Add application manifests"
+	RemoveCommitMessage  = "Remove application manifests"
+	ClusterCommitMessage = "Associate cluster"
 )
 
 var _ GitOpsDirectoryWriter = &gitOpsDirectoryWriterSvc{}
@@ -27,6 +29,7 @@ var _ GitOpsDirectoryWriter = &gitOpsDirectoryWriterSvc{}
 type GitOpsDirectoryWriter interface {
 	AddApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error
 	RemoveApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error
+	AssociateCluster(ctx context.Context, cluster models.Cluster, configURL gitproviders.RepoURL, namespace string, fluxNamespace string, autoMerge bool) error
 }
 
 type gitOpsDirectoryWriterSvc struct {
@@ -41,10 +44,12 @@ func NewGitOpsDirectoryWriter(automationSvc automation.AutomationGenerator, repo
 }
 
 func (dw *gitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error {
-	manifests, err := dw.Automation.GenerateAutomation(ctx, app, clusterName)
+	auto, err := dw.Automation.GenerateApplicationAutomation(ctx, app, clusterName)
 	if err != nil {
-		return fmt.Errorf("could not generate application GitOps Automation manifests: %w", err)
+		return fmt.Errorf("could not generate GitOps Automation manifests for application %s: %w", app.Name, err)
 	}
+
+	manifests := auto.Manifests()
 
 	defaultBranch, err := dw.RepoWriter.GetDefaultBranch(ctx)
 	if err != nil {
@@ -183,11 +188,85 @@ func (dw *gitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app m
 	return nil
 }
 
+// AssociateCluster writes the GitOps manifests for the cluster into the repo
+func (dw *gitOpsDirectoryWriterSvc) AssociateCluster(
+	ctx context.Context,
+	cluster models.Cluster,
+	configURL gitproviders.RepoURL,
+	namespace string,
+	fluxNamespace string,
+	autoMerge bool) error {
+	auto, err := dw.Automation.GenerateClusterAutomation(ctx, cluster, configURL, namespace)
+	if err != nil {
+		return fmt.Errorf("failed to generate cluster automation: %w", err)
+	}
+
+	wegoConfigManifest, err := auto.GenerateWegoConfigManifest(cluster.Name, fluxNamespace, namespace)
+	if err != nil {
+		return fmt.Errorf("failed generating wego config manifest %w", err)
+	}
+
+	manifests := auto.Manifests()
+	manifests = append(manifests, wegoConfigManifest)
+
+	defaultBranch, err := dw.RepoWriter.GetDefaultBranch(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve default branch for repository: %w", err)
+	}
+
+	// store a .keep file in the user dir
+	userKeep := automation.AutomationManifest{
+		Path:    filepath.Join(getUserDirRepoPath(cluster.Name), ".keep"),
+		Content: []byte(strconv.AppendQuote(nil, "# keep")),
+	}
+
+	manifests = append(manifests, userKeep)
+
+	dw.Logger.Actionf("Associating cluster %q", cluster.Name)
+
+	if autoMerge {
+		remover, repoDir, err := dw.RepoWriter.CloneRepo(ctx, defaultBranch)
+		if err != nil {
+			return fmt.Errorf("failed to clone repo: %w", err)
+		}
+
+		defer remover()
+
+		if err := dw.RepoWriter.WriteAndMerge(ctx, repoDir, ClusterCommitMessage, manifests); err != nil {
+			return fmt.Errorf("failed writing automation to disk: %w", err)
+		}
+	} else {
+		files := []gitprovider.CommitFile{}
+
+		for _, manifest := range manifests {
+			manifestPath := manifest.Path
+			content := string(manifest.Content)
+
+			files = append(files, gitprovider.CommitFile{Path: &manifestPath, Content: &content})
+		}
+
+		prInfo := gitproviders.PullRequestInfo{
+			Title:         fmt.Sprintf("GitOps associate %s", cluster.Name),
+			Description:   fmt.Sprintf("Add gitops automation manifests for cluster %s", cluster.Name),
+			CommitMessage: ClusterCommitMessage,
+			TargetBranch:  defaultBranch,
+			NewBranch:     automation.GetClusterHash(cluster),
+			Files:         files,
+		}
+
+		if err := dw.RepoWriter.CreatePullRequest(ctx, prInfo); err != nil {
+			return fmt.Errorf("failed creating pull request: %w", err)
+		}
+	}
+
+	return nil
+}
+
 func addKustomizeResources(app models.Application, repoDir, clusterName string, resources ...string) (automation.AutomationManifest, error) {
 	userKustomizationRepoPath := getUserKustomizationRepoPath(clusterName)
 	userKustomization := filepath.Join(repoDir, userKustomizationRepoPath)
 
-	k, err := automation.GetOrCreateKustomize(userKustomization, app.Name, app.Namespace)
+	k, err := automation.GetOrCreateKustomize(userKustomization, clusterName, app.Namespace)
 	if err != nil {
 		return automation.AutomationManifest{}, err
 	}
@@ -209,7 +288,7 @@ func removeKustomizeResources(app models.Application, repoDir, clusterName strin
 	userKustomizationRepoPath := getUserKustomizationRepoPath(clusterName)
 	userKustomization := filepath.Join(repoDir, userKustomizationRepoPath)
 
-	k, err := automation.GetOrCreateKustomize(userKustomization, app.Name, app.Namespace)
+	k, err := automation.GetOrCreateKustomize(userKustomization, clusterName, app.Namespace)
 	if err != nil {
 		return automation.AutomationManifest{}, err
 	}
@@ -245,8 +324,11 @@ func removeKustomizeResources(app models.Application, repoDir, clusterName strin
 	}, nil
 }
 
+func getUserDirRepoPath(clusterName string) string {
+	return filepath.Join(git.WegoRoot, git.WegoClusterDir, clusterName, "user")
+}
 func getUserKustomizationRepoPath(clusterName string) string {
-	return filepath.Join(git.WegoRoot, git.WegoClusterDir, clusterName, "user", "kustomization.yaml")
+	return filepath.Join(getUserDirRepoPath(clusterName), "kustomization.yaml")
 }
 
 func appPath(appName string) string {

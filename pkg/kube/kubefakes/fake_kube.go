@@ -53,6 +53,21 @@ type FakeKube struct {
 	deleteByNameReturnsOnCall map[int]struct {
 		result1 error
 	}
+	FetchNamespaceWithLabelStub        func(context.Context, string, string) (*v1.Namespace, error)
+	fetchNamespaceWithLabelMutex       sync.RWMutex
+	fetchNamespaceWithLabelArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+	}
+	fetchNamespaceWithLabelReturns struct {
+		result1 *v1.Namespace
+		result2 error
+	}
+	fetchNamespaceWithLabelReturnsOnCall map[int]struct {
+		result1 *v1.Namespace
+		result2 error
+	}
 	FluxPresentStub        func(context.Context) (bool, error)
 	fluxPresentMutex       sync.RWMutex
 	fluxPresentArgsForCall []struct {
@@ -117,19 +132,6 @@ type FakeKube struct {
 	}
 	getClusterStatusReturnsOnCall map[int]struct {
 		result1 kube.ClusterStatus
-	}
-	GetNamespacesStub        func(context.Context) (*v1.NamespaceList, error)
-	getNamespacesMutex       sync.RWMutex
-	getNamespacesArgsForCall []struct {
-		arg1 context.Context
-	}
-	getNamespacesReturns struct {
-		result1 *v1.NamespaceList
-		result2 error
-	}
-	getNamespacesReturnsOnCall map[int]struct {
-		result1 *v1.NamespaceList
-		result2 error
 	}
 	GetResourceStub        func(context.Context, types.NamespacedName, kube.Resource) error
 	getResourceMutex       sync.RWMutex
@@ -439,6 +441,72 @@ func (fake *FakeKube) DeleteByNameReturnsOnCall(i int, result1 error) {
 	fake.deleteByNameReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
+}
+
+func (fake *FakeKube) FetchNamespaceWithLabel(arg1 context.Context, arg2 string, arg3 string) (*v1.Namespace, error) {
+	fake.fetchNamespaceWithLabelMutex.Lock()
+	ret, specificReturn := fake.fetchNamespaceWithLabelReturnsOnCall[len(fake.fetchNamespaceWithLabelArgsForCall)]
+	fake.fetchNamespaceWithLabelArgsForCall = append(fake.fetchNamespaceWithLabelArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+	}{arg1, arg2, arg3})
+	stub := fake.FetchNamespaceWithLabelStub
+	fakeReturns := fake.fetchNamespaceWithLabelReturns
+	fake.recordInvocation("FetchNamespaceWithLabel", []interface{}{arg1, arg2, arg3})
+	fake.fetchNamespaceWithLabelMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeKube) FetchNamespaceWithLabelCallCount() int {
+	fake.fetchNamespaceWithLabelMutex.RLock()
+	defer fake.fetchNamespaceWithLabelMutex.RUnlock()
+	return len(fake.fetchNamespaceWithLabelArgsForCall)
+}
+
+func (fake *FakeKube) FetchNamespaceWithLabelCalls(stub func(context.Context, string, string) (*v1.Namespace, error)) {
+	fake.fetchNamespaceWithLabelMutex.Lock()
+	defer fake.fetchNamespaceWithLabelMutex.Unlock()
+	fake.FetchNamespaceWithLabelStub = stub
+}
+
+func (fake *FakeKube) FetchNamespaceWithLabelArgsForCall(i int) (context.Context, string, string) {
+	fake.fetchNamespaceWithLabelMutex.RLock()
+	defer fake.fetchNamespaceWithLabelMutex.RUnlock()
+	argsForCall := fake.fetchNamespaceWithLabelArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeKube) FetchNamespaceWithLabelReturns(result1 *v1.Namespace, result2 error) {
+	fake.fetchNamespaceWithLabelMutex.Lock()
+	defer fake.fetchNamespaceWithLabelMutex.Unlock()
+	fake.FetchNamespaceWithLabelStub = nil
+	fake.fetchNamespaceWithLabelReturns = struct {
+		result1 *v1.Namespace
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeKube) FetchNamespaceWithLabelReturnsOnCall(i int, result1 *v1.Namespace, result2 error) {
+	fake.fetchNamespaceWithLabelMutex.Lock()
+	defer fake.fetchNamespaceWithLabelMutex.Unlock()
+	fake.FetchNamespaceWithLabelStub = nil
+	if fake.fetchNamespaceWithLabelReturnsOnCall == nil {
+		fake.fetchNamespaceWithLabelReturnsOnCall = make(map[int]struct {
+			result1 *v1.Namespace
+			result2 error
+		})
+	}
+	fake.fetchNamespaceWithLabelReturnsOnCall[i] = struct {
+		result1 *v1.Namespace
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeKube) FluxPresent(arg1 context.Context) (bool, error) {
@@ -758,70 +826,6 @@ func (fake *FakeKube) GetClusterStatusReturnsOnCall(i int, result1 kube.ClusterS
 	fake.getClusterStatusReturnsOnCall[i] = struct {
 		result1 kube.ClusterStatus
 	}{result1}
-}
-
-func (fake *FakeKube) GetNamespaces(arg1 context.Context) (*v1.NamespaceList, error) {
-	fake.getNamespacesMutex.Lock()
-	ret, specificReturn := fake.getNamespacesReturnsOnCall[len(fake.getNamespacesArgsForCall)]
-	fake.getNamespacesArgsForCall = append(fake.getNamespacesArgsForCall, struct {
-		arg1 context.Context
-	}{arg1})
-	stub := fake.GetNamespacesStub
-	fakeReturns := fake.getNamespacesReturns
-	fake.recordInvocation("GetNamespaces", []interface{}{arg1})
-	fake.getNamespacesMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeKube) GetNamespacesCallCount() int {
-	fake.getNamespacesMutex.RLock()
-	defer fake.getNamespacesMutex.RUnlock()
-	return len(fake.getNamespacesArgsForCall)
-}
-
-func (fake *FakeKube) GetNamespacesCalls(stub func(context.Context) (*v1.NamespaceList, error)) {
-	fake.getNamespacesMutex.Lock()
-	defer fake.getNamespacesMutex.Unlock()
-	fake.GetNamespacesStub = stub
-}
-
-func (fake *FakeKube) GetNamespacesArgsForCall(i int) context.Context {
-	fake.getNamespacesMutex.RLock()
-	defer fake.getNamespacesMutex.RUnlock()
-	argsForCall := fake.getNamespacesArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeKube) GetNamespacesReturns(result1 *v1.NamespaceList, result2 error) {
-	fake.getNamespacesMutex.Lock()
-	defer fake.getNamespacesMutex.Unlock()
-	fake.GetNamespacesStub = nil
-	fake.getNamespacesReturns = struct {
-		result1 *v1.NamespaceList
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeKube) GetNamespacesReturnsOnCall(i int, result1 *v1.NamespaceList, result2 error) {
-	fake.getNamespacesMutex.Lock()
-	defer fake.getNamespacesMutex.Unlock()
-	fake.GetNamespacesStub = nil
-	if fake.getNamespacesReturnsOnCall == nil {
-		fake.getNamespacesReturnsOnCall = make(map[int]struct {
-			result1 *v1.NamespaceList
-			result2 error
-		})
-	}
-	fake.getNamespacesReturnsOnCall[i] = struct {
-		result1 *v1.NamespaceList
-		result2 error
-	}{result1, result2}
 }
 
 func (fake *FakeKube) GetResource(arg1 context.Context, arg2 types.NamespacedName, arg3 kube.Resource) error {
@@ -1338,6 +1342,8 @@ func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	defer fake.deleteMutex.RUnlock()
 	fake.deleteByNameMutex.RLock()
 	defer fake.deleteByNameMutex.RUnlock()
+	fake.fetchNamespaceWithLabelMutex.RLock()
+	defer fake.fetchNamespaceWithLabelMutex.RUnlock()
 	fake.fluxPresentMutex.RLock()
 	defer fake.fluxPresentMutex.RUnlock()
 	fake.getApplicationMutex.RLock()
@@ -1348,8 +1354,6 @@ func (fake *FakeKube) Invocations() map[string][][]interface{} {
 	defer fake.getClusterNameMutex.RUnlock()
 	fake.getClusterStatusMutex.RLock()
 	defer fake.getClusterStatusMutex.RUnlock()
-	fake.getNamespacesMutex.RLock()
-	defer fake.getNamespacesMutex.RUnlock()
 	fake.getResourceMutex.RLock()
 	defer fake.getResourceMutex.RUnlock()
 	fake.getSecretMutex.RLock()

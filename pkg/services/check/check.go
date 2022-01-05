@@ -67,16 +67,14 @@ func runKubernetesCheck(fluxClient flux.Flux) (string, error) {
 }
 
 func getCurrentFluxVersion(ctx context.Context, kubeClient kube.Kube) (string, error) {
-	namespacesList, err := kubeClient.GetNamespaces(ctx)
+	namespace, err := kubeClient.FetchNamespaceWithLabel(ctx, flux.PartOfLabelKey, flux.PartOfLabelValue)
 	if err != nil {
 		return "", err
 	}
 
-	for _, namespace := range namespacesList.Items {
-		labels := namespace.GetLabels()
-		if labels[flux.PartOfLabelKey] == flux.PartOfLabelValue {
-			return labels[flux.VersionLabelKey], nil
-		}
+	labels := namespace.GetLabels()
+	if labels[flux.PartOfLabelKey] == flux.PartOfLabelValue {
+		return labels[flux.VersionLabelKey], nil
 	}
 
 	return "", ErrFluxNotFound

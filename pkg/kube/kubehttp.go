@@ -7,6 +7,9 @@ import (
 	"os"
 	"strings"
 
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/selection"
+
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
@@ -74,6 +77,8 @@ var (
 var InClusterConfig func() (*rest.Config, error) = func() (*rest.Config, error) {
 	return rest.InClusterConfig()
 }
+
+var ErrNamespaceNotFound = errors.New("namespace not found")
 
 func NewKubeHTTPClientWithConfig(config *rest.Config, contextName string) (Kube, client.Client, error) {
 	scheme := CreateScheme()
@@ -494,6 +499,41 @@ func (k *KubeHTTP) getWegoConfigMapFromAllNamespaces(ctx context.Context) (*core
 	}
 
 	return nil, ErrWegoConfigNotFound
+}
+
+// FetchNamespaceWithLabel fetches a namespace where a label follows key=value
+func (k *KubeHTTP) FetchNamespaceWithLabel(ctx context.Context, key string, value string) (*corev1.Namespace, error) {
+	selector := labels.NewSelector()
+
+	partOf, err := labels.NewRequirement(key, selection.Equals, []string{value})
+	if err != nil {
+		return nil, fmt.Errorf("bad requirement: %w", err)
+	}
+
+	selector = selector.Add(*partOf)
+
+	options := client.ListOptions{
+		LabelSelector: selector,
+	}
+
+	nsl := &corev1.NamespaceList{}
+	if err := k.Client.List(ctx, nsl, &options); err != nil {
+		return nil, fmt.Errorf("failed getting namespaces list: %w", err)
+	}
+
+	switch totalNamespaces := len(nsl.Items); {
+	case totalNamespaces == 0:
+		return nil, ErrNamespaceNotFound
+	case totalNamespaces > 1:
+		namespaces := make([]string, 0)
+		for _, n := range nsl.Items {
+			namespaces = append(namespaces, n.Name)
+		}
+
+		return nil, fmt.Errorf("found multiple namespaces %s with %s=%s, we are unable to define the correct one", namespaces, key, value)
+	default:
+		return &nsl.Items[0], nil
+	}
 }
 
 func initialContext(cfgLoadingRules *clientcmd.ClientConfigLoadingRules) (currentCtx, clusterName string, err error) {

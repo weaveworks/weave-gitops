@@ -423,41 +423,6 @@ metadata:
 		})
 	})
 
-	Describe("GetNamespaces", func() {
-		It("should return a list of namespaces", func() {
-			ctx := context.Background()
-
-			namespacesNames := []string{"ns1", "ns2"}
-
-			for _, namespaceName := range namespacesNames {
-				ns := &corev1.Namespace{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: namespaceName,
-					},
-				}
-				Expect(k8sClient.Create(ctx, ns)).Should(Succeed())
-			}
-
-			namespaceList, err := k.GetNamespaces(ctx)
-			Expect(err).NotTo(HaveOccurred())
-
-			var ns1Found, ns2Found bool
-
-			for _, ns := range namespaceList.Items {
-				if ns.Name == namespacesNames[0] {
-					ns1Found = true
-				}
-				if ns.Name == namespacesNames[1] {
-					ns2Found = true
-				}
-			}
-
-			Expect(ns1Found).To(BeTrue())
-			Expect(ns2Found).To(BeTrue())
-
-		})
-	})
-
 	Describe("GetWegoConfig", func() {
 		It("get a wego config in a namespace", func() {
 			ctx := context.Background()

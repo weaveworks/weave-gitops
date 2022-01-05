@@ -61,7 +61,7 @@ type Kube interface {
 	GetResource(ctx context.Context, name types.NamespacedName, resource Resource) error
 	SetResource(ctx context.Context, resource Resource) error
 	GetSecret(ctx context.Context, name types.NamespacedName) (*corev1.Secret, error)
-	GetNamespaces(ctx context.Context) (*corev1.NamespaceList, error)
+	FetchNamespaceWithLabel(ctx context.Context, key string, value string) (*corev1.Namespace, error)
 	SetWegoConfig(ctx context.Context, config WegoConfig, namespace string) (*corev1.ConfigMap, error)
 	GetWegoConfig(ctx context.Context, namespace string) (*WegoConfig, error)
 	Raw() client.Client
