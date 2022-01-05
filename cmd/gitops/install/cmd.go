@@ -4,29 +4,20 @@ package install
 // gitops installed, the user will be prompted to install gitops and then the repository will be added.
 
 import (
-	"context"
 	_ "embed"
-	"errors"
 	"fmt"
-	"os"
+
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+
+	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 
 	"github.com/spf13/cobra"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
-	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
-	"github.com/weaveworks/weave-gitops/pkg/services"
-	"github.com/weaveworks/weave-gitops/pkg/services/applier"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth"
-	"github.com/weaveworks/weave-gitops/pkg/services/automation"
-	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
-	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
 )
 
 type params struct {
@@ -65,7 +56,7 @@ func init() {
 }
 
 func installRunCmd(cmd *cobra.Command, args []string) error {
-	ctx := context.Background()
+	//ctx := context.Background()
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
 	configURL, err := gitproviders.NewRepoURL(installParams.ConfigRepo)
@@ -74,98 +65,117 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	osysClient := osys.New()
-	log := internal.NewCLILogger(os.Stdout)
-	flux := flux.New(osysClient, &runner.CLIRunner{})
+	//log := internal.NewCLILogger(os.Stdout)
+	fluxClient := flux.New(osysClient, &runner.CLIRunner{})
 
-	k, _, err := kube.NewKubeHTTPClient()
+	// Should this be here??
+	// I added it to get the cluster name that is needed in the paths in the generated
+	// manifests
+	kubeClient, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
-	status := k.GetClusterStatus(ctx)
-
-	clusterName, err := k.GetClusterName(ctx)
+	manifests, err := automation.GitopsManifests(fluxClient, kubeClient, namespace, configURL)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed getting gitops manifests: %w", err)
 	}
-
-	switch status {
-	case kube.FluxInstalled:
-		return errors.New("Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n  $ flux uninstall")
-	case kube.Unknown:
-		return fmt.Errorf("Weave GitOps cannot talk to the cluster %s", clusterName)
-	}
-
-	clusterApplier := applier.NewClusterApplier(k)
-
-	var gitClient git.Git
-
-	var gitProvider gitproviders.GitProvider
-
-	factory := services.NewFactory(flux, log)
-
-	if err != nil {
-		return fmt.Errorf("failed getting kube service: %w", err)
-	}
-
-	if installParams.DryRun {
-		gitProvider, err = gitproviders.NewDryRun()
-		if err != nil {
-			return fmt.Errorf("error creating git provider for dry run: %w", err)
-		}
-	} else {
-		_, err = flux.Install(namespace, false)
-		if err != nil {
-			return err
-		}
-
-		providerClient := internal.NewGitProviderClient(osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
-
-		gitClient, gitProvider, err = factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
-			URL:       installParams.ConfigRepo,
-			Namespace: namespace,
-			DryRun:    installParams.DryRun,
-		})
-
-		if err != nil {
-			return fmt.Errorf("error creating git clients: %w", err)
-		}
-	}
-
-	cluster := models.Cluster{Name: clusterName}
-	repoWriter := gitrepo.NewRepoWriter(configURL, gitProvider, gitClient, log)
-	automationGen := automation.NewAutomationGenerator(gitProvider, flux, log)
-	gitOpsDirWriter := gitopswriter.NewGitOpsDirectoryWriter(automationGen, repoWriter, osysClient, log)
-
-	clusterAutomation, err := automationGen.GenerateClusterAutomation(ctx, cluster, configURL, namespace)
-	if err != nil {
-		return err
-	}
-
-	wegoConfigManifest, err := clusterAutomation.GenerateWegoConfigManifest(clusterName, namespace, namespace)
-	if err != nil {
-		return fmt.Errorf("failed generating wego config manifest: %w", err)
-	}
-
-	manifests := append(clusterAutomation.Manifests(), wegoConfigManifest)
 
 	if installParams.DryRun {
 		for _, manifest := range manifests {
-			log.Println(string(manifest.Content))
+			fmt.Println(manifest)
 		}
-
-		return nil
 	}
 
-	err = clusterApplier.ApplyManifests(ctx, cluster, namespace, append(clusterAutomation.BootstrapManifests(), wegoConfigManifest))
-	if err != nil {
-		return fmt.Errorf("failed applying manifest: %w", err)
-	}
-
-	err = gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, namespace, installParams.AutoMerge)
-	if err != nil {
-		return fmt.Errorf("failed associating cluster: %w", err)
-	}
-
+	//k, _, err := kube.NewKubeHTTPClient()
+	//if err != nil {
+	//	return fmt.Errorf("error creating k8s http client: %w", err)
+	//}
+	//
+	//status := k.GetClusterStatus(ctx)
+	//
+	//clusterName, err := k.GetClusterName(ctx)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//switch status {
+	//case kube.FluxInstalled:
+	//	return errors.New("Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n  $ flux uninstall")
+	//case kube.Unknown:
+	//	return fmt.Errorf("Weave GitOps cannot talk to the cluster %s", clusterName)
+	//}
+	//
+	//clusterApplier := applier.NewClusterApplier(k)
+	//
+	//var gitClient git.Git
+	//
+	//var gitProvider gitproviders.GitProvider
+	//
+	//factory := services.NewFactory(flux, log)
+	//
+	//if err != nil {
+	//	return fmt.Errorf("failed getting kube service: %w", err)
+	//}
+	//
+	//if installParams.DryRun {
+	//	gitProvider, err = gitproviders.NewDryRun()
+	//	if err != nil {
+	//		return fmt.Errorf("error creating git provider for dry run: %w", err)
+	//	}
+	//} else {
+	//	_, err = flux.Install(namespace, false)
+	//	if err != nil {
+	//		return err
+	//	}
+	//
+	//	providerClient := internal.NewGitProviderClient(osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
+	//
+	//	gitClient, gitProvider, err = factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
+	//		URL:       installParams.ConfigRepo,
+	//		Namespace: namespace,
+	//		DryRun:    installParams.DryRun,
+	//	})
+	//
+	//	if err != nil {
+	//		return fmt.Errorf("error creating git clients: %w", err)
+	//	}
+	//}
+	//
+	//cluster := models.Cluster{Name: clusterName}
+	//repoWriter := gitrepo.NewRepoWriter(configURL, gitProvider, gitClient, log)
+	//automationGen := automation.NewAutomationGenerator(gitProvider, flux, log)
+	//gitOpsDirWriter := gitopswriter.NewGitOpsDirectoryWriter(automationGen, repoWriter, osysClient, log)
+	//
+	//clusterAutomation, err := automationGen.GenerateClusterAutomation(ctx, cluster, configURL, namespace)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//wegoConfigManifest, err := clusterAutomation.GenerateWegoConfigManifest(clusterName, namespace, namespace)
+	//if err != nil {
+	//	return fmt.Errorf("failed generating wego config manifest: %w", err)
+	//}
+	//
+	//manifests := append(clusterAutomation.Manifests(), wegoConfigManifest)
+	//
+	//if installParams.DryRun {
+	//	for _, manifest := range manifests {
+	//		log.Println(string(manifest.Content))
+	//	}
+	//
+	//	return nil
+	//}
+	//
+	//err = clusterApplier.ApplyManifests(ctx, cluster, namespace, append(clusterAutomation.BootstrapManifests(), wegoConfigManifest))
+	//if err != nil {
+	//	return fmt.Errorf("failed applying manifest: %w", err)
+	//}
+	//
+	//err = gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, namespace, installParams.AutoMerge)
+	//if err != nil {
+	//	return fmt.Errorf("failed associating cluster: %w", err)
+	//}
+	//
 	return nil
 }

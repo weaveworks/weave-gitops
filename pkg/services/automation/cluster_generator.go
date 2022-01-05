@@ -7,13 +7,12 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/manifests"
@@ -24,13 +23,17 @@ import (
 )
 
 type ClusterAutomation struct {
-	AppCRD                      AutomationManifest
-	GitOpsRuntime               AutomationManifest
-	SourceManifest              AutomationManifest
-	SystemKustomizationManifest AutomationManifest
-	SystemKustResourceManifest  AutomationManifest
-	UserKustResourceManifest    AutomationManifest
-	WegoAppManifest             AutomationManifest
+	AppCRD                      Manifest
+	GitOpsRuntime               Manifest
+	SourceManifest              Manifest
+	SystemKustomizationManifest Manifest
+	SystemKustResourceManifest  Manifest
+	UserKustResourceManifest    Manifest
+	WegoAppManifest             Manifest
+
+	// Do I really need this here? This is not needed for automation itself
+	// Maybe we need to change the name to something like ClusterManifests
+	WegoConfigManifest Manifest
 }
 
 const (
@@ -80,7 +83,7 @@ func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster m
 		version = "latest"
 	}
 
-	m, err := manifests.GenerateManifests(manifests.Params{AppVersion: version, Namespace: namespace})
+	m, err := manifests.GenerateWegoAppManifests(manifests.Params{AppVersion: version, Namespace: namespace})
 	if err != nil {
 		return ClusterAutomation{}, fmt.Errorf("error generating wego-app manifest: %w", err)
 	}
@@ -114,80 +117,68 @@ func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster m
 	}
 
 	return ClusterAutomation{
-		AppCRD: AutomationManifest{
+		AppCRD: Manifest{
 			Path:    git.GetSystemQualifiedPath(cluster.Name, AppCRDPath),
 			Content: appCRDManifest,
 		},
-		GitOpsRuntime: AutomationManifest{
+		GitOpsRuntime: Manifest{
 			Path:    git.GetSystemQualifiedPath(cluster.Name, RuntimePath),
 			Content: runtimeManifests,
 		},
-		SourceManifest: AutomationManifest{
+		SourceManifest: Manifest{
 			Path:    git.GetSystemQualifiedPath(cluster.Name, SourcePath),
 			Content: sourceManifest,
 		},
-		SystemKustomizationManifest: AutomationManifest{
+		SystemKustomizationManifest: Manifest{
 			Path:    git.GetSystemQualifiedPath(cluster.Name, SystemKustomizationPath),
 			Content: systemKustomizationManifest,
 		},
-		SystemKustResourceManifest: AutomationManifest{
+		SystemKustResourceManifest: Manifest{
 			Path:    git.GetSystemQualifiedPath(cluster.Name, SystemKustResourcePath),
 			Content: systemKustResourceManifest,
 		},
-		UserKustResourceManifest: AutomationManifest{
+		UserKustResourceManifest: Manifest{
 			Path:    git.GetSystemQualifiedPath(cluster.Name, UserKustResourcePath),
 			Content: userKustResourceManifest,
 		},
-		WegoAppManifest: AutomationManifest{
+		WegoAppManifest: Manifest{
 			Path:    git.GetSystemQualifiedPath(cluster.Name, WegoAppPath),
 			Content: wegoAppManifest,
 		},
 	}, nil
 }
 
-func (ca ClusterAutomation) BootstrapManifests() []AutomationManifest {
-	return append([]AutomationManifest{ca.AppCRD}, ca.WegoAppManifest, ca.SourceManifest, ca.SystemKustResourceManifest, ca.UserKustResourceManifest)
+func (ca ClusterAutomation) BootstrapManifests() []Manifest {
+	return append([]Manifest{ca.AppCRD}, ca.WegoAppManifest, ca.SourceManifest, ca.SystemKustResourceManifest, ca.UserKustResourceManifest)
 }
 
-func (ca ClusterAutomation) GenerateWegoConfigManifest(clusterName string, fluxNamespace string, wegoNamespace string) (AutomationManifest, error) {
+func gitopsConfigMap(fluxNamespace string, wegoNamespace string) (corev1.ConfigMap, error) {
 	config := kube.WegoConfig{
 		FluxNamespace: fluxNamespace,
-		WegoNamespace: wegoNamespace,
 	}
 
 	configBytes, err := yaml.Marshal(config)
 	if err != nil {
-		return AutomationManifest{}, fmt.Errorf("failed marshalling wego config: %w", err)
+		return corev1.ConfigMap{}, fmt.Errorf("failed marshalling wego config: %w", err)
 	}
 
-	name := types.NamespacedName{Name: WegoConfigMapName, Namespace: wegoNamespace}
-
-	cm := &corev1.ConfigMap{
+	return corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "ConfigMap",
 			APIVersion: corev1.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name.Name,
-			Namespace: name.Namespace,
+			Name:      WegoConfigMapName,
+			Namespace: wegoNamespace,
 		},
 		Data: map[string]string{
 			"config": string(configBytes),
 		},
-	}
-
-	wegoConfigManifest, err := yaml.Marshal(cm)
-	if err != nil {
-		return AutomationManifest{}, fmt.Errorf("failed marshalling wego config: %w", err)
-	}
-
-	return AutomationManifest{
-		Path:    git.GetSystemQualifiedPath(clusterName, WegoConfigPath),
-		Content: wegoConfigManifest,
 	}, nil
+
 }
 
-func (ca ClusterAutomation) Manifests() []AutomationManifest {
+func (ca ClusterAutomation) Manifests() []Manifest {
 	return append(ca.BootstrapManifests(), ca.GitOpsRuntime, ca.SystemKustomizationManifest)
 }
 
@@ -197,4 +188,115 @@ func GetClusterHash(c models.Cluster) string {
 
 func workAroundFluxDroppingDot(str string) string {
 	return "." + str
+}
+
+func GitopsManifests(fluxClient flux.Flux, kubeClient kube.Kube, namespace string, configURL gitproviders.RepoURL) ([][]byte, error) {
+	ctx := context.Background()
+
+	clusterName, err := kubeClient.GetClusterName(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	runtimeManifests, err := fluxClient.Install(namespace, true)
+	if err != nil {
+		return nil, fmt.Errorf("failed getting runtime manifests: %w", err)
+	}
+
+	appCRDManifest := manifests.AppCRD
+
+	version := version.Version
+	if os.Getenv("IS_TEST_ENV") != "" {
+		version = "latest"
+	}
+
+	wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppVersion: version, Namespace: namespace})
+	if err != nil {
+		return nil, fmt.Errorf("error generating wego-app manifest: %w", err)
+	}
+
+	wegoAppManifest := bytes.Join(wegoAppManifests, []byte("---\n"))
+
+	sourceName := createClusterSourceName(configURL)
+
+	//sourceManifest, err := flux.CreateSourceGit(sourceName, configURL, configBranch, secretStr, namespace)
+	//if err != nil {
+	//	return ClusterAutomation{}, err
+	//}
+
+	systemKustResourceManifest, err := fluxClient.CreateKustomization(ConstrainResourceName(fmt.Sprintf("%s-system", clusterName)), sourceName,
+		workAroundFluxDroppingDot(git.GetSystemPath(clusterName)), namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	userKustResourceManifest, err := fluxClient.CreateKustomization(ConstrainResourceName(fmt.Sprintf("%s-user", clusterName)), sourceName,
+		workAroundFluxDroppingDot(git.GetUserPath(clusterName)), namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	systemKustomization := CreateKustomize(clusterName, namespace, RuntimePath, SourcePath, SystemKustResourcePath, UserKustResourcePath)
+
+	systemKustomizationManifest, err := yaml.Marshal(systemKustomization)
+	if err != nil {
+		return nil, err
+	}
+
+	gitopsConfigMap, err := gitopsConfigMap(namespace, namespace)
+	if err != nil {
+		return nil, err
+	}
+	wegoConfigManifest, err := yaml.Marshal(gitopsConfigMap)
+	if err != nil {
+		return nil, fmt.Errorf("failed marshalling wego config: %w", err)
+	}
+
+	return [][]byte{
+		appCRDManifest,
+		runtimeManifests,
+		systemKustomizationManifest,
+		systemKustResourceManifest,
+		userKustResourceManifest,
+		wegoAppManifest,
+		wegoConfigManifest,
+	}, nil
+
+	//return ClusterAutomation{
+	//	AppCRD: Manifest{
+	//		Path:    git.GetSystemQualifiedPath(clusterName, AppCRDPath),
+	//		Content: appCRDManifest,
+	//	},
+	//	GitOpsRuntime: Manifest{
+	//		Path:    git.GetSystemQualifiedPath(clusterName, RuntimePath),
+	//		Content: runtimeManifests,
+	//	},
+	//	// This can't be generated here as we need the Branch and SecretRef, but we
+	//	// would need git provider to get the default branch,
+	//	// but we need to run the secret logic first to be able to use the gitProvider client
+	//	//SourceManifest: AutomationManifest{
+	//	//	Path:    git.GetSystemQualifiedPath(clusterName, SourcePath),
+	//	//	Content: sourceManifest,
+	//	//},
+	//	SystemKustomizationManifest: Manifest{
+	//		Path:    git.GetSystemQualifiedPath(clusterName, SystemKustomizationPath),
+	//		Content: systemKustomizationManifest,
+	//	},
+	//	SystemKustResourceManifest: Manifest{
+	//		Path:    git.GetSystemQualifiedPath(clusterName, SystemKustResourcePath),
+	//		Content: systemKustResourceManifest,
+	//	},
+	//	UserKustResourceManifest: Manifest{
+	//		Path:    git.GetSystemQualifiedPath(clusterName, UserKustResourcePath),
+	//		Content: userKustResourceManifest,
+	//	},
+	//	WegoAppManifest: Manifest{
+	//		Path:    git.GetSystemQualifiedPath(clusterName, WegoAppPath),
+	//		Content: wegoAppManifest,
+	//	},
+	//	WegoConfigManifest: Manifest{
+	//		Path:    git.GetSystemQualifiedPath(clusterName, WegoConfigPath),
+	//		Content: wegoConfigManifest,
+	//	},
+	//}, nil
 }

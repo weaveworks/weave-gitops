@@ -71,13 +71,13 @@ type AutomationGen struct {
 var _ AutomationGenerator = &AutomationGen{}
 
 type ApplicationAutomation struct {
-	AppYaml       AutomationManifest
-	AppAutomation AutomationManifest
-	AppSource     AutomationManifest
-	AppKustomize  AutomationManifest
+	AppYaml       Manifest
+	AppAutomation Manifest
+	AppSource     Manifest
+	AppKustomize  Manifest
 }
 
-type AutomationManifest struct {
+type Manifest struct {
 	Path    string
 	Content []byte
 }
@@ -119,7 +119,7 @@ func (a *AutomationGen) GetSecretRefForPrivateGitSources(ctx context.Context, ur
 	return secretRef, nil
 }
 
-func (a *AutomationGen) generateAppSource(ctx context.Context, app models.Application) (AutomationManifest, error) {
+func (a *AutomationGen) generateAppSource(ctx context.Context, app models.Application) (Manifest, error) {
 	var (
 		source []byte
 		err    error
@@ -127,7 +127,7 @@ func (a *AutomationGen) generateAppSource(ctx context.Context, app models.Applic
 
 	appSecretRef, err := a.getAppSecretRef(ctx, app)
 	if err != nil {
-		return AutomationManifest{}, err
+		return Manifest{}, err
 	}
 
 	switch app.SourceType {
@@ -139,14 +139,14 @@ func (a *AutomationGen) generateAppSource(ctx context.Context, app models.Applic
 	case models.SourceTypeHelm:
 		source, err = a.Flux.CreateSourceHelm(app.Name, app.HelmSourceURL, app.Namespace)
 	default:
-		return AutomationManifest{}, fmt.Errorf("unknown source type: %v", app.SourceType)
+		return Manifest{}, fmt.Errorf("unknown source type: %v", app.SourceType)
 	}
 
 	if err != nil {
-		return AutomationManifest{}, err
+		return Manifest{}, err
 	}
 
-	return AutomationManifest{Path: AppAutomationSourcePath(app), Content: source}, nil
+	return Manifest{Path: AppAutomationSourcePath(app), Content: source}, nil
 }
 
 func GetOrCreateKustomize(filename, name, namespace string) (types.Kustomization, error) {
@@ -178,7 +178,7 @@ func CreateKustomize(name, namespace string, resources ...string) types.Kustomiz
 	return k
 }
 
-func createAppKustomize(app models.Application, automation ...AutomationManifest) (AutomationManifest, error) {
+func createAppKustomize(app models.Application, automation ...Manifest) (Manifest, error) {
 	resources := []string{}
 
 	for _, a := range automation {
@@ -189,10 +189,10 @@ func createAppKustomize(app models.Application, automation ...AutomationManifest
 
 	bytes, err := yaml.Marshal(k)
 	if err != nil {
-		return AutomationManifest{}, fmt.Errorf("failed to marshal kustomization for app: %w", err)
+		return Manifest{}, fmt.Errorf("failed to marshal kustomization for app: %w", err)
 	}
 
-	return AutomationManifest{Path: AppAutomationKustomizePath(app), Content: bytes}, nil
+	return Manifest{Path: AppAutomationKustomizePath(app), Content: bytes}, nil
 }
 
 func AddWegoIgnore(sourceManifest []byte) ([]byte, error) {
@@ -256,11 +256,11 @@ func (a *AutomationGen) GenerateApplicationAutomation(ctx context.Context, app m
 	}, nil
 }
 
-func (aa ApplicationAutomation) Manifests() []AutomationManifest {
-	return append([]AutomationManifest{aa.AppYaml}, aa.AppAutomation, aa.AppSource, aa.AppKustomize)
+func (aa ApplicationAutomation) Manifests() []Manifest {
+	return append([]Manifest{aa.AppYaml}, aa.AppAutomation, aa.AppSource, aa.AppKustomize)
 }
 
-func (a *AutomationGen) generateAppAutomation(ctx context.Context, app models.Application, clusterName string) (AutomationManifest, error) {
+func (a *AutomationGen) generateAppAutomation(ctx context.Context, app models.Application, clusterName string) (Manifest, error) {
 	var (
 		b   []byte
 		err error
@@ -276,16 +276,16 @@ func (a *AutomationGen) generateAppAutomation(ctx context.Context, app models.Ap
 		case models.SourceTypeGit:
 			b, err = a.Flux.CreateHelmReleaseGitRepository(app.Name, app.Name, app.Path, app.Namespace, app.HelmTargetNamespace)
 		default:
-			return AutomationManifest{}, fmt.Errorf("invalid source type: %v", app.SourceType)
+			return Manifest{}, fmt.Errorf("invalid source type: %v", app.SourceType)
 		}
 	default:
-		return AutomationManifest{}, fmt.Errorf("invalid automation type: %v", app.AutomationType)
+		return Manifest{}, fmt.Errorf("invalid automation type: %v", app.AutomationType)
 	}
 
-	return AutomationManifest{Path: AppAutomationDeployPath(app), Content: sanitizeWegoDirectory(b)}, err
+	return Manifest{Path: AppAutomationDeployPath(app), Content: sanitizeWegoDirectory(b)}, err
 }
 
-func generateAppYaml(app models.Application) (AutomationManifest, error) {
+func generateAppYaml(app models.Application) (Manifest, error) {
 	wegoapp := AppToWegoApp(app)
 
 	wegoapp.ObjectMeta.Labels = map[string]string{
@@ -294,10 +294,10 @@ func generateAppYaml(app models.Application) (AutomationManifest, error) {
 
 	b, err := yaml.Marshal(&wegoapp)
 	if err != nil {
-		return AutomationManifest{}, fmt.Errorf("could not marshal yaml: %w", err)
+		return Manifest{}, fmt.Errorf("could not marshal yaml: %w", err)
 	}
 
-	return AutomationManifest{Path: AppYamlPath(app), Content: sanitizeK8sYaml(b)}, nil
+	return Manifest{Path: AppYamlPath(app), Content: sanitizeK8sYaml(b)}, nil
 }
 
 func WegoAppToApp(app wego.Application) (models.Application, error) {
