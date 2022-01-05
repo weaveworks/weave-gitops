@@ -19,6 +19,7 @@ import RepoInputWithAuth from "../components/RepoInputWithAuth";
 import { AppContext } from "../contexts/AppContext";
 import CallbackStateContextProvider from "../contexts/CallbackStateContext";
 import { useAddApplication } from "../hooks/applications";
+import { useIsAuthenticated } from "../hooks/auth";
 import { GitProvider } from "../lib/api/applications/applications.pb";
 import { GrpcErrorCodes, PageRoute } from "../lib/types";
 
@@ -119,8 +120,7 @@ const FormElement = styled.div`
 `;
 
 function AddApplication({ className }: Props) {
-  const { getCallbackState, clearCallbackState, getProviderToken } =
-    React.useContext(AppContext);
+  const { getCallbackState, clearCallbackState } = React.useContext(AppContext);
   const formRef = React.useRef<HTMLFormElement>();
 
   let initialFormState = {
@@ -150,6 +150,7 @@ function AddApplication({ className }: Props) {
   const [prLink, setPrLink] = React.useState("");
   const [authOpen, setAuthOpen] = React.useState(false);
   const [authSuccess, setAuthSuccess] = React.useState(false);
+  const { isAuthenticated, req: check } = useIsAuthenticated();
 
   const handleSubmit = () => {
     req(formState.provider, formState);
@@ -162,6 +163,14 @@ function AddApplication({ className }: Props) {
   const handleAuthClick = () => {
     setAuthOpen(true);
   };
+
+  React.useEffect(() => {
+    if (!formState.provider) {
+      return;
+    }
+
+    check(formState.provider);
+  }, [formState.provider, authSuccess]);
 
   React.useEffect(() => {
     if (!addRes) {
@@ -177,8 +186,7 @@ function AddApplication({ className }: Props) {
     setPrLink(`${repoURL.replace(".git", "")}/${prPath}`);
   }, [addRes]);
 
-  const credentialsDetected =
-    authSuccess || !!getProviderToken(formState.provider) || !!callbackState;
+  const credentialsDetected = isAuthenticated;
 
   return (
     <Page className={className} title="Add Application">
