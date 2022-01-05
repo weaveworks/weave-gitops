@@ -141,8 +141,8 @@ var _ = Describe("Check", func() {
 		fakeKubeClient.FetchNamespaceWithLabelReturns(&corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
 				Labels: map[string]string{
-					"app.kubernetes.io/part-of": "flux",
-					"app.kubernetes.io/version": differentFluxVersion,
+					flux.PartOfLabelKey:  flux.PartOfLabelValue,
+					flux.VersionLabelKey: differentFluxVersion,
 				},
 			},
 		}, nil)
