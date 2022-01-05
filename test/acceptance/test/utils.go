@@ -37,7 +37,6 @@ import (
 const (
 	THIRTY_SECOND_TIMEOUT       time.Duration = 30 * time.Second
 	EVENTUALLY_DEFAULT_TIMEOUT  time.Duration = 60 * time.Second
-	TIMEOUT_TWO_MINUTES         time.Duration = 120 * time.Second
 	INSTALL_RESET_TIMEOUT       time.Duration = 300 * time.Second
 	NAMESPACE_TERMINATE_TIMEOUT time.Duration = 600 * time.Second
 	INSTALL_SUCCESSFUL_TIMEOUT  time.Duration = 3 * time.Minute
@@ -405,14 +404,25 @@ func VerifyControllersInCluster(namespace string) {
 }
 
 func installAndVerifyWego(wegoNamespace, repoURL string) {
-	By("And I run 'gitops install' command with namespace "+wegoNamespace, func() {
-		command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --config-repo=%s", gitopsBinaryPath, wegoNamespace, repoURL))
-		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ShouldNot(HaveOccurred())
-		Eventually(session, INSTALL_SUCCESSFUL_TIMEOUT).Should(gexec.Exit())
-		Expect(string(session.Err.Contents())).Should(BeEmpty())
-		VerifyControllersInCluster(wegoNamespace)
-	})
+	command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --config-repo=%s --auto-merge", gitopsBinaryPath, wegoNamespace, repoURL))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session, INSTALL_SUCCESSFUL_TIMEOUT).Should(gexec.Exit())
+	Expect(string(session.Err.Contents())).Should(BeEmpty())
+	VerifyControllersInCluster(wegoNamespace)
+}
+
+func installAndVerifyWegoViaPullRequest(wegoNamespace, repoURL, repoPath string) {
+	command := exec.Command("sh", "-c", fmt.Sprintf("%s install --namespace=%s --config-repo=%s", gitopsBinaryPath, wegoNamespace, repoURL))
+	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+	Expect(err).ShouldNot(HaveOccurred())
+	Eventually(session, INSTALL_SUCCESSFUL_TIMEOUT).Should(gexec.Exit())
+	Expect(string(session.Err.Contents())).Should(BeEmpty())
+	out := string(session.Wait().Out.Contents())
+	re := regexp.MustCompile(`(http|ftp|https):\/\/([\w\-_]+(?:(?:\.[\w\-_]+)+))([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?`)
+	prLink := re.FindAllString(out, -1)[0]
+	mergePR(repoPath, prLink, gitproviders.GitProviderGitHub)
+	VerifyControllersInCluster(wegoNamespace)
 }
 
 func uninstallWegoRuntime(namespace string) {
@@ -552,7 +562,10 @@ func runCommandAndReturnStringOutput(commandToRun string) (stdOut string, stdErr
 	session, _ := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Eventually(session).Should(gexec.Exit())
 
-	return string(session.Wait().Out.Contents()), string(session.Wait().Err.Contents())
+	outContent := session.Wait().Out.Contents()
+	errContent := session.Wait().Err.Contents()
+
+	return string(outContent), string(errContent)
 }
 
 func runCommandAndReturnSessionOutput(commandToRun string) *gexec.Session {
