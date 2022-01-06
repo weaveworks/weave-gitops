@@ -619,7 +619,7 @@ func TestRetrieveTemplateProfiles(t *testing.T) {
 		assertFunc func(t *testing.T, profile []capi.Profile, err error)
 	}{
 		{
-			name:      "profiles returned",
+			name:      "template profiles returned",
 			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/template_profiles.json")),
 			assertFunc: func(t *testing.T, ts []capi.Profile, err error) {
 				assert.ElementsMatch(t, ts, []capi.Profile{
@@ -643,48 +643,6 @@ func TestRetrieveTemplateProfiles(t *testing.T) {
 						},
 						AvailableVersions: []string{"v0.0.14", "v0.0.15"},
 					},
-					{
-						Name:        "profile-b",
-						Home:        "https://github.com/org/repo",
-						Sources:     []string{"https://github.com/org/repo1", "https://github.com/org/repo2"},
-						Description: "this is test profile b",
-						Keywords:    []string{"keyword-a", "keyword-b"},
-						Maintainers: []capi.Maintainer{
-							{
-								Name:  "bar",
-								Email: "bar@example.com",
-								Url:   "example.com",
-							},
-						},
-						Icon:        "test",
-						KubeVersion: "1.20",
-						HelmRepository: capi.HelmRepository{
-							Name:      "test-repo",
-							Namespace: "test-ns",
-						},
-						AvailableVersions: []string{"v0.0.14", "v0.0.15"},
-					},
-					{
-						Name:        "profile-c",
-						Home:        "https://github.com/org/repo",
-						Sources:     []string{"https://github.com/org/repo1", "https://github.com/org/repo2"},
-						Description: "this is test profile c",
-						Keywords:    []string{"keyword-a", "keyword-b"},
-						Maintainers: []capi.Maintainer{
-							{
-								Name:  "bar",
-								Email: "bar@example.com",
-								Url:   "example.com",
-							},
-						},
-						Icon:        "test",
-						KubeVersion: "1.22",
-						HelmRepository: capi.HelmRepository{
-							Name:      "test-repo",
-							Namespace: "test-ns",
-						},
-						AvailableVersions: []string{"v0.0.14", "v0.0.15"},
-					},
 				})
 			},
 		},
@@ -692,14 +650,7 @@ func TestRetrieveTemplateProfiles(t *testing.T) {
 			name:      "error returned",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, fs []capi.Profile, err error) {
-				assert.EqualError(t, err, "unable to GET profiles from \"https://weave.works/api/v1/profiles\": Get \"https://weave.works/api/v1/profiles\": oops")
-			},
-		},
-		{
-			name:      "unexpected status code",
-			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
-			assertFunc: func(t *testing.T, fs []capi.Profile, err error) {
-				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/profiles\" was 400")
+				assert.EqualError(t, err, "unable to GET template profiles from \"https://weave.works/api/v1/templates/cluster-template/profiles\": Get \"https://weave.works/api/v1/templates/cluster-template/profiles\": oops")
 			},
 		},
 	}
@@ -709,12 +660,12 @@ func TestRetrieveTemplateProfiles(t *testing.T) {
 			client := resty.New()
 			httpmock.ActivateNonDefault(client.GetClient())
 			defer httpmock.DeactivateAndReset()
-			httpmock.RegisterResponder("GET", BaseURI+"v1/templates/cluster-template/profiles", tt.responder)
+			httpmock.RegisterResponder("GET", BaseURI+"/v1/templates/cluster-template/profiles", tt.responder)
 
 			r, err := adapters.NewHttpClient(BaseURI, client, os.Stdout)
 			assert.NoError(t, err)
-			fs, err := r.RetrieveTemplateProfiles("cluster-template")
-			tt.assertFunc(t, fs, err)
+			tps, err := r.RetrieveTemplateProfiles("cluster-template")
+			tt.assertFunc(t, tps, err)
 		})
 	}
 }

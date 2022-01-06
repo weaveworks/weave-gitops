@@ -1,48 +1,6 @@
 {
     "profiles": [
         {
-            "name": "profile-c",
-            "home": "https://github.com/org/repo",
-            "sources": ["https://github.com/org/repo1", "https://github.com/org/repo2"],
-            "description": "this is test profile c",
-            "keywords": ["keyword-a", "keyword-b"],
-            "maintainers": [
-                {
-                    "name": "bar",
-                    "email": "bar@example.com",
-                    "url": "example.com"
-                }
-            ],
-            "icon": "test",
-            "kubeVersion": "1.22",
-            "helmRepository": {
-                "name": "test-repo",
-                "namespace": "test-ns"
-            },
-            "availableVersions": ["v0.0.14", "v0.0.15"]
-        },
-        {
-            "name": "profile-b",
-            "home": "https://github.com/org/repo",
-            "sources": ["https://github.com/org/repo1", "https://github.com/org/repo2"],
-            "description": "this is test profile b",
-            "keywords": ["keyword-a", "keyword-b"],
-            "maintainers": [
-                {
-                    "name": "bar",
-                    "email": "bar@example.com",
-                    "url": "example.com"
-                }
-            ],
-            "icon": "test",
-            "kubeVersion": "1.20",
-            "helmRepository": {
-                "name": "test-repo",
-                "namespace": "test-ns"
-            },
-            "availableVersions": ["v0.0.14", "v0.0.15"]
-        },
-        {
             "name": "profile-a",
             "home": "https://github.com/org/repo",
             "sources": ["https://github.com/org/repo1", "https://github.com/org/repo2"],

@@ -485,7 +485,7 @@ func (c *HTTPClient) RetrieveTemplateProfiles(name string) ([]capi.Profile, erro
 		Get(endpoint)
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to GET template parameters from %q: %w", res.Request.URL, err)
+		return nil, fmt.Errorf("unable to GET template profiles from %q: %w", res.Request.URL, err)
 	}
 
 	if res.StatusCode() != http.StatusOK {
@@ -495,8 +495,15 @@ func (c *HTTPClient) RetrieveTemplateProfiles(name string) ([]capi.Profile, erro
 	var tps []capi.Profile
 	for _, p := range templateProfilesList.Profiles {
 		tps = append(tps, capi.Profile{
-			Name:        p.Name,
-			Description: p.Description,
+			Name:              p.Name,
+			Home:              p.Home,
+			Sources:           p.Sources,
+			Description:       p.Description,
+			Maintainers:       p.Maintainers,
+			Icon:              p.Icon,
+			KubeVersion:       p.KubeVersion,
+			HelmRepository:    p.HelmRepository,
+			AvailableVersions: p.AvailableVersions,
 		})
 	}
 
