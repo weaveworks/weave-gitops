@@ -46,7 +46,7 @@ gitops add cluster --from-template <template-name> --set key=val --dry-run
 
 # Add a new cluster supplied with profiles versions and values files
 gitops add cluster --from-template <template-name> \
---profiles 'name=foo-profile,version=0.0.1' --profiles 'name=bar-profile,values=bar-values.yaml
+--profile 'name=foo-profile,version=0.0.1' --profile 'name=bar-profile,values=bar-values.yaml
 		`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
