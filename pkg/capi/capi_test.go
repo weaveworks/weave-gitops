@@ -349,7 +349,7 @@ func TestGetCredentials(t *testing.T) {
 	}
 }
 
-func TestGetProfiles(t *testing.T) {
+func TestGetTemplateProfiles(t *testing.T) {
 	tests := []struct {
 		name             string
 		fs               []capi.Profile
@@ -359,7 +359,7 @@ func TestGetProfiles(t *testing.T) {
 	}{
 		{
 			name:     "no profiles",
-			expected: "No profiles were found.\n",
+			expected: "No template profiles were found.\n",
 		},
 		{
 			name: "profiles includes just name",
@@ -391,7 +391,7 @@ func TestGetProfiles(t *testing.T) {
 		{
 			name:             "error retrieving profiles",
 			err:              fmt.Errorf("oops something went wrong"),
-			expectedErrorStr: "unable to retrieve profiles from \"In-memory fake\": oops something went wrong",
+			expectedErrorStr: "unable to retrieve profiles for template \"profile-b\" from \"In-memory fake\": oops something went wrong",
 		},
 	}
 
@@ -399,7 +399,7 @@ func TestGetProfiles(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			c := newFakeClient(nil, nil, nil, tt.fs, "", tt.err)
 			w := new(bytes.Buffer)
-			err := capi.GetProfiles(c, w)
+			err := capi.GetTemplateProfiles("profile-b", c, w)
 			assert.Equal(t, tt.expected, w.String())
 			if err != nil {
 				assert.EqualError(t, err, tt.expectedErrorStr)
@@ -478,14 +478,6 @@ func (c *fakeClient) RetrieveCredentials() ([]capi.Credentials, error) {
 	}
 
 	return c.cs, nil
-}
-
-func (c *fakeClient) RetrieveProfiles() ([]capi.Profile, error) {
-	if c.err != nil {
-		return nil, c.err
-	}
-
-	return c.fs, nil
 }
 
 func (c *fakeClient) RetrieveTemplateProfiles(name string) ([]capi.Profile, error) {

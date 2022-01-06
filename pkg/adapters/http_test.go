@@ -612,7 +612,7 @@ func TestEntitlementExpiredHeader(t *testing.T) {
 	}
 }
 
-func TestRetrieveProfiles(t *testing.T) {
+func TestRetrieveTemplateProfiles(t *testing.T) {
 	tests := []struct {
 		name       string
 		responder  httpmock.Responder
@@ -620,7 +620,7 @@ func TestRetrieveProfiles(t *testing.T) {
 	}{
 		{
 			name:      "profiles returned",
-			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/profiles.json")),
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/template_profiles.json")),
 			assertFunc: func(t *testing.T, ts []capi.Profile, err error) {
 				assert.ElementsMatch(t, ts, []capi.Profile{
 					{
@@ -709,11 +709,11 @@ func TestRetrieveProfiles(t *testing.T) {
 			client := resty.New()
 			httpmock.ActivateNonDefault(client.GetClient())
 			defer httpmock.DeactivateAndReset()
-			httpmock.RegisterResponder("GET", BaseURI+"/v1/profiles", tt.responder)
+			httpmock.RegisterResponder("GET", BaseURI+"v1/templates/cluster-template/profiles", tt.responder)
 
 			r, err := adapters.NewHttpClient(BaseURI, client, os.Stdout)
 			assert.NoError(t, err)
-			fs, err := r.RetrieveProfiles()
+			fs, err := r.RetrieveTemplateProfiles("cluster-template")
 			tt.assertFunc(t, fs, err)
 		})
 	}

@@ -7,7 +7,6 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/clusters"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/commits"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/credentials"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/get/profiles"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/templates"
 )
 
@@ -37,7 +36,6 @@ gitops get clusters`,
 	cmd.AddCommand(templates.TemplateCommand(endpoint, client))
 	cmd.AddCommand(credentials.CredentialCommand(endpoint, client))
 	cmd.AddCommand(clusters.ClusterCommand(endpoint, client))
-	cmd.AddCommand(profiles.ProfileCommand(endpoint, client))
 
 	return cmd
 }

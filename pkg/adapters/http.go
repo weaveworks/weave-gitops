@@ -466,48 +466,6 @@ func (c *HTTPClient) DeleteClusters(params clusters.DeleteClustersParams) (strin
 	return result.WebURL, nil
 }
 
-// RetrieveProfiles returns the list of all profiles from the cluster service.
-func (c *HTTPClient) RetrieveProfiles() ([]capi.Profile, error) {
-	endpoint := "v1/profiles"
-
-	type ListProfilesResponse struct {
-		Profiles []*capi.Profile
-	}
-
-	var profileList ListProfilesResponse
-	res, err := c.client.R().
-		SetHeader("Accept", "application/json").
-		SetResult(&profileList).
-		Get(endpoint)
-
-	if err != nil {
-		return nil, fmt.Errorf("unable to GET profiles from %q: %w", res.Request.URL, err)
-	}
-
-	if res.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
-	}
-
-	var ps []capi.Profile
-	for _, p := range profileList.Profiles {
-		ps = append(ps, capi.Profile{
-			Name:              p.Name,
-			Home:              p.Home,
-			Sources:           p.Sources,
-			Description:       p.Description,
-			Keywords:          p.Keywords,
-			Maintainers:       p.Maintainers,
-			Icon:              p.Icon,
-			Annotations:       p.Annotations,
-			KubeVersion:       p.KubeVersion,
-			HelmRepository:    p.HelmRepository,
-			AvailableVersions: p.AvailableVersions,
-		})
-	}
-
-	return ps, nil
-}
-
 // RetrieveTemplateProfiles returns the list of all profiles of the
 // specified template.
 func (c *HTTPClient) RetrieveTemplateProfiles(name string) ([]capi.Profile, error) {

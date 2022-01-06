@@ -98,7 +98,7 @@ func getTemplateCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comm
 				return errors.New("template name is required")
 			}
 
-			return capi.GetTemplateParameters(args[0], r, w)
+			return capi.GetTemplateProfiles(args[0], r, w)
 		}
 
 		if len(args) == 0 {
