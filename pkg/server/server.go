@@ -161,6 +161,10 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 
 	app, err := kubeClient.GetApplication(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace})
 	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil, grpcStatus.Errorf(codes.NotFound, "not found: %s", err.Error())
+		}
+
 		return nil, fmt.Errorf("could not get application %q: %w", msg.Name, err)
 	}
 
