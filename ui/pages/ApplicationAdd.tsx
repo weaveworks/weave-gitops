@@ -44,16 +44,15 @@ function convertGitURLToGitProvider(uri: string) {
   return `https://${provider}/${org}/${repo}`;
 }
 
+interface MessageProps {
+  link: string;
+  className?: string;
+  autoMerged: boolean;
+  provider: GitProvider;
+}
+
 const SuccessMessage = styled(
-  ({
-    link,
-    className,
-    autoMerged,
-  }: {
-    className?: string;
-    link: string;
-    autoMerged: boolean;
-  }) => {
+  ({ link, className, autoMerged }: MessageProps) => {
     return (
       <div className={className}>
         <div>
@@ -120,11 +119,8 @@ const FormElement = styled.div`
 `;
 
 function AddApplication({ className }: Props) {
-  const {
-    getCallbackState,
-    clearCallbackState,
-    getProviderToken,
-  } = React.useContext(AppContext);
+  const { getCallbackState, clearCallbackState, getProviderToken } =
+    React.useContext(AppContext);
   const formRef = React.useRef<HTMLFormElement>();
 
   let initialFormState = {
@@ -175,7 +171,10 @@ function AddApplication({ className }: Props) {
       formState.configRepo || formState.url
     );
 
-    setPrLink(`${repoURL.replace(".git", "")}/pulls`);
+    const prPath =
+      formState.provider === GitProvider.GitLab ? "-/merge_requests" : "pulls";
+
+    setPrLink(`${repoURL.replace(".git", "")}/${prPath}`);
   }, [addRes]);
 
   const credentialsDetected =
@@ -203,7 +202,11 @@ function AddApplication({ className }: Props) {
           />
         )}
         {addRes && addRes.success ? (
-          <SuccessMessage autoMerged={formState.autoMerge} link={prLink} />
+          <SuccessMessage
+            provider={formState.provider}
+            autoMerged={formState.autoMerge}
+            link={prLink}
+          />
         ) : (
           <form
             ref={formRef}
