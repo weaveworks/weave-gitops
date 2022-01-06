@@ -66,6 +66,7 @@ var _ = Describe("RepoManager", func() {
 					"1.1.0",
 					"1.1.2",
 				},
+				Layer: "layer-1",
 			}))
 		})
 
