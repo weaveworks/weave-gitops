@@ -103,30 +103,9 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 			}
 		}
 
-		var profilesValues []capi.ProfileValues
-
-		for _, p := range flags.Profiles {
-			valuesPairs := strings.Split(p, ",")
-			profileMap := make(map[string]string)
-
-			for _, pair := range valuesPairs {
-				kv := strings.Split(pair, "=")
-				profileMap[kv[0]] = kv[1]
-			}
-
-			profileJson, err := json.Marshal(profileMap)
-			if err != nil {
-				return err
-			}
-
-			var profileValues capi.ProfileValues
-
-			err = json.Unmarshal(profileJson, &profileValues)
-			if err != nil {
-				return err
-			}
-
-			profilesValues = append(profilesValues, profileValues)
+		profilesValues, err := parseProfileFlags(flags.Profiles)
+		if err != nil {
+			return fmt.Errorf("error parsing profiles: %w", err)
 		}
 
 		if flags.DryRun {
@@ -163,4 +142,34 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 
 		return capi.CreatePullRequestFromTemplate(params, r, os.Stdout)
 	}
+}
+
+func parseProfileFlags(profiles []string) ([]capi.ProfileValues, error) {
+	var profilesValues []capi.ProfileValues
+
+	for _, p := range flags.Profiles {
+		valuesPairs := strings.Split(p, ",")
+		profileMap := make(map[string]string)
+
+		for _, pair := range valuesPairs {
+			kv := strings.Split(pair, "=")
+			profileMap[kv[0]] = kv[1]
+		}
+
+		profileJson, err := json.Marshal(profileMap)
+		if err != nil {
+			return nil, err
+		}
+
+		var profileValues capi.ProfileValues
+
+		err = json.Unmarshal(profileJson, &profileValues)
+		if err != nil {
+			return nil, err
+		}
+
+		profilesValues = append(profilesValues, profileValues)
+	}
+
+	return profilesValues, nil
 }
