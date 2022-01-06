@@ -26,6 +26,24 @@ kustomization/pod-info        True    Release reconciliation succeeded        2.
 
 The UI will remain the same while the CLI will need to be updated like so to match: 
 ```
+***Application details***:
+  Branch:           main
+  config_url:       ssh://git@github.com/sympatheticmoose/weave-gitops-multicluster-demo.git
+  deployment_type:  kustomize
+  Path:             ./
+  source_type:      git
+  URL:              ssh://git@github.com/sympatheticmoose/podinfo-deploy.git
+
+***Reconciliation details***:
+Last successful reconciliation: 2022-01-06 10:43:47 +0000 GMT
+
+NAME                 	READY	MESSAGE                                                        	REVISION                                     	SUSPENDED 
+gitrepository/podinfo	True 	Fetched revision: main/1e644628deb645c454f4db167e1041e95e2d0ba3	main/1e644628deb645c454f4db167e1041e95e2d0ba3	False    	
+
+NAME                 	READY	MESSAGE                                                        	REVISION                                     	SUSPENDED 
+kustomization/podinfo	True 	Applied revision: main/1e644628deb645c454f4db167e1041e95e2d0ba3	main/1e644628deb645c454f4db167e1041e95e2d0ba3	False  
+
+***Deployment details***:
 KIND              NAME                     STATUS
 Application       josh-pod-info            ready
 Deployment        backend                  ready
@@ -34,7 +52,6 @@ Pod               backend-6b944d8b-tzxnl   ready
 Deployment        frontend                 ready
 Kustomization     podinfo-deploy           ready
 ```
-
 
 As for scaling, getting status at large volumes I created an eks cluster with this yaml and ran podinfo with 200 replicas.
 ```
