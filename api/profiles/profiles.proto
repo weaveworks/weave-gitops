@@ -75,6 +75,8 @@ message Profile {
   HelmRepository helm_repository = 10;
   // A list of available versions
   repeated string available_versions = 11;
+  // The layer of the profile
+  string layer = 12;
 }
 
 message GetProfilesRequest {
