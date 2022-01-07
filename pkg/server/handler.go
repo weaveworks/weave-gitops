@@ -24,7 +24,7 @@ func AuthEnabled() bool {
 type Config struct {
 	AppConfig      *ApplicationsConfig
 	ProfilesConfig ProfilesConfig
-	AuthConfig     *auth.AuthConfig
+	AuthServer     *auth.AuthServer
 }
 
 func NewHandlers(ctx context.Context, cfg *Config) (http.Handler, error) {
@@ -33,7 +33,7 @@ func NewHandlers(ctx context.Context, cfg *Config) (http.Handler, error) {
 	httpHandler = middleware.WithProviderToken(cfg.AppConfig.JwtClient, httpHandler, cfg.AppConfig.Logger)
 
 	if AuthEnabled() {
-		httpHandler = auth.WithAPIAuth(httpHandler, cfg.AuthConfig)
+		httpHandler = auth.WithAPIAuth(httpHandler, cfg.AuthServer)
 	}
 
 	appsSrv := NewApplicationsServer(cfg.AppConfig)

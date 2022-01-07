@@ -19,16 +19,16 @@ const (
 	// token.
 	RefreshTokenCookieName = "refresh_token"
 	// ScopeProfile is the "profile" scope
-	ScopeProfile = "profile"
+	scopeProfile = "profile"
 	// ScopeEmail is the "email" scope
-	ScopeEmail = "email"
+	scopeEmail = "email"
 )
 
-// RegisterAuthHandler registers the /callback route under a specified prefix.
+// RegisterAuthServer registers the /callback route under a specified prefix.
 // This route is called by the OIDC Provider in order to pass back state after
 // the authentication flow completes.
-func RegisterAuthHandler(mux *http.ServeMux, prefix string, cfg *AuthConfig) {
-	mux.Handle(prefix+"/callback", cfg.callback())
+func RegisterAuthServer(mux *http.ServeMux, prefix string, srv *AuthServer) {
+	mux.Handle(prefix+"/callback", srv)
 }
 
 type principalCtxKey struct{}
@@ -47,17 +47,19 @@ func WithPrincipal(ctx context.Context, p *UserPrincipal) context.Context {
 // WithAPIAuth middleware adds auth validation to API handlers.
 //
 // Unauthorized requests will be denied with a 401 status code.
-func WithAPIAuth(next http.Handler, cfg *AuthConfig) http.Handler {
-	cookieAuth := NewJWTCookiePrincipalGetter(cfg.logger,
-		cfg.verifier(), IDTokenCookieName)
-	headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(cfg.logger, cfg.verifier())
+func WithAPIAuth(next http.Handler, srv *AuthServer) http.Handler {
+	cookieAuth := NewJWTCookiePrincipalGetter(srv.logger,
+		srv.verifier(), IDTokenCookieName)
+	headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.logger, srv.verifier())
+	multi := MultiAuthPrincipal{cookieAuth, headerAuth}
 
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		principal, err := MultiAuthPrincipal{cookieAuth, headerAuth}.Principal(r)
-		if err != nil || principal == nil {
-			cfg.logger.Error(err, "failed to get principal")
+		principal, err := multi.Principal(r)
+		if err != nil {
+			srv.logger.Error(err, "failed to get principal")
+		}
 
-			rw.Header().Set("WWW-Authenticate", `Bearer realm="Weave GitOps"`)
+		if principal == nil || err != nil {
 			http.Error(rw, "Authentication required", http.StatusUnauthorized)
 			return
 		}
@@ -71,17 +73,20 @@ func WithAPIAuth(next http.Handler, cfg *AuthConfig) http.Handler {
 // Unauthorized requests will be redirected to the OIDC Provider.
 // It is meant to be used with routes that serve HTML content,
 // not API routes.
-func WithWebAuth(next http.Handler, cfg *AuthConfig) http.Handler {
-	cookieAuth := NewJWTCookiePrincipalGetter(cfg.logger,
-		cfg.verifier(), IDTokenCookieName)
-	headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(cfg.logger, cfg.verifier())
+func WithWebAuth(next http.Handler, srv *AuthServer) http.Handler {
+	cookieAuth := NewJWTCookiePrincipalGetter(srv.logger,
+		srv.verifier(), IDTokenCookieName)
+	headerAuth := NewJWTAuthorizationHeaderPrincipalGetter(srv.logger, srv.verifier())
+	multi := MultiAuthPrincipal{cookieAuth, headerAuth}
 
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		principal, err := MultiAuthPrincipal{cookieAuth, headerAuth}.Principal(r)
-		if err != nil || principal == nil {
-			cfg.logger.Error(err, "failed to get principal")
+		principal, err := multi.Principal(r)
+		if err != nil {
+			srv.logger.Error(err, "failed to get principal")
+		}
 
-			startAuthFlow(rw, r, cfg)
+		if principal == nil || err != nil {
+			startAuthFlow(rw, r, srv)
 			return
 		}
 
@@ -89,8 +94,8 @@ func WithWebAuth(next http.Handler, cfg *AuthConfig) http.Handler {
 	})
 }
 
-func startAuthFlow(rw http.ResponseWriter, r *http.Request, cfg *AuthConfig) {
-	nonce, err := generateNonce(32)
+func startAuthFlow(rw http.ResponseWriter, r *http.Request, srv *AuthServer) {
+	nonce, err := generateNonce()
 	if err != nil {
 		http.Error(rw, fmt.Sprintf("failed to generate nonce: %v", err), http.StatusInternalServerError)
 		return
@@ -109,17 +114,17 @@ func startAuthFlow(rw http.ResponseWriter, r *http.Request, cfg *AuthConfig) {
 
 	var scopes []string
 	// "openid", "offline_access" and "email" scopes added by default
-	scopes = append(scopes, ScopeProfile)
-	authCodeUrl := cfg.oauth2Config(scopes).AuthCodeURL(state)
+	scopes = append(scopes, scopeProfile)
+	authCodeUrl := srv.oauth2Config(scopes).AuthCodeURL(state)
 
 	// Issue state cookie
-	http.SetCookie(rw, cfg.createCookie(StateCookieName, state))
+	http.SetCookie(rw, srv.createCookie(StateCookieName, state))
 
 	http.Redirect(rw, r, authCodeUrl, http.StatusSeeOther)
 }
 
-func generateNonce(n int) (string, error) {
-	b := make([]byte, n)
+func generateNonce() (string, error) {
+	b := make([]byte, 32)
 
 	_, err := rand.Read(b)
 	if err != nil {

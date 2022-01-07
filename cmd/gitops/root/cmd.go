@@ -135,7 +135,7 @@ func RootCmd(client *resty.Client) *cobra.Command {
 	rootCmd.AddCommand(uninstall.Cmd)
 	rootCmd.AddCommand(version.Cmd)
 	rootCmd.AddCommand(flux.Cmd)
-	rootCmd.AddCommand(ui.Command())
+	rootCmd.AddCommand(ui.NewCommand())
 	rootCmd.AddCommand(get.GetCommand(&options.endpoint, client))
 	rootCmd.AddCommand(add.GetCommand(&options.endpoint, client))
 	rootCmd.AddCommand(delete.DeleteCommand(&options.endpoint, client))

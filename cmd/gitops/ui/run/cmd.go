@@ -5,6 +5,7 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -41,13 +42,13 @@ type OIDCAuthenticationOptions struct {
 	ClientID       string
 	ClientSecret   string
 	RedirectURL    string
-	CookieDuration string
+	CookieDuration time.Duration
 }
 
 var options Options
 
-// Command returns the `ui run` command
-func Command() *cobra.Command {
+// NewCommand returns the `ui run` command
+func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "run [--log]",
 		Short: "Runs gitops ui",
@@ -67,7 +68,7 @@ func Command() *cobra.Command {
 		cmd.Flags().StringVar(&options.OIDC.ClientID, "oidc-client-id", "", "The client ID for the OpenID Connect client")
 		cmd.Flags().StringVar(&options.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
 		cmd.Flags().StringVar(&options.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
-		cmd.Flags().StringVar(&options.OIDC.CookieDuration, "oidc-cookie-duration", "1h", "The duration of the ID token cookie. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
+		cmd.Flags().DurationVar(&options.OIDC.CookieDuration, "oidc-cookie-duration", time.Hour, "The duration of the ID token cookie. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
 	}
 
 	return cmd
@@ -111,7 +112,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	profilesConfig := server.NewProfilesConfig(rawClient, options.HelmRepoNamespace, options.HelmRepoName)
 
-	var authConfig *auth.AuthConfig
+	var authServer *auth.AuthServer
 
 	if server.AuthEnabled() {
 		_, err := url.Parse(options.OIDC.IssuerURL)
@@ -129,27 +130,31 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			oidcIssueSecureCookies = true
 		}
 
-		oidcCookieDuration, err := time.ParseDuration(options.OIDC.CookieDuration)
+		srv, err := auth.NewAuthServer(cmd.Context(), appConfig.Logger, http.DefaultClient,
+			auth.AuthConfig{
+				OIDCConfig: auth.OIDCConfig{
+					IssuerURL:    options.OIDC.IssuerURL,
+					ClientID:     options.OIDC.ClientID,
+					ClientSecret: options.OIDC.ClientSecret,
+					RedirectURL:  options.OIDC.RedirectURL,
+				},
+				CookieConfig: auth.CookieConfig{
+					CookieDuration:     options.OIDC.CookieDuration,
+					IssueSecureCookies: oidcIssueSecureCookies,
+				},
+			},
+		)
 		if err != nil {
-			return fmt.Errorf("invalid cookie duration: %w", err)
+			return fmt.Errorf("could not create auth server: %w", err)
 		}
 
-		cfg, err := auth.NewAuthConfig(cmd.Context(), options.OIDC.IssuerURL,
-			options.OIDC.ClientID, options.OIDC.ClientSecret, options.OIDC.RedirectURL,
-			oidcIssueSecureCookies, oidcCookieDuration, http.DefaultClient,
-			appConfig.Logger)
-		if err != nil {
-			return fmt.Errorf("could not create auth config: %w", err)
-		}
+		appConfig.Logger.Info("Registering callback route")
+		auth.RegisterAuthServer(mux, "/oauth2", srv)
 
-		cfg.Logger().Info("Registering callback route")
-		// Register /callback handler with mux
-		auth.RegisterAuthHandler(mux, "/oauth2", cfg)
-
-		authConfig = cfg
+		authServer = srv
 	}
 
-	appAndProfilesHandlers, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig, AuthConfig: authConfig})
+	appAndProfilesHandlers, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig, AuthServer: authServer})
 	if err != nil {
 		return fmt.Errorf("could not create handler: %w", err)
 	}
@@ -164,7 +169,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		// Redirect all non-file requests to index.html, where the JS routing will take over.
 		if extension == "" {
 			if server.AuthEnabled() {
-				auth.WithWebAuth(redirector, authConfig).ServeHTTP(w, req)
+				auth.WithWebAuth(redirector, authServer).ServeHTTP(w, req)
 			} else {
 				redirector(w, req)
 			}
@@ -173,7 +178,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		assetHandler.ServeHTTP(w, req)
 	}))
 
-	addr := "0.0.0.0:" + options.Port
+	addr := net.JoinHostPort("0.0.0.0", options.Port)
 	srv := &http.Server{
 		Addr:    addr,
 		Handler: mux,

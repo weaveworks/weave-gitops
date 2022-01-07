@@ -102,9 +102,8 @@ func parseJWTToken(ctx context.Context, verifier *oidc.IDTokenVerifier, rawIDTok
 	return &UserPrincipal{ID: claims.Email, Groups: claims.Groups}, nil
 }
 
-// MultiAuth combines the JWTCookie and JWTAuthorizationHeader
-// principal getters together to look for a principal first in
-// a cookie and then in an Authorization header.
+// MultiAuthPrincipal looks for a principal in an array of principal getters and
+// if it finds an error or a principal it returns, otherwise it returns (nil,nil).
 type MultiAuthPrincipal []PrincipalGetter
 
 func (m MultiAuthPrincipal) Principal(r *http.Request) (*UserPrincipal, error) {
