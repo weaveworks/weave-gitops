@@ -8,8 +8,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
 
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
-
 	"github.com/weaveworks/weave-gitops/pkg/models"
 
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -29,18 +27,16 @@ type Install struct {
 	gitClient         git.Git
 	gitProviderClient gitproviders.GitProvider
 	log               logger.Logger
-	osysClient        osys.Osys
 	gitOpsDirWriter   gitopswriter.GitOpsDirectoryWriter
 }
 
-func NewInstaller(fluxClient flux.Flux, kubeClient kube.Kube, gitClient git.Git, gitProviderClient gitproviders.GitProvider, log logger.Logger, osysClient osys.Osys, gitOpsDirWriter gitopswriter.GitOpsDirectoryWriter) Installer {
+func NewInstaller(fluxClient flux.Flux, kubeClient kube.Kube, gitClient git.Git, gitProviderClient gitproviders.GitProvider, log logger.Logger, gitOpsDirWriter gitopswriter.GitOpsDirectoryWriter) Installer {
 	return &Install{
 		fluxClient:        fluxClient,
 		kubeClient:        kubeClient,
 		gitClient:         gitClient,
 		gitProviderClient: gitProviderClient,
 		log:               log,
-		osysClient:        osysClient,
 		gitOpsDirWriter:   gitOpsDirWriter,
 	}
 }

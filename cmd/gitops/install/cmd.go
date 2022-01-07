@@ -124,7 +124,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	repoWriter := gitrepo.NewRepoWriter(configURL, gitProvider, gitClient, log)
 	automationGen := automation.NewAutomationGenerator(gitProvider, fluxClient, log)
 	gitOpsDirWriter := gitopswriter.NewGitOpsDirectoryWriter(automationGen, repoWriter, osysClient, log)
-	installer := install.NewInstaller(fluxClient, kubeClient, gitClient, gitProvider, log, osysClient, gitOpsDirWriter)
+	installer := install.NewInstaller(fluxClient, kubeClient, gitClient, gitProvider, log, gitOpsDirWriter)
 
 	if err = installer.Install(namespace, configURL, installParams.AutoMerge); err != nil {
 		return fmt.Errorf("failed installing: %w", err)
