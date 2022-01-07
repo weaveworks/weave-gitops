@@ -53,6 +53,10 @@ func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, auto
 		return fmt.Errorf("failed getting cluster name: %w", err)
 	}
 
+	if _, err = i.fluxClient.Install(namespace, false); err != nil {
+		return fmt.Errorf("failed intalling flux: %w", err)
+	}
+
 	manifests, err := automation.BootstrapManifests(i.fluxClient, clusterName, namespace, configURL)
 	if err != nil {
 		return fmt.Errorf("failed getting gitops manifests: %w", err)
