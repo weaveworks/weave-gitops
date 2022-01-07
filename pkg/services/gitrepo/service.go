@@ -14,7 +14,7 @@ import (
 
 type RepoWriter interface {
 	CreatePullRequest(ctx context.Context, info gitproviders.PullRequestInfo) error
-	WriteAndMerge(ctx context.Context, repoDir, commitMsg string, manifests []automation.AutomationManifest) error
+	WriteAndMerge(ctx context.Context, repoDir, commitMsg string, manifests []automation.Manifest) error
 	CloneRepo(ctx context.Context, branch string) (func(), string, error)
 	GetDefaultBranch(ctx context.Context) (string, error)
 	CommitAndPush(ctx context.Context, commitMsg string, filters ...func(string) bool) error
@@ -47,7 +47,7 @@ func (rw *RepoWriterSvc) CreatePullRequest(ctx context.Context, info gitprovider
 	return nil
 }
 
-func (rw *RepoWriterSvc) WriteAndMerge(ctx context.Context, repoDir, commitMsg string, manifests []automation.AutomationManifest) error {
+func (rw *RepoWriterSvc) WriteAndMerge(ctx context.Context, repoDir, commitMsg string, manifests []automation.Manifest) error {
 	for _, m := range manifests {
 		if err := rw.GitClient.Write(m.Path, m.Content); err != nil {
 			return fmt.Errorf("Failed to write manifest: %w", err)

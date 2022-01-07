@@ -5,13 +5,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
 
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
 
 	"github.com/weaveworks/weave-gitops/pkg/models"
-	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
-	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
 
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -31,9 +30,10 @@ type Install struct {
 	gitProviderClient gitproviders.GitProvider
 	log               logger.Logger
 	osysClient        osys.Osys
+	gitOpsDirWriter   gitopswriter.GitOpsDirectoryWriter
 }
 
-func NewInstaller(fluxClient flux.Flux, kubeClient kube.Kube, gitClient git.Git, gitProviderClient gitproviders.GitProvider, log logger.Logger, osysClient osys.Osys) Installer {
+func NewInstaller(fluxClient flux.Flux, kubeClient kube.Kube, gitClient git.Git, gitProviderClient gitproviders.GitProvider, log logger.Logger, osysClient osys.Osys, gitOpsDirWriter gitopswriter.GitOpsDirectoryWriter) Installer {
 	return &Install{
 		fluxClient:        fluxClient,
 		kubeClient:        kubeClient,
@@ -41,6 +41,7 @@ func NewInstaller(fluxClient flux.Flux, kubeClient kube.Kube, gitClient git.Git,
 		gitProviderClient: gitProviderClient,
 		log:               log,
 		osysClient:        osysClient,
+		gitOpsDirWriter:   gitOpsDirWriter,
 	}
 }
 
@@ -71,13 +72,8 @@ func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, auto
 		}
 	}
 
-	// This might be better outside this Install function
-	// What if we want to write to a different place
 	cluster := models.Cluster{Name: clusterName}
-	repoWriter := gitrepo.NewRepoWriter(configURL, i.gitProviderClient, i.gitClient, i.log)
-	automationGen := automation.NewAutomationGenerator(i.gitProviderClient, i.fluxClient, i.log)
-	gitOpsDirWriter := gitopswriter.NewGitOpsDirectoryWriter(automationGen, repoWriter, i.osysClient, i.log)
-	err = gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, namespace, autoMerge)
+	err = i.gitOpsDirWriter.AssociateCluster(ctx, i.fluxClient, i.gitProviderClient, cluster, configURL, namespace, autoMerge)
 	if err != nil {
 		return fmt.Errorf("failed associating cluster: %w", err)
 	}

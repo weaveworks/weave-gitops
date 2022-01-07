@@ -13,7 +13,7 @@ import (
 )
 
 type ClusterApplier interface {
-	ApplyManifests(ctx context.Context, cluster models.Cluster, namespace string, manifests []automation.AutomationManifest) error
+	ApplyManifests(ctx context.Context, cluster models.Cluster, namespace string, manifests []automation.Manifest) error
 }
 
 type ClusterApplySvc struct {
@@ -30,7 +30,7 @@ func NewClusterApplier(kubeClient kube.Kube) ClusterApplier {
 	}
 }
 
-func (a *ClusterApplySvc) ApplyManifests(ctx context.Context, cluster models.Cluster, namespace string, manifests []automation.AutomationManifest) error {
+func (a *ClusterApplySvc) ApplyManifests(ctx context.Context, cluster models.Cluster, namespace string, manifests []automation.Manifest) error {
 	for _, manifest := range manifests {
 		ms := bytes.Split(manifest.Content, []byte("---\n"))
 

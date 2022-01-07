@@ -4,10 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
-	"github.com/weaveworks/weave-gitops/manifests"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 type UninstallParams struct {
@@ -32,21 +29,21 @@ func (g *Gitops) Uninstall(params UninstallParams) error {
 	g.logger.Actionf("Deleting Weave Gitops manifests")
 
 	if !params.DryRun {
-		wegoAppManifests, err := manifests.GenerateManifests(manifests.Params{AppVersion: version.Version, Namespace: params.Namespace})
-		if err != nil {
-			return fmt.Errorf("error generating wego-app manifests, %w", err)
-		}
-
-		wegoManifests := append(wegoAppManifests, manifests.AppCRD)
-		for _, m := range wegoManifests {
-			if err := g.kube.Delete(ctx, m); err != nil {
-				if !apierrors.IsNotFound(err) {
-					g.logger.Printf("error applying wego-app manifest \n%s: %w", m, err)
-
-					errorOccurred = true
-				}
-			}
-		}
+		//wegoAppManifests, err := manifests.GenerateManifests(manifests.Params{AppVersion: version.Version, Namespace: params.Namespace})
+		//if err != nil {
+		//	return fmt.Errorf("error generating wego-app manifests, %w", err)
+		//}
+		//
+		//wegoManifests := append(wegoAppManifests, manifests.AppCRD)
+		//for _, m := range wegoManifests {
+		//	if err := g.kube.Delete(ctx, m); err != nil {
+		//		if !apierrors.IsNotFound(err) {
+		//			g.logger.Printf("error applying wego-app manifest \n%s: %w", m, err)
+		//
+		//			errorOccurred = true
+		//		}
+		//	}
+		//}
 	}
 
 	if err := g.removeFluxIfMatchingWegoConfig(ctx, params); err != nil {

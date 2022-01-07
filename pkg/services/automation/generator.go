@@ -119,6 +119,21 @@ func (a *AutomationGen) GetSecretRefForPrivateGitSources(ctx context.Context, ur
 	return secretRef, nil
 }
 
+func GetSecretRefForPrivateGitSources(ctx context.Context, gitProvider gitproviders.GitProvider, url gitproviders.RepoURL) (GeneratedSecretName, error) {
+	var secretRef GeneratedSecretName
+
+	visibility, err := gitProvider.GetRepoVisibility(ctx, url)
+	if err != nil {
+		return "", err
+	}
+
+	if *visibility != gitprovider.RepositoryVisibilityPublic {
+		secretRef = CreateRepoSecretName(url)
+	}
+
+	return secretRef, nil
+}
+
 func (a *AutomationGen) generateAppSource(ctx context.Context, app models.Application) (Manifest, error) {
 	var (
 		source []byte

@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/weaveworks/weave-gitops/pkg/flux"
+
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -29,7 +31,7 @@ var _ GitOpsDirectoryWriter = &gitOpsDirectoryWriterSvc{}
 type GitOpsDirectoryWriter interface {
 	AddApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error
 	RemoveApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error
-	AssociateCluster(ctx context.Context, cluster models.Cluster, configURL gitproviders.RepoURL, namespace string, fluxNamespace string, autoMerge bool) error
+	AssociateCluster(ctx context.Context, fluxClient flux.Flux, gitProvider gitproviders.GitProvider, cluster models.Cluster, configURL gitproviders.RepoURL, namespace string, autoMerge bool) error
 }
 
 type gitOpsDirectoryWriterSvc struct {
@@ -40,7 +42,12 @@ type gitOpsDirectoryWriterSvc struct {
 }
 
 func NewGitOpsDirectoryWriter(automationSvc automation.AutomationGenerator, repoWriter gitrepo.RepoWriter, osys osys.Osys, logger logger.Logger) GitOpsDirectoryWriter {
-	return &gitOpsDirectoryWriterSvc{Automation: automationSvc, RepoWriter: repoWriter, Osys: osys, Logger: logger}
+	return &gitOpsDirectoryWriterSvc{
+		Automation: automationSvc,
+		RepoWriter: repoWriter,
+		Osys:       osys,
+		Logger:     logger,
+	}
 }
 
 func (dw *gitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error {
@@ -191,23 +198,30 @@ func (dw *gitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app m
 // AssociateCluster writes the GitOps manifests for the cluster into the repo
 func (dw *gitOpsDirectoryWriterSvc) AssociateCluster(
 	ctx context.Context,
+	fluxClient flux.Flux,
+	gitProvider gitproviders.GitProvider,
 	cluster models.Cluster,
 	configURL gitproviders.RepoURL,
 	namespace string,
-	fluxNamespace string,
 	autoMerge bool) error {
-	auto, err := dw.Automation.GenerateClusterAutomation(ctx, cluster, configURL, namespace)
-	if err != nil {
-		return fmt.Errorf("failed to generate cluster automation: %w", err)
-	}
 
-	wegoConfigManifest, err := auto.GenerateWegoConfigManifest(cluster.Name, fluxNamespace, namespace)
+	manifests, err := automation.GitopsManifests(ctx, fluxClient, gitProvider, cluster.Name, namespace, configURL)
 	if err != nil {
-		return fmt.Errorf("failed generating wego config manifest %w", err)
+		return fmt.Errorf("failed generating gitops manifests: %w", err)
 	}
-
-	manifests := auto.Manifests()
-	manifests = append(manifests, wegoConfigManifest)
+	//auto, err := dw.Automation.GenerateClusterAutomation(ctx, cluster, configURL, namespace)
+	//if err != nil {
+	//	return fmt.Errorf("failed to generate cluster automation: %w", err)
+	//}
+	//
+	//// TODO: Fix this is not including wego config if we keep using AssociateCluster
+	////wegoConfigManifest, err := auto.WegoConfigManifest(cluster.Name, fluxNamespace, namespace)
+	////if err != nil {
+	////	return fmt.Errorf("failed generating wego config manifest %w", err)
+	////}
+	//
+	//manifests := auto.Manifests()
+	//manifests = append(manifests, wegoConfigManifest)
 
 	defaultBranch, err := dw.RepoWriter.GetDefaultBranch(ctx)
 	if err != nil {
@@ -215,9 +229,9 @@ func (dw *gitOpsDirectoryWriterSvc) AssociateCluster(
 	}
 
 	// store a .keep file in the user dir
-	userKeep := automation.AutomationManifest{
+	userKeep := automation.Manifest{
 		Path:    filepath.Join(getUserDirRepoPath(cluster.Name), ".keep"),
-		Content: []byte(strconv.AppendQuote(nil, "# keep")),
+		Content: strconv.AppendQuote(nil, "# keep"),
 	}
 
 	manifests = append(manifests, userKeep)
@@ -262,35 +276,35 @@ func (dw *gitOpsDirectoryWriterSvc) AssociateCluster(
 	return nil
 }
 
-func addKustomizeResources(app models.Application, repoDir, clusterName string, resources ...string) (automation.AutomationManifest, error) {
+func addKustomizeResources(app models.Application, repoDir, clusterName string, resources ...string) (automation.Manifest, error) {
 	userKustomizationRepoPath := getUserKustomizationRepoPath(clusterName)
 	userKustomization := filepath.Join(repoDir, userKustomizationRepoPath)
 
 	k, err := automation.GetOrCreateKustomize(userKustomization, clusterName, app.Namespace)
 	if err != nil {
-		return automation.AutomationManifest{}, err
+		return automation.Manifest{}, err
 	}
 
 	k.Resources = append(k.Resources, resources...)
 
 	userKustomizationManifest, err := yaml.Marshal(&k)
 	if err != nil {
-		return automation.AutomationManifest{}, fmt.Errorf("failed to marshal kustomize %v : %w", k, err)
+		return automation.Manifest{}, fmt.Errorf("failed to marshal kustomize %v : %w", k, err)
 	}
 
-	return automation.AutomationManifest{
+	return automation.Manifest{
 		Path:    userKustomizationRepoPath,
 		Content: userKustomizationManifest,
 	}, nil
 }
 
-func removeKustomizeResources(app models.Application, repoDir, clusterName string, resources ...string) (automation.AutomationManifest, error) {
+func removeKustomizeResources(app models.Application, repoDir, clusterName string, resources ...string) (automation.Manifest, error) {
 	userKustomizationRepoPath := getUserKustomizationRepoPath(clusterName)
 	userKustomization := filepath.Join(repoDir, userKustomizationRepoPath)
 
 	k, err := automation.GetOrCreateKustomize(userKustomization, clusterName, app.Namespace)
 	if err != nil {
-		return automation.AutomationManifest{}, err
+		return automation.Manifest{}, err
 	}
 
 	oldResources := k.Resources
@@ -315,10 +329,10 @@ func removeKustomizeResources(app models.Application, repoDir, clusterName strin
 
 	userKustomizationManifest, err := yaml.Marshal(&k)
 	if err != nil {
-		return automation.AutomationManifest{}, fmt.Errorf("failed to marshal kustomize %v : %w", k, err)
+		return automation.Manifest{}, fmt.Errorf("failed to marshal kustomize %v : %w", k, err)
 	}
 
-	return automation.AutomationManifest{
+	return automation.Manifest{
 		Path:    userKustomizationRepoPath,
 		Content: userKustomizationManifest,
 	}, nil

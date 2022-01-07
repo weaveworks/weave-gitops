@@ -4,8 +4,23 @@ package install
 // gitops installed, the user will be prompted to install gitops and then the repository will be added.
 
 import (
+	"context"
 	_ "embed"
 	"fmt"
+	"os"
+	"strings"
+
+	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
+	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
+
+	corev1 "k8s.io/api/core/v1"
+
+	"github.com/weaveworks/weave-gitops/cmd/internal"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
+
+	"github.com/weaveworks/weave-gitops/pkg/services"
+
+	"github.com/weaveworks/weave-gitops/pkg/services/install"
 
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 
@@ -46,8 +61,6 @@ repo. If a previous version is installed, then an in-place upgrade will be perfo
 	},
 }
 
-const LabelPartOf = "app.kubernetes.io/part-of"
-
 func init() {
 	Cmd.Flags().BoolVar(&installParams.DryRun, "dry-run", false, "Outputs all the manifests that would be installed")
 	Cmd.Flags().BoolVar(&installParams.AutoMerge, "auto-merge", false, "If set, 'gitops install' will automatically update the default branch for the configuration repository")
@@ -56,7 +69,7 @@ func init() {
 }
 
 func installRunCmd(cmd *cobra.Command, args []string) error {
-	//ctx := context.Background()
+	ctx := context.Background()
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
 	configURL, err := gitproviders.NewRepoURL(installParams.ConfigRepo)
@@ -76,15 +89,58 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
-	manifests, err := automation.GitopsManifests(fluxClient, kubeClient, namespace, configURL)
+	// get cluster name here instead
+	clusterName, err := kubeClient.GetClusterName(ctx)
 	if err != nil {
-		return fmt.Errorf("failed getting gitops manifests: %w", err)
+		return err
 	}
 
 	if installParams.DryRun {
-		for _, manifest := range manifests {
-			fmt.Println(manifest)
+		// Should we include the manifest that needs the secret ref in dry run?
+		manifests, err := automation.BootstrapManifests(fluxClient, clusterName, namespace, configURL)
+		if err != nil {
+			return fmt.Errorf("failed getting gitops manifests: %w", err)
 		}
+		for _, manifest := range manifests {
+			fmt.Println(manifest.Content)
+		}
+		return nil
+	}
+
+	log := internal.NewCLILogger(os.Stdout)
+	providerClient := internal.NewGitProviderClient(osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
+
+	factory := services.NewFactory(fluxClient, log)
+
+	// We need this here otherwise GetGitClients is going to fail
+	// as it needs the namespace created to apply the secret
+	namespaceObj := &corev1.Namespace{}
+	namespaceObj.Name = namespace
+	if err := kubeClient.Raw().Create(ctx, namespaceObj); err != nil {
+		if !strings.Contains(err.Error(), "already exists") {
+			return fmt.Errorf("failed creating namespace %s: %w", namespace, err)
+		}
+	}
+
+	// This is creating the secret, uploads it and applies it to the cluster
+	gitClient, gitProvider, err := factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
+		URL:       installParams.ConfigRepo,
+		Namespace: namespace,
+		DryRun:    installParams.DryRun,
+	})
+	if err != nil {
+		return fmt.Errorf("failed getting git clients: %w", err)
+	}
+
+	// This might be better outside this Install function
+	// What if we want to write to a different place
+	repoWriter := gitrepo.NewRepoWriter(configURL, gitProvider, gitClient, log)
+	automationGen := automation.NewAutomationGenerator(gitProvider, fluxClient, log)
+	gitOpsDirWriter := gitopswriter.NewGitOpsDirectoryWriter(automationGen, repoWriter, osysClient, log)
+	installer := install.NewInstaller(fluxClient, kubeClient, gitClient, gitProvider, log, osysClient, gitOpsDirWriter)
+
+	if err = installer.Install(namespace, configURL, installParams.AutoMerge); err != nil {
+		return fmt.Errorf("failed installing: %w", err)
 	}
 
 	//k, _, err := kube.NewKubeHTTPClient()

@@ -1,10 +1,8 @@
 package gitops
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strconv"
 
@@ -15,7 +13,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	kyaml "sigs.k8s.io/yaml"
 
-	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/manifests"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -72,25 +69,25 @@ func (g *Gitops) Install(params InstallParams) (map[string][]byte, error) {
 			return nil, fmt.Errorf("could not apply App CRD: %w", err)
 		}
 
-		version := version.Version
-		if os.Getenv("IS_TEST_ENV") != "" {
-			version = "latest"
-		}
+		//version := version.Version
+		//if os.Getenv("IS_TEST_ENV") != "" {
+		//	version = "latest"
+		//}
 
-		wegoAppManifests, err := manifests.GenerateManifests(manifests.Params{
-			AppVersion: version,
-			Namespace:  params.Namespace,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("error generating wego-app manifests, %w", err)
-		}
-		for _, m := range wegoAppManifests {
-			if err := g.kube.Apply(ctx, m, params.Namespace); err != nil {
-				return nil, fmt.Errorf("error applying wego-app manifest \n%s: %w", m, err)
-			}
-		}
+		//wegoAppManifests, err := manifests.GenerateManifests(manifests.Params{
+		//	AppVersion: version,
+		//	Namespace:  params.Namespace,
+		//})
+		//if err != nil {
+		//	return nil, fmt.Errorf("error generating wego-app manifests, %w", err)
+		//}
+		//for _, m := range wegoAppManifests {
+		//	if err := g.kube.Apply(ctx, m, params.Namespace); err != nil {
+		//		return nil, fmt.Errorf("error applying wego-app manifest \n%s: %w", m, err)
+		//	}
+		//}
 
-		systemManifests["wego-app.yaml"] = bytes.Join(wegoAppManifests, []byte("---\n"))
+		//systemManifests["wego-app.yaml"] = bytes.Join(wegoAppManifests, []byte("---\n"))
 	}
 
 	wegoConfigCM, err := g.saveWegoConfig(ctx, params)
