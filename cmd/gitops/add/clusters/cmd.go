@@ -154,7 +154,6 @@ func parseProfileFlags(profiles []string) ([]capi.ProfileValues, error) {
 	for _, p := range flags.Profiles {
 		valuesPairs := strings.Split(p, ",")
 		profileMap := make(map[string]string)
-		fmt.Println(valuesPairs)
 
 		for _, pair := range valuesPairs {
 			fmt.Println(pair)
