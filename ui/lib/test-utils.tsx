@@ -25,6 +25,8 @@ import {
   ParseRepoURLResponse,
   SyncApplicationRequest,
   SyncApplicationResponse,
+  ValidateProviderTokenRequest,
+  ValidateProviderTokenResponse,
 } from "./api/applications/applications.pb";
 import theme, { muiTheme } from "./theme";
 import { RequestError } from "./types";
@@ -45,6 +47,9 @@ export type ApplicationOverrides = {
   ) => GetGithubAuthStatusResponse;
   ParseRepoURL?: (req: ParseRepoURLRequest) => ParseRepoURLResponse;
   SyncApplication?: (req: SyncApplicationRequest) => SyncApplicationResponse;
+  ValidateProviderToken?: (
+    req: ValidateProviderTokenRequest
+  ) => ValidateProviderTokenResponse;
 };
 
 // Don't make the user wire up all the promise stuff to be interface-compliant
