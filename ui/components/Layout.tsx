@@ -72,6 +72,7 @@ const NavContent = styled.div`
 
 const ContentContainer = styled.div`
   width: 100%;
+  min-height: 100vh;
   padding-top: ${(props) => props.theme.spacing.medium};
   padding-bottom: ${(props) => props.theme.spacing.medium};
   padding-right: ${(props) => props.theme.spacing.medium};
