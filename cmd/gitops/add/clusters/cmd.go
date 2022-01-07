@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
@@ -147,13 +148,25 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 func parseProfileFlags(profiles []string) ([]capi.ProfileValues, error) {
 	var profilesValues []capi.ProfileValues
 
+	// Validate values include alphanumeric or - or .
+	r := regexp.MustCompile(`^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$`)
+
 	for _, p := range flags.Profiles {
 		valuesPairs := strings.Split(p, ",")
 		profileMap := make(map[string]string)
+		fmt.Println(valuesPairs)
 
 		for _, pair := range valuesPairs {
+			fmt.Println(pair)
 			kv := strings.Split(pair, "=")
-			profileMap[kv[0]] = kv[1]
+
+			if kv[0] != "name" && kv[0] != "version" && kv[0] != "values" {
+				return nil, fmt.Errorf("invalid key: %s", kv[0])
+			} else if !r.MatchString(kv[1]) {
+				return nil, fmt.Errorf("invalid value for %s: %s", kv[0], kv[1])
+			} else {
+				profileMap[kv[0]] = kv[1]
+			}
 		}
 
 		profileJson, err := json.Marshal(profileMap)
