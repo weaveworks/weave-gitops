@@ -8,9 +8,12 @@ import (
 	_ "embed"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
+
+	corev1 "k8s.io/api/core/v1"
 
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
@@ -108,6 +111,16 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	providerClient := internal.NewGitProviderClient(osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
 
 	factory := services.NewFactory(fluxClient, log)
+
+	// We need this here otherwise GetGitClients is going to fail
+	// as it needs the namespace created to apply the secret
+	namespaceObj := &corev1.Namespace{}
+	namespaceObj.Name = namespace
+	if err := kubeClient.Raw().Create(ctx, namespaceObj); err != nil {
+		if !strings.Contains(err.Error(), "already exists") {
+			return fmt.Errorf("failed creating namespace %s: %w", namespace, err)
+		}
+	}
 
 	// This is creating the secret, uploads it and applies it to the cluster
 	gitClient, gitProvider, err := factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
