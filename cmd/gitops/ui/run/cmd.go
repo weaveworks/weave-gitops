@@ -17,9 +17,12 @@ import (
 	"github.com/pkg/browser"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
+
+	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
+	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
-	"go.uber.org/zap"
 )
 
 var (
@@ -80,7 +83,17 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create kube http client: %w", err)
 	}
 
-	profilesConfig := server.NewProfilesConfig(rawClient, helmRepoNamespace, helmRepoName)
+	helmCache := cache.NewCache()
+	helmWatcher := watcher.NewWatcher(helmCache)
+
+	go func() {
+		if err := helmWatcher.StartWatcher(); err != nil {
+			log.Error(err, "failed to start watcher")
+			os.Exit(1)
+		}
+	}()
+
+	profilesConfig := server.NewProfilesConfig(rawClient, helmRepoNamespace, helmRepoName, helmCache)
 
 	appAndProfilesHandlers, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig})
 	if err != nil {

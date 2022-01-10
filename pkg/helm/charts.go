@@ -10,7 +10,6 @@ import (
 
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
@@ -21,6 +20,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
+
+	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
+	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 )
 
 // ProfileAnnotation is the annotation that Helm charts must have to indicate
@@ -28,7 +30,7 @@ import (
 const ProfileAnnotation = "weave.works/profile"
 
 // NewRepoManager creates and returns a new RepoManager.
-func NewRepoManager(kc client.Client, cacheDir string) *RepoManager {
+func NewRepoManager(kc client.Client, cacheDir string, cache cache.Cache) *RepoManager {
 	return &RepoManager{
 		Client:   kc,
 		CacheDir: cacheDir,
@@ -37,6 +39,7 @@ func NewRepoManager(kc client.Client, cacheDir string) *RepoManager {
 			RepositoryCache:  cacheDir,
 			RepositoryConfig: path.Join(cacheDir, "/repository.yaml"),
 		},
+		helmCache: cache,
 	}
 }
 
@@ -45,6 +48,7 @@ type RepoManager struct {
 	client.Client
 	CacheDir    string
 	envSettings *cli.EnvSettings
+	helmCache   cache.Cache
 }
 
 // ChartReference is a Helm chart reference, the SourceRef is a Flux
@@ -72,7 +76,7 @@ var Profiles = func(v *repo.ChartVersion) bool {
 }
 
 // GetCharts filters charts using the provided predicate.
-// TODO: Add caching based on the Status Artifact Revision.
+// THIS HERE => TODO: Add caching based on the Status Artifact Revision.
 func (h *RepoManager) GetCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred ChartPredicate) ([]*pb.Profile, error) {
 	chartRepo, err := fetchIndexFile(hr.Status.URL)
 	if err != nil {

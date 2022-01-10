@@ -19,8 +19,11 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
+
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/helm"
+	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
+
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	grpcruntime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -46,9 +49,10 @@ type ProfilesConfig struct {
 	helmRepoNamespace string
 	helmRepoName      string
 	kubeClient        client.Client
+	helmCache         cache.Cache
 }
 
-func NewProfilesConfig(kubeClient client.Client, helmRepoNamespace, helmRepoName string) ProfilesConfig {
+func NewProfilesConfig(kubeClient client.Client, helmRepoNamespace, helmRepoName string, helmCache cache.Cache) ProfilesConfig {
 	zapLog, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatalf("could not create zap logger: %v", err)
@@ -59,6 +63,7 @@ func NewProfilesConfig(kubeClient client.Client, helmRepoNamespace, helmRepoName
 		helmRepoNamespace: helmRepoNamespace,
 		helmRepoName:      helmRepoName,
 		kubeClient:        kubeClient,
+		helmCache:         helmCache,
 	}
 }
 
@@ -82,7 +87,7 @@ func NewProfilesServer(config ProfilesConfig) (pb.ProfilesServer, error) {
 	return &ProfilesServer{
 		KubeClient:        config.kubeClient,
 		Log:               config.logr,
-		HelmChartManager:  helm.NewRepoManager(config.kubeClient, tempDir),
+		HelmChartManager:  helm.NewRepoManager(config.kubeClient, tempDir, config.helmCache),
 		HelmRepoNamespace: config.helmRepoNamespace,
 		HelmRepoName:      config.helmRepoName,
 		cacheDir:          tempDir,

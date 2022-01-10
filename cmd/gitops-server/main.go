@@ -9,7 +9,10 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
+	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
@@ -52,7 +55,13 @@ func NewAPIServerCommand() *cobra.Command {
 				return fmt.Errorf("could not create kube http client: %w", err)
 			}
 
-			profilesConfig := server.NewProfilesConfig(rawClient, "default", "weaveworks-charts")
+			helmCache := cache.NewCache()
+			helmWatcher := watcher.NewWatcher(helmCache)
+			// TODO: check this error
+			go helmWatcher.StartWatcher()
+
+			// Create the cache here as well and pass it in through the profiles Config thing.
+			profilesConfig := server.NewProfilesConfig(rawClient, "default", "weaveworks-charts", helmCache)
 
 			s, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig})
 			if err != nil {
