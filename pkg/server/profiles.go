@@ -96,7 +96,11 @@ func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesReq
 		return nil, fmt.Errorf("failed to get HelmRepository %q/%q", s.HelmRepoNamespace, s.HelmRepoName)
 	}
 
-	ps := s.helmCache.Get(s.helmCache.Key(helmRepo.Namespace, helmRepo.Name))
+	ps, err := s.helmCache.Get(s.helmCache.Key(helmRepo.Namespace, helmRepo.Name))
+	if err != nil {
+		return nil, err
+	}
+
 	if ps == nil {
 		return &pb.GetProfilesResponse{
 			Profiles: []*pb.Profile{},
@@ -139,8 +143,8 @@ func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfil
 	//	Namespace:  helmRepo.ObjectMeta.Namespace,
 	//}
 
-	data := s.helmCache.Get(s.helmCache.Key(helmRepo.Namespace, helmRepo.Name))
-	if data == nil {
+	data, err := s.helmCache.Get(s.helmCache.Key(helmRepo.Namespace, helmRepo.Name))
+	if data == nil || err != nil {
 		// is not found
 		return nil, nil
 	}
@@ -150,12 +154,11 @@ func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfil
 		// is not found for this version and profile name.
 		return nil, nil
 	}
+
 	valuesBytes, ok := versions[msg.ProfileVersion]
 	if !ok {
 		return nil, nil
 	}
-	//ref := &helm.ChartReference{Chart: msg.ProfileName, Version: msg.ProfileVersion, SourceRef: sourceRef}
-	//valuesBytes, err := s.HelmChartManager.GetValuesFile(ctx, helmRepo, ref, chartutil.ValuesfileName)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve values file from Helm chart '%s' (%s): %w", msg.ProfileName, msg.ProfileVersion, err)

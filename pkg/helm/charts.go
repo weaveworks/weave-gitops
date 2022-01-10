@@ -8,7 +8,6 @@ import (
 	"path"
 	"sort"
 
-	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
@@ -55,12 +54,10 @@ type RepoManager struct {
 	envSettings *cli.EnvSettings
 }
 
-// ChartReference is a Helm chart reference, the SourceRef is a Flux
-// SourceReference for the Helm chart.
+// ChartReference is a Helm chart reference
 type ChartReference struct {
-	Chart     string
-	Version   string
-	SourceRef helmv2beta1.CrossNamespaceObjectReference
+	Chart   string
+	Version string
 }
 
 // DefaultChartGetter provides default ways to get a chart index.yaml based on
@@ -80,7 +77,6 @@ var Profiles = func(v *repo.ChartVersion) bool {
 }
 
 // GetCharts filters charts using the provided predicate.
-// THIS HERE => TODO: Add caching based on the Status Artifact Revision.
 func (h *RepoManager) GetCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred ChartPredicate) ([]*pb.Profile, error) {
 	chartRepo, err := fetchIndexFile(hr.Status.URL)
 	if err != nil {
@@ -131,6 +127,7 @@ func (h *RepoManager) GetCharts(ctx context.Context, hr *sourcev1beta1.HelmRepos
 }
 
 // GetValuesFile fetches the value file from a chart.
+// When I call this from the caching thing, call it with chartutil.ValuesfileName.
 func (h *RepoManager) GetValuesFile(ctx context.Context, helmRepo *sourcev1beta1.HelmRepository, c *ChartReference, filename string) ([]byte, error) {
 	if err := h.updateCache(ctx, helmRepo); err != nil {
 		return nil, fmt.Errorf("updating cache: %w", err)

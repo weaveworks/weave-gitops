@@ -11,23 +11,24 @@ import (
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . Cache
 type Cache interface {
-	Add(key string, value Data)
+	Add(key string, value Data) error
 	// Get always returns everything from the cache.
-	Get(key string) *Data
-	// I will need a GetValues as well, because that works differently.
-	Key(namespace, name string) string
+	Get(key string) (*Data, error)
+	Key(helmNamespace, helmName string) string
 }
 
 // Data is explicit data for a specific profile including values.
 type Data struct {
 	Profiles []*pb.Profile
 	// TODO: This should be a map based on name and version of the profiles that this data contains for easy access.
-	// How will I store this? ( path revision something something ).
+	// How will I store this? ( path revision something something might still work ). Or always overwrite?
 	// ProfileName / ProfileVersion -> values
+	// Maye there is a better way to cache this?
 	Values map[string]map[string][]byte // TODO store on disk because it can be rather ram intensive
 }
 
 // HelmCache is used to cache profiles data from scanner helm repositories.
+// TODO: Turn this into a file based cache.
 type HelmCache struct {
 	cache map[string]*Data
 	mut   *sync.RWMutex
@@ -42,28 +43,22 @@ func NewCache() *HelmCache {
 }
 
 // Add adds a new entry to the cache. The key should be generated using MakeKey function.
-func (c *HelmCache) Add(key string, value Data) {
+func (c *HelmCache) Add(key string, value Data) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	c.cache[key] = &value
-}
-
-func (c *HelmCache) Remove(key string) {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-	delete(c.cache, key)
+	return nil
 }
 
 // Get will return nil in case the data cannot be found but no error.
-func (c *HelmCache) Get(key string) *Data {
+func (c *HelmCache) Get(key string) (*Data, error) {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 
-	return c.cache[key]
+	return c.cache[key], nil
 }
 
 // Key defines the way a key for a specific data is generated.
-// format: Repo/Chart/Version
-func (c *HelmCache) Key(namespace, name string) string {
-	return fmt.Sprintf("%s/%s", namespace, name)
+func (c *HelmCache) Key(helmNamespace, helmName string) string {
+	return fmt.Sprintf("%s/%s", helmNamespace, helmName)
 }
