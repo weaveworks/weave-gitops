@@ -84,7 +84,11 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	helmCache := cache.NewCache()
-	helmWatcher := watcher.NewWatcher(helmCache)
+	helmWatcher, err := watcher.NewWatcher(rawClient, helmCache)
+
+	if err != nil {
+		return fmt.Errorf("failed to start the watcher: %w", err)
+	}
 
 	go func() {
 		if err := helmWatcher.StartWatcher(); err != nil {
@@ -93,7 +97,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 	}()
 
-	profilesConfig := server.NewProfilesConfig(rawClient, helmRepoNamespace, helmRepoName, helmCache)
+	profilesConfig := server.NewProfilesConfig(helmRepoNamespace, helmRepoName)
 
 	appAndProfilesHandlers, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig})
 	if err != nil {

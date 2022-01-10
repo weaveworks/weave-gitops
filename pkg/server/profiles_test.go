@@ -10,7 +10,6 @@ import (
 
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/server"
-	fakes "github.com/weaveworks/weave-gitops/pkg/server/serverfakes"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"

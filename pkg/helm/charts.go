@@ -22,15 +22,21 @@ import (
 	"sigs.k8s.io/yaml"
 
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
-	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 )
+
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate . HelmRepoManager
+type HelmRepoManager interface {
+	GetCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred ChartPredicate) ([]*pb.Profile, error)
+	GetValuesFile(ctx context.Context, helmRepo *sourcev1beta1.HelmRepository, c *ChartReference, filename string) ([]byte, error)
+}
 
 // ProfileAnnotation is the annotation that Helm charts must have to indicate
 // that they provide a Profile.
 const ProfileAnnotation = "weave.works/profile"
 
 // NewRepoManager creates and returns a new RepoManager.
-func NewRepoManager(kc client.Client, cacheDir string, cache cache.Cache) *RepoManager {
+func NewRepoManager(kc client.Client, cacheDir string) *RepoManager {
 	return &RepoManager{
 		Client:   kc,
 		CacheDir: cacheDir,
@@ -39,7 +45,6 @@ func NewRepoManager(kc client.Client, cacheDir string, cache cache.Cache) *RepoM
 			RepositoryCache:  cacheDir,
 			RepositoryConfig: path.Join(cacheDir, "/repository.yaml"),
 		},
-		helmCache: cache,
 	}
 }
 
@@ -48,7 +53,6 @@ type RepoManager struct {
 	client.Client
 	CacheDir    string
 	envSettings *cli.EnvSettings
-	helmCache   cache.Cache
 }
 
 // ChartReference is a Helm chart reference, the SourceRef is a Flux

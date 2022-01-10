@@ -6,22 +6,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
 
-	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"go.uber.org/zap"
-	"helm.sh/helm/v3/pkg/chartutil"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
 
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
-	"github.com/weaveworks/weave-gitops/pkg/helm"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -37,22 +33,14 @@ const (
 	JsonType        = "application/json"
 )
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
-//counterfeiter:generate . HelmRepoManager
-type HelmRepoManager interface {
-	GetCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred helm.ChartPredicate) ([]*pb.Profile, error)
-	GetValuesFile(ctx context.Context, helmRepo *sourcev1beta1.HelmRepository, c *helm.ChartReference, filename string) ([]byte, error)
-}
-
 type ProfilesConfig struct {
 	logr              logr.Logger
 	helmRepoNamespace string
 	helmRepoName      string
-	kubeClient        client.Client
 	helmCache         cache.Cache
 }
 
-func NewProfilesConfig(kubeClient client.Client, helmRepoNamespace, helmRepoName string, helmCache cache.Cache) ProfilesConfig {
+func NewProfilesConfig(helmRepoNamespace, helmRepoName string) ProfilesConfig {
 	zapLog, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatalf("could not create zap logger: %v", err)
@@ -62,8 +50,6 @@ func NewProfilesConfig(kubeClient client.Client, helmRepoNamespace, helmRepoName
 		logr:              zapr.NewLogger(zapLog),
 		helmRepoNamespace: helmRepoNamespace,
 		helmRepoName:      helmRepoName,
-		kubeClient:        kubeClient,
-		helmCache:         helmCache,
 	}
 }
 
@@ -72,26 +58,19 @@ type ProfilesServer struct {
 
 	KubeClient        client.Client
 	Log               logr.Logger
-	HelmChartManager  HelmRepoManager
 	HelmRepoName      string
 	HelmRepoNamespace string
 	cacheDir          string
+	helmCache         cache.Cache
 }
 
-func NewProfilesServer(config ProfilesConfig) (pb.ProfilesServer, error) {
-	tempDir, err := ioutil.TempDir("", "helmrepocache")
-	if err != nil {
-		return nil, err
-	}
-
+func NewProfilesServer(config ProfilesConfig) pb.ProfilesServer {
 	return &ProfilesServer{
-		KubeClient:        config.kubeClient,
 		Log:               config.logr,
-		HelmChartManager:  helm.NewRepoManager(config.kubeClient, tempDir, config.helmCache),
 		HelmRepoNamespace: config.helmRepoNamespace,
 		HelmRepoName:      config.helmRepoName,
-		cacheDir:          tempDir,
-	}, nil
+		helmCache:         config.helmCache,
+	}
 }
 
 func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesRequest) (*pb.GetProfilesResponse, error) {
@@ -117,13 +96,15 @@ func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesReq
 		return nil, fmt.Errorf("failed to get HelmRepository %q/%q", s.HelmRepoNamespace, s.HelmRepoName)
 	}
 
-	ps, err := s.HelmChartManager.GetCharts(ctx, helmRepo, helm.Profiles)
-	if err != nil {
-		return nil, fmt.Errorf("failed to scan HelmRepository %q/%q for charts: %w", s.HelmRepoNamespace, s.HelmRepoName, err)
+	ps := s.helmCache.Get(s.helmCache.Key(helmRepo.Namespace, helmRepo.Name))
+	if ps == nil {
+		return &pb.GetProfilesResponse{
+			Profiles: []*pb.Profile{},
+		}, nil
 	}
 
 	return &pb.GetProfilesResponse{
-		Profiles: ps,
+		Profiles: ps.Profiles,
 	}, nil
 }
 
@@ -151,15 +132,30 @@ func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfil
 		return nil, fmt.Errorf("failed to get HelmRepository %q/%q", s.HelmRepoNamespace, s.HelmRepoName)
 	}
 
-	sourceRef := helmv2beta1.CrossNamespaceObjectReference{
-		APIVersion: helmRepo.TypeMeta.APIVersion,
-		Kind:       helmRepo.TypeMeta.Kind,
-		Name:       helmRepo.ObjectMeta.Name,
-		Namespace:  helmRepo.ObjectMeta.Namespace,
+	//sourceRef := helmv2beta1.CrossNamespaceObjectReference{
+	//	APIVersion: helmRepo.TypeMeta.APIVersion,
+	//	Kind:       helmRepo.TypeMeta.Kind,
+	//	Name:       helmRepo.ObjectMeta.Name,
+	//	Namespace:  helmRepo.ObjectMeta.Namespace,
+	//}
+
+	data := s.helmCache.Get(s.helmCache.Key(helmRepo.Namespace, helmRepo.Name))
+	if data == nil {
+		// is not found
+		return nil, nil
 	}
 
-	ref := &helm.ChartReference{Chart: msg.ProfileName, Version: msg.ProfileVersion, SourceRef: sourceRef}
-	valuesBytes, err := s.HelmChartManager.GetValuesFile(ctx, helmRepo, ref, chartutil.ValuesfileName)
+	versions, ok := data.Values[msg.ProfileName]
+	if !ok {
+		// is not found for this version and profile name.
+		return nil, nil
+	}
+	valuesBytes, ok := versions[msg.ProfileVersion]
+	if !ok {
+		return nil, nil
+	}
+	//ref := &helm.ChartReference{Chart: msg.ProfileName, Version: msg.ProfileVersion, SourceRef: sourceRef}
+	//valuesBytes, err := s.HelmChartManager.GetValuesFile(ctx, helmRepo, ref, chartutil.ValuesfileName)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve values file from Helm chart '%s' (%s): %w", msg.ProfileName, msg.ProfileVersion, err)

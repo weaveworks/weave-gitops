@@ -1,6 +1,7 @@
 package watcher
 
 import (
+	"io/ioutil"
 	"os"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
@@ -9,9 +10,11 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	"github.com/weaveworks/weave-gitops/pkg/helm"
 	//+kubebuilder:scaffold:imports
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/controller"
@@ -23,13 +26,20 @@ var (
 )
 
 type Watcher struct {
-	cache cache.Cache
+	cache       cache.Cache
+	repoManager *helm.RepoManager
+	kubeClient  client.Client
 }
 
-func NewWatcher(cache cache.Cache) *Watcher {
-	return &Watcher{
-		cache: cache,
+func NewWatcher(kubeClient client.Client, cache cache.Cache) (*Watcher, error) {
+	tempDir, err := ioutil.TempDir("", "helmrepocache")
+	if err != nil {
+		return nil, err
 	}
+	return &Watcher{
+		cache:       cache,
+		repoManager: helm.NewRepoManager(kubeClient, tempDir),
+	}, nil
 }
 
 func (w *Watcher) StartWatcher() error {
@@ -64,9 +74,10 @@ func (w *Watcher) StartWatcher() error {
 	}
 
 	if err = (&controller.HelmWatcherReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-		Cache:  w.cache,
+		Client:      mgr.GetClient(),
+		Scheme:      mgr.GetScheme(),
+		Cache:       w.cache,
+		RepoManager: w.repoManager,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "HelmWatcherReconciler")
 		return err

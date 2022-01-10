@@ -56,12 +56,15 @@ func NewAPIServerCommand() *cobra.Command {
 			}
 
 			helmCache := cache.NewCache()
-			helmWatcher := watcher.NewWatcher(helmCache)
+			helmWatcher, err := watcher.NewWatcher(rawClient, helmCache)
+			if err != nil {
+				return err
+			}
 			// TODO: check this error
 			go helmWatcher.StartWatcher()
 
 			// Create the cache here as well and pass it in through the profiles Config thing.
-			profilesConfig := server.NewProfilesConfig(rawClient, "default", "weaveworks-charts", helmCache)
+			profilesConfig := server.NewProfilesConfig("default", "weaveworks-charts")
 
 			s, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig})
 			if err != nil {
