@@ -36,6 +36,7 @@ func NewWatcher(kubeClient client.Client, cache cache.Cache) (*Watcher, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &Watcher{
 		cache:       cache,
 		repoManager: helm.NewRepoManager(kubeClient, tempDir),
@@ -51,9 +52,9 @@ func (w *Watcher) StartWatcher() error {
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
-		MetricsBindAddress:     ":8080",
+		MetricsBindAddress:     ":9980",
 		Port:                   9443,
-		HealthProbeBindAddress: "8081",
+		HealthProbeBindAddress: ":9981",
 		LeaderElection:         false,
 		LeaderElectionID:       "25a858a4.helm.watcher",
 		Logger:                 ctrl.Log,
