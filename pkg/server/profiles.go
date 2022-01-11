@@ -61,7 +61,7 @@ type ProfilesServer struct {
 	HelmRepoName      string
 	HelmRepoNamespace string
 	cacheDir          string
-	helmCache         cache.Cache
+	HelmCache         cache.Cache
 }
 
 func NewProfilesServer(config ProfilesConfig) pb.ProfilesServer {
@@ -69,7 +69,7 @@ func NewProfilesServer(config ProfilesConfig) pb.ProfilesServer {
 		Log:               config.logr,
 		HelmRepoNamespace: config.helmRepoNamespace,
 		HelmRepoName:      config.helmRepoName,
-		helmCache:         config.helmCache,
+		HelmCache:         config.helmCache,
 	}
 }
 
@@ -96,7 +96,7 @@ func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesReq
 		return nil, fmt.Errorf("failed to get HelmRepository %q/%q", s.HelmRepoNamespace, s.HelmRepoName)
 	}
 
-	ps, err := s.helmCache.Get(s.helmCache.Key(helmRepo.Namespace, helmRepo.Name))
+	ps, err := s.HelmCache.Get(s.HelmCache.Key(helmRepo.Namespace, helmRepo.Name))
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfil
 	//	Namespace:  helmRepo.ObjectMeta.Namespace,
 	//}
 
-	data, err := s.helmCache.Get(s.helmCache.Key(helmRepo.Namespace, helmRepo.Name))
+	data, err := s.HelmCache.Get(s.HelmCache.Key(helmRepo.Namespace, helmRepo.Name))
 	if data == nil || err != nil {
 		// is not found
 		return nil, nil

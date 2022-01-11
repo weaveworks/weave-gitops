@@ -8,7 +8,6 @@ import (
 	"os"
 	"time"
 
-	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/apis/meta"
 	fluxmeta "github.com/fluxcd/pkg/apis/meta"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
@@ -135,8 +134,8 @@ var _ = Describe("RepoManager", func() {
 		It("returns the values file for a chart", func() {
 			testServer := httptest.NewServer(makeServeMux())
 			helmRepo := makeTestHelmRepository(testServer.URL)
-			chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.1", SourceRef: referenceForRepository(helmRepo)}
-			repoManager := helm.NewRepoManager(makeTestClient(), tempDir, nil)
+			chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.1"}
+			repoManager := helm.NewRepoManager(makeTestClient(), tempDir)
 
 			values, err := repoManager.GetValuesFile(context.TODO(), helmRepo, chartReference, "values.yaml")
 			Expect(err).NotTo(HaveOccurred())
@@ -147,8 +146,8 @@ var _ = Describe("RepoManager", func() {
 			It("errors", func() {
 				testServer := httptest.NewServer(makeServeMux())
 				helmRepo := makeTestHelmRepository(testServer.URL)
-				chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.2", SourceRef: referenceForRepository(helmRepo)}
-				repoManager := helm.NewRepoManager(makeTestClient(), tempDir, nil)
+				chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.2"}
+				repoManager := helm.NewRepoManager(makeTestClient(), tempDir)
 
 				_, err := repoManager.GetValuesFile(context.TODO(), helmRepo, chartReference, "values.yaml")
 				Expect(err).To(MatchError(ContainSubstring(`chart "demo-profile" version "0.0.2" not found`)))
@@ -163,8 +162,8 @@ var _ = Describe("RepoManager", func() {
 				}))
 
 				helmRepo := makeTestHelmRepository(testServer.URL)
-				chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.2", SourceRef: referenceForRepository(helmRepo)}
-				repoManager := helm.NewRepoManager(makeTestClient(), tempDir, nil)
+				chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.2"}
+				repoManager := helm.NewRepoManager(makeTestClient(), tempDir)
 
 				_, err := repoManager.GetValuesFile(context.TODO(), helmRepo, chartReference, "values.yaml")
 				Expect(err).To(MatchError(ContainSubstring(`chart "demo-profile" version "0.0.2" has no downloadable URLs`)))
@@ -177,8 +176,8 @@ var _ = Describe("RepoManager", func() {
 				helmRepo.Spec.SecretRef = &meta.LocalObjectReference{
 					Name: "name",
 				}
-				chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.1", SourceRef: referenceForRepository(helmRepo)}
-				repoManager := helm.NewRepoManager(makeTestClient(), tempDir, nil)
+				chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.1"}
+				repoManager := helm.NewRepoManager(makeTestClient(), tempDir)
 
 				_, err := repoManager.GetValuesFile(context.TODO(), helmRepo, chartReference, "values.yaml")
 				Expect(err).To(MatchError(ContainSubstring("updating cache: failed to build repository entry")))
@@ -188,8 +187,8 @@ var _ = Describe("RepoManager", func() {
 		When("the chart URL is invalid", func() {
 			It("errors", func() {
 				helmRepo := makeTestHelmRepository("http://[::1]:namedport/index.yaml")
-				chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.1", SourceRef: referenceForRepository(helmRepo)}
-				repoManager := helm.NewRepoManager(makeTestClient(), tempDir, nil)
+				chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.1"}
+				repoManager := helm.NewRepoManager(makeTestClient(), tempDir)
 
 				_, err := repoManager.GetValuesFile(context.TODO(), helmRepo, chartReference, "values.yaml")
 				Expect(err).To(MatchError(ContainSubstring("updating cache: error creating chart repository")))
@@ -200,8 +199,8 @@ var _ = Describe("RepoManager", func() {
 			It("errors", func() {
 				testServer := httptest.NewServer(makeFailingServeMux(500))
 				helmRepo := makeTestHelmRepository(testServer.URL)
-				chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.1", SourceRef: referenceForRepository(helmRepo)}
-				repoManager := helm.NewRepoManager(makeTestClient(), tempDir, nil)
+				chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.1"}
+				repoManager := helm.NewRepoManager(makeTestClient(), tempDir)
 
 				_, err := repoManager.GetValuesFile(context.TODO(), helmRepo, chartReference, "values.yaml")
 				Expect(err).To(MatchError(ContainSubstring("updating cache: error downloading index file")))
@@ -216,8 +215,8 @@ var _ = Describe("RepoManager", func() {
 						Name: testSecretName,
 					}
 				})
-				chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.1", SourceRef: referenceForRepository(helmRepo)}
-				repoManager := helm.NewRepoManager(makeTestClient(), tempDir, nil)
+				chartReference := &helm.ChartReference{Chart: "demo-profile", Version: "0.0.1"}
+				repoManager := helm.NewRepoManager(makeTestClient(), tempDir)
 
 				_, err := repoManager.GetValuesFile(context.TODO(), helmRepo, chartReference, "values.yaml")
 				Expect(err).To(MatchError(ContainSubstring(`repository authentication: secrets "https-credentials" not found`)))
@@ -273,15 +272,6 @@ func makeFailingServeMux(code int) *http.ServeMux {
 	mux.Handle("/", http.FileServer(http.Dir("testdata")))
 
 	return mux
-}
-
-func referenceForRepository(s *sourcev1beta1.HelmRepository) helmv2beta1.CrossNamespaceObjectReference {
-	return helmv2beta1.CrossNamespaceObjectReference{
-		APIVersion: s.TypeMeta.APIVersion,
-		Kind:       s.TypeMeta.Kind,
-		Name:       s.ObjectMeta.Name,
-		Namespace:  s.ObjectMeta.Name,
-	}
 }
 
 func makeTestChartIndex(opts ...func(*repo.IndexFile)) *repo.IndexFile {
