@@ -17,7 +17,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/services/automation"
+	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
 )
 
@@ -188,7 +188,7 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 	}
 	manifests["flux-source-resource.yaml"] = gitsource
 
-	system, err := g.genKustomize(automation.ConstrainResourceName(fmt.Sprintf("%s-system", cname)), sourceName,
+	system, err := g.genKustomize(models.ConstrainResourceName(fmt.Sprintf("%s-system", cname)), sourceName,
 		prefixForFlux(filepath.Join(".", clusterPath, git.WegoClusterOSWorkloadDir)), params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create system kustomization manifest: %w", err)
@@ -196,7 +196,7 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 
 	manifests["flux-system-kustomization-resource.yaml"] = system
 
-	user, err := g.genKustomize(automation.ConstrainResourceName(fmt.Sprintf("%s-user", cname)), sourceName,
+	user, err := g.genKustomize(models.ConstrainResourceName(fmt.Sprintf("%s-user", cname)), sourceName,
 		prefixForFlux(filepath.Join(".", clusterPath, git.WegoClusterUserWorkloadDir)), params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user kustomization manifest: %w", err)
@@ -231,7 +231,7 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 }
 
 func (g *Gitops) genSource(branch string, namespace string, normalizedUrl gitproviders.RepoURL) ([]byte, string, error) {
-	secretRef := automation.CreateRepoSecretName(normalizedUrl).String()
+	secretRef := models.CreateRepoSecretName(normalizedUrl).String()
 
 	sourceManifest, err := g.flux.CreateSourceGit(secretRef, normalizedUrl, branch, secretRef, namespace)
 	if err != nil {

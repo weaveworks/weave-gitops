@@ -47,10 +47,6 @@ func NewGitOpsDirectoryWriter(automationSvc automation.AutomationGenerator, repo
 	}
 }
 
-func (dw *gitOpsDirectoryWriterSvc) AssociateCluster(ctx context.Context, clusterName string, manifests []automation.Manifest, autoMerge bool) error {
-	return nil
-}
-
 func (dw *gitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error {
 	auto, err := dw.Automation.GenerateApplicationAutomation(ctx, app, clusterName)
 	if err != nil {
@@ -247,49 +243,35 @@ func (rw *repoWriter) WriteDirectlyToDefaultBranch(ctx context.Context, repoURL 
 	return nil
 }
 
-// Maybe we do not need this function as it is pretty simple ?
-// PullRequest writes the GitOps manifests for the cluster into the repo through a pull request
-func (rw *repoWriter) PullRequest(ctx context.Context, pullRequestInfo gitproviders.PullRequestInfo, repoURL gitproviders.RepoURL) error {
-
-	pr, err := rw.gitProvider.CreatePullRequest(ctx, repoURL, pullRequestInfo)
-	if err != nil {
-		return fmt.Errorf("failed creating pull request: %w", err)
-	}
-
-	rw.log.Println("Pull Request created: %s\n", pr.Get().WebURL)
-
-	return nil
-}
-
-func addKustomizeResources(app models.Application, repoDir, clusterName string, resources ...string) (automation.Manifest, error) {
+func addKustomizeResources(app models.Application, repoDir, clusterName string, resources ...string) (models.Manifest, error) {
 	userKustomizationRepoPath := getUserKustomizationRepoPath(clusterName)
 	userKustomization := filepath.Join(repoDir, userKustomizationRepoPath)
 
 	k, err := automation.GetOrCreateKustomize(userKustomization, clusterName, app.Namespace)
 	if err != nil {
-		return automation.Manifest{}, err
+		return models.Manifest{}, err
 	}
 
 	k.Resources = append(k.Resources, resources...)
 
 	userKustomizationManifest, err := yaml.Marshal(&k)
 	if err != nil {
-		return automation.Manifest{}, fmt.Errorf("failed to marshal kustomize %v : %w", k, err)
+		return models.Manifest{}, fmt.Errorf("failed to marshal kustomize %v : %w", k, err)
 	}
 
-	return automation.Manifest{
+	return models.Manifest{
 		Path:    userKustomizationRepoPath,
 		Content: userKustomizationManifest,
 	}, nil
 }
 
-func removeKustomizeResources(app models.Application, repoDir, clusterName string, resources ...string) (automation.Manifest, error) {
+func removeKustomizeResources(app models.Application, repoDir, clusterName string, resources ...string) (models.Manifest, error) {
 	userKustomizationRepoPath := getUserKustomizationRepoPath(clusterName)
 	userKustomization := filepath.Join(repoDir, userKustomizationRepoPath)
 
 	k, err := automation.GetOrCreateKustomize(userKustomization, clusterName, app.Namespace)
 	if err != nil {
-		return automation.Manifest{}, err
+		return models.Manifest{}, err
 	}
 
 	oldResources := k.Resources
@@ -314,10 +296,10 @@ func removeKustomizeResources(app models.Application, repoDir, clusterName strin
 
 	userKustomizationManifest, err := yaml.Marshal(&k)
 	if err != nil {
-		return automation.Manifest{}, fmt.Errorf("failed to marshal kustomize %v : %w", k, err)
+		return models.Manifest{}, fmt.Errorf("failed to marshal kustomize %v : %w", k, err)
 	}
 
-	return automation.Manifest{
+	return models.Manifest{
 		Path:    userKustomizationRepoPath,
 		Content: userKustomizationManifest,
 	}, nil

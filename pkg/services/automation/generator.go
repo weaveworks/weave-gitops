@@ -26,8 +26,6 @@ import (
 )
 
 const (
-	MaxKubernetesResourceNameLength = 63
-
 	WeGOAppIdentifierLabelKey = "wego.weave.works/app-identifier"
 )
 
@@ -58,8 +56,7 @@ const (
 
 type AutomationGenerator interface {
 	GenerateApplicationAutomation(ctx context.Context, app models.Application, clusterName string) (ApplicationAutomation, error)
-	GenerateClusterAutomation(ctx context.Context, cluster models.Cluster, configURL gitproviders.RepoURL, namespace string) (ClusterAutomation, error)
-	GetSecretRefForPrivateGitSources(ctx context.Context, url gitproviders.RepoURL) (GeneratedSecretName, error)
+	GetSecretRefForPrivateGitSources(ctx context.Context, url gitproviders.RepoURL) (models.GeneratedSecretName, error)
 }
 
 type AutomationGen struct {
@@ -71,21 +68,10 @@ type AutomationGen struct {
 var _ AutomationGenerator = &AutomationGen{}
 
 type ApplicationAutomation struct {
-	AppYaml       Manifest
-	AppAutomation Manifest
-	AppSource     Manifest
-	AppKustomize  Manifest
-}
-
-type Manifest struct {
-	Path    string
-	Content []byte
-}
-
-type GeneratedSecretName string
-
-func (s GeneratedSecretName) String() string {
-	return string(s)
+	AppYaml       models.Manifest
+	AppAutomation models.Manifest
+	AppSource     models.Manifest
+	AppKustomize  models.Manifest
 }
 
 func NewAutomationGenerator(gp gitproviders.GitProvider, flux flux.Flux, logger logger.Logger) AutomationGenerator {
@@ -96,7 +82,7 @@ func NewAutomationGenerator(gp gitproviders.GitProvider, flux flux.Flux, logger 
 	}
 }
 
-func (a *AutomationGen) getAppSecretRef(ctx context.Context, app models.Application) (GeneratedSecretName, error) {
+func (a *AutomationGen) getAppSecretRef(ctx context.Context, app models.Application) (models.GeneratedSecretName, error) {
 	if app.SourceType != models.SourceTypeHelm {
 		return a.GetSecretRefForPrivateGitSources(ctx, app.GitSourceURL)
 	}
@@ -104,8 +90,8 @@ func (a *AutomationGen) getAppSecretRef(ctx context.Context, app models.Applicat
 	return "", nil
 }
 
-func (a *AutomationGen) GetSecretRefForPrivateGitSources(ctx context.Context, url gitproviders.RepoURL) (GeneratedSecretName, error) {
-	var secretRef GeneratedSecretName
+func (a *AutomationGen) GetSecretRefForPrivateGitSources(ctx context.Context, url gitproviders.RepoURL) (models.GeneratedSecretName, error) {
+	var secretRef models.GeneratedSecretName
 
 	visibility, err := a.GitProvider.GetRepoVisibility(ctx, url)
 	if err != nil {
@@ -113,28 +99,13 @@ func (a *AutomationGen) GetSecretRefForPrivateGitSources(ctx context.Context, ur
 	}
 
 	if *visibility != gitprovider.RepositoryVisibilityPublic {
-		secretRef = CreateRepoSecretName(url)
+		secretRef = models.CreateRepoSecretName(url)
 	}
 
 	return secretRef, nil
 }
 
-func GetSecretRefForPrivateGitSources(ctx context.Context, gitProvider gitproviders.GitProvider, url gitproviders.RepoURL) (GeneratedSecretName, error) {
-	var secretRef GeneratedSecretName
-
-	visibility, err := gitProvider.GetRepoVisibility(ctx, url)
-	if err != nil {
-		return "", err
-	}
-
-	if *visibility != gitprovider.RepositoryVisibilityPublic {
-		secretRef = CreateRepoSecretName(url)
-	}
-
-	return secretRef, nil
-}
-
-func (a *AutomationGen) generateAppSource(ctx context.Context, app models.Application) (Manifest, error) {
+func (a *AutomationGen) generateAppSource(ctx context.Context, app models.Application) (models.Manifest, error) {
 	var (
 		source []byte
 		err    error
@@ -142,7 +113,7 @@ func (a *AutomationGen) generateAppSource(ctx context.Context, app models.Applic
 
 	appSecretRef, err := a.getAppSecretRef(ctx, app)
 	if err != nil {
-		return Manifest{}, err
+		return models.Manifest{}, err
 	}
 
 	switch app.SourceType {
@@ -154,14 +125,14 @@ func (a *AutomationGen) generateAppSource(ctx context.Context, app models.Applic
 	case models.SourceTypeHelm:
 		source, err = a.Flux.CreateSourceHelm(app.Name, app.HelmSourceURL, app.Namespace)
 	default:
-		return Manifest{}, fmt.Errorf("unknown source type: %v", app.SourceType)
+		return models.Manifest{}, fmt.Errorf("unknown source type: %v", app.SourceType)
 	}
 
 	if err != nil {
-		return Manifest{}, err
+		return models.Manifest{}, err
 	}
 
-	return Manifest{Path: AppAutomationSourcePath(app), Content: source}, nil
+	return models.Manifest{Path: AppAutomationSourcePath(app), Content: source}, nil
 }
 
 func GetOrCreateKustomize(filename, name, namespace string) (types.Kustomization, error) {
@@ -176,38 +147,24 @@ func GetOrCreateKustomize(filename, name, namespace string) (types.Kustomization
 		return k, nil
 	}
 
-	return CreateKustomize(name, namespace), nil
+	return models.CreateKustomize(name, namespace), nil
 }
 
-func CreateKustomize(name, namespace string, resources ...string) types.Kustomization {
-	var k types.Kustomization
-
-	k.MetaData = &types.ObjectMeta{
-		Name:      name,
-		Namespace: namespace,
-	}
-	k.APIVersion = types.KustomizationVersion
-	k.Kind = types.KustomizationKind
-	k.Resources = resources
-
-	return k
-}
-
-func createAppKustomize(app models.Application, automation ...Manifest) (Manifest, error) {
+func createAppKustomize(app models.Application, automation ...models.Manifest) (models.Manifest, error) {
 	resources := []string{}
 
 	for _, a := range automation {
 		resources = append(resources, filepath.Base(a.Path))
 	}
 
-	k := CreateKustomize(AppDeployName(app), app.Namespace, resources...)
+	k := models.CreateKustomize(AppDeployName(app), app.Namespace, resources...)
 
 	bytes, err := yaml.Marshal(k)
 	if err != nil {
-		return Manifest{}, fmt.Errorf("failed to marshal kustomization for app: %w", err)
+		return models.Manifest{}, fmt.Errorf("failed to marshal kustomization for app: %w", err)
 	}
 
-	return Manifest{Path: AppAutomationKustomizePath(app), Content: bytes}, nil
+	return models.Manifest{Path: AppAutomationKustomizePath(app), Content: bytes}, nil
 }
 
 func AddWegoIgnore(sourceManifest []byte) ([]byte, error) {
@@ -271,11 +228,11 @@ func (a *AutomationGen) GenerateApplicationAutomation(ctx context.Context, app m
 	}, nil
 }
 
-func (aa ApplicationAutomation) Manifests() []Manifest {
-	return append([]Manifest{aa.AppYaml}, aa.AppAutomation, aa.AppSource, aa.AppKustomize)
+func (aa ApplicationAutomation) Manifests() []models.Manifest {
+	return append([]models.Manifest{aa.AppYaml}, aa.AppAutomation, aa.AppSource, aa.AppKustomize)
 }
 
-func (a *AutomationGen) generateAppAutomation(ctx context.Context, app models.Application, clusterName string) (Manifest, error) {
+func (a *AutomationGen) generateAppAutomation(ctx context.Context, app models.Application, clusterName string) (models.Manifest, error) {
 	var (
 		b   []byte
 		err error
@@ -291,16 +248,16 @@ func (a *AutomationGen) generateAppAutomation(ctx context.Context, app models.Ap
 		case models.SourceTypeGit:
 			b, err = a.Flux.CreateHelmReleaseGitRepository(app.Name, app.Name, app.Path, app.Namespace, app.HelmTargetNamespace)
 		default:
-			return Manifest{}, fmt.Errorf("invalid source type: %v", app.SourceType)
+			return models.Manifest{}, fmt.Errorf("invalid source type: %v", app.SourceType)
 		}
 	default:
-		return Manifest{}, fmt.Errorf("invalid automation type: %v", app.AutomationType)
+		return models.Manifest{}, fmt.Errorf("invalid automation type: %v", app.AutomationType)
 	}
 
-	return Manifest{Path: AppAutomationDeployPath(app), Content: sanitizeWegoDirectory(b)}, err
+	return models.Manifest{Path: AppAutomationDeployPath(app), Content: sanitizeWegoDirectory(b)}, err
 }
 
-func generateAppYaml(app models.Application) (Manifest, error) {
+func generateAppYaml(app models.Application) (models.Manifest, error) {
 	wegoapp := AppToWegoApp(app)
 
 	wegoapp.ObjectMeta.Labels = map[string]string{
@@ -309,10 +266,10 @@ func generateAppYaml(app models.Application) (Manifest, error) {
 
 	b, err := yaml.Marshal(&wegoapp)
 	if err != nil {
-		return Manifest{}, fmt.Errorf("could not marshal yaml: %w", err)
+		return models.Manifest{}, fmt.Errorf("could not marshal yaml: %w", err)
 	}
 
-	return Manifest{Path: AppYamlPath(app), Content: sanitizeK8sYaml(b)}, nil
+	return models.Manifest{Path: AppYamlPath(app), Content: sanitizeK8sYaml(b)}, nil
 }
 
 func WegoAppToApp(app wego.Application) (models.Application, error) {
@@ -416,15 +373,6 @@ func AppDeployName(a models.Application) string {
 	return a.Name
 }
 
-func CreateRepoSecretName(gitSourceURL gitproviders.RepoURL) GeneratedSecretName {
-	provider := string(gitSourceURL.Provider())
-	cleanRepoName := replaceUnderscores(gitSourceURL.RepositoryName())
-	qualifiedName := fmt.Sprintf("wego-%s-%s", provider, cleanRepoName)
-	lengthConstrainedName := hashNameIfTooLong(qualifiedName)
-
-	return GeneratedSecretName(lengthConstrainedName)
-}
-
 func SourceKind(a models.Application) ResourceKind {
 	result := ResourceKindGitRepository
 
@@ -463,15 +411,7 @@ func GetAppHash(a models.Application) string {
 }
 
 func GenerateResourceName(url gitproviders.RepoURL) string {
-	return ConstrainResourceName(url.RepositoryName())
-}
-
-func ConstrainResourceName(str string) string {
-	return hashNameIfTooLong(replaceUnderscores(str))
-}
-
-func replaceUnderscores(str string) string {
-	return strings.ReplaceAll(str, "_", "-")
+	return models.ConstrainResourceName(url.RepositoryName())
 }
 
 func (rk ResourceKind) ToGVR() (schema.GroupVersionResource, error) {
@@ -491,18 +431,6 @@ func (rk ResourceKind) ToGVR() (schema.GroupVersionResource, error) {
 	default:
 		return schema.GroupVersionResource{}, fmt.Errorf("no matching schema.GroupVersionResource to the ResourceKind: %s", string(rk))
 	}
-}
-
-func ApplicationNameTooLong(name string) bool {
-	return len(name) > MaxKubernetesResourceNameLength
-}
-
-func hashNameIfTooLong(name string) string {
-	if !ApplicationNameTooLong(name) {
-		return name
-	}
-
-	return fmt.Sprintf("wego-%x", md5.Sum([]byte(name)))
 }
 
 // Remove some problematic fields before saving the yaml files.

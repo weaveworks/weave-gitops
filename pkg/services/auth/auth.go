@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/internal"
 
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
@@ -14,7 +15,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -42,7 +42,7 @@ func NewAuthCLIHandler(name gitproviders.GitProviderName) (BlockingCLIAuthHandle
 }
 
 type SecretName struct {
-	Name      automation.GeneratedSecretName
+	Name      models.GeneratedSecretName
 	Namespace string
 }
 
@@ -100,7 +100,7 @@ func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.Repo
 	}
 
 	secretName := SecretName{
-		Name:      automation.CreateRepoSecretName(repoUrl),
+		Name:      models.CreateRepoSecretName(repoUrl),
 		Namespace: namespace,
 	}
 

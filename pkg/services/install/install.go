@@ -4,8 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-
-	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/weaveworks/weave-gitops/pkg/models"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
 
@@ -54,7 +53,7 @@ func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, auto
 		return fmt.Errorf("failed intalling flux: %w", err)
 	}
 
-	manifests, err := automation.BootstrapManifests(i.fluxClient, clusterName, namespace, configURL)
+	manifests, err := models.BootstrapManifests(i.fluxClient, clusterName, namespace, configURL)
 	if err != nil {
 		return fmt.Errorf("failed getting gitops manifests: %w", err)
 	}
@@ -73,7 +72,7 @@ func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, auto
 		}
 	}
 
-	gitopsManifests, err := automation.GitopsManifests(ctx, i.fluxClient, i.gitProviderClient, clusterName, namespace, configURL)
+	gitopsManifests, err := models.GitopsManifests(ctx, i.fluxClient, i.gitProviderClient, clusterName, namespace, configURL)
 	if err != nil {
 		return fmt.Errorf("failed generating gitops manifests: %w", err)
 	}
@@ -99,29 +98,17 @@ func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, auto
 		CommitMessage: gitopswriter.ClusterCommitMessage,
 		NewBranch:     automation.GetClusterHash(clusterName),
 		TargetBranch:  defaultBranch,
-		Files:         convertManifestsToCommitFiles(manifests),
+		Files:         models.ConvertManifestsToCommitFiles(manifests),
 	}
 
-	err = i.repoWriter.PullRequest(ctx, pullRequestInfo, configURL)
+	pr, err := i.gitProviderClient.CreatePullRequest(ctx, configURL, pullRequestInfo)
 	if err != nil {
 		return fmt.Errorf("failed creating pull request: %w", err)
 	}
 
+	i.log.Println("Pull Request created: %s\n", pr.Get().WebURL)
+
 	return nil
 }
 
-func convertManifestsToCommitFiles(manifests []automation.Manifest) []gitprovider.CommitFile {
 
-	files := make([]gitprovider.CommitFile, 0)
-
-	for _, manifest := range manifests {
-		path := manifest.Path
-		content := string(manifest.Content)
-		files = append(files, gitprovider.CommitFile{
-			Path:    &path,
-			Content: &content,
-		})
-	}
-
-	return files
-}
