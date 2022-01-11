@@ -60,7 +60,12 @@ export class Flux {
   static AddGitRepository(req: Gitops_serverV1Source.AddGitRepositoryReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.AddGitRepositoryRes> {
     return fm.fetchReq<Gitops_serverV1Source.AddGitRepositoryReq, Gitops_serverV1Source.AddGitRepositoryRes>(`/v1/namespace/${req["namespace"]}/gitrepository`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
+<<<<<<< HEAD
   static ListGitRepositories(req: Gitops_serverV1Source.ListGitRepositoryReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.ListGitRepositoryRes> {
     return fm.fetchReq<Gitops_serverV1Source.ListGitRepositoryReq, Gitops_serverV1Source.ListGitRepositoryRes>(`/v1/namespace/${req["namespace"]}/gitrepository?${fm.renderURLSearchParams(req, ["namespace"])}`, {...initReq, method: "GET"})
+=======
+  static Remove(req: RemoveKustomizationRequest, initReq?: fm.InitReq): Promise<RemoveKustomizationResponse> {
+    return fm.fetchReq<RemoveKustomizationRequest, RemoveKustomizationResponse>(`/v1/repo/${req["repoName"]}/app/${req["appName"]}/kustomization/${req["kustomizationName"]}`, {...initReq, method: "DELETE"})
+>>>>>>> 4fc3f259... Initial v2 UI components
   }
 }

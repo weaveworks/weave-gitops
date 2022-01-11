@@ -1,5 +1,7 @@
 import * as React from "react";
 import { useHistory } from "react-router-dom";
+import { Apps } from "../lib/api/app/apps.pb";
+import { AppKustomization } from "../lib/api/app/kustomize.pb";
 import { Applications } from "../lib/api/applications/applications.pb";
 import {
   clearCallbackState,
@@ -8,7 +10,7 @@ import {
   storeCallbackState,
   storeProviderToken,
 } from "../lib/storage";
-import { PageRoute } from "../lib/types";
+import { PageRoute, V2Routes } from "../lib/types";
 import { formatURL, notifySuccess } from "../lib/utils";
 
 type AppState = {
@@ -27,6 +29,10 @@ export function defaultLinkResolver(incoming: string): string {
 
 export type AppContextType = {
   applicationsClient: typeof Applications;
+  apps: typeof Apps;
+  kustomizations: typeof AppKustomization;
+  // sources: typeof AppSource;
+  userConfigRepoName: string;
   doAsyncError: (message: string, detail: string) => void;
   clearAsyncError: () => void;
   appState: AppState;
@@ -38,7 +44,7 @@ export type AppContextType = {
   storeCallbackState: typeof storeCallbackState;
   clearCallbackState: typeof clearCallbackState;
   navigate: {
-    internal: (page: PageRoute, query?: any) => void;
+    internal: (page: PageRoute | V2Routes, query?: any) => void;
     external: (url: string) => void;
   };
   notifySuccess: typeof notifySuccess;
@@ -50,6 +56,8 @@ export const AppContext = React.createContext<AppContextType>(
 
 export interface AppProps {
   applicationsClient?: typeof Applications;
+  appsClient?: typeof Apps;
+  kustomizationsClient?: typeof AppKustomization;
   linkResolver?: LinkResolver;
   children?: any;
   renderFooter?: boolean;
@@ -87,6 +95,9 @@ export default function AppContextProvider({
 
   const value: AppContextType = {
     applicationsClient,
+    apps: props.appsClient,
+    kustomizations: props.kustomizationsClient,
+    userConfigRepoName: "wego-github-jlw-config-repo",
     doAsyncError,
     clearAsyncError,
     appState,
