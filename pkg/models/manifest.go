@@ -24,25 +24,24 @@ import (
 	"sigs.k8s.io/kustomize/api/types"
 )
 
-const (
-	MaxKubernetesResourceNameLength = 63
-)
-
 type Manifest struct {
 	Path    string
 	Content []byte
 }
 
 const (
+	MaxKubernetesResourceNameLength = 63
+
 	AppCRDPath              = "wego-system.yaml"
 	RuntimePath             = "gitops-runtime.yaml"
 	SourcePath              = "flux-source-resource.yaml"
 	SystemKustResourcePath  = "flux-system-kustomization-resource.yaml"
 	UserKustResourcePath    = "flux-user-kustomization-resource.yaml"
 	SystemKustomizationPath = "kustomization.yaml"
-	WegoConfigMapName       = "weave-gitops-config"
 	WegoAppPath             = "wego-app.yaml"
 	WegoConfigPath          = "wego-config.yaml"
+
+	WegoConfigMapName = "weave-gitops-config"
 )
 
 // This is needed for dry-run only
