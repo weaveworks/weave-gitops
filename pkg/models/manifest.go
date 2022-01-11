@@ -298,3 +298,7 @@ func ConvertManifestsToCommitFiles(manifests []Manifest) []gitprovider.CommitFil
 
 	return files
 }
+
+func GetClusterHash(clusterName string) string {
+	return fmt.Sprintf("wego-%x", md5.Sum([]byte(clusterName)))
+}

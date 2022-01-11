@@ -14,7 +14,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 )
 
 type Installer interface {
@@ -96,7 +95,7 @@ func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, auto
 		Title:         fmt.Sprintf("GitOps associate %s", clusterName),
 		Description:   fmt.Sprintf("Add gitops automation manifests for cluster %s", clusterName),
 		CommitMessage: gitopswriter.ClusterCommitMessage,
-		NewBranch:     automation.GetClusterHash(clusterName),
+		NewBranch:     models.GetClusterHash(clusterName),
 		TargetBranch:  defaultBranch,
 		Files:         models.ConvertManifestsToCommitFiles(manifests),
 	}
