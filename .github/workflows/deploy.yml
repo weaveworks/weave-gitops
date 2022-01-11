@@ -41,6 +41,7 @@ jobs:
     env:
         GITHUB_TOKEN: "${{ secrets.WEAVE_GITOPS_TEST_WEAVEWORKS_WEAVE_GITOPS_BOT_TOKEN }}"
         KUBEBUILDER_ASSETS: ${{ github.workspace }}/kubebuilder/bin
+        CHECKPOINT_DISABLE: 1
     runs-on: ubuntu-latest
     steps:
     - name: Install Go
@@ -91,6 +92,7 @@ jobs:
         GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         GITLAB_KEY: ${{ secrets.GITLAB_KEY }}
         ARTIFACTS_BASE_DIR: "/tmp/gitops-test"
+        CHECKPOINT_DISABLE: 1
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
@@ -153,7 +155,6 @@ jobs:
         export WEGO_BIN_PATH=$(pwd)/bin/gitops
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega
-        export CHECKPOINT_DISABLE=1
         ginkgo --randomizeSuites --reportFile=${{ env. ARTIFACTS_BASE_DIR }}/test-results/acceptance-test-results.xml -v ./test/acceptance/test/...
     - name: Store acceptance-tests results
       uses: actions/upload-artifact@v2

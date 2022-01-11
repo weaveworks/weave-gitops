@@ -44,6 +44,7 @@ jobs:
         GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         GITLAB_KEY: ${{ secrets.GITLAB_KEY }}
         ARTIFACTS_BASE_DIR: "/tmp/gitops-test"
+        CHECKPOINT_DISABLE: 1
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
@@ -138,7 +139,6 @@ jobs:
         $WEGO_BIN_PATH flux uninstall --silent
         $WEGO_BIN_PATH flux uninstall --namespace test-namespace --silent
         kubectl get all --all-namespaces -o wide
-        export CHECKPOINT_DISABLE=1
         ginkgo --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/test-results/acceptance-test-results.xml --skip=@skipOnNightly -v ./test/acceptance/test/...
       if: always()
     - name: Store acceptance test results
@@ -166,6 +166,7 @@ jobs:
         GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         GITLAB_KEY: ${{ secrets.GITLAB_KEY }}
         ARTIFACTS_BASE_DIR: "/tmp/gitops-test"
+        CHECKPOINT_DISABLE: 1
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
@@ -259,7 +260,6 @@ jobs:
         $WEGO_BIN_PATH flux uninstall --silent
         $WEGO_BIN_PATH flux uninstall --namespace test-namespace --silent
         kubectl get all --all-namespaces -o wide
-        export CHECKPOINT_DISABLE=1
         ginkgo --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/test-results/acceptance-test-results.xml --skip=@skipOnNightly -v ./test/acceptance/test/...
       if: always()
     - name: Store acceptance test results
