@@ -1,24 +1,32 @@
 package testutils
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
+	"testing"
+	"time"
 
 	"github.com/go-logr/logr"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/osys/osysfakes"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
+	"gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2/jwt"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
-
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
@@ -214,4 +222,74 @@ func Setenv(k, v string) func() {
 			os.Setenv(parts[0], parts[1])
 		}
 	}
+}
+
+// MakeRSAPrivateKey generates and returns an RSA Private Key.
+func MakeRSAPrivateKey(t *testing.T) *rsa.PrivateKey {
+	t.Helper()
+
+	k, err := rsa.GenerateKey(rand.Reader, 4096)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return k
+}
+
+// MakeJWToken creates and signs a token with the provided key.
+func MakeJWToken(t *testing.T, key *rsa.PrivateKey, email string) string {
+	t.Helper()
+
+	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.RS256, Key: key}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	maxAgeSecondsAuthCookie := time.Second * 600
+	notBefore := time.Now().Add(-time.Second * 60)
+	claims := jwt.Claims{
+		Issuer:    "http://127.0.0.1:5556/dex",
+		Subject:   "testing",
+		Audience:  jwt.Audience{"test-service"},
+		NotBefore: jwt.NewNumericDate(notBefore),
+		IssuedAt:  jwt.NewNumericDate(notBefore),
+		Expiry:    jwt.NewNumericDate(notBefore.Add(time.Duration(maxAgeSecondsAuthCookie))),
+	}
+	githubClaims := struct {
+		Groups            []string `json:"groups"`
+		Email             string   `json:"email"`
+		PreferredUsername string   `json:"preferred_username"`
+	}{
+		[]string{"testing"},
+		email,
+		"example",
+	}
+
+	signed, err := jwt.Signed(signer).Claims(claims).Claims(githubClaims).CompactSerialize()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return signed
+}
+
+// MakeKeysetServer starts an HTTP server that can serve JSONWebKey sets.
+func MakeKeysetServer(t *testing.T, key *rsa.PrivateKey) *httptest.Server {
+	t.Helper()
+
+	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		var keys jose.JSONWebKeySet
+		keys.Keys = []jose.JSONWebKey{
+			{
+				Key:       key.Public(),
+				Use:       "sig",
+				Algorithm: "RS256",
+			},
+		}
+		_ = json.NewEncoder(w).Encode(keys)
+	}))
+	t.Cleanup(ts.Close)
+
+	return ts
 }
