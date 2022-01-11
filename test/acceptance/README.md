@@ -34,6 +34,8 @@ To run github tests on gitlab repos, export the following variable before runnin
 export GIT_PROVIDER=gitlab
 ```
 
+When adding tests that require creating **multiple clusters**, please add a `@skipOnNightly` tag to the test in order to prevent Nightly Test failures. Our Nightly Tests run on standing clusters (EKS, GKE), and this test setup does not support creating multiple clusters on the fly. 
+
 # Smoke Tests
 
 To run the **smoke tests** from the suite, run the following the command from the repo root directory.
