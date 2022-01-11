@@ -27,6 +27,10 @@ import (
 // ProfileAnnotation is the annotation that Helm charts must have to indicate
 // that they provide a Profile.
 const ProfileAnnotation = "weave.works/profile"
+
+// LayerAnnotation specifies profile application order.
+// Profiles are sorted by layer and those at a higher "layer" are only installed after
+// lower layers have successfully installed and started.
 const LayerAnnotation = "weave.works/layer"
 
 // NewRepoManager creates and returns a new RepoManager.
