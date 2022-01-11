@@ -20,11 +20,7 @@ type Cache interface {
 // Data is explicit data for a specific profile including values.
 type Data struct {
 	Profiles []*pb.Profile
-	// TODO: This should be a map based on name and version of the profiles that this data contains for easy access.
-	// How will I store this? ( path revision something something might still work ). Or always overwrite?
-	// ProfileName / ProfileVersion -> values
-	// Maye there is a better way to cache this?
-	Values map[string]map[string][]byte // TODO store on disk because it can be rather ram intensive
+	Values   map[string]map[string][]byte
 }
 
 // HelmCache is used to cache profiles data from scanner helm repositories.
@@ -47,6 +43,7 @@ func (c *HelmCache) Add(key string, value Data) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	c.cache[key] = &value
+
 	return nil
 }
 

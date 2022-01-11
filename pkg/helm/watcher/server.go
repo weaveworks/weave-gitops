@@ -28,7 +28,6 @@ var (
 type Watcher struct {
 	cache       cache.Cache
 	repoManager *helm.RepoManager
-	kubeClient  client.Client
 }
 
 func NewWatcher(kubeClient client.Client, cache cache.Cache) (*Watcher, error) {

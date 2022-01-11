@@ -60,8 +60,13 @@ func NewAPIServerCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			// TODO: check this error
-			go helmWatcher.StartWatcher()
+
+			go func() {
+				if err := helmWatcher.StartWatcher(); err != nil {
+					appConfig.Logger.Error(err, "failed to start the watcher")
+					os.Exit(1)
+				}
+			}()
 
 			// Create the cache here as well and pass it in through the profiles Config thing.
 			runtimeNamespace := os.Getenv("RUNTIME_NAMESPACE")

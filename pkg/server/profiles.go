@@ -63,7 +63,6 @@ type ProfilesServer struct {
 	Log               logr.Logger
 	HelmRepoName      string
 	HelmRepoNamespace string
-	cacheDir          string
 	HelmCache         cache.Cache
 }
 
