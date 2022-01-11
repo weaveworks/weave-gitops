@@ -39,21 +39,20 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	if repository.Status.Artifact == nil {
 		// this should not even occur, because create already checks this, but we do this nevertheless.
-		// Repository was just created, no status field yet. Requeue to the update cycle where status is set.
 		return ctrl.Result{}, nil
 	}
 
 	log.Info("found the repository: ", "name", repository.Name)
 	// Reconcile is called for two reasons. One, the repository was just created, two there is a new revision.
-	// Because of that, we don't care what's in the cache. We will always fetch and update.
+	// Because of that, we don't care what's in the cache. We will always fetch and set it.
 
-	// make a timing out context.
+	// TODO: make a timing out context.
 	charts, err := r.RepoManager.GetCharts(context.TODO(), &repository, helm.Profiles)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
-	var values map[string]map[string][]byte
+	values := make(map[string]map[string][]byte)
 
 	for _, chart := range charts {
 		for _, v := range chart.AvailableVersions {
@@ -69,7 +68,9 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 				continue
 			}
 
-			values[chart.Name][v] = valueBytes
+			values[chart.Name] = map[string][]byte{
+				v: valueBytes,
+			}
 		}
 	}
 

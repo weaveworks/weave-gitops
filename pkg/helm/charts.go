@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/url"
+	"os"
 	"path"
 	"sort"
 
@@ -234,6 +235,14 @@ func credsForRepository(ctx context.Context, kc client.Client, hr *sourcev1beta1
 }
 
 func fetchIndexFile(chartURL string) (*repo.IndexFile, error) {
+	if hostname := os.Getenv("SOURCE_CONTROLLER_LOCALHOST"); hostname != "" {
+		u, err := url.Parse(chartURL)
+		if err != nil {
+			return nil, err
+		}
+		u.Host = hostname
+		chartURL = u.String()
+	}
 	u, err := url.Parse(chartURL)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing URL %q: %w", chartURL, err)

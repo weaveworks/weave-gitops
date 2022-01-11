@@ -97,7 +97,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 	}()
 
-	profilesConfig := server.NewProfilesConfig(helmRepoNamespace, helmRepoName)
+	profilesConfig := server.NewProfilesConfig(rawClient, helmCache, helmRepoNamespace, helmRepoName)
 
 	appAndProfilesHandlers, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig})
 	if err != nil {

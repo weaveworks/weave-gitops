@@ -38,9 +38,10 @@ type ProfilesConfig struct {
 	helmRepoNamespace string
 	helmRepoName      string
 	helmCache         cache.Cache
+	kubeClient        client.Client
 }
 
-func NewProfilesConfig(helmRepoNamespace, helmRepoName string) ProfilesConfig {
+func NewProfilesConfig(kubeClient client.Client, helmCache cache.Cache, helmRepoNamespace, helmRepoName string) ProfilesConfig {
 	zapLog, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatalf("could not create zap logger: %v", err)
@@ -50,6 +51,8 @@ func NewProfilesConfig(helmRepoNamespace, helmRepoName string) ProfilesConfig {
 		logr:              zapr.NewLogger(zapLog),
 		helmRepoNamespace: helmRepoNamespace,
 		helmRepoName:      helmRepoName,
+		kubeClient:        kubeClient,
+		helmCache:         helmCache,
 	}
 }
 
@@ -70,6 +73,7 @@ func NewProfilesServer(config ProfilesConfig) pb.ProfilesServer {
 		HelmRepoNamespace: config.helmRepoNamespace,
 		HelmRepoName:      config.helmRepoName,
 		HelmCache:         config.helmCache,
+		KubeClient:        config.kubeClient,
 	}
 }
 
@@ -136,28 +140,39 @@ func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfil
 		return nil, fmt.Errorf("failed to get HelmRepository %q/%q", s.HelmRepoNamespace, s.HelmRepoName)
 	}
 
-	//sourceRef := helmv2beta1.CrossNamespaceObjectReference{
-	//	APIVersion: helmRepo.TypeMeta.APIVersion,
-	//	Kind:       helmRepo.TypeMeta.Kind,
-	//	Name:       helmRepo.ObjectMeta.Name,
-	//	Namespace:  helmRepo.ObjectMeta.Namespace,
-	//}
-
 	data, err := s.HelmCache.Get(s.HelmCache.Key(helmRepo.Namespace, helmRepo.Name))
 	if data == nil || err != nil {
 		// is not found
-		return nil, nil
+		return &httpbody.HttpBody{
+				ContentType: "application/json",
+				Data:        []byte{},
+			}, &grpcruntime.HTTPStatusError{
+				Err:        errors.New("no values found"),
+				HTTPStatus: http.StatusNotFound,
+			}
 	}
 
 	versions, ok := data.Values[msg.ProfileName]
 	if !ok {
 		// is not found for this version and profile name.
-		return nil, nil
+		return &httpbody.HttpBody{
+				ContentType: "application/json",
+				Data:        []byte{},
+			}, &grpcruntime.HTTPStatusError{
+				Err:        errors.New("no values found"),
+				HTTPStatus: http.StatusNotFound,
+			}
 	}
 
 	valuesBytes, ok := versions[msg.ProfileVersion]
 	if !ok {
-		return nil, nil
+		return &httpbody.HttpBody{
+				ContentType: "application/json",
+				Data:        []byte{},
+			}, &grpcruntime.HTTPStatusError{
+				Err:        errors.New("no values found"),
+				HTTPStatus: http.StatusNotFound,
+			}
 	}
 
 	if err != nil {
