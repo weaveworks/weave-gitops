@@ -112,6 +112,7 @@ runs:
       if [ "${{ github.job }}" == "smoke-tests-long" ]; then
         export GIT_PROVIDER="${{ inputs.git-provider }}"
       fi
+      export CHECKPOINT_DISABLE=1
       ginkgo ${{ inputs.focus-or-skip }} --randomizeSuites --reportFile=${{ env.ARTIFACTS_BASE_DIR }}/${{ inputs.result-prefix }}acceptance-test-results.xml -v ./test/acceptance/test/...
     if: always()
   - name: Store acceptance test results

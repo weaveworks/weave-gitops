@@ -153,6 +153,7 @@ jobs:
         export WEGO_BIN_PATH=$(pwd)/bin/gitops
         go get github.com/onsi/ginkgo/ginkgo
         go get github.com/onsi/gomega
+        export CHECKPOINT_DISABLE=1
         ginkgo --randomizeSuites --reportFile=${{ env. ARTIFACTS_BASE_DIR }}/test-results/acceptance-test-results.xml -v ./test/acceptance/test/...
     - name: Store acceptance-tests results
       uses: actions/upload-artifact@v2
