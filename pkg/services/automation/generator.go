@@ -42,10 +42,6 @@ type ResourceRef struct {
 }
 
 const (
-	ConfigModeClusterOnly  ConfigMode = "clusterOnly"
-	ConfigModeUserRepo     ConfigMode = "userRepo"
-	ConfigModeExternalRepo ConfigMode = "externalRepo"
-
 	ResourceKindApplication    ResourceKind = "Application"
 	ResourceKindSecret         ResourceKind = "Secret"
 	ResourceKindGitRepository  ResourceKind = "GitRepository"
