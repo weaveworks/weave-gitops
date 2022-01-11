@@ -255,6 +255,14 @@ export type AuthorizeGitlabResponse = {
   token?: string
 }
 
+export type ValidateProviderTokenRequest = {
+  provider?: GitProvider
+}
+
+export type ValidateProviderTokenResponse = {
+  valid?: boolean
+}
+
 export class Applications {
   static Authenticate(req: AuthenticateRequest, initReq?: fm.InitReq): Promise<AuthenticateResponse> {
     return fm.fetchReq<AuthenticateRequest, AuthenticateResponse>(`/v1/authenticate/${req["providerName"]}`, {...initReq, method: "POST", body: JSON.stringify(req)})
@@ -297,5 +305,8 @@ export class Applications {
   }
   static ParseRepoURL(req: ParseRepoURLRequest, initReq?: fm.InitReq): Promise<ParseRepoURLResponse> {
     return fm.fetchReq<ParseRepoURLRequest, ParseRepoURLResponse>(`/v1/applications/parse_repo_url?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static ValidateProviderToken(req: ValidateProviderTokenRequest, initReq?: fm.InitReq): Promise<ValidateProviderTokenResponse> {
+    return fm.fetchReq<ValidateProviderTokenRequest, ValidateProviderTokenResponse>(`/v1/applications/validate_token`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }

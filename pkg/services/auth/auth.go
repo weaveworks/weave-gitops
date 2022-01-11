@@ -42,6 +42,10 @@ func NewAuthCLIHandler(name gitproviders.GitProviderName) (BlockingCLIAuthHandle
 	return nil, fmt.Errorf("unsupported auth provider \"%s\"", name)
 }
 
+type ProviderTokenValidator interface {
+	ValidateToken(ctx context.Context, token string) error
+}
+
 type SecretName struct {
 	Name      automation.GeneratedSecretName
 	Namespace string
