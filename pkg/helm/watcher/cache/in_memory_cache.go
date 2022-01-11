@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 
@@ -52,7 +53,12 @@ func (c *HelmCache) Get(key string) (*Data, error) {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 
-	return c.cache[key], nil
+	d, ok := c.cache[key]
+	if !ok {
+		return nil, errors.New("not found")
+	}
+
+	return d, nil
 }
 
 // Key defines the way a key for a specific data is generated.

@@ -101,7 +101,7 @@ func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesReq
 
 	ps, err := s.HelmCache.Get(s.HelmCache.Key(helmRepo.Namespace, helmRepo.Name))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to scan HelmRepository %q/%q for charts: %w", s.HelmRepoNamespace, s.HelmRepoName, err)
 	}
 
 	if ps == nil {
@@ -140,38 +140,18 @@ func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfil
 	}
 
 	data, err := s.HelmCache.Get(s.HelmCache.Key(helmRepo.Namespace, helmRepo.Name))
-	if data == nil || err != nil {
-		// is not found
-		return &httpbody.HttpBody{
-				ContentType: "application/json",
-				Data:        []byte{},
-			}, &grpcruntime.HTTPStatusError{
-				Err:        errors.New("no values found"),
-				HTTPStatus: http.StatusNotFound,
-			}
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve values file from Helm chart '%s' (%s): %w", msg.ProfileName, msg.ProfileVersion, err)
 	}
 
 	versions, ok := data.Values[msg.ProfileName]
 	if !ok {
-		// is not found for this version and profile name.
-		return &httpbody.HttpBody{
-				ContentType: "application/json",
-				Data:        []byte{},
-			}, &grpcruntime.HTTPStatusError{
-				Err:        errors.New("no values found"),
-				HTTPStatus: http.StatusNotFound,
-			}
+		return nil, errors.New(fmt.Sprintf("no versions found for profile %s", msg.ProfileName))
 	}
 
 	valuesBytes, ok := versions[msg.ProfileVersion]
 	if !ok {
-		return &httpbody.HttpBody{
-				ContentType: "application/json",
-				Data:        []byte{},
-			}, &grpcruntime.HTTPStatusError{
-				Err:        errors.New("no values found"),
-				HTTPStatus: http.StatusNotFound,
-			}
+		return nil, errors.New(fmt.Sprintf("no values found for profile %s with version %s", msg.ProfileName, msg.ProfileVersion))
 	}
 
 	if err != nil {
