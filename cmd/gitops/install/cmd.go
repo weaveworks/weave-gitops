@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
-	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -132,12 +131,8 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed getting git clients: %w", err)
 	}
 
-	// This might be better outside this Install function
-	// What if we want to write to a different place
-	repoWriter := gitrepo.NewRepoWriter(configURL, gitProvider, gitClient, log)
-	automationGen := automation.NewAutomationGenerator(gitProvider, fluxClient, log)
-	gitOpsDirWriter := gitopswriter.NewGitOpsDirectoryWriter(automationGen, repoWriter, osysClient, log)
-	installer := install.NewInstaller(fluxClient, kubeClient, gitClient, gitProvider, log, gitOpsDirWriter)
+	gitWriter := gitopswriter.NewGitWriter(log, gitClient, gitProvider)
+	installer := install.NewInstaller(fluxClient, kubeClient, gitClient, gitProvider, log, gitWriter)
 
 	if err = installer.Install(namespace, configURL, installParams.AutoMerge); err != nil {
 		return fmt.Errorf("failed installing: %w", err)

@@ -226,7 +226,9 @@ func GitopsManifests(ctx context.Context, fluxClient flux.Flux, gitProvider gitp
 	return append(bootstrapManifest, Manifest{
 		Path:    git.GetSystemQualifiedPath(clusterName, SystemKustomizationPath),
 		Content: systemKustomizationManifest,
-	}, Manifest{
+	}, Manifest{ // We probably should have this inside getBootstrap manifests instead this is
+		// going to help flux to sync with the config repo but we would need to instantiate git clients
+		// for dry run as well, seems like a big change
 		Path:    git.GetSystemQualifiedPath(clusterName, SourcePath),
 		Content: sourceManifest,
 	}), nil
@@ -255,9 +257,10 @@ func BootstrapManifests(fluxClient flux.Flux, clusterName string, namespace stri
 
 	sourceName := createClusterSourceName(configURL)
 
-	//sourceManifest, err := flux.CreateSourceGit(sourceName, configURL, configBranch, secretStr, namespace)
+	// How can we add this boostrap manifest without instantiating git clients?
+	//sourceManifest, err := fluxClient.CreateSourceGit(sourceName, configURL, defaultBranch, secretRef, namespace)
 	//if err != nil {
-	//	return ClusterAutomation{}, err
+	//	return nil, fmt.Errorf("failed creating source: %w", err)
 	//}
 
 	systemKustResourceManifest, err := fluxClient.CreateKustomization(ConstrainResourceName(fmt.Sprintf("%s-system", clusterName)), sourceName,

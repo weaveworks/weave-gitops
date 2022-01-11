@@ -5,10 +5,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
+
 	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
 
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/models"
 
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -27,17 +28,17 @@ type Install struct {
 	gitClient         git.Git
 	gitProviderClient gitproviders.GitProvider
 	log               logger.Logger
-	gitOpsDirWriter   gitopswriter.GitOpsDirectoryWriter
+	repoWriter        gitopswriter.RepoWriter
 }
 
-func NewInstaller(fluxClient flux.Flux, kubeClient kube.Kube, gitClient git.Git, gitProviderClient gitproviders.GitProvider, log logger.Logger, gitOpsDirWriter gitopswriter.GitOpsDirectoryWriter) Installer {
+func NewInstaller(fluxClient flux.Flux, kubeClient kube.Kube, gitClient git.Git, gitProviderClient gitproviders.GitProvider, log logger.Logger, repoWriter gitopswriter.RepoWriter) Installer {
 	return &Install{
 		fluxClient:        fluxClient,
 		kubeClient:        kubeClient,
 		gitClient:         gitClient,
 		gitProviderClient: gitProviderClient,
 		log:               log,
-		gitOpsDirWriter:   gitOpsDirWriter,
+		repoWriter:        repoWriter,
 	}
 }
 
@@ -72,11 +73,55 @@ func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, auto
 		}
 	}
 
-	cluster := models.Cluster{Name: clusterName}
-	err = i.gitOpsDirWriter.AssociateCluster(ctx, i.fluxClient, i.gitProviderClient, cluster, configURL, namespace, autoMerge)
+	gitopsManifests, err := automation.GitopsManifests(ctx, i.fluxClient, i.gitProviderClient, clusterName, namespace, configURL)
 	if err != nil {
-		return fmt.Errorf("failed associating cluster: %w", err)
+		return fmt.Errorf("failed generating gitops manifests: %w", err)
+	}
+
+	defaultBranch, err := i.gitProviderClient.GetDefaultBranch(ctx, configURL)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve default branch for repository: %w", err)
+	}
+
+	i.log.Actionf("Associating cluster %q", clusterName)
+
+	if autoMerge {
+		err = i.repoWriter.WriteDirectlyToDefaultBranch(ctx, configURL, defaultBranch, convertManifestsToCommitFiles(gitopsManifests))
+		if err != nil {
+			return fmt.Errorf("failed writting to default branch %w", err)
+		}
+		return nil
+	}
+
+	pullRequestInfo := gitproviders.PullRequestInfo{
+		Title:         fmt.Sprintf("GitOps associate %s", clusterName),
+		Description:   fmt.Sprintf("Add gitops automation manifests for cluster %s", clusterName),
+		CommitMessage: gitopswriter.ClusterCommitMessage,
+		NewBranch:     automation.GetClusterHash(clusterName),
+		TargetBranch:  defaultBranch,
+		Files:         convertManifestsToCommitFiles(manifests),
+	}
+
+	err = i.repoWriter.PullRequest(ctx, pullRequestInfo, configURL)
+	if err != nil {
+		return fmt.Errorf("failed creating pull request: %w", err)
 	}
 
 	return nil
+}
+
+func convertManifestsToCommitFiles(manifests []automation.Manifest) []gitprovider.CommitFile {
+
+	files := make([]gitprovider.CommitFile, 0)
+
+	for _, manifest := range manifests {
+		path := manifest.Path
+		content := string(manifest.Content)
+		files = append(files, gitprovider.CommitFile{
+			Path:    &path,
+			Content: &content,
+		})
+	}
+
+	return files
 }

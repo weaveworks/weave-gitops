@@ -4,9 +4,6 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
-	"strconv"
-
-	"github.com/weaveworks/weave-gitops/pkg/flux"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -48,6 +45,10 @@ func NewGitOpsDirectoryWriter(automationSvc automation.AutomationGenerator, repo
 		Osys:       osys,
 		Logger:     logger,
 	}
+}
+
+func (dw *gitOpsDirectoryWriterSvc) AssociateCluster(ctx context.Context, clusterName string, manifests []automation.Manifest, autoMerge bool) error {
+	return nil
 }
 
 func (dw *gitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error {
@@ -195,83 +196,67 @@ func (dw *gitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app m
 	return nil
 }
 
-// AssociateCluster writes the GitOps manifests for the cluster into the repo
-func (dw *gitOpsDirectoryWriterSvc) AssociateCluster(
-	ctx context.Context,
-	fluxClient flux.Flux,
-	gitProvider gitproviders.GitProvider,
-	cluster models.Cluster,
-	configURL gitproviders.RepoURL,
-	namespace string,
-	autoMerge bool) error {
+type RepoWriter interface {
+	WriteDirectlyToDefaultBranch(ctx context.Context, repoURL gitproviders.RepoURL, defaultBranch string, manifests []gitprovider.CommitFile) error
+	PullRequest(ctx context.Context, pullRequestInfo gitproviders.PullRequestInfo, repoURL gitproviders.RepoURL) error
+}
 
-	manifests, err := automation.GitopsManifests(ctx, fluxClient, gitProvider, cluster.Name, namespace, configURL)
+type repoWriter struct {
+	log         logger.Logger
+	gitClient   git.Git
+	gitProvider gitproviders.GitProvider
+}
+
+func NewGitWriter(log logger.Logger, gitClient git.Git, gitProvider gitproviders.GitProvider) RepoWriter {
+	return &repoWriter{
+		log:         log,
+		gitClient:   gitClient,
+		gitProvider: gitProvider,
+	}
+}
+
+func (rw *repoWriter) WriteDirectlyToDefaultBranch(ctx context.Context, repoURL gitproviders.RepoURL, defaultBranch string, manifests []gitprovider.CommitFile) error {
+
+	// TODO: automerge will not work for most users
+	remover, _, err := gitrepo.CloneRepo(ctx, rw.gitClient, repoURL, defaultBranch)
 	if err != nil {
-		return fmt.Errorf("failed generating gitops manifests: %w", err)
+		return fmt.Errorf("failed to clone repo: %w", err)
 	}
-	//auto, err := dw.Automation.GenerateClusterAutomation(ctx, cluster, configURL, namespace)
-	//if err != nil {
-	//	return fmt.Errorf("failed to generate cluster automation: %w", err)
-	//}
-	//
-	//// TODO: Fix this is not including wego config if we keep using AssociateCluster
-	////wegoConfigManifest, err := auto.WegoConfigManifest(cluster.Name, fluxNamespace, namespace)
-	////if err != nil {
-	////	return fmt.Errorf("failed generating wego config manifest %w", err)
-	////}
-	//
-	//manifests := auto.Manifests()
-	//manifests = append(manifests, wegoConfigManifest)
 
-	defaultBranch, err := dw.RepoWriter.GetDefaultBranch(ctx)
+	defer remover()
+
+	for _, m := range manifests {
+		if err := rw.gitClient.Write(*m.Path, []byte(*m.Content)); err != nil {
+			return fmt.Errorf("failed to write manifest: %w", err)
+		}
+	}
+
+	err = gitrepo.CommitAndPush(ctx, rw.gitClient, ClusterCommitMessage, rw.log, func(fname string) bool {
+		for _, m := range manifests {
+			if fname == *m.Path {
+				return true
+			}
+		}
+
+		return false
+	})
 	if err != nil {
-		return fmt.Errorf("failed to retrieve default branch for repository: %w", err)
+		return fmt.Errorf("failed writing automation to disk: %w", err)
 	}
 
-	// store a .keep file in the user dir
-	userKeep := automation.Manifest{
-		Path:    filepath.Join(getUserDirRepoPath(cluster.Name), ".keep"),
-		Content: strconv.AppendQuote(nil, "# keep"),
+	return nil
+}
+
+// Maybe we do not need this function as it is pretty simple ?
+// PullRequest writes the GitOps manifests for the cluster into the repo through a pull request
+func (rw *repoWriter) PullRequest(ctx context.Context, pullRequestInfo gitproviders.PullRequestInfo, repoURL gitproviders.RepoURL) error {
+
+	pr, err := rw.gitProvider.CreatePullRequest(ctx, repoURL, pullRequestInfo)
+	if err != nil {
+		return fmt.Errorf("failed creating pull request: %w", err)
 	}
 
-	manifests = append(manifests, userKeep)
-
-	dw.Logger.Actionf("Associating cluster %q", cluster.Name)
-
-	if autoMerge {
-		remover, repoDir, err := dw.RepoWriter.CloneRepo(ctx, defaultBranch)
-		if err != nil {
-			return fmt.Errorf("failed to clone repo: %w", err)
-		}
-
-		defer remover()
-
-		if err := dw.RepoWriter.WriteAndMerge(ctx, repoDir, ClusterCommitMessage, manifests); err != nil {
-			return fmt.Errorf("failed writing automation to disk: %w", err)
-		}
-	} else {
-		files := []gitprovider.CommitFile{}
-
-		for _, manifest := range manifests {
-			manifestPath := manifest.Path
-			content := string(manifest.Content)
-
-			files = append(files, gitprovider.CommitFile{Path: &manifestPath, Content: &content})
-		}
-
-		prInfo := gitproviders.PullRequestInfo{
-			Title:         fmt.Sprintf("GitOps associate %s", cluster.Name),
-			Description:   fmt.Sprintf("Add gitops automation manifests for cluster %s", cluster.Name),
-			CommitMessage: ClusterCommitMessage,
-			TargetBranch:  defaultBranch,
-			NewBranch:     automation.GetClusterHash(cluster),
-			Files:         files,
-		}
-
-		if err := dw.RepoWriter.CreatePullRequest(ctx, prInfo); err != nil {
-			return fmt.Errorf("failed creating pull request: %w", err)
-		}
-	}
+	rw.log.Println("Pull Request created: %s\n", pr.Get().WebURL)
 
 	return nil
 }
