@@ -83,6 +83,32 @@ Cons:
 Either way the code to get the status needs to be the same for both the cli and the UI. We need to pull out the code in server.go that is getting the status into its own package.
 Getting kstatus to work for helm/kustomized will require weave-gitops to provide a list of resources either added to the kustomization for use with flux or implented on our own using kstatus polling/cache. My recommendation is to copy what flux has done but implement it ourselves. This will provide weave-gitops with more freedom of how things look as well as being able to have the UI/CLI use mostly the same code. The UI will need a cache system to retrieve the last known status and while flux has this implemented I am not sure how we would get access to that cache without just doing it all ourselves.
 
+The possible statuses returned from kstatus are:
+
+InProgress: The actual state of the resource has not yet reached the desired state as specified in the resource manifest, i.e. the resource reconcile has not yet completed. Newly created resources will usually start with this status, although some resources like ConfigMaps are Current immediately.
+Failed: The process of reconciling the actual state with the desired state has encountered and error or it has made insufficient progress.
+Current: The actual state of the resource matches the desired state. The reconcile process is considered complete until there are changes to either the desired or the actual state.
+Terminating: The resource is in the process of being deleted.
+NotFound: The resource does not exist in the cluster.
+Unknown: This is for situations when the library are unable to determine the status of a resource.
+
+I have renamed current to ready to follow how flux returns the kustomize/source status
+
+As for the list views for clusters and applications.
+Clusters would look something like:
+```
+Cluster			Status		  Message
+cluster1		Ready			  Fetched revision: main/2189165039567d90119e7680e989c052d6337c8d
+cluster2		Failed		  Back-off pulling image "ghcr.io/weaveworks/wego-app:v0.6.0-12-g98ee6910"
+```
+
+Applications would look similar:
+```
+Applications			Status			Last Message
+app1			        Ready			  Fetched revision: main/2189165039567d90119e7680e989c052d6337c8d
+app2			        Failed			Back-off pulling image "ghcr.io/weaveworks/wego-app:v0.6.0-12-g98ee6910"
+```
+If any resource in the cluster/application are in what we consider failed (failed, terminating, notfound, unknown) it would return that resources status as well as the last message from it. There is still some discussion around if it will just return the first resource that isnt ready or if we want to have it go all the way through and look for what we consider the most important status to report. Example: failed might be more important to see than terminating.
 
 ### Scaling
 
@@ -125,6 +151,7 @@ CLI:
 
 UI: 
  This will work much like flux currently does. When the get status command is run it will always need to get the status for whatever resources are requested instead of getting it from a cache. Example `gitops get clusters` gets all resources for all clusters and applications. `gitops get apps` gets all resources for all applications.
+
 
 
 
