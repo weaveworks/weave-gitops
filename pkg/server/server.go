@@ -467,7 +467,7 @@ func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.Ge
 		})
 
 		if err := s.kube.List(ctx, &list, opts); err != nil {
-			return nil, fmt.Errorf("could not get unstructured list: %s\n", err)
+			return nil, fmt.Errorf("could not get unstructured list: %s", err)
 		}
 
 		result = append(result, list.Items...)
@@ -508,7 +508,7 @@ func (s *applicationServer) GetChildObjects(ctx context.Context, msg *pb.GetChil
 	})
 
 	if err := s.kube.List(ctx, &list); err != nil {
-		return nil, fmt.Errorf("could not get unstructured object: %s\n", err)
+		return nil, fmt.Errorf("could not get unstructured object: %s", err)
 	}
 
 	objects := []*pb.UnstructuredObject{}

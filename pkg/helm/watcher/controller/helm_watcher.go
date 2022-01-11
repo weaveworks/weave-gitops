@@ -52,7 +52,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, err
 	}
 
-	values := make(map[string]map[string][]byte)
+	values := make(cache.ValueMap)
 
 	for _, chart := range charts {
 		for _, v := range chart.AvailableVersions {
@@ -79,7 +79,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		Values:   values,
 	}
 
-	if err := r.Cache.Add(r.Cache.Key(repository.Namespace, repository.Name), data); err != nil {
+	if err := r.Cache.Update(repository.Namespace, repository.Name, data); err != nil {
 		return ctrl.Result{}, err
 	}
 

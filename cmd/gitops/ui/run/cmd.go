@@ -29,6 +29,7 @@ var (
 	port              string
 	helmRepoNamespace string
 	helmRepoName      string
+	helmCacheDir      string
 	path              string
 	loggingEnabled    bool
 )
@@ -45,6 +46,7 @@ func init() {
 	Cmd.Flags().StringVar(&path, "path", "", "Path url")
 	Cmd.Flags().StringVar(&helmRepoNamespace, "helm-repo-namespace", "default", "the namespace of the Helm Repository resource to scan for profiles")
 	Cmd.Flags().StringVar(&helmRepoName, "helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
+	Cmd.Flags().StringVar(&helmCacheDir, "helm-cache-dir", "/tmp/helm-cache", "the folder where to cache Profile data")
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
@@ -83,9 +85,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create kube http client: %w", err)
 	}
 
-	helmCache := cache.NewCache()
-	helmWatcher, err := watcher.NewWatcher(rawClient, helmCache)
+	helmCache, err := cache.NewCache(helmCacheDir)
+	if err != nil {
+		return fmt.Errorf("failed to create cacher: %w", err)
+	}
 
+	helmWatcher, err := watcher.NewWatcher(rawClient, helmCache)
 	if err != nil {
 		return fmt.Errorf("failed to start the watcher: %w", err)
 	}

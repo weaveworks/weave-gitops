@@ -55,10 +55,19 @@ func NewAPIServerCommand() *cobra.Command {
 				return fmt.Errorf("could not create kube http client: %w", err)
 			}
 
-			helmCache := cache.NewCache()
+			tmpDir, err := os.MkdirTemp("", "helmCacheDir")
+			if err != nil {
+				return fmt.Errorf("failed to create helm cache: %w", err)
+			}
+
+			helmCache, err := cache.NewCache(tmpDir)
+			if err != nil {
+				return fmt.Errorf("failed to create helm cache: %w", err)
+			}
+
 			helmWatcher, err := watcher.NewWatcher(rawClient, helmCache)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to create watcher: %w", err)
 			}
 
 			go func() {

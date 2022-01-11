@@ -99,7 +99,7 @@ func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesReq
 		return nil, fmt.Errorf("failed to get HelmRepository %q/%q", s.HelmRepoNamespace, s.HelmRepoName)
 	}
 
-	ps, err := s.HelmCache.Get(s.HelmCache.Key(helmRepo.Namespace, helmRepo.Name))
+	ps, err := s.HelmCache.GetProfiles(helmRepo.Namespace, helmRepo.Name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan HelmRepository %q/%q for charts: %w", s.HelmRepoNamespace, s.HelmRepoName, err)
 	}
@@ -111,7 +111,7 @@ func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesReq
 	}
 
 	return &pb.GetProfilesResponse{
-		Profiles: ps.Profiles,
+		Profiles: ps,
 	}, nil
 }
 
@@ -139,21 +139,7 @@ func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfil
 		return nil, fmt.Errorf("failed to get HelmRepository %q/%q", s.HelmRepoNamespace, s.HelmRepoName)
 	}
 
-	data, err := s.HelmCache.Get(s.HelmCache.Key(helmRepo.Namespace, helmRepo.Name))
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve values file from Helm chart '%s' (%s): %w", msg.ProfileName, msg.ProfileVersion, err)
-	}
-
-	versions, ok := data.Values[msg.ProfileName]
-	if !ok {
-		return nil, errors.New(fmt.Sprintf("no versions found for profile %s", msg.ProfileName))
-	}
-
-	valuesBytes, ok := versions[msg.ProfileVersion]
-	if !ok {
-		return nil, errors.New(fmt.Sprintf("no values found for profile %s with version %s", msg.ProfileName, msg.ProfileVersion))
-	}
-
+	data, err := s.HelmCache.GetProfileValues(helmRepo.Namespace, helmRepo.Name, msg.ProfileName, msg.ProfileVersion)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve values file from Helm chart '%s' (%s): %w", msg.ProfileName, msg.ProfileVersion, err)
 	}
@@ -169,12 +155,12 @@ func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfil
 	if strings.Contains(acceptHeader, OctetStreamType) {
 		return &httpbody.HttpBody{
 			ContentType: OctetStreamType,
-			Data:        valuesBytes,
+			Data:        data,
 		}, nil
 	}
 
 	res, err := json.Marshal(&pb.GetProfileValuesResponse{
-		Values: base64.StdEncoding.EncodeToString(valuesBytes),
+		Values: base64.StdEncoding.EncodeToString(data),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal response to JSON: %w", err)
