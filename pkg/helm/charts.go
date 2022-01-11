@@ -237,6 +237,7 @@ func fetchIndexFile(chartURL string) (*repo.IndexFile, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		u.Host = hostname
 		chartURL = u.String()
 	}
