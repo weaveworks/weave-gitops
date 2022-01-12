@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -36,7 +37,6 @@ var _ = Describe("auth", func() {
 	BeforeEach(func() {
 		namespace = &corev1.Namespace{}
 		namespace.Name = "kube-test-" + rand.String(5)
-
 		Expect(k8sClient.Create(context.Background(), namespace)).To(Succeed())
 	})
 	Describe("AuthService", func() {
@@ -54,6 +54,7 @@ var _ = Describe("auth", func() {
 			Expect(err).NotTo(HaveOccurred())
 			osysClient = osys.New()
 			gp = gitprovidersfakes.FakeGitProvider{}
+			gp.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityPrivate), nil)
 			fluxClient = flux.New(osysClient, &actualFluxRunner{Runner: &runner.CLIRunner{}})
 
 			as = &authSvc{
@@ -103,6 +104,15 @@ var _ = Describe("auth", func() {
 			newSecret := &corev1.Secret{}
 			Expect(k8sClient.Get(ctx, sn.NamespacedName(), newSecret)).To(Succeed())
 			Expect(gp.UploadDeployKeyCallCount()).To(Equal(1))
+		})
+
+		It("avoids deploying key for public repos", func() {
+			gp.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityPublic), nil)
+
+			_, err = as.CreateGitClient(ctx, repoUrl, testClustername, namespace.Name, false)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(gp.UploadDeployKeyCallCount()).To(Equal(0))
 		})
 	})
 })

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/url"
+	"os"
 	"path"
 	"sort"
 
@@ -26,6 +27,11 @@ import (
 // ProfileAnnotation is the annotation that Helm charts must have to indicate
 // that they provide a Profile.
 const ProfileAnnotation = "weave.works/profile"
+
+// LayerAnnotation specifies profile application order.
+// Profiles are sorted by layer and those at a higher "layer" are only installed after
+// lower layers have successfully installed and started.
+const LayerAnnotation = "weave.works/layer"
 
 // NewRepoManager creates and returns a new RepoManager.
 func NewRepoManager(kc client.Client, cacheDir string) *RepoManager {
@@ -97,6 +103,7 @@ func (h *RepoManager) GetCharts(ctx context.Context, hr *sourcev1beta1.HelmRepos
 						Keywords:    v.Keywords,
 						Icon:        v.Icon,
 						KubeVersion: v.KubeVersion,
+						Layer:       getLayer(v.Annotations),
 					}
 					for _, m := range v.Maintainers {
 						p.Maintainers = append(p.Maintainers, &pb.Maintainer{
@@ -229,6 +236,16 @@ func credsForRepository(ctx context.Context, kc client.Client, hr *sourcev1beta1
 }
 
 func fetchIndexFile(chartURL string) (*repo.IndexFile, error) {
+	if hostname := os.Getenv("SOURCE_CONTROLLER_LOCALHOST"); hostname != "" {
+		u, err := url.Parse(chartURL)
+		if err != nil {
+			return nil, err
+		}
+
+		u.Host = hostname
+		chartURL = u.String()
+	}
+
 	u, err := url.Parse(chartURL)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing URL %q: %w", chartURL, err)
@@ -261,6 +278,10 @@ func fetchIndexFile(chartURL string) (*repo.IndexFile, error) {
 	i.SortEntries()
 
 	return i, nil
+}
+
+func getLayer(annotations map[string]string) string {
+	return annotations[LayerAnnotation]
 }
 
 func hasAnnotation(cm *chart.Metadata, name string) bool {

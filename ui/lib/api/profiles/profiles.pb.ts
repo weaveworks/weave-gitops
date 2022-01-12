@@ -29,6 +29,7 @@ export type Profile = {
   kubeVersion?: string
   helmRepository?: HelmRepository
   availableVersions?: string[]
+  layer?: string
 }
 
 export type GetProfilesRequest = {

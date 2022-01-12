@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/internal"
 
@@ -39,6 +40,10 @@ func NewAuthCLIHandler(name gitproviders.GitProviderName) (BlockingCLIAuthHandle
 	}
 
 	return nil, fmt.Errorf("unsupported auth provider \"%s\"", name)
+}
+
+type ProviderTokenValidator interface {
+	ValidateToken(ctx context.Context, token string) error
 }
 
 type SecretName struct {
@@ -156,6 +161,15 @@ func (a *authSvc) setupDeployKey(ctx context.Context, name SecretName, targetNam
 }
 
 func (a *authSvc) provisionDeployKey(ctx context.Context, targetName string, name SecretName, repo gitproviders.RepoURL) (*ssh.PublicKeys, error) {
+	visibility, err := a.gitProvider.GetRepoVisibility(ctx, repo)
+	if err != nil {
+		return nil, fmt.Errorf("error getting repo visibility: %w", err)
+	}
+
+	if *visibility == gitprovider.RepositoryVisibilityPublic {
+		return nil, nil
+	}
+
 	deployKey, secret, err := a.generateDeployKey(targetName, name, repo)
 	if err != nil {
 		return nil, fmt.Errorf("error generating deploy key: %w", err)
