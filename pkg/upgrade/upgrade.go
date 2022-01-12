@@ -97,6 +97,7 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 
 	// Create pull request
 	path := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, WegoEnterpriseName)
+	wegoAppPath := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, "wego-app.yaml")
 	capiKeepPath := filepath.Join(git.WegoRoot, git.WegoAppDir, "capi", "templates", ".keep")
 	capiKeepContents := string(strconv.AppendQuote(nil, "# keep"))
 
@@ -114,6 +115,10 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 			{
 				Path:    &capiKeepPath,
 				Content: &capiKeepContents,
+			},
+			{
+				Path:    &wegoAppPath,
+				Content: nil,
 			},
 		},
 	}
