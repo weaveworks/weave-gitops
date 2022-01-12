@@ -32,11 +32,25 @@ export namespace fontSizes {
   const tiny: string;
 }
 
+export namespace borderRadius {
+  const circle: string;
+  const none: string;
+  const soft: string;
+}
+
+export namespace boxShadow {
+  const heavy: string;
+  const light: string;
+  const none: string;
+}
+
 declare module "styled-components" {
   export interface DefaultTheme {
     fontFamilies: { regular: string; monospace: string };
     fontSizes: typeof fontSizes;
     colors: typeof colors;
     spacing: typeof spacing;
+    borderRadius: typeof borderRadius;
+    boxShadow: typeof boxShadow;
   }
 }

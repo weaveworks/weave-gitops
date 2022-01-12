@@ -1,3 +1,4 @@
+import Button from "./components/Button";
 import Footer from "./components/Footer";
 import GithubDeviceAuthModal from "./components/GithubDeviceAuthModal";
 import LoadingPage from "./components/LoadingPage";
@@ -11,7 +12,7 @@ import {
   getCallbackState,
   getProviderToken,
 } from "./lib/storage";
-import theme from "./lib/theme";
+import { theme, muiTheme } from "./lib/theme";
 import ApplicationAdd from "./pages/ApplicationAdd";
 import ApplicationDetail from "./pages/ApplicationDetail";
 import Applications from "./pages/Applications";
@@ -27,6 +28,7 @@ export {
   GithubDeviceAuthModal,
   LoadingPage,
   theme,
+  muiTheme,
   useApplications,
   Footer,
   RepoInputWithAuth,
@@ -34,4 +36,5 @@ export {
   getCallbackState,
   clearCallbackState,
   OAuthCallback,
+  Button,
 };

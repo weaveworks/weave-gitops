@@ -47,6 +47,16 @@ export const theme: DefaultTheme = {
     // 4px
     xxs: `${baseSpacingNumber * 0.25}px`,
   },
+  borderRadius: {
+    circle: "50%",
+    none: "0",
+    soft: "2px",
+  },
+  boxShadow: {
+    heavy: "0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)",
+    light: "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)",
+    none: "none",
+  },
 };
 
 export default theme;

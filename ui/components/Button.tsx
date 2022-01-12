@@ -18,8 +18,8 @@ export interface Props extends ButtonProps {
 function UnstyledButton({ loading, ...props }: Props) {
   return (
     <MaterialButton
-      variant="outlined"
-      color="primary"
+      variant={props.variant || "outlined"}
+      color={props.color || "primary"}
       disabled={loading}
       startIcon={loading ? <CircularProgress size={16} /> : props.startIcon}
       disableElevation={true}
@@ -31,7 +31,7 @@ function UnstyledButton({ loading, ...props }: Props) {
 const Button = styled(UnstyledButton)`
   &.MuiButton-root {
     line-height: 1;
-    border-radius: 2px;
+    border-radius: ${(props) => props.theme.borderRadius.soft};
     font-weight: 600;
   }
   &.MuiButton-outlined {
