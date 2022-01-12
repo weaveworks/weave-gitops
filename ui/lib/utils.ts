@@ -40,3 +40,21 @@ export function poller(cb, interval) {
 
   return setInterval(cb, interval);
 }
+
+export function isHTTP(uri) {
+  return uri.includes("http") || uri.includes("https");
+}
+
+export function convertGitURLToGitProvider(uri: string) {
+  if (isHTTP(uri)) {
+    return uri;
+  }
+
+  const matches = uri.match(/git@(.*)[/|:](.*)\/(.*)/);
+  if (!matches) {
+    throw new Error(`could not parse url "${uri}"`);
+  }
+  const [, provider, org, repo] = matches;
+
+  return `https://${provider}/${org}/${repo}`;
+}

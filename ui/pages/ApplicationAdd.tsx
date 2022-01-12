@@ -22,28 +22,11 @@ import { useAddApplication } from "../hooks/applications";
 import { useIsAuthenticated } from "../hooks/auth";
 import { GitProvider } from "../lib/api/applications/applications.pb";
 import { GrpcErrorCodes, PageRoute } from "../lib/types";
+import { convertGitURLToGitProvider } from "../lib/utils";
 
 type Props = {
   className?: string;
 };
-
-function isHTTP(uri) {
-  return uri.includes("http") || uri.includes("https");
-}
-
-function convertGitURLToGitProvider(uri: string) {
-  if (isHTTP(uri)) {
-    return uri;
-  }
-
-  const matches = uri.match(/git@(.*)[/|:](.*)\/(.*)/);
-  if (!matches) {
-    throw new Error(`could not parse url "${uri}"`);
-  }
-  const [, provider, org, repo] = matches;
-
-  return `https://${provider}/${org}/${repo}`;
-}
 
 interface MessageProps {
   link: string;
