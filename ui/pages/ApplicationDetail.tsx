@@ -1,12 +1,12 @@
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
+import ActionBar from "../components/ActionBar";
 import Alert from "../components/Alert";
 import Button from "../components/Button";
 import CommitsTable from "../components/CommitsTable";
 import ConditionsTable from "../components/ConditionsTable";
 import ErrorPage from "../components/ErrorPage";
-import Flex from "../components/Flex";
 import GithubDeviceAuthModal from "../components/GithubDeviceAuthModal";
 import KeyValueTable from "../components/KeyValueTable";
 import LoadingPage from "../components/LoadingPage";
@@ -68,7 +68,7 @@ function ApplicationDetail({ className, name }: Props) {
     };
 
     req(p());
-  }, [name]);
+  }, [name, syncRes]);
 
   React.useEffect(() => {
     if (!res) {
@@ -113,10 +113,27 @@ function ApplicationDetail({ className, name }: Props) {
       breadcrumbs={[{ page: PageRoute.Applications }]}
       title={name}
       className={className}
-      topRight={
-        <Flex align>
+    >
+      <CallbackStateContextProvider
+        callbackState={{
+          page: formatURL(PageRoute.ApplicationDetail, { name }),
+          state: { authSuccess: false },
+        }}
+      >
+        {syncError ? (
+          <Alert
+            severity="error"
+            title="Error syncing Application"
+            message={syncError.message}
+          />
+        ) : (
+          authSuccess && (
+            <Alert severity="success" message="Authentication Successful" />
+          )
+        )}
+        <ActionBar>
           <Button
-            loading={syncLoading ? true : false}
+            loading={syncLoading}
             onClick={() => {
               syncRequest(
                 applicationsClient.SyncApplication({
@@ -137,26 +154,7 @@ function ApplicationDetail({ className, name }: Props) {
           >
             Remove App
           </Button>
-        </Flex>
-      }
-    >
-      <CallbackStateContextProvider
-        callbackState={{
-          page: formatURL(PageRoute.ApplicationDetail, { name }),
-          state: { authSuccess: false },
-        }}
-      >
-        {syncError ? (
-          <Alert
-            severity="error"
-            title="Error syncing Application"
-            message={syncError.message}
-          />
-        ) : (
-          authSuccess && (
-            <Alert severity="success" message="Authentication Successful" />
-          )
-        )}
+        </ActionBar>
         <KeyValueTable
           columns={4}
           pairs={[
@@ -181,10 +179,8 @@ function ApplicationDetail({ className, name }: Props) {
               : application.helmRelease?.conditions
           }
         />
-
         <h3>Commits</h3>
         <CommitsTable
-          // Get CommitsTable to retry after auth
           app={application}
           authSuccess={authSuccess}
           onAuthClick={() => {

@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import ActionBar from "../components/ActionBar";
 import Button from "../components/Button";
 import DataTable from "../components/DataTable";
 import Flex from "../components/Flex";
@@ -41,22 +42,21 @@ function Applications({ className }: Props) {
 
   return (
     <Page className={className}>
-      <Flex between align>
-        <Flex align>
-          <h2>Applications</h2>
-          <Spacer padding="small" />
-          <PollingIndicator loading={loading} interval="30" />
-        </Flex>
+      <Flex align start>
+        <h2>Applications</h2>
+        <Spacer padding="xs" />
+        <PollingIndicator loading={loading} />
+      </Flex>
+      <ActionBar>
         <Link to={PageRoute.ApplicationAdd} className="title-bar-button">
           <Button
-            endIcon={<Icon type={IconType.AddIcon} size="base" />}
+            startIcon={<Icon type={IconType.AddIcon} size="base" />}
             type="button"
           >
             Add Application
           </Button>
         </Link>
-      </Flex>
-
+      </ActionBar>
       <DataTable
         sortFields={["name"]}
         fields={[

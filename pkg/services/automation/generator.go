@@ -57,7 +57,9 @@ const (
 )
 
 type AutomationGenerator interface {
-	GenerateAutomation(ctx context.Context, app models.Application, clusterName string) ([]AutomationManifest, error)
+	GenerateApplicationAutomation(ctx context.Context, app models.Application, clusterName string) (ApplicationAutomation, error)
+	GenerateClusterAutomation(ctx context.Context, cluster models.Cluster, configURL gitproviders.RepoURL, namespace string) (ClusterAutomation, error)
+	GetSecretRefForPrivateGitSources(ctx context.Context, url gitproviders.RepoURL) (GeneratedSecretName, error)
 }
 
 type AutomationGen struct {
@@ -67,6 +69,13 @@ type AutomationGen struct {
 }
 
 var _ AutomationGenerator = &AutomationGen{}
+
+type ApplicationAutomation struct {
+	AppYaml       AutomationManifest
+	AppAutomation AutomationManifest
+	AppSource     AutomationManifest
+	AppKustomize  AutomationManifest
+}
 
 type AutomationManifest struct {
 	Path    string
@@ -89,13 +98,13 @@ func NewAutomationGenerator(gp gitproviders.GitProvider, flux flux.Flux, logger 
 
 func (a *AutomationGen) getAppSecretRef(ctx context.Context, app models.Application) (GeneratedSecretName, error) {
 	if app.SourceType != models.SourceTypeHelm {
-		return a.getSecretRef(ctx, app, app.GitSourceURL)
+		return a.GetSecretRefForPrivateGitSources(ctx, app.GitSourceURL)
 	}
 
 	return "", nil
 }
 
-func (a *AutomationGen) getSecretRef(ctx context.Context, app models.Application, url gitproviders.RepoURL) (GeneratedSecretName, error) {
+func (a *AutomationGen) GetSecretRefForPrivateGitSources(ctx context.Context, url gitproviders.RepoURL) (GeneratedSecretName, error) {
 	var secretRef GeneratedSecretName
 
 	visibility, err := a.GitProvider.GetRepoVisibility(ctx, url)
@@ -108,24 +117,6 @@ func (a *AutomationGen) getSecretRef(ctx context.Context, app models.Application
 	}
 
 	return secretRef, nil
-}
-
-func (a *AutomationGen) generateAppAutomation(ctx context.Context, app models.Application, clusterName string) ([]AutomationManifest, error) {
-	a.Logger.Generatef("Generating application spec manifest")
-
-	appManifest, err := generateAppYaml(app)
-	if err != nil {
-		return nil, fmt.Errorf("could not create app.yaml for '%s': %w", app.Name, err)
-	}
-
-	a.Logger.Generatef("Generating GitOps automation manifests")
-
-	appGoatManifest, err := a.generateApplicationGoat(app, clusterName)
-	if err != nil {
-		return nil, fmt.Errorf("could not create GitOps automation for '%s': %w", app.Name, err)
-	}
-
-	return []AutomationManifest{appManifest, appGoatManifest}, nil
 }
 
 func (a *AutomationGen) generateAppSource(ctx context.Context, app models.Application) (AutomationManifest, error) {
@@ -187,7 +178,7 @@ func CreateKustomize(name, namespace string, resources ...string) types.Kustomiz
 	return k
 }
 
-func createAppKustomize(app models.Application, automation []AutomationManifest) (AutomationManifest, error) {
+func createAppKustomize(app models.Application, automation ...AutomationManifest) (AutomationManifest, error) {
 	resources := []string{}
 
 	for _, a := range automation {
@@ -228,28 +219,48 @@ func AddWegoIgnore(sourceManifest []byte) ([]byte, error) {
 	return updatedManifest, nil
 }
 
-func (a *AutomationGen) GenerateAutomation(ctx context.Context, app models.Application, clusterName string) ([]AutomationManifest, error) {
-	appDeployManifests, err := a.generateAppAutomation(ctx, app, clusterName)
+func (a *AutomationGen) GenerateApplicationAutomation(ctx context.Context, app models.Application, clusterName string) (ApplicationAutomation, error) {
+	a.Logger.Generatef("Generating application spec manifest")
+
+	appYamlManifest, err := generateAppYaml(app)
 	if err != nil {
-		return nil, err
+		return ApplicationAutomation{}, err
 	}
+
+	a.Logger.Generatef("Generating GitOps automation manifest")
+
+	appDeployManifest, err := a.generateAppAutomation(ctx, app, clusterName)
+	if err != nil {
+		return ApplicationAutomation{}, err
+	}
+
+	a.Logger.Generatef("Generating GitOps source manifest")
 
 	source, err := a.generateAppSource(ctx, app)
 	if err != nil {
-		return nil, err
+		return ApplicationAutomation{}, err
 	}
 
-	automationManifests := append(appDeployManifests, source)
+	a.Logger.Generatef("Generating GitOps Kustomization manifest")
 
-	appKustomize, err := createAppKustomize(app, automationManifests)
+	appKustomize, err := createAppKustomize(app, appYamlManifest, appDeployManifest, source)
 	if err != nil {
-		return nil, err
+		return ApplicationAutomation{}, err
 	}
 
-	return append(automationManifests, appKustomize), nil
+	return ApplicationAutomation{
+		AppYaml:       appYamlManifest,
+		AppAutomation: appDeployManifest,
+		AppSource:     source,
+		AppKustomize:  appKustomize,
+	}, nil
 }
 
-func (a *AutomationGen) generateApplicationGoat(app models.Application, clusterName string) (AutomationManifest, error) {
+func (aa ApplicationAutomation) Manifests() []AutomationManifest {
+	return append([]AutomationManifest{aa.AppYaml}, aa.AppAutomation, aa.AppSource, aa.AppKustomize)
+}
+
+func (a *AutomationGen) generateAppAutomation(ctx context.Context, app models.Application, clusterName string) (AutomationManifest, error) {
 	var (
 		b   []byte
 		err error

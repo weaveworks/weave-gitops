@@ -10,10 +10,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/manifests"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 
 	. "github.com/onsi/ginkgo"
@@ -27,6 +27,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 	var sessionOutput *gexec.Session
 
 	BeforeEach(func() {
+
 		By("Given I have a gitops binary installed on my local machine", func() {
 			Expect(FileExists(gitopsBinaryPath)).To(BeTrue())
 		})
@@ -39,8 +40,29 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 
 		By("Then I should see gitops help text displayed for 'install' command", func() {
-			Eventually(string(sessionOutput.Wait().Out.Contents())).Should(MatchRegexp(
-				fmt.Sprintf(`The install command deploys GitOps in the specified namespace,\nadds a cluster entry to the GitOps repo, and persists the GitOps runtime into the\nrepo. If a previous version is installed, then an in-place upgrade will be performed.\n*Usage:\n\s*gitops install \[flags]\n*Examples:\n\s*# Install GitOps in the %s namespace\n\s*gitops install --config-repo=ssh://git@github.com/me/mygitopsrepo.git\n*Flags:\n\s*--config-repo string\s*URL of external repository that will hold automation manifests\n\s*--dry-run\s*Outputs all the manifests that would be installed\n\s*-h, --help\s*help for install\n*Global Flags:\n\s*-e, --endpoint string\s*The Weave GitOps Enterprise HTTP API endpoint\n\s*--namespace string\s*The namespace scope for this operation \(default "%s"\)\n\s*-v, --verbose\s*Enable verbose output`, wego.DefaultNamespace, wego.DefaultNamespace)))
+			helpTest := fmt.Sprintf(`The install command deploys GitOps in the specified namespace,
+adds a cluster entry to the GitOps repo, and persists the GitOps runtime into the
+repo. If a previous version is installed, then an in-place upgrade will be performed.
+
+Usage:
+  gitops install [flags]
+
+Examples:
+  # Install GitOps in the %s namespace
+  gitops install --config-repo=ssh://git@github.com/me/mygitopsrepo.git
+
+Flags:
+      --auto-merge           If set, 'gitops install' will automatically update the default branch for the configuration repository
+      --config-repo string   URL of external repository that will hold automation manifests
+      --dry-run              Outputs all the manifests that would be installed
+  -h, --help                 help for install
+
+Global Flags:
+  -e, --endpoint string    The Weave GitOps Enterprise HTTP API endpoint
+      --namespace string   The namespace scope for this operation (default "%s")
+  -v, --verbose            Enable verbose output`, wego.DefaultNamespace, wego.DefaultNamespace)
+			helpTest = regexp.QuoteMeta(helpTest)
+			Eventually(sessionOutput).Should(gbytes.Say(helpTest))
 		})
 	})
 
@@ -73,7 +95,7 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 
 		By("And I run 'gitops install' command", func() {
-			_, errOutput = runCommandAndReturnStringOutput(gitopsBinaryPath + " install --config-repo=ssh://git@github.com/user/repo.git")
+			_, errOutput = runCommandAndReturnStringOutput(gitopsBinaryPath + " install --config-repo=ssh://git@" + gitProviderName + ".com/user/repo.git")
 		})
 
 		By("Then I should see a quitting message", func() {
@@ -93,15 +115,15 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "git@" + gitProviderName + ".com:" + gitOrg + "/" + tip.appRepoName + ".git"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+		defer deleteRepo(tip.appRepoName, gitProvider, gitOrg)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+			deleteRepo(tip.appRepoName, gitProvider, gitOrg)
 		})
 
-		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
+		_ = initAndCreateEmptyRepo(tip.appRepoName, gitProvider, private, gitOrg)
 
 		installAndVerifyWego(namespace, appRepoRemoteURL)
 
@@ -131,6 +153,78 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 		})
 	})
 
+	It("@skipOnNightly Verify that gitops can install(via pull requests) & uninstall(via auto-merge) gitops components to multiple clusters under a user-specified namespace", func() {
+		namespace := "test-namespace"
+
+		_, cluster1Context, err := ResetOrCreateCluster(namespace, true)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		private := true
+		tip := generateTestInputs()
+		appRepoRemoteURL := "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"
+
+		defer deleteRepo(tip.appRepoName, gitProvider, githubOrg)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(tip.appRepoName, gitProvider, githubOrg)
+		})
+
+		repoAbsolutePath := initAndCreateEmptyRepo(tip.appRepoName, gitProvider, private, githubOrg)
+
+		installAndVerifyWegoViaPullRequest(namespace, appRepoRemoteURL, repoAbsolutePath)
+
+		cluster2Name, cluster2Context, err := ResetOrCreateClusterWithName(namespace, false, "", true)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		defer func() {
+			selectCluster(cluster2Context)
+			deleteCluster(cluster2Name)
+			selectCluster(cluster1Context)
+		}()
+
+		selectCluster(cluster2Context)
+		installAndVerifyWegoViaPullRequest(namespace, appRepoRemoteURL, repoAbsolutePath)
+
+		selectCluster(cluster1Context)
+		cmd := fmt.Sprintf("%s uninstall --namespace %s --force", gitopsBinaryPath, namespace)
+		c := exec.Command("sh", "-c", cmd)
+		c.Stdout = os.Stdout
+		c.Stderr = os.Stderr
+		err = c.Start()
+
+		Expect(err).ShouldNot(HaveOccurred())
+
+		err = c.Wait()
+
+		Expect(err).ShouldNot(HaveOccurred())
+
+		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)
+
+		By("Then I should not see any gitops components", func() {
+			_, errOutput := runCommandAndReturnStringOutput("kubectl get ns " + namespace)
+			Eventually(errOutput).Should(ContainSubstring(`Error from server (NotFound): namespaces "` + namespace + `" not found`))
+		})
+
+		selectCluster(cluster2Context)
+
+		cmd = fmt.Sprintf("%s uninstall --namespace %s --force", gitopsBinaryPath, namespace)
+		c = exec.Command("sh", "-c", cmd)
+		c.Stdout = os.Stdout
+		c.Stderr = os.Stderr
+		err = c.Start()
+
+		Expect(err).ShouldNot(HaveOccurred())
+
+		err = c.Wait()
+		Expect(err).ShouldNot(HaveOccurred())
+
+		_ = waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)
+
+		By("Then I should not see any gitops components", func() {
+			Expect(waitForNamespaceToTerminate(namespace, NAMESPACE_TERMINATE_TIMEOUT)).ShouldNot(HaveOccurred())
+		})
+	})
+
 	It("Verify that gitops can uninstall flux if gitops was not fully installed", func() {
 
 		namespace := "test-namespace"
@@ -142,15 +236,15 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+		defer deleteRepo(tip.appRepoName, gitProvider, gitOrg)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+			deleteRepo(tip.appRepoName, gitProvider, gitOrg)
 		})
 
-		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
+		_ = initAndCreateEmptyRepo(tip.appRepoName, gitProvider, private, gitOrg)
 
 		installAndVerifyWego(namespace, appRepoRemoteURL)
 
@@ -187,24 +281,26 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+		defer deleteRepo(tip.appRepoName, gitProvider, gitOrg)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+			deleteRepo(tip.appRepoName, gitProvider, gitOrg)
 		})
 
-		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
+		_ = initAndCreateEmptyRepo(tip.appRepoName, gitProvider, private, gitOrg)
 
 		By("When I try to install gitops in dry-run mode", func() {
-			installDryRunOutput, _ = runCommandAndReturnStringOutput(gitopsBinaryPath + fmt.Sprintf(" install --dry-run --config-repo=%s", appRepoRemoteURL))
+			var errOnInstall string
+			installDryRunOutput, errOnInstall = runCommandAndReturnStringOutput(gitopsBinaryPath + fmt.Sprintf(" install --dry-run --config-repo=%s", appRepoRemoteURL))
+			Expect(errOnInstall).To(BeEmpty())
 		})
 
 		By("Then I should see install dry-run output in the console", func() {
-			Eventually(installDryRunOutput).Should(ContainSubstring("# Flux version: "))
-			Eventually(installDryRunOutput).Should(ContainSubstring("# Components: source-controller,kustomize-controller,helm-controller,notification-controller,image-reflector-controller,image-automation-controller"))
-			Eventually(installDryRunOutput).Should(ContainSubstring("name: " + WEGO_DEFAULT_NAMESPACE))
+			Expect(installDryRunOutput).Should(ContainSubstring("# Flux Version: "))
+			Expect(installDryRunOutput).Should(ContainSubstring("# Components: source-controller,kustomize-controller,helm-controller,notification-controller,image-reflector-controller,image-automation-controller"))
+			Expect(installDryRunOutput).Should(ContainSubstring("name: " + WEGO_DEFAULT_NAMESPACE))
 		})
 
 		By("And gitops components should be absent from the cluster", func() {
@@ -256,15 +352,15 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		private := true
 		tip := generateTestInputs()
-		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
+		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
 
-		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+		defer deleteRepo(tip.appRepoName, gitProvider, gitOrg)
 
 		By("And application repo does not already exist", func() {
-			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+			deleteRepo(tip.appRepoName, gitProvider, gitOrg)
 		})
 
-		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
+		_ = initAndCreateEmptyRepo(tip.appRepoName, gitProvider, private, gitOrg)
 
 		installAndVerifyWego(namespace, appRepoRemoteURL)
 

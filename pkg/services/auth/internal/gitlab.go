@@ -52,9 +52,7 @@ func getGitlabClientSecret() string {
 
 // GitlabAuthorizeUrl returns a URL that can be used for a Gitlab OAuth authorize request
 func GitlabAuthorizeUrl(redirectUri string, scopes []string, verifier CodeVerifier) (url.URL, error) {
-	u := url.URL{}
-	u.Scheme = gitlabScheme
-	u.Host = getGitlabHost()
+	u := buildGitlabUrl()
 	u.Path = "/oauth/authorize"
 
 	params := u.Query()
@@ -77,9 +75,7 @@ func GitlabAuthorizeUrl(redirectUri string, scopes []string, verifier CodeVerifi
 
 // GitlabTokenUrl returns a URL that can be used for a Gitlab OAuth token request
 func GitlabTokenUrl(redirectUri, authorizationCode string, verifier CodeVerifier) url.URL {
-	u := url.URL{}
-	u.Scheme = gitlabScheme
-	u.Host = getGitlabHost()
+	u := buildGitlabUrl()
 	u.Path = "/oauth/token"
 
 	params := u.Query()
@@ -90,6 +86,22 @@ func GitlabTokenUrl(redirectUri, authorizationCode string, verifier CodeVerifier
 	params.Set("code_verifier", verifier.RawValue())
 	params.Set("client_secret", getGitlabClientSecret())
 	u.RawQuery = params.Encode()
+
+	return u
+}
+
+// GitlabUserUrl returns the url to request data about the currently logged in user
+func GitlabUserUrl() url.URL {
+	u := buildGitlabUrl()
+	u.Path = "/user"
+
+	return u
+}
+
+func buildGitlabUrl() url.URL {
+	u := url.URL{}
+	u.Scheme = gitlabScheme
+	u.Host = getGitlabHost()
 
 	return u
 }

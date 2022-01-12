@@ -27,6 +27,13 @@ To use an existing cluster with active kubectl context, export the following var
 ```
 export CLUSTER_PROVIDER=kubectl
 ```
+
+To run github tests on gitlab repos, export the following variable before running the tests. Please note that the tests will run on github repos by default if this variable is not set. Additionally, tests tagged @gitlabTests will always run on gitlab repos.
+
+```
+export GIT_PROVIDER=gitlab
+```
+
 # Smoke Tests
 
 To run the **smoke tests** from the suite, run the following the command from the repo root directory.

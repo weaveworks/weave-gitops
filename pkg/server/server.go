@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -108,6 +109,12 @@ func DefaultApplicationsConfig() (*ApplicationsConfig, error) {
 
 	rand.Seed(time.Now().UnixNano())
 	secretKey := rand.String(20)
+	envSecretKey := os.Getenv("GITOPS_JWT_ENCRYPTION_SECRET")
+
+	if envSecretKey != "" {
+		secretKey = envSecretKey
+	}
+
 	jwtClient := auth.NewJwtClient(secretKey)
 
 	rest, clusterName, err := kube.RestConfig()
@@ -163,6 +170,10 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 
 	app, err := kubeClient.GetApplication(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace})
 	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil, grpcStatus.Errorf(codes.NotFound, "not found: %s", err.Error())
+		}
+
 		return nil, fmt.Errorf("could not get application %q: %w", msg.Name, err)
 	}
 
@@ -623,6 +634,26 @@ func (s *applicationServer) AuthorizeGitlab(ctx context.Context, msg *pb.Authori
 	return &pb.AuthorizeGitlabResponse{Token: token}, nil
 }
 
+func (s *applicationServer) ValidateProviderToken(ctx context.Context, msg *pb.ValidateProviderTokenRequest) (*pb.ValidateProviderTokenResponse, error) {
+	token, err := middleware.ExtractProviderToken(ctx)
+	if err != nil {
+		return nil, grpcStatus.Error(codes.Unauthenticated, err.Error())
+	}
+
+	v, err := findValidator(msg.Provider, s)
+	if err != nil {
+		return nil, grpcStatus.Error(codes.InvalidArgument, err.Error())
+	}
+
+	if err := v.ValidateToken(ctx, token.AccessToken); err != nil {
+		return nil, grpcStatus.Error(codes.InvalidArgument, err.Error())
+	}
+
+	return &pb.ValidateProviderTokenResponse{
+		Valid: true,
+	}, nil
+}
+
 func mapHelmReleaseSpecToResponse(helm *helmv2.HelmRelease) *pb.HelmRelease {
 	if helm == nil {
 		return nil
@@ -773,4 +804,15 @@ func toProtoProvider(p gitproviders.GitProviderName) pb.GitProvider {
 	}
 
 	return pb.GitProvider_Unknown
+}
+
+func findValidator(provider pb.GitProvider, s *applicationServer) (auth.ProviderTokenValidator, error) {
+	switch provider {
+	case pb.GitProvider_GitHub:
+		return s.ghAuthClient, nil
+	case pb.GitProvider_GitLab:
+		return s.glAuthClient, nil
+	}
+
+	return nil, fmt.Errorf("unknown git provider %s", provider)
 }

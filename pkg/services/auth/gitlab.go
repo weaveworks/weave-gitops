@@ -34,6 +34,7 @@ type gitlabAuthFlow struct {
 type GitlabAuthClient interface {
 	AuthURL(ctx context.Context, redirectUri string) (url.URL, error)
 	ExchangeCode(ctx context.Context, redirectUri, code string) (*types.TokenResponseState, error)
+	ValidateToken(ctx context.Context, token string) error
 }
 
 type glAuth struct {
@@ -61,6 +62,26 @@ func (g glAuth) ExchangeCode(ctx context.Context, redirectUri, code string) (*ty
 	tUrl := internal.GitlabTokenUrl(redirectUri, code, g.verifier)
 
 	return doCodeExchangeRequest(ctx, tUrl, g.http)
+}
+
+func (g glAuth) ValidateToken(ctx context.Context, token string) error {
+	u := internal.GitlabUserUrl()
+
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	if err != nil {
+		return err
+	}
+
+	res, err := g.http.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("invalid token: %s", res.Status)
+	}
+
+	return nil
 }
 
 func NewGitlabAuthFlow(redirectUri string, client *http.Client) (types.AuthFlow, error) {

@@ -1,3 +1,6 @@
+//go:build !unittest
+// +build !unittest
+
 package server_test
 
 import (
@@ -130,7 +133,7 @@ var _ = Describe("RemoveApplication", func() {
 							APIVersion: types.KustomizationVersion,
 						},
 						MetaData: &types.ObjectMeta{
-							Name:      appName,
+							Name:      clusterName,
 							Namespace: namespace.Name,
 						},
 						Resources: []string{filepath.Join("../../../apps/", appName)},
@@ -177,7 +180,7 @@ var _ = Describe("RemoveApplication", func() {
 						APIVersion: types.KustomizationVersion,
 					},
 					MetaData: &types.ObjectMeta{
-						Name:      appName,
+						Name:      clusterName,
 						Namespace: namespace.Name,
 					},
 				}
@@ -191,7 +194,7 @@ var _ = Describe("RemoveApplication", func() {
 							APIVersion: types.KustomizationVersion,
 						},
 						MetaData: &types.ObjectMeta{
-							Name:      appName,
+							Name:      clusterName,
 							Namespace: namespace.Name,
 						},
 					},
@@ -304,7 +307,7 @@ var _ = Describe("RemoveApplication", func() {
 							APIVersion: types.KustomizationVersion,
 						},
 						MetaData: &types.ObjectMeta{
-							Name:      appName,
+							Name:      clusterName,
 							Namespace: namespace.Name,
 						},
 						Resources: []string{filepath.Join("../../../apps/", appName)},
@@ -348,7 +351,7 @@ var _ = Describe("RemoveApplication", func() {
 							APIVersion: types.KustomizationVersion,
 						},
 						MetaData: &types.ObjectMeta{
-							Name:      appName,
+							Name:      clusterName,
 							Namespace: namespace.Name,
 						},
 					},

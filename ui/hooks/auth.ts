@@ -1,26 +1,31 @@
-import { useContext, useEffect, useState } from "react";
+import _ from "lodash";
+import { useContext, useState } from "react";
 import { AppContext } from "../contexts/AppContext";
 import {
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeResponse,
   GitProvider,
+  ValidateProviderTokenResponse,
 } from "../lib/api/applications/applications.pb";
 import { GrpcErrorCodes } from "../lib/types";
 import { poller } from "../lib/utils";
+import { makeHeaders, useRequestState } from "./common";
 
-export function useIsAuthenticated(provider: GitProvider): boolean {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const { getProviderToken } = useContext(AppContext);
+export function useIsAuthenticated() {
+  const [res, loading, error, req] =
+    useRequestState<ValidateProviderTokenResponse>();
 
-  useEffect(() => {
-    const token = getProviderToken(provider);
+  const { getProviderToken, applicationsClient } = useContext(AppContext);
 
-    if (token) {
-      setIsAuthenticated(true);
-    }
-  }, [provider]);
-
-  return isAuthenticated;
+  return {
+    isAuthenticated: error ? false : res?.valid,
+    loading,
+    error,
+    req: (provider: GitProvider) => {
+      const headers = makeHeaders(_.bind(getProviderToken, this, provider));
+      req(applicationsClient.ValidateProviderToken({ provider }, { headers }));
+    },
+  };
 }
 
 export default function useAuth() {

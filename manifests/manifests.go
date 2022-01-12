@@ -3,7 +3,6 @@ package manifests
 import (
 	"bytes"
 	"embed"
-	_ "embed"
 	"fmt"
 	"io/fs"
 	"path/filepath"

@@ -28,7 +28,6 @@ gitops version
 
 Alternatively, users can use Homebrew:
 
-
 ```console
 brew tap weaveworks/tap
 brew install weaveworks/tap/gitops
@@ -68,7 +67,7 @@ For more information please see the [docs](https://docs.gitops.weave.works/docs/
 
 To set up a development environment for the CLI
 
-1. Install go v1.16
+1. Install go v1.17
 2. Install [buf](https://github.com/bufbuild/buf)
 3. make or make unit-tests to ensure everything built correctly.
 
@@ -111,7 +110,7 @@ For VSCode, use these editor configuration flags:
 
 To set up a development environment for the UI
 
-1. Install go v1.16
+1. Install go v1.17
 2. Install Node.js version 14.15.1
 3. Make sure your `$GOPATH` is added to your `$PATH` in your bashrc or zshrc file, then install reflex for automated server builds: go get github.com/cespare/reflex
 4. Go through the Weave GitOps getting started docs here: https://docs.gitops.weave.works/docs/getting-started/
@@ -125,6 +124,8 @@ Lint frontend code with `make ui-lint` - using Prettier (https://prettier.io/) w
 Run frontend tests with `make ui-test` - update CSS snapshots with `npm run test -- -u`
 
 Check dependency vulnerabilities with `make ui-audit`
+
+To avoid invalidating JWT tokens on every server restart set the `GITOPS_JWT_ENCRYPTION_SECRET` env variable in your shell to use a static encryption secret. Else, a random encryption secret will be used that will change on every server (or pod) restart, thus invalidating any JWTs that were created with the old secret.
 
 ### Recommended Snippets
 

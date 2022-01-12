@@ -1,3 +1,4 @@
+//go:build !unittest
 // +build !unittest
 
 package helpers
@@ -211,7 +212,7 @@ func GenerateExpectedFS(req *pb.AddApplicationRequest, root, clusterName string,
 				APIVersion: types.KustomizationVersion,
 			},
 			MetaData: &types.ObjectMeta{
-				Name:      req.Name,
+				Name:      clusterName,
 				Namespace: req.Namespace,
 			},
 			Resources: []string{"../../../apps/" + req.Name},

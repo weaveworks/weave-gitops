@@ -4,7 +4,12 @@ export namespace colors {
   const black: string;
   const white: string;
   const primary: string;
+  const primaryDark: string;
   const success: string;
+  const alert: string;
+  const neutral20: string;
+  const neutral30: string;
+  const neutral40: string;
 }
 export namespace spacing {
   const base: string;

@@ -15,7 +15,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.16.x
+        go-version: 1.17.X
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Cache node modules
@@ -57,7 +57,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.16.x
+        go-version: 1.17.X
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Clean
@@ -85,7 +85,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.16.x
+        go-version: 1.17.X
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Set up ssh
@@ -138,6 +138,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     timeout-minutes: 60
+    strategy:
+      matrix:
+        git-provider: [github, gitlab]
     steps:
     - uses: actions/checkout@v2
     - uses: ./.github/actions/run-acceptance-test
@@ -149,6 +152,7 @@ jobs:
         gitlab-key: ${{ secrets.GITLAB_KEY }}
         gitlab-token: ${{ secrets.GITLAB_TOKEN }}
         gitlab-org: ${{ secrets.GITLAB_ORG }}
+        git-provider: ${{ matrix.git-provider }}
         artifacts-base-dir: "/tmp/gitops-test"
 
   acceptance-tests-0:
