@@ -84,7 +84,7 @@ func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, auto
 	i.log.Actionf("Associating cluster %q", clusterName)
 
 	if autoMerge {
-		err = i.repoWriter.WriteDirectlyToDefaultBranch(ctx, configURL, defaultBranch, convertManifestsToCommitFiles(gitopsManifests))
+		err = i.repoWriter.Write(ctx, configURL, defaultBranch, models.ConvertManifestsToCommitFiles(gitopsManifests))
 		if err != nil {
 			return fmt.Errorf("failed writting to default branch %w", err)
 		}

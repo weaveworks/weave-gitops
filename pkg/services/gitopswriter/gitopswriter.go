@@ -28,7 +28,6 @@ var _ GitOpsDirectoryWriter = &gitOpsDirectoryWriterSvc{}
 type GitOpsDirectoryWriter interface {
 	AddApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error
 	RemoveApplication(ctx context.Context, app models.Application, clusterName string, autoMerge bool) error
-	AssociateCluster(ctx context.Context, fluxClient flux.Flux, gitProvider gitproviders.GitProvider, cluster models.Cluster, configURL gitproviders.RepoURL, namespace string, autoMerge bool) error
 }
 
 type gitOpsDirectoryWriterSvc struct {
@@ -193,8 +192,7 @@ func (dw *gitOpsDirectoryWriterSvc) RemoveApplication(ctx context.Context, app m
 }
 
 type RepoWriter interface {
-	WriteDirectlyToDefaultBranch(ctx context.Context, repoURL gitproviders.RepoURL, defaultBranch string, manifests []gitprovider.CommitFile) error
-	PullRequest(ctx context.Context, pullRequestInfo gitproviders.PullRequestInfo, repoURL gitproviders.RepoURL) error
+	Write(ctx context.Context, repoURL gitproviders.RepoURL, branch string, manifests []gitprovider.CommitFile) error
 }
 
 type repoWriter struct {
@@ -211,10 +209,10 @@ func NewRepoWriter(log logger.Logger, gitClient git.Git, gitProvider gitprovider
 	}
 }
 
-func (rw *repoWriter) WriteDirectlyToDefaultBranch(ctx context.Context, repoURL gitproviders.RepoURL, defaultBranch string, manifests []gitprovider.CommitFile) error {
+func (rw *repoWriter) Write(ctx context.Context, repoURL gitproviders.RepoURL, branch string, manifests []gitprovider.CommitFile) error {
 
-	// TODO: automerge will not work for most users
-	remover, _, err := gitrepo.CloneRepo(ctx, rw.gitClient, repoURL, defaultBranch)
+	// TODO: auto-merge will not work for most users
+	remover, _, err := gitrepo.CloneRepo(ctx, rw.gitClient, repoURL, branch)
 	if err != nil {
 		return fmt.Errorf("failed to clone repo: %w", err)
 	}
