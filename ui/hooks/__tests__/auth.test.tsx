@@ -1,7 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import * as React from "react";
+import { GitProvider } from "../../lib/api/applications/applications.pb";
 import { createMockClient, withContext } from "../../lib/test-utils";
-import useAuth from "../auth";
+import { GrpcErrorCodes } from "../../lib/types";
+import useAuth, { useIsAuthenticated } from "../auth";
 
 describe("useAuth", () => {
   let container;
@@ -70,5 +72,76 @@ describe("useAuth", () => {
       })
     );
     expect((await screen.findByTestId(id)).textContent).toEqual(accessToken);
+  });
+});
+
+describe("useIsAuthenticated", () => {
+  it("returns whether a git provider token is valid", async () => {
+    const id = "auth";
+    const ovr = {
+      ValidateProviderToken: () => ({ valid: true }),
+    };
+    const TestComponent = () => {
+      const { isAuthenticated, req } = useIsAuthenticated();
+
+      React.useEffect(() => {
+        req(GitProvider.GitHub);
+      }, []);
+
+      return (
+        <div>
+          <div data-testid={id}>{isAuthenticated && "Authenticated!"}</div>
+        </div>
+      );
+    };
+
+    render(
+      withContext(TestComponent, "", {
+        applicationsClient: createMockClient(ovr),
+      })
+    );
+
+    expect((await screen.findByTestId(id)).textContent).toEqual(
+      "Authenticated!"
+    );
+  });
+  it("should return unathenticated when an error occurs", async () => {
+    const id = "auth";
+    const ovr = {
+      ValidateProviderToken: () => ({ valid: true }),
+    };
+
+    const client = createMockClient(ovr);
+    client.ValidateProviderToken = () =>
+      new Promise((_, reject) =>
+        reject({ code: GrpcErrorCodes.Unauthenticated, message: "nah fam" })
+      );
+
+    const TestComponent = () => {
+      const { isAuthenticated, req } = useIsAuthenticated();
+
+      React.useEffect(() => {
+        req(GitProvider.GitHub);
+      }, []);
+
+      return (
+        <div>
+          <div data-testid={id}>
+            {/* Note that this is strict equals `false` instead of false, as `null` would mean we haven't tried to validate yet */}
+            {isAuthenticated === false && "Unauthorized!"}
+          </div>
+        </div>
+      );
+    };
+
+    render(
+      withContext(TestComponent, "", {
+        applicationsClient: client,
+      })
+    );
+
+    expect((await screen.findByTestId(id)).textContent).toEqual(
+      "Unauthorized!"
+    );
   });
 });

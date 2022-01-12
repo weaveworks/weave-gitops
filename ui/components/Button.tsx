@@ -15,15 +15,13 @@ export interface Props extends ButtonProps {
 }
 
 /** Form Button */
-function UnstyledButton(props: Props) {
+function UnstyledButton({ loading, ...props }: Props) {
   return (
     <MaterialButton
       variant="outlined"
       color="primary"
-      disabled={props.loading}
-      startIcon={
-        props.loading ? <CircularProgress size={16} /> : props.startIcon
-      }
+      disabled={loading}
+      startIcon={loading ? <CircularProgress size={16} /> : props.startIcon}
       disableElevation={true}
       {...props}
     />

@@ -13,6 +13,7 @@ type TemplatesRetriever interface {
 	RetrieveTemplates() ([]Template, error)
 	RetrieveTemplatesByProvider(provider string) ([]Template, error)
 	RetrieveTemplateParameters(name string) ([]TemplateParameter, error)
+	RetrieveTemplateProfiles(name string) ([]Profile, error)
 }
 
 // TemplateRenderer defines the interface that adapters
@@ -59,6 +60,12 @@ type Credentials struct {
 	Namespace string `json:"namespace"`
 }
 
+type ProfileValues struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+	Values  string `json:"values"`
+}
+
 type CreatePullRequestFromTemplateParams struct {
 	GitProviderToken string
 	TemplateName     string
@@ -70,6 +77,32 @@ type CreatePullRequestFromTemplateParams struct {
 	Description      string
 	CommitMessage    string
 	Credentials      Credentials
+	ProfileValues    []ProfileValues
+}
+
+type Profile struct {
+	Name              string
+	Home              string
+	Sources           []string
+	Description       string
+	Keywords          []string
+	Maintainers       []Maintainer
+	Icon              string
+	Annotations       map[string]string
+	KubeVersion       string
+	HelmRepository    HelmRepository
+	AvailableVersions []string
+}
+
+type HelmRepository struct {
+	Name      string
+	Namespace string
+}
+
+type Maintainer struct {
+	Name  string
+	Email string
+	Url   string
 }
 
 // GetTemplates uses a TemplatesRetriever adapter to show
@@ -215,6 +248,37 @@ func GetCredentials(r CredentialsRetriever, w io.Writer) error {
 	}
 
 	fmt.Fprintf(w, "No credentials were found.\n")
+
+	return nil
+}
+
+// GetTemplateProfiles uses a TemplatesRetriever adapter
+// to show a list of profiles for a given template.
+func GetTemplateProfiles(name string, r TemplatesRetriever, w io.Writer) error {
+	ps, err := r.RetrieveTemplateProfiles(name)
+	if err != nil {
+		return fmt.Errorf("unable to retrieve profiles for template %q from %q: %w", name, r.Source(), err)
+	}
+
+	if len(ps) > 0 {
+		fmt.Fprintf(w, "NAME\tLATEST_VERSIONS\n")
+
+		for _, p := range ps {
+			if len(p.AvailableVersions) > 5 {
+				p.AvailableVersions = p.AvailableVersions[len(p.AvailableVersions)-5:]
+			}
+
+			latestVersions := strings.Join(p.AvailableVersions, ", ")
+
+			fmt.Fprintf(w, "%s", p.Name)
+			fmt.Fprintf(w, "\t%s", latestVersions)
+			fmt.Fprintln(w, "")
+		}
+
+		return nil
+	}
+
+	fmt.Fprintf(w, "No template profiles were found.\n")
 
 	return nil
 }

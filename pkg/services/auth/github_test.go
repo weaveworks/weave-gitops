@@ -15,6 +15,7 @@ import (
 	"github.com/benbjohnson/clock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	fakehttp "github.com/weaveworks/weave-gitops/pkg/vendorfakes/http"
 )
 
 type testServerTransport struct {
@@ -137,6 +138,24 @@ var _ = Describe("Github Device Flow", func() {
 
 			Expect(resultToken).To(Equal(token))
 		})
+	})
+})
+
+var _ = Describe("ValidateToken", func() {
+	It("returns unauthenticated on an invalid token", func() {
+		rt := &fakehttp.FakeRoundTripper{}
+		gh := NewGithubAuthClient(&http.Client{Transport: rt})
+
+		rt.RoundTripReturns(&http.Response{StatusCode: http.StatusUnauthorized}, nil)
+
+		Expect(gh.ValidateToken(context.Background(), "sometoken")).To(HaveOccurred())
+	})
+	It("does not return an error when a token is valid", func() {
+		rt := &fakehttp.FakeRoundTripper{}
+		gh := NewGithubAuthClient(&http.Client{Transport: rt})
+		rt.RoundTripReturns(&http.Response{StatusCode: http.StatusOK}, nil)
+
+		Expect(gh.ValidateToken(context.Background(), "sometoken")).NotTo(HaveOccurred())
 	})
 })
 

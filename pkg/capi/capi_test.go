@@ -61,7 +61,7 @@ func TestGetTemplates(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := newFakeClient(tt.ts, nil, nil, "", tt.err)
+			c := newFakeClient(tt.ts, nil, nil, nil, "", tt.err)
 			w := new(bytes.Buffer)
 			err := capi.GetTemplates(c, w)
 			assert.Equal(t, tt.expected, w.String())
@@ -129,7 +129,7 @@ func TestGetTemplatesByProvider(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := newFakeClient(tt.ts, nil, nil, "", tt.err)
+			c := newFakeClient(tt.ts, nil, nil, nil, "", tt.err)
 			w := new(bytes.Buffer)
 			err := capi.GetTemplatesByProvider(tt.provider, c, w)
 			assert.Equal(t, tt.expected, w.String())
@@ -190,7 +190,7 @@ func TestGetTemplateParameters(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := newFakeClient(nil, tt.tps, nil, "", tt.err)
+			c := newFakeClient(nil, tt.tps, nil, nil, "", tt.err)
 			w := new(bytes.Buffer)
 			err := capi.GetTemplateParameters("foo", c, w)
 			assert.Equal(t, tt.expected, w.String())
@@ -259,7 +259,7 @@ func TestRenderTemplate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := newFakeClient(nil, nil, nil, tt.result, tt.err)
+			c := newFakeClient(nil, nil, nil, nil, tt.result, tt.err)
 			w := new(bytes.Buffer)
 			err := capi.RenderTemplateWithParameters("foo", nil, capi.Credentials{}, c, w)
 			assert.Equal(t, tt.expected, w.String())
@@ -292,7 +292,7 @@ func TestCreatePullRequest(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := newFakeClient(nil, nil, nil, tt.result, tt.err)
+			c := newFakeClient(nil, nil, nil, nil, tt.result, tt.err)
 			w := new(bytes.Buffer)
 			err := capi.CreatePullRequestFromTemplate(capi.CreatePullRequestFromTemplateParams{}, c, w)
 			assert.Equal(t, tt.expected, w.String())
@@ -338,9 +338,68 @@ func TestGetCredentials(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := newFakeClient(nil, nil, tt.creds, "", tt.err)
+			c := newFakeClient(nil, nil, tt.creds, nil, "", tt.err)
 			w := new(bytes.Buffer)
 			err := capi.GetCredentials(c, w)
+			assert.Equal(t, tt.expected, w.String())
+			if err != nil {
+				assert.EqualError(t, err, tt.expectedErrorStr)
+			}
+		})
+	}
+}
+
+func TestGetTemplateProfiles(t *testing.T) {
+	tests := []struct {
+		name             string
+		fs               []capi.Profile
+		err              error
+		expected         string
+		expectedErrorStr string
+	}{
+		{
+			name:     "no profiles",
+			expected: "No template profiles were found.\n",
+		},
+		{
+			name: "profiles includes just name",
+			fs: []capi.Profile{
+				{
+					Name:              "profile-a",
+					AvailableVersions: []string{"v0.0.15"},
+				},
+				{
+					Name: "profile-b",
+				},
+			},
+			expected: "NAME\tLATEST_VERSIONS\nprofile-a\tv0.0.15\nprofile-b\t\n",
+		},
+		{
+			name: "profiles include more than 5 versions",
+			fs: []capi.Profile{
+				{
+					Name:              "profile-a",
+					AvailableVersions: []string{"v0.0.9", "v0.0.10", "v0.0.11", "v0.0.12", "v0.0.13", "v0.0.14", "v0.0.15"},
+				},
+				{
+					Name:              "profile-b",
+					AvailableVersions: []string{"v0.0.13", "v0.0.14", "v0.0.15"},
+				},
+			},
+			expected: "NAME\tLATEST_VERSIONS\nprofile-a\tv0.0.11, v0.0.12, v0.0.13, v0.0.14, v0.0.15\nprofile-b\tv0.0.13, v0.0.14, v0.0.15\n",
+		},
+		{
+			name:             "error retrieving profiles",
+			err:              fmt.Errorf("oops something went wrong"),
+			expectedErrorStr: "unable to retrieve profiles for template \"profile-b\" from \"In-memory fake\": oops something went wrong",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := newFakeClient(nil, nil, nil, tt.fs, "", tt.err)
+			w := new(bytes.Buffer)
+			err := capi.GetTemplateProfiles("profile-b", c, w)
 			assert.Equal(t, tt.expected, w.String())
 			if err != nil {
 				assert.EqualError(t, err, tt.expectedErrorStr)
@@ -353,15 +412,17 @@ type fakeClient struct {
 	ts  []capi.Template
 	ps  []capi.TemplateParameter
 	cs  []capi.Credentials
+	fs  []capi.Profile
 	s   string
 	err error
 }
 
-func newFakeClient(ts []capi.Template, ps []capi.TemplateParameter, cs []capi.Credentials, s string, err error) *fakeClient {
+func newFakeClient(ts []capi.Template, ps []capi.TemplateParameter, cs []capi.Credentials, fs []capi.Profile, s string, err error) *fakeClient {
 	return &fakeClient{
 		ts:  ts,
 		ps:  ps,
 		cs:  cs,
+		fs:  fs,
 		s:   s,
 		err: err,
 	}
@@ -417,4 +478,12 @@ func (c *fakeClient) RetrieveCredentials() ([]capi.Credentials, error) {
 	}
 
 	return c.cs, nil
+}
+
+func (c *fakeClient) RetrieveTemplateProfiles(name string) ([]capi.Profile, error) {
+	if c.err != nil {
+		return nil, c.err
+	}
+
+	return c.fs, nil
 }

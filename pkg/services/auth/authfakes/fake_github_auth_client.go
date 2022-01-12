@@ -2,6 +2,7 @@
 package authfakes
 
 import (
+	"context"
 	"sync"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
@@ -32,6 +33,18 @@ type FakeGithubAuthClient struct {
 	getDeviceCodeAuthStatusReturnsOnCall map[int]struct {
 		result1 string
 		result2 error
+	}
+	ValidateTokenStub        func(context.Context, string) error
+	validateTokenMutex       sync.RWMutex
+	validateTokenArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+	}
+	validateTokenReturns struct {
+		result1 error
+	}
+	validateTokenReturnsOnCall map[int]struct {
+		result1 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -157,6 +170,68 @@ func (fake *FakeGithubAuthClient) GetDeviceCodeAuthStatusReturnsOnCall(i int, re
 	}{result1, result2}
 }
 
+func (fake *FakeGithubAuthClient) ValidateToken(arg1 context.Context, arg2 string) error {
+	fake.validateTokenMutex.Lock()
+	ret, specificReturn := fake.validateTokenReturnsOnCall[len(fake.validateTokenArgsForCall)]
+	fake.validateTokenArgsForCall = append(fake.validateTokenArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.ValidateTokenStub
+	fakeReturns := fake.validateTokenReturns
+	fake.recordInvocation("ValidateToken", []interface{}{arg1, arg2})
+	fake.validateTokenMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeGithubAuthClient) ValidateTokenCallCount() int {
+	fake.validateTokenMutex.RLock()
+	defer fake.validateTokenMutex.RUnlock()
+	return len(fake.validateTokenArgsForCall)
+}
+
+func (fake *FakeGithubAuthClient) ValidateTokenCalls(stub func(context.Context, string) error) {
+	fake.validateTokenMutex.Lock()
+	defer fake.validateTokenMutex.Unlock()
+	fake.ValidateTokenStub = stub
+}
+
+func (fake *FakeGithubAuthClient) ValidateTokenArgsForCall(i int) (context.Context, string) {
+	fake.validateTokenMutex.RLock()
+	defer fake.validateTokenMutex.RUnlock()
+	argsForCall := fake.validateTokenArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeGithubAuthClient) ValidateTokenReturns(result1 error) {
+	fake.validateTokenMutex.Lock()
+	defer fake.validateTokenMutex.Unlock()
+	fake.ValidateTokenStub = nil
+	fake.validateTokenReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeGithubAuthClient) ValidateTokenReturnsOnCall(i int, result1 error) {
+	fake.validateTokenMutex.Lock()
+	defer fake.validateTokenMutex.Unlock()
+	fake.ValidateTokenStub = nil
+	if fake.validateTokenReturnsOnCall == nil {
+		fake.validateTokenReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.validateTokenReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeGithubAuthClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -164,6 +239,8 @@ func (fake *FakeGithubAuthClient) Invocations() map[string][][]interface{} {
 	defer fake.getDeviceCodeMutex.RUnlock()
 	fake.getDeviceCodeAuthStatusMutex.RLock()
 	defer fake.getDeviceCodeAuthStatusMutex.RUnlock()
+	fake.validateTokenMutex.RLock()
+	defer fake.validateTokenMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

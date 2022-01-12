@@ -44,6 +44,7 @@ jobs:
         GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         GITLAB_KEY: ${{ secrets.GITLAB_KEY }}
         ARTIFACTS_BASE_DIR: "/tmp/gitops-test"
+        CHECKPOINT_DISABLE: 1
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
@@ -179,6 +180,7 @@ jobs:
         GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         GITLAB_KEY: ${{ secrets.GITLAB_KEY }}
         ARTIFACTS_BASE_DIR: "/tmp/gitops-test"
+        CHECKPOINT_DISABLE: 1
     steps:
     - name: Install Go
       uses: actions/setup-go@v2

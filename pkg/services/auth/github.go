@@ -31,6 +31,7 @@ const WeGOGithubClientID = "edcb13588d46f254052c"
 type GithubAuthClient interface {
 	GetDeviceCode() (*GithubDeviceCodeResponse, error)
 	GetDeviceCodeAuthStatus(deviceCode string) (string, error)
+	ValidateToken(ctx context.Context, token string) error
 }
 
 type ghAuth struct {
@@ -47,6 +48,19 @@ func (g ghAuth) GetDeviceCode() (*GithubDeviceCodeResponse, error) {
 
 func (g ghAuth) GetDeviceCodeAuthStatus(deviceCode string) (string, error) {
 	return doGithubDeviceAuthRequest(g.http, deviceCode)
+}
+
+func (g ghAuth) ValidateToken(ctx context.Context, token string) error {
+	req, err := http.NewRequestWithContext(ctx, "GET", "https://api.github.com/user", nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("token %s", token))
+
+	_, err = doRequest(req, g.http)
+
+	return err
 }
 
 // Encapsulate shared logic between doCodeRequest and doAuthRequest
