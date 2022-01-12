@@ -3,13 +3,13 @@ package cache
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/ghodss/yaml"
 	"github.com/gofrs/flock"
-	log "github.com/sirupsen/logrus"
 
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 )
@@ -88,6 +88,8 @@ func (c *HelmCache) Update(helmRepoNamespace, helmRepoName string, value Data) e
 		return fmt.Errorf("unable to read lock file %s: %w", lockFilename, err)
 	}
 
+	// namespace and name are already sanitized and should not be able to pass in
+	// things like `../` and `../usr/`, etc.
 	cacheFolder := filepath.Join(c.cacheDir, helmRepoNamespace, helmRepoName)
 	if err := os.MkdirAll(cacheFolder, 0700); err != nil {
 		return fmt.Errorf("failed to create cache folder: %w", err)
@@ -121,9 +123,10 @@ func (c *HelmCache) Update(helmRepoNamespace, helmRepoName string, value Data) e
 	return nil
 }
 
-// GetProfiles will return nil in case the data cannot be found but no error.
+// GetProfiles gathers all profiles for a helmRepo if found. Returns an error otherwise.
 func (c *HelmCache) GetProfiles(helmRepoNamespace, helmRepoName string) ([]*pb.Profile, error) {
 	lock := flock.New(filepath.Join(c.cacheDir, lockFilename))
+
 	defer func() {
 		if err := lock.Unlock(); err != nil {
 			log.Printf("Unable to unlock file %s: %v\n", lockFilename, err)
@@ -133,7 +136,7 @@ func (c *HelmCache) GetProfiles(helmRepoNamespace, helmRepoName string) ([]*pb.P
 	ctx, cancel := context.WithTimeout(context.TODO(), time.Second)
 	defer cancel()
 
-	ok, err := lock.TryRLockContext(ctx, 250*time.Millisecond) // try to lock every 1/4 second
+	ok, err := lock.TryRLockContext(ctx, 250*time.Millisecond)
 	if !ok {
 		return nil, fmt.Errorf("unable to read lock file %s: %w", lockFilename, err)
 	}
@@ -152,9 +155,10 @@ func (c *HelmCache) GetProfiles(helmRepoNamespace, helmRepoName string) ([]*pb.P
 	return result, nil
 }
 
-// GetProfileValues returns the content of the cached values file if it exists. Returns an error otherwise.
+// GetProfileValues returns the content of the cached values file if it exists. Errors otherwise.
 func (c *HelmCache) GetProfileValues(helmRepoNamespace, helmRepoName, profileName, profileVersion string) ([]byte, error) {
 	lock := flock.New(filepath.Join(c.cacheDir, lockFilename))
+
 	defer func() {
 		if err := lock.Unlock(); err != nil {
 			log.Printf("Unable to unlock file %s: %v\n", lockFilename, err)
@@ -164,7 +168,7 @@ func (c *HelmCache) GetProfileValues(helmRepoNamespace, helmRepoName, profileNam
 	ctx, cancel := context.WithTimeout(context.TODO(), time.Second)
 	defer cancel()
 
-	ok, err := lock.TryRLockContext(ctx, 250*time.Millisecond) // try to lock every 1/4 second
+	ok, err := lock.TryRLockContext(ctx, 250*time.Millisecond)
 	if !ok {
 		return nil, fmt.Errorf("unable to read lock file %s: %w", lockFilename, err)
 	}

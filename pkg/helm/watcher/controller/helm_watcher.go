@@ -15,12 +15,12 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 )
 
-// HelmWatcherReconciler runs the reconcile loop for the watcher.
+// HelmWatcherReconciler runs the `reconcile` loop for the watcher.
 type HelmWatcherReconciler struct {
 	client.Client
 	Scheme      *runtime.Scheme
-	Cache       cache.Cache       // this would be an interface ofc.
-	RepoManager *helm.RepoManager // TODO: change this to an Interface.
+	Cache       cache.Cache // this would be an interface ofc.
+	RepoManager helm.HelmRepoManager
 }
 
 // +kubebuilder:rbac:groups=helm.watcher,resources=helmrepositories,verbs=get;list;watch
@@ -29,7 +29,7 @@ type HelmWatcherReconciler struct {
 // Reconcile is either called when there is a new HelmRepository or, when there is an update to a HelmRepository.
 // Because the watcher watches all helmrepositories, it will update data for all of them.
 func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := logr.FromContext(ctx)
+	log := logr.FromContextOrDiscard(ctx)
 
 	// get source object
 	var repository sourcev1.HelmRepository
@@ -46,8 +46,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	// Reconcile is called for two reasons. One, the repository was just created, two there is a new revision.
 	// Because of that, we don't care what's in the cache. We will always fetch and set it.
 
-	// TODO: make a timing out context.
-	charts, err := r.RepoManager.GetCharts(context.TODO(), &repository, helm.Profiles)
+	charts, err := r.RepoManager.GetCharts(context.Background(), &repository, helm.Profiles)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -57,13 +56,13 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	for _, chart := range charts {
 		for _, v := range chart.AvailableVersions {
 			// what happens when there are no values? We should just skip that version...
-			valueBytes, err := r.RepoManager.GetValuesFile(context.TODO(), &repository, &helm.ChartReference{
+			valueBytes, err := r.RepoManager.GetValuesFile(context.Background(), &repository, &helm.ChartReference{
 				Chart:   chart.Name,
 				Version: v,
 			}, chartutil.ValuesfileName)
 
 			if err != nil {
-				log.Error(err, "failed to get values for chart and version", "chart", chart.Name, "version", v)
+				log.Error(err, "failed to get values for chart and version, skipping...", "chart", chart.Name, "version", v)
 				// log and skip version
 				continue
 			}
