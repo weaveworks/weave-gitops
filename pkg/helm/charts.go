@@ -35,6 +35,11 @@ type HelmRepoManager interface {
 // that they provide a Profile.
 const ProfileAnnotation = "weave.works/profile"
 
+// LayerAnnotation specifies profile application order.
+// Profiles are sorted by layer and those at a higher "layer" are only installed after
+// lower layers have successfully installed and started.
+const LayerAnnotation = "weave.works/layer"
+
 // NewRepoManager creates and returns a new RepoManager.
 func NewRepoManager(kc client.Client, cacheDir string) *RepoManager {
 	return &RepoManager{
@@ -102,6 +107,7 @@ func (h *RepoManager) GetCharts(ctx context.Context, hr *sourcev1beta1.HelmRepos
 						Keywords:    v.Keywords,
 						Icon:        v.Icon,
 						KubeVersion: v.KubeVersion,
+						Layer:       getLayer(v.Annotations),
 					}
 					for _, m := range v.Maintainers {
 						p.Maintainers = append(p.Maintainers, &pb.Maintainer{
@@ -128,7 +134,6 @@ func (h *RepoManager) GetCharts(ctx context.Context, hr *sourcev1beta1.HelmRepos
 }
 
 // GetValuesFile fetches the value file from a chart.
-// When I call this from the caching thing, call it with chartutil.ValuesfileName.
 func (h *RepoManager) GetValuesFile(ctx context.Context, helmRepo *sourcev1beta1.HelmRepository, c *ChartReference, filename string) ([]byte, error) {
 	if err := h.updateCache(ctx, helmRepo); err != nil {
 		return nil, fmt.Errorf("updating cache: %w", err)
@@ -237,7 +242,6 @@ func credsForRepository(ctx context.Context, kc client.Client, hr *sourcev1beta1
 func fetchIndexFile(chartURL string) (*repo.IndexFile, error) {
 	if hostname := os.Getenv("SOURCE_CONTROLLER_LOCALHOST"); hostname != "" {
 		u, err := url.Parse(chartURL)
-
 		if err != nil {
 			return nil, err
 		}
@@ -279,6 +283,10 @@ func fetchIndexFile(chartURL string) (*repo.IndexFile, error) {
 	i.SortEntries()
 
 	return i, nil
+}
+
+func getLayer(annotations map[string]string) string {
+	return annotations[LayerAnnotation]
 }
 
 func hasAnnotation(cm *chart.Metadata, name string) bool {

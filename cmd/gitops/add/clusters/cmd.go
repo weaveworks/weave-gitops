@@ -1,8 +1,10 @@
 package clusters
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
@@ -26,6 +28,7 @@ type clusterCommandFlags struct {
 	Description     string
 	CommitMessage   string
 	Credentials     string
+	Profiles        []string
 }
 
 var flags clusterCommandFlags
@@ -41,6 +44,10 @@ gitops add cluster --from-template <template-name> --set key=val
 # View a CAPI template populated with parameter values 
 # without creating a pull request for it
 gitops add cluster --from-template <template-name> --set key=val --dry-run
+
+# Add a new cluster supplied with profiles versions and values files
+gitops add cluster --from-template <template-name> \
+--profile 'name=foo-profile,version=0.0.1' --profile 'name=bar-profile,values=bar-values.yaml
 		`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
@@ -58,6 +65,7 @@ gitops add cluster --from-template <template-name> --set key=val --dry-run
 	cmd.Flags().StringVar(&flags.Description, "description", "", "The description of the pull request")
 	cmd.Flags().StringVar(&flags.CommitMessage, "commit-message", "", "The commit message to use when adding the CAPI template")
 	cmd.Flags().StringVar(&flags.Credentials, "set-credentials", "", "The CAPI credentials to use")
+	cmd.Flags().StringArrayVar(&flags.Profiles, "profile", []string{}, "Set profiles values files on the command line (--profile 'name=foo-profile,version=0.0.1' --profile 'name=bar-profile,values=bar-values.yaml')")
 
 	return cmd
 }
@@ -96,6 +104,11 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 			}
 		}
 
+		profilesValues, err := parseProfileFlags(flags.Profiles)
+		if err != nil {
+			return fmt.Errorf("error parsing profiles: %w", err)
+		}
+
 		if flags.DryRun {
 			return capi.RenderTemplateWithParameters(flags.Template, vals, creds, r, os.Stdout)
 		}
@@ -125,8 +138,50 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 			Description:      flags.Description,
 			CommitMessage:    flags.CommitMessage,
 			Credentials:      creds,
+			ProfileValues:    profilesValues,
 		}
 
 		return capi.CreatePullRequestFromTemplate(params, r, os.Stdout)
 	}
+}
+
+func parseProfileFlags(profiles []string) ([]capi.ProfileValues, error) {
+	var profilesValues []capi.ProfileValues
+
+	// Validate values include alphanumeric or - or .
+	r := regexp.MustCompile(`^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$`)
+
+	for _, p := range flags.Profiles {
+		valuesPairs := strings.Split(p, ",")
+		profileMap := make(map[string]string)
+
+		for _, pair := range valuesPairs {
+			fmt.Println(pair)
+			kv := strings.Split(pair, "=")
+
+			if kv[0] != "name" && kv[0] != "version" && kv[0] != "values" {
+				return nil, fmt.Errorf("invalid key: %s", kv[0])
+			} else if !r.MatchString(kv[1]) {
+				return nil, fmt.Errorf("invalid value for %s: %s", kv[0], kv[1])
+			} else {
+				profileMap[kv[0]] = kv[1]
+			}
+		}
+
+		profileJson, err := json.Marshal(profileMap)
+		if err != nil {
+			return nil, err
+		}
+
+		var profileValues capi.ProfileValues
+
+		err = json.Unmarshal(profileJson, &profileValues)
+		if err != nil {
+			return nil, err
+		}
+
+		profilesValues = append(profilesValues, profileValues)
+	}
+
+	return profilesValues, nil
 }

@@ -5,16 +5,19 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/ui/run"
 )
 
-var Cmd = &cobra.Command{
-	Use:   "ui",
-	Short: "Manages Gitops UI",
-	Example: `
-  # Run gitops ui in your machine
-  gitops ui run
-`,
-	Args: cobra.MinimumNArgs(1),
-}
+// NewCommand returns the `ui` command and its subcommands.
+func NewCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "ui",
+		Short: "Manages Gitops UI",
+		Example: `
+	  # Run gitops ui in your machine
+	  gitops ui run
+	`,
+		Args: cobra.MinimumNArgs(1),
+	}
 
-func init() {
-	Cmd.AddCommand(run.Cmd)
+	cmd.AddCommand(run.NewCommand())
+
+	return cmd
 }

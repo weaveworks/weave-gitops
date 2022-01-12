@@ -104,12 +104,6 @@ func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesReq
 		return nil, fmt.Errorf("failed to scan HelmRepository %q/%q for charts: %w", s.HelmRepoNamespace, s.HelmRepoName, err)
 	}
 
-	if ps == nil {
-		return &pb.GetProfilesResponse{
-			Profiles: []*pb.Profile{},
-		}, nil
-	}
-
 	return &pb.GetProfilesResponse{
 		Profiles: ps,
 	}, nil

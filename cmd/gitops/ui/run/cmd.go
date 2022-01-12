@@ -5,7 +5,9 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -23,30 +25,58 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
-var (
-	port              string
-	helmRepoNamespace string
-	helmRepoName      string
-	helmCacheDir      string
-	path              string
-	loggingEnabled    bool
-)
-
-var Cmd = &cobra.Command{
-	Use:   "run [--log]",
-	Short: "Runs gitops ui",
-	RunE:  runCmd,
+// Options contains all the options for the `ui run` command.
+type Options struct {
+	Port              string
+	HelmRepoNamespace string
+	HelmRepoName      string
+	HelmCacheDir      string
+	Path              string
+	LoggingEnabled    bool
+	OIDC              OIDCAuthenticationOptions
 }
 
-func init() {
-	Cmd.Flags().BoolVarP(&loggingEnabled, "log", "l", false, "enable logging for the ui")
-	Cmd.Flags().StringVar(&port, "port", "9001", "UI port")
-	Cmd.Flags().StringVar(&path, "path", "", "Path url")
-	Cmd.Flags().StringVar(&helmRepoNamespace, "helm-repo-namespace", "default", "the namespace of the Helm Repository resource to scan for profiles")
-	Cmd.Flags().StringVar(&helmRepoName, "helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
-	Cmd.Flags().StringVar(&helmCacheDir, "helm-cache-dir", "/tmp/helm-cache", "the folder where to cache Profile data")
+// OIDCAuthenticationOptions contains the OIDC authentication options for the
+// `ui run` command.
+type OIDCAuthenticationOptions struct {
+	IssuerURL      string
+	ClientID       string
+	ClientSecret   string
+	RedirectURL    string
+	CookieDuration time.Duration
+}
+
+var options Options
+
+// NewCommand returns the `ui run` command
+func NewCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "run [--log]",
+		Short: "Runs gitops ui",
+		RunE:  runCmd,
+	}
+
+	options = Options{}
+
+	cmd.Flags().BoolVarP(&options.LoggingEnabled, "log", "l", false, "enable logging for the ui")
+	cmd.Flags().StringVar(&options.Port, "port", "9001", "UI port")
+	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
+	cmd.Flags().StringVar(&options.HelmRepoNamespace, "helm-repo-namespace", "default", "the namespace of the Helm Repository resource to scan for profiles")
+	cmd.Flags().StringVar(&options.HelmRepoName, "helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
+	cmd.Flags().StringVar(&options.HelmCacheDir, "helm-cache-dir", "/tmp/helm-cache", "the folder where to cache Profile data")
+
+	if server.AuthEnabled() {
+		cmd.Flags().StringVar(&options.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
+		cmd.Flags().StringVar(&options.OIDC.ClientID, "oidc-client-id", "", "The client ID for the OpenID Connect client")
+		cmd.Flags().StringVar(&options.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
+		cmd.Flags().StringVar(&options.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
+		cmd.Flags().DurationVar(&options.OIDC.CookieDuration, "oidc-cookie-duration", time.Hour, "The duration of the ID token cookie. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
+	}
+
+	return cmd
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
@@ -71,7 +101,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create http client: %w", err)
 	}
 
-	if !loggingEnabled {
+	if !options.LoggingEnabled {
 		appConfig.Logger = zapr.NewLogger(zap.NewNop())
 	}
 
@@ -85,7 +115,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create kube http client: %w", err)
 	}
 
-	helmCache, err := cache.NewCache(helmCacheDir)
+	helmCache, err := cache.NewCache(options.HelmCacheDir)
 	if err != nil {
 		return fmt.Errorf("failed to create cacher: %w", err)
 	}
@@ -102,9 +132,51 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 	}()
 
-	profilesConfig := server.NewProfilesConfig(rawClient, helmCache, helmRepoNamespace, helmRepoName)
+	profilesConfig := server.NewProfilesConfig(rawClient, helmCache, options.HelmRepoNamespace, options.HelmRepoName)
 
-	appAndProfilesHandlers, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig})
+	var authServer *auth.AuthServer
+
+	if server.AuthEnabled() {
+		_, err := url.Parse(options.OIDC.IssuerURL)
+		if err != nil {
+			return fmt.Errorf("invalid issuer URL: %w", err)
+		}
+
+		redirectURL, err := url.Parse(options.OIDC.RedirectURL)
+		if err != nil {
+			return fmt.Errorf("invalid redirect URL: %w", err)
+		}
+
+		var oidcIssueSecureCookies bool
+		if redirectURL.Scheme == "https" {
+			oidcIssueSecureCookies = true
+		}
+
+		srv, err := auth.NewAuthServer(cmd.Context(), appConfig.Logger, http.DefaultClient,
+			auth.AuthConfig{
+				OIDCConfig: auth.OIDCConfig{
+					IssuerURL:    options.OIDC.IssuerURL,
+					ClientID:     options.OIDC.ClientID,
+					ClientSecret: options.OIDC.ClientSecret,
+					RedirectURL:  options.OIDC.RedirectURL,
+				},
+				CookieConfig: auth.CookieConfig{
+					CookieDuration:     options.OIDC.CookieDuration,
+					IssueSecureCookies: oidcIssueSecureCookies,
+				},
+			},
+		)
+		if err != nil {
+			return fmt.Errorf("could not create auth server: %w", err)
+		}
+
+		appConfig.Logger.Info("Registering callback route")
+		auth.RegisterAuthServer(mux, "/oauth2", srv)
+
+		authServer = srv
+	}
+
+	appAndProfilesHandlers, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig, AuthServer: authServer})
 	if err != nil {
 		return fmt.Errorf("could not create handler: %w", err)
 	}
@@ -118,20 +190,24 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		// This will return a 404 on normal page requests, ie /some-page.
 		// Redirect all non-file requests to index.html, where the JS routing will take over.
 		if extension == "" {
-			redirector(w, req)
+			if server.AuthEnabled() {
+				auth.WithWebAuth(redirector, authServer).ServeHTTP(w, req)
+			} else {
+				redirector(w, req)
+			}
 			return
 		}
 		assetHandler.ServeHTTP(w, req)
 	}))
 
-	addr := "0.0.0.0:" + port
+	addr := net.JoinHostPort("0.0.0.0", options.Port)
 	srv := &http.Server{
 		Addr:    addr,
 		Handler: mux,
 	}
 
 	go func() {
-		log.Infof("Serving on port %s", port)
+		log.Infof("Serving on port %s", options.Port)
 
 		if err := srv.ListenAndServe(); err != nil {
 			log.Error(err, "server exited")
@@ -140,7 +216,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}()
 
 	if isatty.IsTerminal(os.Stdout.Fd()) {
-		url := fmt.Sprintf("http://%s/%s", addr, path)
+		url := fmt.Sprintf("http://%s/%s", addr, options.Path)
 
 		log.Printf("Opening browser at %s", url)
 

@@ -224,15 +224,16 @@ func (c *HTTPClient) CreatePullRequestFromTemplate(params capi.CreatePullRequest
 
 	// POST request payload
 	type CreatePullRequestFromTemplateRequest struct {
-		RepositoryURL   string            `json:"repositoryUrl"`
-		HeadBranch      string            `json:"headBranch"`
-		BaseBranch      string            `json:"baseBranch"`
-		Title           string            `json:"title"`
-		Description     string            `json:"description"`
-		TemplateName    string            `json:"templateName"`
-		ParameterValues map[string]string `json:"parameter_values"`
-		CommitMessage   string            `json:"commitMessage"`
-		Credentials     capi.Credentials  `json:"credentials"`
+		RepositoryURL   string               `json:"repositoryUrl"`
+		HeadBranch      string               `json:"headBranch"`
+		BaseBranch      string               `json:"baseBranch"`
+		Title           string               `json:"title"`
+		Description     string               `json:"description"`
+		TemplateName    string               `json:"templateName"`
+		ParameterValues map[string]string    `json:"parameter_values"`
+		CommitMessage   string               `json:"commitMessage"`
+		Credentials     capi.Credentials     `json:"credentials"`
+		ProfileValues   []capi.ProfileValues `json:"profile_values"`
 	}
 
 	// POST response payload
@@ -257,6 +258,7 @@ func (c *HTTPClient) CreatePullRequestFromTemplate(params capi.CreatePullRequest
 			ParameterValues: params.ParameterValues,
 			CommitMessage:   params.CommitMessage,
 			Credentials:     params.Credentials,
+			ProfileValues:   params.ProfileValues,
 		}).
 		SetResult(&result).
 		SetError(&serviceErr).
@@ -462,4 +464,48 @@ func (c *HTTPClient) DeleteClusters(params clusters.DeleteClustersParams) (strin
 	}
 
 	return result.WebURL, nil
+}
+
+// RetrieveTemplateProfiles returns the list of all profiles of the
+// specified template.
+func (c *HTTPClient) RetrieveTemplateProfiles(name string) ([]capi.Profile, error) {
+	endpoint := "v1/templates/{name}/profiles"
+
+	type ListTemplatePResponse struct {
+		Profiles []*capi.Profile
+	}
+
+	var templateProfilesList ListTemplatePResponse
+	res, err := c.client.R().
+		SetHeader("Accept", "application/json").
+		SetPathParams(map[string]string{
+			"name": name,
+		}).
+		SetResult(&templateProfilesList).
+		Get(endpoint)
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to GET template profiles from %q: %w", res.Request.URL, err)
+	}
+
+	if res.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
+	}
+
+	var tps []capi.Profile
+	for _, p := range templateProfilesList.Profiles {
+		tps = append(tps, capi.Profile{
+			Name:              p.Name,
+			Home:              p.Home,
+			Sources:           p.Sources,
+			Description:       p.Description,
+			Maintainers:       p.Maintainers,
+			Icon:              p.Icon,
+			KubeVersion:       p.KubeVersion,
+			HelmRepository:    p.HelmRepository,
+			AvailableVersions: p.AvailableVersions,
+		})
+	}
+
+	return tps, nil
 }

@@ -19,7 +19,7 @@ import (
 type HelmWatcherReconciler struct {
 	client.Client
 	Scheme      *runtime.Scheme
-	Cache       cache.Cache // this would be an interface ofc.
+	Cache       cache.Cache
 	RepoManager helm.HelmRepoManager
 }
 
