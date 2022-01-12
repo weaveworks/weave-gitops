@@ -132,8 +132,8 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed getting git clients: %w", err)
 	}
 
-	gitWriter := gitopswriter.NewGitWriter(log, gitClient, gitProvider)
-	installer := install.NewInstaller(fluxClient, kubeClient, gitClient, gitProvider, log, gitWriter)
+	repoWriter := gitopswriter.NewRepoWriter(log, gitClient, gitProvider)
+	installer := install.NewInstaller(fluxClient, kubeClient, gitClient, gitProvider, log, repoWriter)
 
 	if err = installer.Install(namespace, configURL, installParams.AutoMerge); err != nil {
 		return fmt.Errorf("failed installing: %w", err)

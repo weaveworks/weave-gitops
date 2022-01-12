@@ -54,7 +54,7 @@ func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, auto
 
 	manifests, err := models.BootstrapManifests(i.fluxClient, clusterName, namespace, configURL)
 	if err != nil {
-		return fmt.Errorf("failed getting gitops manifests: %w", err)
+		return fmt.Errorf("failed getting bootstrap manifests: %w", err)
 	}
 
 	for _, manifest := range manifests {
@@ -78,7 +78,7 @@ func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, auto
 
 	defaultBranch, err := i.gitProviderClient.GetDefaultBranch(ctx, configURL)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve default branch for repository: %w", err)
+		return fmt.Errorf("failed getting default branch: %w", err)
 	}
 
 	i.log.Actionf("Associating cluster %q", clusterName)

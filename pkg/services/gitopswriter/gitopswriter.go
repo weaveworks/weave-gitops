@@ -203,7 +203,7 @@ type repoWriter struct {
 	gitProvider gitproviders.GitProvider
 }
 
-func NewGitWriter(log logger.Logger, gitClient git.Git, gitProvider gitproviders.GitProvider) RepoWriter {
+func NewRepoWriter(log logger.Logger, gitClient git.Git, gitProvider gitproviders.GitProvider) RepoWriter {
 	return &repoWriter{
 		log:         log,
 		gitClient:   gitClient,
