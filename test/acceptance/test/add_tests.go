@@ -209,7 +209,9 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have private visibility", func() {
-			Expect(getGitRepoVisibility(gitOrg, tip.appRepoName, gitProvider)).Should(ContainSubstring("private"))
+			if os.Getenv("GIT_PROVIDER") == "github" {
+				Expect(getGitRepoVisibility(gitOrg, tip.appRepoName, gitProvider)).Should(ContainSubstring("private"))
+			}
 		})
 
 		By("When I remove an app", func() {
@@ -386,7 +388,9 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have private visibility", func() {
-			Expect(getGitRepoVisibility(gitOrg, tip.appRepoName, gitProvider)).Should(ContainSubstring("private"))
+			if os.Getenv("GIT_PROVIDER") == "github" {
+				Expect(getGitRepoVisibility(gitOrg, tip.appRepoName, gitProvider)).Should(ContainSubstring("private"))
+			}
 		})
 	})
 
@@ -1025,7 +1029,9 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repo created has public visibility", func() {
-			Eventually(getGitRepoVisibility(gitOrg, appRepoName, gitProvider)).Should(ContainSubstring("public"))
+			if os.Getenv("GIT_PROVIDER") == "github" {
+				Eventually(getGitRepoVisibility(gitOrg, appRepoName, gitProvider)).Should(ContainSubstring("public"))
+			}
 		})
 	})
 
