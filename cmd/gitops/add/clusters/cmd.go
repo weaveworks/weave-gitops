@@ -65,7 +65,7 @@ gitops add cluster --from-template <template-name> \
 	cmd.Flags().StringVar(&flags.Description, "description", "", "The description of the pull request")
 	cmd.Flags().StringVar(&flags.CommitMessage, "commit-message", "", "The commit message to use when adding the CAPI template")
 	cmd.Flags().StringVar(&flags.Credentials, "set-credentials", "", "The CAPI credentials to use")
-	cmd.Flags().StringArrayVar(&flags.Profiles, "profile", []string{}, "Set profiles values files on the command line (--profiles 'name=foo-profile,version=0.0.1' --profiles 'name=bar-profile,values=bar-values.yaml')")
+	cmd.Flags().StringArrayVar(&flags.Profiles, "profile", []string{}, "Set profiles values files on the command line (--profile 'name=foo-profile,version=0.0.1' --profile 'name=bar-profile,values=bar-values.yaml')")
 
 	return cmd
 }
