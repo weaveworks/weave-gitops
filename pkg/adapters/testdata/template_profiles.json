@@ -1,0 +1,24 @@
+{
+    "profiles": [
+        {
+            "name": "profile-a",
+            "home": "https://github.com/org/repo",
+            "sources": ["https://github.com/org/repo1", "https://github.com/org/repo2"],
+            "description": "this is test profile a",
+            "maintainers": [
+                {
+                    "name": "foo",
+                    "email": "foo@example.com",
+                    "url": "example.com"
+                }
+            ],
+            "icon": "test",
+            "kubeVersion": "1.19",
+            "helmRepository": {
+                "name": "test-repo",
+                "namespace": "test-ns"
+            },
+            "availableVersions": ["v0.0.14", "v0.0.15"]
+        }
+    ]
+}

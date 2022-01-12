@@ -216,3 +216,114 @@ func TestGitProviderToken_InvalidURL(t *testing.T) {
 	err := cmd.Execute()
 	assert.EqualError(t, err, "cannot parse url: could not get provider name from URL invalid_url: no git providers found for \"invalid_url\"")
 }
+
+func TestParseProfiles_ValidRequest(t *testing.T) {
+	t.Cleanup(testutils.Setenv("GITHUB_TOKEN", "test-token"))
+
+	client := resty.New()
+
+	httpmock.ActivateNonDefault(client.GetClient())
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterResponder(
+		http.MethodPost,
+		"http://localhost:8000/v1/clusters",
+		func(r *http.Request) (*http.Response, error) {
+			h, ok := r.Header["Git-Provider-Token"]
+			assert.True(t, ok)
+			assert.Contains(t, h, "test-token")
+
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/pull_request_created.json"))
+		},
+	)
+
+	cmd := root.RootCmd(client)
+	cmd.SetArgs([]string{
+		"add", "cluster",
+		"--from-template=cluster-template-eks-fargate",
+		"--url=https://github.com/weaveworks/test-repo",
+		"--set=CLUSTER_NAME=dev",
+		"--set=AWS_REGION=us-east-1",
+		"--set=AWS_SSH_KEY_NAME=ssh_key",
+		"--set=KUBERNETES_VERSION=1.19",
+		"--profile=name=foo-profile,version=0.0.1",
+		"--endpoint", "http://localhost:8000",
+	})
+
+	err := cmd.Execute()
+	assert.NoError(t, err)
+}
+
+func TestParseProfiles_InvalidKey(t *testing.T) {
+	t.Cleanup(testutils.Setenv("GITHUB_TOKEN", "test-token"))
+
+	client := resty.New()
+
+	httpmock.ActivateNonDefault(client.GetClient())
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterResponder(
+		http.MethodPost,
+		"http://localhost:8000/v1/clusters",
+		func(r *http.Request) (*http.Response, error) {
+			h, ok := r.Header["Git-Provider-Token"]
+			assert.True(t, ok)
+			assert.Contains(t, h, "test-token")
+
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/pull_request_created.json"))
+		},
+	)
+
+	cmd := root.RootCmd(client)
+	cmd.SetArgs([]string{
+		"add", "cluster",
+		"--from-template=cluster-template-eks-fargate",
+		"--url=https://github.com/weaveworks/test-repo",
+		"--set=CLUSTER_NAME=dev",
+		"--set=AWS_REGION=us-east-1",
+		"--set=AWS_SSH_KEY_NAME=ssh_key",
+		"--set=KUBERNETES_VERSION=1.19",
+		"--profile=test=foo-profile",
+		"--endpoint", "http://localhost:8000",
+	})
+
+	err := cmd.Execute()
+	assert.EqualError(t, err, "error parsing profiles: invalid key: test")
+}
+
+func TestParseProfiles_InvalidValue(t *testing.T) {
+	t.Cleanup(testutils.Setenv("GITHUB_TOKEN", "test-token"))
+
+	client := resty.New()
+
+	httpmock.ActivateNonDefault(client.GetClient())
+	defer httpmock.DeactivateAndReset()
+
+	httpmock.RegisterResponder(
+		http.MethodPost,
+		"http://localhost:8000/v1/clusters",
+		func(r *http.Request) (*http.Response, error) {
+			h, ok := r.Header["Git-Provider-Token"]
+			assert.True(t, ok)
+			assert.Contains(t, h, "test-token")
+
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/pull_request_created.json"))
+		},
+	)
+
+	cmd := root.RootCmd(client)
+	cmd.SetArgs([]string{
+		"add", "cluster",
+		"--from-template=cluster-template-eks-fargate",
+		"--url=https://github.com/weaveworks/test-repo",
+		"--set=CLUSTER_NAME=dev",
+		"--set=AWS_REGION=us-east-1",
+		"--set=AWS_SSH_KEY_NAME=ssh_key",
+		"--set=KUBERNETES_VERSION=1.19",
+		"--profile=name=foo;profile",
+		"--endpoint", "http://localhost:8000",
+	})
+
+	err := cmd.Execute()
+	assert.EqualError(t, err, "error parsing profiles: invalid value for name: foo;profile")
+}
