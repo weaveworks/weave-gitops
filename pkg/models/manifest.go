@@ -44,14 +44,84 @@ const (
 	WegoConfigMapName = "weave-gitops-config"
 )
 
-// This is needed for dry-run only
+// BootstrapManifests creates all yaml files that are going to be applied to the cluster
+func BootstrapManifests(fluxClient flux.Flux, clusterName string, namespace string, configURL gitproviders.RepoURL) ([]Manifest, error) {
+	runtimeManifests, err := fluxClient.Install(namespace, true)
+	if err != nil {
+		return nil, fmt.Errorf("failed getting runtime manifests: %w", err)
+	}
+
+	version := version.Version
+	if os.Getenv("IS_TEST_ENV") != "" {
+		version = "latest"
+	}
+
+	wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppVersion: version, Namespace: namespace})
+	if err != nil {
+		return nil, fmt.Errorf("error generating wego-app manifest: %w", err)
+	}
+
+	wegoAppManifest := bytes.Join(wegoAppManifests, []byte("---\n"))
+
+	sourceName := createClusterSourceName(configURL)
+
+	systemKustResourceManifest, err := fluxClient.CreateKustomization(ConstrainResourceName(fmt.Sprintf("%s-system", clusterName)), sourceName,
+		workAroundFluxDroppingDot(git.GetSystemPath(clusterName)), namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	userKustResourceManifest, err := fluxClient.CreateKustomization(ConstrainResourceName(fmt.Sprintf("%s-user", clusterName)), sourceName,
+		workAroundFluxDroppingDot(git.GetUserPath(clusterName)), namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	gitopsConfigMap, err := gitopsConfigMap(namespace, namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	wegoConfigManifest, err := yaml.Marshal(gitopsConfigMap)
+	if err != nil {
+		return nil, fmt.Errorf("failed marshalling wego config: %w", err)
+	}
+
+	return []Manifest{
+		{
+			Path:    git.GetSystemQualifiedPath(clusterName, AppCRDPath),
+			Content: manifests.AppCRD,
+		},
+		{
+			Path:    git.GetSystemQualifiedPath(clusterName, RuntimePath),
+			Content: runtimeManifests,
+		},
+		{
+			Path:    git.GetSystemQualifiedPath(clusterName, SystemKustResourcePath),
+			Content: systemKustResourceManifest,
+		},
+		{
+			Path:    git.GetSystemQualifiedPath(clusterName, UserKustResourcePath),
+			Content: userKustResourceManifest,
+		},
+		{
+			Path:    git.GetSystemQualifiedPath(clusterName, WegoAppPath),
+			Content: wegoAppManifest,
+		},
+		{
+			Path:    git.GetSystemQualifiedPath(clusterName, WegoConfigPath),
+			Content: wegoConfigManifest,
+		},
+	}, nil
+}
+
+// GitopsManifests generates all yaml files that are going to be written in the config repo
 func GitopsManifests(ctx context.Context, fluxClient flux.Flux, gitProvider gitproviders.GitProvider, clusterName string, namespace string, configURL gitproviders.RepoURL) ([]Manifest, error) {
 	bootstrapManifest, err := BootstrapManifests(fluxClient, clusterName, namespace, configURL)
 	if err != nil {
 		return nil, err
 	}
 
-	// This file errors if we try to apply it to k8s using kubectl using the dry-run output
 	systemKustomization := CreateKustomize(clusterName, namespace, RuntimePath, SourcePath, SystemKustResourcePath, UserKustResourcePath)
 
 	systemKustomizationManifest, err := yaml.Marshal(systemKustomization)
@@ -80,104 +150,10 @@ func GitopsManifests(ctx context.Context, fluxClient flux.Flux, gitProvider gitp
 	return append(bootstrapManifest, Manifest{
 		Path:    git.GetSystemQualifiedPath(clusterName, SystemKustomizationPath),
 		Content: systemKustomizationManifest,
-	}, Manifest{ // We probably should have this inside getBootstrap manifests instead this is
-		// going to help flux to sync with the config repo but we would need to instantiate git clients
-		// for dry run as well, seems like a big change
+	}, Manifest{ // TODO: Move this to boostrap manifests until getGitClients is refactored
 		Path:    git.GetSystemQualifiedPath(clusterName, SourcePath),
 		Content: sourceManifest,
 	}), nil
-}
-
-func BootstrapManifests(fluxClient flux.Flux, clusterName string, namespace string, configURL gitproviders.RepoURL) ([]Manifest, error) {
-	runtimeManifests, err := fluxClient.Install(namespace, true)
-	if err != nil {
-		return nil, fmt.Errorf("failed getting runtime manifests: %w", err)
-	}
-
-	appCRDManifest := manifests.AppCRD
-
-	version := version.Version
-	if os.Getenv("IS_TEST_ENV") != "" {
-		version = "latest"
-	}
-
-	wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppVersion: version, Namespace: namespace})
-	if err != nil {
-		return nil, fmt.Errorf("error generating wego-app manifest: %w", err)
-	}
-
-	wegoAppManifest := bytes.Join(wegoAppManifests, []byte("---\n"))
-
-	sourceName := createClusterSourceName(configURL)
-
-	// How can we add this boostrap manifest without instantiating git clients?
-	//sourceManifest, err := fluxClient.CreateSourceGit(sourceName, configURL, defaultBranch, secretRef, namespace)
-	//if err != nil {
-	//	return nil, fmt.Errorf("failed creating source: %w", err)
-	//}
-
-	systemKustResourceManifest, err := fluxClient.CreateKustomization(ConstrainResourceName(fmt.Sprintf("%s-system", clusterName)), sourceName,
-		workAroundFluxDroppingDot(git.GetSystemPath(clusterName)), namespace)
-	if err != nil {
-		return nil, err
-	}
-
-	userKustResourceManifest, err := fluxClient.CreateKustomization(ConstrainResourceName(fmt.Sprintf("%s-user", clusterName)), sourceName,
-		workAroundFluxDroppingDot(git.GetUserPath(clusterName)), namespace)
-	if err != nil {
-		return nil, err
-	}
-
-	//systemKustomization := CreateKustomize(clusterName, namespace, RuntimePath, SourcePath, SystemKustResourcePath, UserKustResourcePath)
-
-	//systemKustomizationManifest, err := yaml.Marshal(systemKustomization)
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	gitopsConfigMap, err := gitopsConfigMap(namespace, namespace)
-	if err != nil {
-		return nil, err
-	}
-
-	wegoConfigManifest, err := yaml.Marshal(gitopsConfigMap)
-	if err != nil {
-		return nil, fmt.Errorf("failed marshalling wego config: %w", err)
-	}
-
-	return []Manifest{
-		{
-			Path:    git.GetSystemQualifiedPath(clusterName, AppCRDPath),
-			Content: appCRDManifest,
-		},
-		{
-			Path:    git.GetSystemQualifiedPath(clusterName, RuntimePath),
-			Content: runtimeManifests,
-		},
-		// This can't be generated here as we need the Branch and SecretRef, but we
-		// would need git provider to get the default branch,
-		// but we need to run the secret logic first to be able to use the gitProvider client
-		//SourceManifest: Manifest{
-		//	Path:    git.GetSystemQualifiedPath(clusterName, SourcePath),
-		//	Content: sourceManifest,
-		//},
-		{
-			Path:    git.GetSystemQualifiedPath(clusterName, SystemKustResourcePath),
-			Content: systemKustResourceManifest,
-		},
-		{
-			Path:    git.GetSystemQualifiedPath(clusterName, UserKustResourcePath),
-			Content: userKustResourceManifest,
-		},
-		{
-			Path:    git.GetSystemQualifiedPath(clusterName, WegoAppPath),
-			Content: wegoAppManifest,
-		},
-		{
-			Path:    git.GetSystemQualifiedPath(clusterName, WegoConfigPath),
-			Content: wegoConfigManifest,
-		},
-	}, nil
 }
 
 func CreateKustomize(name, namespace string, resources ...string) types.Kustomization {
