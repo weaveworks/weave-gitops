@@ -42,6 +42,8 @@ func (HelmWatcherReconcilerPredicate) Update(e event.UpdateEvent) bool {
 		return true
 	}
 
+	// There is no way that the old artifact is newer here. We just care that they are of a different revision.
+	// Kubernetes takes care of setting old and new accordingly.
 	if oldSource.GetArtifact() != nil && newSource.GetArtifact() != nil &&
 		oldSource.GetArtifact().Revision != newSource.GetArtifact().Revision {
 		return true
