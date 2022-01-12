@@ -76,6 +76,7 @@ const ContentContainer = styled.div`
   padding-top: ${(props) => props.theme.spacing.medium};
   padding-bottom: ${(props) => props.theme.spacing.medium};
   padding-right: ${(props) => props.theme.spacing.medium};
+  padding-left: ${(props) => props.theme.spacing.medium};
 `;
 
 const Main = styled(Flex)`
