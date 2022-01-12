@@ -99,9 +99,11 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("failed getting gitops manifests: %w", err)
 		}
+
 		for _, manifest := range manifests {
 			fmt.Println(manifest.Content)
 		}
+
 		return nil
 	}
 
@@ -114,6 +116,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	// as it needs the namespace created to apply the secret
 	namespaceObj := &corev1.Namespace{}
 	namespaceObj.Name = namespace
+
 	if err := kubeClient.Raw().Create(ctx, namespaceObj); err != nil {
 		if !strings.Contains(err.Error(), "already exists") {
 			return fmt.Errorf("failed creating namespace %s: %w", namespace, err)

@@ -46,7 +46,6 @@ const (
 
 // This is needed for dry-run only
 func GitopsManifests(ctx context.Context, fluxClient flux.Flux, gitProvider gitproviders.GitProvider, clusterName string, namespace string, configURL gitproviders.RepoURL) ([]Manifest, error) {
-
 	bootstrapManifest, err := BootstrapManifests(fluxClient, clusterName, namespace, configURL)
 	if err != nil {
 		return nil, err
@@ -72,6 +71,7 @@ func GitopsManifests(ctx context.Context, fluxClient flux.Flux, gitProvider gitp
 
 	secretStr := secretRef.String()
 	sourceName := createClusterSourceName(configURL)
+
 	sourceManifest, err := fluxClient.CreateSourceGit(sourceName, configURL, configBranch, secretStr, namespace)
 	if err != nil {
 		return nil, err
@@ -86,10 +86,9 @@ func GitopsManifests(ctx context.Context, fluxClient flux.Flux, gitProvider gitp
 		Path:    git.GetSystemQualifiedPath(clusterName, SourcePath),
 		Content: sourceManifest,
 	}), nil
-
 }
-func BootstrapManifests(fluxClient flux.Flux, clusterName string, namespace string, configURL gitproviders.RepoURL) ([]Manifest, error) {
 
+func BootstrapManifests(fluxClient flux.Flux, clusterName string, namespace string, configURL gitproviders.RepoURL) ([]Manifest, error) {
 	runtimeManifests, err := fluxClient.Install(namespace, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed getting runtime manifests: %w", err)
@@ -140,6 +139,7 @@ func BootstrapManifests(fluxClient flux.Flux, clusterName string, namespace stri
 	if err != nil {
 		return nil, err
 	}
+
 	wegoConfigManifest, err := yaml.Marshal(gitopsConfigMap)
 	if err != nil {
 		return nil, fmt.Errorf("failed marshalling wego config: %w", err)
@@ -280,16 +280,15 @@ func gitopsConfigMap(fluxNamespace string, wegoNamespace string) (corev1.ConfigM
 			"config": string(configBytes),
 		},
 	}, nil
-
 }
 
 func ConvertManifestsToCommitFiles(manifests []Manifest) []gitprovider.CommitFile {
-
 	files := make([]gitprovider.CommitFile, 0)
 
 	for _, manifest := range manifests {
 		path := manifest.Path
 		content := string(manifest.Content)
+
 		files = append(files, gitprovider.CommitFile{
 			Path:    &path,
 			Content: &content,

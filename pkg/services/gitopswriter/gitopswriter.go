@@ -210,7 +210,6 @@ func NewRepoWriter(log logger.Logger, gitClient git.Git, gitProvider gitprovider
 }
 
 func (rw *repoWriter) Write(ctx context.Context, repoURL gitproviders.RepoURL, branch string, manifests []gitprovider.CommitFile) error {
-
 	// TODO: auto-merge will not work for most users
 	remover, _, err := gitrepo.CloneRepo(ctx, rw.gitClient, repoURL, branch)
 	if err != nil {

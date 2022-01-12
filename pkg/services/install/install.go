@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+
 	"github.com/weaveworks/weave-gitops/pkg/models"
 
 	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
@@ -88,6 +89,7 @@ func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, auto
 		if err != nil {
 			return fmt.Errorf("failed writting to default branch %w", err)
 		}
+
 		return nil
 	}
 
@@ -109,5 +111,3 @@ func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, auto
 
 	return nil
 }
-
-
