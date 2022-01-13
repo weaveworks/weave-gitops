@@ -15,10 +15,9 @@ import {
   RemoveApplicationRequest,
   RemoveApplicationResponse,
 } from "../lib/api/applications/applications.pb";
-import { RequestStateWithToken, useRequestState } from "./common";
+import { makeHeaders, RequestStateWithToken, useRequestState } from "./common";
 
 const WeGONamespace = "wego-system";
-const providerTokenHeaderName = "Git-Provider-Token";
 
 export function useParseRepoURL(url: string) {
   const { applicationsClient } = useContext(AppContext);
@@ -35,14 +34,6 @@ type AddApplicationReturnType = RequestStateWithToken<
   AddApplicationRequest,
   AddApplicationResponse
 >;
-
-function makeHeaders(tokenGetter: () => string) {
-  const token = tokenGetter();
-
-  return new Headers({
-    [providerTokenHeaderName]: `token ${token}`,
-  });
-}
 
 export function useAddApplication(): AddApplicationReturnType {
   const { applicationsClient } = useContext(AppContext);

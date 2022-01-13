@@ -62,3 +62,13 @@ export function useDebounce<T>(value: T, delay: number) {
 
   return debouncedValue;
 }
+
+const providerTokenHeaderName = "Git-Provider-Token";
+
+export function makeHeaders(tokenGetter: () => string) {
+  const token = tokenGetter();
+
+  return new Headers({
+    [providerTokenHeaderName]: `token ${token}`,
+  });
+}

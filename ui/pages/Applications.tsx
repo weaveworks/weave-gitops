@@ -44,8 +44,8 @@ function Applications({ className }: Props) {
     <Page className={className}>
       <Flex align start>
         <h2>Applications</h2>
-        <Spacer padding="small" />
-        <PollingIndicator loading={loading} interval="30" />
+        <Spacer padding="xs" />
+        <PollingIndicator loading={loading} />
       </Flex>
       <ActionBar>
         <Link to={PageRoute.ApplicationAdd} className="title-bar-button">

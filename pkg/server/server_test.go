@@ -987,6 +987,36 @@ var _ = Describe("ApplicationsServer", func() {
 			Expect(err.Error()).To(ContainSubstring(e.Error()))
 		})
 	})
+	DescribeTable("ValidateProviderToken", func(provider pb.GitProvider, ctx context.Context, errResponse error, expectedCode codes.Code, valid bool) {
+		glAuthClient.ValidateTokenReturns(errResponse)
+		ghAuthClient.ValidateTokenReturns(errResponse)
+
+		res, err := appsClient.ValidateProviderToken(ctx, &pb.ValidateProviderTokenRequest{
+			Provider: provider,
+		})
+
+		if errResponse != nil {
+			Expect(err).To(HaveOccurred())
+			s, ok := status.FromError(err)
+			Expect(ok).To(BeTrue(), "could not get status from error")
+			Expect(s.Code()).To(Equal(expectedCode))
+			return
+		}
+
+		Expect(err).NotTo(HaveOccurred())
+
+		if valid {
+			// Note that res is nil when there is an error.
+			// Only check a field in `res` when valid, else this will panic
+			Expect(res.Valid).To(BeTrue())
+		}
+	},
+		Entry("bad gitlab token", pb.GitProvider_GitLab, contextWithAuth(context.Background()), errors.New("this token is bad"), codes.InvalidArgument, false),
+		Entry("good gitlab token", pb.GitProvider_GitLab, contextWithAuth(context.Background()), nil, codes.OK, true),
+		Entry("bad github token", pb.GitProvider_GitHub, contextWithAuth(context.Background()), errors.New("this token is bad"), codes.InvalidArgument, false),
+		Entry("good github token", pb.GitProvider_GitHub, contextWithAuth(context.Background()), nil, codes.OK, true),
+		Entry("no gitops jwt", pb.GitProvider_GitHub, context.Background(), errors.New("unauth error"), codes.Unauthenticated, false),
+	)
 
 	Describe("middleware", func() {
 		Describe("logging", func() {
@@ -1006,14 +1036,14 @@ var _ = Describe("ApplicationsServer", func() {
 				fakeFactory := &servicesfakes.FakeFactory{}
 
 				cfg := ApplicationsConfig{
-					Logger:     log,
-					KubeClient: k8s,
-					JwtClient:  auth.NewJwtClient(secretKey),
-					Fetcher:    applicationv2.NewFetcher(k8s),
-					Factory:    fakeFactory,
+					Logger:         log,
+					KubeClient:     k8s,
+					JwtClient:      auth.NewJwtClient(secretKey),
+					FetcherFactory: NewFakeFetcherFactory(applicationv2.NewFetcher(k8s)),
+					Factory:        fakeFactory,
 				}
 
-				appsSrv = NewApplicationsServer(&cfg)
+				appsSrv = NewApplicationsServer(&cfg, WithClientGetter(NewFakeClientGetter(k8s)))
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
@@ -1047,11 +1077,12 @@ var _ = Describe("ApplicationsServer", func() {
 				fakeFetcher.ListReturns([]models.Application{}, errors.New(errMsg))
 
 				cfg := ApplicationsConfig{
-					Logger:  log,
-					Fetcher: fakeFetcher,
+					Logger:         log,
+					FetcherFactory: NewFakeFetcherFactory(fakeFetcher),
 				}
 
-				appSrv := NewApplicationsServer(&cfg)
+				k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
+				appSrv := NewApplicationsServer(&cfg, WithClientGetter(NewFakeClientGetter(k8s)))
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appSrv)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -1177,13 +1208,17 @@ var _ = Describe("Applications handler", func() {
 		}
 
 		cfg := ApplicationsConfig{
-			Logger:     log,
-			KubeClient: k8s,
-			Fetcher:    applicationv2.NewFetcher(k8s),
-			Factory:    factory,
+			Logger:         log,
+			KubeClient:     k8s,
+			FetcherFactory: NewFakeFetcherFactory(applicationv2.NewFetcher(k8s)),
+			Factory:        factory,
+			ClusterConfig:  ClusterConfig{},
 		}
 
-		handler, err := NewHandlers(context.Background(), &Config{AppConfig: &cfg})
+		handler, err := NewHandlers(context.Background(), &Config{
+			AppConfig:  &cfg,
+			AppOptions: []ApplicationsOption{WithClientGetter(NewFakeClientGetter(k8s))},
+		})
 		Expect(err).NotTo(HaveOccurred())
 
 		ts := httptest.NewServer(handler)
@@ -1279,4 +1314,32 @@ func makeDirEntries(paths map[string]bool) []os.DirEntry {
 	}
 
 	return results
+}
+
+type FakeFetcherFactory struct {
+	fake applicationv2.Fetcher
+}
+
+func NewFakeFetcherFactory(fake applicationv2.Fetcher) FetcherFactory {
+	return &FakeFetcherFactory{
+		fake: fake,
+	}
+}
+
+func (f *FakeFetcherFactory) Create(client client.Client) applicationv2.Fetcher {
+	return f.fake
+}
+
+type FakeClientGetter struct {
+	client client.Client
+}
+
+func NewFakeClientGetter(client client.Client) ClientGetter {
+	return &FakeClientGetter{
+		client: client,
+	}
+}
+
+func (g *FakeClientGetter) Client(ctx context.Context) (client.Client, error) {
+	return g.client, nil
 }

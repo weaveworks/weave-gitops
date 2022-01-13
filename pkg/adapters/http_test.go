@@ -611,3 +611,61 @@ func TestEntitlementExpiredHeader(t *testing.T) {
 		t.Errorf("Expected but got %s", string(b))
 	}
 }
+
+func TestRetrieveTemplateProfiles(t *testing.T) {
+	tests := []struct {
+		name       string
+		responder  httpmock.Responder
+		assertFunc func(t *testing.T, profile []capi.Profile, err error)
+	}{
+		{
+			name:      "template profiles returned",
+			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/template_profiles.json")),
+			assertFunc: func(t *testing.T, ts []capi.Profile, err error) {
+				assert.ElementsMatch(t, ts, []capi.Profile{
+					{
+						Name:        "profile-a",
+						Home:        "https://github.com/org/repo",
+						Sources:     []string{"https://github.com/org/repo1", "https://github.com/org/repo2"},
+						Description: "this is test profile a",
+						Maintainers: []capi.Maintainer{
+							{
+								Name:  "foo",
+								Email: "foo@example.com",
+								Url:   "example.com",
+							},
+						},
+						Icon:        "test",
+						KubeVersion: "1.19",
+						HelmRepository: capi.HelmRepository{
+							Name:      "test-repo",
+							Namespace: "test-ns",
+						},
+						AvailableVersions: []string{"v0.0.14", "v0.0.15"},
+					},
+				})
+			},
+		},
+		{
+			name:      "error returned",
+			responder: httpmock.NewErrorResponder(errors.New("oops")),
+			assertFunc: func(t *testing.T, fs []capi.Profile, err error) {
+				assert.EqualError(t, err, "unable to GET template profiles from \"https://weave.works/api/v1/templates/cluster-template/profiles\": Get \"https://weave.works/api/v1/templates/cluster-template/profiles\": oops")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := resty.New()
+			httpmock.ActivateNonDefault(client.GetClient())
+			defer httpmock.DeactivateAndReset()
+			httpmock.RegisterResponder("GET", BaseURI+"/v1/templates/cluster-template/profiles", tt.responder)
+
+			r, err := adapters.NewHttpClient(BaseURI, client, os.Stdout)
+			assert.NoError(t, err)
+			tps, err := r.RetrieveTemplateProfiles("cluster-template")
+			tt.assertFunc(t, tps, err)
+		})
+	}
+}

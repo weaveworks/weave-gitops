@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -26,6 +27,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/status"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -61,13 +63,14 @@ var (
 type applicationServer struct {
 	pb.UnimplementedApplicationsServer
 
-	factory      services.Factory
-	jwtClient    auth.JWTClient
-	log          logr.Logger
-	kube         client.Client
-	ghAuthClient auth.GithubAuthClient
-	fetcher      applicationv2.Fetcher
-	glAuthClient auth.GitlabAuthClient
+	factory        services.Factory
+	jwtClient      auth.JWTClient
+	log            logr.Logger
+	kube           client.Client
+	ghAuthClient   auth.GithubAuthClient
+	fetcherFactory FetcherFactory
+	glAuthClient   auth.GitlabAuthClient
+	clientGetter   ClientGetter
 }
 
 // An ApplicationsConfig allows for the customization of an ApplicationsServer.
@@ -78,20 +81,60 @@ type ApplicationsConfig struct {
 	JwtClient        auth.JWTClient
 	KubeClient       client.Client
 	GithubAuthClient auth.GithubAuthClient
-	Fetcher          applicationv2.Fetcher
+	FetcherFactory   FetcherFactory
 	GitlabAuthClient auth.GitlabAuthClient
+	ClusterConfig    ClusterConfig
+}
+
+// FetcherFactory implementations should create applicationv2.Fetcher objects
+// from a Kubernetes client.
+type FetcherFactory interface {
+	Create(client client.Client) applicationv2.Fetcher
+}
+
+// DefaultFetcherFactory creates applicationv2.Fetcher objects from a Kubernetes
+// client
+type DefaultFetcherFactory struct {
+}
+
+// NewDefaultFetcherFactory returns a new DefaultFetcherFactory
+func NewDefaultFetcherFactory() FetcherFactory {
+	return &DefaultFetcherFactory{}
+}
+
+// Create uses a Kubernetes client to create an applicationv2.Fetcher object.
+func (f *DefaultFetcherFactory) Create(client client.Client) applicationv2.Fetcher {
+	return applicationv2.NewFetcher(client)
+}
+
+// ClusterConfig is used to hold the default *rest.Config and the cluster name.
+type ClusterConfig struct {
+	DefaultConfig *rest.Config
+	ClusterName   string
 }
 
 // NewApplicationsServer creates a grpc Applications server
-func NewApplicationsServer(cfg *ApplicationsConfig) pb.ApplicationsServer {
+func NewApplicationsServer(cfg *ApplicationsConfig, setters ...ApplicationsOption) pb.ApplicationsServer {
+	args := &ApplicationsOptions{
+		ClientGetter: &DefaultClientGetter{
+			configGetter: NewImpersonatingConfigGetter(cfg.ClusterConfig.DefaultConfig, false),
+			clusterName:  cfg.ClusterConfig.ClusterName,
+		},
+	}
+
+	for _, setter := range setters {
+		setter(args)
+	}
+
 	return &applicationServer{
-		jwtClient:    cfg.JwtClient,
-		log:          cfg.Logger,
-		factory:      cfg.Factory,
-		kube:         cfg.KubeClient,
-		ghAuthClient: cfg.GithubAuthClient,
-		fetcher:      cfg.Fetcher,
-		glAuthClient: cfg.GitlabAuthClient,
+		jwtClient:      cfg.JwtClient,
+		log:            cfg.Logger,
+		factory:        cfg.Factory,
+		kube:           cfg.KubeClient,
+		ghAuthClient:   cfg.GithubAuthClient,
+		fetcherFactory: cfg.FetcherFactory,
+		glAuthClient:   cfg.GitlabAuthClient,
+		clientGetter:   args.ClientGetter,
 	}
 }
 
@@ -106,6 +149,12 @@ func DefaultApplicationsConfig() (*ApplicationsConfig, error) {
 
 	rand.Seed(time.Now().UnixNano())
 	secretKey := rand.String(20)
+	envSecretKey := os.Getenv("GITOPS_JWT_ENCRYPTION_SECRET")
+
+	if envSecretKey != "" {
+		secretKey = envSecretKey
+	}
+
 	jwtClient := auth.NewJwtClient(secretKey)
 
 	rest, clusterName, err := kube.RestConfig()
@@ -125,14 +174,25 @@ func DefaultApplicationsConfig() (*ApplicationsConfig, error) {
 		Factory:          services.NewServerFactory(fluxClient, internal.NewApiLogger(zapLog), nil, ""),
 		JwtClient:        jwtClient,
 		KubeClient:       rawClient,
-		Fetcher:          applicationv2.NewFetcher(rawClient),
+		FetcherFactory:   NewDefaultFetcherFactory(),
 		GithubAuthClient: auth.NewGithubAuthClient(http.DefaultClient),
 		GitlabAuthClient: auth.NewGitlabAuthClient(http.DefaultClient),
+		ClusterConfig: ClusterConfig{
+			DefaultConfig: rest,
+			ClusterName:   clusterName,
+		},
 	}, nil
 }
 
 func (s *applicationServer) ListApplications(ctx context.Context, msg *pb.ListApplicationsRequest) (*pb.ListApplicationsResponse, error) {
-	apps, err := s.fetcher.List(ctx, msg.Namespace)
+	rawClient, err := s.clientGetter.Client(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	fetcher := s.fetcherFactory.Create(rawClient)
+
+	apps, err := fetcher.List(ctx, msg.Namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -161,6 +221,10 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 
 	app, err := kubeClient.GetApplication(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace})
 	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil, grpcStatus.Errorf(codes.NotFound, "not found: %s", err.Error())
+		}
+
 		return nil, fmt.Errorf("could not get application %q: %w", msg.Name, err)
 	}
 
@@ -621,6 +685,26 @@ func (s *applicationServer) AuthorizeGitlab(ctx context.Context, msg *pb.Authori
 	return &pb.AuthorizeGitlabResponse{Token: token}, nil
 }
 
+func (s *applicationServer) ValidateProviderToken(ctx context.Context, msg *pb.ValidateProviderTokenRequest) (*pb.ValidateProviderTokenResponse, error) {
+	token, err := middleware.ExtractProviderToken(ctx)
+	if err != nil {
+		return nil, grpcStatus.Error(codes.Unauthenticated, err.Error())
+	}
+
+	v, err := findValidator(msg.Provider, s)
+	if err != nil {
+		return nil, grpcStatus.Error(codes.InvalidArgument, err.Error())
+	}
+
+	if err := v.ValidateToken(ctx, token.AccessToken); err != nil {
+		return nil, grpcStatus.Error(codes.InvalidArgument, err.Error())
+	}
+
+	return &pb.ValidateProviderTokenResponse{
+		Valid: true,
+	}, nil
+}
+
 func mapHelmReleaseSpecToResponse(helm *helmv2.HelmRelease) *pb.HelmRelease {
 	if helm == nil {
 		return nil
@@ -771,4 +855,15 @@ func toProtoProvider(p gitproviders.GitProviderName) pb.GitProvider {
 	}
 
 	return pb.GitProvider_Unknown
+}
+
+func findValidator(provider pb.GitProvider, s *applicationServer) (auth.ProviderTokenValidator, error) {
+	switch provider {
+	case pb.GitProvider_GitHub:
+		return s.ghAuthClient, nil
+	case pb.GitProvider_GitLab:
+		return s.glAuthClient, nil
+	}
+
+	return nil, fmt.Errorf("unknown git provider %s", provider)
 }

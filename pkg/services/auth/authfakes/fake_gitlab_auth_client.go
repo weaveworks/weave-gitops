@@ -40,6 +40,18 @@ type FakeGitlabAuthClient struct {
 		result1 *types.TokenResponseState
 		result2 error
 	}
+	ValidateTokenStub        func(context.Context, string) error
+	validateTokenMutex       sync.RWMutex
+	validateTokenArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+	}
+	validateTokenReturns struct {
+		result1 error
+	}
+	validateTokenReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -175,6 +187,68 @@ func (fake *FakeGitlabAuthClient) ExchangeCodeReturnsOnCall(i int, result1 *type
 	}{result1, result2}
 }
 
+func (fake *FakeGitlabAuthClient) ValidateToken(arg1 context.Context, arg2 string) error {
+	fake.validateTokenMutex.Lock()
+	ret, specificReturn := fake.validateTokenReturnsOnCall[len(fake.validateTokenArgsForCall)]
+	fake.validateTokenArgsForCall = append(fake.validateTokenArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.ValidateTokenStub
+	fakeReturns := fake.validateTokenReturns
+	fake.recordInvocation("ValidateToken", []interface{}{arg1, arg2})
+	fake.validateTokenMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeGitlabAuthClient) ValidateTokenCallCount() int {
+	fake.validateTokenMutex.RLock()
+	defer fake.validateTokenMutex.RUnlock()
+	return len(fake.validateTokenArgsForCall)
+}
+
+func (fake *FakeGitlabAuthClient) ValidateTokenCalls(stub func(context.Context, string) error) {
+	fake.validateTokenMutex.Lock()
+	defer fake.validateTokenMutex.Unlock()
+	fake.ValidateTokenStub = stub
+}
+
+func (fake *FakeGitlabAuthClient) ValidateTokenArgsForCall(i int) (context.Context, string) {
+	fake.validateTokenMutex.RLock()
+	defer fake.validateTokenMutex.RUnlock()
+	argsForCall := fake.validateTokenArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeGitlabAuthClient) ValidateTokenReturns(result1 error) {
+	fake.validateTokenMutex.Lock()
+	defer fake.validateTokenMutex.Unlock()
+	fake.ValidateTokenStub = nil
+	fake.validateTokenReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeGitlabAuthClient) ValidateTokenReturnsOnCall(i int, result1 error) {
+	fake.validateTokenMutex.Lock()
+	defer fake.validateTokenMutex.Unlock()
+	fake.ValidateTokenStub = nil
+	if fake.validateTokenReturnsOnCall == nil {
+		fake.validateTokenReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.validateTokenReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeGitlabAuthClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -182,6 +256,8 @@ func (fake *FakeGitlabAuthClient) Invocations() map[string][][]interface{} {
 	defer fake.authURLMutex.RUnlock()
 	fake.exchangeCodeMutex.RLock()
 	defer fake.exchangeCodeMutex.RUnlock()
+	fake.validateTokenMutex.RLock()
+	defer fake.validateTokenMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

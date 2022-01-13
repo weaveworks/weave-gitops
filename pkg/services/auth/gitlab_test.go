@@ -397,4 +397,20 @@ var _ = Describe("GitlabAuthClient", func() {
 		Expect(tokenState.AccessToken).To(Equal(rs.AccessToken))
 		Expect(tokenState.ExpiresInSeconds).To(Equal(time.Duration(rs.ExpiresIn) * time.Second))
 	})
+	Describe("ValidateToken", func() {
+		It("returns an error when a 401 is returned", func() {
+			rt := fakehttp.FakeRoundTripper{}
+			rt.RoundTripReturns(&http.Response{StatusCode: http.StatusUnauthorized}, nil)
+			c := NewGitlabAuthClient(&http.Client{Transport: &rt})
+
+			Expect(c.ValidateToken(context.Background(), "sometoken")).To(HaveOccurred())
+		})
+		It("does not return an error when a token is valid", func() {
+			rt := fakehttp.FakeRoundTripper{}
+			rt.RoundTripReturns(&http.Response{StatusCode: http.StatusOK}, nil)
+			c := NewGitlabAuthClient(&http.Client{Transport: &rt})
+
+			Expect(c.ValidateToken(context.Background(), "sometoken")).NotTo(HaveOccurred())
+		})
+	})
 })

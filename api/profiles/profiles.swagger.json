@@ -235,6 +235,10 @@
             "type": "string"
           },
           "title": "A list of available versions"
+        },
+        "layer": {
+          "type": "string",
+          "title": "The layer of the profile"
         }
       }
     }

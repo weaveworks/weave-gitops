@@ -129,10 +129,11 @@ var _ = BeforeEach(func() {
 		JwtClient:        jwtClient,
 		KubeClient:       k8sClient,
 		GithubAuthClient: ghAuthClient,
-		Fetcher:          applicationv2.NewFetcher(k8sClient),
+		FetcherFactory:   NewFakeFetcherFactory(applicationv2.NewFetcher(k8sClient)),
 		GitlabAuthClient: glAuthClient,
+		ClusterConfig:    ClusterConfig{},
 	}
-	apps = NewApplicationsServer(&cfg)
+	apps = NewApplicationsServer(&cfg, WithClientGetter(NewFakeClientGetter(k8sClient)))
 	pb.RegisterApplicationsServer(s, apps)
 
 	go func() {
