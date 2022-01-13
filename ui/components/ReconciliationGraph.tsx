@@ -2,12 +2,12 @@ import _ from "lodash";
 import * as React from "react";
 import { renderToString } from "react-dom/server";
 import styled from "styled-components";
-import Icon from "./Icon";
 import {
   Application,
   UnstructuredObject,
 } from "../lib/api/applications/applications.pb";
 import { UnstructuredObjectWithParent } from "../lib/graph";
+import Icon from "./Icon";
 import DirectedGraph from "./DirectedGraph";
 import Flex from "./Flex";
 
