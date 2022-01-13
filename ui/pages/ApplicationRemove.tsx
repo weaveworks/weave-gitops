@@ -207,8 +207,6 @@ function ApplicationRemove({ className, name }: Props) {
     );
   }
 
-  console.log(application);
-
   return (
     <Page className={className}>
       <CallbackStateContextProvider
@@ -229,7 +227,6 @@ function ApplicationRemove({ className, name }: Props) {
         {error && error.code !== GrpcErrorCodes.Unauthenticated && (
           <Alert title="Error" severity="error" message={error?.message} />
         )}
-
         {repoRemoving && (
           <Flex wide center align>
             <CircularProgress />
