@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
@@ -22,6 +21,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/services/automation"
+	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -95,32 +95,32 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 		return fmt.Errorf("failed to normalize URL %q: %w", uv.ConfigRepo, err)
 	}
 
-	// Create pull request
-	path := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, WegoEnterpriseName)
-	wegoAppPath := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, "wego-app.yaml")
-	capiKeepPath := filepath.Join(git.WegoRoot, git.WegoAppDir, "capi", "templates", ".keep")
-	capiKeepContents := string(strconv.AppendQuote(nil, "# keep"))
+	configBranch := uv.BaseBranch
+	if configBranch == "" {
+		configBranch, err = gitProvider.GetDefaultBranch(ctx, normalizedURL)
+		if err != nil {
+			return fmt.Errorf("could not determine default branch for config repository: %q %w", uv.ConfigRepo, err)
+		}
+	}
+
+	remover, _, err := gitrepo.CloneRepo(ctx, gitClient, normalizedURL, configBranch)
+	if err != nil {
+		return fmt.Errorf("failed to clone configuration repo: %w", err)
+	}
+
+	defer remover()
+
+	err = upgradeGitManfiests(gitClient, cname, stringOut, w)
+	if err != nil {
+		return fmt.Errorf("failed to write update manifest in clone repo: %w", err)
+	}
 
 	pri := gitproviders.PullRequestInfo{
-		Title:         "Gitops upgrade",
-		Description:   "Pull request to upgrade to Weave GitOps Enterprise",
-		CommitMessage: uv.CommitMessage,
-		TargetBranch:  uv.BaseBranch,
-		NewBranch:     uv.HeadBranch,
-		Files: []gitprovider.CommitFile{
-			{
-				Path:    &path,
-				Content: &stringOut,
-			},
-			{
-				Path:    &capiKeepPath,
-				Content: &capiKeepContents,
-			},
-			{
-				Path:    &wegoAppPath,
-				Content: nil,
-			},
-		},
+		Title:                     "Gitops upgrade",
+		Description:               "Pull request to upgrade to Weave GitOps Enterprise",
+		SkipAddingFilesOnCreation: true,
+		TargetBranch:              configBranch,
+		NewBranch:                 uv.HeadBranch,
 	}
 
 	pr, err := gitProvider.CreatePullRequest(ctx, normalizedURL, pri)
@@ -249,6 +249,40 @@ func makeHelmResources(namespace, version, clusterName, repoURL string, values [
 	}
 
 	return []runtime.Object{helmRepository, helmRelease}, nil
+}
+
+func upgradeGitManfiests(gitClient git.Git, cname, wegoEnterpriseManifests string, w io.Writer) error {
+	wegoEnterprisePath := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, WegoEnterpriseName)
+	wegoAppPath := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, "wego-app.yaml")
+	capiKeepPath := filepath.Join(git.WegoRoot, git.WegoAppDir, "capi", "templates", ".keep")
+	capiKeepContents := string(strconv.AppendQuote(nil, "# keep"))
+	manifests := map[string]string{
+		wegoEnterprisePath: wegoEnterpriseManifests,
+		capiKeepPath:       capiKeepContents,
+	}
+
+	for path, content := range manifests {
+		if err := gitClient.Write(path, []byte(content)); err != nil {
+			return fmt.Errorf("failed to write out manifest to %s: %s", path, err)
+		}
+	}
+
+	// FIXME: replace w/ constant
+	kustomizationPath := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, "kustomization.yaml")
+
+	kustomizationBytes, err := gitClient.Read(kustomizationPath)
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf("Failed to remote existing %s deployment, skipping.\n", wegoAppPath)))
+	}
+
+	w.Write(kustomizationBytes)
+
+	err = gitClient.Remove(wegoAppPath)
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf("Failed to remote existing %s deployment, skipping.\n", wegoAppPath)))
+	}
+
+	return nil
 }
 
 func getBasicAuth(ctx context.Context, kubeClient client.Client, ns string) error {

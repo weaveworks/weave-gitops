@@ -153,6 +153,29 @@ func (g *GoGit) clone(ctx context.Context, path, url, branch string, depth int) 
 	return r, nil
 }
 
+// Read reads the content from the path
+func (g *GoGit) Read(path string) ([]byte, error) {
+	if g.repository == nil {
+		return nil, ErrNoGitRepository
+	}
+
+	wt, err := g.repository.Worktree()
+	if err != nil {
+		return nil, fmt.Errorf("failed to open the worktree: %w", err)
+	}
+
+	f, err := wt.Filesystem.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open file %s: %w", path, err)
+	}
+	defer f.Close()
+
+	buf := bytes.NewBuffer(nil)
+	buf.ReadFrom(f)
+
+	return buf.Bytes(), nil
+}
+
 // Write writes the provided content to the path, if the file exists, it will be
 // truncated.
 func (g *GoGit) Write(path string, content []byte) error {
