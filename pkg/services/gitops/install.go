@@ -1,16 +1,18 @@
 package gitops
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strconv"
 
+	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
+	"github.com/weaveworks/weave-gitops/pkg/flux"
+
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/selection"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	kyaml "sigs.k8s.io/yaml"
 
 	"github.com/weaveworks/weave-gitops/manifests"
@@ -69,25 +71,25 @@ func (g *Gitops) Install(params InstallParams) (map[string][]byte, error) {
 			return nil, fmt.Errorf("could not apply App CRD: %w", err)
 		}
 
-		//version := version.Version
-		//if os.Getenv("IS_TEST_ENV") != "" {
-		//	version = "latest"
-		//}
+		version := version.Version
+		if os.Getenv("IS_TEST_ENV") != "" {
+			version = "latest"
+		}
 
-		//wegoAppManifests, err := manifests.GenerateManifests(manifests.Params{
-		//	AppVersion: version,
-		//	Namespace:  params.Namespace,
-		//})
-		//if err != nil {
-		//	return nil, fmt.Errorf("error generating wego-app manifests, %w", err)
-		//}
-		//for _, m := range wegoAppManifests {
-		//	if err := g.kube.Apply(ctx, m, params.Namespace); err != nil {
-		//		return nil, fmt.Errorf("error applying wego-app manifest \n%s: %w", m, err)
-		//	}
-		//}
+		wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{
+			AppVersion: version,
+			Namespace:  params.Namespace,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("error generating wego-app manifests, %w", err)
+		}
+		for _, m := range wegoAppManifests {
+			if err := g.kube.Apply(ctx, m, params.Namespace); err != nil {
+				return nil, fmt.Errorf("error applying wego-app manifest \n%s: %w", m, err)
+			}
+		}
 
-		//systemManifests["wego-app.yaml"] = bytes.Join(wegoAppManifests, []byte("---\n"))
+		systemManifests["wego-app.yaml"] = bytes.Join(wegoAppManifests, []byte("---\n"))
 	}
 
 	wegoConfigCM, err := g.saveWegoConfig(ctx, params)
@@ -271,47 +273,10 @@ func (g *Gitops) applyManifestsToK8s(ctx context.Context, namespace string, mani
 	return nil
 }
 
-const LabelPartOf = "app.kubernetes.io/part-of"
-
 var ErrNamespaceNotFound = errors.New("namespace not found")
 
-func (g *Gitops) fetchNamespaceWithLabel(ctx context.Context, key string, value string) (string, error) {
-	selector := labels.NewSelector()
-
-	partOf, err := labels.NewRequirement(key, selection.Equals, []string{value})
-	if err != nil {
-		return "", fmt.Errorf("bad requirement: %w", err)
-	}
-
-	selector = selector.Add(*partOf)
-
-	options := client.ListOptions{
-		LabelSelector: selector,
-	}
-
-	nsl := &corev1.NamespaceList{}
-	if err := g.kube.Raw().List(ctx, nsl, &options); err != nil {
-		return "", fmt.Errorf("error setting resource: %w", err)
-	}
-
-	namespaces := []string{}
-	for _, n := range nsl.Items {
-		namespaces = append(namespaces, n.Name)
-	}
-
-	if len(namespaces) == 0 {
-		return "", ErrNamespaceNotFound
-	}
-
-	if len(namespaces) > 1 {
-		return "", fmt.Errorf("found multiple namespaces %s with %s=%s, we are unable to define the correct one", namespaces, key, value)
-	}
-
-	return namespaces[0], nil
-}
-
 func (g *Gitops) saveWegoConfig(ctx context.Context, params InstallParams) (*corev1.ConfigMap, error) {
-	fluxNamespace, err := g.fetchNamespaceWithLabel(ctx, LabelPartOf, "flux")
+	fluxNamespace, err := g.kube.FetchNamespaceWithLabel(ctx, flux.PartOfLabelKey, flux.PartOfLabelValue)
 	if err != nil {
 		if !errors.Is(err, ErrNamespaceNotFound) {
 			return nil, fmt.Errorf("failed fetching flux namespace: %w", err)
@@ -319,7 +284,7 @@ func (g *Gitops) saveWegoConfig(ctx context.Context, params InstallParams) (*cor
 	}
 
 	cm, err := g.kube.SetWegoConfig(ctx, kube.WegoConfig{
-		FluxNamespace: fluxNamespace,
+		FluxNamespace: fluxNamespace.Name,
 		WegoNamespace: params.Namespace,
 	}, params.Namespace)
 	if err != nil {

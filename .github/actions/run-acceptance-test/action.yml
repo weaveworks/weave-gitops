@@ -103,6 +103,7 @@ runs:
         GITLAB_TOKEN: ${{ inputs.gitlab-token }}
         GITLAB_KEY: ${{ inputs.gitlab-key }}
         ARTIFACTS_BASE_DIR: ${{ inputs.artifacts-base-dir }}
+        CHECKPOINT_DISABLE: 1
     run: |
       export PATH=${PATH}:`go env GOPATH`/bin
       export WEGO_BIN_PATH=$(pwd)/bin/gitops

@@ -53,7 +53,7 @@ type FakeKube struct {
 	deleteByNameReturnsOnCall map[int]struct {
 		result1 error
 	}
-	FetchNamespaceWithLabelStub        func(context.Context, string, string) (string, error)
+	FetchNamespaceWithLabelStub        func(context.Context, string, string) (*v1.Namespace, error)
 	fetchNamespaceWithLabelMutex       sync.RWMutex
 	fetchNamespaceWithLabelArgsForCall []struct {
 		arg1 context.Context
@@ -61,11 +61,11 @@ type FakeKube struct {
 		arg3 string
 	}
 	fetchNamespaceWithLabelReturns struct {
-		result1 string
+		result1 *v1.Namespace
 		result2 error
 	}
 	fetchNamespaceWithLabelReturnsOnCall map[int]struct {
-		result1 string
+		result1 *v1.Namespace
 		result2 error
 	}
 	FluxPresentStub        func(context.Context) (bool, error)
@@ -443,7 +443,7 @@ func (fake *FakeKube) DeleteByNameReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeKube) FetchNamespaceWithLabel(arg1 context.Context, arg2 string, arg3 string) (string, error) {
+func (fake *FakeKube) FetchNamespaceWithLabel(arg1 context.Context, arg2 string, arg3 string) (*v1.Namespace, error) {
 	fake.fetchNamespaceWithLabelMutex.Lock()
 	ret, specificReturn := fake.fetchNamespaceWithLabelReturnsOnCall[len(fake.fetchNamespaceWithLabelArgsForCall)]
 	fake.fetchNamespaceWithLabelArgsForCall = append(fake.fetchNamespaceWithLabelArgsForCall, struct {
@@ -470,7 +470,7 @@ func (fake *FakeKube) FetchNamespaceWithLabelCallCount() int {
 	return len(fake.fetchNamespaceWithLabelArgsForCall)
 }
 
-func (fake *FakeKube) FetchNamespaceWithLabelCalls(stub func(context.Context, string, string) (string, error)) {
+func (fake *FakeKube) FetchNamespaceWithLabelCalls(stub func(context.Context, string, string) (*v1.Namespace, error)) {
 	fake.fetchNamespaceWithLabelMutex.Lock()
 	defer fake.fetchNamespaceWithLabelMutex.Unlock()
 	fake.FetchNamespaceWithLabelStub = stub
@@ -483,28 +483,28 @@ func (fake *FakeKube) FetchNamespaceWithLabelArgsForCall(i int) (context.Context
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeKube) FetchNamespaceWithLabelReturns(result1 string, result2 error) {
+func (fake *FakeKube) FetchNamespaceWithLabelReturns(result1 *v1.Namespace, result2 error) {
 	fake.fetchNamespaceWithLabelMutex.Lock()
 	defer fake.fetchNamespaceWithLabelMutex.Unlock()
 	fake.FetchNamespaceWithLabelStub = nil
 	fake.fetchNamespaceWithLabelReturns = struct {
-		result1 string
+		result1 *v1.Namespace
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeKube) FetchNamespaceWithLabelReturnsOnCall(i int, result1 string, result2 error) {
+func (fake *FakeKube) FetchNamespaceWithLabelReturnsOnCall(i int, result1 *v1.Namespace, result2 error) {
 	fake.fetchNamespaceWithLabelMutex.Lock()
 	defer fake.fetchNamespaceWithLabelMutex.Unlock()
 	fake.FetchNamespaceWithLabelStub = nil
 	if fake.fetchNamespaceWithLabelReturnsOnCall == nil {
 		fake.fetchNamespaceWithLabelReturnsOnCall = make(map[int]struct {
-			result1 string
+			result1 *v1.Namespace
 			result2 error
 		})
 	}
 	fake.fetchNamespaceWithLabelReturnsOnCall[i] = struct {
-		result1 string
+		result1 *v1.Namespace
 		result2 error
 	}{result1, result2}
 }
