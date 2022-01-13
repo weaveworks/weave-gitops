@@ -76,8 +76,11 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		By("And gitops check pre kubernetes version is compatible and flux is not installed", func() {
 			c := exec.Command(gitopsBinaryPath, "check", "--pre")
 			output, err := c.CombinedOutput()
-			Expect(err).Should(HaveOccurred())
-			Expect(string(output)).Should(Equal("Error: failed getting installed flux version: namespace not found\n"))
+			Expect(err).NotTo(HaveOccurred())
+			expectedOutput := fmt.Sprintf(`✔ Kubernetes %s >=[0-9]+.[0-9]+\.[0-9]+-[0-9]+
+✔ Flux is not installed`,
+				getK8sVersion())
+			Expect(string(output)).To(MatchRegexp(expectedOutput))
 		})
 
 		By("And I run gitops add command", func() {
