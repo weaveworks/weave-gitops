@@ -27,40 +27,37 @@ type Props = {
 };
 
 const RepoRemoveStatus = ({
-  done,
   autoMerge,
   url,
   provider,
 }: {
-  done: boolean;
   autoMerge: boolean;
   url: string;
   provider: GitProvider;
-}) =>
-  done ? (
-    <Alert
-      severity="info"
-      title="Removed from Git Repo"
-      message={
-        autoMerge ? (
-          "The application successfully removed from your git repository"
-        ) : (
-          <Flex align>
-            <p>A PR has been successfully created </p>
-            <Spacer padding="xs" />
-            <a
-              target="_blank"
-              href={`${convertGitURLToGitProvider(url).replace(".git", "")}/${
-                provider === GitProvider.GitLab ? "-/merge_requests" : "pulls"
-              }`}
-            >
-              <Button>View Open Pull Requests</Button>
-            </a>
-          </Flex>
-        )
-      }
-    />
-  ) : null;
+}) => (
+  <Alert
+    severity="info"
+    title="Removed from Git Repo"
+    message={
+      autoMerge ? (
+        "The application successfully removed from your git repository"
+      ) : (
+        <Flex align>
+          <p>A PR has been successfully created </p>
+          <Spacer padding="xs" />
+          <a
+            target="_blank"
+            href={`${convertGitURLToGitProvider(url).replace(".git", "")}/${
+              provider === GitProvider.GitLab ? "-/merge_requests" : "pulls"
+            }`}
+          >
+            <Button>View Open Pull Requests</Button>
+          </a>
+        </Flex>
+      )
+    }
+  />
+);
 
 const ClusterRemoveStatus = ({ done }: { done: boolean }) =>
   done ? (
@@ -248,10 +245,9 @@ function ApplicationRemove({ className, name }: Props) {
             setAutoMerge={setAutoMerge}
           />
         )}
-        {(repoRemoving || repoRemoveRes) && (
+        {repoRemoveRes && (
           <RepoRemoveStatus
-            done={!repoRemoving}
-            url={application.url}
+            url={repoRemoveRes.repoUrl}
             autoMerge={autoMerge}
             provider={repoInfo.provider}
           />
