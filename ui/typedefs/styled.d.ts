@@ -4,9 +4,12 @@ export namespace colors {
   const black: string;
   const white: string;
   const primary: string;
+  const primaryLight: string;
   const primaryDark: string;
   const success: string;
   const alert: string;
+  const neutral00: string;
+  const neutral10: string;
   const neutral20: string;
   const neutral30: string;
   const neutral40: string;
