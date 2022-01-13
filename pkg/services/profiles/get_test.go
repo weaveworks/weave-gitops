@@ -15,7 +15,7 @@ import (
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/testing"
 
-	"github.com/weaveworks/weave-gitops/pkg/profiles"
+	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
 )
 
 const getProfilesResp = `{
