@@ -85,7 +85,7 @@ var _ = Describe("Installer", func() {
 
 				wegoAppManifest := bytes.Join(wegoAppManifests, []byte("---\n"))
 
-				gitopsConfigMap, err := gitopsConfigMap(testNamespace, testNamespace)
+				gitopsConfigMap, err := GitopsConfigMap(testNamespace, testNamespace)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				wegoConfigManifest, err := yaml.Marshal(gitopsConfigMap)
