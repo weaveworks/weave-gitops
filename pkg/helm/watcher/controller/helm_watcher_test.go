@@ -41,10 +41,7 @@ var (
 )
 
 func TestReconcile(t *testing.T) {
-	t.Log("set up kubernetes scheme and runtime objects")
-
 	scheme := runtime.NewScheme()
-
 	utilruntime.Must(sourcev1.AddToScheme(scheme))
 
 	fakeCache := &cachefakes.FakeCache{}
@@ -65,8 +62,7 @@ func TestReconcile(t *testing.T) {
 	}
 	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(repo)
 
-	t.Log("set up repo manager fakes")
-	fakeRepoManager.GetChartsReturns([]*pb.Profile{profile1, profile2}, nil)
+	fakeRepoManager.ListChartsReturns([]*pb.Profile{profile1, profile2}, nil)
 	fakeRepoManager.GetValuesFileReturns([]byte("value"), nil)
 
 	reconciler := &HelmWatcherReconciler{
@@ -82,8 +78,6 @@ func TestReconcile(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	t.Log("verify cache calls")
-
 	expectedData := cache.Data{
 		Profiles: []*pb.Profile{profile1, profile2},
 		Values: map[string]map[string][]byte{
@@ -95,17 +89,14 @@ func TestReconcile(t *testing.T) {
 			},
 		},
 	}
-	namespace, name, cacheData := fakeCache.UpdateArgsForCall(0)
+	_, namespace, name, cacheData := fakeCache.PutArgsForCall(0)
 	assert.Equal(t, "test-namespace", namespace)
 	assert.Equal(t, "test-name", name)
 	assert.Equal(t, expectedData, cacheData)
 }
 
 func TestReconcileGetChartFails(t *testing.T) {
-	t.Log("set up kubernetes scheme and runtime objects")
-
 	scheme := runtime.NewScheme()
-
 	utilruntime.Must(sourcev1.AddToScheme(scheme))
 
 	fakeCache := &cachefakes.FakeCache{}
@@ -124,11 +115,10 @@ func TestReconcileGetChartFails(t *testing.T) {
 			},
 		},
 	}
+
+	fakeRepoManager.ListChartsReturns(nil, errors.New("nope"))
+
 	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(repo)
-
-	t.Log("set up repo manager fakes")
-	fakeRepoManager.GetChartsReturns(nil, errors.New("nope"))
-
 	reconciler := &HelmWatcherReconciler{
 		Client:      fakeClient.Build(),
 		Cache:       fakeCache,
@@ -143,10 +133,7 @@ func TestReconcileGetChartFails(t *testing.T) {
 	assert.EqualError(t, err, "nope")
 }
 func TestReconcileGetValuesFileFailsItWillContinue(t *testing.T) {
-	t.Log("set up kubernetes scheme and runtime objects")
-
 	scheme := runtime.NewScheme()
-
 	utilruntime.Must(sourcev1.AddToScheme(scheme))
 
 	fakeCache := &cachefakes.FakeCache{}
@@ -167,8 +154,7 @@ func TestReconcileGetValuesFileFailsItWillContinue(t *testing.T) {
 	}
 	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(repo)
 
-	t.Log("set up repo manager fakes")
-	fakeRepoManager.GetChartsReturns([]*pb.Profile{profile1, profile2}, nil)
+	fakeRepoManager.ListChartsReturns([]*pb.Profile{profile1, profile2}, nil)
 	fakeRepoManager.GetValuesFileReturns(nil, errors.New("this will be skipped"))
 
 	reconciler := &HelmWatcherReconciler{
@@ -184,23 +170,18 @@ func TestReconcileGetValuesFileFailsItWillContinue(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	t.Log("verify cache calls")
-
 	expectedData := cache.Data{
 		Profiles: []*pb.Profile{profile1, profile2},
 		Values:   map[string]map[string][]byte{},
 	}
-	namespace, name, cacheData := fakeCache.UpdateArgsForCall(0)
+	_, namespace, name, cacheData := fakeCache.PutArgsForCall(0)
 	assert.Equal(t, "test-namespace", namespace)
 	assert.Equal(t, "test-name", name)
 	assert.Equal(t, expectedData, cacheData)
 }
 
 func TestReconcileIgnoreReposWithoutArtifact(t *testing.T) {
-	t.Log("set up kubernetes scheme and runtime objects")
-
 	scheme := runtime.NewScheme()
-
 	utilruntime.Must(sourcev1.AddToScheme(scheme))
 
 	fakeCache := &cachefakes.FakeCache{}
@@ -213,8 +194,7 @@ func TestReconcileIgnoreReposWithoutArtifact(t *testing.T) {
 	}
 	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(repo)
 
-	t.Log("set up repo manager fakes")
-	fakeRepoManager.GetChartsReturns([]*pb.Profile{profile1, profile2}, nil)
+	fakeRepoManager.ListChartsReturns([]*pb.Profile{profile1, profile2}, nil)
 	fakeRepoManager.GetValuesFileReturns(nil, errors.New("this will be skipped"))
 
 	reconciler := &HelmWatcherReconciler{
@@ -228,17 +208,15 @@ func TestReconcileIgnoreReposWithoutArtifact(t *testing.T) {
 			Name:      "test-name",
 		},
 	})
+
 	assert.NoError(t, err)
-	assert.Zero(t, fakeRepoManager.GetChartsCallCount())
+	assert.Zero(t, fakeRepoManager.ListChartsCallCount())
 	assert.Zero(t, fakeRepoManager.GetValuesFileCallCount())
-	assert.Zero(t, fakeCache.UpdateCallCount())
+	assert.Zero(t, fakeCache.PutCallCount())
 }
 
 func TestReconcileUpdateReturnsError(t *testing.T) {
-	t.Log("set up kubernetes scheme and runtime objects")
-
 	scheme := runtime.NewScheme()
-
 	utilruntime.Must(sourcev1.AddToScheme(scheme))
 
 	fakeCache := &cachefakes.FakeCache{}
@@ -259,10 +237,9 @@ func TestReconcileUpdateReturnsError(t *testing.T) {
 	}
 	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(repo)
 
-	t.Log("set up repo manager fakes")
-	fakeRepoManager.GetChartsReturns([]*pb.Profile{profile1, profile2}, nil)
+	fakeRepoManager.ListChartsReturns([]*pb.Profile{profile1, profile2}, nil)
 	fakeRepoManager.GetValuesFileReturns([]byte("value"), nil)
-	fakeCache.UpdateReturns(errors.New("nope"))
+	fakeCache.PutReturns(errors.New("nope"))
 
 	reconciler := &HelmWatcherReconciler{
 		Client:      fakeClient.Build(),
@@ -288,17 +265,11 @@ func (m *mockClient) Get(ctx context.Context, key client.ObjectKey, object clien
 }
 
 func TestReconcileKubernetesGetFails(t *testing.T) {
-	t.Log("set up kubernetes scheme and runtime objects")
-
 	scheme := runtime.NewScheme()
-
 	utilruntime.Must(sourcev1.AddToScheme(scheme))
 
 	fakeCache := &cachefakes.FakeCache{}
 	fakeRepoManager := &helmfakes.FakeHelmRepoManager{}
-
-	t.Log("set up repo manager fakes")
-
 	reconciler := &HelmWatcherReconciler{
 		Client:      &mockClient{err: errors.New("nope")},
 		Cache:       fakeCache,
@@ -311,7 +282,7 @@ func TestReconcileKubernetesGetFails(t *testing.T) {
 		},
 	})
 	assert.EqualError(t, err, "nope")
-	assert.Zero(t, fakeRepoManager.GetChartsCallCount())
+	assert.Zero(t, fakeRepoManager.ListChartsCallCount())
 	assert.Zero(t, fakeRepoManager.GetValuesFileCallCount())
-	assert.Zero(t, fakeCache.UpdateCallCount())
+	assert.Zero(t, fakeCache.PutCallCount())
 }

@@ -11,21 +11,6 @@ import (
 )
 
 type FakeHelmRepoManager struct {
-	GetChartsStub        func(context.Context, *v1beta1.HelmRepository, helm.ChartPredicate) ([]*profiles.Profile, error)
-	getChartsMutex       sync.RWMutex
-	getChartsArgsForCall []struct {
-		arg1 context.Context
-		arg2 *v1beta1.HelmRepository
-		arg3 helm.ChartPredicate
-	}
-	getChartsReturns struct {
-		result1 []*profiles.Profile
-		result2 error
-	}
-	getChartsReturnsOnCall map[int]struct {
-		result1 []*profiles.Profile
-		result2 error
-	}
 	GetValuesFileStub        func(context.Context, *v1beta1.HelmRepository, *helm.ChartReference, string) ([]byte, error)
 	getValuesFileMutex       sync.RWMutex
 	getValuesFileArgsForCall []struct {
@@ -42,74 +27,23 @@ type FakeHelmRepoManager struct {
 		result1 []byte
 		result2 error
 	}
-	invocations      map[string][][]interface{}
-	invocationsMutex sync.RWMutex
-}
-
-func (fake *FakeHelmRepoManager) GetCharts(arg1 context.Context, arg2 *v1beta1.HelmRepository, arg3 helm.ChartPredicate) ([]*profiles.Profile, error) {
-	fake.getChartsMutex.Lock()
-	ret, specificReturn := fake.getChartsReturnsOnCall[len(fake.getChartsArgsForCall)]
-	fake.getChartsArgsForCall = append(fake.getChartsArgsForCall, struct {
+	ListChartsStub        func(context.Context, *v1beta1.HelmRepository, helm.ChartPredicate) ([]*profiles.Profile, error)
+	listChartsMutex       sync.RWMutex
+	listChartsArgsForCall []struct {
 		arg1 context.Context
 		arg2 *v1beta1.HelmRepository
 		arg3 helm.ChartPredicate
-	}{arg1, arg2, arg3})
-	stub := fake.GetChartsStub
-	fakeReturns := fake.getChartsReturns
-	fake.recordInvocation("GetCharts", []interface{}{arg1, arg2, arg3})
-	fake.getChartsMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2, arg3)
 	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeHelmRepoManager) GetChartsCallCount() int {
-	fake.getChartsMutex.RLock()
-	defer fake.getChartsMutex.RUnlock()
-	return len(fake.getChartsArgsForCall)
-}
-
-func (fake *FakeHelmRepoManager) GetChartsCalls(stub func(context.Context, *v1beta1.HelmRepository, helm.ChartPredicate) ([]*profiles.Profile, error)) {
-	fake.getChartsMutex.Lock()
-	defer fake.getChartsMutex.Unlock()
-	fake.GetChartsStub = stub
-}
-
-func (fake *FakeHelmRepoManager) GetChartsArgsForCall(i int) (context.Context, *v1beta1.HelmRepository, helm.ChartPredicate) {
-	fake.getChartsMutex.RLock()
-	defer fake.getChartsMutex.RUnlock()
-	argsForCall := fake.getChartsArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
-}
-
-func (fake *FakeHelmRepoManager) GetChartsReturns(result1 []*profiles.Profile, result2 error) {
-	fake.getChartsMutex.Lock()
-	defer fake.getChartsMutex.Unlock()
-	fake.GetChartsStub = nil
-	fake.getChartsReturns = struct {
+	listChartsReturns struct {
 		result1 []*profiles.Profile
 		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeHelmRepoManager) GetChartsReturnsOnCall(i int, result1 []*profiles.Profile, result2 error) {
-	fake.getChartsMutex.Lock()
-	defer fake.getChartsMutex.Unlock()
-	fake.GetChartsStub = nil
-	if fake.getChartsReturnsOnCall == nil {
-		fake.getChartsReturnsOnCall = make(map[int]struct {
-			result1 []*profiles.Profile
-			result2 error
-		})
 	}
-	fake.getChartsReturnsOnCall[i] = struct {
+	listChartsReturnsOnCall map[int]struct {
 		result1 []*profiles.Profile
 		result2 error
-	}{result1, result2}
+	}
+	invocations      map[string][][]interface{}
+	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeHelmRepoManager) GetValuesFile(arg1 context.Context, arg2 *v1beta1.HelmRepository, arg3 *helm.ChartReference, arg4 string) ([]byte, error) {
@@ -179,13 +113,79 @@ func (fake *FakeHelmRepoManager) GetValuesFileReturnsOnCall(i int, result1 []byt
 	}{result1, result2}
 }
 
+func (fake *FakeHelmRepoManager) ListCharts(arg1 context.Context, arg2 *v1beta1.HelmRepository, arg3 helm.ChartPredicate) ([]*profiles.Profile, error) {
+	fake.listChartsMutex.Lock()
+	ret, specificReturn := fake.listChartsReturnsOnCall[len(fake.listChartsArgsForCall)]
+	fake.listChartsArgsForCall = append(fake.listChartsArgsForCall, struct {
+		arg1 context.Context
+		arg2 *v1beta1.HelmRepository
+		arg3 helm.ChartPredicate
+	}{arg1, arg2, arg3})
+	stub := fake.ListChartsStub
+	fakeReturns := fake.listChartsReturns
+	fake.recordInvocation("ListCharts", []interface{}{arg1, arg2, arg3})
+	fake.listChartsMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeHelmRepoManager) ListChartsCallCount() int {
+	fake.listChartsMutex.RLock()
+	defer fake.listChartsMutex.RUnlock()
+	return len(fake.listChartsArgsForCall)
+}
+
+func (fake *FakeHelmRepoManager) ListChartsCalls(stub func(context.Context, *v1beta1.HelmRepository, helm.ChartPredicate) ([]*profiles.Profile, error)) {
+	fake.listChartsMutex.Lock()
+	defer fake.listChartsMutex.Unlock()
+	fake.ListChartsStub = stub
+}
+
+func (fake *FakeHelmRepoManager) ListChartsArgsForCall(i int) (context.Context, *v1beta1.HelmRepository, helm.ChartPredicate) {
+	fake.listChartsMutex.RLock()
+	defer fake.listChartsMutex.RUnlock()
+	argsForCall := fake.listChartsArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeHelmRepoManager) ListChartsReturns(result1 []*profiles.Profile, result2 error) {
+	fake.listChartsMutex.Lock()
+	defer fake.listChartsMutex.Unlock()
+	fake.ListChartsStub = nil
+	fake.listChartsReturns = struct {
+		result1 []*profiles.Profile
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeHelmRepoManager) ListChartsReturnsOnCall(i int, result1 []*profiles.Profile, result2 error) {
+	fake.listChartsMutex.Lock()
+	defer fake.listChartsMutex.Unlock()
+	fake.ListChartsStub = nil
+	if fake.listChartsReturnsOnCall == nil {
+		fake.listChartsReturnsOnCall = make(map[int]struct {
+			result1 []*profiles.Profile
+			result2 error
+		})
+	}
+	fake.listChartsReturnsOnCall[i] = struct {
+		result1 []*profiles.Profile
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeHelmRepoManager) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.getChartsMutex.RLock()
-	defer fake.getChartsMutex.RUnlock()
 	fake.getValuesFileMutex.RLock()
 	defer fake.getValuesFileMutex.RUnlock()
+	fake.listChartsMutex.RLock()
+	defer fake.listChartsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

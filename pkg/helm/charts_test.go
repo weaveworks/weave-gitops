@@ -31,7 +31,7 @@ const (
 )
 
 var _ = Describe("RepoManager", func() {
-	Context("GetCharts", func() {
+	Context("ListCharts", func() {
 		var repoManager *helm.RepoManager
 
 		BeforeEach(func() {
@@ -40,7 +40,7 @@ var _ = Describe("RepoManager", func() {
 
 		It("returns all profiles in the repository", func() {
 			testServer := httptest.NewServer(http.FileServer(http.Dir("testdata/with_profiles")))
-			profiles, err := repoManager.GetCharts(context.TODO(), makeTestHelmRepository(testServer.URL), helm.Profiles)
+			profiles, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(testServer.URL), helm.Profiles)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(profiles).To(ConsistOf(&pb.Profile{
@@ -73,7 +73,7 @@ var _ = Describe("RepoManager", func() {
 		When("no charts exist with the profile version", func() {
 			It("returns an empty list", func() {
 				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata/no_profiles")))
-				profiles, err := repoManager.GetCharts(context.TODO(), makeTestHelmRepository(testServer.URL), helm.Profiles)
+				profiles, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(testServer.URL), helm.Profiles)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(profiles).To(BeEmpty())
 			})
@@ -82,7 +82,7 @@ var _ = Describe("RepoManager", func() {
 		When("server isn't a valid helm repository", func() {
 			It("errors", func() {
 				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata")))
-				_, err := repoManager.GetCharts(context.TODO(), makeTestHelmRepository(testServer.URL), helm.Profiles)
+				_, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(testServer.URL), helm.Profiles)
 				Expect(err).To(MatchError(ContainSubstring("fetching profiles from HelmRepository testing/test-ns: error fetching index file")))
 			})
 		})
@@ -90,14 +90,14 @@ var _ = Describe("RepoManager", func() {
 		When("the URL is invalid", func() {
 			It("errors", func() {
 				url := "http://[::1]:namedport"
-				_, err := repoManager.GetCharts(context.TODO(), makeTestHelmRepository(url), helm.Profiles)
+				_, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(url), helm.Profiles)
 				Expect(err).To(MatchError(ContainSubstring("fetching profiles from HelmRepository testing/test-ns: error parsing URL %q", url+"/index.yaml")))
 			})
 		})
 
 		When("the scheme is unsupported", func() {
 			It("errors", func() {
-				_, err := repoManager.GetCharts(context.TODO(), makeTestHelmRepository("sftp://localhost:4222/index.yaml"), helm.Profiles)
+				_, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository("sftp://localhost:4222/index.yaml"), helm.Profiles)
 				Expect(err).To(MatchError(ContainSubstring(`fetching profiles from HelmRepository testing/test-ns: no provider for scheme "sftp"`)))
 			})
 		})
@@ -105,7 +105,7 @@ var _ = Describe("RepoManager", func() {
 		When("the index file doesn't contain an API version", func() {
 			It("errors", func() {
 				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata")))
-				_, err := repoManager.GetCharts(context.TODO(), makeTestHelmRepository(testServer.URL+"/invalid"), helm.Profiles)
+				_, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(testServer.URL+"/invalid"), helm.Profiles)
 				Expect(err).To(MatchError(ContainSubstring("fetching profiles from HelmRepository testing/test-ns: no API version specified")))
 			})
 		})
@@ -113,7 +113,7 @@ var _ = Describe("RepoManager", func() {
 		When("the index file isn't valid yaml", func() {
 			It("errors", func() {
 				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata")))
-				_, err := repoManager.GetCharts(context.TODO(), makeTestHelmRepository(testServer.URL+"/brokenyaml"), helm.Profiles)
+				_, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(testServer.URL+"/brokenyaml"), helm.Profiles)
 				Expect(err).To(MatchError(ContainSubstring("fetching profiles from HelmRepository testing/test-ns: error unmarshaling chart response")))
 			})
 		})

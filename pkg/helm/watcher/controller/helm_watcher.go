@@ -6,7 +6,6 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/go-logr/logr"
 	"github.com/helm/helm/pkg/chartutil"
-	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -18,7 +17,6 @@ import (
 // HelmWatcherReconciler runs the `reconcile` loop for the watcher.
 type HelmWatcherReconciler struct {
 	client.Client
-	Scheme      *runtime.Scheme
 	Cache       cache.Cache
 	RepoManager helm.HelmRepoManager
 }
@@ -46,7 +44,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	// Reconcile is called for two reasons. One, the repository was just created, two there is a new revision.
 	// Because of that, we don't care what's in the cache. We will always fetch and set it.
 
-	charts, err := r.RepoManager.GetCharts(context.Background(), &repository, helm.Profiles)
+	charts, err := r.RepoManager.ListCharts(context.Background(), &repository, helm.Profiles)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -78,11 +76,11 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		Values:   values,
 	}
 
-	if err := r.Cache.Update(repository.Namespace, repository.Name, data); err != nil {
+	if err := r.Cache.Put(ctx, repository.Namespace, repository.Name, data); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	log.Info("cached data from repository", "url", repository.Status.URL, "name", repository.Name)
+	log.Info("cached data from repository", "url", repository.Status.URL, "name", repository.Name, "profiles", len(charts))
 
 	return ctrl.Result{}, nil
 }

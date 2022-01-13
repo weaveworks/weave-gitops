@@ -2,6 +2,7 @@
 package cachefakes
 
 import (
+	"context"
 	"sync"
 
 	"github.com/weaveworks/weave-gitops/pkg/api/profiles"
@@ -9,13 +10,14 @@ import (
 )
 
 type FakeCache struct {
-	GetProfileValuesStub        func(string, string, string, string) ([]byte, error)
+	GetProfileValuesStub        func(context.Context, string, string, string, string) ([]byte, error)
 	getProfileValuesMutex       sync.RWMutex
 	getProfileValuesArgsForCall []struct {
-		arg1 string
+		arg1 context.Context
 		arg2 string
 		arg3 string
 		arg4 string
+		arg5 string
 	}
 	getProfileValuesReturns struct {
 		result1 []byte
@@ -25,52 +27,55 @@ type FakeCache struct {
 		result1 []byte
 		result2 error
 	}
-	GetProfilesStub        func(string, string) ([]*profiles.Profile, error)
-	getProfilesMutex       sync.RWMutex
-	getProfilesArgsForCall []struct {
-		arg1 string
+	ListProfilesStub        func(context.Context, string, string) ([]*profiles.Profile, error)
+	listProfilesMutex       sync.RWMutex
+	listProfilesArgsForCall []struct {
+		arg1 context.Context
 		arg2 string
+		arg3 string
 	}
-	getProfilesReturns struct {
+	listProfilesReturns struct {
 		result1 []*profiles.Profile
 		result2 error
 	}
-	getProfilesReturnsOnCall map[int]struct {
+	listProfilesReturnsOnCall map[int]struct {
 		result1 []*profiles.Profile
 		result2 error
 	}
-	UpdateStub        func(string, string, cache.Data) error
-	updateMutex       sync.RWMutex
-	updateArgsForCall []struct {
-		arg1 string
+	PutStub        func(context.Context, string, string, cache.Data) error
+	putMutex       sync.RWMutex
+	putArgsForCall []struct {
+		arg1 context.Context
 		arg2 string
-		arg3 cache.Data
+		arg3 string
+		arg4 cache.Data
 	}
-	updateReturns struct {
+	putReturns struct {
 		result1 error
 	}
-	updateReturnsOnCall map[int]struct {
+	putReturnsOnCall map[int]struct {
 		result1 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeCache) GetProfileValues(arg1 string, arg2 string, arg3 string, arg4 string) ([]byte, error) {
+func (fake *FakeCache) GetProfileValues(arg1 context.Context, arg2 string, arg3 string, arg4 string, arg5 string) ([]byte, error) {
 	fake.getProfileValuesMutex.Lock()
 	ret, specificReturn := fake.getProfileValuesReturnsOnCall[len(fake.getProfileValuesArgsForCall)]
 	fake.getProfileValuesArgsForCall = append(fake.getProfileValuesArgsForCall, struct {
-		arg1 string
+		arg1 context.Context
 		arg2 string
 		arg3 string
 		arg4 string
-	}{arg1, arg2, arg3, arg4})
+		arg5 string
+	}{arg1, arg2, arg3, arg4, arg5})
 	stub := fake.GetProfileValuesStub
 	fakeReturns := fake.getProfileValuesReturns
-	fake.recordInvocation("GetProfileValues", []interface{}{arg1, arg2, arg3, arg4})
+	fake.recordInvocation("GetProfileValues", []interface{}{arg1, arg2, arg3, arg4, arg5})
 	fake.getProfileValuesMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4)
+		return stub(arg1, arg2, arg3, arg4, arg5)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -84,17 +89,17 @@ func (fake *FakeCache) GetProfileValuesCallCount() int {
 	return len(fake.getProfileValuesArgsForCall)
 }
 
-func (fake *FakeCache) GetProfileValuesCalls(stub func(string, string, string, string) ([]byte, error)) {
+func (fake *FakeCache) GetProfileValuesCalls(stub func(context.Context, string, string, string, string) ([]byte, error)) {
 	fake.getProfileValuesMutex.Lock()
 	defer fake.getProfileValuesMutex.Unlock()
 	fake.GetProfileValuesStub = stub
 }
 
-func (fake *FakeCache) GetProfileValuesArgsForCall(i int) (string, string, string, string) {
+func (fake *FakeCache) GetProfileValuesArgsForCall(i int) (context.Context, string, string, string, string) {
 	fake.getProfileValuesMutex.RLock()
 	defer fake.getProfileValuesMutex.RUnlock()
 	argsForCall := fake.getProfileValuesArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
 func (fake *FakeCache) GetProfileValuesReturns(result1 []byte, result2 error) {
@@ -123,19 +128,20 @@ func (fake *FakeCache) GetProfileValuesReturnsOnCall(i int, result1 []byte, resu
 	}{result1, result2}
 }
 
-func (fake *FakeCache) GetProfiles(arg1 string, arg2 string) ([]*profiles.Profile, error) {
-	fake.getProfilesMutex.Lock()
-	ret, specificReturn := fake.getProfilesReturnsOnCall[len(fake.getProfilesArgsForCall)]
-	fake.getProfilesArgsForCall = append(fake.getProfilesArgsForCall, struct {
-		arg1 string
+func (fake *FakeCache) ListProfiles(arg1 context.Context, arg2 string, arg3 string) ([]*profiles.Profile, error) {
+	fake.listProfilesMutex.Lock()
+	ret, specificReturn := fake.listProfilesReturnsOnCall[len(fake.listProfilesArgsForCall)]
+	fake.listProfilesArgsForCall = append(fake.listProfilesArgsForCall, struct {
+		arg1 context.Context
 		arg2 string
-	}{arg1, arg2})
-	stub := fake.GetProfilesStub
-	fakeReturns := fake.getProfilesReturns
-	fake.recordInvocation("GetProfiles", []interface{}{arg1, arg2})
-	fake.getProfilesMutex.Unlock()
+		arg3 string
+	}{arg1, arg2, arg3})
+	stub := fake.ListProfilesStub
+	fakeReturns := fake.listProfilesReturns
+	fake.recordInvocation("ListProfiles", []interface{}{arg1, arg2, arg3})
+	fake.listProfilesMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -143,65 +149,66 @@ func (fake *FakeCache) GetProfiles(arg1 string, arg2 string) ([]*profiles.Profil
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeCache) GetProfilesCallCount() int {
-	fake.getProfilesMutex.RLock()
-	defer fake.getProfilesMutex.RUnlock()
-	return len(fake.getProfilesArgsForCall)
+func (fake *FakeCache) ListProfilesCallCount() int {
+	fake.listProfilesMutex.RLock()
+	defer fake.listProfilesMutex.RUnlock()
+	return len(fake.listProfilesArgsForCall)
 }
 
-func (fake *FakeCache) GetProfilesCalls(stub func(string, string) ([]*profiles.Profile, error)) {
-	fake.getProfilesMutex.Lock()
-	defer fake.getProfilesMutex.Unlock()
-	fake.GetProfilesStub = stub
+func (fake *FakeCache) ListProfilesCalls(stub func(context.Context, string, string) ([]*profiles.Profile, error)) {
+	fake.listProfilesMutex.Lock()
+	defer fake.listProfilesMutex.Unlock()
+	fake.ListProfilesStub = stub
 }
 
-func (fake *FakeCache) GetProfilesArgsForCall(i int) (string, string) {
-	fake.getProfilesMutex.RLock()
-	defer fake.getProfilesMutex.RUnlock()
-	argsForCall := fake.getProfilesArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+func (fake *FakeCache) ListProfilesArgsForCall(i int) (context.Context, string, string) {
+	fake.listProfilesMutex.RLock()
+	defer fake.listProfilesMutex.RUnlock()
+	argsForCall := fake.listProfilesArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeCache) GetProfilesReturns(result1 []*profiles.Profile, result2 error) {
-	fake.getProfilesMutex.Lock()
-	defer fake.getProfilesMutex.Unlock()
-	fake.GetProfilesStub = nil
-	fake.getProfilesReturns = struct {
+func (fake *FakeCache) ListProfilesReturns(result1 []*profiles.Profile, result2 error) {
+	fake.listProfilesMutex.Lock()
+	defer fake.listProfilesMutex.Unlock()
+	fake.ListProfilesStub = nil
+	fake.listProfilesReturns = struct {
 		result1 []*profiles.Profile
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeCache) GetProfilesReturnsOnCall(i int, result1 []*profiles.Profile, result2 error) {
-	fake.getProfilesMutex.Lock()
-	defer fake.getProfilesMutex.Unlock()
-	fake.GetProfilesStub = nil
-	if fake.getProfilesReturnsOnCall == nil {
-		fake.getProfilesReturnsOnCall = make(map[int]struct {
+func (fake *FakeCache) ListProfilesReturnsOnCall(i int, result1 []*profiles.Profile, result2 error) {
+	fake.listProfilesMutex.Lock()
+	defer fake.listProfilesMutex.Unlock()
+	fake.ListProfilesStub = nil
+	if fake.listProfilesReturnsOnCall == nil {
+		fake.listProfilesReturnsOnCall = make(map[int]struct {
 			result1 []*profiles.Profile
 			result2 error
 		})
 	}
-	fake.getProfilesReturnsOnCall[i] = struct {
+	fake.listProfilesReturnsOnCall[i] = struct {
 		result1 []*profiles.Profile
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeCache) Update(arg1 string, arg2 string, arg3 cache.Data) error {
-	fake.updateMutex.Lock()
-	ret, specificReturn := fake.updateReturnsOnCall[len(fake.updateArgsForCall)]
-	fake.updateArgsForCall = append(fake.updateArgsForCall, struct {
-		arg1 string
+func (fake *FakeCache) Put(arg1 context.Context, arg2 string, arg3 string, arg4 cache.Data) error {
+	fake.putMutex.Lock()
+	ret, specificReturn := fake.putReturnsOnCall[len(fake.putArgsForCall)]
+	fake.putArgsForCall = append(fake.putArgsForCall, struct {
+		arg1 context.Context
 		arg2 string
-		arg3 cache.Data
-	}{arg1, arg2, arg3})
-	stub := fake.UpdateStub
-	fakeReturns := fake.updateReturns
-	fake.recordInvocation("Update", []interface{}{arg1, arg2, arg3})
-	fake.updateMutex.Unlock()
+		arg3 string
+		arg4 cache.Data
+	}{arg1, arg2, arg3, arg4})
+	stub := fake.PutStub
+	fakeReturns := fake.putReturns
+	fake.recordInvocation("Put", []interface{}{arg1, arg2, arg3, arg4})
+	fake.putMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1
@@ -209,44 +216,44 @@ func (fake *FakeCache) Update(arg1 string, arg2 string, arg3 cache.Data) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeCache) UpdateCallCount() int {
-	fake.updateMutex.RLock()
-	defer fake.updateMutex.RUnlock()
-	return len(fake.updateArgsForCall)
+func (fake *FakeCache) PutCallCount() int {
+	fake.putMutex.RLock()
+	defer fake.putMutex.RUnlock()
+	return len(fake.putArgsForCall)
 }
 
-func (fake *FakeCache) UpdateCalls(stub func(string, string, cache.Data) error) {
-	fake.updateMutex.Lock()
-	defer fake.updateMutex.Unlock()
-	fake.UpdateStub = stub
+func (fake *FakeCache) PutCalls(stub func(context.Context, string, string, cache.Data) error) {
+	fake.putMutex.Lock()
+	defer fake.putMutex.Unlock()
+	fake.PutStub = stub
 }
 
-func (fake *FakeCache) UpdateArgsForCall(i int) (string, string, cache.Data) {
-	fake.updateMutex.RLock()
-	defer fake.updateMutex.RUnlock()
-	argsForCall := fake.updateArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+func (fake *FakeCache) PutArgsForCall(i int) (context.Context, string, string, cache.Data) {
+	fake.putMutex.RLock()
+	defer fake.putMutex.RUnlock()
+	argsForCall := fake.putArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
-func (fake *FakeCache) UpdateReturns(result1 error) {
-	fake.updateMutex.Lock()
-	defer fake.updateMutex.Unlock()
-	fake.UpdateStub = nil
-	fake.updateReturns = struct {
+func (fake *FakeCache) PutReturns(result1 error) {
+	fake.putMutex.Lock()
+	defer fake.putMutex.Unlock()
+	fake.PutStub = nil
+	fake.putReturns = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakeCache) UpdateReturnsOnCall(i int, result1 error) {
-	fake.updateMutex.Lock()
-	defer fake.updateMutex.Unlock()
-	fake.UpdateStub = nil
-	if fake.updateReturnsOnCall == nil {
-		fake.updateReturnsOnCall = make(map[int]struct {
+func (fake *FakeCache) PutReturnsOnCall(i int, result1 error) {
+	fake.putMutex.Lock()
+	defer fake.putMutex.Unlock()
+	fake.PutStub = nil
+	if fake.putReturnsOnCall == nil {
+		fake.putReturnsOnCall = make(map[int]struct {
 			result1 error
 		})
 	}
-	fake.updateReturnsOnCall[i] = struct {
+	fake.putReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -256,10 +263,10 @@ func (fake *FakeCache) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.getProfileValuesMutex.RLock()
 	defer fake.getProfileValuesMutex.RUnlock()
-	fake.getProfilesMutex.RLock()
-	defer fake.getProfilesMutex.RUnlock()
-	fake.updateMutex.RLock()
-	defer fake.updateMutex.RUnlock()
+	fake.listProfilesMutex.RLock()
+	defer fake.listProfilesMutex.RUnlock()
+	fake.putMutex.RLock()
+	defer fake.putMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

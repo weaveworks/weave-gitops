@@ -83,21 +83,21 @@ var _ = Describe("ProfilesServer", func() {
 						Name: profileName,
 					},
 				}
-				fakeCache.GetProfilesReturns(profiles, nil)
+				fakeCache.ListProfilesReturns(profiles, nil)
 
 				profilesResp, err := s.GetProfiles(context.TODO(), &pb.GetProfilesRequest{})
 				Expect(err).NotTo(HaveOccurred())
 				Expect(profilesResp).NotTo(BeNil())
 				Expect(profilesResp.Profiles).To(Equal(profiles))
-				Expect(fakeCache.GetProfilesCallCount()).To(Equal(1))
-				namespace, name := fakeCache.GetProfilesArgsForCall(0)
+				Expect(fakeCache.ListProfilesCallCount()).To(Equal(1))
+				_, namespace, name := fakeCache.ListProfilesArgsForCall(0)
 				Expect(namespace).To(Equal(helmRepo.Namespace))
 				Expect(name).To(Equal(helmRepo.Name))
 			})
 
 			When("scanning for helmcharts errors", func() {
 				It("errors", func() {
-					fakeCache.GetProfilesReturns(nil, fmt.Errorf("foo"))
+					fakeCache.ListProfilesReturns(nil, fmt.Errorf("foo"))
 					_, err := s.GetProfiles(context.TODO(), &pb.GetProfilesRequest{})
 					Expect(err).To(MatchError("failed to scan HelmRepository \"default\"/\"helmrepo\" for charts: foo"))
 				})

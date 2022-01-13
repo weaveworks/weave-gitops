@@ -55,24 +55,24 @@ func NewAPIServerCommand() *cobra.Command {
 				return fmt.Errorf("could not create kube http client: %w", err)
 			}
 
-			tmpDir, err := os.MkdirTemp("", "helmCacheDir")
+			tmpDir, err := os.MkdirTemp("", "profile_cache_location")
 			if err != nil {
 				return fmt.Errorf("failed to create helm cache: %w", err)
 			}
 
-			helmCache, err := cache.NewCache(tmpDir)
+			profileCache, err := cache.NewCache(tmpDir)
 			if err != nil {
-				return fmt.Errorf("failed to create helm cache: %w", err)
+				return fmt.Errorf("failed to create profile cache: %w", err)
 			}
 
-			helmWatcher, err := watcher.NewWatcher(rawClient, helmCache)
+			profileWatcher, err := watcher.NewWatcher(rawClient, profileCache)
 			if err != nil {
 				return fmt.Errorf("failed to create watcher: %w", err)
 			}
 
 			go func() {
-				if err := helmWatcher.StartWatcher(); err != nil {
-					appConfig.Logger.Error(err, "failed to start the watcher")
+				if err := profileWatcher.StartWatcher(); err != nil {
+					appConfig.Logger.Error(err, "failed to start profile watcher")
 					os.Exit(1)
 				}
 			}()
@@ -82,7 +82,7 @@ func NewAPIServerCommand() *cobra.Command {
 			if runtimeNamespace == "" {
 				runtimeNamespace = "default"
 			}
-			profilesConfig := server.NewProfilesConfig(rawClient, helmCache, runtimeNamespace, "weaveworks-charts")
+			profilesConfig := server.NewProfilesConfig(rawClient, profileCache, runtimeNamespace, "weaveworks-charts")
 
 			s, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig})
 			if err != nil {

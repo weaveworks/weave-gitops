@@ -27,7 +27,7 @@ import (
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . HelmRepoManager
 type HelmRepoManager interface {
-	GetCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred ChartPredicate) ([]*pb.Profile, error)
+	ListCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred ChartPredicate) ([]*pb.Profile, error)
 	GetValuesFile(ctx context.Context, helmRepo *sourcev1beta1.HelmRepository, c *ChartReference, filename string) ([]byte, error)
 }
 
@@ -82,8 +82,8 @@ var Profiles = func(v *repo.ChartVersion) bool {
 	return hasAnnotation(v.Metadata, ProfileAnnotation)
 }
 
-// GetCharts filters charts using the provided predicate.
-func (h *RepoManager) GetCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred ChartPredicate) ([]*pb.Profile, error) {
+// ListCharts filters charts using the provided predicate.
+func (h *RepoManager) ListCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred ChartPredicate) ([]*pb.Profile, error) {
 	chartRepo, err := fetchIndexFile(hr.Status.URL)
 	if err != nil {
 		return nil, fmt.Errorf("fetching profiles from HelmRepository %s/%s: %w",

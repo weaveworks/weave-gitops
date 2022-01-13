@@ -21,6 +21,7 @@ const (
 	lockFilename    = "cache.lock"
 	profileFilename = "profiles.yaml"
 	valuesFilename  = "values.yaml"
+	lockTimeout     = 1 * time.Minute
 )
 
 // type alias for easier reading of the cache layout for values.
@@ -34,12 +35,12 @@ type ValueMap map[profileName]map[profileVersion][]byte
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . Cache
 type Cache interface {
-	Update(helmRepoNamespace, helmRepoName string, value Data) error
-	// GetProfiles specifically retrieve profiles data only to avoid traversing the values structure for no reason.
-	GetProfiles(helmRepoNamespace, helmRepoName string) ([]*pb.Profile, error)
+	Put(ctx context.Context, helmRepoNamespace, helmRepoName string, value Data) error
+	// ListProfiles specifically retrieve profiles data only to avoid traversing the values structure for no reason.
+	ListProfiles(ctx context.Context, helmRepoNamespace, helmRepoName string) ([]*pb.Profile, error)
 	// GetProfileValues will try and find a specific values file for the given profileName and profileVersion. Returns an
 	// error if said version is not found.
-	GetProfileValues(helmRepoNamespace, helmRepoName, profileName, profileVersion string) ([]byte, error)
+	GetProfileValues(ctx context.Context, helmRepoNamespace, helmRepoName, profileName, profileVersion string) ([]byte, error)
 }
 
 // Data is explicit data for a specific profile including values.
@@ -49,30 +50,28 @@ type Data struct {
 	Values   ValueMap
 }
 
-// HelmCache is used to cache profiles data from scanner helm repositories.
-type HelmCache struct {
-	cacheDir string
+// ProfileCache is used to cache profiles data from scanner helm repositories.
+type ProfileCache struct {
+	cacheLocation string
 }
 
-var _ Cache = &HelmCache{}
+var _ Cache = &ProfileCache{}
 
 // NewCache initialises the cache and returns it.
-func NewCache(cacheDir string) (*HelmCache, error) {
-	if _, err := os.Stat(cacheDir); os.IsNotExist(err) {
-		if err := os.MkdirAll(cacheDir, 0700); err != nil {
-			return nil, fmt.Errorf("failed to create helm cache dir: %w", err)
-		}
+func NewCache(cacheLocation string) (*ProfileCache, error) {
+	if err := os.MkdirAll(cacheLocation, 0700); err != nil {
+		return nil, fmt.Errorf("failed to create helm cache dir: %w", err)
 	}
 
-	return &HelmCache{
-		cacheDir: cacheDir,
+	return &ProfileCache{
+		cacheLocation: cacheLocation,
 	}, nil
 }
 
-// Update adds a new entry to the cache for the current helmRepository.
-func (c *HelmCache) Update(helmRepoNamespace, helmRepoName string, value Data) error {
+// Put adds a new entry or updates an existing entry in the cache for the helmRepository.
+func (c *ProfileCache) Put(ctx context.Context, helmRepoNamespace, helmRepoName string, value Data) error {
 	// acquire lock
-	lock := flock.New(filepath.Join(c.cacheDir, lockFilename))
+	lock := flock.New(filepath.Join(c.cacheLocation, lockFilename))
 	defer func() {
 		if err := lock.Unlock(); err != nil {
 			log.Printf("Unable to unlock file %s: %v\n", lockFilename, err)
@@ -80,7 +79,7 @@ func (c *HelmCache) Update(helmRepoNamespace, helmRepoName string, value Data) e
 	}()
 
 	// release on timeout
-	ctx, cancel := context.WithTimeout(context.TODO(), time.Second)
+	ctx, cancel := context.WithTimeout(ctx, lockTimeout)
 	defer cancel()
 
 	ok, err := lock.TryRLockContext(ctx, 250*time.Millisecond) // try to lock every 1/4 second
@@ -90,9 +89,9 @@ func (c *HelmCache) Update(helmRepoNamespace, helmRepoName string, value Data) e
 
 	// namespace and name are already sanitized and should not be able to pass in
 	// things like `../` and `../usr/`, etc.
-	cacheFolder := filepath.Join(c.cacheDir, helmRepoNamespace, helmRepoName)
-	if err := os.MkdirAll(cacheFolder, 0700); err != nil {
-		return fmt.Errorf("failed to create cache folder: %w", err)
+	cacheLocation := filepath.Join(c.cacheLocation, helmRepoNamespace, helmRepoName)
+	if err := os.MkdirAll(cacheLocation, 0700); err != nil {
+		return fmt.Errorf("failed to create cache location: %w", err)
 	}
 
 	// write out the `profiles` data as yaml
@@ -101,14 +100,14 @@ func (c *HelmCache) Update(helmRepoNamespace, helmRepoName string, value Data) e
 		return fmt.Errorf("failed to marshal profile data: %w", err)
 	}
 
-	if err := os.WriteFile(filepath.Join(cacheFolder, profileFilename), profileData, 0700); err != nil {
+	if err := os.WriteFile(filepath.Join(cacheLocation, profileFilename), profileData, 0700); err != nil {
 		return fmt.Errorf("failed to write profile data: %w", err)
 	}
 
 	// create the `values` folder structure and write out the `values` data
 	for profName, versions := range value.Values {
 		for version, values := range versions {
-			versionFolder := filepath.Join(cacheFolder, profName, version)
+			versionFolder := filepath.Join(cacheLocation, profName, version)
 
 			if err := os.MkdirAll(versionFolder, 0700); err != nil {
 				return fmt.Errorf("failed to create version folder %s for profile %s: %w", version, profName, err)
@@ -123,9 +122,9 @@ func (c *HelmCache) Update(helmRepoNamespace, helmRepoName string, value Data) e
 	return nil
 }
 
-// GetProfiles gathers all profiles for a helmRepo if found. Returns an error otherwise.
-func (c *HelmCache) GetProfiles(helmRepoNamespace, helmRepoName string) ([]*pb.Profile, error) {
-	lock := flock.New(filepath.Join(c.cacheDir, lockFilename))
+// ListProfiles gathers all profiles for a helmRepo if found. Returns an error otherwise.
+func (c *ProfileCache) ListProfiles(ctx context.Context, helmRepoNamespace, helmRepoName string) ([]*pb.Profile, error) {
+	lock := flock.New(filepath.Join(c.cacheLocation, lockFilename))
 
 	defer func() {
 		if err := lock.Unlock(); err != nil {
@@ -133,7 +132,7 @@ func (c *HelmCache) GetProfiles(helmRepoNamespace, helmRepoName string) ([]*pb.P
 		}
 	}()
 
-	ctx, cancel := context.WithTimeout(context.TODO(), time.Second)
+	ctx, cancel := context.WithTimeout(ctx, lockTimeout)
 	defer cancel()
 
 	ok, err := lock.TryRLockContext(ctx, 250*time.Millisecond)
@@ -141,13 +140,12 @@ func (c *HelmCache) GetProfiles(helmRepoNamespace, helmRepoName string) ([]*pb.P
 		return nil, fmt.Errorf("unable to read lock file %s: %w", lockFilename, err)
 	}
 
-	var result []*pb.Profile
-
-	content, err := os.ReadFile(filepath.Join(c.cacheDir, helmRepoNamespace, helmRepoName, profileFilename))
+	content, err := os.ReadFile(filepath.Join(c.cacheLocation, helmRepoNamespace, helmRepoName, profileFilename))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read profiles data for helm repo: %w", err)
 	}
 
+	var result []*pb.Profile
 	if err := yaml.Unmarshal(content, &result); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal profiles data: %w", err)
 	}
@@ -156,8 +154,8 @@ func (c *HelmCache) GetProfiles(helmRepoNamespace, helmRepoName string) ([]*pb.P
 }
 
 // GetProfileValues returns the content of the cached values file if it exists. Errors otherwise.
-func (c *HelmCache) GetProfileValues(helmRepoNamespace, helmRepoName, profileName, profileVersion string) ([]byte, error) {
-	lock := flock.New(filepath.Join(c.cacheDir, lockFilename))
+func (c *ProfileCache) GetProfileValues(ctx context.Context, helmRepoNamespace, helmRepoName, profileName, profileVersion string) ([]byte, error) {
+	lock := flock.New(filepath.Join(c.cacheLocation, lockFilename))
 
 	defer func() {
 		if err := lock.Unlock(); err != nil {
@@ -165,7 +163,7 @@ func (c *HelmCache) GetProfileValues(helmRepoNamespace, helmRepoName, profileNam
 		}
 	}()
 
-	ctx, cancel := context.WithTimeout(context.TODO(), time.Second)
+	ctx, cancel := context.WithTimeout(ctx, lockTimeout)
 	defer cancel()
 
 	ok, err := lock.TryRLockContext(ctx, 250*time.Millisecond)
@@ -173,7 +171,7 @@ func (c *HelmCache) GetProfileValues(helmRepoNamespace, helmRepoName, profileNam
 		return nil, fmt.Errorf("unable to read lock file %s: %w", lockFilename, err)
 	}
 
-	values, err := os.ReadFile(filepath.Join(c.cacheDir, helmRepoNamespace, helmRepoName, profileName, profileVersion, valuesFilename))
+	values, err := os.ReadFile(filepath.Join(c.cacheLocation, helmRepoNamespace, helmRepoName, profileName, profileVersion, valuesFilename))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read values file: %w", err)
 	}

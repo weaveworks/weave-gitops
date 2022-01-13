@@ -6,7 +6,6 @@ import (
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -27,12 +26,20 @@ var (
 
 type Watcher struct {
 	cache       cache.Cache
-	repoManager *helm.RepoManager
+	repoManager helm.HelmRepoManager
 }
 
 func NewWatcher(kubeClient client.Client, cache cache.Cache) (*Watcher, error) {
-	tempDir, err := ioutil.TempDir("", "helmrepocache")
+	tempDir, err := ioutil.TempDir("", "profile_cache")
 	if err != nil {
+		return nil, err
+	}
+
+	if err := clientgoscheme.AddToScheme(scheme); err != nil {
+		return nil, err
+	}
+
+	if err := sourcev1.AddToScheme(scheme); err != nil {
 		return nil, err
 	}
 
@@ -43,8 +50,6 @@ func NewWatcher(kubeClient client.Client, cache cache.Cache) (*Watcher, error) {
 }
 
 func (w *Watcher) StartWatcher() error {
-	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-	utilruntime.Must(sourcev1.AddToScheme(scheme))
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&zap.Options{
 		Development: true,
 	})))
@@ -59,7 +64,7 @@ func (w *Watcher) StartWatcher() error {
 		Logger:                 ctrl.Log,
 	})
 	if err != nil {
-		setupLog.Error(err, "unable to start manager")
+		setupLog.Error(err, "unable to create manager")
 		return err
 	}
 
@@ -75,7 +80,6 @@ func (w *Watcher) StartWatcher() error {
 
 	if err = (&controller.HelmWatcherReconciler{
 		Client:      mgr.GetClient(),
-		Scheme:      mgr.GetScheme(),
 		Cache:       w.cache,
 		RepoManager: w.repoManager,
 	}).SetupWithManager(mgr); err != nil {

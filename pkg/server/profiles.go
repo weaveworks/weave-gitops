@@ -99,7 +99,7 @@ func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesReq
 		return nil, fmt.Errorf("failed to get HelmRepository %q/%q", s.HelmRepoNamespace, s.HelmRepoName)
 	}
 
-	ps, err := s.HelmCache.GetProfiles(helmRepo.Namespace, helmRepo.Name)
+	ps, err := s.HelmCache.ListProfiles(ctx, helmRepo.Namespace, helmRepo.Name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan HelmRepository %q/%q for charts: %w", s.HelmRepoNamespace, s.HelmRepoName, err)
 	}
@@ -133,7 +133,7 @@ func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfil
 		return nil, fmt.Errorf("failed to get HelmRepository %q/%q", s.HelmRepoNamespace, s.HelmRepoName)
 	}
 
-	data, err := s.HelmCache.GetProfileValues(helmRepo.Namespace, helmRepo.Name, msg.ProfileName, msg.ProfileVersion)
+	data, err := s.HelmCache.GetProfileValues(ctx, helmRepo.Namespace, helmRepo.Name, msg.ProfileName, msg.ProfileVersion)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve values file from Helm chart '%s' (%s): %w", msg.ProfileName, msg.ProfileVersion, err)
 	}

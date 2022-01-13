@@ -30,13 +30,13 @@ import (
 
 // Options contains all the options for the `ui run` command.
 type Options struct {
-	Port              string
-	HelmRepoNamespace string
-	HelmRepoName      string
-	HelmCacheDir      string
-	Path              string
-	LoggingEnabled    bool
-	OIDC              OIDCAuthenticationOptions
+	Port                 string
+	HelmRepoNamespace    string
+	HelmRepoName         string
+	ProfileCacheLocation string
+	Path                 string
+	LoggingEnabled       bool
+	OIDC                 OIDCAuthenticationOptions
 }
 
 // OIDCAuthenticationOptions contains the OIDC authentication options for the
@@ -66,7 +66,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
 	cmd.Flags().StringVar(&options.HelmRepoNamespace, "helm-repo-namespace", "default", "the namespace of the Helm Repository resource to scan for profiles")
 	cmd.Flags().StringVar(&options.HelmRepoName, "helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
-	cmd.Flags().StringVar(&options.HelmCacheDir, "helm-cache-dir", "/tmp/helm-cache", "the folder where to cache Profile data")
+	cmd.Flags().StringVar(&options.ProfileCacheLocation, "profile-cache-location", "/tmp/helm-cache", "the location where the cache Profile data lives")
 
 	if server.AuthEnabled() {
 		cmd.Flags().StringVar(&options.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
@@ -115,24 +115,24 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not create kube http client: %w", err)
 	}
 
-	helmCache, err := cache.NewCache(options.HelmCacheDir)
+	profileCache, err := cache.NewCache(options.ProfileCacheLocation)
 	if err != nil {
 		return fmt.Errorf("failed to create cacher: %w", err)
 	}
 
-	helmWatcher, err := watcher.NewWatcher(rawClient, helmCache)
+	profileWatcher, err := watcher.NewWatcher(rawClient, profileCache)
 	if err != nil {
 		return fmt.Errorf("failed to start the watcher: %w", err)
 	}
 
 	go func() {
-		if err := helmWatcher.StartWatcher(); err != nil {
-			log.Error(err, "failed to start watcher")
+		if err := profileWatcher.StartWatcher(); err != nil {
+			log.Error(err, "failed to start profile watcher")
 			os.Exit(1)
 		}
 	}()
 
-	profilesConfig := server.NewProfilesConfig(rawClient, helmCache, options.HelmRepoNamespace, options.HelmRepoName)
+	profilesConfig := server.NewProfilesConfig(rawClient, profileCache, options.HelmRepoNamespace, options.HelmRepoName)
 
 	var authServer *auth.AuthServer
 
