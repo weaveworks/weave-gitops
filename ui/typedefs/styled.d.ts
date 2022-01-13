@@ -42,7 +42,6 @@ export namespace borderRadius {
 }
 
 export namespace boxShadow {
-  const heavy: string;
   const light: string;
   const none: string;
 }
