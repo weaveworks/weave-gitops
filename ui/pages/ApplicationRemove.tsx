@@ -125,7 +125,6 @@ const Prompt = ({
 
 function ApplicationRemove({ className, name }: Props) {
   const { applicationsClient } = React.useContext(AppContext);
-  const [application, setApplication] = React.useState(null);
   const [autoMerge, setAutoMerge] = React.useState(false);
   const [repoRemoveRes, repoRemoving, error, remove] = useAppRemove();
   const [repoInfo, setRepoInfo] = React.useState({
@@ -152,12 +151,8 @@ function ApplicationRemove({ className, name }: Props) {
           name,
           namespace: "wego-system",
         });
-
-        setApplication(application);
-
         const { provider, name: repoName } =
           await applicationsClient.ParseRepoURL({ url: application.url });
-
         setRepoInfo({ provider, repoName });
       } catch (e) {
         setAppError(e.message);
@@ -166,7 +161,7 @@ function ApplicationRemove({ className, name }: Props) {
   }, [name]);
 
   React.useEffect(() => {
-    if (!repoRemoveRes) return;
+    if (!repoRemoveRes || !autoMerge) return;
     const poll = poller(() => {
       applicationsClient
         .GetApplication({ name, namespace: "wego-system" })
@@ -250,7 +245,9 @@ function ApplicationRemove({ className, name }: Props) {
           />
         )}
         <Spacer margin="small" />
-        {repoRemoveRes && <ClusterRemoveStatus done={removedFromCluster} />}
+        {repoRemoveRes && autoMerge && (
+          <ClusterRemoveStatus done={removedFromCluster} />
+        )}
         <GithubDeviceAuthModal
           onSuccess={handleAuthSuccess}
           onClose={() => setAuthOpen(false)}
