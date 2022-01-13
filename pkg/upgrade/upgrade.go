@@ -116,18 +116,18 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 		return fmt.Errorf("failed to create new branch %s: %w", uv.HeadBranch, err)
 	}
 
-	err = upgradeGitManfiests(gitClient, cname, stringOut, w)
+	err = upgradeGitManfiests(gitClient, cname, stringOut, logger)
 	if err != nil {
 		return fmt.Errorf("failed to write update manifest in clone repo: %w", err)
 	}
 
-	err = gitrepo.CommitAndPush(ctx, gitClient, "Upgrade to Weave Gitops Enterprise", logger)
+	err = gitrepo.CommitAndPush(ctx, gitClient, uv.CommitMessage, logger)
 	if err != nil {
 		return fmt.Errorf("failed to commit and push: %w", err)
 	}
 
 	pri := gitproviders.PullRequestInfo{
-		Title:                     "Gitops upgrade",
+		Title:                     uv.CommitMessage,
 		Description:               "Pull request to upgrade to Weave GitOps Enterprise",
 		SkipAddingFilesOnCreation: true,
 		TargetBranch:              configBranch,
@@ -139,9 +139,9 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 		return err
 	}
 
-	_, err = w.Write([]byte(fmt.Sprintf("Pull Request created: %s\n", pr.Get().WebURL)))
+	logger.Successf("Pull Request created: %s", pr.Get().WebURL)
 
-	return err
+	return nil
 }
 
 func marshalToYamlStream(objects []runtime.Object) ([]byte, error) {
@@ -165,7 +165,7 @@ func makeAppsCapiKustomization(namespace, repoURL string) ([]runtime.Object, err
 		return nil, fmt.Errorf("failed to normalize URL %q: %w", repoURL, err)
 	}
 
-	gitRepositoryName := automation.CreateRepoSecretName(normalizedURL).String()
+	gitRepositoryName := automation.CreateClusterSourceName(normalizedURL)
 
 	appsCapiKustomization := &kustomizev2.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
@@ -262,14 +262,22 @@ func makeHelmResources(namespace, version, clusterName, repoURL string, values [
 	return []runtime.Object{helmRepository, helmRelease}, nil
 }
 
-func upgradeGitManfiests(gitClient git.Git, cname, wegoEnterpriseManifests string, w io.Writer) error {
-	wegoEnterprisePath := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, WegoEnterpriseName)
-	wegoAppPath := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, "wego-app.yaml")
+func upgradeGitManfiests(gitClient git.Git, cname, wegoEnterpriseManifests string, logger logger.Logger) error {
 	capiKeepPath := filepath.Join(git.WegoRoot, git.WegoAppDir, "capi", "templates", ".keep")
 	capiKeepContents := string(strconv.AppendQuote(nil, "# keep"))
+	kustomizationPath := git.GetSystemQualifiedPath(cname, automation.SystemKustomizationPath)
+	wegoAppPath := git.GetSystemQualifiedPath(cname, automation.WegoAppPath)
+	wegoEnterprisePath := git.GetSystemQualifiedPath(cname, WegoEnterpriseName)
+
+	newKustomizationBytes, err := updateKustomization(gitClient, kustomizationPath, wegoAppPath, wegoEnterprisePath)
+	if err != nil {
+		return fmt.Errorf("Failed to update kustomization: %s", err)
+	}
+
 	manifests := map[string]string{
 		wegoEnterprisePath: wegoEnterpriseManifests,
 		capiKeepPath:       capiKeepContents,
+		kustomizationPath:  string(newKustomizationBytes),
 	}
 
 	for path, content := range manifests {
@@ -278,35 +286,36 @@ func upgradeGitManfiests(gitClient git.Git, cname, wegoEnterpriseManifests strin
 		}
 	}
 
-	// FIXME: replace w/ constant
-	kustomizationPath := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, "kustomization.yaml")
-
-	var k types.Kustomization
-
-	kustomizationBytes, err := gitClient.Read(kustomizationPath)
-	if err != nil {
-		w.Write([]byte(fmt.Sprintf("Failed to remote existing %s deployment, skipping.\n", wegoAppPath)))
-	}
-
-	if err := yaml.Unmarshal(kustomizationBytes, &k); err != nil {
-		return fmt.Errorf("failed to read existing kustomize file %s: %w", kustomizationPath, err)
-	}
-
-	k.Resources = append(k.Resources, filepath.Join(".", WegoEnterpriseName))
-
-	newKustomizationBytes, err := yaml.Marshal(&k)
-	if err != nil {
-		return fmt.Errorf("failed to marshal kustomize %v : %w", k, err)
-	}
-
-	w.Write(newKustomizationBytes)
-
 	err = gitClient.Remove(wegoAppPath)
 	if err != nil {
-		w.Write([]byte(fmt.Sprintf("Failed to remote existing %s deployment, skipping.\n", wegoAppPath)))
+		logger.Warningf("Failed to remove existing %s deployment, skipping.\n", wegoAppPath)
 	}
 
 	return nil
+}
+
+func updateKustomization(gitClient git.Git, kustomizationPath, wegoAppPath, wegoEnterprisePath string) ([]byte, error) {
+	kustomizationBytes, err := gitClient.Read(kustomizationPath)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to read existing kustomization %s: %w", kustomizationPath, err)
+	}
+
+	var k types.Kustomization
+	if err := yaml.Unmarshal(kustomizationBytes, &k); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal kustomization file %s: %w", kustomizationPath, err)
+	}
+
+	newResources := []string{WegoEnterpriseName}
+
+	for _, resource := range k.Resources {
+		if resource != automation.WegoAppPath {
+			newResources = append(newResources, resource)
+		}
+	}
+
+	k.Resources = newResources
+
+	return yaml.Marshal(&k)
 }
 
 func getBasicAuth(ctx context.Context, kubeClient client.Client, ns string) error {
