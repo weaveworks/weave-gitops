@@ -171,7 +171,11 @@ func (g *GoGit) Read(path string) ([]byte, error) {
 	defer f.Close()
 
 	buf := bytes.NewBuffer(nil)
-	buf.ReadFrom(f)
+
+	_, err = buf.ReadFrom(f)
+	if err != nil {
+		return nil, fmt.Errorf("error reading bytes from buffer %s: %w", path, err)
+	}
 
 	return buf.Bytes(), nil
 }
