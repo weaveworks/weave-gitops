@@ -77,7 +77,7 @@ func BootstrapManifests(fluxClient flux.Flux, clusterName string, namespace stri
 		return nil, err
 	}
 
-	gitopsConfigMap, err := gitopsConfigMap(namespace, namespace)
+	gitopsConfigMap, err := GitopsConfigMap(namespace, namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -233,7 +233,7 @@ func workAroundFluxDroppingDot(str string) string {
 	return "." + str
 }
 
-func gitopsConfigMap(fluxNamespace string, wegoNamespace string) (corev1.ConfigMap, error) {
+func GitopsConfigMap(fluxNamespace string, wegoNamespace string) (corev1.ConfigMap, error) {
 	config := kube.WegoConfig{
 		FluxNamespace: fluxNamespace,
 	}

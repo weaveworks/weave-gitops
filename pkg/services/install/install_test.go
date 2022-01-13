@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/weaveworks/weave-gitops/pkg/git"
+	"gopkg.in/yaml.v2"
 
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 
@@ -170,7 +171,7 @@ var _ = Describe("Installer", func() {
 		})
 	})
 	Context("success path", func() {
-		FIt("should succeed with auto-merge=true", func() {
+		It("should succeed with auto-merge=true", func() {
 			fakeKubeClient.GetClusterNameReturns(clusterName, nil)
 
 			fakeFluxClient.InstallReturns(nil, nil)
@@ -187,10 +188,10 @@ var _ = Describe("Installer", func() {
 			runtimeManifests := []byte("runtime-manifests")
 			fakeFluxClient.InstallReturns(runtimeManifests, nil)
 
-			//wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppVersion: "v0.0.0", Namespace: testNamespace})
-			//Expect(err).ShouldNot(HaveOccurred())
-			//
-			//wegoAppManifest := bytes.Join(wegoAppManifests, []byte("---\n"))
+			wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppVersion: "v0.0.0", Namespace: testNamespace})
+			Expect(err).ShouldNot(HaveOccurred())
+
+			wegoAppManifest := bytes.Join(wegoAppManifests, []byte("---\n"))
 
 			systemKustomizationResource := []byte("system kustomization resource")
 			fakeFluxClient.CreateKustomizationReturnsOnCall(0, systemKustomizationResource, nil)
@@ -199,6 +200,20 @@ var _ = Describe("Installer", func() {
 
 			fakeFluxClient.CreateKustomizationReturnsOnCall(2, systemKustomizationResource, nil)
 			fakeFluxClient.CreateKustomizationReturnsOnCall(3, userKustomizationResource, nil)
+
+			gitopsConfigMap, err := models.GitopsConfigMap(testNamespace, testNamespace)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			wegoConfigManifest, err := yaml.Marshal(gitopsConfigMap)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			systemKustomization := models.CreateKustomize(clusterName, testNamespace, models.RuntimePath, models.SourcePath, models.SystemKustResourcePath, models.UserKustResourcePath)
+
+			systemKustomizationManifest, err := yaml.Marshal(systemKustomization)
+			Expect(err).ShouldNot(HaveOccurred())
+
+			gitSource := []byte("git source")
+			fakeFluxClient.CreateSourceGitReturns(gitSource, nil)
 
 			expectedManifests := []models.Manifest{
 				{
@@ -217,25 +232,50 @@ var _ = Describe("Installer", func() {
 					Path:    git.GetSystemQualifiedPath(clusterName, models.UserKustResourcePath),
 					Content: userKustomizationResource,
 				},
+				{
+					Path:    git.GetSystemQualifiedPath(clusterName, models.WegoAppPath),
+					Content: wegoAppManifest,
+				},
+				{
+					Path:    git.GetSystemQualifiedPath(clusterName, models.WegoConfigPath),
+					Content: wegoConfigManifest,
+				},
+				{
+					Path:    git.GetSystemQualifiedPath(clusterName, models.SystemKustomizationPath),
+					Content: systemKustomizationManifest,
+				},
+				{
+					Path:    git.GetSystemQualifiedPath(clusterName, models.SourcePath),
+					Content: gitSource,
+				},
 			}
 
 			applyIndex := 0
 			fakeKubeClient.ApplyCalls(func(ctx context.Context, manifest []byte, namespace string) error {
-				Expect(namespace).Should(Equal(namespace))
 
-				if applyIndex < 4 {
-					expectedManifest := bytes.Replace(expectedManifests[applyIndex].Content, []byte("\n---\n"), []byte(""), -1)
-					Expect(string(manifest)).Should(Equal(string(expectedManifest)))
+				if applyIndex <= 6 {
+
+					Expect(namespace).Should(Equal(namespace))
+
+					if applyIndex != 0 {
+						partOfPreviousManifest := bytes.Contains(expectedManifests[applyIndex-1].Content, manifest)
+						if partOfPreviousManifest {
+							Expect(string(expectedManifests[applyIndex-1].Content)).Should(ContainSubstring(string(manifest)))
+							return nil
+						}
+					}
+
+					Expect(string(expectedManifests[applyIndex].Content)).Should(ContainSubstring(string(manifest)))
+
+					applyIndex++
 				}
-
-				applyIndex++
 				return nil
 			})
 
 			writeIndex := 0
 			fakeGitClient.CloneReturns(true, nil)
 			fakeGitClient.WriteCalls(func(path string, content []byte) error {
-				if writeIndex < 4 {
+				if writeIndex < 7 {
 					Expect(path).Should(Equal(expectedManifests[writeIndex].Path))
 					Expect(string(content)).Should(Equal(string(expectedManifests[writeIndex].Content)))
 				}
@@ -243,7 +283,7 @@ var _ = Describe("Installer", func() {
 				return nil
 			})
 
-			err := installer.Install(testNamespace, configRepo, true)
+			err = installer.Install(testNamespace, configRepo, true)
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 		It("should succeed with auto-merge=false", func() {
