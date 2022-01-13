@@ -1,5 +1,5 @@
 // eslint-disable-next-line
-import { CircularProgress } from "@material-ui/core";
+import { CircularProgress, PropTypes } from "@material-ui/core";
 import MaterialButton, { ButtonProps } from "@material-ui/core/Button/Button";
 import * as React from "react";
 import styled from "styled-components";
@@ -14,15 +14,19 @@ export interface Props extends ButtonProps {
   className?: string;
 }
 
+const defaultProps = {
+  variant: "outlined" as "text" | "outlined" | "contained",
+  color: "primary" as PropTypes.Color,
+};
+
 /** Form Button */
 function UnstyledButton({ loading, ...props }: Props) {
   return (
     <MaterialButton
-      variant={props.variant || "outlined"}
-      color={props.color || "primary"}
       disabled={loading}
       startIcon={loading ? <CircularProgress size={16} /> : props.startIcon}
       disableElevation={true}
+      {...defaultProps}
       {...props}
     />
   );
