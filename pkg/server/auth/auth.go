@@ -33,6 +33,16 @@ func RegisterAuthServer(mux *http.ServeMux, prefix string, srv *AuthServer) {
 
 type principalCtxKey struct{}
 
+// Principal gets the principal from the context.
+func Principal(ctx context.Context) *UserPrincipal {
+	principal, ok := ctx.Value(principalCtxKey{}).(*UserPrincipal)
+	if ok {
+		return principal
+	}
+
+	return nil
+}
+
 // UserPrincipal is a simple model for the user, including their ID and Groups.
 type UserPrincipal struct {
 	ID     string   `json:"id"`
