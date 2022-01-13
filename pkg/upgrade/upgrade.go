@@ -116,7 +116,7 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 		return fmt.Errorf("failed to create new branch %s: %w", uv.HeadBranch, err)
 	}
 
-	err = upgradeGitManfiests(gitClient, cname, stringOut, logger)
+	err = upgradeGitManifests(gitClient, cname, stringOut, logger)
 	if err != nil {
 		return fmt.Errorf("failed to write update manifest in clone repo: %w", err)
 	}
@@ -262,7 +262,7 @@ func makeHelmResources(namespace, version, clusterName, repoURL string, values [
 	return []runtime.Object{helmRepository, helmRelease}, nil
 }
 
-func upgradeGitManfiests(gitClient git.Git, cname, wegoEnterpriseManifests string, logger logger.Logger) error {
+func upgradeGitManifests(gitClient git.Git, cname, wegoEnterpriseManifests string, logger logger.Logger) error {
 	capiKeepPath := filepath.Join(git.WegoRoot, git.WegoAppDir, "capi", "templates", ".keep")
 	capiKeepContents := string(strconv.AppendQuote(nil, "# keep"))
 	kustomizationPath := git.GetSystemQualifiedPath(cname, automation.SystemKustomizationPath)
@@ -271,7 +271,7 @@ func upgradeGitManfiests(gitClient git.Git, cname, wegoEnterpriseManifests strin
 
 	newKustomizationBytes, err := updateKustomization(gitClient, kustomizationPath, wegoAppPath, wegoEnterprisePath)
 	if err != nil {
-		return fmt.Errorf("Failed to update kustomization: %s", err)
+		return fmt.Errorf("Failed to update kustomization: %w", err)
 	}
 
 	manifests := map[string]string{
@@ -282,7 +282,7 @@ func upgradeGitManfiests(gitClient git.Git, cname, wegoEnterpriseManifests strin
 
 	for path, content := range manifests {
 		if err := gitClient.Write(path, []byte(content)); err != nil {
-			return fmt.Errorf("failed to write out manifest to %s: %s", path, err)
+			return fmt.Errorf("failed to write out manifest to %s: %w", path, err)
 		}
 	}
 

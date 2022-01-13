@@ -109,7 +109,7 @@ func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesReq
 				}
 		}
 
-		return nil, fmt.Errorf("failed to get HelmRepository %q/%q: %s", s.HelmRepoNamespace, s.HelmRepoName, err)
+		return nil, fmt.Errorf("failed to get HelmRepository %q/%q: %w", s.HelmRepoNamespace, s.HelmRepoName, err)
 	}
 
 	ps, err := s.HelmChartManager.GetCharts(ctx, helmRepo, helm.Profiles)
