@@ -1103,7 +1103,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 	It("Verify that gitops can deploy a helm app from a git repo with config-repo set to default", func() {
 		var repoAbsolutePath string
-		privateRepo := true
+		private := true
 		appName := "my-helm-app"
 		appManifestFilePath := "./data/helm-repo/hello-world"
 		appRepoName := "test-app-" + RandString(8)
@@ -1118,7 +1118,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitproviders.GitProviderGitHub, privateRepo, githubOrg)
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 
@@ -1138,7 +1138,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("And repo created has public visibility", func() {
 			if os.Getenv("GIT_PROVIDER") == "github" {
-				Eventually(getGitRepoVisibility(gitOrg, appRepoName, gitProvider)).Should(ContainSubstring("public"))
+				Eventually(getGitRepoVisibility(gitOrg, appRepoName, gitProvider)).Should(ContainSubstring("private"))
 			}
 		})
 	})
