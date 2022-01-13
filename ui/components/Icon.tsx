@@ -31,7 +31,7 @@ function getIcon(type: string) {
     case "Account":
       return AccountCircleIcon;
 
-    case "ExternaTtab":
+    case "ExternalTab":
       return LaunchIcon;
 
     case "Add":
