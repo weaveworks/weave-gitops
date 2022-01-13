@@ -74,7 +74,7 @@ function RepoInputWithAuth({
       <div className="auth-message">
         {isAuthenticated && (
           <Flex align>
-            <Icon size="medium" color="success" type="CheckMark" />{" "}
+            <Icon size="medium" color="success" type="Checkmark" />{" "}
             {res?.provider} credentials detected
           </Flex>
         )}
