@@ -11,7 +11,7 @@ import Button from "./Button";
 import Flex from "./Flex";
 import GithubAuthButton from "./GithubAuthButton";
 import GitlabAuthButton from "./GitlabAuthButton";
-import Icon, { IconType } from "./Icon";
+import Icon from "./Icon";
 import Input, { InputProps } from "./Input";
 
 type Props = InputProps & {
@@ -74,7 +74,7 @@ function RepoInputWithAuth({
       <div className="auth-message">
         {isAuthenticated && (
           <Flex align>
-            <Icon size="medium" color="success" type={IconType.CheckMark} />{" "}
+            <Icon size="medium" color="success" type="CheckMark" />{" "}
             {res?.provider} credentials detected
           </Flex>
         )}

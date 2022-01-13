@@ -3,7 +3,7 @@ import Footer from "./components/Footer";
 import GithubDeviceAuthModal from "./components/GithubDeviceAuthModal";
 import LoadingPage from "./components/LoadingPage";
 import RepoInputWithAuth from "./components/RepoInputWithAuth";
-import Icon, { IconType } from "./components/Icon";
+import Icon from "./components/Icon";
 import AppContextProvider from "./contexts/AppContext";
 import CallbackStateContextProvider from "./contexts/CallbackStateContext";
 import useApplications from "./hooks/applications";
@@ -39,5 +39,4 @@ export {
   OAuthCallback,
   Button,
   Icon,
-  IconType,
 };

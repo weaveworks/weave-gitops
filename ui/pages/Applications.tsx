@@ -4,7 +4,7 @@ import ActionBar from "../components/ActionBar";
 import Button from "../components/Button";
 import DataTable from "../components/DataTable";
 import Flex from "../components/Flex";
-import Icon, { IconType } from "../components/Icon";
+import Icon from "../components/Icon";
 import Link from "../components/Link";
 import Page from "../components/Page";
 import PollingIndicator from "../components/PollingIndicator";
@@ -49,10 +49,7 @@ function Applications({ className }: Props) {
       </Flex>
       <ActionBar>
         <Link to={PageRoute.ApplicationAdd} className="title-bar-button">
-          <Button
-            startIcon={<Icon type={IconType.AddIcon} size="base" />}
-            type="button"
-          >
+          <Button startIcon={<Icon type="Add" size="base" />} type="button">
             Add Application
           </Button>
         </Link>
@@ -77,7 +74,7 @@ function Applications({ className }: Props) {
           //     <Icon
           //       size="medium"
           //       color="success"
-          //       type={IconType.CheckMark}
+          //       type="CheckMark"
           //       text="Ready"
           //     />
           //   ),

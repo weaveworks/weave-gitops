@@ -1,10 +1,8 @@
-import CheckCircleIcon from "@material-ui/icons/CheckCircle";
-import ErrorIcon from "@material-ui/icons/Error";
-import HourglassFullIcon from "@material-ui/icons/HourglassFull";
 import _ from "lodash";
 import * as React from "react";
 import { renderToString } from "react-dom/server";
 import styled from "styled-components";
+import Icon from "./Icon";
 import {
   Application,
   UnstructuredObject,
@@ -18,22 +16,6 @@ export interface Props {
   parentObject: Application;
   parentObjectKind: string;
   className?: string;
-}
-
-function getStatusIcon(status: string) {
-  switch (status) {
-    case "Current":
-      return <CheckCircleIcon />;
-
-    case "InProgress":
-      return <HourglassFullIcon />;
-
-    case "Failed":
-      return <ErrorIcon color="error" />;
-
-    default:
-      return "";
-  }
 }
 
 type NodeHtmlProps = {
@@ -51,7 +33,11 @@ const NodeHtml = ({ object }: NodeHtmlProps) => {
       </Flex>
       <Flex center wide align>
         <div className={`status ${object.status}`}>
-          {getStatusIcon(object.status)}
+          <Icon
+            type={object.status}
+            color={object.status === "Failed" ? "alert" : "primary"}
+            size="base"
+          />
         </div>
       </Flex>
     </div>
