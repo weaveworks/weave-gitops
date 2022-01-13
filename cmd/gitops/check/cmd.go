@@ -58,7 +58,7 @@ func runCmd(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	fmt.Print(output)
+	fmt.Println(output)
 
 	return nil
 }
