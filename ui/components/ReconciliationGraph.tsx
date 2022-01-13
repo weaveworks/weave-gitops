@@ -1,3 +1,6 @@
+import CheckCircleIcon from "@material-ui/icons/CheckCircle";
+import ErrorIcon from "@material-ui/icons/Error";
+import HourglassFullIcon from "@material-ui/icons/HourglassFull";
 import _ from "lodash";
 import * as React from "react";
 import { renderToString } from "react-dom/server";
@@ -7,7 +10,6 @@ import {
   UnstructuredObject,
 } from "../lib/api/applications/applications.pb";
 import { UnstructuredObjectWithParent } from "../lib/graph";
-import Icon from "./Icon";
 import DirectedGraph from "./DirectedGraph";
 import Flex from "./Flex";
 
@@ -16,6 +18,22 @@ export interface Props {
   parentObject: Application;
   parentObjectKind: string;
   className?: string;
+}
+
+function getStatusIcon(status: string) {
+  switch (status) {
+    case "Current":
+      return <CheckCircleIcon />;
+
+    case "InProgress":
+      return <HourglassFullIcon />;
+
+    case "Failed":
+      return <ErrorIcon color="error" />;
+
+    default:
+      return "";
+  }
 }
 
 type NodeHtmlProps = {
@@ -33,11 +51,7 @@ const NodeHtml = ({ object }: NodeHtmlProps) => {
       </Flex>
       <Flex center wide align>
         <div className={`status ${object.status}`}>
-          <Icon
-            type={object.status}
-            color={object.status === "Failed" ? "alert" : "primary"}
-            size="base"
-          />
+          {getStatusIcon(object.status)}
         </div>
       </Flex>
     </div>
@@ -100,7 +114,6 @@ export default styled(ReconciliationGraph)`
   ${DirectedGraph} {
     background-color: white;
   }
-
   .node {
     font-size: 16px;
     /* background-color: white; */
@@ -110,7 +123,6 @@ export default styled(ReconciliationGraph)`
     flex-direction: column;
     justify-content: space-evenly;
   }
-
   ellipse {
     fill: white;
     stroke: #13a000;
@@ -118,43 +130,35 @@ export default styled(ReconciliationGraph)`
     stroke-dasharray: 266px;
     filter: drop-shadow(rgb(189, 189, 189) 0px 0px 1px);
   }
-
   .success ellipse {
     stroke: ${(props) => props.theme.colors.success};
   }
-
   @keyframes rotate {
     to {
       stroke-dashoffset: 0;
     }
   }
-
   .status .kind {
     color: ${(props) => props.theme.colors.black};
   }
-
   .kind-text {
     overflow: hidden;
     text-overflow: ellipsis;
     font-size: 14px;
   }
-
   .Current {
     color: ${(props) => props.theme.colors.success};
   }
-
   .name {
     color: ${(props) => props.theme.colors.black};
     font-weight: 800;
     text-align: center;
     white-space: pre-wrap;
   }
-
   .edgePath path {
     stroke: #bdbdbd;
     stroke-width: 1px;
   }
-
   .MuiSvgIcon-root {
     height: 24px;
     width: 24px;
