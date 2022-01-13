@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -44,7 +46,7 @@ var _ = Describe("Check", func() {
 
 		fakeFluxClient.PreCheckReturns(successfulFluxPreCheckOutput, nil)
 
-		fakeKubeClient.FetchNamespaceWithLabelReturns(&corev1.Namespace{}, nil)
+		fakeKubeClient.FetchNamespaceWithLabelReturns(&corev1.Namespace{}, kube.ErrNamespaceNotFound)
 
 		actualOutput, err := Pre(context, fakeKubeClient, fakeFluxClient, expectedFluxVersion)
 		Expect(err).ShouldNot(HaveOccurred())
