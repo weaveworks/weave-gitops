@@ -7,11 +7,16 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/helm/helm/pkg/chartutil"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	"github.com/weaveworks/weave-gitops/pkg/helm"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
+)
+
+const (
+	watcherFinalizer = "finalizers.helm.watcher"
 )
 
 // HelmWatcherReconciler runs the `reconcile` loop for the watcher.
@@ -21,8 +26,9 @@ type HelmWatcherReconciler struct {
 	RepoManager helm.HelmRepoManager
 }
 
-// +kubebuilder:rbac:groups=helm.watcher,resources=helmrepositories,verbs=get;list;watch
-// +kubebuilder:rbac:groups=helm.watcher,resources=helmrepositories/status,verbs=get
+// +kubebuilder:rbac:groups=helm.watcher,resources=helmrepositories,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=helm.watcher,resources=helmrepositories/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=helm.watcher,resources=helmrepositories/finalizers,verbs=get;create;update;patch;delete
 
 // Reconcile is either called when there is a new HelmRepository or, when there is an update to a HelmRepository.
 // Because the watcher watches all helmrepositories, it will update data for all of them.
@@ -35,14 +41,20 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// handle deleted event
-	if repository.DeletionTimestamp != nil {
-		if err := r.Cache.Delete(ctx, repository.Namespace, repository.Name); err != nil {
-			log.Error(err, "failed to remove cache for repository", "namespace", repository.Namespace, "name", repository.Name)
+	// Add our finalizer if it does not exist
+	if !controllerutil.ContainsFinalizer(&repository, watcherFinalizer) {
+		patch := client.MergeFrom(repository.DeepCopy())
+		controllerutil.AddFinalizer(&repository, watcherFinalizer)
+
+		if err := r.Patch(ctx, &repository, patch); err != nil {
+			log.Error(err, "unable to register finalizer")
 			return ctrl.Result{}, err
 		}
+	}
 
-		return ctrl.Result{}, nil
+	// Examine if the object is under deletion
+	if !repository.ObjectMeta.GetDeletionTimestamp().IsZero() {
+		return r.reconcileDelete(ctx, repository)
 	}
 
 	if repository.Status.Artifact == nil {
@@ -98,6 +110,28 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 func (r *HelmWatcherReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&sourcev1.HelmRepository{}, builder.WithPredicates(HelmWatcherReconcilerPredicate{})).
+		For(&sourcev1.HelmRepository{}).
+		WithEventFilter(predicate.Or(ArtifactUpdatePredicate{}, GenerationUpdatePredicate{})).
 		Complete(r)
+}
+
+func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, repository sourcev1.HelmRepository) (ctrl.Result, error) {
+	log := logr.FromContextOrDiscard(ctx)
+
+	log.Info("deleting repository cache", "namespace", repository.Namespace, "name", repository.Name)
+
+	if err := r.Cache.Delete(ctx, repository.Namespace, repository.Name); err != nil {
+		log.Error(err, "failed to remove cache for repository", "namespace", repository.Namespace, "name", repository.Name)
+		return ctrl.Result{}, err
+	}
+
+	// Remove our finalizer from the list and update it
+	controllerutil.RemoveFinalizer(&repository, watcherFinalizer)
+
+	if err := r.Update(ctx, &repository); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// Stop reconciliation as the object is being deleted
+	return ctrl.Result{}, nil
 }

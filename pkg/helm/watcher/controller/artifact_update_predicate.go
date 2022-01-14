@@ -7,33 +7,13 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 )
 
-// HelmWatcherReconcilerPredicate triggers an update event
-// when a HelmRepository revision changes.
-type HelmWatcherReconcilerPredicate struct {
+// ArtifactUpdatePredicate triggers an update event when a HelmRepository artifact revision changes.
+// i.e.: Repo information was updated.
+type ArtifactUpdatePredicate struct {
 	predicate.Funcs
 }
 
-func (HelmWatcherReconcilerPredicate) Delete(e event.DeleteEvent) bool {
-	src, ok := e.Object.(sourcev1.Source)
-	// If it doesn't have an artifact it didn't have a cache to begin with.
-	if !ok || src.GetArtifact() == nil {
-		return false
-	}
-
-	return true
-}
-
-func (HelmWatcherReconcilerPredicate) Create(e event.CreateEvent) bool {
-	src, ok := e.Object.(sourcev1.Source)
-	// GetArtifact here will only be populated once the HelmRepository has been updated with a status.
-	if !ok || src.GetArtifact() == nil {
-		return false
-	}
-
-	return true
-}
-
-func (HelmWatcherReconcilerPredicate) Update(e event.UpdateEvent) bool {
+func (ArtifactUpdatePredicate) Update(e event.UpdateEvent) bool {
 	if e.ObjectOld == nil || e.ObjectNew == nil {
 		return false
 	}
