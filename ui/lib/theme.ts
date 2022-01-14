@@ -30,6 +30,7 @@ export const theme: DefaultTheme = {
     neutral20: "#d8d8d8",
     neutral30: "#737373",
     neutral40: "#1a1a1a",
+    feedbackLight: "#FCE6D2",
   },
   spacing: {
     // 16px
