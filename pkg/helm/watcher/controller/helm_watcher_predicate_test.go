@@ -142,3 +142,47 @@ func TestHelmWatcherReconcilerPredicate_Update(t *testing.T) {
 		})
 	}
 }
+
+func TestHelmWatcherReconcilerPredicate_Delete(t *testing.T) {
+	tests := []struct {
+		name  string
+		event event.DeleteEvent
+		want  bool
+	}{
+		{
+			name: "returns true if artifact is provided",
+			event: event.DeleteEvent{
+				Object: &sourcev1.HelmRepository{
+					Status: sourcev1.HelmRepositoryStatus{
+						Artifact: &sourcev1.Artifact{
+							Revision: "revision",
+						},
+					},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "returns false if sourcev1.Source object is provided without Artifact",
+			event: event.DeleteEvent{
+				Object: &sourcev1.HelmRepository{
+					Status: sourcev1.HelmRepositoryStatus{},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "returns false for none sourcev1.Source objects",
+			event: event.DeleteEvent{
+				Object: &corev1.Pod{},
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			he := HelmWatcherReconcilerPredicate{}
+			assert.Equalf(t, tt.want, he.Delete(tt.event), "Delete(%+v)", tt.event.Object)
+		})
+	}
+}

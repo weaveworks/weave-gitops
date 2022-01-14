@@ -35,8 +35,19 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	// handle deleted event
+	if repository.DeletionTimestamp != nil {
+		if err := r.Cache.Delete(ctx, repository.Namespace, repository.Name); err != nil {
+			log.Error(err, "failed to remove cache for repository", "namespace", repository.Namespace, "name", repository.Name)
+			return ctrl.Result{}, err
+		}
+
+		return ctrl.Result{}, nil
+	}
+
 	if repository.Status.Artifact == nil {
-		// this should not even occur, because create already checks this, but we do this nevertheless.
+		// This should not occur because the predicate already checks for artifact's existence, but we do this as a
+		// precaution in case that was circumvented.
 		return ctrl.Result{}, nil
 	}
 
@@ -80,7 +91,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, err
 	}
 
-	log.Info("cached data from repository", "url", repository.Status.URL, "name", repository.Name, "profiles", len(charts))
+	log.Info("cached data from repository", "url", repository.Status.URL, "name", repository.Name, "number of profiles", len(charts))
 
 	return ctrl.Result{}, nil
 }

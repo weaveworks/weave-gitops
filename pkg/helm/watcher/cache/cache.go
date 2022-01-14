@@ -36,6 +36,7 @@ type ValueMap map[profileName]map[profileVersion][]byte
 //counterfeiter:generate . Cache
 type Cache interface {
 	Put(ctx context.Context, helmRepoNamespace, helmRepoName string, value Data) error
+	Delete(ctx context.Context, helmRepoNamespace, helmRepoName string) error
 	// ListProfiles specifically retrieve profiles data only to avoid traversing the values structure for no reason.
 	ListProfiles(ctx context.Context, helmRepoNamespace, helmRepoName string) ([]*pb.Profile, error)
 	// GetProfileValues will try and find a specific values file for the given profileName and profileVersion. Returns an
@@ -70,84 +71,79 @@ func NewCache(cacheLocation string) (*ProfileCache, error) {
 
 // Put adds a new entry or updates an existing entry in the cache for the helmRepository.
 func (c *ProfileCache) Put(ctx context.Context, helmRepoNamespace, helmRepoName string, value Data) error {
-	// acquire lock
-	lock := flock.New(filepath.Join(c.cacheLocation, lockFilename))
-	defer func() {
-		if err := lock.Unlock(); err != nil {
-			log.Printf("Unable to unlock file %s: %v\n", lockFilename, err)
+	putOperation := func() error {
+		// namespace and name are already sanitized and should not be able to pass in
+		// things like `../` and `../usr/`, etc.
+		cacheLocation := filepath.Join(c.cacheLocation, helmRepoNamespace, helmRepoName)
+		if err := os.MkdirAll(cacheLocation, 0700); err != nil {
+			return fmt.Errorf("failed to create cache location: %w", err)
 		}
-	}()
 
-	// release on timeout
-	ctx, cancel := context.WithTimeout(ctx, lockTimeout)
-	defer cancel()
+		// write out the `profiles` data as yaml
+		profileData, err := yaml.Marshal(value.Profiles)
+		if err != nil {
+			return fmt.Errorf("failed to marshal profile data: %w", err)
+		}
 
-	ok, err := lock.TryRLockContext(ctx, 250*time.Millisecond) // try to lock every 1/4 second
-	if !ok {
-		return fmt.Errorf("unable to read lock file %s: %w", lockFilename, err)
-	}
+		if err := os.WriteFile(filepath.Join(cacheLocation, profileFilename), profileData, 0700); err != nil {
+			return fmt.Errorf("failed to write profile data: %w", err)
+		}
 
-	// namespace and name are already sanitized and should not be able to pass in
-	// things like `../` and `../usr/`, etc.
-	cacheLocation := filepath.Join(c.cacheLocation, helmRepoNamespace, helmRepoName)
-	if err := os.MkdirAll(cacheLocation, 0700); err != nil {
-		return fmt.Errorf("failed to create cache location: %w", err)
-	}
+		// create the `values` folder structure and write out the `values` data
+		for profName, versions := range value.Values {
+			for version, values := range versions {
+				versionFolder := filepath.Join(cacheLocation, profName, version)
 
-	// write out the `profiles` data as yaml
-	profileData, err := yaml.Marshal(value.Profiles)
-	if err != nil {
-		return fmt.Errorf("failed to marshal profile data: %w", err)
-	}
+				if err := os.MkdirAll(versionFolder, 0700); err != nil {
+					return fmt.Errorf("failed to create version folder %s for profile %s: %w", version, profName, err)
+				}
 
-	if err := os.WriteFile(filepath.Join(cacheLocation, profileFilename), profileData, 0700); err != nil {
-		return fmt.Errorf("failed to write profile data: %w", err)
-	}
-
-	// create the `values` folder structure and write out the `values` data
-	for profName, versions := range value.Values {
-		for version, values := range versions {
-			versionFolder := filepath.Join(cacheLocation, profName, version)
-
-			if err := os.MkdirAll(versionFolder, 0700); err != nil {
-				return fmt.Errorf("failed to create version folder %s for profile %s: %w", version, profName, err)
-			}
-
-			if err := os.WriteFile(filepath.Join(versionFolder, valuesFilename), values, 0700); err != nil {
-				return fmt.Errorf("failed to write out values for version %s: %w", version, err)
+				if err := os.WriteFile(filepath.Join(versionFolder, valuesFilename), values, 0700); err != nil {
+					return fmt.Errorf("failed to write out values for version %s: %w", version, err)
+				}
 			}
 		}
+
+		return nil
 	}
 
-	return nil
+	return c.tryWithLock(ctx, putOperation)
+}
+
+// Delete clears the cache folder for a specific HelmRepository. It will only clear the innermost
+// folder so others in the same namespace may retain their values.
+func (c *ProfileCache) Delete(ctx context.Context, helmRepoNamespace, helmRepoName string) error {
+	deleteOperation := func() error {
+		location := filepath.Join(c.cacheLocation, helmRepoNamespace, helmRepoName)
+		if err := os.RemoveAll(location); err != nil {
+			return fmt.Errorf("failed to clean up cache for location %s with error: %w", location, err)
+		}
+
+		return nil
+	}
+
+	return c.tryWithLock(ctx, deleteOperation)
 }
 
 // ListProfiles gathers all profiles for a helmRepo if found. Returns an error otherwise.
 func (c *ProfileCache) ListProfiles(ctx context.Context, helmRepoNamespace, helmRepoName string) ([]*pb.Profile, error) {
-	lock := flock.New(filepath.Join(c.cacheLocation, lockFilename))
-
-	defer func() {
-		if err := lock.Unlock(); err != nil {
-			log.Printf("Unable to unlock file %s: %v\n", lockFilename, err)
-		}
-	}()
-
-	ctx, cancel := context.WithTimeout(ctx, lockTimeout)
-	defer cancel()
-
-	ok, err := lock.TryRLockContext(ctx, 250*time.Millisecond)
-	if !ok {
-		return nil, fmt.Errorf("unable to read lock file %s: %w", lockFilename, err)
-	}
-
-	content, err := os.ReadFile(filepath.Join(c.cacheLocation, helmRepoNamespace, helmRepoName, profileFilename))
-	if err != nil {
-		return nil, fmt.Errorf("failed to read profiles data for helm repo: %w", err)
-	}
-
 	var result []*pb.Profile
-	if err := yaml.Unmarshal(content, &result); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal profiles data: %w", err)
+
+	listOperation := func() error {
+		content, err := os.ReadFile(filepath.Join(c.cacheLocation, helmRepoNamespace, helmRepoName, profileFilename))
+		if err != nil {
+			return fmt.Errorf("failed to read profiles data for helm repo: %w", err)
+		}
+
+		if err := yaml.Unmarshal(content, &result); err != nil {
+			return fmt.Errorf("failed to unmarshal profiles data: %w", err)
+		}
+
+		return nil
+	}
+
+	if err := c.tryWithLock(ctx, listOperation); err != nil {
+		return nil, err
 	}
 
 	return result, nil
@@ -155,6 +151,28 @@ func (c *ProfileCache) ListProfiles(ctx context.Context, helmRepoNamespace, helm
 
 // GetProfileValues returns the content of the cached values file if it exists. Errors otherwise.
 func (c *ProfileCache) GetProfileValues(ctx context.Context, helmRepoNamespace, helmRepoName, profileName, profileVersion string) ([]byte, error) {
+	var result []byte
+
+	getValuesOperation := func() error {
+		values, err := os.ReadFile(filepath.Join(c.cacheLocation, helmRepoNamespace, helmRepoName, profileName, profileVersion, valuesFilename))
+		if err != nil {
+			return fmt.Errorf("failed to read values file: %w", err)
+		}
+
+		result = values
+
+		return nil
+	}
+
+	if err := c.tryWithLock(ctx, getValuesOperation); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// tryWithLock tries to run the given operation by acquiring a lock first.
+func (c *ProfileCache) tryWithLock(ctx context.Context, operationFunc func() error) error {
 	lock := flock.New(filepath.Join(c.cacheLocation, lockFilename))
 
 	defer func() {
@@ -168,13 +186,8 @@ func (c *ProfileCache) GetProfileValues(ctx context.Context, helmRepoNamespace, 
 
 	ok, err := lock.TryRLockContext(ctx, 250*time.Millisecond)
 	if !ok {
-		return nil, fmt.Errorf("unable to read lock file %s: %w", lockFilename, err)
+		return fmt.Errorf("unable to read lock file %s: %w", lockFilename, err)
 	}
 
-	values, err := os.ReadFile(filepath.Join(c.cacheLocation, helmRepoNamespace, helmRepoName, profileName, profileVersion, valuesFilename))
-	if err != nil {
-		return nil, fmt.Errorf("failed to read values file: %w", err)
-	}
-
-	return values, nil
+	return operationFunc()
 }

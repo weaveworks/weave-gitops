@@ -13,6 +13,16 @@ type HelmWatcherReconcilerPredicate struct {
 	predicate.Funcs
 }
 
+func (HelmWatcherReconcilerPredicate) Delete(e event.DeleteEvent) bool {
+	src, ok := e.Object.(sourcev1.Source)
+	// If it doesn't have an artifact it didn't have a cache to begin with.
+	if !ok || src.GetArtifact() == nil {
+		return false
+	}
+
+	return true
+}
+
 func (HelmWatcherReconcilerPredicate) Create(e event.CreateEvent) bool {
 	src, ok := e.Object.(sourcev1.Source)
 	// GetArtifact here will only be populated once the HelmRepository has been updated with a status.

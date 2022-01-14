@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/stretchr/testify/assert"
@@ -253,6 +254,50 @@ func TestReconcileUpdateReturnsError(t *testing.T) {
 		},
 	})
 	assert.EqualError(t, err, "nope")
+}
+
+func TestReconcileDeleteOperationWithDeletionTimestamp(t *testing.T) {
+	scheme := runtime.NewScheme()
+	utilruntime.Must(sourcev1.AddToScheme(scheme))
+
+	deletionTS := metav1.NewTime(time.Now())
+	fakeCache := &cachefakes.FakeCache{}
+	fakeRepoManager := &helmfakes.FakeHelmRepoManager{}
+	repo := &sourcev1.HelmRepository{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:              "test-name",
+			Namespace:         "test-namespace",
+			DeletionTimestamp: &deletionTS,
+		},
+		Status: sourcev1.HelmRepositoryStatus{
+			Artifact: &sourcev1.Artifact{
+				Path:     "relative/path",
+				URL:      "https://github.com",
+				Revision: "revision",
+				Checksum: "checksum",
+			},
+		},
+	}
+	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(repo)
+	reconciler := &HelmWatcherReconciler{
+		Client:      fakeClient.Build(),
+		Cache:       fakeCache,
+		RepoManager: fakeRepoManager,
+	}
+	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{
+		NamespacedName: types.NamespacedName{
+			Namespace: "test-namespace",
+			Name:      "test-name",
+		},
+	})
+	assert.NoError(t, err)
+	assert.Zero(t, fakeRepoManager.ListChartsCallCount())
+	assert.Zero(t, fakeRepoManager.GetValuesFileCallCount())
+	assert.Zero(t, fakeCache.PutCallCount())
+
+	_, namespace, name := fakeCache.DeleteArgsForCall(0)
+	assert.Equal(t, "test-namespace", namespace)
+	assert.Equal(t, "test-name", name)
 }
 
 type mockClient struct {

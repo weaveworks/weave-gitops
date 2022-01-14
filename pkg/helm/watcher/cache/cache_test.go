@@ -49,7 +49,7 @@ func TestCacheListProfiles(t *testing.T) {
 			profile2.Name: values2,
 		},
 	}
-	assert.NoError(t, profileCache.Put(context.Background(), helmNamespace, helmName, data), "update call from cache should have worked")
+	assert.NoError(t, profileCache.Put(context.Background(), helmNamespace, helmName, data), "put call from cache should have worked")
 	profiles, err := profileCache.ListProfiles(context.Background(), helmNamespace, helmName)
 	assert.NoError(t, err, "ListProfiles should not have run on an error")
 	assert.Contains(t, profiles, profile1)
@@ -61,7 +61,7 @@ func TestCacheListProfilesNotFound(t *testing.T) {
 	data := Data{
 		Profiles: []*pb.Profile{profile1},
 	}
-	assert.NoError(t, profileCache.Put(context.Background(), helmNamespace, helmName, data), "update call from cache should have worked")
+	assert.NoError(t, profileCache.Put(context.Background(), helmNamespace, helmName, data), "put call from cache should have worked")
 	_, err := profileCache.ListProfiles(context.Background(), "not-found", "none")
 	assert.EqualError(t, err, fmt.Sprintf("failed to read profiles data for helm repo: open %s: no such file or directory", filepath.Join(dir, "not-found", "none", profileFilename)))
 }
@@ -71,7 +71,7 @@ func TestCacheListProfilesInvalidDataInFile(t *testing.T) {
 	data := Data{
 		Profiles: []*pb.Profile{profile1},
 	}
-	assert.NoError(t, profileCache.Put(context.Background(), helmNamespace, helmName, data), "update call from cache should have worked")
+	assert.NoError(t, profileCache.Put(context.Background(), helmNamespace, helmName, data), "put call from cache should have worked")
 	assert.NoError(t, os.WriteFile(filepath.Join(dir, helmNamespace, helmName, profileFilename), []byte("empty"), 0700))
 	_, err := profileCache.ListProfiles(context.Background(), helmNamespace, helmName)
 	assert.EqualError(t, err, "failed to unmarshal profiles data: error unmarshaling JSON: json: cannot unmarshal string into Go value of type []*profiles.Profile")
@@ -86,7 +86,7 @@ func TestCacheGetProfileValues(t *testing.T) {
 			profile2.Name: values2,
 		},
 	}
-	assert.NoError(t, profileCache.Put(context.Background(), helmNamespace, helmName, data), "update call from cache should have worked")
+	assert.NoError(t, profileCache.Put(context.Background(), helmNamespace, helmName, data), "put call from cache should have worked")
 	value, err := profileCache.GetProfileValues(context.Background(), helmNamespace, helmName, profile1.Name, "0.0.2")
 	assert.NoError(t, err)
 	assert.Equal(t, []byte("values-2"), value)
@@ -103,9 +103,26 @@ func TestGetProfileValuesNonexistent(t *testing.T) {
 			profile1.Name: values1,
 		},
 	}
-	assert.NoError(t, profileCache.Put(context.Background(), helmNamespace, helmName, data), "update call from cache should have worked")
+	assert.NoError(t, profileCache.Put(context.Background(), helmNamespace, helmName, data), "put call from cache should have worked")
 	_, err := profileCache.GetProfileValues(context.Background(), helmNamespace, helmName, profile1.Name, "999")
 	assert.EqualError(t, err, fmt.Sprintf("failed to read values file: open %s/test-namespace/test-name/test-profiles-1/999/values.yaml: no such file or directory", dir))
+}
+
+// Note that error case is missing. It's actually difficult to make RemoveAll fail. It
+// could fail if we mess up the permission on a file, but that would leave us with a file we can't
+// clear up and neither modify.
+func TestDeleteExistingData(t *testing.T) {
+	profileCache, dir := setupCache(t)
+	data := Data{
+		Profiles: []*pb.Profile{profile1},
+		Values: ValueMap{
+			profile1.Name: values1,
+		},
+	}
+	assert.NoError(t, profileCache.Put(context.Background(), helmNamespace, helmName, data), "put call from cache should have worked")
+	assert.NoError(t, profileCache.Delete(context.Background(), helmNamespace, helmName), "delete operation should have worked")
+	_, err := os.Stat(filepath.Join(dir, helmNamespace, helmName))
+	assert.ErrorIs(t, err, os.ErrNotExist)
 }
 
 func TestListProfilesFailedLock(t *testing.T) {
@@ -123,6 +140,12 @@ func TestGetProfileValuesFailedLock(t *testing.T) {
 func TestUpdateFailedLock(t *testing.T) {
 	profileCache := &ProfileCache{cacheLocation: "nope"}
 	err := profileCache.Put(context.Background(), "", "", Data{})
+	assert.EqualError(t, err, "unable to read lock file cache.lock: open nope/cache.lock: no such file or directory")
+}
+
+func TestDeleteFailedLock(t *testing.T) {
+	profileCache := &ProfileCache{cacheLocation: "nope"}
+	err := profileCache.Delete(context.Background(), "", "")
 	assert.EqualError(t, err, "unable to read lock file cache.lock: open nope/cache.lock: no such file or directory")
 }
 
