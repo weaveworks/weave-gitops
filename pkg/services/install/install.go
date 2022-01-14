@@ -3,6 +3,7 @@ package install
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/weaveworks/weave-gitops/pkg/models"
@@ -43,6 +44,10 @@ func NewInstaller(fluxClient flux.Flux, kubeClient kube.Kube, gitClient git.Git,
 
 func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, autoMerge bool) error {
 	ctx := context.Background()
+
+	if err := validateWegoInstall(ctx, i.kubeClient, namespace); err != nil {
+		return fmt.Errorf("failed validating wego installation: %w", err)
+	}
 
 	clusterName, err := i.kubeClient.GetClusterName(ctx)
 	if err != nil {
@@ -108,6 +113,30 @@ func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, auto
 	}
 
 	i.log.Println("Pull Request created: %s\n", pr.Get().WebURL)
+
+	return nil
+}
+
+func validateWegoInstall(ctx context.Context, kubeClient kube.Kube, namespace string) error {
+	status := kubeClient.GetClusterStatus(ctx)
+
+	switch status {
+	case kube.FluxInstalled:
+		return errors.New("Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n  $ flux uninstall")
+	case kube.Unknown:
+		return errors.New("Weave GitOps cannot talk to the cluster")
+	}
+
+	wegoConfig, err := kubeClient.GetWegoConfig(ctx, "")
+	if err != nil {
+		if !errors.Is(err, kube.ErrWegoConfigNotFound) {
+			return fmt.Errorf("failed getting wego config: %w", err)
+		}
+	}
+
+	if wegoConfig.WegoNamespace != "" && wegoConfig.WegoNamespace != namespace {
+		return errors.New("You cannot install Weave GitOps into a different namespace")
+	}
 
 	return nil
 }

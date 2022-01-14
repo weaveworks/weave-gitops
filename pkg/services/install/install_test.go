@@ -6,15 +6,16 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/weaveworks/weave-gitops/manifests"
 	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/models"
 	"gopkg.in/yaml.v2"
+
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
-
-	"github.com/weaveworks/weave-gitops/manifests"
-	"github.com/weaveworks/weave-gitops/pkg/models"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 
@@ -54,8 +55,6 @@ var _ = Describe("Installer", func() {
 		fakeKubeClient = &kubefakes.FakeKube{}
 		fakeGitClient = &gitfakes.FakeGit{}
 		fakeGitProvider = &gitprovidersfakes.FakeGitProvider{}
-		//output := &bytes.Buffer{}
-		//log = internal.NewCLILogger(output)
 		log = &loggerfakes.FakeLogger{}
 		repoWriter = gitopswriter.NewRepoWriter(log, fakeGitClient, fakeGitProvider)
 		installer = NewInstaller(fakeFluxClient, fakeKubeClient, fakeGitClient, fakeGitProvider, log, repoWriter)
@@ -66,7 +65,19 @@ var _ = Describe("Installer", func() {
 	Context("error paths", func() {
 		someError := errors.New("some error")
 
+		It("should fail validating wego installation", func() {
+			fakeKubeClient.GetClusterStatusReturns(kube.Unknown)
+
+			err := installer.Install(testNamespace, configRepo, true)
+			Expect(err).Should(HaveOccurred())
+		})
+
 		It("should fail getting cluster name", func() {
+			fakeKubeClient.GetClusterStatusReturns(kube.Unmodified)
+			fakeKubeClient.GetWegoConfigReturns(&kube.WegoConfig{
+				FluxNamespace: testNamespace,
+				WegoNamespace: testNamespace,
+			}, nil)
 			fakeKubeClient.GetClusterNameReturns("", someError)
 
 			err := installer.Install(testNamespace, configRepo, true)
@@ -74,6 +85,11 @@ var _ = Describe("Installer", func() {
 		})
 
 		It("should fail installing flux", func() {
+			fakeKubeClient.GetClusterStatusReturns(kube.Unmodified)
+			fakeKubeClient.GetWegoConfigReturns(&kube.WegoConfig{
+				FluxNamespace: testNamespace,
+				WegoNamespace: testNamespace,
+			}, nil)
 			fakeKubeClient.GetClusterNameReturns(testNamespace, nil)
 
 			fakeFluxClient.InstallReturns(nil, someError)
@@ -83,6 +99,11 @@ var _ = Describe("Installer", func() {
 		})
 
 		It("should fail getting bootstrap manifests", func() {
+			fakeKubeClient.GetClusterStatusReturns(kube.Unmodified)
+			fakeKubeClient.GetWegoConfigReturns(&kube.WegoConfig{
+				FluxNamespace: testNamespace,
+				WegoNamespace: testNamespace,
+			}, nil)
 			fakeKubeClient.GetClusterNameReturns(testNamespace, nil)
 
 			fakeFluxClient.InstallReturnsOnCall(0, nil, nil)
@@ -93,6 +114,11 @@ var _ = Describe("Installer", func() {
 		})
 
 		It("should fail applying bootstrap manifests", func() {
+			fakeKubeClient.GetClusterStatusReturns(kube.Unmodified)
+			fakeKubeClient.GetWegoConfigReturns(&kube.WegoConfig{
+				FluxNamespace: testNamespace,
+				WegoNamespace: testNamespace,
+			}, nil)
 			fakeKubeClient.GetClusterNameReturns(testNamespace, nil)
 
 			fakeFluxClient.InstallReturns(nil, nil)
@@ -104,6 +130,11 @@ var _ = Describe("Installer", func() {
 		})
 
 		It("should fail getting gitops manifests", func() {
+			fakeKubeClient.GetClusterStatusReturns(kube.Unmodified)
+			fakeKubeClient.GetWegoConfigReturns(&kube.WegoConfig{
+				FluxNamespace: testNamespace,
+				WegoNamespace: testNamespace,
+			}, nil)
 			fakeKubeClient.GetClusterNameReturns(testNamespace, nil)
 
 			fakeFluxClient.InstallReturnsOnCall(0, nil, nil)
@@ -118,6 +149,11 @@ var _ = Describe("Installer", func() {
 		})
 
 		It("should fail getting default branch", func() {
+			fakeKubeClient.GetClusterStatusReturns(kube.Unmodified)
+			fakeKubeClient.GetWegoConfigReturns(&kube.WegoConfig{
+				FluxNamespace: testNamespace,
+				WegoNamespace: testNamespace,
+			}, nil)
 			fakeKubeClient.GetClusterNameReturns(testNamespace, nil)
 
 			fakeFluxClient.InstallReturns(nil, nil)
@@ -136,6 +172,11 @@ var _ = Describe("Installer", func() {
 		})
 
 		It("should fail writing directly to branch", func() {
+			fakeKubeClient.GetClusterStatusReturns(kube.Unmodified)
+			fakeKubeClient.GetWegoConfigReturns(&kube.WegoConfig{
+				FluxNamespace: testNamespace,
+				WegoNamespace: testNamespace,
+			}, nil)
 			fakeKubeClient.GetClusterNameReturns(testNamespace, nil)
 
 			fakeFluxClient.InstallReturns(nil, nil)
@@ -154,6 +195,11 @@ var _ = Describe("Installer", func() {
 		})
 
 		It("should fail creating a pull requests", func() {
+			fakeKubeClient.GetClusterStatusReturns(kube.Unmodified)
+			fakeKubeClient.GetWegoConfigReturns(&kube.WegoConfig{
+				FluxNamespace: testNamespace,
+				WegoNamespace: testNamespace,
+			}, nil)
 			fakeKubeClient.GetClusterNameReturns(testNamespace, nil)
 
 			fakeFluxClient.InstallReturns(nil, nil)
@@ -173,6 +219,12 @@ var _ = Describe("Installer", func() {
 	})
 	Context("success path", func() {
 		It("should succeed with auto-merge=true", func() {
+			fakeKubeClient.GetClusterStatusReturns(kube.Unmodified)
+			fakeKubeClient.GetWegoConfigReturns(&kube.WegoConfig{
+				FluxNamespace: testNamespace,
+				WegoNamespace: testNamespace,
+			}, nil)
+
 			fakeKubeClient.GetClusterNameReturns(clusterName, nil)
 
 			fakeFluxClient.InstallReturns(nil, nil)
@@ -288,6 +340,11 @@ var _ = Describe("Installer", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 		It("should succeed with auto-merge=false", func() {
+			fakeKubeClient.GetClusterStatusReturns(kube.Unmodified)
+			fakeKubeClient.GetWegoConfigReturns(&kube.WegoConfig{
+				FluxNamespace: testNamespace,
+				WegoNamespace: testNamespace,
+			}, nil)
 			fakeKubeClient.GetClusterNameReturns(clusterName, nil)
 
 			fakeFluxClient.InstallReturns(nil, nil)
