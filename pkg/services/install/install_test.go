@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
+	"strconv"
 
 	"github.com/weaveworks/weave-gitops/manifests"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -90,7 +92,7 @@ var _ = Describe("Installer", func() {
 				FluxNamespace: testNamespace,
 				WegoNamespace: testNamespace,
 			}, nil)
-			fakeKubeClient.GetClusterNameReturns(testNamespace, nil)
+			fakeKubeClient.GetClusterNameReturns(clusterName, nil)
 
 			fakeFluxClient.InstallReturns(nil, someError)
 
@@ -104,10 +106,46 @@ var _ = Describe("Installer", func() {
 				FluxNamespace: testNamespace,
 				WegoNamespace: testNamespace,
 			}, nil)
-			fakeKubeClient.GetClusterNameReturns(testNamespace, nil)
+			fakeKubeClient.GetClusterNameReturns(clusterName, nil)
 
 			fakeFluxClient.InstallReturnsOnCall(0, nil, nil)
 			fakeFluxClient.InstallReturnsOnCall(1, nil, someError)
+
+			err := installer.Install(testNamespace, configRepo, true)
+			Expect(err.Error()).Should(ContainSubstring(someError.Error()))
+		})
+
+		It("should fail getting default branch", func() {
+			fakeKubeClient.GetClusterStatusReturns(kube.Unmodified)
+			fakeKubeClient.GetWegoConfigReturns(&kube.WegoConfig{
+				FluxNamespace: testNamespace,
+				WegoNamespace: testNamespace,
+			}, nil)
+			fakeKubeClient.GetClusterNameReturns(clusterName, nil)
+
+			fakeFluxClient.InstallReturnsOnCall(0, nil, nil)
+			fakeFluxClient.InstallReturnsOnCall(1, nil, nil)
+
+			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "", someError)
+
+			err := installer.Install(testNamespace, configRepo, true)
+			Expect(err.Error()).Should(ContainSubstring(someError.Error()))
+		})
+
+		It("should fail getting config repo git source", func() {
+			fakeKubeClient.GetClusterStatusReturns(kube.Unmodified)
+			fakeKubeClient.GetWegoConfigReturns(&kube.WegoConfig{
+				FluxNamespace: testNamespace,
+				WegoNamespace: testNamespace,
+			}, nil)
+			fakeKubeClient.GetClusterNameReturns(clusterName, nil)
+
+			fakeFluxClient.InstallReturnsOnCall(0, nil, nil)
+			fakeFluxClient.InstallReturnsOnCall(1, nil, nil)
+
+			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "", nil)
+
+			fakeGitProvider.GetRepoVisibilityReturns(nil, someError)
 
 			err := installer.Install(testNamespace, configRepo, true)
 			Expect(err.Error()).Should(ContainSubstring(someError.Error()))
@@ -119,9 +157,15 @@ var _ = Describe("Installer", func() {
 				FluxNamespace: testNamespace,
 				WegoNamespace: testNamespace,
 			}, nil)
-			fakeKubeClient.GetClusterNameReturns(testNamespace, nil)
+			fakeKubeClient.GetClusterNameReturns(clusterName, nil)
 
-			fakeFluxClient.InstallReturns(nil, nil)
+			fakeFluxClient.InstallReturnsOnCall(0, nil, nil)
+			fakeFluxClient.InstallReturnsOnCall(1, nil, nil)
+
+			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "", nil)
+
+			privateVisibility := gitprovider.RepositoryVisibilityPrivate
+			fakeGitProvider.GetRepoVisibilityReturns(&privateVisibility, nil)
 
 			fakeKubeClient.ApplyReturns(someError)
 
@@ -135,37 +179,19 @@ var _ = Describe("Installer", func() {
 				FluxNamespace: testNamespace,
 				WegoNamespace: testNamespace,
 			}, nil)
-			fakeKubeClient.GetClusterNameReturns(testNamespace, nil)
+			fakeKubeClient.GetClusterNameReturns(clusterName, nil)
 
 			fakeFluxClient.InstallReturnsOnCall(0, nil, nil)
 			fakeFluxClient.InstallReturnsOnCall(1, nil, nil)
 
-			fakeKubeClient.ApplyReturns(nil)
-
-			fakeFluxClient.InstallReturnsOnCall(2, nil, someError)
-
-			err := installer.Install(testNamespace, configRepo, true)
-			Expect(err.Error()).Should(ContainSubstring(someError.Error()))
-		})
-
-		It("should fail getting default branch", func() {
-			fakeKubeClient.GetClusterStatusReturns(kube.Unmodified)
-			fakeKubeClient.GetWegoConfigReturns(&kube.WegoConfig{
-				FluxNamespace: testNamespace,
-				WegoNamespace: testNamespace,
-			}, nil)
-			fakeKubeClient.GetClusterNameReturns(testNamespace, nil)
-
-			fakeFluxClient.InstallReturns(nil, nil)
-
-			fakeKubeClient.ApplyReturns(nil)
+			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "main", nil)
 
 			privateVisibility := gitprovider.RepositoryVisibilityPrivate
 			fakeGitProvider.GetRepoVisibilityReturns(&privateVisibility, nil)
 
-			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "main", nil)
+			fakeKubeClient.ApplyReturns(nil)
 
-			fakeGitProvider.GetDefaultBranchReturnsOnCall(1, "", someError)
+			fakeFluxClient.InstallReturnsOnCall(2, nil, someError)
 
 			err := installer.Install(testNamespace, configRepo, true)
 			Expect(err.Error()).Should(ContainSubstring(someError.Error()))
@@ -177,16 +203,19 @@ var _ = Describe("Installer", func() {
 				FluxNamespace: testNamespace,
 				WegoNamespace: testNamespace,
 			}, nil)
-			fakeKubeClient.GetClusterNameReturns(testNamespace, nil)
+			fakeKubeClient.GetClusterNameReturns(clusterName, nil)
 
-			fakeFluxClient.InstallReturns(nil, nil)
+			fakeFluxClient.InstallReturnsOnCall(0, nil, nil)
+			fakeFluxClient.InstallReturnsOnCall(1, nil, nil)
 
-			fakeKubeClient.ApplyReturns(nil)
+			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "main", nil)
 
 			privateVisibility := gitprovider.RepositoryVisibilityPrivate
 			fakeGitProvider.GetRepoVisibilityReturns(&privateVisibility, nil)
 
-			fakeGitProvider.GetDefaultBranchReturns("main", nil)
+			fakeKubeClient.ApplyReturns(nil)
+
+			fakeFluxClient.InstallReturnsOnCall(2, nil, nil)
 
 			fakeGitClient.CloneReturns(false, someError)
 
@@ -200,16 +229,19 @@ var _ = Describe("Installer", func() {
 				FluxNamespace: testNamespace,
 				WegoNamespace: testNamespace,
 			}, nil)
-			fakeKubeClient.GetClusterNameReturns(testNamespace, nil)
+			fakeKubeClient.GetClusterNameReturns(clusterName, nil)
 
-			fakeFluxClient.InstallReturns(nil, nil)
+			fakeFluxClient.InstallReturnsOnCall(0, nil, nil)
+			fakeFluxClient.InstallReturnsOnCall(1, nil, nil)
 
-			fakeKubeClient.ApplyReturns(nil)
+			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "main", nil)
 
 			privateVisibility := gitprovider.RepositoryVisibilityPrivate
 			fakeGitProvider.GetRepoVisibilityReturns(&privateVisibility, nil)
 
-			fakeGitProvider.GetDefaultBranchReturns("main", nil)
+			fakeKubeClient.ApplyReturns(nil)
+
+			fakeFluxClient.InstallReturnsOnCall(2, nil, nil)
 
 			fakeGitProvider.CreatePullRequestReturns(nil, someError)
 
@@ -224,19 +256,14 @@ var _ = Describe("Installer", func() {
 				FluxNamespace: testNamespace,
 				WegoNamespace: testNamespace,
 			}, nil)
-
 			fakeKubeClient.GetClusterNameReturns(clusterName, nil)
 
-			fakeFluxClient.InstallReturns(nil, nil)
-
-			fakeKubeClient.ApplyReturns(nil)
+			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "main", nil)
 
 			privateVisibility := gitprovider.RepositoryVisibilityPrivate
 			fakeGitProvider.GetRepoVisibilityReturns(&privateVisibility, nil)
 
-			fakeGitProvider.GetDefaultBranchReturns("main", nil)
-
-			fakeGitProvider.CreatePullRequestReturns(nil, nil)
+			fakeKubeClient.ApplyReturns(nil)
 
 			runtimeManifests := []byte("runtime-manifests")
 			fakeFluxClient.InstallReturns(runtimeManifests, nil)
@@ -265,8 +292,8 @@ var _ = Describe("Installer", func() {
 			systemKustomizationManifest, err := yaml.Marshal(systemKustomization)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			gitSource := []byte("git source")
-			fakeFluxClient.CreateSourceGitReturns(gitSource, nil)
+			source, err := models.GetSourceManifest(context.Background(), fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo, "main")
+			Expect(err).ShouldNot(HaveOccurred())
 
 			expectedManifests := []models.Manifest{
 				{
@@ -293,13 +320,14 @@ var _ = Describe("Installer", func() {
 					Path:    git.GetSystemQualifiedPath(clusterName, models.WegoConfigPath),
 					Content: wegoConfigManifest,
 				},
+				source,
 				{
 					Path:    git.GetSystemQualifiedPath(clusterName, models.SystemKustomizationPath),
 					Content: systemKustomizationManifest,
 				},
 				{
-					Path:    git.GetSystemQualifiedPath(clusterName, models.SourcePath),
-					Content: gitSource,
+					Path:    filepath.Join(git.GetUserPath(clusterName), ".keep"),
+					Content: strconv.AppendQuote(nil, "# keep"),
 				},
 			}
 
@@ -328,7 +356,7 @@ var _ = Describe("Installer", func() {
 			writeIndex := 0
 			fakeGitClient.CloneReturns(true, nil)
 			fakeGitClient.WriteCalls(func(path string, content []byte) error {
-				if writeIndex < 7 {
+				if writeIndex < 8 {
 					Expect(path).Should(Equal(expectedManifests[writeIndex].Path))
 					Expect(string(content)).Should(Equal(string(expectedManifests[writeIndex].Content)))
 				}
@@ -385,8 +413,8 @@ var _ = Describe("Installer", func() {
 			systemKustomizationManifest, err := yaml.Marshal(systemKustomization)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			gitSource := []byte("git source")
-			fakeFluxClient.CreateSourceGitReturns(gitSource, nil)
+			source, err := models.GetSourceManifest(context.Background(), fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo, "main")
+			Expect(err).ShouldNot(HaveOccurred())
 
 			expectedManifests := []models.Manifest{
 				{
@@ -413,13 +441,14 @@ var _ = Describe("Installer", func() {
 					Path:    git.GetSystemQualifiedPath(clusterName, models.WegoConfigPath),
 					Content: wegoConfigManifest,
 				},
+				source,
 				{
 					Path:    git.GetSystemQualifiedPath(clusterName, models.SystemKustomizationPath),
 					Content: systemKustomizationManifest,
 				},
 				{
-					Path:    git.GetSystemQualifiedPath(clusterName, models.SourcePath),
-					Content: gitSource,
+					Path:    filepath.Join(git.GetUserPath(clusterName), ".keep"),
+					Content: strconv.AppendQuote(nil, "# keep"),
 				},
 			}
 

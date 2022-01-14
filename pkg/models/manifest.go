@@ -6,6 +6,8 @@ import (
 	"crypto/md5"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -63,7 +65,7 @@ func BootstrapManifests(fluxClient flux.Flux, clusterName string, namespace stri
 
 	wegoAppManifest := bytes.Join(wegoAppManifests, []byte("---\n"))
 
-	sourceName := createClusterSourceName(configURL)
+	sourceName := CreateClusterSourceName(configURL)
 
 	systemKustResourceManifest, err := fluxClient.CreateKustomization(ConstrainResourceName(fmt.Sprintf("%s-system", clusterName)), sourceName,
 		workAroundFluxDroppingDot(git.GetSystemPath(clusterName)), namespace)
@@ -129,31 +131,25 @@ func GitopsManifests(ctx context.Context, fluxClient flux.Flux, gitProvider gitp
 		return nil, err
 	}
 
-	secretRef, err := GetSecretRefForPrivateGitSources(ctx, gitProvider, configURL)
-	if err != nil {
-		return nil, err
-	}
-
 	configBranch, err := gitProvider.GetDefaultBranch(ctx, configURL)
 	if err != nil {
 		return nil, err
 	}
 
-	secretStr := secretRef.String()
-	sourceName := createClusterSourceName(configURL)
-
-	sourceManifest, err := fluxClient.CreateSourceGit(sourceName, configURL, configBranch, secretStr, namespace)
+	sourceManifest, err := GetSourceManifest(ctx, fluxClient, gitProvider, clusterName, namespace, configURL, configBranch)
 	if err != nil {
 		return nil, err
 	}
 
-	return append(bootstrapManifest, Manifest{
-		Path:    git.GetSystemQualifiedPath(clusterName, SystemKustomizationPath),
-		Content: systemKustomizationManifest,
-	}, Manifest{ // TODO: Move this to boostrap manifests until getGitClients is refactored
-		Path:    git.GetSystemQualifiedPath(clusterName, SourcePath),
-		Content: sourceManifest,
-	}), nil
+	return append(bootstrapManifest, sourceManifest, // TODO: Move this to boostrap manifests until getGitClients is refactored
+		Manifest{
+			Path:    git.GetSystemQualifiedPath(clusterName, SystemKustomizationPath),
+			Content: systemKustomizationManifest,
+		},
+		Manifest{
+			Path:    filepath.Join(git.GetUserPath(clusterName), ".keep"),
+			Content: strconv.AppendQuote(nil, "# keep"),
+		}), nil
 }
 
 func CreateKustomize(name, namespace string, resources ...string) types.Kustomization {
@@ -185,7 +181,7 @@ func GetSecretRefForPrivateGitSources(ctx context.Context, gitProvider gitprovid
 	return secretRef, nil
 }
 
-func createClusterSourceName(gitSourceURL gitproviders.RepoURL) string {
+func CreateClusterSourceName(gitSourceURL gitproviders.RepoURL) string {
 	provider := string(gitSourceURL.Provider())
 	cleanRepoName := replaceUnderscores(gitSourceURL.RepositoryName())
 	qualifiedName := fmt.Sprintf("wego-auto-%s-%s", provider, cleanRepoName)
@@ -276,4 +272,24 @@ func ConvertManifestsToCommitFiles(manifests []Manifest) []gitprovider.CommitFil
 
 func GetClusterHash(clusterName string) string {
 	return fmt.Sprintf("wego-%x", md5.Sum([]byte(clusterName)))
+}
+
+func GetSourceManifest(ctx context.Context, fluxClient flux.Flux, gitProviderClient gitproviders.GitProvider, clusterName string, namespace string, configURL gitproviders.RepoURL, branch string) (Manifest, error) {
+	secretRef, err := GetSecretRefForPrivateGitSources(ctx, gitProviderClient, configURL)
+	if err != nil {
+		return Manifest{}, fmt.Errorf("failed getting ref secret: %w", err)
+	}
+
+	secretStr := secretRef.String()
+	sourceName := CreateClusterSourceName(configURL)
+
+	sourceManifest, err := fluxClient.CreateSourceGit(sourceName, configURL, branch, secretStr, namespace)
+	if err != nil {
+		return Manifest{}, fmt.Errorf("failed creating config repo git source: %w", err)
+	}
+
+	return Manifest{
+		Path:    git.GetSystemQualifiedPath(clusterName, SourcePath),
+		Content: sourceManifest,
+	}, nil
 }

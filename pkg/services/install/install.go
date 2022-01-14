@@ -63,6 +63,19 @@ func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, auto
 		return fmt.Errorf("failed getting bootstrap manifests: %w", err)
 	}
 
+	defaultBranch, err := i.gitProviderClient.GetDefaultBranch(ctx, configURL)
+	if err != nil {
+		return fmt.Errorf("failed getting default branch: %w", err)
+	}
+
+	// TODO: Move this to bootstrap after refactoring getGitClients
+	source, err := models.GetSourceManifest(ctx, i.fluxClient, i.gitProviderClient, clusterName, namespace, configURL, defaultBranch)
+	if err != nil {
+		return fmt.Errorf("failed getting git source: %w", err)
+	}
+
+	manifests = append(manifests, source)
+
 	for _, manifest := range manifests {
 		ms := bytes.Split(manifest.Content, []byte("---\n"))
 
@@ -80,11 +93,6 @@ func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, auto
 	gitopsManifests, err := models.GitopsManifests(ctx, i.fluxClient, i.gitProviderClient, clusterName, namespace, configURL)
 	if err != nil {
 		return fmt.Errorf("failed generating gitops manifests: %w", err)
-	}
-
-	defaultBranch, err := i.gitProviderClient.GetDefaultBranch(ctx, configURL)
-	if err != nil {
-		return fmt.Errorf("failed getting default branch: %w", err)
 	}
 
 	i.log.Actionf("Associating cluster %q", clusterName)

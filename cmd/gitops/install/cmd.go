@@ -76,12 +76,8 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	osysClient := osys.New()
-	//log := internal.NewCLILogger(os.Stdout)
 	fluxClient := flux.New(osysClient, &runner.CLIRunner{})
 
-	// Should this be here??
-	// I added it to get the cluster name that is needed in the paths in the generated
-	// manifests
 	kubeClient, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return fmt.Errorf("error creating k8s http client: %w", err)

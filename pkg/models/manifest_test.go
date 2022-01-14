@@ -2,23 +2,21 @@ package models
 
 import (
 	"bytes"
+	"context"
 	"errors"
-
-	"github.com/weaveworks/weave-gitops/manifests"
-	"sigs.k8s.io/yaml"
-
-	"github.com/weaveworks/weave-gitops/pkg/git"
+	"path/filepath"
+	"strconv"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-
-	"golang.org/x/net/context"
-
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/manifests"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
+	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"sigs.k8s.io/yaml"
 )
 
 var _ = Describe("Installer", func() {
@@ -204,7 +202,7 @@ var _ = Describe("Installer", func() {
 				manifestsFiles, err := GitopsManifests(ctx, fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				Expect(len(manifestsFiles)).Should(Equal(8))
+				Expect(len(manifestsFiles)).Should(Equal(9))
 
 				expectedManifests := []Manifest{
 					{
@@ -214,6 +212,10 @@ var _ = Describe("Installer", func() {
 					{
 						Path:    git.GetSystemQualifiedPath(clusterName, SourcePath),
 						Content: gitSource,
+					},
+					{
+						Path:    filepath.Join(git.GetUserPath(clusterName), ".keep"),
+						Content: strconv.AppendQuote(nil, "# keep"),
 					},
 				}
 
