@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/weaveworks/weave-gitops/manifests"
-	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 
 	"github.com/weaveworks/weave-gitops/pkg/git"
 
