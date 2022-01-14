@@ -206,12 +206,12 @@ var _ = Describe("Installer", func() {
 
 				expectedManifests := []Manifest{
 					{
-						Path:    git.GetSystemQualifiedPath(clusterName, SystemKustomizationPath),
-						Content: systemKustomizationManifest,
-					},
-					{
 						Path:    git.GetSystemQualifiedPath(clusterName, SourcePath),
 						Content: gitSource,
+					},
+					{
+						Path:    git.GetSystemQualifiedPath(clusterName, SystemKustomizationPath),
+						Content: systemKustomizationManifest,
 					},
 					{
 						Path:    filepath.Join(git.GetUserPath(clusterName), ".keep"),
