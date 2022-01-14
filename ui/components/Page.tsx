@@ -20,7 +20,7 @@ export type PageProps = {
   loading?: boolean;
 };
 
-const Content = styled.div`
+export const Content = styled.div`
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;

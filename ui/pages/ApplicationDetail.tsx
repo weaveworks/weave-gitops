@@ -10,7 +10,7 @@ import ErrorPage from "../components/ErrorPage";
 import GithubDeviceAuthModal from "../components/GithubDeviceAuthModal";
 import KeyValueTable from "../components/KeyValueTable";
 import LoadingPage from "../components/LoadingPage";
-import Page from "../components/Page";
+import Page, { Content } from "../components/Page";
 import ReconciliationGraph from "../components/ReconciliationGraph";
 import Spacer from "../components/Spacer";
 import { AppContext } from "../contexts/AppContext";
@@ -102,7 +102,11 @@ function ApplicationDetail({ className, name }: Props) {
   }
 
   if ((!res && !error) || loading) {
-    return <LoadingPage />;
+    return (
+      <Content>
+        <LoadingPage />
+      </Content>
+    );
   }
 
   const { application = {} } = res;
