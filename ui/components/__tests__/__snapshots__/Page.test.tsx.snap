@@ -49,6 +49,7 @@ exports[`Page snapshots default 1`] = `
 }
 
 .c1 {
+  min-height: 80vh;
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
