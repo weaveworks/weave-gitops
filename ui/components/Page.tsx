@@ -14,7 +14,7 @@ import LoadingPage from "./LoadingPage";
 export type PageProps = {
   className?: string;
   children?: any;
-  title?: string;
+  title?: string | JSX.Element;
   breadcrumbs?: { page: PageRoute; query?: any }[];
   topRight?: JSX.Element;
   loading?: boolean;
@@ -75,18 +75,22 @@ function Page({
   return (
     <div className={className}>
       <Content>
-        <TitleBar>
-          <Breadcrumbs>
-            {breadcrumbs &&
-              _.map(breadcrumbs, (b) => (
-                <Link key={b.page} to={formatURL(b.page, b.query)}>
-                  <h2>{pageLookup(b.page)}</h2>
-                </Link>
-              ))}
-            <h2>{title}</h2>
-          </Breadcrumbs>
-          {topRight}
-        </TitleBar>
+        {typeof title === "string" ? (
+          <TitleBar>
+            <Breadcrumbs>
+              {breadcrumbs &&
+                _.map(breadcrumbs, (b) => (
+                  <Link key={b.page} to={formatURL(b.page, b.query)}>
+                    <h2>{pageLookup(b.page)}</h2>
+                  </Link>
+                ))}
+              <h2>{title}</h2>
+            </Breadcrumbs>
+            {topRight}
+          </TitleBar>
+        ) : (
+          title
+        )}
         {appState.error && (
           <Flex center wide>
             <Alert

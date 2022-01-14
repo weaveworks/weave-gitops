@@ -48,12 +48,12 @@ function PollingIndicator({ className, loading, interval }: Props) {
 export default styled(PollingIndicator)`
   .timestamp-p {
     color: ${muiTheme.palette.text.secondary};
-    margin-bottom: 12px;
+    margin-top: 0;
   }
   .MuiCircularProgress-root {
     transition: opacity 2s;
-    margin-bottom: 0;
-    &.in {
+    margin-bottom: 12px;
+    x &.in {
       opacity: 1;
     }
     &.out {
