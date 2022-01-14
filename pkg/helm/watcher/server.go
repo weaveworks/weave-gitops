@@ -2,7 +2,6 @@ package watcher
 
 import (
 	"io/ioutil"
-	"os"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -24,12 +23,23 @@ var (
 	setupLog = ctrl.Log.WithName("setup")
 )
 
-type Watcher struct {
-	cache       cache.Cache
-	repoManager helm.HelmRepoManager
+type Options struct {
+	KubeClient         client.Client
+	Cache              cache.Cache
+	MetricsBindAddress string
+	HealthzBindAddress string
+	WatcherPort        int
 }
 
-func NewWatcher(kubeClient client.Client, cache cache.Cache) (*Watcher, error) {
+type Watcher struct {
+	cache              cache.Cache
+	repoManager        helm.HelmRepoManager
+	metricsBindAddress string
+	healthzBindAddress string
+	watcherPort        int
+}
+
+func NewWatcher(opts Options) (*Watcher, error) {
 	tempDir, err := ioutil.TempDir("", "profile_cache")
 	if err != nil {
 		return nil, err
@@ -44,8 +54,11 @@ func NewWatcher(kubeClient client.Client, cache cache.Cache) (*Watcher, error) {
 	}
 
 	return &Watcher{
-		cache:       cache,
-		repoManager: helm.NewRepoManager(kubeClient, tempDir),
+		cache:              opts.Cache,
+		repoManager:        helm.NewRepoManager(opts.KubeClient, tempDir),
+		healthzBindAddress: opts.HealthzBindAddress,
+		metricsBindAddress: opts.MetricsBindAddress,
+		watcherPort:        opts.WatcherPort,
 	}, nil
 }
 
@@ -56,11 +69,9 @@ func (w *Watcher) StartWatcher() error {
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
-		MetricsBindAddress:     ":9980",
-		Port:                   9443,
-		HealthProbeBindAddress: ":9981",
-		LeaderElection:         false,
-		LeaderElectionID:       "25a858a4.helm.watcher",
+		MetricsBindAddress:     w.metricsBindAddress,
+		HealthProbeBindAddress: w.healthzBindAddress,
+		Port:                   w.watcherPort,
 		Logger:                 ctrl.Log,
 	})
 	if err != nil {
@@ -70,12 +81,12 @@ func (w *Watcher) StartWatcher() error {
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")
-		os.Exit(1)
+		return err
 	}
 
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up ready check")
-		os.Exit(1)
+		return err
 	}
 
 	if err = (&controller.HelmWatcherReconciler{

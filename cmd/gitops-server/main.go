@@ -29,7 +29,12 @@ func main() {
 	}
 }
 
-const addr = "0.0.0.0:8000"
+const (
+	addr               = "0.0.0.0:8000"
+	metricsBindAddress = ":9980"
+	healthzBindAddress = ":9981"
+	watcherPort        = 9443
+)
 
 func NewAPIServerCommand() *cobra.Command {
 	cmd := &cobra.Command{
@@ -65,7 +70,13 @@ func NewAPIServerCommand() *cobra.Command {
 				return fmt.Errorf("failed to create profile cache: %w", err)
 			}
 
-			profileWatcher, err := watcher.NewWatcher(rawClient, profileCache)
+			profileWatcher, err := watcher.NewWatcher(watcher.Options{
+				KubeClient:         rawClient,
+				Cache:              profileCache,
+				MetricsBindAddress: metricsBindAddress,
+				HealthzBindAddress: healthzBindAddress,
+				WatcherPort:        watcherPort,
+			})
 			if err != nil {
 				return fmt.Errorf("failed to create watcher: %w", err)
 			}
@@ -77,12 +88,7 @@ func NewAPIServerCommand() *cobra.Command {
 				}
 			}()
 
-			// Create the cache here as well and pass it in through the profiles Config thing.
-			runtimeNamespace := os.Getenv("RUNTIME_NAMESPACE")
-			if runtimeNamespace == "" {
-				runtimeNamespace = "default"
-			}
-			profilesConfig := server.NewProfilesConfig(rawClient, profileCache, runtimeNamespace, "weaveworks-charts")
+			profilesConfig := server.NewProfilesConfig(rawClient, profileCache, "default", "weaveworks-charts")
 
 			s, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig})
 			if err != nil {
