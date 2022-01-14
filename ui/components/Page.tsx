@@ -21,6 +21,7 @@ export type PageProps = {
 };
 
 export const Content = styled.div`
+  min-height: 80vh;
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;

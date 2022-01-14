@@ -6,6 +6,10 @@ import (
 	"io/ioutil"
 	"os"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/weaveworks/weave-gitops/pkg/flux"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
@@ -37,7 +41,7 @@ var _ = Describe("Install", func() {
 		namespace := &corev1.Namespace{}
 		namespace.Name = "flux-namespace"
 		namespace.Labels = map[string]string{
-			gitops.LabelPartOf: "flux",
+			flux.PartOfLabelKey: flux.PartOfLabelValue,
 		}
 
 		fluxClient = &fluxfakes.FakeFlux{}
@@ -94,6 +98,11 @@ var _ = Describe("Install", func() {
 		Context("validate namespace", func() {
 			It("passes if saved namespace is empty", func() {
 				kubeClient.GetWegoConfigReturns(&kube.WegoConfig{WegoNamespace: ""}, nil)
+				kubeClient.FetchNamespaceWithLabelReturns(&corev1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "",
+					},
+				}, nil)
 
 				_, err := gitopsSrv.Install(installParams)
 				Expect(err).ToNot(HaveOccurred())
@@ -101,6 +110,11 @@ var _ = Describe("Install", func() {
 
 			It("passes if saved namespace is equal to passed", func() {
 				kubeClient.GetWegoConfigReturns(&kube.WegoConfig{WegoNamespace: wego.DefaultNamespace}, nil)
+				kubeClient.FetchNamespaceWithLabelReturns(&corev1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: wego.DefaultNamespace,
+					},
+				}, nil)
 
 				_, err := gitopsSrv.Install(installParams)
 				Expect(err).ToNot(HaveOccurred())
@@ -119,6 +133,11 @@ var _ = Describe("Install", func() {
 	})
 
 	It("calls flux install", func() {
+		kubeClient.FetchNamespaceWithLabelReturns(&corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "kube-test-" + rand.String(5),
+			},
+		}, nil)
 		_, err := gitopsSrv.Install(installParams)
 		Expect(err).ShouldNot(HaveOccurred())
 
@@ -130,6 +149,13 @@ var _ = Describe("Install", func() {
 	})
 
 	It("applies app crd and wego-app manifests", func() {
+
+		kubeClient.FetchNamespaceWithLabelReturns(&corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "kube-test-" + rand.String(5),
+			},
+		}, nil)
+
 		_, err := gitopsSrv.Install(installParams)
 		Expect(err).ShouldNot(HaveOccurred())
 
@@ -162,7 +188,7 @@ var _ = Describe("Install", func() {
 		namespace := &corev1.Namespace{}
 		namespace.Name = "kube-test-" + rand.String(5)
 		namespace.Labels = map[string]string{
-			gitops.LabelPartOf: "flux",
+			flux.PartOfLabelKey: flux.PartOfLabelValue,
 		}
 		err := kubeClient.Raw().Create(context.Background(), namespace)
 		Expect(err).ToNot(HaveOccurred())
@@ -170,11 +196,17 @@ var _ = Describe("Install", func() {
 		namespace = &corev1.Namespace{}
 		namespace.Name = "kube-test-" + rand.String(5)
 		namespace.Labels = map[string]string{
-			gitops.LabelPartOf: "flux",
+			flux.PartOfLabelKey: flux.PartOfLabelValue,
 		}
 		namespace.Name = "kube-test-" + rand.String(5)
 		err = kubeClient.Raw().Create(context.Background(), namespace)
 		Expect(err).ToNot(HaveOccurred())
+
+		kubeClient.FetchNamespaceWithLabelReturns(&corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "flux-namespace",
+			},
+		}, nil)
 
 		_, err = gitopsSrv.Install(installParams)
 		Expect(err).ToNot(HaveOccurred())
@@ -254,6 +286,11 @@ var _ = Describe("Install", func() {
 			}
 		})
 		It("calls flux install", func() {
+			kubeClient.FetchNamespaceWithLabelReturns(&corev1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "wego-system",
+				},
+			}, nil)
 			manifests, err := gitopsSrv.Install(installParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(manifests["gitops-runtime.yaml"]).To(ContainSubstring(string(fakeFluxManifests)))
@@ -265,6 +302,11 @@ var _ = Describe("Install", func() {
 			Expect(dryRun).To(Equal(true))
 		})
 		It("flux kustomization file for user and system have hidden directory", func() {
+			kubeClient.FetchNamespaceWithLabelReturns(&corev1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "kube-test-" + rand.String(5),
+				},
+			}, nil)
 			_, err := gitopsSrv.Install(installParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			for i := fluxClient.CreateKustomizationCallCount() - 1; i >= 0; i-- {
@@ -274,6 +316,11 @@ var _ = Describe("Install", func() {
 		})
 		It("flux gitops toolkit file is stored", func() {
 			// fake git doesn't exist
+			kubeClient.FetchNamespaceWithLabelReturns(&corev1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "kube-test-" + rand.String(5),
+				},
+			}, nil)
 			m, err := gitopsSrv.Install(installParams)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(m["gitops-runtime.yaml"]).To(ContainSubstring(string(fakeFluxManifests)))

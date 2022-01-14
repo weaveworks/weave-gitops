@@ -68,7 +68,7 @@ function ApplicationDetail({ className, name }: Props) {
     };
 
     req(p());
-  }, [name]);
+  }, [name, syncRes]);
 
   React.useEffect(() => {
     if (!res) {

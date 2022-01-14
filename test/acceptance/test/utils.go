@@ -15,6 +15,8 @@ import (
 	"path/filepath"
 	"regexp"
 
+	"github.com/pelletier/go-toml"
+
 	"strconv"
 	"strings"
 	"time"
@@ -49,6 +51,7 @@ const (
 	WEGO_DASHBOARD_TITLE        string        = "Weave GitOps"
 	APP_PAGE_HEADER             string        = "Applications"
 	charset                                   = "abcdefghijklmnopqrstuvwxyz0123456789"
+	DEFAULT_K8S_VERSION         string        = "1.21.1"
 )
 
 var (
@@ -183,6 +186,24 @@ func ResetOrCreateCluster(namespace string, deleteWegoRuntime bool) (string, str
 	return ResetOrCreateClusterWithName(namespace, deleteWegoRuntime, "", false)
 }
 
+func getK8sVersion() string {
+	k8sVersion, found := os.LookupEnv("K8S_VERSION")
+	if found {
+		return k8sVersion
+	}
+
+	return DEFAULT_K8S_VERSION
+}
+
+func getCurrentFluxSupportedVersion() (string, error) {
+	config, err := toml.LoadFile("../../../tools/dependencies.toml")
+	if err != nil {
+		return "", fmt.Errorf("failed reading toml file: %w", err)
+	}
+
+	return config.Get("flux.version").(string), nil
+}
+
 func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clusterName string, keepExistingClusters bool) (string, string, error) {
 	supportedProviders := []string{"kind", "kubectl"}
 	supportedK8SVersions := []string{"1.19.1", "1.20.2", "1.21.1"}
@@ -192,10 +213,7 @@ func ResetOrCreateClusterWithName(namespace string, deleteWegoRuntime bool, clus
 		provider = "kind"
 	}
 
-	k8sVersion, found := os.LookupEnv("K8S_VERSION")
-	if !found {
-		k8sVersion = "1.21.1"
-	}
+	k8sVersion := getK8sVersion()
 
 	if !contains(supportedProviders, provider) {
 		log.Errorf("Cluster provider %s is not supported for testing", provider)
