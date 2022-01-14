@@ -53,7 +53,7 @@ export default styled(PollingIndicator)`
   .MuiCircularProgress-root {
     transition: opacity 2s;
     margin-bottom: 12px;
-    x &.in {
+    &.in {
       opacity: 1;
     }
     &.out {
