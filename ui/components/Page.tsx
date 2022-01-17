@@ -42,6 +42,7 @@ export const TitleBar = styled.div`
 
   h2 {
     margin: 0 !important;
+    color: ${(props) => props.theme.colors.neutral30} !important;
   }
 `;
 
@@ -76,22 +77,18 @@ function Page({
   return (
     <div className={className}>
       <Content>
-        {typeof title === "string" ? (
-          <TitleBar>
-            <Breadcrumbs>
-              {breadcrumbs &&
-                _.map(breadcrumbs, (b) => (
-                  <Link key={b.page} to={formatURL(b.page, b.query)}>
-                    <h2>{pageLookup(b.page)}</h2>
-                  </Link>
-                ))}
-              <h2>{title}</h2>
-            </Breadcrumbs>
-            {topRight}
-          </TitleBar>
-        ) : (
-          title
-        )}
+        <TitleBar>
+          <Breadcrumbs>
+            {breadcrumbs &&
+              _.map(breadcrumbs, (b) => (
+                <Link key={b.page} to={formatURL(b.page, b.query)}>
+                  <h2>{pageLookup(b.page)}</h2>
+                </Link>
+              ))}
+            <h2>{title}</h2>
+          </Breadcrumbs>
+          {topRight}
+        </TitleBar>
         {appState.error && (
           <Flex center wide>
             <Alert

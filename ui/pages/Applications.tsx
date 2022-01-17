@@ -42,7 +42,7 @@ function Applications({ className }: Props) {
 
   const title = (
     <Flex align start>
-      <h2 style={{ marginTop: "0px" }}>Applications</h2>
+      Applications
       <Spacer padding="small" />
       <PollingIndicator loading={loading} />
     </Flex>
@@ -56,7 +56,7 @@ function Applications({ className }: Props) {
             startIcon={<Icon type={IconType.AddIcon} size="base" />}
             type="button"
           >
-            Add Application
+            ADD APPLICATION
           </Button>
         </Link>
       </ActionBar>

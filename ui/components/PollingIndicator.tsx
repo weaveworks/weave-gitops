@@ -34,7 +34,7 @@ function PollingIndicator({ className, loading }: Props) {
 export default styled(PollingIndicator)`
   .MuiCircularProgress-root {
     transition: opacity 2s;
-    margin-bottom: 12px;
+    margin-bottom: 0;
     &.in {
       opacity: 1;
     }
