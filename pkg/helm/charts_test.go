@@ -67,6 +67,10 @@ var _ = Describe("RepoManager", func() {
 					"1.1.2",
 				},
 				Layer: "layer-1",
+				HelmRepository: &pb.HelmRepository{
+					Name:      "testing",
+					Namespace: "test-ns",
+				},
 			}))
 		})
 

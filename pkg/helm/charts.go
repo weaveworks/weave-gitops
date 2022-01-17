@@ -107,7 +107,11 @@ func (h *RepoManager) ListCharts(ctx context.Context, hr *sourcev1beta1.HelmRepo
 						Keywords:    v.Keywords,
 						Icon:        v.Icon,
 						KubeVersion: v.KubeVersion,
-						Layer:       getLayer(v.Annotations),
+						HelmRepository: &pb.HelmRepository{
+							Name:      hr.Name,
+							Namespace: hr.Namespace,
+						},
+						Layer: getLayer(v.Annotations),
 					}
 					for _, m := range v.Maintainers {
 						p.Maintainers = append(p.Maintainers, &pb.Maintainer{
@@ -123,7 +127,7 @@ func (h *RepoManager) ListCharts(ctx context.Context, hr *sourcev1beta1.HelmRepo
 		}
 	}
 
-	profiles := []*pb.Profile{}
+	var profiles []*pb.Profile
 
 	for _, p := range ps {
 		sort.Strings(p.AvailableVersions)
