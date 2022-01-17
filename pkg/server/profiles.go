@@ -13,6 +13,7 @@ import (
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"go.uber.org/zap"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
@@ -99,7 +100,12 @@ func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesReq
 		return nil, fmt.Errorf("failed to get HelmRepository %q/%q: %w", s.HelmRepoNamespace, s.HelmRepoName, err)
 	}
 
-	ps, err := s.HelmCache.ListProfiles(ctx, helmRepo.Namespace, helmRepo.Name)
+	log := s.Log.WithValues("repository", types.NamespacedName{
+		Namespace: helmRepo.Namespace,
+		Name:      helmRepo.Name,
+	})
+
+	ps, err := s.HelmCache.ListProfiles(logr.NewContext(ctx, log), helmRepo.Namespace, helmRepo.Name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan HelmRepository %q/%q for charts: %w", s.HelmRepoNamespace, s.HelmRepoName, err)
 	}
@@ -133,7 +139,12 @@ func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfil
 		return nil, fmt.Errorf("failed to get HelmRepository %q/%q", s.HelmRepoNamespace, s.HelmRepoName)
 	}
 
-	data, err := s.HelmCache.GetProfileValues(ctx, helmRepo.Namespace, helmRepo.Name, msg.ProfileName, msg.ProfileVersion)
+	log := s.Log.WithValues("repository", types.NamespacedName{
+		Namespace: helmRepo.Namespace,
+		Name:      helmRepo.Name,
+	})
+
+	data, err := s.HelmCache.GetProfileValues(logr.NewContext(ctx, log), helmRepo.Namespace, helmRepo.Name, msg.ProfileName, msg.ProfileVersion)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve values file from Helm chart '%s' (%s): %w", msg.ProfileName, msg.ProfileVersion, err)
 	}

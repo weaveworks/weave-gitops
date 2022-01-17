@@ -11,7 +11,6 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/go-logr/logr"
 	"github.com/gofrs/flock"
-	ctrl "sigs.k8s.io/controller-runtime"
 
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 )
@@ -56,7 +55,6 @@ type Data struct {
 // ProfileCache is used to cache profiles data from scanner helm repositories.
 type ProfileCache struct {
 	cacheLocation string
-	logger        logr.Logger
 }
 
 var _ Cache = &ProfileCache{}
@@ -67,22 +65,14 @@ func NewCache(cacheLocation string) (*ProfileCache, error) {
 		return nil, fmt.Errorf("failed to create helm cache dir: %w", err)
 	}
 
-	logger := ctrl.Log.WithName("cache")
-
 	return &ProfileCache{
 		cacheLocation: cacheLocation,
-		logger:        logger,
 	}, nil
 }
 
 // Put adds a new entry or updates an existing entry in the cache for the helmRepository.
 func (c *ProfileCache) Put(ctx context.Context, helmRepoNamespace, helmRepoName string, value Data) error {
-	// called from the watcher
-	logger := logr.FromContext(ctx)
-	if logger == nil {
-		logger = c.logger.WithValues("namespace", helmRepoNamespace, "name", helmRepoName)
-	}
-
+	logger := logr.FromContextOrDiscard(ctx)
 	logger.Info("starting put operation")
 
 	putOperation := func() error {
@@ -143,7 +133,7 @@ func (c *ProfileCache) Delete(ctx context.Context, helmRepoNamespace, helmRepoNa
 
 // ListProfiles gathers all profiles for a helmRepo if found. Returns an error otherwise.
 func (c *ProfileCache) ListProfiles(ctx context.Context, helmRepoNamespace, helmRepoName string) ([]*pb.Profile, error) {
-	logger := c.logger.WithValues("namespace", helmRepoNamespace, "name", helmRepoName)
+	logger := logr.FromContextOrDiscard(ctx)
 	logger.Info("retrieving cached profile data")
 
 	var result []*pb.Profile
@@ -170,7 +160,7 @@ func (c *ProfileCache) ListProfiles(ctx context.Context, helmRepoNamespace, helm
 
 // GetProfileValues returns the content of the cached values file if it exists. Errors otherwise.
 func (c *ProfileCache) GetProfileValues(ctx context.Context, helmRepoNamespace, helmRepoName, profileName, profileVersion string) ([]byte, error) {
-	logger := c.logger.WithValues("namespace", helmRepoNamespace, "name", helmRepoName)
+	logger := logr.FromContextOrDiscard(ctx)
 	logger.Info("retrieving cached profile values data")
 
 	var result []byte

@@ -33,7 +33,7 @@ type HelmWatcherReconciler struct {
 // Reconcile is either called when there is a new HelmRepository or, when there is an update to a HelmRepository.
 // Because the watcher watches all helmrepositories, it will update data for all of them.
 func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := logr.FromContextOrDiscard(ctx)
+	log := logr.FromContextOrDiscard(ctx).WithValues("repository", req.NamespacedName)
 
 	// get source object
 	var repository sourcev1.HelmRepository
@@ -99,7 +99,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		Values:   values,
 	}
 
-	if err := r.Cache.Put(ctx, repository.Namespace, repository.Name, data); err != nil {
+	if err := r.Cache.Put(logr.NewContext(ctx, log), repository.Namespace, repository.Name, data); err != nil {
 		return ctrl.Result{}, err
 	}
 
