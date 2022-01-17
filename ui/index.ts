@@ -39,4 +39,5 @@ export {
   OAuthCallback,
   Button,
   Icon,
+  IconType,
 };
