@@ -42,7 +42,7 @@ export const TitleBar = styled.div`
 
   h2 {
     margin: 0 !important;
-    color: ${(props) => props.theme.colors.neutral30} !important;
+    color: ${(props) => props.theme.colors.neutral40} !important;
   }
 `;
 
