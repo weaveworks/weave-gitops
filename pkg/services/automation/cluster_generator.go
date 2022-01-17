@@ -106,7 +106,7 @@ func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster m
 		return ClusterAutomation{}, err
 	}
 
-	systemKustomization := CreateKustomize(cluster.Name, namespace, RuntimePath, SourcePath, SystemKustResourcePath, UserKustResourcePath)
+	systemKustomization := CreateKustomize(cluster.Name, namespace, RuntimePath, SourcePath, SystemKustResourcePath, UserKustResourcePath, WegoAppPath)
 
 	systemKustomizationManifest, err := yaml.Marshal(systemKustomization)
 	if err != nil {
