@@ -22,6 +22,7 @@ export type PageProps = {
 
 export const Content = styled.div`
   max-width: 1400px;
+  min-height: 80vh;
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;

@@ -44,7 +44,7 @@ function Applications({ className }: Props) {
     <Flex align start>
       <h2 style={{ marginTop: "0px" }}>Applications</h2>
       <Spacer padding="small" />
-      <PollingIndicator loading={loading} interval="30" />
+      <PollingIndicator loading={loading} />
     </Flex>
   );
 
