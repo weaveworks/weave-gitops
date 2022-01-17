@@ -24,6 +24,7 @@ func AuthEnabled() bool {
 
 type Config struct {
 	AppConfig      *ApplicationsConfig
+	AppOptions     []ApplicationsOption
 	ProfilesConfig ProfilesConfig
 	AuthServer     *auth.AuthServer
 }
@@ -37,7 +38,7 @@ func NewHandlers(ctx context.Context, cfg *Config) (http.Handler, error) {
 		httpHandler = auth.WithAPIAuth(httpHandler, cfg.AuthServer)
 	}
 
-	appsSrv := NewApplicationsServer(cfg.AppConfig)
+	appsSrv := NewApplicationsServer(cfg.AppConfig, cfg.AppOptions...)
 	if err := pbapp.RegisterApplicationsHandlerServer(ctx, mux, appsSrv); err != nil {
 		return nil, fmt.Errorf("could not register application: %w", err)
 	}

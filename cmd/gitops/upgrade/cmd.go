@@ -19,7 +19,11 @@ import (
 var upgradeCmdFlags upgrade.UpgradeValues
 
 var example = fmt.Sprintf(`  # Upgrade Weave GitOps in the %s namespace
-  gitops upgrade --version 0.0.15 --config-repo https://github.com/my-org/my-management-cluster.git`,
+  gitops upgrade --version 0.0.17 --config-repo https://github.com/my-org/my-management-cluster.git
+
+  # Upgrade Weave GitOps and set the natsURL
+  gitops upgrade --version 0.0.17 --set "agentTemplate.natsURL=my-cluster.acme.org:4222" \
+    --config-repo https://github.com/my-org/my-management-cluster.git`,
 	wego.DefaultNamespace)
 
 var Cmd = &cobra.Command{
@@ -34,10 +38,10 @@ var Cmd = &cobra.Command{
 func init() {
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.ConfigRepo, "config-repo", "", "URL of external repository that will hold automation manifests")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.Version, "version", "", "Version of Weave GitOps Enterprise to be installed")
-	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.BaseBranch, "base", "main", "The base branch to open the pull request against")
+	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.BaseBranch, "base", "", "The base branch to open the pull request against")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.HeadBranch, "branch", "tier-upgrade-enterprise", "The branch to create the pull request from")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.CommitMessage, "commit-message", "Upgrade to WGE", "The commit message")
-	Cmd.PersistentFlags().StringArrayVar(&upgradeCmdFlags.Values, "set", []string{}, "set values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
+	Cmd.PersistentFlags().StringArrayVar(&upgradeCmdFlags.Values, "set", []string{}, "set profile values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
 	Cmd.PersistentFlags().BoolVar(&upgradeCmdFlags.DryRun, "dry-run", false, "Output the generated profile without creating a pull request")
 
 	cobra.CheckErr(Cmd.MarkPersistentFlagRequired("config-repo"))
