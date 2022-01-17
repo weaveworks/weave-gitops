@@ -125,13 +125,16 @@ func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, repository 
 		return ctrl.Result{}, err
 	}
 
+	log.Info("deleted repository cache", "namespace", repository.Namespace, "name", repository.Name)
 	// Remove our finalizer from the list and update it
 	controllerutil.RemoveFinalizer(&repository, watcherFinalizer)
 
 	if err := r.Update(ctx, &repository); err != nil {
+		log.Error(err, "failed to update repository to remove the finalizer", "namespace", repository.Namespace, "name", repository.Name)
 		return ctrl.Result{}, err
 	}
 
+	log.Info("removed finalizer from repository", "namespace", repository.Namespace, "name", repository.Name)
 	// Stop reconciliation as the object is being deleted
 	return ctrl.Result{}, nil
 }
