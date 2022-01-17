@@ -111,7 +111,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 func (r *HelmWatcherReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&sourcev1.HelmRepository{}).
-		WithEventFilter(predicate.Or(ArtifactUpdatePredicate{}, GenerationUpdatePredicate{})).
+		WithEventFilter(predicate.Or(ArtifactUpdatePredicate{}, DeletePredicate{})).
 		Complete(r)
 }
 

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"testing"
+	"time"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/stretchr/testify/assert"
@@ -10,6 +11,7 @@ import (
 )
 
 func TestGenerationUpdateReconcilerPredicate_Update(t *testing.T) {
+	newTime := metav1.NewTime(time.Now())
 	tests := []struct {
 		name  string
 		event event.UpdateEvent
@@ -43,11 +45,28 @@ func TestGenerationUpdateReconcilerPredicate_Update(t *testing.T) {
 			want: false,
 		},
 		{
-			name: "returns true if old source's generation is lower than the new source's",
+			name: "returns false if old source's generation is lower than the new source's but no deletion ts",
 			event: event.UpdateEvent{
 				ObjectNew: &sourcev1.HelmRepository{
 					ObjectMeta: metav1.ObjectMeta{
 						Generation: 2,
+					},
+				},
+				ObjectOld: &sourcev1.HelmRepository{
+					ObjectMeta: metav1.ObjectMeta{
+						Generation: 1,
+					},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "returns true if old source's generation is lower than the new source's and deletion ts is set",
+			event: event.UpdateEvent{
+				ObjectNew: &sourcev1.HelmRepository{
+					ObjectMeta: metav1.ObjectMeta{
+						Generation:        2,
+						DeletionTimestamp: &newTime,
 					},
 				},
 				ObjectOld: &sourcev1.HelmRepository{
@@ -91,9 +110,10 @@ func TestGenerationUpdateReconcilerPredicate_Update(t *testing.T) {
 			want: false,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			he := GenerationUpdatePredicate{}
+			he := DeletePredicate{}
 			assert.Equalf(t, tt.want, he.Update(tt.event), "Update(old: %+v, new: %+v)", tt.event.ObjectOld, tt.event.ObjectNew)
 		})
 	}
