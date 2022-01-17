@@ -182,6 +182,18 @@ type FakeFlux struct {
 		result1 []byte
 		result2 error
 	}
+	PreCheckStub        func() (string, error)
+	preCheckMutex       sync.RWMutex
+	preCheckArgsForCall []struct {
+	}
+	preCheckReturns struct {
+		result1 string
+		result2 error
+	}
+	preCheckReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	SetupBinStub        func()
 	setupBinMutex       sync.RWMutex
 	setupBinArgsForCall []struct {
@@ -974,6 +986,62 @@ func (fake *FakeFlux) InstallReturnsOnCall(i int, result1 []byte, result2 error)
 	}{result1, result2}
 }
 
+func (fake *FakeFlux) PreCheck() (string, error) {
+	fake.preCheckMutex.Lock()
+	ret, specificReturn := fake.preCheckReturnsOnCall[len(fake.preCheckArgsForCall)]
+	fake.preCheckArgsForCall = append(fake.preCheckArgsForCall, struct {
+	}{})
+	stub := fake.PreCheckStub
+	fakeReturns := fake.preCheckReturns
+	fake.recordInvocation("PreCheck", []interface{}{})
+	fake.preCheckMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeFlux) PreCheckCallCount() int {
+	fake.preCheckMutex.RLock()
+	defer fake.preCheckMutex.RUnlock()
+	return len(fake.preCheckArgsForCall)
+}
+
+func (fake *FakeFlux) PreCheckCalls(stub func() (string, error)) {
+	fake.preCheckMutex.Lock()
+	defer fake.preCheckMutex.Unlock()
+	fake.PreCheckStub = stub
+}
+
+func (fake *FakeFlux) PreCheckReturns(result1 string, result2 error) {
+	fake.preCheckMutex.Lock()
+	defer fake.preCheckMutex.Unlock()
+	fake.PreCheckStub = nil
+	fake.preCheckReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeFlux) PreCheckReturnsOnCall(i int, result1 string, result2 error) {
+	fake.preCheckMutex.Lock()
+	defer fake.preCheckMutex.Unlock()
+	fake.PreCheckStub = nil
+	if fake.preCheckReturnsOnCall == nil {
+		fake.preCheckReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.preCheckReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeFlux) SetupBin() {
 	fake.setupBinMutex.Lock()
 	fake.setupBinArgsForCall = append(fake.setupBinArgsForCall, struct {
@@ -1154,6 +1222,8 @@ func (fake *FakeFlux) Invocations() map[string][][]interface{} {
 	defer fake.getVersionMutex.RUnlock()
 	fake.installMutex.RLock()
 	defer fake.installMutex.RUnlock()
+	fake.preCheckMutex.RLock()
+	defer fake.preCheckMutex.RUnlock()
 	fake.setupBinMutex.RLock()
 	defer fake.setupBinMutex.RUnlock()
 	fake.suspendOrResumeAppMutex.RLock()
