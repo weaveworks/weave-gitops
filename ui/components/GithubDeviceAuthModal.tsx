@@ -10,7 +10,7 @@ import {
 import Alert from "./Alert";
 import Button from "./Button";
 import Flex from "./Flex";
-import Icon from "./Icon";
+import Icon, { IconType } from "./Icon";
 import Modal from "./Modal";
 import Text from "./Text";
 
@@ -60,7 +60,7 @@ const ModalContent = styled(({ codeRes, onSuccess, onError, className }) => {
         <a target="_blank" href={codeRes.validationURI}>
           <Button
             type="button"
-            startIcon={<Icon size="base" type="ExternalTab" />}
+            startIcon={<Icon size="base" type={IconType.ExternalTab} />}
           >
             Authorize Github Access
           </Button>

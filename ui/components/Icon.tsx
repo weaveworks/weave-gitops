@@ -7,7 +7,6 @@ import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 import SaveAltIcon from "@material-ui/icons/SaveAlt";
 import ErrorIcon from "@material-ui/icons/Error";
 import HourglassFullIcon from "@material-ui/icons/HourglassFull";
-
 import LaunchIcon from "@material-ui/icons/Launch";
 import * as React from "react";
 import styled from "styled-components";
@@ -15,47 +14,61 @@ import { colors, spacing } from "../typedefs/styled";
 import Flex from "./Flex";
 import Text from "./Text";
 
+export enum IconType {
+  CheckMark,
+  Account,
+  ExternalTab,
+  AddIcon,
+  ArrowUpwardIcon,
+  DeleteIcon,
+  NavigateNextIcon,
+  SaveAltIcon,
+  ErrorIcon,
+  CheckCircleIcon,
+  HourglassFullIcon,
+}
+
 type Props = {
   className?: string;
-  type: string;
+  type: IconType;
   color?: keyof typeof colors;
   text?: string;
   size: keyof typeof spacing;
 };
 
-function getIcon(type: string) {
-  switch (type) {
-    case "Checkmark":
+function getIcon(i: IconType) {
+  switch (i) {
+    case IconType.CheckMark:
       return CheckCircleIcon;
 
-    case "Account":
+    case IconType.Account:
       return AccountCircleIcon;
 
-    case "ExternalTab":
+    case IconType.ExternalTab:
       return LaunchIcon;
 
-    case "Add":
+    case IconType.AddIcon:
       return AddIcon;
 
-    case "ArrowUpward":
+    case IconType.ArrowUpwardIcon:
       return ArrowUpwardIcon;
 
-    case "Delete":
+    case IconType.DeleteIcon:
       return DeleteIcon;
 
-    case "NavigateNext":
+    case IconType.NavigateNextIcon:
       return NavigateNextIcon;
 
-    case "SaveAlt":
+    case IconType.SaveAltIcon:
       return SaveAltIcon;
 
-    case "Current":
+    case IconType.CheckCircleIcon:
       return CheckCircleIcon;
 
-    case "InProgress":
+    case IconType.HourglassFullIcon:
       return HourglassFullIcon;
 
-    case "Failed":
+    case IconType.ErrorIcon:
       return ErrorIcon;
 
     default:
