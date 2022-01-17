@@ -80,6 +80,7 @@ exports[`Page snapshots default 1`] = `
 
 .c2 h2 {
   margin: 0 !important;
+  color: #1a1a1a !important;
 }
 
 .c0 .MuiAlert-root {
