@@ -1,6 +1,12 @@
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import AddIcon from "@material-ui/icons/Add";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
+import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
+import DeleteIcon from "@material-ui/icons/Delete";
+import NavigateNextIcon from "@material-ui/icons/NavigateNext";
+import SaveAltIcon from "@material-ui/icons/SaveAlt";
+import ErrorIcon from "@material-ui/icons/Error";
+import HourglassFullIcon from "@material-ui/icons/HourglassFull";
 import LaunchIcon from "@material-ui/icons/Launch";
 import * as React from "react";
 import styled from "styled-components";
@@ -13,7 +19,15 @@ export enum IconType {
   Account,
   ExternalTab,
   AddIcon,
+  ArrowUpwardIcon,
+  DeleteIcon,
+  NavigateNextIcon,
+  SaveAltIcon,
+  ErrorIcon,
+  CheckCircleIcon,
+  HourglassFullIcon,
 }
+
 type Props = {
   className?: string;
   type: IconType;
@@ -35,6 +49,27 @@ function getIcon(i: IconType) {
 
     case IconType.AddIcon:
       return AddIcon;
+
+    case IconType.ArrowUpwardIcon:
+      return ArrowUpwardIcon;
+
+    case IconType.DeleteIcon:
+      return DeleteIcon;
+
+    case IconType.NavigateNextIcon:
+      return NavigateNextIcon;
+
+    case IconType.SaveAltIcon:
+      return SaveAltIcon;
+
+    case IconType.CheckCircleIcon:
+      return CheckCircleIcon;
+
+    case IconType.HourglassFullIcon:
+      return HourglassFullIcon;
+
+    case IconType.ErrorIcon:
+      return ErrorIcon;
 
     default:
       break;

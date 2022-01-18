@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops/pkg/services/check"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -69,6 +71,17 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("And Gitops runtime is not installed", func() {
 			uninstallWegoRuntime(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And gitops check pre kubernetes version is compatible and flux is not installed", func() {
+			c := exec.Command(gitopsBinaryPath, "check", "--pre")
+			output, err := c.CombinedOutput()
+			Expect(err).NotTo(HaveOccurred())
+			expectedOutput := fmt.Sprintf(`✔ Kubernetes %s >=[0-9]+.[0-9]+\.[0-9]+-[0-9]+
+✔ Flux is not installed
+`,
+				getK8sVersion())
+			Expect(string(output)).To(MatchRegexp(expectedOutput))
 		})
 
 		By("And I run gitops add command", func() {
@@ -160,6 +173,71 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("Then I should see error message", func() {
 			Eventually(errOutput).Should(ContainSubstring("failed to load credentials for profiles repo from cluster: failed to get entitlement: secrets \"weave-gitops-enterprise-credentials\" not found"))
+		})
+	})
+
+	It("Test1 - Verify that gitops can deploy an app after it is setup with an empty repo initially", func() {
+		var repoAbsolutePath string
+		private := true
+		tip := generateTestInputs()
+		appName := tip.appRepoName
+		appRepoRemoteURL := "ssh://git@github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
+
+		addCommand := "add app . --auto-merge=true"
+
+		defer deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+		defer deleteWorkload(tip.workloadName, tip.workloadNamespace)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+		})
+
+		By("And application workload is not already deployed to cluster", func() {
+			deleteWorkload(tip.workloadName, tip.workloadNamespace)
+		})
+
+		By("When I create an empty private repo", func() {
+			repoAbsolutePath = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
+		})
+
+		By("And I install gitops to my active cluster", func() {
+			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
+		})
+
+		By("And gitops check pre validates kubernetes and flux are compatible", func() {
+			c := exec.Command(gitopsBinaryPath, "check", "--pre")
+			actualOutput, err := c.CombinedOutput()
+			Expect(err).NotTo(HaveOccurred())
+			fluxVersion, err := getCurrentFluxSupportedVersion()
+			Expect(err).ShouldNot(HaveOccurred())
+			expectedOutput := fmt.Sprintf(`✔ Kubernetes %s >=[0-9]+.[0-9]+\.[0-9]+-[0-9]+
+✔ Flux %s ~=%s
+%s
+`,
+				getK8sVersion(),
+				fluxVersion, fluxVersion,
+				check.FluxCompatibleMessage)
+			Expect(string(actualOutput)).To(MatchRegexp(expectedOutput))
+		})
+
+		By("And I run gitops add command", func() {
+			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("Then I should see gitops add command linked the repo to the cluster", func() {
+			verifyWegoAddCommand(appName, WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And I git add-commit-push app workload to repo", func() {
+			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
+		})
+
+		By("And I should see workload is deployed to the cluster", func() {
+			verifyWorkloadIsDeployed(tip.workloadName, tip.workloadNamespace)
+		})
+
+		By("And repos created have private visibility", func() {
+			Expect(getGitRepoVisibility(githubOrg, tip.appRepoName, gitproviders.GitProviderGitHub)).Should(ContainSubstring("private"))
 		})
 	})
 

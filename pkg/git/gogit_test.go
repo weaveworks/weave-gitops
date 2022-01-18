@@ -142,6 +142,63 @@ var _ = Describe("ValidateAccess", func() {
 	})
 })
 
+var _ = Describe("Read", func() {
+	It("Reads a file from a repo", func() {
+		_, err = gitClient.Init(dir, "https://github.com/github/gitignore", "master")
+
+		filePath := "/test.txt"
+		content := []byte("testing")
+		Expect(gitClient.Write(filePath, content)).To(Succeed())
+
+		_, err = gitClient.Commit(git.Commit{
+			Author:  git.Author{Name: "test", Email: "test@example.com"},
+			Message: "test commit",
+		})
+		Expect(err).ShouldNot(HaveOccurred())
+
+		fileContent, err := gitClient.Read(filePath)
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(content).To(Equal(fileContent))
+	})
+
+	It("Reads a file from a repo even if not commited", func() {
+		_, err = gitClient.Init(dir, "https://github.com/github/gitignore", "master")
+		filePath := "/test.txt"
+		content := []byte("testing")
+		err := ioutil.WriteFile(dir+filePath, content, 0644)
+		Expect(err).ShouldNot(HaveOccurred())
+		fileContent, err := gitClient.Read(filePath)
+		Expect(err).ShouldNot(HaveOccurred())
+		Expect(content).To(Equal(fileContent))
+	})
+
+	It("gives a nice error when file not present", func() {
+		_, err = gitClient.Init(dir, "https://github.com/github/gitignore", "master")
+		filePath := "/test.txt"
+		_, err := gitClient.Read(filePath)
+		Expect(fmt.Sprint(err)).To(MatchRegexp("failed to open file /test.txt"))
+	})
+
+	It("fails when the repository has not been initialized", func() {
+		_, err := gitClient.Init(dir, "https://github.com/github/gitignore", "master")
+		Expect(err).ShouldNot(HaveOccurred())
+
+		gc := git.New(nil, wrapper.NewGoGit())
+		_, err = gc.Read("testing.txt")
+		Expect(err).To(MatchError("no git repository"))
+	})
+
+	It("returns an error if the repository is bare", func() {
+		_, err = gogit.PlainInit(dir, true)
+		Expect(err).ShouldNot(HaveOccurred())
+		_, err = gitClient.Open(dir)
+		Expect(err).ShouldNot(HaveOccurred())
+
+		_, err := gitClient.Read("testing.txt")
+		Expect(err).Should(MatchError("failed to open the worktree: worktree not available in a bare repository"))
+	})
+})
+
 var _ = Describe("Write", func() {
 	It("writes a file into a given repository", func() {
 		_, err = gitClient.Init(dir, "https://github.com/github/gitignore", "master")

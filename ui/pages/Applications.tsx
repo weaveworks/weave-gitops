@@ -40,20 +40,23 @@ function Applications({ className }: Props) {
     return () => clearInterval(interval);
   }, []);
 
+  const title = (
+    <Flex align start>
+      Applications
+      <Spacer padding="small" />
+      <PollingIndicator loading={loading} />
+    </Flex>
+  );
+
   return (
-    <Page className={className}>
-      <Flex align start>
-        <h2>Applications</h2>
-        <Spacer padding="xs" />
-        <PollingIndicator loading={loading} />
-      </Flex>
+    <Page className={className} title={title}>
       <ActionBar>
         <Link to={PageRoute.ApplicationAdd} className="title-bar-button">
           <Button
             startIcon={<Icon type={IconType.AddIcon} size="base" />}
             type="button"
           >
-            Add Application
+            ADD APPLICATION
           </Button>
         </Link>
       </ActionBar>

@@ -33,11 +33,11 @@ To continue communicating with the Kubernetes API, it will be required to change
 
 Flux will be added to this docker image as well.
 
-`wego version` will also show which container registry tag of `wego-api` it will use. 
+`wego version` will also show which container registry tag of `wego-api` it will use.
 
 ### Generate RBAC-based permissions to the wego-api and apply them when installing the GitOps runtime.
 
-Since the wego-api needs to access resources within the cluster, RBAC permissions will be applied so that there are no security gaps. In consideration that the functionality of the wego-api will be specified only in actions within the namespace where the GitOps runtime is executed, the Role and RoleBinding resources will be used. Since the scope of this type of resource is by namespace. 
+Since the wego-api needs to access resources within the cluster, RBAC permissions will be applied so that there are no security gaps. In consideration that the functionality of the wego-api will be specified only in actions within the namespace where the GitOps runtime is executed, the Role and RoleBinding resources will be used. Since the scope of this type of resource is by namespace.
 
 The resources that will be required are:
 
@@ -51,35 +51,35 @@ The specific permissions for the Role resource will be:
 
 ```
 resources: ["apps.wego.weave.works"]
-verbs: ["get","create","list","delete","watch"]
+verbs: ["*"]
 
 resources: ["secret"]
-verbs: ["get","create"]
+verbs: ["*"]
 
 resources: ["kustomizations.kustomize.toolkit.fluxcd.io"]
-verbs: ["get","create","delete","list"]
+verbs: ["*"]
 
 resources: ["helmreleases.helm.toolkit.fluxcd.io"]
-verbs: ["get","create","delete","list"]
+verbs: ["*"]
 
 resources: ["helmrepositories.source.toolkit.fluxcd.io"]
-verbs: ["get","create","delete","list"]
+verbs: ["*"]
 
 resources: ["gitrepositories.source.toolkit.fluxcd.io"]
-verbs: ["get","create","delete","list"]
+verbs: ["*"]
 ```
 
 These resources will be applied when installing the GitOps engine.
 
 ### Enable access to the wego-api from the client-side.
 
-To enable access to the `wego-api` from the client machine, we will use `kubectl` by running this command: `kubectl -n NAMESPACE port-forward service/wego-api :8283`. An example of the output would be: 
+To enable access to the `wego-api` from the client machine, we will use `kubectl` by running this command: `kubectl -n NAMESPACE port-forward service/wego-api :8283`. An example of the output would be:
 ```
 Forwarding from 127.0.0.1:63701 -> 8283
 Forwarding from [::1]:63701 -> 8283
 ```
 
-The path to access `wego-api` will be `http://127.0.0.1:63701`. UI will be accessed by using this base path. 
+The path to access `wego-api` will be `http://127.0.0.1:63701`. UI will be accessed by using this base path.
 
 Initially the only command using `wego-api` will be `wego ui run` which will run the port-forward command in the background, keep it running and open the browser using that same local address, as the UI web server lives in `wego-api`.
 
@@ -101,7 +101,7 @@ To build `wego-api` we will use a Dockerfile with two-stage builds where possibl
 
 To avoid wasting time publishing / downloading to a docker registry. We want to improve the developer experience. Currently, there are many tools on the market to achieve this task, to mention a few there are `garden.io` and` tilt`.
 
-The recommendation is to use `garden.io` because they use yaml files to set the configuration which is something the team is already used to. Rather than `tilt` that relies on python which would enforce learning that language. 
+The recommendation is to use `garden.io` because they use yaml files to set the configuration which is something the team is already used to. Rather than `tilt` that relies on python which would enforce learning that language.
 
 ### Reuse the local build of the wego-api inside Github actions for testing.
 
@@ -116,4 +116,3 @@ To avoid dealing with the complexity of authorizing commands that use the kubect
 `kubectl proxy` was also considered to expose `wego-api` but it also opens the kubernetes api, and we want to have less exposure.
 
 We could add kubectl and flux binaries to wego via embedding but that would increase the binary size, and the build time dramatically.
-

@@ -114,7 +114,6 @@ export default styled(ReconciliationGraph)`
   ${DirectedGraph} {
     background-color: white;
   }
-
   .node {
     font-size: 16px;
     /* background-color: white; */
@@ -124,7 +123,6 @@ export default styled(ReconciliationGraph)`
     flex-direction: column;
     justify-content: space-evenly;
   }
-
   ellipse {
     fill: white;
     stroke: #13a000;
@@ -132,43 +130,35 @@ export default styled(ReconciliationGraph)`
     stroke-dasharray: 266px;
     filter: drop-shadow(rgb(189, 189, 189) 0px 0px 1px);
   }
-
   .success ellipse {
     stroke: ${(props) => props.theme.colors.success};
   }
-
   @keyframes rotate {
     to {
       stroke-dashoffset: 0;
     }
   }
-
   .status .kind {
     color: ${(props) => props.theme.colors.black};
   }
-
   .kind-text {
     overflow: hidden;
     text-overflow: ellipsis;
     font-size: 14px;
   }
-
   .Current {
     color: ${(props) => props.theme.colors.success};
   }
-
   .name {
     color: ${(props) => props.theme.colors.black};
     font-weight: 800;
     text-align: center;
     white-space: pre-wrap;
   }
-
   .edgePath path {
     stroke: #bdbdbd;
     stroke-width: 1px;
   }
-
   .MuiSvgIcon-root {
     height: 24px;
     width: 24px;

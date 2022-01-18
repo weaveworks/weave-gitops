@@ -46,7 +46,7 @@ const (
 	WegoConfigMapName = "weave-gitops-config"
 )
 
-func createClusterSourceName(gitSourceURL gitproviders.RepoURL) string {
+func CreateClusterSourceName(gitSourceURL gitproviders.RepoURL) string {
 	provider := string(gitSourceURL.Provider())
 	cleanRepoName := replaceUnderscores(gitSourceURL.RepositoryName())
 	qualifiedName := fmt.Sprintf("wego-auto-%s-%s", provider, cleanRepoName)
@@ -87,7 +87,7 @@ func (a *AutomationGen) GenerateClusterAutomation(ctx context.Context, cluster m
 
 	wegoAppManifest := bytes.Join(m, []byte("---\n"))
 
-	sourceName := createClusterSourceName(configURL)
+	sourceName := CreateClusterSourceName(configURL)
 
 	sourceManifest, err := a.Flux.CreateSourceGit(sourceName, configURL, configBranch, secretStr, namespace)
 	if err != nil {

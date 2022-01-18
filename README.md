@@ -176,3 +176,4 @@ Need help or want to contribute? Please see the links below.
 ## License scan details
 
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=large)](https://app.fossa.com/reports/005da7c4-1f10-4889-9432-8b97c2084e41)
+
