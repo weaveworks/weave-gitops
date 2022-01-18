@@ -372,6 +372,8 @@ github.com/felixge/httpsnoop v1.0.1 h1:lvB5Jl89CsZtGIWuTcDM1E/vkVs49/Ml7JJe07l8S
 github.com/felixge/httpsnoop v1.0.1/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
 github.com/fluxcd/go-git-providers v0.5.2-0.20220111143741-04eef9791373 h1:d2RHYaFZrWQy3KKobyqkwToLxH8kgujnqf8/BGo8cj8=
 github.com/fluxcd/go-git-providers v0.5.2-0.20220111143741-04eef9791373/go.mod h1:4jTHTmSx3rFGnG78KUVgFYeG6vWFnKwUSr2mi31tvp8=
+github.com/fluxcd/go-git-providers v0.5.2 h1:TA+1q6w2KgSugaZ9VXODQcYbtZyn6JH+V7g2MZtzTPA=
+github.com/fluxcd/go-git-providers v0.5.2/go.mod h1:4jTHTmSx3rFGnG78KUVgFYeG6vWFnKwUSr2mi31tvp8=
 github.com/fluxcd/go-git-providers v0.5.3-0.20220117132246-2e907fbf3e15 h1:JYVfAsOcfymUmBNgfCBGlza7/jKPtwi0KBnQHbh6JjM=
 github.com/fluxcd/go-git-providers v0.5.3-0.20220117132246-2e907fbf3e15/go.mod h1:4jTHTmSx3rFGnG78KUVgFYeG6vWFnKwUSr2mi31tvp8=
 github.com/fluxcd/helm-controller/api v0.14.1 h1:aAWaYZxTI68SD1R2SpNJh8+hm9oBeIOa9nW4YX5qYjM=
