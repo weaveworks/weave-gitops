@@ -287,24 +287,6 @@ function AddApplication({ className }: Props) {
                 onChange={(e) => {
                   setFormState({
                     ...formState,
-                    configRepo: e.currentTarget.value,
-                  });
-                }}
-                id="configRepo"
-                label="Config Repo URL"
-                variant="standard"
-                value={formState.configRepo}
-              />
-              <FormHelperText>
-                The git repository URL to which Weave GitOps will write the
-                GitOps Automation files. Defaults to the Source Repo URL.
-              </FormHelperText>
-            </FormElement>
-            <FormElement>
-              <TextField
-                onChange={(e) => {
-                  setFormState({
-                    ...formState,
                     path: e.currentTarget.value,
                   });
                 }}
@@ -335,6 +317,24 @@ function AddApplication({ className }: Props) {
               />
               <FormHelperText>
                 The git branch to use when reading the application YAMLs
+              </FormHelperText>
+            </FormElement>
+            <FormElement>
+              <TextField
+                onChange={(e) => {
+                  setFormState({
+                    ...formState,
+                    configRepo: e.currentTarget.value,
+                  });
+                }}
+                id="configRepo"
+                label="Config Repo URL"
+                variant="standard"
+                value={formState.configRepo}
+              />
+              <FormHelperText>
+                The git repository URL to which Weave GitOps will write the
+                GitOps Automation files. Defaults to the Source Repo URL.
               </FormHelperText>
             </FormElement>
             <FormElement>
