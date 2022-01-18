@@ -49,7 +49,7 @@ const (
 func CreateClusterSourceName(gitSourceURL gitproviders.RepoURL) string {
 	provider := string(gitSourceURL.Provider())
 	cleanRepoName := replaceUnderscores(gitSourceURL.RepositoryName())
-	qualifiedName := fmt.Sprintf("wego-auto-%s-%s", provider, cleanRepoName)
+	qualifiedName := fmt.Sprintf("wego-%s-%s", provider, cleanRepoName)
 	lengthConstrainedName := hashNameIfTooLong(qualifiedName)
 
 	return lengthConstrainedName
