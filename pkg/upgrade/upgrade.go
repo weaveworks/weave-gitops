@@ -265,8 +265,8 @@ func makeHelmResources(namespace, version, clusterName, repoURL string, values [
 func upgradeGitManifests(gitClient git.Git, cname, wegoEnterpriseManifests string, logger logger.Logger) error {
 	capiKeepPath := filepath.Join(git.WegoRoot, git.WegoAppDir, "capi", "templates", ".keep")
 	capiKeepContents := string(strconv.AppendQuote(nil, "# keep"))
-	kustomizationPath := git.GetSystemQualifiedPath(cname, automation.SystemKustomizationPath)
-	wegoAppPath := git.GetSystemQualifiedPath(cname, automation.WegoAppPath)
+	kustomizationPath := git.GetSystemQualifiedPath(cname, models.SystemKustomizationPath)
+	wegoAppPath := git.GetSystemQualifiedPath(cname, models.WegoAppPath)
 	wegoEnterprisePath := git.GetSystemQualifiedPath(cname, WegoEnterpriseName)
 
 	manifests := map[string]string{
@@ -312,7 +312,7 @@ func updateKustomization(gitClient git.Git, kustomizationPath, wegoAppPath, wego
 	newResources := []string{WegoEnterpriseName}
 
 	for _, resource := range k.Resources {
-		if resource != automation.WegoAppPath {
+		if resource != models.WegoAppPath {
 			newResources = append(newResources, resource)
 		}
 	}
