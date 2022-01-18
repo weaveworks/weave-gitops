@@ -143,15 +143,18 @@ managedNodeGroups:
   desiredCapacity: 3
 
 ```
-It took a little less than 2 seconds to get all the info needed to generate the graph. This was with our current implentation using kstatus with no polling or cache. Flux has already solved this issue and have confirmed that it works with clusters of any size. Depending on the decision for the above option we either do it ourselves or use what flux already has.
+It took a little less than 2 seconds to get all the info needed to generate the graph. This was with our current implentation using kstatus with no polling or cache. Flux has already solved this issue and have confirmed that it works with clusters of any size. Depending on the decision for the above option we either do the cache ourselves or use what flux already has.
 
 As for how it works with CLI/UI:
 CLI:
  When `gitops ui run` is used it will get the status for all resources in all clusters and using the kstatus cache it will save the last known status. The user will then be able to navigate the UI getting the status as needed from the cache in the backend.
 
 UI: 
- This will work much like flux currently does. When the get status command is run it will always need to get the status for whatever resources are requested instead of getting it from a cache. Example `gitops get clusters` gets all resources for all clusters and applications. `gitops get apps` gets all resources for all applications.
+ When the get status command is run it will always need to get the status for whatever resources are requested instead of getting it from a cache. Example `gitops get clusters` gets all resources for all clusters and applications. `gitops get apps` gets all resources for all applications.
 
+Another approach would be to implement our own cache inside a status controller that lives on the cluster. The controller will be installed on each cluster and will have its own cache/polling system either implemented with kstatus or written by us. 
+
+My recommendation is to implement our own cacheing/polling system in a controller using kstatus. We will be able to get a list of resources to pass to kstatus. The controller will store the status for all resources on that cluster and at a polling interval with update those status.
 
 
 
