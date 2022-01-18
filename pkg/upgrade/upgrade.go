@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
@@ -22,9 +21,11 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/models"
+	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/kustomize/api/types"
 	"sigs.k8s.io/yaml"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -95,27 +96,42 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 		return fmt.Errorf("failed to normalize URL %q: %w", uv.ConfigRepo, err)
 	}
 
-	// Create pull request
-	path := filepath.Join(git.WegoRoot, git.WegoClusterDir, cname, git.WegoClusterOSWorkloadDir, WegoEnterpriseName)
-	capiKeepPath := filepath.Join(git.WegoRoot, git.WegoAppDir, "capi", "templates", ".keep")
-	capiKeepContents := string(strconv.AppendQuote(nil, "# keep"))
+	configBranch := uv.BaseBranch
+	if configBranch == "" {
+		configBranch, err = gitProvider.GetDefaultBranch(ctx, normalizedURL)
+		if err != nil {
+			return fmt.Errorf("could not determine default branch for config repository: %q %w", uv.ConfigRepo, err)
+		}
+	}
+
+	remover, _, err := gitrepo.CloneRepo(ctx, gitClient, normalizedURL, configBranch)
+	if err != nil {
+		return fmt.Errorf("failed to clone configuration repo: %w", err)
+	}
+
+	defer remover()
+
+	err = gitClient.Checkout(uv.HeadBranch)
+	if err != nil {
+		return fmt.Errorf("failed to create new branch %s: %w", uv.HeadBranch, err)
+	}
+
+	err = upgradeGitManifests(gitClient, cname, stringOut, logger)
+	if err != nil {
+		return fmt.Errorf("failed to write update manifest in clone repo: %w", err)
+	}
+
+	err = gitrepo.CommitAndPush(ctx, gitClient, uv.CommitMessage, logger)
+	if err != nil {
+		return fmt.Errorf("failed to commit and push: %w", err)
+	}
 
 	pri := gitproviders.PullRequestInfo{
-		Title:         "Gitops upgrade",
-		Description:   "Pull request to upgrade to Weave GitOps Enterprise",
-		CommitMessage: uv.CommitMessage,
-		TargetBranch:  uv.BaseBranch,
-		NewBranch:     uv.HeadBranch,
-		Files: []gitprovider.CommitFile{
-			{
-				Path:    &path,
-				Content: &stringOut,
-			},
-			{
-				Path:    &capiKeepPath,
-				Content: &capiKeepContents,
-			},
-		},
+		Title:                     uv.CommitMessage,
+		Description:               "Pull request to upgrade to Weave GitOps Enterprise",
+		SkipAddingFilesOnCreation: true,
+		TargetBranch:              configBranch,
+		NewBranch:                 uv.HeadBranch,
 	}
 
 	pr, err := gitProvider.CreatePullRequest(ctx, normalizedURL, pri)
@@ -123,9 +139,9 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 		return err
 	}
 
-	_, err = w.Write([]byte(fmt.Sprintf("Pull Request created: %s\n", pr.Get().WebURL)))
+	logger.Successf("Pull Request created: %s", pr.Get().WebURL)
 
-	return err
+	return nil
 }
 
 func marshalToYamlStream(objects []runtime.Object) ([]byte, error) {
@@ -149,7 +165,7 @@ func makeAppsCapiKustomization(namespace, repoURL string) ([]runtime.Object, err
 		return nil, fmt.Errorf("failed to normalize URL %q: %w", repoURL, err)
 	}
 
-	gitRepositoryName := models.CreateRepoSecretName(normalizedURL).String()
+	gitRepositoryName := models.CreateClusterSourceName(normalizedURL)
 
 	appsCapiKustomization := &kustomizev2.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
@@ -244,6 +260,66 @@ func makeHelmResources(namespace, version, clusterName, repoURL string, values [
 	}
 
 	return []runtime.Object{helmRepository, helmRelease}, nil
+}
+
+func upgradeGitManifests(gitClient git.Git, cname, wegoEnterpriseManifests string, logger logger.Logger) error {
+	capiKeepPath := filepath.Join(git.WegoRoot, git.WegoAppDir, "capi", "templates", ".keep")
+	capiKeepContents := string(strconv.AppendQuote(nil, "# keep"))
+	kustomizationPath := git.GetSystemQualifiedPath(cname, automation.SystemKustomizationPath)
+	wegoAppPath := git.GetSystemQualifiedPath(cname, automation.WegoAppPath)
+	wegoEnterprisePath := git.GetSystemQualifiedPath(cname, WegoEnterpriseName)
+
+	manifests := map[string]string{
+		wegoEnterprisePath: wegoEnterpriseManifests,
+		capiKeepPath:       capiKeepContents,
+	}
+
+	newKustomizationBytes, err := updateKustomization(gitClient, kustomizationPath, wegoAppPath, wegoEnterprisePath, logger)
+	if err != nil {
+		return fmt.Errorf("Failed to update kustomization: %w", err)
+	}
+
+	if newKustomizationBytes != nil {
+		manifests[kustomizationPath] = string(newKustomizationBytes)
+	}
+
+	for path, content := range manifests {
+		if err := gitClient.Write(path, []byte(content)); err != nil {
+			return fmt.Errorf("failed to write out manifest to %s: %w", path, err)
+		}
+	}
+
+	err = gitClient.Remove(wegoAppPath)
+	if err != nil {
+		logger.Warningf("Failed to remove existing %s deployment, skipping.\n", wegoAppPath)
+	}
+
+	return nil
+}
+
+func updateKustomization(gitClient git.Git, kustomizationPath, wegoAppPath, wegoEnterprisePath string, logger logger.Logger) ([]byte, error) {
+	kustomizationBytes, err := gitClient.Read(kustomizationPath)
+	if err != nil {
+		logger.Warningf("Failed to read existing kustomization, skipping, may be an older weave-gitops installation %s: %w", kustomizationPath, err)
+		return nil, nil
+	}
+
+	var k types.Kustomization
+	if err := yaml.Unmarshal(kustomizationBytes, &k); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal kustomization file %s: %w", kustomizationPath, err)
+	}
+
+	newResources := []string{WegoEnterpriseName}
+
+	for _, resource := range k.Resources {
+		if resource != automation.WegoAppPath {
+			newResources = append(newResources, resource)
+		}
+	}
+
+	k.Resources = newResources
+
+	return yaml.Marshal(&k)
 }
 
 func getBasicAuth(ctx context.Context, kubeClient client.Client, ns string) error {

@@ -116,6 +116,19 @@ type FakeGit struct {
 	pushReturnsOnCall map[int]struct {
 		result1 error
 	}
+	ReadStub        func(string) ([]byte, error)
+	readMutex       sync.RWMutex
+	readArgsForCall []struct {
+		arg1 string
+	}
+	readReturns struct {
+		result1 []byte
+		result2 error
+	}
+	readReturnsOnCall map[int]struct {
+		result1 []byte
+		result2 error
+	}
 	RemoveStub        func(string) error
 	removeMutex       sync.RWMutex
 	removeArgsForCall []struct {
@@ -673,6 +686,70 @@ func (fake *FakeGit) PushReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeGit) Read(arg1 string) ([]byte, error) {
+	fake.readMutex.Lock()
+	ret, specificReturn := fake.readReturnsOnCall[len(fake.readArgsForCall)]
+	fake.readArgsForCall = append(fake.readArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.ReadStub
+	fakeReturns := fake.readReturns
+	fake.recordInvocation("Read", []interface{}{arg1})
+	fake.readMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeGit) ReadCallCount() int {
+	fake.readMutex.RLock()
+	defer fake.readMutex.RUnlock()
+	return len(fake.readArgsForCall)
+}
+
+func (fake *FakeGit) ReadCalls(stub func(string) ([]byte, error)) {
+	fake.readMutex.Lock()
+	defer fake.readMutex.Unlock()
+	fake.ReadStub = stub
+}
+
+func (fake *FakeGit) ReadArgsForCall(i int) string {
+	fake.readMutex.RLock()
+	defer fake.readMutex.RUnlock()
+	argsForCall := fake.readArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeGit) ReadReturns(result1 []byte, result2 error) {
+	fake.readMutex.Lock()
+	defer fake.readMutex.Unlock()
+	fake.ReadStub = nil
+	fake.readReturns = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGit) ReadReturnsOnCall(i int, result1 []byte, result2 error) {
+	fake.readMutex.Lock()
+	defer fake.readMutex.Unlock()
+	fake.ReadStub = nil
+	if fake.readReturnsOnCall == nil {
+		fake.readReturnsOnCall = make(map[int]struct {
+			result1 []byte
+			result2 error
+		})
+	}
+	fake.readReturnsOnCall[i] = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeGit) Remove(arg1 string) error {
 	fake.removeMutex.Lock()
 	ret, specificReturn := fake.removeReturnsOnCall[len(fake.removeArgsForCall)]
@@ -939,6 +1016,8 @@ func (fake *FakeGit) Invocations() map[string][][]interface{} {
 	defer fake.openMutex.RUnlock()
 	fake.pushMutex.RLock()
 	defer fake.pushMutex.RUnlock()
+	fake.readMutex.RLock()
+	defer fake.readMutex.RUnlock()
 	fake.removeMutex.RLock()
 	defer fake.removeMutex.RUnlock()
 	fake.statusMutex.RLock()

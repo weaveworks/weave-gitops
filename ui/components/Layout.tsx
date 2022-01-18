@@ -45,15 +45,14 @@ const AppContainer = styled.div`
 
 const NavContainer = styled.div`
   width: 240px;
-  background-color: ${(props) => props.theme.colors.white};
-  padding-top: ${(props) => props.theme.spacing.medium};
+  min-height: 100%;
+  margin-top: ${(props) => props.theme.spacing.medium};
   padding-right: ${(props) => props.theme.spacing.small};
-  background-color: ${negativeSpaceColor};
+  background-color: ${(props) => props.theme.colors.white};
 `;
 
 const NavContent = styled.div`
-  background-color: white;
-  height: 100vh;
+  min-height: 100%;
   padding-top: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.xs};
   padding-right: ${(props) => props.theme.spacing.xl};
@@ -73,12 +72,15 @@ const NavContent = styled.div`
 
 const ContentContainer = styled.div`
   width: 100%;
+  min-height: 100vh;
   padding-top: ${(props) => props.theme.spacing.medium};
   padding-bottom: ${(props) => props.theme.spacing.medium};
   padding-right: ${(props) => props.theme.spacing.medium};
+  padding-left: ${(props) => props.theme.spacing.medium};
 `;
 
 const Main = styled(Flex)`
+  height: 100%;
   flex: 1 1 auto;
 `;
 

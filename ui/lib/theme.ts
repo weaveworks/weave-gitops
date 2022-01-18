@@ -21,12 +21,16 @@ export const theme: DefaultTheme = {
     black: "#1a1a1a",
     white: "#fff",
     primary: "#00b3ec",
+    primaryLight: "#98E0F7",
     primaryDark: "#009CCC",
     success: "#27AE60",
     alert: "#BC381D",
+    neutral00: "#ffffff",
+    neutral10: "#f5f5f5",
     neutral20: "#d8d8d8",
     neutral30: "#737373",
     neutral40: "#1a1a1a",
+    feedbackLight: "#FCE6D2",
   },
   spacing: {
     // 16px
@@ -46,6 +50,15 @@ export const theme: DefaultTheme = {
     xxl: `${baseSpacingNumber * 4}px`,
     // 4px
     xxs: `${baseSpacingNumber * 0.25}px`,
+  },
+  borderRadius: {
+    circle: "50%",
+    none: "0",
+    soft: "2px",
+  },
+  boxShadow: {
+    light: "0 1px 3px #f5f5f5, 0 1px 2px #d8d8d8",
+    none: "none",
   },
 };
 
