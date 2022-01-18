@@ -55,7 +55,7 @@ func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, auto
 	}
 
 	if _, err = i.fluxClient.Install(namespace, false); err != nil {
-		return fmt.Errorf("failed intalling flux: %w", err)
+		return fmt.Errorf("failed installing flux: %w", err)
 	}
 
 	manifests, err := models.BootstrapManifests(i.fluxClient, clusterName, namespace, configURL)

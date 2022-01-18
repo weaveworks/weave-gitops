@@ -62,8 +62,6 @@ var _ = Describe("Installer", func() {
 		installer = NewInstaller(fakeFluxClient, fakeKubeClient, fakeGitClient, fakeGitProvider, log, repoWriter)
 	})
 
-	// Should I include more specific error messages matches
-	// Or maybe create a template of the errors and reuse it here
 	Context("error paths", func() {
 		someError := errors.New("some error")
 
@@ -71,7 +69,7 @@ var _ = Describe("Installer", func() {
 			fakeKubeClient.GetClusterStatusReturns(kube.Unknown)
 
 			err := installer.Install(testNamespace, configRepo, true)
-			Expect(err).Should(HaveOccurred())
+			Expect(err).Should(MatchError("failed validating wego installation: Weave GitOps cannot talk to the cluster"))
 		})
 
 		It("should fail getting cluster name", func() {
@@ -83,7 +81,7 @@ var _ = Describe("Installer", func() {
 			fakeKubeClient.GetClusterNameReturns("", someError)
 
 			err := installer.Install(testNamespace, configRepo, true)
-			Expect(err.Error()).Should(ContainSubstring(someError.Error()))
+			Expect(err).Should(MatchError(fmt.Sprintf("failed getting cluster name: %s", someError)))
 		})
 
 		It("should fail installing flux", func() {
@@ -97,7 +95,7 @@ var _ = Describe("Installer", func() {
 			fakeFluxClient.InstallReturns(nil, someError)
 
 			err := installer.Install(testNamespace, configRepo, true)
-			Expect(err.Error()).Should(ContainSubstring(someError.Error()))
+			Expect(err).Should(MatchError(fmt.Sprintf("failed installing flux: %s", someError)))
 		})
 
 		It("should fail getting bootstrap manifests", func() {
@@ -112,7 +110,7 @@ var _ = Describe("Installer", func() {
 			fakeFluxClient.InstallReturnsOnCall(1, nil, someError)
 
 			err := installer.Install(testNamespace, configRepo, true)
-			Expect(err.Error()).Should(ContainSubstring(someError.Error()))
+			Expect(err).Should(MatchError(fmt.Sprintf("failed getting bootstrap manifests: failed getting runtime manifests: %s", someError)))
 		})
 
 		It("should fail getting default branch", func() {
@@ -129,7 +127,7 @@ var _ = Describe("Installer", func() {
 			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "", someError)
 
 			err := installer.Install(testNamespace, configRepo, true)
-			Expect(err.Error()).Should(ContainSubstring(someError.Error()))
+			Expect(err).Should(MatchError(fmt.Sprintf("failed getting default branch: %s", someError)))
 		})
 
 		It("should fail getting config repo git source", func() {
@@ -148,7 +146,7 @@ var _ = Describe("Installer", func() {
 			fakeGitProvider.GetRepoVisibilityReturns(nil, someError)
 
 			err := installer.Install(testNamespace, configRepo, true)
-			Expect(err.Error()).Should(ContainSubstring(someError.Error()))
+			Expect(err).Should(MatchError(fmt.Sprintf("failed getting git source: failed getting ref secret: %s", someError)))
 		})
 
 		It("should fail applying bootstrap manifests", func() {
@@ -170,7 +168,7 @@ var _ = Describe("Installer", func() {
 			fakeKubeClient.ApplyReturns(someError)
 
 			err := installer.Install(testNamespace, configRepo, true)
-			Expect(err.Error()).Should(ContainSubstring(someError.Error()))
+			Expect(err).Should(MatchError(fmt.Sprintf("error applying manifest .weave-gitops/clusters/test-cluster/system/wego-system.yaml: %s", someError)))
 		})
 
 		It("should fail getting gitops manifests", func() {
@@ -194,7 +192,7 @@ var _ = Describe("Installer", func() {
 			fakeFluxClient.InstallReturnsOnCall(2, nil, someError)
 
 			err := installer.Install(testNamespace, configRepo, true)
-			Expect(err.Error()).Should(ContainSubstring(someError.Error()))
+			Expect(err).Should(MatchError(fmt.Sprintf("failed generating gitops manifests: failed getting runtime manifests: %s", someError)))
 		})
 
 		It("should fail writing directly to branch", func() {
@@ -220,7 +218,7 @@ var _ = Describe("Installer", func() {
 			fakeGitClient.CloneReturns(false, someError)
 
 			err := installer.Install(testNamespace, configRepo, true)
-			Expect(err.Error()).Should(ContainSubstring(someError.Error()))
+			Expect(err).Should(MatchError(fmt.Sprintf("failed writting to default branch failed to clone repo: failed cloning user repo: ssh://git@github.com/test-user/test-repo.git: %s", someError)))
 		})
 
 		It("should fail creating a pull requests", func() {
@@ -246,7 +244,7 @@ var _ = Describe("Installer", func() {
 			fakeGitProvider.CreatePullRequestReturns(nil, someError)
 
 			err := installer.Install(testNamespace, configRepo, false)
-			Expect(err.Error()).Should(ContainSubstring(someError.Error()))
+			Expect(err).Should(MatchError(fmt.Sprintf("failed creating pull request: %s", someError)))
 		})
 	})
 	Context("success path", func() {
