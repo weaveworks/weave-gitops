@@ -46,6 +46,8 @@ const (
 	WegoConfigMapName = "weave-gitops-config"
 )
 
+// The cluster source name and the app source name need to remain distinct to prevent https://github.com/weaveworks/weave-gitops/issues/1075 from coming back.
+// (hence the `-auto-` addition)
 func CreateClusterSourceName(gitSourceURL gitproviders.RepoURL) string {
 	provider := string(gitSourceURL.Provider())
 	cleanRepoName := replaceUnderscores(gitSourceURL.RepositoryName())
