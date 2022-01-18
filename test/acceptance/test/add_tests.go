@@ -12,8 +12,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/weaveworks/weave-gitops/pkg/services/check"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -74,7 +72,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And gitops check pre kubernetes version is compatible and flux is not installed", func() {
-			output, _ := runCommandAndReturnStringOutput(gitopsBinaryPath + "check --pre")
+			output, _ := runCommandAndReturnStringOutput(gitopsBinaryPath + " check --pre")
 			Expect(output).To(ContainSubstring("✔ Flux is not installed"))
 		})
 
@@ -199,19 +197,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And gitops check pre validates kubernetes and flux are compatible", func() {
-			c := exec.Command(gitopsBinaryPath, "check", "--pre")
-			actualOutput, err := c.CombinedOutput()
-			Expect(err).NotTo(HaveOccurred())
-			fluxVersion, err := getCurrentFluxSupportedVersion()
-			Expect(err).ShouldNot(HaveOccurred())
-			expectedOutput := fmt.Sprintf(`✔ Kubernetes %s >=[0-9]+.[0-9]+\.[0-9]+-[0-9]+
-✔ Flux %s ~=%s
-%s
-`,
-				getK8sVersion(),
-				fluxVersion, fluxVersion,
-				check.FluxCompatibleMessage)
-			Expect(string(actualOutput)).To(MatchRegexp(expectedOutput))
+			output, _ := runCommandAndReturnStringOutput(gitopsBinaryPath + " check --pre")
+			Expect(output).To(ContainSubstring("✔ Flux is not installed"))
 		})
 
 		By("And I run gitops add command", func() {
