@@ -17,7 +17,12 @@ function Link({ children, href, className, to = "", newTab, ...props }: Props) {
 
   if (href) {
     return (
-      <a className={className} href={href} target={newTab ? "_blank" : ""}>
+      <a
+        className={className}
+        href={href}
+        target={newTab ? "_blank" : ""}
+        rel="noreferrer"
+      >
         {txt}
       </a>
     );
