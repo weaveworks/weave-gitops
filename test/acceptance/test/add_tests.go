@@ -74,14 +74,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And gitops check pre kubernetes version is compatible and flux is not installed", func() {
-			c := exec.Command(gitopsBinaryPath, "check", "--pre")
-			output, err := c.CombinedOutput()
-			Expect(err).NotTo(HaveOccurred())
-			expectedOutput := fmt.Sprintf(`✔ Kubernetes %s >=[0-9]+.[0-9]+\.[0-9]+-[0-9]+
-✔ Flux is not installed
-`,
-				getK8sVersion())
-			Expect(string(output)).To(MatchRegexp(expectedOutput))
+			output, _ := runCommandAndReturnStringOutput(gitopsBinaryPath + "check --pre")
+			Expect(output).To(ContainSubstring("✔ Flux is not installed"))
 		})
 
 		By("And I run gitops add command", func() {
@@ -1196,7 +1190,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitProvider, private, githubOrg)
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 
@@ -1679,7 +1673,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	It("Verify that a PR fails when raised against the same app-repo with different branch and app", func() {
+	It("SmokeTestLong - Verify that a PR fails when raised against the same app-repo with different branch and app", func() {
 		var repoAbsolutePath string
 		tip := generateTestInputs()
 		tip2 := generateTestInputs()
@@ -1720,7 +1714,11 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("And I should fail to create a PR with the same app repo consecutively", func() {
 			_, addCommandErr := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand2, WEGO_DEFAULT_NAMESPACE)
-			Expect(addCommandErr).Should(ContainSubstring("422 Reference already exists"))
+			if os.Getenv("GIT_PROVIDER") == "gitlab" {
+				Expect(addCommandErr).Should(ContainSubstring("400 {message: Branch already exists}"))
+			} else {
+				Expect(addCommandErr).Should(ContainSubstring("422 Reference already exists"))
+			}
 		})
 
 		By("When I merge the previous PR", func() {
