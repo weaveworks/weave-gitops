@@ -10,8 +10,7 @@ cd "${SCRIPT_DIR}" || exit 1
 . "${SCRIPT_DIR}/functions.sh"
 
 DEP_FILE=${1}
-TAG=${2:-$(${SCRIPT_DIR}/image-tag)}
-BIN_DIR=${3:-${SCRIPT_DIR}/bin}
+BIN_DIR=${2:-${SCRIPT_DIR}/bin}
 RELEASE_GOOS=${RELEASE_GOOS:-$(go env GOOS)}
 SKIP_FETCH_TOOLS=${SKIP_FETCH_TOOLS:-""}
 
