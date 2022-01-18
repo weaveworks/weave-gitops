@@ -97,7 +97,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		}
 
 		for _, manifest := range manifests {
-			fmt.Println(manifest.Content)
+			fmt.Println(string(manifest.Content))
 		}
 
 		return nil
