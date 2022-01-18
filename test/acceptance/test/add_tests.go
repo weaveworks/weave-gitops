@@ -1179,7 +1179,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	It("Verify that gitops can deploy a helm app from a git repo with config-repo set to default", func() {
+	It("SmokeTestLong Verify that gitops can deploy a helm app from a git repo with config-repo set to default", func() {
 		var repoAbsolutePath string
 		private := true
 		appName := "my-helm-app"
@@ -1215,8 +1215,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repo created has public visibility", func() {
-			if os.Getenv("GIT_PROVIDER") == "github" {
-				Eventually(getGitRepoVisibility(gitOrg, appRepoName, gitProvider)).Should(ContainSubstring("private"))
+			if os.Getenv("GIT_PROVIDER") == "" || os.Getenv("GIT_PROVIDER") == "github" {
+				Eventually(getGitRepoVisibility(gitOrg, appRepoName, gitProvider)).Should(ContainSubstring("public"))
 			}
 		})
 	})
