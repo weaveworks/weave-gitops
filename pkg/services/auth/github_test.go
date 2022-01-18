@@ -119,7 +119,7 @@ var _ = Describe("Github Device Flow", func() {
 		It("returns a token after a slow_down", func() {
 			rt := newMockRoundTripper(1, token)
 			client.Transport = &testServerTransport{testServeUrl: ts.URL, roundTripper: rt}
-			interval := 5 * time.Second
+			interval := 4 * time.Second
 			c := clock.NewMock()
 
 			var resultToken string
