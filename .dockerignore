@@ -1,2 +1,8 @@
 node_modules
 .parcel-cache
+.deps
+.git
+dist
+bin
+pkg/flux/bin/flux
+cmd/gitops/ui/run/dist
