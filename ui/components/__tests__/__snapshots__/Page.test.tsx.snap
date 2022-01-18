@@ -49,6 +49,7 @@ exports[`Page snapshots default 1`] = `
 }
 
 .c1 {
+  min-height: 80vh;
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
@@ -79,6 +80,7 @@ exports[`Page snapshots default 1`] = `
 
 .c2 h2 {
   margin: 0 !important;
+  color: #1a1a1a !important;
 }
 
 .c0 .MuiAlert-root {

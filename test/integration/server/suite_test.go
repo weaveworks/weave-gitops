@@ -11,10 +11,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-
-	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
-
 	"github.com/go-logr/zapr"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -93,16 +89,17 @@ var _ = BeforeSuite(func() {
 	factory := services.NewServerFactory(fluxClient, &loggerfakes.FakeLogger{}, env.Rest, clusterName)
 	Expect(err).NotTo(HaveOccurred())
 
-	_, k, err := kube.NewKubeHTTPClientWithConfig(env.Rest, clusterName)
-	Expect(err).NotTo(HaveOccurred())
-
 	cfg := &server.ApplicationsConfig{
 		Factory:          factory,
 		Logger:           zapr.NewLogger(zap.NewNop()),
 		JwtClient:        auth.NewJwtClient("somekey"),
 		GithubAuthClient: auth.NewGithubAuthClient(http.DefaultClient),
 		KubeClient:       env.Client,
-		Fetcher:          applicationv2.NewFetcher(k),
+		FetcherFactory:   server.NewDefaultFetcherFactory(),
+		ClusterConfig: server.ClusterConfig{
+			DefaultConfig: env.Rest,
+			ClusterName:   clusterName,
+		},
 	}
 
 	s = grpc.NewServer()

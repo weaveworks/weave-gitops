@@ -1036,14 +1036,14 @@ var _ = Describe("ApplicationsServer", func() {
 				fakeFactory := &servicesfakes.FakeFactory{}
 
 				cfg := ApplicationsConfig{
-					Logger:     log,
-					KubeClient: k8s,
-					JwtClient:  auth.NewJwtClient(secretKey),
-					Fetcher:    applicationv2.NewFetcher(k8s),
-					Factory:    fakeFactory,
+					Logger:         log,
+					KubeClient:     k8s,
+					JwtClient:      auth.NewJwtClient(secretKey),
+					FetcherFactory: NewFakeFetcherFactory(applicationv2.NewFetcher(k8s)),
+					Factory:        fakeFactory,
 				}
 
-				appsSrv = NewApplicationsServer(&cfg)
+				appsSrv = NewApplicationsServer(&cfg, WithClientGetter(NewFakeClientGetter(k8s)))
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
@@ -1077,11 +1077,12 @@ var _ = Describe("ApplicationsServer", func() {
 				fakeFetcher.ListReturns([]models.Application{}, errors.New(errMsg))
 
 				cfg := ApplicationsConfig{
-					Logger:  log,
-					Fetcher: fakeFetcher,
+					Logger:         log,
+					FetcherFactory: NewFakeFetcherFactory(fakeFetcher),
 				}
 
-				appSrv := NewApplicationsServer(&cfg)
+				k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
+				appSrv := NewApplicationsServer(&cfg, WithClientGetter(NewFakeClientGetter(k8s)))
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appSrv)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -1207,13 +1208,17 @@ var _ = Describe("Applications handler", func() {
 		}
 
 		cfg := ApplicationsConfig{
-			Logger:     log,
-			KubeClient: k8s,
-			Fetcher:    applicationv2.NewFetcher(k8s),
-			Factory:    factory,
+			Logger:         log,
+			KubeClient:     k8s,
+			FetcherFactory: NewFakeFetcherFactory(applicationv2.NewFetcher(k8s)),
+			Factory:        factory,
+			ClusterConfig:  ClusterConfig{},
 		}
 
-		handler, err := NewHandlers(context.Background(), &Config{AppConfig: &cfg})
+		handler, err := NewHandlers(context.Background(), &Config{
+			AppConfig:  &cfg,
+			AppOptions: []ApplicationsOption{WithClientGetter(NewFakeClientGetter(k8s))},
+		})
 		Expect(err).NotTo(HaveOccurred())
 
 		ts := httptest.NewServer(handler)
@@ -1309,4 +1314,32 @@ func makeDirEntries(paths map[string]bool) []os.DirEntry {
 	}
 
 	return results
+}
+
+type FakeFetcherFactory struct {
+	fake applicationv2.Fetcher
+}
+
+func NewFakeFetcherFactory(fake applicationv2.Fetcher) FetcherFactory {
+	return &FakeFetcherFactory{
+		fake: fake,
+	}
+}
+
+func (f *FakeFetcherFactory) Create(client client.Client) applicationv2.Fetcher {
+	return f.fake
+}
+
+type FakeClientGetter struct {
+	client client.Client
+}
+
+func NewFakeClientGetter(client client.Client) ClientGetter {
+	return &FakeClientGetter{
+		client: client,
+	}
+}
+
+func (g *FakeClientGetter) Client(ctx context.Context) (client.Client, error) {
+	return g.client, nil
 }

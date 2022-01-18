@@ -14,13 +14,14 @@ import LoadingPage from "./LoadingPage";
 export type PageProps = {
   className?: string;
   children?: any;
-  title?: string;
+  title?: string | JSX.Element;
   breadcrumbs?: { page: PageRoute; query?: any }[];
   topRight?: JSX.Element;
   loading?: boolean;
 };
 
-const Content = styled.div`
+export const Content = styled.div`
+  min-height: 80vh;
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
@@ -41,6 +42,7 @@ export const TitleBar = styled.div`
 
   h2 {
     margin: 0 !important;
+    color: ${(props) => props.theme.colors.neutral40} !important;
   }
 `;
 

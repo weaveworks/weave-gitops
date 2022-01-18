@@ -424,7 +424,7 @@ var _ = Describe("Generate cluster manifests", func() {
 		configBranch, err := gitProviders.GetDefaultBranch(ctx, url)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		sourceName := createClusterSourceName(url)
+		sourceName := CreateClusterSourceName(url)
 		sourceManifest, err := realFlux.CreateSourceGit(sourceName, url, configBranch, secretStr, namespace)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(clusterAutomation.SourceManifest.Content).To(Equal(sourceManifest))
