@@ -1453,11 +1453,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have public visibility", func() {
-			if os.Getenv("GIT_PROVIDER") != "gitlab" {
 				Expect(getGitRepoVisibility(gitlabPublicGroup, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("public"))
-			}
 		})
-
 	})
 
 	It("@gitlabTests Test3 - Verify that gitops can deploy and remove a gitlab app in a subgroup", func() {
@@ -1513,9 +1510,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have private visibility", func() {
-			if os.Getenv("GIT_PROVIDER") != "gitlab" {
 				Expect(getGitRepoVisibility(subGroup, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("private"))
-			}
 		})
 
 		By("When I remove an app", func() {
