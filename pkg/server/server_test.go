@@ -1037,7 +1037,6 @@ var _ = Describe("ApplicationsServer", func() {
 
 				cfg := ApplicationsConfig{
 					Logger:         log,
-					KubeClient:     k8s,
 					JwtClient:      auth.NewJwtClient(secretKey),
 					FetcherFactory: NewFakeFetcherFactory(applicationv2.NewFetcher(k8s)),
 					Factory:        fakeFactory,
@@ -1209,7 +1208,6 @@ var _ = Describe("Applications handler", func() {
 
 		cfg := ApplicationsConfig{
 			Logger:         log,
-			KubeClient:     k8s,
 			FetcherFactory: NewFakeFetcherFactory(applicationv2.NewFetcher(k8s)),
 			Factory:        factory,
 			ClusterConfig:  ClusterConfig{},
