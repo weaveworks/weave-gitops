@@ -9,6 +9,10 @@ import {
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
+import Button from "./Button";
+import Flex from "./Flex";
+import Icon, { IconType } from "./Icon";
+import Spacer from "./Spacer";
 import Text from "./Text";
 
 /** DataTable Properties  */
@@ -24,8 +28,6 @@ export interface Props {
   rows: any[];
   /** A list of strings representing the sortable columns of the table, passed into lodash's `_.sortBy`. */
   sortFields: string[];
-  /** Indicates whether to reverse the sorted array. */
-  reverseSort?: boolean;
   /** an optional list of string widths for each field/column. */
   widths?: string[];
 }
@@ -43,13 +45,58 @@ function UnstyledDataTable({
   fields,
   rows,
   sortFields,
-  reverseSort,
   widths,
 }: Props) {
-  const sorted = _.sortBy(rows, sortFields);
+  const [sort, setSort] = React.useState(sortFields[0]);
+  const [reverseSort, setReverseSort] = React.useState(false);
+  const sorted = _.sortBy(rows, sort);
 
   if (reverseSort) {
     sorted.reverse();
+  }
+
+  const TableButton = styled(Button)`
+    &.MuiButton-root {
+      padding: 5px;
+      text-transform: none;
+    }
+    p {
+      margin: 0px;
+    }
+    &.MuiButton-text {
+      color: ${(props) => props.theme.colors.neutral40}
+      min-width: 0px;
+    }
+    &.arrow {
+      min-width: 0px;
+    }
+  `;
+
+  type labelProps = { label: string };
+  function SortableLabel({ label }: labelProps) {
+    return (
+      <Flex align start>
+        <TableButton
+          color="inherit"
+          onClick={() => {
+            setReverseSort(sort === label.toLowerCase() ? !reverseSort : false);
+            setSort(label.toLowerCase());
+          }}
+        >
+          <p>{label}</p>
+        </TableButton>
+        <Spacer padding="xxs" />
+        {sort === label.toLowerCase() ? (
+          <Icon
+            type={IconType.ArrowUpwardIcon}
+            size="base"
+            className={reverseSort ? "upward" : "downward"}
+          />
+        ) : (
+          <div style={{ width: "16px" }} />
+        )}
+      </Flex>
+    );
   }
 
   const r = _.map(sorted, (r, i) => (
@@ -70,7 +117,11 @@ function UnstyledDataTable({
             <TableRow>
               {_.map(fields, (f, i) => (
                 <TableCell style={widths && { width: widths[i] }} key={f.label}>
-                  {f.label}
+                  {sortFields.includes(f.label.toLowerCase()) ? (
+                    <SortableLabel label={f.label} />
+                  ) : (
+                    f.label
+                  )}
                 </TableCell>
               ))}
             </TableRow>
@@ -81,7 +132,7 @@ function UnstyledDataTable({
             ) : (
               <EmptyRow colSpan={fields.length}>
                 <TableCell colSpan={fields.length}>
-                  <span style={{ fontStyle: "italic" }}>No rows</span>
+                  <span style={{ fontStyle: "italic" }}>No Applications</span>
                 </TableCell>
               </EmptyRow>
             )}
