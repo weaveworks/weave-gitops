@@ -406,7 +406,7 @@ var _ = Describe("Installer", func() {
 			wegoConfigManifest, err := yaml.Marshal(gitopsConfigMap)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			systemKustomization := models.CreateKustomization(clusterName, testNamespace, models.RuntimePath, models.SourcePath, models.SystemKustResourcePath, models.UserKustResourcePath)
+			systemKustomization := models.CreateKustomization(clusterName, testNamespace, models.RuntimePath, models.SourcePath, models.SystemKustResourcePath, models.UserKustResourcePath, models.WegoAppPath)
 
 			systemKustomizationManifest, err := yaml.Marshal(systemKustomization)
 			Expect(err).ShouldNot(HaveOccurred())
