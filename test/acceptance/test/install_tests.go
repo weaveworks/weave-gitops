@@ -306,7 +306,7 @@ Global Flags:
 		})
 
 		By("Then I should see install dry-run output in the console", func() {
-			Expect(installDryRunOutput).Should(ContainSubstring("# Flux version: "))
+			Expect(installDryRunOutput).Should(ContainSubstring("# Flux Version: "))
 			Expect(installDryRunOutput).Should(ContainSubstring("# Components: source-controller,kustomize-controller,helm-controller,notification-controller,image-reflector-controller,image-automation-controller"))
 			Expect(installDryRunOutput).Should(ContainSubstring("name: " + WEGO_DEFAULT_NAMESPACE))
 		})

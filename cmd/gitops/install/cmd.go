@@ -83,14 +83,12 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
-	// get cluster name here instead
 	clusterName, err := kubeClient.GetClusterName(ctx)
 	if err != nil {
 		return err
 	}
 
 	if installParams.DryRun {
-		// Should we include the manifest that needs the secret ref in dry run?
 		manifests, err := models.BootstrapManifests(fluxClient, clusterName, namespace, configURL)
 		if err != nil {
 			return fmt.Errorf("failed getting gitops manifests: %w", err)
@@ -108,7 +106,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 
 	factory := services.NewFactory(fluxClient, log)
 
-	// We need this here otherwise GetGitClients is going to fail
+	// We temporarily need this here otherwise GetGitClients is going to fail
 	// as it needs the namespace created to apply the secret
 	namespaceObj := &corev1.Namespace{}
 	namespaceObj.Name = namespace
@@ -120,7 +118,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	// This is creating the secret, uploads it and applies it to the cluster
-	// This is going to be broken down to reduce complexity
+	// This is going to be broken up to reduce complexity
 	// and then generates the source yaml of the config repo when using dry-run option
 	gitClient, gitProvider, err := factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
 		URL:       installParams.ConfigRepo,
