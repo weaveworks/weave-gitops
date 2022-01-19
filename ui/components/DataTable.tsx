@@ -134,7 +134,7 @@ function UnstyledDataTable({
             ) : (
               <EmptyRow colSpan={fields.length}>
                 <TableCell colSpan={fields.length}>
-                  <span style={{ fontStyle: "italic" }}>No Applications</span>
+                  <span style={{ fontStyle: "italic" }}>No rows</span>
                 </TableCell>
               </EmptyRow>
             )}
