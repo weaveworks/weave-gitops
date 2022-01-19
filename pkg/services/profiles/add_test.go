@@ -1,48 +1,70 @@
-package profile_test
+package profiles_test
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	"github.com/weaveworks/weave-gitops/pkg/services/profile"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
+	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
+	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
+	"k8s.io/client-go/kubernetes/fake"
+	restclient "k8s.io/client-go/rest"
+	"k8s.io/client-go/testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-var addParams profile.AddParams
+var addOptions profiles.AddOptions
 
 var _ = Describe("Add Profile", func() {
+	var (
+		gitProviders *gitprovidersfakes.FakeGitProvider
+		profilesSvc  *profiles.ProfilesSvc
+		clientSet    *fake.Clientset
+		fakeLogger   *loggerfakes.FakeLogger
+	)
+
 	BeforeEach(func() {
-		addParams = profile.AddParams{
+		gitProviders = &gitprovidersfakes.FakeGitProvider{}
+		clientSet = fake.NewSimpleClientset()
+		fakeLogger = &loggerfakes.FakeLogger{}
+		profilesSvc = profiles.NewService(clientSet)
+
+		addOptions = profiles.AddOptions{
 			ConfigRepo: "ssh://git@github.com/owner/config-repo.git",
 			Name:       "foo",
 			Cluster:    "prod",
+			Logger:     fakeLogger,
 		}
 	})
 
 	It("adds a profile", func() {
 		gitProviders.RepositoryExistsReturns(true, nil)
 		gitProviders.GetRepoFilesReturns(makeTestFiles(), nil)
-		Expect(profileSvc.Add(gitProviders, addParams)).Should(Succeed())
+		clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
+			return true, newFakeResponseWrapper(getProfilesResp), nil
+		})
+		Expect(profilesSvc.Add(context.TODO(), gitProviders, addOptions)).Should(Succeed())
 		Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
 	})
 
 	It("fails if the config repo does not exist", func() {
 		gitProviders.RepositoryExistsReturns(false, nil)
-		err := profileSvc.Add(gitProviders, addParams)
+		err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
 		Expect(err).NotTo(BeNil())
 		Expect(err).To(MatchError("repository 'ssh://git@github.com/owner/config-repo.git' could not be found"))
 	})
 
 	It("fails if the --config-repo url format is wrong", func() {
-		addParams = profile.AddParams{
+		addOptions = profiles.AddOptions{
 			Name:       "foo",
 			ConfigRepo: "{http:/-*wrong-url-827",
 			Cluster:    "prod",
 		}
 
-		err := profileSvc.Add(gitProviders, addParams)
+		err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
 		Expect(err).NotTo(BeNil())
 		Expect(err).To(MatchError("could not get provider name from URL {http:/-*wrong-url-827: could not parse git repo url \"{http:/-*wrong-url-827\": parse \"{http:/-*wrong-url-827\": first path segment in URL cannot contain colon"))
 	})
@@ -50,40 +72,52 @@ var _ = Describe("Add Profile", func() {
 	It("fails if the config repo's filesystem could not be fetched", func() {
 		gitProviders.RepositoryExistsReturns(true, nil)
 		gitProviders.GetRepoFilesReturns(nil, fmt.Errorf("err"))
-		err := profileSvc.Add(gitProviders, addParams)
+		err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
 		Expect(err).NotTo(BeNil())
 		Expect(err).To(MatchError("failed to get files in '.weave-gitops/clusters/prod/system' for config repository 'ssh://git@github.com/owner/config-repo.git': err"))
 	})
+
+	It("fails if it's unable to get the available profiles from the cluster", func() {
+		gitProviders.RepositoryExistsReturns(true, nil)
+		gitProviders.GetRepoFilesReturns(makeTestFiles(), nil)
+		clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
+			return true, newFakeResponseWrapperWithErr("nope"), nil
+		})
+		err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
+		Expect(err).NotTo(BeNil())
+		Expect(err).To(MatchError("failed to make GET request to service /wego-app path \"/v1/profiles\": nope"))
+	})
+	// It("fails if none of the HelmRepository objects match the params for the Profile to be added", func() {})
 })
 
 var _ = Describe("ValidateAddParams", func() {
 	It("fails if --config-repo is not provided", func() {
-		_, err := profileSvc.ValidateAddParams(profile.AddParams{})
+		_, err := profiles.ValidateAddOptions(profiles.AddOptions{})
 		Expect(err).NotTo(BeNil())
 		Expect(err).To(MatchError("--config-repo should be provided"))
 	})
 
 	When("--name is specified", func() {
 		It("fails if --name value is <= 63 characters in length", func() {
-			addParams = profile.AddParams{
+			addOptions = profiles.AddOptions{
 				Name:       "a234567890123456789012345678901234567890123456789012345678901234",
 				ConfigRepo: "ssh://git@github.com/owner/config-repo.git",
 				Cluster:    "prod",
 			}
 
-			_, err := profileSvc.ValidateAddParams(addParams)
+			_, err := profiles.ValidateAddOptions(addOptions)
 			Expect(err).NotTo(BeNil())
 			Expect(err).To(MatchError("--name value is too long: a234567890123456789012345678901234567890123456789012345678901234; must be <= 63 characters"))
 		})
 
 		It("fails if --name is prefixed by 'wego'", func() {
-			addParams = profile.AddParams{
+			addOptions = profiles.AddOptions{
 				Name:       "wego-app",
 				ConfigRepo: "ssh://git@github.com/owner/config-repo.git",
 				Cluster:    "prod",
 			}
 
-			_, err := profileSvc.ValidateAddParams(addParams)
+			_, err := profiles.ValidateAddOptions(addOptions)
 			Expect(err).NotTo(BeNil())
 			Expect(err).To(MatchError("the prefix 'wego' is used by weave gitops and is not allowed for a profile name"))
 		})
@@ -91,11 +125,11 @@ var _ = Describe("ValidateAddParams", func() {
 
 	When("--name is not specified", func() {
 		It("fails", func() {
-			addParams = profile.AddParams{
+			addOptions = profiles.AddOptions{
 				ConfigRepo: "ssh://git@github.com/owner/config-repo.git",
 			}
 
-			_, err := profileSvc.ValidateAddParams(addParams)
+			_, err := profiles.ValidateAddOptions(addOptions)
 			Expect(err).NotTo(BeNil())
 			Expect(err).To(MatchError("--name should be provided"))
 		})
@@ -103,12 +137,12 @@ var _ = Describe("ValidateAddParams", func() {
 
 	When("--cluster is not specified", func() {
 		It("fails", func() {
-			addParams = profile.AddParams{
+			addOptions = profiles.AddOptions{
 				ConfigRepo: "ssh://git@github.com/owner/config-repo.git",
 				Name:       "test",
 			}
 
-			_, err := profileSvc.ValidateAddParams(addParams)
+			_, err := profiles.ValidateAddOptions(addOptions)
 			Expect(err).NotTo(BeNil())
 			Expect(err).To(MatchError("--cluster should be provided"))
 		})

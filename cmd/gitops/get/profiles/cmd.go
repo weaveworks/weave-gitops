@@ -33,7 +33,7 @@ gitops get profiles
 }
 
 func init() {
-	Cmd.Flags().StringVar(&port, "port", server.DefaultPort, "port the profiles API is running on")
+	Cmd.Flags().StringVar(&port, "port", server.DefaultPort, "Port the profiles API is running on")
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
@@ -52,9 +52,9 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return profiles.GetProfiles(context.Background(), profiles.GetOptions{
+	profilesService := profiles.NewService(clientSet)
+	return profilesService.Get(context.Background(), profiles.GetOptions{
 		Namespace: ns,
-		ClientSet: clientSet,
 		Writer:    os.Stdout,
 		Port:      port,
 	})

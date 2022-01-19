@@ -14,34 +14,36 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 )
 
-const (
-	wegoServiceName = "wego-app"
-	getProfilesPath = "/v1/profiles"
-)
-
 type GetOptions struct {
 	Namespace string
-	ClientSet kubernetes.Interface
 	Writer    io.Writer
 	Port      string
 }
 
-func GetProfiles(ctx context.Context, opts GetOptions) error {
-	resp, err := kubernetesDoRequest(ctx, opts.Namespace, wegoServiceName, opts.Port, getProfilesPath, opts.ClientSet)
+func (s *ProfilesSvc) Get(ctx context.Context, opts GetOptions) error {
+	profiles, err := doKubeProfilesGetRequest(ctx, opts.Namespace, wegoServiceName, opts.Port, getProfilesPath, s.ClientSet)
 	if err != nil {
 		return err
+	}
+
+	printProfiles(profiles, opts.Writer)
+
+	return nil
+}
+
+func doKubeProfilesGetRequest(ctx context.Context, namespace, serviceName, servicePort, path string, clientset kubernetes.Interface) (*pb.GetProfilesResponse, error) {
+	resp, err := kubernetesDoRequest(ctx, namespace, wegoServiceName, servicePort, getProfilesPath, clientset)
+	if err != nil {
+		return nil, err
 	}
 
 	profiles := &pb.GetProfilesResponse{}
 	err = jsonpb.UnmarshalString(string(resp), profiles)
 
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal response: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
-
-	printProfiles(profiles, opts.Writer)
-
-	return nil
+	return profiles, nil
 }
 
 func printProfiles(profiles *pb.GetProfilesResponse, w io.Writer) {

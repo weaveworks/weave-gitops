@@ -1,4 +1,4 @@
-package profile_test
+package profiles_test
 
 import (
 	"testing"
@@ -9,5 +9,5 @@ import (
 
 func TestProfile(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Profile Suite")
+	RunSpecs(t, "Profiles Suite")
 }

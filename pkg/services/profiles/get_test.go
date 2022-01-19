@@ -50,13 +50,15 @@ const getProfilesResp = `{
 
 var _ = Describe("GetProfiles", func() {
 	var (
-		buffer    *gbytes.Buffer
-		clientSet *fake.Clientset
+		buffer      *gbytes.Buffer
+		clientSet   *fake.Clientset
+		profilesSvc *profiles.ProfilesSvc
 	)
 
 	BeforeEach(func() {
 		buffer = gbytes.NewBuffer()
 		clientSet = fake.NewSimpleClientset()
+		profilesSvc = profiles.NewService(clientSet)
 	})
 
 	It("prints the available profiles", func() {
@@ -64,9 +66,8 @@ var _ = Describe("GetProfiles", func() {
 			return true, newFakeResponseWrapper(getProfilesResp), nil
 		})
 
-		Expect(profiles.GetProfiles(context.TODO(), profiles.GetOptions{
+		Expect(profilesSvc.Get(context.TODO(), profiles.GetOptions{
 			Namespace: "test-namespace",
-			ClientSet: clientSet,
 			Writer:    buffer,
 			Port:      "9001",
 		})).To(Succeed())
@@ -82,9 +83,8 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 				return true, newFakeResponseWrapper("not=json"), nil
 			})
 
-			err := profiles.GetProfiles(context.TODO(), profiles.GetOptions{
+			err := profilesSvc.Get(context.TODO(), profiles.GetOptions{
 				Namespace: "test-namespace",
-				ClientSet: clientSet,
 				Writer:    buffer,
 				Port:      "9001",
 			})
@@ -98,9 +98,8 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 				return true, newFakeResponseWrapperWithErr("nope"), nil
 			})
 
-			err := profiles.GetProfiles(context.TODO(), profiles.GetOptions{
+			err := profilesSvc.Get(context.TODO(), profiles.GetOptions{
 				Namespace: "test-namespace",
-				ClientSet: clientSet,
 				Writer:    buffer,
 				Port:      "9001",
 			})
@@ -114,9 +113,8 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 				return true, newFakeResponseWrapperWithStatusCode(http.StatusNotFound), nil
 			})
 
-			err := profiles.GetProfiles(context.TODO(), profiles.GetOptions{
+			err := profilesSvc.Get(context.TODO(), profiles.GetOptions{
 				Namespace: "test-namespace",
-				ClientSet: clientSet,
 				Writer:    buffer,
 				Port:      "9001",
 			})

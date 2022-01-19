@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/add/app"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/add/clusters"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/add/profile"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/add/profiles"
 )
 
 func GetCommand(endpoint *string, client *resty.Client) *cobra.Command {
@@ -22,7 +22,7 @@ gitops add cluster`,
 
 	cmd.AddCommand(clusters.ClusterCommand(endpoint, client))
 	cmd.AddCommand(app.Cmd)
-	cmd.AddCommand(profile.ProfileCommand(client))
+	cmd.AddCommand(profiles.ProfileCommand(client))
 
 	return cmd
 }

@@ -1,4 +1,4 @@
-package profile_test
+package profiles_test
 
 import (
 	"github.com/go-resty/resty/v2"
