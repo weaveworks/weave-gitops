@@ -33,8 +33,10 @@ var _ = Describe("auth", func() {
 	testClustername := "test-cluster"
 	repoUrlString := "ssh://git@github.com/my-org/my-repo.git"
 	configRepoUrl, err := gitproviders.NewRepoURL(repoUrlString, true)
+	Expect(err).NotTo(HaveOccurred())
 	repoUrl, err := gitproviders.NewRepoURL(repoUrlString, false)
 	Expect(err).NotTo(HaveOccurred())
+
 	BeforeEach(func() {
 		namespace = &corev1.Namespace{}
 		namespace.Name = "kube-test-" + rand.String(5)
