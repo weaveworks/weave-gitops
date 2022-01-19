@@ -80,6 +80,22 @@ type FakeGitProvider struct {
 	getProviderDomainReturnsOnCall map[int]struct {
 		result1 string
 	}
+	GetRepoFilesStub        func(context.Context, gitproviders.RepoURL, string, string) ([]*gitprovider.CommitFile, error)
+	getRepoFilesMutex       sync.RWMutex
+	getRepoFilesArgsForCall []struct {
+		arg1 context.Context
+		arg2 gitproviders.RepoURL
+		arg3 string
+		arg4 string
+	}
+	getRepoFilesReturns struct {
+		result1 []*gitprovider.CommitFile
+		result2 error
+	}
+	getRepoFilesReturnsOnCall map[int]struct {
+		result1 []*gitprovider.CommitFile
+		result2 error
+	}
 	GetRepoVisibilityStub        func(context.Context, gitproviders.RepoURL) (*gitprovider.RepositoryVisibility, error)
 	getRepoVisibilityMutex       sync.RWMutex
 	getRepoVisibilityArgsForCall []struct {
@@ -442,6 +458,73 @@ func (fake *FakeGitProvider) GetProviderDomainReturnsOnCall(i int, result1 strin
 	}{result1}
 }
 
+func (fake *FakeGitProvider) GetRepoFiles(arg1 context.Context, arg2 gitproviders.RepoURL, arg3 string, arg4 string) ([]*gitprovider.CommitFile, error) {
+	fake.getRepoFilesMutex.Lock()
+	ret, specificReturn := fake.getRepoFilesReturnsOnCall[len(fake.getRepoFilesArgsForCall)]
+	fake.getRepoFilesArgsForCall = append(fake.getRepoFilesArgsForCall, struct {
+		arg1 context.Context
+		arg2 gitproviders.RepoURL
+		arg3 string
+		arg4 string
+	}{arg1, arg2, arg3, arg4})
+	stub := fake.GetRepoFilesStub
+	fakeReturns := fake.getRepoFilesReturns
+	fake.recordInvocation("GetRepoFiles", []interface{}{arg1, arg2, arg3, arg4})
+	fake.getRepoFilesMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeGitProvider) GetRepoFilesCallCount() int {
+	fake.getRepoFilesMutex.RLock()
+	defer fake.getRepoFilesMutex.RUnlock()
+	return len(fake.getRepoFilesArgsForCall)
+}
+
+func (fake *FakeGitProvider) GetRepoFilesCalls(stub func(context.Context, gitproviders.RepoURL, string, string) ([]*gitprovider.CommitFile, error)) {
+	fake.getRepoFilesMutex.Lock()
+	defer fake.getRepoFilesMutex.Unlock()
+	fake.GetRepoFilesStub = stub
+}
+
+func (fake *FakeGitProvider) GetRepoFilesArgsForCall(i int) (context.Context, gitproviders.RepoURL, string, string) {
+	fake.getRepoFilesMutex.RLock()
+	defer fake.getRepoFilesMutex.RUnlock()
+	argsForCall := fake.getRepoFilesArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+}
+
+func (fake *FakeGitProvider) GetRepoFilesReturns(result1 []*gitprovider.CommitFile, result2 error) {
+	fake.getRepoFilesMutex.Lock()
+	defer fake.getRepoFilesMutex.Unlock()
+	fake.GetRepoFilesStub = nil
+	fake.getRepoFilesReturns = struct {
+		result1 []*gitprovider.CommitFile
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeGitProvider) GetRepoFilesReturnsOnCall(i int, result1 []*gitprovider.CommitFile, result2 error) {
+	fake.getRepoFilesMutex.Lock()
+	defer fake.getRepoFilesMutex.Unlock()
+	fake.GetRepoFilesStub = nil
+	if fake.getRepoFilesReturnsOnCall == nil {
+		fake.getRepoFilesReturnsOnCall = make(map[int]struct {
+			result1 []*gitprovider.CommitFile
+			result2 error
+		})
+	}
+	fake.getRepoFilesReturnsOnCall[i] = struct {
+		result1 []*gitprovider.CommitFile
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeGitProvider) GetRepoVisibility(arg1 context.Context, arg2 gitproviders.RepoURL) (*gitprovider.RepositoryVisibility, error) {
 	fake.getRepoVisibilityMutex.Lock()
 	ret, specificReturn := fake.getRepoVisibilityReturnsOnCall[len(fake.getRepoVisibilityArgsForCall)]
@@ -653,6 +736,8 @@ func (fake *FakeGitProvider) Invocations() map[string][][]interface{} {
 	defer fake.getDefaultBranchMutex.RUnlock()
 	fake.getProviderDomainMutex.RLock()
 	defer fake.getProviderDomainMutex.RUnlock()
+	fake.getRepoFilesMutex.RLock()
+	defer fake.getRepoFilesMutex.RUnlock()
 	fake.getRepoVisibilityMutex.RLock()
 	defer fake.getRepoVisibilityMutex.RUnlock()
 	fake.repositoryExistsMutex.RLock()

@@ -125,3 +125,15 @@ func (p orgGitProvider) GetCommits(ctx context.Context, repoUrl RepoURL, targetB
 func (p orgGitProvider) GetProviderDomain() string {
 	return getProviderDomain(p.provider.ProviderID())
 }
+
+func (p orgGitProvider) GetRepoFiles(ctx context.Context, repoUrl RepoURL, targetPath, targetBranch string) ([]*gitprovider.CommitFile, error) {
+	repo, err := p.getOrgRepo(ctx, repoUrl)
+	if err != nil {
+		return nil, err
+	}
+	files, err := repo.Files().Get(ctx, targetPath, targetBranch)
+	if err != nil {
+		return nil, err
+	}
+	return files, nil
+}

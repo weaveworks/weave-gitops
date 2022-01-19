@@ -114,3 +114,7 @@ func (p userGitProvider) GetCommits(ctx context.Context, repoUrl RepoURL, target
 func (p userGitProvider) GetProviderDomain() string {
 	return getProviderDomain(p.provider.ProviderID())
 }
+
+func (p userGitProvider) GetRepoFiles(ctx context.Context, repoUrl RepoURL, targetPath, targetBranch string) ([]*gitprovider.CommitFile, error) {
+	return nil, nil
+}

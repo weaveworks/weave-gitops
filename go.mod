@@ -7,7 +7,7 @@ require (
 	github.com/benbjohnson/clock v1.3.0
 	github.com/coreos/go-oidc/v3 v3.1.0
 	github.com/deepmap/oapi-codegen v1.8.1
-	github.com/fluxcd/go-git-providers v0.5.2
+	github.com/fluxcd/go-git-providers v0.5.3-0.20220117132246-2e907fbf3e15
 	github.com/fluxcd/helm-controller/api v0.14.1
 	github.com/fluxcd/kustomize-controller/api v0.18.2
 	github.com/fluxcd/pkg/apis/meta v0.10.1

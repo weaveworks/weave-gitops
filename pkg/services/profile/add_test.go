@@ -1,6 +1,9 @@
 package profile_test
 
 import (
+	"fmt"
+
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/services/profile"
 
 	. "github.com/onsi/ginkgo"
@@ -42,11 +45,25 @@ var _ = Describe("Add Profile", func() {
 		Expect(err).To(MatchError("could not get provider name from URL {http:/-*wrong-url-827: could not parse git repo url \"{http:/-*wrong-url-827\": parse \"{http:/-*wrong-url-827\": first path segment in URL cannot contain colon"))
 	})
 
+	It("fails if the config repo's filesystem could not be fetched", func() {
+		gitProviders.RepositoryExistsReturns(true, nil)
+		gitProviders.GetRepoFilesReturns(nil, fmt.Errorf("err"))
+		err := profileSvc.Add(gitProviders, addParams)
+		Expect(err).NotTo(BeNil())
+		Expect(err).To(MatchError("failed to get files of config repository 'ssh://git@github.com/owner/config-repo.git': err"))
+	})
+
 	It("fails if the cluster name is not found", func() {
 		gitProviders.RepositoryExistsReturns(true, nil)
-		err := profileSvc.Add(gitClient, gitProviders, addParams)
+		path, content := "", ""
+		file := &gitprovider.CommitFile{
+			Path:    &path,
+			Content: &content,
+		}
+		gitProviders.GetRepoFilesReturns([]*gitprovider.CommitFile{file}, nil)
+		err := profileSvc.Add(gitProviders, addParams)
 		Expect(err).NotTo(BeNil())
-		Expect(err).To(MatchError("failed to fetch cluster name"))
+		Expect(err).To(MatchError("failed to find cluster in '/.weave-gitops/clusters/'"))
 	})
 })
 
@@ -94,6 +111,31 @@ var _ = Describe("ValidateAddParams", func() {
 	})
 })
 
-var _ = Describe("Add Profile with Gitlab", func() {
-	// TODO
-})
+func makeTestFiles() []*gitprovider.CommitFile {
+	path0 := ".weave-gitops/clusters/prod/system/wego-system.yaml"
+	content0 := "machine1 yaml content"
+	path1 := ".weave-gitops/clusters/prod/system/podinfo-helm-release.yaml"
+	content1 := "machine2 yaml content"
+
+	files := []gitprovider.CommitFile{
+		{
+			Path:    &path0,
+			Content: &content0,
+		},
+		{
+			Path:    &path1,
+			Content: &content1,
+		},
+	}
+
+	commitFiles := make([]*gitprovider.CommitFile, 0)
+	for _, file := range files {
+		path := file.Path
+		content := file.Content
+		commitFiles = append(commitFiles, &gitprovider.CommitFile{
+			Path:    path,
+			Content: content,
+		})
+	}
+	return commitFiles
+}

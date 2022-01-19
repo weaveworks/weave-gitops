@@ -57,3 +57,7 @@ func (p *dryrunProvider) GetCommits(_ context.Context, repoUrl RepoURL, targetBr
 func (p *dryrunProvider) GetProviderDomain() string {
 	return p.provider.GetProviderDomain()
 }
+
+func (p *dryrunProvider) GetRepoFiles(_ context.Context, repoUrl RepoURL, targetPath, targetBranch string) ([]*gitprovider.CommitFile, error) {
+	return nil, nil
+}
