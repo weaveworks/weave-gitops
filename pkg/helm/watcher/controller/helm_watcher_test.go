@@ -19,6 +19,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/helm/helmfakes"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache/cachefakes"
+	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/controller/controllerfakes"
 )
 
 var (
@@ -38,15 +39,7 @@ var (
 		KubeVersion:       "1.21",
 		AvailableVersions: []string{"0.0.4"},
 	}
-)
-
-func TestReconcile(t *testing.T) {
-	scheme := runtime.NewScheme()
-	utilruntime.Must(sourcev1.AddToScheme(scheme))
-
-	fakeCache := &cachefakes.FakeCache{}
-	fakeRepoManager := &helmfakes.FakeHelmRepoManager{}
-	repo := &sourcev1.HelmRepository{
+	repo1 = &sourcev1.HelmRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-name",
 			Namespace: "test-namespace",
@@ -60,16 +53,10 @@ func TestReconcile(t *testing.T) {
 			},
 		},
 	}
-	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(repo)
+)
 
-	fakeRepoManager.ListChartsReturns([]*pb.Profile{profile1, profile2}, nil)
-	fakeRepoManager.GetValuesFileReturns([]byte("value"), nil)
-
-	reconciler := &HelmWatcherReconciler{
-		Client:      fakeClient.Build(),
-		Cache:       fakeCache,
-		RepoManager: fakeRepoManager,
-	}
+func TestReconcile(t *testing.T) {
+	reconciler, fakeCache, _, _ := setupReconcileAndFakes()
 	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{
 			Namespace: "test-namespace",
@@ -96,34 +83,9 @@ func TestReconcile(t *testing.T) {
 }
 
 func TestReconcileGetChartFails(t *testing.T) {
-	scheme := runtime.NewScheme()
-	utilruntime.Must(sourcev1.AddToScheme(scheme))
-
-	fakeCache := &cachefakes.FakeCache{}
-	fakeRepoManager := &helmfakes.FakeHelmRepoManager{}
-	repo := &sourcev1.HelmRepository{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test-name",
-			Namespace: "test-namespace",
-		},
-		Status: sourcev1.HelmRepositoryStatus{
-			Artifact: &sourcev1.Artifact{
-				Path:     "relative/path",
-				URL:      "https://github.com",
-				Revision: "revision",
-				Checksum: "checksum",
-			},
-		},
-	}
-
+	reconciler, _, fakeRepoManager, _ := setupReconcileAndFakes()
 	fakeRepoManager.ListChartsReturns(nil, errors.New("nope"))
 
-	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(repo)
-	reconciler := &HelmWatcherReconciler{
-		Client:      fakeClient.Build(),
-		Cache:       fakeCache,
-		RepoManager: fakeRepoManager,
-	}
 	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{
 			Namespace: "test-namespace",
@@ -133,35 +95,9 @@ func TestReconcileGetChartFails(t *testing.T) {
 	assert.EqualError(t, err, "nope")
 }
 func TestReconcileGetValuesFileFailsItWillContinue(t *testing.T) {
-	scheme := runtime.NewScheme()
-	utilruntime.Must(sourcev1.AddToScheme(scheme))
-
-	fakeCache := &cachefakes.FakeCache{}
-	fakeRepoManager := &helmfakes.FakeHelmRepoManager{}
-	repo := &sourcev1.HelmRepository{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test-name",
-			Namespace: "test-namespace",
-		},
-		Status: sourcev1.HelmRepositoryStatus{
-			Artifact: &sourcev1.Artifact{
-				Path:     "relative/path",
-				URL:      "https://github.com",
-				Revision: "revision",
-				Checksum: "checksum",
-			},
-		},
-	}
-	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(repo)
-
-	fakeRepoManager.ListChartsReturns([]*pb.Profile{profile1, profile2}, nil)
+	reconciler, fakeCache, fakeRepoManager, _ := setupReconcileAndFakes()
 	fakeRepoManager.GetValuesFileReturns(nil, errors.New("this will be skipped"))
 
-	reconciler := &HelmWatcherReconciler{
-		Client:      fakeClient.Build(),
-		Cache:       fakeCache,
-		RepoManager: fakeRepoManager,
-	}
 	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{
 			Namespace: "test-namespace",
@@ -184,24 +120,17 @@ func TestReconcileIgnoreReposWithoutArtifact(t *testing.T) {
 	scheme := runtime.NewScheme()
 	utilruntime.Must(sourcev1.AddToScheme(scheme))
 
-	fakeCache := &cachefakes.FakeCache{}
-	fakeRepoManager := &helmfakes.FakeHelmRepoManager{}
+	reconciler, fakeCache, fakeRepoManager, _ := setupReconcileAndFakes()
+
+	fakeRepoManager.GetValuesFileReturns(nil, errors.New("this will be skipped"))
+
 	repo := &sourcev1.HelmRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-name",
 			Namespace: "test-namespace",
 		},
 	}
-	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(repo)
-
-	fakeRepoManager.ListChartsReturns([]*pb.Profile{profile1, profile2}, nil)
-	fakeRepoManager.GetValuesFileReturns(nil, errors.New("this will be skipped"))
-
-	reconciler := &HelmWatcherReconciler{
-		Client:      fakeClient.Build(),
-		Cache:       fakeCache,
-		RepoManager: fakeRepoManager,
-	}
+	reconciler.Client = fake.NewClientBuilder().WithScheme(scheme).WithObjects(repo).Build()
 	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{
 			Namespace: "test-namespace",
@@ -216,36 +145,9 @@ func TestReconcileIgnoreReposWithoutArtifact(t *testing.T) {
 }
 
 func TestReconcileUpdateReturnsError(t *testing.T) {
-	scheme := runtime.NewScheme()
-	utilruntime.Must(sourcev1.AddToScheme(scheme))
-
-	fakeCache := &cachefakes.FakeCache{}
-	fakeRepoManager := &helmfakes.FakeHelmRepoManager{}
-	repo := &sourcev1.HelmRepository{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test-name",
-			Namespace: "test-namespace",
-		},
-		Status: sourcev1.HelmRepositoryStatus{
-			Artifact: &sourcev1.Artifact{
-				Path:     "relative/path",
-				URL:      "https://github.com",
-				Revision: "revision",
-				Checksum: "checksum",
-			},
-		},
-	}
-	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(repo)
-
-	fakeRepoManager.ListChartsReturns([]*pb.Profile{profile1, profile2}, nil)
-	fakeRepoManager.GetValuesFileReturns([]byte("value"), nil)
+	reconciler, fakeCache, _, _ := setupReconcileAndFakes()
 	fakeCache.PutReturns(errors.New("nope"))
 
-	reconciler := &HelmWatcherReconciler{
-		Client:      fakeClient.Build(),
-		Cache:       fakeCache,
-		RepoManager: fakeRepoManager,
-	}
 	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{
 			Namespace: "test-namespace",
@@ -253,6 +155,54 @@ func TestReconcileUpdateReturnsError(t *testing.T) {
 		},
 	})
 	assert.EqualError(t, err, "nope")
+}
+
+func TestNotifyForGreaterVersion(t *testing.T) {
+	reconciler, fakeCache, _, fakeEventRecorder := setupReconcileAndFakes()
+	fakeCache.GetAvailableVersionsForProfileReturns([]string{"0.0.0"}, nil)
+
+	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{
+		NamespacedName: types.NamespacedName{
+			Namespace: "test-namespace",
+			Name:      "test-name",
+		},
+	})
+	assert.NoError(t, err)
+
+	_, meta, severity, reason, message, _ := fakeEventRecorder.EventfArgsForCall(0)
+
+	assert.Equal(t, map[string]string{"revision": "revision"}, meta)
+	assert.Equal(t, "info", severity)
+	assert.Equal(t, "info", reason)
+	assert.Equal(t, "New version available for profile test-profiles-1 with version 0.0.1", message)
+}
+
+func TestNotifyForGreaterVersionGetAvailableVersionsReturnsErrorIsSkipped(t *testing.T) {
+	reconciler, fakeCache, _, _ := setupReconcileAndFakes()
+	fakeCache.GetAvailableVersionsForProfileReturns(nil, errors.New("nope"))
+
+	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{
+		NamespacedName: types.NamespacedName{
+			Namespace: "test-namespace",
+			Name:      "test-name",
+		},
+	})
+	assert.NoError(t, err)
+}
+
+func TestNotifyForGreaterVersionGetAvailableVersionsReturnsHigherVersion(t *testing.T) {
+	reconciler, fakeCache, fakeRepoManager, fakeEventRecorder := setupReconcileAndFakes()
+	fakeCache.GetAvailableVersionsForProfileReturns([]string{"0.0.1"}, nil)
+	fakeRepoManager.ListChartsReturns([]*pb.Profile{profile1}, nil)
+
+	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{
+		NamespacedName: types.NamespacedName{
+			Namespace: "test-namespace",
+			Name:      "test-name",
+		},
+	})
+	assert.NoError(t, err)
+	assert.Zero(t, fakeEventRecorder.EventfCallCount())
 }
 
 type mockClient struct {
@@ -285,4 +235,24 @@ func TestReconcileKubernetesGetFails(t *testing.T) {
 	assert.Zero(t, fakeRepoManager.ListChartsCallCount())
 	assert.Zero(t, fakeRepoManager.GetValuesFileCallCount())
 	assert.Zero(t, fakeCache.PutCallCount())
+}
+
+func setupReconcileAndFakes() (*HelmWatcherReconciler, *cachefakes.FakeCache, *helmfakes.FakeHelmRepoManager, *controllerfakes.FakeEventRecorder) {
+	scheme := runtime.NewScheme()
+	utilruntime.Must(sourcev1.AddToScheme(scheme))
+
+	fakeCache := &cachefakes.FakeCache{}
+	fakeRepoManager := &helmfakes.FakeHelmRepoManager{}
+	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(repo1)
+	fakeEventRecorder := &controllerfakes.FakeEventRecorder{}
+
+	fakeRepoManager.ListChartsReturns([]*pb.Profile{profile1, profile2}, nil)
+	fakeRepoManager.GetValuesFileReturns([]byte("value"), nil)
+
+	return &HelmWatcherReconciler{
+		Client:                fakeClient.Build(),
+		Cache:                 fakeCache,
+		RepoManager:           fakeRepoManager,
+		ExternalEventRecorder: fakeEventRecorder,
+	}, fakeCache, fakeRepoManager, fakeEventRecorder
 }

@@ -125,6 +125,47 @@ func TestDeleteExistingData(t *testing.T) {
 	assert.ErrorIs(t, err, os.ErrNotExist)
 }
 
+func TestGetAvailableVersionsForProfile(t *testing.T) {
+	profileCache, _ := setupCache(t)
+	data := Data{
+		Profiles: []*pb.Profile{profile1},
+		Values: ValueMap{
+			profile1.Name: values1,
+		},
+	}
+	assert.NoError(t, profileCache.Put(context.Background(), helmNamespace, helmName, data), "put call from cache should have worked")
+	versions, err := profileCache.GetAvailableVersionsForProfile(context.Background(), helmNamespace, helmName, profile1.Name)
+	assert.NoError(t, err)
+	assert.Equal(t, profile1.AvailableVersions, versions)
+}
+
+func TestGetAvailableVersionsForProfileNameNotFound(t *testing.T) {
+	profileCache, _ := setupCache(t)
+	data := Data{
+		Profiles: []*pb.Profile{profile1},
+		Values: ValueMap{
+			profile1.Name: values1,
+		},
+	}
+	assert.NoError(t, profileCache.Put(context.Background(), helmNamespace, helmName, data), "put call from cache should have worked")
+	_, err := profileCache.GetAvailableVersionsForProfile(context.Background(), helmNamespace, helmName, "notfound")
+	assert.EqualError(t, err, "profile with name notfound not found in cached profiles")
+}
+
+func TestGetAvailableVersionsForProfileInvalidYamlData(t *testing.T) {
+	profileCache, dir := setupCache(t)
+	data := Data{
+		Profiles: []*pb.Profile{profile1},
+		Values: ValueMap{
+			profile1.Name: values1,
+		},
+	}
+	assert.NoError(t, profileCache.Put(context.Background(), helmNamespace, helmName, data), "put call from cache should have worked")
+	assert.NoError(t, os.WriteFile(filepath.Join(dir, helmNamespace, helmName, profileFilename), []byte("empty"), 0700))
+	_, err := profileCache.GetAvailableVersionsForProfile(context.Background(), helmNamespace, helmName, profile1.Name)
+	assert.EqualError(t, err, "failed to unmarshal profiles data: error unmarshaling JSON: json: cannot unmarshal string into Go value of type []*profiles.Profile")
+}
+
 func TestListProfilesFailedLock(t *testing.T) {
 	profileCache := &ProfileCache{cacheLocation: "nope"}
 	_, err := profileCache.ListProfiles(context.Background(), "", "")
@@ -146,6 +187,12 @@ func TestUpdateFailedLock(t *testing.T) {
 func TestDeleteFailedLock(t *testing.T) {
 	profileCache := &ProfileCache{cacheLocation: "nope"}
 	err := profileCache.Delete(context.Background(), "", "")
+	assert.EqualError(t, err, "unable to read lock file cache.lock: open nope/cache.lock: no such file or directory")
+}
+
+func TestTestGetAvailableVersionsForProfileFailedLock(t *testing.T) {
+	profileCache := &ProfileCache{cacheLocation: "nope"}
+	_, err := profileCache.GetAvailableVersionsForProfile(context.Background(), "", "", "")
 	assert.EqualError(t, err, "unable to read lock file cache.lock: open nope/cache.lock: no such file or directory")
 }
 

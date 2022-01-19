@@ -43,6 +43,8 @@ type Cache interface {
 	// GetProfileValues will try and find a specific values file for the given profileName and profileVersion. Returns an
 	// error if said version is not found.
 	GetProfileValues(ctx context.Context, helmRepoNamespace, helmRepoName, profileName, profileVersion string) ([]byte, error)
+	// GetAvailableVersionsForProfile returns all stored available versions for a profile.
+	GetAvailableVersionsForProfile(ctx context.Context, helmRepoNamespace, helmRepoName, profileName string) ([]string, error)
 }
 
 // Data is explicit data for a specific profile including values.
@@ -152,6 +154,41 @@ func (c *ProfileCache) ListProfiles(ctx context.Context, helmRepoNamespace, helm
 	}
 
 	if err := c.tryWithLock(ctx, listOperation); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// GetAvailableVersionsForProfile returns all stored available versions for a profile.
+func (c *ProfileCache) GetAvailableVersionsForProfile(ctx context.Context, helmRepoNamespace, helmRepoName, profileName string) ([]string, error) {
+	// Because the folders of versions are only stored when there are values for a version
+	// we, instead, look in the profiles.yaml file for available versions.
+	var result []string
+
+	getAllAvailableVersionsOp := func() error {
+		var profiles []*pb.Profile
+
+		content, err := os.ReadFile(filepath.Join(c.cacheLocation, helmRepoNamespace, helmRepoName, profileFilename))
+		if err != nil {
+			return fmt.Errorf("failed to read profiles data for helm repo: %w", err)
+		}
+
+		if err := yaml.Unmarshal(content, &profiles); err != nil {
+			return fmt.Errorf("failed to unmarshal profiles data: %w", err)
+		}
+
+		for _, p := range profiles {
+			if p.Name == profileName {
+				result = append(result, p.AvailableVersions...)
+				return nil
+			}
+		}
+
+		return fmt.Errorf("profile with name %s not found in cached profiles", profileName)
+	}
+
+	if err := c.tryWithLock(ctx, getAllAvailableVersionsOp); err != nil {
 		return nil, err
 	}
 
