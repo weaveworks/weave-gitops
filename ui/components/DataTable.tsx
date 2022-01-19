@@ -39,6 +39,23 @@ const EmptyRow = styled(TableRow)<{ colSpan: number }>`
   }
 `;
 
+const TableButton = styled(Button)`
+&.MuiButton-root {
+  padding: 5px;
+  text-transform: none;
+}
+p {
+  margin: 0px;
+}
+&.MuiButton-text {
+  color: ${(props) => props.theme.colors.neutral40}
+  min-width: 0px;
+}
+&.arrow {
+  min-width: 0px;
+}
+`;
+
 /** Form DataTable */
 function UnstyledDataTable({
   className,
@@ -54,23 +71,6 @@ function UnstyledDataTable({
   if (reverseSort) {
     sorted.reverse();
   }
-
-  const TableButton = styled(Button)`
-    &.MuiButton-root {
-      padding: 5px;
-      text-transform: none;
-    }
-    p {
-      margin: 0px;
-    }
-    &.MuiButton-text {
-      color: ${(props) => props.theme.colors.neutral40}
-      min-width: 0px;
-    }
-    &.arrow {
-      min-width: 0px;
-    }
-  `;
 
   type labelProps = { label: string };
   function SortableLabel({ label }: labelProps) {
