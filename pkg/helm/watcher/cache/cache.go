@@ -43,8 +43,8 @@ type Cache interface {
 	// GetProfileValues will try and find a specific values file for the given profileName and profileVersion. Returns an
 	// error if said version is not found.
 	GetProfileValues(ctx context.Context, helmRepoNamespace, helmRepoName, profileName, profileVersion string) ([]byte, error)
-	// GetAvailableVersionsForProfile returns all stored available versions for a profile.
-	GetAvailableVersionsForProfile(ctx context.Context, helmRepoNamespace, helmRepoName, profileName string) ([]string, error)
+	// ListAvailableVersionsForProfile returns all stored available versions for a profile.
+	ListAvailableVersionsForProfile(ctx context.Context, helmRepoNamespace, helmRepoName, profileName string) ([]string, error)
 }
 
 // Data is explicit data for a specific profile including values.
@@ -160,8 +160,8 @@ func (c *ProfileCache) ListProfiles(ctx context.Context, helmRepoNamespace, helm
 	return result, nil
 }
 
-// GetAvailableVersionsForProfile returns all stored available versions for a profile.
-func (c *ProfileCache) GetAvailableVersionsForProfile(ctx context.Context, helmRepoNamespace, helmRepoName, profileName string) ([]string, error) {
+// ListAvailableVersionsForProfile returns all stored available versions for a profile.
+func (c *ProfileCache) ListAvailableVersionsForProfile(ctx context.Context, helmRepoNamespace, helmRepoName, profileName string) ([]string, error) {
 	// Because the folders of versions are only stored when there are values for a version
 	// we, instead, look in the profiles.yaml file for available versions.
 	var result []string

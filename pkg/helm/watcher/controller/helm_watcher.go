@@ -93,7 +93,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			log.Error(err, "checking for new versions failed")
 		} else if v != "" {
 			log.Info("sending notification event for new version", "version", v)
-			r.event(ctx, &repository, repository.Status.Artifact.Revision, "info", fmt.Sprintf("New version available for profile %s with version %s", chart.Name, v))
+			r.sendEvent(ctx, &repository, repository.Status.Artifact.Revision, "info", fmt.Sprintf("New version available for profile %s with version %s", chart.Name, v))
 		}
 
 		for _, v := range chart.AvailableVersions {
@@ -159,8 +159,8 @@ func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, repository 
 	return ctrl.Result{}, nil
 }
 
-// event emits a Kubernetes event and forwards the event to notification controller if configured.
-func (r *HelmWatcherReconciler) event(ctx context.Context, hr *sourcev1.HelmRepository, revision, severity, msg string) {
+// sendEvent emits a Kubernetes event and forwards the event to notification controller if configured.
+func (r *HelmWatcherReconciler) sendEvent(ctx context.Context, hr *sourcev1.HelmRepository, revision, severity, msg string) {
 	log := logr.FromContextOrDiscard(ctx)
 
 	if r.ExternalEventRecorder == nil {
@@ -188,7 +188,7 @@ func (r *HelmWatcherReconciler) event(ctx context.Context, hr *sourcev1.HelmRepo
 // compared to what's already stored in the cache. It returns the LATEST version which is greater than
 // the last version that was stored.
 func (r *HelmWatcherReconciler) checkForNewVersion(ctx context.Context, chart *pb.Profile) (string, error) {
-	versions, err := r.Cache.GetAvailableVersionsForProfile(ctx, chart.GetHelmRepository().GetNamespace(), chart.GetHelmRepository().GetName(), chart.Name)
+	versions, err := r.Cache.ListAvailableVersionsForProfile(ctx, chart.GetHelmRepository().GetNamespace(), chart.GetHelmRepository().GetName(), chart.Name)
 	if err != nil {
 		return "", err
 	}

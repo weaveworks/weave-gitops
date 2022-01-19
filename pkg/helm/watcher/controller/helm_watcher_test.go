@@ -218,7 +218,7 @@ func TestReconcileUpdateReturnsError(t *testing.T) {
 
 func TestNotifyForGreaterVersion(t *testing.T) {
 	reconciler, fakeCache, _, fakeEventRecorder := setupReconcileAndFakes(repo1)
-	fakeCache.GetAvailableVersionsForProfileReturns([]string{"0.0.0"}, nil)
+	fakeCache.ListAvailableVersionsForProfileReturns([]string{"0.0.0"}, nil)
 
 	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{
@@ -238,7 +238,7 @@ func TestNotifyForGreaterVersion(t *testing.T) {
 
 func TestDoNotNotifyForLesserOrEqualVersion(t *testing.T) {
 	reconciler, fakeCache, fakeRepoManager, fakeEventRecorder := setupReconcileAndFakes(repo1)
-	fakeCache.GetAvailableVersionsForProfileReturns([]string{"0.0.1"}, nil)
+	fakeCache.ListAvailableVersionsForProfileReturns([]string{"0.0.1"}, nil)
 	fakeRepoManager.ListChartsReturns([]*pb.Profile{profile1}, nil)
 
 	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{
@@ -251,9 +251,9 @@ func TestDoNotNotifyForLesserOrEqualVersion(t *testing.T) {
 	assert.Zero(t, fakeEventRecorder.EventfCallCount())
 }
 
-func TestNotifyForGreaterVersionGetAvailableVersionsReturnsErrorIsSkipped(t *testing.T) {
+func TestNotifyForGreaterVersionListAvailableVersionsReturnsErrorIsSkipped(t *testing.T) {
 	reconciler, fakeCache, _, _ := setupReconcileAndFakes()
-	fakeCache.GetAvailableVersionsForProfileReturns(nil, errors.New("nope"))
+	fakeCache.ListAvailableVersionsForProfileReturns(nil, errors.New("nope"))
 
 	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{
@@ -264,9 +264,9 @@ func TestNotifyForGreaterVersionGetAvailableVersionsReturnsErrorIsSkipped(t *tes
 	assert.NoError(t, err)
 }
 
-func TestNotifyForGreaterVersionGetAvailableVersionsReturnsHigherVersion(t *testing.T) {
+func TestNotifyForGreaterVersionListAvailableVersionsReturnsHigherVersion(t *testing.T) {
 	reconciler, fakeCache, fakeRepoManager, fakeEventRecorder := setupReconcileAndFakes()
-	fakeCache.GetAvailableVersionsForProfileReturns([]string{"0.0.1"}, nil)
+	fakeCache.ListAvailableVersionsForProfileReturns([]string{"0.0.1"}, nil)
 	fakeRepoManager.ListChartsReturns([]*pb.Profile{profile1}, nil)
 
 	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{
@@ -281,7 +281,7 @@ func TestNotifyForGreaterVersionGetAvailableVersionsReturnsHigherVersion(t *test
 
 func TestNotifyForGreaterVersionEventSenderFailureIsIgnored(t *testing.T) {
 	reconciler, fakeCache, _, fakeEventRecorder := setupReconcileAndFakes()
-	fakeCache.GetAvailableVersionsForProfileReturns([]string{"0.0.0"}, nil)
+	fakeCache.ListAvailableVersionsForProfileReturns([]string{"0.0.0"}, nil)
 	fakeEventRecorder.EventfReturns(errors.New("nope"))
 
 	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{

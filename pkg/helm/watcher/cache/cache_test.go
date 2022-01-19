@@ -125,7 +125,7 @@ func TestDeleteExistingData(t *testing.T) {
 	assert.ErrorIs(t, err, os.ErrNotExist)
 }
 
-func TestGetAvailableVersionsForProfile(t *testing.T) {
+func TestListAvailableVersionsForProfile(t *testing.T) {
 	profileCache, _ := setupCache(t)
 	data := Data{
 		Profiles: []*pb.Profile{profile1},
@@ -134,19 +134,19 @@ func TestGetAvailableVersionsForProfile(t *testing.T) {
 		},
 	}
 	assert.NoError(t, profileCache.Put(context.Background(), helmNamespace, helmName, data), "put call from cache should have worked")
-	versions, err := profileCache.GetAvailableVersionsForProfile(context.Background(), helmNamespace, helmName, profile1.Name)
+	versions, err := profileCache.ListAvailableVersionsForProfile(context.Background(), helmNamespace, helmName, profile1.Name)
 	assert.NoError(t, err)
 	assert.Equal(t, profile1.AvailableVersions, versions)
 }
 
-func TestGetAvailableVersionsForProfileNoCachedData(t *testing.T) {
+func TestListAvailableVersionsForProfileNoCachedData(t *testing.T) {
 	profileCache, _ := setupCache(t)
-	versions, err := profileCache.GetAvailableVersionsForProfile(context.Background(), helmNamespace, helmName, profile1.Name)
+	versions, err := profileCache.ListAvailableVersionsForProfile(context.Background(), helmNamespace, helmName, profile1.Name)
 	assert.NoError(t, err)
 	assert.Nil(t, versions)
 }
 
-func TestGetAvailableVersionsForProfileNameNotFound(t *testing.T) {
+func TestListAvailableVersionsForProfileNameNotFound(t *testing.T) {
 	profileCache, _ := setupCache(t)
 	data := Data{
 		Profiles: []*pb.Profile{profile1},
@@ -155,11 +155,11 @@ func TestGetAvailableVersionsForProfileNameNotFound(t *testing.T) {
 		},
 	}
 	assert.NoError(t, profileCache.Put(context.Background(), helmNamespace, helmName, data), "put call from cache should have worked")
-	_, err := profileCache.GetAvailableVersionsForProfile(context.Background(), helmNamespace, helmName, "notfound")
+	_, err := profileCache.ListAvailableVersionsForProfile(context.Background(), helmNamespace, helmName, "notfound")
 	assert.EqualError(t, err, "profile with name notfound not found in cached profiles")
 }
 
-func TestGetAvailableVersionsForProfileInvalidYamlData(t *testing.T) {
+func TestListAvailableVersionsForProfileInvalidYamlData(t *testing.T) {
 	profileCache, dir := setupCache(t)
 	data := Data{
 		Profiles: []*pb.Profile{profile1},
@@ -169,7 +169,7 @@ func TestGetAvailableVersionsForProfileInvalidYamlData(t *testing.T) {
 	}
 	assert.NoError(t, profileCache.Put(context.Background(), helmNamespace, helmName, data), "put call from cache should have worked")
 	assert.NoError(t, os.WriteFile(filepath.Join(dir, helmNamespace, helmName, profileFilename), []byte("empty"), 0700))
-	_, err := profileCache.GetAvailableVersionsForProfile(context.Background(), helmNamespace, helmName, profile1.Name)
+	_, err := profileCache.ListAvailableVersionsForProfile(context.Background(), helmNamespace, helmName, profile1.Name)
 	assert.EqualError(t, err, "failed to unmarshal profiles data: error unmarshaling JSON: json: cannot unmarshal string into Go value of type []*profiles.Profile")
 }
 
@@ -197,9 +197,9 @@ func TestDeleteFailedLock(t *testing.T) {
 	assert.EqualError(t, err, "unable to read lock file cache.lock: open nope/cache.lock: no such file or directory")
 }
 
-func TestTestGetAvailableVersionsForProfileFailedLock(t *testing.T) {
+func TestTestListAvailableVersionsForProfileFailedLock(t *testing.T) {
 	profileCache := &ProfileCache{cacheLocation: "nope"}
-	_, err := profileCache.GetAvailableVersionsForProfile(context.Background(), "", "", "")
+	_, err := profileCache.ListAvailableVersionsForProfile(context.Background(), "", "", "")
 	assert.EqualError(t, err, "unable to read lock file cache.lock: open nope/cache.lock: no such file or directory")
 }
 
