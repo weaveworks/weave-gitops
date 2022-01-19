@@ -236,6 +236,21 @@ func TestNotifyForGreaterVersion(t *testing.T) {
 	assert.Equal(t, "New version available for profile test-profiles-1 with version 0.0.1", message)
 }
 
+func TestDoNotNotifyForLesserOrEqualVersion(t *testing.T) {
+	reconciler, fakeCache, fakeRepoManager, fakeEventRecorder := setupReconcileAndFakes(repo1)
+	fakeCache.GetAvailableVersionsForProfileReturns([]string{"0.0.1"}, nil)
+	fakeRepoManager.ListChartsReturns([]*pb.Profile{profile1}, nil)
+
+	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{
+		NamespacedName: types.NamespacedName{
+			Namespace: "test-namespace",
+			Name:      "test-name",
+		},
+	})
+	assert.NoError(t, err)
+	assert.Zero(t, fakeEventRecorder.EventfCallCount())
+}
+
 func TestNotifyForGreaterVersionGetAvailableVersionsReturnsErrorIsSkipped(t *testing.T) {
 	reconciler, fakeCache, _, _ := setupReconcileAndFakes()
 	fakeCache.GetAvailableVersionsForProfileReturns(nil, errors.New("nope"))

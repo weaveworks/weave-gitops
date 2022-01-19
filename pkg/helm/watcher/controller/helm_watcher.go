@@ -211,13 +211,9 @@ func (r *HelmWatcherReconciler) checkForNewVersion(ctx context.Context, chart *p
 		return oldVersions[i].GreaterThan(oldVersions[j])
 	})
 
-	// If there are no old versions stored ( unlikely ), we notify that there are new ones available.
-	if len(oldVersions) == 0 && len(newVersions) != 0 {
-		return newVersions[0].String(), nil
-	}
-
-	// If there are no new versions ( unlikely ), we don't do anything.
-	if len(newVersions) == 0 {
+	// If there are no old versions stored, it's likely that the profile didn't exist before. So we don't notify.
+	// Same in case there are no new versions ( which is unlikely to happen, but we ward against it nevertheless ).
+	if len(oldVersions) == 0 || len(newVersions) == 0 {
 		return "", nil
 	}
 

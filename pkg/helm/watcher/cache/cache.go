@@ -171,6 +171,11 @@ func (c *ProfileCache) GetAvailableVersionsForProfile(ctx context.Context, helmR
 
 		content, err := os.ReadFile(filepath.Join(c.cacheLocation, helmRepoNamespace, helmRepoName, profileFilename))
 		if err != nil {
+			// don't process if it doesn't exist.
+			if os.IsNotExist(err) {
+				return nil
+			}
+
 			return fmt.Errorf("failed to read profiles data for helm repo: %w", err)
 		}
 

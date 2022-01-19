@@ -2,7 +2,6 @@ package watcher
 
 import (
 	"io/ioutil"
-	"os"
 
 	"github.com/fluxcd/pkg/runtime/events"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
@@ -102,7 +101,7 @@ func (w *Watcher) StartWatcher() error {
 		var err error
 		if eventRecorder, err = events.NewRecorder(w.notificationAddress, controllerName); err != nil {
 			setupLog.Error(err, "unable to create event recorder")
-			os.Exit(1)
+			return err
 		}
 	}
 

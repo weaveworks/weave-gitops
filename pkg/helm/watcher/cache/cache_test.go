@@ -139,6 +139,13 @@ func TestGetAvailableVersionsForProfile(t *testing.T) {
 	assert.Equal(t, profile1.AvailableVersions, versions)
 }
 
+func TestGetAvailableVersionsForProfileNoCachedData(t *testing.T) {
+	profileCache, _ := setupCache(t)
+	versions, err := profileCache.GetAvailableVersionsForProfile(context.Background(), helmNamespace, helmName, profile1.Name)
+	assert.NoError(t, err)
+	assert.Nil(t, versions)
+}
+
 func TestGetAvailableVersionsForProfileNameNotFound(t *testing.T) {
 	profileCache, _ := setupCache(t)
 	data := Data{
