@@ -40,20 +40,21 @@ const EmptyRow = styled(TableRow)<{ colSpan: number }>`
 `;
 
 const TableButton = styled(Button)`
-&.MuiButton-root {
-  padding: 5px;
-  text-transform: none;
-}
-p {
-  margin: 0px;
-}
-&.MuiButton-text {
-  color: ${(props) => props.theme.colors.neutral40}
-  min-width: 0px;
-}
-&.arrow {
-  min-width: 0px;
-}
+  &.MuiButton-root {
+    padding: 0;
+    margin: 0;
+    text-transform: none;
+  }
+  &.MuiButton-text {
+    color: ${(props) => props.theme.colors.neutral30};
+    min-width: 0px;
+  }
+  &.arrow {
+    min-width: 0px;
+  }
+  &.selected {
+    color: ${(props) => props.theme.colors.neutral40};
+  }
 `;
 
 /** Form DataTable */
@@ -78,12 +79,13 @@ function UnstyledDataTable({
       <Flex align start>
         <TableButton
           color="inherit"
+          variant="text"
           onClick={() => {
             setReverseSort(sort === label.toLowerCase() ? !reverseSort : false);
             setSort(label.toLowerCase());
           }}
         >
-          <p>{label}</p>
+          <h2>{label}</h2>
         </TableButton>
         <Spacer padding="xxs" />
         {sort === label.toLowerCase() ? (
@@ -120,7 +122,7 @@ function UnstyledDataTable({
                   {sortFields.includes(f.label.toLowerCase()) ? (
                     <SortableLabel label={f.label} />
                   ) : (
-                    f.label
+                    <h2 className="thead">{f.label}</h2>
                   )}
                 </TableCell>
               ))}
@@ -144,7 +146,11 @@ function UnstyledDataTable({
 }
 
 export const DataTable = styled(UnstyledDataTable)`
-  .MuiTableCell-head {
+  h2 {
+    margin: 0px;
+  }
+  .thead {
+    color: ${(props) => props.theme.colors.neutral30};
     font-weight: 800;
   }
 `;
