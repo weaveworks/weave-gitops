@@ -67,13 +67,15 @@ func BootstrapManifests(fluxClient flux.Flux, clusterName string, namespace stri
 
 	sourceName := CreateClusterSourceName(configURL)
 
-	systemKustResourceManifest, err := fluxClient.CreateKustomization(ConstrainResourceName(fmt.Sprintf("%s-system", clusterName)), sourceName,
+	systemResourceName := ConstrainResourceName(fmt.Sprintf("%s-system", clusterName))
+	systemKustResourceManifest, err := fluxClient.CreateKustomization(systemResourceName, sourceName,
 		workAroundFluxDroppingDot(git.GetSystemPath(clusterName)), namespace)
 	if err != nil {
 		return nil, err
 	}
 
-	userKustResourceManifest, err := fluxClient.CreateKustomization(ConstrainResourceName(fmt.Sprintf("%s-user", clusterName)), sourceName,
+	userResourceName := ConstrainResourceName(fmt.Sprintf("%s-user", clusterName))
+	userKustResourceManifest, err := fluxClient.CreateKustomization(userResourceName, sourceName,
 		workAroundFluxDroppingDot(git.GetUserPath(clusterName)), namespace)
 	if err != nil {
 		return nil, err
