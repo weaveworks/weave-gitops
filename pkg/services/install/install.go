@@ -112,7 +112,7 @@ func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, auto
 		CommitMessage: gitopswriter.ClusterCommitMessage,
 		NewBranch:     models.GetClusterHash(clusterName),
 		TargetBranch:  defaultBranch,
-		Files:         models.ConvertManifestsToCommitFiles(manifests),
+		Files:         models.ConvertManifestsToCommitFiles(gitopsManifests),
 	}
 
 	pr, err := i.gitProviderClient.CreatePullRequest(ctx, configURL, pullRequestInfo)
