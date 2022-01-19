@@ -117,7 +117,7 @@ func getClusterCmdRunE(endpoint *string, client *resty.Client) func(*cobra.Comma
 			return cmderrors.ErrNoURL
 		}
 
-		url, err := gitproviders.NewRepoURL(flags.RepositoryURL, false)
+		url, err := gitproviders.NewRepoURL(flags.RepositoryURL, true)
 		if err != nil {
 			return fmt.Errorf("cannot parse url: %w", err)
 		}
