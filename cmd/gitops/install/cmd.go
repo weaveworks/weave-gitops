@@ -121,6 +121,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	namespaceObj := &corev1.Namespace{}
 	namespaceObj.Name = namespace
 
+	// Maybe we need to move this into authService.SetupDeployKey2?
 	if err := rawK8sClient.Create(ctx, namespaceObj); err != nil {
 		if !strings.Contains(err.Error(), "already exists") {
 			return fmt.Errorf("failed creating namespace %s: %w", namespace, err)
