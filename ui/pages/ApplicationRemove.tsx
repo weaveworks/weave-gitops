@@ -1,4 +1,9 @@
-import { CircularProgress } from "@material-ui/core";
+import {
+  CircularProgress,
+  FormControlLabel,
+  FormHelperText,
+  Switch,
+} from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
 import { GithubDeviceAuthModal } from "..";
@@ -12,22 +17,47 @@ import Text from "../components/Text";
 import { AppContext } from "../contexts/AppContext";
 import CallbackStateContextProvider from "../contexts/CallbackStateContext";
 import { useAppRemove } from "../hooks/applications";
+import { GitProvider } from "../lib/api/applications/applications.pb";
 import { GrpcErrorCodes, PageRoute } from "../lib/types";
-import { formatURL, poller } from "../lib/utils";
+import { convertGitURLToGitProvider, formatURL, poller } from "../lib/utils";
 
 type Props = {
   className?: string;
   name: string;
 };
 
-const RepoRemoveStatus = ({ done }: { done: boolean }) =>
-  done ? (
-    <Alert
-      severity="info"
-      title="Removed from Git Repo"
-      message="The application successfully removed from your git repository"
-    />
-  ) : null;
+const RepoRemoveStatus = ({
+  autoMerge,
+  url,
+  provider,
+}: {
+  autoMerge: boolean;
+  url: string;
+  provider: GitProvider;
+}) => (
+  <Alert
+    severity="info"
+    title="Removed from Git Repo"
+    message={
+      autoMerge ? (
+        "The application successfully removed from your git repository"
+      ) : (
+        <Flex align>
+          <p>A PR has been successfully created </p>
+          <Spacer padding="xs" />
+          <a
+            target="_blank"
+            href={`${convertGitURLToGitProvider(url).replace(".git", "")}/${
+              provider === GitProvider.GitLab ? "-/merge_requests" : "pulls"
+            }`}
+          >
+            <Button>View Open Pull Requests</Button>
+          </a>
+        </Flex>
+      )
+    }
+  />
+);
 
 const ClusterRemoveStatus = ({ done }: { done: boolean }) =>
   done ? (
@@ -44,7 +74,17 @@ const ClusterRemoveStatus = ({ done }: { done: boolean }) =>
     </Flex>
   );
 
-const Prompt = ({ onRemove, name }: { name: string; onRemove: () => void }) => (
+const Prompt = ({
+  onRemove,
+  name,
+  autoMerge,
+  setAutoMerge,
+}: {
+  name: string;
+  onRemove: () => void;
+  autoMerge: boolean;
+  setAutoMerge: any;
+}) => (
   <Flex column center>
     <Flex wide center>
       <Text size="large" bold>
@@ -56,6 +96,22 @@ const Prompt = ({ onRemove, name }: { name: string; onRemove: () => void }) => (
         Removing this application will remove any Kubernetes objects that were
         created by the application
       </Spacer>
+    </Flex>
+    <Flex wide align center column>
+      <FormControlLabel
+        control={
+          <Switch
+            color="primary"
+            onChange={() => setAutoMerge(!autoMerge)}
+            checked={autoMerge}
+          />
+        }
+        label="Auto Merge"
+      />
+      <FormHelperText>
+        If checked, Weave GitOps will automatically remove the application from
+        the default branch instead of doing a pull request
+      </FormHelperText>
     </Flex>
     <Flex wide center>
       <Spacer padding="small">
@@ -69,7 +125,7 @@ const Prompt = ({ onRemove, name }: { name: string; onRemove: () => void }) => (
 
 function ApplicationRemove({ className, name }: Props) {
   const { applicationsClient } = React.useContext(AppContext);
-
+  const [autoMerge, setAutoMerge] = React.useState(false);
   const [repoRemoveRes, repoRemoving, error, remove] = useAppRemove();
   const [repoInfo, setRepoInfo] = React.useState({
     provider: null,
@@ -91,16 +147,12 @@ function ApplicationRemove({ className, name }: Props) {
   React.useEffect(() => {
     (async () => {
       try {
-        const {
-          application: { url },
-        } = await applicationsClient.GetApplication({
+        const { application } = await applicationsClient.GetApplication({
           name,
           namespace: "wego-system",
         });
-
         const { provider, name: repoName } =
-          await applicationsClient.ParseRepoURL({ url });
-
+          await applicationsClient.ParseRepoURL({ url: application.url });
         setRepoInfo({ provider, repoName });
       } catch (e) {
         setAppError(e.message);
@@ -109,7 +161,7 @@ function ApplicationRemove({ className, name }: Props) {
   }, [name]);
 
   React.useEffect(() => {
-    if (!repoRemoveRes) return;
+    if (!repoRemoveRes || !autoMerge) return;
     const poll = poller(() => {
       applicationsClient
         .GetApplication({ name, namespace: "wego-system" })
@@ -127,7 +179,11 @@ function ApplicationRemove({ className, name }: Props) {
   }, [repoRemoveRes]);
 
   const handleRemoveClick = () => {
-    remove(repoInfo.provider, { name, namespace: "wego-system" });
+    remove(repoInfo.provider, {
+      name,
+      namespace: "wego-system",
+      autoMerge: autoMerge,
+    });
   };
 
   const handleAuthSuccess = () => {
@@ -166,7 +222,6 @@ function ApplicationRemove({ className, name }: Props) {
         {error && error.code !== GrpcErrorCodes.Unauthenticated && (
           <Alert title="Error" severity="error" message={error?.message} />
         )}
-
         {repoRemoving && (
           <Flex wide center align>
             <CircularProgress />
@@ -175,13 +230,24 @@ function ApplicationRemove({ className, name }: Props) {
           </Flex>
         )}
         {!repoRemoveRes && !repoRemoving && !removedFromCluster && (
-          <Prompt name={name} onRemove={handleRemoveClick} />
+          <Prompt
+            name={name}
+            onRemove={handleRemoveClick}
+            autoMerge={autoMerge}
+            setAutoMerge={setAutoMerge}
+          />
         )}
-        {(repoRemoving || repoRemoveRes) && (
-          <RepoRemoveStatus done={!repoRemoving} />
+        {repoRemoveRes && (
+          <RepoRemoveStatus
+            url={repoRemoveRes.repoUrl}
+            autoMerge={autoMerge}
+            provider={repoInfo.provider}
+          />
         )}
         <Spacer margin="small" />
-        {repoRemoveRes && <ClusterRemoveStatus done={removedFromCluster} />}
+        {repoRemoveRes && autoMerge && (
+          <ClusterRemoveStatus done={removedFromCluster} />
+        )}
         <GithubDeviceAuthModal
           onSuccess={handleAuthSuccess}
           onClose={() => setAuthOpen(false)}
