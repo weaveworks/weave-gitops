@@ -702,7 +702,7 @@ func mergePR(repoAbsolutePath, prLink string, providerName gitproviders.GitProvi
 }
 
 func extractOrgAndRepo(url string) (string, string) {
-	normalized, normErr := gitproviders.NewRepoURL(url)
+	normalized, normErr := gitproviders.NewRepoURL(url, false)
 	Expect(normErr).ShouldNot(HaveOccurred())
 
 	re := regexp.MustCompile("^[^/]+//[^/]+/([^/]+)/([^/]+).*$")

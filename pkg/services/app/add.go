@@ -148,7 +148,7 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 	default:
 		var err error
 
-		appRepoUrl, err = gitproviders.NewRepoURL(params.Url)
+		appRepoUrl, err = gitproviders.NewRepoURL(params.Url, false)
 		if err != nil {
 			return params, fmt.Errorf("error normalizing url: %w", err)
 		}
@@ -161,7 +161,7 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 
 	// making sure the config url is in good format
 	if models.IsExternalConfigRepo(params.ConfigRepo) {
-		configRepoUrl, err := gitproviders.NewRepoURL(params.ConfigRepo)
+		configRepoUrl, err := gitproviders.NewRepoURL(params.ConfigRepo, true)
 		if err != nil {
 			return params, fmt.Errorf("error normalizing url: %w", err)
 		}
@@ -236,7 +236,7 @@ func makeApplication(params AddParams) (models.Application, error) {
 	if models.SourceType(params.SourceType) == models.SourceTypeHelm {
 		helmSourceURL = params.Url
 	} else {
-		gitSourceURL, err = gitproviders.NewRepoURL(params.Url)
+		gitSourceURL, err = gitproviders.NewRepoURL(params.Url, false)
 		if err != nil {
 			return models.Application{}, err
 		}
@@ -245,7 +245,7 @@ func makeApplication(params AddParams) (models.Application, error) {
 	configRepo := gitSourceURL
 
 	if params.ConfigRepo != "" {
-		curl, err := gitproviders.NewRepoURL(params.ConfigRepo)
+		curl, err := gitproviders.NewRepoURL(params.ConfigRepo, true)
 		if err != nil {
 			return models.Application{}, err
 		}

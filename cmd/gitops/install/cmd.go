@@ -68,7 +68,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	ctx := context.Background()
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
-	configURL, err := gitproviders.NewRepoURL(installParams.ConfigRepo)
+	configURL, err := gitproviders.NewRepoURL(installParams.ConfigRepo, true)
 	if err != nil {
 		return err
 	}
@@ -122,9 +122,11 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		providerClient := internal.NewGitProviderClient(osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
 
 		gitClient, gitProvider, err = factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
-			URL:       installParams.ConfigRepo,
-			Namespace: namespace,
-			DryRun:    installParams.DryRun,
+			// We need to set URL and ConfigRepo to the same value so a deploy key is created for public config repos
+			URL:        installParams.ConfigRepo,
+			ConfigRepo: installParams.ConfigRepo,
+			Namespace:  namespace,
+			DryRun:     installParams.DryRun,
 		})
 
 		if err != nil {
