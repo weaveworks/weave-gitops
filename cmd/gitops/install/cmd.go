@@ -118,11 +118,6 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	//providerClient := internal.NewGitProviderClient(osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
-	//factory := services.NewFactory(fluxClient, log)
-
-	// We temporarily need this here otherwise GetGitClients is going to fail
-	// as it needs the namespace created to apply the secret
 	namespaceObj := &corev1.Namespace{}
 	namespaceObj.Name = namespace
 
@@ -132,24 +127,12 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// This is creating the secret, uploads it and applies it to the cluster
-	// This is going to be broken up to reduce complexity
-	// and then generates the source yaml of the config repo when using dry-run option
-	//gitClient, gitProvider, err := factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
-	//	URL:       installParams.ConfigRepo,
-	//	Namespace: namespace,
-	//	DryRun:    installParams.DryRun,
-	//})
-	//if err != nil {
-	//	return fmt.Errorf("failed getting git clients: %w", err)
-	//}
-
-	// TODO: remove git provider parameter. It was used to create the deploy key but the deploy key is created in a different place now
 	authService, err := auth.NewAuthService(fluxClient, rawK8sClient, gitProvider, log)
 	if err != nil {
 		return err
 	}
 
+	// Not sure if I need to make this a plain function or leave it as a service
 	deployKey, err := authService.SetupDeployKey2(ctx, namespace, clusterName, configURL)
 	if err != nil {
 		return err
