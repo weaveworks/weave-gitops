@@ -17,6 +17,7 @@ import (
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/services/check"
 )
 
 var (
@@ -45,7 +46,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 
 	It("Verify that gitops cannot work without gitops components installed OR with both url and directory provided", func() {
-
 		var repoAbsolutePath string
 		var errOutput string
 		var exitCode int
@@ -72,8 +72,14 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And gitops check pre kubernetes version is compatible and flux is not installed", func() {
-			output, _ := runCommandAndReturnStringOutput(gitopsBinaryPath + " check --pre")
-			Expect(output).To(ContainSubstring("✔ Flux is not installed"))
+			c := exec.Command(gitopsBinaryPath, "check", "--pre")
+			output, err := c.CombinedOutput()
+			Expect(err).NotTo(HaveOccurred())
+			expectedOutput := fmt.Sprintf(`✔ Kubernetes %s.* >=[0-9]+.[0-9]+\.[0-9]+-[0-9]+
+✔ Flux is not installed
+`,
+				getK8sVersion())
+			Expect(string(output)).To(MatchRegexp(expectedOutput))
 		})
 
 		By("And I run gitops add command", func() {
@@ -197,8 +203,19 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And gitops check pre validates kubernetes and flux are compatible", func() {
-			output, _ := runCommandAndReturnStringOutput(gitopsBinaryPath + " check --pre")
-			Expect(output).To(ContainSubstring("✔ Flux is not installed"))
+			c := exec.Command(gitopsBinaryPath, "check", "--pre")
+			actualOutput, err := c.CombinedOutput()
+			Expect(err).NotTo(HaveOccurred())
+			fluxVersion, err := getCurrentFluxSupportedVersion()
+			Expect(err).ShouldNot(HaveOccurred())
+			expectedOutput := fmt.Sprintf(`✔ Kubernetes %s.* >=[0-9]+.[0-9]+\.[0-9]+-[0-9]+
+✔ Flux %s ~=%s
+%s
+`,
+				getK8sVersion(),
+				fluxVersion, fluxVersion,
+				check.FluxCompatibleMessage)
+			Expect(string(actualOutput)).To(MatchRegexp(expectedOutput))
 		})
 
 		By("And I run gitops add command", func() {
@@ -218,7 +235,9 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have private visibility", func() {
-			Expect(getGitRepoVisibility(githubOrg, tip.appRepoName, gitproviders.GitProviderGitHub)).Should(ContainSubstring("private"))
+			if os.Getenv("GIT_PROVIDER") != "gitlab" {
+				Expect(getGitRepoVisibility(githubOrg, tip.appRepoName, gitproviders.GitProviderGitHub)).Should(ContainSubstring("private"))
+			}
 		})
 	})
 
@@ -268,7 +287,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have private visibility", func() {
-			if os.Getenv("GIT_PROVIDER") == "github" {
+			if os.Getenv("GIT_PROVIDER") != "gitlab" {
 				Expect(getGitRepoVisibility(gitOrg, tip.appRepoName, gitProvider)).Should(ContainSubstring("private"))
 			}
 		})
@@ -342,7 +361,9 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have public visibility", func() {
-			Expect(getGitRepoVisibility(gitlabPublicGroup, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("public"))
+			if os.Getenv("GIT_PROVIDER") != "gitlab" {
+				Expect(getGitRepoVisibility(gitlabPublicGroup, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("public"))
+			}
 		})
 
 	})
@@ -555,7 +576,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have private visibility", func() {
-			if os.Getenv("GIT_PROVIDER") == "github" {
+			if os.Getenv("GIT_PROVIDER") != "gitlab" {
 				Expect(getGitRepoVisibility(gitOrg, tip.appRepoName, gitProvider)).Should(ContainSubstring("private"))
 			}
 		})
@@ -1177,7 +1198,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitProvider, private, githubOrg)
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitProvider, private, gitOrg)
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 
@@ -1195,9 +1216,9 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			Expect(waitForResource("configmaps", "helloworld-configmap", WEGO_DEFAULT_NAMESPACE, INSTALL_PODS_READY_TIMEOUT)).To(Succeed())
 		})
 
-		By("And repo created has public visibility", func() {
-			if os.Getenv("GIT_PROVIDER") == "" || os.Getenv("GIT_PROVIDER") == "github" {
-				Eventually(getGitRepoVisibility(gitOrg, appRepoName, gitProvider)).Should(ContainSubstring("public"))
+		By("And repo created has private visibility", func() {
+			if os.Getenv("GIT_PROVIDER") != "gitlab" {
+				Eventually(getGitRepoVisibility(gitOrg, appRepoName, gitProvider)).Should(ContainSubstring("private"))
 			}
 		})
 	})
@@ -1428,7 +1449,9 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have public visibility", func() {
-			Expect(getGitRepoVisibility(gitlabPublicGroup, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("public"))
+			if os.Getenv("GIT_PROVIDER") != "gitlab" {
+				Expect(getGitRepoVisibility(gitlabPublicGroup, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("public"))
+			}
 		})
 
 	})
@@ -1486,7 +1509,9 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have private visibility", func() {
-			Expect(getGitRepoVisibility(subGroup, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("private"))
+			if os.Getenv("GIT_PROVIDER") != "gitlab" {
+				Expect(getGitRepoVisibility(subGroup, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("private"))
+			}
 		})
 
 		By("When I remove an app", func() {
