@@ -1,6 +1,7 @@
 package gitproviders
 
 import (
+	"context"
 	"errors"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -20,6 +21,7 @@ var _ = Describe("User Provider", func() {
 		commitClient       *fakegitprovider.CommitClient
 		branchesClient     *fakegitprovider.BranchClient
 		pullRequestsClient *fakegitprovider.PullRequestClient
+		fileClient         *fakegitprovider.FileClient
 
 		repoUrl RepoURL
 	)
@@ -28,11 +30,13 @@ var _ = Describe("User Provider", func() {
 		commitClient = &fakegitprovider.CommitClient{}
 		branchesClient = &fakegitprovider.BranchClient{}
 		pullRequestsClient = &fakegitprovider.PullRequestClient{}
+		fileClient = &fakegitprovider.FileClient{}
 
 		userRepo = &fakegitprovider.UserRepository{}
 		userRepo.CommitsReturns(commitClient)
 		userRepo.BranchesReturns(branchesClient)
 		userRepo.PullRequestsReturns(pullRequestsClient)
+		userRepo.FilesReturns(fileClient)
 
 		userRepoClient = &fakegitprovider.UserRepositoriesClient{}
 		userRepoClient.GetReturns(userRepo, nil)
@@ -305,6 +309,16 @@ var _ = Describe("User Provider", func() {
 			gitProviderClient.ProviderIDReturns("github")
 
 			Expect(userProvider.GetProviderDomain()).To(Equal("github.com"))
+		})
+	})
+
+	Describe("GetRepoFiles", func() {
+		It("returns a list of files", func() {
+			file := &gitprovider.CommitFile{}
+			fileClient.GetReturns([]*gitprovider.CommitFile{file}, nil)
+			c, err := userProvider.GetRepoFiles(context.TODO(), repoUrl, "", "")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(c).To(Equal([]*gitprovider.CommitFile{file}))
 		})
 	})
 })

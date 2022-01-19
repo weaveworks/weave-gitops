@@ -22,6 +22,7 @@ var _ = Describe("Org Provider", func() {
 		commitClient       *fakegitprovider.CommitClient
 		branchesClient     *fakegitprovider.BranchClient
 		pullRequestsClient *fakegitprovider.PullRequestClient
+		fileClient         *fakegitprovider.FileClient
 
 		repoUrl RepoURL
 	)
@@ -30,11 +31,13 @@ var _ = Describe("Org Provider", func() {
 		commitClient = &fakegitprovider.CommitClient{}
 		branchesClient = &fakegitprovider.BranchClient{}
 		pullRequestsClient = &fakegitprovider.PullRequestClient{}
+		fileClient = &fakegitprovider.FileClient{}
 
 		orgRepo = &fakegitprovider.OrgRepository{}
 		orgRepo.CommitsReturns(commitClient)
 		orgRepo.BranchesReturns(branchesClient)
 		orgRepo.PullRequestsReturns(pullRequestsClient)
+		orgRepo.FilesReturns(fileClient)
 
 		orgRepoClient = &fakegitprovider.OrgRepositoriesClient{}
 		orgRepoClient.GetReturns(orgRepo, nil)
@@ -311,6 +314,16 @@ var _ = Describe("Org Provider", func() {
 			gitProviderClient.ProviderIDReturns("github")
 
 			Expect(orgProvider.GetProviderDomain()).To(Equal("github.com"))
+		})
+	})
+
+	Describe("GetRepoFiles", func() {
+		It("returns a list of files", func() {
+			file := &gitprovider.CommitFile{}
+			fileClient.GetReturns([]*gitprovider.CommitFile{file}, nil)
+			c, err := orgProvider.GetRepoFiles(context.TODO(), repoUrl, "", "")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(c).To(Equal([]*gitprovider.CommitFile{file}))
 		})
 	})
 })

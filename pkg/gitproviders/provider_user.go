@@ -115,6 +115,16 @@ func (p userGitProvider) GetProviderDomain() string {
 	return getProviderDomain(p.provider.ProviderID())
 }
 
+// GetRepoFiles returns the files found in a directory. The targetPath must point to a directory, not a file.
+// Note that the current implementation only gets an end subdirectory. It does not get multiple directories recursively. See https://github.com/fluxcd/go-git-providers/issues/143.
 func (p userGitProvider) GetRepoFiles(ctx context.Context, repoUrl RepoURL, targetPath, targetBranch string) ([]*gitprovider.CommitFile, error) {
-	return nil, nil
+	repo, err := p.getUserRepo(ctx, repoUrl)
+	if err != nil {
+		return nil, err
+	}
+	files, err := repo.Files().Get(ctx, targetPath, targetBranch)
+	if err != nil {
+		return nil, err
+	}
+	return files, nil
 }

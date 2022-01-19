@@ -17,6 +17,7 @@ var _ = Describe("Add Profile", func() {
 		addParams = profile.AddParams{
 			ConfigRepo: "ssh://git@github.com/owner/config-repo.git",
 			Name:       "foo",
+			Cluster:    "prod",
 		}
 	})
 
@@ -38,6 +39,7 @@ var _ = Describe("Add Profile", func() {
 		addParams = profile.AddParams{
 			Name:       "foo",
 			ConfigRepo: "{http:/-*wrong-url-827",
+			Cluster:    "prod",
 		}
 
 		err := profileSvc.Add(gitProviders, addParams)
@@ -50,20 +52,7 @@ var _ = Describe("Add Profile", func() {
 		gitProviders.GetRepoFilesReturns(nil, fmt.Errorf("err"))
 		err := profileSvc.Add(gitProviders, addParams)
 		Expect(err).NotTo(BeNil())
-		Expect(err).To(MatchError("failed to get files of config repository 'ssh://git@github.com/owner/config-repo.git': err"))
-	})
-
-	It("fails if the cluster name is not found", func() {
-		gitProviders.RepositoryExistsReturns(true, nil)
-		path, content := "", ""
-		file := &gitprovider.CommitFile{
-			Path:    &path,
-			Content: &content,
-		}
-		gitProviders.GetRepoFilesReturns([]*gitprovider.CommitFile{file}, nil)
-		err := profileSvc.Add(gitProviders, addParams)
-		Expect(err).NotTo(BeNil())
-		Expect(err).To(MatchError("failed to find cluster in '/.weave-gitops/clusters/'"))
+		Expect(err).To(MatchError("failed to get files in '.weave-gitops/clusters/prod/system' for config repository 'ssh://git@github.com/owner/config-repo.git': err"))
 	})
 })
 
@@ -79,6 +68,7 @@ var _ = Describe("ValidateAddParams", func() {
 			addParams = profile.AddParams{
 				Name:       "a234567890123456789012345678901234567890123456789012345678901234",
 				ConfigRepo: "ssh://git@github.com/owner/config-repo.git",
+				Cluster:    "prod",
 			}
 
 			_, err := profileSvc.ValidateAddParams(addParams)
@@ -90,6 +80,7 @@ var _ = Describe("ValidateAddParams", func() {
 			addParams = profile.AddParams{
 				Name:       "wego-app",
 				ConfigRepo: "ssh://git@github.com/owner/config-repo.git",
+				Cluster:    "prod",
 			}
 
 			_, err := profileSvc.ValidateAddParams(addParams)
@@ -107,6 +98,19 @@ var _ = Describe("ValidateAddParams", func() {
 			_, err := profileSvc.ValidateAddParams(addParams)
 			Expect(err).NotTo(BeNil())
 			Expect(err).To(MatchError("--name should be provided"))
+		})
+	})
+
+	When("--cluster is not specified", func() {
+		It("fails", func() {
+			addParams = profile.AddParams{
+				ConfigRepo: "ssh://git@github.com/owner/config-repo.git",
+				Name:       "test",
+			}
+
+			_, err := profileSvc.ValidateAddParams(addParams)
+			Expect(err).NotTo(BeNil())
+			Expect(err).To(MatchError("--cluster should be provided"))
 		})
 	})
 })
