@@ -71,17 +71,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			uninstallWegoRuntime(WEGO_DEFAULT_NAMESPACE)
 		})
 
-		By("And gitops check pre kubernetes version is compatible and flux is not installed", func() {
-			c := exec.Command(gitopsBinaryPath, "check", "--pre")
-			output, err := c.CombinedOutput()
-			Expect(err).NotTo(HaveOccurred())
-			expectedOutput := fmt.Sprintf(`✔ Kubernetes %s.* >=[0-9]+.[0-9]+\.[0-9]+-[0-9]+
-✔ Flux is not installed
-`,
-				getK8sVersion())
-			Expect(string(output)).To(MatchRegexp(expectedOutput))
-		})
-
 		By("And I run gitops add command", func() {
 			command := exec.Command("sh", "-c", fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, gitopsBinaryPath, addCommand1))
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -200,22 +189,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("And I install gitops to my active cluster", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
-		})
-
-		By("And gitops check pre validates kubernetes and flux are compatible", func() {
-			c := exec.Command(gitopsBinaryPath, "check", "--pre")
-			actualOutput, err := c.CombinedOutput()
-			Expect(err).NotTo(HaveOccurred())
-			fluxVersion, err := getCurrentFluxSupportedVersion()
-			Expect(err).ShouldNot(HaveOccurred())
-			expectedOutput := fmt.Sprintf(`✔ Kubernetes %s.* >=[0-9]+.[0-9]+\.[0-9]+-[0-9]+
-✔ Flux %s ~=%s
-%s
-`,
-				getK8sVersion(),
-				fluxVersion, fluxVersion,
-				check.FluxCompatibleMessage)
-			Expect(string(actualOutput)).To(MatchRegexp(expectedOutput))
 		})
 
 		By("And I run gitops add command", func() {
@@ -664,12 +637,26 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			deleteWorkload(tip.workloadName, tip.workloadNamespace)
 		})
 
-		By("When I create an empty private repo for app", func() {
+		By("And I create a private repo with my app workload", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitProvider, true, gitOrg)
+			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
-		By("And I git add-commit-push for app", func() {
-			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
+		By("And Gitops runtime is not installed in Cluster2", func() {
+			selectCluster(cluster2Context)
+			uninstallWegoRuntime(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And gitops check pre kubernetes version is compatible and flux is not installed in Cluster2", func() {
+			selectCluster(cluster2Context)
+			c := exec.Command(gitopsBinaryPath, "check", "--pre")
+			output, err := c.CombinedOutput()
+			Expect(err).NotTo(HaveOccurred())
+			expectedOutput := fmt.Sprintf(`✔ Kubernetes %s.* >=[0-9]+.[0-9]+\.[0-9]+-[0-9]+
+✔ Flux is not installed
+`,
+				getK8sVersion())
+			Expect(string(output)).To(MatchRegexp(expectedOutput))
 		})
 
 		By("And I install gitops to my active clusters", func() {
@@ -677,6 +664,23 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 			selectCluster(cluster2Context)
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
+		})
+
+		By("And gitops check pre validates kubernetes and flux compatibility for Cluster1", func() {
+			selectCluster(cluster1Context)
+			c := exec.Command(gitopsBinaryPath, "check", "--pre")
+			actualOutput, err := c.CombinedOutput()
+			Expect(err).NotTo(HaveOccurred())
+			fluxVersion, err := getCurrentFluxSupportedVersion()
+			Expect(err).ShouldNot(HaveOccurred())
+			expectedOutput := fmt.Sprintf(`✔ Kubernetes %s >=[0-9]+.[0-9]+\.[0-9]+-[0-9]+
+✔ Flux %s ~=%s
+%s
+`,
+				getK8sVersion(),
+				fluxVersion, fluxVersion,
+				check.FluxCompatibleMessage)
+			Expect(string(actualOutput)).To(MatchRegexp(expectedOutput))
 		})
 
 		By("And I run gitops add command for app", func() {
@@ -1181,7 +1185,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	It("SmokeTestLong Verify that gitops can deploy a helm app from a git repo with config-repo set to default", func() {
+	It("Verify that gitops can deploy a helm app from a git repo with config-repo set to default", func() {
 		var repoAbsolutePath string
 		private := true
 		appName := "my-helm-app"
@@ -1685,7 +1689,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	It("SmokeTestLong - Verify that a PR fails when raised against the same app-repo with different branch and app", func() {
+	It("Verify that a PR fails when raised against the same app-repo with different branch and app", func() {
 		var repoAbsolutePath string
 		tip := generateTestInputs()
 		tip2 := generateTestInputs()
