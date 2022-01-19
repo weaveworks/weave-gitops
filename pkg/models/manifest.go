@@ -152,7 +152,7 @@ func GitopsManifests(ctx context.Context, fluxClient flux.Flux, gitProvider gitp
 		}), nil
 }
 
-func CreateKustomize(name, namespace string, resources ...string) types.Kustomization {
+func CreateKustomization(name, namespace string, resources ...string) types.Kustomization {
 	var k types.Kustomization
 
 	k.MetaData = &types.ObjectMeta{
