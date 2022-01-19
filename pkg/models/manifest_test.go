@@ -191,7 +191,7 @@ var _ = Describe("Installer", func() {
 
 				fakeGitProvider.GetDefaultBranchReturns("main", nil)
 
-				systemKustomization := CreateKustomize(clusterName, testNamespace, RuntimePath, SourcePath, SystemKustResourcePath, UserKustResourcePath, WegoAppPath)
+				systemKustomization := CreateKustomization(clusterName, testNamespace, RuntimePath, SourcePath, SystemKustResourcePath, UserKustResourcePath, WegoAppPath)
 
 				systemKustomizationManifest, err := yaml.Marshal(systemKustomization)
 				Expect(err).ShouldNot(HaveOccurred())

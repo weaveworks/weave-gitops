@@ -127,7 +127,7 @@ func GitopsManifests(ctx context.Context, fluxClient flux.Flux, gitProvider gitp
 		return nil, err
 	}
 
-	systemKustomization := CreateKustomize(clusterName, namespace, RuntimePath, SourcePath, SystemKustResourcePath, UserKustResourcePath, WegoAppPath)
+	systemKustomization := CreateKustomization(clusterName, namespace, RuntimePath, SourcePath, SystemKustResourcePath, UserKustResourcePath, WegoAppPath)
 
 	systemKustomizationManifest, err := yaml.Marshal(systemKustomization)
 	if err != nil {
