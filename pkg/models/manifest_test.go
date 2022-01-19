@@ -27,7 +27,9 @@ var _ = Describe("Installer", func() {
 	const testNamespace = "test-namespace"
 	var configRepo gitproviders.RepoURL
 	var err error
+	var ctx context.Context
 	var _ = BeforeEach(func() {
+		ctx = context.Background()
 		fakeFluxClient = &fluxfakes.FakeFlux{}
 		configRepo, err = gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo")
 		Expect(err).ShouldNot(HaveOccurred())
@@ -41,7 +43,7 @@ var _ = Describe("Installer", func() {
 
 				fakeFluxClient.InstallReturns(nil, someError)
 
-				_, err = BootstrapManifests(fakeFluxClient, clusterName, testNamespace, configRepo)
+				_, err = BootstrapManifests(ctx, fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo)
 				Expect(err.Error()).Should(ContainSubstring(someError.Error()))
 			})
 
@@ -51,7 +53,7 @@ var _ = Describe("Installer", func() {
 
 				fakeFluxClient.CreateKustomizationReturns(nil, someError)
 
-				_, err = BootstrapManifests(fakeFluxClient, clusterName, testNamespace, configRepo)
+				_, err = BootstrapManifests(ctx, fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo)
 				Expect(err.Error()).Should(ContainSubstring(someError.Error()))
 			})
 
@@ -62,7 +64,7 @@ var _ = Describe("Installer", func() {
 				fakeFluxClient.CreateKustomizationReturnsOnCall(0, nil, nil)
 				fakeFluxClient.CreateKustomizationReturnsOnCall(1, nil, someError)
 
-				_, err = BootstrapManifests(fakeFluxClient, clusterName, testNamespace, configRepo)
+				_, err = BootstrapManifests(ctx, fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo)
 				Expect(err.Error()).Should(ContainSubstring(someError.Error()))
 			})
 		})
@@ -89,7 +91,7 @@ var _ = Describe("Installer", func() {
 				wegoConfigManifest, err := yaml.Marshal(gitopsConfigMap)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				manifestsFiles, err := BootstrapManifests(fakeFluxClient, clusterName, testNamespace, configRepo)
+				manifestsFiles, err := BootstrapManifests(ctx, fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(len(manifestsFiles)).Should(Equal(6))
