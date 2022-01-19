@@ -442,7 +442,7 @@ var _ = Describe("Generate cluster manifests", func() {
 		Expect(clusterAutomation.UserKustResourceManifest.Content).To(Equal(userKustResourceManifest))
 		Expect(clusterAutomation.UserKustResourceManifest.Path).To(Equal(systemQualifiedPath(userKustResourcePath)))
 
-		systemKust := CreateKustomize(cluster.Name, namespace, runtimePath, sourcePath, systemKustResourcePath, userKustResourcePath)
+		systemKust := CreateKustomize(cluster.Name, namespace, runtimePath, sourcePath, systemKustResourcePath, userKustResourcePath, WegoAppPath)
 		systemKustManifest, err := yaml.Marshal(systemKust)
 		Expect(err).ShouldNot(HaveOccurred())
 

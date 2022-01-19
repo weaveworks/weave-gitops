@@ -68,7 +68,6 @@ type applicationServer struct {
 	factory        services.Factory
 	jwtClient      auth.JWTClient
 	log            logr.Logger
-	kube           client.Client
 	ghAuthClient   auth.GithubAuthClient
 	fetcherFactory FetcherFactory
 	glAuthClient   auth.GitlabAuthClient
@@ -81,7 +80,6 @@ type ApplicationsConfig struct {
 	Logger           logr.Logger
 	Factory          services.Factory
 	JwtClient        auth.JWTClient
-	KubeClient       client.Client
 	GithubAuthClient auth.GithubAuthClient
 	FetcherFactory   FetcherFactory
 	GitlabAuthClient auth.GitlabAuthClient
@@ -132,7 +130,6 @@ func NewApplicationsServer(cfg *ApplicationsConfig, setters ...ApplicationsOptio
 		jwtClient:      cfg.JwtClient,
 		log:            cfg.Logger,
 		factory:        cfg.Factory,
-		kube:           cfg.KubeClient,
 		ghAuthClient:   cfg.GithubAuthClient,
 		fetcherFactory: cfg.FetcherFactory,
 		glAuthClient:   cfg.GitlabAuthClient,
@@ -164,18 +161,12 @@ func DefaultApplicationsConfig() (*ApplicationsConfig, error) {
 		return nil, fmt.Errorf("could not create client config: %w", err)
 	}
 
-	_, rawClient, err := kube.NewKubeHTTPClientWithConfig(rest, clusterName)
-	if err != nil {
-		return nil, fmt.Errorf("could not create kube http client: %w", err)
-	}
-
 	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 
 	return &ApplicationsConfig{
 		Logger:           logr,
 		Factory:          services.NewServerFactory(fluxClient, internal.NewApiLogger(zapLog), nil, ""),
 		JwtClient:        jwtClient,
-		KubeClient:       rawClient,
 		FetcherFactory:   NewDefaultFetcherFactory(),
 		GithubAuthClient: auth.NewGithubAuthClient(http.DefaultClient),
 		GitlabAuthClient: auth.NewGitlabAuthClient(http.DefaultClient),
@@ -431,6 +422,11 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error listing commits: %s", err.Error())
 	}
 
+	cl, err := s.clientGetter.Client(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	pageToken := 0
 	if msg.PageToken != nil {
 		pageToken = int(*msg.PageToken)
@@ -445,7 +441,7 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 	}
 
 	application := &wego.Application{}
-	if err := s.kube.Get(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace}, application); err != nil {
+	if err := cl.Get(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace}, application); err != nil {
 		return nil, fmt.Errorf("could not get app %q in namespace %q: %w", msg.Name, msg.Namespace, err)
 	}
 
@@ -493,6 +489,11 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 }
 
 func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciledObjectsReq) (*pb.GetReconciledObjectsRes, error) {
+	cl, err := s.clientGetter.Client(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	var opts client.MatchingLabels
 
 	switch msg.AutomationKind {
@@ -521,8 +522,8 @@ func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.Ge
 			Version: gvk.Version,
 		})
 
-		if err := s.kube.List(ctx, &list, opts); err != nil {
-			return nil, fmt.Errorf("could not get unstructured list: %s\n", err)
+		if err := cl.List(ctx, &list, opts); err != nil {
+			return nil, fmt.Errorf("could not get unstructured list: %s", err)
 		}
 
 		result = append(result, list.Items...)
@@ -554,6 +555,11 @@ func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.Ge
 }
 
 func (s *applicationServer) GetChildObjects(ctx context.Context, msg *pb.GetChildObjectsReq) (*pb.GetChildObjectsRes, error) {
+	cl, err := s.clientGetter.Client(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	list := unstructured.UnstructuredList{}
 
 	list.SetGroupVersionKind(schema.GroupVersionKind{
@@ -562,8 +568,8 @@ func (s *applicationServer) GetChildObjects(ctx context.Context, msg *pb.GetChil
 		Kind:    msg.GroupVersionKind.Kind,
 	})
 
-	if err := s.kube.List(ctx, &list); err != nil {
-		return nil, fmt.Errorf("could not get unstructured object: %s\n", err)
+	if err := cl.List(ctx, &list); err != nil {
+		return nil, fmt.Errorf("could not get unstructured object: %s", err)
 	}
 
 	objects := []*pb.UnstructuredObject{}

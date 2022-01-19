@@ -269,15 +269,18 @@ func upgradeGitManifests(gitClient git.Git, cname, wegoEnterpriseManifests strin
 	wegoAppPath := git.GetSystemQualifiedPath(cname, automation.WegoAppPath)
 	wegoEnterprisePath := git.GetSystemQualifiedPath(cname, WegoEnterpriseName)
 
-	newKustomizationBytes, err := updateKustomization(gitClient, kustomizationPath, wegoAppPath, wegoEnterprisePath)
+	manifests := map[string]string{
+		wegoEnterprisePath: wegoEnterpriseManifests,
+		capiKeepPath:       capiKeepContents,
+	}
+
+	newKustomizationBytes, err := updateKustomization(gitClient, kustomizationPath, wegoAppPath, wegoEnterprisePath, logger)
 	if err != nil {
 		return fmt.Errorf("Failed to update kustomization: %w", err)
 	}
 
-	manifests := map[string]string{
-		wegoEnterprisePath: wegoEnterpriseManifests,
-		capiKeepPath:       capiKeepContents,
-		kustomizationPath:  string(newKustomizationBytes),
+	if newKustomizationBytes != nil {
+		manifests[kustomizationPath] = string(newKustomizationBytes)
 	}
 
 	for path, content := range manifests {
@@ -294,10 +297,11 @@ func upgradeGitManifests(gitClient git.Git, cname, wegoEnterpriseManifests strin
 	return nil
 }
 
-func updateKustomization(gitClient git.Git, kustomizationPath, wegoAppPath, wegoEnterprisePath string) ([]byte, error) {
+func updateKustomization(gitClient git.Git, kustomizationPath, wegoAppPath, wegoEnterprisePath string, logger logger.Logger) ([]byte, error) {
 	kustomizationBytes, err := gitClient.Read(kustomizationPath)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to read existing kustomization %s: %w", kustomizationPath, err)
+		logger.Warningf("Failed to read existing kustomization, skipping, may be an older weave-gitops installation %s: %w", kustomizationPath, err)
+		return nil, nil
 	}
 
 	var k types.Kustomization
