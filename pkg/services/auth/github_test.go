@@ -104,22 +104,22 @@ var _ = Describe("Github Device Flow", func() {
 			}()
 			runtime.Gosched()
 
-			// +5
-			c.Add(5 * time.Second)
+			// check one second after interval
+			c.Add(interval + 1*time.Second)
 			Expect(rt.calls).To(Equal(1), "should have tried the first time")
 
-			// +10
-			c.Add(5 * time.Second)
+			// check during back off
+			c.Add(interval * time.Second)
 			Expect(rt.calls).To(Equal(1), "should NOT have retried early")
 
-			// +20
-			c.Add(10 * time.Second)
+			// check one second after back off ended
+			c.Add(interval + 6*time.Second)
 			Expect(rt.calls).To(Equal(2), "should have backed off 10 seconds")
 		})
 		It("returns a token after a slow_down", func() {
 			rt := newMockRoundTripper(1, token)
 			client.Transport = &testServerTransport{testServeUrl: ts.URL, roundTripper: rt}
-			interval := 4 * time.Second
+			interval := 5 * time.Second
 			c := clock.NewMock()
 
 			var resultToken string
@@ -130,11 +130,13 @@ var _ = Describe("Github Device Flow", func() {
 			}()
 			runtime.Gosched()
 
-			c.Add(5 * time.Second)
+			// check 1 second after interval
+			c.Add(interval + 1*time.Second)
 			Expect(rt.calls).To(Equal(1), "should have tried the first time")
 
-			c.Add(15 * time.Second)
-			Expect(rt.calls).To(Equal(2), "should have added 10 seconds of back off")
+			// check 1 second after back off ended
+			c.Add(interval + 6*time.Second)
+			Expect(rt.calls).To(Equal(2), "should have tried again after back off")
 
 			Expect(resultToken).To(Equal(token))
 		})
