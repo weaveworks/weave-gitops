@@ -143,7 +143,7 @@ func GetOrCreateKustomize(filename, name, namespace string) (types.Kustomization
 		return k, nil
 	}
 
-	return models.CreateKustomize(name, namespace), nil
+	return models.CreateKustomization(name, namespace), nil
 }
 
 func createAppKustomize(app models.Application, automation ...models.Manifest) (models.Manifest, error) {
@@ -153,7 +153,7 @@ func createAppKustomize(app models.Application, automation ...models.Manifest) (
 		resources = append(resources, filepath.Base(a.Path))
 	}
 
-	k := models.CreateKustomize(AppDeployName(app), app.Namespace, resources...)
+	k := models.CreateKustomization(AppDeployName(app), app.Namespace, resources...)
 
 	bytes, err := yaml.Marshal(k)
 	if err != nil {
