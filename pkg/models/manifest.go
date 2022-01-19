@@ -66,8 +66,8 @@ func BootstrapManifests(fluxClient flux.Flux, clusterName string, namespace stri
 	wegoAppManifest := bytes.Join(wegoAppManifests, []byte("---\n"))
 
 	sourceName := CreateClusterSourceName(configURL)
-
 	systemResourceName := ConstrainResourceName(fmt.Sprintf("%s-system", clusterName))
+
 	systemKustResourceManifest, err := fluxClient.CreateKustomization(systemResourceName, sourceName,
 		workAroundFluxDroppingDot(git.GetSystemPath(clusterName)), namespace)
 	if err != nil {
@@ -75,13 +75,14 @@ func BootstrapManifests(fluxClient flux.Flux, clusterName string, namespace stri
 	}
 
 	userResourceName := ConstrainResourceName(fmt.Sprintf("%s-user", clusterName))
+
 	userKustResourceManifest, err := fluxClient.CreateKustomization(userResourceName, sourceName,
 		workAroundFluxDroppingDot(git.GetUserPath(clusterName)), namespace)
 	if err != nil {
 		return nil, err
 	}
 
-	gitopsConfigMap, err := GitopsConfigMap(namespace, namespace)
+	gitopsConfigMap, err := CreateGitopsConfigMap(namespace, namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +232,7 @@ func workAroundFluxDroppingDot(str string) string {
 	return "." + str
 }
 
-func GitopsConfigMap(fluxNamespace string, wegoNamespace string) (corev1.ConfigMap, error) {
+func CreateGitopsConfigMap(fluxNamespace string, wegoNamespace string) (corev1.ConfigMap, error) {
 	config := kube.WegoConfig{
 		FluxNamespace: fluxNamespace,
 	}

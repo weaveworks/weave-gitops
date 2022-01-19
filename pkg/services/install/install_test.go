@@ -279,7 +279,7 @@ var _ = Describe("Installer", func() {
 			fakeFluxClient.CreateKustomizationReturnsOnCall(2, systemKustomizationResource, nil)
 			fakeFluxClient.CreateKustomizationReturnsOnCall(3, userKustomizationResource, nil)
 
-			gitopsConfigMap, err := models.GitopsConfigMap(testNamespace, testNamespace)
+			gitopsConfigMap, err := models.CreateGitopsConfigMap(testNamespace, testNamespace)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			wegoConfigManifest, err := yaml.Marshal(gitopsConfigMap)
@@ -400,7 +400,7 @@ var _ = Describe("Installer", func() {
 			fakeFluxClient.CreateKustomizationReturnsOnCall(2, systemKustomizationResource, nil)
 			fakeFluxClient.CreateKustomizationReturnsOnCall(3, userKustomizationResource, nil)
 
-			gitopsConfigMap, err := models.GitopsConfigMap(testNamespace, testNamespace)
+			gitopsConfigMap, err := models.CreateGitopsConfigMap(testNamespace, testNamespace)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			wegoConfigManifest, err := yaml.Marshal(gitopsConfigMap)
