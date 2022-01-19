@@ -89,8 +89,24 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	log := internal.NewCLILogger(os.Stdout)
+
+	token, err := internal.GetToken(configURL, osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
+	if err != nil {
+		return err
+	}
+
+	gitProvider, err := gitproviders.New(gitproviders.Config{
+		Provider: configURL.Provider(),
+		Token:    token,
+		Hostname: configURL.URL().Host,
+	}, configURL.Owner(), gitproviders.GetAccountType)
+	if err != nil {
+		return fmt.Errorf("error creating git provider client: %w", err)
+	}
+
 	if installParams.DryRun {
-		manifests, err := models.BootstrapManifests(fluxClient, clusterName, namespace, configURL)
+		manifests, err := models.BootstrapManifests(ctx, fluxClient, gitProvider, clusterName, namespace, configURL)
 		if err != nil {
 			return fmt.Errorf("failed getting gitops manifests: %w", err)
 		}
@@ -102,7 +118,6 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	log := internal.NewCLILogger(os.Stdout)
 	//providerClient := internal.NewGitProviderClient(osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
 	//factory := services.NewFactory(fluxClient, log)
 
@@ -129,21 +144,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	//	return fmt.Errorf("failed getting git clients: %w", err)
 	//}
 
-	// Get token using either
-	token, err := internal.GetToken(configURL, osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
-	if err != nil {
-		return err
-	}
-
-	gitProvider, err := gitproviders.New(gitproviders.Config{
-		Provider: configURL.Provider(),
-		Token:    token,
-		Hostname: configURL.URL().Host,
-	}, configURL.Owner(), gitproviders.GetAccountType)
-	if err != nil {
-		return fmt.Errorf("error creating git provider client: %w", err)
-	}
-
+	// TODO: remove git provider parameter. It was used to create the deploy key but the deploy key is created in a different place now
 	authService, err := auth.NewAuthService(fluxClient, rawK8sClient, gitProvider, log)
 	if err != nil {
 		return err

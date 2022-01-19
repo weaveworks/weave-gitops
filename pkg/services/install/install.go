@@ -58,7 +58,7 @@ func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, auto
 		return fmt.Errorf("failed installing flux: %w", err)
 	}
 
-	manifests, err := models.BootstrapManifests(i.fluxClient, clusterName, namespace, configURL)
+	manifests, err := models.BootstrapManifests(ctx, i.fluxClient, i.gitProviderClient, clusterName, namespace, configURL)
 	if err != nil {
 		return fmt.Errorf("failed getting bootstrap manifests: %w", err)
 	}
@@ -68,13 +68,13 @@ func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, auto
 		return fmt.Errorf("failed getting default branch: %w", err)
 	}
 
-	// TODO: Move this to bootstrap after refactoring getGitClients
-	source, err := models.GetSourceManifest(ctx, i.fluxClient, i.gitProviderClient, clusterName, namespace, configURL, defaultBranch)
-	if err != nil {
-		return fmt.Errorf("failed getting git source: %w", err)
-	}
+	//// TODO: Move this to bootstrap after refactoring getGitClients
+	//source, err := models.GetSourceManifest(ctx, i.fluxClient, i.gitProviderClient, clusterName, namespace, configURL, defaultBranch)
+	//if err != nil {
+	//	return fmt.Errorf("failed getting git source: %w", err)
+	//}
 
-	manifests = append(manifests, source)
+	//manifests = append(manifests, source)
 
 	for _, manifest := range manifests {
 		ms := bytes.Split(manifest.Content, []byte("---\n"))

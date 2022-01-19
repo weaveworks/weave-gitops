@@ -47,7 +47,7 @@ const (
 )
 
 // BootstrapManifests creates all yaml files that are going to be applied to the cluster
-func BootstrapManifests(fluxClient flux.Flux, clusterName string, namespace string, configURL gitproviders.RepoURL) ([]Manifest, error) {
+func BootstrapManifests(ctx context.Context, fluxClient flux.Flux, gitProvider gitproviders.GitProvider, clusterName string, namespace string, configURL gitproviders.RepoURL) ([]Manifest, error) {
 	runtimeManifests, err := fluxClient.Install(namespace, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed getting runtime manifests: %w", err)
@@ -92,6 +92,16 @@ func BootstrapManifests(fluxClient flux.Flux, clusterName string, namespace stri
 		return nil, fmt.Errorf("failed marshalling wego config: %w", err)
 	}
 
+	configBranch, err := gitProvider.GetDefaultBranch(ctx, configURL)
+	if err != nil {
+		return nil, err
+	}
+
+	sourceManifest, err := GetSourceManifest(ctx, fluxClient, gitProvider, clusterName, namespace, configURL, configBranch)
+	if err != nil {
+		return nil, err
+	}
+
 	return []Manifest{
 		{
 			Path:    git.GetSystemQualifiedPath(clusterName, AppCRDPath),
@@ -117,12 +127,13 @@ func BootstrapManifests(fluxClient flux.Flux, clusterName string, namespace stri
 			Path:    git.GetSystemQualifiedPath(clusterName, WegoConfigPath),
 			Content: wegoConfigManifest,
 		},
+		sourceManifest,
 	}, nil
 }
 
 // GitopsManifests generates all yaml files that are going to be written in the config repo
 func GitopsManifests(ctx context.Context, fluxClient flux.Flux, gitProvider gitproviders.GitProvider, clusterName string, namespace string, configURL gitproviders.RepoURL) ([]Manifest, error) {
-	bootstrapManifest, err := BootstrapManifests(fluxClient, clusterName, namespace, configURL)
+	bootstrapManifest, err := BootstrapManifests(ctx, fluxClient, gitProvider, clusterName, namespace, configURL)
 	if err != nil {
 		return nil, err
 	}
@@ -134,17 +145,18 @@ func GitopsManifests(ctx context.Context, fluxClient flux.Flux, gitProvider gitp
 		return nil, err
 	}
 
-	configBranch, err := gitProvider.GetDefaultBranch(ctx, configURL)
-	if err != nil {
-		return nil, err
-	}
+	//configBranch, err := gitProvider.GetDefaultBranch(ctx, configURL)
+	//if err != nil {
+	//	return nil, err
+	//}
 
-	sourceManifest, err := GetSourceManifest(ctx, fluxClient, gitProvider, clusterName, namespace, configURL, configBranch)
-	if err != nil {
-		return nil, err
-	}
+	//sourceManifest, err := GetSourceManifest(ctx, fluxClient, gitProvider, clusterName, namespace, configURL, configBranch)
+	//if err != nil {
+	//	return nil, err
+	//}
 
-	return append(bootstrapManifest, sourceManifest, // TODO: Move this to boostrap manifests until getGitClients is refactored
+	return append(bootstrapManifest,
+		//sourceManifest, // TODO: Move this to boostrap manifests until getGitClients is refactored
 		Manifest{
 			Path:    git.GetSystemQualifiedPath(clusterName, SystemKustomizationPath),
 			Content: systemKustomizationManifest,
