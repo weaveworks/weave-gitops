@@ -389,7 +389,7 @@ func (s *applicationServer) RemoveApplication(ctx context.Context, msg *pb.Remov
 		return nil, fmt.Errorf("error removing app: %w", err)
 	}
 
-	return &pb.RemoveApplicationResponse{Success: true}, nil
+	return &pb.RemoveApplicationResponse{Success: true, RepoUrl: application.Spec.ConfigRepo}, nil
 }
 
 func (s *applicationServer) SyncApplication(ctx context.Context, msg *pb.SyncApplicationRequest) (*pb.SyncApplicationResponse, error) {

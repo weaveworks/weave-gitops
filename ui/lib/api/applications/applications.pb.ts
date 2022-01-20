@@ -141,6 +141,7 @@ export type RemoveApplicationRequest = {
 
 export type RemoveApplicationResponse = {
   success?: boolean
+  repoUrl?: string
 }
 
 export type SyncApplicationRequest = {

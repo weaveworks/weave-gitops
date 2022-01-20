@@ -17,6 +17,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
+	"github.com/weaveworks/weave-gitops/pkg/helm"
 	"github.com/weaveworks/weave-gitops/pkg/helm/helmfakes"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache/cachefakes"
@@ -30,7 +31,7 @@ var (
 		Description:       "description",
 		Icon:              "icon",
 		KubeVersion:       "1.21",
-		AvailableVersions: []string{"0.0.1"},
+		AvailableVersions: []string{"0.0.1", "0.0.2"},
 	}
 	profile2 = &pb.Profile{
 		Name:              "test-profiles-2",
@@ -41,6 +42,10 @@ var (
 		AvailableVersions: []string{"0.0.4"},
 	}
 	repo1 = &sourcev1.HelmRepository{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "HelmRepository",
+			APIVersion: "source.toolkit.fluxcd.io/v1beta1",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-name",
 			Namespace: "test-namespace",
@@ -57,7 +62,7 @@ var (
 )
 
 func TestReconcile(t *testing.T) {
-	reconciler, fakeCache, _, _ := setupReconcileAndFakes(repo1)
+	reconciler, fakeCache, fakeRepoManager, _ := setupReconcileAndFakes(repo1)
 	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{
 			Namespace: "test-namespace",
@@ -65,15 +70,19 @@ func TestReconcile(t *testing.T) {
 		},
 	})
 	assert.NoError(t, err)
+	fakeRepoManager.GetValuesFileReturnsOnCall(0, []byte("value1"), nil)
+	fakeRepoManager.GetValuesFileReturnsOnCall(1, []byte("value2"), nil)
+	fakeRepoManager.GetValuesFileReturnsOnCall(2, []byte("value3"), nil)
 
 	expectedData := cache.Data{
 		Profiles: []*pb.Profile{profile1, profile2},
 		Values: map[string]map[string][]byte{
 			profile1.Name: {
-				"0.0.1": []byte("value"),
+				"0.0.1": []byte("value1"),
+				"0.0.2": []byte("value2"),
 			},
 			profile2.Name: {
-				"0.0.4": []byte("value"),
+				"0.0.4": []byte("value3"),
 			},
 		},
 	}
@@ -81,6 +90,30 @@ func TestReconcile(t *testing.T) {
 	assert.Equal(t, "test-namespace", namespace)
 	assert.Equal(t, "test-name", name)
 	assert.Equal(t, expectedData, cacheData)
+
+	_, helmRepo, ref, filename := fakeRepoManager.GetValuesFileArgsForCall(0)
+	assert.Equal(t, repo1.Status.Artifact, helmRepo.Status.Artifact)
+	assert.Equal(t, &helm.ChartReference{
+		Chart:   profile1.Name,
+		Version: "0.0.1",
+	}, ref)
+	assert.Equal(t, "values.yaml", filename)
+
+	_, helmRepo, ref, filename = fakeRepoManager.GetValuesFileArgsForCall(1)
+	assert.Equal(t, repo1.Status.Artifact, helmRepo.Status.Artifact)
+	assert.Equal(t, &helm.ChartReference{
+		Chart:   profile1.Name,
+		Version: "0.0.2",
+	}, ref)
+	assert.Equal(t, "values.yaml", filename)
+
+	_, helmRepo, ref, filename = fakeRepoManager.GetValuesFileArgsForCall(2)
+	assert.Equal(t, repo1.Status.Artifact, helmRepo.Status.Artifact)
+	assert.Equal(t, &helm.ChartReference{
+		Chart:   profile2.Name,
+		Version: "0.0.4",
+	}, ref)
+	assert.Equal(t, "values.yaml", filename)
 }
 
 func TestReconcileDelete(t *testing.T) {
