@@ -63,6 +63,10 @@ var (
 
 func TestReconcile(t *testing.T) {
 	reconciler, fakeCache, fakeRepoManager, _ := setupReconcileAndFakes(repo1)
+	fakeRepoManager.GetValuesFileReturnsOnCall(0, []byte("value1"), nil)
+	fakeRepoManager.GetValuesFileReturnsOnCall(1, []byte("value2"), nil)
+	fakeRepoManager.GetValuesFileReturnsOnCall(2, []byte("value3"), nil)
+
 	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{
 			Namespace: "test-namespace",
@@ -70,9 +74,6 @@ func TestReconcile(t *testing.T) {
 		},
 	})
 	assert.NoError(t, err)
-	fakeRepoManager.GetValuesFileReturnsOnCall(0, []byte("value1"), nil)
-	fakeRepoManager.GetValuesFileReturnsOnCall(1, []byte("value2"), nil)
-	fakeRepoManager.GetValuesFileReturnsOnCall(2, []byte("value3"), nil)
 
 	expectedData := cache.Data{
 		Profiles: []*pb.Profile{profile1, profile2},
@@ -261,16 +262,17 @@ func TestNotifyForGreaterVersion(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	_, meta, reason, message, _ := fakeEventRecorder.EventInfofArgsForCall(0)
+	_, meta, reason, message, args := fakeEventRecorder.EventInfofArgsForCall(0)
 
 	assert.Equal(t, map[string]string{"revision": "revision"}, meta)
 	assert.Equal(t, "info", reason)
-	assert.Equal(t, "New version available for profile test-profiles-1 with version 0.0.1", message)
+	assert.Equal(t, "New version available for profile %s with version %s", message)
+	assert.Equal(t, []interface{}{profile1.Name, "0.0.2"}, args)
 }
 
 func TestDoNotNotifyForLesserOrEqualVersion(t *testing.T) {
 	reconciler, fakeCache, fakeRepoManager, fakeEventRecorder := setupReconcileAndFakes(repo1)
-	fakeCache.ListAvailableVersionsForProfileReturns([]string{"0.0.1"}, nil)
+	fakeCache.ListAvailableVersionsForProfileReturns([]string{"0.0.2"}, nil)
 	fakeRepoManager.ListChartsReturns([]*pb.Profile{profile1}, nil)
 
 	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{
