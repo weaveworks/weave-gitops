@@ -31,6 +31,7 @@ var _ = Describe("Installer", func() {
 	var _ = BeforeEach(func() {
 		ctx = context.Background()
 		fakeFluxClient = &fluxfakes.FakeFlux{}
+		fakeGitProvider = &gitprovidersfakes.FakeGitProvider{}
 		configRepo, err = gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo")
 		Expect(err).ShouldNot(HaveOccurred())
 	})
@@ -91,10 +92,18 @@ var _ = Describe("Installer", func() {
 				wegoConfigManifest, err := yaml.Marshal(gitopsConfigMap)
 				Expect(err).ShouldNot(HaveOccurred())
 
+				gitSource := []byte("git source")
+				fakeFluxClient.CreateSourceGitReturns(gitSource, nil)
+
+				fakeGitProvider.GetDefaultBranchReturns("main", nil)
+
+				privateVisibility := gitprovider.RepositoryVisibilityPrivate
+				fakeGitProvider.GetRepoVisibilityReturns(&privateVisibility, nil)
+
 				manifestsFiles, err := BootstrapManifests(ctx, fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				Expect(len(manifestsFiles)).Should(Equal(6))
+				Expect(len(manifestsFiles)).Should(Equal(7))
 
 				expectedManifests := []Manifest{
 					{
@@ -120,6 +129,10 @@ var _ = Describe("Installer", func() {
 					{
 						Path:    git.GetSystemQualifiedPath(clusterName, WegoConfigPath),
 						Content: wegoConfigManifest,
+					},
+					{
+						Path:    git.GetSystemQualifiedPath(clusterName, SourcePath),
+						Content: gitSource,
 					},
 				}
 
@@ -208,10 +221,6 @@ var _ = Describe("Installer", func() {
 
 				expectedManifests := []Manifest{
 					{
-						Path:    git.GetSystemQualifiedPath(clusterName, SourcePath),
-						Content: gitSource,
-					},
-					{
 						Path:    git.GetSystemQualifiedPath(clusterName, SystemKustomizationPath),
 						Content: systemKustomizationManifest,
 					},
@@ -221,7 +230,7 @@ var _ = Describe("Installer", func() {
 					},
 				}
 
-				for ind, manifest := range manifestsFiles[6:] {
+				for ind, manifest := range manifestsFiles[7:] {
 					Expect(manifest.Path).Should(Equal(expectedManifests[ind].Path))
 					Expect(string(manifest.Content)).Should(Equal(string(expectedManifests[ind].Content)))
 				}

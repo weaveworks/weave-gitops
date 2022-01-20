@@ -145,18 +145,7 @@ func GitopsManifests(ctx context.Context, fluxClient flux.Flux, gitProvider gitp
 		return nil, err
 	}
 
-	//configBranch, err := gitProvider.GetDefaultBranch(ctx, configURL)
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	//sourceManifest, err := GetSourceManifest(ctx, fluxClient, gitProvider, clusterName, namespace, configURL, configBranch)
-	//if err != nil {
-	//	return nil, err
-	//}
-
 	return append(bootstrapManifest,
-		//sourceManifest, // TODO: Move this to boostrap manifests until getGitClients is refactored
 		Manifest{
 			Path:    git.GetSystemQualifiedPath(clusterName, SystemKustomizationPath),
 			Content: systemKustomizationManifest,
