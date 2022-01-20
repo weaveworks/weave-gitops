@@ -6,10 +6,14 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/services/automation"
+
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type AddOptions struct {
@@ -25,7 +29,7 @@ type AddOptions struct {
 
 // Add adds a new profile to the cluster
 func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvider, opts AddOptions) error {
-	validatedOps, err := ValidateAddOptions(opts)
+	validatedOps, err := validateAddOptions(opts)
 	if err != nil {
 		return err
 	}
@@ -47,16 +51,47 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 		return fmt.Errorf("failed to get files in '%s' for config repository '%s': %s", git.GetSystemPath(opts.Cluster), configRepoUrl.String(), err)
 	}
 
-	_, err = doKubeProfilesGetRequest(ctx, opts.Namespace, wegoServiceName, opts.Port, getProfilesPath, s.ClientSet)
+	profilesList, err := doKubeProfilesGetRequest(ctx, opts.Namespace, wegoServiceName, opts.Port, getProfilesPath, s.ClientSet)
 	if err != nil {
 		return err
+	}
+
+	_, err = getAvailableProfile(profilesList, opts)
+	if err != nil {
+		return err
+	}
+
+	// makeHelmReleaseName := func(clusterName, installName string) string {
+	// 	return clusterName + "-" + installName
+	// }
+
+	_ = &helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      opts.Name,
+			Namespace: opts.Namespace,
+		},
+		Spec: helmv2.HelmReleaseSpec{
+			ReleaseName:     opts.Name,
+			TargetNamespace: opts.Namespace,
+			Chart: helmv2.HelmChartTemplate{
+				Spec: helmv2.HelmChartTemplateSpec{
+					Chart:       "https://my-chart",
+					Version:     "v1.2.3",
+					ValuesFiles: []string{"file-1.yaml"},
+					SourceRef: helmv2.CrossNamespaceObjectReference{
+						Kind: "GitRepository",
+						Name: opts.Name,
+					},
+				},
+			},
+		},
 	}
 
 	printAddSummary(validatedOps)
 	return nil
 }
 
-func ValidateAddOptions(opts AddOptions) (AddOptions, error) {
+func validateAddOptions(opts AddOptions) (AddOptions, error) {
 	if opts.ConfigRepo == "" {
 		return opts, errors.New("--config-repo should be provided")
 	}
@@ -88,4 +123,21 @@ func printAddSummary(opts AddOptions) {
 	opts.Logger.Printf("Cluster: %s", opts.Cluster)
 
 	opts.Logger.Println("")
+}
+
+func getAvailableProfile(profilesList *profiles.GetProfilesResponse, opts AddOptions) (*profiles.Profile, error) {
+	var availableProfile *profiles.Profile
+	for _, p := range profilesList.Profiles {
+		if p.Name == opts.Name {
+			if len(p.AvailableVersions) == 0 {
+				return nil, fmt.Errorf("no available version found for profile '%s' in %s/%s", p.Name, opts.Cluster, opts.Namespace)
+			}
+			availableProfile = p
+			break
+		}
+	}
+	if availableProfile == nil {
+		return nil, fmt.Errorf("no available profile '%s' found in %s/%s", opts.Name, opts.Cluster, opts.Namespace)
+	}
+	return availableProfile, nil
 }
