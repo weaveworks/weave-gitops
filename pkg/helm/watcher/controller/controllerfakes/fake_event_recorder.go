@@ -8,43 +8,41 @@ import (
 )
 
 type FakeEventRecorder struct {
-	EventfStub        func(v1.ObjectReference, map[string]string, string, string, string, ...interface{}) error
-	eventfMutex       sync.RWMutex
-	eventfArgsForCall []struct {
+	EventInfofStub        func(v1.ObjectReference, map[string]string, string, string, ...interface{}) error
+	eventInfofMutex       sync.RWMutex
+	eventInfofArgsForCall []struct {
 		arg1 v1.ObjectReference
 		arg2 map[string]string
 		arg3 string
 		arg4 string
-		arg5 string
-		arg6 []interface{}
+		arg5 []interface{}
 	}
-	eventfReturns struct {
+	eventInfofReturns struct {
 		result1 error
 	}
-	eventfReturnsOnCall map[int]struct {
+	eventInfofReturnsOnCall map[int]struct {
 		result1 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeEventRecorder) Eventf(arg1 v1.ObjectReference, arg2 map[string]string, arg3 string, arg4 string, arg5 string, arg6 ...interface{}) error {
-	fake.eventfMutex.Lock()
-	ret, specificReturn := fake.eventfReturnsOnCall[len(fake.eventfArgsForCall)]
-	fake.eventfArgsForCall = append(fake.eventfArgsForCall, struct {
+func (fake *FakeEventRecorder) EventInfof(arg1 v1.ObjectReference, arg2 map[string]string, arg3 string, arg4 string, arg5 ...interface{}) error {
+	fake.eventInfofMutex.Lock()
+	ret, specificReturn := fake.eventInfofReturnsOnCall[len(fake.eventInfofArgsForCall)]
+	fake.eventInfofArgsForCall = append(fake.eventInfofArgsForCall, struct {
 		arg1 v1.ObjectReference
 		arg2 map[string]string
 		arg3 string
 		arg4 string
-		arg5 string
-		arg6 []interface{}
-	}{arg1, arg2, arg3, arg4, arg5, arg6})
-	stub := fake.EventfStub
-	fakeReturns := fake.eventfReturns
-	fake.recordInvocation("Eventf", []interface{}{arg1, arg2, arg3, arg4, arg5, arg6})
-	fake.eventfMutex.Unlock()
+		arg5 []interface{}
+	}{arg1, arg2, arg3, arg4, arg5})
+	stub := fake.EventInfofStub
+	fakeReturns := fake.eventInfofReturns
+	fake.recordInvocation("EventInfof", []interface{}{arg1, arg2, arg3, arg4, arg5})
+	fake.eventInfofMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4, arg5, arg6...)
+		return stub(arg1, arg2, arg3, arg4, arg5...)
 	}
 	if specificReturn {
 		return ret.result1
@@ -52,44 +50,44 @@ func (fake *FakeEventRecorder) Eventf(arg1 v1.ObjectReference, arg2 map[string]s
 	return fakeReturns.result1
 }
 
-func (fake *FakeEventRecorder) EventfCallCount() int {
-	fake.eventfMutex.RLock()
-	defer fake.eventfMutex.RUnlock()
-	return len(fake.eventfArgsForCall)
+func (fake *FakeEventRecorder) EventInfofCallCount() int {
+	fake.eventInfofMutex.RLock()
+	defer fake.eventInfofMutex.RUnlock()
+	return len(fake.eventInfofArgsForCall)
 }
 
-func (fake *FakeEventRecorder) EventfCalls(stub func(v1.ObjectReference, map[string]string, string, string, string, ...interface{}) error) {
-	fake.eventfMutex.Lock()
-	defer fake.eventfMutex.Unlock()
-	fake.EventfStub = stub
+func (fake *FakeEventRecorder) EventInfofCalls(stub func(v1.ObjectReference, map[string]string, string, string, ...interface{}) error) {
+	fake.eventInfofMutex.Lock()
+	defer fake.eventInfofMutex.Unlock()
+	fake.EventInfofStub = stub
 }
 
-func (fake *FakeEventRecorder) EventfArgsForCall(i int) (v1.ObjectReference, map[string]string, string, string, string, []interface{}) {
-	fake.eventfMutex.RLock()
-	defer fake.eventfMutex.RUnlock()
-	argsForCall := fake.eventfArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6
+func (fake *FakeEventRecorder) EventInfofArgsForCall(i int) (v1.ObjectReference, map[string]string, string, string, []interface{}) {
+	fake.eventInfofMutex.RLock()
+	defer fake.eventInfofMutex.RUnlock()
+	argsForCall := fake.eventInfofArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
-func (fake *FakeEventRecorder) EventfReturns(result1 error) {
-	fake.eventfMutex.Lock()
-	defer fake.eventfMutex.Unlock()
-	fake.EventfStub = nil
-	fake.eventfReturns = struct {
+func (fake *FakeEventRecorder) EventInfofReturns(result1 error) {
+	fake.eventInfofMutex.Lock()
+	defer fake.eventInfofMutex.Unlock()
+	fake.EventInfofStub = nil
+	fake.eventInfofReturns = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakeEventRecorder) EventfReturnsOnCall(i int, result1 error) {
-	fake.eventfMutex.Lock()
-	defer fake.eventfMutex.Unlock()
-	fake.EventfStub = nil
-	if fake.eventfReturnsOnCall == nil {
-		fake.eventfReturnsOnCall = make(map[int]struct {
+func (fake *FakeEventRecorder) EventInfofReturnsOnCall(i int, result1 error) {
+	fake.eventInfofMutex.Lock()
+	defer fake.eventInfofMutex.Unlock()
+	fake.EventInfofStub = nil
+	if fake.eventInfofReturnsOnCall == nil {
+		fake.eventInfofReturnsOnCall = make(map[int]struct {
 			result1 error
 		})
 	}
-	fake.eventfReturnsOnCall[i] = struct {
+	fake.eventInfofReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -97,8 +95,8 @@ func (fake *FakeEventRecorder) EventfReturnsOnCall(i int, result1 error) {
 func (fake *FakeEventRecorder) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.eventfMutex.RLock()
-	defer fake.eventfMutex.RUnlock()
+	fake.eventInfofMutex.RLock()
+	defer fake.eventInfofMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"fmt"
 	"sort"
 
 	"github.com/Masterminds/semver/v3"
@@ -30,7 +29,7 @@ const (
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . eventRecorder
 type eventRecorder interface {
-	Eventf(object corev1.ObjectReference, metadata map[string]string, severity, reason string, messageFmt string, args ...interface{}) error
+	EventInfof(object corev1.ObjectReference, metadata map[string]string, reason string, messageFmt string, args ...interface{}) error
 }
 
 // HelmWatcherReconciler runs the `reconcile` loop for the watcher.
@@ -93,7 +92,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			log.Error(err, "checking for new versions failed")
 		} else if v != "" {
 			log.Info("sending notification event for new version", "version", v)
-			r.sendEvent(log, &repository, repository.Status.Artifact.Revision, "info", fmt.Sprintf("New version available for profile %s with version %s", chart.Name, v))
+			r.sendEvent(log, &repository, repository.Status.Artifact.Revision, "info", chart.Name, v)
 		}
 
 		for _, v := range chart.AvailableVersions {
@@ -160,14 +159,14 @@ func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, repository 
 }
 
 // sendEvent emits a Kubernetes event and forwards the event to notification controller if configured.
-func (r *HelmWatcherReconciler) sendEvent(log logr.Logger, hr *sourcev1.HelmRepository, revision, severity, msg string) {
+func (r *HelmWatcherReconciler) sendEvent(log logr.Logger, hr *sourcev1.HelmRepository, revision, severity, profileName, version string) {
 	if r.ExternalEventRecorder == nil {
 		return
 	}
 
 	objRef, err := reference.GetReference(r.Scheme, hr)
 	if err != nil {
-		log.Error(err, "unable to send event")
+		log.Error(err, "unable to get reference")
 		return
 	}
 
@@ -176,7 +175,7 @@ func (r *HelmWatcherReconciler) sendEvent(log logr.Logger, hr *sourcev1.HelmRepo
 		meta = map[string]string{"revision": revision}
 	}
 
-	if err := r.ExternalEventRecorder.Eventf(*objRef, meta, severity, severity, msg); err != nil {
+	if err := r.ExternalEventRecorder.EventInfof(*objRef, meta, severity, "New version available for profile %s with version %s", profileName, version); err != nil {
 		log.Error(err, "unable to send event")
 		return
 	}

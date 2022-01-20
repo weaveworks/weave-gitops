@@ -228,10 +228,9 @@ func TestNotifyForGreaterVersion(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	_, meta, severity, reason, message, _ := fakeEventRecorder.EventfArgsForCall(0)
+	_, meta, reason, message, _ := fakeEventRecorder.EventInfofArgsForCall(0)
 
 	assert.Equal(t, map[string]string{"revision": "revision"}, meta)
-	assert.Equal(t, "info", severity)
 	assert.Equal(t, "info", reason)
 	assert.Equal(t, "New version available for profile test-profiles-1 with version 0.0.1", message)
 }
@@ -248,7 +247,7 @@ func TestDoNotNotifyForLesserOrEqualVersion(t *testing.T) {
 		},
 	})
 	assert.NoError(t, err)
-	assert.Zero(t, fakeEventRecorder.EventfCallCount())
+	assert.Zero(t, fakeEventRecorder.EventInfofCallCount())
 }
 
 func TestNotifyForGreaterVersionListAvailableVersionsReturnsErrorIsSkipped(t *testing.T) {
@@ -276,13 +275,13 @@ func TestNotifyForGreaterVersionListAvailableVersionsReturnsHigherVersion(t *tes
 		},
 	})
 	assert.NoError(t, err)
-	assert.Zero(t, fakeEventRecorder.EventfCallCount())
+	assert.Zero(t, fakeEventRecorder.EventInfofCallCount())
 }
 
 func TestNotifyForGreaterVersionEventSenderFailureIsIgnored(t *testing.T) {
 	reconciler, fakeCache, _, fakeEventRecorder := setupReconcileAndFakes()
 	fakeCache.ListAvailableVersionsForProfileReturns([]string{"0.0.0"}, nil)
-	fakeEventRecorder.EventfReturns(errors.New("nope"))
+	fakeEventRecorder.EventInfofReturns(errors.New("nope"))
 
 	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{
 		NamespacedName: types.NamespacedName{
