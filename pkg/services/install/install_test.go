@@ -124,7 +124,12 @@ var _ = Describe("Installer", func() {
 			fakeFluxClient.InstallReturnsOnCall(0, nil, nil)
 			fakeFluxClient.InstallReturnsOnCall(1, nil, nil)
 
-			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "", someError)
+			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "main", nil)
+
+			privateVisibility := gitprovider.RepositoryVisibilityPrivate
+			fakeGitProvider.GetRepoVisibilityReturns(&privateVisibility, nil)
+
+			fakeGitProvider.GetDefaultBranchReturnsOnCall(1, "", someError)
 
 			err := installer.Install(testNamespace, configRepo, true)
 			Expect(err).Should(MatchError(fmt.Sprintf("failed getting default branch: %s", someError)))
@@ -141,12 +146,17 @@ var _ = Describe("Installer", func() {
 			fakeFluxClient.InstallReturnsOnCall(0, nil, nil)
 			fakeFluxClient.InstallReturnsOnCall(1, nil, nil)
 
-			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "", nil)
+			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "main", nil)
+
+			privateVisibility := gitprovider.RepositoryVisibilityPrivate
+			fakeGitProvider.GetRepoVisibilityReturns(&privateVisibility, nil)
+
+			fakeGitProvider.GetDefaultBranchReturnsOnCall(1, "main", nil)
 
 			fakeGitProvider.GetRepoVisibilityReturns(nil, someError)
 
 			err := installer.Install(testNamespace, configRepo, true)
-			Expect(err).Should(MatchError(fmt.Sprintf("failed getting git source: failed getting ref secret: %s", someError)))
+			Expect(err).Should(MatchError(fmt.Sprintf("failed getting bootstrap manifests: failed getting ref secret: %s", someError)))
 		})
 
 		It("should fail applying bootstrap manifests", func() {
@@ -160,10 +170,14 @@ var _ = Describe("Installer", func() {
 			fakeFluxClient.InstallReturnsOnCall(0, nil, nil)
 			fakeFluxClient.InstallReturnsOnCall(1, nil, nil)
 
-			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "", nil)
+			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "main", nil)
 
 			privateVisibility := gitprovider.RepositoryVisibilityPrivate
-			fakeGitProvider.GetRepoVisibilityReturns(&privateVisibility, nil)
+			fakeGitProvider.GetRepoVisibilityReturnsOnCall(0, &privateVisibility, nil)
+
+			fakeGitProvider.GetDefaultBranchReturnsOnCall(1, "main", nil)
+
+			fakeGitProvider.GetRepoVisibilityReturnsOnCall(1, &privateVisibility, nil)
 
 			fakeKubeClient.ApplyReturns(someError)
 
@@ -185,7 +199,11 @@ var _ = Describe("Installer", func() {
 			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "main", nil)
 
 			privateVisibility := gitprovider.RepositoryVisibilityPrivate
-			fakeGitProvider.GetRepoVisibilityReturns(&privateVisibility, nil)
+			fakeGitProvider.GetRepoVisibilityReturnsOnCall(0, &privateVisibility, nil)
+
+			fakeGitProvider.GetDefaultBranchReturnsOnCall(1, "main", nil)
+
+			fakeGitProvider.GetRepoVisibilityReturnsOnCall(1, &privateVisibility, nil)
 
 			fakeKubeClient.ApplyReturns(nil)
 
@@ -209,7 +227,11 @@ var _ = Describe("Installer", func() {
 			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "main", nil)
 
 			privateVisibility := gitprovider.RepositoryVisibilityPrivate
-			fakeGitProvider.GetRepoVisibilityReturns(&privateVisibility, nil)
+			fakeGitProvider.GetRepoVisibilityReturnsOnCall(0, &privateVisibility, nil)
+
+			fakeGitProvider.GetDefaultBranchReturnsOnCall(1, "main", nil)
+
+			fakeGitProvider.GetRepoVisibilityReturnsOnCall(1, &privateVisibility, nil)
 
 			fakeKubeClient.ApplyReturns(nil)
 
@@ -235,7 +257,11 @@ var _ = Describe("Installer", func() {
 			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "main", nil)
 
 			privateVisibility := gitprovider.RepositoryVisibilityPrivate
-			fakeGitProvider.GetRepoVisibilityReturns(&privateVisibility, nil)
+			fakeGitProvider.GetRepoVisibilityReturnsOnCall(0, &privateVisibility, nil)
+
+			fakeGitProvider.GetDefaultBranchReturnsOnCall(1, "main", nil)
+
+			fakeGitProvider.GetRepoVisibilityReturnsOnCall(1, &privateVisibility, nil)
 
 			fakeKubeClient.ApplyReturns(nil)
 

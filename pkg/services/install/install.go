@@ -68,14 +68,6 @@ func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, auto
 		return fmt.Errorf("failed getting default branch: %w", err)
 	}
 
-	//// TODO: Move this to bootstrap after refactoring getGitClients
-	//source, err := models.GetSourceManifest(ctx, i.fluxClient, i.gitProviderClient, clusterName, namespace, configURL, defaultBranch)
-	//if err != nil {
-	//	return fmt.Errorf("failed getting git source: %w", err)
-	//}
-
-	//manifests = append(manifests, source)
-
 	for _, manifest := range manifests {
 		ms := bytes.Split(manifest.Content, []byte("---\n"))
 
