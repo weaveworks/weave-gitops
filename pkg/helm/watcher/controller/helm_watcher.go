@@ -88,9 +88,11 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 				continue
 			}
 
-			values[chart.Name] = map[string][]byte{
-				v: valueBytes,
+			if _, ok := values[chart.Name]; !ok {
+				values[chart.Name] = make(map[string][]byte)
 			}
+
+			values[chart.Name][v] = valueBytes
 		}
 	}
 
