@@ -109,7 +109,7 @@ var _ = Describe("Github Device Flow", func() {
 			Expect(rt.calls).To(Equal(1), "should have tried the first time")
 
 			// check during back off
-			c.Add(interval * time.Second)
+			c.Add(interval)
 			Expect(rt.calls).To(Equal(1), "should NOT have retried early")
 
 			// check one second after back off ended
