@@ -225,48 +225,6 @@ exports[`DataTable snapshots renders 1`] = `
               <a
                 href="/some_url"
               >
-                my-cool-app
-              </a>
-            </span>
-          </td>
-          <td
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-body"
-          >
-            <span
-              className="c7 c8"
-              size="normal"
-            >
-              Ready
-            </span>
-          </td>
-          <td
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-body"
-          >
-            <span
-              className="c7 c8"
-              size="normal"
-            >
-              2006-01-02T15:04:05-0700
-            </span>
-          </td>
-        </tr>
-        <tr
-          className="MuiTableRow-root"
-          role={null}
-        >
-          <td
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-body"
-          >
-            <span
-              className="c7 c8"
-              size="normal"
-            >
-              <a
-                href="/some_url"
-              >
                 nginx
               </a>
             </span>
@@ -310,6 +268,48 @@ exports[`DataTable snapshots renders 1`] = `
                 href="/some_url"
               >
                 podinfo
+              </a>
+            </span>
+          </td>
+          <td
+            aria-sort={null}
+            className="MuiTableCell-root MuiTableCell-body"
+          >
+            <span
+              className="c7 c8"
+              size="normal"
+            >
+              Failed
+            </span>
+          </td>
+          <td
+            aria-sort={null}
+            className="MuiTableCell-root MuiTableCell-body"
+          >
+            <span
+              className="c7 c8"
+              size="normal"
+            >
+              2006-01-02T15:04:05-0700
+            </span>
+          </td>
+        </tr>
+        <tr
+          className="MuiTableRow-root"
+          role={null}
+        >
+          <td
+            aria-sort={null}
+            className="MuiTableCell-root MuiTableCell-body"
+          >
+            <span
+              className="c7 c8"
+              size="normal"
+            >
+              <a
+                href="/some_url"
+              >
+                the-cool-app
               </a>
             </span>
           </td>
