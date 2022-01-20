@@ -292,14 +292,14 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "token error: %s", err.Error())
 	}
 
-	appUrl, err := gitproviders.NewRepoURL(msg.Url)
+	appUrl, err := gitproviders.NewRepoURL(msg.Url, false)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "unable to parse app url %q: %s", msg.Url, err)
 	}
 
 	var configRepo gitproviders.RepoURL
 	if msg.ConfigRepo != "" {
-		configRepo, err = gitproviders.NewRepoURL(msg.ConfigRepo)
+		configRepo, err = gitproviders.NewRepoURL(msg.ConfigRepo, true)
 		if err != nil {
 			return nil, grpcStatus.Errorf(codes.InvalidArgument, "unable to parse config url %q: %s", msg.ConfigRepo, err)
 		}
@@ -658,7 +658,7 @@ func (s *applicationServer) Authenticate(_ context.Context, msg *pb.Authenticate
 }
 
 func (s *applicationServer) ParseRepoURL(ctx context.Context, msg *pb.ParseRepoURLRequest) (*pb.ParseRepoURLResponse, error) {
-	u, err := gitproviders.NewRepoURL(msg.Url)
+	u, err := gitproviders.NewRepoURL(msg.Url, false)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "could not parse url: %s", err.Error())
 	}

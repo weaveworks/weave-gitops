@@ -309,7 +309,7 @@ func WegoAppToApp(app wego.Application) (models.Application, error) {
 	)
 
 	if wego.SourceType(app.Spec.SourceType) == wego.SourceType(wego.SourceTypeGit) {
-		appRepoUrl, err = gitproviders.NewRepoURL(app.Spec.URL)
+		appRepoUrl, err = gitproviders.NewRepoURL(app.Spec.URL, false)
 		if err != nil {
 			return models.Application{}, err
 		}
@@ -318,7 +318,7 @@ func WegoAppToApp(app wego.Application) (models.Application, error) {
 	}
 
 	if models.IsExternalConfigRepo(app.Spec.ConfigRepo) {
-		configRepoUrl, err = gitproviders.NewRepoURL(app.Spec.ConfigRepo)
+		configRepoUrl, err = gitproviders.NewRepoURL(app.Spec.ConfigRepo, true)
 		if err != nil {
 			return models.Application{}, err
 		}

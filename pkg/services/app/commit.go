@@ -22,7 +22,7 @@ func (a *AppSvc) GetCommits(gitProvider gitproviders.GitProvider, params CommitP
 		return nil, fmt.Errorf("unable to get commits for a helm chart")
 	}
 
-	repoUrl, err := gitproviders.NewRepoURL(application.Spec.URL)
+	repoUrl, err := gitproviders.NewRepoURL(application.Spec.URL, false)
 	if err != nil {
 		return nil, fmt.Errorf("error creating normalized url: %w", err)
 	}

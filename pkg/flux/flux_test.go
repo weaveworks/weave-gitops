@@ -84,7 +84,7 @@ var _ = Describe("CreateSourceGit", func() {
 			return []byte("out"), nil
 		}
 
-		repoUrl, err := gitproviders.NewRepoURL("https://github.com/foo/my-name")
+		repoUrl, err := gitproviders.NewRepoURL("https://github.com/foo/my-name", false)
 		Expect(err).ShouldNot(HaveOccurred())
 		out, err := fluxClient.CreateSourceGit("my-name", repoUrl, "main", "my-secret", wego.DefaultNamespace)
 		Expect(err).ShouldNot(HaveOccurred())
@@ -100,7 +100,7 @@ var _ = Describe("CreateSourceGit", func() {
 		runner.RunStub = func(s1 string, s2 ...string) ([]byte, error) {
 			return []byte("out"), nil
 		}
-		repoUrl, err := gitproviders.NewRepoURL("ssh://git@github.com/foo/my-name")
+		repoUrl, err := gitproviders.NewRepoURL("ssh://git@github.com/foo/my-name", false)
 		Expect(err).ShouldNot(HaveOccurred())
 		out, err := fluxClient.CreateSourceGit("my-name", repoUrl, "main", "", wego.DefaultNamespace)
 		Expect(err).ShouldNot(HaveOccurred())
@@ -119,7 +119,7 @@ var _ = Describe("CreateSourceGit", func() {
 			return []byte("out"), nil
 		}
 
-		repoUrl, err := gitproviders.NewRepoURL("ssh://git@gitlab.com/foo/my-name")
+		repoUrl, err := gitproviders.NewRepoURL("ssh://git@gitlab.com/foo/my-name", false)
 		Expect(err).ShouldNot(HaveOccurred())
 		out, err := fluxClient.CreateSourceGit("my-name", repoUrl, "main", "", wego.DefaultNamespace)
 		Expect(err).ShouldNot(HaveOccurred())
@@ -244,7 +244,7 @@ var _ = Describe("CreateSecretGit", func() {
 			return []byte(`ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCh...`), nil
 		}
 
-		repoUrl, err := gitproviders.NewRepoURL("ssh://git@github.com/foo/bar.git")
+		repoUrl, err := gitproviders.NewRepoURL("ssh://git@github.com/foo/bar.git", false)
 		Expect(err).ShouldNot(HaveOccurred())
 		out, err := fluxClient.CreateSecretGit("my-secret", repoUrl, wego.DefaultNamespace)
 		Expect(err).ShouldNot(HaveOccurred())
