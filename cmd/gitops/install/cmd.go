@@ -6,6 +6,7 @@ package install
 import (
 	"context"
 	_ "embed"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -89,7 +90,19 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	if installParams.DryRun {
-		manifests, err := models.BootstrapManifests(fluxClient, clusterName, namespace, configURL)
+		fluxNamespace, err := kubeClient.FetchNamespaceWithLabel(ctx, flux.PartOfLabelKey, flux.PartOfLabelValue)
+		if err != nil {
+			if !errors.Is(err, kube.ErrNamespaceNotFound) {
+				return fmt.Errorf("failed fetching flux namespace: %w", err)
+			}
+		}
+
+		manifests, err := models.BootstrapManifests(fluxClient, models.BootstrapManifestsParams{
+			ClusterName:   clusterName,
+			WegoNamespace: namespace,
+			FluxNamespace: fluxNamespace.Name,
+			ConfigRepo:    configURL,
+		})
 		if err != nil {
 			return fmt.Errorf("failed getting gitops manifests: %w", err)
 		}
