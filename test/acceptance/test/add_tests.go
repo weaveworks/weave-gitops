@@ -652,7 +652,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			c := exec.Command(gitopsBinaryPath, "check", "--pre")
 			output, err := c.CombinedOutput()
 			Expect(err).NotTo(HaveOccurred())
-			expectedOutput := fmt.Sprintf(`✔ Kubernetes %s.* >=[0-9]+.[0-9]+\.[0-9]+-[0-9]+
+			expectedOutput := fmt.Sprintf(`✔ Kubernetes %s >=[0-9]+.[0-9]+\.[0-9]+-[0-9]+
 ✔ Flux is not installed
 `,
 				getK8sVersion())
