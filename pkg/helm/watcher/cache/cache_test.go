@@ -74,7 +74,7 @@ func TestCacheListProfilesInvalidDataInFile(t *testing.T) {
 	assert.NoError(t, profileCache.Put(context.Background(), helmNamespace, helmName, data), "put call from cache should have worked")
 	assert.NoError(t, os.WriteFile(filepath.Join(dir, helmNamespace, helmName, profileFilename), []byte("empty"), 0700))
 	_, err := profileCache.ListProfiles(context.Background(), helmNamespace, helmName)
-	assert.EqualError(t, err, "failed to unmarshal profiles data: error unmarshaling JSON: json: cannot unmarshal string into Go value of type []*profiles.Profile")
+	assert.EqualError(t, err, "failed to read profiles data for helm repo: error unmarshaling JSON: json: cannot unmarshal string into Go value of type []*profiles.Profile")
 }
 
 func TestCacheGetProfileValues(t *testing.T) {
@@ -170,7 +170,7 @@ func TestListAvailableVersionsForProfileInvalidYamlData(t *testing.T) {
 	assert.NoError(t, profileCache.Put(context.Background(), helmNamespace, helmName, data), "put call from cache should have worked")
 	assert.NoError(t, os.WriteFile(filepath.Join(dir, helmNamespace, helmName, profileFilename), []byte("empty"), 0700))
 	_, err := profileCache.ListAvailableVersionsForProfile(context.Background(), helmNamespace, helmName, profile1.Name)
-	assert.EqualError(t, err, "failed to unmarshal profiles data: error unmarshaling JSON: json: cannot unmarshal string into Go value of type []*profiles.Profile")
+	assert.EqualError(t, err, "failed to read profiles data for helm repo: error unmarshaling JSON: json: cannot unmarshal string into Go value of type []*profiles.Profile")
 }
 
 func TestListProfilesFailedLock(t *testing.T) {

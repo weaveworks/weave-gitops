@@ -141,13 +141,8 @@ func (c *ProfileCache) ListProfiles(ctx context.Context, helmRepoNamespace, helm
 	var result []*pb.Profile
 
 	listOperation := func() error {
-		content, err := os.ReadFile(filepath.Join(c.cacheLocation, helmRepoNamespace, helmRepoName, profileFilename))
-		if err != nil {
+		if err := c.getProfilesFromFile(helmRepoNamespace, helmRepoName, &result); err != nil {
 			return fmt.Errorf("failed to read profiles data for helm repo: %w", err)
-		}
-
-		if err := yaml.Unmarshal(content, &result); err != nil {
-			return fmt.Errorf("failed to unmarshal profiles data: %w", err)
 		}
 
 		return nil
@@ -168,19 +163,12 @@ func (c *ProfileCache) ListAvailableVersionsForProfile(ctx context.Context, helm
 
 	getAllAvailableVersionsOp := func() error {
 		var profiles []*pb.Profile
-
-		content, err := os.ReadFile(filepath.Join(c.cacheLocation, helmRepoNamespace, helmRepoName, profileFilename))
-		if err != nil {
-			// don't process if it doesn't exist.
+		if err := c.getProfilesFromFile(helmRepoNamespace, helmRepoName, &profiles); err != nil {
 			if os.IsNotExist(err) {
 				return nil
 			}
 
 			return fmt.Errorf("failed to read profiles data for helm repo: %w", err)
-		}
-
-		if err := yaml.Unmarshal(content, &profiles); err != nil {
-			return fmt.Errorf("failed to unmarshal profiles data: %w", err)
 		}
 
 		for _, p := range profiles {
@@ -223,6 +211,20 @@ func (c *ProfileCache) GetProfileValues(ctx context.Context, helmRepoNamespace, 
 	}
 
 	return result, nil
+}
+
+// getProfilesFromFile returns profiles loaded from a file.
+func (c *ProfileCache) getProfilesFromFile(helmRepoNamespace, helmRepoName string, profiles *[]*pb.Profile) error {
+	content, err := os.ReadFile(filepath.Join(c.cacheLocation, helmRepoNamespace, helmRepoName, profileFilename))
+	if err != nil {
+		return err
+	}
+
+	if err := yaml.Unmarshal(content, profiles); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // tryWithLock tries to run the given operation by acquiring a lock first.

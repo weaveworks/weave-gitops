@@ -93,7 +93,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			log.Error(err, "checking for new versions failed")
 		} else if v != "" {
 			log.Info("sending notification event for new version", "version", v)
-			r.sendEvent(ctx, &repository, repository.Status.Artifact.Revision, "info", fmt.Sprintf("New version available for profile %s with version %s", chart.Name, v))
+			r.sendEvent(log, &repository, repository.Status.Artifact.Revision, "info", fmt.Sprintf("New version available for profile %s with version %s", chart.Name, v))
 		}
 
 		for _, v := range chart.AvailableVersions {
@@ -160,9 +160,7 @@ func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, repository 
 }
 
 // sendEvent emits a Kubernetes event and forwards the event to notification controller if configured.
-func (r *HelmWatcherReconciler) sendEvent(ctx context.Context, hr *sourcev1.HelmRepository, revision, severity, msg string) {
-	log := logr.FromContextOrDiscard(ctx)
-
+func (r *HelmWatcherReconciler) sendEvent(log logr.Logger, hr *sourcev1.HelmRepository, revision, severity, msg string) {
 	if r.ExternalEventRecorder == nil {
 		return
 	}
