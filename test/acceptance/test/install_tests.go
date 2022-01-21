@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"regexp"
 
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/manifests"
@@ -30,41 +29,6 @@ var _ = Describe("Weave GitOps Install Tests", func() {
 
 		By("Given I have a gitops binary installed on my local machine", func() {
 			Expect(FileExists(gitopsBinaryPath)).To(BeTrue())
-		})
-	})
-
-	It("Validate that gitops displays help text for 'install' command", func() {
-
-		By("When I run the command 'gitops install -h'", func() {
-			sessionOutput = runCommandAndReturnSessionOutput(gitopsBinaryPath + " install -h")
-		})
-
-		By("Then I should see gitops help text displayed for 'install' command", func() {
-			helpTest := fmt.Sprintf(`The install command deploys GitOps in the specified namespace,
-adds a cluster entry to the GitOps repo, and persists the GitOps runtime into the
-repo. If a previous version is installed, then an in-place upgrade will be performed.
-
-Usage:
-  gitops install [flags]
-
-Examples:
-  # Install GitOps in the %s namespace
-  gitops install --config-repo=ssh://git@github.com/me/mygitopsrepo.git
-
-Flags:
-      --auto-merge           If set, 'gitops install' will automatically update the default branch for the configuration repository
-      --config-repo string   URL of external repository that will hold automation manifests
-      --dry-run              Outputs all the manifests that would be installed
-	  --flux-https-password   Optional: only needed if using an https:// repo URL for flux
-	  --flux-https-username string   Optional: only needed if using an https:// repo URL for flux (default "git")
-  -h, --help                 help for install
-
-Global Flags:
-  -e, --endpoint string    The Weave GitOps Enterprise HTTP API endpoint
-      --namespace string   The namespace scope for this operation (default "%s")
-  -v, --verbose            Enable verbose output`, wego.DefaultNamespace, wego.DefaultNamespace)
-			helpTest = regexp.QuoteMeta(helpTest)
-			Eventually(sessionOutput).Should(gbytes.Say(helpTest))
 		})
 	})
 
