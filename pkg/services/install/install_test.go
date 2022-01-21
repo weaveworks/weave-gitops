@@ -240,7 +240,15 @@ var _ = Describe("Installer", func() {
 		})
 	})
 	Context("success path", func() {
-		It("should succeed with auto-merge=true", func() {
+
+		var wegoAppManifest []byte
+		var source models.Manifest
+		var wegoConfigManifest []byte
+		var systemKustomizationManifest []byte
+		var runtimeManifests []byte
+		var systemKustomizationResource []byte
+		var userKustomizationResource []byte
+		BeforeEach(func() {
 			fakeKubeClient.GetClusterStatusReturns(kube.Unmodified)
 			fakeKubeClient.GetWegoConfigReturns(&kube.WegoConfig{
 				FluxNamespace: testNamespace,
@@ -248,24 +256,26 @@ var _ = Describe("Installer", func() {
 			}, nil)
 			fakeKubeClient.GetClusterNameReturns(clusterName, nil)
 
-			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "main", nil)
+			fakeFluxClient.InstallReturns(nil, nil)
+
+			fakeKubeClient.ApplyReturns(nil)
 
 			privateVisibility := gitprovider.RepositoryVisibilityPrivate
 			fakeGitProvider.GetRepoVisibilityReturns(&privateVisibility, nil)
 
-			fakeKubeClient.ApplyReturns(nil)
+			fakeGitProvider.GetDefaultBranchReturns("main", nil)
 
-			runtimeManifests := []byte("runtime-manifests")
+			runtimeManifests = []byte("runtime-manifests")
 			fakeFluxClient.InstallReturns(runtimeManifests, nil)
 
 			wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppVersion: "v0.0.0", Namespace: testNamespace})
 			Expect(err).ShouldNot(HaveOccurred())
 
-			wegoAppManifest := bytes.Join(wegoAppManifests, []byte("---\n"))
+			wegoAppManifest = bytes.Join(wegoAppManifests, []byte("---\n"))
 
-			systemKustomizationResource := []byte("system kustomization resource")
+			systemKustomizationResource = []byte("system kustomization resource")
 			fakeFluxClient.CreateKustomizationReturnsOnCall(0, systemKustomizationResource, nil)
-			userKustomizationResource := []byte("user kustomization resource")
+			userKustomizationResource = []byte("user kustomization resource")
 			fakeFluxClient.CreateKustomizationReturnsOnCall(1, userKustomizationResource, nil)
 
 			fakeFluxClient.CreateKustomizationReturnsOnCall(2, systemKustomizationResource, nil)
@@ -274,16 +284,62 @@ var _ = Describe("Installer", func() {
 			gitopsConfigMap, err := models.CreateGitopsConfigMap(testNamespace, testNamespace)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			wegoConfigManifest, err := yaml.Marshal(gitopsConfigMap)
+			wegoConfigManifest, err = yaml.Marshal(gitopsConfigMap)
 			Expect(err).ShouldNot(HaveOccurred())
 
 			systemKustomization := models.CreateKustomization(clusterName, testNamespace, models.RuntimePath, models.SourcePath, models.SystemKustResourcePath, models.UserKustResourcePath, models.WegoAppPath)
 
-			systemKustomizationManifest, err := yaml.Marshal(systemKustomization)
+			systemKustomizationManifest, err = yaml.Marshal(systemKustomization)
 			Expect(err).ShouldNot(HaveOccurred())
 
-			source, err := models.GetSourceManifest(context.Background(), fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo, "main")
+			source, err = models.GetSourceManifest(context.Background(), fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo, "main")
 			Expect(err).ShouldNot(HaveOccurred())
+		})
+
+		It("should succeed with auto-merge=true", func() {
+			//fakeKubeClient.GetClusterStatusReturns(kube.Unmodified)
+			//fakeKubeClient.GetWegoConfigReturns(&kube.WegoConfig{
+			//	FluxNamespace: testNamespace,
+			//	WegoNamespace: testNamespace,
+			//}, nil)
+			//fakeKubeClient.GetClusterNameReturns(clusterName, nil)
+			//
+			//fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "main", nil)
+			//
+			//privateVisibility := gitprovider.RepositoryVisibilityPrivate
+			//fakeGitProvider.GetRepoVisibilityReturns(&privateVisibility, nil)
+			//
+			//fakeKubeClient.ApplyReturns(nil)
+			//
+			//runtimeManifests := []byte("runtime-manifests")
+			//fakeFluxClient.InstallReturns(runtimeManifests, nil)
+			//
+			//wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppVersion: "v0.0.0", Namespace: testNamespace})
+			//Expect(err).ShouldNot(HaveOccurred())
+			//
+			//wegoAppManifest := bytes.Join(wegoAppManifests, []byte("---\n"))
+			//
+			//systemKustomizationResource := []byte("system kustomization resource")
+			//fakeFluxClient.CreateKustomizationReturnsOnCall(0, systemKustomizationResource, nil)
+			//userKustomizationResource := []byte("user kustomization resource")
+			//fakeFluxClient.CreateKustomizationReturnsOnCall(1, userKustomizationResource, nil)
+			//
+			//fakeFluxClient.CreateKustomizationReturnsOnCall(2, systemKustomizationResource, nil)
+			//fakeFluxClient.CreateKustomizationReturnsOnCall(3, userKustomizationResource, nil)
+			//
+			//gitopsConfigMap, err := models.CreateGitopsConfigMap(testNamespace, testNamespace)
+			//Expect(err).ShouldNot(HaveOccurred())
+			//
+			//wegoConfigManifest, err := yaml.Marshal(gitopsConfigMap)
+			//Expect(err).ShouldNot(HaveOccurred())
+			//
+			//systemKustomization := models.CreateKustomization(clusterName, testNamespace, models.RuntimePath, models.SourcePath, models.SystemKustResourcePath, models.UserKustResourcePath, models.WegoAppPath)
+			//
+			//systemKustomizationManifest, err := yaml.Marshal(systemKustomization)
+			//Expect(err).ShouldNot(HaveOccurred())
+			//
+			//source, err := models.GetSourceManifest(context.Background(), fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo, "main")
+			//Expect(err).ShouldNot(HaveOccurred())
 
 			expectedManifests := []models.Manifest{
 				{
@@ -358,53 +414,8 @@ var _ = Describe("Installer", func() {
 			Expect(err).ShouldNot(HaveOccurred())
 		})
 		It("should succeed with auto-merge=false", func() {
-			fakeKubeClient.GetClusterStatusReturns(kube.Unmodified)
-			fakeKubeClient.GetWegoConfigReturns(&kube.WegoConfig{
-				FluxNamespace: testNamespace,
-				WegoNamespace: testNamespace,
-			}, nil)
-			fakeKubeClient.GetClusterNameReturns(clusterName, nil)
-
-			fakeFluxClient.InstallReturns(nil, nil)
-
-			fakeKubeClient.ApplyReturns(nil)
-
-			privateVisibility := gitprovider.RepositoryVisibilityPrivate
-			fakeGitProvider.GetRepoVisibilityReturns(&privateVisibility, nil)
-
-			fakeGitProvider.GetDefaultBranchReturns("main", nil)
 
 			fakeGitProvider.CreatePullRequestReturns(nil, nil)
-
-			runtimeManifests := []byte("runtime-manifests")
-			fakeFluxClient.InstallReturns(runtimeManifests, nil)
-
-			wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppVersion: "v0.0.0", Namespace: testNamespace})
-			Expect(err).ShouldNot(HaveOccurred())
-
-			wegoAppManifest := bytes.Join(wegoAppManifests, []byte("---\n"))
-
-			systemKustomizationResource := []byte("system kustomization resource")
-			fakeFluxClient.CreateKustomizationReturnsOnCall(0, systemKustomizationResource, nil)
-			userKustomizationResource := []byte("user kustomization resource")
-			fakeFluxClient.CreateKustomizationReturnsOnCall(1, userKustomizationResource, nil)
-
-			fakeFluxClient.CreateKustomizationReturnsOnCall(2, systemKustomizationResource, nil)
-			fakeFluxClient.CreateKustomizationReturnsOnCall(3, userKustomizationResource, nil)
-
-			gitopsConfigMap, err := models.CreateGitopsConfigMap(testNamespace, testNamespace)
-			Expect(err).ShouldNot(HaveOccurred())
-
-			wegoConfigManifest, err := yaml.Marshal(gitopsConfigMap)
-			Expect(err).ShouldNot(HaveOccurred())
-
-			systemKustomization := models.CreateKustomization(clusterName, testNamespace, models.RuntimePath, models.SourcePath, models.SystemKustResourcePath, models.UserKustResourcePath, models.WegoAppPath)
-
-			systemKustomizationManifest, err := yaml.Marshal(systemKustomization)
-			Expect(err).ShouldNot(HaveOccurred())
-
-			source, err := models.GetSourceManifest(context.Background(), fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo, "main")
-			Expect(err).ShouldNot(HaveOccurred())
 
 			expectedManifests := []models.Manifest{
 				{
