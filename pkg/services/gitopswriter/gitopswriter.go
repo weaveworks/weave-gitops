@@ -228,7 +228,7 @@ func (rw *repoWriter) Write(ctx context.Context, repoURL gitproviders.RepoURL, b
 		return true
 	})
 	if err != nil {
-		return fmt.Errorf("failed writing automation to disk: %w", err)
+		return fmt.Errorf("failed pushing changes to git provider: %w", err)
 	}
 
 	return nil
