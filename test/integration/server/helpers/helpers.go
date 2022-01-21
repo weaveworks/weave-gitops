@@ -95,7 +95,7 @@ func addFiles(ctx context.Context, message string, repo gitprovider.OrgRepositor
 	})
 
 	if err != nil {
-		return err
+		return fmt.Errorf("adding files: %w", err)
 	}
 
 	return repo.Update(ctx)
