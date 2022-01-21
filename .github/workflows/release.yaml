@@ -84,8 +84,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
+      - name: Unshallow
+        run: |
+          git fetch --prune --unshallow
+          git fetch --tags -f
       - name: Log in to the Container registry
         uses: docker/login-action@v1
         with:
