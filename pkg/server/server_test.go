@@ -538,6 +538,26 @@ var _ = Describe("ApplicationsServer", func() {
 	})
 
 	Describe("AddApplication", func() {
+		BeforeEach(func() {
+			cm := &corev1.ConfigMap{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "ConfigMap",
+					APIVersion: corev1.SchemeGroupVersion.String(),
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "weave-gitops-config",
+					Namespace: namespace.Name,
+				},
+				Data: map[string]string{
+					"config": fmt.Sprintf(`---
+WegoNamespace: %s
+FluxNamespace: %s
+ConfigRepo: %s`, namespace.Name, namespace.Name, "ssh://git@github.com/some-org/my-config-url.git"),
+				},
+			}
+			Expect(k8sClient.Create(context.Background(), cm)).To(Succeed())
+		})
+
 		It("adds an app with an unspecified config repo", func() {
 			ctx := context.Background()
 			name := "my-app"
