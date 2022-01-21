@@ -8,29 +8,21 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/weaveworks/weave-gitops/manifests"
-	"github.com/weaveworks/weave-gitops/pkg/git"
-	"github.com/weaveworks/weave-gitops/pkg/models"
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	"sigs.k8s.io/yaml"
 
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-
-	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
-
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
-
-	"github.com/fluxcd/go-git-providers/gitprovider"
-
-	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
-
-	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-
+	"github.com/weaveworks/weave-gitops/manifests"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
-
-	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
-
+	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
+	"github.com/weaveworks/weave-gitops/pkg/models"
+	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
