@@ -19,7 +19,7 @@ type Installer interface {
 	Install(namespace string, configURL gitproviders.RepoURL, autoMerge bool) error
 }
 
-type Install struct {
+type install struct {
 	fluxClient        flux.Flux
 	kubeClient        kube.Kube
 	gitClient         git.Git
@@ -29,7 +29,7 @@ type Install struct {
 }
 
 func NewInstaller(fluxClient flux.Flux, kubeClient kube.Kube, gitClient git.Git, gitProviderClient gitproviders.GitProvider, log logger.Logger, repoWriter gitopswriter.RepoWriter) Installer {
-	return &Install{
+	return &install{
 		fluxClient:        fluxClient,
 		kubeClient:        kubeClient,
 		gitClient:         gitClient,
@@ -39,7 +39,7 @@ func NewInstaller(fluxClient flux.Flux, kubeClient kube.Kube, gitClient git.Git,
 	}
 }
 
-func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, autoMerge bool) error {
+func (i *install) Install(namespace string, configURL gitproviders.RepoURL, autoMerge bool) error {
 	ctx := context.Background()
 
 	if err := validateWegoInstall(ctx, i.kubeClient, namespace); err != nil {
