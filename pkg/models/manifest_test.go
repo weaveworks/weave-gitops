@@ -23,13 +23,15 @@ var _ = Describe("Installer", func() {
 
 	var fakeFluxClient *fluxfakes.FakeFlux
 	var fakeGitProvider *gitprovidersfakes.FakeGitProvider
-	const clusterName = "test-cluster"
-	const testNamespace = "test-namespace"
-	var configRepo gitproviders.RepoURL
+	var params = BootstrapManifestsParams{
+		ClusterName:   "test-cluster",
+		WegoNamespace: "test-namespace",
+		FluxNamespace: "test-namespace",
+	}
 	var err error
 	var _ = BeforeEach(func() {
 		fakeFluxClient = &fluxfakes.FakeFlux{}
-		configRepo, err = gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo")
+		params.ConfigRepo, err = gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo")
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 
@@ -41,7 +43,7 @@ var _ = Describe("Installer", func() {
 
 				fakeFluxClient.InstallReturns(nil, someError)
 
-				_, err = BootstrapManifests(fakeFluxClient, clusterName, testNamespace, configRepo)
+				_, err = BootstrapManifests(fakeFluxClient, params)
 				Expect(err.Error()).Should(ContainSubstring(someError.Error()))
 			})
 
@@ -51,7 +53,7 @@ var _ = Describe("Installer", func() {
 
 				fakeFluxClient.CreateKustomizationReturns(nil, someError)
 
-				_, err = BootstrapManifests(fakeFluxClient, clusterName, testNamespace, configRepo)
+				_, err = BootstrapManifests(fakeFluxClient, params)
 				Expect(err.Error()).Should(ContainSubstring(someError.Error()))
 			})
 
@@ -62,7 +64,7 @@ var _ = Describe("Installer", func() {
 				fakeFluxClient.CreateKustomizationReturnsOnCall(0, nil, nil)
 				fakeFluxClient.CreateKustomizationReturnsOnCall(1, nil, someError)
 
-				_, err = BootstrapManifests(fakeFluxClient, clusterName, testNamespace, configRepo)
+				_, err = BootstrapManifests(fakeFluxClient, params)
 				Expect(err.Error()).Should(ContainSubstring(someError.Error()))
 			})
 		})
@@ -78,45 +80,45 @@ var _ = Describe("Installer", func() {
 				userKustomizationResourceManifest := []byte("user kustomization resource")
 				fakeFluxClient.CreateKustomizationReturnsOnCall(1, userKustomizationResourceManifest, nil)
 
-				wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppVersion: "v0.0.0", Namespace: testNamespace})
+				wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppVersion: "v0.0.0", Namespace: params.WegoNamespace})
 				Expect(err).ShouldNot(HaveOccurred())
 
 				wegoAppManifest := bytes.Join(wegoAppManifests, []byte("---\n"))
 
-				gitopsConfigMap, err := CreateGitopsConfigMap(testNamespace, testNamespace)
+				gitopsConfigMap, err := CreateGitopsConfigMap(params.FluxNamespace, params.WegoNamespace, params.ConfigRepo.String())
 				Expect(err).ShouldNot(HaveOccurred())
 
 				wegoConfigManifest, err := yaml.Marshal(gitopsConfigMap)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				manifestsFiles, err := BootstrapManifests(fakeFluxClient, clusterName, testNamespace, configRepo)
+				manifestsFiles, err := BootstrapManifests(fakeFluxClient, params)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(len(manifestsFiles)).Should(Equal(6))
 
 				expectedManifests := []Manifest{
 					{
-						Path:    git.GetSystemQualifiedPath(clusterName, AppCRDPath),
+						Path:    git.GetSystemQualifiedPath(params.ClusterName, AppCRDPath),
 						Content: manifests.AppCRD,
 					},
 					{
-						Path:    git.GetSystemQualifiedPath(clusterName, RuntimePath),
+						Path:    git.GetSystemQualifiedPath(params.ClusterName, RuntimePath),
 						Content: runtimeManifests,
 					},
 					{
-						Path:    git.GetSystemQualifiedPath(clusterName, SystemKustResourcePath),
+						Path:    git.GetSystemQualifiedPath(params.ClusterName, SystemKustResourcePath),
 						Content: systemKustomizationResourceManifest,
 					},
 					{
-						Path:    git.GetSystemQualifiedPath(clusterName, UserKustResourcePath),
+						Path:    git.GetSystemQualifiedPath(params.ClusterName, UserKustResourcePath),
 						Content: userKustomizationResourceManifest,
 					},
 					{
-						Path:    git.GetSystemQualifiedPath(clusterName, WegoAppPath),
+						Path:    git.GetSystemQualifiedPath(params.ClusterName, WegoAppPath),
 						Content: wegoAppManifest,
 					},
 					{
-						Path:    git.GetSystemQualifiedPath(clusterName, WegoConfigPath),
+						Path:    git.GetSystemQualifiedPath(params.ClusterName, WegoConfigPath),
 						Content: wegoConfigManifest,
 					},
 				}
@@ -132,17 +134,33 @@ var _ = Describe("Installer", func() {
 
 	Context("GitopsManifests", func() {
 		var ctx context.Context
+		var boostrapManifests []Manifest
+		var params GitopsManifestsParams
 		BeforeEach(func() {
 			ctx = context.Background()
+			fakeFluxClient = &fluxfakes.FakeFlux{}
 			fakeGitProvider = &gitprovidersfakes.FakeGitProvider{}
+			fakeGitProvider.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityPublic), nil)
+
+			boostrapManifests = []Manifest{}
+
+			configRepo, err := gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo")
+			Expect(err).ShouldNot(HaveOccurred())
+
+			params = GitopsManifestsParams{
+				FluxClient:    fakeFluxClient,
+				GitProvider:   fakeGitProvider,
+				ClusterName:   "test-cluster",
+				WegoNamespace: "test-namespace",
+				ConfigRepo:    configRepo,
+			}
 		})
 		Context("error paths", func() {
 			someError := errors.New("some error")
 			It("should fail getting runtime manifests", func() {
+				fakeGitProvider.GetDefaultBranchReturns("", someError)
 
-				fakeFluxClient.InstallReturns(nil, someError)
-
-				_, err = GitopsManifests(ctx, fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo)
+				_, err = GitopsManifests(ctx, boostrapManifests, params)
 				Expect(err.Error()).Should(ContainSubstring(someError.Error()))
 			})
 
@@ -151,7 +169,7 @@ var _ = Describe("Installer", func() {
 
 				fakeGitProvider.GetRepoVisibilityReturns(nil, someError)
 
-				_, err = GitopsManifests(ctx, fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo)
+				_, err = GitopsManifests(ctx, boostrapManifests, params)
 				Expect(err.Error()).Should(ContainSubstring(someError.Error()))
 			})
 
@@ -163,7 +181,7 @@ var _ = Describe("Installer", func() {
 
 				fakeGitProvider.GetDefaultBranchReturns("", someError)
 
-				_, err = GitopsManifests(ctx, fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo)
+				_, err = GitopsManifests(ctx, boostrapManifests, params)
 				Expect(err.Error()).Should(ContainSubstring(someError.Error()))
 			})
 
@@ -177,7 +195,7 @@ var _ = Describe("Installer", func() {
 
 				fakeFluxClient.CreateSourceGitReturns(nil, someError)
 
-				_, err = GitopsManifests(ctx, fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo)
+				_, err = GitopsManifests(ctx, boostrapManifests, params)
 				Expect(err.Error()).Should(ContainSubstring(someError.Error()))
 			})
 		})
@@ -191,7 +209,7 @@ var _ = Describe("Installer", func() {
 
 				fakeGitProvider.GetDefaultBranchReturns("main", nil)
 
-				systemKustomization := CreateKustomization(clusterName, testNamespace, RuntimePath, SourcePath, SystemKustResourcePath, UserKustResourcePath, WegoAppPath)
+				systemKustomization := CreateKustomization(params.ClusterName, params.WegoNamespace, RuntimePath, SourcePath, SystemKustResourcePath, UserKustResourcePath, WegoAppPath)
 
 				systemKustomizationManifest, err := yaml.Marshal(systemKustomization)
 				Expect(err).ShouldNot(HaveOccurred())
@@ -199,27 +217,27 @@ var _ = Describe("Installer", func() {
 				gitSource := []byte("git source")
 				fakeFluxClient.CreateSourceGitReturns(gitSource, nil)
 
-				manifestsFiles, err := GitopsManifests(ctx, fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo)
+				manifestsFiles, err := GitopsManifests(ctx, boostrapManifests, params)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				Expect(len(manifestsFiles)).Should(Equal(9))
+				Expect(len(manifestsFiles)).Should(Equal(len(boostrapManifests) + 3))
 
 				expectedManifests := []Manifest{
 					{
-						Path:    git.GetSystemQualifiedPath(clusterName, SourcePath),
+						Path:    git.GetSystemQualifiedPath(params.ClusterName, SourcePath),
 						Content: gitSource,
 					},
 					{
-						Path:    git.GetSystemQualifiedPath(clusterName, SystemKustomizationPath),
+						Path:    git.GetSystemQualifiedPath(params.ClusterName, SystemKustomizationPath),
 						Content: systemKustomizationManifest,
 					},
 					{
-						Path:    filepath.Join(git.GetUserPath(clusterName), ".keep"),
+						Path:    filepath.Join(git.GetUserPath(params.ClusterName), ".keep"),
 						Content: strconv.AppendQuote(nil, "# keep"),
 					},
 				}
 
-				for ind, manifest := range manifestsFiles[6:] {
+				for ind, manifest := range manifestsFiles {
 					Expect(manifest.Path).Should(Equal(expectedManifests[ind].Path))
 					Expect(string(manifest.Content)).Should(Equal(string(expectedManifests[ind].Content)))
 				}

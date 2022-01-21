@@ -8,29 +8,24 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/weaveworks/weave-gitops/manifests"
-	"github.com/weaveworks/weave-gitops/pkg/git"
-	"github.com/weaveworks/weave-gitops/pkg/models"
-	"sigs.k8s.io/yaml"
-
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-
-	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
-
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
-
 	"github.com/fluxcd/go-git-providers/gitprovider"
 
-	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
-
-	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-
+	"github.com/weaveworks/weave-gitops/manifests"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
-
+	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
+	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
 
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/yaml"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -55,6 +50,7 @@ var _ = Describe("Installer", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 		fakeFluxClient = &fluxfakes.FakeFlux{}
 		fakeKubeClient = &kubefakes.FakeKube{}
+		fakeKubeClient.FetchNamespaceWithLabelReturns(&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: testNamespace}}, nil)
 		fakeGitClient = &gitfakes.FakeGit{}
 		fakeGitProvider = &gitprovidersfakes.FakeGitProvider{}
 		log = &loggerfakes.FakeLogger{}
@@ -146,7 +142,7 @@ var _ = Describe("Installer", func() {
 			fakeGitProvider.GetRepoVisibilityReturns(nil, someError)
 
 			err := installer.Install(testNamespace, configRepo, true)
-			Expect(err).Should(MatchError(fmt.Sprintf("failed getting git source: failed getting ref secret: %s", someError)))
+			Expect(err.Error()).Should(ContainSubstring(fmt.Sprintf("failed generating gitops manifests: failed getting ref secret: %s", someError)))
 		})
 
 		It("should fail applying bootstrap manifests", func() {
@@ -180,7 +176,6 @@ var _ = Describe("Installer", func() {
 			fakeKubeClient.GetClusterNameReturns(clusterName, nil)
 
 			fakeFluxClient.InstallReturnsOnCall(0, nil, nil)
-			fakeFluxClient.InstallReturnsOnCall(1, nil, nil)
 
 			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "main", nil)
 
@@ -189,10 +184,10 @@ var _ = Describe("Installer", func() {
 
 			fakeKubeClient.ApplyReturns(nil)
 
-			fakeFluxClient.InstallReturnsOnCall(2, nil, someError)
+			fakeFluxClient.InstallReturnsOnCall(1, nil, someError)
 
 			err := installer.Install(testNamespace, configRepo, true)
-			Expect(err).Should(MatchError(fmt.Sprintf("failed generating gitops manifests: failed getting runtime manifests: %s", someError)))
+			Expect(err).Should(MatchError(fmt.Sprintf("failed getting bootstrap manifests: failed getting runtime manifests: %s", someError)))
 		})
 
 		It("should fail writing directly to branch", func() {
@@ -276,10 +271,7 @@ var _ = Describe("Installer", func() {
 			userKustomizationResource := []byte("user kustomization resource")
 			fakeFluxClient.CreateKustomizationReturnsOnCall(1, userKustomizationResource, nil)
 
-			fakeFluxClient.CreateKustomizationReturnsOnCall(2, systemKustomizationResource, nil)
-			fakeFluxClient.CreateKustomizationReturnsOnCall(3, userKustomizationResource, nil)
-
-			gitopsConfigMap, err := models.CreateGitopsConfigMap(testNamespace, testNamespace)
+			gitopsConfigMap, err := models.CreateGitopsConfigMap(testNamespace, testNamespace, configRepo.String())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			wegoConfigManifest, err := yaml.Marshal(gitopsConfigMap)
@@ -350,9 +342,7 @@ var _ = Describe("Installer", func() {
 				}
 				return nil
 			})
-
 			writeIndex := 0
-			fakeGitClient.CloneReturns(true, nil)
 			fakeGitClient.WriteCalls(func(path string, content []byte) error {
 				if writeIndex < 8 {
 					Expect(path).Should(Equal(expectedManifests[writeIndex].Path))
@@ -397,10 +387,7 @@ var _ = Describe("Installer", func() {
 			userKustomizationResource := []byte("user kustomization resource")
 			fakeFluxClient.CreateKustomizationReturnsOnCall(1, userKustomizationResource, nil)
 
-			fakeFluxClient.CreateKustomizationReturnsOnCall(2, systemKustomizationResource, nil)
-			fakeFluxClient.CreateKustomizationReturnsOnCall(3, userKustomizationResource, nil)
-
-			gitopsConfigMap, err := models.CreateGitopsConfigMap(testNamespace, testNamespace)
+			gitopsConfigMap, err := models.CreateGitopsConfigMap(testNamespace, testNamespace, configRepo.String())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			wegoConfigManifest, err := yaml.Marshal(gitopsConfigMap)

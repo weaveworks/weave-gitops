@@ -304,12 +304,19 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "unable to parse app url %q: %s", msg.Url, err)
 	}
 
-	var configRepo gitproviders.RepoURL
-	if msg.ConfigRepo != "" {
-		configRepo, err = gitproviders.NewRepoURL(msg.ConfigRepo)
-		if err != nil {
-			return nil, grpcStatus.Errorf(codes.InvalidArgument, "unable to parse config url %q: %s", msg.ConfigRepo, err)
-		}
+	kubeClient, err := s.factory.GetKubeService()
+	if err != nil {
+		return nil, fmt.Errorf("failed getting kube service: %w", err)
+	}
+
+	wegoConfig, err := kubeClient.GetWegoConfig(ctx, msg.Namespace)
+	if err != nil {
+		return nil, fmt.Errorf("failed getting wego config")
+	}
+
+	configRepo, err := gitproviders.NewRepoURL(wegoConfig.ConfigRepo)
+	if err != nil {
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "unable to parse config url %q: %s", wegoConfig.ConfigRepo, err)
 	}
 
 	appSrv, err := s.factory.GetAppService(ctx)
@@ -332,7 +339,7 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 
 	gitClient, gitProvider, err := s.factory.GetGitClients(ctx, client, services.GitConfigParams{
 		URL:        msg.Url,
-		ConfigRepo: msg.ConfigRepo,
+		ConfigRepo: wegoConfig.ConfigRepo,
 		Namespace:  msg.Namespace,
 	})
 	if err != nil {
