@@ -41,6 +41,7 @@ jobs:
         run: rm package-lock.json && rm package.json && make cmd/gitops/ui/run/dist/index.html
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/golang@master
+        continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
         with:
