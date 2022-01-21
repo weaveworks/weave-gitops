@@ -349,8 +349,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		tip := generateTestInputs()
 		appName := tip.appRepoName
 		appConfigRepoName := "config-repo-" + RandString(8)
-		appRepoRemoteURL := "https://github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
-		configRepoRemoteURL = "https://github.com/" + githubOrg + "/" + appConfigRepoName + ".git"
+		appRepoRemoteURL := "ssh://github.com/" + githubOrg + "/" + tip.appRepoName + ".git"
+		configRepoRemoteURL = "ssh://github.com/" + githubOrg + "/" + appConfigRepoName + ".git"
 
 		addCommand := "add app --url=" + appRepoRemoteURL + " --config-repo=" + configRepoRemoteURL + " --auto-merge=true"
 
@@ -400,8 +400,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		tip := generateTestInputs()
 		appName := tip.appRepoName
 		appConfigRepoName := "config-repo-" + RandString(8)
-		appRepoRemoteURL := "https://" + gitProviderName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
-		configRepoRemoteURL := "https://" + gitProviderName + ".com/" + gitOrg + "/" + appConfigRepoName + ".git"
+		appRepoRemoteURL := "ssh://" + gitProviderName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git"
+		configRepoRemoteURL := "ssh://" + gitProviderName + ".com/" + gitOrg + "/" + appConfigRepoName + ".git"
 
 		addCommand := "add app --url=" + appRepoRemoteURL + " --config-repo=" + configRepoRemoteURL + " --auto-merge=true"
 
@@ -1192,7 +1192,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		appName := "my-helm-app"
 		appManifestFilePath := "./data/helm-repo/hello-world"
 		appRepoName := "test-app-" + RandString(8)
-		appRepoRemoteURL := "https://" + gitProviderName + ".com/" + gitOrg + "/" + appRepoName + ".git"
+		appRepoRemoteURL := "ssh://" + gitProviderName + ".com/" + gitOrg + "/" + appRepoName + ".git"
 
 		addCommand := "add app . --deployment-type=helm --path=./hello-world --name=" + appName + " --auto-merge=true"
 
