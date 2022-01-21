@@ -304,7 +304,7 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 		return nil, fmt.Errorf("failed to create kube service: %w", err)
 	}
 
-	appUrl, err := gitproviders.NewRepoURL(msg.Url, false)
+	appUrl, err := gitproviders.NewRepoURL(msg.Url)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "unable to parse app url %q: %s", msg.Url, err)
 	}
@@ -314,7 +314,7 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 		return nil, fmt.Errorf("failed getting wego config")
 	}
 
-	configRepo, err := gitproviders.NewRepoURL(wegoConfig.ConfigRepo, true)
+	configRepo, err := gitproviders.NewRepoURL(wegoConfig.ConfigRepo)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "unable to parse config url %q: %s", wegoConfig.ConfigRepo, err)
 	}
@@ -677,7 +677,7 @@ func (s *applicationServer) Authenticate(_ context.Context, msg *pb.Authenticate
 }
 
 func (s *applicationServer) ParseRepoURL(ctx context.Context, msg *pb.ParseRepoURLRequest) (*pb.ParseRepoURLResponse, error) {
-	u, err := gitproviders.NewRepoURL(msg.Url, false)
+	u, err := gitproviders.NewRepoURL(msg.Url)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "could not parse url: %s", err.Error())
 	}
