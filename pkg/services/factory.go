@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -13,6 +14,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
+	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -79,6 +81,28 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, kubeClient kube.Kube
 	authSvc, err := f.getAuthService(kubeClient, configNormalizedUrl, gpClient, params.DryRun)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error creating auth service: %w", err)
+	}
+
+	normalizedUrl, err := gitproviders.NewRepoURL(params.URL)
+	if err != nil {
+		return nil, nil, fmt.Errorf("error normalizing url: %w", err)
+	}
+
+	provider := authSvc.GetGitProvider()
+	repoVisibility, err := provider.GetRepoVisibility(ctx, normalizedUrl)
+	if err != nil {
+		return nil, nil, fmt.Errorf("error getting repo visibility: %w", err)
+	}
+
+	if *repoVisibility == gitprovider.RepositoryVisibilityPrivate {
+		secretName := auth.SecretName{
+			Name:      automation.CreateRepoSecretName(normalizedUrl),
+			Namespace: params.Namespace,
+		}
+		_, err = authSvc.SetupDeployKey(ctx, secretName, targetName, normalizedUrl)
+		if err != nil {
+			return nil, nil, fmt.Errorf("error setting up deploy key: %w", err)
+		}
 	}
 
 	client, err := authSvc.CreateGitClient(ctx, configNormalizedUrl, targetName, params.Namespace, params.DryRun)

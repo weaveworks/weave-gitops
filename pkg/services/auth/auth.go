@@ -68,6 +68,7 @@ func (sn SecretName) NamespacedName() types.NamespacedName {
 
 type AuthService interface {
 	CreateGitClient(ctx context.Context, repoUrl gitproviders.RepoURL, targetName string, namespace string, dryRun bool) (git.Git, error)
+	SetupDeployKey(ctx context.Context, name SecretName, targetName string, repo gitproviders.RepoURL) (*ssh.PublicKeys, error)
 	GetGitProvider() gitproviders.GitProvider
 }
 
@@ -108,7 +109,7 @@ func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.Repo
 		Namespace: namespace,
 	}
 
-	pubKey, keyErr := a.setupDeployKey(ctx, secretName, targetName, repoUrl)
+	pubKey, keyErr := a.SetupDeployKey(ctx, secretName, targetName, repoUrl)
 	if keyErr != nil {
 		return nil, fmt.Errorf("error setting up deploy keys: %w", keyErr)
 	}
@@ -123,9 +124,9 @@ func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.Repo
 	return git.New(pubKey, wrapper.NewGoGit()), nil
 }
 
-// setupDeployKey creates a git.Git client instrumented with existing or generated deploy keys.
+// SetupDeployKey creates a git.Git client instrumented with existing or generated deploy keys.
 // This ensures that git operations are done with stored deploy keys instead of a user's local ssh-agent or equivalent.
-func (a *authSvc) setupDeployKey(ctx context.Context, name SecretName, targetName string, repo gitproviders.RepoURL) (*ssh.PublicKeys, error) {
+func (a *authSvc) SetupDeployKey(ctx context.Context, name SecretName, targetName string, repo gitproviders.RepoURL) (*ssh.PublicKeys, error) {
 	deployKeyExists, err := a.gitProvider.DeployKeyExists(ctx, repo)
 	if err != nil {
 		return nil, fmt.Errorf("failed check for existing deploy key: %w", err)
