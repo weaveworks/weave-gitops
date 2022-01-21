@@ -28,6 +28,7 @@ type install struct {
 	repoWriter        gitopswriter.RepoWriter
 }
 
+// NewInstaller instantiate a new installer
 func NewInstaller(fluxClient flux.Flux, kubeClient kube.Kube, gitClient git.Git, gitProviderClient gitproviders.GitProvider, log logger.Logger, repoWriter gitopswriter.RepoWriter) Installer {
 	return &install{
 		fluxClient:        fluxClient,
