@@ -89,6 +89,7 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, kubeClient kube.Kube
 	}
 
 	provider := authSvc.GetGitProvider()
+
 	repoVisibility, err := provider.GetRepoVisibility(ctx, normalizedUrl)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error getting repo visibility: %w", err)
@@ -99,6 +100,7 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, kubeClient kube.Kube
 			Name:      automation.CreateRepoSecretName(normalizedUrl),
 			Namespace: params.Namespace,
 		}
+
 		_, err = authSvc.SetupDeployKey(ctx, secretName, targetName, normalizedUrl)
 		if err != nil {
 			return nil, nil, fmt.Errorf("error setting up deploy key: %w", err)
