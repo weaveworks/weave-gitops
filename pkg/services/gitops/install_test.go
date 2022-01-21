@@ -12,6 +12,12 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/rand"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -22,11 +28,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitops"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/util/rand"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var (
@@ -167,19 +168,27 @@ var _ = Describe("Install", func() {
 		Expect(string(deployment)).To(ContainSubstring("kind: Deployment"))
 		Expect(namespace).To(Equal(wego.DefaultNamespace))
 
-		_, roleBinding, namespace := kubeClient.ApplyArgsForCall(2)
+		_, clusterRole, namespace := kubeClient.ApplyArgsForCall(2)
+		Expect(string(clusterRole)).To(ContainSubstring("kind: ClusterRole"))
+		Expect(namespace).To(Equal(wego.DefaultNamespace))
+
+		_, clusterRoleBinding, namespace := kubeClient.ApplyArgsForCall(3)
+		Expect(string(clusterRoleBinding)).To(ContainSubstring("kind: ClusterRoleBinding"))
+		Expect(namespace).To(Equal(wego.DefaultNamespace))
+
+		_, roleBinding, namespace := kubeClient.ApplyArgsForCall(4)
 		Expect(string(roleBinding)).To(ContainSubstring("kind: RoleBinding"))
 		Expect(namespace).To(Equal(wego.DefaultNamespace))
 
-		_, role, namespace := kubeClient.ApplyArgsForCall(3)
+		_, role, namespace := kubeClient.ApplyArgsForCall(5)
 		Expect(string(role)).To(ContainSubstring("kind: Role"))
 		Expect(namespace).To(Equal(wego.DefaultNamespace))
 
-		_, serviceAccount, namespace := kubeClient.ApplyArgsForCall(4)
+		_, serviceAccount, namespace := kubeClient.ApplyArgsForCall(6)
 		Expect(string(serviceAccount)).To(ContainSubstring("kind: ServiceAccount"))
 		Expect(namespace).To(Equal(wego.DefaultNamespace))
 
-		_, service, namespace := kubeClient.ApplyArgsForCall(5)
+		_, service, namespace := kubeClient.ApplyArgsForCall(7)
 		Expect(string(service)).To(ContainSubstring("kind: Service"))
 		Expect(namespace).To(Equal(wego.DefaultNamespace))
 	})
