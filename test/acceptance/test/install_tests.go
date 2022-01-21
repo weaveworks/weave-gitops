@@ -55,6 +55,8 @@ Flags:
       --auto-merge           If set, 'gitops install' will automatically update the default branch for the configuration repository
       --config-repo string   URL of external repository that will hold automation manifests
       --dry-run              Outputs all the manifests that would be installed
+	  --flux-https-password   Optional: only needed if using an https:// repo URL for flux
+	  --flux-https-username string   Optional: only needed if using an https:// repo URL for flux (default "git")
   -h, --help                 help for install
 
 Global Flags:

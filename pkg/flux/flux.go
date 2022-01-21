@@ -122,6 +122,7 @@ func (f *FluxClient) CreateSourceGit(name string, repoUrl gitproviders.RepoURL, 
 
 	args = append(args, argsFromCreds(creds)...)
 	out, err := f.runFluxCmd(args...)
+
 	if err != nil {
 		return out, fmt.Errorf("failed to create source git: %w", err)
 	}
@@ -131,14 +132,17 @@ func (f *FluxClient) CreateSourceGit(name string, repoUrl gitproviders.RepoURL, 
 
 func argsFromCreds(creds *HTTPSCreds) []string {
 	args := []string{}
+
 	if creds != nil {
 		if creds.Username != "" {
 			args = append(args, "--username", creds.Username)
 		}
+
 		if creds.Password != "" {
 			args = append(args, "--password", creds.Password)
 		}
 	}
+
 	return args
 }
 

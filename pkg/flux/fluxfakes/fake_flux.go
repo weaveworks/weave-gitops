@@ -59,12 +59,13 @@ type FakeFlux struct {
 		result1 []byte
 		result2 error
 	}
-	CreateSecretGitStub        func(string, gitproviders.RepoURL, string) ([]byte, error)
+	CreateSecretGitStub        func(string, gitproviders.RepoURL, string, *flux.HTTPSCreds) ([]byte, error)
 	createSecretGitMutex       sync.RWMutex
 	createSecretGitArgsForCall []struct {
 		arg1 string
 		arg2 gitproviders.RepoURL
 		arg3 string
+		arg4 *flux.HTTPSCreds
 	}
 	createSecretGitReturns struct {
 		result1 []byte
@@ -74,7 +75,7 @@ type FakeFlux struct {
 		result1 []byte
 		result2 error
 	}
-	CreateSourceGitStub        func(string, gitproviders.RepoURL, string, string, string) ([]byte, error)
+	CreateSourceGitStub        func(string, gitproviders.RepoURL, string, string, string, *flux.HTTPSCreds) ([]byte, error)
 	createSourceGitMutex       sync.RWMutex
 	createSourceGitArgsForCall []struct {
 		arg1 string
@@ -82,6 +83,7 @@ type FakeFlux struct {
 		arg3 string
 		arg4 string
 		arg5 string
+		arg6 *flux.HTTPSCreds
 	}
 	createSourceGitReturns struct {
 		result1 []byte
@@ -432,20 +434,21 @@ func (fake *FakeFlux) CreateKustomizationReturnsOnCall(i int, result1 []byte, re
 	}{result1, result2}
 }
 
-func (fake *FakeFlux) CreateSecretGit(arg1 string, arg2 gitproviders.RepoURL, arg3 string) ([]byte, error) {
+func (fake *FakeFlux) CreateSecretGit(arg1 string, arg2 gitproviders.RepoURL, arg3 string, arg4 *flux.HTTPSCreds) ([]byte, error) {
 	fake.createSecretGitMutex.Lock()
 	ret, specificReturn := fake.createSecretGitReturnsOnCall[len(fake.createSecretGitArgsForCall)]
 	fake.createSecretGitArgsForCall = append(fake.createSecretGitArgsForCall, struct {
 		arg1 string
 		arg2 gitproviders.RepoURL
 		arg3 string
-	}{arg1, arg2, arg3})
+		arg4 *flux.HTTPSCreds
+	}{arg1, arg2, arg3, arg4})
 	stub := fake.CreateSecretGitStub
 	fakeReturns := fake.createSecretGitReturns
-	fake.recordInvocation("CreateSecretGit", []interface{}{arg1, arg2, arg3})
+	fake.recordInvocation("CreateSecretGit", []interface{}{arg1, arg2, arg3, arg4})
 	fake.createSecretGitMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -459,17 +462,17 @@ func (fake *FakeFlux) CreateSecretGitCallCount() int {
 	return len(fake.createSecretGitArgsForCall)
 }
 
-func (fake *FakeFlux) CreateSecretGitCalls(stub func(string, gitproviders.RepoURL, string) ([]byte, error)) {
+func (fake *FakeFlux) CreateSecretGitCalls(stub func(string, gitproviders.RepoURL, string, *flux.HTTPSCreds) ([]byte, error)) {
 	fake.createSecretGitMutex.Lock()
 	defer fake.createSecretGitMutex.Unlock()
 	fake.CreateSecretGitStub = stub
 }
 
-func (fake *FakeFlux) CreateSecretGitArgsForCall(i int) (string, gitproviders.RepoURL, string) {
+func (fake *FakeFlux) CreateSecretGitArgsForCall(i int) (string, gitproviders.RepoURL, string, *flux.HTTPSCreds) {
 	fake.createSecretGitMutex.RLock()
 	defer fake.createSecretGitMutex.RUnlock()
 	argsForCall := fake.createSecretGitArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
 func (fake *FakeFlux) CreateSecretGitReturns(result1 []byte, result2 error) {
@@ -498,7 +501,7 @@ func (fake *FakeFlux) CreateSecretGitReturnsOnCall(i int, result1 []byte, result
 	}{result1, result2}
 }
 
-func (fake *FakeFlux) CreateSourceGit(arg1 string, arg2 gitproviders.RepoURL, arg3 string, arg4 string, arg5 string) ([]byte, error) {
+func (fake *FakeFlux) CreateSourceGit(arg1 string, arg2 gitproviders.RepoURL, arg3 string, arg4 string, arg5 string, arg6 *flux.HTTPSCreds) ([]byte, error) {
 	fake.createSourceGitMutex.Lock()
 	ret, specificReturn := fake.createSourceGitReturnsOnCall[len(fake.createSourceGitArgsForCall)]
 	fake.createSourceGitArgsForCall = append(fake.createSourceGitArgsForCall, struct {
@@ -507,13 +510,14 @@ func (fake *FakeFlux) CreateSourceGit(arg1 string, arg2 gitproviders.RepoURL, ar
 		arg3 string
 		arg4 string
 		arg5 string
-	}{arg1, arg2, arg3, arg4, arg5})
+		arg6 *flux.HTTPSCreds
+	}{arg1, arg2, arg3, arg4, arg5, arg6})
 	stub := fake.CreateSourceGitStub
 	fakeReturns := fake.createSourceGitReturns
-	fake.recordInvocation("CreateSourceGit", []interface{}{arg1, arg2, arg3, arg4, arg5})
+	fake.recordInvocation("CreateSourceGit", []interface{}{arg1, arg2, arg3, arg4, arg5, arg6})
 	fake.createSourceGitMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4, arg5)
+		return stub(arg1, arg2, arg3, arg4, arg5, arg6)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -527,17 +531,17 @@ func (fake *FakeFlux) CreateSourceGitCallCount() int {
 	return len(fake.createSourceGitArgsForCall)
 }
 
-func (fake *FakeFlux) CreateSourceGitCalls(stub func(string, gitproviders.RepoURL, string, string, string) ([]byte, error)) {
+func (fake *FakeFlux) CreateSourceGitCalls(stub func(string, gitproviders.RepoURL, string, string, string, *flux.HTTPSCreds) ([]byte, error)) {
 	fake.createSourceGitMutex.Lock()
 	defer fake.createSourceGitMutex.Unlock()
 	fake.CreateSourceGitStub = stub
 }
 
-func (fake *FakeFlux) CreateSourceGitArgsForCall(i int) (string, gitproviders.RepoURL, string, string, string) {
+func (fake *FakeFlux) CreateSourceGitArgsForCall(i int) (string, gitproviders.RepoURL, string, string, string, *flux.HTTPSCreds) {
 	fake.createSourceGitMutex.RLock()
 	defer fake.createSourceGitMutex.RUnlock()
 	argsForCall := fake.createSourceGitArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6
 }
 
 func (fake *FakeFlux) CreateSourceGitReturns(result1 []byte, result2 error) {

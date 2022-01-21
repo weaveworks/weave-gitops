@@ -45,6 +45,7 @@ type GitConfigParams struct {
 // fields from the Application.
 func NewGitConfigParamsFromApp(app *wego.Application, dryRun bool) GitConfigParams {
 	isHelmRepository := app.Spec.SourceType == wego.SourceTypeHelm
+
 	return GitConfigParams{
 		URL:              app.Spec.URL,
 		ConfigRepo:       app.Spec.ConfigRepo,
@@ -110,6 +111,7 @@ func (f *defaultFactory) GetKubeService() (kube.Kube, error) {
 
 func (f *defaultFactory) GetGitClients(ctx context.Context, gpClient gitproviders.Client, params GitConfigParams) (git.Git, gitproviders.GitProvider, error) {
 	isExternalConfig := models.IsExternalConfigRepo(params.ConfigRepo)
+
 	var providerUrl string
 
 	switch {

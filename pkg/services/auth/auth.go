@@ -124,6 +124,7 @@ func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.Repo
 				Password: creds.Password,
 			}, wrapper.NewGoGit()), nil
 		}
+
 		return git.New(nil, wrapper.NewGoGit()), nil
 	}
 
@@ -150,6 +151,7 @@ func (a *authSvc) setupDeployKey(ctx context.Context, name SecretName, targetNam
 			a.logger.Warningf("A deploy key named %s was found on the git provider, but not in the cluster.", name.Name)
 			return a.provisionDeployKey(ctx, targetName, name, repo, creds)
 		}
+
 		if err != nil {
 			return nil, fmt.Errorf("error retrieving deploy key: %w", err)
 		}
@@ -197,6 +199,7 @@ func (a *authSvc) provisionDeployKey(ctx context.Context, targetName string, nam
 	if creds == nil {
 		a.logger.Println("Deploy key generated and uploaded to git provider")
 	}
+
 	return deployKey, nil
 }
 
@@ -206,15 +209,18 @@ func (a *authSvc) generateRepoAuthSecret(targetName string, secretName SecretNam
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not create key-pair secret: %w", err)
 	}
+
 	if creds != nil {
 		return nil, secret, nil
 	}
 
 	privKeyBytes := extractPrivateKey(secret)
 	deployKey, err := makePublicKey(privKeyBytes)
+
 	if err != nil {
 		return nil, nil, fmt.Errorf("error creating new public keys: %w", err)
 	}
+
 	return deployKey, secret, nil
 }
 
@@ -246,6 +252,7 @@ func (a *authSvc) createRepoAuthSecret(name SecretName, repo gitproviders.RepoUR
 
 	var secret corev1.Secret
 	err = yaml.Unmarshal(secretData, &secret)
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal created secret: %w", err)
 	}
@@ -266,6 +273,7 @@ func extractSecretPart(secret *corev1.Secret, key string) []byte {
 		// Handle this case here to be able to extract data no matter the "state" of the object.
 		data = []byte(secret.StringData[string(key)])
 	}
+
 	return data
 }
 

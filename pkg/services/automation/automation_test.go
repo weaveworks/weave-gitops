@@ -68,7 +68,7 @@ var _ = Describe("Generate manifests", func() {
 
 				Expect(fluxClient.CreateSourceGitCallCount()).To(Equal(1))
 
-				name, url, branch, secretRef, namespace := fluxClient.CreateSourceGitArgsForCall(0)
+				name, url, branch, secretRef, namespace, _ := fluxClient.CreateSourceGitArgsForCall(0)
 				Expect(name).To(Equal("bar"))
 				Expect(url.String()).To(Equal("ssh://git@github.com/foo/bar.git"))
 				Expect(branch).To(Equal("main"))
@@ -191,9 +191,9 @@ var _ = Describe("Generate manifests", func() {
 
 					Expect(fluxClient.CreateSourceGitCallCount()).To(Equal(1))
 
-					name, url, branch, secretRef, namespace := fluxClient.CreateSourceGitArgsForCall(0)
+					name, url, branch, secretRef, namespace, _ := fluxClient.CreateSourceGitArgsForCall(0)
 					Expect(name).To(Equal("bar"))
-					Expect(url.String()).To(Equal("ssh://git@github.com/user/repo.git"))
+					Expect(url.String()).To(Equal("https://github.com/user/repo.git"))
 					Expect(branch).To(Equal("main"))
 					Expect(secretRef).To(Equal("wego-github-repo"))
 					Expect(namespace).To(Equal(wego.DefaultNamespace))

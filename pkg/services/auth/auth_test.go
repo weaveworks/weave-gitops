@@ -34,7 +34,7 @@ var _ = Describe("auth", func() {
 	repoUrlString := "ssh://git@github.com/my-org/my-repo.git"
 	configRepoUrl, err := gitproviders.NewRepoURL(repoUrlString, true)
 	Expect(err).NotTo(HaveOccurred())
-	repoUrl, err := gitproviders.NewRepoURL(repoUrlString, false)
+	repoURL, err := gitproviders.NewRepoURL(repoUrlString, false)
 	Expect(err).NotTo(HaveOccurred())
 
 	BeforeEach(func() {
@@ -90,7 +90,7 @@ var _ = Describe("auth", func() {
 			gp.DeployKeyExistsReturns(true, nil)
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}
 			// using `generateDeployKey` as a helper for the test setup.
-			_, secret, err := (&authSvc{fluxClient: fluxClient}).generateDeployKey(testClustername, sn, repoURL, nil)
+			_, secret, err := (&authSvc{fluxClient: fluxClient}).generateRepoAuthSecret(testClustername, sn, repoURL, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(k8sClient.Create(ctx, secret)).To(Succeed())
 
@@ -115,14 +115,14 @@ var _ = Describe("auth", func() {
 		It("avoids deploying key for non config repos", func() {
 			gp.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityPublic), nil)
 
-			_, err = as.CreateGitClient(ctx, repoUrl, testClustername, namespace.Name, false, nil)
+			_, err = as.CreateGitClient(ctx, repoURL, testClustername, namespace.Name, false, nil)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(gp.UploadDeployKeyCallCount()).To(Equal(0))
 		})
 
 		It("does not create a deploy key when using https", func() {
-			repoURL, err := gitproviders.NewRepoURL("https://github.com/my-org/my-repo.git", false)
+			repoURL, err = gitproviders.NewRepoURL("https://github.com/my-org/my-repo.git", false)
 			Expect(err).NotTo(HaveOccurred())
 			_, err := as.CreateGitClient(ctx, repoURL, testClustername, namespace.Name, false, &flux.HTTPSCreds{Username: "test", Password: "topsecret"})
 			Expect(err).NotTo(HaveOccurred())

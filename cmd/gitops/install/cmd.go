@@ -54,6 +54,7 @@ const LabelPartOf = "app.kubernetes.io/part-of"
 
 func init() {
 	Cmd.Flags().BoolVar(&gitopsParams.DryRun, "dry-run", false, "Outputs all the manifests that would be installed")
+	Cmd.Flags().BoolVar(&gitopsParams.AutoMerge, "auto-merge", false, "If set, 'gitops install' will automatically update the default branch for the configuration repository")
 	Cmd.Flags().StringVar(&gitopsParams.ConfigRepo, "config-repo", "", "URL of external repository that will hold automation manifests")
 	Cmd.Flags().StringVar(&gitopsParams.FluxHTTPSUsername, "flux-https-username", "git", "Optional: only needed if using an https:// repo URL for flux")
 	Cmd.Flags().StringVar(&gitopsParams.FluxHTTPSPassword, "flux-https-password", "", "Optional: only needed if using an https:// repo URL for flux")
@@ -64,7 +65,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	ctx := context.Background()
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
-	configURL, err := gitproviders.NewRepoURL(installParams.ConfigRepo, true)
+	configURL, err := gitproviders.NewRepoURL(gitopsParams.ConfigRepo, true)
 	if err != nil {
 		return err
 	}
@@ -94,22 +95,24 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 
 	clusterApplier := applier.NewClusterApplier(k)
 
-	var gitClient git.Git
-	var gitProvider gitproviders.GitProvider
+	var (
+		gitClient   git.Git
+		gitProvider gitproviders.GitProvider
+	)
 
-	factory := services.NewFactory(flux, log)
+	factory := services.NewFactory(runner, log)
 
 	if err != nil {
 		return fmt.Errorf("failed getting kube service: %w", err)
 	}
 
-	if installParams.DryRun {
+	if gitopsParams.DryRun {
 		gitProvider, err = gitproviders.NewDryRun()
 		if err != nil {
 			return fmt.Errorf("error creating git provider for dry run: %w", err)
 		}
 	} else {
-		_, err = flux.Install(namespace, false)
+		_, err = runner.Install(namespace, false)
 		if err != nil {
 			return err
 		}
@@ -118,10 +121,10 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 
 		gitClient, gitProvider, err = factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
 			// We need to set URL and ConfigRepo to the same value so a deploy key is created for public config repos
-			URL:               installParams.ConfigRepo,
-			ConfigRepo:        installParams.ConfigRepo,
+			URL:               gitopsParams.ConfigRepo,
+			ConfigRepo:        gitopsParams.ConfigRepo,
 			Namespace:         namespace,
-			DryRun:            installParams.DryRun,
+			DryRun:            gitopsParams.DryRun,
 			FluxHTTPSUsername: gitopsParams.FluxHTTPSUsername,
 			FluxHTTPSPassword: gitopsParams.FluxHTTPSPassword,
 		})
@@ -133,7 +136,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 
 	cluster := models.Cluster{Name: clusterName}
 	repoWriter := gitrepo.NewRepoWriter(configURL, gitProvider, gitClient, log)
-	automationGen := automation.NewAutomationGenerator(gitProvider, flux, log)
+	automationGen := automation.NewAutomationGenerator(gitProvider, runner, log)
 	gitOpsDirWriter := gitopswriter.NewGitOpsDirectoryWriter(automationGen, repoWriter, osysClient, log)
 
 	clusterAutomation, err := automationGen.GenerateClusterAutomation(ctx, cluster, configURL, namespace)
@@ -161,9 +164,10 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed applying manifest: %w", err)
 	}
 
-	err = gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, namespace, installParams.AutoMerge)
+	err = gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, namespace, gitopsParams.AutoMerge)
 	if err != nil {
 		return fmt.Errorf("failed associating cluster: %w", err)
 	}
+
 	return nil
 }

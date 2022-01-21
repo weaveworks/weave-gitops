@@ -184,7 +184,7 @@ var _ = Describe("Add", func() {
 			_, repoDir, url, branch := gitClient.CloneArgsForCall(0)
 
 			Expect(repoDir).To(ContainSubstring("user-repo-"))
-			Expect(url).To(Equal("ssh://git@github.com/foo/bar.git"))
+			Expect(url).To(Equal("https://github.com/foo/bar.git"))
 			Expect(branch).To(Equal("main"))
 		})
 

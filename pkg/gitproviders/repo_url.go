@@ -53,7 +53,7 @@ func NewRepoURL(uri string, isConfigRepo bool) (RepoURL, error) {
 	}
 
 	return RepoURL{
-		repoName:     utils.UrlToRepoName(uri),
+		repoName:     utils.URLToRepoName(uri),
 		owner:        owner,
 		url:          u,
 		normalized:   normalized,
@@ -159,6 +159,7 @@ func normalizeRepoURLString(url string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("could not parse git repo url while normalizing %q: %w", url, err)
 	}
+
 	if u.Scheme == "https" {
 		return u.String(), nil
 	}

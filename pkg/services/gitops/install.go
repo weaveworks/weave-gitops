@@ -28,6 +28,7 @@ type InstallParams struct {
 	Namespace         string
 	DryRun            bool
 	ConfigRepo        string
+	AutoMerge         bool
 	FluxHTTPSUsername string
 	FluxHTTPSPassword string
 }
@@ -206,9 +207,11 @@ func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitP
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user kustomization manifest: %w", err)
 	}
+
 	manifests["flux-user-kustomization-resource.yaml"] = user
 
 	g.logger.Actionf("Writing manifests to disk")
+
 	if err := g.writeManifestsToGit(gitClient, filepath.Join(clusterPath, "system"), manifests); err != nil {
 		return nil, fmt.Errorf("failed to write manifests: %w", err)
 	}
@@ -297,5 +300,6 @@ func credsFromParams(p InstallParams) *flux.HTTPSCreds {
 			Password: p.FluxHTTPSPassword,
 		}
 	}
+
 	return creds
 }
