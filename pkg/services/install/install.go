@@ -6,16 +6,13 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/weaveworks/weave-gitops/pkg/models"
-
-	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
-
-	"github.com/weaveworks/weave-gitops/pkg/logger"
-
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/models"
+	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
 )
 
 type Installer interface {
