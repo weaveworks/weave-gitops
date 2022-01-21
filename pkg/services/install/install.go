@@ -40,6 +40,7 @@ func NewInstaller(fluxClient flux.Flux, kubeClient kube.Kube, gitClient git.Git,
 	}
 }
 
+// Install generates gitops manifests, save them to the config repository and applies them to the cluster. In case auto-merge is true it creates a PR instead of writing directly to the default branch.
 func (i *install) Install(namespace string, configURL gitproviders.RepoURL, autoMerge bool) error {
 	ctx := context.Background()
 
