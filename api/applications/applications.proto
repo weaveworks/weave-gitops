@@ -292,6 +292,7 @@ message RemoveApplicationRequest {
 
 message RemoveApplicationResponse {
     bool success = 1;
+    string repoUrl = 2;
 }
 
 message SyncApplicationRequest {

@@ -24,7 +24,7 @@ var _ = Describe("Get git provider", func() {
 	var repoUrl gitproviders.RepoURL
 	BeforeEach(func() {
 		client = NewGitProviderClient(fakeToken)
-		repoUrl, _ = gitproviders.NewRepoURL("ssh://git@github.com/weaveworks/weave-gitops.git")
+		repoUrl, _ = gitproviders.NewRepoURL("ssh://git@github.com/weaveworks/weave-gitops.git", false)
 	})
 
 	It("gitproviders.New throws an error", func() {

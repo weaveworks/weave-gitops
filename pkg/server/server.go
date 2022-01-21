@@ -47,6 +47,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
+const DefaultPort = "9001"
+
 var (
 	ErrEmptyAccessToken = errors.New("access token is empty")
 	ErrBadProvider      = errors.New("wrong provider name")
@@ -66,7 +68,6 @@ type applicationServer struct {
 	factory        services.Factory
 	jwtClient      auth.JWTClient
 	log            logr.Logger
-	kube           client.Client
 	ghAuthClient   auth.GithubAuthClient
 	fetcherFactory FetcherFactory
 	glAuthClient   auth.GitlabAuthClient
@@ -79,7 +80,6 @@ type ApplicationsConfig struct {
 	Logger           logr.Logger
 	Factory          services.Factory
 	JwtClient        auth.JWTClient
-	KubeClient       client.Client
 	GithubAuthClient auth.GithubAuthClient
 	FetcherFactory   FetcherFactory
 	GitlabAuthClient auth.GitlabAuthClient
@@ -130,7 +130,6 @@ func NewApplicationsServer(cfg *ApplicationsConfig, setters ...ApplicationsOptio
 		jwtClient:      cfg.JwtClient,
 		log:            cfg.Logger,
 		factory:        cfg.Factory,
-		kube:           cfg.KubeClient,
 		ghAuthClient:   cfg.GithubAuthClient,
 		fetcherFactory: cfg.FetcherFactory,
 		glAuthClient:   cfg.GitlabAuthClient,
@@ -162,18 +161,12 @@ func DefaultApplicationsConfig() (*ApplicationsConfig, error) {
 		return nil, fmt.Errorf("could not create client config: %w", err)
 	}
 
-	_, rawClient, err := kube.NewKubeHTTPClientWithConfig(rest, clusterName)
-	if err != nil {
-		return nil, fmt.Errorf("could not create kube http client: %w", err)
-	}
-
 	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 
 	return &ApplicationsConfig{
 		Logger:           logr,
 		Factory:          services.NewServerFactory(fluxClient, internal.NewApiLogger(zapLog), nil, ""),
 		JwtClient:        jwtClient,
-		KubeClient:       rawClient,
 		FetcherFactory:   NewDefaultFetcherFactory(),
 		GithubAuthClient: auth.NewGithubAuthClient(http.DefaultClient),
 		GitlabAuthClient: auth.NewGitlabAuthClient(http.DefaultClient),
@@ -299,14 +292,14 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "token error: %s", err.Error())
 	}
 
-	appUrl, err := gitproviders.NewRepoURL(msg.Url)
+	appUrl, err := gitproviders.NewRepoURL(msg.Url, false)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "unable to parse app url %q: %s", msg.Url, err)
 	}
 
 	var configRepo gitproviders.RepoURL
 	if msg.ConfigRepo != "" {
-		configRepo, err = gitproviders.NewRepoURL(msg.ConfigRepo)
+		configRepo, err = gitproviders.NewRepoURL(msg.ConfigRepo, true)
 		if err != nil {
 			return nil, grpcStatus.Errorf(codes.InvalidArgument, "unable to parse config url %q: %s", msg.ConfigRepo, err)
 		}
@@ -396,7 +389,7 @@ func (s *applicationServer) RemoveApplication(ctx context.Context, msg *pb.Remov
 		return nil, fmt.Errorf("error removing app: %w", err)
 	}
 
-	return &pb.RemoveApplicationResponse{Success: true}, nil
+	return &pb.RemoveApplicationResponse{Success: true, RepoUrl: application.Spec.ConfigRepo}, nil
 }
 
 func (s *applicationServer) SyncApplication(ctx context.Context, msg *pb.SyncApplicationRequest) (*pb.SyncApplicationResponse, error) {
@@ -429,6 +422,11 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error listing commits: %s", err.Error())
 	}
 
+	cl, err := s.clientGetter.Client(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	pageToken := 0
 	if msg.PageToken != nil {
 		pageToken = int(*msg.PageToken)
@@ -443,7 +441,7 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 	}
 
 	application := &wego.Application{}
-	if err := s.kube.Get(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace}, application); err != nil {
+	if err := cl.Get(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace}, application); err != nil {
 		return nil, fmt.Errorf("could not get app %q in namespace %q: %w", msg.Name, msg.Namespace, err)
 	}
 
@@ -491,6 +489,11 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 }
 
 func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciledObjectsReq) (*pb.GetReconciledObjectsRes, error) {
+	cl, err := s.clientGetter.Client(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	var opts client.MatchingLabels
 
 	switch msg.AutomationKind {
@@ -519,8 +522,8 @@ func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.Ge
 			Version: gvk.Version,
 		})
 
-		if err := s.kube.List(ctx, &list, opts); err != nil {
-			return nil, fmt.Errorf("could not get unstructured list: %s\n", err)
+		if err := cl.List(ctx, &list, opts); err != nil {
+			return nil, fmt.Errorf("could not get unstructured list: %s", err)
 		}
 
 		result = append(result, list.Items...)
@@ -552,6 +555,11 @@ func (s *applicationServer) GetReconciledObjects(ctx context.Context, msg *pb.Ge
 }
 
 func (s *applicationServer) GetChildObjects(ctx context.Context, msg *pb.GetChildObjectsReq) (*pb.GetChildObjectsRes, error) {
+	cl, err := s.clientGetter.Client(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	list := unstructured.UnstructuredList{}
 
 	list.SetGroupVersionKind(schema.GroupVersionKind{
@@ -560,8 +568,8 @@ func (s *applicationServer) GetChildObjects(ctx context.Context, msg *pb.GetChil
 		Kind:    msg.GroupVersionKind.Kind,
 	})
 
-	if err := s.kube.List(ctx, &list); err != nil {
-		return nil, fmt.Errorf("could not get unstructured object: %s\n", err)
+	if err := cl.List(ctx, &list); err != nil {
+		return nil, fmt.Errorf("could not get unstructured object: %s", err)
 	}
 
 	objects := []*pb.UnstructuredObject{}
@@ -650,7 +658,7 @@ func (s *applicationServer) Authenticate(_ context.Context, msg *pb.Authenticate
 }
 
 func (s *applicationServer) ParseRepoURL(ctx context.Context, msg *pb.ParseRepoURLRequest) (*pb.ParseRepoURLResponse, error) {
-	u, err := gitproviders.NewRepoURL(msg.Url)
+	u, err := gitproviders.NewRepoURL(msg.Url, false)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "could not parse url: %s", err.Error())
 	}

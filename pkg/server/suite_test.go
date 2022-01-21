@@ -127,7 +127,6 @@ var _ = BeforeEach(func() {
 	cfg := ApplicationsConfig{
 		Factory:          fakeFactory,
 		JwtClient:        jwtClient,
-		KubeClient:       k8sClient,
 		GithubAuthClient: ghAuthClient,
 		FetcherFactory:   NewFakeFetcherFactory(applicationv2.NewFetcher(k8sClient)),
 		GitlabAuthClient: glAuthClient,

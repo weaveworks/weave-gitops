@@ -29,7 +29,7 @@ var _ = Describe("Installer", func() {
 	var err error
 	var _ = BeforeEach(func() {
 		fakeFluxClient = &fluxfakes.FakeFlux{}
-		configRepo, err = gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo")
+		configRepo, err = gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo", true)
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 

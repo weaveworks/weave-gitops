@@ -23,7 +23,7 @@ var (
 )
 
 func createRepoURL(url string) gitproviders.RepoURL {
-	repoURL, err := gitproviders.NewRepoURL(url)
+	repoURL, err := gitproviders.NewRepoURL(url, false)
 	Expect(err).NotTo(HaveOccurred())
 
 	return repoURL

@@ -10,27 +10,22 @@ import (
 	"os"
 	"strings"
 
-	"github.com/weaveworks/weave-gitops/pkg/models"
-	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
-
+	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/weaveworks/weave-gitops/cmd/internal"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth"
-
-	"github.com/weaveworks/weave-gitops/pkg/services"
-
-	"github.com/weaveworks/weave-gitops/pkg/services/install"
-
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-
-	"github.com/spf13/cobra"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
+	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/services"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
+	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
+	"github.com/weaveworks/weave-gitops/pkg/services/install"
 )
 
 type params struct {
@@ -70,7 +65,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	ctx := context.Background()
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
-	configURL, err := gitproviders.NewRepoURL(installParams.ConfigRepo)
+	configURL, err := gitproviders.NewRepoURL(installParams.ConfigRepo, true)
 	if err != nil {
 		return err
 	}
@@ -121,9 +116,11 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	// This is going to be broken up to reduce complexity
 	// and then generates the source yaml of the config repo when using dry-run option
 	gitClient, gitProvider, err := factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
-		URL:       installParams.ConfigRepo,
-		Namespace: namespace,
-		DryRun:    installParams.DryRun,
+		// We need to set URL and ConfigRepo to the same value so a deploy key is created for public config repos
+		URL:        installParams.ConfigRepo,
+		ConfigRepo: installParams.ConfigRepo,
+		Namespace:  namespace,
+		DryRun:     installParams.DryRun,
 	})
 	if err != nil {
 		return fmt.Errorf("failed getting git clients: %w", err)

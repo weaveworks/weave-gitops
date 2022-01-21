@@ -43,7 +43,7 @@ var _ = Describe("Installer", func() {
 	const clusterName = "test-cluster"
 	var _ = BeforeEach(func() {
 		testNamespace = "test-namespace"
-		configRepo, err = gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo")
+		configRepo, err = gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo", true)
 		Expect(err).ShouldNot(HaveOccurred())
 		fakeFluxClient = &fluxfakes.FakeFlux{}
 		fakeKubeClient = &kubefakes.FakeKube{}

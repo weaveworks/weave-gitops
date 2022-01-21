@@ -9,9 +9,7 @@ import (
 	"path"
 	"sort"
 
-	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
@@ -22,7 +20,16 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
+
+	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 )
+
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate . HelmRepoManager
+type HelmRepoManager interface {
+	ListCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred ChartPredicate) ([]*pb.Profile, error)
+	GetValuesFile(ctx context.Context, helmRepo *sourcev1beta1.HelmRepository, c *ChartReference, filename string) ([]byte, error)
+}
 
 // ProfileAnnotation is the annotation that Helm charts must have to indicate
 // that they provide a Profile.
@@ -53,12 +60,10 @@ type RepoManager struct {
 	envSettings *cli.EnvSettings
 }
 
-// ChartReference is a Helm chart reference, the SourceRef is a Flux
-// SourceReference for the Helm chart.
+// ChartReference is a Helm chart reference
 type ChartReference struct {
-	Chart     string
-	Version   string
-	SourceRef helmv2beta1.CrossNamespaceObjectReference
+	Chart   string
+	Version string
 }
 
 // DefaultChartGetter provides default ways to get a chart index.yaml based on
@@ -77,9 +82,8 @@ var Profiles = func(v *repo.ChartVersion) bool {
 	return hasAnnotation(v.Metadata, ProfileAnnotation)
 }
 
-// GetCharts filters charts using the provided predicate.
-// TODO: Add caching based on the Status Artifact Revision.
-func (h *RepoManager) GetCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred ChartPredicate) ([]*pb.Profile, error) {
+// ListCharts filters charts using the provided predicate.
+func (h *RepoManager) ListCharts(ctx context.Context, hr *sourcev1beta1.HelmRepository, pred ChartPredicate) ([]*pb.Profile, error) {
 	chartRepo, err := fetchIndexFile(hr.Status.URL)
 	if err != nil {
 		return nil, fmt.Errorf("fetching profiles from HelmRepository %s/%s: %w",
@@ -103,7 +107,11 @@ func (h *RepoManager) GetCharts(ctx context.Context, hr *sourcev1beta1.HelmRepos
 						Keywords:    v.Keywords,
 						Icon:        v.Icon,
 						KubeVersion: v.KubeVersion,
-						Layer:       getLayer(v.Annotations),
+						HelmRepository: &pb.HelmRepository{
+							Name:      hr.Name,
+							Namespace: hr.Namespace,
+						},
+						Layer: getLayer(v.Annotations),
 					}
 					for _, m := range v.Maintainers {
 						p.Maintainers = append(p.Maintainers, &pb.Maintainer{
@@ -119,7 +127,7 @@ func (h *RepoManager) GetCharts(ctx context.Context, hr *sourcev1beta1.HelmRepos
 		}
 	}
 
-	profiles := []*pb.Profile{}
+	var profiles []*pb.Profile
 
 	for _, p := range ps {
 		sort.Strings(p.AvailableVersions)
@@ -247,6 +255,7 @@ func fetchIndexFile(chartURL string) (*repo.IndexFile, error) {
 	}
 
 	u, err := url.Parse(chartURL)
+
 	if err != nil {
 		return nil, fmt.Errorf("error parsing URL %q: %w", chartURL, err)
 	}
