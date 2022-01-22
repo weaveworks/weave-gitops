@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+package gitops_server.v1;
+
+option go_package = "github.com/weaveworks/weave-gitops/core/api/apps";
+
+import "api/app/source.proto";
+import "google/api/annotations.proto";
+import "google/api/httpbody.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "Weave GitOps App Kustomization API",
+    version: "0.1",
+    description: "The Weave GitOps Application API handles operations for Weave GitOps Applications",
+  },
+  consumes: "apps/json",
+  produces: "apps/json",
+};
+
+message Kustomization {
+  string namespace = 1;
+  string name = 2;
+  string path = 3;
+  SourceRef sourceRef = 4;
+  Interval interval = 5;
+}
+
+message AddKustomizationReq {
+  string namespace = 1;
+  string app_name = 2;
+  string name = 3;
+  string path = 4;
+  SourceRef sourceRef = 5;
+  Interval interval = 6;
+}
+
+message AddKustomizationRes {
+  bool success = 1;
+  Kustomization kustomization = 2;
+}
+
+message ListKustomizationsReq {
+  string namespace = 1;
+  string app_name = 2;
+}
+
+message ListKustomizationsRes {
+  repeated Kustomization kustomizations = 1;
+}
+
+message RemoveKustomizationReq {
+  string namespace = 1;
+  string app_name = 2;
+  string kustomization_name = 3;
+}
+
+message RemoveKustomizationRes {
+  bool success = 1;
+}
+
+
+service Flux {
+  /*
+    * AddKustomization adds a Kustomization to a cluster.
+    */
+  rpc AddKustomization(AddKustomizationReq) returns (AddKustomizationRes) {
+    option (google.api.http) = {
+      post : "/v1/namespace/{namespace}/kustomization"
+      body: "*"
+    };
+  }
+
+  /*
+    * ListKustomizations lists kustomization from a cluster.
+    */
+  rpc ListKustomizations(ListKustomizationsReq) returns (ListKustomizationsRes) {
+    option (google.api.http) = {
+      get : "/v1/namespace/{namespace}/kustomization"
+    };
+  }
+
+  /*
+  * RemoveKustomization removes a Kustomization from a cluster.
+  */
+  rpc RemoveKustomization(RemoveKustomizationReq) returns (RemoveKustomizationRes) {
+    option (google.api.http) = {
+      delete : "/v1/namespace/{namespace}/kustomization/{kustomization_name}"
+    };
+  }
+
+  /*
+    * AddGitRepository adds a git repository source to a cluster.
+    */
+  rpc AddGitRepository(AddGitRepositoryReq) returns (AddGitRepositoryRes) {
+    option (google.api.http) = {
+      post : "/v1/namespace/{namespace}/gitrepository"
+      body: "*"
+    };
+  }
+
+  /*
+    * ListGitRepository lists git repositories from a cluster.
+    */
+  rpc ListGitRepositories(ListGitRepositoryReq) returns (ListGitRepositoryRes) {
+    option (google.api.http) = {
+      get : "/v1/namespace/{namespace}/gitrepository"
+    };
+  }
+}
