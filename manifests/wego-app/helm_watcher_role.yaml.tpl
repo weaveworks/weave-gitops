@@ -2,7 +2,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: helm-watcher-role
-  namespace: {{ .Namespace }}
 rules:
   - apiGroups:
       - source.toolkit.fluxcd.io
@@ -12,6 +11,8 @@ rules:
       - get
       - list
       - watch
+      - patch
+      - update
   - apiGroups:
       - source.toolkit.fluxcd.io
     resources:
