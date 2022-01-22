@@ -6,27 +6,26 @@ package install
 import (
 	"context"
 	_ "embed"
-	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
+	corev1 "k8s.io/api/core/v1"
+
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services"
-	"github.com/weaveworks/weave-gitops/pkg/services/applier"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
-	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
-	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
+	"github.com/weaveworks/weave-gitops/pkg/services/install"
 )
 
 type params struct {
@@ -55,8 +54,6 @@ repo. If a previous version is installed, then an in-place upgrade will be perfo
 	},
 }
 
-const LabelPartOf = "app.kubernetes.io/part-of"
-
 func init() {
 	Cmd.Flags().BoolVar(&installParams.DryRun, "dry-run", false, "Outputs all the manifests that would be installed")
 	Cmd.Flags().BoolVar(&installParams.AutoMerge, "auto-merge", false, "If set, 'gitops install' will automatically update the default branch for the configuration repository")
@@ -74,99 +71,66 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	osysClient := osys.New()
-	log := internal.NewCLILogger(os.Stdout)
-	flux := flux.New(osysClient, &runner.CLIRunner{})
+	fluxClient := flux.New(osysClient, &runner.CLIRunner{})
 
-	k, _, err := kube.NewKubeHTTPClient()
+	kubeClient, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
 
-	status := k.GetClusterStatus(ctx)
-
-	clusterName, err := k.GetClusterName(ctx)
+	clusterName, err := kubeClient.GetClusterName(ctx)
 	if err != nil {
 		return err
 	}
 
-	switch status {
-	case kube.FluxInstalled:
-		return errors.New("Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n  $ flux uninstall")
-	case kube.Unknown:
-		return fmt.Errorf("Weave GitOps cannot talk to the cluster %s", clusterName)
-	}
-
-	clusterApplier := applier.NewClusterApplier(k)
-
-	var gitClient git.Git
-
-	var gitProvider gitproviders.GitProvider
-
-	factory := services.NewFactory(flux, log)
-
-	if err != nil {
-		return fmt.Errorf("failed getting kube service: %w", err)
-	}
-
 	if installParams.DryRun {
-		gitProvider, err = gitproviders.NewDryRun()
+		manifests, err := models.BootstrapManifests(fluxClient, clusterName, namespace, configURL)
 		if err != nil {
-			return fmt.Errorf("error creating git provider for dry run: %w", err)
-		}
-	} else {
-		_, err = flux.Install(namespace, false)
-		if err != nil {
-			return err
+			return fmt.Errorf("failed getting gitops manifests: %w", err)
 		}
 
-		providerClient := internal.NewGitProviderClient(osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
-
-		gitClient, gitProvider, err = factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
-			// We need to set URL and ConfigRepo to the same value so a deploy key is created for public config repos
-			URL:        installParams.ConfigRepo,
-			ConfigRepo: installParams.ConfigRepo,
-			Namespace:  namespace,
-			DryRun:     installParams.DryRun,
-		})
-
-		if err != nil {
-			return fmt.Errorf("error creating git clients: %w", err)
-		}
-	}
-
-	cluster := models.Cluster{Name: clusterName}
-	repoWriter := gitrepo.NewRepoWriter(configURL, gitProvider, gitClient, log)
-	automationGen := automation.NewAutomationGenerator(gitProvider, flux, log)
-	gitOpsDirWriter := gitopswriter.NewGitOpsDirectoryWriter(automationGen, repoWriter, osysClient, log)
-
-	clusterAutomation, err := automationGen.GenerateClusterAutomation(ctx, cluster, configURL, namespace)
-	if err != nil {
-		return err
-	}
-
-	wegoConfigManifest, err := clusterAutomation.GenerateWegoConfigManifest(clusterName, namespace, namespace)
-	if err != nil {
-		return fmt.Errorf("failed generating wego config manifest: %w", err)
-	}
-
-	manifests := append(clusterAutomation.Manifests(), wegoConfigManifest)
-
-	if installParams.DryRun {
 		for _, manifest := range manifests {
-			log.Println(string(manifest.Content))
+			fmt.Println(string(manifest.Content))
 		}
 
 		return nil
 	}
 
-	err = clusterApplier.ApplyManifests(ctx, cluster, namespace, append(clusterAutomation.BootstrapManifests(), wegoConfigManifest))
-	if err != nil {
-		return fmt.Errorf("failed applying manifest: %w", err)
+	log := internal.NewCLILogger(os.Stdout)
+	providerClient := internal.NewGitProviderClient(osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
+
+	factory := services.NewFactory(fluxClient, log)
+
+	// We temporarily need this here otherwise GetGitClients is going to fail
+	// as it needs the namespace created to apply the secret
+	namespaceObj := &corev1.Namespace{}
+	namespaceObj.Name = namespace
+
+	if err := kubeClient.Raw().Create(ctx, namespaceObj); err != nil {
+		if !strings.Contains(err.Error(), "already exists") {
+			return fmt.Errorf("failed creating namespace %s: %w", namespace, err)
+		}
 	}
 
-	err = gitOpsDirWriter.AssociateCluster(ctx, cluster, configURL, namespace, namespace, installParams.AutoMerge)
+	// This is creating the secret, uploads it and applies it to the cluster
+	// This is going to be broken up to reduce complexity
+	// and then generates the source yaml of the config repo when using dry-run option
+	gitClient, gitProvider, err := factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
+		// We need to set URL and ConfigRepo to the same value so a deploy key is created for public config repos
+		URL:        installParams.ConfigRepo,
+		ConfigRepo: installParams.ConfigRepo,
+		Namespace:  namespace,
+		DryRun:     installParams.DryRun,
+	})
 	if err != nil {
-		return fmt.Errorf("failed associating cluster: %w", err)
+		return fmt.Errorf("failed getting git clients: %w", err)
+	}
+
+	repoWriter := gitopswriter.NewRepoWriter(log, gitClient, gitProvider)
+	installer := install.NewInstaller(fluxClient, kubeClient, gitClient, gitProvider, log, repoWriter)
+
+	if err = installer.Install(namespace, configURL, installParams.AutoMerge); err != nil {
+		return fmt.Errorf("failed installing: %w", err)
 	}
 
 	return nil

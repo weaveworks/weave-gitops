@@ -4,20 +4,14 @@ import (
 	"context"
 	"crypto/md5"
 	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
-
 	"github.com/google/go-cmp/cmp"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/models"
-	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"sigs.k8s.io/yaml"
+	"strings"
 )
 
 var (
@@ -364,90 +358,6 @@ var _ = Describe("Generate manifests", func() {
 				})
 			})
 		})
-	})
-})
-
-var _ = Describe("Generate cluster manifests", func() {
-	var (
-		err       error
-		fluxDir   string
-		generator AutomationGenerator
-		realFlux  flux.Flux
-
-		cluster                = models.Cluster{Name: "my-cluster"}
-		ctx                    = context.Background()
-		namespace              = "my-namespace"
-		runtimePath            = "gitops-runtime.yaml"
-		sourcePath             = "flux-source-resource.yaml"
-		systemKustPath         = "kustomization.yaml"
-		systemKustResourcePath = "flux-system-kustomization-resource.yaml"
-		systemPath             = filepath.Join(git.WegoRoot, git.WegoClusterDir, cluster.Name, git.WegoClusterOSWorkloadDir)
-		userKustResourcePath   = "flux-user-kustomization-resource.yaml"
-		userPath               = filepath.Join(git.WegoRoot, git.WegoClusterDir, cluster.Name, git.WegoClusterUserWorkloadDir)
-
-		systemQualifiedPath = func(relativePath string) string {
-			return filepath.Join(systemPath, relativePath)
-		}
-	)
-
-	BeforeEach(func() {
-		realFlux, fluxDir, err = testutils.SetupFlux()
-		Expect(err).To(BeNil())
-
-		generator = &AutomationGen{GitProvider: gitProviders, Flux: realFlux, Logger: log}
-
-		gitProviders.GetDefaultBranchReturns("main", nil)
-	})
-
-	AfterEach(func() {
-		Expect(os.RemoveAll(fluxDir)).To(Succeed())
-	})
-
-	It("should generate the complete set of manifests", func() {
-		url := createRepoURL("ssh://git@github.com/owner/config-repo.git")
-
-		// Private repo (default visibility in suite is "private")
-
-		clusterAutomation, err := generator.GenerateClusterAutomation(context.Background(), cluster, url, namespace)
-		Expect(err).ShouldNot(HaveOccurred())
-
-		// Ensure correct flux manifests get created
-		GitOpsRuntimeBytes, err := realFlux.Install(namespace, true)
-		Expect(err).ShouldNot(HaveOccurred())
-		Expect(clusterAutomation.GitOpsRuntime.Content).To(Equal(GitOpsRuntimeBytes))
-		Expect(clusterAutomation.GitOpsRuntime.Path).To(Equal(systemQualifiedPath(runtimePath)))
-		secretRef, err := automationGen.GetSecretRefForPrivateGitSources(ctx, url)
-		Expect(err).ShouldNot(HaveOccurred())
-
-		secretStr := secretRef.String()
-
-		configBranch, err := gitProviders.GetDefaultBranch(ctx, url)
-		Expect(err).ShouldNot(HaveOccurred())
-
-		sourceName := CreateClusterSourceName(url)
-		sourceManifest, err := realFlux.CreateSourceGit(sourceName, url, configBranch, secretStr, namespace)
-		Expect(err).ShouldNot(HaveOccurred())
-		Expect(clusterAutomation.SourceManifest.Content).To(Equal(sourceManifest))
-		Expect(clusterAutomation.SourceManifest.Path).To(Equal(systemQualifiedPath(sourcePath)))
-
-		systemKustResourceManifest, err := realFlux.CreateKustomization(ConstrainResourceName(fmt.Sprintf("%s-system", cluster.Name)),
-			sourceName, workAroundFluxDroppingDot(systemPath), namespace)
-		Expect(err).ShouldNot(HaveOccurred())
-		Expect(clusterAutomation.SystemKustResourceManifest.Content).To(Equal(systemKustResourceManifest))
-		Expect(clusterAutomation.SystemKustResourceManifest.Path).To(Equal(systemQualifiedPath(systemKustResourcePath)))
-
-		userKustResourceManifest, err := realFlux.CreateKustomization(ConstrainResourceName(fmt.Sprintf("%s-user", cluster.Name)),
-			sourceName, workAroundFluxDroppingDot(userPath), namespace)
-		Expect(err).ShouldNot(HaveOccurred())
-		Expect(clusterAutomation.UserKustResourceManifest.Content).To(Equal(userKustResourceManifest))
-		Expect(clusterAutomation.UserKustResourceManifest.Path).To(Equal(systemQualifiedPath(userKustResourcePath)))
-
-		systemKust := CreateKustomize(cluster.Name, namespace, runtimePath, sourcePath, systemKustResourcePath, userKustResourcePath, WegoAppPath)
-		systemKustManifest, err := yaml.Marshal(systemKust)
-		Expect(err).ShouldNot(HaveOccurred())
-
-		Expect(clusterAutomation.SystemKustomizationManifest.Content).To(Equal(systemKustManifest))
-		Expect(clusterAutomation.SystemKustomizationManifest.Path).To(Equal(systemQualifiedPath(systemKustPath)))
 	})
 })
 
