@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 
-	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/core/clientset"
 	"github.com/weaveworks/weave-gitops/core/gitops/app"
 	"github.com/weaveworks/weave-gitops/core/gitops/kustomize"
@@ -12,42 +11,11 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 )
-
-func appCustomResourceToProto(a *v1alpha1.Application) *pb.App {
-	return &pb.App{
-		Name:        a.ObjectMeta.Name,
-		Namespace:   a.ObjectMeta.Namespace,
-		DisplayName: a.Spec.DisplayName,
-		Description: a.Spec.Description,
-	}
-}
-
-func appAddProtoToCustomResource(msg *pb.AddAppRequest) *v1alpha1.Application {
-	return &v1alpha1.Application{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       v1alpha1.ApplicationKind,
-			APIVersion: "wego.weave.works/v1alpha1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      msg.Name,
-			Namespace: msg.Namespace,
-			Labels: map[string]string{
-				"app.kubernetes.io/part-of":    msg.Name,
-				"app.kubernetes.io/managed-by": "weave-gitops",
-				"app.kubernetes.io/created-by": "kustomize-controller",
-			},
-		},
-		Spec: v1alpha1.ApplicationSpec{
-			Description: msg.Description,
-			DisplayName: msg.DisplayName,
-		},
-		Status: v1alpha1.ApplicationStatus{},
-	}
-}
 
 type appServer struct {
 	pb.UnimplementedAppsServer
@@ -81,13 +49,19 @@ func (as *appServer) AddApp(_ context.Context, msg *pb.AddAppRequest) (*pb.AddAp
 		return nil, status.Errorf(codes.Internal, "unable to make k8s rest client: %s", err.Error())
 	}
 
-	app, err := as.appCreator.Create(context.Background(), k8sRestClient, appAddProtoToCustomResource(msg))
-	if err != nil {
+	app, err := as.appCreator.Create(context.Background(), k8sRestClient, stypes.AppAddProtoToCustomResource(msg))
+	if k8serrors.IsUnauthorized(err) {
+		return nil, status.Errorf(codes.PermissionDenied, err.Error())
+	} else if k8serrors.IsNotFound(err) {
+		return nil, status.Errorf(codes.NotFound, err.Error())
+	} else if k8serrors.IsConflict(err) {
+
+	} else if err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to create new app: %s", err.Error())
 	}
 
 	return &pb.AddAppResponse{
-		App:     appCustomResourceToProto(app),
+		App:     stypes.AppCustomResourceToProto(app),
 		Success: true,
 	}, nil
 }
@@ -103,13 +77,15 @@ func (as *appServer) ListApps(_ context.Context, msg *pb.ListAppRequest) (*pb.Li
 	}
 
 	app, err := as.appFetcher.List(context.Background(), k8sRestClient, msg.Namespace, metav1.ListOptions{})
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to create new app: %s", err.Error())
+	if k8serrors.IsUnauthorized(err) {
+		return nil, status.Errorf(codes.PermissionDenied, "")
+	} else if k8serrors.IsNotFound(err) {
+		return nil, status.Errorf(codes.NotFound, "")
 	}
 
 	var results []*pb.App
 	for _, item := range app.Items {
-		results = append(results, appCustomResourceToProto(&item))
+		results = append(results, stypes.AppCustomResourceToProto(&item))
 	}
 
 	return &pb.ListAppResponse{
@@ -122,6 +98,10 @@ func (as *appServer) RemoveApp(_ context.Context, msg *pb.RemoveAppRequest) (*pb
 }
 
 func (as *appServer) AddKustomization(ctx context.Context, msg *pb.AddKustomizationReq) (*pb.AddKustomizationRes, error) {
+	if msg.SourceRef == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "sourceRef is required")
+	}
+
 	k8sRestClient, err := as.clientSet.KustomizationClient()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to make k8s rest client: %s", err.Error())

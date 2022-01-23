@@ -737,7 +737,7 @@ func RegisterAppsHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/AddApp", runtime.WithHTTPPathPattern("/v2/namespace/{namespace}/app"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/AddApp", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -760,7 +760,7 @@ func RegisterAppsHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/GetApp", runtime.WithHTTPPathPattern("/v2/namespace/{namespace}/app/{app_name}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/GetApp", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -783,7 +783,7 @@ func RegisterAppsHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/ListApps", runtime.WithHTTPPathPattern("/v2/namespace/{namespace}/app"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/ListApps", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -806,7 +806,7 @@ func RegisterAppsHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/RemoveApp", runtime.WithHTTPPathPattern("/v2/namespace/{namespace}/app/{name}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/RemoveApp", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -829,7 +829,7 @@ func RegisterAppsHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/AddKustomization", runtime.WithHTTPPathPattern("/v2/namespace/{namespace}/app/{app_name}/kustomization"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/AddKustomization", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/kustomization"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -852,7 +852,7 @@ func RegisterAppsHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/ListKustomizations", runtime.WithHTTPPathPattern("/v2/namespace/{namespace}/app/{app_name}/kustomization"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/ListKustomizations", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/kustomization"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -875,7 +875,7 @@ func RegisterAppsHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/RemoveKustomizations", runtime.WithHTTPPathPattern("/v2/namespace/{namespace}/app/{app_name}/kustomization/{kustomization_name}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/RemoveKustomizations", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/kustomization/{kustomization_name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -898,7 +898,7 @@ func RegisterAppsHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/AddGitRepository", runtime.WithHTTPPathPattern("/v2/namespace/{namespace}/app/{app_name}/gitrepository"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/AddGitRepository", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/gitrepository"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -921,7 +921,7 @@ func RegisterAppsHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/ListGitRepositories", runtime.WithHTTPPathPattern("/v2/namespace/{namespace}/app/{app_name}/gitrepository"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_server.v1.Apps/ListGitRepositories", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/gitrepository"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -983,7 +983,7 @@ func RegisterAppsHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/AddApp", runtime.WithHTTPPathPattern("/v2/namespace/{namespace}/app"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/AddApp", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1003,7 +1003,7 @@ func RegisterAppsHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/GetApp", runtime.WithHTTPPathPattern("/v2/namespace/{namespace}/app/{app_name}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/GetApp", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1023,7 +1023,7 @@ func RegisterAppsHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/ListApps", runtime.WithHTTPPathPattern("/v2/namespace/{namespace}/app"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/ListApps", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1043,7 +1043,7 @@ func RegisterAppsHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/RemoveApp", runtime.WithHTTPPathPattern("/v2/namespace/{namespace}/app/{name}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/RemoveApp", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1063,7 +1063,7 @@ func RegisterAppsHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/AddKustomization", runtime.WithHTTPPathPattern("/v2/namespace/{namespace}/app/{app_name}/kustomization"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/AddKustomization", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/kustomization"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1083,7 +1083,7 @@ func RegisterAppsHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/ListKustomizations", runtime.WithHTTPPathPattern("/v2/namespace/{namespace}/app/{app_name}/kustomization"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/ListKustomizations", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/kustomization"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1103,7 +1103,7 @@ func RegisterAppsHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/RemoveKustomizations", runtime.WithHTTPPathPattern("/v2/namespace/{namespace}/app/{app_name}/kustomization/{kustomization_name}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/RemoveKustomizations", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/kustomization/{kustomization_name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1123,7 +1123,7 @@ func RegisterAppsHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/AddGitRepository", runtime.WithHTTPPathPattern("/v2/namespace/{namespace}/app/{app_name}/gitrepository"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/AddGitRepository", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/gitrepository"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1143,7 +1143,7 @@ func RegisterAppsHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/ListGitRepositories", runtime.WithHTTPPathPattern("/v2/namespace/{namespace}/app/{app_name}/gitrepository"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_server.v1.Apps/ListGitRepositories", runtime.WithHTTPPathPattern("/v1/namespace/{namespace}/app/{app_name}/gitrepository"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1163,23 +1163,23 @@ func RegisterAppsHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 }
 
 var (
-	pattern_Apps_AddApp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2}, []string{"v2", "namespace", "app"}, ""))
+	pattern_Apps_AddApp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2}, []string{"v1", "namespace", "app"}, ""))
 
-	pattern_Apps_GetApp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v2", "namespace", "app", "app_name"}, ""))
+	pattern_Apps_GetApp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "namespace", "app", "app_name"}, ""))
 
-	pattern_Apps_ListApps_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2}, []string{"v2", "namespace", "app"}, ""))
+	pattern_Apps_ListApps_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2}, []string{"v1", "namespace", "app"}, ""))
 
-	pattern_Apps_RemoveApp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v2", "namespace", "app", "name"}, ""))
+	pattern_Apps_RemoveApp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "namespace", "app", "name"}, ""))
 
-	pattern_Apps_AddKustomization_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v2", "namespace", "app", "app_name", "kustomization"}, ""))
+	pattern_Apps_AddKustomization_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "namespace", "app", "app_name", "kustomization"}, ""))
 
-	pattern_Apps_ListKustomizations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v2", "namespace", "app", "app_name", "kustomization"}, ""))
+	pattern_Apps_ListKustomizations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "namespace", "app", "app_name", "kustomization"}, ""))
 
-	pattern_Apps_RemoveKustomizations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"v2", "namespace", "app", "app_name", "kustomization", "kustomization_name"}, ""))
+	pattern_Apps_RemoveKustomizations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"v1", "namespace", "app", "app_name", "kustomization", "kustomization_name"}, ""))
 
-	pattern_Apps_AddGitRepository_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v2", "namespace", "app", "app_name", "gitrepository"}, ""))
+	pattern_Apps_AddGitRepository_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "namespace", "app", "app_name", "gitrepository"}, ""))
 
-	pattern_Apps_ListGitRepositories_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v2", "namespace", "app", "app_name", "gitrepository"}, ""))
+	pattern_Apps_ListGitRepositories_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1", "namespace", "app", "app_name", "gitrepository"}, ""))
 )
 
 var (

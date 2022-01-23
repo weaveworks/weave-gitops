@@ -1,13 +1,13 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Weave GitOps Application API",
+    "title": "Weave GitOps App Kustomization API",
     "description": "The Weave GitOps Application API handles operations for Weave GitOps Applications",
     "version": "0.1"
   },
   "tags": [
     {
-      "name": "Apps"
+      "name": "Flux"
     }
   ],
   "consumes": [
@@ -17,126 +17,10 @@
     "apps/json"
   ],
   "paths": {
-    "/v1/namespace/{namespace}/app": {
-      "get": {
-        "summary": "ListApplications returns the list of WeGo applications that the authenticated user has access to.",
-        "operationId": "Apps_ListApps",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListAppResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Apps"
-        ]
-      },
-      "post": {
-        "summary": "AddApplication adds an Application to a cluster via GitOps.",
-        "operationId": "Apps_AddApp",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1AddAppResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "description": {
-                  "type": "string"
-                },
-                "displayName": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "Apps"
-        ]
-      }
-    },
-    "/v1/namespace/{namespace}/app/{appName}": {
-      "get": {
-        "summary": "GetApplication returns a given application",
-        "operationId": "Apps_GetApp",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetAppResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "appName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Apps"
-        ]
-      }
-    },
-    "/v1/namespace/{namespace}/app/{appName}/gitrepository": {
+    "/v1/namespace/{namespace}/gitrepository": {
       "get": {
         "summary": "ListGitRepository lists git repositories from a cluster.",
-        "operationId": "Apps_ListGitRepositories",
+        "operationId": "Flux_ListGitRepositories",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -160,18 +44,18 @@
           },
           {
             "name": "appName",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
         "tags": [
-          "Apps"
+          "Flux"
         ]
       },
       "post": {
         "summary": "AddGitRepository adds a git repository source to a cluster.",
-        "operationId": "Apps_AddGitRepository",
+        "operationId": "Flux_AddGitRepository",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -194,18 +78,15 @@
             "type": "string"
           },
           {
-            "name": "appName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
               "type": "object",
               "properties": {
+                "appName": {
+                  "type": "string"
+                },
                 "name": {
                   "type": "string"
                 },
@@ -226,14 +107,14 @@
           }
         ],
         "tags": [
-          "Apps"
+          "Flux"
         ]
       }
     },
-    "/v1/namespace/{namespace}/app/{appName}/kustomization": {
+    "/v1/namespace/{namespace}/kustomization": {
       "get": {
-        "summary": "ListKustomization lists Kustomizations from a cluster via GitOps.",
-        "operationId": "Apps_ListKustomizations",
+        "summary": "ListKustomizations lists kustomization from a cluster.",
+        "operationId": "Flux_ListKustomizations",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -257,18 +138,18 @@
           },
           {
             "name": "appName",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
         "tags": [
-          "Apps"
+          "Flux"
         ]
       },
       "post": {
-        "summary": "AddKustomization adds a Kustomization to a cluster via GitOps.",
-        "operationId": "Apps_AddKustomization",
+        "summary": "AddKustomization adds a Kustomization to a cluster.",
+        "operationId": "Flux_AddKustomization",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -291,18 +172,15 @@
             "type": "string"
           },
           {
-            "name": "appName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
               "type": "object",
               "properties": {
+                "appName": {
+                  "type": "string"
+                },
                 "name": {
                   "type": "string"
                 },
@@ -320,14 +198,14 @@
           }
         ],
         "tags": [
-          "Apps"
+          "Flux"
         ]
       }
     },
-    "/v1/namespace/{namespace}/app/{appName}/kustomization/{kustomizationName}": {
+    "/v1/namespace/{namespace}/kustomization/{kustomizationName}": {
       "delete": {
-        "summary": "RemoveKustomization removes a Kustomization from a cluster via GitOps.",
-        "operationId": "Apps_RemoveKustomizations",
+        "summary": "RemoveKustomization removes a Kustomization from a cluster.",
+        "operationId": "Flux_RemoveKustomization",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -350,63 +228,20 @@
             "type": "string"
           },
           {
-            "name": "appName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "kustomizationName",
             "in": "path",
             "required": true,
             "type": "string"
-          }
-        ],
-        "tags": [
-          "Apps"
-        ]
-      }
-    },
-    "/v1/namespace/{namespace}/app/{name}": {
-      "delete": {
-        "summary": "RemoveApplication removes an Application from a cluster via GitOps.",
-        "operationId": "Apps_RemoveApp",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1RemoveAppResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
           },
           {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "autoMerge",
+            "name": "appName",
             "in": "query",
             "required": false,
-            "type": "boolean"
+            "type": "string"
           }
         ],
         "tags": [
-          "Apps"
+          "Flux"
         ]
       }
     }
@@ -450,17 +285,6 @@
         }
       }
     },
-    "v1AddAppResponse": {
-      "type": "object",
-      "properties": {
-        "success": {
-          "type": "boolean"
-        },
-        "app": {
-          "$ref": "#/definitions/v1App"
-        }
-      }
-    },
     "v1AddGitRepositoryRes": {
       "type": "object",
       "properties": {
@@ -480,31 +304,6 @@
         },
         "kustomization": {
           "$ref": "#/definitions/v1Kustomization"
-        }
-      }
-    },
-    "v1App": {
-      "type": "object",
-      "properties": {
-        "namespace": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "displayName": {
-          "type": "string"
-        }
-      }
-    },
-    "v1GetAppResponse": {
-      "type": "object",
-      "properties": {
-        "app": {
-          "$ref": "#/definitions/v1App"
         }
       }
     },
@@ -585,17 +384,6 @@
         }
       }
     },
-    "v1ListAppResponse": {
-      "type": "object",
-      "properties": {
-        "apps": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1App"
-          }
-        }
-      }
-    },
     "v1ListGitRepositoryRes": {
       "type": "object",
       "properties": {
@@ -615,14 +403,6 @@
           "items": {
             "$ref": "#/definitions/v1Kustomization"
           }
-        }
-      }
-    },
-    "v1RemoveAppResponse": {
-      "type": "object",
-      "properties": {
-        "success": {
-          "type": "boolean"
         }
       }
     },

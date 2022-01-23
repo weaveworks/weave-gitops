@@ -261,5 +261,5 @@ var Flux_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "api/app/kustomize.proto",
+	Metadata: "api/app/flux.proto",
 }
