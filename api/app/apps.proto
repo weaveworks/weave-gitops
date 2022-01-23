@@ -4,7 +4,7 @@ package gitops_server.v1;
 
 option go_package = "github.com/weaveworks/weave-gitops/core/api/apps";
 
-import "api/app/kustomize.proto";
+import "api/app/flux.proto";
 import "api/app/source.proto";
 import "google/api/annotations.proto";
 import "google/api/httpbody.proto";
@@ -72,7 +72,7 @@ service Apps {
     */
   rpc AddApp(AddAppRequest) returns (AddAppResponse) {
     option (google.api.http) = {
-      post : "/v2/namespace/{namespace}/app"
+      post : "/v1/namespace/{namespace}/app"
       body: "*"
     };
   }
@@ -82,7 +82,7 @@ service Apps {
   */
   rpc GetApp(GetAppRequest) returns (GetAppResponse) {
     option (google.api.http) = {
-      get : "/v2/namespace/{namespace}/app/{app_name}"
+      get : "/v1/namespace/{namespace}/app/{app_name}"
     };
   }
 
@@ -91,7 +91,7 @@ service Apps {
     */
   rpc ListApps(ListAppRequest) returns (ListAppResponse) {
     option (google.api.http) = {
-      get : "/v2/namespace/{namespace}/app"
+      get : "/v1/namespace/{namespace}/app"
     };
   }
 
@@ -100,7 +100,7 @@ service Apps {
   */
   rpc RemoveApp(RemoveAppRequest) returns (RemoveAppResponse) {
     option (google.api.http) = {
-      delete : "/v2/namespace/{namespace}/app/{name}"
+      delete : "/v1/namespace/{namespace}/app/{name}"
     };
   }
 
@@ -109,7 +109,7 @@ service Apps {
     */
   rpc AddKustomization(AddKustomizationReq) returns (AddKustomizationRes) {
     option (google.api.http) = {
-      post : "/v2/namespace/{namespace}/app/{app_name}/kustomization"
+      post : "/v1/namespace/{namespace}/app/{app_name}/kustomization"
       body: "*"
     };
   }
@@ -119,7 +119,7 @@ service Apps {
     */
   rpc ListKustomizations(ListKustomizationsReq) returns (ListKustomizationsRes) {
     option (google.api.http) = {
-      get : "/v2/namespace/{namespace}/app/{app_name}/kustomization"
+      get : "/v1/namespace/{namespace}/app/{app_name}/kustomization"
     };
   }
 
@@ -128,7 +128,7 @@ service Apps {
   */
   rpc RemoveKustomizations(RemoveKustomizationReq) returns (RemoveKustomizationRes) {
     option (google.api.http) = {
-      delete : "/v2/namespace/{namespace}/app/{app_name}/kustomization/{kustomization_name}"
+      delete : "/v1/namespace/{namespace}/app/{app_name}/kustomization/{kustomization_name}"
     };
   }
 
@@ -137,7 +137,7 @@ service Apps {
     */
   rpc AddGitRepository(AddGitRepositoryReq) returns (AddGitRepositoryRes) {
     option (google.api.http) = {
-      post : "/v2/namespace/{namespace}/app/{app_name}/gitrepository"
+      post : "/v1/namespace/{namespace}/app/{app_name}/gitrepository"
       body: "*"
     };
   }
@@ -147,7 +147,7 @@ service Apps {
     */
   rpc ListGitRepositories(ListGitRepositoryReq) returns (ListGitRepositoryRes) {
     option (google.api.http) = {
-      get : "/v2/namespace/{namespace}/app/{app_name}/gitrepository"
+      get : "/v1/namespace/{namespace}/app/{app_name}/gitrepository"
     };
   }
 }
