@@ -43,6 +43,11 @@ import (
 
 var k8sEnv *K8sTestEnv
 
+const (
+	AppCRDsPath  = "../../manifests/crds"
+	FluxCRDsPath = "../../tools/testcrds"
+)
+
 type K8sTestEnv struct {
 	Client     client.Client
 	DynClient  dynamic.Interface

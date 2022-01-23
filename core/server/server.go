@@ -12,9 +12,10 @@ import (
 	"github.com/weaveworks/weave-gitops/core/gitops/source"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/rest"
 )
 
-func Hydrate(ctx context.Context, mux *runtime.ServeMux) error {
+func Hydrate(ctx context.Context, mux *runtime.ServeMux, config *rest.Config) error {
 	appKubeCreator := app.NewKubeCreator()
 	appFetcher := app.NewKubeAppFetcher()
 
@@ -24,7 +25,7 @@ func Hydrate(ctx context.Context, mux *runtime.ServeMux) error {
 	sourceCreator := source.NewKubeCreator()
 	sourceFetcher := source.NewSourceFetcher()
 
-	clientSet := clientset.NewClientSets()
+	clientSet := clientset.NewClientSets(config)
 
 	appsServer := NewAppServer(clientSet, appKubeCreator, kustCreator, sourceCreator, appFetcher, kustFetcher, sourceFetcher)
 	if err := pb.RegisterAppsHandlerServer(ctx, mux, appsServer); err != nil {
