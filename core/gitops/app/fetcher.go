@@ -4,15 +4,15 @@ import (
 	"context"
 	"time"
 
-	"github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/api/v1alpha2"
 	"github.com/weaveworks/weave-gitops/core/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 )
 
 type KubeFetcher interface {
-	Get(ctx context.Context, client *rest.RESTClient, name, namespace string) (*v1alpha1.Application, error)
-	List(ctx context.Context, client *rest.RESTClient, namespace string, opts metav1.ListOptions) (*v1alpha1.ApplicationList, error)
+	Get(ctx context.Context, client *rest.RESTClient, name, namespace string) (*v1alpha2.Application, error)
+	List(ctx context.Context, client *rest.RESTClient, namespace string, opts metav1.ListOptions) (*v1alpha2.ApplicationList, error)
 }
 
 func NewKubeAppFetcher() KubeFetcher {
@@ -22,8 +22,8 @@ func NewKubeAppFetcher() KubeFetcher {
 type appKubeFetcher struct {
 }
 
-func (a appKubeFetcher) Get(ctx context.Context, client *rest.RESTClient, name, namespace string) (result *v1alpha1.Application, err error) {
-	result = &v1alpha1.Application{}
+func (a appKubeFetcher) Get(ctx context.Context, client *rest.RESTClient, name, namespace string) (result *v1alpha2.Application, err error) {
+	result = &v1alpha2.Application{}
 	err = client.Get().
 		Namespace(namespace).
 		Resource(apps).
@@ -34,13 +34,13 @@ func (a appKubeFetcher) Get(ctx context.Context, client *rest.RESTClient, name, 
 	return
 }
 
-func (a appKubeFetcher) List(ctx context.Context, client *rest.RESTClient, namespace string, opts metav1.ListOptions) (result *v1alpha1.ApplicationList, err error) {
+func (a appKubeFetcher) List(ctx context.Context, client *rest.RESTClient, namespace string, opts metav1.ListOptions) (result *v1alpha2.ApplicationList, err error) {
 	var timeout time.Duration
 	if opts.TimeoutSeconds != nil {
 		timeout = time.Duration(*opts.TimeoutSeconds) * time.Second
 	}
 
-	result = &v1alpha1.ApplicationList{}
+	result = &v1alpha2.ApplicationList{}
 	err = client.Get().
 		Namespace(namespace).
 		Resource(apps).
