@@ -69,6 +69,7 @@ var _ = Describe("Installer", func() {
 			fakeFluxClient.InstallReturnsOnCall(1, nil, nil)
 
 			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "main", nil)
+			fakeGitProvider.GetDefaultBranchReturnsOnCall(1, "main", nil)
 
 			privateVisibility := gitprovider.RepositoryVisibilityPrivate
 			fakeGitProvider.GetRepoVisibilityReturns(&privateVisibility, nil)
@@ -108,18 +109,10 @@ var _ = Describe("Installer", func() {
 		})
 
 		It("should fail getting default branch", func() {
-			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "", someError)
+			fakeGitProvider.GetDefaultBranchReturnsOnCall(1, "", someError)
 
 			err := installer.Install(testNamespace, configRepo, true)
 			Expect(err).Should(MatchError(fmt.Sprintf("failed getting default branch: %s", someError)))
-		})
-
-		It("should fail getting config repo git source", func() {
-
-			fakeGitProvider.GetRepoVisibilityReturns(nil, someError)
-
-			err := installer.Install(testNamespace, configRepo, true)
-			Expect(err).Should(MatchError(fmt.Sprintf("failed getting git source: failed getting ref secret: %s", someError)))
 		})
 
 		It("should fail applying bootstrap manifests", func() {
@@ -151,6 +144,7 @@ var _ = Describe("Installer", func() {
 			Expect(err).Should(MatchError(fmt.Sprintf("failed creating pull request: %s", someError)))
 		})
 	})
+
 	Context("success path", func() {
 
 		var wegoAppManifest []byte
@@ -209,49 +203,6 @@ var _ = Describe("Installer", func() {
 		})
 
 		It("should succeed with auto-merge=true", func() {
-			//fakeKubeClient.GetClusterStatusReturns(kube.Unmodified)
-			//fakeKubeClient.GetWegoConfigReturns(&kube.WegoConfig{
-			//	FluxNamespace: testNamespace,
-			//	WegoNamespace: testNamespace,
-			//}, nil)
-			//fakeKubeClient.GetClusterNameReturns(clusterName, nil)
-			//
-			//fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "main", nil)
-			//
-			//privateVisibility := gitprovider.RepositoryVisibilityPrivate
-			//fakeGitProvider.GetRepoVisibilityReturns(&privateVisibility, nil)
-			//
-			//fakeKubeClient.ApplyReturns(nil)
-			//
-			//runtimeManifests := []byte("runtime-manifests")
-			//fakeFluxClient.InstallReturns(runtimeManifests, nil)
-			//
-			//wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppVersion: "v0.0.0", Namespace: testNamespace})
-			//Expect(err).ShouldNot(HaveOccurred())
-			//
-			//wegoAppManifest := bytes.Join(wegoAppManifests, []byte("---\n"))
-			//
-			//systemKustomizationResource := []byte("system kustomization resource")
-			//fakeFluxClient.CreateKustomizationReturnsOnCall(0, systemKustomizationResource, nil)
-			//userKustomizationResource := []byte("user kustomization resource")
-			//fakeFluxClient.CreateKustomizationReturnsOnCall(1, userKustomizationResource, nil)
-			//
-			//fakeFluxClient.CreateKustomizationReturnsOnCall(2, systemKustomizationResource, nil)
-			//fakeFluxClient.CreateKustomizationReturnsOnCall(3, userKustomizationResource, nil)
-			//
-			//gitopsConfigMap, err := models.CreateGitopsConfigMap(testNamespace, testNamespace)
-			//Expect(err).ShouldNot(HaveOccurred())
-			//
-			//wegoConfigManifest, err := yaml.Marshal(gitopsConfigMap)
-			//Expect(err).ShouldNot(HaveOccurred())
-			//
-			//systemKustomization := models.CreateKustomization(clusterName, testNamespace, models.RuntimePath, models.SourcePath, models.SystemKustResourcePath, models.UserKustResourcePath, models.WegoAppPath)
-			//
-			//systemKustomizationManifest, err := yaml.Marshal(systemKustomization)
-			//Expect(err).ShouldNot(HaveOccurred())
-			//
-			//source, err := models.GetSourceManifest(context.Background(), fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo, "main")
-			//Expect(err).ShouldNot(HaveOccurred())
 
 			expectedManifests := []models.Manifest{
 				{
@@ -314,10 +265,8 @@ var _ = Describe("Installer", func() {
 			writeIndex := 0
 			fakeGitClient.CloneReturns(true, nil)
 			fakeGitClient.WriteCalls(func(path string, content []byte) error {
-				if writeIndex < 8 {
-					Expect(path).Should(Equal(expectedManifests[writeIndex].Path))
-					Expect(string(content)).Should(Equal(string(expectedManifests[writeIndex].Content)))
-				}
+				Expect(path).Should(Equal(expectedManifests[writeIndex].Path))
+				Expect(string(content)).Should(Equal(string(expectedManifests[writeIndex].Content)))
 				writeIndex++
 				return nil
 			})
