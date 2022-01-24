@@ -11,10 +11,10 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
-	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -99,7 +99,7 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, kubeClient kube.Kube
 
 		if *repoVisibility == gitprovider.RepositoryVisibilityPrivate {
 			secretName := auth.SecretName{
-				Name:      automation.CreateRepoSecretName(normalizedUrl),
+				Name:      models.CreateRepoSecretName(normalizedUrl),
 				Namespace: params.Namespace,
 			}
 
