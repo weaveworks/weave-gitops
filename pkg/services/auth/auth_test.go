@@ -97,6 +97,7 @@ var _ = Describe("auth", func() {
 			// We should NOT have uploaded anything since the key already exists
 			Expect(gp.UploadDeployKeyCallCount()).To(Equal(0))
 		})
+
 		It("handles the case where a deploy key exists on the provider, but not the cluster", func() {
 			gp.DeployKeyExistsReturns(true, nil)
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}

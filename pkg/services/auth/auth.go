@@ -122,7 +122,7 @@ func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.Repo
 
 // SetupDeployKey creates a git.Git client instrumented with existing or generated deploy keys.
 // This ensures that git operations are done with stored deploy keys instead of a user's local ssh-agent or equivalent.
-func (a *authSvc) SetupDeployKey(ctx context.Context, namespace string, targetName string, repo gitproviders.RepoURL) (*ssh.PublicKeys, error) {
+func (a *authSvc) SetupDeployKey(ctx context.Context, targetName string, namespace string, repo gitproviders.RepoURL) (*ssh.PublicKeys, error) {
 	secretName := SecretName{
 		Name:      models.CreateRepoSecretName(repo),
 		Namespace: namespace,
