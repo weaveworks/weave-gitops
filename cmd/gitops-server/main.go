@@ -9,7 +9,10 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
+	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
@@ -26,7 +29,12 @@ func main() {
 	}
 }
 
-const addr = "0.0.0.0:8000"
+const (
+	addr               = "0.0.0.0:8000"
+	metricsBindAddress = ":9980"
+	healthzBindAddress = ":9981"
+	watcherPort        = 9443
+)
 
 func NewAPIServerCommand() *cobra.Command {
 	cmd := &cobra.Command{
@@ -52,7 +60,35 @@ func NewAPIServerCommand() *cobra.Command {
 				return fmt.Errorf("could not create kube http client: %w", err)
 			}
 
-			profilesConfig := server.NewProfilesConfig(rawClient, "default", "weaveworks-charts")
+			tmpDir, err := os.MkdirTemp("", "profile_cache_location")
+			if err != nil {
+				return fmt.Errorf("failed to create helm cache: %w", err)
+			}
+
+			profileCache, err := cache.NewCache(tmpDir)
+			if err != nil {
+				return fmt.Errorf("failed to create profile cache: %w", err)
+			}
+
+			profileWatcher, err := watcher.NewWatcher(watcher.Options{
+				KubeClient:         rawClient,
+				Cache:              profileCache,
+				MetricsBindAddress: metricsBindAddress,
+				HealthzBindAddress: healthzBindAddress,
+				WatcherPort:        watcherPort,
+			})
+			if err != nil {
+				return fmt.Errorf("failed to create watcher: %w", err)
+			}
+
+			go func() {
+				if err := profileWatcher.StartWatcher(); err != nil {
+					appConfig.Logger.Error(err, "failed to start profile watcher")
+					os.Exit(1)
+				}
+			}()
+
+			profilesConfig := server.NewProfilesConfig(rawClient, profileCache, "default", "weaveworks-charts")
 
 			s, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig})
 			if err != nil {

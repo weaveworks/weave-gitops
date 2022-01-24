@@ -91,7 +91,7 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 		return fmt.Errorf("failed to load credentials for profiles repo from cluster: %v", err)
 	}
 
-	normalizedURL, err := gitproviders.NewRepoURL(uv.ConfigRepo)
+	normalizedURL, err := gitproviders.NewRepoURL(uv.ConfigRepo, true)
 	if err != nil {
 		return fmt.Errorf("failed to normalize URL %q: %w", uv.ConfigRepo, err)
 	}
@@ -160,7 +160,7 @@ func marshalToYamlStream(objects []runtime.Object) ([]byte, error) {
 }
 
 func makeAppsCapiKustomization(namespace, repoURL string) ([]runtime.Object, error) {
-	normalizedURL, err := gitproviders.NewRepoURL(repoURL)
+	normalizedURL, err := gitproviders.NewRepoURL(repoURL, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to normalize URL %q: %w", repoURL, err)
 	}

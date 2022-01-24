@@ -12,13 +12,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/weaveworks/weave-gitops/pkg/services/check"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/services/check"
 )
 
 var (
@@ -47,7 +46,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 
 	It("Verify that gitops cannot work without gitops components installed OR with both url and directory provided", func() {
-
 		var repoAbsolutePath string
 		var errOutput string
 		var exitCode int
@@ -71,17 +69,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("And Gitops runtime is not installed", func() {
 			uninstallWegoRuntime(WEGO_DEFAULT_NAMESPACE)
-		})
-
-		By("And gitops check pre kubernetes version is compatible and flux is not installed", func() {
-			c := exec.Command(gitopsBinaryPath, "check", "--pre")
-			output, err := c.CombinedOutput()
-			Expect(err).NotTo(HaveOccurred())
-			expectedOutput := fmt.Sprintf(`✔ Kubernetes %s >=[0-9]+.[0-9]+\.[0-9]+-[0-9]+
-✔ Flux is not installed
-`,
-				getK8sVersion())
-			Expect(string(output)).To(MatchRegexp(expectedOutput))
 		})
 
 		By("And I run gitops add command", func() {
@@ -177,6 +164,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 	})
 
 	It("Test1 - Verify that gitops can deploy an app after it is setup with an empty repo initially", func() {
+
 		var repoAbsolutePath string
 		private := true
 		tip := generateTestInputs()
@@ -204,22 +192,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 		})
 
-		By("And gitops check pre validates kubernetes and flux are compatible", func() {
-			c := exec.Command(gitopsBinaryPath, "check", "--pre")
-			actualOutput, err := c.CombinedOutput()
-			Expect(err).NotTo(HaveOccurred())
-			fluxVersion, err := getCurrentFluxSupportedVersion()
-			Expect(err).ShouldNot(HaveOccurred())
-			expectedOutput := fmt.Sprintf(`✔ Kubernetes %s >=[0-9]+.[0-9]+\.[0-9]+-[0-9]+
-✔ Flux %s ~=%s
-%s
-`,
-				getK8sVersion(),
-				fluxVersion, fluxVersion,
-				check.FluxCompatibleMessage)
-			Expect(string(actualOutput)).To(MatchRegexp(expectedOutput))
-		})
-
 		By("And I run gitops add command", func() {
 			runWegoAddCommand(repoAbsolutePath, addCommand, WEGO_DEFAULT_NAMESPACE)
 		})
@@ -237,7 +209,9 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have private visibility", func() {
-			Expect(getGitRepoVisibility(githubOrg, tip.appRepoName, gitproviders.GitProviderGitHub)).Should(ContainSubstring("private"))
+			if os.Getenv("GIT_PROVIDER") != "gitlab" {
+				Expect(getGitRepoVisibility(githubOrg, tip.appRepoName, gitproviders.GitProviderGitHub)).Should(ContainSubstring("private"))
+			}
 		})
 	})
 
@@ -287,7 +261,9 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have private visibility", func() {
-			Expect(getGitRepoVisibility(gitOrg, tip.appRepoName, gitProvider)).Should(ContainSubstring("private"))
+			if os.Getenv("GIT_PROVIDER") != "gitlab" {
+				Expect(getGitRepoVisibility(gitOrg, tip.appRepoName, gitProvider)).Should(ContainSubstring("private"))
+			}
 		})
 
 		By("When I remove an app", func() {
@@ -359,7 +335,9 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have public visibility", func() {
-			Expect(getGitRepoVisibility(gitlabPublicGroup, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("public"))
+			if os.Getenv("GIT_PROVIDER") != "gitlab" {
+				Expect(getGitRepoVisibility(gitlabPublicGroup, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("public"))
+			}
 		})
 
 	})
@@ -572,7 +550,9 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repos created have private visibility", func() {
-			Expect(getGitRepoVisibility(gitOrg, tip.appRepoName, gitProvider)).Should(ContainSubstring("private"))
+			if os.Getenv("GIT_PROVIDER") != "gitlab" {
+				Expect(getGitRepoVisibility(gitOrg, tip.appRepoName, gitProvider)).Should(ContainSubstring("private"))
+			}
 		})
 	})
 
@@ -658,12 +638,26 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			deleteWorkload(tip.workloadName, tip.workloadNamespace)
 		})
 
-		By("When I create an empty private repo for app", func() {
+		By("And I create a private repo with my app workload", func() {
 			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitProvider, true, gitOrg)
+			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
 		})
 
-		By("And I git add-commit-push for app", func() {
-			gitAddCommitPush(repoAbsolutePath, tip.appManifestFilePath)
+		By("And Gitops runtime is not installed in Cluster2", func() {
+			selectCluster(cluster2Context)
+			uninstallWegoRuntime(WEGO_DEFAULT_NAMESPACE)
+		})
+
+		By("And gitops check pre kubernetes version is compatible and flux is not installed in Cluster2", func() {
+			selectCluster(cluster2Context)
+			c := exec.Command(gitopsBinaryPath, "check", "--pre")
+			output, err := c.CombinedOutput()
+			Expect(err).NotTo(HaveOccurred())
+			expectedOutput := fmt.Sprintf(`✔ Kubernetes %s >=[0-9]+.[0-9]+\.[0-9]+-[0-9]+
+✔ Flux is not installed
+`,
+				getK8sVersion())
+			Expect(string(output)).To(MatchRegexp(expectedOutput))
 		})
 
 		By("And I install gitops to my active clusters", func() {
@@ -671,6 +665,23 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
 			selectCluster(cluster2Context)
 			installAndVerifyWego(WEGO_DEFAULT_NAMESPACE, appRepoRemoteURL)
+		})
+
+		By("And gitops check pre validates kubernetes and flux compatibility for Cluster1", func() {
+			selectCluster(cluster1Context)
+			c := exec.Command(gitopsBinaryPath, "check", "--pre")
+			actualOutput, err := c.CombinedOutput()
+			Expect(err).NotTo(HaveOccurred())
+			fluxVersion, err := getCurrentFluxSupportedVersion()
+			Expect(err).ShouldNot(HaveOccurred())
+			expectedOutput := fmt.Sprintf(`✔ Kubernetes %s >=[0-9]+.[0-9]+\.[0-9]+-[0-9]+
+✔ Flux %s ~=%s
+%s
+`,
+				getK8sVersion(),
+				fluxVersion, fluxVersion,
+				check.FluxCompatibleMessage)
+			Expect(string(actualOutput)).To(MatchRegexp(expectedOutput))
 		})
 
 		By("And I run gitops add command for app", func() {
@@ -1177,7 +1188,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 	It("Verify that gitops can deploy a helm app from a git repo with config-repo set to default", func() {
 		var repoAbsolutePath string
-		privateRepo := true
+		private := true
 		appName := "my-helm-app"
 		appManifestFilePath := "./data/helm-repo/hello-world"
 		appRepoName := "test-app-" + RandString(8)
@@ -1192,7 +1203,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("When I create a private repo with my app workload", func() {
-			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitproviders.GitProviderGitHub, privateRepo, githubOrg)
+			repoAbsolutePath = initAndCreateEmptyRepo(appRepoName, gitProvider, private, gitOrg)
 			gitAddCommitPush(repoAbsolutePath, appManifestFilePath)
 		})
 
@@ -1211,7 +1222,9 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("And repo created has private visibility", func() {
-			Eventually(getGitRepoVisibility(githubOrg, appRepoName, gitproviders.GitProviderGitHub)).Should(ContainSubstring("private"))
+			if os.Getenv("GIT_PROVIDER") != "gitlab" {
+				Eventually(getGitRepoVisibility(gitOrg, appRepoName, gitProvider)).Should(ContainSubstring("private"))
+			}
 		})
 	})
 
@@ -1443,7 +1456,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		By("And repos created have public visibility", func() {
 			Expect(getGitRepoVisibility(gitlabPublicGroup, tip.appRepoName, gitproviders.GitProviderGitLab)).Should(ContainSubstring("public"))
 		})
-
 	})
 
 	It("@gitlabTests Test3 - Verify that gitops can deploy and remove a gitlab app in a subgroup", func() {
@@ -1714,7 +1726,11 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 		By("And I should fail to create a PR with the same app repo consecutively", func() {
 			_, addCommandErr := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand2, WEGO_DEFAULT_NAMESPACE)
-			Expect(addCommandErr).Should(ContainSubstring("422 Reference already exists"))
+			if os.Getenv("GIT_PROVIDER") == "gitlab" {
+				Expect(addCommandErr).Should(ContainSubstring("400 {message: Branch already exists}"))
+			} else {
+				Expect(addCommandErr).Should(ContainSubstring("422 Reference already exists"))
+			}
 		})
 
 		By("When I merge the previous PR", func() {

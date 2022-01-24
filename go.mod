@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/Masterminds/semver/v3 v3.1.1
-	github.com/benbjohnson/clock v1.1.0
+	github.com/benbjohnson/clock v1.3.0
 	github.com/coreos/go-oidc/v3 v3.1.0
 	github.com/deepmap/oapi-codegen v1.8.1
 	github.com/fluxcd/go-git-providers v0.5.2
@@ -21,6 +21,8 @@ require (
 	github.com/go-logr/logr v1.2.2
 	github.com/go-logr/zapr v1.2.2
 	github.com/go-resty/resty/v2 v2.6.0
+	github.com/gobuffalo/flect v0.2.2 // indirect
+	github.com/gogo/protobuf v1.3.2
 	github.com/golang-jwt/jwt/v4 v4.0.0
 	github.com/google/go-cmp v0.5.6
 	github.com/google/go-github/v32 v32.1.0
@@ -66,6 +68,8 @@ require (
 )
 
 require (
+	github.com/ghodss/yaml v1.0.0
+	github.com/gofrs/flock v0.8.1
 	github.com/oauth2-proxy/mockoidc v0.0.0-20210703044157-382d3faf2671
 	gopkg.in/square/go-jose.v2 v2.5.1
 )
@@ -119,14 +123,11 @@ require (
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/getkin/kin-openapi v0.61.0 // indirect
-	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
 	github.com/go-openapi/swag v0.19.14 // indirect
-	github.com/gobuffalo/flect v0.2.2 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
@@ -230,6 +231,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	k8s.io/apiserver v0.22.2 // indirect
 	k8s.io/component-base v0.22.2 // indirect
+	k8s.io/helm v2.17.0+incompatible // indirect
 	k8s.io/klog/v2 v2.9.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20210421082810-95288971da7e // indirect
 	k8s.io/kubectl v0.22.1 // indirect
@@ -254,3 +256,7 @@ replace github.com/go-logr/zapr v1.2.2 => github.com/go-logr/zapr v0.4.0
 
 // https://security.snyk.io/vuln/SNYK-GOLANG-GITHUBCOMOPENCONTAINERSIMAGESPECSPECSGOV1-1922832
 replace github.com/opencontainers/image-spec v1.0.1 => github.com/opencontainers/image-spec v1.0.2
+
+// Fix for CVE-2020-29652: https://github.com/golang/crypto/commit/8b5274cf687fd9316b4108863654cc57385531e8
+// Fix for CVE-2021-43565: https://github.com/golang/crypto/commit/5770296d904e90f15f38f77dfc2e43fdf5efc083
+replace golang.org/x/crypto => golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3

@@ -9,14 +9,20 @@ type Props = {
   innerRef?: any;
   children?: any;
   href?: any;
+  newTab?: boolean;
 };
 
-function Link({ children, href, className, to = "", ...props }: Props) {
+function Link({ children, href, className, to = "", newTab, ...props }: Props) {
   const txt = <Text color="primary">{children}</Text>;
 
   if (href) {
     return (
-      <a className={className} href={href}>
+      <a
+        className={className}
+        href={href}
+        target={newTab ? "_blank" : ""}
+        rel="noreferrer"
+      >
         {txt}
       </a>
     );

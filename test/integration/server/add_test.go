@@ -7,11 +7,15 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/test/integration/server/helpers"
 	"path/filepath"
 	"time"
 
 	"github.com/weaveworks/weave-gitops/pkg/models"
+<<<<<<< HEAD
 	"github.com/weaveworks/weave-gitops/test/integration/server/helpers"
+=======
+>>>>>>> 3af4189b6e78b9896428558da73b9d2dda7a8f77
 
 	"sigs.k8s.io/kustomize/api/types"
 
@@ -132,7 +136,7 @@ var _ = Describe("AddApplication", func() {
 					Force: false,
 				}
 
-				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedSource := sourcev1.GitRepositorySpec{
@@ -198,7 +202,7 @@ var _ = Describe("AddApplication", func() {
 				actual, err := fetcher.GetFilesForPullRequest(ctx, 1, githubOrg, configRepoName, fs)
 				Expect(err).NotTo(HaveOccurred())
 
-				normalizedUrl, err := gitproviders.NewRepoURL(addAppRequest.Url)
+				normalizedUrl, err := gitproviders.NewRepoURL(addAppRequest.Url, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedApp := wego.ApplicationSpec{
@@ -221,7 +225,7 @@ var _ = Describe("AddApplication", func() {
 					Force: false,
 				}
 
-				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedSource := sourcev1.GitRepositorySpec{
@@ -312,7 +316,7 @@ var _ = Describe("AddApplication", func() {
 					Force: false,
 				}
 
-				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedSrc := sourcev1.GitRepositorySpec{
@@ -444,7 +448,7 @@ var _ = Describe("AddApplication", func() {
 					Force: false,
 				}
 
-				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedSrc := sourcev1.GitRepositorySpec{
@@ -553,7 +557,7 @@ var _ = Describe("AddApplication", func() {
 					Force: false,
 				}
 
-				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedSource := sourcev1.GitRepositorySpec{
@@ -619,7 +623,7 @@ var _ = Describe("AddApplication", func() {
 				actual, err := fetcher.GetFilesForPullRequest(ctx, 1, gitlabOrg, configRepoName, fs)
 				Expect(err).NotTo(HaveOccurred())
 
-				normalizedUrl, err := gitproviders.NewRepoURL(addAppRequest.Url)
+				normalizedUrl, err := gitproviders.NewRepoURL(addAppRequest.Url, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedApp := wego.ApplicationSpec{
@@ -642,7 +646,7 @@ var _ = Describe("AddApplication", func() {
 					Force: false,
 				}
 
-				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedSource := sourcev1.GitRepositorySpec{
@@ -739,7 +743,7 @@ var _ = Describe("AddApplication", func() {
 					Force: false,
 				}
 
-				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedSrc := sourcev1.GitRepositorySpec{

@@ -32,7 +32,7 @@ const (
 var params app.AddParams
 
 var Cmd = &cobra.Command{
-	Use:   "app [--name <name>] [--url <url>] [--branch <branch>] [--path <path within repository>] <repository directory>",
+	Use:   "app [--name <name>] (--url <url> | <repository directory>) [--branch <branch>] [--path <path within repository>]",
 	Short: "Add a workload repository to a gitops cluster",
 	Long: strings.TrimSpace(dedent.Dedent(`
         Associates an additional application in a git repository with a gitops cluster so that its contents may be managed via GitOps

@@ -85,7 +85,11 @@ function CommitsTable({
         fields={[
           {
             label: "SHA",
-            value: (row: Commit) => <Link href={row.url}>{row.hash}</Link>,
+            value: (row: Commit) => (
+              <Link newTab href={row.url}>
+                {row.hash}
+              </Link>
+            ),
           },
           {
             label: "Date",
