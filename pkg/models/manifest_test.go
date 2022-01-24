@@ -151,10 +151,20 @@ var _ = Describe("Installer", func() {
 			ctx = context.Background()
 			fakeGitProvider = &gitprovidersfakes.FakeGitProvider{}
 		})
+
 		Context("error paths", func() {
 			someError := errors.New("some error")
-			It("should fail getting runtime manifests", func() {
 
+			BeforeEach(func() {
+				fakeFluxClient.InstallReturns(nil, nil)
+
+				privateVisibility := gitprovider.RepositoryVisibilityPrivate
+				fakeGitProvider.GetRepoVisibilityReturns(&privateVisibility, nil)
+
+				fakeGitProvider.GetDefaultBranchReturns("main", nil)
+			})
+
+			It("should fail getting runtime manifests", func() {
 				fakeFluxClient.InstallReturns(nil, someError)
 
 				_, err = GitopsManifests(ctx, fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo)
@@ -162,8 +172,6 @@ var _ = Describe("Installer", func() {
 			})
 
 			It("should fail getting secret name for private git source", func() {
-				fakeFluxClient.InstallReturns(nil, nil)
-
 				fakeGitProvider.GetRepoVisibilityReturns(nil, someError)
 
 				_, err = GitopsManifests(ctx, fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo)
@@ -171,11 +179,6 @@ var _ = Describe("Installer", func() {
 			})
 
 			It("should fail getting secret name for private git source", func() {
-				fakeFluxClient.InstallReturns(nil, nil)
-
-				privateVisibility := gitprovider.RepositoryVisibilityPrivate
-				fakeGitProvider.GetRepoVisibilityReturns(&privateVisibility, nil)
-
 				fakeGitProvider.GetDefaultBranchReturns("", someError)
 
 				_, err = GitopsManifests(ctx, fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo)
@@ -183,13 +186,6 @@ var _ = Describe("Installer", func() {
 			})
 
 			It("should fail creating flux source", func() {
-				fakeFluxClient.InstallReturns(nil, nil)
-
-				privateVisibility := gitprovider.RepositoryVisibilityPrivate
-				fakeGitProvider.GetRepoVisibilityReturns(&privateVisibility, nil)
-
-				fakeGitProvider.GetDefaultBranchReturns("main", nil)
-
 				fakeFluxClient.CreateSourceGitReturns(nil, someError)
 
 				_, err = GitopsManifests(ctx, fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo)
@@ -211,19 +207,12 @@ var _ = Describe("Installer", func() {
 				systemKustomizationManifest, err := yaml.Marshal(systemKustomization)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				gitSource := []byte("git source")
-				fakeFluxClient.CreateSourceGitReturns(gitSource, nil)
-
 				manifestsFiles, err := GitopsManifests(ctx, fakeFluxClient, fakeGitProvider, clusterName, testNamespace, configRepo)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				Expect(len(manifestsFiles)).Should(Equal(9))
 
 				expectedManifests := []Manifest{
-					{
-						Path:    git.GetSystemQualifiedPath(clusterName, SourcePath),
-						Content: gitSource,
-					},
 					{
 						Path:    git.GetSystemQualifiedPath(clusterName, SystemKustomizationPath),
 						Content: systemKustomizationManifest,
@@ -239,7 +228,6 @@ var _ = Describe("Installer", func() {
 					Expect(string(manifest.Content)).Should(Equal(string(expectedManifests[ind].Content)))
 				}
 			})
-
 		})
 	})
 })
