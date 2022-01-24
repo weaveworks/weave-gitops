@@ -130,7 +130,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	// Not sure if I need to make this a plain function or leave it as a service
-	deployKey, err := authService.SetupDeployKey2(ctx, namespace, clusterName, configURL)
+	deployKey, err := authService.SetupDeployKey(ctx, namespace, clusterName, configURL)
 	if err != nil {
 		return err
 	}

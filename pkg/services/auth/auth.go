@@ -70,7 +70,7 @@ func (sn SecretName) NamespacedName() types.NamespacedName {
 type AuthService interface {
 	CreateGitClient(ctx context.Context, repoUrl gitproviders.RepoURL, targetName string, namespace string, dryRun bool) (git.Git, error)
 	GetGitProvider() gitproviders.GitProvider
-	SetupDeployKey2(ctx context.Context, namespace string, targetName string, repo gitproviders.RepoURL) (*ssh.PublicKeys, error)
+	SetupDeployKey(ctx context.Context, namespace string, targetName string, repo gitproviders.RepoURL) (*ssh.PublicKeys, error)
 }
 
 type authSvc struct {
@@ -105,12 +105,7 @@ func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.Repo
 		return git.New(d, wrapper.NewGoGit()), nil
 	}
 
-	secretName := SecretName{
-		Name:      models.CreateRepoSecretName(repoUrl),
-		Namespace: namespace,
-	}
-
-	pubKey, keyErr := a.SetupDeployKey(ctx, secretName, targetName, repoUrl)
+	pubKey, keyErr := a.SetupDeployKey(ctx, targetName, namespace, repoUrl)
 	if keyErr != nil {
 		return nil, fmt.Errorf("error setting up deploy keys: %w", keyErr)
 	}
@@ -127,41 +122,8 @@ func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.Repo
 
 // SetupDeployKey creates a git.Git client instrumented with existing or generated deploy keys.
 // This ensures that git operations are done with stored deploy keys instead of a user's local ssh-agent or equivalent.
-func (a *authSvc) SetupDeployKey(ctx context.Context, name SecretName, targetName string, repo gitproviders.RepoURL) (*ssh.PublicKeys, error) {
-	deployKeyExists, err := a.gitProvider.DeployKeyExists(ctx, repo)
-	if err != nil {
-		return nil, fmt.Errorf("failed check for existing deploy key: %w", err)
-	}
+func (a *authSvc) SetupDeployKey(ctx context.Context, namespace string, targetName string, repo gitproviders.RepoURL) (*ssh.PublicKeys, error) {
 
-	if deployKeyExists {
-		// The deploy key was found on the Git Provider, fetch it from the cluster.
-		secret, err := a.retrieveDeployKey(ctx, name)
-		if apierrors.IsNotFound(err) {
-			// Edge case where the deploy key exists on the Git Provider, but not on the cluster.
-			// Users might end up here if we uploaded the deploy key, but it failed to save on the cluster,
-			// or if a cluster was destroyed during development work.
-			// Create and upload a new deploy key.
-			a.logger.Warningf("A deploy key named %s was found on the git provider, but not in the cluster.", name.Name)
-			return a.provisionDeployKey(ctx, targetName, name, repo)
-		} else if err != nil {
-			return nil, fmt.Errorf("error retrieving deploy key: %w", err)
-		}
-
-		b := extractPrivateKey(secret)
-
-		pubKey, err := makePublicKey(b)
-		if err != nil {
-			return nil, fmt.Errorf("could not create public key from secret: %w", err)
-		}
-
-		// Set the git client to use the existing deploy key.
-		return pubKey, nil
-	}
-
-	return a.provisionDeployKey(ctx, targetName, name, repo)
-}
-
-func (a *authSvc) SetupDeployKey2(ctx context.Context, namespace string, targetName string, repo gitproviders.RepoURL) (*ssh.PublicKeys, error) {
 	secretName := SecretName{
 		Name:      models.CreateRepoSecretName(repo),
 		Namespace: namespace,
