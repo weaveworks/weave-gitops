@@ -108,14 +108,5 @@ var _ = Describe("auth", func() {
 			Expect(k8sClient.Get(ctx, sn.NamespacedName(), newSecret)).To(Succeed())
 			Expect(gp.UploadDeployKeyCallCount()).To(Equal(1))
 		})
-
-		It("avoids deploying key for non config repos", func() {
-			gp.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityPublic), nil)
-
-			_, err = as.CreateGitClient(ctx, repoUrl, testClustername, namespace.Name, false)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(gp.UploadDeployKeyCallCount()).To(Equal(0))
-		})
 	})
 })

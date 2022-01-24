@@ -83,27 +83,30 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, kubeClient kube.Kube
 		return nil, nil, fmt.Errorf("error creating auth service: %w", err)
 	}
 
-	normalizedUrl, err := gitproviders.NewRepoURL(params.URL)
-	if err != nil {
-		return nil, nil, fmt.Errorf("error normalizing url: %w", err)
-	}
-
-	provider := authSvc.GetGitProvider()
-
-	repoVisibility, err := provider.GetRepoVisibility(ctx, normalizedUrl)
-	if err != nil {
-		return nil, nil, fmt.Errorf("error getting repo visibility: %w", err)
-	}
-
-	if *repoVisibility == gitprovider.RepositoryVisibilityPrivate {
-		secretName := auth.SecretName{
-			Name:      automation.CreateRepoSecretName(normalizedUrl),
-			Namespace: params.Namespace,
+	// Do not add deploy key for helm repo, empty url or if its gonna be added below
+	if !params.IsHelmRepository || params.URL != "" || params.URL != params.ConfigRepo {
+		normalizedUrl, err := gitproviders.NewRepoURL(params.URL)
+		if err != nil {
+			return nil, nil, fmt.Errorf("error normalizing url: %w", err)
 		}
 
-		_, err = authSvc.SetupDeployKey(ctx, secretName, targetName, normalizedUrl)
+		provider := authSvc.GetGitProvider()
+
+		repoVisibility, err := provider.GetRepoVisibility(ctx, normalizedUrl)
 		if err != nil {
-			return nil, nil, fmt.Errorf("error setting up deploy key: %w", err)
+			return nil, nil, fmt.Errorf("error getting repo visibility: %w", err)
+		}
+
+		if *repoVisibility == gitprovider.RepositoryVisibilityPrivate {
+			secretName := auth.SecretName{
+				Name:      automation.CreateRepoSecretName(normalizedUrl),
+				Namespace: params.Namespace,
+			}
+
+			_, err = authSvc.SetupDeployKey(ctx, secretName, targetName, normalizedUrl)
+			if err != nil {
+				return nil, nil, fmt.Errorf("error setting up deploy key: %w", err)
+			}
 		}
 	}
 
