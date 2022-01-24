@@ -7,11 +7,11 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/test/integration/server/helpers"
 	"path/filepath"
 	"time"
 
 	"github.com/weaveworks/weave-gitops/pkg/models"
+	"github.com/weaveworks/weave-gitops/test/integration/server/helpers"
 
 	"sigs.k8s.io/kustomize/api/types"
 
@@ -77,6 +77,8 @@ var _ = Describe("AddApplication", func() {
 			sourceRepoURL = fmt.Sprintf("https://github.com/%s/%s", githubOrg, sourceRepoName)
 			sourceRepo, sourceRef, err = helpers.CreatePopulatedSourceRepo(ctx, gp, sourceRepoURL)
 			Expect(err).NotTo(HaveOccurred())
+
+			helpers.SetWegoConfig(env.Client, namespace.Name, sourceRepoURL)
 
 			appName = "my-app"
 
@@ -162,10 +164,11 @@ var _ = Describe("AddApplication", func() {
 				}
 			})
 			It("adds an app with an external config repo", func() {
-
 				defer func() { Expect(sourceRepo.Delete(ctx)).To(Succeed()) }()
 
 				configRepoURL := fmt.Sprintf("https://github.com/%s/%s", githubOrg, configRepoName)
+
+				Expect(helpers.SetWegoConfig(env.Client, namespace.Name, configRepoURL)).To(Succeed())
 
 				configRepo, configRef, err := helpers.CreateRepo(ctx, gp, configRepoURL)
 				Expect(err).NotTo(HaveOccurred())
@@ -380,6 +383,7 @@ var _ = Describe("AddApplication", func() {
 				defer func() { Expect(sourceRepo.Delete(ctx)).To(Succeed()) }()
 
 				configRepoURL := fmt.Sprintf("https://github.com/%s/%s", githubOrg, configRepoName)
+				Expect(helpers.SetWegoConfig(env.Client, namespace.Name, configRepoURL)).To(Succeed())
 
 				configRepo, configRef, err := helpers.CreateRepo(ctx, gp, configRepoURL)
 				Expect(err).NotTo(HaveOccurred())
@@ -492,6 +496,8 @@ var _ = Describe("AddApplication", func() {
 			Expect(err).NotTo(HaveOccurred())
 			sourceRepoURL = fmt.Sprintf("https://gitlab.com/%s/%s", gitlabOrg, sourceRepoName)
 
+			helpers.SetWegoConfig(env.Client, namespace.Name, sourceRepoURL)
+
 			sourceRepo, sourceRef, err = helpers.CreatePopulatedSourceRepo(ctx, gitlabProviderClient, sourceRepoURL)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -583,6 +589,8 @@ var _ = Describe("AddApplication", func() {
 				defer func() { Expect(sourceRepo.Delete(ctx)).To(Succeed()) }()
 
 				configRepoURL := fmt.Sprintf("https://gitlab.com/%s/%s", gitlabOrg, configRepoName)
+
+				Expect(helpers.SetWegoConfig(env.Client, namespace.Name, configRepoURL)).To(Succeed())
 
 				configRepo, configRef, err := helpers.CreateRepo(ctx, gitlabProviderClient, configRepoURL)
 				Expect(err).NotTo(HaveOccurred())
