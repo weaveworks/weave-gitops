@@ -133,7 +133,6 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 			if err := models.ValidateApplicationName(params.Chart); err != nil {
 				return params, fmt.Errorf("unable to use chart name %q as the application name; please specify name with '--name' :%s",
 					params.Chart, err)
-
 			}
 
 			params.Name = params.Chart

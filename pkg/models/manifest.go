@@ -233,10 +233,13 @@ func ValidateApplicationName(name string) error {
 			if s.Len() > 0 {
 				s.WriteString("; ")
 			}
+
 			s.WriteString(e)
 		}
+
 		return fmt.Errorf("invalid application name %q :%s", name, s.String())
 	}
+
 	return nil
 }
 
