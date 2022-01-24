@@ -296,7 +296,7 @@ jobs:
 
   publish:
     if: success()
-    needs: [test-eks, test-gke]
+    needs: [test-eks]
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
