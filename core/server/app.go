@@ -2,54 +2,68 @@ package server
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/weaveworks/weave-gitops/core/clientset"
-	"github.com/weaveworks/weave-gitops/core/gitops/app"
-	"github.com/weaveworks/weave-gitops/core/gitops/kustomize"
-	"github.com/weaveworks/weave-gitops/core/gitops/source"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	"github.com/weaveworks/weave-gitops/api/v1alpha2"
 	stypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/selection"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+type k8sClientCreator func(ctx context.Context, cfg *rest.Config) (client.Client, error)
 type appServer struct {
 	pb.UnimplementedAppsServer
 
-	clientSet  clientset.Set
-	appCreator app.KubeCreator
-	appFetcher app.KubeFetcher
-
-	kustCreator kustomize.KubeCreator
-	kustFetcher kustomize.Fetcher
-
-	sourceCreator source.KubeCreator
-	sourceFetcher source.KubeFetcher
+	createK8s k8sClientCreator
+	restCfg   *rest.Config
+	scheme    *runtime.Scheme
 }
 
-func NewAppServer(clientSet clientset.Set, appCreator app.KubeCreator, kustCreator kustomize.KubeCreator, sourceCreator source.KubeCreator, fetcher app.KubeFetcher, kustFetcher kustomize.Fetcher, sourceFetcher source.KubeFetcher) pb.AppsServer {
+var scheme = kube.CreateScheme()
+
+func NewAppServer(cfg *rest.Config) pb.AppsServer {
 	return &appServer{
-		clientSet:     clientSet,
-		appCreator:    appCreator,
-		kustCreator:   kustCreator,
-		sourceCreator: sourceCreator,
-		appFetcher:    fetcher,
-		kustFetcher:   kustFetcher,
-		sourceFetcher: sourceFetcher,
+		createK8s: func(_ context.Context, override *rest.Config) (client.Client, error) {
+			// Future proofing here to ensure we can extract any auth data from context in the future.
+			// `rest.Config` is the second arg to support connecting to different clusters in the future.
+			restCfg := cfg
+			if override != nil {
+				restCfg = override
+			}
+
+			rawClient, err := client.New(restCfg, client.Options{
+				Scheme: scheme,
+			})
+
+			if err != nil {
+				return nil, fmt.Errorf("kubernetes client initialization failed: %w", err)
+			}
+
+			return rawClient, err
+		},
 	}
 }
 
-func (as *appServer) AddApp(_ context.Context, msg *pb.AddAppRequest) (*pb.AddAppResponse, error) {
-	k8sRestClient, err := as.clientSet.AppClient()
+func (as *appServer) AddApp(ctx context.Context, msg *pb.AddAppRequest) (*pb.AddAppResponse, error) {
+	k8s, err := as.createK8s(ctx, nil)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to make k8s rest client: %s", err.Error())
+		return nil, doClientError(err)
 	}
 
-	app, err := as.appCreator.Create(context.Background(), k8sRestClient, stypes.AppAddProtoToCustomResource(msg))
+	app := stypes.AppAddProtoToCustomResource(msg)
+
+	err = k8s.Create(ctx, app)
+
 	if k8serrors.IsUnauthorized(err) {
 		return nil, status.Errorf(codes.PermissionDenied, err.Error())
 	} else if k8serrors.IsNotFound(err) {
@@ -66,17 +80,30 @@ func (as *appServer) AddApp(_ context.Context, msg *pb.AddAppRequest) (*pb.AddAp
 	}, nil
 }
 
-func (as *appServer) GetApp(_ context.Context, msg *pb.GetAppRequest) (*pb.GetAppResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "")
-}
-
-func (as *appServer) ListApps(_ context.Context, msg *pb.ListAppRequest) (*pb.ListAppResponse, error) {
-	k8sRestClient, err := as.clientSet.AppClient()
+func (as *appServer) GetApp(ctx context.Context, msg *pb.GetAppRequest) (*pb.GetAppResponse, error) {
+	k8s, err := as.createK8s(ctx, nil)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to make k8s rest client: %s", err.Error())
+		return nil, doClientError(err)
 	}
 
-	app, err := as.appFetcher.List(context.Background(), k8sRestClient, msg.Namespace, metav1.ListOptions{})
+	obj := &v1alpha2.Application{}
+
+	if err := k8s.Get(ctx, types.NamespacedName{Name: msg.AppName, Namespace: msg.Namespace}, obj); err != nil {
+		return nil, status.Errorf(codes.Internal, "getting app: %s", err.Error())
+	}
+
+	return &pb.GetAppResponse{App: stypes.AppCustomResourceToProto(obj)}, nil
+}
+
+func (as *appServer) ListApps(ctx context.Context, msg *pb.ListAppRequest) (*pb.ListAppResponse, error) {
+	k8s, err := as.createK8s(ctx, nil)
+	if err != nil {
+		return nil, doClientError(err)
+	}
+
+	list := &v1alpha2.ApplicationList{}
+
+	err = k8s.List(ctx, list, client.InNamespace(msg.Namespace))
 	if k8serrors.IsUnauthorized(err) {
 		return nil, status.Errorf(codes.PermissionDenied, "")
 	} else if k8serrors.IsNotFound(err) {
@@ -84,7 +111,7 @@ func (as *appServer) ListApps(_ context.Context, msg *pb.ListAppRequest) (*pb.Li
 	}
 
 	var results []*pb.App
-	for _, item := range app.Items {
+	for _, item := range list.Items {
 		results = append(results, stypes.AppCustomResourceToProto(&item))
 	}
 
@@ -102,43 +129,41 @@ func (as *appServer) AddKustomization(ctx context.Context, msg *pb.AddKustomizat
 		return nil, status.Errorf(codes.InvalidArgument, "sourceRef is required")
 	}
 
-	k8sRestClient, err := as.clientSet.KustomizationClient()
+	k8s, err := as.createK8s(ctx, nil)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to make k8s rest client: %s", err.Error())
+		return nil, doClientError(err)
 	}
 
 	kust := stypes.ProtoToKustomization(msg)
-	k, err := as.kustCreator.Create(context.Background(), k8sRestClient, &kust)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to create kustomization: %s", err.Error())
+
+	if err := k8s.Create(ctx, &kust); err != nil {
+		return nil, status.Errorf(codes.Internal, "creating kustomization for app %q: %s", msg.AppName, err.Error())
 	}
 
 	return &pb.AddKustomizationRes{
 		Success:       true,
-		Kustomization: stypes.KustomizationToProto(k),
+		Kustomization: stypes.KustomizationToProto(&kust),
 	}, nil
 }
 
 func (as *appServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomizationsReq) (*pb.ListKustomizationsRes, error) {
-	k8sRestClient, err := as.clientSet.KustomizationClient()
+	k8s, err := as.createK8s(ctx, nil)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to make k8s rest client: %s", err.Error())
+		return nil, doClientError(err)
 	}
 
-	appNameLabel, err := labels.NewRequirement("app.kubernetes.io/part-of", selection.Equals, []string{msg.AppName})
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to make label for list filter")
+	list := &kustomizev1.KustomizationList{}
+
+	opts := client.MatchingLabels{
+		"app.kubernetes.io/part-of": msg.AppName,
 	}
 
-	kustomizations, err := as.kustFetcher.List(context.Background(), k8sRestClient, msg.Namespace, metav1.ListOptions{
-		LabelSelector: appNameLabel.String(),
-	})
-	if err != nil {
+	if err := k8s.List(ctx, list, &opts); err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to create new app: %s", err.Error())
 	}
 
 	var results []*pb.Kustomization
-	for _, kustomization := range kustomizations.Items {
+	for _, kustomization := range list.Items {
 		results = append(results, stypes.KustomizationToProto(&kustomization))
 	}
 
@@ -148,50 +173,68 @@ func (as *appServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomi
 }
 
 func (as *appServer) RemoveKustomizations(ctx context.Context, msg *pb.RemoveKustomizationReq) (*pb.RemoveKustomizationRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "")
+	k8s, err := as.createK8s(ctx, nil)
+	if err != nil {
+		return nil, doClientError(err)
+	}
+
+	kust := &kustomizev1.Kustomization{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      msg.KustomizationName,
+			Namespace: msg.Namespace,
+		},
+	}
+	if err := k8s.Delete(ctx, kust); err != nil {
+		return nil, err
+	}
+
+	return &pb.RemoveKustomizationRes{Success: true}, nil
 }
 
 func (as *appServer) AddGitRepository(ctx context.Context, msg *pb.AddGitRepositoryReq) (*pb.AddGitRepositoryRes, error) {
-	k8sRestClient, err := as.clientSet.SourceClient()
+	k8s, err := as.createK8s(ctx, nil)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to make k8s rest client: %s", err.Error())
+		return nil, doClientError(err)
 	}
 
-	gr, err := as.sourceCreator.CreateGitRepository(context.Background(), k8sRestClient, stypes.ProtoToGitRepository(msg))
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to create kustomization: %s", err.Error())
+	src := stypes.ProtoToGitRepository(msg)
+
+	if err := k8s.Create(ctx, src); err != nil {
+		return nil, status.Errorf(codes.Internal, "creating source for app %q: %s", msg.AppName, err.Error())
 	}
 
 	return &pb.AddGitRepositoryRes{
 		Success:       true,
-		GitRepository: stypes.GitRepositoryToProto(gr),
+		GitRepository: stypes.GitRepositoryToProto(src),
 	}, nil
 }
 
 func (as *appServer) ListGitRepositories(ctx context.Context, msg *pb.ListGitRepositoryReq) (*pb.ListGitRepositoryRes, error) {
-	k8sRestClient, err := as.clientSet.SourceClient()
+	k8s, err := as.createK8s(ctx, nil)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to make k8s rest client: %s", err.Error())
+		return nil, doClientError(err)
 	}
 
-	appNameLabel, err := labels.NewRequirement("app.kubernetes.io/part-of", selection.Equals, []string{msg.AppName})
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to make label for list filter")
+	list := &sourcev1.GitRepositoryList{}
+
+	opts := client.MatchingLabels{
+		"app.kubernetes.io/part-of": msg.AppName,
 	}
 
-	repositories, err := as.sourceFetcher.ListGitRepositories(context.Background(), k8sRestClient, msg.Namespace, metav1.ListOptions{
-		LabelSelector: appNameLabel.String(),
-	})
-	if err != nil {
+	if err := k8s.List(ctx, list, opts); err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to get git repository list: %s", err.Error())
 	}
 
 	var results []*pb.GitRepository
-	for _, repository := range repositories.Items {
+	for _, repository := range list.Items {
 		results = append(results, stypes.GitRepositoryToProto(&repository))
 	}
 
 	return &pb.ListGitRepositoryRes{
 		GitRepositories: results,
 	}, nil
+}
+
+func doClientError(err error) error {
+	return status.Errorf(codes.Internal, "unable to make k8s rest client: %s", err.Error())
 }

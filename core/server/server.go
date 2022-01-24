@@ -7,7 +7,6 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/weaveworks/weave-gitops/core/clientset"
-	"github.com/weaveworks/weave-gitops/core/gitops/app"
 	"github.com/weaveworks/weave-gitops/core/gitops/kustomize"
 	"github.com/weaveworks/weave-gitops/core/gitops/source"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
@@ -16,8 +15,8 @@ import (
 )
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, config *rest.Config) error {
-	appKubeCreator := app.NewKubeCreator()
-	appFetcher := app.NewKubeAppFetcher()
+	// appKubeCreator := app.NewKubeCreator()
+	// appFetcher := app.NewKubeAppFetcher()
 
 	kustCreator := kustomize.NewK8sCreator()
 	kustFetcher := kustomize.NewKustomizationFetcher()
@@ -27,7 +26,7 @@ func Hydrate(ctx context.Context, mux *runtime.ServeMux, config *rest.Config) er
 
 	clientSet := clientset.NewClientSets(config)
 
-	appsServer := NewAppServer(clientSet, appKubeCreator, kustCreator, sourceCreator, appFetcher, kustFetcher, sourceFetcher)
+	appsServer := NewAppServer(config)
 	if err := pb.RegisterAppsHandlerServer(ctx, mux, appsServer); err != nil {
 		return fmt.Errorf("could not register new app server: %w", err)
 	}
