@@ -2,9 +2,11 @@ package profiles
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
@@ -15,6 +17,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/services"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
+	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -29,7 +32,6 @@ func ProfileCommand(client *resty.Client) *cobra.Command {
 		Use:           "profile",
 		Aliases:       []string{"profiles"},
 		Short:         "Add a profile to a cluster",
-		Args:          cobra.MaximumNArgs(1),
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		Example: `
@@ -55,6 +57,11 @@ func addProfileCmdRunE(client *resty.Client) func(*cobra.Command, []string) erro
 		fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 		factory := services.NewFactory(fluxClient, log)
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
+
+		validatedOpts, err := validateAddOptions(opts)
+		if err != nil {
+			return err
+		}
 
 		ns, err := cmd.Parent().Parent().Flags().GetString("namespace")
 		if err != nil {
@@ -84,6 +91,29 @@ func addProfileCmdRunE(client *resty.Client) func(*cobra.Command, []string) erro
 		}
 
 		profilesService := profiles.NewService(clientSet)
-		return profilesService.Add(ctx, gitProvider, opts)
+		return profilesService.Add(ctx, gitProvider, validatedOpts)
 	}
+}
+
+func validateAddOptions(opts profiles.AddOptions) (profiles.AddOptions, error) {
+	if opts.Name == "" {
+		return opts, errors.New("--name should be provided")
+	}
+
+	if automation.ApplicationNameTooLong(opts.Name) {
+		return opts, fmt.Errorf("--name value is too long: %s; must be <= %d characters",
+			opts.Name, automation.MaxKubernetesResourceNameLength)
+	}
+
+	if strings.HasPrefix(opts.Name, "wego") {
+		return opts, fmt.Errorf("the prefix 'wego' is used by weave gitops and is not allowed for a profile name")
+	}
+
+	if opts.ConfigRepo == "" {
+		return opts, errors.New("--config-repo should be provided")
+	}
+	if opts.Cluster == "" {
+		return opts, errors.New("--cluster should be provided")
+	}
+	return opts, nil
 }

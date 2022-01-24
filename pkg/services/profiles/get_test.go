@@ -38,7 +38,10 @@ const getProfilesResp = `{
       "icon": "",
       "annotations": {},
       "kubeVersion": ">=1.19.0-0",
-      "helmRepository": null,
+      "helmRepository": {
+		  "name": "podinfo",
+		  "namespace": "weave-system"
+	  },
       "availableVersions": [
         "6.0.0",
         "6.0.1"

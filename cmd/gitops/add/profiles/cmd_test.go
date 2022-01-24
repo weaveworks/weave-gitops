@@ -37,6 +37,58 @@ var _ = Describe("Add Profiles", func() {
 		})
 	})
 
+	When("flags are not valid", func() {
+		It("fails if --name is not provided", func() {
+			cmd.SetArgs([]string{
+				"add", "profile",
+			})
+
+			err := cmd.Execute()
+			Expect(err).To(MatchError("--name should be provided"))
+		})
+
+		When("--name is specified", func() {
+			It("fails if --name value is <= 63 characters in length", func() {
+				cmd.SetArgs([]string{
+					"add", "profile",
+					"--name", "a234567890123456789012345678901234567890123456789012345678901234",
+				})
+				err := cmd.Execute()
+				Expect(err).To(MatchError("--name value is too long: a234567890123456789012345678901234567890123456789012345678901234; must be <= 63 characters"))
+			})
+
+			It("fails if --name is prefixed by 'wego'", func() {
+				cmd.SetArgs([]string{
+					"add", "profile",
+					"--name", "wego-app",
+				})
+				err := cmd.Execute()
+				Expect(err).To(MatchError("the prefix 'wego' is used by weave gitops and is not allowed for a profile name"))
+			})
+		})
+
+		It("fails if --config-repo is not provided", func() {
+			cmd.SetArgs([]string{
+				"add", "profile",
+				"--name", "podinfo",
+			})
+
+			err := cmd.Execute()
+			Expect(err).To(MatchError("--config-repo should be provided"))
+		})
+
+		It("fails if --config-repo is not provided", func() {
+			cmd.SetArgs([]string{
+				"add", "profile",
+				"--name", "podinfo",
+				"--config-repo", "ssh://git@github.com/owner/config-repo.git",
+			})
+
+			err := cmd.Execute()
+			Expect(err).To(MatchError("--cluster should be provided"))
+		})
+	})
+
 	When("a flag is unknown", func() {
 		It("fails", func() {
 			cmd.SetArgs([]string{
