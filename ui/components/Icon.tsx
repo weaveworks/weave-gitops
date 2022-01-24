@@ -1,13 +1,13 @@
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import AddIcon from "@material-ui/icons/Add";
-import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
+import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import DeleteIcon from "@material-ui/icons/Delete";
-import NavigateNextIcon from "@material-ui/icons/NavigateNext";
-import SaveAltIcon from "@material-ui/icons/SaveAlt";
 import ErrorIcon from "@material-ui/icons/Error";
 import HourglassFullIcon from "@material-ui/icons/HourglassFull";
 import LaunchIcon from "@material-ui/icons/Launch";
+import NavigateNextIcon from "@material-ui/icons/NavigateNext";
+import SaveAltIcon from "@material-ui/icons/SaveAlt";
 import * as React from "react";
 import styled from "styled-components";
 import { colors, spacing } from "../typedefs/styled";
@@ -95,7 +95,12 @@ export default styled(Icon)`
     height: ${(props) => props.theme.spacing[props.size as any]};
     width: ${(props) => props.theme.spacing[props.size as any]};
   }
-
+  &.downward {
+    transform: rotate(180deg);
+  }
+  &.upward {
+    transform: initial;
+  }
   ${Text} {
     margin-left: 4px;
     color: ${(props) => props.theme.colors[props.color as any]};
