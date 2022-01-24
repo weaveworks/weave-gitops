@@ -87,6 +87,19 @@ var _ = Describe("Add Profiles", func() {
 			err := cmd.Execute()
 			Expect(err).To(MatchError("--cluster should be provided"))
 		})
+
+		It("fails if given version is not valid semver", func() {
+			cmd.SetArgs([]string{
+				"add", "profile",
+				"--name", "podinfo",
+				"--config-repo", "ssh://git@github.com/owner/config-repo.git",
+				"--cluster", "prod",
+				"--version", "&%*/v",
+			})
+
+			err := cmd.Execute()
+			Expect(err).To(MatchError("error parsing --version=&%*/v: Invalid Semantic Version"))
+		})
 	})
 
 	When("a flag is unknown", func() {

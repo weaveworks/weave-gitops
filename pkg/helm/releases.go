@@ -1,7 +1,6 @@
 package helm
 
 import (
-	"sort"
 	"time"
 
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -10,14 +9,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func MakeHelmRelease(p *profiles.Profile, cluster, namespace string) *helmv2beta1.HelmRelease {
+func MakeHelmRelease(p *profiles.Profile, cluster, namespace, version string) *helmv2beta1.HelmRelease {
 	makeHelmReleaseName := func(clusterName, profileName string) string {
 		return clusterName + "-" + profileName
-	}
-
-	makeVersion := func(versions []string) string {
-		sort.Strings(p.AvailableVersions)
-		return p.AvailableVersions[len(p.AvailableVersions)-1]
 	}
 
 	return &helmv2beta1.HelmRelease{
@@ -33,7 +27,7 @@ func MakeHelmRelease(p *profiles.Profile, cluster, namespace string) *helmv2beta
 			Chart: helmv2beta1.HelmChartTemplate{
 				Spec: helmv2beta1.HelmChartTemplateSpec{
 					Chart:   p.Name,
-					Version: makeVersion(p.AvailableVersions),
+					Version: version,
 					SourceRef: helmv2beta1.CrossNamespaceObjectReference{
 						APIVersion: sourcev1beta1.GroupVersion.Identifier(),
 						Kind:       sourcev1beta1.HelmRepositoryKind,

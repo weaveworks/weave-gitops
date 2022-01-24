@@ -21,8 +21,7 @@ var _ = Describe("MakeHelmRelease", func() {
 		cluster = "prod"
 		ns = "weave-system"
 		profile = &profiles.Profile{
-			Name:              name,
-			AvailableVersions: []string{"6.0.0", "6.0.1"},
+			Name: name,
 			HelmRepository: &profiles.HelmRepository{
 				Name:      name,
 				Namespace: ns,
@@ -30,17 +29,15 @@ var _ = Describe("MakeHelmRelease", func() {
 		}
 	})
 
-	When("there are multiple available versions", func() {
-		It("creates a helm release with the latest available version", func() {
-			hr := helm.MakeHelmRelease(profile, cluster, ns)
-			Expect(hr.Name).To(Equal(cluster + "-" + name))
-			Expect(hr.Namespace).To(Equal(ns))
-			Expect(hr.TypeMeta.APIVersion).To(Equal(helmv2beta1.GroupVersion.Identifier()))
-			Expect(hr.TypeMeta.Kind).To(Equal(helmv2beta1.HelmReleaseKind))
-			Expect(hr.Spec.Chart.Spec.Chart).To(Equal(name))
-			Expect(hr.Spec.Chart.Spec.Version).To(Equal("6.0.1"))
-			Expect(hr.Spec.Chart.Spec.SourceRef.Name).To(Equal(name))
-			Expect(hr.Spec.Chart.Spec.SourceRef.Namespace).To(Equal(ns))
-		})
+	It("creates a helm release", func() {
+		hr := helm.MakeHelmRelease(profile, cluster, ns, "6.0.1")
+		Expect(hr.Name).To(Equal(cluster + "-" + name))
+		Expect(hr.Namespace).To(Equal(ns))
+		Expect(hr.TypeMeta.APIVersion).To(Equal(helmv2beta1.GroupVersion.Identifier()))
+		Expect(hr.TypeMeta.Kind).To(Equal(helmv2beta1.HelmReleaseKind))
+		Expect(hr.Spec.Chart.Spec.Chart).To(Equal(name))
+		Expect(hr.Spec.Chart.Spec.Version).To(Equal("6.0.1"))
+		Expect(hr.Spec.Chart.Spec.SourceRef.Name).To(Equal(name))
+		Expect(hr.Spec.Chart.Spec.SourceRef.Namespace).To(Equal(ns))
 	})
 })

@@ -3,6 +3,7 @@ package profiles
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -46,12 +47,12 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 		return err
 	}
 
-	availableProfile, err := getHelmRepository(profilesList, opts)
+	availableProfile, err := getAvailableProfile(profilesList, opts)
 	if err != nil {
 		return err
 	}
 
-	_ = helm.MakeHelmRelease(availableProfile, opts.Cluster, opts.Namespace)
+	_ = helm.MakeHelmRelease(availableProfile, opts.Cluster, opts.Namespace, opts.Version)
 
 	printAddSummary(opts)
 	return nil
@@ -66,19 +67,32 @@ func printAddSummary(opts AddOptions) {
 	opts.Logger.Println("")
 }
 
-func getHelmRepository(profilesList *profiles.GetProfilesResponse, opts AddOptions) (*profiles.Profile, error) {
-	var availableProfile *profiles.Profile
+func getAvailableProfile(profilesList *profiles.GetProfilesResponse, opts AddOptions) (*profiles.Profile, error) {
 	for _, p := range profilesList.Profiles {
 		if p.Name == opts.Name {
 			if len(p.AvailableVersions) == 0 {
-				return nil, fmt.Errorf("no available version found for profile '%s' in %s/%s", p.Name, opts.Cluster, opts.Namespace)
+				return nil, fmt.Errorf("no version found for profile '%s' in %s/%s", p.Name, opts.Cluster, opts.Namespace)
 			}
-			availableProfile = p
-			break
+			switch {
+			case opts.Version == "latest":
+				sort.Strings(p.AvailableVersions)
+				opts.Version = p.AvailableVersions[len(p.AvailableVersions)-1]
+			default:
+				if !found(p.AvailableVersions, opts.Version) {
+					return nil, fmt.Errorf("version '%s' not found for profile '%s' in %s/%s", opts.Version, opts.Name, opts.Cluster, opts.Namespace)
+				}
+			}
+			return p, nil
 		}
 	}
-	if availableProfile == nil {
-		return nil, fmt.Errorf("no available profile '%s' found in %s/%s", opts.Name, opts.Cluster, opts.Namespace)
+	return nil, fmt.Errorf("no available profile '%s' found in %s/%s", opts.Name, opts.Cluster, opts.Namespace)
+}
+
+func found(availableVersions []string, version string) bool {
+	for _, v := range availableVersions {
+		if v == version {
+			return true
+		}
 	}
-	return availableProfile, nil
+	return false
 }

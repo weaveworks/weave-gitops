@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
@@ -26,8 +27,8 @@ import (
 
 var opts profiles.AddOptions
 
-// ProfileCommand provides support for adding a profile to gitops management.
-func ProfileCommand(client *resty.Client) *cobra.Command {
+// AddCommand provides support for adding a profile to a cluster.
+func AddCommand(client *resty.Client) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "profile",
 		Aliases:       []string{"profiles"},
@@ -42,7 +43,7 @@ func ProfileCommand(client *resty.Client) *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&opts.Name, "name", "", "Name of the profile")
-	cmd.Flags().StringVar(&opts.Version, "version", "", "Version of the profile")
+	cmd.Flags().StringVar(&opts.Version, "version", "latest", "Version of the profile")
 	cmd.Flags().StringVar(&opts.ConfigRepo, "config-repo", "", "URL of external repository (if any) which will hold automation manifests")
 	cmd.Flags().StringVar(&opts.Cluster, "cluster", "", "Name of the cluster to add the profile to")
 	cmd.Flags().StringVar(&opts.Port, "port", server.DefaultPort, "Port the profiles API is running on")
@@ -114,6 +115,9 @@ func validateAddOptions(opts profiles.AddOptions) (profiles.AddOptions, error) {
 	}
 	if opts.Cluster == "" {
 		return opts, errors.New("--cluster should be provided")
+	}
+	if _, err := semver.StrictNewVersion(opts.Version); err != nil {
+		return opts, fmt.Errorf("error parsing --version=%s: %s", opts.Version, err)
 	}
 	return opts, nil
 }

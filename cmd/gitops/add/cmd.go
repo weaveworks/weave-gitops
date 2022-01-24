@@ -22,7 +22,7 @@ gitops add cluster`,
 
 	cmd.AddCommand(clusters.ClusterCommand(endpoint, client))
 	cmd.AddCommand(app.Cmd)
-	cmd.AddCommand(profiles.ProfileCommand(client))
+	cmd.AddCommand(profiles.AddCommand(client))
 
 	return cmd
 }

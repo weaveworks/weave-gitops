@@ -38,10 +38,11 @@ var _ = Describe("Add Profile", func() {
 			Cluster:    "prod",
 			Logger:     fakeLogger,
 			Namespace:  "weave-system",
+			Version:    "latest",
 		}
 	})
 
-	It("adds a profile", func() {
+	It("creates a helm release with the latest available version of the profile", func() {
 		gitProviders.RepositoryExistsReturns(true, nil)
 		gitProviders.GetRepoFilesReturns(makeTestFiles(), nil)
 		clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
@@ -126,7 +127,30 @@ var _ = Describe("Add Profile", func() {
 		})
 		err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
 		Expect(err).NotTo(BeNil())
-		Expect(err).To(MatchError("no available version found for profile 'podinfo' in prod/weave-system"))
+		Expect(err).To(MatchError("no version found for profile 'podinfo' in prod/weave-system"))
+	})
+
+	When("an existing version other than 'latest' is specified", func() {
+		JustBeforeEach(func() {
+			gitProviders.RepositoryExistsReturns(true, nil)
+			gitProviders.GetRepoFilesReturns(makeTestFiles(), nil)
+			clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
+				return true, newFakeResponseWrapper(getProfilesResp), nil
+			})
+		})
+
+		It("fails if given version was not found", func() {
+			addOptions.Version = "7.0.0"
+			err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
+			Expect(err).NotTo(BeNil())
+			Expect(err).To(MatchError("version '7.0.0' not found for profile 'podinfo' in prod/weave-system"))
+		})
+
+		It("creates a helm release with that version", func() {
+			addOptions.Version = "6.0.0"
+			err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
+			Expect(err).To(BeNil())
+		})
 	})
 })
 
