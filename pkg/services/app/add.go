@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -141,6 +142,9 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 			return params, fmt.Errorf("--url must be specified for helm repositories")
 		}
 
+		if params.ConfigRepo == "" {
+			return params, errors.New("--config-repo should be provided")
+		}
 	default:
 		var err error
 

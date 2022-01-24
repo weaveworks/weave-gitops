@@ -89,10 +89,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("you should choose either --url or the app directory")
 	}
 
-	if params.ConfigRepo == "" {
-		return errors.New("--config-repo should be provided")
-	}
-
 	if len(args) > 0 {
 		path, err := filepath.Abs(args[0])
 		if err != nil {

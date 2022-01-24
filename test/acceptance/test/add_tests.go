@@ -1000,7 +1000,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		replicaSetValue := 3
 		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + tip1.appRepoName + ".git"
 
-		addCommand1 := "add app . --name=" + appName1 + " --auto-merge=true"
+		addCommand1 := "add app . --name=" + appName1 + " --auto-merge=true --config-repo=" + appRepoRemoteURL
 		addCommand2 := "add app . --name=" + appName2 + " --auto-merge=true --config-repo=" + appRepoRemoteURL
 
 		defer deleteRepo(tip1.appRepoName, gitProvider, gitOrg)
