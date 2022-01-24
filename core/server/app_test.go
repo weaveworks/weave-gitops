@@ -110,7 +110,7 @@ func TestAppServer(t *testing.T) {
 	f.Expect(res.StatusCode).To(Equal(http.StatusOK))
 
 	// App Requests
-	appOne := pb.AddAppRequest{
+	appOne := &pb.AddAppRequest{
 		Name:        "app-1",
 		Namespace:   "flux-system",
 		DisplayName: "App 1",
@@ -143,7 +143,7 @@ func TestAppServer(t *testing.T) {
 	f.Expect(res.StatusCode).To(Equal(http.StatusOK))
 
 	// Create app 2 now that the namespace exists
-	appTwo := pb.AddAppRequest{
+	appTwo := &pb.AddAppRequest{
 		Name:        "app-2",
 		Namespace:   "flux-system",
 		DisplayName: "App 2",
@@ -173,7 +173,7 @@ func TestAppServer(t *testing.T) {
 	f.Expect(res.StatusCode).To(Equal(http.StatusOK))
 
 	// App Kustomizations Requests
-	kustOne := pb.AddKustomizationReq{Name: "app-1"}
+	kustOne := &pb.AddKustomizationReq{Name: "app-1"}
 	data, _ = json.Marshal(kustOne)
 
 	res, _ = http.Post(f.testServer.URL+"/v1/namespace/flux-system/app/app-1/kustomization", "application/json", bytes.NewReader(data))

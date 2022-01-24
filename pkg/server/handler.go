@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/server"
 	pbapp "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	pbprofiles "github.com/weaveworks/weave-gitops/pkg/api/profiles"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 )
@@ -55,7 +56,12 @@ func NewHandlers(ctx context.Context, cfg *Config) (http.Handler, error) {
 		return nil, fmt.Errorf("could not register profiles: %w", err)
 	}
 
-	if err := server.Hydrate(ctx, mux); err != nil {
+	restCfg, _, err := kube.RestConfig()
+	if err != nil {
+		return nil, fmt.Errorf("building rest config: %w", err)
+	}
+
+	if err := server.Hydrate(ctx, mux, restCfg); err != nil {
 		return nil, fmt.Errorf("could not start up core servers: %w", err)
 	}
 
