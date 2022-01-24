@@ -81,8 +81,16 @@ Global Flags:
 	It("Verify that gitops quits if flux-system namespace is present", func() {
 		var errOutput string
 		namespace := "flux-system"
+		tip := generateTestInputs()
 
 		defer deleteNamespace(namespace)
+		defer deleteRepo(tip.appRepoName, gitProvider, gitOrg)
+
+		By("And application repo does not already exist", func() {
+			deleteRepo(tip.appRepoName, gitProvider, gitOrg)
+		})
+
+		_ = initAndCreateEmptyRepo(tip.appRepoName, gitProvider, true, gitOrg)
 
 		By("And I have a brand new cluster", func() {
 			_, _, err := ResetOrCreateCluster(WEGO_DEFAULT_NAMESPACE, true)
@@ -95,12 +103,12 @@ Global Flags:
 		})
 
 		By("And I run 'gitops install' command", func() {
-			_, errOutput = runCommandAndReturnStringOutput(gitopsBinaryPath + " install --config-repo=ssh://git@" + gitProviderName + ".com/user/repo.git")
+			_, errOutput = runCommandAndReturnStringOutput(gitopsBinaryPath + " install --config-repo=ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + tip.appRepoName + ".git")
 		})
 
 		By("Then I should see a quitting message", func() {
 			Eventually(errOutput).Should(MatchRegexp(
-				`Error: Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n\s*. flux uninstall`))
+				`Error: failed installing: failed validating wego installation: Weave GitOps does not yet support installation onto a cluster that is using Flux.\nPlease uninstall flux before proceeding:\n\s*. flux uninstall`))
 		})
 	})
 

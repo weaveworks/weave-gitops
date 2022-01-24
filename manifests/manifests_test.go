@@ -12,7 +12,7 @@ var _ = Describe("Testing GenerateManifests", func() {
 			Namespace:  "my-namespace",
 		}
 
-		manifestsBytes, err := GenerateManifests(params)
+		manifestsBytes, err := GenerateWegoAppManifests(params)
 		Expect(err).NotTo(HaveOccurred())
 
 		var manifests string

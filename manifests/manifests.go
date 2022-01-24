@@ -25,8 +25,8 @@ type Params struct {
 	Namespace  string
 }
 
-// GenerateManifests generates weave-gitops manifests from a template
-func GenerateManifests(params Params) ([][]byte, error) {
+// GenerateWegoAppManifests generates weave-gitops manifests from a template
+func GenerateWegoAppManifests(params Params) ([][]byte, error) {
 	templates, err := fs.ReadDir(wegoAppTemplates, wegoManifestsDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed reading templates directory: %w", err)

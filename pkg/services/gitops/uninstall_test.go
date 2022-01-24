@@ -179,7 +179,7 @@ var _ = Describe("Uninstall", func() {
 		err := gitopsSrv.Uninstall(uninstallParams)
 		Expect(err).ShouldNot(HaveOccurred())
 
-		wegoAppManifests, err := manifests.GenerateManifests(manifests.Params{AppVersion: version.Version, Namespace: "default"})
+		wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppVersion: version.Version, Namespace: "default"})
 		Expect(err).ShouldNot(HaveOccurred())
 
 		Expect(kubeClient.DeleteCallCount()).To(Equal(len(wegoAppManifests)+1), "deletes all wego app manifests plus the app crd")
