@@ -31,3 +31,14 @@ echo "Delete any running applications"
 kubectl delete apps -n $ns --all
 echo "Delete all secrets"
 for s in $(kubectl get secrets -n $ns| grep weave-gitops-|cut -d' ' -f1); do kubectl delete secrets $s -n $ns; done
+
+
+echo "Deleting resources from all my-nginx-* namespaces..."
+namespaces="$(kubectl get ns -A --no-headers -o custom-columns=":metadata.name" | grep nginx)";
+for sname in $namespaces
+do
+    kubectl delete all --all -n $sname
+    echo "All resources have been deleted from namespace $sname, proceeding to delete empty namespace..."
+    kubectl delete ns $sname
+done
+echo "Test Script run successful :)"
