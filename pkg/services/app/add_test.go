@@ -76,6 +76,40 @@ var _ = Describe("Add", func() {
 		Expect(err.Error()).Should(HaveSuffix("--config-repo should be provided"))
 	})
 
+	It("validates invalid chartname is handled", func() {
+		addParams.Chart = "invalid_Chartname.bar"
+		addParams.Url = "https://my-chart.com"
+		addParams.ConfigRepo = ""
+
+		err := appSrv.Add(gitClient, gitProviders, addParams)
+		Expect(err).Should(HaveOccurred())
+	})
+
+	It("validates invalid name is handled", func() {
+		addParams.Name = "myapp.isInvalid"
+		addParams.Url = "https://github.com/weaveworks/weave-gitops-interlock.git"
+		addParams.ConfigRepo = ""
+
+		err := appSrv.Add(gitClient, gitProviders, addParams)
+		Expect(err).Should(HaveOccurred())
+	})
+
+	It("validates ssh git reponame with invalid characters is handled", func() {
+		addParams.Url = "git@github.com:weaveworks/weave-gitops-interlockUPPER_LOWER.git"
+		addParams.ConfigRepo = ""
+
+		err := appSrv.Add(gitClient, gitProviders, addParams)
+		Expect(err).Should(HaveOccurred())
+	})
+
+	It("validates http reponame with invalid characters is handled", func() {
+		addParams.Url = "https://github.com/weaveworks/weave-gitops-interlockUPPER_LOWER.git"
+		addParams.ConfigRepo = ""
+
+		err := appSrv.Add(gitClient, gitProviders, addParams)
+		Expect(err).Should(HaveOccurred())
+	})
+
 	Context("Looking up repo default branch", func() {
 		var _ = BeforeEach(func() {
 			gitProviders.GetDefaultBranchStub = func(_ context.Context, repoUrl gitproviders.RepoURL) (string, error) {
