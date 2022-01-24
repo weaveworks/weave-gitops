@@ -2,6 +2,7 @@
 import { createTheme } from "@material-ui/core";
 // eslint-disable-next-line
 import { createGlobalStyle, DefaultTheme } from "styled-components";
+
 const baseSpacingNumber = 16;
 
 export const theme: DefaultTheme = {
@@ -85,6 +86,7 @@ export const GlobalStyle = createGlobalStyle`
     padding: 0;
     margin: 0;
     min-width: fit-content;
+    background: url(../images/bg.svg); 
   }
 
   .auth-modal-size {
