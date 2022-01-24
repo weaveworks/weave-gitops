@@ -200,41 +200,6 @@ func (a *authSvc) SetupDeployKey2(ctx context.Context, namespace string, targetN
 	return a.provisionDeployKey(ctx, targetName, secretName, repo)
 }
 
-//func SetupDeployKey(ctx context.Context,log logger.Logger, gitProvider gitproviders.GitProvider,k8sClient client.Client, name SecretName, targetName string, repo gitproviders.RepoURL) (*ssh.PublicKeys, error) {
-//	deployKeyExists, err := gitProvider.DeployKeyExists(ctx, repo)
-//	if err != nil {
-//		return nil, fmt.Errorf("failed check for existing deploy key: %w", err)
-//	}
-//
-//	if deployKeyExists {
-//		// The deploy key was found on the Git Provider, fetch it from the cluster.
-//		secret := &corev1.Secret{}
-//		err := k8sClient.Get(ctx, name.NamespacedName(), secret)
-//		if apierrors.IsNotFound(err) {
-//			// Edge case where the deploy key exists on the Git Provider, but not on the cluster.
-//			// Users might end up here if we uploaded the deploy key, but it failed to save on the cluster,
-//			// or if a cluster was destroyed during development work.
-//			// Create and upload a new deploy key.
-//			log.Warningf("A deploy key named %s was found on the git provider, but not in the cluster.", name.Name)
-//			return a.provisionDeployKey(ctx, targetName, name, repo)
-//		} else if err != nil {
-//			return nil, fmt.Errorf("error retrieving deploy key: %w", err)
-//		}
-//
-//		b := extractPrivateKey(secret)
-//
-//		pubKey, err := makePublicKey(b)
-//		if err != nil {
-//			return nil, fmt.Errorf("could not create public key from secret: %w", err)
-//		}
-//
-//		// Set the git client to use the existing deploy key.
-//		return pubKey, nil
-//	}
-//
-//	return a.provisionDeployKey(ctx, targetName, name, repo)
-//}
-
 func (a *authSvc) provisionDeployKey(ctx context.Context, targetName string, name SecretName, repo gitproviders.RepoURL) (*ssh.PublicKeys, error) {
 	visibility, err := a.gitProvider.GetRepoVisibility(ctx, repo)
 	if err != nil {
