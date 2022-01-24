@@ -70,7 +70,7 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, kubeClient kube.Kube
 
 	configNormalizedUrl, err := gitproviders.NewRepoURL(params.ConfigRepo)
 	if err != nil {
-		return nil, nil, fmt.Errorf("error normalizing url: %w", err)
+		return nil, nil, fmt.Errorf("error normalizing config url: %w", err)
 	}
 
 	targetName, err := kubeClient.GetClusterName(ctx)
@@ -84,7 +84,7 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, kubeClient kube.Kube
 	}
 
 	// Do not add deploy key for helm repo, empty url or if its gonna be added below
-	if !params.IsHelmRepository || params.URL != "" || params.URL != params.ConfigRepo {
+	if !params.IsHelmRepository && params.URL != "" && params.URL != params.ConfigRepo {
 		normalizedUrl, err := gitproviders.NewRepoURL(params.URL)
 		if err != nil {
 			return nil, nil, fmt.Errorf("error normalizing url: %w", err)
