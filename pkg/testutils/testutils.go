@@ -87,7 +87,8 @@ func StartK8sTestEnvironment(crdPaths []string) (*K8sTestEnv, error) {
 			&sourcev1.GitRepository{},
 			&v1.CustomResourceDefinition{},
 		},
-		Scheme: scheme,
+		Scheme:             scheme,
+		MetricsBindAddress: "0",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("could not create controller manager: %w", err)
