@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: helm-watcher-role
+  name: wego-helm-watcher-role
 rules:
   - apiGroups:
       - source.toolkit.fluxcd.io

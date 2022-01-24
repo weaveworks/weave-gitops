@@ -59,13 +59,13 @@ metadata:
 			Expect(manifests).To(ContainSubstring(`
 kind: ClusterRole
 metadata:
-  name: helm-watcher-role`))
+  name: wego-helm-watcher-role`))
 
 			By("containing a Cluster Role Binding manifest")
 			Expect(manifests).To(ContainSubstring(`
 kind: ClusterRoleBinding
 metadata:
-  name: helm-watcher-rolebinding`))
+  name: wego-helm-watcher-rolebinding`))
 		})
 	})
 })
