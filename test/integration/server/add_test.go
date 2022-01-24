@@ -7,8 +7,11 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/test/integration/server/helpers"
 	"path/filepath"
 	"time"
+
+	"github.com/weaveworks/weave-gitops/pkg/models"
 
 	"sigs.k8s.io/kustomize/api/types"
 
@@ -26,8 +29,6 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
-	"github.com/weaveworks/weave-gitops/pkg/services/automation"
-	"github.com/weaveworks/weave-gitops/test/integration/server/helpers"
 	glAPI "github.com/xanzy/go-gitlab"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -129,13 +130,13 @@ var _ = Describe("AddApplication", func() {
 					Force: false,
 				}
 
-				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedSource := sourcev1.GitRepositorySpec{
 					URL: addAppRequest.Url,
 					SecretRef: &meta.LocalObjectReference{
-						Name: automation.CreateRepoSecretName(repoURL).String(),
+						Name: models.CreateRepoSecretName(repoURL).String(),
 					},
 					Interval: metav1.Duration{Duration: time.Duration(30 * time.Second)},
 					Reference: &sourcev1.GitRepositoryRef{
@@ -194,7 +195,7 @@ var _ = Describe("AddApplication", func() {
 				actual, err := fetcher.GetFilesForPullRequest(ctx, 1, githubOrg, configRepoName, fs)
 				Expect(err).NotTo(HaveOccurred())
 
-				normalizedUrl, err := gitproviders.NewRepoURL(addAppRequest.Url)
+				normalizedUrl, err := gitproviders.NewRepoURL(addAppRequest.Url, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedApp := wego.ApplicationSpec{
@@ -217,14 +218,14 @@ var _ = Describe("AddApplication", func() {
 					Force: false,
 				}
 
-				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedSource := sourcev1.GitRepositorySpec{
 					URL: addAppRequest.Url,
 					SecretRef: &meta.LocalObjectReference{
 						// Might be a bug? Should be configRepoURL?
-						Name: automation.CreateRepoSecretName(repoURL).String(),
+						Name: models.CreateRepoSecretName(repoURL).String(),
 					},
 					Interval: metav1.Duration{Duration: time.Duration(30 * time.Second)},
 					Reference: &sourcev1.GitRepositoryRef{
@@ -308,13 +309,13 @@ var _ = Describe("AddApplication", func() {
 					Force: false,
 				}
 
-				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedSrc := sourcev1.GitRepositorySpec{
 					URL: addAppRequest.Url,
 					SecretRef: &meta.LocalObjectReference{
-						Name: automation.CreateRepoSecretName(repoURL).String(),
+						Name: models.CreateRepoSecretName(repoURL).String(),
 					},
 					Interval: metav1.Duration{Duration: 30 * time.Second},
 					Reference: &sourcev1.GitRepositoryRef{
@@ -439,13 +440,13 @@ var _ = Describe("AddApplication", func() {
 					Force: false,
 				}
 
-				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedSrc := sourcev1.GitRepositorySpec{
 					URL: addAppRequest.Url,
 					SecretRef: &meta.LocalObjectReference{
-						Name: automation.CreateRepoSecretName(repoURL).String(),
+						Name: models.CreateRepoSecretName(repoURL).String(),
 					},
 					Interval: metav1.Duration{Duration: 30 * time.Second},
 					Reference: &sourcev1.GitRepositoryRef{
@@ -546,13 +547,13 @@ var _ = Describe("AddApplication", func() {
 					Force: false,
 				}
 
-				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedSource := sourcev1.GitRepositorySpec{
 					URL: addAppRequest.Url,
 					SecretRef: &meta.LocalObjectReference{
-						Name: automation.CreateRepoSecretName(repoURL).String(),
+						Name: models.CreateRepoSecretName(repoURL).String(),
 					},
 					Interval: metav1.Duration{Duration: time.Duration(30 * time.Second)},
 					Reference: &sourcev1.GitRepositoryRef{
@@ -610,7 +611,7 @@ var _ = Describe("AddApplication", func() {
 				actual, err := fetcher.GetFilesForPullRequest(ctx, 1, gitlabOrg, configRepoName, fs)
 				Expect(err).NotTo(HaveOccurred())
 
-				normalizedUrl, err := gitproviders.NewRepoURL(addAppRequest.Url)
+				normalizedUrl, err := gitproviders.NewRepoURL(addAppRequest.Url, false)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedApp := wego.ApplicationSpec{
@@ -633,14 +634,14 @@ var _ = Describe("AddApplication", func() {
 					Force: false,
 				}
 
-				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedSource := sourcev1.GitRepositorySpec{
 					URL: addAppRequest.Url,
 					SecretRef: &meta.LocalObjectReference{
 						// Might be a bug? Should be configRepoURL?
-						Name: automation.CreateRepoSecretName(repoURL).String(),
+						Name: models.CreateRepoSecretName(repoURL).String(),
 					},
 					Interval: metav1.Duration{Duration: time.Duration(30 * time.Second)},
 					Reference: &sourcev1.GitRepositoryRef{
@@ -730,13 +731,13 @@ var _ = Describe("AddApplication", func() {
 					Force: false,
 				}
 
-				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL)
+				repoURL, err := gitproviders.NewRepoURL(sourceRepoURL, true)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedSrc := sourcev1.GitRepositorySpec{
 					URL: addAppRequest.Url,
 					SecretRef: &meta.LocalObjectReference{
-						Name: automation.CreateRepoSecretName(repoURL).String(),
+						Name: models.CreateRepoSecretName(repoURL).String(),
 					},
 					Interval: metav1.Duration{Duration: 30 * time.Second},
 					Reference: &sourcev1.GitRepositoryRef{

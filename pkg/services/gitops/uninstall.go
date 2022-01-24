@@ -32,7 +32,7 @@ func (g *Gitops) Uninstall(params UninstallParams) error {
 	g.logger.Actionf("Deleting Weave Gitops manifests")
 
 	if !params.DryRun {
-		wegoAppManifests, err := manifests.GenerateManifests(manifests.Params{AppVersion: version.Version, Namespace: params.Namespace})
+		wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppVersion: version.Version, Namespace: params.Namespace})
 		if err != nil {
 			return fmt.Errorf("error generating wego-app manifests, %w", err)
 		}

@@ -20,7 +20,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/services/automation"
+	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitrepo"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -91,7 +91,7 @@ func upgrade(ctx context.Context, uv UpgradeValues, kube kube.Kube, gitClient gi
 		return fmt.Errorf("failed to load credentials for profiles repo from cluster: %v", err)
 	}
 
-	normalizedURL, err := gitproviders.NewRepoURL(uv.ConfigRepo)
+	normalizedURL, err := gitproviders.NewRepoURL(uv.ConfigRepo, true)
 	if err != nil {
 		return fmt.Errorf("failed to normalize URL %q: %w", uv.ConfigRepo, err)
 	}
@@ -160,12 +160,12 @@ func marshalToYamlStream(objects []runtime.Object) ([]byte, error) {
 }
 
 func makeAppsCapiKustomization(namespace, repoURL string) ([]runtime.Object, error) {
-	normalizedURL, err := gitproviders.NewRepoURL(repoURL)
+	normalizedURL, err := gitproviders.NewRepoURL(repoURL, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to normalize URL %q: %w", repoURL, err)
 	}
 
-	gitRepositoryName := automation.CreateClusterSourceName(normalizedURL)
+	gitRepositoryName := models.CreateClusterSourceName(normalizedURL)
 
 	appsCapiKustomization := &kustomizev2.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
@@ -265,8 +265,8 @@ func makeHelmResources(namespace, version, clusterName, repoURL string, values [
 func upgradeGitManifests(gitClient git.Git, cname, wegoEnterpriseManifests string, logger logger.Logger) error {
 	capiKeepPath := filepath.Join(git.WegoRoot, git.WegoAppDir, "capi", "templates", ".keep")
 	capiKeepContents := string(strconv.AppendQuote(nil, "# keep"))
-	kustomizationPath := git.GetSystemQualifiedPath(cname, automation.SystemKustomizationPath)
-	wegoAppPath := git.GetSystemQualifiedPath(cname, automation.WegoAppPath)
+	kustomizationPath := git.GetSystemQualifiedPath(cname, models.SystemKustomizationPath)
+	wegoAppPath := git.GetSystemQualifiedPath(cname, models.WegoAppPath)
 	wegoEnterprisePath := git.GetSystemQualifiedPath(cname, WegoEnterpriseName)
 
 	manifests := map[string]string{
@@ -312,7 +312,7 @@ func updateKustomization(gitClient git.Git, kustomizationPath, wegoAppPath, wego
 	newResources := []string{WegoEnterpriseName}
 
 	for _, resource := range k.Resources {
-		if resource != automation.WegoAppPath {
+		if resource != models.WegoAppPath {
 			newResources = append(newResources, resource)
 		}
 	}

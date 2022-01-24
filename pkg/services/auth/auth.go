@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/internal"
 
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
@@ -15,7 +16,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -47,7 +47,7 @@ type ProviderTokenValidator interface {
 }
 
 type SecretName struct {
-	Name      automation.GeneratedSecretName
+	Name      models.GeneratedSecretName
 	Namespace string
 }
 
@@ -105,7 +105,7 @@ func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.Repo
 	}
 
 	secretName := SecretName{
-		Name:      automation.CreateRepoSecretName(repoUrl),
+		Name:      models.CreateRepoSecretName(repoUrl),
 		Namespace: namespace,
 	}
 
@@ -166,7 +166,7 @@ func (a *authSvc) provisionDeployKey(ctx context.Context, targetName string, nam
 		return nil, fmt.Errorf("error getting repo visibility: %w", err)
 	}
 
-	if *visibility == gitprovider.RepositoryVisibilityPublic {
+	if *visibility == gitprovider.RepositoryVisibilityPublic && !repo.IsConfigRepo() {
 		return nil, nil
 	}
 

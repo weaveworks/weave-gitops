@@ -8,12 +8,11 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/models"
-	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type ClusterApplier interface {
-	ApplyManifests(ctx context.Context, cluster models.Cluster, namespace string, manifests []automation.AutomationManifest) error
+	ApplyManifests(ctx context.Context, cluster models.Cluster, namespace string, manifests []models.Manifest) error
 }
 
 type ClusterApplySvc struct {
@@ -30,7 +29,7 @@ func NewClusterApplier(kubeClient kube.Kube) ClusterApplier {
 	}
 }
 
-func (a *ClusterApplySvc) ApplyManifests(ctx context.Context, cluster models.Cluster, namespace string, manifests []automation.AutomationManifest) error {
+func (a *ClusterApplySvc) ApplyManifests(ctx context.Context, cluster models.Cluster, namespace string, manifests []models.Manifest) error {
 	for _, manifest := range manifests {
 		ms := bytes.Split(manifest.Content, []byte("---\n"))
 

@@ -130,9 +130,9 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 		params.Path = params.Chart
 
 		if params.Name == "" {
-			if automation.ApplicationNameTooLong(params.Chart) {
+			if models.ApplicationNameTooLong(params.Chart) {
 				return params, fmt.Errorf("chart name %q is too long to use as application name (must be <= %d characters); please specify name with '--name'",
-					params.Chart, automation.MaxKubernetesResourceNameLength)
+					params.Chart, models.MaxKubernetesResourceNameLength)
 			}
 
 			params.Name = params.Chart
@@ -148,7 +148,7 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 	default:
 		var err error
 
-		appRepoUrl, err = gitproviders.NewRepoURL(params.Url)
+		appRepoUrl, err = gitproviders.NewRepoURL(params.Url, false)
 		if err != nil {
 			return params, fmt.Errorf("error normalizing url: %w", err)
 		}
@@ -161,7 +161,7 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 
 	// making sure the config url is in good format
 	if models.IsExternalConfigRepo(params.ConfigRepo) {
-		configRepoUrl, err := gitproviders.NewRepoURL(params.ConfigRepo)
+		configRepoUrl, err := gitproviders.NewRepoURL(params.ConfigRepo, true)
 		if err != nil {
 			return params, fmt.Errorf("error normalizing url: %w", err)
 		}
@@ -171,9 +171,9 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 
 	if params.Name == "" {
 		repoName := utils.UrlToRepoName(params.Url)
-		if automation.ApplicationNameTooLong(repoName) {
+		if models.ApplicationNameTooLong(repoName) {
 			return params, fmt.Errorf("url base name %q is too long to use as application name (must be <= %d characters); please specify name with '--name'",
-				repoName, automation.MaxKubernetesResourceNameLength)
+				repoName, models.MaxKubernetesResourceNameLength)
 		}
 
 		params.Name = automation.GenerateResourceName(appRepoUrl)
@@ -200,8 +200,8 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 		}
 	}
 
-	if automation.ApplicationNameTooLong(params.Name) {
-		return params, fmt.Errorf("application name too long: %s; must be <= %d characters", params.Name, automation.MaxKubernetesResourceNameLength)
+	if models.ApplicationNameTooLong(params.Name) {
+		return params, fmt.Errorf("application name too long: %s; must be <= %d characters", params.Name, models.MaxKubernetesResourceNameLength)
 	}
 
 	// Validate namespace argument for helm
@@ -236,7 +236,7 @@ func makeApplication(params AddParams) (models.Application, error) {
 	if models.SourceType(params.SourceType) == models.SourceTypeHelm {
 		helmSourceURL = params.Url
 	} else {
-		gitSourceURL, err = gitproviders.NewRepoURL(params.Url)
+		gitSourceURL, err = gitproviders.NewRepoURL(params.Url, false)
 		if err != nil {
 			return models.Application{}, err
 		}
@@ -245,7 +245,7 @@ func makeApplication(params AddParams) (models.Application, error) {
 	configRepo := gitSourceURL
 
 	if params.ConfigRepo != "" {
-		curl, err := gitproviders.NewRepoURL(params.ConfigRepo)
+		curl, err := gitproviders.NewRepoURL(params.ConfigRepo, true)
 		if err != nil {
 			return models.Application{}, err
 		}
