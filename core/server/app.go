@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/weaveworks/weave-gitops/api/v1alpha2"
 	stypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
@@ -215,18 +214,17 @@ func (as *appServer) ListGitRepositories(ctx context.Context, msg *pb.ListGitRep
 		return nil, doClientError(err)
 	}
 
-	list := &sourcev1.GitRepositoryList{}
-
 	opts := client.MatchingLabels{
 		"app.kubernetes.io/part-of": msg.AppName,
 	}
 
-	if err := k8s.List(ctx, list, opts); err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to get git repository list: %s", err.Error())
+	repos, err := listGitRepostories(ctx, k8s, msg.Namespace, opts)
+	if err != nil {
+		return nil, fmt.Errorf("listing repos: %w", err)
 	}
 
 	var results []*pb.GitRepository
-	for _, repository := range list.Items {
+	for _, repository := range repos {
 		results = append(results, stypes.GitRepositoryToProto(&repository))
 	}
 

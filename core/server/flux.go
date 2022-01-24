@@ -2,12 +2,14 @@ package server
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/weaveworks/weave-gitops/core/clientset"
 	"github.com/weaveworks/weave-gitops/core/gitops/kustomize"
 	"github.com/weaveworks/weave-gitops/core/gitops/source"
 	stypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -100,13 +102,16 @@ func (as *fluxServer) ListGitRepositories(ctx context.Context, msg *pb.ListGitRe
 		return nil, status.Errorf(codes.Internal, "unable to make k8s rest client: %s", err.Error())
 	}
 
-	repositories, err := as.sourceFetcher.ListGitRepositories(context.Background(), k8sRestClient, msg.Namespace, metav1.ListOptions{})
+	_, k8s, err := kube.NewKubeHTTPClient()
+
+	repositories, err := listGitRepostories(ctx, k8s, msg.Namespace, nil)
+
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "unable to get git repository list: %s", err.Error())
+		return nil, fmt.Errorf("listing repos: %w", err)
 	}
 
 	var results []*pb.GitRepository
-	for _, repository := range repositories.Items {
+	for _, repository := range repositories {
 		results = append(results, stypes.GitRepositoryToProto(&repository))
 	}
 
