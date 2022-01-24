@@ -65,8 +65,7 @@ var _ = Describe("RemoveApplication", func() {
 			)
 			Expect(err).NotTo(HaveOccurred())
 			sourceRepoURL = fmt.Sprintf("https://github.com/%s/%s", githubOrg, sourceRepoName)
-			helpers.SetWegoConfig(env.Client, namespace.Name, sourceRepoURL)
-
+			Expect(helpers.SetWegoConfig(env.Client, namespace.Name, sourceRepoURL)).To(Succeed())
 			sourceRepo, sourceRef, err = helpers.CreatePopulatedSourceRepo(ctx, gp, sourceRepoURL)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -234,8 +233,7 @@ var _ = Describe("RemoveApplication", func() {
 			gitlabAPIClient, err = glAPI.NewClient(gitlabToken)
 			Expect(err).NotTo(HaveOccurred())
 			sourceRepoURL = fmt.Sprintf("https://gitlab.com/%s/%s", gitlabGroup, sourceRepoName)
-			helpers.SetWegoConfig(env.Client, namespace.Name, sourceRepoURL)
-
+			Expect(helpers.SetWegoConfig(env.Client, namespace.Name, sourceRepoURL)).To(Succeed())
 			sourceRepo, sourceRef, err = helpers.CreatePopulatedSourceRepo(ctx, gitlabProviderClient, sourceRepoURL)
 			Expect(err).NotTo(HaveOccurred())
 

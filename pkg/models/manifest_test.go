@@ -32,8 +32,6 @@ var _ = Describe("Installer", func() {
 	var _ = BeforeEach(func() {
 		fakeFluxClient = &fluxfakes.FakeFlux{}
 		params.ConfigRepo, err = gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo", true)
-		const clusterName = "test-cluster"
-		const testNamespace = "test-namespace"
 
 		Context("BootstrapManifests", func() {
 

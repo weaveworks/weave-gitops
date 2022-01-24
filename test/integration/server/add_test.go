@@ -7,15 +7,12 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/test/integration/server/helpers"
 	"path/filepath"
 	"time"
 
-	"github.com/weaveworks/weave-gitops/pkg/models"
-<<<<<<< HEAD
 	"github.com/weaveworks/weave-gitops/test/integration/server/helpers"
-=======
->>>>>>> 3af4189b6e78b9896428558da73b9d2dda7a8f77
+
+	"github.com/weaveworks/weave-gitops/pkg/models"
 
 	"sigs.k8s.io/kustomize/api/types"
 
@@ -82,7 +79,7 @@ var _ = Describe("AddApplication", func() {
 			sourceRepo, sourceRef, err = helpers.CreatePopulatedSourceRepo(ctx, gp, sourceRepoURL)
 			Expect(err).NotTo(HaveOccurred())
 
-			helpers.SetWegoConfig(env.Client, namespace.Name, sourceRepoURL)
+			Expect(helpers.SetWegoConfig(env.Client, namespace.Name, sourceRepoURL)).To(Succeed())
 
 			appName = "my-app"
 
@@ -500,7 +497,7 @@ var _ = Describe("AddApplication", func() {
 			Expect(err).NotTo(HaveOccurred())
 			sourceRepoURL = fmt.Sprintf("https://gitlab.com/%s/%s", gitlabOrg, sourceRepoName)
 
-			helpers.SetWegoConfig(env.Client, namespace.Name, sourceRepoURL)
+			Expect(helpers.SetWegoConfig(env.Client, namespace.Name, sourceRepoURL)).To(Succeed())
 
 			sourceRepo, sourceRef, err = helpers.CreatePopulatedSourceRepo(ctx, gitlabProviderClient, sourceRepoURL)
 			Expect(err).NotTo(HaveOccurred())
