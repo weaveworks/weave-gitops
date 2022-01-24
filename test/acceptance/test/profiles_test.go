@@ -88,6 +88,11 @@ var _ = PDescribe("Weave GitOps Profiles API", func() {
 			Annotations: map[string]string{},
 		}))
 
+		getProfilesOutput, _ := runCommandAndReturnStringOutput(fmt.Sprintf("%s --namespace %s get profiles", gitopsBinaryPath, namespace))
+		Expect(getProfilesOutput).To(Equal(`NAME	DESCRIPTION	AVAILABLE_VERSIONS
+podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
+`))
+
 		By("Getting the values for a profile")
 		resp, statusCode, err = kubernetesDoRequest(namespace, wegoService, wegoPort, "/v1/profiles/podinfo/6.0.1/values", clientSet)
 		Expect(err).NotTo(HaveOccurred())

@@ -32,7 +32,7 @@ var _ = Describe("Installer", func() {
 		ctx = context.Background()
 		fakeFluxClient = &fluxfakes.FakeFlux{}
 		fakeGitProvider = &gitprovidersfakes.FakeGitProvider{}
-		configRepo, err = gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo")
+		configRepo, err = gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo", true)
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 
@@ -220,6 +220,10 @@ var _ = Describe("Installer", func() {
 				Expect(len(manifestsFiles)).Should(Equal(9))
 
 				expectedManifests := []Manifest{
+					{
+						Path:    git.GetSystemQualifiedPath(clusterName, SourcePath),
+						Content: gitSource,
+					},
 					{
 						Path:    git.GetSystemQualifiedPath(clusterName, SystemKustomizationPath),
 						Content: systemKustomizationManifest,

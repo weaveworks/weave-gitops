@@ -6,23 +6,20 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/weaveworks/weave-gitops/pkg/models"
-
-	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
-
-	"github.com/weaveworks/weave-gitops/pkg/logger"
-
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/models"
+	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
 )
 
 type Installer interface {
 	Install(namespace string, configURL gitproviders.RepoURL, autoMerge bool) error
 }
 
-type Install struct {
+type install struct {
 	fluxClient        flux.Flux
 	kubeClient        kube.Kube
 	gitClient         git.Git
@@ -31,8 +28,9 @@ type Install struct {
 	repoWriter        gitopswriter.RepoWriter
 }
 
+// NewInstaller instantiate a new installer
 func NewInstaller(fluxClient flux.Flux, kubeClient kube.Kube, gitClient git.Git, gitProviderClient gitproviders.GitProvider, log logger.Logger, repoWriter gitopswriter.RepoWriter) Installer {
-	return &Install{
+	return &install{
 		fluxClient:        fluxClient,
 		kubeClient:        kubeClient,
 		gitClient:         gitClient,
@@ -42,7 +40,8 @@ func NewInstaller(fluxClient flux.Flux, kubeClient kube.Kube, gitClient git.Git,
 	}
 }
 
-func (i *Install) Install(namespace string, configURL gitproviders.RepoURL, autoMerge bool) error {
+// Install generates gitops manifests, save them to the config repository and applies them to the cluster. In case auto-merge is true it creates a PR instead of writing directly to the default branch.
+func (i *install) Install(namespace string, configURL gitproviders.RepoURL, autoMerge bool) error {
 	ctx := context.Background()
 
 	if err := validateWegoInstall(ctx, i.kubeClient, namespace); err != nil {

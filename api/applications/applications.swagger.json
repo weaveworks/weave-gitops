@@ -265,6 +265,7 @@
     },
     "/v1/applications/validate_token": {
       "post": {
+        "summary": "ValidateProviderToken check to see if the git provider token is still valid",
         "operationId": "Applications_ValidateProviderToken",
         "responses": {
           "200": {
@@ -575,14 +576,11 @@
     "protobufAny": {
       "type": "object",
       "properties": {
-        "typeUrl": {
+        "@type": {
           "type": "string"
-        },
-        "value": {
-          "type": "string",
-          "format": "byte"
         }
-      }
+      },
+      "additionalProperties": {}
     },
     "rpcStatus": {
       "type": "object",
@@ -998,6 +996,9 @@
       "properties": {
         "success": {
           "type": "boolean"
+        },
+        "repoUrl": {
+          "type": "string"
         }
       }
     },

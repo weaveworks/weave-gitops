@@ -225,16 +225,10 @@ func (rw *repoWriter) Write(ctx context.Context, repoURL gitproviders.RepoURL, b
 	}
 
 	err = gitrepo.CommitAndPush(ctx, rw.gitClient, ClusterCommitMessage, rw.log, func(fname string) bool {
-		for _, m := range manifests {
-			if fname == *m.Path {
-				return true
-			}
-		}
-
-		return false
+		return true
 	})
 	if err != nil {
-		return fmt.Errorf("failed writing automation to disk: %w", err)
+		return fmt.Errorf("failed pushing changes to git provider: %w", err)
 	}
 
 	return nil

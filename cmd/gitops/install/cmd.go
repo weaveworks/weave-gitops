@@ -10,28 +10,24 @@ import (
 	"os"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
-
-	"github.com/weaveworks/weave-gitops/pkg/models"
-	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
-
-	corev1 "k8s.io/api/core/v1"
-
-	"github.com/weaveworks/weave-gitops/cmd/internal"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth"
-
-	"github.com/weaveworks/weave-gitops/pkg/services/install"
-
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/models"
 
 	"github.com/spf13/cobra"
+	corev1 "k8s.io/api/core/v1"
+
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
+	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
+	"github.com/weaveworks/weave-gitops/pkg/services/install"
 )
 
 type params struct {
@@ -71,7 +67,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	ctx := context.Background()
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
-	configURL, err := gitproviders.NewRepoURL(installParams.ConfigRepo)
+	configURL, err := gitproviders.NewRepoURL(installParams.ConfigRepo, true)
 	if err != nil {
 		return err
 	}

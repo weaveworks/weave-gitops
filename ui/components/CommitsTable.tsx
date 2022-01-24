@@ -81,11 +81,14 @@ function CommitsTable({
     <div className={className}>
       <DataTable
         sortFields={["date"]}
-        reverseSort
         fields={[
           {
             label: "SHA",
-            value: (row: Commit) => <Link href={row.url}>{row.hash}</Link>,
+            value: (row: Commit) => (
+              <Link newTab href={row.url}>
+                {row.hash}
+              </Link>
+            ),
           },
           {
             label: "Date",

@@ -117,7 +117,7 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, gpClient gitprovider
 		return nil, nil, nil
 	}
 
-	normalizedUrl, err := gitproviders.NewRepoURL(providerUrl)
+	normalizedUrl, err := gitproviders.NewRepoURL(providerUrl, false)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error normalizing url: %w", err)
 	}
@@ -150,7 +150,7 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, gpClient gitprovider
 	}
 
 	if isExternalConfig {
-		normalizedConfigRepo, err := gitproviders.NewRepoURL(params.ConfigRepo)
+		normalizedConfigRepo, err := gitproviders.NewRepoURL(params.ConfigRepo, true)
 		if err != nil {
 			return nil, nil, fmt.Errorf("error normalizing url: %w", err)
 		}

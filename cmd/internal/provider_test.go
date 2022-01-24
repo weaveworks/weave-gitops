@@ -5,14 +5,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"os"
+
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
-	"io"
-	"os"
 )
 
 const (
@@ -71,7 +72,7 @@ var _ = Describe("Get git provider", func() {
 		It("invalid token key returns an error", func() {
 			fakeLogger = &loggerfakes.FakeLogger{}
 			client = NewGitProviderClient(os.Stdout, fakeEnvLookupExists, fakeAuthHandlerFuncError, fakeLogger)
-			repoUrl, _ = gitproviders.NewRepoURL("ssh://git@some-bucket.com/weaveworks/weave-gitops.git")
+			repoUrl, _ = gitproviders.NewRepoURL("ssh://git@some-bucket.com/weaveworks/weave-gitops.git", false)
 
 			provider, err := client.GetProvider(repoUrl, fakeAccountGetterSuccess)
 			Expect(provider).To(BeNil())
@@ -86,7 +87,7 @@ var _ = Describe("Get git provider", func() {
 			BeforeEach(func() {
 				fakeLogger = &loggerfakes.FakeLogger{}
 				client = NewGitProviderClient(os.Stdout, fakeEnvLookupExists, fakeAuthHandlerFuncError, fakeLogger)
-				repoUrl, _ = gitproviders.NewRepoURL("ssh://git@github.com/weaveworks/weave-gitops.git")
+				repoUrl, _ = gitproviders.NewRepoURL("ssh://git@github.com/weaveworks/weave-gitops.git", false)
 			})
 
 			It("gitproviders.New returns an error", func() {
@@ -110,7 +111,7 @@ var _ = Describe("Get git provider", func() {
 			BeforeEach(func() {
 				fakeLogger = &loggerfakes.FakeLogger{}
 				client = NewGitProviderClient(os.Stdout, fakeEnvLookupExists, fakeAuthHandlerFuncError, fakeLogger)
-				repoUrl, _ = gitproviders.NewRepoURL("ssh://git@gitlab.com/weaveworks/weave-gitops.git")
+				repoUrl, _ = gitproviders.NewRepoURL("ssh://git@gitlab.com/weaveworks/weave-gitops.git", false)
 			})
 
 			It("gitproviders.New returns an error", func() {
@@ -134,7 +135,7 @@ var _ = Describe("Get git provider", func() {
 			fakeLogger = &loggerfakes.FakeLogger{
 				WarningfStub: func(fmtArg string, restArgs ...interface{}) {},
 			}
-			repoUrl, _ = gitproviders.NewRepoURL("ssh://git@github.com/weaveworks/weave-gitops.git")
+			repoUrl, _ = gitproviders.NewRepoURL("ssh://git@github.com/weaveworks/weave-gitops.git", false)
 		})
 
 		AfterEach(func() {

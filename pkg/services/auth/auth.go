@@ -241,7 +241,7 @@ func (a *authSvc) provisionDeployKey(ctx context.Context, targetName string, nam
 		return nil, fmt.Errorf("error getting repo visibility: %w", err)
 	}
 
-	if *visibility == gitprovider.RepositoryVisibilityPublic {
+	if *visibility == gitprovider.RepositoryVisibilityPublic && !repo.IsConfigRepo() {
 		return nil, nil
 	}
 
