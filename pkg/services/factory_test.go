@@ -35,7 +35,7 @@ var _ = Describe("Services factory", func() {
 
 			Expect(gitClient).To(BeNil())
 			Expect(gitProvider).To(BeNil())
-			Expect(err.Error()).To(MatchRegexp("error normalizing url*."))
+			Expect(err.Error()).To(MatchRegexp("error normalizing config url*."))
 		})
 
 		It("config type user repo and empty url return error", func() {
@@ -46,7 +46,7 @@ var _ = Describe("Services factory", func() {
 
 			Expect(gitClient).To(BeNil())
 			Expect(gitProvider).To(BeNil())
-			Expect(err.Error()).To(MatchRegexp("error normalizing url*."))
+			Expect(err.Error()).To(MatchRegexp("error config normalizing url*."))
 		})
 	})
 })
