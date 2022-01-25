@@ -115,7 +115,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	// This is creating the secret, uploads it and applies it to the cluster
 	// This is going to be broken up to reduce complexity
 	// and then generates the source yaml of the config repo when using dry-run option
-	gitClient, gitProvider, err := factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
+	gitClient, gitProvider, err := factory.GetGitClients(context.Background(), kubeClient, providerClient, services.GitConfigParams{
 		// We need to set URL and ConfigRepo to the same value so a deploy key is created for public config repos
 		URL:        installParams.ConfigRepo,
 		ConfigRepo: installParams.ConfigRepo,

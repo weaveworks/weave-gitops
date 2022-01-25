@@ -87,7 +87,7 @@ var _ = BeforeSuite(func() {
 	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 	fluxClient.SetupBin()
 
-	factory := services.NewServerFactory(fluxClient, &loggerfakes.FakeLogger{}, env.Rest, clusterName)
+	factory := services.NewFactory(fluxClient, &loggerfakes.FakeLogger{})
 	Expect(err).NotTo(HaveOccurred())
 
 	cfg := &server.ApplicationsConfig{

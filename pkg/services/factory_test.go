@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/flux/fluxfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
+	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 )
@@ -16,6 +17,7 @@ var _ = Describe("Services factory", func() {
 	var fakeFlux *fluxfakes.FakeFlux
 	var fakeLog *loggerfakes.FakeLogger
 	var fakeClient *gitprovidersfakes.FakeClient
+	var fakeKube *kubefakes.FakeKube
 	var factory Factory
 
 	BeforeEach(func() {
@@ -23,13 +25,14 @@ var _ = Describe("Services factory", func() {
 		fakeFlux = &fluxfakes.FakeFlux{}
 		fakeClient = &gitprovidersfakes.FakeClient{}
 		fakeLog = &loggerfakes.FakeLogger{}
+		fakeKube = &kubefakes.FakeKube{}
 
 		factory = NewFactory(fakeFlux, fakeLog)
 	})
 
 	Describe("get git clients", func() {
 		It("all parameter fields are empty throws error", func() {
-			gitClient, gitProvider, err := factory.GetGitClients(ctx, fakeClient, GitConfigParams{})
+			gitClient, gitProvider, err := factory.GetGitClients(ctx, fakeKube, fakeClient, GitConfigParams{})
 
 			Expect(gitClient).To(BeNil())
 			Expect(gitProvider).To(BeNil())
@@ -37,7 +40,7 @@ var _ = Describe("Services factory", func() {
 		})
 
 		It("config is for a helm repository", func() {
-			gitClient, gitProvider, err := factory.GetGitClients(ctx, fakeClient, GitConfigParams{
+			gitClient, gitProvider, err := factory.GetGitClients(ctx, fakeKube, fakeClient, GitConfigParams{
 				IsHelmRepository: true,
 			})
 
@@ -48,7 +51,7 @@ var _ = Describe("Services factory", func() {
 
 		It("app add params is helm chart", func() {
 			params := app.AddParams{Chart: "this-chart"}
-			gitClient, gitProvider, err := factory.GetGitClients(ctx, fakeClient, GitConfigParams{
+			gitClient, gitProvider, err := factory.GetGitClients(ctx, fakeKube, fakeClient, GitConfigParams{
 				IsHelmRepository: params.IsHelmRepository(),
 			})
 
@@ -58,7 +61,7 @@ var _ = Describe("Services factory", func() {
 		})
 
 		It("config type user repo and empty url return error", func() {
-			gitClient, gitProvider, err := factory.GetGitClients(ctx, fakeClient, GitConfigParams{
+			gitClient, gitProvider, err := factory.GetGitClients(ctx, fakeKube, fakeClient, GitConfigParams{
 				ConfigRepo:       "",
 				IsHelmRepository: false,
 			})

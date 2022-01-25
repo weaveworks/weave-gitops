@@ -82,7 +82,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	gitClient, gitProvider, err := factory.GetGitClients(context.Background(), providerClient, services.GitConfigParams{
+	gitClient, gitProvider, err := factory.GetGitClients(context.Background(), k, providerClient, services.GitConfigParams{
 		URL:       installParams.ConfigRepo,
 		Namespace: namespace,
 		DryRun:    installParams.DryRun,
