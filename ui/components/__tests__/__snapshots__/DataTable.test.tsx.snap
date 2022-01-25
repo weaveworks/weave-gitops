@@ -1,7 +1,54 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`DataTable snapshots renders 1`] = `
+.c2.MuiButton-root {
+  line-height: 1;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+.c2.MuiButton-outlined {
+  padding: 8px 12px;
+  border-color: #d8d8d8;
+}
+
 .c1 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+}
+
+.c5 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: space-evenly;
+  -webkit-justify-content: space-evenly;
+  -ms-flex-pack: space-evenly;
+  justify-content: space-evenly;
+}
+
+.c8 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -9,7 +56,57 @@ exports[`DataTable snapshots renders 1`] = `
   font-style: normal;
 }
 
-.c0 .MuiTableCell-head {
+.c6 svg {
+  fill: !important;
+  height: 16px;
+  width: 16px;
+}
+
+.c6.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c6.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c6 .c7 {
+  margin-left: 4px;
+}
+
+.c4 {
+  padding: 4px;
+}
+
+.c3.MuiButton-root {
+  padding: 0;
+  margin: 0;
+  text-transform: none;
+}
+
+.c3.MuiButton-text {
+  color: #737373;
+  min-width: 0px;
+}
+
+.c3.arrow {
+  min-width: 0px;
+}
+
+.c3.selected {
+  color: #1a1a1a;
+}
+
+.c0 h2 {
+  margin: 0px;
+}
+
+.c0 .thead {
+  color: #737373;
   font-weight: 800;
 }
 
@@ -37,21 +134,75 @@ exports[`DataTable snapshots renders 1`] = `
             className="MuiTableCell-root MuiTableCell-head"
             scope="col"
           >
-            Name
+            <div
+              className="c1"
+            >
+              <button
+                className="MuiButtonBase-root MuiButton-root MuiButton-text c2 c3 MuiButton-colorInherit MuiButton-disableElevation"
+                disabled={false}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onDragLeave={[Function]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                onMouseDown={[Function]}
+                onMouseLeave={[Function]}
+                onMouseUp={[Function]}
+                onTouchEnd={[Function]}
+                onTouchMove={[Function]}
+                onTouchStart={[Function]}
+                tabIndex={0}
+                type="button"
+              >
+                <span
+                  className="MuiButton-label"
+                >
+                  <h2>
+                    Name
+                  </h2>
+                </span>
+              </button>
+              <div
+                className="c4"
+              />
+              <div
+                className="c5 c6 downward"
+              >
+                <svg
+                  aria-hidden={true}
+                  className="MuiSvgIcon-root"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"
+                  />
+                </svg>
+              </div>
+            </div>
           </th>
           <th
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-head"
             scope="col"
           >
-            Status
+            <h2
+              className="thead"
+            >
+              Status
+            </h2>
           </th>
           <th
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-head"
             scope="col"
           >
-            Last Updated
+            <h2
+              className="thead"
+            >
+              Last Updated
+            </h2>
           </th>
         </tr>
       </thead>
@@ -68,49 +219,7 @@ exports[`DataTable snapshots renders 1`] = `
             className="MuiTableCell-root MuiTableCell-body"
           >
             <span
-              className="c1"
-              size="normal"
-            >
-              <a
-                href="/some_url"
-              >
-                my-cool-app
-              </a>
-            </span>
-          </td>
-          <td
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-body"
-          >
-            <span
-              className="c1"
-              size="normal"
-            >
-              Ready
-            </span>
-          </td>
-          <td
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-body"
-          >
-            <span
-              className="c1"
-              size="normal"
-            >
-              2006-01-02T15:04:05-0700
-            </span>
-          </td>
-        </tr>
-        <tr
-          className="MuiTableRow-root"
-          role={null}
-        >
-          <td
-            aria-sort={null}
-            className="MuiTableCell-root MuiTableCell-body"
-          >
-            <span
-              className="c1"
+              className="c7 c8"
               size="normal"
             >
               <a
@@ -125,7 +234,7 @@ exports[`DataTable snapshots renders 1`] = `
             className="MuiTableCell-root MuiTableCell-body"
           >
             <span
-              className="c1"
+              className="c7 c8"
               size="normal"
             >
               Ready
@@ -136,7 +245,7 @@ exports[`DataTable snapshots renders 1`] = `
             className="MuiTableCell-root MuiTableCell-body"
           >
             <span
-              className="c1"
+              className="c7 c8"
               size="normal"
             >
               2006-01-02T15:04:05-0700
@@ -152,7 +261,7 @@ exports[`DataTable snapshots renders 1`] = `
             className="MuiTableCell-root MuiTableCell-body"
           >
             <span
-              className="c1"
+              className="c7 c8"
               size="normal"
             >
               <a
@@ -167,7 +276,49 @@ exports[`DataTable snapshots renders 1`] = `
             className="MuiTableCell-root MuiTableCell-body"
           >
             <span
-              className="c1"
+              className="c7 c8"
+              size="normal"
+            >
+              Failed
+            </span>
+          </td>
+          <td
+            aria-sort={null}
+            className="MuiTableCell-root MuiTableCell-body"
+          >
+            <span
+              className="c7 c8"
+              size="normal"
+            >
+              2006-01-02T15:04:05-0700
+            </span>
+          </td>
+        </tr>
+        <tr
+          className="MuiTableRow-root"
+          role={null}
+        >
+          <td
+            aria-sort={null}
+            className="MuiTableCell-root MuiTableCell-body"
+          >
+            <span
+              className="c7 c8"
+              size="normal"
+            >
+              <a
+                href="/some_url"
+              >
+                the-cool-app
+              </a>
+            </span>
+          </td>
+          <td
+            aria-sort={null}
+            className="MuiTableCell-root MuiTableCell-body"
+          >
+            <span
+              className="c7 c8"
               size="normal"
             >
               Ready
@@ -178,7 +329,7 @@ exports[`DataTable snapshots renders 1`] = `
             className="MuiTableCell-root MuiTableCell-body"
           >
             <span
-              className="c1"
+              className="c7 c8"
               size="normal"
             >
               2006-01-02T15:04:05-0700
