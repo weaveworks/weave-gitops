@@ -14,7 +14,6 @@ import (
 	"google.golang.org/grpc/status"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -27,9 +26,7 @@ var scheme = kube.CreateScheme()
 type appServer struct {
 	pb.UnimplementedAppsServer
 
-	k8s     placeholderClientGetter
-	restCfg *rest.Config
-	scheme  *runtime.Scheme
+	k8s placeholderClientGetter
 }
 
 // This struct is only here to avoid a circular import with the `server` package.
