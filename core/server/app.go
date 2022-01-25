@@ -2,13 +2,14 @@ package server
 
 import (
 	"context"
-	"fmt"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/weaveworks/weave-gitops/api/v1alpha2"
 	stypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -19,42 +20,39 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type k8sClientCreator func(ctx context.Context, cfg *rest.Config) (client.Client, error)
+// Create the scheme once and re-use it on every call.
+// This shouldn't need to change between requests(?)
+var scheme = kube.CreateScheme()
+
 type appServer struct {
 	pb.UnimplementedAppsServer
 
-	createK8s k8sClientCreator
-	restCfg   *rest.Config
-	scheme    *runtime.Scheme
+	k8s     placeholderClientGetter
+	restCfg *rest.Config
+	scheme  *runtime.Scheme
 }
 
-var scheme = kube.CreateScheme()
+// This struct is only here to avoid a circular import with the `server` package.
+// This is meant to match the ClientGetter interface.
+// Since we are in a prototyping phase, it didn't make sense to move and import that code just yet.
+type placeholderClientGetter struct {
+	cfg *rest.Config
+}
+
+func (p placeholderClientGetter) Client(ctx context.Context) (client.Client, error) {
+	return client.New(p.cfg, client.Options{
+		Scheme: scheme,
+	})
+}
 
 func NewAppServer(cfg *rest.Config) pb.AppsServer {
 	return &appServer{
-		createK8s: func(_ context.Context, override *rest.Config) (client.Client, error) {
-			// Future proofing here to ensure we can extract any auth data from context in the future.
-			// `rest.Config` is the second arg to support connecting to different clusters in the future.
-			restCfg := cfg
-			if override != nil {
-				restCfg = override
-			}
-
-			rawClient, err := client.New(restCfg, client.Options{
-				Scheme: scheme,
-			})
-
-			if err != nil {
-				return nil, fmt.Errorf("kubernetes client initialization failed: %w", err)
-			}
-
-			return rawClient, err
-		},
+		k8s: placeholderClientGetter{cfg: cfg},
 	}
 }
 
 func (as *appServer) AddApp(ctx context.Context, msg *pb.AddAppRequest) (*pb.AddAppResponse, error) {
-	k8s, err := as.createK8s(ctx, nil)
+	k8s, err := as.k8s.Client(ctx)
 	if err != nil {
 		return nil, doClientError(err)
 	}
@@ -80,7 +78,7 @@ func (as *appServer) AddApp(ctx context.Context, msg *pb.AddAppRequest) (*pb.Add
 }
 
 func (as *appServer) GetApp(ctx context.Context, msg *pb.GetAppRequest) (*pb.GetAppResponse, error) {
-	k8s, err := as.createK8s(ctx, nil)
+	k8s, err := as.k8s.Client(ctx)
 	if err != nil {
 		return nil, doClientError(err)
 	}
@@ -95,7 +93,7 @@ func (as *appServer) GetApp(ctx context.Context, msg *pb.GetAppRequest) (*pb.Get
 }
 
 func (as *appServer) ListApps(ctx context.Context, msg *pb.ListAppRequest) (*pb.ListAppResponse, error) {
-	k8s, err := as.createK8s(ctx, nil)
+	k8s, err := as.k8s.Client(ctx)
 	if err != nil {
 		return nil, doClientError(err)
 	}
@@ -128,7 +126,7 @@ func (as *appServer) AddKustomization(ctx context.Context, msg *pb.AddKustomizat
 		return nil, status.Errorf(codes.InvalidArgument, "sourceRef is required")
 	}
 
-	k8s, err := as.createK8s(ctx, nil)
+	k8s, err := as.k8s.Client(ctx)
 	if err != nil {
 		return nil, doClientError(err)
 	}
@@ -146,7 +144,7 @@ func (as *appServer) AddKustomization(ctx context.Context, msg *pb.AddKustomizat
 }
 
 func (as *appServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomizationsReq) (*pb.ListKustomizationsRes, error) {
-	k8s, err := as.createK8s(ctx, nil)
+	k8s, err := as.k8s.Client(ctx)
 	if err != nil {
 		return nil, doClientError(err)
 	}
@@ -172,7 +170,7 @@ func (as *appServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomi
 }
 
 func (as *appServer) RemoveKustomizations(ctx context.Context, msg *pb.RemoveKustomizationReq) (*pb.RemoveKustomizationRes, error) {
-	k8s, err := as.createK8s(ctx, nil)
+	k8s, err := as.k8s.Client(ctx)
 	if err != nil {
 		return nil, doClientError(err)
 	}
@@ -191,7 +189,7 @@ func (as *appServer) RemoveKustomizations(ctx context.Context, msg *pb.RemoveKus
 }
 
 func (as *appServer) AddGitRepository(ctx context.Context, msg *pb.AddGitRepositoryReq) (*pb.AddGitRepositoryRes, error) {
-	k8s, err := as.createK8s(ctx, nil)
+	k8s, err := as.k8s.Client(ctx)
 	if err != nil {
 		return nil, doClientError(err)
 	}
@@ -209,22 +207,28 @@ func (as *appServer) AddGitRepository(ctx context.Context, msg *pb.AddGitReposit
 }
 
 func (as *appServer) ListGitRepositories(ctx context.Context, msg *pb.ListGitRepositoryReq) (*pb.ListGitRepositoryRes, error) {
-	k8s, err := as.createK8s(ctx, nil)
+	k8s, err := as.k8s.Client(ctx)
 	if err != nil {
 		return nil, doClientError(err)
 	}
 
-	opts := client.MatchingLabels{
-		"app.kubernetes.io/part-of": msg.AppName,
+	list := &sourcev1.GitRepositoryList{}
+
+	if msg.AppName == "" {
+		err = k8s.List(ctx, list)
+	} else {
+		opts := client.MatchingLabels{
+			"app.kubernetes.io/part-of": msg.AppName,
+		}
+		err = k8s.List(ctx, list, opts)
 	}
 
-	repos, err := listGitRepostories(ctx, k8s, msg.Namespace, opts)
 	if err != nil {
-		return nil, fmt.Errorf("listing repos: %w", err)
+		return nil, status.Errorf(codes.Internal, "unable to get git repository list: %s", err.Error())
 	}
 
 	var results []*pb.GitRepository
-	for _, repository := range repos {
+	for _, repository := range list.Items {
 		results = append(results, stypes.GitRepositoryToProto(&repository))
 	}
 
