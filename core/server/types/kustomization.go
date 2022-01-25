@@ -40,8 +40,8 @@ func ProtoToKustomization(kustomization *pb.AddKustomizationReq) v1beta2.Kustomi
 }
 
 func KustomizationToProto(kustomization *v1beta2.Kustomization) *pb.Kustomization {
-
 	var kind pb.SourceRef_Kind
+
 	switch kustomization.Spec.SourceRef.Kind {
 	case v1beta1.GitRepositoryKind:
 		kind = pb.SourceRef_GitRepository

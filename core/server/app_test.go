@@ -20,7 +20,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/rest"
 )
 
 const (
@@ -35,9 +34,8 @@ metadata:
 
 type appServerFixture struct {
 	*GomegaWithT
-	env             *testutils.K8sTestEnv
-	namespaceClient *rest.RESTClient
-	testServer      *httptest.Server
+	env        *testutils.K8sTestEnv
+	testServer *httptest.Server
 }
 
 func (f appServerFixture) arrangeAppPath(namespace string) string {
