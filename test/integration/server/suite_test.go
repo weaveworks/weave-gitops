@@ -25,6 +25,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -113,7 +114,7 @@ var _ = BeforeSuite(func() {
 
 	lis = bufconn.Listen(bufSize)
 
-	conn, err = grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithInsecure())
+	conn, err = grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	Expect(err).NotTo(HaveOccurred())
 })
 
