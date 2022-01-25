@@ -7,9 +7,10 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/test/integration/server/helpers"
 	"path/filepath"
 	"time"
+
+	"github.com/weaveworks/weave-gitops/test/integration/server/helpers"
 
 	"github.com/weaveworks/weave-gitops/pkg/models"
 
@@ -35,7 +36,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
-var _ = Describe("AddApplication", func() {
+var _ = XDescribe("AddApplication", func() {
 	var (
 		namespace *corev1.Namespace
 		ctx       context.Context

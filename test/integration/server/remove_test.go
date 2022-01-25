@@ -29,7 +29,7 @@ import (
 	"sigs.k8s.io/kustomize/api/types"
 )
 
-var _ = Describe("RemoveApplication", func() {
+var _ = XDescribe("RemoveApplication", func() {
 	var (
 		namespace      *corev1.Namespace
 		ctx            context.Context
