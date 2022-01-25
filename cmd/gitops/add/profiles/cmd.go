@@ -13,12 +13,12 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/services"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
-	"github.com/weaveworks/weave-gitops/pkg/services/automation"
 	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -59,8 +59,7 @@ func addProfileCmdRunE(client *resty.Client) func(*cobra.Command, []string) erro
 		factory := services.NewFactory(fluxClient, log)
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 
-		validatedOpts, err := validateAddOptions(opts)
-		if err != nil {
+		if err := validateAddOptions(opts); err != nil {
 			return err
 		}
 
@@ -91,33 +90,37 @@ func addProfileCmdRunE(client *resty.Client) func(*cobra.Command, []string) erro
 			return fmt.Errorf("error initializing kubernetes client: %w", err)
 		}
 
-		profilesService := profiles.NewService(clientSet)
-		return profilesService.Add(ctx, gitProvider, validatedOpts)
+		profilesService := profiles.NewService(clientSet, log)
+		return profilesService.Add(ctx, gitProvider, opts)
 	}
 }
 
-func validateAddOptions(opts profiles.AddOptions) (profiles.AddOptions, error) {
+func validateAddOptions(opts profiles.AddOptions) error {
 	if opts.Name == "" {
-		return opts, errors.New("--name should be provided")
+		return errors.New("--name should be provided")
 	}
 
-	if automation.ApplicationNameTooLong(opts.Name) {
-		return opts, fmt.Errorf("--name value is too long: %s; must be <= %d characters",
-			opts.Name, automation.MaxKubernetesResourceNameLength)
+	if models.ApplicationNameTooLong(opts.Name) {
+		return fmt.Errorf("--name value is too long: %s; must be <= %d characters",
+			opts.Name, models.MaxKubernetesResourceNameLength)
 	}
 
 	if strings.HasPrefix(opts.Name, "wego") {
-		return opts, fmt.Errorf("the prefix 'wego' is used by weave gitops and is not allowed for a profile name")
+		return fmt.Errorf("the prefix 'wego' is used by weave gitops and is not allowed for a profile name")
 	}
 
 	if opts.ConfigRepo == "" {
-		return opts, errors.New("--config-repo should be provided")
+		return errors.New("--config-repo should be provided")
 	}
+
 	if opts.Cluster == "" {
-		return opts, errors.New("--cluster should be provided")
+		return errors.New("--cluster should be provided")
 	}
-	if _, err := semver.StrictNewVersion(opts.Version); err != nil {
-		return opts, fmt.Errorf("error parsing --version=%s: %s", opts.Version, err)
+
+	if opts.Version != "latest" {
+		if _, err := semver.StrictNewVersion(opts.Version); err != nil {
+			return fmt.Errorf("error parsing --version=%s: %s", opts.Version, err)
+		}
 	}
-	return opts, nil
+	return nil
 }

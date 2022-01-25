@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"sort"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -15,13 +16,17 @@ import (
 )
 
 type GetOptions struct {
+	Name      string
+	Version   string
+	Cluster   string
 	Namespace string
 	Writer    io.Writer
 	Port      string
 }
 
+// Get returns a list of available profiles.
 func (s *ProfilesSvc) Get(ctx context.Context, opts GetOptions) error {
-	profiles, err := doKubeProfilesGetRequest(ctx, opts.Namespace, wegoServiceName, opts.Port, getProfilesPath, s.ClientSet)
+	profiles, err := doKubeGetRequest(ctx, opts.Namespace, wegoServiceName, opts.Port, getProfilesPath, s.ClientSet)
 	if err != nil {
 		return err
 	}
@@ -31,7 +36,7 @@ func (s *ProfilesSvc) Get(ctx context.Context, opts GetOptions) error {
 	return nil
 }
 
-func doKubeProfilesGetRequest(ctx context.Context, namespace, serviceName, servicePort, path string, clientset kubernetes.Interface) (*pb.GetProfilesResponse, error) {
+func doKubeGetRequest(ctx context.Context, namespace, serviceName, servicePort, path string, clientset kubernetes.Interface) (*pb.GetProfilesResponse, error) {
 	resp, err := kubernetesDoRequest(ctx, namespace, wegoServiceName, servicePort, getProfilesPath, clientset)
 	if err != nil {
 		return nil, err
@@ -44,6 +49,45 @@ func doKubeProfilesGetRequest(ctx context.Context, namespace, serviceName, servi
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 	return profiles, nil
+}
+
+// GetAvailableProfile returns a single available profile.
+func (s *ProfilesSvc) GetAvailableProfile(ctx context.Context, opts GetOptions) (*pb.Profile, error) {
+	profilesList, err := doKubeGetRequest(ctx, opts.Namespace, wegoServiceName, opts.Port, getProfilesPath, s.ClientSet)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, p := range profilesList.Profiles {
+		if p.Name == opts.Name {
+			if len(p.AvailableVersions) == 0 {
+				return nil, fmt.Errorf("no version found for profile '%s' in %s/%s", p.Name, opts.Cluster, opts.Namespace)
+			}
+			switch {
+			case opts.Version == "latest":
+				if len(p.AvailableVersions) > 1 {
+					sort.Strings(p.AvailableVersions)
+					p.AvailableVersions[0] = p.AvailableVersions[len(p.AvailableVersions)-1]
+				}
+			default:
+				if !foundVersion(p.AvailableVersions, opts.Version) {
+					return nil, fmt.Errorf("version '%s' not found for profile '%s' in %s/%s", opts.Version, opts.Name, opts.Cluster, opts.Namespace)
+				}
+				p.AvailableVersions[0] = opts.Version
+			}
+			return p, nil
+		}
+	}
+	return nil, fmt.Errorf("no available profile '%s' found in %s/%s", opts.Name, opts.Cluster, opts.Namespace)
+}
+
+func foundVersion(availableVersions []string, version string) bool {
+	for _, v := range availableVersions {
+		if v == version {
+			return true
+		}
+	}
+	return false
 }
 
 func printProfiles(profiles *pb.GetProfilesResponse, w io.Writer) {

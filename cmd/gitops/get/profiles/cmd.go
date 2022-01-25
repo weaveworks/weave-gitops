@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
 	"k8s.io/client-go/kubernetes"
@@ -52,7 +53,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	profilesService := profiles.NewService(clientSet)
+	profilesService := profiles.NewService(clientSet, internal.NewCLILogger(os.Stdout))
 	return profilesService.Get(context.Background(), profiles.GetOptions{
 		Namespace: ns,
 		Writer:    os.Stdout,

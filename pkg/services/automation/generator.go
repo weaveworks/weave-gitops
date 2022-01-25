@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/md5"
 	"fmt"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
@@ -408,6 +409,16 @@ func GetAppHash(a models.Application) string {
 
 func GenerateResourceName(url gitproviders.RepoURL) string {
 	return models.ConstrainResourceName(url.RepositoryName())
+}
+
+// GetRandomName generates a random unique name.
+func GetRandomName(s string) string {
+	data := "abcdefghijklmnopqrstuvwyz1234567890"
+	b := make([]byte, 5)
+	for i := range b {
+		b[i] = data[rand.Intn(len(data))]
+	}
+	return s + string(b)
 }
 
 func (rk ResourceKind) ToGVR() (schema.GroupVersionResource, error) {
