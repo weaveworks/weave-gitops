@@ -81,7 +81,6 @@ function CommitsTable({
     <div className={className}>
       <DataTable
         sortFields={["date"]}
-        reverseSort
         fields={[
           {
             label: "SHA",

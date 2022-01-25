@@ -132,6 +132,18 @@ exports[`GithubDeviceAuthModal snapshots renders 1`] = `
   width: 16px;
 }
 
+.c11.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c11.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
 .c11 .c6 {
   margin-left: 4px;
 }

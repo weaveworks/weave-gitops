@@ -54,6 +54,18 @@ metadata:
 kind: RoleBinding
 metadata:
   name: read-resources`))
+
+			By("containing a Cluster Role manifest")
+			Expect(manifests).To(ContainSubstring(`
+kind: ClusterRole
+metadata:
+  name: wego-helm-watcher-role`))
+
+			By("containing a Cluster Role Binding manifest")
+			Expect(manifests).To(ContainSubstring(`
+kind: ClusterRoleBinding
+metadata:
+  name: wego-helm-watcher-rolebinding`))
 		})
 	})
 })
