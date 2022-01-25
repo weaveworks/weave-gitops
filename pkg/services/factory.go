@@ -97,6 +97,7 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, kubeClient kube.Kube
 			return nil, nil, fmt.Errorf("error getting repo visibility: %w", err)
 		}
 
+		// Only add deploy key for private repo
 		if *repoVisibility == gitprovider.RepositoryVisibilityPrivate {
 			secretName := auth.SecretName{
 				Name:      models.CreateRepoSecretName(normalizedUrl),
