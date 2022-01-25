@@ -7,6 +7,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/manifests"
@@ -60,7 +61,7 @@ func checkAppCRDUninstallFailure() {
 	Expect(err).To(MatchError(gitops.UninstallError{}))
 	Expect(kubeClient.GetClusterStatusCallCount()).To(Equal(1))
 	Expect(fluxClient.UninstallCallCount()).To(Equal(1))
-	Expect(kubeClient.DeleteCallCount()).To(Equal(6))
+	Expect(kubeClient.DeleteCallCount()).To(Equal(8))
 
 	namespace, dryRun := fluxClient.UninstallArgsForCall(0)
 	Expect(namespace).To(Equal(wego.DefaultNamespace))
