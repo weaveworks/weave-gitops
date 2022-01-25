@@ -122,16 +122,6 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, gpClient gitprovider
 		return nil, nil, fmt.Errorf("error normalizing url: %w", err)
 	}
 
-	kube, err := f.GetKubeService()
-	if err != nil {
-		return nil, nil, fmt.Errorf("error creating k8s http client: %w", err)
-	}
-
-	targetName, err := kube.GetClusterName(ctx)
-	if err != nil {
-		return nil, nil, fmt.Errorf("error getting target name: %w", err)
-	}
-
 	authSvc, err := f.getAuthService(normalizedUrl, gpClient, params.DryRun)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error creating auth service: %w", err)
@@ -141,7 +131,7 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, gpClient gitprovider
 
 	if !params.IsHelmRepository {
 		// We need to do this even if we have an external config to set up the deploy key for the app repo
-		appRepoClient, appRepoErr := authSvc.CreateGitClient(ctx, normalizedUrl, targetName, params.Namespace, params.DryRun)
+		appRepoClient, appRepoErr := authSvc.CreateGitClient(ctx, normalizedUrl, params.Namespace, params.DryRun)
 		if appRepoErr != nil {
 			return nil, nil, appRepoErr
 		}
@@ -155,7 +145,7 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, gpClient gitprovider
 			return nil, nil, fmt.Errorf("error normalizing url: %w", err)
 		}
 
-		configRepoClient, configRepoErr := authSvc.CreateGitClient(ctx, normalizedConfigRepo, targetName, params.Namespace, params.DryRun)
+		configRepoClient, configRepoErr := authSvc.CreateGitClient(ctx, normalizedConfigRepo, params.Namespace, params.DryRun)
 		if configRepoErr != nil {
 			return nil, nil, configRepoErr
 		}

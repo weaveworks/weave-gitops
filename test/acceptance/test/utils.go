@@ -600,7 +600,9 @@ func runCommandAndReturnSessionOutput(commandToRun string) *gexec.Session {
 
 func runWegoAddCommand(repoAbsolutePath string, addCommand string, wegoNamespace string) {
 	log.Infof("Add command to run: %s in namespace %s from dir %s", addCommand, wegoNamespace, repoAbsolutePath)
-	_, _ = runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, wegoNamespace)
+	out, err := runWegoAddCommandWithOutput(repoAbsolutePath, addCommand, wegoNamespace)
+	fmt.Println("OUTPUT", string(out))
+	fmt.Println("ERR", string(err))
 }
 
 func runWegoAddCommandWithOutput(repoAbsolutePath string, addCommand string, wegoNamespace string) (string, string) {

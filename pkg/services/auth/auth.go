@@ -68,9 +68,9 @@ func (sn SecretName) NamespacedName() types.NamespacedName {
 }
 
 type AuthService interface {
-	CreateGitClient(ctx context.Context, repoUrl gitproviders.RepoURL, targetName string, namespace string, dryRun bool) (git.Git, error)
+	CreateGitClient(ctx context.Context, repoUrl gitproviders.RepoURL, namespace string, dryRun bool) (git.Git, error)
 	GetGitProvider() gitproviders.GitProvider
-	SetupDeployKey(ctx context.Context, namespace string, targetName string, repo gitproviders.RepoURL) (*ssh.PublicKeys, error)
+	SetupDeployKey(ctx context.Context, namespace string, repo gitproviders.RepoURL) (*ssh.PublicKeys, error)
 }
 
 type authSvc struct {
@@ -99,13 +99,13 @@ func (a *authSvc) GetGitProvider() gitproviders.GitProvider {
 
 // CreateGitClient creates a git.Git client instrumented with existing or generated deploy keys.
 // This ensures that git operations are done with stored deploy keys instead of a user's local ssh-agent or equivalent.
-func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.RepoURL, targetName string, namespace string, dryRun bool) (git.Git, error) {
+func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.RepoURL, namespace string, dryRun bool) (git.Git, error) {
 	if dryRun {
 		d, _ := makePublicKey([]byte(""))
 		return git.New(d, wrapper.NewGoGit()), nil
 	}
 
-	pubKey, keyErr := a.SetupDeployKey(ctx, targetName, namespace, repoUrl)
+	pubKey, keyErr := a.SetupDeployKey(ctx, namespace, repoUrl)
 	if keyErr != nil {
 		return nil, fmt.Errorf("error setting up deploy keys: %w", keyErr)
 	}
@@ -122,7 +122,7 @@ func (a *authSvc) CreateGitClient(ctx context.Context, repoUrl gitproviders.Repo
 
 // SetupDeployKey creates a git.Git client instrumented with existing or generated deploy keys.
 // This ensures that git operations are done with stored deploy keys instead of a user's local ssh-agent or equivalent.
-func (a *authSvc) SetupDeployKey(ctx context.Context, targetName string, namespace string, repo gitproviders.RepoURL) (*ssh.PublicKeys, error) {
+func (a *authSvc) SetupDeployKey(ctx context.Context, namespace string, repo gitproviders.RepoURL) (*ssh.PublicKeys, error) {
 	secretName := SecretName{
 		Name:      models.CreateRepoSecretName(repo),
 		Namespace: namespace,
@@ -142,7 +142,7 @@ func (a *authSvc) SetupDeployKey(ctx context.Context, targetName string, namespa
 			// or if a cluster was destroyed during development work.
 			// Create and upload a new deploy key.
 			a.logger.Warningf("A deploy key named %s was found on the git provider, but not in the cluster.", secretName.Name)
-			return a.provisionDeployKey(ctx, targetName, secretName, repo)
+			return a.provisionDeployKey(ctx, secretName, repo)
 		} else if err != nil {
 			return nil, fmt.Errorf("error retrieving deploy key: %w", err)
 		}
@@ -158,10 +158,10 @@ func (a *authSvc) SetupDeployKey(ctx context.Context, targetName string, namespa
 		return pubKey, nil
 	}
 
-	return a.provisionDeployKey(ctx, targetName, secretName, repo)
+	return a.provisionDeployKey(ctx, secretName, repo)
 }
 
-func (a *authSvc) provisionDeployKey(ctx context.Context, targetName string, name SecretName, repo gitproviders.RepoURL) (*ssh.PublicKeys, error) {
+func (a *authSvc) provisionDeployKey(ctx context.Context, name SecretName, repo gitproviders.RepoURL) (*ssh.PublicKeys, error) {
 	visibility, err := a.gitProvider.GetRepoVisibility(ctx, repo)
 	if err != nil {
 		return nil, fmt.Errorf("error getting repo visibility: %w", err)
@@ -171,7 +171,7 @@ func (a *authSvc) provisionDeployKey(ctx context.Context, targetName string, nam
 		return nil, nil
 	}
 
-	deployKey, secret, err := a.generateDeployKey(targetName, name, repo)
+	deployKey, secret, err := a.generateDeployKey(name, repo)
 	if err != nil {
 		return nil, fmt.Errorf("error generating deploy key: %w", err)
 	}
@@ -192,7 +192,7 @@ func (a *authSvc) provisionDeployKey(ctx context.Context, targetName string, nam
 }
 
 // Generates an ssh keypair for upload to the Git Provider and for use in a git.Git client.
-func (a *authSvc) generateDeployKey(targetName string, secretName SecretName, repo gitproviders.RepoURL) (*ssh.PublicKeys, *corev1.Secret, error) {
+func (a *authSvc) generateDeployKey(secretName SecretName, repo gitproviders.RepoURL) (*ssh.PublicKeys, *corev1.Secret, error) {
 	secret, err := a.createKeyPairSecret(secretName, repo)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not create key-pair secret: %w", err)
