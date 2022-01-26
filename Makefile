@@ -36,6 +36,9 @@ unit-tests: dependencies cmd/gitops/ui/run/dist/index.html ## Run unit tests
 integration-tests: dependencies
 	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) CGO_ENABLED=0 go test -v ./test/integration/...
 
+test: dependencies cmd/gitops/ui/run/dist/index.html
+	go test -v ./core/...
+
 acceptance-tests:
 	go test -v ./test/acceptance/...
 
