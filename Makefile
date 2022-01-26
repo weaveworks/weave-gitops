@@ -96,7 +96,7 @@ vet: ## Run go vet against code
 	go vet ./...
 
 lint: ## Run linters against code
-	golangci-lint run --out-format=github-actions --build-tags acceptance --timeout 600s
+	golangci-lint run --out-format=github-actions --timeout 600s
 
 .deps:
 	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
