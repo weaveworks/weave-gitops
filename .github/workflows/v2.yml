@@ -27,7 +27,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
-      - name: Cache node modules
+      - name: Restore node_modules cache
         uses: actions/cache@v2
         env:
           cache-name: cache-node-modules
@@ -57,5 +57,6 @@ jobs:
       - run: make ui-lint
       - run: make ui-test
       - run: make lint
+      - run: make bin
       - run: make test
       # - run: make lib-test
