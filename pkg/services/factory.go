@@ -97,7 +97,7 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, kubeClient kube.Kube
 			return nil, nil, fmt.Errorf("error getting repo visibility: %w", err)
 		}
 
-		// Only add deploy key for private repo
+		// Do not add deploy key for public repo. Issue https://github.com/weaveworks/weave-gitops/issues/1111
 		if *repoVisibility == gitprovider.RepositoryVisibilityPrivate {
 			secretName := auth.SecretName{
 				Name:      models.CreateRepoSecretName(normalizedUrl),
