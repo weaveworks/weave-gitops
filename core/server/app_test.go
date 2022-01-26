@@ -81,7 +81,7 @@ func setUpAppServerTest(t *testing.T) appServerFixture {
 
 	env, err := testutils.StartK8sTestEnvironment([]string{
 		"../../manifests/crds",
-		"../../tools/crds",
+		"../../tools/testcrds",
 	})
 	if err != nil {
 		t.Errorf("could not start testEnv: %s", err)
