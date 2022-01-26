@@ -154,8 +154,8 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 			Eventually(errOutput).Should(ContainSubstring("required flag(s) \"version\" not set"))
 		})
 
-		By("When I try to upgrade gitops core to enterprise with config-repo & version provided", func() {
-			_, errOutput = runCommandAndReturnStringOutput(gitopsBinaryPath + " upgrade --config-repo=" + appRepoRemoteURL + " --version=0.0.1")
+		By("When I try to upgrade gitops core to enterprise and version provided", func() {
+			_, errOutput = runCommandAndReturnStringOutput(gitopsBinaryPath + " upgrade --version=0.0.1")
 		})
 
 		By("Then I should see error message", func() {
