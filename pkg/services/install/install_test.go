@@ -122,7 +122,7 @@ var _ = Describe("Installer", func() {
 			fakeGitProvider.GetRepoVisibilityReturns(nil, someError)
 
 			err := installer.Install(testNamespace, configRepo, true)
-			Expect(err).Should(MatchError(fmt.Sprintf("failed generating gitops manifests: failed getting ref secret: %s", someError)))
+			Expect(err).Should(MatchError(fmt.Sprintf("failed getting git source: failed getting ref secret: %s", someError)))
 		})
 
 		It("should fail applying bootstrap manifests", func() {
