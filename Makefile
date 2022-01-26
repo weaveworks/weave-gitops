@@ -49,6 +49,9 @@ local-docker-image:
 	docker build -t localhost:5001/wego-app:latest .
 	docker push localhost:5001/wego-app:latest
 
+test: dependencies cmd/gitops/ui/run/dist/index.html
+	go test -v ./core/...
+
 fakes: ## Generate testing fakes
 	go generate ./...
 
