@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -72,21 +71,7 @@ func (f appServerFixture) arrangeFluxSystemNamespace(t *testing.T) {
 	}
 }
 
-func (f appServerFixture) cleanUpFixture(t *testing.T) {
-	f.env.Stop()
-}
-
-func setUpAppServerTest(t *testing.T) appServerFixture {
-	os.Setenv("KUBEBUILDER_ASSETS", "../../tools/bin/envtest")
-
-	env, err := testutils.StartK8sTestEnvironment([]string{
-		"../../manifests/crds",
-		"../../tools/testcrds",
-	})
-	if err != nil {
-		t.Errorf("could not start testEnv: %s", err)
-	}
-
+func setUpAppServerTest(env *testutils.K8sTestEnv, t *testing.T) appServerFixture {
 	s := runtime.NewServeMux()
 
 	_ = Hydrate(context.Background(), s, env.Rest)
@@ -99,8 +84,8 @@ func setUpAppServerTest(t *testing.T) appServerFixture {
 	}
 }
 
-func TestAppServer(t *testing.T) {
-	f := setUpAppServerTest(t)
+func Test_E2E(t *testing.T) {
+	f := setUpAppServerTest(k8sEnv, t)
 
 	res, _ := http.Get(f.testServer.URL + "/v1/namespace/flux-system/app")
 	out, _ := ioutil.ReadAll(res.Body)
@@ -178,5 +163,4 @@ func TestAppServer(t *testing.T) {
 	f.Expect(res.StatusCode).To(Equal(http.StatusBadRequest))
 
 	f.Expect(true).To((BeTrue()))
-	f.cleanUpFixture(t)
 }
