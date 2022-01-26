@@ -605,7 +605,6 @@ var _ = Describe("ApplicationsServer", func() {
 
 	Context("RemoveApplication Tests", func() {
 		var ctx context.Context
-		var fakeKube *kubefakes.FakeKube
 		var name string
 		var manifestPaths map[string]bool
 		var appDir string
@@ -633,7 +632,6 @@ var _ = Describe("ApplicationsServer", func() {
 
 		BeforeEach(func() {
 			ctx = context.Background()
-			fakeKube = &kubefakes.FakeKube{}
 			name = "my-app"
 			manifestPaths = map[string]bool{}
 
@@ -644,13 +642,12 @@ var _ = Describe("ApplicationsServer", func() {
 			fakeFactory.GetAppServiceReturns(&app.AppSvc{
 				Context: ctx,
 				Flux:    fluxClient,
-				Kube:    fakeKube,
+				Kube:    k,
 				Logger:  log,
 				Osys:    fakeOsys,
 			}, nil)
 
 			fakeFactory.GetGitClientsReturns(configGit, gitProvider, nil)
-			fakeFactory.GetKubeServiceReturns(fakeKube, nil)
 			gitProvider.CreatePullRequestReturns(testutils.DummyPullRequest{}, nil)
 
 			configGit.WriteStub = func(path string, manifest []byte) error {
@@ -680,7 +677,7 @@ var _ = Describe("ApplicationsServer", func() {
 				application := wego.Application{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      name,
-						Namespace: wego.DefaultNamespace,
+						Namespace: namespace.Name,
 					},
 					Spec: wego.ApplicationSpec{
 						Branch:         "main",
@@ -692,7 +689,7 @@ var _ = Describe("ApplicationsServer", func() {
 					},
 				}
 
-				fakeKube.GetApplicationReturns(&application, nil)
+				Expect(k8sClient.Create(ctx, &application)).Should(Succeed())
 
 				appRequest := &pb.RemoveApplicationRequest{
 					Name:      name,
@@ -1139,13 +1136,9 @@ var _ = Describe("ApplicationsServer", func() {
 					return "", fmt.Errorf("some error")
 				}
 
-				kubeClient := &kubefakes.FakeKube{}
 				factory := &servicesfakes.FakeFactory{}
 
-				factory.GetKubeServiceStub = func() (kube.Kube, error) {
-					return kubeClient, nil
-				}
-				appsSrv = NewApplicationsServer(&ApplicationsConfig{Factory: factory, JwtClient: fakeJWTToken})
+				appsSrv = NewApplicationsServer(&ApplicationsConfig{Factory: factory, JwtClient: fakeJWTToken}, WithKubeGetter(NewFakeKubeGetter(&kubefakes.FakeKube{})))
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
@@ -1202,10 +1195,6 @@ var _ = Describe("Applications handler", func() {
 
 		factory := &servicesfakes.FakeFactory{}
 
-		factory.GetKubeServiceStub = func() (kube.Kube, error) {
-			return k, nil
-		}
-
 		cfg := ApplicationsConfig{
 			Logger:         log,
 			FetcherFactory: NewFakeFetcherFactory(applicationv2.NewFetcher(k8s)),
@@ -1215,7 +1204,7 @@ var _ = Describe("Applications handler", func() {
 
 		handler, err := NewHandlers(context.Background(), &Config{
 			AppConfig:  &cfg,
-			AppOptions: []ApplicationsOption{WithClientGetter(NewFakeClientGetter(k8s))},
+			AppOptions: []ApplicationsOption{WithClientGetter(NewFakeClientGetter(k8s)), WithKubeGetter(NewFakeKubeGetter(k))},
 		})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -1340,4 +1329,18 @@ func NewFakeClientGetter(client client.Client) ClientGetter {
 
 func (g *FakeClientGetter) Client(ctx context.Context) (client.Client, error) {
 	return g.client, nil
+}
+
+type FakeKubeGetter struct {
+	kube kube.Kube
+}
+
+func NewFakeKubeGetter(kube kube.Kube) KubeGetter {
+	return &FakeKubeGetter{
+		kube: kube,
+	}
+}
+
+func (g *FakeKubeGetter) Kube(ctx context.Context) (kube.Kube, error) {
+	return g.kube, nil
 }
