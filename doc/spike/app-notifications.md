@@ -30,7 +30,7 @@ Create APIs that can interrogate the cluster and generate the set of Alerts and 
 - Not actively managing the set of alerts and providers
 - Difficult to replicate all the fields available in Alerts/Providers as annotations
 
-### Create an operator based on secret resources
+### Operator based on secret resources
 Create an operator that watches the cluster for annotated secrets. When one is found, create corresponding Alters and Providers.
 
 _Working prototype_
@@ -45,7 +45,7 @@ _Working prototype_
 - Alerts/Providers not stored in git as they are dynamically generated 
 - Another component running in the users' system
 
-### Create an operator based on flux sources
+### Operator based on flux primitives
 Tweak to the _operator based on secrets_ alternative. Instead of tying the Alert and Provider generation to the secret, tie it to the flux source object. Once we have the flux source object, we can determine the downstream consumers and create the appropriate Alerts and Providers based on that.
 
 ### Pros
@@ -91,6 +91,14 @@ Create a new type of Flux Alerter that is application-aware. It watches all kust
   - Could be accomplished using an existing Alert with eventSource field populated with all kustomization object names in use by the application
     - The downside is keeping this up to date as kustomizations/helm releases come and go 
 
+---
 
-
-
+|Alternative|Application Aware|Artifacts in Git|Dynamic|Security|Scale|Speed to deliver|
+|---|---|---|---|---|---|---|
+|Existing flux tooling||*||||High|
+|wego API(s) to generate|*|*||||Med|
+|Operator based on secret resources|*||*|||Med|
+|Operator based on flux primitives|*||*|||Med|
+|Sidecar with flux kustomization/helm release|*||*|||Low|
+|Application Provider Dispatcher|*|*||||Med|
+|Application Alerter|*|*|*|||Med|
