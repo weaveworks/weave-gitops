@@ -117,10 +117,6 @@ var _ = BeforeEach(func() {
 
 	fakeFactory.GetGitClientsReturns(configGit, gitProvider, nil)
 
-	fakeFactory.GetKubeServiceStub = func() (kube.Kube, error) {
-		return k, nil
-	}
-
 	ghAuthClient = &authfakes.FakeGithubAuthClient{}
 	glAuthClient = &authfakes.FakeGitlabAuthClient{}
 	jwtClient = auth.NewJwtClient(secretKey)
@@ -133,7 +129,8 @@ var _ = BeforeEach(func() {
 		GitlabAuthClient: glAuthClient,
 		ClusterConfig:    ClusterConfig{},
 	}
-	apps = NewApplicationsServer(&cfg, WithClientGetter(NewFakeClientGetter(k8sClient)))
+	apps = NewApplicationsServer(&cfg,
+		WithClientGetter(NewFakeClientGetter(k8sClient)), WithKubeGetter(NewFakeKubeGetter(k)))
 	pb.RegisterApplicationsServer(s, apps)
 
 	go func() {

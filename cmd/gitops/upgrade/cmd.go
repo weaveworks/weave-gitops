@@ -9,6 +9,7 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services"
@@ -57,6 +58,11 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 			return fmt.Errorf("couldn't read namespace flag: %v", err)
 		}
 
+		kubeClient, _, err := kube.NewKubeHTTPClient()
+		if err != nil {
+			return fmt.Errorf("failed to create kube client: %w", err)
+		}
+
 		// FIXME: maybe a better way to do this?
 		upgradeCmdFlags.Namespace = namespace
 
@@ -66,7 +72,7 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 
-		gitClient, gitProvider, err := factory.GetGitClients(ctx, providerClient, services.GitConfigParams{
+		gitClient, gitProvider, err := factory.GetGitClients(ctx, kubeClient, providerClient, services.GitConfigParams{
 			URL:       upgradeCmdFlags.ConfigRepo,
 			Namespace: upgradeCmdFlags.Namespace,
 			DryRun:    upgradeCmdFlags.DryRun,

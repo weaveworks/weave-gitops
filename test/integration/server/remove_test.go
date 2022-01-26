@@ -48,7 +48,7 @@ var _ = XDescribe("RemoveApplication", func() {
 	Context("Github", func() {
 		var gh *ghAPI.Client
 		var gp gitprovider.Client
-		var githubOrg = "weaveworks-gitops-test"
+		var githubOrg = os.Getenv("GITHUB_ORG")
 		var githubToken = os.Getenv("GITHUB_TOKEN")
 		var sourceRepoURL string
 		var sourceRepo gitprovider.OrgRepository
