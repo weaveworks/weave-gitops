@@ -29,7 +29,7 @@ import (
 	"sigs.k8s.io/kustomize/api/types"
 )
 
-var _ = Describe("RemoveApplication", func() {
+var _ = XDescribe("RemoveApplication", func() {
 	var (
 		namespace      *corev1.Namespace
 		ctx            context.Context
@@ -48,7 +48,7 @@ var _ = Describe("RemoveApplication", func() {
 	Context("Github", func() {
 		var gh *ghAPI.Client
 		var gp gitprovider.Client
-		var githubOrg = "weaveworks-gitops-test"
+		var githubOrg = os.Getenv("GITHUB_ORG")
 		var githubToken = os.Getenv("GITHUB_TOKEN")
 		var sourceRepoURL string
 		var sourceRepo gitprovider.OrgRepository

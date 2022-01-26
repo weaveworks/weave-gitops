@@ -11,6 +11,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services"
@@ -107,14 +108,14 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 
-	appService, err := factory.GetAppService(ctx)
+	kubeClient, _, err := kube.NewKubeHTTPClient()
 	if err != nil {
-		return fmt.Errorf("failed to create app service: %w", err)
+		return fmt.Errorf("failed to create kube client: %w", err)
 	}
 
-	kubeClient, err := factory.GetKubeService()
+	appService, err := factory.GetAppService(ctx, kubeClient)
 	if err != nil {
-		return fmt.Errorf("failed getting kube service: %w", err)
+		return fmt.Errorf("failed to create app service: %w", err)
 	}
 
 	wegoConfig, err := kubeClient.GetWegoConfig(ctx, params.Namespace)
@@ -126,7 +127,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		params.ConfigRepo = wegoConfig.ConfigRepo
 	}
 
-	gitClient, gitProvider, err := factory.GetGitClients(ctx, providerClient, services.GitConfigParams{
+	gitClient, gitProvider, err := factory.GetGitClients(ctx, kubeClient, providerClient, services.GitConfigParams{
 		URL:              params.Url,
 		ConfigRepo:       params.ConfigRepo,
 		Namespace:        params.Namespace,

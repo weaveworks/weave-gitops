@@ -7,25 +7,24 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"time"
 
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"path/filepath"
-
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
 var _ = PDescribe("Weave GitOps Profiles API", func() {
@@ -103,6 +102,26 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 		values, err := base64.StdEncoding.DecodeString(profileValues.Values)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(string(values)).To(ContainSubstring("# Default values for podinfo"))
+	})
+	It("profiles are installed into a different namespace", func() {
+		By("Installing the Profiles API and setting up the profile helm repository")
+		appRepoRemoteURL = "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"
+		installAndVerifyWego(namespace, appRepoRemoteURL)
+		By("Creating a new namespace")
+		namespaceCreatedMsg := runCommandAndReturnSessionOutput("kubectl create ns other")
+		Eventually(namespaceCreatedMsg).Should(gbytes.Say("namespace/other created"))
+		By("And installing a helmrepositroy into that namespace")
+		deployProfilesHelmRepository(kClient, "other")
+		time.Sleep(time.Second * 20)
+
+		By("Getting a list of profiles should still work")
+		_, statusCode, err := kubernetesDoRequest(namespace, wegoService, wegoPort, "/v1/profiles", clientSet)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(statusCode).To(Equal(http.StatusOK))
+
+		By("There should be no errors in the wego app log from the helm cache")
+		log := runCommandAndReturnSessionOutput("kubectl logs ")
+		Eventually(log).ShouldNot(gbytes.Say("\\\"other\\\" is forbidden"))
 	})
 })
 

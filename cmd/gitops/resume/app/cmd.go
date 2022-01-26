@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services"
@@ -40,7 +41,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	appFactory := services.NewFactory(flux.New(osys.New(), &runner.CLIRunner{}), internal.NewCLILogger(os.Stdout))
 
-	appService, err := appFactory.GetAppService(ctx)
+	kubeClient, _, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		return fmt.Errorf("failed to create kube client: %w", err)
+	}
+
+	appService, err := appFactory.GetAppService(ctx, kubeClient)
 	if err != nil {
 		return fmt.Errorf("failed to create app service: %w", err)
 	}

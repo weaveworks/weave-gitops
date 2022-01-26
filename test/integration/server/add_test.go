@@ -36,7 +36,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
-var _ = Describe("AddApplication", func() {
+var _ = XDescribe("AddApplication", func() {
 	var (
 		namespace *corev1.Namespace
 		ctx       context.Context

@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/manifests"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
