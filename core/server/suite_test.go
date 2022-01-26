@@ -15,6 +15,16 @@ import (
 
 var k8sEnv *testutils.K8sTestEnv
 
+var diffIgnoredFields = []string{
+	"ObjectMeta.UID",
+	"ObjectMeta.SelfLink",
+	"ObjectMeta.ResourceVersion",
+	"ObjectMeta.ManagedFields",
+	"ObjectMeta.CreationTimestamp",
+	"ObjectMeta.Generation",
+	"TypeMeta",
+}
+
 func TestMain(m *testing.M) {
 	os.Setenv("KUBEBUILDER_ASSETS", "../../tools/bin/envtest")
 
