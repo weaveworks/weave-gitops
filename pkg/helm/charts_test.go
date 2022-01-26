@@ -283,7 +283,7 @@ func makeTestChartIndex(opts ...func(*repo.IndexFile)) *repo.IndexFile {
 	ri := &repo.IndexFile{
 		APIVersion: "v1",
 		Entries: map[string]repo.ChartVersions{
-			"demo-profile": repo.ChartVersions{
+			"demo-profile": {
 				{
 					Metadata: &chart.Metadata{
 						Annotations: map[string]string{
