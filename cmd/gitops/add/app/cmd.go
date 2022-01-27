@@ -54,7 +54,7 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.Flags().StringVar(&params.Name, "name", "", "Name of application")
+	Cmd.Flags().StringVar(&params.Name, "name", "", "Name of application; defaults to the application repository name if not specified; must be unique in the config repo.")
 	Cmd.Flags().StringVar(&params.Url, "url", "", "URL of remote repository")
 	Cmd.Flags().StringVar(&params.Path, "path", app.DefaultPath, "Path of files within git repository")
 	Cmd.Flags().StringVar(&params.Branch, "branch", "", "Branch to watch within git repository")
