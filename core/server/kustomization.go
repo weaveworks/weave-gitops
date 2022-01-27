@@ -4,6 +4,7 @@ import (
 	"context"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	"github.com/weaveworks/weave-gitops/core/server/types"
 	stypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
 	"google.golang.org/grpc/codes"
@@ -42,11 +43,14 @@ func (as *appServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomi
 
 	list := &kustomizev1.KustomizationList{}
 
-	opts := client.MatchingLabels{
-		"app.kubernetes.io/part-of": msg.AppName,
+	var opts client.MatchingLabels
+	if msg.AppName != "" {
+		opts = client.MatchingLabels{
+			types.PartOfLabel: msg.AppName,
+		}
 	}
 
-	if err := k8s.List(ctx, list, &opts); err != nil {
+	if err := k8s.List(ctx, list, &opts, client.InNamespace(msg.Namespace)); err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to create new app: %s", err.Error())
 	}
 

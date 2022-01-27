@@ -4,6 +4,7 @@ import (
 	"context"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
+	"github.com/weaveworks/weave-gitops/core/server/types"
 	stypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
 	"google.golang.org/grpc/codes"
@@ -41,7 +42,7 @@ func (as *appServer) ListGitRepositories(ctx context.Context, msg *pb.ListGitRep
 		err = k8s.List(ctx, list)
 	} else {
 		opts := client.MatchingLabels{
-			"app.kubernetes.io/part-of": msg.AppName,
+			types.PartOfLabel: msg.AppName,
 		}
 		err = k8s.List(ctx, list, opts)
 	}
