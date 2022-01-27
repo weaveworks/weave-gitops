@@ -11,6 +11,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services"
@@ -53,7 +54,7 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.Flags().StringVar(&params.Name, "name", "", "Name of application")
+	Cmd.Flags().StringVar(&params.Name, "name", "", "Name of application; defaults to the application repository name if not specified; must be unique in the config repo.")
 	Cmd.Flags().StringVar(&params.Url, "url", "", "URL of remote repository")
 	Cmd.Flags().StringVar(&params.Path, "path", app.DefaultPath, "Path of files within git repository")
 	Cmd.Flags().StringVar(&params.Branch, "branch", "", "Branch to watch within git repository")
@@ -107,14 +108,24 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 
-	appService, err := factory.GetAppService(ctx)
+	kubeClient, _, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		return fmt.Errorf("failed to create kube client: %w", err)
+	}
+
+	appService, err := factory.GetAppService(ctx, kubeClient)
 	if err != nil {
 		return fmt.Errorf("failed to create app service: %w", err)
 	}
 
-	gitClient, gitProvider, err := factory.GetGitClients(ctx, providerClient, services.GitConfigParams{
+	wegoConfig, err := kubeClient.GetWegoConfig(ctx, params.Namespace)
+	if err != nil {
+		return fmt.Errorf("failed getting wego config")
+	}
+
+	gitClient, gitProvider, err := factory.GetGitClients(ctx, kubeClient, providerClient, services.GitConfigParams{
 		URL:              params.Url,
-		ConfigRepo:       params.ConfigRepo,
+		ConfigRepo:       wegoConfig.ConfigRepo,
 		Namespace:        params.Namespace,
 		IsHelmRepository: params.IsHelmRepository(),
 		DryRun:           params.DryRun,

@@ -64,7 +64,7 @@ func NewWatcher(opts Options) (*Watcher, error) {
 
 func (w *Watcher) StartWatcher() error {
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&zap.Options{
-		Development: true,
+		Development: false,
 	})))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{

@@ -76,3 +76,28 @@ func (g *DefaultClientGetter) Client(ctx context.Context) (client.Client, error)
 
 	return rawClient, nil
 }
+
+// KubeGetter implementations should create a Kube client from a context.
+type KubeGetter interface {
+	Kube(ctx context.Context) (kube.Kube, error)
+}
+
+// DefaultKubeGetter implements the KubeGetter interface and uses a ConfigGetter
+// to get a *rest.Config and create a Kube client.
+type DefaultKubeGetter struct {
+	configGetter ConfigGetter
+	clusterName  string
+}
+
+// Kube creates a new Kube client using the *rest.Config returned from its
+// ConfigGetter.
+func (g *DefaultKubeGetter) Kube(ctx context.Context) (kube.Kube, error) {
+	config := g.configGetter.Config(ctx)
+
+	kube, _, err := kube.NewKubeHTTPClientWithConfig(config, g.clusterName)
+	if err != nil {
+		return nil, fmt.Errorf("could not create kube http client: %w", err)
+	}
+
+	return kube, nil
+}

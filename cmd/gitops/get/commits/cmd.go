@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
@@ -47,7 +48,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 	factory := services.NewFactory(fluxClient, log)
 
-	appService, err := factory.GetAppService(ctx)
+	kubeClient, _, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		return fmt.Errorf("failed to create kube client: %w", err)
+	}
+
+	appService, err := factory.GetAppService(ctx, kubeClient)
 	if err != nil {
 		return fmt.Errorf("failed to create app service: %w", err)
 	}
@@ -59,7 +65,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 
-	_, gitProvider, err := factory.GetGitClients(ctx, providerClient, services.NewGitConfigParamsFromApp(appContent, false))
+	_, gitProvider, err := factory.GetGitClients(ctx, kubeClient, providerClient, services.NewGitConfigParamsFromApp(appContent, false))
 	if err != nil {
 		return fmt.Errorf("failed to get git clients: %w", err)
 	}

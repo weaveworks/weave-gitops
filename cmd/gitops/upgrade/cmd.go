@@ -9,6 +9,7 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services"
@@ -36,7 +37,6 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.ConfigRepo, "config-repo", "", "URL of external repository that will hold automation manifests")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.Version, "version", "", "Version of Weave GitOps Enterprise to be installed")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.BaseBranch, "base", "", "The base branch to open the pull request against")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.HeadBranch, "branch", "tier-upgrade-enterprise", "The branch to create the pull request from")
@@ -44,7 +44,6 @@ func init() {
 	Cmd.PersistentFlags().StringArrayVar(&upgradeCmdFlags.Values, "set", []string{}, "set profile values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
 	Cmd.PersistentFlags().BoolVar(&upgradeCmdFlags.DryRun, "dry-run", false, "Output the generated profile without creating a pull request")
 
-	cobra.CheckErr(Cmd.MarkPersistentFlagRequired("config-repo"))
 	cobra.CheckErr(Cmd.MarkPersistentFlagRequired("version"))
 }
 
@@ -57,6 +56,11 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 			return fmt.Errorf("couldn't read namespace flag: %v", err)
 		}
 
+		kubeClient, _, err := kube.NewKubeHTTPClient()
+		if err != nil {
+			return fmt.Errorf("failed to create kube client: %w", err)
+		}
+
 		// FIXME: maybe a better way to do this?
 		upgradeCmdFlags.Namespace = namespace
 
@@ -64,9 +68,16 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 		fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 		factory := services.NewFactory(fluxClient, log)
 
+		wegoConfig, err := kubeClient.GetWegoConfig(ctx, namespace)
+		if err != nil {
+			return fmt.Errorf("failed getting wego config")
+		}
+
+		upgradeCmdFlags.ConfigRepo = wegoConfig.ConfigRepo
+
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 
-		gitClient, gitProvider, err := factory.GetGitClients(ctx, providerClient, services.GitConfigParams{
+		gitClient, gitProvider, err := factory.GetGitClients(ctx, kubeClient, providerClient, services.GitConfigParams{
 			URL:       upgradeCmdFlags.ConfigRepo,
 			Namespace: upgradeCmdFlags.Namespace,
 			DryRun:    upgradeCmdFlags.DryRun,
