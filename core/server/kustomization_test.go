@@ -97,6 +97,68 @@ func TestCreateKustomization(t *testing.T) {
 	})
 }
 
+func TestListKustomizations(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	defer cleanup()
+
+	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	appName := "myapp"
+	ns := newNamespace(ctx, k, g)
+
+	r := &pb.AddKustomizationReq{
+		Name:      "mykustomization",
+		Namespace: ns.Name,
+		AppName:   appName,
+		SourceRef: &pb.SourceRef{
+			Kind: pb.SourceRef_GitRepository,
+			Name: "othersource",
+		},
+	}
+
+	addRes, err := c.AddKustomization(ctx, r)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(addRes.Success).To(BeTrue())
+
+	unAssociatedKustomizationReq := &pb.AddKustomizationReq{
+		Name:      "otherkustomization",
+		Namespace: ns.Name,
+		AppName:   "",
+		SourceRef: &pb.SourceRef{
+			Kind: pb.SourceRef_GitRepository,
+			Name: "othersource",
+		},
+	}
+
+	_, err = c.AddKustomization(ctx, unAssociatedKustomizationReq)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	res, err := c.ListKustomizations(ctx, &pb.ListKustomizationsReq{
+		AppName:   appName,
+		Namespace: ns.Name,
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.Kustomizations).To(HaveLen(1))
+	g.Expect(res.Kustomizations[0].Name).To(Equal(r.Name))
+
+	// Ensure our filtering logic is working for `AppName`
+	all, err := c.ListKustomizations(ctx, &pb.ListKustomizationsReq{
+		AppName:   "",
+		Namespace: ns.Name,
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(all.Kustomizations).To(HaveLen(2))
+
+}
+
+	})
+}
+
 func newNamespace(ctx context.Context, k client.Client, g *GomegaWithT) *corev1.Namespace {
 	ns := &corev1.Namespace{}
 	ns.Name = "kube-test-" + rand.String(5)
