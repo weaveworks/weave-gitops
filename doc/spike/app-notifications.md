@@ -5,6 +5,20 @@ An application can be comprised of 1 or more components. These components can co
 
 See [issue](https://github.com/weaveworks/weave-gitops/issues/1349) for complete details 
 
+## Terminology 
+**Flux Source** A source in the Flux sense
+**Flux Applier** A flux kustomization or helm release
+**App Instance** An application + environment running on a cluster.  There can be many app instances on a cluster.
+
+## Target Outcome/Requirements
+* Single Alert defintion per application
+* Application environment can modify/overwrite Alert definition
+* Single Alert instance per app instance
+* Alert instance lifecycle is tied with the app instance lifecycle
+* Flux Providers can be shared between Alert Instances.  
+* When an app instance is deployed, its Alert Instance (if defined) should also be deployed
+* Alerts must be included in the Application status
+
 ## Alternatives
 ### Existing flux tooling
 Utilize existing tools `flux create alert` and either export it to the cluster git-repo or just have it generated directly in the cluster. Perform the same operations for providers. The user manages secrets used by the provider manually.
@@ -49,16 +63,16 @@ _Working prototype_
 Tweak to the _operator based on secrets_ alternative. Instead of tying the Alert and Provider generation to the secret, tie it to the flux source object. Once we have the flux source object, we can determine the downstream consumers and create the appropriate Alerts and Providers based on that.
 
 ### Pros
-- The user creates a Flux kustomization/helm release with annotations, the operator generates the Alerts/Providers
-- Alerts and Providers follow the flux kustomization/helm release lifecycle.  
+- The user creates a Flux applier with annotations, the operator generates the Alerts/Providers
+- Alerts and Providers follow the flux applier lifecycle.  
 
 ### Cons
 - Difficult to replicate all the fields available in Alerts/Providers as annotations
 - Alerts/Providers not stored in git as they are dynamically generated 
 - Another component running in the users' system
 
-### Sidecar with flux kustomization/helm release
-Using a mutating admission controller injects a sidecar to any matching flux kustomization/helm release pod that will run along with the flux kustomization/helm release and use it to manage alerts and providers for this particular flux kustomization/helm release.
+### Sidecar with flux applier
+Using a mutating admission controller injects a sidecar to any matching flux applier pod that will run along with the flux applier and use it to manage alerts and providers for this particular flux applier.
 
 #### Pros
 - Dynamic and catches objects as they are added
@@ -99,6 +113,6 @@ Create a new type of Flux Alerter that is application-aware. It watches all kust
 |wego API(s) to generate|*|*||||Med|
 |Operator based on secret resources|*||*|||Med|
 |Operator based on flux primitives|*||*|||Med|
-|Sidecar with flux kustomization/helm release|*||*|||Low|
+|Sidecar with flux applier|*||*|||Low|
 |Application Provider Dispatcher|*|*||||Med|
 |Application Alerter|*|*|*|||Med|
