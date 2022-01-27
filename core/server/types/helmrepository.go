@@ -9,6 +9,16 @@ import (
 )
 
 func ProtoToHelmRepository(repositoryReq *pb.AddHelmRepositoryReq) v1beta1.HelmRepository {
+
+	labels := map[string]string{
+		"app.kubernetes.io/managed-by": managedByWeaveGitops,
+		"app.kubernetes.io/created-by": createdBySourceController,
+	}
+
+	if repositoryReq.AppName != "" {
+		labels["app.kubernetes.io/part-of"] = repositoryReq.AppName
+	}
+
 	return v1beta1.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       v1beta1.HelmRepositoryKind,
@@ -17,6 +27,7 @@ func ProtoToHelmRepository(repositoryReq *pb.AddHelmRepositoryReq) v1beta1.HelmR
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      repositoryReq.Name,
 			Namespace: repositoryReq.Namespace,
+			Labels:    labels,
 		},
 		Spec: v1beta1.HelmRepositorySpec{
 			URL:      repositoryReq.Url,
