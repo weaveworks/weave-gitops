@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
@@ -69,17 +70,6 @@ func addProfileCmdRunE(client *resty.Client) func(*cobra.Command, []string) erro
 		}
 		opts.Namespace = ns
 
-		ctx := context.Background()
-		_, gitProvider, err := factory.GetGitClients(ctx, providerClient, services.GitConfigParams{
-			ConfigRepo:       opts.ConfigRepo,
-			Namespace:        opts.Namespace,
-			IsHelmRepository: true,
-			DryRun:           false,
-		})
-		if err != nil {
-			return fmt.Errorf("failed to get git clients: %w", err)
-		}
-
 		config, err := clientcmd.BuildConfigFromFlags("", filepath.Join(homedir.HomeDir(), ".kube", "config"))
 		if err != nil {
 			return fmt.Errorf("error initializing kubernetes config: %w", err)
@@ -88,6 +78,22 @@ func addProfileCmdRunE(client *resty.Client) func(*cobra.Command, []string) erro
 		clientSet, err := kubernetes.NewForConfig(config)
 		if err != nil {
 			return fmt.Errorf("error initializing kubernetes client: %w", err)
+		}
+
+		kubeClient, _, err := kube.NewKubeHTTPClient()
+		if err != nil {
+			return fmt.Errorf("failed to create kube client: %w", err)
+		}
+
+		ctx := context.Background()
+		_, gitProvider, err := factory.GetGitClients(ctx, kubeClient, providerClient, services.GitConfigParams{
+			ConfigRepo:       opts.ConfigRepo,
+			Namespace:        opts.Namespace,
+			IsHelmRepository: true,
+			DryRun:           false,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to get git clients: %w", err)
 		}
 
 		profilesService := profiles.NewService(clientSet, log)

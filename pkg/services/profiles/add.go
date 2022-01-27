@@ -29,7 +29,8 @@ type AddOptions struct {
 	AutoMerge  bool
 }
 
-// Add adds a new profile to the cluster
+// Add installs an available profile in a cluster's namespace by appending a HelmRelease to the profile manifest in the config repo,
+// provided that such a HelmRelease does not exist with the same profile name and version in the same namespace and cluster.
 func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvider, opts AddOptions) error {
 	configRepoUrl, err := gitproviders.NewRepoURL(opts.ConfigRepo, true)
 	if err != nil {
@@ -72,22 +73,24 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 		return err
 	}
 
-	// if opts.AutoMerge {
-	// 	if err := gitProvider.WriteAndMerge(ctx, systemPath, "new commit", hr); err != nil {
-	// 		return fmt.Errorf("failed writing automation to disk: %w", err)
-	// 	}
-	// 	return nil
-	// }
-
-	if _, err = gitProvider.CreatePullRequest(ctx, configRepoUrl, gitproviders.PullRequestInfo{
+	pr, err := gitProvider.CreatePullRequest(ctx, configRepoUrl, gitproviders.PullRequestInfo{
 		Title:         fmt.Sprintf("GitOps add %s", opts.Name),
 		Description:   fmt.Sprintf("Add manifest for %s profile", opts.Name),
 		CommitMessage: AddCommitMessage,
 		TargetBranch:  defaultBranch,
 		NewBranch:     automation.GetRandomName("wego-"),
 		Files:         file,
-	}); err != nil {
-		return fmt.Errorf("failed to create a pull request: %s", err)
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create the pull request: %s", err)
+	}
+	s.Logger.Actionf("Pull Request created: %s", pr.Get().WebURL)
+
+	if opts.AutoMerge {
+		s.Logger.Actionf("auto-merge=true; merging PR number %s", pr.Get().Number)
+		if err := gitProvider.MergePullRequest(ctx, configRepoUrl, pr.Get().Number, gitprovider.MergeMethodMerge, AddCommitMessage); err != nil {
+			return err
+		}
 	}
 
 	s.printAddSummary(opts)

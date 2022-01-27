@@ -28,6 +28,7 @@ var _ = Describe("Add Profiles", func() {
 				"--name", "podinfo",
 				"--version", "0.0.1",
 				"--cluster", "prod",
+				"--namespace", "test-namespace",
 				"--config-repo", "https://ssh@github:test/test.git",
 				"--auto-merge", "true",
 			})

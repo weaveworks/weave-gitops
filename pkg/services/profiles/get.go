@@ -53,6 +53,7 @@ func doKubeGetRequest(ctx context.Context, namespace, serviceName, servicePort, 
 
 // GetAvailableProfile returns a single available profile.
 func (s *ProfilesSvc) GetAvailableProfile(ctx context.Context, opts GetOptions) (*pb.Profile, error) {
+	s.Logger.Actionf("getting available profiles in %s/%s", opts.Cluster, opts.Namespace)
 	profilesList, err := doKubeGetRequest(ctx, opts.Namespace, wegoServiceName, opts.Port, getProfilesPath, s.ClientSet)
 	if err != nil {
 		return nil, err

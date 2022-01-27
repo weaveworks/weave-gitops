@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"os/exec"
 	"path/filepath"
 	"time"
 
@@ -39,6 +38,8 @@ var _ = FDescribe("Weave GitOps Profiles API", func() {
 		clientSet        *kubernetes.Clientset
 		kClient          client.Client
 		profileName      = "podinfo"
+		resp             []byte
+		statusCode       int
 	)
 
 	BeforeEach(func() {
@@ -49,73 +50,30 @@ var _ = FDescribe("Weave GitOps Profiles API", func() {
 		clusterName, _, err = ResetOrCreateCluster(namespace, true)
 		Expect(err).NotTo(HaveOccurred())
 
-		private := true
 		tip = generateTestInputs()
-		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, private, githubOrg)
+		_ = initAndCreateEmptyRepo(tip.appRepoName, gitproviders.GitProviderGitHub, true, githubOrg)
 
 		clientSet, kClient = buildKubernetesClients()
 	})
 
-	AfterEach(func() {
-		deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
-		deleteWorkload(profileName, namespace)
-	})
+	// AfterEach(func() {
+	// deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+	//todo: delete helmrepository resource
+	// deleteWorkload(profileName, namespace)
+	// })
 
-	It("gets deployed and is accessible via the service", func() {
+	FIt("gets deployed and is accessible via the service", func() {
 		By("Installing the Profiles API and setting up the profile helm repository")
 		appRepoRemoteURL = "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"
 		installAndVerifyWego(namespace, appRepoRemoteURL)
-		// deployProfilesHelmRepository(kClient, namespace)
-
-		By("Adding a profile to the cluster through the CLI")
-		args := []string{
-			"add",
-			"profile", profileName,
-			"--cluster", clusterName,
-			"--version", "0.0.1",
-			" --auto-merge", "true",
-		}
-		cmd := exec.Command("wego", args...)
-		Expect(cmd).To(Succeed())
-		time.Sleep(time.Second * 10)
-
-		By("Verifying that a HelmRepository resource has been created")
-		weaveworksChartsHelmRepository := &sourcev1beta1.HelmRepository{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       sourcev1beta1.HelmRepositoryKind,
-				APIVersion: sourcev1beta1.GroupVersion.Identifier(),
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "weaveworks-charts",
-				Namespace: namespace,
-			},
-			Spec: sourcev1beta1.HelmRepositorySpec{
-				URL:      "https://weaveworks.github.io/profiles-examples",
-				Interval: metav1.Duration{Duration: time.Minute * 10},
-			},
-		}
-		Eventually(func() error {
-			helmRepo := sourcev1beta1.HelmRepository{}
-			err := kClient.Get(context.TODO(), client.ObjectKeyFromObject(weaveworksChartsHelmRepository), &helmRepo)
-			if err != nil {
-				return err
-			}
-
-			readyCondition := meta.FindStatusCondition(helmRepo.Status.Conditions, "Ready")
-			if readyCondition != nil && readyCondition.Status == "True" {
-				return nil
-			}
-			return fmt.Errorf("HelmRepository not ready %v", helmRepo.Status)
-		}, "10s", "1s").Should(Succeed())
-
-		By("Verifying that the profile has been deployed")
-		resp, statusCode, err := kubernetesDoRequest(namespace, profileName, "9898", "/healthz", clientSet)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(statusCode).To(Equal(http.StatusOK))
-		Expect(string(resp)).To(Equal(200))
+		deployProfilesHelmRepository(kClient, namespace)
+		time.Sleep(time.Second * 60)
 
 		By("Getting a list of profiles")
-		resp, statusCode, err = kubernetesDoRequest(namespace, wegoService, wegoPort, "/v1/profiles", clientSet)
+		Eventually(func() error {
+			resp, statusCode, err = kubernetesDoRequest(namespace, wegoService, wegoPort, "/v1/profiles", clientSet)
+			return err
+		}, "10s", "1s").Should(Succeed())
 		Expect(err).NotTo(HaveOccurred())
 		Expect(statusCode).To(Equal(http.StatusOK))
 
@@ -153,7 +111,37 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 		values, err := base64.StdEncoding.DecodeString(profileValues.Values)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(string(values)).To(ContainSubstring("# Default values for podinfo"))
+
+		By("Adding a profile to the cluster through the CLI")
+		stdOut, stdErr := runCommandAndReturnStringOutput(fmt.Sprintf("%s add profile --name %s --version %s --namespace %s --cluster %s --config-repo %s --auto-merge %v", gitopsBinaryPath, profileName, "6.0.1", namespace, clusterName, appRepoRemoteURL, true))
+		Expect(stdErr).To(BeEmpty())
+		fmt.Println(stdOut)
+		// args := []string{
+		// 	"add",
+		// 	"profile",
+		// 	"--name", profileName,
+		// 	"--version", "6.0.1",
+		// 	"--cluster", clusterName,
+		// 	"--namespace", namespace,
+		// 	"--config-repo", appRepoRemoteURL,
+		// 	"--auto-merge", "true",
+		// }
+		// cmd := exec.Command("wego", args...)
+		// resp, err = cmd.CombinedOutput()
+		// fmt.Println(err)
+		// fmt.Println(string(resp))
+
+		time.Sleep(time.Second * 60)
+
+		By("Verifying that the profile has been deployed on the cluster")
+		Eventually(func() error {
+			resp, statusCode, err = kubernetesDoRequest(namespace, profileName, "9898", "/healthz", clientSet)
+			return err
+		}, "10s", "1s").Should(Succeed())
+		Expect(string(resp)).To(Equal(200))
+		Expect(statusCode).To(Equal(http.StatusOK))
 	})
+
 	It("profiles are installed into a different namespace", func() {
 		By("Installing the Profiles API and setting up the profile helm repository")
 		appRepoRemoteURL = "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"
@@ -188,37 +176,37 @@ func buildKubernetesClients() (*kubernetes.Clientset, client.Client) {
 	return clientSet, kClient
 }
 
-// func deployProfilesHelmRepository(rawClient client.Client, namespace string) {
-// 	weaveworksChartsHelmRepository := &sourcev1beta1.HelmRepository{
-// 		TypeMeta: metav1.TypeMeta{
-// 			Kind:       sourcev1beta1.HelmRepositoryKind,
-// 			APIVersion: sourcev1beta1.GroupVersion.Identifier(),
-// 		},
-// 		ObjectMeta: metav1.ObjectMeta{
-// 			Name:      "weaveworks-charts",
-// 			Namespace: namespace,
-// 		},
-// 		Spec: sourcev1beta1.HelmRepositorySpec{
-// 			URL:      "https://weaveworks.github.io/profiles-examples",
-// 			Interval: metav1.Duration{Duration: time.Minute * 10},
-// 		},
-// 	}
-// 	err = rawClient.Create(context.TODO(), weaveworksChartsHelmRepository)
-// 	Expect(err).NotTo(HaveOccurred())
-// 	Eventually(func() error {
-// 		helmRepo := sourcev1beta1.HelmRepository{}
-// 		err := rawClient.Get(context.TODO(), client.ObjectKeyFromObject(weaveworksChartsHelmRepository), &helmRepo)
-// 		if err != nil {
-// 			return err
-// 		}
+func deployProfilesHelmRepository(rawClient client.Client, namespace string) {
+	weaveworksChartsHelmRepository := &sourcev1beta1.HelmRepository{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       sourcev1beta1.HelmRepositoryKind,
+			APIVersion: sourcev1beta1.GroupVersion.Identifier(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "weaveworks-charts",
+			Namespace: namespace,
+		},
+		Spec: sourcev1beta1.HelmRepositorySpec{
+			URL:      "https://weaveworks.github.io/profiles-examples",
+			Interval: metav1.Duration{Duration: time.Minute * 10},
+		},
+	}
+	err = rawClient.Create(context.TODO(), weaveworksChartsHelmRepository)
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(func() error {
+		helmRepo := sourcev1beta1.HelmRepository{}
+		err := rawClient.Get(context.TODO(), client.ObjectKeyFromObject(weaveworksChartsHelmRepository), &helmRepo)
+		if err != nil {
+			return err
+		}
 
-// 		readyCondition := meta.FindStatusCondition(helmRepo.Status.Conditions, "Ready")
-// 		if readyCondition != nil && readyCondition.Status == "True" {
-// 			return nil
-// 		}
-// 		return fmt.Errorf("HelmRepository not ready %v", helmRepo.Status)
-// 	}, "10s", "1s").Should(Succeed())
-// }
+		readyCondition := meta.FindStatusCondition(helmRepo.Status.Conditions, "Ready")
+		if readyCondition != nil && readyCondition.Status == "True" {
+			return nil
+		}
+		return fmt.Errorf("HelmRepository not ready %v", helmRepo.Status)
+	}, "10s", "1s").Should(Succeed())
+}
 
 func kubernetesDoRequest(namespace, serviceName, servicePort, path string, clientset *kubernetes.Clientset) ([]byte, int, error) {
 	u, err := url.Parse(path)

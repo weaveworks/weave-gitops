@@ -110,6 +110,21 @@ type FakeGitProvider struct {
 		result1 *gitprovider.RepositoryVisibility
 		result2 error
 	}
+	MergePullRequestStub        func(context.Context, gitproviders.RepoURL, int, gitprovider.MergeMethod, string) error
+	mergePullRequestMutex       sync.RWMutex
+	mergePullRequestArgsForCall []struct {
+		arg1 context.Context
+		arg2 gitproviders.RepoURL
+		arg3 int
+		arg4 gitprovider.MergeMethod
+		arg5 string
+	}
+	mergePullRequestReturns struct {
+		result1 error
+	}
+	mergePullRequestReturnsOnCall map[int]struct {
+		result1 error
+	}
 	RepositoryExistsStub        func(context.Context, gitproviders.RepoURL) (bool, error)
 	repositoryExistsMutex       sync.RWMutex
 	repositoryExistsArgsForCall []struct {
@@ -590,6 +605,71 @@ func (fake *FakeGitProvider) GetRepoVisibilityReturnsOnCall(i int, result1 *gitp
 	}{result1, result2}
 }
 
+func (fake *FakeGitProvider) MergePullRequest(arg1 context.Context, arg2 gitproviders.RepoURL, arg3 int, arg4 gitprovider.MergeMethod, arg5 string) error {
+	fake.mergePullRequestMutex.Lock()
+	ret, specificReturn := fake.mergePullRequestReturnsOnCall[len(fake.mergePullRequestArgsForCall)]
+	fake.mergePullRequestArgsForCall = append(fake.mergePullRequestArgsForCall, struct {
+		arg1 context.Context
+		arg2 gitproviders.RepoURL
+		arg3 int
+		arg4 gitprovider.MergeMethod
+		arg5 string
+	}{arg1, arg2, arg3, arg4, arg5})
+	stub := fake.MergePullRequestStub
+	fakeReturns := fake.mergePullRequestReturns
+	fake.recordInvocation("MergePullRequest", []interface{}{arg1, arg2, arg3, arg4, arg5})
+	fake.mergePullRequestMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4, arg5)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeGitProvider) MergePullRequestCallCount() int {
+	fake.mergePullRequestMutex.RLock()
+	defer fake.mergePullRequestMutex.RUnlock()
+	return len(fake.mergePullRequestArgsForCall)
+}
+
+func (fake *FakeGitProvider) MergePullRequestCalls(stub func(context.Context, gitproviders.RepoURL, int, gitprovider.MergeMethod, string) error) {
+	fake.mergePullRequestMutex.Lock()
+	defer fake.mergePullRequestMutex.Unlock()
+	fake.MergePullRequestStub = stub
+}
+
+func (fake *FakeGitProvider) MergePullRequestArgsForCall(i int) (context.Context, gitproviders.RepoURL, int, gitprovider.MergeMethod, string) {
+	fake.mergePullRequestMutex.RLock()
+	defer fake.mergePullRequestMutex.RUnlock()
+	argsForCall := fake.mergePullRequestArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
+}
+
+func (fake *FakeGitProvider) MergePullRequestReturns(result1 error) {
+	fake.mergePullRequestMutex.Lock()
+	defer fake.mergePullRequestMutex.Unlock()
+	fake.MergePullRequestStub = nil
+	fake.mergePullRequestReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeGitProvider) MergePullRequestReturnsOnCall(i int, result1 error) {
+	fake.mergePullRequestMutex.Lock()
+	defer fake.mergePullRequestMutex.Unlock()
+	fake.MergePullRequestStub = nil
+	if fake.mergePullRequestReturnsOnCall == nil {
+		fake.mergePullRequestReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.mergePullRequestReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeGitProvider) RepositoryExists(arg1 context.Context, arg2 gitproviders.RepoURL) (bool, error) {
 	fake.repositoryExistsMutex.Lock()
 	ret, specificReturn := fake.repositoryExistsReturnsOnCall[len(fake.repositoryExistsArgsForCall)]
@@ -740,6 +820,8 @@ func (fake *FakeGitProvider) Invocations() map[string][][]interface{} {
 	defer fake.getRepoFilesMutex.RUnlock()
 	fake.getRepoVisibilityMutex.RLock()
 	defer fake.getRepoVisibilityMutex.RUnlock()
+	fake.mergePullRequestMutex.RLock()
+	defer fake.mergePullRequestMutex.RUnlock()
 	fake.repositoryExistsMutex.RLock()
 	defer fake.repositoryExistsMutex.RUnlock()
 	fake.uploadDeployKeyMutex.RLock()

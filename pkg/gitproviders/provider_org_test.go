@@ -3,6 +3,7 @@ package gitproviders
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo"
@@ -321,9 +322,47 @@ var _ = Describe("Org Provider", func() {
 		It("returns a list of files", func() {
 			file := &gitprovider.CommitFile{}
 			fileClient.GetReturns([]*gitprovider.CommitFile{file}, nil)
-			c, err := orgProvider.GetRepoFiles(context.TODO(), repoUrl, "", "")
+			c, err := orgProvider.GetRepoFiles(context.TODO(), repoUrl, "path", "main")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(c).To(Equal([]*gitprovider.CommitFile{file}))
+			Expect(fileClient.GetCallCount()).To(Equal(1))
+			_, targetPath, targetBranch := fileClient.GetArgsForCall(0)
+			Expect(targetPath).To(Equal("path"))
+			Expect(targetBranch).To(Equal("main"))
+		})
+
+		When("it fails to get the requested directory from the repo", func() {
+			It("returns an error", func() {
+				file := &gitprovider.CommitFile{}
+				fileClient.GetReturns([]*gitprovider.CommitFile{file}, fmt.Errorf("err"))
+				_, err := orgProvider.GetRepoFiles(context.TODO(), repoUrl, "path", "main")
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("err"))
+				Expect(fileClient.GetCallCount()).To(Equal(1))
+			})
+		})
+	})
+
+	Describe("MergePullRequest", func() {
+		It("merges a given pull request", func() {
+			pullRequestsClient.MergeReturns(nil)
+			err := orgProvider.MergePullRequest(context.TODO(), repoUrl, 1, gitprovider.MergeMethodMerge, "message")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(pullRequestsClient.MergeCallCount()).To(Equal(1))
+			_, prNumber, mergeMethod, message := pullRequestsClient.MergeArgsForCall(0)
+			Expect(prNumber).To(Equal(1))
+			Expect(mergeMethod).To(Equal(gitprovider.MergeMethodMerge))
+			Expect(message).To(Equal("message"))
+		})
+
+		When("merge the PR fails", func() {
+			It("returns an error", func() {
+				pullRequestsClient.MergeReturns(fmt.Errorf("err"))
+				err := orgProvider.MergePullRequest(context.TODO(), repoUrl, 1, gitprovider.MergeMethodMerge, "message")
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("err"))
+				Expect(pullRequestsClient.MergeCallCount()).To(Equal(1))
+			})
 		})
 	})
 })

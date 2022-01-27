@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/helm"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
+	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakegitprovider"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/fluxcd/helm-controller/api/v2beta1"
@@ -29,12 +30,14 @@ var _ = Describe("Add", func() {
 		profilesSvc  *profiles.ProfilesSvc
 		clientSet    *fake.Clientset
 		fakeLogger   *loggerfakes.FakeLogger
+		fakePR       *fakegitprovider.PullRequest
 	)
 
 	BeforeEach(func() {
 		gitProviders = &gitprovidersfakes.FakeGitProvider{}
 		clientSet = fake.NewSimpleClientset()
 		fakeLogger = &loggerfakes.FakeLogger{}
+		fakePR = &fakegitprovider.PullRequest{}
 		profilesSvc = profiles.NewService(clientSet, fakeLogger)
 
 		addOptions = profiles.AddOptions{
@@ -53,9 +56,54 @@ var _ = Describe("Add", func() {
 		clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
 			return true, newFakeResponseWrapper(getProfilesResp), nil
 		})
-		gitProviders.CreatePullRequestReturns(nil, nil)
+		fakePR.GetReturns(gitprovider.PullRequestInfo{
+			WebURL: "url",
+		})
+		gitProviders.CreatePullRequestReturns(fakePR, nil)
 		Expect(profilesSvc.Add(context.TODO(), gitProviders, addOptions)).Should(Succeed())
 		Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
+	})
+
+	When("auto-merge is enabled", func() {
+		It("merges the PR that was created", func() {
+			gitProviders.RepositoryExistsReturns(true, nil)
+			gitProviders.GetDefaultBranchReturns("main", nil)
+			gitProviders.GetRepoFilesReturns(makeTestFiles(), nil)
+			clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
+				return true, newFakeResponseWrapper(getProfilesResp), nil
+			})
+			fakePR.GetReturns(gitprovider.PullRequestInfo{
+				WebURL: "url",
+				Number: 42,
+			})
+			gitProviders.CreatePullRequestReturns(fakePR, nil)
+			addOptions.AutoMerge = true
+			Expect(profilesSvc.Add(context.TODO(), gitProviders, addOptions)).Should(Succeed())
+			Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
+			Expect(gitProviders.MergePullRequestCallCount()).To(Equal(1))
+		})
+
+		When("the PR fails to be merged", func() {
+			It("returns an error", func() {
+				gitProviders.RepositoryExistsReturns(true, nil)
+				gitProviders.GetDefaultBranchReturns("main", nil)
+				gitProviders.GetRepoFilesReturns(makeTestFiles(), nil)
+				clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
+					return true, newFakeResponseWrapper(getProfilesResp), nil
+				})
+				fakePR.GetReturns(gitprovider.PullRequestInfo{
+					WebURL: "url",
+				})
+				gitProviders.CreatePullRequestReturns(fakePR, nil)
+				gitProviders.MergePullRequestReturns(fmt.Errorf("err"))
+				addOptions.AutoMerge = true
+				err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
+				Expect(err).NotTo(BeNil())
+				Expect(err).To(MatchError("err"))
+				Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
+				Expect(gitProviders.MergePullRequestCallCount()).To(Equal(1))
+			})
+		})
 	})
 
 	It("fails if the --config-repo url format is wrong", func() {
@@ -117,7 +165,13 @@ var _ = Describe("Add", func() {
 
 		It("creates a helm release with that version", func() {
 			addOptions.Version = "6.0.0"
-			gitProviders.CreatePullRequestReturns(nil, nil)
+			fakePR.GetReturns(gitprovider.PullRequestInfo{
+				WebURL: "url",
+			})
+			fakePR.GetReturns(gitprovider.PullRequestInfo{
+				WebURL: "url",
+			})
+			gitProviders.CreatePullRequestReturns(fakePR, nil)
 			err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
 			Expect(err).To(BeNil())
 		})
@@ -132,8 +186,9 @@ var _ = Describe("Add", func() {
 		gitProviders.CreatePullRequestReturns(nil, fmt.Errorf("err"))
 		err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
 		Expect(err).NotTo(BeNil())
-		Expect(err).To(MatchError("failed to create a pull request: err"))
+		Expect(err).To(MatchError("failed to create the pull request: err"))
 	})
+
 })
 
 var _ = Describe("MakeManifestFile", func() {

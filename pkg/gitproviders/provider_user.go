@@ -128,3 +128,12 @@ func (p userGitProvider) GetRepoFiles(ctx context.Context, repoUrl RepoURL, targ
 	}
 	return files, nil
 }
+
+// MergePullRequest merges a pull request given the repository's URL and the PR's number with a merge method, and a commit message.
+func (p userGitProvider) MergePullRequest(ctx context.Context, repoUrl RepoURL, pullRequestNumber int, mergeMethod gitprovider.MergeMethod, commitMesage string) error {
+	repo, err := p.getUserRepo(ctx, repoUrl)
+	if err != nil {
+		return err
+	}
+	return repo.PullRequests().Merge(ctx, pullRequestNumber, mergeMethod, commitMesage)
+}
