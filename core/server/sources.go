@@ -93,7 +93,7 @@ func (as *appServer) ListHelmRepositories(ctx context.Context, msg *pb.ListHelmR
 		}
 	}
 
-	if err := k8s.List(ctx, list, &opts); err != nil {
+	if err := k8s.List(ctx, list, &opts, client.InNamespace(msg.Namespace)); err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to list helm repositories for app %s: %s", msg.AppName, err.Error())
 	}
 

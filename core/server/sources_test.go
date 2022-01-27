@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 
@@ -136,8 +135,6 @@ func TestListHelmRepositories(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.HelmRepositories).To(HaveLen(1))
 	g.Expect(res.HelmRepositories[0].Name).To(Equal(r.Name))
-
-	time.Sleep(time.Minute)
 
 	// Ensure our filtering logic is working for `AppName`
 	all, err := c.ListHelmRepositories(ctx, &pb.ListHelmRepositoryReq{
