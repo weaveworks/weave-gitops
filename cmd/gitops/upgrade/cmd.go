@@ -37,7 +37,6 @@ var Cmd = &cobra.Command{
 }
 
 func init() {
-	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.ConfigRepo, "config-repo", "", "URL of external repository that will hold automation manifests")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.Version, "version", "", "Version of Weave GitOps Enterprise to be installed")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.BaseBranch, "base", "", "The base branch to open the pull request against")
 	Cmd.PersistentFlags().StringVar(&upgradeCmdFlags.HeadBranch, "branch", "tier-upgrade-enterprise", "The branch to create the pull request from")
@@ -45,7 +44,6 @@ func init() {
 	Cmd.PersistentFlags().StringArrayVar(&upgradeCmdFlags.Values, "set", []string{}, "set profile values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
 	Cmd.PersistentFlags().BoolVar(&upgradeCmdFlags.DryRun, "dry-run", false, "Output the generated profile without creating a pull request")
 
-	cobra.CheckErr(Cmd.MarkPersistentFlagRequired("config-repo"))
 	cobra.CheckErr(Cmd.MarkPersistentFlagRequired("version"))
 }
 
@@ -69,6 +67,13 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 		log := internal.NewCLILogger(os.Stdout)
 		fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 		factory := services.NewFactory(fluxClient, log)
+
+		wegoConfig, err := kubeClient.GetWegoConfig(ctx, namespace)
+		if err != nil {
+			return fmt.Errorf("failed getting wego config")
+		}
+
+		upgradeCmdFlags.ConfigRepo = wegoConfig.ConfigRepo
 
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 

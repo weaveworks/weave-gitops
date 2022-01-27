@@ -79,6 +79,8 @@ var _ = XDescribe("AddApplication", func() {
 			sourceRepo, sourceRef, err = helpers.CreatePopulatedSourceRepo(ctx, gp, sourceRepoURL)
 			Expect(err).NotTo(HaveOccurred())
 
+			Expect(helpers.SetWegoConfig(env.Client, namespace.Name, sourceRepoURL)).To(Succeed())
+
 			appName = "my-app"
 
 			addAppRequest = &pb.AddApplicationRequest{
@@ -163,10 +165,11 @@ var _ = XDescribe("AddApplication", func() {
 				}
 			})
 			It("adds an app with an external config repo", func() {
-
 				defer func() { Expect(sourceRepo.Delete(ctx)).To(Succeed()) }()
 
 				configRepoURL := fmt.Sprintf("https://github.com/%s/%s", githubOrg, configRepoName)
+
+				Expect(helpers.SetWegoConfig(env.Client, namespace.Name, configRepoURL)).To(Succeed())
 
 				configRepo, configRef, err := helpers.CreateRepo(ctx, gp, configRepoURL)
 				Expect(err).NotTo(HaveOccurred())
@@ -381,6 +384,7 @@ var _ = XDescribe("AddApplication", func() {
 				defer func() { Expect(sourceRepo.Delete(ctx)).To(Succeed()) }()
 
 				configRepoURL := fmt.Sprintf("https://github.com/%s/%s", githubOrg, configRepoName)
+				Expect(helpers.SetWegoConfig(env.Client, namespace.Name, configRepoURL)).To(Succeed())
 
 				configRepo, configRef, err := helpers.CreateRepo(ctx, gp, configRepoURL)
 				Expect(err).NotTo(HaveOccurred())
@@ -493,6 +497,8 @@ var _ = XDescribe("AddApplication", func() {
 			Expect(err).NotTo(HaveOccurred())
 			sourceRepoURL = fmt.Sprintf("https://gitlab.com/%s/%s", gitlabOrg, sourceRepoName)
 
+			Expect(helpers.SetWegoConfig(env.Client, namespace.Name, sourceRepoURL)).To(Succeed())
+
 			sourceRepo, sourceRef, err = helpers.CreatePopulatedSourceRepo(ctx, gitlabProviderClient, sourceRepoURL)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -584,6 +590,8 @@ var _ = XDescribe("AddApplication", func() {
 				defer func() { Expect(sourceRepo.Delete(ctx)).To(Succeed()) }()
 
 				configRepoURL := fmt.Sprintf("https://gitlab.com/%s/%s", gitlabOrg, configRepoName)
+
+				Expect(helpers.SetWegoConfig(env.Client, namespace.Name, configRepoURL)).To(Succeed())
 
 				configRepo, configRef, err := helpers.CreateRepo(ctx, gitlabProviderClient, configRepoURL)
 				Expect(err).NotTo(HaveOccurred())
