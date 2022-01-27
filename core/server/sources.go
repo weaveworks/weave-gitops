@@ -86,8 +86,11 @@ func (as *appServer) ListHelmRepositories(ctx context.Context, msg *pb.ListHelmR
 
 	list := &sourcev1.HelmRepositoryList{}
 
-	opts := client.MatchingLabels{
-		"app.kubernetes.io/part-of": msg.AppName,
+	var opts client.MatchingLabels
+	if msg.AppName != "" {
+		opts = client.MatchingLabels{
+			"app.kubernetes.io/part-of": msg.AppName,
+		}
 	}
 
 	if err := k8s.List(ctx, list, &opts); err != nil {
