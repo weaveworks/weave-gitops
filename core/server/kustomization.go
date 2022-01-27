@@ -4,6 +4,7 @@ import (
 	"context"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	"github.com/weaveworks/weave-gitops/core/server/types"
 	stypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
 	"google.golang.org/grpc/codes"
@@ -45,7 +46,7 @@ func (as *appServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomi
 	var opts client.MatchingLabels
 	if msg.AppName != "" {
 		opts = client.MatchingLabels{
-			"app.kubernetes.io/part-of": msg.AppName,
+			types.PartOfLabel: msg.AppName,
 		}
 	}
 

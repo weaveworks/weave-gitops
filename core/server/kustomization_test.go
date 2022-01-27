@@ -154,7 +154,6 @@ func TestListKustomizations(t *testing.T) {
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(all.Kustomizations).To(HaveLen(2))
-
 }
 
 func TestRemoveKustomization(t *testing.T) {

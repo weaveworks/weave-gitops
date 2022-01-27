@@ -9,12 +9,12 @@ import (
 
 func ProtoToKustomization(kustomization *pb.AddKustomizationReq) v1beta2.Kustomization {
 	labels := map[string]string{
-		"app.kubernetes.io/managed-by": managedByWeaveGitops,
-		"app.kubernetes.io/created-by": createdByKustomizeController,
+		ManagedByLabel: managedByWeaveGitops,
+		CreatedByLabel: createdByKustomizeController,
 	}
 
 	if kustomization.AppName != "" {
-		labels["app.kubernetes.io/part-of"] = kustomization.AppName
+		labels[PartOfLabel] = kustomization.AppName
 	}
 
 	return v1beta2.Kustomization{
