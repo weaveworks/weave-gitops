@@ -63,11 +63,6 @@ func (f *defaultFactory) GetAppService(ctx context.Context, kubeClient kube.Kube
 }
 
 func (f *defaultFactory) GetGitClients(ctx context.Context, kubeClient kube.Kube, gpClient gitproviders.Client, params GitConfigParams) (git.Git, gitproviders.GitProvider, error) {
-	// This is temporary. When config repo is always present in the config map this can be removed.
-	if params.ConfigRepo == "" && !params.IsHelmRepository {
-		params.ConfigRepo = params.URL
-	}
-
 	configNormalizedUrl, err := gitproviders.NewRepoURL(params.ConfigRepo)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error normalizing config url: %w", err)
