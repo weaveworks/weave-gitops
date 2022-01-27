@@ -21,6 +21,7 @@ import (
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
+	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -57,9 +58,10 @@ var options Options
 // NewCommand returns the `ui run` command
 func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "run [--log]",
-		Short: "Runs gitops ui",
-		RunE:  runCmd,
+		Use:     "run [--log]",
+		Short:   "Runs gitops ui",
+		PreRunE: preRunCmd,
+		RunE:    runCmd,
 	}
 
 	options = Options{}
@@ -83,6 +85,28 @@ func NewCommand() *cobra.Command {
 	}
 
 	return cmd
+}
+
+func preRunCmd(cmd *cobra.Command, args []string) error {
+	if server.AuthEnabled() {
+		if options.OIDC.IssuerURL == "" {
+			return cmderrors.ErrNoIssuerURL
+		}
+
+		if options.OIDC.ClientID == "" {
+			return cmderrors.ErrNoClientID
+		}
+
+		if options.OIDC.ClientSecret == "" {
+			return cmderrors.ErrNoClientSecret
+		}
+
+		if options.OIDC.RedirectURL == "" {
+			return cmderrors.ErrNoRedirectURL
+		}
+	}
+
+	return nil
 }
 
 func runCmd(cmd *cobra.Command, args []string) error {
@@ -144,7 +168,10 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 	}()
 
-	profilesConfig := server.NewProfilesConfig(rawClient, profileCache, options.HelmRepoNamespace, options.HelmRepoName)
+	profilesConfig := server.NewProfilesConfig(server.ClusterConfig{
+		DefaultConfig: rest,
+		ClusterName:   clusterName,
+	}, profileCache, options.HelmRepoNamespace, options.HelmRepoName)
 
 	var authServer *auth.AuthServer
 
