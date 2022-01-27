@@ -4,7 +4,7 @@ package gitops_server.v1;
 
 option go_package = "github.com/weaveworks/weave-gitops/core/api/apps";
 
-import "api/app/flux.proto";
+import "api/app/automation.proto";
 import "api/app/source.proto";
 import "google/api/annotations.proto";
 import "google/api/httpbody.proto";

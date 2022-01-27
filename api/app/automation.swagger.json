@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "api/app/source.proto",
+    "title": "api/app/automation.proto",
     "version": "version not set"
   },
   "consumes": [

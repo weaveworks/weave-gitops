@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package gitops_server.v1;
+
+option go_package = "github.com/weaveworks/weave-gitops/core/api/apps";
+
+import "api/app/source.proto";
+
+message Kustomization {
+  string namespace = 1;
+  string name = 2;
+  string path = 3;
+  SourceRef sourceRef = 4;
+  Interval interval = 5;
+}
+
+message AddKustomizationReq {
+  string namespace = 1;
+  string app_name = 2;
+  string name = 3;
+  string path = 4;
+  SourceRef sourceRef = 5;
+  Interval interval = 6;
+}
+
+message AddKustomizationRes {
+  bool success = 1;
+  Kustomization kustomization = 2;
+}
+
+message ListKustomizationsReq {
+  string namespace = 1;
+  string app_name = 2;
+}
+
+message ListKustomizationsRes {
+  repeated Kustomization kustomizations = 1;
+}
+
+message RemoveKustomizationReq {
+  string namespace = 1;
+  string app_name = 2;
+  string kustomization_name = 3;
+}
+
+message RemoveKustomizationRes {
+  bool success = 1;
+}
