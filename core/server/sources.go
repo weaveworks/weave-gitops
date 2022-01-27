@@ -59,3 +59,45 @@ func (as *appServer) ListGitRepositories(ctx context.Context, msg *pb.ListGitRep
 		GitRepositories: results,
 	}, nil
 }
+
+func (as *appServer) AddHelmRepository(ctx context.Context, msg *pb.AddHelmRepositoryReq) (*pb.AddHelmRepositoryRes, error) {
+	k8s, err := as.k8s.Client(ctx)
+	if err != nil {
+		return nil, doClientError(err)
+	}
+
+	src := stypes.ProtoToHelmRepository(msg)
+
+	if err := k8s.Create(ctx, &src); err != nil {
+		return nil, status.Errorf(codes.Internal, "creating source for helm repository %q: %s", msg.Name, err.Error())
+	}
+
+	return &pb.AddHelmRepositoryRes{
+		Success:        true,
+		HelmRepository: stypes.HelmRepositoryToProto(&src),
+	}, nil
+}
+
+func (as *appServer) ListHelmRepositories(ctx context.Context, msg *pb.ListHelmRepositoryReq) (*pb.ListHelmRepositoryRes, error) {
+	k8s, err := as.k8s.Client(ctx)
+	if err != nil {
+		return nil, doClientError(err)
+	}
+
+	list := &sourcev1.HelmRepositoryList{}
+
+	err = k8s.List(ctx, list)
+
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "unable to get helm repository list: %s", err.Error())
+	}
+
+	var results []*pb.HelmRepository
+	for _, repository := range list.Items {
+		results = append(results, stypes.HelmRepositoryToProto(&repository))
+	}
+
+	return &pb.ListHelmRepositoryRes{
+		HelmRepositories: results,
+	}, nil
+}
