@@ -60,6 +60,7 @@ func init() {
 	Cmd.Flags().StringVar(&params.Branch, "branch", "", "Branch to watch within git repository")
 	Cmd.Flags().StringVar(&params.DeploymentType, "deployment-type", app.DefaultDeploymentType, "Deployment type [kustomize, helm]")
 	Cmd.Flags().StringVar(&params.Chart, "chart", "", "Specify chart for helm source")
+	Cmd.Flags().StringVar(&params.ConfigRepo, "config-repo", "", "URL of external repository (if any) which will hold automation manifests")
 	Cmd.Flags().StringVar(&params.HelmReleaseTargetNamespace, "helm-release-target-namespace", "", "Namespace in which to deploy a helm chart; defaults to the gitops installation namespace")
 	Cmd.Flags().BoolVar(&params.DryRun, "dry-run", false, "If set, 'gitops add app' will not make any changes to the system; it will just display the actions that would have been taken")
 	Cmd.Flags().BoolVar(&params.AutoMerge, "auto-merge", false, "If set, 'gitops add app' will merge automatically into the set --branch")
