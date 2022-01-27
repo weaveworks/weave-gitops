@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/validation"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -245,6 +246,24 @@ func hashNameIfTooLong(name string) string {
 
 func ApplicationNameTooLong(name string) bool {
 	return len(name) > MaxKubernetesResourceNameLength
+}
+
+func ValidateApplicationName(name string) error {
+	errs := validation.IsDNS1123Label(name)
+	if len(errs) > 0 {
+		var s strings.Builder
+		for _, e := range errs {
+			if s.Len() > 0 {
+				s.WriteString("; ")
+			}
+
+			s.WriteString(e)
+		}
+
+		return fmt.Errorf("invalid application name %q :%s", name, s.String())
+	}
+
+	return nil
 }
 
 func ConstrainResourceName(str string) string {

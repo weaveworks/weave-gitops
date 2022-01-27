@@ -6,6 +6,7 @@ import (
 	"errors"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
@@ -40,11 +41,10 @@ var _ = Describe("Installer", func() {
 		fakeKubeClient.FetchNamespaceWithLabelReturns(&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: params.WegoNamespace}}, nil)
 
 		Context("BootstrapManifests", func() {
-
 			Context("error paths", func() {
 				someError := errors.New("some error")
-				It("should fail getting runtime manifests", func() {
 
+				It("should fail getting runtime manifests", func() {
 					fakeFluxClient.InstallReturns(nil, someError)
 
 					_, err = BootstrapManifests(fakeFluxClient, fakeKubeClient, params)
@@ -243,6 +243,21 @@ var _ = Describe("Installer", func() {
 						Expect(string(manifest.Content)).Should(Equal(string(expectedManifests[ind].Content)))
 					}
 				})
+			})
+		})
+
+		Context("Validate name", func() {
+			It("should pass successfully", func() {
+				Expect(ValidateApplicationName("foobar")).ShouldNot(HaveOccurred())
+				Expect(ValidateApplicationName("foobar-1234-test-bar-0123456")).ShouldNot(HaveOccurred())
+				Expect(ValidateApplicationName("f")).ShouldNot(HaveOccurred())
+				Expect(ValidateApplicationName("6")).ShouldNot(HaveOccurred())
+				Expect(ValidateApplicationName(strings.Repeat("1", 63))).ShouldNot(HaveOccurred())
+			})
+			It("should fail", func() {
+				Expect(ValidateApplicationName("Special")).Should(HaveOccurred())
+				Expect(ValidateApplicationName("foobar.baz")).Should(HaveOccurred())
+				Expect(ValidateApplicationName(strings.Repeat("1", 64))).Should(HaveOccurred())
 			})
 		})
 	})

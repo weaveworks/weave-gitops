@@ -129,9 +129,9 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 		params.Path = params.Chart
 
 		if params.Name == "" {
-			if models.ApplicationNameTooLong(params.Chart) {
-				return params, fmt.Errorf("chart name %q is too long to use as application name (must be <= %d characters); please specify name with '--name'",
-					params.Chart, models.MaxKubernetesResourceNameLength)
+			if err := models.ValidateApplicationName(params.Chart); err != nil {
+				return params, fmt.Errorf("unable to use chart name %q as the application name; please specify name with '--name' :%s",
+					params.Chart, err)
 			}
 
 			params.Name = params.Chart
@@ -167,9 +167,8 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 
 	if params.Name == "" {
 		repoName := utils.UrlToRepoName(params.Url)
-		if models.ApplicationNameTooLong(repoName) {
-			return params, fmt.Errorf("url base name %q is too long to use as application name (must be <= %d characters); please specify name with '--name'",
-				repoName, models.MaxKubernetesResourceNameLength)
+		if err := models.ValidateApplicationName(repoName); err != nil {
+			return params, err
 		}
 
 		params.Name = automation.GenerateResourceName(appRepoUrl)
@@ -196,8 +195,8 @@ func (a *AppSvc) updateParametersIfNecessary(ctx context.Context, gitProvider gi
 		}
 	}
 
-	if models.ApplicationNameTooLong(params.Name) {
-		return params, fmt.Errorf("application name too long: %s; must be <= %d characters", params.Name, models.MaxKubernetesResourceNameLength)
+	if err := models.ValidateApplicationName(params.Name); err != nil {
+		return params, err
 	}
 
 	// Validate namespace argument for helm
