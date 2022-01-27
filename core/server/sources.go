@@ -86,7 +86,13 @@ func (as *appServer) ListHelmRepositories(ctx context.Context, msg *pb.ListHelmR
 
 	list := &sourcev1.HelmRepositoryList{}
 
-	err = k8s.List(ctx, list)
+	opts := client.MatchingLabels{
+		"app.kubernetes.io/part-of": msg.AppName,
+	}
+
+	if err := k8s.List(ctx, list, &opts); err != nil {
+		return nil, status.Errorf(codes.Internal, "unable to list helm repositories for app %s: %s", msg.AppName, err.Error())
+	}
 
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to get helm repository list: %s", err.Error())
