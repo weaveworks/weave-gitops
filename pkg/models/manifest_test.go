@@ -9,6 +9,9 @@ import (
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
+	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -23,15 +26,18 @@ var _ = Describe("Installer", func() {
 
 	var fakeFluxClient *fluxfakes.FakeFlux
 	var fakeGitProvider *gitprovidersfakes.FakeGitProvider
+	var fakeKubeClient *kubefakes.FakeKube
 	var params = BootstrapManifestsParams{
 		ClusterName:   "test-cluster",
 		WegoNamespace: "test-namespace",
-		FluxNamespace: "test-namespace",
 	}
 	var err error
 	var _ = BeforeEach(func() {
-		fakeFluxClient = &fluxfakes.FakeFlux{}
 		params.ConfigRepo, err = gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo", true)
+
+		fakeFluxClient = &fluxfakes.FakeFlux{}
+		fakeKubeClient = &kubefakes.FakeKube{}
+		fakeKubeClient.FetchNamespaceWithLabelReturns(&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: params.WegoNamespace}}, nil)
 
 		Context("BootstrapManifests", func() {
 
@@ -41,7 +47,7 @@ var _ = Describe("Installer", func() {
 
 					fakeFluxClient.InstallReturns(nil, someError)
 
-					_, err = BootstrapManifests(fakeFluxClient, params)
+					_, err = BootstrapManifests(fakeFluxClient, fakeKubeClient, params)
 					Expect(err.Error()).Should(ContainSubstring(someError.Error()))
 				})
 
@@ -51,7 +57,7 @@ var _ = Describe("Installer", func() {
 
 					fakeFluxClient.CreateKustomizationReturns(nil, someError)
 
-					_, err = BootstrapManifests(fakeFluxClient, params)
+					_, err = BootstrapManifests(fakeFluxClient, fakeKubeClient, params)
 					Expect(err.Error()).Should(ContainSubstring(someError.Error()))
 				})
 
@@ -62,7 +68,7 @@ var _ = Describe("Installer", func() {
 					fakeFluxClient.CreateKustomizationReturnsOnCall(0, nil, nil)
 					fakeFluxClient.CreateKustomizationReturnsOnCall(1, nil, someError)
 
-					_, err = BootstrapManifests(fakeFluxClient, params)
+					_, err = BootstrapManifests(fakeFluxClient, fakeKubeClient, params)
 					Expect(err.Error()).Should(ContainSubstring(someError.Error()))
 				})
 			})
@@ -83,13 +89,13 @@ var _ = Describe("Installer", func() {
 
 					wegoAppManifest := bytes.Join(wegoAppManifests, []byte("---\n"))
 
-					gitopsConfigMap, err := CreateGitopsConfigMap(params.FluxNamespace, params.WegoNamespace, params.ConfigRepo.String())
+					gitopsConfigMap, err := CreateGitopsConfigMap(params.WegoNamespace, params.WegoNamespace, params.ConfigRepo.String())
 					Expect(err).ShouldNot(HaveOccurred())
 
 					wegoConfigManifest, err := yaml.Marshal(gitopsConfigMap)
 					Expect(err).ShouldNot(HaveOccurred())
 
-					manifestsFiles, err := BootstrapManifests(fakeFluxClient, params)
+					manifestsFiles, err := BootstrapManifests(fakeFluxClient, fakeKubeClient, params)
 					Expect(err).ShouldNot(HaveOccurred())
 					expectedManifests := []Manifest{
 						{

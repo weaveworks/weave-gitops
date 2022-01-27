@@ -73,9 +73,7 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 			return fmt.Errorf("failed getting wego config")
 		}
 
-		if upgradeCmdFlags.ConfigRepo == "" {
-			upgradeCmdFlags.ConfigRepo = wegoConfig.ConfigRepo
-		}
+		upgradeCmdFlags.ConfigRepo = wegoConfig.ConfigRepo
 
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 

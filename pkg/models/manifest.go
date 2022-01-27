@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/md5"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -49,12 +50,11 @@ const (
 type BootstrapManifestsParams struct {
 	ClusterName   string
 	WegoNamespace string
-	FluxNamespace string
 	ConfigRepo    gitproviders.RepoURL
 }
 
 // BootstrapManifests creates all yaml files that are going to be applied to the cluster
-func BootstrapManifests(fluxClient flux.Flux, params BootstrapManifestsParams) ([]Manifest, error) {
+func BootstrapManifests(fluxClient flux.Flux, kubeClient kube.Kube, params BootstrapManifestsParams) ([]Manifest, error) {
 	runtimeManifests, err := fluxClient.Install(params.WegoNamespace, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed getting runtime manifests: %w", err)
@@ -89,7 +89,20 @@ func BootstrapManifests(fluxClient flux.Flux, params BootstrapManifestsParams) (
 		return nil, err
 	}
 
-	gitopsConfigMap, err := CreateGitopsConfigMap(params.WegoNamespace, params.WegoNamespace, params.ConfigRepo.String())
+	fluxNs := params.WegoNamespace
+
+	fluxNamespace, err := kubeClient.FetchNamespaceWithLabel(context.Background(), flux.PartOfLabelKey, flux.PartOfLabelValue)
+	if err != nil {
+		if !errors.Is(err, kube.ErrNamespaceNotFound) {
+			return nil, fmt.Errorf("failed fetching flux namespace: %w", err)
+		}
+	}
+
+	if fluxNamespace != nil {
+		fluxNs = fluxNamespace.Name
+	}
+
+	gitopsConfigMap, err := CreateGitopsConfigMap(fluxNs, params.WegoNamespace, params.ConfigRepo.String())
 	if err != nil {
 		return nil, err
 	}

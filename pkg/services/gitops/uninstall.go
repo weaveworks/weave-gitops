@@ -8,7 +8,6 @@ import (
 
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/manifests"
-
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 

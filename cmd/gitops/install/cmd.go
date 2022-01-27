@@ -6,7 +6,6 @@ package install
 import (
 	"context"
 	_ "embed"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -26,7 +25,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
 	"github.com/weaveworks/weave-gitops/pkg/services/install"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type params struct {
@@ -85,23 +83,9 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	if installParams.DryRun {
-		fluxNamespace, err := kubeClient.FetchNamespaceWithLabel(ctx, flux.PartOfLabelKey, flux.PartOfLabelValue)
-		if err != nil {
-			if !errors.Is(err, kube.ErrNamespaceNotFound) {
-				return fmt.Errorf("failed fetching flux namespace: %w", err)
-			}
-		}
-
-		if fluxNamespace == nil {
-			fluxNamespace = &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{
-				Name: namespace,
-			}}
-		}
-
-		manifests, err := models.BootstrapManifests(fluxClient, models.BootstrapManifestsParams{
+		manifests, err := models.BootstrapManifests(fluxClient, kubeClient, models.BootstrapManifestsParams{
 			ClusterName:   clusterName,
 			WegoNamespace: namespace,
-			FluxNamespace: fluxNamespace.Name,
 			ConfigRepo:    configURL,
 		})
 		if err != nil {

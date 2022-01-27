@@ -67,15 +67,6 @@ var _ = Describe("Add", func() {
 		Expect(kubeClient.GetClusterNameCallCount()).To(Equal(1))
 	})
 
-	It("validates config-repo is set when source is helm", func() {
-		addParams.Chart = "my-chart"
-		addParams.Url = "https://my-chart.com"
-		addParams.ConfigRepo = ""
-
-		err := appSrv.Add(gitClient, gitProviders, addParams)
-		Expect(err.Error()).Should(HaveSuffix("--config-repo should be provided"))
-	})
-
 	Context("Looking up repo default branch", func() {
 		var _ = BeforeEach(func() {
 			gitProviders.GetDefaultBranchStub = func(_ context.Context, repoUrl gitproviders.RepoURL) (string, error) {
