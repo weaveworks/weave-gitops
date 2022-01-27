@@ -37,11 +37,6 @@ func (t *testServerTransport) RoundTrip(r *http.Request) (*http.Response, error)
 	return t.roundTripper.RoundTrip(r)
 }
 
-type outcome struct {
-	string
-	error
-}
-
 // sleeper is a very lightweight fake sleep timer. Instead of faking out the system
 // clock, we can accept `sleep` calls and keep track of how long we've slept.
 type sleeper struct {
@@ -119,7 +114,6 @@ var _ = Describe("Github Device Flow", func() {
 	Describe("pollAuthStatus", func() {
 		var rt *mockAuthRoundTripper
 		var s *sleeper
-		outcomeChan := make(chan outcome)
 
 		// pollTimes is a convenience function to convert from a series of polling intervals
 		// to their respective polling timestamps, relative to the sleeper type's starting time
@@ -154,12 +148,7 @@ var _ = Describe("Github Device Flow", func() {
 			It("retries with a longer interval", func() {
 				interval := 5 * time.Second
 
-				go func() {
-					resultToken, err := pollAuthStatus(s.sleep, interval, client, "somedevicecode")
-					outcomeChan <- outcome{resultToken, err}
-				}()
-
-				<-outcomeChan
+				_, _ = pollAuthStatus(s.sleep, interval, client, "somedevicecode")
 
 				expectedPollTimes := pollTimes([]time.Duration{
 					interval,
@@ -171,21 +160,15 @@ var _ = Describe("Github Device Flow", func() {
 			It("returns a token", func() {
 				interval := 5 * time.Second
 
-				go func() {
-					resultToken, err := pollAuthStatus(s.sleep, interval, client, "somedevicecode")
-					outcomeChan <- outcome{resultToken, err}
-				}()
+				resultToken, err := pollAuthStatus(s.sleep, interval, client, "somedevicecode")
 
-				outcome := <-outcomeChan
-
-				Expect(outcome.string).To(Equal(token))
-				Expect(outcome.error).NotTo(HaveOccurred())
+				Expect(resultToken).To(Equal(token))
+				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 
 		Context("after several slow_down responses from GitHub", func() {
 			var s *sleeper
-			outcomeChan := make(chan outcome)
 
 			BeforeEach(func() {
 				s = &sleeper{}
@@ -196,10 +179,7 @@ var _ = Describe("Github Device Flow", func() {
 			It("keeps slowing down", func() {
 				interval := 5 * time.Second
 
-				go func() {
-					resultToken, err := pollAuthStatus(s.sleep, interval, client, "somedevicecode")
-					outcomeChan <- outcome{resultToken, err}
-				}()
+				_, _ = pollAuthStatus(s.sleep, interval, client, "somedevicecode")
 
 				expectedPollTimes := pollTimes([]time.Duration{
 					interval,
