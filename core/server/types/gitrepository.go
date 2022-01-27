@@ -16,12 +16,12 @@ const (
 
 func ProtoToGitRepository(repositoryReq *pb.AddGitRepositoryReq) *v1beta1.GitRepository {
 	labels := map[string]string{
-		"app.kubernetes.io/managed-by": managedByWeaveGitops,
-		"app.kubernetes.io/created-by": createdBySourceController,
+		ManagedByLabel: managedByWeaveGitops,
+		CreatedByLabel: createdBySourceController,
 	}
 
 	if repositoryReq.AppName != "" {
-		labels["app.kubernetes.io/part-of"] = repositoryReq.AppName
+		labels[PartOfLabel] = repositoryReq.AppName
 	}
 
 	return &v1beta1.GitRepository{

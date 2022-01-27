@@ -1,11 +1,14 @@
 package types
 
 import (
-	"github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/api/v1alpha2"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+const PartOfLabel string = "app.kubernetes.io/part-of"
+const ManagedByLabel string = "app.kubernetes.io/managed-by"
+const CreatedByLabel string = "app.kubernetes.io/created-by"
 
 func AppCustomResourceToProto(a *v1alpha2.Application) *pb.App {
 	return &pb.App{
@@ -18,17 +21,13 @@ func AppCustomResourceToProto(a *v1alpha2.Application) *pb.App {
 
 func AppAddProtoToCustomResource(msg *pb.AddAppRequest) *v1alpha2.Application {
 	return &v1alpha2.Application{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       v1alpha1.ApplicationKind,
-			APIVersion: "wego.weave.works/v1alpha1",
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      msg.Name,
 			Namespace: msg.Namespace,
 			Labels: map[string]string{
-				"app.kubernetes.io/part-of":    msg.Name,
-				"app.kubernetes.io/managed-by": "weave-gitops",
-				"app.kubernetes.io/created-by": "kustomize-controller",
+				PartOfLabel:    msg.Name,
+				ManagedByLabel: managedByWeaveGitops,
+				CreatedByLabel: createdByKustomizeController,
 			},
 		},
 		Spec: v1alpha2.ApplicationSpec{
