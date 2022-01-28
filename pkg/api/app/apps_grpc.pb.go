@@ -45,12 +45,6 @@ type AppsClient interface {
 	//
 	// ListGitRepository lists git repositories from a cluster.
 	ListGitRepositories(ctx context.Context, in *ListGitRepositoryReq, opts ...grpc.CallOption) (*ListGitRepositoryRes, error)
-	//
-	// AddHelmRepository adds a helm repository source to a cluster.
-	AddHelmRepository(ctx context.Context, in *AddHelmRepositoryReq, opts ...grpc.CallOption) (*AddHelmRepositoryRes, error)
-	//
-	// ListHelmRepository lists helm repositories from a cluster.
-	ListHelmRepositories(ctx context.Context, in *ListHelmRepositoryReq, opts ...grpc.CallOption) (*ListHelmRepositoryRes, error)
 }
 
 type appsClient struct {
@@ -142,24 +136,6 @@ func (c *appsClient) ListGitRepositories(ctx context.Context, in *ListGitReposit
 	return out, nil
 }
 
-func (c *appsClient) AddHelmRepository(ctx context.Context, in *AddHelmRepositoryReq, opts ...grpc.CallOption) (*AddHelmRepositoryRes, error) {
-	out := new(AddHelmRepositoryRes)
-	err := c.cc.Invoke(ctx, "/gitops_server.v1.Apps/AddHelmRepository", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *appsClient) ListHelmRepositories(ctx context.Context, in *ListHelmRepositoryReq, opts ...grpc.CallOption) (*ListHelmRepositoryRes, error) {
-	out := new(ListHelmRepositoryRes)
-	err := c.cc.Invoke(ctx, "/gitops_server.v1.Apps/ListHelmRepositories", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // AppsServer is the server API for Apps service.
 // All implementations must embed UnimplementedAppsServer
 // for forward compatibility
@@ -191,12 +167,6 @@ type AppsServer interface {
 	//
 	// ListGitRepository lists git repositories from a cluster.
 	ListGitRepositories(context.Context, *ListGitRepositoryReq) (*ListGitRepositoryRes, error)
-	//
-	// AddHelmRepository adds a helm repository source to a cluster.
-	AddHelmRepository(context.Context, *AddHelmRepositoryReq) (*AddHelmRepositoryRes, error)
-	//
-	// ListHelmRepository lists helm repositories from a cluster.
-	ListHelmRepositories(context.Context, *ListHelmRepositoryReq) (*ListHelmRepositoryRes, error)
 	mustEmbedUnimplementedAppsServer()
 }
 
@@ -230,12 +200,6 @@ func (UnimplementedAppsServer) AddGitRepository(context.Context, *AddGitReposito
 }
 func (UnimplementedAppsServer) ListGitRepositories(context.Context, *ListGitRepositoryReq) (*ListGitRepositoryRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListGitRepositories not implemented")
-}
-func (UnimplementedAppsServer) AddHelmRepository(context.Context, *AddHelmRepositoryReq) (*AddHelmRepositoryRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddHelmRepository not implemented")
-}
-func (UnimplementedAppsServer) ListHelmRepositories(context.Context, *ListHelmRepositoryReq) (*ListHelmRepositoryRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListHelmRepositories not implemented")
 }
 func (UnimplementedAppsServer) mustEmbedUnimplementedAppsServer() {}
 
@@ -412,42 +376,6 @@ func _Apps_ListGitRepositories_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Apps_AddHelmRepository_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddHelmRepositoryReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AppsServer).AddHelmRepository(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gitops_server.v1.Apps/AddHelmRepository",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AppsServer).AddHelmRepository(ctx, req.(*AddHelmRepositoryReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Apps_ListHelmRepositories_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListHelmRepositoryReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AppsServer).ListHelmRepositories(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gitops_server.v1.Apps/ListHelmRepositories",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AppsServer).ListHelmRepositories(ctx, req.(*ListHelmRepositoryReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Apps_ServiceDesc is the grpc.ServiceDesc for Apps service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -490,14 +418,6 @@ var Apps_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListGitRepositories",
 			Handler:    _Apps_ListGitRepositories_Handler,
-		},
-		{
-			MethodName: "AddHelmRepository",
-			Handler:    _Apps_AddHelmRepository_Handler,
-		},
-		{
-			MethodName: "ListHelmRepositories",
-			Handler:    _Apps_ListHelmRepositories_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

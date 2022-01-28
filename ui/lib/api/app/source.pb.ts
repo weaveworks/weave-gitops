@@ -99,32 +99,3 @@ export type ListGitRepositoryReq = {
 export type ListGitRepositoryRes = {
   gitRepositories?: GitRepository[]
 }
-
-export type HelmRepository = {
-  namespace?: string
-  name?: string
-  url?: string
-  interval?: Interval
-}
-
-export type AddHelmRepositoryReq = {
-  namespace?: string
-  appName?: string
-  name?: string
-  url?: string
-  interval?: Interval
-}
-
-export type AddHelmRepositoryRes = {
-  success?: boolean
-  helmRepository?: HelmRepository
-}
-
-export type ListHelmRepositoryReq = {
-  namespace?: string
-  appName?: string
-}
-
-export type ListHelmRepositoryRes = {
-  helmRepositories?: HelmRepository[]
-}
