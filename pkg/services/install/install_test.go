@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/yaml"
 
 	"github.com/weaveworks/weave-gitops/manifests"
@@ -23,6 +24,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -47,6 +49,7 @@ var _ = Describe("Installer", func() {
 		Expect(err).ShouldNot(HaveOccurred())
 		fakeFluxClient = &fluxfakes.FakeFlux{}
 		fakeKubeClient = &kubefakes.FakeKube{}
+		fakeKubeClient.FetchNamespaceWithLabelReturns(&v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: testNamespace}}, nil)
 		fakeGitClient = &gitfakes.FakeGit{}
 		fakeGitProvider = &gitprovidersfakes.FakeGitProvider{}
 		log = &loggerfakes.FakeLogger{}
@@ -60,6 +63,7 @@ var _ = Describe("Installer", func() {
 		BeforeEach(func() {
 			fakeKubeClient.GetClusterStatusReturns(kube.Unmodified)
 			fakeKubeClient.GetWegoConfigReturns(&kube.WegoConfig{
+				ConfigRepo:    configRepo.String(),
 				FluxNamespace: testNamespace,
 				WegoNamespace: testNamespace,
 			}, nil)
@@ -123,10 +127,10 @@ var _ = Describe("Installer", func() {
 		})
 
 		It("should fail getting gitops manifests", func() {
-			fakeFluxClient.InstallReturnsOnCall(2, nil, someError)
+			fakeFluxClient.InstallReturnsOnCall(1, nil, someError)
 
 			err := installer.Install(testNamespace, configRepo, true)
-			Expect(err).Should(MatchError(fmt.Sprintf("failed generating gitops manifests: failed getting runtime manifests: %s", someError)))
+			Expect(err.Error()).Should(ContainSubstring(fmt.Sprintf("failed getting runtime manifests: %s", someError)))
 		})
 
 		It("should fail writing directly to branch", func() {
@@ -157,6 +161,7 @@ var _ = Describe("Installer", func() {
 		BeforeEach(func() {
 			fakeKubeClient.GetClusterStatusReturns(kube.Unmodified)
 			fakeKubeClient.GetWegoConfigReturns(&kube.WegoConfig{
+				ConfigRepo:    configRepo.String(),
 				FluxNamespace: testNamespace,
 				WegoNamespace: testNamespace,
 			}, nil)
@@ -187,7 +192,7 @@ var _ = Describe("Installer", func() {
 			fakeFluxClient.CreateKustomizationReturnsOnCall(2, systemKustomizationResource, nil)
 			fakeFluxClient.CreateKustomizationReturnsOnCall(3, userKustomizationResource, nil)
 
-			gitopsConfigMap, err := models.CreateGitopsConfigMap(testNamespace, testNamespace)
+			gitopsConfigMap, err := models.CreateGitopsConfigMap(testNamespace, testNamespace, configRepo.String())
 			Expect(err).ShouldNot(HaveOccurred())
 
 			wegoConfigManifest, err = yaml.Marshal(gitopsConfigMap)

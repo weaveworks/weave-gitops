@@ -32,15 +32,12 @@ const StyleLinkTab = styled(LinkTab)`
   }
 `;
 
-const negativeSpaceColor = "#E6E6E6";
-
 const AppContainer = styled.div`
   width: 100%;
   overflow-x: hidden;
   height: 100%;
   margin: 0 auto;
   padding: 0;
-  background-color: ${negativeSpaceColor};
 `;
 
 const NavContainer = styled.div`

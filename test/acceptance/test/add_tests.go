@@ -151,11 +151,11 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 
 		By("Then I should see error message", func() {
-			Eventually(errOutput).Should(ContainSubstring("required flag(s) \"config-repo\", \"version\" not set"))
+			Eventually(errOutput).Should(ContainSubstring("required flag(s) \"version\" not set"))
 		})
 
-		By("When I try to upgrade gitops core to enterprise with config-repo & version provided", func() {
-			_, errOutput = runCommandAndReturnStringOutput(gitopsBinaryPath + " upgrade --config-repo=" + appRepoRemoteURL + " --version=0.0.1")
+		By("When I try to upgrade gitops core to enterprise and version provided", func() {
+			_, errOutput = runCommandAndReturnStringOutput(gitopsBinaryPath + " upgrade --version=0.0.1")
 		})
 
 		By("Then I should see error message", func() {
@@ -1304,8 +1304,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		appRepoRemoteURL := "ssh://git@" + gitProviderName + ".com/" + gitOrg + "/" + appRepoName + ".git"
 		helmRepoURL := "https://charts.kube-ops.io"
 
-		invalidAddCommand := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --auto-merge=true"
-
 		addCommand1 := "add app --url=" + helmRepoURL + " --chart=" + appName1 + " --config-repo=" + appRepoRemoteURL + " --auto-merge=true --helm-release-target-namespace=" + workloadNamespace
 		addCommand2 := "add app --url=" + helmRepoURL + " --chart=" + appName2 + " --config-repo=" + appRepoRemoteURL + " --auto-merge=true --helm-release-target-namespace=" + workloadNamespace
 
@@ -1335,11 +1333,6 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		By("And I create a namespace for helm-app", func() {
 			out, _ := runCommandAndReturnStringOutput("kubectl create ns " + workloadNamespace)
 			Eventually(out).Should(ContainSubstring("namespace/" + workloadNamespace + " created"))
-		})
-
-		By("And I add an invalid entry without --config-repo set", func() {
-			_, err := runWegoAddCommandWithOutput(repoAbsolutePath, invalidAddCommand, WEGO_DEFAULT_NAMESPACE)
-			Eventually(err).Should(ContainSubstring("--config-repo should be provided"))
 		})
 
 		By("And I run gitops add app command for 1st app", func() {

@@ -57,7 +57,13 @@ func (i *install) Install(namespace string, configURL gitproviders.RepoURL, auto
 		return fmt.Errorf("failed installing flux: %w", err)
 	}
 
-	manifests, err := models.BootstrapManifests(ctx, i.fluxClient, i.gitProviderClient, clusterName, namespace, configURL)
+	manifestParams := models.ManifestsParams{
+		ClusterName:   clusterName,
+		WegoNamespace: namespace,
+		ConfigRepo:    configURL,
+	}
+
+	bootstrapManifests, err := models.BootstrapManifests(ctx, i.fluxClient, i.gitProviderClient, i.kubeClient, manifestParams)
 	if err != nil {
 		return fmt.Errorf("failed getting bootstrap manifests: %w", err)
 	}
@@ -67,7 +73,7 @@ func (i *install) Install(namespace string, configURL gitproviders.RepoURL, auto
 		return fmt.Errorf("failed getting default branch: %w", err)
 	}
 
-	for _, manifest := range manifests {
+	for _, manifest := range bootstrapManifests {
 		ms := bytes.Split(manifest.Content, []byte("---\n"))
 
 		for _, m := range ms {
@@ -81,10 +87,12 @@ func (i *install) Install(namespace string, configURL gitproviders.RepoURL, auto
 		}
 	}
 
-	gitopsManifests, err := models.GitopsManifests(ctx, i.fluxClient, i.gitProviderClient, clusterName, namespace, configURL)
+	complementManifests, err := models.NoClusterApplicableManifests(manifestParams)
 	if err != nil {
 		return fmt.Errorf("failed generating gitops manifests: %w", err)
 	}
+
+	gitopsManifests := append(bootstrapManifests, complementManifests...)
 
 	i.log.Actionf("Associating cluster %q", clusterName)
 

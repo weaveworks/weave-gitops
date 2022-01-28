@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/md5"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,6 +12,7 @@ import (
 	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/validation"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -46,9 +48,15 @@ const (
 	WegoConfigMapName = "weave-gitops-config"
 )
 
+type ManifestsParams struct {
+	ClusterName   string
+	WegoNamespace string
+	ConfigRepo    gitproviders.RepoURL
+}
+
 // BootstrapManifests creates all yaml files that are going to be applied to the cluster
-func BootstrapManifests(ctx context.Context, fluxClient flux.Flux, gitProvider gitproviders.GitProvider, clusterName string, namespace string, configURL gitproviders.RepoURL) ([]Manifest, error) {
-	runtimeManifests, err := fluxClient.Install(namespace, true)
+func BootstrapManifests(ctx context.Context, fluxClient flux.Flux, gitProvider gitproviders.GitProvider, kubeClient kube.Kube, params ManifestsParams) ([]Manifest, error) {
+	runtimeManifests, err := fluxClient.Install(params.WegoNamespace, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed getting runtime manifests: %w", err)
 	}
@@ -58,31 +66,44 @@ func BootstrapManifests(ctx context.Context, fluxClient flux.Flux, gitProvider g
 		version = "latest"
 	}
 
-	wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppVersion: version, Namespace: namespace})
+	wegoAppManifests, err := manifests.GenerateWegoAppManifests(manifests.Params{AppVersion: version, Namespace: params.WegoNamespace})
 	if err != nil {
 		return nil, fmt.Errorf("error generating wego-app manifest: %w", err)
 	}
 
 	wegoAppManifest := bytes.Join(wegoAppManifests, []byte("---\n"))
 
-	sourceName := CreateClusterSourceName(configURL)
-	systemResourceName := ConstrainResourceName(fmt.Sprintf("%s-system", clusterName))
+	sourceName := CreateClusterSourceName(params.ConfigRepo)
+	systemResourceName := ConstrainResourceName(fmt.Sprintf("%s-system", params.ClusterName))
 
 	systemKustResourceManifest, err := fluxClient.CreateKustomization(systemResourceName, sourceName,
-		workAroundFluxDroppingDot(git.GetSystemPath(clusterName)), namespace)
+		workAroundFluxDroppingDot(git.GetSystemPath(params.ClusterName)), params.WegoNamespace)
 	if err != nil {
 		return nil, err
 	}
 
-	userResourceName := ConstrainResourceName(fmt.Sprintf("%s-user", clusterName))
+	userResourceName := ConstrainResourceName(fmt.Sprintf("%s-user", params.ClusterName))
 
 	userKustResourceManifest, err := fluxClient.CreateKustomization(userResourceName, sourceName,
-		workAroundFluxDroppingDot(git.GetUserPath(clusterName)), namespace)
+		workAroundFluxDroppingDot(git.GetUserPath(params.ClusterName)), params.WegoNamespace)
 	if err != nil {
 		return nil, err
 	}
 
-	gitopsConfigMap, err := CreateGitopsConfigMap(namespace, namespace)
+	fluxNs := params.WegoNamespace
+
+	fluxNamespace, err := kubeClient.FetchNamespaceWithLabel(context.Background(), flux.PartOfLabelKey, flux.PartOfLabelValue)
+	if err != nil {
+		if !errors.Is(err, kube.ErrNamespaceNotFound) {
+			return nil, fmt.Errorf("failed fetching flux namespace: %w", err)
+		}
+	}
+
+	if fluxNamespace != nil {
+		fluxNs = fluxNamespace.Name
+	}
+
+	gitopsConfigMap, err := CreateGitopsConfigMap(fluxNs, params.WegoNamespace, params.ConfigRepo.String())
 	if err != nil {
 		return nil, err
 	}
@@ -92,68 +113,64 @@ func BootstrapManifests(ctx context.Context, fluxClient flux.Flux, gitProvider g
 		return nil, fmt.Errorf("failed marshalling wego config: %w", err)
 	}
 
-	configBranch, err := gitProvider.GetDefaultBranch(ctx, configURL)
+	configBranch, err := gitProvider.GetDefaultBranch(ctx, params.ConfigRepo)
 	if err != nil {
 		return nil, err
 	}
 
-	sourceManifest, err := GetSourceManifest(ctx, fluxClient, gitProvider, clusterName, namespace, configURL, configBranch)
+	sourceManifest, err := GetSourceManifest(ctx, fluxClient, gitProvider, params.ClusterName, params.WegoNamespace, params.ConfigRepo, configBranch)
 	if err != nil {
 		return nil, err
 	}
 
 	return []Manifest{
 		{
-			Path:    git.GetSystemQualifiedPath(clusterName, AppCRDPath),
+			Path:    git.GetSystemQualifiedPath(params.ClusterName, AppCRDPath),
 			Content: manifests.AppCRD,
 		},
 		{
-			Path:    git.GetSystemQualifiedPath(clusterName, RuntimePath),
+			Path:    git.GetSystemQualifiedPath(params.ClusterName, RuntimePath),
 			Content: runtimeManifests,
 		},
 		{
-			Path:    git.GetSystemQualifiedPath(clusterName, SystemKustResourcePath),
+			Path:    git.GetSystemQualifiedPath(params.ClusterName, SystemKustResourcePath),
 			Content: systemKustResourceManifest,
 		},
 		{
-			Path:    git.GetSystemQualifiedPath(clusterName, UserKustResourcePath),
+			Path:    git.GetSystemQualifiedPath(params.ClusterName, UserKustResourcePath),
 			Content: userKustResourceManifest,
 		},
 		{
-			Path:    git.GetSystemQualifiedPath(clusterName, WegoAppPath),
+			Path:    git.GetSystemQualifiedPath(params.ClusterName, WegoAppPath),
 			Content: wegoAppManifest,
 		},
 		{
-			Path:    git.GetSystemQualifiedPath(clusterName, WegoConfigPath),
+			Path:    git.GetSystemQualifiedPath(params.ClusterName, WegoConfigPath),
 			Content: wegoConfigManifest,
 		},
 		sourceManifest,
 	}, nil
 }
 
-// GitopsManifests generates all yaml files that are going to be written in the config repo
-func GitopsManifests(ctx context.Context, fluxClient flux.Flux, gitProvider gitproviders.GitProvider, clusterName string, namespace string, configURL gitproviders.RepoURL) ([]Manifest, error) {
-	bootstrapManifest, err := BootstrapManifests(ctx, fluxClient, gitProvider, clusterName, namespace, configURL)
-	if err != nil {
-		return nil, err
-	}
-
-	systemKustomization := CreateKustomization(clusterName, namespace, RuntimePath, SourcePath, SystemKustResourcePath, UserKustResourcePath, WegoAppPath)
+// NoClusterApplicableManifests generates all yaml files that are going to be written in the config repo and cannot be applied to the cluster directly
+func NoClusterApplicableManifests(params ManifestsParams) ([]Manifest, error) {
+	systemKustomization := CreateKustomization(params.ClusterName, params.WegoNamespace, RuntimePath, SourcePath, SystemKustResourcePath, UserKustResourcePath, WegoAppPath)
 
 	systemKustomizationManifest, err := yaml.Marshal(systemKustomization)
 	if err != nil {
 		return nil, err
 	}
 
-	return append(bootstrapManifest,
-		Manifest{
-			Path:    git.GetSystemQualifiedPath(clusterName, SystemKustomizationPath),
+	return []Manifest{
+		{
+			Path:    git.GetSystemQualifiedPath(params.ClusterName, SystemKustomizationPath),
 			Content: systemKustomizationManifest,
 		},
-		Manifest{
-			Path:    filepath.Join(git.GetUserPath(clusterName), ".keep"),
+		{
+			Path:    filepath.Join(git.GetUserPath(params.ClusterName), ".keep"),
 			Content: strconv.AppendQuote(nil, "# keep"),
-		}), nil
+		},
+	}, nil
 }
 
 func CreateKustomization(name, namespace string, resources ...string) types.Kustomization {
@@ -225,6 +242,24 @@ func ApplicationNameTooLong(name string) bool {
 	return len(name) > MaxKubernetesResourceNameLength
 }
 
+func ValidateApplicationName(name string) error {
+	errs := validation.IsDNS1123Label(name)
+	if len(errs) > 0 {
+		var s strings.Builder
+		for _, e := range errs {
+			if s.Len() > 0 {
+				s.WriteString("; ")
+			}
+
+			s.WriteString(e)
+		}
+
+		return fmt.Errorf("invalid application name %q :%s", name, s.String())
+	}
+
+	return nil
+}
+
 func ConstrainResourceName(str string) string {
 	return hashNameIfTooLong(replaceUnderscores(str))
 }
@@ -233,9 +268,11 @@ func workAroundFluxDroppingDot(str string) string {
 	return "." + str
 }
 
-func CreateGitopsConfigMap(fluxNamespace string, wegoNamespace string) (corev1.ConfigMap, error) {
+func CreateGitopsConfigMap(fluxNamespace string, wegoNamespace string, configRepo string) (corev1.ConfigMap, error) {
 	config := kube.WegoConfig{
 		FluxNamespace: fluxNamespace,
+		WegoNamespace: wegoNamespace,
+		ConfigRepo:    configRepo,
 	}
 
 	configBytes, err := yaml.Marshal(config)

@@ -82,7 +82,6 @@ var _ = XDescribe("WEGO Help Tests", func() {
 			Eventually(stringOutput).Should(MatchRegexp(`Associates an additional application in a git repository with a gitops cluster so that its contents may be managed via GitOps\n*Usage:`))
 			Eventually(stringOutput).Should(MatchRegexp(`gitops add app \[--name <name>] \[--url <url>] \[--branch <branch>] \[--path <path within repository>] \ <repository directory> \[flags]`))
 			Eventually(stringOutput).Should(MatchRegexp(`Examples:\ngitops add app .\n*Flags:`))
-			Eventually(stringOutput).Should(MatchRegexp(`--config-repo string\s*URL of external repository \(if any\) which will hold automation manifests`))
 			Eventually(stringOutput).Should(MatchRegexp(`--auto-merge\s*If set, 'gitops add app' will merge automatically into the set`))
 			Eventually(stringOutput).Should(MatchRegexp(`--branch\n\s*--branch string\s*Branch to watch within git repository \(default "main"\)`))
 			Eventually(stringOutput).Should(MatchRegexp(`--chart string\s*Specify chart for helm source`))

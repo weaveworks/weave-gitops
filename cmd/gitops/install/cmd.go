@@ -11,8 +11,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	corev1 "k8s.io/api/core/v1"
-
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
@@ -27,6 +25,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
 	"github.com/weaveworks/weave-gitops/pkg/services/install"
+	corev1 "k8s.io/api/core/v1"
 )
 
 type params struct {
@@ -101,7 +100,11 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	if installParams.DryRun {
-		manifests, err := models.BootstrapManifests(ctx, fluxClient, gitProvider, clusterName, namespace, configURL)
+		manifests, err := models.BootstrapManifests(ctx, fluxClient, gitProvider, kubeClient, models.BootstrapManifestsParams{
+			ClusterName:   clusterName,
+			WegoNamespace: namespace,
+			ConfigRepo:    configURL,
+		})
 		if err != nil {
 			return fmt.Errorf("failed getting gitops manifests: %w", err)
 		}
