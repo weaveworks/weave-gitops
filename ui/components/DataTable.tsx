@@ -179,6 +179,7 @@ function UnstyledDataTable({
               <Spacer padding="xxs" />
               <Select
                 id="pagination"
+                data-testid="select"
                 variant="outlined"
                 defaultValue={paginationOptions[0]}
                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -186,8 +187,12 @@ function UnstyledDataTable({
                   setPagination({ start: 0, length: newValue });
                 }}
               >
-                {paginationOptions.map((option) => {
-                  return <MenuItem value={option}>{option}</MenuItem>;
+                {paginationOptions.map((option, index) => {
+                  return (
+                    <MenuItem key={index} value={option}>
+                      {option}
+                    </MenuItem>
+                  );
                 })}
               </Select>
             </Flex>
@@ -202,6 +207,7 @@ function UnstyledDataTable({
             <Button
               color="inherit"
               variant="text"
+              aria-label="skip to first page"
               disabled={pagination.start === 0}
               onClick={() => setPagination({ ...pagination, start: 0 })}
             >
@@ -210,6 +216,7 @@ function UnstyledDataTable({
             <Button
               color="inherit"
               variant="text"
+              aria-label="back one page"
               disabled={pagination.start === 0}
               onClick={() =>
                 setPagination({
@@ -223,6 +230,7 @@ function UnstyledDataTable({
             <Button
               color="inherit"
               variant="text"
+              aria-label="forward one page"
               disabled={pagination.start + pagination.length >= rows.length}
               onClick={() =>
                 setPagination({
@@ -236,6 +244,7 @@ function UnstyledDataTable({
             <Button
               color="inherit"
               variant="text"
+              aria-label="skip to last page"
               disabled={pagination.start + pagination.length >= rows.length}
               onClick={() => {
                 let newStart;

@@ -98,6 +98,7 @@ function CommitsTable({
           { label: "Author", value: "author" },
         ]}
         rows={commits.commits}
+        disablePagination
       />
     </div>
   );
