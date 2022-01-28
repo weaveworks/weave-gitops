@@ -51,8 +51,33 @@ WithData.args = {
       overlays: "prod",
       clusters: "1/1",
     },
+    {
+      name: "testeroo",
+      status: "Ready on cluster-aaa",
+      type: "Application",
+      release: "1.0",
+      overlays: "prod",
+      clusters: "1/1",
+    },
+    {
+      name: "another app",
+      status: "Ready on cluster-aaa",
+      type: "Application",
+      release: "1.0",
+      overlays: "prod",
+      clusters: "1/1",
+    },
+    {
+      name: "z - the last app",
+      status: "Ready on cluster-aaa",
+      type: "Application",
+      release: "1.0",
+      overlays: "prod",
+      clusters: "1/1",
+    },
   ],
   sortFields: ["name", "type", "overlays"],
+  paginationOptions: [2, 4],
   className: "",
 };
 export const NoRows = Template.bind({});

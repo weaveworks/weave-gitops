@@ -1,4 +1,7 @@
 import {
+  FormControl,
+  MenuItem,
+  Select,
   Table,
   TableBody,
   TableCell,
@@ -30,6 +33,10 @@ export interface Props {
   sortFields: string[];
   /** an optional list of string widths for each field/column. */
   widths?: string[];
+  /** removes bottom pagination bar. */
+  disablePagination?: boolean;
+  /** array of options for rows per page. Defaults to [25, 50, 75, 100]. */
+  paginationOptions?: number[];
 }
 
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
@@ -64,9 +71,15 @@ function UnstyledDataTable({
   rows,
   sortFields,
   widths,
+  disablePagination,
+  paginationOptions = [25, 50, 75, 100],
 }: Props) {
   const [sort, setSort] = React.useState(sortFields[0]);
   const [reverseSort, setReverseSort] = React.useState(false);
+  const [pagination, setPagination] = React.useState({
+    start: 0,
+    length: paginationOptions[0],
+  });
   const sorted = _.sortBy(rows, sort);
 
   if (reverseSort) {
@@ -101,15 +114,30 @@ function UnstyledDataTable({
     );
   }
 
-  const r = _.map(sorted, (r, i) => (
-    <TableRow key={i}>
-      {_.map(fields, (f, i) => (
-        <TableCell style={widths && { width: widths[i] }} key={f.label}>
-          <Text>{typeof f.value === "function" ? f.value(r) : r[f.value]}</Text>
-        </TableCell>
-      ))}
-    </TableRow>
-  ));
+  const r = [];
+  for (
+    let i = pagination.start;
+    i < pagination.start + pagination.length;
+    i++
+  ) {
+    if (sorted[i]) {
+      r.push(
+        <TableRow key={i}>
+          {_.map(fields, (f, index) => (
+            <TableCell style={widths && { width: widths[index] }} key={f.label}>
+              <Text>
+                {typeof f.value === "function"
+                  ? f.value(sorted[i])
+                  : sorted[i][f.value]}
+              </Text>
+            </TableCell>
+          ))}
+        </TableRow>
+      );
+    } else {
+      break;
+    }
+  }
 
   return (
     <div className={className}>
@@ -130,7 +158,7 @@ function UnstyledDataTable({
           </TableHead>
           <TableBody>
             {r.length > 0 ? (
-              r
+              r.map((row) => row)
             ) : (
               <EmptyRow colSpan={fields.length}>
                 <TableCell colSpan={fields.length}>
@@ -141,6 +169,90 @@ function UnstyledDataTable({
           </TableBody>
         </Table>
       </TableContainer>
+      {/* pagination row */}
+      <Spacer padding="xs" />
+      {!disablePagination && (
+        <Flex wide align end>
+          <FormControl>
+            <Flex align>
+              <label htmlFor="pagination">Rows Per Page: </label>
+              <Spacer padding="xxs" />
+              <Select
+                id="pagination"
+                variant="outlined"
+                defaultValue={paginationOptions[0]}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                  const newValue = parseInt(e.target.value);
+                  setPagination({ start: 0, length: newValue });
+                }}
+              >
+                {paginationOptions.map((option) => {
+                  return <MenuItem value={option}>{option}</MenuItem>;
+                })}
+              </Select>
+            </Flex>
+          </FormControl>
+          <Spacer padding="base" />
+          <Text>
+            {pagination.start === 0 ? 1 : pagination.start} -{" "}
+            {pagination.start + r.length} out of {rows.length}
+          </Text>
+          <Spacer padding="base" />
+          <Flex>
+            <Button
+              color="inherit"
+              variant="text"
+              disabled={pagination.start === 0}
+              onClick={() => setPagination({ ...pagination, start: 0 })}
+            >
+              <Icon type={IconType.SkipPreviousIcon} size="medium" />
+            </Button>
+            <Button
+              color="inherit"
+              variant="text"
+              disabled={pagination.start === 0}
+              onClick={() =>
+                setPagination({
+                  ...pagination,
+                  start: pagination.start - pagination.length,
+                })
+              }
+            >
+              <Icon type={IconType.NavigateBeforeIcon} size="medium" />
+            </Button>
+            <Button
+              color="inherit"
+              variant="text"
+              disabled={pagination.start + pagination.length >= rows.length}
+              onClick={() =>
+                setPagination({
+                  ...pagination,
+                  start: pagination.start + pagination.length,
+                })
+              }
+            >
+              <Icon type={IconType.NavigateNextIcon} size="medium" />
+            </Button>
+            <Button
+              color="inherit"
+              variant="text"
+              disabled={pagination.start + pagination.length >= rows.length}
+              onClick={() => {
+                let newStart;
+                if (rows.length % pagination.length !== 0)
+                  newStart = rows.length - (rows.length % pagination.length);
+                else newStart = rows.length - pagination.length;
+                setPagination({
+                  ...pagination,
+                  start: newStart,
+                });
+              }}
+            >
+              <Icon type={IconType.SkipNextIcon} size="medium" />
+            </Button>
+          </Flex>
+        </Flex>
+      )}
     </div>
   );
 }
@@ -152,6 +264,13 @@ export const DataTable = styled(UnstyledDataTable)`
   .thead {
     color: ${(props) => props.theme.colors.neutral30};
     font-weight: 800;
+  }
+  .MuiTableRow-root {
+    transition: background 0.5s ease-in-out;
+  }
+  .MuiTableRow-root:not(.MuiTableRow-head):hover {
+    background: ${(props) => props.theme.colors.neutral10};
+    transition: background 0.5s ease-in-out;
   }
 `;
 

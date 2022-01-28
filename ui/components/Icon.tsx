@@ -6,8 +6,11 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import ErrorIcon from "@material-ui/icons/Error";
 import HourglassFullIcon from "@material-ui/icons/HourglassFull";
 import LaunchIcon from "@material-ui/icons/Launch";
+import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 import SaveAltIcon from "@material-ui/icons/SaveAlt";
+import SkipNextIcon from "@material-ui/icons/SkipNext";
+import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
 import * as React from "react";
 import styled from "styled-components";
 import { colors, spacing } from "../typedefs/styled";
@@ -21,11 +24,14 @@ export enum IconType {
   AddIcon,
   ArrowUpwardIcon,
   DeleteIcon,
-  NavigateNextIcon,
   SaveAltIcon,
   ErrorIcon,
   CheckCircleIcon,
   HourglassFullIcon,
+  NavigateNextIcon,
+  NavigateBeforeIcon,
+  SkipNextIcon,
+  SkipPreviousIcon,
 }
 
 type Props = {
@@ -56,9 +62,6 @@ function getIcon(i: IconType) {
     case IconType.DeleteIcon:
       return DeleteIcon;
 
-    case IconType.NavigateNextIcon:
-      return NavigateNextIcon;
-
     case IconType.SaveAltIcon:
       return SaveAltIcon;
 
@@ -70,6 +73,18 @@ function getIcon(i: IconType) {
 
     case IconType.ErrorIcon:
       return ErrorIcon;
+
+    case IconType.NavigateNextIcon:
+      return NavigateNextIcon;
+
+    case IconType.NavigateBeforeIcon:
+      return NavigateBeforeIcon;
+
+    case IconType.SkipNextIcon:
+      return SkipNextIcon;
+
+    case IconType.SkipPreviousIcon:
+      return SkipPreviousIcon;
 
     default:
       break;
