@@ -145,9 +145,13 @@ export type HelmChart = {
 }
 
 export type AddHelmChartReq = {
-  appName?: string
   namespace?: string
-  helmChart?: HelmChart
+  appName?: string
+  name?: string
+  sourceRef?: SourceRef
+  chart?: string
+  version?: string
+  interval?: Interval
 }
 
 export type AddHelmChartRes = {

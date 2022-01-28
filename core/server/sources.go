@@ -108,7 +108,7 @@ func (as *appServer) AddHelmChart(ctx context.Context, msg *pb.AddHelmChartReq) 
 	src := types.ProtoToHelmChart(msg)
 
 	if err := k8s.Create(ctx, &src); err != nil {
-		return nil, status.Errorf(codes.Internal, "creating source for helm chart %q: %s", msg.HelmChart.Name, err.Error())
+		return nil, status.Errorf(codes.Internal, "creating source for helm chart %q: %s", msg.Name, err.Error())
 	}
 
 	return &pb.AddHelmChartRes{
