@@ -10,6 +10,10 @@ import (
 	"path/filepath"
 	"time"
 
+	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -21,13 +25,9 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
-var _ = FDescribe("Weave GitOps Profiles API", func() {
+var _ = Describe("Weave GitOps Profiles API", func() {
 	var (
 		namespace        = "test-namespace"
 		clusterName      string
@@ -56,26 +56,23 @@ var _ = FDescribe("Weave GitOps Profiles API", func() {
 		clientSet, kClient = buildKubernetesClients()
 	})
 
-	// AfterEach(func() {
-	// deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
-	//todo: delete helmrepository resource
-	// deleteWorkload(profileName, namespace)
-	// })
+	AfterEach(func() {
+		deleteRepo(tip.appRepoName, gitproviders.GitProviderGitHub, githubOrg)
+		deleteWorkload(profileName, namespace)
+	})
 
-	FIt("gets deployed and is accessible via the service", func() {
+	It("gets deployed and is accessible via the service", func() {
 		By("Installing the Profiles API and setting up the profile helm repository")
 		appRepoRemoteURL = "git@github.com:" + githubOrg + "/" + tip.appRepoName + ".git"
 		installAndVerifyWego(namespace, appRepoRemoteURL)
 		deployProfilesHelmRepository(kClient, namespace)
-		time.Sleep(time.Second * 60)
 
 		By("Getting a list of profiles")
-		Eventually(func() error {
+		Eventually(func() int {
 			resp, statusCode, err = kubernetesDoRequest(namespace, wegoService, wegoPort, "/v1/profiles", clientSet)
-			return err
-		}, "10s", "1s").Should(Succeed())
+			return statusCode
+		}, "60s", "1s").Should(Equal(http.StatusOK))
 		Expect(err).NotTo(HaveOccurred())
-		Expect(statusCode).To(Equal(http.StatusOK))
 
 		profiles := pb.GetProfilesResponse{}
 		Expect(json.Unmarshal(resp, &profiles)).To(Succeed())
@@ -112,34 +109,20 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 		Expect(err).NotTo(HaveOccurred())
 		Expect(string(values)).To(ContainSubstring("# Default values for podinfo"))
 
-		By("Adding a profile to the cluster through the CLI")
-		stdOut, stdErr := runCommandAndReturnStringOutput(fmt.Sprintf("%s add profile --name %s --version %s --namespace %s --cluster %s --config-repo %s --auto-merge %v", gitopsBinaryPath, profileName, "6.0.1", namespace, clusterName, appRepoRemoteURL, true))
+		By("Adding a profile to a cluster")
+		stdOut, stdErr := runCommandAndReturnStringOutput(fmt.Sprintf("%s add profile --name %s --version 6.0.1 --namespace %s --cluster %s --config-repo %s --auto-merge", gitopsBinaryPath, profileName, namespace, clusterName, appRepoRemoteURL))
 		Expect(stdErr).To(BeEmpty())
-		fmt.Println(stdOut)
-		// args := []string{
-		// 	"add",
-		// 	"profile",
-		// 	"--name", profileName,
-		// 	"--version", "6.0.1",
-		// 	"--cluster", clusterName,
-		// 	"--namespace", namespace,
-		// 	"--config-repo", appRepoRemoteURL,
-		// 	"--auto-merge", "true",
-		// }
-		// cmd := exec.Command("wego", args...)
-		// resp, err = cmd.CombinedOutput()
-		// fmt.Println(err)
-		// fmt.Println(string(resp))
+		Expect(stdOut).To(ContainSubstring(
+			`Adding profile:
 
-		time.Sleep(time.Second * 60)
+Name: podinfo
+Version: 6.0.1`))
 
-		By("Verifying that the profile has been deployed on the cluster")
-		Eventually(func() error {
-			resp, statusCode, err = kubernetesDoRequest(namespace, profileName, "9898", "/healthz", clientSet)
-			return err
-		}, "10s", "1s").Should(Succeed())
-		Expect(string(resp)).To(Equal(200))
-		Expect(statusCode).To(Equal(http.StatusOK))
+		By("Verifying that the profile has been installed on the cluster")
+		Eventually(func() int {
+			resp, statusCode, err = kubernetesDoRequest(namespace, clusterName+"-"+profileName, "9898", "/healthz", clientSet)
+			return statusCode
+		}, "120s", "1s").Should(Equal(http.StatusOK))
 	})
 
 	It("profiles are installed into a different namespace", func() {

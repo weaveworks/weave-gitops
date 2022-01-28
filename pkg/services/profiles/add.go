@@ -87,7 +87,7 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 	s.Logger.Actionf("Pull Request created: %s", pr.Get().WebURL)
 
 	if opts.AutoMerge {
-		s.Logger.Actionf("auto-merge=true; merging PR number %s", pr.Get().Number)
+		s.Logger.Actionf("auto-merge=true; merging PR number %v", pr.Get().Number)
 		if err := gitProvider.MergePullRequest(ctx, configRepoUrl, pr.Get().Number, gitprovider.MergeMethodMerge, AddCommitMessage); err != nil {
 			return err
 		}

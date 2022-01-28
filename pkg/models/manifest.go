@@ -44,6 +44,7 @@ const (
 	SystemKustomizationPath = "kustomization.yaml"
 	WegoAppPath             = "wego-app.yaml"
 	WegoConfigPath          = "wego-config.yaml"
+	WegoProfilePath         = "profiles.yaml"
 
 	WegoConfigMapName = "weave-gitops-config"
 )

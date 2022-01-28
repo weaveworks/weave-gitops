@@ -65,13 +65,16 @@ var _ = Describe("Add", func() {
 	})
 
 	When("auto-merge is enabled", func() {
-		It("merges the PR that was created", func() {
+		JustBeforeEach(func() {
 			gitProviders.RepositoryExistsReturns(true, nil)
 			gitProviders.GetDefaultBranchReturns("main", nil)
 			gitProviders.GetRepoFilesReturns(makeTestFiles(), nil)
 			clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
 				return true, newFakeResponseWrapper(getProfilesResp), nil
 			})
+		})
+
+		It("merges the PR that was created", func() {
 			fakePR.GetReturns(gitprovider.PullRequestInfo{
 				WebURL: "url",
 				Number: 42,
@@ -85,12 +88,7 @@ var _ = Describe("Add", func() {
 
 		When("the PR fails to be merged", func() {
 			It("returns an error", func() {
-				gitProviders.RepositoryExistsReturns(true, nil)
-				gitProviders.GetDefaultBranchReturns("main", nil)
-				gitProviders.GetRepoFilesReturns(makeTestFiles(), nil)
-				clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
-					return true, newFakeResponseWrapper(getProfilesResp), nil
-				})
+
 				fakePR.GetReturns(gitprovider.PullRequestInfo{
 					WebURL: "url",
 				})
@@ -156,13 +154,6 @@ var _ = Describe("Add", func() {
 			})
 		})
 
-		It("fails if the given version was not found", func() {
-			addOptions.Version = "7.0.0"
-			err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
-			Expect(err).NotTo(BeNil())
-			Expect(err).To(MatchError("version '7.0.0' not found for profile 'podinfo' in prod/weave-system"))
-		})
-
 		It("creates a helm release with that version", func() {
 			addOptions.Version = "6.0.0"
 			fakePR.GetReturns(gitprovider.PullRequestInfo{
@@ -175,20 +166,28 @@ var _ = Describe("Add", func() {
 			err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
 			Expect(err).To(BeNil())
 		})
-	})
 
-	It("fails to create a pull request to write the helm release to the config repo", func() {
-		gitProviders.RepositoryExistsReturns(true, nil)
-		gitProviders.GetRepoFilesReturns(makeTestFiles(), nil)
-		clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
-			return true, newFakeResponseWrapper(getProfilesResp), nil
+		It("fails if the given version was not found", func() {
+			addOptions.Version = "7.0.0"
+			err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
+			Expect(err).NotTo(BeNil())
+			Expect(err).To(MatchError("version '7.0.0' not found for profile 'podinfo' in prod/weave-system"))
 		})
-		gitProviders.CreatePullRequestReturns(nil, fmt.Errorf("err"))
-		err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
-		Expect(err).NotTo(BeNil())
-		Expect(err).To(MatchError("failed to create the pull request: err"))
 	})
 
+	When("it fails to create a pull request to write the helm release to the config repo", func() {
+		It("returns an error when ", func() {
+			gitProviders.RepositoryExistsReturns(true, nil)
+			gitProviders.GetRepoFilesReturns(makeTestFiles(), nil)
+			clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
+				return true, newFakeResponseWrapper(getProfilesResp), nil
+			})
+			gitProviders.CreatePullRequestReturns(nil, fmt.Errorf("err"))
+			err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
+			Expect(err).NotTo(BeNil())
+			Expect(err).To(MatchError("failed to create the pull request: err"))
+		})
+	})
 })
 
 var _ = Describe("MakeManifestFile", func() {
@@ -258,6 +257,7 @@ var _ = Describe("MakeManifestFile", func() {
 				})
 			})
 		})
+
 		It("fails if the manifest contains a resource that is not a HelmRelease", func() {
 			content = "content"
 			_, err := profiles.MakeManifestFile([]*gitprovider.CommitFile{{
