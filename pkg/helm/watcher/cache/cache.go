@@ -142,7 +142,7 @@ func (c *ProfileCache) ListProfiles(ctx context.Context, helmRepoNamespace, helm
 
 	listOperation := func() error {
 		if err := c.getProfilesFromFile(helmRepoNamespace, helmRepoName, &result); err != nil {
-			return fmt.Errorf("failed to read profiles data for helm repo: %w", err)
+			return fmt.Errorf("failed to read profiles data for helm repo (%s/%s): %w", helmRepoNamespace, helmRepoName, err)
 		}
 
 		return nil

@@ -160,7 +160,7 @@ func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, repository 
 	return ctrl.Result{}, nil
 }
 
-// sendEvent emits a Kubernetes event and forwards the event to notification controller if configured.
+// sendEvent emits an event and forwards it to the notification controller if configured.
 func (r *HelmWatcherReconciler) sendEvent(log logr.Logger, hr *sourcev1.HelmRepository, severity, profileName, version string) {
 	if r.ExternalEventRecorder == nil {
 		return
@@ -202,13 +202,14 @@ func (r *HelmWatcherReconciler) checkForNewVersion(ctx context.Context, chart *p
 		return "", err
 	}
 
-	sort.SliceStable(newVersions, func(i, j int) bool {
-		return newVersions[i].GreaterThan(newVersions[j])
-	})
+	sortVersions := func(versions []*semver.Version) {
+		sort.SliceStable(versions, func(i, j int) bool {
+			return versions[i].GreaterThan(versions[j])
+		})
+	}
 
-	sort.SliceStable(oldVersions, func(i, j int) bool {
-		return oldVersions[i].GreaterThan(oldVersions[j])
-	})
+	sortVersions(newVersions)
+	sortVersions(oldVersions)
 
 	// If there are no old versions stored, it's likely that the profile didn't exist before. So we don't notify.
 	// Same in case there are no new versions ( which is unlikely to happen, but we ward against it nevertheless ).
