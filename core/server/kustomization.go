@@ -5,7 +5,6 @@ import (
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/core/server/types"
-	stypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -23,7 +22,7 @@ func (as *appServer) AddKustomization(ctx context.Context, msg *pb.AddKustomizat
 		return nil, doClientError(err)
 	}
 
-	kust := stypes.ProtoToKustomization(msg)
+	kust := types.ProtoToKustomization(msg)
 
 	if err := k8s.Create(ctx, &kust); err != nil {
 		return nil, status.Errorf(codes.Internal, "creating kustomization for app %q: %s", msg.AppName, err.Error())
@@ -31,7 +30,7 @@ func (as *appServer) AddKustomization(ctx context.Context, msg *pb.AddKustomizat
 
 	return &pb.AddKustomizationRes{
 		Success:       true,
-		Kustomization: stypes.KustomizationToProto(&kust),
+		Kustomization: types.KustomizationToProto(&kust),
 	}, nil
 }
 
@@ -56,7 +55,7 @@ func (as *appServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomi
 
 	var results []*pb.Kustomization
 	for _, kustomization := range list.Items {
-		results = append(results, stypes.KustomizationToProto(&kustomization))
+		results = append(results, types.KustomizationToProto(&kustomization))
 	}
 
 	return &pb.ListKustomizationsRes{

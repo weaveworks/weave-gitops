@@ -81,4 +81,10 @@ export class Apps {
   static ListGitRepositories(req: Gitops_serverV1Source.ListGitRepositoryReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.ListGitRepositoryRes> {
     return fm.fetchReq<Gitops_serverV1Source.ListGitRepositoryReq, Gitops_serverV1Source.ListGitRepositoryRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/gitrepository?${fm.renderURLSearchParams(req, ["namespace", "appName"])}`, {...initReq, method: "GET"})
   }
+  static AddHelmRepository(req: Gitops_serverV1Source.AddHelmRepositoryReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.AddHelmRepositoryRes> {
+    return fm.fetchReq<Gitops_serverV1Source.AddHelmRepositoryReq, Gitops_serverV1Source.AddHelmRepositoryRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/helmrepository`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static ListHelmRepositories(req: Gitops_serverV1Source.ListHelmRepositoryReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.ListHelmRepositoryRes> {
+    return fm.fetchReq<Gitops_serverV1Source.ListHelmRepositoryReq, Gitops_serverV1Source.ListHelmRepositoryRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/helmrepository?${fm.renderURLSearchParams(req, ["namespace", "appName"])}`, {...initReq, method: "GET"})
+  }
 }
