@@ -5,10 +5,21 @@ An application can be comprised of 1 or more components. These components can co
 
 See [issue](https://github.com/weaveworks/weave-gitops/issues/1349) for complete details 
 
+Events available in Flux: (from https://fluxcd.io/docs/guides/notifications/)
+
+Info
+* a Kubernetes object was created, updated or deleted
+* heath checks are passing
+* a dependency is delaying the execution
+* an error occurs
+
+Error
+* any error encountered during the reconciliation process
+
 ## Terminology 
-**Flux Source** A source in the Flux sense
-**Flux Applier** A flux kustomization or helm release
-**App Instance** An application + environment running on a cluster.  There can be many app instances on a cluster.
+* **Flux Source** A source in the Flux sense
+* **Flux Applier** A flux kustomization or helm release
+* **App Instance** An application + environment running on a cluster.  There can be many app instances on a cluster.
 
 ## Target Outcome/Requirements
 * Single Alert defintion per application
@@ -49,11 +60,11 @@ Create an operator that watches the cluster for annotated secrets. When one is f
 
 _Working prototype_
 
-### Pros
+#### Pros
 - User is only required to create a secret; the rest happens automatically based on annotations
 - Alerts and Providers follow the secret lifecycle. i.e., when the secret goes away, so does the Alerts/Providers
 
-### Cons
+#### Cons
 - Users may not have access to the secret manifests to annotate
 - Difficult to replicate all the fields available in Alerts/Providers as annotations
 - Alerts/Providers not stored in git as they are dynamically generated 
@@ -62,11 +73,11 @@ _Working prototype_
 ### Operator based on flux primitives
 Tweak to the _operator based on secrets_ alternative. Instead of tying the Alert and Provider generation to the secret, tie it to the flux source object. Once we have the flux source object, we can determine the downstream consumers and create the appropriate Alerts and Providers based on that.
 
-### Pros
+#### Pros
 - The user creates a Flux applier with annotations, the operator generates the Alerts/Providers
 - Alerts and Providers follow the flux applier lifecycle.  
 
-### Cons
+#### Cons
 - Difficult to replicate all the fields available in Alerts/Providers as annotations
 - Alerts/Providers not stored in git as they are dynamically generated 
 - Another component running in the users' system
