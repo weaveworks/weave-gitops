@@ -19,12 +19,20 @@ const Template: Story<Props> = (args) => <DataTable {...args} />;
 export const WithData = Template.bind({});
 WithData.args = {
   fields: [
-    { label: "Name", value: (app) => app.name },
-    { label: "Type", value: (app) => app.type },
-    { label: "Overlays", value: (app) => app.overlays },
-    { label: "Clusters", value: (app) => app.clusters },
-    { label: "Status", value: (app) => app.status },
-    { label: "Release", value: (app) => app.release },
+    { label: "name", displayLabel: "Name", value: (app) => app.name },
+    { label: "type", displayLabel: "Type", value: (app) => app.type },
+    {
+      label: "overlays",
+      displayLabel: "Overlays",
+      value: (app) => app.overlays,
+    },
+    {
+      label: "clusters",
+      displayLabel: "Clusters",
+      value: (app) => app.clusters,
+    },
+    { label: "status", displayLabel: "Status", value: (app) => app.status },
+    { label: "release", displayLabel: "Release", value: (app) => app.release },
   ],
   rows: [
     {
