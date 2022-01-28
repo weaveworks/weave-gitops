@@ -100,7 +100,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	if installParams.DryRun {
-		manifests, err := models.BootstrapManifests(ctx, fluxClient, gitProvider, kubeClient, models.BootstrapManifestsParams{
+		manifests, err := models.BootstrapManifests(ctx, fluxClient, gitProvider, kubeClient, models.ManifestsParams{
 			ClusterName:   clusterName,
 			WegoNamespace: namespace,
 			ConfigRepo:    configURL,
