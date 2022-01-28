@@ -88,7 +88,10 @@ func NewAPIServerCommand() *cobra.Command {
 				}
 			}()
 
-			profilesConfig := server.NewProfilesConfig(rawClient, profileCache, "default", "weaveworks-charts")
+			profilesConfig := server.NewProfilesConfig(server.ClusterConfig{
+				DefaultConfig: rest,
+				ClusterName:   clusterName,
+			}, profileCache, "default", "weaveworks-charts")
 
 			s, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig})
 			if err != nil {

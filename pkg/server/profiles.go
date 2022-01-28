@@ -39,10 +39,10 @@ type ProfilesConfig struct {
 	helmRepoNamespace string
 	helmRepoName      string
 	helmCache         cache.Cache
-	kubeClient        client.Client
+	clusterConfig     ClusterConfig
 }
 
-func NewProfilesConfig(kubeClient client.Client, helmCache cache.Cache, helmRepoNamespace, helmRepoName string) ProfilesConfig {
+func NewProfilesConfig(clusterConfig ClusterConfig, helmCache cache.Cache, helmRepoNamespace, helmRepoName string) ProfilesConfig {
 	zapLog, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatalf("could not create zap logger: %v", err)
@@ -52,34 +52,44 @@ func NewProfilesConfig(kubeClient client.Client, helmCache cache.Cache, helmRepo
 		logr:              zapr.NewLogger(zapLog),
 		helmRepoNamespace: helmRepoNamespace,
 		helmRepoName:      helmRepoName,
-		kubeClient:        kubeClient,
 		helmCache:         helmCache,
+		clusterConfig:     clusterConfig,
 	}
 }
 
 type ProfilesServer struct {
 	pb.UnimplementedProfilesServer
 
-	KubeClient        client.Client
 	Log               logr.Logger
 	HelmRepoName      string
 	HelmRepoNamespace string
 	HelmCache         cache.Cache
+	ClientGetter      ClientGetter
 }
 
 func NewProfilesServer(config ProfilesConfig) pb.ProfilesServer {
+	clientGetter := &DefaultClientGetter{
+		configGetter: NewImpersonatingConfigGetter(config.clusterConfig.DefaultConfig, false),
+		clusterName:  config.clusterConfig.ClusterName,
+	}
+
 	return &ProfilesServer{
 		Log:               config.logr,
 		HelmRepoNamespace: config.helmRepoNamespace,
 		HelmRepoName:      config.helmRepoName,
 		HelmCache:         config.helmCache,
-		KubeClient:        config.kubeClient,
+		ClientGetter:      clientGetter,
 	}
 }
 
 func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesRequest) (*pb.GetProfilesResponse, error) {
+	kubeClient, err := s.ClientGetter.Client(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get a Kubernetes client: %w", err)
+	}
+
 	helmRepo := &sourcev1beta1.HelmRepository{}
-	err := s.KubeClient.Get(ctx, client.ObjectKey{
+	err = kubeClient.Get(ctx, client.ObjectKey{
 		Name:      s.HelmRepoName,
 		Namespace: s.HelmRepoNamespace,
 	}, helmRepo)
@@ -116,8 +126,13 @@ func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesReq
 }
 
 func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfileValuesRequest) (*httpbody.HttpBody, error) {
+	kubeClient, err := s.ClientGetter.Client(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get a Kubernetes client: %w", err)
+	}
+
 	helmRepo := &sourcev1beta1.HelmRepository{}
-	err := s.KubeClient.Get(ctx, client.ObjectKey{
+	err = kubeClient.Get(ctx, client.ObjectKey{
 		Name:      s.HelmRepoName,
 		Namespace: s.HelmRepoNamespace,
 	}, helmRepo)
