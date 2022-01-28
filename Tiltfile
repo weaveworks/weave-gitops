@@ -6,6 +6,7 @@ local_resource(
     deps=[
         './cmd', 
         './pkg',
+        "./core",
     ]
 )
 
