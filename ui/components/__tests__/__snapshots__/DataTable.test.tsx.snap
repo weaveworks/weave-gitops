@@ -443,7 +443,6 @@ exports[`DataTable snapshots renders 1`] = `
         />
         <div
           className="MuiInputBase-root MuiOutlinedInput-root MuiInputBase-formControl"
-          data-testid="select"
           onClick={[Function]}
         >
           <div

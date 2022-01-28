@@ -84,6 +84,7 @@ function CommitsTable({
         fields={[
           {
             label: "SHA",
+            displayLabel: "SHA",
             value: (row: Commit) => (
               <Link newTab href={row.url}>
                 {row.hash}
@@ -91,11 +92,12 @@ function CommitsTable({
             ),
           },
           {
-            label: "Date",
+            label: "date",
+            displayLabel: "Date",
             value: (row: Commit) => timestamp(row.date),
           },
-          { label: "Message", value: "message" },
-          { label: "Author", value: "author" },
+          { label: "message", displayLabel: "Message", value: "message" },
+          { label: "Author", displayLabel: "Author", value: "author" },
         ]}
         rows={commits.commits}
         disablePagination

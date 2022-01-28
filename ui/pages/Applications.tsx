@@ -64,7 +64,8 @@ function Applications({ className }: Props) {
         sortFields={["name"]}
         fields={[
           {
-            label: "Name",
+            label: "name",
+            displayLabel: "Name",
             value: ({ name }: Application) => (
               <Link to={formatURL(PageRoute.ApplicationDetail, { name })}>
                 {name}

@@ -25,6 +25,7 @@ export interface Props {
   /** A list of objects with two fields: `label`, which is a string representing the column header, and `value`, which can be a string, or a function that extracts the data needed to fill the table cell. */
   fields: {
     label: string;
+    displayLabel: string;
     value: string | ((k: any) => string | JSX.Element);
   }[];
   /** A list of data that will be iterated through to create the columns described in `fields`. */
@@ -86,22 +87,22 @@ function UnstyledDataTable({
     sorted.reverse();
   }
 
-  type labelProps = { label: string };
-  function SortableLabel({ label }: labelProps) {
+  type labelProps = { label: string; displayLabel: string };
+  function SortableLabel({ label, displayLabel }: labelProps) {
     return (
       <Flex align start>
         <TableButton
           color="inherit"
           variant="text"
           onClick={() => {
-            setReverseSort(sort === label.toLowerCase() ? !reverseSort : false);
-            setSort(label.toLowerCase());
+            setReverseSort(sort === label ? !reverseSort : false);
+            setSort(label);
           }}
         >
-          <h2>{label}</h2>
+          <h2>{displayLabel}</h2>
         </TableButton>
         <Spacer padding="xxs" />
-        {sort === label.toLowerCase() ? (
+        {sort === label ? (
           <Icon
             type={IconType.ArrowUpwardIcon}
             size="base"
@@ -147,10 +148,13 @@ function UnstyledDataTable({
             <TableRow>
               {_.map(fields, (f, i) => (
                 <TableCell style={widths && { width: widths[i] }} key={f.label}>
-                  {sortFields.includes(f.label.toLowerCase()) ? (
-                    <SortableLabel label={f.label} />
+                  {sortFields.includes(f.label) ? (
+                    <SortableLabel
+                      label={f.label}
+                      displayLabel={f.displayLabel}
+                    />
                   ) : (
-                    <h2 className="thead">{f.label}</h2>
+                    <h2 className="thead">{f.displayLabel}</h2>
                   )}
                 </TableCell>
               ))}
@@ -179,7 +183,6 @@ function UnstyledDataTable({
               <Spacer padding="xxs" />
               <Select
                 id="pagination"
-                data-testid="select"
                 variant="outlined"
                 defaultValue={paginationOptions[0]}
                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {

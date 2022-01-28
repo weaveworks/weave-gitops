@@ -12,10 +12,10 @@ function ConditionsTable({ className, conditions }: Props) {
   return (
     <DataTable
       fields={[
-        { label: "Type", value: "type" },
-        { label: "Status", value: "status" },
-        { label: "Reason", value: "reason" },
-        { label: "Message", value: "message" },
+        { label: "type", displayLabel: "Type", value: "type" },
+        { label: "status", displayLabel: "Status", value: "status" },
+        { label: "reason", displayLabel: "Reason", value: "reason" },
+        { label: "message", displayLabel: "Message", value: "message" },
       ]}
       rows={conditions}
       sortFields={[""]}
