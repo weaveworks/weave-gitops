@@ -36,7 +36,7 @@ COPY . /app
 RUN make bin
 
 # Distroless
-FROM gcr.io/distroless/base
+FROM gcr.io/distroless/base as runtime
 COPY --from=go-build /app/bin/gitops /gitops
 COPY --from=go-build /root/.ssh/known_hosts /root/.ssh/known_hosts
 COPY --from=go-build /usr/bin/kubectl /usr/bin/kubectl
