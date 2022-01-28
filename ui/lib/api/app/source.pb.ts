@@ -128,3 +128,36 @@ export type ListHelmRepositoryReq = {
 export type ListHelmRepositoryRes = {
   helmRepositories?: HelmRepository[]
 }
+
+export type HelmChart = {
+  namespace?: string
+  name?: string
+  sourceRef?: SourceRef
+  chart?: string
+  version?: string
+  interval?: Interval
+}
+
+export type AddHelmChartReq = {
+  namespace?: string
+  appName?: string
+  name?: string
+  sourceRef?: SourceRef
+  chart?: string
+  version?: string
+  interval?: Interval
+}
+
+export type AddHelmChartRes = {
+  success?: boolean
+  helmChart?: HelmChart
+}
+
+export type ListHelmChartReq = {
+  namespace?: string
+  appName?: string
+}
+
+export type ListHelmChartRes = {
+  helmCharts?: HelmChart[]
+}

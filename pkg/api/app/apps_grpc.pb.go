@@ -51,6 +51,12 @@ type AppsClient interface {
 	//
 	// ListHelmRepository lists helm repositories from a cluster.
 	ListHelmRepositories(ctx context.Context, in *ListHelmRepositoryReq, opts ...grpc.CallOption) (*ListHelmRepositoryRes, error)
+	//
+	// AddHelmChart adds a helm chart source to a cluster.
+	AddHelmChart(ctx context.Context, in *AddHelmChartReq, opts ...grpc.CallOption) (*AddHelmChartRes, error)
+	//
+	// ListHelmChart lists helm charts from a cluster.
+	ListHelmCharts(ctx context.Context, in *ListHelmChartReq, opts ...grpc.CallOption) (*ListHelmChartRes, error)
 }
 
 type appsClient struct {
@@ -160,6 +166,24 @@ func (c *appsClient) ListHelmRepositories(ctx context.Context, in *ListHelmRepos
 	return out, nil
 }
 
+func (c *appsClient) AddHelmChart(ctx context.Context, in *AddHelmChartReq, opts ...grpc.CallOption) (*AddHelmChartRes, error) {
+	out := new(AddHelmChartRes)
+	err := c.cc.Invoke(ctx, "/gitops_server.v1.Apps/AddHelmChart", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appsClient) ListHelmCharts(ctx context.Context, in *ListHelmChartReq, opts ...grpc.CallOption) (*ListHelmChartRes, error) {
+	out := new(ListHelmChartRes)
+	err := c.cc.Invoke(ctx, "/gitops_server.v1.Apps/ListHelmCharts", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AppsServer is the server API for Apps service.
 // All implementations must embed UnimplementedAppsServer
 // for forward compatibility
@@ -197,6 +221,12 @@ type AppsServer interface {
 	//
 	// ListHelmRepository lists helm repositories from a cluster.
 	ListHelmRepositories(context.Context, *ListHelmRepositoryReq) (*ListHelmRepositoryRes, error)
+	//
+	// AddHelmChart adds a helm chart source to a cluster.
+	AddHelmChart(context.Context, *AddHelmChartReq) (*AddHelmChartRes, error)
+	//
+	// ListHelmChart lists helm charts from a cluster.
+	ListHelmCharts(context.Context, *ListHelmChartReq) (*ListHelmChartRes, error)
 	mustEmbedUnimplementedAppsServer()
 }
 
@@ -236,6 +266,12 @@ func (UnimplementedAppsServer) AddHelmRepository(context.Context, *AddHelmReposi
 }
 func (UnimplementedAppsServer) ListHelmRepositories(context.Context, *ListHelmRepositoryReq) (*ListHelmRepositoryRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListHelmRepositories not implemented")
+}
+func (UnimplementedAppsServer) AddHelmChart(context.Context, *AddHelmChartReq) (*AddHelmChartRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddHelmChart not implemented")
+}
+func (UnimplementedAppsServer) ListHelmCharts(context.Context, *ListHelmChartReq) (*ListHelmChartRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListHelmCharts not implemented")
 }
 func (UnimplementedAppsServer) mustEmbedUnimplementedAppsServer() {}
 
@@ -448,6 +484,42 @@ func _Apps_ListHelmRepositories_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Apps_AddHelmChart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddHelmChartReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppsServer).AddHelmChart(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_server.v1.Apps/AddHelmChart",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppsServer).AddHelmChart(ctx, req.(*AddHelmChartReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Apps_ListHelmCharts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListHelmChartReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppsServer).ListHelmCharts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_server.v1.Apps/ListHelmCharts",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppsServer).ListHelmCharts(ctx, req.(*ListHelmChartReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Apps_ServiceDesc is the grpc.ServiceDesc for Apps service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -498,6 +570,14 @@ var Apps_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListHelmRepositories",
 			Handler:    _Apps_ListHelmRepositories_Handler,
+		},
+		{
+			MethodName: "AddHelmChart",
+			Handler:    _Apps_AddHelmChart_Handler,
+		},
+		{
+			MethodName: "ListHelmCharts",
+			Handler:    _Apps_ListHelmCharts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

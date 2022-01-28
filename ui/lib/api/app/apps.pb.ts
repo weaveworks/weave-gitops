@@ -87,4 +87,10 @@ export class Apps {
   static ListHelmRepositories(req: Gitops_serverV1Source.ListHelmRepositoryReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.ListHelmRepositoryRes> {
     return fm.fetchReq<Gitops_serverV1Source.ListHelmRepositoryReq, Gitops_serverV1Source.ListHelmRepositoryRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/helmrepository?${fm.renderURLSearchParams(req, ["namespace", "appName"])}`, {...initReq, method: "GET"})
   }
+  static AddHelmChart(req: Gitops_serverV1Source.AddHelmChartReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.AddHelmChartRes> {
+    return fm.fetchReq<Gitops_serverV1Source.AddHelmChartReq, Gitops_serverV1Source.AddHelmChartRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/helmchart`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static ListHelmCharts(req: Gitops_serverV1Source.ListHelmChartReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.ListHelmChartRes> {
+    return fm.fetchReq<Gitops_serverV1Source.ListHelmChartReq, Gitops_serverV1Source.ListHelmChartRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/helmchart?${fm.renderURLSearchParams(req, ["namespace", "appName"])}`, {...initReq, method: "GET"})
+  }
 }

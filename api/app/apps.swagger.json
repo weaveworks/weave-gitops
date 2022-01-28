@@ -230,6 +230,103 @@
         ]
       }
     },
+    "/v1/namespace/{namespace}/app/{appName}/helmchart": {
+      "get": {
+        "summary": "ListHelmChart lists helm charts from a cluster.",
+        "operationId": "Apps_ListHelmCharts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListHelmChartRes"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "appName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      },
+      "post": {
+        "summary": "AddHelmChart adds a helm chart source to a cluster.",
+        "operationId": "Apps_AddHelmChart",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AddHelmChartRes"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "appName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "sourceRef": {
+                  "$ref": "#/definitions/v1SourceRef"
+                },
+                "chart": {
+                  "type": "string"
+                },
+                "version": {
+                  "type": "string"
+                },
+                "interval": {
+                  "$ref": "#/definitions/v1Interval"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
     "/v1/namespace/{namespace}/app/{appName}/helmrepository": {
       "get": {
         "summary": "ListHelmRepository lists helm repositories from a cluster.",
@@ -563,6 +660,17 @@
         }
       }
     },
+    "v1AddHelmChartRes": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "helmChart": {
+          "$ref": "#/definitions/v1HelmChart"
+        }
+      }
+    },
     "v1AddHelmRepositoryRes": {
       "type": "object",
       "properties": {
@@ -650,6 +758,29 @@
         }
       }
     },
+    "v1HelmChart": {
+      "type": "object",
+      "properties": {
+        "namespace": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "sourceRef": {
+          "$ref": "#/definitions/v1SourceRef"
+        },
+        "chart": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "interval": {
+          "$ref": "#/definitions/v1Interval"
+        }
+      }
+    },
     "v1HelmRepository": {
       "type": "object",
       "properties": {
@@ -722,6 +853,17 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1GitRepository"
+          }
+        }
+      }
+    },
+    "v1ListHelmChartRes": {
+      "type": "object",
+      "properties": {
+        "helmCharts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1HelmChart"
           }
         }
       }

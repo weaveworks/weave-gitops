@@ -1257,6 +1257,345 @@ func (x *ListHelmRepositoryRes) GetHelmRepositories() []*HelmRepository {
 	return nil
 }
 
+type HelmChart struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Namespace string     `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Name      string     `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	SourceRef *SourceRef `protobuf:"bytes,3,opt,name=sourceRef,proto3" json:"sourceRef,omitempty"`
+	Chart     string     `protobuf:"bytes,4,opt,name=chart,proto3" json:"chart,omitempty"`
+	Version   string     `protobuf:"bytes,5,opt,name=version,proto3" json:"version,omitempty"`
+	Interval  *Interval  `protobuf:"bytes,6,opt,name=interval,proto3" json:"interval,omitempty"`
+}
+
+func (x *HelmChart) Reset() {
+	*x = HelmChart{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_app_source_proto_msgTypes[16]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *HelmChart) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HelmChart) ProtoMessage() {}
+
+func (x *HelmChart) ProtoReflect() protoreflect.Message {
+	mi := &file_api_app_source_proto_msgTypes[16]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HelmChart.ProtoReflect.Descriptor instead.
+func (*HelmChart) Descriptor() ([]byte, []int) {
+	return file_api_app_source_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *HelmChart) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *HelmChart) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *HelmChart) GetSourceRef() *SourceRef {
+	if x != nil {
+		return x.SourceRef
+	}
+	return nil
+}
+
+func (x *HelmChart) GetChart() string {
+	if x != nil {
+		return x.Chart
+	}
+	return ""
+}
+
+func (x *HelmChart) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+func (x *HelmChart) GetInterval() *Interval {
+	if x != nil {
+		return x.Interval
+	}
+	return nil
+}
+
+type AddHelmChartReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Namespace string     `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	AppName   string     `protobuf:"bytes,2,opt,name=app_name,json=appName,proto3" json:"app_name,omitempty"`
+	Name      string     `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	SourceRef *SourceRef `protobuf:"bytes,4,opt,name=sourceRef,proto3" json:"sourceRef,omitempty"`
+	Chart     string     `protobuf:"bytes,5,opt,name=chart,proto3" json:"chart,omitempty"`
+	Version   string     `protobuf:"bytes,6,opt,name=version,proto3" json:"version,omitempty"`
+	Interval  *Interval  `protobuf:"bytes,7,opt,name=interval,proto3" json:"interval,omitempty"`
+}
+
+func (x *AddHelmChartReq) Reset() {
+	*x = AddHelmChartReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_app_source_proto_msgTypes[17]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AddHelmChartReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddHelmChartReq) ProtoMessage() {}
+
+func (x *AddHelmChartReq) ProtoReflect() protoreflect.Message {
+	mi := &file_api_app_source_proto_msgTypes[17]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddHelmChartReq.ProtoReflect.Descriptor instead.
+func (*AddHelmChartReq) Descriptor() ([]byte, []int) {
+	return file_api_app_source_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *AddHelmChartReq) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *AddHelmChartReq) GetAppName() string {
+	if x != nil {
+		return x.AppName
+	}
+	return ""
+}
+
+func (x *AddHelmChartReq) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *AddHelmChartReq) GetSourceRef() *SourceRef {
+	if x != nil {
+		return x.SourceRef
+	}
+	return nil
+}
+
+func (x *AddHelmChartReq) GetChart() string {
+	if x != nil {
+		return x.Chart
+	}
+	return ""
+}
+
+func (x *AddHelmChartReq) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+func (x *AddHelmChartReq) GetInterval() *Interval {
+	if x != nil {
+		return x.Interval
+	}
+	return nil
+}
+
+type AddHelmChartRes struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Success   bool       `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	HelmChart *HelmChart `protobuf:"bytes,2,opt,name=helm_chart,json=helmChart,proto3" json:"helm_chart,omitempty"`
+}
+
+func (x *AddHelmChartRes) Reset() {
+	*x = AddHelmChartRes{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_app_source_proto_msgTypes[18]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AddHelmChartRes) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddHelmChartRes) ProtoMessage() {}
+
+func (x *AddHelmChartRes) ProtoReflect() protoreflect.Message {
+	mi := &file_api_app_source_proto_msgTypes[18]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddHelmChartRes.ProtoReflect.Descriptor instead.
+func (*AddHelmChartRes) Descriptor() ([]byte, []int) {
+	return file_api_app_source_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *AddHelmChartRes) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *AddHelmChartRes) GetHelmChart() *HelmChart {
+	if x != nil {
+		return x.HelmChart
+	}
+	return nil
+}
+
+type ListHelmChartReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Namespace string `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	AppName   string `protobuf:"bytes,2,opt,name=app_name,json=appName,proto3" json:"app_name,omitempty"`
+}
+
+func (x *ListHelmChartReq) Reset() {
+	*x = ListHelmChartReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_app_source_proto_msgTypes[19]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListHelmChartReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListHelmChartReq) ProtoMessage() {}
+
+func (x *ListHelmChartReq) ProtoReflect() protoreflect.Message {
+	mi := &file_api_app_source_proto_msgTypes[19]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListHelmChartReq.ProtoReflect.Descriptor instead.
+func (*ListHelmChartReq) Descriptor() ([]byte, []int) {
+	return file_api_app_source_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *ListHelmChartReq) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *ListHelmChartReq) GetAppName() string {
+	if x != nil {
+		return x.AppName
+	}
+	return ""
+}
+
+type ListHelmChartRes struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	HelmCharts []*HelmChart `protobuf:"bytes,1,rep,name=helm_charts,json=helmCharts,proto3" json:"helm_charts,omitempty"`
+}
+
+func (x *ListHelmChartRes) Reset() {
+	*x = ListHelmChartRes{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_app_source_proto_msgTypes[20]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListHelmChartRes) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListHelmChartRes) ProtoMessage() {}
+
+func (x *ListHelmChartRes) ProtoReflect() protoreflect.Message {
+	mi := &file_api_app_source_proto_msgTypes[20]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListHelmChartRes.ProtoReflect.Descriptor instead.
+func (*ListHelmChartRes) Descriptor() ([]byte, []int) {
+	return file_api_app_source_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *ListHelmChartRes) GetHelmCharts() []*HelmChart {
+	if x != nil {
+		return x.HelmCharts
+	}
+	return nil
+}
+
 var File_api_app_source_proto protoreflect.FileDescriptor
 
 var file_api_app_source_proto_rawDesc = []byte{
@@ -1426,11 +1765,58 @@ var file_api_app_source_proto_rawDesc = []byte{
 	0x03, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x73, 0x65, 0x72,
 	0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x48, 0x65, 0x6c, 0x6d, 0x52, 0x65, 0x70, 0x6f, 0x73,
 	0x69, 0x74, 0x6f, 0x72, 0x79, 0x52, 0x10, 0x68, 0x65, 0x6c, 0x6d, 0x52, 0x65, 0x70, 0x6f, 0x73,
-	0x69, 0x74, 0x6f, 0x72, 0x69, 0x65, 0x73, 0x42, 0x32, 0x5a, 0x30, 0x67, 0x69, 0x74, 0x68, 0x75,
-	0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x77, 0x6f, 0x72, 0x6b, 0x73,
-	0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x2d, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x2f, 0x63, 0x6f,
-	0x72, 0x65, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x61, 0x70, 0x70, 0x73, 0x62, 0x06, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x33,
+	0x69, 0x74, 0x6f, 0x72, 0x69, 0x65, 0x73, 0x22, 0xe0, 0x01, 0x0a, 0x09, 0x48, 0x65, 0x6c, 0x6d,
+	0x43, 0x68, 0x61, 0x72, 0x74, 0x12, 0x1c, 0x0a, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61,
+	0x63, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70,
+	0x61, 0x63, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x39, 0x0a, 0x09, 0x73, 0x6f, 0x75, 0x72, 0x63,
+	0x65, 0x52, 0x65, 0x66, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1b, 0x2e, 0x67, 0x69, 0x74,
+	0x6f, 0x70, 0x73, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x6f,
+	0x75, 0x72, 0x63, 0x65, 0x52, 0x65, 0x66, 0x52, 0x09, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x52,
+	0x65, 0x66, 0x12, 0x14, 0x0a, 0x05, 0x63, 0x68, 0x61, 0x72, 0x74, 0x18, 0x04, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x05, 0x63, 0x68, 0x61, 0x72, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73,
+	0x69, 0x6f, 0x6e, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69,
+	0x6f, 0x6e, 0x12, 0x36, 0x0a, 0x08, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x18, 0x06,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x73, 0x65,
+	0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x49, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c,
+	0x52, 0x08, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x22, 0x81, 0x02, 0x0a, 0x0f, 0x41,
+	0x64, 0x64, 0x48, 0x65, 0x6c, 0x6d, 0x43, 0x68, 0x61, 0x72, 0x74, 0x52, 0x65, 0x71, 0x12, 0x1c,
+	0x0a, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x12, 0x19, 0x0a, 0x08,
+	0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07,
+	0x61, 0x70, 0x70, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x39, 0x0a, 0x09, 0x73,
+	0x6f, 0x75, 0x72, 0x63, 0x65, 0x52, 0x65, 0x66, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1b,
+	0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76,
+	0x31, 0x2e, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x52, 0x65, 0x66, 0x52, 0x09, 0x73, 0x6f, 0x75,
+	0x72, 0x63, 0x65, 0x52, 0x65, 0x66, 0x12, 0x14, 0x0a, 0x05, 0x63, 0x68, 0x61, 0x72, 0x74, 0x18,
+	0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x63, 0x68, 0x61, 0x72, 0x74, 0x12, 0x18, 0x0a, 0x07,
+	0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x76,
+	0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x36, 0x0a, 0x08, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x76,
+	0x61, 0x6c, 0x18, 0x07, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70,
+	0x73, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x49, 0x6e, 0x74, 0x65,
+	0x72, 0x76, 0x61, 0x6c, 0x52, 0x08, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x22, 0x67,
+	0x0a, 0x0f, 0x41, 0x64, 0x64, 0x48, 0x65, 0x6c, 0x6d, 0x43, 0x68, 0x61, 0x72, 0x74, 0x52, 0x65,
+	0x73, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x08, 0x52, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x12, 0x3a, 0x0a, 0x0a, 0x68,
+	0x65, 0x6c, 0x6d, 0x5f, 0x63, 0x68, 0x61, 0x72, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x1b, 0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e,
+	0x76, 0x31, 0x2e, 0x48, 0x65, 0x6c, 0x6d, 0x43, 0x68, 0x61, 0x72, 0x74, 0x52, 0x09, 0x68, 0x65,
+	0x6c, 0x6d, 0x43, 0x68, 0x61, 0x72, 0x74, 0x22, 0x4b, 0x0a, 0x10, 0x4c, 0x69, 0x73, 0x74, 0x48,
+	0x65, 0x6c, 0x6d, 0x43, 0x68, 0x61, 0x72, 0x74, 0x52, 0x65, 0x71, 0x12, 0x1c, 0x0a, 0x09, 0x6e,
+	0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09,
+	0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x12, 0x19, 0x0a, 0x08, 0x61, 0x70, 0x70,
+	0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x61, 0x70, 0x70,
+	0x4e, 0x61, 0x6d, 0x65, 0x22, 0x50, 0x0a, 0x10, 0x4c, 0x69, 0x73, 0x74, 0x48, 0x65, 0x6c, 0x6d,
+	0x43, 0x68, 0x61, 0x72, 0x74, 0x52, 0x65, 0x73, 0x12, 0x3c, 0x0a, 0x0b, 0x68, 0x65, 0x6c, 0x6d,
+	0x5f, 0x63, 0x68, 0x61, 0x72, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1b, 0x2e,
+	0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31,
+	0x2e, 0x48, 0x65, 0x6c, 0x6d, 0x43, 0x68, 0x61, 0x72, 0x74, 0x52, 0x0a, 0x68, 0x65, 0x6c, 0x6d,
+	0x43, 0x68, 0x61, 0x72, 0x74, 0x73, 0x42, 0x32, 0x5a, 0x30, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62,
+	0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f,
+	0x77, 0x65, 0x61, 0x76, 0x65, 0x2d, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x2f, 0x63, 0x6f, 0x72,
+	0x65, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x61, 0x70, 0x70, 0x73, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x33,
 }
 
 var (
@@ -1446,7 +1832,7 @@ func file_api_app_source_proto_rawDescGZIP() []byte {
 }
 
 var file_api_app_source_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_api_app_source_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_api_app_source_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_api_app_source_proto_goTypes = []interface{}{
 	(SourceRef_Kind)(0),           // 0: gitops_server.v1.SourceRef.Kind
 	(Source_Type)(0),              // 1: gitops_server.v1.Source.Type
@@ -1466,6 +1852,11 @@ var file_api_app_source_proto_goTypes = []interface{}{
 	(*AddHelmRepositoryRes)(nil),  // 15: gitops_server.v1.AddHelmRepositoryRes
 	(*ListHelmRepositoryReq)(nil), // 16: gitops_server.v1.ListHelmRepositoryReq
 	(*ListHelmRepositoryRes)(nil), // 17: gitops_server.v1.ListHelmRepositoryRes
+	(*HelmChart)(nil),             // 18: gitops_server.v1.HelmChart
+	(*AddHelmChartReq)(nil),       // 19: gitops_server.v1.AddHelmChartReq
+	(*AddHelmChartRes)(nil),       // 20: gitops_server.v1.AddHelmChartRes
+	(*ListHelmChartReq)(nil),      // 21: gitops_server.v1.ListHelmChartReq
+	(*ListHelmChartRes)(nil),      // 22: gitops_server.v1.ListHelmChartRes
 }
 var file_api_app_source_proto_depIdxs = []int32{
 	0,  // 0: gitops_server.v1.SourceRef.kind:type_name -> gitops_server.v1.SourceRef.Kind
@@ -1483,11 +1874,17 @@ var file_api_app_source_proto_depIdxs = []int32{
 	2,  // 12: gitops_server.v1.AddHelmRepositoryReq.interval:type_name -> gitops_server.v1.Interval
 	13, // 13: gitops_server.v1.AddHelmRepositoryRes.helm_repository:type_name -> gitops_server.v1.HelmRepository
 	13, // 14: gitops_server.v1.ListHelmRepositoryRes.helm_repositories:type_name -> gitops_server.v1.HelmRepository
-	15, // [15:15] is the sub-list for method output_type
-	15, // [15:15] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	3,  // 15: gitops_server.v1.HelmChart.sourceRef:type_name -> gitops_server.v1.SourceRef
+	2,  // 16: gitops_server.v1.HelmChart.interval:type_name -> gitops_server.v1.Interval
+	3,  // 17: gitops_server.v1.AddHelmChartReq.sourceRef:type_name -> gitops_server.v1.SourceRef
+	2,  // 18: gitops_server.v1.AddHelmChartReq.interval:type_name -> gitops_server.v1.Interval
+	18, // 19: gitops_server.v1.AddHelmChartRes.helm_chart:type_name -> gitops_server.v1.HelmChart
+	18, // 20: gitops_server.v1.ListHelmChartRes.helm_charts:type_name -> gitops_server.v1.HelmChart
+	21, // [21:21] is the sub-list for method output_type
+	21, // [21:21] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_api_app_source_proto_init() }
@@ -1688,6 +2085,66 @@ func file_api_app_source_proto_init() {
 				return nil
 			}
 		}
+		file_api_app_source_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*HelmChart); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_app_source_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AddHelmChartReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_app_source_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AddHelmChartRes); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_app_source_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListHelmChartReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_app_source_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListHelmChartRes); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1695,7 +2152,7 @@ func file_api_app_source_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_api_app_source_proto_rawDesc,
 			NumEnums:      2,
-			NumMessages:   16,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
