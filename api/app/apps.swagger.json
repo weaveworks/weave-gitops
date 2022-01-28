@@ -230,6 +230,97 @@
         ]
       }
     },
+    "/v1/namespace/{namespace}/app/{appName}/helmrepository": {
+      "get": {
+        "summary": "ListHelmRepository lists helm repositories from a cluster.",
+        "operationId": "Apps_ListHelmRepositories",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListHelmRepositoryRes"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "appName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      },
+      "post": {
+        "summary": "AddHelmRepository adds a helm repository source to a cluster.",
+        "operationId": "Apps_AddHelmRepository",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AddHelmRepositoryRes"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "appName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string"
+                },
+                "interval": {
+                  "$ref": "#/definitions/v1Interval"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
     "/v1/namespace/{namespace}/app/{appName}/kustomization": {
       "get": {
         "summary": "ListKustomization lists Kustomizations from a cluster via GitOps.",
@@ -472,6 +563,17 @@
         }
       }
     },
+    "v1AddHelmRepositoryRes": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "helmRepository": {
+          "$ref": "#/definitions/v1HelmRepository"
+        }
+      }
+    },
     "v1AddKustomizationRes": {
       "type": "object",
       "properties": {
@@ -548,6 +650,23 @@
         }
       }
     },
+    "v1HelmRepository": {
+      "type": "object",
+      "properties": {
+        "namespace": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "interval": {
+          "$ref": "#/definitions/v1Interval"
+        }
+      }
+    },
     "v1Interval": {
       "type": "object",
       "properties": {
@@ -603,6 +722,17 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1GitRepository"
+          }
+        }
+      }
+    },
+    "v1ListHelmRepositoryRes": {
+      "type": "object",
+      "properties": {
+        "helmRepositories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1HelmRepository"
           }
         }
       }

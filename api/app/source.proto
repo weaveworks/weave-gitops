@@ -97,3 +97,32 @@ message ListGitRepositoryReq {
 message ListGitRepositoryRes {
   repeated GitRepository git_repositories = 1;
 }
+
+message HelmRepository {
+  string namespace = 1;
+  string name = 2;
+  string url = 3;
+  Interval interval = 4;
+}
+
+message AddHelmRepositoryReq {
+  string namespace = 1;
+  string app_name = 2;
+  string name = 3;
+  string url = 4;
+  Interval interval = 5;
+}
+
+message AddHelmRepositoryRes {
+  bool success = 1;
+  HelmRepository helm_repository = 2;
+}
+
+message ListHelmRepositoryReq {
+  string namespace = 1;
+  string app_name = 2;
+}
+
+message ListHelmRepositoryRes {
+  repeated HelmRepository helm_repositories = 1;
+}
