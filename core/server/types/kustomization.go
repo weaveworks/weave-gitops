@@ -8,14 +8,7 @@ import (
 )
 
 func ProtoToKustomization(kustomization *pb.AddKustomizationReq) v1beta2.Kustomization {
-	labels := map[string]string{
-		ManagedByLabel: managedByWeaveGitops,
-		CreatedByLabel: createdByKustomizeController,
-	}
-
-	if kustomization.AppName != "" {
-		labels[PartOfLabel] = kustomization.AppName
-	}
+	labels := getGitopsLabelMap(kustomization.AppName)
 
 	return v1beta2.Kustomization{
 		TypeMeta: metav1.TypeMeta{

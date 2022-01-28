@@ -8,15 +8,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func ProtoToHelmRepository(repositoryReq *pb.AddHelmRepositoryReq) v1beta1.HelmRepository {
-	labels := map[string]string{
-		ManagedByLabel: managedByWeaveGitops,
-		CreatedByLabel: createdBySourceController,
-	}
-
-	if repositoryReq.AppName != "" {
-		labels[PartOfLabel] = repositoryReq.AppName
-	}
+func ProtoToHelmRepository(helmRepositoryReq *pb.AddHelmRepositoryReq) v1beta1.HelmRepository {
+	labels := getGitopsLabelMap(helmRepositoryReq.AppName)
 
 	return v1beta1.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
@@ -24,12 +17,12 @@ func ProtoToHelmRepository(repositoryReq *pb.AddHelmRepositoryReq) v1beta1.HelmR
 			APIVersion: v1beta1.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      repositoryReq.Name,
-			Namespace: repositoryReq.Namespace,
+			Name:      helmRepositoryReq.Name,
+			Namespace: helmRepositoryReq.Namespace,
 			Labels:    labels,
 		},
 		Spec: v1beta1.HelmRepositorySpec{
-			URL:      repositoryReq.Url,
+			URL:      helmRepositoryReq.Url,
 			Interval: metav1.Duration{Duration: time.Minute * 1},
 			Timeout:  &metav1.Duration{Duration: time.Minute * 1},
 		},
@@ -37,11 +30,11 @@ func ProtoToHelmRepository(repositoryReq *pb.AddHelmRepositoryReq) v1beta1.HelmR
 	}
 }
 
-func HelmRepositoryToProto(repository *v1beta1.HelmRepository) *pb.HelmRepository {
+func HelmRepositoryToProto(helmRepository *v1beta1.HelmRepository) *pb.HelmRepository {
 	hr := &pb.HelmRepository{
-		Name:      repository.Name,
-		Namespace: repository.Namespace,
-		Url:       repository.Spec.URL,
+		Name:      helmRepository.Name,
+		Namespace: helmRepository.Namespace,
+		Url:       helmRepository.Spec.URL,
 		Interval: &pb.Interval{
 			Minutes: 1,
 		},

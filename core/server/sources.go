@@ -37,16 +37,9 @@ func (as *appServer) ListGitRepositories(ctx context.Context, msg *pb.ListGitRep
 
 	list := &sourcev1.GitRepositoryList{}
 
-	if msg.AppName == "" {
-		err = k8s.List(ctx, list)
-	} else {
-		opts := client.MatchingLabels{
-			types.PartOfLabel: msg.AppName,
-		}
-		err = k8s.List(ctx, list, opts)
-	}
+	opts := getMatchingLabels(msg.AppName)
 
-	if err != nil {
+	if err := k8s.List(ctx, list, &opts, client.InNamespace(msg.Namespace)); err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to get git repository list: %s", err.Error())
 	}
 
@@ -86,12 +79,7 @@ func (as *appServer) ListHelmRepositories(ctx context.Context, msg *pb.ListHelmR
 
 	list := &sourcev1.HelmRepositoryList{}
 
-	var opts client.MatchingLabels
-	if msg.AppName != "" {
-		opts = client.MatchingLabels{
-			types.PartOfLabel: msg.AppName,
-		}
-	}
+	opts := getMatchingLabels(msg.AppName)
 
 	if err := k8s.List(ctx, list, &opts, client.InNamespace(msg.Namespace)); err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to list helm repositories for app %s: %s", msg.AppName, err.Error())
@@ -137,12 +125,7 @@ func (as *appServer) ListHelmCharts(ctx context.Context, msg *pb.ListHelmChartRe
 
 	list := &sourcev1.HelmChartList{}
 
-	var opts client.MatchingLabels
-	if msg.AppName != "" {
-		opts = client.MatchingLabels{
-			types.PartOfLabel: msg.AppName,
-		}
-	}
+	opts := getMatchingLabels(msg.AppName)
 
 	if err := k8s.List(ctx, list, &opts, client.InNamespace(msg.Namespace)); err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to list helm charts for app %s: %s", msg.AppName, err.Error())

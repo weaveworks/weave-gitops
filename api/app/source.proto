@@ -127,6 +127,7 @@ message ListHelmRepositoryRes {
   repeated HelmRepository helm_repositories = 1;
 }
 
+// HelmChart
 message HelmChart {
   string namespace = 1;
   string name = 2;

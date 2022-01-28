@@ -260,7 +260,7 @@ func TestListHelmCharts(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(addRes.Success).To(BeTrue())
 
-	unAssociatedKustomizationReq := &pb.AddHelmChartReq{
+	unAssociatedHelmChartReq := &pb.AddHelmChartReq{
 		Name:      "otherhelmrepository",
 		Namespace: ns.Name,
 		AppName:   "",
@@ -273,7 +273,7 @@ func TestListHelmCharts(t *testing.T) {
 		Interval: &pb.Interval{Minutes: 1},
 	}
 
-	_, err = c.AddHelmChart(ctx, unAssociatedKustomizationReq)
+	_, err = c.AddHelmChart(ctx, unAssociatedHelmChartReq)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(addRes.Success).To(BeTrue())
 

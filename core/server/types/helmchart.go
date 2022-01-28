@@ -9,14 +9,7 @@ import (
 )
 
 func ProtoToHelmChart(helmChartReq *pb.AddHelmChartReq) v1beta1.HelmChart {
-	labels := map[string]string{
-		ManagedByLabel: managedByWeaveGitops,
-		CreatedByLabel: createdBySourceController,
-	}
-
-	if helmChartReq.AppName != "" {
-		labels[PartOfLabel] = helmChartReq.AppName
-	}
+	labels := getGitopsLabelMap(helmChartReq.AppName)
 
 	return v1beta1.HelmChart{
 		TypeMeta: metav1.TypeMeta{
