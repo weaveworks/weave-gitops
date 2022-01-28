@@ -4,6 +4,7 @@ package server
 // ApplicationsServer.
 type ApplicationsOptions struct {
 	ClientGetter ClientGetter
+	KubeGetter   KubeGetter
 }
 
 // ApplicationsOption defines the signature of a function that can be used
@@ -14,5 +15,12 @@ type ApplicationsOption func(*ApplicationsOptions)
 func WithClientGetter(clientGetter ClientGetter) ApplicationsOption {
 	return func(args *ApplicationsOptions) {
 		args.ClientGetter = clientGetter
+	}
+}
+
+// WithKubeGetter allows for setting a KubeGetter.
+func WithKubeGetter(kubeGetter KubeGetter) ApplicationsOption {
+	return func(args *ApplicationsOptions) {
+		args.KubeGetter = kubeGetter
 	}
 }

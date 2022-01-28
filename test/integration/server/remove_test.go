@@ -29,7 +29,7 @@ import (
 	"sigs.k8s.io/kustomize/api/types"
 )
 
-var _ = Describe("RemoveApplication", func() {
+var _ = XDescribe("RemoveApplication", func() {
 	var (
 		namespace      *corev1.Namespace
 		ctx            context.Context
@@ -48,7 +48,7 @@ var _ = Describe("RemoveApplication", func() {
 	Context("Github", func() {
 		var gh *ghAPI.Client
 		var gp gitprovider.Client
-		var githubOrg = "weaveworks-gitops-test"
+		var githubOrg = os.Getenv("GITHUB_ORG")
 		var githubToken = os.Getenv("GITHUB_TOKEN")
 		var sourceRepoURL string
 		var sourceRepo gitprovider.OrgRepository
@@ -65,6 +65,7 @@ var _ = Describe("RemoveApplication", func() {
 			)
 			Expect(err).NotTo(HaveOccurred())
 			sourceRepoURL = fmt.Sprintf("https://github.com/%s/%s", githubOrg, sourceRepoName)
+			Expect(helpers.SetWegoConfig(env.Client, namespace.Name, sourceRepoURL)).To(Succeed())
 			sourceRepo, sourceRef, err = helpers.CreatePopulatedSourceRepo(ctx, gp, sourceRepoURL)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -232,7 +233,7 @@ var _ = Describe("RemoveApplication", func() {
 			gitlabAPIClient, err = glAPI.NewClient(gitlabToken)
 			Expect(err).NotTo(HaveOccurred())
 			sourceRepoURL = fmt.Sprintf("https://gitlab.com/%s/%s", gitlabGroup, sourceRepoName)
-
+			Expect(helpers.SetWegoConfig(env.Client, namespace.Name, sourceRepoURL)).To(Succeed())
 			sourceRepo, sourceRef, err = helpers.CreatePopulatedSourceRepo(ctx, gitlabProviderClient, sourceRepoURL)
 			Expect(err).NotTo(HaveOccurred())
 

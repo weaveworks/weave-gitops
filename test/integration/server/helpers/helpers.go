@@ -15,6 +15,7 @@ import (
 	"time"
 
 	glAPI "github.com/xanzy/go-gitlab"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
@@ -22,10 +23,13 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	ghAPI "github.com/google/go-github/v32/github"
+	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/fluxcd/source-controller/pkg/sourceignore"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"golang.org/x/oauth2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -80,6 +84,41 @@ func CreateRepo(ctx context.Context, gp gitprovider.Client, url string) (gitprov
 	})
 
 	return repo, ref, err
+}
+
+func SetWegoConfig(k8sClient client.Client, namespace string, configRepo string) error {
+	ctx := context.Background()
+
+	cm := &corev1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ConfigMap",
+			APIVersion: corev1.SchemeGroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      models.WegoConfigMapName,
+			Namespace: namespace,
+		},
+	}
+
+	key := client.ObjectKeyFromObject(cm)
+	if err := k8sClient.Get(ctx, key, cm); err != nil {
+		if !apierrors.IsNotFound(err) {
+			return err
+		}
+
+		if err := k8sClient.Create(ctx, cm); err != nil {
+			return err
+		}
+	}
+
+	cm.Data = map[string]string{
+		"config": fmt.Sprintf(`
+WegoNamespace: %s
+FluxNamespace: %s
+ConfigRepo: %s`, namespace, namespace, configRepo),
+	}
+
+	return k8sClient.Update(ctx, cm)
 }
 
 func addFiles(ctx context.Context, message string, repo gitprovider.OrgRepository, files []gitprovider.CommitFile) error {

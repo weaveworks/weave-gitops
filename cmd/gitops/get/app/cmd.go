@@ -53,7 +53,12 @@ func getApplicationStatus(cmd *cobra.Command, args []string) error {
 	fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 	factory := services.NewFactory(fluxClient, log)
 
-	appService, err := factory.GetAppService(ctx)
+	kubeClient, _, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		return fmt.Errorf("failed to create kube client: %w", err)
+	}
+
+	appService, err := factory.GetAppService(ctx, kubeClient)
 	if err != nil {
 		return fmt.Errorf("failed to create app service: %w", err)
 	}

@@ -27,6 +27,7 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -116,10 +117,6 @@ var _ = BeforeEach(func() {
 
 	fakeFactory.GetGitClientsReturns(configGit, gitProvider, nil)
 
-	fakeFactory.GetKubeServiceStub = func() (kube.Kube, error) {
-		return k, nil
-	}
-
 	ghAuthClient = &authfakes.FakeGithubAuthClient{}
 	glAuthClient = &authfakes.FakeGitlabAuthClient{}
 	jwtClient = auth.NewJwtClient(secretKey)
@@ -132,7 +129,8 @@ var _ = BeforeEach(func() {
 		GitlabAuthClient: glAuthClient,
 		ClusterConfig:    ClusterConfig{},
 	}
-	apps = NewApplicationsServer(&cfg, WithClientGetter(NewFakeClientGetter(k8sClient)))
+	apps = NewApplicationsServer(&cfg,
+		WithClientGetter(NewFakeClientGetter(k8sClient)), WithKubeGetter(NewFakeKubeGetter(k)))
 	pb.RegisterApplicationsServer(s, apps)
 
 	go func() {
@@ -142,7 +140,7 @@ var _ = BeforeEach(func() {
 	}()
 
 	ctx := context.Background()
-	conn, err = grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithInsecure())
+	conn, err = grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	Expect(err).NotTo(HaveOccurred())
 
