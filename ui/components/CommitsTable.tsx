@@ -97,7 +97,7 @@ function CommitsTable({
             value: (row: Commit) => timestamp(row.date),
           },
           { label: "message", displayLabel: "Message", value: "message" },
-          { label: "Author", displayLabel: "Author", value: "author" },
+          { label: "author", displayLabel: "Author", value: "author" },
         ]}
         rows={commits.commits}
         disablePagination
