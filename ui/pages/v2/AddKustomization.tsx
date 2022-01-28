@@ -4,6 +4,7 @@ import styled from "styled-components";
 import AddKustomizationForm from "../../components/AddKustomizationForm";
 import Page from "../../components/Page";
 import { useCreateKustomization } from "../../hooks/kustomizations";
+import { SourceRefKind } from "../../lib/api/app/source.pb";
 import { V2Routes, WeGONamespace } from "../../lib/types";
 import { formatURL } from "../../lib/utils";
 
@@ -36,8 +37,6 @@ function AddKustomization({ className, appName, query }: Props) {
   const [formState, setFormState] = React.useState<FormState>(null);
   const mutation = useCreateKustomization();
 
-  console.log(appName);
-
   const sourceUrl = () =>
     formatURL(V2Routes.AddSource, {
       appName,
@@ -57,8 +56,21 @@ function AddKustomization({ className, appName, query }: Props) {
     history.push(sourceUrl());
   };
 
-  const handleSubmit = (state: FormState) => {
-    mutation.mutate({ ...state, appName });
+  const handleSubmit = async (state: FormState) => {
+    const namespace = state.namespace || defaultInitialState().namespace;
+
+    await mutation.mutateAsync({
+      ...state,
+      appName,
+      sourceRef: { kind: SourceRefKind.GitRepository, name: state.source },
+      namespace,
+    });
+
+    if (!mutation.isError) {
+      history.push(
+        formatURL(V2Routes.Kustomization, { name: state.name, namespace })
+      );
+    }
   };
 
   return (

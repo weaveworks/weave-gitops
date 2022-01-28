@@ -15,7 +15,6 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import Layout from "./components/Layout";
 import AppContextProvider from "./contexts/AppContext";
 import { Apps } from "./lib/api/app/apps.pb";
-import { AppKustomization as kustomizationsClient } from "./lib/api/app/kustomize.pb";
 import {
   Applications as appsClient,
   GitProvider,
@@ -49,7 +48,6 @@ export default function App() {
             <AppContextProvider
               renderFooter
               applicationsClient={appsClient}
-              kustomizationsClient={kustomizationsClient}
               appsClient={Apps}
             >
               <Layout>
@@ -113,7 +111,12 @@ export default function App() {
                       component={({ location }) => {
                         const params = qs.parse(location.search);
 
-                        return <Application name={params.name as string} />;
+                        return (
+                          <Application
+                            name={params.name as string}
+                            namespace={params.namespace as string}
+                          />
+                        );
                       }}
                     />
                     <Route

@@ -15,21 +15,7 @@ type Props = {
 };
 
 function ApplicationList({ className }: Props) {
-  const placeholder: App[] = [
-    {
-      name: "my-app",
-      displayName: "My App",
-      description: "This application runs our Valorant match making back-end",
-      kustomizations: [
-        // { name: "my-kustomization" },
-      ],
-      helmReleases: [],
-      sources: [],
-    },
-  ];
-  const { data = {}, isLoading, error } = useListApplications();
-
-  data.apps = placeholder as any;
+  const { data = { apps: [] }, isLoading, error } = useListApplications();
 
   return (
     <Page
@@ -51,8 +37,8 @@ function ApplicationList({ className }: Props) {
           fields={[
             {
               label: "Name",
-              value: ({ id, name }: App) => (
-                <Link key={id} to={formatURL(V2Routes.Application, { name })}>
+              value: ({ name }: App) => (
+                <Link key={name} to={formatURL(V2Routes.Application, { name })}>
                   {name}
                 </Link>
               ),

@@ -8,7 +8,6 @@ export enum PageRoute {
 
 export enum GrpcErrorCodes {
   Unknown = 2,
-  NotFound = 5,
   Unauthenticated = 16,
   NotFound = 5,
 }
@@ -27,6 +26,7 @@ export enum V2Routes {
   AddGitRepo = "/add_git_repo",
   AddHelmRepo = "/add_helm_repo",
   AddBucket = "/add_bucket",
+  Kustomization = "/kustomization",
 }
 
 export const WeGONamespace = "wego-system";

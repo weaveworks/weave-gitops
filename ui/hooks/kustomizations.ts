@@ -1,23 +1,27 @@
 import { useContext } from "react";
-import { useMutation } from "react-query";
+import { useMutation, useQuery } from "react-query";
 import { AppContext } from "../contexts/AppContext";
 import {
-  AddKustomizationRequest,
-  AddKustomizationResponse,
-} from "../lib/api/app/kustomize.pb";
+  AddKustomizationReq,
+  AddKustomizationRes,
+  ListKustomizationsRes,
+} from "../lib/api/app/flux.pb";
 import { RequestError } from "../lib/types";
-import { useUserConfigRepoName } from "./common";
 
 export function useCreateKustomization() {
-  const { kustomizations } = useContext(AppContext);
+  const { apps } = useContext(AppContext);
 
-  const repoName = useUserConfigRepoName();
+  return useMutation<AddKustomizationRes, RequestError, AddKustomizationReq>(
+    (body: AddKustomizationReq) => apps.AddKustomization(body)
+  );
+}
 
-  return useMutation<
-    AddKustomizationResponse,
-    RequestError,
-    AddKustomizationRequest
-  >((body: AddKustomizationRequest) =>
-    kustomizations.Add({ ...body, repoName })
+export function useGetKustomizations(appName: string, namespace: string) {
+  const { apps } = useContext(AppContext);
+
+  return useQuery<ListKustomizationsRes, RequestError>(
+    ["kustomizations", appName],
+    () => apps.ListKustomizations({ appName, namespace }),
+    { retry: false }
   );
 }

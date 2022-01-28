@@ -4,7 +4,7 @@ import AddAppForm from "../../components/AddAppForm";
 import Page from "../../components/Page";
 import { AppContext } from "../../contexts/AppContext";
 import { useCreateApp } from "../../hooks/apps";
-import { V2Routes } from "../../lib/types";
+import { V2Routes, WeGONamespace } from "../../lib/types";
 
 type Props = {
   className?: string;
@@ -28,7 +28,7 @@ function NewApp({ className }: Props) {
       <AddAppForm
         loading={mutation.isLoading}
         onSubmit={(state) => {
-          mutation.mutate(state);
+          mutation.mutate({ ...state, namespace: WeGONamespace });
         }}
       />
     </Page>

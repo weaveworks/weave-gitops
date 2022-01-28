@@ -9,17 +9,15 @@ import {
   RemoveAppRequest,
   RemoveAppResponse,
 } from "../lib/api/app/apps.pb";
-import { RequestError } from "../lib/types";
-import { useUserConfigRepoName } from "./common";
+import { RequestError, WeGONamespace } from "../lib/types";
 
 export function useListApplications() {
   const { apps, doAsyncError } = useContext(AppContext);
-  const repoName = useUserConfigRepoName();
 
   return useQuery<ListAppResponse, RequestError>(
     "apps",
     () =>
-      apps.ListApps({ repoName }).catch((e) => {
+      apps.ListApps({ namespace: WeGONamespace }).catch((e) => {
         doAsyncError(e.message, e.detail);
         throw e;
       }),
@@ -29,23 +27,24 @@ export function useListApplications() {
   );
 }
 
-export function useGetApplication(appName: string) {
+export function useGetApplication(
+  appName: string,
+  namespace: string = WeGONamespace
+) {
   const { apps } = useContext(AppContext);
-  const repoName = useUserConfigRepoName();
 
   return useQuery<GetAppResponse, RequestError>(
     ["apps", appName],
-    () => apps.GetApp({ repoName, appName }),
+    () => apps.GetApp({ appName, namespace }),
     { retry: false }
   );
 }
 
 export function useCreateApp() {
   const { apps } = useContext(AppContext);
-  const repoName = useUserConfigRepoName();
 
   const mutation = useMutation<AddAppResponse, RequestError, AddAppRequest>(
-    (body: AddAppRequest) => apps.AddApp({ ...body, repoName })
+    (body: AddAppRequest) => apps.AddApp({ ...body })
   );
 
   return mutation;
@@ -53,9 +52,8 @@ export function useCreateApp() {
 
 export function useRemoveApp() {
   const { apps } = useContext(AppContext);
-  const repoName = useUserConfigRepoName();
 
   return useMutation<RemoveAppResponse, RequestError, RemoveAppRequest>(
-    (body: RemoveAppRequest) => apps.RemoveApp({ ...body, repoName })
+    (body: RemoveAppRequest) => apps.RemoveApp({ ...body })
   );
 }

@@ -10,7 +10,7 @@ type Props = {
   children?: any;
   href?: any;
   newTab?: boolean;
-  onClick: () => void;
+  onClick?: () => void;
 };
 
 function Link({
