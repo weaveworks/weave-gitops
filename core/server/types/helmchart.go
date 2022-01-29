@@ -17,7 +17,7 @@ func ProtoToHelmChart(helmChartReq *pb.AddHelmChartReq) v1beta1.HelmChart {
 			APIVersion: v1beta1.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      helmChartReq.Name,
+			Name:      helmChartReq.HelmChart.Name,
 			Namespace: helmChartReq.Namespace,
 			Labels:    labels,
 		},
