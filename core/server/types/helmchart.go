@@ -17,16 +17,16 @@ func ProtoToHelmChart(helmChartReq *pb.AddHelmChartReq) v1beta1.HelmChart {
 			APIVersion: v1beta1.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      helmChartReq.Name,
+			Name:      helmChartReq.HelmChart.Name,
 			Namespace: helmChartReq.Namespace,
 			Labels:    labels,
 		},
 		Spec: v1beta1.HelmChartSpec{
-			Chart:   helmChartReq.Chart,
-			Version: helmChartReq.Version,
+			Chart:   helmChartReq.HelmChart.Chart,
+			Version: helmChartReq.HelmChart.Version,
 			SourceRef: v1beta1.LocalHelmChartSourceReference{
-				Kind: helmChartReq.SourceRef.Kind.String(),
-				Name: helmChartReq.SourceRef.Name,
+				Kind: helmChartReq.HelmChart.SourceRef.Kind.String(),
+				Name: helmChartReq.HelmChart.SourceRef.Name,
 			},
 			Interval: metav1.Duration{Duration: time.Minute * 1},
 		},

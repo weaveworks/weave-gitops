@@ -160,16 +160,19 @@ func TestCreateHelmChart(t *testing.T) {
 		ns := newNamespace(ctx, k, g)
 
 		r := &pb.AddHelmChartReq{
-			Name:      "mykustomization",
-			Namespace: ns.Name,
 			AppName:   "someapp",
-			SourceRef: &pb.SourceRef{
-				Kind: pb.SourceRef_HelmRepository,
-				Name: "myhelmrepository",
+			Namespace: ns.Name,
+			HelmChart: &pb.HelmChart{
+				Name:      "myhelmchart",
+				Namespace: ns.Name,
+				SourceRef: &pb.SourceRef{
+					Kind: pb.SourceRef_HelmRepository,
+					Name: "myhelmrepository",
+				},
+				Chart:    "mychart",
+				Version:  "v0.0.0",
+				Interval: &pb.Interval{Minutes: 1},
 			},
-			Chart:    "mychart",
-			Version:  "v0.0.0",
-			Interval: &pb.Interval{Minutes: 1},
 		}
 
 		res, err := c.AddHelmChart(ctx, r)
@@ -179,7 +182,10 @@ func TestCreateHelmChart(t *testing.T) {
 
 		actual := &sourcev1beta1.HelmChart{}
 
-		g.Expect(k.Get(ctx, types.NamespacedName{Name: r.Name, Namespace: ns.Name}, actual)).To(Succeed())
+		fmt.Println("r.HelmChart.Name", r.HelmChart.Name)
+		fmt.Println("ns.Name", ns.Name)
+
+		g.Expect(k.Get(ctx, types.NamespacedName{Name: r.HelmChart.Name, Namespace: ns.Name}, actual)).To(Succeed())
 
 		expected := stypes.ProtoToHelmChart(r)
 
@@ -195,16 +201,19 @@ func TestCreateHelmChart(t *testing.T) {
 		ns := newNamespace(ctx, k, g)
 
 		r := &pb.AddHelmChartReq{
-			Name:      "mykustomization",
-			Namespace: ns.Name,
 			AppName:   "",
-			SourceRef: &pb.SourceRef{
-				Kind: pb.SourceRef_HelmRepository,
-				Name: "myhelmrepository",
+			Namespace: ns.Name,
+			HelmChart: &pb.HelmChart{
+				Name:      "myhelmchart",
+				Namespace: ns.Name,
+				SourceRef: &pb.SourceRef{
+					Kind: pb.SourceRef_HelmRepository,
+					Name: "myhelmrepository",
+				},
+				Chart:    "mychart",
+				Version:  "v0.0.0",
+				Interval: &pb.Interval{Minutes: 1},
 			},
-			Chart:    "mychart",
-			Version:  "v0.0.0",
-			Interval: nil,
 		}
 
 		res, err := c.AddHelmChart(ctx, r)
@@ -214,7 +223,7 @@ func TestCreateHelmChart(t *testing.T) {
 
 		actual := &sourcev1beta1.HelmChart{}
 
-		g.Expect(k.Get(ctx, types.NamespacedName{Name: r.Name, Namespace: ns.Name}, actual)).To(Succeed())
+		g.Expect(k.Get(ctx, types.NamespacedName{Name: r.HelmChart.Name, Namespace: ns.Name}, actual)).To(Succeed())
 
 		expected := stypes.ProtoToHelmChart(r)
 
@@ -244,16 +253,19 @@ func TestListHelmCharts(t *testing.T) {
 	ns := newNamespace(ctx, k, g)
 
 	r := &pb.AddHelmChartReq{
-		Name:      "myhelmrepository",
-		Namespace: ns.Name,
 		AppName:   appName,
-		SourceRef: &pb.SourceRef{
-			Kind: pb.SourceRef_HelmRepository,
-			Name: "myhelmrepository",
+		Namespace: ns.Name,
+		HelmChart: &pb.HelmChart{
+			Name:      "myhelmchart",
+			Namespace: ns.Name,
+			SourceRef: &pb.SourceRef{
+				Kind: pb.SourceRef_HelmRepository,
+				Name: "myhelmrepository",
+			},
+			Chart:    "mychart",
+			Version:  "v0.0.0",
+			Interval: &pb.Interval{Minutes: 1},
 		},
-		Chart:    "mychart",
-		Version:  "v0.0.0",
-		Interval: &pb.Interval{Minutes: 1},
 	}
 
 	addRes, err := c.AddHelmChart(ctx, r)
@@ -261,16 +273,19 @@ func TestListHelmCharts(t *testing.T) {
 	g.Expect(addRes.Success).To(BeTrue())
 
 	unAssociatedHelmChartReq := &pb.AddHelmChartReq{
-		Name:      "otherhelmrepository",
-		Namespace: ns.Name,
 		AppName:   "",
-		SourceRef: &pb.SourceRef{
-			Kind: pb.SourceRef_HelmRepository,
-			Name: "myhelmrepository",
+		Namespace: ns.Name,
+		HelmChart: &pb.HelmChart{
+			Name:      "otherhelmrepository",
+			Namespace: ns.Name,
+			SourceRef: &pb.SourceRef{
+				Kind: pb.SourceRef_HelmRepository,
+				Name: "myhelmrepository",
+			},
+			Chart:    "mychart",
+			Version:  "v0.0.0",
+			Interval: &pb.Interval{Minutes: 1},
 		},
-		Chart:    "mychart",
-		Version:  "v0.0.0",
-		Interval: &pb.Interval{Minutes: 1},
 	}
 
 	_, err = c.AddHelmChart(ctx, unAssociatedHelmChartReq)
@@ -283,7 +298,7 @@ func TestListHelmCharts(t *testing.T) {
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.HelmCharts).To(HaveLen(1))
-	g.Expect(res.HelmCharts[0].Name).To(Equal(r.Name))
+	g.Expect(res.HelmCharts[0].Name).To(Equal(r.HelmChart.Name))
 
 	// Ensure our filtering logic is working for `AppName`
 	all, err := c.ListHelmCharts(ctx, &pb.ListHelmChartReq{

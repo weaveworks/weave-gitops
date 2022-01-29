@@ -138,13 +138,9 @@ message HelmChart {
 }
 
 message AddHelmChartReq {
-  string namespace = 1;
-  string app_name = 2;
-  string name = 3;
-  SourceRef sourceRef = 4;
-  string chart = 5;
-  string version = 6;
-  Interval interval = 7;
+  string app_name = 1;
+  string namespace = 2;
+  HelmChart helm_chart = 3;
 }
 
 message AddHelmChartRes {

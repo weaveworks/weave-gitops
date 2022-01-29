@@ -303,20 +303,8 @@
             "schema": {
               "type": "object",
               "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "sourceRef": {
-                  "$ref": "#/definitions/v1SourceRef"
-                },
-                "chart": {
-                  "type": "string"
-                },
-                "version": {
-                  "type": "string"
-                },
-                "interval": {
-                  "$ref": "#/definitions/v1Interval"
+                "helmChart": {
+                  "$ref": "#/definitions/v1HelmChart"
                 }
               }
             }
@@ -779,7 +767,8 @@
         "interval": {
           "$ref": "#/definitions/v1Interval"
         }
-      }
+      },
+      "title": "HelmChart"
     },
     "v1HelmRepository": {
       "type": "object",
