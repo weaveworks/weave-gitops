@@ -120,13 +120,13 @@ describe("DataTable", () => {
       const skipForward = screen.getByLabelText("skip to last page");
       const displayText = screen.getByText(/1 - 1 out of 3/);
       fireEvent.click(forward);
-      expect(displayText.innerHTML).toContain("2");
+      expect(displayText.innerHTML).toContain("2 - 2 out of 3");
       fireEvent.click(back);
-      expect(displayText.innerHTML).toContain("1");
+      expect(displayText.innerHTML).toContain("1 - 1 out of 3");
       fireEvent.click(skipForward);
-      expect(displayText.innerHTML).toContain("3 out of 3");
+      expect(displayText.innerHTML).toContain("3 - 3 out of 3");
       fireEvent.click(skipBack);
-      expect(displayText.innerHTML).toContain("1 - 1");
+      expect(displayText.innerHTML).toContain("1 - 1 out of 3");
     });
     it("disables buttons based on page location", () => {
       render(

@@ -202,8 +202,8 @@ function UnstyledDataTable({
           </FormControl>
           <Spacer padding="base" />
           <Text>
-            {pagination.start === 0 ? 1 : pagination.start} -{" "}
-            {pagination.start + r.length} out of {rows.length}
+            {pagination.start + 1} - {pagination.start + r.length} out of{" "}
+            {rows.length}
           </Text>
           <Spacer padding="base" />
           <Flex>
