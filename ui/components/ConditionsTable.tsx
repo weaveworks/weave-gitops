@@ -21,7 +21,6 @@ function ConditionsTable({ className, conditions }: Props) {
       sortFields={[""]}
       className={className}
       widths={["10%", "10%", "25%", "55%"]}
-      disablePagination
     />
   );
 }

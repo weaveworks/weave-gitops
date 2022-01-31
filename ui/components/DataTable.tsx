@@ -1,7 +1,4 @@
 import {
-  FormControl,
-  MenuItem,
-  Select,
   Table,
   TableBody,
   TableCell,
@@ -15,6 +12,7 @@ import styled from "styled-components";
 import Button from "./Button";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
+import Pagination from "./Pagination";
 import Spacer from "./Spacer";
 import Text from "./Text";
 
@@ -34,10 +32,8 @@ export interface Props {
   sortFields: string[];
   /** an optional list of string widths for each field/column. */
   widths?: string[];
-  /** removes bottom pagination bar. */
-  disablePagination?: boolean;
-  /** array of options for rows per page. Defaults to [25, 50, 75, 100]. */
-  paginationOptions?: number[];
+  /** enables bottom pagination bar. */
+  enablePagination?: any;
 }
 
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
@@ -72,15 +68,10 @@ function UnstyledDataTable({
   rows,
   sortFields,
   widths,
-  disablePagination,
-  paginationOptions = [25, 50, 75, 100],
+  enablePagination,
 }: Props) {
   const [sort, setSort] = React.useState(sortFields[0]);
   const [reverseSort, setReverseSort] = React.useState(false);
-  const [pagination, setPagination] = React.useState({
-    start: 0,
-    length: paginationOptions[0],
-  });
   const sorted = _.sortBy(rows, sort);
 
   if (reverseSort) {
@@ -117,8 +108,10 @@ function UnstyledDataTable({
 
   const r = [];
   for (
-    let i = pagination.start;
-    i < pagination.start + pagination.length;
+    let i = enablePagination ? enablePagination.current.start : 0;
+    i < enablePagination
+      ? enablePagination.current.start + enablePagination.current.pageTotal
+      : rows.length;
     i++
   ) {
     if (sorted[i]) {
@@ -175,95 +168,16 @@ function UnstyledDataTable({
       </TableContainer>
       {/* pagination row */}
       <Spacer padding="xs" />
-      {!disablePagination && (
-        <Flex wide align end>
-          <FormControl>
-            <Flex align>
-              <label htmlFor="pagination">Rows Per Page: </label>
-              <Spacer padding="xxs" />
-              <Select
-                id="pagination"
-                variant="outlined"
-                defaultValue={paginationOptions[0]}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                  const newValue = parseInt(e.target.value);
-                  setPagination({ start: 0, length: newValue });
-                }}
-              >
-                {paginationOptions.map((option, index) => {
-                  return (
-                    <MenuItem key={index} value={option}>
-                      {option}
-                    </MenuItem>
-                  );
-                })}
-              </Select>
-            </Flex>
-          </FormControl>
-          <Spacer padding="base" />
-          <Text>
-            {pagination.start + 1} - {pagination.start + r.length} out of{" "}
-            {rows.length}
-          </Text>
-          <Spacer padding="base" />
-          <Flex>
-            <Button
-              color="inherit"
-              variant="text"
-              aria-label="skip to first page"
-              disabled={pagination.start === 0}
-              onClick={() => setPagination({ ...pagination, start: 0 })}
-            >
-              <Icon type={IconType.SkipPreviousIcon} size="medium" />
-            </Button>
-            <Button
-              color="inherit"
-              variant="text"
-              aria-label="back one page"
-              disabled={pagination.start === 0}
-              onClick={() =>
-                setPagination({
-                  ...pagination,
-                  start: pagination.start - pagination.length,
-                })
-              }
-            >
-              <Icon type={IconType.NavigateBeforeIcon} size="medium" />
-            </Button>
-            <Button
-              color="inherit"
-              variant="text"
-              aria-label="forward one page"
-              disabled={pagination.start + pagination.length >= rows.length}
-              onClick={() =>
-                setPagination({
-                  ...pagination,
-                  start: pagination.start + pagination.length,
-                })
-              }
-            >
-              <Icon type={IconType.NavigateNextIcon} size="medium" />
-            </Button>
-            <Button
-              color="inherit"
-              variant="text"
-              aria-label="skip to last page"
-              disabled={pagination.start + pagination.length >= rows.length}
-              onClick={() => {
-                let newStart;
-                if (rows.length % pagination.length !== 0)
-                  newStart = rows.length - (rows.length % pagination.length);
-                else newStart = rows.length - pagination.length;
-                setPagination({
-                  ...pagination,
-                  start: newStart,
-                });
-              }}
-            >
-              <Icon type={IconType.SkipNextIcon} size="medium" />
-            </Button>
-          </Flex>
-        </Flex>
+      {enablePagination && (
+        <Pagination
+          forward={enablePagination.forward}
+          skipForward={enablePagination.skipForward}
+          back={enablePagination.back}
+          skipBack={enablePagination.skipBack}
+          perPage={enablePagination.perPage}
+          perPageOptions={enablePagination.perPageOptions}
+          current={enablePagination.current}
+        />
       )}
     </div>
   );
