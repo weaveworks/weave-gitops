@@ -31,16 +31,17 @@ import (
 
 // Options contains all the options for the `ui run` command.
 type Options struct {
-	Port                      string
-	HelmRepoNamespace         string
-	HelmRepoName              string
-	ProfileCacheLocation      string
-	WatcherMetricsBindAddress string
-	WatcherHealthzBindAddress string
-	WatcherPort               int
-	Path                      string
-	LoggingEnabled            bool
-	OIDC                      OIDCAuthenticationOptions
+	Port                          string
+	HelmRepoNamespace             string
+	HelmRepoName                  string
+	ProfileCacheLocation          string
+	WatcherMetricsBindAddress     string
+	WatcherHealthzBindAddress     string
+	WatcherPort                   int
+	Path                          string
+	LoggingEnabled                bool
+	OIDC                          OIDCAuthenticationOptions
+	NotificationControllerAddress string
 }
 
 // OIDCAuthenticationOptions contains the OIDC authentication options for the
@@ -74,6 +75,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.ProfileCacheLocation, "profile-cache-location", "/tmp/helm-cache", "the location where the cache Profile data lives")
 	cmd.Flags().StringVar(&options.WatcherHealthzBindAddress, "watcher-healthz-bind-address", ":9981", "bind address for the healthz service of the watcher")
 	cmd.Flags().StringVar(&options.WatcherMetricsBindAddress, "watcher-metrics-bind-address", ":9980", "bind address for the metrics service of the watcher")
+	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "http://notification-controller./", "the address of the notification-controller running in the cluster")
 	cmd.Flags().IntVar(&options.WatcherPort, "watcher-port", 9443, "the port on which the watcher is running")
 
 	if server.AuthEnabled() {
@@ -151,11 +153,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	profileWatcher, err := watcher.NewWatcher(watcher.Options{
-		KubeClient:         rawClient,
-		Cache:              profileCache,
-		MetricsBindAddress: options.WatcherMetricsBindAddress,
-		HealthzBindAddress: options.WatcherHealthzBindAddress,
-		WatcherPort:        options.WatcherPort,
+		KubeClient:                    rawClient,
+		Cache:                         profileCache,
+		MetricsBindAddress:            options.WatcherMetricsBindAddress,
+		HealthzBindAddress:            options.WatcherHealthzBindAddress,
+		NotificationControllerAddress: options.NotificationControllerAddress,
+		WatcherPort:                   options.WatcherPort,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to start the watcher: %w", err)
