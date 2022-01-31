@@ -1,7 +1,14 @@
 ---
+title: Installation
 sidebar_position: 1
+hide_title: true
 ---
-# Installation
+
+import TierLabel from "./_components/TierLabel";
+
+<h1>
+  {frontMatter.title} <TierLabel tiers="All tiers" />
+</h1>
 
 ## Pre-requisites
 

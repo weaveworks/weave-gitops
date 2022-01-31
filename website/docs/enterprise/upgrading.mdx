@@ -87,6 +87,9 @@ Download a specific version of clusterctl from the [releases page](https://githu
 In order to be able to provision Kubernetes clusters, a CAPI provider needs to be installed.
 
 ```
+# Enable support for `ClusterResourceSet`s for automatically installing CNIs
+export EXP_CLUSTER_RESOURCE_SET=true
+
 clusterctl init --infrastructure docker
 ```
 
@@ -101,6 +104,12 @@ kubectl apply -f entitlements.yaml
 ### 4. Upgrade
 
 Run the upgrade command specifying the same `--config-repo` used in install and the desired version of Weave GitOps Enterprise.
+
+:::caution `https://` url is important
+
+The `--app-config-url` value supplied to the `upgrade` command must be in `https://` format (not `git@github.com:`)
+
+:::
 
 ```bash
 gitops upgrade --config-repo https://github.com/my-org/my-repo --version 0.0.16

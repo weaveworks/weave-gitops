@@ -43,7 +43,7 @@ To follow along with this guide you will need:
 ## Install the Weave GitOps CLI
 
 ```console
-curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.6.0/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
+curl --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.6.1/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
 sudo mv /tmp/gitops /usr/local/bin
 gitops version
 ```

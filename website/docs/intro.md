@@ -1,8 +1,14 @@
 ---
+title: Introduction
 sidebar_position: 0
+hide_title: true
 ---
 
-# Introduction
+import TierLabel from "./_components/TierLabel";
+
+<h1>
+  {frontMatter.title} <TierLabel tiers="All tiers" />
+</h1>
 
 Weave GitOps is a continuous delivery runtime that enables GitOps. Based on the popular [CNCF Flux](https://fluxcd.io) project, Weave GitOps is 
 a highly effective way to enable GitOps automation for continuous delivery of Kubernetes and Cloud Native applications.

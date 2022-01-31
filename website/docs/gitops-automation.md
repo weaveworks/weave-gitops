@@ -1,8 +1,14 @@
 ---
+title: GitOps Automation Configuration
 sidebar_position: 7
+hide_title: true
 ---
 
-# GitOps Automation Configuration
+import TierLabel from "./_components/TierLabel";
+
+<h1>
+  {frontMatter.title} <TierLabel tiers="All tiers" />
+</h1>
 
 Weave GitOps has a key concept which is the "GitOps Automation".
 This is the configuration that defines the flow that happens when an update happens in Git. This flow _reconciles_ the workload into the target.

@@ -1,8 +1,15 @@
 ---
+title: AWS Marketplace
 sidebar_position: 6
+hide_title: true
 ---
 
-# AWS Marketplace
+import TierLabel from "./_components/TierLabel";
+
+<h1>
+  {frontMatter.title} <TierLabel tiers="Core" />
+</h1>
+
 
 Weave GitOps is also available via the AWS Marketplace. 
 

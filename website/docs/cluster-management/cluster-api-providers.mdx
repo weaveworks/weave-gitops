@@ -1,11 +1,16 @@
 ---
-title: "Cluster API Providers"
+title: Cluster API Providers
 sidebar_position: 2
+hide_title: true
 ---
 
 import TierLabel from "../_components/TierLabel";
 
-## Creating leaf clusters <TierLabel tiers="enterprise" />
+<h1>
+  {frontMatter.title} <TierLabel tiers="Enterprise" />
+</h1>
+
+## Creating leaf clusters
 
 To enable leaf cluster creation, Weave Gitops leverages the Cluster-API (CAPI) providers for [AWS](https://cluster-api-aws.sigs.k8s.io/getting-started.html) or [Docker](https://cluster-api.sigs.k8s.io/user/quick-start.html).
 In this section we cover the steps to deploy the providers on a Kubernetes cluster that is running the Weave GitOps.

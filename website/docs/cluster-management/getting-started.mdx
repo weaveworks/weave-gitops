@@ -14,19 +14,14 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 
 ## Creating your first CAPD Cluster
 
-If you've followed the [Upgrade guide](../enterprise/upgrading.mdx) you should have a management cluster ready to roll. Next up we'll
+If you've followed the [Upgrade guide](../enterprise/upgrading.mdx) you should have:
 
-### 1. Configure a capi provider
+1. Weave GitOps Enterprise installed and an agent running on the management cluster.
+2. A CAPI provider installed (With support for `ClusterResourceSet`s enabled).
 
-See [Cluster API Providers](cluster-api-providers.mdx) page for more details on providers. He're we'll continue with `kind` and `capd` as an example.
+Next up we'll add a template and use it to create a cluster.
 
-```bash
-# Enable support for `ClusterResourceSet`s for automatically installing CNIs
-export EXP_CLUSTER_RESOURCE_SET=true
-clusterctl init --infrastructure docker
-```
-
-### 2. Add a template
+### Add a template
 
 See [CAPI Templates](templates.mdx) page for more details on this topic. Once we load a template we can use it in the UI to create clusters!
 
@@ -55,7 +50,7 @@ Download the template below to your config repository path, then commit and push
 
 We can use `ClusterResourceSet`s to automatically install CNI's on a new cluster, here we use calico as an example.
 
-### 1. Add a CRS to install a CNI
+### Add a CRS to install a CNI
 
 Create a calico configmap and a CRS as follows:
 
@@ -90,7 +85,7 @@ The full [`calico-crs-configmap.yaml`](./assets/bootstrap/calico-crs-configmap.y
 
 WGE can automatically install profiles onto new clusters
 
-#### 1. Add a helmrepo
+#### Add a helmrepo
 
 import ProfileRepo from "!!raw-loader!./assets/profiles/profile-repo.yaml";
 
@@ -123,7 +118,7 @@ Download the profile repositry below to your config repository path then commit 
   {ProfileRepo}
 </CodeBlock>
 
-#### 3. Add a cluster bootstrap config
+#### Add a cluster bootstrap config
 
 Create a cluster bootstrap config as follows:
 
