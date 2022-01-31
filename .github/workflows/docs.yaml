@@ -16,6 +16,9 @@ jobs:
   staging-release:
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
     steps:
       - uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e
       - uses: actions/setup-node@56899e050abffc08c2b3b61f3ec6a79a9dc3223d
@@ -47,6 +50,9 @@ jobs:
   prod-release:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
     steps:
       - uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e
       - uses: actions/setup-node@56899e050abffc08c2b3b61f3ec6a79a9dc3223d
