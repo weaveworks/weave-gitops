@@ -102,13 +102,6 @@ module.exports = {
       //   facetFilters: ['type:content']
       // },
     },
-    gtag: {
-      // You can also use your "G-" Measurement ID here.
-      // Bogus commit to trigger a build
-      trackingID: process.env.GA_KEY,
-      // Optional fields.
-      anonymizeIP: true, // Should IPs be anonymized?
-    },
   },
   presets: [
     [
@@ -133,6 +126,13 @@ module.exports = {
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
+        },
+        gtag: {
+          // You can also use your "G-" Measurement ID here.
+          // Bogus commit to trigger a build
+          trackingID: process.env.GA_KEY,
+          // Optional fields.
+          anonymizeIP: true, // Should IPs be anonymized?
         },
       },
     ],
