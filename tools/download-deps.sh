@@ -130,5 +130,3 @@ then
 else
     echo "Local tilt binary found, skipping install"
 fi
-
-
