@@ -42,12 +42,7 @@ func (as *appServer) ListKustomizations(ctx context.Context, msg *pb.ListKustomi
 
 	list := &kustomizev1.KustomizationList{}
 
-	var opts client.MatchingLabels
-	if msg.AppName != "" {
-		opts = client.MatchingLabels{
-			types.PartOfLabel: msg.AppName,
-		}
-	}
+	opts := getMatchingLabels(msg.AppName)
 
 	if err := k8s.List(ctx, list, &opts, client.InNamespace(msg.Namespace)); err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to create new app: %s", err.Error())

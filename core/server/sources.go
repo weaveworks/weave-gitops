@@ -37,16 +37,9 @@ func (as *appServer) ListGitRepositories(ctx context.Context, msg *pb.ListGitRep
 
 	list := &sourcev1.GitRepositoryList{}
 
-	if msg.AppName == "" {
-		err = k8s.List(ctx, list)
-	} else {
-		opts := client.MatchingLabels{
-			types.PartOfLabel: msg.AppName,
-		}
-		err = k8s.List(ctx, list, opts)
-	}
+	opts := getMatchingLabels(msg.AppName)
 
-	if err != nil {
+	if err := k8s.List(ctx, list, &opts, client.InNamespace(msg.Namespace)); err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to get git repository list: %s", err.Error())
 	}
 
@@ -86,12 +79,7 @@ func (as *appServer) ListHelmRepositories(ctx context.Context, msg *pb.ListHelmR
 
 	list := &sourcev1.HelmRepositoryList{}
 
-	var opts client.MatchingLabels
-	if msg.AppName != "" {
-		opts = client.MatchingLabels{
-			types.PartOfLabel: msg.AppName,
-		}
-	}
+	opts := getMatchingLabels(msg.AppName)
 
 	if err := k8s.List(ctx, list, &opts, client.InNamespace(msg.Namespace)); err != nil {
 		return nil, status.Errorf(codes.Internal, "unable to list helm repositories for app %s: %s", msg.AppName, err.Error())
@@ -108,5 +96,51 @@ func (as *appServer) ListHelmRepositories(ctx context.Context, msg *pb.ListHelmR
 
 	return &pb.ListHelmRepositoryRes{
 		HelmRepositories: results,
+	}, nil
+}
+
+func (as *appServer) AddHelmChart(ctx context.Context, msg *pb.AddHelmChartReq) (*pb.AddHelmChartRes, error) {
+	k8s, err := as.k8s.Client(ctx)
+	if err != nil {
+		return nil, doClientError(err)
+	}
+
+	src := types.ProtoToHelmChart(msg)
+
+	if err := k8s.Create(ctx, &src); err != nil {
+		return nil, status.Errorf(codes.Internal, "creating source for helm chart %q: %s", msg.HelmChart.Name, err.Error())
+	}
+
+	return &pb.AddHelmChartRes{
+		Success:   true,
+		HelmChart: types.HelmChartToProto(&src),
+	}, nil
+}
+
+func (as *appServer) ListHelmCharts(ctx context.Context, msg *pb.ListHelmChartReq) (*pb.ListHelmChartRes, error) {
+	k8s, err := as.k8s.Client(ctx)
+	if err != nil {
+		return nil, doClientError(err)
+	}
+
+	list := &sourcev1.HelmChartList{}
+
+	opts := getMatchingLabels(msg.AppName)
+
+	if err := k8s.List(ctx, list, &opts, client.InNamespace(msg.Namespace)); err != nil {
+		return nil, status.Errorf(codes.Internal, "unable to list helm charts for app %s: %s", msg.AppName, err.Error())
+	}
+
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "unable to get helm repository list: %s", err.Error())
+	}
+
+	var results []*pb.HelmChart
+	for _, repository := range list.Items {
+		results = append(results, types.HelmChartToProto(&repository))
+	}
+
+	return &pb.ListHelmChartRes{
+		HelmCharts: results,
 	}, nil
 }

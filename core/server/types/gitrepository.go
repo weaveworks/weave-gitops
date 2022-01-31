@@ -15,14 +15,7 @@ const (
 )
 
 func ProtoToGitRepository(repositoryReq *pb.AddGitRepositoryReq) *v1beta1.GitRepository {
-	labels := map[string]string{
-		ManagedByLabel: managedByWeaveGitops,
-		CreatedByLabel: createdBySourceController,
-	}
-
-	if repositoryReq.AppName != "" {
-		labels[PartOfLabel] = repositoryReq.AppName
-	}
+	labels := getGitopsLabelMap(repositoryReq.AppName)
 
 	return &v1beta1.GitRepository{
 		TypeMeta: metav1.TypeMeta{
