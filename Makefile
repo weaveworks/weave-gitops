@@ -86,7 +86,7 @@ vet: ## Run go vet against code
 	go vet ./...
 
 lint: ## Run linters against code
-	golangci-lint run --out-format=github-actions --timeout 600s
+	golangci-lint run --out-format=github-actions --timeout 600s --skip-files "tilt_modules"
 
 .deps:
 	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
