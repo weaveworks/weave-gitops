@@ -123,7 +123,10 @@ curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/insta
 if ! command -v tilt
 then
     echo "Installing Tilt for local development"
-    curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/v0.23.8/scripts/install.sh | bash
+    TILT_VERSION="0.23.8"
+    # Tilt uses a mixture of Golang and uname style naming in releases
+    TILT_SOURCE="https://github.com/tilt-dev/tilt/releases/download/v${TILT_VERSION}/tilt.${TILT_VERSION}.$(goos).$(uname -m).tar.gz"
+    curl -fsSL "${TILT_SOURCE}" | tar -C /usr/local/bin -xz tilt
 else
     echo "Local tilt binary found, skipping install"
 fi
