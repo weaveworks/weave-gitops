@@ -134,6 +134,17 @@ var _ = Describe("Add", func() {
 		Expect(err).To(MatchError("failed to make GET request to service weave-system/wego-app path \"/v1/profiles\": nope"))
 	})
 
+	It("fails if it's unable to discover the HelmRepository's name and namespace values", func() {
+		gitProviders.RepositoryExistsReturns(true, nil)
+		gitProviders.GetRepoFilesReturns(makeTestFiles(), nil)
+		clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
+			return true, newFakeResponseWrapper(getRespWithoutHelmRepo()), nil
+		})
+		err := profilesSvc.Add(context.TODO(), gitProviders, addOptions)
+		Expect(err).NotTo(BeNil())
+		Expect(err).To(MatchError("failed to discover HelmRepository's name and namespace"))
+	})
+
 	It("fails if the config repo's filesystem could not be fetched", func() {
 		gitProviders.RepositoryExistsReturns(true, nil)
 		clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
@@ -297,4 +308,35 @@ func makeTestFiles() []*gitprovider.CommitFile {
 		})
 	}
 	return commitFiles
+}
+
+func getRespWithoutHelmRepo() string {
+	return `{
+		"profiles": [
+		  {
+			"name": "podinfo",
+			"home": "https://github.com/stefanprodan/podinfo",
+			"sources": [
+			  "https://github.com/stefanprodan/podinfo"
+			],
+			"description": "Podinfo Helm chart for Kubernetes",
+			"keywords": [],
+			"maintainers": [
+			  {
+				"name": "stefanprodan",
+				"email": "stefanprodan@users.noreply.github.com",
+				"url": ""
+			  }
+			],
+			"icon": "",
+			"annotations": {},
+			"kubeVersion": ">=1.19.0-0",
+			"availableVersions": [
+			  "6.0.0",
+			  "6.0.1"
+			]
+		  }
+		]
+	  }
+	  `
 }

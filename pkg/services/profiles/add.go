@@ -60,6 +60,9 @@ func (s *ProfilesSvc) Add(ctx context.Context, gitProvider gitproviders.GitProvi
 	if err != nil {
 		return err
 	}
+	if availableProfile.HelmRepository == nil || availableProfile.HelmRepository.Name == "" || availableProfile.HelmRepository.Namespace == "" {
+		return fmt.Errorf("failed to discover HelmRepository's name and namespace")
+	}
 
 	newRelease := helm.MakeHelmRelease(availableProfile, opts.Cluster, opts.Namespace)
 
