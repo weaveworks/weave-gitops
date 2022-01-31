@@ -169,4 +169,23 @@ service Apps {
       get : "/v1/namespace/{namespace}/app/{app_name}/helmrepository"
     };
   }
+
+  /*
+* AddHelmChart adds a helm chart source to a cluster.
+*/
+  rpc AddHelmChart(AddHelmChartReq) returns (AddHelmChartRes) {
+    option (google.api.http) = {
+      post : "/v1/namespace/{namespace}/app/{app_name}/helmchart"
+      body: "*"
+    };
+  }
+
+  /*
+    * ListHelmChart lists helm charts from a cluster.
+    */
+  rpc ListHelmCharts(ListHelmChartReq) returns (ListHelmChartRes) {
+    option (google.api.http) = {
+      get : "/v1/namespace/{namespace}/app/{app_name}/helmchart"
+    };
+  }
 }

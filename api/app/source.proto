@@ -126,3 +126,33 @@ message ListHelmRepositoryReq {
 message ListHelmRepositoryRes {
   repeated HelmRepository helm_repositories = 1;
 }
+
+// HelmChart
+message HelmChart {
+  string namespace = 1;
+  string name = 2;
+  SourceRef sourceRef = 3;
+  string chart = 4;
+  string version = 5;
+  Interval interval = 6;
+}
+
+message AddHelmChartReq {
+  string app_name = 1;
+  string namespace = 2;
+  HelmChart helm_chart = 3;
+}
+
+message AddHelmChartRes {
+  bool success = 1;
+  HelmChart helm_chart = 2;
+}
+
+message ListHelmChartReq {
+  string namespace = 1;
+  string app_name = 2;
+}
+
+message ListHelmChartRes {
+  repeated HelmChart helm_charts = 1;
+}
