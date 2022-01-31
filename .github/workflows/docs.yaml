@@ -13,7 +13,7 @@ on:
       - 'website/**'
 
 jobs:
-  checks:
+  staging-release:
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
     steps:
@@ -44,7 +44,7 @@ jobs:
           path: build
           destination: staging.docs.gitops.weave.works
           parent: false
-  gh-release:
+  prod-release:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
