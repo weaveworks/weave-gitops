@@ -126,25 +126,25 @@ func (p orgGitProvider) GetProviderDomain() string {
 	return getProviderDomain(p.provider.ProviderID())
 }
 
-// GetRepoFiles returns the files found in a directory. The targetPath must point to a directory, not a file.
+// GetRepoDirFiles returns the files found in the subdirectory of a repository.
 // Note that the current implementation only gets an end subdirectory. It does not get multiple directories recursively. See https://github.com/fluxcd/go-git-providers/issues/143.
-func (p orgGitProvider) GetRepoFiles(ctx context.Context, repoUrl RepoURL, targetPath, targetBranch string) ([]*gitprovider.CommitFile, error) {
+func (p orgGitProvider) GetRepoDirFiles(ctx context.Context, repoUrl RepoURL, dirPath, targetBranch string) ([]*gitprovider.CommitFile, error) {
 	repo, err := p.getOrgRepo(ctx, repoUrl)
 	if err != nil {
 		return nil, err
 	}
-	files, err := repo.Files().Get(ctx, targetPath, targetBranch)
+	files, err := repo.Files().Get(ctx, dirPath, targetBranch)
 	if err != nil {
 		return nil, err
 	}
 	return files, nil
 }
 
-// MergePullRequest merges a pull request given the repository's URL and the PR's number with a merge method, and a commit message.
-func (p orgGitProvider) MergePullRequest(ctx context.Context, repoUrl RepoURL, pullRequestNumber int, mergeMethod gitprovider.MergeMethod, commitMesage string) error {
+// MergePullRequest merges a pull request given the repository's URL and the PR's number with a commit message.
+func (p orgGitProvider) MergePullRequest(ctx context.Context, repoUrl RepoURL, pullRequestNumber int, commitMesage string) error {
 	repo, err := p.getOrgRepo(ctx, repoUrl)
 	if err != nil {
 		return err
 	}
-	return repo.PullRequests().Merge(ctx, pullRequestNumber, mergeMethod, commitMesage)
+	return repo.PullRequests().Merge(ctx, pullRequestNumber, gitprovider.MergeMethodMerge, commitMesage)
 }

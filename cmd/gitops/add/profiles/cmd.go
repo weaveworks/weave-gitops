@@ -2,14 +2,13 @@ package profiles
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"math/rand"
 	"os"
 	"path/filepath"
-	"strings"
+	"time"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
@@ -29,10 +28,9 @@ import (
 var opts profiles.AddOptions
 
 // AddCommand provides support for adding a profile to a cluster.
-func AddCommand(client *resty.Client) *cobra.Command {
+func AddCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "profile",
-		Aliases:       []string{"profiles"},
 		Short:         "Add a profile to a cluster",
 		SilenceUsage:  true,
 		SilenceErrors: true,
@@ -40,21 +38,31 @@ func AddCommand(client *resty.Client) *cobra.Command {
 		# Add a profile to a cluster
 		gitops add profile --name=podinfo --cluster=prod --version=1.0.0 --config-repo=ssh://git@github.com/owner/config-repo.git
 		`,
-		RunE: addProfileCmdRunE(client),
+		RunE: addProfileCmdRunE(),
 	}
 
 	cmd.Flags().StringVar(&opts.Name, "name", "", "Name of the profile")
-	cmd.Flags().StringVar(&opts.Version, "version", "latest", "Version of the profile")
+	cmd.Flags().StringVar(&opts.Version, "version", "latest", "Version of the profile specified as semver (e.g.: 0.1.0) or as 'latest'")
 	cmd.Flags().StringVar(&opts.ConfigRepo, "config-repo", "", "URL of external repository (if any) which will hold automation manifests")
 	cmd.Flags().StringVar(&opts.Cluster, "cluster", "", "Name of the cluster to add the profile to")
-	cmd.Flags().StringVar(&opts.Port, "port", server.DefaultPort, "Port the profiles API is running on")
-	cmd.Flags().BoolVar(&opts.AutoMerge, "auto-merge", false, "If set, 'gitops add profile' will merge automatically into the set --branch")
+	cmd.Flags().StringVar(&opts.ProfilesPort, "profiles-port", server.DefaultPort, "Port the Profiles API is running on")
+	cmd.Flags().BoolVar(&opts.AutoMerge, "auto-merge", false, "If set, 'gitops add profile' will merge automatically into the repository's default branch")
+	cmd.Flags().StringVar(&opts.Kubeconfig, "kubeconfig", filepath.Join(homedir.HomeDir(), ".kube", "config"), "Absolute path to the kubeconfig file")
+
+	requiredFlags := []string{"name", "config-repo", "cluster"}
+	for _, f := range requiredFlags {
+		if err := cobra.MarkFlagRequired(cmd.Flags(), f); err != nil {
+			panic(fmt.Errorf("unexpected error: %w", err))
+		}
+
+	}
 
 	return cmd
 }
 
-func addProfileCmdRunE(client *resty.Client) func(*cobra.Command, []string) error {
+func addProfileCmdRunE() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
+		rand.Seed(time.Now().UnixNano())
 		log := internal.NewCLILogger(os.Stdout)
 		fluxClient := flux.New(osys.New(), &runner.CLIRunner{})
 		factory := services.NewFactory(fluxClient, log)
@@ -64,13 +72,13 @@ func addProfileCmdRunE(client *resty.Client) func(*cobra.Command, []string) erro
 			return err
 		}
 
-		ns, err := cmd.Parent().Parent().Flags().GetString("namespace")
+		ns, err := cmd.Flags().GetString("namespace")
 		if err != nil {
 			return err
 		}
 		opts.Namespace = ns
 
-		config, err := clientcmd.BuildConfigFromFlags("", filepath.Join(homedir.HomeDir(), ".kube", "config"))
+		config, err := clientcmd.BuildConfigFromFlags("", opts.Kubeconfig)
 		if err != nil {
 			return fmt.Errorf("error initializing kubernetes config: %w", err)
 		}
@@ -96,36 +104,19 @@ func addProfileCmdRunE(client *resty.Client) func(*cobra.Command, []string) erro
 			return fmt.Errorf("failed to get git clients: %w", err)
 		}
 
-		profilesService := profiles.NewService(clientSet, log)
-		return profilesService.Add(ctx, gitProvider, opts)
+		return profiles.NewService(clientSet, log).Add(ctx, gitProvider, opts)
 	}
 }
 
 func validateAddOptions(opts profiles.AddOptions) error {
-	if opts.Name == "" {
-		return errors.New("--name should be provided")
-	}
-
 	if models.ApplicationNameTooLong(opts.Name) {
 		return fmt.Errorf("--name value is too long: %s; must be <= %d characters",
 			opts.Name, models.MaxKubernetesResourceNameLength)
 	}
 
-	if strings.HasPrefix(opts.Name, "wego") {
-		return fmt.Errorf("the prefix 'wego' is used by weave gitops and is not allowed for a profile name")
-	}
-
-	if opts.ConfigRepo == "" {
-		return errors.New("--config-repo should be provided")
-	}
-
-	if opts.Cluster == "" {
-		return errors.New("--cluster should be provided")
-	}
-
 	if opts.Version != "latest" {
 		if _, err := semver.StrictNewVersion(opts.Version); err != nil {
-			return fmt.Errorf("error parsing --version=%s: %s", opts.Version, err)
+			return fmt.Errorf("error parsing --version=%s: %w", opts.Version, err)
 		}
 	}
 	return nil

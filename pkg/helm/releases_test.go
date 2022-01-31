@@ -1,44 +1,62 @@
 package helm_test
 
 import (
+	"time"
+
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
+	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
+	"github.com/google/go-cmp/cmp"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/helm"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 var _ = Describe("MakeHelmRelease", func() {
 	var (
-		name    string
-		cluster string
-		ns      string
-		profile *profiles.Profile
+		name                         string
+		cluster                      string
+		ns                           string
+		version                      string
+		helmRepositoryNamespacedName types.NamespacedName
 	)
 
 	BeforeEach(func() {
 		name = "podinfo"
 		cluster = "prod"
 		ns = "weave-system"
-		profile = &profiles.Profile{
-			Name: name,
-			HelmRepository: &profiles.HelmRepository{
-				Name:      name,
-				Namespace: ns,
-			},
-			AvailableVersions: []string{"6.0.0", "6.0.1"},
-		}
+		version = "6.0.0"
+		helmRepositoryNamespacedName = types.NamespacedName{Name: name, Namespace: ns}
 	})
 
 	It("creates a helm release", func() {
-		hr := helm.MakeHelmRelease(profile, cluster, ns)
-		Expect(hr.Name).To(Equal(cluster + "-" + name))
-		Expect(hr.Namespace).To(Equal(ns))
-		Expect(hr.TypeMeta.APIVersion).To(Equal(helmv2beta1.GroupVersion.Identifier()))
-		Expect(hr.TypeMeta.Kind).To(Equal(helmv2beta1.HelmReleaseKind))
-		Expect(hr.Spec.Chart.Spec.Chart).To(Equal(name))
-		Expect(hr.Spec.Chart.Spec.Version).To(Equal("6.0.0"))
-		Expect(hr.Spec.Chart.Spec.SourceRef.Name).To(Equal(name))
-		Expect(hr.Spec.Chart.Spec.SourceRef.Namespace).To(Equal(ns))
+		actualHelmRelease := helm.MakeHelmRelease(name, version, cluster, ns, helmRepositoryNamespacedName)
+		expectedHelmRelease := &helmv2beta1.HelmRelease{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      cluster + "-" + name,
+				Namespace: ns,
+			},
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: helmv2beta1.GroupVersion.Identifier(),
+				Kind:       helmv2beta1.HelmReleaseKind,
+			},
+			Spec: helmv2beta1.HelmReleaseSpec{
+				Chart: helmv2beta1.HelmChartTemplate{
+					Spec: helmv2beta1.HelmChartTemplateSpec{
+						Chart:   name,
+						Version: version,
+						SourceRef: helmv2beta1.CrossNamespaceObjectReference{
+							APIVersion: sourcev1beta1.GroupVersion.Identifier(),
+							Kind:       sourcev1beta1.HelmRepositoryKind,
+							Name:       helmRepositoryNamespacedName.Name,
+							Namespace:  helmRepositoryNamespacedName.Namespace,
+						},
+					},
+				},
+				Interval: metav1.Duration{Duration: time.Minute},
+			},
+		}
+		Expect(cmp.Diff(actualHelmRelease, expectedHelmRelease)).To(BeEmpty())
 	})
 })

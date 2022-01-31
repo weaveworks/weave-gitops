@@ -58,10 +58,10 @@ func (p *dryrunProvider) GetProviderDomain() string {
 	return p.provider.GetProviderDomain()
 }
 
-func (p *dryrunProvider) GetRepoFiles(_ context.Context, repoUrl RepoURL, targetPath, targetBranch string) ([]*gitprovider.CommitFile, error) {
+func (p *dryrunProvider) GetRepoDirFiles(_ context.Context, repoUrl RepoURL, dirPath, targetBranch string) ([]*gitprovider.CommitFile, error) {
 	return nil, nil
 }
 
-func (p *dryrunProvider) MergePullRequest(ctx context.Context, repoUrl RepoURL, pullRequestNumber int, mergeMethod gitprovider.MergeMethod, commitMesage string) error {
+func (p *dryrunProvider) MergePullRequest(ctx context.Context, repoUrl RepoURL, pullRequestNumber int, commitMesage string) error {
 	return nil
 }

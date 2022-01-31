@@ -411,8 +411,8 @@ func GenerateResourceName(url gitproviders.RepoURL) string {
 	return models.ConstrainResourceName(url.RepositoryName())
 }
 
-// GetRandomName generates a random unique name.
-func GetRandomName(s string) string {
+// GetRandomString generates a random unique string and appends it to a given string.
+func GetRandomString(s string) string {
 	data := "abcdefghijklmnopqrstuvwyz1234567890"
 	b := make([]byte, 5)
 	for i := range b {

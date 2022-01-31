@@ -130,7 +130,7 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 		})
 	})
 
-	Context("GetAvailableProfile", func() {
+	Context("GetProfile", func() {
 		var (
 			opts profiles.GetOptions
 		)
@@ -148,17 +148,17 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 			clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
 				return true, newFakeResponseWrapper(getProfilesResp), nil
 			})
-			profile, err := profilesSvc.GetAvailableProfile(context.TODO(), opts)
+			profile, version, err := profilesSvc.GetProfile(context.TODO(), opts)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(len(profile.AvailableVersions)).NotTo(BeZero())
+			Expect(version).To(Equal("6.0.1"))
 		})
 
 		It("it fails to return a list of available profiles from the cluster", func() {
 			clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
 				return true, newFakeResponseWrapperWithErr("nope"), nil
 			})
-			_, err := profilesSvc.GetAvailableProfile(context.TODO(), opts)
-			Expect(err).NotTo(BeNil())
+			_, _, err := profilesSvc.GetProfile(context.TODO(), opts)
 			Expect(err).To(MatchError("failed to make GET request to service test-namespace/wego-app path \"/v1/profiles\": nope"))
 		})
 
@@ -174,8 +174,7 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 			clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
 				return true, newFakeResponseWrapper(badProfileResp), nil
 			})
-			_, err := profilesSvc.GetAvailableProfile(context.TODO(), opts)
-			Expect(err).NotTo(BeNil())
+			_, _, err := profilesSvc.GetProfile(context.TODO(), opts)
 			Expect(err).To(MatchError("no available profile 'podinfo' found in prod/test-namespace"))
 		})
 
@@ -193,8 +192,7 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 			clientSet.AddProxyReactor("services", func(action testing.Action) (handled bool, ret restclient.ResponseWrapper, err error) {
 				return true, newFakeResponseWrapper(badProfileResp), nil
 			})
-			_, err := profilesSvc.GetAvailableProfile(context.TODO(), opts)
-			Expect(err).NotTo(BeNil())
+			_, _, err := profilesSvc.GetProfile(context.TODO(), opts)
 			Expect(err).To(MatchError("no version found for profile 'podinfo' in prod/test-namespace"))
 		})
 	})

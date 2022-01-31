@@ -113,10 +113,12 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 		stdOut, stdErr := runCommandAndReturnStringOutput(fmt.Sprintf("%s add profile --name %s --version 6.0.1 --namespace %s --cluster %s --config-repo %s --auto-merge", gitopsBinaryPath, profileName, namespace, clusterName, appRepoRemoteURL))
 		Expect(stdErr).To(BeEmpty())
 		Expect(stdOut).To(ContainSubstring(
-			`Adding profile:
+			fmt.Sprintf(`Adding profile:
 
 Name: podinfo
-Version: 6.0.1`))
+Version: 6.0.1
+Cluster: %s
+Namespace: %s`, clusterName, namespace)))
 
 		By("Verifying that the profile has been installed on the cluster")
 		Eventually(func() int {

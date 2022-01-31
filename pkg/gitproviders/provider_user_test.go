@@ -313,16 +313,16 @@ var _ = Describe("User Provider", func() {
 		})
 	})
 
-	Describe("GetRepoFiles", func() {
+	Describe("GetRepoDirFiles", func() {
 		It("returns a list of files", func() {
 			file := &gitprovider.CommitFile{}
 			fileClient.GetReturns([]*gitprovider.CommitFile{file}, nil)
-			c, err := userProvider.GetRepoFiles(context.TODO(), repoUrl, "path", "main")
+			c, err := userProvider.GetRepoDirFiles(context.TODO(), repoUrl, "path", "main")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(c).To(Equal([]*gitprovider.CommitFile{file}))
 			Expect(fileClient.GetCallCount()).To(Equal(1))
-			_, targetPath, targetBranch := fileClient.GetArgsForCall(0)
-			Expect(targetPath).To(Equal("path"))
+			_, dirPath, targetBranch := fileClient.GetArgsForCall(0)
+			Expect(dirPath).To(Equal("path"))
 			Expect(targetBranch).To(Equal("main"))
 		})
 
@@ -330,8 +330,7 @@ var _ = Describe("User Provider", func() {
 			It("returns an error", func() {
 				file := &gitprovider.CommitFile{}
 				fileClient.GetReturns([]*gitprovider.CommitFile{file}, fmt.Errorf("err"))
-				_, err := userProvider.GetRepoFiles(context.TODO(), repoUrl, "path", "main")
-				Expect(err).To(HaveOccurred())
+				_, err := userProvider.GetRepoDirFiles(context.TODO(), repoUrl, "path", "main")
 				Expect(err).To(MatchError("err"))
 				Expect(fileClient.GetCallCount()).To(Equal(1))
 			})
@@ -341,7 +340,7 @@ var _ = Describe("User Provider", func() {
 	Describe("MergePullRequest", func() {
 		It("merges a given pull request", func() {
 			pullRequestsClient.MergeReturns(nil)
-			err := userProvider.MergePullRequest(context.TODO(), repoUrl, 1, gitprovider.MergeMethodMerge, "message")
+			err := userProvider.MergePullRequest(context.TODO(), repoUrl, 1, "message")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(pullRequestsClient.MergeCallCount()).To(Equal(1))
 			_, prNumber, mergeMethod, message := pullRequestsClient.MergeArgsForCall(0)
@@ -353,8 +352,7 @@ var _ = Describe("User Provider", func() {
 		When("merge the PR fails", func() {
 			It("returns an error", func() {
 				pullRequestsClient.MergeReturns(fmt.Errorf("err"))
-				err := userProvider.MergePullRequest(context.TODO(), repoUrl, 1, gitprovider.MergeMethodMerge, "message")
-				Expect(err).To(HaveOccurred())
+				err := userProvider.MergePullRequest(context.TODO(), repoUrl, 1, "message")
 				Expect(err).To(MatchError("err"))
 				Expect(pullRequestsClient.MergeCallCount()).To(Equal(1))
 			})

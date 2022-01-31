@@ -102,7 +102,7 @@ func (dw *gitOpsDirectoryWriterSvc) AddApplication(ctx context.Context, app mode
 		Description:   fmt.Sprintf("Added yamls for %s", app.Name),
 		CommitMessage: AddCommitMessage,
 		TargetBranch:  defaultBranch,
-		NewBranch:     automation.GetRandomName("wego"),
+		NewBranch:     automation.GetRandomString("wego"),
 		Files:         files,
 	}
 

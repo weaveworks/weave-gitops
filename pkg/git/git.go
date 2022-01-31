@@ -57,9 +57,6 @@ const WegoClusterOSWorkloadDir = "system"
 // WegoClusterUserWorkloadDir is where user workload manifests will live in the GitOps repo
 const WegoClusterUserWorkloadDir = "user"
 
-// ProfilesManifestFileName contains the manifests of all installed Profiles
-const ProfilesManifestFileName = "profiles.yaml"
-
 func getClusterPath(clusterName string) string {
 	return filepath.Join(WegoRoot, WegoClusterDir, clusterName)
 }
@@ -79,8 +76,8 @@ func GetSystemQualifiedPath(clusterName string, relativePath string) string {
 
 // GetProfilesPath returns the path of the file containing the manifests of installed Profiles
 // joined with the cluster's system directory
-func GetProfilesPath(clusterName string) string {
-	return filepath.Join(GetSystemPath(clusterName), ProfilesManifestFileName)
+func GetProfilesPath(clusterName, profilesManifestPath string) string {
+	return filepath.Join(GetSystemPath(clusterName), profilesManifestPath)
 }
 
 // Git is an interface for basic Git operations on a single branch of a

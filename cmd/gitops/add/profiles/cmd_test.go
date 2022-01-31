@@ -17,8 +17,11 @@ var _ = Describe("Add Profiles", func() {
 	BeforeEach(func() {
 		client := resty.New()
 		httpmock.ActivateNonDefault(client.GetClient())
-		defer httpmock.DeactivateAndReset()
 		cmd = root.RootCmd(client)
+	})
+
+	AfterEach(func() {
+		httpmock.DeactivateAndReset()
 	})
 
 	When("the flags are valid", func() {
@@ -39,54 +42,24 @@ var _ = Describe("Add Profiles", func() {
 	})
 
 	When("flags are not valid", func() {
-		It("fails if --name is not provided", func() {
+		It("fails if --name, --cluster, and --config-repo are not provided", func() {
 			cmd.SetArgs([]string{
 				"add", "profile",
 			})
 
 			err := cmd.Execute()
-			Expect(err).To(MatchError("--name should be provided"))
+			Expect(err).To(MatchError("required flag(s) \"cluster\", \"config-repo\", \"name\" not set"))
 		})
 
-		When("--name is specified", func() {
-			It("fails if --name value is <= 63 characters in length", func() {
-				cmd.SetArgs([]string{
-					"add", "profile",
-					"--name", "a234567890123456789012345678901234567890123456789012345678901234",
-				})
-				err := cmd.Execute()
-				Expect(err).To(MatchError("--name value is too long: a234567890123456789012345678901234567890123456789012345678901234; must be <= 63 characters"))
-			})
-
-			It("fails if --name is prefixed by 'wego'", func() {
-				cmd.SetArgs([]string{
-					"add", "profile",
-					"--name", "wego-app",
-				})
-				err := cmd.Execute()
-				Expect(err).To(MatchError("the prefix 'wego' is used by weave gitops and is not allowed for a profile name"))
-			})
-		})
-
-		It("fails if --config-repo is not provided", func() {
+		It("fails if --name value is <= 63 characters in length", func() {
 			cmd.SetArgs([]string{
 				"add", "profile",
-				"--name", "podinfo",
+				"--name", "a234567890123456789012345678901234567890123456789012345678901234",
+				"--cluster", "cluster",
+				"--config-repo", "config-repo",
 			})
-
 			err := cmd.Execute()
-			Expect(err).To(MatchError("--config-repo should be provided"))
-		})
-
-		It("fails if --config-repo is not provided", func() {
-			cmd.SetArgs([]string{
-				"add", "profile",
-				"--name", "podinfo",
-				"--config-repo", "ssh://git@github.com/owner/config-repo.git",
-			})
-
-			err := cmd.Execute()
-			Expect(err).To(MatchError("--cluster should be provided"))
+			Expect(err).To(MatchError("--name value is too long: a234567890123456789012345678901234567890123456789012345678901234; must be <= 63 characters"))
 		})
 
 		It("fails if given version is not valid semver", func() {
@@ -111,7 +84,6 @@ var _ = Describe("Add Profiles", func() {
 			})
 
 			err := cmd.Execute()
-			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError("unknown flag: --unknown"))
 		})
 	})
