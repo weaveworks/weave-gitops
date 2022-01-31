@@ -34,7 +34,7 @@ jobs:
         env:
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
         run: |
-          bash main-repo/tools/update-docs.sh ${PWD}/main-repo/bin/gitops ${PWD}/website
+          bash tools/update-docs.sh ${PWD}/bin/gitops ${PWD}/website
       - name: Git diff
         run: |
           git diff
