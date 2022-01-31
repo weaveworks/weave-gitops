@@ -83,9 +83,9 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	gitClient, gitProvider, err := factory.GetGitClients(context.Background(), k, providerClient, services.GitConfigParams{
-		URL:       installParams.ConfigRepo,
-		Namespace: namespace,
-		DryRun:    installParams.DryRun,
+		ConfigRepo: installParams.ConfigRepo,
+		Namespace:  namespace,
+		DryRun:     installParams.DryRun,
 	})
 	if err != nil {
 		return fmt.Errorf("error creating git clients: %w", err)
