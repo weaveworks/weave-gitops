@@ -96,7 +96,11 @@ function ApplicationDetail({ className, name }: Props) {
       <ErrorPage
         breadcrumbs={[{ page: PageRoute.Applications }]}
         title={name}
-        error={{ message: error.message, title: "Error fetching Application" }}
+        error={{
+          name: "Request Error",
+          message: error.message,
+          title: "Error fetching Application",
+        }}
       />
     );
   }

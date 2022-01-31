@@ -10,6 +10,7 @@ type Props = {
   children?: any;
   href?: any;
   newTab?: boolean;
+  onClick?: () => void;
 };
 
 function Link({
@@ -18,7 +19,7 @@ function Link({
   className,
   to = "",
   newTab,
-
+  onClick,
   ...props
 }: Props) {
   const txt = <Text color="primary">{children}</Text>;
@@ -37,7 +38,7 @@ function Link({
   }
 
   return (
-    <RouterLink className={className} to={to} {...props}>
+    <RouterLink onClick={onClick} className={className} to={to} {...props}>
       {txt}
     </RouterLink>
   );
