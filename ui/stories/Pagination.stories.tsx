@@ -14,17 +14,18 @@ export default {
   },
 } as Meta;
 
-const Template: Story<Props> = (args) => (
-  <Pagination {...args} current={{ start: 0, pageTotal: 0, outOf: 0 }} />
-);
+const Template: Story<Props> = (args) => <Pagination {...args} />;
 
 export const Default = Template.bind({});
 Default.args = {
   className: "",
-  forward: () => "",
-  skipForward: () => "",
-  back: () => "",
-  skipBack: () => "",
-  perPage: (value) => "",
-  current: { start: 0, pageTotal: 0, outOf: 0 },
+  onForward: () => "",
+  onSkipForward: () => "",
+  onBack: () => "",
+  onSkipBack: () => "",
+  onSelect: (value) => "",
+  index: 0,
+  length: 1,
+  totalObjects: 1,
+  perPageOptions: [25, 50, 75, 100],
 };

@@ -12,7 +12,6 @@ import styled from "styled-components";
 import Button from "./Button";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
-import Pagination from "./Pagination";
 import Spacer from "./Spacer";
 import Text from "./Text";
 
@@ -32,8 +31,8 @@ export interface Props {
   sortFields: string[];
   /** an optional list of string widths for each field/column. */
   widths?: string[];
-  /** enables bottom pagination bar. */
-  enablePagination?: any;
+  /** for passing pagination */
+  children?: any;
 }
 
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
@@ -68,7 +67,7 @@ function UnstyledDataTable({
   rows,
   sortFields,
   widths,
-  enablePagination,
+  children,
 }: Props) {
   const [sort, setSort] = React.useState(sortFields[0]);
   const [reverseSort, setReverseSort] = React.useState(false);
@@ -106,32 +105,15 @@ function UnstyledDataTable({
     );
   }
 
-  const r = [];
-  for (
-    let i = enablePagination ? enablePagination.current.start : 0;
-    i < enablePagination
-      ? enablePagination.current.start + enablePagination.current.pageTotal
-      : rows.length;
-    i++
-  ) {
-    if (sorted[i]) {
-      r.push(
-        <TableRow key={i}>
-          {_.map(fields, (f, index) => (
-            <TableCell style={widths && { width: widths[index] }} key={f.label}>
-              <Text>
-                {typeof f.value === "function"
-                  ? f.value(sorted[i])
-                  : sorted[i][f.value]}
-              </Text>
-            </TableCell>
-          ))}
-        </TableRow>
-      );
-    } else {
-      break;
-    }
-  }
+  const r = _.map(sorted, (r, i) => (
+    <TableRow key={i}>
+      {_.map(fields, (f, i) => (
+        <TableCell style={widths && { width: widths[i] }} key={f.label}>
+          <Text>{typeof f.value === "function" ? f.value(r) : r[f.value]}</Text>
+        </TableCell>
+      ))}
+    </TableRow>
+  ));
 
   return (
     <div className={className}>
@@ -155,7 +137,7 @@ function UnstyledDataTable({
           </TableHead>
           <TableBody>
             {r.length > 0 ? (
-              r.map((row) => row)
+              r
             ) : (
               <EmptyRow colSpan={fields.length}>
                 <TableCell colSpan={fields.length}>
@@ -168,17 +150,7 @@ function UnstyledDataTable({
       </TableContainer>
       {/* pagination row */}
       <Spacer padding="xs" />
-      {enablePagination && (
-        <Pagination
-          forward={enablePagination.forward}
-          skipForward={enablePagination.skipForward}
-          back={enablePagination.back}
-          skipBack={enablePagination.skipBack}
-          perPage={enablePagination.perPage}
-          perPageOptions={enablePagination.perPageOptions}
-          current={enablePagination.current}
-        />
-      )}
+      {children}
     </div>
   );
 }

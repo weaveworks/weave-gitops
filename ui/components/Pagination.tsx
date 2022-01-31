@@ -11,30 +11,36 @@ export interface Props {
   /** CSS MUI Overrides or other styling. */
   className?: string;
   /** func for forward one page button */
-  forward: () => void;
+  onForward: () => void;
   /** func for skip to last page button */
-  skipForward: () => void;
+  onSkipForward: () => void;
   /** func for back one page button */
-  back: () => void;
+  onBack: () => void;
   /** func for skip to start button */
-  skipBack: () => void;
+  onSkipBack: () => void;
   /** onChange func for perPage select */
-  perPage: (value) => void;
+  onSelect: (value) => void;
   /** options for perPage select */
-  perPageOptions: number[];
-  /** pagination status */
-  current: { start: number; pageTotal: number; outOf: number };
+  perPageOptions?: number[];
+  /** starting index */
+  index: number;
+  /** total rows */
+  length: number;
+  /** all objects */
+  totalObjects: number;
 }
 
 function unstyledPagination({
   className,
-  forward,
-  skipForward,
-  back,
-  skipBack,
-  perPage,
-  perPageOptions,
-  current,
+  onForward,
+  onSkipForward,
+  onBack,
+  onSkipBack,
+  onSelect,
+  perPageOptions = [25, 50, 75, 100],
+  index,
+  length,
+  totalObjects,
 }: Props) {
   return (
     <Flex wide align end className={className}>
@@ -47,7 +53,7 @@ function unstyledPagination({
             variant="outlined"
             defaultValue={perPageOptions[0]}
             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-              perPage(e.target.value);
+              onSelect(e.target.value);
             }}
           >
             {perPageOptions.map((option, index) => {
@@ -62,8 +68,7 @@ function unstyledPagination({
       </FormControl>
       <Spacer padding="base" />
       <Text>
-        {current.start + 1} - {current.start + current.pageTotal} out of{" "}
-        {current.outOf}
+        {index + 1} - {index + length} out of {totalObjects}
       </Text>
       <Spacer padding="base" />
       <Flex>
@@ -71,8 +76,8 @@ function unstyledPagination({
           color="inherit"
           variant="text"
           aria-label="skip to first page"
-          disabled={current.start === 0}
-          onClick={() => skipBack()}
+          disabled={index === 0}
+          onClick={() => onSkipBack()}
         >
           <Icon type={IconType.SkipPreviousIcon} size="medium" />
         </Button>
@@ -80,8 +85,8 @@ function unstyledPagination({
           color="inherit"
           variant="text"
           aria-label="back one page"
-          disabled={current.start === 0}
-          onClick={() => back()}
+          disabled={index === 0}
+          onClick={() => onBack()}
         >
           <Icon type={IconType.NavigateBeforeIcon} size="medium" />
         </Button>
@@ -89,8 +94,8 @@ function unstyledPagination({
           color="inherit"
           variant="text"
           aria-label="forward one page"
-          disabled={current.start + current.pageTotal >= current.outOf}
-          onClick={() => forward()}
+          disabled={index + length >= totalObjects}
+          onClick={() => onForward()}
         >
           <Icon type={IconType.NavigateNextIcon} size="medium" />
         </Button>
@@ -98,8 +103,8 @@ function unstyledPagination({
           color="inherit"
           variant="text"
           aria-label="skip to last page"
-          disabled={current.start + current.pageTotal >= current.outOf}
-          onClick={() => skipForward()}
+          disabled={index + length >= totalObjects}
+          onClick={() => onSkipForward()}
         >
           <Icon type={IconType.SkipNextIcon} size="medium" />
         </Button>
