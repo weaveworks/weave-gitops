@@ -24,7 +24,6 @@ import theme, { GlobalStyle, muiTheme } from "./lib/theme";
 import { PageRoute, V2Routes } from "./lib/types";
 import ApplicationAdd from "./pages/ApplicationAdd";
 import ApplicationDetail from "./pages/ApplicationDetail";
-import ApplicationRemove from "./pages/ApplicationRemove";
 import Applications from "./pages/Applications";
 import Error from "./pages/Error";
 import OAuthCallback from "./pages/OAuthCallback";
@@ -101,17 +100,6 @@ export default function App() {
                     />
                     <Route
                       exact
-                      path={PageRoute.ApplicationRemove}
-                      component={({ location }) => {
-                        const params = qs.parse(location.search);
-
-                        return (
-                          <ApplicationRemove name={params.name as string} />
-                        );
-                      }}
-                    />
-                    <Route
-                      exact
                       path={V2Routes.ApplicationList}
                       component={ApplicationList}
                     />
@@ -133,12 +121,21 @@ export default function App() {
                     <Route
                       exact
                       path={V2Routes.AddKustomization}
-                      component={withAppName(AddKustomization)}
+                      component={({ location }) => {
+                        const params = qs.parse(location.search);
+
+                        return (
+                          <AddKustomization
+                            appName={params.appName as string}
+                            query={params}
+                          />
+                        );
+                      }}
                     />
                     <Route
                       exact
                       path={V2Routes.AddSource}
-                      component={withAppName(AddSource)}
+                      component={AddSource}
                     />
                     <Route
                       exact
