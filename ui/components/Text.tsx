@@ -1,4 +1,5 @@
 import styled from "styled-components";
+// eslint-disable-next-line
 import { colors, fontSizes } from "../typedefs/styled";
 
 type Props = {

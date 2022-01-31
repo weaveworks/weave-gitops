@@ -1,16 +1,23 @@
 import qs from "query-string";
 import { toast } from "react-toastify";
-import { PageRoute } from "./types";
+import { PageRoute, V2Routes } from "./types";
 
 export const formatURL = (page: string, query: any = {}) => {
   return `${page}?${qs.stringify(query)}`;
 };
 
-export const getNavValue = (currentPage: any): PageRoute | boolean => {
+export const addKustomizationURL = (appName: string) =>
+  `${V2Routes.AddKustomization}?${qs.stringify({ appName })}`;
+
+export const getNavValue = (
+  currentPage: any
+): PageRoute | V2Routes | boolean => {
   switch (currentPage) {
     case "applications":
+    case "application_list":
+    case "application":
     case "application_detail":
-      return PageRoute.Applications;
+      return V2Routes.ApplicationList;
 
     default:
       // The "Tabs" component of material-ui wants a bool

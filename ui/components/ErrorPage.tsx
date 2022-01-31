@@ -8,9 +8,10 @@ type Props = {
   error: { title: string; message: string };
 } & PageProps;
 
-function ErrorPage({ className, title, breadcrumbs, error }: Props) {
+function ErrorPage({ className, title, breadcrumbs, error, ...rest }: Props) {
   return (
     <Page
+      {...rest}
       className={className}
       title={title}
       breadcrumbs={breadcrumbs}
