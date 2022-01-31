@@ -17,8 +17,11 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'push'
     steps:
-      - name: Checkout WG
+      - name: Checkout
         uses: actions/checkout@v2
+      - name: Unshallow
+        run: |
+          git fetch --prune --unshallow
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
