@@ -79,15 +79,16 @@
   "resolutions": {
     "ejs": "^3.1.6",
     "css-what": "^5.0.1",
-    "normalize-url": "^5.3.1"
+    "normalize-url": "^5.3.1",
+    "trim": "~0.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.16.0",
     "@babel/preset-env": "^7.13.8",
     "@babel/preset-react": "^7.13.13",
     "@babel/preset-typescript": "^7.13.0",
-    "@parcel/config-default": "^2.0.1",
-    "@parcel/transformer-typescript-tsc": "^2.0.1",
+    "@parcel/config-default": "^2.2.1",
+    "@parcel/transformer-typescript-tsc": "^2.2.1",
     "@storybook/addon-actions": "^6.3.12",
     "@storybook/addon-essentials": "^6.4.14",
     "@storybook/addon-links": "^6.3.12",
@@ -110,7 +111,7 @@
     "eslint-plugin-import": "^2.22.1",
     "jest": "^27.3.1",
     "jest-styled-components": "^7.0.4",
-    "parcel": "^2.0.1",
+    "parcel": "^2.2.1",
     "react-test-renderer": "^17.0.2",
     "ts-jest": "^27.0.7",
     "typescript": "~4.3.5"
