@@ -1,7 +1,7 @@
 on:
   schedule:
     - cron: '0 0 * * Tue-Sat'
-    - cron: '45 8 * * Mon'
+    - cron: '30 21 * * Mon'
   workflow_dispatch:
 
 name: Nightly
@@ -143,7 +143,7 @@ jobs:
       if: always()
     - name: User Acceptance Tests for GitLab (${{matrix.os}})
       if: |
-        github.event.schedule == '45 8 * * Mon'
+        github.event.schedule == '30 21 * * Mon'
           && matrix.os == 'macOS-latest'
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/gitops-${{matrix.os}}-nightly
@@ -277,7 +277,7 @@ jobs:
       if: always()
     - name: User Acceptance Tests for GitLab (${{matrix.os}})
       if: |
-        github.event.schedule == '45 8 * * Mon'
+        github.event.schedule == '30 21 * * Mon'
           && matrix.os == 'ubuntu-latest'
       run: |
         export WEGO_BIN_PATH=$(pwd)/bin/gitops-${{matrix.os}}-nightly
