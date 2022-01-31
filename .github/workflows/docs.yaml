@@ -44,7 +44,7 @@ jobs:
       - id: upload-file
         uses: google-github-actions/upload-cloud-storage@v0.4.0
         with:
-          path: build
+          path: website/build
           destination: staging.docs.gitops.weave.works
           parent: false
   prod-release:
@@ -85,6 +85,6 @@ jobs:
       # - id: upload-file
       #   uses: google-github-actions/upload-cloud-storage@v0.4.0
       #   with:
-      #     path: build
+      #     path: website/build
       #     destination: production.docs.gitops.weave.works
       #     parent: false
