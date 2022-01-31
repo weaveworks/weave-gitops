@@ -30,6 +30,9 @@ Error
 * When an app instance is deployed, its Alert Instance (if defined) should also be deployed
 * Alerts must be included in the Application status
 
+## Proposal
+Create Alerter and Provider that are application aware, dynamic, and fit into the existing flux notification system.
+
 ## Alternatives
 ### Existing flux tooling
 Utilize existing tools `flux create alert` and either export it to the cluster git-repo or just have it generated directly in the cluster. Perform the same operations for providers. The user manages secrets used by the provider manually.
@@ -116,6 +119,14 @@ Create a new type of Flux Alerter that is application-aware. It watches all kust
   - Could be accomplished using an existing Alert with eventSource field populated with all kustomization object names in use by the application
     - The downside is keeping this up to date as kustomizations/helm releases come and go 
 
+### Application provider
+Create an application provider that uses the involved object for the event, gathers the application labels, and writes structured logging records. These structured logs can then be collected and used in tools like grafana with loki to graph activity by application
+#### Pros
+- Application-aware
+- Log data can be accumulated in logging solutions defined by the customer
+#### Cons
+- None
+
 ---
 
 |Alternative|Application Aware|Artifacts in Git|Dynamic|Security|Scale|Speed to deliver|
@@ -127,3 +138,4 @@ Create a new type of Flux Alerter that is application-aware. It watches all kust
 |Sidecar with flux applier|*||*|||Low|
 |Application Provider Dispatcher|*|*||||Med|
 |Application Alerter|*|*|*|||Med|
+|Application Provider|*|*|*|||Med|
