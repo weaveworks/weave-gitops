@@ -33,6 +33,7 @@ jobs:
       - name: Update with new version
         env:
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
+          GA_KEY: "dummy"
         run: |
           bash tools/update-docs.sh ${PWD}/bin/gitops ${PWD}/website
       - name: Git diff
