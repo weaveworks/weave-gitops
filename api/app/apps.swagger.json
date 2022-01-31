@@ -400,6 +400,91 @@
         ]
       }
     },
+    "/v1/namespace/{namespace}/app/{appName}/helmrelease": {
+      "get": {
+        "summary": "ListHelmReleases lists helm releases from a cluster.",
+        "operationId": "Apps_ListHelmReleases",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListHelmReleaseRes"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "appName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      },
+      "post": {
+        "summary": "AddHelmRelease adds a helm release to a cluster.",
+        "operationId": "Apps_AddHelmRelease",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AddHelmReleaseRes"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "appName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "helmRelease": {
+                  "$ref": "#/definitions/v1HelmRelease"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
     "/v1/namespace/{namespace}/app/{appName}/helmrepository": {
       "get": {
         "summary": "ListHelmRepository lists helm repositories from a cluster.",
@@ -768,6 +853,17 @@
         }
       }
     },
+    "v1AddHelmReleaseRes": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "helmRelease": {
+          "$ref": "#/definitions/v1HelmRelease"
+        }
+      }
+    },
     "v1AddHelmRepositoryRes": {
       "type": "object",
       "properties": {
@@ -913,6 +1009,26 @@
       },
       "title": "HelmChart"
     },
+    "v1HelmRelease": {
+      "type": "object",
+      "properties": {
+        "releaseName": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "interval": {
+          "$ref": "#/definitions/v1Interval"
+        },
+        "helmChart": {
+          "$ref": "#/definitions/v1HelmChart"
+        }
+      }
+    },
     "v1HelmRepository": {
       "type": "object",
       "properties": {
@@ -1007,6 +1123,17 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1HelmChart"
+          }
+        }
+      }
+    },
+    "v1ListHelmReleaseRes": {
+      "type": "object",
+      "properties": {
+        "helmReleases": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1HelmRelease"
           }
         }
       }
