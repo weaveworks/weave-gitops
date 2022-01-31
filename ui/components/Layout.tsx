@@ -3,7 +3,8 @@ import _ from "lodash";
 import React, { forwardRef } from "react";
 import styled from "styled-components";
 import useNavigation from "../hooks/navigation";
-import { PageRoute } from "../lib/types";
+import images from "../lib/images";
+import { V2Routes } from "../lib/types";
 import { formatURL, getNavValue } from "../lib/utils";
 import { FeatureFlags } from "../contexts/FeatureFlags";
 import Flex from "./Flex";
@@ -16,7 +17,7 @@ type Props = {
   children?: any;
 };
 
-const navItems = [{ value: PageRoute.Applications, label: "Applications" }];
+const navItems = [{ value: V2Routes.ApplicationList, label: "Applications" }];
 
 const LinkTab = (props) => (
   <Tab
@@ -34,12 +35,18 @@ const StyleLinkTab = styled(LinkTab)`
   }
 `;
 
+const negativeSpaceColor = "#f5f5f5";
+
 const AppContainer = styled.div`
   width: 100%;
   overflow-x: hidden;
   height: 100%;
   margin: 0 auto;
   padding: 0;
+  background-color: ${negativeSpaceColor};
+  background-image: url(${images.background});
+  background-position: bottom right;
+  background-repeat: no-repeat;
 `;
 
 const NavContainer = styled.div`

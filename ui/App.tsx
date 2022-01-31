@@ -1,6 +1,7 @@
 import { MuiThemeProvider } from "@material-ui/core";
 import qs from "query-string";
 import * as React from "react";
+import { QueryClient, QueryClientProvider } from "react-query";
 import {
   BrowserRouter as Router,
   Redirect,
@@ -13,101 +14,67 @@ import { ThemeProvider } from "styled-components";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Layout from "./components/Layout";
 import AppContextProvider from "./contexts/AppContext";
-import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
-import FeatureFlagsContextProvider from "./contexts/FeatureFlags";
-import {
-  Applications as appsClient,
-  GitProvider,
-} from "./lib/api/applications/applications.pb";
+import { Core } from "./lib/api/core/core.pb";
 import Fonts from "./lib/fonts";
 import theme, { GlobalStyle, muiTheme } from "./lib/theme";
-import { PageRoute } from "./lib/types";
-import ApplicationAdd from "./pages/ApplicationAdd";
-import ApplicationDetail from "./pages/ApplicationDetail";
-import ApplicationRemove from "./pages/ApplicationRemove";
-import Applications from "./pages/Applications";
+import { V2Routes } from "./lib/types";
 import Error from "./pages/Error";
-import OAuthCallback from "./pages/OAuthCallback";
-import SignIn from "./pages/SignIn";
+import Automations from "./pages/v2/Automations";
+import FluxRuntime from "./pages/v2/FluxRuntime";
+import KustomizationDetail from "./pages/v2/KustomizationDetail";
+import Sources from "./pages/v2/Sources";
 
-const App = () => (
-  <AppContextProvider renderFooter applicationsClient={appsClient}>
-    <Layout>
-      <ErrorBoundary>
-        <Switch>
-          <Route exact path={PageRoute.Applications} component={Applications} />
-          <Route
-            exact
-            path={PageRoute.ApplicationDetail}
-            component={({ location }) => {
-              const params = qs.parse(location.search);
+const queryClient = new QueryClient();
 
-              return <ApplicationDetail name={params.name as string} />;
-            }}
-          />
-          <Route
-            exact
-            path={PageRoute.ApplicationAdd}
-            component={ApplicationAdd}
-          />
-          <Route
-            exact
-            path={PageRoute.GitlabOAuthCallback}
-            component={({ location }) => {
-              const params = qs.parse(location.search);
+function withName(Cmp) {
+  return ({ location: { search }, ...rest }) => {
+    const params = qs.parse(search);
 
-              return (
-                <OAuthCallback
-                  provider={GitProvider.GitLab}
-                  code={params.code as string}
-                />
-              );
-            }}
-          />
-          <Route
-            exact
-            path={PageRoute.ApplicationRemove}
-            component={({ location }) => {
-              const params = qs.parse(location.search);
+    return <Cmp {...rest} name={params.name as string} />;
+  };
+}
 
-              return <ApplicationRemove name={params.name as string} />;
-            }}
-          />
-          <Redirect exact from="/" to={PageRoute.Applications} />
-          <Route exact path="*" component={Error} />
-        </Switch>
-      </ErrorBoundary>
-      <ToastContainer
-        position="top-center"
-        autoClose={5000}
-        newestOnTop={false}
-      />
-    </Layout>
-  </AppContextProvider>
-);
-
-export default function AppContainer() {
+export default function App() {
   return (
     <MuiThemeProvider theme={muiTheme}>
       <ThemeProvider theme={theme}>
-        <Fonts />
-        <GlobalStyle />
-        <Router>
-          <FeatureFlagsContextProvider>
-            <AuthContextProvider>
-              <Switch>
-                {/* <Signin> does not use the base page <Layout> so pull it up here */}
-                <Route component={SignIn} exact={true} path="/sign_in" />
-                <Route path="*">
-                  {/* Check we've got a logged in user otherwise redirect back to signin */}
-                  <AuthCheck>
-                    <App />
-                  </AuthCheck>
-                </Route>
-              </Switch>
-            </AuthContextProvider>
-          </FeatureFlagsContextProvider>
-        </Router>
+        <QueryClientProvider client={queryClient}>
+          <Fonts />
+          <GlobalStyle />
+          <Router>
+            <AppContextProvider renderFooter coreClient={Core}>
+              <Layout>
+                <ErrorBoundary>
+                  <Switch>
+                    <Route
+                      exact
+                      path={V2Routes.Automations}
+                      component={Automations}
+                    />
+                    <Route
+                      exact
+                      path={V2Routes.Kustomization}
+                      component={withName(KustomizationDetail)}
+                    />
+                    <Route exact path={V2Routes.Sources} component={Sources} />
+                    <Route
+                      exact
+                      path={V2Routes.FluxRuntime}
+                      component={FluxRuntime}
+                    />
+                    <Redirect exact from="/" to={V2Routes.Automations} />
+                    <Route exact path="*" component={Error} />
+                  </Switch>
+                </ErrorBoundary>
+                <ToastContainer
+                  position="top-center"
+                  autoClose={5000}
+                  newestOnTop={false}
+                />
+              </Layout>
+            </AppContextProvider>
+          </Router>
+        </QueryClientProvider>
       </ThemeProvider>
     </MuiThemeProvider>
   );
