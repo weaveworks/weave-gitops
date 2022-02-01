@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
 
 	"github.com/google/go-cmp/cmp"
@@ -181,9 +182,6 @@ func TestCreateHelmChart(t *testing.T) {
 		g.Expect(res.Success).To(BeTrue())
 
 		actual := &sourcev1beta1.HelmChart{}
-
-		fmt.Println("r.HelmChart.Name", r.HelmChart.Name)
-		fmt.Println("ns.Name", ns.Name)
 
 		g.Expect(k.Get(ctx, types.NamespacedName{Name: r.HelmChart.Name, Namespace: ns.Name}, actual)).To(Succeed())
 
@@ -464,4 +462,189 @@ func TestListBuckets(t *testing.T) {
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(all.Buckets).To(HaveLen(2))
+}
+
+func TestCreateHelmRelease(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	defer cleanup()
+
+	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	t.Run("with app association", func(t *testing.T) {
+		ns := newNamespace(ctx, k, g)
+
+		r := &pb.AddHelmReleaseReq{
+			AppName:   "someapp",
+			Namespace: ns.Name,
+			HelmRelease: &pb.HelmRelease{
+				Name:        "myhelmrelease",
+				Namespace:   ns.Name,
+				ReleaseName: "rname",
+				HelmChart: &pb.HelmChart{
+					Name:      "mychart",
+					Namespace: ns.Name,
+					Chart:     "chart0",
+					Version:   "v0.0.0",
+					Interval:  &pb.Interval{Minutes: 1},
+					SourceRef: &pb.SourceRef{
+						Kind: pb.SourceRef_HelmRepository,
+						Name: "myhelmrepository",
+					},
+				},
+				Interval: &pb.Interval{Minutes: 1},
+			},
+		}
+
+		res, err := c.AddHelmRelease(ctx, r)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		g.Expect(res.Success).To(BeTrue())
+
+		actual := &helmv2beta1.HelmRelease{}
+
+		g.Expect(k.Get(ctx, types.NamespacedName{Name: r.HelmRelease.Name, Namespace: ns.Name}, actual)).To(Succeed())
+
+		expected := stypes.ProtoToHelmRelease(r)
+
+		opt := cmpopts.IgnoreFields(helmv2beta1.HelmRelease{}, diffIgnoredFields...)
+		diff := cmp.Diff(*actual, expected, opt)
+
+		if diff != "" {
+			t.Error(fmt.Errorf("(-actual +expected):\n%s", diff))
+		}
+	})
+
+	t.Run("no app association", func(t *testing.T) {
+		ns := newNamespace(ctx, k, g)
+
+		r := &pb.AddHelmReleaseReq{
+			AppName:   "",
+			Namespace: ns.Name,
+			HelmRelease: &pb.HelmRelease{
+				Name:        "myhelmrelease",
+				Namespace:   ns.Name,
+				ReleaseName: "rname",
+				HelmChart: &pb.HelmChart{
+					Name:      "mychart",
+					Namespace: ns.Name,
+					Chart:     "chart0",
+					Version:   "v0.0.0",
+					Interval:  &pb.Interval{Minutes: 1},
+					SourceRef: &pb.SourceRef{
+						Kind: pb.SourceRef_HelmRepository,
+						Name: "myhelmrepository",
+					},
+				},
+				Interval: &pb.Interval{Minutes: 1},
+			},
+		}
+
+		res, err := c.AddHelmRelease(ctx, r)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		g.Expect(res.Success).To(BeTrue())
+
+		actual := &helmv2beta1.HelmRelease{}
+
+		g.Expect(k.Get(ctx, types.NamespacedName{Name: r.HelmRelease.Name, Namespace: ns.Name}, actual)).To(Succeed())
+
+		expected := stypes.ProtoToHelmRelease(r)
+
+		opt := cmpopts.IgnoreFields(helmv2beta1.HelmRelease{}, diffIgnoredFields...)
+		diff := cmp.Diff(*actual, expected, opt)
+
+		if diff != "" {
+			t.Error(fmt.Errorf("(-actual +expected):\n%s", diff))
+		}
+
+		g.Expect(actual.Labels["app.kubernetes.io/part-of"]).To(Equal(""))
+	})
+}
+
+func TestListHelmReleases(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	defer cleanup()
+
+	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	appName := "myapp"
+	ns := newNamespace(ctx, k, g)
+
+	r := &pb.AddHelmReleaseReq{
+		AppName:   appName,
+		Namespace: ns.Name,
+		HelmRelease: &pb.HelmRelease{
+			Name:        "myhelmrelease",
+			Namespace:   ns.Name,
+			ReleaseName: "rname",
+			HelmChart: &pb.HelmChart{
+				Name:      "mychart",
+				Namespace: ns.Name,
+				Chart:     "chart0",
+				Version:   "v0.0.0",
+				Interval:  &pb.Interval{Minutes: 1},
+				SourceRef: &pb.SourceRef{
+					Kind: pb.SourceRef_HelmRepository,
+					Name: "myhelmrepository",
+				},
+			},
+			Interval: &pb.Interval{Minutes: 1},
+		},
+	}
+
+	addRes, err := c.AddHelmRelease(ctx, r)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(addRes.Success).To(BeTrue())
+
+	unAssociatedHelmReleaseReq := &pb.AddHelmReleaseReq{
+		AppName:   "",
+		Namespace: ns.Name,
+		HelmRelease: &pb.HelmRelease{
+			Name:        "myotherhelmrelease",
+			Namespace:   ns.Name,
+			ReleaseName: "rname",
+			HelmChart: &pb.HelmChart{
+				Name:      "mychart",
+				Namespace: ns.Name,
+				Chart:     "chart0",
+				Version:   "v0.0.0",
+				Interval:  &pb.Interval{Minutes: 1},
+				SourceRef: &pb.SourceRef{
+					Kind: pb.SourceRef_HelmRepository,
+					Name: "myhelmrepository",
+				},
+			},
+			Interval: &pb.Interval{Minutes: 1},
+		},
+	}
+
+	_, err = c.AddHelmRelease(ctx, unAssociatedHelmReleaseReq)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(addRes.Success).To(BeTrue())
+
+	res, err := c.ListHelmReleases(ctx, &pb.ListHelmReleaseReq{
+		AppName:   appName,
+		Namespace: ns.Name,
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.HelmReleases).To(HaveLen(1))
+	g.Expect(res.HelmReleases[0].Name).To(Equal(r.HelmRelease.Name))
+
+	// Ensure our filtering logic is working for `AppName`
+	all, err := c.ListHelmReleases(ctx, &pb.ListHelmReleaseReq{
+		AppName:   "",
+		Namespace: ns.Name,
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(all.HelmReleases).To(HaveLen(2))
 }

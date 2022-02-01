@@ -9,8 +9,6 @@ import (
 )
 
 func ProtoToHelmChart(helmChartReq *pb.AddHelmChartReq) v1beta1.HelmChart {
-	labels := getGitopsLabelMap(helmChartReq.AppName)
-
 	return v1beta1.HelmChart{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       v1beta1.HelmChartKind,
@@ -19,7 +17,7 @@ func ProtoToHelmChart(helmChartReq *pb.AddHelmChartReq) v1beta1.HelmChart {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      helmChartReq.HelmChart.Name,
 			Namespace: helmChartReq.Namespace,
-			Labels:    labels,
+			Labels:    getGitopsLabelMap(helmChartReq.AppName),
 		},
 		Spec: v1beta1.HelmChartSpec{
 			Chart:   helmChartReq.HelmChart.Chart,
@@ -35,22 +33,11 @@ func ProtoToHelmChart(helmChartReq *pb.AddHelmChartReq) v1beta1.HelmChart {
 }
 
 func HelmChartToProto(helmchart *v1beta1.HelmChart) *pb.HelmChart {
-	var kind pb.SourceRef_Kind
-
-	switch helmchart.Spec.SourceRef.Kind {
-	case v1beta1.GitRepositoryKind:
-		kind = pb.SourceRef_GitRepository
-	case v1beta1.HelmRepositoryKind:
-		kind = pb.SourceRef_HelmRepository
-	case v1beta1.BucketKind:
-		kind = pb.SourceRef_Bucket
-	}
-
-	hr := &pb.HelmChart{
+	return &pb.HelmChart{
 		Name:      helmchart.Name,
 		Namespace: helmchart.Namespace,
 		SourceRef: &pb.SourceRef{
-			Kind: kind,
+			Kind: getSourceKind(helmchart.Spec.SourceRef.Kind),
 			Name: helmchart.Name,
 		},
 		Chart:   helmchart.Spec.Chart,
@@ -59,6 +46,4 @@ func HelmChartToProto(helmchart *v1beta1.HelmChart) *pb.HelmChart {
 			Minutes: 1,
 		},
 	}
-
-	return hr
 }

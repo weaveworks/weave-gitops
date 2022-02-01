@@ -1946,6 +1946,305 @@ func (x *ListBucketRes) GetBuckets() []*Bucket {
 	return nil
 }
 
+type HelmRelease struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ReleaseName string     `protobuf:"bytes,1,opt,name=release_name,json=releaseName,proto3" json:"release_name,omitempty"`
+	Namespace   string     `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Name        string     `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Interval    *Interval  `protobuf:"bytes,4,opt,name=interval,proto3" json:"interval,omitempty"`
+	HelmChart   *HelmChart `protobuf:"bytes,5,opt,name=helm_chart,json=helmChart,proto3" json:"helm_chart,omitempty"`
+}
+
+func (x *HelmRelease) Reset() {
+	*x = HelmRelease{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_app_source_proto_msgTypes[26]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *HelmRelease) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HelmRelease) ProtoMessage() {}
+
+func (x *HelmRelease) ProtoReflect() protoreflect.Message {
+	mi := &file_api_app_source_proto_msgTypes[26]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HelmRelease.ProtoReflect.Descriptor instead.
+func (*HelmRelease) Descriptor() ([]byte, []int) {
+	return file_api_app_source_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *HelmRelease) GetReleaseName() string {
+	if x != nil {
+		return x.ReleaseName
+	}
+	return ""
+}
+
+func (x *HelmRelease) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *HelmRelease) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *HelmRelease) GetInterval() *Interval {
+	if x != nil {
+		return x.Interval
+	}
+	return nil
+}
+
+func (x *HelmRelease) GetHelmChart() *HelmChart {
+	if x != nil {
+		return x.HelmChart
+	}
+	return nil
+}
+
+type AddHelmReleaseReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	AppName     string       `protobuf:"bytes,1,opt,name=app_name,json=appName,proto3" json:"app_name,omitempty"`
+	Namespace   string       `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	HelmRelease *HelmRelease `protobuf:"bytes,3,opt,name=helm_release,json=helmRelease,proto3" json:"helm_release,omitempty"`
+}
+
+func (x *AddHelmReleaseReq) Reset() {
+	*x = AddHelmReleaseReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_app_source_proto_msgTypes[27]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AddHelmReleaseReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddHelmReleaseReq) ProtoMessage() {}
+
+func (x *AddHelmReleaseReq) ProtoReflect() protoreflect.Message {
+	mi := &file_api_app_source_proto_msgTypes[27]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddHelmReleaseReq.ProtoReflect.Descriptor instead.
+func (*AddHelmReleaseReq) Descriptor() ([]byte, []int) {
+	return file_api_app_source_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *AddHelmReleaseReq) GetAppName() string {
+	if x != nil {
+		return x.AppName
+	}
+	return ""
+}
+
+func (x *AddHelmReleaseReq) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *AddHelmReleaseReq) GetHelmRelease() *HelmRelease {
+	if x != nil {
+		return x.HelmRelease
+	}
+	return nil
+}
+
+type AddHelmReleaseRes struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Success     bool         `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	HelmRelease *HelmRelease `protobuf:"bytes,2,opt,name=helm_release,json=helmRelease,proto3" json:"helm_release,omitempty"`
+}
+
+func (x *AddHelmReleaseRes) Reset() {
+	*x = AddHelmReleaseRes{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_app_source_proto_msgTypes[28]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AddHelmReleaseRes) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddHelmReleaseRes) ProtoMessage() {}
+
+func (x *AddHelmReleaseRes) ProtoReflect() protoreflect.Message {
+	mi := &file_api_app_source_proto_msgTypes[28]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddHelmReleaseRes.ProtoReflect.Descriptor instead.
+func (*AddHelmReleaseRes) Descriptor() ([]byte, []int) {
+	return file_api_app_source_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *AddHelmReleaseRes) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *AddHelmReleaseRes) GetHelmRelease() *HelmRelease {
+	if x != nil {
+		return x.HelmRelease
+	}
+	return nil
+}
+
+type ListHelmReleaseReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Namespace string `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	AppName   string `protobuf:"bytes,2,opt,name=app_name,json=appName,proto3" json:"app_name,omitempty"`
+}
+
+func (x *ListHelmReleaseReq) Reset() {
+	*x = ListHelmReleaseReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_app_source_proto_msgTypes[29]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListHelmReleaseReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListHelmReleaseReq) ProtoMessage() {}
+
+func (x *ListHelmReleaseReq) ProtoReflect() protoreflect.Message {
+	mi := &file_api_app_source_proto_msgTypes[29]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListHelmReleaseReq.ProtoReflect.Descriptor instead.
+func (*ListHelmReleaseReq) Descriptor() ([]byte, []int) {
+	return file_api_app_source_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *ListHelmReleaseReq) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *ListHelmReleaseReq) GetAppName() string {
+	if x != nil {
+		return x.AppName
+	}
+	return ""
+}
+
+type ListHelmReleaseRes struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	HelmReleases []*HelmRelease `protobuf:"bytes,1,rep,name=helm_releases,json=helmReleases,proto3" json:"helm_releases,omitempty"`
+}
+
+func (x *ListHelmReleaseRes) Reset() {
+	*x = ListHelmReleaseRes{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_app_source_proto_msgTypes[30]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListHelmReleaseRes) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListHelmReleaseRes) ProtoMessage() {}
+
+func (x *ListHelmReleaseRes) ProtoReflect() protoreflect.Message {
+	mi := &file_api_app_source_proto_msgTypes[30]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListHelmReleaseRes.ProtoReflect.Descriptor instead.
+func (*ListHelmReleaseRes) Descriptor() ([]byte, []int) {
+	return file_api_app_source_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *ListHelmReleaseRes) GetHelmReleases() []*HelmRelease {
+	if x != nil {
+		return x.HelmReleases
+	}
+	return nil
+}
+
 var File_api_app_source_proto protoreflect.FileDescriptor
 
 var file_api_app_source_proto_rawDesc = []byte{
@@ -2200,10 +2499,50 @@ var file_api_app_source_proto_rawDesc = []byte{
 	0x62, 0x75, 0x63, 0x6b, 0x65, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x18, 0x2e,
 	0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31,
 	0x2e, 0x42, 0x75, 0x63, 0x6b, 0x65, 0x74, 0x52, 0x07, 0x62, 0x75, 0x63, 0x6b, 0x65, 0x74, 0x73,
-	0x42, 0x32, 0x5a, 0x30, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x77,
-	0x65, 0x61, 0x76, 0x65, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x2d,
-	0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x2f, 0x63, 0x6f, 0x72, 0x65, 0x2f, 0x61, 0x70, 0x69, 0x2f,
-	0x61, 0x70, 0x70, 0x73, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x22, 0xd6, 0x01, 0x0a, 0x0b, 0x48, 0x65, 0x6c, 0x6d, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65,
+	0x12, 0x21, 0x0a, 0x0c, 0x72, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x5f, 0x6e, 0x61, 0x6d, 0x65,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x72, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x4e,
+	0x61, 0x6d, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63,
+	0x65, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x36, 0x0a, 0x08, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61,
+	0x6c, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73,
+	0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x49, 0x6e, 0x74, 0x65, 0x72,
+	0x76, 0x61, 0x6c, 0x52, 0x08, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x12, 0x3a, 0x0a,
+	0x0a, 0x68, 0x65, 0x6c, 0x6d, 0x5f, 0x63, 0x68, 0x61, 0x72, 0x74, 0x18, 0x05, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x1b, 0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65,
+	0x72, 0x2e, 0x76, 0x31, 0x2e, 0x48, 0x65, 0x6c, 0x6d, 0x43, 0x68, 0x61, 0x72, 0x74, 0x52, 0x09,
+	0x68, 0x65, 0x6c, 0x6d, 0x43, 0x68, 0x61, 0x72, 0x74, 0x22, 0x8e, 0x01, 0x0a, 0x11, 0x41, 0x64,
+	0x64, 0x48, 0x65, 0x6c, 0x6d, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x52, 0x65, 0x71, 0x12,
+	0x19, 0x0a, 0x08, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x07, 0x61, 0x70, 0x70, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x6e, 0x61,
+	0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x6e,
+	0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x12, 0x40, 0x0a, 0x0c, 0x68, 0x65, 0x6c, 0x6d,
+	0x5f, 0x72, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1d,
+	0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76,
+	0x31, 0x2e, 0x48, 0x65, 0x6c, 0x6d, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x52, 0x0b, 0x68,
+	0x65, 0x6c, 0x6d, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x22, 0x6f, 0x0a, 0x11, 0x41, 0x64,
+	0x64, 0x48, 0x65, 0x6c, 0x6d, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x52, 0x65, 0x73, 0x12,
+	0x18, 0x0a, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08,
+	0x52, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x12, 0x40, 0x0a, 0x0c, 0x68, 0x65, 0x6c,
+	0x6d, 0x5f, 0x72, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x1d, 0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e,
+	0x76, 0x31, 0x2e, 0x48, 0x65, 0x6c, 0x6d, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x52, 0x0b,
+	0x68, 0x65, 0x6c, 0x6d, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x22, 0x4d, 0x0a, 0x12, 0x4c,
+	0x69, 0x73, 0x74, 0x48, 0x65, 0x6c, 0x6d, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x52, 0x65,
+	0x71, 0x12, 0x1c, 0x0a, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x12,
+	0x19, 0x0a, 0x08, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x07, 0x61, 0x70, 0x70, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0x58, 0x0a, 0x12, 0x4c, 0x69,
+	0x73, 0x74, 0x48, 0x65, 0x6c, 0x6d, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x52, 0x65, 0x73,
+	0x12, 0x42, 0x0a, 0x0d, 0x68, 0x65, 0x6c, 0x6d, 0x5f, 0x72, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65,
+	0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73,
+	0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x48, 0x65, 0x6c, 0x6d, 0x52,
+	0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x52, 0x0c, 0x68, 0x65, 0x6c, 0x6d, 0x52, 0x65, 0x6c, 0x65,
+	0x61, 0x73, 0x65, 0x73, 0x42, 0x32, 0x5a, 0x30, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63,
+	0x6f, 0x6d, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f, 0x77, 0x65,
+	0x61, 0x76, 0x65, 0x2d, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x2f, 0x63, 0x6f, 0x72, 0x65, 0x2f,
+	0x61, 0x70, 0x69, 0x2f, 0x61, 0x70, 0x70, 0x73, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -2219,7 +2558,7 @@ func file_api_app_source_proto_rawDescGZIP() []byte {
 }
 
 var file_api_app_source_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_api_app_source_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
+var file_api_app_source_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
 var file_api_app_source_proto_goTypes = []interface{}{
 	(SourceRef_Kind)(0),           // 0: gitops_server.v1.SourceRef.Kind
 	(Source_Type)(0),              // 1: gitops_server.v1.Source.Type
@@ -2250,6 +2589,11 @@ var file_api_app_source_proto_goTypes = []interface{}{
 	(*AddBucketRes)(nil),          // 26: gitops_server.v1.AddBucketRes
 	(*ListBucketReq)(nil),         // 27: gitops_server.v1.ListBucketReq
 	(*ListBucketRes)(nil),         // 28: gitops_server.v1.ListBucketRes
+	(*HelmRelease)(nil),           // 29: gitops_server.v1.HelmRelease
+	(*AddHelmReleaseReq)(nil),     // 30: gitops_server.v1.AddHelmReleaseReq
+	(*AddHelmReleaseRes)(nil),     // 31: gitops_server.v1.AddHelmReleaseRes
+	(*ListHelmReleaseReq)(nil),    // 32: gitops_server.v1.ListHelmReleaseReq
+	(*ListHelmReleaseRes)(nil),    // 33: gitops_server.v1.ListHelmReleaseRes
 }
 var file_api_app_source_proto_depIdxs = []int32{
 	0,  // 0: gitops_server.v1.SourceRef.kind:type_name -> gitops_server.v1.SourceRef.Kind
@@ -2277,11 +2621,16 @@ var file_api_app_source_proto_depIdxs = []int32{
 	24, // 22: gitops_server.v1.AddBucketReq.bucket:type_name -> gitops_server.v1.Bucket
 	24, // 23: gitops_server.v1.AddBucketRes.bucket:type_name -> gitops_server.v1.Bucket
 	24, // 24: gitops_server.v1.ListBucketRes.buckets:type_name -> gitops_server.v1.Bucket
-	25, // [25:25] is the sub-list for method output_type
-	25, // [25:25] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	3,  // 25: gitops_server.v1.HelmRelease.interval:type_name -> gitops_server.v1.Interval
+	19, // 26: gitops_server.v1.HelmRelease.helm_chart:type_name -> gitops_server.v1.HelmChart
+	29, // 27: gitops_server.v1.AddHelmReleaseReq.helm_release:type_name -> gitops_server.v1.HelmRelease
+	29, // 28: gitops_server.v1.AddHelmReleaseRes.helm_release:type_name -> gitops_server.v1.HelmRelease
+	29, // 29: gitops_server.v1.ListHelmReleaseRes.helm_releases:type_name -> gitops_server.v1.HelmRelease
+	30, // [30:30] is the sub-list for method output_type
+	30, // [30:30] is the sub-list for method input_type
+	30, // [30:30] is the sub-list for extension type_name
+	30, // [30:30] is the sub-list for extension extendee
+	0,  // [0:30] is the sub-list for field type_name
 }
 
 func init() { file_api_app_source_proto_init() }
@@ -2602,6 +2951,66 @@ func file_api_app_source_proto_init() {
 				return nil
 			}
 		}
+		file_api_app_source_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*HelmRelease); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_app_source_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AddHelmReleaseReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_app_source_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AddHelmReleaseRes); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_app_source_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListHelmReleaseReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_app_source_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListHelmReleaseRes); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -2609,7 +3018,7 @@ func file_api_app_source_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_api_app_source_proto_rawDesc,
 			NumEnums:      3,
-			NumMessages:   26,
+			NumMessages:   31,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -99,4 +99,10 @@ export class Apps {
   static ListBuckets(req: Gitops_serverV1Source.ListBucketReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.ListBucketRes> {
     return fm.fetchReq<Gitops_serverV1Source.ListBucketReq, Gitops_serverV1Source.ListBucketRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/bucket?${fm.renderURLSearchParams(req, ["namespace", "appName"])}`, {...initReq, method: "GET"})
   }
+  static AddHelmRelease(req: Gitops_serverV1Source.AddHelmReleaseReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.AddHelmReleaseRes> {
+    return fm.fetchReq<Gitops_serverV1Source.AddHelmReleaseReq, Gitops_serverV1Source.AddHelmReleaseRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/helmrelease`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static ListHelmReleases(req: Gitops_serverV1Source.ListHelmReleaseReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.ListHelmReleaseRes> {
+    return fm.fetchReq<Gitops_serverV1Source.ListHelmReleaseReq, Gitops_serverV1Source.ListHelmReleaseRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/helmrelease?${fm.renderURLSearchParams(req, ["namespace", "appName"])}`, {...initReq, method: "GET"})
+  }
 }
