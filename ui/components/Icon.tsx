@@ -8,6 +8,7 @@ import HourglassFullIcon from "@material-ui/icons/HourglassFull";
 import LaunchIcon from "@material-ui/icons/Launch";
 import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
+import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
 import SaveAltIcon from "@material-ui/icons/SaveAlt";
 import SkipNextIcon from "@material-ui/icons/SkipNext";
 import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
@@ -32,6 +33,7 @@ export enum IconType {
   NavigateBeforeIcon,
   SkipNextIcon,
   SkipPreviousIcon,
+  RemoveCircleIcon,
 }
 
 type Props = {
@@ -85,6 +87,9 @@ function getIcon(i: IconType) {
 
     case IconType.SkipPreviousIcon:
       return SkipPreviousIcon;
+
+    case IconType.RemoveCircleIcon:
+      return RemoveCircleIcon;
 
     default:
       break;

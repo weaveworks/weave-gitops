@@ -58,7 +58,7 @@ exports[`CommitsTable snapshots renders 1`] = `
 
 .c10 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   text-transform: none;
   font-style: normal;
@@ -111,25 +111,22 @@ exports[`CommitsTable snapshots renders 1`] = `
 }
 
 .c3.MuiButton-text {
-  color: #737373;
   min-width: 0px;
+}
+
+.c3.MuiButton-text .selected {
+  color: #1a1a1a;
 }
 
 .c3.arrow {
   min-width: 0px;
 }
 
-.c3.selected {
-  color: #1a1a1a;
-}
-
 .c0 h2 {
-  margin: 0px;
-}
-
-.c0 .thead {
+  font-size: 14px;
+  font-weight: 600;
   color: #737373;
-  font-weight: 800;
+  margin: 0px;
 }
 
 .c0 .MuiTableRow-root {
@@ -166,9 +163,7 @@ exports[`CommitsTable snapshots renders 1`] = `
               class="MuiTableCell-root MuiTableCell-head"
               scope="col"
             >
-              <h2
-                class="thead"
-              >
+              <h2>
                 SHA
               </h2>
             </th>
@@ -187,7 +182,9 @@ exports[`CommitsTable snapshots renders 1`] = `
                   <span
                     class="MuiButton-label"
                   >
-                    <h2>
+                    <h2
+                      class="selected"
+                    >
                       Date
                     </h2>
                   </span>
@@ -218,9 +215,7 @@ exports[`CommitsTable snapshots renders 1`] = `
               class="MuiTableCell-root MuiTableCell-head"
               scope="col"
             >
-              <h2
-                class="thead"
-              >
+              <h2>
                 Message
               </h2>
             </th>
@@ -228,9 +223,7 @@ exports[`CommitsTable snapshots renders 1`] = `
               class="MuiTableCell-root MuiTableCell-head"
               scope="col"
             >
-              <h2
-                class="thead"
-              >
+              <h2>
                 Author
               </h2>
             </th>

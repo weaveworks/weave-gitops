@@ -36,7 +36,6 @@ export interface Props {
 }
 
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
-  font-style: italic;
   td {
     text-align: center;
   }
@@ -49,14 +48,13 @@ const TableButton = styled(Button)`
     text-transform: none;
   }
   &.MuiButton-text {
-    color: ${(props) => props.theme.colors.neutral30};
     min-width: 0px;
+    .selected {
+      color: ${(props) => props.theme.colors.neutral40};
+    }
   }
   &.arrow {
     min-width: 0px;
-  }
-  &.selected {
-    color: ${(props) => props.theme.colors.neutral40};
   }
 `;
 
@@ -89,7 +87,7 @@ function UnstyledDataTable({
             setSort(label);
           }}
         >
-          <h2>{displayLabel}</h2>
+          <h2 className={sort === label ? "selected" : ""}>{displayLabel}</h2>
         </TableButton>
         <Spacer padding="xxs" />
         {sort === label ? (
@@ -129,7 +127,7 @@ function UnstyledDataTable({
                       displayLabel={f.displayLabel}
                     />
                   ) : (
-                    <h2 className="thead">{f.displayLabel}</h2>
+                    <h2>{f.displayLabel}</h2>
                   )}
                 </TableCell>
               ))}
@@ -141,15 +139,23 @@ function UnstyledDataTable({
             ) : (
               <EmptyRow colSpan={fields.length}>
                 <TableCell colSpan={fields.length}>
-                  <span style={{ fontStyle: "italic" }}>No rows</span>
+                  <Flex center align>
+                    <Icon
+                      color="neutral20"
+                      type={IconType.RemoveCircleIcon}
+                      size="base"
+                    />
+                    <Spacer padding="xxs" />
+                    <Text color="neutral30">No data</Text>
+                  </Flex>
                 </TableCell>
               </EmptyRow>
             )}
           </TableBody>
         </Table>
       </TableContainer>
-      {/* pagination row */}
       <Spacer padding="xs" />
+      {/* optional pagination component */}
       {children}
     </div>
   );
@@ -157,11 +163,10 @@ function UnstyledDataTable({
 
 export const DataTable = styled(UnstyledDataTable)`
   h2 {
-    margin: 0px;
-  }
-  .thead {
+    font-size: 14px;
+    font-weight: 600;
     color: ${(props) => props.theme.colors.neutral30};
-    font-weight: 800;
+    margin: 0px;
   }
   .MuiTableRow-root {
     transition: background 0.5s ease-in-out;
