@@ -63,10 +63,6 @@ func (f *defaultFactory) GetAppService(ctx context.Context, kubeClient kube.Kube
 }
 
 func (f *defaultFactory) GetGitClients(ctx context.Context, kubeClient kube.Kube, gpClient gitproviders.Client, params GitConfigParams) (git.Git, gitproviders.GitProvider, error) {
-	if params.DryRun {
-		return nil, nil, nil
-	}
-
 	configNormalizedUrl, err := gitproviders.NewRepoURL(params.ConfigRepo)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error normalizing config url: %w", err)

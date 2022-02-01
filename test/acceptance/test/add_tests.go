@@ -341,7 +341,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 
 	})
 
-	It("Test1 - Verify that gitops can deploy an app with specified config-url and config-repo set to <url>", func() {
+	It("Test1 - Verify that gitops can deploy an app with different config-repo and add repo", func() {
 		var repoAbsolutePath string
 		var configRepoRemoteURL string
 		private := true
@@ -390,7 +390,7 @@ var _ = Describe("Weave GitOps Add App Tests", func() {
 		})
 	})
 
-	It("Test2 - Verify that gitops can deploy and remove a gitlab app with specified config-url and config-repo set to <url>", func() {
+	It("Test2 - Verify that gitops can deploy and remove a gitlab app with different config-repo and add repo", func() {
 		var repoAbsolutePath string
 		var appConfigRepoAbsPath string
 		var appRemoveOutput string
