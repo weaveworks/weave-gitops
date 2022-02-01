@@ -66,10 +66,7 @@ function Applications({ className }: Props) {
           {
             label: "Name",
             value: ({ name }: Application) => (
-              <Link
-                to={formatURL(PageRoute.ApplicationDetail, { name })}
-                textProps={{ size: "small" }}
-              >
+              <Link to={formatURL(PageRoute.ApplicationDetail, { name })}>
                 {name}
               </Link>
             ),

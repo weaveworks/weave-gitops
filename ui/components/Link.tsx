@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Link as RouterLink } from "react-router-dom";
 import styled from "styled-components";
-import Text, { TextProps } from "./Text";
+import Text from "./Text";
 
 type Props = {
   className?: string;
@@ -10,7 +10,6 @@ type Props = {
   children?: any;
   href?: any;
   newTab?: boolean;
-  textProps?: TextProps;
 };
 
 function Link({
@@ -19,14 +18,10 @@ function Link({
   className,
   to = "",
   newTab,
-  textProps,
+
   ...props
 }: Props) {
-  const txt = (
-    <Text color="primary" {...textProps}>
-      {children}
-    </Text>
-  );
+  const txt = <Text color="primary">{children}</Text>;
 
   if (href) {
     return (

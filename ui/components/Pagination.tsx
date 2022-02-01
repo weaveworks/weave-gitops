@@ -19,7 +19,7 @@ export interface Props {
   /** func for skip to start button */
   onSkipBack: () => void;
   /** onChange func for perPage select */
-  onSelect: (value) => void;
+  onSelect: (value: string) => void;
   /** options for perPage select */
   perPageOptions?: number[];
   /** starting index */
@@ -77,7 +77,7 @@ function unstyledPagination({
           variant="text"
           aria-label="skip to first page"
           disabled={index === 0}
-          onClick={() => onSkipBack()}
+          onClick={onSkipBack}
         >
           <Icon type={IconType.SkipPreviousIcon} size="medium" />
         </Button>
@@ -86,7 +86,7 @@ function unstyledPagination({
           variant="text"
           aria-label="back one page"
           disabled={index === 0}
-          onClick={() => onBack()}
+          onClick={onBack}
         >
           <Icon type={IconType.NavigateBeforeIcon} size="medium" />
         </Button>
@@ -95,7 +95,7 @@ function unstyledPagination({
           variant="text"
           aria-label="forward one page"
           disabled={index + length >= totalObjects}
-          onClick={() => onForward()}
+          onClick={onForward}
         >
           <Icon type={IconType.NavigateNextIcon} size="medium" />
         </Button>
@@ -104,7 +104,7 @@ function unstyledPagination({
           variant="text"
           aria-label="skip to last page"
           disabled={index + length >= totalObjects}
-          onClick={() => onSkipForward()}
+          onClick={onSkipForward}
         >
           <Icon type={IconType.SkipNextIcon} size="medium" />
         </Button>

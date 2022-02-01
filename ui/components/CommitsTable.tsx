@@ -85,7 +85,7 @@ function CommitsTable({
           {
             label: "SHA",
             value: (row: Commit) => (
-              <Link newTab href={row.url} textProps={{ size: "small" }}>
+              <Link newTab href={row.url}>
                 {row.hash}
               </Link>
             ),

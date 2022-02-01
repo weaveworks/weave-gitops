@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { colors, fontSizes } from "../typedefs/styled";
 
-export type TextProps = {
+type Props = {
   className?: string;
   size?: keyof typeof fontSizes;
   bold?: boolean;
@@ -10,7 +10,7 @@ export type TextProps = {
   color?: keyof typeof colors;
 };
 
-const Text = styled.span<TextProps>`
+const Text = styled.span<Props>`
   font-family: ${(props) => props.theme.fontFamilies.regular};
   font-size: ${(props) => props.theme.fontSizes[props.size]};
   font-weight: ${(props) => (props.bold ? "600" : "400")};

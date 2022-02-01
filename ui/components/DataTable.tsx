@@ -12,6 +12,7 @@ import styled from "styled-components";
 import Button from "./Button";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
+import Link from "./Link";
 import Spacer from "./Spacer";
 import Text from "./Text";
 
@@ -172,6 +173,9 @@ export const DataTable = styled(UnstyledDataTable)`
   .MuiTableRow-root:not(.MuiTableRow-head):hover {
     background: ${(props) => props.theme.colors.neutral10};
     transition: background 0.5s ease-in-out;
+  }
+  ${Link} ${Text} {
+    font-size: 14px;
   }
 `;
 
