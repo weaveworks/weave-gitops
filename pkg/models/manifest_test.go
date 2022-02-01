@@ -34,7 +34,7 @@ var _ = Describe("Installer", func() {
 	}
 	var err error
 	var _ = BeforeEach(func() {
-		params.ConfigRepo, err = gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo", true)
+		params.ConfigRepo, err = gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo")
 
 		fakeFluxClient = &fluxfakes.FakeFlux{}
 		fakeKubeClient = &kubefakes.FakeKube{}
@@ -145,7 +145,7 @@ var _ = Describe("Installer", func() {
 
 				boostrapManifests = []Manifest{}
 
-				configRepo, err := gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo", true)
+				configRepo, err := gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo")
 				Expect(err).ShouldNot(HaveOccurred())
 
 				params = GitopsManifestsParams{

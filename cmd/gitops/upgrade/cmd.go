@@ -78,9 +78,9 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, auth.NewAuthCLIHandler, log)
 
 		gitClient, gitProvider, err := factory.GetGitClients(ctx, kubeClient, providerClient, services.GitConfigParams{
-			URL:       upgradeCmdFlags.ConfigRepo,
-			Namespace: upgradeCmdFlags.Namespace,
-			DryRun:    upgradeCmdFlags.DryRun,
+			ConfigRepo: upgradeCmdFlags.ConfigRepo,
+			Namespace:  upgradeCmdFlags.Namespace,
+			DryRun:     upgradeCmdFlags.DryRun,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to get git clients: %w", err)

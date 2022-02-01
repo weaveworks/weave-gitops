@@ -64,7 +64,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	ctx := context.Background()
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
-	configURL, err := gitproviders.NewRepoURL(installParams.ConfigRepo, true)
+	configURL, err := gitproviders.NewRepoURL(installParams.ConfigRepo)
 	if err != nil {
 		return err
 	}
@@ -119,8 +119,6 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	// This is going to be broken up to reduce complexity
 	// and then generates the source yaml of the config repo when using dry-run option
 	gitClient, gitProvider, err := factory.GetGitClients(context.Background(), kubeClient, providerClient, services.GitConfigParams{
-		// We need to set URL and ConfigRepo to the same value so a deploy key is created for public config repos
-		URL:        installParams.ConfigRepo,
 		ConfigRepo: installParams.ConfigRepo,
 		Namespace:  namespace,
 		DryRun:     installParams.DryRun,
