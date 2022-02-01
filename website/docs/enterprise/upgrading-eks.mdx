@@ -1,5 +1,6 @@
 ---
 title: Upgrading with EKS
+hide_title: true
 sidebar_position: 1
 ---
 
@@ -9,9 +10,7 @@ import TierLabel from "../_components/TierLabel";
 import CodeBlock from "@theme/CodeBlock";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 
-<h1>
-  {frontMatter.title} <TierLabel tiers="enterprise" />
-</h1>
+# Upgrading with EKS <TierLabel tiers="enterprise" />
 
 ## How to: Upgrade to Weave GitOps Enterprise
 
@@ -21,7 +20,7 @@ Make sure the following software is installed before continuing with these instr
 
 - `gitops` >= 0.5.0-rc2. Use `gitops version` to check the currently installed version. If needed, download a newer version of Weave GitOps from the [releases page](https://github.com/weaveworks/weave-gitops/releases).
 - `github cli` >= 2.3.0 [(source)](https://cli.github.com/)
-- `kubectl` [(source)](https://kubernetes.io/docs/tasks/tools/#kubectl) 
+- `kubectl` [(source)](https://kubernetes.io/docs/tasks/tools/#kubectl)
 - `eksctl` [(source)](https://github.com/weaveworks/eksctl/releases)
 - `aws cli` [(source)](https://aws.amazon.com/cli/)
 - `gh cli` [(source)](https://github.com/cli/cli)
@@ -34,9 +33,9 @@ The `GITHUB_TOKEN` should be set as an environment variable in the current shell
 
 Upgrading requires we:
 
-1. Have a cluster with Weave GitOps installed 
+1. Have a cluster with Weave GitOps installed
 2. Apply the entitlements secret ( contact Weaveworks sales for this )
-3. Install Weave Gitops Enterprise 
+3. Install Weave Gitops Enterprise
 4. Check that Weave GitOps Enterprise has been installed
 5. Install a CAPI provider
 6. Connect the management cluster up to itself
@@ -64,11 +63,12 @@ spec:
 ```
 
 Run `clusterawsadm` command to create the IAM group.
+
 ```bash
 $ clusterawsadm bootstrap iam create-cloudformation-stack --config eks-config.yaml --region $REGION
 ```
 
-Create an IAM User. This user will be used as a kind of service account. Assign the newly created group to this user. The group name will be something like: `cluster-api-provider-aws-s-AWSIAMGroupBootstrapper-XXXX`. Create a secret for the newly created IAM user. 
+Create an IAM User. This user will be used as a kind of service account. Assign the newly created group to this user. The group name will be something like: `cluster-api-provider-aws-s-AWSIAMGroupBootstrapper-XXXX`. Create a secret for the newly created IAM user.
 
 #### 1.2 Create the cluster
 
@@ -85,6 +85,7 @@ eksctl create cluster -n "$CLUSTERNAME" -r "$REGION" --nodegroup-name workers -t
 #### 1.3 Add cluster to kubeconfig
 
 Once the cluster is created, add the cluster to your `kubeconfig`
+
 ```bash
 aws eks --region "$REGION" update-kubeconfig --name "$CLUSTERNAME"
 ```
@@ -119,12 +120,12 @@ kubectl apply -f entitlements.yaml
 Run the upgrade command specifying the same `--config-repo` used in install and the desired version of Weave GitOps Enterprise.
 
 ```bash
-gitops upgrade --config-repo https://github.com/my-org/my-repo --version 0.0.16
+gitops upgrade --version 0.0.16
 ```
+
 :::note
 You may need to add the `--base` flag to the above command to indicate your local branch name, if it is not set to `main`.
 :::
-
 
 A **Pull Request** will be created against your cluster repository. **Review and merge** this pull request to upgrade to Weave GitOps Enterprise.
 
@@ -135,6 +136,7 @@ You should now be able to load the WGE UI:
 ```bash
 kubectl port-forward --namespace wego-system deployments.apps/weave-gitops-enterprise-nginx-ingress-controller 8000:80
 ```
+
 The WGE UI should now be accessible at [http://localhost:8000](http://localhost:8000).
 
 ### 5. Install a CAPI provider
