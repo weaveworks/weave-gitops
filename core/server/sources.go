@@ -144,3 +144,49 @@ func (as *appServer) ListHelmCharts(ctx context.Context, msg *pb.ListHelmChartRe
 		HelmCharts: results,
 	}, nil
 }
+
+func (as *appServer) AddBucket(ctx context.Context, msg *pb.AddBucketReq) (*pb.AddBucketRes, error) {
+	k8s, err := as.k8s.Client(ctx)
+	if err != nil {
+		return nil, doClientError(err)
+	}
+
+	src := types.ProtoToBucket(msg)
+
+	if err := k8s.Create(ctx, &src); err != nil {
+		return nil, status.Errorf(codes.Internal, "creating source for bucket %q: %s", msg.Bucket.Name, err.Error())
+	}
+
+	return &pb.AddBucketRes{
+		Success: true,
+		Bucket:  types.BucketToProto(&src),
+	}, nil
+}
+
+func (as *appServer) ListBuckets(ctx context.Context, msg *pb.ListBucketReq) (*pb.ListBucketRes, error) {
+	k8s, err := as.k8s.Client(ctx)
+	if err != nil {
+		return nil, doClientError(err)
+	}
+
+	list := &sourcev1.BucketList{}
+
+	opts := getMatchingLabels(msg.AppName)
+
+	if err := k8s.List(ctx, list, &opts, client.InNamespace(msg.Namespace)); err != nil {
+		return nil, status.Errorf(codes.Internal, "unable to list helm charts for app %s: %s", msg.AppName, err.Error())
+	}
+
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "unable to get helm repository list: %s", err.Error())
+	}
+
+	var results []*pb.Bucket
+	for _, repository := range list.Items {
+		results = append(results, types.BucketToProto(&repository))
+	}
+
+	return &pb.ListBucketRes{
+		Buckets: results,
+	}, nil
+}

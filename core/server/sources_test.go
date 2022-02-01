@@ -308,3 +308,160 @@ func TestListHelmCharts(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(all.HelmCharts).To(HaveLen(2))
 }
+
+func TestCreateBucket(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	defer cleanup()
+
+	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	t.Run("with app association", func(t *testing.T) {
+		ns := newNamespace(ctx, k, g)
+
+		r := &pb.AddBucketReq{
+			AppName:   "someapp",
+			Namespace: ns.Name,
+			Bucket: &pb.Bucket{
+				Name:          "mybucket",
+				Namespace:     ns.Name,
+				Endpoint:      "endpoint",
+				Insecure:      true,
+				Provider:      pb.Bucket_AWS,
+				Region:        "myregion",
+				SecretRefName: "secret_name",
+				Interval:      &pb.Interval{Minutes: 1},
+			},
+		}
+
+		res, err := c.AddBucket(ctx, r)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		g.Expect(res.Success).To(BeTrue())
+
+		actual := &sourcev1beta1.Bucket{}
+
+		g.Expect(k.Get(ctx, types.NamespacedName{Name: r.Bucket.Name, Namespace: ns.Name}, actual)).To(Succeed())
+
+		expected := stypes.ProtoToBucket(r)
+
+		opt := cmpopts.IgnoreFields(sourcev1beta1.Bucket{}, diffIgnoredFields...)
+		diff := cmp.Diff(*actual, expected, opt)
+
+		if diff != "" {
+			t.Error(fmt.Errorf("(-actual +expected):\n%s", diff))
+		}
+	})
+
+	t.Run("no app association", func(t *testing.T) {
+		ns := newNamespace(ctx, k, g)
+
+		r := &pb.AddBucketReq{
+			AppName:   "",
+			Namespace: ns.Name,
+			Bucket: &pb.Bucket{
+				Name:          "mybucket",
+				Namespace:     ns.Name,
+				Endpoint:      "endpoint",
+				Insecure:      true,
+				Provider:      pb.Bucket_AWS,
+				Region:        "myregion",
+				SecretRefName: "secret_name",
+				Interval:      &pb.Interval{Minutes: 1},
+			},
+		}
+
+		res, err := c.AddBucket(ctx, r)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		g.Expect(res.Success).To(BeTrue())
+
+		actual := &sourcev1beta1.Bucket{}
+
+		g.Expect(k.Get(ctx, types.NamespacedName{Name: r.Bucket.Name, Namespace: ns.Name}, actual)).To(Succeed())
+
+		expected := stypes.ProtoToBucket(r)
+
+		opt := cmpopts.IgnoreFields(sourcev1beta1.Bucket{}, diffIgnoredFields...)
+		diff := cmp.Diff(*actual, expected, opt)
+
+		if diff != "" {
+			t.Error(fmt.Errorf("(-actual +expected):\n%s", diff))
+		}
+
+		g.Expect(actual.Labels["app.kubernetes.io/part-of"]).To(Equal(""))
+	})
+}
+
+func TestListBuckets(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	defer cleanup()
+
+	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	appName := "myapp"
+	ns := newNamespace(ctx, k, g)
+
+	r := &pb.AddBucketReq{
+		AppName:   appName,
+		Namespace: ns.Name,
+		Bucket: &pb.Bucket{
+			Name:          "mybucket",
+			Namespace:     ns.Name,
+			Endpoint:      "endpoint",
+			Insecure:      true,
+			Provider:      pb.Bucket_AWS,
+			Region:        "myregion",
+			SecretRefName: "secret_name",
+			Interval:      &pb.Interval{Minutes: 1},
+		},
+	}
+
+	addRes, err := c.AddBucket(ctx, r)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(addRes.Success).To(BeTrue())
+
+	unAssociatedBucketReq := &pb.AddBucketReq{
+		AppName:   "",
+		Namespace: ns.Name,
+		Bucket: &pb.Bucket{
+			Name:          "othermybucket",
+			Namespace:     ns.Name,
+			Endpoint:      "endpoint",
+			Insecure:      true,
+			Provider:      pb.Bucket_AWS,
+			Region:        "myregion",
+			SecretRefName: "secret_name",
+			Interval:      &pb.Interval{Minutes: 1},
+		},
+	}
+
+	_, err = c.AddBucket(ctx, unAssociatedBucketReq)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(addRes.Success).To(BeTrue())
+
+	res, err := c.ListBuckets(ctx, &pb.ListBucketReq{
+		AppName:   appName,
+		Namespace: ns.Name,
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.Buckets).To(HaveLen(1))
+	g.Expect(res.Buckets[0].Name).To(Equal(r.Bucket.Name))
+
+	// Ensure our filtering logic is working for `AppName`
+	all, err := c.ListBuckets(ctx, &pb.ListBucketReq{
+		AppName:   "",
+		Namespace: ns.Name,
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(all.Buckets).To(HaveLen(2))
+}
