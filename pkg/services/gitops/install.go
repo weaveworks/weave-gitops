@@ -160,7 +160,7 @@ func (g *Gitops) validateWegoInstall(ctx context.Context, params InstallParams) 
 func (g *Gitops) storeManifests(gitClient git.Git, gitProvider gitproviders.GitProvider, params InstallParams, systemManifests map[string][]byte, cname string) (map[string][]byte, error) {
 	ctx := context.Background()
 
-	normalizedURL, err := gitproviders.NewRepoURL(params.ConfigRepo, true)
+	normalizedURL, err := gitproviders.NewRepoURL(params.ConfigRepo)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert app config repo %q : %w", params.ConfigRepo, err)
 	}

@@ -7,29 +7,29 @@ import (
 	"testing"
 	"time"
 
-	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
-	"k8s.io/apimachinery/pkg/util/rand"
-
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
+	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
+	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -120,17 +120,20 @@ var _ = BeforeEach(func() {
 	ghAuthClient = &authfakes.FakeGithubAuthClient{}
 	glAuthClient = &authfakes.FakeGitlabAuthClient{}
 	jwtClient = auth.NewJwtClient(secretKey)
+	fakeFetcherFactory := applicationv2fakes.NewFakeFetcherFactory(applicationv2.NewFetcher(k8sClient))
+	fakeClientGetter := kubefakes.NewFakeClientGetter(k8sClient)
+	fakeKubeGetter := kubefakes.NewFakeKubeGetter(k)
 
 	cfg := ApplicationsConfig{
 		Factory:          fakeFactory,
 		JwtClient:        jwtClient,
 		GithubAuthClient: ghAuthClient,
-		FetcherFactory:   NewFakeFetcherFactory(applicationv2.NewFetcher(k8sClient)),
+		FetcherFactory:   fakeFetcherFactory,
 		GitlabAuthClient: glAuthClient,
-		ClusterConfig:    ClusterConfig{},
+		ClusterConfig:    kube.ClusterConfig{},
 	}
 	apps = NewApplicationsServer(&cfg,
-		WithClientGetter(NewFakeClientGetter(k8sClient)), WithKubeGetter(NewFakeKubeGetter(k)))
+		WithClientGetter(fakeClientGetter), WithKubeGetter(fakeKubeGetter))
 	pb.RegisterApplicationsServer(s, apps)
 
 	go func() {

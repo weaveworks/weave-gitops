@@ -30,10 +30,11 @@ func main() {
 }
 
 const (
-	addr               = "0.0.0.0:8000"
-	metricsBindAddress = ":9980"
-	healthzBindAddress = ":9981"
-	watcherPort        = 9443
+	addr                    = "0.0.0.0:8000"
+	metricsBindAddress      = ":9980"
+	healthzBindAddress      = ":9981"
+	notificationBindAddress = "http://notification-controller./"
+	watcherPort             = 9443
 )
 
 func NewAPIServerCommand() *cobra.Command {
@@ -71,11 +72,12 @@ func NewAPIServerCommand() *cobra.Command {
 			}
 
 			profileWatcher, err := watcher.NewWatcher(watcher.Options{
-				KubeClient:         rawClient,
-				Cache:              profileCache,
-				MetricsBindAddress: metricsBindAddress,
-				HealthzBindAddress: healthzBindAddress,
-				WatcherPort:        watcherPort,
+				KubeClient:                    rawClient,
+				Cache:                         profileCache,
+				MetricsBindAddress:            metricsBindAddress,
+				HealthzBindAddress:            healthzBindAddress,
+				NotificationControllerAddress: notificationBindAddress,
+				WatcherPort:                   watcherPort,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to create watcher: %w", err)
@@ -88,7 +90,10 @@ func NewAPIServerCommand() *cobra.Command {
 				}
 			}()
 
-			profilesConfig := server.NewProfilesConfig(rawClient, profileCache, "default", "weaveworks-charts")
+			profilesConfig := server.NewProfilesConfig(kube.ClusterConfig{
+				DefaultConfig: rest,
+				ClusterName:   clusterName,
+			}, profileCache, "default", "weaveworks-charts")
 
 			s, err := server.NewHandlers(context.Background(), &server.Config{AppConfig: appConfig, ProfilesConfig: profilesConfig})
 			if err != nil {

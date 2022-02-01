@@ -31,9 +31,9 @@ func (r *actualFluxRunner) Run(command string, args ...string) ([]byte, error) {
 var _ = Describe("auth", func() {
 	var namespace *corev1.Namespace
 	repoUrlString := "ssh://git@github.com/my-org/my-repo.git"
-	configRepoUrl, err := gitproviders.NewRepoURL(repoUrlString, true)
+	configRepoUrl, err := gitproviders.NewRepoURL(repoUrlString)
 	Expect(err).NotTo(HaveOccurred())
-	repoUrl, err := gitproviders.NewRepoURL(repoUrlString, false)
+	repoUrl, err := gitproviders.NewRepoURL(repoUrlString)
 	Expect(err).NotTo(HaveOccurred())
 
 	BeforeEach(func() {
@@ -109,13 +109,5 @@ var _ = Describe("auth", func() {
 			Expect(gp.UploadDeployKeyCallCount()).To(Equal(1))
 		})
 
-		It("avoids deploying key for non config repos", func() {
-			gp.GetRepoVisibilityReturns(gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityPublic), nil)
-
-			_, err = as.CreateGitClient(ctx, repoUrl, namespace.Name, false)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(gp.UploadDeployKeyCallCount()).To(Equal(0))
-		})
 	})
 })

@@ -40,6 +40,22 @@ type FakeCache struct {
 		result1 []byte
 		result2 error
 	}
+	ListAvailableVersionsForProfileStub        func(context.Context, string, string, string) ([]string, error)
+	listAvailableVersionsForProfileMutex       sync.RWMutex
+	listAvailableVersionsForProfileArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 string
+	}
+	listAvailableVersionsForProfileReturns struct {
+		result1 []string
+		result2 error
+	}
+	listAvailableVersionsForProfileReturnsOnCall map[int]struct {
+		result1 []string
+		result2 error
+	}
 	ListProfilesStub        func(context.Context, string, string) ([]*profiles.Profile, error)
 	listProfilesMutex       sync.RWMutex
 	listProfilesArgsForCall []struct {
@@ -204,6 +220,73 @@ func (fake *FakeCache) GetProfileValuesReturnsOnCall(i int, result1 []byte, resu
 	}{result1, result2}
 }
 
+func (fake *FakeCache) ListAvailableVersionsForProfile(arg1 context.Context, arg2 string, arg3 string, arg4 string) ([]string, error) {
+	fake.listAvailableVersionsForProfileMutex.Lock()
+	ret, specificReturn := fake.listAvailableVersionsForProfileReturnsOnCall[len(fake.listAvailableVersionsForProfileArgsForCall)]
+	fake.listAvailableVersionsForProfileArgsForCall = append(fake.listAvailableVersionsForProfileArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 string
+	}{arg1, arg2, arg3, arg4})
+	stub := fake.ListAvailableVersionsForProfileStub
+	fakeReturns := fake.listAvailableVersionsForProfileReturns
+	fake.recordInvocation("ListAvailableVersionsForProfile", []interface{}{arg1, arg2, arg3, arg4})
+	fake.listAvailableVersionsForProfileMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeCache) ListAvailableVersionsForProfileCallCount() int {
+	fake.listAvailableVersionsForProfileMutex.RLock()
+	defer fake.listAvailableVersionsForProfileMutex.RUnlock()
+	return len(fake.listAvailableVersionsForProfileArgsForCall)
+}
+
+func (fake *FakeCache) ListAvailableVersionsForProfileCalls(stub func(context.Context, string, string, string) ([]string, error)) {
+	fake.listAvailableVersionsForProfileMutex.Lock()
+	defer fake.listAvailableVersionsForProfileMutex.Unlock()
+	fake.ListAvailableVersionsForProfileStub = stub
+}
+
+func (fake *FakeCache) ListAvailableVersionsForProfileArgsForCall(i int) (context.Context, string, string, string) {
+	fake.listAvailableVersionsForProfileMutex.RLock()
+	defer fake.listAvailableVersionsForProfileMutex.RUnlock()
+	argsForCall := fake.listAvailableVersionsForProfileArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+}
+
+func (fake *FakeCache) ListAvailableVersionsForProfileReturns(result1 []string, result2 error) {
+	fake.listAvailableVersionsForProfileMutex.Lock()
+	defer fake.listAvailableVersionsForProfileMutex.Unlock()
+	fake.ListAvailableVersionsForProfileStub = nil
+	fake.listAvailableVersionsForProfileReturns = struct {
+		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeCache) ListAvailableVersionsForProfileReturnsOnCall(i int, result1 []string, result2 error) {
+	fake.listAvailableVersionsForProfileMutex.Lock()
+	defer fake.listAvailableVersionsForProfileMutex.Unlock()
+	fake.ListAvailableVersionsForProfileStub = nil
+	if fake.listAvailableVersionsForProfileReturnsOnCall == nil {
+		fake.listAvailableVersionsForProfileReturnsOnCall = make(map[int]struct {
+			result1 []string
+			result2 error
+		})
+	}
+	fake.listAvailableVersionsForProfileReturnsOnCall[i] = struct {
+		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeCache) ListProfiles(arg1 context.Context, arg2 string, arg3 string) ([]*profiles.Profile, error) {
 	fake.listProfilesMutex.Lock()
 	ret, specificReturn := fake.listProfilesReturnsOnCall[len(fake.listProfilesArgsForCall)]
@@ -341,6 +424,8 @@ func (fake *FakeCache) Invocations() map[string][][]interface{} {
 	defer fake.deleteMutex.RUnlock()
 	fake.getProfileValuesMutex.RLock()
 	defer fake.getProfileValuesMutex.RUnlock()
+	fake.listAvailableVersionsForProfileMutex.RLock()
+	defer fake.listAvailableVersionsForProfileMutex.RUnlock()
 	fake.listProfilesMutex.RLock()
 	defer fake.listProfilesMutex.RUnlock()
 	fake.putMutex.RLock()

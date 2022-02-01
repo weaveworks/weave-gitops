@@ -17,16 +17,15 @@ const RepositoryURLProtocolHTTPS RepositoryURLProtocol = "https"
 const RepositoryURLProtocolSSH RepositoryURLProtocol = "ssh"
 
 type RepoURL struct {
-	repoName     string
-	owner        string
-	url          *url.URL
-	normalized   string
-	provider     GitProviderName
-	protocol     RepositoryURLProtocol
-	isConfigRepo bool
+	repoName   string
+	owner      string
+	url        *url.URL
+	normalized string
+	provider   GitProviderName
+	protocol   RepositoryURLProtocol
 }
 
-func NewRepoURL(uri string, isConfigRepo bool) (RepoURL, error) {
+func NewRepoURL(uri string) (RepoURL, error) {
 	providerName, err := detectGitProviderFromUrl(uri, ViperGetStringMapString("git-host-types"))
 	if err != nil {
 		return RepoURL{}, fmt.Errorf("could not get provider name from URL %s: %w", uri, err)
@@ -53,13 +52,12 @@ func NewRepoURL(uri string, isConfigRepo bool) (RepoURL, error) {
 	}
 
 	return RepoURL{
-		repoName:     utils.UrlToRepoName(uri),
-		owner:        owner,
-		url:          u,
-		normalized:   normalized,
-		provider:     providerName,
-		protocol:     protocol,
-		isConfigRepo: isConfigRepo,
+		repoName:   utils.UrlToRepoName(uri),
+		owner:      owner,
+		url:        u,
+		normalized: normalized,
+		provider:   providerName,
+		protocol:   protocol,
 	}, nil
 }
 
@@ -85,10 +83,6 @@ func (n RepoURL) Provider() GitProviderName {
 
 func (n RepoURL) Protocol() RepositoryURLProtocol {
 	return n.protocol
-}
-
-func (n RepoURL) IsConfigRepo() bool {
-	return n.isConfigRepo
 }
 
 func getOwnerFromUrl(url url.URL, providerName GitProviderName) (string, error) {

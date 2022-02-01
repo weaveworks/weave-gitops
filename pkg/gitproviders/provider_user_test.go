@@ -46,7 +46,7 @@ var _ = Describe("User Provider", func() {
 		}
 
 		var err error
-		repoUrl, err = NewRepoURL("http://github.com/owner/repo-name", false)
+		repoUrl, err = NewRepoURL("http://github.com/owner/repo-name")
 		Expect(err).ToNot(HaveOccurred())
 	})
 

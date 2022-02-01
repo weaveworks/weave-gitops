@@ -11,22 +11,18 @@ import (
 	"strings"
 
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
-	"go.uber.org/zap"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
-
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
-
+	grpcruntime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
-
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	grpcruntime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"go.uber.org/zap"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/metadata"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -39,10 +35,10 @@ type ProfilesConfig struct {
 	helmRepoNamespace string
 	helmRepoName      string
 	helmCache         cache.Cache
-	kubeClient        client.Client
+	clusterConfig     kube.ClusterConfig
 }
 
-func NewProfilesConfig(kubeClient client.Client, helmCache cache.Cache, helmRepoNamespace, helmRepoName string) ProfilesConfig {
+func NewProfilesConfig(clusterConfig kube.ClusterConfig, helmCache cache.Cache, helmRepoNamespace, helmRepoName string) ProfilesConfig {
 	zapLog, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatalf("could not create zap logger: %v", err)
@@ -52,34 +48,42 @@ func NewProfilesConfig(kubeClient client.Client, helmCache cache.Cache, helmRepo
 		logr:              zapr.NewLogger(zapLog),
 		helmRepoNamespace: helmRepoNamespace,
 		helmRepoName:      helmRepoName,
-		kubeClient:        kubeClient,
 		helmCache:         helmCache,
+		clusterConfig:     clusterConfig,
 	}
 }
 
 type ProfilesServer struct {
 	pb.UnimplementedProfilesServer
 
-	KubeClient        client.Client
 	Log               logr.Logger
 	HelmRepoName      string
 	HelmRepoNamespace string
 	HelmCache         cache.Cache
+	ClientGetter      kube.ClientGetter
 }
 
 func NewProfilesServer(config ProfilesConfig) pb.ProfilesServer {
+	configGetter := NewImpersonatingConfigGetter(config.clusterConfig.DefaultConfig, false)
+	clientGetter := kube.NewDefaultClientGetter(configGetter, config.clusterConfig.ClusterName)
+
 	return &ProfilesServer{
 		Log:               config.logr,
 		HelmRepoNamespace: config.helmRepoNamespace,
 		HelmRepoName:      config.helmRepoName,
 		HelmCache:         config.helmCache,
-		KubeClient:        config.kubeClient,
+		ClientGetter:      clientGetter,
 	}
 }
 
 func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesRequest) (*pb.GetProfilesResponse, error) {
+	kubeClient, err := s.ClientGetter.Client(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get a Kubernetes client: %w", err)
+	}
+
 	helmRepo := &sourcev1beta1.HelmRepository{}
-	err := s.KubeClient.Get(ctx, client.ObjectKey{
+	err = kubeClient.Get(ctx, client.ObjectKey{
 		Name:      s.HelmRepoName,
 		Namespace: s.HelmRepoNamespace,
 	}, helmRepo)
@@ -116,8 +120,13 @@ func (s *ProfilesServer) GetProfiles(ctx context.Context, msg *pb.GetProfilesReq
 }
 
 func (s *ProfilesServer) GetProfileValues(ctx context.Context, msg *pb.GetProfileValuesRequest) (*httpbody.HttpBody, error) {
+	kubeClient, err := s.ClientGetter.Client(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get a Kubernetes client: %w", err)
+	}
+
 	helmRepo := &sourcev1beta1.HelmRepository{}
-	err := s.KubeClient.Get(ctx, client.ObjectKey{
+	err = kubeClient.Get(ctx, client.ObjectKey{
 		Name:      s.HelmRepoName,
 		Namespace: s.HelmRepoNamespace,
 	}, helmRepo)

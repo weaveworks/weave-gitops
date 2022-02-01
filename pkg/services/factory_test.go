@@ -9,7 +9,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
-	"github.com/weaveworks/weave-gitops/pkg/services/app"
 )
 
 var _ = Describe("Services factory", func() {
@@ -36,28 +35,7 @@ var _ = Describe("Services factory", func() {
 
 			Expect(gitClient).To(BeNil())
 			Expect(gitProvider).To(BeNil())
-			Expect(err.Error()).To(MatchRegexp("error normalizing url*."))
-		})
-
-		It("config is for a helm repository", func() {
-			gitClient, gitProvider, err := factory.GetGitClients(ctx, fakeKube, fakeClient, GitConfigParams{
-				IsHelmRepository: true,
-			})
-
-			Expect(gitClient).To(BeNil())
-			Expect(gitProvider).To(BeNil())
-			Expect(err).To(BeNil())
-		})
-
-		It("app add params is helm chart", func() {
-			params := app.AddParams{Chart: "this-chart"}
-			gitClient, gitProvider, err := factory.GetGitClients(ctx, fakeKube, fakeClient, GitConfigParams{
-				IsHelmRepository: params.IsHelmRepository(),
-			})
-
-			Expect(gitClient).To(BeNil())
-			Expect(gitProvider).To(BeNil())
-			Expect(err).To(BeNil())
+			Expect(err.Error()).To(MatchRegexp("error normalizing config url*."))
 		})
 
 		It("config type user repo and empty url return error", func() {
@@ -68,7 +46,7 @@ var _ = Describe("Services factory", func() {
 
 			Expect(gitClient).To(BeNil())
 			Expect(gitProvider).To(BeNil())
-			Expect(err.Error()).To(MatchRegexp("error normalizing url*."))
+			Expect(err.Error()).To(MatchRegexp("error normalizing config url*."))
 		})
 	})
 })

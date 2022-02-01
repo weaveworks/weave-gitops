@@ -65,7 +65,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	ctx := context.Background()
 	namespace, _ := cmd.Parent().Flags().GetString("namespace")
 
-	configURL, err := gitproviders.NewRepoURL(installParams.ConfigRepo, true)
+	configURL, err := gitproviders.NewRepoURL(installParams.ConfigRepo)
 	if err != nil {
 		return err
 	}

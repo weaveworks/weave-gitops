@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
@@ -62,58 +62,45 @@ func (f *defaultFactory) GetAppService(ctx context.Context, kubeClient kube.Kube
 }
 
 func (f *defaultFactory) GetGitClients(ctx context.Context, kubeClient kube.Kube, gpClient gitproviders.Client, params GitConfigParams) (git.Git, gitproviders.GitProvider, error) {
-	isExternalConfig := models.IsExternalConfigRepo(params.ConfigRepo)
-
-	var providerUrl string
-
-	switch {
-	case !params.IsHelmRepository:
-		providerUrl = params.URL
-	case isExternalConfig:
-		providerUrl = params.ConfigRepo
-	default:
-		return nil, nil, nil
-	}
-
-	normalizedUrl, err := gitproviders.NewRepoURL(providerUrl, false)
+	configNormalizedUrl, err := gitproviders.NewRepoURL(params.ConfigRepo)
 	if err != nil {
-		return nil, nil, fmt.Errorf("error normalizing url: %w", err)
+		return nil, nil, fmt.Errorf("error normalizing config url: %w", err)
 	}
 
-	authSvc, err := f.getAuthService(kubeClient, normalizedUrl, gpClient, params.DryRun)
+	authSvc, err := f.getAuthService(kubeClient, configNormalizedUrl, gpClient, params.DryRun)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error getting auth service: %w", err)
 	}
 
-	var appClient, configClient git.Git
-
-	if !params.IsHelmRepository {
-		// We need to do this even if we have an external config to set up the deploy key for the app repo
-		appRepoClient, appRepoErr := authSvc.CreateGitClient(ctx, normalizedUrl, params.Namespace, params.DryRun)
-		if appRepoErr != nil {
-			return nil, nil, appRepoErr
-		}
-
-		appClient = appRepoClient
-	}
-
-	if isExternalConfig {
-		normalizedConfigRepo, err := gitproviders.NewRepoURL(params.ConfigRepo, true)
+	// Do not add deploy key for helm repo, empty url or if its gonna be added below
+	if !params.IsHelmRepository && params.URL != "" && params.URL != params.ConfigRepo {
+		normalizedUrl, err := gitproviders.NewRepoURL(params.URL)
 		if err != nil {
 			return nil, nil, fmt.Errorf("error normalizing url: %w", err)
 		}
 
-		configRepoClient, configRepoErr := authSvc.CreateGitClient(ctx, normalizedConfigRepo, params.Namespace, params.DryRun)
-		if configRepoErr != nil {
-			return nil, nil, configRepoErr
+		provider := authSvc.GetGitProvider()
+
+		repoVisibility, err := provider.GetRepoVisibility(ctx, normalizedUrl)
+		if err != nil {
+			return nil, nil, fmt.Errorf("error getting repo visibility: %w", err)
 		}
 
-		configClient = configRepoClient
-	} else {
-		configClient = appClient
+		// Do not add deploy key for public repo. Issue https://github.com/weaveworks/weave-gitops/issues/1111
+		if *repoVisibility == gitprovider.RepositoryVisibilityPrivate {
+			_, err = authSvc.SetupDeployKey(ctx, params.Namespace, normalizedUrl)
+			if err != nil {
+				return nil, nil, fmt.Errorf("error setting up deploy key: %w", err)
+			}
+		}
 	}
 
-	return configClient, authSvc.GetGitProvider(), nil
+	client, err := authSvc.CreateGitClient(ctx, configNormalizedUrl, params.Namespace, params.DryRun)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return client, authSvc.GetGitProvider(), nil
 }
 
 func (f *defaultFactory) getAuthService(kubeClient kube.Kube, normalizedUrl gitproviders.RepoURL, gpClient gitproviders.Client, dryRun bool) (auth.AuthService, error) {

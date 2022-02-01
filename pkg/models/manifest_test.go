@@ -35,11 +35,12 @@ var _ = Describe("Installer", func() {
 	var err error
 	var ctx context.Context
 	var _ = BeforeEach(func() {
+		params.ConfigRepo, err = gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo")
 		ctx = context.Background()
 
 		fakeFluxClient = &fluxfakes.FakeFlux{}
 		fakeGitProvider = &gitprovidersfakes.FakeGitProvider{}
-		params.ConfigRepo, err = gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo", true)
+		params.ConfigRepo, err = gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo")
 
 		Expect(err).ShouldNot(HaveOccurred())
 		fakeKubeClient = &kubefakes.FakeKube{}
@@ -157,7 +158,7 @@ var _ = Describe("Installer", func() {
 	Context("NoClusterApplicableManifests", func() {
 		BeforeEach(func() {
 
-			configRepo, err := gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo", true)
+			configRepo, err := gitproviders.NewRepoURL("ssh://git@github.com/test-user/test-repo")
 			Expect(err).ShouldNot(HaveOccurred())
 
 			params = ManifestsParams{

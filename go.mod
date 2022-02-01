@@ -11,7 +11,7 @@ require (
 	github.com/fluxcd/helm-controller/api v0.14.1
 	github.com/fluxcd/kustomize-controller/api v0.18.2
 	github.com/fluxcd/pkg/apis/meta v0.10.1
-	github.com/fluxcd/pkg/runtime v0.12.2 // indirect
+	github.com/fluxcd/pkg/runtime v0.12.2
 	github.com/fluxcd/pkg/ssa v0.6.0
 	github.com/fluxcd/source-controller v0.19.2
 	github.com/fluxcd/source-controller/api v0.19.2
@@ -100,7 +100,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
-	github.com/containerd/containerd v1.5.7 // indirect
+	github.com/containerd/containerd v1.5.9 // indirect
 	github.com/containerd/continuity v0.1.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
@@ -179,7 +179,7 @@ require (
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/opencontainers/image-spec v1.0.1 // indirect
+	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/opencontainers/runc v1.0.2 // indirect
 	github.com/ory/viper v1.7.5 // indirect
 	github.com/pborman/uuid v1.2.0 // indirect
@@ -242,10 +242,12 @@ require (
 )
 
 // fix CVE-2021-41103
-replace github.com/containerd/containerd => github.com/containerd/containerd v1.5.8
+// fix GHSA-mvff-h3cj-wj9c
+replace github.com/containerd/containerd => github.com/containerd/containerd v1.5.9
 
 // fix CVE-2021-30465
-replace github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.2
+// fix GHSA-v95c-p5hm-xq8f
+replace github.com/opencontainers/runc => github.com/opencontainers/runc v1.0.3
 
 // https://github.com/gorilla/websocket/security/advisories/GHSA-jf24-p9p9-4rjh
 replace github.com/gorilla/websocket v0.0.0 => github.com/gorilla/websocket v1.4.1

@@ -71,7 +71,7 @@ var _ = DescribeTable("NewRepoURL", func(input, gitProviderEnv string, expected 
 	if gitProviderEnv != "" {
 		viper.Set("git-host-types", gitProviderEnv)
 	}
-	result, err := NewRepoURL(input, false)
+	result, err := NewRepoURL(input)
 	Expect(err).NotTo(HaveOccurred())
 
 	Expect(result.String()).To(Equal(expected.s))
