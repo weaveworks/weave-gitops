@@ -28,14 +28,24 @@ import ApplicationRemove from "./pages/ApplicationRemove";
 import Applications from "./pages/Applications";
 import Error from "./pages/Error";
 import OAuthCallback from "./pages/OAuthCallback";
+import AddAutomation from "./pages/v2/AddAutomation";
 import AddGitRepo from "./pages/v2/AddGitRepo";
 import AddKustomization from "./pages/v2/AddKustomization";
 import AddSource from "./pages/v2/AddSource";
 import Application from "./pages/v2/Application/Application";
 import ApplicationList from "./pages/v2/ApplicationList/ApplicationList";
+import KustomizationList from "./pages/v2/KustomizationList";
 import NewApp from "./pages/v2/NewApp";
 
 const queryClient = new QueryClient();
+
+const withAppName =
+  (Cmp) =>
+  ({ location, ...rest }) => {
+    const params = qs.parse(location.search);
+
+    return <Cmp appName={params.appName as string} {...rest} />;
+  };
 
 export default function App() {
   return (
@@ -122,26 +132,27 @@ export default function App() {
                     <Route
                       exact
                       path={V2Routes.AddKustomization}
-                      component={({ location }) => {
-                        const params = qs.parse(location.search);
-
-                        return (
-                          <AddKustomization
-                            appName={params.appName as string}
-                            query={params}
-                          />
-                        );
-                      }}
+                      component={withAppName(AddKustomization)}
                     />
                     <Route
                       exact
                       path={V2Routes.AddSource}
-                      component={AddSource}
+                      component={withAppName(AddSource)}
                     />
                     <Route
                       exact
                       path={V2Routes.AddGitRepo}
-                      component={AddGitRepo}
+                      component={withAppName(AddGitRepo)}
+                    />
+                    <Route
+                      exact
+                      path={V2Routes.AddAutomation}
+                      component={withAppName(AddAutomation)}
+                    />
+                    <Route
+                      exact
+                      path={V2Routes.KustomizationList}
+                      component={KustomizationList}
                     />
                     <Redirect exact from="/" to={V2Routes.ApplicationList} />
                     <Route exact path="*" component={Error} />

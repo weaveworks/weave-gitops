@@ -1,3 +1,6 @@
+import { SourceType } from "./api/app/source.pb";
+import { AutomationKind } from "./api/applications/applications.pb";
+
 export enum PageRoute {
   Applications = "/applications",
   ApplicationDetail = "/application_detail",
@@ -27,6 +30,20 @@ export enum V2Routes {
   AddHelmRepo = "/add_helm_repo",
   AddBucket = "/add_bucket",
   Kustomization = "/kustomization",
+  HelmRepo = "/helm_repo",
+  Source = "/source",
+  AddAutomation = "/add_automation",
+  KustomizationList = "/kustomization_list",
 }
 
 export const WeGONamespace = "wego-system";
+
+export interface Source {
+  name: string;
+  type: SourceType;
+}
+
+export interface Automation {
+  name: string;
+  type: AutomationKind;
+}

@@ -1,18 +1,19 @@
+import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
+import AutomationsTable from "../../../components/AutomationsTable";
 import Button from "../../../components/Button";
-import DataTable from "../../../components/DataTable";
 import FancyCard from "../../../components/FancyCard";
-import Link from "../../../components/Link";
 import Page from "../../../components/Page";
+import SourcesTable from "../../../components/SourcesTable";
 import Spacer from "../../../components/Spacer";
 import Text from "../../../components/Text";
 import { AppContext } from "../../../contexts/AppContext";
 import { useGetApplication, useRemoveApp } from "../../../hooks/apps";
 import { useGetKustomizations } from "../../../hooks/kustomizations";
+import { useListSources } from "../../../hooks/sources";
+import { AutomationKind } from "../../../lib/api/applications/applications.pb";
 import { V2Routes, WeGONamespace } from "../../../lib/types";
-import { formatURL } from "../../../lib/utils";
-import EmptyApplication from "./EmptyApplication";
 
 type Props = {
   className?: string;
@@ -20,61 +21,32 @@ type Props = {
   namespace: string;
 };
 
-function Kustomizations({ kustomizations }) {
-  return (
-    <>
-      <div>
-        <h3>Kustomizations</h3>
-      </div>
-      <DataTable
-        sortFields={["name"]}
-        fields={[
-          {
-            label: "Name",
-            value: (k) => (
-              <Link
-                to={formatURL(V2Routes.Kustomization, {
-                  name: k.name,
-                  namespace: k.namespace,
-                })}
-              >
-                {k.name}
-              </Link>
-            ),
-          },
-          {
-            label: "Namespace",
-            value: "namespace",
-          },
-        ]}
-        rows={kustomizations}
-      />
-    </>
-  );
-}
-
 function Application({ className, name, namespace = WeGONamespace }: Props) {
   const { navigate } = React.useContext(AppContext);
-  const { data } = useGetApplication(name);
+  const { data, error } = useGetApplication(name);
   const {
     data: kustomizationRes,
     isLoading,
-    error,
+    error: kustErr,
   } = useGetKustomizations(name, namespace);
+  const { data: sources, error: sourcesErr } = useListSources(name, namespace);
   const remove = useRemoveApp();
 
   const handleRemove = () => {
-    remove.mutateAsync({ name: data?.app.name || name }).then(() => {
+    remove.mutateAsync({ name: data?.app.name || name, namespace }).then(() => {
       navigate.internal(V2Routes.ApplicationList);
     });
   };
 
   const kustomizations = kustomizationRes?.kustomizations;
 
+  const errArray = _.compact([error, kustErr, sourcesErr]);
+  const isError = errArray.length > 0;
+
   return (
     <Page
       className={className}
-      error={error}
+      error={isError ? errArray : null}
       loading={isLoading}
       title={name}
       actions={
@@ -88,11 +60,16 @@ function Application({ className, name, namespace = WeGONamespace }: Props) {
       </div>
 
       <Spacer m={["small"]}>
-        {kustomizations?.length > 0 ? (
-          <Kustomizations kustomizations={kustomizations} />
-        ) : (
-          <EmptyApplication appName={name} />
-        )}
+        <AutomationsTable
+          automations={_.map(kustomizations, (k) => ({
+            name: k.name,
+            type: AutomationKind.Kustomize,
+          }))}
+          appName={name}
+        />
+      </Spacer>
+      <Spacer m={["small"]}>
+        <SourcesTable appName={name} sources={sources} />
       </Spacer>
     </Page>
   );

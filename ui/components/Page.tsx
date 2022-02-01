@@ -19,7 +19,7 @@ export type PageProps = {
   breadcrumbs?: { page: PageRoute; query?: any }[];
   actions?: JSX.Element;
   loading?: boolean;
-  error?: RequestError;
+  error?: RequestError | RequestError[];
 };
 
 export const Content = styled.div`
@@ -62,6 +62,19 @@ function pageLookup(p: PageRoute) {
   }
 }
 
+function Errors({ error }) {
+  const arr = _.isArray(error) ? error : [error];
+  return (
+    <>
+      {_.map(arr, (e, i) => (
+        <Flex key={i} center wide>
+          <Alert title="Error" message={e?.message} severity="error" />
+        </Flex>
+      ))}
+    </>
+  );
+}
+
 function Page({
   className,
   children,
@@ -96,11 +109,7 @@ function Page({
           </Breadcrumbs>
           {actions}
         </TitleBar>
-        {error && (
-          <Flex center wide>
-            <Alert title="Error" message={error.message} severity="error" />
-          </Flex>
-        )}
+        {error && <Errors error={error} />}
         <Spacer m={["small"]} />
         <Children>{children}</Children>
       </Content>
