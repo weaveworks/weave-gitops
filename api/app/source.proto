@@ -194,3 +194,30 @@ message ListBucketReq {
 message ListBucketRes {
   repeated Bucket buckets = 1;
 }
+message HelmRelease {
+  string release_name = 1;
+  string namespace = 2;
+  string name = 3;
+  Interval interval = 4;
+  HelmChart helm_chart = 5;
+}
+
+message AddHelmReleaseReq {
+  string app_name = 1;
+  string namespace = 2;
+  HelmRelease helm_release = 3;
+}
+
+message AddHelmReleaseRes {
+  bool success = 1;
+  HelmRelease helm_release = 2;
+}
+
+message ListHelmReleaseReq {
+  string namespace = 1;
+  string app_name = 2;
+}
+
+message ListHelmReleaseRes {
+  repeated HelmRelease helm_releases = 1;
+}

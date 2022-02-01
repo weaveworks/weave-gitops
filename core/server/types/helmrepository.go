@@ -9,8 +9,6 @@ import (
 )
 
 func ProtoToHelmRepository(helmRepositoryReq *pb.AddHelmRepositoryReq) v1beta1.HelmRepository {
-	labels := getGitopsLabelMap(helmRepositoryReq.AppName)
-
 	return v1beta1.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       v1beta1.HelmRepositoryKind,
@@ -19,7 +17,7 @@ func ProtoToHelmRepository(helmRepositoryReq *pb.AddHelmRepositoryReq) v1beta1.H
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      helmRepositoryReq.Name,
 			Namespace: helmRepositoryReq.Namespace,
-			Labels:    labels,
+			Labels:    getGitopsLabelMap(helmRepositoryReq.AppName),
 		},
 		Spec: v1beta1.HelmRepositorySpec{
 			URL:      helmRepositoryReq.Url,
@@ -31,7 +29,7 @@ func ProtoToHelmRepository(helmRepositoryReq *pb.AddHelmRepositoryReq) v1beta1.H
 }
 
 func HelmRepositoryToProto(helmRepository *v1beta1.HelmRepository) *pb.HelmRepository {
-	hr := &pb.HelmRepository{
+	return &pb.HelmRepository{
 		Name:      helmRepository.Name,
 		Namespace: helmRepository.Namespace,
 		Url:       helmRepository.Spec.URL,
@@ -39,6 +37,4 @@ func HelmRepositoryToProto(helmRepository *v1beta1.HelmRepository) *pb.HelmRepos
 			Minutes: 1,
 		},
 	}
-
-	return hr
 }

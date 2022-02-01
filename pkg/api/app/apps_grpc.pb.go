@@ -63,6 +63,12 @@ type AppsClient interface {
 	//
 	// ListBuckets lists buckets from a cluster.
 	ListBuckets(ctx context.Context, in *ListBucketReq, opts ...grpc.CallOption) (*ListBucketRes, error)
+	//
+	// AddHelmRelease adds a helm release to a cluster.
+	AddHelmRelease(ctx context.Context, in *AddHelmReleaseReq, opts ...grpc.CallOption) (*AddHelmReleaseRes, error)
+	//
+	// ListHelmReleases lists helm releases from a cluster.
+	ListHelmReleases(ctx context.Context, in *ListHelmReleaseReq, opts ...grpc.CallOption) (*ListHelmReleaseRes, error)
 }
 
 type appsClient struct {
@@ -208,6 +214,24 @@ func (c *appsClient) ListBuckets(ctx context.Context, in *ListBucketReq, opts ..
 	return out, nil
 }
 
+func (c *appsClient) AddHelmRelease(ctx context.Context, in *AddHelmReleaseReq, opts ...grpc.CallOption) (*AddHelmReleaseRes, error) {
+	out := new(AddHelmReleaseRes)
+	err := c.cc.Invoke(ctx, "/gitops_server.v1.Apps/AddHelmRelease", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appsClient) ListHelmReleases(ctx context.Context, in *ListHelmReleaseReq, opts ...grpc.CallOption) (*ListHelmReleaseRes, error) {
+	out := new(ListHelmReleaseRes)
+	err := c.cc.Invoke(ctx, "/gitops_server.v1.Apps/ListHelmReleases", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AppsServer is the server API for Apps service.
 // All implementations must embed UnimplementedAppsServer
 // for forward compatibility
@@ -257,6 +281,12 @@ type AppsServer interface {
 	//
 	// ListBuckets lists buckets from a cluster.
 	ListBuckets(context.Context, *ListBucketReq) (*ListBucketRes, error)
+	//
+	// AddHelmRelease adds a helm release to a cluster.
+	AddHelmRelease(context.Context, *AddHelmReleaseReq) (*AddHelmReleaseRes, error)
+	//
+	// ListHelmReleases lists helm releases from a cluster.
+	ListHelmReleases(context.Context, *ListHelmReleaseReq) (*ListHelmReleaseRes, error)
 	mustEmbedUnimplementedAppsServer()
 }
 
@@ -308,6 +338,12 @@ func (UnimplementedAppsServer) AddBucket(context.Context, *AddBucketReq) (*AddBu
 }
 func (UnimplementedAppsServer) ListBuckets(context.Context, *ListBucketReq) (*ListBucketRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListBuckets not implemented")
+}
+func (UnimplementedAppsServer) AddHelmRelease(context.Context, *AddHelmReleaseReq) (*AddHelmReleaseRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddHelmRelease not implemented")
+}
+func (UnimplementedAppsServer) ListHelmReleases(context.Context, *ListHelmReleaseReq) (*ListHelmReleaseRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListHelmReleases not implemented")
 }
 func (UnimplementedAppsServer) mustEmbedUnimplementedAppsServer() {}
 
@@ -592,6 +628,42 @@ func _Apps_ListBuckets_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Apps_AddHelmRelease_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddHelmReleaseReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppsServer).AddHelmRelease(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_server.v1.Apps/AddHelmRelease",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppsServer).AddHelmRelease(ctx, req.(*AddHelmReleaseReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Apps_ListHelmReleases_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListHelmReleaseReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppsServer).ListHelmReleases(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_server.v1.Apps/ListHelmReleases",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppsServer).ListHelmReleases(ctx, req.(*ListHelmReleaseReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Apps_ServiceDesc is the grpc.ServiceDesc for Apps service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -658,6 +730,14 @@ var Apps_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListBuckets",
 			Handler:    _Apps_ListBuckets_Handler,
+		},
+		{
+			MethodName: "AddHelmRelease",
+			Handler:    _Apps_AddHelmRelease_Handler,
+		},
+		{
+			MethodName: "ListHelmReleases",
+			Handler:    _Apps_ListHelmReleases_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

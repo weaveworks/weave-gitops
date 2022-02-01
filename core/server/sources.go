@@ -3,6 +3,8 @@ package server
 import (
 	"context"
 
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
@@ -188,5 +190,51 @@ func (as *appServer) ListBuckets(ctx context.Context, msg *pb.ListBucketReq) (*p
 
 	return &pb.ListBucketRes{
 		Buckets: results,
+	}, nil
+}
+
+func (as *appServer) AddHelmRelease(ctx context.Context, msg *pb.AddHelmReleaseReq) (*pb.AddHelmReleaseRes, error) {
+	k8s, err := as.k8s.Client(ctx)
+	if err != nil {
+		return nil, doClientError(err)
+	}
+
+	src := types.ProtoToHelmRelease(msg)
+
+	if err := k8s.Create(ctx, &src); err != nil {
+		return nil, status.Errorf(codes.Internal, "creating helm release %q: %s", msg.HelmRelease.Name, err.Error())
+	}
+
+	return &pb.AddHelmReleaseRes{
+		Success:     true,
+		HelmRelease: types.HelmReleaseToProto(&src),
+	}, nil
+}
+
+func (as *appServer) ListHelmReleases(ctx context.Context, msg *pb.ListHelmReleaseReq) (*pb.ListHelmReleaseRes, error) {
+	k8s, err := as.k8s.Client(ctx)
+	if err != nil {
+		return nil, doClientError(err)
+	}
+
+	list := &helmv2.HelmReleaseList{}
+
+	opts := getMatchingLabels(msg.AppName)
+
+	if err := k8s.List(ctx, list, &opts, client.InNamespace(msg.Namespace)); err != nil {
+		return nil, status.Errorf(codes.Internal, "unable to list helm releases for app %s: %s", msg.AppName, err.Error())
+	}
+
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "unable to get helm repository list: %s", err.Error())
+	}
+
+	var results []*pb.HelmRelease
+	for _, repository := range list.Items {
+		results = append(results, types.HelmReleaseToProto(&repository))
+	}
+
+	return &pb.ListHelmReleaseRes{
+		HelmReleases: results,
 	}, nil
 }

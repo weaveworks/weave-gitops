@@ -195,3 +195,31 @@ export type ListBucketReq = {
 export type ListBucketRes = {
   buckets?: Bucket[]
 }
+
+export type HelmRelease = {
+  releaseName?: string
+  namespace?: string
+  name?: string
+  interval?: Interval
+  helmChart?: HelmChart
+}
+
+export type AddHelmReleaseReq = {
+  appName?: string
+  namespace?: string
+  helmRelease?: HelmRelease
+}
+
+export type AddHelmReleaseRes = {
+  success?: boolean
+  helmRelease?: HelmRelease
+}
+
+export type ListHelmReleaseReq = {
+  namespace?: string
+  appName?: string
+}
+
+export type ListHelmReleaseRes = {
+  helmReleases?: HelmRelease[]
+}
