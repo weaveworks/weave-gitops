@@ -188,4 +188,23 @@ service Apps {
       get : "/v1/namespace/{namespace}/app/{app_name}/helmchart"
     };
   }
+
+  /*
+* AddBucket adds a bucket source to a cluster.
+*/
+  rpc AddBucket(AddBucketReq) returns (AddBucketRes) {
+    option (google.api.http) = {
+      post : "/v1/namespace/{namespace}/app/{app_name}/bucket"
+      body: "*"
+    };
+  }
+
+  /*
+    * ListBuckets lists buckets from a cluster.
+    */
+  rpc ListBuckets(ListBucketReq) returns (ListBucketRes) {
+    option (google.api.http) = {
+      get : "/v1/namespace/{namespace}/app/{app_name}/bucket"
+    };
+  }
 }

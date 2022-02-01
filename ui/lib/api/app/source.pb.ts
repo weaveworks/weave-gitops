@@ -17,6 +17,12 @@ export enum SourceType {
   Chart = "Chart",
 }
 
+export enum BucketProvider {
+  Generic = "Generic",
+  AWS = "AWS",
+  GCP = "GCP",
+}
+
 export type Interval = {
   hours?: string
   minutes?: string
@@ -156,4 +162,36 @@ export type ListHelmChartReq = {
 
 export type ListHelmChartRes = {
   helmCharts?: HelmChart[]
+}
+
+export type Bucket = {
+  namespace?: string
+  name?: string
+  endpoint?: string
+  insecure?: boolean
+  interval?: Interval
+  provider?: BucketProvider
+  region?: string
+  secretRefName?: string
+  timeout?: number
+}
+
+export type AddBucketReq = {
+  appName?: string
+  namespace?: string
+  bucket?: Bucket
+}
+
+export type AddBucketRes = {
+  success?: boolean
+  bucket?: Bucket
+}
+
+export type ListBucketReq = {
+  namespace?: string
+  appName?: string
+}
+
+export type ListBucketRes = {
+  buckets?: Bucket[]
 }

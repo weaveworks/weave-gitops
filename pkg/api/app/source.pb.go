@@ -121,6 +121,55 @@ func (Source_Type) EnumDescriptor() ([]byte, []int) {
 	return file_api_app_source_proto_rawDescGZIP(), []int{5, 0}
 }
 
+type Bucket_Provider int32
+
+const (
+	Bucket_Generic Bucket_Provider = 0
+	Bucket_AWS     Bucket_Provider = 1
+	Bucket_GCP     Bucket_Provider = 2
+)
+
+// Enum value maps for Bucket_Provider.
+var (
+	Bucket_Provider_name = map[int32]string{
+		0: "Generic",
+		1: "AWS",
+		2: "GCP",
+	}
+	Bucket_Provider_value = map[string]int32{
+		"Generic": 0,
+		"AWS":     1,
+		"GCP":     2,
+	}
+)
+
+func (x Bucket_Provider) Enum() *Bucket_Provider {
+	p := new(Bucket_Provider)
+	*p = x
+	return p
+}
+
+func (x Bucket_Provider) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Bucket_Provider) Descriptor() protoreflect.EnumDescriptor {
+	return file_api_app_source_proto_enumTypes[2].Descriptor()
+}
+
+func (Bucket_Provider) Type() protoreflect.EnumType {
+	return &file_api_app_source_proto_enumTypes[2]
+}
+
+func (x Bucket_Provider) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Bucket_Provider.Descriptor instead.
+func (Bucket_Provider) EnumDescriptor() ([]byte, []int) {
+	return file_api_app_source_proto_rawDescGZIP(), []int{21, 0}
+}
+
 type Interval struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1565,6 +1614,338 @@ func (x *ListHelmChartRes) GetHelmCharts() []*HelmChart {
 	return nil
 }
 
+// Bucket
+type Bucket struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Namespace     string          `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Name          string          `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Endpoint      string          `protobuf:"bytes,3,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
+	Insecure      bool            `protobuf:"varint,4,opt,name=insecure,proto3" json:"insecure,omitempty"`
+	Interval      *Interval       `protobuf:"bytes,5,opt,name=interval,proto3" json:"interval,omitempty"`
+	Provider      Bucket_Provider `protobuf:"varint,6,opt,name=provider,proto3,enum=gitops_server.v1.Bucket_Provider" json:"provider,omitempty"`
+	Region        string          `protobuf:"bytes,7,opt,name=region,proto3" json:"region,omitempty"`
+	SecretRefName string          `protobuf:"bytes,8,opt,name=secretRefName,proto3" json:"secretRefName,omitempty"`
+	Timeout       int32           `protobuf:"varint,9,opt,name=timeout,proto3" json:"timeout,omitempty"`
+}
+
+func (x *Bucket) Reset() {
+	*x = Bucket{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_app_source_proto_msgTypes[21]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Bucket) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Bucket) ProtoMessage() {}
+
+func (x *Bucket) ProtoReflect() protoreflect.Message {
+	mi := &file_api_app_source_proto_msgTypes[21]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Bucket.ProtoReflect.Descriptor instead.
+func (*Bucket) Descriptor() ([]byte, []int) {
+	return file_api_app_source_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *Bucket) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *Bucket) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Bucket) GetEndpoint() string {
+	if x != nil {
+		return x.Endpoint
+	}
+	return ""
+}
+
+func (x *Bucket) GetInsecure() bool {
+	if x != nil {
+		return x.Insecure
+	}
+	return false
+}
+
+func (x *Bucket) GetInterval() *Interval {
+	if x != nil {
+		return x.Interval
+	}
+	return nil
+}
+
+func (x *Bucket) GetProvider() Bucket_Provider {
+	if x != nil {
+		return x.Provider
+	}
+	return Bucket_Generic
+}
+
+func (x *Bucket) GetRegion() string {
+	if x != nil {
+		return x.Region
+	}
+	return ""
+}
+
+func (x *Bucket) GetSecretRefName() string {
+	if x != nil {
+		return x.SecretRefName
+	}
+	return ""
+}
+
+func (x *Bucket) GetTimeout() int32 {
+	if x != nil {
+		return x.Timeout
+	}
+	return 0
+}
+
+type AddBucketReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	AppName   string  `protobuf:"bytes,1,opt,name=app_name,json=appName,proto3" json:"app_name,omitempty"`
+	Namespace string  `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Bucket    *Bucket `protobuf:"bytes,3,opt,name=bucket,proto3" json:"bucket,omitempty"`
+}
+
+func (x *AddBucketReq) Reset() {
+	*x = AddBucketReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_app_source_proto_msgTypes[22]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AddBucketReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddBucketReq) ProtoMessage() {}
+
+func (x *AddBucketReq) ProtoReflect() protoreflect.Message {
+	mi := &file_api_app_source_proto_msgTypes[22]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddBucketReq.ProtoReflect.Descriptor instead.
+func (*AddBucketReq) Descriptor() ([]byte, []int) {
+	return file_api_app_source_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *AddBucketReq) GetAppName() string {
+	if x != nil {
+		return x.AppName
+	}
+	return ""
+}
+
+func (x *AddBucketReq) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *AddBucketReq) GetBucket() *Bucket {
+	if x != nil {
+		return x.Bucket
+	}
+	return nil
+}
+
+type AddBucketRes struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Success bool    `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Bucket  *Bucket `protobuf:"bytes,2,opt,name=bucket,proto3" json:"bucket,omitempty"`
+}
+
+func (x *AddBucketRes) Reset() {
+	*x = AddBucketRes{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_app_source_proto_msgTypes[23]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *AddBucketRes) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddBucketRes) ProtoMessage() {}
+
+func (x *AddBucketRes) ProtoReflect() protoreflect.Message {
+	mi := &file_api_app_source_proto_msgTypes[23]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddBucketRes.ProtoReflect.Descriptor instead.
+func (*AddBucketRes) Descriptor() ([]byte, []int) {
+	return file_api_app_source_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *AddBucketRes) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *AddBucketRes) GetBucket() *Bucket {
+	if x != nil {
+		return x.Bucket
+	}
+	return nil
+}
+
+type ListBucketReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Namespace string `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	AppName   string `protobuf:"bytes,2,opt,name=app_name,json=appName,proto3" json:"app_name,omitempty"`
+}
+
+func (x *ListBucketReq) Reset() {
+	*x = ListBucketReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_app_source_proto_msgTypes[24]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListBucketReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBucketReq) ProtoMessage() {}
+
+func (x *ListBucketReq) ProtoReflect() protoreflect.Message {
+	mi := &file_api_app_source_proto_msgTypes[24]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBucketReq.ProtoReflect.Descriptor instead.
+func (*ListBucketReq) Descriptor() ([]byte, []int) {
+	return file_api_app_source_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *ListBucketReq) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *ListBucketReq) GetAppName() string {
+	if x != nil {
+		return x.AppName
+	}
+	return ""
+}
+
+type ListBucketRes struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Buckets []*Bucket `protobuf:"bytes,1,rep,name=buckets,proto3" json:"buckets,omitempty"`
+}
+
+func (x *ListBucketRes) Reset() {
+	*x = ListBucketRes{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_app_source_proto_msgTypes[25]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListBucketRes) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBucketRes) ProtoMessage() {}
+
+func (x *ListBucketRes) ProtoReflect() protoreflect.Message {
+	mi := &file_api_app_source_proto_msgTypes[25]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBucketRes.ProtoReflect.Descriptor instead.
+func (*ListBucketRes) Descriptor() ([]byte, []int) {
+	return file_api_app_source_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *ListBucketRes) GetBuckets() []*Bucket {
+	if x != nil {
+		return x.Buckets
+	}
+	return nil
+}
+
 var File_api_app_source_proto protoreflect.FileDescriptor
 
 var file_api_app_source_proto_rawDesc = []byte{
@@ -1773,11 +2154,56 @@ var file_api_app_source_proto_rawDesc = []byte{
 	0x0b, 0x68, 0x65, 0x6c, 0x6d, 0x5f, 0x63, 0x68, 0x61, 0x72, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03,
 	0x28, 0x0b, 0x32, 0x1b, 0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x73, 0x65, 0x72, 0x76,
 	0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x48, 0x65, 0x6c, 0x6d, 0x43, 0x68, 0x61, 0x72, 0x74, 0x52,
-	0x0a, 0x68, 0x65, 0x6c, 0x6d, 0x43, 0x68, 0x61, 0x72, 0x74, 0x73, 0x42, 0x32, 0x5a, 0x30, 0x67,
-	0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x77,
-	0x6f, 0x72, 0x6b, 0x73, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x2d, 0x67, 0x69, 0x74, 0x6f, 0x70,
-	0x73, 0x2f, 0x63, 0x6f, 0x72, 0x65, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x61, 0x70, 0x70, 0x73, 0x62,
-	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x0a, 0x68, 0x65, 0x6c, 0x6d, 0x43, 0x68, 0x61, 0x72, 0x74, 0x73, 0x22, 0xec, 0x02, 0x0a, 0x06,
+	0x42, 0x75, 0x63, 0x6b, 0x65, 0x74, 0x12, 0x1c, 0x0a, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70,
+	0x61, 0x63, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73,
+	0x70, 0x61, 0x63, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x65, 0x6e, 0x64, 0x70,
+	0x6f, 0x69, 0x6e, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x65, 0x6e, 0x64, 0x70,
+	0x6f, 0x69, 0x6e, 0x74, 0x12, 0x1a, 0x0a, 0x08, 0x69, 0x6e, 0x73, 0x65, 0x63, 0x75, 0x72, 0x65,
+	0x18, 0x04, 0x20, 0x01, 0x28, 0x08, 0x52, 0x08, 0x69, 0x6e, 0x73, 0x65, 0x63, 0x75, 0x72, 0x65,
+	0x12, 0x36, 0x0a, 0x08, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x18, 0x05, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x73, 0x65, 0x72, 0x76,
+	0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x49, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x52, 0x08,
+	0x69, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x12, 0x3d, 0x0a, 0x08, 0x70, 0x72, 0x6f, 0x76,
+	0x69, 0x64, 0x65, 0x72, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x21, 0x2e, 0x67, 0x69, 0x74,
+	0x6f, 0x70, 0x73, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x42, 0x75,
+	0x63, 0x6b, 0x65, 0x74, 0x2e, 0x50, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x52, 0x08, 0x70,
+	0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x12, 0x16, 0x0a, 0x06, 0x72, 0x65, 0x67, 0x69, 0x6f,
+	0x6e, 0x18, 0x07, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x72, 0x65, 0x67, 0x69, 0x6f, 0x6e, 0x12,
+	0x24, 0x0a, 0x0d, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74, 0x52, 0x65, 0x66, 0x4e, 0x61, 0x6d, 0x65,
+	0x18, 0x08, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74, 0x52, 0x65,
+	0x66, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74,
+	0x18, 0x09, 0x20, 0x01, 0x28, 0x05, 0x52, 0x07, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x22,
+	0x29, 0x0a, 0x08, 0x50, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x12, 0x0b, 0x0a, 0x07, 0x47,
+	0x65, 0x6e, 0x65, 0x72, 0x69, 0x63, 0x10, 0x00, 0x12, 0x07, 0x0a, 0x03, 0x41, 0x57, 0x53, 0x10,
+	0x01, 0x12, 0x07, 0x0a, 0x03, 0x47, 0x43, 0x50, 0x10, 0x02, 0x22, 0x79, 0x0a, 0x0c, 0x41, 0x64,
+	0x64, 0x42, 0x75, 0x63, 0x6b, 0x65, 0x74, 0x52, 0x65, 0x71, 0x12, 0x19, 0x0a, 0x08, 0x61, 0x70,
+	0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x61, 0x70,
+	0x70, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61,
+	0x63, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70,
+	0x61, 0x63, 0x65, 0x12, 0x30, 0x0a, 0x06, 0x62, 0x75, 0x63, 0x6b, 0x65, 0x74, 0x18, 0x03, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x18, 0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x73, 0x65, 0x72,
+	0x76, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x42, 0x75, 0x63, 0x6b, 0x65, 0x74, 0x52, 0x06, 0x62,
+	0x75, 0x63, 0x6b, 0x65, 0x74, 0x22, 0x5a, 0x0a, 0x0c, 0x41, 0x64, 0x64, 0x42, 0x75, 0x63, 0x6b,
+	0x65, 0x74, 0x52, 0x65, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x07, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x12,
+	0x30, 0x0a, 0x06, 0x62, 0x75, 0x63, 0x6b, 0x65, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x18, 0x2e, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e,
+	0x76, 0x31, 0x2e, 0x42, 0x75, 0x63, 0x6b, 0x65, 0x74, 0x52, 0x06, 0x62, 0x75, 0x63, 0x6b, 0x65,
+	0x74, 0x22, 0x48, 0x0a, 0x0d, 0x4c, 0x69, 0x73, 0x74, 0x42, 0x75, 0x63, 0x6b, 0x65, 0x74, 0x52,
+	0x65, 0x71, 0x12, 0x1c, 0x0a, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65,
+	0x12, 0x19, 0x0a, 0x08, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x07, 0x61, 0x70, 0x70, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0x43, 0x0a, 0x0d, 0x4c,
+	0x69, 0x73, 0x74, 0x42, 0x75, 0x63, 0x6b, 0x65, 0x74, 0x52, 0x65, 0x73, 0x12, 0x32, 0x0a, 0x07,
+	0x62, 0x75, 0x63, 0x6b, 0x65, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x18, 0x2e,
+	0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x2e, 0x76, 0x31,
+	0x2e, 0x42, 0x75, 0x63, 0x6b, 0x65, 0x74, 0x52, 0x07, 0x62, 0x75, 0x63, 0x6b, 0x65, 0x74, 0x73,
+	0x42, 0x32, 0x5a, 0x30, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x77,
+	0x65, 0x61, 0x76, 0x65, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x2d,
+	0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x2f, 0x63, 0x6f, 0x72, 0x65, 0x2f, 0x61, 0x70, 0x69, 0x2f,
+	0x61, 0x70, 0x70, 0x73, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1792,59 +2218,70 @@ func file_api_app_source_proto_rawDescGZIP() []byte {
 	return file_api_app_source_proto_rawDescData
 }
 
-var file_api_app_source_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_api_app_source_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
+var file_api_app_source_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_api_app_source_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
 var file_api_app_source_proto_goTypes = []interface{}{
 	(SourceRef_Kind)(0),           // 0: gitops_server.v1.SourceRef.Kind
 	(Source_Type)(0),              // 1: gitops_server.v1.Source.Type
-	(*Interval)(nil),              // 2: gitops_server.v1.Interval
-	(*SourceRef)(nil),             // 3: gitops_server.v1.SourceRef
-	(*Artifact)(nil),              // 4: gitops_server.v1.Artifact
-	(*Condition)(nil),             // 5: gitops_server.v1.Condition
-	(*GitRepositoryRef)(nil),      // 6: gitops_server.v1.GitRepositoryRef
-	(*Source)(nil),                // 7: gitops_server.v1.Source
-	(*GitRepository)(nil),         // 8: gitops_server.v1.GitRepository
-	(*AddGitRepositoryReq)(nil),   // 9: gitops_server.v1.AddGitRepositoryReq
-	(*AddGitRepositoryRes)(nil),   // 10: gitops_server.v1.AddGitRepositoryRes
-	(*ListGitRepositoryReq)(nil),  // 11: gitops_server.v1.ListGitRepositoryReq
-	(*ListGitRepositoryRes)(nil),  // 12: gitops_server.v1.ListGitRepositoryRes
-	(*HelmRepository)(nil),        // 13: gitops_server.v1.HelmRepository
-	(*AddHelmRepositoryReq)(nil),  // 14: gitops_server.v1.AddHelmRepositoryReq
-	(*AddHelmRepositoryRes)(nil),  // 15: gitops_server.v1.AddHelmRepositoryRes
-	(*ListHelmRepositoryReq)(nil), // 16: gitops_server.v1.ListHelmRepositoryReq
-	(*ListHelmRepositoryRes)(nil), // 17: gitops_server.v1.ListHelmRepositoryRes
-	(*HelmChart)(nil),             // 18: gitops_server.v1.HelmChart
-	(*AddHelmChartReq)(nil),       // 19: gitops_server.v1.AddHelmChartReq
-	(*AddHelmChartRes)(nil),       // 20: gitops_server.v1.AddHelmChartRes
-	(*ListHelmChartReq)(nil),      // 21: gitops_server.v1.ListHelmChartReq
-	(*ListHelmChartRes)(nil),      // 22: gitops_server.v1.ListHelmChartRes
+	(Bucket_Provider)(0),          // 2: gitops_server.v1.Bucket.Provider
+	(*Interval)(nil),              // 3: gitops_server.v1.Interval
+	(*SourceRef)(nil),             // 4: gitops_server.v1.SourceRef
+	(*Artifact)(nil),              // 5: gitops_server.v1.Artifact
+	(*Condition)(nil),             // 6: gitops_server.v1.Condition
+	(*GitRepositoryRef)(nil),      // 7: gitops_server.v1.GitRepositoryRef
+	(*Source)(nil),                // 8: gitops_server.v1.Source
+	(*GitRepository)(nil),         // 9: gitops_server.v1.GitRepository
+	(*AddGitRepositoryReq)(nil),   // 10: gitops_server.v1.AddGitRepositoryReq
+	(*AddGitRepositoryRes)(nil),   // 11: gitops_server.v1.AddGitRepositoryRes
+	(*ListGitRepositoryReq)(nil),  // 12: gitops_server.v1.ListGitRepositoryReq
+	(*ListGitRepositoryRes)(nil),  // 13: gitops_server.v1.ListGitRepositoryRes
+	(*HelmRepository)(nil),        // 14: gitops_server.v1.HelmRepository
+	(*AddHelmRepositoryReq)(nil),  // 15: gitops_server.v1.AddHelmRepositoryReq
+	(*AddHelmRepositoryRes)(nil),  // 16: gitops_server.v1.AddHelmRepositoryRes
+	(*ListHelmRepositoryReq)(nil), // 17: gitops_server.v1.ListHelmRepositoryReq
+	(*ListHelmRepositoryRes)(nil), // 18: gitops_server.v1.ListHelmRepositoryRes
+	(*HelmChart)(nil),             // 19: gitops_server.v1.HelmChart
+	(*AddHelmChartReq)(nil),       // 20: gitops_server.v1.AddHelmChartReq
+	(*AddHelmChartRes)(nil),       // 21: gitops_server.v1.AddHelmChartRes
+	(*ListHelmChartReq)(nil),      // 22: gitops_server.v1.ListHelmChartReq
+	(*ListHelmChartRes)(nil),      // 23: gitops_server.v1.ListHelmChartRes
+	(*Bucket)(nil),                // 24: gitops_server.v1.Bucket
+	(*AddBucketReq)(nil),          // 25: gitops_server.v1.AddBucketReq
+	(*AddBucketRes)(nil),          // 26: gitops_server.v1.AddBucketRes
+	(*ListBucketReq)(nil),         // 27: gitops_server.v1.ListBucketReq
+	(*ListBucketRes)(nil),         // 28: gitops_server.v1.ListBucketRes
 }
 var file_api_app_source_proto_depIdxs = []int32{
 	0,  // 0: gitops_server.v1.SourceRef.kind:type_name -> gitops_server.v1.SourceRef.Kind
-	6,  // 1: gitops_server.v1.Source.reference:type_name -> gitops_server.v1.GitRepositoryRef
+	7,  // 1: gitops_server.v1.Source.reference:type_name -> gitops_server.v1.GitRepositoryRef
 	1,  // 2: gitops_server.v1.Source.type:type_name -> gitops_server.v1.Source.Type
-	5,  // 3: gitops_server.v1.Source.conditions:type_name -> gitops_server.v1.Condition
-	4,  // 4: gitops_server.v1.Source.artifact:type_name -> gitops_server.v1.Artifact
-	6,  // 5: gitops_server.v1.GitRepository.reference:type_name -> gitops_server.v1.GitRepositoryRef
-	2,  // 6: gitops_server.v1.GitRepository.interval:type_name -> gitops_server.v1.Interval
-	6,  // 7: gitops_server.v1.AddGitRepositoryReq.reference:type_name -> gitops_server.v1.GitRepositoryRef
-	2,  // 8: gitops_server.v1.AddGitRepositoryReq.interval:type_name -> gitops_server.v1.Interval
-	8,  // 9: gitops_server.v1.AddGitRepositoryRes.git_repository:type_name -> gitops_server.v1.GitRepository
-	8,  // 10: gitops_server.v1.ListGitRepositoryRes.git_repositories:type_name -> gitops_server.v1.GitRepository
-	2,  // 11: gitops_server.v1.HelmRepository.interval:type_name -> gitops_server.v1.Interval
-	2,  // 12: gitops_server.v1.AddHelmRepositoryReq.interval:type_name -> gitops_server.v1.Interval
-	13, // 13: gitops_server.v1.AddHelmRepositoryRes.helm_repository:type_name -> gitops_server.v1.HelmRepository
-	13, // 14: gitops_server.v1.ListHelmRepositoryRes.helm_repositories:type_name -> gitops_server.v1.HelmRepository
-	3,  // 15: gitops_server.v1.HelmChart.sourceRef:type_name -> gitops_server.v1.SourceRef
-	2,  // 16: gitops_server.v1.HelmChart.interval:type_name -> gitops_server.v1.Interval
-	18, // 17: gitops_server.v1.AddHelmChartReq.helm_chart:type_name -> gitops_server.v1.HelmChart
-	18, // 18: gitops_server.v1.AddHelmChartRes.helm_chart:type_name -> gitops_server.v1.HelmChart
-	18, // 19: gitops_server.v1.ListHelmChartRes.helm_charts:type_name -> gitops_server.v1.HelmChart
-	20, // [20:20] is the sub-list for method output_type
-	20, // [20:20] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	6,  // 3: gitops_server.v1.Source.conditions:type_name -> gitops_server.v1.Condition
+	5,  // 4: gitops_server.v1.Source.artifact:type_name -> gitops_server.v1.Artifact
+	7,  // 5: gitops_server.v1.GitRepository.reference:type_name -> gitops_server.v1.GitRepositoryRef
+	3,  // 6: gitops_server.v1.GitRepository.interval:type_name -> gitops_server.v1.Interval
+	7,  // 7: gitops_server.v1.AddGitRepositoryReq.reference:type_name -> gitops_server.v1.GitRepositoryRef
+	3,  // 8: gitops_server.v1.AddGitRepositoryReq.interval:type_name -> gitops_server.v1.Interval
+	9,  // 9: gitops_server.v1.AddGitRepositoryRes.git_repository:type_name -> gitops_server.v1.GitRepository
+	9,  // 10: gitops_server.v1.ListGitRepositoryRes.git_repositories:type_name -> gitops_server.v1.GitRepository
+	3,  // 11: gitops_server.v1.HelmRepository.interval:type_name -> gitops_server.v1.Interval
+	3,  // 12: gitops_server.v1.AddHelmRepositoryReq.interval:type_name -> gitops_server.v1.Interval
+	14, // 13: gitops_server.v1.AddHelmRepositoryRes.helm_repository:type_name -> gitops_server.v1.HelmRepository
+	14, // 14: gitops_server.v1.ListHelmRepositoryRes.helm_repositories:type_name -> gitops_server.v1.HelmRepository
+	4,  // 15: gitops_server.v1.HelmChart.sourceRef:type_name -> gitops_server.v1.SourceRef
+	3,  // 16: gitops_server.v1.HelmChart.interval:type_name -> gitops_server.v1.Interval
+	19, // 17: gitops_server.v1.AddHelmChartReq.helm_chart:type_name -> gitops_server.v1.HelmChart
+	19, // 18: gitops_server.v1.AddHelmChartRes.helm_chart:type_name -> gitops_server.v1.HelmChart
+	19, // 19: gitops_server.v1.ListHelmChartRes.helm_charts:type_name -> gitops_server.v1.HelmChart
+	3,  // 20: gitops_server.v1.Bucket.interval:type_name -> gitops_server.v1.Interval
+	2,  // 21: gitops_server.v1.Bucket.provider:type_name -> gitops_server.v1.Bucket.Provider
+	24, // 22: gitops_server.v1.AddBucketReq.bucket:type_name -> gitops_server.v1.Bucket
+	24, // 23: gitops_server.v1.AddBucketRes.bucket:type_name -> gitops_server.v1.Bucket
+	24, // 24: gitops_server.v1.ListBucketRes.buckets:type_name -> gitops_server.v1.Bucket
+	25, // [25:25] is the sub-list for method output_type
+	25, // [25:25] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_api_app_source_proto_init() }
@@ -2105,14 +2542,74 @@ func file_api_app_source_proto_init() {
 				return nil
 			}
 		}
+		file_api_app_source_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Bucket); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_app_source_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AddBucketReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_app_source_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*AddBucketRes); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_app_source_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListBucketReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_app_source_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListBucketRes); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_api_app_source_proto_rawDesc,
-			NumEnums:      2,
-			NumMessages:   21,
+			NumEnums:      3,
+			NumMessages:   26,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
