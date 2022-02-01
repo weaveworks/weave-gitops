@@ -54,6 +54,8 @@ jobs:
           author: weave-test-user <weave-test-user@example.com>
           signoff: true
           branch: ${{ env.BRANCH }}
+          base: main
+          draft: true
           title: "Documentation updates for ${{ env.GITOPS_VERSION }}"
           body: "Update version references to ${{ env.GITOPS_VERSION }} and create new versioned documentation set."
   staging-release:
