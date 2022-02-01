@@ -11,7 +11,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
@@ -68,14 +67,9 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, kubeClient kube.Kube
 		return nil, nil, fmt.Errorf("error normalizing config url: %w", err)
 	}
 
-	targetName, err := kubeClient.GetClusterName(ctx)
-	if err != nil {
-		return nil, nil, fmt.Errorf("error getting target name: %w", err)
-	}
-
 	authSvc, err := f.getAuthService(kubeClient, configNormalizedUrl, gpClient, params.DryRun)
 	if err != nil {
-		return nil, nil, fmt.Errorf("error creating auth service: %w", err)
+		return nil, nil, fmt.Errorf("error getting auth service: %w", err)
 	}
 
 	// Do not add deploy key for helm repo, empty url or if its gonna be added below
@@ -94,19 +88,14 @@ func (f *defaultFactory) GetGitClients(ctx context.Context, kubeClient kube.Kube
 
 		// Do not add deploy key for public repo. Issue https://github.com/weaveworks/weave-gitops/issues/1111
 		if *repoVisibility == gitprovider.RepositoryVisibilityPrivate {
-			secretName := auth.SecretName{
-				Name:      models.CreateRepoSecretName(normalizedUrl),
-				Namespace: params.Namespace,
-			}
-
-			_, err = authSvc.SetupDeployKey(ctx, secretName, targetName, normalizedUrl)
+			_, err = authSvc.SetupDeployKey(ctx, params.Namespace, normalizedUrl)
 			if err != nil {
 				return nil, nil, fmt.Errorf("error setting up deploy key: %w", err)
 			}
 		}
 	}
 
-	client, err := authSvc.CreateGitClient(ctx, configNormalizedUrl, targetName, params.Namespace, params.DryRun)
+	client, err := authSvc.CreateGitClient(ctx, configNormalizedUrl, params.Namespace, params.DryRun)
 	if err != nil {
 		return nil, nil, err
 	}

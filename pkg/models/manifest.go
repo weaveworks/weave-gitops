@@ -48,14 +48,14 @@ const (
 	WegoConfigMapName = "weave-gitops-config"
 )
 
-type BootstrapManifestsParams struct {
+type ManifestsParams struct {
 	ClusterName   string
 	WegoNamespace string
 	ConfigRepo    gitproviders.RepoURL
 }
 
 // BootstrapManifests creates all yaml files that are going to be applied to the cluster
-func BootstrapManifests(fluxClient flux.Flux, kubeClient kube.Kube, params BootstrapManifestsParams) ([]Manifest, error) {
+func BootstrapManifests(ctx context.Context, fluxClient flux.Flux, gitProvider gitproviders.GitProvider, kubeClient kube.Kube, params ManifestsParams) ([]Manifest, error) {
 	runtimeManifests, err := fluxClient.Install(params.WegoNamespace, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed getting runtime manifests: %w", err)
@@ -113,6 +113,16 @@ func BootstrapManifests(fluxClient flux.Flux, kubeClient kube.Kube, params Boots
 		return nil, fmt.Errorf("failed marshalling wego config: %w", err)
 	}
 
+	configBranch, err := gitProvider.GetDefaultBranch(ctx, params.ConfigRepo)
+	if err != nil {
+		return nil, err
+	}
+
+	sourceManifest, err := GetSourceManifest(ctx, fluxClient, gitProvider, params.ClusterName, params.WegoNamespace, params.ConfigRepo, configBranch)
+	if err != nil {
+		return nil, err
+	}
+
 	return []Manifest{
 		{
 			Path:    git.GetSystemQualifiedPath(params.ClusterName, AppCRDPath),
@@ -138,19 +148,12 @@ func BootstrapManifests(fluxClient flux.Flux, kubeClient kube.Kube, params Boots
 			Path:    git.GetSystemQualifiedPath(params.ClusterName, WegoConfigPath),
 			Content: wegoConfigManifest,
 		},
+		sourceManifest,
 	}, nil
 }
 
-type GitopsManifestsParams struct {
-	FluxClient    flux.Flux
-	GitProvider   gitproviders.GitProvider
-	ClusterName   string
-	WegoNamespace string
-	ConfigRepo    gitproviders.RepoURL
-}
-
-// GitopsManifests generates all yaml files that are going to be written in the config repo
-func GitopsManifests(ctx context.Context, bootstrapManifests []Manifest, params GitopsManifestsParams) ([]Manifest, error) {
+// NoClusterApplicableManifests generates all yaml files that are going to be written in the config repo and cannot be applied to the cluster directly
+func NoClusterApplicableManifests(params ManifestsParams) ([]Manifest, error) {
 	systemKustomization := CreateKustomization(params.ClusterName, params.WegoNamespace, RuntimePath, SourcePath, SystemKustResourcePath, UserKustResourcePath, WegoAppPath)
 
 	systemKustomizationManifest, err := yaml.Marshal(systemKustomization)
@@ -158,25 +161,16 @@ func GitopsManifests(ctx context.Context, bootstrapManifests []Manifest, params 
 		return nil, err
 	}
 
-	configBranch, err := params.GitProvider.GetDefaultBranch(ctx, params.ConfigRepo)
-	if err != nil {
-		return nil, err
-	}
-
-	sourceManifest, err := GetSourceManifest(ctx, params.FluxClient, params.GitProvider, params.ClusterName, params.WegoNamespace, params.ConfigRepo, configBranch)
-	if err != nil {
-		return nil, err
-	}
-
-	return append(bootstrapManifests, sourceManifest, // TODO: Move this to boostrap manifests until getGitClients is refactored
-		Manifest{
+	return []Manifest{
+		{
 			Path:    git.GetSystemQualifiedPath(params.ClusterName, SystemKustomizationPath),
 			Content: systemKustomizationManifest,
 		},
-		Manifest{
+		{
 			Path:    filepath.Join(git.GetUserPath(params.ClusterName), ".keep"),
 			Content: strconv.AppendQuote(nil, "# keep"),
-		}), nil
+		},
+	}, nil
 }
 
 func CreateKustomization(name, namespace string, resources ...string) types.Kustomization {

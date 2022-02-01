@@ -73,6 +73,7 @@ var _ = Describe("Installer", func() {
 			fakeFluxClient.InstallReturnsOnCall(1, nil, nil)
 
 			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "main", nil)
+			fakeGitProvider.GetDefaultBranchReturnsOnCall(1, "main", nil)
 
 			privateVisibility := gitprovider.RepositoryVisibilityPrivate
 			fakeGitProvider.GetRepoVisibilityReturns(&privateVisibility, nil)
@@ -112,17 +113,10 @@ var _ = Describe("Installer", func() {
 		})
 
 		It("should fail getting default branch", func() {
-			fakeGitProvider.GetDefaultBranchReturnsOnCall(0, "", someError)
+			fakeGitProvider.GetDefaultBranchReturnsOnCall(1, "", someError)
 
 			err := installer.Install(testNamespace, configRepo, true)
 			Expect(err).Should(MatchError(fmt.Sprintf("failed getting default branch: %s", someError)))
-		})
-
-		It("should fail getting config repo git source", func() {
-			fakeGitProvider.GetRepoVisibilityReturns(nil, someError)
-
-			err := installer.Install(testNamespace, configRepo, true)
-			Expect(err).Should(MatchError(fmt.Sprintf("failed getting git source: failed getting ref secret: %s", someError)))
 		})
 
 		It("should fail applying bootstrap manifests", func() {
@@ -154,6 +148,7 @@ var _ = Describe("Installer", func() {
 			Expect(err).Should(MatchError(fmt.Sprintf("failed creating pull request: %s", someError)))
 		})
 	})
+
 	Context("success path", func() {
 
 		var wegoAppManifest []byte
@@ -213,6 +208,7 @@ var _ = Describe("Installer", func() {
 		})
 
 		It("should succeed with auto-merge=true", func() {
+
 			expectedManifests := []models.Manifest{
 				{
 					Path:    git.GetSystemQualifiedPath(clusterName, models.AppCRDPath),
@@ -274,10 +270,8 @@ var _ = Describe("Installer", func() {
 			writeIndex := 0
 			fakeGitClient.CloneReturns(true, nil)
 			fakeGitClient.WriteCalls(func(path string, content []byte) error {
-				if writeIndex < 8 {
-					Expect(path).Should(Equal(expectedManifests[writeIndex].Path))
-					Expect(string(content)).Should(Equal(string(expectedManifests[writeIndex].Content)))
-				}
+				Expect(path).Should(Equal(expectedManifests[writeIndex].Path))
+				Expect(string(content)).Should(Equal(string(expectedManifests[writeIndex].Content)))
 				writeIndex++
 				return nil
 			})

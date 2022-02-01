@@ -15,12 +15,13 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/cmd/internal"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/models"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
-	"github.com/weaveworks/weave-gitops/pkg/services"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/gitopswriter"
 	"github.com/weaveworks/weave-gitops/pkg/services/install"
@@ -72,7 +73,7 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 	osysClient := osys.New()
 	fluxClient := flux.New(osysClient, &runner.CLIRunner{})
 
-	kubeClient, _, err := kube.NewKubeHTTPClient()
+	kubeClient, rawK8sClient, err := kube.NewKubeHTTPClient()
 	if err != nil {
 		return fmt.Errorf("error creating k8s http client: %w", err)
 	}
@@ -82,8 +83,24 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	log := internal.NewCLILogger(os.Stdout)
+
+	token, err := internal.GetToken(configURL, osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
+	if err != nil {
+		return err
+	}
+
+	gitProvider, err := gitproviders.New(gitproviders.Config{
+		Provider: configURL.Provider(),
+		Token:    token,
+		Hostname: configURL.URL().Host,
+	}, configURL.Owner(), gitproviders.GetAccountType)
+	if err != nil {
+		return fmt.Errorf("error creating git provider client: %w", err)
+	}
+
 	if installParams.DryRun {
-		manifests, err := models.BootstrapManifests(fluxClient, kubeClient, models.BootstrapManifestsParams{
+		manifests, err := models.BootstrapManifests(ctx, fluxClient, gitProvider, kubeClient, models.ManifestsParams{
 			ClusterName:   clusterName,
 			WegoNamespace: namespace,
 			ConfigRepo:    configURL,
@@ -99,33 +116,26 @@ func installRunCmd(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	log := internal.NewCLILogger(os.Stdout)
-	providerClient := internal.NewGitProviderClient(osysClient.Stdout(), osysClient.LookupEnv, auth.NewAuthCLIHandler, log)
-
-	factory := services.NewFactory(fluxClient, log)
-
-	// We temporarily need this here otherwise GetGitClients is going to fail
-	// as it needs the namespace created to apply the secret
 	namespaceObj := &corev1.Namespace{}
 	namespaceObj.Name = namespace
 
-	if err := kubeClient.Raw().Create(ctx, namespaceObj); err != nil {
+	if err := rawK8sClient.Create(ctx, namespaceObj); err != nil {
 		if !strings.Contains(err.Error(), "already exists") {
 			return fmt.Errorf("failed creating namespace %s: %w", namespace, err)
 		}
 	}
 
-	// This is creating the secret, uploads it and applies it to the cluster
-	// This is going to be broken up to reduce complexity
-	// and then generates the source yaml of the config repo when using dry-run option
-	gitClient, gitProvider, err := factory.GetGitClients(context.Background(), kubeClient, providerClient, services.GitConfigParams{
-		ConfigRepo: installParams.ConfigRepo,
-		Namespace:  namespace,
-		DryRun:     installParams.DryRun,
-	})
+	authService, err := auth.NewAuthService(fluxClient, rawK8sClient, gitProvider, log)
 	if err != nil {
-		return fmt.Errorf("failed getting git clients: %w", err)
+		return err
 	}
+
+	deployKey, err := authService.SetupDeployKey(ctx, namespace, configURL)
+	if err != nil {
+		return err
+	}
+
+	gitClient := git.New(deployKey, wrapper.NewGoGit())
 
 	repoWriter := gitopswriter.NewRepoWriter(log, gitClient, gitProvider)
 	installer := install.NewInstaller(fluxClient, kubeClient, gitClient, gitProvider, log, repoWriter)

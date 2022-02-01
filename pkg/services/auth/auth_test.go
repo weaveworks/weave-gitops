@@ -30,7 +30,6 @@ func (r *actualFluxRunner) Run(command string, args ...string) ([]byte, error) {
 
 var _ = Describe("auth", func() {
 	var namespace *corev1.Namespace
-	testClustername := "test-cluster"
 	repoUrlString := "ssh://git@github.com/my-org/my-repo.git"
 	configRepoUrl, err := gitproviders.NewRepoURL(repoUrlString)
 	Expect(err).NotTo(HaveOccurred())
@@ -68,7 +67,7 @@ var _ = Describe("auth", func() {
 			}
 		})
 		It("create and stores a deploy key if none exists", func() {
-			_, err := as.CreateGitClient(ctx, configRepoUrl, testClustername, namespace.Name, false)
+			_, err := as.CreateGitClient(ctx, configRepoUrl, namespace.Name, false)
 			Expect(err).NotTo(HaveOccurred())
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}
 			secret := &corev1.Secret{}
@@ -78,7 +77,7 @@ var _ = Describe("auth", func() {
 			Expect(secret.StringData["identity.pub"]).NotTo(BeNil())
 		})
 		It("doesn't create a deploy key when dry-run is true", func() {
-			_, err := as.CreateGitClient(ctx, configRepoUrl, testClustername, namespace.Name, true)
+			_, err := as.CreateGitClient(ctx, configRepoUrl, namespace.Name, true)
 			Expect(err).NotTo(HaveOccurred())
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}
 			secret := &corev1.Secret{}
@@ -88,25 +87,27 @@ var _ = Describe("auth", func() {
 			gp.DeployKeyExistsReturns(true, nil)
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}
 			// using `generateDeployKey` as a helper for the test setup.
-			_, secret, err := (&authSvc{fluxClient: fluxClient}).generateDeployKey(testClustername, sn, repoUrl)
+			_, secret, err := (&authSvc{fluxClient: fluxClient}).generateDeployKey(sn, repoUrl)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(k8sClient.Create(ctx, secret)).To(Succeed())
 
-			_, err = as.CreateGitClient(ctx, configRepoUrl, testClustername, namespace.Name, false)
+			_, err = as.CreateGitClient(ctx, configRepoUrl, namespace.Name, false)
 			Expect(err).NotTo(HaveOccurred())
 			// We should NOT have uploaded anything since the key already exists
 			Expect(gp.UploadDeployKeyCallCount()).To(Equal(0))
 		})
+
 		It("handles the case where a deploy key exists on the provider, but not the cluster", func() {
 			gp.DeployKeyExistsReturns(true, nil)
 			sn := SecretName{Name: secretName, Namespace: namespace.Name}
 
-			_, err = as.CreateGitClient(ctx, configRepoUrl, testClustername, namespace.Name, false)
+			_, err = as.CreateGitClient(ctx, configRepoUrl, namespace.Name, false)
 			Expect(err).NotTo(HaveOccurred())
 
 			newSecret := &corev1.Secret{}
 			Expect(k8sClient.Get(ctx, sn.NamespacedName(), newSecret)).To(Succeed())
 			Expect(gp.UploadDeployKeyCallCount()).To(Equal(1))
 		})
+
 	})
 })
