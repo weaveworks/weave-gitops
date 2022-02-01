@@ -22,13 +22,12 @@ export interface Props {
   /** A list of objects with two fields: `label`, which is a string representing the column header, and `value`, which can be a string, or a function that extracts the data needed to fill the table cell. */
   fields: {
     label: string;
-    displayLabel: string;
     value: string | ((k: any) => string | JSX.Element);
   }[];
   /** A list of data that will be iterated through to create the columns described in `fields`. */
   rows: any[];
-  /** A list of strings representing the sortable columns of the table, passed into lodash's `_.sortBy`. */
-  sortFields: string[];
+  /** A list of strings representing the sortable columns of the table, passed into lodash's `_.sortBy`. Must be lowercase. */
+  sortFields?: string[];
   /** an optional list of string widths for each field/column. */
   widths?: string[];
   /** for passing pagination */
@@ -63,7 +62,7 @@ function UnstyledDataTable({
   className,
   fields,
   rows,
-  sortFields,
+  sortFields = [],
   widths,
   children,
 }: Props) {
@@ -75,22 +74,24 @@ function UnstyledDataTable({
     sorted.reverse();
   }
 
-  type labelProps = { label: string; displayLabel: string };
-  function SortableLabel({ label, displayLabel }: labelProps) {
+  type labelProps = { label: string };
+  function SortableLabel({ label }: labelProps) {
     return (
       <Flex align start>
         <TableButton
           color="inherit"
           variant="text"
           onClick={() => {
-            setReverseSort(sort === label ? !reverseSort : false);
-            setSort(label);
+            setReverseSort(sort === label.toLowerCase() ? !reverseSort : false);
+            setSort(label.toLowerCase());
           }}
         >
-          <h2 className={sort === label ? "selected" : ""}>{displayLabel}</h2>
+          <h2 className={sort === label.toLowerCase() && "selected"}>
+            {label}
+          </h2>
         </TableButton>
         <Spacer padding="xxs" />
-        {sort === label ? (
+        {sort === label.toLowerCase() ? (
           <Icon
             type={IconType.ArrowUpwardIcon}
             size="base"
@@ -121,13 +122,10 @@ function UnstyledDataTable({
             <TableRow>
               {_.map(fields, (f, i) => (
                 <TableCell style={widths && { width: widths[i] }} key={f.label}>
-                  {sortFields.includes(f.label) ? (
-                    <SortableLabel
-                      label={f.label}
-                      displayLabel={f.displayLabel}
-                    />
+                  {sortFields.includes(f.label.toLowerCase()) ? (
+                    <SortableLabel label={f.label} />
                   ) : (
-                    <h2>{f.displayLabel}</h2>
+                    <h2>{f.label}</h2>
                   )}
                 </TableCell>
               ))}

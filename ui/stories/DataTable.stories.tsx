@@ -19,20 +19,18 @@ const Template: Story<Props> = (args) => <DataTable {...args} />;
 export const WithData = Template.bind({});
 WithData.args = {
   fields: [
-    { label: "name", displayLabel: "Name", value: (app) => app.name },
-    { label: "type", displayLabel: "Type", value: (app) => app.type },
+    { label: "Name", value: (app) => app.name },
+    { label: "Type", value: (app) => app.type },
     {
-      label: "overlays",
-      displayLabel: "Overlays",
+      label: "Overlays",
       value: (app) => app.overlays,
     },
     {
-      label: "clusters",
-      displayLabel: "Clusters",
+      label: "Clusters",
       value: (app) => app.clusters,
     },
-    { label: "status", displayLabel: "Status", value: (app) => app.status },
-    { label: "release", displayLabel: "Release", value: (app) => app.release },
+    { label: "Status", value: (app) => app.status },
+    { label: "Release", value: (app) => app.release },
   ],
   rows: [
     {
@@ -85,7 +83,6 @@ WithData.args = {
     },
   ],
   sortFields: ["name", "type", "overlays"],
-  paginationOptions: [2, 4],
   className: "",
 };
 export const NoRows = Template.bind({});

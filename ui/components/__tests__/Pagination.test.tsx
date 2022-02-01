@@ -5,11 +5,11 @@ import { withTheme } from "../../lib/test-utils";
 import Pagination from "../Pagination";
 
 describe("Pagination", () => {
-  const onForward = jest.fn(() => "");
-  const onSkipForward = jest.fn(() => "");
-  const onBack = jest.fn(() => "");
-  const onSkipBack = jest.fn(() => "");
-  const onSelect = jest.fn(() => "");
+  const onForward = jest.fn();
+  const onSkipForward = jest.fn();
+  const onBack = jest.fn();
+  const onSkipBack = jest.fn();
+  const onSelect = jest.fn();
   it("has functioning navigation buttons and display text", () => {
     render(
       withTheme(

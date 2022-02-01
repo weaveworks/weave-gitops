@@ -64,10 +64,12 @@ function Applications({ className }: Props) {
         sortFields={["name"]}
         fields={[
           {
-            label: "name",
-            displayLabel: "Name",
+            label: "Name",
             value: ({ name }: Application) => (
-              <Link to={formatURL(PageRoute.ApplicationDetail, { name })}>
+              <Link
+                to={formatURL(PageRoute.ApplicationDetail, { name })}
+                textProps={{ size: "small" }}
+              >
                 {name}
               </Link>
             ),

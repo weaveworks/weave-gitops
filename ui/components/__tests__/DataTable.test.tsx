@@ -26,18 +26,15 @@ describe("DataTable", () => {
 
   const fields = [
     {
-      label: "name",
-      displayLabel: "Name",
+      label: "Name",
       value: ({ name }) => <a href="/some_url">{name}</a>,
     },
     {
-      label: "status",
-      displayLabel: "Status",
+      label: "Status",
       value: (v) => v.status,
     },
     {
-      label: "lastUpdate",
-      displayLabel: "Last Updated",
+      label: "Last Updated",
       value: "lastUpdate",
     },
   ];
