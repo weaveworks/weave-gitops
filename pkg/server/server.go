@@ -27,7 +27,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
-	"k8s.io/client-go/rest"
 	"sigs.k8s.io/cli-utils/pkg/kstatus/status"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -69,10 +68,10 @@ type applicationServer struct {
 	jwtClient      auth.JWTClient
 	log            logr.Logger
 	ghAuthClient   auth.GithubAuthClient
-	fetcherFactory FetcherFactory
+	fetcherFactory applicationv2.FetcherFactory
 	glAuthClient   auth.GitlabAuthClient
-	clientGetter   ClientGetter
-	kubeGetter     KubeGetter
+	clientGetter   kube.ClientGetter
+	kubeGetter     kube.KubeGetter
 }
 
 // An ApplicationsConfig allows for the customization of an ApplicationsServer.
@@ -82,16 +81,12 @@ type ApplicationsConfig struct {
 	Factory          services.Factory
 	JwtClient        auth.JWTClient
 	GithubAuthClient auth.GithubAuthClient
-	FetcherFactory   FetcherFactory
+	FetcherFactory   applicationv2.FetcherFactory
 	GitlabAuthClient auth.GitlabAuthClient
-	ClusterConfig    ClusterConfig
+	ClusterConfig    kube.ClusterConfig
 }
 
-// FetcherFactory implementations should create applicationv2.Fetcher objects
-// from a Kubernetes client.
-type FetcherFactory interface {
-	Create(client client.Client) applicationv2.Fetcher
-}
+var _ applicationv2.FetcherFactory = &DefaultFetcherFactory{}
 
 // DefaultFetcherFactory creates applicationv2.Fetcher objects from a Kubernetes
 // client
@@ -99,7 +94,7 @@ type DefaultFetcherFactory struct {
 }
 
 // NewDefaultFetcherFactory returns a new DefaultFetcherFactory
-func NewDefaultFetcherFactory() FetcherFactory {
+func NewDefaultFetcherFactory() applicationv2.FetcherFactory {
 	return &DefaultFetcherFactory{}
 }
 
@@ -108,24 +103,15 @@ func (f *DefaultFetcherFactory) Create(client client.Client) applicationv2.Fetch
 	return applicationv2.NewFetcher(client)
 }
 
-// ClusterConfig is used to hold the default *rest.Config and the cluster name.
-type ClusterConfig struct {
-	DefaultConfig *rest.Config
-	ClusterName   string
-}
-
 // NewApplicationsServer creates a grpc Applications server
 func NewApplicationsServer(cfg *ApplicationsConfig, setters ...ApplicationsOption) pb.ApplicationsServer {
 	configGetter := NewImpersonatingConfigGetter(cfg.ClusterConfig.DefaultConfig, false)
+	clientGetter := kube.NewDefaultClientGetter(configGetter, cfg.ClusterConfig.ClusterName)
+	kubeGetter := kube.NewDefaultKubeGetter(configGetter, cfg.ClusterConfig.ClusterName)
+
 	args := &ApplicationsOptions{
-		ClientGetter: &DefaultClientGetter{
-			configGetter: configGetter,
-			clusterName:  cfg.ClusterConfig.ClusterName,
-		},
-		KubeGetter: &DefaultKubeGetter{
-			configGetter: configGetter,
-			clusterName:  cfg.ClusterConfig.ClusterName,
-		},
+		ClientGetter: clientGetter,
+		KubeGetter:   kubeGetter,
 	}
 
 	for _, setter := range setters {
@@ -177,7 +163,7 @@ func DefaultApplicationsConfig() (*ApplicationsConfig, error) {
 		FetcherFactory:   NewDefaultFetcherFactory(),
 		GithubAuthClient: auth.NewGithubAuthClient(http.DefaultClient),
 		GitlabAuthClient: auth.NewGitlabAuthClient(http.DefaultClient),
-		ClusterConfig: ClusterConfig{
+		ClusterConfig: kube.ClusterConfig{
 			DefaultConfig: rest,
 			ClusterName:   clusterName,
 		},

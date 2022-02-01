@@ -5,12 +5,13 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"k8s.io/client-go/rest"
 )
 
-var _ server.ConfigGetter = (*server.ImpersonatingConfigGetter)(nil)
+var _ kube.ConfigGetter = (*server.ImpersonatingConfigGetter)(nil)
 
 func TestImpersonatingConfigGetterPrincipalInContext(t *testing.T) {
 	g := server.NewImpersonatingConfigGetter(&rest.Config{}, false)

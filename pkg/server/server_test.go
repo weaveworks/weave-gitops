@@ -16,14 +16,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
-	"github.com/weaveworks/weave-gitops/pkg/testutils"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-
-	"github.com/weaveworks/weave-gitops/pkg/services/auth"
-	authtypes "github.com/weaveworks/weave-gitops/pkg/services/auth/types"
-
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
@@ -48,7 +40,11 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
 	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
+	authtypes "github.com/weaveworks/weave-gitops/pkg/services/auth/types"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
+	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -58,6 +54,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var _ = Describe("ApplicationsServer", func() {
@@ -1050,16 +1048,18 @@ ConfigRepo: %s`, namespace.Name, namespace.Name, "ssh://git@github.com/some-org/
 				rand.Seed(time.Now().UnixNano())
 				secretKey := rand.String(20)
 
+				fakeFetcherFactory := applicationv2fakes.NewFakeFetcherFactory(applicationv2.NewFetcher(k8s))
 				fakeFactory := &servicesfakes.FakeFactory{}
 
 				cfg := ApplicationsConfig{
 					Logger:         log,
 					JwtClient:      auth.NewJwtClient(secretKey),
-					FetcherFactory: NewFakeFetcherFactory(applicationv2.NewFetcher(k8s)),
+					FetcherFactory: fakeFetcherFactory,
 					Factory:        fakeFactory,
 				}
 
-				appsSrv = NewApplicationsServer(&cfg, WithClientGetter(NewFakeClientGetter(k8s)))
+				fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
+				appsSrv = NewApplicationsServer(&cfg, WithClientGetter(fakeClientGetter))
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
@@ -1091,14 +1091,16 @@ ConfigRepo: %s`, namespace.Name, namespace.Name, "ssh://git@github.com/some-org/
 				fakeFetcher := &applicationv2fakes.FakeFetcher{}
 				// Pretend something went horribly wrong
 				fakeFetcher.ListReturns([]models.Application{}, errors.New(errMsg))
+				fakeFetcherFactory := applicationv2fakes.NewFakeFetcherFactory(fakeFetcher)
 
 				cfg := ApplicationsConfig{
 					Logger:         log,
-					FetcherFactory: NewFakeFetcherFactory(fakeFetcher),
+					FetcherFactory: fakeFetcherFactory,
 				}
 
 				k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
-				appSrv := NewApplicationsServer(&cfg, WithClientGetter(NewFakeClientGetter(k8s)))
+				fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
+				appSrv := NewApplicationsServer(&cfg, WithClientGetter(fakeClientGetter))
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appSrv)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -1157,8 +1159,9 @@ ConfigRepo: %s`, namespace.Name, namespace.Name, "ssh://git@github.com/some-org/
 				}
 
 				factory := &servicesfakes.FakeFactory{}
+				fakeKubeGetter := kubefakes.NewFakeKubeGetter(&kubefakes.FakeKube{})
 
-				appsSrv = NewApplicationsServer(&ApplicationsConfig{Factory: factory, JwtClient: fakeJWTToken}, WithKubeGetter(NewFakeKubeGetter(&kubefakes.FakeKube{})))
+				appsSrv = NewApplicationsServer(&ApplicationsConfig{Factory: factory, JwtClient: fakeJWTToken}, WithKubeGetter(fakeKubeGetter))
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
@@ -1215,16 +1218,20 @@ var _ = Describe("Applications handler", func() {
 
 		factory := &servicesfakes.FakeFactory{}
 
+		fakeFetcherFactory := applicationv2fakes.NewFakeFetcherFactory(applicationv2.NewFetcher(k8s))
+
 		cfg := ApplicationsConfig{
 			Logger:         log,
-			FetcherFactory: NewFakeFetcherFactory(applicationv2.NewFetcher(k8s)),
+			FetcherFactory: fakeFetcherFactory,
 			Factory:        factory,
-			ClusterConfig:  ClusterConfig{},
+			ClusterConfig:  kube.ClusterConfig{},
 		}
+		fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
+		fakeKubeGetter := kubefakes.NewFakeKubeGetter(k)
 
 		handler, err := NewHandlers(context.Background(), &Config{
 			AppConfig:  &cfg,
-			AppOptions: []ApplicationsOption{WithClientGetter(NewFakeClientGetter(k8s)), WithKubeGetter(NewFakeKubeGetter(k))},
+			AppOptions: []ApplicationsOption{WithClientGetter(fakeClientGetter), WithKubeGetter(fakeKubeGetter)},
 		})
 		Expect(err).NotTo(HaveOccurred())
 
@@ -1321,46 +1328,4 @@ func makeDirEntries(paths map[string]bool) []os.DirEntry {
 	}
 
 	return results
-}
-
-type FakeFetcherFactory struct {
-	fake applicationv2.Fetcher
-}
-
-func NewFakeFetcherFactory(fake applicationv2.Fetcher) FetcherFactory {
-	return &FakeFetcherFactory{
-		fake: fake,
-	}
-}
-
-func (f *FakeFetcherFactory) Create(client client.Client) applicationv2.Fetcher {
-	return f.fake
-}
-
-type FakeClientGetter struct {
-	client client.Client
-}
-
-func NewFakeClientGetter(client client.Client) ClientGetter {
-	return &FakeClientGetter{
-		client: client,
-	}
-}
-
-func (g *FakeClientGetter) Client(ctx context.Context) (client.Client, error) {
-	return g.client, nil
-}
-
-type FakeKubeGetter struct {
-	kube kube.Kube
-}
-
-func NewFakeKubeGetter(kube kube.Kube) KubeGetter {
-	return &FakeKubeGetter{
-		kube: kube,
-	}
-}
-
-func (g *FakeKubeGetter) Kube(ctx context.Context) (kube.Kube, error) {
-	return g.kube, nil
 }
