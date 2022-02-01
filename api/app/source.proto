@@ -156,3 +156,41 @@ message ListHelmChartReq {
 message ListHelmChartRes {
   repeated HelmChart helm_charts = 1;
 }
+
+// Bucket
+message Bucket {
+  string namespace = 1;
+  string name = 2;
+  string endpoint = 3;
+  bool insecure = 4;
+  Interval interval = 5;
+  enum Provider {
+    Generic = 0;
+    AWS = 1;
+    GCP = 2;
+  };
+  Provider provider = 6;
+  string region = 7;
+  string secretRefName = 8;
+  int32  timeout = 9;
+}
+
+message AddBucketReq {
+  string app_name = 1;
+  string namespace = 2;
+  Bucket bucket = 3;
+}
+
+message AddBucketRes {
+  bool success = 1;
+  Bucket bucket = 2;
+}
+
+message ListBucketReq {
+  string namespace = 1;
+  string app_name = 2;
+}
+
+message ListBucketRes {
+  repeated Bucket buckets = 1;
+}

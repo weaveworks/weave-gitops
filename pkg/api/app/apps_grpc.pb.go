@@ -57,6 +57,12 @@ type AppsClient interface {
 	//
 	// ListHelmChart lists helm charts from a cluster.
 	ListHelmCharts(ctx context.Context, in *ListHelmChartReq, opts ...grpc.CallOption) (*ListHelmChartRes, error)
+	//
+	// AddBucket adds a bucket source to a cluster.
+	AddBucket(ctx context.Context, in *AddBucketReq, opts ...grpc.CallOption) (*AddBucketRes, error)
+	//
+	// ListBuckets lists buckets from a cluster.
+	ListBuckets(ctx context.Context, in *ListBucketReq, opts ...grpc.CallOption) (*ListBucketRes, error)
 }
 
 type appsClient struct {
@@ -184,6 +190,24 @@ func (c *appsClient) ListHelmCharts(ctx context.Context, in *ListHelmChartReq, o
 	return out, nil
 }
 
+func (c *appsClient) AddBucket(ctx context.Context, in *AddBucketReq, opts ...grpc.CallOption) (*AddBucketRes, error) {
+	out := new(AddBucketRes)
+	err := c.cc.Invoke(ctx, "/gitops_server.v1.Apps/AddBucket", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *appsClient) ListBuckets(ctx context.Context, in *ListBucketReq, opts ...grpc.CallOption) (*ListBucketRes, error) {
+	out := new(ListBucketRes)
+	err := c.cc.Invoke(ctx, "/gitops_server.v1.Apps/ListBuckets", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AppsServer is the server API for Apps service.
 // All implementations must embed UnimplementedAppsServer
 // for forward compatibility
@@ -227,6 +251,12 @@ type AppsServer interface {
 	//
 	// ListHelmChart lists helm charts from a cluster.
 	ListHelmCharts(context.Context, *ListHelmChartReq) (*ListHelmChartRes, error)
+	//
+	// AddBucket adds a bucket source to a cluster.
+	AddBucket(context.Context, *AddBucketReq) (*AddBucketRes, error)
+	//
+	// ListBuckets lists buckets from a cluster.
+	ListBuckets(context.Context, *ListBucketReq) (*ListBucketRes, error)
 	mustEmbedUnimplementedAppsServer()
 }
 
@@ -272,6 +302,12 @@ func (UnimplementedAppsServer) AddHelmChart(context.Context, *AddHelmChartReq) (
 }
 func (UnimplementedAppsServer) ListHelmCharts(context.Context, *ListHelmChartReq) (*ListHelmChartRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListHelmCharts not implemented")
+}
+func (UnimplementedAppsServer) AddBucket(context.Context, *AddBucketReq) (*AddBucketRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddBucket not implemented")
+}
+func (UnimplementedAppsServer) ListBuckets(context.Context, *ListBucketReq) (*ListBucketRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListBuckets not implemented")
 }
 func (UnimplementedAppsServer) mustEmbedUnimplementedAppsServer() {}
 
@@ -520,6 +556,42 @@ func _Apps_ListHelmCharts_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Apps_AddBucket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddBucketReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppsServer).AddBucket(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_server.v1.Apps/AddBucket",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppsServer).AddBucket(ctx, req.(*AddBucketReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Apps_ListBuckets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBucketReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AppsServer).ListBuckets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_server.v1.Apps/ListBuckets",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AppsServer).ListBuckets(ctx, req.(*ListBucketReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Apps_ServiceDesc is the grpc.ServiceDesc for Apps service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -578,6 +650,14 @@ var Apps_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListHelmCharts",
 			Handler:    _Apps_ListHelmCharts_Handler,
+		},
+		{
+			MethodName: "AddBucket",
+			Handler:    _Apps_AddBucket_Handler,
+		},
+		{
+			MethodName: "ListBuckets",
+			Handler:    _Apps_ListBuckets_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

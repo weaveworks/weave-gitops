@@ -93,4 +93,10 @@ export class Apps {
   static ListHelmCharts(req: Gitops_serverV1Source.ListHelmChartReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.ListHelmChartRes> {
     return fm.fetchReq<Gitops_serverV1Source.ListHelmChartReq, Gitops_serverV1Source.ListHelmChartRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/helmchart?${fm.renderURLSearchParams(req, ["namespace", "appName"])}`, {...initReq, method: "GET"})
   }
+  static AddBucket(req: Gitops_serverV1Source.AddBucketReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.AddBucketRes> {
+    return fm.fetchReq<Gitops_serverV1Source.AddBucketReq, Gitops_serverV1Source.AddBucketRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/bucket`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static ListBuckets(req: Gitops_serverV1Source.ListBucketReq, initReq?: fm.InitReq): Promise<Gitops_serverV1Source.ListBucketRes> {
+    return fm.fetchReq<Gitops_serverV1Source.ListBucketReq, Gitops_serverV1Source.ListBucketRes>(`/v1/namespace/${req["namespace"]}/app/${req["appName"]}/bucket?${fm.renderURLSearchParams(req, ["namespace", "appName"])}`, {...initReq, method: "GET"})
+  }
 }
