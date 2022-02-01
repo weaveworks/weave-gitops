@@ -133,6 +133,91 @@
         ]
       }
     },
+    "/v1/namespace/{namespace}/app/{appName}/bucket": {
+      "get": {
+        "summary": "ListBuckets lists buckets from a cluster.",
+        "operationId": "Apps_ListBuckets",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListBucketRes"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "appName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      },
+      "post": {
+        "summary": "AddBucket adds a bucket source to a cluster.",
+        "operationId": "Apps_AddBucket",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AddBucketRes"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "appName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "bucket": {
+                  "$ref": "#/definitions/v1Bucket"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
     "/v1/namespace/{namespace}/app/{appName}/gitrepository": {
       "get": {
         "summary": "ListGitRepository lists git repositories from a cluster.",
@@ -588,6 +673,15 @@
     }
   },
   "definitions": {
+    "BucketProvider": {
+      "type": "string",
+      "enum": [
+        "Generic",
+        "AWS",
+        "GCP"
+      ],
+      "default": "Generic"
+    },
     "SourceRefKind": {
       "type": "string",
       "enum": [
@@ -634,6 +728,17 @@
         },
         "app": {
           "$ref": "#/definitions/v1App"
+        }
+      }
+    },
+    "v1AddBucketRes": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "bucket": {
+          "$ref": "#/definitions/v1Bucket"
         }
       }
     },
@@ -697,6 +802,40 @@
           "type": "string"
         }
       }
+    },
+    "v1Bucket": {
+      "type": "object",
+      "properties": {
+        "namespace": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "endpoint": {
+          "type": "string"
+        },
+        "insecure": {
+          "type": "boolean"
+        },
+        "interval": {
+          "$ref": "#/definitions/v1Interval"
+        },
+        "provider": {
+          "$ref": "#/definitions/BucketProvider"
+        },
+        "region": {
+          "type": "string"
+        },
+        "secretRefName": {
+          "type": "string"
+        },
+        "timeout": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "Bucket"
     },
     "v1GetAppResponse": {
       "type": "object",
@@ -831,6 +970,17 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1App"
+          }
+        }
+      }
+    },
+    "v1ListBucketRes": {
+      "type": "object",
+      "properties": {
+        "buckets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Bucket"
           }
         }
       }
