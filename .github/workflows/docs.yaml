@@ -42,17 +42,20 @@ jobs:
       - name: Git diff
         run: |
           git diff
-      # - name: Create Pull Request
-      #   uses: peter-evans/create-pull-request@9825ae65b1cb54b543b938503728b432a0176d29 # v3
-      #   with:
-      #     token: ${{ secrets.WEAVE_GITOPS_DOCS_WEAVEWORKS_DOCS_BOT_PAT }}
-      #     committer: GitHub <noreply@github.com>
-      #     author: weave-test-user <weave-test-user@example.com>
-      #     signoff: true
-      #     # path: doc-repo
-      #     branch: ${{ env.BRANCH }}
-      #     title: "Documentation updates for ${{ env.GITOPS_VERSION }}"
-      #     body: "Update version references to ${{ env.GITOPS_VERSION }} and create new versioned documentation set."
+      - name: Delete version
+        run: |
+          version=$(cat -p website/versions.json|jq -r '. | last')
+          rm -rf website/versioned_docs/version-$version
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@9825ae65b1cb54b543b938503728b432a0176d29 # v3
+        with:
+          token: ${{ secrets.WEAVE_GITOPS_DOCS_WEAVEWORKS_DOCS_BOT_PAT }}
+          committer: GitHub <noreply@github.com>
+          author: weave-test-user <weave-test-user@example.com>
+          signoff: true
+          branch: ${{ env.BRANCH }}
+          title: "Documentation updates for ${{ env.GITOPS_VERSION }}"
+          body: "Update version references to ${{ env.GITOPS_VERSION }} and create new versioned documentation set."
   staging-release:
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
