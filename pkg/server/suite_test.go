@@ -130,7 +130,7 @@ var _ = BeforeEach(func() {
 		GithubAuthClient: ghAuthClient,
 		FetcherFactory:   fakeFetcherFactory,
 		GitlabAuthClient: glAuthClient,
-		ClusterConfig:    ClusterConfig{},
+		ClusterConfig:    kube.ClusterConfig{},
 	}
 	apps = NewApplicationsServer(&cfg,
 		WithClientGetter(fakeClientGetter), WithKubeGetter(fakeKubeGetter))

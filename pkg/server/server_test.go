@@ -1224,7 +1224,7 @@ var _ = Describe("Applications handler", func() {
 			Logger:         log,
 			FetcherFactory: fakeFetcherFactory,
 			Factory:        factory,
-			ClusterConfig:  ClusterConfig{},
+			ClusterConfig:  kube.ClusterConfig{},
 		}
 		fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
 		fakeKubeGetter := kubefakes.NewFakeKubeGetter(k)

@@ -171,7 +171,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 	}()
 
-	profilesConfig := server.NewProfilesConfig(server.ClusterConfig{
+	profilesConfig := server.NewProfilesConfig(kube.ClusterConfig{
 		DefaultConfig: rest,
 		ClusterName:   clusterName,
 	}, profileCache, options.HelmRepoNamespace, options.HelmRepoName)

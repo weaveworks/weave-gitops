@@ -16,6 +16,7 @@ import (
 	. "github.com/onsi/gomega"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
@@ -96,7 +97,7 @@ var _ = BeforeSuite(func() {
 		JwtClient:        auth.NewJwtClient("somekey"),
 		GithubAuthClient: auth.NewGithubAuthClient(http.DefaultClient),
 		FetcherFactory:   server.NewDefaultFetcherFactory(),
-		ClusterConfig: server.ClusterConfig{
+		ClusterConfig: kube.ClusterConfig{
 			DefaultConfig: env.Rest,
 			ClusterName:   clusterName,
 		},

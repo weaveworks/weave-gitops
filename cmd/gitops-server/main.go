@@ -90,7 +90,7 @@ func NewAPIServerCommand() *cobra.Command {
 				}
 			}()
 
-			profilesConfig := server.NewProfilesConfig(server.ClusterConfig{
+			profilesConfig := server.NewProfilesConfig(kube.ClusterConfig{
 				DefaultConfig: rest,
 				ClusterName:   clusterName,
 			}, profileCache, "default", "weaveworks-charts")

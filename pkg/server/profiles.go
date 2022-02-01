@@ -35,10 +35,10 @@ type ProfilesConfig struct {
 	helmRepoNamespace string
 	helmRepoName      string
 	helmCache         cache.Cache
-	clusterConfig     ClusterConfig
+	clusterConfig     kube.ClusterConfig
 }
 
-func NewProfilesConfig(clusterConfig ClusterConfig, helmCache cache.Cache, helmRepoNamespace, helmRepoName string) ProfilesConfig {
+func NewProfilesConfig(clusterConfig kube.ClusterConfig, helmCache cache.Cache, helmRepoNamespace, helmRepoName string) ProfilesConfig {
 	zapLog, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatalf("could not create zap logger: %v", err)
