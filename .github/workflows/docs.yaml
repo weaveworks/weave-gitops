@@ -13,51 +13,7 @@ on:
       - 'website/**'
 
 jobs:
-  update-doc-repo-files:
-    runs-on: ubuntu-latest
-    if: github.event_name != 'push'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Unshallow
-        run: |
-          git fetch --prune --unshallow
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.17.x
-      - name: Create GitOps binary
-        run: |
-          make all
-      - name: Set up environment vars
-        run: |
-          echo "BRANCH=release-doc-updates-$$" >> $GITHUB_ENV
-          echo "GITOPS_VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
-      - name: Update with new version
-        env:
-          ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
-          GA_KEY: "dummy"
-        run: |
-          bash tools/update-docs.sh ${PWD}/bin/gitops ${PWD}/website
-      - name: Git diff
-        run: |
-          git diff
-      - name: Delete version
-        run: |
-          version=$(cat -p website/versions.json|jq -r '. | last')
-          rm -rf website/versioned_docs/version-$version
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@9825ae65b1cb54b543b938503728b432a0176d29 # v3
-        with:
-          token: ${{ secrets.WEAVEWORKS_DOCS_PR_TOKEN }}
-          committer: GitHub <noreply@github.com>
-          author: weave-test-user <weave-test-user@example.com>
-          signoff: true
-          branch: ${{ env.BRANCH }}
-          base: add-docs
-          draft: true
-          title: "Documentation updates for ${{ env.GITOPS_VERSION }}"
-          body: "Update version references to ${{ env.GITOPS_VERSION }} and create new versioned documentation set."
+
   staging-release:
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
