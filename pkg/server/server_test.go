@@ -16,14 +16,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
-	"github.com/weaveworks/weave-gitops/pkg/testutils"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-
-	"github.com/weaveworks/weave-gitops/pkg/services/auth"
-	authtypes "github.com/weaveworks/weave-gitops/pkg/services/auth/types"
-
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
@@ -35,7 +27,6 @@ import (
 	. "github.com/onsi/gomega"
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
-	"github.com/weaveworks/weave-gitops/pkg/fakes"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -49,7 +40,11 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2"
 	"github.com/weaveworks/weave-gitops/pkg/services/applicationv2/applicationv2fakes"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
+	authtypes "github.com/weaveworks/weave-gitops/pkg/services/auth/types"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
+	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -59,6 +54,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var _ = Describe("ApplicationsServer", func() {
@@ -1051,7 +1048,7 @@ ConfigRepo: %s`, namespace.Name, namespace.Name, "ssh://git@github.com/some-org/
 				rand.Seed(time.Now().UnixNano())
 				secretKey := rand.String(20)
 
-				fakeFetcherFactory := fakes.NewFakeFetcherFactory(applicationv2.NewFetcher(k8s))
+				fakeFetcherFactory := applicationv2fakes.NewFakeFetcherFactory(applicationv2.NewFetcher(k8s))
 				fakeFactory := &servicesfakes.FakeFactory{}
 
 				cfg := ApplicationsConfig{
@@ -1061,7 +1058,7 @@ ConfigRepo: %s`, namespace.Name, namespace.Name, "ssh://git@github.com/some-org/
 					Factory:        fakeFactory,
 				}
 
-				fakeClientGetter := fakes.NewFakeClientGetter(k8s)
+				fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
 				appsSrv = NewApplicationsServer(&cfg, WithClientGetter(fakeClientGetter))
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler = middleware.WithLogging(log, mux)
@@ -1094,7 +1091,7 @@ ConfigRepo: %s`, namespace.Name, namespace.Name, "ssh://git@github.com/some-org/
 				fakeFetcher := &applicationv2fakes.FakeFetcher{}
 				// Pretend something went horribly wrong
 				fakeFetcher.ListReturns([]models.Application{}, errors.New(errMsg))
-				fakeFetcherFactory := fakes.NewFakeFetcherFactory(fakeFetcher)
+				fakeFetcherFactory := applicationv2fakes.NewFakeFetcherFactory(fakeFetcher)
 
 				cfg := ApplicationsConfig{
 					Logger:         log,
@@ -1102,7 +1099,7 @@ ConfigRepo: %s`, namespace.Name, namespace.Name, "ssh://git@github.com/some-org/
 				}
 
 				k8s := fake.NewClientBuilder().WithScheme(kube.CreateScheme()).Build()
-				fakeClientGetter := fakes.NewFakeClientGetter(k8s)
+				fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
 				appSrv := NewApplicationsServer(&cfg, WithClientGetter(fakeClientGetter))
 				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appSrv)
 				Expect(err).NotTo(HaveOccurred())
@@ -1162,7 +1159,7 @@ ConfigRepo: %s`, namespace.Name, namespace.Name, "ssh://git@github.com/some-org/
 				}
 
 				factory := &servicesfakes.FakeFactory{}
-				fakeKubeGetter := fakes.NewFakeKubeGetter(&kubefakes.FakeKube{})
+				fakeKubeGetter := kubefakes.NewFakeKubeGetter(&kubefakes.FakeKube{})
 
 				appsSrv = NewApplicationsServer(&ApplicationsConfig{Factory: factory, JwtClient: fakeJWTToken}, WithKubeGetter(fakeKubeGetter))
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
@@ -1221,7 +1218,7 @@ var _ = Describe("Applications handler", func() {
 
 		factory := &servicesfakes.FakeFactory{}
 
-		fakeFetcherFactory := fakes.NewFakeFetcherFactory(applicationv2.NewFetcher(k8s))
+		fakeFetcherFactory := applicationv2fakes.NewFakeFetcherFactory(applicationv2.NewFetcher(k8s))
 
 		cfg := ApplicationsConfig{
 			Logger:         log,
@@ -1229,8 +1226,8 @@ var _ = Describe("Applications handler", func() {
 			Factory:        factory,
 			ClusterConfig:  ClusterConfig{},
 		}
-		fakeClientGetter := fakes.NewFakeClientGetter(k8s)
-		fakeKubeGetter := fakes.NewFakeKubeGetter(k)
+		fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)
+		fakeKubeGetter := kubefakes.NewFakeKubeGetter(k)
 
 		handler, err := NewHandlers(context.Background(), &Config{
 			AppConfig:  &cfg,
