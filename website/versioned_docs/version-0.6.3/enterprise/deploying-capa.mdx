@@ -1,0 +1,76 @@
+---
+title: Deploying CAPA with EKS
+sidebar_position: 1
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+import TierLabel from "../_components/TierLabel";
+import CodeBlock from "@theme/CodeBlock";
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+<h1>
+  {frontMatter.title} <TierLabel tiers="enterprise" />
+</h1>
+
+## Creating your first CAPA Cluster
+
+:::note BEFORE YOU START
+
+Make sure the following software is installed before continuing with these instructions:
+
+- `gitops` >= 0.5.0-rc2. Use `gitops version` to check the currently installed version. If needed, download a newer version of Weave GitOps from the [releases page](https://github.com/weaveworks/weave-gitops/releases).
+- `github cli` >= 2.3.0 [(source)](https://cli.github.com/)
+- `kubectl` [(source)](https://kubernetes.io/docs/tasks/tools/#kubectl) 
+- `eksctl` [(source)](https://github.com/weaveworks/eksctl/releases)
+- `aws cli` [(source)](https://aws.amazon.com/cli/)
+- `clusterclt` >= v1.0.1 [(source)](https://github.com/kubernetes-sigs/cluster-api/releases)
+- `clusterawsadm` >= v1.1.0 [(source)](https://github.com/kubernetes-sigs/cluster-api-provider-aws/releases)
+
+The `AWS_ACCESS_KEY_ID`and `AWS_SECRET_ACCESS_KEY` of a user should be configured either via `aws configure` or exported in the current shell.
+The `GITHUB_TOKEN` should be set as an environment variable in the current shell. It should have permissions to create Pull Requests against the cluster config repo.
+:::
+
+If you've followed the [Upgrade guide](../enterprise/upgrading.mdx) or [Upgrade EKS guide](../enterprise/upgrading-eks.mdx) you should have a management cluster ready to roll.
+
+
+### 1. Configure a capi provider
+
+See [Cluster API Providers](../cluster-management/cluster-api-providers.mdx) page for more details on providers. He're we'll continue with `eks` and `capa` as an example.
+
+```bash
+# Enable support for `ClusterResourceSet`s for automatically installing CNIs
+export EXP_EKS=true
+export EXP_MACHINE_POOL=true
+export CAPA_EKS_IAM=true
+export EXP_CLUSTER_RESOURCE_SET=true
+
+clusterctl init --infrastructure aws
+```
+
+### 2. Add a template
+
+See [CAPI Templates](../cluster-management/templates.mdx) page for more details on this topic. Once we load a template we can use it in the UI to create clusters!
+
+import CapaTemplate from "!!raw-loader!./assets/templates/capa-template.yaml";
+
+Download the template below to your config repository path, then commit and push to your git origin.
+
+<BrowserOnly>
+  {() => (
+    <CodeBlock className="language-bash">
+      curl -o .weave-gitops/apps/capi/templates/capa-template.yaml{" "}
+      {window.location.protocol}//{window.location.host}
+      {require("./assets/templates/capa-template.yaml").default}
+    </CodeBlock>
+  )}
+</BrowserOnly>
+
+<CodeBlock
+  title=".weave-gitops/apps/capi/templates/capa-template.yaml"
+  className="language-yaml"
+>
+  {CapaTemplate}
+</CodeBlock>
+
