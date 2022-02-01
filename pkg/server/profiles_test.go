@@ -19,6 +19,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
+	"github.com/weaveworks/weave-gitops/pkg/fakes"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache/cachefakes"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
@@ -44,12 +45,13 @@ var _ = Describe("ProfilesServer", func() {
 		kubeClient = fake.NewClientBuilder().WithScheme(scheme).Build()
 
 		fakeCache = &cachefakes.FakeCache{}
+		fakeClientGetter := fakes.NewFakeClientGetter(kubeClient)
 		s = &server.ProfilesServer{
 			Log:               testutils.MakeFakeLogr(),
 			HelmRepoName:      "helmrepo",
 			HelmRepoNamespace: "default",
 			HelmCache:         fakeCache,
-			ClientGetter:      server.NewFakeClientGetter(kubeClient),
+			ClientGetter:      fakeClientGetter,
 		}
 
 		helmRepo = &sourcev1beta1.HelmRepository{

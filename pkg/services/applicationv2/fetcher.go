@@ -111,3 +111,9 @@ func translateApp(app wego.Application) (models.Application, error) {
 		AutomationType:      models.AutomationType(app.Spec.DeploymentType),
 	}, nil
 }
+
+// FetcherFactory implementations should create applicationv2.Fetcher objects
+// from a Kubernetes client.
+type FetcherFactory interface {
+	Create(client client.Client) Fetcher
+}

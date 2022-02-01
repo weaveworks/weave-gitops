@@ -11,22 +11,18 @@ import (
 	"strings"
 
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
-	"go.uber.org/zap"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
-
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
-
+	grpcruntime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
-
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	grpcruntime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"go.uber.org/zap"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/metadata"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -64,14 +60,12 @@ type ProfilesServer struct {
 	HelmRepoName      string
 	HelmRepoNamespace string
 	HelmCache         cache.Cache
-	ClientGetter      ClientGetter
+	ClientGetter      kube.ClientGetter
 }
 
 func NewProfilesServer(config ProfilesConfig) pb.ProfilesServer {
-	clientGetter := &DefaultClientGetter{
-		configGetter: NewImpersonatingConfigGetter(config.clusterConfig.DefaultConfig, false),
-		clusterName:  config.clusterConfig.ClusterName,
-	}
+	configGetter := NewImpersonatingConfigGetter(config.clusterConfig.DefaultConfig, false)
+	clientGetter := kube.NewDefaultClientGetter(configGetter, config.clusterConfig.ClusterName)
 
 	return &ProfilesServer{
 		Log:               config.logr,

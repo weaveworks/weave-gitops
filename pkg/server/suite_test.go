@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
 	"k8s.io/apimachinery/pkg/util/rand"
 
+	"github.com/weaveworks/weave-gitops/pkg/fakes"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
@@ -120,17 +121,20 @@ var _ = BeforeEach(func() {
 	ghAuthClient = &authfakes.FakeGithubAuthClient{}
 	glAuthClient = &authfakes.FakeGitlabAuthClient{}
 	jwtClient = auth.NewJwtClient(secretKey)
+	fakeFetcherFactory := fakes.NewFakeFetcherFactory(applicationv2.NewFetcher(k8sClient))
+	fakeClientGetter := fakes.NewFakeClientGetter(k8sClient)
+	fakeKubeGetter := fakes.NewFakeKubeGetter(k)
 
 	cfg := ApplicationsConfig{
 		Factory:          fakeFactory,
 		JwtClient:        jwtClient,
 		GithubAuthClient: ghAuthClient,
-		FetcherFactory:   NewFakeFetcherFactory(applicationv2.NewFetcher(k8sClient)),
+		FetcherFactory:   fakeFetcherFactory,
 		GitlabAuthClient: glAuthClient,
 		ClusterConfig:    ClusterConfig{},
 	}
 	apps = NewApplicationsServer(&cfg,
-		WithClientGetter(NewFakeClientGetter(k8sClient)), WithKubeGetter(NewFakeKubeGetter(k)))
+		WithClientGetter(fakeClientGetter), WithKubeGetter(fakeKubeGetter))
 	pb.RegisterApplicationsServer(s, apps)
 
 	go func() {
