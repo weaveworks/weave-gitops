@@ -31,8 +31,14 @@ export function useListSources(
         const charts = (chartRes as ListHelmChartRes).helmCharts;
 
         return [
-          ..._.map(repos, (r) => ({ name: r.name, type: SourceType.Git })),
-          ..._.map(charts, (c) => ({ name: c.name, type: SourceType.Helm })),
+          ..._.map(repos, (r) => ({
+            ...r,
+            type: SourceType.Git,
+          })),
+          ..._.map(charts, (c) => ({
+            ...c,
+            type: SourceType.Helm,
+          })),
         ];
       }),
     { retry: false }
