@@ -17,7 +17,10 @@ type Props = {
   children?: any;
 };
 
-const navItems = [{ value: V2Routes.ApplicationList, label: "Applications" }];
+const navItems = [
+  { value: V2Routes.ApplicationList, label: "Applications" },
+  { value: V2Routes.KustomizationList, label: "Kustomizations" },
+];
 
 const LinkTab = (props) => (
   <Tab
@@ -73,6 +76,10 @@ const NavContent = styled.div`
     left: 0;
     width: 4px;
     background-color: ${(props) => props.theme.colors.primary};
+  }
+
+  ${Link} {
+    justify-content: flex-start;
   }
 `;
 

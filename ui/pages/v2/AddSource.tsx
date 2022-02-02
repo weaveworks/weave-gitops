@@ -5,18 +5,26 @@ import Flex from "../../components/Flex";
 import Page from "../../components/Page";
 import images from "../../lib/images";
 import { V2Routes } from "../../lib/types";
-import { formatURL } from "../../lib/utils";
+import { formatAppScopedURL, formatURL } from "../../lib/utils";
 
 type Props = {
+  appName?: string;
   className?: string;
 };
 
-function AddSource({ className }: Props) {
+function possiblyAppScoped(appName: string, page: V2Routes) {
+  return appName ? formatAppScopedURL(appName, page) : formatURL(page);
+}
+
+function AddSource({ className, appName }: Props) {
   return (
-    <Page title="Add Source" className={className}>
+    <Page
+      title={`Add Source${appName ? ` for ${appName}` : ""}`}
+      className={className}
+    >
       <Flex align wide>
         <FancyCard
-          to={formatURL(V2Routes.AddGitRepo)}
+          to={possiblyAppScoped(appName, V2Routes.AddGitRepo)}
           image={images.fancyCardBackground}
           title="Git Repository"
         >
@@ -24,7 +32,7 @@ function AddSource({ className }: Props) {
           This gives you the ability to create kustomizations and helm releases.
         </FancyCard>
         <FancyCard
-          to={formatURL(V2Routes.AddHelmRepo)}
+          to={possiblyAppScoped(appName, V2Routes.AddHelmRepo)}
           image={images.fancyCardBackgroundBlue}
           title="Helm Repository"
         >
@@ -32,7 +40,7 @@ function AddSource({ className }: Props) {
           charts via GitOps.
         </FancyCard>
         <FancyCard
-          to={formatURL(V2Routes.AddBucket)}
+          to={possiblyAppScoped(appName, V2Routes.AddBucket)}
           image={images.fancyCardBackgroundOrange}
           title="Bucket"
         >

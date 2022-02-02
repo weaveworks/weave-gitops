@@ -6,6 +6,14 @@ export const formatURL = (page: string, query: any = {}) => {
   return `${page}?${qs.stringify(query)}`;
 };
 
+export function formatAppScopedURL(
+  appName: string,
+  page: string,
+  query: any = {}
+) {
+  return formatURL(page, { ...query, appName });
+}
+
 export const addKustomizationURL = (appName: string) =>
   `${V2Routes.AddKustomization}?${qs.stringify({ appName })}`;
 
@@ -18,6 +26,10 @@ export const getNavValue = (
     case "application":
     case "application_detail":
       return V2Routes.ApplicationList;
+    case "add_kustomization":
+    case "kustomization_list":
+    case "kustomization":
+      return V2Routes.KustomizationList;
 
     default:
       // The "Tabs" component of material-ui wants a bool
@@ -64,4 +76,8 @@ export function convertGitURLToGitProvider(uri: string) {
   const [, provider, org, repo] = matches;
 
   return `https://${provider}/${org}/${repo}`;
+}
+
+export function pageTitleWithAppName(title: string, appName?: string) {
+  return `${title}${appName ? ` for ${appName}` : ""}`;
 }
