@@ -656,11 +656,9 @@ func TestListHelmReleases(t *testing.T) {
 }
 
 func TestGetAllResourcesByLabel(t *testing.T) {
-
 	printOutAllResources("flux-system", map[string]string{
 		"app": "helm-controller",
 	})
-
 }
 
 func TestSingleCall(t *testing.T) {

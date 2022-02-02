@@ -44,7 +44,7 @@ func printOutAllResources(namespace string, labelsMap map[string]string) {
 	}
 
 	ctx := context.Background()
-	dynamic := dynamic.NewForConfigOrDie(config)
+	dynamicClient := dynamic.NewForConfigOrDie(config)
 
 	for _, apiResourceList := range apiResourceListArray {
 		fmt.Printf("Group: %s\n", apiResourceList.GroupVersion)
@@ -68,10 +68,6 @@ func printOutAllResources(namespace string, labelsMap map[string]string) {
 			if apiResource.Namespaced == false {
 				fmt.Printf("\t\tskiping as it cannot be queried. It is not namespace based \n")
 				continue
-			}
-
-			if apiResource.Name == "controllerrevisions" {
-				fmt.Printf("")
 			}
 
 			groupInfo := strings.Split(apiResourceList.GroupVersion, "/")
@@ -101,7 +97,7 @@ func printOutAllResources(namespace string, labelsMap map[string]string) {
 				LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 			}
 
-			list, err := dynamic.Resource(resourceId).Namespace(namespace).List(ctx, listOptions)
+			list, err := dynamicClient.Resource(resourceId).Namespace(namespace).List(ctx, listOptions)
 
 			if err != nil {
 				fmt.Println(err)
