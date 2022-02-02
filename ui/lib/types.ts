@@ -34,6 +34,7 @@ export enum V2Routes {
   Source = "/source",
   AddAutomation = "/add_automation",
   KustomizationList = "/kustomization_list",
+  GitRepo = "/git_repo",
 }
 
 export const WeGONamespace = "wego-system";

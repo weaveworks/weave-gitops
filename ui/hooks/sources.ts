@@ -1,8 +1,10 @@
 import _ from "lodash";
 import { useContext } from "react";
-import { useQuery } from "react-query";
+import { useMutation, useQuery } from "react-query";
 import { AppContext } from "../contexts/AppContext";
 import {
+  AddGitRepositoryReq,
+  AddGitRepositoryRes,
   ListGitRepositoryRes,
   ListHelmChartRes,
   SourceType,
@@ -45,5 +47,13 @@ export function useListGitRepos(
 
   return useQuery("gitrepos", () =>
     apps.ListGitRepositories({ appName, namespace })
+  );
+}
+
+export function useCreateRepo() {
+  const { apps } = useContext(AppContext);
+
+  return useMutation<AddGitRepositoryRes, RequestError, AddGitRepositoryReq>(
+    (body: AddGitRepositoryReq) => apps.AddGitRepository(body)
   );
 }

@@ -1,6 +1,7 @@
 import _ from "lodash";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { AppContext, AppContextType } from "../contexts/AppContext";
 
 export const normalizePath = (pathname) => {
   return _.tail(pathname.split("/"));
@@ -8,7 +9,9 @@ export const normalizePath = (pathname) => {
 
 export default function useNavigation(): {
   currentPage: string;
+  navigate: AppContextType["navigate"];
 } {
+  const { navigate } = useContext(AppContext);
   const location = useLocation();
   const [currentPage, setCurrentPage] = useState("");
 
@@ -19,5 +22,6 @@ export default function useNavigation(): {
 
   return {
     currentPage,
+    navigate,
   };
 }

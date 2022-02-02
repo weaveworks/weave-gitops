@@ -15,7 +15,7 @@ import Text from "./Text";
 
 type Props = {
   className?: string;
-  onSubmit: (state: FormState) => void;
+  onSubmit: (state: GitRepoFormState) => void;
 };
 
 const initialState = () => ({
@@ -26,9 +26,11 @@ const initialState = () => ({
   intervalMinutes: 3,
   intervalSeconds: 0,
   branch: "main",
+  url: "",
+  secretRef: "",
 });
 
-type FormState = ReturnType<typeof initialState>;
+export type GitRepoFormState = ReturnType<typeof initialState>;
 
 const IntervalInput = styled(FormInput)`
   input {
@@ -37,9 +39,9 @@ const IntervalInput = styled(FormInput)`
 `;
 
 function AddGitRepoForm({ className, onSubmit }: Props) {
-  const [formState, setFormState] = React.useState<FormState>(null);
+  const [formState, setFormState] = React.useState<GitRepoFormState>(null);
 
-  const handleChange = (state: { values: FormState }) => {
+  const handleChange = (state: { values: GitRepoFormState }) => {
     if (state.values) {
       setFormState(state.values);
     }
@@ -92,7 +94,7 @@ function AddGitRepoForm({ className, onSubmit }: Props) {
       </Spacer>
       <Spacer m={["large", "large"]}>
         <FormInput
-          name="repoURL"
+          name="url"
           label="Repository URL"
           required
           helperText="The git repository URL. We support https and ssh!"
