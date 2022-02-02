@@ -2,12 +2,14 @@ package server
 
 import (
 	"context"
+	"fmt"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta1"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/app"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -19,10 +21,21 @@ func (as *appServer) AddGitRepository(ctx context.Context, msg *pb.AddGitReposit
 		return nil, doClientError(err)
 	}
 
+	if msg.Reference == nil {
+		return nil, status.Error(codes.InvalidArgument, "missing 'reference' field")
+	}
+
+	u, err := gitproviders.NewRepoURL(msg.Url, false)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid url: %s", err.Error())
+	}
+
+	msg.Url = u.String()
+
 	src := types.ProtoToGitRepository(msg)
 
 	if err := k8s.Create(ctx, src); err != nil {
-		return nil, status.Errorf(codes.Internal, "creating source for app %q: %s", msg.AppName, err.Error())
+		return nil, fmt.Errorf("creating git repo: %w", err)
 	}
 
 	return &pb.AddGitRepositoryRes{
