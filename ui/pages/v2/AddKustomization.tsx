@@ -77,7 +77,7 @@ function AddKustomization({ className, appName, query }: Props) {
     <Page
       error={mutation.error}
       className={className}
-      title="Add Kustomziation"
+      title={`Add Kustomization${appName ? ` for ${appName}` : ""}`}
     >
       <AddKustomizationForm
         loading={mutation.isLoading}

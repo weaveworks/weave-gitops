@@ -5,13 +5,18 @@ import Page from "../../components/Page";
 
 type Props = {
   className?: string;
+  appName?: string;
 };
 
-function AddGitRepo({ className }: Props) {
+function AddGitRepo({ className, appName }: Props) {
   const handleSubmit = (state) => console.log(state);
 
   return (
-    <Page title="Add Git Repository" error={null} className={className}>
+    <Page
+      title={`Add Git Repository${appName ? ` for ${appName}` : ""}`}
+      error={null}
+      className={className}
+    >
       <AddGitRepoForm onSubmit={handleSubmit} />
     </Page>
   );
