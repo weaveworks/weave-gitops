@@ -20,6 +20,7 @@ type Props = {
 const navItems = [
   { value: V2Routes.ApplicationList, label: "Applications" },
   { value: V2Routes.KustomizationList, label: "Kustomizations" },
+  { value: V2Routes.SourcesList, label: "Sources" },
 ];
 
 const LinkTab = (props) => (
