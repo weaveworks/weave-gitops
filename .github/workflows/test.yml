@@ -241,6 +241,83 @@ jobs:
         gitlab-org: ${{ secrets.GITLAB_ORG }}
         artifacts-base-dir: "/tmp/gitops-test"
 
+  notify-failure:
+    name: Send failure notifications
+    runs-on: ubuntu-latest
+    needs:
+      - test
+      - smoke-tests
+      - smoke-tests-long
+      - acceptance-tests-0
+      - acceptance-tests-1
+      - acceptance-tests-2
+      - acceptance-tests-3
+      - ui-tests
+    if: ${{ failure() }}
+    steps:
+      - id: short-sha
+        name: Get short commit SHA
+        run: |
+          sha=$(echo ${{ github.event.head_commit.id }} | cut -b -7)
+          echo "::set-output name=sha::$sha"
+      - id: commit-subject
+        name: Escape the first line of the commit message
+        run: |
+          subject=$(jq -r '.head_commit.message | split("\n")[0]|@json' <${{ github.event_path }})
+          echo "::set-output name=subject::$subject"
+      - name: Send team Slack notification
+        uses: actions-ecosystem/action-slack-notifier@fc778468d09c43a6f4d1b8cccaca59766656996a
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          slack_token: ${{ secrets.SLACK_TOKEN_BLUETONIUM }}
+          channel: team-bluetonium
+          custom_payload: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ":red_circle: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Weave GitOps tests failed on `${{ github.ref_name }}`>"
+                  }
+                },
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": ":memo: Commit information"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "plain_text",
+                    "text": ${{ steps.commit-subject.outputs.subject }}
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "<${{ github.event.head_commit.url }}|:github: View on GitHub>"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": ":bust_in_silhouette: ${{ github.event.head_commit.author.name }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": ":pushpin: `${{ steps.short-sha.outputs.sha }}`"
+                    }
+                  ]
+                }
+              ]
+            }
+
   # Commenting while the library code is unused
   # library-integration-test:
   #   runs-on: ubuntu-latest
