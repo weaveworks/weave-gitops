@@ -7,6 +7,8 @@ import (
 
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -647,4 +649,68 @@ func TestListHelmReleases(t *testing.T) {
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(all.HelmReleases).To(HaveLen(2))
+}
+
+func TestCreateGitRepo(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+
+	c, cleanup := makeGRPCServer(k8sEnv.Rest, t)
+	defer cleanup()
+
+	_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	t.Run("creates a git repo", func(t *testing.T) {
+		ns := newNamespace(ctx, k, g)
+
+		r := &pb.AddGitRepositoryReq{
+			Name:      "myrepo",
+			Namespace: ns.Name,
+			Url:       "git@github.com:jpellizzari/stringly.git",
+			Reference: &pb.GitRepositoryRef{
+				Branch: "main",
+			},
+		}
+
+		_, err := c.AddGitRepository(ctx, r)
+		g.Expect(err).NotTo(HaveOccurred())
+	})
+
+	t.Run("handles an invalid URL", func(t *testing.T) {
+		ns := newNamespace(ctx, k, g)
+
+		r := &pb.AddGitRepositoryReq{
+			Name:      "myrepo",
+			Namespace: ns.Name,
+			Url:       "some invalid url",
+			Reference: &pb.GitRepositoryRef{
+				Branch: "main",
+			},
+		}
+
+		_, err := c.AddGitRepository(ctx, r)
+		g.Expect(err).To(HaveOccurred())
+
+		status, ok := status.FromError(err)
+		g.Expect(ok).To(BeTrue(), "expected a status to exist in error")
+		g.Expect(status.Code()).To(Equal(codes.InvalidArgument))
+	})
+	t.Run("handles a missing reference", func(t *testing.T) {
+		ns := newNamespace(ctx, k, g)
+
+		r := &pb.AddGitRepositoryReq{
+			Name:      "myrepo",
+			Namespace: ns.Name,
+			Url:       "git@github.com:jpellizzari/stringly.git",
+		}
+
+		_, err := c.AddGitRepository(ctx, r)
+		g.Expect(err).To(HaveOccurred())
+
+		status, ok := status.FromError(err)
+		g.Expect(ok).To(BeTrue(), "expected a status to exist in error")
+		g.Expect(status.Code()).To(Equal(codes.InvalidArgument))
+	})
 }
