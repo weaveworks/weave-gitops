@@ -12,6 +12,7 @@ import styled from "styled-components";
 import Button from "./Button";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
+import Link from "./Link";
 import Spacer from "./Spacer";
 import Text from "./Text";
 
@@ -26,14 +27,15 @@ export interface Props {
   }[];
   /** A list of data that will be iterated through to create the columns described in `fields`. */
   rows: any[];
-  /** A list of strings representing the sortable columns of the table, passed into lodash's `_.sortBy`. */
-  sortFields: string[];
+  /** A list of strings representing the sortable columns of the table, passed into lodash's `_.sortBy`. Must be lowercase. */
+  sortFields?: string[];
   /** an optional list of string widths for each field/column. */
   widths?: string[];
+  /** for passing pagination */
+  children?: any;
 }
 
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
-  font-style: italic;
   td {
     text-align: center;
   }
@@ -46,14 +48,13 @@ const TableButton = styled(Button)`
     text-transform: none;
   }
   &.MuiButton-text {
-    color: ${(props) => props.theme.colors.neutral30};
     min-width: 0px;
+    .selected {
+      color: ${(props) => props.theme.colors.neutral40};
+    }
   }
   &.arrow {
     min-width: 0px;
-  }
-  &.selected {
-    color: ${(props) => props.theme.colors.neutral40};
   }
 `;
 
@@ -62,8 +63,9 @@ function UnstyledDataTable({
   className,
   fields,
   rows,
-  sortFields,
+  sortFields = [],
   widths,
+  children,
 }: Props) {
   const [sort, setSort] = React.useState(sortFields[0]);
   const [reverseSort, setReverseSort] = React.useState(false);
@@ -85,7 +87,9 @@ function UnstyledDataTable({
             setSort(label.toLowerCase());
           }}
         >
-          <h2>{label}</h2>
+          <h2 className={sort === label.toLowerCase() && "selected"}>
+            {label}
+          </h2>
         </TableButton>
         <Spacer padding="xxs" />
         {sort === label.toLowerCase() ? (
@@ -122,7 +126,7 @@ function UnstyledDataTable({
                   {sortFields.includes(f.label.toLowerCase()) ? (
                     <SortableLabel label={f.label} />
                   ) : (
-                    <h2 className="thead">{f.label}</h2>
+                    <h2>{f.label}</h2>
                   )}
                 </TableCell>
               ))}
@@ -134,24 +138,44 @@ function UnstyledDataTable({
             ) : (
               <EmptyRow colSpan={fields.length}>
                 <TableCell colSpan={fields.length}>
-                  <span style={{ fontStyle: "italic" }}>No rows</span>
+                  <Flex center align>
+                    <Icon
+                      color="neutral20"
+                      type={IconType.RemoveCircleIcon}
+                      size="base"
+                    />
+                    <Spacer padding="xxs" />
+                    <Text color="neutral30">No data</Text>
+                  </Flex>
                 </TableCell>
               </EmptyRow>
             )}
           </TableBody>
         </Table>
       </TableContainer>
+      <Spacer padding="xs" />
+      {/* optional pagination component */}
+      {children}
     </div>
   );
 }
 
 export const DataTable = styled(UnstyledDataTable)`
   h2 {
+    font-size: 14px;
+    font-weight: 600;
+    color: ${(props) => props.theme.colors.neutral30};
     margin: 0px;
   }
-  .thead {
-    color: ${(props) => props.theme.colors.neutral30};
-    font-weight: 800;
+  .MuiTableRow-root {
+    transition: background 0.5s ease-in-out;
+  }
+  .MuiTableRow-root:not(.MuiTableRow-head):hover {
+    background: ${(props) => props.theme.colors.neutral10};
+    transition: background 0.5s ease-in-out;
+  }
+  ${Link} ${Text} {
+    font-size: 14px;
   }
 `;
 

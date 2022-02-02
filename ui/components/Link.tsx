@@ -12,7 +12,15 @@ type Props = {
   newTab?: boolean;
 };
 
-function Link({ children, href, className, to = "", newTab, ...props }: Props) {
+function Link({
+  children,
+  href,
+  className,
+  to = "",
+  newTab,
+
+  ...props
+}: Props) {
   const txt = <Text color="primary">{children}</Text>;
 
   if (href) {
