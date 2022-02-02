@@ -3,7 +3,16 @@ package server
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
 	"testing"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/dynamic"
+
+	"k8s.io/client-go/kubernetes"
+	ctrl "sigs.k8s.io/controller-runtime"
 
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1beta1 "github.com/fluxcd/source-controller/api/v1beta1"
@@ -647,4 +656,185 @@ func TestListHelmReleases(t *testing.T) {
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(all.HelmReleases).To(HaveLen(2))
+}
+
+func TestGetAllResourcesByLabel(t *testing.T) {
+	//g := NewGomegaWithT(t)
+	//
+	//ctx := context.Background()
+	// Attempt 1
+	//_, k, err := kube.NewKubeHTTPClientWithConfig(k8sEnv.Rest, "")
+	//g.Expect(err).NotTo(HaveOccurred())
+	//list := &sourcev1.GitRepositoryList{}
+	//opts := client.MatchingLabels{
+	//	"types.PartOfLabel": "appName",
+	//}
+	//err = k.List(ctx, list, &opts, client.InNamespace("msg.Namespace"))
+	//g.Expect(err).ShouldNot(HaveOccurred())
+	// Attempt 2
+	//ctx := context.Background()
+	//config := ctrl.GetConfigOrDie()
+	//dynamic := dynamic.NewForConfigOrDie(config)
+	////
+	//namespace := "flux-system"
+	//
+	//resourceId := schema.GroupVersionResource{
+	//	Group:    "",
+	//	Version:  "v1",
+	//	Resource: "bindings",
+	//}
+	//list, err := dynamic.Resource(resourceId).Namespace(namespace).
+	//	List(ctx, metav1.ListOptions{})
+	//
+	//if err != nil {
+	//	fmt.Println(err)
+	//} else {
+	//	for _, item := range list.Items {
+	//		fmt.Printf("%+v\n", item)
+	//	}
+	//}
+	//Attempt 3 (Listing resources)
+	config := ctrl.GetConfigOrDie()
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		fmt.Printf("Error during Kubernetes client initialization, %s", err.Error())
+		os.Exit(1)
+	}
+
+	apiGroups, apiResourceListArray, err := clientset.Discovery().ServerGroupsAndResources()
+	if err != nil {
+		fmt.Printf("Error during server resource discovery, %s", err.Error())
+		os.Exit(1)
+	}
+	_ = apiGroups
+
+	ctx := context.Background()
+	dynamic := dynamic.NewForConfigOrDie(config)
+
+	for _, apiResourceList := range apiResourceListArray {
+		fmt.Printf("Group: %s\n", apiResourceList.TypeMeta.String())
+
+		for _, apiResource := range apiResourceList.APIResources {
+			fmt.Printf("\tResource => %s\n", apiResource.Name)
+
+			canBeQueryied := false
+
+			for _, verb := range apiResource.Verbs {
+				if verb == "list" {
+					canBeQueryied = true
+				}
+			}
+
+			if !canBeQueryied {
+				fmt.Printf("\t\tskiping as it cannot be queried \n")
+				continue
+			}
+
+			if apiResource.Namespaced == false {
+				fmt.Printf("\t\tskiping as it cannot be queried. It is not namespace based \n")
+				continue
+			}
+
+			if apiResource.Name == "controllerrevisions" {
+				fmt.Printf("")
+			}
+
+			groupInfo := strings.Split(apiResourceList.GroupVersion, "/")
+
+			var group, version string
+			if len(groupInfo) != 2 {
+				group = ""
+				version = groupInfo[0]
+			} else {
+				group = groupInfo[0]
+				version = groupInfo[1]
+			}
+
+			resourceId := schema.GroupVersionResource{
+				Group:    group,
+				Version:  version,
+				Resource: apiResource.Name,
+			}
+
+			fmt.Printf("\t querying Group:%s Version:%s Resource:%s\n", apiResourceList.TypeMeta.APIVersion, apiResourceList.GroupVersion, apiResource.Name)
+
+			list, err := dynamic.Resource(resourceId).Namespace("flux-system").List(ctx, metav1.ListOptions{})
+
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				for _, item := range list.Items {
+					fmt.Printf("\t\t%+v\n", item.GetName())
+				}
+			}
+		}
+		//if enableVerboseLogging {
+
+		//fmt.Printf("Group: %s\n", apiResourceList.GroupVersion)
+		////}
+		//// rbac rules only look at API group names, not name & version
+		//groupOnly := strings.Split(apiResourceList.GroupVersion, "/")[0]
+		//// core API doesn't have a group "name". We set to "core" and replace at the end with a blank string in the rbac policy rule
+		//if apiResourceList.GroupVersion == "v1" {
+		//	groupOnly = "core"
+		//}
+		//
+		//resourceList := make([]string, 0)
+		//resourcesByVerb := make(map[string][]string)
+		//
+		//for _, apiResource := range apiResourceList.APIResources {
+		//	//if enableVerboseLogging {
+		//	fmt.Printf("Resource: %s - Verbs: %s\n",
+		//		apiResource.Name,
+		//		apiResource.Verbs.String())
+		//	//}
+		//	fmt.Printf("Verbs %s \n\n", apiResource.Verbs)
+		//
+		//	resourceList = append(resourceList, apiResource.Name)
+		//
+		//	canBeQueryied := false
+		//	for _, verb := range apiResource.Verbs {
+		//		if verb == "list" {
+		//			canBeQueryied = true
+		//		}
+		//	}
+		//
+		//}
+		//
+		//for k := range resourcesByVerb {
+		//	var sb strings.Builder
+		//
+		//	sb.WriteString(groupOnly)
+		//	sb.WriteString("!")
+		//	sb.WriteString(k)
+		//	//resourcesByGroupAndVerb.Set(sb.String(), resourcesByVerb[k])
+		//	fmt.Println("OUTPUT:", sb.String())
+		//}
+		fmt.Println("")
+	}
+}
+
+func TestSingleCall(t *testing.T) {
+	ctx := context.Background()
+	config := ctrl.GetConfigOrDie()
+	dynamic := dynamic.NewForConfigOrDie(config)
+
+	namespace := "flux-system"
+
+	resourceId := schema.GroupVersionResource{
+		Group:    "apps",
+		Version:  "v1",
+		Resource: "controllerrevisions",
+	}
+	list, err := dynamic.Resource(resourceId).Namespace(namespace).
+		List(ctx, metav1.ListOptions{})
+
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		for _, item := range list.Items {
+			fmt.Printf("%+v\n", item)
+		}
+	}
 }
