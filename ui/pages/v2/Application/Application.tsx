@@ -1,9 +1,11 @@
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";
+import AddSourceButton from "../../../components/AddSourceButton";
 import AutomationsTable from "../../../components/AutomationsTable";
 import Button from "../../../components/Button";
 import FancyCard from "../../../components/FancyCard";
+import Flex from "../../../components/Flex";
 import Page from "../../../components/Page";
 import SourcesTable from "../../../components/SourcesTable";
 import Spacer from "../../../components/Spacer";
@@ -69,6 +71,10 @@ function Application({ className, name, namespace = WeGONamespace }: Props) {
         />
       </Spacer>
       <Spacer m={["small"]}>
+        <Flex wide align between>
+          <h3>Sources</h3>
+          <AddSourceButton appName={name} />
+        </Flex>
         <SourcesTable appName={name} sources={sources} />
       </Spacer>
     </Page>

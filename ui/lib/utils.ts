@@ -31,6 +31,14 @@ export const getNavValue = (
     case "kustomization":
       return V2Routes.KustomizationList;
 
+    case "add_source":
+    case "sources":
+    case "source":
+    case "add_helm_repo":
+    case "add_bucket":
+    case "add_git_repo":
+      return V2Routes.SourcesList;
+
     default:
       // The "Tabs" component of material-ui wants a bool
       return false;

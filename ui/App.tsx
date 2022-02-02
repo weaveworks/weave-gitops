@@ -36,6 +36,7 @@ import Application from "./pages/v2/Application/Application";
 import ApplicationList from "./pages/v2/ApplicationList/ApplicationList";
 import KustomizationList from "./pages/v2/KustomizationList";
 import NewApp from "./pages/v2/NewApp";
+import SourcesList from "./pages/v2/SourcesList";
 
 const queryClient = new QueryClient();
 
@@ -153,6 +154,11 @@ export default function App() {
                       exact
                       path={V2Routes.KustomizationList}
                       component={KustomizationList}
+                    />
+                    <Route
+                      exact
+                      path={V2Routes.SourcesList}
+                      component={SourcesList}
                     />
                     <Redirect exact from="/" to={V2Routes.ApplicationList} />
                     <Route exact path="*" component={Error} />
