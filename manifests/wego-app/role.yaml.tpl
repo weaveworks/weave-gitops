@@ -20,5 +20,8 @@ rules:
     resources: [ "helmrepositories" ]
     verbs: [ "*" ]
   - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: [ "helmcharts" ]
+    verbs: [ "*" ]
+  - apiGroups: ["source.toolkit.fluxcd.io"]
     resources: [ "gitrepositories" ]
     verbs: [ "*" ]

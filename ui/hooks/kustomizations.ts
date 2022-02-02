@@ -6,7 +6,7 @@ import {
   AddKustomizationRes,
   ListKustomizationsRes,
 } from "../lib/api/app/flux.pb";
-import { RequestError } from "../lib/types";
+import { RequestError, WeGONamespace } from "../lib/types";
 
 export function useCreateKustomization() {
   const { apps } = useContext(AppContext);
@@ -16,7 +16,10 @@ export function useCreateKustomization() {
   );
 }
 
-export function useGetKustomizations(appName: string, namespace: string) {
+export function useGetKustomizations(
+  appName?: string,
+  namespace: string = WeGONamespace
+) {
   const { apps } = useContext(AppContext);
 
   return useQuery<ListKustomizationsRes, RequestError>(

@@ -25,6 +25,7 @@ const initialState = () => ({
   publicRepo: "true",
   intervalMinutes: 3,
   intervalSeconds: 0,
+  branch: "main",
 });
 
 type FormState = ReturnType<typeof initialState>;
