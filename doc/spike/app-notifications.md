@@ -110,6 +110,16 @@ Create an Application Provider to be the provider for all alerts. This dispatche
 ### Application Alerter
 Create a new type of Flux Alerter that is application-aware. It watches all kustomization/helm events and filters them based on application. It augments the event with application data then utilizes the providers as they exist today. E.g., selecting all kustomizations with the label `app.kubernetes.io/name: billing` and watching for events from these.
 
+There is an open enhancement request for this capability - https://github.com/fluxcd/notification-controller/issues/275.
+
+An alternative would be to apply a naming standard for the flux sources/appliers and update the notification controller to support a HasPrefix match.  e.g., `name:wego-app-billing-` indicates we want all flux sources/appliers with a name starting with `wego-app-billing-`.  Naming conventions would be less than ideal.  Additionally, we may need to include other label values in our matching.
+
+#### High-level processing background
+The flux sources and appliers are configured with an --events-addr which is the name of the notification-controller.  The notification-controller takes these events, queries k8s for Alerts, loops through the Alerts looking for a match.  If there is a match, it then invokes the defined provider. 
+
+To implement matching, we will likely need to update the [Alert CRD](https://fluxcd.io/docs/components/notification/alert/) to add support for label matching and modify the notification controller to use these labels. 
+
+
 #### Pros
 - Application-aware
 - leverages existing flux providers
@@ -120,7 +130,7 @@ Create a new type of Flux Alerter that is application-aware. It watches all kust
     - The downside is keeping this up to date as kustomizations/helm releases come and go 
 
 ### Application provider
-Create an application provider that uses the involved object for the event, gathers the application labels, and writes structured logging records. These structured logs can then be collected and used in tools like grafana with loki to graph activity by application
+Create an application provider that uses the involved object for the event, gathers the application labels, and writes structured logging records. These structured logs can then be collected and used in tools like loki, datadoc, etc and potentially used for graphing activity.  As an example. [loki](https://grafana.com/oss/loki/) can be used as a datasource in Grafana and used to create dashboards.
 #### Pros
 - Application-aware
 - Log data can be accumulated in logging solutions defined by the customer
