@@ -17,7 +17,7 @@ SKIP_FETCH_TOOLS=${SKIP_FETCH_TOOLS:-""}
 # Derive from GOOS
 RELEASE_OS=$(title_case "$RELEASE_GOOS")
 
-if [ ! -z "$SKIP_FETCH_TOOLS" ]; then
+if [ -n "$SKIP_FETCH_TOOLS" ]; then
     echo "skipping fetch tools..."
     exit 0
 fi
@@ -42,6 +42,10 @@ instantiate_url() {
     url=${url//\$\{goos\}/$RELEASE_GOOS}
     url=${url//\$\{os\}/$RELEASE_OS}
     url=${url//\$\{version\}/$(run_stoml version)}
+    # hack for tilt because of https://github.com/tilt-dev/tilt/issues/5434
+    if [[ "${url}" = *"tilt"* ]] && [[ "${url}" = *"darwin"* ]]; then
+      url="${url/darwin/mac}"
+    fi
     echo "${url}"
 }
 
@@ -80,9 +84,9 @@ download_dependency() {
     txtpath=$(instantiate_url "$(run_stoml txtpath)")
     local custom_bindir
     custom_bindir=$(run_stoml bindir)
-    mkdir -p ${custom_bindir:-$bin_dir}
+    mkdir -p "${custom_bindir:-$bin_dir}"
     local checksum_path
-    echo $tarpath
+    echo "${tarpath}"
     if check_url "${txtpath}"; then
         url_and_path="${txtpath}"
         checksum_path="${custom_bindir}"/"${tool}_checksum.txt"
@@ -118,4 +122,4 @@ for tool in $tools; do
 done
 
 echo "Installing golangci-lint"
-curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.44.0
+curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$(go env GOPATH)"/bin v1.44.0
